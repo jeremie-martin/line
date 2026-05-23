@@ -123,26 +123,45 @@ search, spec verification, drift reports.
 
 ### Event types
 
-All three event types emit at the frame of the salient transition. They can
+All event types emit at the frame of the salient transition. They can
 co-occur in time (different frames close together) and a single trajectory
 may emit any mix.
 
 | Event | Signature | Parameter |
 |---|---|---|
-| **landing** | sled airborne for `T > K` frames, then re-contacts | event fires at frame of re-contact |
-| **bounce** | sled airborne for `1 ≤ T ≤ K` frames, then re-contacts | event fires at frame of re-contact |
+| **landing** | sled airborne for `T > K` frames, then re-contacts, **and contact persists** ≥ `M·R` of the next `M` frames | event fires at frame of re-contact |
+| **bounce** | sled airborne for `1 ≤ T ≤ K` frames, then re-contacts (same persistence rule) | event fires at frame of re-contact |
 | **kick** | angle between `velocity[f]` and `velocity[f-1]` exceeds `θ` (regardless of contact state) | event fires at frame `f` |
+| **flyThrough** | sled airborne for `T > K` frames, briefly contacts (< `M·R` of next `M` frames), then airborne again — i.e. tunneled through a line at high `\|v\|` | event fires at frame of re-contact |
 
 Threshold parameters, project-wide:
 
 - `K = 5` frames (~125 ms) — separates "bounce" from "landing"
 - `θ = 20°` per frame — minimum direction change for "kick"
+- `M = 5` frames, `R = 0.5` — post-event persistence window: the sled must
+  be in contact for `≥ ⌈M·R⌉ = 3` of the next `5` frames for the event to
+  count as landing/bounce. Otherwise it's a `flyThrough` (if the prior air
+  run was long) or noise (suppressed, if the air run was short).
+
+The persistence rule exists because lr-core's CCD can resolve a high-`|v|`
+sled point as colliding on one frame and re-emerging the next (the rider
+tunnels through the line). Without persistence, every such tunneling
+event would be miscalled a landing.
 
 Both `K` and `θ` are tuned by visual inspection through the dashboard
 (below); the values above are starting guesses.
 
 The detector also defines **what "sled" means**: contact of any sled-side
-contact point (`SLED_PEG`, `BUTT_LFOOT`, `BUTT_RFOOT`) with a line.
+collision point (`PEG`, `TAIL`, `NOSE`, `STRING`) with a line. (Earlier
+drafts of this document named the rider-to-sled *bind constraints* by
+mistake. The names above are the actual `CollisionPoint.id` values lr-core
+emits.)
+
+The contact signal itself comes from `engine.getUpdatesAtFrame(f)`, which
+re-emits `CollisionUpdate` records every frame a collision point intersects
+a line (verified empirically: 49,915 collisions across 1,083/1,201 frames
+on `test.track.json`). The colliding point id lives at
+`update.updated[0].id`; `update.id` is the line id, not the point name.
 
 ### Speed
 
@@ -193,7 +212,13 @@ responsible for boundary feasibility.
 A ride **does not satisfy the spec** unless `terminus.reason = endOfSpec` and
 `terminus.frame ≥ specEndFrame`. Detection rules for the other reasons:
 
-- `sledBroken`: lr-core's rider exposes `SLED_INTACT.isBinded() = false`.
+- `sledBroken`: lr-core's rider exposes `SLED_INTACT.isBinded() === false`
+  (the sled itself has fallen apart).
+- `riderEjected`: `RIDER_MOUNTED.isBinded() === false` (the rider has been
+  thrown off an intact sled). Visually indistinguishable from `sledBroken`
+  to most viewers — both mean the ride is dead — and frequently the more
+  *temporally early* of the two failures in practice. The detector emits
+  this when it trips first.
 - `rideStalled`: `|v| < v_stall` for `N` consecutive frames
   (concrete values TBD; first guess `v_stall = 0.05`, `N = 20`).
 - `leftWorld`: rider position outside some envelope (probably not needed in
@@ -238,11 +263,14 @@ Stated in order of dependency. Each is a falsifiable target.
   redirect aligns with a detector event of the right type within `ε_t`.
   No compiler yet.
 - **Step 1 — first event.** A primitive (parameterized geometry) that
-  produces one landing within `ε_t` of a target timestamp, verified by the
-  detector. No spec language yet — just "given target time T, get a track
-  whose detector reports a landing at T".
-- **Step 2 — chain.** Multiple events in sequence; the detector confirms
-  them all within `ε_t`.
+  produces one **landing** within `ε_t` of a target timestamp, verified by
+  the detector. No spec language yet — just "given target time T, get a
+  track whose detector reports a landing at T". Landing is chosen over
+  bounce/kick for Step 1 because Step 0 validation suggested it's the most
+  cleanly authorable atom (see Open questions).
+- **Step 2 — chain.** Multiple landings in sequence; the detector confirms
+  them all within `ε_t`. Verified for ≥30-frame spacing (5+ landings).
+  Tighter spacings need a different primitive — see Open questions.
 - **Step 3+** — additive: speed targets, varying-rate specs, mixed event
   types, multi-segment continuity. Each step a new falsifiable acceptance
   criterion; no fixed roadmap beyond this.
@@ -284,6 +312,36 @@ The following are deliberately open, to be settled by experimentation:
 - Whether to ever allow acceleration lines as a speed-control tool:
   currently leaning against (aesthetic cost, harder scheduling) but not
   banned. Revisit if pure geometry can't track `v(t)`.
+- **Are bounces and kicks independent enough to be authoring atoms, or
+  are they mostly side-effects of landings?** Observation from Step 0
+  dashboard validation: bounces and kicks fire frequently within a few
+  frames of landings (the brief re-contact after a landing reads as a
+  bounce; the velocity redirect at landing reads as a kick at θ=20°).
+  Manually authoring tracks that *emphasize* bounce- or kick-like
+  behavior — independent of landings — proved difficult. Implication:
+  treat **landing as the primary authoring atom** for Step 1 and Step 2.
+  Keep bounce/kick in the detector as secondary measurements (useful as
+  diagnostic / co-event labels), but don't build a primitive library
+  around them until we have evidence they can be authored cleanly.
+  Revisit when we have early compiler outputs.
+- **Minimum chainable spacing.** Step 2 demonstrated that with the
+  current primitive (short horizontal line, halfWidth=8), chained
+  landings work cleanly at ≥30 frames apart (≈120 BPM equivalent or
+  slower) and become unreliable at 20-frame spacing. The cause is
+  physical: the rider needs enough fall time between landings to
+  accumulate vy for a clean re-contact; below the threshold, sled
+  bouncing dominates and the average y stabilizes (no further descent
+  ⇒ no clean landings). For tighter spacings we'll likely need a
+  primitive that *redirects* velocity (angled / shaped catch) rather
+  than merely *catches* it, preserving downward momentum across the
+  chain. Defer until music sync actually demands faster events.
+- **Incidental landings between targets.** When two target landings are
+  spaced widely, the rider can bounce and re-contact between them — the
+  detector honestly reports these as extra landings. This is fine under
+  best-effort + drift-report semantics (the spec asked for landings at
+  T_i, the rider achieves those *plus* extras). Open: should the
+  compiler try to suppress extras (e.g. by tuning line angles), or
+  just report them as drift?
 
 ## Deferred (out of current scope)
 

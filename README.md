@@ -30,12 +30,27 @@ npx tsx scripts/export.ts \
   --zoom=3 --1080p --hq \
   --out=shakedown/myvideo.mp4
 
+# OR — detect events AND render in one shot, ready for the dashboard
+npm run inspect -- --track=test.track.json --1080p --hq
+
 # stress-test the helper (4 scenarios, ~7 min)
 npx tsx scripts/stress.ts
 
 # verify lr-core (Node-native physics) still matches the bundle exactly
 npm run parity
 ```
+
+To visually inspect a run (events, plots, video):
+
+```bash
+# in a third terminal
+npm run dash                                              # serves :8767 (range-aware)
+# open http://127.0.0.1:8767/dashboard/?run=test
+```
+
+(The dashboard server is `scripts/serve.ts` — a ~70 LoC Node static server
+with byte-range support, which `<video>` scrubbing requires. Python's
+`http.server` lacks Range support and breaks seek.)
 
 `scripts/export.ts` flags:
 - `--track=PATH` (required) — Line Rider JSON track
@@ -171,13 +186,45 @@ DoodleChaos-style videos mix both.
 - **lr-core ↔ bundle physics parity** — byte-identical trajectories on the
   test track. `npm run parity` re-runs the check.
 
+## Detect & dashboard
+
+Two scripts complete the substrate for Step 0 of [`PROBLEM.md`](./PROBLEM.md):
+
+- **`scripts/lib/detector.ts`** — pure function over a per-frame trajectory.
+  Outputs `{measurements, events, terminus, params}`. Events are `landing`
+  (airborne > K=5 frames then re-contact), `bounce` (1..K then re-contact),
+  and `kick` (velocity-direction change ≥ θ=20°). Constants live at the top
+  of the module so they can be tuned from the dashboard validation loop.
+- **`scripts/inspect.ts`** — composite CLI. Builds the lr-core engine for a
+  track, runs the detector, copies the track, auto-renders `video.mp4` if
+  missing (via the same Playwright + mirror path as `export.ts`), and
+  appends the run to `shakedown/runs.json`. Output goes to
+  `shakedown/<run-name>/`.
+
+```bash
+# any track works — runName defaults to basename
+npm run inspect -- --track=mycustom.track.json
+# Dashboard → http://127.0.0.1:8767/dashboard/?run=mycustom
+```
+
+If the mirror server isn't reachable, `inspect` warns and skips the render
+— detection still completes; re-run with `--render` once the server is up.
+
+The **dashboard** (`dashboard/index.html`, served by `npm run dash`) plays
+the rendered mp4 alongside time-aligned uPlot charts (speed, airborne,
+position.y) with event markers overlaid. Two-way cursor sync: video time
+drives the chart cursor; clicking a chart seeks the video. Opening
+`http://127.0.0.1:8767/dashboard/` with no query param lists every run
+in `shakedown/runs.json`.
+
 ## Next directions
 
-The generator side of the pipeline. See [`PROBLEM.md`](./PROBLEM.md) for the
-problem statement, pinned definitions (event types: landing / bounce / kick,
-speed semantics, units, tolerances, initial conditions), and the falsifiable
-success-criterion ladder. Step 0 is **detector + dashboard** (visually verify
-the measurements before any compiler work).
+The generator side of the pipeline. [`PROBLEM.md`](./PROBLEM.md) pins the
+problem statement, definitions (event types: landing / bounce / kick,
+speed semantics, units, tolerances, initial conditions), and the
+falsifiable success-criterion ladder. Step 0 (detector + dashboard) is
+the current iteration — the dashboard is the visual acceptance gate for
+any change to detector constants or contact-signal logic.
 
 Background items still open (not blocking the generator):
 

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>line — dashboard</title>
+<link rel="stylesheet" href="vendor/uPlot.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1><a href="/dashboard/">line</a> <span id="run-label"></span></h1>
+  <nav id="legend">
+    <span class="leg leg-landing">landing</span>
+    <span class="leg leg-bounce">bounce</span>
+    <span class="leg leg-kick">kick</span>
+    <span class="leg leg-flythrough">flyThrough</span>
+  </nav>
+  <div id="meta"></div>
+</header>
+
+<main id="run-view" hidden>
+  <div id="video-wrap">
+    <video id="video" controls playsinline preload="metadata"></video>
+    <div id="video-overlay" aria-hidden="true">
+      <div class="flash" id="flash"></div>
+      <div class="badges" id="badges"></div>
+    </div>
+  </div>
+  <section id="stats"></section>
+  <section id="charts"></section>
+  <section id="event-list">
+    <h2>events</h2>
+    <ol id="event-ol"></ol>
+  </section>
+</main>
+
+<main id="landing-view" hidden>
+  <h2>recent runs</h2>
+  <ol id="runs-list"></ol>
+  <p class="hint">
+    No run picked. Pass <code>?run=&lt;name&gt;</code> in the URL, or click a run above.
+    Runs are created by <code>npm run inspect -- --track=…</code>.
+  </p>
+</main>
+
+<script src="vendor/uPlot.iife.min.js"></script>
+<script type="module" src="main.js"></script>
+</body>
+</html>

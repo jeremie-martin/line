@@ -8,6 +8,10 @@
     "probe": "tsx scripts/probe.ts",
     "probe2": "tsx scripts/probe2.ts",
     "export": "tsx scripts/export.ts",
+    "inspect": "tsx scripts/inspect.ts",
+    "landing": "tsx scripts/landing.ts",
+    "chain": "tsx scripts/chain.ts",
+    "dash": "tsx scripts/serve.ts",
     "unpack": "webcrack -f -o unpacked mirror/_v2153.0/main.js",
     "parity": "tsx scripts/parity.ts"
   },

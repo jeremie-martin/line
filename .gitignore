@@ -2,5 +2,6 @@ node_modules/
 
 # Derived/test artifacts — reproducible by running scripts/
 shakedown/
+generated/
 
 .DS_Store

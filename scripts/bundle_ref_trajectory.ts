@@ -18,9 +18,10 @@ import { resolve } from "node:path";
 const ORIGIN = process.env.LR_ORIGIN ?? "http://127.0.0.1:8765";
 const TRACK = process.argv[2] ?? "test.track.json";
 const OUT = "shakedown/bundle-trajectory.json";
-const FRAMES = [0, 1, 10, 30, 60, 100, 200, 300, 600, 900, 1200];
-
 const track = JSON.parse(readFileSync(resolve(TRACK), "utf8"));
+// Dense range — every frame 0..duration inclusive (1201 frames for test.track.json).
+const FRAMES: number[] = Array.from({ length: (track.duration ?? 1200) + 1 }, (_, i) => i);
+console.log(`will sample ${FRAMES.length} frames (0..${FRAMES[FRAMES.length - 1]})`);
 mkdirSync(resolve("shakedown"), { recursive: true });
 
 const browser = await chromium.launch({ headless: true });

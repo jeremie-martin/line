@@ -32,27 +32,31 @@ for (const line of track.lines) {
 const buildMs = performance.now() - t0;
 console.log(`built engine in ${buildMs.toFixed(1)}ms`);
 
-// Sample rider positions across the track duration. test.track.json has
-// duration=1200 frames (30 s @ 40 fps).
-const sampleFrames = [0, 1, 10, 30, 60, 100, 200, 300, 600, 900, 1200];
+// Dense parity range: every single frame from 0 to track.duration inclusive.
+// test.track.json has duration=1200, so 1201 frames total.
+const durationFrames: number = track.duration ?? 1200;
+const ALL_FRAMES: number[] = Array.from({ length: durationFrames + 1 }, (_, i) => i);
+const SAMPLE_LOG_FRAMES = [0, 1, 10, 30, 60, 100, 200, 300, 600, 900, durationFrames];
+
 const t1 = performance.now();
-const positions = sampleFrames.map((frame) => {
+const allPositions = ALL_FRAMES.map((frame) => {
   const rider = engine.getRider(frame);
   return { frame, x: rider.position.x, y: rider.position.y };
 });
 const simMs = performance.now() - t1;
 
-console.log(`\nrider positions (lr-core, ${simMs.toFixed(1)}ms for ${sampleFrames.length} samples up to frame ${sampleFrames[sampleFrames.length - 1]}):`);
-for (const p of positions) {
+console.log(`\nrider positions (lr-core, ${simMs.toFixed(1)}ms for ALL ${ALL_FRAMES.length} frames up to frame ${durationFrames}):`);
+for (const f of SAMPLE_LOG_FRAMES) {
+  const p = allPositions[f];
   console.log(`  frame ${String(p.frame).padStart(5)}: x=${p.x.toFixed(4)} y=${p.y.toFixed(4)}`);
 }
 
-// Also dump full-precision trajectory for parity comparison, including all
-// available points (BODY, NOSE, SHOULDER, BUTT, ...).
+// Full-precision trajectory dump for parity comparison, across ALL frames,
+// including every contact point.
 import { writeFileSync, mkdirSync as _mk } from "node:fs";
 const POINT_NAMES = ["NOSE", "SHOULDER", "BUTT", "BODY", "BODY_SLED_JOINT", "LFOOT", "RFOOT", "LHAND", "RHAND", "SLED_PEG", "TAIL"];
 _mk("shakedown", { recursive: true });
-const detailed = sampleFrames.map((frame) => {
+const detailed = ALL_FRAMES.map((frame) => {
   const r = engine.getRider(frame);
   const pts: Record<string, { x: number; y: number }> = {};
   for (const name of POINT_NAMES) {
@@ -69,7 +73,7 @@ const detailed = sampleFrames.map((frame) => {
   };
 });
 writeFileSync("shakedown/lrcore-trajectory.json", JSON.stringify({ track: trackPath, frames: detailed }, null, 2));
-console.log(`\nwrote shakedown/lrcore-trajectory.json`);
+console.log(`\nwrote shakedown/lrcore-trajectory.json (${detailed.length} frames)`);
 
 // Microbenchmark: how long to compute a single rider at frame 1200 from a
 // fresh engine? (No memoization, worst case.)

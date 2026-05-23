@@ -13,6 +13,10 @@
  */
 
 import { type Vec2 } from "./detector.ts";
+import { jitter, jitterInt } from "./rng.ts";
+
+/** Convenience: an RNG that an adapter may use to jitter chosen defaults. */
+export type AdaptRng = (() => number) | undefined;
 
 /** A snapshot of the rider's state at the moment a move is being placed. */
 export type IncomingState = {
@@ -61,34 +65,19 @@ export type ResolvedSlideParams = {
 
 export type SlideUserParams = Partial<ResolvedSlideParams>;
 
-export function adaptSlide(userOpts: SlideUserParams, rider: IncomingState): ResolvedSlideParams {
-  // startAngleDeg — speed-gated tangent-matching.
-  //
-  // Low speed (< 6 units/frame): the rider's kinetic energy is small enough
-  // that a perpendicular catch is survivable. Use the traditional 20°
-  // catch — produces strong deflection and a long slide.
-  //
-  // Higher speed: need to match the rider's incoming direction more
-  // closely so the perpendicular impact doesn't eject them. Tangent-match
-  // up to 65° (caps at 65° because beyond that the rider's path is too
-  // vertical for any reasonable line geometry to redirect).
+export function adaptSlide(userOpts: SlideUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedSlideParams {
   let startAngleDeg = userOpts.startAngleDeg;
   if (startAngleDeg === undefined) {
     if (rider.speed < 6) {
-      // Low speed — traditional catch, capped so the line isn't steeper
-      // than the rider's incoming direction.
-      startAngleDeg = Math.min(20, Math.max(rider.angleDeg, 3));
+      startAngleDeg = jitter(rng, Math.min(20, Math.max(rider.angleDeg, 3)), 0.2);
     } else {
-      // Higher speed — tangent-match.
-      startAngleDeg = Math.min(rider.angleDeg, 65);
+      startAngleDeg = jitter(rng, Math.min(rider.angleDeg, 65), 0.1);
     }
   }
-
-  const endAngleDeg = userOpts.endAngleDeg ?? 3;
-  const segments = userOpts.segments ?? 6;
-  // segmentLength scales with speed so the rider gets enough contact frames.
-  const segmentLength = userOpts.segmentLength ?? Math.max(20, Math.ceil(rider.speed * 4));
-  const offset = userOpts.offset ?? 2;
+  const endAngleDeg = userOpts.endAngleDeg ?? jitter(rng, 3, 0.3);
+  const segments = userOpts.segments ?? jitterInt(rng, 6, 0.25);
+  const segmentLength = userOpts.segmentLength ?? jitter(rng, Math.max(20, Math.ceil(rider.speed * 4)), 0.25);
+  const offset = userOpts.offset ?? jitter(rng, 2, 0.3);
   const minDurationFrames = userOpts.minDurationFrames ?? 20;
   return { startAngleDeg, endAngleDeg, segments, segmentLength, offset, minDurationFrames };
 }
@@ -112,15 +101,13 @@ export type ResolvedDropParams = {
 
 export type DropUserParams = Partial<ResolvedDropParams>;
 
-export function adaptDrop(userOpts: DropUserParams, rider: IncomingState): ResolvedDropParams {
-  // startAngleDeg matches incoming flow.
-  const startAngleDeg = userOpts.startAngleDeg ?? Math.max(3, Math.min(rider.angleDeg, 30));
-  // endAngleDeg gets steeper by a magnitude.
-  const dropMagnitude = 25;
+export function adaptDrop(userOpts: DropUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedDropParams {
+  const startAngleDeg = userOpts.startAngleDeg ?? jitter(rng, Math.max(3, Math.min(rider.angleDeg, 30)), 0.2);
+  const dropMagnitude = jitter(rng, 25, 0.25);
   const endAngleDeg = userOpts.endAngleDeg ?? Math.min(60, startAngleDeg + dropMagnitude);
-  const segments = userOpts.segments ?? 8;
-  const segmentLength = userOpts.segmentLength ?? Math.max(20, Math.ceil(rider.speed * 4));
-  const offset = userOpts.offset ?? 2;
+  const segments = userOpts.segments ?? jitterInt(rng, 8, 0.25);
+  const segmentLength = userOpts.segmentLength ?? jitter(rng, Math.max(20, Math.ceil(rider.speed * 4)), 0.25);
+  const offset = userOpts.offset ?? jitter(rng, 2, 0.3);
   const minDurationFrames = userOpts.minDurationFrames ?? 20;
   const minExitVy = userOpts.minExitVy ?? 1.5;
   return { startAngleDeg, endAngleDeg, segments, segmentLength, offset, minDurationFrames, minExitVy };
@@ -141,13 +128,11 @@ export type ResolvedGlideParams = {
 
 export type GlideUserParams = Partial<ResolvedGlideParams>;
 
-export function adaptGlide(userOpts: GlideUserParams, rider: IncomingState): ResolvedGlideParams {
-  const angleDeg = userOpts.angleDeg ?? 5;
-  // For higher speed, longer segments to maintain a similar slide duration.
-  const segmentLength = userOpts.segmentLength ?? Math.max(20, Math.ceil(rider.speed * 4));
-  // Target ~1.5s of glide = 60 frames, so segments × segmentLength ≈ 60 × mean_vx.
-  const segments = userOpts.segments ?? Math.max(4, Math.ceil((60 * Math.max(1, rider.speed)) / segmentLength));
-  const offset = userOpts.offset ?? 2;
+export function adaptGlide(userOpts: GlideUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedGlideParams {
+  const angleDeg = userOpts.angleDeg ?? jitter(rng, 5, 0.4);
+  const segmentLength = userOpts.segmentLength ?? jitter(rng, Math.max(20, Math.ceil(rider.speed * 4)), 0.25);
+  const segments = userOpts.segments ?? jitterInt(rng, Math.max(4, Math.ceil((60 * Math.max(1, rider.speed)) / segmentLength)), 0.2);
+  const offset = userOpts.offset ?? jitter(rng, 2, 0.3);
   const minDurationFrames = userOpts.minDurationFrames ?? 30;
   return { angleDeg, segments, segmentLength, offset, minDurationFrames };
 }
@@ -165,13 +150,12 @@ export type ResolvedWaveParams = {
 
 export type WaveUserParams = Partial<ResolvedWaveParams>;
 
-export function adaptWave(userOpts: WaveUserParams, rider: IncomingState): ResolvedWaveParams {
-  // Baseline should be at most rider's incoming angle (so the catch is gentle).
-  const baselineAngleDeg = userOpts.baselineAngleDeg ?? Math.min(5, Math.max(0, rider.angleDeg - 5));
-  const peakAngleDeg = userOpts.peakAngleDeg ?? 10;
-  const segments = userOpts.segments ?? 8;
-  const segmentLength = userOpts.segmentLength ?? Math.max(20, Math.ceil(rider.speed * 3));
-  const offset = userOpts.offset ?? 2;
+export function adaptWave(userOpts: WaveUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedWaveParams {
+  const baselineAngleDeg = userOpts.baselineAngleDeg ?? jitter(rng, Math.min(5, Math.max(0, rider.angleDeg - 5)), 0.3);
+  const peakAngleDeg = userOpts.peakAngleDeg ?? jitter(rng, 10, 0.3);
+  const segments = userOpts.segments ?? jitterInt(rng, 8, 0.25);
+  const segmentLength = userOpts.segmentLength ?? jitter(rng, Math.max(20, Math.ceil(rider.speed * 3)), 0.25);
+  const offset = userOpts.offset ?? jitter(rng, 2, 0.3);
   const minDurationFrames = userOpts.minDurationFrames ?? 20;
   return { segments, segmentLength, peakAngleDeg, baselineAngleDeg, offset, minDurationFrames };
 }
@@ -190,13 +174,13 @@ export type ResolvedSigmoidParams = {
 
 export type SigmoidUserParams = Partial<ResolvedSigmoidParams>;
 
-export function adaptSigmoid(userOpts: SigmoidUserParams, rider: IncomingState): ResolvedSigmoidParams {
-  const startAngleDeg = userOpts.startAngleDeg ?? Math.min(rider.angleDeg, 10);
-  const peakAngleDeg = userOpts.peakAngleDeg ?? Math.max(startAngleDeg + 15, 25);
-  const segments = userOpts.segments ?? 10;
-  const segmentLength = userOpts.segmentLength ?? Math.max(20, Math.ceil(rider.speed * 3));
-  const steepness = userOpts.steepness ?? 8;
-  const offset = userOpts.offset ?? 2;
+export function adaptSigmoid(userOpts: SigmoidUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedSigmoidParams {
+  const startAngleDeg = userOpts.startAngleDeg ?? jitter(rng, Math.min(rider.angleDeg, 10), 0.3);
+  const peakAngleDeg = userOpts.peakAngleDeg ?? jitter(rng, Math.max(startAngleDeg + 15, 25), 0.25);
+  const segments = userOpts.segments ?? jitterInt(rng, 10, 0.25);
+  const segmentLength = userOpts.segmentLength ?? jitter(rng, Math.max(20, Math.ceil(rider.speed * 3)), 0.25);
+  const steepness = userOpts.steepness ?? jitter(rng, 8, 0.3);
+  const offset = userOpts.offset ?? jitter(rng, 2, 0.3);
   const minDurationFrames = userOpts.minDurationFrames ?? 25;
   return { startAngleDeg, peakAngleDeg, segments, segmentLength, steepness, offset, minDurationFrames };
 }
@@ -218,14 +202,12 @@ export type ResolvedRampParams = {
 
 export type RampUserParams = Partial<Omit<ResolvedRampParams, "insufficientVx">>;
 
-export function adaptRamp(userOpts: RampUserParams, rider: IncomingState): ResolvedRampParams {
+export function adaptRamp(userOpts: RampUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedRampParams {
   const insufficientVx = rider.velocity.x < 1.5;
-  // Angle: gentler for low vx, steeper for high vx (rider has energy to climb)
   const baseAngle = rider.velocity.x < 3 ? -15 : rider.velocity.x < 6 ? -25 : -35;
-  const angleDeg = userOpts.angleDeg ?? baseAngle;
-  // Length scales with vx
-  const length = userOpts.length ?? Math.max(20, Math.ceil(rider.velocity.x * 8));
-  const offset = userOpts.offset ?? 2;
+  const angleDeg = userOpts.angleDeg ?? jitter(rng, baseAngle, 0.2);
+  const length = userOpts.length ?? jitter(rng, Math.max(20, Math.ceil(rider.velocity.x * 8)), 0.25);
+  const offset = userOpts.offset ?? jitter(rng, 2, 0.3);
   const minAirborneFramesAfter = userOpts.minAirborneFramesAfter ?? 8;
   return { angleDeg, length, offset, minAirborneFramesAfter, insufficientVx };
 }
@@ -239,12 +221,8 @@ export type ResolvedCatchParams = {
 
 export type CatchUserParams = Partial<ResolvedCatchParams>;
 
-export function adaptCatch(userOpts: CatchUserParams, rider: IncomingState): ResolvedCatchParams {
-  // halfWidth: needs to give ≥3 contact frames per persistence rule.
-  // The sled passes through the line at roughly vx units/frame. For 3 frames
-  // of contact, the line should span >= 3*vx units, so halfWidth >= 1.5*vx.
-  // Add safety factor.
-  const halfWidth = userOpts.halfWidth ?? Math.max(6, Math.ceil(rider.velocity.x * 2.5));
+export function adaptCatch(userOpts: CatchUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedCatchParams {
+  const halfWidth = userOpts.halfWidth ?? jitter(rng, Math.max(6, Math.ceil(rider.velocity.x * 2.5)), 0.25);
   const frameTolerance = userOpts.frameTolerance ?? 1;
   return { halfWidth, frameTolerance };
 }
@@ -260,11 +238,11 @@ export type ResolvedBrakeParams = {
 
 export type BrakeUserParams = Partial<ResolvedBrakeParams>;
 
-export function adaptBrake(userOpts: BrakeUserParams, rider: IncomingState): ResolvedBrakeParams {
-  // Steeper uphill for higher incoming vx (more energy to dissipate).
-  const angleDeg = userOpts.angleDeg ?? (rider.velocity.x < 3 ? -20 : rider.velocity.x < 6 ? -30 : -40);
-  const length = userOpts.length ?? Math.max(30, Math.ceil(rider.velocity.x * 12));
-  const offset = userOpts.offset ?? 2;
+export function adaptBrake(userOpts: BrakeUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedBrakeParams {
+  const baseAngle = rider.velocity.x < 3 ? -20 : rider.velocity.x < 6 ? -30 : -40;
+  const angleDeg = userOpts.angleDeg ?? jitter(rng, baseAngle, 0.2);
+  const length = userOpts.length ?? jitter(rng, Math.max(30, Math.ceil(rider.velocity.x * 12)), 0.25);
+  const offset = userOpts.offset ?? jitter(rng, 2, 0.3);
   const minVxDrop = userOpts.minVxDrop ?? 0.5;
   return { angleDeg, length, offset, minVxDrop };
 }
@@ -280,12 +258,11 @@ export type ResolvedKickerParams = {
 
 export type KickerUserParams = Partial<ResolvedKickerParams>;
 
-export function adaptKicker(userOpts: KickerUserParams, rider: IncomingState): ResolvedKickerParams {
-  const inAngleDeg = userOpts.inAngleDeg ?? Math.min(rider.angleDeg, 5);
-  // Out at sharp negative angle to launch
-  const outAngleDeg = userOpts.outAngleDeg ?? -25;
-  const segmentLength = userOpts.segmentLength ?? Math.max(15, Math.ceil(rider.speed * 3));
-  const offset = userOpts.offset ?? 2;
+export function adaptKicker(userOpts: KickerUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedKickerParams {
+  const inAngleDeg = userOpts.inAngleDeg ?? jitter(rng, Math.min(rider.angleDeg, 5), 0.3);
+  const outAngleDeg = userOpts.outAngleDeg ?? jitter(rng, -25, 0.25);
+  const segmentLength = userOpts.segmentLength ?? jitter(rng, Math.max(15, Math.ceil(rider.speed * 3)), 0.25);
+  const offset = userOpts.offset ?? jitter(rng, 2, 0.3);
   return { inAngleDeg, outAngleDeg, segmentLength, offset };
 }
 
@@ -297,11 +274,13 @@ export type ResolvedBounceStripParams = {
 
 export type BounceStripUserParams = Partial<ResolvedBounceStripParams>;
 
-export function adaptBounceStrip(userOpts: BounceStripUserParams, rider: IncomingState): ResolvedBounceStripParams {
+export function adaptBounceStrip(userOpts: BounceStripUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedBounceStripParams {
+  // bumpCount and bumpSpacing affect timing (each bump fires at a specific
+  // frame relative to atFrame). Don't jitter timing.
   const bumpCount = userOpts.bumpCount ?? 4;
   const bumpSpacing = userOpts.bumpSpacing ?? 12;
-  // Wider bumps for faster riders.
-  const bumpHalfWidth = userOpts.bumpHalfWidth ?? Math.max(4, Math.ceil(rider.velocity.x * 2));
+  // bumpHalfWidth is a shape param — jitter freely.
+  const bumpHalfWidth = userOpts.bumpHalfWidth ?? jitter(rng, Math.max(4, Math.ceil(rider.velocity.x * 2)), 0.25);
   return { bumpCount, bumpSpacing, bumpHalfWidth };
 }
 
@@ -315,12 +294,12 @@ export type ResolvedHalfPipeParams = {
 
 export type HalfPipeUserParams = Partial<ResolvedHalfPipeParams>;
 
-export function adaptHalfPipe(userOpts: HalfPipeUserParams, rider: IncomingState): ResolvedHalfPipeParams {
-  // Peak descent: capped so the rider doesn't lose all speed on the climb.
-  const peakDescentDeg = userOpts.peakDescentDeg ?? (rider.speed < 4 ? 15 : 25);
-  const segments = userOpts.segments ?? 12;
-  const segmentLength = userOpts.segmentLength ?? Math.max(15, Math.ceil(rider.speed * 3));
-  const offset = userOpts.offset ?? 2;
+export function adaptHalfPipe(userOpts: HalfPipeUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedHalfPipeParams {
+  const basePeak = rider.speed < 4 ? 15 : 25;
+  const peakDescentDeg = userOpts.peakDescentDeg ?? jitter(rng, basePeak, 0.25);
+  const segments = userOpts.segments ?? jitterInt(rng, 12, 0.2);
+  const segmentLength = userOpts.segmentLength ?? jitter(rng, Math.max(15, Math.ceil(rider.speed * 3)), 0.25);
+  const offset = userOpts.offset ?? jitter(rng, 2, 0.3);
   const minDurationFrames = userOpts.minDurationFrames ?? 25;
   return { peakDescentDeg, segments, segmentLength, offset, minDurationFrames };
 }
@@ -336,13 +315,11 @@ export type ResolvedLoopParams = {
 
 export type LoopUserParams = Partial<Omit<ResolvedLoopParams, "insufficientSpeed">>;
 
-export function adaptLoop(userOpts: LoopUserParams, rider: IncomingState): ResolvedLoopParams {
-  // Centripetal requirement: |v|² / R >= g (approximately).
-  // With lr-core gravity ≈ 0.175 / frame², R <= |v|² / 0.175.
-  // For some safety margin and to give the rider room to complete:
+export function adaptLoop(userOpts: LoopUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedLoopParams {
   const minRadiusForSpeed = Math.max(20, (rider.speed * rider.speed) / 0.35);
-  const radius = userOpts.radius ?? minRadiusForSpeed;
-  const segments = userOpts.segments ?? 24;
+  const radius = userOpts.radius ?? jitter(rng, minRadiusForSpeed, 0.2);
+  const segments = userOpts.segments ?? jitterInt(rng, 24, 0.15);
+  // sweepDeg affects how long the loop is; treat as timing-adjacent — no jitter.
   const sweepDeg = userOpts.sweepDeg ?? 270;
   const minSweepDeg = userOpts.minSweepDeg ?? 180;
   const insufficientSpeed = rider.speed < 3;
@@ -359,12 +336,13 @@ export type ResolvedJumpParams = {
 
 export type JumpUserParams = Partial<ResolvedJumpParams>;
 
-export function adaptJump(userOpts: JumpUserParams, rider: IncomingState): ResolvedJumpParams {
+export function adaptJump(userOpts: JumpUserParams, rider: IncomingState, rng?: AdaptRng): ResolvedJumpParams {
+  // airDuration defines WHEN the landing fires; treat as timing — no jitter.
   const airDuration = userOpts.airDuration ?? 30;
-  // Gentler launch for low vx.
-  const launchAngleDeg = userOpts.launchAngleDeg ?? (rider.velocity.x < 3 ? -15 : -25);
-  const rampLength = userOpts.rampLength ?? Math.max(25, Math.ceil(rider.velocity.x * 8));
-  const catchHalfWidth = userOpts.catchHalfWidth ?? Math.max(6, Math.ceil(rider.velocity.x * 2.5));
+  const baseLaunch = rider.velocity.x < 3 ? -15 : -25;
+  const launchAngleDeg = userOpts.launchAngleDeg ?? jitter(rng, baseLaunch, 0.2);
+  const rampLength = userOpts.rampLength ?? jitter(rng, Math.max(25, Math.ceil(rider.velocity.x * 8)), 0.25);
+  const catchHalfWidth = userOpts.catchHalfWidth ?? jitter(rng, Math.max(6, Math.ceil(rider.velocity.x * 2.5)), 0.25);
   const frameTolerance = userOpts.frameTolerance ?? 2;
   return { airDuration, launchAngleDeg, rampLength, catchHalfWidth, frameTolerance };
 }

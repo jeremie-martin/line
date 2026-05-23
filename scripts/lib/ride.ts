@@ -50,6 +50,14 @@ export type RideOpts = {
   duration?: number;
   /** Track label (cosmetic). */
   label?: string;
+  /**
+   * Optional seeded RNG. When present, every move's adapter receives this
+   * RNG via PlaceCtx and uses it to jitter its chosen defaults within
+   * reasonable bands. User-passed params and `atFrame` are NEVER jittered.
+   * Two rides with the same seed produce the same geometry — fully
+   * reproducible.
+   */
+  rng?: () => number;
 };
 
 export function ride(moves: Move[], opts: RideOpts = {}): RideResult {
@@ -84,6 +92,7 @@ export function ride(moves: Move[], opts: RideOpts = {}): RideResult {
         accumulated,
         lineIdStart: nextLineId,
         duration,
+        rng: opts.rng,
       });
       step.placement = placement;
       accumulated.push(...placement.lines);

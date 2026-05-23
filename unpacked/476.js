@@ -1,0 +1,1 @@
+(module.exports = require("./272.js")(false)).push([module.i, "#content,body,html{width:100%;height:100%;overflow-x:hidden}*{box-sizing:border-box}.flex{display:flex}.align-middle{align-items:center}a{color:#2c82fc;text-decoration:none}a:hover{text-decoration:underline}", ""]);

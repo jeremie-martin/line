@@ -1,0 +1,6 @@
+var n = module.exports = {
+  version: "2.5.3"
+};
+if (typeof __e == "number") {
+  __e = n;
+}

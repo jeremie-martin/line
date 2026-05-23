@@ -7,12 +7,14 @@
   "scripts": {
     "probe": "tsx scripts/probe.ts",
     "probe2": "tsx scripts/probe2.ts",
-    "export": "tsx scripts/export.ts"
+    "export": "tsx scripts/export.ts",
+    "unpack": "webcrack -f -o unpacked mirror/_v2153.0/main.js"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "webcrack": "^2.16.0"
   },
   "dependencies": {
     "playwright": "^1.49.0"

@@ -1,0 +1,1 @@
+module.exports = "precision highp float;\n\nvarying vec2 texPosToFrag;\nvarying float alphaToFrag;\n\nuniform sampler2D uSampler;\n\nvoid main()\n{\n    vec4 sample = texture2D(uSampler, texPosToFrag, -0.75);\n    gl_FragColor = sample * alphaToFrag;\n}\n";

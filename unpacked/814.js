@@ -1,0 +1,1 @@
+module.exports = "precision highp float;\n\n// hack for safari on macOS 10.13.0/10.13.1 having issues with gl.clear()\n\nattribute vec2 pos;\n\nvoid main()\n{\n    gl_Position = vec4(pos, 1.0, 1.0);\n}\n";

@@ -23,6 +23,48 @@ import {
 } from "./detector.ts";
 import { type TrackLine } from "./primitive.ts";
 import { arcLines } from "./arcLines.ts";
+import {
+  readIncoming,
+  adaptSlide,
+  adaptDrop,
+  adaptGlide,
+  adaptWave,
+  adaptSigmoid,
+  adaptRamp,
+  adaptCatch,
+  adaptBrake,
+  adaptKicker,
+  adaptBounceStrip,
+  adaptHalfPipe,
+  adaptLoop,
+  adaptJump,
+  type ResolvedSlideParams,
+  type ResolvedDropParams,
+  type ResolvedGlideParams,
+  type ResolvedWaveParams,
+  type ResolvedSigmoidParams,
+  type ResolvedRampParams,
+  type ResolvedCatchParams,
+  type ResolvedBrakeParams,
+  type ResolvedKickerParams,
+  type ResolvedBounceStripParams,
+  type ResolvedHalfPipeParams,
+  type ResolvedLoopParams,
+  type ResolvedJumpParams,
+  type SlideUserParams,
+  type DropUserParams,
+  type GlideUserParams,
+  type WaveUserParams,
+  type SigmoidUserParams,
+  type RampUserParams,
+  type CatchUserParams,
+  type BrakeUserParams,
+  type KickerUserParams,
+  type BounceStripUserParams,
+  type HalfPipeUserParams,
+  type LoopUserParams,
+  type JumpUserParams,
+} from "./adapt.ts";
 
 // deno-lint-ignore no-explicit-any
 const lrCore: any = await import("lr-core/line-rider-engine/index.js");
@@ -229,29 +271,18 @@ function catastrophicBy(det: Detection, range: { start: number; end: number }): 
 
 // ────────── Slide move ──────────
 
-export type SlideOpts = {
-  at: number;
-  startAngleDeg?: number;
-  endAngleDeg?: number;
-  segments?: number;
-  segmentLength?: number;
-  offset?: number;
-  /** Drift threshold: minimum slide duration to consider on-contract (frames). */
-  minDurationFrames?: number;
-};
+export type SlideOpts = SlideUserParams & { at: number };
 
 export function slide(opts: SlideOpts): Move {
-  const startAngleDeg = opts.startAngleDeg ?? 20;
-  const endAngleDeg = opts.endAngleDeg ?? 3;
-  const segments = opts.segments ?? 6;
-  const segmentLength = opts.segmentLength ?? 25;
-  const offset = opts.offset ?? 2;
-  const minDurationFrames = opts.minDurationFrames ?? 20;
+  let resolved: ResolvedSlideParams | null = null;
 
   return {
     type: "slide",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptSlide(opts, rider);
+      const { startAngleDeg, endAngleDeg, segments, segmentLength, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const lines = buildSegmentsFromAngles({
         anchor: pos,
@@ -262,13 +293,12 @@ export function slide(opts: SlideOpts): Move {
       });
       let eng = ctx.engine;
       for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
-      // endFrame estimate: approximate slide duration given the rider's
-      // typical mean vx over a curve (~3-5 units/frame on default chain).
-      const meanVx = 4;
+      const meanVx = Math.max(2, rider.speed * 0.7);
       const endFrame = opts.at + Math.ceil((segments * segmentLength) / meanVx);
       return { lines, engineAfter: eng, endFrame, lineIds: lines.map((l) => l.id) };
     },
     verify(det, range, lineIds) {
+      const { minDurationFrames } = resolved!;
       const segs = ownedSlideSegments(det, range, lineIds).sort(
         (a, b) => b.durationFrames - a.durationFrames,
       );
@@ -296,7 +326,8 @@ export function slide(opts: SlideOpts): Move {
           slideDurationFrames: slideDur,
           slideStart: best?.start ?? -1,
           slideEnd: best?.end ?? -1,
-          maxVx,
+          maxVx: Number(maxVx.toFixed(2)),
+          startAngleUsed: resolved!.startAngleDeg,
         },
       };
     },
@@ -316,34 +347,18 @@ export function curve(opts: CurveMoveOpts): Move {
 
 // ────────── Drop move ──────────
 
-export type DropOpts = {
-  at: number;
-  /** Initial slope (shallow). Should match rider's incoming flow. */
-  startAngleDeg?: number;
-  /** Final slope (steep — the "drop angle"). */
-  endAngleDeg?: number;
-  segments?: number;
-  segmentLength?: number;
-  offset?: number;
-  /** Drift threshold: minimum slide duration the drop's geometry should sustain. */
-  minDurationFrames?: number;
-  /** Drift threshold: minimum vy at slide end (engine units / frame). */
-  minExitVy?: number;
-};
+export type DropOpts = DropUserParams & { at: number };
 
 export function drop(opts: DropOpts): Move {
-  const startAngleDeg = opts.startAngleDeg ?? 5;
-  const endAngleDeg = opts.endAngleDeg ?? 30;
-  const segments = opts.segments ?? 8;
-  const segmentLength = opts.segmentLength ?? 30;
-  const offset = opts.offset ?? 2;
-  const minDurationFrames = opts.minDurationFrames ?? 20;
-  const minExitVy = opts.minExitVy ?? 1.5;
+  let resolved: ResolvedDropParams | null = null;
 
   return {
     type: "drop",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptDrop(opts, rider);
+      const { startAngleDeg, endAngleDeg, segments, segmentLength, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const lines = buildSegmentsFromAngles({
         anchor: pos,
@@ -354,11 +369,12 @@ export function drop(opts: DropOpts): Move {
       });
       let eng = ctx.engine;
       for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
-      const meanVx = 4;
+      const meanVx = Math.max(2, rider.speed * 0.7);
       const endFrame = opts.at + Math.ceil((segments * segmentLength) / meanVx);
       return { lines, engineAfter: eng, endFrame, lineIds: lines.map((l) => l.id) };
     },
     verify(det, range, lineIds) {
+      const { minDurationFrames, minExitVy } = resolved!;
       const segs = ownedSlideSegments(det, range, lineIds).sort(
         (a, b) => b.durationFrames - a.durationFrames,
       );
@@ -401,26 +417,19 @@ export function drop(opts: DropOpts): Move {
 // Inherits the "halfWidth=8" pattern from the older placeChain code (the
 // width that gave us reliable per-chained landings before we built curves).
 
-export type CatchOpts = {
-  at: number;
-  /** Half-width of the stub (engine units). */
-  halfWidth?: number;
-  /** Drift threshold: landing must fire within ±frameTolerance of `at`. */
-  frameTolerance?: number;
-};
+export type CatchOpts = CatchUserParams & { at: number };
 
 export function catch_(opts: CatchOpts): Move {
-  // (Function named with trailing underscore because `catch` is reserved.
-  // Spec authors call it via re-export below as `catch as catch_` then
-  // `import { catch_ as catch }`, or by using `catch_` directly.)
-  const halfWidth = opts.halfWidth ?? 8;
-  const frameTolerance = opts.frameTolerance ?? 1;
+  let resolved: ResolvedCatchParams | null = null;
   const lookaheadFrames = 30;
 
   return {
     type: "catch",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptCatch(opts, rider);
+      const { halfWidth } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       // Horizontal stub centered (approximately) at the rider's lowest sled point.
       const line: TrackLine = {
@@ -444,6 +453,7 @@ export function catch_(opts: CatchOpts): Move {
       };
     },
     verify(det, range, lineIds) {
+      const { frameTolerance } = resolved!;
       const owned = new Set(lineIds);
       const landings = det.events.filter((e) => {
         if (e.type !== "landing") return false;
@@ -534,53 +544,35 @@ export function gap(opts: GapOpts): Move {
 
 // ────────── Ramp move ──────────
 
-export type RampOpts = {
-  at: number;
-  /** Upward slope in degrees (negative = up to the right). */
-  angleDeg?: number;
-  length?: number;
-  offset?: number;
-  /** Drift: min frames airborne in the K frames after the ramp begins. */
-  minAirborneFramesAfter?: number;
-};
+export type RampOpts = RampUserParams & { at: number };
 
 export function ramp(opts: RampOpts): Move {
-  const angleDeg = opts.angleDeg ?? -25;
-  const length = opts.length ?? 40;
-  const offset = opts.offset ?? 2;
-  const minAirborneFramesAfter = opts.minAirborneFramesAfter ?? 8;
+  let resolved: ResolvedRampParams | null = null;
   const lookaheadFrames = 30;
 
   return {
     type: "ramp",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptRamp(opts, rider);
+      const { angleDeg, length, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
-      const line = buildSingleLine({
-        anchor: pos,
-        angleDeg,
-        length,
-        offset,
-        lineId: ctx.lineIdStart,
-      });
-      let eng = ctx.engine;
-      eng = eng.addLine(createLineFromJson(line));
-      const endFrame = opts.at + lookaheadFrames;
-      return {
-        lines: [line],
-        engineAfter: eng,
-        endFrame,
-        lineIds: [line.id],
-      };
+      const line = buildSingleLine({ anchor: pos, angleDeg, length, offset, lineId: ctx.lineIdStart });
+      const eng = ctx.engine.addLine(createLineFromJson(line));
+      return { lines: [line], engineAfter: eng, endFrame: opts.at + lookaheadFrames, lineIds: [line.id] };
     },
     verify(det, range, _lineIds) {
-      // Look at the K frames after range.start; count airborne.
+      const { minAirborneFramesAfter, insufficientVx } = resolved!;
       const end = Math.min(det.measurements.airborne.length - 1, range.start + lookaheadFrames);
       let airborneAfter = 0;
       for (let f = range.start; f <= end; f++) {
         if (det.measurements.airborne[f]) airborneAfter++;
       }
       const drift: DriftEntry[] = [];
+      if (insufficientVx) {
+        drift.push({ metric: "incomingVx", expected: ">= 1.5", actual: "below threshold" });
+      }
       if (airborneAfter < minAirborneFramesAfter) {
         drift.push({
           metric: "airborneFramesAfter",
@@ -603,30 +595,17 @@ export function ramp(opts: RampOpts): Move {
 // and rides along, slowly losing some vy to friction. Useful for filling
 // space between events (low-drama sustained sliding).
 
-export type GlideOpts = {
-  at: number;
-  /** Slope (degrees, near-horizontal recommended — default 5°). */
-  angleDeg?: number;
-  /** Number of segments. */
-  segments?: number;
-  /** Length of each segment. */
-  segmentLength?: number;
-  offset?: number;
-  /** Drift threshold: minimum slide duration. */
-  minDurationFrames?: number;
-};
+export type GlideOpts = GlideUserParams & { at: number };
 
 export function glide(opts: GlideOpts): Move {
-  const angleDeg = opts.angleDeg ?? 5;
-  const segments = opts.segments ?? 10;
-  const segmentLength = opts.segmentLength ?? 30;
-  const offset = opts.offset ?? 2;
-  const minDurationFrames = opts.minDurationFrames ?? 30;
-
+  let resolved: ResolvedGlideParams | null = null;
   return {
     type: "glide",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptGlide(opts, rider);
+      const { angleDeg, segments, segmentLength, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const lines = buildSegmentsFromAngles({
         anchor: pos,
@@ -637,11 +616,12 @@ export function glide(opts: GlideOpts): Move {
       });
       let eng = ctx.engine;
       for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
-      const meanVx = 4;
+      const meanVx = Math.max(2, rider.speed * 0.7);
       const endFrame = opts.at + Math.ceil((segments * segmentLength) / meanVx);
       return { lines, engineAfter: eng, endFrame, lineIds: lines.map((l) => l.id) };
     },
     verify(det, range, lineIds) {
+      const { minDurationFrames } = resolved!;
       const segs = ownedSlideSegments(det, range, lineIds).sort(
         (a, b) => b.durationFrames - a.durationFrames,
       );
@@ -681,31 +661,17 @@ export function glide(opts: GlideOpts): Move {
 // Each segment swings the slope by ±peakAngleDeg around a baseline.
 // Visual texture for an otherwise-monotonic slide stretch.
 
-export type WaveOpts = {
-  at: number;
-  /** Number of segments — should be even for a clean wave pattern. */
-  segments?: number;
-  segmentLength?: number;
-  /** Amplitude of the alternation (degrees). 8° = gentle, 20° = pronounced. */
-  peakAngleDeg?: number;
-  /** Baseline slope around which the alternation happens. */
-  baselineAngleDeg?: number;
-  offset?: number;
-  minDurationFrames?: number;
-};
+export type WaveOpts = WaveUserParams & { at: number };
 
 export function wave(opts: WaveOpts): Move {
-  const segments = opts.segments ?? 8;
-  const segmentLength = opts.segmentLength ?? 25;
-  const peakAngleDeg = opts.peakAngleDeg ?? 10;
-  const baselineAngleDeg = opts.baselineAngleDeg ?? 5;
-  const offset = opts.offset ?? 2;
-  const minDurationFrames = opts.minDurationFrames ?? 20;
-
+  let resolved: ResolvedWaveParams | null = null;
   return {
     type: "wave",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptWave(opts, rider);
+      const { segments, segmentLength, peakAngleDeg, baselineAngleDeg, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const angles: number[] = [];
       for (let i = 0; i < segments; i++) {
@@ -720,11 +686,12 @@ export function wave(opts: WaveOpts): Move {
       });
       let eng = ctx.engine;
       for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
-      const meanVx = 4;
+      const meanVx = Math.max(2, rider.speed * 0.7);
       const endFrame = opts.at + Math.ceil((segments * segmentLength) / meanVx);
       return { lines, engineAfter: eng, endFrame, lineIds: lines.map((l) => l.id) };
     },
     verify(det, range, lineIds) {
+      const { minDurationFrames } = resolved!;
       const segs = ownedSlideSegments(det, range, lineIds);
       const totalContact = segs.reduce((s, x) => s + x.durationFrames, 0);
       // Count sign-changes in vy across the wave's frames — a proxy for "undulating."
@@ -762,43 +729,23 @@ export function wave(opts: WaveOpts): Move {
 // between calm in/out. The angle interpolates via a logistic between
 // startAngle and peakAngle and back.
 
-export type SigmoidOpts = {
-  at: number;
-  /** Slope at the start and end of the curve (matches incoming flow). */
-  startAngleDeg?: number;
-  /** Slope at the steepest middle point. */
-  peakAngleDeg?: number;
-  segments?: number;
-  segmentLength?: number;
-  /** Steepness of the sigmoid transition (higher = sharper). */
-  steepness?: number;
-  offset?: number;
-  minDurationFrames?: number;
-};
+export type SigmoidOpts = SigmoidUserParams & { at: number };
 
 export function sigmoid(opts: SigmoidOpts): Move {
-  const startAngleDeg = opts.startAngleDeg ?? 3;
-  const peakAngleDeg = opts.peakAngleDeg ?? 25;
-  const segments = opts.segments ?? 10;
-  const segmentLength = opts.segmentLength ?? 25;
-  const steepness = opts.steepness ?? 8;
-  const offset = opts.offset ?? 2;
-  const minDurationFrames = opts.minDurationFrames ?? 25;
-
+  let resolved: ResolvedSigmoidParams | null = null;
   return {
     type: "sigmoid",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptSigmoid(opts, rider);
+      const { startAngleDeg, peakAngleDeg, segments, segmentLength, steepness, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
-      // Bell-shaped angle: peaks in the middle, drops back at the ends.
       const angles: number[] = [];
       for (let i = 0; i < segments; i++) {
-        const u = segments === 1 ? 0.5 : i / (segments - 1); // 0..1
-        // Centered logistic that peaks at u=0.5: e.g.,  4 * u * (1-u)  is a parabola
-        // peaking at 0.5; raise to a power for sharper top. Simpler: sech^2.
+        const u = segments === 1 ? 0.5 : i / (segments - 1);
         const t = Math.tanh(steepness * (u - 0.25)) - Math.tanh(steepness * (u - 0.75));
-        // t ranges roughly 0..2 with peak ~2 in the middle and ~0 at the ends.
-        const w = t / 2; // normalize to ~0..1
+        const w = t / 2;
         angles.push(startAngleDeg + (peakAngleDeg - startAngleDeg) * w);
       }
       const lines = buildSegmentsFromAngles({
@@ -810,11 +757,12 @@ export function sigmoid(opts: SigmoidOpts): Move {
       });
       let eng = ctx.engine;
       for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
-      const meanVx = 4;
+      const meanVx = Math.max(2, rider.speed * 0.7);
       const endFrame = opts.at + Math.ceil((segments * segmentLength) / meanVx);
       return { lines, engineAfter: eng, endFrame, lineIds: lines.map((l) => l.id) };
     },
     verify(det, range, lineIds) {
+      const { minDurationFrames } = resolved!;
       const segs = ownedSlideSegments(det, range, lineIds).sort(
         (a, b) => b.durationFrames - a.durationFrames,
       );
@@ -864,46 +812,26 @@ export function sigmoid(opts: SigmoidOpts): Move {
 // Steep uphill segment. Decelerates the rider. PROBLEM.md treats speed
 // as a primary axis but we had no decelerator until now.
 
-export type BrakeOpts = {
-  at: number;
-  /** Uphill slope in degrees (negative — convention: positive = down). Default -30°. */
-  angleDeg?: number;
-  length?: number;
-  offset?: number;
-  /** Drift: minimum vx reduction from before to after the brake. */
-  minVxDrop?: number;
-};
+export type BrakeOpts = BrakeUserParams & { at: number };
 
 export function brake(opts: BrakeOpts): Move {
-  const angleDeg = opts.angleDeg ?? -30;
-  const length = opts.length ?? 60;
-  const offset = opts.offset ?? 2;
-  const minVxDrop = opts.minVxDrop ?? 0.5;
+  let resolved: ResolvedBrakeParams | null = null;
   const lookahead = 30;
 
   return {
     type: "brake",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptBrake(opts, rider);
+      const { angleDeg, length, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
-      const line = buildSingleLine({
-        anchor: pos,
-        angleDeg,
-        length,
-        offset,
-        lineId: ctx.lineIdStart,
-      });
-      let eng = ctx.engine;
-      eng = eng.addLine(createLineFromJson(line));
-      return {
-        lines: [line],
-        engineAfter: eng,
-        endFrame: opts.at + lookahead,
-        lineIds: [line.id],
-      };
+      const line = buildSingleLine({ anchor: pos, angleDeg, length, offset, lineId: ctx.lineIdStart });
+      const eng = ctx.engine.addLine(createLineFromJson(line));
+      return { lines: [line], engineAfter: eng, endFrame: opts.at + lookahead, lineIds: [line.id] };
     },
     verify(det, range, _lineIds) {
-      // vx just before vs just after the brake's window
+      const { minVxDrop } = resolved!;
       const before = det.measurements.velocity[Math.max(0, range.start - 1)]?.x ?? 0;
       const afterIdx = Math.min(det.measurements.velocity.length - 1, range.end);
       const after = det.measurements.velocity[afterIdx]?.x ?? 0;
@@ -932,28 +860,19 @@ export function brake(opts: BrakeOpts): Move {
 // steep V or A shape. Tests PROBLEM.md's open question about kick-as-event
 // independence.
 
-export type KickerOpts = {
-  at: number;
-  /** Slope of first segment (degrees). */
-  inAngleDeg?: number;
-  /** Slope of second segment (degrees) — should differ sharply from inAngleDeg. */
-  outAngleDeg?: number;
-  /** Length of each of the two segments. */
-  segmentLength?: number;
-  offset?: number;
-};
+export type KickerOpts = KickerUserParams & { at: number };
 
 export function kicker(opts: KickerOpts): Move {
-  const inAngleDeg = opts.inAngleDeg ?? 5;
-  const outAngleDeg = opts.outAngleDeg ?? -25;
-  const segmentLength = opts.segmentLength ?? 20;
-  const offset = opts.offset ?? 2;
+  let resolved: ResolvedKickerParams | null = null;
   const lookahead = 25;
 
   return {
     type: "kicker",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptKicker(opts, rider);
+      const { inAngleDeg, outAngleDeg, segmentLength, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const lines = buildSegmentsFromAngles({
         anchor: pos,
@@ -987,25 +906,18 @@ export function kicker(opts: KickerOpts): Move {
 // stub line; the rider lands on one, takes off, lands on the next, etc.
 // Used for "drum roll" musical effects.
 
-export type BounceStripOpts = {
-  at: number;
-  /** Number of bumps. */
-  bumpCount?: number;
-  /** Frames between consecutive bumps (musical beat unit). */
-  bumpSpacing?: number;
-  /** Half-width of each bump's catch line. */
-  bumpHalfWidth?: number;
-};
+export type BounceStripOpts = BounceStripUserParams & { at: number };
 
 export function bounceStrip(opts: BounceStripOpts): Move {
-  const bumpCount = opts.bumpCount ?? 4;
-  const bumpSpacing = opts.bumpSpacing ?? 12;
-  const bumpHalfWidth = opts.bumpHalfWidth ?? 6;
+  let resolved: ResolvedBounceStripParams | null = null;
 
   return {
     type: "bounceStrip",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptBounceStrip(opts, rider);
+      const { bumpCount, bumpSpacing, bumpHalfWidth } = resolved;
       const lines: TrackLine[] = [];
       // For each bump i, find the rider's predicted lowest sled position at
       // (at + i*bumpSpacing) — using the engine ONLY up to that point, with
@@ -1037,8 +949,8 @@ export function bounceStrip(opts: BounceStripOpts): Move {
       };
     },
     verify(det, range, lineIds) {
+      const { bumpCount } = resolved!;
       const owned = new Set(lineIds);
-      // Count bounce + landing events whose contact frame touches our lines.
       const events = det.events.filter((e) => {
         if (e.type !== "bounce" && e.type !== "landing") return false;
         if (e.frame < range.start || e.frame > range.end) return false;
@@ -1072,34 +984,22 @@ export function bounceStrip(opts: BounceStripOpts): Move {
 // ramp into an arc, lands on the catch ε_t later. Verifies a landing
 // event near (atFrame + airDuration).
 
-export type JumpOpts = {
-  at: number;
-  /** Frames between launch and landing. */
-  airDuration?: number;
-  /** Upward angle of the launch ramp. Negative = up to the right. */
-  launchAngleDeg?: number;
-  rampLength?: number;
-  /** Catch stub half-width. */
-  catchHalfWidth?: number;
-  /** Frame tolerance for the landing event. */
-  frameTolerance?: number;
-};
+export type JumpOpts = JumpUserParams & { at: number };
 
 export function jump(opts: JumpOpts): Move {
-  const airDuration = opts.airDuration ?? 30;
-  const launchAngleDeg = opts.launchAngleDeg ?? -25;
-  const rampLength = opts.rampLength ?? 35;
-  const catchHalfWidth = opts.catchHalfWidth ?? 8;
-  const frameTolerance = opts.frameTolerance ?? 2;
-  const landFrame = opts.at + airDuration;
+  let resolved: ResolvedJumpParams | null = null;
+  let landFrame = opts.at;
 
   return {
     type: "jump",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptJump(opts, rider);
+      const { airDuration, launchAngleDeg, rampLength, catchHalfWidth } = resolved;
+      landFrame = opts.at + airDuration;
       const lines: TrackLine[] = [];
 
-      // 1. Ramp at rider's lowest sled point at `at`.
       const rampAnchor = lowestSledPoint(ctx.engine, opts.at).pos;
       const ramp = buildSingleLine({
         anchor: rampAnchor,
@@ -1112,7 +1012,6 @@ export function jump(opts: JumpOpts): Move {
       // deno-lint-ignore no-explicit-any
       let eng: any = ctx.engine.addLine(createLineFromJson(ramp));
 
-      // 2. Catch at rider's lowest sled point at `landFrame` (now reflecting the ramp).
       const catchAnchor = lowestSledPoint(eng, landFrame).pos;
       const catchLine: TrackLine = {
         id: ctx.lineIdStart + 1,
@@ -1136,6 +1035,7 @@ export function jump(opts: JumpOpts): Move {
       };
     },
     verify(det, range, lineIds) {
+      const { frameTolerance } = resolved!;
       const owned = new Set(lineIds);
       // Look for a landing event near landFrame whose contact involves our catch line.
       const landings = det.events.filter((e) => {
@@ -1184,26 +1084,17 @@ export function jump(opts: JumpOpts): Move {
 // (climbing) to peak ascent, and back to 0. The cumulative path is a
 // shallow valley — rider descends, levels out, climbs back to entry height.
 
-export type HalfPipeOpts = {
-  at: number;
-  peakDescentDeg?: number;
-  segments?: number;
-  segmentLength?: number;
-  offset?: number;
-  minDurationFrames?: number;
-};
+export type HalfPipeOpts = HalfPipeUserParams & { at: number };
 
 export function halfPipe(opts: HalfPipeOpts): Move {
-  const peakDescentDeg = opts.peakDescentDeg ?? 20;
-  const segments = opts.segments ?? 12;
-  const segmentLength = opts.segmentLength ?? 20;
-  const offset = opts.offset ?? 2;
-  const minDurationFrames = opts.minDurationFrames ?? 25;
-
+  let resolved: ResolvedHalfPipeParams | null = null;
   return {
     type: "halfPipe",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptHalfPipe(opts, rider);
+      const { peakDescentDeg, segments, segmentLength, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const angles: number[] = [];
       for (let i = 0; i < segments; i++) {
@@ -1219,11 +1110,12 @@ export function halfPipe(opts: HalfPipeOpts): Move {
       });
       let eng = ctx.engine;
       for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
-      const meanVx = 4;
+      const meanVx = Math.max(2, rider.speed * 0.7);
       const endFrame = opts.at + Math.ceil((segments * segmentLength) / meanVx);
       return { lines, engineAfter: eng, endFrame, lineIds: lines.map((l) => l.id) };
     },
     verify(det, range, lineIds) {
+      const { minDurationFrames } = resolved!;
       const segs = ownedSlideSegments(det, range, lineIds);
       const totalContact = segs.reduce((s, x) => s + x.durationFrames, 0);
       const mid = Math.floor((range.start + range.end) / 2);
@@ -1261,30 +1153,20 @@ export function halfPipe(opts: HalfPipeOpts): Move {
 // (gravity pulls them off the inside of the line). Accept ≤270° as the
 // practical version; verify by measuring direction-sweep during contact.
 
-export type LoopOpts = {
-  at: number;
-  radius?: number;
-  segments?: number;
-  /** Sweep amount in degrees. 360 = full loop, 270 = three-quarter. */
-  sweepDeg?: number;
-  /** Drift threshold: minimum direction-sweep observed during contact. */
-  minSweepDeg?: number;
-};
+export type LoopOpts = LoopUserParams & { at: number };
 
 export function loop(opts: LoopOpts): Move {
-  const radius = opts.radius ?? 40;
-  const segments = opts.segments ?? 24;
-  const sweepDeg = opts.sweepDeg ?? 270;
-  const sweepRad = (sweepDeg * Math.PI) / 180;
-  const minSweepDeg = opts.minSweepDeg ?? 180;
+  let resolved: ResolvedLoopParams | null = null;
 
   return {
     type: "loop",
     atFrame: opts.at,
     place(ctx) {
+      const rider = readIncoming(ctx.engine, opts.at);
+      resolved = adaptLoop(opts, rider);
+      const { radius, segments, sweepDeg } = resolved;
+      const sweepRad = (sweepDeg * Math.PI) / 180;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
-      // Center directly below entry by `radius`. Entry at angle -π/2 from
-      // center (top of circle). Rider sweeps CCW in math coords (CW visually).
       const center = { x: pos.x, y: pos.y + radius };
       const lines = arcLines({
         center,
@@ -1296,11 +1178,12 @@ export function loop(opts: LoopOpts): Move {
       });
       let eng = ctx.engine;
       for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
-      const meanV = 5;
+      const meanV = Math.max(2, rider.speed * 0.7);
       const endFrame = opts.at + Math.ceil((2 * Math.PI * radius) / meanV) + 10;
       return { lines, engineAfter: eng, endFrame, lineIds: lines.map((l) => l.id) };
     },
     verify(det, range, lineIds) {
+      const { minSweepDeg, insufficientSpeed } = resolved!;
       const owned = new Set(lineIds);
       let sweptDeg = 0;
       let prevAngle: number | null = null;
@@ -1326,6 +1209,9 @@ export function loop(opts: LoopOpts): Move {
         prevAngle = a;
       }
       const drift: DriftEntry[] = [];
+      if (insufficientSpeed) {
+        drift.push({ metric: "incomingSpeed", expected: ">= 3", actual: "too low for loop" });
+      }
       if (sweptDeg < minSweepDeg) {
         drift.push({
           metric: "sweepDeg",

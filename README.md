@@ -32,6 +32,9 @@ npx tsx scripts/export.ts \
 
 # stress-test the helper (4 scenarios, ~7 min)
 npx tsx scripts/stress.ts
+
+# verify lr-core (Node-native physics) still matches the bundle exactly
+npm run parity
 ```
 
 `scripts/export.ts` flags:
@@ -113,11 +116,37 @@ Action shapes were extracted from `unpacked/279.js` (view actions) and
 | **Playwright** | The browser is the renderer. The export feature uses MediaRecorder + h264-mp4-encoder; we don't reimplement either. ~3× real-time render at 1080p HQ. |
 | **Redux + fiber walk** | View transitions / track load / zoom are Redux. Modal-local state (resolution / HQ / render trigger) is React component state, reached via fiber walk. Both paths needed; helper hides the difference. |
 
-Alternatives considered and rejected:
-- `jealouscloud/linerider-advanced` (C#, last release 2018, dormant)
-- `LunaKampling/LROverhaul` (C#, active; would need its own GUI driver, GPLv3 viral if we adopted its assets)
-- `conundrumer/lr-core` (JS, physics-only, no rendering — usable for *headless* simulation later, see below)
-- `deanveloper/bosh-rs` (Rust port, archived)
+Alternatives considered:
+- `jealouscloud/linerider-advanced` (C#, last release 2018, dormant) — rejected
+- `LunaKampling/LROverhaul` (C#, active; would need its own GUI driver, GPLv3 viral if we adopted its assets) — rejected
+- `deanveloper/bosh-rs` (Rust port, archived) — rejected
+- `conundrumer/lr-core` (JS, physics-only, no rendering) — **adopted for simulation** (see below)
+
+## Which engine to use when
+
+The bundle ships its physics engine (in `mirror/_v2153.0/main.js`) and we
+have **`lr-core`** as an npm package (same author, David Lu / Conundrumer).
+We've verified they produce **byte-identical trajectories** on the full
+test track — same MD5 over 11 sampled frames × position + velocity + 11
+contact points. Re-verify any time with `npm run parity`.
+
+So pick whichever is convenient for the use case:
+
+| Use case | Engine | Why |
+|---|---|---|
+| **Procedural generator inner loop** (place candidate lines → simulate → score → iterate) | **lr-core** | Native Node, ~4000 fps cold / much faster warm. Browser path can't keep up. |
+| **Headless tests, batch jobs, CI** | **lr-core** | No Chromium, no mirror server, no Playwright. Direct `require()`. |
+| **Quick scripts / one-off rider-position queries** | **lr-core** | Cheaper to spin up; debug in Node. |
+| **Rendering a track to mp4** | **bundle** (via Playwright + `__lr.exportVideo`) | lr-core doesn't render. The bundle is the only thing that turns lines + simulator state into pixels. |
+| **"Does my generated track look right when rendered?"** | **bundle** | Implicit re-verification of parity on every render. |
+| **Regression test after a bundle bump or lr-core update** | **both** | `npm run parity` runs them on the same input and byte-diffs the trajectories. |
+
+Default for any *physics* operation: **lr-core**. Default for *visuals*: **bundle**.
+
+If parity ever breaks, the generator can no longer trust its simulations
+will render the same way — that's the moment to either (a) pin to whichever
+side stayed correct, (b) extract physics from `unpacked/`, or (c) re-derive
+the engine. Today (v2153.0 bundle, lr-core@0.8.2): they match exactly.
 
 ## Music sync — two channels worth knowing about
 
@@ -139,12 +168,11 @@ DoodleChaos-style videos mix both.
 - Friendly error when origin is unreachable.
 - Forensics dump (screenshot + state.json + console.log + page-errors.log +
   error.txt) under `shakedown/debug/<ISO-timestamp>/` on any failure.
+- **lr-core ↔ bundle physics parity** — byte-identical trajectories on the
+  test track. `npm run parity` re-runs the check.
 
 ## Next directions (none of these picked yet)
 
-- **lr-core / headless physics** — extract or vendor `conundrumer/lr-core` so
-  the procedural generator's inner loop (place candidate lines → simulate →
-  score → iterate) doesn't have to spin up Playwright per evaluation.
 - **Audio analysis** — pick a stack (essentia.js, Meyda, librosa, etc.) and
   extract beats / onsets / spectral features.
 - **Procedural generator** — the real work. Greedy forward search vs.

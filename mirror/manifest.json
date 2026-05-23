@@ -1,0 +1,23 @@
+{
+  "name": "Line Rider Application",
+  "short_name": "Line Rider",
+  "description": "Web Application for Line Rider",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "https://www.linerider.com",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "type": "image/ico",
+      "sizes": "32x32"
+    },
+    {
+      "src": "/icon144.png",
+      "type": "image/png",
+      "sizes": "144x144"
+    }
+  ]
+}

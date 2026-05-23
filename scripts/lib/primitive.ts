@@ -513,6 +513,86 @@ export function placeCurve(opts: CurveOpts): SlideResult {
   };
 }
 
+// ── Drop primitive ──────────────────────────────────────────────────────
+//
+// Chained STEEPENING segments — the geometric inverse of placeCurve. The
+// rider arrives, catches on a shallow first segment, then each subsequent
+// segment angles more steeply downward, rotating the rider's velocity from
+// near-horizontal toward steep-down. Net effect: rider gains downward
+// momentum and accelerates along the line under gravity-along-line.
+//
+// Most useful AFTER a slide, when the rider already has horizontal velocity
+// — the drop's first shallow segment matches that flow, then the geometry
+// pivots downward. From a free-fall entry (no prior moves), the rider's vy
+// is mostly killed by the first shallow segment's impact, so the "drop"
+// observed is the geometry-driven re-acceleration after the catch.
+//
+// Under the hood: same physics + line-placement code as placeCurve, just
+// with start < end (shallow → steep). Kept as a distinct entry point for
+// semantic clarity and because the default angle ranges are different.
+
+export type DropOpts = {
+  startFrame: number;
+  /** Slope of the first segment (shallow, should match incoming flow). */
+  startAngleDeg?: number;
+  /** Slope of the last segment (steep — the "drop angle"). */
+  endAngleDeg?: number;
+  segments?: number;
+  segmentLength?: number;
+  offset?: number;
+  postFrames?: number;
+};
+
+const DEFAULT_DROP_START_ANGLE = 5;
+const DEFAULT_DROP_END_ANGLE = 30;
+
+export function placeDrop(opts: DropOpts): SlideResult {
+  return placeCurve({
+    startFrame: opts.startFrame,
+    startAngleDeg: opts.startAngleDeg ?? DEFAULT_DROP_START_ANGLE,
+    endAngleDeg: opts.endAngleDeg ?? DEFAULT_DROP_END_ANGLE,
+    segments: opts.segments ?? DEFAULT_CURVE_SEGMENTS,
+    segmentLength: opts.segmentLength ?? DEFAULT_CURVE_SEGMENT_LEN,
+    offset: opts.offset ?? DEFAULT_CURVE_OFFSET,
+    postFrames: opts.postFrames ?? 80,
+  });
+}
+
+// ── Ramp primitive ──────────────────────────────────────────────────────
+//
+// Single line at an upward angle (negative slope in our convention, where
+// +y is down). Catches a rider with horizontal velocity and launches them
+// into a ballistic arc.
+//
+// Best after a slide (so the rider has vx). At default spawn velocity
+// (vx = 0.4) a ramp accomplishes almost nothing — the rider needs real
+// horizontal motion to take off.
+
+export type RampOpts = {
+  startFrame: number;
+  /** Upward slope in degrees. Convention: negative = sloping up to the right. */
+  angleDeg?: number;
+  length?: number;
+  offset?: number;
+  postFrames?: number;
+};
+
+const DEFAULT_RAMP_ANGLE = -25;
+const DEFAULT_RAMP_LENGTH = 40;
+
+export function placeRamp(opts: RampOpts): SlideResult {
+  // A ramp is geometrically a "slide" with a negative angle. The existing
+  // placeSlide already handles arbitrary angle signs — the perpendicular
+  // offset direction works out as long as we pass a small positive offset.
+  return placeSlide({
+    startFrame: opts.startFrame,
+    angleDeg: opts.angleDeg ?? DEFAULT_RAMP_ANGLE,
+    length: opts.length ?? DEFAULT_RAMP_LENGTH,
+    offset: opts.offset ?? 2,
+    postFrames: opts.postFrames ?? 80,
+  });
+}
+
 // ── Slide chain ─────────────────────────────────────────────────────────
 //
 // Multi-curve chain. Each curve is placed under the rider's predicted

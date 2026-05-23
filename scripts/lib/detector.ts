@@ -43,6 +43,13 @@ export type RawFrame = {
   velocity: Vec2;
   /** Sled-side collision-point ids in contact this frame (subset of SLED_POINT_NAMES). */
   sledContacts: string[];
+  /**
+   * Track-line ids the sled-side collision points fired against, this frame.
+   * Used by the Move/ride() composer to attribute slide segments and events
+   * to specific moves: each move owns the line ids it placed, so any frame
+   * whose contactLineIds intersect a move's owned ids is "during" that move.
+   */
+  contactLineIds: number[];
   /** True iff SLED_INTACT.isBinded() === false at this frame (sled has fallen apart). */
   sledBroken: boolean;
   /** True iff RIDER_MOUNTED.isBinded() === false (rider thrown off the sled). */
@@ -96,6 +103,8 @@ export type Measurements = {
   speed: number[];
   /** sled-point ids in contact, per frame. */
   sledContacts: string[][];
+  /** track-line ids the sled fired against, per frame (mirrors RawFrame.contactLineIds). */
+  contactLineIds: number[][];
   /** !sledContacts.length, per frame. */
   airborne: boolean[];
 };
@@ -169,6 +178,7 @@ export function detect(raw: RawTrajectory, params: Partial<DetectorParams> = {})
   const velocity: Vec2[] = [];
   const speed: number[] = [];
   const sledContacts: string[][] = [];
+  const contactLineIds: number[][] = [];
   const airborne: boolean[] = [];
   const events: DetEvent[] = [];
 
@@ -186,6 +196,7 @@ export function detect(raw: RawTrajectory, params: Partial<DetectorParams> = {})
     const sp = Math.hypot(fr.velocity.x, fr.velocity.y);
     speed.push(sp);
     sledContacts.push(fr.sledContacts);
+    contactLineIds.push(fr.contactLineIds);
     const isAir = fr.sledContacts.length === 0;
     airborne.push(isAir);
 
@@ -271,7 +282,7 @@ export function detect(raw: RawTrajectory, params: Partial<DetectorParams> = {})
     };
   }
 
-  const measurements: Measurements = { position, velocity, speed, sledContacts, airborne };
+  const measurements: Measurements = { position, velocity, speed, sledContacts, contactLineIds, airborne };
   const summary = computeSummary(measurements, raw.duration);
 
   return {
@@ -386,16 +397,29 @@ export function extractRawTrajectory(engine: any, duration: number): RawTrajecto
     const updates = engine.getUpdatesAtFrame(f);
 
     const sledContacts: string[] = [];
+    const contactLineIds: number[] = [];
     if (Array.isArray(updates)) {
-      const seen = new Set<string>();
+      const seenPoints = new Set<string>();
+      const seenLines = new Set<number>();
       for (const u of updates) {
         if (!u || u.type !== "CollisionUpdate" || !Array.isArray(u.updated)) continue;
+        // Only count this update if at least one of its updated points is
+        // sled-side. Lr-core also emits CollisionUpdates for rider-side
+        // points (BUTT, LFOOT, etc.); we don't want those.
+        let sledSideInThisUpdate = false;
         for (const p of u.updated) {
           const pid = p?.id;
-          if (typeof pid === "string" && SLED_POINT_NAMES.has(pid) && !seen.has(pid)) {
-            seen.add(pid);
-            sledContacts.push(pid);
+          if (typeof pid === "string" && SLED_POINT_NAMES.has(pid)) {
+            sledSideInThisUpdate = true;
+            if (!seenPoints.has(pid)) {
+              seenPoints.add(pid);
+              sledContacts.push(pid);
+            }
           }
+        }
+        if (sledSideInThisUpdate && typeof u.id === "number" && !seenLines.has(u.id)) {
+          seenLines.add(u.id);
+          contactLineIds.push(u.id);
         }
       }
     }
@@ -420,6 +444,7 @@ export function extractRawTrajectory(engine: any, duration: number): RawTrajecto
       position: { x: rider.position.x, y: rider.position.y },
       velocity: { x: rider.velocity.x, y: rider.velocity.y },
       sledContacts,
+      contactLineIds,
       sledBroken,
       riderEjected,
     });

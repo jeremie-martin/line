@@ -95,6 +95,14 @@ export type PlaceCtx = {
    * adapters use deterministic defaults — same as before search mode.
    */
   rng?: () => number;
+  /**
+   * Multiplier on jitter widths. Default 1 (normal ±20-30% bands).
+   * Greedy search bumps this on retry rounds: 1 → 1.75 → 2.5 → 3.25
+   * etc. — lets the search escape "the answer isn't in the default
+   * band" failures without resorting to backtracking. Cheap; only
+   * adapter-chosen params are affected.
+   */
+  jitterScale?: number;
 };
 
 /** What a move's `place()` returns. */
@@ -289,7 +297,7 @@ export function slide(opts: SlideOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptSlide(opts, rider, ctx.rng);
+      resolved = adaptSlide(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { startAngleDeg, endAngleDeg, segments, segmentLength, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const lines = buildSegmentsFromAngles({
@@ -365,7 +373,7 @@ export function drop(opts: DropOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptDrop(opts, rider, ctx.rng);
+      resolved = adaptDrop(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { startAngleDeg, endAngleDeg, segments, segmentLength, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const lines = buildSegmentsFromAngles({
@@ -436,7 +444,7 @@ export function catch_(opts: CatchOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptCatch(opts, rider, ctx.rng);
+      resolved = adaptCatch(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { halfWidth } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       // Horizontal stub centered (approximately) at the rider's lowest sled point.
@@ -563,7 +571,7 @@ export function ramp(opts: RampOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptRamp(opts, rider, ctx.rng);
+      resolved = adaptRamp(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { angleDeg, length, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const line = buildSingleLine({ anchor: pos, angleDeg, length, offset, lineId: ctx.lineIdStart });
@@ -612,7 +620,7 @@ export function glide(opts: GlideOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptGlide(opts, rider, ctx.rng);
+      resolved = adaptGlide(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { angleDeg, segments, segmentLength, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const lines = buildSegmentsFromAngles({
@@ -678,7 +686,7 @@ export function wave(opts: WaveOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptWave(opts, rider, ctx.rng);
+      resolved = adaptWave(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { segments, segmentLength, peakAngleDeg, baselineAngleDeg, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const angles: number[] = [];
@@ -746,7 +754,7 @@ export function sigmoid(opts: SigmoidOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptSigmoid(opts, rider, ctx.rng);
+      resolved = adaptSigmoid(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { startAngleDeg, peakAngleDeg, segments, segmentLength, steepness, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const angles: number[] = [];
@@ -831,7 +839,7 @@ export function brake(opts: BrakeOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptBrake(opts, rider, ctx.rng);
+      resolved = adaptBrake(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { angleDeg, length, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const line = buildSingleLine({ anchor: pos, angleDeg, length, offset, lineId: ctx.lineIdStart });
@@ -879,7 +887,7 @@ export function kicker(opts: KickerOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptKicker(opts, rider, ctx.rng);
+      resolved = adaptKicker(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { inAngleDeg, outAngleDeg, segmentLength, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const lines = buildSegmentsFromAngles({
@@ -924,7 +932,7 @@ export function bounceStrip(opts: BounceStripOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptBounceStrip(opts, rider, ctx.rng);
+      resolved = adaptBounceStrip(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { bumpCount, bumpSpacing, bumpHalfWidth } = resolved;
       const lines: TrackLine[] = [];
       // For each bump i, find the rider's predicted lowest sled position at
@@ -1003,7 +1011,7 @@ export function jump(opts: JumpOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptJump(opts, rider, ctx.rng);
+      resolved = adaptJump(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { airDuration, launchAngleDeg, rampLength, catchHalfWidth } = resolved;
       landFrame = opts.at + airDuration;
       const lines: TrackLine[] = [];
@@ -1101,7 +1109,7 @@ export function halfPipe(opts: HalfPipeOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptHalfPipe(opts, rider, ctx.rng);
+      resolved = adaptHalfPipe(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { peakDescentDeg, segments, segmentLength, offset } = resolved;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);
       const angles: number[] = [];
@@ -1171,7 +1179,7 @@ export function loop(opts: LoopOpts): Move {
     atFrame: opts.at,
     place(ctx) {
       const rider = readIncoming(ctx.engine, opts.at);
-      resolved = adaptLoop(opts, rider, ctx.rng);
+      resolved = adaptLoop(opts, rider, ctx.rng, ctx.jitterScale ?? 1);
       const { radius, segments, sweepDeg } = resolved;
       const sweepRad = (sweepDeg * Math.PI) / 180;
       const { pos } = lowestSledPoint(ctx.engine, opts.at);

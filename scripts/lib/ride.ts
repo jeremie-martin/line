@@ -66,6 +66,14 @@ export type RideOpts = {
    * back to `rng`.
    */
   perMoveRngs?: Array<(() => number) | undefined>;
+  /**
+   * Per-move jitter-scale multipliers. Must be set in tandem with
+   * perMoveRngs when those moves were chosen at non-default scale
+   * during greedy search — otherwise the replay would produce
+   * different geometry than the search committed to. Missing entries
+   * default to 1.
+   */
+  perMoveJitterScales?: Array<number | undefined>;
 };
 
 export function ride(moves: Move[], opts: RideOpts = {}): RideResult {
@@ -97,12 +105,14 @@ export function ride(moves: Move[], opts: RideOpts = {}): RideResult {
     const step = steps[idx];
     try {
       const moveRng = opts.perMoveRngs?.[idx] ?? opts.rng;
+      const moveScale = opts.perMoveJitterScales?.[idx];
       const placement = step.move.place({
         engine,
         accumulated,
         lineIdStart: nextLineId,
         duration,
         rng: moveRng,
+        jitterScale: moveScale,
       });
       step.placement = placement;
       accumulated.push(...placement.lines);

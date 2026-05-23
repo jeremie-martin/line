@@ -161,6 +161,37 @@ export function searchRide(
 
 // ────────── Greedy per-move search with backtracking ──────────
 
+/**
+ * Per-move-type default tries budget. Easier moves get fewer tries;
+ * harder ones (wave, halfPipe, loop) get more. Override at the call
+ * site with opts.triesPerMove to force a uniform value.
+ */
+export const DEFAULT_TRIES_BY_TYPE: Record<string, number> = {
+  slide: 3,
+  curve: 3,
+  glide: 3,
+  drop: 5,
+  ramp: 5,
+  catch: 3,
+  gap: 1,
+  brake: 4,
+  sigmoid: 8,
+  kicker: 8,
+  bounceStrip: 5,
+  wave: 12,
+  halfPipe: 8,
+  loop: 12,
+  jump: 6,
+  tune: 1, // tune already does internal search
+};
+
+/**
+ * Jitter-scale escalation schedule for retry rounds. Round 0 = normal
+ * bands (1×); if all tries at 1× fail, retry with 1.75×; then 2.5×.
+ * Beyond the schedule we resort to backtracking.
+ */
+const SCALE_SCHEDULE = [1, 1.75, 2.5];
+
 export type GreedySearchOpts = {
   /** Maximum random tries per move before considering it failed. */
   triesPerMove?: number;
@@ -220,7 +251,9 @@ export function searchRideGreedy(
   rideOpts: Omit<RideOpts, "rng" | "perMoveRngs">,
   opts: GreedySearchOpts,
 ): GreedySearchResult {
-  const triesPerMove = opts.triesPerMove ?? 10;
+  // When triesPerMove is undefined, we use DEFAULT_TRIES_BY_TYPE per move.
+  // The user can force a uniform count by passing triesPerMove explicitly.
+  const triesPerMoveOverride = opts.triesPerMove;
   const backtrackDepth = opts.backtrackDepth ?? 1;
   const lookahead = opts.lookahead ?? 60;
   const baseSeed = opts.seed ?? 1;
@@ -245,6 +278,8 @@ export function searchRideGreedy(
   const snapshotNextLineId: Array<number> = new Array(N);
   // Final chosen seed per move (null = couldn't place).
   const perMoveSeeds: Array<number | null> = sorted.map(() => null);
+  // Final chosen jitter scale per move (parallel to perMoveSeeds).
+  const perMoveScales: Array<number> = sorted.map(() => 1);
 
   // deno-lint-ignore no-explicit-any
   let engine: any = new LineRiderEngine();
@@ -254,21 +289,28 @@ export function searchRideGreedy(
   let totalSimulations = 0;
   let backtracks = 0;
 
+  // Per-move jitter-scale tracking — bumps each time we re-enter a move
+  // without success (so the second batch widens bands).
+  const scaleRound: number[] = sorted.map(() => 0);
+
   while (i < N) {
     const move = sorted[i];
     snapshotEngine[i] = engine;
     snapshotAccumulated[i] = accumulated.length;
     snapshotNextLineId[i] = nextLineId;
 
-    // Generate fresh seeds for this attempt. Use a wide hashing scheme so
-    // backtracking + retry doesn't collide.
-    let best: { score: number; seed: number; engineAfter: unknown; linesAdded: number; lineIdsConsumed: number } | null = null;
+    const triesPerMove =
+      triesPerMoveOverride ?? DEFAULT_TRIES_BY_TYPE[move.type] ?? 5;
+    // jitterScale escalates over scaleRound[i] up to the schedule's last value.
+    const scaleIdx = Math.min(scaleRound[i], SCALE_SCHEDULE.length - 1);
+    const jitterScale = SCALE_SCHEDULE[scaleIdx];
+
+    let best: { score: number; seed: number; scale: number; engineAfter: unknown; linesAdded: number; lineIdsConsumed: number } | null = null;
     let triesThisRound = 0;
 
     while (triesThisRound < triesPerMove) {
       const candidateSeed = baseSeed * 1_000_000 + i * 10_000 + triedSeeds[i].size;
       if (triedSeeds[i].has(candidateSeed)) {
-        // Numerical accident — skip and bump
         triesThisRound++;
         continue;
       }
@@ -283,6 +325,7 @@ export function searchRideGreedy(
         lineIdStart: nextLineId,
         duration,
         rng,
+        jitterScale,
       });
       const lookEnd = Math.min(duration, placement.endFrame + lookahead);
       const raw = extractRawTrajectory(placement.engineAfter, lookEnd);
@@ -297,20 +340,19 @@ export function searchRideGreedy(
         best = {
           score,
           seed: candidateSeed,
+          scale: jitterScale,
           engineAfter: placement.engineAfter,
           linesAdded: placement.lines.length,
           lineIdsConsumed: placement.lines.length,
         };
       }
-      // Early exit on clean win.
       if (survivedWindow && verdict.drift.length === 0) break;
     }
 
     if (best !== null && best.score >= 1000) {
-      // Advance.
       perMoveSeeds[i] = best.seed;
+      perMoveScales[i] = best.scale;
       engine = best.engineAfter;
-      // Track placeholder lines so accumulated.length stays correct for snapshot semantics.
       for (let k = 0; k < best.linesAdded; k++) accumulated.push(null);
       nextLineId += best.lineIdsConsumed;
       opts.onMove?.({
@@ -320,7 +362,20 @@ export function searchRideGreedy(
         chosenSeed: best.seed,
         outcome: "advanced",
       });
+      // Reset scaleRound for this move so a future re-visit starts fresh.
+      scaleRound[i] = 0;
       i++;
+    } else if (scaleRound[i] < SCALE_SCHEDULE.length - 1) {
+      // Escalate jitter scale before resorting to backtracking.
+      scaleRound[i]++;
+      opts.onMove?.({
+        moveIndex: i,
+        moveType: move.type,
+        triesUsed: triesThisRound,
+        chosenSeed: null,
+        outcome: "advanced", // not quite — but it's not a backtrack
+      });
+      // Stay at this move; next iteration runs with wider bands.
     } else {
       // No surviving try. Backtrack.
       let unwound = 0;
@@ -360,7 +415,12 @@ export function searchRideGreedy(
     s === null ? undefined : makeRng(s),
   );
 
-  const result = ride(sorted, { ...rideOpts, perMoveRngs, duration });
+  const result = ride(sorted, {
+    ...rideOpts,
+    perMoveRngs,
+    perMoveJitterScales: perMoveScales,
+    duration,
+  });
 
   return {
     result,

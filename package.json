@@ -15,6 +15,8 @@
     "curve": "tsx scripts/curve.ts",
     "slidechain": "tsx scripts/slidechain.ts",
     "ride": "tsx scripts/ride.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "dash": "tsx scripts/serve.ts",
     "unpack": "webcrack -f -o unpacked mirror/_v2153.0/main.js",
     "parity": "tsx scripts/parity.ts"
@@ -24,6 +26,7 @@
     "lr-core": "^0.8.2",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
+    "vitest": "^4.1.7",
     "webcrack": "^2.16.0"
   },
   "dependencies": {

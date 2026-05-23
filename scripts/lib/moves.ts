@@ -22,6 +22,7 @@ import {
   type Vec2,
 } from "./detector.ts";
 import { type TrackLine } from "./primitive.ts";
+import { arcLines } from "./arcLines.ts";
 
 // deno-lint-ignore no-explicit-any
 const lrCore: any = await import("lr-core/line-rider-engine/index.js");
@@ -1171,6 +1172,171 @@ export function jump(opts: JumpOpts): Move {
           airborneFramesInWindow: airCount,
           targetLandFrame: landFrame,
         },
+      };
+    },
+  };
+}
+
+// ────────── HalfPipe move ──────────
+//
+// Sine-shaped angle schedule: the segment slopes ramp up from 0 to a peak
+// descent, back through 0 (at the bottom of the dip), then negative
+// (climbing) to peak ascent, and back to 0. The cumulative path is a
+// shallow valley — rider descends, levels out, climbs back to entry height.
+
+export type HalfPipeOpts = {
+  at: number;
+  peakDescentDeg?: number;
+  segments?: number;
+  segmentLength?: number;
+  offset?: number;
+  minDurationFrames?: number;
+};
+
+export function halfPipe(opts: HalfPipeOpts): Move {
+  const peakDescentDeg = opts.peakDescentDeg ?? 20;
+  const segments = opts.segments ?? 12;
+  const segmentLength = opts.segmentLength ?? 20;
+  const offset = opts.offset ?? 2;
+  const minDurationFrames = opts.minDurationFrames ?? 25;
+
+  return {
+    type: "halfPipe",
+    atFrame: opts.at,
+    place(ctx) {
+      const { pos } = lowestSledPoint(ctx.engine, opts.at);
+      const angles: number[] = [];
+      for (let i = 0; i < segments; i++) {
+        const t = (i + 0.5) / segments;
+        angles.push(peakDescentDeg * Math.sin(2 * Math.PI * t));
+      }
+      const lines = buildSegmentsFromAngles({
+        anchor: pos,
+        angles,
+        segmentLength,
+        offset,
+        lineIdStart: ctx.lineIdStart,
+      });
+      let eng = ctx.engine;
+      for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
+      const meanVx = 4;
+      const endFrame = opts.at + Math.ceil((segments * segmentLength) / meanVx);
+      return { lines, engineAfter: eng, endFrame, lineIds: lines.map((l) => l.id) };
+    },
+    verify(det, range, lineIds) {
+      const segs = ownedSlideSegments(det, range, lineIds);
+      const totalContact = segs.reduce((s, x) => s + x.durationFrames, 0);
+      const mid = Math.floor((range.start + range.end) / 2);
+      const vxMid = det.measurements.velocity[mid]?.x ?? 0;
+      const vxStart = det.measurements.velocity[range.start]?.x ?? 0;
+      const vxEnd =
+        det.measurements.velocity[Math.min(det.measurements.velocity.length - 1, range.end)]?.x ?? 0;
+      const drift: DriftEntry[] = [];
+      if (totalContact < minDurationFrames) {
+        drift.push({
+          metric: "totalContactFrames",
+          expected: `>= ${minDurationFrames}`,
+          actual: totalContact,
+        });
+      }
+      return {
+        passed: !catastrophicBy(det, range),
+        drift,
+        observed: {
+          totalContactFrames: totalContact,
+          vxStart: Number(vxStart.toFixed(2)),
+          vxMid: Number(vxMid.toFixed(2)),
+          vxEnd: Number(vxEnd.toFixed(2)),
+        },
+      };
+    },
+  };
+}
+
+// ────────── Loop move ──────────
+//
+// Near-full circular arc. Rider enters going horizontally, sweeps around a
+// circle centered below them. At 2D rigid-body with gravity, full 360°
+// inversion is hard — the rider tends to detach at the top of the loop
+// (gravity pulls them off the inside of the line). Accept ≤270° as the
+// practical version; verify by measuring direction-sweep during contact.
+
+export type LoopOpts = {
+  at: number;
+  radius?: number;
+  segments?: number;
+  /** Sweep amount in degrees. 360 = full loop, 270 = three-quarter. */
+  sweepDeg?: number;
+  /** Drift threshold: minimum direction-sweep observed during contact. */
+  minSweepDeg?: number;
+};
+
+export function loop(opts: LoopOpts): Move {
+  const radius = opts.radius ?? 40;
+  const segments = opts.segments ?? 24;
+  const sweepDeg = opts.sweepDeg ?? 270;
+  const sweepRad = (sweepDeg * Math.PI) / 180;
+  const minSweepDeg = opts.minSweepDeg ?? 180;
+
+  return {
+    type: "loop",
+    atFrame: opts.at,
+    place(ctx) {
+      const { pos } = lowestSledPoint(ctx.engine, opts.at);
+      // Center directly below entry by `radius`. Entry at angle -π/2 from
+      // center (top of circle). Rider sweeps CCW in math coords (CW visually).
+      const center = { x: pos.x, y: pos.y + radius };
+      const lines = arcLines({
+        center,
+        radius,
+        startAngleRad: -Math.PI / 2,
+        endAngleRad: -Math.PI / 2 + sweepRad,
+        segments,
+        lineIdStart: ctx.lineIdStart,
+      });
+      let eng = ctx.engine;
+      for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
+      const meanV = 5;
+      const endFrame = opts.at + Math.ceil((2 * Math.PI * radius) / meanV) + 10;
+      return { lines, engineAfter: eng, endFrame, lineIds: lines.map((l) => l.id) };
+    },
+    verify(det, range, lineIds) {
+      const owned = new Set(lineIds);
+      let sweptDeg = 0;
+      let prevAngle: number | null = null;
+      for (
+        let f = range.start;
+        f <= Math.min(range.end, det.measurements.velocity.length - 1);
+        f++
+      ) {
+        const lids = det.measurements.contactLineIds[f] ?? [];
+        if (!lids.some((id) => owned.has(id))) {
+          prevAngle = null; // reset on contact break
+          continue;
+        }
+        const v = det.measurements.velocity[f];
+        if (!v) continue;
+        const a = Math.atan2(v.y, v.x);
+        if (prevAngle !== null) {
+          let d = a - prevAngle;
+          while (d > Math.PI) d -= 2 * Math.PI;
+          while (d < -Math.PI) d += 2 * Math.PI;
+          sweptDeg += (Math.abs(d) * 180) / Math.PI;
+        }
+        prevAngle = a;
+      }
+      const drift: DriftEntry[] = [];
+      if (sweptDeg < minSweepDeg) {
+        drift.push({
+          metric: "sweepDeg",
+          expected: `>= ${minSweepDeg}°`,
+          actual: Number(sweptDeg.toFixed(1)),
+        });
+      }
+      return {
+        passed: !catastrophicBy(det, range),
+        drift,
+        observed: { sweepDeg: Number(sweptDeg.toFixed(1)) },
       };
     },
   };

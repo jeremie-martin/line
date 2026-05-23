@@ -1,0 +1,20 @@
+{
+  "name": "line",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Procedural Line Rider track generation synced to music — exploratory.",
+  "scripts": {
+    "probe": "tsx scripts/probe.ts",
+    "probe2": "tsx scripts/probe2.ts",
+    "export": "tsx scripts/export.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

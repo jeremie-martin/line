@@ -14,6 +14,7 @@
     "slide": "tsx scripts/slide.ts",
     "curve": "tsx scripts/curve.ts",
     "slidechain": "tsx scripts/slidechain.ts",
+    "ride": "tsx scripts/ride.ts",
     "dash": "tsx scripts/serve.ts",
     "unpack": "webcrack -f -o unpacked mirror/_v2153.0/main.js",
     "parity": "tsx scripts/parity.ts"

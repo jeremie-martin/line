@@ -171,14 +171,16 @@ DoodleChaos-style videos mix both.
 - **lr-core ↔ bundle physics parity** — byte-identical trajectories on the
   test track. `npm run parity` re-runs the check.
 
-## Next directions (none of these picked yet)
+## Next directions
 
-- **Audio analysis** — pick a stack (essentia.js, Meyda, librosa, etc.) and
-  extract beats / onsets / spectral features.
-- **Procedural generator** — the real work. Greedy forward search vs.
-  templates vs. optimization vs. trajectory-first.
-- **Camera-sync prototype** — wire `createZoomer` keyframe arrays through the
-  helper. Low-risk visual win independent of the generator.
+The generator side of the pipeline. See [`PROBLEM.md`](./PROBLEM.md) for the
+problem statement, pinned definitions (event types: landing / bounce / kick,
+speed semantics, units, tolerances, initial conditions), and the falsifiable
+success-criterion ladder. Step 0 is **detector + dashboard** (visually verify
+the measurements before any compiler work).
+
+Background items still open (not blocking the generator):
+
 - **Vendor the h264 encoder** — currently a runtime fetch from
   `unpkg.com/h264-mp4-encoder@1.0.12`. Single external CDN dep.
 - **Helper observability** — H6/H7 from the code review are still open

@@ -24,12 +24,16 @@ if (!existsSync("test.track.json")) {
 }
 const trackA = JSON.parse(readFileSync("test.track.json", "utf8"));
 
-// Build a synthetic alternate "track B" by mirroring track A's lines vertically.
-// This produces a structurally different track but uses the same schema.
+// Build a synthetic alternate "track B" by shifting the rider's startPosition
+// to the right. Same geometry as track A but the rider enters the line cluster
+// at a different point — produces a visibly different render that is still
+// legitimately rideable (unlike y-negation, which puts all lines ABOVE the
+// rider and produces a degenerate empty-fall video; S2 in the review).
+const riderA = (trackA.riders ?? [{ startPosition: { x: 0, y: 0 }, startVelocity: { x: 0.4, y: 0 }, remountable: 1 }])[0];
 const trackB = {
   ...trackA,
   label: "stress-track-B",
-  lines: trackA.lines.map((l: { y1: number; y2: number }) => ({ ...l, y1: -l.y1, y2: -l.y2 })),
+  riders: [{ ...riderA, startPosition: { x: 100, y: 0 } }],
 };
 writeFileSync(resolve(STRESS_DIR, "trackB.json"), JSON.stringify(trackB, null, 2));
 

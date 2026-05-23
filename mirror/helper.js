@@ -15,6 +15,13 @@
 (function () {
   "use strict";
 
+  // H1: guard against re-eval (devtools snippet, SPA back-nav, double-include).
+  // Without this, the Object.defineProperty below throws on the second pass.
+  if (window.__lr) {
+    console.log("[__lr] already installed, skipping re-init");
+    return;
+  }
+
   const REACT_KEY_PREFIXES = [
     "__reactInternalInstance$", // React 16
     "__reactFiber$",            // React 17/18
@@ -137,19 +144,31 @@
 
     // ---- VideoExporter component-local state (via fiber walk) ----
     waitForVideoExporterReady: async function (opts) {
+      // Status state machine in the bundle:
+      //   Loading -> Config -> Rendering -> Postrender -> (Config via reset)
+      //   Loading -> LoadError  (terminal: h264-mp4-encoder script failed to load)
       // Auto-reset Postrender to Config: clicking RENDER while in Postrender
       // dispatches a state reset (per VideoExporter.onRenderButtonClick).
       let attemptedReset = false;
       return waitFor(function () {
         const inst = getVideoExporter();
         if (!inst) return null;
-        if (inst.state.status === "Config") return inst;
-        if (inst.state.status === "Postrender" && !attemptedReset) {
+        const status = inst.state.status;
+        if (status === "Config") return inst;
+        if (status === "Postrender" && !attemptedReset) {
           attemptedReset = true;
           console.log("[__lr] auto-resetting Postrender -> Config");
           inst.onRenderButtonClick();
           return null;
         }
+        // H4: surface terminal/blocking states explicitly instead of timing out
+        if (status === "LoadError") {
+          throw new Error("[__lr] VideoExporter status=LoadError — h264-mp4-encoder script failed to load (check unpkg.com / network / CSP)");
+        }
+        if (status === "Rendering") {
+          throw new Error("[__lr] VideoExporter status=Rendering — a previous render is still in progress");
+        }
+        // status === "Loading" — keep polling
         return null;
       }, opts || { timeoutMs: 30000 });
     },
@@ -174,8 +193,19 @@
       // "Beginning" or "Checkpoint"
       const inst = getVideoExporter();
       if (!inst) throw new Error("[__lr] VideoExporter not mounted");
-      const flagIndex = inst.props.flagIndex || 0;
-      inst.setState({ startFrom: value, index: value === "Checkpoint" ? flagIndex : 0 });
+      if (value === "Beginning") {
+        inst.setState({ startFrom: "Beginning", index: 0 });
+      } else if (value === "Checkpoint") {
+        // H2: use ?? (not ||) so a legitimate flagIndex of 0 isn't collapsed
+        // with "no flag set", and error out when no flag exists.
+        const flagIndex = inst.props.flagIndex;
+        if (flagIndex == null) {
+          throw new Error("[__lr] setStartFrom('Checkpoint') but no flag is set in the current track");
+        }
+        inst.setState({ startFrom: "Checkpoint", index: flagIndex });
+      } else {
+        throw new Error("[__lr] setStartFrom: value must be 'Beginning' or 'Checkpoint', got " + JSON.stringify(value));
+      }
     },
 
     setEncoderSettings: function (settings) {
@@ -192,11 +222,39 @@
         throw new Error("[__lr] expected status=Config, got " + inst.state.status);
       }
       inst.onRenderButtonClick();
+
+      // H5: detect stuck-render. The bundle's render IIFE is unawaited, so an
+      // encoder failure leaves status="Rendering" with no progress. Track
+      // state.index across polls and bail if it doesn't advance for stallMs.
       const timeoutMs = (opts && opts.timeoutMs) || 600000;
-      await waitFor(function () {
-        return inst.state.status === "Postrender" && inst.state.videoUrl ? true : false;
-      }, { timeoutMs: timeoutMs, intervalMs: 250 });
-      return inst.state.videoUrl;
+      const stallMs = (opts && opts.stallMs) || 15000;
+      const intervalMs = 250;
+      const start = Date.now();
+      let lastIndex = inst.state.index;
+      let lastProgressAt = Date.now();
+
+      while (Date.now() - start < timeoutMs) {
+        await delay(intervalMs);
+        const status = inst.state.status;
+
+        if (status === "Postrender" && inst.state.videoUrl) {
+          return inst.state.videoUrl;
+        }
+        if (status === "LoadError") {
+          throw new Error("[__lr] render failed: status=LoadError (h264 encoder gone)");
+        }
+        if (status === "Rendering") {
+          if (inst.state.index !== lastIndex) {
+            lastIndex = inst.state.index;
+            lastProgressAt = Date.now();
+          } else if (Date.now() - lastProgressAt > stallMs) {
+            throw new Error("[__lr] render stuck at frame " + lastIndex + " for " + ((Date.now() - lastProgressAt) / 1000).toFixed(1) + "s (encoder probably threw inside the unawaited render IIFE)");
+          }
+        } else if (status !== "Postrender") {
+          throw new Error("[__lr] unexpected status during render: " + status);
+        }
+      }
+      throw new Error("[__lr] render timed out after " + timeoutMs + "ms (last status=" + inst.state.status + ", last frame=" + lastIndex + ")");
     },
 
     // Trigger a real browser download of a blob: URL (so Playwright's
@@ -262,6 +320,9 @@
     },
   };
 
-  Object.defineProperty(window, "__lr", { value: api, writable: false, configurable: false });
+  // Non-writable to catch accidental overwrites; configurable:true so a power
+  // user can delete + re-eval the helper from devtools (the guard at the top
+  // of this IIFE handles the normal re-eval case).
+  Object.defineProperty(window, "__lr", { value: api, writable: false, configurable: true });
   console.log("[__lr] helper installed");
 })();

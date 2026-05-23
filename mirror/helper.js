@@ -137,9 +137,20 @@
 
     // ---- VideoExporter component-local state (via fiber walk) ----
     waitForVideoExporterReady: async function (opts) {
+      // Auto-reset Postrender to Config: clicking RENDER while in Postrender
+      // dispatches a state reset (per VideoExporter.onRenderButtonClick).
+      let attemptedReset = false;
       return waitFor(function () {
         const inst = getVideoExporter();
-        return inst && inst.state.status === "Config" ? inst : null;
+        if (!inst) return null;
+        if (inst.state.status === "Config") return inst;
+        if (inst.state.status === "Postrender" && !attemptedReset) {
+          attemptedReset = true;
+          console.log("[__lr] auto-resetting Postrender -> Config");
+          inst.onRenderButtonClick();
+          return null;
+        }
+        return null;
       }, opts || { timeoutMs: 30000 });
     },
 
@@ -206,6 +217,17 @@
       const hq = !!cfg.hq;
       const startFrom = cfg.startFrom || "Beginning";
 
+      console.log("[__lr] exportVideo start", { resolution: resolution, hq: hq, zoom: cfg.zoom });
+
+      // If the modal is already mounted in Postrender, close it so we restart
+      // with a clean component (avoids stale onSave / cameraFollower state).
+      const existing = getVideoExporter();
+      if (existing && existing.state.status === "Postrender") {
+        console.log("[__lr] closing existing Postrender modal");
+        this.closeVideoExporter();
+        await delay(400);
+      }
+
       this.enterEditor();
       await delay(800);
 
@@ -229,7 +251,9 @@
       if (cfg.encoderSettings) this.setEncoderSettings(cfg.encoderSettings);
 
       await delay(200);
+      console.log("[__lr] starting render");
       const url = await this.render({ timeoutMs: cfg.timeoutMs });
+      console.log("[__lr] render complete");
 
       if (cfg.download !== false) {
         this.triggerDownload(url, cfg.filename || "lr-render.mp4");

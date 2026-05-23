@@ -23,22 +23,108 @@ const LineRiderEngine = lrCore.default;
 export type Fitness = (result: RideResult) => number;
 
 /**
+ * For each move's atFrame, find the nearest landing/bounce event that's
+ * within ε frames. Matches are greedy: closest pairs first; each event
+ * can satisfy only one beat.
+ *
+ * This is the "did the rider land where the user asked" signal. For
+ * music-driven specs, atFrames are beat times and this directly measures
+ * sync quality. For non-music specs it still tells you "did each move
+ * fire its expected event on time."
+ */
+export type BeatAdherence = {
+  /** Total moves considered (excludes skipped). */
+  totalBeats: number;
+  /** Hits = moves with a landing/bounce within ε of atFrame. */
+  hits: number;
+  /** hits / totalBeats. */
+  hitFraction: number;
+  /** Mean absolute frame offset for hits (lower = tighter sync). */
+  meanHitOffset: number;
+  perBeat: Array<{
+    atFrame: number;
+    moveType: string;
+    eventFrame: number | null;
+    offset: number | null;
+    hit: boolean;
+  }>;
+};
+
+export function beatAdherence(result: RideResult, epsilon = 2): BeatAdherence {
+  const landingsAndBounces = result.detection.events.filter(
+    (e) => e.type === "landing" || e.type === "bounce",
+  );
+  const liveSteps = result.steps.filter((s) => !s.skipped);
+
+  // Build all candidate (beat, event) pairs within ε and sort by distance.
+  const pairs: Array<{ stepIdx: number; eventIdx: number; offset: number }> = [];
+  for (let s = 0; s < liveSteps.length; s++) {
+    const target = liveSteps[s].move.atFrame;
+    for (let e = 0; e < landingsAndBounces.length; e++) {
+      const offset = Math.abs(landingsAndBounces[e].frame - target);
+      if (offset <= epsilon) pairs.push({ stepIdx: s, eventIdx: e, offset });
+    }
+  }
+  pairs.sort((a, b) => a.offset - b.offset);
+
+  // Greedy bipartite matching.
+  const usedSteps = new Set<number>();
+  const usedEvents = new Set<number>();
+  const matched: Record<number, { eventFrame: number; offset: number }> = {};
+  for (const p of pairs) {
+    if (usedSteps.has(p.stepIdx) || usedEvents.has(p.eventIdx)) continue;
+    usedSteps.add(p.stepIdx);
+    usedEvents.add(p.eventIdx);
+    matched[p.stepIdx] = {
+      eventFrame: landingsAndBounces[p.eventIdx].frame,
+      offset: p.offset,
+    };
+  }
+
+  const perBeat = liveSteps.map((s, i) => {
+    const m = matched[i];
+    return {
+      atFrame: s.move.atFrame,
+      moveType: s.move.type,
+      eventFrame: m?.eventFrame ?? null,
+      offset: m?.offset ?? null,
+      hit: !!m,
+    };
+  });
+
+  const hits = perBeat.filter((b) => b.hit).length;
+  const offsets = perBeat.filter((b) => b.hit).map((b) => b.offset!);
+  const meanHitOffset = offsets.length > 0
+    ? offsets.reduce((a, b) => a + b, 0) / offsets.length
+    : 0;
+
+  return {
+    totalBeats: liveSteps.length,
+    hits,
+    hitFraction: liveSteps.length > 0 ? hits / liveSteps.length : 0,
+    meanHitOffset,
+    perBeat,
+  };
+}
+
+/**
  * Default fitness function.
  *
- * Hierarchy (most important first):
- *   1. Survival (terminus = endOfSpec): +1000
- *   2. All moves pass (no catastrophic mid-move failure): +100
- *   3. Forward motion (mean vx while sliding): scaled, capped at +200
- *   4. Penalize stalled rider (mean vx < 2): -500 (anti-cheat against
- *      "rider stuck on flat line technically sliding")
- *   5. Contact fraction (% sliding): ×100
- *   6. Longest contact run: capped at +80 (so we don't reward one
- *      monster slide that pins everything else)
- *   7. Drift entries: -10 each
+ * Reformulated 2026-05-23 after the drums-spec experiment surfaced that
+ * the previous fitness rewarded "long flat slide" trivially — the
+ * optimizer's straight-line output literally maximized the previous score.
  *
- * Rationale: survival is primary, but a track where the rider is barely
- * moving is *boring* even if technically sliding 90% of the time. The
- * fitness function encodes "we want vivid motion" as a hard preference.
+ * New hierarchy:
+ *   1. Survival (+500). Lower than before — survival is necessary but
+ *      not nearly sufficient.
+ *   2. Beat adherence: fraction of moves whose landing fired within ε
+ *      of their atFrame. ×1000 — this is now the primary signal.
+ *   3. All moves passed (no catastrophic mid-move failure): +100
+ *   4. Stall penalty: rider sliding with vx < 1.5 = -500 (anti-cheat)
+ *   5. Tie-breakers: contact %, mean vx, longest slide — each capped to
+ *      a small contribution so they can't dominate adherence.
+ *   6. Drift entries: -30 each (heavier than before — each missed
+ *      contract is a meaningful penalty).
  */
 export function defaultFitness(r: RideResult): number {
   const s = r.detection.summary;
@@ -46,16 +132,21 @@ export function defaultFitness(r: RideResult): number {
   for (const step of r.steps) {
     if (step.verdict) driftCount += step.verdict.drift.length;
   }
+  const adherence = beatAdherence(r, 2);
+
   let score = 0;
-  if (r.survived) score += 1000;
+  if (r.survived) score += 500;
   if (r.allPassed) score += 100;
-  // Forward motion: the load-bearing aesthetic signal.
-  score += Math.min(s.meanVxSliding * 30, 200);
-  // Stall penalty: kill the "rider stuck on flat line" cheat.
-  if (s.meanVxSliding < 2) score -= 500;
-  score += s.contactFractionSpec * 100;
-  score += Math.min(s.longestContactRun, 80);
-  score -= driftCount * 10;
+  // Primary: did the rider land where asked?
+  score += adherence.hitFraction * 1000;
+  // Tie-breakers (capped, small).
+  score += Math.min(s.meanVxSliding * 10, 60);
+  score += s.contactFractionSpec * 50;
+  score += Math.min(s.longestContactRun, 40);
+  // Stall penalty: rider stuck going nowhere while in contact.
+  if (s.meanVxSliding < 1.5 && s.contactFractionSpec > 0.3) score -= 500;
+  // Drift: each missed contract is meaningful.
+  score -= driftCount * 30;
   return score;
 }
 
@@ -260,7 +351,7 @@ export function searchRideGreedy(
   const scoreFn =
     opts.localScore ??
     ((v: MoveVerdict, survivedWindow: boolean): number =>
-      (survivedWindow ? 1000 : 0) + (v.passed ? 100 : 0) - v.drift.length * 10);
+      (survivedWindow ? 1000 : 0) + (v.passed ? 100 : 0) - v.drift.length * 30);
 
   const sorted = [...moves].sort((a, b) => a.atFrame - b.atFrame);
   const N = sorted.length;
@@ -334,7 +425,17 @@ export function searchRideGreedy(
         det.terminus.frame >= placement.endFrame || det.terminus.reason === "endOfSpec";
       const range = { start: move.atFrame, end: placement.endFrame };
       const verdict = move.verify(det, range, placement.lineIds);
-      const score = scoreFn(verdict, survivedWindow);
+      // Beat-adherence bonus: did a landing/bounce fire within ε frames
+      // of this move's atFrame? Heavily rewards on-beat configurations.
+      const epsilon = 2;
+      const ownedLineIds = new Set(placement.lineIds);
+      const onBeat = det.events.some((e) => {
+        if (e.type !== "landing" && e.type !== "bounce") return false;
+        if (Math.abs(e.frame - move.atFrame) > epsilon) return false;
+        const lids = det.measurements.contactLineIds[e.frame] ?? [];
+        return lids.some((id) => ownedLineIds.has(id));
+      });
+      const score = scoreFn(verdict, survivedWindow) + (onBeat ? 500 : 0);
 
       if (best === null || score > best.score) {
         best = {
@@ -346,7 +447,7 @@ export function searchRideGreedy(
           lineIdsConsumed: placement.lines.length,
         };
       }
-      if (survivedWindow && verdict.drift.length === 0) break;
+      if (survivedWindow && verdict.drift.length === 0 && onBeat) break;
     }
 
     if (best !== null && best.score >= 1000) {

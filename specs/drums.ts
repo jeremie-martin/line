@@ -18,11 +18,15 @@ import { resolve } from "node:path";
 import { slide } from "../scripts/lib/moves.ts";
 
 const FPS = 40;
-const MIN_SPACING_FRAMES = 15;
-// First slide needs the rider to fall far enough that the adapter can place
-// catch geometry — empirically that's around frame 30 from default spawn.
-// Beats earlier than this are dropped (acknowledged drift on the audio).
+// Minimum frame the first move can target. Slide can't catch a rider that
+// hasn't fallen far enough; empirically that's around frame 30 from spawn.
 const MIN_FIRST_FRAME = 30;
+// Minimum frame gap between beats. The detector's persistence rule requires
+// ≥3 frames of contact for a landing event, so two distinct landings need
+// at least ~5 frames separation. We use 6 to give a little margin — this
+// keeps the fast drum-fill beats *in the spec* so the search has a chance
+// at them (and so misses surface honestly).
+const MIN_SPACING_FRAMES = 6;
 
 const data = JSON.parse(readFileSync(resolve("beats/drums_0_30s.json"), "utf8")) as {
   onsets: number[];

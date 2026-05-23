@@ -18,7 +18,7 @@
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { resolve, basename, dirname } from "node:path";
 import { ride, printRideReport, type RideResult } from "./lib/ride.ts";
-import { searchRide, defaultFitness } from "./lib/search.ts";
+import { searchRide, searchRideGreedy, defaultFitness } from "./lib/search.ts";
 import { makeRng } from "./lib/rng.ts";
 import type { Move } from "./lib/moves.ts";
 
@@ -40,6 +40,9 @@ if (!existsSync(specPath)) {
 
 const trials = arg("trials") !== null ? parseInt(arg("trials")!, 10) : 1;
 const seed = arg("seed") !== null ? parseInt(arg("seed")!, 10) : 1;
+const strategy = arg("strategy") ?? "monte"; // "monte" | "greedy"
+const triesPerMove = arg("tries-per-move") !== null ? parseInt(arg("tries-per-move")!, 10) : 10;
+const backtrackDepth = arg("backtrack") !== null ? parseInt(arg("backtrack")!, 10) : 1;
 
 const absPath = resolve(specPath);
 const mod = await import(absPath);
@@ -83,8 +86,29 @@ if (usedRideResultDirectly) {
     process.exit(1);
   }
   result = directResult!;
+} else if (strategy === "greedy") {
+  console.log(`Greedy search: triesPerMove=${triesPerMove} backtrackDepth=${backtrackDepth} seed=${seed}`);
+  const t0 = Date.now();
+  const greedy = searchRideGreedy(moves, {}, {
+    triesPerMove,
+    backtrackDepth,
+    seed,
+    onMove: (info) => {
+      const marker = info.outcome === "advanced" ? "✓" : info.outcome === "backtracked" ? "↩" : "✗";
+      process.stdout.write(
+        `\r[${String(info.moveIndex + 1).padStart(3)}/${moves.length}] ${marker} ${info.moveType.padEnd(12)} tries=${info.triesUsed}`,
+      );
+    },
+  });
+  const elapsed = Date.now() - t0;
+  process.stdout.write("\n\n");
+  console.log(
+    `Greedy: ${elapsed}ms, ${greedy.totalSimulations} sims, ${greedy.backtracks} backtracks, reachedEnd=${greedy.reachedEnd}`,
+  );
+  console.log(`perMoveSeeds: [${greedy.perMoveSeeds.join(", ")}]`);
+  result = greedy.result;
+  chosenSeed = seed;
 } else if (trials > 1) {
-  // Monte-Carlo search mode.
   console.log(`Running ${trials} trials (seed base = ${seed})...`);
   const search = searchRide(moves, {}, {
     trials,

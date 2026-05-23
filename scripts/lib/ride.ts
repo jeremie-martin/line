@@ -58,6 +58,14 @@ export type RideOpts = {
    * reproducible.
    */
   rng?: () => number;
+  /**
+   * Per-move RNGs, indexed by sorted-move position. When set for index i,
+   * overrides `rng` for that specific move. Used by the greedy search to
+   * replay the exact per-move seed chosen during search-time exploration.
+   * Length doesn't need to match moves.length — missing entries fall
+   * back to `rng`.
+   */
+  perMoveRngs?: Array<(() => number) | undefined>;
 };
 
 export function ride(moves: Move[], opts: RideOpts = {}): RideResult {
@@ -85,14 +93,16 @@ export function ride(moves: Move[], opts: RideOpts = {}): RideResult {
   const accumulated: TrackLine[] = [];
   let nextLineId = 1;
 
-  for (const step of steps) {
+  for (let idx = 0; idx < steps.length; idx++) {
+    const step = steps[idx];
     try {
+      const moveRng = opts.perMoveRngs?.[idx] ?? opts.rng;
       const placement = step.move.place({
         engine,
         accumulated,
         lineIdStart: nextLineId,
         duration,
-        rng: opts.rng,
+        rng: moveRng,
       });
       step.placement = placement;
       accumulated.push(...placement.lines);

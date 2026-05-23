@@ -22,7 +22,7 @@
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { resolve, basename, dirname } from "node:path";
 import { ride, printRideReport, type RideResult } from "./lib/ride.ts";
-import { searchRide, searchRideGreedy } from "./lib/search.ts";
+import { searchRide, searchRideGreedy, beatAdherence } from "./lib/search.ts";
 import type { Move } from "./lib/moves.ts";
 
 const argv = process.argv.slice(2);
@@ -119,11 +119,22 @@ if (usedRideResultDirectly) {
   });
   const elapsed = Date.now() - t0;
   process.stdout.write("\n\n");
+  const onBeatCount = greedy.perMoveOnBeat.filter(Boolean).length;
+  const totalMoves = greedy.perMoveOnBeat.length;
   console.log(
     `Greedy: ${elapsed}ms, ${greedy.totalSimulations} sims, ${greedy.backtracks} backtracks, reachedEnd=${greedy.reachedEnd}`,
   );
+  console.log(
+    `On-beat hits: ${onBeatCount} / ${totalMoves} = ${(100 * onBeatCount / totalMoves).toFixed(1)}%` +
+      ` (events firing within ±2 frames of atFrame)`,
+  );
+  const adh = beatAdherence(greedy.result, 2);
+  console.log(
+    `Final-detection adherence: ${adh.hits} / ${adh.totalBeats} = ${(adh.hitFraction * 100).toFixed(1)}%` +
+      ` · mean offset ${adh.meanHitOffset.toFixed(2)}f`,
+  );
   result = greedy.result;
-  provenance = `greedy(seed=${seed})`;
+  provenance = `greedy(seed=${seed}, ${onBeatCount}/${totalMoves} on-beat)`;
 } else if (monteCarlo > 0) {
   console.log(`Monte Carlo: ${monteCarlo} trials (seed base=${seed})`);
   const t0 = Date.now();

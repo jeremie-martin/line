@@ -308,6 +308,8 @@ export type GreedyMoveInfo = {
   triesUsed: number;
   chosenSeed: number | null;
   outcome: "advanced" | "backtracked" | "stuck";
+  /** Did the accepted placement fire an event within ε of move.atFrame? */
+  onBeat?: boolean;
 };
 
 export type GreedySearchResult = {
@@ -315,6 +317,8 @@ export type GreedySearchResult = {
   result: RideResult;
   /** Per-move chosen seeds (null = move was never successfully placed). */
   perMoveSeeds: Array<number | null>;
+  /** Per-move on-beat status (true = placement fired a landing/bounce within ε of atFrame). */
+  perMoveOnBeat: Array<boolean>;
   /** Total simulations run during search (excludes the final ride() pass). */
   totalSimulations: number;
   /** Backtracking events encountered. */
@@ -371,6 +375,8 @@ export function searchRideGreedy(
   const perMoveSeeds: Array<number | null> = sorted.map(() => null);
   // Final chosen jitter scale per move (parallel to perMoveSeeds).
   const perMoveScales: Array<number> = sorted.map(() => 1);
+  // Whether the accepted placement fired on-beat.
+  const perMoveOnBeat: Array<boolean> = sorted.map(() => false);
 
   // deno-lint-ignore no-explicit-any
   let engine: any = new LineRiderEngine();
@@ -396,7 +402,7 @@ export function searchRideGreedy(
     const scaleIdx = Math.min(scaleRound[i], SCALE_SCHEDULE.length - 1);
     const jitterScale = SCALE_SCHEDULE[scaleIdx];
 
-    let best: { score: number; seed: number; scale: number; engineAfter: unknown; linesAdded: number; lineIdsConsumed: number } | null = null;
+    let best: { score: number; seed: number; scale: number; engineAfter: unknown; linesAdded: number; lineIdsConsumed: number; onBeat: boolean } | null = null;
     let triesThisRound = 0;
 
     while (triesThisRound < triesPerMove) {
@@ -445,14 +451,30 @@ export function searchRideGreedy(
           engineAfter: placement.engineAfter,
           linesAdded: placement.lines.length,
           lineIdsConsumed: placement.lines.length,
+          onBeat,
         };
       }
       if (survivedWindow && verdict.drift.length === 0 && onBeat) break;
     }
 
-    if (best !== null && best.score >= 1000) {
+    // Decide: advance, escalate, or backtrack.
+    //   - If we found a config that fires on-beat (survived AND beat hit):
+    //     accept immediately.
+    //   - Else if we haven't exhausted scale escalation: widen bands and
+    //     try again. This is the key fix for the "placed but didn't fire"
+    //     problem — we keep trying until either onBeat or we've explored
+    //     the full scale schedule.
+    //   - Else if we at least have a survival config: accept the
+    //     survival-only placement (move places but won't fire on beat —
+    //     reported honestly).
+    //   - Else: backtrack.
+    const maxScale = scaleRound[i] >= SCALE_SCHEDULE.length - 1;
+
+    if (best !== null && best.onBeat) {
+      // Best case: on-beat survivor.
       perMoveSeeds[i] = best.seed;
       perMoveScales[i] = best.scale;
+      perMoveOnBeat[i] = true;
       engine = best.engineAfter;
       for (let k = 0; k < best.linesAdded; k++) accumulated.push(null);
       nextLineId += best.lineIdsConsumed;
@@ -462,21 +484,40 @@ export function searchRideGreedy(
         triesUsed: triesThisRound,
         chosenSeed: best.seed,
         outcome: "advanced",
+        onBeat: true,
       });
-      // Reset scaleRound for this move so a future re-visit starts fresh.
       scaleRound[i] = 0;
       i++;
-    } else if (scaleRound[i] < SCALE_SCHEDULE.length - 1) {
-      // Escalate jitter scale before resorting to backtracking.
+    } else if (!maxScale) {
+      // Escalate scale and retry — either no survivor or survival-only.
       scaleRound[i]++;
       opts.onMove?.({
         moveIndex: i,
         moveType: move.type,
         triesUsed: triesThisRound,
         chosenSeed: null,
-        outcome: "advanced", // not quite — but it's not a backtrack
+        outcome: "advanced",
+        onBeat: false,
       });
-      // Stay at this move; next iteration runs with wider bands.
+    } else if (best !== null && best.score >= 1000) {
+      // Exhausted scale; settle for survival-only. The beat is honestly missed
+      // but the rider lives to see the next beat.
+      perMoveSeeds[i] = best.seed;
+      perMoveScales[i] = best.scale;
+      perMoveOnBeat[i] = false;
+      engine = best.engineAfter;
+      for (let k = 0; k < best.linesAdded; k++) accumulated.push(null);
+      nextLineId += best.lineIdsConsumed;
+      opts.onMove?.({
+        moveIndex: i,
+        moveType: move.type,
+        triesUsed: triesThisRound,
+        chosenSeed: best.seed,
+        outcome: "advanced",
+        onBeat: false,
+      });
+      scaleRound[i] = 0;
+      i++;
     } else {
       // No surviving try. Backtrack.
       let unwound = 0;
@@ -526,6 +567,7 @@ export function searchRideGreedy(
   return {
     result,
     perMoveSeeds,
+    perMoveOnBeat,
     totalSimulations,
     backtracks,
     reachedEnd,

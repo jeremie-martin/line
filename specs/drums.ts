@@ -15,33 +15,35 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { slide } from "../scripts/lib/moves.ts";
+import { slide, catch_ } from "../scripts/lib/moves.ts";
 
 const FPS = 40;
-// Minimum frame the first move can target. Slide can't catch a rider that
-// hasn't fallen far enough; empirically that's around frame 30 from spawn.
 const MIN_FIRST_FRAME = 30;
-// Minimum frame gap between beats. The detector's persistence rule requires
-// ≥3 frames of contact for a landing event, so two distinct landings need
-// at least ~5 frames separation. We use 6 to give a little margin — this
-// keeps the fast drum-fill beats *in the spec* so the search has a chance
-// at them (and so misses surface honestly).
 const MIN_SPACING_FRAMES = 6;
+/** Beats within this many frames of the previous beat get a short
+ * `catch_` (single-frame stub) instead of a `slide` (20-frame catch
+ * window). Slides overlap at tight spacings; catches don't. */
+const TIGHT_SPACING_FRAMES = 15;
 
 const data = JSON.parse(readFileSync(resolve("beats/drums_0_30s.json"), "utf8")) as {
   onsets: number[];
 };
 
-const frames: number[] = [];
+type BeatPlan = { frame: number; kind: "slide" | "catch" };
+const plan: BeatPlan[] = [];
 let last = -Infinity;
 for (const t of data.onsets) {
   const f = Math.round(t * FPS);
   if (f < MIN_FIRST_FRAME) continue;
   if (f - last < MIN_SPACING_FRAMES) continue;
-  frames.push(f);
+  const kind = f - last < TIGHT_SPACING_FRAMES ? "catch" : "slide";
+  plan.push({ frame: f, kind });
   last = f;
 }
 
-console.error(`drums spec: ${data.onsets.length} onsets → ${frames.length} kept (≥${MIN_SPACING_FRAMES}-frame spacing)`);
+const counts = { slide: plan.filter((p) => p.kind === "slide").length, catch: plan.filter((p) => p.kind === "catch").length };
+console.error(`drums spec: ${data.onsets.length} onsets → ${plan.length} kept (${counts.slide} slide + ${counts.catch} catch)`);
 
-export default frames.map((at) => slide({ at }));
+export default plan.map(({ frame, kind }) =>
+  kind === "slide" ? slide({ at: frame }) : catch_({ at: frame }),
+);

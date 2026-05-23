@@ -11,6 +11,9 @@
     "inspect": "tsx scripts/inspect.ts",
     "landing": "tsx scripts/landing.ts",
     "chain": "tsx scripts/chain.ts",
+    "slide": "tsx scripts/slide.ts",
+    "curve": "tsx scripts/curve.ts",
+    "slidechain": "tsx scripts/slidechain.ts",
     "dash": "tsx scripts/serve.ts",
     "unpack": "webcrack -f -o unpacked mirror/_v2153.0/main.js",
     "parity": "tsx scripts/parity.ts"

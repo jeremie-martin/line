@@ -251,6 +251,456 @@ export function placeLanding(
   };
 }
 
+// ── Slide primitive ─────────────────────────────────────────────────────
+//
+// Single-line slide: place an angled line under the rider's predicted free-
+// fall position at `startFrame`. The rider falls onto it and slides along
+// for some duration. Survival depends on angle (steeper = harder impact)
+// and offset (zero offset can graze + eject).
+//
+// From the angle sweep at T=30 (default spawn velocity, vy ≈ 5.25):
+//   - 0° (horizontal): rider sits there. Long contact but vx ≈ 0.5. Boring.
+//   - 10-20°: 50-80 frame slides with max vx 3.5-4.8. Real horizontal motion.
+//   - 30°+: progressively shorter, harder impact.
+// Default angle = 15° splits the difference.
+//
+// This is a step toward chained-curve slides (matching what test.track.json
+// actually does — a sequence of segments at progressively shallower angles).
+// Single-line first; curves next.
+
+export type SlideOpts = {
+  /** Frame at which the rider should hit the slide. */
+  startFrame: number;
+  /** Slope of the line in degrees from horizontal (positive = down to the right). */
+  angleDeg?: number;
+  /** Line length in engine units. */
+  length?: number;
+  /**
+   * Perpendicular offset below the rider's predicted lowest-sled position.
+   * Zero offset can graze (no real contact); too large skips the line.
+   */
+  offset?: number;
+  /** Padding frames after startFrame (so the dashboard has post-roll). */
+  postFrames?: number;
+};
+
+export type SlideResult = {
+  track: TrackJson;
+  /** Where on the line the rider's first sled contact happens (best estimate). */
+  startFrame: number;
+  /** Detected slide segment after placement: first frame in contact. */
+  slideStart: number;
+  /** Last frame in contact. */
+  slideEnd: number;
+  /** end - start + 1. */
+  slideDurationFrames: number;
+  /** Max vx observed during the slide segment. */
+  maxVxDuringSlide: number;
+  /** Did the ride survive to spec end? */
+  survived: boolean;
+  terminus: { frame: number; reason: string };
+  /** All lines placed by the primitive. For single-line slides, length = 1. */
+  lines: TrackLine[];
+};
+
+const DEFAULT_SLIDE_ANGLE_DEG = 15;
+const DEFAULT_SLIDE_LENGTH = 200;
+const DEFAULT_SLIDE_OFFSET = 2;
+
+export function placeSlide(opts: SlideOpts): SlideResult {
+  const startFrame = opts.startFrame;
+  const angleDeg = opts.angleDeg ?? DEFAULT_SLIDE_ANGLE_DEG;
+  const length = opts.length ?? DEFAULT_SLIDE_LENGTH;
+  const offset = opts.offset ?? DEFAULT_SLIDE_OFFSET;
+  const postFrames = opts.postFrames ?? 60;
+
+  if (startFrame <= K_BOUNCE_LANDING) {
+    throw new Error(
+      `startFrame must be > ${K_BOUNCE_LANDING} for the prior airborne phase to register; got ${startFrame}`,
+    );
+  }
+
+  // 1. Find lowest sled point at startFrame in pure free-fall.
+  // deno-lint-ignore no-explicit-any
+  const baseEng: any = new LineRiderEngine();
+  const rider = baseEng.getRider(startFrame);
+  let p0x = 0;
+  let p0y = -Infinity;
+  for (const n of SLED_POINTS) {
+    const p = rider.get(n);
+    if (p?.pos && p.pos.y > p0y) {
+      p0y = p.pos.y;
+      p0x = p.pos.x;
+    }
+  }
+
+  // 2. Build the line at the requested angle and offset.
+  const a = (angleDeg * Math.PI) / 180;
+  const dx = Math.cos(a);
+  const dy = Math.sin(a);
+  // Perpendicular pointing "below" (+y direction when line is horizontal):
+  // For direction (dx, dy), the perp (-dy, dx) has positive y when dy is
+  // negative or when dx is positive — i.e. it points down-ish for a line
+  // sloping down to the right. (Empirically verified by the angle sweep.)
+  const px = -dy;
+  const py = dx;
+  // Start a bit behind the contact point so the rider's path enters the
+  // line cleanly, not at its endpoint (where lr-core's edge case lives).
+  const lead = 5;
+  const startX = p0x - dx * lead + px * offset;
+  const startY = p0y - dy * lead + py * offset;
+  const endX = startX + dx * length;
+  const endY = startY + dy * length;
+  const line = makeLine(1, startX, startY, endX, endY);
+
+  // 3. Simulate.
+  const duration = startFrame + postFrames;
+  const track = makeTrack([line], duration);
+  // deno-lint-ignore no-explicit-any
+  let eng: any = new LineRiderEngine();
+  eng = eng.addLine(createLineFromJson(line));
+  const raw = extractRawTrajectory(eng, duration);
+  const det = detect(raw);
+
+  // 4. Identify the slide segment caused by this line. The first segment
+  // whose start is at or after startFrame - 2 is "ours."
+  const slide = det.summary.slideSegments.find((s) => s.start >= startFrame - 2);
+  let maxVx = 0;
+  if (slide) {
+    for (let i = slide.start; i <= slide.end; i++) {
+      const v = det.measurements.velocity[i];
+      if (v && v.x > maxVx) maxVx = v.x;
+    }
+  }
+
+  return {
+    track,
+    startFrame,
+    slideStart: slide?.start ?? -1,
+    slideEnd: slide?.end ?? -1,
+    slideDurationFrames: slide?.durationFrames ?? 0,
+    maxVxDuringSlide: maxVx,
+    survived: det.terminus.reason === "endOfSpec",
+    terminus: det.terminus,
+    lines: [line],
+  };
+}
+
+// ── Curve primitive ─────────────────────────────────────────────────────
+//
+// Chained line segments at progressively interpolated angles — directly
+// mimicking the pattern observed in test.track.json's first slide segment
+// (angles 20° → 13° → 11° → 10° → 5° → 3°). The rider lands on the
+// steepest segment, accelerates, then each subsequent segment is a touch
+// shallower so velocity gradually rotates from "falling" to "running."
+//
+// Why chained segments instead of a true circular arc:
+//  - the math is more transparent (linear interpolation of angle);
+//  - it matches what real Line Rider tracks actually do;
+//  - segment count and lengths are independent controls;
+//  - it generalizes easily to non-linear angle schedules later (sigmoid,
+//    custom curves) without changing the placement logic.
+
+export type CurveOpts = {
+  /** Frame at which the rider should hit the curve's first segment. */
+  startFrame: number;
+  /** Slope of the first segment in degrees from horizontal (the "catch"). */
+  startAngleDeg?: number;
+  /** Slope of the last segment (the "ride out"). */
+  endAngleDeg?: number;
+  /** Length of each segment in engine units. */
+  segmentLength?: number;
+  /** Number of segments. Total path length = segments * segmentLength. */
+  segments?: number;
+  /** Perpendicular offset below predicted trajectory at the first segment. */
+  offset?: number;
+  /** Padding frames after startFrame. */
+  postFrames?: number;
+};
+
+const DEFAULT_CURVE_START_ANGLE = 20;
+const DEFAULT_CURVE_END_ANGLE = 3;
+const DEFAULT_CURVE_SEGMENTS = 8;
+const DEFAULT_CURVE_SEGMENT_LEN = 30;
+const DEFAULT_CURVE_OFFSET = 2;
+
+export function placeCurve(opts: CurveOpts): SlideResult {
+  const startFrame = opts.startFrame;
+  const startAngleDeg = opts.startAngleDeg ?? DEFAULT_CURVE_START_ANGLE;
+  const endAngleDeg = opts.endAngleDeg ?? DEFAULT_CURVE_END_ANGLE;
+  const segments = opts.segments ?? DEFAULT_CURVE_SEGMENTS;
+  const segmentLength = opts.segmentLength ?? DEFAULT_CURVE_SEGMENT_LEN;
+  const offset = opts.offset ?? DEFAULT_CURVE_OFFSET;
+  const postFrames = opts.postFrames ?? 80;
+
+  if (startFrame <= K_BOUNCE_LANDING) {
+    throw new Error(
+      `startFrame must be > ${K_BOUNCE_LANDING}; got ${startFrame}`,
+    );
+  }
+  if (segments < 1) {
+    throw new Error(`segments must be ≥ 1; got ${segments}`);
+  }
+
+  // 1. Find lowest sled point at startFrame in pure free-fall.
+  // deno-lint-ignore no-explicit-any
+  const baseEng: any = new LineRiderEngine();
+  const rider = baseEng.getRider(startFrame);
+  let p0x = 0;
+  let p0y = -Infinity;
+  for (const n of SLED_POINTS) {
+    const p = rider.get(n);
+    if (p?.pos && p.pos.y > p0y) {
+      p0y = p.pos.y;
+      p0x = p.pos.x;
+    }
+  }
+
+  // 2. Build curve as a chain of connected segments.
+  // First segment's starting point: offset perpendicular to its direction +
+  // a small lead-in behind the rider's predicted contact point. Same
+  // convention as placeSlide.
+  const a0 = (startAngleDeg * Math.PI) / 180;
+  const dx0 = Math.cos(a0);
+  const dy0 = Math.sin(a0);
+  const perp0x = -dy0;
+  const perp0y = dx0;
+  const lead = 5;
+  let curX = p0x - dx0 * lead + perp0x * offset;
+  let curY = p0y - dy0 * lead + perp0y * offset;
+
+  const lines: TrackLine[] = [];
+  for (let i = 0; i < segments; i++) {
+    // Interpolate angle. With segments=1, t=0 always (use startAngle).
+    const t = segments === 1 ? 0 : i / (segments - 1);
+    const angleDeg = startAngleDeg + (endAngleDeg - startAngleDeg) * t;
+    const a = (angleDeg * Math.PI) / 180;
+    const dx = Math.cos(a) * segmentLength;
+    const dy = Math.sin(a) * segmentLength;
+    lines.push(makeLine(i + 1, curX, curY, curX + dx, curY + dy));
+    curX += dx;
+    curY += dy;
+  }
+
+  // 3. Simulate and measure.
+  const duration = startFrame + postFrames;
+  const track = makeTrack(lines, duration);
+  // deno-lint-ignore no-explicit-any
+  let eng: any = new LineRiderEngine();
+  for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
+  const raw = extractRawTrajectory(eng, duration);
+  const det = detect(raw);
+
+  const slide = det.summary.slideSegments.find((s) => s.start >= startFrame - 2);
+  let maxVx = 0;
+  if (slide) {
+    for (let i = slide.start; i <= slide.end; i++) {
+      const v = det.measurements.velocity[i];
+      if (v && v.x > maxVx) maxVx = v.x;
+    }
+  }
+
+  return {
+    track,
+    startFrame,
+    slideStart: slide?.start ?? -1,
+    slideEnd: slide?.end ?? -1,
+    slideDurationFrames: slide?.durationFrames ?? 0,
+    maxVxDuringSlide: maxVx,
+    survived: det.terminus.reason === "endOfSpec",
+    terminus: det.terminus,
+    lines,
+  };
+}
+
+// ── Slide chain ─────────────────────────────────────────────────────────
+//
+// Multi-curve chain. Each curve is placed under the rider's predicted
+// position at its target start frame, given the cumulative track-so-far.
+// Each curve is shaped the same way (steep catch → shallow exit); the
+// rider's incoming velocity differs from one curve to the next (steep on
+// curve 1, less steep on later curves because the prior curve gave them
+// horizontal momentum), but the curve geometry catches it regardless —
+// shallow lines (~15-20°) kill vy without much dependence on incoming
+// angle, which is why this works without per-step parameter tuning.
+//
+// Spec semantics: each Ti is a target *slide start frame*. The rider lands
+// on curve i near Ti; the slide lasts ~segments*segmentLength / |v| frames;
+// the rider then takes off again and (hopefully) hits curve i+1 near Ti+1.
+// If Ti+1 is too soon, the rider hasn't fallen back far enough to land
+// cleanly on curve i+1. The minimum spacing is bounded by curve length.
+
+export type SlideChainOpts = {
+  /** Slope of each curve's first segment. */
+  startAngleDeg?: number;
+  /** Slope of each curve's last segment. */
+  endAngleDeg?: number;
+  /** Segments per curve. */
+  segments?: number;
+  /** Length of each segment in engine units. */
+  segmentLength?: number;
+  /** Perpendicular offset below predicted trajectory at each curve. */
+  offset?: number;
+  /** Padding frames after the last target. */
+  postFrames?: number;
+};
+
+export type SlideChainStep = {
+  targetFrame: number;
+  /** Sled point lowest at the moment of placement. */
+  sledPoint: SledPoint;
+  /** Rider's velocity angle (deg from horizontal) when hitting the curve. */
+  incomingAngleDeg: number;
+  /** Rider's |velocity| when hitting the curve. */
+  incomingSpeed: number;
+  /** Where the curve was placed (start of first segment, after offset). */
+  placedAt: { x: number; y: number };
+  /** Slide segment attributed to this curve, after full-track simulation. */
+  slideStart: number;
+  slideEnd: number;
+  slideDurationFrames: number;
+};
+
+export type SlideChainResult = {
+  track: TrackJson;
+  steps: SlideChainStep[];
+  survived: boolean;
+  terminus: { frame: number; reason: string };
+  /** Convenience: total contact frames over spec duration. */
+  contactFractionSpec: number;
+  longestSlide: number;
+};
+
+const DEFAULT_CHAIN_CURVE_OPTS: Required<Omit<SlideChainOpts, "postFrames">> = {
+  startAngleDeg: 20,
+  endAngleDeg: 3,
+  segments: 6,
+  segmentLength: 25,
+  offset: 2,
+};
+
+export function placeSlideChain(
+  targetFrames: number[],
+  opts: SlideChainOpts = {},
+): SlideChainResult {
+  if (targetFrames.length === 0) {
+    throw new Error("placeSlideChain: at least one target frame required");
+  }
+  const targets = [...targetFrames].sort((a, b) => a - b);
+  for (const T of targets) {
+    if (T <= K_BOUNCE_LANDING) {
+      throw new Error(`each target must be > ${K_BOUNCE_LANDING}; got ${T}`);
+    }
+  }
+  // Explicit fallback per-field, since spread-merging with `undefined`
+  // values from optional CLI fields would clobber the defaults.
+  const o = {
+    startAngleDeg: opts.startAngleDeg ?? DEFAULT_CHAIN_CURVE_OPTS.startAngleDeg,
+    endAngleDeg: opts.endAngleDeg ?? DEFAULT_CHAIN_CURVE_OPTS.endAngleDeg,
+    segments: opts.segments ?? DEFAULT_CHAIN_CURVE_OPTS.segments,
+    segmentLength: opts.segmentLength ?? DEFAULT_CHAIN_CURVE_OPTS.segmentLength,
+    offset: opts.offset ?? DEFAULT_CHAIN_CURVE_OPTS.offset,
+  };
+  const postFrames = opts.postFrames ?? 60;
+  const duration = targets[targets.length - 1] + postFrames;
+
+  const accumulated: TrackLine[] = [];
+  const stepInfo: Array<Omit<SlideChainStep, "slideStart" | "slideEnd" | "slideDurationFrames">> = [];
+
+  for (const T of targets) {
+    // Build engine with the lines so far so the rider's state at T reflects
+    // every prior curve's deflection.
+    // deno-lint-ignore no-explicit-any
+    let eng: any = new LineRiderEngine();
+    for (const ln of accumulated) eng = eng.addLine(createLineFromJson(ln));
+
+    const rider = eng.getRider(T);
+    let p0x = 0;
+    let p0y = -Infinity;
+    let bestPoint: SledPoint = "TAIL";
+    for (const n of SLED_POINTS) {
+      const p = rider.get(n);
+      if (p?.pos && p.pos.y > p0y) {
+        p0y = p.pos.y;
+        p0x = p.pos.x;
+        bestPoint = n;
+      }
+    }
+    const v = rider.velocity;
+    const incomingAngleDeg = (Math.atan2(v.y, v.x) * 180) / Math.PI;
+    const incomingSpeed = Math.hypot(v.x, v.y);
+
+    // Build a curve at this point with fixed shape.
+    const a0 = (o.startAngleDeg * Math.PI) / 180;
+    const dx0 = Math.cos(a0);
+    const dy0 = Math.sin(a0);
+    const perp0x = -dy0;
+    const perp0y = dx0;
+    const lead = 5;
+    let curX = p0x - dx0 * lead + perp0x * o.offset;
+    let curY = p0y - dy0 * lead + perp0y * o.offset;
+    const placedAt = { x: curX, y: curY };
+
+    let idBase = accumulated.length;
+    for (let i = 0; i < o.segments; i++) {
+      const t = o.segments === 1 ? 0 : i / (o.segments - 1);
+      const angleDeg = o.startAngleDeg + (o.endAngleDeg - o.startAngleDeg) * t;
+      const a = (angleDeg * Math.PI) / 180;
+      const dx = Math.cos(a) * o.segmentLength;
+      const dy = Math.sin(a) * o.segmentLength;
+      accumulated.push(makeLine(++idBase, curX, curY, curX + dx, curY + dy));
+      curX += dx;
+      curY += dy;
+    }
+
+    stepInfo.push({
+      targetFrame: T,
+      sledPoint: bestPoint,
+      incomingAngleDeg,
+      incomingSpeed,
+      placedAt,
+    });
+  }
+
+  // Simulate full chain track once to extract per-step slide segments.
+  // deno-lint-ignore no-explicit-any
+  let fullEng: any = new LineRiderEngine();
+  for (const ln of accumulated) fullEng = fullEng.addLine(createLineFromJson(ln));
+  const raw = extractRawTrajectory(fullEng, duration);
+  const det = detect(raw);
+
+  // Attribute slide segments to steps: a slide whose start frame is closest
+  // to a target frame (within reason) belongs to that step.
+  const W = 10;
+  const steps: SlideChainStep[] = stepInfo.map((info) => {
+    const candidates = det.summary.slideSegments
+      .filter((s) => s.start >= info.targetFrame - 2 && s.start <= info.targetFrame + W)
+      // longest one wins (we want the "real" slide, not a 1-frame graze)
+      .sort((a, b) => b.durationFrames - a.durationFrames);
+    const best = candidates[0];
+    return {
+      ...info,
+      slideStart: best?.start ?? -1,
+      slideEnd: best?.end ?? -1,
+      slideDurationFrames: best?.durationFrames ?? 0,
+    };
+  });
+
+  const longestSlide = det.summary.slideSegments.reduce(
+    (mx, s) => Math.max(mx, s.durationFrames),
+    0,
+  );
+
+  return {
+    track: makeTrack(accumulated, duration),
+    steps,
+    survived: det.terminus.reason === "endOfSpec",
+    terminus: det.terminus,
+    contactFractionSpec: det.summary.contactFractionSpec,
+    longestSlide,
+  };
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 function makeLine(id: number, x1: number, y1: number, x2: number, y2: number): TrackLine {

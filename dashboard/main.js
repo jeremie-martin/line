@@ -130,6 +130,35 @@ async function mountRunView(run) {
     video.hidden = true;
   }
 
+  // ── Audio (optional, synced to video) ──
+  // Convention: if `shakedown/<run>/audio.mp3` exists, the dashboard treats
+  // it as the soundtrack and mirrors video playback onto it. The audio
+  // element is hidden (no separate controls); video controls drive both.
+  // Drift correction every second keeps them within ~50ms.
+  const audio = (() => {
+    if (isDemo) return null;
+    const a = new Audio(`${base}/audio.mp3`);
+    a.preload = "auto";
+    let audioReady = false;
+    a.addEventListener("canplay", () => { audioReady = true; });
+    a.addEventListener("error", () => { /* no audio for this run; fine */ });
+    const sync = () => {
+      if (!audioReady) return;
+      if (Math.abs(a.currentTime - video.currentTime) > 0.05) {
+        a.currentTime = Math.min(a.duration || Infinity, video.currentTime);
+      }
+    };
+    video.addEventListener("play", () => { if (audioReady) { sync(); a.play().catch(() => {}); } });
+    video.addEventListener("pause", () => a.pause());
+    video.addEventListener("seeking", sync);
+    video.addEventListener("seeked", sync);
+    video.addEventListener("ratechange", () => { a.playbackRate = video.playbackRate; });
+    // Drift correction during steady playback.
+    setInterval(() => { if (!video.paused) sync(); }, 1000);
+    return a;
+  })();
+  void audio; // referenced for the lifetime of the page via event listeners
+
   // ── Sidebar ──
   setText("sb-run", run);
   const counts = summary.counts;

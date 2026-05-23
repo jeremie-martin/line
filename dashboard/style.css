@@ -145,10 +145,15 @@ hr {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 18px 0 18px 28px;
+  padding: 18px 28px 18px 28px;
   min-height: 0;
   min-width: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
 }
+.main-col::-webkit-scrollbar { width: 6px; }
+.main-col::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
 
 .sidebar {
   border-left: 1px solid var(--rule);
@@ -167,7 +172,11 @@ hr {
   border: 1px solid var(--ink);
   width: 100%;
   aspect-ratio: 16 / 9;
-  max-height: 60vh;
+  /* Cap the video so the timeline strip (~280px) is visible without scroll
+     on a typical 900–1000px viewport. Main-col remains scrollable as a
+     fallback for very short viewports. */
+  max-height: calc(100vh - var(--header-h) - 320px);
+  min-height: 200px;
   overflow: hidden;
   flex-shrink: 0;
   box-shadow: 0 1px 0 var(--paper-warm), 0 6px 0 -2px var(--panel-edge);

@@ -15,7 +15,7 @@
  *   [{ startSec: 0, endSec: 15, intent: "descend" },
  *    { startSec: 15, endSec: 30, intent: "climb" }]
  */
-import { drop, slide, kicker, type Move } from "./moves.ts";
+import { drop, slide, kicker, landUp, type Move } from "./moves.ts";
 
 export type ArcIntent = "descend" | "level" | "climb" | "freestyle";
 
@@ -76,9 +76,13 @@ export function primitiveForIntent(
         : drop({ at: atFrame });
     case "climb":
       // Slides dominate (catch + absorb), kicker as spice every 4th beat.
-      // Kicker-heavy climb at high incoming vx is the pathological case;
-      // slide-heavy climb actually slows the rider while still giving the
-      // visual lift via interspersed kickers.
+      // landUp() exists as a bisected rising-curve primitive but isn't
+      // wired in here: empirically, in the arc context the rider often
+      // arrives at climb-section beats with too-high vy for landUp's
+      // rising curve to catch without ejecting, and the bisection's
+      // 18-iter search amplifies bench time without improving sync.
+      // Use landUp directly when the upstream state is known-survivable
+      // (e.g. immediately after a slow-down brake-slide).
       return (idxInSection + 1) % 4 === 0
         ? kicker({ at: atFrame })
         : slide({ at: atFrame });

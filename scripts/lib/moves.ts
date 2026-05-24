@@ -1341,3 +1341,202 @@ export function landAt(opts: LandAtOpts): Move {
     },
   };
 }
+
+// ────────── LandUp move ──────────
+//
+// Symmetric counterpart to landAt for climb-section beats. Places a
+// SINGLE upward-sloped landing line and bisects its y-position until the
+// landing event fires AT atFrame.
+//
+// Mechanism: an upward slope simultaneously catches the rider (landing
+// event fires on first contact) AND redirects them upward (rider slides
+// along the slope, gaining altitude, eventually airborne). The slope is
+// the "climb" — no separate launch geometry needed, no kick-threshold
+// problem at any join (since there's only one line).
+//
+// Earlier attempts placed a 2-segment kicker BEFORE the landing line.
+// Both attempts ejected the rider:
+// - Single sloped ramp: rider in free-fall hits the ramp at an angle far
+//   above the kick threshold (kick > 20°) and ejects.
+// - Two-segment kicker (shallow-then-steep): the JOIN between segments
+//   creates a kick > 20° at high speed and ejects.
+//
+// The "single sloped landing" design avoids both: no join to kick on, and
+// the rider's incoming angle vs. the line angle drives the landing event
+// directly. Bisecting the line's y just shifts WHEN the rider contacts it.
+//
+// Caveats:
+// - At high incoming speed the rider may slide off the upper end of the
+//   line and resume free-fall (no climb). Mitigated by a longer line.
+// - If the bisection can't find a y that lands the rider at atFrame in
+//   searchRadius, it reports drift; whatever was tried last is placed.
+
+export type LandUpOpts = {
+  at: number;
+  /** End-slope of the rising curve (degrees, negative = up).
+   *  Default −12 — gentle climb. Steeper produces more climb but more
+   *  risk of ejection at high speeds. */
+  slopeAngleDeg?: number;
+  /** Bisection search radius for the anchor y. Default 12. */
+  searchRadius?: number;
+  /** Max bisection iterations. Default 18. */
+  maxIters?: number;
+  /** ± tolerance for "this landing matched atFrame" in verify(). Default 1. */
+  frameTolerance?: number;
+};
+
+/**
+ * Multi-segment "rising curve" bisected on its anchor y. The curve
+ * interpolates from startAngle (downward, to catch the falling rider
+ * gracefully like drop does) through 0 to endAngle (upward, redirecting
+ * the rider into climb). The bisection shifts the whole curve up/down
+ * until the rider's first contact event fires at targetFrame.
+ *
+ * Why multi-segment: a single sloped line at any angle vs. a high-vy
+ * incoming rider produces a relative angle above the kick threshold
+ * (>20°) and ejects the sled. The interpolated curve spreads the angle
+ * change across N segments, each transition staying under the threshold.
+ */
+function bisectRisingCurveAtY(
+  baseEngine: any,
+  targetFrame: number,
+  opts: {
+    lineIdStart: number;
+    startAngleDeg: number;
+    endAngleDeg: number;
+    segments: number;
+    segmentLength: number;
+    duration: number;
+    searchRadius: number;
+    maxIters: number;
+  },
+): { lines: TrackLine[]; engineAfter: any; eventFrame: number | null; iters: number } {
+  const angles: number[] = [];
+  for (let i = 0; i < opts.segments; i++) {
+    const t = opts.segments === 1 ? 0 : i / (opts.segments - 1);
+    angles.push(opts.startAngleDeg + (opts.endAngleDeg - opts.startAngleDeg) * t);
+  }
+  // Anchor at the rider's lowest sled point at targetFrame.
+  const rider = baseEngine.getRider(targetFrame);
+  const SLED = ["PEG", "TAIL", "NOSE", "STRING"];
+  let anchorX = 0;
+  let anchorY = -Infinity;
+  for (const name of SLED) {
+    const p = rider.get(name);
+    if (p?.pos && p.pos.y > anchorY) { anchorY = p.pos.y; anchorX = p.pos.x; }
+  }
+
+  const tryY = (yOffset: number): { lines: TrackLine[]; engineAfter: any; eventFrame: number | null } => {
+    const lines = buildSegmentsFromAngles({
+      anchor: { x: anchorX, y: anchorY + yOffset },
+      angles,
+      segmentLength: opts.segmentLength,
+      offset: 2,
+      lineIdStart: opts.lineIdStart,
+    });
+    let eng = baseEngine;
+    for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
+    const raw = extractRawTrajectory(eng, opts.duration);
+    const d = detect(raw);
+    const W = 5;
+    const ownedIds = new Set(lines.map((l) => l.id));
+    const ev = d.events.find((e) => {
+      if (e.type !== "landing" && e.type !== "bounce" && e.type !== "flyThrough") return false;
+      if (Math.abs(e.frame - targetFrame) > W) return false;
+      const lids = d.measurements.contactLineIds[e.frame] ?? [];
+      return lids.some((id) => ownedIds.has(id));
+    });
+    return { lines, engineAfter: eng, eventFrame: ev ? ev.frame : null };
+  };
+
+  let r = tryY(0);
+  let yMid = 0;
+  let iters = 0;
+  if (r.eventFrame !== targetFrame) {
+    let lo = -opts.searchRadius;
+    let hi = opts.searchRadius;
+    while (iters < opts.maxIters) {
+      iters++;
+      yMid = (lo + hi) / 2;
+      r = tryY(yMid);
+      if (r.eventFrame === targetFrame) break;
+      if (r.eventFrame === null || r.eventFrame > targetFrame) hi = yMid;
+      else lo = yMid;
+      if (hi - lo < 1e-4) break;
+    }
+  }
+  return { lines: r.lines, engineAfter: r.engineAfter, eventFrame: r.eventFrame, iters };
+}
+
+export function landUp(opts: LandUpOpts): Move {
+  let actualEventFrame: number | null = null;
+  let iters = 0;
+  const lookahead = 30;
+
+  return {
+    type: "landUp",
+    atFrame: opts.at,
+    place(ctx) {
+      // Adaptive start angle: match incoming so the catch is graceful.
+      // End angle: upward by user-specified amount (default −12).
+      const incoming = readIncoming(ctx.engine, opts.at);
+      const startAngle = Math.max(8, Math.min(incoming.angleDeg, 40)); // catch falling rider
+      const endAngle = opts.slopeAngleDeg ?? -12;
+      const segments = 6;
+      const segmentLength = Math.max(20, Math.ceil(incoming.speed * 3));
+
+      const result = bisectRisingCurveAtY(ctx.engine, opts.at, {
+        lineIdStart: ctx.lineIdStart,
+        startAngleDeg: startAngle,
+        endAngleDeg: endAngle,
+        segments,
+        segmentLength,
+        duration: Math.min(ctx.duration, opts.at + lookahead),
+        searchRadius: opts.searchRadius ?? 12,
+        maxIters: opts.maxIters ?? 18,
+      });
+
+      actualEventFrame = result.eventFrame;
+      iters = result.iters;
+
+      return {
+        lines: result.lines,
+        engineAfter: result.engineAfter,
+        endFrame: opts.at + lookahead,
+        lineIds: result.lines.map((l) => l.id),
+      };
+    },
+    verify(det, range, lineIds) {
+      const tol = opts.frameTolerance ?? 1;
+      const owned = new Set(lineIds);
+      const matched = det.events.filter((e) => {
+        if (e.type !== "landing" && e.type !== "bounce") return false;
+        if (e.frame < range.start - 10 || e.frame > range.end) return false;
+        const lids = det.measurements.contactLineIds[e.frame] ?? [];
+        return lids.some((id) => owned.has(id));
+      });
+      const best = matched.sort((a, b) => Math.abs(a.frame - opts.at) - Math.abs(b.frame - opts.at))[0];
+      const offset = best ? Math.abs(best.frame - opts.at) : null;
+      const drift: DriftEntry[] = [];
+      if (!best) {
+        drift.push({ metric: "landing", expected: `at f=${opts.at} ±${tol}`, actual: "none" });
+      } else if (offset! > tol) {
+        drift.push({
+          metric: "landingFrame",
+          expected: `f=${opts.at} ±${tol}`,
+          actual: best.frame,
+        });
+      }
+      return {
+        passed: !catastrophicBy(det, range),
+        drift,
+        observed: {
+          actualLandingFrame: best?.frame ?? -1,
+          offset: offset ?? -1,
+          bisectionIters: iters,
+          bisectedEventFrame: actualEventFrame ?? -1,
+        },
+      };
+    },
+  };
+}

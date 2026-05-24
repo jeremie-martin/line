@@ -15,10 +15,9 @@ import { ride, type RideResult, type RideOpts } from "./ride.ts";
 import { type Move, type MoveVerdict } from "./moves.ts";
 import { makeRng } from "./rng.ts";
 import { detect, extractRawTrajectory } from "./detector.ts";
+import { readIncoming, type IncomingState } from "./adapt.ts";
 
-// deno-lint-ignore no-explicit-any
-const lrCore: any = await import("lr-core/line-rider-engine/index.js");
-const LineRiderEngine = lrCore.default;
+import { LineRiderEngine } from "./_lr_engine.ts";
 
 export type Fitness = (result: RideResult) => number;
 
@@ -312,6 +311,38 @@ export type GreedySearchOpts = {
   localScore?: (verdict: MoveVerdict, survivedWindow: boolean) => number;
   /** Optional progress callback. */
   onMove?: (info: GreedyMoveInfo) => void;
+  /**
+   * Phase-2: primitive-type search.
+   *
+   * Given the original move and the rider's incoming state at that beat,
+   * return a set of candidate Moves to try. The search iterates
+   * `triesPerMove` seeds across EACH candidate (so total inner tries is
+   * `candidateCount × triesPerMove`); the best-scoring (candidate, seed)
+   * wins.
+   *
+   * Default (when this option is omitted): returns `[move]` — back-compat
+   * with the original single-primitive-per-beat greedy.
+   *
+   * Use `landingCandidates` from `./primitive_search.ts` for the common
+   * "any landing primitive that fits the rider state" case.
+   */
+  expandCandidates?: (move: Move, rider: IncomingState) => Move[];
+
+  /**
+   * Phase-3: lookahead-2 control.
+   *
+   * When true, scoring a candidate at beat i ALSO places the next beat
+   * (i+1) under that candidate's engineAfter, evaluates its precision
+   * bonus, and adds half of it to the candidate's local score.
+   *
+   * Effect: catches the "locally optimal but downstream broken" pathology
+   * where a candidate looks good in isolation but leaves the rider in a
+   * state where i+1 cannot land cleanly. Used as the cheap-alternative
+   * control vs beam search (P3.2). Cost: roughly 2× per-beat compute.
+   *
+   * Default false (preserves existing behavior).
+   */
+  lookaheadPairs?: boolean;
 };
 
 export type GreedyMoveInfo = {
@@ -331,6 +362,10 @@ export type GreedySearchResult = {
   perMoveSeeds: Array<number | null>;
   /** Per-move on-beat status (true = placement fired a landing/bounce within ε of atFrame). */
   perMoveOnBeat: Array<boolean>;
+  /** Per-move chosen primitive type. Equals the original move.type when
+   *  `expandCandidates` is not used; differs when primitive-type search
+   *  picks a different primitive than the user-provided move. */
+  perMovePrimitiveType: Array<string>;
   /** Total simulations run during search (excludes the final ride() pass). */
   totalSimulations: number;
   /** Backtracking events encountered. */
@@ -389,6 +424,10 @@ export function searchRideGreedy(
   const perMoveScales: Array<number> = sorted.map(() => 1);
   // Whether the accepted placement fired on-beat.
   const perMoveOnBeat: Array<boolean> = sorted.map(() => false);
+  // When primitive-type search is in use, the actual Move chosen for each
+  // beat. Starts as a copy of the input moves (back-compat); the search
+  // overwrites entries when expandCandidates picks a different primitive.
+  const chosenMoves: Move[] = sorted.slice();
 
   // deno-lint-ignore no-explicit-any
   let engine: any = new LineRiderEngine();
@@ -414,86 +453,169 @@ export function searchRideGreedy(
     const scaleIdx = Math.min(scaleRound[i], SCALE_SCHEDULE.length - 1);
     const jitterScale = SCALE_SCHEDULE[scaleIdx];
 
-    let best: { score: number; seed: number; scale: number; engineAfter: unknown; linesAdded: number; lineIdsConsumed: number; onBeat: boolean } | null = null;
-    let triesThisRound = 0;
+    // Phase 2: expand into a candidate set. Default = just the original move
+    // (preserves back-compat with the single-primitive-per-beat greedy).
+    // The inner tries iterate (candidate × seed) — total inner sims this
+    // round = candidates.length × triesPerMove.
+    const candidates: Move[] = opts.expandCandidates
+      ? opts.expandCandidates(move, readIncoming(engine, move.atFrame))
+      : [move];
+    if (candidates.length === 0) {
+      // No feasible candidate — treat like an exhausted scale round (skip to
+      // escalation / backtrack logic below).
+      // best stays null; the decision block handles it.
+    }
 
-    while (triesThisRound < triesPerMove) {
-      const candidateSeed = baseSeed * 1_000_000 + i * 10_000 + triedSeeds[i].size;
-      if (triedSeeds[i].has(candidateSeed)) {
-        triesThisRound++;
-        continue;
-      }
-      triedSeeds[i].add(candidateSeed);
-      triesThisRound++;
-      totalSimulations++;
+    let best: {
+      score: number;
+      seed: number;
+      scale: number;
+      engineAfter: unknown;
+      linesAdded: number;
+      lineIdsConsumed: number;
+      onBeat: boolean;
+      candidateIdx: number;
+      candidateLineIds: number[];
+    } | null = null;
 
-      const rng = makeRng(candidateSeed);
-      const placement = move.place({
-        engine,
-        accumulated: accumulated as never,
-        lineIdStart: nextLineId,
-        duration,
-        rng,
-        jitterScale,
-      });
-      const lookEnd = Math.min(duration, placement.endFrame + lookahead);
-      const raw = extractRawTrajectory(placement.engineAfter, lookEnd);
-      const det = detect(raw);
-      const survivedWindow =
-        det.terminus.frame >= placement.endFrame || det.terminus.reason === "endOfSpec";
-      const range = { start: move.atFrame, end: placement.endFrame };
-      const verdict = move.verify(det, range, placement.lineIds);
-      // Per-move beat precision: continuous Gaussian decay weighted by
-      // event type. Landings are the visual punctuation of a Line Rider
-      // track — the distinct impacts. Bounces are partial credit
-      // (incidental brief airbornes still align with beats but less
-      // visually prominent). Kicks (angle changes mid-slide) DON'T
-      // correspond to musical beats visually and are excluded.
-      //
-      // With σ=3 and landing weight 500: offset 0 ⇒ 500, 3 ⇒ 270, 6 ⇒ 67.
-      // Bounce weight 250 (half of landing).
-      const SIGMA = 3;
-      const matchWindow = 30;
-      const LANDING_WEIGHT = 500;
-      const BOUNCE_WEIGHT = 250;
-      const ownedLineIds = new Set(placement.lineIds);
-      let landingBestOffset = Infinity;
-      let bounceBestOffset = Infinity;
-      for (const e of det.events) {
-        if (e.type !== "landing" && e.type !== "bounce") continue;
-        const lids = det.measurements.contactLineIds[e.frame] ?? [];
-        if (!lids.some((id) => ownedLineIds.has(id))) continue;
-        const o = Math.abs(e.frame - move.atFrame);
-        if (e.type === "landing" && o < landingBestOffset) landingBestOffset = o;
-        if (e.type === "bounce" && o < bounceBestOffset) bounceBestOffset = o;
-      }
-      const landingBonus = landingBestOffset <= matchWindow
-        ? LANDING_WEIGHT * Math.exp(-(landingBestOffset * landingBestOffset) / (2 * SIGMA * SIGMA))
-        : 0;
-      const bounceBonus = bounceBestOffset <= matchWindow
-        ? BOUNCE_WEIGHT * Math.exp(-(bounceBestOffset * bounceBestOffset) / (2 * SIGMA * SIGMA))
-        : 0;
-      // Take the better of landing-bonus or bounce-bonus (don't sum — that
-      // double-counts the same proximity).
-      const precisionBonus = Math.max(landingBonus, bounceBonus);
-      const bestOffset = Math.min(landingBestOffset, bounceBestOffset);
-      // "onBeat" controls early-exit and survival escalation. Loosened to
-      // ±5 because the precision bonus pushes toward 0 anyway.
-      const onBeat = bestOffset <= 5;
-      const score = scoreFn(verdict, survivedWindow) + precisionBonus;
+    candidateLoop: for (let cIdx = 0; cIdx < candidates.length; cIdx++) {
+      const candidate = candidates[cIdx];
+      let triesThisCandidate = 0;
+      while (triesThisCandidate < triesPerMove) {
+        // Seed must be unique per (beat, candidate, try, scale-round) so we
+        // never re-try the same configuration. The recipe:
+        //   seed = base * 1e6 + beat * 1e4 + candidate * 1e3 + tryIdx
+        // For scale-round escalation we increment via triedSeeds[i].size,
+        // which counts all tries across all candidates/rounds for this beat.
+        const candidateSeed =
+          baseSeed * 1_000_000 + i * 10_000 + cIdx * 1_000 + triedSeeds[i].size;
+        if (triedSeeds[i].has(candidateSeed)) {
+          triesThisCandidate++;
+          continue;
+        }
+        triedSeeds[i].add(candidateSeed);
+        triesThisCandidate++;
+        totalSimulations++;
 
-      if (best === null || score > best.score) {
-        best = {
-          score,
-          seed: candidateSeed,
-          scale: jitterScale,
-          engineAfter: placement.engineAfter,
-          linesAdded: placement.lines.length,
-          lineIdsConsumed: placement.lines.length,
-          onBeat,
-        };
+        const rng = makeRng(candidateSeed);
+        const placement = candidate.place({
+          engine,
+          accumulated: accumulated as never,
+          lineIdStart: nextLineId,
+          duration,
+          rng,
+          jitterScale,
+        });
+        const lookEnd = Math.min(duration, placement.endFrame + lookahead);
+        const raw = extractRawTrajectory(placement.engineAfter, lookEnd);
+        const det = detect(raw);
+        const survivedWindow =
+          det.terminus.frame >= placement.endFrame || det.terminus.reason === "endOfSpec";
+        const range = { start: candidate.atFrame, end: placement.endFrame };
+        const verdict = candidate.verify(det, range, placement.lineIds);
+        // Per-move beat precision: continuous Gaussian decay weighted by
+        // event type. Landings are the visual punctuation; bounces partial
+        // credit; kicks excluded (don't visually correspond to beats).
+        const SIGMA = 3;
+        const matchWindow = 30;
+        const LANDING_WEIGHT = 500;
+        const BOUNCE_WEIGHT = 250;
+        const ownedLineIds = new Set(placement.lineIds);
+        let landingBestOffset = Infinity;
+        let bounceBestOffset = Infinity;
+        for (const e of det.events) {
+          if (e.type !== "landing" && e.type !== "bounce") continue;
+          const lids = det.measurements.contactLineIds[e.frame] ?? [];
+          if (!lids.some((id) => ownedLineIds.has(id))) continue;
+          const o = Math.abs(e.frame - candidate.atFrame);
+          if (e.type === "landing" && o < landingBestOffset) landingBestOffset = o;
+          if (e.type === "bounce" && o < bounceBestOffset) bounceBestOffset = o;
+        }
+        const landingBonus = landingBestOffset <= matchWindow
+          ? LANDING_WEIGHT * Math.exp(-(landingBestOffset * landingBestOffset) / (2 * SIGMA * SIGMA))
+          : 0;
+        const bounceBonus = bounceBestOffset <= matchWindow
+          ? BOUNCE_WEIGHT * Math.exp(-(bounceBestOffset * bounceBestOffset) / (2 * SIGMA * SIGMA))
+          : 0;
+        const precisionBonus = Math.max(landingBonus, bounceBonus);
+        const bestOffset = Math.min(landingBestOffset, bounceBestOffset);
+        const onBeat = bestOffset <= 5;
+
+        // Phase-3 lookahead-2: also place beat i+1 under THIS candidate's
+        // engineAfter and add half its precision bonus to the score. Catches
+        // the "locally optimal but leaves the rider in a bad state for the
+        // next beat" pathology that pure greedy hits often on dense rhythms.
+        // Cheap: one extra place() + lookahead-sized detect per candidate.
+        let nextBeatBonus = 0;
+        if (opts.lookaheadPairs && i + 1 < N) {
+          const nextMove = sorted[i + 1];
+          // Use the rider state at nextMove.atFrame under THIS candidate's
+          // engineAfter, then expand candidates (if expansion enabled).
+          const nextRider = readIncoming(placement.engineAfter, nextMove.atFrame);
+          const nextCandidates = opts.expandCandidates
+            ? opts.expandCandidates(nextMove, nextRider)
+            : [nextMove];
+          // Try just the FIRST next-beat candidate (cheap). The seed is fixed
+          // (deterministic per i+1) so we don't blow up the seed space.
+          if (nextCandidates.length > 0) {
+            const peekCand = nextCandidates[0];
+            const peekRng = makeRng(baseSeed * 1_000_000 + (i + 1) * 10_000);
+            try {
+              const peekPlace = peekCand.place({
+                engine: placement.engineAfter,
+                accumulated: accumulated as never,
+                lineIdStart: nextLineId + placement.lines.length,
+                duration,
+                rng: peekRng,
+                jitterScale: 1,
+              });
+              const peekEnd = Math.min(duration, peekPlace.endFrame + lookahead);
+              const peekRaw = extractRawTrajectory(peekPlace.engineAfter, peekEnd);
+              const peekDet = detect(peekRaw);
+              const peekOwned = new Set(peekPlace.lineIds);
+              let peekLanding = Infinity;
+              let peekBounce = Infinity;
+              for (const e of peekDet.events) {
+                if (e.type !== "landing" && e.type !== "bounce") continue;
+                const lids = peekDet.measurements.contactLineIds[e.frame] ?? [];
+                if (!lids.some((id) => peekOwned.has(id))) continue;
+                const o = Math.abs(e.frame - peekCand.atFrame);
+                if (e.type === "landing" && o < peekLanding) peekLanding = o;
+                if (e.type === "bounce" && o < peekBounce) peekBounce = o;
+              }
+              const peekLandBonus = peekLanding <= matchWindow
+                ? LANDING_WEIGHT * Math.exp(-(peekLanding * peekLanding) / (2 * SIGMA * SIGMA))
+                : 0;
+              const peekBounBonus = peekBounce <= matchWindow
+                ? BOUNCE_WEIGHT * Math.exp(-(peekBounce * peekBounce) / (2 * SIGMA * SIGMA))
+                : 0;
+              nextBeatBonus = 0.5 * Math.max(peekLandBonus, peekBounBonus);
+              // Sims used for the lookahead — count toward totalSimulations.
+              totalSimulations++;
+            } catch { /* peek failed: candidate is bad enough we don't credit nextBeatBonus */ }
+          }
+        }
+
+        const score = scoreFn(verdict, survivedWindow) + precisionBonus + nextBeatBonus;
+
+        if (best === null || score > best.score) {
+          best = {
+            score,
+            seed: candidateSeed,
+            scale: jitterScale,
+            engineAfter: placement.engineAfter,
+            linesAdded: placement.lines.length,
+            lineIdsConsumed: placement.lines.length,
+            onBeat,
+            candidateIdx: cIdx,
+            candidateLineIds: placement.lineIds,
+          };
+        }
+        if (survivedWindow && verdict.drift.length === 0 && onBeat) {
+          // Found a survivor+on-beat: stop trying more candidates and tries.
+          break candidateLoop;
+        }
       }
-      if (survivedWindow && verdict.drift.length === 0 && onBeat) break;
     }
 
     // Decide: advance, escalate, or backtrack.
@@ -508,19 +630,21 @@ export function searchRideGreedy(
     //     reported honestly).
     //   - Else: backtrack.
     const maxScale = scaleRound[i] >= SCALE_SCHEDULE.length - 1;
+    const triesUsed = triedSeeds[i].size;
 
     if (best !== null && best.onBeat) {
       // Best case: on-beat survivor.
       perMoveSeeds[i] = best.seed;
       perMoveScales[i] = best.scale;
       perMoveOnBeat[i] = true;
+      chosenMoves[i] = candidates[best.candidateIdx];
       engine = best.engineAfter;
       for (let k = 0; k < best.linesAdded; k++) accumulated.push(null);
       nextLineId += best.lineIdsConsumed;
       opts.onMove?.({
         moveIndex: i,
-        moveType: move.type,
-        triesUsed: triesThisRound,
+        moveType: chosenMoves[i].type,
+        triesUsed,
         chosenSeed: best.seed,
         outcome: "advanced",
         onBeat: true,
@@ -533,7 +657,7 @@ export function searchRideGreedy(
       opts.onMove?.({
         moveIndex: i,
         moveType: move.type,
-        triesUsed: triesThisRound,
+        triesUsed,
         chosenSeed: null,
         outcome: "advanced",
         onBeat: false,
@@ -544,13 +668,14 @@ export function searchRideGreedy(
       perMoveSeeds[i] = best.seed;
       perMoveScales[i] = best.scale;
       perMoveOnBeat[i] = false;
+      chosenMoves[i] = candidates[best.candidateIdx];
       engine = best.engineAfter;
       for (let k = 0; k < best.linesAdded; k++) accumulated.push(null);
       nextLineId += best.lineIdsConsumed;
       opts.onMove?.({
         moveIndex: i,
-        moveType: move.type,
-        triesUsed: triesThisRound,
+        moveType: chosenMoves[i].type,
+        triesUsed,
         chosenSeed: best.seed,
         outcome: "advanced",
         onBeat: false,
@@ -574,7 +699,7 @@ export function searchRideGreedy(
       opts.onMove?.({
         moveIndex: i + unwound,
         moveType: move.type,
-        triesUsed: triesThisRound,
+        triesUsed: triedSeeds[Math.min(i + unwound, N - 1)].size,
         chosenSeed: null,
         outcome: unwound > 0 ? "backtracked" : "stuck",
       });
@@ -596,7 +721,10 @@ export function searchRideGreedy(
     s === null ? undefined : makeRng(s),
   );
 
-  const result = ride(sorted, {
+  // Use chosenMoves[] (not the original sorted[]) so the final ride
+  // materializes whatever primitive the search picked per beat. When
+  // expandCandidates wasn't used, chosenMoves === sorted; back-compat.
+  const result = ride(chosenMoves, {
     ...rideOpts,
     perMoveRngs,
     perMoveJitterScales: perMoveScales,
@@ -607,6 +735,7 @@ export function searchRideGreedy(
     result,
     perMoveSeeds,
     perMoveOnBeat,
+    perMovePrimitiveType: chosenMoves.map((m) => m.type),
     totalSimulations,
     backtracks,
     reachedEnd,

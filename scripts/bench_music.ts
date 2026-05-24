@@ -52,10 +52,14 @@ const stratsFilter = arg("strategies")?.split(",").map((s) => s.trim());
 
 // ────────── Beats file inventory ──────────
 
-type BeatsEntry = { id: string; path: string; description: string };
-const BEATS: BeatsEntry[] = [
+export type BeatsEntry = { id: string; path: string; description: string };
+export const BEATS: BeatsEntry[] = [
   { id: "drums_0_30s_60_125", path: "beats/drums_0_30s_60_125.json", description: "63 onsets / 30s (the canonical evaluation file)" },
 ];
+
+export function loadBeatsFile(path: string): { onsets: Array<{ t: number }>; fps: number } {
+  return loadBeats(path);
+}
 
 const enabledBeats = beatsFilter ? new Set(beatsFilter) : null;
 
@@ -69,7 +73,7 @@ function loadBeats(path: string): { onsets: Array<{ t: number }>; fps: number } 
 
 // ────────── Strategy registry ──────────
 
-type StrategyResult = {
+export type StrategyResult = {
   /** The generated track. */
   track: TrackJson;
   /** Detection of the track when simulated. */
@@ -79,7 +83,7 @@ type StrategyResult = {
   /** Free-form provenance string (for the table). */
   provenance: string;
 };
-type Strategy = {
+export type Strategy = {
   id: string;
   description: string;
   /** Given the beats file path and parsed onsets, generate a track. */
@@ -190,6 +194,8 @@ import aerialRoute from "../templates/aerial.ts";
 import descendThenClimbArc from "../arcs/descend_then_climb.ts";
 import dunesArc from "../arcs/dunes.ts";
 import swoopingPeakArc from "../arcs/swooping_peak.ts";
+import { landingCandidates } from "./lib/primitive_search.ts";
+import { searchRideBeam } from "./lib/beam_search.ts";
 
 // ── Iterative offset-correction wrapper ──
 //
@@ -421,7 +427,110 @@ const slideChainStrategy: Strategy = {
   },
 };
 
-const STRATEGIES: Strategy[] = [
+// ── Phase 2: primitive-type search ──
+//
+// For each beat, greedy expands across feasible landing primitives
+// (slide/drop/glide/catch/landAt/landUp/jump) via expandCandidates, and tries
+// jitter seeds for each. The compiler picks the best (primitive, seed) per
+// beat rather than the strategy author hardcoding "always slide" or "always drop".
+//
+// Compared with baseline_old (always slide/catch) and compose_drop_search
+// (always drop), this strategy lets the per-beat primitive choice react to
+// incoming rider state — a slow rider gets catch/landAt; a fast rider can
+// get slide/drop/glide; etc.
+// Shared filter for primitive-search-family strategies.
+function filteredBeats(onsets: Array<{ t: number }>, fps: number): number[] {
+  const f: number[] = [];
+  let last = -Infinity;
+  for (const o of onsets) {
+    const fr = Math.round(o.t * fps);
+    if (fr < 30) continue;
+    if (fr - last < 15) continue;
+    f.push(fr); last = fr;
+  }
+  return f;
+}
+
+const primitiveSearchStrategy: Strategy = {
+  id: "compose_primitive_search",
+  description: "Per-beat primitive-type search over landing candidates (Phase 2)",
+  run({ onsets, fps }) {
+    const filtered = filteredBeats(onsets, fps);
+    const moves: Move[] = filtered.map((f) => slide({ at: f }));
+    const t0 = Date.now();
+    const g = searchRideGreedy(moves, {}, {
+      triesPerMove: 1,
+      backtrackDepth: 1,
+      seed: 1,
+      expandCandidates: (move, rider) =>
+        landingCandidates(rider).map((c) => c.factory(move.atFrame)),
+    });
+    return {
+      track: g.result.track,
+      detection: g.result.detection,
+      elapsedMs: Date.now() - t0,
+      provenance: `primitive_search(${filtered.length}/${onsets.length} beats, ${g.totalSimulations} sims)`,
+    };
+  },
+};
+
+// Phase 3.1: primitive-type search + lookahead-2 control.
+// Same as primitive_search but scores each candidate considering the next
+// beat's achievable precision under that candidate's engineAfter. Catches
+// "locally optimal but downstream broken" placements. Cost: ~2× per beat.
+const primitiveSearchLa2Strategy: Strategy = {
+  id: "compose_primitive_search_la2",
+  description: "Primitive-type search + lookahead-2 (Phase 3.1 control)",
+  run({ onsets, fps }) {
+    const filtered = filteredBeats(onsets, fps);
+    const moves: Move[] = filtered.map((f) => slide({ at: f }));
+    const t0 = Date.now();
+    const g = searchRideGreedy(moves, {}, {
+      triesPerMove: 1,
+      backtrackDepth: 1,
+      seed: 1,
+      lookaheadPairs: true,
+      expandCandidates: (move, rider) =>
+        landingCandidates(rider).map((c) => c.factory(move.atFrame)),
+    });
+    return {
+      track: g.result.track,
+      detection: g.result.detection,
+      elapsedMs: Date.now() - t0,
+      provenance: `primitive_search+la2(${filtered.length}/${onsets.length} beats, ${g.totalSimulations} sims)`,
+    };
+  },
+};
+
+// Phase 3.2: beam search with primitive-type expansion.
+// K=4 beam members, B=2 per member per beat → 8 candidates per beat per
+// candidate-primitive type. With landingCandidates returning ~7 primitives,
+// that's ~56 sims per beat — much more than greedy. The decision gate in
+// P3.3 evaluates whether beam earns this cost vs lookahead-2.
+const beamSearchStrategy: Strategy = {
+  id: "compose_beam_search",
+  description: "Beam search (K=4 B=2) with primitive-type expansion (Phase 3.2)",
+  run({ onsets, fps }) {
+    const filtered = filteredBeats(onsets, fps);
+    const moves: Move[] = filtered.map((f) => slide({ at: f }));
+    const t0 = Date.now();
+    const r = searchRideBeam(moves, {}, {
+      K: 4,
+      B: 2,
+      seed: 1,
+      expandCandidates: (move, rider) =>
+        landingCandidates(rider).map((c) => c.factory(move.atFrame)),
+    });
+    return {
+      track: r.track,
+      detection: r.detection,
+      elapsedMs: Date.now() - t0,
+      provenance: `beam(K=4,B=2; ${filtered.length}/${onsets.length} beats, ${r.totalSimulations} sims, reachedEnd=${r.reachedEnd})`,
+    };
+  },
+};
+
+export const STRATEGIES: Strategy[] = [
   baselineFrozen,                                                                     // pre-rebuild absolute floor
   baselineOld,                                                                        // current per-beat approach (after rebuild)
   // Routes alone — beat-agnostic geometry.
@@ -481,6 +590,19 @@ const STRATEGIES: Strategy[] = [
   arcStrategy("compose_arc_descend_climb", "Descend 0-15s, climb 15-30s", descendThenClimbArc),
   arcStrategy("compose_arc_dunes",         "Alternating descend/climb (5s cycles)", dunesArc),
   arcStrategy("compose_arc_swooping_peak", "Descend → level → climb → descend", swoopingPeakArc),
+  // Phase 2: primitive-type search. Per beat, greedy expands across feasible
+  // landing primitives (slide/drop/glide/catch/landAt/landUp/jump) and tries
+  // jitter seeds for each. The compiler picks the best (primitive, seed) per
+  // beat rather than the strategy author hardcoding "always slide" or "always drop".
+  primitiveSearchStrategy,
+  // Phase 3.1: primitive-type search + lookahead-2 (cheap control vs beam).
+  primitiveSearchLa2Strategy,
+  // Phase 3.2: beam search — SHELVED by the P3.3 decision gate
+  // (bench/v2/decisions.md). Lookahead-2 captured the same precision gain
+  // at ~3× lower compute. Beam stays in the registry so it remains opt-in
+  // runnable via `--strategies=compose_beam_search`, but it is NOT a default
+  // baseline candidate any more.
+  beamSearchStrategy,
 ];
 
 const enabledStrats = stratsFilter ? new Set(stratsFilter) : null;
@@ -497,7 +619,25 @@ type Row = {
   behav: BehavioralMetrics;
   music: MusicMetrics;
   cool: number;
+  /** Non-null when the strategy threw — all other metric fields are placeholders. */
+  threwMessage?: string;
 };
+
+// Gate top-level execution so this module can be imported (by bench/v2/run.ts
+// and others) without triggering a full bench run as a side effect of import.
+// Only runs when this file is the entry point.
+const isMain = (() => {
+  try {
+    const entry = process.argv[1] ? new URL(`file://${process.argv[1]}`).href : "";
+    return import.meta.url === entry;
+  } catch { return false; }
+})();
+if (!isMain) {
+  // Imported as a library — skip execution; consumers use the exported
+  // STRATEGIES / BEATS / loadBeatsFile only.
+  // (Using throw-as-control-flow would be cleaner but the rest of the module
+  //  is at top level. The explicit guard is fine for this size.)
+} else {
 
 const rows: Row[] = [];
 const trackOutDir = resolve("bench/music");
@@ -549,7 +689,38 @@ for (const beats of BEATS) {
         `cool=${cool.toFixed(0).padStart(5)} cov=${music.eventCoveragePct.toFixed(0).padStart(3)}% adh=${music.onBeatAdherencePct.toFixed(0).padStart(3)}% surv=${behav.survived ? "Y" : "N"} (${sr.elapsedMs}ms)\n`,
       );
     } catch (e) {
-      process.stdout.write(`THREW: ${String(e).slice(0, 120)}\n`);
+      const msg = String(e).slice(0, 200);
+      process.stdout.write(`THREW: ${msg}\n`);
+      // Push a placeholder row so the strategy appears in the report (instead
+      // of silently vanishing — the failure mode that produced the 1-row
+      // music_baseline.md). Metric fields are placeholders; renderer checks
+      // threwMessage and shows "THREW" in the cells.
+      rows.push({
+        beatsId: beats.id,
+        strategyId: strat.id,
+        elapsedMs: 0,
+        provenance: `THREW: ${msg}`,
+        survived: false,
+        geom: { angleStdDeg: 0, angleEntropyBits: 0, verticalExtentPx: 0, spreadEfficiency: 0 } as GeometricMetrics,
+        behav: {
+          survived: false, contactFractionLive: 0, eventRatePerSec: 0,
+          eventTypeEntropyBits: 0, trajectoryVerticalPx: 0, vySignFlips: 0,
+          slowSlideFraction: 0, longestContactRun: 0, longestAirborneRun: 0,
+          meanVxSliding: 0,
+        } as BehavioralMetrics,
+        music: {
+          beatCount: 0,
+          eventCoveragePct: 0, onBeatAdherencePct: 0, meanBeatOffsetFrames: 0,
+          medianBeatOffsetFrames: 0, p90BeatOffsetFrames: 0, maxBeatOffsetFrames: 0,
+          onBeat1: 0, onBeat2: 0, onBeat5: 0, onBeat10: 0,
+          perBeatSignedOffsets: [],
+          perBeatMatchedType: [],
+          landingMatchFraction: 0, landingOnBeat1: 0, landingOnBeat2: 0, landingOnBeat5: 0,
+          landingMedianOffsetFrames: 0, landingMeanOffsetFrames: 0,
+        } satisfies MusicMetrics,
+        cool: 0,
+        threwMessage: msg,
+      });
     }
   }
 }
@@ -579,6 +750,10 @@ for (const beats of BEATS) {
   lines.push(`| strategy | survived | coolScore | angleStd° | entropy | vert px | vyFlips | evt/s | airFrac | ms |`);
   lines.push(`|---|---|---|---|---|---|---|---|---|---|`);
   for (const r of beatsRows) {
+    if (r.threwMessage) {
+      lines.push(`| ${r.strategyId} | ✗ THREW | — | — | — | — | — | — | — | — |`);
+      continue;
+    }
     const airFrac = 1 - r.behav.contactFractionLive;
     lines.push(
       `| ${r.strategyId} | ${r.survived ? "✓" : "✗"} | ${fmt(r.cool)} ` +
@@ -595,6 +770,10 @@ for (const beats of BEATS) {
   lines.push(`| strategy | cov% | ±1f | ±2f | ±5f | ±10f | median | mean | p90 | max |`);
   lines.push(`|---|---|---|---|---|---|---|---|---|---|`);
   for (const r of beatsRows) {
+    if (r.threwMessage) {
+      lines.push(`| ${r.strategyId} | THREW | — | — | — | — | — | — | — | — |`);
+      continue;
+    }
     lines.push(
       `| ${r.strategyId} | ${fmt(r.music.eventCoveragePct)} ` +
         `| ${fmt(r.music.onBeat1, 1)} | ${fmt(r.music.onBeat2, 1)} | ${fmt(r.music.onBeat5, 1)} | ${fmt(r.music.onBeat10, 1)} ` +
@@ -611,6 +790,10 @@ for (const beats of BEATS) {
   lines.push(`| strategy | landings/beats | L ±1f | L ±2f | L ±5f | L median | L mean |`);
   lines.push(`|---|---|---|---|---|---|---|`);
   for (const r of beatsRows) {
+    if (r.threwMessage) {
+      lines.push(`| ${r.strategyId} | THREW | — | — | — | — | — |`);
+      continue;
+    }
     lines.push(
       `| ${r.strategyId} | ${fmt(r.music.landingMatchFraction * 100)}% ` +
         `| ${fmt(r.music.landingOnBeat1, 1)} | ${fmt(r.music.landingOnBeat2, 1)} | ${fmt(r.music.landingOnBeat5, 1)} ` +
@@ -626,3 +809,5 @@ console.log("\n" + md);
 mkdirSync(resolve("bench"), { recursive: true });
 writeFileSync(resolve(outPath), md);
 console.log(`\nReport written to: ${resolve(outPath)}`);
+
+} // end of isMain guard

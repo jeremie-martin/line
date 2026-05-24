@@ -21,9 +21,7 @@ import {
 } from "./detector.ts";
 
 // deno-lint-ignore no-explicit-any
-const lrCore: any = await import("lr-core/line-rider-engine/index.js");
-const LineRiderEngine = lrCore.default;
-const { createLineFromJson } = lrCore;
+import { LineRiderEngine, createLineFromJson } from "./_lr_engine.ts";
 
 export type MoveStep = {
   move: Move;

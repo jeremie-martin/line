@@ -4,6 +4,9 @@ node_modules/
 shakedown/
 generated/
 bench/music/
+bench/v2/tracks/
+bench/v2/records.jsonl
+bench/v2/per_beat.csv
 
 # Large binaries — audio/video sources, archives, vendored repos
 *.webm

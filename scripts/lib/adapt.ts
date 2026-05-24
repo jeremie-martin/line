@@ -65,13 +65,36 @@ export type ResolvedSlideParams = {
 
 export type SlideUserParams = Partial<ResolvedSlideParams>;
 
+/**
+ * Adapter for a slide move.
+ *
+ * **2026-05-24 — tangent-match removed.** Previously, the high-speed branch
+ * defaulted `startAngleDeg = min(rider.angleDeg, 65)` with ±0.1 jitter,
+ * meaning each new slide started coplanar with the incoming velocity vector.
+ * Consecutive slides then merged visually into one long curve — the
+ * literal cause of the bland drums output. Now `startAngleDeg` defaults to
+ * a wider band around the *rider's slope axis but not glued to it*: ±15°
+ * absolute swing at high speed, with jitter scaled by RNG. The wider band
+ * means consecutive slides take visibly different angles, even at the
+ * adapter level before search has a chance to push diversity further.
+ *
+ * Cold-start behavior (speed < 6) is unchanged — a stationary rider still
+ * needs a steep-enough catch to get going.
+ */
 export function adaptSlide(userOpts: SlideUserParams, rider: IncomingState, rng?: AdaptRng, scale = 1): ResolvedSlideParams {
   let startAngleDeg = userOpts.startAngleDeg;
   if (startAngleDeg === undefined) {
     if (rider.speed < 6) {
+      // Cold start: catch the rider with a moderate down-slope so it accelerates.
       startAngleDeg = jitter(rng, Math.min(20, Math.max(rider.angleDeg, 3)), 0.2 * scale);
     } else {
-      startAngleDeg = jitter(rng, Math.min(rider.angleDeg, 65), 0.1 * scale);
+      // High-speed: sample within ±15° of the rider angle (clamped to a sane range),
+      // then jitter widely. This breaks the tangent-match that produced bland geometry.
+      const baseAngle = Math.max(-30, Math.min(rider.angleDeg, 45));
+      const swingDeg = 15 * scale;
+      const r = rng ? rng() : 0.5;
+      // Sample uniformly in [baseAngle - swing, baseAngle + swing].
+      startAngleDeg = baseAngle + (r * 2 - 1) * swingDeg;
     }
   }
   const endAngleDeg = userOpts.endAngleDeg ?? jitter(rng, 3, 0.3 * scale);

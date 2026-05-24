@@ -43,7 +43,8 @@ const skipRender = has("no-render");
 const headed = has("headed");
 const resolution = has("1080p") ? "1080p" : "720p";
 const hq = has("hq");
-const zoom = arg("zoom") !== null ? parseFloat(arg("zoom")!) : undefined;
+// Default zoom=3 (well-framed for typical generated tracks). Override with --zoom=N.
+const zoom = arg("zoom") !== null ? parseFloat(arg("zoom")!) : 3;
 
 mkdirSync(outDir, { recursive: true });
 

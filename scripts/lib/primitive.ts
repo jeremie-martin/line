@@ -100,6 +100,130 @@ export type PlaceChainOpts = {
   attributionWindow?: number;
 };
 
+// ── bisectLandingY helper ──────────────────────────────────────────────
+//
+// Shared by placeChain (which chains many landings) and the landAt() Move
+// (which is a single bisected landing inside the standard ride() loop).
+//
+// Given a base engine (with whatever lines already exist) + target frame T,
+// bisects on a candidate horizontal line's y position until the rider's
+// resulting event fires AT T. Returns the best candidate found plus
+// diagnostics. The base engine is NOT mutated.
+
+export type BisectLandingResult = {
+  /** The chosen candidate line (with the id provided in opts). */
+  candidate: TrackLine;
+  /** Engine state with `candidate` added. Pass to subsequent placements. */
+  engineAfter: any;
+  /** Frame the event actually fired at, or null if bisection couldn't get one. */
+  eventFrame: number | null;
+  /** "landing" | "bounce" | "flyThrough" | "missing". */
+  eventType: StepResult["eventType"];
+  /** Sled point the bisection anchored to. */
+  sledPoint: SledPoint;
+  /** Anchor x position used for the line center. */
+  anchorX: number;
+  /** Final line y. */
+  lineY: number;
+  /** Iterations spent in bisection. */
+  iterations: number;
+};
+
+export type BisectLandingOpts = {
+  /** Line id to give the candidate. */
+  lineId: number;
+  /** halfWidth in px. Default DEFAULT_CHAIN_HALFWIDTH. */
+  halfWidth?: number;
+  /** Simulation duration when extracting trajectories. Default T + 80. */
+  duration?: number;
+  /** Bisection radius around the rider's natural sled y. Default 4. */
+  searchRadius?: number;
+  /** Max bisection iterations. Default 20. */
+  maxIters?: number;
+  /** Window for attributing an event to T. Default 5. */
+  attributionWindow?: number;
+};
+
+export function bisectLandingY(
+  baseEngine: any,
+  targetFrame: number,
+  opts: BisectLandingOpts,
+): BisectLandingResult {
+  if (targetFrame <= K_BOUNCE_LANDING) {
+    throw new Error(`targetFrame must be > K_BOUNCE_LANDING (${K_BOUNCE_LANDING}); got ${targetFrame}`);
+  }
+  const halfWidth = opts.halfWidth ?? DEFAULT_CHAIN_HALFWIDTH;
+  const duration = opts.duration ?? targetFrame + 80;
+  const searchRadius = opts.searchRadius ?? 4;
+  const maxIters = opts.maxIters ?? 20;
+  const W = opts.attributionWindow ?? 5;
+
+  // 1. Find rider's lowest sled point at the target frame given baseEngine.
+  const rider = baseEngine.getRider(targetFrame);
+  let bestPoint: SledPoint = "TAIL";
+  let anchorX = 0;
+  let anchorY = -Infinity;
+  for (const name of SLED_POINTS) {
+    const p = rider.get(name);
+    if (p?.pos && p.pos.y > anchorY) {
+      anchorY = p.pos.y;
+      anchorX = p.pos.x;
+      bestPoint = name;
+    }
+  }
+
+  // 2. Bisect on candidate line y.
+  const tryY = (lineY: number) => {
+    const candidate: TrackLine = makeLine(opts.lineId, anchorX - halfWidth, lineY, anchorX + halfWidth, lineY);
+    const e2 = baseEngine.addLine(createLineFromJson(candidate));
+    const raw = extractRawTrajectory(e2, duration);
+    const det = detect(raw);
+    const attributed = det.events
+      .filter((e) => Math.abs(e.frame - targetFrame) <= W)
+      .filter((e) => e.type === "landing" || e.type === "flyThrough" || e.type === "bounce");
+    const landing = attributed.find((e) => e.type === "landing");
+    const fly = attributed.find((e) => e.type === "flyThrough");
+    const bounce = attributed.find((e) => e.type === "bounce");
+    const chosen = landing ?? fly ?? bounce;
+    return {
+      candidate,
+      engineAfter: e2,
+      eventFrame: chosen ? chosen.frame : null,
+      eventType: (chosen?.type ?? "missing") as StepResult["eventType"],
+    };
+  };
+
+  let r = tryY(anchorY);
+  let yMid = anchorY;
+  let iters = 0;
+
+  if (r.eventFrame !== targetFrame) {
+    let lo = anchorY - searchRadius;
+    let hi = anchorY + searchRadius;
+    while (iters < maxIters) {
+      iters++;
+      yMid = (lo + hi) / 2;
+      r = tryY(yMid);
+      if (r.eventFrame === targetFrame) break;
+      // +y is DOWN: event too late → line is too low → decrease y (move hi down)
+      if (r.eventFrame === null || r.eventFrame > targetFrame) hi = yMid;
+      else lo = yMid;
+      if (hi - lo < 1e-4) break;
+    }
+  }
+
+  return {
+    candidate: r.candidate,
+    engineAfter: r.engineAfter,
+    eventFrame: r.eventFrame,
+    eventType: r.eventType,
+    sledPoint: bestPoint,
+    anchorX,
+    lineY: yMid,
+    iterations: iters,
+  };
+}
+
 export function placeChain(
   targetFrames: number[],
   opts: PlaceChainOpts = {},
@@ -121,87 +245,27 @@ export function placeChain(
 
   const accumulated: TrackLine[] = [];
   const steps: StepResult[] = [];
+  // deno-lint-ignore no-explicit-any
+  let eng: any = new LineRiderEngine();
 
   for (const T of targets) {
-    // 1. Find rider's lowest sled point at frame T given lines so far.
-    // deno-lint-ignore no-explicit-any
-    let eng: any = new LineRiderEngine();
-    for (const ln of accumulated) eng = eng.addLine(createLineFromJson(ln));
-    const rider = eng.getRider(T);
-
-    let bestPoint: SledPoint = "TAIL";
-    let bestX = 0;
-    let bestY = -Infinity;
-    for (const name of SLED_POINTS) {
-      const p = rider.get(name);
-      if (p?.pos && p.pos.y > bestY) {
-        bestY = p.pos.y;
-        bestX = p.pos.x;
-        bestPoint = name;
-      }
-    }
-
-    // 2. Try a candidate at that (x, y). Bisect on y if the event lands off.
-    const tryY = (lineY: number) => {
-      const candidate: TrackLine = makeLine(
-        accumulated.length + 1,
-        bestX - halfWidth,
-        lineY,
-        bestX + halfWidth,
-        lineY,
-      );
-      // deno-lint-ignore no-explicit-any
-      let e2: any = new LineRiderEngine();
-      for (const ln of accumulated) e2 = e2.addLine(createLineFromJson(ln));
-      e2 = e2.addLine(createLineFromJson(candidate));
-      const raw = extractRawTrajectory(e2, duration);
-      const det = detect(raw);
-      // Attribute the event to this step iff it's within ±W of T.
-      const attributed = det.events
-        .filter((e) => Math.abs(e.frame - T) <= W)
-        .filter((e) => e.type === "landing" || e.type === "flyThrough" || e.type === "bounce");
-      // Prefer landing over flyThrough/bounce if multiple fit.
-      const landing = attributed.find((e) => e.type === "landing");
-      const fly = attributed.find((e) => e.type === "flyThrough");
-      const bounce = attributed.find((e) => e.type === "bounce");
-      const chosen = landing ?? fly ?? bounce;
-      return {
-        candidate,
-        eventFrame: chosen ? chosen.frame : null,
-        eventType: (chosen?.type ?? "missing") as StepResult["eventType"],
-      };
-    };
-
-    let { candidate, eventFrame, eventType } = tryY(bestY);
-    let yMid = bestY;
-    let iters = 0;
-
-    if (eventFrame !== T) {
-      let lo = bestY - searchRadius;
-      let hi = bestY + searchRadius;
-      while (iters < maxIters) {
-        iters++;
-        yMid = (lo + hi) / 2;
-        const r = tryY(yMid);
-        candidate = r.candidate;
-        eventFrame = r.eventFrame;
-        eventType = r.eventType;
-        if (eventFrame === T) break;
-        // +y is DOWN in lr-core: hit too late → line is too low → decrease y
-        if (eventFrame === null || eventFrame > T) hi = yMid;
-        else lo = yMid;
-        if (hi - lo < 1e-4) break;
-      }
-    }
-
-    accumulated.push(candidate);
+    const r = bisectLandingY(eng, T, {
+      lineId: accumulated.length + 1,
+      halfWidth,
+      duration,
+      searchRadius,
+      maxIters,
+      attributionWindow: W,
+    });
+    accumulated.push(r.candidate);
+    eng = r.engineAfter;
     steps.push({
       targetFrame: T,
-      actualFrame: eventFrame ?? -1,
-      sledPoint: bestPoint,
-      lineY: yMid,
-      iterations: iters,
-      eventType,
+      actualFrame: r.eventFrame ?? -1,
+      sledPoint: r.sledPoint,
+      lineY: r.lineY,
+      iterations: r.iterations,
+      eventType: r.eventType,
     });
   }
 

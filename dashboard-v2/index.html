@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>line — dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar" id="topbar" hidden>
+  <div class="topbar-left">
+    <a href="./" class="brand">line</a>
+    <span class="crumb">RUN <strong id="hd-run">—</strong></span>
+    <span class="crumb">TRACK <strong id="hd-track">—</strong></span>
+    <span class="crumb">SAMPLED <strong id="hd-sampled">—</strong></span>
+  </div>
+  <div class="topbar-right">
+    <span id="hd-params">—</span>
+    <span class="chip" id="hd-terminus">—</span>
+  </div>
+</header>
+
+<main id="run-view" hidden>
+  <section class="main-col">
+    <div class="video-wrap" id="video-wrap">
+      <video id="video" controls playsinline preload="metadata"></video>
+      <div class="video-overlay" aria-hidden="true">
+        <div class="vid-placeholder" id="vid-placeholder">
+          <div>video placeholder</div>
+          <div class="vid-placeholder-sub">drop video.mp4 to play</div>
+        </div>
+        <div class="vid-ts">
+          <div class="vid-ts-time" id="vid-ts-time">0:00.00</div>
+          <div class="vid-ts-frame" id="vid-ts-frame">frame 0000 / 0</div>
+        </div>
+        <div class="vid-track">
+          <div id="vid-track-info">line · 40 fps</div>
+          <div id="vid-track-name">—</div>
+        </div>
+        <div class="vid-badges" id="vid-badges"></div>
+      </div>
+    </div>
+
+    <div class="timeline-strip">
+      <div class="tl-header">
+        <span class="tl-label">timeline</span>
+        <span class="tl-meta" id="tl-meta">— · click to scrub</span>
+      </div>
+      <svg id="tl-svg" class="tl-svg" viewBox="0 0 944 220" preserveAspectRatio="none"></svg>
+    </div>
+  </section>
+
+  <aside class="sidebar">
+    <div class="run-block">
+      <div class="run-title">run · <span id="sb-run">—</span></div>
+      <div class="run-counts" id="sb-counts">—</div>
+    </div>
+
+    <hr>
+
+    <div class="cursor-row">
+      <div>
+        <div class="label">at cursor</div>
+        <div class="big-time" id="sb-time">0:00.00</div>
+      </div>
+      <div class="cursor-frame">
+        <span class="label">FRAME</span>
+        <span class="big-frame" id="sb-frame">0000</span>
+        <span class="small" id="sb-frame-total">/ 0</span>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="speed-block">
+      <div class="cursor-row">
+        <span class="label">speed</span>
+        <span class="small" id="sb-speed-pct">—</span>
+      </div>
+      <div class="cursor-row baseline">
+        <span class="big-val"><span id="sb-speed">—</span><span class="unit">u/f</span></span>
+        <span class="italic small" id="sb-speed-max">max —</span>
+      </div>
+      <div class="stat-bar"><div id="sb-speed-bar"></div></div>
+    </div>
+
+    <div class="two-up">
+      <div>
+        <div class="label">position.y</div>
+        <div class="big-val" id="sb-posy">—</div>
+        <div class="small" id="sb-pos-dir">—</div>
+      </div>
+      <div>
+        <div class="label">airborne</div>
+        <div class="air-row" id="sb-air-row">
+          <span class="air-dot"></span>
+          <span class="big-val" id="sb-air-state">—</span>
+        </div>
+        <div class="small" id="sb-air-dur">—</div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="label">nearby events</div>
+    <div class="proximity" id="sb-proximity"></div>
+
+    <hr>
+
+    <div class="ledger-head">
+      <span class="label">event ledger</span>
+      <span class="small" id="sb-ledger-total">—</span>
+    </div>
+    <ol class="ledger" id="sb-ledger"></ol>
+  </aside>
+</main>
+
+<main id="landing-view" hidden>
+  <h2>recent runs</h2>
+  <ol id="runs-list"></ol>
+  <p class="hint">
+    No run picked. Pass <code>?run=&lt;name&gt;</code> in the URL, or click a run above.
+    Runs are created by <code>npm run inspect -- --track=…</code>.
+  </p>
+</main>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>

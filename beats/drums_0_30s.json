@@ -1,0 +1,699 @@
+{
+  "source": "detection_corrected.json (v6 snapped streams)",
+  "ensemble": [
+    "rnn_drums",
+    "stem_drums",
+    "band_kick",
+    "band_snare",
+    "band_hat"
+  ],
+  "min_votes": 3,
+  "window_ms": 0,
+  "range_s": [
+    0.0,
+    30.0
+  ],
+  "n_events": 63,
+  "onsets": [
+    {
+      "t": 0.02,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 0.5,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 0.97,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 1.45,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 1.93,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 2.41,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 2.89,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 3.37,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 3.85,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 4.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 4.81,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "band_snare",
+        "rnn_drums"
+      ]
+    },
+    {
+      "t": 5.29,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 5.77,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 6.25,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 6.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 7.21,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 7.69,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 8.18,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 8.65,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 9.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 9.61,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 10.1,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 10.58,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 11.178,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 11.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 12.01,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 12.5,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 12.98,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 13.45,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 13.94,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 14.42,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 14.9,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 15.36,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 15.86,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 16.34,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 16.938,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 17.29,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 17.78,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 18.14,
+      "votes": 3,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 18.857,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 19.21,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 19.7,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 20.18,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 20.66,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 21.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 21.62,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 21.98,
+      "votes": 3,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 22.58,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 23.04,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 23.54,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 24.02,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 24.49,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 24.85,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 25.45,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 25.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 26.41,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 26.89,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 27.36,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 27.86,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 28.34,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 28.81,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 29.17,
+      "votes": 3,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 29.78,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    }
+  ]
+}

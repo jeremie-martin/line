@@ -21,7 +21,7 @@ import {
   type Detection,
   type Vec2,
 } from "./detector.ts";
-import { type TrackLine } from "./primitive.ts";
+import { type TrackLine, bisectLandingY } from "./primitive.ts";
 import { arcLines } from "./arcLines.ts";
 import {
   readIncoming,
@@ -1239,6 +1239,104 @@ export function loop(opts: LoopOpts): Move {
         passed: !catastrophicBy(det, range),
         drift,
         observed: { sweepDeg: Number(sweptDeg.toFixed(1)) },
+      };
+    },
+  };
+}
+
+// ────────── LandAt move ──────────
+//
+// Frame-exact landing primitive. Internally bisects on the candidate landing
+// line's y-position (via bisectLandingY from primitive.ts) until the
+// detector's event for this line fires AT atFrame.
+//
+// Unlike `drop` or `slide`, which create geometry shapes and let the rider
+// land wherever physics says, `landAt` is *defined by* its landing frame —
+// the geometry is whatever's needed to produce a landing at exactly that frame.
+//
+// Caveats / known limitations:
+// - Each placement runs ≤ maxIters internal simulations to convergence.
+//   With many moves and 10 tries-per-move in greedy search, this is slow.
+// - If bisection can't find a Y within searchRadius that lands at atFrame,
+//   the move still places its best-effort candidate. verify() will report drift.
+// - **Chained landings frequently eject the rider.** A horizontal stub
+//   landing at high vy throws the sled at an awkward angle; the next
+//   landing's bisection finds itself working from a doomed trajectory.
+//   This is the same physics-fact that makes `placeChain` produce 1/N
+//   chained landings on dense music beats. Wider halfWidth (≥60) avoids
+//   ejection but the rider slides through the line instead of producing
+//   discrete landings. Best used for sparse / widely-spaced targets.
+//   For dense music sync, `drop` + `slide` primitives are more robust.
+
+export type LandAtOpts = {
+  at: number;
+  /** Bisection radius around the rider's natural y at atFrame. Default 4. */
+  searchRadius?: number;
+  /** Max bisection iterations. Default 20. */
+  maxIters?: number;
+  /** halfWidth of the landing line. Default 8 (matches placeChain). */
+  halfWidth?: number;
+  /** ± tolerance for "this landing matched atFrame" in verify(). Default 1. */
+  frameTolerance?: number;
+};
+
+export function landAt(opts: LandAtOpts): Move {
+  let actualEventFrame: number | null = null;
+  let iters = 0;
+  const lookaheadFrames = 40;
+
+  return {
+    type: "landAt",
+    atFrame: opts.at,
+    place(ctx) {
+      const r = bisectLandingY(ctx.engine, opts.at, {
+        lineId: ctx.lineIdStart,
+        halfWidth: opts.halfWidth ?? 8,
+        duration: Math.min(ctx.duration, opts.at + lookaheadFrames),
+        searchRadius: opts.searchRadius ?? 4,
+        maxIters: opts.maxIters ?? 20,
+        attributionWindow: 5,
+      });
+      actualEventFrame = r.eventFrame;
+      iters = r.iterations;
+      return {
+        lines: [r.candidate],
+        engineAfter: r.engineAfter,
+        endFrame: opts.at + lookaheadFrames,
+        lineIds: [r.candidate.id],
+      };
+    },
+    verify(det, range, lineIds) {
+      const tol = opts.frameTolerance ?? 1;
+      const owned = new Set(lineIds);
+      // Find the landing or bounce event attributed to this move's line.
+      const matched = det.events.filter((e) => {
+        if (e.type !== "landing" && e.type !== "bounce") return false;
+        if (e.frame < range.start - 10 || e.frame > range.end) return false;
+        const lids = det.measurements.contactLineIds[e.frame] ?? [];
+        return lids.some((id) => owned.has(id));
+      });
+      const best = matched.sort((a, b) => Math.abs(a.frame - opts.at) - Math.abs(b.frame - opts.at))[0];
+      const offset = best ? Math.abs(best.frame - opts.at) : null;
+      const drift: DriftEntry[] = [];
+      if (!best) {
+        drift.push({ metric: "landing", expected: `at f=${opts.at} ±${tol}`, actual: "none" });
+      } else if (offset! > tol) {
+        drift.push({
+          metric: "landingFrame",
+          expected: `f=${opts.at} ±${tol}`,
+          actual: best.frame,
+        });
+      }
+      return {
+        passed: !catastrophicBy(det, range),
+        drift,
+        observed: {
+          actualLandingFrame: best?.frame ?? -1,
+          offset: offset ?? -1,
+          bisectionIters: iters,
+          bisectedEventFrame: actualEventFrame ?? -1,
+        },
       };
     },
   };

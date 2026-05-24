@@ -82,14 +82,12 @@ describe("searchRide", () => {
     expect(r.result.survived).toBe(true);
   });
 
-  test("defaultFitness penalizes stalled rider", () => {
-    // Build a synthetic RideResult with a stuck rider and verify it
-    // scores worse than a normal one.
-    const moves = [slide({ at: 30 })];
-    const normal = ride(moves);
-    const stalled = { ...normal, detection: { ...normal.detection, summary: { ...normal.detection.summary, meanVxSliding: 0.5 } } };
-    const scoreNormal = defaultFitness(normal);
-    const scoreStalled = defaultFitness(stalled as typeof normal);
-    expect(scoreStalled).toBeLessThan(scoreNormal);
-  });
+  // (Removed 2026-05-24): `defaultFitness penalizes stalled rider` tested
+  // the old fitness's explicit stall penalty by mutating `meanVxSliding`.
+  // The new fitness is coolScore-based and handles stalls via the
+  // survival gate — a stalled rider's terminus is `rideStalled` (not
+  // `endOfSpec`), which gates coolScore to 0. The mutation in the old
+  // test didn't change terminus, so it can't trigger the new fitness's
+  // stall handling. A real-stall test would need to construct a track
+  // where the rider actually stops moving; deferred until needed.
 });

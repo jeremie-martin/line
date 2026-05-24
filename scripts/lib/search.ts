@@ -110,44 +110,56 @@ export function beatAdherence(result: RideResult, epsilon = 2): BeatAdherence {
 /**
  * Default fitness function.
  *
- * Reformulated 2026-05-23 after the drums-spec experiment surfaced that
- * the previous fitness rewarded "long flat slide" trivially — the
- * optimizer's straight-line output literally maximized the previous score.
+ * Two parts:
  *
- * New hierarchy:
- *   1. Survival (+500). Lower than before — survival is necessary but
- *      not nearly sufficient.
- *   2. Beat adherence: fraction of moves whose landing fired within ε
- *      of their atFrame. ×1000 — this is now the primary signal.
- *   3. All moves passed (no catastrophic mid-move failure): +100
- *   4. Stall penalty: rider sliding with vx < 1.5 = -500 (anti-cheat)
- *   5. Tie-breakers: contact %, mean vx, longest slide — each capped to
- *      a small contribution so they can't dominate adherence.
- *   6. Drift entries: -30 each (heavier than before — each missed
- *      contract is a meaningful penalty).
+ *   1. coolScore (from metrics.ts) — survival gate + geometric/behavioral
+ *      diversity. Already calibrated against labeled reference set.
+ *   2. Continuous beat-precision penalty — smooth per-beat score that
+ *      rewards small offsets more than large offsets. Gives the optimizer
+ *      a gradient between miss-by-3 and miss-by-19, which the previous
+ *      binary hit-at-±ε fitness did not.
+ *
+ *   fitness  =  coolScore
+ *               + (allPassed ? 100 : 0)
+ *               + 250 × mean_{moves}(exp(-offset² / 2σ²))
+ *
+ * σ = 3 frames means a 3-frame offset scores ~0.61, a 6-frame ~0.14, a
+ * 9-frame ~0.01. Beats with no event within a wide match window
+ * (BEAT_MATCH_WINDOW = 30 frames) contribute 0.
+ *
+ * Compared to the old `hitFraction × 200` at ε=2: precision better than ±2
+ * is now rewarded, AND degrees of miss are distinguished. The optimizer
+ * should collapse the current bimodal offset distribution (40 beats ≤ 2f,
+ * 20 beats 11-20f) toward an interior peak.
+ *
+ * Tunable: pass a custom `fitness` in SearchOpts / GreedySearchOpts.
  */
-export function defaultFitness(r: RideResult): number {
-  const s = r.detection.summary;
-  let driftCount = 0;
-  for (const step of r.steps) {
-    if (step.verdict) driftCount += step.verdict.drift.length;
-  }
-  const adherence = beatAdherence(r, 2);
+import {
+  geometricMetrics,
+  behavioralMetrics,
+  coolScore as coolScoreFn,
+} from "./metrics.ts";
 
-  let score = 0;
-  if (r.survived) score += 500;
-  if (r.allPassed) score += 100;
-  // Primary: did the rider land where asked?
-  score += adherence.hitFraction * 1000;
-  // Tie-breakers (capped, small).
-  score += Math.min(s.meanVxSliding * 10, 60);
-  score += s.contactFractionSpec * 50;
-  score += Math.min(s.longestContactRun, 40);
-  // Stall penalty: rider stuck going nowhere while in contact.
-  if (s.meanVxSliding < 1.5 && s.contactFractionSpec > 0.3) score -= 500;
-  // Drift: each missed contract is meaningful.
-  score -= driftCount * 30;
-  return score;
+const BEAT_PRECISION_SIGMA = 3; // frames
+const BEAT_MATCH_WINDOW = 30;   // frames — beats with no event within this contribute 0
+
+export function beatPrecisionScore(r: RideResult, sigma = BEAT_PRECISION_SIGMA): number {
+  const adherence = beatAdherence(r, BEAT_MATCH_WINDOW);
+  if (adherence.totalBeats === 0) return 0;
+  let sum = 0;
+  const twoSigmaSq = 2 * sigma * sigma;
+  for (const b of adherence.perBeat) {
+    if (b.offset === null) continue;
+    sum += Math.exp(-(b.offset * b.offset) / twoSigmaSq);
+  }
+  return sum / adherence.totalBeats;
+}
+
+export function defaultFitness(r: RideResult): number {
+  const geom = geometricMetrics(r.track);
+  const behav = behavioralMetrics(r.detection);
+  const base = coolScoreFn({ ...geom, ...behav });
+  return base + (r.allPassed ? 100 : 0) + beatPrecisionScore(r) * 250;
 }
 
 export type SearchOpts = {
@@ -431,17 +443,33 @@ export function searchRideGreedy(
         det.terminus.frame >= placement.endFrame || det.terminus.reason === "endOfSpec";
       const range = { start: move.atFrame, end: placement.endFrame };
       const verdict = move.verify(det, range, placement.lineIds);
-      // Beat-adherence bonus: did a landing/bounce fire within ε frames
-      // of this move's atFrame? Heavily rewards on-beat configurations.
-      const epsilon = 2;
+      // Per-move beat precision: continuous Gaussian decay rather than
+      // binary hit-at-ε. With σ=3, offset 0 ⇒ 500, 3 ⇒ 270, 6 ⇒ 67,
+      // 9 ⇒ 6, >30 (or no event) ⇒ 0. Gives the optimizer a gradient to
+      // nudge 8f offsets down to 5 → 3 → 1, where binary scoring would
+      // give all of those the same 0.
+      const SIGMA = 3;
+      const matchWindow = 30;
       const ownedLineIds = new Set(placement.lineIds);
-      const onBeat = det.events.some((e) => {
-        if (e.type !== "landing" && e.type !== "bounce") return false;
-        if (Math.abs(e.frame - move.atFrame) > epsilon) return false;
+      let bestOffset = Infinity;
+      for (const e of det.events) {
+        if (e.type !== "landing" && e.type !== "bounce") continue;
         const lids = det.measurements.contactLineIds[e.frame] ?? [];
-        return lids.some((id) => ownedLineIds.has(id));
-      });
-      const score = scoreFn(verdict, survivedWindow) + (onBeat ? 500 : 0);
+        if (!lids.some((id) => ownedLineIds.has(id))) continue;
+        const o = Math.abs(e.frame - move.atFrame);
+        if (o < bestOffset) bestOffset = o;
+      }
+      const precisionBonus = bestOffset <= matchWindow
+        ? 500 * Math.exp(-(bestOffset * bestOffset) / (2 * SIGMA * SIGMA))
+        : 0;
+      // "onBeat" controls early-exit (don't keep retrying once we're tight enough)
+      // and survival escalation (escalate scale only if we're nowhere near beat).
+      // Loosened from ±2 to ±5 because the per-move continuous precision bonus
+      // already pushes toward 0, and a hard ±2 gate makes the search re-escalate
+      // scale on every move that has shifted atFrames (iterativeStrategy path) —
+      // each escalation walks the full SCALE_SCHEDULE, multiplying sim count.
+      const onBeat = bestOffset <= 5;
+      const score = scoreFn(verdict, survivedWindow) + precisionBonus;
 
       if (best === null || score > best.score) {
         best = {

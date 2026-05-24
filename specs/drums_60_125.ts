@@ -1,17 +1,11 @@
 /**
- * Drum-onset-driven spec.
+ * Drum-onset-driven spec — 60-125 BPM variant.
  *
- * Reads beats/drums_0_30s.json (90 onsets over 30s), filters to onsets
- * at least MIN_SPACING_FRAMES apart so the geometry has a fighting
- * chance, and emits a slide for each kept beat.
+ * Reads beats/drums_0_30s_60_125.json (63 onsets over 30s), same shape
+ * as specs/drums.ts but pinned to the BPM-filtered beats file the user
+ * is investigating.
  *
- *   npm run ride -- --spec=specs/drums.ts --search
- *   npm run inspect -- --track=generated/drums.track.json --1080p --hq --render
- *
- * The filtering is necessary because the song has tight drum fills
- * (~0.16s gaps = 6 frames apart) that physics can't honor with the
- * current primitive set. Keeping only beats ≥ 15 frames apart preserves
- * the main pulse and drops the inner ornaments.
+ *   npm run ride -- --spec=specs/drums_60_125.ts --search
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -22,10 +16,9 @@ const MIN_FIRST_FRAME = 30;
 const MIN_SPACING_FRAMES = 6;
 const TIGHT_SPACING_FRAMES = 15;
 
-const raw = JSON.parse(readFileSync(resolve("beats/drums_0_30s.json"), "utf8")) as {
+const raw = JSON.parse(readFileSync(resolve("beats/drums_0_30s_60_125.json"), "utf8")) as {
   onsets: Array<number | { t: number; votes?: number; sources?: string[] }>;
 };
-// Handle both formats: plain numbers (old) and objects with .t (new).
 const onsetTimes: number[] = raw.onsets.map((o) =>
   typeof o === "number" ? o : o.t,
 );
@@ -46,7 +39,7 @@ const counts = {
   slide: plan.filter((p) => p.kind === "slide").length,
   catch: plan.filter((p) => p.kind === "catch").length,
 };
-console.error(`drums spec: ${onsetTimes.length} onsets → ${plan.length} kept (${counts.slide} slide + ${counts.catch} catch)`);
+console.error(`drums_60_125 spec: ${onsetTimes.length} onsets → ${plan.length} kept (${counts.slide} slide + ${counts.catch} catch)`);
 
 export default plan.map(({ frame, kind }) =>
   kind === "slide" ? slide({ at: frame }) : catch_({ at: frame }),

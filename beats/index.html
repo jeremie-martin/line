@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>beats — believer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <span class="brand">beats</span>
+    <span class="crumb">BPM   <strong id="hd-bpm">—</strong></span>
+    <span class="crumb">BEATS <strong id="hd-beats">—</strong></span>
+    <span class="crumb">DOWNBEATS <strong id="hd-downbeats">—</strong></span>
+    <span class="crumb">SECTIONS <strong id="hd-sections">—</strong></span>
+  </div>
+  <div class="topbar-right">
+    <span class="chip" id="hd-section">—</span>
+    <span class="chip" id="hd-time">0:00.00</span>
+  </div>
+</header>
+
+<main>
+
+  <section class="player">
+    <div class="src-row">
+      <span class="label">source</span>
+      <div class="src-tabs" id="src-tabs">
+        <button data-src="audio.mp3"             class="src-tab active">mix</button>
+        <button data-src="stems/drums.mp3"       class="src-tab">drums</button>
+        <button data-src="stems/bass.mp3"        class="src-tab">bass</button>
+        <button data-src="stems/vocals.mp3"      class="src-tab">vocals</button>
+        <button data-src="stems/other.mp3"       class="src-tab">other</button>
+      </div>
+    </div>
+    <audio id="audio" controls preload="auto"></audio>
+  </section>
+
+  <section class="layers">
+    <div class="layer-group">
+      <div class="layer-title">structure</div>
+      <label><input type="checkbox" id="t-sections" checked> sections</label>
+      <label><input type="checkbox" id="t-beats" checked> beats (madmom DBN)</label>
+      <label><input type="checkbox" id="t-downbeats" checked> downbeats (bar 1)</label>
+      <label><input type="checkbox" id="t-spec" checked> spectrogram (mel · dB)</label>
+      <label><input type="checkbox" id="t-env"> envelope</label>
+    </div>
+    <div class="layer-group">
+      <div class="layer-title">v4 · madmom RNN</div>
+      <label><input type="checkbox" id="t-rnn-mix"> RNN onsets (mix)</label>
+      <label><input type="checkbox" id="t-rnn-drums"> RNN onsets (drums)</label>
+    </div>
+    <div class="layer-group">
+      <div class="layer-title">v5 · ADTOF (drum model)</div>
+      <label class="lane-kick"><input type="checkbox" id="t-adt-kick"> kick</label>
+      <label class="lane-snare"><input type="checkbox" id="t-adt-snare"> snare</label>
+      <label class="lane-hat"><input type="checkbox" id="t-adt-hat"> hat</label>
+      <label class="lane-tom"><input type="checkbox" id="t-adt-tom"> tom</label>
+      <label class="lane-cymbal"><input type="checkbox" id="t-adt-cymbal"> cymbal</label>
+    </div>
+    <div class="layer-group consensus-group">
+      <div class="layer-title">v7 · consensus (vote)</div>
+      <label><input type="checkbox" id="t-consensus" checked> show consensus</label>
+      <div class="slider-row">
+        <span class="small">min votes</span>
+        <input type="range" id="s-votes" min="1" max="9" value="3" />
+        <span class="small mono" id="v-votes">3</span>
+      </div>
+      <div class="slider-row">
+        <span class="small">match window (ms)</span>
+        <input type="range" id="s-window" min="0" max="60" value="0" step="5" />
+        <span class="small mono" id="v-window">0</span>
+      </div>
+      <div class="layer-subtitle">streams that vote:</div>
+      <label><input type="checkbox" class="vote" data-key="rnn_drums"  checked> v4 RNN drums</label>
+      <label><input type="checkbox" class="vote" data-key="stem_drums" checked> v2 drums stem</label>
+      <label><input type="checkbox" class="vote" data-key="stem_bass"> v2 bass stem</label>
+      <label><input type="checkbox" class="vote" data-key="band_kick"  checked> v3 kick</label>
+      <label><input type="checkbox" class="vote" data-key="band_snare" checked> v3 snare</label>
+      <label><input type="checkbox" class="vote" data-key="band_hat"   checked> v3 hat</label>
+      <label><input type="checkbox" class="vote" data-key="adt_kick"> ADT kick</label>
+      <label><input type="checkbox" class="vote" data-key="adt_snare"> ADT snare</label>
+      <label><input type="checkbox" class="vote" data-key="adt_hat"> ADT hat</label>
+      <label><input type="checkbox" class="vote" data-key="adt_tom"> ADT tom</label>
+      <label class="sep"><input type="checkbox" id="c-consensus"> click on consensus</label>
+    </div>
+    <div class="layer-group">
+      <div class="layer-title">v6 · grid-snapped (1/16)</div>
+      <label><input type="checkbox" id="t-corr-rnn-drums" checked> RNN drums</label>
+      <label class="lane-drums"><input type="checkbox" id="t-corr-stem-drums" checked> v2 drums stem</label>
+      <label class="lane-bass"><input type="checkbox" id="t-corr-stem-bass"> v2 bass stem</label>
+      <label class="lane-kick"><input type="checkbox" id="t-corr-band-kick" checked> v3 kick band</label>
+      <label class="lane-snare"><input type="checkbox" id="t-corr-band-snare" checked> v3 snare band</label>
+      <label class="lane-hat"><input type="checkbox" id="t-corr-band-hat" checked> v3 hat band</label>
+      <label class="lane-kick"><input type="checkbox" id="t-corr-kick"> ADT kick</label>
+      <label class="lane-snare"><input type="checkbox" id="t-corr-snare"> ADT snare</label>
+      <label class="lane-hat"><input type="checkbox" id="t-corr-hat"> ADT hat</label>
+      <label><input type="checkbox" id="t-corr-dropped"> show dropped (ghost)</label>
+    </div>
+    <div class="layer-group">
+      <div class="layer-title">v1 · multi-band</div>
+      <label><input type="checkbox" id="t-drums"> drums (HPSS)</label>
+      <label><input type="checkbox" id="t-bass"> bass (&lt;200 Hz)</label>
+    </div>
+    <div class="layer-group">
+      <div class="layer-title">v2 · demucs stems</div>
+      <label class="lane-drums"><input type="checkbox" id="t-stem-drums"> drums stem</label>
+      <label class="lane-bass"><input type="checkbox" id="t-stem-bass"> bass stem</label>
+      <label class="lane-vocals"><input type="checkbox" id="t-stem-vocals"> vocals stem</label>
+      <label class="lane-other"><input type="checkbox" id="t-stem-other"> other stem</label>
+    </div>
+    <div class="layer-group">
+      <div class="layer-title">v3 · drum bands</div>
+      <label class="lane-kick"><input type="checkbox" id="t-kick"> kick (&lt;100 Hz)</label>
+      <label class="lane-snare"><input type="checkbox" id="t-snare"> snare (200–2k)</label>
+      <label class="lane-hat"><input type="checkbox" id="t-hat"> hat (&gt;4k)</label>
+    </div>
+    <div class="layer-group">
+      <div class="layer-title">click track</div>
+      <label><input type="checkbox" id="c-beat"> beat (660)</label>
+      <label><input type="checkbox" id="c-downbeat"> downbeat (440)</label>
+      <label><input type="checkbox" id="c-kick"> kick (low thud)</label>
+      <label><input type="checkbox" id="c-snare"> snare (noise)</label>
+      <label><input type="checkbox" id="c-hat"> hat (tick)</label>
+      <label class="sep"><input type="checkbox" id="c-adt"> use ADTOF (vs v3 bands)</label>
+    </div>
+  </section>
+
+  <section class="strip-wrap">
+    <div class="strip-header">
+      <span class="label">overview · click to scrub</span>
+      <span class="small" id="overview-meta">—</span>
+    </div>
+    <canvas id="overview" class="overview"></canvas>
+  </section>
+
+  <section class="strip-wrap">
+    <div class="strip-header">
+      <span class="label">zoomed · ±4 s around playhead</span>
+      <span class="small" id="zoom-meta">—</span>
+    </div>
+    <canvas id="zoom" class="zoom"></canvas>
+  </section>
+
+  <section class="flash-wrap">
+    <div class="flash-cell"><div class="flash-label">kick</div>  <div class="flash kick"  id="flash-kick"></div></div>
+    <div class="flash-cell"><div class="flash-label">snare</div> <div class="flash snare" id="flash-snare"></div></div>
+    <div class="flash-cell"><div class="flash-label">hat</div>   <div class="flash hat"   id="flash-hat"></div></div>
+    <div class="flash-cell"><div class="flash-label">bass</div>  <div class="flash bass"  id="flash-stem-bass"></div></div>
+    <div class="flash-cell"><div class="flash-label">vocals</div><div class="flash vocals" id="flash-stem-vocals"></div></div>
+    <div class="flash-cell"><div class="flash-label">beat</div>  <div class="flash beat"  id="flash-beat"></div></div>
+  </section>
+</main>
+
+<script src="main.js"></script>
+</body>
+</html>

@@ -17,7 +17,8 @@ const has = (name: string) => argv.includes(`--${name}`);
 
 const origin = arg("origin") ?? "http://127.0.0.1:8765";
 const trackPath = arg("track");
-const zoom = arg("zoom") !== null ? parseFloat(arg("zoom")!) : undefined;
+// Default zoom=3 (well-framed for typical generated tracks). Override with --zoom=N.
+const zoom = arg("zoom") !== null ? parseFloat(arg("zoom")!) : 3;
 const resolution = has("1080p") ? "1080p" : "720p";
 const hq = has("hq");
 const outPath = resolve(arg("out") ?? "shakedown/out.mp4");

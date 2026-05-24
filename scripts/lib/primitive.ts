@@ -221,6 +221,210 @@ export function bisectLandingY(
   };
 }
 
+// ── bisectCurveOffset helper ───────────────────────────────────────────
+//
+// Same idea as bisectLandingY but for a MULTI-SEGMENT SLOPED CURVE (shape
+// proven to survive impact, unlike the horizontal stub which ejects the
+// rider 2f after first landing). The bisection variable is `offset` — the
+// perpendicular distance below the rider's predicted lowest sled point at
+// targetFrame:
+//   larger offset → curve lower → rider hits it LATER
+//   smaller offset → curve higher → rider hits it EARLIER
+//
+// Foundation for the precise-landing primitive family (see precise_landings.ts).
+
+export type CurveShape = {
+  /** Starting angle of the curve, degrees (positive = downhill). */
+  startAngleDeg: number;
+  /** Ending angle of the curve, degrees. */
+  endAngleDeg: number;
+  /** Number of segments. */
+  segments: number;
+  /** Length of each segment, engine units. */
+  segmentLength: number;
+  /** Horizontal lead — places the curve start `lead` units before the
+   *  rider's predicted x at targetFrame. Default 5 (mirrors placeSlideChain). */
+  lead: number;
+};
+
+export const DEFAULT_CURVE_SHAPE: CurveShape = {
+  startAngleDeg: 20,
+  endAngleDeg: 3,
+  segments: 6,
+  segmentLength: 25,
+  lead: 5,
+};
+
+export type BisectCurveOffsetOpts = {
+  /** First line id to use. The curve consumes shape.segments contiguous ids. */
+  lineIdStart: number;
+  shape: CurveShape;
+  /** Simulation duration. Default targetFrame + 80. */
+  duration?: number;
+  /** Bisection radius for offset. Default 8 px. */
+  searchRadius?: number;
+  /** Max bisection iterations. Default 18. */
+  maxIters?: number;
+};
+
+export type BisectCurveOffsetResult = {
+  lines: TrackLine[];
+  // deno-lint-ignore no-explicit-any
+  engineAfter: any;
+  /** Frame the landing event actually fired at, or null. */
+  eventFrame: number | null;
+  /** "landing" | "bounce" | "flyThrough" | "missing". */
+  eventType: StepResult["eventType"];
+  /** Anchor x position used (rider's predicted lowest-sled x at targetFrame). */
+  anchorX: number;
+  /** Anchor y position used. */
+  anchorY: number;
+  /** Final bisected offset value. */
+  offset: number;
+  /** Iterations spent in bisection. */
+  iterations: number;
+};
+
+export function bisectCurveOffset(
+  // deno-lint-ignore no-explicit-any
+  baseEngine: any,
+  targetFrame: number,
+  opts: BisectCurveOffsetOpts,
+): BisectCurveOffsetResult {
+  if (targetFrame <= K_BOUNCE_LANDING) {
+    throw new Error(
+      `targetFrame must be > K_BOUNCE_LANDING (${K_BOUNCE_LANDING}); got ${targetFrame}`,
+    );
+  }
+  const shape = opts.shape;
+  const duration = opts.duration ?? targetFrame + 80;
+  const searchRadius = opts.searchRadius ?? 8;
+  const maxIters = opts.maxIters ?? 18;
+  const W = 5;
+
+  // 1. Find rider's lowest sled point at the target frame given baseEngine.
+  const rider = baseEngine.getRider(targetFrame);
+  let anchorX = 0;
+  let anchorY = -Infinity;
+  for (const name of SLED_POINTS) {
+    const p = rider.get(name);
+    if (p?.pos && p.pos.y > anchorY) {
+      anchorY = p.pos.y;
+      anchorX = p.pos.x;
+    }
+  }
+
+  // 2. Build curve at a given offset (perpendicular distance below the
+  //    anchor point along the curve's perpendicular).
+  const a0 = (shape.startAngleDeg * Math.PI) / 180;
+  const dx0 = Math.cos(a0);
+  const dy0 = Math.sin(a0);
+  // Perpendicular vector pointing "down-and-back" from the curve direction.
+  // Same convention as placeSlideChain.
+  const perp0x = -dy0;
+  const perp0y = dx0;
+
+  const tryOffset = (offset: number) => {
+    let curX = anchorX - dx0 * shape.lead + perp0x * offset;
+    let curY = anchorY - dy0 * shape.lead + perp0y * offset;
+    const lines: TrackLine[] = [];
+    let idBase = opts.lineIdStart - 1;
+    for (let i = 0; i < shape.segments; i++) {
+      const t = shape.segments === 1 ? 0 : i / (shape.segments - 1);
+      const angleDeg = shape.startAngleDeg + (shape.endAngleDeg - shape.startAngleDeg) * t;
+      const a = (angleDeg * Math.PI) / 180;
+      const dx = Math.cos(a) * shape.segmentLength;
+      const dy = Math.sin(a) * shape.segmentLength;
+      lines.push(makeLine(++idBase, curX, curY, curX + dx, curY + dy));
+      curX += dx;
+      curY += dy;
+    }
+    // deno-lint-ignore no-explicit-any
+    let eng: any = baseEngine;
+    for (const ln of lines) eng = eng.addLine(createLineFromJson(ln));
+    const raw = extractRawTrajectory(eng, duration);
+    const det = detect(raw);
+    const ownedIds = new Set(lines.map((l) => l.id));
+    // Prefer landing strictly; fall back to bounce only if no landing.
+    // Deliberately EXCLUDE flyThrough — curve too close, rider punches through.
+    const attributed = det.events
+      .filter((e) => Math.abs(e.frame - targetFrame) <= W)
+      .filter((e) => e.type === "landing" || e.type === "bounce")
+      .filter((e) => {
+        const lids = det.measurements.contactLineIds[e.frame] ?? [];
+        return lids.some((id) => ownedIds.has(id));
+      });
+    const landing = attributed.find((e) => e.type === "landing");
+    const bounce = attributed.find((e) => e.type === "bounce");
+    const chosen = landing ?? bounce;
+    // Survival check: does the rider live past the landing window?
+    // If terminus fires within (chosen.frame, chosen.frame + survivalWindow),
+    // the catch ejected the rider — we don't want THIS offset.
+    const SURVIVAL_WINDOW = 8; // frames the rider must live past the landing
+    const survives = chosen !== undefined &&
+      (det.terminus.reason === "endOfSpec" ||
+       det.terminus.frame > chosen.frame + SURVIVAL_WINDOW);
+    return {
+      lines,
+      engineAfter: eng,
+      eventFrame: chosen ? chosen.frame : null,
+      eventType: (chosen?.type ?? "missing") as StepResult["eventType"],
+      survives,
+    };
+  };
+
+  // 3. Bisection: monotonic — larger offset → curve lower → event LATER.
+  //    Start at offset=2 (placeSlideChain's gentle default). Among SURVIVING
+  //    landings, prefer the one with smallest |actualFrame - targetFrame|.
+  //    A non-surviving landing is never accepted, regardless of precision —
+  //    a dead rider with ±0f sync is useless.
+  let offset = 2;
+  let r = tryOffset(offset);
+  let iters = 0;
+  let bestR = r;
+  let bestOffset = offset;
+  // bestErr scoring: surviving landings rank above non-surviving regardless
+  // of frame error. Within either bucket, smaller |error| wins.
+  const scoreResult = (rr: ReturnType<typeof tryOffset>): number => {
+    if (rr.eventFrame === null) return Infinity;
+    const err = Math.abs(rr.eventFrame - targetFrame);
+    // Surviving landings: error directly. Non-surviving: huge penalty.
+    return rr.survives ? err : 1000 + err;
+  };
+  let bestScore = scoreResult(r);
+
+  if (bestScore > 0) {
+    let lo = 2 - searchRadius;
+    let hi = 2 + searchRadius;
+    while (iters < maxIters) {
+      iters++;
+      offset = (lo + hi) / 2;
+      r = tryOffset(offset);
+      const sc = scoreResult(r);
+      if (sc < bestScore) { bestScore = sc; bestR = r; bestOffset = offset; }
+      if (sc === 0) break;
+      // Direction: event too late or missing → curve too low → decrease offset.
+      // For non-surviving landings, also decrease (they're typically too aggressive).
+      if (r.eventFrame === null || r.eventFrame > targetFrame) hi = offset;
+      else lo = offset;
+      if (hi - lo < 1e-3) break;
+    }
+  }
+  r = bestR;
+  offset = bestOffset;
+
+  return {
+    lines: r.lines,
+    engineAfter: r.engineAfter,
+    eventFrame: r.eventFrame,
+    eventType: r.eventType,
+    anchorX,
+    anchorY,
+    offset,
+    iterations: iters,
+  };
+}
+
 export function placeChain(
   targetFrames: number[],
   opts: PlaceChainOpts = {},
@@ -844,7 +1048,7 @@ export function placeSlideChain(
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
-function makeLine(id: number, x1: number, y1: number, x2: number, y2: number): TrackLine {
+export function makeLine(id: number, x1: number, y1: number, x2: number, y2: number): TrackLine {
   return {
     id,
     type: 0,

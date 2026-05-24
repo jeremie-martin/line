@@ -196,6 +196,10 @@ import dunesArc from "../arcs/dunes.ts";
 import swoopingPeakArc from "../arcs/swooping_peak.ts";
 import { landingCandidates } from "./lib/primitive_search.ts";
 import { searchRideBeam } from "./lib/beam_search.ts";
+import {
+  PRECISE_LANDING_FAMILY,
+  landAtCurve,
+} from "./lib/precise_landings.ts";
 
 // ── Iterative offset-correction wrapper ──
 //
@@ -502,6 +506,52 @@ const primitiveSearchLa2Strategy: Strategy = {
   },
 };
 
+// Phase 4: precision-first landing via bisected sloped curve (NEXT.md).
+// Each beat → landAtCurve which bisects the offset of a sloped multi-segment
+// curve (the shape proven to survive impact) so the landing fires within
+// ±1f of target. Single primitive type per beat (no variety yet); just
+// validates the precision + air-time properties end-to-end on the bench.
+const preciseLandingsStrategy: Strategy = {
+  id: "compose_precise_landings",
+  description: "landAtCurve at each beat — bisected curve, ±1f precision, survives chain",
+  run({ onsets, fps }) {
+    const filtered = filteredBeats(onsets, fps);
+    const moves: Move[] = filtered.map((f) => landAtCurve({ at: f }));
+    const t0 = Date.now();
+    const result = ride(moves);
+    return {
+      track: result.track,
+      detection: result.detection,
+      elapsedMs: Date.now() - t0,
+      provenance: `landAtCurve(${filtered.length}/${onsets.length} beats)`,
+    };
+  },
+};
+
+// Phase 4: precision-first landings with variety — rotates through the
+// family (landAtCurve / landAtCurveKicker / landAtCurveDive) across
+// consecutive beats. Same precision as compose_precise_landings, plus
+// visual shape variety.
+const preciseLandingsVarietyStrategy: Strategy = {
+  id: "compose_precise_landings_variety",
+  description: "Precise landings rotating through family for visual variety",
+  run({ onsets, fps }) {
+    const filtered = filteredBeats(onsets, fps);
+    const variants = PRECISE_LANDING_FAMILY;
+    const moves: Move[] = filtered.map((f, i) =>
+      variants[i % variants.length].factory(f),
+    );
+    const t0 = Date.now();
+    const result = ride(moves);
+    return {
+      track: result.track,
+      detection: result.detection,
+      elapsedMs: Date.now() - t0,
+      provenance: `precise_landings_variety(${filtered.length}/${onsets.length} beats, ${variants.length} variants)`,
+    };
+  },
+};
+
 // Phase 3.2: beam search with primitive-type expansion.
 // K=4 beam members, B=2 per member per beat → 8 candidates per beat per
 // candidate-primitive type. With landingCandidates returning ~7 primitives,
@@ -603,6 +653,9 @@ export const STRATEGIES: Strategy[] = [
   // runnable via `--strategies=compose_beam_search`, but it is NOT a default
   // baseline candidate any more.
   beamSearchStrategy,
+  // Phase 4: precision-first landings via bisected sloped curve (NEXT.md).
+  preciseLandingsStrategy,
+  preciseLandingsVarietyStrategy,
 ];
 
 const enabledStrats = stratsFilter ? new Set(stratsFilter) : null;

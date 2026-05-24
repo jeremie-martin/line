@@ -156,6 +156,69 @@ That's the bar. If yes → move to a richer spec language (flavors / arcs /
 speed envelope). If no → iterate within the bisection family before
 adding new spec vocabulary.
 
+---
+
+## Progress 2026-05-24 — bisection-foundation work + open problems
+
+**What was built:**
+
+- `scripts/lib/primitive.ts:bisectCurveOffset` — bisects the perpendicular
+  offset of a `placeSlideChain`-style multi-segment sloped curve until the
+  rider's landing event fires at the target frame. Survival-aware: prefers
+  surviving landings over precise ones (a dead rider with ±0f is useless).
+- `scripts/lib/precise_landings.ts` — family of 3 Move-compatible primitives:
+  `landAtCurve` (no decoration), `landAtCurveKicker` (curve + upward kicker),
+  `landAtCurveDive` (curve + steep downward exit). All use bisectCurveOffset.
+- `compose_precise_landings` + `compose_precise_landings_variety` bench
+  strategies in `scripts/bench_music.ts`.
+
+**Foundational finding that re-shaped the approach:**
+
+The original NEXT.md framing assumed `landAt` (horizontal stub) was a viable
+precision foundation needing only decoration. Probe revealed it ejects the
+rider 2f after the first landing — flat stubs can't absorb impact at any
+non-trivial vy. The successful chained-landing primitive is
+`placeSlideChain`'s multi-segment sloped curve (61% air fraction, survives
+30-beat chains, but precision is fixed ±2f late). The pivot was to bisect
+the sloped curve's offset, getting precision from the bisection while keeping
+survival from the curve shape.
+
+**Validated:**
+
+- ✓ Short chains (10 beats at 40f spacing starting at f=40) survive AND hit
+  **80% onBeat1** — a 3.5× precision improvement over placeSlideChain's 23%.
+- ✓ Bisection's survival check (reject offsets where rider dies in lookahead
+  window) correctly trades precision for survival when both can't be had.
+- ✓ The family registry pattern works (alternating variants across beats).
+
+**Open problems** (do not declare success until these are solved):
+
+1. **Long-chain survival**: 30-beat metronome_60 (beats at 30, 70, 110, ...)
+   ejects at frame 114 — beat 2 (target 110) is the last beat placed. The
+   per-beat survival check (rider lives 8f after landing) doesn't capture
+   "rider's post-landing state degrades the chain N beats from now." The
+   bisection finds locally-OK offsets that compound into chain failure.
+2. **Speed**: 47 seconds for 30 beats (vs baseline_old's 5s for the same).
+   Each bisection runs up to 18 iterations × full simulation. Need either:
+   fewer iterations (smarter start offset), cached partial sims, or a
+   closed-form initial guess.
+3. **Beats 1–2 outliers in the working 10-beat test**: beats 0, 3-9 land
+   ±0-1f; beats 1, 2 land +5f. Not catastrophic but suggests the bisection
+   isn't always finding the best surviving offset.
+4. **Visual quality NOT yet verified**: no rendered video has been viewed.
+   The user's bar is "tight sync + air time + variety," and we haven't
+   confirmed any of those visually yet.
+
+**Where to pause and decide:**
+
+The architecture (bisection on sloped curve) is now demonstrated for short
+chains. Before iterating further on speed/long-chain survival, *render and
+watch one of the working short-chain tracks* to confirm the visual direction
+is right. If yes, the next iteration is "scale to long chains + speed it up."
+If no, the visual problem might require something different from the curve
+family (e.g. taller geometry, more vertical range) and the chain-survival
+work would be premature.
+
 ## Why this is captured here
 
 Crystallizing this matters because it's the FOURTH time the project's

@@ -523,8 +523,28 @@ for (const beats of BEATS) {
         provenance: sr.provenance, survived: behav.survived,
         geom, behav, music, cool,
       });
+      // Tail-trim: write the track with `duration` cropped to the last
+      // contact frame (+ small grace). Search/sim ran at full duration but
+      // the rendered mp4 stops here, so the rider doesn't free-fall into
+      // the void past the end of geometry.
+      //
+      // Using "last contact frame" rather than "last landing event" because
+      // the rider may legitimately slide across multiple lines after the
+      // last detected event — cutting at the event would crop visible
+      // sliding. Using "last contact" preserves the full ridden portion
+      // and cuts only the empty free-fall tail.
+      const lastContactFrame = (() => {
+        const air = det.measurements.airborne;
+        for (let f = Math.min(det.terminus.frame, air.length - 1); f >= 0; f--) {
+          if (!air[f]) return f;
+        }
+        return -1;
+      })();
+      const trimmedTrack = lastContactFrame > 0
+        ? { ...sr.track, duration: Math.min(sr.track.duration, lastContactFrame + 8) }
+        : sr.track;
       const trackPath = resolve(trackOutDir, `${beats.id}_${strat.id}.track.json`);
-      writeFileSync(trackPath, JSON.stringify(sr.track, null, 2));
+      writeFileSync(trackPath, JSON.stringify(trimmedTrack, null, 2));
       process.stdout.write(
         `cool=${cool.toFixed(0).padStart(5)} cov=${music.eventCoveragePct.toFixed(0).padStart(3)}% adh=${music.onBeatAdherencePct.toFixed(0).padStart(3)}% surv=${behav.survived ? "Y" : "N"} (${sr.elapsedMs}ms)\n`,
       );

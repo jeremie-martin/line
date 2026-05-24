@@ -568,7 +568,7 @@ for (const beats of BEATS) {
     );
   }
   lines.push(``);
-  lines.push(`### Music-sync metrics`);
+  lines.push(`### Music-sync metrics (landings + bounces, kicks excluded)`);
   lines.push(``);
   lines.push(`On-beat % at four tolerances. Offset distribution shows precision in frames (1 frame = 25 ms).`);
   lines.push(``);
@@ -580,6 +580,21 @@ for (const beats of BEATS) {
         `| ${fmt(r.music.onBeat1, 1)} | ${fmt(r.music.onBeat2, 1)} | ${fmt(r.music.onBeat5, 1)} | ${fmt(r.music.onBeat10, 1)} ` +
         `| ${fmt(r.music.medianBeatOffsetFrames, 1)} | ${fmt(r.music.meanBeatOffsetFrames, 1)} ` +
         `| ${fmt(r.music.p90BeatOffsetFrames, 1)} | ${fmt(r.music.maxBeatOffsetFrames, 1)} |`,
+    );
+  }
+  lines.push(``);
+  lines.push(`### Landing-only sync (strict — the visual punctuation)`);
+  lines.push(``);
+  lines.push(`Same beats, but only matched against \`landing\` events (excludes bounces).`);
+  lines.push(`A landing is the distinct impact moment; bounces are incidental brief airbornes.`);
+  lines.push(``);
+  lines.push(`| strategy | landings/beats | L ±1f | L ±2f | L ±5f | L median | L mean |`);
+  lines.push(`|---|---|---|---|---|---|---|`);
+  for (const r of beatsRows) {
+    lines.push(
+      `| ${r.strategyId} | ${fmt(r.music.landingMatchFraction * 100)}% ` +
+        `| ${fmt(r.music.landingOnBeat1, 1)} | ${fmt(r.music.landingOnBeat2, 1)} | ${fmt(r.music.landingOnBeat5, 1)} ` +
+        `| ${fmt(r.music.landingMedianOffsetFrames, 1)} | ${fmt(r.music.landingMeanOffsetFrames, 1)} |`,
     );
   }
   lines.push(``);

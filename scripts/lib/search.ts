@@ -443,31 +443,42 @@ export function searchRideGreedy(
         det.terminus.frame >= placement.endFrame || det.terminus.reason === "endOfSpec";
       const range = { start: move.atFrame, end: placement.endFrame };
       const verdict = move.verify(det, range, placement.lineIds);
-      // Per-move beat precision: continuous Gaussian decay rather than
-      // binary hit-at-ε. With σ=3, offset 0 ⇒ 500, 3 ⇒ 270, 6 ⇒ 67,
-      // 9 ⇒ 6, >30 (or no event) ⇒ 0. Gives the optimizer a gradient to
-      // nudge 8f offsets down to 5 → 3 → 1, where binary scoring would
-      // give all of those the same 0.
+      // Per-move beat precision: continuous Gaussian decay weighted by
+      // event type. Landings are the visual punctuation of a Line Rider
+      // track — the distinct impacts. Bounces are partial credit
+      // (incidental brief airbornes still align with beats but less
+      // visually prominent). Kicks (angle changes mid-slide) DON'T
+      // correspond to musical beats visually and are excluded.
+      //
+      // With σ=3 and landing weight 500: offset 0 ⇒ 500, 3 ⇒ 270, 6 ⇒ 67.
+      // Bounce weight 250 (half of landing).
       const SIGMA = 3;
       const matchWindow = 30;
+      const LANDING_WEIGHT = 500;
+      const BOUNCE_WEIGHT = 250;
       const ownedLineIds = new Set(placement.lineIds);
-      let bestOffset = Infinity;
+      let landingBestOffset = Infinity;
+      let bounceBestOffset = Infinity;
       for (const e of det.events) {
         if (e.type !== "landing" && e.type !== "bounce") continue;
         const lids = det.measurements.contactLineIds[e.frame] ?? [];
         if (!lids.some((id) => ownedLineIds.has(id))) continue;
         const o = Math.abs(e.frame - move.atFrame);
-        if (o < bestOffset) bestOffset = o;
+        if (e.type === "landing" && o < landingBestOffset) landingBestOffset = o;
+        if (e.type === "bounce" && o < bounceBestOffset) bounceBestOffset = o;
       }
-      const precisionBonus = bestOffset <= matchWindow
-        ? 500 * Math.exp(-(bestOffset * bestOffset) / (2 * SIGMA * SIGMA))
+      const landingBonus = landingBestOffset <= matchWindow
+        ? LANDING_WEIGHT * Math.exp(-(landingBestOffset * landingBestOffset) / (2 * SIGMA * SIGMA))
         : 0;
-      // "onBeat" controls early-exit (don't keep retrying once we're tight enough)
-      // and survival escalation (escalate scale only if we're nowhere near beat).
-      // Loosened from ±2 to ±5 because the per-move continuous precision bonus
-      // already pushes toward 0, and a hard ±2 gate makes the search re-escalate
-      // scale on every move that has shifted atFrames (iterativeStrategy path) —
-      // each escalation walks the full SCALE_SCHEDULE, multiplying sim count.
+      const bounceBonus = bounceBestOffset <= matchWindow
+        ? BOUNCE_WEIGHT * Math.exp(-(bounceBestOffset * bounceBestOffset) / (2 * SIGMA * SIGMA))
+        : 0;
+      // Take the better of landing-bonus or bounce-bonus (don't sum — that
+      // double-counts the same proximity).
+      const precisionBonus = Math.max(landingBonus, bounceBonus);
+      const bestOffset = Math.min(landingBestOffset, bounceBestOffset);
+      // "onBeat" controls early-exit and survival escalation. Loosened to
+      // ±5 because the precision bonus pushes toward 0 anyway.
       const onBeat = bestOffset <= 5;
       const score = scoreFn(verdict, survivedWindow) + precisionBonus;
 

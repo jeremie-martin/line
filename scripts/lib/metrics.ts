@@ -377,26 +377,39 @@ export function evaluateTrack(track: TrackJson, weights: CoolWeights = DEFAULT_C
 
 export type MusicMetrics = {
   beatCount: number;
-  /** Detected events / beatCount. */
+  /** Detected events / beatCount. Uses landings + bounces (kicks excluded). */
   eventCoveragePct: number;
-  /** Fraction of beats with at least one detector event within ±tolFrames. */
+  /** Fraction of beats with at least one landing OR bounce within ±tolFrames. */
   onBeatAdherencePct: number;
-  /** Mean absolute offset (frames) between each beat and its nearest event. */
+  /** Mean absolute offset (frames). Landings + bounces. */
   meanBeatOffsetFrames: number;
-  /** Median absolute offset. More robust than mean. */
   medianBeatOffsetFrames: number;
-  /** 90th-percentile absolute offset. Tail of the distribution. */
   p90BeatOffsetFrames: number;
-  /** Max absolute offset across all beats. */
   maxBeatOffsetFrames: number;
-  /** On-beat percentage at ±1, ±2, ±5, ±10 frames. */
+  /** On-beat percentage at ±1, ±2, ±5, ±10 frames (landings + bounces). */
   onBeat1: number;
   onBeat2: number;
   onBeat5: number;
   onBeat10: number;
   /** Per-beat offset array (frames). Negative = event before beat, positive = after.
-   *  Empty entries (no event near beat) are recorded as null. */
+   *  Null if no matching event within ±MATCH_WINDOW_FRAMES. */
   perBeatSignedOffsets: Array<number | null>;
+  /** Per-beat matched event type (or null if unmatched). */
+  perBeatMatchedType: Array<"landing" | "bounce" | null>;
+
+  // ── LANDINGS-ONLY breakdown ──
+  // Landings are the visual punctuation of a Line Rider track — the
+  // distinct impact moments. Kicks (angle changes mid-slide) and bounces
+  // (incidental brief airbornes) don't visually correspond to beats the
+  // same way. We report landings-only stats next to the combined stats so
+  // sync quality can be measured strictly.
+  landingOnBeat1: number;
+  landingOnBeat2: number;
+  landingOnBeat5: number;
+  landingMedianOffsetFrames: number;
+  landingMeanOffsetFrames: number;
+  /** Fraction of beats matched by a landing (vs only a bounce or unmatched). */
+  landingMatchFraction: number;
 };
 
 /** A beat is "matched" only if an event exists within `matchWindow` frames.
@@ -415,42 +428,66 @@ export function musicMetrics(
       meanBeatOffsetFrames: 0, medianBeatOffsetFrames: 0,
       p90BeatOffsetFrames: 0, maxBeatOffsetFrames: 0,
       onBeat1: 0, onBeat2: 0, onBeat5: 0, onBeat10: 0,
-      perBeatSignedOffsets: [],
+      perBeatSignedOffsets: [], perBeatMatchedType: [],
+      landingOnBeat1: 0, landingOnBeat2: 0, landingOnBeat5: 0,
+      landingMedianOffsetFrames: 0, landingMeanOffsetFrames: 0,
+      landingMatchFraction: 0,
     };
   }
-  // Pre-collect discrete event frames.
-  const eventFrames: number[] = [];
+  // Collect landings and bounces separately. Kicks are deliberately
+  // ignored — they fire on angle changes mid-slide and don't visually
+  // correspond to musical beats.
+  const landingFrames: number[] = [];
+  const bounceFrames: number[] = [];
   for (const e of det.events) {
-    if (e.type === "landing" || e.type === "bounce" || e.type === "kick") {
-      eventFrames.push(e.frame);
-    }
+    if (e.type === "landing") landingFrames.push(e.frame);
+    else if (e.type === "bounce") bounceFrames.push(e.frame);
   }
-  eventFrames.sort((a, b) => a - b);
+  landingFrames.sort((a, b) => a - b);
+  bounceFrames.sort((a, b) => a - b);
 
-  // For each beat, find nearest event AND record signed offset (event - beat).
-  // Beats without a nearby event (within MATCH_WINDOW_FRAMES) record null.
+  // Per-beat: prefer landing within window, fall back to bounce.
   const signedOffsets: Array<number | null> = [];
-  for (const bf of beatFramesSorted) {
-    let best = Infinity;
-    let bestSigned = 0;
-    for (const ef of eventFrames) {
-      const d = Math.abs(ef - bf);
-      if (d < best) { best = d; bestSigned = ef - bf; }
-      if (ef - bf > best) break;
+  const matchedType: Array<"landing" | "bounce" | null> = [];
+  const landingSignedOffsets: Array<number | null> = [];
+
+  function nearest(frames: number[], beat: number): { signed: number | null } {
+    let best = Infinity, bestSigned: number | null = null;
+    for (const f of frames) {
+      const d = Math.abs(f - beat);
+      if (d < best) { best = d; bestSigned = f - beat; }
+      if (f - beat > best) break;
     }
-    if (best > MATCH_WINDOW_FRAMES) signedOffsets.push(null);
-    else signedOffsets.push(bestSigned);
+    if (best > MATCH_WINDOW_FRAMES) return { signed: null };
+    return { signed: bestSigned };
+  }
+
+  for (const bf of beatFramesSorted) {
+    const land = nearest(landingFrames, bf);
+    if (land.signed !== null) {
+      signedOffsets.push(land.signed);
+      matchedType.push("landing");
+      landingSignedOffsets.push(land.signed);
+    } else {
+      const bnc = nearest(bounceFrames, bf);
+      signedOffsets.push(bnc.signed);
+      matchedType.push(bnc.signed !== null ? "bounce" : null);
+      landingSignedOffsets.push(null);
+    }
   }
 
   const absMatched = signedOffsets.filter((x): x is number => x !== null).map(Math.abs);
   const sorted = [...absMatched].sort((a, b) => a - b);
   const percentile = (xs: number[], p: number) => xs.length === 0 ? 0 : xs[Math.min(xs.length - 1, Math.floor(p * xs.length))];
-
   const countWithin = (tol: number) => signedOffsets.filter((x) => x !== null && Math.abs(x) <= tol).length;
+
+  const landingAbs = landingSignedOffsets.filter((x): x is number => x !== null).map(Math.abs);
+  const landingSorted = [...landingAbs].sort((a, b) => a - b);
+  const landingCountWithin = (tol: number) => landingSignedOffsets.filter((x) => x !== null && Math.abs(x) <= tol).length;
 
   return {
     beatCount,
-    eventCoveragePct: (eventFrames.length / beatCount) * 100,
+    eventCoveragePct: ((landingFrames.length + bounceFrames.length) / beatCount) * 100,
     onBeatAdherencePct: (countWithin(tolFrames) / beatCount) * 100,
     meanBeatOffsetFrames: absMatched.length > 0 ? absMatched.reduce((s, x) => s + x, 0) / absMatched.length : 0,
     medianBeatOffsetFrames: percentile(sorted, 0.5),
@@ -461,5 +498,12 @@ export function musicMetrics(
     onBeat5: (countWithin(5) / beatCount) * 100,
     onBeat10: (countWithin(10) / beatCount) * 100,
     perBeatSignedOffsets: signedOffsets,
+    perBeatMatchedType: matchedType,
+    landingOnBeat1: (landingCountWithin(1) / beatCount) * 100,
+    landingOnBeat2: (landingCountWithin(2) / beatCount) * 100,
+    landingOnBeat5: (landingCountWithin(5) / beatCount) * 100,
+    landingMedianOffsetFrames: percentile(landingSorted, 0.5),
+    landingMeanOffsetFrames: landingAbs.length > 0 ? landingAbs.reduce((s, x) => s + x, 0) / landingAbs.length : 0,
+    landingMatchFraction: landingAbs.length / beatCount,
   };
 }

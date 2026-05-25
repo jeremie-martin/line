@@ -642,24 +642,25 @@ function median(xs: number[]): number {
 }
 
 function axisCost(target: SectionAxes, achieved: SectionAxes): number {
-  // Max-axis cost: rank candidates by their WORST per-axis error, not the
-  // sum. For multi-axis targets (e.g. air + grain on drums_chunky), this
-  // prefers candidates that hit both axes okay-ish over candidates that nail
-  // one axis at the expense of the other. The lopsided commits sum-cost
-  // preferred turn out to produce rider states that cascade-fail downstream
-  // gaps — by picking balanced commits, those cascades disappear and chunky
-  // goes 49→55 hits (+6). For single-axis targets max == sum so the ordering
-  // is identical to the prior L1-sum and no other spec is perturbed.
-  let worst = 0;
+  // L2 (sum-of-squares) cost. For single-axis targets the ordering is the
+  // same as the prior L1-sum (one positive term, monotone-square preserves
+  // order). For multi-axis targets the squaring penalizes large per-axis
+  // errors more than small ones, which steers per-gap commits toward
+  // balanced geometry: a lopsided (0.3, 0) candidate scores 0.09 while
+  // a balanced (0.15, 0.15) scores 0.045, so balanced wins. The lopsided
+  // commits that L1-sum preferred turn out to cascade-fail downstream
+  // gaps on chunky — L2 dissolves those cascades, lifting chunky from
+  // 49→55 hits with no perturbation of single-axis specs.
+  let cost = 0;
   for (const key of ["air", "speed", "contact_style", "grain"] as const) {
     const t = target[key];
     const a = achieved[key];
     if (t !== undefined && a !== undefined) {
-      const e = Math.abs(t - a);
-      if (e > worst) worst = e;
+      const d = t - a;
+      cost += d * d;
     }
   }
-  return worst;
+  return cost;
 }
 
 // ─────────── Spec validation ───────────

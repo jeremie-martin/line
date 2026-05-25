@@ -57,33 +57,108 @@ export function compile(spec: Spec, seed = 0): CompileResult {
     gap.targets = sampleGapTargets(sec, CALIB.SIGMA, rng);
   }
 
-  // 3. Compile each gap.
-  // deno-lint-ignore no-explicit-any
-  let engine: any = new LineRiderEngine();
-  const allLines: TrackLine[] = [];
-  let nextLineId = 1;
-  const gapFailures: number[] = []; // indices of gaps that failed hard gate
+  // 3. Compile each gap, with bounded cross-gap backtracking.
+  //
+  // Maintain per-gap state: cached ranked candidates + index of the next
+  // candidate to try. Walk gaps in time order; when a gap exhausts its
+  // candidates, back up to the most recent previous gap that still has
+  // unused candidates (up to BACKTRACK_DEPTH levels), reset all gaps
+  // between, and resume. If backtrack is exhausted too, mark the gap as
+  // a hard failure and continue.
+  const fits: (GapFit | null)[] = new Array(gaps.length).fill(null);
+  const gapCandidates: (GapFit[] | null)[] = new Array(gaps.length).fill(null);
+  const gapTried: number[] = new Array(gaps.length).fill(0);
+  const gapFailures: number[] = [];
 
-  for (const gap of gaps) {
+  let i = 0;
+  let backtracksUsedForCurrentFailure = 0;
+  let currentFailureGap = -1;
+
+  while (i < gaps.length) {
+    const gap = gaps[i];
     if (!gap.endsWithContact) {
-      // Head gap or tail gap: no end-Contact to bisect against → no Arc.
-      // The rider's trajectory through these gaps falls out of physics.
+      fits[i] = null;
+      i++;
       continue;
     }
-    const fit = compileGap(engine, gap, rng, nextLineId, contactFrames);
-    if (fit === null) {
-      gapFailures.push(gap.index);
+
+    // Generate ranked candidates if we haven't yet for this engine state.
+    if (gapCandidates[i] === null) {
+      const eng = rebuildEngine(fits, i);
+      const lineIdStart = nextLineIdAt(fits, i);
+      // Per-gap RNG: deterministic given (seed, gap index), independent of
+      // how many times we've revisited the gap via backtracking.
+      const perGapRng = makeRng((seed | 0) * 1000003 + i + 1);
+      gapCandidates[i] = generateRankedCandidates(
+        eng, gap, perGapRng, lineIdStart, contactFrames,
+      );
+      gapTried[i] = 0;
+    }
+
+    if (gapTried[i] < gapCandidates[i]!.length) {
+      fits[i] = gapCandidates[i]![gapTried[i]++];
+      // If we successfully advanced past a previous failure point, reset
+      // backtrack accounting.
+      if (currentFailureGap !== -1 && i >= currentFailureGap) {
+        currentFailureGap = -1;
+        backtracksUsedForCurrentFailure = 0;
+      }
+      i++;
       continue;
     }
-    allLines.push(...fit.lines);
-    nextLineId += fit.lines.length;
-    for (const line of fit.lines) {
-      engine = engine.addLine(createLineFromJson(line));
+
+    // Exhausted at gap i.
+    if (currentFailureGap === -1) {
+      currentFailureGap = i;
+      backtracksUsedForCurrentFailure = 0;
     }
+
+    if (backtracksUsedForCurrentFailure < CALIB.BACKTRACK_DEPTH) {
+      // Find the most recent previous contact-bearing gap with candidates left.
+      let prev = i - 1;
+      while (
+        prev >= 0 && (
+          !gaps[prev].endsWithContact
+          || gapCandidates[prev] === null
+          || gapTried[prev] >= gapCandidates[prev]!.length
+        )
+      ) {
+        prev--;
+      }
+      if (prev >= 0) {
+        // Reset gaps (prev+1 .. i) — engine state will change once we pick
+        // a different candidate at prev, so their cached candidates and
+        // chosen fits are no longer valid.
+        for (let j = prev + 1; j <= i; j++) {
+          gapCandidates[j] = null;
+          gapTried[j] = 0;
+          fits[j] = null;
+        }
+        i = prev;
+        backtracksUsedForCurrentFailure++;
+        continue;
+      }
+    }
+
+    // No backtrack possible / budget exhausted → record hard failure and advance.
+    gapFailures.push(i);
+    fits[i] = null;
+    gapCandidates[i] = null;
+    gapTried[i] = 0;
+    currentFailureGap = -1;
+    backtracksUsedForCurrentFailure = 0;
+    i++;
+  }
+
+  // Collect all chosen lines.
+  const allLines: TrackLine[] = [];
+  for (const fit of fits) {
+    if (fit !== null) allLines.push(...fit.lines);
   }
 
   // 4. Final full-track simulation to populate the DriftReport.
-  const finalRaw = extractRawTrajectory(engine, durationFrames + 20);
+  const finalEngine = rebuildEngine(fits, gaps.length);
+  const finalRaw = extractRawTrajectory(finalEngine, durationFrames + 20);
   const finalDet = detect(finalRaw);
 
   const track = buildTrackJson(allLines, durationFrames + 20);
@@ -92,6 +167,35 @@ export function compile(spec: Spec, seed = 0): CompileResult {
   );
 
   return { track, report };
+}
+
+// ─────────── Engine rebuild (for backtracking) ───────────
+
+/**
+ * Reconstruct the engine state up to (but not including) gap index `upTo`,
+ * by replaying all committed gap fits in time order. O(N) per call; fine for
+ * v0 spec sizes. Cache if it becomes a bottleneck.
+ */
+function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
+  // deno-lint-ignore no-explicit-any
+  let eng: any = new LineRiderEngine();
+  for (let j = 0; j < upTo; j++) {
+    const fit = fits[j];
+    if (fit === null) continue;
+    for (const line of fit.lines) {
+      eng = eng.addLine(createLineFromJson(line));
+    }
+  }
+  return eng;
+}
+
+function nextLineIdAt(fits: (GapFit | null)[], upTo: number): number {
+  let id = 1;
+  for (let j = 0; j < upTo; j++) {
+    const fit = fits[j];
+    if (fit !== null) id += fit.lines.length;
+  }
+  return id;
 }
 
 // ─────────── Timeline slicing ───────────
@@ -184,37 +288,41 @@ type GapFit = {
   cost: number;
 };
 
-function compileGap(
+/**
+ * Generate K candidate Arc placements for a gap, simulate each, filter by
+ * hard gate, and return all survivors ranked by aggregate axis cost
+ * (lowest cost first). Used by the backtracking loop in `compile()`:
+ * the best survivor is committed first; if downstream gaps can't make it
+ * work, the loop falls back to the next-best.
+ *
+ * Deterministic for fixed (baseEngine state, rng state, gap).
+ */
+function generateRankedCandidates(
   // deno-lint-ignore no-explicit-any
   baseEngine: any,
   gap: Gap,
   rng: () => number,
   lineIdStart: number,
   allContactFrames: number[],
-): GapFit | null {
-  // Predict rider position at gap.endFrame WITHOUT placing any new Arc.
+): GapFit[] {
   const horizon = gap.endFrame + 20;
   const rawNoArc = extractRawTrajectory(baseEngine, horizon);
   if (gap.endFrame >= rawNoArc.frames.length) {
-    return null; // engine ended before gap.endFrame — rider's already dead
+    return []; // engine ended before gap.endFrame — rider's already dead
   }
   const refFrame = rawNoArc.frames[gap.endFrame];
-  if (!refFrame) return null;
+  if (!refFrame) return [];
   const refX = refFrame.position.x;
   const refY = refFrame.position.y;
 
-  let best: GapFit | null = null;
-
+  const survivors: GapFit[] = [];
   for (let attempt = 0; attempt < CALIB.K; attempt++) {
     const cand = sampleArcParams(rng, refX, refY, gap.targets);
-    const fit = tryCandidate(
-      baseEngine, gap, cand, lineIdStart, allContactFrames,
-    );
-    if (fit === null) continue;
-    if (best === null || fit.cost < best.cost) best = fit;
+    const fit = tryCandidate(baseEngine, gap, cand, lineIdStart, allContactFrames);
+    if (fit !== null) survivors.push(fit);
   }
-
-  return best;
+  survivors.sort((a, b) => a.cost - b.cost);
+  return survivors;
 }
 
 function sampleArcParams(

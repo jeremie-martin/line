@@ -116,7 +116,7 @@ export const CALIB = {
   /** Cross-gap target sampling spread (Gaussian σ). */
   SIGMA: 0.15,
   /** Per-gap candidate budget. */
-  K: 24,
+  K: 48,
   /** Cross-gap backtrack depth. */
   BACKTRACK_DEPTH: 2,
   /**
@@ -129,22 +129,23 @@ export const CALIB = {
    */
   ARC: {
     LENGTH_MIN: 25,
-    LENGTH_MAX: 110,
-    /** Start tangent — moderate-to-gentle downward slope. */
+    LENGTH_MAX: 180,
+    /** Start tangent — wide range so steep catches (for high-vy riders) and
+     *  gentle catches (for low-vy riders) are both in the sample space. */
     START_ANGLE_MIN_DEG: 5,
-    START_ANGLE_MAX_DEG: 28,
-    /** End tangent — flatter than start, allows mild upward (rebound). */
+    START_ANGLE_MAX_DEG: 70,
+    /** End tangent — always flatter than start; allows mild upward (rebound). */
     END_ANGLE_MIN_DEG: -5,
-    END_ANGLE_MAX_DEG: 15,
+    END_ANGLE_MAX_DEG: 20,
     SEGMENTS_MIN: 3,
-    SEGMENTS_MAX: 8,
+    SEGMENTS_MAX: 12,
     /** Anchor X offset relative to rider's predicted x at landing frame. */
-    ANCHOR_X_OFFSET_MIN: -10,
+    ANCHOR_X_OFFSET_MIN: -14,
     ANCHOR_X_OFFSET_MAX: 4,
     /** Anchor Y offset relative to rider's predicted y at landing frame.
      *  Bisection adjusts further; this is the starting point. */
-    ANCHOR_Y_OFFSET_MIN: -2,
-    ANCHOR_Y_OFFSET_MAX: 8,
+    ANCHOR_Y_OFFSET_MIN: -4,
+    ANCHOR_Y_OFFSET_MAX: 10,
   },
 } as const;
 

@@ -119,6 +119,10 @@ export const CALIB = {
   K: 48,
   /** Cross-gap backtrack depth. */
   BACKTRACK_DEPTH: 2,
+  /** Max times the final-track validator can re-trigger compilation when
+   *  off-beat landings are detected in the assembled track but not at
+   *  per-gap commit time. */
+  OFF_BEAT_RETRIES: 3,
   /**
    * Default Arc parameter bounds.
    * Initial values are an empirical guess loosely centered on shapes that

@@ -237,6 +237,12 @@ Equal-weight loss for v0. Weights only matter when the compiler can't satisfy al
 
 Deferred preset library — `flat_catch`, `kicker`, `s_curve`, etc. as named factory functions producing Arcs. May become useful if v0's wide random sampling proves insufficient for visual variety. Cleanly addable later as factory functions over the existing Arc primitive.
 
+### D30. Multi-Arc gap support
+
+v0 places exactly one Arc per gap (the one bisected to land at the end-Contact). This is sufficient when the rider's incoming energy is something a single sloped catch can absorb. It is *not* sufficient when the rider has accumulated too much vy in a long initial fall or sparse-contact stretch — empirically observed when the first Contact is ≥ 2 seconds after spec start (rider arrives at vy ≈ 14, no single Arc in any reasonable parameter range survives the impact).
+
+Deferred fix: per gap, allow the compiler to place a *sequence* of Arcs — e.g., one or more upstream Arcs that the rider only bounces off (no landing event, allowed by the no-off-beat-landings constraint) to bleed energy, followed by the catch Arc at the end-Contact. The bouncing geometry doesn't violate sync because bounces aren't landings.
+
 ---
 
 ## Conventions

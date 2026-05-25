@@ -9,16 +9,22 @@
  *   2. Compute per-gap targets (cross-gap target sampling around section means).
  *   3. For each gap (head → tail), generate K candidate Arc placements via
  *      wide random parameter sampling; bisect anchor Y for Contact precision;
- *      filter by hard gate (survival, Contact ±1f, no off-beat landings);
- *      rank survivors by aggregate axis cost; commit the best.
- *   4. Assemble Track + DriftReport.
+ *      filter by hard gate (survival, Contact ±1f, no off-beat landings in
+ *      this gap's frame range); rank survivors by aggregate axis cost; commit
+ *      the best. On exhaustion, bounded cross-gap backtrack (CALIB.BACKTRACK_DEPTH
+ *      levels) or hard failure.
+ *   4. Final-track validation. The per-gap hard gate only sees its own gap;
+ *      a later gap's Arc can intercept the rider's path before its own target
+ *      frame, producing an off-beat landing invisible to per-gap sims. After
+ *      the main loop, simulate the full assembled track; any off-beat landings
+ *      identify the owning gap (via line-id), which is re-entered with its
+ *      next candidate. Bounded by CALIB.OFF_BEAT_RETRIES.
+ *   5. Assemble Track + DriftReport.
  *
- * v0 simplifications (flagged in code):
+ * v0 simplification (flagged in code, deferred per DECISIONS.md D30):
  *   - Exactly one Arc per gap, anchored near the end-Contact's predicted
- *     rider position. Multi-Arc gap sequences deferred.
- *   - Cross-gap backtracking is a stub (records hard failure and continues
- *     with the engine state after the previous successful gap). Bounded
- *     backtrack is the v0.1 enrichment.
+ *     rider position. Multi-Arc gap sequences (energy-bleeding bouncers
+ *     before the catch) deferred.
  */
 
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
@@ -57,97 +63,145 @@ export function compile(spec: Spec, seed = 0): CompileResult {
     gap.targets = sampleGapTargets(sec, CALIB.SIGMA, rng);
   }
 
-  // 3. Compile each gap, with bounded cross-gap backtracking.
-  //
-  // Maintain per-gap state: cached ranked candidates + index of the next
-  // candidate to try. Walk gaps in time order; when a gap exhausts its
-  // candidates, back up to the most recent previous gap that still has
-  // unused candidates (up to BACKTRACK_DEPTH levels), reset all gaps
-  // between, and resume. If backtrack is exhausted too, mark the gap as
-  // a hard failure and continue.
+  // Per-gap state, shared across the initial compile pass and any off-beat
+  // retries (which re-enter the loop from an earlier index without
+  // re-initialising from scratch).
   const fits: (GapFit | null)[] = new Array(gaps.length).fill(null);
   const gapCandidates: (GapFit[] | null)[] = new Array(gaps.length).fill(null);
   const gapTried: number[] = new Array(gaps.length).fill(0);
   const gapFailures: number[] = [];
 
-  let i = 0;
-  let backtracksUsedForCurrentFailure = 0;
-  let currentFailureGap = -1;
+  // 3. Compile each gap, with bounded cross-gap backtracking. Walk gaps in
+  // time order; when a gap exhausts its candidates, back up to the most
+  // recent previous gap that still has unused candidates (up to
+  // BACKTRACK_DEPTH levels), reset all gaps between, and resume. If
+  // backtrack is exhausted too, mark the gap as a hard failure and continue.
+  const runFrom = (startIdx: number) => {
+    let i = startIdx;
+    let backtracksUsedForCurrentFailure = 0;
+    let currentFailureGap = -1;
 
-  while (i < gaps.length) {
-    const gap = gaps[i];
-    if (!gap.endsWithContact) {
-      fits[i] = null;
-      i++;
-      continue;
-    }
-
-    // Generate ranked candidates if we haven't yet for this engine state.
-    if (gapCandidates[i] === null) {
-      const eng = rebuildEngine(fits, i);
-      const lineIdStart = nextLineIdAt(fits, i);
-      // Per-gap RNG: deterministic given (seed, gap index), independent of
-      // how many times we've revisited the gap via backtracking.
-      const perGapRng = makeRng((seed | 0) * 1000003 + i + 1);
-      gapCandidates[i] = generateRankedCandidates(
-        eng, gap, perGapRng, lineIdStart, contactFrames,
-      );
-      gapTried[i] = 0;
-    }
-
-    if (gapTried[i] < gapCandidates[i]!.length) {
-      fits[i] = gapCandidates[i]![gapTried[i]++];
-      // If we successfully advanced past a previous failure point, reset
-      // backtrack accounting.
-      if (currentFailureGap !== -1 && i >= currentFailureGap) {
-        currentFailureGap = -1;
-        backtracksUsedForCurrentFailure = 0;
-      }
-      i++;
-      continue;
-    }
-
-    // Exhausted at gap i.
-    if (currentFailureGap === -1) {
-      currentFailureGap = i;
-      backtracksUsedForCurrentFailure = 0;
-    }
-
-    if (backtracksUsedForCurrentFailure < CALIB.BACKTRACK_DEPTH) {
-      // Find the most recent previous contact-bearing gap with candidates left.
-      let prev = i - 1;
-      while (
-        prev >= 0 && (
-          !gaps[prev].endsWithContact
-          || gapCandidates[prev] === null
-          || gapTried[prev] >= gapCandidates[prev]!.length
-        )
-      ) {
-        prev--;
-      }
-      if (prev >= 0) {
-        // Reset gaps (prev+1 .. i) — engine state will change once we pick
-        // a different candidate at prev, so their cached candidates and
-        // chosen fits are no longer valid.
-        for (let j = prev + 1; j <= i; j++) {
-          gapCandidates[j] = null;
-          gapTried[j] = 0;
-          fits[j] = null;
-        }
-        i = prev;
-        backtracksUsedForCurrentFailure++;
+    while (i < gaps.length) {
+      const gap = gaps[i];
+      if (!gap.endsWithContact) {
+        fits[i] = null;
+        i++;
         continue;
       }
-    }
 
-    // No backtrack possible / budget exhausted → record hard failure and advance.
-    gapFailures.push(i);
-    fits[i] = null;
-    gapCandidates[i] = null;
-    gapTried[i] = 0;
-    currentFailureGap = -1;
-    backtracksUsedForCurrentFailure = 0;
-    i++;
+      if (gapCandidates[i] === null) {
+        const eng = rebuildEngine(fits, i);
+        const lineIdStart = nextLineIdAt(fits, i);
+        // Per-gap RNG: deterministic given (seed, gap index), independent of
+        // how many times we've revisited the gap via backtracking.
+        const perGapRng = makeRng((seed | 0) * 1000003 + i + 1);
+        gapCandidates[i] = generateRankedCandidates(
+          eng, gap, perGapRng, lineIdStart, contactFrames,
+        );
+        // Note: gapTried[i] is NOT reset here — when an off-beat retry
+        // invalidates this gap's cache, gapTried[i] is left advanced so the
+        // loop picks the next-untried candidate from the freshly-regenerated
+        // (deterministically-identical) list.
+      }
+
+      if (gapTried[i] < gapCandidates[i]!.length) {
+        fits[i] = gapCandidates[i]![gapTried[i]++];
+        if (currentFailureGap !== -1 && i >= currentFailureGap) {
+          currentFailureGap = -1;
+          backtracksUsedForCurrentFailure = 0;
+        }
+        i++;
+        continue;
+      }
+
+      // Exhausted at gap i.
+      if (currentFailureGap === -1) {
+        currentFailureGap = i;
+        backtracksUsedForCurrentFailure = 0;
+      }
+
+      if (backtracksUsedForCurrentFailure < CALIB.BACKTRACK_DEPTH) {
+        let prev = i - 1;
+        while (
+          prev >= 0 && (
+            !gaps[prev].endsWithContact
+            || gapCandidates[prev] === null
+            || gapTried[prev] >= gapCandidates[prev]!.length
+          )
+        ) {
+          prev--;
+        }
+        if (prev >= 0) {
+          for (let j = prev + 1; j <= i; j++) {
+            gapCandidates[j] = null;
+            gapTried[j] = 0;
+            fits[j] = null;
+          }
+          i = prev;
+          backtracksUsedForCurrentFailure++;
+          continue;
+        }
+      }
+
+      gapFailures.push(i);
+      fits[i] = null;
+      gapCandidates[i] = null;
+      gapTried[i] = 0;
+      currentFailureGap = -1;
+      backtracksUsedForCurrentFailure = 0;
+      i++;
+    }
+  };
+
+  runFrom(0);
+
+  // 4. Final-track validation. Per-gap simulation only sees its own gap's
+  // window, so it can miss off-beat landings caused by a later gap's Arc
+  // intersecting the rider's trajectory before the later gap's target frame.
+  // After the main loop, simulate the full assembled track; if off-beat
+  // landings appear, identify the owning gap (via line-id membership in
+  // committed fits), advance that gap past its current candidate (so the
+  // next retry picks a different shape), and re-enter the compile loop
+  // from there. Bounded by CALIB.OFF_BEAT_RETRIES.
+  for (let retry = 0; retry < CALIB.OFF_BEAT_RETRIES; retry++) {
+    const eng = rebuildEngine(fits, gaps.length);
+    const raw = extractRawTrajectory(eng, durationFrames + 20);
+    const det = detect(raw);
+
+    const offBeatEvents = det.events.filter((e) =>
+      e.type === "landing" && !contactFrames.some((cf) => Math.abs(cf - e.frame) <= 1),
+    );
+    if (offBeatEvents.length === 0) break;
+
+    const ownersToRetry = new Set<number>();
+    for (const e of offBeatEvents) {
+      const lids = det.measurements.contactLineIds[e.frame] ?? [];
+      for (const lid of lids) {
+        const owner = findGapOwning(lid, fits);
+        if (owner >= 0) ownersToRetry.add(owner);
+      }
+    }
+    if (ownersToRetry.size === 0) break;
+
+    const earliest = Math.min(...ownersToRetry);
+    // Reset the offending gap and everything after it. gapTried[earliest]
+    // already points past the committed (problematic) candidate, so the
+    // re-run picks the next one. If that exhausts, normal backtracking
+    // kicks in.
+    fits[earliest] = null;
+    gapCandidates[earliest] = null;
+    for (let j = earliest + 1; j < gaps.length; j++) {
+      fits[j] = null;
+      gapCandidates[j] = null;
+      gapTried[j] = 0;
+    }
+    // Drop hard-failure markers that fall in the retry region — they'll be
+    // re-evaluated.
+    const kept = gapFailures.filter((g) => g < earliest);
+    gapFailures.length = 0;
+    gapFailures.push(...kept);
+
+    runFrom(earliest);
   }
 
   // Collect all chosen lines.
@@ -156,17 +210,27 @@ export function compile(spec: Spec, seed = 0): CompileResult {
     if (fit !== null) allLines.push(...fit.lines);
   }
 
-  // 4. Final full-track simulation to populate the DriftReport.
+  // 5. Final simulation for the DriftReport (post-retry).
   const finalEngine = rebuildEngine(fits, gaps.length);
   const finalRaw = extractRawTrajectory(finalEngine, durationFrames + 20);
   const finalDet = detect(finalRaw);
 
   const track = buildTrackJson(allLines, durationFrames + 20);
   const report = buildDriftReport(
-    finalDet, spec, gaps, contactFrames, durationFrames, gapFailures,
+    finalDet, spec, gaps, contactFrames, durationFrames, gapFailures, fits,
   );
 
   return { track, report };
+}
+
+/** Locate the index of the gap whose fit's `lines` contains the given id. */
+function findGapOwning(lineId: number, fits: (GapFit | null)[]): number {
+  for (let i = 0; i < fits.length; i++) {
+    const fit = fits[i];
+    if (fit === null) continue;
+    if (fit.lines.some((l) => l.id === lineId)) return i;
+  }
+  return -1;
 }
 
 // ─────────── Engine rebuild (for backtracking) ───────────
@@ -633,6 +697,7 @@ function buildDriftReport(
   det: Detection, spec: Spec, gaps: Gap[],
   contactFrames: number[], durationFrames: number,
   gapFailures: number[],
+  fits: (GapFit | null)[],
 ): DriftReport {
   const contacts: ContactReport[] = spec.contacts.map((c) => {
     const target = secToFrame(c.t);
@@ -658,13 +723,47 @@ function buildDriftReport(
     const f1 = secToFrame(sec.t1);
     const survived = det.terminus.frame >= f1
       || det.terminus.reason === "endOfSpec";
+
+    // Per-gap fits whose end-Contact falls in this section's frame range.
+    // Used for axes that are most cleanly measured per-gap and then
+    // aggregated (grain, contact_style).
+    const fitsInSection: GapFit[] = [];
+    for (let j = 0; j < gaps.length; j++) {
+      const g = gaps[j];
+      const f = fits[j];
+      if (!g.endsWithContact || f === null) continue;
+      if (g.endFrame >= f0 && g.endFrame <= f1) fitsInSection.push(f);
+    }
+
     const achieved: SectionReport["axes"] = {};
-    for (const k of ["air", "speed", "contact_style", "grain"] as const) {
+
+    // air, speed: measured directly from the final-track simulation over the
+    // section's frame range (rider-state axes).
+    for (const k of ["air", "speed"] as const) {
       const t = sec[k];
       if (t === undefined) continue;
       const av = measureAxisOverRange(det, f0, f1, k);
       if (av !== null) achieved[k] = { target: t, achieved: av, error: Math.abs(t - av) };
     }
+
+    // grain, contact_style: aggregate the per-gap achieved values across
+    // gaps in this section. Per-gap measurement is more reliable than a
+    // pure final-sim pass for these — grain is a property of the placed
+    // geometry, and contact_style is naturally per-contact.
+    for (const k of ["grain", "contact_style"] as const) {
+      const t = sec[k];
+      if (t === undefined) continue;
+      const vals: number[] = [];
+      for (const f of fitsInSection) {
+        const v = f.achieved[k];
+        if (v !== undefined) vals.push(v);
+      }
+      if (vals.length > 0) {
+        const m = vals.reduce((a, b) => a + b, 0) / vals.length;
+        achieved[k] = { target: t, achieved: m, error: Math.abs(t - m) };
+      }
+    }
+
     return { section_index: i, survived, axes: achieved };
   });
 
@@ -683,7 +782,7 @@ function buildDriftReport(
 
 function measureAxisOverRange(
   det: Detection, f0: number, f1: number,
-  axis: "air" | "speed" | "contact_style" | "grain",
+  axis: "air" | "speed",
 ): number | null {
   const b = Math.min(f1, det.measurements.airborne.length - 1);
   if (axis === "air") {
@@ -694,16 +793,11 @@ function measureAxisOverRange(
     }
     return total > 0 ? air / total : null;
   }
-  if (axis === "speed") {
-    let sum = 0, n = 0;
-    for (let f = f0; f <= b; f++) {
-      const s = det.measurements.speed[f];
-      if (s !== undefined) { sum += s; n++; }
-    }
-    return n > 0 ? sum / n / CALIB.SPEED_CAP : null;
+  // axis === "speed"
+  let sum = 0, n = 0;
+  for (let f = f0; f <= b; f++) {
+    const s = det.measurements.speed[f];
+    if (s !== undefined) { sum += s; n++; }
   }
-  // contact_style and grain require per-line / per-contact analysis at section
-  // granularity — deferred to v0.1 as not load-bearing for the first milestone.
-  // TODO: implement section-level measurement of these axes.
-  return null;
+  return n > 0 ? sum / n / CALIB.SPEED_CAP : null;
 }

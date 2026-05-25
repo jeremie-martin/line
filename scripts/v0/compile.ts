@@ -397,15 +397,22 @@ function sampleArcParams(
   // the predicted rider x at landing frame; anchor Y is a STARTING value that
   // will be bisected for Contact precision.
   const lengthRange = A.LENGTH_MAX - A.LENGTH_MIN;
-  let length = A.LENGTH_MIN + rng() * lengthRange;
-  // If `grain` is targeted, bias the length distribution toward the target's
-  // implied range (a coarse heuristic — grain measures median line length,
-  // i.e. length / segments).
-  if (targets.grain !== undefined) {
-    const targetLen = targets.grain * CALIB.LINE_LENGTH_CAP * (4 + Math.floor(rng() * 4));
-    length = (length + targetLen) / 2;
+  const length = A.LENGTH_MIN + rng() * lengthRange;
+  // Segments. When `grain` is targeted, derive segment count directly from
+  // length / desired-median-line-length so the resulting arc is much more
+  // likely to hit the grain target. Sprinkle some uniform sampling for variety.
+  const segRoll = rng();
+  let segments: number;
+  if (targets.grain !== undefined && segRoll < 0.7) {
+    // grain = median(line_length) / LINE_LENGTH_CAP. Solve for segment count.
+    // Add a small ±1 jitter so we don't collapse to one shape.
+    const targetSegLen = Math.max(3, targets.grain * CALIB.LINE_LENGTH_CAP);
+    const jitter = Math.floor(segRoll * 3) - 1; // -1, 0, +1
+    const ideal = Math.round(length / targetSegLen) + jitter;
+    segments = Math.max(A.SEGMENTS_MIN, Math.min(A.SEGMENTS_MAX, ideal));
+  } else {
+    segments = A.SEGMENTS_MIN + Math.floor(segRoll * (A.SEGMENTS_MAX - A.SEGMENTS_MIN + 1));
   }
-  const segments = A.SEGMENTS_MIN + Math.floor(rng() * (A.SEGMENTS_MAX - A.SEGMENTS_MIN + 1));
 
   const startAngleDeg = A.START_ANGLE_MIN_DEG
     + rng() * (A.START_ANGLE_MAX_DEG - A.START_ANGLE_MIN_DEG);

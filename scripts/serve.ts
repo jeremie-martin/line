@@ -7,14 +7,16 @@
  * works in Chromium / Firefox.
  *
  * Usage:
- *   npx tsx scripts/serve.ts           # serves project root on :8767
- *   PORT=9000 npx tsx scripts/serve.ts # custom port
+ *   npx tsx scripts/serve.ts                      # serves project root on 127.0.0.1:8767
+ *   PORT=9000 npx tsx scripts/serve.ts            # custom port
+ *   HOST=0.0.0.0 npx tsx scripts/serve.ts         # bind to all interfaces (LAN access)
  */
 import { createServer } from "node:http";
 import { createReadStream, statSync } from "node:fs";
 import { resolve, extname, normalize, sep } from "node:path";
 
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
+const HOST = process.env.HOST ?? "127.0.0.1";
 const ROOT = resolve(process.cwd());
 
 const MIME: Record<string, string> = {
@@ -89,7 +91,7 @@ const server = createServer((req, res) => {
   createReadStream(target).pipe(res);
 });
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`serving ${ROOT}  →  http://127.0.0.1:${PORT}/`);
-  console.log(`Dashboard: http://127.0.0.1:${PORT}/dashboard/`);
+server.listen(PORT, HOST, () => {
+  console.log(`serving ${ROOT}  →  http://${HOST}:${PORT}/`);
+  console.log(`Dashboard: http://${HOST}:${PORT}/dashboard/`);
 });

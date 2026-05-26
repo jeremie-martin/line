@@ -106,39 +106,6 @@ export function beatAdherence(result: RideResult, epsilon = 2): BeatAdherence {
   };
 }
 
-/**
- * Default fitness function.
- *
- * Two parts:
- *
- *   1. coolScore (from metrics.ts) — survival gate + geometric/behavioral
- *      diversity. Already calibrated against labeled reference set.
- *   2. Continuous beat-precision penalty — smooth per-beat score that
- *      rewards small offsets more than large offsets. Gives the optimizer
- *      a gradient between miss-by-3 and miss-by-19, which the previous
- *      binary hit-at-±ε fitness did not.
- *
- *   fitness  =  coolScore
- *               + (allPassed ? 100 : 0)
- *               + 250 × mean_{moves}(exp(-offset² / 2σ²))
- *
- * σ = 3 frames means a 3-frame offset scores ~0.61, a 6-frame ~0.14, a
- * 9-frame ~0.01. Beats with no event within a wide match window
- * (BEAT_MATCH_WINDOW = 30 frames) contribute 0.
- *
- * Compared to the old `hitFraction × 200` at ε=2: precision better than ±2
- * is now rewarded, AND degrees of miss are distinguished. The optimizer
- * should collapse the current bimodal offset distribution (40 beats ≤ 2f,
- * 20 beats 11-20f) toward an interior peak.
- *
- * Tunable: pass a custom `fitness` in SearchOpts / GreedySearchOpts.
- */
-import {
-  geometricMetrics,
-  behavioralMetrics,
-  coolScore as coolScoreFn,
-} from "./metrics.ts";
-
 const BEAT_PRECISION_SIGMA = 3; // frames
 const BEAT_MATCH_WINDOW = 30;   // frames — beats with no event within this contribute 0
 
@@ -155,10 +122,8 @@ export function beatPrecisionScore(r: RideResult, sigma = BEAT_PRECISION_SIGMA):
 }
 
 export function defaultFitness(r: RideResult): number {
-  const geom = geometricMetrics(r.track);
-  const behav = behavioralMetrics(r.detection);
-  const base = coolScoreFn({ ...geom, ...behav });
-  return base + (r.allPassed ? 100 : 0) + beatPrecisionScore(r) * 250;
+  if (!r.survived) return 0;
+  return 1000 + (r.allPassed ? 100 : 0) + beatPrecisionScore(r) * 250;
 }
 
 export type SearchOpts = {

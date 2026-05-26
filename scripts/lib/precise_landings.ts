@@ -13,8 +13,7 @@
  * family of variants (the basic curve, plus post-catch decoration
  * geometry) for visual variety across consecutive beats.
  *
- * The pattern from the probe (bench/v2 baseline run + manual probe on
- * metronome_60):
+ * The pattern from manual probes on metronome_60:
  *
  *   placeSlideChain (current):  survives ✓, 61% air fraction ✓,
  *                                23% onBeat1, 77% onBeat2 (median 2f late)

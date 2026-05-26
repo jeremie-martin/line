@@ -13,10 +13,8 @@
  * world-space, with each stage's angles chosen by the route author, not
  * the adapter. The rider has to deal with whatever geometry is there.
  *
- * Beat fitting (the "place" phase) is deliberately out of scope here —
- * for the first commit, routes produce visually-interesting geometry and
- * we measure the resulting cool score. Fitting beats to the route comes
- * next, once we've proven the geometry itself is meaningfully cooler.
+ * Beat fitting is deliberately out of scope here; routes produce explicit
+ * geometry that can be simulated and inspected.
  */
 import { type TrackJson, type TrackLine } from "./primitive.ts";
 import { simulateTrack } from "./metrics.ts";
@@ -295,9 +293,8 @@ export function fitBeatsToRoute(
   beatFrames: number[],
   opts: FitOpts = {},
 ): FitResult {
-  // halfLen=3 default is conservative: in the probe sweep
-  // (scripts/probe_smaller.ts), it kept all three templates from ejecting
-  // while still firing events on ~70% of beats for swooping.
+  // halfLen=3 default is conservative: it keeps the route bumps small enough
+  // to avoid ejecting the rider on the current templates.
   const halfLen = opts.bumpHalfLengthPx ?? 3;
   const offsetDown = opts.bumpOffsetDownPx ?? 2;
   const minSpacing = opts.minBumpSpacingPx ?? 12;

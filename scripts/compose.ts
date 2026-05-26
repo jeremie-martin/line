@@ -1,14 +1,13 @@
 /**
  * Compose CLI — phase 1 of compose-then-place: materialize a route
- * template into a TrackJson, simulate it, score it.
+ * template into a TrackJson and simulate it.
  *
  *   npm run compose -- --template=swooping
  *   npm run compose -- --template=swooping --beats=beats/drums_0_30s_60_125.json
  *   npm run compose -- --template=staccato --out=generated/my.track.json
  *
- * If --beats is given, music-specific metrics (coverage, on-beat) are
- * reported alongside cool score. (At this stage the route is NOT beat-
- * aligned — coverage and adherence are diagnostic only.)
+ * If --beats is given, music-specific coverage/on-beat diagnostics are
+ * reported too. Routes are not beat-aligned by themselves.
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { resolve, basename, dirname } from "node:path";
@@ -17,7 +16,6 @@ import {
   geometricMetrics,
   behavioralMetrics,
   simulateTrack,
-  coolScore,
   musicMetrics,
 } from "./lib/metrics.ts";
 
@@ -55,12 +53,10 @@ console.error(`composed: ${route.length} stages → ${track.lines.length} lines,
 const det = simulateTrack(track);
 const geom = geometricMetrics(track);
 const behav = behavioralMetrics(det);
-const cool = coolScore({ ...geom, ...behav });
 
 console.log("");
 console.log(`Compose result for template=${templateName}`);
 console.log(`  survived:        ${behav.survived ? "YES" : "NO"} (terminus: ${det.terminus.reason} @ frame ${det.terminus.frame})`);
-console.log(`  coolScore:       ${cool.toFixed(0)}`);
 console.log(`  angleStdDeg:     ${geom.angleStdDeg.toFixed(1)}°`);
 console.log(`  angleEntropy:    ${geom.angleEntropyBits.toFixed(2)} bits`);
 console.log(`  verticalExtent:  ${geom.verticalExtentPx.toFixed(0)} px (track) / ${behav.trajectoryVerticalPx.toFixed(0)} px (rider)`);

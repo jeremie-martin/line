@@ -1,5 +1,5 @@
 /**
- * Track quality metrics.
+ * Track diagnostics.
  *
  * Two families:
  *
@@ -11,18 +11,9 @@
  *      These describe what *happens* when the rider runs the track: event
  *      rate, trajectory vertical extent, survival.
  *
- * The two are deliberately separated so a metric's truth value can be
- * traced to a clearly-defined input (track JSON vs. rider behavior).
- *
- * `coolScore` is a weighted sum over a chosen subset. Survival is a hard
- * gate: a track where the rider dies early gets coolScore = 0, regardless
- * of how pretty the geometry looks — a track no one rides is not cool.
- *
- * Weights are tunable (eval/METRICS.md documents them). The metric
- * definitions themselves must be *validated* against a labeled reference
- * set (tests/metrics_validation.test.ts) — if a weight assignment can't
- * separate cool from bland on the reference set, the metric definitions
- * are wrong and need redesign, not the weights.
+ * The two are deliberately separated so each diagnostic can be traced to a
+ * clearly-defined input (track JSON vs. rider behavior). The active v0 goal
+ * metric lives in `scripts/v0/score.ts` and operates on DriftReport.
  */
 import { detect, extractRawTrajectory, type Detection } from "./detector.ts";
 import { type TrackJson, type TrackLine } from "./primitive.ts";
@@ -259,117 +250,23 @@ export function behavioralMetrics(det: Detection): BehavioralMetrics {
   };
 }
 
-// ────────── Cool score ──────────
-
-export type CoolScoreInputs = GeometricMetrics & BehavioralMetrics;
-
-export type CoolWeights = {
-  angleStdDeg: number;
-  angleEntropyBits: number;
-  verticalExtentPx: number;
-  spreadEfficiency: number;
-  eventRatePerSec: number;
-  eventTypeEntropyBits: number;
-  trajectoryVerticalPx: number;
-  vySignFlips: number;
-};
-
-/**
- * Default weights. Calibrated against the reference set in
- * tests/metrics_validation.test.ts to separate cool from bland with
- * margin > 20%.
- *
- * Design principle behind the weight choices:
- *
- *   - Heavy weight on metrics that directly measure variety/diversity:
- *     angleStdDeg, angleEntropyBits, vySignFlips, eventTypeEntropyBits.
- *     These are the actual discriminators. A bland track loses badly here.
- *
- *   - Light weight on size-based metrics: spreadEfficiency,
- *     trajectoryVerticalPx, verticalExtentPx. These scale with how big
- *     the track is, not how cool — a large bland track would falsely
- *     score high if these dominated.
- *
- *   - Moderate weight on eventRatePerSec — events-per-second is partly
- *     bland-vs-cool but partly just "how busy is the geometry."
- *
- * Changing any weight invalidates the validation calibration. Re-run
- * `npm run test -- metrics_validation` to confirm separation still holds.
- */
-export const DEFAULT_COOL_WEIGHTS: CoolWeights = {
-  angleStdDeg: 30,           // primary discriminator: human ~25° → 750 pts; bland ~5° → 150 pts
-  angleEntropyBits: 200,     // primary discriminator: human ~1.9 bits → 380 pts; bland ~0.1 → 20 pts
-  verticalExtentPx: 0.2,     // size-based — light weight
-  spreadEfficiency: 0.1,     // size-based — light weight
-  eventRatePerSec: 30,       // moderate
-  eventTypeEntropyBits: 100, // primary discriminator: human ~1.4 bits → 140 pts; bland near 0
-  trajectoryVerticalPx: 0.1, // size-based — light weight
-  vySignFlips: 50,           // primary discriminator: human 20 → 1000 pts; bland 0
-};
-
-/** Minimum contact fraction to qualify as a "ride" (not a free-fall). */
-const CONTACT_FLOOR = 0.15;
-/** Max fraction of contact frames the rider may spend at sub-threshold vx
- *  before we declare "stuck in a pit / not actually moving forward". */
-const SLOW_SLIDE_CEILING = 0.5;
-
-/**
- * Cool score. Three hard gates:
- *
- *   1. survived — terminus must be endOfSpec (rider didn't eject / die).
- *   2. contactFractionLive ≥ 0.15 — rider must actually be ON the track
- *      for at least 15% of its live frames. Otherwise the rider fell off
- *      the end of the geometry and was in free-fall, which trivially
- *      maximizes trajectoryVerticalPx — not cool, just falling.
- *   3. slowSlideFraction ≤ 0.5 — rider must spend at most half of its
- *      contact frames at |vx| < 1.5 px/f. A rider stuck oscillating in a
- *      local minimum has slowSlideFraction near 1.0; the oscillations
- *      can produce many bounce events and vy flips that would otherwise
- *      inflate cool. The aerial-template case (drums_60_125.aerial,
- *      meanVxSliding=0.35) is the canonical example.
- *
- * If any gate fails, returns 0.
- *
- * The score itself has no upper bound and can be negative if weights are
- * negative. It's only meaningful in *relative* comparisons (cool > bland
- * on a fixed weight set).
- */
-export function coolScore(inputs: CoolScoreInputs, weights: CoolWeights = DEFAULT_COOL_WEIGHTS): number {
-  if (!inputs.survived) return 0;
-  if (inputs.contactFractionLive < CONTACT_FLOOR) return 0;
-  if (inputs.slowSlideFraction > SLOW_SLIDE_CEILING) return 0;
-  return (
-    inputs.angleStdDeg * weights.angleStdDeg +
-    inputs.angleEntropyBits * weights.angleEntropyBits +
-    inputs.verticalExtentPx * weights.verticalExtentPx +
-    inputs.spreadEfficiency * weights.spreadEfficiency +
-    inputs.eventRatePerSec * weights.eventRatePerSec +
-    inputs.eventTypeEntropyBits * weights.eventTypeEntropyBits +
-    inputs.trajectoryVerticalPx * weights.trajectoryVerticalPx +
-    inputs.vySignFlips * weights.vySignFlips
-  );
-}
-
-/** Convenience: full pipeline from a TrackJson. */
+/** Convenience: full diagnostic pipeline from a TrackJson. */
 export type FullMetrics = {
   geom: GeometricMetrics;
   behav: BehavioralMetrics;
-  cool: number;
 };
 
-export function evaluateTrack(track: TrackJson, weights: CoolWeights = DEFAULT_COOL_WEIGHTS): FullMetrics {
+export function evaluateTrack(track: TrackJson): FullMetrics {
   const geom = geometricMetrics(track);
   const det = simulateTrack(track);
   const behav = behavioralMetrics(det);
-  const cool = coolScore({ ...geom, ...behav }, weights);
-  return { geom, behav, cool };
+  return { geom, behav };
 }
 
 // ────────── Music-spec metrics (only meaningful for beat-driven tracks) ──────────
 //
-// These are NOT part of coolScore — a track can be cool without any music.
-// They're reported alongside coolScore in bench_music.ts so we can see
-// whether a generation strategy achieves both cool *and* beat-aligned.
+// These are diagnostic only. The active v0 goal uses DriftReport contact
+// status from `scripts/v0/score.ts`.
 
 export type MusicMetrics = {
   beatCount: number;

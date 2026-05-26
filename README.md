@@ -38,6 +38,9 @@ npx tsx scripts/stress.ts
 
 # verify lr-core (Node-native physics) still matches the bundle exactly
 npm run parity
+
+# current v0 compiler goal metric (bounded, DriftReport-based)
+npm run goal
 ```
 
 To visually inspect a run (events, plots, video):

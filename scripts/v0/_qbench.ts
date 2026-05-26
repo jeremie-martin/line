@@ -4,7 +4,8 @@
  * worker_threads. ~30s wall time on a 12-core box.
  *
  * The point: get a SIGNAL (regression / improvement) in seconds, not minutes,
- * before paying for the full pbench. Same scoring formula as benchmark.ts.
+ * before paying for the full pbench. Same DriftReport contract score as
+ * benchmark.ts.
  *
  * Specs are sliced from the same drums data the official benchmark uses, so
  * the failure modes that matter (specific hard gaps) are represented as long
@@ -19,6 +20,7 @@ import { resolve } from "node:path";
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 import { fileURLToPath } from "node:url";
 import type { Spec, Contact, Section } from "./types.ts";
+import { scoreDriftReport } from "./score.ts";
 
 const SEED = 0;
 const SLICE_CONTACTS = 10;
@@ -63,8 +65,9 @@ const SPECS: Array<[string, Spec]> = [
 ];
 
 type Result = {
-  name: string; hits: number; contacts: number; off: number;
-  died: number; axErr: number; score: number; elapsed: number;
+  name: string; hits: number; contacts: number; drift: number; missing: number;
+  off: number; died: number; axErr: number; axMean: number; axisScore: number;
+  syncScore: number; passed: boolean; hardFailures: string[]; score: number; elapsed: number;
 };
 
 if (!isMainThread) {
@@ -73,19 +76,22 @@ if (!isMainThread) {
   const t = Date.now();
   const { report } = compile(spec, SEED);
   const elapsed = Date.now() - t;
-  const hits = report.contacts.filter((c: any) => c.status === "hit").length;
-  const off = report.off_beat_landings.length;
-  const died = report.terminus.reason !== "endOfSpec" ? 1 : 0;
-  let axErr = 0;
-  for (const sec of report.sections) {
-    for (const ax of Object.values(sec.axes) as any[]) axErr += ax.error;
-  }
-  const score = hits - 5 * axErr - 100 * off - 100 * died;
+  const s = scoreDriftReport(report);
   const out: Result = {
-    name, hits, contacts: report.contacts.length,
-    off, died,
-    axErr: Number(axErr.toFixed(4)),
-    score: Number(score.toFixed(2)),
+    name,
+    hits: s.hits,
+    contacts: report.contacts.length,
+    drift: s.drift,
+    missing: s.missing,
+    off: s.off_beat_landings,
+    died: s.died,
+    axErr: Number(s.axis_error_total.toFixed(4)),
+    axMean: Number(s.axis_error_mean.toFixed(4)),
+    axisScore: Number(s.axis_score.toFixed(4)),
+    syncScore: Number(s.sync_score.toFixed(4)),
+    passed: s.passed,
+    hardFailures: s.hard_failures,
+    score: Number(s.score.toFixed(2)),
     elapsed,
   };
   parentPort!.postMessage(out);
@@ -105,18 +111,19 @@ if (!isMainThread) {
   results.sort((a, b) =>
     SPECS.findIndex(([n]) => n === a.name) - SPECS.findIndex(([n]) => n === b.name),
   );
-  const total = results.reduce((s, r) => s + r.score, 0);
+  const goal = results.reduce((s, r) => s + r.score, 0) / Math.max(results.length, 1);
   const elapsed = Date.now() - t0;
   const jsonOnly = process.argv.includes("--json");
   if (jsonOnly) {
-    process.stdout.write(JSON.stringify({ total, results, elapsed }, null, 2) + "\n");
+    process.stdout.write(JSON.stringify({ goal_score: Number(goal.toFixed(2)), results, elapsed }, null, 2) + "\n");
   } else {
     for (const r of results) {
       console.log(
-        `${r.name.padEnd(5)} hits=${r.hits}/${r.contacts} off=${r.off} died=${r.died} ` +
-        `axErr=${r.axErr.toFixed(3)} → ${r.score.toFixed(2).padStart(6)} (${r.elapsed}ms)`,
+        `${r.name.padEnd(5)} hits=${r.hits}/${r.contacts} drift=${r.drift} miss=${r.missing} ` +
+        `off=${r.off} died=${r.died} axMean=${r.axMean.toFixed(3)} ` +
+        `→ ${r.score.toFixed(2).padStart(6)} (${r.elapsed}ms)`,
       );
     }
-    console.log(`TOTAL ${total.toFixed(2)}  (${elapsed}ms wall)`);
+    console.log(`GOAL ${goal.toFixed(2)}  (${elapsed}ms wall)`);
   }
 }

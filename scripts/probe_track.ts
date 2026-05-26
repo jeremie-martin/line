@@ -1,6 +1,6 @@
 /**
- * Quick metric probe: takes a list of track files, prints one-line summary
- * (survived/angleStd/entropy/vert/evtRate/vyFlips/cool) for each.
+ * Quick metric probe: takes a list of track files and prints one-line
+ * geometry/behavior diagnostics for each.
  *
  *   npx tsx scripts/probe_track.ts path/to/a.track.json path/to/b.track.json
  */
@@ -15,7 +15,6 @@ for (const path of process.argv.slice(2)) {
     `${path}  lines=${track.lines.length} survived=${m.behav.survived ? "Y" : "N"} ` +
       `angleStd=${m.geom.angleStdDeg.toFixed(1)}° entropy=${m.geom.angleEntropyBits.toFixed(2)} ` +
       `vert=${m.geom.verticalExtentPx.toFixed(0)}px evtRate=${m.behav.eventRatePerSec.toFixed(2)}/s ` +
-      `vyFlips=${m.behav.vySignFlips} traj=${m.behav.trajectoryVerticalPx.toFixed(0)}px ` +
-      `cool=${m.cool.toFixed(0)}`,
+      `vyFlips=${m.behav.vySignFlips} traj=${m.behav.trajectoryVerticalPx.toFixed(0)}px`,
   );
 }

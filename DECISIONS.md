@@ -119,7 +119,7 @@ For each major design decision: what we chose, what we rejected, and why. This i
 
 **Chose**: `Arc` — a parametric polyline (anchor, length, start/end angles, segment count, curve bias). Compiles to N Lines.
 
-**Rejected**: Single Lines as the compiler's atomic move (too low-level — every curve is many lines, search space explodes); named "Move" types like the old code (too high-level — conflates intent with geometry).
+**Rejected**: Single Lines as the compiler's atomic move (too low-level — every curve is many lines, search space explodes); named "Move" types (too high-level — conflates intent with geometry).
 
 **Why**: Arc is the granularity that matches how the compiler should reason — a single contact catch is one Arc. Multi-line shapes are atomic at the placement layer. Named presets (catch, kicker, slope) become factory functions that produce Arcs, not separate primitives.
 
@@ -128,7 +128,7 @@ For each major design decision: what we chose, what we rejected, and why. This i
 **Chose**: Hard Contacts slice the timeline into gaps. Each gap is solved as a local constraint-satisfaction problem with known start state, known end-frame Contact, and budget targets derived from covering sections. The compiler generates candidates per gap, filters by hard constraints, and picks the lowest-cost survivor.
 
 **Rejected**:
-- Hill-climbing over Arc parameters against section-wide axis distance. Converges to a single locally-optimal Arc shape; produces visually uniform tracks. Past attempts to fix this via fitness terms (old coolScore) did not work.
+- Hill-climbing over Arc parameters against section-wide axis distance. Converges to a single locally-optimal Arc shape; produces visually uniform tracks. Variation should come from the compiler structure, not from a bundled anti-uniformity term.
 - Sampling Arc parameters from distributions centered on axis targets. Works only for `grain` (where the Arc parameter IS the axis); fails for `air`, `speed`, `contact_style` which are section-wide statistics that no single Arc directly determines.
 - Synthetic intra-gap anchors to break long gaps into smaller sub-problems. These would be off-beat landings (forbidden — see D7).
 
@@ -150,7 +150,7 @@ For each major design decision: what we chose, what we rejected, and why. This i
 
 **Rejected**: Accepting the first candidate that satisfies the hard gate.
 
-**Why**: First-survivor is greedy and myopic — a candidate that barely survives but has terrible axis fidelity gets committed even when a better one was a few samples away. Ranking by axis cost across the candidate pool is cheap (one sort) and meaningfully improves soft-target achievement. This is *not* the old coolScore — there's no global fitness function that variety has to fight; the cost is purely "distance from this gap's targets" and only ranks candidates that already passed all hard gates.
+**Why**: First-survivor is greedy and myopic — a candidate that barely survives but has terrible axis fidelity gets committed even when a better one was a few samples away. Ranking by axis cost across the candidate pool is cheap (one sort) and meaningfully improves soft-target achievement. There is no global visual-interest fitness function here; the cost is purely "distance from this gap's targets" and only ranks candidates that already passed all hard gates.
 
 ### D17. Cross-gap target sampling, not per-gap target = section target
 
@@ -191,7 +191,7 @@ For each major design decision: what we chose, what we rejected, and why. This i
 
 **Chose**: Compiler carries a seeded RNG throughout. Same Spec + different seed → genuinely different but spec-conforming Track.
 
-**Rejected**: Anti-uniformity fitness terms (e.g., the old coolScore).
+**Rejected**: Anti-uniformity fitness terms.
 
 **Why**: Fitness terms can be gamed and add fragility. The cleaner answer is structural: design the compiler so it doesn't converge to uniformity in the first place (per-gap budgets + wide candidate sampling + RNG-driven choice among ranked survivors). Variety becomes a property of the architecture, not a corrective tax bolted on after.
 

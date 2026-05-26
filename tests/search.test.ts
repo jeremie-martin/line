@@ -82,12 +82,6 @@ describe("searchRide", () => {
     expect(r.result.survived).toBe(true);
   });
 
-  // (Removed 2026-05-24): `defaultFitness penalizes stalled rider` tested
-  // the old fitness's explicit stall penalty by mutating `meanVxSliding`.
-  // The new fitness is coolScore-based and handles stalls via the
-  // survival gate — a stalled rider's terminus is `rideStalled` (not
-  // `endOfSpec`), which gates coolScore to 0. The mutation in the old
-  // test didn't change terminus, so it can't trigger the new fitness's
-  // stall handling. A real-stall test would need to construct a track
-  // where the rider actually stops moving; deferred until needed.
+  // Stalls are handled through survival: a stalled rider terminates with
+  // `rideStalled`, so defaultFitness returns 0.
 });

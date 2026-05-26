@@ -8,7 +8,7 @@
  * The double-default in worker context is a tsx loader interop quirk for CJS
  * modules. This shim absorbs both shapes so consumers can import
  * `LineRiderEngine` and `createLineFromJson` directly without caring which
- * context they're in. Used by bench/v2's worker-threads parallelism.
+ * context they're in.
  *
  * This file is interop-only — it does NOT change compiler / search behavior.
  */

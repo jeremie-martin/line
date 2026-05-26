@@ -19,7 +19,7 @@ Procedurally generate Line Rider tracks synchronized to music.
 ## Failure modes of previous attempts
 
 - Sync precision collapsed on real-world specs: ~19% of beats within ±1 frame on a 30-second drum track despite >80% on tight synthetic specs.
-- Visually monotone output: same geometric primitive repeated, same tangent angles, same arc lengths, same direction. A previous "coolScore" fitness term meant to penalize uniformity did not work.
+- Visually monotone output: same geometric primitive repeated, same tangent angles, same arc lengths, same direction. Variation should come from the compiler structure rather than a bundled anti-uniformity term.
 - Conceptual clutter: Moves, primitives, strategies, compilers — overlapping vocabularies fighting each other, no clear separation of intent from geometry.
 
 ## Out of scope for now

@@ -211,4 +211,5 @@ Produces a renderable Track and a populated DriftReport. Small enough to debug e
 
 ## Repo shape
 
-v0 lives in `scripts/v0/`. Existing code (Moves, strategies, primitives, probes, bench_music) stays untouched until v0 produces tracks we like, then is deprecated in a single sweep at that point.
+v0 lives in `scripts/v0/`. The active goal metric is `npm run goal`, which
+scores the v0 `DriftReport` contract.

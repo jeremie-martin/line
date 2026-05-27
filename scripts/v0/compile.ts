@@ -74,7 +74,11 @@ const SPEED_POLISH_Y_SHIFTS = [-1] as const;
 const SPEED_POLISH_X_SHIFT_PASSES = [[4], [1], [0.5]] as const;
 const SPEED_POLISH_BOUNDARY_PASSES = 2;
 const SPEED_POLISH_ROTATIONS = [-4] as const;
-const DENSE_CONTACT_CANDIDATE_BUDGET = 24;
+const DENSE_CONTACT_CANDIDATE_BUDGET = 16;
+const DENSE_NEAR_MAX_SPEED_BUDGET = 17;
+const DENSE_HIGH_GRIP_BUDGET = 20;
+const DENSE_SKIP_BUDGET = 15;
+const DENSE_FLAT_EXTREME_AIR_BUDGET = 17;
 
 export type CompileResult = {
   track: TrackJson;
@@ -2583,11 +2587,62 @@ function candidateBudgetForGap(
   durationFrames: number,
 ): number {
   if (!isDenseContactSequence(contactFrames, durationFrames)) return CALIB.K;
+  if (isNearMaxCoupledTarget(gap.targets)) {
+    return Math.min(CALIB.K, DENSE_NEAR_MAX_SPEED_BUDGET);
+  }
+  if (isHighGripTarget(gap.targets)) {
+    return Math.min(CALIB.K, DENSE_HIGH_GRIP_BUDGET);
+  }
+  if (isSkipTarget(gap.targets)) {
+    return Math.min(CALIB.K, DENSE_SKIP_BUDGET);
+  }
+  if (isFlatExtremeAirTarget(gap.targets)) {
+    return Math.min(CALIB.K, DENSE_FLAT_EXTREME_AIR_BUDGET);
+  }
   return Math.min(CALIB.K, DENSE_CONTACT_CANDIDATE_BUDGET);
+}
+
+function isNearMaxCoupledTarget(targets: SectionAxes): boolean {
+  return (targets.speed ?? 0) >= 0.9
+    && (targets.grain ?? 0) >= 0.78
+    && (targets.contact_style ?? 0) >= 0.82;
+}
+
+function isHighGripTarget(targets: SectionAxes): boolean {
+  return (targets.speed ?? 0) >= 0.72
+    && (targets.speed ?? 0) <= 0.88
+    && (targets.grain ?? 0) >= 0.68
+    && (targets.contact_style ?? 0) >= 0.68;
+}
+
+function isSkipTarget(targets: SectionAxes): boolean {
+  return (targets.speed ?? 0) >= 0.72
+    && (targets.speed ?? 0) <= 0.88
+    && (targets.grain ?? 1) <= 0.35
+    && (targets.contact_style ?? 1) <= 0.32;
+}
+
+function isFlatExtremeAirTarget(targets: SectionAxes): boolean {
+  const air = targets.air;
+  return air !== undefined
+    && (air <= 0.25 || air >= 0.75)
+    && (targets.speed ?? 0) >= 0.45
+    && (targets.speed ?? 1) <= 0.65
+    && (targets.grain ?? 0) >= 0.35
+    && (targets.grain ?? 1) <= 0.55
+    && (targets.contact_style ?? 0) >= 0.35
+    && (targets.contact_style ?? 1) <= 0.55;
 }
 
 function isDenseContactSequence(contactFrames: number[], durationFrames: number): boolean {
   return contactFrames.length * FPS > durationFrames;
+}
+
+function isVeryFastHighAirGrainTarget(targets: SectionAxes): boolean {
+  return (targets.air ?? 0) >= 0.75
+    && (targets.speed ?? 0) >= 0.85
+    && (targets.grain ?? 0) >= 0.7
+    && (targets.contact_style ?? 0) >= 0.7;
 }
 
 type TargetState = {
@@ -2664,7 +2719,7 @@ function sampleArcParams(
   // likely to hit the grain target. Sprinkle some uniform sampling for variety.
   const segRoll = rng();
   let segments: number;
-  if (targets.grain !== undefined && segRoll < 0.7) {
+  if (targets.grain !== undefined && (segRoll < 0.7 || isVeryFastHighAirGrainTarget(targets))) {
     // grain = median(line_length) / LINE_LENGTH_CAP. Solve for segment count.
     // Add a small ±1 jitter so we don't collapse to one shape.
     const targetSegLen = Math.max(3, targets.grain * CALIB.LINE_LENGTH_CAP);
@@ -2828,11 +2883,28 @@ function rideOutSources(lines: TrackLine[]): TrackLine[] {
 }
 
 function axisLookaheadEndFrame(gap: Gap, allContactFrames: number[]): number {
+  if (
+    gap.endFrame - gap.startFrame < 60
+    && shouldUseDenseAirLookahead(gap.targets)
+  ) {
+    return allContactFrames.find((cf) => cf > gap.endFrame) ?? gap.endFrame;
+  }
   // For long airborne gaps, the catch at gap.endFrame determines most of the
   // air/contact balance after the beat, not before it. Score those candidates
   // through the next beat so ranking can prefer a catch that keeps riding.
   if (gap.endFrame - gap.startFrame < 60) return gap.endFrame;
   return allContactFrames.find((cf) => cf > gap.endFrame) ?? gap.endFrame;
+}
+
+function shouldUseDenseAirLookahead(targets: SectionAxes): boolean {
+  const air = targets.air;
+  if (air === undefined || (air > 0.3 && air < 0.7)) return false;
+  const speed = targets.speed;
+  const grain = targets.grain;
+  const contact = targets.contact_style;
+  return speed !== undefined && speed >= 0.4 && speed <= 0.75
+    && grain !== undefined && grain >= 0.18 && grain <= 0.7
+    && contact !== undefined && contact >= 0.1 && contact <= 0.8;
 }
 
 // ─────────── Bisection: adjust anchor Y so the landing fires AT gap.endFrame ───────────
@@ -3012,7 +3084,13 @@ function axisCost(target: SectionAxes, achieved: SectionAxes): number {
     const a = achieved[key];
     if (t !== undefined && a !== undefined) {
       const d = t - a;
-      const weight = key === "air" ? 4 : 1;
+      const nearMaxCoupled = isNearMaxCoupledTarget(target);
+      const weight =
+        key === "air" && t <= 0.35 && (target.speed ?? 0) >= 0.4 ? 6
+        : key === "air" ? 4
+        : key === "speed" && nearMaxCoupled ? 2
+        : key === "grain" && nearMaxCoupled ? 3
+        : 1;
       cost += weight * d * d;
     }
   }

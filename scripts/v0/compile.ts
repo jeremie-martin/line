@@ -75,6 +75,7 @@ const SPEED_POLISH_X_SHIFT_PASSES = [[4], [1], [0.5]] as const;
 const SPEED_POLISH_BOUNDARY_PASSES = 2;
 const SPEED_POLISH_ROTATIONS = [-4] as const;
 const MIN_CANDIDATE_ATTEMPTS = 16;
+const SHORT_GAP_ADAPTIVE_SURVIVORS = 2;
 const PREROLL_PREFIX_STARTS = 6;
 const PREROLL_PREFIX_MAX_GAPS = 4;
 const PREROLL_PREFIX_EXTRA_FRAMES = FPS;
@@ -2889,15 +2890,28 @@ function generateRankedCandidates(
   const targetState = readTargetState(baseEngine, gap.endFrame, refX, refY);
 
   const survivors: GapFit[] = [];
-  const candidateBudget = candidateBudgetForGap(gap, allContactFrames, durationFrames);
-  for (let attempt = 0; attempt < candidateBudget; attempt++) {
+  const minAttempts = candidateBudgetForGap(gap, allContactFrames, durationFrames);
+  const adaptiveBudget = shouldUseShortGapAdaptiveBudget(gap);
+  const maxAttempts = adaptiveBudget ? CALIB.K : minAttempts;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const cand = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap);
     const fit = tryCandidate(baseEngine, gap, cand, lineIdStart, allContactFrames, true);
     if (fit !== null) survivors.push(fit);
+    if (
+      adaptiveBudget
+      && attempt + 1 >= minAttempts
+      && survivors.length >= SHORT_GAP_ADAPTIVE_SURVIVORS
+    ) {
+      break;
+    }
   }
 
   survivors.sort((a, b) => a.cost - b.cost);
   return survivors;
+}
+
+function shouldUseShortGapAdaptiveBudget(gap: Gap): boolean {
+  return gap.endFrame - gap.startFrame <= Math.floor(FPS * 0.3);
 }
 
 function candidateBudgetForGap(

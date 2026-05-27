@@ -59,8 +59,39 @@ const lrCore: any = await import("lr-core/line-rider-engine/index.js");
 const LineRiderEngine = lrCore.default;
 const { createLineFromJson } = lrCore;
 
+type Vec2 = { x: number; y: number };
+const DEFAULT_START_POSITION: Vec2 = { x: 0, y: 0 };
+const DEFAULT_START_VELOCITY: Vec2 = { x: 0.4, y: 0 };
+
+function finiteNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function trackStartState(track: any): { position: Vec2; velocity: Vec2 } {
+  const rider = Array.isArray(track.riders) ? track.riders[0] : null;
+  const rawPosition = rider?.startPosition ?? track.startPosition ?? DEFAULT_START_POSITION;
+  const rawVelocity = rider?.startVelocity ?? DEFAULT_START_VELOCITY;
+  return {
+    position: {
+      x: finiteNumber(rawPosition?.x, DEFAULT_START_POSITION.x),
+      y: finiteNumber(rawPosition?.y, DEFAULT_START_POSITION.y),
+    },
+    velocity: {
+      x: finiteNumber(rawVelocity?.x, DEFAULT_START_VELOCITY.x),
+      y: finiteNumber(rawVelocity?.y, DEFAULT_START_VELOCITY.y),
+    },
+  };
+}
+
 // deno-lint-ignore no-explicit-any
-let engine: any = new LineRiderEngine();
+const start = trackStartState(trackJson);
+console.log(
+  `start: pos=(${start.position.x.toFixed(3)}, ${start.position.y.toFixed(3)}) ` +
+    `vel=(${start.velocity.x.toFixed(3)}, ${start.velocity.y.toFixed(3)})`,
+);
+
+// deno-lint-ignore no-explicit-any
+let engine: any = new LineRiderEngine().setStart(start.position, start.velocity);
 for (const line of trackJson.lines ?? []) {
   engine = engine.addLine(createLineFromJson(line));
 }

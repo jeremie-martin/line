@@ -1,37 +1,14 @@
 # Goal — satisfy the v0 compiler contract quickly
 
-Maximize `goal_score` from:
+Maximize `goal_score` over the three reference specs in `specs/golden/`:
 
-```
-npm run goal -- --json
-```
+- `drums_signature` — 3-act, `contact_style` swap at constant high speed.
+- `drums_pendulum` — 6-act, only `air` flips ±0.70 every 5s.
+- `drums_crescendo` — 3-act, all four axes grow monotonically.
 
-This is the inner-loop metric. It evaluates the v0 compiler against a fast
-goal suite with a wall-clock budget, and it scores only the v0 contract: beat
-sync, no off-beat landings, survival, and section-axis fidelity.
-
-## Eval
-
-Default command:
-
-```
-npm run goal
-```
-
-Default suite:
-
-- `sanity`
-- `first`
-- `quick_multi_axis`
-
-Useful variants:
-
-```
-npm run goal -- --specs=drums_baseline,drums_chunky
-npm run goal -- --timeout-scale=5
-npm run goal -- --timeout-sec=90
-npm run goal -- --suite=full
-```
+Each spec is 30 s against `beats/drums_0_30s_60_125.json`. Together they
+exercise axis-isolation contrast, single-axis oscillation, and graduated
+multi-axis coupling — distinct failure modes the compiler must handle.
 
 ## Score
 
@@ -42,7 +19,7 @@ hard gates:
   all contacts hit within ±1 frame
   survived through endOfSpec
   off_beat_landings == 0
-  elapsed_time <= runtime_budget
+  elapsed_time <= 45s
 
 sync_score = contacts_hit_within_1_frame / total_contacts
 axis_score = clamp(1 - mean_axis_error / 0.25, 0, 1)
@@ -54,36 +31,33 @@ goal_score = mean(spec_score across specs)
 ```
 
 Runtime is a gate, not an optimization term. A correct run gets no extra
-credit for being faster than the budget; an over-budget run is a timeout.
-By default the budget is `min(5 × video duration, 60s)` per spec. Use
-`--timeout-sec=N` when you want an explicit fixed cap.
+credit for finishing faster than 45 s; an over-budget run is a timeout.
 
-## Output
+## Preroll
 
-Human output is meant for troubleshooting. Each spec reports:
+A spec may declare `preroll: N` seconds (capped at 10s; see `PREROLL.MAX_S`
+in `types.ts`). The compiler is then handed a synthetic `[-N, 0]` prefix in
+front of the real spec timeline — free territory where it can place any
+geometry to deliver the rider into spec-frame 0 in a state that makes the
+rest of the compile easier (rough position, velocity, contact history).
 
-- score and pass/fail status
-- hit/drift/missing contact counts
-- off-beat landing count and first off-beat frames
-- axis target, achieved value, and error per section
-- worst drift/missing contacts
-- elapsed time versus budget
+What goes in the preroll: anything the engine accepts. Free-form arcs,
+chains, energy-bleeding bouncers, deliberately-shaped landings. The
+compiler treats it as its own synthetic block.
 
-JSON output includes the same fields for scripts.
+What it does *not* affect: scoring. The `DriftReport` already strips
+preroll contacts and any landings in `[0, prerollFrames)` before returning;
+axis measurements, contact sync, and off-beat checks therefore apply only
+to the real spec sections. Compute and geometry spent inside the preroll
+is pure upside for the optimizer — no metric penalty for using it.
 
-## Full Bench
-
-The serial and parallel v0 benches use the same scorer:
-
-```
-npx tsx scripts/v0/benchmark.ts --json
-npx tsx scripts/v0/_pbench.ts
-```
-
-`npm run goal -- --suite=full` runs the 30-second drums specs under the same
-runtime gate. `scripts/v0/_qbench.ts` is a sliced smoke bench for quick
-regression checks. It is useful during development, but `npm run goal` is the
-canonical target.
+The current implementation (`extendSpecWithPreroll` + `unshiftReport` in
+`compile.ts`) seeds the preroll with a section mirroring §0's axes plus
+synthetic contacts every `CONTACT_SPACING_S`. That's a reasonable starting
+point but not load-bearing; the preroll is yours to redesign — e.g.,
+gradient axes from a "neutral" initial state to §0, contact-free pure
+ballistic setup, conditional contact spacing. Treat it as a search
+affordance, not a fixed prelude.
 
 ## What You Can Change
 
@@ -91,12 +65,32 @@ High-leverage areas:
 
 - `scripts/v0/compile.ts`
 - `scripts/v0/arc.ts`
-- calibration constants in `scripts/v0/types.ts`
+- **Optimizer knobs** in `scripts/v0/types.ts`'s `CALIB`: `K` (per-gap
+  candidate budget), `BACKTRACK_DEPTH`, `OFF_BEAT_RETRIES` (final-track
+  validation retries). Adding new optimizer-side constants is fine.
+- **Most `CALIB.ARC` bounds** — angles (`START_ANGLE_MIN/MAX_DEG`,
+  `END_ANGLE_MIN/MAX_DEG`) and anchor offsets (`ANCHOR_X_OFFSET_MIN/MAX`,
+  `ANCHOR_Y_OFFSET_MIN/MAX`) shape *where* the search looks and are fair
+  game. Replacing the static bounds with context-conditional derivations
+  (per-section, per-gap, per-rider-state) is encouraged — the open finding
+  is that uniform widening breaks high-speed sections, so conditioning on
+  the gap's targets is the path forward.
 
-Do not change `scripts/goal_metric.ts`, `scripts/v0/score.ts`,
-`scripts/v0/bench_specs.ts`, `scripts/v0/benchmark.ts`, or
-`scripts/v0/specs/` just to improve the score. Metric changes are allowed only
-when the goal itself is deliberately revised.
+Do **not** change semantic constants — anything that defines how the world
+looks or behaves physically. The goal is to improve the optimizer, not to
+change what good tracks look like. If a target is unreachable inside the
+current physical envelope, that is information about the optimizer; don't
+widen the envelope to score points. Off-limits (non-exhaustive):
+
+- `FPS`, `SPEED_CAP`, `LINE_LENGTH_CAP`, `SIGMA` in `types.ts`
+- `CALIB.ARC.LENGTH_MIN/MAX` and `CALIB.ARC.SEGMENTS_MIN/MAX` — these
+  determine how each Arc *looks* on screen, not where it can sit
+- any `START_DEFAULT`, `PREROLL`-style initial-condition or framing
+  constants introduced later
+
+Do not change the scorer (`scripts/v0/score.ts`, `scripts/v0/golden.ts`) or
+the golden spec files (`specs/golden/*.ts`) to improve the score. Metric or
+suite changes are allowed only when the goal itself is deliberately revised.
 
 ## Hard Contract
 

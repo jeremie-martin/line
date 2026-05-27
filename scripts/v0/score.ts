@@ -7,7 +7,13 @@
 
 import type { ContactReport, DriftReport } from "./types.ts";
 
-export const AXIS_ZERO_CREDIT_ERROR = 0.25;
+/**
+ * Mean normalized axis error at which a valid run keeps e^-1 ≈ 37% of its
+ * style-quality credit. This is a quality scale, not a hard cutoff.
+ */
+export const AXIS_QUALITY_TOLERANCE = 0.25;
+/** Back-compat alias for older scripts; scoring no longer has zero-credit cutoff. */
+export const AXIS_ZERO_CREDIT_ERROR = AXIS_QUALITY_TOLERANCE;
 
 export type AxisDetail = {
   section_index: number;
@@ -27,6 +33,7 @@ export type WorstContact = {
 export type V0ContractScore = {
   score: number;
   passed: boolean;
+  valid_contract: boolean;
   hard_failures: string[];
   contacts: number;
   hits: number;
@@ -39,12 +46,21 @@ export type V0ContractScore = {
   axis_error_total: number;
   axis_error_mean: number;
   axis_error_max: number;
+  axis_loss: number;
+  axis_quality: number;
   axis_score: number;
 };
 
-function clamp01(n: number): number {
-  return Math.max(0, Math.min(1, n));
-}
+export type RuntimeBudget = {
+  elapsed_ms: number;
+  soft_ms: number;
+  hard_ms: number;
+};
+
+export type V0TimedContractScore = V0ContractScore & RuntimeBudget & {
+  score_without_time: number;
+  time_multiplier: number;
+};
 
 export function axisDetails(report: DriftReport): AxisDetail[] {
   const out: AxisDetail[] = [];
@@ -80,6 +96,31 @@ function contactSeverity(c: ContactReport): number {
   return c.frame_error === null ? 0 : Math.abs(c.frame_error);
 }
 
+export function runtimeMultiplier(elapsedMs: number, softMs: number, hardMs: number): number {
+  if (!Number.isFinite(elapsedMs) || elapsedMs < 0) return 0;
+  if (!Number.isFinite(softMs) || !Number.isFinite(hardMs) || hardMs <= softMs) {
+    throw new Error(`invalid runtime budget: soft=${softMs} hard=${hardMs}`);
+  }
+  if (elapsedMs <= softMs) return 1;
+  if (elapsedMs >= hardMs) return 0;
+
+  const x = (elapsedMs - softMs) / (hardMs - softMs);
+  const smoothstep = x * x * (3 - 2 * x);
+  return 1 - smoothstep;
+}
+
+export function shiftedGeometricMean(values: number[], shift = 1): number {
+  if (values.length === 0) return 0;
+  if (!Number.isFinite(shift) || shift <= 0) {
+    throw new Error(`shift must be positive, got ${shift}`);
+  }
+  const logMean = values.reduce((sum, value) => {
+    const safe = Number.isFinite(value) ? Math.max(0, value) : 0;
+    return sum + Math.log(safe + shift);
+  }, 0) / values.length;
+  return Math.exp(logMean) - shift;
+}
+
 export function scoreDriftReport(report: DriftReport): V0ContractScore {
   const contacts = report.contacts.length;
   const hits = report.contacts.filter((c) => c.status === "hit").length;
@@ -89,12 +130,12 @@ export function scoreDriftReport(report: DriftReport): V0ContractScore {
 
   const axes = axisDetails(report);
   const axis_count = axes.length;
-  const axis_error_total = axes.reduce((sum, a) => sum + a.error, 0);
+  const axis_error_total = axes.reduce((sum, a) => sum + Math.abs(a.error), 0);
   const axis_error_mean = axis_count > 0 ? axis_error_total / axis_count : 0;
-  const axis_error_max = axes.reduce((max, a) => Math.max(max, a.error), 0);
-  const axis_score = axis_count > 0
-    ? clamp01(1 - axis_error_mean / AXIS_ZERO_CREDIT_ERROR)
-    : 1;
+  const axis_error_max = axes.reduce((max, a) => Math.max(max, Math.abs(a.error)), 0);
+  const axis_loss = axis_count > 0 ? axis_error_mean / AXIS_QUALITY_TOLERANCE : 0;
+  const axis_quality = Math.exp(-axis_loss);
+  const axis_score = axis_quality;
 
   const off_beat_landings = report.off_beat_landings.length;
   const died = report.terminus.reason !== "endOfSpec" ? 1 : 0;
@@ -104,11 +145,12 @@ export function scoreDriftReport(report: DriftReport): V0ContractScore {
   if (off_beat_landings > 0) hard_failures.push(`offBeat:${off_beat_landings}`);
 
   const passed = hard_failures.length === 0;
-  const score = passed ? 1000 * sync_score * axis_score : 0;
+  const score = passed ? 1000 * axis_quality : 0;
 
   return {
     score,
     passed,
+    valid_contract: passed,
     hard_failures,
     contacts,
     hits,
@@ -121,6 +163,26 @@ export function scoreDriftReport(report: DriftReport): V0ContractScore {
     axis_error_total,
     axis_error_mean,
     axis_error_max,
+    axis_loss,
+    axis_quality,
     axis_score,
+  };
+}
+
+export function scoreTimedDriftReport(
+  report: DriftReport,
+  budget: RuntimeBudget,
+): V0TimedContractScore {
+  const base = scoreDriftReport(report);
+  const time_multiplier = runtimeMultiplier(budget.elapsed_ms, budget.soft_ms, budget.hard_ms);
+  const score_without_time = base.score;
+  return {
+    ...base,
+    score: base.passed ? score_without_time * time_multiplier : 0,
+    score_without_time,
+    time_multiplier,
+    elapsed_ms: budget.elapsed_ms,
+    soft_ms: budget.soft_ms,
+    hard_ms: budget.hard_ms,
   };
 }

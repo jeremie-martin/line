@@ -39,7 +39,13 @@ npx tsx scripts/stress.ts
 # verify lr-core (Node-native physics) still matches the bundle exactly
 npm run parity
 
-# current v0 compiler goal metric (bounded, DriftReport-based)
+# current v0 compiler golden benchmark
+npm run golden
+
+# compact machine-readable output
+npm run golden -- --json
+
+# alias for the same benchmark
 npm run goal
 ```
 

@@ -1,34 +1,41 @@
-# Goal — satisfy the v0 compiler contract quickly
+# Goal — satisfy the v0 compiler contract robustly
 
-Maximize `goal_score` over the reference specs in `specs/golden/`, averaged
+Maximize `goal_score` over the reference specs in `specs/golden/`, evaluated
 across fixed seeds `[0, 1, 2]`:
 
-- `drums_signature` — 3-act, `contact_style` swap at constant high speed.
-- `drums_pendulum` — 6-act, only `air` flips ±0.70 every 5s.
-- `drums_crescendo` — 3-act, all four axes grow monotonically.
-- `dense_sprint` — hot-start, high-speed quarter-second beat burst.
-- `syncopated_switchback` — hot-start syncopated rhythm with axis reversals.
+- `drums_signature` (30s) — 3-act, `contact_style` swap at constant high speed.
+- `drums_pendulum` (30s) — 6-act, only `air` flips ±0.70 every 5s.
+- `drums_crescendo` (30s) — 3-act, all four axes grow monotonically.
+- `dense_sprint` (20s) — hot-start, high-speed quarter-second beat burst.
+- `syncopated_switchback` (16s) — hot-start syncopated rhythm with axis reversals.
+- `opening_burst` (14s) — immediate high-speed quarter-second opening rhythm.
+- `grain_staircase` (20s) — isolates `grain` as direct arc-size intent.
+- `rhythm_ladder` (18s) — uneven phrase rhythm with crossed axis changes.
 
 The three `drums_*` specs are 30 s against
 `beats/drums_0_30s_60_125.json`. The newer rhythm specs use explicit Contact
 timelines so the suite also covers dense 0.25 s intervals, syncopation,
 hot-start sections, and pre-roll-sensitive initial conditions. Together they
 exercise axis-isolation contrast, single-axis oscillation, graduated
-multi-axis coupling, dense timing, and non-uniform rhythm — distinct failure
-modes the compiler must handle.
+multi-axis coupling, dense timing, direct grain sizing, and non-uniform rhythm
+— distinct failure modes the compiler must handle.
 
 ## Run
 
 ```
 npm run golden              # human-readable: per-spec + GOAL_SCORE line
-npm run golden -- --json    # same data, JSON, for scripted comparisons
+npm run golden -- --details # human-readable with per-row diagnostics
+npm run golden -- --json    # compact JSON for scripted comparisons
+npm run golden -- --json-full # full diagnostic JSON, including all axes
 npm run golden -- --seed=42 # debug one seed instead of default [0,1,2]
+npm run golden -- --variants # report-only deterministic perturbations
 ```
 
-Runs all specs sequentially for each fixed seed, with a 45s hard cap per
-spec/seed pair (worker-thread enforced; over-budget runs score 0).
-Implementation in
-`scripts/v0/golden.ts`; scoring shared with `scripts/v0/score.ts`.
+Runs all headline specs sequentially for each fixed seed. Runtime uses fixed
+per-spec/seed thresholds, not thresholds scaled by video length: soft penalty
+from 30s to 45s elapsed compile time, plus a 50s worker timeout used only as
+an emergency cap for hangs. Implementation in `scripts/v0/golden.ts`; scoring
+shared with `scripts/v0/score.ts`.
 
 ## Score
 
@@ -39,19 +46,35 @@ hard gates:
   all contacts hit within ±1 frame
   survived through endOfSpec
   off_beat_landings == 0
-  elapsed_time <= 45s
 
-sync_score = contacts_hit_within_1_frame / total_contacts
-axis_score = clamp(1 - mean_axis_error / 0.25, 0, 1)
+axis_loss = mean(abs(axis_error)) / 0.25
+axis_quality = exp(-axis_loss)
+
+time_multiplier = 1                                    if elapsed <= 30s
+time_multiplier = 1 - smoothstep((elapsed-30s)/15s)    if 30s < elapsed < 45s
+time_multiplier = 0                                    if elapsed >= 45s
 
 spec_seed_score = 0 if any hard gate fails
-spec_seed_score = 1000 * sync_score * axis_score otherwise
+spec_seed_score = 1000 * axis_quality * time_multiplier otherwise
 
-goal_score = mean(spec_seed_score across all specs and fixed seeds)
+spec_score = exp(mean(log(spec_seed_score + 1))) - 1 across seeds
+goal_score = exp(mean(log(spec_score + 1))) - 1 across specs
 ```
 
-Runtime is a gate, not an optimization term. A correct run gets no extra
-credit for finishing faster than 45 s; an over-budget run is a timeout.
+Contact sync is still a hard contract, so `sync_score` is diagnostic rather
+than a quality multiplier. Runtime is a continuous quality term, not a sudden
+score cliff; the worker timeout remains a safety mechanism, not the intended
+optimization target.
+
+Headline weighting is deliberately simple: each golden spec family has equal
+weight, and each fixed seed contributes within that spec. Shorter specs are
+not automatically down-weighted by duration, contact count, section count, or
+number of axes. This keeps the goal aligned with coverage of distinct failure
+modes instead of raw workload size.
+
+`--variants` runs deterministic perturbation probes such as tiny contact phase
+shifts and mild time stretching. These are reported separately and are not part
+of `goal_score` until the perturbation suite is explicitly promoted.
 
 ## Preroll
 
@@ -102,9 +125,9 @@ When a signal should matter more in one regime than another, use a simple
 continuous shape such as linear interpolation, smoothstep, a Gaussian-like
 falloff, or a normalized cost term. Hard thresholds are still appropriate for
 true contract boundaries and finite search budgets, for example "must hit the
-Contact within ±1 frame", "do not exceed the 45s cap", or "score only the top
-N candidates for runtime". They should not be used as unexplained tuning
-switches like "if this axis is above X, replace behavior with Y".
+Contact within ±1 frame", "terminate a hung worker", or "score only the top N
+candidates for runtime". They should not be used as unexplained tuning switches
+like "if this axis is above X, replace behavior with Y".
 
 Every optimizer heuristic should have an explicit purpose. Before adding one,
 state what failure mode it addresses, what physical or authoring signal

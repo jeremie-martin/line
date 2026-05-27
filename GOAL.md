@@ -1,30 +1,38 @@
 # Goal — satisfy the v0 compiler contract quickly
 
-Maximize `goal_score` over the three reference specs in `specs/golden/`:
+Maximize `goal_score` over the reference specs in `specs/golden/`, averaged
+across fixed seeds `[0, 1, 2]`:
 
 - `drums_signature` — 3-act, `contact_style` swap at constant high speed.
 - `drums_pendulum` — 6-act, only `air` flips ±0.70 every 5s.
 - `drums_crescendo` — 3-act, all four axes grow monotonically.
+- `dense_sprint` — hot-start, high-speed quarter-second beat burst.
+- `syncopated_switchback` — hot-start syncopated rhythm with axis reversals.
 
-Each spec is 30 s against `beats/drums_0_30s_60_125.json`. Together they
-exercise axis-isolation contrast, single-axis oscillation, and graduated
-multi-axis coupling — distinct failure modes the compiler must handle.
+The three `drums_*` specs are 30 s against
+`beats/drums_0_30s_60_125.json`. The newer rhythm specs use explicit Contact
+timelines so the suite also covers dense 0.25 s intervals, syncopation,
+hot-start sections, and pre-roll-sensitive initial conditions. Together they
+exercise axis-isolation contrast, single-axis oscillation, graduated
+multi-axis coupling, dense timing, and non-uniform rhythm — distinct failure
+modes the compiler must handle.
 
 ## Run
 
 ```
 npm run golden              # human-readable: per-spec + GOAL_SCORE line
 npm run golden -- --json    # same data, JSON, for scripted comparisons
-npm run golden -- --seed=42 # alternative seed (default 0)
+npm run golden -- --seed=42 # debug one seed instead of default [0,1,2]
 ```
 
-Runs all three specs sequentially with a 45s hard cap per spec (worker-
-thread enforced; over-budget runs score 0). Implementation in
+Runs all specs sequentially for each fixed seed, with a 45s hard cap per
+spec/seed pair (worker-thread enforced; over-budget runs score 0).
+Implementation in
 `scripts/v0/golden.ts`; scoring shared with `scripts/v0/score.ts`.
 
 ## Score
 
-Per spec:
+Per spec/seed:
 
 ```
 hard gates:
@@ -36,10 +44,10 @@ hard gates:
 sync_score = contacts_hit_within_1_frame / total_contacts
 axis_score = clamp(1 - mean_axis_error / 0.25, 0, 1)
 
-spec_score = 0 if any hard gate fails
-spec_score = 1000 * sync_score * axis_score otherwise
+spec_seed_score = 0 if any hard gate fails
+spec_seed_score = 1000 * sync_score * axis_score otherwise
 
-goal_score = mean(spec_score across specs)
+goal_score = mean(spec_seed_score across all specs and fixed seeds)
 ```
 
 Runtime is a gate, not an optimization term. A correct run gets no extra

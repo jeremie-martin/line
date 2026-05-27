@@ -56,28 +56,20 @@ credit for finishing faster than 45 s; an over-budget run is a timeout.
 ## Preroll
 
 A spec may declare `preroll: N` seconds (capped at 10s; see `PREROLL.MAX_S`
-in `types.ts`). The compiler is then handed a synthetic `[-N, 0]` prefix in
-front of the real spec timeline — free territory where it can place any
-geometry to deliver the rider into spec-frame 0 in a state that makes the
-rest of the compile easier (rough position, velocity, contact history).
+in `types.ts`). Conceptually, this is free territory before the real spec
+timeline where the compiler may prepare better initial conditions for
+spec-frame 0: position, velocity, direction, contact history, or any other
+engine state that makes the authored section easier to satisfy.
 
-What goes in the preroll: anything the engine accepts. Free-form arcs,
-chains, energy-bleeding bouncers, deliberately-shaped landings. The
-compiler treats it as its own synthetic block.
+The current implementation is a proof of concept: `preroll` does not shift
+the timeline or add synthetic beats. Instead, `compile.ts` treats it as
+permission to optimize the rider's initial velocity, then compiles the real
+spec unchanged. This keeps scoring simple: axis measurements, contact sync,
+and off-beat checks apply only to user-declared sections and contacts.
 
-What it does *not* affect: scoring. The `DriftReport` already strips
-preroll contacts and any landings in `[0, prerollFrames)` before returning;
-axis measurements, contact sync, and off-beat checks therefore apply only
-to the real spec sections. Compute and geometry spent inside the preroll
-is pure upside for the optimizer — no metric penalty for using it.
-
-The current implementation (`extendSpecWithPreroll` + `unshiftReport` in
-`compile.ts`) seeds the preroll with a section mirroring §0's axes plus
-synthetic contacts every `CONTACT_SPACING_S`. That's a reasonable starting
-point but not load-bearing; the preroll is yours to redesign — e.g.,
-gradient axes from a "neutral" initial state to §0, contact-free pure
-ballistic setup, conditional contact spacing. Treat it as a search
-affordance, not a fixed prelude.
+Future pre-roll work should synthesize visible geometry that reaches the
+chosen initial condition, ideally without changing the real spec's report
+semantics. Treat it as a search affordance, not a fixed prelude.
 
 ## What You Can Change
 

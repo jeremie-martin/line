@@ -4,8 +4,7 @@
  * Two seams:
  *
  *   start    — manual rider initial state override.
- *   preroll  — synthesize a warmup window before spec t=0 so the rider hits
- *              §0 in its steady state. Removed from the user-facing report.
+ *   preroll  — compiler-chosen initial velocity for the real spec timeline.
  */
 import { describe, test, expect } from "vitest";
 import { compile } from "../scripts/v0/compile.ts";
@@ -71,7 +70,7 @@ describe("v0 spec.preroll", () => {
     expect(report.sections[0].section_index).toBe(0);
   });
 
-  test("preroll extends TrackJson but report is in user coords", () => {
+  test("preroll preserves user timeline and report coords", () => {
     const userSpec: Spec = {
       duration: 3,
       contacts: [{ t: 1 }, { t: 2 }],
@@ -80,8 +79,8 @@ describe("v0 spec.preroll", () => {
     };
     const { track, report } = compile(userSpec, 0);
 
-    // TrackJson covers user duration + preroll (in frames, plus the +20 tail).
-    expect(track.duration).toBeGreaterThanOrEqual(Math.round((3 + 2) * 40));
+    // TrackJson covers the real user duration (in frames, plus the +20 tail).
+    expect(track.duration).toBe(Math.round(3 * 40) + 20);
 
     // User sees only their two contacts at their original timestamps.
     expect(report.contacts).toHaveLength(2);

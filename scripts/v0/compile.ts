@@ -88,14 +88,7 @@ export type CompileResult = {
 export function compile(userSpec: Spec, seed = 0): CompileResult {
   validateSpec(userSpec);
 
-  const prerollSec = userSpec.preroll ?? 0;
-  const spec: Spec = prerollSec > 0
-    ? extendSpecWithPreroll(userSpec, prerollSec)
-    : userSpec;
-  const prerollContactCount = prerollSec > 0
-    ? spec.contacts.length - userSpec.contacts.length
-    : 0;
-
+  const spec = withOptimizedPrerollStart(userSpec, seed);
   const startState = resolveStartState(spec);
   currentStartState = startState;
   const rng = makeRng(seed);
@@ -401,12 +394,9 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
   const finalDet = detect(finalRaw);
 
   const track = buildTrackJson(allLines, durationFrames + 20, startState);
-  const extendedReport = buildDriftReport(
+  const report = buildDriftReport(
     finalDet, spec, gaps, contactFrames, durationFrames, gapFailures, fits,
   );
-  const report = prerollSec > 0
-    ? unshiftReport(extendedReport, prerollSec, prerollContactCount)
-    : extendedReport;
 
   return { track, report };
 }
@@ -2366,85 +2356,202 @@ function resolveStartState(spec: Spec): ResolvedStart {
   };
 }
 
-/**
- * Build the internal "extended" spec for pre-roll compilation. Everything in
- * `spec` is shifted forward by `prerollSec` seconds; a synthetic Section
- * mirroring §0's axes covers [0, prerollSec]; synthetic Contacts are seeded
- * across the pre-roll window so the per-gap compiler has hard sync targets
- * to land on (and the "no off-beat landings" hard gate has anchors).
- *
- * The user's authoring vocabulary is untouched. The unshift at report time
- * (see `unshiftReport`) brings everything back to user coordinates.
- */
-function extendSpecWithPreroll(spec: Spec, prerollSec: number): Spec {
-  const sec0 = spec.sections.find((s) => s.t0 === 0);
-  // Mirror §0's axes into the pre-roll window. Without a §0, fall back to
-  // spec.defaults; without those either, the synthetic Section has no axis
-  // targets and the compiler treats the warmup as unconstrained.
-  const prerollAxes: SectionAxes = { ...spec.defaults, ...sec0 };
-  delete (prerollAxes as Section & { t0?: number }).t0;
-  delete (prerollAxes as Section & { t1?: number }).t1;
+function withOptimizedPrerollStart(spec: Spec, seed: number): Spec {
+  if ((spec.preroll ?? 0) <= 0) return spec;
 
-  const prerollSection: Section = { t0: 0, t1: prerollSec, ...prerollAxes };
-
-  const prerollContacts: Contact[] = [];
-  for (
-    let t = PREROLL.FIRST_CONTACT_S;
-    t <= prerollSec - 0.1;
-    t += PREROLL.CONTACT_SPACING_S
-  ) {
-    prerollContacts.push({ t });
-  }
+  // A manual `start` is already an explicit initial condition. Consume
+  // `preroll` so this proof-of-concept never shifts the authored timeline.
+  if (spec.start !== undefined) return { ...spec, preroll: undefined };
 
   return {
-    duration: spec.duration + prerollSec,
-    defaults: spec.defaults,
-    contacts: [
-      ...prerollContacts,
-      ...spec.contacts.map((c) => ({ ...c, t: c.t + prerollSec })),
-    ],
-    sections: [
-      prerollSection,
-      ...spec.sections.map((s) => ({ ...s, t0: s.t0 + prerollSec, t1: s.t1 + prerollSec })),
-    ],
-    start: spec.start,
-    // No nested preroll.
+    ...spec,
+    start: choosePrerollStart(spec, seed),
+    preroll: undefined,
   };
 }
 
-/**
- * Strip synthetic pre-roll entries from a DriftReport and shift remaining
- * timestamps back into the user's coordinate frame.
- *
- *   - Synthetic Contacts: the first `prerollContactCount` entries in
- *     `report.contacts` are pre-roll — drop them.
- *   - Synthetic Section: section_index 0 is pre-roll — drop it and renumber.
- *   - Off-beat landings: drop any that fall in [0, prerollFrames); the
- *     pre-roll's contacts catch its own landings, but the boundary frame
- *     may have a stray.
- *   - Terminus frame stays in extended-track coords (the rendered video
- *     uses the extended frame numbers; the user reads `endOfSpec` either way).
- */
-function unshiftReport(
-  report: DriftReport,
-  prerollSec: number,
-  prerollContactCount: number,
-): DriftReport {
-  const prerollFrames = secToFrame(prerollSec);
-  return {
-    contacts: report.contacts.slice(prerollContactCount).map((c) => ({
-      ...c,
-      t_target: c.t_target - prerollSec,
-      t_actual: c.t_actual === null ? null : c.t_actual - prerollSec,
-    })),
-    sections: report.sections
-      .filter((s) => s.section_index > 0)
-      .map((s, i) => ({ ...s, section_index: i })),
-    off_beat_landings: report.off_beat_landings
-      .filter((l) => l.frame >= prerollFrames)
-      .map((l) => ({ frame: l.frame - prerollFrames })),
-    terminus: report.terminus,
+function choosePrerollStart(spec: Spec, seed: number): NonNullable<Spec["start"]> {
+  const fallback: NonNullable<Spec["start"]> = {
+    vx: START_DEFAULTS.VELOCITY.x,
+    vy: START_DEFAULTS.VELOCITY.y,
   };
+  const contactFrames = [...spec.contacts]
+    .map((c) => secToFrame(c.t))
+    .sort((a, b) => a - b);
+  const firstContactFrame = contactFrames[0];
+  if (firstContactFrame === undefined) return fallback;
+
+  const durationFrames = secToFrame(spec.duration);
+  const firstAxes = firstSectionAxes(spec);
+  if ((firstAxes.speed ?? 0.45) <= 0.45 && (firstAxes.air ?? 0.5) <= 0.35) {
+    return fallback;
+  }
+
+  const firstGap: Gap = {
+    index: 0,
+    startFrame: 0,
+    endFrame: firstContactFrame,
+    endsWithContact: true,
+    targets: sampleGapTargets(firstAxes, CALIB.SIGMA, makeRng(seed)),
+  };
+
+  let best = fallback;
+  let bestCost = Infinity;
+  let bestSurvivors = 0;
+
+  for (const start of prerollStartCandidates(firstAxes)) {
+    const startState = resolveStartState({ ...spec, start });
+    const baseEngine = makeBaseEngine(startState);
+    const candidates = generateRankedCandidates(
+      baseEngine,
+      firstGap,
+      makeRng((seed | 0) * 1000003 + 1),
+      1,
+      contactFrames,
+      durationFrames,
+    );
+    const cost = prerollStartCost(baseEngine, firstGap, candidates, start);
+    if (cost + 1e-9 < bestCost) {
+      best = start;
+      bestCost = cost;
+      bestSurvivors = candidates.length;
+    }
+  }
+
+  if (process.env.V0_DEBUG_PREROLL === "1") {
+    console.error("preroll-start", {
+      firstContactFrame,
+      vx: Number(best.vx.toFixed(3)),
+      vy: Number(best.vy.toFixed(3)),
+      cost: Number(bestCost.toFixed(4)),
+      survivors: bestSurvivors,
+    });
+  }
+
+  return best;
+}
+
+function prerollStartCost(
+  // deno-lint-ignore no-explicit-any
+  baseEngine: any,
+  firstGap: Gap,
+  candidates: GapFit[],
+  start: NonNullable<Spec["start"]>,
+): number {
+  const speed = Math.hypot(start.vx, start.vy);
+  const targetSpeedPx = firstGap.targets.speed === undefined
+    ? null
+    : firstGap.targets.speed * CALIB.SPEED_CAP;
+  const speedShortfallPenalty =
+    targetSpeedPx !== null
+    && (firstGap.targets.air ?? 0.5) <= 0.35
+    && targetSpeedPx >= 6
+    && speed < targetSpeedPx * 0.45
+      ? 0.75
+      : 0;
+  const speedPenalty = targetSpeedPx === null
+    ? 0.0005 * Math.pow(speed / CALIB.SPEED_CAP, 2)
+    : 0.01 * Math.pow((speed - targetSpeedPx) / CALIB.SPEED_CAP, 2)
+      + speedShortfallPenalty;
+
+  const best = candidates[0];
+  if (best !== undefined) {
+    const robustnessCredit = Math.min(0.03, candidates.length * 0.002);
+    return best.cost + speedPenalty - robustnessCredit;
+  }
+
+  const rider = baseEngine.getRider(firstGap.endFrame);
+  const v = rider.velocity ?? { x: start.vx, y: start.vy };
+  const achievedSpeed = Math.hypot(v.x, v.y) / CALIB.SPEED_CAP;
+  const speedCost = firstGap.targets.speed === undefined
+    ? 0
+    : Math.pow(firstGap.targets.speed - achievedSpeed, 2);
+  const airCost = firstGap.targets.air === undefined
+    ? 0
+    : Math.pow(firstGap.targets.air - 1, 2);
+  return 1000 + speedCost + airCost + speedPenalty;
+}
+
+function prerollStartCandidates(firstAxes: SectionAxes): NonNullable<Spec["start"]>[] {
+  const targetSpeed = (firstAxes.speed ?? 0.45) * CALIB.SPEED_CAP;
+  const speedAnchors = targetSpeed >= 9
+    ? [6, 8.5, 11, 13.5]
+    : targetSpeed >= 6
+    ? [3, 5.5, 8, 10.5]
+    : [0.4, 2, 4, 6];
+  const speeds = uniqueRounded([
+    START_DEFAULTS.VELOCITY.x,
+    ...speedAnchors,
+    targetSpeed * 0.75,
+    targetSpeed,
+    targetSpeed * 1.2,
+  ])
+    .filter((speed) => speed > 0 && speed <= START_DEFAULTS.VELOCITY_SANITY_CAP)
+    .sort((a, b) => a - b);
+  const angles = prerollStartAngles(firstAxes);
+  const out: NonNullable<Spec["start"]>[] = [
+    { vx: START_DEFAULTS.VELOCITY.x, vy: START_DEFAULTS.VELOCITY.y },
+  ];
+  const seen = new Set(out.map(startKey));
+
+  for (const speed of speeds) {
+    for (const angleDeg of angles) {
+      const angle = angleDeg * Math.PI / 180;
+      const start = {
+        vx: round3(Math.cos(angle) * speed),
+        vy: round3(Math.sin(angle) * speed),
+      };
+      const key = startKey(start);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(start);
+    }
+  }
+
+  return out;
+}
+
+function prerollStartAngles(firstAxes: SectionAxes): number[] {
+  const air = firstAxes.air ?? 0.5;
+  if (air >= 0.7) return [-35, -18, -5, 10, 25];
+  if (air <= 0.3) return [-5, 8, 20, 35, 50];
+  return [-20, -8, 5, 18, 32];
+}
+
+function uniqueRounded(xs: number[]): number[] {
+  const out: number[] = [];
+  const seen = new Set<string>();
+  for (const x of xs) {
+    const rounded = round3(x);
+    const key = rounded.toFixed(3);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(rounded);
+  }
+  return out;
+}
+
+function round3(x: number): number {
+  return Math.round(x * 1000) / 1000;
+}
+
+function startKey(start: NonNullable<Spec["start"]>): string {
+  return `${start.vx.toFixed(3)},${start.vy.toFixed(3)}`;
+}
+
+function firstSectionAxes(spec: Spec): SectionAxes {
+  const axes: SectionAxes = { ...(spec.defaults ?? {}) };
+  const activeAtZero = spec.sections.filter((sec) => sec.t0 <= 0 && sec.t1 >= 0);
+  const sections = activeAtZero.length > 0
+    ? activeAtZero
+    : [...spec.sections].sort((a, b) => a.t0 - b.t0).slice(0, 1);
+  for (const sec of sections) {
+    if (sec.air !== undefined) axes.air = sec.air;
+    if (sec.speed !== undefined) axes.speed = sec.speed;
+    if (sec.contact_style !== undefined) axes.contact_style = sec.contact_style;
+    if (sec.grain !== undefined) axes.grain = sec.grain;
+  }
+  return axes;
 }
 
 function nextLineIdAt(fits: (GapFit | null)[], upTo: number): number {

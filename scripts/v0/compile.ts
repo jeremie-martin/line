@@ -3005,8 +3005,17 @@ function axisLookaheadEndFrame(gap: Gap, allContactFrames: number[]): number {
 
 function shouldUseDenseAirLookahead(targets: SectionAxes): boolean {
   const air = targets.air;
-  if (air === undefined || (air > 0.3 && air < 0.7)) return false;
   const speed = targets.speed;
+  if (
+    air === undefined
+    || (
+      air > 0.3
+      && !(air <= 0.4 && (speed ?? 0) >= 0.55)
+      && air < 0.7
+    )
+  ) {
+    return false;
+  }
   const grain = targets.grain;
   const contact = targets.contact_style;
   return speed !== undefined && speed >= 0.4 && speed <= 0.75

@@ -12,3 +12,5 @@ npx tsx scripts/v0/golden.ts --json
   pre-roll optimization.
 - `hot-start-preroll-40997.json` records the first hot-start pre-roll proof
   of concept.
+- `dense-low-air-lookahead-43658.json` records expanded dense lookahead for
+  low-air/moderate-speed sections.

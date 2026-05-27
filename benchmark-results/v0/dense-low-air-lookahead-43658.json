@@ -1,0 +1,2020 @@
+{
+  "goal_score": 436.58,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "seed_count": 3,
+  "passed": 15,
+  "total": 15,
+  "budget_ms": 45000,
+  "per_seed": [
+    {
+      "seed": 0,
+      "goal_score": 432.37,
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "seed": 1,
+      "goal_score": 416.49,
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "seed": 2,
+      "goal_score": 460.87,
+      "passed": 5,
+      "total": 5
+    }
+  ],
+  "specs": [
+    {
+      "score": 438.4,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 55,
+      "hits": 55,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 12,
+      "axis_error_total": 1.6848,
+      "axis_error_mean": 0.1404,
+      "axis_error_max": 0.3412,
+      "axis_score": 0.4384,
+      "name": "drums_signature",
+      "seed": 0,
+      "status": "pass",
+      "elapsed_ms": 14427,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.45,
+          "achieved": 0.6957605985037406,
+          "error": 0.2457605985037406
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.4,
+          "achieved": 0.5581256229573978,
+          "error": 0.15812562295739774
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.35544319089157994,
+          "error": 0.09455680910842007
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.5,
+          "achieved": 0.7804160611845031,
+          "error": 0.28041606118450313
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.6,
+          "achieved": 0.7630922693266833,
+          "error": 0.1630922693266833
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.8,
+          "achieved": 0.685966736919757,
+          "error": 0.11403326308024309
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.75,
+          "achieved": 0.40881530023058105,
+          "error": 0.34118469976941895
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.8,
+          "achieved": 0.8616594477491264,
+          "error": 0.06165944774912635
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.6,
+          "achieved": 0.7955112219451371,
+          "error": 0.19551122194513715
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.8,
+          "achieved": 0.7811437894533503,
+          "error": 0.018856210546649765
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.25,
+          "achieved": 0.2403874286262713,
+          "error": 0.009612571373728701
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.2,
+          "achieved": 0.1979989554866712,
+          "error": 0.0020010445133288035
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 394.97,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 55,
+      "hits": 55,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 24,
+      "axis_error_total": 3.6302,
+      "axis_error_mean": 0.1513,
+      "axis_error_max": 0.4122,
+      "axis_score": 0.395,
+      "name": "drums_pendulum",
+      "seed": 0,
+      "status": "pass",
+      "elapsed_ms": 29095,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.15,
+          "achieved": 0.5373134328358209,
+          "error": 0.38731343283582087
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.42945048966435256,
+          "error": 0.12054951033564748
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.3375501215736535,
+          "error": 0.11244987842634652
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.2,
+          "error": 0.25
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7064676616915423,
+          "error": 0.14353233830845769
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.31028533230861494,
+          "error": 0.2397146676913851
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.2861290676046594,
+          "error": 0.16387093239534062
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.5044809481222353,
+          "error": 0.054480948122235306
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.15,
+          "achieved": 0.44776119402985076,
+          "error": 0.2977611940298508
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.33267036954522283,
+          "error": 0.2173296304547772
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.4347009284461791,
+          "error": 0.015299071553820931
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.6198583226756281,
+          "error": 0.16985832267562812
+        },
+        {
+          "section_index": 3,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7412935323383084,
+          "error": 0.10870646766169156
+        },
+        {
+          "section_index": 3,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.37394162426923555,
+          "error": 0.1760583757307645
+        },
+        {
+          "section_index": 3,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.37328611410524426,
+          "error": 0.07671388589475575
+        },
+        {
+          "section_index": 3,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.4621367527347631,
+          "error": 0.012136752734763112
+        },
+        {
+          "section_index": 4,
+          "axis": "air",
+          "target": 0.15,
+          "achieved": 0.5621890547263682,
+          "error": 0.41218905472636813
+        },
+        {
+          "section_index": 4,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.5718234778478853,
+          "error": 0.021823477847885298
+        },
+        {
+          "section_index": 4,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.4972596985278304,
+          "error": 0.04725969852783041
+        },
+        {
+          "section_index": 4,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.3333333333333333,
+          "error": 0.1166666666666667
+        },
+        {
+          "section_index": 5,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.8208955223880597,
+          "error": 0.029104477611940238
+        },
+        {
+          "section_index": 5,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.8420205796608777,
+          "error": 0.2920205796608777
+        },
+        {
+          "section_index": 5,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.47917952745166836,
+          "error": 0.029179527451668352
+        },
+        {
+          "section_index": 5,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.31382258655034345,
+          "error": 0.13617741344965656
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 523.46,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 55,
+      "hits": 55,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 12,
+      "axis_error_total": 1.4296,
+      "axis_error_mean": 0.1191,
+      "axis_error_max": 0.3259,
+      "axis_score": 0.5235,
+      "name": "drums_crescendo",
+      "seed": 0,
+      "status": "pass",
+      "elapsed_ms": 14757,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.3,
+          "achieved": 0.6259351620947631,
+          "error": 0.3259351620947631
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.35,
+          "achieved": 0.3350462436047757,
+          "error": 0.014953756395224282
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.2,
+          "achieved": 0.21752934110049357,
+          "error": 0.017529341100493562
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.3,
+          "achieved": 0.23703434834437315,
+          "error": 0.06296565165562684
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.55,
+          "achieved": 0.685785536159601,
+          "error": 0.13578553615960098
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.6,
+          "achieved": 0.5957648016533653,
+          "error": 0.004235198346634661
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.5,
+          "achieved": 0.3739824602139922,
+          "error": 0.12601753978600783
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.55,
+          "achieved": 0.7485013632997582,
+          "error": 0.1985013632997582
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.8129675810473815,
+          "error": 0.03703241895261844
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.9,
+          "achieved": 1.101455894423831,
+          "error": 0.20145589442383105
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.8,
+          "achieved": 0.6479847244271592,
+          "error": 0.1520152755728409
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.85,
+          "achieved": 0.6968145666458774,
+          "error": 0.1531854333541226
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 406.54,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 41,
+      "hits": 41,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 12,
+      "axis_error_total": 1.7804,
+      "axis_error_mean": 0.1484,
+      "axis_error_max": 0.4135,
+      "axis_score": 0.4065,
+      "name": "dense_sprint",
+      "seed": 0,
+      "status": "pass",
+      "elapsed_ms": 12478,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7888198757763976,
+          "error": 0.06118012422360242
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.95,
+          "achieved": 0.7301007055046321,
+          "error": 0.21989929449536783
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.35,
+          "achieved": 0.26435956626383234,
+          "error": 0.08564043373616764
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.2,
+          "achieved": 0.1111111111111111,
+          "error": 0.0888888888888889
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.35,
+          "achieved": 0.7634854771784232,
+          "error": 0.4134854771784232
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.7165636688011249,
+          "error": 0.16656366880112483
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.25,
+          "achieved": 0.24691788472393061,
+          "error": 0.003082115276069386
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.65,
+          "achieved": 0.6964262229560054,
+          "error": 0.0464262229560054
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.75,
+          "achieved": 0.6059850374064838,
+          "error": 0.1440149625935162
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.65,
+          "achieved": 0.45910978828412086,
+          "error": 0.19089021171587917
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.75,
+          "achieved": 0.4972216137400599,
+          "error": 0.2527783862599401
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.75,
+          "achieved": 0.8575370172929958,
+          "error": 0.1075370172929958
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 398.5,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 24,
+      "hits": 24,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 16,
+      "axis_error_total": 2.406,
+      "axis_error_mean": 0.1504,
+      "axis_error_max": 0.5885,
+      "axis_score": 0.3985,
+      "name": "syncopated_switchback",
+      "seed": 0,
+      "status": "pass",
+      "elapsed_ms": 12637,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.75,
+          "achieved": 0.8074534161490683,
+          "error": 0.05745341614906829
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.82,
+          "achieved": 0.7886330012139756,
+          "error": 0.031366998786024336
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.7,
+          "achieved": 0.49842671750863327,
+          "error": 0.2015732824913667
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.7,
+          "achieved": 0.5931064422851563,
+          "error": 0.10689355771484366
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.25,
+          "achieved": 0.8385093167701864,
+          "error": 0.5885093167701864
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.65,
+          "achieved": 0.9059526208786058,
+          "error": 0.2559526208786058
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.65,
+          "achieved": 0.5189953920797848,
+          "error": 0.13100460792021518
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.25,
+          "achieved": 0.3333333333333333,
+          "error": 0.08333333333333331
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.55,
+          "achieved": 0.8385093167701864,
+          "error": 0.2885093167701863
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.45,
+          "achieved": 0.5884858099454261,
+          "error": 0.13848580994542609
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.2,
+          "achieved": 0.17775904601168188,
+          "error": 0.02224095398831813
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.75,
+          "achieved": 0.8333333333333334,
+          "error": 0.08333333333333337
+        },
+        {
+          "section_index": 3,
+          "axis": "air",
+          "target": 0.8,
+          "achieved": 0.8136645962732919,
+          "error": 0.013664596273291862
+        },
+        {
+          "section_index": 3,
+          "axis": "speed",
+          "target": 0.7,
+          "achieved": 0.5164362066739817,
+          "error": 0.18356379332601824
+        },
+        {
+          "section_index": 3,
+          "axis": "grain",
+          "target": 0.35,
+          "achieved": 0.31320608166065456,
+          "error": 0.03679391833934542
+        },
+        {
+          "section_index": 3,
+          "axis": "contact_style",
+          "target": 0.35,
+          "achieved": 0.16666666666666666,
+          "error": 0.18333333333333332
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 473.43,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 55,
+      "hits": 55,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 12,
+      "axis_error_total": 1.5797,
+      "axis_error_mean": 0.1316,
+      "axis_error_max": 0.2501,
+      "axis_score": 0.4734,
+      "name": "drums_signature",
+      "seed": 1,
+      "status": "pass",
+      "elapsed_ms": 22862,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.45,
+          "achieved": 0.6907730673316709,
+          "error": 0.24077306733167086
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.4,
+          "achieved": 0.6501462436617499,
+          "error": 0.25014624366174987
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.41015154211049387,
+          "error": 0.03984845788950614
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.5,
+          "achieved": 0.7167349008809358,
+          "error": 0.21673490088093583
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.6,
+          "achieved": 0.655860349127182,
+          "error": 0.055860349127182074
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.8,
+          "achieved": 0.6388664032977639,
+          "error": 0.16113359670223615
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.75,
+          "achieved": 0.6196249423357298,
+          "error": 0.13037505766427016
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.8,
+          "achieved": 0.7609727300665565,
+          "error": 0.03902726993344352
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.6,
+          "achieved": 0.6807980049875312,
+          "error": 0.0807980049875312
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.8,
+          "achieved": 0.5735931423046049,
+          "error": 0.22640685769539515
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.25,
+          "achieved": 0.2552830038934828,
+          "error": 0.005283003893482796
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.2,
+          "achieved": 0.3333333333333333,
+          "error": 0.1333333333333333
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 461.18,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 55,
+      "hits": 55,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 24,
+      "axis_error_total": 3.2329,
+      "axis_error_mean": 0.1347,
+      "axis_error_max": 0.5067,
+      "axis_score": 0.4612,
+      "name": "drums_pendulum",
+      "seed": 1,
+      "status": "pass",
+      "elapsed_ms": 18125,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.15,
+          "achieved": 0.572139303482587,
+          "error": 0.422139303482587
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.5865892495691826,
+          "error": 0.036589249569182525
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.4223669887979239,
+          "error": 0.02763301120207612
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.5,
+          "error": 0.04999999999999999
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.8059701492537313,
+          "error": 0.04402985074626864
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.6904268660274046,
+          "error": 0.1404268660274045
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.43583610857474586,
+          "error": 0.01416389142525415
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.2791302818755101,
+          "error": 0.17086971812448992
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.15,
+          "achieved": 0.6567164179104478,
+          "error": 0.5067164179104477
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.566822185555603,
+          "error": 0.016822185555602998
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.4458044471217205,
+          "error": 0.004195552878279496
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.3574203023675907,
+          "error": 0.09257969763240931
+        },
+        {
+          "section_index": 3,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7810945273631841,
+          "error": 0.0689054726368159
+        },
+        {
+          "section_index": 3,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.5253745536792528,
+          "error": 0.024625446320747257
+        },
+        {
+          "section_index": 3,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.35082633864905033,
+          "error": 0.09917366135094968
+        },
+        {
+          "section_index": 3,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.2857142857142857,
+          "error": 0.1642857142857143
+        },
+        {
+          "section_index": 4,
+          "axis": "air",
+          "target": 0.15,
+          "achieved": 0.5920398009950248,
+          "error": 0.4420398009950248
+        },
+        {
+          "section_index": 4,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.7090837133774336,
+          "error": 0.15908371337743354
+        },
+        {
+          "section_index": 4,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.4275994186304797,
+          "error": 0.022400581369520334
+        },
+        {
+          "section_index": 4,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.43637686105786405,
+          "error": 0.01362313894213596
+        },
+        {
+          "section_index": 5,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.8208955223880597,
+          "error": 0.029104477611940238
+        },
+        {
+          "section_index": 5,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.9229839204190151,
+          "error": 0.37298392041901507
+        },
+        {
+          "section_index": 5,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.30679704064008956,
+          "error": 0.14320295935991045
+        },
+        {
+          "section_index": 5,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.6173115424900559,
+          "error": 0.16731154249005592
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 406.99,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 55,
+      "hits": 55,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 12,
+      "axis_error_total": 1.779,
+      "axis_error_mean": 0.1483,
+      "axis_error_max": 0.4082,
+      "axis_score": 0.407,
+      "name": "drums_crescendo",
+      "seed": 1,
+      "status": "pass",
+      "elapsed_ms": 25546,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.3,
+          "achieved": 0.7082294264339152,
+          "error": 0.4082294264339152
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.35,
+          "achieved": 0.4845463396113106,
+          "error": 0.13454633961131063
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.2,
+          "achieved": 0.19846497321418594,
+          "error": 0.0015350267858140754
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.3,
+          "achieved": 0.29720378047100054,
+          "error": 0.002796219528999444
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.55,
+          "achieved": 0.7755610972568578,
+          "error": 0.2255610972568578
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.6,
+          "achieved": 0.8398948562659664,
+          "error": 0.2398948562659664
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.5,
+          "achieved": 0.38655978564661947,
+          "error": 0.11344021435338053
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.55,
+          "achieved": 0.34886216306979756,
+          "error": 0.20113783693020248
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7531172069825436,
+          "error": 0.09688279301745639
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.9,
+          "achieved": 0.8480305349200985,
+          "error": 0.05196946507990152
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.8,
+          "achieved": 0.5814669941331982,
+          "error": 0.2185330058668018
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.85,
+          "achieved": 0.7654908959453214,
+          "error": 0.0845091040546786
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 289.67,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 41,
+      "hits": 41,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 12,
+      "axis_error_total": 2.131,
+      "axis_error_mean": 0.1776,
+      "axis_error_max": 0.4667,
+      "axis_score": 0.2897,
+      "name": "dense_sprint",
+      "seed": 1,
+      "status": "pass",
+      "elapsed_ms": 20576,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7888198757763976,
+          "error": 0.06118012422360242
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.95,
+          "achieved": 1.0491807303988738,
+          "error": 0.09918073039887387
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.35,
+          "achieved": 0.2992376526003642,
+          "error": 0.050762347399635754
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.2,
+          "achieved": 0.6666666666666666,
+          "error": 0.4666666666666666
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.35,
+          "achieved": 0.7219917012448133,
+          "error": 0.3719917012448133
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.9375889080754295,
+          "error": 0.38758890807542945
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.25,
+          "achieved": 0.2860213780548536,
+          "error": 0.036021378054853614
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.65,
+          "achieved": 0.7922716218681494,
+          "error": 0.14227162186814934
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.75,
+          "achieved": 0.6059850374064838,
+          "error": 0.1440149625935162
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.65,
+          "achieved": 0.5391689177754438,
+          "error": 0.11083108222455618
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.75,
+          "achieved": 0.5675136175730187,
+          "error": 0.18248638242698134
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.75,
+          "achieved": 0.8279962571900125,
+          "error": 0.07799625719001246
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 451.21,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 24,
+      "hits": 24,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 16,
+      "axis_error_total": 2.1952,
+      "axis_error_mean": 0.1372,
+      "axis_error_max": 0.427,
+      "axis_score": 0.4512,
+      "name": "syncopated_switchback",
+      "seed": 1,
+      "status": "pass",
+      "elapsed_ms": 27410,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.75,
+          "achieved": 0.8074534161490683,
+          "error": 0.05745341614906829
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.82,
+          "achieved": 0.8856599459427087,
+          "error": 0.06565994594270874
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.7,
+          "achieved": 0.5887396901268075,
+          "error": 0.11126030987319246
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.7,
+          "achieved": 0.6991276126253751,
+          "error": 0.0008723873746248056
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.25,
+          "achieved": 0.6770186335403726,
+          "error": 0.4270186335403726
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.65,
+          "achieved": 0.3110854203508152,
+          "error": 0.3389145796491848
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.65,
+          "achieved": 0.3661077637695275,
+          "error": 0.2838922362304725
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.25,
+          "achieved": 0.3333333333333333,
+          "error": 0.08333333333333331
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.55,
+          "achieved": 0.6956521739130435,
+          "error": 0.14565217391304341
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.45,
+          "achieved": 0.456239244636329,
+          "error": 0.006239244636328967
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.2,
+          "achieved": 0.2130818302184022,
+          "error": 0.013081830218402202
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.75,
+          "achieved": 1,
+          "error": 0.25
+        },
+        {
+          "section_index": 3,
+          "axis": "air",
+          "target": 0.8,
+          "achieved": 0.7391304347826086,
+          "error": 0.0608695652173914
+        },
+        {
+          "section_index": 3,
+          "axis": "speed",
+          "target": 0.7,
+          "achieved": 0.5485694587419767,
+          "error": 0.15143054125802324
+        },
+        {
+          "section_index": 3,
+          "axis": "grain",
+          "target": 0.35,
+          "achieved": 0.36615569959216404,
+          "error": 0.016155699592164063
+        },
+        {
+          "section_index": 3,
+          "axis": "contact_style",
+          "target": 0.35,
+          "achieved": 0.16666666666666666,
+          "error": 0.18333333333333332
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 505.95,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 55,
+      "hits": 55,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 12,
+      "axis_error_total": 1.4821,
+      "axis_error_mean": 0.1235,
+      "axis_error_max": 0.2378,
+      "axis_score": 0.506,
+      "name": "drums_signature",
+      "seed": 2,
+      "status": "pass",
+      "elapsed_ms": 14396,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.45,
+          "achieved": 0.6708229426433915,
+          "error": 0.22082294264339147
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.4,
+          "achieved": 0.6377725364764003,
+          "error": 0.2377725364764003
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.4445757170405387,
+          "error": 0.005424282959461291
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.5,
+          "achieved": 0.6116009019541914,
+          "error": 0.11160090195419137
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.6,
+          "achieved": 0.7780548628428927,
+          "error": 0.17805486284289274
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.8,
+          "achieved": 0.7754207255315518,
+          "error": 0.02457927446844821
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.75,
+          "achieved": 0.5278891531963206,
+          "error": 0.22211084680367943
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.8,
+          "achieved": 0.8676682974906463,
+          "error": 0.06766829749064629
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.6,
+          "achieved": 0.7755610972568578,
+          "error": 0.17556109725685787
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.8,
+          "achieved": 0.7015356061260335,
+          "error": 0.09846439387396655
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.25,
+          "achieved": 0.26011098707059044,
+          "error": 0.010110987070590438
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.2,
+          "achieved": 0.3299758498322888,
+          "error": 0.12997584983228877
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 517.28,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 55,
+      "hits": 55,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 24,
+      "axis_error_total": 2.8963,
+      "axis_error_mean": 0.1207,
+      "axis_error_max": 0.5813,
+      "axis_score": 0.5173,
+      "name": "drums_pendulum",
+      "seed": 2,
+      "status": "pass",
+      "elapsed_ms": 23167,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.15,
+          "achieved": 0.472636815920398,
+          "error": 0.32263681592039806
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.48530643000017243,
+          "error": 0.06469356999982762
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.46904355276736,
+          "error": 0.019043552767359972
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.3,
+          "error": 0.15000000000000002
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7562189054726368,
+          "error": 0.09378109452736316
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.5432131479163428,
+          "error": 0.006786852083657258
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.38016692738034835,
+          "error": 0.06983307261965166
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.3541226069011727,
+          "error": 0.09587739309882731
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.15,
+          "achieved": 0.4975124378109453,
+          "error": 0.3475124378109453
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.32966443674095186,
+          "error": 0.22033556325904818
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.34645248636446146,
+          "error": 0.10354751363553855
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.426178849678233,
+          "error": 0.023821150321767015
+        },
+        {
+          "section_index": 3,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7114427860696517,
+          "error": 0.13855721393034826
+        },
+        {
+          "section_index": 3,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.5691367974385164,
+          "error": 0.019136797438516373
+        },
+        {
+          "section_index": 3,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.4078973463967218,
+          "error": 0.042102653603278195
+        },
+        {
+          "section_index": 3,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.4872636101528075,
+          "error": 0.03726361015280749
+        },
+        {
+          "section_index": 4,
+          "axis": "air",
+          "target": 0.15,
+          "achieved": 0.7313432835820896,
+          "error": 0.5813432835820895
+        },
+        {
+          "section_index": 4,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.7207796017143459,
+          "error": 0.1707796017143458
+        },
+        {
+          "section_index": 4,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.42288105640329193,
+          "error": 0.02711894359670808
+        },
+        {
+          "section_index": 4,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.5017225457736222,
+          "error": 0.051722545773622175
+        },
+        {
+          "section_index": 5,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7860696517412935,
+          "error": 0.06393034825870647
+        },
+        {
+          "section_index": 5,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.720786238997234,
+          "error": 0.170786238997234
+        },
+        {
+          "section_index": 5,
+          "axis": "grain",
+          "target": 0.45,
+          "achieved": 0.4061045887540725,
+          "error": 0.043895411245927496
+        },
+        {
+          "section_index": 5,
+          "axis": "contact_style",
+          "target": 0.45,
+          "achieved": 0.4182098242182585,
+          "error": 0.031790175781741536
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 480.86,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 55,
+      "hits": 55,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 12,
+      "axis_error_total": 1.5574,
+      "axis_error_mean": 0.1298,
+      "axis_error_max": 0.3758,
+      "axis_score": 0.4809,
+      "name": "drums_crescendo",
+      "seed": 2,
+      "status": "pass",
+      "elapsed_ms": 15162,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.3,
+          "achieved": 0.6758104738154613,
+          "error": 0.37581047381546134
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.35,
+          "achieved": 0.40212981641749096,
+          "error": 0.05212981641749098
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.2,
+          "achieved": 0.21775477958974201,
+          "error": 0.017754779589742004
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.3,
+          "achieved": 0.41160553887107626,
+          "error": 0.11160553887107627
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.55,
+          "achieved": 0.743142144638404,
+          "error": 0.19314214463840396
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.6,
+          "achieved": 0.7709062602154724,
+          "error": 0.1709062602154724
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.5,
+          "achieved": 0.39223766063031656,
+          "error": 0.10776233936968344
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.55,
+          "achieved": 0.6262994272859076,
+          "error": 0.07629942728590755
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7630922693266833,
+          "error": 0.0869077306733167
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.9,
+          "achieved": 1.0170419125882555,
+          "error": 0.11704191258825547
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.8,
+          "achieved": 0.5908291868680545,
+          "error": 0.20917081313194552
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.85,
+          "achieved": 0.8888888888888888,
+          "error": 0.03888888888888886
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 440.77,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 41,
+      "hits": 41,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 12,
+      "axis_error_total": 1.6777,
+      "axis_error_mean": 0.1398,
+      "axis_error_max": 0.3554,
+      "axis_score": 0.4408,
+      "name": "dense_sprint",
+      "seed": 2,
+      "status": "pass",
+      "elapsed_ms": 16071,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.85,
+          "achieved": 0.7018633540372671,
+          "error": 0.1481366459627329
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.95,
+          "achieved": 0.7631942527039345,
+          "error": 0.18680574729606547
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.35,
+          "achieved": 0.3199743774745734,
+          "error": 0.030025622525426565
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.2,
+          "achieved": 0.4444444444444444,
+          "error": 0.2444444444444444
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.35,
+          "achieved": 0.7053941908713693,
+          "error": 0.35539419087136936
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.55,
+          "achieved": 0.7142055466401391,
+          "error": 0.1642055466401391
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.25,
+          "achieved": 0.2516099504089881,
+          "error": 0.0016099504089880923
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.65,
+          "achieved": 0.8136855629816556,
+          "error": 0.1636855629816556
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.75,
+          "achieved": 0.6733167082294265,
+          "error": 0.07668329177057354
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.65,
+          "achieved": 0.5871808267552797,
+          "error": 0.0628191732447203
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.75,
+          "achieved": 0.5551137146059081,
+          "error": 0.19488628539409192
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.75,
+          "achieved": 0.7989935022194454,
+          "error": 0.04899350221944543
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    },
+    {
+      "score": 359.47,
+      "passed": true,
+      "hard_failures": [],
+      "contacts": 24,
+      "hits": 24,
+      "drift": 0,
+      "missing": 0,
+      "sync_score": 1,
+      "off_beat_landings": 0,
+      "died": 0,
+      "axis_count": 16,
+      "axis_error_total": 2.5621,
+      "axis_error_mean": 0.1601,
+      "axis_error_max": 0.4705,
+      "axis_score": 0.3595,
+      "name": "syncopated_switchback",
+      "seed": 2,
+      "status": "pass",
+      "elapsed_ms": 12519,
+      "message": null,
+      "axes": [
+        {
+          "section_index": 0,
+          "axis": "air",
+          "target": 0.75,
+          "achieved": 0.8198757763975155,
+          "error": 0.06987577639751552
+        },
+        {
+          "section_index": 0,
+          "axis": "speed",
+          "target": 0.82,
+          "achieved": 0.8043347312374177,
+          "error": 0.01566526876258223
+        },
+        {
+          "section_index": 0,
+          "axis": "grain",
+          "target": 0.7,
+          "achieved": 0.38649785713086376,
+          "error": 0.3135021428691362
+        },
+        {
+          "section_index": 0,
+          "axis": "contact_style",
+          "target": 0.7,
+          "achieved": 0.5966694660118416,
+          "error": 0.10333053398815839
+        },
+        {
+          "section_index": 1,
+          "axis": "air",
+          "target": 0.25,
+          "achieved": 0.7204968944099379,
+          "error": 0.4704968944099379
+        },
+        {
+          "section_index": 1,
+          "axis": "speed",
+          "target": 0.65,
+          "achieved": 0.7576770540301491,
+          "error": 0.10767705403014904
+        },
+        {
+          "section_index": 1,
+          "axis": "grain",
+          "target": 0.65,
+          "achieved": 0.5168273931247415,
+          "error": 0.13317260687525856
+        },
+        {
+          "section_index": 1,
+          "axis": "contact_style",
+          "target": 0.25,
+          "achieved": 0.48212388607591233,
+          "error": 0.23212388607591233
+        },
+        {
+          "section_index": 2,
+          "axis": "air",
+          "target": 0.55,
+          "achieved": 0.8012422360248447,
+          "error": 0.25124223602484463
+        },
+        {
+          "section_index": 2,
+          "axis": "speed",
+          "target": 0.45,
+          "achieved": 0.7796680942224664,
+          "error": 0.3296680942224664
+        },
+        {
+          "section_index": 2,
+          "axis": "grain",
+          "target": 0.2,
+          "achieved": 0.25545845048701316,
+          "error": 0.055458450487013145
+        },
+        {
+          "section_index": 2,
+          "axis": "contact_style",
+          "target": 0.75,
+          "achieved": 0.7798038230890016,
+          "error": 0.029803823089001646
+        },
+        {
+          "section_index": 3,
+          "axis": "air",
+          "target": 0.8,
+          "achieved": 0.7888198757763976,
+          "error": 0.011180124223602483
+        },
+        {
+          "section_index": 3,
+          "axis": "speed",
+          "target": 0.7,
+          "achieved": 0.6179522418339097,
+          "error": 0.08204775816609022
+        },
+        {
+          "section_index": 3,
+          "axis": "grain",
+          "target": 0.35,
+          "achieved": 0.3431075987151946,
+          "error": 0.006892401284805394
+        },
+        {
+          "section_index": 3,
+          "axis": "contact_style",
+          "target": 0.35,
+          "achieved": 0,
+          "error": 0.35
+        }
+      ],
+      "worst_contacts": [],
+      "off_beat_frames": []
+    }
+  ]
+}

@@ -79,6 +79,10 @@ const DENSE_NEAR_MAX_SPEED_BUDGET = 17;
 const DENSE_HIGH_GRIP_BUDGET = 20;
 const DENSE_SKIP_BUDGET = 15;
 const DENSE_FLAT_EXTREME_AIR_BUDGET = 17;
+const PREROLL_PREFIX_STARTS = 6;
+const PREROLL_PREFIX_MAX_GAPS = 4;
+const PREROLL_PREFIX_EXTRA_FRAMES = FPS;
+const PREROLL_PREFIX_ROBUSTNESS_WEIGHT = 0.03;
 
 export type CompileResult = {
   track: TrackJson;
@@ -2387,17 +2391,33 @@ function choosePrerollStart(spec: Spec, seed: number): NonNullable<Spec["start"]
     return fallback;
   }
 
-  const firstGap: Gap = {
-    index: 0,
-    startFrame: 0,
-    endFrame: firstContactFrame,
-    endsWithContact: true,
-    targets: sampleGapTargets(firstAxes, CALIB.SIGMA, makeRng(seed)),
-  };
+  const sampledGaps = sliceTimeline(contactFrames, durationFrames);
+  const targetRng = makeRng(seed);
+  for (const gap of sampledGaps) {
+    gap.targets = sampleGapTargets(effectiveAxes(gap, spec), CALIB.SIGMA, targetRng);
+  }
+  const firstGap = sampledGaps[0];
+  if (firstGap === undefined || !firstGap.endsWithContact) return fallback;
+  const prefixGapCount = prerollPrefixGapCount(spec, sampledGaps);
+  const prefixWeight = prerollPrefixWeight(firstAxes, sampledGaps, prefixGapCount);
 
   let best = fallback;
   let bestCost = Infinity;
   let bestSurvivors = 0;
+  const debugPrefixScores: {
+    vx: number;
+    vy: number;
+    firstCost: number;
+    prefixCost: number;
+    robustnessCost: number;
+    cost: number;
+    survivors: number;
+  }[] = [];
+  const scoredStarts: {
+    start: NonNullable<Spec["start"]>;
+    firstCost: number;
+    survivors: number;
+  }[] = [];
 
   for (const start of prerollStartCandidates(firstAxes)) {
     const startState = resolveStartState({ ...spec, start });
@@ -2410,21 +2430,58 @@ function choosePrerollStart(spec: Spec, seed: number): NonNullable<Spec["start"]
       contactFrames,
       durationFrames,
     );
-    const cost = prerollStartCost(baseEngine, firstGap, candidates, start);
-    if (cost + 1e-9 < bestCost) {
-      best = start;
-      bestCost = cost;
-      bestSurvivors = candidates.length;
+    const firstCost = prerollStartCost(baseEngine, firstGap, candidates, start);
+    scoredStarts.push({ start, firstCost, survivors: candidates.length });
+  }
+
+  scoredStarts.sort((a, b) => a.firstCost - b.firstCost);
+
+  if (prefixWeight > 0) {
+    const prefixStarts = scoredStarts.slice(0, PREROLL_PREFIX_STARTS);
+    const maxSurvivors = Math.max(1, ...prefixStarts.map((scored) => scored.survivors));
+    for (const scored of prefixStarts) {
+      const prefixCost = prerollPrefixStartCost(
+        spec, seed, scored.start, sampledGaps, contactFrames, durationFrames, prefixGapCount,
+      );
+      const robustnessCost = PREROLL_PREFIX_ROBUSTNESS_WEIGHT
+        * (1 - scored.survivors / maxSurvivors);
+      const cost = scored.firstCost + prefixWeight * (prefixCost + robustnessCost);
+      if (process.env.V0_DEBUG_PREROLL === "1") {
+        debugPrefixScores.push({
+          vx: Number(scored.start.vx.toFixed(3)),
+          vy: Number(scored.start.vy.toFixed(3)),
+          firstCost: Number(scored.firstCost.toFixed(4)),
+          prefixCost: Number(prefixCost.toFixed(4)),
+          robustnessCost: Number(robustnessCost.toFixed(4)),
+          cost: Number(cost.toFixed(4)),
+          survivors: scored.survivors,
+        });
+      }
+      if (cost + 1e-9 < bestCost) {
+        best = scored.start;
+        bestCost = cost;
+        bestSurvivors = scored.survivors;
+      }
+    }
+  } else {
+    const scored = scoredStarts[0];
+    if (scored !== undefined) {
+      best = scored.start;
+      bestCost = scored.firstCost;
+      bestSurvivors = scored.survivors;
     }
   }
 
   if (process.env.V0_DEBUG_PREROLL === "1") {
     console.error("preroll-start", {
       firstContactFrame,
+      prefixGapCount: prefixWeight > 0 ? prefixGapCount : 0,
+      prefixWeight: Number(prefixWeight.toFixed(3)),
       vx: Number(best.vx.toFixed(3)),
       vy: Number(best.vy.toFixed(3)),
       cost: Number(bestCost.toFixed(4)),
       survivors: bestSurvivors,
+      prefixScores: debugPrefixScores,
     });
   }
 
@@ -2470,6 +2527,172 @@ function prerollStartCost(
     ? 0
     : Math.pow(firstGap.targets.air - 1, 2);
   return 1000 + speedCost + airCost + speedPenalty;
+}
+
+function prerollPrefixGapCount(spec: Spec, gaps: Gap[]): number {
+  const firstSectionEnd = firstSectionEndFrame(spec);
+  const targetFrame = Math.min(
+    secToFrame(spec.duration),
+    firstSectionEnd + PREROLL_PREFIX_EXTRA_FRAMES,
+  );
+  let count = 0;
+  for (const gap of gaps) {
+    if (!gap.endsWithContact || gap.endFrame > targetFrame) break;
+    count++;
+    if (count >= PREROLL_PREFIX_MAX_GAPS) break;
+  }
+  return Math.max(1, count);
+}
+
+function firstSectionEndFrame(spec: Spec): number {
+  const activeAtZero = spec.sections
+    .filter((sec) => sec.t0 <= 0 && sec.t1 > 0)
+    .sort((a, b) => a.t1 - b.t1)[0];
+  if (activeAtZero !== undefined) return secToFrame(activeAtZero.t1);
+  const first = [...spec.sections].sort((a, b) => a.t0 - b.t0)[0];
+  return first !== undefined ? secToFrame(first.t1) : secToFrame(spec.duration);
+}
+
+function prerollPrefixWeight(
+  firstAxes: SectionAxes,
+  gaps: Gap[],
+  prefixGapCount: number,
+): number {
+  if (prefixGapCount <= 1) return 0;
+  const openingSpeed = firstAxes.speed ?? 0;
+  const openingAir = firstAxes.air ?? 0.5;
+  const openingContact = firstAxes.contact_style ?? 0.5;
+  const firstGap = gaps[0];
+  const secondGap = gaps[1];
+  if (firstGap === undefined || secondGap === undefined) return 0;
+
+  const firstDelayS = firstGap.endFrame / FPS;
+  const secondIntervalS = (secondGap.endFrame - firstGap.endFrame) / FPS;
+  const speedPressure = smoothstep(0.55, 0.95, openingSpeed);
+  const airPressure = smoothstep(0.45, 0.85, openingAir);
+  const shortContactPressure = 1 - smoothstep(0.25, 0.7, openingContact);
+  const earlyBeatPressure = 1 - smoothstep(0.75, 2, firstDelayS);
+  const denseBeatPressure = 1 - smoothstep(0.25, 0.75, secondIntervalS);
+
+  // The first catch remains the anchor of the initial-condition search; the
+  // prefix only adds influence when the opening asks for fast airy skips on a
+  // dense beat pattern, where first-contact feasibility underconstrains the
+  // desired state at t=0.
+  return 0.65
+    * speedPressure
+    * airPressure
+    * shortContactPressure
+    * earlyBeatPressure
+    * denseBeatPressure;
+}
+
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  if (edge0 === edge1) return x < edge0 ? 0 : 1;
+  const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+function prerollPrefixStartCost(
+  spec: Spec,
+  seed: number,
+  start: NonNullable<Spec["start"]>,
+  gaps: Gap[],
+  contactFrames: number[],
+  durationFrames: number,
+  prefixGapCount: number,
+): number {
+  const startState = resolveStartState({ ...spec, start });
+  let engine = makeBaseEngine(startState);
+  let nextLineId = 1;
+  const rng = makeRng((seed | 0) * 1000003 + 1);
+  const prefixFits: GapFit[] = [];
+  let totalGapCost = 0;
+
+  for (let i = 0; i < prefixGapCount; i++) {
+    const gap = gaps[i];
+    if (gap === undefined || !gap.endsWithContact) break;
+    const candidates = generateRankedCandidates(
+      engine, gap, rng, nextLineId, contactFrames, durationFrames,
+    );
+    const fit = candidates[0];
+    if (fit === undefined) {
+      break;
+    }
+    prefixFits.push(fit);
+    totalGapCost += fit.cost;
+    for (const line of fit.lines) engine = engine.addLine(engineLineFromTrackLine(line));
+    nextLineId += fit.lines.length;
+  }
+
+  if (prefixFits.length === 0) return 2;
+  const prefixEndFrame = gaps[prefixFits.length - 1].endFrame;
+  const det = detect(extractRawTrajectory(engine, prefixEndFrame + 20));
+  const prefixContacts = contactFrames.filter((frame) => frame <= prefixEndFrame);
+  let syncPenalty = 0;
+  for (const frame of prefixContacts) {
+    const hit = det.events.some(
+      (event) => event.type === "landing" && Math.abs(event.frame - frame) <= 1,
+    );
+    if (!hit) syncPenalty += 1;
+  }
+  syncPenalty += countOffBeatLandings(det.events, 0, prefixEndFrame, prefixContacts);
+  if (det.terminus.frame < prefixEndFrame && det.terminus.reason !== "endOfSpec") {
+    syncPenalty += 1;
+  }
+  const completion = prefixFits.length / prefixGapCount;
+  const completionPenalty = 1 - completion;
+  const normalizedSyncPenalty = syncPenalty / Math.max(1, prefixGapCount);
+
+  return totalGapCost / prefixFits.length
+    + prerollPrefixAxisCost(det, spec, gaps, prefixFits, prefixEndFrame)
+    + completionPenalty
+    + normalizedSyncPenalty;
+}
+
+function prerollPrefixAxisCost(
+  det: Detection,
+  spec: Spec,
+  gaps: Gap[],
+  fits: GapFit[],
+  prefixEndFrame: number,
+): number {
+  let weightedCost = 0;
+  let totalFrames = 0;
+  for (const sec of spec.sections) {
+    const f0 = Math.max(0, secToFrame(sec.t0));
+    const f1 = Math.min(prefixEndFrame, secToFrame(sec.t1));
+    if (f1 <= f0) continue;
+
+    const achieved: SectionAxes = {};
+    if (sec.air !== undefined) {
+      const air = measureAxisOverRange(det, f0, f1, "air");
+      if (air !== null) achieved.air = air;
+    }
+    if (sec.speed !== undefined) {
+      const speed = measureAxisOverRange(det, f0, f1, "speed");
+      if (speed !== null) achieved.speed = speed;
+    }
+    for (const key of ["grain", "contact_style"] as const) {
+      if (sec[key] === undefined) continue;
+      const vals: number[] = [];
+      for (let i = 0; i < fits.length; i++) {
+        const gap = gaps[i];
+        const fit = fits[i];
+        if (gap === undefined || fit === undefined) continue;
+        if (gap.endFrame >= f0 && gap.endFrame <= f1 && fit.achieved[key] !== undefined) {
+          vals.push(fit.achieved[key]);
+        }
+      }
+      if (vals.length > 0) {
+        achieved[key] = vals.reduce((sum, v) => sum + v, 0) / vals.length;
+      }
+    }
+
+    const frames = f1 - f0 + 1;
+    weightedCost += frames * axisCost(sec, achieved);
+    totalFrames += frames;
+  }
+  return totalFrames > 0 ? weightedCost / totalFrames : 0;
 }
 
 function prerollStartCandidates(firstAxes: SectionAxes): NonNullable<Spec["start"]>[] {

@@ -14,3 +14,5 @@ npx tsx scripts/v0/golden.ts --json
   of concept.
 - `dense-low-air-lookahead-43658.json` records expanded dense lookahead for
   low-air/moderate-speed sections.
+- `prefix-preroll-46267.json` records continuous opening-prefix scoring for
+  hot-start pre-roll initial velocity selection.

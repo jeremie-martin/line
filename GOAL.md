@@ -88,6 +88,30 @@ High-leverage areas:
   is that uniform widening breaks high-speed sections, so conditioning on
   the gap's targets is the path forward.
 
+## Optimizer Design Discipline
+
+Do not overfit the compiler to the benchmark suite. Avoid logic that detects
+specific specs, whole-spec narratives, seed quirks, branch artifacts, or named
+golden scenarios. A compiler change should be explainable from local physical
+state and authored intent: current gap duration, nearby Contact spacing,
+sampled axis targets, rider state, candidate survival, measured axis error,
+or other data that would make sense for unseen specs too.
+
+Prefer smooth scoring and continuous influence over arbitrary threshold gates.
+When a signal should matter more in one regime than another, use a simple
+continuous shape such as linear interpolation, smoothstep, a Gaussian-like
+falloff, or a normalized cost term. Hard thresholds are still appropriate for
+true contract boundaries and finite search budgets, for example "must hit the
+Contact within ±1 frame", "do not exceed the 45s cap", or "score only the top
+N candidates for runtime". They should not be used as unexplained tuning
+switches like "if this axis is above X, replace behavior with Y".
+
+Every optimizer heuristic should have an explicit purpose. Before adding one,
+state what failure mode it addresses, what physical or authoring signal
+activates it, why the chosen scale is reasonable, and how it avoids making
+unrelated specs worse. If the best explanation is "it improves this golden
+row", the change is not ready.
+
 Do **not** change semantic constants — anything that defines how the world
 looks or behaves physically. The goal is to improve the optimizer, not to
 change what good tracks look like. If a target is unreachable inside the

@@ -17,6 +17,16 @@ easy to justify from local state and authored intent.
   Scale: existing `CALIB.K` capped by a fixed dense minimum. Risk control:
   sparse specs still use full `CALIB.K`.
 
+- Short-gap adaptive budget: dense gaps of 0.3s or shorter may continue past
+  the dense minimum until they have two validated survivors, bounded by
+  `CALIB.K`. Purpose: avoid hard-gate zeros when very short contact spacing
+  makes the first survivor brittle. Signal: local gap duration and candidate
+  survivor count. Scale: existing candidate budget, no wall-clock input. Seed 0
+  improved from `GOAL_SCORE 241.28 valid 7/8` to `542.80 valid 8/8`, primarily
+  by turning `opening_burst` from one missed contact into a valid row. Full
+  suite improved from `GOAL_SCORE 220.03 valid 22/24` to `372.53 valid 24/24`;
+  `opening_burst` improved from `7.66 valid 1/3` to `596.62 valid 3/3`.
+
 - Regime-free air lookahead: candidate measurement looks through the next
   contact when air is targeted and the post-contact window is large enough to
   matter. Purpose: rank catches by the air/contact balance they actually create

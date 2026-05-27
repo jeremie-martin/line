@@ -74,11 +74,7 @@ const SPEED_POLISH_Y_SHIFTS = [-1] as const;
 const SPEED_POLISH_X_SHIFT_PASSES = [[4], [1], [0.5]] as const;
 const SPEED_POLISH_BOUNDARY_PASSES = 2;
 const SPEED_POLISH_ROTATIONS = [-4] as const;
-const DENSE_CONTACT_CANDIDATE_BUDGET = 16;
-const DENSE_NEAR_MAX_SPEED_BUDGET = 17;
-const DENSE_HIGH_GRIP_BUDGET = 20;
-const DENSE_SKIP_BUDGET = 15;
-const DENSE_FLAT_EXTREME_AIR_BUDGET = 17;
+const MIN_CANDIDATE_ATTEMPTS = 16;
 const PREROLL_PREFIX_STARTS = 6;
 const PREROLL_PREFIX_MAX_GAPS = 4;
 const PREROLL_PREFIX_EXTRA_FRAMES = FPS;
@@ -103,13 +99,6 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
   const denseContactSequence = isDenseContactSequence(contactFrames, durationFrames);
   const denseNeedsExtraBacktracking = denseContactSequence
     && spec.sections.some((sec) => sec.grain !== undefined);
-  const denseSpeedOnly = denseContactSequence
-    && spec.sections.some((sec) => sec.speed !== undefined)
-    && spec.sections.every((sec) =>
-      sec.air === undefined
-      && sec.grain === undefined
-      && sec.contact_style === undefined
-    );
 
   // 1 + 2. Slice and target-sample.
   const gaps = sliceTimeline(contactFrames, durationFrames);
@@ -343,7 +332,7 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
   // Identify the owning gap (via line-id membership in committed fits),
   // advance that gap past its current candidate, and re-enter the compile
   // loop from there. Bounded by CALIB.FINAL_VALIDATION_RETRIES.
-  const finalValidationRetries = denseSpeedOnly ? 1 : CALIB.FINAL_VALIDATION_RETRIES;
+  const finalValidationRetries = CALIB.FINAL_VALIDATION_RETRIES;
   for (let retry = 0; retry < finalValidationRetries; retry++) {
     const eng = engineUpTo(gaps.length);
     const raw = extractRawTrajectory(eng, durationFrames + 20);
@@ -2912,67 +2901,16 @@ function generateRankedCandidates(
 }
 
 function candidateBudgetForGap(
-  gap: Gap,
+  _gap: Gap,
   contactFrames: number[],
   durationFrames: number,
 ): number {
   if (!isDenseContactSequence(contactFrames, durationFrames)) return CALIB.K;
-  if (isNearMaxCoupledTarget(gap.targets)) {
-    return Math.min(CALIB.K, DENSE_NEAR_MAX_SPEED_BUDGET);
-  }
-  if (isHighGripTarget(gap.targets)) {
-    return Math.min(CALIB.K, DENSE_HIGH_GRIP_BUDGET);
-  }
-  if (isSkipTarget(gap.targets)) {
-    return Math.min(CALIB.K, DENSE_SKIP_BUDGET);
-  }
-  if (isFlatExtremeAirTarget(gap.targets)) {
-    return Math.min(CALIB.K, DENSE_FLAT_EXTREME_AIR_BUDGET);
-  }
-  return Math.min(CALIB.K, DENSE_CONTACT_CANDIDATE_BUDGET);
-}
-
-function isNearMaxCoupledTarget(targets: SectionAxes): boolean {
-  return (targets.speed ?? 0) >= 0.9
-    && (targets.grain ?? 0) >= 0.78
-    && (targets.contact_style ?? 0) >= 0.82;
-}
-
-function isHighGripTarget(targets: SectionAxes): boolean {
-  return (targets.speed ?? 0) >= 0.72
-    && (targets.speed ?? 0) <= 0.88
-    && (targets.grain ?? 0) >= 0.68
-    && (targets.contact_style ?? 0) >= 0.68;
-}
-
-function isSkipTarget(targets: SectionAxes): boolean {
-  return (targets.speed ?? 0) >= 0.72
-    && (targets.speed ?? 0) <= 0.88
-    && (targets.grain ?? 1) <= 0.35
-    && (targets.contact_style ?? 1) <= 0.32;
-}
-
-function isFlatExtremeAirTarget(targets: SectionAxes): boolean {
-  const air = targets.air;
-  return air !== undefined
-    && (air <= 0.25 || air >= 0.75)
-    && (targets.speed ?? 0) >= 0.45
-    && (targets.speed ?? 1) <= 0.65
-    && (targets.grain ?? 0) >= 0.35
-    && (targets.grain ?? 1) <= 0.55
-    && (targets.contact_style ?? 0) >= 0.35
-    && (targets.contact_style ?? 1) <= 0.55;
+  return Math.min(CALIB.K, MIN_CANDIDATE_ATTEMPTS);
 }
 
 function isDenseContactSequence(contactFrames: number[], durationFrames: number): boolean {
   return contactFrames.length * FPS > durationFrames;
-}
-
-function isVeryFastHighAirGrainTarget(targets: SectionAxes): boolean {
-  return (targets.air ?? 0) >= 0.75
-    && (targets.speed ?? 0) >= 0.85
-    && (targets.grain ?? 0) >= 0.7
-    && (targets.contact_style ?? 0) >= 0.7;
 }
 
 type TargetState = {
@@ -3049,7 +2987,7 @@ function sampleArcParams(
   // likely to hit the grain target. Sprinkle some uniform sampling for variety.
   const segRoll = rng();
   let segments: number;
-  if (targets.grain !== undefined && (segRoll < 0.7 || isVeryFastHighAirGrainTarget(targets))) {
+  if (targets.grain !== undefined && segRoll < 0.7) {
     // grain = median(line_length) / LINE_LENGTH_CAP. Solve for segment count.
     // Add a small ±1 jitter so we don't collapse to one shape.
     const targetSegLen = Math.max(3, targets.grain * CALIB.LINE_LENGTH_CAP);
@@ -3213,37 +3151,15 @@ function rideOutSources(lines: TrackLine[]): TrackLine[] {
 }
 
 function axisLookaheadEndFrame(gap: Gap, allContactFrames: number[]): number {
-  if (
-    gap.endFrame - gap.startFrame < 60
-    && shouldUseDenseAirLookahead(gap.targets)
-  ) {
-    return allContactFrames.find((cf) => cf > gap.endFrame) ?? gap.endFrame;
-  }
+  if (gap.targets.air === undefined) return gap.endFrame;
+  const nextContact = allContactFrames.find((cf) => cf > gap.endFrame) ?? gap.endFrame;
+  const postContactFrames = nextContact - gap.endFrame;
   // For long airborne gaps, the catch at gap.endFrame determines most of the
   // air/contact balance after the beat, not before it. Score those candidates
   // through the next beat so ranking can prefer a catch that keeps riding.
-  if (gap.endFrame - gap.startFrame < 60) return gap.endFrame;
-  return allContactFrames.find((cf) => cf > gap.endFrame) ?? gap.endFrame;
-}
-
-function shouldUseDenseAirLookahead(targets: SectionAxes): boolean {
-  const air = targets.air;
-  const speed = targets.speed;
-  if (
-    air === undefined
-    || (
-      air > 0.3
-      && !(air <= 0.4 && (speed ?? 0) >= 0.55)
-      && air < 0.7
-    )
-  ) {
-    return false;
-  }
-  const grain = targets.grain;
-  const contact = targets.contact_style;
-  return speed !== undefined && speed >= 0.4 && speed <= 0.75
-    && grain !== undefined && grain >= 0.18 && grain <= 0.7
-    && contact !== undefined && contact >= 0.1 && contact <= 0.8;
+  if (gap.endFrame - gap.startFrame >= 60) return nextContact;
+  if (postContactFrames > Math.floor(FPS / 2)) return nextContact;
+  return gap.endFrame;
 }
 
 // ─────────── Bisection: adjust anchor Y so the landing fires AT gap.endFrame ───────────
@@ -3414,23 +3330,16 @@ function median(xs: number[]): number {
 }
 
 function axisCost(target: SectionAxes, achieved: SectionAxes): number {
-  // Weighted L2 cost. For single-axis targets the weight does not change
-  // ordering. For multi-axis targets, air needs extra pull because a good
-  // speed/grain fit can otherwise win while spending too much time sliding.
+  // Equal-axis L2 cost. The suite scores axes equally; keeping the local
+  // optimizer equal-weighted avoids region-specific ranking bias while
+  // preserving a smooth gradient for nearby candidate choices.
   let cost = 0;
   for (const key of ["air", "speed", "contact_style", "grain"] as const) {
     const t = target[key];
     const a = achieved[key];
     if (t !== undefined && a !== undefined) {
       const d = t - a;
-      const nearMaxCoupled = isNearMaxCoupledTarget(target);
-      const weight =
-        key === "air" && t <= 0.35 && (target.speed ?? 0) >= 0.4 ? 6
-        : key === "air" ? 4
-        : key === "speed" && nearMaxCoupled ? 2
-        : key === "grain" && nearMaxCoupled ? 3
-        : 1;
-      cost += weight * d * d;
+      cost += d * d;
     }
   }
   return cost;
@@ -3574,21 +3483,27 @@ function buildDriftReport(
       if (av !== null) achieved[k] = { target: t, achieved: av, error: Math.abs(t - av) };
     }
 
-    // grain, contact_style: aggregate the per-gap achieved values across
-    // gaps in this section. Per-gap measurement is more reliable than a
-    // pure final-sim pass for these — grain is a property of the placed
-    // geometry, and contact_style is naturally per-contact.
-    for (const k of ["grain", "contact_style"] as const) {
-      const t = sec[k];
-      if (t === undefined) continue;
+    if (sec.grain !== undefined) {
+      const vals = fitsInSection.map(measureFitGrain);
+      if (vals.length > 0) {
+        const m = vals.reduce((a, b) => a + b, 0) / vals.length;
+        achieved.grain = { target: sec.grain, achieved: m, error: Math.abs(sec.grain - m) };
+      }
+    }
+
+    if (sec.contact_style !== undefined) {
       const vals: number[] = [];
       for (const f of fitsInSection) {
-        const v = f.achieved[k];
+        const v = f.achieved.contact_style;
         if (v !== undefined) vals.push(v);
       }
       if (vals.length > 0) {
         const m = vals.reduce((a, b) => a + b, 0) / vals.length;
-        achieved[k] = { target: t, achieved: m, error: Math.abs(t - m) };
+        achieved.contact_style = {
+          target: sec.contact_style,
+          achieved: m,
+          error: Math.abs(sec.contact_style - m),
+        };
       }
     }
 

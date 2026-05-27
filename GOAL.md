@@ -10,6 +10,18 @@ Each spec is 30 s against `beats/drums_0_30s_60_125.json`. Together they
 exercise axis-isolation contrast, single-axis oscillation, and graduated
 multi-axis coupling — distinct failure modes the compiler must handle.
 
+## Run
+
+```
+npm run golden              # human-readable: per-spec + GOAL_SCORE line
+npm run golden -- --json    # same data, JSON, for scripted comparisons
+npm run golden -- --seed=42 # alternative seed (default 0)
+```
+
+Runs all three specs sequentially with a 45s hard cap per spec (worker-
+thread enforced; over-budget runs score 0). Implementation in
+`scripts/v0/golden.ts`; scoring shared with `scripts/v0/score.ts`.
+
 ## Score
 
 Per spec:

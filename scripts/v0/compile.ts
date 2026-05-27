@@ -2387,6 +2387,9 @@ function choosePrerollStart(spec: Spec, seed: number): NonNullable<Spec["start"]
 
   const durationFrames = secToFrame(spec.duration);
   const firstAxes = firstSectionAxes(spec);
+  if (firstAxes.speed === undefined && (firstAxes.air ?? 0.5) < 0.7) {
+    return fallback;
+  }
   if ((firstAxes.speed ?? 0.45) <= 0.45 && (firstAxes.air ?? 0.5) <= 0.35) {
     return fallback;
   }
@@ -2975,6 +2978,16 @@ function isVeryFastHighAirGrainTarget(targets: SectionAxes): boolean {
     && (targets.contact_style ?? 0) >= 0.7;
 }
 
+function shouldSampleGrainFirst(targets: SectionAxes): boolean {
+  // Direct line-scale sampling helps fast, low-contact catches where the rider
+  // clips a short portion of the arc. High-contact targets keep the legacy
+  // length-first sampler because they need enough ride surface after impact.
+  return targets.grain !== undefined
+    && targets.grain >= 0.45
+    && (targets.speed ?? 0) >= 0.65
+    && (targets.contact_style ?? 1) <= 0.4;
+}
+
 type TargetState = {
   sledX: number;
   sledY: number;
@@ -3043,13 +3056,22 @@ function sampleArcParams(
   // the predicted rider x at landing frame; anchor Y is a STARTING value that
   // will be bisected for Contact precision.
   const lengthRange = A.LENGTH_MAX - A.LENGTH_MIN;
-  const length = A.LENGTH_MIN + rng() * lengthRange;
-  // Segments. When `grain` is targeted, derive segment count directly from
-  // length / desired-median-line-length so the resulting arc is much more
-  // likely to hit the grain target. Sprinkle some uniform sampling for variety.
+  const lengthRoll = rng();
+  // Segments. For fast low-contact grain targets, derive segment count first
+  // from desired line scale; otherwise keep the legacy length-first sampler.
   const segRoll = rng();
+  let length = A.LENGTH_MIN + lengthRoll * lengthRange;
   let segments: number;
-  if (targets.grain !== undefined && (segRoll < 0.7 || isVeryFastHighAirGrainTarget(targets))) {
+  if (shouldSampleGrainFirst(targets) && (segRoll < 0.7 || isVeryFastHighAirGrainTarget(targets))) {
+    const targetSegLen = clamp(targets.grain * CALIB.LINE_LENGTH_CAP, 3, CALIB.LINE_LENGTH_CAP);
+    const feasibleMin = Math.max(A.SEGMENTS_MIN, Math.ceil(A.LENGTH_MIN / targetSegLen));
+    const feasibleMax = Math.min(A.SEGMENTS_MAX, Math.floor(A.LENGTH_MAX / targetSegLen));
+    const minSegments = feasibleMin <= feasibleMax ? feasibleMin : A.SEGMENTS_MIN;
+    const maxSegments = feasibleMin <= feasibleMax ? feasibleMax : A.SEGMENTS_MAX;
+    segments = minSegments + Math.floor(lengthRoll * (maxSegments - minSegments + 1));
+    const lengthJitter = 0.88 + rng() * 0.24;
+    length = clamp(targetSegLen * segments * lengthJitter, A.LENGTH_MIN, A.LENGTH_MAX);
+  } else if (targets.grain !== undefined && (segRoll < 0.7 || isVeryFastHighAirGrainTarget(targets))) {
     // grain = median(line_length) / LINE_LENGTH_CAP. Solve for segment count.
     // Add a small ±1 jitter so we don't collapse to one shape.
     const targetSegLen = Math.max(3, targets.grain * CALIB.LINE_LENGTH_CAP);

@@ -5,7 +5,7 @@ Golden benchmark snapshots for large compiler improvements.
 Each JSON file is generated with:
 
 ```sh
-npx tsx scripts/v0/golden.ts --json
+npm run golden -- --json-full
 ```
 
 - `baseline-7fb15b4.json` records the committed baseline before hot-start

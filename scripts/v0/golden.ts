@@ -1,57 +1,87 @@
 /**
- * v0 golden benchmark — single command, single source of truth for the
- * compiler contract score defined in GOAL.md.
+ * v0 golden benchmark — single source of truth for the compiler goal.
  *
  *   npm run golden
  *   npm run golden -- --json
- *   npm run golden -- --seed=42  # debug a single seed instead of default seeds
+ *   npm run golden -- --details
+ *   npm run golden -- --seed=42
+ *   npm run golden -- --variants
  *
- * Runs the reference specs in `specs/golden/` across fixed seeds with a 45s
- * hard cap per spec/seed (enforced via a worker thread; over-budget runs are
- * scored 0). Per-spec score and goal_score formula are from `score.ts` /
- * GOAL.md.
+ * Headline score: 8 hand-authored golden specs × fixed seeds [0,1,2].
+ * Optional variants are report-only robustness probes and are not included in
+ * GOAL_SCORE.
  */
 
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 import { fileURLToPath } from "node:url";
-import { resolve } from "node:path";
 
 import { compile } from "./compile.ts";
-import type { DriftReport, Spec } from "./types.ts";
+import type { DriftReport } from "./types.ts";
 import {
+  GOLDEN_SEEDS,
+  GOLDEN_SPECS,
+  PER_SPEC_SOFT_BUDGET_MS,
+  PER_SPEC_ZERO_SCORE_MS,
+  REPORT_VARIANTS,
+  WORKER_TIMEOUT_MS,
+  headlineCases,
+  loadGoldenSpec,
+  variantCases,
+  type SuiteCase,
+  type VariantName,
+} from "./golden_suite.ts";
+import {
+  AXIS_QUALITY_TOLERANCE,
   axisDetails,
-  scoreDriftReport,
+  scoreTimedDriftReport,
+  shiftedGeometricMean,
   worstContacts,
-  type V0ContractScore,
+  type V0TimedContractScore,
 } from "./score.ts";
 
-const GOLDEN_SPECS = [
-  "drums_signature",
-  "drums_pendulum",
-  "drums_crescendo",
-  "dense_sprint",
-  "syncopated_switchback",
-] as const;
-
-const PER_SPEC_BUDGET_MS = 45_000;
-const GOLDEN_SEEDS = [0, 1, 2] as const;
-
-type WorkerInput = { specName: string; seed: number };
-type WorkerOk = { kind: "ok"; specName: string; elapsed_ms: number; report: DriftReport };
-type WorkerErr = { kind: "error"; specName: string; elapsed_ms: number; message: string };
+type WorkerInput = SuiteCase & { seed: number };
+type WorkerOk = {
+  kind: "ok";
+  specName: string;
+  variant: VariantName;
+  elapsed_ms: number;
+  report: DriftReport;
+};
+type WorkerErr = {
+  kind: "error";
+  specName: string;
+  variant: VariantName;
+  elapsed_ms: number;
+  message: string;
+};
 type WorkerResult = WorkerOk | WorkerErr;
-type TimeoutResult = { kind: "timeout"; specName: string; elapsed_ms: number; message: string };
+type TimeoutResult = {
+  kind: "timeout";
+  specName: string;
+  variant: VariantName;
+  elapsed_ms: number;
+  message: string;
+};
 type RunResult = WorkerResult | TimeoutResult;
 
-type ScoredSpec = V0ContractScore & {
+type ScoredSpec = V0TimedContractScore & {
   name: string;
+  variant: VariantName;
   seed: number;
   status: "pass" | "fail" | "timeout" | "error";
-  elapsed_ms: number;
+  worker_timeout_ms: number;
   message: string | null;
   axes: ReturnType<typeof axisDetails>;
   worst_contacts: ReturnType<typeof worstContacts>;
   off_beat_frames: number[];
+};
+
+type GroupScore = {
+  name: string;
+  score: number;
+  passed: number;
+  total: number;
+  time_multiplier_mean: number;
 };
 
 function arg(name: string): string | null {
@@ -59,16 +89,14 @@ function arg(name: string): string | null {
   const found = process.argv.slice(2).find((a) => a.startsWith(prefix));
   return found ? found.slice(prefix.length) : null;
 }
-function has(name: string): boolean { return process.argv.includes(`--${name}`); }
 
-async function loadSpec(name: string): Promise<Spec> {
-  const mod = await import(resolve(`specs/golden/${name}.ts`));
-  return mod.default as Spec;
+function has(name: string): boolean {
+  return process.argv.includes(`--${name}`);
 }
 
-async function runWithTimeout(specName: string, seed: number, budgetMs: number): Promise<RunResult> {
+async function runWithTimeout(testCase: SuiteCase, seed: number): Promise<RunResult> {
   const workerPath = fileURLToPath(import.meta.url);
-  const input: WorkerInput = { specName, seed };
+  const input: WorkerInput = { ...testCase, seed };
   return await new Promise<RunResult>((resolvePromise, reject) => {
     const worker = new Worker(workerPath, { workerData: input, execArgv: process.execArgv });
     let settled = false;
@@ -76,8 +104,14 @@ async function runWithTimeout(specName: string, seed: number, budgetMs: number):
       if (settled) return;
       settled = true;
       worker.terminate().catch(() => {});
-      resolvePromise({ kind: "timeout", specName, elapsed_ms: budgetMs, message: `TIMEOUT after ${fmtMs(budgetMs)}` });
-    }, budgetMs);
+      resolvePromise({
+        kind: "timeout",
+        specName: testCase.specName,
+        variant: testCase.variant,
+        elapsed_ms: WORKER_TIMEOUT_MS,
+        message: `TIMEOUT after ${fmtMs(WORKER_TIMEOUT_MS)}`,
+      });
+    }, WORKER_TIMEOUT_MS);
     worker.on("message", (msg: WorkerResult) => {
       if (settled) return;
       settled = true;
@@ -95,7 +129,10 @@ async function runWithTimeout(specName: string, seed: number, budgetMs: number):
       settled = true;
       clearTimeout(timer);
       resolvePromise({
-        kind: "error", specName, elapsed_ms: 0,
+        kind: "error",
+        specName: testCase.specName,
+        variant: testCase.variant,
+        elapsed_ms: 0,
         message: code === 0 ? "worker exited without result" : `worker exited ${code}`,
       });
     });
@@ -107,52 +144,97 @@ async function runWorker(): Promise<void> {
   const input = workerData as WorkerInput;
   const t0 = Date.now();
   try {
-    const spec = await loadSpec(input.specName);
+    const spec = await loadGoldenSpec(input.specName, input.variant);
     const { report } = compile(spec, input.seed);
     parentPort.postMessage({
-      kind: "ok", specName: input.specName, elapsed_ms: Date.now() - t0, report,
+      kind: "ok",
+      specName: input.specName,
+      variant: input.variant,
+      elapsed_ms: Date.now() - t0,
+      report,
     } satisfies WorkerOk);
   } catch (error) {
     parentPort.postMessage({
-      kind: "error", specName: input.specName, elapsed_ms: Date.now() - t0,
+      kind: "error",
+      specName: input.specName,
+      variant: input.variant,
+      elapsed_ms: Date.now() - t0,
       message: String(error).slice(0, 200),
     } satisfies WorkerErr);
   }
 }
 
-function emptyScore(): V0ContractScore {
+function emptyScore(elapsedMs: number): V0TimedContractScore {
   return {
-    score: 0, passed: false, hard_failures: [],
-    contacts: 0, hits: 0, drift: 0, missing: 0, sync_score: 0,
-    off_beat_landings: 0, died: 0,
-    axis_count: 0, axis_error_total: 0, axis_error_mean: 0, axis_error_max: 0, axis_score: 0,
+    score: 0,
+    passed: false,
+    valid_contract: false,
+    hard_failures: [],
+    contacts: 0,
+    hits: 0,
+    drift: 0,
+    missing: 0,
+    sync_score: 0,
+    off_beat_landings: 0,
+    died: 0,
+    axis_count: 0,
+    axis_error_total: 0,
+    axis_error_mean: 0,
+    axis_error_max: 0,
+    axis_loss: 0,
+    axis_quality: 0,
+    axis_score: 0,
+    score_without_time: 0,
+    time_multiplier: 0,
+    elapsed_ms: elapsedMs,
+    soft_ms: PER_SPEC_SOFT_BUDGET_MS,
+    hard_ms: PER_SPEC_ZERO_SCORE_MS,
   };
 }
 
 function scoreResult(result: RunResult, seed: number): ScoredSpec {
   if (result.kind === "timeout") {
     return {
-      ...emptyScore(), hard_failures: ["timeout"],
-      name: result.specName, seed, status: "timeout",
-      elapsed_ms: result.elapsed_ms, message: result.message,
-      axes: [], worst_contacts: [], off_beat_frames: [],
+      ...emptyScore(result.elapsed_ms),
+      hard_failures: ["timeout"],
+      name: result.specName,
+      variant: result.variant,
+      seed,
+      status: "timeout",
+      worker_timeout_ms: WORKER_TIMEOUT_MS,
+      message: result.message,
+      axes: [],
+      worst_contacts: [],
+      off_beat_frames: [],
     };
   }
   if (result.kind === "error") {
     return {
-      ...emptyScore(), hard_failures: ["error"],
-      name: result.specName, seed, status: "error",
-      elapsed_ms: result.elapsed_ms, message: result.message,
-      axes: [], worst_contacts: [], off_beat_frames: [],
+      ...emptyScore(result.elapsed_ms),
+      hard_failures: ["error"],
+      name: result.specName,
+      variant: result.variant,
+      seed,
+      status: "error",
+      worker_timeout_ms: WORKER_TIMEOUT_MS,
+      message: result.message,
+      axes: [],
+      worst_contacts: [],
+      off_beat_frames: [],
     };
   }
-  const score = scoreDriftReport(result.report);
+  const score = scoreTimedDriftReport(result.report, {
+    elapsed_ms: result.elapsed_ms,
+    soft_ms: PER_SPEC_SOFT_BUDGET_MS,
+    hard_ms: PER_SPEC_ZERO_SCORE_MS,
+  });
   return {
     ...score,
     name: result.specName,
+    variant: result.variant,
     seed,
     status: score.passed ? "pass" : "fail",
-    elapsed_ms: result.elapsed_ms,
+    worker_timeout_ms: WORKER_TIMEOUT_MS,
     message: score.hard_failures.length > 0 ? score.hard_failures.join(",") : null,
     axes: axisDetails(result.report),
     worst_contacts: worstContacts(result.report, 3),
@@ -160,12 +242,48 @@ function scoreResult(result: RunResult, seed: number): ScoredSpec {
   };
 }
 
-function fmtMs(ms: number): string { return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`; }
-function fmtPct(n: number): string { return `${(n * 100).toFixed(0)}%`; }
+function fmtMs(ms: number): string {
+  return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;
+}
+
+function fmtPct(n: number): string {
+  return `${(n * 100).toFixed(0)}%`;
+}
+
+function round(n: number, places = 2): number {
+  return Number(n.toFixed(places));
+}
+
+function caseLabel(row: Pick<ScoredSpec, "name" | "variant">): string {
+  return row.variant === "base" ? row.name : `${row.name}/${row.variant}`;
+}
+
+function mean(values: number[]): number {
+  return values.length === 0 ? 0 : values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function groupScores(rows: ScoredSpec[], keyOf: (row: ScoredSpec) => string): GroupScore[] {
+  const groups = new Map<string, ScoredSpec[]>();
+  for (const row of rows) {
+    const key = keyOf(row);
+    groups.set(key, [...(groups.get(key) ?? []), row]);
+  }
+  return [...groups.entries()].map(([name, groupRows]) => ({
+    name,
+    score: shiftedGeometricMean(groupRows.map((row) => row.score)),
+    passed: groupRows.filter((row) => row.status === "pass").length,
+    total: groupRows.length,
+    time_multiplier_mean: mean(groupRows.map((row) => row.time_multiplier)),
+  }));
+}
+
+function suiteScore(rows: ScoredSpec[], keyOf: (row: ScoredSpec) => string): number {
+  return shiftedGeometricMean(groupScores(rows, keyOf).map((group) => group.score));
+}
 
 function formatWorstAxes(axes: ScoredSpec["axes"]): string {
   if (axes.length === 0) return "";
-  const top = [...axes].sort((a, b) => b.error - a.error).slice(0, 4);
+  const top = [...axes].sort((a, b) => Math.abs(b.error) - Math.abs(a.error)).slice(0, 4);
   return top.map((a) => {
     const delta = a.achieved - a.target;
     const sign = delta >= 0 ? "+" : "";
@@ -182,89 +300,239 @@ function formatWorstContacts(spec: ScoredSpec): string | null {
   }).join("  ");
 }
 
+function printRow(row: ScoredSpec, details: boolean): void {
+  console.log(
+    `${caseLabel(row).padEnd(38)} ${row.status.toUpperCase().padEnd(7)} ` +
+      `score=${row.score.toFixed(0).padStart(4)}  ` +
+      `sync=${fmtPct(row.sync_score).padStart(4)} (${row.hits}/${row.contacts}, drift=${row.drift}, miss=${row.missing}, off=${row.off_beat_landings})  ` +
+      `axis=${fmtPct(row.axis_quality).padStart(4)} (loss=${row.axis_loss.toFixed(2)}, maxErr=${row.axis_error_max.toFixed(2)})  ` +
+      `time=${fmtMs(row.elapsed_ms)}/${fmtMs(row.hard_ms)} x${row.time_multiplier.toFixed(2)}`,
+  );
+  if (details || row.status !== "pass") {
+    const worstAxes = formatWorstAxes(row.axes);
+    if (worstAxes) console.log(`  worst axes:     ${worstAxes}`);
+    const worstC = formatWorstContacts(row);
+    if (worstC) console.log(`  worst contacts: ${worstC}`);
+    if (row.off_beat_frames.length > 0) {
+      console.log(`  off-beat:       frames ${row.off_beat_frames.join(", ")}`);
+    }
+    if (row.message) console.log(`  note:           ${row.message}`);
+  }
+}
+
+function printSummary(label: string, rows: ScoredSpec[], keyOf: (row: ScoredSpec) => string): void {
+  const score = suiteScore(rows, keyOf);
+  const passed = rows.filter((row) => row.status === "pass").length;
+  const timeouts = rows.filter((row) => row.status === "timeout").length;
+  const invalid = rows.filter((row) => row.status === "fail" || row.status === "error").length;
+  const groups = groupScores(rows, keyOf);
+
+  console.log(
+    `${label} ${score.toFixed(2)} · valid ${passed}/${rows.length} · ` +
+      `invalid ${invalid} · timeout ${timeouts} · mean time x${mean(rows.map((row) => row.time_multiplier)).toFixed(2)}`,
+  );
+  console.log("  spec scores:");
+  for (const group of groups) {
+    console.log(
+      `    ${group.name.padEnd(32)} ${group.score.toFixed(2).padStart(7)} ` +
+        `valid=${group.passed}/${group.total} time=x${group.time_multiplier_mean.toFixed(2)}`,
+    );
+  }
+
+  const worstRows = [...rows].sort((a, b) => a.score - b.score).slice(0, 5);
+  console.log("  worst rows:");
+  for (const row of worstRows) {
+    console.log(
+      `    ${caseLabel(row).padEnd(38)} seed=${row.seed} ${row.status.padEnd(7)} ` +
+        `score=${row.score.toFixed(2)} axis=${fmtPct(row.axis_quality)} time=x${row.time_multiplier.toFixed(2)}`,
+    );
+  }
+
+  const worstAxes = rows.flatMap((row) =>
+    row.axes.map((axis) => ({ row, axis })),
+  ).sort((a, b) => Math.abs(b.axis.error) - Math.abs(a.axis.error)).slice(0, 5);
+  if (worstAxes.length > 0) {
+    console.log("  worst axes:");
+    for (const { row, axis } of worstAxes) {
+      const delta = axis.achieved - axis.target;
+      const sign = delta >= 0 ? "+" : "";
+      console.log(
+        `    ${caseLabel(row).padEnd(38)} seed=${row.seed} ` +
+          `s${axis.section_index}.${axis.axis}=${axis.achieved.toFixed(2)}(${sign}${delta.toFixed(2)})`,
+      );
+    }
+  }
+}
+
+async function runRows(
+  cases: SuiteCase[],
+  seeds: number[],
+  jsonOnly: boolean,
+  details: boolean,
+  label: string,
+): Promise<ScoredSpec[]> {
+  const scored: ScoredSpec[] = [];
+  for (const seed of seeds) {
+    if (!jsonOnly) {
+      console.log(`${label} seed=${seed}`);
+    }
+    for (const testCase of cases) {
+      const result = await runWithTimeout(testCase, seed);
+      const row = scoreResult(result, seed);
+      scored.push(row);
+      if (!jsonOnly) printRow(row, details);
+    }
+    if (!jsonOnly) console.log("");
+  }
+  return scored;
+}
+
+function compactJsonRow(row: ScoredSpec): object {
+  return {
+    name: row.name,
+    variant: row.variant,
+    seed: row.seed,
+    status: row.status,
+    score: round(row.score),
+    passed: row.passed,
+    valid_contract: row.valid_contract,
+    hard_failures: row.hard_failures,
+    contacts: row.contacts,
+    hits: row.hits,
+    drift: row.drift,
+    missing: row.missing,
+    sync_score: round(row.sync_score, 4),
+    off_beat_landings: row.off_beat_landings,
+    died: row.died,
+    axis_count: row.axis_count,
+    axis_quality: round(row.axis_quality, 4),
+    axis_loss: round(row.axis_loss, 4),
+    axis_error_mean: round(row.axis_error_mean, 4),
+    axis_error_max: round(row.axis_error_max, 4),
+    score_without_time: round(row.score_without_time),
+    time_multiplier: round(row.time_multiplier, 4),
+    elapsed_ms: row.elapsed_ms,
+    soft_ms: row.soft_ms,
+    hard_ms: row.hard_ms,
+    message: row.message,
+    worst_contacts: row.worst_contacts,
+    off_beat_frames: row.off_beat_frames,
+  };
+}
+
+function detailedJsonRow(row: ScoredSpec): ScoredSpec {
+  return {
+    ...row,
+    score: round(row.score),
+    score_without_time: round(row.score_without_time),
+    sync_score: round(row.sync_score, 4),
+    axis_score: round(row.axis_score, 4),
+    axis_quality: round(row.axis_quality, 4),
+    axis_loss: round(row.axis_loss, 4),
+    axis_error_total: round(row.axis_error_total, 4),
+    axis_error_mean: round(row.axis_error_mean, 4),
+    axis_error_max: round(row.axis_error_max, 4),
+    time_multiplier: round(row.time_multiplier, 4),
+  };
+}
+
 async function runMain(): Promise<void> {
-  const jsonOnly = has("json");
+  const jsonOnly = has("json") || has("json-full");
+  const details = has("details") || has("json-full");
+  const includeVariants = has("variants");
   const rawSeed = arg("seed");
   const debugSeed = rawSeed !== null ? Math.trunc(Number(rawSeed)) : null;
   if (rawSeed !== null && !Number.isFinite(debugSeed)) {
     throw new Error(`--seed must be a number, got ${rawSeed}`);
   }
   const seeds = debugSeed !== null ? [debugSeed] : [...GOLDEN_SEEDS];
+  const headline = headlineCases();
+  const variants = variantCases();
 
   if (!jsonOnly) {
     console.log(
       `v0 golden benchmark · ${GOLDEN_SPECS.length} specs × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · ` +
-        `${fmtMs(PER_SPEC_BUDGET_MS)}/spec-seed hard cap · seeds=${seeds.join(",")}`,
+        `time soft ${fmtMs(PER_SPEC_SOFT_BUDGET_MS)}, zero ${fmtMs(PER_SPEC_ZERO_SCORE_MS)}, worker ${fmtMs(WORKER_TIMEOUT_MS)} · ` +
+        `seeds=${seeds.join(",")}`,
     );
     console.log("");
   }
 
-  const scored: ScoredSpec[] = [];
-  for (const seed of seeds) {
-    if (!jsonOnly) {
-      console.log(`seed=${seed}`);
-    }
-    for (const name of GOLDEN_SPECS) {
-      const result = await runWithTimeout(name, seed, PER_SPEC_BUDGET_MS);
-      const row = scoreResult(result, seed);
-      scored.push(row);
-
-      if (!jsonOnly) {
-        console.log(
-          `${row.name.padEnd(22)} ${row.status.toUpperCase().padEnd(7)} ` +
-            `score=${row.score.toFixed(0).padStart(4)}  ` +
-            `sync=${fmtPct(row.sync_score).padStart(4)} (${row.hits}/${row.contacts}, drift=${row.drift}, miss=${row.missing}, off=${row.off_beat_landings})  ` +
-            `axis=${fmtPct(row.axis_score).padStart(4)} (meanErr=${row.axis_error_mean.toFixed(2)}, maxErr=${row.axis_error_max.toFixed(2)})  ` +
-            `time=${fmtMs(row.elapsed_ms)}/${fmtMs(PER_SPEC_BUDGET_MS)}`,
-        );
-        const worstAxes = formatWorstAxes(row.axes);
-        if (worstAxes) console.log(`  worst axes:     ${worstAxes}`);
-        const worstC = formatWorstContacts(row);
-        if (worstC) console.log(`  worst contacts: ${worstC}`);
-        if (row.off_beat_frames.length > 0) {
-          console.log(`  off-beat:       frames ${row.off_beat_frames.join(", ")}`);
-        }
-        if (row.message) console.log(`  note:           ${row.message}`);
-        console.log("");
-      }
-    }
-  }
-
-  const goal_score = scored.reduce((s, r) => s + r.score, 0) / scored.length;
-  const passed = scored.filter((r) => r.status === "pass").length;
+  const scored = await runRows(headline, seeds, jsonOnly, details, "headline");
+  const specScores = groupScores(scored, (row) => row.name);
+  const goal_score = suiteScore(scored, (row) => row.name);
+  const passed = scored.filter((row) => row.status === "pass").length;
   const perSeed = seeds.map((seed) => {
     const rows = scored.filter((row) => row.seed === seed);
     return {
       seed,
-      goal_score: Number((rows.reduce((s, r) => s + r.score, 0) / rows.length).toFixed(2)),
+      goal_score: round(suiteScore(rows, (row) => row.name)),
       passed: rows.filter((row) => row.status === "pass").length,
       total: rows.length,
     };
   });
 
+  let variantRows: ScoredSpec[] = [];
+  let variantScores: GroupScore[] = [];
+  let variantReportScore = 0;
+  if (includeVariants) {
+    if (!jsonOnly) {
+      console.log("");
+      console.log("report-only variants");
+      console.log("");
+    }
+    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant");
+    variantScores = groupScores(variantRows, (row) => caseLabel(row));
+    variantReportScore = suiteScore(variantRows, (row) => caseLabel(row));
+  }
+
   if (jsonOnly) {
     process.stdout.write(JSON.stringify({
-      goal_score: Number(goal_score.toFixed(2)),
+      goal_score: round(goal_score),
+      scoring: {
+        axis_quality_tolerance: AXIS_QUALITY_TOLERANCE,
+        aggregation: "shifted_geometric_mean_by_spec",
+        json_detail: details ? "detailed" : "compact",
+        runtime: {
+          soft_ms: PER_SPEC_SOFT_BUDGET_MS,
+          zero_score_ms: PER_SPEC_ZERO_SCORE_MS,
+          worker_timeout_ms: WORKER_TIMEOUT_MS,
+        },
+      },
       seeds,
       seed_count: seeds.length,
       passed,
       total: scored.length,
-      budget_ms: PER_SPEC_BUDGET_MS,
-      per_seed: perSeed,
-      specs: scored.map((row) => ({
-        ...row,
-        score: Number(row.score.toFixed(2)),
-        sync_score: Number(row.sync_score.toFixed(4)),
-        axis_score: Number(row.axis_score.toFixed(4)),
-        axis_error_total: Number(row.axis_error_total.toFixed(4)),
-        axis_error_mean: Number(row.axis_error_mean.toFixed(4)),
-        axis_error_max: Number(row.axis_error_max.toFixed(4)),
+      spec_scores: specScores.map((group) => ({
+        ...group,
+        score: round(group.score),
+        time_multiplier_mean: round(group.time_multiplier_mean, 4),
       })),
+      per_seed: perSeed,
+      specs: scored.map(details ? detailedJsonRow : compactJsonRow),
+      variants: includeVariants
+        ? {
+            enabled: true,
+            report_score: round(variantReportScore),
+            variants: [...REPORT_VARIANTS],
+            case_scores: variantScores.map((group) => ({
+              ...group,
+              score: round(group.score),
+              time_multiplier_mean: round(group.time_multiplier_mean, 4),
+            })),
+            specs: variantRows.map(details ? detailedJsonRow : compactJsonRow),
+          }
+        : { enabled: false },
     }, null, 2) + "\n");
   } else {
-    console.log(`GOAL_SCORE ${goal_score.toFixed(2)} · passed ${passed}/${scored.length}`);
+    printSummary("GOAL_SCORE", scored, (row) => row.name);
     for (const seed of perSeed) {
-      console.log(`  seed=${seed.seed} score=${seed.goal_score.toFixed(2)} passed=${seed.passed}/${seed.total}`);
+      console.log(`  seed=${seed.seed} score=${seed.goal_score.toFixed(2)} valid=${seed.passed}/${seed.total}`);
+    }
+    if (includeVariants) {
+      console.log("");
+      printSummary("VARIANT_REPORT_SCORE", variantRows, (row) => caseLabel(row));
+      console.log("  variants are report-only and excluded from GOAL_SCORE");
     }
   }
 }

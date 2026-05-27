@@ -17,7 +17,7 @@
     "ride": "tsx scripts/ride.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "goal": "tsx scripts/goal_metric.ts",
+    "goal": "tsx scripts/v0/golden.ts",
     "golden": "tsx scripts/v0/golden.ts",
     "compose": "tsx scripts/compose.ts",
     "dash": "tsx scripts/serve.ts",

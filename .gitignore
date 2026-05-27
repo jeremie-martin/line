@@ -3,10 +3,17 @@ node_modules/
 # Derived/test artifacts — reproducible by running scripts/
 shakedown/
 generated/
+coverage/
+.cache/
+.vitest/
+playwright-report/
+test-results/
 bench/music/
 bench/v2/tracks/
 bench/v2/records.jsonl
 bench/v2/per_beat.csv
+benchmark-results/**/*.local.json
+benchmark-results/**/*.tmp.json
 
 # Large binaries — audio/video sources, archives, vendored repos
 *.webm
@@ -18,3 +25,4 @@ beats/adtof_repo/
 beats/stems/htdemucs/
 
 .DS_Store
+*.log

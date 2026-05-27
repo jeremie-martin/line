@@ -211,5 +211,5 @@ Produces a renderable Track and a populated DriftReport. Small enough to debug e
 
 ## Repo shape
 
-v0 lives in `scripts/v0/`. The active goal metric is `npm run goal`, which
-scores the v0 `DriftReport` contract.
+v0 lives in `scripts/v0/`. The active golden benchmark is `npm run golden`
+(`npm run goal` is an alias), which scores the v0 `DriftReport` contract.

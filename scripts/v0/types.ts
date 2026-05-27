@@ -16,6 +16,31 @@ export type Spec = {
   contacts: Contact[];
   /** Soft style blocks, may stack (last-declared wins per axis). */
   sections: Section[];
+  /**
+   * Optional rider initial state. Omitted ⇒ legacy default (0,0)+v=(0.4,0).
+   * Manual override only — use `preroll` instead if you want the compiler to
+   * bring the rider into a §0-compatible state before spec time t=0.
+   */
+  start?: StartState;
+  /**
+   * Optional pre-roll, seconds. When set, the compiler internally extends
+   * the timeline backward by this many seconds with a synthetic Section
+   * mirroring §0's axes and synthetic Contacts spaced ~0.5s. The rendered
+   * Track contains the pre-roll geometry as a visible lead-in; the
+   * DriftReport unshifts back to user coordinates so only the user-declared
+   * sections and contacts appear.
+   */
+  preroll?: number;
+};
+
+/** Manual override for rider initial state. px / px·frame⁻¹. */
+export type StartState = {
+  vx: number;
+  vy: number;
+  /** Default 0. */
+  x?: number;
+  /** Default 0. */
+  y?: number;
 };
 
 export type Contact = {
@@ -150,6 +175,30 @@ export const CALIB = {
     ANCHOR_Y_OFFSET_MIN: -4,
     ANCHOR_Y_OFFSET_MAX: 10,
   },
+} as const;
+
+/**
+ * Rider initial-state defaults. Matches the legacy hard-coded behavior;
+ * used when `Spec.start` is omitted. See `resolveStartState` in compile.ts.
+ */
+export const START_DEFAULTS = {
+  POSITION: { x: 0, y: 0 },
+  VELOCITY: { x: 0.4, y: 0 },
+  /** Sanity cap on |vx|, |vy|. px/frame. ~2.2× SPEED_CAP. */
+  VELOCITY_SANITY_CAP: 20,
+} as const;
+
+/**
+ * Pre-roll defaults. The synthetic pre-roll Section mirrors §0's axes; the
+ * synthetic contacts are spaced ~PREROLL.CONTACT_SPACING_S apart, starting
+ * at PREROLL.FIRST_CONTACT_S (the rider needs a beat of head-time before
+ * the first catch is feasible — see filteredContacts in specs/_drums.ts).
+ */
+export const PREROLL = {
+  FIRST_CONTACT_S: 0.5,
+  CONTACT_SPACING_S: 0.5,
+  /** Sanity cap on user-supplied preroll seconds. */
+  MAX_S: 10,
 } as const;
 
 /** Convert seconds → frame index. */

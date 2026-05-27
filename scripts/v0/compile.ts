@@ -41,8 +41,13 @@ import {
   type Spec, type Section, type SectionAxes,
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type SectionReport,
-  CALIB, FPS, secToFrame,
+  CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
 } from "./types.ts";
+
+type ResolvedStart = {
+  position: { x: number; y: number };
+  velocity: { x: number; y: number };
+};
 
 const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
 
@@ -76,9 +81,19 @@ export type CompileResult = {
   report: DriftReport;
 };
 
-export function compile(spec: Spec, seed = 0): CompileResult {
-  validateSpec(spec);
+export function compile(userSpec: Spec, seed = 0): CompileResult {
+  validateSpec(userSpec);
 
+  const prerollSec = userSpec.preroll ?? 0;
+  const spec: Spec = prerollSec > 0
+    ? extendSpecWithPreroll(userSpec, prerollSec)
+    : userSpec;
+  const prerollContactCount = prerollSec > 0
+    ? spec.contacts.length - userSpec.contacts.length
+    : 0;
+
+  const startState = resolveStartState(spec);
+  currentStartState = startState;
   const rng = makeRng(seed);
   const durationFrames = secToFrame(spec.duration);
   const contactFrames = [...spec.contacts]
@@ -115,7 +130,7 @@ export function compile(spec: Spec, seed = 0): CompileResult {
   // so invalidation is by fit index: changing fits[i] invalidates engines
   // with upTo > i.
   // deno-lint-ignore no-explicit-any
-  const prefixEngines: any[] = [new LineRiderEngine()];
+  const prefixEngines: any[] = [makeBaseEngine(startState)];
   const prefixNextLineIds: number[] = [1];
 
   const invalidatePrefixFromFit = (fitIndex: number) => {
@@ -381,10 +396,13 @@ export function compile(spec: Spec, seed = 0): CompileResult {
   const finalRaw = extractRawTrajectory(finalEngine, durationFrames + 20);
   const finalDet = detect(finalRaw);
 
-  const track = buildTrackJson(allLines, durationFrames + 20);
-  const report = buildDriftReport(
+  const track = buildTrackJson(allLines, durationFrames + 20, startState);
+  const extendedReport = buildDriftReport(
     finalDet, spec, gaps, contactFrames, durationFrames, gapFailures, fits,
   );
+  const report = prerollSec > 0
+    ? unshiftReport(extendedReport, prerollSec, prerollContactCount)
+    : extendedReport;
 
   return { track, report };
 }
@@ -2294,18 +2312,135 @@ function engineLineSignature(line: TrackLine): string {
  * Reconstruct the engine state up to (but not including) gap index `upTo`,
  * by replaying all committed gap fits in time order. O(N) per call; fine for
  * v0 spec sizes. Cache if it becomes a bottleneck.
+ *
+ * Initial rider state comes from `currentStartState`, which `compile()` sets
+ * for the duration of a single compile (see `resolveStartState`). Module-
+ * scoped because the polish helpers that call `rebuildEngine` are top-level
+ * and threading the state through every signature would be a large diff for
+ * no behavioral benefit.
  */
 function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
-  // deno-lint-ignore no-explicit-any
-  let eng: any = new LineRiderEngine();
+  const eng: any = makeBaseEngine(currentStartState);
+  let chained = eng;
   for (let j = 0; j < upTo; j++) {
     const fit = fits[j];
     if (fit === null) continue;
     for (const line of fit.lines) {
-      eng = eng.addLine(engineLineFromTrackLine(line));
+      chained = chained.addLine(engineLineFromTrackLine(line));
     }
   }
-  return eng;
+  return chained;
+}
+
+// Set by `compile()` at the start of every call. Read by `rebuildEngine`.
+// `compile()` is not reentrant (the engine instance pools already aren't),
+// so a single module-scoped slot is safe.
+let currentStartState: ResolvedStart = {
+  position: { ...START_DEFAULTS.POSITION },
+  velocity: { ...START_DEFAULTS.VELOCITY },
+};
+
+// deno-lint-ignore no-explicit-any
+function makeBaseEngine(start: ResolvedStart): any {
+  // lr-core engines are immutable; setStart returns a new instance.
+  return new LineRiderEngine().setStart(start.position, start.velocity);
+}
+
+function resolveStartState(spec: Spec): ResolvedStart {
+  if (spec.start === undefined) {
+    return {
+      position: { ...START_DEFAULTS.POSITION },
+      velocity: { ...START_DEFAULTS.VELOCITY },
+    };
+  }
+  return {
+    position: {
+      x: spec.start.x ?? START_DEFAULTS.POSITION.x,
+      y: spec.start.y ?? START_DEFAULTS.POSITION.y,
+    },
+    velocity: { x: spec.start.vx, y: spec.start.vy },
+  };
+}
+
+/**
+ * Build the internal "extended" spec for pre-roll compilation. Everything in
+ * `spec` is shifted forward by `prerollSec` seconds; a synthetic Section
+ * mirroring §0's axes covers [0, prerollSec]; synthetic Contacts are seeded
+ * across the pre-roll window so the per-gap compiler has hard sync targets
+ * to land on (and the "no off-beat landings" hard gate has anchors).
+ *
+ * The user's authoring vocabulary is untouched. The unshift at report time
+ * (see `unshiftReport`) brings everything back to user coordinates.
+ */
+function extendSpecWithPreroll(spec: Spec, prerollSec: number): Spec {
+  const sec0 = spec.sections.find((s) => s.t0 === 0);
+  // Mirror §0's axes into the pre-roll window. Without a §0, fall back to
+  // spec.defaults; without those either, the synthetic Section has no axis
+  // targets and the compiler treats the warmup as unconstrained.
+  const prerollAxes: SectionAxes = { ...spec.defaults, ...sec0 };
+  delete (prerollAxes as Section & { t0?: number }).t0;
+  delete (prerollAxes as Section & { t1?: number }).t1;
+
+  const prerollSection: Section = { t0: 0, t1: prerollSec, ...prerollAxes };
+
+  const prerollContacts: Contact[] = [];
+  for (
+    let t = PREROLL.FIRST_CONTACT_S;
+    t <= prerollSec - 0.1;
+    t += PREROLL.CONTACT_SPACING_S
+  ) {
+    prerollContacts.push({ t });
+  }
+
+  return {
+    duration: spec.duration + prerollSec,
+    defaults: spec.defaults,
+    contacts: [
+      ...prerollContacts,
+      ...spec.contacts.map((c) => ({ ...c, t: c.t + prerollSec })),
+    ],
+    sections: [
+      prerollSection,
+      ...spec.sections.map((s) => ({ ...s, t0: s.t0 + prerollSec, t1: s.t1 + prerollSec })),
+    ],
+    start: spec.start,
+    // No nested preroll.
+  };
+}
+
+/**
+ * Strip synthetic pre-roll entries from a DriftReport and shift remaining
+ * timestamps back into the user's coordinate frame.
+ *
+ *   - Synthetic Contacts: the first `prerollContactCount` entries in
+ *     `report.contacts` are pre-roll — drop them.
+ *   - Synthetic Section: section_index 0 is pre-roll — drop it and renumber.
+ *   - Off-beat landings: drop any that fall in [0, prerollFrames); the
+ *     pre-roll's contacts catch its own landings, but the boundary frame
+ *     may have a stray.
+ *   - Terminus frame stays in extended-track coords (the rendered video
+ *     uses the extended frame numbers; the user reads `endOfSpec` either way).
+ */
+function unshiftReport(
+  report: DriftReport,
+  prerollSec: number,
+  prerollContactCount: number,
+): DriftReport {
+  const prerollFrames = secToFrame(prerollSec);
+  return {
+    contacts: report.contacts.slice(prerollContactCount).map((c) => ({
+      ...c,
+      t_target: c.t_target - prerollSec,
+      t_actual: c.t_actual === null ? null : c.t_actual - prerollSec,
+    })),
+    sections: report.sections
+      .filter((s) => s.section_index > 0)
+      .map((s, i) => ({ ...s, section_index: i })),
+    off_beat_landings: report.off_beat_landings
+      .filter((l) => l.frame >= prerollFrames)
+      .map((l) => ({ frame: l.frame - prerollFrames })),
+    terminus: report.terminus,
+  };
 }
 
 function nextLineIdAt(fits: (GapFit | null)[], upTo: number): number {
@@ -2907,11 +3042,43 @@ function validateSpec(spec: Spec): void {
       }
     }
   }
+  validateStartSpec(spec.start);
+  validatePreroll(spec.preroll);
+}
+
+function validateStartSpec(start: Spec["start"]): void {
+  if (start === undefined) return;
+  if (typeof start.vx !== "number" || typeof start.vy !== "number") {
+    throw new Error("Spec.start must include numeric vx and vy");
+  }
+  const cap = START_DEFAULTS.VELOCITY_SANITY_CAP;
+  for (const [k, v] of Object.entries(start) as [string, number][]) {
+    if (!Number.isFinite(v)) {
+      throw new Error(`Spec.start.${k} must be finite (got ${v})`);
+    }
+    if ((k === "vx" || k === "vy") && Math.abs(v) > cap) {
+      throw new Error(`Spec.start.${k} (${v}) exceeds sanity cap ±${cap} px/frame`);
+    }
+  }
+}
+
+function validatePreroll(preroll: Spec["preroll"]): void {
+  if (preroll === undefined) return;
+  if (!Number.isFinite(preroll) || preroll < 0) {
+    throw new Error(`Spec.preroll must be ≥0 (got ${preroll})`);
+  }
+  if (preroll > PREROLL.MAX_S) {
+    throw new Error(`Spec.preroll (${preroll}s) exceeds sanity cap ${PREROLL.MAX_S}s`);
+  }
 }
 
 // ─────────── Track JSON assembly ───────────
 
-function buildTrackJson(lines: TrackLine[], durationFrames: number): TrackJson {
+function buildTrackJson(
+  lines: TrackLine[],
+  durationFrames: number,
+  start: ResolvedStart,
+): TrackJson {
   return {
     label: "v0",
     creator: "line/v0",
@@ -2919,9 +3086,13 @@ function buildTrackJson(lines: TrackLine[], durationFrames: number): TrackJson {
     duration: durationFrames,
     version: "6.2",
     audio: null,
-    startPosition: { x: 0, y: 0 },
+    startPosition: { x: start.position.x, y: start.position.y },
     riders: [
-      { startPosition: { x: 0, y: 0 }, startVelocity: { x: 0.4, y: 0 }, remountable: 1 },
+      {
+        startPosition: { x: start.position.x, y: start.position.y },
+        startVelocity: { x: start.velocity.x, y: start.velocity.y },
+        remountable: 1,
+      },
     ],
     layers: [
       { id: 0, type: 0, name: "Base Layer", visible: true, editable: true, folderId: -1 },

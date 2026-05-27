@@ -19,16 +19,14 @@ export type Spec = {
   /**
    * Optional rider initial state. Omitted ⇒ legacy default (0,0)+v=(0.4,0).
    * Manual override only — use `preroll` instead if you want the compiler to
-   * bring the rider into a §0-compatible state before spec time t=0.
+   * choose a §0-compatible initial state.
    */
   start?: StartState;
   /**
-   * Optional pre-roll, seconds. When set, the compiler internally extends
-   * the timeline backward by this many seconds with a synthetic Section
-   * mirroring §0's axes and synthetic Contacts spaced ~0.5s. The rendered
-   * Track contains the pre-roll geometry as a visible lead-in; the
-   * DriftReport unshifts back to user coordinates so only the user-declared
-   * sections and contacts appear.
+   * Optional pre-roll budget, seconds. The current compiler treats this as
+   * permission to optimize the rider's initial velocity for the real spec
+   * timeline. Future implementations may synthesize visible pre-roll
+   * geometry that reaches the chosen initial condition.
    */
   preroll?: number;
 };
@@ -188,15 +186,8 @@ export const START_DEFAULTS = {
   VELOCITY_SANITY_CAP: 20,
 } as const;
 
-/**
- * Pre-roll defaults. The synthetic pre-roll Section mirrors §0's axes; the
- * synthetic contacts are spaced ~PREROLL.CONTACT_SPACING_S apart, starting
- * at PREROLL.FIRST_CONTACT_S (the rider needs a beat of head-time before
- * the first catch is feasible — see filteredContacts in specs/_drums.ts).
- */
+/** Pre-roll safety limits. */
 export const PREROLL = {
-  FIRST_CONTACT_S: 0.5,
-  CONTACT_SPACING_S: 0.5,
   /** Sanity cap on user-supplied preroll seconds. */
   MAX_S: 10,
 } as const;

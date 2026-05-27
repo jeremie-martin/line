@@ -1,8 +1,8 @@
 /**
  * drums_signature_preroll — same 3-act narrative as drums_signature,
- * with `preroll: 3` so the compiler synthesizes 3s of warmup geometry
- * before spec time t=0 (mirroring §0's axes). The rider hits t=0 already
- * in §0's steady state instead of spending the opener catching up.
+ * with `preroll: 3` so the compiler can choose a better initial velocity
+ * for spec time t=0. The rider starts closer to §0's intended state instead
+ * of spending the opener catching up.
  *
  * Diagnostic variant: run alongside drums_signature and compare §0 axis
  * errors in the DriftReport.

@@ -391,63 +391,77 @@ function signedAngleDeg(v0: Vec2, v1: Vec2): number {
  */
 // deno-lint-ignore no-explicit-any
 export function extractRawTrajectory(engine: any, duration: number): RawTrajectory {
+  return extractRawTrajectoryWindow(engine, 0, duration);
+}
+
+// deno-lint-ignore no-explicit-any
+export function extractRawTrajectoryWindow(
+  engine: any,
+  startFrame: number,
+  duration: number,
+): RawTrajectory {
   const frames: RawFrame[] = [];
-  for (let f = 0; f <= duration; f++) {
-    const rider = engine.getRider(f);
-    const updates = engine.getUpdatesAtFrame(f);
-
-    const sledContacts: string[] = [];
-    const contactLineIds: number[] = [];
-    if (Array.isArray(updates)) {
-      const seenPoints = new Set<string>();
-      const seenLines = new Set<number>();
-      for (const u of updates) {
-        if (!u || u.type !== "CollisionUpdate" || !Array.isArray(u.updated)) continue;
-        // Only count this update if at least one of its updated points is
-        // sled-side. Lr-core also emits CollisionUpdates for rider-side
-        // points (BUTT, LFOOT, etc.); we don't want those.
-        let sledSideInThisUpdate = false;
-        for (const p of u.updated) {
-          const pid = p?.id;
-          if (typeof pid === "string" && SLED_POINT_NAMES.has(pid)) {
-            sledSideInThisUpdate = true;
-            if (!seenPoints.has(pid)) {
-              seenPoints.add(pid);
-              sledContacts.push(pid);
-            }
-          }
-        }
-        if (sledSideInThisUpdate && typeof u.id === "number" && !seenLines.has(u.id)) {
-          seenLines.add(u.id);
-          contactLineIds.push(u.id);
-        }
-      }
-    }
-
-    let sledBroken = false;
-    let riderEjected = false;
-    try {
-      const sledIntact = rider.get?.("SLED_INTACT");
-      if (sledIntact && typeof sledIntact.isBinded === "function") {
-        sledBroken = sledIntact.isBinded() === false;
-      }
-      const riderMounted = rider.get?.("RIDER_MOUNTED");
-      if (riderMounted && typeof riderMounted.isBinded === "function") {
-        riderEjected = riderMounted.isBinded() === false;
-      }
-    } catch {
-      // ignore; treat as intact
-    }
-
-    frames.push({
-      frame: f,
-      position: { x: rider.position.x, y: rider.position.y },
-      velocity: { x: rider.velocity.x, y: rider.velocity.y },
-      sledContacts,
-      contactLineIds,
-      sledBroken,
-      riderEjected,
-    });
+  for (let f = Math.max(0, startFrame); f <= duration; f++) {
+    frames.push(extractRawFrame(engine, f));
   }
   return { duration, frames };
+}
+
+// deno-lint-ignore no-explicit-any
+function extractRawFrame(engine: any, frame: number): RawFrame {
+  const rider = engine.getRider(frame);
+  const updates = engine.getUpdatesAtFrame(frame);
+
+  const sledContacts: string[] = [];
+  const contactLineIds: number[] = [];
+  if (Array.isArray(updates)) {
+    const seenPoints = new Set<string>();
+    const seenLines = new Set<number>();
+    for (const u of updates) {
+      if (!u || u.type !== "CollisionUpdate" || !Array.isArray(u.updated)) continue;
+      // Only count this update if at least one of its updated points is
+      // sled-side. Lr-core also emits CollisionUpdates for rider-side
+      // points (BUTT, LFOOT, etc.); we don't want those.
+      let sledSideInThisUpdate = false;
+      for (const p of u.updated) {
+        const pid = p?.id;
+        if (typeof pid === "string" && SLED_POINT_NAMES.has(pid)) {
+          sledSideInThisUpdate = true;
+          if (!seenPoints.has(pid)) {
+            seenPoints.add(pid);
+            sledContacts.push(pid);
+          }
+        }
+      }
+      if (sledSideInThisUpdate && typeof u.id === "number" && !seenLines.has(u.id)) {
+        seenLines.add(u.id);
+        contactLineIds.push(u.id);
+      }
+    }
+  }
+
+  let sledBroken = false;
+  let riderEjected = false;
+  try {
+    const sledIntact = rider.get?.("SLED_INTACT");
+    if (sledIntact && typeof sledIntact.isBinded === "function") {
+      sledBroken = sledIntact.isBinded() === false;
+    }
+    const riderMounted = rider.get?.("RIDER_MOUNTED");
+    if (riderMounted && typeof riderMounted.isBinded === "function") {
+      riderEjected = riderMounted.isBinded() === false;
+    }
+  } catch {
+    // ignore; treat as intact
+  }
+
+  return {
+    frame,
+    position: { x: rider.position.x, y: rider.position.y },
+    velocity: { x: rider.velocity.x, y: rider.velocity.y },
+    sledContacts,
+    contactLineIds,
+    sledBroken,
+    riderEjected,
+  };
 }

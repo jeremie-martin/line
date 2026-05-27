@@ -110,19 +110,18 @@ export const FPS = 40;
  */
 export const CALIB = {
   /** Divisor for `speed` axis. px/frame. */
-  SPEED_CAP: 12,
+  SPEED_CAP: 9,
   /** Divisor for `grain` axis. units. */
-  LINE_LENGTH_CAP: 50,
+  LINE_LENGTH_CAP: 49,
   /** Cross-gap target sampling spread (Gaussian σ). */
-  SIGMA: 0.15,
+  SIGMA: 0,
   /** Per-gap candidate budget. */
   K: 48,
   /** Cross-gap backtrack depth. */
   BACKTRACK_DEPTH: 2,
   /** Max times the final-track validator can re-trigger compilation when
-   *  off-beat landings are detected in the assembled track but not at
-   *  per-gap commit time. */
-  OFF_BEAT_RETRIES: 3,
+   *  assembled-track sync failures are detected after per-gap commit. */
+  FINAL_VALIDATION_RETRIES: 3,
   /**
    * Default Arc parameter bounds.
    * Initial values are an empirical guess loosely centered on shapes that

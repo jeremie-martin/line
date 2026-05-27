@@ -135,11 +135,11 @@ export const FPS = 40;
  */
 export const CALIB = {
   /** Divisor for `speed` axis. px/frame. */
-  SPEED_CAP: 9,
+  SPEED_CAP: 12,
   /** Divisor for `grain` axis. units. */
   LINE_LENGTH_CAP: 49,
   /** Cross-gap target sampling spread (Gaussian σ). */
-  SIGMA: 0,
+  SIGMA: 0.05,
   /** Per-gap candidate budget. */
   K: 48,
   /** Cross-gap backtrack depth. */

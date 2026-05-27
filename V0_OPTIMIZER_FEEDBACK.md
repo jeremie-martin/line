@@ -27,9 +27,9 @@ easy to justify from local state and authored intent.
   and `rhythm_ladder`, but caused a dense_sprint runtime cliff. A speed-pressure
   variant that kept more budget for high-speed gaps still hit the dense_sprint
   seed 1 runtime cliff, so dense non-short gaps remain at 16 attempts.
-  A dense minimum of 17 was also tested and not kept: a targeted
-  `drums_pendulum` seed 2 run exceeded three minutes before completion, making
-  the extra dense budget incompatible with the runtime score.
+  A dense minimum of 17 was also tested and not kept: a seed 2 run exceeded
+  three minutes before producing a benchmark result, making the extra dense
+  budget incompatible with the runtime score.
   A general dense adaptive-budget variant was tested and not kept: allowing
   non-short dense gaps to continue past 16 attempts until they found one
   survivor dropped seed 0 from `542.80` to `243.45` because `drums_pendulum`

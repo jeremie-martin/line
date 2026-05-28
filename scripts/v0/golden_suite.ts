@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
-import type { Spec } from "./types.ts";
+import { secToFrame, type Spec } from "./types.ts";
+import type { Budget } from "./optimizer/types.ts";
 
 export const GOLDEN_SPECS = [
   "drums_signature",
@@ -60,6 +61,35 @@ export function hardBudgetMs(numContacts: number): number {
 export function workerTimeoutMs(numContacts: number): number {
   const raw = hardBudgetMs(numContacts) + WORKER_TIMEOUT_BUFFER_MS;
   return Math.min(WORKER_TIMEOUT_CAP_MS, Math.max(WORKER_TIMEOUT_FLOOR_MS, raw));
+}
+
+/**
+ * Default compute budget for the LDS compiler, in PHYSICS frames (the honest
+ * work unit — frames the engine actually integrates; see
+ * `optimizer/sim_frames.ts`). Scales affinely with spec size: a bigger spec
+ * has a higher greedy floor (the mandatory prelude) and more gaps for LDS to
+ * deviate at, so it needs proportionally more budget to reach its quality knee.
+ *
+ * Parity does NOT depend on this value — the floor leaf is the legacy greedy
+ * descent, so goal_score >= greedy_v1 and contract-pass = 65/65 at ANY budget.
+ * The budget only buys the bonus above greedy. Constants calibrated from the
+ * budget→quality sweep (docs/optimizer/08_budget_curves.md): small specs reach
+ * their knee by ~200-500k physics; wall ≈ 0.27 ms/physframe, so this trades
+ * compile time for quality predictably.
+ */
+export const LDS_BUDGET_BASE_PHYS = 120_000;
+export const LDS_BUDGET_PER_CONTACT_PHYS = 4_000;
+export const LDS_BUDGET_PER_FRAME_PHYS = 150;
+
+export function budgetFor(spec: Spec): Budget {
+  const frames = secToFrame(spec.duration);
+  return {
+    kind: "work",
+    units:
+      LDS_BUDGET_BASE_PHYS
+      + LDS_BUDGET_PER_CONTACT_PHYS * spec.contacts.length
+      + LDS_BUDGET_PER_FRAME_PHYS * frames,
+  };
 }
 
 export type GoldenSpecName = typeof GOLDEN_SPECS[number];

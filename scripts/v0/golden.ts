@@ -16,11 +16,13 @@ import { Worker, isMainThread, parentPort, workerData } from "node:worker_thread
 import { fileURLToPath } from "node:url";
 
 import { compile } from "./compile.ts";
+import { compileLDS } from "./optimizer/api.ts";
 import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
   GOLDEN_SEEDS,
   GOLDEN_SPECS,
   REPORT_VARIANTS,
+  budgetFor,
   hardBudgetMs,
   headlineCases,
   loadGoldenSpec,
@@ -36,17 +38,20 @@ import {
   OFF_BEAT_TOLERANCE,
   SYNC_TOLERANCE,
   axisDetails,
+  scoreDriftReport,
   scoreTimedDriftReport,
   shiftedGeometricMean,
   worstContacts,
   type V0TimedContractScore,
 } from "./score.ts";
 
-type WorkerInput = SuiteCase & { seed: number };
+type Strategy = "legacy" | "lds";
+type WorkerInput = SuiteCase & { seed: number; strategy: Strategy };
 type WorkerOk = {
   kind: "ok";
   specName: string;
   variant: VariantName;
+  strategy: Strategy;
   elapsed_ms: number;
   report: DriftReport;
   stats: CompileStats;
@@ -103,9 +108,10 @@ async function runWithTimeout(
   testCase: SuiteCase,
   seed: number,
   timeoutMs: number,
+  strategy: Strategy,
 ): Promise<RunResult> {
   const workerPath = fileURLToPath(import.meta.url);
-  const input: WorkerInput = { ...testCase, seed };
+  const input: WorkerInput = { ...testCase, seed, strategy };
   return await new Promise<RunResult>((resolvePromise, reject) => {
     const worker = new Worker(workerPath, { workerData: input, execArgv: process.execArgv });
     let settled = false;
@@ -154,11 +160,14 @@ async function runWorker(): Promise<void> {
   const t0 = Date.now();
   try {
     const spec = await loadGoldenSpec(input.specName, input.variant);
-    const { report, stats } = compile(spec, input.seed);
+    const { report, stats } = input.strategy === "lds"
+      ? compileLDS(spec, input.seed, { budget: budgetFor(spec) })
+      : compile(spec, input.seed);
     parentPort.postMessage({
       kind: "ok",
       specName: input.specName,
       variant: input.variant,
+      strategy: input.strategy,
       elapsed_ms: Date.now() - t0,
       report,
       stats,
@@ -249,11 +258,27 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
       compile_stats: null,
     };
   }
-  const score = scoreTimedDriftReport(
-    result.report,
-    { elapsed_ms: result.elapsed_ms, soft_ms: ctx.soft_ms, hard_ms: ctx.hard_ms },
-    { totalFrames: ctx.total_frames },
-  );
+  // The LDS compiler is budget-metered (sim-frames), not wall-clock-gated, so
+  // it scores on PURE quality (time_multiplier = 1) — the same untimed basis
+  // as baselines/greedy_v1.json. The legacy compiler keeps the wall-clock
+  // time penalty. (The time_multiplier machinery is retired at cutover.)
+  const score: V0TimedContractScore = result.strategy === "lds"
+    ? (() => {
+        const base = scoreDriftReport(result.report, { totalFrames: ctx.total_frames });
+        return {
+          ...base,
+          score_without_time: base.score,
+          time_multiplier: 1,
+          elapsed_ms: result.elapsed_ms,
+          soft_ms: ctx.soft_ms,
+          hard_ms: ctx.hard_ms,
+        };
+      })()
+    : scoreTimedDriftReport(
+        result.report,
+        { elapsed_ms: result.elapsed_ms, soft_ms: ctx.soft_ms, hard_ms: ctx.hard_ms },
+        { totalFrames: ctx.total_frames },
+      );
   return {
     ...score,
     name: result.specName,
@@ -407,6 +432,7 @@ async function runRows(
   jsonOnly: boolean,
   details: boolean,
   label: string,
+  strategy: Strategy,
 ): Promise<ScoredSpec[]> {
   const contexts = new Map<string, ScoreContext>();
   for (const testCase of cases) {
@@ -423,7 +449,7 @@ async function runRows(
     }
     for (const testCase of cases) {
       const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
-      const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms);
+      const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms, strategy);
       const row = scoreResult(result, seed, ctx);
       scored.push(row);
       if (!jsonOnly) printRow(row, details);
@@ -504,18 +530,23 @@ async function runMain(): Promise<void> {
     throw new Error(`--seed must be a number, got ${rawSeed}`);
   }
   const seeds = debugSeed !== null ? [debugSeed] : [...GOLDEN_SEEDS];
-  const headline = headlineCases();
-  const variants = variantCases();
+  const strategy: Strategy = has("lds") ? "lds" : "legacy";
+  // Optional --specs=a,b filter (fast iteration; does not change scoring).
+  const specFilter = arg("specs");
+  const filterSet = specFilter ? new Set(specFilter.split(",")) : null;
+  const keep = (c: SuiteCase) => filterSet === null || filterSet.has(c.specName);
+  const headline = headlineCases().filter(keep);
+  const variants = variantCases().filter(keep);
 
   if (!jsonOnly) {
     console.log(
-      `v0 golden benchmark · ${GOLDEN_SPECS.length} specs × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · ` +
-        `runtime budget scales per-contact · seeds=${seeds.join(",")}`,
+      `v0 golden benchmark · compiler=${strategy} · ${GOLDEN_SPECS.length} specs × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · ` +
+        `${strategy === "lds" ? "budget=physics-frames (untimed score)" : "runtime budget scales per-contact"} · seeds=${seeds.join(",")}`,
     );
     console.log("");
   }
 
-  const scored = await runRows(headline, seeds, jsonOnly, details, "headline");
+  const scored = await runRows(headline, seeds, jsonOnly, details, "headline", strategy);
   const specScores = groupScores(scored, (row) => row.name);
   const goal_score = suiteScore(scored, (row) => row.name);
   const passed = scored.filter((row) => row.status === "pass").length;
@@ -541,7 +572,7 @@ async function runMain(): Promise<void> {
       console.log("report-only variants");
       console.log("");
     }
-    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant");
+    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant", strategy);
     variantScores = groupScores(variantRows, (row) => caseLabel(row));
     variantReportScore = suiteScore(variantRows, (row) => caseLabel(row));
   }

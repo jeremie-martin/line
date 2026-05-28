@@ -21,7 +21,17 @@ easy to justify from local state and authored intent.
   sparse specs still use full `CALIB.K`.
   A lower dense minimum of 14 was tested and not kept: it fixed the slow
   `drums_pendulum` seed 2 row in isolation, but broke `drums_crescendo` seed 1
-  with missed contacts and long runtime.
+  with missed contacts and long runtime. It was retested after feasible-air
+  ranking and still not kept: seed 1 fell from `524.51` to `114.72`, with
+  `drums_crescendo` timing out and `grain_staircase` entering the zero-time
+  band despite a faster `opening_burst`.
+  A targeted short-gap-only floor of 14 was also tested and not kept: seed 1
+  improved from `524.51` to `560.62` by fixing `opening_burst`, but seed 0
+  fell from `531.92` to `300.33` because `opening_burst` almost zeroed from
+  runtime and weaker axis fit.
+  A targeted short-gap floor of 16 was tested and not kept as the opposite
+  stabilization attempt: seed 0 slipped to `530.38`, and seed 1 fell to
+  `494.60` because `opening_burst` became slower.
   A dense minimum of 15 was initially tested before feasible-air ranking and
   not kept: full-suite score fell from `372.53` to `330.69`; it improved
   `drums_crescendo`, `grain_staircase`, and `rhythm_ladder`, but caused a
@@ -66,6 +76,13 @@ easy to justify from local state and authored intent.
   also tested and not kept: it preserved the seed 1 `opening_burst` gain, but
   seed 0 and seed 2 stayed below baseline, so the extra search did not validate
   as a robust suite-level improvement.
+  A related early-stop-at-14 variant was tested after the dense floor settled
+  at 15. It stopped short-gap adaptive search one attempt earlier only when two
+  survivors already had scorer-scale cost (`<= 0.25²`). Per-seed runs looked
+  acceptable (`535.09`, `531.40`, `538.30`), but full-suite validation fell to
+  `GOAL_SCORE 412.28 valid 24/24` because `drums_crescendo` seed 1 crossed the
+  zero-time band. The suite-level runtime risk outweighed the `opening_burst`
+  time gain.
 
 - Regime-free air lookahead: candidate measurement looks through the next
   contact when air is targeted and the post-contact window is large enough to

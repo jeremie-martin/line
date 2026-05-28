@@ -214,19 +214,28 @@ continue improving high-budget results.
 Target unit:
 
 ```text
-work_units_used == metered simulated trajectory frames
+work_units_used == 16 * metered engine physics frames computed
 ```
 
-The unit is charged at trajectory extraction boundaries:
+The unscaled `sim_frames` stat is the number of rider integration frames that
+lr-core actually computed, observed through the engine cache boundary. The
+public budget is a fixed-scale version of that counter so existing budget
+magnitudes remain practical:
+
+```text
+sim_frames == physics_frames_computed
+work_units_used == sim_frames * 16
+```
+
+The counter is sampled at engine trajectory/probe boundaries:
 
 - `extractRawTrajectory`
 - `extractRawTrajectoryWindow`
 - `detectWindow`
+- single-frame `engine.getRider(frame)` probes through `getRiderMetered`
 
 Secondary counters remain diagnostic:
 
-- `sim_frames`
-- `physics_frames_computed`
 - `trajectory_frames_read`
 - `engine_add_lines`
 - `candidates_sampled`
@@ -234,19 +243,18 @@ Secondary counters remain diagnostic:
 - `leaves_scored`
 - `subfloor_fallback_units`
 
-The reason for sim-frame budgeting is pragmatic: lr-core wall-clock is dominated
-by stepping the rider through frames. `engine_addLine` is externally observable
-but too weakly correlated with runtime; a short validation over many lines and
-a long validation over few lines have very different costs.
+The reason for physics-frame budgeting is pragmatic: lr-core wall-clock is
+dominated by frames the engine actually integrates. The first trajectory-read
+implementation overcounted cached frame reads and produced poor cross-spec
+predictability once `drums_crescendo` entered the study. On the interrupted
+post-recovery sweep, `elapsed_ms / trajectory_frames_read` had partial CV about
+`0.320`, while `elapsed_ms / physics_frames_computed` had partial CV about
+`0.122`. The work unit was therefore corrected to the engine-computed frame
+counter.
 
-The risk is that per-frame cost may grow with accumulated line count. Stage 0
-must measure `wall_ms / sim_frame` across the suite. If the CV target cannot
-be met, the unit must be revised before acceptance, for example to weighted
-frames or another externally observable primitive.
-
-The current implementation sets `work_units_used` equal to `sim_frames`.
-`physics_frames_computed`, `engine_add_lines`, and sampled-candidate counts
-remain diagnostics only.
+`engine_addLine`, `trajectory_frames_read`, and sampled-candidate counts remain
+diagnostics. They are useful for explaining regressions, but they do not define
+the budget.
 
 ## Budget Cutoff
 
@@ -325,7 +333,8 @@ In place:
 - LDS emits bounded final-validation recovery leaves after assembled-track
   hard-contract failures.
 - Coarse polish is generate-and-test over cloned leaves.
-- `work_units_used` equals metered trajectory frames (`sim_frames`).
+- `work_units_used` equals scaled metered engine-computed frames
+  (`16 * sim_frames`).
 - `baselines/greedy_v1.json` is frozen for quality-only legacy comparison.
 - `scripts/v0/acceptance.ts` exists and checks monotonicity, fingerprint
   prefix stability, determinism, wall-clock CV, and baseline parity.
@@ -333,7 +342,7 @@ In place:
 Not accepted yet:
 
 - Work-unit predictability has not been measured to completion on the
-  representative or full suite after the trajectory-frame reconciliation.
+  representative or full suite after the physics-frame correction.
 - Polish is generate-and-test at coarse leaf granularity. Stage 3 still needs
   pass-granularity metering and interruption so polish cannot starve later LDS
   leaves.
@@ -360,8 +369,8 @@ smoke run can prove wiring but does not satisfy an acceptance row.
 | Monotonicity | Representative gate and full sweep show non-decreasing contract-gated quality | Pending evidence |
 | Prefix invariant | Scored-leaf fingerprints at larger budgets have prior budgets as prefixes | Pending representative/full evidence |
 | Final-validation recovery | Assembled-track hard-contract retries are deterministic leaf variants, not destructive mutation | Implemented; targeted `drums_pendulum` seed `1` evidence recorded |
-| Work-unit semantics | `work_units_used == sim_frames` and other counters are diagnostic | Implemented |
-| Work-unit predictability | Stable-machine CV for `wall_ms / work_units` is `< 0.25` | Pending representative/full measurement; targeted recovery probe CV `0.0343337` |
+| Work-unit semantics | `sim_frames == physics_frames_computed`; `work_units_used == 16 * sim_frames`; other counters are diagnostic | Implemented |
+| Work-unit predictability | Stable-machine CV for `wall_ms / work_units` is `< 0.25` | Pending representative/full measurement; cross-spec physics-unit probe CV `0.0765867` |
 | Cheat-resistance | Written audit ties `work_units_used` to an engine operation and shows all physical validation is metered | Checkpoint audit recorded; re-audit at cutover |
 | Determinism | Budgeted representative compiles produce hash-identical `TrackJson` | Pending representative evidence |
 | Polish safety | Polish variants are scored leaves and never replace a better incumbent | Partially implemented, pending Stage 3 evidence |
@@ -377,10 +386,11 @@ The accepted work unit for the current LDS path is a metered engine frame
 sample:
 
 ```text
-work_units_used == sim_frames == trajectory_frames_read
+sim_frames == physics_frames_computed
+work_units_used == 16 * sim_frames
 ```
 
-The compiler increments that counter in two places:
+The compiler samples the engine-computed frame counter in two places:
 
 - `extractRawTrajectoryWindow`, which wraps the imported
   `rawExtractRawTrajectoryWindow`.
@@ -408,14 +418,15 @@ existing wrappers or deliberately update this audit and test.
 
 Diagnostic counters do not define the budget:
 
-- `physics_frames_computed` records engine-cache movement when observable.
+- `trajectory_frames_read` records requested trajectory array reads.
 - `engine_add_lines` records line-registration count.
 - `candidates_sampled` records candidate generation breadth.
 
 Those counters are useful for analysis, but they cannot replace
 `work_units_used`. A future optimizer that validates more physical candidates
-must request more metered engine frames, which increases `work_units_used` and
-wall-clock cost proportionally enough for the Property 2 sweep to catch drift.
+must force more engine integration frames or reuse already-computed physics.
+The former increases `work_units_used`; the latter is an honest cache reuse and
+should be close to zero marginal physical work.
 
 Audit scope: this applies to the v0 compiler path in `scripts/v0/compile.ts`.
 Older exploratory libraries under `scripts/lib/` are outside the v0 compiler
@@ -480,25 +491,21 @@ This demonstrates the intended subfloor-to-discrepancy-0 transition for one
 case: the fallback leaf is preserved as a prefix, and the first LDS search leaf
 improves contract-gated quality.
 
-```bash
-npm run sweep:v0:work -- --strategy=lds --limit=1 --seeds=0 --json
-```
-
-Result summary:
+The original trajectory-read unit was rejected by measurement. On the
+interrupted post-recovery full study, the partial cross-spec CV was:
 
 ```text
-case: drums_signature seed=0
-budget_units: 2292000
-work_units: 2994643
-sim_frames: 2994643
-trajectory_frames_read: 2994643
-physics_frames_computed: 156990
-wall_ms_per_work_unit: 0.0217145
+elapsed_ms / trajectory_frames_read: 0.3198404
+elapsed_ms / physics_frames_computed: 0.1217059
 ```
 
-This proves the reconciled counter on a real default-budget LDS compile:
-`work_units_used == sim_frames`. It is not enough to prove Property 2 because
-it covers only one case.
+That finding changed the work unit to scaled engine-computed physics frames.
+The current invariant is:
+
+```text
+sim_frames == physics_frames_computed
+work_units_used == 16 * sim_frames
+```
 
 ```bash
 npm run accept:v0 -- --specs=drums_signature --seeds=0 \
@@ -575,7 +582,7 @@ the invariants holding on completed curves while identifying
 quality about `0.5785`, but still failed the hard contract; the greedy
 reference for the same row passed with contract-gated quality `0.4808`.
 
-Final-validation recovery probe:
+Final-validation recovery probe under the trajectory-read unit:
 
 ```bash
 npm run study:v0:budget -- --specs=drums_pendulum --seeds=1 \
@@ -610,11 +617,48 @@ leaves: 2, 3, 4
 wall_ms/work_units cv: 0.0343337
 ```
 
-This targeted row now demonstrates the iteration-story payoff: the partial
+Physics-unit recovery probe:
+
+```bash
+npm run study:v0:budget -- --specs=drums_pendulum --seeds=1 \
+  --budgets=500000,1000000,2000000 --concurrency=1 \
+  --out=generated/v0_budget_study/physics_unit_probe_pendulum_seed1_curve --quiet
+```
+
+Result summary:
+
+```text
+ok: true
+contract-gated quality: 0.0000, 0.0000, 0.4816
+leaves: 2, 2, 4
+wall_ms/work_units cv: 0.0124687
+```
+
+Physics-unit cross-spec probe:
+
+```bash
+npm run study:v0:budget -- \
+  --specs=drums_signature,drums_pendulum,drums_crescendo \
+  --seeds=0 --budgets=500000,2000000 --concurrency=1 \
+  --out=generated/v0_budget_study/physics_unit_probe_cross_spec --quiet
+```
+
+Result summary:
+
+```text
+ok: true
+monotonicity failures: 0
+leaf-prefix failures: 0
+wall_ms/work_units cv: 0.0765867
+```
+
+The targeted recovery row demonstrates the iteration-story payoff: the partial
 full sweep classified a native-LDS hard-contract regression, final-validation
 recovery leaves were added, and the same row now passes at matched/default
-budget without using legacy as a mandatory prelude. Representative and full
-acceptance remain pending.
+budget without using legacy as a mandatory prelude. The cross-spec probe
+demonstrates why the work unit was corrected from trajectory reads to
+engine-computed physics frames. Representative and full acceptance remain
+pending.
 
 ## Acceptance Gates
 

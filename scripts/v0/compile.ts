@@ -90,6 +90,7 @@ const DEFAULT_LDS_MAX_DISCREPANCY = 3;
 const DEFAULT_LDS_CANDIDATES = 32;
 const DEFAULT_LDS_MAX_DEVIATION_RANK = 31;
 const DEFAULT_LDS_MAX_LEAVES_WITHOUT_BUDGET = 200;
+const WORK_UNITS_PER_PHYSICS_FRAME = 16;
 
 export type CompileResult = {
   track: TrackJson;
@@ -125,8 +126,8 @@ function snapshotStats(meter: WorkMeter): CompileStats {
 }
 
 function updateWorkUnits(meter: WorkMeter): void {
-  meter.sim_frames = meter.trajectory_frames_read;
-  meter.work_units_used = meter.sim_frames;
+  meter.sim_frames = meter.physics_frames_computed;
+  meter.work_units_used = meter.sim_frames * WORK_UNITS_PER_PHYSICS_FRAME;
 }
 
 function markBudgetState(meter: WorkMeter, budget: Budget | undefined): void {

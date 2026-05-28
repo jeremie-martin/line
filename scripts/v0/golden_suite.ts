@@ -22,7 +22,7 @@ export const GOLDEN_SEEDS = [0, 1, 2] as const;
 
 export const WORKER_TIMEOUT_MS = 50_000;
 const DEFAULT_LDS_BASE_WORK_UNITS = 120_000;
-const DEFAULT_LDS_WORK_UNITS_PER_CONTACT = 36_000;
+const DEFAULT_LDS_WORK_UNITS_PER_CONTACT = 130_000;
 const DEFAULT_LDS_WORK_UNITS_PER_FRAME = 160;
 
 export type GoldenSpecName = typeof GOLDEN_SPECS[number];

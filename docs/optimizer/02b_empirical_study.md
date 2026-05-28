@@ -202,7 +202,8 @@ mandatory prelude.
 
 ## Final-Validation Recovery Probe
 
-After adding final-validation recovery leaves, the focused blocker curve was:
+After adding final-validation recovery leaves, the focused blocker curve under
+the original trajectory-read unit was:
 
 ```bash
 npm run study:v0:budget -- --specs=drums_pendulum --seeds=1 \
@@ -251,6 +252,66 @@ wall_ms/work_units cv: 0.0343337
 
 This is targeted compatibility evidence for the blocker row. It does not
 replace the representative or full acceptance sweeps.
+
+## Physics-Unit Correction
+
+A second interrupted post-recovery full study showed that trajectory reads were
+not a stable enough work unit once `drums_crescendo` entered the sample:
+
+```text
+elapsed_ms / trajectory_frames_read cv: 0.3198404
+elapsed_ms / physics_frames_computed cv: 0.1217059
+```
+
+The budget unit was therefore corrected to:
+
+```text
+sim_frames == physics_frames_computed
+work_units_used == 16 * sim_frames
+```
+
+The scale factor keeps the existing budget magnitudes roughly comparable while
+charging the engine work that actually predicts wall-clock.
+
+Focused blocker curve under the corrected unit:
+
+```bash
+npm run study:v0:budget -- --specs=drums_pendulum --seeds=1 \
+  --budgets=500000,1000000,2000000 --concurrency=1 \
+  --out=generated/v0_budget_study/physics_unit_probe_pendulum_seed1_curve --quiet
+```
+
+Result:
+
+```text
+ok: true
+monotonicity_ok: true
+prefix_ok: true
+wall_ms/work_units cv: 0.0124687
+contract-gated quality: 0.0000, 0.0000, 0.4816
+```
+
+Cross-spec probe over the specs that exposed the CV problem:
+
+```bash
+npm run study:v0:budget -- \
+  --specs=drums_signature,drums_pendulum,drums_crescendo \
+  --seeds=0 --budgets=500000,2000000 --concurrency=1 \
+  --out=generated/v0_budget_study/physics_unit_probe_cross_spec --quiet
+```
+
+Result:
+
+```text
+ok: true
+monotonicity_ok: true
+prefix_ok: true
+wall_ms/work_units cv: 0.0765867
+```
+
+This is targeted evidence that the corrected unit fixes the observed
+cross-spec predictability problem. Full-suite Property 2 evidence is still
+pending.
 
 ## Acceptance Status
 

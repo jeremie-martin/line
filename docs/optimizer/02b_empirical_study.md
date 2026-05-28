@@ -49,6 +49,7 @@ Outputs are written under `generated/v0_budget_study/<timestamp>/` unless
 `--out=<dir>` is provided:
 
 - `study.json`: full structured output, including rows and case summaries.
+- `rows.jsonl`: streamed per-cell rows, written as each worker finishes.
 - `rows.csv`: flat per-cell table for plotting.
 - `analysis.md`: generated Markdown with per-case ASCII curves.
 
@@ -56,7 +57,7 @@ The generated artifacts are intentionally under `generated/` by default because
 full runs can be large and should be reproducible from the command.
 
 Use `--resume` with a fixed `--out` directory to continue an interrupted run.
-Completed cells already present in `study.json` are skipped.
+Completed cells already present in `rows.jsonl` or `study.json` are skipped.
 
 ## Cell Schema
 

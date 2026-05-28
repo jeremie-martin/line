@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { availableParallelism } from "node:os";
 import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
@@ -389,7 +389,11 @@ async function runJob(job: StudyJob): Promise<StudyRow> {
   });
 }
 
-async function runJobs(jobs: StudyJob[], concurrency: number): Promise<StudyRow[]> {
+async function runJobs(
+  jobs: StudyJob[],
+  concurrency: number,
+  onRow?: (row: StudyRow) => Promise<void>,
+): Promise<StudyRow[]> {
   const rows: StudyRow[] = [];
   let next = 0;
   let done = 0;
@@ -401,6 +405,7 @@ async function runJobs(jobs: StudyJob[], concurrency: number): Promise<StudyRow[
       if (index >= jobs.length) return;
       const row = await runJob(jobs[index]);
       rows.push(row);
+      if (onRow !== undefined) await onRow(row);
       done++;
       if (!has("quiet")) {
         const elapsed = (performance.now() - started) / 1000;
@@ -710,10 +715,13 @@ function jobKey(job: Pick<StudyJob, "name" | "seed" | "strategy" | "budget_units
 }
 
 async function readExistingRows(outDir: string): Promise<StudyRow[]> {
+  const jsonlRows = await readRowsJsonl(outDir);
+  if (jsonlRows.length > 0) return dedupeRows(jsonlRows);
+
   try {
     const raw = await readFile(resolve(outDir, "study.json"), "utf8");
     const parsed = JSON.parse(raw) as Partial<StudyOutput>;
-    return Array.isArray(parsed.rows) ? parsed.rows as StudyRow[] : [];
+    return Array.isArray(parsed.rows) ? dedupeRows(parsed.rows as StudyRow[]) : [];
   } catch (error) {
     const code = typeof error === "object" && error !== null && "code" in error
       ? (error as { code?: string }).code
@@ -723,13 +731,46 @@ async function readExistingRows(outDir: string): Promise<StudyRow[]> {
   }
 }
 
+async function readRowsJsonl(outDir: string): Promise<StudyRow[]> {
+  try {
+    const raw = await readFile(resolve(outDir, "rows.jsonl"), "utf8");
+    return raw
+      .split(/\r?\n/)
+      .filter((line) => line.trim().length > 0)
+      .map((line) => JSON.parse(line) as StudyRow);
+  } catch (error) {
+    const code = typeof error === "object" && error !== null && "code" in error
+      ? (error as { code?: string }).code
+      : undefined;
+    if (code === "ENOENT") return [];
+    throw error;
+  }
+}
+
+function dedupeRows(rows: StudyRow[]): StudyRow[] {
+  const byKey = new Map<string, StudyRow>();
+  for (const row of rows) byKey.set(jobKey(row), row);
+  return [...byKey.values()].sort(compareRows);
+}
+
 async function main(): Promise<void> {
   const config = parseConfig();
   validateBudgets(config.budgets, config.budgets.join(","));
+  await mkdir(config.out_dir, { recursive: true });
+  if (!has("resume")) {
+    await writeFile(resolve(config.out_dir, "rows.jsonl"), "");
+  }
   const jobs = buildJobs(config);
   const existingRows = has("resume") ? await readExistingRows(config.out_dir) : [];
   const existingKeys = new Set(existingRows.map(jobKey));
   const remainingJobs = jobs.filter((job) => !existingKeys.has(jobKey(job)));
+  let appendChain = Promise.resolve();
+  const appendRow = (row: StudyRow): Promise<void> => {
+    appendChain = appendChain.then(() =>
+      appendFile(resolve(config.out_dir, "rows.jsonl"), JSON.stringify(row) + "\n")
+    );
+    return appendChain;
+  };
   console.error(
     `budget study scope=${config.scope} specs=${config.names.length}/${GOLDEN_SPECS.length} ` +
       `seeds=${config.seeds.length} budgets=${config.budgets.length} ` +
@@ -738,8 +779,9 @@ async function main(): Promise<void> {
   );
   const rows = [
     ...existingRows,
-    ...await runJobs(remainingJobs, config.concurrency),
+    ...await runJobs(remainingJobs, config.concurrency, appendRow),
   ].sort(compareRows);
+  await appendChain;
   const output = buildOutput(config, rows);
   await writeOutputs(output);
   console.log(JSON.stringify({

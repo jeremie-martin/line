@@ -489,7 +489,7 @@ gates were skipped and only one spec/seed was tested.
 ```bash
 npm run study:v0:budget -- --specs=drums_signature --seeds=0 \
   --budgets=50000,100000 --concurrency=2 \
-  --out=generated/v0_budget_study/smoke --quiet
+  --out=generated/v0_budget_study/smoke_stream --quiet
 ```
 
 Result summary:
@@ -499,8 +499,8 @@ ok: true
 rows: 3
 monotonicity_ok: true
 prefix_ok: true
-wall_ms_per_work_unit_cv: 0.0922014
-artifacts: study.json, rows.csv, analysis.md
+wall_ms_per_work_unit_cv: 0.1203154
+artifacts: rows.jsonl, study.json, rows.csv, analysis.md
 ```
 
 The smoke study includes two LDS budget cells plus one greedy reference row.
@@ -513,7 +513,7 @@ Resume smoke:
 ```bash
 npm run study:v0:budget -- --specs=drums_signature --seeds=0 \
   --budgets=50000,100000 --concurrency=2 \
-  --out=generated/v0_budget_study/smoke --resume --quiet
+  --out=generated/v0_budget_study/smoke_stream --resume --quiet
 ```
 
 Result: `remaining=0`, `ok=true`, `rows=3`.

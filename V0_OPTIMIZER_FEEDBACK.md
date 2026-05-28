@@ -65,6 +65,21 @@ easy to justify from local state and authored intent.
   rows, but made `syncopated_switchback` seed 1 runtime-limited, so the
   >0.5s post-contact short-gap lookahead remains useful.
 
+- Time-weighted gap targets: per-gap effective axes now average authored
+  section intent over the full candidate measurement gap instead of sampling
+  only the midpoint. Purpose: make boundary-crossing gaps optimize the section
+  mix they actually contribute to. Signal: local gap frame range and
+  last-defined-wins section axes. Scale: frame weighting inside the existing
+  section values, with no new target constants. Risk control: target sampling
+  and hard gates are unchanged. A full-suite validation improved from fresh
+  baseline `GOAL_SCORE 322.83 valid 23/24` to `394.25 valid 24/24`, mainly by
+  moving `drums_crescendo` from `68.53` to `555.60`; the tradeoff was lower
+  `opening_burst` (`485.47` to `378.27`), `drums_signature` (`615.67` to
+  `537.64`), and `grain_staircase` (`582.00` to `525.38`). A half-open
+  `[start,end)` implementation was tested and not kept: seed 1 fell to
+  `227.76` with an `opening_burst` timeout, while the inclusive range matches
+  the candidate measurement window used by `measureAxes`.
+
 - Full final-validation retries: dense speed-only specs no longer use fewer
   final sync retries. Purpose: avoid hard-gate zeros from assembled-track
   effects. Signal: final detected sync failures. Scale: existing

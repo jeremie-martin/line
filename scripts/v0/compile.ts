@@ -1050,6 +1050,23 @@ function engineLastFrameIndex(engine: any): number | null {
   }
 }
 
+function getRiderMetered(engine: any, frame: number): any {
+  const before = engineLastFrameIndex(engine);
+  const rider = engine.getRider(frame);
+  const after = engineLastFrameIndex(engine);
+
+  if (currentMeter !== null) {
+    const computed = before !== null && after !== null
+      ? Math.max(0, after - before)
+      : 0;
+    currentMeter.physics_frames_computed += computed;
+    currentMeter.trajectory_frames_read += Math.max(1, computed);
+    updateWorkUnits(currentMeter);
+  }
+
+  return rider;
+}
+
 function addEngineLine(engine: any, line: any): any {
   if (currentMeter !== null) {
     currentMeter.engine_add_lines++;
@@ -1558,7 +1575,7 @@ function polishAirBriefContacts(
 
     let accepted = false;
     for (const frame of airBriefContactFrames(baseDet, contactFrames, durationFrames)) {
-      const rider = baseEngine.getRider(frame);
+      const rider = getRiderMetered(baseEngine, frame);
       const point = rider.get("PEG")?.pos;
       const velocity = rider.velocity ?? velocityAt(baseDet, frame);
       if (point === undefined || velocity === undefined) continue;
@@ -3165,7 +3182,7 @@ function prerollStartCost(
     return best.cost + speedPenalty - robustnessCredit;
   }
 
-  const rider = baseEngine.getRider(firstGap.endFrame);
+  const rider = getRiderMetered(baseEngine, firstGap.endFrame);
   const v = rider.velocity ?? { x: start.vx, y: start.vy };
   const achievedSpeed = Math.hypot(v.x, v.y) / CALIB.SPEED_CAP;
   const speedCost = firstGap.targets.speed === undefined
@@ -3568,7 +3585,7 @@ function generateRankedCandidates(
   durationFrames: number,
   maxCandidates: number = CALIB.K,
 ): GapFit[] {
-  const riderAtTarget = baseEngine.getRider(gap.endFrame);
+  const riderAtTarget = getRiderMetered(baseEngine, gap.endFrame);
   const refX = riderAtTarget.position.x;
   const refY = riderAtTarget.position.y;
   const targetState = readTargetState(baseEngine, gap.endFrame, refX, refY);
@@ -3679,7 +3696,7 @@ function readTargetState(
   fallbackX: number,
   fallbackY: number,
 ): TargetState {
-  const rider = engine.getRider(frame);
+  const rider = getRiderMetered(engine, frame);
   let sledX = fallbackX;
   let sledY = fallbackY;
   for (const name of SLED_POINTS) {

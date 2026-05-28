@@ -307,8 +307,7 @@ Not accepted yet:
   leaves.
 - Representative acceptance and full acceptance have not been recorded as
   green evidence.
-- The cheat-resistance audit and iteration-story evidence have not been
-  recorded.
+- Iteration-story evidence has not been recorded.
 
 Legacy removal is blocked until every "not accepted yet" item is resolved or
 explicitly documented as an accepted compatibility choice with passing evidence.
@@ -329,12 +328,64 @@ smoke run can prove wiring but does not satisfy an acceptance row.
 | Prefix invariant | Scored-leaf fingerprints at larger budgets have prior budgets as prefixes | Pending representative/full evidence |
 | Work-unit semantics | `work_units_used == sim_frames` and other counters are diagnostic | Implemented |
 | Work-unit predictability | Stable-machine CV for `wall_ms / work_units` is `< 0.25` | Pending measurement |
-| Cheat-resistance | Written audit ties `work_units_used` to an engine operation and shows all physical validation is metered | Pending audit |
+| Cheat-resistance | Written audit ties `work_units_used` to an engine operation and shows all physical validation is metered | Checkpoint audit recorded; re-audit at cutover |
 | Determinism | Budgeted representative compiles produce hash-identical `TrackJson` | Pending representative evidence |
 | Polish safety | Polish variants are scored leaves and never replace a better incumbent | Partially implemented, pending Stage 3 evidence |
 | Baseline parity | Default-budget LDS is within 5% of `baselines/greedy_v1.json` and per-spec pass counts do not regress | Pending full/default evidence |
 | Iteration story | One rebuild-era optimizer change is classified at matched compute as improvement, regression, or no-op | Pending writeup |
 | Legacy removal | All rows above are green | Blocked |
+
+## Cheat-Resistance Audit
+
+Checkpoint audit date: May 28, 2026.
+
+The accepted work unit for the current LDS path is a metered engine frame
+sample:
+
+```text
+work_units_used == sim_frames == trajectory_frames_read
+```
+
+The compiler increments that counter in two places:
+
+- `extractRawTrajectoryWindow`, which wraps the imported
+  `rawExtractRawTrajectoryWindow`.
+- `getRiderMetered`, which wraps single-frame `engine.getRider(frame)` probes.
+
+All compiler-owned full-window and partial-window trajectory reads flow through
+the local `extractRawTrajectory` / `extractRawTrajectoryWindow` wrappers.
+`detectWindow` also calls the metered extraction wrapper. Direct calls to the
+imported raw detector extraction primitive are not allowed outside that wrapper.
+
+All compiler-owned single-frame rider probes flow through `getRiderMetered`.
+This matters because `engine.getRider(frame)` can force lr-core to compute
+physics up to that frame even though no full trajectory array is requested.
+
+The static guard is:
+
+```bash
+npm test -- tests/v0_metering_static.test.ts
+```
+
+It checks `scripts/v0/compile.ts` for exactly one
+`rawExtractRawTrajectoryWindow(` call and exactly one `.getRider(` call: the
+metered wrappers themselves. Future direct engine probes must either use the
+existing wrappers or deliberately update this audit and test.
+
+Diagnostic counters do not define the budget:
+
+- `physics_frames_computed` records engine-cache movement when observable.
+- `engine_add_lines` records line-registration count.
+- `candidates_sampled` records candidate generation breadth.
+
+Those counters are useful for analysis, but they cannot replace
+`work_units_used`. A future optimizer that validates more physical candidates
+must request more metered engine frames, which increases `work_units_used` and
+wall-clock cost proportionally enough for the Property 2 sweep to catch drift.
+
+Audit scope: this applies to the v0 compiler path in `scripts/v0/compile.ts`.
+Older exploratory libraries under `scripts/lib/` are outside the v0 compiler
+acceptance contract.
 
 ## Latest Local Evidence
 
@@ -349,20 +400,21 @@ npm test
 Result:
 
 ```text
-12 test files passed
-100 tests passed
+13 test files passed
+101 tests passed
 ```
 
 Coverage from this command includes compile-option stats, deterministic trivial
 LDS behavior, native no-prelude LDS startup, scored-leaf prefix checks on a
-trivial spec, and existing v0 regression tests.
+trivial spec, static metering coverage, and existing v0 regression tests.
 
 ```bash
 npx tsc --noEmit --strict --skipLibCheck --target ES2022 \
   --module NodeNext --moduleResolution NodeNext \
   --allowImportingTsExtensions scripts/types/lr-core.d.ts \
   scripts/v0/compile.ts scripts/v0/types.ts scripts/v0/anytime_sweep.ts \
-  tests/v0_anytime_properties.test.ts tests/v0_compile_options.test.ts
+  tests/v0_anytime_properties.test.ts tests/v0_compile_options.test.ts \
+  tests/v0_metering_static.test.ts
 ```
 
 Result:
@@ -384,10 +436,10 @@ Result summary:
 ```text
 ok: true
 case: drums_signature seed=0
-floor_units: 96205
+floor_units: 96478
 budget 1:      leaves=1 score=0 passed=false prefix=true
-budget 96205:  leaves=1 score=0 passed=false prefix=true
-budget 120257: leaves=2 score=496.15 passed=true prefix=true
+budget 96478:  leaves=1 score=0 passed=false prefix=true
+budget 120598: leaves=2 score=496.15 passed=true prefix=true
 ```
 
 This demonstrates the intended subfloor-to-discrepancy-0 transition for one
@@ -403,11 +455,11 @@ Result summary:
 ```text
 case: drums_signature seed=0
 budget_units: 2292000
-work_units: 2988258
-sim_frames: 2988258
-trajectory_frames_read: 2988258
-physics_frames_computed: 150864
-wall_ms_per_work_unit: 0.0205736
+work_units: 2994643
+sim_frames: 2994643
+trajectory_frames_read: 2994643
+physics_frames_computed: 156990
+wall_ms_per_work_unit: 0.0217145
 ```
 
 This proves the reconciled counter on a real default-budget LDS compile:
@@ -424,7 +476,7 @@ Result summary:
 ```text
 ok: true
 monotonicity failures: none
-wall_clock cv: 0.0940701
+wall_clock cv: 0.1346591
 case: drums_signature seed=0
 factor 0.04: leaves=1 score=0 passed=false contract_gated_quality=0
 factor 0.06: leaves=2 score=496.15 passed=true contract_gated_quality=0.4961

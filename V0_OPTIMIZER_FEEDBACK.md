@@ -243,6 +243,16 @@ easy to justify from local state and authored intent.
   `536.76` screen run to `531.78` because `opening_burst` kept the same axis
   fit while taking longer. Speed residuals need a cheaper shared prefix
   measurement or a stronger geometry lever before they are worth ranking with.
+  A cheaper speed proxy using committed prefix fit `speed` values and gain
+  `0.10` was also not kept: seeds 0, 1, and 2 produced the same axis values as
+  the grain-residual baseline, so apparent elapsed-time improvements were run
+  variance rather than a reliable optimizer change.
+  A contact_style residual target trial using committed prefix fit
+  `contact_style` values and gain `0.15` was also not kept: before golden
+  screening, `npm test` timed out in `v0_initial_conditions.test.ts` on the
+  preroll timeline test, showing the ranking change can make a small compile
+  path too slow. Contact residuals should wait for calibrated final
+  contact-style honesty or a validated local repair loop.
   Implementation area: target sampling and gap ranking state.
 
 - Generalized ride-out and trim variants: make continuation and tail-trim

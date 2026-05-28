@@ -44,7 +44,7 @@ import {
   CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
 } from "./types.ts";
 
-export type ResolvedStart = {
+type ResolvedStart = {
   position: { x: number; y: number };
   velocity: { x: number; y: number };
 };
@@ -2327,7 +2327,7 @@ function measureFitGrain(fit: GapFit): number {
 const engineLineCache = new WeakMap<TrackLine, Map<string, any>>();
 
 // deno-lint-ignore no-explicit-any
-export function engineLineFromTrackLine(line: TrackLine): any {
+function engineLineFromTrackLine(line: TrackLine): any {
   const signature = engineLineSignature(line);
   let cachedBySignature = engineLineCache.get(line);
   if (cachedBySignature === undefined) {
@@ -2391,12 +2391,12 @@ let currentStartState: ResolvedStart = {
 };
 
 // deno-lint-ignore no-explicit-any
-export function makeBaseEngine(start: ResolvedStart): any {
+function makeBaseEngine(start: ResolvedStart): any {
   // lr-core engines are immutable; setStart returns a new instance.
   return new LineRiderEngine().setStart(start.position, start.velocity);
 }
 
-export function resolveStartState(spec: Spec): ResolvedStart {
+function resolveStartState(spec: Spec): ResolvedStart {
   if (spec.start === undefined) {
     return {
       position: { ...START_DEFAULTS.POSITION },
@@ -2412,7 +2412,7 @@ export function resolveStartState(spec: Spec): ResolvedStart {
   };
 }
 
-export function withOptimizedPrerollStart(spec: Spec, seed: number): Spec {
+function withOptimizedPrerollStart(spec: Spec, seed: number): Spec {
   if ((spec.preroll ?? 0) <= 0) return spec;
 
   // A manual `start` is already an explicit initial condition. Consume
@@ -2845,7 +2845,7 @@ function nextLineIdAt(fits: (GapFit | null)[], upTo: number): number {
 
 // ─────────── Timeline slicing ───────────
 
-export function sliceTimeline(contactFrames: number[], durationFrames: number): Gap[] {
+function sliceTimeline(contactFrames: number[], durationFrames: number): Gap[] {
   const gaps: Gap[] = [];
   let idx = 0;
   let cursor = 0;
@@ -2874,7 +2874,7 @@ export function sliceTimeline(contactFrames: number[], durationFrames: number): 
 
 // ─────────── Per-gap effective axes ───────────
 
-export function effectiveAxes(gap: Gap, spec: Spec): SectionAxes {
+function effectiveAxes(gap: Gap, spec: Spec): SectionAxes {
   const sums: Record<keyof SectionAxes, number> = {
     air: 0,
     speed: 0,
@@ -2920,7 +2920,7 @@ function axesAtFrame(frame: number, spec: Spec): SectionAxes {
 
 // ─────────── Cross-gap target sampling ───────────
 
-export function sampleGapTargets(
+function sampleGapTargets(
   section: SectionAxes,
   sigma: number,
   rng: () => number,
@@ -2947,7 +2947,7 @@ function clamp(x: number, lo: number, hi: number): number {
 
 // ─────────── Per-gap compilation ───────────
 
-export type GapFit = {
+type GapFit = {
   arc: Arc;
   lines: TrackLine[];
   /** Achieved axis values for this gap (for the DriftReport). */
@@ -2965,7 +2965,7 @@ export type GapFit = {
  *
  * Deterministic for fixed (baseEngine state, rng state, gap).
  */
-export function generateRankedCandidates(
+function generateRankedCandidates(
   // deno-lint-ignore no-explicit-any
   baseEngine: any,
   gap: Gap,
@@ -3026,7 +3026,7 @@ function isDenseContactSequence(contactFrames: number[], durationFrames: number)
   return contactFrames.length * FPS > durationFrames;
 }
 
-export function residualSearchTargetsForGap(
+function residualSearchTargetsForGap(
   // deno-lint-ignore no-explicit-any
   baseEngine: any,
   gap: Gap,
@@ -3620,7 +3620,7 @@ function axisCost(target: SectionAxes, achieved: SectionAxes): number {
 
 // ─────────── Spec validation ───────────
 
-export function validateSpec(spec: Spec): void {
+function validateSpec(spec: Spec): void {
   if (spec.duration <= 0) throw new Error("Spec.duration must be > 0");
   for (const c of spec.contacts) {
     if (c.t < 0 || c.t > spec.duration) {
@@ -3673,7 +3673,7 @@ function validatePreroll(preroll: Spec["preroll"]): void {
 
 // ─────────── Track JSON assembly ───────────
 
-export function buildTrackJson(
+function buildTrackJson(
   lines: TrackLine[],
   durationFrames: number,
   start: ResolvedStart,
@@ -3703,7 +3703,7 @@ export function buildTrackJson(
 
 // ─────────── DriftReport assembly ───────────
 
-export function buildDriftReport(
+function buildDriftReport(
   det: Detection, spec: Spec, gaps: Gap[],
   contactFrames: number[], durationFrames: number,
   gapFailures: number[],

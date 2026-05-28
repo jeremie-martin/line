@@ -25,6 +25,7 @@ import {
   budgetFor,
   hardBudgetMs,
   headlineCases,
+  ldsWorkerTimeoutMs,
   loadGoldenSpec,
   softBudgetMs,
   variantCases,
@@ -294,12 +295,16 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
   };
 }
 
-function specContext(spec: Spec): ScoreContext {
+function specContext(spec: Spec, strategy: Strategy): ScoreContext {
   const numContacts = spec.contacts.length;
   return {
     soft_ms: softBudgetMs(numContacts),
     hard_ms: hardBudgetMs(numContacts),
-    worker_timeout_ms: workerTimeoutMs(numContacts),
+    // LDS is much slower than legacy and needs a budget-scaled safety cap, or
+    // normal compiles get killed mid-search and falsely scored 0.
+    worker_timeout_ms: strategy === "lds"
+      ? ldsWorkerTimeoutMs(budgetFor(spec).units)
+      : workerTimeoutMs(numContacts),
     total_frames: Math.round(spec.duration * FPS),
   };
 }
@@ -439,7 +444,7 @@ async function runRows(
     const key = `${testCase.specName}/${testCase.variant}`;
     if (!contexts.has(key)) {
       const spec = await loadGoldenSpec(testCase.specName, testCase.variant);
-      contexts.set(key, specContext(spec));
+      contexts.set(key, specContext(spec, strategy));
     }
   }
   const scored: ScoredSpec[] = [];

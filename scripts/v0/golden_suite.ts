@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { secToFrame, type Spec } from "./types.ts";
+import type { Spec } from "./types.ts";
 import type { Budget } from "./optimizer/types.ts";
 
 export const GOLDEN_SPECS = [
@@ -66,30 +66,52 @@ export function workerTimeoutMs(numContacts: number): number {
 /**
  * Default compute budget for the LDS compiler, in PHYSICS frames (the honest
  * work unit — frames the engine actually integrates; see
- * `optimizer/sim_frames.ts`). Scales affinely with spec size: a bigger spec
- * has a higher greedy floor (the mandatory prelude) and more gaps for LDS to
- * deviate at, so it needs proportionally more budget to reach its quality knee.
+ * `optimizer/sim_frames.ts`).
  *
- * Parity does NOT depend on this value — the floor leaf is the legacy greedy
- * descent, so goal_score >= greedy_v1 and contract-pass = 65/65 at ANY budget.
- * The budget only buys the bonus above greedy. Constants calibrated from the
- * budget→quality sweep (docs/optimizer/08_budget_curves.md): small specs reach
- * their knee by ~200-500k physics; wall ≈ 0.27 ms/physframe, so this trades
- * compile time for quality predictably.
+ * FLAT, deliberately. Parity does NOT depend on this value — the floor leaf is
+ * the legacy greedy descent, so goal_score >= greedy_v1 and contract-pass =
+ * 65/65 at ANY budget; the budget only buys the bonus above greedy. The data
+ * (docs/optimizer/08_budget_curves.md + floor-cost measurement) says:
+ *   - every spec's greedy floor costs 33k–134k physics (≤38 s); none are huge,
+ *     and floor cost does NOT scale cleanly with contacts or frames;
+ *   - most of the LDS bonus is *cheap* — the d=0 leaf + polish already lifts
+ *     e.g. rhythm_ladder 460→532; deviations add only a little more;
+ *   - on dense specs (drums family, solo_run) LDS deviations dead-end, so any
+ *     budget above the floor is wasted wall-clock.
+ * An affine-in-contacts budget therefore handed big specs 5–8× their floor and
+ * burned 10–20× greedy's wall-clock for ZERO quality gain. A flat budget a
+ * modest headroom above the largest floor captures the cheap bonus on solvable
+ * specs while bounding the waste on dead-end specs. wall ≈ 0.27 ms/physframe,
+ * so 200k ≈ a ~55 s ceiling per (spec,seed) before the one-leaf overshoot.
+ *
+ * (Tighter bounding of dead-end specs needs an algorithm change — finer-grained
+ * budget checks or LDS early-stop / completion — tracked as the big-spec speed
+ * item in docs/optimizer/07_remaining_work.md, deferred until it can be made
+ * safe without regressing any spec.)
  */
-export const LDS_BUDGET_BASE_PHYS = 120_000;
-export const LDS_BUDGET_PER_CONTACT_PHYS = 4_000;
-export const LDS_BUDGET_PER_FRAME_PHYS = 150;
+export const LDS_BUDGET_PHYS = 200_000;
 
-export function budgetFor(spec: Spec): Budget {
-  const frames = secToFrame(spec.duration);
-  return {
-    kind: "work",
-    units:
-      LDS_BUDGET_BASE_PHYS
-      + LDS_BUDGET_PER_CONTACT_PHYS * spec.contacts.length
-      + LDS_BUDGET_PER_FRAME_PHYS * frames,
-  };
+export function budgetFor(_spec: Spec): Budget {
+  return { kind: "work", units: LDS_BUDGET_PHYS };
+}
+
+/**
+ * Worker-timeout (hang-detection safety cap) for the LDS path. The legacy
+ * `workerTimeoutMs` is calibrated for the fast legacy compiler (≈5-40 s) and
+ * is far too tight for LDS, which spends its physics budget exploring (≈0.3 ms
+ * per physics frame, so a 200k budget ≈ 60-70 s wall, up to ~2× under the
+ * one-leaf overshoot). Scale the cap off the budget with generous safety so a
+ * normal LDS compile is never killed mid-search (which would score 0 — a false
+ * failure). This is a safety net, not a quality term.
+ */
+export const LDS_MS_PER_PHYSFRAME = 0.35; // measured 0.25-0.37; upper bound
+export const LDS_WORKER_SAFETY = 3;
+export const LDS_WORKER_TIMEOUT_FLOOR_MS = 120_000;
+export const LDS_WORKER_TIMEOUT_CAP_MS = 600_000;
+
+export function ldsWorkerTimeoutMs(budgetUnits: number): number {
+  const raw = Math.round(budgetUnits * LDS_MS_PER_PHYSFRAME * LDS_WORKER_SAFETY);
+  return Math.min(LDS_WORKER_TIMEOUT_CAP_MS, Math.max(LDS_WORKER_TIMEOUT_FLOOR_MS, raw));
 }
 
 export type GoldenSpecName = typeof GOLDEN_SPECS[number];

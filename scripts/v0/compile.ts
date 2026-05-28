@@ -2807,19 +2807,42 @@ function sliceTimeline(contactFrames: number[], durationFrames: number): Gap[] {
 
 // ─────────── Per-gap effective axes ───────────
 
-/**
- * Walk the spec's sections in declaration order; last-defined wins per axis
- * for sections overlapping the gap's midpoint. Falls back to defaults.
- *
- * Using the gap's midpoint is a v0 simplification — sections that only
- * partially cover a gap will be evaluated by what's at the midpoint. v0.1
- * may refine to time-weighted averaging if real specs require it.
- */
 function effectiveAxes(gap: Gap, spec: Spec): SectionAxes {
-  const midSec = (gap.startFrame + gap.endFrame) / 2 / FPS;
+  const sums: Record<keyof SectionAxes, number> = {
+    air: 0,
+    speed: 0,
+    contact_style: 0,
+    grain: 0,
+  };
+  const counts: Record<keyof SectionAxes, number> = {
+    air: 0,
+    speed: 0,
+    contact_style: 0,
+    grain: 0,
+  };
+
+  for (let frame = gap.startFrame; frame <= gap.endFrame; frame++) {
+    const axes = axesAtFrame(frame, spec);
+    for (const key of ["air", "speed", "contact_style", "grain"] as const) {
+      const value = axes[key];
+      if (value === undefined) continue;
+      sums[key] += value;
+      counts[key]++;
+    }
+  }
+
+  const out: SectionAxes = {};
+  for (const key of ["air", "speed", "contact_style", "grain"] as const) {
+    if (counts[key] > 0) out[key] = sums[key] / counts[key];
+  }
+  return out;
+}
+
+function axesAtFrame(frame: number, spec: Spec): SectionAxes {
+  const t = frame / FPS;
   const axes: SectionAxes = { ...(spec.defaults ?? {}) };
   for (const sec of spec.sections) {
-    if (sec.t0 > midSec || sec.t1 < midSec) continue;
+    if (sec.t0 > t || sec.t1 < t) continue;
     if (sec.air !== undefined) axes.air = sec.air;
     if (sec.speed !== undefined) axes.speed = sec.speed;
     if (sec.contact_style !== undefined) axes.contact_style = sec.contact_style;

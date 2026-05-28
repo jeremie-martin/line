@@ -146,6 +146,34 @@ without re-simulation.
 - **Polish**: applied to each survivor's fits independently, then
   re-rank.
 
+## Phase 1 follow-up: cascade-divergence localized
+
+After Phase 0 wrapped, instrumented `dense_sprint` seed=2 at K=48 and
+K=96 (the worst pure-quality regression in the original K-sweep) to
+localize where the non-monotonicity comes from.
+
+| metric | K=48 | K=96 |
+|---|---|---|
+| total_committed_cost | 11.67 | **27.95** (2.4×) |
+| axis_quality | 0.61 | **0.27** |
+| candidates_sampled | 2049 | 2718 |
+| gap_commits | 55 | 58 |
+| gap_backtracks | 13 | 13 |
+
+Per-gap pick comparison:
+
+- **Gaps 0-2: identical picks** (both K levels chose the same fit; expected — the cost-sorted top of K=48's pool is also the top of K=96's pool when both contain it).
+- **Gap 3: first divergence.** K=96 finds a candidate with cost 0.0606 vs K=48's 0.0619 — a tiny local improvement (0.001 better).
+- **Gaps 4-8: K=96 makes consistently better local picks** (more candidates to choose from now that the cascade has shifted).
+- **Gap 9: K=96 commits 0.37, K=48 commits 0.22.** The K=96 cascade has drifted into a less favorable rider state; its best available candidate is now strictly worse than K=48's pick.
+- **Gaps 16, 28, 29, 34, 36, 39, 40: K=96 commits 0.9-1.4 vs K=48's 0.1-0.3.** The drift has compounded; the cascade is in a bad region.
+
+**This is textbook greedy-with-cascading-state divergence.** Marginal local optimization at gap 3 sets up structurally worse downstream choices. No local sampling fix can address this — beam search keeping multiple hypotheses alive is the only structural cure.
+
+**Implication for Phase 1's exit gate.** The plan's gate ("no spec >5% drop K=48→K=96") cannot be met by any local sampling change. `sampleArcParams`'s only use of `attempt` is to index `CATCH_TEMPLATES` for steep-catch gaps (deterministic templates first, then random tail) — K=48's candidate set is already a strict subset of K=96's. The non-monotonicity is fundamental to greedy commit + cascading state, exactly what Phase 2-4 (beam search) addresses.
+
+**What was actually delivered in Phase 1.** A `tests/v0_determinism.test.ts` that compiles three representative specs (tiny_dance, syncopated_switchback, drums_signature) twice at the same seed and verifies hash-identical Tracks. This is the determinism precondition (hard contract C1) for the beam-search verification in Phases 4+; with it in CI we'll catch any non-determinism the rework might accidentally introduce.
+
 ## What was learned that surprised me
 
 1. **drums_pendulum is essentially saturated**: 5 different seeds

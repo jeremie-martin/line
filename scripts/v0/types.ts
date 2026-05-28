@@ -119,6 +119,14 @@ export type CompileStats = {
   /** Polish-pass invocations after the main loop. Each is one pass
    *  over the committed fits to nudge specific axes. */
   polish_iterations: number;
+  /** Sum of the final committed `cost` over all GapFits (the L2 SSE
+   *  the per-gap optimizer was minimizing during search). Recorded
+   *  for the cost-vs-quality correlation study in Phase 0. */
+  total_committed_cost: number;
+  /** Per-gap committed cost, in gap order (null entries for skipped
+   *  gaps). Same data as total_committed_cost but at gap granularity
+   *  so per-section / per-spec breakdowns are possible. */
+  committed_costs_per_gap: (number | null)[];
 };
 
 export type ContactReport = {

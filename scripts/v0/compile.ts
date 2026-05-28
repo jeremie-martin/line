@@ -100,6 +100,8 @@ const stats: CompileStats = {
   gap_backtracks: 0,
   validation_retries: 0,
   polish_iterations: 0,
+  total_committed_cost: 0,
+  committed_costs_per_gap: [],
 };
 
 function resetStats(): void {
@@ -109,10 +111,27 @@ function resetStats(): void {
   stats.gap_backtracks = 0;
   stats.validation_retries = 0;
   stats.polish_iterations = 0;
+  stats.total_committed_cost = 0;
+  stats.committed_costs_per_gap = [];
+}
+
+function recordCommittedCosts(fits: (GapFit | null)[]): void {
+  const per: (number | null)[] = [];
+  let total = 0;
+  for (const fit of fits) {
+    if (fit === null) {
+      per.push(null);
+    } else {
+      per.push(fit.cost);
+      total += fit.cost;
+    }
+  }
+  stats.committed_costs_per_gap = per;
+  stats.total_committed_cost = total;
 }
 
 function snapshotStats(): CompileStats {
-  return { ...stats };
+  return { ...stats, committed_costs_per_gap: [...stats.committed_costs_per_gap] };
 }
 
 export function compile(userSpec: Spec, seed = 0): CompileResult {
@@ -433,6 +452,7 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
     finalDet, spec, gaps, contactFrames, durationFrames, gapFailures, fits,
   );
 
+  recordCommittedCosts(fits);
   return { track, report, stats: snapshotStats() };
 }
 

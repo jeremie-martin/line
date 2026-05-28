@@ -136,6 +136,69 @@ Observed shape: the incumbent quality is already found by the lowest checked
 default-factor budget, then additional leaves are scored without displacing it.
 That is the expected monotone saturation shape for this case.
 
+## In-Progress Full Study Checkpoint
+
+Checkpoint captured on May 28, 2026 while this command was still running:
+
+```bash
+npm run study:v0:budget -- --scope=full --concurrency=4 \
+  --out=generated/v0_budget_study/full_2026-05-28 --resume
+```
+
+The checked-in suite currently contains 8 golden specs, so this full run is
+360 rows:
+
+```text
+8 specs x 5 seeds x 8 LDS budgets + 40 greedy reference rows
+```
+
+At 75 streamed rows, the partial analyzer showed:
+
+```text
+lds rows: 67
+legacy rows: 8
+completed LDS spec/seed curves: 6
+monotonicity failures: 0
+leaf-prefix failures: 0
+wall_ms/work_units cv: 0.2291814
+overshoot p50: 371516 work units
+overshoot p95: 951043 work units
+max overshoot: 1451739 work units
+```
+
+This is not acceptance evidence yet because the run is incomplete. It is still
+useful evidence for two reasons:
+
+- The prefix and monotonicity invariants are holding on the completed curves
+  observed so far.
+- The sweep has already exposed a concrete compatibility risk that would have
+  been hidden by a smaller smoke test.
+
+The important risk row is `drums_pendulum`, seed `1`:
+
+```text
+budget      LDS contract-gated quality   LDS hard contract   leaves scored
+50000       0.0000                       fail                1
+100000      0.0000                       fail                1
+200000      0.0000                       fail                1
+500000      0.0000                       fail                2
+1000000     0.0000                       fail                2
+2000000     0.0000                       fail                4
+5000000     0.0000                       fail                7
+10000000    0.0000                       fail                14
+legacy      0.4808                       pass                n/a
+```
+
+The LDS candidates in this row do improve raw axis quality, reaching roughly
+`0.5785`, but they still fail the hard contract, so their contract-gated
+quality remains zero. This is a parity blocker candidate until the completed
+study and a focused investigation show either:
+
+- the row is resolved at a calibrated default or higher budget,
+- the native LDS path is fixed so a passing cascade is included,
+- or the incompatibility is documented as an accepted limitation with explicit
+  evidence and legacy still retained.
+
 ## Acceptance Status
 
 This study is not complete until at least the representative scope has been run

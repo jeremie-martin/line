@@ -300,13 +300,16 @@ In place:
 
 Not accepted yet:
 
-- Work-unit predictability has not been measured on the representative or full
-  suite after the trajectory-frame reconciliation.
+- Work-unit predictability has not been measured to completion on the
+  representative or full suite after the trajectory-frame reconciliation.
 - Polish is generate-and-test at coarse leaf granularity. Stage 3 still needs
   pass-granularity metering and interruption so polish cannot starve later LDS
   leaves.
 - Representative acceptance and full acceptance have not been recorded as
   green evidence.
+- The in-progress full budget study has exposed a parity blocker candidate:
+  `drums_pendulum` seed `1` stayed contract-failing through the `10M`
+  sim-frame budget while the greedy reference passed at quality `0.4808`.
 - Iteration-story evidence has not been recorded.
 
 Legacy removal is blocked until every "not accepted yet" item is resolved or
@@ -327,11 +330,11 @@ smoke run can prove wiring but does not satisfy an acceptance row.
 | Monotonicity | Representative gate and full sweep show non-decreasing contract-gated quality | Pending evidence |
 | Prefix invariant | Scored-leaf fingerprints at larger budgets have prior budgets as prefixes | Pending representative/full evidence |
 | Work-unit semantics | `work_units_used == sim_frames` and other counters are diagnostic | Implemented |
-| Work-unit predictability | Stable-machine CV for `wall_ms / work_units` is `< 0.25` | Pending measurement |
+| Work-unit predictability | Stable-machine CV for `wall_ms / work_units` is `< 0.25` | Incomplete full-study checkpoint: CV `0.2291814` at 67 LDS rows |
 | Cheat-resistance | Written audit ties `work_units_used` to an engine operation and shows all physical validation is metered | Checkpoint audit recorded; re-audit at cutover |
 | Determinism | Budgeted representative compiles produce hash-identical `TrackJson` | Pending representative evidence |
 | Polish safety | Polish variants are scored leaves and never replace a better incumbent | Partially implemented, pending Stage 3 evidence |
-| Baseline parity | Default-budget LDS is within 5% of `baselines/greedy_v1.json` and per-spec pass counts do not regress | Pending full/default evidence |
+| Baseline parity | Default-budget LDS is within 5% of `baselines/greedy_v1.json` and per-spec pass counts do not regress | Pending full/default evidence; `drums_pendulum` seed `1` is a blocker candidate in the in-progress budget study |
 | Iteration story | One rebuild-era optimizer change is classified at matched compute as improvement, regression, or no-op | Pending writeup |
 | Legacy removal | All rows above are green | Blocked |
 
@@ -517,6 +520,28 @@ npm run study:v0:budget -- --specs=drums_signature --seeds=0 \
 ```
 
 Result: `remaining=0`, `ok=true`, `rows=3`.
+
+Full budget study in progress:
+
+```bash
+npm run study:v0:budget -- --scope=full --concurrency=4 \
+  --out=generated/v0_budget_study/full_2026-05-28 --resume
+```
+
+Checkpoint at 75 streamed rows:
+
+```text
+monotonicity failures: 0
+leaf-prefix failures: 0
+wall_ms/work_units cv: 0.2291814
+```
+
+This partial result is not acceptance evidence, but it is already useful: it
+shows the invariants holding on completed curves while identifying
+`drums_pendulum` seed `1` as a focused parity investigation target. At the
+`10M` sim-frame budget, LDS had scored 14 leaves, reached raw axis quality
+about `0.5785`, but still failed the hard contract; the greedy reference for
+the same row passed with contract-gated quality `0.4808`.
 
 ## Acceptance Gates
 

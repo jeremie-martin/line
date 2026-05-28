@@ -40,7 +40,7 @@ import type { TrackJson } from "../lib/primitive.ts";
 import {
   type Spec, type Section, type SectionAxes,
   type Arc, type TrackLine, type DriftReport, type Gap,
-  type ContactReport, type SectionReport,
+  type ContactReport, type SectionReport, type CompileStats,
   CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
 } from "./types.ts";
 
@@ -86,10 +86,38 @@ const PREROLL_PREFIX_ROBUSTNESS_WEIGHT = 0.03;
 export type CompileResult = {
   track: TrackJson;
   report: DriftReport;
+  stats: CompileStats;
 };
+
+// Module-local work counters. Reset at the top of every `compile()` call.
+// `compile()` is not reentrant (the engine pools aren't either) and each
+// golden worker thread imports its own copy of this module, so a single
+// mutable state object is safe here.
+const stats: CompileStats = {
+  candidates_sampled: 0,
+  engine_rebuilds: 0,
+  gap_commits: 0,
+  gap_backtracks: 0,
+  validation_retries: 0,
+  polish_iterations: 0,
+};
+
+function resetStats(): void {
+  stats.candidates_sampled = 0;
+  stats.engine_rebuilds = 0;
+  stats.gap_commits = 0;
+  stats.gap_backtracks = 0;
+  stats.validation_retries = 0;
+  stats.polish_iterations = 0;
+}
+
+function snapshotStats(): CompileStats {
+  return { ...stats };
+}
 
 export function compile(userSpec: Spec, seed = 0): CompileResult {
   validateSpec(userSpec);
+  resetStats();
 
   const spec = withOptimizedPrerollStart(userSpec, seed);
   const startState = resolveStartState(spec);
@@ -231,6 +259,7 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
 
       if (gapTried[i] < gapCandidates[i]!.length) {
         setFit(i, gapCandidates[i]![gapTried[i]++]);
+        stats.gap_commits++;
         const committed = i;
         if (currentFailureGap !== -1 && i >= currentFailureGap) {
           currentFailureGap = -1;
@@ -239,6 +268,7 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
         i++;
         const retryFrom = prefixValidationRetryFrom(committed);
         if (retryFrom !== null) {
+          stats.validation_retries++;
           setFit(retryFrom, null);
           gapCandidates[retryFrom] = null;
           for (let j = retryFrom + 1; j < gaps.length; j++) {
@@ -280,6 +310,7 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
           }
           i = prev;
           backtracksUsedForCurrentFailure++;
+          stats.gap_backtracks++;
           continue;
         }
       }
@@ -377,9 +408,13 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
     runFrom(earliest);
   }
 
+  stats.polish_iterations++;
   polishAirRideOut(fits, gaps, spec, contactFrames, durationFrames);
+  stats.polish_iterations++;
   polishAirContactEntry(fits, gaps, spec, contactFrames, durationFrames);
+  stats.polish_iterations++;
   polishAirBriefContacts(fits, gaps, spec, contactFrames, durationFrames);
+  stats.polish_iterations++;
   polishExcessContact(fits, gaps, spec, contactFrames, durationFrames);
 
   // Collect all chosen lines.
@@ -398,7 +433,7 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
     finalDet, spec, gaps, contactFrames, durationFrames, gapFailures, fits,
   );
 
-  return { track, report };
+  return { track, report, stats: snapshotStats() };
 }
 
 /** Locate the index of the gap whose fit's `lines` contains the given id. */
@@ -2314,6 +2349,7 @@ function engineLineSignature(line: TrackLine): string {
  * no behavioral benefit.
  */
 function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
+  stats.engine_rebuilds++;
   const eng: any = makeBaseEngine(currentStartState);
   let chained = eng;
   for (let j = 0; j < upTo; j++) {
@@ -2933,6 +2969,7 @@ function generateRankedCandidates(
   const adaptiveBudget = shouldUseShortGapAdaptiveBudget(gap);
   const maxAttempts = adaptiveBudget ? CALIB.K : minAttempts;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    stats.candidates_sampled++;
     const cand = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap);
     const fit = tryCandidate(
       baseEngine, gap, cand, lineIdStart, allContactFrames,

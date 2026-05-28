@@ -36,6 +36,17 @@ Signal: current gap/window frame count and contact frames.
 Scale: detector constants, not hand-tuned spec thresholds.
 Risk control: final hard gates and final axis reporting remain unchanged.
 
+Attempted 2026-05-28: added a search-only air feasible band to candidate
+ranking, using detector landing/persistence constants over the measured contact
+window and leaving final reports/scoring unchanged. Not kept. The broad clamp
+regressed seed 0 from the current baseline `goal_score=115.16`, valid 6/8 to
+`goal_score=50.98`, valid 6/8: it did not fix `drums_pendulum` and pushed
+`drums_crescendo` past the 45s zero-score runtime boundary. A narrower
+very-low-air-only version (`sampled air <= 0.22`) was neutral on seed 0
+(`115.16`, valid 6/8) but regressed seed 1 from the current baseline
+`goal_score=52.62`, valid 6/8 to `goal_score=47.00`, valid 6/8, mostly by
+slowing `drums_pendulum` and `rhythm_ladder`.
+
 ### 2. Replace midpoint `effectiveAxes` with time-weighted, section-aware targets
 
 The current `effectiveAxes(gap, spec)` samples axes at the gap midpoint, which is a v0 simplification.  That is weak for syncopated and uneven phrase specs where section boundaries can bisect a gap. Instead, compute the effective target over the actual frame interval:
@@ -285,6 +296,15 @@ same-session seed 1 comparison, the clean compiler scored `goal_score=42.71`,
 valid 6/8; the retry bump scored `goal_score=34.54`, valid 6/8. It did not
 repair the `opening_burst` or `rhythm_ladder` missing contacts, and pushed
 `rhythm_ladder` to `elapsed_ms=46496` with `time_multiplier=0`.
+
+Kept 2026-05-28: reduced `DENSE_FLAT_EXTREME_AIR_BUDGET` from 17 to 15 for
+dense gaps whose sampled targets are moderate-speed, moderate-grain/contact,
+and extreme low/high air. Full validation improved
+`npm run golden -- --json` from `goal_score=99.87`, valid 19/24 to
+`goal_score=107.12`, valid 19/24. Per-seed scores moved from
+115.16/52.62/163.76 to 115.14/59.68/178.32. The main gains came from faster
+runtime on `drums_pendulum`, with smaller supporting gains in
+`drums_crescendo` and `grain_staircase`; seed 0 remained essentially neutral.
 
 ### 9. Add one-gap lookahead feasibility when ranking top candidates
 

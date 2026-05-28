@@ -158,6 +158,10 @@ easy to justify from local state and authored intent.
   damped residual gain of `0.35` was also not kept: it recovered crescendo but
   still scored only `517.76` on seed 1. The continuous air-extremity pressure
   preserved stable moderate-air rows while keeping the opening/dense gains.
+  The gain was bracket-tested after landing: `0.50` overcorrected and dropped
+  seed 1 to `505.50` by pushing `opening_burst` deeper into the runtime
+  penalty, while `0.25` scored `530.05` on seed 1 and also lost most of the
+  opening benefit. The current `0.35` gain remains the validated balance.
 
 - Full final-validation retries: dense speed-only specs no longer use fewer
   final sync retries. Purpose: avoid hard-gate zeros from assembled-track
@@ -170,6 +174,24 @@ easy to justify from local state and authored intent.
   geometry axis tied to the finished track after polish mutates line endpoints.
   Signal: final track lines. Scale: existing grain definition. Risk control: no
   scorer or report schema changes.
+
+- Grain residual target pressure: candidate ranking now nudges the search-only
+  grain target toward the remaining mean needed by the current section, using
+  committed prefix fit geometry and the same section ownership rule as final
+  grain reporting. Purpose: reduce section-level grain drift without changing
+  arc bounds or final reporting. Signal: current section grain target,
+  committed prefix grain values, remaining owned contact gaps, and the sampled
+  per-gap grain target. Scale: a partial residual step (`0.15`) gated by
+  residual magnitude relative to scorer tolerance (`0.25`). Risk control:
+  no extra lr-core simulation is added, hard gates stay unchanged, and the
+  residual uses only already committed local prefix fits. Full validation
+  improved from `GOAL_SCORE 538.50 valid 24/24` to `563.48 valid 24/24`.
+  Biggest spec moves were `grain_staircase` (`559.37` to `638.52`),
+  `opening_burst` (`543.49` to `584.54`), and `drums_pendulum` (`415.76` to
+  `501.53`), with tradeoffs on `dense_sprint` (`610.53` to `585.98`) and
+  `rhythm_ladder` (`556.05` to `552.67`). A stronger grain gain of `0.35`
+  was tested and not kept: seed 1 improved, but seed 0 fell to `504.47`
+  because `opening_burst` axis quality collapsed.
 
 ## Deferred nontrivial work
 
@@ -213,9 +235,15 @@ easy to justify from local state and authored intent.
   Implementation area: `sampleArcParams`.
 
 - Section residual control: the air-only search-pressure piece has landed.
-  Remaining work is to extend the same idea to speed, grain, and
-  contact_style without destabilizing hard gates or duplicating the polish
-  layer. Implementation area: target sampling and gap ranking state.
+  The grain residual search-pressure piece has also landed. Remaining work is
+  to extend the same idea to speed and contact_style without destabilizing hard
+  gates or duplicating the polish layer. A speed residual target trial was
+  tested and not kept: it used the same prefix/remaining-section structure with
+  a `0.25` residual gain, but seed 1 fell from the air-residual baseline
+  `536.76` screen run to `531.78` because `opening_burst` kept the same axis
+  fit while taking longer. Speed residuals need a cheaper shared prefix
+  measurement or a stronger geometry lever before they are worth ranking with.
+  Implementation area: target sampling and gap ranking state.
 
 - Generalized ride-out and trim variants: make continuation and tail-trim
   variants available to all relevant targets, not only air-only long gaps.

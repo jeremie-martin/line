@@ -26,8 +26,7 @@ function expectValidSpec(spec: Spec): void {
 }
 
 describe("v0 golden configuration", () => {
-  test("headline suite has eight hand-authored specs", async () => {
-    expect(GOLDEN_SPECS).toHaveLength(8);
+  test("headline suite is the hand-authored spec registry", async () => {
     expect([...GOLDEN_SPECS]).toEqual([
       "drums_signature",
       "drums_pendulum",
@@ -37,8 +36,10 @@ describe("v0 golden configuration", () => {
       "opening_burst",
       "grain_staircase",
       "rhythm_ladder",
+      "cold_start",
+      "mini_burst",
     ]);
-    expect(headlineCases()).toHaveLength(8);
+    expect(headlineCases()).toHaveLength(GOLDEN_SPECS.length);
 
     for (const name of GOLDEN_SPECS) {
       expectValidSpec(await loadGoldenSpec(name, "base"));

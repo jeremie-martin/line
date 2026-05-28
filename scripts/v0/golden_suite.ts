@@ -10,6 +10,8 @@ export const GOLDEN_SPECS = [
   "opening_burst",
   "grain_staircase",
   "rhythm_ladder",
+  "cold_start",
+  "mini_burst",
 ] as const;
 
 export const REPORT_VARIANTS = [
@@ -19,9 +21,36 @@ export const REPORT_VARIANTS = [
 
 export const GOLDEN_SEEDS = [0, 1, 2] as const;
 
-export const PER_SPEC_SOFT_BUDGET_MS = 30_000;
-export const PER_SPEC_ZERO_SCORE_MS = 45_000;
-export const WORKER_TIMEOUT_MS = 50_000;
+/**
+ * Runtime budgets scale affinely with contact count, the unit of decision-
+ * making for the compiler. A 6-contact mini-spec should not get the same
+ * generous budget as a 55-contact drums spec.
+ *
+ *   soft_ms = SOFT_BASE + SOFT_PER_CONTACT * numContacts
+ *   hard_ms = HARD_BASE + HARD_PER_CONTACT * numContacts
+ *
+ * Worker timeout is `hard_ms + buffer`, clamped to a sensible floor/ceiling.
+ */
+export const SOFT_BUDGET_BASE_MS = 5_000;
+export const SOFT_BUDGET_PER_CONTACT_MS = 1_000;
+export const HARD_BUDGET_BASE_MS = 7_500;
+export const HARD_BUDGET_PER_CONTACT_MS = 1_500;
+export const WORKER_TIMEOUT_BUFFER_MS = 5_000;
+export const WORKER_TIMEOUT_FLOOR_MS = 60_000;
+export const WORKER_TIMEOUT_CAP_MS = 180_000;
+
+export function softBudgetMs(numContacts: number): number {
+  return SOFT_BUDGET_BASE_MS + SOFT_BUDGET_PER_CONTACT_MS * Math.max(0, numContacts);
+}
+
+export function hardBudgetMs(numContacts: number): number {
+  return HARD_BUDGET_BASE_MS + HARD_BUDGET_PER_CONTACT_MS * Math.max(0, numContacts);
+}
+
+export function workerTimeoutMs(numContacts: number): number {
+  const raw = hardBudgetMs(numContacts) + WORKER_TIMEOUT_BUFFER_MS;
+  return Math.min(WORKER_TIMEOUT_CAP_MS, Math.max(WORKER_TIMEOUT_FLOOR_MS, raw));
+}
 
 export type GoldenSpecName = typeof GOLDEN_SPECS[number];
 export type VariantName = "base" | typeof REPORT_VARIANTS[number];

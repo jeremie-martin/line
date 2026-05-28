@@ -193,5 +193,9 @@ easy to justify from local state and authored intent.
   from 6 to 8 starts was also tested and not kept: seed 1 fell from `487.55` to
   `299.81`, with `opening_burst` nearly zero from runtime. Reducing the
   shortlist from 6 to 4 was tested and not kept: seed 1 slipped to `483.85`
-  and did not move `opening_burst` out of the runtime penalty. Implementation area:
+  and did not move `opening_burst` out of the runtime penalty. Reducing the
+  prefix horizon from 4 to 3 gaps was also tested and not kept: seed 1 fell to
+  `468.52`, with `opening_burst` slower than baseline. Doubling the prefix
+  robustness weight from `0.03` to `0.06` was tested and not kept: seed 1 fell
+  to `459.56`, again with slower `opening_burst`. Implementation area:
   `choosePrerollStart` and candidate start generation.

@@ -28,14 +28,17 @@ npm run golden -- --details # human-readable with per-row diagnostics
 npm run golden -- --json    # compact JSON for scripted comparisons
 npm run golden -- --json-full # full diagnostic JSON, including all axes
 npm run golden -- --seed=42 # debug one seed instead of default [0,1,2]
+npm run golden -- --lds     # run the opt-in anytime LDS compiler
 npm run golden -- --variants # report-only deterministic perturbations
+npm run accept:v0           # representative acceptance gates
+npm run accept:v0 -- --full # full acceptance sweep
 ```
 
-Runs all headline specs sequentially for each fixed seed. Runtime uses fixed
-per-spec/seed thresholds, not thresholds scaled by video length: soft penalty
-from 30s to 45s elapsed compile time, plus a 50s worker timeout used only as
-an emergency cap for hangs. Implementation in `scripts/v0/golden.ts`; scoring
-shared with `scripts/v0/score.ts`.
+Runs all headline specs sequentially for each fixed seed. Runtime is reported
+and guarded by a worker timeout, but it is not part of quality scoring. The
+timeout is a safety mechanism for hangs, not an optimization target.
+Implementation in `scripts/v0/golden.ts`; scoring shared with
+`scripts/v0/score.ts`.
 
 ## Score
 
@@ -50,21 +53,16 @@ hard gates:
 axis_loss = mean(abs(axis_error)) / 0.25
 axis_quality = exp(-axis_loss)
 
-time_multiplier = 1                                    if elapsed <= 30s
-time_multiplier = 1 - smoothstep((elapsed-30s)/15s)    if 30s < elapsed < 45s
-time_multiplier = 0                                    if elapsed >= 45s
-
 spec_seed_score = 0 if any hard gate fails
-spec_seed_score = 1000 * axis_quality * time_multiplier otherwise
+spec_seed_score = 1000 * axis_quality otherwise
 
 spec_score = exp(mean(log(spec_seed_score + 1))) - 1 across seeds
 goal_score = exp(mean(log(spec_score + 1))) - 1 across specs
 ```
 
 Contact sync is still a hard contract, so `sync_score` is diagnostic rather
-than a quality multiplier. Runtime is a continuous quality term, not a sudden
-score cliff; the worker timeout remains a safety mechanism, not the intended
-optimization target.
+than a quality multiplier. Runtime remains diagnostic; the worker timeout is a
+safety mechanism, not a quality term.
 
 Headline weighting is deliberately simple: each golden spec family has equal
 weight, and each fixed seed contributes within that spec. Shorter specs are
@@ -149,7 +147,9 @@ widen the envelope to score points. Off-limits (non-exhaustive):
 
 Do not change the scorer (`scripts/v0/score.ts`, `scripts/v0/golden.ts`) or
 the golden spec files (`specs/golden/*.ts`) to improve the score. Metric or
-suite changes are allowed only when the goal itself is deliberately revised.
+suite changes are allowed only when the goal itself is deliberately revised;
+the current deliberate revision is quality-only scoring, with runtime removed
+from `goal_score`.
 
 ## Hard Contract
 

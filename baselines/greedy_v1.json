@@ -1,0 +1,36 @@
+{
+  "name": "greedy_v1",
+  "description": "Frozen legacy compiler baseline under quality-only v0 scoring.",
+  "strategy": "legacy",
+  "generated_from_commit": "112d5b6",
+  "command": "npm run golden -- --json --runtime-scale=3",
+  "scoring": {
+    "quality": "scoreDriftReport quality-only score; runtime is timeout-only",
+    "aggregation": "shifted_geometric_mean_by_spec",
+    "worker_timeout_ms": 150000,
+    "runtime_scale": 3
+  },
+  "goal_score": 251.73,
+  "passed": 21,
+  "total": 24,
+  "spec_scores": [
+    { "name": "drums_signature", "score": 569.12, "passed": 3, "total": 3 },
+    { "name": "drums_pendulum", "score": 445.76, "passed": 3, "total": 3 },
+    { "name": "drums_crescendo", "score": 588.86, "passed": 3, "total": 3 },
+    { "name": "dense_sprint", "score": 564.07, "passed": 3, "total": 3 },
+    { "name": "syncopated_switchback", "score": 555.91, "passed": 3, "total": 3 },
+    { "name": "opening_burst", "score": 7.06, "passed": 1, "total": 3 },
+    { "name": "grain_staircase", "score": 618.62, "passed": 3, "total": 3 },
+    { "name": "rhythm_ladder", "score": 69.49, "passed": 2, "total": 3 }
+  ],
+  "per_seed": [
+    { "seed": 0, "goal_score": 561.59, "passed": 8, "total": 8 },
+    { "seed": 1, "goal_score": 116.63, "passed": 6, "total": 8 },
+    { "seed": 2, "goal_score": 242.94, "passed": 7, "total": 8 }
+  ],
+  "known_failures": [
+    { "name": "opening_burst", "seed": 1, "message": "sync:0drift/3missing" },
+    { "name": "rhythm_ladder", "seed": 1, "message": "sync:0drift/2missing" },
+    { "name": "opening_burst", "seed": 2, "message": "sync:0drift/2missing" }
+  ]
+}

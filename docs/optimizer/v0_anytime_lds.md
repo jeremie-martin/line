@@ -147,6 +147,36 @@ The final comparator never ranks by cumulative per-gap cost. Per-gap cost and
 finished quality correlate imperfectly; using per-gap cost as the final key
 would reintroduce search-order artifacts.
 
+## Final-Validation Recovery as Leaves
+
+Per-gap candidate gates are necessary but not sufficient. A candidate can pass
+its local gap window and still create an assembled-track hard-contract failure:
+
+- a later line can create an off-beat landing before or after its own target,
+- an earlier line can keep the rider in contact through a target frame and
+  suppress the expected landing event,
+- a sequence that looks locally viable can fail only when all committed gaps
+  are simulated together.
+
+Legacy handles this with a bounded final-validation retry loop: simulate the
+assembled track, identify the earliest offending owning gap, advance that gap
+past the problematic candidate, reset the suffix, and rebuild from there.
+
+LDS needs the same compatibility behavior, but not as destructive mutation of
+the only surviving track. The target model is:
+
+- every assembled leaf is scored before recovery attempts are made,
+- each final-validation recovery path is a new deterministic leaf candidate,
+- the original leaf remains in the best-so-far register,
+- retry depth and owner-selection order are fixed code constants,
+- budget checks happen before starting the next recovery operation,
+- recovery leaves appear in `E` in a fixed order after the base leaf they
+  derive from and before optional polish leaves for that recovered variant.
+
+This is separate from polish. Final-validation recovery is hard-contract
+compatibility work; polish is quality refinement after a leaf is already a
+candidate answer.
+
 ## Best-So-Far Comparator
 
 Each finalized leaf is offered to the register. It replaces the incumbent only
@@ -305,6 +335,9 @@ Not accepted yet:
 - Polish is generate-and-test at coarse leaf granularity. Stage 3 still needs
   pass-granularity metering and interruption so polish cannot starve later LDS
   leaves.
+- Final-validation recovery is not yet represented as LDS leaf production.
+  This is the leading hypothesis for rows where native LDS reaches good raw
+  axis quality but still loses to greedy on the hard contract.
 - Representative acceptance and full acceptance have not been recorded as
   green evidence.
 - The in-progress full budget study has exposed a parity blocker candidate:
@@ -329,6 +362,7 @@ smoke run can prove wiring but does not satisfy an acceptance row.
 | Native LDS start | LDS does not run legacy as a mandatory prelude | Implemented |
 | Monotonicity | Representative gate and full sweep show non-decreasing contract-gated quality | Pending evidence |
 | Prefix invariant | Scored-leaf fingerprints at larger budgets have prior budgets as prefixes | Pending representative/full evidence |
+| Final-validation recovery | Assembled-track hard-contract retries are deterministic leaf variants, not destructive mutation | Pending implementation/evidence |
 | Work-unit semantics | `work_units_used == sim_frames` and other counters are diagnostic | Implemented |
 | Work-unit predictability | Stable-machine CV for `wall_ms / work_units` is `< 0.25` | Incomplete full-study checkpoint: CV `0.2291814` at 67 LDS rows |
 | Cheat-resistance | Written audit ties `work_units_used` to an engine operation and shows all physical validation is metered | Checkpoint audit recorded; re-audit at cutover |
@@ -597,6 +631,7 @@ Implement or tighten the budget-independent leaf enumeration:
 
 - Fixed candidate sets per node.
 - Increasing-discrepancy enumeration.
+- Final-validation recovery paths as deterministic leaf variants.
 - Deterministic finalized leaves.
 - Exact oracle scoring.
 - Best-so-far register.
@@ -605,6 +640,8 @@ Exit criteria:
 
 - Discrepancy-0 produces a complete native search leaf above the subfloor
   fallback.
+- Rows that legacy passes via bounded assembled-track retry are reachable by
+  native LDS without invoking legacy as a prelude.
 - Unbudgeted or high-budget LDS is within 5% of frozen legacy quality.
 - No budget input changes leaf ordering.
 

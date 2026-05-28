@@ -21,12 +21,16 @@ easy to justify from local state and authored intent.
   sparse specs still use full `CALIB.K`.
   A lower dense minimum of 14 was tested and not kept: it fixed the slow
   `drums_pendulum` seed 2 row in isolation, but broke `drums_crescendo` seed 1
-  with missed contacts and long runtime, so the floor remains 16.
-  A dense minimum of 15 was also tested and not kept: full-suite score fell
-  from `372.53` to `330.69`; it improved `drums_crescendo`, `grain_staircase`,
-  and `rhythm_ladder`, but caused a dense_sprint runtime cliff. A speed-pressure
+  with missed contacts and long runtime.
+  A dense minimum of 15 was initially tested before feasible-air ranking and
+  not kept: full-suite score fell from `372.53` to `330.69`; it improved
+  `drums_crescendo`, `grain_staircase`, and `rhythm_ladder`, but caused a
+  dense_sprint runtime cliff. After feasible-air ranking landed, the same
+  floor was retested and kept: full-suite validation improved from
+  `GOAL_SCORE 506.68 valid 24/24` to `531.55 valid 24/24`, with
+  `opening_burst` improving from `373.19` to `499.85`. A speed-pressure
   variant that kept more budget for high-speed gaps still hit the dense_sprint
-  seed 1 runtime cliff, so dense non-short gaps remain at 16 attempts.
+  seed 1 runtime cliff, so that variant remains rejected.
   A dense minimum of 17 was also tested and not kept: a seed 2 run exceeded
   three minutes before producing a benchmark result, making the extra dense
   budget incompatible with the runtime score.
@@ -104,6 +108,11 @@ easy to justify from local state and authored intent.
   `547.52`). A lower-bound-only variant was tested and not kept: seed 2 kept
   the pendulum fix, but seed 1 fell to `210.29` because `drums_pendulum`
   entered the zero-time band, so the upper feasibility bound is load-bearing.
+  A one-frame slack around the feasible band was tested and not kept: it
+  improved `drums_pendulum` seed 1 but pushed `opening_burst` deeper into the
+  runtime penalty, lowering seed 1 from `487.55` to `447.98`. Restricting that
+  slack to non-short gaps did not help (`446.22` on seed 1), so the strict
+  detector-derived band remains in place.
 
 - Full final-validation retries: dense speed-only specs no longer use fewer
   final sync retries. Purpose: avoid hard-gate zeros from assembled-track

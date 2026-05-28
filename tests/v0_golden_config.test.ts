@@ -38,6 +38,9 @@ describe("v0 golden configuration", () => {
       "rhythm_ladder",
       "cold_start",
       "mini_burst",
+      "tiny_dance",
+      "solo_run",
+      "verse_chorus",
     ]);
     expect(headlineCases()).toHaveLength(GOLDEN_SPECS.length);
 

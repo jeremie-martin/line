@@ -15,6 +15,12 @@ across fixed seeds `[0, 1, 2]`:
   exercises cold-start initial conditions (no preroll affordance).
 - `mini_burst` (5s) — short, ~7 contacts; exercises the per-contact
   runtime budget floor so small specs are not a free pass.
+- `tiny_dance` (3s) — minimum-size spec (4 contacts); anchors the runtime
+  cost floor for budget calibration.
+- `solo_run` (25s) — sustained ~80-contact passage; pushes contact count
+  past the drums-class ceiling so the per-contact cost slope is observable.
+- `verse_chorus` (24s) — 8 short sections, ~30 contacts; disambiguates
+  section-count from contact-count cost contribution.
 
 The three `drums_*` specs are 30 s against
 `beats/drums_0_30s_60_125.json`. The remaining specs use explicit Contact
@@ -39,11 +45,14 @@ npm run golden -- --variants # report-only deterministic perturbations
 
 Runs all headline specs sequentially for each fixed seed. Runtime budget
 scales affinely with each spec's contact count (the unit of decision-making
-for the compiler): `soft_ms = 5_000 + 1_000 * num_contacts`,
-`hard_ms = 7_500 + 1_500 * num_contacts`. The worker timeout is `hard_ms +
-5_000`, clamped to `[60s, 180s]`, and is only an emergency cap for hangs.
-Implementation in `scripts/v0/golden.ts`; scoring in `scripts/v0/score.ts`;
-budget helpers in `scripts/v0/golden_suite.ts`.
+for the compiler): `soft_ms = 20_000 + 400 * num_contacts`,
+`hard_ms = 35_000 + 400 * num_contacts`. The intercept (~20s) captures
+fixed overhead (worker startup, lr-core init, preroll setup); the slope
+(0.4 s/contact) is the marginal per-contact cost calibrated from a 13-spec
+× 5-seed timing sweep. The worker timeout is `hard_ms + 5_000`, clamped
+to `[60s, 180s]`, and is only an emergency cap for hangs. Implementation
+in `scripts/v0/golden.ts`; scoring in `scripts/v0/score.ts`; budget
+helpers in `scripts/v0/golden_suite.ts`.
 
 ## Score
 

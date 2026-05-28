@@ -51,17 +51,6 @@ export type V0ContractScore = {
   axis_score: number;
 };
 
-export type RuntimeBudget = {
-  elapsed_ms: number;
-  soft_ms: number;
-  hard_ms: number;
-};
-
-export type V0TimedContractScore = V0ContractScore & RuntimeBudget & {
-  score_without_time: number;
-  time_multiplier: number;
-};
-
 export function axisDetails(report: DriftReport): AxisDetail[] {
   const out: AxisDetail[] = [];
   for (const section of report.sections) {
@@ -94,19 +83,6 @@ export function worstContacts(report: DriftReport, limit = 3): WorstContact[] {
 function contactSeverity(c: ContactReport): number {
   if (c.status === "missing") return Infinity;
   return c.frame_error === null ? 0 : Math.abs(c.frame_error);
-}
-
-export function runtimeMultiplier(elapsedMs: number, softMs: number, hardMs: number): number {
-  if (!Number.isFinite(elapsedMs) || elapsedMs < 0) return 0;
-  if (!Number.isFinite(softMs) || !Number.isFinite(hardMs) || hardMs <= softMs) {
-    throw new Error(`invalid runtime budget: soft=${softMs} hard=${hardMs}`);
-  }
-  if (elapsedMs <= softMs) return 1;
-  if (elapsedMs >= hardMs) return 0;
-
-  const x = (elapsedMs - softMs) / (hardMs - softMs);
-  const smoothstep = x * x * (3 - 2 * x);
-  return 1 - smoothstep;
 }
 
 export function shiftedGeometricMean(values: number[], shift = 1): number {
@@ -166,23 +142,5 @@ export function scoreDriftReport(report: DriftReport): V0ContractScore {
     axis_loss,
     axis_quality,
     axis_score,
-  };
-}
-
-export function scoreTimedDriftReport(
-  report: DriftReport,
-  budget: RuntimeBudget,
-): V0TimedContractScore {
-  const base = scoreDriftReport(report);
-  const time_multiplier = runtimeMultiplier(budget.elapsed_ms, budget.soft_ms, budget.hard_ms);
-  const score_without_time = base.score;
-  return {
-    ...base,
-    score: base.passed ? score_without_time * time_multiplier : 0,
-    score_without_time,
-    time_multiplier,
-    elapsed_ms: budget.elapsed_ms,
-    soft_ms: budget.soft_ms,
-    hard_ms: budget.hard_ms,
   };
 }

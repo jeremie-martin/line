@@ -30,17 +30,20 @@
 
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import {
-  detect, extractRawTrajectory, extractRawTrajectoryWindow,
+  detect,
+  extractRawTrajectoryWindow as rawExtractRawTrajectoryWindow,
   K_BOUNCE_LANDING, PERSISTENCE_FRAMES,
   type Detection, type DetEvent, type RawTrajectory,
 } from "../lib/detector.ts";
 import { makeRng } from "../lib/rng.ts";
 import { arcToLines, makeSolidLine } from "./arc.ts";
 import type { TrackJson } from "../lib/primitive.ts";
+import { scoreDriftReport, type V0ContractScore } from "./score.ts";
 import {
   type Spec, type Section, type SectionAxes,
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type SectionReport,
+  type Budget, type CompileOptions, type CompileStats,
   CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
 } from "./types.ts";
 
@@ -83,13 +86,105 @@ const PREROLL_PREFIX_STARTS = 6;
 const PREROLL_PREFIX_MAX_GAPS = 4;
 const PREROLL_PREFIX_EXTRA_FRAMES = FPS;
 const PREROLL_PREFIX_ROBUSTNESS_WEIGHT = 0.03;
+const DEFAULT_LDS_MAX_DISCREPANCY = 3;
+const DEFAULT_LDS_CANDIDATES = 32;
+const DEFAULT_LDS_MAX_DEVIATION_RANK = 31;
+const DEFAULT_LDS_MAX_LEAVES_WITHOUT_BUDGET = 200;
+const TRAJECTORY_READ_WEIGHT = 1;
+const ENGINE_ADD_LINE_WEIGHT = 0;
 
 export type CompileResult = {
   track: TrackJson;
   report: DriftReport;
+  stats: CompileStats;
 };
 
-export function compile(userSpec: Spec, seed = 0): CompileResult {
+type WorkMeter = CompileStats;
+
+function createWorkMeter(): WorkMeter {
+  return {
+    sim_frames: 0,
+    work_units_used: 0,
+    budget_exhausted: false,
+    physics_frames_computed: 0,
+    trajectory_frames_read: 0,
+    engine_add_lines: 0,
+    candidates_sampled: 0,
+    leaves_attempted: 0,
+    leaves_scored: 0,
+    scored_leaf_fingerprints: [],
+    max_discrepancy_started: -1,
+    mandatory_prelude_units: 0,
+  };
+}
+
+function snapshotStats(meter: WorkMeter): CompileStats {
+  updateWorkUnits(meter);
+  return {
+    ...meter,
+    scored_leaf_fingerprints: [...meter.scored_leaf_fingerprints],
+  };
+}
+
+function updateWorkUnits(meter: WorkMeter): void {
+  meter.sim_frames = meter.trajectory_frames_read;
+  meter.work_units_used = meter.physics_frames_computed
+    + TRAJECTORY_READ_WEIGHT * meter.trajectory_frames_read
+    + ENGINE_ADD_LINE_WEIGHT * meter.engine_add_lines;
+}
+
+function markBudgetState(meter: WorkMeter, budget: Budget | undefined): void {
+  updateWorkUnits(meter);
+  meter.budget_exhausted = budget !== undefined && meter.work_units_used >= budget.units;
+}
+
+function budgetAllowsNextOp(meter: WorkMeter, budget: Budget | undefined): boolean {
+  updateWorkUnits(meter);
+  return budget === undefined || meter.work_units_used < budget.units;
+}
+
+function parseCompileArgs(seedOrOptions: number | CompileOptions | undefined): Required<Pick<CompileOptions, "seed" | "strategy">> & Pick<CompileOptions, "budget"> {
+  if (typeof seedOrOptions === "number" || seedOrOptions === undefined) {
+    return { seed: seedOrOptions ?? 0, strategy: "legacy", budget: undefined };
+  }
+  return {
+    seed: seedOrOptions.seed ?? 0,
+    strategy: seedOrOptions.strategy ?? "legacy",
+    budget: seedOrOptions.budget,
+  };
+}
+
+export function compile(userSpec: Spec, seedOrOptions: number | CompileOptions = 0): CompileResult {
+  const opts = parseCompileArgs(seedOrOptions);
+  const meter = createWorkMeter();
+  currentMeter = meter;
+  try {
+    const result = opts.strategy === "lds"
+      ? compileLdsInternal(userSpec, opts.seed, opts.budget, meter)
+      : compileLegacyInternal(userSpec, opts.seed, meter, opts.budget);
+    markBudgetState(meter, opts.budget);
+    return { track: result.track, report: result.report, stats: snapshotStats(meter) };
+  } finally {
+    currentMeter = null;
+  }
+}
+
+type CompileInternalResult = CompileResult & {
+  spec: Spec;
+  startState: ResolvedStart;
+  gaps: Gap[];
+  contactFrames: number[];
+  durationFrames: number;
+  fits: (GapFit | null)[];
+  gapFailures: number[];
+};
+
+function compileLegacyInternal(
+  userSpec: Spec,
+  seed = 0,
+  meter: WorkMeter,
+  budget?: Budget,
+): CompileInternalResult {
   validateSpec(userSpec);
 
   const spec = withOptimizedPrerollStart(userSpec, seed);
@@ -150,7 +245,7 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
       const fit = fits[k - 1];
       if (fit !== null) {
         for (const line of fit.lines) {
-          eng = eng.addLine(engineLineFromTrackLine(line));
+          eng = addEngineLine(eng, engineLineFromTrackLine(line));
         }
         nextLineId += fit.lines.length;
       }
@@ -402,7 +497,518 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
     finalDet, spec, gaps, contactFrames, durationFrames, gapFailures, fits,
   );
 
-  return { track, report };
+  return {
+    track,
+    report,
+    stats: snapshotStats(meter),
+    spec,
+    startState,
+    gaps,
+    contactFrames,
+    durationFrames,
+    fits: cloneFits(fits),
+    gapFailures: [...gapFailures],
+  };
+}
+
+type LdsContext = Pick<
+  CompileInternalResult,
+  "spec" | "startState" | "gaps" | "contactFrames" | "durationFrames"
+> & {
+  seed: number;
+};
+
+type LeafCandidate = {
+  label: string;
+  fits: (GapFit | null)[];
+  gapFailures: number[];
+  rankVector: number[];
+  discrepancy: number;
+};
+
+type FinalizedLeaf = {
+  label: string;
+  track: TrackJson;
+  report: DriftReport;
+  score: V0ContractScore;
+  fingerprint: string;
+  fits: (GapFit | null)[];
+  gapFailures: number[];
+  rankVector: number[];
+  discrepancy: number;
+  discoveryIndex: number;
+};
+
+function compileLdsInternal(
+  userSpec: Spec,
+  seed: number,
+  budget: Budget | undefined,
+  meter: WorkMeter,
+): CompileInternalResult {
+  const seedResult = compileLegacyInternal(userSpec, seed, meter, budget);
+  const ctx: LdsContext = {
+    spec: seedResult.spec,
+    startState: seedResult.startState,
+    gaps: seedResult.gaps,
+    contactFrames: seedResult.contactFrames,
+    durationFrames: seedResult.durationFrames,
+    seed,
+  };
+
+  let discoveryIndex = 0;
+  let best = finalizedLeafFromResult(
+    "legacy-seed",
+    seedResult,
+    [],
+    0,
+    discoveryIndex++,
+    meter,
+  );
+  meter.mandatory_prelude_units = meter.work_units_used;
+
+  const unpolishedLeaves: FinalizedLeaf[] = [best];
+  const offer = (leaf: FinalizedLeaf) => {
+    if (isLeafBetter(leaf, best)) best = leaf;
+    unpolishedLeaves.push(leaf);
+  };
+
+  let leavesAttemptedWithoutBudget = 0;
+  const contactGapIndices = ctx.gaps
+    .filter((gap) => gap.endsWithContact)
+    .map((gap) => gap.index);
+
+  for (const plan of enumerateLdsRankVectors(
+    contactGapIndices,
+    DEFAULT_LDS_MAX_DISCREPANCY,
+    Math.min(DEFAULT_LDS_MAX_DEVIATION_RANK, DEFAULT_LDS_CANDIDATES - 1),
+  )) {
+    if (!budgetAllowsNextOp(meter, budget)) break;
+    if (budget === undefined && leavesAttemptedWithoutBudget >= DEFAULT_LDS_MAX_LEAVES_WITHOUT_BUDGET) break;
+    leavesAttemptedWithoutBudget++;
+
+    meter.max_discrepancy_started = Math.max(meter.max_discrepancy_started, plan.discrepancy);
+    meter.leaves_attempted++;
+    updateWorkUnits(meter);
+
+    const leaf = buildLdsLeaf(ctx, plan.rankVector, plan.discrepancy, `lds:d${plan.discrepancy}`);
+    if (leaf === null) continue;
+    const finalized = finalizeLeaf(ctx, leaf, discoveryIndex++, meter);
+    offer(finalized);
+  }
+
+  // Coarse generate-and-test polish: run the existing in-place polish chain on
+  // cloned leaves only, then offer the resulting variant to the register.
+  for (const leaf of unpolishedLeaves) {
+    if (!budgetAllowsNextOp(meter, budget)) break;
+    const polished = polishLeafVariant(ctx, leaf);
+    if (polished === null) continue;
+    meter.leaves_attempted++;
+    updateWorkUnits(meter);
+    const finalized = finalizeLeaf(ctx, polished, discoveryIndex++, meter);
+    if (isLeafBetter(finalized, best)) best = finalized;
+  }
+
+  return {
+    track: best.track,
+    report: best.report,
+    stats: snapshotStats(meter),
+    spec: ctx.spec,
+    startState: ctx.startState,
+    gaps: ctx.gaps,
+    contactFrames: ctx.contactFrames,
+    durationFrames: ctx.durationFrames,
+    fits: cloneFits(best.fits),
+    gapFailures: [...best.gapFailures],
+  };
+}
+
+function finalizedLeafFromResult(
+  label: string,
+  result: CompileInternalResult,
+  rankVector: number[],
+  discrepancy: number,
+  discoveryIndex: number,
+  meter: WorkMeter,
+): FinalizedLeaf {
+  const score = scoreDriftReport(result.report);
+  const fingerprint = fingerprintLeaf(label, result.track, result.report, rankVector);
+  meter.leaves_scored++;
+  meter.scored_leaf_fingerprints.push(fingerprint);
+  updateWorkUnits(meter);
+  return {
+    label,
+    track: result.track,
+    report: result.report,
+    score,
+    fingerprint,
+    fits: cloneFits(result.fits),
+    gapFailures: [...result.gapFailures],
+    rankVector: [...rankVector],
+    discrepancy,
+    discoveryIndex,
+  };
+}
+
+function finalizeLeaf(
+  ctx: LdsContext,
+  leaf: LeafCandidate,
+  discoveryIndex: number,
+  meter: WorkMeter,
+): FinalizedLeaf {
+  const fits = cloneFits(leaf.fits);
+  const engine = rebuildEngine(fits, ctx.gaps.length);
+  const raw = extractRawTrajectory(engine, ctx.durationFrames + 20);
+  const det = detect(raw);
+  refreshFitAchievements(fits, ctx.gaps, det, ctx.contactFrames);
+
+  const lines: TrackLine[] = [];
+  for (const fit of fits) {
+    if (fit !== null) lines.push(...fit.lines);
+  }
+  const track = buildTrackJson(lines, ctx.durationFrames + 20, ctx.startState);
+  const report = buildDriftReport(
+    det,
+    ctx.spec,
+    ctx.gaps,
+    ctx.contactFrames,
+    ctx.durationFrames,
+    leaf.gapFailures,
+    fits,
+  );
+  const score = scoreDriftReport(report);
+  const fingerprint = fingerprintLeaf(leaf.label, track, report, leaf.rankVector);
+
+  meter.leaves_scored++;
+  meter.scored_leaf_fingerprints.push(fingerprint);
+  updateWorkUnits(meter);
+
+  return {
+    label: leaf.label,
+    track,
+    report,
+    score,
+    fingerprint,
+    fits,
+    gapFailures: [...leaf.gapFailures],
+    rankVector: [...leaf.rankVector],
+    discrepancy: leaf.discrepancy,
+    discoveryIndex,
+  };
+}
+
+function refreshFitAchievements(
+  fits: (GapFit | null)[],
+  gaps: Gap[],
+  det: Detection,
+  contactFrames: number[],
+): void {
+  for (let i = 0; i < fits.length; i++) {
+    const fit = fits[i];
+    const gap = gaps[i];
+    if (fit === null || gap === undefined || !gap.endsWithContact) continue;
+    const rangeEnd = axisLookaheadEndFrame(gap, contactFrames);
+    fit.achieved = measureAxes(det, gap, fit.lines, rangeEnd);
+    fit.cost = axisCost(gap.targets, fit.achieved);
+  }
+}
+
+function isLeafBetter(candidate: FinalizedLeaf, incumbent: FinalizedLeaf): boolean {
+  const a = candidate.score;
+  const b = incumbent.score;
+  if (a.passed !== b.passed) return a.passed;
+  if (a.passed && b.passed) {
+    if (a.axis_quality !== b.axis_quality) return a.axis_quality > b.axis_quality;
+    return false;
+  }
+  if (a.sync_score !== b.sync_score) return a.sync_score > b.sync_score;
+  const aSurvival = candidate.report.terminus.frame;
+  const bSurvival = incumbent.report.terminus.frame;
+  if (aSurvival !== bSurvival) return aSurvival > bSurvival;
+  if (a.off_beat_landings !== b.off_beat_landings) {
+    return a.off_beat_landings < b.off_beat_landings;
+  }
+  if (a.axis_quality !== b.axis_quality) return a.axis_quality > b.axis_quality;
+  return false;
+}
+
+function buildLdsLeaf(
+  ctx: LdsContext,
+  rankVector: number[],
+  discrepancy: number,
+  label: string,
+): LeafCandidate | null {
+  const fits: (GapFit | null)[] = new Array(ctx.gaps.length).fill(null);
+  const gapCandidates: (GapFit[] | null)[] = new Array(ctx.gaps.length).fill(null);
+  const gapTried: number[] = new Array(ctx.gaps.length).fill(0);
+  const gapFailures: number[] = [];
+  const candidateCache = new Map<string, GapFit[]>();
+  const prefixEngines: any[] = [makeBaseEngine(ctx.startState)];
+  const prefixNextLineIds: number[] = [1];
+  const fitIds = new WeakMap<GapFit, number>();
+  let nextFitId = 1;
+
+  const forcedRank = (gapIndex: number) => rankVector[gapIndex] ?? 0;
+
+  const fitId = (fit: GapFit): number => {
+    let id = fitIds.get(fit);
+    if (id === undefined) {
+      id = nextFitId++;
+      fitIds.set(fit, id);
+    }
+    return id;
+  };
+
+  const invalidatePrefixFromFit = (index: number) => {
+    prefixEngines.length = Math.min(prefixEngines.length, index + 1);
+    prefixNextLineIds.length = Math.min(prefixNextLineIds.length, index + 1);
+  };
+
+  const setFit = (index: number, fit: GapFit | null) => {
+    fits[index] = fit;
+    invalidatePrefixFromFit(index);
+  };
+
+  const engineUpTo = (upTo: number): any => {
+    for (let k = prefixEngines.length; k <= upTo; k++) {
+      let eng = prefixEngines[k - 1];
+      let nextLineId = prefixNextLineIds[k - 1];
+      const fit = fits[k - 1];
+      if (fit !== null) {
+        for (const line of fit.lines) {
+          eng = addEngineLine(eng, engineLineFromTrackLine(line));
+        }
+        nextLineId += fit.lines.length;
+      }
+      prefixEngines[k] = eng;
+      prefixNextLineIds[k] = nextLineId;
+    }
+    return prefixEngines[upTo];
+  };
+
+  const nextLineIdUpTo = (upTo: number): number => {
+    engineUpTo(upTo);
+    return prefixNextLineIds[upTo];
+  };
+
+  const candidateCacheKey = (gapIndex: number): string => {
+    const parts = [String(gapIndex), String(nextLineIdUpTo(gapIndex))];
+    for (let j = 0; j < gapIndex; j++) {
+      const fit = fits[j];
+      parts.push(fit === null ? "_" : String(fitId(fit)));
+    }
+    return parts.join("|");
+  };
+
+  const resetAfter = (from: number, through: number) => {
+    for (let j = from; j <= through; j++) {
+      setFit(j, null);
+      gapCandidates[j] = null;
+      gapTried[j] = 0;
+    }
+  };
+
+  let i = 0;
+  let backtracksUsedForCurrentFailure = 0;
+  let currentFailureGap = -1;
+  const denseContactSequence = isDenseContactSequence(ctx.contactFrames, ctx.durationFrames);
+  const backtrackDepth = denseContactSequence ? Math.max(3, CALIB.BACKTRACK_DEPTH) : CALIB.BACKTRACK_DEPTH;
+
+  while (i < ctx.gaps.length) {
+    const gap = ctx.gaps[i];
+    if (!gap.endsWithContact) {
+      setFit(i, null);
+      i++;
+      continue;
+    }
+
+    if (gapCandidates[i] === null) {
+      const cacheKey = candidateCacheKey(i);
+      const cached = candidateCache.get(cacheKey);
+      if (cached !== undefined) {
+        gapCandidates[i] = cached;
+      } else {
+        const candidates = generateRankedCandidates(
+          engineUpTo(i),
+          gap,
+          makeRng((ctx.seed | 0) * 1000003 + i + 1),
+          nextLineIdUpTo(i),
+          ctx.contactFrames,
+          ctx.durationFrames,
+          DEFAULT_LDS_CANDIDATES,
+        );
+        candidateCache.set(cacheKey, candidates);
+        gapCandidates[i] = candidates;
+      }
+    }
+
+    const minimumRank = forcedRank(i);
+    if (gapTried[i] < minimumRank) gapTried[i] = minimumRank;
+
+    if (gapTried[i] < gapCandidates[i]!.length) {
+      setFit(i, cloneFit(gapCandidates[i]![gapTried[i]++]));
+      if (currentFailureGap !== -1 && i >= currentFailureGap) {
+        currentFailureGap = -1;
+        backtracksUsedForCurrentFailure = 0;
+      }
+      i++;
+      continue;
+    }
+
+    if (currentFailureGap === -1) {
+      currentFailureGap = i;
+      backtracksUsedForCurrentFailure = 0;
+    }
+
+    if (backtracksUsedForCurrentFailure < backtrackDepth) {
+      let prev = i - 1;
+      while (prev >= 0) {
+        if (ctx.gaps[prev].endsWithContact && gapCandidates[prev] !== null) {
+          const minimumPrevRank = forcedRank(prev);
+          if (gapTried[prev] < minimumPrevRank) gapTried[prev] = minimumPrevRank;
+          if (gapTried[prev] < gapCandidates[prev]!.length) break;
+        }
+        prev--;
+      }
+      if (prev >= 0) {
+        resetAfter(prev + 1, i);
+        i = prev;
+        backtracksUsedForCurrentFailure++;
+        continue;
+      }
+    }
+
+    gapFailures.push(i);
+    setFit(i, null);
+    gapCandidates[i] = null;
+    gapTried[i] = 0;
+    currentFailureGap = -1;
+    backtracksUsedForCurrentFailure = 0;
+    i++;
+  }
+
+  return {
+    label: `${label}:${rankVector.join(",")}`,
+    fits,
+    gapFailures,
+    rankVector: [...rankVector],
+    discrepancy,
+  };
+}
+
+function polishLeafVariant(ctx: LdsContext, leaf: FinalizedLeaf): LeafCandidate | null {
+  const fits = cloneFits(leaf.fits);
+  const before = fingerprintFits(fits);
+  polishAirRideOut(fits, ctx.gaps, ctx.spec, ctx.contactFrames, ctx.durationFrames);
+  polishAirContactEntry(fits, ctx.gaps, ctx.spec, ctx.contactFrames, ctx.durationFrames);
+  polishAirBriefContacts(fits, ctx.gaps, ctx.spec, ctx.contactFrames, ctx.durationFrames);
+  polishExcessContact(fits, ctx.gaps, ctx.spec, ctx.contactFrames, ctx.durationFrames);
+  if (fingerprintFits(fits) === before) return null;
+  return {
+    label: `${leaf.label}:polish`,
+    fits,
+    gapFailures: [...leaf.gapFailures],
+    rankVector: [...leaf.rankVector],
+    discrepancy: leaf.discrepancy,
+  };
+}
+
+function* enumerateLdsRankVectors(
+  gapIndices: number[],
+  maxDiscrepancy: number,
+  maxRank: number,
+): Generator<{ rankVector: number[]; discrepancy: number }> {
+  const base = new Array(Math.max(0, ...gapIndices) + 1).fill(0);
+  yield { rankVector: [...base], discrepancy: 0 };
+  for (let discrepancy = 1; discrepancy <= maxDiscrepancy; discrepancy++) {
+    for (const gapSet of combinations(gapIndices, discrepancy)) {
+      for (const ranks of positiveRankVectors(discrepancy, maxRank)) {
+        const rankVector = [...base];
+        for (let i = 0; i < gapSet.length; i++) rankVector[gapSet[i]] = ranks[i];
+        yield { rankVector, discrepancy };
+      }
+    }
+  }
+}
+
+function* combinations(values: number[], k: number, start = 0, prefix: number[] = []): Generator<number[]> {
+  if (prefix.length === k) {
+    yield [...prefix];
+    return;
+  }
+  for (let i = start; i <= values.length - (k - prefix.length); i++) {
+    prefix.push(values[i]);
+    yield* combinations(values, k, i + 1, prefix);
+    prefix.pop();
+  }
+}
+
+function* positiveRankVectors(length: number, maxRank: number): Generator<number[]> {
+  for (let sum = length; sum <= length * maxRank; sum++) {
+    yield* positiveRankVectorsWithSum(length, maxRank, sum);
+  }
+}
+
+function* positiveRankVectorsWithSum(
+  length: number,
+  maxRank: number,
+  sum: number,
+  prefix: number[] = [],
+): Generator<number[]> {
+  if (prefix.length === length) {
+    if (sum === 0) yield [...prefix];
+    return;
+  }
+  const remaining = length - prefix.length - 1;
+  for (let value = 1; value <= maxRank; value++) {
+    const rest = sum - value;
+    if (rest < remaining || rest > remaining * maxRank) continue;
+    prefix.push(value);
+    yield* positiveRankVectorsWithSum(length, maxRank, rest, prefix);
+    prefix.pop();
+  }
+}
+
+function fingerprintLeaf(
+  label: string,
+  track: TrackJson,
+  report: DriftReport,
+  rankVector: number[],
+): string {
+  return stableHash(JSON.stringify({
+    label,
+    rankVector,
+    lines: track.lines.map(lineFingerprintParts),
+    report,
+  }));
+}
+
+function fingerprintFits(fits: (GapFit | null)[]): string {
+  return stableHash(JSON.stringify(fits.map((fit) =>
+    fit === null ? null : fit.lines.map(lineFingerprintParts)
+  )));
+}
+
+function lineFingerprintParts(line: TrackLine): unknown[] {
+  return [
+    line.id,
+    line.type,
+    line.x1,
+    line.y1,
+    line.x2,
+    line.y2,
+    line.flipped ? 1 : 0,
+    line.leftExtended ? 1 : 0,
+    line.rightExtended ? 1 : 0,
+  ];
+}
+
+function stableHash(input: string): string {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 /** Locate the index of the gap whose fit's `lines` contains the given id. */
@@ -413,6 +1019,52 @@ function findGapOwning(lineId: number, fits: (GapFit | null)[]): number {
     if (fit.lines.some((l) => l.id === lineId)) return i;
   }
   return -1;
+}
+
+function extractRawTrajectory(engine: any, duration: number): RawTrajectory {
+  return extractRawTrajectoryWindow(engine, 0, duration);
+}
+
+function extractRawTrajectoryWindow(
+  engine: any,
+  startFrame: number,
+  duration: number,
+): RawTrajectory {
+  const start = Math.max(0, startFrame);
+  const frameReads = duration >= start ? duration - start + 1 : 0;
+  const before = engineLastFrameIndex(engine);
+  const raw = rawExtractRawTrajectoryWindow(engine, start, duration);
+  const after = engineLastFrameIndex(engine);
+
+  if (currentMeter !== null) {
+    currentMeter.trajectory_frames_read += frameReads;
+    if (before !== null && after !== null) {
+      currentMeter.physics_frames_computed += Math.max(0, after - before);
+    }
+    updateWorkUnits(currentMeter);
+  }
+
+  return raw;
+}
+
+function engineLastFrameIndex(engine: any): number | null {
+  if (engine === null || typeof engine !== "object") return null;
+  const fn = engine.getLastFrameIndex;
+  if (typeof fn !== "function") return null;
+  try {
+    const value = fn.call(engine);
+    return typeof value === "number" && Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function addEngineLine(engine: any, line: any): any {
+  if (currentMeter !== null) {
+    currentMeter.engine_add_lines++;
+    updateWorkUnits(currentMeter);
+  }
+  return engine.addLine(line);
 }
 
 type WindowDetection = Detection & { frameOffset?: number };
@@ -487,7 +1139,7 @@ function polishAirRideOut(
   for (let pass = 0; pass < passes; pass++) {
     if (bestErr <= airResolution) break;
     const lineId = nextLineIdAt(fits, gaps.length);
-    let best = chainSource === null
+    let best: AirPolishCandidate | null = chainSource === null
       ? null
       : bestAirPolishCandidate(
         baseEngine,
@@ -521,7 +1173,7 @@ function polishAirRideOut(
     usedSources.add(best.sourceId);
     chainSource = { owner: best.owner, line: best.line };
     sources.push(chainSource);
-    baseEngine = baseEngine.addLine(engineLineFromTrackLine(best.line));
+    baseEngine = addEngineLine(baseEngine, engineLineFromTrackLine(best.line));
     bestErr = best.err;
   }
 }
@@ -552,7 +1204,7 @@ function bestAirPolishCandidate(
     if (usedSources.has(source.line.id)) continue;
     for (const cand of makeAirPolishCandidates(lineId, source.line)) {
       if (continuationOnly && !cand.continuation) continue;
-      const eng = baseEngine.addLine(engineLineFromTrackLine(cand.line));
+      const eng = addEngineLine(baseEngine, engineLineFromTrackLine(cand.line));
       const det = detect(extractRawTrajectory(eng, durationFrames + 20));
       if (!passesFinalHardGates(det, contactFrames)) continue;
       const err = meanAirError(det, spec);
@@ -937,7 +1589,7 @@ function polishAirBriefContacts(
         point.y + dy,
       );
 
-      const candidateEngine = baseEngine.addLine(engineLineFromTrackLine(line));
+      const candidateEngine = addEngineLine(baseEngine, engineLineFromTrackLine(line));
       const det = detect(extractRawTrajectory(candidateEngine, durationFrames + 20));
       if (!passesFinalHardGates(det, contactFrames)) continue;
 
@@ -1472,12 +2124,12 @@ function polishGrainLength(
       }
       | null = null;
 
-    const lineIds = chainLineId === null ? contactEntryLineIds(baseDet) : [chainLineId];
+    const lineIds: number[] = chainLineId === null ? contactEntryLineIds(baseDet) : [chainLineId];
     for (const lineId of lineIds) {
       const owner = findGapOwning(lineId, fits);
       if (owner < 0) continue;
       const fit = fits[owner]!;
-      const line = fit.lines.find((l) => l.id === lineId);
+      const line: TrackLine | undefined = fit.lines.find((l) => l.id === lineId);
       if (line === undefined) continue;
 
       const originalX1 = line.x1;
@@ -1657,13 +2309,13 @@ function polishEntrySpeedX(
       }
       | null = null;
 
-    const lineIds = lastAcceptedLineId === null
+    const lineIds: number[] = lastAcceptedLineId === null
       ? contactEntryLineIds(baseDet).reverse()
       : [lastAcceptedLineId];
     for (const lineId of lineIds) {
       const owner = findGapOwning(lineId, fits);
       if (owner < 0) continue;
-      const line = fits[owner]!.lines.find((l) => l.id === lineId);
+      const line: TrackLine | undefined = fits[owner]!.lines.find((l) => l.id === lineId);
       if (line === undefined) continue;
 
       const originalX1 = line.x1;
@@ -2324,7 +2976,7 @@ function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
     const fit = fits[j];
     if (fit === null) continue;
     for (const line of fit.lines) {
-      chained = chained.addLine(engineLineFromTrackLine(line));
+      chained = addEngineLine(chained, engineLineFromTrackLine(line));
     }
   }
   return chained;
@@ -2337,6 +2989,8 @@ let currentStartState: ResolvedStart = {
   position: { ...START_DEFAULTS.POSITION },
   velocity: { ...START_DEFAULTS.VELOCITY },
 };
+
+let currentMeter: WorkMeter | null = null;
 
 // deno-lint-ignore no-explicit-any
 function makeBaseEngine(start: ResolvedStart): any {
@@ -2623,7 +3277,7 @@ function prerollPrefixStartCost(
     }
     prefixFits.push(fit);
     totalGapCost += fit.cost;
-    for (const line of fit.lines) engine = engine.addLine(engineLineFromTrackLine(line));
+    for (const line of fit.lines) engine = addEngineLine(engine, engineLineFromTrackLine(line));
     nextLineId += fit.lines.length;
   }
 
@@ -2884,6 +3538,26 @@ type GapFit = {
   cost: number;
 };
 
+function cloneFits(fits: (GapFit | null)[]): (GapFit | null)[] {
+  return fits.map((fit) => fit === null ? null : cloneFit(fit));
+}
+
+function cloneFit(fit: GapFit): GapFit {
+  return {
+    arc: {
+      ...fit.arc,
+      anchor: { ...fit.arc.anchor },
+    },
+    lines: fit.lines.map(cloneTrackLine),
+    achieved: { ...fit.achieved },
+    cost: fit.cost,
+  };
+}
+
+function cloneTrackLine(line: TrackLine): TrackLine {
+  return { ...line };
+}
+
 /**
  * Generate K candidate Arc placements for a gap, simulate each, filter by
  * hard gate, and return all survivors ranked by aggregate axis cost
@@ -2901,6 +3575,7 @@ function generateRankedCandidates(
   lineIdStart: number,
   allContactFrames: number[],
   durationFrames: number,
+  maxCandidates: number = CALIB.K,
 ): GapFit[] {
   const riderAtTarget = baseEngine.getRider(gap.endFrame);
   const refX = riderAtTarget.position.x;
@@ -2908,8 +3583,12 @@ function generateRankedCandidates(
   const targetState = readTargetState(baseEngine, gap.endFrame, refX, refY);
 
   const survivors: GapFit[] = [];
-  const candidateBudget = candidateBudgetForGap(gap, allContactFrames, durationFrames);
+  const candidateBudget = candidateBudgetForGap(gap, allContactFrames, durationFrames, maxCandidates);
   for (let attempt = 0; attempt < candidateBudget; attempt++) {
+    if (currentMeter !== null) {
+      currentMeter.candidates_sampled++;
+      updateWorkUnits(currentMeter);
+    }
     const cand = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap);
     const fit = tryCandidate(baseEngine, gap, cand, lineIdStart, allContactFrames, true);
     if (fit !== null) survivors.push(fit);
@@ -2923,21 +3602,22 @@ function candidateBudgetForGap(
   gap: Gap,
   contactFrames: number[],
   durationFrames: number,
+  maxCandidates: number = CALIB.K,
 ): number {
-  if (!isDenseContactSequence(contactFrames, durationFrames)) return CALIB.K;
+  if (!isDenseContactSequence(contactFrames, durationFrames)) return maxCandidates;
   if (isNearMaxCoupledTarget(gap.targets)) {
-    return Math.min(CALIB.K, DENSE_NEAR_MAX_SPEED_BUDGET);
+    return Math.min(maxCandidates, DENSE_NEAR_MAX_SPEED_BUDGET);
   }
   if (isHighGripTarget(gap.targets)) {
-    return Math.min(CALIB.K, DENSE_HIGH_GRIP_BUDGET);
+    return Math.min(maxCandidates, DENSE_HIGH_GRIP_BUDGET);
   }
   if (isSkipTarget(gap.targets)) {
-    return Math.min(CALIB.K, DENSE_SKIP_BUDGET);
+    return Math.min(maxCandidates, DENSE_SKIP_BUDGET);
   }
   if (isFlatExtremeAirTarget(gap.targets)) {
-    return Math.min(CALIB.K, DENSE_FLAT_EXTREME_AIR_BUDGET);
+    return Math.min(maxCandidates, DENSE_FLAT_EXTREME_AIR_BUDGET);
   }
-  return Math.min(CALIB.K, DENSE_CONTACT_CANDIDATE_BUDGET);
+  return Math.min(maxCandidates, DENSE_CONTACT_CANDIDATE_BUDGET);
 }
 
 function isNearMaxCoupledTarget(targets: SectionAxes): boolean {
@@ -3067,8 +3747,9 @@ function sampleArcParams(
   const segRoll = rng();
   let length = A.LENGTH_MIN + lengthRoll * lengthRange;
   let segments: number;
-  if (shouldSampleGrainFirst(targets) && (segRoll < 0.7 || isVeryFastHighAirGrainTarget(targets))) {
-    const targetSegLen = clamp(targets.grain * CALIB.LINE_LENGTH_CAP, 3, CALIB.LINE_LENGTH_CAP);
+  const targetGrain = targets.grain;
+  if (targetGrain !== undefined && shouldSampleGrainFirst(targets) && (segRoll < 0.7 || isVeryFastHighAirGrainTarget(targets))) {
+    const targetSegLen = clamp(targetGrain * CALIB.LINE_LENGTH_CAP, 3, CALIB.LINE_LENGTH_CAP);
     const feasibleMin = Math.max(A.SEGMENTS_MIN, Math.ceil(A.LENGTH_MIN / targetSegLen));
     const feasibleMax = Math.min(A.SEGMENTS_MAX, Math.floor(A.LENGTH_MAX / targetSegLen));
     const minSegments = feasibleMin <= feasibleMax ? feasibleMin : A.SEGMENTS_MIN;
@@ -3187,7 +3868,7 @@ function evaluateGapFit(
 ): Pick<GapFit, "lines" | "achieved" | "cost"> | null {
   // deno-lint-ignore no-explicit-any
   let eng: any = baseEngine;
-  for (const line of lines) eng = eng.addLine(engineLineFromTrackLine(line));
+  for (const line of lines) eng = addEngineLine(eng, engineLineFromTrackLine(line));
   const horizon = Math.max(gap.endFrame + 20, axisMeasureEnd + 20);
   const det = useWindowDetection
     ? detectWindow(eng, gap.startFrame, horizon)
@@ -3306,7 +3987,7 @@ function bisectAnchorY(
     const lines = arcToLines(arc, lineIdStart);
     // deno-lint-ignore no-explicit-any
     let eng: any = baseEngine;
-    for (const line of lines) eng = eng.addLine(engineLineFromTrackLine(line));
+    for (const line of lines) eng = addEngineLine(eng, engineLineFromTrackLine(line));
     const det = useWindowDetection
       ? detectWindow(eng, windowStart, windowEnd)
       : detect(extractRawTrajectory(eng, targetFrame + PERSISTENCE_FRAMES + 1));

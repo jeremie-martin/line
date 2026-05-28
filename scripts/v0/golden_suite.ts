@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
-import type { Spec } from "./types.ts";
+import type { Budget, Spec } from "./types.ts";
+import { FPS } from "./types.ts";
 
 export const GOLDEN_SPECS = [
   "drums_signature",
@@ -19,9 +20,10 @@ export const REPORT_VARIANTS = [
 
 export const GOLDEN_SEEDS = [0, 1, 2] as const;
 
-export const PER_SPEC_SOFT_BUDGET_MS = 30_000;
-export const PER_SPEC_ZERO_SCORE_MS = 45_000;
 export const WORKER_TIMEOUT_MS = 50_000;
+const DEFAULT_LDS_BASE_WORK_UNITS = 120_000;
+const DEFAULT_LDS_WORK_UNITS_PER_CONTACT = 36_000;
+const DEFAULT_LDS_WORK_UNITS_PER_FRAME = 160;
 
 export type GoldenSpecName = typeof GOLDEN_SPECS[number];
 export type VariantName = "base" | typeof REPORT_VARIANTS[number];
@@ -35,6 +37,16 @@ export function variantCases(): SuiteCase[] {
   return GOLDEN_SPECS.flatMap((specName) =>
     REPORT_VARIANTS.map((variant) => ({ specName, variant })),
   );
+}
+
+export function budgetFor(spec: Spec): Budget {
+  const durationFrames = Math.round(spec.duration * FPS);
+  return {
+    kind: "work",
+    units: DEFAULT_LDS_BASE_WORK_UNITS
+      + DEFAULT_LDS_WORK_UNITS_PER_CONTACT * spec.contacts.length
+      + DEFAULT_LDS_WORK_UNITS_PER_FRAME * durationFrames,
+  };
 }
 
 function cloneSpec(spec: Spec): Spec {

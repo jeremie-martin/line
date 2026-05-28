@@ -20,10 +20,9 @@ import type { DriftReport } from "./types.ts";
 import {
   GOLDEN_SEEDS,
   GOLDEN_SPECS,
-  PER_SPEC_SOFT_BUDGET_MS,
-  PER_SPEC_ZERO_SCORE_MS,
   REPORT_VARIANTS,
   WORKER_TIMEOUT_MS,
+  budgetFor,
   headlineCases,
   loadGoldenSpec,
   variantCases,
@@ -33,13 +32,14 @@ import {
 import {
   AXIS_QUALITY_TOLERANCE,
   axisDetails,
-  scoreTimedDriftReport,
+  scoreDriftReport,
   shiftedGeometricMean,
   worstContacts,
-  type V0TimedContractScore,
+  type V0ContractScore,
 } from "./score.ts";
 
-type WorkerInput = SuiteCase & { seed: number };
+type WorkerStrategy = "legacy" | "lds";
+type WorkerInput = SuiteCase & { seed: number; strategy: WorkerStrategy };
 type WorkerOk = {
   kind: "ok";
   specName: string;
@@ -64,11 +64,12 @@ type TimeoutResult = {
 };
 type RunResult = WorkerResult | TimeoutResult;
 
-type ScoredSpec = V0TimedContractScore & {
+type ScoredSpec = V0ContractScore & {
   name: string;
   variant: VariantName;
   seed: number;
   status: "pass" | "fail" | "timeout" | "error";
+  elapsed_ms: number;
   worker_timeout_ms: number;
   message: string | null;
   axes: ReturnType<typeof axisDetails>;
@@ -81,7 +82,6 @@ type GroupScore = {
   score: number;
   passed: number;
   total: number;
-  time_multiplier_mean: number;
 };
 
 function arg(name: string): string | null {
@@ -94,9 +94,25 @@ function has(name: string): boolean {
   return process.argv.includes(`--${name}`);
 }
 
+function runtimeScale(): number {
+  const raw = arg("runtime-scale");
+  if (raw === null) return 1;
+  const scale = Number(raw);
+  if (!Number.isFinite(scale) || scale <= 0) {
+    throw new Error(`--runtime-scale must be a positive number, got ${raw}`);
+  }
+  return scale;
+}
+
+function workerTimeoutMs(): number {
+  return Math.round(WORKER_TIMEOUT_MS * runtimeScale());
+}
+
 async function runWithTimeout(testCase: SuiteCase, seed: number): Promise<RunResult> {
   const workerPath = fileURLToPath(import.meta.url);
-  const input: WorkerInput = { ...testCase, seed };
+  const strategy: WorkerStrategy = has("lds") ? "lds" : "legacy";
+  const input: WorkerInput = { ...testCase, seed, strategy };
+  const timeoutMs = workerTimeoutMs();
   return await new Promise<RunResult>((resolvePromise, reject) => {
     const worker = new Worker(workerPath, { workerData: input, execArgv: process.execArgv });
     let settled = false;
@@ -108,10 +124,10 @@ async function runWithTimeout(testCase: SuiteCase, seed: number): Promise<RunRes
         kind: "timeout",
         specName: testCase.specName,
         variant: testCase.variant,
-        elapsed_ms: WORKER_TIMEOUT_MS,
-        message: `TIMEOUT after ${fmtMs(WORKER_TIMEOUT_MS)}`,
+        elapsed_ms: timeoutMs,
+        message: `TIMEOUT after ${fmtMs(timeoutMs)}`,
       });
-    }, WORKER_TIMEOUT_MS);
+    }, timeoutMs);
     worker.on("message", (msg: WorkerResult) => {
       if (settled) return;
       settled = true;
@@ -145,7 +161,9 @@ async function runWorker(): Promise<void> {
   const t0 = Date.now();
   try {
     const spec = await loadGoldenSpec(input.specName, input.variant);
-    const { report } = compile(spec, input.seed);
+    const { report } = input.strategy === "lds"
+      ? compile(spec, { seed: input.seed, strategy: input.strategy, budget: budgetFor(spec) })
+      : compile(spec, input.seed);
     parentPort.postMessage({
       kind: "ok",
       specName: input.specName,
@@ -164,7 +182,7 @@ async function runWorker(): Promise<void> {
   }
 }
 
-function emptyScore(elapsedMs: number): V0TimedContractScore {
+function emptyScore(): V0ContractScore {
   return {
     score: 0,
     passed: false,
@@ -184,24 +202,20 @@ function emptyScore(elapsedMs: number): V0TimedContractScore {
     axis_loss: 0,
     axis_quality: 0,
     axis_score: 0,
-    score_without_time: 0,
-    time_multiplier: 0,
-    elapsed_ms: elapsedMs,
-    soft_ms: PER_SPEC_SOFT_BUDGET_MS,
-    hard_ms: PER_SPEC_ZERO_SCORE_MS,
   };
 }
 
 function scoreResult(result: RunResult, seed: number): ScoredSpec {
   if (result.kind === "timeout") {
     return {
-      ...emptyScore(result.elapsed_ms),
+      ...emptyScore(),
       hard_failures: ["timeout"],
       name: result.specName,
       variant: result.variant,
       seed,
       status: "timeout",
-      worker_timeout_ms: WORKER_TIMEOUT_MS,
+      elapsed_ms: result.elapsed_ms,
+      worker_timeout_ms: workerTimeoutMs(),
       message: result.message,
       axes: [],
       worst_contacts: [],
@@ -210,31 +224,29 @@ function scoreResult(result: RunResult, seed: number): ScoredSpec {
   }
   if (result.kind === "error") {
     return {
-      ...emptyScore(result.elapsed_ms),
+      ...emptyScore(),
       hard_failures: ["error"],
       name: result.specName,
       variant: result.variant,
       seed,
       status: "error",
-      worker_timeout_ms: WORKER_TIMEOUT_MS,
+      elapsed_ms: result.elapsed_ms,
+      worker_timeout_ms: workerTimeoutMs(),
       message: result.message,
       axes: [],
       worst_contacts: [],
       off_beat_frames: [],
     };
   }
-  const score = scoreTimedDriftReport(result.report, {
-    elapsed_ms: result.elapsed_ms,
-    soft_ms: PER_SPEC_SOFT_BUDGET_MS,
-    hard_ms: PER_SPEC_ZERO_SCORE_MS,
-  });
+  const score = scoreDriftReport(result.report);
   return {
     ...score,
     name: result.specName,
     variant: result.variant,
     seed,
     status: score.passed ? "pass" : "fail",
-    worker_timeout_ms: WORKER_TIMEOUT_MS,
+    elapsed_ms: result.elapsed_ms,
+    worker_timeout_ms: workerTimeoutMs(),
     message: score.hard_failures.length > 0 ? score.hard_failures.join(",") : null,
     axes: axisDetails(result.report),
     worst_contacts: worstContacts(result.report, 3),
@@ -258,10 +270,6 @@ function caseLabel(row: Pick<ScoredSpec, "name" | "variant">): string {
   return row.variant === "base" ? row.name : `${row.name}/${row.variant}`;
 }
 
-function mean(values: number[]): number {
-  return values.length === 0 ? 0 : values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
 function groupScores(rows: ScoredSpec[], keyOf: (row: ScoredSpec) => string): GroupScore[] {
   const groups = new Map<string, ScoredSpec[]>();
   for (const row of rows) {
@@ -273,7 +281,6 @@ function groupScores(rows: ScoredSpec[], keyOf: (row: ScoredSpec) => string): Gr
     score: shiftedGeometricMean(groupRows.map((row) => row.score)),
     passed: groupRows.filter((row) => row.status === "pass").length,
     total: groupRows.length,
-    time_multiplier_mean: mean(groupRows.map((row) => row.time_multiplier)),
   }));
 }
 
@@ -306,7 +313,7 @@ function printRow(row: ScoredSpec, details: boolean): void {
       `score=${row.score.toFixed(0).padStart(4)}  ` +
       `sync=${fmtPct(row.sync_score).padStart(4)} (${row.hits}/${row.contacts}, drift=${row.drift}, miss=${row.missing}, off=${row.off_beat_landings})  ` +
       `axis=${fmtPct(row.axis_quality).padStart(4)} (loss=${row.axis_loss.toFixed(2)}, maxErr=${row.axis_error_max.toFixed(2)})  ` +
-      `time=${fmtMs(row.elapsed_ms)}/${fmtMs(row.hard_ms)} x${row.time_multiplier.toFixed(2)}`,
+      `time=${fmtMs(row.elapsed_ms)}/${fmtMs(row.worker_timeout_ms)}`,
   );
   if (details || row.status !== "pass") {
     const worstAxes = formatWorstAxes(row.axes);
@@ -329,13 +336,13 @@ function printSummary(label: string, rows: ScoredSpec[], keyOf: (row: ScoredSpec
 
   console.log(
     `${label} ${score.toFixed(2)} · valid ${passed}/${rows.length} · ` +
-      `invalid ${invalid} · timeout ${timeouts} · mean time x${mean(rows.map((row) => row.time_multiplier)).toFixed(2)}`,
+      `invalid ${invalid} · timeout ${timeouts}`,
   );
   console.log("  spec scores:");
   for (const group of groups) {
     console.log(
       `    ${group.name.padEnd(32)} ${group.score.toFixed(2).padStart(7)} ` +
-        `valid=${group.passed}/${group.total} time=x${group.time_multiplier_mean.toFixed(2)}`,
+        `valid=${group.passed}/${group.total}`,
     );
   }
 
@@ -344,7 +351,7 @@ function printSummary(label: string, rows: ScoredSpec[], keyOf: (row: ScoredSpec
   for (const row of worstRows) {
     console.log(
       `    ${caseLabel(row).padEnd(38)} seed=${row.seed} ${row.status.padEnd(7)} ` +
-        `score=${row.score.toFixed(2)} axis=${fmtPct(row.axis_quality)} time=x${row.time_multiplier.toFixed(2)}`,
+        `score=${row.score.toFixed(2)} axis=${fmtPct(row.axis_quality)}`,
     );
   }
 
@@ -409,11 +416,8 @@ function compactJsonRow(row: ScoredSpec): object {
     axis_loss: round(row.axis_loss, 4),
     axis_error_mean: round(row.axis_error_mean, 4),
     axis_error_max: round(row.axis_error_max, 4),
-    score_without_time: round(row.score_without_time),
-    time_multiplier: round(row.time_multiplier, 4),
     elapsed_ms: row.elapsed_ms,
-    soft_ms: row.soft_ms,
-    hard_ms: row.hard_ms,
+    worker_timeout_ms: row.worker_timeout_ms,
     message: row.message,
     worst_contacts: row.worst_contacts,
     off_beat_frames: row.off_beat_frames,
@@ -424,7 +428,6 @@ function detailedJsonRow(row: ScoredSpec): ScoredSpec {
   return {
     ...row,
     score: round(row.score),
-    score_without_time: round(row.score_without_time),
     sync_score: round(row.sync_score, 4),
     axis_score: round(row.axis_score, 4),
     axis_quality: round(row.axis_quality, 4),
@@ -432,7 +435,6 @@ function detailedJsonRow(row: ScoredSpec): ScoredSpec {
     axis_error_total: round(row.axis_error_total, 4),
     axis_error_mean: round(row.axis_error_mean, 4),
     axis_error_max: round(row.axis_error_max, 4),
-    time_multiplier: round(row.time_multiplier, 4),
   };
 }
 
@@ -452,7 +454,7 @@ async function runMain(): Promise<void> {
   if (!jsonOnly) {
     console.log(
       `v0 golden benchmark · ${GOLDEN_SPECS.length} specs × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · ` +
-        `time soft ${fmtMs(PER_SPEC_SOFT_BUDGET_MS)}, zero ${fmtMs(PER_SPEC_ZERO_SCORE_MS)}, worker ${fmtMs(WORKER_TIMEOUT_MS)} · ` +
+        `worker timeout ${fmtMs(workerTimeoutMs())} · ` +
         `seeds=${seeds.join(",")}`,
     );
     console.log("");
@@ -494,9 +496,8 @@ async function runMain(): Promise<void> {
         aggregation: "shifted_geometric_mean_by_spec",
         json_detail: details ? "detailed" : "compact",
         runtime: {
-          soft_ms: PER_SPEC_SOFT_BUDGET_MS,
-          zero_score_ms: PER_SPEC_ZERO_SCORE_MS,
-          worker_timeout_ms: WORKER_TIMEOUT_MS,
+          worker_timeout_ms: workerTimeoutMs(),
+          scale: runtimeScale(),
         },
       },
       seeds,
@@ -506,7 +507,6 @@ async function runMain(): Promise<void> {
       spec_scores: specScores.map((group) => ({
         ...group,
         score: round(group.score),
-        time_multiplier_mean: round(group.time_multiplier_mean, 4),
       })),
       per_seed: perSeed,
       specs: scored.map(details ? detailedJsonRow : compactJsonRow),
@@ -518,7 +518,6 @@ async function runMain(): Promise<void> {
             case_scores: variantScores.map((group) => ({
               ...group,
               score: round(group.score),
-              time_multiplier_mean: round(group.time_multiplier_mean, 4),
             })),
             specs: variantRows.map(details ? detailedJsonRow : compactJsonRow),
           }

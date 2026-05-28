@@ -3,6 +3,7 @@ import {
   GOLDEN_SPECS,
   REPORT_VARIANTS,
   applyVariant,
+  budgetFor,
   headlineCases,
   loadGoldenSpec,
   variantCases,
@@ -61,5 +62,14 @@ describe("v0 golden configuration", () => {
         expectValidSpec(spec);
       }
     }
+  });
+
+  test("work budgets are deterministic and scale with spec size", () => {
+    const small: Spec = { duration: 1, contacts: [], sections: [] };
+    const large: Spec = { duration: 2, contacts: [{ t: 1 }], sections: [] };
+
+    expect(budgetFor(small)).toEqual(budgetFor(small));
+    expect(budgetFor(small).kind).toBe("work");
+    expect(budgetFor(large).units).toBeGreaterThan(budgetFor(small).units);
   });
 });

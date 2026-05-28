@@ -92,6 +92,39 @@ export type DriftReport = {
   terminus: { frame: number; reason: string };
 };
 
+// ─────────── Compiler options / stats ───────────
+
+export type Budget = {
+  /** Deterministic optimizer work units, calibrated from engine work counters. */
+  kind: "work";
+  units: number;
+};
+
+export type CompileOptions = {
+  seed?: number;
+  budget?: Budget;
+  /**
+   * Temporary migration flag. `legacy` preserves the current greedy /
+   * backtracking compiler; `lds` enables the monotonic best-so-far search.
+   */
+  strategy?: "legacy" | "lds";
+};
+
+export type CompileStats = {
+  sim_frames: number;
+  work_units_used: number;
+  budget_exhausted: boolean;
+  physics_frames_computed: number;
+  trajectory_frames_read: number;
+  engine_add_lines: number;
+  candidates_sampled: number;
+  leaves_attempted: number;
+  leaves_scored: number;
+  scored_leaf_fingerprints: string[];
+  max_discrepancy_started: number;
+  mandatory_prelude_units: number;
+};
+
 export type ContactReport = {
   t_target: number;
   t_actual: number | null;

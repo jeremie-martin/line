@@ -1,9 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
   AXIS_QUALITY_TOLERANCE,
-  runtimeMultiplier,
   scoreDriftReport,
-  scoreTimedDriftReport,
   shiftedGeometricMean,
 } from "../scripts/v0/score.ts";
 import type { ContactReport, DriftReport } from "../scripts/v0/types.ts";
@@ -65,36 +63,6 @@ describe("v0 scoreDriftReport", () => {
     expect(offBeatFailure.hard_failures).toContain("offBeat:1");
     expect(deathFailure.score).toBe(0);
     expect(deathFailure.hard_failures[0]).toMatch(/^died:fell@/);
-  });
-});
-
-describe("v0 runtime scoring", () => {
-  test("runtime multiplier is flat, then smooth, then zero", () => {
-    expect(runtimeMultiplier(10, 20, 40)).toBe(1);
-    expect(runtimeMultiplier(20, 20, 40)).toBe(1);
-    expect(runtimeMultiplier(30, 20, 40)).toBeCloseTo(0.5);
-    expect(runtimeMultiplier(40, 20, 40)).toBe(0);
-    expect(runtimeMultiplier(45, 20, 40)).toBe(0);
-    expect(() => runtimeMultiplier(10, 20, 20)).toThrow(/invalid runtime budget/);
-  });
-
-  test("timed row score applies runtime multiplier after hard gates", () => {
-    const timed = scoreTimedDriftReport(report(), {
-      elapsed_ms: 30,
-      soft_ms: 20,
-      hard_ms: 40,
-    });
-    const invalid = scoreTimedDriftReport(report({ contactStatus: "missing" }), {
-      elapsed_ms: 10,
-      soft_ms: 20,
-      hard_ms: 40,
-    });
-
-    expect(timed.axis_quality).toBeCloseTo(1);
-    expect(timed.time_multiplier).toBeCloseTo(0.5);
-    expect(timed.score).toBeCloseTo(500);
-    expect(invalid.time_multiplier).toBe(1);
-    expect(invalid.score).toBe(0);
   });
 });
 

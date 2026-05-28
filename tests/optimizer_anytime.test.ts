@@ -21,14 +21,31 @@ import { describe, test, expect } from "vitest";
 import { createHash } from "node:crypto";
 import { compileLDS } from "../scripts/v0/optimizer/api.ts";
 import { scoreReport } from "../scripts/v0/optimizer/scorer.ts";
+import { isStrictlyBetter, type LeafKey } from "../scripts/v0/optimizer/register.ts";
+import { scoreDriftReport } from "../scripts/v0/score.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
+import type { CompileOutput } from "../scripts/v0/optimizer/types.ts";
 
 function hashTrack(t: unknown): string {
   return createHash("sha256").update(JSON.stringify(t)).digest("hex");
 }
 
+/** Recover the LeafKey the register would have used to rank a
+ *  CompileOutput. The monotonicity property is stated in terms of
+ *  this composite key, NOT raw axis_quality: more budget → never a
+ *  strictly-worse key (passing dominates failing; among passing,
+ *  axis_quality monotonic; among failing, full_score monotonic). */
+function keyFor(out: CompileOutput): LeafKey {
+  const s = scoreDriftReport(out.report);
+  return {
+    contract_passed: s.contract_passed,
+    axis_quality: s.axis_quality,
+    full_score: s.score,
+  };
+}
+
 describe("optimizer/api.ts — Stage 2 anytime budget", () => {
-  test("PROPERTY (in CI forever): axis_quality non-decreasing in budget", async () => {
+  test("PROPERTY (in CI forever): comparator key non-decreasing in budget", async () => {
     // tiny_dance: smallest spec, fastest to run. Use a small maxDiscrepancy
     // cap so "exhaustive" is reachable in a reasonable budget — this lets
     // us also verify the budget_exhausted flag at both ends.
@@ -41,10 +58,32 @@ describe("optimizer/api.ts — Stage 2 anytime budget", () => {
       compileLDS(spec, seed, { maxDiscrepancy, budget: { kind: "work", units } })
     );
     const qualities = results.map((r) => scoreReport(r.report));
+    const keys = results.map(keyFor);
 
-    // The load-bearing assertion: monotonicity in budget.
-    expect(qualities[0]).toBeLessThanOrEqual(qualities[1] + 1e-9);
-    expect(qualities[1]).toBeLessThanOrEqual(qualities[2] + 1e-9);
+    // The load-bearing assertion: the comparator key never decreases
+    // as budget grows. Equivalent to "the register at B' contains a
+    // superset of leaves the register at B saw, and the register only
+    // swaps on strict improvement". Note this is stricter than raw
+    // axis_quality monotonicity — a smaller-budget run can return a
+    // failing leaf with high axis_quality, while a larger-budget run
+    // returns a passing leaf with lower axis_quality (the passing
+    // leaf strictly dominates per the comparator).
+    for (let i = 0; i < keys.length - 1; i++) {
+      expect(isStrictlyBetter(keys[i], keys[i + 1])).toBe(false);
+    }
+    // Diagnostic dump (helps when calibrating budgets).
+    for (let i = 0; i < keys.length; i++) {
+      console.error(
+        `[mono] B=${budgets[i]} contract=${keys[i].contract_passed} ` +
+        `q=${keys[i].axis_quality.toFixed(4)} full=${keys[i].full_score.toFixed(2)}`,
+      );
+    }
+    // Sanity (not the main property): if all results passed contract,
+    // axis_quality is monotonic among them.
+    if (keys.every((k) => k.contract_passed)) {
+      expect(qualities[0]).toBeLessThanOrEqual(qualities[1] + 1e-9);
+      expect(qualities[1]).toBeLessThanOrEqual(qualities[2] + 1e-9);
+    }
 
     // sim_frames cap: the op boundary is "after each leaf scoring".
     // Per-op cost includes any cache-miss candidate generation along

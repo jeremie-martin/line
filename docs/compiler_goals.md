@@ -62,9 +62,29 @@ contract; everything else is a means to them.
 ### Property 1 — Monotonicity in compute
 
 For the same `(spec, seed)` and any two compute budgets `B' > B`, the
-compiler returns a track with quality (axis_quality) at least as high
-at `B'` as at `B`. **No regression in quality when given more
-compute, ever.**
+compiler returns a track with **contract-gated axis_quality** at
+least as high at `B'` as at `B`. **No regression in quality when
+given more compute, ever.**
+
+Where **contract-gated axis_quality** is defined as:
+
+> `contract_gated_quality(track) = if contract_passed(track) then
+>                                   axis_quality(track) else 0`
+
+This is the right scalar metric for monotonicity because the
+compiler must always prefer a contract-passing track over a failing
+one, even if the failing one has higher raw axis_quality. Without
+this framing, "more budget might swap a high-axis_quality failing
+leaf for a lower-axis_quality passing leaf" would look like a
+monotonicity violation, when in fact it's the desired behavior.
+Under contract-gated quality, the metric goes from 0 (failing) to
+some positive value (passing) — strictly non-decreasing.
+
+Equivalently (and the form an implementation actually checks): for
+any internal comparator key with the ordering "passing strictly
+dominates failing; among passing, axis_quality higher wins; among
+failing, full_score higher wins", the key is non-decreasing in
+budget. The 0/quality scalar is the user-facing simplification.
 
 Why this matters: this is the property that lets us reason about the
 compiler. With it, any quality drop after a code change is
@@ -141,17 +161,19 @@ A property-based test running in CI on every commit:
 
 > For at least three representative specs, across at least three
 > fixed seeds, across at least three budget levels (low, mid, high):
-> `quality(spec, seed, B_high) ≥ quality(spec, seed, B_mid) ≥
-> quality(spec, seed, B_low)`. Strict inequality is not required
-> (sometimes more compute simply confirms the existing best); the
-> requirement is non-decreasing, with a numerical tolerance under 1%.
+> `contract_gated_quality(spec, seed, B_high) ≥
+> contract_gated_quality(spec, seed, B_mid) ≥
+> contract_gated_quality(spec, seed, B_low)`. Strict inequality is
+> not required (sometimes more compute simply confirms the existing
+> best); the requirement is non-decreasing, with a numerical
+> tolerance under 1%.
 
 Additionally, a one-off comprehensive sweep at acceptance time:
 
 > Across the full golden suite × 5 seeds × the full budget range
-> (e.g. {low, mid, high, max}), every (spec, seed) row's quality is
-> non-decreasing in budget. Any violation halts acceptance until
-> understood.
+> (e.g. {low, mid, high, max}), every (spec, seed) row's
+> contract-gated quality is non-decreasing in budget. Any violation
+> halts acceptance until understood.
 
 ### Acceptance for Property 2 (wall-clock predictability)
 

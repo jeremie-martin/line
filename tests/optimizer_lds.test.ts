@@ -114,10 +114,11 @@ describe("optimizer/lds.ts — Stage 1 LDS core", () => {
 
   test("d=0 leaf equals greedy_v2 result on tiny_dance seed=0 (within rounding)", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
-    // polish:false isolates the raw search path — this test asserts the
-    // LDS greedy descent equals greedy_v2, independent of the Stage-B
-    // polish post-process (which legitimately changes the output).
-    const lds = compileLDS(spec, 0, { maxDiscrepancy: 0, polish: false });
+    // floor:"none" + polish:false isolates the raw search path — this test
+    // asserts the rank-0 LDS descent equals greedy_v2, independent of the
+    // Stage-C legacy floor and Stage-B polish (both of which legitimately
+    // change the returned best).
+    const lds = compileLDS(spec, 0, { maxDiscrepancy: 0, polish: false, floor: "none" });
     const greedy = compileGreedy_v2(spec, 0, { K: N_CAND });
     // Both follow the greedy rank-0-at-every-gap path. With the same
     // N_CAND, the candidate pool is identical and the lowest-cost

@@ -17,6 +17,7 @@ import {
   type GapFit,
   buildDriftReport,
   buildTrackJson,
+  compile as legacyCompile,
   effectiveAxes,
   makeBaseEngine,
   resolveStartState,
@@ -58,6 +59,15 @@ export type CompileLDSOptions = {
    *  add leaves to `E`, never reorder it, so monotonicity and
    *  determinism are preserved. */
   polish?: boolean;
+  /** Floor leaf (the mandatory prelude, always evaluated first). "legacy"
+   *  runs the proven backtracking greedy descent (`compile()` — what
+   *  greedy_v1 measures) and seeds the register with it; this realizes the
+   *  LDS thesis "discrepancy-0 = the greedy track, coverage ≥ greedy by
+   *  construction" using a PROPER greedy (master's naive rank-0 descent
+   *  lacks backtracking and dead-ends on dense specs like drums). "none"
+   *  uses only the rank-0 LDS leaf as the floor (raw search path; used by
+   *  the d=0-equals-greedy_v2 equivalence test). Default "legacy". */
+  floor?: "legacy" | "none";
 };
 
 export function compileLDS(
@@ -101,6 +111,8 @@ export function compileLDS(
   const register = new BestSoFarRegister();
 
   const polishEnabled = opts.polish ?? true;
+  const floorMode = opts.floor ?? "legacy";
+  let budgetExhausted = false;
 
   /** Score a leaf (or polish variant) and offer it to the register.
    *  Returns the comparator key. */
@@ -113,7 +125,24 @@ export function compileLDS(
     return key;
   };
 
-  let budgetExhausted = false;
+  // Mandatory prelude — the floor leaf. "legacy" runs the proven
+  // backtracking greedy descent (`compile()`, what greedy_v1 measures) and
+  // seeds the register with it. This realizes the LDS thesis "discrepancy-0
+  // = the greedy track, coverage ≥ greedy by construction" using a PROPER
+  // greedy: master's rank-0 enumerateLeaves descent has no backtracking and
+  // dead-ends on dense specs (e.g. drums_signature gap 36). The floor's
+  // physics cost is metered (compile() does not reset the detector counter)
+  // and it is always evaluated before any budget check, like the d=0 leaf.
+  if (floorMode === "legacy") {
+    const floor = legacyCompile(userSpec, seed);
+    const s = scoreDriftReport(floor.report);
+    register.consider(floor, {
+      contract_passed: s.contract_passed,
+      axis_quality: s.axis_quality,
+      full_score: s.score,
+    });
+  }
+
   for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed)) {
     const key = consider(leaf);
     opts.onLeaf?.(leaf, key);

@@ -16,7 +16,7 @@ import { Worker, isMainThread, parentPort, workerData } from "node:worker_thread
 import { fileURLToPath } from "node:url";
 
 import { compile } from "./compile.ts";
-import { FPS, type DriftReport, type Spec } from "./types.ts";
+import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
   GOLDEN_SEEDS,
   GOLDEN_SPECS,
@@ -49,6 +49,7 @@ type WorkerOk = {
   variant: VariantName;
   elapsed_ms: number;
   report: DriftReport;
+  stats: CompileStats;
 };
 type WorkerErr = {
   kind: "error";
@@ -77,6 +78,7 @@ type ScoredSpec = V0TimedContractScore & {
   axes: ReturnType<typeof axisDetails>;
   worst_contacts: ReturnType<typeof worstContacts>;
   off_beat_frames: number[];
+  compile_stats: CompileStats | null;
 };
 
 type GroupScore = {
@@ -152,13 +154,14 @@ async function runWorker(): Promise<void> {
   const t0 = Date.now();
   try {
     const spec = await loadGoldenSpec(input.specName, input.variant);
-    const { report } = compile(spec, input.seed);
+    const { report, stats } = compile(spec, input.seed);
     parentPort.postMessage({
       kind: "ok",
       specName: input.specName,
       variant: input.variant,
       elapsed_ms: Date.now() - t0,
       report,
+      stats,
     } satisfies WorkerOk);
   } catch (error) {
     parentPort.postMessage({
@@ -227,6 +230,7 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
       axes: [],
       worst_contacts: [],
       off_beat_frames: [],
+      compile_stats: null,
     };
   }
   if (result.kind === "error") {
@@ -242,6 +246,7 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
       axes: [],
       worst_contacts: [],
       off_beat_frames: [],
+      compile_stats: null,
     };
   }
   const score = scoreTimedDriftReport(
@@ -260,6 +265,7 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
     axes: axisDetails(result.report),
     worst_contacts: worstContacts(result.report, 3),
     off_beat_frames: result.report.off_beat_landings.slice(0, 5).map((l) => l.frame),
+    compile_stats: result.stats,
   };
 }
 
@@ -459,6 +465,7 @@ function compactJsonRow(row: ScoredSpec): object {
     elapsed_ms: row.elapsed_ms,
     soft_ms: row.soft_ms,
     hard_ms: row.hard_ms,
+    compile_stats: row.compile_stats,
     message: row.message,
     worst_contacts: row.worst_contacts,
     off_beat_frames: row.off_beat_frames,

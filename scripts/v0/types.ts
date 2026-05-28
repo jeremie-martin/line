@@ -92,6 +92,35 @@ export type DriftReport = {
   terminus: { frame: number; reason: string };
 };
 
+/**
+ * Per-compile work counters. Non-modifying instrumentation for the
+ * anytime-budget investigation — captures where the compiler spends
+ * effort so we can pick a cheat-resistant iteration unit later.
+ *
+ * All counters are monotonic within one `compile()` call and reset
+ * at the top of each call.
+ */
+export type CompileStats = {
+  /** Per-gap candidate samples (sampleArcParams calls). The most
+   *  fine-grained unit of "search work" in the optimizer. */
+  candidates_sampled: number;
+  /** Full engine rebuilds (rebuildEngine calls). Coarse but explicit
+   *  physics-replay cost; mostly triggered by polish passes. */
+  engine_rebuilds: number;
+  /** Successful per-gap commits in the main loop (each one places a
+   *  fit into the gap array). */
+  gap_commits: number;
+  /** Backtrack invocations (main loop revisits an earlier gap because
+   *  the current gap exhausted its candidates). */
+  gap_backtracks: number;
+  /** Final-track validation retries that triggered a re-compile of
+   *  some prefix because off-beat landings were detected. */
+  validation_retries: number;
+  /** Polish-pass invocations after the main loop. Each is one pass
+   *  over the committed fits to nudge specific axes. */
+  polish_iterations: number;
+};
+
 export type ContactReport = {
   t_target: number;
   t_actual: number | null;
@@ -128,6 +157,24 @@ export type Gap = {
 export const FPS = 40;
 
 /**
+ * Investigation override: setting CALIB_K_OVERRIDE in the environment
+ * replaces `CALIB.K` with the given value at module load. Used for the
+ * quality-vs-K sweep that calibrates the compute-budget model. Does not
+ * affect normal runs (env var unset). Removable once the investigation
+ * concludes.
+ */
+const _kOverride = (() => {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.CALIB_K_OVERRIDE;
+  if (raw === undefined || raw === "") return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 1) {
+    throw new Error(`CALIB_K_OVERRIDE must be a positive number, got ${raw}`);
+  }
+  return Math.floor(n);
+})();
+
+/**
  * Calibration constants. TODO calibrate empirically against rendered tracks.
  * See ../../DESIGN.md § Calibration constants.
  */
@@ -139,7 +186,7 @@ export const CALIB = {
   /** Cross-gap target sampling spread (Gaussian σ). */
   SIGMA: 0.05,
   /** Per-gap candidate budget. */
-  K: 48,
+  K: _kOverride ?? 48,
   /** Cross-gap backtrack depth. */
   BACKTRACK_DEPTH: 2,
   /** Max times the final-track validator can re-trigger compilation when

@@ -80,6 +80,23 @@ easy to justify from local state and authored intent.
   `227.76` with an `opening_burst` timeout, while the inclusive range matches
   the candidate measurement window used by `measureAxes`.
 
+- Feasible air band for search: candidate ranking now clamps the search-only
+  air target to a local feasible band derived from Contact frames in the
+  measurement window, the detector's required pre-landing airborne run, and
+  the detector's contact persistence window. Purpose: avoid spending ranking
+  pressure on air fractions that cannot coexist with the requested landings.
+  Signal: local gap frame range, nearby Contacts, `K_BOUNCE_LANDING`,
+  `PERSISTENCE_FRAMES`, and `PERSISTENCE_RATIO`. Scale: frame counts from
+  detector semantics, not spec-level thresholds. Risk control: the authored
+  target, final report, hard gates, and achieved-axis measurement are
+  unchanged. Full-suite validation improved from `GOAL_SCORE 394.25 valid
+  24/24` to `506.68 valid 24/24`, mainly by moving `drums_pendulum` from
+  `56.61` to `427.36`; the measured tradeoff was small losses on
+  `opening_burst` (`378.27` to `373.19`) and `rhythm_ladder` (`554.80` to
+  `547.52`). A lower-bound-only variant was tested and not kept: seed 2 kept
+  the pendulum fix, but seed 1 fell to `210.29` because `drums_pendulum`
+  entered the zero-time band, so the upper feasibility bound is load-bearing.
+
 - Full final-validation retries: dense speed-only specs no longer use fewer
   final sync retries. Purpose: avoid hard-gate zeros from assembled-track
   effects. Signal: final detected sync failures. Scale: existing

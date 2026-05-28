@@ -31,7 +31,7 @@
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import {
   detect, extractRawTrajectory, extractRawTrajectoryWindow,
-  K_BOUNCE_LANDING, PERSISTENCE_FRAMES,
+  K_BOUNCE_LANDING, PERSISTENCE_FRAMES, PERSISTENCE_RATIO,
   type Detection, type DetEvent, type RawTrajectory,
 } from "../lib/detector.ts";
 import { makeRng } from "../lib/rng.ts";
@@ -2911,6 +2911,10 @@ function generateRankedCandidates(
   const refX = riderAtTarget.position.x;
   const refY = riderAtTarget.position.y;
   const targetState = readTargetState(baseEngine, gap.endFrame, refX, refY);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, allContactFrames);
+  const searchTargets = searchTargetsForCost(
+    gap.targets, gap, axisMeasureEnd, allContactFrames,
+  );
 
   const survivors: GapFit[] = [];
   const minAttempts = candidateBudgetForGap(gap, allContactFrames, durationFrames);
@@ -2918,7 +2922,10 @@ function generateRankedCandidates(
   const maxAttempts = adaptiveBudget ? CALIB.K : minAttempts;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const cand = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap);
-    const fit = tryCandidate(baseEngine, gap, cand, lineIdStart, allContactFrames, true);
+    const fit = tryCandidate(
+      baseEngine, gap, cand, lineIdStart, allContactFrames,
+      axisMeasureEnd, searchTargets, true,
+    );
     if (fit !== null) survivors.push(fit);
     if (
       adaptiveBudget
@@ -3092,6 +3099,8 @@ function tryCandidate(
   candArc: Arc,
   lineIdStart: number,
   allContactFrames: number[],
+  axisMeasureEnd: number,
+  searchTargets: SectionAxes,
   useWindowDetection: boolean,
 ): GapFit | null {
   // Bisect anchor Y for Contact precision.
@@ -3100,9 +3109,9 @@ function tryCandidate(
   );
   if (bisected === null) return null;
 
-  const axisMeasureEnd = axisLookaheadEndFrame(gap, allContactFrames);
   let best = evaluateGapFit(
-    baseEngine, gap, bisected.lines, axisMeasureEnd, allContactFrames, useWindowDetection,
+    baseEngine, gap, bisected.lines, axisMeasureEnd, allContactFrames,
+    searchTargets, useWindowDetection,
   );
   if (best === null) return null;
 
@@ -3112,7 +3121,8 @@ function tryCandidate(
       for (const rideOut of makeContinuationLines(rideOutId, source)) {
         const lines = [...bisected.lines, rideOut];
         const extended = evaluateGapFit(
-          baseEngine, gap, lines, axisMeasureEnd, allContactFrames, useWindowDetection,
+          baseEngine, gap, lines, axisMeasureEnd, allContactFrames,
+          searchTargets, useWindowDetection,
         );
         if (extended !== null && extended.cost + 1e-6 < best.cost) {
           best = extended;
@@ -3131,6 +3141,7 @@ function evaluateGapFit(
   lines: TrackLine[],
   axisMeasureEnd: number,
   allContactFrames: number[],
+  searchTargets: SectionAxes,
   useWindowDetection: boolean,
 ): Pick<GapFit, "lines" | "achieved" | "cost"> | null {
   // deno-lint-ignore no-explicit-any
@@ -3165,8 +3176,46 @@ function evaluateGapFit(
   if (offBeat > 0) return null;
 
   const achieved = measureAxes(det, gap, lines, axisMeasureEnd);
-  const cost = axisCost(gap.targets, achieved);
+  const cost = axisCost(searchTargets, achieved);
   return { lines, achieved, cost };
+}
+
+function searchTargetsForCost(
+  targets: SectionAxes,
+  gap: Gap,
+  axisMeasureEnd: number,
+  allContactFrames: number[],
+): SectionAxes {
+  if (targets.air === undefined) return targets;
+  const band = airFeasibleBand(gap.startFrame, axisMeasureEnd, allContactFrames);
+  const air = clamp(targets.air, band.lo, band.hi);
+  return air === targets.air ? targets : { ...targets, air };
+}
+
+function airFeasibleBand(
+  startFrame: number,
+  endFrame: number,
+  contactFrames: number[],
+): { lo: number; hi: number } {
+  const totalFrames = endFrame - startFrame + 1;
+  if (totalFrames <= 0) return { lo: 0, hi: 1 };
+
+  const requiredAir = new Set<number>();
+  const requiredContact = new Set<number>();
+  const contactPersistenceFrames = Math.ceil(PERSISTENCE_FRAMES * PERSISTENCE_RATIO);
+  for (const contactFrame of contactFrames) {
+    if (contactFrame < startFrame || contactFrame > endFrame) continue;
+    for (let f = contactFrame - K_BOUNCE_LANDING - 1; f < contactFrame; f++) {
+      if (f >= startFrame && f <= endFrame) requiredAir.add(f);
+    }
+    for (let f = contactFrame; f < contactFrame + contactPersistenceFrames; f++) {
+      if (f >= startFrame && f <= endFrame) requiredContact.add(f);
+    }
+  }
+
+  const lo = requiredAir.size / totalFrames;
+  const hi = 1 - requiredContact.size / totalFrames;
+  return { lo: Math.min(lo, hi), hi: Math.max(lo, hi) };
 }
 
 function shouldTryCandidateRideOut(

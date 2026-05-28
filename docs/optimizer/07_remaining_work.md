@@ -2,11 +2,17 @@
 
 Written 2026-05-28 before an overnight autonomous session. Purpose: state, precisely
 and honestly, what is left to reach the goal, and how to work. High-level but
-non-ambiguous. The goal is unchanged (`docs/compiler_goals.md`): ONE LDS compiler that
-is monotone-in-budget (P1), wall-clock-predictable (P2), cheat-resistant (P3),
-deterministic (P4), and at least at parity with `greedy_v1` (goal_score 460.44, 65/65)
-at its default budget — re-implementing `work`'s proven mechanisms cleanly into
-`scripts/v0/optimizer/`, then deleting the duplicate.
+non-ambiguous. The goal is unchanged (`docs/compiler_goals.md`): our `master` LDS
+compiler must be monotone-in-budget (P1), wall-clock-predictable (P2), cheat-resistant
+(P3), deterministic (P4), and **at least at parity with the frozen `greedy_v1` baseline**
+(goal_score 460.44, 65/65) at its default budget.
+
+**On the `work` branch:** it is a *parallel exploration* by a colleague, not a target and
+not something we modify or delete. Parity is measured against **greedy_v1**, never against
+`work`. We assess `work` only to see whether it found good ideas worth re-implementing
+cleanly in `master` (so far: honest physics metering ✓, polish-as-clone-and-test ✓,
+in-leaf backtracking + recovery — under assessment). If an idea isn't clearly good, we
+don't take it. `work` stays as it is on its own branch.
 
 ## How to work (not negotiable)
 
@@ -27,10 +33,20 @@ at its default budget — re-implementing `work`'s proven mechanisms cleanly int
 - **No bandaids, no overfitting.** No spec-name branching. Density/contact-spacing
   heuristics are OK (they generalize); re-baseline any constant kept. Prefer the simple
   change that's correct by construction.
-- **Don't change everything at once.** One mechanism per step, validated (tests green +
-  a measured improvement or a clean no-op) before the next.
-- **Commit validated milestones** to `master` with clear messages (no push) so progress
-  is reviewable on wake. Keep throwaway probes out of commits or clearly marked.
+- **Don't change everything at once.** One mechanism per step, validated before the next.
+- **Never break what already works — at EVERY step.** Before moving on, confirm the
+  change didn't regress other specs, the CI property tests, or any of the four properties.
+  A gain on one spec that breaks another, or any overfit / spec-name special-case / bandaid
+  workaround, is not acceptable — back it out and find the sane change. Everything must stay
+  compatible with the goals AND with the rest of the system, and we must understand *why* a
+  change helps before keeping it.
+- **COMMIT AFTER EVERY POINT.** Each work item below ends with a commit to `master` (clear
+  message, no push) once it is validated. This is mandatory, not optional — do not batch
+  multiple items into one commit, and do not proceed to the next item with the previous one
+  uncommitted. Keep throwaway probes (`_probe_*`) out of commits.
+- **Be smart about cost.** Empirical evidence for every decision, but don't launch a
+  3-hour run for every point. Use the smallest experiment that answers the question
+  (one/few specs, small budget, fast mode); only scale up when the question genuinely needs it.
 - **Don't spawn polling loops.** Long runs background and notify on completion; wait on
   the notification, don't spin `until ...; sleep` shells (that caused stray shells today).
 
@@ -81,17 +97,28 @@ at its default budget — re-implementing `work`'s proven mechanisms cleanly int
    monotonicity violations; P2 per-spec ms/physframe cv < 0.25 (per-spec is the
    meaningful form — pooled conflates spec difficulty, per the Stage-2 study); P3 audit
    (physics frame = lr-core primitive, can't be inflated); P4 determinism. Then: default
-   `golden.ts` to lds, delete the duplicate `work` compiler + dead master scaffolding +
-   throwaway probes (`_probe_*`, `_study_budget` if superseded), update GOAL/DESIGN docs.
-   One compiler remains.
+   `golden.ts` to lds, remove dead master scaffolding + throwaway probes (`_probe_*`,
+   `_study_budget` if superseded), update GOAL/DESIGN docs so `master` has exactly one
+   compiler. (This does NOT touch the `work` branch — leave it alone.)
+
+6. **Big/slow-spec performance — LAST, and only if it breaks nothing.** The slow specs
+   (drums family, solo_run; ~140 s/compile) are a real cost but a *later* concern:
+   reassess only AFTER 1–5 are done and parity holds. Any speedup (fewer candidates,
+   cross-leaf simulation reuse, tighter windows, …) must be proven to NOT regress quality
+   or contract-pass on any other spec and to NOT violate any property — no overfitting, no
+   bandaid. If a speedup can't be made safe and principled, don't ship it; document the
+   tradeoff instead. Correctness and the four properties dominate; speed is a bonus
+   (explicitly a non-goal in `compiler_goals.md`).
 
 ## Honesty notes / known risks
 
 - Big specs are genuinely slow (~140 s/compile for drums) — that's real wall-clock, not a
   metering artifact. The dial manages it (lower budget → faster, monotone best-so-far);
   if a default budget makes a spec take minutes, say so and pick the tradeoff explicitly.
-- `work` itself is not a clean 65/65 (it failed drums_pendulum s3). Parity may require
-  recovery tuning or accepting one hard seed — decide and document, don't hide it.
+- Parity is greedy_v1's 65/65. Even the explored `work` approach wasn't a clean 65/65
+  (it failed drums_pendulum s3), so recovery alone may not get every seed there —
+  if a hard seed resists, diagnose it, and decide+document the tradeoff honestly rather
+  than hiding it or special-casing the spec.
 - If phase-2 polish or recovery introduces non-monotonicity (it shouldn't — additive
   leaves only), the P1 CI test will catch it; treat any such failure as a real bug to
   root-cause, not a test to relax.

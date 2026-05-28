@@ -322,6 +322,8 @@ In place:
 - LDS starts from a native deterministic fallback and then evaluates the
   discrepancy-0 search leaf; it no longer runs legacy as a mandatory prelude.
 - LDS keeps a best-so-far register and emits scored-leaf fingerprints.
+- LDS emits bounded final-validation recovery leaves after assembled-track
+  hard-contract failures.
 - Coarse polish is generate-and-test over cloned leaves.
 - `work_units_used` equals metered trajectory frames (`sim_frames`).
 - `baselines/greedy_v1.json` is frozen for quality-only legacy comparison.
@@ -335,15 +337,10 @@ Not accepted yet:
 - Polish is generate-and-test at coarse leaf granularity. Stage 3 still needs
   pass-granularity metering and interruption so polish cannot starve later LDS
   leaves.
-- Final-validation recovery is not yet represented as LDS leaf production.
-  This is the leading hypothesis for rows where native LDS reaches good raw
-  axis quality but still loses to greedy on the hard contract.
 - Representative acceptance and full acceptance have not been recorded as
   green evidence.
-- The in-progress full budget study has exposed a parity blocker candidate:
-  `drums_pendulum` seed `1` stayed contract-failing through the `10M`
-  sim-frame budget while the greedy reference passed at quality `0.4808`.
-- Iteration-story evidence has not been recorded.
+- The iteration-story evidence has a targeted example; the final cutover
+  summary still needs to cite it alongside the full acceptance results.
 
 Legacy removal is blocked until every "not accepted yet" item is resolved or
 explicitly documented as an accepted compatibility choice with passing evidence.
@@ -362,14 +359,14 @@ smoke run can prove wiring but does not satisfy an acceptance row.
 | Native LDS start | LDS does not run legacy as a mandatory prelude | Implemented |
 | Monotonicity | Representative gate and full sweep show non-decreasing contract-gated quality | Pending evidence |
 | Prefix invariant | Scored-leaf fingerprints at larger budgets have prior budgets as prefixes | Pending representative/full evidence |
-| Final-validation recovery | Assembled-track hard-contract retries are deterministic leaf variants, not destructive mutation | Pending implementation/evidence |
+| Final-validation recovery | Assembled-track hard-contract retries are deterministic leaf variants, not destructive mutation | Implemented; targeted `drums_pendulum` seed `1` evidence recorded |
 | Work-unit semantics | `work_units_used == sim_frames` and other counters are diagnostic | Implemented |
-| Work-unit predictability | Stable-machine CV for `wall_ms / work_units` is `< 0.25` | Incomplete full-study checkpoint: CV `0.2291814` at 67 LDS rows |
+| Work-unit predictability | Stable-machine CV for `wall_ms / work_units` is `< 0.25` | Pending representative/full measurement; targeted recovery probe CV `0.0343337` |
 | Cheat-resistance | Written audit ties `work_units_used` to an engine operation and shows all physical validation is metered | Checkpoint audit recorded; re-audit at cutover |
 | Determinism | Budgeted representative compiles produce hash-identical `TrackJson` | Pending representative evidence |
 | Polish safety | Polish variants are scored leaves and never replace a better incumbent | Partially implemented, pending Stage 3 evidence |
-| Baseline parity | Default-budget LDS is within 5% of `baselines/greedy_v1.json` and per-spec pass counts do not regress | Pending full/default evidence; `drums_pendulum` seed `1` is a blocker candidate in the in-progress budget study |
-| Iteration story | One rebuild-era optimizer change is classified at matched compute as improvement, regression, or no-op | Pending writeup |
+| Baseline parity | Default-budget LDS is within 5% of `baselines/greedy_v1.json` and per-spec pass counts do not regress | Pending full/default evidence; prior `drums_pendulum` seed `1` blocker resolved in targeted probe |
+| Iteration story | One rebuild-era optimizer change is classified at matched compute as improvement, regression, or no-op | Recorded: final-validation recovery fixed `drums_pendulum` seed `1` at matched/default budget |
 | Legacy removal | All rows above are green | Blocked |
 
 ## Cheat-Resistance Audit
@@ -555,27 +552,69 @@ npm run study:v0:budget -- --specs=drums_signature --seeds=0 \
 
 Result: `remaining=0`, `ok=true`, `rows=3`.
 
-Full budget study in progress:
+Interrupted full budget study:
 
 ```bash
 npm run study:v0:budget -- --scope=full --concurrency=4 \
   --out=generated/v0_budget_study/full_2026-05-28 --resume
 ```
 
-Checkpoint at 75 streamed rows:
+Checkpoint at 79 streamed rows, before final-validation recovery leaves were
+implemented:
 
 ```text
 monotonicity failures: 0
 leaf-prefix failures: 0
-wall_ms/work_units cv: 0.2291814
+wall_ms/work_units cv: 0.2269272
 ```
 
-This partial result is not acceptance evidence, but it is already useful: it
-shows the invariants holding on completed curves while identifying
+This partial result is not acceptance evidence, but it was useful: it showed
+the invariants holding on completed curves while identifying
 `drums_pendulum` seed `1` as a focused parity investigation target. At the
-`10M` sim-frame budget, LDS had scored 14 leaves, reached raw axis quality
-about `0.5785`, but still failed the hard contract; the greedy reference for
-the same row passed with contract-gated quality `0.4808`.
+`10M` sim-frame budget, pre-fix LDS had scored 14 leaves, reached raw axis
+quality about `0.5785`, but still failed the hard contract; the greedy
+reference for the same row passed with contract-gated quality `0.4808`.
+
+Final-validation recovery probe:
+
+```bash
+npm run study:v0:budget -- --specs=drums_pendulum --seeds=1 \
+  --budgets=500000,1000000,2000000 --concurrency=1 \
+  --out=generated/v0_budget_study/recovery_probe_pendulum_seed1_curve --quiet
+```
+
+Result summary:
+
+```text
+ok: true
+monotonicity failures: 0
+leaf-prefix failures: 0
+wall_ms/work_units cv: 0.0321190
+contract-gated quality: 0.0000, 0.0000, 0.4816
+greedy reference: 0.4808
+```
+
+Acceptance-runner check:
+
+```bash
+npm run accept:v0 -- --specs=drums_pendulum --seeds=1 \
+  --factors=0.25,0.5,1 --skip-determinism --skip-baseline --json
+```
+
+Result summary:
+
+```text
+ok: true
+contract-gated quality: 0.0000, 0.4816, 0.4816
+leaves: 2, 3, 4
+wall_ms/work_units cv: 0.0343337
+```
+
+This targeted row now demonstrates the iteration-story payoff: the partial
+full sweep classified a native-LDS hard-contract regression, final-validation
+recovery leaves were added, and the same row now passes at matched/default
+budget without using legacy as a mandatory prelude. Representative and full
+acceptance remain pending.
 
 ## Acceptance Gates
 

@@ -136,9 +136,9 @@ Observed shape: the incumbent quality is already found by the lowest checked
 default-factor budget, then additional leaves are scored without displacing it.
 That is the expected monotone saturation shape for this case.
 
-## In-Progress Full Study Checkpoint
+## Interrupted Full Study Checkpoint
 
-Checkpoint captured on May 28, 2026 while this command was still running:
+Checkpoint captured on May 28, 2026 from this command:
 
 ```bash
 npm run study:v0:budget -- --scope=full --concurrency=4 \
@@ -152,29 +152,33 @@ The checked-in suite currently contains 8 golden specs, so this full run is
 8 specs x 5 seeds x 8 LDS budgets + 40 greedy reference rows
 ```
 
-At 75 streamed rows, the partial analyzer showed:
+This run was interrupted after it exposed a concrete implementation gap in the
+native LDS path. The streamed rows remain useful diagnostic evidence, but they
+are not acceptance evidence for the current implementation.
+
+At 79 streamed rows, the partial analyzer showed:
 
 ```text
-lds rows: 67
+lds rows: 71
 legacy rows: 8
 completed LDS spec/seed curves: 6
 monotonicity failures: 0
 leaf-prefix failures: 0
-wall_ms/work_units cv: 0.2291814
+wall_ms/work_units cv: 0.2269272
 overshoot p50: 371516 work units
 overshoot p95: 951043 work units
 max overshoot: 1451739 work units
 ```
 
-This is not acceptance evidence yet because the run is incomplete. It is still
-useful evidence for two reasons:
+This is not acceptance evidence because the run is incomplete and predates the
+final-validation recovery fix. It is still useful evidence for two reasons:
 
 - The prefix and monotonicity invariants are holding on the completed curves
   observed so far.
 - The sweep has already exposed a concrete compatibility risk that would have
   been hidden by a smaller smoke test.
 
-The important risk row is `drums_pendulum`, seed `1`:
+The important pre-fix risk row was `drums_pendulum`, seed `1`:
 
 ```text
 budget      LDS contract-gated quality   LDS hard contract   leaves scored
@@ -191,13 +195,62 @@ legacy      0.4808                       pass                n/a
 
 The LDS candidates in this row do improve raw axis quality, reaching roughly
 `0.5785`, but they still fail the hard contract, so their contract-gated
-quality remains zero. This is a parity blocker candidate until the completed
-study and a focused investigation show either:
+quality remains zero. This showed that the native LDS path needed to express
+legacy's assembled-track final-validation recovery as deterministic leaf
+variants. A follow-up fix added that behavior without invoking legacy as a
+mandatory prelude.
 
-- the row is resolved at a calibrated default or higher budget,
-- the native LDS path is fixed so a passing cascade is included,
-- or the incompatibility is documented as an accepted limitation with explicit
-  evidence and legacy still retained.
+## Final-Validation Recovery Probe
+
+After adding final-validation recovery leaves, the focused blocker curve was:
+
+```bash
+npm run study:v0:budget -- --specs=drums_pendulum --seeds=1 \
+  --budgets=500000,1000000,2000000 --concurrency=1 \
+  --out=generated/v0_budget_study/recovery_probe_pendulum_seed1_curve --quiet
+```
+
+Result:
+
+```text
+ok: true
+rows: 4
+monotonicity_ok: true
+prefix_ok: true
+wall_ms/work_units cv: 0.0321190
+```
+
+Curve:
+
+```text
+budget      work       leaves  pass  contract-gated quality
+500000      1012312    2       no    0.0000
+1000000     1012312    2       no    0.0000
+2000000     2342265    4       yes   0.4816
+legacy      1094528    n/a     yes   0.4808
+```
+
+The recovered LDS row first passes at `2M` requested work units and slightly
+beats the greedy reference for the same `(spec, seed)`.
+
+Acceptance-runner check:
+
+```bash
+npm run accept:v0 -- --specs=drums_pendulum --seeds=1 \
+  --factors=0.25,0.5,1 --skip-determinism --skip-baseline --json
+```
+
+Result summary:
+
+```text
+ok: true
+contract-gated quality: 0.0000, 0.4816, 0.4816
+leaves: 2, 3, 4
+wall_ms/work_units cv: 0.0343337
+```
+
+This is targeted compatibility evidence for the blocker row. It does not
+replace the representative or full acceptance sweeps.
 
 ## Acceptance Status
 

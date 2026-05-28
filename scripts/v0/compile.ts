@@ -519,6 +519,7 @@ type LeafCandidate = {
   fits: (GapFit | null)[];
   gapFailures: number[];
   rankVector: number[];
+  chosenRanks: number[];
   discrepancy: number;
 };
 
@@ -531,6 +532,8 @@ type FinalizedLeaf = {
   fits: (GapFit | null)[];
   gapFailures: number[];
   rankVector: number[];
+  chosenRanks: number[];
+  retryOwners: number[];
   discrepancy: number;
   discoveryIndex: number;
 };
@@ -575,6 +578,18 @@ function compileLdsInternal(
     if (leaf === null) continue;
     const finalized = finalizeLeaf(ctx, leaf, discoveryIndex++, meter);
     offer(finalized);
+    let recoverySource = finalized;
+    for (let retry = 0; retry < finalValidationRetryLimit(ctx); retry++) {
+      if (recoverySource.retryOwners.length === 0) break;
+      if (!budgetAllowsNextOp(meter, budget)) break;
+      const recovered = buildLdsRecoveryLeaf(ctx, recoverySource, retry + 1);
+      if (recovered === null) break;
+      meter.leaves_attempted++;
+      updateWorkUnits(meter);
+      const finalizedRecovery = finalizeLeaf(ctx, recovered, discoveryIndex++, meter);
+      offer(finalizedRecovery);
+      recoverySource = finalizedRecovery;
+    }
   }
 
   // Coarse generate-and-test polish: run the existing in-place polish chain on
@@ -636,6 +651,7 @@ function emptyLdsLeaf(ctx: LdsContext, label: string): LeafCandidate {
     fits: new Array(ctx.gaps.length).fill(null),
     gapFailures: ctx.gaps.filter((gap) => gap.endsWithContact).map((gap) => gap.index),
     rankVector: [],
+    chosenRanks: [],
     discrepancy: -1,
   };
 }
@@ -667,7 +683,8 @@ function finalizeLeaf(
     fits,
   );
   const score = scoreDriftReport(report);
-  const fingerprint = fingerprintLeaf(leaf.label, track, report, leaf.rankVector);
+  const retryOwners = finalValidationRetryOwners(ctx, fits, det);
+  const fingerprint = fingerprintLeaf(leaf.label, track, report, leaf.rankVector, leaf.chosenRanks);
 
   meter.leaves_scored++;
   meter.scored_leaf_fingerprints.push(fingerprint);
@@ -682,6 +699,8 @@ function finalizeLeaf(
     fits,
     gapFailures: [...leaf.gapFailures],
     rankVector: [...leaf.rankVector],
+    chosenRanks: [...leaf.chosenRanks],
+    retryOwners,
     discrepancy: leaf.discrepancy,
     discoveryIndex,
   };
@@ -722,6 +741,72 @@ function isLeafBetter(candidate: FinalizedLeaf, incumbent: FinalizedLeaf): boole
   return false;
 }
 
+function finalValidationRetryLimit(ctx: LdsContext): number {
+  const denseContactSequence = isDenseContactSequence(ctx.contactFrames, ctx.durationFrames);
+  const denseSpeedOnly = denseContactSequence
+    && ctx.spec.sections.some((sec) => sec.speed !== undefined)
+    && ctx.spec.sections.every((sec) =>
+      sec.air === undefined
+      && sec.grain === undefined
+      && sec.contact_style === undefined
+    );
+  return denseSpeedOnly ? 1 : CALIB.FINAL_VALIDATION_RETRIES;
+}
+
+function finalValidationRetryOwners(
+  ctx: LdsContext,
+  fits: (GapFit | null)[],
+  det: Detection,
+): number[] {
+  const owners = new Set<number>();
+  for (const e of offBeatLandingEvents(det, ctx.contactFrames)) {
+    const lids = contactLineIdsAt(det, e.frame);
+    for (const lid of lids) {
+      const owner = findGapOwning(lid, fits);
+      if (owner >= 0) owners.add(owner);
+    }
+  }
+  addMissedContactRetryOwners(owners, det, ctx.gaps, fits, ctx.contactFrames);
+  return [...owners].sort((a, b) => a - b);
+}
+
+function buildLdsRecoveryLeaf(
+  ctx: LdsContext,
+  source: FinalizedLeaf,
+  retryNumber: number,
+): LeafCandidate | null {
+  const earliest = source.retryOwners[0];
+  if (earliest === undefined) return null;
+
+  const rankVector = new Array(ctx.gaps.length).fill(0);
+  for (const gap of ctx.gaps) {
+    if (!gap.endsWithContact) continue;
+    const chosen = source.chosenRanks[gap.index];
+    const forced = source.rankVector[gap.index] ?? 0;
+    if (gap.index < earliest) {
+      rankVector[gap.index] = chosen !== undefined && chosen >= 0 ? chosen : forced;
+    } else {
+      rankVector[gap.index] = forced;
+    }
+  }
+
+  const chosenAtFailure = source.chosenRanks[earliest];
+  const forcedAtFailure = source.rankVector[earliest] ?? 0;
+  rankVector[earliest] = Math.max(
+    forcedAtFailure,
+    chosenAtFailure !== undefined && chosenAtFailure >= 0
+      ? chosenAtFailure + 1
+      : forcedAtFailure + 1,
+  );
+
+  return buildLdsLeaf(
+    ctx,
+    rankVector,
+    source.discrepancy,
+    `${source.label}:recover${retryNumber}:g${earliest}`,
+  );
+}
+
 function buildLdsLeaf(
   ctx: LdsContext,
   rankVector: number[],
@@ -729,6 +814,7 @@ function buildLdsLeaf(
   label: string,
 ): LeafCandidate | null {
   const fits: (GapFit | null)[] = new Array(ctx.gaps.length).fill(null);
+  const chosenRanks: number[] = new Array(ctx.gaps.length).fill(-1);
   const gapCandidates: (GapFit[] | null)[] = new Array(ctx.gaps.length).fill(null);
   const gapTried: number[] = new Array(ctx.gaps.length).fill(0);
   const gapFailures: number[] = [];
@@ -754,8 +840,9 @@ function buildLdsLeaf(
     prefixNextLineIds.length = Math.min(prefixNextLineIds.length, index + 1);
   };
 
-  const setFit = (index: number, fit: GapFit | null) => {
+  const setFit = (index: number, fit: GapFit | null, rank = -1) => {
     fits[index] = fit;
+    chosenRanks[index] = fit === null ? -1 : rank;
     invalidatePrefixFromFit(index);
   };
 
@@ -836,7 +923,8 @@ function buildLdsLeaf(
     if (gapTried[i] < minimumRank) gapTried[i] = minimumRank;
 
     if (gapTried[i] < gapCandidates[i]!.length) {
-      setFit(i, cloneFit(gapCandidates[i]![gapTried[i]++]));
+      const rank = gapTried[i]++;
+      setFit(i, cloneFit(gapCandidates[i]![rank]), rank);
       if (currentFailureGap !== -1 && i >= currentFailureGap) {
         currentFailureGap = -1;
         backtracksUsedForCurrentFailure = 0;
@@ -882,6 +970,7 @@ function buildLdsLeaf(
     fits,
     gapFailures,
     rankVector: [...rankVector],
+    chosenRanks,
     discrepancy,
   };
 }
@@ -899,6 +988,7 @@ function polishLeafVariant(ctx: LdsContext, leaf: FinalizedLeaf): LeafCandidate 
     fits,
     gapFailures: [...leaf.gapFailures],
     rankVector: [...leaf.rankVector],
+    chosenRanks: [...leaf.chosenRanks],
     discrepancy: leaf.discrepancy,
   };
 }
@@ -964,10 +1054,12 @@ function fingerprintLeaf(
   track: TrackJson,
   report: DriftReport,
   rankVector: number[],
+  chosenRanks: number[],
 ): string {
   return stableHash(JSON.stringify({
     label,
     rankVector,
+    chosenRanks,
     lines: track.lines.map(lineFingerprintParts),
     report,
   }));

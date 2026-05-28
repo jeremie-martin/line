@@ -77,6 +77,7 @@ const SPEED_POLISH_ROTATIONS = [-4] as const;
 const MIN_CANDIDATE_ATTEMPTS = 15;
 const SHORT_GAP_ADAPTIVE_SURVIVORS = 2;
 const AIR_RESIDUAL_TARGET_GAIN = 0.35;
+const GRAIN_RESIDUAL_TARGET_GAIN = 0.15;
 const PREROLL_PREFIX_STARTS = 6;
 const PREROLL_PREFIX_MAX_GAPS = 4;
 const PREROLL_PREFIX_EXTRA_FRAMES = FPS;
@@ -213,7 +214,9 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
         if (cached !== undefined) {
           gapCandidates[i] = cached;
         } else {
-          const searchTargets = residualSearchTargetsForGap(eng, gap, spec);
+          const searchTargets = residualSearchTargetsForGap(
+            eng, gap, spec, i, gaps, fits,
+          );
           gapCandidates[i] = generateRankedCandidates(
             eng, gap, perGapRng, lineIdStart, contactFrames, durationFrames,
             searchTargets,
@@ -2966,10 +2969,16 @@ function residualSearchTargetsForGap(
   baseEngine: any,
   gap: Gap,
   spec: Spec,
+  gapIndex: number,
+  gaps: Gap[],
+  fits: (GapFit | null)[],
 ): SectionAxes | undefined {
+  const out: SectionAxes = {};
   const airTarget = residualAirTargetForGap(baseEngine, gap, spec);
-  if (airTarget === undefined) return undefined;
-  return { ...gap.targets, air: airTarget };
+  if (airTarget !== undefined) out.air = airTarget;
+  const grainTarget = residualGrainTargetForGap(gap, spec, gapIndex, gaps, fits);
+  if (grainTarget !== undefined) out.grain = grainTarget;
+  return Object.keys(out).length === 0 ? undefined : { ...gap.targets, ...out };
 }
 
 function residualAirTargetForGap(
@@ -3025,6 +3034,52 @@ function countAirFrames(
     total++;
   }
   return { air, total };
+}
+
+function residualGrainTargetForGap(
+  gap: Gap,
+  spec: Spec,
+  gapIndex: number,
+  gaps: Gap[],
+  fits: (GapFit | null)[],
+): number | undefined {
+  const sec = grainSectionAtFrame(gap.endFrame, spec);
+  if (sec === null || sec.grain === undefined) return undefined;
+
+  const sectionStart = secToFrame(sec.t0);
+  const sectionEnd = secToFrame(sec.t1);
+  let total = 0;
+  let prefixCount = 0;
+  let prefixSum = 0;
+  for (let i = 0; i < gaps.length; i++) {
+    const g = gaps[i];
+    if (!g.endsWithContact) continue;
+    if (g.endFrame < sectionStart || g.endFrame > sectionEnd) continue;
+    total++;
+    if (i >= gapIndex) continue;
+    const fit = fits[i];
+    if (fit === null) continue;
+    prefixSum += measureFitGrain(fit);
+    prefixCount++;
+  }
+  if (prefixCount <= 0 || total <= prefixCount) return undefined;
+
+  const remaining = total - prefixCount;
+  const neededMean = clamp((sec.grain * total - prefixSum) / remaining, 0, 1);
+  const current = gap.targets.grain ?? sec.grain;
+  const residualPressure = Math.min(1, Math.abs(neededMean - current) / 0.25);
+  const gain = GRAIN_RESIDUAL_TARGET_GAIN * residualPressure;
+  return clamp(current + gain * (neededMean - current), 0, 1);
+}
+
+function grainSectionAtFrame(frame: number, spec: Spec): Section | null {
+  const t = frame / FPS;
+  let out: Section | null = null;
+  for (const sec of spec.sections) {
+    if (sec.grain === undefined) continue;
+    if (sec.t0 <= t && sec.t1 >= t) out = sec;
+  }
+  return out;
 }
 
 type TargetState = {

@@ -31,6 +31,7 @@ import { CALIB, secToFrame } from "../types.ts";
 import { scoreDriftReport } from "../score.ts";
 import { enumerateLeaves, type Leaf } from "./lds.ts";
 import { makeRootNode } from "./node.ts";
+import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, type LeafKey } from "./register.ts";
 import { getSimFrames, resetSimFrames } from "./sim_frames.ts";
 import type { SpecContext } from "./sample.ts";
@@ -46,9 +47,17 @@ export type CompileLDSOptions = {
    *  boundary after `getSimFrames() >= budget.units`. If unset, runs
    *  until `maxDiscrepancy` is fully enumerated. */
   budget?: Budget;
-  /** Optional callback fired once per leaf evaluated (used by
-   *  property tests; null-cost in normal use). */
+  /** Optional callback fired once per ENUMERATED leaf evaluated (not
+   *  fired for derived polish variants). Used by property tests;
+   *  null-cost in normal use. */
   onLeaf?: (leaf: Leaf, key: LeafKey) => void;
+  /** Stage B: after each enumerated leaf, also evaluate a polished
+   *  clone-and-test variant (see `polish.ts`) and offer it to the
+   *  register. Default true. Set false to measure the raw search path
+   *  (e.g. the d=0-equals-greedy equivalence test). Polish can only
+   *  add leaves to `E`, never reorder it, so monotonicity and
+   *  determinism are preserved. */
+  polish?: boolean;
 };
 
 export function compileLDS(
@@ -91,22 +100,41 @@ export function compileLDS(
   const root = makeRootNode(initialEngine, gaps.length);
   const register = new BestSoFarRegister();
 
-  let budgetExhausted = false;
-  for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed)) {
-    const key = scoreLeaf(leaf, spec, gaps, allContactFrames, durationFrames);
-    const becameBest = register.consider(
-      buildLeafOutput(leaf, spec, gaps, allContactFrames, durationFrames, startState, budgetExhausted),
+  const polishEnabled = opts.polish ?? true;
+
+  /** Score a leaf (or polish variant) and offer it to the register.
+   *  Returns the comparator key. */
+  const consider = (leafLike: Leaf): LeafKey => {
+    const key = scoreLeaf(leafLike, spec, gaps, allContactFrames, durationFrames);
+    register.consider(
+      buildLeafOutput(leafLike, spec, gaps, allContactFrames, durationFrames, startState, budgetExhausted),
       key,
     );
+    return key;
+  };
+
+  let budgetExhausted = false;
+  for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed)) {
+    const key = consider(leaf);
     opts.onLeaf?.(leaf, key);
-    void becameBest;
-    // Op boundary: check budget AFTER scoring/considering this leaf.
-    // The one-leaf overshoot is bounded by the cost of one scoreLeaf
-    // call (≈ durationFrames + 20 sim_frames), which is acceptable
-    // and preserves the prefix-superset invariant — the same leaf
-    // would have been considered at any budget that allowed reaching
-    // it. Stopping AFTER consider means we always benefit from work
-    // already paid for.
+
+    // Stage B — polish as clone-and-test: derive a polished variant of this
+    // leaf and offer it too. The variant is a NEW leaf (original untouched),
+    // so best-so-far can only improve; `E` is extended in a fixed,
+    // deterministic order, never reordered. Interleaving per-leaf (rather
+    // than a final pass) means even a low budget polishes the d=0 greedy
+    // leaf first, so low-budget output is "greedy + polish" ≈ greedy_v1.
+    if (polishEnabled) {
+      const variant = polishLeafVariant(leaf.fits, spec, gaps, allContactFrames, durationFrames);
+      if (variant !== null) {
+        consider({ ...leaf, fits: variant.fits, engine: variant.engine });
+      }
+    }
+
+    // Op boundary: check budget AFTER scoring/considering this leaf (and its
+    // polish variant). Stopping AFTER consider means we always benefit from
+    // work already paid for, and preserves the prefix-superset invariant —
+    // the same leaves would have been considered at any larger budget.
     if (getSimFrames() >= budgetUnits) {
       budgetExhausted = true;
       break;

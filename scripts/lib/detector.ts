@@ -400,30 +400,75 @@ export function extractRawTrajectoryWindow(
   startFrame: number,
   duration: number,
 ): RawTrajectory {
+  const before = engineLastFrameIndex(engine);
   const frames: RawFrame[] = [];
   for (let f = Math.max(0, startFrame); f <= duration; f++) {
     frames.push(extractRawFrame(engine, f));
   }
+  const after = engineLastFrameIndex(engine);
+  if (before !== null && after !== null) _physicsFrames += Math.max(0, after - before);
   return { duration, frames };
 }
 
-/** Module-local counter incremented once per `extractRawFrame` call.
- *  Use the `resetFrameCount` / `getFrameCount` exports below. This is
- *  the substrate for the optimizer's sim-frames work-unit; legacy
- *  callers see no behavior change. Non-reentrant (relies on the
- *  same single-compile-at-a-time invariant compile.ts uses). */
+/** Two work-unit counters, both reset per compile and non-reentrant
+ *  (rely on the single-compile-at-a-time invariant compile.ts uses):
+ *
+ *  - `_frameCount` (reads): incremented once per `extractRawFrame` call,
+ *    i.e. per frame *read* — including re-reads of frames lr-core has
+ *    already simulated and cached. Kept as a secondary/cross-check
+ *    counter; NOT the work unit.
+ *  - `_physicsFrames` (computed): the delta in `engine.getLastFrameIndex()`
+ *    across each extraction / metered `getRider`, i.e. frames the engine
+ *    actually *integrated*. Re-reads of cached frames add zero. This is
+ *    the honest work unit: it tracks real physics computation, dominates
+ *    wall-clock (Property 2), and is an lr-core primitive the optimizer
+ *    can't inflate (Property 3). See `optimizer/sim_frames.ts`. */
 let _frameCount = 0;
+let _physicsFrames = 0;
 
-/** Read the current accumulated frame count (across all
- *  `extractRawTrajectory*` calls since the last reset). */
+/** Read the cumulative frame-*read* count since the last reset
+ *  (secondary counter; over-bills cached re-reads). */
 export function getFrameCount(): number {
   return _frameCount;
 }
 
-/** Reset the accumulated frame count. Call at the start of each
- *  compile() invocation. */
+/** Read the cumulative *physics* (newly-simulated) frame count since the
+ *  last reset. This is the work unit `getSimFrames()` exposes. */
+export function getPhysicsFrameCount(): number {
+  return _physicsFrames;
+}
+
+/** Reset both frame counters. Call at the start of each compile(). */
 export function resetFrameCount(): void {
   _frameCount = 0;
+  _physicsFrames = 0;
+}
+
+/** Safely read lr-core's highest-simulated-frame index (monotonic engine
+ *  state). Returns null if the engine doesn't expose it. */
+// deno-lint-ignore no-explicit-any
+function engineLastFrameIndex(engine: any): number | null {
+  const fn = engine?.getLastFrameIndex;
+  if (typeof fn !== "function") return null;
+  try {
+    const v = fn.call(engine);
+    return typeof v === "number" && Number.isFinite(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/** `engine.getRider(frame)` wrapped to charge any frames it newly
+ *  simulates to the physics counter. Use this instead of a raw
+ *  `engine.getRider(frame)` anywhere outside the extraction loop, so the
+ *  honest work unit captures simulation triggered by point probes too. */
+// deno-lint-ignore no-explicit-any
+export function getRiderMetered(engine: any, frame: number): any {
+  const before = engineLastFrameIndex(engine);
+  const rider = engine.getRider(frame);
+  const after = engineLastFrameIndex(engine);
+  if (before !== null && after !== null) _physicsFrames += Math.max(0, after - before);
+  return rider;
 }
 
 // deno-lint-ignore no-explicit-any

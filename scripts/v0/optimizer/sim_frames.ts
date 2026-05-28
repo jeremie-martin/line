@@ -1,13 +1,17 @@
 /**
- * Stage 0b — sim-frames work-unit instrumentation.
+ * sim-frames work-unit instrumentation (honest physics-frame metering).
  *
- * The counter itself lives in `scripts/lib/detector.ts` so it
- * automatically captures EVERY frame extraction in the system —
- * including those made by the legacy compile.ts's `tryCandidate`
- * path, which the LDS compiler reuses via `sample.ts` and
- * `solver.ts`. This means `getSimFrames()` reflects the total
- * physics work done in a compile call, not just the work done at
- * the LDS layer.
+ * The counter lives in `scripts/lib/detector.ts` and charges only frames
+ * the engine ACTUALLY simulates — measured as the delta in
+ * `engine.getLastFrameIndex()` across each extraction and each metered
+ * `getRider`. lr-core caches simulated frames, so re-reading an
+ * already-computed frame costs zero. (The older read-count,
+ * `getFrameCount()`, billed every read including cache hits, over-counting
+ * by ~12-27× empirically; it is kept only as a secondary cross-check.)
+ * Because every extraction in a compile flows through the detector — incl.
+ * the legacy `tryCandidate` path the LDS compiler reuses via `sample.ts` /
+ * `solver.ts`, plus the metered raw `getRider` probes — `getSimFrames()`
+ * reflects the total physics work of a compile, not just the LDS layer.
  *
  * Why this is the right work unit: per-frame stepping is what
  * dominates wall-clock in lr-core. `engine.addLine` registers
@@ -32,6 +36,6 @@
  */
 
 export {
-  getFrameCount as getSimFrames,
+  getPhysicsFrameCount as getSimFrames,
   resetFrameCount as resetSimFrames,
 } from "../../lib/detector.ts";

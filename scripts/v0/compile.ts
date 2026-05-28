@@ -30,7 +30,7 @@
 
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import {
-  detect, extractRawTrajectory, extractRawTrajectoryWindow,
+  detect, extractRawTrajectory, extractRawTrajectoryWindow, getRiderMetered,
   K_BOUNCE_LANDING, PERSISTENCE_FRAMES, PERSISTENCE_RATIO,
   type Detection, type DetEvent, type RawTrajectory,
 } from "../lib/detector.ts";
@@ -512,7 +512,7 @@ function velocityAt(det: Detection, frame: number): { x: number; y: number } | u
   return index >= 0 ? det.measurements.velocity[index] : undefined;
 }
 
-function polishAirRideOut(
+export function polishAirRideOut(
   fits: (GapFit | null)[],
   gaps: Gap[],
   spec: Spec,
@@ -882,7 +882,7 @@ function meanAirFrameResolution(spec: Spec): number {
   return n > 0 ? total / n : 0;
 }
 
-function polishAirContactEntry(
+export function polishAirContactEntry(
   fits: (GapFit | null)[],
   gaps: Gap[],
   spec: Spec,
@@ -947,7 +947,7 @@ function polishAirContactEntry(
   }
 }
 
-function polishAirBriefContacts(
+export function polishAirBriefContacts(
   fits: (GapFit | null)[],
   gaps: Gap[],
   spec: Spec,
@@ -970,7 +970,7 @@ function polishAirBriefContacts(
 
     let accepted = false;
     for (const frame of airBriefContactFrames(baseDet, contactFrames, durationFrames)) {
-      const rider = baseEngine.getRider(frame);
+      const rider = getRiderMetered(baseEngine, frame);
       const point = rider.get("PEG")?.pos;
       const velocity = rider.velocity ?? velocityAt(baseDet, frame);
       if (point === undefined || velocity === undefined) continue;
@@ -1065,7 +1065,7 @@ function findGapForFrame(
   return -1;
 }
 
-function polishExcessContact(
+export function polishExcessContact(
   fits: (GapFit | null)[],
   gaps: Gap[],
   spec: Spec,
@@ -2372,7 +2372,7 @@ function engineLineSignature(line: TrackLine): string {
  * and threading the state through every signature would be a large diff for
  * no behavioral benefit.
  */
-function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
+export function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
   stats.engine_rebuilds++;
   const eng: any = makeBaseEngine(currentStartState);
   let chained = eng;
@@ -2573,7 +2573,7 @@ function prerollStartCost(
     return best.cost + speedPenalty - robustnessCredit;
   }
 
-  const rider = baseEngine.getRider(firstGap.endFrame);
+  const rider = getRiderMetered(baseEngine, firstGap.endFrame);
   const v = rider.velocity ?? { x: start.vx, y: start.vy };
   const achievedSpeed = Math.hypot(v.x, v.y) / CALIB.SPEED_CAP;
   const speedCost = firstGap.targets.speed === undefined
@@ -2979,7 +2979,7 @@ function generateRankedCandidates(
   durationFrames: number,
   targetOverride?: SectionAxes,
 ): GapFit[] {
-  const riderAtTarget = baseEngine.getRider(gap.endFrame);
+  const riderAtTarget = getRiderMetered(baseEngine, gap.endFrame);
   const refX = riderAtTarget.position.x;
   const refY = riderAtTarget.position.y;
   const targetState = readTargetState(baseEngine, gap.endFrame, refX, refY);
@@ -3163,7 +3163,7 @@ export function readTargetState(
   fallbackX: number,
   fallbackY: number,
 ): TargetState {
-  const rider = engine.getRider(frame);
+  const rider = getRiderMetered(engine, frame);
   let sledX = fallbackX;
   let sledY = fallbackY;
   for (const name of SLED_POINTS) {

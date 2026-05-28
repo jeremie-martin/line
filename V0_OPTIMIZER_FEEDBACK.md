@@ -54,6 +54,14 @@ easy to justify from local state and authored intent.
   A `0.4s` threshold variant was tested and not kept: it preserved hard gates,
   but lowered all three `syncopated_switchback` seed scores and slightly lowered
   `opening_burst` seed 1, so the adaptive path remains limited to 0.3s gaps.
+  After feasible-air ranking landed, the three-survivor variant was retested
+  and still not kept: seed 1 improved strongly by moving `opening_burst` out of
+  the runtime penalty, but full-suite validation fell from `506.68` to
+  `499.75` because the extra short-gap search increased runtime elsewhere.
+  A cost-gated extra-survivor variant using scorer tolerance (`0.25²`) was
+  also tested and not kept: it preserved the seed 1 `opening_burst` gain, but
+  seed 0 and seed 2 stayed below baseline, so the extra search did not validate
+  as a robust suite-level improvement.
 
 - Regime-free air lookahead: candidate measurement looks through the next
   contact when air is targeted and the post-contact window is large enough to
@@ -115,7 +123,10 @@ easy to justify from local state and authored intent.
   sampler and `CATCH_TEMPLATES` with a single prior centered on incoming rider
   angle, speed, contact style, and desired impact fraction. This should improve
   steep catches and low-contact skips without hard thresholds. Implementation
-  area: `sampleArcParams`, with helper geometry for arc local points.
+  area: `sampleArcParams`, with helper geometry for arc local points. A simple
+  impact-fraction X-anchor trial was tested and not kept: seed 0 fell from
+  `526.33` to `213.52` and `drums_crescendo` timed out, so this needs the
+  fuller anchoring/refinement design rather than an X-only sampler swap.
 
 - Unified parameter-space refinement: replace the scattered polish functions
   with a local search over arc parameters such as anchor, length, angles,
@@ -178,5 +189,9 @@ easy to justify from local state and authored intent.
   alignment in prefix scoring was tested and not kept: seed 0 dropped from
   `542.80` to `243.87`, and seed 1 dropped from `368.30` to `349.71`, with
   opening/crescendo runtime getting worse. This needs a broader preroll scoring
-  change rather than a raw RNG schedule swap. Implementation area:
+  change rather than a raw RNG schedule swap. Increasing the prefix shortlist
+  from 6 to 8 starts was also tested and not kept: seed 1 fell from `487.55` to
+  `299.81`, with `opening_burst` nearly zero from runtime. Reducing the
+  shortlist from 6 to 4 was tested and not kept: seed 1 slipped to `483.85`
+  and did not move `opening_burst` out of the runtime penalty. Implementation area:
   `choosePrerollStart` and candidate start generation.

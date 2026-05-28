@@ -76,6 +76,7 @@ const SPEED_POLISH_BOUNDARY_PASSES = 2;
 const SPEED_POLISH_ROTATIONS = [-4] as const;
 const MIN_CANDIDATE_ATTEMPTS = 15;
 const SHORT_GAP_ADAPTIVE_SURVIVORS = 2;
+const AIR_RESIDUAL_TARGET_GAIN = 0.35;
 const PREROLL_PREFIX_STARTS = 6;
 const PREROLL_PREFIX_MAX_GAPS = 4;
 const PREROLL_PREFIX_EXTRA_FRAMES = FPS;
@@ -212,8 +213,10 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
         if (cached !== undefined) {
           gapCandidates[i] = cached;
         } else {
+          const searchTargets = residualSearchTargetsForGap(eng, gap, spec);
           gapCandidates[i] = generateRankedCandidates(
             eng, gap, perGapRng, lineIdStart, contactFrames, durationFrames,
+            searchTargets,
           );
           candidateCache.set(cacheKey, gapCandidates[i]!);
         }
@@ -2906,6 +2909,7 @@ function generateRankedCandidates(
   lineIdStart: number,
   allContactFrames: number[],
   durationFrames: number,
+  targetOverride?: SectionAxes,
 ): GapFit[] {
   const riderAtTarget = baseEngine.getRider(gap.endFrame);
   const refX = riderAtTarget.position.x;
@@ -2913,7 +2917,7 @@ function generateRankedCandidates(
   const targetState = readTargetState(baseEngine, gap.endFrame, refX, refY);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, allContactFrames);
   const searchTargets = searchTargetsForCost(
-    gap.targets, gap, axisMeasureEnd, allContactFrames,
+    targetOverride ?? gap.targets, gap, axisMeasureEnd, allContactFrames,
   );
 
   const survivors: GapFit[] = [];
@@ -2955,6 +2959,72 @@ function candidateBudgetForGap(
 
 function isDenseContactSequence(contactFrames: number[], durationFrames: number): boolean {
   return contactFrames.length * FPS > durationFrames;
+}
+
+function residualSearchTargetsForGap(
+  // deno-lint-ignore no-explicit-any
+  baseEngine: any,
+  gap: Gap,
+  spec: Spec,
+): SectionAxes | undefined {
+  const airTarget = residualAirTargetForGap(baseEngine, gap, spec);
+  if (airTarget === undefined) return undefined;
+  return { ...gap.targets, air: airTarget };
+}
+
+function residualAirTargetForGap(
+  // deno-lint-ignore no-explicit-any
+  baseEngine: any,
+  gap: Gap,
+  spec: Spec,
+): number | undefined {
+  const sec = airSectionAtFrame(gap.endFrame, spec);
+  if (sec === null || sec.air === undefined) return undefined;
+
+  const sectionStart = secToFrame(sec.t0);
+  const sectionEnd = secToFrame(sec.t1);
+  if (gap.startFrame > sectionEnd) return undefined;
+
+  const prefixEnd = Math.min(gap.startFrame - 1, sectionEnd);
+  if (prefixEnd < sectionStart) return undefined;
+
+  const det = detectWindow(baseEngine, sectionStart, prefixEnd);
+  const prefix = countAirFrames(det, sectionStart, prefixEnd);
+  if (prefix.total <= 0) return undefined;
+
+  const totalFrames = sectionEnd - sectionStart + 1;
+  const remainingFrames = Math.max(1, sectionEnd - gap.startFrame + 1);
+  const neededAirFrames = sec.air * totalFrames - prefix.air;
+  const neededMean = clamp(neededAirFrames / remainingFrames, 0, 0.99);
+  const current = gap.targets.air ?? sec.air;
+  const residualPressure = Math.min(1, Math.abs(sec.air - 0.5) * 2);
+  const gain = AIR_RESIDUAL_TARGET_GAIN * residualPressure;
+  return clamp(current + gain * (neededMean - current), 0, 0.99);
+}
+
+function airSectionAtFrame(frame: number, spec: Spec): Section | null {
+  const t = frame / FPS;
+  let out: Section | null = null;
+  for (const sec of spec.sections) {
+    if (sec.air === undefined) continue;
+    if (sec.t0 <= t && sec.t1 >= t) out = sec;
+  }
+  return out;
+}
+
+function countAirFrames(
+  det: Detection,
+  f0: number,
+  f1: number,
+): { air: number; total: number } {
+  const end = Math.min(f1, measurementLastFrame(det));
+  let air = 0;
+  let total = 0;
+  for (let frame = f0; frame <= end; frame++) {
+    if (airborneAt(det, frame)) air++;
+    total++;
+  }
+  return { air, total };
 }
 
 type TargetState = {

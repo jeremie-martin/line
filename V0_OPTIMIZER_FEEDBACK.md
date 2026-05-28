@@ -139,6 +139,26 @@ easy to justify from local state and authored intent.
   slack to non-short gaps did not help (`446.22` on seed 1), so the strict
   detector-derived band remains in place.
 
+- Air residual target pressure: candidate ranking now nudges the search-only
+  air target toward the remaining mean needed by the current section, using
+  already committed prefix frames and only for the air axis. Purpose: reduce
+  section-level drift without replacing sampled per-gap variety. Signal:
+  current section air target, measured prefix air frames, remaining section
+  frames, and local feasible-air clamping. Scale: a partial residual step
+  (`0.35`) multiplied by continuous distance from mid-air (`abs(air-0.5)*2`),
+  so moderate-air sections stay close to the existing sampled target while
+  extreme low/high air sections receive more correction. Risk control:
+  candidate generation, hard gates, final reporting, and authored targets are
+  unchanged, and prefix measurement uses windowed lr-core/detect state. Full
+  validation improved from `GOAL_SCORE 531.55 valid 24/24` to `538.50 valid
+  24/24`, mainly by improving `opening_burst` (`499.85` to `543.49`) and
+  `dense_sprint` (`598.26` to `610.53`).
+  A raw residual replacement was tested and not kept: seed 1 fell to `502.21`
+  because `drums_signature` and `drums_crescendo` lost axis quality. A fixed
+  damped residual gain of `0.35` was also not kept: it recovered crescendo but
+  still scored only `517.76` on seed 1. The continuous air-extremity pressure
+  preserved stable moderate-air rows while keeping the opening/dense gains.
+
 - Full final-validation retries: dense speed-only specs no longer use fewer
   final sync retries. Purpose: avoid hard-gate zeros from assembled-track
   effects. Signal: final detected sync failures. Scale: existing
@@ -192,10 +212,10 @@ easy to justify from local state and authored intent.
   becoming runtime-limited despite better local grain control.
   Implementation area: `sampleArcParams`.
 
-- Section residual control: compute search targets from section-level residuals
-  rather than treating each gap as an independent local fit. This should help
-  oscillating and monotonic section specs where the final scorer aggregates
-  whole sections. Implementation area: target sampling and gap ranking state.
+- Section residual control: the air-only search-pressure piece has landed.
+  Remaining work is to extend the same idea to speed, grain, and
+  contact_style without destabilizing hard gates or duplicating the polish
+  layer. Implementation area: target sampling and gap ranking state.
 
 - Generalized ride-out and trim variants: make continuation and tail-trim
   variants available to all relevant targets, not only air-only long gaps.

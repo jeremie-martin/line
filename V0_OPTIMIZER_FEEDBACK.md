@@ -193,6 +193,20 @@ easy to justify from local state and authored intent.
   was tested and not kept: seed 1 improved, but seed 0 fell to `504.47`
   because `opening_burst` axis quality collapsed.
 
+- Compact slow-opening pre-roll grid: the pre-roll velocity search now uses a
+  smaller candidate grid when the first authored section is slow and mid-air
+  (`speed <= 0.45`, `0.35 <= air < 0.60`). Purpose: avoid spending start-state
+  search on aggressive velocities when local opening intent asks for a relaxed
+  cruise. Signal: first-section speed and air only. Scale: existing target
+  speed samples plus three moderate angle samples, with hot, grounded, and
+  high-air openings left on the wider grid. Risk control: first-gap and prefix
+  scoring still choose among deterministic candidates, and no track geometry
+  path changes after the start state. Full validation improved from
+  `GOAL_SCORE 563.48 valid 24/24` to `567.13 valid 24/24`; the main gains
+  were `drums_signature` (`573.06` to `588.99`) and `opening_burst`
+  (`584.54` to `598.83`), with all other spec scores unchanged in the full
+  run.
+
 ## Deferred nontrivial work
 
 - State-conditioned arc sampling and impact anchoring: replace the uniform
@@ -232,6 +246,14 @@ easy to justify from local state and authored intent.
   Making the existing grain-derived segment path unconditional was also tested
   and not kept: seed 0 fell from `542.80` to `492.18`, with `grain_staircase`
   becoming runtime-limited despite better local grain control.
+  A branch-inspired smooth-pressure grain-first sampler for fast, low-contact
+  grain targets was also not kept in either broad or narrow form: the broad
+  pressure improved `drums_pendulum` and `grain_staircase` on seed 0, but
+  dropped the seed from `567.97 valid 8/8` to `112.92 valid 6/8` by failing
+  `syncopated_switchback` and timing out `rhythm_ladder`; the narrower pressure
+  stayed valid but still regressed seed 0 to `532.88`, mostly through worse
+  `opening_burst` and `syncopated_switchback`. Grain-first sampling still
+  needs impact anchoring or validated refinement before it can be safe.
   Implementation area: `sampleArcParams`.
 
 - Section residual control: the air-only search-pressure piece has landed.

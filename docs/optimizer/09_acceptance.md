@@ -61,12 +61,13 @@ across repeated calls; passes across all changes.
 
 ## Parity — MET and exceeded (seed 0; holds for all seeds by construction)
 
-Apples-to-apples LDS-s0 vs greedy_v1-s0 at `budgetFor`: goal_score **503.93 vs
-462.24 (+9%)**, contract-pass **13/13**, **no spec below greedy_v1** (8 exact-match
-floor, 5 improved). The floor=legacy construction guarantees LDS ≥ greedy_v1 per
-(spec, seed), so the 5-seed goal_score is ≥ greedy_v1's frozen 460.44 as well; a
-multi-seed `golden --lds` run confirms the definitive number. `golden.ts --lds`
-reproduces it (tiny_dance 769.19, time_multiplier=1). See `08_budget_curves.md`.
+Definitive 3-seed `golden --lds` run (seeds 0,1,2): goal_score **507.66 vs
+greedy_v1 460.44 frozen / 478.82 same-3-seeds (+6–10%)**, contract-pass
+**39/39**, and on matched seeds **no spec is below greedy_v1** (8 exact-match the
+floor, 5 improve — tiny_dance +245, mini_burst +124, rhythm_ladder +29,
+cold_start +17, syncopated +9). This is the floor=legacy construction working
+exactly: LDS ≥ greedy_v1 per (spec, seed). Definition of done met. See
+`08_budget_curves.md` and `10_session_summary.md`.
 
 ## Cutover: what is done, and what is deliberately deferred (honest)
 

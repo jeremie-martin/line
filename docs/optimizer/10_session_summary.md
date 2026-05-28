@@ -73,10 +73,22 @@ deferred default-swap.
    deviations don't dead-end), which would also let LDS exceed greedy there —
    deferred as the remaining upside, must not regress any spec.
 
-## Definitive parity number
+## Definitive parity number — CONFIRMED
 
-3-seed `golden --lds` run: **[pending — /tmp/golden_lds_final.json]**. Expected
-≥ greedy_v1's 460.44 by construction; will be recorded here on completion.
+Full 3-seed `golden --lds` run (seeds 0,1,2 — golden's set):
+
+| | LDS | greedy_v1 |
+|---|---|---|
+| goal_score | **507.66** | 460.44 (frozen, 5-seed) / 478.82 (same 3 seeds) |
+| contract-pass | **39/39** | 39/39 |
+| specs below greedy_v1 (same 3 seeds) | **NONE** | — |
+
+**+10.3% vs the frozen baseline, +6.0% on matched seeds, 100% pass.** Per spec
+(matched seeds): 8 exact-match the greedy floor (LDS dead-ends or can't beat it),
+5 improve — tiny_dance +245, mini_burst +124, rhythm_ladder +29, cold_start +17,
+syncopated +9. No spec regresses, exactly as the floor=legacy construction
+guarantees. Definition of done met: goal_score within 5% of greedy_v1 (in fact
+above it) AND contract-pass ≥ baseline on every spec.
 
 ## Honest open items (none block parity; all are upside or polish)
 

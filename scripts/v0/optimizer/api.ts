@@ -34,15 +34,18 @@ import { makeRootNode } from "./node.ts";
 import { BestSoFarRegister, type LeafKey } from "./register.ts";
 import { getSimFrames, resetSimFrames } from "./sim_frames.ts";
 import type { SpecContext } from "./sample.ts";
-import type { CompileOutput, Spec } from "./types.ts";
+import type { Budget, CompileOutput, Spec } from "./types.ts";
 
 export type CompileLDSOptions = {
-  /** Maximum total discrepancy across the search. Default 3.
-   *  Reasoning: greedy_v1's BACKTRACK_DEPTH=2 + FINAL_VALIDATION_RETRIES=3
-   *  bounds the search depth it explores; LDS at maxD=3 covers a
-   *  comparable region. Higher values exponentially grow the leaf
-   *  count; tune via measurement. */
+  /** Maximum total discrepancy across the search. Default 64
+   *  (effectively unbounded for practical specs — `Budget` is the
+   *  real cap). Lower this if you want a deterministic-depth search
+   *  independent of compute budget; usually you just want the budget. */
   maxDiscrepancy?: number;
+  /** Compute budget in sim-frames. Enumeration stops at the next op
+   *  boundary after `getSimFrames() >= budget.units`. If unset, runs
+   *  until `maxDiscrepancy` is fully enumerated. */
+  budget?: Budget;
   /** Optional callback fired once per leaf evaluated (used by
    *  property tests; null-cost in normal use). */
   onLeaf?: (leaf: Leaf, key: LeafKey) => void;
@@ -53,9 +56,18 @@ export function compileLDS(
   seed = 0,
   opts: CompileLDSOptions = {},
 ): CompileOutput {
-  const maxDiscrepancy = opts.maxDiscrepancy ?? 3;
+  const maxDiscrepancy = opts.maxDiscrepancy ?? 64;
   if (!Number.isInteger(maxDiscrepancy) || maxDiscrepancy < 0) {
     throw new Error(`compileLDS: maxDiscrepancy must be a non-negative integer, got ${maxDiscrepancy}`);
+  }
+  const budgetUnits = opts.budget?.units ?? Infinity;
+  if (opts.budget !== undefined) {
+    if (opts.budget.kind !== "work") {
+      throw new Error(`compileLDS: only Budget.kind === "work" is supported`);
+    }
+    if (!Number.isFinite(budgetUnits) || budgetUnits <= 0) {
+      throw new Error(`compileLDS: budget.units must be positive, got ${budgetUnits}`);
+    }
   }
 
   resetSimFrames();
@@ -79,23 +91,45 @@ export function compileLDS(
   const root = makeRootNode(initialEngine, gaps.length);
   const register = new BestSoFarRegister();
 
+  let budgetExhausted = false;
   for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed)) {
     const key = scoreLeaf(leaf, spec, gaps, allContactFrames, durationFrames);
-    const becameBest = register.consider(buildLeafOutput(leaf, spec, gaps, allContactFrames, durationFrames, startState), key);
+    const becameBest = register.consider(
+      buildLeafOutput(leaf, spec, gaps, allContactFrames, durationFrames, startState, budgetExhausted),
+      key,
+    );
     opts.onLeaf?.(leaf, key);
-    // becameBest is intentionally unused here — the register's
-    // own counters report on it.
     void becameBest;
+    // Op boundary: check budget AFTER scoring/considering this leaf.
+    // The one-leaf overshoot is bounded by the cost of one scoreLeaf
+    // call (≈ durationFrames + 20 sim_frames), which is acceptable
+    // and preserves the prefix-superset invariant — the same leaf
+    // would have been considered at any budget that allowed reaching
+    // it. Stopping AFTER consider means we always benefit from work
+    // already paid for.
+    if (getSimFrames() >= budgetUnits) {
+      budgetExhausted = true;
+      break;
+    }
   }
 
   const best = register.getBest();
   if (best === null) {
     throw new Error(
-      `compileLDS: no leaf reached end-of-spec (spec_duration=${spec.duration}s, ` +
-      `seed=${seed}, maxDiscrepancy=${maxDiscrepancy})`,
+      `compileLDS: no leaf reached end-of-spec ` +
+      `(spec_duration=${spec.duration}s, seed=${seed}, ` +
+      `maxDiscrepancy=${maxDiscrepancy}, ` +
+      `budget=${opts.budget ? opts.budget.units : "unset"}, ` +
+      `sim_frames_used=${getSimFrames()}, ` +
+      `budget_exhausted=${budgetExhausted})`,
     );
   }
-  return best;
+  // Update budget_exhausted on the returned output (the leaf was
+  // built before we knew the final state of the budget flag).
+  return {
+    ...best,
+    stats: { ...best.stats, budget_exhausted: budgetExhausted, sim_frames: getSimFrames() },
+  };
 }
 
 /** Build the LeafKey used by the register for ranking. Pure function
@@ -130,6 +164,7 @@ function buildLeafOutput(
   allContactFrames: number[],
   durationFrames: number,
   startState: ResolvedStart,
+  budgetExhausted: boolean,
 ): CompileOutput {
   const fits = leaf.fits as (GapFit | null)[];
   const allLines = [];
@@ -152,6 +187,7 @@ function buildLeafOutput(
       total_committed_cost: leaf.cumulativeCost,
       committed_costs_per_gap: fits.map((f) => (f === null ? null : f.cost)),
       sim_frames: getSimFrames(),
+      budget_exhausted: budgetExhausted,
     },
   };
 }

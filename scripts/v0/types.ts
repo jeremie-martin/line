@@ -133,6 +133,11 @@ export type CompileStats = {
    *  `scripts/v0/optimizer/sim_frames.ts`. The legacy compiler does
    *  not populate this field; it remains 0. */
   sim_frames: number;
+  /** True iff the new optimizer hit its work-units budget before
+   *  natural enumeration completion. False if no budget was set or
+   *  if enumeration completed within budget. Legacy compiler never
+   *  sets this (no budget concept); it remains false. */
+  budget_exhausted: boolean;
 };
 
 export type ContactReport = {

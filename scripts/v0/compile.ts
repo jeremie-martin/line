@@ -103,6 +103,7 @@ const stats: CompileStats = {
   total_committed_cost: 0,
   committed_costs_per_gap: [],
   sim_frames: 0, // not tracked by the legacy compiler; lds compiler populates it
+  budget_exhausted: false, // legacy compiler has no budget concept
 };
 
 function resetStats(): void {
@@ -115,6 +116,7 @@ function resetStats(): void {
   stats.total_committed_cost = 0;
   stats.committed_costs_per_gap = [];
   stats.sim_frames = 0;
+  stats.budget_exhausted = false;
 }
 
 function recordCommittedCosts(fits: (GapFit | null)[]): void {

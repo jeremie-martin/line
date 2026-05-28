@@ -148,6 +148,7 @@ export function compileGreedy_v2(
       total_committed_cost: totalCost,
       committed_costs_per_gap: fits.map((f) => (f === null ? null : f.cost)),
       sim_frames: getSimFrames(),
+      budget_exhausted: false,
     },
   };
 }

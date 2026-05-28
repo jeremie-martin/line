@@ -12,6 +12,9 @@ export const GOLDEN_SPECS = [
   "rhythm_ladder",
   "cold_start",
   "mini_burst",
+  "tiny_dance",
+  "solo_run",
+  "verse_chorus",
 ] as const;
 
 export const REPORT_VARIANTS = [
@@ -23,18 +26,25 @@ export const GOLDEN_SEEDS = [0, 1, 2] as const;
 
 /**
  * Runtime budgets scale affinely with contact count, the unit of decision-
- * making for the compiler. A 6-contact mini-spec should not get the same
- * generous budget as a 55-contact drums spec.
+ * making for the compiler.
  *
- *   soft_ms = SOFT_BASE + SOFT_PER_CONTACT * numContacts
- *   hard_ms = HARD_BASE + HARD_PER_CONTACT * numContacts
+ *   soft_ms = SOFT_BASE + SLOPE * numContacts
+ *   hard_ms = HARD_BASE + SLOPE * numContacts   (same slope, +15s gap)
  *
- * Worker timeout is `hard_ms + buffer`, clamped to a sensible floor/ceiling.
+ * Calibrated from a 13-spec × 5-seed timing sweep (65 runs). Within-spec
+ * seed variance is the dominant noise (RMSE ≈ 4.4s; some specs spread 20s
+ * across seeds), so contacts is the only feature that beat noise — adding
+ * sections or duration to the model only overfit. Fit on per-spec MAX:
+ *
+ *     max_elapsed ≈ 8.4 + 0.40 · contacts   (R² = 0.71, RMSE 5.1s)
+ *
+ * Soft = (predicted max) + ~12s safety; hard = soft + 15s. Worker timeout
+ * is `hard + 5s`, clamped to [60s, 180s] as a hang-detection safety net.
  */
-export const SOFT_BUDGET_BASE_MS = 5_000;
-export const SOFT_BUDGET_PER_CONTACT_MS = 1_000;
-export const HARD_BUDGET_BASE_MS = 7_500;
-export const HARD_BUDGET_PER_CONTACT_MS = 1_500;
+export const SOFT_BUDGET_BASE_MS = 20_000;
+export const SOFT_BUDGET_PER_CONTACT_MS = 400;
+export const HARD_BUDGET_BASE_MS = 35_000;
+export const HARD_BUDGET_PER_CONTACT_MS = 400;
 export const WORKER_TIMEOUT_BUFFER_MS = 5_000;
 export const WORKER_TIMEOUT_FLOOR_MS = 60_000;
 export const WORKER_TIMEOUT_CAP_MS = 180_000;

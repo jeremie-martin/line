@@ -9,25 +9,50 @@ The overarching goals and acceptance criteria (the WHAT and WHY) live
 in `docs/compiler_goals.md`. This file is about what Step 0 itself
 ships.
 
-## Architecture overview
+## Architecture overview (updated after senior-colleague review)
+
+The original Step 5 envelope-of-explorers design was superseded by a
+structurally tighter design built around **limited-discrepancy search
+(LDS) over cost-ranked candidates with a best-so-far register**. The
+envelope code has been deleted; the new design lives in `lds.ts`,
+`register.ts`, `polish.ts`, and `api.ts` (Stages 1-3b).
 
 ```
-   sample.ts      atomic ops: sample one candidate, evaluate it
+   sample.ts        atomic ops: sample one candidate, evaluate it
         ↓
-   solver.ts      single-gap K-candidate solver (sorted by cost)
+   solver.ts        single-gap K-candidate solver (sample order)
         ↓
-   greedy.ts      multi-gap chainer (per-gap lowest-cost commit)
+   greedy.ts        multi-gap chainer = LDS discrepancy-0 walk
         ↓
-   envelope.ts    best-so-far across N explorers ◄── load-bearing
+   sim_frames.ts    work-unit counter at extraction boundary  (Stage 0b)
         ↓
-   api.ts         compile(spec, {seed, budget}) — public surface
+   lds.ts           limited-discrepancy leaf enumeration       (Stage 1)
+        ↓
+   register.ts      best-so-far with deterministic comparator  (Stage 1)
+        ↓
+   polish.ts        polish ops as generate-and-test leaves     (Stage 3b)
+        ↓
+   api.ts           compile(spec, {seed, budget}) public        (Stage 1)
 ```
 
-The envelope is the one mandatory piece for Property 1
-(monotonicity-in-budget). Without it, no per-gap search shape can
-deliver "more compute → ≥ quality" reliably on a cascading-state
-problem. With it, any deterministic explorer can be slotted in
-without harm.
+Property 1 (monotonicity-in-budget) holds **by construction**: the
+leaf enumeration `E` is determined by `(spec, seed)`, the cutoff
+index is a pure function of budget, so `prefix(B') ⊇ prefix(B)`,
+and the best over a superset never decreases. The register
+guarantees strict-improvement updates.
+
+The work unit is **simulated rider frames** (one frame = one
+integration step), not `engine.addLine`. The colleague's argument:
+addLine registers geometry, but wall-clock is dominated by per-frame
+stepping. lr-core's spatial-grid collision (verified) keeps per-frame
+cost stable in line count, so sim_frames satisfies Property 2 by
+construction. addLine doesn't.
+
+Budget buys **cascade diversity (discrepancy depth)**, not per-gap
+candidate count. The Phase 0/4 K-sweep data showed K > 32 is
+flat-to-worse; the headroom is in which cascade gets picked, not how
+many candidates are evaluated per gap. So `N_CAND` is a fixed code
+constant (re-baselined when changed), never a budget-fed knob.
 
 ## Step 0 deliverables
 

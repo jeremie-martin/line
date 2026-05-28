@@ -102,6 +102,7 @@ const stats: CompileStats = {
   polish_iterations: 0,
   total_committed_cost: 0,
   committed_costs_per_gap: [],
+  sim_frames: 0, // not tracked by the legacy compiler; lds compiler populates it
 };
 
 function resetStats(): void {
@@ -113,6 +114,7 @@ function resetStats(): void {
   stats.polish_iterations = 0;
   stats.total_committed_cost = 0;
   stats.committed_costs_per_gap = [];
+  stats.sim_frames = 0;
 }
 
 function recordCommittedCosts(fits: (GapFit | null)[]): void {

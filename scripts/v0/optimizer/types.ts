@@ -2,11 +2,13 @@
  * Type definitions for the rebuild optimizer.
  *
  * These types compose the public surface. Behavior lives elsewhere:
- *   - sample.ts    — atomic per-candidate ops
- *   - solver.ts    — single-gap K-candidate solver
- *   - greedy.ts    — multi-gap chainer
- *   - envelope.ts  — best-so-far wrapper
- *   - api.ts       — public compile() entry point
+ *   - sample.ts      — atomic per-candidate ops
+ *   - solver.ts      — single-gap K-candidate solver
+ *   - greedy.ts      — multi-gap chainer (= LDS discrepancy-0 walk)
+ *   - sim_frames.ts  — work-unit instrumentation at the extraction boundary
+ *   - lds.ts         — limited-discrepancy leaf enumeration
+ *   - register.ts    — best-so-far register with deterministic comparator
+ *   - api.ts         — public compile() entry point
  *
  * We deliberately re-export the relevant existing types from
  * `../types.ts` rather than redefining them — Spec, Gap, DriftReport,
@@ -28,27 +30,35 @@ export type { CompileStats, DriftReport, Gap, Spec };
 // ─────────── New types for the rebuild ───────────
 
 /** The compute budget controlling how much work the optimizer is
- *  allowed to do. Two kinds:
+ *  allowed to do.
  *
- *  - `work` : abstract iteration units. Deterministic across machines.
- *             The unit is one `engine.addLine` call (the lr-core
- *             physics primitive). Cheat-resistant: a future optimizer
- *             change that does "more per candidate" gets charged
- *             proportionally because the inner work eventually hits
- *             the engine.
- *  - `wall_ms`: best-effort wall-clock budget. Same machine + same
- *               (spec, seed) ⇒ same Track, but may differ across
- *               machines. Use when you need a real-time deadline. */
-export type Budget =
-  | { kind: "work"; units: number }
-  | { kind: "wall_ms"; ms: number };
+ *  - `work` : abstract iteration units measured in **simulated rider
+ *             frames** (one frame = one engine integration step,
+ *             charged at the trajectory-extraction boundary). Same
+ *             (spec, seed, units) → byte-identical Track on any
+ *             machine. Cheat-resistant: you cannot establish a
+ *             candidate's physical viability without simulating its
+ *             frames, so any genuine extra search work eventually
+ *             shows up as more sim_frames and is charged
+ *             proportionally.
+ *
+ *  Why simulated frames over `engine.addLine`: addLine registers
+ *  geometry, but wall-clock cost is dominated by per-frame stepping
+ *  (lr-core uses spatial-grid collision; per-frame cost is O(local
+ *  density), not O(total lines) — verified in Stage 0b). Sim-frames
+ *  is therefore the unit that satisfies Property 2 by construction.
+ *
+ *  A `wall_ms` mode is intentionally NOT part of the core contract.
+ *  Wall-clock cannot be deterministic across machines. If a use case
+ *  needs a real-time deadline later, it can be added as an explicitly-
+ *  non-deterministic convenience wrapper. */
+export type Budget = { kind: "work"; units: number };
 
 /** Inputs to the public `compile()` entry point. */
 export type CompileInput = {
   spec: Spec;
   seed?: number;
-  /** If omitted, the optimizer runs all configured explorers to
-   *  natural completion — no budget cap. */
+  /** If omitted, the optimizer runs to natural completion (no budget cap). */
   budget?: Budget;
 };
 

@@ -137,7 +137,7 @@ export function compileGreedy_v2(
     track,
     report,
     stats: {
-      candidates_sampled: 0, // not tracked at this level (Step 7 adds work counters)
+      candidates_sampled: 0, // not tracked at this level; sim_frames is the budget unit
       engine_rebuilds: 0,
       gap_commits: fits.filter((f) => f !== null).length,
       gap_backtracks: 0,
@@ -145,6 +145,7 @@ export function compileGreedy_v2(
       polish_iterations: 0,
       total_committed_cost: totalCost,
       committed_costs_per_gap: fits.map((f) => (f === null ? null : f.cost)),
+      sim_frames: 0, // wired in Stage 0b via sim_frames.ts
     },
   };
 }

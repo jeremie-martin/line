@@ -127,6 +127,12 @@ export type CompileStats = {
    *  gaps). Same data as total_committed_cost but at gap granularity
    *  so per-section / per-spec breakdowns are possible. */
   committed_costs_per_gap: (number | null)[];
+  /** Total simulated rider frames across all trajectory extractions
+   *  in this compile call. The work-unit for the new optimizer's
+   *  budget; charged at the trajectory-extraction boundary in
+   *  `scripts/v0/optimizer/sim_frames.ts`. The legacy compiler does
+   *  not populate this field; it remains 0. */
+  sim_frames: number;
 };
 
 export type ContactReport = {

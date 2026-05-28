@@ -24,19 +24,38 @@ per-step writeups in `docs/optimizer/`.
 ## Pipeline
 
 ```
-   sample.ts      (atomic ops: sample one candidate, evaluate it)
+   sample.ts        (atomic ops: sample one candidate, evaluate it)
         ↓
-   solver.ts      (single-gap K-candidate solver, sorted by cost)
+   solver.ts        (single-gap K-candidate solver, sample-order)
         ↓
-   greedy.ts      (multi-gap chainer, per-gap lowest-cost commit)
+   greedy.ts        (multi-gap chainer = LDS discrepancy-0 walk)
         ↓
-   envelope.ts    (best-so-far across many explorers — load-bearing)
+   sim_frames.ts    (work-unit counter at the extraction boundary)
         ↓
-   api.ts         (compile(spec, {seed, budget}) public surface)
+   lds.ts           (limited-discrepancy leaf enumeration in fixed order)
+        ↓
+   register.ts      (best-so-far with deterministic comparator)
+        ↓
+   polish.ts        (polish ops as generate-and-test leaves)
+        ↓
+   api.ts           (compile(spec, {seed, budget}) public surface)
 ```
 
-The envelope is the structural answer to "more compute → ≥ quality".
-It iterates explorers and never returns worse than the prior best.
+The structural answer to "more compute → ≥ quality" is **limited-
+discrepancy search over a fixed total-ordered leaf enumeration**:
+
+  - The leaf enumeration `E` is determined by `(spec, seed)`, independent
+    of the budget. Discrepancy-0 = greedy. Discrepancy-1 leaves deviate
+    at exactly one gap. Discrepancy-d at d gaps.
+  - The budget only controls how far into `E` we go (a cutoff index).
+  - The best-so-far register keeps the strictly-best leaf seen under a
+    deterministic comparator.
+  - For any `B' > B`, `prefix(B') ⊇ prefix(B)`, so the best over a
+    superset never decreases. Property 1 holds by construction.
+
+The work unit is **simulated rider frames**, charged at the trajectory-
+extraction boundary. Sim-frames satisfies Property 2 by construction
+(lr-core uses spatial-grid collision; per-frame cost is O(local density)).
 
 ## What this directory does NOT touch
 
@@ -50,18 +69,23 @@ It iterates explorers and never returns worse than the prior best.
   except for a small set of `export` annotations so we can wrap its
   atomic primitives (sampleArcParams, tryCandidate).
 
-## How to read the per-step documentation
+## How to read the per-stage documentation
 
-`docs/optimizer/NN_<step>.md` files explain each step's design,
+`docs/optimizer/NN_<stage>.md` files explain each stage's design,
 contract, empirical findings, and any surprises. Read in order:
 
 - `00_foundations.md` — types, scorer wrapper, frozen baselines.
-- `04_greedy_v2_kSweep.md` — empirical demonstration of why the
-  envelope is needed (greedy alone is non-monotonic in K).
-- `06_explorers.md` — which explorers were added, why, and their
-  per-(spec, seed) impact.
-- `08_migration_comparison.md` — quality and runtime comparison
+- `04_greedy_v2_kSweep.md` — empirical demonstration that greedy
+  alone is non-monotonic in K, motivating the rebuild.
+- `0b_sim_frames_r1.md` — confirms per-frame cost is stable in line
+  count (validates sim_frames as the work unit).
+- `01_lds.md` — LDS design, the prefix-superset property, comparator.
+- `03a_polish_refactor.md` — scoping for the polish-helpers refactor.
+- `04_migration_comparison.md` — quality and runtime comparison
   vs. the legacy `greedy_v1` baseline.
+- `05_property3_audit.md` — cheat-resistance audit at cutover.
+- `05_iteration_story.md` — concrete example of improved iteration
+  discipline enabled by Property 1.
 
 ## Frozen baselines
 

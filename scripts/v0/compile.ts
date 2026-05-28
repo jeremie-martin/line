@@ -2700,6 +2700,9 @@ function prerollPrefixAxisCost(
 
 function prerollStartCandidates(firstAxes: SectionAxes): NonNullable<Spec["start"]>[] {
   const targetSpeed = (firstAxes.speed ?? 0.45) * CALIB.SPEED_CAP;
+  const slowModerateAirOpening = (firstAxes.speed ?? 0.45) <= 0.45
+    && (firstAxes.air ?? 0.5) >= 0.35
+    && (firstAxes.air ?? 0.5) < 0.6;
   const speedAnchors = targetSpeed >= 9
     ? [6, 8.5, 11, 13.5]
     : targetSpeed >= 6
@@ -2707,14 +2710,16 @@ function prerollStartCandidates(firstAxes: SectionAxes): NonNullable<Spec["start
     : [0.4, 2, 4, 6];
   const speeds = uniqueRounded([
     START_DEFAULTS.VELOCITY.x,
-    ...speedAnchors,
+    ...(slowModerateAirOpening ? [] : speedAnchors),
     targetSpeed * 0.75,
     targetSpeed,
-    targetSpeed * 1.2,
+    targetSpeed * (slowModerateAirOpening ? 1.1 : 1.2),
   ])
     .filter((speed) => speed > 0 && speed <= START_DEFAULTS.VELOCITY_SANITY_CAP)
     .sort((a, b) => a - b);
-  const angles = prerollStartAngles(firstAxes);
+  const angles = slowModerateAirOpening
+    ? [-8, 5, 18]
+    : prerollStartAngles(firstAxes);
   const out: NonNullable<Spec["start"]>[] = [
     { vx: START_DEFAULTS.VELOCITY.x, vy: START_DEFAULTS.VELOCITY.y },
   ];

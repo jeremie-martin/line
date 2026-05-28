@@ -486,6 +486,38 @@ This is an acceptance-runner smoke check around the fallback-to-LDS boundary.
 It is not representative acceptance evidence because determinism and baseline
 gates were skipped and only one spec/seed was tested.
 
+```bash
+npm run study:v0:budget -- --specs=drums_signature --seeds=0 \
+  --budgets=50000,100000 --concurrency=2 \
+  --out=generated/v0_budget_study/smoke --quiet
+```
+
+Result summary:
+
+```text
+ok: true
+rows: 3
+monotonicity_ok: true
+prefix_ok: true
+wall_ms_per_work_unit_cv: 0.0922014
+artifacts: study.json, rows.csv, analysis.md
+```
+
+The smoke study includes two LDS budget cells plus one greedy reference row.
+It demonstrates JSON/CSV/Markdown artifact generation and exposes the expected
+large first-search-leaf overshoot: requested budget 100000 used 741603 work
+units because budget checks happen at operation boundaries.
+
+Resume smoke:
+
+```bash
+npm run study:v0:budget -- --specs=drums_signature --seeds=0 \
+  --budgets=50000,100000 --concurrency=2 \
+  --out=generated/v0_budget_study/smoke --resume --quiet
+```
+
+Result: `remaining=0`, `ok=true`, `rows=3`.
+
 ## Acceptance Gates
 
 Representative gate:
@@ -514,7 +546,12 @@ Supporting sweeps:
 ```bash
 npm run sweep:v0:anytime -- --json
 npm run sweep:v0:work -- --strategy=lds --json
+npm run study:v0:budget -- --scope=full --concurrency=4
 ```
+
+`study:v0:budget` is the empirical curve harness. It writes JSON, CSV, and
+generated Markdown artifacts under `generated/v0_budget_study/` by default.
+The checked-in study protocol is `docs/optimizer/02b_empirical_study.md`.
 
 ## Staged Migration
 

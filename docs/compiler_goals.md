@@ -317,6 +317,7 @@ Focused supporting sweeps:
 ```bash
 npm run sweep:v0:anytime -- --json
 npm run sweep:v0:work -- --strategy=lds --json
+npm run study:v0:budget -- --scope=full --concurrency=4
 ```
 
 Smoke runs may use `--specs`, `--seeds`, `--factors`, and skip flags, but smoke

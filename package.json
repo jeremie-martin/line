@@ -22,6 +22,7 @@
     "accept:v0": "tsx scripts/v0/acceptance.ts",
     "sweep:v0:anytime": "tsx scripts/v0/anytime_sweep.ts",
     "sweep:v0:work": "tsx scripts/v0/work_unit_sweep.ts",
+    "study:v0:budget": "tsx scripts/v0/optimizer/_study_budget.ts",
     "compose": "tsx scripts/compose.ts",
     "dash": "tsx scripts/serve.ts",
     "unpack": "webcrack -f -o unpacked mirror/_v2153.0/main.js",

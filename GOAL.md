@@ -58,6 +58,7 @@ drift_quality    = exp(-drift_excess_rms / SYNC_TOLERANCE)
 missing_quality  = exp(-missing_count / MISSING_CONTACT_TOLERANCE)
 off_beat_quality = exp(-off_beat_count / OFF_BEAT_TOLERANCE)
 
+total_frames = round(spec.duration * FPS)
 survival_quality = 1                                if terminus == endOfSpec
 survival_quality = terminus.frame / total_frames    otherwise
 
@@ -132,8 +133,9 @@ High-leverage areas:
 - `scripts/v0/compile.ts`
 - `scripts/v0/arc.ts`
 - **Optimizer knobs** in `scripts/v0/types.ts`'s `CALIB`: `K` (per-gap
-  candidate budget), `BACKTRACK_DEPTH`, `OFF_BEAT_RETRIES` (final-track
-  validation retries). Adding new optimizer-side constants is fine.
+  candidate budget), `BACKTRACK_DEPTH`, `FINAL_VALIDATION_RETRIES`
+  (final-track validation retries). Adding new optimizer-side constants
+  is fine.
 - **Most `CALIB.ARC` bounds** — angles (`START_ANGLE_MIN/MAX_DEG`,
   `END_ANGLE_MIN/MAX_DEG`) and anchor offsets (`ANCHOR_X_OFFSET_MIN/MAX`,
   `ANCHOR_Y_OFFSET_MIN/MAX`) shape *where* the search looks and are fair

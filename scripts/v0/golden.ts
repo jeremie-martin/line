@@ -7,7 +7,7 @@
  *   npm run golden -- --seed=42
  *   npm run golden -- --variants
  *
- * Headline score: 8 hand-authored golden specs × fixed seeds [0,1,2].
+ * Headline score: all entries in GOLDEN_SPECS × fixed seeds [0,1,2].
  * Optional variants are report-only robustness probes and are not included in
  * GOAL_SCORE.
  */
@@ -16,22 +16,25 @@ import { Worker, isMainThread, parentPort, workerData } from "node:worker_thread
 import { fileURLToPath } from "node:url";
 
 import { compile } from "./compile.ts";
-import type { DriftReport } from "./types.ts";
+import { FPS, type DriftReport, type Spec } from "./types.ts";
 import {
   GOLDEN_SEEDS,
   GOLDEN_SPECS,
-  PER_SPEC_SOFT_BUDGET_MS,
-  PER_SPEC_ZERO_SCORE_MS,
   REPORT_VARIANTS,
-  WORKER_TIMEOUT_MS,
+  hardBudgetMs,
   headlineCases,
   loadGoldenSpec,
+  softBudgetMs,
   variantCases,
+  workerTimeoutMs,
   type SuiteCase,
   type VariantName,
 } from "./golden_suite.ts";
 import {
   AXIS_QUALITY_TOLERANCE,
+  MISSING_CONTACT_TOLERANCE,
+  OFF_BEAT_TOLERANCE,
+  SYNC_TOLERANCE,
   axisDetails,
   scoreTimedDriftReport,
   shiftedGeometricMean,
@@ -94,7 +97,11 @@ function has(name: string): boolean {
   return process.argv.includes(`--${name}`);
 }
 
-async function runWithTimeout(testCase: SuiteCase, seed: number): Promise<RunResult> {
+async function runWithTimeout(
+  testCase: SuiteCase,
+  seed: number,
+  timeoutMs: number,
+): Promise<RunResult> {
   const workerPath = fileURLToPath(import.meta.url);
   const input: WorkerInput = { ...testCase, seed };
   return await new Promise<RunResult>((resolvePromise, reject) => {
@@ -108,10 +115,10 @@ async function runWithTimeout(testCase: SuiteCase, seed: number): Promise<RunRes
         kind: "timeout",
         specName: testCase.specName,
         variant: testCase.variant,
-        elapsed_ms: WORKER_TIMEOUT_MS,
-        message: `TIMEOUT after ${fmtMs(WORKER_TIMEOUT_MS)}`,
+        elapsed_ms: timeoutMs,
+        message: `TIMEOUT after ${fmtMs(timeoutMs)}`,
       });
-    }, WORKER_TIMEOUT_MS);
+    }, timeoutMs);
     worker.on("message", (msg: WorkerResult) => {
       if (settled) return;
       settled = true;
@@ -164,9 +171,17 @@ async function runWorker(): Promise<void> {
   }
 }
 
-function emptyScore(elapsedMs: number): V0TimedContractScore {
+type ScoreContext = {
+  soft_ms: number;
+  hard_ms: number;
+  worker_timeout_ms: number;
+  total_frames: number;
+};
+
+function emptyScore(elapsedMs: number, ctx: ScoreContext): V0TimedContractScore {
   return {
     score: 0,
+    contract_passed: false,
     passed: false,
     valid_contract: false,
     hard_failures: [],
@@ -175,33 +190,39 @@ function emptyScore(elapsedMs: number): V0TimedContractScore {
     drift: 0,
     missing: 0,
     sync_score: 0,
+    drift_quality: 0,
+    missing_quality: 0,
+    sync_quality: 0,
     off_beat_landings: 0,
+    off_beat_quality: 0,
     died: 0,
+    survival_quality: 0,
     axis_count: 0,
     axis_error_total: 0,
     axis_error_mean: 0,
     axis_error_max: 0,
+    axis_error_rms: 0,
     axis_loss: 0,
     axis_quality: 0,
     axis_score: 0,
     score_without_time: 0,
     time_multiplier: 0,
     elapsed_ms: elapsedMs,
-    soft_ms: PER_SPEC_SOFT_BUDGET_MS,
-    hard_ms: PER_SPEC_ZERO_SCORE_MS,
+    soft_ms: ctx.soft_ms,
+    hard_ms: ctx.hard_ms,
   };
 }
 
-function scoreResult(result: RunResult, seed: number): ScoredSpec {
+function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): ScoredSpec {
   if (result.kind === "timeout") {
     return {
-      ...emptyScore(result.elapsed_ms),
+      ...emptyScore(result.elapsed_ms, ctx),
       hard_failures: ["timeout"],
       name: result.specName,
       variant: result.variant,
       seed,
       status: "timeout",
-      worker_timeout_ms: WORKER_TIMEOUT_MS,
+      worker_timeout_ms: ctx.worker_timeout_ms,
       message: result.message,
       axes: [],
       worst_contacts: [],
@@ -210,35 +231,45 @@ function scoreResult(result: RunResult, seed: number): ScoredSpec {
   }
   if (result.kind === "error") {
     return {
-      ...emptyScore(result.elapsed_ms),
+      ...emptyScore(result.elapsed_ms, ctx),
       hard_failures: ["error"],
       name: result.specName,
       variant: result.variant,
       seed,
       status: "error",
-      worker_timeout_ms: WORKER_TIMEOUT_MS,
+      worker_timeout_ms: ctx.worker_timeout_ms,
       message: result.message,
       axes: [],
       worst_contacts: [],
       off_beat_frames: [],
     };
   }
-  const score = scoreTimedDriftReport(result.report, {
-    elapsed_ms: result.elapsed_ms,
-    soft_ms: PER_SPEC_SOFT_BUDGET_MS,
-    hard_ms: PER_SPEC_ZERO_SCORE_MS,
-  });
+  const score = scoreTimedDriftReport(
+    result.report,
+    { elapsed_ms: result.elapsed_ms, soft_ms: ctx.soft_ms, hard_ms: ctx.hard_ms },
+    { totalFrames: ctx.total_frames },
+  );
   return {
     ...score,
     name: result.specName,
     variant: result.variant,
     seed,
-    status: score.passed ? "pass" : "fail",
-    worker_timeout_ms: WORKER_TIMEOUT_MS,
+    status: score.contract_passed ? "pass" : "fail",
+    worker_timeout_ms: ctx.worker_timeout_ms,
     message: score.hard_failures.length > 0 ? score.hard_failures.join(",") : null,
     axes: axisDetails(result.report),
     worst_contacts: worstContacts(result.report, 3),
     off_beat_frames: result.report.off_beat_landings.slice(0, 5).map((l) => l.frame),
+  };
+}
+
+function specContext(spec: Spec): ScoreContext {
+  const numContacts = spec.contacts.length;
+  return {
+    soft_ms: softBudgetMs(numContacts),
+    hard_ms: hardBudgetMs(numContacts),
+    worker_timeout_ms: workerTimeoutMs(numContacts),
+    total_frames: Math.round(spec.duration * FPS),
   };
 }
 
@@ -371,14 +402,23 @@ async function runRows(
   details: boolean,
   label: string,
 ): Promise<ScoredSpec[]> {
+  const contexts = new Map<string, ScoreContext>();
+  for (const testCase of cases) {
+    const key = `${testCase.specName}/${testCase.variant}`;
+    if (!contexts.has(key)) {
+      const spec = await loadGoldenSpec(testCase.specName, testCase.variant);
+      contexts.set(key, specContext(spec));
+    }
+  }
   const scored: ScoredSpec[] = [];
   for (const seed of seeds) {
     if (!jsonOnly) {
       console.log(`${label} seed=${seed}`);
     }
     for (const testCase of cases) {
-      const result = await runWithTimeout(testCase, seed);
-      const row = scoreResult(result, seed);
+      const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
+      const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms);
+      const row = scoreResult(result, seed, ctx);
       scored.push(row);
       if (!jsonOnly) printRow(row, details);
     }
@@ -394,19 +434,24 @@ function compactJsonRow(row: ScoredSpec): object {
     seed: row.seed,
     status: row.status,
     score: round(row.score),
-    passed: row.passed,
-    valid_contract: row.valid_contract,
+    contract_passed: row.contract_passed,
     hard_failures: row.hard_failures,
     contacts: row.contacts,
     hits: row.hits,
     drift: row.drift,
     missing: row.missing,
     sync_score: round(row.sync_score, 4),
+    drift_quality: round(row.drift_quality, 4),
+    missing_quality: round(row.missing_quality, 4),
+    sync_quality: round(row.sync_quality, 4),
     off_beat_landings: row.off_beat_landings,
+    off_beat_quality: round(row.off_beat_quality, 4),
     died: row.died,
+    survival_quality: round(row.survival_quality, 4),
     axis_count: row.axis_count,
     axis_quality: round(row.axis_quality, 4),
     axis_loss: round(row.axis_loss, 4),
+    axis_error_rms: round(row.axis_error_rms, 4),
     axis_error_mean: round(row.axis_error_mean, 4),
     axis_error_max: round(row.axis_error_max, 4),
     score_without_time: round(row.score_without_time),
@@ -426,12 +471,18 @@ function detailedJsonRow(row: ScoredSpec): ScoredSpec {
     score: round(row.score),
     score_without_time: round(row.score_without_time),
     sync_score: round(row.sync_score, 4),
+    drift_quality: round(row.drift_quality, 4),
+    missing_quality: round(row.missing_quality, 4),
+    sync_quality: round(row.sync_quality, 4),
+    off_beat_quality: round(row.off_beat_quality, 4),
+    survival_quality: round(row.survival_quality, 4),
     axis_score: round(row.axis_score, 4),
     axis_quality: round(row.axis_quality, 4),
     axis_loss: round(row.axis_loss, 4),
     axis_error_total: round(row.axis_error_total, 4),
     axis_error_mean: round(row.axis_error_mean, 4),
     axis_error_max: round(row.axis_error_max, 4),
+    axis_error_rms: round(row.axis_error_rms, 4),
     time_multiplier: round(row.time_multiplier, 4),
   };
 }
@@ -452,8 +503,7 @@ async function runMain(): Promise<void> {
   if (!jsonOnly) {
     console.log(
       `v0 golden benchmark · ${GOLDEN_SPECS.length} specs × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · ` +
-        `time soft ${fmtMs(PER_SPEC_SOFT_BUDGET_MS)}, zero ${fmtMs(PER_SPEC_ZERO_SCORE_MS)}, worker ${fmtMs(WORKER_TIMEOUT_MS)} · ` +
-        `seeds=${seeds.join(",")}`,
+        `runtime budget scales per-contact · seeds=${seeds.join(",")}`,
     );
     console.log("");
   }
@@ -462,13 +512,16 @@ async function runMain(): Promise<void> {
   const specScores = groupScores(scored, (row) => row.name);
   const goal_score = suiteScore(scored, (row) => row.name);
   const passed = scored.filter((row) => row.status === "pass").length;
+  const contract_pass_rate = scored.length === 0 ? 0 : passed / scored.length;
   const perSeed = seeds.map((seed) => {
     const rows = scored.filter((row) => row.seed === seed);
+    const seedPassed = rows.filter((row) => row.status === "pass").length;
     return {
       seed,
       goal_score: round(suiteScore(rows, (row) => row.name)),
-      passed: rows.filter((row) => row.status === "pass").length,
+      passed: seedPassed,
       total: rows.length,
+      contract_pass_rate: round(rows.length === 0 ? 0 : seedPassed / rows.length, 4),
     };
   });
 
@@ -489,15 +542,15 @@ async function runMain(): Promise<void> {
   if (jsonOnly) {
     process.stdout.write(JSON.stringify({
       goal_score: round(goal_score),
+      contract_pass_rate: round(contract_pass_rate, 4),
       scoring: {
         axis_quality_tolerance: AXIS_QUALITY_TOLERANCE,
+        sync_tolerance_frames: SYNC_TOLERANCE,
+        missing_contact_tolerance: MISSING_CONTACT_TOLERANCE,
+        off_beat_tolerance: OFF_BEAT_TOLERANCE,
         aggregation: "shifted_geometric_mean_by_spec",
         json_detail: details ? "detailed" : "compact",
-        runtime: {
-          soft_ms: PER_SPEC_SOFT_BUDGET_MS,
-          zero_score_ms: PER_SPEC_ZERO_SCORE_MS,
-          worker_timeout_ms: WORKER_TIMEOUT_MS,
-        },
+        runtime: "per-spec affine in contact count (see golden_suite.softBudgetMs)",
       },
       seeds,
       seed_count: seeds.length,
@@ -526,6 +579,7 @@ async function runMain(): Promise<void> {
     }, null, 2) + "\n");
   } else {
     printSummary("GOAL_SCORE", scored, (row) => row.name);
+    console.log(`  contract_pass_rate ${fmtPct(contract_pass_rate)} (${passed}/${scored.length})`);
     for (const seed of perSeed) {
       console.log(`  seed=${seed.seed} score=${seed.goal_score.toFixed(2)} valid=${seed.passed}/${seed.total}`);
     }

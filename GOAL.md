@@ -11,14 +11,20 @@ across fixed seeds `[0, 1, 2]`:
 - `opening_burst` (14s) — immediate high-speed quarter-second opening rhythm.
 - `grain_staircase` (20s) — isolates `grain` as direct arc-size intent.
 - `rhythm_ladder` (18s) — uneven phrase rhythm with crossed axis changes.
+- `cold_start` (12s) — `preroll: 0`, low air/speed; the only spec that
+  exercises cold-start initial conditions (no preroll affordance).
+- `mini_burst` (5s) — short, ~7 contacts; exercises the per-contact
+  runtime budget floor so small specs are not a free pass.
 
 The three `drums_*` specs are 30 s against
-`beats/drums_0_30s_60_125.json`. The newer rhythm specs use explicit Contact
+`beats/drums_0_30s_60_125.json`. The remaining specs use explicit Contact
 timelines so the suite also covers dense 0.25 s intervals, syncopation,
-hot-start sections, and pre-roll-sensitive initial conditions. Together they
-exercise axis-isolation contrast, single-axis oscillation, graduated
-multi-axis coupling, dense timing, direct grain sizing, and non-uniform rhythm
-— distinct failure modes the compiler must handle.
+hot-start sections, pre-roll-sensitive initial conditions, cold-start
+(`preroll: 0`), and short specs. Together they exercise axis-isolation
+contrast, single-axis oscillation, graduated multi-axis coupling, dense
+timing, direct grain sizing, non-uniform rhythm, cold initial state, and
+short-spec runtime pressure — distinct failure modes the compiler must
+handle.
 
 ## Run
 
@@ -31,44 +37,69 @@ npm run golden -- --seed=42 # debug one seed instead of default [0,1,2]
 npm run golden -- --variants # report-only deterministic perturbations
 ```
 
-Runs all headline specs sequentially for each fixed seed. Runtime uses fixed
-per-spec/seed thresholds, not thresholds scaled by video length: soft penalty
-from 30s to 45s elapsed compile time, plus a 50s worker timeout used only as
-an emergency cap for hangs. Implementation in `scripts/v0/golden.ts`; scoring
-shared with `scripts/v0/score.ts`.
+Runs all headline specs sequentially for each fixed seed. Runtime budget
+scales affinely with each spec's contact count (the unit of decision-making
+for the compiler): `soft_ms = 5_000 + 1_000 * num_contacts`,
+`hard_ms = 7_500 + 1_500 * num_contacts`. The worker timeout is `hard_ms +
+5_000`, clamped to `[60s, 180s]`, and is only an emergency cap for hangs.
+Implementation in `scripts/v0/golden.ts`; scoring in `scripts/v0/score.ts`;
+budget helpers in `scripts/v0/golden_suite.ts`.
 
 ## Score
 
-Per spec/seed:
+Per spec/seed, the score is a product of smooth quality factors in `[0, 1]`:
 
 ```
-hard gates:
-  all contacts hit within ±1 frame
-  survived through endOfSpec
-  off_beat_landings == 0
+axis_loss     = rms(abs(axis_error)) / AXIS_QUALITY_TOLERANCE
+axis_quality  = exp(-axis_loss)
 
-axis_loss = mean(abs(axis_error)) / 0.25
-axis_quality = exp(-axis_loss)
+drift_excess_rms = rms(max(0, |frame_error|-1)) over LANDED contacts only
+drift_quality    = exp(-drift_excess_rms / SYNC_TOLERANCE)
+missing_quality  = exp(-missing_count / MISSING_CONTACT_TOLERANCE)
+off_beat_quality = exp(-off_beat_count / OFF_BEAT_TOLERANCE)
 
-time_multiplier = 1                                    if elapsed <= 30s
-time_multiplier = 1 - smoothstep((elapsed-30s)/15s)    if 30s < elapsed < 45s
-time_multiplier = 0                                    if elapsed >= 45s
+survival_quality = 1                                if terminus == endOfSpec
+survival_quality = terminus.frame / total_frames    otherwise
 
-spec_seed_score = 0 if any hard gate fails
-spec_seed_score = 1000 * axis_quality * time_multiplier otherwise
+time_multiplier = 1                                       if elapsed <= soft_ms
+time_multiplier = 1 - smoothstep((elapsed-soft)/(hard-soft))   if elapsed in (soft, hard)
+time_multiplier = 0                                       if elapsed >= hard_ms
 
-spec_score = exp(mean(log(spec_seed_score + 1))) - 1 across seeds
-goal_score = exp(mean(log(spec_score + 1))) - 1 across specs
+spec_seed_score = 1000
+                * axis_quality
+                * drift_quality
+                * missing_quality
+                * off_beat_quality
+                * survival_quality
+                * time_multiplier
+
+spec_score = exp(mean(log(spec_seed_score + 1))) - 1   across seeds
+goal_score = exp(mean(log(spec_score + 1))) - 1        across specs
 ```
 
-Contact sync is still a hard contract, so `sync_score` is diagnostic rather
-than a quality multiplier. Runtime is a continuous quality term, not a sudden
-score cliff; the worker timeout remains a safety mechanism, not the intended
-optimization target.
+Tolerances live in `scripts/v0/score.ts`: `AXIS_QUALITY_TOLERANCE = 0.25`,
+`SYNC_TOLERANCE = 1.0` frame, `MISSING_CONTACT_TOLERANCE = 1.0`,
+`OFF_BEAT_TOLERANCE = 1.0`.
 
-Headline weighting is deliberately simple: each golden spec family has equal
-weight, and each fixed seed contributes within that spec. Shorter specs are
-not automatically down-weighted by duration, contact count, section count, or
+The two contact terms encode different physical meanings: `drift_quality`
+gives a smooth gradient on near-miss frame errors (the contact *did* land),
+while `missing_quality` is count-based so missing one contact is missing one
+contact regardless of how many other contacts the spec has. RMS aggregators
+(axis_loss, drift_excess_rms) prevent a single bad section/contact from
+being averaged out by many good ones.
+
+Hard contract violations (drift contacts, missing contacts, off-beat
+landings, early death) no longer zero the score; they degrade their
+respective quality factor smoothly so the optimizer always has gradient.
+Engineering acceptance is reported separately as `contract_pass_rate`: the
+fraction of spec/seed runs with every hard-contract invariant met
+(`drift==0 && missing==0 && off_beat_landings==0 && terminus.reason ==
+"endOfSpec"`). Aim for `contract_pass_rate == 1.0` for shippable runs;
+`goal_score` is the optimization signal.
+
+Headline weighting is deliberately simple: each golden spec has equal weight,
+and each fixed seed contributes within that spec. Shorter specs are not
+automatically down-weighted by duration, contact count, section count, or
 number of axes. This keeps the goal aligned with coverage of distinct failure
 modes instead of raw workload size.
 

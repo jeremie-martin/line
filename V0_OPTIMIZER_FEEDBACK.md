@@ -13,6 +13,14 @@ easy to justify from local state and authored intent.
   An isolated L1 ranking retest was not kept: seed 0 was slightly lower
   (`536.83` vs `542.80`), and seed 1 dropped sharply (`223.05` vs `368.30`)
   because `drums_crescendo` and `rhythm_ladder` became runtime-limited.
+  Pseudo-Huber ranking at the scorer tolerance (`0.25`) was also tested and
+  not kept: seed 1 fell to `519.21` because `dense_sprint` and
+  `drums_pendulum` lost more than `grain_staircase` gained. A wider `0.50`
+  scale improved seeds 0 and 1 (`547.57`, `536.44`), but seed 2 fell to
+  `509.33` after `dense_sprint` axis quality collapsed; the separate three-seed
+  aggregate was `530.87`, below the committed `531.55`. A still wider `0.75`
+  scale produced the same seed-2 geometry, so equal L2 remains the safer local
+  ranking shape.
 
 - Dense candidate budget cleanup: target-region budget buckets were replaced
   by one deterministic dense-contact cap. Purpose: remove carved-out
@@ -152,7 +160,15 @@ easy to justify from local state and authored intent.
   area: `sampleArcParams`, with helper geometry for arc local points. A simple
   impact-fraction X-anchor trial was tested and not kept: seed 0 fell from
   `526.33` to `213.52` and `drums_crescendo` timed out, so this needs the
-  fuller anchoring/refinement design rather than an X-only sampler swap.
+  fuller anchoring/refinement design rather than an X-only sampler swap. A
+  lighter start-angle prior was also tested and not kept: ordinary samples were
+  biased toward incoming rider angle with pressure `contact_style²`, improving
+  `drums_signature`, `drums_pendulum`, `drums_crescendo`, and `opening_burst`
+  on seed 1, but lowering the seed score to `505.26` through large
+  `syncopated_switchback`, `grain_staircase`, and `rhythm_ladder` losses.
+  Reducing the pressure to `contact_style⁴` still scored only `502.09`, with
+  `drums_pendulum` entering the runtime penalty. Angle conditioning needs the
+  full impact anchoring/refinement loop instead of a one-parameter prior.
 
 - Unified parameter-space refinement: replace the scattered polish functions
   with a local search over arc parameters such as anchor, length, angles,
@@ -184,7 +200,17 @@ easy to justify from local state and authored intent.
 - Generalized ride-out and trim variants: make continuation and tail-trim
   variants available to all relevant targets, not only air-only long gaps.
   Each variant must still pass the same survival, target-landing, and off-beat
-  hard gates. Implementation area: `tryCandidate` variant generation.
+  hard gates. A constrained candidate-side ride-out trial was tested and not
+  kept: it added one short continuation after hard-gated candidates whose
+  measured air was above the search target. It improved `drums_pendulum` and
+  `drums_crescendo` on seed 1, but lowered the seed score from a fresh
+  `539.41` baseline run to `516.23` by hurting contact-style-heavy rows
+  (`drums_signature`, `syncopated_switchback`, `rhythm_ladder`). A narrower
+  residual gate that skipped candidates already at or above contact-style
+  target still fell to `514.96` and pushed `drums_pendulum` into the runtime
+  penalty. This needs section-level residual awareness or the unified
+  refinement loop before broadening beyond the current air-only path.
+  Implementation area: `tryCandidate` variant generation.
 
 - One-gap lookahead robustness: cheaply probe the next gap for the top current
   survivors to avoid locally good fits that leave the next contact impossible.

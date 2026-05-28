@@ -35,6 +35,7 @@ import {
   isLeafNode,
   type SearchNode,
 } from "./node.ts";
+import { getSimFrames } from "./sim_frames.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
 
@@ -72,6 +73,15 @@ export function* enumerateLeaves(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  /** Stop expanding nodes once `getSimFrames() >= budgetUnits`. Without this,
+   *  a budget check only at yielded leaves lets dead-end-heavy specs (e.g.
+   *  drums, whose rank-0 descent dies at a 0-candidate gap) explore many
+   *  dead-end paths BETWEEN yields, overshooting the budget by 2-3×. Checking
+   *  inside the recursion bounds overshoot to ~one node's candidate sampling.
+   *  The cutoff is still a pure function of the budget, and the enumeration
+   *  ORDER is unchanged — so monotonicity-in-budget is preserved (a larger
+   *  budget expands a superset). Default Infinity (exhaustive to maxD). */
+  budgetUnits = Infinity,
 ): Generator<Leaf> {
   // Shared-prefix candidate memoization. Key = contact-rank-sequence
   // of committed gaps so far (the unique path identifier; non-contact
@@ -95,6 +105,7 @@ export function* enumerateLeaves(
   }
 
   for (let d = 0; d <= maxDiscrepancy; d++) {
+    if (getSimFrames() >= budgetUnits) return;
     yield* enumerateAtExactly(
       root,
       d,
@@ -104,6 +115,7 @@ export function* enumerateLeaves(
       ctx,
       seed,
       getCandidatesCached,
+      budgetUnits,
     );
   }
 }
@@ -127,7 +139,12 @@ function* enumerateAtExactly(
     node: SearchNode,
     pathRanks: number[],
   ) => Candidate[],
+  budgetUnits: number,
 ): Generator<Leaf> {
+  // Finer-grained budget cutoff: stop expanding once the budget is spent, so
+  // dead-end exploration between yields can't overshoot. Bounds overshoot to
+  // ~one node's candidate sampling.
+  if (getSimFrames() >= budgetUnits) return;
   if (isLeafNode(node, gaps.length)) {
     if (exactBudget === 0) {
       yield {
@@ -145,7 +162,7 @@ function* enumerateAtExactly(
     const child = extendNode(node, null);
     yield* enumerateAtExactly(
       child, exactBudget, contactRanks, [...allRanks, 0],
-      gaps, ctx, seed, getCandidatesCached,
+      gaps, ctx, seed, getCandidatesCached, budgetUnits,
     );
     return;
   }
@@ -160,7 +177,7 @@ function* enumerateAtExactly(
       exactBudget - r,
       [...contactRanks, r],
       [...allRanks, r],
-      gaps, ctx, seed, getCandidatesCached,
+      gaps, ctx, seed, getCandidatesCached, budgetUnits,
     );
   }
 }

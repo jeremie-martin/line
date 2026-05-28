@@ -143,7 +143,7 @@ export function compileLDS(
     });
   }
 
-  for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed)) {
+  for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed, budgetUnits)) {
     const key = consider(leaf);
     opts.onLeaf?.(leaf, key);
 
@@ -169,6 +169,10 @@ export function compileLDS(
       break;
     }
   }
+  // Also catch the case where the finer-grained cutoff inside enumerateLeaves
+  // stopped the search before the loop body ran (e.g. tiny budget below the
+  // floor cost, or dead-end exploration halted): the budget was still spent.
+  if (getSimFrames() >= budgetUnits) budgetExhausted = true;
 
   const best = register.getBest();
   if (best === null) {

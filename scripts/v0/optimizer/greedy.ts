@@ -29,6 +29,7 @@
 
 import { detect, extractRawTrajectory } from "../../lib/detector.ts";
 import { makeRng } from "../../lib/rng.ts";
+import { getSimFrames, resetSimFrames } from "./sim_frames.ts";
 import {
   buildDriftReport,
   buildTrackJson,
@@ -64,6 +65,7 @@ export function compileGreedy_v2(
     throw new Error(`compileGreedy_v2: K must be a positive integer, got ${K}`);
   }
 
+  resetSimFrames();
   validateSpec(userSpec);
   const spec = withOptimizedPrerollStart(userSpec, seed);
   const startState = resolveStartState(spec);
@@ -145,7 +147,7 @@ export function compileGreedy_v2(
       polish_iterations: 0,
       total_committed_cost: totalCost,
       committed_costs_per_gap: fits.map((f) => (f === null ? null : f.cost)),
-      sim_frames: 0, // wired in Stage 0b via sim_frames.ts
+      sim_frames: getSimFrames(),
     },
   };
 }

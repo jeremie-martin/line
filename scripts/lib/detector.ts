@@ -407,8 +407,28 @@ export function extractRawTrajectoryWindow(
   return { duration, frames };
 }
 
+/** Module-local counter incremented once per `extractRawFrame` call.
+ *  Use the `resetFrameCount` / `getFrameCount` exports below. This is
+ *  the substrate for the optimizer's sim-frames work-unit; legacy
+ *  callers see no behavior change. Non-reentrant (relies on the
+ *  same single-compile-at-a-time invariant compile.ts uses). */
+let _frameCount = 0;
+
+/** Read the current accumulated frame count (across all
+ *  `extractRawTrajectory*` calls since the last reset). */
+export function getFrameCount(): number {
+  return _frameCount;
+}
+
+/** Reset the accumulated frame count. Call at the start of each
+ *  compile() invocation. */
+export function resetFrameCount(): void {
+  _frameCount = 0;
+}
+
 // deno-lint-ignore no-explicit-any
 function extractRawFrame(engine: any, frame: number): RawFrame {
+  _frameCount++;
   const rider = engine.getRider(frame);
   const updates = engine.getUpdatesAtFrame(frame);
 

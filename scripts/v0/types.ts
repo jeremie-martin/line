@@ -122,7 +122,7 @@ export type CompileStats = {
   leaves_scored: number;
   scored_leaf_fingerprints: string[];
   max_discrepancy_started: number;
-  mandatory_prelude_units: number;
+  subfloor_fallback_units: number;
 };
 
 export type ContactReport = {

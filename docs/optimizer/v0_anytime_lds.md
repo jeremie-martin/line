@@ -1,49 +1,583 @@
-# V0 Anytime LDS Search Plan
+# V0 Compiler Rebuild: Anytime LDS Search
 
-## Core Invariant
+This document is the implementation plan for satisfying
+`docs/compiler_goals.md`. It describes the search/optimization rebuild only.
+The physics engine, detector, formats, hard gates, quality formula, and golden
+specs are held constant.
 
-The compiler evaluates a deterministic, budget-independent leaf enumeration
-`E(spec, seed)`. A budget only controls how far into that sequence the compiler
-gets. The returned track is the best completed leaf seen so far under a fixed
-deterministic comparator. Therefore a larger budget evaluates a prefix
-superset and cannot reduce best-so-far quality.
+The current checkpoint already has an opt-in LDS path and an acceptance
+harness. This document describes the target architecture and the remaining
+gates before LDS can become the production compiler and legacy can be removed.
 
-## Search Shape
+## Thesis
 
-- Reuse the existing gap slicing, candidate generation, lr-core validation,
-  hard gates, bisection, and axis measurement primitives.
-- Replace greedy top-level control flow with limited-discrepancy search over
-  cost-ranked per-gap candidate lists.
-- Keep candidate count, discrepancy caps, backtracking/recovery constants, and
-  polish ordering as code constants, never budget-dependent knobs.
-- Seed the incumbent from the discrepancy-0 path so LDS has the legacy-style
-  greedy floor before exploring deviations.
-- Rank final leaves only by the exact scorer/report path:
-  rebuild engine, extract trajectory, detect events, build `DriftReport`, then
-  `scoreDriftReport`.
+The key failure mode in the legacy compiler is not candidate sampling noise. It
+is irrevocable greedy commitment. A locally good choice at gap `i` can cascade
+into a globally worse track, and the worse track is the only one that survives.
 
-## Budget Unit
+The rebuild makes monotonicity structural:
 
-`work_units_used` is the metered count of simulated trajectory frames charged
-at `extractRawTrajectory` / `extractRawTrajectoryWindow` / `detectWindow`.
-Secondary counters such as physics frames, line additions, and sampled
-candidates remain diagnostic. Budget checks happen at operation boundaries, so
-one operation of overshoot is allowed but the leaf prefix order remains stable.
+> Never discard a completed track. At every budget, return the best completed
+> track found so far by the exact scorer.
 
-## Comparator
+If the completed tracks evaluated at budget `B'` are a superset of those
+evaluated at budget `B`, then the best result at `B'` cannot be worse than the
+best result at `B`. This is the whole design.
+
+## Single Architectural Invariant
+
+Define a deterministic, totally ordered leaf sequence:
+
+```text
+E(spec, seed) = [leaf0, leaf1, leaf2, ...]
+```
+
+A leaf is a completed candidate track. The budget never changes the contents
+or order of `E`; it only controls how far into the sequence the compiler runs.
+
+The compiler evaluates a budget prefix of `E`, keeps a best-so-far register,
+and returns the incumbent.
+
+Two properties follow:
+
+- **Monotonicity.** A larger budget evaluates a prefix superset. The maximum
+  over a superset is at least the maximum over the subset.
+- **Determinism.** The sequence, cutoff, comparator, and tiebreak are pure
+  functions of `(spec, seed, budget)`.
+
+Therefore budget must never alter structural search parameters such as
+candidate count, discrepancy cap, child ordering, bucket cap, retry depth, or
+polish ordering. Those are code constants that require re-baselining when
+changed.
+
+## Reused Legacy Components
+
+The rebuild reuses proven physical primitives from `compile.ts`:
+
+- Timeline slicing into contact gaps.
+- Per-gap `GapFit` objects.
+- Candidate arc generation.
+- Anchor-Y bisection for contact precision.
+- Hard candidate gates.
+- `lr-core` simulation and event detection.
+- Axis measurement and `DriftReport` construction.
+- Prefix engine rebuilding and candidate caching where deterministic.
+
+The rebuild replaces top-level control flow:
+
+- No greedy final answer by default.
+- No in-place mutation that can destroy a previous completed leaf.
+- No budget-dependent candidate-count or beam-width behavior.
+
+## Search Tree
+
+A node is a partial track prefix:
+
+```text
+{
+  gapIndex,
+  prefixFits,
+  prefixEngine,
+  prefixNextLineId,
+  cumulativeWork
+}
+```
+
+An edge chooses one candidate fit at the next contact gap. A leaf is a complete
+assignment of fits for contact gaps, plus any generated tail/polish variants
+that are part of the sequence.
+
+When a node is first visited, the compiler samples a fixed, budget-independent
+candidate list for that node. Survivors are ranked by per-gap `axisCost`. This
+ranking orders search only; it does not choose the final answer.
+
+Candidate generation may still use density-aware reductions or other local
+physical signals as long as they are pure functions of `(spec, seed, prefix
+state)` and not functions of budget.
+
+## Limited-Discrepancy Search
+
+`E` is generated by limited-discrepancy search over cost-ranked children.
+
+Discrepancy 0:
+
+- Take rank 0 at every gap.
+- This is the greedy-style search path.
+- It seeds the best-so-far register quickly and gives LDS a strong floor.
+
+Discrepancy 1:
+
+- Choose one gap to deviate from rank 0.
+- Try low nonzero ranks first.
+- Resume rank 0 after the deviation.
+
+Discrepancy `d`:
+
+- Choose `d` gaps to deviate.
+- Enumerate gap sets and rank vectors in a fixed deterministic order.
+- Lower discrepancy, earlier gaps, and lower ranks come first.
+
+Why LDS:
+
+- It includes the greedy path as discrepancy 0.
+- It reaches single-deviation cascades early, which is where greedy can fail.
+- It spends adaptively: dead-end deviations are abandoned cheaply.
+- It gives a clean budget-independent total order.
+- It matches the iterative-deepening model: deeper search keeps prior best as
+  fallback.
+
+Budget should buy cascade diversity, not more per-gap candidates. Candidate
+count is a code constant; budget buys progress through `E`.
+
+## Final Oracle
+
+Per-gap cost is only a child-ordering heuristic. The answer is chosen by the
+finished-track oracle:
+
+```text
+fits
+  -> rebuildEngine
+  -> extractRawTrajectory
+  -> detect
+  -> buildDriftReport
+  -> scoreDriftReport
+```
+
+The final comparator never ranks by cumulative per-gap cost. Per-gap cost and
+finished quality correlate imperfectly; using per-gap cost as the final key
+would reintroduce search-order artifacts.
+
+## Best-So-Far Comparator
+
+Each finalized leaf is offered to the register. It replaces the incumbent only
+if it is strictly better.
+
+Comparator:
 
 1. Passing hard contract beats failing hard contract.
 2. Among passing leaves, higher `axis_quality` wins.
-3. Among failing leaves, higher `scoreDriftReport(...).score` wins.
-4. Ties keep the earliest leaf in `E`.
+3. Among failing leaves, prefer higher diagnostic progress in deterministic
+   order: higher sync score, longer survival, fewer off-beat landings, then
+   higher axis quality.
+4. Exact ties keep the earlier leaf in `E`.
 
-## Stages
+For acceptance, monotonic quality is contract-gated axis quality. The failing
+leaf ordering only controls sub-floor/pathological behavior where no passing
+leaf has been found.
 
-1. Establish and measure the sim-frame work unit.
-2. Implement unbudgeted LDS with deterministic best-so-far leaves.
-3. Add budget metering, prefix-superset checks, and budgeted determinism.
-4. Convert polish to generate-and-test leaves.
-5. Clean up scoring/harness, calibrate `budgetFor(spec)`, and freeze the
-   legacy baseline.
-6. Run full acceptance, then remove legacy only after parity and all four
-   properties pass.
+## Polish as Generate-and-Test
+
+Legacy polish mutates committed fits in place. In the LDS architecture, polish
+must produce additional leaves:
+
+- The unpolished leaf remains in the register.
+- Each polish variant is simulated and scored as a new leaf.
+- A regressing polish attempt is simply not adopted.
+- Budget checks happen before starting the next polish operation.
+- Polish ordering is fixed and budget-independent.
+
+This preserves monotonicity while allowing the existing polish heuristics to
+continue improving high-budget results.
+
+## Work-Unit Model
+
+Target unit:
+
+```text
+work_units_used == metered simulated trajectory frames
+```
+
+The unit is charged at trajectory extraction boundaries:
+
+- `extractRawTrajectory`
+- `extractRawTrajectoryWindow`
+- `detectWindow`
+
+Secondary counters remain diagnostic:
+
+- `sim_frames`
+- `physics_frames_computed`
+- `trajectory_frames_read`
+- `engine_add_lines`
+- `candidates_sampled`
+- `leaves_attempted`
+- `leaves_scored`
+- `subfloor_fallback_units`
+
+The reason for sim-frame budgeting is pragmatic: lr-core wall-clock is dominated
+by stepping the rider through frames. `engine_addLine` is externally observable
+but too weakly correlated with runtime; a short validation over many lines and
+a long validation over few lines have very different costs.
+
+The risk is that per-frame cost may grow with accumulated line count. Stage 0
+must measure `wall_ms / sim_frame` across the suite. If the CV target cannot
+be met, the unit must be revised before acceptance, for example to weighted
+frames or another externally observable primitive.
+
+The current implementation sets `work_units_used` equal to `sim_frames`.
+`physics_frames_computed`, `engine_add_lines`, and sampled-candidate counts
+remain diagnostics only.
+
+## Budget Cutoff
+
+Budget checks happen at operation boundaries, not inside an engine simulation.
+This allows one operation of overshoot. Overshoot must be bounded and reported,
+but it does not break monotonicity because the evaluated leaf sequence remains
+a budget prefix.
+
+Below the cost of the first search leaf, the compiler returns a deterministic
+empty fallback with `budget_exhausted: true`. This fallback exists only to keep
+the public return shape total. It is scored and fingerprinted as leaf 0, so
+larger budgets still extend the same sequence. The first LDS search leaf is
+the discrepancy-0 path.
+
+The default budget from `budgetFor(spec)` must be calibrated above the first
+valid-search-leaf floor for every golden spec.
+
+## Deterministic State Model
+
+The search must obey:
+
+- Seeded RNG only.
+- No `Math.random`.
+- No wall-clock inputs.
+- No filesystem-order dependence.
+- No budget-dependent RNG draws.
+- No mutable cross-compile search state.
+- Deterministic candidate cache keys.
+- Deterministic leaf fingerprints.
+- Deterministic tiebreaks.
+
+Prefix-engine caches and candidate caches are allowed only as pure speedups.
+A cache hit may reduce wall-clock and work units, but it must not change the
+leaf sequence or final comparator result.
+
+## API and Rollout
+
+Checkpoint API:
+
+```ts
+type Budget = { kind: "work"; units: number };
+type CompileOptions = {
+  seed?: number;
+  budget?: Budget;
+  strategy?: "legacy" | "lds";
+};
+```
+
+Target migration:
+
+- Keep legacy while acceptance evidence is incomplete.
+- Run LDS via the `strategy: "lds"` option and golden `--lds` flag.
+- After all acceptance gates pass, make LDS the default compiler.
+- Remove legacy only in a final cleanup after parity, monotonicity,
+  determinism, work-unit predictability, and the design audit are recorded.
+
+The final public API should keep the budget option. Whether the temporary
+`strategy` option remains for debugging or is removed is a cutover decision,
+but legacy code should not remain as an untested shadow implementation.
+
+## Current Checkpoint Status
+
+This section is intentionally concrete. It prevents the plan from being read as
+completed implementation.
+
+In place:
+
+- Quality-only `scoreDriftReport` is the active scoring policy.
+- `Budget`, `CompileOptions.strategy`, and work counters are additive API
+  surfaces.
+- Legacy remains the default path.
+- LDS is available through `strategy: "lds"` and the golden `--lds` flag.
+- LDS starts from a native deterministic fallback and then evaluates the
+  discrepancy-0 search leaf; it no longer runs legacy as a mandatory prelude.
+- LDS keeps a best-so-far register and emits scored-leaf fingerprints.
+- Coarse polish is generate-and-test over cloned leaves.
+- `work_units_used` equals metered trajectory frames (`sim_frames`).
+- `baselines/greedy_v1.json` is frozen for quality-only legacy comparison.
+- `scripts/v0/acceptance.ts` exists and checks monotonicity, fingerprint
+  prefix stability, determinism, wall-clock CV, and baseline parity.
+
+Not accepted yet:
+
+- Work-unit predictability has not been measured on the representative or full
+  suite after the trajectory-frame reconciliation.
+- Polish is generate-and-test at coarse leaf granularity. Stage 3 still needs
+  pass-granularity metering and interruption so polish cannot starve later LDS
+  leaves.
+- Representative acceptance and full acceptance have not been recorded as
+  green evidence.
+- The cheat-resistance audit and iteration-story evidence have not been
+  recorded.
+
+Legacy removal is blocked until every "not accepted yet" item is resolved or
+explicitly documented as an accepted compatibility choice with passing evidence.
+
+## Evidence Register
+
+The evidence register is the checklist for cutover. Rows may be satisfied by CI
+logs, committed JSON artifacts, or a written audit in this directory. A local
+smoke run can prove wiring but does not satisfy an acceptance row.
+
+| Requirement | Required evidence | Current status |
+| --- | --- | --- |
+| Quality-only scoring | `scoreDriftReport` hard-gates failures to zero and baseline is generated under that policy | Implemented |
+| Legacy compatibility fallback | Legacy remains callable while LDS is opt-in | Implemented |
+| Budget API | `compile(spec, { seed, strategy: "lds", budget })` works and stats report work counters | Implemented |
+| Native LDS start | LDS does not run legacy as a mandatory prelude | Implemented |
+| Monotonicity | Representative gate and full sweep show non-decreasing contract-gated quality | Pending evidence |
+| Prefix invariant | Scored-leaf fingerprints at larger budgets have prior budgets as prefixes | Pending representative/full evidence |
+| Work-unit semantics | `work_units_used == sim_frames` and other counters are diagnostic | Implemented |
+| Work-unit predictability | Stable-machine CV for `wall_ms / work_units` is `< 0.25` | Pending measurement |
+| Cheat-resistance | Written audit ties `work_units_used` to an engine operation and shows all physical validation is metered | Pending audit |
+| Determinism | Budgeted representative compiles produce hash-identical `TrackJson` | Pending representative evidence |
+| Polish safety | Polish variants are scored leaves and never replace a better incumbent | Partially implemented, pending Stage 3 evidence |
+| Baseline parity | Default-budget LDS is within 5% of `baselines/greedy_v1.json` and per-spec pass counts do not regress | Pending full/default evidence |
+| Iteration story | One rebuild-era optimizer change is classified at matched compute as improvement, regression, or no-op | Pending writeup |
+| Legacy removal | All rows above are green | Blocked |
+
+## Latest Local Evidence
+
+These are local checkpoint results from May 28, 2026. They prove wiring and
+guard against immediate regressions, but they do not replace the representative
+or full acceptance gates.
+
+```bash
+npm test
+```
+
+Result:
+
+```text
+12 test files passed
+100 tests passed
+```
+
+Coverage from this command includes compile-option stats, deterministic trivial
+LDS behavior, native no-prelude LDS startup, scored-leaf prefix checks on a
+trivial spec, and existing v0 regression tests.
+
+```bash
+npx tsc --noEmit --strict --skipLibCheck --target ES2022 \
+  --module NodeNext --moduleResolution NodeNext \
+  --allowImportingTsExtensions scripts/types/lr-core.d.ts \
+  scripts/v0/compile.ts scripts/v0/types.ts scripts/v0/anytime_sweep.ts \
+  tests/v0_anytime_properties.test.ts tests/v0_compile_options.test.ts
+```
+
+Result:
+
+```text
+passed
+```
+
+The repo-wide strict TypeScript command is not yet a clean acceptance signal;
+it currently fails in unrelated older files (`scripts/lib/beam_search.ts`,
+`scripts/probe_network.ts`, and `scripts/slide.ts`).
+
+```bash
+npm run sweep:v0:anytime -- --limit=1 --seeds=0 --factors=1,1.25 --json
+```
+
+Result summary:
+
+```text
+ok: true
+case: drums_signature seed=0
+floor_units: 96205
+budget 1:      leaves=1 score=0 passed=false prefix=true
+budget 96205:  leaves=1 score=0 passed=false prefix=true
+budget 120257: leaves=2 score=496.15 passed=true prefix=true
+```
+
+This demonstrates the intended subfloor-to-discrepancy-0 transition for one
+case: the fallback leaf is preserved as a prefix, and the first LDS search leaf
+improves contract-gated quality.
+
+```bash
+npm run sweep:v0:work -- --strategy=lds --limit=1 --seeds=0 --json
+```
+
+Result summary:
+
+```text
+case: drums_signature seed=0
+budget_units: 2292000
+work_units: 2988258
+sim_frames: 2988258
+trajectory_frames_read: 2988258
+physics_frames_computed: 150864
+wall_ms_per_work_unit: 0.0205736
+```
+
+This proves the reconciled counter on a real default-budget LDS compile:
+`work_units_used == sim_frames`. It is not enough to prove Property 2 because
+it covers only one case.
+
+```bash
+npm run accept:v0 -- --specs=drums_signature --seeds=0 \
+  --factors=0.04,0.06 --skip-determinism --skip-baseline --json
+```
+
+Result summary:
+
+```text
+ok: true
+monotonicity failures: none
+wall_clock cv: 0.0940701
+case: drums_signature seed=0
+factor 0.04: leaves=1 score=0 passed=false contract_gated_quality=0
+factor 0.06: leaves=2 score=496.15 passed=true contract_gated_quality=0.4961
+```
+
+This is an acceptance-runner smoke check around the fallback-to-LDS boundary.
+It is not representative acceptance evidence because determinism and baseline
+gates were skipped and only one spec/seed was tested.
+
+## Acceptance Gates
+
+Representative gate:
+
+```bash
+npm run accept:v0
+```
+
+Full gate:
+
+```bash
+npm run accept:v0 -- --full
+```
+
+The gate checks:
+
+- Contract-gated quality monotonicity.
+- Leaf-fingerprint prefix stability.
+- Budgeted track determinism.
+- `wall_ms / work_units` CV against the configured threshold.
+- Default-budget parity against `baselines/greedy_v1.json` when full/baseline
+  mode is enabled.
+
+Supporting sweeps:
+
+```bash
+npm run sweep:v0:anytime -- --json
+npm run sweep:v0:work -- --strategy=lds --json
+```
+
+## Staged Migration
+
+### Stage 0: Establish the Work Unit
+
+Measure the chosen work unit across the golden suite and multiple seeds.
+
+Exit criteria:
+
+- `wall_ms / work_units` CV is `< 0.25` on the stable machine, or a different
+  externally observable unit is chosen and documented.
+- Work-unit increments are audited at the engine trajectory boundary.
+- Diagnostic counters are retained for regression analysis.
+
+### Stage 1: LDS Core
+
+Implement or tighten the budget-independent leaf enumeration:
+
+- Fixed candidate sets per node.
+- Increasing-discrepancy enumeration.
+- Deterministic finalized leaves.
+- Exact oracle scoring.
+- Best-so-far register.
+
+Exit criteria:
+
+- Discrepancy-0 produces a complete native search leaf above the subfloor
+  fallback.
+- Unbudgeted or high-budget LDS is within 5% of frozen legacy quality.
+- No budget input changes leaf ordering.
+
+### Stage 2: Budget Metering and Anytime Cutoff
+
+Wire budget checks to operation boundaries and return the best-so-far
+incumbent at cutoff.
+
+Exit criteria:
+
+- Representative monotonicity passes.
+- Prefix-superset/fingerprint checks pass.
+- Budgeted determinism passes.
+- `budgetFor(spec)` sits above the first-valid-search-leaf floor for the
+  golden suite.
+
+### Stage 3: Polish as Leaves
+
+Refactor polish so it generates candidate leaf variants instead of mutating the
+only surviving track.
+
+Exit criteria:
+
+- Polish cannot lower best-so-far quality.
+- Monotonicity still passes with polish enabled.
+- High-budget quality is at least as good as pre-polish LDS.
+
+### Stage 4: Scoring and Harness Cleanup
+
+Align harnesses and documentation with quality-only scoring:
+
+- Runtime remains timeout-only.
+- `budgetFor(spec)` is calibrated.
+- `baselines/greedy_v1.json` is frozen.
+- Acceptance commands are documented.
+
+Exit criteria:
+
+- Default-budget LDS is within 5% of baseline `goal_score`.
+- Contract-pass counts match or exceed baseline per spec.
+- Representative acceptance gate passes.
+
+### Stage 5: Full Acceptance and Cutover
+
+Run the full acceptance sweep and design audit.
+
+Exit criteria:
+
+- Full monotonicity sweep has zero violations.
+- Full or stable-machine work-unit CV is `< 0.25`.
+- Budgeted determinism passes.
+- Cheat-resistance audit is recorded.
+- Iteration-story evidence is recorded.
+- Legacy removal is approved by evidence, not assumption.
+
+## Risks
+
+### R1: Per-frame cost is not constant
+
+If lr-core collision cost grows strongly with line count, sim-frames may fail
+the CV target. Stage 0 catches this. The fallback is to choose and document a
+different externally observable unit.
+
+### R2: LDS starvation
+
+If early leaves have long polish chains, discrepancy-1 leaves may arrive too
+late. Polish must be ordered and capped so it cannot starve low-discrepancy
+search diversity.
+
+### R3: Candidate set too small
+
+If the fixed candidate count omits the quality-bearing candidate at a gap, no
+amount of discrepancy search can find that branch. Raising candidate count is a
+code change requiring re-baselining, not a budget knob.
+
+### R4: Oracle cost dominates
+
+Scoring many finalized leaves can be expensive. This is acceptable only if the
+cost is metered honestly and default budgets remain practical.
+
+### R5: Some specs are physics-saturated
+
+For specs where search has little remaining headroom, monotonicity may be flat.
+Flat is acceptable; regression is not.
+
+### R6: A property proves unreachable
+
+If a property cannot be satisfied under the held-constant surfaces, that
+finding is itself a deliverable. The work should surface the impossibility
+rather than paper over it.

@@ -32,7 +32,8 @@ describe("v0 LDS anytime properties", () => {
     const mid = score(TRIVIAL, 10_000);
     const high = score(TRIVIAL, 20_000);
 
-    expect(low.stats.mandatory_prelude_units).toBeGreaterThan(0);
+    expect(low.stats.subfloor_fallback_units).toBeGreaterThan(0);
+    expect(low.stats.scored_leaf_fingerprints.length).toBeGreaterThan(0);
     expectPrefixSubset(low.stats.scored_leaf_fingerprints, mid.stats.scored_leaf_fingerprints);
     expectPrefixSubset(mid.stats.scored_leaf_fingerprints, high.stats.scored_leaf_fingerprints);
   });
@@ -49,12 +50,11 @@ describe("v0 LDS anytime properties", () => {
     }
   });
 
-  test("mandatory prelude preserves legacy coverage floor", () => {
-    const legacy = compile(TRIVIAL, 0);
+  test("lds does not run the legacy compiler as a mandatory prelude", () => {
     const lds = score(TRIVIAL, 1);
 
-    expect(lds.report.contacts).toEqual(legacy.report.contacts);
-    expect(lds.report.terminus).toEqual(legacy.report.terminus);
-    expect(lds.stats.mandatory_prelude_units).toBeGreaterThan(0);
+    expect(lds.stats.subfloor_fallback_units).toBeGreaterThan(0);
+    expect(lds.stats.leaves_scored).toBeGreaterThan(0);
+    expect(lds.stats.scored_leaf_fingerprints).toHaveLength(lds.stats.leaves_scored);
   });
 });

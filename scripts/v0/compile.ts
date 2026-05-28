@@ -90,8 +90,6 @@ const DEFAULT_LDS_MAX_DISCREPANCY = 3;
 const DEFAULT_LDS_CANDIDATES = 32;
 const DEFAULT_LDS_MAX_DEVIATION_RANK = 31;
 const DEFAULT_LDS_MAX_LEAVES_WITHOUT_BUDGET = 200;
-const TRAJECTORY_READ_WEIGHT = 1;
-const ENGINE_ADD_LINE_WEIGHT = 0;
 
 export type CompileResult = {
   track: TrackJson;
@@ -114,7 +112,7 @@ function createWorkMeter(): WorkMeter {
     leaves_scored: 0,
     scored_leaf_fingerprints: [],
     max_discrepancy_started: -1,
-    mandatory_prelude_units: 0,
+    subfloor_fallback_units: 0,
   };
 }
 
@@ -128,9 +126,7 @@ function snapshotStats(meter: WorkMeter): CompileStats {
 
 function updateWorkUnits(meter: WorkMeter): void {
   meter.sim_frames = meter.trajectory_frames_read;
-  meter.work_units_used = meter.physics_frames_computed
-    + TRAJECTORY_READ_WEIGHT * meter.trajectory_frames_read
-    + ENGINE_ADD_LINE_WEIGHT * meter.engine_add_lines;
+  meter.work_units_used = meter.sim_frames;
 }
 
 function markBudgetState(meter: WorkMeter, budget: Budget | undefined): void {
@@ -545,28 +541,13 @@ function compileLdsInternal(
   budget: Budget | undefined,
   meter: WorkMeter,
 ): CompileInternalResult {
-  const seedResult = compileLegacyInternal(userSpec, seed, meter, budget);
-  const ctx: LdsContext = {
-    spec: seedResult.spec,
-    startState: seedResult.startState,
-    gaps: seedResult.gaps,
-    contactFrames: seedResult.contactFrames,
-    durationFrames: seedResult.durationFrames,
-    seed,
-  };
+  const ctx = initializeLdsContext(userSpec, seed);
 
   let discoveryIndex = 0;
-  let best = finalizedLeafFromResult(
-    "legacy-seed",
-    seedResult,
-    [],
-    0,
-    discoveryIndex++,
-    meter,
-  );
-  meter.mandatory_prelude_units = meter.work_units_used;
+  let best = finalizeLeaf(ctx, emptyLdsLeaf(ctx, "fallback:empty"), discoveryIndex++, meter);
+  meter.subfloor_fallback_units = meter.work_units_used;
 
-  const unpolishedLeaves: FinalizedLeaf[] = [best];
+  const unpolishedLeaves: FinalizedLeaf[] = [];
   const offer = (leaf: FinalizedLeaf) => {
     if (isLeafBetter(leaf, best)) best = leaf;
     unpolishedLeaves.push(leaf);
@@ -622,30 +603,40 @@ function compileLdsInternal(
   };
 }
 
-function finalizedLeafFromResult(
-  label: string,
-  result: CompileInternalResult,
-  rankVector: number[],
-  discrepancy: number,
-  discoveryIndex: number,
-  meter: WorkMeter,
-): FinalizedLeaf {
-  const score = scoreDriftReport(result.report);
-  const fingerprint = fingerprintLeaf(label, result.track, result.report, rankVector);
-  meter.leaves_scored++;
-  meter.scored_leaf_fingerprints.push(fingerprint);
-  updateWorkUnits(meter);
+function initializeLdsContext(userSpec: Spec, seed: number): LdsContext {
+  validateSpec(userSpec);
+
+  const spec = withOptimizedPrerollStart(userSpec, seed);
+  const startState = resolveStartState(spec);
+  currentStartState = startState;
+  const rng = makeRng(seed);
+  const durationFrames = secToFrame(spec.duration);
+  const contactFrames = [...spec.contacts]
+    .map((c) => secToFrame(c.t))
+    .sort((a, b) => a - b);
+  const gaps = sliceTimeline(contactFrames, durationFrames);
+  for (const gap of gaps) {
+    const sec = effectiveAxes(gap, spec);
+    gap.targets = sampleGapTargets(sec, CALIB.SIGMA, rng);
+  }
+
+  return {
+    spec,
+    startState,
+    gaps,
+    contactFrames,
+    durationFrames,
+    seed,
+  };
+}
+
+function emptyLdsLeaf(ctx: LdsContext, label: string): LeafCandidate {
   return {
     label,
-    track: result.track,
-    report: result.report,
-    score,
-    fingerprint,
-    fits: cloneFits(result.fits),
-    gapFailures: [...result.gapFailures],
-    rankVector: [...rankVector],
-    discrepancy,
-    discoveryIndex,
+    fits: new Array(ctx.gaps.length).fill(null),
+    gapFailures: ctx.gaps.filter((gap) => gap.endsWithContact).map((gap) => gap.index),
+    rankVector: [],
+    discrepancy: -1,
   };
 }
 

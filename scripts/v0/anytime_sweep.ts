@@ -18,7 +18,7 @@ type BudgetRow = {
 type CaseRow = {
   name: GoldenSpecName;
   seed: number;
-  mandatory_prelude_units: number;
+  floor_units: number;
   ok: boolean;
   budgets: BudgetRow[];
 };
@@ -78,7 +78,7 @@ async function runCase(name: GoldenSpecName, seed: number, factors: number[]): P
     strategy: "lds",
     budget: { kind: "work", units: 1 },
   });
-  const prelude = Math.max(1, floor.stats.mandatory_prelude_units);
+  const floorUnits = Math.max(1, floor.stats.subfloor_fallback_units);
 
   let previousFingerprints = floor.stats.scored_leaf_fingerprints;
   let previousScore = scoreDriftReport(floor.report);
@@ -96,7 +96,7 @@ async function runCase(name: GoldenSpecName, seed: number, factors: number[]): P
   }];
 
   for (const factor of factors) {
-    const budgetUnits = Math.ceil(prelude * factor);
+    const budgetUnits = Math.ceil(floorUnits * factor);
     const result = compile(spec, {
       seed,
       strategy: "lds",
@@ -126,7 +126,7 @@ async function runCase(name: GoldenSpecName, seed: number, factors: number[]): P
   return {
     name,
     seed,
-    mandatory_prelude_units: prelude,
+    floor_units: floorUnits,
     ok: rows.every((row) => row.prefix_ok && row.monotone_score_ok && row.monotone_axis_quality_ok),
     budgets: rows,
   };
@@ -153,7 +153,7 @@ async function main(): Promise<void> {
   } else {
     console.log(`anytime sweep ok=${summary.ok} cases=${cases.length}`);
     for (const row of cases) {
-      console.log(`${row.name} seed=${row.seed} ok=${row.ok} prelude=${row.mandatory_prelude_units}`);
+      console.log(`${row.name} seed=${row.seed} ok=${row.ok} floor=${row.floor_units}`);
       for (const budget of row.budgets) {
         console.log(
           `  budget=${budget.budget_units} used=${budget.work_units_used} ` +

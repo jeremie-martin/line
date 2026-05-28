@@ -13,13 +13,14 @@ describe("v0 compile options and stats", () => {
     expect(a.report).toEqual(b.report);
     expect(a.stats.work_units_used).toBeGreaterThan(0);
     expect(a.stats.sim_frames).toBeGreaterThan(0);
+    expect(a.stats.work_units_used).toBe(a.stats.sim_frames);
     expect(a.stats.trajectory_frames_read).toBeGreaterThan(0);
     expect(a.stats.physics_frames_computed).toBeGreaterThanOrEqual(0);
     expect(a.stats.engine_add_lines).toBe(0);
     expect(a.stats.budget_exhausted).toBe(false);
   });
 
-  test("lds strategy seeds from legacy and reports mandatory prelude", () => {
+  test("lds strategy starts from a native scored fallback", () => {
     const result = compile(TRIVIAL, {
       seed: 0,
       strategy: "lds",
@@ -27,9 +28,10 @@ describe("v0 compile options and stats", () => {
     });
 
     expect(result.track.lines).toHaveLength(0);
-    expect(result.stats.mandatory_prelude_units).toBeGreaterThan(0);
+    expect(result.stats.subfloor_fallback_units).toBeGreaterThan(0);
     expect(result.stats.leaves_scored).toBeGreaterThan(0);
     expect(result.stats.scored_leaf_fingerprints.length).toBe(result.stats.leaves_scored);
+    expect(result.stats.work_units_used).toBe(result.stats.sim_frames);
     expect(result.stats.budget_exhausted).toBe(true);
   });
 });

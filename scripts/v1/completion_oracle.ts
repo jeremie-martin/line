@@ -207,20 +207,32 @@ function deriveGapAxesFromTrack(
   for (const line of trackLines) byId.set(line.id, line);
 
   const out: (SectionAxes | null)[] = new Array(context.gaps.length).fill(null);
-  let previousMaxLineId = 0;
+  const maxLineId = trackLines.reduce((max, line) => Math.max(max, line.id), 0);
+  const contactLineAnchors: { gapIndex: number; lineId: number }[] = [];
+  let previousAnchor = 0;
   for (let gapIndex = 0; gapIndex < context.gaps.length; gapIndex++) {
     const gap = context.gaps[gapIndex];
     if (!gap.endsWithContact) continue;
 
     const contactIds = contactLineIdsNear(det, gap.endFrame)
-      .filter((lineId) => lineId > previousMaxLineId && byId.has(lineId));
+      .filter((lineId) => lineId > previousAnchor && byId.has(lineId));
     if (contactIds.length === 0) continue;
+    const lineId = contactIds[0];
+    contactLineAnchors.push({ gapIndex, lineId });
+    previousAnchor = lineId;
+  }
 
-    const maxLineId = Math.max(...contactIds);
+  let rangeStart = 1;
+  for (let index = 0; index < contactLineAnchors.length; index++) {
+    const { gapIndex } = contactLineAnchors[index];
+    const gap = context.gaps[gapIndex];
+    const nextAnchor = contactLineAnchors[index + 1]?.lineId;
+    const rangeEnd = nextAnchor === undefined ? maxLineId : nextAnchor - 1;
     const gapLines = trackLines
-      .filter((line) => line.id > previousMaxLineId && line.id <= maxLineId)
+      .filter((line) => line.id >= rangeStart && line.id <= rangeEnd)
       .sort((a, b) => a.id - b.id);
-    if (gapLines.length === 0) continue;
+    rangeStart = rangeEnd + 1;
+    if (gapLines.length === 0 || !gap.endsWithContact) continue;
 
     out[gapIndex] = measureAxes(
       det,
@@ -228,7 +240,6 @@ function deriveGapAxesFromTrack(
       gapLines,
       axisLookaheadEndFrame(gap, context.contactFrames),
     );
-    previousMaxLineId = maxLineId;
   }
   return out;
 }

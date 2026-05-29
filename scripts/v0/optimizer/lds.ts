@@ -89,6 +89,17 @@ export const BASE_BACKTRACK_DEPTH = 24;
  *  legacy `compile()`'s `gapFailures` continue-past behaviour. */
 export const SKIP = -1;
 
+/** Optional, non-scoring search telemetry. A single mutable object threaded
+ *  through the whole enumeration so compileLDS can surface diagnostics
+ *  (CompileStats optimizer-native fields) — never read by the search itself, so
+ *  it cannot affect output (passing `undefined` is byte-identical). */
+export type SearchTelemetry = {
+  repairRounds: number;
+  cacheHits: number;
+  cacheMisses: number;
+  baseBacktracks: number;
+};
+
 /** Build a candidate-list getter backed by `candCache`, keyed on the committed
  *  candidate-identity path. Shared by the base descent, the guided-repair
  *  re-descents, and the deviation enumeration so a list sampled once at a given
@@ -101,10 +112,15 @@ function makeCandGetter(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  telemetry?: SearchTelemetry,
 ): (node: SearchNode, key: string) => Candidate[] {
   return (node, key) => {
     const hit = candCache.get(key);
-    if (hit !== undefined) return hit;
+    if (hit !== undefined) {
+      if (telemetry) telemetry.cacheHits++;
+      return hit;
+    }
+    if (telemetry) telemetry.cacheMisses++;
     const sorted = getCandidatesSorted(node, gaps, ctx, seed);
     candCache.set(key, sorted);
     return sorted;
@@ -167,6 +183,8 @@ export function buildBacktrackingLeaf(
    *  this budget; a larger budget completes the same descent → superset; the
    *  completed leaf's content is budget-independent. */
   budgetUnits?: number,
+  /** Optional non-scoring telemetry (cache hits/misses, backtrack steps). */
+  telemetry?: SearchTelemetry,
 ): { leaf: Leaf; baseCommitPath: number[] } | null {
   type FrameKind = "leaf" | "noncontact" | "contact" | "skip";
   type Frame = {
@@ -181,7 +199,7 @@ export function buildBacktrackingLeaf(
     committedKey: string;
   };
 
-  const getCached = makeCandGetter(candCache, gaps, ctx, seed);
+  const getCached = makeCandGetter(candCache, gaps, ctx, seed, telemetry);
 
   const makeFrame = (node: SearchNode, committedKey: string): Frame => {
     if (isLeafNode(node, gaps.length)) return { node, kind: "leaf", cands: [], tried: 0, committedKey };
@@ -292,6 +310,7 @@ export function buildBacktrackingLeaf(
           continue;
         }
         backtracksUsed++;
+        if (telemetry) telemetry.baseBacktracks++;
         continue;
       }
     }
@@ -392,6 +411,7 @@ export function* enumerateLeaves(
   ctx: SpecContext,
   seed: number,
   budgetUnits = Infinity,
+  telemetry?: SearchTelemetry,
 ): Generator<Leaf> {
   // Candidate-list cache keyed on the committed candidate-identity path, SHARED
   // between the base-path descent, the guided-repair leaves, and the deviation
@@ -401,9 +421,9 @@ export function* enumerateLeaves(
   // revisits the same prefix.
   const candCache = new Map<string, Candidate[]>();
 
-  const getCandidatesCached = makeCandGetter(candCache, gaps, ctx, seed);
+  const getCandidatesCached = makeCandGetter(candCache, gaps, ctx, seed, telemetry);
 
-  const base = buildBacktrackingLeaf(root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache);
+  const base = buildBacktrackingLeaf(root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache, undefined, undefined, telemetry);
   if (base === null) return;
   yield base.leaf;
 
@@ -445,7 +465,7 @@ export function* enumerateLeaves(
     }
     if (!bumped) break; // nothing new to forbid (owners skipped / already exhausted)
     const repair = buildBacktrackingLeaf(
-      root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache, forbidden, budgetUnits,
+      root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache, forbidden, budgetUnits, telemetry,
     );
     if (repair === null) break;
     const ranks = perGapRanksFromCommit(repair.baseCommitPath, gaps);
@@ -455,6 +475,7 @@ export function* enumerateLeaves(
     // collisions with the base / each other.
     if (discrepancy > maxDiscrepancy) break;
     const repairLeaf: Leaf = { ...repair.leaf, ranks, discrepancy };
+    if (telemetry) telemetry.repairRounds++;
     yield repairLeaf;
     cur = repairLeaf;
     curCommit = repair.baseCommitPath;

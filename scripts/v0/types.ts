@@ -101,6 +101,9 @@ export type DriftReport = {
  * at the top of each call.
  */
 export type CompileStats = {
+  // ─── Legacy compile() counters ─── (the standalone optimizer leaves these at
+  //     their zero defaults; see the "optimizer-native" group at the end). Kept
+  //     for the legacy `compile()` reference path and back-compat.
   /** Per-gap candidate samples (sampleArcParams calls). The most
    *  fine-grained unit of "search work" in the optimizer. */
   candidates_sampled: number;
@@ -138,6 +141,31 @@ export type CompileStats = {
    *  if enumeration completed within budget. Legacy compiler never
    *  sets this (no budget concept); it remains false. */
   budget_exhausted: boolean;
+
+  // ─── Optimizer-native diagnostics ─── (populated by compileLDS; absent on the
+  //     legacy compile() path). Non-scoring — they make the golden breakdown
+  //     actionable on hard specs (the gradient lives in the breakdown, GOAL_LDS §1).
+  /** Leaves offered to the best-so-far register (base floor + repair + deviations
+   *  + polish variants). The total search volume actually evaluated. */
+  leaves_considered?: number;
+  /** How many considered leaves strictly improved the best-so-far. */
+  improvements?: number;
+  /** Polish clone-and-test variants that were geometry-distinct and so offered to
+   *  the register, and how many of those became the new best. */
+  polish_variants_tried?: number;
+  polish_variants_adopted?: number;
+  /** Guided-repair leaves yielded (each is one re-descent forbidding an
+   *  assembled-track-missing candidate). 0 means the base path satisfied the
+   *  contract with no repair needed. */
+  repair_rounds?: number;
+  /** Candidate-list cache hits/misses across the whole search (base descent +
+   *  repair + deviations). Low hit-rate ⇒ the search is re-sampling many distinct
+   *  prefixes (expensive); high ⇒ lots of shared structure. */
+  candidate_cache_hits?: number;
+  candidate_cache_misses?: number;
+  /** Backtrack steps taken inside the d=0 base-path descent (buildBacktrackingLeaf).
+   *  High ⇒ a thrashing base floor (e.g. drums_crescendo). */
+  base_backtracks?: number;
 };
 
 export type ContactReport = {

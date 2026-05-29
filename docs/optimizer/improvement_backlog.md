@@ -21,9 +21,8 @@ the guardrail is **property tests green + `goal_score` non-regressing**, not a h
 A change is done up front (by the human/refactor pass) only if it's verifiable **without**
 the slow golden loop. Everything whose value is measured by `goal_score` is the agent's,
 because that *is* the propose→measure→keep loop — doing it blind would violate the
-discipline. So: **#5 is done; the rest are the agent's capability track.** **#7 (diagnostics)
-is additive/non-scoring — do it early**, since you'll read those counters while working
-#1/#2/#4 (design them to your own needs).
+discipline. So: **#5 (leaf-key) and #7 (diagnostics) are done; the rest are the agent's
+capability track** — their value is measured by `goal_score`, so they belong in the loop.
 
 ## Sequence (one mechanism at a time)
 
@@ -82,13 +81,14 @@ verify `goal_score` holds and polish-adopted count drops only on no-ops. Note: t
 *helpers* now live in `core/polish.ts`; `polishLeafVariant` (in `optimizer/polish.ts`) takes
 `(fits, spec, gaps, contactFrames, durationFrames, startState)` — keep that signature.
 
-### #7 — Optimizer-native diagnostics (do early; additive, non-scoring)
-`CompileStats` (`types.ts`, populated in `api.ts` `buildLeafOutput`) is legacy-shaped; the
-optimizer zeros most counters. Add: leaves considered
-(`register.consideredCount`), polish variants tried/adopted, repair rounds yielded/dead-ended,
-skipped gap indices, backtrack count, candidate-cache hit/miss, first failure-owner per repair
-round. Non-scoring; makes the golden breakdown actionable (the charter says the gradient lives
-in the breakdown, not the headline).
+### #7 — Optimizer-native diagnostics (DONE)
+`CompileStats` (`types.ts`) now carries optimizer-native fields, populated by `compileLDS`
+(via a `SearchTelemetry` object threaded through `enumerateLeaves`) and visible in
+`golden --json` `compile_stats`: `leaves_considered`, `improvements`,
+`polish_variants_tried`/`_adopted`, `repair_rounds`, `candidate_cache_hits`/`_misses`,
+`base_backtracks`. Non-scoring; use them to read what the search is doing on hard specs
+(low cache hit-rate ⇒ re-sampling many prefixes; high `base_backtracks` ⇒ a thrashing floor;
+`repair_rounds` ⇒ repair activity). Committed.
 
 ### #3 — Split the floor (cheap completion + budgeted recovery) — DEFER
 Today the d=0 base both guarantees completion and does bounded cross-gap search (budget-exempt,

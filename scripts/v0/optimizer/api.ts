@@ -32,7 +32,7 @@ import {
 } from "../core/preroll.ts";
 import { makeRng } from "../../lib/rng.ts";
 import { CALIB, secToFrame } from "../types.ts";
-import { enumerateLeaves, type Leaf } from "./lds.ts";
+import { enumerateLeaves, type Leaf, type SearchTelemetry } from "./lds.ts";
 import { makeRootNode } from "./node.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
@@ -116,6 +116,11 @@ export function compileLDS(
 
   const polishEnabled = opts.polish ?? true;
   let budgetExhausted = false;
+  // Non-scoring search telemetry (CompileStats optimizer-native diagnostics).
+  // Threaded into enumerateLeaves; never read by the search, so byte-identical.
+  const telemetry: SearchTelemetry = { repairRounds: 0, cacheHits: 0, cacheMisses: 0, baseBacktracks: 0 };
+  let polishTried = 0;
+  let polishAdopted = 0;
 
   /** Score a leaf (or polish variant) and offer it to the register.
    *  Returns the comparator key. The detect+report runs once (`evaluateLeaf`)
@@ -132,7 +137,7 @@ export function compileLDS(
   // The legacy floor has been removed: the d=0 leaf (buildBacktrackingLeaf,
   // inside enumerateLeaves) is the search's own completion floor. compileLDS now
   // stands alone — no legacyCompile seed, no fallback.
-  for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed, budgetUnits)) {
+  for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed, budgetUnits, telemetry)) {
     const key = consider(leaf);
     opts.onLeaf?.(leaf, key);
 
@@ -145,7 +150,10 @@ export function compileLDS(
     if (polishEnabled) {
       const variant = polishLeafVariant(leaf.fits, spec, gaps, allContactFrames, durationFrames, startState);
       if (variant !== null) {
+        polishTried++;
+        const improvedBefore = register.improvementCount;
         consider({ ...leaf, fits: variant.fits, engine: variant.engine });
+        if (register.improvementCount > improvedBefore) polishAdopted++;
       }
     }
 
@@ -187,11 +195,24 @@ export function compileLDS(
       `budget=${opts.budget ? opts.budget.units : "unset"}, sim_frames=${getSimFrames()})`,
     );
   }
-  // Update budget_exhausted on the returned output (the leaf was
-  // built before we knew the final state of the budget flag).
+  // Patch whole-run fields onto the returned output: budget_exhausted (the leaf
+  // was built before we knew the final flag) + the optimizer-native diagnostics
+  // (non-scoring; they make the golden breakdown actionable — GOAL_LDS §1).
   return {
     ...best,
-    stats: { ...best.stats, budget_exhausted: budgetExhausted, sim_frames: getSimFrames() },
+    stats: {
+      ...best.stats,
+      budget_exhausted: budgetExhausted,
+      sim_frames: getSimFrames(),
+      leaves_considered: register.consideredCount,
+      improvements: register.improvementCount,
+      polish_variants_tried: polishTried,
+      polish_variants_adopted: polishAdopted,
+      repair_rounds: telemetry.repairRounds,
+      candidate_cache_hits: telemetry.cacheHits,
+      candidate_cache_misses: telemetry.cacheMisses,
+      base_backtracks: telemetry.baseBacktracks,
+    },
   };
 }
 

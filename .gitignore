@@ -12,8 +12,7 @@ bench/music/
 bench/v2/tracks/
 bench/v2/records.jsonl
 bench/v2/per_beat.csv
-benchmark-results/**/*.local.json
-benchmark-results/**/*.tmp.json
+benchmark-results/
 
 # Large binaries — audio/video sources, archives, vendored repos
 *.webm

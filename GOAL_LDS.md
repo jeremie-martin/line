@@ -385,10 +385,26 @@ The honest gaps. Append findings here as you learn; this is your lab notebook.
     forces a hop → high air; lowering it needs grounded cross-gap riding (the same drums-glued
     problem). Ride-out (`shouldTryCandidateRideOut`) is gated to air-only specs + gap≥60, so it
     never applies to the dense multi-axis specs.
-  * **CONCLUSION:** there is no clean, low-regression, incremental path to >700 with the current
-    architecture. The failing-spec cracks AND the passer axis-lifts both reduce to the same hard
-    problem — steering the rider's *arrival state* / *cross-gap grounded geometry* — which only a
-    perturbative search/generator overhaul addresses (cross-gap look-ahead or beam, validated across
-    ALL backtrack-heavy specs; expect regressions to manage per §4.4). That is a deliberate
-    multi-iteration research project, not a single validated commit. The committed state (#1,
-    339.70, all property tests green) is clean and correct; #1's correctness fix stands.
+  * **CONCLUSION (SUPERSEDED below):** thought there was no clean incremental path to >700.
+
+- **HIGH-DIVERSITY COMPLETION FLOOR — landed, +21% (2026-05-30). The ceiling above was too
+  pessimistic.** The "arrival-state-bound" claim was over-stated: it held only for the rank-0
+  *spine* arrival state I'd profiled. Empirically, re-running the WHOLE base floor with a wider
+  candidate pool (N_CAND 32→64) explores different arrival states and DOES land contacts the
+  32-pool misses — `solo_run` s1 71/77→77/77 (bt 46→9, the wide pool is also *cheaper* because it
+  finds a completing combination with far less backtracking). A global N_CAND bump is
+  spec-antagonistic (helps solo_run, wrecks drums via off-beat thrash), but gating it correctly
+  makes it clean: in `compileLDS`, only when the best leaf still FAILS the contract, make one
+  budget-exempt wide-pool floor attempt (`buildHighDiversityFloorLeaf`) and offer it to the
+  register. The register adopts only on strict improvement ⇒ **no spec can regress** (drums' worse
+  wide floor is simply not kept); gating on best-failing ⇒ **inert/byte-identical on every passer**.
+  Result: `goal_score 339.70→411.58`, `contract_pass_rate 87%→92% (34→36/39)`; solo_run 90→511,
+  drums_pendulum 170→358 (both 2/3→3/3), all else byte-identical. `optimizer_lds` 8/8 green.
+  Committed (f8f45f5).
+  * **Still open toward >700:** (a) `drums_crescendo` (0/3, ≈75 — the geomean anchor): its failure
+    is off-beat/drift, NOT a missing-landing the wide pool can fix (more candidates made it WORSE);
+    needs an off-beat-specific mechanism. (b) Lifting the mid-scoring PASSERS' axis_quality to ≥500+
+    (syncopated_switchback 288, dense_sprint 394, verse_chorus 444, drums_signature 466, cold_start
+    495) — dominated by air/speed-overshoot, the candidate-cost/polish lever (polish currently
+    can't touch air on multi-axis specs). The general lesson: validate the "wall" empirically with
+    a wider-pool probe before declaring a lever refuted.

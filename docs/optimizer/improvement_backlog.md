@@ -80,6 +80,26 @@ the per-attempt lane selection goes in `sampleOneCandidate` (`optimizer/sample.t
 already threads `attempt`. (Residual/look-ahead targeting stays out — it's compile-only legacy
 in `compile.ts`, deliberately not used by the optimizer.)
 
+**Diagnosis of the `drums_pendulum` glued failure (2026-05-29).** Dumped the achieved-air of
+every sampled candidate at the glued-section contact gaps (air target ≈0.1–0.23). The
+**minimum achieved air across ALL 32 candidates is 0.6–1.0** — not one candidate lands near
+0.15. So this is a pure *sampling* gap (no low-air candidate exists to rank), not a ranking
+gap. Root cause is structural, and a single-arc "glued lane" likely can't fix it:
+- A contact requires a detected **landing event** (air→ground) at `gap.endFrame`. Registering
+  one forces the rider airborne just before the beat; in a ~19-frame gap that alone is most of
+  the gap → high air. Staying glued (air 0.15) needs the rider **grounded through most of the
+  gap on a line carried over from the previous gap**, then a brief pre-beat hop — a *multi-gap
+  grounded ride-out*, not a per-gap arc shape.
+- The existing ride-out continuation (`shouldTryCandidateRideOut`, `core/candidate.ts`) is the
+  closest mechanism but is **gated off here**: it requires `speed/grain/contact_style` all
+  undefined (drums sets all three) and gap length ≥ 60 (drums gaps ≈ 19). So nothing keeps the
+  rider grounded across the beat.
+
+Implication: the glued lane is not a quick single-arc template — it needs a grounded
+cross-gap geometry (extend the prior gap's line through the beat with a minimal hop). Treat as
+a real research item; design + validate carefully (it touches `core/candidate.ts`, shared
+geometry) before trusting it, and watch for regressions on the air/loft specs.
+
 ### #6 — Gate polish on the already-computed report
 `evaluateLeaf` (`api.ts`) already computes the report once; add a `shouldTryPolish(report,
 leaf.fits, spec, gaps)` check in `api.ts`'s `consider` loop and only call `polishLeafVariant`

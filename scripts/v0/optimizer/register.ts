@@ -14,8 +14,8 @@
  *   1. `contract_passed` — a passing leaf strictly dominates any
  *      failing leaf.
  *   2. Among passing: `axis_quality` higher wins (strict).
- *      (axis_quality is the scorer's pure-quality factor — single
- *      source of truth via `scorer.ts`.)
+ *      (axis_quality is `scoreDriftReport`'s pure-quality factor — this
+ *      register is the single source of truth for leaf selection.)
  *   3. Among failing: full `score` higher wins (strict). Full score
  *      includes survival_quality + the other contract factors so
  *      partial progress is ordered.
@@ -33,7 +33,7 @@ import type { CompileOutput, Score } from "./types.ts";
 export type LeafKey = {
   /** True iff drift=0, missing=0, off_beat=0, terminus=endOfSpec. */
   contract_passed: boolean;
-  /** Pure quality in [0, 1] from scorer.ts — used among passing leaves. */
+  /** Pure quality in [0, 1] from `scoreDriftReport` — used among passing leaves. */
   axis_quality: Score;
   /** Full score (1000 * axis * drift * missing * off_beat * survival)
    *  from scoreDriftReport — used among failing leaves. */

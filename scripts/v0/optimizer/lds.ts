@@ -8,15 +8,24 @@
  *     choice); rank ≥ 1 is a "deviation".
  *   - A leaf at discrepancy D = a complete path whose ranks sum to
  *     exactly D.
- *   - `enumerateLeaves(root, maxDiscrepancy)` yields leaves in
- *     increasing-discrepancy order: all leaves at D=0 (one — the
- *     greedy track), then all at D=1, then D=2, ..., up to maxD.
+ *   - `enumerateLeaves(root, maxDiscrepancy)` yields, in order: the
+ *     D=0 base leaf (one — the backtracking floor), then the
+ *     guided-repair leaves (see below — these may themselves carry
+ *     discrepancy ≥ 1), then the pure deviation sweep at D=1, D=2,
+ *     ..., up to maxD. So the yielded sequence is NOT globally sorted
+ *     by discrepancy: a repair leaf at D=3 can precede a deviation
+ *     leaf at D=1. What IS guaranteed is the structural property below.
  *
- * The crucial structural property: for any maxD' >= maxD,
- * `leaves(maxD') ⊇ leaves(maxD)` because we only ADD discrepancy
- * levels at the end. This is the substrate for Property 1
- * (monotonicity-in-budget): budget = "longest prefix of E that fits"
- * = "iterate leaves in this order, stop when budget runs out".
+ * The crucial structural property: for any maxD' >= maxD, the SET
+ * `leaves(maxD') ⊇ leaves(maxD)`, and the yielded SEQUENCE at maxD is
+ * a prefix of the sequence at maxD' — both the repair chain and the
+ * deviation sweep only EXTEND at the end as maxD grows (the repair
+ * loop's `discrepancy > maxDiscrepancy` cutoff and the `d <= maxD`
+ * loop bound are the only maxD dependence). This is the substrate for
+ * Property 1 (monotonicity-in-budget): budget = "longest prefix of E
+ * that fits" = "iterate leaves in this order, stop when budget runs
+ * out". The prefix-superset — not a sorted-by-discrepancy order — is
+ * what monotonicity actually relies on.
  *
  * Non-contact gaps (tail gap, gaps between sections without a
  * closing Contact) pass through with no rank choice and no
@@ -25,8 +34,11 @@
  * Determinism: traversal order is fully fixed by (maxD, num_gaps,
  * N_CAND, per-node sorted candidate list). Per-node candidate list
  * is itself deterministic given (seed, gap_index, prefix engine
- * state) which depends only on (spec, seed). So same (spec, seed)
- * → identical E for any maxD.
+ * state) which depends only on (spec, seed). The repair phase's
+ * length is data-dependent (it iterates while the assembled track has
+ * failure-owning gaps, detected from the deterministic trajectory),
+ * but that detection is itself a pure function of (spec, seed), so E
+ * stays identical for same (spec, seed) at any maxD.
  */
 
 import {
@@ -76,6 +88,28 @@ export const BASE_BACKTRACK_DEPTH = 8;
  *  engine unchanged, so the base path still reaches end-of-spec. Mirrors
  *  legacy `compile()`'s `gapFailures` continue-past behaviour. */
 export const SKIP = -1;
+
+/** Build a candidate-list getter backed by `candCache`, keyed on the committed
+ *  candidate-identity path. Shared by the base descent, the guided-repair
+ *  re-descents, and the deviation enumeration so a list sampled once at a given
+ *  committed prefix is reused for free by any phase that revisits it. The cache
+ *  key (absolute sorted-index, or "S" for a skip, per contact gap) uniquely
+ *  identifies the committed prefix engine — keying on local rank would return a
+ *  list computed for a different engine state. */
+function makeCandGetter(
+  candCache: Map<string, Candidate[]>,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+): (node: SearchNode, key: string) => Candidate[] {
+  return (node, key) => {
+    const hit = candCache.get(key);
+    if (hit !== undefined) return hit;
+    const sorted = getCandidatesSorted(node, gaps, ctx, seed);
+    candCache.set(key, sorted);
+    return sorted;
+  };
+}
 
 /** Build the deterministic backtracking base path — the d=0 leaf.
  *
@@ -147,13 +181,7 @@ export function buildBacktrackingLeaf(
     committedKey: string;
   };
 
-  const getCached = (node: SearchNode, key: string): Candidate[] => {
-    const hit = candCache.get(key);
-    if (hit !== undefined) return hit;
-    const sorted = getCandidatesSorted(node, gaps, ctx, seed);
-    candCache.set(key, sorted);
-    return sorted;
-  };
+  const getCached = makeCandGetter(candCache, gaps, ctx, seed);
 
   const makeFrame = (node: SearchNode, committedKey: string): Frame => {
     if (isLeafNode(node, gaps.length)) return { node, kind: "leaf", cands: [], tried: 0, committedKey };
@@ -217,10 +245,17 @@ export function buildBacktrackingLeaf(
     // contact gap. Skip any forbidden sorted-index (guided repair forces a gap
     // off its assembled-track-missing candidate) by advancing past it.
     const fb = forbidden?.get(top.node.gapIndex);
+    // Whether this is the FIRST commit attempt at this gap — captured BEFORE the
+    // forbidden-advance below. Under forceSkip we allow exactly this first
+    // attempt (even if `forbidden` skips it past leading indices) but never a
+    // retried higher rank; gating on `top.tried > 0` instead would wrongly skip
+    // a landable candidate whenever a leading index was forbidden (a repair then
+    // guarantees the very miss it was trying to fix).
+    const firstAttempt = top.tried === 0;
     if (fb) while (top.tried < top.cands.length && fb.has(top.tried)) top.tried++;
-    if (top.tried < top.cands.length && !(forceSkip && top.tried > 0)) {
+    if (top.tried < top.cands.length && !(forceSkip && !firstAttempt)) {
       // commit the next candidate (lowest cost first). Under forceSkip we take
-      // rank 0 if present (best effort) but never retry a higher rank.
+      // the first un-forbidden candidate (best effort) but never retry a higher rank.
       const r = top.tried;
       const cand = top.cands[r];
       top.tried = r + 1;
@@ -318,8 +353,11 @@ function perGapRanksFromCommit(commit: number[], gaps: Gap[]): number[] {
   return out;
 }
 
-/** Enumerate leaves in increasing-discrepancy order, RELATIVE TO the
- *  backtracking base path (the d=0 floor from `buildBacktrackingLeaf`).
+/** Enumerate leaves RELATIVE TO the backtracking base path (the d=0 floor from
+ *  `buildBacktrackingLeaf`). Yield order: base leaf, then the guided-repair
+ *  chain (leaves that may carry discrepancy ≥ 1), then the deviation sweep at
+ *  d=1..maxD. The sequence is therefore NOT globally sorted by discrepancy, but
+ *  it IS a deterministic prefix-superset in maxD (see "Structural property").
  *
  *  d=0 is the base path itself — always yielded first and budget-exempt (a
  *  floor must complete). For d>=1, candidates at each contact gap are read in
@@ -331,10 +369,14 @@ function perGapRanksFromCommit(commit: number[], gaps: Gap[]): number[] {
  *  of near the cheapest-everywhere spine, which dead-ends on dense specs.
  *
  *  Structural property (preserves monotonicity-in-budget): for any maxD' >=
- *  maxD, `leaves(maxD') ⊇ leaves(maxD)` — we only ADD discrepancy levels at
- *  the end, and the rotated order at each node is a pure function of
- *  (spec, seed) (the base path is fixed; rotation is deterministic). The
- *  budget only controls how far into this fixed order we go (the node-entry
+ *  maxD, the SET `leaves(maxD') ⊇ leaves(maxD)` AND the yielded sequence at
+ *  maxD is a prefix of the one at maxD'. Both sub-sequences only extend at the
+ *  end: the repair chain is gated by `discrepancy > maxDiscrepancy` (a longer
+ *  cap yields more of the same fixed chain), and the deviation sweep only adds
+ *  d-levels. The rotated order at each node is a pure function of (spec, seed)
+ *  (the base path is fixed; rotation is deterministic); the repair chain is too
+ *  (its length is detector-driven but the detector is deterministic). The
+ *  budget only controls how far into this fixed sequence we go (the node-entry
  *  cutoff is a pure function of the budget and never changes leaf CONTENT).
  *
  *  Memoization: candidate lists are cached by the COMMITTED candidate-identity
@@ -359,13 +401,7 @@ export function* enumerateLeaves(
   // revisits the same prefix.
   const candCache = new Map<string, Candidate[]>();
 
-  const getCandidatesCached = (node: SearchNode, committedKey: string): Candidate[] => {
-    const cached = candCache.get(committedKey);
-    if (cached !== undefined) return cached;
-    const sorted = getCandidatesSorted(node, gaps, ctx, seed);
-    candCache.set(committedKey, sorted);
-    return sorted;
-  };
+  const getCandidatesCached = makeCandGetter(candCache, gaps, ctx, seed);
 
   const base = buildBacktrackingLeaf(root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache);
   if (base === null) return;
@@ -438,16 +474,21 @@ export function* enumerateLeaves(
  *  `enumerateLeaves`.
  *
  *  `committedKey` is the committed candidate-identity path so far (cache key).
- *  `allRanks` is the per-gap LOCAL rank for the resulting Leaf (non-contact
- *  gaps contribute 0). `onBase` is true iff every contact-gap choice so far
- *  matched the base path — only then does `node`'s candidate list match the
- *  one the base path saw, so only then is `baseCommitPath[contactGapNum]` a
- *  valid index into it. `contactGapNum` indexes `baseCommitPath`. */
+ *  `ranks` is the per-gap LOCAL rank accumulated so far (non-contact gaps
+ *  contribute 0). It is a SINGLE mutable array shared down the recursion —
+ *  push before descending, pop after — so path bookkeeping is O(depth) total
+ *  instead of O(depth²) from per-level array copies. The yielded Leaf snapshots
+ *  it (`ranks.slice()`) so each leaf owns an independent array; safe under the
+ *  synchronous depth-first consumption in `enumerateLeaves`. `onBase` is true
+ *  iff every contact-gap choice so far matched the base path — only then does
+ *  `node`'s candidate list match the one the base path saw, so only then is
+ *  `baseCommitPath[contactGapNum]` a valid index into it. `contactGapNum`
+ *  indexes `baseCommitPath`. */
 function* enumerateDeviations(
   node: SearchNode,
   exactBudget: number,
   committedKey: string,
-  allRanks: number[],
+  ranks: number[],
   onBase: boolean,
   contactGapNum: number,
   gaps: Gap[],
@@ -465,8 +506,8 @@ function* enumerateDeviations(
       yield {
         fits: node.prefixFits,
         engine: node.prefixEngine,
-        ranks: allRanks,
-        discrepancy: allRanks.reduce((s, r) => s + r, 0),
+        ranks: ranks.slice(),
+        discrepancy: ranks.reduce((s, r) => s + r, 0),
         cumulativeCost: node.cumulativeCost,
       };
     }
@@ -475,10 +516,12 @@ function* enumerateDeviations(
 
   if (!gaps[node.gapIndex].endsWithContact) {
     const child = extendNode(node, null);
+    ranks.push(0);
     yield* enumerateDeviations(
-      child, exactBudget, committedKey, [...allRanks, 0], onBase, contactGapNum,
+      child, exactBudget, committedKey, ranks, onBase, contactGapNum,
       gaps, ctx, seed, baseCommitPath, getCandidatesCached, budgetUnits,
     );
+    ranks.pop();
     return;
   }
 
@@ -504,7 +547,7 @@ function* enumerateDeviations(
     // `sorted[undefined]` (a corrupt leaf) if that ever breaks (e.g. a future
     // change makes candidate generation depend on something beyond the prefix,
     // or a cache-key collision). Off-base pref is 0, always valid here.
-    if (pref < 0 || pref >= sorted.length) {
+    if (!Number.isInteger(pref) || pref < 0 || pref >= sorted.length) {
       throw new Error(
         `enumerateDeviations: base choice ${pref} out of range [0,${sorted.length}) ` +
         `at contactGap ${contactGapNum} (committedKey="${committedKey}") — ` +
@@ -521,10 +564,12 @@ function* enumerateDeviations(
     const childOnBase = onBase && r === 0; // r===0 takes the preferred (base) choice
     const child = choice === SKIP ? extendNode(node, null) : extendNode(node, sorted[choice]);
     const childKey = committedKey + (choice === SKIP ? ",S" : "," + choice);
+    ranks.push(r);
     yield* enumerateDeviations(
-      child, exactBudget - r, childKey, [...allRanks, r],
+      child, exactBudget - r, childKey, ranks,
       childOnBase, contactGapNum + 1,
       gaps, ctx, seed, baseCommitPath, getCandidatesCached, budgetUnits,
     );
+    ranks.pop();
   }
 }

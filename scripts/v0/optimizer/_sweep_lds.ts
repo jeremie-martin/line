@@ -16,8 +16,7 @@ import { writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { compileLDS } from "./api.ts";
 import { GOLDEN_SPECS, loadGoldenSpec } from "../golden_suite.ts";
-import { scoreReport } from "./scorer.ts";
-import { shiftedGeometricMean } from "../score.ts";
+import { scoreDriftReport, shiftedGeometricMean } from "../score.ts";
 
 const SEEDS = [0, 1, 2, 3, 4];
 
@@ -52,7 +51,7 @@ async function main() {
       try {
         const r = compileLDS(spec, seed, { maxDiscrepancy: maxD });
         const wall_ms = performance.now() - t0;
-        const axis_quality = scoreReport(r.report);
+        const axis_quality = scoreDriftReport(r.report).axis_quality;
         const contract_passed =
           r.report.contacts.every((c) => c.status === "hit")
           && r.report.off_beat_landings.length === 0

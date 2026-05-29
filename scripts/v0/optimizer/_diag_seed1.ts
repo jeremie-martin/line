@@ -18,7 +18,7 @@
 
 import { compileLDS } from "./api.ts";
 import { loadGoldenSpec } from "../golden_suite.ts";
-import { scoreReport } from "./scorer.ts";
+import { scoreDriftReport } from "../score.ts";
 
 type LeafTrace = {
   index: number;
@@ -52,7 +52,7 @@ async function runWithTrace(budget: number): Promise<{ best_quality: number; tra
     },
   });
   return {
-    best_quality: scoreReport(r.report),
+    best_quality: scoreDriftReport(r.report).axis_quality,
     trace,
     final_sim_frames: r.stats.sim_frames,
     budget_exhausted: r.stats.budget_exhausted,

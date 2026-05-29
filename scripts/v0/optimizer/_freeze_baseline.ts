@@ -25,8 +25,7 @@
 import { writeFileSync } from "node:fs";
 import { compile } from "../compile.ts";
 import { GOLDEN_SPECS, loadGoldenSpec } from "../golden_suite.ts";
-import { scoreReport } from "./scorer.ts";
-import { shiftedGeometricMean } from "../score.ts";
+import { scoreDriftReport, shiftedGeometricMean } from "../score.ts";
 
 type Row = {
   spec: string;
@@ -58,9 +57,9 @@ async function main() {
       const elapsed_ms = Date.now() - t0;
 
       // Mirror the scorer's per-row breakdown for completeness.
-      // (We re-run scoreDriftReport via scoreReport to read
-      // axis_quality; for other fields, derive directly from report.)
-      const axis_quality = scoreReport(report);
+      // (axis_quality from scoreDriftReport; for other fields, derive
+      // directly from report.)
+      const axis_quality = scoreDriftReport(report).axis_quality;
 
       // Re-compute axis_error_rms exactly as score.ts does.
       const errs: number[] = [];

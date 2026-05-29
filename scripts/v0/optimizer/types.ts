@@ -72,5 +72,6 @@ export type CompileOutput = {
 };
 
 /** A scalar score used for "is track A better than track B" comparisons.
- *  Mirrors the scorer's `axis_quality` in [0, 1]; bigger is better. */
+ *  The `axis_quality` field of `scoreDriftReport` (../score.ts) in [0, 1];
+ *  bigger is better. Used by `register.ts`'s leaf comparator. */
 export type Score = number;

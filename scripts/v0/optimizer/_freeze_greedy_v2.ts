@@ -17,8 +17,7 @@
 import { writeFileSync } from "node:fs";
 import { compileGreedy_v2 } from "./greedy.ts";
 import { GOLDEN_SPECS, loadGoldenSpec } from "../golden_suite.ts";
-import { scoreReport } from "./scorer.ts";
-import { shiftedGeometricMean } from "../score.ts";
+import { scoreDriftReport, shiftedGeometricMean } from "../score.ts";
 
 type Row = {
   spec: string;
@@ -54,7 +53,7 @@ async function main() {
         const r = compileGreedy_v2(spec, seed, { K });
         const elapsed_ms = Date.now() - t0;
         const report = r.report;
-        const axis_quality = scoreReport(report);
+        const axis_quality = scoreDriftReport(report).axis_quality;
         const errs: number[] = [];
         for (const section of report.sections) {
           for (const v of Object.values(section.axes ?? {})) {

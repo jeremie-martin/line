@@ -16,7 +16,7 @@
 import { writeFileSync } from "node:fs";
 import { compileGreedy_v2 } from "./greedy.ts";
 import { GOLDEN_SPECS, loadGoldenSpec } from "../golden_suite.ts";
-import { scoreReport } from "./scorer.ts";
+import { scoreDriftReport } from "../score.ts";
 
 type Row = {
   spec: string;
@@ -51,7 +51,7 @@ async function main() {
     try {
       const r = compileGreedy_v2(spec, seed, { K });
       const elapsed_ms = Date.now() - t0;
-      const axis_quality = scoreReport(r.report);
+      const axis_quality = scoreDriftReport(r.report).axis_quality;
       const hits = r.report.contacts.filter((c) => c.status === "hit").length;
       const drift = r.report.contacts.filter((c) => c.status === "drift").length;
       const missing = r.report.contacts.filter((c) => c.status === "missing").length;

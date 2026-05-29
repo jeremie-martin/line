@@ -6,10 +6,12 @@
  * (that's Stage 2); this stage runs to a maxDiscrepancy cap.
  *
  * Determinism: given `(spec, seed, opts)`, every step is
- * deterministic — RNG seeded by (seed, gap_index) per-node, leaf
- * enumeration order fixed by maxDiscrepancy/N_CAND/gap count,
- * register only swaps on strict improvement. Same inputs →
- * byte-identical Track.
+ * deterministic — RNG seeded by (seed, gap_index) per-node, the leaf
+ * enumeration SEQUENCE fixed by (spec, seed, maxDiscrepancy) (base
+ * floor, then the guided-repair chain, then the d=1..maxD deviation
+ * sweep — a prefix-superset in maxD, not a globally discrepancy-sorted
+ * order; see lds.ts), register only swaps on strict improvement. Same
+ * inputs → byte-identical Track.
  */
 
 import { detect, extractRawTrajectory } from "../../lib/detector.ts";
@@ -21,7 +23,6 @@ import {
   makeBaseEngine,
   resolveStartState,
   sampleGapTargets,
-  setRebuildStartState,
   sliceTimeline,
   validateSpec,
   withOptimizedPrerollStart,
@@ -36,7 +37,7 @@ import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, type LeafKey } from "./register.ts";
 import { getSimFrames, resetSimFrames } from "./sim_frames.ts";
 import type { SpecContext } from "./sample.ts";
-import type { Budget, CompileOutput, Spec } from "./types.ts";
+import type { Budget, CompileOutput, DriftReport, Spec } from "./types.ts";
 
 export type CompileLDSOptions = {
   /** Maximum total discrepancy across the search. Default 64
@@ -70,6 +71,12 @@ export function compileLDS(
   if (!Number.isInteger(maxDiscrepancy) || maxDiscrepancy < 0) {
     throw new Error(`compileLDS: maxDiscrepancy must be a non-negative integer, got ${maxDiscrepancy}`);
   }
+  // The per-gap RNG seeds with int32 arithmetic (node.ts); seeds outside the
+  // safe-integer range would silently collide or lose precision, breaking the
+  // "different seed → different exploration" guarantee. Reject them up front.
+  if (!Number.isSafeInteger(seed)) {
+    throw new Error(`compileLDS: seed must be a safe integer, got ${seed}`);
+  }
   const budgetUnits = opts.budget?.units ?? Infinity;
   if (opts.budget !== undefined) {
     if (opts.budget.kind !== "work") {
@@ -84,11 +91,11 @@ export function compileLDS(
   validateSpec(userSpec);
   const spec = withOptimizedPrerollStart(userSpec, seed);
   const startState: ResolvedStart = resolveStartState(spec);
-  // Prime compile.ts's module-scoped start state that rebuildEngine + the polish
-  // helpers read. The removed legacy floor used to set this as a side effect;
-  // without it, polish would rebuild from a stale/default start on start/preroll
-  // specs (review P1). Must run before the polish pass below.
-  setRebuildStartState(startState);
+  // `startState` is threaded explicitly into `polishLeafVariant` (which scopes
+  // compile.ts's module-global start state via save/restore around its rebuilds)
+  // rather than primed here as a side effect — so an interleaved `compile()` /
+  // second `compileLDS()` can't leave polish rebuilding from a stale start
+  // (review #5; the removed legacy floor used to set the global implicitly).
   const durationFrames = secToFrame(spec.duration);
   const allContactFrames = [...spec.contacts]
     .map((c) => secToFrame(c.t))
@@ -110,11 +117,12 @@ export function compileLDS(
   let budgetExhausted = false;
 
   /** Score a leaf (or polish variant) and offer it to the register.
-   *  Returns the comparator key. */
+   *  Returns the comparator key. The detect+report runs once (`evaluateLeaf`)
+   *  and is shared with `buildLeafOutput` — no second extraction (review #7). */
   const consider = (leafLike: Leaf): LeafKey => {
-    const key = scoreLeaf(leafLike, spec, gaps, allContactFrames, durationFrames);
+    const { report, key } = evaluateLeaf(leafLike, spec, gaps, allContactFrames, durationFrames);
     register.consider(
-      buildLeafOutput(leafLike, spec, gaps, allContactFrames, durationFrames, startState, budgetExhausted),
+      buildLeafOutput(leafLike, report, durationFrames, startState, budgetExhausted),
       key,
     );
     return key;
@@ -134,7 +142,7 @@ export function compileLDS(
     // than a final pass) means even a low budget polishes the d=0 greedy
     // leaf first, so low-budget output is "greedy + polish" ≈ greedy_v1.
     if (polishEnabled) {
-      const variant = polishLeafVariant(leaf.fits, spec, gaps, allContactFrames, durationFrames);
+      const variant = polishLeafVariant(leaf.fits, spec, gaps, allContactFrames, durationFrames, startState);
       if (variant !== null) {
         consider({ ...leaf, fits: variant.fits, engine: variant.engine });
       }
@@ -165,6 +173,19 @@ export function compileLDS(
       `budget_exhausted=${budgetExhausted})`,
     );
   }
+  // Loud signal on a degenerate best-effort result: the floor always reaches
+  // end-of-spec (skip-marching unsatisfiable contacts), so on a contactful spec
+  // a winner that commits ZERO contact fits means every contact was skipped.
+  // Surface it rather than silently returning an empty track; we still return
+  // the best-effort track (anytime semantics) instead of throwing (review #2).
+  if (allContactFrames.length > 0 && best.stats.gap_commits === 0) {
+    console.warn(
+      `compileLDS: degenerate result — 0 of ${allContactFrames.length} contacts committed ` +
+      `(every contact gap skipped); returning best-effort track. ` +
+      `(seed=${seed}, maxDiscrepancy=${maxDiscrepancy}, ` +
+      `budget=${opts.budget ? opts.budget.units : "unset"}, sim_frames=${getSimFrames()})`,
+    );
+  }
   // Update budget_exhausted on the returned output (the leaf was
   // built before we knew the final state of the budget flag).
   return {
@@ -173,16 +194,18 @@ export function compileLDS(
   };
 }
 
-/** Build the LeafKey used by the register for ranking. Pure function
- *  of the leaf + spec geometry. */
-function scoreLeaf(
+/** Run detect + buildDriftReport ONCE for a leaf and derive both the drift
+ *  report (for the CompileOutput) and the comparator key (for the register).
+ *  Sharing the single extraction avoids re-running the dominant per-leaf
+ *  detect/report work twice (review #7). Pure function of leaf + spec geometry. */
+function evaluateLeaf(
   leaf: Leaf,
   spec: Spec,
   // deno-lint-ignore no-explicit-any
   gaps: any[],
   allContactFrames: number[],
   durationFrames: number,
-): LeafKey {
+): { report: DriftReport; key: LeafKey } {
   const det = detect(extractRawTrajectory(leaf.engine, durationFrames + 20));
   const report = buildDriftReport(
     det, spec, gaps, allContactFrames, durationFrames, [], leaf.fits as (GapFit | null)[],
@@ -193,21 +216,21 @@ function scoreLeaf(
   // the returned track (review P2).
   const score = scoreDriftReport(report, { totalFrames: durationFrames });
   return {
-    contract_passed: score.contract_passed,
-    axis_quality: score.axis_quality,
-    full_score: score.score,
-    drift_quality: score.drift_quality,
+    report,
+    key: {
+      contract_passed: score.contract_passed,
+      axis_quality: score.axis_quality,
+      full_score: score.score,
+      drift_quality: score.drift_quality,
+    },
   };
 }
 
-/** Build a CompileOutput from a leaf (its fits + engine), running
- *  the final detect+report once. */
+/** Build a CompileOutput from a leaf using its already-computed drift report
+ *  (run once in `evaluateLeaf` and shared — no second extraction). */
 function buildLeafOutput(
   leaf: Leaf,
-  spec: Spec,
-  // deno-lint-ignore no-explicit-any
-  gaps: any[],
-  allContactFrames: number[],
+  report: DriftReport,
   durationFrames: number,
   startState: ResolvedStart,
   budgetExhausted: boolean,
@@ -216,10 +239,6 @@ function buildLeafOutput(
   const allLines = [];
   for (const fit of fits) if (fit !== null) allLines.push(...fit.lines);
   const track = buildTrackJson(allLines, durationFrames + 20, startState);
-  const finalDet = detect(extractRawTrajectory(leaf.engine, durationFrames + 20));
-  const report = buildDriftReport(
-    finalDet, spec, gaps, allContactFrames, durationFrames, [], fits,
-  );
   return {
     track,
     report,
@@ -230,6 +249,10 @@ function buildLeafOutput(
       gap_backtracks: 0,
       validation_retries: 0,
       polish_iterations: 0,
+      // total_committed_cost / committed_costs_per_gap are the committed
+      // CANDIDATE sampling costs and intentionally exclude polish-added geometry
+      // — identical to legacy `recordCommittedCosts` (compile.ts), so both
+      // compilers report the same quantity (review #3).
       total_committed_cost: leaf.cumulativeCost,
       committed_costs_per_gap: fits.map((f) => (f === null ? null : f.cost)),
       sim_frames: getSimFrames(),

@@ -2403,6 +2403,14 @@ export function setRebuildStartState(start: ResolvedStart): void {
   currentStartState = start;
 }
 
+/** Read the module-scoped start state `rebuildEngine` will use. Exposed so
+ *  callers that temporarily override it (e.g. the LDS optimizer's polish pass)
+ *  can save and restore it around their own rebuilds, keeping the override
+ *  reentrancy-safe instead of leaving a stale value for the next compile. */
+export function getRebuildStartState(): ResolvedStart {
+  return currentStartState;
+}
+
 // deno-lint-ignore no-explicit-any
 export function makeBaseEngine(start: ResolvedStart): any {
   // lr-core engines are immutable; setStart returns a new instance.

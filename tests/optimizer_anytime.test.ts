@@ -20,7 +20,6 @@
 import { describe, test, expect } from "vitest";
 import { createHash } from "node:crypto";
 import { compileLDS } from "../scripts/v0/optimizer/api.ts";
-import { scoreReport } from "../scripts/v0/optimizer/scorer.ts";
 import { isStrictlyBetter, type LeafKey } from "../scripts/v0/optimizer/register.ts";
 import { scoreDriftReport } from "../scripts/v0/score.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
@@ -57,7 +56,7 @@ describe("optimizer/api.ts — Stage 2 anytime budget", () => {
     const results = budgets.map((units) =>
       compileLDS(spec, seed, { maxDiscrepancy, budget: { kind: "work", units } })
     );
-    const qualities = results.map((r) => scoreReport(r.report));
+    const qualities = results.map((r) => scoreDriftReport(r.report).axis_quality);
     const keys = results.map(keyFor);
 
     // The load-bearing assertion: the comparator key never decreases

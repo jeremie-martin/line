@@ -14,7 +14,6 @@
 
 import { performance } from "node:perf_hooks";
 import { compileLDS } from "./api.ts";
-import { scoreReport } from "./scorer.ts";
 import { isStrictlyBetter, type LeafKey } from "./register.ts";
 import { scoreDriftReport } from "../score.ts";
 import { loadGoldenSpec } from "../golden_suite.ts";

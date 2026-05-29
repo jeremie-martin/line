@@ -155,4 +155,32 @@ describe("optimizer/lds.ts — Stage 1 LDS core", () => {
     expect(() => compileLDS(spec, 0, { maxDiscrepancy: -1 })).toThrow();
     expect(() => compileLDS(spec, 0, { maxDiscrepancy: 1.5 })).toThrow();
   });
+
+  test("non-safe-integer seed throws (review #10 — int32 seed domain)", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    // These are rejected before any compile work runs, so the test is cheap.
+    expect(() => compileLDS(spec, 1.5, { maxDiscrepancy: 0 })).toThrow(/seed/);
+    expect(() => compileLDS(spec, 2 ** 53, { maxDiscrepancy: 0 })).toThrow(/seed/);
+    expect(() => compileLDS(spec, Number.NaN, { maxDiscrepancy: 0 })).toThrow(/seed/);
+  });
+
+  test("PROPERTY: yielded sequence at maxD=1 is a prefix of the sequence at maxD=2", async () => {
+    // The yield order is NOT globally sorted by discrepancy (the guided-repair
+    // chain may interleave discrepancy>=1 leaves before the d-sweep), but it IS
+    // a deterministic prefix-superset in maxD — the invariant monotonicity-in-
+    // budget actually relies on (review #4). Also guards the O(N) rank-array
+    // refactor (review #8) against reordering leaves.
+    const fp = (name: string, seed: number, maxD: number) =>
+      setupForEnumeration(name, seed).then((s) => {
+        const seq: string[] = [];
+        for (const leaf of enumerateLeaves(s.root, maxD, s.gaps, s.ctx, s.seed)) {
+          seq.push(leafFingerprint(leaf));
+        }
+        return seq;
+      });
+    const seq1 = await fp("tiny_dance", 0, 1);
+    const seq2 = await fp("tiny_dance", 0, 2);
+    expect(seq2.slice(0, seq1.length)).toEqual(seq1);
+    expect(seq2.length).toBeGreaterThan(seq1.length);
+  }, 120_000);
 });

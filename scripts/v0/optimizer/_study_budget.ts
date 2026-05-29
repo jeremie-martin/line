@@ -23,7 +23,6 @@ import { writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { compileLDS } from "./api.ts";
 import { loadGoldenSpec } from "../golden_suite.ts";
-import { scoreReport } from "./scorer.ts";
 import { scoreDriftReport } from "../score.ts";
 
 const SEEDS = [0, 1, 2, 3, 4];
@@ -95,7 +94,7 @@ async function runOneCell(name: string, seed: number, budget: number): Promise<C
     });
     const wall_ms = performance.now() - t0;
     const scoreDr = scoreDriftReport(r.report);
-    const axisQ = scoreReport(r.report);
+    const axisQ = scoreDr.axis_quality;
     const passed = scoreDr.contract_passed;
     return {
       spec: name, seed, budget_requested: budget,

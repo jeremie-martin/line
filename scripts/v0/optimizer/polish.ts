@@ -22,11 +22,14 @@
 
 import {
   type GapFit,
+  type ResolvedStart,
+  getRebuildStartState,
   polishAirRideOut,
   polishAirContactEntry,
   polishAirBriefContacts,
   polishExcessContact,
   rebuildEngine,
+  setRebuildStartState,
 } from "../compile.ts";
 import type { Gap } from "../types.ts";
 import type { Spec } from "./types.ts";
@@ -67,6 +70,13 @@ export type PolishedVariant = {
  * Produce a polished variant of a leaf's fits, or null if polish changed
  * nothing. The returned variant carries a freshly rebuilt engine so the caller
  * can score it with the exact oracle.
+ *
+ * The polish helpers and `rebuildEngine` read compile.ts's module-scoped start
+ * state. We set it to this leaf's `startState` for the duration of the pass and
+ * restore the previous value in `finally`, so an interleaved `compile()` /
+ * second `compileLDS()` can't leave it stale (review #5). Save/restore (rather
+ * than threading the start through every helper signature) keeps the legacy
+ * helpers untouched while making the LDS path reentrancy-safe.
  */
 export function polishLeafVariant(
   fits: (GapFit | null)[],
@@ -74,16 +84,23 @@ export function polishLeafVariant(
   gaps: Gap[],
   contactFrames: number[],
   durationFrames: number,
+  startState: ResolvedStart,
 ): PolishedVariant | null {
   const clone = cloneFits(fits);
   const before = fingerprintFits(clone);
   // deno-lint-ignore no-explicit-any
   const s = spec as any;
-  polishAirRideOut(clone, gaps, s, contactFrames, durationFrames);
-  polishAirContactEntry(clone, gaps, s, contactFrames, durationFrames);
-  polishAirBriefContacts(clone, gaps, s, contactFrames, durationFrames);
-  polishExcessContact(clone, gaps, s, contactFrames, durationFrames);
-  if (fingerprintFits(clone) === before) return null;
-  const engine = rebuildEngine(clone, gaps.length);
-  return { fits: clone, engine };
+  const prevStart = getRebuildStartState();
+  setRebuildStartState(startState);
+  try {
+    polishAirRideOut(clone, gaps, s, contactFrames, durationFrames);
+    polishAirContactEntry(clone, gaps, s, contactFrames, durationFrames);
+    polishAirBriefContacts(clone, gaps, s, contactFrames, durationFrames);
+    polishExcessContact(clone, gaps, s, contactFrames, durationFrames);
+    if (fingerprintFits(clone) === before) return null;
+    const engine = rebuildEngine(clone, gaps.length);
+    return { fits: clone, engine };
+  } finally {
+    setRebuildStartState(prevStart);
+  }
 }

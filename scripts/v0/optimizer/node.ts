@@ -88,8 +88,11 @@ export function getCandidatesSorted(
     return [];
   }
   // Fresh per-gap RNG — same scheme as legacy compile.ts. Determined
-  // by (seed, gapIndex), not by anything budget-touches.
-  const perGapRng = makeRng((seed | 0) * 1000003 + node.gapIndex + 1);
+  // by (seed, gapIndex), not by anything budget-touches. `Math.imul` keeps the
+  // mix in exact int32 arithmetic so large seeds can't lose precision or
+  // collide (the plain `*` overflowed past 2^53 for big seeds — review #10).
+  // Byte-identical to the old `(seed|0)*1000003 + …` for int32-range seeds.
+  const perGapRng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
   const sampleOrder = solveOneGap(
     node.prefixEngine, gap, perGapRng, N_CAND, ctx, node.prefixNextLineId,
   );

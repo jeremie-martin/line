@@ -18,13 +18,13 @@
  * Step 5+ concern.
  */
 
+import { type GapFit } from "../core/substrate.ts";
 import {
-  type GapFit,
   axisLookaheadEndFrame,
   readTargetState,
   sampleArcParams,
   tryCandidate,
-} from "../compile.ts";
+} from "../core/candidate.ts";
 import { getRiderMetered } from "../../lib/detector.ts";
 import type { Gap } from "./types.ts";
 

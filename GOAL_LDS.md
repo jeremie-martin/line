@@ -333,3 +333,24 @@ The honest gaps. Append findings here as you learn; this is your lab notebook.
   residual/look-ahead targeting was tried and *refuted* (it traded contact-landing for
   axis-alignment and broke a passing spec). A better-aligned generator that lands more
   contacts *at the floor*, cheaply, remains the highest-leverage open lever.
+
+- **UNIFYING FINDING (2026-05-29): every failing row is budget-starved by the floor.**
+  Probed all current failures (`drums_pendulum` s0, `drums_crescendo` all, `solo_run` s1).
+  In every one, the budget-exempt base floor consumes **≥ the entire per-spec budget on its
+  own** (`solo_run` s1: floor used 220k frames, 46 backtracks, budget 200k; `drums_crescendo`
+  s0: 457k floor), so `getSimFrames()` is already ≥ budget when the repair loop starts —
+  repair and the d≥1 deviation sweep **never run** (`leaves_considered=1`, `repair_rounds=0`).
+  The floor itself then skips contacts (`solo_run` s1 skips 5) or lands off-beat/drift
+  (`drums_pendulum`) because candidate quality is poor at the hard gaps. *This is one root
+  cause, not several hard specs.* It explains why #1 (base-relative discrepancy) and #2
+  (forbidSkip) were inert: both are repair-phase mechanisms, and **repair never gets budget
+  to run**. `solo_run` s1's misses ARE skip-owned (would be #2's case) — but starved.
+  Implication: the two coupled levers are (a) a **cheaper floor** — fewer backtracks leaves
+  budget for the anytime search above it (this is what `drums_crescendo`'s "why so much
+  backtracking?" question is really about; cf. #3 split-floor, deferred); and (b) **better
+  candidates at hard gaps** (#4) — which simultaneously lands more at the floor AND reduces
+  backtracking, so it attacks both the miss and the floor cost. Raising the budget to cover
+  floor+repair is the "lean on budget to mask it" trap this section already warns against —
+  the principled fix is reducing floor cost / improving candidates. Next agent: start by
+  instrumenting *why* the floor backtracks 46× on `solo_run` s1 (which gap has no landable
+  candidate, and what geometry would land it) — that is the crack, and it generalizes.

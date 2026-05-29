@@ -26,3 +26,7 @@ beats/stems/htdemucs/
 
 .DS_Store
 *.log
+.wip-archive/
+
+# throwaway optimizer probes
+scripts/v0/_probe*.ts

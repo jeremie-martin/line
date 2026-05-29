@@ -1,0 +1,44 @@
+{
+  "rows": [
+    {
+      "compiler": "v1",
+      "spec": "syncopated_switchback",
+      "seed": 0,
+      "budget_units": 770000,
+      "elapsed_ms": 426629,
+      "contract_passed": true,
+      "score": 379.05861277608756,
+      "axis_quality": 0.37905861277608754,
+      "hard_failures": [],
+      "work_units_used": 770000,
+      "best_found_at_work_unit": 128094,
+      "completed_candidates": 34,
+      "contract_passing_candidates": 24,
+      "candidates_sampled": 4337,
+      "detector_frames": 3609851,
+      "track_lines": 138
+    }
+  ],
+  "summary": {
+    "row_count": 1,
+    "contract_pass_rate": 1,
+    "monotonic_tolerance": 1e-12,
+    "monotonic_violations": [],
+    "wall_ms_per_work_unit": {
+      "count": 1,
+      "mean": 0.5540636363636363,
+      "stddev": 0,
+      "cv": 0,
+      "min": 0.5540636363636363,
+      "max": 0.5540636363636363
+    },
+    "detector_frames_per_work_unit": {
+      "count": 1,
+      "mean": 4.688118181818182,
+      "stddev": 0,
+      "cv": 0,
+      "min": 4.688118181818182,
+      "max": 4.688118181818182
+    }
+  }
+}

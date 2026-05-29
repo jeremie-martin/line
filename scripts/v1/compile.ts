@@ -58,6 +58,7 @@ const RECOVERY_EPOCH_WORK_UNITS = 1_000;
 const RECOVERY_FRONTIER_MAX_STATES = 24;
 const RECOVERY_FRONTIER_CHILDREN_PER_PREFIX = 4;
 const RECOVERY_FRONTIER_CANDIDATE_ATTEMPTS = 16;
+const RECOVERY_FRONTIER_MAX_ORDINALS_PER_PREFIX = 192;
 const ORDINARY_PREFIX_ENGINE_CACHE_LIMIT = 16;
 const DENSE_PREFIX_ENGINE_CACHE_LIMIT = 2;
 const PREFIX_VALIDATION_RETRIES_PER_GAP = 0;
@@ -162,6 +163,7 @@ type RecoveryPrefix = {
   gapIndex: number;
   cumulativeCost: number;
   prefixHash: string;
+  candidateCursorByGap: Map<number, number>;
 };
 
 type CoverageSearchState = {
@@ -237,6 +239,7 @@ function createRecoveryFrontierState(context: NormalizedSpecContext): RecoveryFr
     gapIndex: 0,
     cumulativeCost: 0,
     prefixHash: "root",
+    candidateCursorByGap: new Map(),
     }],
   };
 }
@@ -271,21 +274,33 @@ function runRecoveryFrontierEpoch(
       context,
       contactGapIndex,
       prefix.fits,
-      0,
-      RECOVERY_FRONTIER_CANDIDATE_ATTEMPTS,
+      recoveryCursorFor(prefix, contactGapIndex),
+      Math.min(
+        RECOVERY_FRONTIER_CANDIDATE_ATTEMPTS,
+        RECOVERY_FRONTIER_MAX_ORDINALS_PER_PREFIX - recoveryCursorFor(prefix, contactGapIndex),
+      ),
       state.prefixEngineCache,
       meter,
       stats,
+    );
+    requeueRecoveryPrefixWithAdvancedCursor(
+      state.frontier,
+      prefix,
+      contactGapIndex,
+      batch.attempted,
     );
     const accepted = batch.accepted.slice(0, RECOVERY_FRONTIER_CHILDREN_PER_PREFIX);
     for (const fit of accepted) {
       const childFits = prefix.fits.slice();
       childFits[contactGapIndex] = fit;
+      const childCursors = new Map(prefix.candidateCursorByGap);
+      childCursors.delete(contactGapIndex);
       const child: RecoveryPrefix = {
         fits: childFits,
         gapIndex: contactGapIndex + 1,
         cumulativeCost: prefix.cumulativeCost + fit.cost,
         prefixHash: prefixHashFor(childFits, contactGapIndex + 1),
+        candidateCursorByGap: childCursors,
       };
       state.frontier.push(child);
     }
@@ -294,6 +309,28 @@ function runRecoveryFrontierEpoch(
       state.frontier.length = RECOVERY_FRONTIER_MAX_STATES;
     }
   }
+}
+
+function recoveryCursorFor(prefix: RecoveryPrefix, gapIndex: number): number {
+  return prefix.candidateCursorByGap.get(gapIndex) ?? 0;
+}
+
+function requeueRecoveryPrefixWithAdvancedCursor(
+  frontier: RecoveryPrefix[],
+  prefix: RecoveryPrefix,
+  gapIndex: number,
+  attempted: number,
+): void {
+  if (attempted <= 0) return;
+  const nextCursor = recoveryCursorFor(prefix, gapIndex) + attempted;
+  if (nextCursor >= RECOVERY_FRONTIER_MAX_ORDINALS_PER_PREFIX) return;
+  const candidateCursorByGap = new Map(prefix.candidateCursorByGap);
+  candidateCursorByGap.set(gapIndex, nextCursor);
+  frontier.push({
+    ...prefix,
+    fits: prefix.fits.slice(),
+    candidateCursorByGap,
+  });
 }
 
 function shouldRunRecoveryFrontier(context: NormalizedSpecContext): boolean {
@@ -307,7 +344,21 @@ function shouldRunRecoveryFrontier(context: NormalizedSpecContext): boolean {
 function compareRecoveryPrefixes(a: RecoveryPrefix, b: RecoveryPrefix): number {
   if (a.gapIndex !== b.gapIndex) return b.gapIndex - a.gapIndex;
   if (a.cumulativeCost !== b.cumulativeCost) return a.cumulativeCost - b.cumulativeCost;
-  return a.prefixHash < b.prefixHash ? -1 : a.prefixHash > b.prefixHash ? 1 : 0;
+  if (a.prefixHash !== b.prefixHash) return a.prefixHash < b.prefixHash ? -1 : 1;
+  return compareRecoveryCursors(a.candidateCursorByGap, b.candidateCursorByGap);
+}
+
+function compareRecoveryCursors(a: ReadonlyMap<number, number>, b: ReadonlyMap<number, number>): number {
+  const aEntries = [...a.entries()].sort((x, y) => x[0] - y[0]);
+  const bEntries = [...b.entries()].sort((x, y) => x[0] - y[0]);
+  const length = Math.min(aEntries.length, bEntries.length);
+  for (let index = 0; index < length; index++) {
+    const [aGap, aCursor] = aEntries[index];
+    const [bGap, bCursor] = bEntries[index];
+    if (aGap !== bGap) return aGap - bGap;
+    if (aCursor !== bCursor) return aCursor - bCursor;
+  }
+  return aEntries.length - bEntries.length;
 }
 
 function runCoverageSearchEpoch(

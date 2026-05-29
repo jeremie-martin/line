@@ -386,7 +386,10 @@ export function* enumerateLeaves(
   const forbidden = new Map<number, Set<number>>(); // gapIndex -> forbidden sorted-indices
   let cur: Leaf = base.leaf;
   let curCommit = base.baseCommitPath;
-  for (let round = 0; round < REPAIR_ROUNDS_CAP; round++) {
+  // Repair leaves carry discrepancy = round+1, so respect maxDiscrepancy: at
+  // maxDiscrepancy=0 no repair leaf is yielded (callers can isolate the pure d=0
+  // base floor); review P2.
+  for (let round = 0; round < REPAIR_ROUNDS_CAP && round + 1 <= maxDiscrepancy; round++) {
     if (getSimFrames() >= budgetUnits) return;
     const det = detect(extractRawTrajectory(cur.engine, ctx.durationFrames + 20));
     const owners = failureOwnerGaps(det, gaps, cur.fits as (GapFit | null)[], ctx.allContactFrames);

@@ -2,8 +2,9 @@
  * Stage 1 — public compileLDS entry point.
  *
  * Wires the LDS leaf enumeration through the best-so-far register
- * and returns the best CompileOutput seen. No budget cutoff yet
- * (that's Stage 2); this stage runs to a maxDiscrepancy cap.
+ * and returns the best CompileOutput seen. Budgeted runs stop at
+ * deterministic op boundaries, with a hard metering guard for work
+ * still inside one expensive op.
  *
  * Determinism: given `(spec, seed, opts)`, every step is
  * deterministic — RNG seeded by (seed, gap_index) per-node, the leaf
@@ -36,7 +37,12 @@ import { enumerateLeaves, type Leaf, type SearchTelemetry } from "./lds.ts";
 import { makeRootNode } from "./node.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
-import { getSimFrames, resetSimFrames } from "./sim_frames.ts";
+import {
+  PhysicsFrameLimitExceeded,
+  getSimFrames,
+  resetSimFrames,
+  setSimFrameLimit,
+} from "./sim_frames.ts";
 import type { SpecContext } from "./sample.ts";
 import type { Budget, CompileOutput, DriftReport, Spec } from "./types.ts";
 
@@ -47,7 +53,8 @@ export type CompileLDSOptions = {
    *  independent of compute budget; usually you just want the budget. */
   maxDiscrepancy?: number;
   /** Compute budget in sim-frames. Enumeration stops at the next op
-   *  boundary after `getSimFrames() >= budget.units`. If unset, runs
+   *  boundary after `getSimFrames() >= budget.units`; a hard guard
+   *  aborts if in-op work reaches +20% over budget. If unset, runs
    *  until `maxDiscrepancy` is fully enumerated. */
   budget?: Budget;
   /** Optional callback fired once per ENUMERATED leaf evaluated (not
@@ -62,6 +69,10 @@ export type CompileLDSOptions = {
    *  determinism are preserved. */
   polish?: boolean;
 };
+
+/** Budgeted compiles stop at the normal LDS op boundary once `budget.units` is
+ *  spent. This hard guard catches work still inside a single expensive op. */
+const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 
 export function compileLDS(
   userSpec: Spec,
@@ -89,131 +100,147 @@ export function compileLDS(
   }
 
   resetSimFrames();
-  validateSpec(userSpec);
-  const spec = withOptimizedPrerollStart(userSpec, seed);
-  const startState: ResolvedStart = resolveStartState(spec);
-  // `startState` is threaded explicitly into `polishLeafVariant` (which scopes
-  // compile.ts's module-global start state via save/restore around its rebuilds)
-  // rather than primed here as a side effect — so an interleaved `compile()` /
-  // second `compileLDS()` can't leave polish rebuilding from a stale start
-  // (review #5; the removed legacy floor used to set the global implicitly).
-  const durationFrames = secToFrame(spec.duration);
-  const allContactFrames = [...spec.contacts]
-    .map((c) => secToFrame(c.t))
-    .sort((a, b) => a - b);
+  const hardBudgetLimit = opts.budget === undefined
+    ? null
+    : Math.ceil(budgetUnits * BUDGET_HARD_LIMIT_MULTIPLIER);
+  setSimFrameLimit(hardBudgetLimit);
+  try {
+    validateSpec(userSpec);
+    const spec = withOptimizedPrerollStart(userSpec, seed);
+    const startState: ResolvedStart = resolveStartState(spec);
+    // `startState` is threaded explicitly into `polishLeafVariant` (which scopes
+    // compile.ts's module-global start state via save/restore around its rebuilds)
+    // rather than primed here as a side effect — so an interleaved `compile()` /
+    // second `compileLDS()` can't leave polish rebuilding from a stale start
+    // (review #5; the removed legacy floor used to set the global implicitly).
+    const durationFrames = secToFrame(spec.duration);
+    const allContactFrames = [...spec.contacts]
+      .map((c) => secToFrame(c.t))
+      .sort((a, b) => a - b);
 
-  const gaps = sliceTimeline(allContactFrames, durationFrames);
-  const masterRng = makeRng(seed);
-  for (const gap of gaps) {
-    const sec = effectiveAxes(gap, spec);
-    gap.targets = sampleGapTargets(sec, CALIB.SIGMA, masterRng);
-  }
+    const gaps = sliceTimeline(allContactFrames, durationFrames);
+    const masterRng = makeRng(seed);
+    for (const gap of gaps) {
+      const sec = effectiveAxes(gap, spec);
+      gap.targets = sampleGapTargets(sec, CALIB.SIGMA, masterRng);
+    }
 
-  const ctx: SpecContext = { allContactFrames, durationFrames };
-  const initialEngine = makeBaseEngine(startState);
-  const root = makeRootNode(initialEngine, gaps.length);
-  const register = new BestSoFarRegister();
+    const ctx: SpecContext = { allContactFrames, durationFrames };
+    const initialEngine = makeBaseEngine(startState);
+    const root = makeRootNode(initialEngine, gaps.length);
+    const register = new BestSoFarRegister();
 
-  const polishEnabled = opts.polish ?? true;
-  let budgetExhausted = false;
-  // Non-scoring search telemetry (CompileStats optimizer-native diagnostics).
-  // Threaded into enumerateLeaves; never read by the search, so byte-identical.
-  const telemetry: SearchTelemetry = { repairRounds: 0, cacheHits: 0, cacheMisses: 0, baseBacktracks: 0 };
-  let polishTried = 0;
-  let polishAdopted = 0;
+    const polishEnabled = opts.polish ?? true;
+    let budgetExhausted = false;
+    // Non-scoring search telemetry (CompileStats optimizer-native diagnostics).
+    // Threaded into enumerateLeaves; never read by the search, so byte-identical.
+    const telemetry: SearchTelemetry = { repairRounds: 0, cacheHits: 0, cacheMisses: 0, baseBacktracks: 0 };
+    let polishTried = 0;
+    let polishAdopted = 0;
 
-  /** Score a leaf (or polish variant) and offer it to the register.
-   *  Returns the comparator key. The detect+report runs once (`evaluateLeaf`)
-   *  and is shared with `buildLeafOutput` — no second extraction (review #7). */
-  const consider = (leafLike: Leaf): LeafKey => {
-    const { report, key } = evaluateLeaf(leafLike, spec, gaps, allContactFrames, durationFrames);
-    register.consider(
-      buildLeafOutput(leafLike, report, durationFrames, startState, budgetExhausted),
-      key,
-    );
-    return key;
-  };
+    /** Score a leaf (or polish variant) and offer it to the register.
+     *  Returns the comparator key. The detect+report runs once (`evaluateLeaf`)
+     *  and is shared with `buildLeafOutput` — no second extraction (review #7). */
+    const consider = (leafLike: Leaf): LeafKey => {
+      const { report, key } = evaluateLeaf(leafLike, spec, gaps, allContactFrames, durationFrames);
+      register.consider(
+        buildLeafOutput(leafLike, report, durationFrames, startState, budgetExhausted),
+        key,
+      );
+      return key;
+    };
 
-  // The legacy floor has been removed: the d=0 leaf (buildBacktrackingLeaf,
-  // inside enumerateLeaves) is the search's own completion floor. compileLDS now
-  // stands alone — no legacyCompile seed, no fallback.
-  for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed, budgetUnits, telemetry)) {
-    const key = consider(leaf);
-    opts.onLeaf?.(leaf, key);
+    // The legacy floor has been removed: the d=0 leaf (buildBacktrackingLeaf,
+    // inside enumerateLeaves) is the search's own completion floor. compileLDS now
+    // stands alone — no legacyCompile seed, no fallback.
+    let hardLimitError: PhysicsFrameLimitExceeded | null = null;
+    try {
+      for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed, budgetUnits, telemetry)) {
+        const key = consider(leaf);
+        opts.onLeaf?.(leaf, key);
 
-    // Stage B — polish as clone-and-test: derive a polished variant of this
-    // leaf and offer it too. The variant is a NEW leaf (original untouched),
-    // so best-so-far can only improve; `E` is extended in a fixed,
-    // deterministic order, never reordered. Interleaving per-leaf (rather
-    // than a final pass) means even a low budget polishes the d=0 greedy
-    // leaf first, so low-budget output is "greedy + polish" ≈ greedy_v1.
-    if (polishEnabled) {
-      const variant = polishLeafVariant(leaf.fits, spec, gaps, allContactFrames, durationFrames, startState);
-      if (variant !== null) {
-        polishTried++;
-        const improvedBefore = register.improvementCount;
-        consider({ ...leaf, fits: variant.fits, engine: variant.engine });
-        if (register.improvementCount > improvedBefore) polishAdopted++;
+        // Stage B — polish as clone-and-test: derive a polished variant of this
+        // leaf and offer it too. The variant is a NEW leaf (original untouched),
+        // so best-so-far can only improve; `E` is extended in a fixed,
+        // deterministic order, never reordered. Interleaving per-leaf (rather
+        // than a final pass) means even a low budget polishes the d=0 greedy
+        // leaf first, so low-budget output is "greedy + polish" ≈ greedy_v1.
+        if (polishEnabled) {
+          const variant = polishLeafVariant(leaf.fits, spec, gaps, allContactFrames, durationFrames, startState);
+          if (variant !== null) {
+            polishTried++;
+            const improvedBefore = register.improvementCount;
+            consider({ ...leaf, fits: variant.fits, engine: variant.engine });
+            if (register.improvementCount > improvedBefore) polishAdopted++;
+          }
+        }
+
+        // Op boundary: check budget AFTER scoring/considering this leaf (and its
+        // polish variant). Stopping AFTER consider means we always benefit from
+        // work already paid for, and preserves the prefix-superset invariant —
+        // the same leaves would have been considered at any larger budget.
+        if (getSimFrames() >= budgetUnits) {
+          budgetExhausted = true;
+          break;
+        }
       }
-    }
-
-    // Op boundary: check budget AFTER scoring/considering this leaf (and its
-    // polish variant). Stopping AFTER consider means we always benefit from
-    // work already paid for, and preserves the prefix-superset invariant —
-    // the same leaves would have been considered at any larger budget.
-    if (getSimFrames() >= budgetUnits) {
+    } catch (error) {
+      if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;
+      hardLimitError = error;
       budgetExhausted = true;
-      break;
     }
-  }
-  // Also catch the case where the finer-grained cutoff inside enumerateLeaves
-  // stopped the search before the loop body ran (e.g. tiny budget below the
-  // floor cost, or dead-end exploration halted): the budget was still spent.
-  if (getSimFrames() >= budgetUnits) budgetExhausted = true;
+    // Also catch the case where the finer-grained cutoff inside enumerateLeaves
+    // stopped the search before the loop body ran (e.g. tiny budget below the
+    // floor cost, or dead-end exploration halted): the budget was still spent.
+    if (getSimFrames() >= budgetUnits) budgetExhausted = true;
 
-  const best = register.getBest();
-  if (best === null) {
-    throw new Error(
-      `compileLDS: no leaf reached end-of-spec ` +
-      `(spec_duration=${spec.duration}s, seed=${seed}, ` +
-      `maxDiscrepancy=${maxDiscrepancy}, ` +
-      `budget=${opts.budget ? opts.budget.units : "unset"}, ` +
-      `sim_frames_used=${getSimFrames()}, ` +
-      `budget_exhausted=${budgetExhausted})`,
-    );
+    const best = register.getBest();
+    if (best === null) {
+      if (hardLimitError !== null) throw hardLimitError;
+      throw new Error(
+        `compileLDS: no leaf reached end-of-spec ` +
+        `(spec_duration=${spec.duration}s, seed=${seed}, ` +
+        `maxDiscrepancy=${maxDiscrepancy}, ` +
+        `budget=${opts.budget ? opts.budget.units : "unset"}, ` +
+        `sim_frames_used=${getSimFrames()}, ` +
+        `budget_exhausted=${budgetExhausted})`,
+      );
+    }
+    // Loud signal on a degenerate best-effort result: the floor always reaches
+    // end-of-spec (skip-marching unsatisfiable contacts), so on a contactful spec
+    // a winner that commits ZERO contact fits means every contact was skipped.
+    // Surface it rather than silently returning an empty track; we still return
+    // the best-effort track (anytime semantics) instead of throwing (review #2).
+    if (allContactFrames.length > 0 && best.stats.gap_commits === 0) {
+      console.warn(
+        `compileLDS: degenerate result — 0 of ${allContactFrames.length} contacts committed ` +
+        `(every contact gap skipped); returning best-effort track. ` +
+        `(seed=${seed}, maxDiscrepancy=${maxDiscrepancy}, ` +
+        `budget=${opts.budget ? opts.budget.units : "unset"}, sim_frames=${getSimFrames()})`,
+      );
+    }
+    // Patch whole-run fields onto the returned output: budget_exhausted (the leaf
+    // was built before we knew the final flag) + the optimizer-native diagnostics
+    // (non-scoring; they make the golden breakdown actionable — GOAL_LDS §1).
+    return {
+      ...best,
+      stats: {
+        ...best.stats,
+        budget_exhausted: budgetExhausted,
+        sim_frames: getSimFrames(),
+        leaves_considered: register.consideredCount,
+        improvements: register.improvementCount,
+        polish_variants_tried: polishTried,
+        polish_variants_adopted: polishAdopted,
+        repair_rounds: telemetry.repairRounds,
+        candidate_cache_hits: telemetry.cacheHits,
+        candidate_cache_misses: telemetry.cacheMisses,
+        base_backtracks: telemetry.baseBacktracks,
+      },
+    };
+  } finally {
+    setSimFrameLimit(null);
   }
-  // Loud signal on a degenerate best-effort result: the floor always reaches
-  // end-of-spec (skip-marching unsatisfiable contacts), so on a contactful spec
-  // a winner that commits ZERO contact fits means every contact was skipped.
-  // Surface it rather than silently returning an empty track; we still return
-  // the best-effort track (anytime semantics) instead of throwing (review #2).
-  if (allContactFrames.length > 0 && best.stats.gap_commits === 0) {
-    console.warn(
-      `compileLDS: degenerate result — 0 of ${allContactFrames.length} contacts committed ` +
-      `(every contact gap skipped); returning best-effort track. ` +
-      `(seed=${seed}, maxDiscrepancy=${maxDiscrepancy}, ` +
-      `budget=${opts.budget ? opts.budget.units : "unset"}, sim_frames=${getSimFrames()})`,
-    );
-  }
-  // Patch whole-run fields onto the returned output: budget_exhausted (the leaf
-  // was built before we knew the final flag) + the optimizer-native diagnostics
-  // (non-scoring; they make the golden breakdown actionable — GOAL_LDS §1).
-  return {
-    ...best,
-    stats: {
-      ...best.stats,
-      budget_exhausted: budgetExhausted,
-      sim_frames: getSimFrames(),
-      leaves_considered: register.consideredCount,
-      improvements: register.improvementCount,
-      polish_variants_tried: polishTried,
-      polish_variants_adopted: polishAdopted,
-      repair_rounds: telemetry.repairRounds,
-      candidate_cache_hits: telemetry.cacheHits,
-      candidate_cache_misses: telemetry.cacheMisses,
-      base_backtracks: telemetry.baseBacktracks,
-    },
-  };
 }
 
 /** Run detect + buildDriftReport ONCE for a leaf and derive both the drift

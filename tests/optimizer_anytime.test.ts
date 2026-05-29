@@ -132,15 +132,14 @@ describe("optimizer/api.ts — Stage 2 anytime budget", () => {
     ).toThrow(/units must be positive/);
   });
 
-  test("budget=1 returns the d=0 leaf (always evaluated first), budget_exhausted=true", async () => {
+  test("tiny budget trips the hard overrun guard instead of finishing the floor", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
-    // The op-boundary cutoff is checked AFTER each leaf is scored, so
-    // the d=0 leaf is always considered regardless of budget. This is
-    // intentional — we always at least get the greedy track.
-    const r = compileLDS(spec, 0, { budget: { kind: "work", units: 1 } });
-    expect(r.stats.budget_exhausted).toBe(true);
-    expect(r.report.contacts.every((c) => c.status === "hit")).toBe(true);
-    expect(r.stats.sim_frames).toBeGreaterThan(1); // overshoot
+    // Below the floor cost there may be no complete leaf to return, but the
+    // worker still must not run a budget-exempt descent forever. The hard guard
+    // is budget +20%, so budget=2000 stops at limit=2400.
+    expect(() =>
+      compileLDS(spec, 0, { budget: { kind: "work", units: 2_000 } })
+    ).toThrow(/limit=2400/);
   }, 60_000);
 
   test("budget_exhausted survives the register's stat re-stitch", async () => {

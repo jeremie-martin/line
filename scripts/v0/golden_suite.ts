@@ -44,7 +44,7 @@ export const GOLDEN_SEEDS = [0, 1, 2] as const;
  * burned 10–20× greedy's wall-clock for ZERO quality gain. A flat budget a
  * modest headroom above the largest floor captures the cheap bonus on solvable
  * specs while bounding the waste on dead-end specs. wall ≈ 0.27 ms/physframe,
- * so 200k ≈ a ~55 s ceiling per (spec,seed) before the one-leaf overshoot.
+ * so 200k ≈ a ~55 s ceiling per (spec,seed) before the +20% hard overrun guard.
  *
  * (Tighter bounding of dead-end specs needs an algorithm change — finer-grained
  * budget checks or LDS early-stop / completion — tracked as the big-spec speed
@@ -87,7 +87,7 @@ export const EVALUATOR_FINGERPRINT = "e159a6bc5e41";
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. LDS spends its
  * physics budget exploring (≈0.3 ms per physics frame, so a 200k budget ≈ 60-70 s
- * wall, up to ~2× under the one-leaf overshoot), so the cap is scaled off the
+ * wall, bounded by the +20% hard overrun guard), so the cap is scaled off the
  * budget with generous safety — a normal compile is never killed mid-search
  * (which would score 0, a false failure). golden.ts further multiplies this by
  * --jobs, since parallel contention stretches wall-clock. Safety net, not a

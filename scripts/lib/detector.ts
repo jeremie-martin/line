@@ -401,12 +401,30 @@ export function extractRawTrajectoryWindow(
   duration: number,
 ): RawTrajectory {
   const before = engineLastFrameIndex(engine);
+  let chargedThrough = before;
   const frames: RawFrame[] = [];
   for (let f = Math.max(0, startFrame); f <= duration; f++) {
+    if (
+      _physicsFrameLimit !== null &&
+      chargedThrough !== null &&
+      f > chargedThrough &&
+      _physicsFrames + (f - chargedThrough) > _physicsFrameLimit
+    ) {
+      throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, _physicsFrames + (f - chargedThrough));
+    }
     frames.push(extractRawFrame(engine, f));
+    if (_physicsFrameLimit !== null && chargedThrough !== null) {
+      const afterFrame = engineLastFrameIndex(engine);
+      if (afterFrame !== null) {
+        chargePhysicsFrames(Math.max(0, afterFrame - chargedThrough));
+        chargedThrough = afterFrame;
+      }
+    }
   }
   const after = engineLastFrameIndex(engine);
-  if (before !== null && after !== null) _physicsFrames += Math.max(0, after - before);
+  if (_physicsFrameLimit === null && before !== null && after !== null) {
+    chargePhysicsFrames(Math.max(0, after - before));
+  }
   return { duration, frames };
 }
 
@@ -425,6 +443,19 @@ export function extractRawTrajectoryWindow(
  *    can't inflate (Property 3). See `optimizer/sim_frames.ts`. */
 let _frameCount = 0;
 let _physicsFrames = 0;
+let _physicsFrameLimit: number | null = null;
+
+export class PhysicsFrameLimitExceeded extends Error {
+  readonly limit: number;
+  readonly attempted: number;
+
+  constructor(limit: number, attempted: number) {
+    super(`physics frame budget hard limit exceeded (limit=${limit}, attempted=${attempted})`);
+    this.name = "PhysicsFrameLimitExceeded";
+    this.limit = limit;
+    this.attempted = attempted;
+  }
+}
 
 /** Read the cumulative frame-*read* count since the last reset
  *  (secondary counter; over-bills cached re-reads). */
@@ -438,10 +469,29 @@ export function getPhysicsFrameCount(): number {
   return _physicsFrames;
 }
 
+/** Set/clear a hard cap on the physics-frame counter. Intended for budgeted
+ *  compiles as a runaway guard; null means uncapped. */
+export function setPhysicsFrameLimit(limit: number | null): void {
+  if (limit !== null && (!Number.isFinite(limit) || limit <= 0)) {
+    throw new Error(`setPhysicsFrameLimit: limit must be positive or null, got ${limit}`);
+  }
+  _physicsFrameLimit = limit === null ? null : Math.ceil(limit);
+}
+
 /** Reset both frame counters. Call at the start of each compile(). */
 export function resetFrameCount(): void {
   _frameCount = 0;
   _physicsFrames = 0;
+}
+
+function chargePhysicsFrames(delta: number): void {
+  if (delta <= 0) return;
+  const attempted = _physicsFrames + delta;
+  if (_physicsFrameLimit !== null && attempted > _physicsFrameLimit) {
+    _physicsFrames = attempted;
+    throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, attempted);
+  }
+  _physicsFrames = attempted;
 }
 
 /** Safely read lr-core's highest-simulated-frame index (monotonic engine
@@ -465,9 +515,17 @@ function engineLastFrameIndex(engine: any): number | null {
 // deno-lint-ignore no-explicit-any
 export function getRiderMetered(engine: any, frame: number): any {
   const before = engineLastFrameIndex(engine);
+  if (
+    _physicsFrameLimit !== null &&
+    before !== null &&
+    frame > before &&
+    _physicsFrames + (frame - before) > _physicsFrameLimit
+  ) {
+    throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, _physicsFrames + (frame - before));
+  }
   const rider = engine.getRider(frame);
   const after = engineLastFrameIndex(engine);
-  if (before !== null && after !== null) _physicsFrames += Math.max(0, after - before);
+  if (before !== null && after !== null) chargePhysicsFrames(Math.max(0, after - before));
   return rider;
 }
 

@@ -62,6 +62,35 @@ export function addTrackLines(
   return addEngineLines(baseEngine, lines.map(engineLineFromTrackLine));
 }
 
+export function engineLastFrameIndex(engine: any): number | null {
+  const getLastFrameIndex = engine?.getLastFrameIndex;
+  if (typeof getLastFrameIndex !== "function") return null;
+  const value = getLastFrameIndex.call(engine);
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+export function measureEngineComputation<T>(
+  engine: any,
+  stats: CompileStatsBuilder | undefined,
+  read: () => T,
+): T {
+  const before = stats === undefined ? null : engineLastFrameIndex(engine);
+  const result = read();
+  if (stats !== undefined && before !== null) {
+    const after = engineLastFrameIndex(engine);
+    if (after !== null) stats.recordPhysicsFrameRequest(after - before);
+  }
+  return result;
+}
+
+export function measuredGetRider(
+  engine: any,
+  frame: number,
+  stats?: CompileStatsBuilder,
+): any {
+  return measureEngineComputation(engine, stats, () => engine.getRider(frame));
+}
+
 export function rebuildEngineFromLines(
   lines: readonly TrackLine[],
   start: ResolvedStart,

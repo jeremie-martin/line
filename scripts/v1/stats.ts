@@ -20,6 +20,9 @@ export class CompileStatsBuilder {
       engine_rebuilds: 0,
       detector_windows: 0,
       detector_frames: 0,
+      physics_frame_requests: 0,
+      physics_frame_cache_hits: 0,
+      physics_frames_computed: 0,
       gap_commits: 0,
       gap_backtracks: 0,
       recovery_promotions: 0,
@@ -68,6 +71,13 @@ export class CompileStatsBuilder {
   recordDetectorWindow(frames: number): void {
     this.stats.detector_windows++;
     this.stats.detector_frames += Math.max(0, frames);
+  }
+
+  recordPhysicsFrameRequest(computedFrames: number): void {
+    const frames = Math.max(0, Math.floor(computedFrames));
+    this.stats.physics_frame_requests++;
+    this.stats.physics_frames_computed += frames;
+    if (frames === 0) this.stats.physics_frame_cache_hits++;
   }
 
   recordCandidateSampled(count = 1): void {

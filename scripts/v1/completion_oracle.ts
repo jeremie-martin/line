@@ -19,7 +19,7 @@ import type {
   TrackLine,
 } from "./types.ts";
 import type { GapFit } from "./search_state.ts";
-import { rebuildEngineFromLines } from "./engine_adapter.ts";
+import { measureEngineComputation, rebuildEngineFromLines } from "./engine_adapter.ts";
 import { canonicalTrackHash } from "./track_builder.ts";
 import { CompileStatsBuilder } from "./stats.ts";
 import { WorkMeter } from "./work_meter.ts";
@@ -39,7 +39,11 @@ export function evaluateTrackJson(
     velocity: track.riders[0]?.startVelocity ?? context.startState.velocity,
   };
   const engine = rebuildEngineFromLines(track.lines, start, meter, stats);
-  const raw = extractRawTrajectory(engine.raw(), context.durationFrames + 20);
+  const raw = measureEngineComputation(
+    engine.raw(),
+    stats,
+    () => extractRawTrajectory(engine.raw(), context.durationFrames + 20),
+  );
   stats.recordDetectorWindow(raw.frames.length);
   const detection = detect(raw);
   const report = buildDriftReport(detection, context, fits, track.lines);

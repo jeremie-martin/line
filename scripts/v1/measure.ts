@@ -27,6 +27,9 @@ type Row = {
   contract_passing_candidates: number;
   candidates_sampled: number;
   detector_frames: number;
+  physics_frame_requests: number;
+  physics_frame_cache_hits: number;
+  physics_frames_computed: number;
   track_lines: number;
 };
 
@@ -54,6 +57,22 @@ type MeasurementSummary = {
     max: number | null;
   };
   detector_frames_per_work_unit: {
+    count: number;
+    mean: number | null;
+    stddev: number | null;
+    cv: number | null;
+    min: number | null;
+    max: number | null;
+  };
+  physics_frames_per_work_unit: {
+    count: number;
+    mean: number | null;
+    stddev: number | null;
+    cv: number | null;
+    min: number | null;
+    max: number | null;
+  };
+  wall_ms_per_physics_frame: {
     count: number;
     mean: number | null;
     stddev: number | null;
@@ -124,6 +143,9 @@ for (const specName of specs) {
         contract_passing_candidates: result.stats.contract_passing_candidates,
         candidates_sampled: result.stats.candidates_sampled,
         detector_frames: result.stats.detector_frames,
+        physics_frame_requests: result.stats.physics_frame_requests,
+        physics_frame_cache_hits: result.stats.physics_frame_cache_hits,
+        physics_frames_computed: result.stats.physics_frames_computed,
         track_lines: result.track.lines.length,
       };
       rows.push(row);
@@ -180,6 +202,16 @@ function summarize(rows: readonly Row[], monotonicTolerance: number): Measuremen
       rows
         .filter((row) => row.work_units_used > 0)
         .map((row) => row.detector_frames / row.work_units_used),
+    ),
+    physics_frames_per_work_unit: distribution(
+      rows
+        .filter((row) => row.work_units_used > 0)
+        .map((row) => row.physics_frames_computed / row.work_units_used),
+    ),
+    wall_ms_per_physics_frame: distribution(
+      rows
+        .filter((row) => row.physics_frames_computed > 0)
+        .map((row) => row.elapsed_ms / row.physics_frames_computed),
     ),
   };
 }

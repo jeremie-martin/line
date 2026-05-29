@@ -61,6 +61,9 @@ export type CompileStats = {
   engine_rebuilds: number;
   detector_windows: number;
   detector_frames: number;
+  physics_frame_requests: number;
+  physics_frame_cache_hits: number;
+  physics_frames_computed: number;
 
   gap_commits: number;
   gap_backtracks: number;

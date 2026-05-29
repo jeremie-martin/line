@@ -5,7 +5,7 @@ import {
   normalizeCompileOptions,
 } from "./budget.ts";
 import { evaluateTrackJson } from "./completion_oracle.ts";
-import { addTrackLines, rebuildEngineFromLines } from "./engine_adapter.ts";
+import { addTrackLines, measuredGetRider, rebuildEngineFromLines } from "./engine_adapter.ts";
 import type { WorkMeteredEngine } from "./engine_adapter.ts";
 import { makeSolidLine } from "../v0/arc.ts";
 import {
@@ -1470,7 +1470,7 @@ function trackWithInsertedLandingLines(
     let engine = rebuildEngineFromLines(lines, context.startState, meter, stats);
     let nextId = lines.reduce((max, line) => Math.max(max, line.id), 0) + 1;
     for (const frame of frames) {
-      const anchor = lowestSledPoint(engine.raw(), frame);
+      const anchor = lowestSledPoint(engine.raw(), frame, stats);
       if (anchor === null) continue;
       const y = anchor.y + variant.yOffset;
       const line = makeSolidLine(
@@ -1493,8 +1493,12 @@ function trackWithInsertedLandingLines(
   return out;
 }
 
-function lowestSledPoint(engine: any, frame: number): { x: number; y: number } | null {
-  const rider = engine.getRider(frame);
+function lowestSledPoint(
+  engine: any,
+  frame: number,
+  stats: CompileStatsBuilder,
+): { x: number; y: number } | null {
+  const rider = measuredGetRider(engine, frame, stats);
   let out: { x: number; y: number } | null = null;
   for (const name of ["PEG", "TAIL", "NOSE", "STRING"] as const) {
     const point = rider.get(name);

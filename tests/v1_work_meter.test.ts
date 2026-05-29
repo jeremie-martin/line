@@ -4,6 +4,8 @@ import { describe, expect, test } from "vitest";
 import {
   createBaseEngine,
   engineLineFromTrackLine,
+  engineLastFrameIndex,
+  measuredGetRider,
   rebuildEngineFromLines,
 } from "../scripts/v1/engine_adapter.ts";
 import { CompileStatsBuilder } from "../scripts/v1/stats.ts";
@@ -63,6 +65,27 @@ describe("v1 work meter", () => {
     expect(snapshot.engine_rebuilds).toBe(1);
     expect(snapshot.work_units_used).toBe(2);
     expect(snapshot.engine_addLine_calls).toBe(2);
+  });
+
+  test("physics frame diagnostics count lr-core computation delta, not cached reads", () => {
+    const stats = new CompileStatsBuilder(0);
+    const meter = new WorkMeter({ kind: "work", units: 0 }, stats);
+    const engine = createBaseEngine(START, meter).raw();
+
+    const before = engineLastFrameIndex(engine);
+    measuredGetRider(engine, 10, stats);
+    const afterFirstRead = engineLastFrameIndex(engine);
+    measuredGetRider(engine, 10, stats);
+
+    expect(before).not.toBeNull();
+    expect(afterFirstRead).not.toBeNull();
+    const firstComputed = (afterFirstRead ?? 0) - (before ?? 0);
+    const snapshot = stats.snapshot();
+    expect(firstComputed).toBeGreaterThan(0);
+    expect(snapshot.physics_frame_requests).toBe(2);
+    expect(snapshot.physics_frames_computed).toBe(firstComputed);
+    expect(snapshot.physics_frame_cache_hits).toBe(1);
+    expect(snapshot.work_units_used).toBe(0);
   });
 
   test("v1 has no unmetered engine.addLine calls outside the adapter", () => {

@@ -15,7 +15,12 @@ import {
   stateAwareCandidateForOrdinal,
   type TargetState,
 } from "./candidate_stream.ts";
-import { addTrackLines, type WorkMeteredEngine } from "./engine_adapter.ts";
+import {
+  addTrackLines,
+  measuredGetRider,
+  measureEngineComputation,
+  type WorkMeteredEngine,
+} from "./engine_adapter.ts";
 import { axisCost, CALIB } from "./normalize.ts";
 import { CompileStatsBuilder } from "./stats.ts";
 import type {
@@ -53,10 +58,10 @@ export type EvaluateGapCandidateInput = {
 };
 
 export function evaluateGapCandidate(input: EvaluateGapCandidateInput): GapEvaluationResult {
-  const riderAtTarget = input.baseEngine.raw().getRider(input.gap.endFrame);
+  const riderAtTarget = measuredGetRider(input.baseEngine.raw(), input.gap.endFrame, input.stats);
   const refX = riderAtTarget.position.x;
   const refY = riderAtTarget.position.y;
-  const targetState = readTargetState(input.baseEngine, input.gap.endFrame, refX, refY);
+  const targetState = readTargetState(input.baseEngine, input.gap.endFrame, refX, refY, input.stats);
   const axisMeasureEnd = axisLookaheadEndFrame(input.gap, input.context.contactFrames);
   const searchTargets = searchTargetsForCost(
     input.searchTargets ?? input.gap.targets,
@@ -288,8 +293,9 @@ export function readTargetState(
   frame: number,
   fallbackX: number,
   fallbackY: number,
+  stats?: CompileStatsBuilder,
 ): TargetState {
-  const rider = engine.raw().getRider(frame);
+  const rider = measuredGetRider(engine.raw(), frame, stats);
   let sledX = fallbackX;
   let sledY = fallbackY;
   for (const name of SLED_POINTS) {
@@ -312,7 +318,11 @@ export function detectWindow(
   stats?: CompileStatsBuilder,
 ): Detection {
   const start = Math.max(0, startFrame);
-  const raw = extractRawTrajectoryWindow(engine, start, endFrame);
+  const raw = measureEngineComputation(
+    engine,
+    stats,
+    () => extractRawTrajectoryWindow(engine, start, endFrame),
+  );
   stats?.recordDetectorWindow(raw.frames.length);
   const det = detect(raw) as WindowDetection;
   det.frameOffset = start;
@@ -324,7 +334,11 @@ export function detectFull(
   durationFrames: number,
   stats?: CompileStatsBuilder,
 ): Detection {
-  const raw = extractRawTrajectory(engine, durationFrames);
+  const raw = measureEngineComputation(
+    engine,
+    stats,
+    () => extractRawTrajectory(engine, durationFrames),
+  );
   stats?.recordDetectorWindow(raw.frames.length);
   return detect(raw);
 }

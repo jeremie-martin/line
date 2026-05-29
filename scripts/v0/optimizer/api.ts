@@ -30,11 +30,10 @@ import {
 } from "../compile.ts";
 import { makeRng } from "../../lib/rng.ts";
 import { CALIB, secToFrame } from "../types.ts";
-import { scoreDriftReport } from "../score.ts";
 import { enumerateLeaves, type Leaf } from "./lds.ts";
 import { makeRootNode } from "./node.ts";
 import { polishLeafVariant } from "./polish.ts";
-import { BestSoFarRegister, type LeafKey } from "./register.ts";
+import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
 import { getSimFrames, resetSimFrames } from "./sim_frames.ts";
 import type { SpecContext } from "./sample.ts";
 import type { Budget, CompileOutput, DriftReport, Spec } from "./types.ts";
@@ -210,20 +209,11 @@ function evaluateLeaf(
   const report = buildDriftReport(
     det, spec, gaps, allContactFrames, durationFrames, [], leaf.fits as (GapFit | null)[],
   );
-  // Score with totalFrames so a leaf that dies before endOfSpec gets partial
-  // survival_quality (not 0) — the failing-leaf comparator can then prefer a
-  // longer-surviving / more-complete leaf, and this matches how golden.ts scores
-  // the returned track (review P2).
-  const score = scoreDriftReport(report, { totalFrames: durationFrames });
-  return {
-    report,
-    key: {
-      contract_passed: score.contract_passed,
-      axis_quality: score.axis_quality,
-      full_score: score.score,
-      drift_quality: score.drift_quality,
-    },
-  };
+  // Build the comparator key via the shared helper (register.ts) — the single
+  // source of truth, so the key selection ranks by can't drift from the key the
+  // property tests reconstruct. totalFrames gives a dying leaf partial
+  // survival_quality (matches how golden.ts scores the returned track; review P2).
+  return { report, key: leafKeyForReport(report, durationFrames) };
 }
 
 /** Build a CompileOutput from a leaf using its already-computed drift report

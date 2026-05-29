@@ -27,7 +27,8 @@
  * project contract; the comparator adds no new nondeterminism.
  */
 
-import type { CompileOutput, Score } from "./types.ts";
+import { scoreDriftReport } from "../score.ts";
+import type { CompileOutput, DriftReport, Score } from "./types.ts";
 
 /** Composite ranking key for a leaf. */
 export type LeafKey = {
@@ -43,6 +44,23 @@ export type LeafKey = {
    *  with equal axis_quality. Optional — omitting it just disables the tiebreak. */
   drift_quality?: number;
 };
+
+/** Build the register's `LeafKey` from a drift report — the SINGLE source of
+ *  truth for the comparator key. Both leaf selection (`api.ts`) and the
+ *  monotonicity property test call this, so the key the register actually ranks
+ *  by can never drift from the key a test reconstructs. `totalFrames` gives a
+ *  dying leaf partial `survival_quality` (and MUST be the spec's frame count, the
+ *  same value selection scores with — omitting it would score a died leaf 0 and
+ *  diverge from the register). */
+export function leafKeyForReport(report: DriftReport, totalFrames: number): LeafKey {
+  const s = scoreDriftReport(report, { totalFrames });
+  return {
+    contract_passed: s.contract_passed,
+    axis_quality: s.axis_quality,
+    full_score: s.score,
+    drift_quality: s.drift_quality,
+  };
+}
 
 /** Float-comparison epsilon: treat differences below this as ties so IEEE-754
  *  noise can't flip the comparator across platforms (determinism) or churn the

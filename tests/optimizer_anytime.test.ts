@@ -20,27 +20,13 @@
 import { describe, test, expect } from "vitest";
 import { createHash } from "node:crypto";
 import { compileLDS } from "../scripts/v0/optimizer/api.ts";
-import { isStrictlyBetter, type LeafKey } from "../scripts/v0/optimizer/register.ts";
+import { isStrictlyBetter, leafKeyForReport } from "../scripts/v0/optimizer/register.ts";
 import { scoreDriftReport } from "../scripts/v0/score.ts";
+import { secToFrame } from "../scripts/v0/types.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
-import type { CompileOutput } from "../scripts/v0/optimizer/types.ts";
 
 function hashTrack(t: unknown): string {
   return createHash("sha256").update(JSON.stringify(t)).digest("hex");
-}
-
-/** Recover the LeafKey the register would have used to rank a
- *  CompileOutput. The monotonicity property is stated in terms of
- *  this composite key, NOT raw axis_quality: more budget → never a
- *  strictly-worse key (passing dominates failing; among passing,
- *  axis_quality monotonic; among failing, full_score monotonic). */
-function keyFor(out: CompileOutput): LeafKey {
-  const s = scoreDriftReport(out.report);
-  return {
-    contract_passed: s.contract_passed,
-    axis_quality: s.axis_quality,
-    full_score: s.score,
-  };
 }
 
 describe("optimizer/api.ts — Stage 2 anytime budget", () => {
@@ -57,7 +43,10 @@ describe("optimizer/api.ts — Stage 2 anytime budget", () => {
       compileLDS(spec, seed, { maxDiscrepancy, budget: { kind: "work", units } })
     );
     const qualities = results.map((r) => scoreDriftReport(r.report).axis_quality);
-    const keys = results.map(keyFor);
+    // Reconstruct the EXACT key the register ranks by — via the shared helper,
+    // with totalFrames, so the test can't drift from the real comparator.
+    const totalFrames = secToFrame(spec.duration);
+    const keys = results.map((r) => leafKeyForReport(r.report, totalFrames));
 
     // The load-bearing assertion: the comparator key never decreases
     // as budget grows. Equivalent to "the register at B' contains a

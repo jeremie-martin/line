@@ -90,7 +90,7 @@ prints rich, disaggregated signal precisely so you can diagnose, not just grade.
 
 Exactly one shape of run defines `goal_score`: **the full LDS suite, all specs, all
 seeds, default budget.** That is *canonical*. Anything narrower — `--fast`, `--budget`,
-`--specs`, `--seed`, `--legacy` — is **indicative**: useful signal for iterating, never
+`--specs`, `--seed` — is **indicative**: useful signal for iterating, never
 the metric of record. The harness labels indicative runs `NON-CANONICAL (indicative
 only, NOT goal_score)` and refuses to print `GOAL_SCORE` for them. Never report or
 commit against an indicative number as if it were the goal.
@@ -104,7 +104,6 @@ npm run golden -- --specs=tiny_dance,cold_start --seed=0 --budget=40000   # targ
 npm run golden -- --variants                # + generalization probe (perturbed timing/stretch)
 npm run golden -- --jobs=N                  # worker parallelism (default min(6, cpus-1)); does not affect scores
 npm run golden -- --json | --details | --json-full     # machine-readable / per-row diagnostics
-npm run golden -- --legacy                  # the retired greedy compiler, for comparison only
 npx vitest run tests/optimizer_*.test.ts    # the property tests (§3)
 ```
 
@@ -154,9 +153,16 @@ The rebuild's value is not just the score but the properties that make it
 breaking a property is **not** an improvement.
 
 1. **Determinism — the ONE hard rule.** Same `(spec, seed, budget)` → byte-identical
-   `Track`. No unseeded RNG, no wall-clock inputs. This is non-negotiable because if it
-   breaks you can no longer tell a real improvement from noise — the entire premise of
-   the loop collapses. Treat a determinism failure as a hard STOP-and-fix.
+   `Track` **for a given build of the compiler**. No unseeded RNG, no wall-clock inputs.
+   This is non-negotiable because if it breaks you can no longer tell a real improvement
+   from noise — the entire premise of the loop collapses. Treat a determinism failure as
+   a hard STOP-and-fix.
+   **This is reproducibility, NOT output-stability across changes.** Improving the
+   compiler is *expected* to change the `Track` for a given `(spec, seed, budget)` — that
+   is the whole point. "Byte-identical" is the right check only when verifying a *refactor*
+   that should change nothing; for a genuine improvement the guardrail is instead
+   "properties still green + `goal_score` does not regress." Never let byte-identicality
+   become a reason not to improve the output.
 2. **Monotonicity-in-budget** — for the same `(spec, seed)`, more compute never yields
    worse contract-gated quality. It holds because the leaf-enumeration *sequence* is a
    **deterministic prefix-superset in budget** (base floor → guided-repair chain →

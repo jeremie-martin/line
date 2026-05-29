@@ -202,99 +202,92 @@ export function buildBacktrackingLeaf(
   return null;
 }
 
-/** Enumerate leaves in increasing-discrepancy order. Yields one
- *  leaf at a time; the caller is responsible for scoring + registry.
+/** Enumerate leaves in increasing-discrepancy order, RELATIVE TO the
+ *  backtracking base path (the d=0 floor from `buildBacktrackingLeaf`).
  *
- *  Two safety bounds for the recursion:
- *   - `maxDiscrepancy`: total ranks summed across all gaps ≤ this.
- *   - Per-gap rank cap: implicit from `candidates.length` (sorted
- *     candidate pool from node.ts; size ≤ N_CAND).
+ *  d=0 is the base path itself — always yielded first and budget-exempt (a
+ *  floor must complete). For d>=1, candidates at each contact gap are read in
+ *  a BASE-ROTATED order: while still on the base path, the base's committed
+ *  choice is local-rank 0; once a deviation is taken (local-rank>=1) the path
+ *  is "off base" and local-rank 0 reverts to the cheapest candidate (greedy
+ *  continuation). So discrepancy d counts edit-distance from the base path,
+ *  and low-d leaves explore completions NEAR a track that completes — instead
+ *  of near the cheapest-everywhere spine, which dead-ends on dense specs.
  *
- *  Memoization: shared-prefix candidate lists are cached internally
- *  by the rank-path-signature. Without this, d=2 enumeration on
- *  even small specs re-samples gap-0 candidates dozens of times.
- *  The cache is per-call (one map per enumerateLeaves invocation).
+ *  Structural property (preserves monotonicity-in-budget): for any maxD' >=
+ *  maxD, `leaves(maxD') ⊇ leaves(maxD)` — we only ADD discrepancy levels at
+ *  the end, and the rotated order at each node is a pure function of
+ *  (spec, seed) (the base path is fixed; rotation is deterministic). The
+ *  budget only controls how far into this fixed order we go (the node-entry
+ *  cutoff is a pure function of the budget and never changes leaf CONTENT).
  *
- *  The enumeration is exhaustive within `maxDiscrepancy`. For a real
- *  budgeted compile (Stage 2), the caller wraps this generator and
- *  stops when sim_frames exhausts the budget. */
+ *  Memoization: candidate lists are cached by the COMMITTED candidate-identity
+ *  path — the absolute sorted-index (or "S" for a skipped gap) at each contact
+ *  gap so far. This (not the local-rank path) is what uniquely identifies the
+ *  committed prefix engine once base-rotation makes local-rank != sorted-index;
+ *  keying on local rank would return a list computed for a different engine
+ *  state. Same scheme as legacy `candidateCacheKey`. */
 export function* enumerateLeaves(
   root: SearchNode,
   maxDiscrepancy: number,
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
-  /** Stop expanding nodes once `getSimFrames() >= budgetUnits`. Without this,
-   *  a budget check only at yielded leaves lets dead-end-heavy specs (e.g.
-   *  drums, whose rank-0 descent dies at a 0-candidate gap) explore many
-   *  dead-end paths BETWEEN yields, overshooting the budget by 2-3×. Checking
-   *  inside the recursion bounds overshoot to ~one node's candidate sampling.
-   *  The cutoff is still a pure function of the budget, and the enumeration
-   *  ORDER is unchanged — so monotonicity-in-budget is preserved (a larger
-   *  budget expands a superset). Default Infinity (exhaustive to maxD). */
   budgetUnits = Infinity,
 ): Generator<Leaf> {
-  // Shared-prefix candidate memoization. Key = contact-rank-sequence
-  // of committed gaps so far (the unique path identifier; non-contact
-  // gaps don't contribute since they have no rank choice). Value =
-  // the cost-sorted candidate list at the NEXT contact gap from that
-  // path. Computed once per distinct prefix; reused across all leaves
-  // that visit it. Without this, d=2 enumeration on small specs
-  // re-samples gap-0 candidates dozens of times.
-  const candCache = new Map<string, Candidate[]>();
+  // The d=0 floor. Budget-exempt: it must always complete (it is the LDS
+  // search's own completion guarantee, replacing the legacy floor seed). If no
+  // complete path exists at all, yield nothing — `compileLDS` then surfaces
+  // "no leaf reached end-of-spec".
+  const base = buildBacktrackingLeaf(root, gaps, ctx, seed);
+  if (base === null) return;
+  yield base.leaf;
 
-  function getCandidatesCached(
-    node: SearchNode,
-    pathRanks: number[],
-  ): Candidate[] {
-    const key = pathRanks.join(",");
-    const cached = candCache.get(key);
+  // Candidate-list cache keyed on the committed candidate-identity path.
+  const candCache = new Map<string, Candidate[]>();
+  const getCandidatesCached = (node: SearchNode, committedKey: string): Candidate[] => {
+    const cached = candCache.get(committedKey);
     if (cached !== undefined) return cached;
     const sorted = getCandidatesSorted(node, gaps, ctx, seed);
-    candCache.set(key, sorted);
+    candCache.set(committedKey, sorted);
     return sorted;
-  }
+  };
 
-  for (let d = 0; d <= maxDiscrepancy; d++) {
+  for (let d = 1; d <= maxDiscrepancy; d++) {
     if (getSimFrames() >= budgetUnits) return;
-    yield* enumerateAtExactly(
-      root,
-      d,
-      [],
-      [],
-      gaps,
-      ctx,
-      seed,
-      getCandidatesCached,
-      budgetUnits,
+    yield* enumerateDeviations(
+      root, d, "", [], true, 0,
+      gaps, ctx, seed, base.baseCommitPath, getCandidatesCached, budgetUnits,
     );
   }
 }
 
-/** Yield exactly the leaves whose ranks-down-this-path sum to
- *  `exactBudget`. Recursive DFS. Helper for `enumerateLeaves`.
+/** Yield exactly the leaves whose base-relative discrepancy (sum of local
+ *  ranks) equals `exactBudget`. Recursive DFS, base-rotated. Helper for
+ *  `enumerateLeaves`.
  *
- *  Two rank lists are passed: `contactRanks` (only the contact
- *  gaps' rank choices, used as the memo key) and `allRanks` (the
- *  per-gap rank sequence for the resulting Leaf; non-contact gaps
- *  contribute a 0). */
-function* enumerateAtExactly(
+ *  `committedKey` is the committed candidate-identity path so far (cache key).
+ *  `allRanks` is the per-gap LOCAL rank for the resulting Leaf (non-contact
+ *  gaps contribute 0). `onBase` is true iff every contact-gap choice so far
+ *  matched the base path — only then does `node`'s candidate list match the
+ *  one the base path saw, so only then is `baseCommitPath[contactGapNum]` a
+ *  valid index into it. `contactGapNum` indexes `baseCommitPath`. */
+function* enumerateDeviations(
   node: SearchNode,
   exactBudget: number,
-  contactRanks: number[],
+  committedKey: string,
   allRanks: number[],
+  onBase: boolean,
+  contactGapNum: number,
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
-  getCandidatesCached: (
-    node: SearchNode,
-    pathRanks: number[],
-  ) => Candidate[],
+  baseCommitPath: number[],
+  getCandidatesCached: (node: SearchNode, committedKey: string) => Candidate[],
   budgetUnits: number,
 ): Generator<Leaf> {
-  // Finer-grained budget cutoff: stop expanding once the budget is spent, so
-  // dead-end exploration between yields can't overshoot. Bounds overshoot to
-  // ~one node's candidate sampling.
+  // Node-entry budget cutoff: a pure function of the budget; it gates which
+  // prefixes are visited, never the content of any leaf (monotonicity-safe).
   if (getSimFrames() >= budgetUnits) return;
   if (isLeafNode(node, gaps.length)) {
     if (exactBudget === 0) {
@@ -311,24 +304,43 @@ function* enumerateAtExactly(
 
   if (!gaps[node.gapIndex].endsWithContact) {
     const child = extendNode(node, null);
-    yield* enumerateAtExactly(
-      child, exactBudget, contactRanks, [...allRanks, 0],
-      gaps, ctx, seed, getCandidatesCached, budgetUnits,
+    yield* enumerateDeviations(
+      child, exactBudget, committedKey, [...allRanks, 0], onBase, contactGapNum,
+      gaps, ctx, seed, baseCommitPath, getCandidatesCached, budgetUnits,
     );
     return;
   }
 
-  const candidates = getCandidatesCached(node, contactRanks);
-  if (candidates.length === 0) return;
-  const maxRank = Math.min(candidates.length - 1, exactBudget);
+  const sorted = getCandidatesCached(node, committedKey);
+  // The base's committed choice at this contact gap (valid only while onBase,
+  // because only then is `node` the same node the base path visited here).
+  const baseChoice = onBase ? baseCommitPath[contactGapNum] : 0;
+
+  // Rotated option order: the preferred choice (base choice while on base, else
+  // cheapest) first, then the remaining candidates in sorted-cost order. An
+  // option is a sorted-index, or SKIP (commit null — only when the base path
+  // itself skipped this gap).
+  const options: number[] = [];
+  if (onBase && baseChoice === SKIP) {
+    options.push(SKIP);
+    for (let i = 0; i < sorted.length; i++) options.push(i);
+  } else {
+    if (sorted.length === 0) return; // dead-end: this deviation can't complete
+    const pref = baseChoice; // 0 off-base; the base's sorted-index on-base
+    options.push(pref);
+    for (let i = 0; i < sorted.length; i++) if (i !== pref) options.push(i);
+  }
+
+  const maxRank = Math.min(options.length - 1, exactBudget);
   for (let r = 0; r <= maxRank; r++) {
-    const child = extendNode(node, candidates[r]);
-    yield* enumerateAtExactly(
-      child,
-      exactBudget - r,
-      [...contactRanks, r],
-      [...allRanks, r],
-      gaps, ctx, seed, getCandidatesCached, budgetUnits,
+    const choice = options[r];
+    const childOnBase = onBase && r === 0; // r===0 takes the preferred (base) choice
+    const child = choice === SKIP ? extendNode(node, null) : extendNode(node, sorted[choice]);
+    const childKey = committedKey + (choice === SKIP ? ",S" : "," + choice);
+    yield* enumerateDeviations(
+      child, exactBudget - r, childKey, [...allRanks, r],
+      childOnBase, contactGapNum + 1,
+      gaps, ctx, seed, baseCommitPath, getCandidatesCached, budgetUnits,
     );
   }
 }

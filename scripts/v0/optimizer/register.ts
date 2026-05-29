@@ -38,7 +38,17 @@ export type LeafKey = {
   /** Full score (1000 * axis * drift * missing * off_beat * survival)
    *  from scoreDriftReport — used among failing leaves. */
   full_score: number;
+  /** Smooth on-beat tightness (`drift_quality` from scoreDriftReport, higher =
+   *  landings sit tighter on the beat). Tertiary tiebreak among passing leaves
+   *  with equal axis_quality. Optional — omitting it just disables the tiebreak. */
+  drift_quality?: number;
 };
+
+/** Float-comparison epsilon: treat differences below this as ties so IEEE-754
+ *  noise can't flip the comparator across platforms (determinism) or churn the
+ *  best-so-far on effectively-equal leaves (budget stability). */
+const FLOAT_EPS = 1e-9;
+const strictlyGreater = (x: number, y: number): boolean => x > y + FLOAT_EPS;
 
 /** Strict-only comparison: returns true iff `a` is strictly better
  *  than `b` under the lexicographic comparator. Returns false on tie
@@ -48,13 +58,14 @@ export function isStrictlyBetter(a: LeafKey, b: LeafKey): boolean {
   if (a.contract_passed !== b.contract_passed) {
     return a.contract_passed && !b.contract_passed;
   }
-  // 2/3. depends on which group
   if (a.contract_passed) {
-    // Both passing: rank by axis_quality.
-    return a.axis_quality > b.axis_quality;
+    // Both passing: axis_quality, then on-beat tightness as a tiebreak.
+    if (strictlyGreater(a.axis_quality, b.axis_quality)) return true;
+    if (strictlyGreater(b.axis_quality, a.axis_quality)) return false;
+    return strictlyGreater(a.drift_quality ?? 0, b.drift_quality ?? 0);
   }
   // Both failing: rank by full score (includes survival, etc.).
-  return a.full_score > b.full_score;
+  return strictlyGreater(a.full_score, b.full_score);
 }
 
 /** Holds the strictly-best leaf seen so far under the comparator

@@ -140,6 +140,7 @@ export function compileLDS(
       contract_passed: s.contract_passed,
       axis_quality: s.axis_quality,
       full_score: s.score,
+      drift_quality: s.drift_quality,
     });
   }
 
@@ -212,6 +213,7 @@ function scoreLeaf(
     contract_passed: score.contract_passed,
     axis_quality: score.axis_quality,
     full_score: score.score,
+    drift_quality: score.drift_quality,
   };
 }
 

@@ -1,23 +1,29 @@
 # Optimizer improvement backlog (capability roadmap)
 
 This is the **Track B** working backlog for the agent improving the LDS optimizer — the
-capability changes that move `goal_score`, as distinct from the **Track A** hygiene work
-(decoupling the optimizer from the legacy `compile.ts`, see the self-containment plan).
+capability changes that move `goal_score`.
+
+**Track A (hygiene) is DONE:** the optimizer is now self-contained — its substrate lives in
+`scripts/v0/core/{substrate,candidate,preroll,polish}.ts` and `scripts/v0/optimizer/*`
+imports **nothing** from the legacy `compile.ts`. So the file homes below point at `core/`
+where the candidate/polish/preroll code moved; the search algorithm (`lds.ts`, `api.ts`,
+`register.ts`, `sample.ts`, `node.ts`) is unchanged and lives in `optimizer/`.
 
 The findings below come from a deep review and have been **verified against the current
 code** (file:line cited where checked). Each is one mechanism; follow the charter loop —
-propose → `--fast`/targeted probe → keep-or-revert by judgment → canonical + property
-tests before commit. None of these are byte-identical-preserving (they change output on
-purpose); the guardrail is **property tests green + `goal_score` non-regressing**, not a
-hash diff.
+propose → `--fast` or targeted probe (`--specs=… --budget=… --seed=…`, add `--jobs=N` to
+parallelize multi-spec probes) → keep-or-revert by judgment → canonical + property tests
+before commit. None of these are byte-identical-preserving (they change output on purpose);
+the guardrail is **property tests green + `goal_score` non-regressing**, not a hash diff.
 
 ## Ownership split (why these are the agent's, not done up front)
 
 A change is done up front (by the human/refactor pass) only if it's verifiable **without**
 the slow golden loop. Everything whose value is measured by `goal_score` is the agent's,
 because that *is* the propose→measure→keep loop — doing it blind would violate the
-discipline. So: **#5 is done; the rest are the agent's capability track.** #7 (diagnostics)
-lands as Track-A phase A5.
+discipline. So: **#5 is done; the rest are the agent's capability track.** **#7 (diagnostics)
+is additive/non-scoring — do it early**, since you'll read those counters while working
+#1/#2/#4 (design them to your own needs).
 
 ## Sequence (one mechanism at a time)
 
@@ -25,7 +31,7 @@ lands as Track-A phase A5.
 `perGapRanksFromCommit` (`lds.ts:342`) records the **absolute** committed sorted-index per
 gap, not the **base-relative** local rank the LDS model defines (base choice = local rank
 0). So a repair leaf's discrepancy is `sum of absolute indices`, and the gate
-`if (discrepancy > maxDiscrepancy) break` (`lds.ts:~437`) suppresses repair on exactly the
+`if (discrepancy > maxDiscrepancy) break` (`lds.ts:456`) suppresses repair on exactly the
 backtrack-heavy hard specs whose base path commits high indices — repair is effectively
 disabled where it's needed most. Fix: compute repair ranks in the same rotated local-option
 order `enumerateDeviations` uses (base choice → 0; off-base → cheapest), via a
@@ -53,25 +59,32 @@ can't — fine, the base leaf is still registered). Keep repair budget-subject. 
 `dense_sprint` at 40k and 200k; success signal = fewer missing contacts, no off-beat
 explosion, bounded `sim_frames`.
 
-### #4 — Deterministic candidate "lanes" (fuses with Track-A A2: owning the candidate core)
+### #4 — Deterministic candidate "lanes" (highest-leverage capability lever)
 The atomic sampler uses `gap.targets` directly and never puts a recoverable candidate in the
 pool for the hard cross-gap failures. Replace a few of the 32 attempts with deterministic,
 **attempt-index-selected** lanes keyed on local physical state (dense-catch: short gap / high
 incoming speed; braking: high speed before dense contacts; glued: low air / high
 contact_style; loft: high air; grain: line-scale) — must keep `solveOneGap(K')` prefix-
 compatible (lane chosen by `attempt`, not by reordering). Start with ~6–8 reserved attempts of
-32, rest unchanged. This is the highest-leverage lever for `dense_sprint`/`drums_pendulum`;
-do it *in* `core/candidate.ts` once Track-A A2 owns the candidate core.
+32, rest unchanged. This is the highest-leverage lever for `dense_sprint`/`drums_pendulum`.
+`sampleArcParams` now lives in **`core/candidate.ts`** (add a `sampleArcParamsForLane` there);
+the per-attempt lane selection goes in `sampleOneCandidate` (`optimizer/sample.ts`), which
+already threads `attempt`. (Residual/look-ahead targeting stays out — it's compile-only legacy
+in `compile.ts`, deliberately not used by the optimizer.)
 
 ### #6 — Gate polish on the already-computed report
-`evaluateLeaf` already computes the report once; pass it to `polishLeafVariant` and run polish
-only when the report shows actionable air/contact error in sections with committed fits.
-Polish stays deterministic/additive; this just avoids spending sim-frames on known no-ops.
-Start conservative (skip only when no relevant axes / no relevant committed fits). The win is
-speed; verify `goal_score` holds and polish-adopted count drops only on no-ops.
+`evaluateLeaf` (`api.ts`) already computes the report once; add a `shouldTryPolish(report,
+leaf.fits, spec, gaps)` check in `api.ts`'s `consider` loop and only call `polishLeafVariant`
+when the report shows actionable air/contact error in sections with committed fits. Polish
+stays deterministic/additive; this just avoids spending sim-frames on known no-ops. Start
+conservative (skip only when no relevant axes / no relevant committed fits). The win is speed;
+verify `goal_score` holds and polish-adopted count drops only on no-ops. Note: the polish
+*helpers* now live in `core/polish.ts`; `polishLeafVariant` (in `optimizer/polish.ts`) takes
+`(fits, spec, gaps, contactFrames, durationFrames, startState)` — keep that signature.
 
-### #7 — Optimizer-native diagnostics (lands as Track-A A5)
-`CompileStats` is legacy-shaped; the optimizer zeros most counters. Add: leaves considered
+### #7 — Optimizer-native diagnostics (do early; additive, non-scoring)
+`CompileStats` (`types.ts`, populated in `api.ts` `buildLeafOutput`) is legacy-shaped; the
+optimizer zeros most counters. Add: leaves considered
 (`register.consideredCount`), polish variants tried/adopted, repair rounds yielded/dead-ended,
 skipped gap indices, backtrack count, candidate-cache hit/miss, first failure-owner per repair
 round. Non-scoring; makes the golden breakdown actionable (the charter says the gradient lives

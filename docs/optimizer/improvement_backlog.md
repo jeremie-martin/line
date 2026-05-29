@@ -46,17 +46,26 @@ changes which leaves are admitted) and the `dense_sprint`/`drums_*` probes; watc
 `api.ts` and the anytime test both use it (the test previously reconstructed the key without
 `totalFrames`/`drift_quality`). Committed.
 
-### #2 — Make skipped contacts repairable (`forbidSkip`)
-A missed contact owned by a *skipped* gap can't be repaired today: `lds.ts:441`
+### #2 — Make skipped contacts repairable (`forbidSkip`) — TRIED, REVERTED (inert)
+A missed contact owned by a *skipped* gap can't be repaired today: `lds.ts`
 (`if (committed === SKIP) continue`) has no candidate to forbid, and the descent re-skips.
-This is the `dense_sprint` failure mode (base-path skip the repair can't recover). Extend the
-repair constraint from "forbid candidate indices" to `{ forbiddenCandidates: Set<number>,
-forbidSkip: boolean }`; when `failureOwnerGaps` finds a missed contact whose owner gap was
-skipped, set `forbidSkip` for it; in `buildBacktrackingLeaf`, a `forbidSkip` gap that exhausts
-candidates backtracks instead of committing null (and the repair leaf fails to null if it
-can't — fine, the base leaf is still registered). Keep repair budget-subject. Probe
-`dense_sprint` at 40k and 200k; success signal = fewer missing contacts, no off-beat
-explosion, bounded `sim_frames`.
+Implemented as designed (`forbidSkip` set threaded into `buildBacktrackingLeaf`; a `forbidSkip`
+gap backtracks past `MAX_BT`, bounded by `STEP_CAP`/budget, and fails to null if it can't land).
+**Reverted** — provably inert on the current suite (2026-05-29):
+- `dense_sprint`, the motivating "base-path skip the repair can't recover" case, **already
+  passes 3/3** (its seed-0 repair already lands all 41 contacts; the backlog premise is stale).
+- The remaining failures (`drums_pendulum` s0, `drums_crescendo` all) are **drift/off-beat**
+  misses, NOT skip-owned: diagnostic shows `owners=[12,13,17] committed=[0,0,1]` — the owner
+  gaps committed candidates that landed off-beat, so there is no SKIP to forbid.
+- Those rows are also **budget-starved**: the budget-exempt base floor consumes ~the entire
+  per-spec budget (`drums_pendulum` floor ≈ 200k = its budget; `drums_crescendo` floor ≈ 457k >
+  200k budget), so `getSimFrames()` is already ≥ budget when the repair loop starts — repair and
+  the deviation sweep never run (`leaves_considered=1`, `repair_rounds=0`). No skip-recovery
+  mechanism can help until the floor leaves budget headroom.
+
+So the real levers for the drums failures are **candidate quality (#4)** — land the missed
+contacts *on-beat at the floor* — and/or a **cheaper floor** (why does it backtrack so much?
+§8 / #3). Re-open #2 only if a skip-owned miss reappears once repair has budget headroom.
 
 ### #4 — Deterministic candidate "lanes" (highest-leverage capability lever)
 The atomic sampler uses `gap.targets` directly and never puts a recoverable candidate in the

@@ -386,10 +386,13 @@ export function* enumerateLeaves(
   const forbidden = new Map<number, Set<number>>(); // gapIndex -> forbidden sorted-indices
   let cur: Leaf = base.leaf;
   let curCommit = base.baseCommitPath;
-  // Repair leaves carry discrepancy = round+1, so respect maxDiscrepancy: at
-  // maxDiscrepancy=0 no repair leaf is yielded (callers can isolate the pure d=0
-  // base floor); review P2.
-  for (let round = 0; round < REPAIR_ROUNDS_CAP && round + 1 <= maxDiscrepancy; round++) {
+  // A repair round can change several gaps / pick higher-ranked candidates, so a
+  // repair leaf's TRUE discrepancy (sum of its committed-index ranks) — not the
+  // round number — is what bounds it. Gate each yield by that actual discrepancy
+  // so maxDiscrepancy (and small-budget) callers never search beyond the
+  // requested LDS depth and onLeaf stats are accurate (review P2). At
+  // maxDiscrepancy=0 the loop is skipped entirely (pure d=0 base floor).
+  for (let round = 0; maxDiscrepancy >= 1 && round < REPAIR_ROUNDS_CAP; round++) {
     if (getSimFrames() >= budgetUnits) return;
     const det = detect(extractRawTrajectory(cur.engine, ctx.durationFrames + 20));
     const owners = failureOwnerGaps(det, gaps, cur.fits as (GapFit | null)[], ctx.allContactFrames);
@@ -409,13 +412,13 @@ export function* enumerateLeaves(
       root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache, forbidden, budgetUnits,
     );
     if (repair === null) break;
-    // Distinct, deterministic fingerprint (committed-index path) + discrepancy so
-    // repair leaves don't collide with the base leaf or each other.
-    const repairLeaf: Leaf = {
-      ...repair.leaf,
-      ranks: perGapRanksFromCommit(repair.baseCommitPath, gaps),
-      discrepancy: round + 1,
-    };
+    const ranks = perGapRanksFromCommit(repair.baseCommitPath, gaps);
+    const discrepancy = ranks.reduce((s, x) => s + x, 0);
+    // The fix is deeper than the requested LDS depth — stop (further rounds forbid
+    // more and only go deeper). Distinct committed-index fingerprint avoids leaf
+    // collisions with the base / each other.
+    if (discrepancy > maxDiscrepancy) break;
+    const repairLeaf: Leaf = { ...repair.leaf, ranks, discrepancy };
     yield repairLeaf;
     cur = repairLeaf;
     curCommit = repair.baseCommitPath;

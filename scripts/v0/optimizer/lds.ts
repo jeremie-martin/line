@@ -38,6 +38,7 @@ import {
 import { getSimFrames } from "./sim_frames.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
+import { CALIB } from "../types.ts";
 
 /** A leaf of the LDS search tree. The `prefixFits` is the complete
  *  fit-array, `prefixEngine` is the final engine, and `ranks` records
@@ -50,6 +51,156 @@ export type Leaf = {
   discrepancy: number; // sum of ranks
   cumulativeCost: number;
 };
+
+/** Sentinel in a base-commit-path entry: this contact gap was SKIPPED
+ *  (no viable candidate survived backtracking) — committed as a null fit,
+ *  engine unchanged, so the base path still reaches end-of-spec. Mirrors
+ *  legacy `compile()`'s `gapFailures` continue-past behaviour. */
+export const SKIP = -1;
+
+/** Build the deterministic backtracking base path — the d=0 leaf.
+ *
+ *  This replaces the naive rank-0 descent (which silently dies at the first
+ *  0-candidate contact gap, e.g. drums_signature gap 36). It descends
+ *  committing the lowest-cost candidate at each contact gap; on a downstream
+ *  dead-end (0 candidates, or all candidates tried) it backtracks up to
+ *  `CALIB.BACKTRACK_DEPTH` earlier contact gaps and tries their next
+ *  candidate; if the backtrack budget for a failure is exhausted it SKIPS the
+ *  failing gap (null fit, forward progress guaranteed). The first complete
+ *  path found is returned, along with `baseCommitPath` — the committed sorted
+ *  candidate index at each contact gap (or `SKIP`). This is the LDS search's
+ *  own completion guarantee; only THIS base path needs to complete, deviations
+ *  (d>=1) are free to dead-end because the register already holds it.
+ *
+ *  Determinism: candidate lists come from `getCandidatesSorted`, a pure
+ *  function of (seed, gapIndex, prefix engine) — the per-gap RNG is seeded by
+ *  (seed, gapIndex) only (node.ts), independent of revisit count. Same
+ *  (spec, seed) -> identical base path. Budget-exempt by design: the floor
+ *  must always complete (like the legacy floor it replaces), so there is no
+ *  `getSimFrames()` cutoff inside this descent.
+ *
+ *  Returns null only if no complete path exists at all (then `compileLDS`
+ *  surfaces the existing "no leaf reached end-of-spec" error). */
+export function buildBacktrackingLeaf(
+  root: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+): { leaf: Leaf; baseCommitPath: number[] } | null {
+  type FrameKind = "leaf" | "noncontact" | "contact" | "skip";
+  type Frame = {
+    node: SearchNode;
+    kind: FrameKind;
+    cands: Candidate[];
+    /** Contact: index of the NEXT candidate to try (committed = tried-1 after
+     *  advancing). Non-contact/skip: 0->1 progress flag. */
+    tried: number;
+  };
+
+  const makeFrame = (node: SearchNode): Frame => {
+    if (isLeafNode(node, gaps.length)) return { node, kind: "leaf", cands: [], tried: 0 };
+    if (!gaps[node.gapIndex].endsWithContact) return { node, kind: "noncontact", cands: [], tried: 0 };
+    return { node, kind: "contact", cands: getCandidatesSorted(node, gaps, ctx, seed), tried: 0 };
+  };
+
+  const MAX_BT = CALIB.BACKTRACK_DEPTH;
+  // Global step cap — a hard termination guarantee against pathological
+  // re-failure (committing an earlier candidate that re-triggers the same
+  // downstream failure). Beyond it we stop backtracking and force a forward
+  // skip-march (rank-0-or-skip) to a leaf, which terminates in <= gaps.length.
+  const STEP_CAP = (gaps.length + 1) * (MAX_BT + 2) * 64 + 256;
+
+  const nContacts = gaps.filter((g) => g.endsWithContact).length;
+
+  const stack: Frame[] = [makeFrame(root)];
+  let failureStartIdx = -1; // gapIndex where the current failure episode began
+  let backtracksUsed = 0;
+  let steps = 0;
+  let forceSkip = false; // tripped by STEP_CAP / full unwind — never backtrack again
+
+  while (stack.length > 0) {
+    if (++steps > STEP_CAP) forceSkip = true;
+    const top = stack[stack.length - 1];
+
+    if (top.kind === "leaf") {
+      const path: number[] = [];
+      for (const f of stack) {
+        if (f.kind === "contact") path.push(f.tried - 1);
+        else if (f.kind === "skip") path.push(SKIP);
+      }
+      const leaf: Leaf = {
+        fits: top.node.prefixFits,
+        engine: top.node.prefixEngine,
+        ranks: new Array(nContacts).fill(0), // base path = local-rank 0 everywhere
+        discrepancy: 0,
+        cumulativeCost: top.node.cumulativeCost,
+      };
+      return { leaf, baseCommitPath: path };
+    }
+
+    if (top.kind === "noncontact") {
+      if (top.tried === 0) {
+        top.tried = 1;
+        stack.push(makeFrame(extendNode(top.node, null)));
+      } else {
+        stack.pop(); // only one way through a non-contact gap; unwind
+      }
+      continue;
+    }
+
+    if (top.kind === "skip") {
+      stack.pop(); // a committed skip has one continuation; if back here, unwind further
+      continue;
+    }
+
+    // contact gap
+    if (top.tried < top.cands.length && !(forceSkip && top.tried > 0)) {
+      // commit the next candidate (lowest cost first). Under forceSkip we take
+      // rank 0 if present (best effort) but never retry a higher rank.
+      const cand = top.cands[top.tried];
+      top.tried++;
+      if (failureStartIdx !== -1 && top.node.gapIndex >= failureStartIdx) {
+        failureStartIdx = -1; // forward progress past the failure gap — reset episode
+        backtracksUsed = 0;
+      }
+      stack.push(makeFrame(extendNode(top.node, cand)));
+      continue;
+    }
+
+    // contact exhausted (0 candidates, or all tried)
+    if (!forceSkip) {
+      if (failureStartIdx === -1) {
+        failureStartIdx = top.node.gapIndex;
+        backtracksUsed = 0;
+      }
+      if (backtracksUsed < MAX_BT) {
+        // backtrack: discard this subtree, pop to the nearest earlier contact
+        // frame with an untried candidate (this also resets all gaps between).
+        stack.pop();
+        while (stack.length > 0) {
+          const f = stack[stack.length - 1];
+          if (f.kind === "contact" && f.tried < f.cands.length) break;
+          stack.pop();
+        }
+        if (stack.length === 0) {
+          forceSkip = true; // no untried candidate anywhere — fall back to skip-march
+          stack.push(makeFrame(root));
+          continue;
+        }
+        backtracksUsed++;
+        continue;
+      }
+    }
+    // skip this contact gap (commit null, advance) — guarantees forward progress
+    const child = extendNode(top.node, null);
+    stack.pop();
+    stack.push({ node: top.node, kind: "skip", cands: [], tried: 1 });
+    stack.push(makeFrame(child));
+    failureStartIdx = -1;
+    backtracksUsed = 0;
+  }
+  return null;
+}
 
 /** Enumerate leaves in increasing-discrepancy order. Yields one
  *  leaf at a time; the caller is responsible for scoring + registry.

@@ -57,7 +57,7 @@ import {
   findGapOwning,
   offBeatLandingEvents,
   type GapFit,
-} from "../compile.ts";
+} from "../core/substrate.ts";
 
 /** A leaf of the LDS search tree. The `prefixFits` is the complete
  *  fit-array, `prefixEngine` is the final engine, and `ranks` records
@@ -81,7 +81,7 @@ export type Leaf = {
  *  CHEAPER at 68k frames because it resolves without thrashing). 8 gives margin;
  *  it is inert on specs that complete within depth 2 (drums, tiny_dance) and is
  *  bounded by the descent's global STEP_CAP. */
-export const BASE_BACKTRACK_DEPTH = 8;
+export const BASE_BACKTRACK_DEPTH = 24;
 
 /** Sentinel in a base-commit-path entry: this contact gap was SKIPPED
  *  (no viable candidate survived backtracking) — committed as a null fit,

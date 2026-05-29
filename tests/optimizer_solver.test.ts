@@ -22,7 +22,7 @@ import {
   sampleGapTargets,
   sliceTimeline,
   validateSpec,
-} from "../scripts/v0/compile.ts";
+} from "../scripts/v0/core/substrate.ts";
 
 async function setupAtGap0(name: string, seed: number) {
   const spec = await loadGoldenSpec(name as never, "base");

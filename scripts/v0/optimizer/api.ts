@@ -17,6 +17,7 @@
 import { detect, extractRawTrajectory } from "../../lib/detector.ts";
 import {
   type GapFit,
+  type ResolvedStart,
   buildDriftReport,
   buildTrackJson,
   effectiveAxes,
@@ -25,8 +26,9 @@ import {
   sampleGapTargets,
   sliceTimeline,
   validateSpec,
+} from "../core/substrate.ts";
+import {
   withOptimizedPrerollStart,
-  type ResolvedStart,
 } from "../compile.ts";
 import { makeRng } from "../../lib/rng.ts";
 import { CALIB, secToFrame } from "../types.ts";

@@ -41,6 +41,8 @@ import {
   sampleGapTargets,
   sliceTimeline,
   validateSpec,
+} from "../core/substrate.ts";
+import {
   withOptimizedPrerollStart,
 } from "../compile.ts";
 import { CALIB, secToFrame } from "../types.ts";

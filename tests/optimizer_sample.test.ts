@@ -20,7 +20,7 @@ import {
   sampleGapTargets,
   sliceTimeline,
   validateSpec,
-} from "../scripts/v0/compile.ts";
+} from "../scripts/v0/core/substrate.ts";
 import { CALIB } from "../scripts/v0/types.ts";
 
 /** Build an `(engine_at_gap_0_start, gap_0, ctx)` triple from a

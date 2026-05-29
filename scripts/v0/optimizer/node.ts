@@ -25,7 +25,7 @@ import { makeRng } from "../../lib/rng.ts";
 import {
   type GapFit,
   engineLineFromTrackLine,
-} from "../compile.ts";
+} from "../core/substrate.ts";
 import { pickLowestCost, solveOneGap } from "./solver.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";

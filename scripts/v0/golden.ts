@@ -14,11 +14,18 @@
 
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
+import { readFileSync, readdirSync } from "node:fs";
+import { resolve } from "node:path";
 
 import { compile } from "./compile.ts";
 import { compileLDS } from "./optimizer/api.ts";
 import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
+  EVALUATOR_FINGERPRINT,
+  FAST_BUDGET_PHYS,
+  FAST_SEED,
+  FAST_SPECS,
   GOLDEN_SEEDS,
   GOLDEN_SPECS,
   REPORT_VARIANTS,
@@ -47,7 +54,10 @@ import {
 } from "./score.ts";
 
 type Strategy = "legacy" | "lds";
-type WorkerInput = SuiteCase & { seed: number; strategy: Strategy };
+// `budgetUnits` overrides the per-spec default (golden_suite.budgetFor) when set
+// — used by --fast / --budget for quick, NON-CANONICAL iteration. null = the
+// canonical budget that defines goal_score.
+type WorkerInput = SuiteCase & { seed: number; strategy: Strategy; budgetUnits: number | null };
 type WorkerOk = {
   kind: "ok";
   specName: string;
@@ -105,14 +115,31 @@ function has(name: string): boolean {
   return process.argv.includes(`--${name}`);
 }
 
+/** Soft tripwire over the "ruler" — `score.ts` + the golden spec files. Editing
+ *  these silently makes scores incomparable to history. The harness prints this
+ *  fingerprint every run and warns when it drifts from the committed expected
+ *  value (`EVALUATOR_FINGERPRINT`, golden_suite.ts). NOT a hard gate — a visible
+ *  signal the agent can react to. Deliberate ruler changes update the constant. */
+function evaluatorFingerprint(): string {
+  const h = createHash("sha256");
+  const specDir = resolve("specs/golden");
+  const files = [resolve("scripts/v0/score.ts")];
+  for (const f of readdirSync(specDir).filter((n) => n.endsWith(".ts")).sort()) {
+    files.push(resolve(specDir, f));
+  }
+  for (const f of files) h.update(readFileSync(f));
+  return h.digest("hex").slice(0, 12);
+}
+
 async function runWithTimeout(
   testCase: SuiteCase,
   seed: number,
   timeoutMs: number,
   strategy: Strategy,
+  budgetUnits: number | null,
 ): Promise<RunResult> {
   const workerPath = fileURLToPath(import.meta.url);
-  const input: WorkerInput = { ...testCase, seed, strategy };
+  const input: WorkerInput = { ...testCase, seed, strategy, budgetUnits };
   return await new Promise<RunResult>((resolvePromise, reject) => {
     const worker = new Worker(workerPath, { workerData: input, execArgv: process.execArgv });
     let settled = false;
@@ -161,8 +188,11 @@ async function runWorker(): Promise<void> {
   const t0 = Date.now();
   try {
     const spec = await loadGoldenSpec(input.specName, input.variant);
+    const budget = input.budgetUnits !== null
+      ? { kind: "work" as const, units: input.budgetUnits }
+      : budgetFor(spec);
     const { report, stats } = input.strategy === "lds"
-      ? compileLDS(spec, input.seed, { budget: budgetFor(spec) })
+      ? compileLDS(spec, input.seed, { budget })
       : compile(spec, input.seed);
     parentPort.postMessage({
       kind: "ok",
@@ -295,15 +325,17 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
   };
 }
 
-function specContext(spec: Spec, strategy: Strategy): ScoreContext {
+function specContext(spec: Spec, strategy: Strategy, budgetUnits: number | null): ScoreContext {
   const numContacts = spec.contacts.length;
   return {
     soft_ms: softBudgetMs(numContacts),
     hard_ms: hardBudgetMs(numContacts),
     // LDS is much slower than legacy and needs a budget-scaled safety cap, or
-    // normal compiles get killed mid-search and falsely scored 0.
+    // normal compiles get killed mid-search and falsely scored 0. Scale off the
+    // effective budget (override or canonical) so --fast / --budget runs get a
+    // proportionally tighter cap, not the full-budget one.
     worker_timeout_ms: strategy === "lds"
-      ? ldsWorkerTimeoutMs(budgetFor(spec).units)
+      ? ldsWorkerTimeoutMs(budgetUnits ?? budgetFor(spec).units)
       : workerTimeoutMs(numContacts),
     total_frames: Math.round(spec.duration * FPS),
   };
@@ -438,13 +470,14 @@ async function runRows(
   details: boolean,
   label: string,
   strategy: Strategy,
+  budgetUnits: number | null,
 ): Promise<ScoredSpec[]> {
   const contexts = new Map<string, ScoreContext>();
   for (const testCase of cases) {
     const key = `${testCase.specName}/${testCase.variant}`;
     if (!contexts.has(key)) {
       const spec = await loadGoldenSpec(testCase.specName, testCase.variant);
-      contexts.set(key, specContext(spec, strategy));
+      contexts.set(key, specContext(spec, strategy, budgetUnits));
     }
   }
   const scored: ScoredSpec[] = [];
@@ -454,7 +487,7 @@ async function runRows(
     }
     for (const testCase of cases) {
       const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
-      const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms, strategy);
+      const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms, strategy, budgetUnits);
       const row = scoreResult(result, seed, ctx);
       scored.push(row);
       if (!jsonOnly) printRow(row, details);
@@ -534,24 +567,60 @@ async function runMain(): Promise<void> {
   if (rawSeed !== null && !Number.isFinite(debugSeed)) {
     throw new Error(`--seed must be a number, got ${rawSeed}`);
   }
-  const seeds = debugSeed !== null ? [debugSeed] : [...GOLDEN_SEEDS];
-  const strategy: Strategy = has("lds") ? "lds" : "legacy";
+  // LDS is the shipping compiler; legacy is opt-in (--legacy) for comparison.
+  const strategy: Strategy = has("legacy") ? "legacy" : "lds";
+  const fast = has("fast");
+  // --budget=N overrides the canonical per-spec budget; --fast implies a small
+  // reduced budget. Either makes the run NON-CANONICAL (indicative, not goal_score).
+  const rawBudget = arg("budget");
+  if (rawBudget !== null && (!Number.isFinite(Number(rawBudget)) || Number(rawBudget) <= 0)) {
+    throw new Error(`--budget must be a positive number, got ${rawBudget}`);
+  }
+  const budgetUnits: number | null = rawBudget !== null
+    ? Math.trunc(Number(rawBudget))
+    : (fast ? FAST_BUDGET_PHYS : null);
+  // --fast defaults to one seed and the FAST_SPECS subset unless overridden.
+  const seeds = debugSeed !== null
+    ? [debugSeed]
+    : (fast ? [FAST_SEED] : [...GOLDEN_SEEDS]);
   // Optional --specs=a,b filter (fast iteration; does not change scoring).
   const specFilter = arg("specs");
-  const filterSet = specFilter ? new Set(specFilter.split(",")) : null;
+  const filterSet = specFilter
+    ? new Set(specFilter.split(","))
+    : (fast ? new Set<string>(FAST_SPECS) : null);
   const keep = (c: SuiteCase) => filterSet === null || filterSet.has(c.specName);
   const headline = headlineCases().filter(keep);
   const variants = variantCases().filter(keep);
 
+  // A run is CANONICAL — i.e. it defines goal_score — only when it is the full
+  // LDS suite at the default budget, all specs, all seeds. Anything narrower
+  // (--fast / --budget / --specs / --seed / --legacy) is indicative signal for
+  // iterating, never the metric of record. The harness labels it as such so a
+  // fast probe is never mistaken for the goal.
+  const canonical = strategy === "lds"
+    && budgetUnits === null
+    && filterSet === null
+    && debugSeed === null;
+
   if (!jsonOnly) {
+    const fp = evaluatorFingerprint();
+    console.log(`evaluator_fingerprint ${fp}${fp === EVALUATOR_FINGERPRINT ? "" : "  ⚠ DRIFTED from committed ruler — scores not comparable to history; see GOAL_LDS.md"}`);
+    if (!canonical) {
+      console.log(
+        `⚠ NON-CANONICAL run (indicative only, NOT goal_score): ` +
+          `${strategy === "legacy" ? "legacy " : ""}${fast ? "fast " : ""}` +
+          `${budgetUnits !== null ? `budget=${budgetUnits} ` : ""}` +
+          `${filterSet ? `specs=${[...filterSet].join(",")} ` : ""}${debugSeed !== null ? `seed=${debugSeed}` : ""}`.trim(),
+      );
+    }
     console.log(
-      `v0 golden benchmark · compiler=${strategy} · ${GOLDEN_SPECS.length} specs × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · ` +
-        `${strategy === "lds" ? "budget=physics-frames (untimed score)" : "runtime budget scales per-contact"} · seeds=${seeds.join(",")}`,
+      `v0 golden benchmark · compiler=${strategy} · ${headline.length} spec${headline.length === 1 ? "" : "s"} × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · ` +
+        `${strategy === "lds" ? `budget=${budgetUnits ?? "default"} physics-frames (untimed score)` : "runtime budget scales per-contact"} · seeds=${seeds.join(",")}`,
     );
     console.log("");
   }
 
-  const scored = await runRows(headline, seeds, jsonOnly, details, "headline", strategy);
+  const scored = await runRows(headline, seeds, jsonOnly, details, "headline", strategy, budgetUnits);
   const specScores = groupScores(scored, (row) => row.name);
   const goal_score = suiteScore(scored, (row) => row.name);
   const passed = scored.filter((row) => row.status === "pass").length;
@@ -577,15 +646,18 @@ async function runMain(): Promise<void> {
       console.log("report-only variants");
       console.log("");
     }
-    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant", strategy);
+    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant", strategy, budgetUnits);
     variantScores = groupScores(variantRows, (row) => caseLabel(row));
     variantReportScore = suiteScore(variantRows, (row) => caseLabel(row));
   }
 
   if (jsonOnly) {
     process.stdout.write(JSON.stringify({
+      canonical,
+      evaluator_fingerprint: evaluatorFingerprint(),
       goal_score: round(goal_score),
       contract_pass_rate: round(contract_pass_rate, 4),
+      budget_units: budgetUnits,
       scoring: {
         axis_quality_tolerance: AXIS_QUALITY_TOLERANCE,
         sync_tolerance_frames: SYNC_TOLERANCE,
@@ -621,7 +693,7 @@ async function runMain(): Promise<void> {
         : { enabled: false },
     }, null, 2) + "\n");
   } else {
-    printSummary("GOAL_SCORE", scored, (row) => row.name);
+    printSummary(canonical ? "GOAL_SCORE" : "SCORE (indicative, NOT goal_score)", scored, (row) => row.name);
     console.log(`  contract_pass_rate ${fmtPct(contract_pass_rate)} (${passed}/${scored.length})`);
     for (const seed of perSeed) {
       console.log(`  seed=${seed.seed} score=${seed.goal_score.toFixed(2)} valid=${seed.passed}/${seed.total}`);
@@ -629,7 +701,8 @@ async function runMain(): Promise<void> {
     if (includeVariants) {
       console.log("");
       printSummary("VARIANT_REPORT_SCORE", variantRows, (row) => caseLabel(row));
-      console.log("  variants are report-only and excluded from GOAL_SCORE");
+      console.log("  variants probe generalization (perturbed timing/stretch); excluded from GOAL_SCORE.");
+      console.log("  Large base-vs-variant gaps = overfitting to exact spec timings.");
     }
   }
 }

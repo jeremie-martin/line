@@ -96,6 +96,33 @@ export function budgetFor(_spec: Spec): Budget {
 }
 
 /**
+ * Fast inner-loop preset (`golden.ts --fast`). A small, diverse subset of specs
+ * with CHEAP base floors (no drums/dense/solo — their budget-exempt backtracking
+ * floor dominates regardless of budget, so they can't be made fast), one seed,
+ * and a reduced budget. Gives a ~30-45 s signal for iterating, NOT the canonical
+ * goal_score — the harness labels fast runs as indicative and refuses to print
+ * GOAL_SCORE for them. Use the full run before trusting a result or committing.
+ */
+export const FAST_SPECS: GoldenSpecName[] = [
+  "tiny_dance",
+  "mini_burst",
+  "cold_start",
+  "rhythm_ladder",
+];
+export const FAST_BUDGET_PHYS = 40_000;
+export const FAST_SEED = 0;
+
+/**
+ * Committed fingerprint of the "ruler" — `score.ts` + every `specs/golden/*.ts`
+ * (first 12 hex of their concatenated sha256; see `golden.ts evaluatorFingerprint`).
+ * The harness prints the live fingerprint each run and warns on drift, so an
+ * accidental (or sneaky) edit to the scorer or specs is visible — scores after a
+ * drift are not comparable to history. A DELIBERATE ruler change (a charter
+ * revision) updates this constant in the same commit. Soft tripwire, not a gate.
+ */
+export const EVALUATOR_FINGERPRINT = "e159a6bc5e41";
+
+/**
  * Worker-timeout (hang-detection safety cap) for the LDS path. The legacy
  * `workerTimeoutMs` is calibrated for the fast legacy compiler (≈5-40 s) and
  * is far too tight for LDS, which spends its physics budget exploring (≈0.3 ms

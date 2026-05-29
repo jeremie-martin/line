@@ -15,8 +15,14 @@
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
 import { fileURLToPath } from "node:url";
 
-import { compile } from "./compile.ts";
-import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
+import { compile as compileV0 } from "./compile.ts";
+import {
+  compile as compileV1,
+  defaultBudgetFor as defaultV1BudgetFor,
+  minimumRecommendedBudgetFor as minimumRecommendedV1BudgetFor,
+  type Budget as V1Budget,
+} from "../v1/compile.ts";
+import { FPS, type DriftReport, type Spec } from "./types.ts";
 import {
   GOLDEN_SEEDS,
   GOLDEN_SPECS,
@@ -36,20 +42,26 @@ import {
   OFF_BEAT_TOLERANCE,
   SYNC_TOLERANCE,
   axisDetails,
+  scoreDriftReport,
   scoreTimedDriftReport,
   shiftedGeometricMean,
   worstContacts,
   type V0TimedContractScore,
 } from "./score.ts";
 
-type WorkerInput = SuiteCase & { seed: number };
+type CompilerChoice = "v0" | "v1";
+type WorkerInput = SuiteCase & {
+  seed: number;
+  compiler: CompilerChoice;
+  budgetUnits: number | null;
+};
 type WorkerOk = {
   kind: "ok";
   specName: string;
   variant: VariantName;
   elapsed_ms: number;
   report: DriftReport;
-  stats: CompileStats;
+  stats: unknown;
 };
 type WorkerErr = {
   kind: "error";
@@ -78,7 +90,7 @@ type ScoredSpec = V0TimedContractScore & {
   axes: ReturnType<typeof axisDetails>;
   worst_contacts: ReturnType<typeof worstContacts>;
   off_beat_frames: number[];
-  compile_stats: CompileStats | null;
+  compile_stats: unknown | null;
 };
 
 type GroupScore = {
@@ -88,6 +100,40 @@ type GroupScore = {
   total: number;
   time_multiplier_mean: number;
 };
+
+type CaseRunContext = {
+  score: ScoreContext;
+  default_work_units: number;
+  minimum_work_units: number;
+};
+
+type BudgetSweepPoint = {
+  label: string;
+  scale: number;
+};
+
+type BudgetSweepResult = {
+  label: string;
+  scale: number;
+  goal_score: number;
+  contract_pass_rate: number;
+  passed: number;
+  total: number;
+  specs: ScoredSpec[];
+};
+
+type MonotonicViolation = {
+  name: string;
+  variant: VariantName;
+  seed: number;
+  lower_label: string;
+  higher_label: string;
+  lower_axis_quality: number;
+  higher_axis_quality: number;
+  delta: number;
+};
+
+const V1_TIMEOUT_MS_PER_WORK_UNIT = 1.25;
 
 function arg(name: string): string | null {
   const prefix = `--${name}=`;
@@ -99,15 +145,61 @@ function has(name: string): boolean {
   return process.argv.includes(`--${name}`);
 }
 
+function parseCompiler(): CompilerChoice {
+  const raw = arg("compiler") ?? "v0";
+  if (raw === "v0" || raw === "v1") return raw;
+  throw new Error(`--compiler must be v0 or v1, got ${raw}`);
+}
+
+function parseBudgetUnits(): number | null {
+  const raw = arg("budget-units");
+  if (raw === null) return null;
+  const units = Math.trunc(Number(raw));
+  if (!Number.isFinite(units) || units < 0) {
+    throw new Error(`--budget-units must be a non-negative number, got ${raw}`);
+  }
+  return units;
+}
+
+function parseBudgetSweep(): BudgetSweepPoint[] | null {
+  if (!has("budget-sweep")) return null;
+  const raw = arg("budget-sweep-scales") ?? "0.25,0.5,1";
+  const scales = raw.split(",")
+    .map((part) => Number(part.trim()))
+    .filter((scale) => Number.isFinite(scale) && scale > 0);
+  if (scales.length === 0) {
+    throw new Error(`--budget-sweep-scales must contain positive numbers, got ${raw}`);
+  }
+  scales.sort((a, b) => a - b);
+  return scales.map((scale) => ({ label: `${scale}x`, scale }));
+}
+
+function selectedSpecNames(): Set<string> | null {
+  const raw = arg("specs");
+  if (raw === null) return null;
+  const names = raw.split(",").map((name) => name.trim()).filter(Boolean);
+  const valid = new Set<string>(GOLDEN_SPECS);
+  for (const name of names) {
+    if (!valid.has(name)) throw new Error(`unknown golden spec ${name}`);
+  }
+  return new Set(names);
+}
+
+function filterCases(cases: SuiteCase[], names: Set<string> | null): SuiteCase[] {
+  return names === null ? cases : cases.filter((testCase) => names.has(testCase.specName));
+}
+
 async function runWithTimeout(
   testCase: SuiteCase,
   seed: number,
+  compiler: CompilerChoice,
+  budgetUnits: number | null,
   timeoutMs: number,
 ): Promise<RunResult> {
   const workerPath = fileURLToPath(import.meta.url);
-  const input: WorkerInput = { ...testCase, seed };
+  const input: WorkerInput = { ...testCase, seed, compiler, budgetUnits };
   return await new Promise<RunResult>((resolvePromise, reject) => {
-    const worker = new Worker(workerPath, { workerData: input, execArgv: process.execArgv });
+    const worker = new Worker(workerPath, { workerData: input, execArgv: ["--import", "tsx"] });
     let settled = false;
     const timer = setTimeout(() => {
       if (settled) return;
@@ -125,6 +217,7 @@ async function runWithTimeout(
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      worker.terminate().catch(() => {});
       resolvePromise(msg);
     });
     worker.on("error", (error) => {
@@ -154,7 +247,7 @@ async function runWorker(): Promise<void> {
   const t0 = Date.now();
   try {
     const spec = await loadGoldenSpec(input.specName, input.variant);
-    const { report, stats } = compile(spec, input.seed);
+    const { report, stats } = compileForWorker(spec, input);
     parentPort.postMessage({
       kind: "ok",
       specName: input.specName,
@@ -172,6 +265,14 @@ async function runWorker(): Promise<void> {
       message: String(error).slice(0, 200),
     } satisfies WorkerErr);
   }
+}
+
+function compileForWorker(spec: Spec, input: WorkerInput): { report: DriftReport; stats: unknown } {
+  if (input.compiler === "v0") return compileV0(spec, input.seed);
+  const budget: V1Budget = input.budgetUnits === null
+    ? defaultV1BudgetFor(spec)
+    : { kind: "work", units: input.budgetUnits };
+  return compileV1(spec, { seed: input.seed, budget });
 }
 
 type ScoreContext = {
@@ -216,7 +317,12 @@ function emptyScore(elapsedMs: number, ctx: ScoreContext): V0TimedContractScore 
   };
 }
 
-function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): ScoredSpec {
+function scoreResult(
+  result: RunResult,
+  seed: number,
+  ctx: ScoreContext,
+  compiler: CompilerChoice,
+): ScoredSpec {
   if (result.kind === "timeout") {
     return {
       ...emptyScore(result.elapsed_ms, ctx),
@@ -249,11 +355,13 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
       compile_stats: null,
     };
   }
-  const score = scoreTimedDriftReport(
-    result.report,
-    { elapsed_ms: result.elapsed_ms, soft_ms: ctx.soft_ms, hard_ms: ctx.hard_ms },
-    { totalFrames: ctx.total_frames },
-  );
+  const score = compiler === "v0"
+    ? scoreTimedDriftReport(
+        result.report,
+        { elapsed_ms: result.elapsed_ms, soft_ms: ctx.soft_ms, hard_ms: ctx.hard_ms },
+        { totalFrames: ctx.total_frames },
+      )
+    : scoreWorkBudgetedDriftReport(result.report, result.elapsed_ms, ctx);
   return {
     ...score,
     name: result.specName,
@@ -269,6 +377,22 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
   };
 }
 
+function scoreWorkBudgetedDriftReport(
+  report: DriftReport,
+  elapsedMs: number,
+  ctx: ScoreContext,
+): V0TimedContractScore {
+  const base = scoreDriftReport(report, { totalFrames: ctx.total_frames });
+  return {
+    ...base,
+    score_without_time: base.score,
+    time_multiplier: 1,
+    elapsed_ms: elapsedMs,
+    soft_ms: ctx.soft_ms,
+    hard_ms: ctx.hard_ms,
+  };
+}
+
 function specContext(spec: Spec): ScoreContext {
   const numContacts = spec.contacts.length;
   return {
@@ -277,6 +401,43 @@ function specContext(spec: Spec): ScoreContext {
     worker_timeout_ms: workerTimeoutMs(numContacts),
     total_frames: Math.round(spec.duration * FPS),
   };
+}
+
+function caseRunContext(spec: Spec): CaseRunContext {
+  return {
+    score: specContext(spec),
+    default_work_units: workUnits(defaultV1BudgetFor(spec)),
+    minimum_work_units: workUnits(minimumRecommendedV1BudgetFor(spec)),
+  };
+}
+
+function workUnits(budget: V1Budget): number {
+  if (budget.kind !== "work") {
+    throw new Error(`golden v1 requires work budgets, got ${budget.kind}`);
+  }
+  return Math.max(0, Math.floor(budget.units));
+}
+
+function fixedBudget(units: number | null): (context: CaseRunContext) => number | null {
+  return () => units;
+}
+
+function scaledBudget(point: BudgetSweepPoint): (context: CaseRunContext) => number {
+  return (context) => {
+    const scaled = Math.floor(context.default_work_units * point.scale);
+    return Math.max(context.minimum_work_units, scaled);
+  };
+}
+
+function timeoutMsForCase(
+  compiler: CompilerChoice,
+  ctx: CaseRunContext,
+  budgetUnits: number | null,
+): number {
+  if (compiler === "v0") return ctx.score.worker_timeout_ms;
+  const units = budgetUnits ?? ctx.default_work_units;
+  const workTimeout = Math.ceil(Math.max(0, units) * V1_TIMEOUT_MS_PER_WORK_UNIT);
+  return Math.max(ctx.score.worker_timeout_ms, workTimeout);
 }
 
 function fmtMs(ms: number): string {
@@ -404,16 +565,18 @@ function printSummary(label: string, rows: ScoredSpec[], keyOf: (row: ScoredSpec
 async function runRows(
   cases: SuiteCase[],
   seeds: number[],
+  compiler: CompilerChoice,
+  budgetUnitsForCase: (context: CaseRunContext) => number | null,
   jsonOnly: boolean,
   details: boolean,
   label: string,
 ): Promise<ScoredSpec[]> {
-  const contexts = new Map<string, ScoreContext>();
+  const contexts = new Map<string, CaseRunContext>();
   for (const testCase of cases) {
     const key = `${testCase.specName}/${testCase.variant}`;
     if (!contexts.has(key)) {
       const spec = await loadGoldenSpec(testCase.specName, testCase.variant);
-      contexts.set(key, specContext(spec));
+      contexts.set(key, caseRunContext(spec));
     }
   }
   const scored: ScoredSpec[] = [];
@@ -423,8 +586,15 @@ async function runRows(
     }
     for (const testCase of cases) {
       const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
-      const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms);
-      const row = scoreResult(result, seed, ctx);
+      const budgetUnits = budgetUnitsForCase(ctx);
+      const result = await runWithTimeout(
+        testCase,
+        seed,
+        compiler,
+        budgetUnits,
+        timeoutMsForCase(compiler, ctx, budgetUnits),
+      );
+      const row = scoreResult(result, seed, ctx.score, compiler);
       scored.push(row);
       if (!jsonOnly) printRow(row, details);
     }
@@ -494,28 +664,183 @@ function detailedJsonRow(row: ScoredSpec): ScoredSpec {
   };
 }
 
+async function runBudgetSweep(
+  cases: SuiteCase[],
+  seeds: number[],
+  points: readonly BudgetSweepPoint[],
+  jsonOnly: boolean,
+  details: boolean,
+): Promise<BudgetSweepResult[]> {
+  const results: BudgetSweepResult[] = [];
+  for (const point of points) {
+    if (!jsonOnly) {
+      console.log("");
+      console.log(`budget sweep ${point.label}`);
+      console.log("");
+    }
+    const specs = await runRows(
+      cases,
+      seeds,
+      "v1",
+      scaledBudget(point),
+      jsonOnly,
+      details,
+      `budget:${point.label}`,
+    );
+    const passed = specs.filter((row) => row.status === "pass").length;
+    results.push({
+      label: point.label,
+      scale: point.scale,
+      goal_score: suiteScore(specs, (row) => row.name),
+      contract_pass_rate: specs.length === 0 ? 0 : passed / specs.length,
+      passed,
+      total: specs.length,
+      specs,
+    });
+  }
+  return results;
+}
+
+function budgetSweepViolations(
+  results: readonly BudgetSweepResult[],
+  tolerance = 1e-12,
+): MonotonicViolation[] {
+  const byRow = new Map<string, { result: BudgetSweepResult; row: ScoredSpec }[]>();
+  for (const result of results) {
+    for (const row of result.specs) {
+      const key = `${row.name}\u0000${row.variant}\u0000${row.seed}`;
+      const bucket = byRow.get(key) ?? [];
+      bucket.push({ result, row });
+      byRow.set(key, bucket);
+    }
+  }
+
+  const violations: MonotonicViolation[] = [];
+  for (const bucket of byRow.values()) {
+    bucket.sort((a, b) => a.result.scale - b.result.scale);
+    for (let index = 1; index < bucket.length; index++) {
+      const prev = bucket[index - 1];
+      const curr = bucket[index];
+      const delta = curr.row.axis_quality - prev.row.axis_quality;
+      if (delta + tolerance >= 0) continue;
+      violations.push({
+        name: curr.row.name,
+        variant: curr.row.variant,
+        seed: curr.row.seed,
+        lower_label: prev.result.label,
+        higher_label: curr.result.label,
+        lower_axis_quality: prev.row.axis_quality,
+        higher_axis_quality: curr.row.axis_quality,
+        delta,
+      });
+    }
+  }
+  return violations;
+}
+
 async function runMain(): Promise<void> {
   const jsonOnly = has("json") || has("json-full");
   const details = has("details") || has("json-full");
   const includeVariants = has("variants");
+  const compiler = parseCompiler();
+  const budgetUnits = parseBudgetUnits();
+  const budgetSweep = parseBudgetSweep();
+  if (compiler === "v0" && budgetUnits !== null) {
+    throw new Error("--budget-units is only valid with --compiler=v1");
+  }
+  if (budgetSweep !== null && compiler !== "v1") {
+    throw new Error("--budget-sweep is only valid with --compiler=v1");
+  }
+  if (budgetSweep !== null && budgetUnits !== null) {
+    throw new Error("--budget-sweep cannot be combined with --budget-units");
+  }
+  if (budgetSweep !== null && includeVariants) {
+    throw new Error("--budget-sweep does not support --variants");
+  }
   const rawSeed = arg("seed");
   const debugSeed = rawSeed !== null ? Math.trunc(Number(rawSeed)) : null;
   if (rawSeed !== null && !Number.isFinite(debugSeed)) {
     throw new Error(`--seed must be a number, got ${rawSeed}`);
   }
   const seeds = debugSeed !== null ? [debugSeed] : [...GOLDEN_SEEDS];
-  const headline = headlineCases();
-  const variants = variantCases();
+  const specNames = selectedSpecNames();
+  const headline = filterCases(headlineCases(), specNames);
+  const variants = filterCases(variantCases(), specNames);
 
   if (!jsonOnly) {
+    const budgetLabel = compiler === "v1"
+      ? budgetSweep !== null
+        ? `budget sweep ${budgetSweep.map((point) => point.label).join(",")}`
+        : budgetUnits === null ? "default v1 work budget" : `${budgetUnits} work units`
+      : "runtime budget scales per-contact";
     console.log(
-      `v0 golden benchmark · ${GOLDEN_SPECS.length} specs × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · ` +
-        `runtime budget scales per-contact · seeds=${seeds.join(",")}`,
+      `${compiler} golden benchmark · ${headline.length} specs × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · ` +
+        `${budgetLabel} · seeds=${seeds.join(",")}`,
     );
     console.log("");
   }
 
-  const scored = await runRows(headline, seeds, jsonOnly, details, "headline");
+  if (budgetSweep !== null) {
+    const sweepResults = await runBudgetSweep(headline, seeds, budgetSweep, jsonOnly, details);
+    const violations = budgetSweepViolations(sweepResults);
+    const final = sweepResults.at(-1);
+    if (jsonOnly) {
+      process.stdout.write(JSON.stringify({
+        goal_score: round(final?.goal_score ?? 0),
+        contract_pass_rate: round(final?.contract_pass_rate ?? 0, 4),
+        scoring: {
+          axis_quality_tolerance: AXIS_QUALITY_TOLERANCE,
+          sync_tolerance_frames: SYNC_TOLERANCE,
+          missing_contact_tolerance: MISSING_CONTACT_TOLERANCE,
+          off_beat_tolerance: OFF_BEAT_TOLERANCE,
+          aggregation: "shifted_geometric_mean_by_spec",
+          json_detail: details ? "detailed" : "compact",
+          compiler,
+          runtime: "not score-penalized; runtime controlled by v1 work budget",
+          budget: {
+            kind: "work_sweep",
+            scales: budgetSweep.map((point) => point.scale),
+            default_when_null: "scripts/v1/defaultBudgetFor(spec)",
+            floor: "scripts/v1/minimumRecommendedBudgetFor(spec)",
+          },
+        },
+        seeds,
+        seed_count: seeds.length,
+        passed: final?.passed ?? 0,
+        total: final?.total ?? 0,
+        monotonic_violations: violations.map((violation) => ({
+          ...violation,
+          lower_axis_quality: round(violation.lower_axis_quality, 6),
+          higher_axis_quality: round(violation.higher_axis_quality, 6),
+          delta: round(violation.delta, 6),
+        })),
+        budget_sweep: sweepResults.map((result) => ({
+          label: result.label,
+          scale: result.scale,
+          goal_score: round(result.goal_score),
+          contract_pass_rate: round(result.contract_pass_rate, 4),
+          passed: result.passed,
+          total: result.total,
+          specs: result.specs.map(details ? detailedJsonRow : compactJsonRow),
+        })),
+        variants: { enabled: false },
+      }, null, 2) + "\n");
+    } else {
+      for (const result of sweepResults) {
+        printSummary(`BUDGET_${result.label}`, result.specs, (row) => row.name);
+      }
+      console.log(`  monotonic_violations ${violations.length}`);
+      for (const violation of violations.slice(0, 10)) {
+        console.log(
+          `    ${violation.name} seed=${violation.seed} ${violation.lower_label}->${violation.higher_label} ` +
+            `${violation.lower_axis_quality.toFixed(4)} -> ${violation.higher_axis_quality.toFixed(4)}`,
+        );
+      }
+    }
+    return;
+  }
+
+  const scored = await runRows(headline, seeds, compiler, fixedBudget(budgetUnits), jsonOnly, details, "headline");
   const specScores = groupScores(scored, (row) => row.name);
   const goal_score = suiteScore(scored, (row) => row.name);
   const passed = scored.filter((row) => row.status === "pass").length;
@@ -541,7 +866,7 @@ async function runMain(): Promise<void> {
       console.log("report-only variants");
       console.log("");
     }
-    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant");
+    variantRows = await runRows(variants, seeds, compiler, fixedBudget(budgetUnits), jsonOnly, details, "variant");
     variantScores = groupScores(variantRows, (row) => caseLabel(row));
     variantReportScore = suiteScore(variantRows, (row) => caseLabel(row));
   }
@@ -557,7 +882,13 @@ async function runMain(): Promise<void> {
         off_beat_tolerance: OFF_BEAT_TOLERANCE,
         aggregation: "shifted_geometric_mean_by_spec",
         json_detail: details ? "detailed" : "compact",
-        runtime: "per-spec affine in contact count (see golden_suite.softBudgetMs)",
+        compiler,
+        runtime: compiler === "v0"
+          ? "per-spec affine in contact count (see golden_suite.softBudgetMs)"
+          : "not score-penalized; runtime controlled by v1 work budget",
+        budget: compiler === "v1"
+          ? { kind: "work", units: budgetUnits, default_when_null: "scripts/v1/defaultBudgetFor(spec)" }
+          : { kind: "runtime_ms" },
       },
       seeds,
       seed_count: seeds.length,

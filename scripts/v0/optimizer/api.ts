@@ -187,7 +187,11 @@ function scoreLeaf(
   const report = buildDriftReport(
     det, spec, gaps, allContactFrames, durationFrames, [], leaf.fits as (GapFit | null)[],
   );
-  const score = scoreDriftReport(report);
+  // Score with totalFrames so a leaf that dies before endOfSpec gets partial
+  // survival_quality (not 0) — the failing-leaf comparator can then prefer a
+  // longer-surviving / more-complete leaf, and this matches how golden.ts scores
+  // the returned track (review P2).
+  const score = scoreDriftReport(report, { totalFrames: durationFrames });
   return {
     contract_passed: score.contract_passed,
     axis_quality: score.axis_quality,

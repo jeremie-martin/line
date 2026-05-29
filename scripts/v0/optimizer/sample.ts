@@ -63,6 +63,11 @@ export function sampleOneCandidate(
   rng: () => number,
   ctx: SpecContext,
   lineIdStart: number,
+  /** Attempt index within a gap's K-sample loop. Drives the steep-catch
+   *  CATCH_TEMPLATES selection in sampleArcParams; the K-candidate solver passes
+   *  0..K-1 so the templates are actually swept rather than all collapsing to
+   *  template 0 (review P2). Defaults to 0 for single-sample callers. */
+  attempt = 0,
 ): Candidate | null {
   // Use the METERED rider read for the first probe: the raw engine.getRider
   // advances lr-core to gap.endFrame without charging the physics-frame counter,
@@ -74,19 +79,14 @@ export function sampleOneCandidate(
   const targetState = readTargetState(engine, gap.endFrame, refX, refY);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
 
-  // attempt=0 because we only sample one. Note: when called repeatedly
-  // (Step 2's K-candidate solver), the RNG state advances each call so
-  // arc parameters differ, even with attempt fixed at 0. The
-  // attempt-indexed CATCH_TEMPLATES branch in sampleArcParams only
-  // fires for "steep catch" gaps; for non-steep gaps the attempt arg
-  // is unused. Setting it to 0 means: each call samples uniformly
-  // from the full parameter space, with no template-driven first
-  // pick.
-  const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, 0, gap);
+  // Pass the real attempt index: on steep-catch gaps sampleArcParams selects
+  // CATCH_TEMPLATES[attempt] (before consuming RNG), so threading 0..K-1 sweeps
+  // the templates instead of every K sample reusing template 0 (review P2). For
+  // non-steep gaps the attempt arg is unused and the RNG drives diversity.
+  const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap);
 
-  // searchTargets defaults to gap.targets here. Multi-gap residual
-  // targeting is a higher-level concern (Step 5+); the atomic
-  // sample uses the gap's own targets directly.
+  // The atomic sample uses the gap's own targets directly (multi-gap residual
+  // targeting is a higher-level concern).
   const fit = tryCandidate(
     engine, gap, arc, lineIdStart, ctx.allContactFrames,
     axisMeasureEnd, gap.targets, true,

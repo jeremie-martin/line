@@ -45,7 +45,7 @@ export function solveOneGap(
   }
   const out: Candidate[] = [];
   for (let attempt = 0; attempt < K; attempt++) {
-    const c = sampleOneCandidate(engine, gap, rng, ctx, lineIdStart);
+    const c = sampleOneCandidate(engine, gap, rng, ctx, lineIdStart, attempt);
     if (c !== null) out.push(c);
   }
   return out;

@@ -45,6 +45,7 @@ import {
   extendNode,
   getCandidatesSorted,
   isLeafNode,
+  makeRootNode,
   type SearchNode,
 } from "./node.ts";
 import { getSimFrames } from "./sim_frames.ts";
@@ -89,6 +90,13 @@ export const BASE_BACKTRACK_DEPTH = 24;
  *  legacy `compile()`'s `gapFailures` continue-past behaviour. */
 export const SKIP = -1;
 
+/** Per-gap candidate count for the SKIP-gated high-diversity floor (see
+ *  `enumerateLeaves`). 2× N_CAND. Only used when the base floor SKIPPED a contact
+ *  (a dense skip-failure like solo_run); `solveOneGap` is prefix-compatible so
+ *  this is a strict superset of the base floor's pool. Not a budget knob — a code
+ *  constant, gated on an actual skip so it is inert on passers / off-beat specs. */
+export const HIGH_DIVERSITY_N_CAND = 64;
+
 /** Optional, non-scoring search telemetry. A single mutable object threaded
  *  through the whole enumeration so compileLDS can surface diagnostics
  *  (CompileStats optimizer-native fields) — never read by the search itself, so
@@ -113,6 +121,7 @@ function makeCandGetter(
   ctx: SpecContext,
   seed: number,
   telemetry?: SearchTelemetry,
+  nCand?: number,
 ): (node: SearchNode, key: string) => Candidate[] {
   return (node, key) => {
     const hit = candCache.get(key);
@@ -121,7 +130,7 @@ function makeCandGetter(
       return hit;
     }
     if (telemetry) telemetry.cacheMisses++;
-    const sorted = getCandidatesSorted(node, gaps, ctx, seed);
+    const sorted = getCandidatesSorted(node, gaps, ctx, seed, nCand);
     candCache.set(key, sorted);
     return sorted;
   };
@@ -185,6 +194,11 @@ export function buildBacktrackingLeaf(
   budgetUnits?: number,
   /** Optional non-scoring telemetry (cache hits/misses, backtrack steps). */
   telemetry?: SearchTelemetry,
+  /** Per-gap candidate count for THIS descent (defaults to N_CAND via the getter).
+   *  The SKIP-gated high-diversity floor passes a larger value to widen the pool
+   *  only for skip-failing specs; `solveOneGap` is prefix-compatible so it is a
+   *  strict superset of the base floor's candidates. */
+  nCand?: number,
 ): { leaf: Leaf; baseCommitPath: number[]; candidateCounts: number[] } | null {
   type FrameKind = "leaf" | "noncontact" | "contact" | "skip";
   type Frame = {
@@ -199,7 +213,7 @@ export function buildBacktrackingLeaf(
     committedKey: string;
   };
 
-  const getCached = makeCandGetter(candCache, gaps, ctx, seed, telemetry);
+  const getCached = makeCandGetter(candCache, gaps, ctx, seed, telemetry, nCand);
 
   const makeFrame = (node: SearchNode, committedKey: string): Frame => {
     if (isLeafNode(node, gaps.length)) return { node, kind: "leaf", cands: [], tried: 0, committedKey };
@@ -475,6 +489,7 @@ export function* enumerateLeaves(
   if (base === null) return;
   yield base.leaf;
 
+
   // Guided repair — the validation-retry IDEA integrated as ordinary deviation
   // LEAVES, not a copied retry loop. The base path can complete yet MISS or land
   // OFF-BEAT in the ASSEMBLED track. The fix: FORBID the owning gap's committed
@@ -538,6 +553,36 @@ export function* enumerateLeaves(
       gaps, ctx, seed, base.baseCommitPath, getCandidatesCached, budgetUnits,
     );
   }
+}
+
+/** Build the high-diversity completion floor (backlog #4, reframed) — the base
+ *  backtracking floor re-run with a WIDER candidate pool (HIGH_DIVERSITY_N_CAND).
+ *  `compileLDS` invokes this ONCE, AFTER the budgeted enumeration, and only when
+ *  the best leaf still FAILS the contract. It is a budget-exempt last-resort
+ *  completion attempt for dense specs whose base floor commits off-beat/missing
+ *  candidates a wider pool can avoid (measured: solo_run s1 90→511, drums_pendulum
+ *  s0 cracks). `solveOneGap(K')` is prefix-compatible, so the wider pool is a
+ *  strict SUPERSET of the base floor's options — and on solo_run it is also
+ *  CHEAPER (more candidates ⇒ a completing combination is found with far less
+ *  backtracking). Offered to the register, which adopts only on strict improvement
+ *  ⇒ it can never regress a spec (a worse wide-pool path is simply not kept).
+ *  Placed post-budget so it never starves the deviation sweep. Fresh root + cache
+ *  (the per-node cache is not keyed by nCand, and the shared root was already
+ *  sampled at N_CAND). Deterministic: a pure function of (spec, seed). Returns the
+ *  leaf, or null if even the wide floor cannot complete. */
+export function buildHighDiversityFloorLeaf(
+  root: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  telemetry?: SearchTelemetry,
+): Leaf | null {
+  const hiRoot = makeRootNode(root.prefixEngine, gaps.length);
+  const hi = buildBacktrackingLeaf(
+    hiRoot, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, new Map(),
+    undefined, undefined, telemetry, HIGH_DIVERSITY_N_CAND,
+  );
+  return hi === null ? null : hi.leaf;
 }
 
 /** Yield exactly the leaves whose base-relative discrepancy (sum of local

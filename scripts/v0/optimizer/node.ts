@@ -80,6 +80,13 @@ export function getCandidatesSorted(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  /** Per-gap candidate count. Defaults to N_CAND. The SKIP-gated high-diversity
+   *  floor (lds.ts) passes a larger value to widen the pool ONLY for specs whose
+   *  base floor skipped a contact. `solveOneGap(K')` is prefix-compatible — the
+   *  first N_CAND samples are identical — so a larger nCand is a strict superset
+   *  of options. The per-node cache is keyed only by the node object, which is
+   *  safe because each descent uses a single fixed nCand on fresh nodes. */
+  nCand: number = N_CAND,
 ): Candidate[] {
   if (node._candidatesCache !== null) return node._candidatesCache;
   const gap = gaps[node.gapIndex];
@@ -94,7 +101,7 @@ export function getCandidatesSorted(
   // Byte-identical to the old `(seed|0)*1000003 + …` for int32-range seeds.
   const perGapRng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
   const sampleOrder = solveOneGap(
-    node.prefixEngine, gap, perGapRng, N_CAND, ctx, node.prefixNextLineId,
+    node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
   );
   // Sort by cost ascending. Stable sort: ties keep sample-order.
   const sorted = [...sampleOrder].sort((a, b) => a.cost - b.cost);

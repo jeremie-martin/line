@@ -32,7 +32,7 @@ import {
 } from "../core/preroll.ts";
 import { makeRng } from "../../lib/rng.ts";
 import { CALIB, secToFrame } from "../types.ts";
-import { enumerateLeaves, type Leaf, type SearchTelemetry } from "./lds.ts";
+import { buildHighDiversityFloorLeaf, enumerateLeaves, type Leaf, type SearchTelemetry } from "./lds.ts";
 import { makeRootNode } from "./node.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
@@ -170,6 +170,21 @@ export function compileLDS(
   // stopped the search before the loop body ran (e.g. tiny budget below the
   // floor cost, or dead-end exploration halted): the budget was still spent.
   if (getSimFrames() >= budgetUnits) budgetExhausted = true;
+
+  // High-diversity completion floor (backlog #4, reframed). If the best leaf still
+  // FAILS the hard contract, make one budget-exempt last-resort attempt: re-run the
+  // floor with a WIDER candidate pool (see buildHighDiversityFloorLeaf). Placed
+  // here — after the budgeted enumeration — so it never starves the deviation
+  // sweep. The register adopts it only on STRICT improvement, so it can never
+  // regress a spec (a worse wide-pool path is simply not kept); it is inert on
+  // every spec whose best already passes (so passing specs stay byte-identical).
+  // Measured: solo_run 90→511 (s1 cracks), drums_pendulum 170→358 (s0 cracks),
+  // drums_crescendo / passers unchanged.
+  const bestKey = register.getBestKey();
+  if (bestKey !== null && !bestKey.contract_passed) {
+    const hiLeaf = buildHighDiversityFloorLeaf(root, gaps, ctx, seed, telemetry);
+    if (hiLeaf !== null) consider(hiLeaf);
+  }
 
   const best = register.getBest();
   if (best === null) {

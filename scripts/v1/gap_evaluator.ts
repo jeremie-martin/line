@@ -465,7 +465,7 @@ function airFeasibleBand(
   return { lo: Math.min(lo, hi), hi: Math.max(lo, hi) };
 }
 
-function axisLookaheadEndFrame(gap: NormalizedGap, allContactFrames: readonly number[]): number {
+export function axisLookaheadEndFrame(gap: NormalizedGap, allContactFrames: readonly number[]): number {
   if (gap.targets.air === undefined) return gap.endFrame;
   const nextContact = allContactFrames.find((contactFrame) => contactFrame > gap.endFrame) ?? gap.endFrame;
   const postContactFrames = nextContact - gap.endFrame;

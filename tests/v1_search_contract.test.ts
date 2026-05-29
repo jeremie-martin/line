@@ -15,6 +15,12 @@ const ONE_CONTACT: Spec = {
   sections: [{ t0: 0, t1: 1.5, air: 0.7 }],
 };
 
+const ONE_CONTACT_WITH_STYLE: Spec = {
+  duration: 1.5,
+  contacts: [{ t: 1 }],
+  sections: [{ t0: 0, t1: 1.5, air: 0.7, grain: 0.5, contact_style: 0.5 }],
+};
+
 const ORDINARY_DENSE_SHAPE: Spec = {
   duration: 4,
   contacts: [{ t: 0.5 }, { t: 1 }, { t: 1.5 }, { t: 2 }],
@@ -48,17 +54,14 @@ describe("v1 coverage search", () => {
     expect(qualities[2]).toBeGreaterThanOrEqual(qualities[1] - 1e-12);
   });
 
-  test("returned DriftReport matches independent resimulation for simulated axes", () => {
-    const result = compile(ONE_CONTACT, { seed: 0, budget: { kind: "work", units: 50_000 } });
-    const context = normalizeSpec(ONE_CONTACT, 0);
+  test("returned DriftReport matches independent resimulation from TrackJson", () => {
+    const result = compile(ONE_CONTACT_WITH_STYLE, { seed: 0, budget: { kind: "work", units: 50_000 } });
+    const context = normalizeSpec(ONE_CONTACT_WITH_STYLE, 0);
     const replay = replayEngine(result.track);
     const detection = detect(extractRawTrajectory(replay, context.durationFrames + 20));
-    const rebuilt = buildDriftReport(detection, context);
+    const rebuilt = buildDriftReport(detection, context, [], result.track.lines);
 
-    expect(rebuilt.contacts).toEqual(result.report.contacts);
-    expect(rebuilt.off_beat_landings).toEqual(result.report.off_beat_landings);
-    expect(rebuilt.terminus).toEqual(result.report.terminus);
-    expect(rebuilt.sections[0].axes.air).toEqual(result.report.sections[0].axes.air);
+    expect(rebuilt).toEqual(result.report);
   });
 
   test("ordinary specs do not enter dense recovery mode", () => {

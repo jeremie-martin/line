@@ -1,15 +1,22 @@
 import { detect, extractRawTrajectory, type Detection } from "../lib/detector.ts";
 import { scoreDriftReport } from "../v0/score.ts";
 import { CALIB, FPS, secToFrame } from "./normalize.ts";
-import { measureFitGrain } from "./gap_evaluator.ts";
+import {
+  axisLookaheadEndFrame,
+  contactLineIdsAt,
+  measureAxes,
+  measureFitGrain,
+} from "./gap_evaluator.ts";
 import type {
   CandidateKey,
   CompleteCandidate,
   ContactReport,
   DriftReport,
   NormalizedSpecContext,
+  SectionAxes,
   SectionReport,
   TrackJson,
+  TrackLine,
 } from "./types.ts";
 import type { GapFit } from "./search_state.ts";
 import { rebuildEngineFromLines } from "./engine_adapter.ts";
@@ -35,7 +42,7 @@ export function evaluateTrackJson(
   const raw = extractRawTrajectory(engine.raw(), context.durationFrames + 20);
   stats.recordDetectorWindow(raw.frames.length);
   const detection = detect(raw);
-  const report = buildDriftReport(detection, context, fits);
+  const report = buildDriftReport(detection, context, fits, track.lines);
   const score = scoreDriftReport(report, { totalFrames: context.durationFrames });
 
   return {
@@ -65,8 +72,12 @@ export function buildDriftReport(
   det: Detection,
   context: NormalizedSpecContext,
   fits: readonly (GapFit | null)[] = [],
+  trackLines?: readonly TrackLine[],
 ): DriftReport {
   const spec = context.originalSpec;
+  const derivedAxes = trackLines === undefined
+    ? []
+    : deriveGapAxesFromTrack(det, context, trackLines);
   const contacts: ContactReport[] = spec.contacts.map((contact) => {
     const target = secToFrame(contact.t);
     const matched = det.events.find(
@@ -131,9 +142,11 @@ export function buildDriftReport(
       for (let gapIndex = 0; gapIndex < context.gaps.length; gapIndex++) {
         const gap = context.gaps[gapIndex];
         const fit = fits[gapIndex];
-        if (!gap.endsWithContact || fit === undefined || fit === null) continue;
+        if (!gap.endsWithContact) continue;
         if (gap.endFrame >= startFrame && gap.endFrame <= endFrame) {
-          values.push(measureFitGrain(fit));
+          const derived = derivedAxes[gapIndex]?.grain;
+          if (derived !== undefined) values.push(derived);
+          else if (fit !== undefined && fit !== null) values.push(measureFitGrain(fit));
         }
       }
       if (values.length > 0) {
@@ -150,9 +163,9 @@ export function buildDriftReport(
       for (let gapIndex = 0; gapIndex < context.gaps.length; gapIndex++) {
         const gap = context.gaps[gapIndex];
         const fit = fits[gapIndex];
-        if (!gap.endsWithContact || fit === undefined || fit === null) continue;
+        if (!gap.endsWithContact) continue;
         if (gap.endFrame >= startFrame && gap.endFrame <= endFrame) {
-          const value = fit.achieved.contact_style;
+          const value = derivedAxes[gapIndex]?.contact_style ?? fit?.achieved.contact_style;
           if (value !== undefined) values.push(value);
         }
       }
@@ -183,6 +196,51 @@ export function buildDriftReport(
       reason: det.terminus.reason,
     },
   };
+}
+
+function deriveGapAxesFromTrack(
+  det: Detection,
+  context: NormalizedSpecContext,
+  trackLines: readonly TrackLine[],
+): (SectionAxes | null)[] {
+  const byId = new Map<number, TrackLine>();
+  for (const line of trackLines) byId.set(line.id, line);
+
+  const out: (SectionAxes | null)[] = new Array(context.gaps.length).fill(null);
+  let previousMaxLineId = 0;
+  for (let gapIndex = 0; gapIndex < context.gaps.length; gapIndex++) {
+    const gap = context.gaps[gapIndex];
+    if (!gap.endsWithContact) continue;
+
+    const contactIds = contactLineIdsNear(det, gap.endFrame)
+      .filter((lineId) => lineId > previousMaxLineId && byId.has(lineId));
+    if (contactIds.length === 0) continue;
+
+    const maxLineId = Math.max(...contactIds);
+    const gapLines = trackLines
+      .filter((line) => line.id > previousMaxLineId && line.id <= maxLineId)
+      .sort((a, b) => a.id - b.id);
+    if (gapLines.length === 0) continue;
+
+    out[gapIndex] = measureAxes(
+      det,
+      gap,
+      gapLines,
+      axisLookaheadEndFrame(gap, context.contactFrames),
+    );
+    previousMaxLineId = maxLineId;
+  }
+  return out;
+}
+
+function contactLineIdsNear(det: Detection, targetFrame: number): number[] {
+  const out: number[] = [];
+  for (let frame = targetFrame - 1; frame <= targetFrame + 1; frame++) {
+    for (const lineId of contactLineIdsAt(det, frame)) {
+      if (!out.includes(lineId)) out.push(lineId);
+    }
+  }
+  return out.sort((a, b) => a - b);
 }
 
 function measureAxisOverRange(

@@ -101,6 +101,15 @@ export function buildBacktrackingLeaf(
    *  so the descent's completion power can be probed/tuned without a spec-name
    *  branch. */
   maxBacktrack: number = BASE_BACKTRACK_DEPTH,
+  /** Candidate-list cache keyed by the COMMITTED candidate-identity path (the
+   *  absolute sorted-index, or "S" for a skip, at each contact gap so far). This
+   *  is a SECOND memoization layer on top of `node._candidatesCache` (node.ts):
+   *  the per-node cache serves an already-materialized node, while this keyed
+   *  cache is reused across the FRESH nodes that backtracking re-descents and —
+   *  when shared via `enumerateLeaves` — the deviation enumeration build for the
+   *  same committed prefix (measured 23–50% hit rate in the deviation phase).
+   *  Pass the SAME map used by `enumerateLeaves` to share it. Default: fresh. */
+  candCache: Map<string, Candidate[]> = new Map(),
 ): { leaf: Leaf; baseCommitPath: number[] } | null {
   type FrameKind = "leaf" | "noncontact" | "contact" | "skip";
   type Frame = {
@@ -110,12 +119,23 @@ export function buildBacktrackingLeaf(
     /** Contact: index of the NEXT candidate to try (committed = tried-1 after
      *  advancing). Non-contact/skip: 0->1 progress flag. */
     tried: number;
+    /** Committed candidate-identity path of the PREFIX before this gap (cache
+     *  key for this gap's candidate list). */
+    committedKey: string;
   };
 
-  const makeFrame = (node: SearchNode): Frame => {
-    if (isLeafNode(node, gaps.length)) return { node, kind: "leaf", cands: [], tried: 0 };
-    if (!gaps[node.gapIndex].endsWithContact) return { node, kind: "noncontact", cands: [], tried: 0 };
-    return { node, kind: "contact", cands: getCandidatesSorted(node, gaps, ctx, seed), tried: 0 };
+  const getCached = (node: SearchNode, key: string): Candidate[] => {
+    const hit = candCache.get(key);
+    if (hit !== undefined) return hit;
+    const sorted = getCandidatesSorted(node, gaps, ctx, seed);
+    candCache.set(key, sorted);
+    return sorted;
+  };
+
+  const makeFrame = (node: SearchNode, committedKey: string): Frame => {
+    if (isLeafNode(node, gaps.length)) return { node, kind: "leaf", cands: [], tried: 0, committedKey };
+    if (!gaps[node.gapIndex].endsWithContact) return { node, kind: "noncontact", cands: [], tried: 0, committedKey };
+    return { node, kind: "contact", cands: getCached(node, committedKey), tried: 0, committedKey };
   };
 
   const MAX_BT = maxBacktrack;
@@ -125,9 +145,7 @@ export function buildBacktrackingLeaf(
   // skip-march (rank-0-or-skip) to a leaf, which terminates in <= gaps.length.
   const STEP_CAP = (gaps.length + 1) * (MAX_BT + 2) * 64 + 256;
 
-  const nContacts = gaps.filter((g) => g.endsWithContact).length;
-
-  const stack: Frame[] = [makeFrame(root)];
+  const stack: Frame[] = [makeFrame(root, "")];
   let failureStartIdx = -1; // gapIndex where the current failure episode began
   let backtracksUsed = 0;
   let steps = 0;
@@ -146,7 +164,9 @@ export function buildBacktrackingLeaf(
       const leaf: Leaf = {
         fits: top.node.prefixFits,
         engine: top.node.prefixEngine,
-        ranks: new Array(nContacts).fill(0), // base path = local-rank 0 everywhere
+        // base path = local-rank 0 at every gap; length = total gaps to match
+        // enumerateDeviations' allRanks (one entry per gap, contact + non-contact).
+        ranks: new Array(gaps.length).fill(0),
         discrepancy: 0,
         cumulativeCost: top.node.cumulativeCost,
       };
@@ -156,7 +176,7 @@ export function buildBacktrackingLeaf(
     if (top.kind === "noncontact") {
       if (top.tried === 0) {
         top.tried = 1;
-        stack.push(makeFrame(extendNode(top.node, null)));
+        stack.push(makeFrame(extendNode(top.node, null), top.committedKey));
       } else {
         stack.pop(); // only one way through a non-contact gap; unwind
       }
@@ -172,13 +192,14 @@ export function buildBacktrackingLeaf(
     if (top.tried < top.cands.length && !(forceSkip && top.tried > 0)) {
       // commit the next candidate (lowest cost first). Under forceSkip we take
       // rank 0 if present (best effort) but never retry a higher rank.
-      const cand = top.cands[top.tried];
-      top.tried++;
+      const r = top.tried;
+      const cand = top.cands[r];
+      top.tried = r + 1;
       if (failureStartIdx !== -1 && top.node.gapIndex >= failureStartIdx) {
         failureStartIdx = -1; // forward progress past the failure gap — reset episode
         backtracksUsed = 0;
       }
-      stack.push(makeFrame(extendNode(top.node, cand)));
+      stack.push(makeFrame(extendNode(top.node, cand), top.committedKey + "," + r));
       continue;
     }
 
@@ -199,7 +220,7 @@ export function buildBacktrackingLeaf(
         }
         if (stack.length === 0) {
           forceSkip = true; // no untried candidate anywhere — fall back to skip-march
-          stack.push(makeFrame(root));
+          stack.push(makeFrame(root, ""));
           continue;
         }
         backtracksUsed++;
@@ -208,9 +229,10 @@ export function buildBacktrackingLeaf(
     }
     // skip this contact gap (commit null, advance) — guarantees forward progress
     const child = extendNode(top.node, null);
+    const skipKey = top.committedKey;
     stack.pop();
-    stack.push({ node: top.node, kind: "skip", cands: [], tried: 1 });
-    stack.push(makeFrame(child));
+    stack.push({ node: top.node, kind: "skip", cands: [], tried: 1, committedKey: skipKey });
+    stack.push(makeFrame(child, skipKey + ",S"));
     failureStartIdx = -1;
     backtracksUsed = 0;
   }
@@ -250,16 +272,22 @@ export function* enumerateLeaves(
   seed: number,
   budgetUnits = Infinity,
 ): Generator<Leaf> {
+  // Candidate-list cache keyed on the committed candidate-identity path, SHARED
+  // between the base-path descent and the deviation enumeration (and across the
+  // base path's own backtracking / validation re-descents). The key scheme is
+  // identical in both — absolute sorted-index (or "S") per contact gap — so a
+  // candidate list sampled while building the base path is reused for free when
+  // a deviation revisits the same prefix.
+  const candCache = new Map<string, Candidate[]>();
+
   // The d=0 floor. Budget-exempt: it must always complete (it is the LDS
   // search's own completion guarantee, replacing the legacy floor seed). If no
   // complete path exists at all, yield nothing — `compileLDS` then surfaces
   // "no leaf reached end-of-spec".
-  const base = buildBacktrackingLeaf(root, gaps, ctx, seed);
+  const base = buildBacktrackingLeaf(root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache);
   if (base === null) return;
   yield base.leaf;
 
-  // Candidate-list cache keyed on the committed candidate-identity path.
-  const candCache = new Map<string, Candidate[]>();
   const getCandidatesCached = (node: SearchNode, committedKey: string): Candidate[] => {
     const cached = candCache.get(committedKey);
     if (cached !== undefined) return cached;

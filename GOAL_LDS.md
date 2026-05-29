@@ -98,14 +98,21 @@ commit against an indicative number as if it were the goal.
 ### Commands
 
 ```
-npm run golden                              # CANONICAL goal_score (lds default; slow, ~minutes)
+npm run golden                              # CANONICAL goal_score (lds default; parallel, ~minutes)
 npm run golden -- --fast                    # indicative: FAST_SPECS subset, seed 0, small budget (~30-45s)
 npm run golden -- --specs=tiny_dance,cold_start --seed=0 --budget=40000   # targeted probe
 npm run golden -- --variants                # + generalization probe (perturbed timing/stretch)
+npm run golden -- --jobs=N                  # worker parallelism (default min(6, cpus-1)); does not affect scores
 npm run golden -- --json | --details | --json-full     # machine-readable / per-row diagnostics
 npm run golden -- --legacy                  # the retired greedy compiler, for comparison only
 npx vitest run tests/optimizer_*.test.ts    # the property tests (§3)
 ```
+
+Runs execute in isolated workers through a bounded pool: parallelism is safe
+(each compile is independent + deterministic; scores are unaffected) and a single
+runaway compile fails its own row gracefully (scored 0) rather than aborting the
+suite. The full run is still minutes — the budget-exempt drums floors dominate
+(§8) — so **iterate with `--fast`**, not the canonical run.
 
 **Inner loop = `--fast`** (or a targeted `--specs/--budget/--seed`): seconds, not
 minutes. The agent has no felt sense of time but the human running you does — do not

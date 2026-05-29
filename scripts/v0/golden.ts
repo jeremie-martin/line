@@ -17,6 +17,17 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { availableParallelism } from "node:os";
+
+/** Per-worker V8 old-space cap (MB). A normal LDS compile stays well under this;
+ *  a runaway (a hard spec's engines caching huge trajectories) hits it and the
+ *  worker exits, surfacing as a graceful per-run error rather than a process
+ *  V8 fatal that kills the whole suite. Generous so it only catches true blowups. */
+const WORKER_MEM_CAP_MB = 3072;
+
+/** Default parallelism for the worker pool — leave a core for the OS/main thread,
+ *  cap so total peak memory (jobs × WORKER_MEM_CAP_MB) stays sane. Override: --jobs=N. */
+const DEFAULT_JOBS = Math.max(1, Math.min(6, availableParallelism() - 1));
 
 import { compile } from "./compile.ts";
 import { compileLDS } from "./optimizer/api.ts";
@@ -140,8 +151,15 @@ async function runWithTimeout(
 ): Promise<RunResult> {
   const workerPath = fileURLToPath(import.meta.url);
   const input: WorkerInput = { ...testCase, seed, strategy, budgetUnits };
-  return await new Promise<RunResult>((resolvePromise, reject) => {
-    const worker = new Worker(workerPath, { workerData: input, execArgv: process.execArgv });
+  return await new Promise<RunResult>((resolvePromise) => {
+    // Per-worker heap cap: a runaway compile (e.g. a hard spec whose engines
+    // cache huge trajectories) hits this and exits, surfacing as a graceful
+    // per-run error below — instead of a V8 fatal that aborts the whole suite.
+    const worker = new Worker(workerPath, {
+      workerData: input,
+      execArgv: process.execArgv,
+      resourceLimits: { maxOldGenerationSizeMb: WORKER_MEM_CAP_MB },
+    });
     let settled = false;
     const timer = setTimeout(() => {
       if (settled) return;
@@ -159,13 +177,28 @@ async function runWithTimeout(
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      // Terminate on success too (not just timeout): the worker holds a compile's
+      // worth of cached-frame memory, and relying on it to self-exit let workers
+      // linger and accumulate across runs — the root of the suite-wide OOM. With
+      // the bounded pool this caps live memory to ~jobs × WORKER_MEM_CAP_MB.
+      worker.terminate().catch(() => {});
       resolvePromise(msg);
     });
+    // A worker that throws or OOMs must NOT take down the run — convert it to a
+    // graceful error RunResult (scored 0, suite continues). This is the fix for
+    // the --json-full V8 fatal: one bad compile fails its own row, not the suite.
     worker.on("error", (error) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      reject(error);
+      worker.terminate().catch(() => {});
+      resolvePromise({
+        kind: "error",
+        specName: testCase.specName,
+        variant: testCase.variant,
+        elapsed_ms: 0,
+        message: `worker error: ${String(error).slice(0, 150)}`,
+      });
     });
     worker.on("exit", (code) => {
       if (settled) return;
@@ -325,7 +358,12 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
   };
 }
 
-function specContext(spec: Spec, strategy: Strategy, budgetUnits: number | null): ScoreContext {
+function specContext(
+  spec: Spec,
+  strategy: Strategy,
+  budgetUnits: number | null,
+  concurrency: number,
+): ScoreContext {
   const numContacts = spec.contacts.length;
   return {
     soft_ms: softBudgetMs(numContacts),
@@ -333,9 +371,11 @@ function specContext(spec: Spec, strategy: Strategy, budgetUnits: number | null)
     // LDS is much slower than legacy and needs a budget-scaled safety cap, or
     // normal compiles get killed mid-search and falsely scored 0. Scale off the
     // effective budget (override or canonical) so --fast / --budget runs get a
-    // proportionally tighter cap, not the full-budget one.
+    // proportionally tighter cap; and by `concurrency`, since N-way contention
+    // stretches each compile's wall-clock (its sim-frame budget is unchanged) —
+    // the timeout is only a hang-detection net, so erring generous is correct.
     worker_timeout_ms: strategy === "lds"
-      ? ldsWorkerTimeoutMs(budgetUnits ?? budgetFor(spec).units)
+      ? ldsWorkerTimeoutMs(budgetUnits ?? budgetFor(spec).units) * concurrency
       : workerTimeoutMs(numContacts),
     total_frames: Math.round(spec.duration * FPS),
   };
@@ -463,6 +503,27 @@ function printSummary(label: string, rows: ScoredSpec[], keyOf: (row: ScoredSpec
   }
 }
 
+/** Run `items` through `worker` with at most `concurrency` in flight at once.
+ *  Results are returned in INPUT order (independent of completion order), so
+ *  scores and printed output stay deterministic regardless of parallelism. */
+async function runPool<T, R>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let next = 0;
+  const runner = async (): Promise<void> => {
+    for (;;) {
+      const i = next++;
+      if (i >= items.length) return;
+      results[i] = await worker(items[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(concurrency, items.length)) }, runner));
+  return results;
+}
+
 async function runRows(
   cases: SuiteCase[],
   seeds: number[],
@@ -471,29 +532,35 @@ async function runRows(
   label: string,
   strategy: Strategy,
   budgetUnits: number | null,
+  jobs: number,
 ): Promise<ScoredSpec[]> {
   const contexts = new Map<string, ScoreContext>();
   for (const testCase of cases) {
     const key = `${testCase.specName}/${testCase.variant}`;
     if (!contexts.has(key)) {
       const spec = await loadGoldenSpec(testCase.specName, testCase.variant);
-      contexts.set(key, specContext(spec, strategy, budgetUnits));
+      // Scale the hang-detection timeout by parallelism: under N-way contention a
+      // compile's WALL-CLOCK stretches (its sim-frame budget is unchanged), and a
+      // single-core-calibrated cap would falsely time it out and score it 0.
+      contexts.set(key, specContext(spec, strategy, budgetUnits, jobs));
     }
   }
-  const scored: ScoredSpec[] = [];
-  for (const seed of seeds) {
+  // Flatten to a (seed, case) task list and run through the bounded pool.
+  const tasks = seeds.flatMap((seed) => cases.map((testCase) => ({ seed, testCase })));
+  let done = 0;
+  if (!jsonOnly) console.log(`${label}: ${tasks.length} run${tasks.length === 1 ? "" : "s"}, ${Math.min(jobs, tasks.length)} parallel`);
+  const scored = await runPool(tasks, jobs, async ({ seed, testCase }) => {
+    const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
+    const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms, strategy, budgetUnits);
+    const row = scoreResult(result, seed, ctx);
     if (!jsonOnly) {
-      console.log(`${label} seed=${seed}`);
+      done++;
+      process.stdout.write(`  [${String(done).padStart(2)}/${tasks.length}] `);
+      printRow({ ...row, name: `${caseLabel(row)} seed=${seed}` }, details);
     }
-    for (const testCase of cases) {
-      const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
-      const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms, strategy, budgetUnits);
-      const row = scoreResult(result, seed, ctx);
-      scored.push(row);
-      if (!jsonOnly) printRow(row, details);
-    }
-    if (!jsonOnly) console.log("");
-  }
+    return row;
+  });
+  if (!jsonOnly) console.log("");
   return scored;
 }
 
@@ -570,6 +637,13 @@ async function runMain(): Promise<void> {
   // LDS is the shipping compiler; legacy is opt-in (--legacy) for comparison.
   const strategy: Strategy = has("legacy") ? "legacy" : "lds";
   const fast = has("fast");
+  // Worker parallelism (--jobs=N). Runs are isolated workers, so parallelism is
+  // safe and does not affect scores (each compile is independent + deterministic).
+  const rawJobs = arg("jobs");
+  if (rawJobs !== null && (!Number.isInteger(Number(rawJobs)) || Number(rawJobs) < 1)) {
+    throw new Error(`--jobs must be a positive integer, got ${rawJobs}`);
+  }
+  const jobs = rawJobs !== null ? Number(rawJobs) : DEFAULT_JOBS;
   // --budget=N overrides the canonical per-spec budget; --fast implies a small
   // reduced budget. Either makes the run NON-CANONICAL (indicative, not goal_score).
   const rawBudget = arg("budget");
@@ -614,13 +688,13 @@ async function runMain(): Promise<void> {
       );
     }
     console.log(
-      `v0 golden benchmark · compiler=${strategy} · ${headline.length} spec${headline.length === 1 ? "" : "s"} × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · ` +
+      `v0 golden benchmark · compiler=${strategy} · ${headline.length} spec${headline.length === 1 ? "" : "s"} × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · jobs=${jobs} · ` +
         `${strategy === "lds" ? `budget=${budgetUnits ?? "default"} physics-frames (untimed score)` : "runtime budget scales per-contact"} · seeds=${seeds.join(",")}`,
     );
     console.log("");
   }
 
-  const scored = await runRows(headline, seeds, jsonOnly, details, "headline", strategy, budgetUnits);
+  const scored = await runRows(headline, seeds, jsonOnly, details, "headline", strategy, budgetUnits, jobs);
   const specScores = groupScores(scored, (row) => row.name);
   const goal_score = suiteScore(scored, (row) => row.name);
   const passed = scored.filter((row) => row.status === "pass").length;
@@ -646,7 +720,7 @@ async function runMain(): Promise<void> {
       console.log("report-only variants");
       console.log("");
     }
-    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant", strategy, budgetUnits);
+    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant", strategy, budgetUnits, jobs);
     variantScores = groupScores(variantRows, (row) => caseLabel(row));
     variantReportScore = suiteScore(variantRows, (row) => caseLabel(row));
   }

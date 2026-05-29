@@ -29,7 +29,6 @@ const WORKER_MEM_CAP_MB = 3072;
  *  cap so total peak memory (jobs × WORKER_MEM_CAP_MB) stays sane. Override: --jobs=N. */
 const DEFAULT_JOBS = Math.max(1, Math.min(6, availableParallelism() - 1));
 
-import { compile } from "./compile.ts";
 import { compileLDS } from "./optimizer/api.ts";
 import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
@@ -41,13 +40,10 @@ import {
   GOLDEN_SPECS,
   REPORT_VARIANTS,
   budgetFor,
-  hardBudgetMs,
   headlineCases,
   ldsWorkerTimeoutMs,
   loadGoldenSpec,
-  softBudgetMs,
   variantCases,
-  workerTimeoutMs,
   type SuiteCase,
   type VariantName,
 } from "./golden_suite.ts";
@@ -58,22 +54,19 @@ import {
   SYNC_TOLERANCE,
   axisDetails,
   scoreDriftReport,
-  scoreTimedDriftReport,
   shiftedGeometricMean,
   worstContacts,
-  type V0TimedContractScore,
+  type V0ContractScore,
 } from "./score.ts";
 
-type Strategy = "legacy" | "lds";
 // `budgetUnits` overrides the per-spec default (golden_suite.budgetFor) when set
 // — used by --fast / --budget for quick, NON-CANONICAL iteration. null = the
 // canonical budget that defines goal_score.
-type WorkerInput = SuiteCase & { seed: number; strategy: Strategy; budgetUnits: number | null };
+type WorkerInput = SuiteCase & { seed: number; budgetUnits: number | null };
 type WorkerOk = {
   kind: "ok";
   specName: string;
   variant: VariantName;
-  strategy: Strategy;
   elapsed_ms: number;
   report: DriftReport;
   stats: CompileStats;
@@ -95,12 +88,15 @@ type TimeoutResult = {
 };
 type RunResult = WorkerResult | TimeoutResult;
 
-type ScoredSpec = V0TimedContractScore & {
+type ScoredSpec = V0ContractScore & {
   name: string;
   variant: VariantName;
   seed: number;
   status: "pass" | "fail" | "timeout" | "error";
   worker_timeout_ms: number;
+  /** Wall-clock of the compile (informational only — NOT scored; the LDS path
+   *  scores on pure quality, and wall-clock is contended under --jobs>1). */
+  elapsed_ms: number;
   message: string | null;
   axes: ReturnType<typeof axisDetails>;
   worst_contacts: ReturnType<typeof worstContacts>;
@@ -113,7 +109,6 @@ type GroupScore = {
   score: number;
   passed: number;
   total: number;
-  time_multiplier_mean: number;
 };
 
 function arg(name: string): string | null {
@@ -146,11 +141,10 @@ async function runWithTimeout(
   testCase: SuiteCase,
   seed: number,
   timeoutMs: number,
-  strategy: Strategy,
   budgetUnits: number | null,
 ): Promise<RunResult> {
   const workerPath = fileURLToPath(import.meta.url);
-  const input: WorkerInput = { ...testCase, seed, strategy, budgetUnits };
+  const input: WorkerInput = { ...testCase, seed, budgetUnits };
   return await new Promise<RunResult>((resolvePromise) => {
     // Per-worker heap cap: a runaway compile (e.g. a hard spec whose engines
     // cache huge trajectories) hits this and exits, surfacing as a graceful
@@ -224,14 +218,11 @@ async function runWorker(): Promise<void> {
     const budget = input.budgetUnits !== null
       ? { kind: "work" as const, units: input.budgetUnits }
       : budgetFor(spec);
-    const { report, stats } = input.strategy === "lds"
-      ? compileLDS(spec, input.seed, { budget })
-      : compile(spec, input.seed);
+    const { report, stats } = compileLDS(spec, input.seed, { budget });
     parentPort.postMessage({
       kind: "ok",
       specName: input.specName,
       variant: input.variant,
-      strategy: input.strategy,
       elapsed_ms: Date.now() - t0,
       report,
       stats,
@@ -248,13 +239,11 @@ async function runWorker(): Promise<void> {
 }
 
 type ScoreContext = {
-  soft_ms: number;
-  hard_ms: number;
   worker_timeout_ms: number;
   total_frames: number;
 };
 
-function emptyScore(elapsedMs: number, ctx: ScoreContext): V0TimedContractScore {
+function emptyScore(): V0ContractScore {
   return {
     score: 0,
     contract_passed: false,
@@ -281,24 +270,20 @@ function emptyScore(elapsedMs: number, ctx: ScoreContext): V0TimedContractScore 
     axis_loss: 0,
     axis_quality: 0,
     axis_score: 0,
-    score_without_time: 0,
-    time_multiplier: 0,
-    elapsed_ms: elapsedMs,
-    soft_ms: ctx.soft_ms,
-    hard_ms: ctx.hard_ms,
   };
 }
 
 function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): ScoredSpec {
-  if (result.kind === "timeout") {
+  if (result.kind === "timeout" || result.kind === "error") {
     return {
-      ...emptyScore(result.elapsed_ms, ctx),
-      hard_failures: ["timeout"],
+      ...emptyScore(),
+      hard_failures: [result.kind],
       name: result.specName,
       variant: result.variant,
       seed,
-      status: "timeout",
+      status: result.kind,
       worker_timeout_ms: ctx.worker_timeout_ms,
+      elapsed_ms: result.elapsed_ms,
       message: result.message,
       axes: [],
       worst_contacts: [],
@@ -306,43 +291,10 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
       compile_stats: null,
     };
   }
-  if (result.kind === "error") {
-    return {
-      ...emptyScore(result.elapsed_ms, ctx),
-      hard_failures: ["error"],
-      name: result.specName,
-      variant: result.variant,
-      seed,
-      status: "error",
-      worker_timeout_ms: ctx.worker_timeout_ms,
-      message: result.message,
-      axes: [],
-      worst_contacts: [],
-      off_beat_frames: [],
-      compile_stats: null,
-    };
-  }
-  // The LDS compiler is budget-metered (sim-frames), not wall-clock-gated, so
-  // it scores on PURE quality (time_multiplier = 1) — the same untimed basis
-  // as baselines/greedy_v1.json. The legacy compiler keeps the wall-clock
-  // time penalty. (The time_multiplier machinery is retired at cutover.)
-  const score: V0TimedContractScore = result.strategy === "lds"
-    ? (() => {
-        const base = scoreDriftReport(result.report, { totalFrames: ctx.total_frames });
-        return {
-          ...base,
-          score_without_time: base.score,
-          time_multiplier: 1,
-          elapsed_ms: result.elapsed_ms,
-          soft_ms: ctx.soft_ms,
-          hard_ms: ctx.hard_ms,
-        };
-      })()
-    : scoreTimedDriftReport(
-        result.report,
-        { elapsed_ms: result.elapsed_ms, soft_ms: ctx.soft_ms, hard_ms: ctx.hard_ms },
-        { totalFrames: ctx.total_frames },
-      );
+  // The LDS compiler is budget-metered (sim-frames), not wall-clock-gated, so it
+  // scores on PURE quality — wall-clock never enters the score (the same untimed
+  // basis as baselines/greedy_v1.json). `elapsed_ms` is recorded for display only.
+  const score = scoreDriftReport(result.report, { totalFrames: ctx.total_frames });
   return {
     ...score,
     name: result.specName,
@@ -350,6 +302,7 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
     seed,
     status: score.contract_passed ? "pass" : "fail",
     worker_timeout_ms: ctx.worker_timeout_ms,
+    elapsed_ms: result.elapsed_ms,
     message: score.hard_failures.length > 0 ? score.hard_failures.join(",") : null,
     axes: axisDetails(result.report),
     worst_contacts: worstContacts(result.report, 3),
@@ -358,25 +311,15 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
   };
 }
 
-function specContext(
-  spec: Spec,
-  strategy: Strategy,
-  budgetUnits: number | null,
-  concurrency: number,
-): ScoreContext {
-  const numContacts = spec.contacts.length;
+function specContext(spec: Spec, budgetUnits: number | null, concurrency: number): ScoreContext {
   return {
-    soft_ms: softBudgetMs(numContacts),
-    hard_ms: hardBudgetMs(numContacts),
-    // LDS is much slower than legacy and needs a budget-scaled safety cap, or
-    // normal compiles get killed mid-search and falsely scored 0. Scale off the
-    // effective budget (override or canonical) so --fast / --budget runs get a
-    // proportionally tighter cap; and by `concurrency`, since N-way contention
-    // stretches each compile's wall-clock (its sim-frame budget is unchanged) —
-    // the timeout is only a hang-detection net, so erring generous is correct.
-    worker_timeout_ms: strategy === "lds"
-      ? ldsWorkerTimeoutMs(budgetUnits ?? budgetFor(spec).units) * concurrency
-      : workerTimeoutMs(numContacts),
+    // Budget-scaled hang-detection cap (the LDS compile is budget-metered, not
+    // wall-clock-gated, so a tight static cap would falsely time it out and score
+    // it 0). Scale off the effective budget (override or canonical) so --fast /
+    // --budget runs get a proportionally tighter cap; and by `concurrency`, since
+    // N-way contention stretches each compile's wall-clock (its sim-frame budget
+    // is unchanged) — the timeout is only a safety net, so erring generous is fine.
+    worker_timeout_ms: ldsWorkerTimeoutMs(budgetUnits ?? budgetFor(spec).units) * concurrency,
     total_frames: Math.round(spec.duration * FPS),
   };
 }
@@ -397,10 +340,6 @@ function caseLabel(row: Pick<ScoredSpec, "name" | "variant">): string {
   return row.variant === "base" ? row.name : `${row.name}/${row.variant}`;
 }
 
-function mean(values: number[]): number {
-  return values.length === 0 ? 0 : values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
 function groupScores(rows: ScoredSpec[], keyOf: (row: ScoredSpec) => string): GroupScore[] {
   const groups = new Map<string, ScoredSpec[]>();
   for (const row of rows) {
@@ -412,7 +351,6 @@ function groupScores(rows: ScoredSpec[], keyOf: (row: ScoredSpec) => string): Gr
     score: shiftedGeometricMean(groupRows.map((row) => row.score)),
     passed: groupRows.filter((row) => row.status === "pass").length,
     total: groupRows.length,
-    time_multiplier_mean: mean(groupRows.map((row) => row.time_multiplier)),
   }));
 }
 
@@ -445,7 +383,7 @@ function printRow(row: ScoredSpec, details: boolean): void {
       `score=${row.score.toFixed(0).padStart(4)}  ` +
       `sync=${fmtPct(row.sync_score).padStart(4)} (${row.hits}/${row.contacts}, drift=${row.drift}, miss=${row.missing}, off=${row.off_beat_landings})  ` +
       `axis=${fmtPct(row.axis_quality).padStart(4)} (loss=${row.axis_loss.toFixed(2)}, maxErr=${row.axis_error_max.toFixed(2)})  ` +
-      `time=${fmtMs(row.elapsed_ms)}/${fmtMs(row.hard_ms)} x${row.time_multiplier.toFixed(2)}`,
+      `t=${fmtMs(row.elapsed_ms)}`,
   );
   if (details || row.status !== "pass") {
     const worstAxes = formatWorstAxes(row.axes);
@@ -468,13 +406,13 @@ function printSummary(label: string, rows: ScoredSpec[], keyOf: (row: ScoredSpec
 
   console.log(
     `${label} ${score.toFixed(2)} · valid ${passed}/${rows.length} · ` +
-      `invalid ${invalid} · timeout ${timeouts} · mean time x${mean(rows.map((row) => row.time_multiplier)).toFixed(2)}`,
+      `invalid ${invalid} · timeout ${timeouts}`,
   );
   console.log("  spec scores:");
   for (const group of groups) {
     console.log(
       `    ${group.name.padEnd(32)} ${group.score.toFixed(2).padStart(7)} ` +
-        `valid=${group.passed}/${group.total} time=x${group.time_multiplier_mean.toFixed(2)}`,
+        `valid=${group.passed}/${group.total}`,
     );
   }
 
@@ -483,7 +421,7 @@ function printSummary(label: string, rows: ScoredSpec[], keyOf: (row: ScoredSpec
   for (const row of worstRows) {
     console.log(
       `    ${caseLabel(row).padEnd(38)} seed=${row.seed} ${row.status.padEnd(7)} ` +
-        `score=${row.score.toFixed(2)} axis=${fmtPct(row.axis_quality)} time=x${row.time_multiplier.toFixed(2)}`,
+        `score=${row.score.toFixed(2)} axis=${fmtPct(row.axis_quality)}`,
     );
   }
 
@@ -530,7 +468,6 @@ async function runRows(
   jsonOnly: boolean,
   details: boolean,
   label: string,
-  strategy: Strategy,
   budgetUnits: number | null,
   jobs: number,
 ): Promise<ScoredSpec[]> {
@@ -542,7 +479,7 @@ async function runRows(
       // Scale the hang-detection timeout by parallelism: under N-way contention a
       // compile's WALL-CLOCK stretches (its sim-frame budget is unchanged), and a
       // single-core-calibrated cap would falsely time it out and score it 0.
-      contexts.set(key, specContext(spec, strategy, budgetUnits, jobs));
+      contexts.set(key, specContext(spec, budgetUnits, jobs));
     }
   }
   // Flatten to a (seed, case) task list and run through the bounded pool.
@@ -551,7 +488,7 @@ async function runRows(
   if (!jsonOnly) console.log(`${label}: ${tasks.length} run${tasks.length === 1 ? "" : "s"}, ${Math.min(jobs, tasks.length)} parallel`);
   const scored = await runPool(tasks, jobs, async ({ seed, testCase }) => {
     const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
-    const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms, strategy, budgetUnits);
+    const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms, budgetUnits);
     const row = scoreResult(result, seed, ctx);
     if (!jsonOnly) {
       done++;
@@ -591,11 +528,7 @@ function compactJsonRow(row: ScoredSpec): object {
     axis_error_rms: round(row.axis_error_rms, 4),
     axis_error_mean: round(row.axis_error_mean, 4),
     axis_error_max: round(row.axis_error_max, 4),
-    score_without_time: round(row.score_without_time),
-    time_multiplier: round(row.time_multiplier, 4),
     elapsed_ms: row.elapsed_ms,
-    soft_ms: row.soft_ms,
-    hard_ms: row.hard_ms,
     compile_stats: row.compile_stats,
     message: row.message,
     worst_contacts: row.worst_contacts,
@@ -607,7 +540,6 @@ function detailedJsonRow(row: ScoredSpec): ScoredSpec {
   return {
     ...row,
     score: round(row.score),
-    score_without_time: round(row.score_without_time),
     sync_score: round(row.sync_score, 4),
     drift_quality: round(row.drift_quality, 4),
     missing_quality: round(row.missing_quality, 4),
@@ -621,7 +553,6 @@ function detailedJsonRow(row: ScoredSpec): ScoredSpec {
     axis_error_mean: round(row.axis_error_mean, 4),
     axis_error_max: round(row.axis_error_max, 4),
     axis_error_rms: round(row.axis_error_rms, 4),
-    time_multiplier: round(row.time_multiplier, 4),
   };
 }
 
@@ -634,8 +565,6 @@ async function runMain(): Promise<void> {
   if (rawSeed !== null && !Number.isFinite(debugSeed)) {
     throw new Error(`--seed must be a number, got ${rawSeed}`);
   }
-  // LDS is the shipping compiler; legacy is opt-in (--legacy) for comparison.
-  const strategy: Strategy = has("legacy") ? "legacy" : "lds";
   const fast = has("fast");
   // Worker parallelism (--jobs=N). Runs are isolated workers, so parallelism is
   // safe and does not affect scores (each compile is independent + deterministic).
@@ -667,34 +596,33 @@ async function runMain(): Promise<void> {
   const variants = variantCases().filter(keep);
 
   // A run is CANONICAL — i.e. it defines goal_score — only when it is the full
-  // LDS suite at the default budget, all specs, all seeds. Anything narrower
-  // (--fast / --budget / --specs / --seed / --legacy) is indicative signal for
-  // iterating, never the metric of record. The harness labels it as such so a
-  // fast probe is never mistaken for the goal.
-  const canonical = strategy === "lds"
-    && budgetUnits === null
-    && filterSet === null
-    && debugSeed === null;
+  // suite at the default budget, all specs, all seeds. Anything narrower
+  // (--fast / --budget / --specs / --seed) is indicative signal for iterating,
+  // never the metric of record. The harness labels it so a fast probe is never
+  // mistaken for the goal.
+  const canonical = budgetUnits === null && filterSet === null && debugSeed === null;
 
   if (!jsonOnly) {
     const fp = evaluatorFingerprint();
     console.log(`evaluator_fingerprint ${fp}${fp === EVALUATOR_FINGERPRINT ? "" : "  ⚠ DRIFTED from committed ruler — scores not comparable to history; see GOAL_LDS.md"}`);
+    if (jobs > 1) {
+      console.log("note: per-row t= readings are wall-clock under contention (informational; not scored). Use --jobs=1 for clean timing.");
+    }
     if (!canonical) {
       console.log(
         `⚠ NON-CANONICAL run (indicative only, NOT goal_score): ` +
-          `${strategy === "legacy" ? "legacy " : ""}${fast ? "fast " : ""}` +
-          `${budgetUnits !== null ? `budget=${budgetUnits} ` : ""}` +
+          `${fast ? "fast " : ""}${budgetUnits !== null ? `budget=${budgetUnits} ` : ""}` +
           `${filterSet ? `specs=${[...filterSet].join(",")} ` : ""}${debugSeed !== null ? `seed=${debugSeed}` : ""}`.trim(),
       );
     }
     console.log(
-      `v0 golden benchmark · compiler=${strategy} · ${headline.length} spec${headline.length === 1 ? "" : "s"} × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · jobs=${jobs} · ` +
-        `${strategy === "lds" ? `budget=${budgetUnits ?? "default"} physics-frames (untimed score)` : "runtime budget scales per-contact"} · seeds=${seeds.join(",")}`,
+      `v0 golden benchmark · ${headline.length} spec${headline.length === 1 ? "" : "s"} × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · jobs=${jobs} · ` +
+        `budget=${budgetUnits ?? "default"} physics-frames (untimed score) · seeds=${seeds.join(",")}`,
     );
     console.log("");
   }
 
-  const scored = await runRows(headline, seeds, jsonOnly, details, "headline", strategy, budgetUnits, jobs);
+  const scored = await runRows(headline, seeds, jsonOnly, details, "headline", budgetUnits, jobs);
   const specScores = groupScores(scored, (row) => row.name);
   const goal_score = suiteScore(scored, (row) => row.name);
   const passed = scored.filter((row) => row.status === "pass").length;
@@ -720,7 +648,7 @@ async function runMain(): Promise<void> {
       console.log("report-only variants");
       console.log("");
     }
-    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant", strategy, budgetUnits, jobs);
+    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant", budgetUnits, jobs);
     variantScores = groupScores(variantRows, (row) => caseLabel(row));
     variantReportScore = suiteScore(variantRows, (row) => caseLabel(row));
   }
@@ -739,7 +667,7 @@ async function runMain(): Promise<void> {
         off_beat_tolerance: OFF_BEAT_TOLERANCE,
         aggregation: "shifted_geometric_mean_by_spec",
         json_detail: details ? "detailed" : "compact",
-        runtime: "per-spec affine in contact count (see golden_suite.softBudgetMs)",
+        budget_unit: "simulated rider frames (untimed; wall-clock never scored)",
       },
       seeds,
       seed_count: seeds.length,
@@ -748,7 +676,6 @@ async function runMain(): Promise<void> {
       spec_scores: specScores.map((group) => ({
         ...group,
         score: round(group.score),
-        time_multiplier_mean: round(group.time_multiplier_mean, 4),
       })),
       per_seed: perSeed,
       specs: scored.map(details ? detailedJsonRow : compactJsonRow),
@@ -760,7 +687,6 @@ async function runMain(): Promise<void> {
             case_scores: variantScores.map((group) => ({
               ...group,
               score: round(group.score),
-              time_multiplier_mean: round(group.time_multiplier_mean, 4),
             })),
             specs: variantRows.map(details ? detailedJsonRow : compactJsonRow),
           }

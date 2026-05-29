@@ -26,44 +26,6 @@ export const REPORT_VARIANTS = [
 export const GOLDEN_SEEDS = [0, 1, 2] as const;
 
 /**
- * Runtime budgets scale affinely with contact count, the unit of decision-
- * making for the compiler.
- *
- *   soft_ms = SOFT_BASE + SLOPE * numContacts
- *   hard_ms = HARD_BASE + SLOPE * numContacts   (same slope, +15s gap)
- *
- * Calibrated from a 13-spec × 5-seed timing sweep (65 runs). Within-spec
- * seed variance is the dominant noise (RMSE ≈ 4.4s; some specs spread 20s
- * across seeds), so contacts is the only feature that beat noise — adding
- * sections or duration to the model only overfit. Fit on per-spec MAX:
- *
- *     max_elapsed ≈ 8.4 + 0.40 · contacts   (R² = 0.71, RMSE 5.1s)
- *
- * Soft = (predicted max) + ~12s safety; hard = soft + 15s. Worker timeout
- * is `hard + 5s`, clamped to [60s, 180s] as a hang-detection safety net.
- */
-export const SOFT_BUDGET_BASE_MS = 20_000;
-export const SOFT_BUDGET_PER_CONTACT_MS = 400;
-export const HARD_BUDGET_BASE_MS = 35_000;
-export const HARD_BUDGET_PER_CONTACT_MS = 400;
-export const WORKER_TIMEOUT_BUFFER_MS = 5_000;
-export const WORKER_TIMEOUT_FLOOR_MS = 60_000;
-export const WORKER_TIMEOUT_CAP_MS = 180_000;
-
-export function softBudgetMs(numContacts: number): number {
-  return SOFT_BUDGET_BASE_MS + SOFT_BUDGET_PER_CONTACT_MS * Math.max(0, numContacts);
-}
-
-export function hardBudgetMs(numContacts: number): number {
-  return HARD_BUDGET_BASE_MS + HARD_BUDGET_PER_CONTACT_MS * Math.max(0, numContacts);
-}
-
-export function workerTimeoutMs(numContacts: number): number {
-  const raw = hardBudgetMs(numContacts) + WORKER_TIMEOUT_BUFFER_MS;
-  return Math.min(WORKER_TIMEOUT_CAP_MS, Math.max(WORKER_TIMEOUT_FLOOR_MS, raw));
-}
-
-/**
  * Default compute budget for the LDS compiler, in PHYSICS frames (the honest
  * work unit — frames the engine actually integrates; see
  * `optimizer/sim_frames.ts`).
@@ -123,13 +85,13 @@ export const FAST_SEED = 0;
 export const EVALUATOR_FINGERPRINT = "e159a6bc5e41";
 
 /**
- * Worker-timeout (hang-detection safety cap) for the LDS path. The legacy
- * `workerTimeoutMs` is calibrated for the fast legacy compiler (≈5-40 s) and
- * is far too tight for LDS, which spends its physics budget exploring (≈0.3 ms
- * per physics frame, so a 200k budget ≈ 60-70 s wall, up to ~2× under the
- * one-leaf overshoot). Scale the cap off the budget with generous safety so a
- * normal LDS compile is never killed mid-search (which would score 0 — a false
- * failure). This is a safety net, not a quality term.
+ * Worker-timeout (hang-detection safety cap) for the compile. LDS spends its
+ * physics budget exploring (≈0.3 ms per physics frame, so a 200k budget ≈ 60-70 s
+ * wall, up to ~2× under the one-leaf overshoot), so the cap is scaled off the
+ * budget with generous safety — a normal compile is never killed mid-search
+ * (which would score 0, a false failure). golden.ts further multiplies this by
+ * --jobs, since parallel contention stretches wall-clock. Safety net, not a
+ * quality term (the budget unit is sim-frames, which is wall-clock-independent).
  */
 export const LDS_MS_PER_PHYSFRAME = 0.35; // measured 0.25-0.37; upper bound
 export const LDS_WORKER_SAFETY = 3;

@@ -16,8 +16,9 @@ per-step writeups in `docs/optimizer/`.
    best-so-far envelope.
 2. **Wall-clock ↔ budget correlation.** Per-unit-of-budget wall-clock
    stable across specs and seeds (cv < 0.25).
-3. **Cheat-resistance.** Budget unit = `engine.addLine` calls. Can't
-   be inflated without proportional wall-clock cost.
+3. **Cheat-resistance.** Budget unit = **simulated rider frames** (charged at
+   the trajectory-extraction boundary, measured as `getLastFrameIndex` deltas).
+   Can't be inflated without proportional wall-clock cost.
 4. **Determinism.** Same `(spec, seed, budget)` ⇒ byte-identical Track
    on any machine.
 
@@ -28,25 +29,32 @@ per-step writeups in `docs/optimizer/`.
         ↓
    solver.ts        (single-gap K-candidate solver, sample-order)
         ↓
-   greedy.ts        (multi-gap chainer = LDS discrepancy-0 walk)
-        ↓
    sim_frames.ts    (work-unit counter at the extraction boundary)
         ↓
-   lds.ts           (limited-discrepancy leaf enumeration in fixed order)
+   lds.ts           (d=0 backtracking base path + guided-repair leaves +
+                     limited-discrepancy deviation enumeration, fixed order)
         ↓
    register.ts      (best-so-far with deterministic comparator)
         ↓
    polish.ts        (polish ops as generate-and-test leaves)
         ↓
-   api.ts           (compile(spec, {seed, budget}) public surface)
+   api.ts           (compile(spec, {seed, budget}) public surface — standalone,
+                     no legacy floor)
 ```
+
+`greedy.ts` (`compileGreedy_v2`) is a NAIVE rank-0 chainer kept only as a
+tests-only reference (the d=0-vs-greedy contrast). The shipping d=0 walk is
+`buildBacktrackingLeaf` in `lds.ts`.
 
 The structural answer to "more compute → ≥ quality" is **limited-
 discrepancy search over a fixed total-ordered leaf enumeration**:
 
   - The leaf enumeration `E` is determined by `(spec, seed)`, independent
-    of the budget. Discrepancy-0 = greedy. Discrepancy-1 leaves deviate
-    at exactly one gap. Discrepancy-d at d gaps.
+    of the budget. Discrepancy-0 = the **backtracking base path**
+    (`buildBacktrackingLeaf`, the search's own completion floor — replaced the
+    legacy compile() floor). Discrepancy-1 leaves deviate at exactly one gap.
+    Discrepancy-d at d gaps. (Guided-repair leaves for assembled-track
+    misses are interleaved as ordinary leaves; see lds.ts.)
   - The budget only controls how far into `E` we go (a cutoff index).
   - The best-so-far register keeps the strictly-best leaf seen under a
     deterministic comparator.
@@ -65,9 +73,10 @@ extraction boundary. Sim-frames satisfies Property 2 by construction
   single ranking source of truth.
 - `scripts/v0/types.ts` — Spec, Gap, DriftReport, CompileStats —
   reused.
-- `scripts/v0/compile.ts` — the legacy greedy compiler, untouched
-  except for a small set of `export` annotations so we can wrap its
-  atomic primitives (sampleArcParams, tryCandidate).
+- `scripts/v0/compile.ts` — the legacy greedy compiler. No longer invoked by
+  the optimizer (the legacy floor seed was removed; `compileLDS` stands alone).
+  Reused only for held-constant geometry/detection primitives via `export`
+  annotations (sampleArcParams, tryCandidate, residual/detection helpers).
 
 ## How to read the per-stage documentation
 

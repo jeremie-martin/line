@@ -66,20 +66,51 @@ to the budget-subject repair/deviation phase. The monotonicity tripwire is the
 absolute sorted-index so the deviation phase rotates validly, and the floor leaf
 must stay a budget-independent pure function of (spec,seed).
 
-## Next mechanism (planned): deferred / split floor
-`buildBacktrackingLeaf` (`lds.ts`) currently materializes all 32 candidates per
-gap (`getCandidatesSorted`) and commits cost-rank-0. To get dense floors under
-48k, make the d=0 descent commit the **first viable candidate in sample order**
-(cheap — ~5 samples at ~20% survival vs 32), growing the pool to 32 only when a
-gap must backtrack (so completion power is unchanged). Cost-optimization then
-moves to the budget-subject repair/deviation phase. Determinism + monotonicity
-constraints: the floor leaf must stay a budget-independent pure function of
-(spec,seed), and `baseCommitPath` must remain an absolute sorted-index so the
-`enumerateDeviations` rotation assert (`lds.ts`) stays valid — i.e. record the
-committed candidate's sorted-index even though it was *found* in sample order
-(the `solveOneGap` prefix property makes sample-order identity stable). Risk:
-"first-viable" has worse axis quality than cost-best, recovered only if the
-budget reaches the deviation phase — verify the 20k stress run actually does.
+## Deferred / lazy "first-viable" floor — TESTED, REJECTED
+Made `buildBacktrackingLeaf` sample lazily and commit the first survivor in
+sample order, growing the per-gap pool to 32 only on backtrack (best case: ~5
+samples/gap at ~20% survival → ~6× cheaper floor). Measured (maxD=0 floor):
+solo_run s0 95k/0miss → 64k/**1miss** (only ~32% cheaper — the 17 backtracks
+grow the pool to 32 anyway, eating the savings); **solo_run s1 220k/5miss →
+378k/17miss** (severe thrash); drums_crescendo improves. Net chaotic/negative.
+
+**The unifying conclusion across every floor lever tried (radius, cheap-fail,
+adaptive, N_CAND, lazy first-viable): committing anything other than cost-best-
+of-32 thrashes on some (spec,seed).** Cost-best is a *gentle* candidate that
+tends to leave the rider landable for the next gap; alternatives strand it,
+exploding backtracking (which re-grows the pool to 32, erasing any per-gap
+sampling saving). So the floor's per-gap cost is effectively irreducible without
+losing completion, and dense-spec floors stay > 48k.
+
+## Most promising UNEXPLORED lever: residual look-ahead targeting
+The chaos in every commit-rule change above is because cost-best is ranked
+against *local* `gap.targets` with no downstream model — so the only way to keep
+backtracking low is to not touch which candidate wins. But `BASE_BACKTRACK_DEPTH`
+(=24) exists precisely because "the optimizer's candidate generator samples from
+`gap.targets` directly — it lacks legacy `compile()`'s residual look-ahead
+targeting, so it relies on backtracking". Legacy `compile()` completes with
+`CALIB.BACKTRACK_DEPTH=2` because residual targeting (`residualSearchTargetsForGap`
+in `compile.ts`) steers each gap toward the *section-residual* air/grain, which
+makes the cost-best candidate downstream-compatible by construction. Porting that
+re-ranking into the optimizer should cut backtracking (the dominant dense-floor
+cost) without a chaotic commit-rule change — it improves *which candidate is
+cost-best*, principled rather than random. Blockers: `SpecContext` carries only
+`allContactFrames`+`durationFrames`, not `spec`/prefix `fits` (must thread them
+in), and `residualAirTargetForGap` runs a `detectWindow` (charges frames — prefer
+the grain residual, or compute air from the already-extracted base trajectory).
+This is the highest-leverage next experiment.
+
+## Other architectural / contract-level options
+With the floor's cost-best-of-32 descent essentially fixed, the remaining levers
+for a 40k pass are architectural / contract-level, not candidate tweaks:
+- A genuinely different completion strategy (not single-arc-per-gap), or
+- Reconsidering the hard-limit-throws-on-exempt-floor design (currently a tested
+  contract, `optimizer_anytime.test.ts:135`) so a completable-but-over-budget
+  floor returns a best-effort leaf instead of erroring — a charter-level decision.
+- Reducing *backtracking* cost without changing the committed leaf (e.g. no-good
+  learning to prune provably-doomed re-descents) — byte-identical output, only
+  faster; the one unexplored low-risk direction, though soundness of the pruning
+  must be proven.
 
 ## Tooling
 `scripts/v0/_probe.ts` (gitignored): in-process compileLDS harness over a

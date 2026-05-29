@@ -145,6 +145,30 @@ the crescendo+solo_run cracks without the two drums regressions. Re-validate: pr
 (esp. greedy_v2 determinism + timing) AND full-canonical regression sweep. The +23% is real and
 in reach — this is the single highest-leverage open item.
 
+**DEEPER FINDING — per-gap lanes can't fix the dead gaps; they're ARRIVAL-STATE-bound (2026-05-29).**
+Profiled candidate geometry directly. Surviving catches at gaps that *have* candidates anchor near
+the rider's START x and span ~1.5–2.5× the in-gap travel (`speed×gapFrames`); rebuilt the templates
+physics-derived to match (anchor `≈ refX − travel`, length `≈ 2×travel`, angle ≈ velocity angle).
+**Even so, the dead gaps still take 0–1/8 landings.** The reason: a gap is "dead" not because no arc
+*shape* lands, but because the rider's **arrival state** (position+velocity, set by the EARLIER gaps'
+committed fits on the rank-0 spine) admits no on-beat catch at all. Gaps with candidates simply have
+a different arrival state. So the +23% the replace-lane scored was NOT the templates landing the hard
+gaps — it was the lane **globally perturbing the whole base path** (different candidates at every gap
+→ different arrival states everywhere → the dead gaps happened to become live). That is why it was
+fragile (regressed `drums_signature`/`drums_pendulum` by perturbing *their* paths) and why it can't be
+made clean by per-gap tuning. Also: dense-catch adds ~8 mostly-null tryCandidate evals/short-gap
+(~80ms each) → it makes the floor MORE expensive, *worsening* the budget-starvation root cause.
+
+**Reframed lever for the hard specs:** the fix is in the SEARCH's arrival-state exploration, not
+per-gap candidate shapes. Either (a) the floor's backtracking needs to explore arrival states more
+effectively at the dead gap (vary the *upstream* commits that determine arrival, not the gap's own
+arc), or (b) a genuine **look-ahead / beam** that scores a commit by whether the *next* gap stays
+landable — i.e. cross-gap, not atomic. Both are bigger than a lane. The atomic-sampler lane idea
+(#4 as written) is effectively **refuted** for the dead-gap case: it only helps by luck-perturbation.
+Candidate diversity still matters for *axis quality* on already-landing gaps (e.g. solo_run's catches
+all hit air≈0.86 vs target 0.5 — a real, separate quality gap), but that is a polishing lever, not a
+contract-cracking one.
+
 ### #6 — Gate polish on the already-computed report
 `evaluateLeaf` (`api.ts`) already computes the report once; add a `shouldTryPolish(report,
 leaf.fits, spec, gaps)` check in `api.ts`'s `consider` loop and only call `polishLeafVariant`

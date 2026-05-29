@@ -2394,6 +2394,15 @@ let currentStartState: ResolvedStart = {
   velocity: { ...START_DEFAULTS.VELOCITY },
 };
 
+/** Prime the module-scoped start state that `rebuildEngine` (and the polish
+ *  helpers that call it) read. `compile()` sets this internally; the standalone
+ *  LDS optimizer (`compileLDS`), which no longer routes through `compile()`,
+ *  must call this before its polish pass so polished variants rebuild engines
+ *  from the spec's real start (start/preroll) rather than a stale default. */
+export function setRebuildStartState(start: ResolvedStart): void {
+  currentStartState = start;
+}
+
 // deno-lint-ignore no-explicit-any
 export function makeBaseEngine(start: ResolvedStart): any {
   // lr-core engines are immutable; setStart returns a new instance.

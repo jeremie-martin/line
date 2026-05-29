@@ -21,6 +21,7 @@ import {
   makeBaseEngine,
   resolveStartState,
   sampleGapTargets,
+  setRebuildStartState,
   sliceTimeline,
   validateSpec,
   withOptimizedPrerollStart,
@@ -83,6 +84,11 @@ export function compileLDS(
   validateSpec(userSpec);
   const spec = withOptimizedPrerollStart(userSpec, seed);
   const startState: ResolvedStart = resolveStartState(spec);
+  // Prime compile.ts's module-scoped start state that rebuildEngine + the polish
+  // helpers read. The removed legacy floor used to set this as a side effect;
+  // without it, polish would rebuild from a stale/default start on start/preroll
+  // specs (review P1). Must run before the polish pass below.
+  setRebuildStartState(startState);
   const durationFrames = secToFrame(spec.duration);
   const allContactFrames = [...spec.contacts]
     .map((c) => secToFrame(c.t))

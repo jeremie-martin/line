@@ -38,6 +38,14 @@ import {
 import { getSimFrames } from "./sim_frames.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
+import { detect, extractRawTrajectory } from "../../lib/detector.ts";
+import {
+  addMissedContactRetryOwners,
+  contactLineIdsAt,
+  findGapOwning,
+  offBeatLandingEvents,
+  type GapFit,
+} from "../compile.ts";
 
 /** A leaf of the LDS search tree. The `prefixFits` is the complete
  *  fit-array, `prefixEngine` is the final engine, and `ranks` records
@@ -239,6 +247,102 @@ export function buildBacktrackingLeaf(
   return null;
 }
 
+/** Per-owning-gap rank budget for guided repair: how many alternative candidates
+ *  to try at a gap owning an assembled-track failure. The rank-axis probe found
+ *  the recovering deviation is typically rank 1; a few more give margin. A code
+ *  constant, not budget-fed. */
+const REPAIR_MAX_RANK = 6;
+/** Safety bound on guided-repair rounds (each round bumps every current owner's
+ *  rank by one and regenerates the override leaf). The per-gap REPAIR_MAX_RANK is
+ *  the real bound; this caps pathological multi-miss interaction. */
+const REPAIR_ROUNDS_CAP = 12;
+
+/** Contact-gap numbers (position among `endsWithContact` gaps, in order) that OWN
+ *  an assembled-track failure — a missing or off-beat contact — in `fits`'s full
+ *  track. Reuses the pure detection-analysis substrate (`offBeatLandingEvents`,
+ *  `contactLineIdsAt`, `findGapOwning`, `addMissedContactRetryOwners`) to map a
+ *  failure to its owning GAP, then converts gap index → contact-gap number. */
+function failureOwnerContactGaps(
+  det: ReturnType<typeof detect>,
+  gaps: Gap[],
+  fits: (GapFit | null)[],
+  contactFrames: number[],
+): Set<number> {
+  const ownerGaps = new Set<number>();
+  for (const e of offBeatLandingEvents(det, contactFrames)) {
+    for (const lid of contactLineIdsAt(det, e.frame)) {
+      const owner = findGapOwning(lid, fits);
+      if (owner >= 0) ownerGaps.add(owner);
+    }
+  }
+  addMissedContactRetryOwners(ownerGaps, det, gaps, fits, contactFrames);
+  // Map gap index → contact-gap number.
+  const contactGapNumOf = new Map<number, number>();
+  let n = 0;
+  for (let i = 0; i < gaps.length; i++) {
+    if (gaps[i].endsWithContact) contactGapNumOf.set(i, n++);
+  }
+  const out = new Set<number>();
+  for (const g of ownerGaps) {
+    const cgn = contactGapNumOf.get(g);
+    if (cgn !== undefined) out.add(cgn);
+  }
+  return out;
+}
+
+/** Build ONE base-rotated leaf with per-contact-gap rank OVERRIDES: at each
+ *  contact gap take local-rank `overrides.get(contactGapNum) ?? 0` (0 = the base
+ *  choice while on-base). A focused, non-backtracking single-path counterpart of
+ *  `enumerateDeviations`, used for guided repair. Returns null on a dead-end or
+ *  an out-of-range override rank. Pure function of (spec, seed, baseCommitPath,
+ *  overrides) — deterministic; reuses the shared candidate cache. */
+function buildOverrideLeaf(
+  root: SearchNode,
+  gaps: Gap[],
+  baseCommitPath: number[],
+  overrides: Map<number, number>,
+  getCandidatesCached: (node: SearchNode, committedKey: string) => Candidate[],
+): Leaf | null {
+  let node = root;
+  let committedKey = "";
+  let onBase = true;
+  let contactGapNum = 0;
+  const allRanks: number[] = [];
+  while (!isLeafNode(node, gaps.length)) {
+    if (!gaps[node.gapIndex].endsWithContact) {
+      node = extendNode(node, null);
+      allRanks.push(0);
+      continue;
+    }
+    const sorted = getCandidatesCached(node, committedKey);
+    const baseChoice = onBase ? baseCommitPath[contactGapNum] : 0;
+    const options: number[] = [];
+    if (onBase && baseChoice === SKIP) {
+      options.push(SKIP);
+      for (let i = 0; i < sorted.length; i++) options.push(i);
+    } else {
+      if (sorted.length === 0) return null;
+      options.push(baseChoice);
+      for (let i = 0; i < sorted.length; i++) if (i !== baseChoice) options.push(i);
+    }
+    const r = overrides.get(contactGapNum) ?? 0;
+    if (r >= options.length) return null; // requested alternative beyond the pool
+    const choice = options[r];
+    node = choice === SKIP ? extendNode(node, null) : extendNode(node, sorted[choice]);
+    committedKey += choice === SKIP ? ",S" : "," + choice;
+    allRanks.push(r);
+    onBase = onBase && r === 0;
+    contactGapNum++;
+  }
+  return {
+    fits: node.prefixFits,
+    engine: node.prefixEngine,
+    ranks: allRanks,
+    discrepancy: allRanks.reduce((s, x) => s + x, 0),
+    cumulativeCost: node.cumulativeCost,
+  };
+}
+
 /** Enumerate leaves in increasing-discrepancy order, RELATIVE TO the
  *  backtracking base path (the d=0 floor from `buildBacktrackingLeaf`).
  *
@@ -273,20 +377,12 @@ export function* enumerateLeaves(
   budgetUnits = Infinity,
 ): Generator<Leaf> {
   // Candidate-list cache keyed on the committed candidate-identity path, SHARED
-  // between the base-path descent and the deviation enumeration (and across the
-  // base path's own backtracking / validation re-descents). The key scheme is
-  // identical in both — absolute sorted-index (or "S") per contact gap — so a
-  // candidate list sampled while building the base path is reused for free when
-  // a deviation revisits the same prefix.
+  // between the base-path descent, the guided-repair leaves, and the deviation
+  // enumeration (and across the base path's own backtracking re-descents). The
+  // key scheme is identical in all — absolute sorted-index (or "S") per contact
+  // gap — so a candidate list sampled once is reused for free when any of them
+  // revisits the same prefix.
   const candCache = new Map<string, Candidate[]>();
-
-  // The d=0 floor. Budget-exempt: it must always complete (it is the LDS
-  // search's own completion guarantee, replacing the legacy floor seed). If no
-  // complete path exists at all, yield nothing — `compileLDS` then surfaces
-  // "no leaf reached end-of-spec".
-  const base = buildBacktrackingLeaf(root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache);
-  if (base === null) return;
-  yield base.leaf;
 
   const getCandidatesCached = (node: SearchNode, committedKey: string): Candidate[] => {
     const cached = candCache.get(committedKey);
@@ -295,6 +391,40 @@ export function* enumerateLeaves(
     candCache.set(committedKey, sorted);
     return sorted;
   };
+
+  const base = buildBacktrackingLeaf(root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache);
+  if (base === null) return;
+  yield base.leaf;
+
+  // Guided repair — the validation-retry IDEA integrated as ordinary deviation
+  // LEAVES, not a copied retry loop. The base path can complete yet MISS or land
+  // OFF-BEAT in the ASSEMBLED track; the fix is a low-rank deviation at the
+  // OWNING gap (rank-axis probe). We detect the failures, bump those contact
+  // gaps' override ranks, and yield the resulting single override leaf — offered
+  // to the register like any other leaf. So repair is: budget-subject (a cutoff
+  // each round, charged frames), monotonic (a fixed prefix of a fixed yielded
+  // order), and deterministic. The base path stays a clean completion floor;
+  // repairs are leaves, never mutation of the base.
+  const overrides = new Map<number, number>(); // contactGapNum -> local rank
+  let cur: Leaf = base.leaf;
+  for (let round = 0; round < REPAIR_ROUNDS_CAP; round++) {
+    if (getSimFrames() >= budgetUnits) return;
+    const det = detect(extractRawTrajectory(cur.engine, ctx.durationFrames + 20));
+    const owners = failureOwnerContactGaps(
+      det, gaps, cur.fits as (GapFit | null)[], ctx.allContactFrames,
+    );
+    if (owners.size === 0) break; // current leaf satisfies the hard contract
+    let bumped = false;
+    for (const g of owners) {
+      const prev = overrides.get(g) ?? 0;
+      if (prev < REPAIR_MAX_RANK) { overrides.set(g, prev + 1); bumped = true; }
+    }
+    if (!bumped) break; // every owner exhausted its per-gap rank budget
+    const repair = buildOverrideLeaf(root, gaps, base.baseCommitPath, overrides, getCandidatesCached);
+    if (repair === null) break;
+    yield repair;
+    cur = repair;
+  }
 
   for (let d = 1; d <= maxDiscrepancy; d++) {
     if (getSimFrames() >= budgetUnits) return;

@@ -461,7 +461,7 @@ export function compile(userSpec: Spec, seed = 0): CompileResult {
 }
 
 /** Locate the index of the gap whose fit's `lines` contains the given id. */
-function findGapOwning(lineId: number, fits: (GapFit | null)[]): number {
+export function findGapOwning(lineId: number, fits: (GapFit | null)[]): number {
   for (let i = 0; i < fits.length; i++) {
     const fit = fits[i];
     if (fit === null) continue;
@@ -492,7 +492,7 @@ function measurementLastFrame(det: Detection): number {
   return frameOffset(det) + det.measurements.airborne.length - 1;
 }
 
-function contactLineIdsAt(det: Detection, frame: number): number[] {
+export function contactLineIdsAt(det: Detection, frame: number): number[] {
   const index = measurementIndex(det, frame);
   return index >= 0 ? det.measurements.contactLineIds[index] ?? [] : [];
 }
@@ -753,13 +753,13 @@ function passesFinalHardGates(det: Detection, contactFrames: number[]): boolean 
   );
 }
 
-function offBeatLandingEvents(det: Detection, contactFrames: number[]): DetEvent[] {
+export function offBeatLandingEvents(det: Detection, contactFrames: number[]): DetEvent[] {
   return det.events.filter((e) =>
     e.type === "landing" && !contactFrames.some((cf) => Math.abs(cf - e.frame) <= 1)
   );
 }
 
-function addMissedContactRetryOwners(
+export function addMissedContactRetryOwners(
   owners: Set<number>,
   det: Detection,
   gaps: Gap[],

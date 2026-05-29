@@ -124,6 +124,15 @@ export function buildBacktrackingLeaf(
    *  owning gap off its assembled-track-missing candidate lets the rest finish
    *  via backtracking (the base path passes an empty map → unchanged). */
   forbidden?: Map<number, Set<number>>,
+  /** Optional budget cutoff in sim-frames. The BASE path passes none — the floor
+   *  is mandatory and must complete (budget-exempt). REPAIR re-descents pass the
+   *  compile budget: they are optional improvements, not the floor, so an
+   *  in-flight repair descent bails to null once `getSimFrames() >= budgetUnits`
+   *  instead of running uncapped (Phase 2a/2b repair rounds overshot the budget
+   *  by a full re-descent). Monotonicity-safe: bailing yields no repair leaf at
+   *  this budget; a larger budget completes the same descent → superset; the
+   *  completed leaf's content is budget-independent. */
+  budgetUnits?: number,
 ): { leaf: Leaf; baseCommitPath: number[] } | null {
   type FrameKind = "leaf" | "noncontact" | "contact" | "skip";
   type Frame = {
@@ -167,6 +176,9 @@ export function buildBacktrackingLeaf(
 
   while (stack.length > 0) {
     if (++steps > STEP_CAP) forceSkip = true;
+    // Repair-mode budget cutoff (base path passes no budget → exempt). Bail to
+    // null rather than run a repair re-descent uncapped past the budget.
+    if (budgetUnits !== undefined && getSimFrames() >= budgetUnits) return null;
     const top = stack[stack.length - 1];
 
     if (top.kind === "leaf") {
@@ -391,7 +403,7 @@ export function* enumerateLeaves(
     }
     if (!bumped) break; // nothing new to forbid (owners skipped / already exhausted)
     const repair = buildBacktrackingLeaf(
-      root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache, forbidden,
+      root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache, forbidden, budgetUnits,
     );
     if (repair === null) break;
     // Distinct, deterministic fingerprint (committed-index path) + discrepancy so
@@ -480,6 +492,19 @@ function* enumerateDeviations(
   } else {
     if (sorted.length === 0) return; // dead-end: this deviation can't complete
     const pref = baseChoice; // 0 off-base; the base's sorted-index on-base
+    // Invariant guard: on-base, this node is the same node the base path
+    // committed at, so getCandidatesSorted returns the identical list and the
+    // base's committed index is in range. Assert rather than silently commit
+    // `sorted[undefined]` (a corrupt leaf) if that ever breaks (e.g. a future
+    // change makes candidate generation depend on something beyond the prefix,
+    // or a cache-key collision). Off-base pref is 0, always valid here.
+    if (pref < 0 || pref >= sorted.length) {
+      throw new Error(
+        `enumerateDeviations: base choice ${pref} out of range [0,${sorted.length}) ` +
+        `at contactGap ${contactGapNum} (committedKey="${committedKey}") — ` +
+        `base/deviation candidate-list divergence`,
+      );
+    }
     options.push(pref);
     for (let i = 0; i < sorted.length; i++) if (i !== pref) options.push(i);
   }

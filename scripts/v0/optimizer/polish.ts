@@ -23,6 +23,8 @@
 import {
   type GapFit,
   type ResolvedStart,
+} from "../core/substrate.ts";
+import {
   getRebuildStartState,
   polishAirRideOut,
   polishAirContactEntry,
@@ -30,7 +32,7 @@ import {
   polishExcessContact,
   rebuildEngine,
   setRebuildStartState,
-} from "../compile.ts";
+} from "../core/polish.ts";
 import type { Gap } from "../types.ts";
 import type { Spec } from "./types.ts";
 
@@ -71,9 +73,10 @@ export type PolishedVariant = {
  * nothing. The returned variant carries a freshly rebuilt engine so the caller
  * can score it with the exact oracle.
  *
- * The polish helpers and `rebuildEngine` read compile.ts's module-scoped start
- * state. We set it to this leaf's `startState` for the duration of the pass and
- * restore the previous value in `finally`, so an interleaved `compile()` /
+ * The polish helpers and `rebuildEngine` (now in core/polish.ts) read that
+ * module's module-scoped start state. We set it to this leaf's `startState` for
+ * the duration of the pass and restore the previous value in `finally`, so an
+ * interleaved `compile()` /
  * second `compileLDS()` can't leave it stale (review #5). Save/restore (rather
  * than threading the start through every helper signature) keeps the legacy
  * helpers untouched while making the LDS path reentrancy-safe.

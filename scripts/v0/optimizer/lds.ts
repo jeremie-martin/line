@@ -118,6 +118,12 @@ export function buildBacktrackingLeaf(
    *  same committed prefix (measured 23–50% hit rate in the deviation phase).
    *  Pass the SAME map used by `enumerateLeaves` to share it. Default: fresh. */
   candCache: Map<string, Candidate[]> = new Map(),
+  /** Guided repair: sorted-candidate indices to EXCLUDE at specific gaps
+   *  (gapIndex -> forbidden sorted-indices). The descent skips these when
+   *  committing but otherwise backtracks normally to complete — so forcing an
+   *  owning gap off its assembled-track-missing candidate lets the rest finish
+   *  via backtracking (the base path passes an empty map → unchanged). */
+  forbidden?: Map<number, Set<number>>,
 ): { leaf: Leaf; baseCommitPath: number[] } | null {
   type FrameKind = "leaf" | "noncontact" | "contact" | "skip";
   type Frame = {
@@ -196,7 +202,10 @@ export function buildBacktrackingLeaf(
       continue;
     }
 
-    // contact gap
+    // contact gap. Skip any forbidden sorted-index (guided repair forces a gap
+    // off its assembled-track-missing candidate) by advancing past it.
+    const fb = forbidden?.get(top.node.gapIndex);
+    if (fb) while (top.tried < top.cands.length && fb.has(top.tried)) top.tried++;
     if (top.tried < top.cands.length && !(forceSkip && top.tried > 0)) {
       // commit the next candidate (lowest cost first). Under forceSkip we take
       // rank 0 if present (best effort) but never retry a higher rank.
@@ -223,7 +232,11 @@ export function buildBacktrackingLeaf(
         stack.pop();
         while (stack.length > 0) {
           const f = stack[stack.length - 1];
-          if (f.kind === "contact" && f.tried < f.cands.length) break;
+          if (f.kind === "contact") {
+            const ffb = forbidden?.get(f.node.gapIndex);
+            if (ffb) while (f.tried < f.cands.length && ffb.has(f.tried)) f.tried++;
+            if (f.tried < f.cands.length) break;
+          }
           stack.pop();
         }
         if (stack.length === 0) {
@@ -247,27 +260,23 @@ export function buildBacktrackingLeaf(
   return null;
 }
 
-/** Per-owning-gap rank budget for guided repair: how many alternative candidates
- *  to try at a gap owning an assembled-track failure. The rank-axis probe found
- *  the recovering deviation is typically rank 1; a few more give margin. A code
- *  constant, not budget-fed. */
-const REPAIR_MAX_RANK = 6;
-/** Safety bound on guided-repair rounds (each round bumps every current owner's
- *  rank by one and regenerates the override leaf). The per-gap REPAIR_MAX_RANK is
- *  the real bound; this caps pathological multi-miss interaction. */
+/** Safety bound on guided-repair rounds. Each round FORBIDS every current owner
+ *  gap's committed (assembled-track-missing) candidate and re-runs the
+ *  backtracking descent; the natural per-gap bound is the candidate pool size
+ *  (forbidding eventually exhausts it → the gap skips). This caps pathological
+ *  multi-miss interaction. A code constant, not budget-fed. */
 const REPAIR_ROUNDS_CAP = 12;
 
-/** Contact-gap numbers (position among `endsWithContact` gaps, in order) that OWN
- *  an assembled-track failure — a missing or off-beat contact — in `fits`'s full
- *  track. Reuses the pure detection-analysis substrate (`offBeatLandingEvents`,
- *  `contactLineIdsAt`, `findGapOwning`, `addMissedContactRetryOwners`) to map a
- *  failure to its owning GAP, then converts gap index → contact-gap number. */
-function failureOwnerContactGaps(
+/** Gap indices that OWN an assembled-track failure (a missing or off-beat
+ *  contact) in `fits`'s full track, sorted ascending (deterministic). Reuses the
+ *  pure detection-analysis substrate (`offBeatLandingEvents`, `contactLineIdsAt`,
+ *  `findGapOwning`, `addMissedContactRetryOwners`). */
+function failureOwnerGaps(
   det: ReturnType<typeof detect>,
   gaps: Gap[],
   fits: (GapFit | null)[],
   contactFrames: number[],
-): Set<number> {
+): number[] {
   const ownerGaps = new Set<number>();
   for (const e of offBeatLandingEvents(det, contactFrames)) {
     for (const lid of contactLineIdsAt(det, e.frame)) {
@@ -276,71 +285,25 @@ function failureOwnerContactGaps(
     }
   }
   addMissedContactRetryOwners(ownerGaps, det, gaps, fits, contactFrames);
-  // Map gap index → contact-gap number.
-  const contactGapNumOf = new Map<number, number>();
-  let n = 0;
-  for (let i = 0; i < gaps.length; i++) {
-    if (gaps[i].endsWithContact) contactGapNumOf.set(i, n++);
-  }
-  const out = new Set<number>();
-  for (const g of ownerGaps) {
-    const cgn = contactGapNumOf.get(g);
-    if (cgn !== undefined) out.add(cgn);
-  }
-  return out;
+  return [...ownerGaps].sort((a, b) => a - b);
 }
 
-/** Build ONE base-rotated leaf with per-contact-gap rank OVERRIDES: at each
- *  contact gap take local-rank `overrides.get(contactGapNum) ?? 0` (0 = the base
- *  choice while on-base). A focused, non-backtracking single-path counterpart of
- *  `enumerateDeviations`, used for guided repair. Returns null on a dead-end or
- *  an out-of-range override rank. Pure function of (spec, seed, baseCommitPath,
- *  overrides) — deterministic; reuses the shared candidate cache. */
-function buildOverrideLeaf(
-  root: SearchNode,
-  gaps: Gap[],
-  baseCommitPath: number[],
-  overrides: Map<number, number>,
-  getCandidatesCached: (node: SearchNode, committedKey: string) => Candidate[],
-): Leaf | null {
-  let node = root;
-  let committedKey = "";
-  let onBase = true;
-  let contactGapNum = 0;
-  const allRanks: number[] = [];
-  while (!isLeafNode(node, gaps.length)) {
-    if (!gaps[node.gapIndex].endsWithContact) {
-      node = extendNode(node, null);
-      allRanks.push(0);
-      continue;
-    }
-    const sorted = getCandidatesCached(node, committedKey);
-    const baseChoice = onBase ? baseCommitPath[contactGapNum] : 0;
-    const options: number[] = [];
-    if (onBase && baseChoice === SKIP) {
-      options.push(SKIP);
-      for (let i = 0; i < sorted.length; i++) options.push(i);
+/** Expand a contact-gap-order commit path (committed sorted-index per contact
+ *  gap, SKIP for a skipped gap) to a per-gap `ranks` array (length = gaps.length;
+ *  non-contact and skipped gaps → 0). Used to give repair leaves a distinct,
+ *  deterministic fingerprint reflecting their actual committed candidates. */
+function perGapRanksFromCommit(commit: number[], gaps: Gap[]): number[] {
+  const out: number[] = [];
+  let cgn = 0;
+  for (const g of gaps) {
+    if (g.endsWithContact) {
+      const c = commit[cgn++];
+      out.push(c === SKIP ? 0 : c);
     } else {
-      if (sorted.length === 0) return null;
-      options.push(baseChoice);
-      for (let i = 0; i < sorted.length; i++) if (i !== baseChoice) options.push(i);
+      out.push(0);
     }
-    const r = overrides.get(contactGapNum) ?? 0;
-    if (r >= options.length) return null; // requested alternative beyond the pool
-    const choice = options[r];
-    node = choice === SKIP ? extendNode(node, null) : extendNode(node, sorted[choice]);
-    committedKey += choice === SKIP ? ",S" : "," + choice;
-    allRanks.push(r);
-    onBase = onBase && r === 0;
-    contactGapNum++;
   }
-  return {
-    fits: node.prefixFits,
-    engine: node.prefixEngine,
-    ranks: allRanks,
-    discrepancy: allRanks.reduce((s, x) => s + x, 0),
-    cumulativeCost: node.cumulativeCost,
-  };
+  return out;
 }
 
 /** Enumerate leaves in increasing-discrepancy order, RELATIVE TO the
@@ -398,32 +361,49 @@ export function* enumerateLeaves(
 
   // Guided repair — the validation-retry IDEA integrated as ordinary deviation
   // LEAVES, not a copied retry loop. The base path can complete yet MISS or land
-  // OFF-BEAT in the ASSEMBLED track; the fix is a low-rank deviation at the
-  // OWNING gap (rank-axis probe). We detect the failures, bump those contact
-  // gaps' override ranks, and yield the resulting single override leaf — offered
-  // to the register like any other leaf. So repair is: budget-subject (a cutoff
-  // each round, charged frames), monotonic (a fixed prefix of a fixed yielded
-  // order), and deterministic. The base path stays a clean completion floor;
-  // repairs are leaves, never mutation of the base.
-  const overrides = new Map<number, number>(); // contactGapNum -> local rank
+  // OFF-BEAT in the ASSEMBLED track. The fix: FORBID the owning gap's committed
+  // (missing) candidate and re-run the BACKTRACKING descent, so the gap takes an
+  // alternative and the rest completes via backtracking (Phase 2a's straight-line
+  // override descent gave up on a downstream dead-end; this does not). Each round
+  // forbids one more candidate at each still-failing owner. So repair is:
+  // budget-subject (a cutoff each round), monotonic (a fixed prefix of a fixed
+  // yielded order), and deterministic. The base path stays a clean floor; repairs
+  // are leaves, never mutation.
+  const cgnOf = new Map<number, number>(); // gapIndex -> contact-gap number
+  { let n = 0; for (let i = 0; i < gaps.length; i++) if (gaps[i].endsWithContact) cgnOf.set(i, n++); }
+  const forbidden = new Map<number, Set<number>>(); // gapIndex -> forbidden sorted-indices
   let cur: Leaf = base.leaf;
+  let curCommit = base.baseCommitPath;
   for (let round = 0; round < REPAIR_ROUNDS_CAP; round++) {
     if (getSimFrames() >= budgetUnits) return;
     const det = detect(extractRawTrajectory(cur.engine, ctx.durationFrames + 20));
-    const owners = failureOwnerContactGaps(
-      det, gaps, cur.fits as (GapFit | null)[], ctx.allContactFrames,
-    );
-    if (owners.size === 0) break; // current leaf satisfies the hard contract
+    const owners = failureOwnerGaps(det, gaps, cur.fits as (GapFit | null)[], ctx.allContactFrames);
+    if (owners.length === 0) break; // current leaf satisfies the hard contract
     let bumped = false;
     for (const g of owners) {
-      const prev = overrides.get(g) ?? 0;
-      if (prev < REPAIR_MAX_RANK) { overrides.set(g, prev + 1); bumped = true; }
+      const cgn = cgnOf.get(g);
+      if (cgn === undefined) continue;
+      const committed = curCommit[cgn];
+      if (committed === SKIP) continue; // skipped gap — no committed candidate to forbid
+      let set = forbidden.get(g);
+      if (!set) { set = new Set<number>(); forbidden.set(g, set); }
+      if (!set.has(committed)) { set.add(committed); bumped = true; }
     }
-    if (!bumped) break; // every owner exhausted its per-gap rank budget
-    const repair = buildOverrideLeaf(root, gaps, base.baseCommitPath, overrides, getCandidatesCached);
+    if (!bumped) break; // nothing new to forbid (owners skipped / already exhausted)
+    const repair = buildBacktrackingLeaf(
+      root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache, forbidden,
+    );
     if (repair === null) break;
-    yield repair;
-    cur = repair;
+    // Distinct, deterministic fingerprint (committed-index path) + discrepancy so
+    // repair leaves don't collide with the base leaf or each other.
+    const repairLeaf: Leaf = {
+      ...repair.leaf,
+      ranks: perGapRanksFromCommit(repair.baseCommitPath, gaps),
+      discrepancy: round + 1,
+    };
+    yield repairLeaf;
+    cur = repairLeaf;
+    curCommit = repair.baseCommitPath;
   }
 
   for (let d = 1; d <= maxDiscrepancy; d++) {

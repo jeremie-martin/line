@@ -44,7 +44,7 @@ import {
 } from "../core/substrate.ts";
 import {
   withOptimizedPrerollStart,
-} from "../compile.ts";
+} from "../core/preroll.ts";
 import { CALIB, secToFrame } from "../types.ts";
 import { pickLowestCost, solveOneGap } from "./solver.ts";
 import type { SpecContext } from "./sample.ts";

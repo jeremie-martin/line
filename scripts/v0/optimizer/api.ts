@@ -29,7 +29,7 @@ import {
 } from "../core/substrate.ts";
 import {
   withOptimizedPrerollStart,
-} from "../compile.ts";
+} from "../core/preroll.ts";
 import { makeRng } from "../../lib/rng.ts";
 import { CALIB, secToFrame } from "../types.ts";
 import { enumerateLeaves, type Leaf } from "./lds.ts";

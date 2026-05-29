@@ -33,7 +33,7 @@ import {
 } from "../scripts/v0/core/substrate.ts";
 import {
   withOptimizedPrerollStart,
-} from "../scripts/v0/compile.ts";
+} from "../scripts/v0/core/preroll.ts";
 import { CALIB, secToFrame } from "../scripts/v0/types.ts";
 import { makeRng } from "../scripts/lib/rng.ts";
 import type { SpecContext } from "../scripts/v0/optimizer/sample.ts";

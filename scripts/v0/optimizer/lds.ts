@@ -185,7 +185,7 @@ export function buildBacktrackingLeaf(
   budgetUnits?: number,
   /** Optional non-scoring telemetry (cache hits/misses, backtrack steps). */
   telemetry?: SearchTelemetry,
-): { leaf: Leaf; baseCommitPath: number[] } | null {
+): { leaf: Leaf; baseCommitPath: number[]; candidateCounts: number[] } | null {
   type FrameKind = "leaf" | "noncontact" | "contact" | "skip";
   type Frame = {
     node: SearchNode;
@@ -229,9 +229,15 @@ export function buildBacktrackingLeaf(
 
     if (top.kind === "leaf") {
       const path: number[] = [];
+      // Per-contact-gap candidate-list length at the COMMITTED node, aligned with
+      // `path`. Captured for free here (the list is already on the frame) so the
+      // base-relative rank computation can place a forced repair-skip beyond the
+      // candidate range without a re-descent. Skip frames preserve their original
+      // contact frame's `cands` (see the skip-commit branch) so the count survives.
+      const candCounts: number[] = [];
       for (const f of stack) {
-        if (f.kind === "contact") path.push(f.tried - 1);
-        else if (f.kind === "skip") path.push(SKIP);
+        if (f.kind === "contact") { path.push(f.tried - 1); candCounts.push(f.cands.length); }
+        else if (f.kind === "skip") { path.push(SKIP); candCounts.push(f.cands.length); }
       }
       const leaf: Leaf = {
         fits: top.node.prefixFits,
@@ -242,7 +248,7 @@ export function buildBacktrackingLeaf(
         discrepancy: 0,
         cumulativeCost: top.node.cumulativeCost,
       };
-      return { leaf, baseCommitPath: path };
+      return { leaf, baseCommitPath: path, candidateCounts: candCounts };
     }
 
     if (top.kind === "noncontact") {
@@ -318,7 +324,11 @@ export function buildBacktrackingLeaf(
     const child = extendNode(top.node, null);
     const skipKey = top.committedKey;
     stack.pop();
-    stack.push({ node: top.node, kind: "skip", cands: [], tried: 1, committedKey: skipKey });
+    // Preserve the contact frame's `cands` on the skip frame: nothing reads a skip
+    // frame's candidate list during the descent (the skip branch only pops), but
+    // the leaf-build loop uses its `.length` for the base-relative rank of a forced
+    // skip. `[]` would lose that count.
+    stack.push({ node: top.node, kind: "skip", cands: top.cands, tried: 1, committedKey: skipKey });
     stack.push(makeFrame(child, skipKey + ",S"));
     failureStartIdx = -1;
     backtracksUsed = 0;
@@ -354,20 +364,58 @@ function failureOwnerGaps(
   return [...ownerGaps].sort((a, b) => a - b);
 }
 
-/** Expand a contact-gap-order commit path (committed sorted-index per contact
- *  gap, SKIP for a skipped gap) to a per-gap `ranks` array (length = gaps.length;
- *  non-contact and skipped gaps → 0). Used to give repair leaves a distinct,
- *  deterministic fingerprint reflecting their actual committed candidates. */
-function perGapRanksFromCommit(commit: number[], gaps: Gap[]): number[] {
+/** Local rank of `choice` at one contact gap in the SAME base-rotated option
+ *  order `enumerateDeviations` uses, so a repair leaf's discrepancy measures
+ *  edit-distance FROM THE BASE PATH — not the absolute committed sorted-index.
+ *
+ *  The rotated order (mirrors `enumerateDeviations`):
+ *    - base SKIPPED this gap → options = [SKIP, 0, 1, …, n-1]: SKIP is rank 0,
+ *      sorted-index i is rank i+1.
+ *    - else → options = [baseChoice, then 0…n-1 skipping baseChoice]: the base's
+ *      own choice is rank 0; a cheaper index c<base is rank c+1; a dearer index
+ *      c>base is rank c. (Off base, `baseChoice` is 0 = cheapest, so this reduces
+ *      to the identity — rank = sorted-index — exactly as off-base deviations do.)
+ *
+ *  Edge case absent from `enumerateDeviations` (which never offers SKIP off the
+ *  base): a repair that FORBIDS the base's candidate and then can't land the gap
+ *  commits a SKIP where the base did not. SKIP isn't in the rotated order there,
+ *  so it ranks one past the last candidate (`candidateCount`) — a deterministic
+ *  "maximal deviation" that keeps the discrepancy gate honest. */
+export function localRankRelativeToBase(baseChoice: number, choice: number, candidateCount: number): number {
+  if (baseChoice === SKIP) return choice === SKIP ? 0 : choice + 1;
+  if (choice === baseChoice) return 0;
+  if (choice === SKIP) return candidateCount;
+  return choice < baseChoice ? choice + 1 : choice;
+}
+
+/** Per-gap base-relative `ranks` for a repair leaf (length = gaps.length;
+ *  non-contact gaps → 0). Walks the repair's committed path against the BASE
+ *  path's, tracking `onBase`: while every choice so far matched the base's
+ *  preferred choice the reference is the base's own committed index; after the
+ *  first deviation the engine state has diverged from the base's, so the
+ *  reference becomes the cheapest candidate (sorted-index 0) — identical to how
+ *  `enumerateDeviations` flips its preferred choice off base. `repairCandCounts`
+ *  is the repair descent's per-contact-gap candidate-list length (for the forced
+ *  off-rotation skip). This fixes backlog #1: summing ABSOLUTE indices made a
+ *  repair that merely re-followed a high-index base look maximally discrepant,
+ *  so the `discrepancy > maxDiscrepancy` gate suppressed repair on exactly the
+ *  backtrack-heavy specs whose base path commits high indices. */
+export function repairRanksRelativeToBase(
+  baseCommit: number[],
+  repairCommit: number[],
+  repairCandCounts: number[],
+  gaps: Gap[],
+): number[] {
   const out: number[] = [];
   let cgn = 0;
+  let onBase = true;
   for (const g of gaps) {
-    if (g.endsWithContact) {
-      const c = commit[cgn++];
-      out.push(c === SKIP ? 0 : c);
-    } else {
-      out.push(0);
-    }
+    if (!g.endsWithContact) { out.push(0); continue; }
+    const baseChoice = onBase ? baseCommit[cgn] : 0; // off base, preferred = cheapest
+    const rank = localRankRelativeToBase(baseChoice, repairCommit[cgn], repairCandCounts[cgn]);
+    out.push(rank);
+    if (rank !== 0) onBase = false; // any non-preferred choice takes us off the base path
+    cgn++;
   }
   return out;
 }
@@ -468,7 +516,9 @@ export function* enumerateLeaves(
       root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache, forbidden, budgetUnits, telemetry,
     );
     if (repair === null) break;
-    const ranks = perGapRanksFromCommit(repair.baseCommitPath, gaps);
+    const ranks = repairRanksRelativeToBase(
+      base.baseCommitPath, repair.baseCommitPath, repair.candidateCounts, gaps,
+    );
     const discrepancy = ranks.reduce((s, x) => s + x, 0);
     // The fix is deeper than the requested LDS depth — stop (further rounds forbid
     // more and only go deeper). Distinct committed-index fingerprint avoids leaf

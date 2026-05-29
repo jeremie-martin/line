@@ -21,7 +21,13 @@ import { createHash } from "node:crypto";
 import { compileLDS } from "../scripts/v0/optimizer/api.ts";
 import { compileGreedy_v2 } from "../scripts/v0/optimizer/greedy.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
-import { enumerateLeaves, type Leaf } from "../scripts/v0/optimizer/lds.ts";
+import {
+  enumerateLeaves,
+  localRankRelativeToBase,
+  repairRanksRelativeToBase,
+  SKIP,
+  type Leaf,
+} from "../scripts/v0/optimizer/lds.ts";
 import { makeRootNode, N_CAND } from "../scripts/v0/optimizer/node.ts";
 import {
   effectiveAxes,
@@ -164,6 +170,34 @@ describe("optimizer/lds.ts — Stage 1 LDS core", () => {
     expect(() => compileLDS(spec, 1.5, { maxDiscrepancy: 0 })).toThrow(/seed/);
     expect(() => compileLDS(spec, 2 ** 53, { maxDiscrepancy: 0 })).toThrow(/seed/);
     expect(() => compileLDS(spec, Number.NaN, { maxDiscrepancy: 0 })).toThrow(/seed/);
+  });
+
+  test("repair discrepancy is base-relative, not absolute (backlog #1)", () => {
+    // Two contact gaps. base committed sorted-index 3 at gap 0, SKIPPED gap 1.
+    // A repair re-follows the base at gap 0 (commit 3) and lands gap 1 at the
+    // cheapest candidate (commit 0). Base-relative local ranks must be [0,1]
+    // (gap 0 unchanged from base = 0; gap 1 deviates from SKIP to index 0 = 1),
+    // NOT the absolute [3,0] the old `perGapRanksFromCommit` produced — which
+    // would inflate the repair's discrepancy to 3 and trip the maxD gate.
+    const gaps = [{ endsWithContact: true }, { endsWithContact: true }] as never;
+    expect(repairRanksRelativeToBase([3, SKIP], [3, 0], [5, 5], gaps)).toEqual([0, 1]);
+
+    // Unchanged base path → all-zero discrepancy regardless of how high the
+    // base's absolute indices are (the bug being fixed).
+    expect(repairRanksRelativeToBase([3, 4], [3, 4], [5, 5], gaps)).toEqual([0, 0]);
+
+    // Non-contact gaps contribute 0 and don't consume a commit-path slot.
+    const mixed = [{ endsWithContact: true }, { endsWithContact: false }, { endsWithContact: true }] as never;
+    expect(repairRanksRelativeToBase([2, 0], [2, 1], [4, 4], mixed)).toEqual([0, 0, 1]);
+
+    // localRankRelativeToBase rotated-order cases.
+    expect(localRankRelativeToBase(SKIP, SKIP, 5)).toBe(0); // base skip kept
+    expect(localRankRelativeToBase(SKIP, 0, 5)).toBe(1); // base skip → index 0
+    expect(localRankRelativeToBase(2, 2, 5)).toBe(0); // matched base
+    expect(localRankRelativeToBase(2, 0, 5)).toBe(1); // cheaper than base
+    expect(localRankRelativeToBase(2, 4, 5)).toBe(4); // dearer than base
+    expect(localRankRelativeToBase(0, 3, 5)).toBe(3); // off base (pref 0) = identity
+    expect(localRankRelativeToBase(2, SKIP, 5)).toBe(5); // forced skip → maximal
   });
 
   test("PROPERTY: yielded sequence at maxD=1 is a prefix of the sequence at maxD=2", async () => {

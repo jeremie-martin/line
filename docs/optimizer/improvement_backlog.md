@@ -100,6 +100,23 @@ cross-gap geometry (extend the prior gap's line through the beat with a minimal 
 a real research item; design + validate carefully (it touches `core/candidate.ts`, shared
 geometry) before trusting it, and watch for regressions on the air/loft specs.
 
+**LOCALIZED: the dense-catch lane is the concrete crack (2026-05-29).** Scanned `solo_run`
+seed1's rank-0 greedy spine: **11 of 77 contact gaps produce ZERO viable candidates** (and 5
+more ≤2). All are ~13-frame gaps (e.g. f[80–93], gap ≈ 0.32 s at ~40 fps) with mid targets
+(air≈0.5, speed≈0.7, grain/contact_style≈0.45). They are NOT steep-catch (`shouldUseSteepCatch`
+needs gap ≥ 60 frames; these are 13) so they fall through to the **uniform random sampler**,
+which finds no arc that lands on-beat + survives + no-off-beat in a 13-frame window. That forces
+the floor to backtrack (46×, 220k frames > 200k budget) and skip 5 contacts → the only failing
+`solo_run` seed. Seeds 0/2 pass (18–19 backtracks) — seed1 just drew target jitter into the
+unhittable region. So the dense-catch lane = a deterministic, attempt-indexed compact-arc
+template for SHORT gaps (gap < ~40 frames) — analogous to `CATCH_TEMPLATES` but for the
+short-gap regime — placed near the predicted landing so bisection can seat it. It directly
+lands the missed contacts AND cuts backtracking (cheaper floor → budget for repair), attacking
+both levers of the §8 unifying finding. **Validation gate is wide**: it changes
+`sampleArcParams` for every short-gap spec, so probe ALL dense specs (`dense_sprint`,
+`mini_burst`, `rhythm_ladder`, `grain_staircase`, `drums_*`, `solo_run`) for regressions, not
+just `solo_run` — this is the candidate-gen surface the charter warns broke a passing spec once.
+
 ### #6 — Gate polish on the already-computed report
 `evaluateLeaf` (`api.ts`) already computes the report once; add a `shouldTryPolish(report,
 leaf.fits, spec, gaps)` check in `api.ts`'s `consider` loop and only call `polishLeafVariant`

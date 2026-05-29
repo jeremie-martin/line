@@ -117,6 +117,34 @@ both levers of the §8 unifying finding. **Validation gate is wide**: it changes
 `mini_burst`, `rhythm_ladder`, `grain_staircase`, `drums_*`, `solo_run`) for regressions, not
 just `solo_run` — this is the candidate-gen surface the charter warns broke a passing spec once.
 
+**PROOF OF CONCEPT — the lever WORKS, but the naive impl is not committable (2026-05-29).**
+Implemented a first dense-catch lane: 8 short-gap landing-ramp templates (`DENSE_CATCH_TEMPLATES`
+in `core/candidate.ts`), gated on `gapFrames < 40 && speed >= 2 && !steepCatch`, selected by
+`attempt` (no RNG, like steep-catch) — i.e. it **replaced** attempts 0–7 of the 32 uniform
+samples. Result on the **full canonical**: `goal_score 339.70 → 417.77 (+23%)`,
+`contract_pass_rate 87% → 92% (34→36/39)`. It **cracked `drums_crescendo` 0/3 → 3/3** and
+**`solo_run` 2/3 → 3/3** (solo_run s1: 71/77 → 77/77, backtracks 46 → 11, floor back under
+budget — confirms the §8 unifying finding: better candidates land more AND cheapen the floor).
+**But three blockers forced a revert:**
+1. **Performance blowup.** `optimizer_greedy_v2` tiny_dance/mini_burst compiles went from <1s to
+   ~23–40s each (determinism test failed, likely via timeout). The lane's arcs evidently cause
+   bisection/detection to thrash on some short gaps. Must profile before re-attempting.
+2. **Regressions.** It flipped `drums_signature` s0 (3/3→2/3) and `drums_pendulum` s1 (2/3→1/3) —
+   same ~19-frame drums regime where it *also* cracked crescendo. Net was +2 rows, but these are
+   real pass→fail flips.
+3. **Candidate displacement.** Replacing attempts 0–7 drops the last 8 uniform candidates (RNG
+   shift), so specs whose winner lived there regress, and it breaks the `greedy_v2` reference
+   (cheap-but-incomplete dense-catch candidate becomes greedy's rank-0).
+
+**Next-iteration design (clear path):** make it **additive, not replacing** — append dense-catch
+at fixed attempt indices *after* the 32 uniform samples (bump K for short gaps so uniform 0–31
+are preserved byte-identical → passing specs keep their winner; dense-catch only wins rank-0 when
+genuinely cheaper). Then (a) profile/fix the slowdown (likely non-converging bisection on some
+templates — add an early-out or prune divergent templates), and (b) tune templates/gate to keep
+the crescendo+solo_run cracks without the two drums regressions. Re-validate: property tests
+(esp. greedy_v2 determinism + timing) AND full-canonical regression sweep. The +23% is real and
+in reach — this is the single highest-leverage open item.
+
 ### #6 — Gate polish on the already-computed report
 `evaluateLeaf` (`api.ts`) already computes the report once; add a `shouldTryPolish(report,
 leaf.fits, spec, gaps)` check in `api.ts`'s `consider` loop and only call `polishLeafVariant`

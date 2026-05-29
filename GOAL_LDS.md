@@ -354,3 +354,41 @@ The honest gaps. Append findings here as you learn; this is your lab notebook.
   the principled fix is reducing floor cost / improving candidates. Next agent: start by
   instrumenting *why* the floor backtracks 46× on `solo_run` s1 (which gap has no landable
   candidate, and what geometry would land it) — that is the crack, and it generalizes.
+
+- **MULTI-AGENT INVESTIGATION + every lever probed (2026-05-29). The honest ceiling.** Targeted
+  goal_score >700 / all-specs-≥500 (current 339.70, geomean anchored by the failing specs
+  crescendo=72/solo_run=90/pendulum=170). Ran a Plan agent + two Explore agents and probed each
+  lever directly. Findings, so the next agent does not repeat them:
+  * **Analytic catch generator: INFEASIBLE.** `lr-core` is a black-box, multi-point articulated
+    sled (PEG/TAIL/NOSE/STRING); rider motion between contacts is contact-coupled, not ballistic;
+    even the library's own `precise_landings.ts` is bisection-under-simulation, not closed form.
+    No trajectory to invert. (Would also violate §7.2 "lr-core is the source of truth".)
+  * **Per-gap candidate lanes (#4): REFUTED** (see prior entry). Dead gaps are arrival-state-bound;
+    physics-derived templates land 0–1/8. The +23% the replace-lane scored was fragile global
+    perturbation. Root cause of its 40× slowdown now known: non-landing templates never early-exit
+    the 18-iter+16-grid bisection, so each costs the full ~34 detections — landing templates would
+    be fast, but none land the dead gaps.
+  * **`candCache` 0% hit on failing rows: a SYMPTOM, not a lever.** The cache is reused mainly by
+    the deviation phase, which never runs under budget-starvation — so 0% hits is downstream of the
+    starvation, not a free speedup. Backtrack re-descents sample genuinely-new prefixes (irreducible).
+  * **Floor/look-ahead changes perturb the backtrack-heavy PASSERS.** `dense_sprint` (bt=40),
+    `solo_run` s0/s2, `drums_pendulum` s0/s2 all backtrack — so "gate look-ahead to the backtrack
+    branch" does NOT keep them byte-identical; only zero-backtrack specs (tiny_dance) stay safe.
+    Any floor/search change has a wide regression surface.
+  * **Polish unlock (remove `contact_style` veto): INERT.** The child polishers
+    (`shouldPolishGrainLength`/`shouldPolishEntrySpeed`) each independently veto `contact_style`,
+    so removing only the parent veto changed nothing (`polish_variants_tried=0`, scores identical).
+    And polish optimizes `meanSectionAxisError` (air+speed+grain, NO contact_style) and **does not
+    touch air at all** — yet air-overshoot (solo_run catches 0.86 vs 0.5) is the dominant axis error
+    on the passers. Polish cannot fix it.
+  * **Air-overshoot is itself arrival-state/cross-gap-bound.** Landing on-beat in a ~13-frame gap
+    forces a hop → high air; lowering it needs grounded cross-gap riding (the same drums-glued
+    problem). Ride-out (`shouldTryCandidateRideOut`) is gated to air-only specs + gap≥60, so it
+    never applies to the dense multi-axis specs.
+  * **CONCLUSION:** there is no clean, low-regression, incremental path to >700 with the current
+    architecture. The failing-spec cracks AND the passer axis-lifts both reduce to the same hard
+    problem — steering the rider's *arrival state* / *cross-gap grounded geometry* — which only a
+    perturbative search/generator overhaul addresses (cross-gap look-ahead or beam, validated across
+    ALL backtrack-heavy specs; expect regressions to manage per §4.4). That is a deliberate
+    multi-iteration research project, not a single validated commit. The committed state (#1,
+    339.70, all property tests green) is clean and correct; #1's correctness fix stands.

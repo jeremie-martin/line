@@ -25,6 +25,7 @@ import {
   sampleArcParams,
   tryCandidate,
 } from "../compile.ts";
+import { getRiderMetered } from "../../lib/detector.ts";
 import type { Gap } from "./types.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: arc + lines
@@ -63,7 +64,11 @@ export function sampleOneCandidate(
   ctx: SpecContext,
   lineIdStart: number,
 ): Candidate | null {
-  const rider = engine.getRider(gap.endFrame);
+  // Use the METERED rider read for the first probe: the raw engine.getRider
+  // advances lr-core to gap.endFrame without charging the physics-frame counter,
+  // and the subsequent readTargetState (getRiderMetered) then hits the cached
+  // frame for zero — so candidate-generation work went uncounted (review P2).
+  const rider = getRiderMetered(engine, gap.endFrame);
   const refX = rider.position.x;
   const refY = rider.position.y;
   const targetState = readTargetState(engine, gap.endFrame, refX, refY);

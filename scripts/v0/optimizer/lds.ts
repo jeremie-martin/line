@@ -38,7 +38,6 @@ import {
 import { getSimFrames } from "./sim_frames.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
-import { CALIB } from "../types.ts";
 
 /** A leaf of the LDS search tree. The `prefixFits` is the complete
  *  fit-array, `prefixEngine` is the final engine, and `ranks` records
@@ -51,6 +50,18 @@ export type Leaf = {
   discrepancy: number; // sum of ranks
   cumulativeCost: number;
 };
+
+/** Per-failure backtrack depth for the base-path descent. Higher than legacy's
+ *  `CALIB.BACKTRACK_DEPTH` (2) because the optimizer's candidate generator
+ *  samples from `gap.targets` directly — it lacks legacy `compile()`'s residual
+ *  look-ahead targeting, so it relies on backtracking (exploring committed
+ *  combinations) rather than look-ahead to find landable sequences on dense
+ *  specs. Measured: depth 2 SKIPS 3 contacts on solo_run (fails, and thrashes —
+ *  179k floor frames); depth 4 lands all 77 (passes, beats greedy_v1, and is
+ *  CHEAPER at 68k frames because it resolves without thrashing). 8 gives margin;
+ *  it is inert on specs that complete within depth 2 (drums, tiny_dance) and is
+ *  bounded by the descent's global STEP_CAP. */
+export const BASE_BACKTRACK_DEPTH = 8;
 
 /** Sentinel in a base-commit-path entry: this contact gap was SKIPPED
  *  (no viable candidate survived backtracking) — committed as a null fit,
@@ -86,6 +97,10 @@ export function buildBacktrackingLeaf(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  /** Per-failure backtrack depth. Defaults to the calibrated constant; exposed
+   *  so the descent's completion power can be probed/tuned without a spec-name
+   *  branch. */
+  maxBacktrack: number = BASE_BACKTRACK_DEPTH,
 ): { leaf: Leaf; baseCommitPath: number[] } | null {
   type FrameKind = "leaf" | "noncontact" | "contact" | "skip";
   type Frame = {
@@ -103,7 +118,7 @@ export function buildBacktrackingLeaf(
     return { node, kind: "contact", cands: getCandidatesSorted(node, gaps, ctx, seed), tried: 0 };
   };
 
-  const MAX_BT = CALIB.BACKTRACK_DEPTH;
+  const MAX_BT = maxBacktrack;
   // Global step cap — a hard termination guarantee against pathological
   // re-failure (committing an earlier candidate that re-triggers the same
   // downstream failure). Beyond it we stop backtracking and force a forward

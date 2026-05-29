@@ -311,6 +311,11 @@ residual/detection helpers) via `export`.
 
 The honest gaps. Append findings here as you learn; this is your lab notebook.
 
+> **Capability backlog:** the concrete, verified, sequenced improvement plan for the gaps
+> below lives in **`docs/optimizer/improvement_backlog.md`** — start there. It covers the
+> base-relative repair-discrepancy fix, repairable skips, candidate lanes, polish gating,
+> and diagnostics, in priority order, with the verification each needs.
+
 - **Genuinely-hard specs.** `dense_sprint` and `drums_pendulum` fail the contract even at
   large budgets — `dense_sprint`'s miss is a base-path *skip* the repair can't recover;
   `drums_pendulum` a stuck off-beat. They need new *search capability* (better candidate

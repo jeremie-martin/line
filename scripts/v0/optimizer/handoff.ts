@@ -97,6 +97,11 @@ const HANDOFF_BRANCHING = 3;
 const HANDOFF_PREVIEW_K = 3;
 const HANDOFF_PREVIEW_HORIZON = 2;
 const START_OPTION_LIMIT = 4;
+const START_SCORING_POOL = 12;
+const START_FIRST_K = 8;
+const START_FIRST_OPTIONS = 3;
+const START_NEXT_K = 8;
+const START_HEURISTIC_WEIGHT = 0.15;
 const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
 const DEEP_MISS_PENALTY = 0.25;
@@ -145,8 +150,6 @@ export function compileHandoff(
     // pre-worlding belongs in this search later, not as a hidden budget-consuming
     // compiler before it. A manual `start` is still honored by resolveStartState.
     const spec: Spec = { ...userSpec, preroll: undefined };
-    const startOptions = buildStartOptions(userSpec, spec);
-    const defaultStart = startOptions[0];
     const durationFrames = secToFrame(spec.duration);
     const allContactFrames = [...spec.contacts]
       .map((c) => secToFrame(c.t))
@@ -160,6 +163,8 @@ export function compileHandoff(
     }
 
     const ctx: SpecContext = { allContactFrames, durationFrames };
+    const startOptions = buildStartOptions(userSpec, spec, gaps, ctx, seed);
+    const defaultStart = startOptions[0];
     const root: HandoffNode = {
       search: makeRootNode(makeBaseEngine(defaultStart.state), gaps.length),
       startState: defaultStart.state,
@@ -517,7 +522,13 @@ function perGapRng(seed: number, gapIndex: number): () => number {
   return makeRng((Math.imul(seed | 0, 1000003) + gapIndex + 1) | 0);
 }
 
-function buildStartOptions(rawSpec: Spec, searchSpec: Spec): StartOption[] {
+function buildStartOptions(
+  rawSpec: Spec,
+  searchSpec: Spec,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+): StartOption[] {
   const defaultStart = resolveStartState(searchSpec);
   const defaultSpecStart: NonNullable<Spec["start"]> = {
     x: defaultStart.position.x,
@@ -533,7 +544,7 @@ function buildStartOptions(rawSpec: Spec, searchSpec: Spec): StartOption[] {
   const axes = firstSectionAxes(rawSpec);
   const starts = startCandidates(axes);
   const seen = new Set<string>();
-  const unique = [defaultSpecStart, ...starts]
+  const [first, ...rest] = [defaultSpecStart, ...starts]
     .filter((start) => {
       const key = startKey(start);
       if (seen.has(key)) return false;
@@ -541,22 +552,115 @@ function buildStartOptions(rawSpec: Spec, searchSpec: Spec): StartOption[] {
       return true;
     });
 
-  const [first, ...rest] = unique;
-  const ordered = [
+  const heuristicPool = [
     first,
     ...rest
       .sort((a, b) =>
         startHeuristicCost(a, axes) - startHeuristicCost(b, axes) ||
         startKey(a).localeCompare(startKey(b))
       )
-      .slice(0, Math.max(0, START_OPTION_LIMIT - 1)),
+      .slice(0, Math.max(0, START_SCORING_POOL - 1)),
   ];
 
-  return ordered.map((start, rank) => ({
+  if (!useStartFeasibilityScoring(axes, gaps)) {
+    return heuristicPool.slice(0, START_OPTION_LIMIT).map((start, rank) => ({
+      rank,
+      start,
+      state: resolveStartState({ ...searchSpec, start }),
+    }));
+  }
+
+  const ordered = heuristicPool
+    .map((start, originalRank) => ({
+      start,
+      originalRank,
+      score: startFeasibilityCost(start, searchSpec, axes, gaps, ctx, seed),
+    }))
+    .sort((a, b) =>
+      a.score - b.score ||
+      startHeuristicCost(a.start, axes) - startHeuristicCost(b.start, axes) ||
+      a.originalRank - b.originalRank ||
+      startKey(a.start).localeCompare(startKey(b.start))
+    )
+    .slice(0, START_OPTION_LIMIT);
+
+  return ordered.map(({ start }, rank) => ({
     rank,
     start,
     state: resolveStartState({ ...searchSpec, start }),
   }));
+}
+
+function useStartFeasibilityScoring(axes: SectionAxes, gaps: Gap[]): boolean {
+  const firstGapIndex = nextContactGapIndex(gaps, 0);
+  if (firstGapIndex < 0) return false;
+  const secondGapIndex = nextContactGapIndex(gaps, firstGapIndex + 1);
+  if (secondGapIndex < 0) return false;
+
+  const firstDelayFrames = gaps[firstGapIndex].endFrame;
+  const secondIntervalFrames = gaps[secondGapIndex].endFrame - gaps[firstGapIndex].endFrame;
+  const denseOpening = firstDelayFrames <= 24 && secondIntervalFrames <= 22;
+  const hardOpening =
+    (axes.speed ?? 0.45) >= 0.6 ||
+    (axes.air ?? 0.5) >= 0.6 ||
+    (axes.contact_style ?? 0.5) <= 0.35;
+  return denseOpening && hardOpening;
+}
+
+function startFeasibilityCost(
+  start: NonNullable<Spec["start"]>,
+  searchSpec: Spec,
+  axes: SectionAxes,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+): number {
+  const root = makeRootNode(makeBaseEngine(resolveStartState({ ...searchSpec, start })), gaps.length);
+  const firstGapIndex = nextContactGapIndex(gaps, root.gapIndex);
+  if (firstGapIndex < 0) return START_HEURISTIC_WEIGHT * startHeuristicCost(start, axes);
+  let prefix = root;
+  while (prefix.gapIndex < firstGapIndex) prefix = extendNode(prefix, null);
+
+  const firstCandidates = solveOneGap(
+    prefix.prefixEngine,
+    gaps[firstGapIndex],
+    perGapRng(seed, firstGapIndex),
+    START_FIRST_K,
+    ctx,
+    prefix.prefixNextLineId,
+  ).sort((a, b) => a.cost - b.cost);
+
+  if (firstCandidates.length === 0) {
+    return DEAD_END_PENALTY * 2 + START_HEURISTIC_WEIGHT * startHeuristicCost(start, axes);
+  }
+
+  let best = Infinity;
+  for (const candidate of firstCandidates.slice(0, START_FIRST_OPTIONS)) {
+    const child = extendNode(prefix, candidate);
+    const nextGapIndex = nextContactGapIndex(gaps, child.gapIndex);
+    if (nextGapIndex < 0) {
+      best = Math.min(best, candidate.cost);
+      continue;
+    }
+    let nextPrefix = child;
+    while (nextPrefix.gapIndex < nextGapIndex) nextPrefix = extendNode(nextPrefix, null);
+    const nextCandidates = solveOneGap(
+      nextPrefix.prefixEngine,
+      gaps[nextGapIndex],
+      perGapRng(seed, nextGapIndex),
+      START_NEXT_K,
+      ctx,
+      nextPrefix.prefixNextLineId,
+    );
+    const nextBest = pickLowestCost(nextCandidates);
+    const nextCost = nextBest === null ? 0 : nextBest.cost * PREVIEW_COST_WEIGHT;
+    const nextPenalty = nextCandidates.length === 0
+      ? DEAD_END_PENALTY
+      : SURVIVOR_SCARCITY_PENALTY / nextCandidates.length;
+    best = Math.min(best, candidate.cost + nextPenalty + nextCost);
+  }
+
+  return best + START_HEURISTIC_WEIGHT * startHeuristicCost(start, axes);
 }
 
 function startCandidates(firstAxes: SectionAxes): NonNullable<Spec["start"]>[] {

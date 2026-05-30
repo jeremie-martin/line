@@ -38,6 +38,12 @@ gap expansion, and capped at 4 options so they do not consume the low-budget run
 before the first track can complete. Manual `start` and `preroll=0` specs expose
 one root option.
 
+For dense, hard openings, the root alternatives are ordered with a small
+engine-in-loop first/second-contact feasibility probe. Easy openings keep the
+cheap heuristic order so the start probe cannot consume the tiny-spec budget.
+The gate is based on local timing and axes only: early first contact, short
+second interval, and opening speed/air/contact pressure.
+
 ## Budget contract
 
 The handoff path uses the same register comparator as LDS. Every scored prefix
@@ -75,7 +81,8 @@ Covered in that test:
 Targeted probes after removing the legacy optimized-preroll pre-pass, adding
 explicit root/start alternatives, demoting the two-contact rollout to a
 tiebreak, adding partial-prefix report semantics, and narrowing per-node
-branching to reduce suffix explosion:
+branching to reduce suffix explosion. Dense-opening start feasibility is gated,
+so it does not affect these control rows:
 
 | command | result |
 |---|---|
@@ -95,13 +102,15 @@ Current frontier probes at the 40k campaign budget:
 | command | result |
 |---|---|
 | `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 20/42 hits, 2 in-horizon missing + 20 future-window missing, horizon frame 423 |
-| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 4/25 hits, 1 in-horizon missing + 20 future-window missing, horizon frame 96 |
+| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 34/55 hits, 1 in-horizon skip plus later skips, horizon frame 788 |
 | `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, terminal 57/77 hits, 20 missing |
 
 The frontier rows are still failures, but the failure mode has moved from
 "budget-exempt floor prevents search" to budget-subject prefix progress with
 clear skip ownership. The next lever is candidate/backtracking policy around
 the skipped contact gaps, not tangency or arc placement.
+The `drums_crescendo` opening specifically moved from 4/25 partial hits to
+34/55 partial hits after gated root-start feasibility ordering.
 
 ## Deliberate differences from LDS
 

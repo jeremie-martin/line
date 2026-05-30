@@ -92,5 +92,11 @@ export function sampleOneCandidate(
     axisMeasureEnd, gap.targets, true,
   );
 
+  // Record the sled reference used to place this catch, so a later gap with a
+  // similar entry state can translate this arc and reuse it (catch-reuse on
+  // periodic specs). Sled-relative geometry → translating by the sled delta
+  // reproduces the same catch shape at the new entry.
+  if (fit !== null) fit.ref = { x: targetState.sledX, y: targetState.sledY };
+
   return fit;
 }

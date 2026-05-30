@@ -31,6 +31,7 @@ import {
   validateSpec,
 } from "../core/substrate.ts";
 import { CALIB, START_DEFAULTS, secToFrame, type Gap, type SectionAxes } from "../types.ts";
+import { axisLookaheadEndFrame, readTargetState, tryCandidate } from "../core/candidate.ts";
 import { pickLowestCost, solveOneGap } from "./solver.ts";
 import { getCandidatesSorted, extendNode, isLeafNode, makeRootNode, type SearchNode } from "./node.ts";
 import { polishLeafVariant } from "./polish.ts";
@@ -108,6 +109,8 @@ const HANDOFF_BRANCHING = 3;
  *  deep specs within the same budget. Must stay >= HANDOFF_BROAD_CANDIDATE_POOL. */
 const HANDOFF_N_CAND = 16;
 const HANDOFF_PREVIEW_K = 1;
+/** How many of the most-recent committed catches to translate+reuse per gap. */
+const HANDOFF_REUSE_K = 2;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 4;
 const START_SCORING_POOL = 12;
@@ -455,9 +458,21 @@ function rankedOptions(
   telemetry: HandoffTelemetry,
 ): RankedOption[] {
   const sorted = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_N_CAND);
-  const pool = sorted.slice(0, handoffCandidatePool(ctx));
+  const poolSize = handoffCandidatePool(ctx);
+  const pool = sorted.slice(0, poolSize);
   const scored = pool.map((candidate, rank) =>
     scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry)
+  );
+  // Catch-reuse: translate the most recent committed catches to this gap's entry
+  // state and offer them as extra candidates. On a periodic rhythm the rider
+  // reaches a near-steady state, so a catch that landed a few contacts ago lands
+  // this one too — found in ~1 sim instead of re-rolling 16 random arcs and
+  // backtracking. This is what lets a budget-starved periodic spec (solo_run)
+  // complete within budget. Deterministic (pure function of the prefix); only
+  // ADDS candidates, so monotonicity holds.
+  const reuse = reuseCatchCandidates(node, gaps, ctx);
+  reuse.forEach((candidate, j) =>
+    scored.push(scoreCandidateForHandoff(node, candidate, poolSize + j, gaps, ctx, seed, telemetry))
   );
   scored.sort((a, b) =>
     a.score - b.score ||
@@ -465,6 +480,44 @@ function rankedOptions(
     a.rank - b.rank
   );
   return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+/** Translate the most-recent committed catches (which carry a sled `ref`) to
+ *  THIS gap's entry state and return the ones that still land+survive. The arc
+ *  geometry is sled-relative, so translating a prior catch's arc by the sled
+ *  delta reproduces the same catch shape at the new entry — on a periodic rhythm
+ *  (steady-state ride) the same catch lands contact after contact. Each reuse is
+ *  validated by one `tryCandidate` (one sim). Deterministic: a pure function of
+ *  the node's committed prefix + engine state. */
+function reuseCatchCandidates(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+): Candidate[] {
+  const gap = gaps[node.gapIndex];
+  if (!gap.endsWithContact) return [];
+  const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
+  const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const out: Candidate[] = [];
+  let tried = 0;
+  for (let i = node.prefixFits.length - 1; i >= 0 && tried < HANDOFF_REUSE_K; i--) {
+    const f = node.prefixFits[i];
+    if (f === null || f.ref === undefined) continue;
+    tried++;
+    const dx = ts.sledX - f.ref.x;
+    const dy = ts.sledY - f.ref.y;
+    const arc = { ...f.arc, anchor: { x: f.arc.anchor.x + dx, y: f.arc.anchor.y + dy } };
+    const cand = tryCandidate(
+      node.prefixEngine, gap, arc, node.prefixNextLineId, ctx.allContactFrames,
+      axisMeasureEnd, gap.targets, true,
+    );
+    if (cand !== null) {
+      cand.ref = { x: ts.sledX, y: ts.sledY };
+      out.push(cand);
+    }
+  }
+  return out;
 }
 
 function handoffCandidatePool(ctx: SpecContext): number {

@@ -32,6 +32,11 @@ export type GapFit = {
   achieved: SectionAxes;
   /** Aggregate axis cost (lower = better fit). */
   cost: number;
+  /** Sled reference position (lowest sled point) at the gap's landing frame
+   *  when this catch was placed. Optional; set by `sampleOneCandidate`. Used to
+   *  translate this catch's arc to a different gap's entry state for catch-reuse
+   *  on periodic specs (the arc geometry is sled-relative). */
+  ref?: { x: number; y: number };
 };
 
 type WindowDetection = Detection & { frameOffset?: number };

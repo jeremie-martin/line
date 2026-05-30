@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>line compiler explainer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="title-block">
+      <p class="eyebrow">line / compiler architecture</p>
+      <h1>Legacy greedy and standalone LDS compiler</h1>
+      <p class="lede">
+        Both compilers turn a rhythmic Spec into Line Rider geometry by placing
+        arcs, simulating with lr-core, detecting contact events, and scoring the
+        resulting DriftReport. The difference is how they search cascades.
+      </p>
+    </div>
+    <div class="mode-control" role="tablist" aria-label="Compiler">
+      <button class="mode-button is-active" type="button" data-compiler="legacy" role="tab" aria-selected="true">
+        Legacy greedy
+      </button>
+      <button class="mode-button" type="button" data-compiler="lds" role="tab" aria-selected="false">
+        Standalone LDS
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="system-band" aria-labelledby="system-title">
+      <div class="summary-panel">
+        <p class="section-label">Selected compiler</p>
+        <h2 id="system-title">Compiler</h2>
+        <p id="compiler-status" class="status-line"></p>
+        <dl id="summary-grid" class="summary-grid"></dl>
+      </div>
+
+      <div class="pipeline-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">Pipeline</p>
+            <h2 id="pipeline-title">Flow</h2>
+          </div>
+          <div class="stage-counter" id="stage-counter"></div>
+        </div>
+        <svg id="pipeline-svg" class="pipeline-svg" viewBox="0 0 1000 360" role="img" aria-labelledby="pipeline-title"></svg>
+      </div>
+
+      <aside class="detail-panel" id="stage-detail" aria-live="polite"></aside>
+    </section>
+
+    <section class="workbench" aria-labelledby="workbench-title">
+      <div class="search-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">Search lab</p>
+            <h2 id="workbench-title">Cascade behavior</h2>
+          </div>
+          <div class="lab-readout" id="lab-readout"></div>
+        </div>
+        <div id="lab-controls" class="lab-controls"></div>
+        <div id="search-visual" class="search-visual"></div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">Evidence</p>
+            <h2 id="chart-title">Budget and quality</h2>
+          </div>
+          <div class="metric-pill" id="chart-pill"></div>
+        </div>
+        <svg id="quality-chart" class="quality-chart" viewBox="0 0 720 330" role="img" aria-labelledby="chart-title"></svg>
+        <p id="chart-note" class="chart-note"></p>
+      </div>
+    </section>
+
+    <section class="comparison-band" aria-labelledby="comparison-title">
+      <div class="panel-heading">
+        <div>
+          <p class="section-label">Side by side</p>
+          <h2 id="comparison-title">Architectural differences</h2>
+        </div>
+      </div>
+      <div class="comparison-table" id="comparison-table"></div>
+    </section>
+
+    <section class="evidence-band" aria-labelledby="evidence-title">
+      <div>
+        <p class="section-label">Naming note</p>
+        <h2 id="evidence-title">What counts as legacy here</h2>
+        <p>
+          The repository also contains older exploratory non-v0 generators:
+          Move, Route, Monte Carlo, and beam-search experiments under
+          <code>scripts/lib</code>. They are useful history, but the current
+          legacy/new compiler comparison is the v0 pair:
+          <code>scripts/v0/compile.ts</code> and
+          <code>scripts/v0/optimizer/api.ts</code>.
+        </p>
+      </div>
+      <div id="evidence-list" class="evidence-list"></div>
+    </section>
+  </main>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

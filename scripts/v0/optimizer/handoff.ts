@@ -179,11 +179,12 @@ export function compileHandoff(
       ranks: [],
       skippedContacts: 0,
     };
-    const stack: HandoffNode[] = [root];
+    const passStack: HandoffNode[] = [root];
+    const fallbackStack: HandoffNode[] = [];
     const register = new BestSoFarRegister();
     const telemetry: HandoffTelemetry = {
       nodesExpanded: 0,
-      frontierMaxSize: 1,
+      frontierMaxSize: frontierSize(passStack, fallbackStack),
       partialEvaluations: 0,
       fullEvaluations: 0,
       tailCompletionAttempts: 0,
@@ -218,8 +219,9 @@ export function compileHandoff(
     };
 
     try {
-      while (stack.length > 0 && telemetry.nodesExpanded < maxNodes) {
-        const node = stack.pop()!;
+      while (frontierSize(passStack, fallbackStack) > 0 && telemetry.nodesExpanded < maxNodes) {
+        const frontier = activeFrontier(passStack, fallbackStack);
+        const node = frontier.pop()!;
         const key = consider(node);
         opts.onNode?.(node, key);
         if (register.consideredCount === 1) setSimFrameLimit(hardBudgetLimit);
@@ -236,8 +238,11 @@ export function compileHandoff(
         }
 
         if (node.deferExpansion) {
-          stack.unshift({ ...node, deferExpansion: false });
-          telemetry.frontierMaxSize = Math.max(telemetry.frontierMaxSize, stack.length);
+          enqueueDeferred({ ...node, deferExpansion: false }, passStack, fallbackStack);
+          telemetry.frontierMaxSize = Math.max(
+            telemetry.frontierMaxSize,
+            frontierSize(passStack, fallbackStack),
+          );
           continue;
         }
 
@@ -289,8 +294,13 @@ export function compileHandoff(
 
         const children = expandNode(node, gaps, ctx, seed, startOptions, telemetry);
         telemetry.nodesExpanded++;
-        for (let i = children.length - 1; i >= 0; i--) stack.push(children[i]);
-        telemetry.frontierMaxSize = Math.max(telemetry.frontierMaxSize, stack.length);
+        for (let i = children.length - 1; i >= 0; i--) {
+          enqueueChild(children[i], passStack, fallbackStack);
+        }
+        telemetry.frontierMaxSize = Math.max(
+          telemetry.frontierMaxSize,
+          frontierSize(passStack, fallbackStack),
+        );
       }
     } catch (error) {
       if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;
@@ -340,6 +350,35 @@ export function compileHandoff(
   } finally {
     setSimFrameLimit(null);
   }
+}
+
+function activeFrontier(
+  passStack: HandoffNode[],
+  fallbackStack: HandoffNode[],
+): HandoffNode[] {
+  return passStack.length > 0 ? passStack : fallbackStack;
+}
+
+function enqueueChild(
+  node: HandoffNode,
+  passStack: HandoffNode[],
+  fallbackStack: HandoffNode[],
+): void {
+  if (node.skippedContacts === 0) passStack.push(node);
+  else fallbackStack.push(node);
+}
+
+function enqueueDeferred(
+  node: HandoffNode,
+  passStack: HandoffNode[],
+  fallbackStack: HandoffNode[],
+): void {
+  if (node.skippedContacts === 0) passStack.unshift(node);
+  else fallbackStack.unshift(node);
+}
+
+function frontierSize(passStack: HandoffNode[], fallbackStack: HandoffNode[]): number {
+  return passStack.length + fallbackStack.length;
 }
 
 function expandNode(

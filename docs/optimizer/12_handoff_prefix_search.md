@@ -42,10 +42,13 @@ sequence and is bounded by the same hard in-operation guard; it exists to avoid
 throwing away a 53/55 prefix solely because the soft budget trips before two
 ordinary expansions can run.
 
-If a prefix reaches a contact with no viable candidates, the skipped-contact
-continuation is scored immediately as a partial prefix but its expansion is
-deferred behind the existing frontier. This keeps a miss from becoming the
-default spine before sibling handoffs have had a chance to avoid it.
+The frontier is split into pass-capable nodes and fallback nodes. A node remains
+pass-capable while it has skipped no contacts; once a contact is skipped, that
+branch is still deterministic and available as a fallback partial, but it cannot
+produce a contract-passing track. The search therefore drains pass-capable nodes
+before scoring or expanding skipped-contact fallback nodes. This is a
+contract-level rule rather than a spec-shape rule: a skipped authored contact is
+a hard failure on every spec.
 
 Initial conditions are now part of the same search. If a spec has `preroll > 0`
 and no manual `start`, `compileHandoff` generates a small deterministic set of
@@ -94,6 +97,8 @@ Covered in that test:
 - monotonic comparator key across budgets;
 - freeze above fixed `maxNodes` full-search cost;
 - honest partial/failing output at a budget as small as 1 simulated frame.
+- deferred start/fallback nodes stop at the soft budget before they are
+  requeued for expansion.
 
 ## Initial evidence
 
@@ -123,7 +128,7 @@ Current frontier probes at the 40k campaign budget:
 |---|---|
 | `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | PASS, score 384.11, 55/55 hits, 40.5k sim frames |
 | `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | PASS, score 337.43, 55/55 hits, 43.1k sim frames, 1/1 tail completion |
-| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, partial 52/72 hits, score ~0, 40.1k sim frames |
+| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, partial 52/72 hits, score ~0, 40.1k sim frames, 118 scored prefixes |
 
 The same frontier at 60k:
 
@@ -162,6 +167,9 @@ tangency or arc placement.
   contract.
 - The long dense `solo_run` row still misses contacts at 40k; it is too far from
   the tail for near-tail completion to help.
+- Pass-capable/fallback frontier ordering cuts wasted skipped-contact prefix
+  scoring on `solo_run@40k` and preserves the 60k pass, but candidate generation
+  and preview work still dominate before the 77-contact pass is reached.
 - Rejected long-dense probes: lowering the preview sample count, sparse partial
   scoring cadence, broad suffix completion from the final third, and reducing the
   long-dense candidate solve list all either regressed `solo_run@40k` reachability

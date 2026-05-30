@@ -230,6 +230,11 @@ export function compileHandoff(
           opts.onNode?.(tailNode, tailKey);
         }
 
+        if (getSimFrames() >= budgetUnits) {
+          budgetExhausted = true;
+          break;
+        }
+
         if (node.deferExpansion) {
           stack.unshift({ ...node, deferExpansion: false });
           telemetry.frontierMaxSize = Math.max(telemetry.frontierMaxSize, stack.length);
@@ -280,10 +285,6 @@ export function compileHandoff(
           }
         }
 
-        if (getSimFrames() >= budgetUnits) {
-          budgetExhausted = true;
-          break;
-        }
         if (isTerminalNode(node.search, gaps)) continue;
 
         const children = expandNode(node, gaps, ctx, seed, startOptions, telemetry);

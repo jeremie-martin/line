@@ -66,6 +66,27 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(result.stats.handoff_partial_evaluations).toBeGreaterThan(0);
   }, 120_000);
 
+  test("does not requeue deferred nodes after soft budget exhaustion", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const seen: { gapIndex: number; deferExpansion: boolean }[] = [];
+    const result = compileHandoff(spec, 0, {
+      budget: { kind: "work", units: 100 },
+      maxNodes: 12,
+      polish: false,
+      onNode: (node) => {
+        seen.push({
+          gapIndex: node.search.gapIndex,
+          deferExpansion: node.deferExpansion,
+        });
+      },
+    });
+
+    expect(result.stats.budget_exhausted).toBe(true);
+    expect(seen.length).toBeGreaterThan(1);
+    expect(seen.slice(1).every((node) => node.deferExpansion)).toBe(true);
+    expect(seen.every((node) => node.gapIndex === 0)).toBe(true);
+  }, 60_000);
+
   test("polish path uses the selected root start state", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const result = compileHandoff(spec, 0, {

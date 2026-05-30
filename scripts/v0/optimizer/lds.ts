@@ -42,9 +42,11 @@
  */
 
 import {
+  costOrderer,
   extendNode,
   getCandidatesSorted,
   isLeafNode,
+  type CandidateOrderer,
   type SearchNode,
 } from "./node.ts";
 import { getSimFrames } from "./sim_frames.ts";
@@ -113,6 +115,7 @@ function makeCandGetter(
   ctx: SpecContext,
   seed: number,
   telemetry?: SearchTelemetry,
+  orderer: CandidateOrderer = costOrderer,
 ): (node: SearchNode, key: string) => Candidate[] {
   return (node, key) => {
     const hit = candCache.get(key);
@@ -121,7 +124,7 @@ function makeCandGetter(
       return hit;
     }
     if (telemetry) telemetry.cacheMisses++;
-    const sorted = getCandidatesSorted(node, gaps, ctx, seed);
+    const sorted = getCandidatesSorted(node, gaps, ctx, seed, orderer);
     candCache.set(key, sorted);
     return sorted;
   };
@@ -185,6 +188,11 @@ export function buildBacktrackingLeaf(
   budgetUnits?: number,
   /** Optional non-scoring telemetry (cache hits/misses, backtrack steps). */
   telemetry?: SearchTelemetry,
+  /** Candidate orderer (default = pure cost-sort). The reach-guided compiler
+   *  passes a forward-lookahead orderer so the SAME descent commits
+   *  feasibility-aware rank-0 choices. With the default this is byte-identical to
+   *  the historical cost-only descent. */
+  orderer: CandidateOrderer = costOrderer,
 ): { leaf: Leaf; baseCommitPath: number[] } | null {
   type FrameKind = "leaf" | "noncontact" | "contact" | "skip";
   type Frame = {
@@ -199,7 +207,7 @@ export function buildBacktrackingLeaf(
     committedKey: string;
   };
 
-  const getCached = makeCandGetter(candCache, gaps, ctx, seed, telemetry);
+  const getCached = makeCandGetter(candCache, gaps, ctx, seed, telemetry, orderer);
 
   const makeFrame = (node: SearchNode, committedKey: string): Frame => {
     if (isLeafNode(node, gaps.length)) return { node, kind: "leaf", cands: [], tried: 0, committedKey };

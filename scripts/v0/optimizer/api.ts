@@ -250,8 +250,10 @@ export function compileLDS(
 /** Run detect + buildDriftReport ONCE for a leaf and derive both the drift
  *  report (for the CompileOutput) and the comparator key (for the register).
  *  Sharing the single extraction avoids re-running the dominant per-leaf
- *  detect/report work twice (review #7). Pure function of leaf + spec geometry. */
-function evaluateLeaf(
+ *  detect/report work twice (review #7). Pure function of leaf + spec geometry.
+ *  Exported so the reach-guided compiler (`scripts/v0/reach/`) scores its leaves
+ *  through the identical detect→report→key path (one source of truth). */
+export function evaluateLeaf(
   leaf: Leaf,
   spec: Spec,
   // deno-lint-ignore no-explicit-any
@@ -271,8 +273,9 @@ function evaluateLeaf(
 }
 
 /** Build a CompileOutput from a leaf using its already-computed drift report
- *  (run once in `evaluateLeaf` and shared — no second extraction). */
-function buildLeafOutput(
+ *  (run once in `evaluateLeaf` and shared — no second extraction). Exported for
+ *  reuse by the reach-guided compiler (`scripts/v0/reach/`). */
+export function buildLeafOutput(
   leaf: Leaf,
   report: DriftReport,
   durationFrames: number,

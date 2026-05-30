@@ -33,6 +33,31 @@ import type { Gap } from "./types.ts";
 /** Default per-node candidate count. See file header. */
 export const N_CAND = 32;
 
+/** Orders a gap's freshly-sampled candidate list (sample order) into the
+ *  ranked list whose index 0 is "rank 0 / greedy". Taking the orderer as a
+ *  parameter lets the LDS floor and the reach-guided descent (`scripts/v0/reach/`)
+ *  share ONE descent implementation: LDS passes the default cost-sort; reach
+ *  passes a forward-lookahead orderer that can re-rank a doomed cheapest
+ *  hand-off by simulating the NEXT gap from each candidate's exit engine.
+ *
+ *  The orderer receives the node (its `prefixEngine` is the exit state to
+ *  fork), the gaps, ctx and seed (so a lookahead probe uses the canonical
+ *  next-gap RNG → deterministic). It MUST be a pure function of
+ *  (spec, seed) + node state — never of the budget — to preserve the contract.
+ *  Any simulation it does charges sim-frames automatically (cheat-resistance). */
+export type CandidateOrderer = (
+  candidates: Candidate[],
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+) => Candidate[];
+
+/** The default orderer: stable sort by pure axis `cost` ascending —
+ *  byte-identical to the historical `sort((a, b) => a.cost - b.cost)`. */
+export const costOrderer: CandidateOrderer = (candidates) =>
+  [...candidates].sort((a, b) => a.cost - b.cost);
+
 /** A node in the LDS search tree. `prefixFits.length === gapIndex`.
  *  A leaf has `gapIndex === gaps.length`. */
 export type SearchNode = {
@@ -80,6 +105,7 @@ export function getCandidatesSorted(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  orderer: CandidateOrderer = costOrderer,
 ): Candidate[] {
   if (node._candidatesCache !== null) return node._candidatesCache;
   const gap = gaps[node.gapIndex];
@@ -96,8 +122,10 @@ export function getCandidatesSorted(
   const sampleOrder = solveOneGap(
     node.prefixEngine, gap, perGapRng, N_CAND, ctx, node.prefixNextLineId,
   );
-  // Sort by cost ascending. Stable sort: ties keep sample-order.
-  const sorted = [...sampleOrder].sort((a, b) => a.cost - b.cost);
+  // Order the sampled candidates (default = stable cost-sort, byte-identical to
+  // the historical `(a, b) => a.cost - b.cost`). The reach orderer may re-rank a
+  // doomed cheapest hand-off via next-gap lookahead.
+  const sorted = orderer(sampleOrder, node, gaps, ctx, seed);
   node._candidatesCache = sorted;
   return sorted;
 }
@@ -148,11 +176,12 @@ export function rank0Child(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  orderer: CandidateOrderer = costOrderer,
 ): SearchNode | null {
   if (!gaps[node.gapIndex].endsWithContact) {
     return extendNode(node, null);
   }
-  const sorted = getCandidatesSorted(node, gaps, ctx, seed);
+  const sorted = getCandidatesSorted(node, gaps, ctx, seed, orderer);
   const best = pickLowestCost(sorted);
   if (best === null) return null;
   return extendNode(node, best);

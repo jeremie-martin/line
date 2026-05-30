@@ -30,6 +30,7 @@ const WORKER_MEM_CAP_MB = 3072;
 const DEFAULT_JOBS = Math.max(1, Math.min(6, availableParallelism() - 1));
 
 import { compileLDS } from "./optimizer/api.ts";
+import { compileHandoff } from "./optimizer/handoff.ts";
 import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
   EVALUATOR_FINGERPRINT,
@@ -59,10 +60,12 @@ import {
   type V0ContractScore,
 } from "./score.ts";
 
+type CompilerName = "lds" | "handoff";
+
 // `budgetUnits` overrides the per-spec default (golden_suite.budgetFor) when set
 // — used by --fast / --budget for quick, NON-CANONICAL iteration. null = the
 // canonical budget that defines goal_score.
-type WorkerInput = SuiteCase & { seed: number; budgetUnits: number | null };
+type WorkerInput = SuiteCase & { seed: number; budgetUnits: number | null; compiler: CompilerName };
 type WorkerOk = {
   kind: "ok";
   specName: string;
@@ -142,9 +145,10 @@ async function runWithTimeout(
   seed: number,
   timeoutMs: number,
   budgetUnits: number | null,
+  compiler: CompilerName,
 ): Promise<RunResult> {
   const workerPath = fileURLToPath(import.meta.url);
-  const input: WorkerInput = { ...testCase, seed, budgetUnits };
+  const input: WorkerInput = { ...testCase, seed, budgetUnits, compiler };
   return await new Promise<RunResult>((resolvePromise) => {
     // Per-worker heap cap: a runaway compile (e.g. a hard spec whose engines
     // cache huge trajectories) hits this and exits, surfacing as a graceful
@@ -218,7 +222,8 @@ async function runWorker(): Promise<void> {
     const budget = input.budgetUnits !== null
       ? { kind: "work" as const, units: input.budgetUnits }
       : budgetFor(spec);
-    const { report, stats } = compileLDS(spec, input.seed, { budget });
+    const compile = input.compiler === "handoff" ? compileHandoff : compileLDS;
+    const { report, stats } = compile(spec, input.seed, { budget });
     parentPort.postMessage({
       kind: "ok",
       specName: input.specName,
@@ -470,6 +475,7 @@ async function runRows(
   label: string,
   budgetUnits: number | null,
   jobs: number,
+  compiler: CompilerName,
 ): Promise<ScoredSpec[]> {
   const contexts = new Map<string, ScoreContext>();
   for (const testCase of cases) {
@@ -488,7 +494,7 @@ async function runRows(
   if (!jsonOnly) console.log(`${label}: ${tasks.length} run${tasks.length === 1 ? "" : "s"}, ${Math.min(jobs, tasks.length)} parallel`);
   const scored = await runPool(tasks, jobs, async ({ seed, testCase }) => {
     const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
-    const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms, budgetUnits);
+    const result = await runWithTimeout(testCase, seed, ctx.worker_timeout_ms, budgetUnits, compiler);
     const row = scoreResult(result, seed, ctx);
     if (!jsonOnly) {
       done++;
@@ -566,6 +572,11 @@ async function runMain(): Promise<void> {
     throw new Error(`--seed must be a number, got ${rawSeed}`);
   }
   const fast = has("fast");
+  const rawCompiler = arg("compiler");
+  if (rawCompiler !== null && rawCompiler !== "lds" && rawCompiler !== "handoff") {
+    throw new Error(`--compiler must be "lds" or "handoff", got ${rawCompiler}`);
+  }
+  const compiler: CompilerName = rawCompiler ?? "lds";
   // Worker parallelism (--jobs=N). Runs are isolated workers, so parallelism is
   // safe and does not affect scores (each compile is independent + deterministic).
   const rawJobs = arg("jobs");
@@ -600,7 +611,7 @@ async function runMain(): Promise<void> {
   // (--fast / --budget / --specs / --seed) is indicative signal for iterating,
   // never the metric of record. The harness labels it so a fast probe is never
   // mistaken for the goal.
-  const canonical = budgetUnits === null && filterSet === null && debugSeed === null;
+  const canonical = compiler === "lds" && budgetUnits === null && filterSet === null && debugSeed === null;
 
   if (!jsonOnly) {
     const fp = evaluatorFingerprint();
@@ -611,18 +622,19 @@ async function runMain(): Promise<void> {
     if (!canonical) {
       console.log(
         `⚠ NON-CANONICAL run (indicative only, NOT goal_score): ` +
+          `${compiler !== "lds" ? `compiler=${compiler} ` : ""}` +
           `${fast ? "fast " : ""}${budgetUnits !== null ? `budget=${budgetUnits} ` : ""}` +
           `${filterSet ? `specs=${[...filterSet].join(",")} ` : ""}${debugSeed !== null ? `seed=${debugSeed}` : ""}`.trim(),
       );
     }
     console.log(
       `v0 golden benchmark · ${headline.length} spec${headline.length === 1 ? "" : "s"} × ${seeds.length} seed${seeds.length === 1 ? "" : "s"} · jobs=${jobs} · ` +
-        `budget=${budgetUnits ?? "default"} physics-frames (untimed score) · seeds=${seeds.join(",")}`,
+        `compiler=${compiler} · budget=${budgetUnits ?? "default"} physics-frames (untimed score) · seeds=${seeds.join(",")}`,
     );
     console.log("");
   }
 
-  const scored = await runRows(headline, seeds, jsonOnly, details, "headline", budgetUnits, jobs);
+  const scored = await runRows(headline, seeds, jsonOnly, details, "headline", budgetUnits, jobs, compiler);
   const specScores = groupScores(scored, (row) => row.name);
   const goal_score = suiteScore(scored, (row) => row.name);
   const passed = scored.filter((row) => row.status === "pass").length;
@@ -648,7 +660,7 @@ async function runMain(): Promise<void> {
       console.log("report-only variants");
       console.log("");
     }
-    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant", budgetUnits, jobs);
+    variantRows = await runRows(variants, seeds, jsonOnly, details, "variant", budgetUnits, jobs, compiler);
     variantScores = groupScores(variantRows, (row) => caseLabel(row));
     variantReportScore = suiteScore(variantRows, (row) => caseLabel(row));
   }
@@ -656,6 +668,7 @@ async function runMain(): Promise<void> {
   if (jsonOnly) {
     process.stdout.write(JSON.stringify({
       canonical,
+      compiler,
       evaluator_fingerprint: evaluatorFingerprint(),
       goal_score: round(goal_score),
       contract_pass_rate: round(contract_pass_rate, 4),

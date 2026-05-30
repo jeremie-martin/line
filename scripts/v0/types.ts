@@ -167,6 +167,27 @@ export type CompileStats = {
    *  High ⇒ a thrashing base floor (e.g. drums_crescendo). */
   base_backtracks?: number;
 
+  /** Partial-prefix search diagnostics (compileHandoff). A node is one concrete
+   *  prefix state at a gap boundary; unlike LDS leaves, most nodes are not whole
+   *  tracks yet. */
+  search_nodes_expanded?: number;
+  frontier_max_size?: number;
+  /** Deterministic root/start-state alternatives available to compileHandoff,
+   *  and the selected rank for the returned best prefix. */
+  handoff_start_options?: number;
+  handoff_start_rank?: number;
+  handoff_previews?: number;
+  /** Future contacts successfully rolled forward inside handoff preview
+   *  rollouts. Higher means candidate ranking is using multi-gap feasibility,
+   *  not only one-step survival. */
+  handoff_preview_contacts?: number;
+  handoff_preview_survivors?: number;
+  /** Contact gaps skipped in the returned handoff best prefix. */
+  handoff_skips?: number;
+  /** Skip branches generated during handoff search because a contact gap had no
+   *  viable candidate at that prefix. */
+  handoff_skip_branches?: number;
+
   /** Impact-anchored arc placement counters (only present when
    *  LR_ARC_PLACEMENT=impact_anchor). Non-scoring diagnostics. */
   arc_placement?: {

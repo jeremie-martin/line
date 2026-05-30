@@ -42,6 +42,15 @@ per-step writeups in `docs/optimizer/`.
                      no legacy floor)
 ```
 
+`handoff.ts` is a separate experimental compiler path. It does not enumerate
+whole-track LDS leaves: nodes are partial prefixes at gap boundaries, expanded
+one gap at a time with a deterministic DFS stack. Candidate order is fixed by a
+first future-contact feasibility preview plus a small multi-contact rollout
+tiebreak. The same sim-frame budget and best-so-far register contract apply:
+budget only truncates the deterministic node sequence. Run it through the
+benchmark with `npm run golden -- --compiler=handoff ...`; it is not the default
+or canonical goal-score path yet. See `docs/optimizer/12_handoff_prefix_search.md`.
+
 `greedy.ts` (`compileGreedy_v2`) is a NAIVE rank-0 chainer kept only as a
 tests-only reference (the d=0-vs-greedy contrast). The shipping d=0 walk is
 `buildBacktrackingLeaf` in `lds.ts`.

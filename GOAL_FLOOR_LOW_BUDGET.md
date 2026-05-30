@@ -96,6 +96,8 @@ For every floor experiment, collect these fields per `(spec, seed)`:
 - `status`: `ok`, `physics_limit`, or `error`;
 - `floor_sim_frames`;
 - wall-clock milliseconds;
+- whether the floor reached end-of-spec;
+- processed gaps and processed contacts for progressive floors;
 - contact count, committed contact fits, skipped contact gaps;
 - first skipped contact gap;
 - floor backtracks;
@@ -126,6 +128,9 @@ npx tsx scripts/v0/optimizer/floor_probe.ts --specs=solo_run --seeds=1 --budget=
 
 npx tsx scripts/v0/optimizer/floor_probe.ts --specs=solo_run --seeds=1 --guard=none --json
   # Intrinsic completion-floor cost with no hard guard.
+
+npx tsx scripts/v0/optimizer/floor_probe.ts --specs=solo_run --seed=1 --budget=40000 --contract=both --json
+  # Compare the current completion floor with a progressive rank-0 prefix floor.
 ```
 
 The probe intentionally measures the floor directly rather than going through
@@ -154,6 +159,18 @@ From `docs/optimizer/low_budget_findings.md`:
 - Cheaper bisection and cheap-fail bailouts did not preserve completion.
 - Radius widening improved some rows but regressed the suite.
 - Lazy first-viable completion was chaotic and often increased floor cost.
+- Grain-only residual target ranking was rejected as a first completion-floor
+  slice: on `solo_run@seed=1`, the uncapped floor worsened from 53,032 to
+  57,946 sim frames, backtracks rose from 74 to 91, and the 40k hard-guard run
+  still failed.
+- The first progressive probe is intentionally naive rank-0, and its numbers are
+  diagnostic rather than acceptable output: `tiny_dance@seed=0` finishes in
+  16,179 frames but skips 1/4 contacts, while the completion floor passes in
+  16,393 frames; `solo_run@seed=1` finishes in 26,985 frames with 50/77 contacts,
+  while the completion floor hits the 48,000-frame hard guard before returning a
+  row. This proves progressive floors can make low budgets meaningful, but the
+  policy must become contact-preserving before it can replace the completion
+  floor.
 
 The repeated pattern is that cost-best-of-32 is stabilizing, but the resulting
 whole-track floor is too expensive to be the mandatory prelude for low budgets.

@@ -26,7 +26,13 @@ import {
   buildBacktrackingLeaf,
   type SearchTelemetry,
 } from "./lds.ts";
-import { makeRootNode } from "./node.ts";
+import {
+  extendNode,
+  getCandidatesSorted,
+  isLeafNode,
+  makeRootNode,
+  type SearchNode,
+} from "./node.ts";
 import {
   PhysicsFrameLimitExceeded,
   getSimFrames,
@@ -36,15 +42,18 @@ import {
 import { resetArcPlacementStats, snapshotArcPlacementStats } from "../arc_placement.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { GapFit } from "../core/substrate.ts";
+import type { DriftReport, Gap, Spec } from "./types.ts";
 
 type GuardMode = "hard" | "none";
-type FloorContract = "completion";
+type FloorContract = "completion" | "progressive";
+type ContractArg = FloorContract | "both";
 
 type Args = {
   specs: GoldenSpecName[];
   seeds: number[];
   budgetUnits: number | null;
   guard: GuardMode;
+  contract: ContractArg;
   json: boolean;
 };
 
@@ -61,7 +70,10 @@ type FloorProbeRow = {
   wall_ms: number;
   floor_sim_frames: number;
   budget_multiple: number | null;
+  floor_completed: boolean;
+  processed_gaps: number;
   contact_gaps: number;
+  processed_contacts: number;
   committed_contacts: number;
   skipped_contacts: number;
   first_skipped_gap: number | null;
@@ -80,12 +92,14 @@ type FloorProbeRow = {
 };
 
 const HARD_LIMIT_MULTIPLIER = 1.2;
+const PARTIAL_FUTURE_CONTACT_WINDOW = 3;
 
 function parseArgs(argv: string[]): Args {
   let specs: GoldenSpecName[] | null = null;
   let seeds: number[] | null = null;
   let budgetUnits: number | null = null;
   let guard: GuardMode = "hard";
+  let contract: ContractArg = "completion";
   let json = false;
 
   for (const raw of argv) {
@@ -111,6 +125,11 @@ function parseArgs(argv: string[]): Args {
         throw new Error(`--guard must be "hard" or "none", got ${value}`);
       }
       guard = value;
+    } else if (name === "--contract") {
+      if (value !== "completion" && value !== "progressive" && value !== "both") {
+        throw new Error(`--contract must be completion, progressive, or both; got ${value}`);
+      }
+      contract = value;
     } else {
       throw new Error(`unknown argument: ${raw}`);
     }
@@ -121,6 +140,7 @@ function parseArgs(argv: string[]): Args {
     seeds: seeds ?? [...GOLDEN_SEEDS],
     budgetUnits,
     guard,
+    contract,
     json,
   };
 }
@@ -149,6 +169,7 @@ async function probeRow(
   specName: GoldenSpecName,
   seed: number,
   args: Args,
+  contract: FloorContract,
 ): Promise<FloorProbeRow> {
   resetSimFrames();
   resetArcPlacementStats();
@@ -183,6 +204,94 @@ async function probeRow(
 
     const ctx: SpecContext = { allContactFrames, durationFrames };
     const root = makeRootNode(makeBaseEngine(startState), gaps.length);
+    if (contract === "progressive") {
+      const floor = buildProgressiveFloor(root, gaps, ctx, seed, args.budgetUnits, telemetry);
+      if (floor.status === "physics_limit") {
+        const skippedContacts = floor.commitPath.filter((choice) => choice === SKIP).length;
+        const firstSkippedContact = floor.commitPath.findIndex((choice) => choice === SKIP);
+        return {
+          spec: specName,
+          variant: "base",
+          seed,
+          floor_contract: "progressive",
+          guard: args.guard,
+          budget_units: args.budgetUnits,
+          hard_limit_units: hardLimit,
+          status: floor.status,
+          error: floor.error,
+          wall_ms: Math.round(performance.now() - started),
+          floor_sim_frames: getSimFrames(),
+          budget_multiple: args.budgetUnits === null ? null : getSimFrames() / args.budgetUnits,
+          floor_completed: false,
+          processed_gaps: floor.processedGaps,
+          contact_gaps: contactGapCount,
+          processed_contacts: floor.commitPath.length,
+          committed_contacts: floor.node.prefixFits.filter((fit) => fit !== null).length,
+          skipped_contacts: skippedContacts,
+          first_skipped_gap: firstSkippedContact < 0 ? null : firstSkippedContact,
+          base_backtracks: telemetry.baseBacktracks,
+          candidate_cache_hits: telemetry.cacheHits,
+          candidate_cache_misses: telemetry.cacheMisses,
+          contract_passed: false,
+          score: 0,
+          axis_quality: 0,
+          hits: 0,
+          drift: 0,
+          missing: 0,
+          off_beat_landings: 0,
+          terminus: null,
+          arc_placement: snapshotArcPlacementStats(),
+        };
+      }
+      const fullDuration = floor.completed;
+      const partialHorizonFrame = fullDuration
+        ? durationFrames
+        : processedHorizonFrame(floor.node, gaps);
+      const outputDurationFrames = fullDuration
+        ? durationFrames + 20
+        : partialOutputDurationFrames(partialHorizonFrame, durationFrames);
+      const det = detect(extractRawTrajectory(floor.node.prefixEngine, outputDurationFrames));
+      const fits = paddedFits(floor.node, gaps.length);
+      const rawReport = buildDriftReport(det, spec, gaps, allContactFrames, durationFrames, [], fits);
+      const report = fullDuration ? rawReport : asPartialReport(rawReport, spec, partialHorizonFrame);
+      const score = scoreDriftReport(report, { totalFrames: durationFrames });
+      const skippedContacts = floor.commitPath.filter((choice) => choice === SKIP).length;
+      const firstSkippedContact = floor.commitPath.findIndex((choice) => choice === SKIP);
+      return {
+        spec: specName,
+        variant: "base",
+        seed,
+        floor_contract: "progressive",
+        guard: args.guard,
+        budget_units: args.budgetUnits,
+        hard_limit_units: hardLimit,
+        status: floor.status,
+        error: floor.error,
+        wall_ms: Math.round(performance.now() - started),
+        floor_sim_frames: getSimFrames(),
+        budget_multiple: args.budgetUnits === null ? null : getSimFrames() / args.budgetUnits,
+        floor_completed: floor.completed,
+        processed_gaps: floor.processedGaps,
+        contact_gaps: contactGapCount,
+        processed_contacts: floor.commitPath.length,
+        committed_contacts: fits.filter((fit) => fit !== null).length,
+        skipped_contacts: skippedContacts,
+        first_skipped_gap: firstSkippedContact < 0 ? null : firstSkippedContact,
+        base_backtracks: telemetry.baseBacktracks,
+        candidate_cache_hits: telemetry.cacheHits,
+        candidate_cache_misses: telemetry.cacheMisses,
+        contract_passed: floor.completed && score.contract_passed,
+        score: score.score,
+        axis_quality: score.axis_quality,
+        hits: report.contacts.filter((contact) => contact.status === "hit").length,
+        drift: report.contacts.filter((contact) => contact.status === "drift").length,
+        missing: report.contacts.filter((contact) => contact.status === "missing").length,
+        off_beat_landings: report.off_beat_landings.length,
+        terminus: report.terminus.reason,
+        arc_placement: snapshotArcPlacementStats(),
+      };
+    }
+
     const floor = buildBacktrackingLeaf(
       root,
       gaps,
@@ -199,6 +308,7 @@ async function probeRow(
         specName,
         seed,
         args,
+        contract,
         hardLimit,
         contactGapCount,
         started,
@@ -218,7 +328,7 @@ async function probeRow(
       spec: specName,
       variant: "base",
       seed,
-      floor_contract: "completion",
+      floor_contract: contract,
       guard: args.guard,
       budget_units: args.budgetUnits,
       hard_limit_units: hardLimit,
@@ -227,7 +337,10 @@ async function probeRow(
       wall_ms: Math.round(performance.now() - started),
       floor_sim_frames: getSimFrames(),
       budget_multiple: args.budgetUnits === null ? null : getSimFrames() / args.budgetUnits,
-      contact_gaps: floor.baseCommitPath.length,
+      floor_completed: true,
+      processed_gaps: gaps.length,
+      contact_gaps: contactGapCount,
+      processed_contacts: floor.baseCommitPath.length,
       committed_contacts: floor.baseCommitPath.length - skippedContacts,
       skipped_contacts: skippedContacts,
       first_skipped_gap: firstSkippedContact < 0 ? null : firstSkippedContact,
@@ -249,6 +362,7 @@ async function probeRow(
       specName,
       seed,
       args,
+      contract,
       hardLimit,
       contactGapCount,
       started,
@@ -261,10 +375,111 @@ async function probeRow(
   }
 }
 
+type ProgressiveFloor = {
+  node: SearchNode;
+  commitPath: number[];
+  status: "ok" | "physics_limit";
+  error: string | null;
+  completed: boolean;
+  processedGaps: number;
+};
+
+function buildProgressiveFloor(
+  root: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  budgetUnits: number | null,
+  telemetry: SearchTelemetry,
+): ProgressiveFloor {
+  let node = root;
+  const commitPath: number[] = [];
+  while (!isLeafNode(node, gaps.length)) {
+    if (budgetUnits !== null && getSimFrames() >= budgetUnits) break;
+    const gap = gaps[node.gapIndex];
+    if (!gap.endsWithContact) {
+      node = extendNode(node, null);
+      continue;
+    }
+
+    let candidates: Candidate[];
+    try {
+      telemetry.cacheMisses++;
+      candidates = getCandidatesSorted(node, gaps, ctx, seed);
+    } catch (error) {
+      if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;
+      return {
+        node,
+        commitPath,
+        status: "physics_limit",
+        error: error.message,
+        completed: false,
+        processedGaps: node.gapIndex,
+      };
+    }
+
+    const best = candidates[0] ?? null;
+    commitPath.push(best === null ? SKIP : 0);
+    node = extendNode(node, best);
+  }
+  return {
+    node,
+    commitPath,
+    status: "ok",
+    error: null,
+    completed: isLeafNode(node, gaps.length),
+    processedGaps: node.gapIndex,
+  };
+}
+
+function paddedFits(node: SearchNode, gapCount: number): (GapFit | null)[] {
+  const fits = node.prefixFits.slice();
+  while (fits.length < gapCount) fits.push(null);
+  return fits;
+}
+
+function processedHorizonFrame(node: SearchNode, gaps: Gap[]): number {
+  for (let i = Math.min(node.gapIndex, gaps.length) - 1; i >= 0; i--) {
+    if (gaps[i].endsWithContact) return gaps[i].endFrame;
+  }
+  return 0;
+}
+
+function partialOutputDurationFrames(horizonFrame: number, durationFrames: number): number {
+  return Math.max(1, Math.min(durationFrames, horizonFrame + 20));
+}
+
+function asPartialReport(report: DriftReport, spec: Spec, horizonFrame: number): DriftReport {
+  const reachedContacts = report.contacts
+    .filter((contact) => secToFrame(contact.t_target) <= horizonFrame);
+  const futureContacts = report.contacts
+    .filter((contact) => secToFrame(contact.t_target) > horizonFrame)
+    .slice(0, PARTIAL_FUTURE_CONTACT_WINDOW)
+    .map((contact) => ({
+      t_target: contact.t_target,
+      t_actual: null,
+      frame_error: null,
+      status: "missing" as const,
+    }));
+  return {
+    ...report,
+    contacts: [...reachedContacts, ...futureContacts],
+    sections: report.sections
+      .filter((section) => secToFrame(spec.sections[section.section_index]?.t1 ?? 0) <= horizonFrame),
+    off_beat_landings: report.off_beat_landings
+      .filter((landing) => landing.frame <= horizonFrame),
+    terminus: {
+      frame: Math.min(report.terminus.frame, horizonFrame),
+      reason: report.terminus.reason === "endOfSpec" ? "rideStalled" : report.terminus.reason,
+    },
+  };
+}
+
 function errorRow(
   specName: GoldenSpecName,
   seed: number,
   args: Args,
+  contract: FloorContract,
   hardLimit: number | null,
   contactGapCount: number,
   started: number,
@@ -276,7 +491,7 @@ function errorRow(
     spec: specName,
     variant: "base",
     seed,
-    floor_contract: "completion",
+    floor_contract: contract,
     guard: args.guard,
     budget_units: args.budgetUnits,
     hard_limit_units: hardLimit,
@@ -285,7 +500,10 @@ function errorRow(
     wall_ms: Math.round(performance.now() - started),
     floor_sim_frames: getSimFrames(),
     budget_multiple: args.budgetUnits === null ? null : getSimFrames() / args.budgetUnits,
+    floor_completed: false,
+    processed_gaps: 0,
     contact_gaps: contactGapCount,
+    processed_contacts: 0,
     committed_contacts: 0,
     skipped_contacts: 0,
     first_skipped_gap: null,
@@ -310,8 +528,9 @@ function printText(rows: FloorProbeRow[]): void {
       ? "budget=none"
       : `budget=${row.budget_units} x${row.budget_multiple?.toFixed(2)}`;
     const contract = row.contract_passed ? "PASS" : "FAIL";
+    const done = row.floor_completed ? "done" : `prefix ${row.processed_contacts}/${row.contact_gaps}`;
     console.log(
-      `${row.spec}@s${row.seed} ${row.status} ${contract} ` +
+      `${row.spec}@s${row.seed} ${row.floor_contract} ${row.status} ${contract} ${done} ` +
       `${row.committed_contacts}/${row.contact_gaps} committed ` +
       `${row.hits}hit/${row.missing}missing ` +
       `sim=${row.floor_sim_frames} ${budget} ` +
@@ -325,13 +544,18 @@ function printText(rows: FloorProbeRow[]): void {
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const rows: FloorProbeRow[] = [];
+  const contracts: FloorContract[] = args.contract === "both"
+    ? ["completion", "progressive"]
+    : [args.contract];
   for (const seed of args.seeds) {
-    for (const spec of args.specs) rows.push(await probeRow(spec, seed, args));
+    for (const spec of args.specs) {
+      for (const contract of contracts) rows.push(await probeRow(spec, seed, args, contract));
+    }
   }
 
   if (args.json) {
     console.log(JSON.stringify({
-      floor_contract: "completion",
+      floor_contract: args.contract,
       guard: args.guard,
       budget_units: args.budgetUnits,
       rows,

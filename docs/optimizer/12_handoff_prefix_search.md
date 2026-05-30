@@ -160,6 +160,11 @@ tangency or arc placement.
   contract.
 - The long dense `solo_run` row still misses contacts at 40k; it is too far from
   the tail for near-tail completion to help.
+- Rejected long-dense probes: lowering the preview sample count, sparse partial
+  scoring cadence, broad suffix completion from the final third, and reducing the
+  long-dense candidate solve list all either regressed `solo_run@40k` reachability
+  or lowered the 60k passing quality. The remaining lever is not simply "make each
+  node cheaper"; it needs a better long-dense mainline policy.
 - Root alternatives are currently only a cheap heuristic top set. They make the
   search structure right, but have not yet delivered a measured quality win over
   the default start on the probe rows.

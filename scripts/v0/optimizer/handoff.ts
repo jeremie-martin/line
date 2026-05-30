@@ -847,7 +847,7 @@ function evaluateNode(
   const rawReport = buildDriftReport(
     det, spec, gaps, allContactFrames, durationFrames, [], paddedFits(node, gaps.length),
   );
-  const report = fullDuration ? rawReport : asPartialReport(rawReport, partialHorizonFrame);
+  const report = fullDuration ? rawReport : asPartialReport(rawReport, spec, partialHorizonFrame);
   return {
     report,
     key: leafKeyForReport(report, durationFrames),
@@ -870,7 +870,7 @@ function partialOutputDurationFrames(horizonFrame: number, durationFrames: numbe
   return Math.max(1, Math.min(durationFrames, horizonFrame + 20));
 }
 
-function asPartialReport(report: DriftReport, horizonFrame: number): DriftReport {
+function asPartialReport(report: DriftReport, spec: Spec, horizonFrame: number): DriftReport {
   const reachedContacts = report.contacts
     .filter((contact) => secToFrame(contact.t_target) <= horizonFrame);
   const futureContacts = report.contacts
@@ -885,6 +885,8 @@ function asPartialReport(report: DriftReport, horizonFrame: number): DriftReport
   return {
     ...report,
     contacts: [...reachedContacts, ...futureContacts],
+    sections: report.sections
+      .filter((section) => secToFrame(spec.sections[section.section_index]?.t1 ?? 0) <= horizonFrame),
     off_beat_landings: report.off_beat_landings
       .filter((landing) => landing.frame <= horizonFrame),
     terminus: {

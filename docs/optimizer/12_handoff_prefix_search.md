@@ -75,9 +75,11 @@ missing. If the truncated detector reaches the horizon, the report terminus is
 forced to a failing `rideStalled` terminus at the cutoff. The bounded future
 window keeps partial prefixes honest without letting a long-spec tail of
 unreached contacts annihilate the score below the comparator epsilon; survival
-quality carries the "how far through the spec did this prefix get?" signal. Once
-all contact gaps have been processed, the same node becomes terminal and is
-scored over the full spec duration.
+quality carries the "how far through the spec did this prefix get?" signal.
+Partial reports only score sections whose `t1` has been reached. This avoids
+letting a tiny, unstable slice of a newly entered section make a deeper prefix
+look worse than an earlier one. Once all contact gaps have been processed, the
+same node becomes terminal and is scored over the full spec duration.
 
 The handoff test now points the architecture-agnostic contract harness at
 `compileHandoff`:
@@ -121,7 +123,7 @@ Current frontier probes at the 40k campaign budget:
 |---|---|
 | `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | PASS, score 384.11, 55/55 hits, 40.5k sim frames |
 | `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | PASS, score 337.43, 55/55 hits, 43.1k sim frames, 1/1 tail completion |
-| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, partial 51/71 hits, score ~0, 40.1k sim frames |
+| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, partial 52/72 hits, score ~0, 40.1k sim frames |
 
 The same frontier at 60k:
 
@@ -170,6 +172,10 @@ tangency or arc placement.
   comparator keeps an earlier 51-hit prefix because later prefixes lose enough
   axis quality to offset survival progress. A cheap cost-greedy suffix from that
   region also failed, so the missing policy is not just "try a greedy tail".
+- Completed-section partial reports address part of that trace by not scoring a
+  newly entered section until its end has been reached; this moves the returned
+  `solo_run@40k seed=1` prefix from 51/71 to 52/72, but does not solve the long
+  dense row by itself.
 - Root alternatives are currently only a cheap heuristic top set. They make the
   search structure right, but have not yet delivered a measured quality win over
   the default start on the probe rows.

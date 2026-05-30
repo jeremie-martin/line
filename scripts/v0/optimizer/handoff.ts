@@ -715,7 +715,8 @@ function useStartFeasibilityScoring(axes: SectionAxes, gaps: Gap[]): boolean {
 
   const firstDelayFrames = gaps[firstGapIndex].endFrame;
   const secondIntervalFrames = gaps[secondGapIndex].endFrame - gaps[firstGapIndex].endFrame;
-  const denseOpening = firstDelayFrames <= 24 && secondIntervalFrames <= 22;
+  const hotStart = (axes.speed ?? 0.45) >= 0.9;
+  const denseOpening = firstDelayFrames <= (hotStart ? 32 : 24) && secondIntervalFrames <= 22;
   const hardOpening =
     (axes.speed ?? 0.45) >= 0.6 ||
     (axes.air ?? 0.5) >= 0.6 ||

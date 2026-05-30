@@ -40,9 +40,18 @@ one root option.
 
 ## Budget contract
 
-The handoff path uses the same register comparator as LDS. Every prefix output is
-offered to the strict best-so-far register, so larger budgets see a prefix
-superset and cannot return a strictly worse comparator key.
+The handoff path uses the same register comparator as LDS. Every scored prefix
+output is offered to the strict best-so-far register, so larger budgets see a
+prefix superset and cannot return a strictly worse comparator key.
+
+Nonterminal prefixes have explicit partial-output semantics. They are evaluated
+only through their committed horizon plus a short detector margin, their track
+duration is that partial horizon, and if the truncated detector reaches that
+horizon the report terminus is forced to a failing `rideStalled` terminus at the
+cutoff. Future contacts therefore remain missing and survival quality reflects
+prefix progress instead of pretending an incomplete prefix is a full-spec ride.
+Once all contact gaps have been processed, the same node becomes terminal and is
+scored over the full spec duration.
 
 The handoff test now points the architecture-agnostic contract harness at
 `compileHandoff`:
@@ -61,18 +70,19 @@ Covered in that test:
 ## Initial evidence
 
 Targeted probes after removing the legacy optimized-preroll pre-pass, adding
-explicit root/start alternatives, and demoting the two-contact rollout to a
-tiebreak:
+explicit root/start alternatives, demoting the two-contact rollout to a
+tiebreak, and adding partial-prefix report semantics:
 
 | command | result |
 |---|---|
-| `npm run golden -- --compiler=handoff --specs=tiny_dance --seed=0 --budget=5000 --jobs=1 --json` | PASS, score 476.20, 4/4 contacts, 5.0k sim frames, 4 start options |
-| `npm run golden -- --compiler=handoff --specs=mini_burst --seed=0 --budget=15000 --jobs=1 --json` | PASS, score 500.29, 7/7 contacts, 15.1k sim frames, 4 start options |
-| `npm run golden -- --compiler=handoff --specs=cold_start --seed=0 --budget=30000 --jobs=1 --json` | FAIL, 13/15 contacts, score 25.90 |
+| `npm run golden -- --compiler=handoff --specs=tiny_dance --seed=0 --budget=5000 --jobs=1 --json` | PASS, score 623.03, 4/4 contacts, 5.0k sim frames, 4 start options |
+| `npm run golden -- --compiler=handoff --specs=mini_burst --seed=0 --budget=15000 --jobs=1 --json` | PASS, score 500.29, 7/7 contacts, 15.4k sim frames, 4 start options |
+| `npm run golden -- --compiler=handoff --specs=cold_start --seed=0 --budget=30000 --jobs=1 --json` | PASS, 15/15 contacts, score 218.66 |
 | `npm run golden -- --compiler=handoff --specs=cold_start --seed=0 --budget=60000 --jobs=1 --json` | PASS, 15/15 contacts, score 218.66 |
 
-The `cold_start` pair is the important shape: more budget extends the same search
-and turns a near-complete failing prefix into a contract-passing track.
+The `cold_start` 30k row is the important shape: explicit partial-prefix
+semantics cut enough full-duration rescoring out of the early path that the same
+budget now reaches a complete contract-passing track.
 
 ## Deliberate differences from LDS
 
@@ -85,13 +95,15 @@ and turns a near-complete failing prefix into a contract-passing track.
 ## Known gaps
 
 - This is not yet the default compiler.
+- Partial report semantics are pinned only for `compileHandoff`; the legacy LDS
+  path still evaluates whole-track leaves.
 - The rollout preview is still a local heuristic. As a tiebreak it preserves
-  low-budget contact completion on the probe rows, but it has mixed quality:
-  it currently lowers `tiny_dance` axis quality versus the one-step preview and
-  worsens `cold_start` at 30k.
-- Prefix scoring is expensive because every prefix is scored by full-track
-  detection. The implementation is correct-first; later slices should cache or
-  score more selectively without changing the budget contract.
+  low-budget contact completion on the probe rows, but it has not improved
+  `cold_start` quality after the first passing track is found.
+- Full-duration terminal scoring is still expensive, and larger budgets can
+  spend many evaluations on complete prefixes whose quality does not improve.
+  Later slices should cache or score more selectively without changing the budget
+  contract.
 - Root alternatives are currently only a cheap heuristic top set. They make the
   search structure right, but have not yet delivered a measured quality win over
   the default start on the probe rows.

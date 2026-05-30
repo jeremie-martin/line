@@ -83,6 +83,8 @@ type StartOption = {
 type HandoffTelemetry = {
   nodesExpanded: number;
   frontierMaxSize: number;
+  partialEvaluations: number;
+  fullEvaluations: number;
   previews: number;
   previewContacts: number;
   previewSurvivors: number;
@@ -171,6 +173,8 @@ export function compileHandoff(
     const telemetry: HandoffTelemetry = {
       nodesExpanded: 0,
       frontierMaxSize: 1,
+      partialEvaluations: 0,
+      fullEvaluations: 0,
       previews: 0,
       previewContacts: 0,
       previewSurvivors: 0,
@@ -183,12 +187,20 @@ export function compileHandoff(
     let hardLimitError: PhysicsFrameLimitExceeded | null = null;
 
     const consider = (node: HandoffNode): LeafKey => {
-      const { report, key } = evaluateNode(node, spec, gaps, allContactFrames, durationFrames);
+      const evaluation = evaluateNode(node, spec, gaps, allContactFrames, durationFrames);
+      if (evaluation.fullDuration) telemetry.fullEvaluations++;
+      else telemetry.partialEvaluations++;
       register.consider(
-        buildNodeOutput(node, report, gaps, durationFrames, budgetExhausted),
-        key,
+        buildNodeOutput(
+          node,
+          evaluation.report,
+          gaps,
+          evaluation.outputDurationFrames,
+          budgetExhausted,
+        ),
+        evaluation.key,
       );
-      return key;
+      return evaluation.key;
     };
 
     try {
@@ -206,7 +218,7 @@ export function compileHandoff(
 
         if (
           polishEnabled &&
-          isLeafNode(node.search, gaps.length) &&
+          isTerminalNode(node.search, gaps) &&
           node.search.prefixFits.some((fit) => fit !== null)
         ) {
           const padded = paddedFits(node, gaps.length);
@@ -229,12 +241,20 @@ export function compileHandoff(
               ranks: node.ranks,
               skippedContacts: node.skippedContacts,
             };
-            const { report, key: polishKey } = evaluateNode(
+            const evaluation = evaluateNode(
               polishNode, spec, gaps, allContactFrames, durationFrames,
             );
+            if (evaluation.fullDuration) telemetry.fullEvaluations++;
+            else telemetry.partialEvaluations++;
             register.consider(
-              buildNodeOutput(polishNode, report, gaps, durationFrames, budgetExhausted),
-              polishKey,
+              buildNodeOutput(
+                polishNode,
+                evaluation.report,
+                gaps,
+                evaluation.outputDurationFrames,
+                budgetExhausted,
+              ),
+              evaluation.key,
             );
             if (register.improvementCount > improvedBefore) polishAdopted++;
           }
@@ -244,7 +264,7 @@ export function compileHandoff(
           budgetExhausted = true;
           break;
         }
-        if (isLeafNode(node.search, gaps.length)) continue;
+        if (isTerminalNode(node.search, gaps)) continue;
 
         const children = expandNode(node, gaps, ctx, seed, startOptions, telemetry);
         telemetry.nodesExpanded++;
@@ -281,6 +301,8 @@ export function compileHandoff(
         polish_variants_adopted: polishAdopted,
         search_nodes_expanded: telemetry.nodesExpanded,
         frontier_max_size: telemetry.frontierMaxSize,
+        handoff_partial_evaluations: telemetry.partialEvaluations,
+        handoff_full_evaluations: telemetry.fullEvaluations,
         handoff_start_options: startOptions.length,
         handoff_start_rank: best.stats.handoff_start_rank ?? 0,
         handoff_previews: telemetry.previews,
@@ -304,7 +326,7 @@ function expandNode(
   startOptions: StartOption[],
   telemetry: HandoffTelemetry,
 ): HandoffNode[] {
-  if (isLeafNode(node.search, gaps.length)) return [];
+  if (isTerminalNode(node.search, gaps)) return [];
   if (!node.startExpanded) {
     return startOptions.map((option) => ({
       search: makeRootNode(makeBaseEngine(option.state), gaps.length),
@@ -485,6 +507,11 @@ function nextContactGapIndex(gaps: Gap[], from: number): number {
   return -1;
 }
 
+function isTerminalNode(node: SearchNode, gaps: Gap[]): boolean {
+  if (isLeafNode(node, gaps.length)) return true;
+  return nextContactGapIndex(gaps, node.gapIndex) < 0;
+}
+
 function perGapRng(seed: number, gapIndex: number): () => number {
   return makeRng((Math.imul(seed | 0, 1000003) + gapIndex + 1) | 0);
 }
@@ -628,26 +655,62 @@ function evaluateNode(
   gaps: Gap[],
   allContactFrames: number[],
   durationFrames: number,
-): { report: DriftReport; key: LeafKey } {
-  const det = detect(extractRawTrajectory(node.search.prefixEngine, durationFrames + 20));
-  const report = buildDriftReport(
+): { report: DriftReport; key: LeafKey; outputDurationFrames: number; fullDuration: boolean } {
+  const fullDuration = isTerminalNode(node.search, gaps);
+  const outputDurationFrames = fullDuration
+    ? durationFrames + 20
+    : partialOutputDurationFrames(node.search, gaps, durationFrames);
+  const det = detect(extractRawTrajectory(node.search.prefixEngine, outputDurationFrames));
+  const rawReport = buildDriftReport(
     det, spec, gaps, allContactFrames, durationFrames, [], paddedFits(node, gaps.length),
   );
-  return { report, key: leafKeyForReport(report, durationFrames) };
+  const report = fullDuration ? rawReport : asPartialReport(rawReport, outputDurationFrames);
+  return {
+    report,
+    key: leafKeyForReport(report, durationFrames),
+    outputDurationFrames,
+    fullDuration,
+  };
+}
+
+function partialOutputDurationFrames(
+  node: SearchNode,
+  gaps: Gap[],
+  durationFrames: number,
+): number {
+  let prefixEndFrame = 0;
+  for (let i = Math.min(node.gapIndex, gaps.length) - 1; i >= 0; i--) {
+    if (gaps[i].endsWithContact) {
+      prefixEndFrame = gaps[i].endFrame;
+      break;
+    }
+  }
+  return Math.max(1, Math.min(durationFrames, prefixEndFrame + 20));
+}
+
+function asPartialReport(report: DriftReport, outputDurationFrames: number): DriftReport {
+  if (report.terminus.reason !== "endOfSpec") return report;
+  return {
+    ...report,
+    terminus: {
+      frame: Math.min(report.terminus.frame, outputDurationFrames),
+      reason: "rideStalled",
+    },
+  };
 }
 
 function buildNodeOutput(
   node: HandoffNode,
   report: DriftReport,
   gaps: Gap[],
-  durationFrames: number,
+  outputDurationFrames: number,
   budgetExhausted: boolean,
 ): CompileOutput {
   const fits = paddedFits(node, gaps.length);
   const allLines = [];
   for (const fit of fits) if (fit !== null) allLines.push(...fit.lines);
   return {
-    track: buildTrackJson(allLines, durationFrames + 20, node.startState),
+    track: buildTrackJson(allLines, outputDurationFrames, node.startState),
     report,
     stats: {
       candidates_sampled: 0,

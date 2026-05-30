@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { createHash } from "node:crypto";
 import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
+import { secToFrame } from "../scripts/v0/types.ts";
 import {
   assertBudgetSearchContract,
   type BudgetCompile,
@@ -37,9 +38,13 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(hashTrack(a.track)).toBe(hashTrack(b.track));
     expect(a.stats.sim_frames).toBe(b.stats.sim_frames);
     expect(a.stats.search_nodes_expanded).toBeGreaterThan(0);
+    expect(a.stats.handoff_partial_evaluations).toBeGreaterThan(0);
+    expect(a.stats.handoff_full_evaluations).toBeGreaterThan(0);
     expect(a.stats.handoff_previews).toBeGreaterThan(0);
     expect(a.stats.handoff_preview_contacts).toBeGreaterThan(0);
     expect(a.stats.handoff_preview_survivors).toBeGreaterThan(0);
+    expect(a.stats.handoff_partial_evaluations).toBe(b.stats.handoff_partial_evaluations);
+    expect(a.stats.handoff_full_evaluations).toBe(b.stats.handoff_full_evaluations);
     expect(a.stats.handoff_preview_contacts).toBe(b.stats.handoff_preview_contacts);
     expect(a.stats.handoff_preview_survivors).toBe(b.stats.handoff_preview_survivors);
   }, 60_000);
@@ -52,8 +57,11 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       polish: false,
     });
     expect(result.track.lines.length).toBeGreaterThanOrEqual(0);
+    expect(result.track.duration).toBeLessThan(secToFrame(spec.duration) + 20);
+    expect(result.report.terminus.reason).not.toBe("endOfSpec");
     expect(result.stats.budget_exhausted).toBe(true);
     expect(result.stats.leaves_considered).toBeGreaterThan(0);
+    expect(result.stats.handoff_partial_evaluations).toBeGreaterThan(0);
   }, 120_000);
 
   test("polish path uses the selected root start state", async () => {

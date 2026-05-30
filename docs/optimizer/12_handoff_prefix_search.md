@@ -21,9 +21,7 @@ candidate is ranked by:
 1. local axis cost;
 2. first future-contact feasibility: whether the next contact has any survivors,
    how many survivors it has, and the cheapest survivor cost;
-3. a small two-contact rollout tiebreak, so candidates that keep landing beyond
-   the first preview contact get a slight preference;
-4. a small handoff-state penalty for extreme vertical/angle states.
+3. a small handoff-state penalty for extreme vertical/angle states.
 
 The preview is engine-in-loop and charged in simulated frames. It is also a pure
 policy function of `(spec, seed, prefix)`: it does not read the remaining budget.
@@ -84,48 +82,46 @@ Covered in that test:
 ## Initial evidence
 
 Targeted probes after removing the legacy optimized-preroll pre-pass, adding
-explicit root/start alternatives, demoting the two-contact rollout to a
-tiebreak, adding partial-prefix report semantics, and narrowing per-node
-branching to reduce suffix explosion. Dense-opening start feasibility is gated,
-so it does not affect these control rows:
+explicit root/start alternatives, adding partial-prefix report semantics,
+narrowing per-node branching to reduce suffix explosion, and replacing the
+two-contact rollout with a one-contact/two-sample future feasibility probe.
+Dense-opening start feasibility is gated, so it does not affect these control
+rows:
 
 | command | result |
 |---|---|
-| `npm run golden -- --compiler=handoff --specs=tiny_dance --seed=0 --budget=5000 --jobs=1 --json` | PASS, score 612.67, 4/4 contacts, 5.0k sim frames, 4 start options |
-| `npm run golden -- --compiler=handoff --specs=mini_burst --seed=0 --budget=15000 --jobs=1 --json` | PASS, score 500.29, 7/7 contacts, 15.2k sim frames, 4 start options |
-| `npm run golden -- --compiler=handoff --specs=cold_start --seed=0 --budget=30000 --jobs=1 --json` | PASS, 15/15 contacts, score 218.66 |
-| `npm run golden -- --compiler=handoff --specs=cold_start --seed=0 --budget=60000 --jobs=1 --json` | PASS, 15/15 contacts, score 270.91 |
+| `npm run golden -- --compiler=handoff --specs=tiny_dance --seed=0 --budget=5000 --jobs=1 --json` | PASS, score 612.67, 4/4 contacts, 5.5k sim frames |
+| `npm run golden -- --compiler=handoff --specs=mini_burst --seed=0 --budget=15000 --jobs=1 --json` | PASS, score 557.45, 7/7 contacts, 15.8k sim frames |
+| `npm run golden -- --compiler=handoff --specs=cold_start --seed=0 --budget=30000 --jobs=1 --json` | PASS, score 411.59, 15/15 contacts, 30.6k sim frames |
+| `npm run golden -- --compiler=handoff --specs=cold_start --seed=0 --budget=60000 --jobs=1 --json` | PASS, score 411.59, 15/15 contacts, 60.5k sim frames |
 
 The `cold_start` 30k row is the important shape: explicit partial-prefix
 semantics cut enough full-duration rescoring out of the early path that the same
 budget now reaches a complete contract-passing track. The 60k row then shows the
-narrower branch factor spending follow-up budget on better prefixes rather than
-late suffix variants of the first passing path.
+cheaper preview preserving the completed track while exploring more alternatives.
 
 Current frontier probes at the 40k campaign budget:
 
 | command | result |
 |---|---|
-| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 42/55 hits, 13 future-window missing, horizon frame 903 |
-| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 34/54 hits, 20 future-window missing, horizon frame 678 |
-| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, partial 45/65 hits, 20 future-window missing, horizon frame 579 |
+| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 50/55 hits, score 2.05, 40.3k sim frames |
+| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 44/55 hits, score ~0, 40.3k sim frames |
+| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, partial 51/71 hits, score ~0, 40.1k sim frames |
 
 The same frontier at 60k:
 
 | command | result |
 |---|---|
-| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=60000 --jobs=1 --json` | PASS, 55/55 hits, score 399.83 |
-| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=60000 --jobs=1 --json` | FAIL, partial 45/55 hits, 10 missing, horizon frame 961 |
-| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=60000 --jobs=1 --json` | PASS, 77/77 hits, score 413.78 |
+| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=60000 --jobs=1 --json` | PASS, score 358.68, 55/55 hits |
+| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=60000 --jobs=1 --json` | PASS, score 384.26, 55/55 hits |
+| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=60000 --jobs=1 --json` | PASS, score 448.21, 77/77 hits |
 
-The frontier rows are still failures, but the failure mode has moved from
-"budget-exempt floor prevents search" to budget-subject prefix progress with
-clear skip ownership. The next lever is candidate/backtracking policy around
-the skipped contact gaps, not tangency or arc placement.
-The `drums_crescendo` opening specifically moved from 4/25 partial hits to
-34/55 partial hits after gated root-start feasibility ordering. Deferring skip
-continuations then moved `drums_pendulum@40k` from 20/42 to 42/55 partial hits
-and made `drums_pendulum@60k` and `solo_run@60k` contract-passing.
+The frontier rows are still partial at 40k, but the failure mode has moved from
+"budget-exempt floor prevents search" to budget-subject prefix progress. The
+one-contact/two-sample preview is the key latest change: `drums_crescendo@60k`
+moved from a 45/55 partial failure to a 55/55 pass, while the 40k dense rows also
+reach farther. The next lever is candidate/backtracking policy around the
+remaining 40k misses, not tangency or arc placement.
 
 ## Deliberate differences from LDS
 
@@ -140,9 +136,8 @@ and made `drums_pendulum@60k` and `solo_run@60k` contract-passing.
 - This is not yet the default compiler.
 - Partial report semantics are pinned only for `compileHandoff`; the legacy LDS
   path still evaluates whole-track leaves.
-- The rollout preview is still a local heuristic. As a tiebreak it preserves
-  low-budget contact completion on the probe rows, but it has not improved
-  `cold_start` quality by itself after the first passing track is found.
+- The one-step preview is still a local heuristic. It clears the measured 60k
+  frontier rows, but it does not yet make the dense 40k campaign rows pass.
 - Full-duration terminal scoring is still expensive, and larger budgets can
   spend many evaluations on complete prefixes whose quality does not improve.
   Later slices should cache or score more selectively without changing the budget
@@ -158,8 +153,7 @@ and made `drums_pendulum@60k` and `solo_run@60k` contract-passing.
 
 ## Next work
 
-1. Replace the heuristic rollout with a cheap backward catchability table or
-   measured multi-gap feasibility estimate.
+1. Add targeted local rebuild/backtracking for the remaining 40k misses.
 2. Make start-state exploration iterative rather than a fixed small top set.
 3. Measure the budget curve on the current frontier specs before tuning constants.
 4. Only consider default cutover after full compiler-goal acceptance sweeps pass.

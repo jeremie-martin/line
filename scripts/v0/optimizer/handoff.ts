@@ -4,12 +4,12 @@
  * This is a separate optimizer from LDS. The search state is a partial track
  * prefix at a gap boundary, not a whole-track leaf. It expands one gap at a
  * time, keeps alternatives on a deterministic DFS stack, and ranks candidates
- * by a fixed local hand-off feasibility rollout:
+ * by a fixed local hand-off feasibility probe:
  *
- *   "If we commit this catch, how many future contacts can a tiny greedy
- *    rollout land, and how much candidate slack does it have?"
+ *   "If we commit this catch, does the next contact remain reachable, and how
+ *    much candidate slack does it have?"
  *
- * That rollout is engine-in-loop and charged in sim-frames, but it is a fixed
+ * That probe is engine-in-loop and charged in sim-frames, but it is a fixed
  * policy decision independent of the caller's budget. The budget only stops how
  * far into the deterministic node sequence we go; a strict best-so-far register
  * ranks every prefix output considered. This is the same budget contract as LDS
@@ -95,8 +95,8 @@ type HandoffTelemetry = {
 const DEFAULT_MAX_NODES = 800;
 const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
-const HANDOFF_PREVIEW_K = 3;
-const HANDOFF_PREVIEW_HORIZON = 2;
+const HANDOFF_PREVIEW_K = 2;
+const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 4;
 const START_SCORING_POOL = 12;
 const START_FIRST_K = 8;
@@ -105,8 +105,6 @@ const START_NEXT_K = 8;
 const START_HEURISTIC_WEIGHT = 0.15;
 const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
-const DEEP_MISS_PENALTY = 0.25;
-const ROLLOUT_CONTACT_CREDIT = 0.25;
 const PREVIEW_COST_WEIGHT = 0.25;
 const HANDOFF_STATE_WEIGHT = 0.08;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
@@ -417,7 +415,6 @@ function scoreCandidateForHandoff(
 ): RankedOption {
   const child = extendNode(node, candidate);
   const preview = previewFutureContacts(child, gaps, ctx, seed, telemetry);
-  const missedAfterFirst = Math.max(0, preview.horizon - Math.max(1, preview.landed));
   const scarcity = preview.horizon === 0
     ? 0
     : preview.firstSurvivors === 0
@@ -426,9 +423,6 @@ function scoreCandidateForHandoff(
   const previewCost = preview.firstCost === Infinity
     ? 0
     : preview.firstCost * PREVIEW_COST_WEIGHT;
-  const deeperConfidence =
-    DEEP_MISS_PENALTY * missedAfterFirst
-    - ROLLOUT_CONTACT_CREDIT * Math.max(0, preview.landed - 1);
   const statePenalty = handoffStatePenalty(child.prefixEngine, gaps[node.gapIndex]);
 
   return {
@@ -436,7 +430,7 @@ function scoreCandidateForHandoff(
     rank,
     previewContacts: preview.landed,
     previewSurvivors: preview.survivors,
-    score: candidate.cost + scarcity + previewCost + deeperConfidence + statePenalty,
+    score: candidate.cost + scarcity + previewCost + statePenalty,
   };
 }
 

@@ -85,6 +85,8 @@ type HandoffTelemetry = {
   frontierMaxSize: number;
   partialEvaluations: number;
   fullEvaluations: number;
+  tailCompletionAttempts: number;
+  tailCompletionSuccesses: number;
   previews: number;
   previewContacts: number;
   previewSurvivors: number;
@@ -112,6 +114,7 @@ const PREVIEW_COST_WEIGHT = 0.25;
 const HANDOFF_STATE_WEIGHT = 0.08;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
+const TAIL_COMPLETION_CONTACT_WINDOW = 3;
 
 export function compileHandoff(
   userSpec: Spec,
@@ -183,6 +186,8 @@ export function compileHandoff(
       frontierMaxSize: 1,
       partialEvaluations: 0,
       fullEvaluations: 0,
+      tailCompletionAttempts: 0,
+      tailCompletionSuccesses: 0,
       previews: 0,
       previewContacts: 0,
       previewSurvivors: 0,
@@ -218,6 +223,12 @@ export function compileHandoff(
         const key = consider(node);
         opts.onNode?.(node, key);
         if (register.consideredCount === 1) setSimFrameLimit(hardBudgetLimit);
+
+        const tailNode = completeNearTail(node, gaps, ctx, seed, telemetry);
+        if (tailNode !== null) {
+          const tailKey = consider(tailNode);
+          opts.onNode?.(tailNode, tailKey);
+        }
 
         if (node.deferExpansion) {
           stack.unshift({ ...node, deferExpansion: false });
@@ -312,6 +323,8 @@ export function compileHandoff(
         frontier_max_size: telemetry.frontierMaxSize,
         handoff_partial_evaluations: telemetry.partialEvaluations,
         handoff_full_evaluations: telemetry.fullEvaluations,
+        handoff_tail_completion_attempts: telemetry.tailCompletionAttempts,
+        handoff_tail_completion_successes: telemetry.tailCompletionSuccesses,
         handoff_start_options: startOptions.length,
         handoff_start_rank: best.stats.handoff_start_rank ?? 0,
         handoff_previews: telemetry.previews,
@@ -408,12 +421,64 @@ function rankedOptions(
 }
 
 function handoffCandidatePool(ctx: SpecContext): number {
-  const contacts = ctx.allContactFrames.length;
   // Medium-dense rows are preview-cost bound; sparse and very long dense rows
   // need the broader pool for quality/reachability.
-  return contacts >= HANDOFF_MEDIUM_DENSE_MIN_CONTACTS && contacts <= HANDOFF_LONG_DENSE_CONTACTS
+  return usesMediumDensePolicy(ctx)
     ? HANDOFF_MEDIUM_DENSE_CANDIDATE_POOL
     : HANDOFF_BROAD_CANDIDATE_POOL;
+}
+
+function usesMediumDensePolicy(ctx: SpecContext): boolean {
+  const contacts = ctx.allContactFrames.length;
+  return contacts >= HANDOFF_MEDIUM_DENSE_MIN_CONTACTS && contacts <= HANDOFF_LONG_DENSE_CONTACTS;
+}
+
+function completeNearTail(
+  node: HandoffNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  telemetry: HandoffTelemetry,
+): HandoffNode | null {
+  if (!usesMediumDensePolicy(ctx)) return null;
+  if (node.skippedContacts > 0 || isTerminalNode(node.search, gaps)) return null;
+  if (remainingContactCount(node.search, gaps) > TAIL_COMPLETION_CONTACT_WINDOW) return null;
+  telemetry.tailCompletionAttempts++;
+
+  let search = node.search;
+  const ranks = [...node.ranks];
+  while (!isTerminalNode(search, gaps)) {
+    const gap = gaps[search.gapIndex];
+    if (!gap.endsWithContact) {
+      search = extendNode(search, null);
+      ranks.push(-1);
+      continue;
+    }
+
+    const [option] = rankedOptions(search, gaps, ctx, seed, telemetry);
+    if (option === undefined || option.candidate === null) return null;
+    search = extendNode(search, option.candidate);
+    ranks.push(option.rank);
+  }
+
+  telemetry.tailCompletionSuccesses++;
+  return {
+    search,
+    startState: node.startState,
+    startRank: node.startRank,
+    startExpanded: node.startExpanded,
+    deferExpansion: false,
+    ranks,
+    skippedContacts: node.skippedContacts,
+  };
+}
+
+function remainingContactCount(node: SearchNode, gaps: Gap[]): number {
+  let contacts = 0;
+  for (let i = Math.min(node.gapIndex, gaps.length); i < gaps.length; i++) {
+    if (gaps[i].endsWithContact) contacts++;
+  }
+  return contacts;
 }
 
 function scoreCandidateForHandoff(

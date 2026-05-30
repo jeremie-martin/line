@@ -177,6 +177,10 @@ export type CompileStats = {
    *  terminal prefixes use the full spec duration. */
   handoff_partial_evaluations?: number;
   handoff_full_evaluations?: number;
+  /** Greedy suffix completions attempted/succeeded from near-tail handoff
+   *  prefixes before the normal soft-budget stop. */
+  handoff_tail_completion_attempts?: number;
+  handoff_tail_completion_successes?: number;
   /** Deterministic root/start-state alternatives available to compileHandoff,
    *  and the selected rank for the returned best prefix. */
   handoff_start_options?: number;

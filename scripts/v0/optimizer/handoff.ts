@@ -108,6 +108,9 @@ const HANDOFF_BROAD_CANDIDATE_POOL = 8;
 const HANDOFF_MEDIUM_DENSE_MIN_CONTACTS = 30;
 const HANDOFF_LONG_DENSE_CONTACTS = 60;
 const HANDOFF_BRANCHING = 3;
+const HANDOFF_IMMEDIATE_DENSE_OPENING_BRANCHING = 2;
+const HANDOFF_IMMEDIATE_OPENING_MAX_FIRST_DELAY = 24;
+const HANDOFF_IMMEDIATE_OPENING_MAX_SECOND_INTERVAL = 12;
 const HANDOFF_PREVIEW_K = 1;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 4;
@@ -465,7 +468,7 @@ function rankedOptions(
     (a.candidate?.cost ?? Infinity) - (b.candidate?.cost ?? Infinity) ||
     a.rank - b.rank
   );
-  return scored.slice(0, HANDOFF_BRANCHING);
+  return scored.slice(0, handoffBranching(gaps));
 }
 
 function handoffCandidatePool(ctx: SpecContext): number {
@@ -479,6 +482,24 @@ function handoffCandidatePool(ctx: SpecContext): number {
 function usesMediumDensePolicy(ctx: SpecContext): boolean {
   const contacts = ctx.allContactFrames.length;
   return contacts >= HANDOFF_MEDIUM_DENSE_MIN_CONTACTS && contacts <= HANDOFF_LONG_DENSE_CONTACTS;
+}
+
+function handoffBranching(gaps: Gap[]): number {
+  return hasImmediateDenseOpening(gaps)
+    ? HANDOFF_IMMEDIATE_DENSE_OPENING_BRANCHING
+    : HANDOFF_BRANCHING;
+}
+
+function hasImmediateDenseOpening(gaps: Gap[]): boolean {
+  const firstGapIndex = nextContactGapIndex(gaps, 0);
+  if (firstGapIndex < 0) return false;
+  const secondGapIndex = nextContactGapIndex(gaps, firstGapIndex + 1);
+  if (secondGapIndex < 0) return false;
+
+  const firstDelayFrames = gaps[firstGapIndex].endFrame;
+  const secondIntervalFrames = gaps[secondGapIndex].endFrame - gaps[firstGapIndex].endFrame;
+  return firstDelayFrames <= HANDOFF_IMMEDIATE_OPENING_MAX_FIRST_DELAY &&
+    secondIntervalFrames <= HANDOFF_IMMEDIATE_OPENING_MAX_SECOND_INTERVAL;
 }
 
 function completeNearTail(

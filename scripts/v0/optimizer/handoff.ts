@@ -107,7 +107,7 @@ const HANDOFF_BRANCHING = 3;
  *  node cost, letting the search reach skip-free completions on budget-starved
  *  deep specs within the same budget. Must stay >= HANDOFF_BROAD_CANDIDATE_POOL. */
 const HANDOFF_N_CAND = 16;
-const HANDOFF_PREVIEW_K = 2;
+const HANDOFF_PREVIEW_K = 1;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 4;
 const START_SCORING_POOL = 12;

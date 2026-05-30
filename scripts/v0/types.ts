@@ -192,6 +192,10 @@ export type CompileStats = {
   /** Skip branches generated during handoff search because a contact gap had no
    *  viable candidate at that prefix. */
   handoff_skip_branches?: number;
+  /** Skip branches whose continuation was delayed behind existing frontier
+   *  alternatives, so local handoff siblings get searched before marching past
+   *  a missed contact. */
+  handoff_deferred_skips?: number;
 
   /** Impact-anchored arc placement counters (only present when
    *  LR_ARC_PLACEMENT=impact_anchor). Non-scoring diagnostics. */

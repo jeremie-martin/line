@@ -89,6 +89,7 @@ type HandoffTelemetry = {
   previewContacts: number;
   previewSurvivors: number;
   skips: number;
+  deferredSkips: number;
 };
 
 const DEFAULT_MAX_NODES = 800;
@@ -185,6 +186,7 @@ export function compileHandoff(
       previewContacts: 0,
       previewSurvivors: 0,
       skips: 0,
+      deferredSkips: 0,
     };
     const polishEnabled = opts.polish ?? true;
     let polishTried = 0;
@@ -316,6 +318,7 @@ export function compileHandoff(
         handoff_preview_survivors: telemetry.previewSurvivors,
         handoff_skips: best.stats.handoff_skips ?? 0,
         handoff_skip_branches: telemetry.skips,
+        handoff_deferred_skips: telemetry.deferredSkips,
         ...(arcStats ? { arc_placement: arcStats } : {}),
       },
     };
@@ -360,12 +363,13 @@ function expandNode(
   const options = rankedOptions(node.search, gaps, ctx, seed, telemetry);
   if (options.length === 0) {
     telemetry.skips++;
+    telemetry.deferredSkips++;
     return [{
       search: extendNode(node.search, null),
       startState: node.startState,
       startRank: node.startRank,
       startExpanded: node.startExpanded,
-      deferExpansion: false,
+      deferExpansion: true,
       ranks: [...node.ranks, -1],
       skippedContacts: node.skippedContacts + 1,
     }];

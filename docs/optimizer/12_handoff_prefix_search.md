@@ -30,6 +30,11 @@ policy function of `(spec, seed, prefix)`: it does not read the remaining budget
 The budget only truncates how far through the deterministic prefix-node sequence
 the compiler gets.
 
+If a prefix reaches a contact with no viable candidates, the skipped-contact
+continuation is scored immediately as a partial prefix but its expansion is
+deferred behind the existing frontier. This keeps a miss from becoming the
+default spine before sibling handoffs have had a chance to avoid it.
+
 Initial conditions are now part of the same search. If a spec has `preroll > 0`
 and no manual `start`, `compileHandoff` generates a small deterministic set of
 root velocity alternatives (default plus the top heuristic starts from the first
@@ -101,16 +106,26 @@ Current frontier probes at the 40k campaign budget:
 
 | command | result |
 |---|---|
-| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 20/42 hits, 2 in-horizon missing + 20 future-window missing, horizon frame 423 |
-| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 34/55 hits, 1 in-horizon skip plus later skips, horizon frame 788 |
-| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, terminal 57/77 hits, 20 missing |
+| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 42/55 hits, 13 future-window missing, horizon frame 903 |
+| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 34/54 hits, 20 future-window missing, horizon frame 678 |
+| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, partial 45/65 hits, 20 future-window missing, horizon frame 579 |
+
+The same frontier at 60k:
+
+| command | result |
+|---|---|
+| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=60000 --jobs=1 --json` | PASS, 55/55 hits, score 399.83 |
+| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=60000 --jobs=1 --json` | FAIL, partial 45/55 hits, 10 missing, horizon frame 961 |
+| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=60000 --jobs=1 --json` | PASS, 77/77 hits, score 413.78 |
 
 The frontier rows are still failures, but the failure mode has moved from
 "budget-exempt floor prevents search" to budget-subject prefix progress with
 clear skip ownership. The next lever is candidate/backtracking policy around
 the skipped contact gaps, not tangency or arc placement.
 The `drums_crescendo` opening specifically moved from 4/25 partial hits to
-34/55 partial hits after gated root-start feasibility ordering.
+34/55 partial hits after gated root-start feasibility ordering. Deferring skip
+continuations then moved `drums_pendulum@40k` from 20/42 to 42/55 partial hits
+and made `drums_pendulum@60k` and `solo_run@60k` contract-passing.
 
 ## Deliberate differences from LDS
 
@@ -133,7 +148,8 @@ The `drums_crescendo` opening specifically moved from 4/25 partial hits to
   Later slices should cache or score more selectively without changing the budget
   contract.
 - Frontier dense specs still miss contacts at 40k; handoff currently records the
-  skipped gaps but does not repair them with targeted local backtracking.
+  skipped gaps, and skip continuations are deferred behind siblings, but there is
+  not yet deeper targeted local backtracking/rebuild around the owning handoff.
 - Root alternatives are currently only a cheap heuristic top set. They make the
   search structure right, but have not yet delivered a measured quality win over
   the default start on the probe rows.

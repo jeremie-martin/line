@@ -104,6 +104,7 @@ const ROLLOUT_CONTACT_CREDIT = 0.25;
 const PREVIEW_COST_WEIGHT = 0.25;
 const HANDOFF_STATE_WEIGHT = 0.08;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
+const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 
 export function compileHandoff(
   userSpec: Spec,
@@ -657,14 +658,17 @@ function evaluateNode(
   durationFrames: number,
 ): { report: DriftReport; key: LeafKey; outputDurationFrames: number; fullDuration: boolean } {
   const fullDuration = isTerminalNode(node.search, gaps);
+  const partialHorizonFrame = fullDuration
+    ? durationFrames
+    : processedHorizonFrame(node.search, gaps);
   const outputDurationFrames = fullDuration
     ? durationFrames + 20
-    : partialOutputDurationFrames(node.search, gaps, durationFrames);
+    : partialOutputDurationFrames(partialHorizonFrame, durationFrames);
   const det = detect(extractRawTrajectory(node.search.prefixEngine, outputDurationFrames));
   const rawReport = buildDriftReport(
     det, spec, gaps, allContactFrames, durationFrames, [], paddedFits(node, gaps.length),
   );
-  const report = fullDuration ? rawReport : asPartialReport(rawReport, outputDurationFrames);
+  const report = fullDuration ? rawReport : asPartialReport(rawReport, partialHorizonFrame);
   return {
     report,
     key: leafKeyForReport(report, durationFrames),
@@ -673,28 +677,40 @@ function evaluateNode(
   };
 }
 
-function partialOutputDurationFrames(
+function processedHorizonFrame(
   node: SearchNode,
   gaps: Gap[],
-  durationFrames: number,
 ): number {
-  let prefixEndFrame = 0;
   for (let i = Math.min(node.gapIndex, gaps.length) - 1; i >= 0; i--) {
-    if (gaps[i].endsWithContact) {
-      prefixEndFrame = gaps[i].endFrame;
-      break;
-    }
+    if (gaps[i].endsWithContact) return gaps[i].endFrame;
   }
-  return Math.max(1, Math.min(durationFrames, prefixEndFrame + 20));
+  return 0;
 }
 
-function asPartialReport(report: DriftReport, outputDurationFrames: number): DriftReport {
-  if (report.terminus.reason !== "endOfSpec") return report;
+function partialOutputDurationFrames(horizonFrame: number, durationFrames: number): number {
+  return Math.max(1, Math.min(durationFrames, horizonFrame + 20));
+}
+
+function asPartialReport(report: DriftReport, horizonFrame: number): DriftReport {
+  const reachedContacts = report.contacts
+    .filter((contact) => secToFrame(contact.t_target) <= horizonFrame);
+  const futureContacts = report.contacts
+    .filter((contact) => secToFrame(contact.t_target) > horizonFrame)
+    .slice(0, PARTIAL_FUTURE_CONTACT_WINDOW)
+    .map((contact) => ({
+      t_target: contact.t_target,
+      t_actual: null,
+      frame_error: null,
+      status: "missing" as const,
+    }));
   return {
     ...report,
+    contacts: [...reachedContacts, ...futureContacts],
+    off_beat_landings: report.off_beat_landings
+      .filter((landing) => landing.frame <= horizonFrame),
     terminus: {
-      frame: Math.min(report.terminus.frame, outputDurationFrames),
-      reason: "rideStalled",
+      frame: Math.min(report.terminus.frame, horizonFrame),
+      reason: report.terminus.reason === "endOfSpec" ? "rideStalled" : report.terminus.reason,
     },
   };
 }

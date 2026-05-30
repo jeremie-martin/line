@@ -59,6 +59,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(result.track.lines.length).toBeGreaterThanOrEqual(0);
     expect(result.track.duration).toBeLessThan(secToFrame(spec.duration) + 20);
     expect(result.report.terminus.reason).not.toBe("endOfSpec");
+    expect(result.report.contacts.length).toBeGreaterThan(0);
+    expect(result.report.contacts.every((contact) => contact.status === "missing")).toBe(true);
     expect(result.stats.budget_exhausted).toBe(true);
     expect(result.stats.leaves_considered).toBeGreaterThan(0);
     expect(result.stats.handoff_partial_evaluations).toBeGreaterThan(0);

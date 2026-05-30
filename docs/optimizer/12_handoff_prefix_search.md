@@ -46,11 +46,14 @@ prefix superset and cannot return a strictly worse comparator key.
 
 Nonterminal prefixes have explicit partial-output semantics. They are evaluated
 only through their committed horizon plus a short detector margin, their track
-duration is that partial horizon, and if the truncated detector reaches that
-horizon the report terminus is forced to a failing `rideStalled` terminus at the
-cutoff. Future contacts therefore remain missing and survival quality reflects
-prefix progress instead of pretending an incomplete prefix is a full-spec ride.
-Once all contact gaps have been processed, the same node becomes terminal and is
+duration includes that short margin, and their report contains contacts up to
+the processed horizon plus a bounded window of immediate future contacts marked
+missing. If the truncated detector reaches the horizon, the report terminus is
+forced to a failing `rideStalled` terminus at the cutoff. The bounded future
+window keeps partial prefixes honest without letting a long-spec tail of
+unreached contacts annihilate the score below the comparator epsilon; survival
+quality carries the "how far through the spec did this prefix get?" signal. Once
+all contact gaps have been processed, the same node becomes terminal and is
 scored over the full spec duration.
 
 The handoff test now points the architecture-agnostic contract harness at
@@ -87,6 +90,19 @@ budget now reaches a complete contract-passing track. The 60k row then shows the
 narrower branch factor spending follow-up budget on better prefixes rather than
 late suffix variants of the first passing path.
 
+Current frontier probes at the 40k campaign budget:
+
+| command | result |
+|---|---|
+| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 20/42 hits, 2 in-horizon missing + 20 future-window missing, horizon frame 423 |
+| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 4/25 hits, 1 in-horizon missing + 20 future-window missing, horizon frame 96 |
+| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, terminal 57/77 hits, 20 missing |
+
+The frontier rows are still failures, but the failure mode has moved from
+"budget-exempt floor prevents search" to budget-subject prefix progress with
+clear skip ownership. The next lever is candidate/backtracking policy around
+the skipped contact gaps, not tangency or arc placement.
+
 ## Deliberate differences from LDS
 
 - No budget-exempt d=0 floor.
@@ -107,6 +123,8 @@ late suffix variants of the first passing path.
   spend many evaluations on complete prefixes whose quality does not improve.
   Later slices should cache or score more selectively without changing the budget
   contract.
+- Frontier dense specs still miss contacts at 40k; handoff currently records the
+  skipped gaps but does not repair them with targeted local backtracking.
 - Root alternatives are currently only a cheap heuristic top set. They make the
   search structure right, but have not yet delivered a measured quality win over
   the default start on the probe rows.

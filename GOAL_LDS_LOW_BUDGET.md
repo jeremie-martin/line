@@ -37,7 +37,8 @@ npm run golden -- --compiler=handoff --jobs=48 --budget=40000
   explicit. Treat it as the low-budget campaign run of record.
 - **Design pressure:** the optimizer should work decently, and improve over time,
   at `--budget=20000`; it should then improve or hold as budget rises to
-  `--budget=40000`, `--budget=60000`, and the default calibrated budgets.
+  `--budget=40000`, `--budget=60000`, and handoff default-budget runs invoked
+  with `--compiler=handoff`.
 - **The active root cause:** every current failing row that has been probed is
   budget-starved by the floor. The budget-exempt d=0 descent consumes at least the
   entire row budget on its own, so `getSimFrames() >= budget` before repair starts.
@@ -232,19 +233,20 @@ Treat a red determinism or monotonicity test as a hard stop.
    a clear net-positive trade. Revert if it only shifts score noise or hides the
    issue behind more compute.
 5. **Check the low-budget curve.** A good change should usually help at 20k/40k and
-   hold or improve at 60k/default. If it helps 40k but hurts 60k or the canonical
-   default, understand why before keeping it.
+   hold or improve at 60k and handoff default-budget runs. Always invoke those
+   checks with `--compiler=handoff`. If it helps 40k but hurts higher handoff
+   budgets, understand why before keeping it.
 6. **Confirm before committing.** Run the 40k campaign command, the property tests,
-   and a higher-budget or canonical sanity check. Use `--variants` before declaring
-   a candidate-generation change robust.
+   and a higher-budget handoff sanity check. Use `--variants` before declaring a
+   candidate-generation change robust.
 
 Stop when these hold:
 
 - The 40k campaign run has `contract_pass_rate == 1.0`.
 - The 20k stress run is meaningfully usable: no current hard row is merely
   `leaves_considered=1` / `repair_rounds=0` because the floor consumed the budget.
-- The 60k/default runs improve or hold relative to 40k as expected from the
-  anytime contract.
+- The 60k and handoff default-budget runs improve or hold relative to 40k as
+  expected from the anytime contract. Invoke both with `--compiler=handoff`.
 - Property tests are green.
 - The quality breakdown has plateaued after several accepted iterations.
 

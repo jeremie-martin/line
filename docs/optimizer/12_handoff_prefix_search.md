@@ -71,18 +71,21 @@ Covered in that test:
 
 Targeted probes after removing the legacy optimized-preroll pre-pass, adding
 explicit root/start alternatives, demoting the two-contact rollout to a
-tiebreak, and adding partial-prefix report semantics:
+tiebreak, adding partial-prefix report semantics, and narrowing per-node
+branching to reduce suffix explosion:
 
 | command | result |
 |---|---|
-| `npm run golden -- --compiler=handoff --specs=tiny_dance --seed=0 --budget=5000 --jobs=1 --json` | PASS, score 623.03, 4/4 contacts, 5.0k sim frames, 4 start options |
-| `npm run golden -- --compiler=handoff --specs=mini_burst --seed=0 --budget=15000 --jobs=1 --json` | PASS, score 500.29, 7/7 contacts, 15.4k sim frames, 4 start options |
+| `npm run golden -- --compiler=handoff --specs=tiny_dance --seed=0 --budget=5000 --jobs=1 --json` | PASS, score 612.67, 4/4 contacts, 5.0k sim frames, 4 start options |
+| `npm run golden -- --compiler=handoff --specs=mini_burst --seed=0 --budget=15000 --jobs=1 --json` | PASS, score 500.29, 7/7 contacts, 15.2k sim frames, 4 start options |
 | `npm run golden -- --compiler=handoff --specs=cold_start --seed=0 --budget=30000 --jobs=1 --json` | PASS, 15/15 contacts, score 218.66 |
-| `npm run golden -- --compiler=handoff --specs=cold_start --seed=0 --budget=60000 --jobs=1 --json` | PASS, 15/15 contacts, score 218.66 |
+| `npm run golden -- --compiler=handoff --specs=cold_start --seed=0 --budget=60000 --jobs=1 --json` | PASS, 15/15 contacts, score 270.91 |
 
 The `cold_start` 30k row is the important shape: explicit partial-prefix
 semantics cut enough full-duration rescoring out of the early path that the same
-budget now reaches a complete contract-passing track.
+budget now reaches a complete contract-passing track. The 60k row then shows the
+narrower branch factor spending follow-up budget on better prefixes rather than
+late suffix variants of the first passing path.
 
 ## Deliberate differences from LDS
 
@@ -99,7 +102,7 @@ budget now reaches a complete contract-passing track.
   path still evaluates whole-track leaves.
 - The rollout preview is still a local heuristic. As a tiebreak it preserves
   low-budget contact completion on the probe rows, but it has not improved
-  `cold_start` quality after the first passing track is found.
+  `cold_start` quality by itself after the first passing track is found.
 - Full-duration terminal scoring is still expensive, and larger budgets can
   spend many evaluations on complete prefixes whose quality does not improve.
   Later slices should cache or score more selectively without changing the budget

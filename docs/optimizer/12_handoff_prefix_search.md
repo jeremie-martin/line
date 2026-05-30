@@ -165,6 +165,11 @@ tangency or arc placement.
   long-dense candidate solve list all either regressed `solo_run@40k` reachability
   or lowered the 60k passing quality. The remaining lever is not simply "make each
   node cheaper"; it needs a better long-dense mainline policy.
+- Additional trace on `solo_run@40k seed=1`: the search does reach no-skip
+  prefixes through 54 contacts before the soft stop, but the strict failing-score
+  comparator keeps an earlier 51-hit prefix because later prefixes lose enough
+  axis quality to offset survival progress. A cheap cost-greedy suffix from that
+  region also failed, so the missing policy is not just "try a greedy tail".
 - Root alternatives are currently only a cheap heuristic top set. They make the
   search structure right, but have not yet delivered a measured quality win over
   the default start on the probe rows.

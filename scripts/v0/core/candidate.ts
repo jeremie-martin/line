@@ -684,7 +684,7 @@ function isDenseContactSequence(contactFrames: number[], durationFrames: number)
   return contactFrames.length * FPS > durationFrames;
 }
 
-function searchTargetsForCost(
+export function searchTargetsForCost(
   targets: SectionAxes,
   gap: Gap,
   axisMeasureEnd: number,

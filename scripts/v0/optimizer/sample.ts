@@ -23,6 +23,7 @@ import {
   axisLookaheadEndFrame,
   readTargetState,
   sampleArcParams,
+  searchTargetsForCost,
   tryCandidate,
 } from "../core/candidate.ts";
 import { getRiderMetered } from "../../lib/detector.ts";
@@ -78,6 +79,9 @@ export function sampleOneCandidate(
   const refY = rider.position.y;
   const targetState = readTargetState(engine, gap.endFrame, refX, refY);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const searchTargets = searchTargetsForCost(
+    gap.targets, gap, axisMeasureEnd, ctx.allContactFrames,
+  );
 
   // Pass the real attempt index: on steep-catch gaps sampleArcParams selects
   // CATCH_TEMPLATES[attempt] (before consuming RNG), so threading 0..K-1 sweeps
@@ -89,7 +93,7 @@ export function sampleOneCandidate(
   // targeting is a higher-level concern).
   const fit = tryCandidate(
     engine, gap, arc, lineIdStart, ctx.allContactFrames,
-    axisMeasureEnd, gap.targets, true,
+    axisMeasureEnd, searchTargets, true,
   );
 
   return fit;

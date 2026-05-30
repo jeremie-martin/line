@@ -29,12 +29,12 @@
 - **Primary command for this campaign:**
 
 ```
-npm run golden -- --jobs=4 --budget=40000
+npm run golden -- --compiler=handoff --jobs=48 --budget=40000
 ```
 
   This is deliberately **not** the canonical project `goal_score` run. The harness
-  will label it non-canonical because `--budget` is explicit. Treat it as the
-  low-budget campaign run of record.
+  will label it non-canonical because `--compiler=handoff` and `--budget` are
+  explicit. Treat it as the low-budget campaign run of record.
 - **Design pressure:** the optimizer should work decently, and improve over time,
   at `--budget=20000`; it should then improve or hold as budget rises to
   `--budget=40000`, `--budget=60000`, and the default calibrated budgets.
@@ -63,7 +63,7 @@ For this low-budget campaign, the run of record is the full golden suite across
 seeds `[0,1,2]` with an explicit fixed budget:
 
 ```
-npm run golden -- --jobs=4 --budget=40000
+npm run golden -- --compiler=handoff --jobs=48 --budget=40000
 ```
 
 Read the score using the same per-row and per-spec breakdown as `GOAL_LDS.md`, but
@@ -131,37 +131,37 @@ That run uses the suite's calibrated default budgets and is the official
 This campaign intentionally uses an explicit fixed budget:
 
 ```
-npm run golden -- --jobs=4 --budget=40000
+npm run golden -- --compiler=handoff --jobs=48 --budget=40000
 ```
 
-Because it has `--budget`, the harness correctly labels it non-canonical. That is
-expected. Do not fight the label or edit the harness to rename it. In this charter,
-the fixed-budget full-suite run is the operating signal because the failure being
-attacked is that low budgets are currently consumed by the floor before the anytime
-search begins.
+Because it has `--compiler=handoff` and `--budget`, the harness correctly labels it
+non-canonical. That is expected. Do not fight the label or edit the harness to
+rename it. In this charter, the fixed-budget full-suite handoff run is the
+operating signal because the failure being attacked is that low budgets are
+currently consumed by the floor before the anytime search begins.
 
 ### Commands
 
 ```
-npm run golden -- --jobs=4 --budget=40000
+npm run golden -- --compiler=handoff --jobs=48 --budget=40000
   # Campaign run of record: full suite, seeds [0,1,2], fixed low budget.
 
-npm run golden -- --jobs=4 --budget=20000
+npm run golden -- --compiler=handoff --jobs=48 --budget=20000
   # Stress run: forces the floor to become cheap and good.
 
-npm run golden -- --jobs=4 --budget=60000
+npm run golden -- --compiler=handoff --jobs=48 --budget=60000
   # Curve check: more budget should help or hold, not expose budget-specific hacks.
 
-npm run golden -- --jobs=4 --specs=drums_pendulum,drums_crescendo,solo_run --budget=40000 --details
+npm run golden -- --compiler=handoff --jobs=48 --specs=drums_pendulum,drums_crescendo,solo_run --budget=40000 --details
   # Targeted current frontier.
 
-npm run golden -- --jobs=4 --specs=solo_run --seed=1 --budget=20000 --details
+npm run golden -- --compiler=handoff --jobs=48 --specs=solo_run --seed=1 --budget=20000 --details
   # Target one known starved row.
 
-npm run golden -- --fast
+npm run golden -- --compiler=handoff --fast
   # Cheap smoke probe. Useful, but it does not cover the hard floor-starved rows.
 
-npm run golden -- --variants
+npm run golden -- --compiler=handoff --variants
   # Generalization probe. Use before declaring victory.
 
 npx vitest run tests/optimizer_*.test.ts
@@ -395,4 +395,3 @@ The work should therefore focus on two coupled levers:
 Do not treat the current failures as separate hard specs until this root cause is
 removed. Once repair and `d>=1` search actually run under 20k/40k, the remaining
 misses/off-beats can be diagnosed on their own merits.
-

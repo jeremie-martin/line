@@ -93,7 +93,10 @@ type HandoffTelemetry = {
 };
 
 const DEFAULT_MAX_NODES = 800;
-const HANDOFF_CANDIDATE_POOL = 8;
+const HANDOFF_MEDIUM_DENSE_CANDIDATE_POOL = 6;
+const HANDOFF_BROAD_CANDIDATE_POOL = 8;
+const HANDOFF_MEDIUM_DENSE_MIN_CONTACTS = 30;
+const HANDOFF_LONG_DENSE_CONTACTS = 60;
 const HANDOFF_BRANCHING = 3;
 const HANDOFF_PREVIEW_K = 2;
 const HANDOFF_PREVIEW_HORIZON = 1;
@@ -392,7 +395,7 @@ function rankedOptions(
   telemetry: HandoffTelemetry,
 ): RankedOption[] {
   const sorted = getCandidatesSorted(node, gaps, ctx, seed);
-  const pool = sorted.slice(0, HANDOFF_CANDIDATE_POOL);
+  const pool = sorted.slice(0, handoffCandidatePool(ctx));
   const scored = pool.map((candidate, rank) =>
     scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry)
   );
@@ -402,6 +405,15 @@ function rankedOptions(
     a.rank - b.rank
   );
   return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+function handoffCandidatePool(ctx: SpecContext): number {
+  const contacts = ctx.allContactFrames.length;
+  // Medium-dense rows are preview-cost bound; sparse and very long dense rows
+  // need the broader pool for quality/reachability.
+  return contacts >= HANDOFF_MEDIUM_DENSE_MIN_CONTACTS && contacts <= HANDOFF_LONG_DENSE_CONTACTS
+    ? HANDOFF_MEDIUM_DENSE_CANDIDATE_POOL
+    : HANDOFF_BROAD_CANDIDATE_POOL;
 }
 
 function scoreCandidateForHandoff(

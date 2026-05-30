@@ -28,6 +28,12 @@ policy function of `(spec, seed, prefix)`: it does not read the remaining budget
 The budget only truncates how far through the deterministic prefix-node sequence
 the compiler gets.
 
+The preview candidate pool is spec-shape dependent but budget-independent:
+medium-dense specs with 30-60 contacts score the top 6 local candidates, while
+sparse specs and long dense specs score the top 8. The narrower pool gives the
+drum frontier more prefix depth; the broader pool preserves quality on sparse
+tracks and avoids dead-ending the long `solo_run` contact chain.
+
 If a prefix reaches a contact with no viable candidates, the skipped-contact
 continuation is scored immediately as a partial prefix but its expansion is
 deferred behind the existing frontier. This keeps a miss from becoming the
@@ -85,8 +91,9 @@ Targeted probes after removing the legacy optimized-preroll pre-pass, adding
 explicit root/start alternatives, adding partial-prefix report semantics,
 narrowing per-node branching to reduce suffix explosion, and replacing the
 two-contact rollout with a one-contact/two-sample future feasibility probe.
-Dense-opening start feasibility is gated, so it does not affect these control
-rows:
+The latest slice also narrows the preview candidate pool only on medium-dense
+specs. Dense-opening start feasibility is gated, so it does not affect these
+control rows:
 
 | command | result |
 |---|---|
@@ -104,24 +111,25 @@ Current frontier probes at the 40k campaign budget:
 
 | command | result |
 |---|---|
-| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 50/55 hits, score 2.05, 40.3k sim frames |
-| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 44/55 hits, score ~0, 40.3k sim frames |
+| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 54/55 hits, score 114.64, 40.7k sim frames |
+| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | FAIL, partial 48/55 hits, score 0.33, 40.4k sim frames |
 | `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, partial 51/71 hits, score ~0, 40.1k sim frames |
 
 The same frontier at 60k:
 
 | command | result |
 |---|---|
-| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=60000 --jobs=1 --json` | PASS, score 358.68, 55/55 hits |
-| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=60000 --jobs=1 --json` | PASS, score 384.26, 55/55 hits |
+| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=60000 --jobs=1 --json` | PASS, score 326.52, 55/55 hits |
+| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=60000 --jobs=1 --json` | PASS, score 419.20, 55/55 hits |
 | `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=60000 --jobs=1 --json` | PASS, score 448.21, 77/77 hits |
 
 The frontier rows are still partial at 40k, but the failure mode has moved from
 "budget-exempt floor prevents search" to budget-subject prefix progress. The
-one-contact/two-sample preview is the key latest change: `drums_crescendo@60k`
-moved from a 45/55 partial failure to a 55/55 pass, while the 40k dense rows also
-reach farther. The next lever is candidate/backtracking policy around the
-remaining 40k misses, not tangency or arc placement.
+one-contact/two-sample preview and medium-dense candidate-pool narrowing are the
+key latest changes: `drums_crescendo@60k` moved from a 45/55 partial failure to
+a 55/55 pass, while `drums_pendulum@40k` now reaches 54/55. The next lever is
+candidate/backtracking policy around the remaining 40k misses, not tangency or
+arc placement.
 
 ## Deliberate differences from LDS
 

@@ -45,8 +45,9 @@ per-step writeups in `docs/optimizer/`.
 `handoff.ts` is a separate experimental compiler path. It does not enumerate
 whole-track LDS leaves: nodes are partial prefixes at gap boundaries, expanded
 one gap at a time with a deterministic DFS stack. Candidate order is fixed by a
-cheap first future-contact feasibility preview. The same sim-frame budget and
-best-so-far register contract apply: budget only truncates the deterministic
+cheap first future-contact feasibility preview with a budget-independent
+candidate pool chosen from the spec's contact count. The same sim-frame budget
+and best-so-far register contract apply: budget only truncates the deterministic
 node sequence. Nonterminal prefixes are scored as explicit partial outputs over
 their committed horizon; complete contact prefixes are scored over the full spec
 duration. Run it through the benchmark with

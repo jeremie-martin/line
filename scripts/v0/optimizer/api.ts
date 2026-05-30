@@ -33,7 +33,14 @@ import {
 } from "../core/preroll.ts";
 import { makeRng } from "../../lib/rng.ts";
 import { CALIB, secToFrame } from "../types.ts";
-import { enumerateLeaves, type Leaf, type SearchTelemetry } from "./lds.ts";
+import {
+  SKIP,
+  buildBacktrackingLeaf,
+  enumerateLeaves,
+  type BacktrackingLeaf,
+  type Leaf,
+  type SearchTelemetry,
+} from "./lds.ts";
 import { makeRootNode } from "./node.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
@@ -44,7 +51,7 @@ import {
   setSimFrameLimit,
 } from "./sim_frames.ts";
 import { resetArcPlacementStats, snapshotArcPlacementStats } from "../arc_placement.ts";
-import type { SpecContext } from "./sample.ts";
+import type { Candidate, SpecContext } from "./sample.ts";
 import type { Budget, CompileOutput, DriftReport, Spec } from "./types.ts";
 
 export type CompileLDSOptions = {
@@ -74,6 +81,8 @@ export type CompileLDSOptions = {
 /** Budgeted compiles stop at the normal LDS op boundary once `budget.units` is
  *  spent. This hard guard catches work still inside a single expensive op. */
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
+const LOW_BUDGET_FLOOR_DEPTH = 4;
+const LOW_BUDGET_FLOOR_MIN_CONTACTS = 16;
 
 export function compileLDS(
   userSpec: Spec,
@@ -139,6 +148,7 @@ export function compileLDS(
     const telemetry: SearchTelemetry = { repairRounds: 0, cacheHits: 0, cacheMisses: 0, baseBacktracks: 0 };
     let polishTried = 0;
     let polishAdopted = 0;
+    const candCache = new Map<string, Candidate[]>();
 
     /** Score a leaf (or polish variant) and offer it to the register.
      *  Returns the comparator key. The detect+report runs once (`evaluateLeaf`)
@@ -157,33 +167,62 @@ export function compileLDS(
     // stands alone — no legacyCompile seed, no fallback.
     let hardLimitError: PhysicsFrameLimitExceeded | null = null;
     try {
-      for (const leaf of enumerateLeaves(root, maxDiscrepancy, gaps, ctx, seed, budgetUnits, telemetry)) {
-        const key = consider(leaf);
-        opts.onLeaf?.(leaf, key);
-
-        // Stage B — polish as clone-and-test: derive a polished variant of this
-        // leaf and offer it too. The variant is a NEW leaf (original untouched),
-        // so best-so-far can only improve; `E` is extended in a fixed,
-        // deterministic order, never reordered. Interleaving per-leaf (rather
-        // than a final pass) means even a low budget polishes the d=0 greedy
-        // leaf first, so low-budget output is "greedy + polish" ≈ greedy_v1.
-        if (polishEnabled) {
-          const variant = polishLeafVariant(leaf.fits, spec, gaps, allContactFrames, durationFrames, startState);
-          if (variant !== null) {
-            polishTried++;
-            const improvedBefore = register.improvementCount;
-            consider({ ...leaf, fits: variant.fits, engine: variant.engine });
-            if (register.improvementCount > improvedBefore) polishAdopted++;
-          }
+      let baseForEnumeration: BacktrackingLeaf | undefined;
+      // The shallow incumbent is only for large contactful rows where the normal
+      // completion floor can consume the whole low budget. Small specs keep the
+      // original single-floor path, avoiding duplicate work in property tests and
+      // cheap cases where the floor is not the bottleneck.
+      if (opts.budget !== undefined && allContactFrames.length >= LOW_BUDGET_FLOOR_MIN_CONTACTS) {
+        const quickFloor = buildBacktrackingLeaf(
+          root,
+          gaps,
+          ctx,
+          seed,
+          LOW_BUDGET_FLOOR_DEPTH,
+          candCache,
+          undefined,
+          undefined,
+          telemetry,
+        );
+        if (quickFloor !== null) {
+          const key = consider(quickFloor.leaf);
+          opts.onLeaf?.(quickFloor.leaf, key);
+          if (!quickFloor.baseCommitPath.includes(SKIP)) baseForEnumeration = quickFloor;
         }
+        if (getSimFrames() >= budgetUnits) budgetExhausted = true;
+      }
 
-        // Op boundary: check budget AFTER scoring/considering this leaf (and its
-        // polish variant). Stopping AFTER consider means we always benefit from
-        // work already paid for, and preserves the prefix-superset invariant —
-        // the same leaves would have been considered at any larger budget.
-        if (getSimFrames() >= budgetUnits) {
-          budgetExhausted = true;
-          break;
+      if (!budgetExhausted) {
+        for (const leaf of enumerateLeaves(
+          root, maxDiscrepancy, gaps, ctx, seed, budgetUnits, telemetry, candCache, baseForEnumeration,
+        )) {
+          const key = consider(leaf);
+          opts.onLeaf?.(leaf, key);
+
+          // Stage B — polish as clone-and-test: derive a polished variant of this
+          // leaf and offer it too. The variant is a NEW leaf (original untouched),
+          // so best-so-far can only improve; `E` is extended in a fixed,
+          // deterministic order, never reordered. Interleaving per-leaf (rather
+          // than a final pass) means even a low budget polishes the d=0 greedy
+          // leaf first, so low-budget output is "greedy + polish" ≈ greedy_v1.
+          if (polishEnabled) {
+            const variant = polishLeafVariant(leaf.fits, spec, gaps, allContactFrames, durationFrames, startState);
+            if (variant !== null) {
+              polishTried++;
+              const improvedBefore = register.improvementCount;
+              consider({ ...leaf, fits: variant.fits, engine: variant.engine });
+              if (register.improvementCount > improvedBefore) polishAdopted++;
+            }
+          }
+
+          // Op boundary: check budget AFTER scoring/considering this leaf (and its
+          // polish variant). Stopping AFTER consider means we always benefit from
+          // work already paid for, and preserves the prefix-superset invariant —
+          // the same leaves would have been considered at any larger budget.
+          if (getSimFrames() >= budgetUnits) {
+            budgetExhausted = true;
+            break;
+          }
         }
       }
     } catch (error) {

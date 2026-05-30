@@ -131,6 +131,9 @@ npx tsx scripts/v0/optimizer/floor_probe.ts --specs=solo_run --seeds=1 --guard=n
 
 npx tsx scripts/v0/optimizer/floor_probe.ts --specs=solo_run --seed=1 --budget=40000 --contract=both --json
   # Compare the current completion floor with a progressive rank-0 prefix floor.
+
+npx tsx scripts/v0/optimizer/floor_probe.ts --specs=solo_run --seed=1 --guard=none --backtrack-depth=12 --json
+  # Sweep completion-floor backtracking depth without changing the compiler.
 ```
 
 The probe intentionally measures the floor directly rather than going through
@@ -171,6 +174,12 @@ From `docs/optimizer/low_budget_findings.md`:
   row. This proves progressive floors can make low budgets meaningful, but the
   policy must become contact-preserving before it can replace the completion
   floor.
+- Accepted first floor change: budgeted `compileLDS` now considers a shallow
+  depth-4 completion floor before the normal depth-24 floor on large contactful
+  specs. On the target 40k rows this kept the 4/9 pass count, removed all three
+  `solo_run` hard-guard errors, and improved indicative score from 11.85 to
+  58.55. At 60k, the fixed sequence recovers `solo_run@seed=1` as a full pass
+  and reaches 5/9 on the same target set.
 
 The repeated pattern is that cost-best-of-32 is stabilizing, but the resulting
 whole-track floor is too expensive to be the mandatory prelude for low budgets.

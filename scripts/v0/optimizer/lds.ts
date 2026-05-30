@@ -71,6 +71,8 @@ export type Leaf = {
   cumulativeCost: number;
 };
 
+export type BacktrackingLeaf = { leaf: Leaf; baseCommitPath: number[] };
+
 /** Per-failure backtrack depth for the base-path descent. Higher than legacy's
  *  `CALIB.BACKTRACK_DEPTH` (2) because the optimizer's candidate generator
  *  samples from `gap.targets` directly — it lacks legacy `compile()`'s residual
@@ -185,7 +187,7 @@ export function buildBacktrackingLeaf(
   budgetUnits?: number,
   /** Optional non-scoring telemetry (cache hits/misses, backtrack steps). */
   telemetry?: SearchTelemetry,
-): { leaf: Leaf; baseCommitPath: number[] } | null {
+): BacktrackingLeaf | null {
   type FrameKind = "leaf" | "noncontact" | "contact" | "skip";
   type Frame = {
     node: SearchNode;
@@ -412,6 +414,8 @@ export function* enumerateLeaves(
   seed: number,
   budgetUnits = Infinity,
   telemetry?: SearchTelemetry,
+  candCache: Map<string, Candidate[]> = new Map(),
+  prebuiltBase?: BacktrackingLeaf,
 ): Generator<Leaf> {
   // Candidate-list cache keyed on the committed candidate-identity path, SHARED
   // between the base-path descent, the guided-repair leaves, and the deviation
@@ -419,13 +423,12 @@ export function* enumerateLeaves(
   // key scheme is identical in all — absolute sorted-index (or "S") per contact
   // gap — so a candidate list sampled once is reused for free when any of them
   // revisits the same prefix.
-  const candCache = new Map<string, Candidate[]>();
-
   const getCandidatesCached = makeCandGetter(candCache, gaps, ctx, seed, telemetry);
 
-  const base = buildBacktrackingLeaf(root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache, undefined, undefined, telemetry);
+  const base = prebuiltBase ??
+    buildBacktrackingLeaf(root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, candCache, undefined, undefined, telemetry);
   if (base === null) return;
-  yield base.leaf;
+  if (prebuiltBase === undefined) yield base.leaf;
 
   // Guided repair — the validation-retry IDEA integrated as ordinary deviation
   // LEAVES, not a copied retry loop. The base path can complete yet MISS or land

@@ -54,6 +54,7 @@ type Args = {
   budgetUnits: number | null;
   guard: GuardMode;
   contract: ContractArg;
+  backtrackDepth: number;
   json: boolean;
 };
 
@@ -100,6 +101,7 @@ function parseArgs(argv: string[]): Args {
   let budgetUnits: number | null = null;
   let guard: GuardMode = "hard";
   let contract: ContractArg = "completion";
+  let backtrackDepth = BASE_BACKTRACK_DEPTH;
   let json = false;
 
   for (const raw of argv) {
@@ -130,6 +132,9 @@ function parseArgs(argv: string[]): Args {
         throw new Error(`--contract must be completion, progressive, or both; got ${value}`);
       }
       contract = value;
+    } else if (name === "--backtrack-depth") {
+      if (!value) throw new Error("--backtrack-depth requires a value");
+      backtrackDepth = parseBacktrackDepth(value);
     } else {
       throw new Error(`unknown argument: ${raw}`);
     }
@@ -141,6 +146,7 @@ function parseArgs(argv: string[]): Args {
     budgetUnits,
     guard,
     contract,
+    backtrackDepth,
     json,
   };
 }
@@ -163,6 +169,12 @@ function parseBudget(value: string): number {
   const budget = Number(value);
   if (!Number.isFinite(budget) || budget <= 0) throw new Error(`invalid budget ${value}`);
   return budget;
+}
+
+function parseBacktrackDepth(value: string): number {
+  const depth = Number(value);
+  if (!Number.isInteger(depth) || depth < 0) throw new Error(`invalid backtrack depth ${value}`);
+  return depth;
 }
 
 async function probeRow(
@@ -297,7 +309,7 @@ async function probeRow(
       gaps,
       ctx,
       seed,
-      BASE_BACKTRACK_DEPTH,
+      args.backtrackDepth,
       new Map<string, Candidate[]>(),
       undefined,
       undefined,
@@ -558,6 +570,7 @@ async function main(): Promise<void> {
       floor_contract: args.contract,
       guard: args.guard,
       budget_units: args.budgetUnits,
+      backtrack_depth: args.backtrackDepth,
       rows,
     }, null, 2));
   } else {

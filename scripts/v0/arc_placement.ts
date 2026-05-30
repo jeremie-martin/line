@@ -27,7 +27,12 @@ export type ImpactAnchorTargetState = {
 export function impactAnchorEnabled(): boolean {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_ARC_PLACEMENT;
-  return raw === "impact_anchor";
+  // Impact-anchored placement is now the DEFAULT (tangency NOT applied — that
+  // variant was catastrophic, docs/search_rethink_state_handoff.md §10c). Opt out
+  // to the legacy wide-anchor-box sampler + anchor-Y bisection with
+  // LR_ARC_PLACEMENT=legacy (alias: uniform). Any other value — unset or the
+  // explicit "impact_anchor" — selects impact anchoring.
+  return raw !== "legacy" && raw !== "uniform";
 }
 
 export function impactAnchorFallbackBisectEnabled(): boolean {

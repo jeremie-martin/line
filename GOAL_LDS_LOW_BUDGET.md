@@ -1,12 +1,12 @@
-# Goal - low-budget standalone LDS compiler (operating charter)
+# Goal - low-budget handoff compiler (operating charter)
 
 > **This is an operating contract for an autonomous optimization agent - you.**
 > You will be run in a loop: change the compiler, measure, keep or revert, repeat,
 > until the stop condition holds. This document is the context you need to
-> interpret the harness correctly for the low-budget LDS campaign.
+> interpret the harness correctly for the low-budget handoff campaign.
 >
 > This file is intentionally close to `GOAL_LDS.md`. The core mission is still the
-> same: improve the standalone LDS optimizer, preserve the four compiler
+> same: improve the standalone handoff optimizer, preserve the four compiler
 > properties from `docs/compiler_goals.md`, and produce the best tracks possible
 > without moving the scorer or specs. The difference is the active diagnosis:
 > current hard failures are not several unrelated hard specs. They are all
@@ -113,20 +113,15 @@ not evidence that repair failed. It is evidence that repair never got budget.
 
 ## 2. The harness is your instrument
 
-`scripts/v0/golden.ts` (`npm run golden`) is how you see. Treat it as an
-instrument, not as a yes/no judge. It reports the breakdown needed to reason about
-which part of the optimizer moved.
+`scripts/v0/golden.ts` is how you see. For this campaign, invoke it through the
+handoff commands below. Treat it as an instrument, not as a yes/no judge. It
+reports the breakdown needed to reason about which part of the optimizer moved.
 
 ### Campaign vs. canonical
 
-The canonical project score is still:
-
-```
-npm run golden
-```
-
-That run uses the suite's calibrated default budgets and is the official
-`GOAL_SCORE` described by `GOAL_LDS.md`.
+Bare `npm run golden` still uses the default LDS compiler and the suite's
+calibrated default budgets. It is the official project `GOAL_SCORE` described by
+`GOAL_LDS.md`, but it is not a command for this campaign.
 
 This campaign intentionally uses an explicit fixed budget:
 

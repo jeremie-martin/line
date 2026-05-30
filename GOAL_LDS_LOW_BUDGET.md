@@ -20,6 +20,11 @@
 
 ## 0. The job, in one screen
 
+- **Which compiler:** this campaign targets the **handoff** optimizer
+  (`scripts/v0/optimizer/handoff.ts`, the prefix hand-off search), selected with
+  `--compiler=handoff`. The default golden run is still `lds`; every campaign
+  command below passes `--compiler=handoff` explicitly. The "floor" language in
+  this charter maps onto the handoff search's base/frontier completion path.
 - **What you change:** the compiler in `scripts/v0/optimizer/*` and optimizer-side
   primitives it already owns: search, sampling, ranking, repair, register behavior,
   diagnostics, and optimizer-side constants.
@@ -29,7 +34,7 @@
 - **Primary command for this campaign:**
 
 ```
-npm run golden -- --jobs=4 --budget=40000
+npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
 ```
 
   This is deliberately **not** the canonical project `goal_score` run. The harness
@@ -63,7 +68,7 @@ For this low-budget campaign, the run of record is the full golden suite across
 seeds `[0,1,2]` with an explicit fixed budget:
 
 ```
-npm run golden -- --jobs=4 --budget=40000
+npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
 ```
 
 Read the score using the same per-row and per-spec breakdown as `GOAL_LDS.md`, but
@@ -131,7 +136,7 @@ That run uses the suite's calibrated default budgets and is the official
 This campaign intentionally uses an explicit fixed budget:
 
 ```
-npm run golden -- --jobs=4 --budget=40000
+npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
 ```
 
 Because it has `--budget`, the harness correctly labels it non-canonical. That is
@@ -143,25 +148,25 @@ search begins.
 ### Commands
 
 ```
-npm run golden -- --jobs=4 --budget=40000
+npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
   # Campaign run of record: full suite, seeds [0,1,2], fixed low budget.
 
-npm run golden -- --jobs=4 --budget=20000
+npm run golden -- --jobs=4 --budget=20000 --compiler=handoff
   # Stress run: forces the floor to become cheap and good.
 
-npm run golden -- --jobs=4 --budget=60000
+npm run golden -- --jobs=4 --budget=60000 --compiler=handoff
   # Curve check: more budget should help or hold, not expose budget-specific hacks.
 
-npm run golden -- --jobs=4 --specs=drums_pendulum,drums_crescendo,solo_run --budget=40000 --details
+npm run golden -- --jobs=4 --specs=drums_pendulum,drums_crescendo,solo_run --budget=40000 --details --compiler=handoff
   # Targeted current frontier.
 
-npm run golden -- --jobs=4 --specs=solo_run --seed=1 --budget=20000 --details
+npm run golden -- --jobs=4 --specs=solo_run --seed=1 --budget=20000 --details --compiler=handoff
   # Target one known starved row.
 
-npm run golden -- --fast
+npm run golden -- --fast --compiler=handoff
   # Cheap smoke probe. Useful, but it does not cover the hard floor-starved rows.
 
-npm run golden -- --variants
+npm run golden -- --variants --compiler=handoff
   # Generalization probe. Use before declaring victory.
 
 npx vitest run tests/optimizer_*.test.ts

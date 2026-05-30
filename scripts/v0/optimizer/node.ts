@@ -80,6 +80,14 @@ export function getCandidatesSorted(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  /** Number of candidates to sample at this gap. Defaults to N_CAND (the LDS
+   *  search's fixed pool). The handoff search passes a smaller value: it only
+   *  ranks a pool of ~5-8 by feasibility and branches 3-wide, so generating the
+   *  full 32 is mostly wasted per-node work — the dominant cost that starves its
+   *  bounded-budget exploration. By the prefix property of `solveOneGap`, a
+   *  smaller count is a deterministic prefix of the full sample order, so the
+   *  cheaper pool stays a subset of the richer one (same seed → same samples). */
+  nCand: number = N_CAND,
 ): Candidate[] {
   if (node._candidatesCache !== null) return node._candidatesCache;
   const gap = gaps[node.gapIndex];
@@ -94,7 +102,7 @@ export function getCandidatesSorted(
   // Byte-identical to the old `(seed|0)*1000003 + …` for int32-range seeds.
   const perGapRng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
   const sampleOrder = solveOneGap(
-    node.prefixEngine, gap, perGapRng, N_CAND, ctx, node.prefixNextLineId,
+    node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
   );
   // Sort by cost ascending. Stable sort: ties keep sample-order.
   const sorted = [...sampleOrder].sort((a, b) => a.cost - b.cost);

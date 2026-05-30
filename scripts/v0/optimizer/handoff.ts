@@ -100,6 +100,13 @@ const HANDOFF_BROAD_CANDIDATE_POOL = 8;
 const HANDOFF_MEDIUM_DENSE_MIN_CONTACTS = 30;
 const HANDOFF_LONG_DENSE_CONTACTS = 60;
 const HANDOFF_BRANCHING = 3;
+/** Candidates sampled per gap by the handoff search. The handoff ranks only a
+ *  pool of ~5-8 by feasibility and branches 3-wide, so the LDS default of 32 is
+ *  mostly wasted per-node work that starves the bounded-budget exploration.
+ *  Generating ~16 (a deterministic prefix of the 32-sample order) roughly halves
+ *  node cost, letting the search reach skip-free completions on budget-starved
+ *  deep specs within the same budget. Must stay >= HANDOFF_BROAD_CANDIDATE_POOL. */
+const HANDOFF_N_CAND = 16;
 const HANDOFF_PREVIEW_K = 2;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 4;
@@ -447,7 +454,7 @@ function rankedOptions(
   seed: number,
   telemetry: HandoffTelemetry,
 ): RankedOption[] {
-  const sorted = getCandidatesSorted(node, gaps, ctx, seed);
+  const sorted = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_N_CAND);
   const pool = sorted.slice(0, handoffCandidatePool(ctx));
   const scored = pool.map((candidate, rank) =>
     scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry)

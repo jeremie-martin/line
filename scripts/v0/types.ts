@@ -166,6 +166,19 @@ export type CompileStats = {
   /** Backtrack steps taken inside the d=0 base-path descent (buildBacktrackingLeaf).
    *  High ⇒ a thrashing base floor (e.g. drums_crescendo). */
   base_backtracks?: number;
+
+  /** Impact-anchored arc placement counters (only present when
+   *  LR_ARC_PLACEMENT=impact_anchor). Non-scoring diagnostics. */
+  arc_placement?: {
+    mode: "impact_anchor";
+    sampled: number;
+    preclear_rejected: number;
+    direct_attempted: number;
+    direct_landed: number;
+    direct_failed: number;
+    fallback_attempted: number;
+    fallback_landed: number;
+  };
 };
 
 export type ContactReport = {

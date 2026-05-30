@@ -23,6 +23,19 @@ import {
 } from "../../lib/detector.ts";
 import { arcToLines, makeSolidLine } from "../arc.ts";
 import {
+  hasPreTargetSledProximity,
+  impactAnchorEnabled,
+  impactAnchorFallbackBisectEnabled,
+  recordImpactAnchorDirectAttempt,
+  recordImpactAnchorDirectFailure,
+  recordImpactAnchorDirectLanding,
+  recordImpactAnchorFallbackAttempt,
+  recordImpactAnchorFallbackLanding,
+  recordImpactAnchorPreclearReject,
+  recordImpactAnchorSample,
+  sampleImpactAnchoredArc,
+} from "../arc_placement.ts";
+import {
   type SectionAxes,
   type Arc, type TrackLine, type Gap,
   CALIB, FPS,
@@ -174,6 +187,16 @@ export function sampleArcParams(
     + rng() * (A.END_ANGLE_MAX_DEG - A.END_ANGLE_MIN_DEG);
   const curveBias = -1 + 2 * rng();
 
+  if (impactAnchorEnabled()) {
+    recordImpactAnchorSample();
+    return sampleImpactAnchoredArc(
+      rng, targetState, targets, length, startAngleDeg, endAngleDeg, segments, curveBias,
+    );
+  }
+
+  // Wide uniform sampling within parameter bounds. Anchor X is offset around
+  // the predicted rider x at landing frame; anchor Y is a STARTING value that
+  // will be bisected for Contact precision.
   const anchorXOffset = A.ANCHOR_X_OFFSET_MIN
     + rng() * (A.ANCHOR_X_OFFSET_MAX - A.ANCHOR_X_OFFSET_MIN);
   const anchorYOffset = A.ANCHOR_Y_OFFSET_MIN
@@ -229,25 +252,94 @@ export function tryCandidate(
   searchTargets: SectionAxes,
   useWindowDetection: boolean,
 ): GapFit | null {
+  // Impact-anchored placement (LR_ARC_PLACEMENT=impact_anchor): the arc is
+  // already translated so its intended impact point lies on the predicted sled
+  // position at the target frame, so we validate it DIRECTLY (no anchor-Y
+  // bisection). A pre-target sled-proximity check rejects candidates likely to
+  // collide before the contact. Optional bisection fallback (gated by
+  // LR_IMPACT_ANCHOR_FALLBACK_BISECT=1) rescues direct failures.
+  if (impactAnchorEnabled()) {
+    const directLines = arcToLines(candArc, lineIdStart);
+    recordImpactAnchorDirectAttempt();
+    if (hasPreTargetSledProximity(baseEngine, gap, directLines)) {
+      recordImpactAnchorPreclearReject();
+      return null;
+    }
+
+    const direct = evaluateCandidateLines(
+      baseEngine, gap, candArc, directLines, lineIdStart, axisMeasureEnd,
+      allContactFrames, searchTargets, useWindowDetection,
+    );
+    if (direct !== null) {
+      recordImpactAnchorDirectLanding();
+      return direct;
+    }
+    recordImpactAnchorDirectFailure();
+
+    if (!impactAnchorFallbackBisectEnabled()) return null;
+    recordImpactAnchorFallbackAttempt();
+    const fallback = tryCandidateWithBisection(
+      baseEngine, gap, candArc, lineIdStart, allContactFrames, axisMeasureEnd,
+      searchTargets, useWindowDetection,
+    );
+    if (fallback !== null) recordImpactAnchorFallbackLanding();
+    return fallback;
+  }
+
+  return tryCandidateWithBisection(
+    baseEngine, gap, candArc, lineIdStart, allContactFrames, axisMeasureEnd,
+    searchTargets, useWindowDetection,
+  );
+}
+
+function tryCandidateWithBisection(
+  // deno-lint-ignore no-explicit-any
+  baseEngine: any,
+  gap: Gap,
+  candArc: Arc,
+  lineIdStart: number,
+  allContactFrames: number[],
+  axisMeasureEnd: number,
+  searchTargets: SectionAxes,
+  useWindowDetection: boolean,
+): GapFit | null {
   // Bisect anchor Y for Contact precision.
   const bisected = bisectAnchorY(
     baseEngine, candArc, gap.endFrame, lineIdStart, useWindowDetection,
   );
   if (bisected === null) return null;
 
+  return evaluateCandidateLines(
+    baseEngine, gap, bisected.arc, bisected.lines, lineIdStart, axisMeasureEnd,
+    allContactFrames, searchTargets, useWindowDetection,
+  );
+}
+
+function evaluateCandidateLines(
+  // deno-lint-ignore no-explicit-any
+  baseEngine: any,
+  gap: Gap,
+  arc: Arc,
+  lines: TrackLine[],
+  lineIdStart: number,
+  axisMeasureEnd: number,
+  allContactFrames: number[],
+  searchTargets: SectionAxes,
+  useWindowDetection: boolean,
+): GapFit | null {
   let best = evaluateGapFit(
-    baseEngine, gap, bisected.lines, axisMeasureEnd, allContactFrames,
+    baseEngine, gap, lines, axisMeasureEnd, allContactFrames,
     searchTargets, useWindowDetection,
   );
   if (best === null) return null;
 
   if (shouldTryCandidateRideOut(gap, axisMeasureEnd)) {
-    const rideOutId = lineIdStart + bisected.lines.length;
-    for (const source of rideOutSources(bisected.lines)) {
+    const rideOutId = lineIdStart + lines.length;
+    for (const source of rideOutSources(lines)) {
       for (const rideOut of makeContinuationLines(rideOutId, source)) {
-        const lines = [...bisected.lines, rideOut];
+        const extendedLines = [...lines, rideOut];
         const extended = evaluateGapFit(
-          baseEngine, gap, lines, axisMeasureEnd, allContactFrames,
+          baseEngine, gap, extendedLines, axisMeasureEnd, allContactFrames,
           searchTargets, useWindowDetection,
         );
         if (extended !== null && extended.cost + 1e-6 < best.cost) {
@@ -257,7 +349,7 @@ export function tryCandidate(
     }
   }
 
-  return { arc: bisected.arc, lines: best.lines, achieved: best.achieved, cost: best.cost };
+  return { arc, lines: best.lines, achieved: best.achieved, cost: best.cost };
 }
 
 function evaluateGapFit(

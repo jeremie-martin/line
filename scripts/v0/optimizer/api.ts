@@ -43,6 +43,7 @@ import {
   resetSimFrames,
   setSimFrameLimit,
 } from "./sim_frames.ts";
+import { resetArcPlacementStats, snapshotArcPlacementStats } from "../arc_placement.ts";
 import type { SpecContext } from "./sample.ts";
 import type { Budget, CompileOutput, DriftReport, Spec } from "./types.ts";
 
@@ -100,6 +101,7 @@ export function compileLDS(
   }
 
   resetSimFrames();
+  resetArcPlacementStats();
   const hardBudgetLimit = opts.budget === undefined
     ? null
     : Math.ceil(budgetUnits * BUDGET_HARD_LIMIT_MULTIPLIER);
@@ -222,6 +224,7 @@ export function compileLDS(
     // Patch whole-run fields onto the returned output: budget_exhausted (the leaf
     // was built before we knew the final flag) + the optimizer-native diagnostics
     // (non-scoring; they make the golden breakdown actionable — GOAL_LDS §1).
+    const arcStats = snapshotArcPlacementStats();
     return {
       ...best,
       stats: {
@@ -236,6 +239,7 @@ export function compileLDS(
         candidate_cache_hits: telemetry.cacheHits,
         candidate_cache_misses: telemetry.cacheMisses,
         base_backtracks: telemetry.baseBacktracks,
+        ...(arcStats ? { arc_placement: arcStats } : {}),
       },
     };
   } finally {

@@ -28,6 +28,14 @@ policy function of `(spec, seed, prefix)`: it does not read the remaining budget
 The budget only truncates how far through the deterministic prefix-node sequence
 the compiler gets.
 
+Preview work is now reused by the node it previews. The first `K=2` deterministic
+attempts sampled for a child's next contact stay on that child as a sample-order
+prefix cache; if the child is later expanded, normal candidate generation
+continues from attempt 2 to `N_CAND` instead of repeating attempts 0 and 1. Nodes
+that were never previewed still use the original full `solveOneGap(N_CAND)` path.
+This keeps the full sorted candidate stream unchanged while removing duplicated
+engine-in-loop work from the handoff search.
+
 The preview candidate pool is spec-shape dependent but budget-independent:
 medium-dense specs with 30-60 contacts score the top 5 local candidates, while
 sparse specs and long dense specs score the top 8. The narrower pool gives the
@@ -100,6 +108,16 @@ Covered in that test:
 - deferred start/fallback nodes stop at the soft budget before they are
   requeued for expansion.
 
+The node cache test also pins the preview-reuse invariant:
+
+```
+npx vitest run tests/optimizer_node.test.ts
+```
+
+It asserts that a previewed candidate prefix matches the direct `solveOneGap(K)`
+stream, and that completing the previewed node to `N_CAND` gives the same sorted
+candidate list as a fresh full solve.
+
 ## Initial evidence
 
 Targeted probes after removing the legacy optimized-preroll pre-pass, adding
@@ -126,9 +144,9 @@ Current frontier probes at the 40k campaign budget:
 
 | command | result |
 |---|---|
-| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | PASS, score 384.11, 55/55 hits, 40.5k sim frames |
-| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | PASS, score 337.43, 55/55 hits, 43.1k sim frames, 1/1 tail completion |
-| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, partial 52/72 hits, score ~0, 40.1k sim frames, 118 scored prefixes |
+| `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=40000 --jobs=1 --json` | PASS, score 384.11, 55/55 hits, 40.1k sim frames |
+| `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=40000 --jobs=1 --json` | PASS, score 337.43, 55/55 hits, 40.9k sim frames, 1/1 tail completion |
+| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=40000 --jobs=1 --json` | FAIL, partial 58/77 hits, score ~0, 40.6k sim frames, 124 scored prefixes |
 
 The same frontier at 60k:
 
@@ -136,7 +154,7 @@ The same frontier at 60k:
 |---|---|
 | `npm run golden -- --compiler=handoff --specs=drums_pendulum --seed=0 --budget=60000 --jobs=1 --json` | PASS, score 390.77, 55/55 hits |
 | `npm run golden -- --compiler=handoff --specs=drums_crescendo --seed=0 --budget=60000 --jobs=1 --json` | PASS, score 340.86, 55/55 hits |
-| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=60000 --jobs=1 --json` | PASS, score 448.21, 77/77 hits |
+| `npm run golden -- --compiler=handoff --specs=solo_run --seed=1 --budget=60000 --jobs=1 --json` | PASS, score 451.57, 77/77 hits |
 
 The medium-dense drum frontier now passes at 40k. The latest change is the
 near-tail completion: `drums_crescendo@40k` was already reaching a no-skip 53/55
@@ -165,8 +183,9 @@ tangency or arc placement.
   spend many evaluations on complete prefixes whose quality does not improve.
   Later slices should cache or score more selectively without changing the budget
   contract.
-- The long dense `solo_run` row still misses contacts at 40k; it is too far from
-  the tail for near-tail completion to help.
+- The long dense `solo_run` row still misses contacts at 40k, though preview
+  prefix reuse moves the best partial from 52/72 to 58/77 contacts. It is still
+  too far from the tail for near-tail completion to help.
 - Pass-capable/fallback frontier ordering cuts wasted skipped-contact prefix
   scoring on `solo_run@40k` and preserves the 60k pass, but candidate generation
   and preview work still dominate before the 77-contact pass is reached.

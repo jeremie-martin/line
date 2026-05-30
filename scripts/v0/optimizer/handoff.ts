@@ -32,7 +32,14 @@ import {
 } from "../core/substrate.ts";
 import { CALIB, START_DEFAULTS, secToFrame, type Gap, type SectionAxes } from "../types.ts";
 import { pickLowestCost, solveOneGap } from "./solver.ts";
-import { getCandidatesSorted, extendNode, isLeafNode, makeRootNode, type SearchNode } from "./node.ts";
+import {
+  getCandidatePrefix,
+  getCandidatesSorted,
+  extendNode,
+  isLeafNode,
+  makeRootNode,
+  type SearchNode,
+} from "./node.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
 import {
@@ -68,6 +75,7 @@ type HandoffNode = {
 
 type RankedOption = {
   candidate: Candidate | null;
+  search: SearchNode;
   rank: number;
   score: number;
   previewContacts: number;
@@ -430,7 +438,7 @@ function expandNode(
   }
 
   return options.map((option) => ({
-    search: extendNode(node.search, option.candidate),
+    search: option.search,
     startState: node.startState,
     startRank: node.startRank,
     startExpanded: node.startExpanded,
@@ -497,7 +505,7 @@ function completeNearTail(
 
     const [option] = rankedOptions(search, gaps, ctx, seed, telemetry);
     if (option === undefined || option.candidate === null) return null;
-    search = extendNode(search, option.candidate);
+    search = option.search;
     ranks.push(option.rank);
   }
 
@@ -544,6 +552,7 @@ function scoreCandidateForHandoff(
 
   return {
     candidate,
+    search: child,
     rank,
     previewContacts: preview.landed,
     previewSurvivors: preview.survivors,
@@ -580,15 +589,7 @@ function previewFutureContacts(
     while (node.gapIndex < nextGapIndex) node = extendNode(node, null);
 
     horizon++;
-    const nextGap = gaps[nextGapIndex];
-    const candidates = solveOneGap(
-      node.prefixEngine,
-      nextGap,
-      perGapRng(seed, nextGapIndex),
-      HANDOFF_PREVIEW_K,
-      ctx,
-      node.prefixNextLineId,
-    );
+    const candidates = getCandidatePrefix(node, gaps, ctx, seed, HANDOFF_PREVIEW_K);
     telemetry.previews++;
     telemetry.previewSurvivors += candidates.length;
     survivors += candidates.length;

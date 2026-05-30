@@ -27,11 +27,17 @@ import {
   engineLineFromTrackLine,
 } from "../core/substrate.ts";
 import { pickLowestCost, solveOneGap } from "./solver.ts";
-import type { Candidate, SpecContext } from "./sample.ts";
+import { sampleOneCandidate, type Candidate, type SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
 
 /** Default per-node candidate count. See file header. */
 export const N_CAND = 32;
+
+type CandidateAttemptCache = {
+  attempts: number;
+  sampleOrder: Candidate[];
+  rng: () => number;
+};
 
 /** A node in the LDS search tree. `prefixFits.length === gapIndex`.
  *  A leaf has `gapIndex === gaps.length`. */
@@ -52,6 +58,9 @@ export type SearchNode = {
   /** Memoized cost-sorted candidate list at this gap. Populated on
    *  first access via `getCandidatesSorted`. */
   _candidatesCache: Candidate[] | null;
+  /** Prefix of the sample-order candidate stream. Handoff previews can fill this
+   *  with a small K, then normal expansion continues the same stream to N_CAND. */
+  _candidateAttemptCache: CandidateAttemptCache | null;
 };
 
 /** Construct the root node for a compile. */
@@ -67,6 +76,7 @@ export function makeRootNode(
     prefixNextLineId: 1,
     cumulativeCost: 0,
     _candidatesCache: null,
+    _candidateAttemptCache: null,
   };
 }
 
@@ -87,19 +97,69 @@ export function getCandidatesSorted(
     node._candidatesCache = [];
     return [];
   }
-  // Fresh per-gap RNG — same scheme as legacy compile.ts. Determined
-  // by (seed, gapIndex), not by anything budget-touches. `Math.imul` keeps the
-  // mix in exact int32 arithmetic so large seeds can't lose precision or
-  // collide (the plain `*` overflowed past 2^53 for big seeds — review #10).
-  // Byte-identical to the old `(seed|0)*1000003 + …` for int32-range seeds.
-  const perGapRng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
-  const sampleOrder = solveOneGap(
-    node.prefixEngine, gap, perGapRng, N_CAND, ctx, node.prefixNextLineId,
-  );
+  let sampleOrder: Candidate[];
+  if (node._candidateAttemptCache !== null) {
+    sampleOrder = getCandidatePrefix(node, gaps, ctx, seed, N_CAND);
+  } else {
+    const rng = perGapRng(seed, node.gapIndex);
+    sampleOrder = solveOneGap(
+      node.prefixEngine, gap, rng, N_CAND, ctx, node.prefixNextLineId,
+    );
+    node._candidateAttemptCache = { attempts: N_CAND, sampleOrder, rng };
+  }
   // Sort by cost ascending. Stable sort: ties keep sample-order.
   const sorted = [...sampleOrder].sort((a, b) => a.cost - b.cost);
   node._candidatesCache = sorted;
   return sorted;
+}
+
+/** Return the viable candidates from the first K deterministic attempts at this
+ *  node's current gap, in sample order. Repeated calls with larger K extend the
+ *  same stream instead of re-running the prefix attempts. */
+export function getCandidatePrefix(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  K: number,
+): Candidate[] {
+  if (!Number.isInteger(K) || K < 0) {
+    throw new Error(`getCandidatePrefix: K must be a non-negative integer, got ${K}`);
+  }
+  const gap = gaps[node.gapIndex];
+  if (!gap.endsWithContact) return [];
+
+  const cache = ensureCandidateAttemptCache(node, seed);
+  while (cache.attempts < K) {
+    const candidate = sampleOneCandidate(
+      node.prefixEngine,
+      gap,
+      cache.rng,
+      ctx,
+      node.prefixNextLineId,
+      cache.attempts,
+    );
+    if (candidate !== null) cache.sampleOrder.push(candidate);
+    cache.attempts++;
+  }
+  return cache.sampleOrder;
+}
+
+function ensureCandidateAttemptCache(node: SearchNode, seed: number): CandidateAttemptCache {
+  if (node._candidateAttemptCache !== null) return node._candidateAttemptCache;
+  const cache: CandidateAttemptCache = {
+    attempts: 0,
+    sampleOrder: [],
+    rng: perGapRng(seed, node.gapIndex),
+  };
+  node._candidateAttemptCache = cache;
+  return cache;
+}
+
+function perGapRng(seed: number, gapIndex: number): () => number {
+  // Same scheme as legacy compile.ts. Determined by (seed, gapIndex), not by
+  // anything budget-touches. `Math.imul` keeps the mix in exact int32 arithmetic.
+  return makeRng((Math.imul(seed | 0, 1000003) + gapIndex + 1) | 0);
 }
 
 /** Extend a node by committing the given candidate (or null for a
@@ -118,6 +178,7 @@ export function extendNode(
       prefixNextLineId: parent.prefixNextLineId,
       cumulativeCost: parent.cumulativeCost,
       _candidatesCache: null,
+      _candidateAttemptCache: null,
     };
   }
   // Extend the engine with the candidate's lines.
@@ -132,6 +193,7 @@ export function extendNode(
     prefixNextLineId: parent.prefixNextLineId + candidate.lines.length,
     cumulativeCost: parent.cumulativeCost + candidate.cost,
     _candidatesCache: null,
+    _candidateAttemptCache: null,
   };
 }
 

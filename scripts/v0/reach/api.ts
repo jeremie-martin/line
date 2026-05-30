@@ -21,17 +21,24 @@
  *                   lookahead's catastrophe-rescues without its healthy-spec
  *                   regressions. The second descent's cost is bounded (see below).
  *
- * Cost of the second (cost-only) descent in "adaptive" vs LDS: a single floor
- * descent costs ~15k–80k sim-frames on the golden specs; running two is ≤ ~2×
- * that, still well under LDS's flat 200k budget — because LDS pays the floor
+ * Cost of "adaptive" vs LDS: a single floor descent costs ~15k–80k sim-frames on
+ * the golden specs (the lookahead floor a bit more for its probes); two floors
+ * sit well under LDS's flat 200k on every golden spec, because LDS pays the floor
  * AND a whole-track discrepancy sweep on top. Adaptive ≈ two floors; LDS ≈ one
- * floor + sweep. So adaptive is cheaper than LDS while matching its quality.
+ * floor + sweep — so adaptive is cheaper than LDS while matching its quality.
  *
- * Determinism / budget contract: identical machinery to compileLDS — per-gap
- * RNG seeded by (seed, gapIndex), sim-frame budget as a pure stop condition
- * (each floor is budget-exempt and must complete; the hard guard still trips a
- * runaway op), strict-improvement register. The architecture-agnostic contract
- * harness (`tests/budget_contract_harness.ts`) is the guardrail.
+ * Budget discipline (the contract): the FIRST floor is budget-EXEMPT — it is the
+ * completion guarantee and must always produce an end-of-spec track. Every
+ * SUBSEQUENT floor is budget-SUBJECT: it is an improvement pass and bails at the
+ * next op boundary once `budget.units` is spent (exactly like LDS's repair/
+ * deviation leaves above its exempt base floor). So budget is a pure STOP
+ * condition — a bigger budget lets a later floor complete and can only improve
+ * the register, never change an earlier floor's content — and a runaway lookahead
+ * floor can no longer overrun the budget unbounded. The hard guard (1.2×) still
+ * backstops a single expensive op, and the lookahead probe re-throws
+ * PhysicsFrameLimitExceeded so that guard fires. Determinism: per-gap RNG seeded
+ * by (seed, gapIndex); strict-improvement register. The architecture-agnostic
+ * contract harness (`tests/budget_contract_harness.ts`) is the guardrail.
  */
 
 import {
@@ -70,9 +77,10 @@ import type { Budget, CompileOutput, Spec } from "../optimizer/types.ts";
 export type CompileReachMode = "adaptive" | "lookahead" | "cost";
 
 export type CompileReachOptions = {
-  /** Compute budget in sim-frames. Each floor descent is budget-EXEMPT (must
-   *  complete); polish and (Stage 3) later passes stop at the next op boundary
-   *  once spent. Unset → unbounded. */
+  /** Compute budget in sim-frames. The FIRST floor is budget-EXEMPT (the
+   *  completion guarantee, must produce an end-of-spec track); every subsequent
+   *  floor is budget-SUBJECT and bails at the next op boundary once spent. Unset
+   *  → unbounded. */
   budget?: Budget;
   /** Stage B polish clone-and-test variant of each floor leaf (default true). */
   polish?: boolean;
@@ -148,24 +156,31 @@ export function compileReach(
 
     const consider = (leafLike: Leaf): void => {
       const { report, key } = evaluateLeaf(leafLike, spec, gaps, allContactFrames, durationFrames);
+      // Per-leaf budget_exhausted is always false at consider time (floors run
+      // before the flag is set); the authoritative value is patched onto the
+      // returned stats below. Pass false literally rather than capturing the
+      // mutable, so a future reordering can't silently make this stale-but-true.
       register.consider(
-        buildLeafOutput(leafLike, report, durationFrames, startState, budgetExhausted),
+        buildLeafOutput(leafLike, report, durationFrames, startState, false),
         key,
       );
     };
 
-    // Run one budget-EXEMPT floor descent with the given orderer and offer it
-    // (plus its polish variant) to the register. Each orderer gets a FRESH root
-    // node (and fresh candidate cache via buildBacktrackingLeaf's default) — the
-    // orderer changes the per-gap ordering, so caches must not be shared. The
-    // floor must complete (no budgetUnits cutoff); the hard guard still trips a
-    // runaway op via PhysicsFrameLimitExceeded, surfaced to the caller.
+    // Run one floor descent with the given orderer and offer it (plus its polish
+    // variant) to the register. Each orderer gets a FRESH root node and a fresh
+    // candidate cache — the orderer changes the per-gap ordering, so caches must
+    // not be shared. `exempt` floors run uncapped (the completion guarantee);
+    // non-exempt floors pass the budget so the descent bails at an op boundary
+    // once it is spent. The hard guard still trips a runaway op via
+    // PhysicsFrameLimitExceeded, surfaced to the caller. A non-exempt floor that
+    // bails returns null (no leaf) — fine: an earlier exempt floor already
+    // registered a complete track (anytime semantics).
     let hardLimitError: PhysicsFrameLimitExceeded | null = null;
-    const runFloor = (orderer: CandidateOrderer): void => {
+    const runFloor = (orderer: CandidateOrderer, exempt: boolean): void => {
       const root = makeRootNode(initialEngine, gaps.length);
       const base = buildBacktrackingLeaf(
         root, gaps, ctx, seed, BASE_BACKTRACK_DEPTH, new Map(),
-        undefined, undefined, telemetry, orderer,
+        undefined, exempt ? undefined : budgetUnits, telemetry, orderer,
       );
       if (base === null) return;
       consider(base.leaf);
@@ -183,8 +198,10 @@ export function compileReach(
     };
 
     try {
-      for (const orderer of orderers) {
-        runFloor(orderer);
+      for (let i = 0; i < orderers.length; i++) {
+        // The first floor is the budget-exempt completion guarantee; the rest
+        // are budget-subject improvement passes.
+        runFloor(orderers[i], i === 0);
         // Op boundary: once the budget is spent, don't start another floor.
         // Each completed floor is already in the register (anytime semantics).
         if (getSimFrames() >= budgetUnits) { budgetExhausted = true; break; }
@@ -210,6 +227,16 @@ export function compileReach(
       console.warn(
         `compileReach: degenerate result — 0 of ${allContactFrames.length} contacts committed; ` +
         `returning best-effort track. (seed=${seed}, ` +
+        `budget=${opts.budget ? opts.budget.units : "unset"}, sim_frames=${getSimFrames()})`,
+      );
+    }
+    // The hard guard tripped during a non-first floor but an earlier floor had
+    // already produced a track. We return that best-effort track (anytime), but
+    // surface the runaway so it is not silently swallowed.
+    if (hardLimitError !== null) {
+      console.warn(
+        `compileReach: hard sim-frame guard tripped mid-compile (${hardLimitError.message}); ` +
+        `returning best track from completed floors. (seed=${seed}, ` +
         `budget=${opts.budget ? opts.budget.units : "unset"}, sim_frames=${getSimFrames()})`,
       );
     }

@@ -42,9 +42,16 @@ export const N_CAND = 32;
  *
  *  The orderer receives the node (its `prefixEngine` is the exit state to
  *  fork), the gaps, ctx and seed (so a lookahead probe uses the canonical
- *  next-gap RNG → deterministic). It MUST be a pure function of
- *  (spec, seed) + node state — never of the budget — to preserve the contract.
- *  Any simulation it does charges sim-frames automatically (cheat-resistance). */
+ *  next-gap RNG → deterministic). Two invariants it MUST uphold, neither
+ *  expressible in the type:
+ *    1. REORDER-ONLY — it returns a permutation of the SAME candidates; it never
+ *       adds, drops, or mutates one. Adding/dropping would corrupt the LDS
+ *       discrepancy semantics (rank 0 = greedy, rank k = k deviations) and the
+ *       monotonicity prefix-superset proof that every descent over this hook
+ *       relies on.
+ *    2. BUDGET-INDEPENDENT — pure function of (spec, seed) + node state, never of
+ *       the budget. Any simulation it does charges sim-frames automatically
+ *       (cheat-resistance); it must not READ getSimFrames()/remaining budget. */
 export type CandidateOrderer = (
   candidates: Candidate[],
   node: SearchNode,
@@ -57,6 +64,18 @@ export type CandidateOrderer = (
  *  byte-identical to the historical `sort((a, b) => a.cost - b.cost)`. */
 export const costOrderer: CandidateOrderer = (candidates) =>
   [...candidates].sort((a, b) => a.cost - b.cost);
+
+/** The canonical per-gap RNG: deterministic in (seed, gapIndex) only, never in
+ *  anything the budget touches. `Math.imul` keeps the mix in exact int32
+ *  arithmetic so large seeds can't lose precision or collide (the plain `*`
+ *  overflowed past 2^53 for big seeds — review #10); byte-identical to the old
+ *  `(seed|0)*1000003 + …` for int32-range seeds. SINGLE source of truth: the
+ *  real per-gap sampler (`getCandidatesSorted`) and any lookahead probe
+ *  (`reach/rank.ts`) both call this, so a probe samples EXACTLY the candidates
+ *  the real expansion of that gap will. */
+export function perGapRng(seed: number, gapIndex: number): () => number {
+  return makeRng((Math.imul(seed | 0, 1000003) + gapIndex + 1) | 0);
+}
 
 /** A node in the LDS search tree. `prefixFits.length === gapIndex`.
  *  A leaf has `gapIndex === gaps.length`. */
@@ -74,9 +93,15 @@ export type SearchNode = {
    *  heuristic comparison; the register decides answers via the
    *  full-track scorer, not this). */
   cumulativeCost: number;
-  /** Memoized cost-sorted candidate list at this gap. Populated on
-   *  first access via `getCandidatesSorted`. */
-  _candidatesCache: Candidate[] | null;
+  /** Memoized ORDERED candidate list at this gap, tagged with the orderer that
+   *  produced it. Tagging makes the cache orderer-safe: if `getCandidatesSorted`
+   *  is called on the same node with a DIFFERENT orderer, the stale list is not
+   *  returned — the ordering is recomputed (cheaply, from `_sampleCache`). */
+  _candidatesCache: { orderer: CandidateOrderer; list: Candidate[] } | null;
+  /** Memoized UNORDERED sample (the expensive `solveOneGap` result). Orderer-
+   *  independent — a pure function of (prefixEngine, gap, seed, gapIndex) — so it
+   *  is reused across orderers on the same node; only the cheap reordering re-runs. */
+  _sampleCache: Candidate[] | null;
 };
 
 /** Construct the root node for a compile. */
@@ -92,6 +117,7 @@ export function makeRootNode(
     prefixNextLineId: 1,
     cumulativeCost: 0,
     _candidatesCache: null,
+    _sampleCache: null,
   };
 }
 
@@ -107,26 +133,28 @@ export function getCandidatesSorted(
   seed: number,
   orderer: CandidateOrderer = costOrderer,
 ): Candidate[] {
-  if (node._candidatesCache !== null) return node._candidatesCache;
+  // Orderer-safe memo: only reuse the cached list if THIS orderer produced it.
+  const cached = node._candidatesCache;
+  if (cached !== null && cached.orderer === orderer) return cached.list;
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) {
-    node._candidatesCache = [];
+    node._candidatesCache = { orderer, list: [] };
     return [];
   }
-  // Fresh per-gap RNG — same scheme as legacy compile.ts. Determined
-  // by (seed, gapIndex), not by anything budget-touches. `Math.imul` keeps the
-  // mix in exact int32 arithmetic so large seeds can't lose precision or
-  // collide (the plain `*` overflowed past 2^53 for big seeds — review #10).
-  // Byte-identical to the old `(seed|0)*1000003 + …` for int32-range seeds.
-  const perGapRng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
-  const sampleOrder = solveOneGap(
-    node.prefixEngine, gap, perGapRng, N_CAND, ctx, node.prefixNextLineId,
-  );
+  // Sample once per node (expensive: a forward sim per candidate). The sample is
+  // orderer-independent, so reuse it when a second orderer visits this node.
+  let samples = node._sampleCache;
+  if (samples === null) {
+    samples = solveOneGap(
+      node.prefixEngine, gap, perGapRng(seed, node.gapIndex), N_CAND, ctx, node.prefixNextLineId,
+    );
+    node._sampleCache = samples;
+  }
   // Order the sampled candidates (default = stable cost-sort, byte-identical to
   // the historical `(a, b) => a.cost - b.cost`). The reach orderer may re-rank a
   // doomed cheapest hand-off via next-gap lookahead.
-  const sorted = orderer(sampleOrder, node, gaps, ctx, seed);
-  node._candidatesCache = sorted;
+  const sorted = orderer(samples, node, gaps, ctx, seed);
+  node._candidatesCache = { orderer, list: sorted };
   return sorted;
 }
 
@@ -146,6 +174,7 @@ export function extendNode(
       prefixNextLineId: parent.prefixNextLineId,
       cumulativeCost: parent.cumulativeCost,
       _candidatesCache: null,
+      _sampleCache: null,
     };
   }
   // Extend the engine with the candidate's lines.
@@ -160,6 +189,7 @@ export function extendNode(
     prefixNextLineId: parent.prefixNextLineId + candidate.lines.length,
     cumulativeCost: parent.cumulativeCost + candidate.cost,
     _candidatesCache: null,
+    _sampleCache: null,
   };
 }
 

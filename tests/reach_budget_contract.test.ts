@@ -15,18 +15,16 @@
  * register keeps the better track). It ignores maxDiscrepancy — the sim-frame
  * budget is the only knob, exactly as the contract wants.
  *
- * DETERMINISM + MONOTONICITY are verified here and PASS on every spec. The
- * FREEZE pillar is intentionally NOT asserted: the harness measures "full cost"
- * via an unbounded `maxDiscrepancy`-bounded run, but reach has no discrepancy
- * knob and its two floors are budget-exempt with DIFFERENT costs (the lookahead
- * floor is the more expensive one). So output legitimately keeps improving as
- * the budget crosses the second floor's cost — which is correct anytime
- * behavior, not a "budget is a policy input" violation, but it doesn't match the
- * freeze check's single-full-cost assumption. (The same reason the LDS contract
- * skips freeze on its budget-exempt-floor specs.) A reach-appropriate freeze
- * probe — "above the cost of BOTH floors, output is constant" — is tracked as
- * follow-up; determinism + monotonicity are the load-bearing pillars and they
- * hold.
+ * All THREE pillars are asserted here, including FREEZE: the harness derives
+ * "full cost" from the sim_frames of an unbounded compile and checks that output
+ * is byte-identical at 1.5×/3×/6× that cost. reach satisfies this WITHOUT a
+ * discrepancy knob — its first floor is budget-exempt and the rest are
+ * budget-subject, so once the budget exceeds the combined floor cost the output
+ * is constant. (The harness passes maxDiscrepancy to the adapter, which reach
+ * harmlessly ignores; the freeze derivation does not depend on it.) This is the
+ * guardrail the colleague review (caveat #1) required before reach can be
+ * default: if a future change ever made a floor read the budget value, freeze
+ * would catch it.
  */
 
 import { describe, it } from "vitest";
@@ -49,7 +47,7 @@ describe("budget-search contract (compileReach)", () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     assertBudgetSearchContract(compile, "tiny_dance", spec, {
       budgets: [50_000, 150_000, 400_000],
-      checkFreeze: false,
+      checkFreeze: true,
     });
   }, 300_000);
 

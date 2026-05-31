@@ -540,7 +540,7 @@
   </div>
   <aside class="hero-card">
     <div class="label">50k sanity run</div>
-    <div class="score"><span>341.81</span> / 1000</div>
+    <div class="score"><span>284.65</span> / 1000</div>
     <div class="note">57 valid rows out of 60. The default compiler is <code>handoff</code>; the explicit <code>--compiler=handoff</code> flag is still supported.</div>
   </aside>
 </section>
@@ -929,7 +929,7 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
     <pre class="command">npm run golden -- --jobs=4 --budget=50000
 npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
 
-SCORE 341.81 - valid 57/60 - invalid 3 - timeout 0
+SCORE 284.65 - valid 57/60 - invalid 3 - timeout 0
 contract_pass_rate 95%</pre>
 
     <div class="panel" style="margin-top:16px">
@@ -1138,7 +1138,7 @@ setTab(location.hash.replace("#", "") || "compiler", false);
 // History reset at the curve-era / per-gap-metric / 20-spec re-baseline; older
 // per-section scores are not comparable, so the series restarts here.
 const campaignData = [
-  ["20-spec @50k", 341.81],
+  ["20-spec @50k", 284.65],
 ];
 
 function drawCampaignChart() {

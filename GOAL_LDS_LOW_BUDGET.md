@@ -18,10 +18,10 @@ the CLI shape.
 
 Current baseline (20-spec golden suite):
 
-- `goal_score 341.81`
+- `goal_score 284.65`
 - `valid 57/60` (20 specs × 3 seeds)
 - `contract_pass_rate 95%`
-- `evaluator_fingerprint 2cb2d293f7e9`
+- `evaluator_fingerprint e9f938701119`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
 > landing is compared to the axis curve's target there, combined as RMS. Older
@@ -85,26 +85,23 @@ npm run golden -- --variants --compiler=handoff
 
 ## Current Frontier
 
-At 50k, only 4 of 69 rows miss the contract — concentrated in 3 specs:
+At 50k, only 3 of 60 rows miss the contract — across 2 specs:
 
 - `solo_run` 41.9 (2/3) — sustained ~80-contact density; the lowest scorer,
   budget-bound at this contact count
 - `opening_burst` 168.0 (1/3) — hot dense opening; initial-state bound
-- `drums_archway` 244.1 (2/3) — a tall isolated air arch; the only flaky one of
-  the 10 new curve specs
 
-`solo_run` and `opening_burst` are the same rows that were hard before: they
-improve at higher budgets, so the useful work is reaching better completions
-sooner without reading the budget from policy. They are budget/density-bound,
-not metric-bound.
+Both are budget/density-bound: they improve at higher budgets, so the useful
+work is reaching better completions sooner without reading the budget from
+policy.
 
-The 10 continuous-curve showcase specs are otherwise the *strongest* rows in the
-suite (e.g. `drums_zigzag` 475.7, `drums_pulse` 461.9, `drums_accelerando`
-456.3, `drums_crosscut` 452.9, all 3/3) — the curve paradigm is not a stressor
-for contract pass. The visible residual on several specs is *speed* overshooting
-its target on the dense/late back half (a physics-saturation effect, clear in
-the dashboard's measured-vs-target view); `air` and `grain` track faithfully.
-That caps axis quality, not survival.
+The 7 continuous-curve showcase specs are otherwise the *strongest* rows in the
+suite (e.g. `drums_zigzag` 475.7, `drums_pulse` 461.9, `drums_crosscut` 452.9,
+all 3/3) — the curve paradigm is not a stressor for contract pass. The visible
+residual on several specs is *speed* overshooting its target on the dense/late
+back half (a physics-saturation effect, clear in the dashboard's
+measured-vs-target view); `air` and `grain` track faithfully. That caps axis
+quality, not survival.
 
 Promising levers:
 

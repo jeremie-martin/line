@@ -54,12 +54,9 @@ describe("v0 golden configuration", () => {
       "drums_swell",
       "drums_crosscut",
       "drums_tide",
-      "drums_winddown",
       "drums_dropout",
-      "drums_accelerando",
       "drums_breath",
       "drums_pulse",
-      "drums_archway",
       "drums_zigzag",
     ]);
     expect(headlineCases()).toHaveLength(GOLDEN_SPECS.length);

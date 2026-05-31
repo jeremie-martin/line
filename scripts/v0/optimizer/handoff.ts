@@ -513,9 +513,9 @@ function rankedOptions(
 }
 
 function handoffCandidatePool(ctx: SpecContext): number {
-  // Medium-dense rows are preview-cost bound; sparse and very long dense rows
-  // need the broader pool for quality/reachability.
-  return usesMediumDensePolicy(ctx)
+  // Dense rows are preview-cost bound. Sparse rows keep the broader pool because
+  // they have fewer contact decisions and benefit more from candidate variety.
+  return ctx.allContactFrames.length >= HANDOFF_MEDIUM_DENSE_MIN_CONTACTS
     ? HANDOFF_MEDIUM_DENSE_CANDIDATE_POOL
     : HANDOFF_BROAD_CANDIDATE_POOL;
 }

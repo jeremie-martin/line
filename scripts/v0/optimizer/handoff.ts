@@ -136,6 +136,7 @@ const TAIL_COMPLETION_CONTACT_WINDOW = 3;
 const TAIL_CHECKPOINT_MIN_CONTACTS = 50;
 const TAIL_CHECKPOINT_MAX_CONTACT_WINDOW = 7;
 const TAIL_CHECKPOINT_MAX_SECTIONS = 3;
+const TAIL_COMPLETION_PREVIEW_K = 8;
 
 export function compileHandoff(
   userSpec: Spec,
@@ -472,6 +473,7 @@ function rankedOptions(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
+  previewK = HANDOFF_PREVIEW_K,
 ): RankedOption[] {
   let sorted = getCandidatesSorted(node, gaps, ctx, seed);
   if (sorted.length === 0 && usesOpeningCandidateRescue(node, gaps, ctx)) {
@@ -480,7 +482,7 @@ function rankedOptions(
   }
   const pool = sorted.slice(0, handoffCandidatePool(ctx));
   let scored = pool.map((candidate, rank) =>
-    scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry)
+    scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry, previewK)
   );
   if (
     scored.length > 0 &&
@@ -605,7 +607,7 @@ function completeNearTail(
       continue;
     }
 
-    const [option] = rankedOptions(search, gaps, ctx, seed, telemetry);
+    const [option] = rankedOptions(search, gaps, ctx, seed, telemetry, TAIL_COMPLETION_PREVIEW_K);
     if (option === undefined || option.candidate === null) return null;
     search = option.search;
     ranks.push(option.rank);

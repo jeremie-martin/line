@@ -16,6 +16,12 @@ engine-validated arc fits ranked by:
 3. a handoff-state penalty for extreme vertical/angle states;
 4. speed/air overshoot penalties where appropriate.
 
+If that cheap normal batch finds no viable catch for a required contact, handoff
+may spend one larger deterministic rescue batch, but only for a physically
+catchable moderate-speed overshoot state. This keeps the common path cheap and
+avoids starving very dense runs, while giving late speed-saturation prefixes a
+last local chance before becoming skipped-contact fallbacks.
+
 The preview is engine-in-loop and charged in simulated frames. It is also a pure
 policy function of `(spec, seed, prefix)`; it does not read the remaining budget.
 Budget only truncates how far through the deterministic prefix-node sequence the
@@ -49,28 +55,27 @@ npx vitest run tests/optimizer_handoff.test.ts
 ## Campaign Command
 
 ```bash
-npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
+npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 ```
 
-Before the cleanup that made handoff the only/default compiler, this command
-reported:
+Current 20-spec result:
 
-- `SCORE 354.55`
-- `valid 36/39`
-- `contract_pass_rate 92%`
+- `SCORE 301.21`
+- `valid 58/60`
+- `contract_pass_rate 97%`
 
-The same result should hold after housekeeping.
+The same budget with report-only timing variants reports `112/120` valid rows.
 
 ## Known Frontier
 
-At the 40k campaign budget, the remaining hard rows are mainly budget-bound
-around `solo_run` seed 0 and `opening_burst` seeds 0/2. They improve at higher
-budgets, so the next useful work is to reach better complete prefixes sooner
-without making budget a policy input.
+At the 50k campaign budget, the remaining hard rows are `opening_burst` seeds 0
+and 1: the hot dense opening misses one early contact before the search has a
+clean prefix. The former late-speed frontier rows (`verse_chorus`,
+`drums_swell`, `drums_breath`) and the sustained-density `solo_run` row pass
+3/3.
 
 Promising areas:
 
-- long-dense policy for sustained periodic contact chains;
 - better handoff-state scoring for catchability;
 - cheaper, more informative future-contact previews;
 - iterative start-state exploration;

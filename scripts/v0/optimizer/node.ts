@@ -38,8 +38,11 @@ export type SearchNode = {
    *  outputs via the final report comparator, not this local score. */
   cumulativeCost: number;
   /** Memoized cost-sorted candidate list at this gap. Populated on
-   *  first access via `getCandidatesSorted`. */
-  _candidatesCache: Candidate[] | null;
+   *  first access via `getCandidatesSorted`. The count is tracked because the
+   *  handoff compiler normally asks for a cheap prefix, but may later ask for a
+   *  larger deterministic prefix when a required contact would otherwise be
+   *  skipped. */
+  _candidatesCache: { nCand: number; candidates: Candidate[] } | null;
 };
 
 /** Construct the root node for a compile. */
@@ -77,10 +80,12 @@ export function getCandidatesSorted(
    *  cheaper pool stays a subset of the richer one (same seed → same samples). */
   nCand: number = N_CAND,
 ): Candidate[] {
-  if (node._candidatesCache !== null) return node._candidatesCache;
+  if (node._candidatesCache !== null && node._candidatesCache.nCand === nCand) {
+    return node._candidatesCache.candidates;
+  }
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) {
-    node._candidatesCache = [];
+    node._candidatesCache = { nCand, candidates: [] };
     return [];
   }
   // Fresh per-gap RNG. Determined
@@ -94,7 +99,7 @@ export function getCandidatesSorted(
   );
   // Sort by cost ascending. Stable sort: ties keep sample-order.
   const sorted = [...sampleOrder].sort((a, b) => a.cost - b.cost);
-  node._candidatesCache = sorted;
+  node._candidatesCache = { nCand, candidates: sorted };
   return sorted;
 }
 

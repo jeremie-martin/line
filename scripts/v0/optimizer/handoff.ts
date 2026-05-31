@@ -94,6 +94,8 @@ type HandoffTelemetry = {
   previews: number;
   previewContacts: number;
   previewSurvivors: number;
+  rescueAttempts: number;
+  rescueSuccesses: number;
   skips: number;
   deferredSkips: number;
 };
@@ -108,6 +110,13 @@ const HANDOFF_BRANCHING = 3;
  *  node cost while keeping enough local variety for reachability. Must stay
  *  >= HANDOFF_CANDIDATE_POOL. */
 const HANDOFF_N_CAND = 16;
+/** Extra deterministic sampling only when the normal batch finds no viable
+ *  catch for a required contact. This preserves the cheap common path while
+ *  spending bounded work at true contract dead-ends instead of immediately
+ *  turning the prefix into a skipped-contact fallback. */
+const HANDOFF_RESCUE_N_CAND = 32;
+const HANDOFF_RESCUE_CANDIDATE_POOL = 12;
+const HANDOFF_RESCUE_MIN_GAP_FRAMES = 16;
 const HANDOFF_PREVIEW_K = 1;
 /** How many of the most-recent committed catches to translate+reuse per gap. */
 const HANDOFF_REUSE_K = 2;
@@ -216,6 +225,8 @@ export function compileHandoff(
       previews: 0,
       previewContacts: 0,
       previewSurvivors: 0,
+      rescueAttempts: 0,
+      rescueSuccesses: 0,
       skips: 0,
       deferredSkips: 0,
     };
@@ -365,6 +376,8 @@ export function compileHandoff(
         handoff_previews: telemetry.previews,
         handoff_preview_contacts: telemetry.previewContacts,
         handoff_preview_survivors: telemetry.previewSurvivors,
+        handoff_rescue_attempts: telemetry.rescueAttempts,
+        handoff_rescue_successes: telemetry.rescueSuccesses,
         handoff_skips: best.stats.handoff_skips ?? 0,
         handoff_skip_branches: telemetry.skips,
         handoff_deferred_skips: telemetry.deferredSkips,
@@ -438,7 +451,15 @@ function expandNode(
     }];
   }
 
-  const options = rankedOptions(node.search, gaps, ctx, seed, telemetry);
+  let options = rankedOptions(node.search, gaps, ctx, seed, telemetry);
+  if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
+    telemetry.rescueAttempts++;
+    options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
+      nCand: HANDOFF_RESCUE_N_CAND,
+      poolSize: HANDOFF_RESCUE_CANDIDATE_POOL,
+    });
+    if (options.length > 0) telemetry.rescueSuccesses++;
+  }
   if (options.length === 0) {
     telemetry.skips++;
     telemetry.deferredSkips++;
@@ -464,15 +485,29 @@ function expandNode(
   }));
 }
 
+function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
+  if (!gap.endsWithContact) return false;
+  if (gap.endFrame - gap.startFrame < HANDOFF_RESCUE_MIN_GAP_FRAMES) return false;
+  const targetSpeed = gap.targets?.speed;
+  if (targetSpeed === undefined || targetSpeed <= 0 || targetSpeed > HANDOFF_BRAKE_TARGET_MAX) {
+    return false;
+  }
+  const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
+  const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
+  const speedRatio = ts.speed / (targetSpeed * CALIB.SPEED_CAP);
+  return speedRatio >= HANDOFF_BRAKE_RATIO_MIN;
+}
+
 function rankedOptions(
   node: SearchNode,
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
+  config: { nCand?: number; poolSize?: number } = {},
 ): RankedOption[] {
-  const sorted = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_N_CAND);
-  const poolSize = handoffCandidatePool();
+  const sorted = getCandidatesSorted(node, gaps, ctx, seed, config.nCand ?? HANDOFF_N_CAND);
+  const poolSize = config.poolSize ?? handoffCandidatePool();
   const pool = sorted.slice(0, poolSize);
   const scored = pool.map((candidate, rank) =>
     scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry)

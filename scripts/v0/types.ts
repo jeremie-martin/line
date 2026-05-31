@@ -196,6 +196,11 @@ export type CompileStats = {
    *  not only one-step survival. */
   handoff_preview_contacts?: number;
   handoff_preview_survivors?: number;
+  /** Required-contact dead-ends where handoff spent one larger deterministic
+   *  candidate batch before accepting a skip, and how often that rescue batch
+   *  found at least one viable catch. */
+  handoff_rescue_attempts?: number;
+  handoff_rescue_successes?: number;
   /** Contact gaps skipped in the returned handoff best prefix. */
   handoff_skips?: number;
   /** Skip branches generated during handoff search because a contact gap had no

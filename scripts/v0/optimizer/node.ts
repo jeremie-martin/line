@@ -102,8 +102,9 @@ export function getCandidatesSorted(
     sampleOrder = getCandidatePrefix(node, gaps, ctx, seed, N_CAND);
   } else {
     const rng = perGapRng(seed, node.gapIndex);
+    const prefixFits = usesPrefixResidualTargets(ctx) ? node.prefixFits : undefined;
     sampleOrder = solveOneGap(
-      node.prefixEngine, gap, rng, N_CAND, ctx, node.prefixNextLineId,
+      node.prefixEngine, gap, rng, N_CAND, ctx, node.prefixNextLineId, prefixFits,
     );
     node._candidateAttemptCache = { attempts: N_CAND, sampleOrder, rng };
   }
@@ -130,6 +131,7 @@ export function getCandidatePrefix(
   if (!gap.endsWithContact) return [];
 
   const cache = ensureCandidateAttemptCache(node, seed);
+  const prefixFits = usesPrefixResidualTargets(ctx) ? node.prefixFits : undefined;
   while (cache.attempts < K) {
     const candidate = sampleOneCandidate(
       node.prefixEngine,
@@ -138,11 +140,16 @@ export function getCandidatePrefix(
       ctx,
       node.prefixNextLineId,
       cache.attempts,
+      prefixFits,
     );
     if (candidate !== null) cache.sampleOrder.push(candidate);
     cache.attempts++;
   }
   return cache.sampleOrder;
+}
+
+function usesPrefixResidualTargets(ctx: SpecContext): boolean {
+  return ctx.spec !== undefined && ctx.gaps !== undefined;
 }
 
 function ensureCandidateAttemptCache(node: SearchNode, seed: number): CandidateAttemptCache {

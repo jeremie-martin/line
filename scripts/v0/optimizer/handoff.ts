@@ -178,7 +178,7 @@ export function compileHandoff(
       gap.targets = sampleGapTargets(sec, CALIB.SIGMA, masterRng);
     }
 
-    const ctx: SpecContext = { allContactFrames, durationFrames };
+    const ctx: SpecContext = { allContactFrames, durationFrames, spec, gaps };
     const startOptions = buildStartOptions(userSpec, spec, gaps, ctx, seed);
     const defaultStart = startOptions[0];
     const root: HandoffNode = {

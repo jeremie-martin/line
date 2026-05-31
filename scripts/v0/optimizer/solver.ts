@@ -39,13 +39,14 @@ export function solveOneGap(
   K: number,
   ctx: SpecContext,
   lineIdStart: number,
+  prefixFits?: (Candidate | null)[],
 ): Candidate[] {
   if (!Number.isInteger(K) || K < 0) {
     throw new Error(`solveOneGap: K must be a non-negative integer, got ${K}`);
   }
   const out: Candidate[] = [];
   for (let attempt = 0; attempt < K; attempt++) {
-    const c = sampleOneCandidate(engine, gap, rng, ctx, lineIdStart, attempt);
+    const c = sampleOneCandidate(engine, gap, rng, ctx, lineIdStart, attempt, prefixFits);
     if (c !== null) out.push(c);
   }
   return out;

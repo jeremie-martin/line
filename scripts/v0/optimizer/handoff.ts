@@ -124,7 +124,7 @@ const PREVIEW_COST_WEIGHT = 0;
 const HANDOFF_STATE_WEIGHT = 0.08;
 /** Weight on a candidate's speed OVERSHOOT (achieved - target, when positive) in
  *  the handoff feasibility ranking. Selection-only bias against speed creep. */
-const HANDOFF_SPEED_OVERSHOOT_WEIGHT = 8;
+const HANDOFF_SPEED_OVERSHOOT_WEIGHT = 16;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 3;

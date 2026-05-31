@@ -96,6 +96,7 @@ is built and validated already.
 | `mirror/index.html` | Upstream HTML + one `<script defer src="/helper.js">` line. |
 | `unpacked/` | `webcrack` output of `main.js` — 1069 readable module files, used as a reference when designing the helper. Regenerate with `npm run unpack`. |
 | `scripts/export.ts` | The working exporter. JSON track → mp4. |
+| `scripts/analyze_music.py` | madmom structural analysis (tempo/meter/energy) — a listening aid for designing creative specs. See `docs/creative_workflow.md`. |
 | `scripts/stress.ts` | 4-scenario stress test for the helper. |
 | `scripts/probe*.ts` | One-shot discovery scripts kept as history (Redux store shape, fiber walking, network capture, etc.). |
 | `test.track.json` | Reference track used as a regression / parity test. |
@@ -182,6 +183,13 @@ the engine. Today (v2153.0 bundle, lr-core@0.8.2): they match exactly.
    first-cut deliverable.
 
 DoodleChaos-style videos mix both.
+
+**Creative workflow (worked example).** `docs/creative_workflow.md` walks the
+full song→track→video pipeline end to end: clean the beat grid, use madmom
+(`scripts/analyze_music.py`) to read the song's tempo/phrasing/energy, translate
+that into an expressive spec, compile with the handoff compiler, iterate against
+the achieved per-section axes, and render an mp4 with audio. Uses the first 56s
+of *Believer* (`generated/believer_v3.track.json`) as the example.
 
 ## What's verified working
 

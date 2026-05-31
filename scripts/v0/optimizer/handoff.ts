@@ -95,6 +95,8 @@ type HandoffTelemetry = {
   fullEvaluations: number;
   tailCompletionAttempts: number;
   tailCompletionSuccesses: number;
+  tailCheckpointAttempts: number;
+  tailCheckpointSuccesses: number;
   previews: number;
   previewContacts: number;
   previewSurvivors: number;
@@ -126,6 +128,9 @@ const HANDOFF_STATE_WEIGHT = 0.08;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 3;
+const TAIL_CHECKPOINT_MIN_CONTACTS = 50;
+const TAIL_CHECKPOINT_MAX_CONTACT_WINDOW = 7;
+const TAIL_CHECKPOINT_MAX_SECTIONS = 3;
 
 export function compileHandoff(
   userSpec: Spec,
@@ -200,6 +205,8 @@ export function compileHandoff(
       fullEvaluations: 0,
       tailCompletionAttempts: 0,
       tailCompletionSuccesses: 0,
+      tailCheckpointAttempts: 0,
+      tailCheckpointSuccesses: 0,
       previews: 0,
       previewContacts: 0,
       previewSurvivors: 0,
@@ -211,6 +218,7 @@ export function compileHandoff(
     let polishAdopted = 0;
     let budgetExhausted = false;
     let hardLimitError: PhysicsFrameLimitExceeded | null = null;
+    const tailCheckpointDepths = new Set<number>();
 
     const consider = (node: HandoffNode): LeafKey => {
       const evaluation = evaluateNode(node, spec, gaps, allContactFrames, durationFrames);
@@ -237,7 +245,7 @@ export function compileHandoff(
         opts.onNode?.(node, key);
         if (register.consideredCount === 1) setSimFrameLimit(hardBudgetLimit);
 
-        const tailNode = completeNearTail(node, gaps, ctx, seed, telemetry);
+        const tailNode = completeNearTail(node, gaps, ctx, seed, telemetry, tailCheckpointDepths);
         if (tailNode !== null) {
           const tailKey = consider(tailNode);
           opts.onNode?.(tailNode, tailKey);
@@ -347,6 +355,8 @@ export function compileHandoff(
         handoff_full_evaluations: telemetry.fullEvaluations,
         handoff_tail_completion_attempts: telemetry.tailCompletionAttempts,
         handoff_tail_completion_successes: telemetry.tailCompletionSuccesses,
+        handoff_tail_checkpoint_attempts: telemetry.tailCheckpointAttempts,
+        handoff_tail_checkpoint_successes: telemetry.tailCheckpointSuccesses,
         handoff_start_options: startOptions.length,
         handoff_start_rank: best.stats.handoff_start_rank ?? 0,
         handoff_previews: telemetry.previews,
@@ -508,11 +518,25 @@ function completeNearTail(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
+  checkpointDepths: Set<number>,
 ): HandoffNode | null {
   if (!usesMediumDensePolicy(ctx)) return null;
   if (node.skippedContacts > 0 || isTerminalNode(node.search, gaps)) return null;
-  if (remainingContactCount(node.search, gaps) > TAIL_COMPLETION_CONTACT_WINDOW) return null;
-  telemetry.tailCompletionAttempts++;
+  const remaining = remainingContactCount(node.search, gaps);
+  let checkpoint = false;
+  if (remaining > TAIL_COMPLETION_CONTACT_WINDOW) {
+    if (
+      !usesTailCheckpointPolicy(ctx) ||
+      remaining > TAIL_CHECKPOINT_MAX_CONTACT_WINDOW ||
+      checkpointDepths.has(remaining)
+    ) {
+      return null;
+    }
+    checkpointDepths.add(remaining);
+    checkpoint = true;
+  }
+  if (checkpoint) telemetry.tailCheckpointAttempts++;
+  else telemetry.tailCompletionAttempts++;
 
   let search = node.search;
   const ranks = [...node.ranks];
@@ -530,7 +554,8 @@ function completeNearTail(
     ranks.push(option.rank);
   }
 
-  telemetry.tailCompletionSuccesses++;
+  if (checkpoint) telemetry.tailCheckpointSuccesses++;
+  else telemetry.tailCompletionSuccesses++;
   return {
     search,
     startState: node.startState,
@@ -540,6 +565,11 @@ function completeNearTail(
     ranks,
     skippedContacts: node.skippedContacts,
   };
+}
+
+function usesTailCheckpointPolicy(ctx: SpecContext): boolean {
+  return ctx.allContactFrames.length >= TAIL_CHECKPOINT_MIN_CONTACTS &&
+    (ctx.spec?.sections.length ?? Infinity) <= TAIL_CHECKPOINT_MAX_SECTIONS;
 }
 
 function remainingContactCount(node: SearchNode, gaps: Gap[]): number {

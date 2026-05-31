@@ -16,21 +16,17 @@ npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline (23-spec golden suite, per-gap axis metric):
+Current baseline (20-spec golden suite):
 
-- `goal_score 290.86`
-- `valid 65/69` (23 specs × 3 seeds)
-- `contract_pass_rate 94%`
-- `evaluator_fingerprint 76a6ebe91c07`
+- `goal_score 341.81`
+- `valid 57/60` (20 specs × 3 seeds)
+- `contract_pass_rate 95%`
+- `evaluator_fingerprint 2cb2d293f7e9`
 
-> **Not comparable to the old `SCORE 354.55 / valid 36/39 / 92%`.** Two things
-> changed the ruler since that figure: (1) axis intent moved from piecewise
-> `sections` to continuous per-axis **curves**, and axis quality is now graded
-> **per contact (per gap)** instead of per-section average — a stricter, more
-> honest metric (re-scoring identical tracks the old way reproduced ~354, so
-> tracks did not regress; the number did). (2) The suite grew from 13 to 23
-> specs, adding 10 continuous-curve showcases that are deliberately harder. The
-> `EVALUATOR_FINGERPRINT` is re-baselined accordingly.
+> Axis quality is graded **per contact (per gap)**: the achieved value at each
+> landing is compared to the axis curve's target there, combined as RMS. Older
+> absolute scores are not comparable (the suite and metric have changed since);
+> the `EVALUATOR_FINGERPRINT` marks the current ruler.
 
 ## What To Optimize
 

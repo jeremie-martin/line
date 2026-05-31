@@ -1,11 +1,12 @@
 /**
  * Fast multi-axis goal spec.
  *
- * Same contact cadence as sanity.ts, but asks for multiple section axes so
- * the goal output exercises axis reporting without running a 30-second song.
+ * Same contact cadence as sanity.ts, but asks for multiple axes so the goal
+ * output exercises axis reporting without running a 30-second song.
  */
 
 import type { Spec } from "../types.ts";
+import { constant } from "../core/curves.ts";
 
 const spec: Spec = {
   duration: 6,
@@ -17,9 +18,7 @@ const spec: Spec = {
     { t: 4.5 },
     { t: 5.5 },
   ],
-  sections: [
-    { t0: 0, t1: 6, air: 0.7, grain: 0.8, speed: 0.5 },
-  ],
+  axes: { air: constant(0.7), grain: constant(0.8), speed: constant(0.5) },
 };
 
 export default spec;

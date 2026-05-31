@@ -14,5 +14,5 @@ const raw = JSON.parse(
 
 const contacts: Contact[] = raw.onsets.map((o) => ({ t: o.t }));
 
-const spec: Spec = { duration: raw.range_s[1], contacts, sections: [{ t0: 0, t1: 56 }] };
+const spec: Spec = { duration: raw.range_s[1], contacts, axes: {} };
 export default spec;

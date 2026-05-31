@@ -6,6 +6,7 @@
  */
 
 import type { Spec } from "../types.ts";
+import { constant } from "../core/curves.ts";
 
 const spec: Spec = {
   duration: 6,
@@ -17,9 +18,7 @@ const spec: Spec = {
     { t: 4.5 },
     { t: 5.5 },
   ],
-  sections: [
-    { t0: 0, t1: 6, air: 0.7 },
-  ],
+  axes: { air: constant(0.7) },
 };
 
 export default spec;

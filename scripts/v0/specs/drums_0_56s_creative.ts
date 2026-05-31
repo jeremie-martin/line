@@ -19,6 +19,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Spec, Contact } from "../types.ts";
+import { keyframes } from "../core/curves.ts";
 
 const raw = JSON.parse(
   readFileSync(resolve("beats/drums_0_56s.json"), "utf8"),
@@ -26,21 +27,31 @@ const raw = JSON.parse(
 
 const contacts: Contact[] = raw.onsets.map((o) => ({ t: o.t }));
 
+// Phrase-aligned axis arc (4-bar phrase boundaries). Ported from the original
+// 6 hold-sections; `hold` keyframes reproduce the step blocks exactly. v3: air
+// carries the expressive arc; speed kept modest where the rider naturally lands
+// (it overshoots the cap late regardless), so axis error stays low.
 const spec: Spec = {
   duration: raw.range_s[1],
   contacts,
-  // v3: v2's well-matched air arc + modest speed targets (v2 showed speed
-  // overshoots and scores worse the higher you aim — the rider exceeds the cap
-  // late regardless). Air carries the expressive arc; speed kept where the
-  // rider naturally lands so error stays low.
-  sections: [
-    { t0: 0, t1: 7.69, air: 0.62, speed: 0.55, grain: 0.32 },      // intro: restrained, choppy
-    { t0: 7.69, t1: 15.36, air: 0.70, speed: 0.62, grain: 0.40 },  // build: lift begins
-    { t0: 15.36, t1: 30.74, air: 0.76, speed: 0.70, grain: 0.50 }, // verse: flowing & airy
-    { t0: 30.74, t1: 38.42, air: 0.68, speed: 0.75, grain: 0.45 }, // pre-chorus: coil
-    { t0: 38.42, t1: 53.78, air: 0.80, speed: 0.90, grain: 0.60 }, // CHORUS peak: high air, big
-    { t0: 53.78, t1: 56, air: 0.64, speed: 0.85, grain: 0.62 },    // outro: airy release
-  ],
+  axes: {
+    air: keyframes([
+      { t: 0, v: 0.62 },      // intro: restrained, choppy
+      { t: 7.69, v: 0.70 },   // build: lift begins
+      { t: 15.36, v: 0.76 },  // verse: flowing & airy
+      { t: 30.74, v: 0.68 },  // pre-chorus: coil
+      { t: 38.42, v: 0.80 },  // CHORUS peak: high air, big
+      { t: 53.78, v: 0.64 },  // outro: airy release
+    ], "hold"),
+    speed: keyframes([
+      { t: 0, v: 0.55 }, { t: 7.69, v: 0.62 }, { t: 15.36, v: 0.70 },
+      { t: 30.74, v: 0.75 }, { t: 38.42, v: 0.90 }, { t: 53.78, v: 0.85 },
+    ], "hold"),
+    grain: keyframes([
+      { t: 0, v: 0.32 }, { t: 7.69, v: 0.40 }, { t: 15.36, v: 0.50 },
+      { t: 30.74, v: 0.45 }, { t: 38.42, v: 0.60 }, { t: 53.78, v: 0.62 },
+    ], "hold"),
+  },
 };
 
 export default spec;

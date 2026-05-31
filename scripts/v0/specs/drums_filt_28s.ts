@@ -1,12 +1,11 @@
 /**
  * Handoff comparison — variant B: ≥0.4s spacing filter for the FIRST 28s, then
- * every onset kept (the dense clusters intact) from 28s onward. Single no-axis
- * section so filtering is the only variable across the three comparison specs.
+ * every onset kept (the dense clusters intact) from 28s onward. No axis pressure
+ * so filtering is the only variable across the three comparison specs.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Spec, Contact } from "../types.ts";
-import { constant } from "../core/curves.ts";
 
 const raw = JSON.parse(
   readFileSync(resolve("beats/drums_0_56s_60_125.json"), "utf8"),
@@ -22,5 +21,5 @@ for (const o of raw.onsets) {
   last = o.t;
 }
 
-const spec: Spec = { duration: raw.range_s[1], contacts, sections: [{ t0: 0, t1: 56 }] };
+const spec: Spec = { duration: raw.range_s[1], contacts, axes: {} };
 export default spec;

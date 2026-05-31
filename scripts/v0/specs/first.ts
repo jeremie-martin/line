@@ -1,10 +1,11 @@
 /**
  * v0 first milestone — small spec sufficient to validate the architecture
- * end-to-end. 10 seconds, 5 Contacts, one Section with `air = 0.7`.
+ * end-to-end. 10 seconds, 5 Contacts, a constant `air = 0.7` target.
  * See ../../../DESIGN.md § First milestone.
  */
 
 import type { Spec } from "../types.ts";
+import { constant } from "../core/curves.ts";
 
 const spec: Spec = {
   duration: 10,
@@ -15,9 +16,7 @@ const spec: Spec = {
     { t: 8.0 },
     { t: 9.5 },
   ],
-  sections: [
-    { t0: 0, t1: 10, air: 0.7 },
-  ],
+  axes: { air: constant(0.7) },
 };
 
 export default spec;

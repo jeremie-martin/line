@@ -312,18 +312,22 @@ floor-starved or candidate-starved.
 
 ## 7. The compiler today (`scripts/v0/optimizer/`)
 
-The current compiler is a standalone limited-discrepancy search:
+The compiler under this charter is `compileHandoff` (`handoff.ts`). It is selected
+only by passing `--compiler=handoff`; bare `npm run golden` still runs the
+default LDS compiler and is not the campaign signal.
 
-- `buildBacktrackingLeaf` (`lds.ts`) is the d=0 base path: a deterministic
-  explicit-stack greedy descent with bounded cross-gap backtracking and a
-  skip-march fallback. It is the completion floor.
-- Guided-repair leaves run after the assembled track misses or lands off-beat.
-  They forbid the owning gap's committed candidate and re-run the backtracking
-  descent. These leaves are budget-subject.
-- Base-rotated deviations (`enumerateDeviations`) explore paths near the base path
-  by increasing discrepancy. These are also budget-subject.
+The handoff compiler still depends on the LDS-style completion floor:
+
+- `compileHandoff` searches over partial prefixes and keeps a best-so-far
+  register under a deterministic comparator.
+- `buildBacktrackingLeaf` (`lds.ts`) is still the deterministic greedy completion
+  path used to finish a prefix. It has bounded cross-gap backtracking and a
+  skip-march fallback, so it remains the floor this campaign is trying to make
+  cheaper and better.
+- Handoff preview, branching, skip/defer behavior, and tail completion decide
+  which prefixes reach that floor under the fixed budget.
 - The best-so-far register (`register.ts`) is the single source of truth for leaf
-  selection under a deterministic comparator.
+  selection once a complete or partial candidate has been considered.
 
 The crucial current weakness is that the d=0 floor is budget-exempt enough to
 complete but expensive enough to starve everything after it. When the floor crosses

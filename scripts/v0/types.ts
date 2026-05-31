@@ -181,6 +181,10 @@ export type CompileStats = {
    *  prefixes before the normal soft-budget stop. */
   handoff_tail_completion_attempts?: number;
   handoff_tail_completion_successes?: number;
+  /** One-per-depth greedy suffix checkpoints for clean medium-dense prefixes
+   *  that are farther from the tail than the ordinary near-tail window. */
+  handoff_tail_checkpoint_attempts?: number;
+  handoff_tail_checkpoint_successes?: number;
   /** Deterministic root/start-state alternatives available to compileHandoff,
    *  and the selected rank for the returned best prefix. */
   handoff_start_options?: number;

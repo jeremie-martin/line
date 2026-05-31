@@ -540,8 +540,8 @@
   </div>
   <aside class="hero-card">
     <div class="label"><!--BASELINE:budget_label-->50k sanity run<!--/BASELINE--></div>
-    <div class="score"><span><!--BASELINE:goal_score-->284.65<!--/BASELINE--></span> / 1000</div>
-    <div class="note"><!--BASELINE:valid_note-->57 valid rows out of 60.<!--/BASELINE--> The default compiler is <code>handoff</code>; the explicit <code>--compiler=handoff</code> flag is still supported.</div>
+    <div class="score"><span><!--BASELINE:goal_score-->235.09<!--/BASELINE--></span> / 1000</div>
+    <div class="note"><!--BASELINE:valid_note-->55 valid rows out of 60.<!--/BASELINE--> The default compiler is <code>handoff</code>; the explicit <code>--compiler=handoff</code> flag is still supported.</div>
   </aside>
 </section>
 
@@ -929,33 +929,33 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
     <pre class="command">npm run golden -- --jobs=4 --budget=50000
 npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
 
-<!--BASELINE:score_block-->SCORE 284.65 - valid 57/60 - invalid 3 - timeout 0
-contract_pass_rate 95%<!--/BASELINE--></pre>
+<!--BASELINE:score_block-->SCORE 235.09 - valid 55/60 - invalid 5 - timeout 0
+contract_pass_rate 92%<!--/BASELINE--></pre>
 
     <div class="panel" style="margin-top:16px">
       <h3>Spec scores</h3>
       <div class="score-list" aria-label="Spec scores at 50k budget">
         <!--BASELINE:spec_rows-->
-        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:47.6%"></span></div><span class="num">475.68</span></div>
-        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:46.2%"></span></div><span class="num">461.91</span></div>
-        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:45.3%"></span></div><span class="num">452.90</span></div>
-        <div class="score-row"><span>drums_swell</span><div class="bar"><span style="width:42.4%"></span></div><span class="num">423.65</span></div>
-        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:40.4%"></span></div><span class="num">404.11</span></div>
-        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:39.4%"></span></div><span class="num">394.46</span></div>
-        <div class="score-row"><span>drums_breath</span><div class="bar"><span style="width:32.9%"></span></div><span class="num">329.05</span></div>
-        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:32.9%"></span></div><span class="num">328.57</span></div>
-        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:32.7%"></span></div><span class="num">326.89</span></div>
-        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:29.7%"></span></div><span class="num">297.33</span></div>
-        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:29.3%"></span></div><span class="num">293.37</span></div>
-        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:28.6%"></span></div><span class="num">285.77</span></div>
-        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:27.7%"></span></div><span class="num">277.45</span></div>
-        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:26.6%"></span></div><span class="num">266.50</span></div>
-        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:25.8%"></span></div><span class="num">257.82</span></div>
-        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:25.2%"></span></div><span class="num">251.80</span></div>
-        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:25.2%"></span></div><span class="num">251.64</span></div>
-        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:23.9%"></span></div><span class="num">238.64</span></div>
-        <div class="score-row fail"><span>opening_burst</span><div class="bar"><span style="width:16.8%"></span></div><span class="num">167.97</span></div>
-        <div class="score-row fail"><span>solo_run</span><div class="bar"><span style="width:4.2%"></span></div><span class="num">41.88</span></div>
+        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:48.5%"></span></div><span class="num">485.24</span></div>
+        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:47.5%"></span></div><span class="num">475.25</span></div>
+        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:44.8%"></span></div><span class="num">447.73</span></div>
+        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:40.6%"></span></div><span class="num">405.76</span></div>
+        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:39.1%"></span></div><span class="num">391.00</span></div>
+        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:36.9%"></span></div><span class="num">369.17</span></div>
+        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:34.7%"></span></div><span class="num">347.22</span></div>
+        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:30.9%"></span></div><span class="num">308.65</span></div>
+        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:29.5%"></span></div><span class="num">295.17</span></div>
+        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:29.1%"></span></div><span class="num">291.45</span></div>
+        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:25.7%"></span></div><span class="num">256.94</span></div>
+        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:25.6%"></span></div><span class="num">256.07</span></div>
+        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:25.4%"></span></div><span class="num">254.49</span></div>
+        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:25.1%"></span></div><span class="num">251.04</span></div>
+        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:23.7%"></span></div><span class="num">236.55</span></div>
+        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:22.5%"></span></div><span class="num">225.14</span></div>
+        <div class="score-row fail"><span>opening_burst</span><div class="bar"><span style="width:13.5%"></span></div><span class="num">135.19</span></div>
+        <div class="score-row fail"><span>drums_swell</span><div class="bar"><span style="width:5.9%"></span></div><span class="num">59.47</span></div>
+        <div class="score-row fail"><span>verse_chorus</span><div class="bar"><span style="width:5.9%"></span></div><span class="num">58.60</span></div>
+        <div class="score-row fail"><span>drums_breath</span><div class="bar"><span style="width:4.4%"></span></div><span class="num">43.88</span></div>
         <!--/BASELINE-->
       </div>
     </div>
@@ -982,8 +982,8 @@ npx vitest run tests/v0_determinism.test.ts</pre>
       </div>
       <div class="panel">
         <h3>Current known frontier</h3>
-        <p>The remaining 40k failures are <code>opening_burst</code> seeds 0 and 2, and <code>solo_run</code> seed 0. These rows improve at larger budgets, so they are primarily search-throughput problems.</p>
-        <div class="tags"><span class="tag warn">opening_burst s0/s2</span><span class="tag warn">solo_run s0</span></div>
+        <p>At the 50k campaign budget, the failing rows are concentrated in <code>opening_burst</code>, <code>verse_chorus</code>, <code>drums_swell</code>, and <code>drums_breath</code>. The current frontier is reaching complete prefixes sooner without reintroducing contact-count or benchmark-shaped policy cliffs.</p>
+        <div class="tags"><span class="tag warn">opening_burst 1/3</span><span class="tag warn">verse_chorus 2/3</span><span class="tag warn">drums_swell 2/3</span><span class="tag warn">drums_breath 2/3</span></div>
       </div>
     </div>
   </section>
@@ -1141,7 +1141,7 @@ setTab(location.hash.replace("#", "") || "compiler", false);
 // per-section scores are not comparable, so the series restarts here.
 // Append a point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
 const campaignData = [
-  /*BASELINE:campaign*/["20-spec @50k", 284.65]/*/BASELINE*/
+  /*BASELINE:campaign*/["20-spec @50k", 235.09]/*/BASELINE*/
 ];
 
 function drawCampaignChart() {

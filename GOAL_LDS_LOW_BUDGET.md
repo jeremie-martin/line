@@ -18,9 +18,9 @@ the CLI shape.
 
 Current baseline (20-spec golden suite):
 
-- `goal_score 284.65`
-- `valid 57/60` (20 specs × 3 seeds)
-- `contract_pass_rate 95%`
+- `goal_score 235.09`
+- `valid 55/60` (20 specs × 3 seeds)
+- `contract_pass_rate 92%`
 - `evaluator_fingerprint e9f938701119`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
@@ -85,23 +85,25 @@ npm run golden -- --variants --compiler=handoff
 
 ## Current Frontier
 
-At 50k, only 3 of 60 rows miss the contract — across 2 specs:
+At 50k, 5 of 60 rows miss the contract — across 4 specs:
 
-- `solo_run` 41.9 (2/3) — sustained ~80-contact density; the lowest scorer,
-  budget-bound at this contact count
-- `opening_burst` 168.0 (1/3) — hot dense opening; initial-state bound
+- `opening_burst` 135.2 (1/3) — hot dense opening; still initial-state/search
+  bound
+- `verse_chorus` 58.6 (2/3) — one late survival miss after the anti-cliff policy
+  cleanup
+- `drums_swell` 59.5 (2/3) — late speed growth can still outrun the suffix
+- `drums_breath` 43.9 (2/3) — late speed growth can still outrun the suffix
 
-Both are budget/density-bound: they improve at higher budgets, so the useful
-work is reaching better completions sooner without reading the budget from
-policy.
+The previous sustained-density row, `solo_run`, now passes 3/3 at 50k. The useful
+work remains reaching better complete prefixes sooner without reading the budget
+from policy, especially where late speed saturation turns into survival misses.
 
-The 7 continuous-curve showcase specs are otherwise the *strongest* rows in the
-suite (e.g. `drums_zigzag` 475.7, `drums_pulse` 461.9, `drums_crosscut` 452.9,
-all 3/3) — the curve paradigm is not a stressor for contract pass. The visible
-residual on several specs is *speed* overshooting its target on the dense/late
-back half (a physics-saturation effect, clear in the dashboard's
-measured-vs-target view); `air` and `grain` track faithfully. That caps axis
-quality, not survival.
+The continuous-curve showcase is now mixed: `drums_tide`, `drums_dropout`,
+`drums_pulse`, `drums_crosscut`, and `drums_zigzag` remain strong 3/3 rows, while
+`drums_swell` and `drums_breath` are frontier rows. The visible residual on
+several specs is still *speed* overshooting its target on the dense/late back
+half (a physics-saturation effect, clear in the dashboard's measured-vs-target
+view); on the frontier rows that can cap survival, not only axis quality.
 
 Promising levers:
 

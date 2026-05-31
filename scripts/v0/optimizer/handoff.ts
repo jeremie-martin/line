@@ -118,6 +118,8 @@ const HANDOFF_OPENING_RESCUE_CANDIDATES = 48;
 const HANDOFF_OPENING_PREVIEW_RESCUE_POOL = 12;
 const HANDOFF_OPENING_PREVIEW_RESCUE_K = 8;
 const HANDOFF_PREVIEW_K = 1;
+const HANDOFF_LONG_DENSE_PREVIEW_K = 0;
+const HANDOFF_LONG_DENSE_PREVIEW_DISABLE_AFTER_CONTACTS = 50;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 4;
 const START_BROAD_OPTION_LIMIT = 6;
@@ -481,8 +483,11 @@ function rankedOptions(
       .sort((a, b) => a.cost - b.cost);
   }
   const pool = sorted.slice(0, handoffCandidatePool(ctx));
+  const effectivePreviewK = usesLongDensePreviewPolicy(node, gaps, ctx)
+    ? Math.min(previewK, HANDOFF_LONG_DENSE_PREVIEW_K)
+    : previewK;
   let scored = pool.map((candidate, rank) =>
-    scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry, previewK)
+    scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry, effectivePreviewK)
   );
   if (
     scored.length > 0 &&
@@ -523,6 +528,19 @@ function handoffCandidatePool(ctx: SpecContext): number {
 function usesMediumDensePolicy(ctx: SpecContext): boolean {
   const contacts = ctx.allContactFrames.length;
   return contacts >= HANDOFF_MEDIUM_DENSE_MIN_CONTACTS && contacts <= HANDOFF_LONG_DENSE_CONTACTS;
+}
+
+function usesLongDensePreviewPolicy(node: SearchNode, gaps: Gap[], ctx: SpecContext): boolean {
+  return ctx.allContactFrames.length > HANDOFF_LONG_DENSE_CONTACTS &&
+    committedContactCount(node, gaps) >= HANDOFF_LONG_DENSE_PREVIEW_DISABLE_AFTER_CONTACTS;
+}
+
+function committedContactCount(node: SearchNode, gaps: Gap[]): number {
+  let contacts = 0;
+  for (let i = 0; i < Math.min(node.gapIndex, gaps.length); i++) {
+    if (gaps[i].endsWithContact) contacts++;
+  }
+  return contacts;
 }
 
 function usesOpeningCandidateRescue(node: SearchNode, gaps: Gap[], ctx: SpecContext): boolean {

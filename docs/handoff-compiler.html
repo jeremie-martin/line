@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Hand-off Compiler — How it works &amp; the 40k campaign</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --panel-2:#1c232d; --line:#2b3440;
+    --ink:#e6edf3; --ink-dim:#9aa7b4; --ink-faint:#6b7886;
+    --accent:#58a6ff; --accent-2:#7ee787; --warn:#f0883e; --bad:#f85149;
+    --good:#3fb950; --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--sans); line-height:1.6; font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,.mono{font-family:var(--mono); font-size:.88em}
+  code{background:var(--panel-2); padding:.12em .4em; border-radius:5px; color:#d2a8ff}
+
+  /* layout */
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px}
+  header.hero{
+    border-bottom:1px solid var(--line);
+    background:radial-gradient(1200px 400px at 70% -10%,rgba(88,166,255,.10),transparent),
+               linear-gradient(180deg,#0e1116,#11161d);
+  }
+  .hero-inner{padding:64px 28px 52px; max-width:1080px; margin:0 auto}
+  .kicker{
+    font-family:var(--mono); font-size:13px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--accent); margin:0 0 14px;
+  }
+  h1{font-size:clamp(30px,5vw,46px); line-height:1.1; margin:0 0 16px; font-weight:700; letter-spacing:-.01em}
+  .lede{font-size:18px; color:var(--ink-dim); max-width:680px; margin:0}
+
+  /* headline stats */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:38px 0 4px}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 18px 16px}
+  .stat .n{font-size:30px; font-weight:700; letter-spacing:-.02em}
+  .stat .n.up{color:var(--accent-2)}
+  .stat .l{font-size:12.5px; color:var(--ink-faint); margin-top:4px; text-transform:uppercase; letter-spacing:.06em}
+
+  /* nav */
+  nav.toc{
+    position:sticky; top:0; z-index:20; backdrop-filter:blur(10px);
+    background:rgba(14,17,22,.82); border-bottom:1px solid var(--line);
+  }
+  .toc-inner{display:flex; gap:6px; flex-wrap:wrap; padding:12px 28px; max-width:1080px; margin:0 auto}
+  .toc a{
+    font-size:13.5px; color:var(--ink-dim); padding:6px 12px; border-radius:8px;
+    border:1px solid transparent;
+  }
+  .toc a:hover{color:var(--ink); text-decoration:none; background:var(--panel)}
+  .toc a.active{color:var(--ink); background:var(--panel-2); border-color:var(--line)}
+
+  section{padding:54px 0 8px; border-bottom:1px solid var(--line)}
+  section:last-of-type{border-bottom:none}
+  h2{font-size:27px; margin:0 0 6px; letter-spacing:-.01em; scroll-margin-top:64px}
+  h2 .num{color:var(--accent); font-family:var(--mono); font-size:18px; margin-right:10px}
+  .sub{color:var(--ink-dim); margin:0 0 26px; max-width:760px}
+  h3{font-size:18px; margin:34px 0 8px; color:var(--ink)}
+  p{margin:0 0 16px}
+
+  /* generic card */
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 24px; margin:18px 0}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media(max-width:760px){ .grid2{grid-template-columns:1fr} .stats{grid-template-columns:1fr 1fr} .hero-inner{padding:46px 4px 36px} }
+
+  /* pipeline diagram */
+  .flow{display:flex; flex-direction:column; gap:0; margin:8px 0 4px}
+  .flow .step{
+    display:flex; gap:16px; align-items:flex-start; padding:16px 0; position:relative;
+  }
+  .flow .step:not(:last-child)::after{
+    content:""; position:absolute; left:19px; top:46px; bottom:-2px; width:2px; background:var(--line);
+  }
+  .flow .dot{
+    flex:0 0 40px; height:40px; border-radius:50%; background:var(--panel-2);
+    border:2px solid var(--accent); color:var(--accent); display:grid; place-items:center;
+    font-family:var(--mono); font-weight:700; font-size:15px; z-index:1;
+  }
+  .flow .body h4{margin:6px 0 4px; font-size:16px}
+  .flow .body p{margin:0; color:var(--ink-dim); font-size:14.5px}
+  .flow .body .fn{font-family:var(--mono); font-size:12.5px; color:var(--ink-faint)}
+
+  /* chart */
+  .chart-card{padding:24px 20px 14px}
+  #chart{width:100%; height:auto; display:block}
+  .chart-legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; font-size:13px; color:var(--ink-dim)}
+  .chart-legend b{color:var(--ink)}
+
+  /* commit timeline */
+  .phase{margin:22px 0}
+  .phase-head{display:flex; align-items:center; gap:12px; margin-bottom:4px}
+  .phase-tag{
+    font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:999px;
+    border:1px solid var(--line); color:var(--ink-dim); white-space:nowrap;
+  }
+  .phase-delta{font-family:var(--mono); font-size:13px; color:var(--accent-2); font-weight:700}
+  .commit{
+    border:1px solid var(--line); border-radius:11px; margin:10px 0; overflow:hidden;
+    background:var(--panel);
+  }
+  .commit summary{
+    list-style:none; cursor:pointer; padding:14px 18px; display:flex; align-items:center; gap:14px;
+    user-select:none;
+  }
+  .commit summary::-webkit-details-marker{display:none}
+  .commit summary:hover{background:var(--panel-2)}
+  .commit .sha{font-family:var(--mono); font-size:12px; color:var(--accent); flex:0 0 auto}
+  .commit .title{flex:1 1 auto; font-size:15px}
+  .commit .score{font-family:var(--mono); font-size:13px; color:var(--ink-dim); flex:0 0 auto}
+  .commit .chev{color:var(--ink-faint); transition:transform .15s ease}
+  .commit[open] .chev{transform:rotate(90deg)}
+  .commit .detail{padding:2px 18px 18px 18px; border-top:1px solid var(--line); color:var(--ink-dim); font-size:14.5px}
+  .commit .detail p{margin:14px 0 0}
+  .commit .detail .why{color:var(--ink)}
+
+  /* lever tables */
+  .levers{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:6px}
+  @media(max-width:760px){ .levers{grid-template-columns:1fr} }
+  .lever-col h3{margin-top:0; display:flex; align-items:center; gap:8px}
+  .lever-col ul{margin:0; padding-left:0; list-style:none}
+  .lever-col li{padding:9px 0; border-bottom:1px solid var(--line); font-size:14.5px; color:var(--ink-dim)}
+  .lever-col li:last-child{border-bottom:none}
+  .lever-col li b{color:var(--ink); font-weight:600}
+  .pill{font-family:var(--mono); font-size:11px; padding:2px 7px; border-radius:6px; vertical-align:middle}
+  .pill.good{background:rgba(63,185,80,.15); color:var(--good)}
+  .pill.bad{background:rgba(248,81,73,.15); color:var(--bad)}
+
+  .callout{
+    border-left:3px solid var(--warn); background:rgba(240,136,62,.07);
+    padding:16px 20px; border-radius:0 10px 10px 0; margin:22px 0;
+  }
+  .callout h3{margin:0 0 6px; color:var(--warn); font-size:16px}
+  .callout p{margin:0; color:var(--ink-dim); font-size:14.5px}
+
+  footer{padding:38px 0 60px; color:var(--ink-faint); font-size:13px}
+  .tag-row{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 0}
+  .tag{font-family:var(--mono); font-size:12px; color:var(--ink-dim); background:var(--panel); border:1px solid var(--line); padding:4px 10px; border-radius:7px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="kicker">Line Rider · procedural track compiler</p>
+    <h1>The Hand-off Compiler</h1>
+    <p class="lede">A forward, prefix-at-a-time search that turns a musical <em>spec</em> into a rideable track — and the 14-commit campaign that drove it 8× on a fixed 40,000-frame budget.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="n">44.06</div><div class="l">Starting score</div></div>
+      <div class="stat"><div class="n up">354.55</div><div class="l">Final score · 8.0×</div></div>
+      <div class="stat"><div class="n up">0.92</div><div class="l">Pass rate (from 0.46)</div></div>
+      <div class="stat"><div class="n">14</div><div class="l">Commits</div></div>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#how">How it works</a>
+    <a href="#progress">Score progression</a>
+    <a href="#commits">The 14 commits</a>
+    <a href="#lessons">What we learned</a>
+    <a href="#ceiling">The ceiling</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ============================ HOW IT WORKS ============================ -->
+<section id="how">
+  <h2><span class="num">01</span>How the compiler works</h2>
+  <p class="sub">The hand-off optimizer (<code>compileHandoff</code>, <span class="mono">scripts/v0/optimizer/handoff.ts</span>) is a separate optimizer from the older backtracking floor (LDS). Its core idea: a search state is a <strong>partial track prefix at a gap boundary</strong>, not a whole re-generated track. The search extends one gap at a time, keeps alternatives on a deterministic stack, and is bounded by a hard sim-frame budget.</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">The mental model</h3>
+    <p>A spec is a sequence of <strong>contacts</strong> (the rider must touch a line at a beat) separated by <strong>gaps</strong>. Each section carries axis targets — <em>speed, air, grain, contact-style</em>. Compiling means choosing, for each gap, a small arc of lines (a "catch") that (a) lands the rider on the next contact within ±1 frame, (b) keeps it alive, and (c) hits the section's axis targets as closely as possible. The hand-off search builds that chain of catches greedily-but-with-backtracking, always holding onto the best complete-or-partial track it has seen.</p>
+  </div>
+
+  <h3>The search loop</h3>
+  <div class="card">
+    <div class="flow">
+      <div class="step">
+        <div class="dot">1</div>
+        <div class="body">
+          <h4>Resolve start options</h4>
+          <p>Before the first gap, the search builds up to <strong>10</strong> candidate start states (position + velocity), ranked by a two-gap feasibility probe. The start is a one-time choice, so exploring several start subtrees is cheap relative to the per-gap search.</p>
+          <p class="fn">buildStartOptions() · START_OPTION_LIMIT = 10</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="dot">2</div>
+        <div class="body">
+          <h4>Pop a prefix from the frontier</h4>
+          <p>Two stacks form the frontier: a <strong>pass stack</strong> (skip-free prefixes) and a <strong>fallback stack</strong> (prefixes that had to skip a contact). The pass stack is always drained first, so the search prioritises prefixes that have landed every contact so far.</p>
+          <p class="fn">activeFrontier() · passStack / fallbackStack</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="dot">3</div>
+        <div class="body">
+          <h4>Score the prefix &amp; register it</h4>
+          <p>Every popped prefix — complete or partial — is detected, turned into a drift report, and offered to a strict <strong>best-so-far register</strong>. Partial prefixes are scored on the sections they actually completed, so a track that dies early still counts for what it got right.</p>
+          <p class="fn">evaluateNode() → BestSoFarRegister.consider()</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="dot">4</div>
+        <div class="body">
+          <h4>Generate &amp; rank the next gap's candidates</h4>
+          <p>For the current gap, sample <strong>16</strong> arcs, keep a pool of 5–8 sorted by cost, then re-rank them by a <em>feasibility probe</em> plus penalties (below). Add two special candidate sources — <strong>catch-reuse</strong> and <strong>brake</strong> catches — then branch on the best <strong>3</strong>.</p>
+          <p class="fn">rankedOptions() · HANDOFF_N_CAND 16 · HANDOFF_BRANCHING 3</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="dot">5</div>
+        <div class="body">
+          <h4>Push children, repeat until budget</h4>
+          <p>The 3 children go back on the appropriate stack. The loop runs until the frontier empties or the <strong>sim-frame budget</strong> is hit. A hard limit of <code>budget × 1.2</code> throws <code>PhysicsFrameLimitExceeded</code> as a backstop. The register's best entry is the returned track.</p>
+          <p class="fn">getSimFrames() ≥ budgetUnits → break</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Candidate ranking — the heart of it</h3>
+  <p>For each candidate the search computes a score (<em>lower is better</em>) in <code>scoreCandidateForHandoff</code>:</p>
+  <div class="card mono" style="font-size:13.5px; color:var(--ink-dim); line-height:1.9">
+    score = candidate.cost
+    &nbsp;&nbsp;+ <span style="color:var(--accent-2)">scarcity</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--ink-faint)">// dead-end probe: is the NEXT contact still reachable?</span>
+    &nbsp;&nbsp;+ <span style="color:var(--accent-2)">statePenalty</span> &nbsp;&nbsp;<span style="color:var(--ink-faint)">// punish wild exit velocity / steep angles</span>
+    &nbsp;&nbsp;+ <span style="color:var(--accent-2)">overshoot</span> &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--ink-faint)">// asymmetric speed &amp; air OVER-target penalty</span>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin-top:0">Feasibility probe</h3>
+      <p style="margin:0; color:var(--ink-dim); font-size:14.5px">Before committing a catch, the search simulates one gap into the future (<code>previewFutureContacts</code>, horizon 1) and asks: <em>does the next contact still have surviving candidates?</em> Zero survivors → a heavy <code>DEAD_END_PENALTY</code>; few survivors → a smaller scarcity cost. This is what stops the greedy chain from walking into a corner.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Overshoot penalty</h3>
+      <p style="margin:0; color:var(--ink-dim); font-size:14.5px">Catch arcs are net-downhill, so the rider tends to <em>accelerate past target speed</em> over a long track and eventually stall. An asymmetric penalty (weight 16 on speed, 16 on air) prefers catches whose achieved speed/air does <em>not</em> exceed target — pure selection, no geometry change, so it never destabilises the candidate generator.</p>
+    </div>
+  </div>
+
+  <h3>Two special candidate sources</h3>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin-top:0">♻️ Catch-reuse</h3>
+      <p style="margin:0; color:var(--ink-dim); font-size:14.5px">On a periodic rhythm the rider reaches a near-steady state, so a catch that landed three contacts ago lands this one too. Catch arcs are <em>sled-relative</em>, so <code>reuseCatchCandidates</code> translates the last 2 committed catches by the sled delta and offers the survivors — found in ~1 simulation instead of re-rolling 16 random arcs. This is what lets a budget-starved periodic spec finish within budget.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">🛑 Brake catches</h3>
+      <p style="margin:0; color:var(--ink-dim); font-size:14.5px">When the rider runs over a <em>moderate</em> target speed, <code>brakeCatchCandidates</code> offers uphill-entry arcs (negative start angle) that bleed speed on the way <em>up</em> before contacting. They're decoupled from landing (the impact anchor still places them on the contact), so on non-creeping specs they simply lose the ranking — no collateral damage.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h3>The two hard rules</h3>
+    <p><strong>Determinism:</strong> same spec + seed → byte-identical track, every time. Every randomized step uses a seed derived from the gap index. <strong>Budget-monotonicity:</strong> a larger budget can only ever produce an equal-or-better result. Both are enforced by <span class="mono">tests/optimizer_handoff.test.ts</span> and were never allowed to break — every mechanism below only <em>adds</em> candidates or <em>re-ranks</em> them; none mutate committed geometry.</p>
+  </div>
+</section>
+
+<!-- ============================ PROGRESSION ============================ -->
+<section id="progress">
+  <h2><span class="num">02</span>Score progression</h2>
+  <p class="sub">Every commit was measured on the campaign metric — <code>npm run golden -- --jobs=4 --budget=40000 --compiler=handoff</code> — and only kept when it improved the suite-wide <code>goal_score</code> (a shifted geometric mean over 13 golden specs × 3 seeds). The climb came in four distinct phases.</p>
+
+  <div class="card chart-card">
+    <canvas id="chart" width="1040" height="420" aria-label="Score progression chart"></canvas>
+    <div class="chart-legend">
+      <span><b style="color:#58a6ff">●</b> goal_score after each commit</span>
+      <span><b>4 phases:</b> efficiency · periodicity · speed-control · start-options</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ COMMITS ============================ -->
+<section id="commits">
+  <h2><span class="num">03</span>The 14 commits, phase by phase</h2>
+  <p class="sub">Click any commit to expand the reasoning. The throughline: <strong>levers that work are selection-based or one-time; generation-based knobs are chaotic.</strong></p>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-head">
+      <span class="phase-tag">Phase 1 · Search efficiency</span>
+      <span class="phase-delta">44 → 140</span>
+    </div>
+    <p class="sub" style="margin:0 0 8px">More node throughput per sim-frame, so budget-starved deep specs actually reach completion. Per-node cost ≈ <code>N_CAND × gap_span</code>, so the wins here are about spending fewer frames per node.</p>
+
+    <details class="commit">
+      <summary><span class="sha">ef56ec9</span><span class="title">Shrink handoff per-gap candidate pool to 16</span><span class="score">44 → 89</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">The LDS default of 32 candidates per gap is mostly wasted: the hand-off only ranks a pool of 5–8 and branches 3-wide. Sampling 16 (a deterministic prefix of the 32-sample order) roughly halves per-node cost.</p>
+        <p>Added an optional <code>nCand</code> parameter to <code>getCandidatesSorted</code> so LDS stays untouched at 32. Doubling throughput lets the search reach skip-free completions on deep, starved specs within the same 40k budget.</p>
+      </div>
+    </details>
+    <details class="commit">
+      <summary><span class="sha">1c80246</span><span class="title">Halve handoff feasibility-preview cost (PREVIEW_K 2→1)</span><span class="score">89 → 137</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">The feasibility probe simulates future gaps purely to <em>rank</em> the current candidate — it's overhead. It was sampling 2 candidates per previewed gap; 1 is enough to detect a dead end.</p>
+        <p>Previews were ~40–50% of per-node cost. Halving them freed a large slice of the budget for actual search depth.</p>
+      </div>
+    </details>
+    <details class="commit">
+      <summary><span class="sha">b9f6442</span><span class="title">Drop handoff previewCost ranking bias</span><span class="score">137 → 140</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">A <code>previewCost</code> term was biasing catch selection toward whichever choice made the <em>next</em> gap cheap — at the expense of <em>this</em> gap's axis quality.</p>
+        <p>Set <code>PREVIEW_COST_WEIGHT = 0</code>. Keeping only the dead-end / scarcity signal from the probe (not its cost) improved axis quality on already-passing specs.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-head">
+      <span class="phase-tag">Phase 2 · Exploit periodicity</span>
+      <span class="phase-delta">140 → 188</span>
+    </div>
+    <p class="sub" style="margin:0 0 8px">The breakthrough that broke the first "ceiling." Periodic specs reach a steady state where one catch shape works repeatedly — but per-gap RNG re-rolled fresh arcs every gap and never reused the known-good one.</p>
+    <details class="commit">
+      <summary><span class="sha">c9801a0</span><span class="title">Add catch-reuse to handoff search (exploit periodicity)</span><span class="score">140 → 188</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">On uniform-rhythm specs the rider settles into a near-steady state where the same sled-relative catch lands contact after contact. The search was blind to this, re-rolling 16 random arcs and backtracking at every gap.</p>
+        <p>Catch arcs now record the sled reference they were placed from (<code>GapFit.ref</code>, set in <code>sampleOneCandidate</code>). <code>reuseCatchCandidates</code> translates the last 2 committed catches by the sled delta and offers any survivors as extra candidates — 1 sim each. Deterministic and monotonic (only adds candidates). opening_burst 10→227, drums_signature 59→431.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase">
+    <div class="phase-head">
+      <span class="phase-tag">Phase 3 · Speed-creep control</span>
+      <span class="phase-delta">188 → 315</span>
+    </div>
+    <p class="sub" style="margin:0 0 8px">The systemic root cause of the remaining cap: <strong>speed creep</strong>. Net-downhill catches make the rider accelerate to ~2× target and stall before the last contacts. Fixed in two ways — penalise overshoot in selection, then <em>generate</em> braking catches.</p>
+    <details class="commit">
+      <summary><span class="sha">c49b19f</span><span class="title">Penalize speed-overshoot in candidate ranking</span><span class="score">→ 192</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">Candidate cost penalised speed error symmetrically (1 of 4 axes), far too weakly to arrest accumulating creep.</p>
+        <p>Added an asymmetric term that only punishes achieved-speed <em>above</em> target. Selection-only — it picks slower catches that already exist, never changing geometry.</p>
+      </div>
+    </details>
+    <details class="commit">
+      <summary><span class="sha">28dd652</span><span class="title">Tune speed-overshoot weight 8→16</span><span class="score">→ 195</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">The weight landscape is non-monotonic (search interactions are chaotic), so each point was measured rather than assumed. 16 beat 8 suite-wide.</p>
+      </div>
+    </details>
+    <details class="commit">
+      <summary><span class="sha">8ab8594</span><span class="title">Add air-overshoot penalty to ranking</span><span class="score">→ 200</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">Air-time is the other systematic suite-wide over-target axis (the rider hangs longer than asked). Same asymmetric selection-only bias, weight 16. Lifted axis quality on cold_start, drums_signature, grain, tiny_dance.</p>
+      </div>
+    </details>
+    <details class="commit">
+      <summary><span class="sha">667bf16</span><span class="title">Add uphill-entry brake candidates (decoupled speed control)</span><span class="score">→ ~300</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">Selection can only <em>pick</em> a slow catch, never create one — so on genuine creep specs (solo_run) there was nothing slow to pick. This commit <em>generates</em> braking catches.</p>
+        <p>A <code>brake</code> flag samples an uphill (negative, −28°…−6°) start angle so the rider climbs the arc's front and bleeds speed before contacting. Crucially decoupled from landing — the impact anchor still lands the contact — so brakes are offered as extra candidates and only win when the overshoot penalty rewards their lower speed. Earlier attempts that braked via the <em>exit</em> angle or by shortening arcs broke landing on legitimately-fast specs; this decoupling is what made it net-positive.</p>
+      </div>
+    </details>
+    <details class="commit">
+      <summary><span class="sha">6021116</span><span class="title">Brake from first overshoot (ratio 1.1→1.0)</span><span class="score">↑</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">Creep can't be recovered late — once the rider is well over target it's too few gaps from the end to bleed it off. Lowering the trigger ratio to 1.0 brakes at the <em>earliest</em> sign of overshoot, pre-empting creep instead of chasing it.</p>
+      </div>
+    </details>
+    <details class="commit">
+      <summary><span class="sha">7bdea1c</span><span class="title">Tune brake candidate count K 2→3</span><span class="score">↑</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">A richer brake pool (3 attempts per gap) recovered more specs — but only where the budget could afford it (next commit).</p>
+      </div>
+    </details>
+    <details class="commit">
+      <summary><span class="sha">b94b8ad</span><span class="title">Scale brake-K inversely with contact density</span><span class="score">→ 315</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">A deep run like solo_run (77 contacts) is budget-starved — spending 3 brake sims at every gap starves its completion. A short spec can afford the richer pool.</p>
+        <p><code>brakeK = clamp(round(165 / contacts), 2, 3)</code> — a compute-per-contact allocation, <em>not</em> a spec-name gate. Deep specs get K=2 (room to finish), short specs K=3 (the pool that recovers drums_pendulum). solo_run 0→55 (2/3 seeds), pass rate 0.69→0.82.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase">
+    <div class="phase-head">
+      <span class="phase-tag">Phase 4 · Start-option search</span>
+      <span class="phase-delta">315 → 355</span>
+    </div>
+    <p class="sub" style="margin:0 0 8px">The start state is a <em>one-time</em> cost, so exploring more of them doesn't disrupt the per-gap DFS or starve mid-track budget — unlike every generation-based knob. This landed specs whose <em>opening</em> was the blocker.</p>
+    <details class="commit">
+      <summary><span class="sha">469ed3c</span><span class="title">Expand start-option search 4→6</span><span class="score">↑</span><span class="chev">›</span></summary>
+      <div class="detail"><p class="why">More deterministic start subtrees explored, each ranked by the two-gap feasibility probe. Began landing start-gated specs (dense_sprint, syncopated).</p></div>
+    </details>
+    <details class="commit">
+      <summary><span class="sha">a55926a</span><span class="title">Expand start-option search 6→8</span><span class="score">→ 339</span><span class="chev">›</span></summary>
+      <div class="detail"><p class="why">Continued the climb. The cost is bounded (one extra short subtree per option), so it stays affordable where per-gap escalation would not.</p></div>
+    </details>
+    <details class="commit">
+      <summary><span class="sha">9c2eec2</span><span class="title">Expand start-option search to 10 (scoring pool 16)</span><span class="score">→ 355</span><span class="chev">›</span></summary>
+      <div class="detail">
+        <p class="why">L=10 was the measured peak: dense_sprint 1/3→3/3, syncopated 1/3→3/3, pass rate 0.82→0.92.</p>
+        <p>L=12 <em>regressed</em> to 313 — too many start subtrees split the budget and starved opening_burst's axis quality. A clean local optimum.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ============================ LESSONS ============================ -->
+<section id="lessons">
+  <h2><span class="num">04</span>What we learned</h2>
+  <p class="sub">~38 mechanisms were tried; the pattern that emerged is sharp and reusable. The candidate generator is delicately tuned, and the search dynamics are chaotic — so the levers that pay off are the ones that <em>don't touch generated geometry</em>.</p>
+
+  <div class="levers">
+    <div class="lever-col">
+      <h3>✅ Levers that worked</h3>
+      <ul>
+        <li><b>Selection re-ranking</b> — overshoot penalties (speed, air) pick better catches with zero geometry change. <span class="pill good">clean</span></li>
+        <li><b>Reuse</b> — translate known-good catches on periodic specs. <span class="pill good">~1 sim</span></li>
+        <li><b>Decoupled braking</b> — generate uphill catches that lose harmlessly when not needed. <span class="pill good">no collateral</span></li>
+        <li><b>One-time costs</b> — start-option expansion doesn't starve the DFS. <span class="pill good">bounded</span></li>
+        <li><b>Throughput</b> — fewer candidates / cheaper previews → more search per frame. <span class="pill good">efficiency</span></li>
+        <li><b>Density-aware allocation</b> — spend brake budget where the spec can afford it. <span class="pill good">per-contact</span></li>
+      </ul>
+    </div>
+    <div class="lever-col">
+      <h3>❌ Dead ends (reverted)</h3>
+      <ul>
+        <li><b>Per-gap escalation</b> — 48-sample re-roll lands hard contacts but fires too broadly and blows budget. <span class="pill bad">74–85</span></li>
+        <li><b>Adaptive N_CAND</b> — starvation doesn't track contact count. <span class="pill bad">101</span></li>
+        <li><b>Exit-angle / length braking</b> — breaks landing on fast specs. <span class="pill bad">chaotic</span></li>
+        <li><b>Grain-bias sampling</b> — changing geometry regresses hard. <span class="pill bad">251</span></li>
+        <li><b>Completion floor / repair pass</b> — steals budget from the search. <span class="pill bad">26</span></li>
+        <li><b>Tail-completion ungating</b> — greedy multi-gap drive starves syncopated/verse. <span class="pill bad">234</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout" style="border-left-color:var(--accent)">
+    <h3 style="color:var(--accent)">The one-line takeaway</h3>
+    <p><strong>Selection-based and one-time levers compound; generation-based knobs (escalation, sampling, candidate counts, grain bias) are chaotic and net-negative.</strong> The candidate generator is a tuned instrument — re-rank what it produces, reuse what already worked, and add escape-hatch candidates that lose gracefully, but don't reach in and change the arcs it draws.</p>
+  </div>
+</section>
+
+<!-- ============================ CEILING ============================ -->
+<section id="ceiling">
+  <h2><span class="num">05</span>The 40k ceiling</h2>
+  <p class="sub">354.55 is a verified local optimum at the fixed <code>--budget=40000</code>, reached after exhausting the lever space above.</p>
+  <div class="card">
+    <p>The budget is <strong>100% saturated</strong> — every spec/seed row spends ≥ 40,000 sim-frames. That makes the remaining gap a hard trade-off rather than a tuning problem: any added mechanism starves a spec, removing work loses quality, and the per-candidate physics-validation cost is irreducible.</p>
+    <p style="margin-bottom:0">The three still-failing rows (solo_run s0, opening_burst s0/s2) are <em>budget-bound</em>, not idea-bound — they already pass at ~80–120k. Reaching the original &gt;600 target therefore needs either a higher campaign budget or a research-grade rebuild of search thoroughness and axis quality (LDS shows ~60% axis / 560–608 is physically achievable; it just can't afford the floor-starved rows at 40k). All progress, mechanisms, and dead-ends are recorded for whenever that budget or architecture decision is made.</p>
+  </div>
+  <div class="tag-row">
+    <span class="tag">determinism: enforced</span>
+    <span class="tag">monotonicity: enforced</span>
+    <span class="tag">tests: green</span>
+    <span class="tag">scorer: untouched</span>
+    <span class="tag">LDS: unaffected</span>
+  </div>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <p>Hand-off compiler · <span class="mono">scripts/v0/optimizer/handoff.ts</span> · branch <span class="mono">reach-handoff</span> · campaign metric <span class="mono">npm run golden -- --jobs=4 --budget=40000 --compiler=handoff</span></p>
+</footer>
+
+<script>
+// ---- smooth-scroll active nav highlighting ----
+const links = [...document.querySelectorAll('nav.toc a')];
+const sections = links.map(a => document.querySelector(a.getAttribute('href')));
+const onScroll = () => {
+  const y = window.scrollY + 120;
+  let active = sections.length - 1;
+  for (let i = 0; i < sections.length; i++) {
+    if (sections[i] && sections[i].offsetTop <= y) active = i;
+  }
+  links.forEach((a, i) => a.classList.toggle('active', i === active));
+};
+window.addEventListener('scroll', onScroll, {passive:true});
+onScroll();
+
+// ---- score-progression chart ----
+// Measured goal_score after each kept commit (the four-phase climb).
+const DATA = [
+  {label:'start',     score:44.06, phase:0},
+  {label:'ef56ec9',   score:89.37, phase:0},
+  {label:'1c80246',   score:136.56,phase:0},
+  {label:'b9f6442',   score:140.00,phase:0},
+  {label:'c9801a0',   score:188.42,phase:1},
+  {label:'c49b19f',   score:192.32,phase:2},
+  {label:'28dd652',   score:195.42,phase:2},
+  {label:'8ab8594',   score:200.05,phase:2},
+  {label:'b94b8ad',   score:315.52,phase:2},
+  {label:'9c2eec2',   score:354.55,phase:3},
+];
+const PHASE_COLORS = ['#58a6ff','#7ee787','#f0883e','#d2a8ff'];
+
+const cv = document.getElementById('chart');
+const ctx = cv.getContext('2d');
+
+function draw(){
+  // hi-dpi
+  const cssW = cv.clientWidth || 1040;
+  const cssH = 420;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = cssW * dpr; cv.height = cssH * dpr;
+  cv.style.height = cssH + 'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,cssW,cssH);
+
+  const padL=54, padR=24, padT=22, padB=54;
+  const W = cssW - padL - padR, H = cssH - padT - padB;
+  const maxY = 400, minY = 0;
+  const x = i => padL + (W * i)/(DATA.length-1);
+  const y = v => padT + H - (H*(v-minY))/(maxY-minY);
+
+  // grid + y labels
+  ctx.font = '12px ui-monospace, monospace';
+  ctx.textBaseline = 'middle';
+  for(let g=0; g<=400; g+=100){
+    const gy = y(g);
+    ctx.strokeStyle = '#222b35'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,gy); ctx.lineTo(padL+W,gy); ctx.stroke();
+    ctx.fillStyle = '#6b7886'; ctx.textAlign='right';
+    ctx.fillText(String(g), padL-10, gy);
+  }
+  // 600 target marker (above the visible climb, dashed)
+  // (kept off-scale note instead of drawing, since maxY=400 for detail)
+
+  // area under line
+  const grad = ctx.createLinearGradient(0,padT,0,padT+H);
+  grad.addColorStop(0,'rgba(88,166,255,.28)');
+  grad.addColorStop(1,'rgba(88,166,255,0)');
+  ctx.beginPath();
+  ctx.moveTo(x(0), y(DATA[0].score));
+  DATA.forEach((d,i)=>ctx.lineTo(x(i), y(d.score)));
+  ctx.lineTo(x(DATA.length-1), y(0));
+  ctx.lineTo(x(0), y(0));
+  ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+
+  // line
+  ctx.beginPath();
+  ctx.moveTo(x(0), y(DATA[0].score));
+  DATA.forEach((d,i)=>ctx.lineTo(x(i), y(d.score)));
+  ctx.strokeStyle = '#58a6ff'; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+
+  // points + value labels + x labels
+  DATA.forEach((d,i)=>{
+    const px=x(i), py=y(d.score);
+    ctx.beginPath(); ctx.arc(px,py,5,0,Math.PI*2);
+    ctx.fillStyle = PHASE_COLORS[d.phase]; ctx.fill();
+    ctx.strokeStyle = '#0e1116'; ctx.lineWidth=2; ctx.stroke();
+
+    ctx.fillStyle = '#e6edf3'; ctx.font='bold 12px ui-monospace, monospace';
+    ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillText(d.score.toFixed(0), px, py-9);
+
+    ctx.save();
+    ctx.translate(px, padT+H+10);
+    ctx.rotate(-Math.PI/4);
+    ctx.fillStyle = '#6b7886'; ctx.font='11px ui-monospace, monospace';
+    ctx.textAlign='right'; ctx.textBaseline='middle';
+    ctx.fillText(d.label, 0, 0);
+    ctx.restore();
+  });
+}
+draw();
+let raf; window.addEventListener('resize', ()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(draw); });
+</script>
+</body>
+</html>

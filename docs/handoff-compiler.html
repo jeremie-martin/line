@@ -178,7 +178,7 @@
 <!-- ============================ HOW IT WORKS ============================ -->
 <section id="how">
   <h2><span class="num">01</span>How the compiler works</h2>
-  <p class="sub">The hand-off optimizer (<code>compileHandoff</code>, <span class="mono">scripts/v0/optimizer/handoff.ts</span>) is a separate optimizer from the older backtracking floor (LDS). Its core idea: a search state is a <strong>partial track prefix at a gap boundary</strong>, not a whole re-generated track. The search extends one gap at a time, keeps alternatives on a deterministic stack, and is bounded by a hard sim-frame budget.</p>
+  <p class="sub">The hand-off optimizer (<code>compileHandoff</code>, <span class="mono">scripts/v0/optimizer/handoff.ts</span>) is the active compiler. Its core idea: a search state is a <strong>partial track prefix at a gap boundary</strong>, not a whole re-generated track. The search extends one gap at a time, keeps alternatives on a deterministic stack, and is bounded by a hard sim-frame budget.</p>
 
   <div class="card">
     <h3 style="margin-top:0">The mental model</h3>
@@ -298,8 +298,8 @@
     <details class="commit">
       <summary><span class="sha">ef56ec9</span><span class="title">Shrink handoff per-gap candidate pool to 16</span><span class="score">44 → 89</span><span class="chev">›</span></summary>
       <div class="detail">
-        <p class="why">The LDS default of 32 candidates per gap is mostly wasted: the hand-off only ranks a pool of 5–8 and branches 3-wide. Sampling 16 (a deterministic prefix of the 32-sample order) roughly halves per-node cost.</p>
-        <p>Added an optional <code>nCand</code> parameter to <code>getCandidatesSorted</code> so LDS stays untouched at 32. Doubling throughput lets the search reach skip-free completions on deep, starved specs within the same 40k budget.</p>
+        <p class="why">The broad default candidate pool is mostly wasted for hand-off: the search only ranks a pool of 5–8 and branches 3-wide. Sampling 16 (a deterministic prefix of the sample order) roughly halves per-node cost.</p>
+        <p>Added an optional <code>nCand</code> parameter to <code>getCandidatesSorted</code>. Doubling throughput lets the search reach skip-free completions on deep, starved specs within the same 40k budget.</p>
       </div>
     </details>
     <details class="commit">
@@ -437,7 +437,7 @@
         <li><b>Adaptive N_CAND</b> — starvation doesn't track contact count. <span class="pill bad">101</span></li>
         <li><b>Exit-angle / length braking</b> — breaks landing on fast specs. <span class="pill bad">chaotic</span></li>
         <li><b>Grain-bias sampling</b> — changing geometry regresses hard. <span class="pill bad">251</span></li>
-        <li><b>Completion floor / repair pass</b> — steals budget from the search. <span class="pill bad">26</span></li>
+        <li><b>Completion repair pass</b> — steals budget from the search. <span class="pill bad">26</span></li>
         <li><b>Tail-completion ungating</b> — greedy multi-gap drive starves syncopated/verse. <span class="pill bad">234</span></li>
       </ul>
     </div>
@@ -455,14 +455,14 @@
   <p class="sub">354.55 is a verified local optimum at the fixed <code>--budget=40000</code>, reached after exhausting the lever space above.</p>
   <div class="card">
     <p>The budget is <strong>100% saturated</strong> — every spec/seed row spends ≥ 40,000 sim-frames. That makes the remaining gap a hard trade-off rather than a tuning problem: any added mechanism starves a spec, removing work loses quality, and the per-candidate physics-validation cost is irreducible.</p>
-    <p style="margin-bottom:0">The three still-failing rows (solo_run s0, opening_burst s0/s2) are <em>budget-bound</em>, not idea-bound — they already pass at ~80–120k. Reaching the original &gt;600 target therefore needs either a higher campaign budget or a research-grade rebuild of search thoroughness and axis quality (LDS shows ~60% axis / 560–608 is physically achievable; it just can't afford the floor-starved rows at 40k). All progress, mechanisms, and dead-ends are recorded for whenever that budget or architecture decision is made.</p>
+    <p style="margin-bottom:0">The three still-failing rows (solo_run s0, opening_burst s0/s2) are <em>budget-bound</em>, not idea-bound — they already pass at ~80–120k. Reaching the original &gt;600 target therefore needs either a higher campaign budget or a research-grade rebuild of search thoroughness and axis quality. All progress, mechanisms, and dead-ends are recorded for whenever that budget or architecture decision is made.</p>
   </div>
   <div class="tag-row">
     <span class="tag">determinism: enforced</span>
     <span class="tag">monotonicity: enforced</span>
     <span class="tag">tests: green</span>
     <span class="tag">scorer: untouched</span>
-    <span class="tag">LDS: unaffected</span>
+    <span class="tag">handoff: default</span>
   </div>
 </section>
 

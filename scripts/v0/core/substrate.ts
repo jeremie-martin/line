@@ -1,11 +1,9 @@
 /**
- * v0 substrate — pure, behavior-defining building blocks shared by the legacy
- * compiler (`../compile.ts`) and the LDS optimizer (`../optimizer/*`).
+ * v0 substrate — pure, behavior-defining building blocks used by the handoff
+ * compiler and optimizer helpers.
  *
- * This module is a pure MOVE of a cluster of helpers that previously lived in
- * `../compile.ts`. The dependency direction is one-way: `compile.ts` imports
- * from here, never the reverse. These functions depend only on `../../lib/*`
- * and `../types.ts`, so they carry no compiler-only state.
+ * These functions depend only on `../../lib/*` and `../types.ts`, so they carry
+ * no compiler-only state.
  */
 
 import { LineRiderEngine, createLineFromJson } from "../../lib/_lr_engine.ts";

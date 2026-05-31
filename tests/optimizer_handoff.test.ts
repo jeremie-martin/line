@@ -20,13 +20,13 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         budget: Number.isFinite(opts.budgetUnits)
           ? { kind: "work", units: opts.budgetUnits }
           : undefined,
-        maxNodes: opts.maxDiscrepancy ?? 12,
+        maxNodes: opts.maxNodes ?? 12,
         polish: false,
       });
     assertBudgetSearchContract(compile, "tiny_dance/handoff", spec, {
       budgets: [1, 1_000, 5_000],
       checkFreeze: true,
-      freezeMaxDiscrepancy: 12,
+      freezeMaxNodes: 12,
     });
   }, 120_000);
 

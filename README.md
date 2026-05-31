@@ -39,8 +39,11 @@ npx tsx scripts/stress.ts
 # verify lr-core (Node-native physics) still matches the bundle exactly
 npm run parity
 
-# current v0 compiler golden benchmark
+# current v0 handoff compiler golden benchmark
 npm run golden
+
+# same compiler, explicit selector kept for future compiler additions
+npm run golden -- --compiler=handoff
 
 # compact machine-readable output
 npm run golden -- --json

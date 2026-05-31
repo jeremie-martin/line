@@ -36,7 +36,7 @@ async function setupAt(name: string, seed: number) {
     .map((c) => secToFrame(c.t))
     .sort((a, b) => a - b);
   const gaps = sliceTimeline(allContactFrames, durationFrames);
-  // Sample gap targets the same way compile.ts does, so the gap is
+  // Sample gap targets the same way the compiler does, so the gap is
   // ready to be solved.
   const rngTargets = makeRng(seed);
   for (const gap of gaps) {

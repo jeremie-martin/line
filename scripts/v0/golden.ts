@@ -19,7 +19,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { availableParallelism } from "node:os";
 
-/** Per-worker V8 old-space cap (MB). A normal LDS compile stays well under this;
+/** Per-worker V8 old-space cap (MB). A normal compile stays well under this;
  *  a runaway (a hard spec's engines caching huge trajectories) hits it and the
  *  worker exits, surfacing as a graceful per-run error rather than a process
  *  V8 fatal that kills the whole suite. Generous so it only catches true blowups. */
@@ -29,7 +29,6 @@ const WORKER_MEM_CAP_MB = 3072;
  *  cap so total peak memory (jobs × WORKER_MEM_CAP_MB) stays sane. Override: --jobs=N. */
 const DEFAULT_JOBS = Math.max(1, Math.min(6, availableParallelism() - 1));
 
-import { compileLDS } from "./optimizer/api.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
@@ -42,7 +41,7 @@ import {
   REPORT_VARIANTS,
   budgetFor,
   headlineCases,
-  ldsWorkerTimeoutMs,
+  compilerWorkerTimeoutMs,
   loadGoldenSpec,
   variantCases,
   type SuiteCase,
@@ -60,7 +59,15 @@ import {
   type V0ContractScore,
 } from "./score.ts";
 
-type CompilerName = "lds" | "handoff";
+const COMPILERS = {
+  handoff: compileHandoff,
+} as const;
+
+type CompilerName = keyof typeof COMPILERS;
+
+function isCompilerName(value: string): value is CompilerName {
+  return Object.hasOwn(COMPILERS, value);
+}
 
 // `budgetUnits` overrides the per-spec default (golden_suite.budgetFor) when set
 // — used by --fast / --budget for quick, NON-CANONICAL iteration. null = the
@@ -97,8 +104,8 @@ type ScoredSpec = V0ContractScore & {
   seed: number;
   status: "pass" | "fail" | "timeout" | "error";
   worker_timeout_ms: number;
-  /** Wall-clock of the compile (informational only — NOT scored; the LDS path
-   *  scores on pure quality, and wall-clock is contended under --jobs>1). */
+  /** Wall-clock of the compile (informational only — NOT scored; wall-clock is
+   *  contended under --jobs>1). */
   elapsed_ms: number;
   message: string | null;
   axes: ReturnType<typeof axisDetails>;
@@ -222,7 +229,7 @@ async function runWorker(): Promise<void> {
     const budget = input.budgetUnits !== null
       ? { kind: "work" as const, units: input.budgetUnits }
       : budgetFor(spec);
-    const compile = input.compiler === "handoff" ? compileHandoff : compileLDS;
+    const compile = COMPILERS[input.compiler];
     const { report, stats } = compile(spec, input.seed, { budget });
     parentPort.postMessage({
       kind: "ok",
@@ -296,9 +303,8 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
       compile_stats: null,
     };
   }
-  // The LDS compiler is budget-metered (sim-frames), not wall-clock-gated, so it
-  // scores on PURE quality — wall-clock never enters the score (the same untimed
-  // basis as baselines/greedy_v1.json). `elapsed_ms` is recorded for display only.
+  // The compiler is budget-metered (sim-frames), not wall-clock-gated, so it
+  // scores on pure quality. `elapsed_ms` is recorded for display only.
   const score = scoreDriftReport(result.report, { totalFrames: ctx.total_frames });
   return {
     ...score,
@@ -318,13 +324,13 @@ function scoreResult(result: RunResult, seed: number, ctx: ScoreContext): Scored
 
 function specContext(spec: Spec, budgetUnits: number | null, concurrency: number): ScoreContext {
   return {
-    // Budget-scaled hang-detection cap (the LDS compile is budget-metered, not
+    // Budget-scaled hang-detection cap (the compile is budget-metered, not
     // wall-clock-gated, so a tight static cap would falsely time it out and score
     // it 0). Scale off the effective budget (override or canonical) so --fast /
     // --budget runs get a proportionally tighter cap; and by `concurrency`, since
     // N-way contention stretches each compile's wall-clock (its sim-frame budget
     // is unchanged) — the timeout is only a safety net, so erring generous is fine.
-    worker_timeout_ms: ldsWorkerTimeoutMs(budgetUnits ?? budgetFor(spec).units) * concurrency,
+    worker_timeout_ms: compilerWorkerTimeoutMs(budgetUnits ?? budgetFor(spec).units) * concurrency,
     total_frames: Math.round(spec.duration * FPS),
   };
 }
@@ -573,10 +579,13 @@ async function runMain(): Promise<void> {
   }
   const fast = has("fast");
   const rawCompiler = arg("compiler");
-  if (rawCompiler !== null && rawCompiler !== "lds" && rawCompiler !== "handoff") {
-    throw new Error(`--compiler must be "lds" or "handoff", got ${rawCompiler}`);
+  let compiler: CompilerName = "handoff";
+  if (rawCompiler !== null) {
+    if (!isCompilerName(rawCompiler)) {
+      throw new Error(`--compiler must be "handoff", got ${rawCompiler}`);
+    }
+    compiler = rawCompiler;
   }
-  const compiler: CompilerName = rawCompiler ?? "lds";
   // Worker parallelism (--jobs=N). Runs are isolated workers, so parallelism is
   // safe and does not affect scores (each compile is independent + deterministic).
   const rawJobs = arg("jobs");
@@ -611,18 +620,18 @@ async function runMain(): Promise<void> {
   // (--fast / --budget / --specs / --seed) is indicative signal for iterating,
   // never the metric of record. The harness labels it so a fast probe is never
   // mistaken for the goal.
-  const canonical = compiler === "lds" && budgetUnits === null && filterSet === null && debugSeed === null;
+  const canonical = budgetUnits === null && filterSet === null && debugSeed === null;
 
   if (!jsonOnly) {
     const fp = evaluatorFingerprint();
-    console.log(`evaluator_fingerprint ${fp}${fp === EVALUATOR_FINGERPRINT ? "" : "  ⚠ DRIFTED from committed ruler — scores not comparable to history; see GOAL_LDS.md"}`);
+    console.log(`evaluator_fingerprint ${fp}${fp === EVALUATOR_FINGERPRINT ? "" : "  ⚠ DRIFTED from committed ruler — scores not comparable to history; see GOAL.md"}`);
     if (jobs > 1) {
       console.log("note: per-row t= readings are wall-clock under contention (informational; not scored). Use --jobs=1 for clean timing.");
     }
     if (!canonical) {
       console.log(
         `⚠ NON-CANONICAL run (indicative only, NOT goal_score): ` +
-          `${compiler !== "lds" ? `compiler=${compiler} ` : ""}` +
+          `${compiler !== "handoff" ? `compiler=${compiler} ` : ""}` +
           `${fast ? "fast " : ""}${budgetUnits !== null ? `budget=${budgetUnits} ` : ""}` +
           `${filterSet ? `specs=${[...filterSet].join(",")} ` : ""}${debugSeed !== null ? `seed=${debugSeed}` : ""}`.trim(),
       );

@@ -1,18 +1,13 @@
 /**
- * Type definitions for the rebuild optimizer.
+ * Type definitions for the handoff optimizer.
  *
  * These types compose the public surface. Behavior lives elsewhere:
  *   - sample.ts      — atomic per-candidate ops
- *   - solver.ts      — single-gap K-candidate solver
- *   - greedy.ts      — multi-gap chainer (= LDS discrepancy-0 walk)
+ *   - solver.ts      — single-gap candidate solver
+ *   - node.ts        — prefix-search state and candidate expansion
+ *   - handoff.ts     — public compileHandoff entry point
  *   - sim_frames.ts  — work-unit instrumentation at the extraction boundary
- *   - lds.ts         — limited-discrepancy leaf enumeration
  *   - register.ts    — best-so-far register with deterministic comparator
- *   - api.ts         — public compile() entry point
- *
- * We deliberately re-export the relevant existing types from
- * `../types.ts` rather than redefining them — Spec, Gap, DriftReport,
- * CompileStats are the same data we've been working with all along.
  */
 
 import type { TrackJson } from "../../lib/primitive.ts";
@@ -54,7 +49,7 @@ export type { CompileStats, DriftReport, Gap, Spec };
  *  non-deterministic convenience wrapper. */
 export type Budget = { kind: "work"; units: number };
 
-/** Inputs to the public `compile()` entry point. */
+/** Inputs to a budgeted compiler entry point. */
 export type CompileInput = {
   spec: Spec;
   seed?: number;
@@ -62,9 +57,7 @@ export type CompileInput = {
   budget?: Budget;
 };
 
-/** Outputs from the public `compile()` entry point. Mirrors the
- *  shape returned by the legacy `compile.ts` so consumers don't have
- *  to special-case which compiler produced the result. */
+/** Outputs from a compiler entry point. */
 export type CompileOutput = {
   track: TrackJson;
   report: DriftReport;

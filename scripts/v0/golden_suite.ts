@@ -26,42 +26,23 @@ export const REPORT_VARIANTS = [
 export const GOLDEN_SEEDS = [0, 1, 2] as const;
 
 /**
- * Default compute budget for the LDS compiler, in PHYSICS frames (the honest
- * work unit — frames the engine actually integrates; see
+ * Default compute budget for the handoff compiler, in PHYSICS frames (the
+ * honest work unit — frames the engine actually integrates; see
  * `optimizer/sim_frames.ts`).
  *
- * FLAT, deliberately. Parity does NOT depend on this value — the floor leaf is
- * the legacy greedy descent, so goal_score >= greedy_v1 and contract-pass =
- * 65/65 at ANY budget; the budget only buys the bonus above greedy. The data
- * (docs/optimizer/08_budget_curves.md + floor-cost measurement) says:
- *   - every spec's greedy floor costs 33k–134k physics (≤38 s); none are huge,
- *     and floor cost does NOT scale cleanly with contacts or frames;
- *   - most of the LDS bonus is *cheap* — the d=0 leaf + polish already lifts
- *     e.g. rhythm_ladder 460→532; deviations add only a little more;
- *   - on dense specs (drums family, solo_run) LDS deviations dead-end, so any
- *     budget above the floor is wasted wall-clock.
- * An affine-in-contacts budget therefore handed big specs 5–8× their floor and
- * burned 10–20× greedy's wall-clock for ZERO quality gain. A flat budget a
- * modest headroom above the largest floor captures the cheap bonus on solvable
- * specs while bounding the waste on dead-end specs. wall ≈ 0.27 ms/physframe,
- * so 200k ≈ a ~55 s ceiling per (spec,seed) before the +20% hard overrun guard.
- *
- * (Tighter bounding of dead-end specs needs an algorithm change — finer-grained
- * budget checks or LDS early-stop / completion — tracked as the big-spec speed
- * item in docs/optimizer/07_remaining_work.md, deferred until it can be made
- * safe without regressing any spec.)
+ * The handoff compiler also supports explicit fixed-budget campaign runs, e.g.
+ * `npm run golden -- --budget=40000`. The default is intentionally generous for
+ * normal quality checks; explicit budgets are the sharper optimization signal.
  */
-export const LDS_BUDGET_PHYS = 200_000;
+export const HANDOFF_BUDGET_PHYS = 200_000;
 
 export function budgetFor(_spec: Spec): Budget {
-  return { kind: "work", units: LDS_BUDGET_PHYS };
+  return { kind: "work", units: HANDOFF_BUDGET_PHYS };
 }
 
 /**
  * Fast inner-loop preset (`golden.ts --fast`). A small, diverse subset of specs
- * with CHEAP base floors (no drums/dense/solo — their budget-exempt backtracking
- * floor dominates regardless of budget, so they can't be made fast), one seed,
- * and a reduced budget. Gives a ~30-45 s signal for iterating, NOT the canonical
+ * and a reduced budget. Gives a quick signal for iteration, NOT the canonical
  * goal_score — the harness labels fast runs as indicative and refuses to print
  * GOAL_SCORE for them. Use the full run before trusting a result or committing.
  */
@@ -85,22 +66,22 @@ export const FAST_SEED = 0;
 export const EVALUATOR_FINGERPRINT = "e159a6bc5e41";
 
 /**
- * Worker-timeout (hang-detection safety cap) for the compile. LDS spends its
- * physics budget exploring (≈0.3 ms per physics frame, so a 200k budget ≈ 60-70 s
- * wall, bounded by the +20% hard overrun guard), so the cap is scaled off the
- * budget with generous safety — a normal compile is never killed mid-search
- * (which would score 0, a false failure). golden.ts further multiplies this by
- * --jobs, since parallel contention stretches wall-clock. Safety net, not a
- * quality term (the budget unit is sim-frames, which is wall-clock-independent).
+ * Worker-timeout (hang-detection safety cap) for the compile. The compiler is
+ * budget-metered in sim-frames, so the cap is scaled off the effective budget
+ * with generous safety. golden.ts further multiplies this by --jobs, since
+ * parallel contention stretches wall-clock. Safety net, not a quality term.
  */
-export const LDS_MS_PER_PHYSFRAME = 0.35; // measured 0.25-0.37; upper bound
-export const LDS_WORKER_SAFETY = 3;
-export const LDS_WORKER_TIMEOUT_FLOOR_MS = 120_000;
-export const LDS_WORKER_TIMEOUT_CAP_MS = 600_000;
+export const HANDOFF_MS_PER_PHYSFRAME = 0.35; // measured upper bound
+export const HANDOFF_WORKER_SAFETY = 3;
+export const HANDOFF_WORKER_TIMEOUT_FLOOR_MS = 120_000;
+export const HANDOFF_WORKER_TIMEOUT_CAP_MS = 600_000;
 
-export function ldsWorkerTimeoutMs(budgetUnits: number): number {
-  const raw = Math.round(budgetUnits * LDS_MS_PER_PHYSFRAME * LDS_WORKER_SAFETY);
-  return Math.min(LDS_WORKER_TIMEOUT_CAP_MS, Math.max(LDS_WORKER_TIMEOUT_FLOOR_MS, raw));
+export function compilerWorkerTimeoutMs(budgetUnits: number): number {
+  const raw = Math.round(budgetUnits * HANDOFF_MS_PER_PHYSFRAME * HANDOFF_WORKER_SAFETY);
+  return Math.min(
+    HANDOFF_WORKER_TIMEOUT_CAP_MS,
+    Math.max(HANDOFF_WORKER_TIMEOUT_FLOOR_MS, raw),
+  );
 }
 
 export type GoldenSpecName = typeof GOLDEN_SPECS[number];

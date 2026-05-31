@@ -1,18 +1,18 @@
 /**
  * Architecture-agnostic budget-search contract harness.
  *
- * This is the EXECUTABLE FORM of the compatibility proof in
- * `docs/search_rethink_state_handoff.md` §7: any deterministic search whose
- * explored sequence only GROWS with budget, fed a sim-frame budget that acts as
- * a pure STOP CONDITION, and topped by a strict-improvement register, satisfies
- * determinism + monotonicity-in-budget + objective-budget *simultaneously*.
+ * Architecture-agnostic budget-search contract harness.
+ *
+ * Any deterministic search whose explored sequence only grows with budget, fed
+ * a sim-frame budget that acts as a pure stop condition, and topped by a
+ * strict-improvement register, satisfies determinism + monotonicity-in-budget +
+ * objective-budget simultaneously.
  *
  * The harness checks that proof against an abstract `BudgetCompile` shape only —
- * it never imports the LDS mechanism (`enumerateLeaves`, `buildSpecContext`,
- * `node`, discrepancy machinery). It depends only on:
- *   - a `compile(spec, {seed, budgetUnits, maxDiscrepancy?}) → CompileOutput`,
+ * it never imports a specific compiler mechanism. It depends only on:
+ *   - a `compile(spec, {seed, budgetUnits, maxNodes?}) → CompileOutput`,
  *   - the scoring comparator (`register.ts`), which DEFINES "better track" and
- *     is held constant across any rebuild (`docs/compiler_goals.md` Out of scope).
+ *     is held constant across compiler rewrites.
  *
  * So when the search is rebuilt (the state-handoff / feasibility architecture,
  * §5), it is dropped into THIS SAME harness unchanged. The contract is the
@@ -22,8 +22,7 @@
  * — `checkBudgetSearchContract` returns a structured report of every violation
  * rather than throwing on the first, so a caller can diagnose the full picture.
  * `assertBudgetSearchContract` wraps it to fail on any violation, for specs
- * expected to be fully conformant. (As measured 2026-05-30, the current LDS
- * compiler IS conformant on every tested spec — see the test-file header.)
+ * expected to be fully conformant.
  *
  * The three pillars map 1:1 to the three load-bearing conditions in §7:
  *   Pillar 1  ← condition 1 (policy is a pure function of inputs): determinism.
@@ -37,24 +36,22 @@ import { secToFrame, type Spec } from "../scripts/v0/types.ts";
 import type { CompileOutput } from "../scripts/v0/optimizer/types.ts";
 
 /** The architecture-agnostic compile signature the contract is stated against.
- *  `compileLDS` (adapted) matches it; a future search adapts to the same shape.
  *  A non-finite `budgetUnits` means "unbounded". */
 export type BudgetCompile = (
   spec: Spec,
-  opts: { seed: number; budgetUnits: number; maxDiscrepancy?: number },
+  opts: { seed: number; budgetUnits: number; maxNodes?: number },
 ) => CompileOutput;
 
 export type ContractConfig = {
   /** Ascending sim-frame budgets for the monotonicity grid. */
   budgets: number[];
   seed?: number;
-  /** Run the convergence/freeze pillar. Requires that EXHAUSTIVE enumeration is
-   *  affordable for this spec — true for cheap-floored specs, false for specs
-   *  whose budget-exempt floor alone is huge (the very tension §7 flags). */
+  /** Run the convergence/freeze pillar. Requires that exhaustive search under
+   *  the supplied cap is affordable for this spec. */
   checkFreeze?: boolean;
-  /** Small maxDiscrepancy for the freeze pillar so exhaustive enumeration is
-   *  cheap. Ignored unless `checkFreeze`. */
-  freezeMaxDiscrepancy?: number;
+  /** Small maxNodes for the freeze pillar so exhaustive enumeration is cheap.
+   *  Ignored unless `checkFreeze`. */
+  freezeMaxNodes?: number;
 };
 
 /** Structured outcome — observe & record, don't throw. Empty `violations` ⇒ the
@@ -137,8 +134,8 @@ export function checkBudgetSearchContract(
   // black-box fingerprint distinguishing "budget truncates a fixed deterministic
   // sequence" from "budget is an input to the search policy".
   if (cfg.checkFreeze) {
-    const maxDiscrepancy = cfg.freezeMaxDiscrepancy ?? 2;
-    const exhaustive = compile(spec, { seed, budgetUnits: Infinity, maxDiscrepancy });
+    const maxNodes = cfg.freezeMaxNodes ?? 12;
+    const exhaustive = compile(spec, { seed, budgetUnits: Infinity, maxNodes });
     const fullCost = exhaustive.stats.sim_frames;
     if (!(fullCost > 0)) {
       throw new Error(`${specName}: exhaustive run charged 0 sim-frames — cannot test freeze`);
@@ -146,7 +143,7 @@ export function checkBudgetSearchContract(
     const exhaustiveHash = trackHash(exhaustive);
     for (const mult of [1.5, 3, 6]) {
       const budgetUnits = Math.ceil(fullCost * mult) + 5_000;
-      const h = trackHash(compile(spec, { seed, budgetUnits, maxDiscrepancy }));
+      const h = trackHash(compile(spec, { seed, budgetUnits, maxNodes }));
       if (h !== exhaustiveHash) {
         const detail =
           `output NOT frozen at budget ${budgetUnits} (≈${mult}× full cost ${fullCost}) — ` +

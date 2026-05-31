@@ -1,25 +1,18 @@
 /**
- * v0 polish core — the post-compile geometry-refinement subsystem shared by the
- * legacy compiler (`../compile.ts`) and the LDS optimizer (`../optimizer/*`).
+ * v0 polish core — the post-compile geometry-refinement subsystem used by the
+ * handoff optimizer.
  *
- * This module is a pure MOVE of the polish cluster (the four air/contact entry
- * helpers + their ~20 private sub-polishers and CALIB consts), the engine
- * rebuild used by polish + the final DriftReport simulation, and the
- * module-scoped start state those rebuilds read, all of which previously lived
- * in `../compile.ts`. The dependency direction is one-way: both `compile.ts`
- * and the optimizer import from here, never the reverse. These functions depend
- * only on `../../lib/*`, `../arc.ts`, `../types.ts`, and the core siblings
- * `./substrate.ts` / `./candidate.ts`, so they carry no compiler-only state.
+ * It owns the four air/contact entry helpers, their private sub-polishers, the
+ * engine rebuild used by polish + final DriftReport simulation, and the
+ * module-scoped start state those rebuilds read. These functions depend only on
+ * `../../lib/*`, `../arc.ts`, `../types.ts`, and the core siblings
+ * `./substrate.ts` / `./candidate.ts`.
  *
- * `isDenseContactSequence` is a tiny pure predicate also needed by the staying
- * legacy pipeline; rather than create a core↔compile import cycle it is
- * duplicated here as a private helper (matching the A2/A3 precedent for
- * `isDenseContactSequence` / `makeContinuationLines`).
+ * `isDenseContactSequence` is a tiny pure predicate kept private here.
  *
  * Engine-rebuild accounting: `rebuildEngine` bumps a module-local counter
- * instead of touching compile's `stats` object (no mutable cross-module state).
- * `compile()` folds `getEngineRebuildCount()` into `stats.engine_rebuilds` at
- * the end of a run, preserving the legacy counter exactly.
+ * instead of touching compile stats directly. Compiler entry points fold
+ * `getEngineRebuildCount()` into `stats.engine_rebuilds` at the end of a run.
  */
 
 import {
@@ -1791,19 +1784,15 @@ function nextLineIdAt(fits: (GapFit | null)[], upTo: number): number {
   return id;
 }
 
-// Pure predicate also needed by the staying legacy pipeline in compile.ts.
-// Duplicated here (private) to keep the core→compile dependency direction
-// one-way, matching the A2/A3 precedent for shared pure helpers.
+// Pure predicate kept private to this module.
 function isDenseContactSequence(contactFrames: number[], durationFrames: number): boolean {
   return contactFrames.length * FPS > durationFrames;
 }
 
 // ─────────── Engine rebuild (for backtracking / polish / final report) ───────────
 
-// Engine-rebuild counter. `rebuildEngine` bumps it instead of touching
-// compile's `stats` object; `compile()` reads/resets it via the accessors below
-// to keep `stats.engine_rebuilds` reporting exactly as the legacy in-place
-// counter did.
+// Engine-rebuild counter. `rebuildEngine` bumps it instead of touching compile
+// stats directly; callers read/reset it via the accessors below.
 let engineRebuildCount = 0;
 
 export function getEngineRebuildCount(): number {
@@ -1819,11 +1808,10 @@ export function resetEngineRebuildCount(): void {
  * by replaying all committed gap fits in time order. O(N) per call; fine for
  * v0 spec sizes. Cache if it becomes a bottleneck.
  *
- * Initial rider state comes from `currentStartState`, which `compile()` sets
- * for the duration of a single compile (see `resolveStartState`). Module-
- * scoped because the polish helpers that call `rebuildEngine` are top-level
- * and threading the state through every signature would be a large diff for
- * no behavioral benefit.
+ * Initial rider state comes from `currentStartState`, which compiler entry
+ * points set before rebuilds. Module-scoped because the polish helpers that
+ * call `rebuildEngine` are top-level and threading the state through every
+ * signature would be a large diff for no behavioral benefit.
  */
 // deno-lint-ignore no-explicit-any
 export function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
@@ -1841,27 +1829,20 @@ export function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
   return chained;
 }
 
-// Set by `compile()` at the start of every call. Read by `rebuildEngine`.
-// `compile()` is not reentrant (the engine instance pools already aren't),
-// so a single module-scoped slot is safe.
+// Set by compiler entry points before rebuilds. Read by `rebuildEngine`.
 let currentStartState: ResolvedStart = {
   position: { ...START_DEFAULTS.POSITION },
   velocity: { ...START_DEFAULTS.VELOCITY },
 };
 
 /** Prime the module-scoped start state that `rebuildEngine` (and the polish
- *  helpers that call it) read. `compile()` sets this internally; the standalone
- *  LDS optimizer (`compileLDS`), which no longer routes through `compile()`,
- *  must call this before its polish pass so polished variants rebuild engines
- *  from the spec's real start (start/preroll) rather than a stale default. */
+ *  helpers that call it) read. */
 export function setRebuildStartState(start: ResolvedStart): void {
   currentStartState = start;
 }
 
 /** Read the module-scoped start state `rebuildEngine` will use. Exposed so
- *  callers that temporarily override it (e.g. the LDS optimizer's polish pass)
- *  can save and restore it around their own rebuilds, keeping the override
- *  reentrancy-safe instead of leaving a stale value for the next compile. */
+ *  callers can save and restore around temporary overrides. */
 export function getRebuildStartState(): ResolvedStart {
   return currentStartState;
 }

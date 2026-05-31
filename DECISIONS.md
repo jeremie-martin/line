@@ -243,15 +243,18 @@ v0 places exactly one Arc per gap (the one bisected to land at the end-Contact).
 
 Deferred fix: per gap, allow the compiler to place a *sequence* of Arcs — e.g., one or more upstream Arcs that the rider only bounces off (no landing event, allowed by the no-off-beat-landings constraint) to bleed energy, followed by the catch Arc at the end-Contact. The bouncing geometry doesn't violate sync because bounces aren't landings.
 
-### D31. Anytime compilation (budget-as-a-knob)
+### D31. Budgeted compilation
 
-The natural longer-term shape for the compiler: expose search effort as a tunable parameter — `compile(spec, { budget_ms })` runs for the requested time and returns the best valid track found in that window. Quality scales smoothly with compute; the caller buys precision with seconds. This is how mature search systems work (MCTS, simulated annealing, beam search).
+The compiler exposes search effort as a deterministic sim-frame budget:
+`compileHandoff(spec, seed, { budget: { kind: "work", units } })`.
 
-GOAL.md currently fixes the cap at 30s per spec. The cap is a forcing function for now, not the long-term contract.
+The budget is not wall-clock and is not a policy input. It is charged at the
+trajectory-extraction boundary and acts as a stop condition over a deterministic
+prefix-search sequence. A strict best-so-far register makes larger budgets
+monotone under the compiler comparator.
 
-Deferred for v0 because the current compiler is single-pass greedy (left-to-right gap commit with `K=48` candidates per gap, `BACKTRACK_DEPTH=2`); it has no internal mechanism to spend additional compute productively. Building the anytime API around a non-anytime algorithm would be premature abstraction — the surface would exist with nothing behind it. The scorer is also currently binary on the hard gates, so "best-so-far" isn't yet a meaningful artifact for a partially-explored search.
-
-Path to revisit: before designing the API, run a K-sweep on the three golden specs (K ∈ {24, 48, 96, 192}) and plot score vs. wall time. If score rises with compute, the anytime wrapper is ~50 LoC (grow K / seeds / backtrack depth, keep best valid track until budget elapses). If score saturates fast, the algorithm itself is the bottleneck — D30 multi-arc gaps, beam search across gaps, or restarts with varied σ would need to land first to give compute somewhere productive to go.
+This keeps the compiler reproducible across machines while still giving users a
+real quality/runtime knob.
 
 ---
 

@@ -1,12 +1,12 @@
 /**
- * Stage 1 — best-so-far register for LDS leaf evaluation.
+ * Best-so-far register for compiler output evaluation.
  *
- * Keeps the strictly-best leaf seen so far under a deterministic
+ * Keeps the strictly-best output seen so far under a deterministic
  * comparator. Strict-improvement-only updates + earliest-on-tie
  * (which falls out of "only swap on strict improvement, considered
  * in E order") give two properties simultaneously:
  *
- *   1. Monotonicity-in-budget: more leaves → never worse best.
+ *   1. Monotonicity-in-budget: more considered outputs -> never worse best.
  *   2. Budget-stable ties: equal-quality leaves don't flip the
  *      answer as budget grows.
  *
@@ -30,7 +30,7 @@
 import { scoreDriftReport } from "../score.ts";
 import type { CompileOutput, DriftReport, Score } from "./types.ts";
 
-/** Composite ranking key for a leaf. */
+/** Composite ranking key for a compiler output. */
 export type LeafKey = {
   /** True iff drift=0, missing=0, off_beat=0, terminus=endOfSpec. */
   contract_passed: boolean;
@@ -45,7 +45,7 @@ export type LeafKey = {
   drift_quality?: number;
 };
 
-/** Build the register's `LeafKey` from a drift report — the SINGLE source of
+/** Build the register's `LeafKey` from a drift report — the single source of
  *  truth for the comparator key. Both leaf selection (`api.ts`) and the
  *  monotonicity property test call this, so the key the register actually ranks
  *  by can never drift from the key a test reconstructs. `totalFrames` gives a
@@ -86,17 +86,17 @@ export function isStrictlyBetter(a: LeafKey, b: LeafKey): boolean {
   return strictlyGreater(a.full_score, b.full_score);
 }
 
-/** Holds the strictly-best leaf seen so far under the comparator
+/** Holds the strictly-best output seen so far under the comparator
  *  above. Reset before each compile call. */
 export class BestSoFarRegister {
   private best: CompileOutput | null = null;
   private bestKey: LeafKey | null = null;
-  /** Count of leaves considered (whether they became best or not). */
+  /** Count of outputs considered (whether they became best or not). */
   public consideredCount = 0;
   /** Count of leaves that strictly improved the best-so-far. */
   public improvementCount = 0;
 
-  /** Offer a leaf to the register. Returns true iff it became the
+  /** Offer an output to the register. Returns true iff it became the
    *  new best. */
   consider(leaf: CompileOutput, key: LeafKey): boolean {
     this.consideredCount++;

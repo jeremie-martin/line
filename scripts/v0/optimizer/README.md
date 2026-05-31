@@ -1,117 +1,49 @@
 # scripts/v0/optimizer
 
-A new v0 compiler built from first principles, alongside (not replacing)
-`scripts/v0/compile.ts`. Each piece has a single clear contract and is
-empirically verified before the next is added.
+The active v0 compiler is `compileHandoff` in `handoff.ts`.
 
-For the goals and acceptance criteria (the WHY), see
-`docs/compiler_goals.md`. For the per-step rebuild plan (the HOW), see
-the plan file at `~/.claude/plans/graceful-finding-pond.md` and the
-per-step writeups in `docs/optimizer/`.
+The compiler searches partial track prefixes at gap boundaries. Each node carries
+the committed gap fits, the current engine prefix, and the next line id. The
+search expands one gap at a time, ranks catch candidates by local fit plus a
+fixed future-contact feasibility preview, and keeps the best complete-or-partial
+output in a strict best-so-far register.
 
-## The four properties (the contract)
+## Contract
 
-1. **Monotonicity-in-budget.** Same `(spec, seed)`, larger budget ⇒
-   axis_quality at least as high. **By construction**, via the
-   best-so-far envelope.
-2. **Wall-clock ↔ budget correlation.** Per-unit-of-budget wall-clock
-   stable across specs and seeds (cv < 0.25).
-3. **Cheat-resistance.** Budget unit = **simulated rider frames** (charged at
-   the trajectory-extraction boundary, measured as `getLastFrameIndex` deltas).
-   Can't be inflated without proportional wall-clock cost.
-4. **Determinism.** Same `(spec, seed, budget)` ⇒ byte-identical Track
-   on any machine.
+1. **Determinism.** Same `(spec, seed, budget)` produces the same track.
+2. **Budget monotonicity.** Budget only truncates a deterministic node sequence;
+   it is never an input to candidate policy.
+3. **Cheat resistance.** Work is metered in simulated rider frames at the
+   trajectory-extraction boundary.
+4. **Engine honesty.** Every geometric decision is validated by `lr-core` and the
+   detector before it can be scored.
 
-## Pipeline
+## Components
 
 ```
-   sample.ts        (atomic ops: sample one candidate, evaluate it)
-        ↓
-   solver.ts        (single-gap K-candidate solver, sample-order)
-        ↓
-   sim_frames.ts    (work-unit counter at the extraction boundary)
-        ↓
-   lds.ts           (d=0 backtracking base path + guided-repair leaves +
-                     limited-discrepancy deviation enumeration, fixed order)
-        ↓
-   register.ts      (best-so-far with deterministic comparator)
-        ↓
-   polish.ts        (polish ops as generate-and-test leaves)
-        ↓
-   api.ts           (compile(spec, {seed, budget}) public surface — standalone,
-                     no legacy floor)
+sample.ts       sample one candidate catch from a prefix state
+solver.ts       sample a fixed candidate pool for one gap
+node.ts         prefix-search state and deterministic expansion helpers
+handoff.ts      compileHandoff public entry point
+register.ts     strict best-so-far comparator
+polish.ts       clone-and-test polish variants
+sim_frames.ts   physics-frame budget instrumentation
+types.ts        budget and compile-output types
 ```
 
-`handoff.ts` is a separate experimental compiler path. It does not enumerate
-whole-track LDS leaves: nodes are partial prefixes at gap boundaries, expanded
-one gap at a time with a deterministic DFS stack. Candidate order is fixed by a
-cheap first future-contact feasibility preview with a budget-independent
-candidate pool chosen from the spec's contact count. Medium-dense prefixes can
-also greedily close the final few contacts as a budget-subject near-tail
-completion. The same sim-frame budget and best-so-far register contract apply:
-budget only truncates the deterministic node sequence. Nonterminal prefixes are
-scored as explicit partial outputs over their committed horizon; complete contact
-prefixes are scored over the full spec duration. Run it through the benchmark with
-`npm run golden -- --compiler=handoff ...`; it is not the default or canonical
-goal-score path yet. See `docs/optimizer/12_handoff_prefix_search.md`.
+`node.ts`, `sample.ts`, and `solver.ts` are intentionally generic because future
+compiler variants should be able to reuse the same candidate and prefix-state
+building blocks.
 
-`greedy.ts` (`compileGreedy_v2`) is a NAIVE rank-0 chainer kept only as a
-tests-only reference (the d=0-vs-greedy contrast). The shipping d=0 walk is
-`buildBacktrackingLeaf` in `lds.ts`.
+## Benchmark
 
-The structural answer to "more compute → ≥ quality" is **limited-
-discrepancy search over a fixed total-ordered leaf enumeration**:
+The default golden compiler is handoff:
 
-  - The leaf enumeration `E` is determined by `(spec, seed)`, independent
-    of the budget. Discrepancy-0 = the **backtracking base path**
-    (`buildBacktrackingLeaf`, the search's own completion floor — replaced the
-    legacy compile() floor). Discrepancy-1 leaves deviate at exactly one gap.
-    Discrepancy-d at d gaps. (Guided-repair leaves for assembled-track
-    misses are interleaved as ordinary leaves; see lds.ts.)
-  - The budget only controls how far into `E` we go (a cutoff index).
-  - The best-so-far register keeps the strictly-best leaf seen under a
-    deterministic comparator.
-  - For any `B' > B`, `prefix(B') ⊇ prefix(B)`, so the best over a
-    superset never decreases. Property 1 holds by construction.
+```bash
+npm run golden
+npm run golden -- --compiler=handoff
+npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
+```
 
-The work unit is **simulated rider frames**, charged at the trajectory-
-extraction boundary. Sim-frames satisfies Property 2 by construction
-(lr-core uses spatial-grid collision; per-frame cost is O(local density)).
-
-## What this directory does NOT touch
-
-- `scripts/lib/_lr_engine.ts` — physics engine, reused.
-- `scripts/lib/detector.ts` — event detection, reused.
-- `scripts/v0/score.ts` — axis_quality formula, reused as the
-  single ranking source of truth.
-- `scripts/v0/types.ts` — Spec, Gap, DriftReport, CompileStats —
-  reused.
-- `scripts/v0/compile.ts` — the legacy greedy compiler. No longer invoked by
-  the optimizer (the legacy floor seed was removed; `compileLDS` stands alone).
-  Reused only for held-constant geometry/detection primitives via `export`
-  annotations (sampleArcParams, tryCandidate, residual/detection helpers).
-
-## How to read the per-stage documentation
-
-`docs/optimizer/NN_<stage>.md` files explain each stage's design,
-contract, empirical findings, and any surprises. Read in order:
-
-- `00_foundations.md` — types, scorer wrapper, frozen baselines.
-- `04_greedy_v2_kSweep.md` — empirical demonstration that greedy
-  alone is non-monotonic in K, motivating the rebuild.
-- `0b_sim_frames_r1.md` — confirms per-frame cost is stable in line
-  count (validates sim_frames as the work unit).
-- `01_lds.md` — LDS design, the prefix-superset property, comparator.
-- `03a_polish_refactor.md` — scoping for the polish-helpers refactor.
-- `04_migration_comparison.md` — quality and runtime comparison
-  vs. the legacy `greedy_v1` baseline.
-- `05_property3_audit.md` — cheat-resistance audit at cutover.
-- `05_iteration_story.md` — concrete example of improved iteration
-  discipline enabled by Property 1.
-
-## Frozen baselines
-
-`baselines/greedy_v1.json` holds per-(spec, seed) results from the
-existing `compile.ts`. Quality regressions in the new compiler are
-detected by comparing against this snapshot. **Do not regenerate**
-this file casually — it's the historical anchor.
+`--compiler=handoff` is kept even though it is currently the only compiler so a
+future compiler can be added without changing the CLI shape.

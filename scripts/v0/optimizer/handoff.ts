@@ -1,10 +1,10 @@
 /**
  * Prefix hand-off search.
  *
- * This is a separate optimizer from LDS. The search state is a partial track
- * prefix at a gap boundary, not a whole-track leaf. It expands one gap at a
- * time, keeps alternatives on a deterministic DFS stack, and ranks candidates
- * by a fixed local hand-off feasibility probe:
+ * The search state is a partial track prefix at a gap boundary, not a
+ * regenerated whole track. It expands one gap at a time, keeps alternatives on
+ * a deterministic DFS stack, and ranks candidates by a fixed local hand-off
+ * feasibility probe:
  *
  *   "If we commit this catch, does the next contact remain reachable, and how
  *    much candidate slack does it have?"
@@ -12,8 +12,9 @@
  * That probe is engine-in-loop and charged in sim-frames, but it is a fixed
  * policy decision independent of the caller's budget. The budget only stops how
  * far into the deterministic node sequence we go; a strict best-so-far register
- * ranks every prefix output considered. This is the same budget contract as LDS
- * without making a search leaf be an entire re-generated track.
+ * ranks every prefix output considered. The budget contract only requires that
+ * budget truncates a deterministic node sequence; the search policy itself does
+ * not read the budget.
  */
 
 import { detect, extractRawTrajectory, getRiderMetered } from "../../lib/detector.ts";
@@ -103,8 +104,9 @@ const HANDOFF_MEDIUM_DENSE_MIN_CONTACTS = 30;
 const HANDOFF_LONG_DENSE_CONTACTS = 60;
 const HANDOFF_BRANCHING = 3;
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
- *  pool of ~5-8 by feasibility and branches 3-wide, so the LDS default of 32 is
- *  mostly wasted per-node work that starves the bounded-budget exploration.
+ *  pool of ~5-8 by feasibility and branches 3-wide, so sampling the full
+ *  default pool is mostly wasted per-node work that starves bounded-budget
+ *  exploration.
  *  Generating ~16 (a deterministic prefix of the 32-sample order) roughly halves
  *  node cost, letting the search reach skip-free completions on budget-starved
  *  deep specs within the same budget. Must stay >= HANDOFF_BROAD_CANDIDATE_POOL. */
@@ -173,9 +175,9 @@ export function compileHandoff(
 
   try {
     validateSpec(userSpec);
-    // Do not run the legacy optimized-preroll pre-pass here. In the handoff
+    // Do not run a separate optimized-preroll pre-pass here. In the handoff
     // optimizer, the initial condition is the first state boundary of the search;
-    // pre-worlding belongs in this search later, not as a hidden budget-consuming
+    // pre-worlding belongs in this search, not as a hidden budget-consuming
     // compiler before it. A manual `start` is still honored by resolveStartState.
     const spec: Spec = { ...userSpec, preroll: undefined };
     const durationFrames = secToFrame(spec.duration);
@@ -659,7 +661,7 @@ function scoreCandidateForHandoff(
     : preview.firstCost * PREVIEW_COST_WEIGHT;
   const statePenalty = handoffStatePenalty(child.prefixEngine, gaps[node.gapIndex]);
   // Asymmetric speed-overshoot penalty (selection-only, handoff-only — does NOT
-  // change candidate geometry, so no chaos/LDS impact). The rider creeps faster
+  // change candidate geometry). The rider creeps faster
   // than target over long runs (catches are net-downhill) and eventually stalls;
   // candidate.cost penalizes speed error symmetrically (1 of 4 axes), too weakly
   // to arrest creep. This extra term prefers, among the pool, catches whose

@@ -1,24 +1,14 @@
 /**
  * v0 candidate-generation core — the per-gap candidate sampler, anchor-Y
- * bisection, hard-gate evaluation, and axis measurement shared by the legacy
- * compiler (`../compile.ts`) and the LDS optimizer (`../optimizer/*`).
- *
- * This module is a pure MOVE of the candidate-generation cluster that
- * previously lived in `../compile.ts`. The dependency direction is one-way:
- * `compile.ts` imports from here, never the reverse. These functions depend
- * only on `../../lib/*`, `../types.ts`, `../arc.ts`, and `./substrate.ts`, so
- * they carry no compiler-only state.
- *
- * `generateRankedCandidates` (which wraps these into the ranked candidate
- * budget) also lives here and is shared by the legacy compiler and the preroll
- * search (`./preroll.ts`). It takes an optional `onSample` callback so callers
- * can hook the legacy `stats.candidates_sampled` counter without this module
- * having to import compile-only state.
+ * bisection, hard-gate evaluation, and axis measurement used by the handoff
+ * compiler.
+ * These functions depend only on `../../lib/*`, `../types.ts`, `../arc.ts`,
+ * and `./substrate.ts`, so they carry no compiler-only state.
  */
 
 import {
   detect, extractRawTrajectory, extractRawTrajectoryWindow, getRiderMetered,
-  K_BOUNCE_LANDING, PERSISTENCE_FRAMES, PERSISTENCE_RATIO,
+  K_BOUNCE_LANDING, PERSISTENCE_FRAMES,
   type Detection, type DetEvent,
 } from "../../lib/detector.ts";
 import { arcToLines, makeSolidLine } from "../arc.ts";
@@ -163,7 +153,7 @@ export function sampleArcParams(
    *  the rider rides up the arc's front (bleeding speed) before contacting near
    *  its middle (impact-anchor still lands the contact point). Decoupled from the
    *  landing — does NOT shorten the arc or move the impact — so it brakes without
-   *  breaking landing geometry. Default false = normal sampling (LDS unchanged). */
+   *  breaking landing geometry. Default false = normal sampling. */
   brake = false,
 ): Arc {
   if (!brake && shouldUseSteepCatch(targetState, gap) && attempt < CATCH_TEMPLATES.length) {
@@ -617,122 +607,4 @@ export function axisCost(target: SectionAxes, achieved: SectionAxes): number {
     }
   }
   return cost;
-}
-
-// ─────────── Ranked candidate budget ───────────
-
-const MIN_CANDIDATE_ATTEMPTS = 15;
-const SHORT_GAP_ADAPTIVE_SURVIVORS = 2;
-
-/**
- * Generate K candidate Arc placements for a gap, simulate each, filter by
- * hard gate, and return all survivors ranked by aggregate axis cost
- * (lowest cost first). Used by the backtracking loop in `compile()`:
- * the best survivor is committed first; if downstream gaps can't make it
- * work, the loop falls back to the next-best.
- *
- * Deterministic for fixed (baseEngine state, rng state, gap).
- *
- * `onSample` (optional) is invoked once per sampling attempt so callers can
- * maintain their own counters (e.g. the legacy `stats.candidates_sampled`)
- * without this module depending on compile-only state.
- */
-export function generateRankedCandidates(
-  // deno-lint-ignore no-explicit-any
-  baseEngine: any,
-  gap: Gap,
-  rng: () => number,
-  lineIdStart: number,
-  allContactFrames: number[],
-  durationFrames: number,
-  targetOverride?: SectionAxes,
-  onSample?: () => void,
-): GapFit[] {
-  const riderAtTarget = getRiderMetered(baseEngine, gap.endFrame);
-  const refX = riderAtTarget.position.x;
-  const refY = riderAtTarget.position.y;
-  const targetState = readTargetState(baseEngine, gap.endFrame, refX, refY);
-  const axisMeasureEnd = axisLookaheadEndFrame(gap, allContactFrames);
-  const searchTargets = searchTargetsForCost(
-    targetOverride ?? gap.targets, gap, axisMeasureEnd, allContactFrames,
-  );
-
-  const survivors: GapFit[] = [];
-  const minAttempts = candidateBudgetForGap(gap, allContactFrames, durationFrames);
-  const adaptiveBudget = shouldUseShortGapAdaptiveBudget(gap);
-  const maxAttempts = adaptiveBudget ? CALIB.K : minAttempts;
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    onSample?.();
-    const cand = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap);
-    const fit = tryCandidate(
-      baseEngine, gap, cand, lineIdStart, allContactFrames,
-      axisMeasureEnd, searchTargets, true,
-    );
-    if (fit !== null) survivors.push(fit);
-    if (
-      adaptiveBudget
-      && attempt + 1 >= minAttempts
-      && survivors.length >= SHORT_GAP_ADAPTIVE_SURVIVORS
-    ) {
-      break;
-    }
-  }
-
-  survivors.sort((a, b) => a.cost - b.cost);
-  return survivors;
-}
-
-function shouldUseShortGapAdaptiveBudget(gap: Gap): boolean {
-  return gap.endFrame - gap.startFrame <= Math.floor(FPS * 0.3);
-}
-
-function candidateBudgetForGap(
-  _gap: Gap,
-  contactFrames: number[],
-  durationFrames: number,
-): number {
-  if (!isDenseContactSequence(contactFrames, durationFrames)) return CALIB.K;
-  return Math.min(CALIB.K, MIN_CANDIDATE_ATTEMPTS);
-}
-
-function isDenseContactSequence(contactFrames: number[], durationFrames: number): boolean {
-  return contactFrames.length * FPS > durationFrames;
-}
-
-function searchTargetsForCost(
-  targets: SectionAxes,
-  gap: Gap,
-  axisMeasureEnd: number,
-  allContactFrames: number[],
-): SectionAxes {
-  if (targets.air === undefined) return targets;
-  const band = airFeasibleBand(gap.startFrame, axisMeasureEnd, allContactFrames);
-  const air = clamp(targets.air, band.lo, band.hi);
-  return air === targets.air ? targets : { ...targets, air };
-}
-
-function airFeasibleBand(
-  startFrame: number,
-  endFrame: number,
-  contactFrames: number[],
-): { lo: number; hi: number } {
-  const totalFrames = endFrame - startFrame + 1;
-  if (totalFrames <= 0) return { lo: 0, hi: 1 };
-
-  const requiredAir = new Set<number>();
-  const requiredContact = new Set<number>();
-  const contactPersistenceFrames = Math.ceil(PERSISTENCE_FRAMES * PERSISTENCE_RATIO);
-  for (const contactFrame of contactFrames) {
-    if (contactFrame < startFrame || contactFrame > endFrame) continue;
-    for (let f = contactFrame - K_BOUNCE_LANDING - 1; f < contactFrame; f++) {
-      if (f >= startFrame && f <= endFrame) requiredAir.add(f);
-    }
-    for (let f = contactFrame; f < contactFrame + contactPersistenceFrames; f++) {
-      if (f >= startFrame && f <= endFrame) requiredContact.add(f);
-    }
-  }
-
-  const lo = requiredAir.size / totalFrames;
-  const hi = 1 - requiredContact.size / totalFrames;
-  return { lo: Math.min(lo, hi), hi: Math.max(lo, hi) };
 }

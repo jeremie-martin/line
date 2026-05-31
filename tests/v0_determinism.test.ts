@@ -1,5 +1,5 @@
 /**
- * Determinism: same Spec + same seed produces byte-identical Track.
+ * Determinism: same Spec + same seed + same budget produces byte-identical Track.
  *
  * This is the v0 hard contract (1). It is a load-bearing precondition for
  * the beam-search rework: monotonicity-in-budget can only be verified if
@@ -11,7 +11,7 @@
  */
 import { describe, test, expect } from "vitest";
 import { createHash } from "node:crypto";
-import { compile } from "../scripts/v0/compile.ts";
+import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 
 function hashTrack(track: unknown): string {
@@ -21,8 +21,7 @@ function hashTrack(track: unknown): string {
 }
 
 describe("v0 compiler determinism (hard contract C1)", () => {
-  // Pick three representative specs across the size spectrum:
-  //   tiny_dance (4 contacts), syncopated_switchback (24), drums_signature (55)
+  const budget = { kind: "work" as const, units: 40_000 };
   const cases: Array<[string, number]> = [
     ["tiny_dance", 0],
     ["syncopated_switchback", 1],
@@ -32,9 +31,10 @@ describe("v0 compiler determinism (hard contract C1)", () => {
   for (const [name, seed] of cases) {
     test(`${name} (seed=${seed}) — two compiles produce hash-identical Track`, async () => {
       const spec = await loadGoldenSpec(name as never, "base");
-      const a = compile(spec, seed);
-      const b = compile(spec, seed);
+      const a = compileHandoff(spec, seed, { budget });
+      const b = compileHandoff(spec, seed, { budget });
       expect(hashTrack(a.track)).toBe(hashTrack(b.track));
-    });
+      expect(a.stats.sim_frames).toBe(b.stats.sim_frames);
+    }, 120_000);
   }
 });

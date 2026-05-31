@@ -1,8 +1,7 @@
 /**
  * Arc placement experiments.
  *
- * Default compiler behavior remains the uniform anchor sampler in compile.ts.
- * This module owns the impact-anchored placement POC: sample arc shape, choose
+ * This module owns impact-anchored placement: sample arc shape, choose
  * an intended impact point on the arc, translate that point to the simulated
  * sled position at the target frame, then let the engine validate.
  */
@@ -27,12 +26,9 @@ export type ImpactAnchorTargetState = {
 export function impactAnchorEnabled(): boolean {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_ARC_PLACEMENT;
-  // Impact-anchored placement is now the DEFAULT (tangency NOT applied — that
-  // variant was catastrophic, docs/search_rethink_state_handoff.md §10c). Opt out
-  // to the legacy wide-anchor-box sampler + anchor-Y bisection with
-  // LR_ARC_PLACEMENT=legacy (alias: uniform). Any other value — unset or the
-  // explicit "impact_anchor" — selects impact anchoring.
-  return raw !== "legacy" && raw !== "uniform";
+  // Impact-anchored placement is the default. Opt out to the uniform
+  // wide-anchor-box sampler + anchor-Y bisection with LR_ARC_PLACEMENT=uniform.
+  return raw !== "uniform";
 }
 
 export function impactAnchorFallbackBisectEnabled(): boolean {

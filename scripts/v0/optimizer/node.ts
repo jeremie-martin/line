@@ -1,24 +1,13 @@
 /**
- * Stage 1 — SearchNode for LDS.
+ * SearchNode for handoff-style prefix search.
  *
- * A node is a partial-track state at a gap boundary: which gaps have
- * been committed, what their fits are, what the engine state looks
- * like, and (memoized lazily) the cost-ordered candidate list for the
- * next gap.
+ * A node is a partial-track state at a gap boundary: which gaps have been
+ * committed, what their fits are, what the engine state looks like, and
+ * optionally a memoized candidate list for the next gap.
  *
- * The candidate list at each node is **fixed** (N_CAND samples in
- * sample order, then sorted by cost ascending). This is the unit
- * over which discrepancy is defined: rank 0 is greedy at this gap,
- * rank ≥ 1 is a deviation.
- *
- * `N_CAND` is a **fixed code constant**, not a budget knob. From the
- * K-sweep evidence (Step 4): N_CAND = 32 is the smallest value where
- * the cost-best candidate is reliably in the pool on every gap of
- * every golden spec. We default to 32; raising it is a code change
- * (re-baselined like any structural constant), never budget-fed.
- * This is the rule that keeps budget-monotonicity intact —
- * `N_CAND` does not change with the budget, so the leaf enumeration
- * `E` is identical for any two budgets.
+ * Candidate count is a code constant or an explicit caller override, never a
+ * budget-derived value. That keeps the search policy independent of budget;
+ * budget only decides how far into the deterministic node sequence we get.
  */
 
 import { makeRng } from "../../lib/rng.ts";
@@ -26,15 +15,15 @@ import {
   type GapFit,
   engineLineFromTrackLine,
 } from "../core/substrate.ts";
-import { pickLowestCost, solveOneGap } from "./solver.ts";
+import { solveOneGap } from "./solver.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
 
 /** Default per-node candidate count. See file header. */
 export const N_CAND = 32;
 
-/** A node in the LDS search tree. `prefixFits.length === gapIndex`.
- *  A leaf has `gapIndex === gaps.length`. */
+/** A node in the prefix-search tree. `prefixFits.length === gapIndex`.
+ *  A terminal node has `gapIndex === gaps.length`. */
 export type SearchNode = {
   /** Number of gaps committed so far (0..gaps.length). */
   gapIndex: number;
@@ -45,9 +34,8 @@ export type SearchNode = {
   prefixEngine: any;
   /** Next available line ID for the next gap's candidates. */
   prefixNextLineId: number;
-  /** Sum of per-gap cost over committed fits (rank-0 used by greedy
-   *  heuristic comparison; the register decides answers via the
-   *  full-track scorer, not this). */
+  /** Sum of per-gap cost over committed fits. The register decides returned
+   *  outputs via the final report comparator, not this local score. */
   cumulativeCost: number;
   /** Memoized cost-sorted candidate list at this gap. Populated on
    *  first access via `getCandidatesSorted`. */
@@ -70,7 +58,7 @@ export function makeRootNode(
   };
 }
 
-/** Sample N_CAND candidates at this node's gap and return them
+/** Sample candidates at this node's gap and return them
  *  sorted by cost ascending. Memoized — first call computes,
  *  subsequent calls return the cached list. Returns empty if the
  *  gap is non-contact (no commit needed) or if all candidates fail
@@ -80,8 +68,8 @@ export function getCandidatesSorted(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
-  /** Number of candidates to sample at this gap. Defaults to N_CAND (the LDS
-   *  search's fixed pool). The handoff search passes a smaller value: it only
+  /** Number of candidates to sample at this gap. Defaults to N_CAND. The handoff
+   *  search passes a smaller value: it only
    *  ranks a pool of ~5-8 by feasibility and branches 3-wide, so generating the
    *  full 32 is mostly wasted per-node work — the dominant cost that starves its
    *  bounded-budget exploration. By the prefix property of `solveOneGap`, a
@@ -95,7 +83,7 @@ export function getCandidatesSorted(
     node._candidatesCache = [];
     return [];
   }
-  // Fresh per-gap RNG — same scheme as legacy compile.ts. Determined
+  // Fresh per-gap RNG. Determined
   // by (seed, gapIndex), not by anything budget-touches. `Math.imul` keeps the
   // mix in exact int32 arithmetic so large seeds can't lose precision or
   // collide (the plain `*` overflowed past 2^53 for big seeds — review #10).
@@ -147,21 +135,4 @@ export function extendNode(
  *  processed). The node's prefixEngine is the final engine state. */
 export function isLeafNode(node: SearchNode, numGaps: number): boolean {
   return node.gapIndex >= numGaps;
-}
-
-/** Convenience: the greedy-rank-0 child of a node, or null if no
- *  viable candidate exists at this gap. */
-export function rank0Child(
-  node: SearchNode,
-  gaps: Gap[],
-  ctx: SpecContext,
-  seed: number,
-): SearchNode | null {
-  if (!gaps[node.gapIndex].endsWithContact) {
-    return extendNode(node, null);
-  }
-  const sorted = getCandidatesSorted(node, gaps, ctx, seed);
-  const best = pickLowestCost(sorted);
-  if (best === null) return null;
-  return extendNode(node, best);
 }

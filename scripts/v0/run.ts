@@ -6,9 +6,8 @@
  *   npx tsx scripts/v0/run.ts --spec=scripts/v0/specs/first.ts --seed=42 --out=generated/v0_first
  *   npx tsx scripts/v0/run.ts --spec=... --compiler=handoff --budget=200000
  *
- * --compiler: legacy (default, compile.ts) | lds (optimizer/api.ts) | handoff
- *             (optimizer/handoff.ts). --budget (sim-frames) applies to lds and
- *             handoff only; ignored by legacy. Default budget 200000.
+ * --compiler: handoff (default). Kept explicit so future compilers can be
+ *             added without changing the CLI shape. Default budget 200000.
  *
  * Outputs:
  *   <out>.track.json
@@ -17,11 +16,19 @@
 
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve, basename } from "node:path";
-import { compile } from "./compile.ts";
-import { compileLDS } from "./optimizer/api.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import type { Budget } from "./optimizer/types.ts";
 import type { Spec } from "./types.ts";
+
+const COMPILERS = {
+  handoff: compileHandoff,
+} as const;
+
+type CompilerName = keyof typeof COMPILERS;
+
+function isCompilerName(value: string): value is CompilerName {
+  return Object.hasOwn(COMPILERS, value);
+}
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | null => {
@@ -37,11 +44,12 @@ if (!specPath) {
 
 const seed = arg("seed") !== null ? parseInt(arg("seed")!, 10) : 0;
 
-const compiler = (arg("compiler") ?? "legacy") as "legacy" | "lds" | "handoff";
-if (!["legacy", "lds", "handoff"].includes(compiler)) {
-  console.error(`unknown --compiler=${compiler} (expected legacy | lds | handoff)`);
+const rawCompiler = arg("compiler") ?? "handoff";
+if (!isCompilerName(rawCompiler)) {
+  console.error(`unknown --compiler=${rawCompiler} (expected handoff)`);
   process.exit(1);
 }
+const compiler: CompilerName = rawCompiler;
 const budgetUnits = arg("budget") !== null ? parseInt(arg("budget")!, 10) : 200_000;
 const budget: Budget = { kind: "work", units: budgetUnits };
 
@@ -58,10 +66,7 @@ if (!spec) {
 }
 
 const t0 = Date.now();
-const { track, report } =
-  compiler === "handoff" ? compileHandoff(spec, seed, { budget })
-  : compiler === "lds" ? compileLDS(spec, seed, { budget })
-  : compile(spec, seed);
+const { track, report } = COMPILERS[compiler](spec, seed, { budget });
 const elapsedMs = Date.now() - t0;
 
 mkdirSync(dirname(resolve(`${outPrefix}.track.json`)), { recursive: true });

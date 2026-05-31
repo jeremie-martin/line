@@ -17,7 +17,7 @@ export type Spec = {
   /** Soft style blocks, may stack (last-declared wins per axis). */
   sections: Section[];
   /**
-   * Optional rider initial state. Omitted ⇒ legacy default (0,0)+v=(0.4,0).
+   * Optional rider initial state. Omitted => default (0,0)+v=(0.4,0).
    * Manual override only — use `preroll` instead if you want the compiler to
    * choose a §0-compatible initial state.
    */
@@ -101,9 +101,7 @@ export type DriftReport = {
  * at the top of each call.
  */
 export type CompileStats = {
-  // ─── Legacy compile() counters ─── (the standalone optimizer leaves these at
-  //     their zero defaults; see the "optimizer-native" group at the end). Kept
-  //     for the legacy `compile()` reference path and back-compat.
+  // ─── Generic compile counters ───
   /** Per-gap candidate samples (sampleArcParams calls). The most
    *  fine-grained unit of "search work" in the optimizer. */
   candidates_sampled: number;
@@ -131,22 +129,15 @@ export type CompileStats = {
    *  so per-section / per-spec breakdowns are possible. */
   committed_costs_per_gap: (number | null)[];
   /** Total simulated rider frames across all trajectory extractions
-   *  in this compile call. The work-unit for the new optimizer's
-   *  budget; charged at the trajectory-extraction boundary in
-   *  `scripts/v0/optimizer/sim_frames.ts`. The legacy compiler does
-   *  not populate this field; it remains 0. */
+   *  in this compile call. This is the compiler's budget unit, charged
+   *  at the trajectory-extraction boundary in `optimizer/sim_frames.ts`. */
   sim_frames: number;
-  /** True iff the new optimizer hit its work-units budget before
-   *  natural enumeration completion. False if no budget was set or
-   *  if enumeration completed within budget. Legacy compiler never
-   *  sets this (no budget concept); it remains false. */
+  /** True iff the compiler hit its work-units budget before natural search
+   *  completion. False if no budget was set or search completed within budget. */
   budget_exhausted: boolean;
 
-  // ─── Optimizer-native diagnostics ─── (populated by compileLDS; absent on the
-  //     legacy compile() path). Non-scoring — they make the golden breakdown
-  //     actionable on hard specs (the gradient lives in the breakdown, GOAL_LDS §1).
-  /** Leaves offered to the best-so-far register (base floor + repair + deviations
-   *  + polish variants). The total search volume actually evaluated. */
+  // ─── Search diagnostics ───
+  /** Outputs offered to the best-so-far register. */
   leaves_considered?: number;
   /** How many considered leaves strictly improved the best-so-far. */
   improvements?: number;
@@ -154,22 +145,9 @@ export type CompileStats = {
    *  the register, and how many of those became the new best. */
   polish_variants_tried?: number;
   polish_variants_adopted?: number;
-  /** Guided-repair leaves yielded (each is one re-descent forbidding an
-   *  assembled-track-missing candidate). 0 means the base path satisfied the
-   *  contract with no repair needed. */
-  repair_rounds?: number;
-  /** Candidate-list cache hits/misses across the whole search (base descent +
-   *  repair + deviations). Low hit-rate ⇒ the search is re-sampling many distinct
-   *  prefixes (expensive); high ⇒ lots of shared structure. */
-  candidate_cache_hits?: number;
-  candidate_cache_misses?: number;
-  /** Backtrack steps taken inside the d=0 base-path descent (buildBacktrackingLeaf).
-   *  High ⇒ a thrashing base floor (e.g. drums_crescendo). */
-  base_backtracks?: number;
 
   /** Partial-prefix search diagnostics (compileHandoff). A node is one concrete
-   *  prefix state at a gap boundary; unlike LDS leaves, most nodes are not whole
-   *  tracks yet. */
+   *  prefix state at a gap boundary; most nodes are not whole tracks yet. */
   search_nodes_expanded?: number;
   frontier_max_size?: number;
   /** Prefix reports scored through the best-so-far register. Nonterminal
@@ -251,24 +229,6 @@ export type Gap = {
 export const FPS = 40;
 
 /**
- * Investigation override: setting CALIB_K_OVERRIDE in the environment
- * replaces `CALIB.K` with the given value at module load. Used for the
- * quality-vs-K sweep that calibrates the compute-budget model. Does not
- * affect normal runs (env var unset). Removable once the investigation
- * concludes.
- */
-const _kOverride = (() => {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.CALIB_K_OVERRIDE;
-  if (raw === undefined || raw === "") return null;
-  const n = Number(raw);
-  if (!Number.isFinite(n) || n < 1) {
-    throw new Error(`CALIB_K_OVERRIDE must be a positive number, got ${raw}`);
-  }
-  return Math.floor(n);
-})();
-
-/**
  * Calibration constants. TODO calibrate empirically against rendered tracks.
  * See ../../DESIGN.md § Calibration constants.
  */
@@ -279,13 +239,6 @@ export const CALIB = {
   LINE_LENGTH_CAP: 49,
   /** Cross-gap target sampling spread (Gaussian σ). */
   SIGMA: 0.05,
-  /** Per-gap candidate budget. */
-  K: _kOverride ?? 48,
-  /** Cross-gap backtrack depth. */
-  BACKTRACK_DEPTH: 2,
-  /** Max times the final-track validator can re-trigger compilation when
-   *  assembled-track sync failures are detected after per-gap commit. */
-  FINAL_VALIDATION_RETRIES: 3,
   /**
    * Default Arc parameter bounds.
    * Initial values are an empirical guess loosely centered on shapes that
@@ -317,8 +270,7 @@ export const CALIB = {
 } as const;
 
 /**
- * Rider initial-state defaults. Matches the legacy hard-coded behavior;
- * used when `Spec.start` is omitted. See `resolveStartState` in compile.ts.
+ * Rider initial-state defaults used when `Spec.start` is omitted.
  */
 export const START_DEFAULTS = {
   POSITION: { x: 0, y: 0 },

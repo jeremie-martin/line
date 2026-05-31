@@ -1,5 +1,5 @@
 /**
- * Initial conditions for the v0 compiler.
+ * Initial conditions for the v0 handoff compiler.
  *
  * Two seams:
  *
@@ -7,7 +7,7 @@
  *   preroll  — compiler-chosen initial velocity for the real spec timeline.
  */
 import { describe, test, expect } from "vitest";
-import { compile } from "../scripts/v0/compile.ts";
+import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 import { type Spec } from "../scripts/v0/types.ts";
 import { LineRiderEngine, createLineFromJson } from "../scripts/lib/_lr_engine.ts";
 
@@ -24,9 +24,18 @@ function replayEngine(track: { lines: unknown[]; riders: { startPosition: { x: n
 }
 
 const TRIVIAL: Spec = { duration: 1, contacts: [], sections: [] };
+const TEST_BUDGET = { kind: "work" as const, units: 40_000 };
+
+function compile(spec: Spec, seed = 0) {
+  return compileHandoff(spec, seed, {
+    budget: TEST_BUDGET,
+    maxNodes: 100,
+    polish: false,
+  });
+}
 
 describe("v0 spec.start (manual knob)", () => {
-  test("omitted ⇒ legacy default in TrackJson", () => {
+  test("omitted => default in TrackJson", () => {
     const { track } = compile(TRIVIAL, 0);
     expect(track.riders[0].startPosition).toEqual({ x: 0, y: 0 });
     expect(track.riders[0].startVelocity).toEqual({ x: 0.4, y: 0 });

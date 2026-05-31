@@ -1,5 +1,5 @@
 /**
- * Stage B — polish as clone-and-test leaf variants.
+ * Polish as clone-and-test variants.
  *
  * Mirrors the `work` branch's `polishLeafVariant`: instead of refactoring the
  * 14 in-place polish helpers to return-new-fits (laborious, error-prone), we
@@ -10,10 +10,9 @@
  * and cannot corrupt the prefix-superset invariant (it adds leaves, never
  * reorders `E`).
  *
- * We run the four phase-1 air/contact helpers, in the same fixed order the
- * legacy compiler applies them — the high-value set `work` used to reach
- * +27…+62% over greedy_v1. They each rebuild an engine and extract internally,
- * so their physics cost is metered honestly via the detector.
+ * We run the four air/contact helpers in a fixed order. They each rebuild an
+ * engine and extract internally, so their physics cost is metered honestly via
+ * the detector.
  *
  * Determinism: cloneFits is a pure deep copy; the helpers are deterministic
  * functions of (fits, spec, gaps, contactFrames, durationFrames); the fixed
@@ -76,10 +75,8 @@ export type PolishedVariant = {
  * The polish helpers and `rebuildEngine` (now in core/polish.ts) read that
  * module's module-scoped start state. We set it to this leaf's `startState` for
  * the duration of the pass and restore the previous value in `finally`, so an
- * interleaved `compile()` /
- * second `compileLDS()` can't leave it stale (review #5). Save/restore (rather
- * than threading the start through every helper signature) keeps the legacy
- * helpers untouched while making the LDS path reentrancy-safe.
+ * interleaved compile can't leave it stale. Save/restore avoids threading the
+ * start through every helper signature while keeping rebuilds reentrancy-safe.
  */
 export function polishLeafVariant(
   fits: (GapFit | null)[],

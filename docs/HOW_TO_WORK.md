@@ -4,13 +4,13 @@
 - **Decide, don't stall.** When the data points somewhere (e.g. "d=0 doesn't complete
   drums → backtracking is the real next step"), take that decision and act, recording why.
 - **Diagnose every failure.** When something fails, find the cause before reacting — is
-  it one off-beat frame? a dead gap? a budget below the floor? Fix the cause, not the symptom.
+  it one off-beat frame, a dead gap, or budget starvation? Fix the cause, not the symptom.
 - **Fast first, big later.** Before any big sweep: a quick rough run (one spec / tiny
   budget / `polish:false`) to surface bugs cheaply. Fix, re-probe, then launch the real
   sweep. Never burn an hour to discover a typo.
 - **Sweeps are for understanding the equation, not ritual.** The deliverable of a sweep
-  is the *shape*: budget→quality and budget→wall_ms per spec, the floor (cost of the
-  first complete track), the saturation knee, ms/physframe stability. If a curve looks
+  is the *shape*: budget→quality and budget→wall_ms per spec, first-completion cost,
+  the saturation knee, ms/physframe stability. If a curve looks
   wrong, explain why before moving on.
 - **No bandaids, no overfitting.** No spec-name branching. Density/contact-spacing
   heuristics are OK (they generalize); re-baseline any constant kept. Prefer the simple

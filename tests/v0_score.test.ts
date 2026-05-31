@@ -30,9 +30,10 @@ function report(options: {
   const axisErrors = options.axisErrors ?? [0];
   return {
     contacts: options.contacts ?? [contact("hit", 0)],
-    sections: [
+    gaps: [
       {
-        section_index: 0,
+        gap_index: 0,
+        t_end: 1,
         survived: true,
         axes: Object.fromEntries(axisErrors.map((error, index) => [
           `axis_${index}`,

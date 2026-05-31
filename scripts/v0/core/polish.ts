@@ -22,13 +22,14 @@ import {
 } from "../../lib/detector.ts";
 import { makeSolidLine } from "../arc.ts";
 import {
-  type Spec, type Section,
+  type Spec, type AxisName,
   type TrackLine, type Gap,
-  CALIB, FPS, START_DEFAULTS, secToFrame,
+  AXES, CALIB, FPS, START_DEFAULTS, secToFrame,
 } from "../types.ts";
 import {
   type ResolvedStart,
   type GapFit,
+  axesAtFrame,
   median,
   makeBaseEngine,
   measureAxisOverRange,
@@ -246,19 +247,46 @@ function denseAirPolishSources(
   return sources;
 }
 
-function hasOnlyAirSectionTargets(spec: Spec): boolean {
-  let hasAir = false;
-  for (const sec of spec.sections) {
-    if (
-      sec.speed !== undefined
-      || sec.grain !== undefined
-      || sec.contact_style !== undefined
-    ) {
-      return false;
-    }
-    if (sec.air !== undefined) hasAir = true;
+/** True iff `axis` is targeted somewhere on the track (curve present + defined). */
+function axisTargeted(spec: Spec, axis: AxisName): boolean {
+  const curve = spec.axes?.[axis];
+  if (curve === undefined) return false;
+  const durationFrames = secToFrame(spec.duration);
+  for (let f = 0; f <= durationFrames; f++) {
+    if (curve(f / FPS) !== undefined) return true;
   }
-  return hasAir;
+  return false;
+}
+
+/**
+ * Maximal frame intervals over which `axis` holds a single constant target
+ * value (frames where the axis is undefined break an interval). For the ported
+ * hold-keyframe specs these intervals ARE the original sections, so the
+ * per-interval measurements below reproduce the old per-section behavior; for
+ * genuinely continuous curves each interval is just finer.
+ */
+function axisTargetIntervals(spec: Spec, axis: AxisName): { f0: number; f1: number; v: number }[] {
+  const durationFrames = secToFrame(spec.duration);
+  const out: { f0: number; f1: number; v: number }[] = [];
+  let cur: { f0: number; f1: number; v: number } | null = null;
+  for (let f = 0; f <= durationFrames; f++) {
+    const v = axesAtFrame(f, spec)[axis];
+    if (v === undefined) {
+      if (cur) { out.push(cur); cur = null; }
+      continue;
+    }
+    if (cur && cur.v === v) cur.f1 = f;
+    else { if (cur) out.push(cur); cur = { f0: f, f1: f, v }; }
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
+function hasOnlyAirSectionTargets(spec: Spec): boolean {
+  return axisTargeted(spec, "air")
+    && !axisTargeted(spec, "speed")
+    && !axisTargeted(spec, "grain")
+    && !axisTargeted(spec, "contact_style");
 }
 
 function passesFinalHardGates(det: Detection, contactFrames: number[]): boolean {
@@ -277,16 +305,10 @@ function passesFinalHardGates(det: Detection, contactFrames: number[]): boolean 
 function meanAirError(det: Detection, spec: Spec): number {
   let total = 0;
   let n = 0;
-  for (const sec of spec.sections) {
-    if (sec.air === undefined) continue;
-    const achieved = measureAxisOverRange(
-      det,
-      secToFrame(sec.t0),
-      secToFrame(sec.t1),
-      "air",
-    );
+  for (const iv of axisTargetIntervals(spec, "air")) {
+    const achieved = measureAxisOverRange(det, iv.f0, iv.f1, "air");
     if (achieved === null) continue;
-    total += Math.abs(sec.air - achieved);
+    total += Math.abs(iv.v - achieved);
     n++;
   }
   return n > 0 ? total / n : Infinity;
@@ -295,16 +317,10 @@ function meanAirError(det: Detection, spec: Spec): number {
 function meanAirDelta(det: Detection, spec: Spec): number {
   let total = 0;
   let n = 0;
-  for (const sec of spec.sections) {
-    if (sec.air === undefined) continue;
-    const achieved = measureAxisOverRange(
-      det,
-      secToFrame(sec.t0),
-      secToFrame(sec.t1),
-      "air",
-    );
+  for (const iv of axisTargetIntervals(spec, "air")) {
+    const achieved = measureAxisOverRange(det, iv.f0, iv.f1, "air");
     if (achieved === null) continue;
-    total += achieved - sec.air;
+    total += achieved - iv.v;
     n++;
   }
   return n > 0 ? total / n : 0;
@@ -313,16 +329,10 @@ function meanAirDelta(det: Detection, spec: Spec): number {
 function meanSpeedDelta(det: Detection, spec: Spec): number {
   let total = 0;
   let n = 0;
-  for (const sec of spec.sections) {
-    if (sec.speed === undefined) continue;
-    const achieved = measureAxisOverRange(
-      det,
-      secToFrame(sec.t0),
-      secToFrame(sec.t1),
-      "speed",
-    );
+  for (const iv of axisTargetIntervals(spec, "speed")) {
+    const achieved = measureAxisOverRange(det, iv.f0, iv.f1, "speed");
     if (achieved === null) continue;
-    total += achieved - sec.speed;
+    total += achieved - iv.v;
     n++;
   }
   return n > 0 ? total / n : Infinity;
@@ -331,9 +341,8 @@ function meanSpeedDelta(det: Detection, spec: Spec): number {
 function meanAirFrameResolution(spec: Spec): number {
   let total = 0;
   let n = 0;
-  for (const sec of spec.sections) {
-    if (sec.air === undefined) continue;
-    const frames = secToFrame(sec.t1) - secToFrame(sec.t0) + 1;
+  for (const iv of axisTargetIntervals(spec, "air")) {
+    const frames = iv.f1 - iv.f0 + 1;
     if (frames <= 0) continue;
     total += 1 / frames;
     n++;
@@ -632,13 +641,9 @@ export function polishExcessContact(
 }
 
 function shouldPolishExcessContact(spec: Spec): boolean {
-  let hasAir = false;
-  let hasCompanionAxis = false;
-  for (const sec of spec.sections) {
-    if (sec.contact_style !== undefined) return false;
-    if (sec.air !== undefined) hasAir = true;
-    if (sec.speed !== undefined || sec.grain !== undefined) hasCompanionAxis = true;
-  }
+  if (axisTargeted(spec, "contact_style")) return false;
+  const hasAir = axisTargeted(spec, "air");
+  const hasCompanionAxis = axisTargeted(spec, "speed") || axisTargeted(spec, "grain");
   return hasAir && hasCompanionAxis;
 }
 
@@ -1054,11 +1059,8 @@ function polishGrainLength(
 }
 
 function shouldPolishGrainLength(spec: Spec): boolean {
-  for (const sec of spec.sections) {
-    if (sec.contact_style !== undefined) return false;
-    if (sec.grain !== undefined) return true;
-  }
-  return false;
+  if (axisTargeted(spec, "contact_style")) return false;
+  return axisTargeted(spec, "grain");
 }
 
 function polishEntrySpeed(
@@ -1135,11 +1137,8 @@ function polishEntrySpeed(
 }
 
 function shouldPolishEntrySpeed(spec: Spec): boolean {
-  for (const sec of spec.sections) {
-    if (sec.contact_style !== undefined) return false;
-    if (sec.speed !== undefined) return true;
-  }
-  return false;
+  if (axisTargeted(spec, "contact_style")) return false;
+  return axisTargeted(spec, "speed");
 }
 
 function polishEntrySpeedX(
@@ -1522,15 +1521,14 @@ function polishMedianGrainResidual(
     }
     | null = null;
 
-  for (const sec of spec.sections) {
-    if (sec.grain === undefined) continue;
-    const entries = sectionGrainFits(sec, gaps, fits);
+  for (const iv of axisTargetIntervals(spec, "grain")) {
+    const entries = grainFitsInRange(iv.f0, iv.f1, gaps, fits);
     if (entries.length === 0) continue;
 
     const achieved = entries
       .map(({ fit }) => measureFitGrain(fit))
       .reduce((a, b) => a + b, 0) / entries.length;
-    const residual = sec.grain - achieved;
+    const residual = iv.v - achieved;
     if (Math.abs(residual) <= 1e-9) continue;
 
     const neededMedianDelta = residual * CALIB.LINE_LENGTH_CAP * entries.length;
@@ -1575,23 +1573,6 @@ type LineSnapshot = {
   x2: number;
   y2: number;
 };
-
-function sectionGrainFits(
-  sec: Section,
-  gaps: Gap[],
-  fits: (GapFit | null)[],
-): { owner: number; fit: GapFit }[] {
-  const f0 = secToFrame(sec.t0);
-  const f1 = secToFrame(sec.t1);
-  const entries: { owner: number; fit: GapFit }[] = [];
-  for (let owner = 0; owner < gaps.length; owner++) {
-    const gap = gaps[owner];
-    const fit = fits[owner];
-    if (!gap.endsWithContact || fit === null) continue;
-    if (gap.endFrame >= f0 && gap.endFrame <= f1) entries.push({ owner, fit });
-  }
-  return entries;
-}
 
 function grainResidualPlans(
   fit: GapFit,
@@ -1736,37 +1717,25 @@ function meanSectionAxisError(
 ): number {
   let total = 0;
   let n = 0;
-  for (const sec of spec.sections) {
-    const f0 = secToFrame(sec.t0);
-    const f1 = secToFrame(sec.t1);
-    if (sec.air !== undefined) {
-      const v = measureAxisOverRange(det, f0, f1, "air");
+  // air / speed: per constant-target interval over the final-track measurement.
+  for (const axis of ["air", "speed"] as const) {
+    for (const iv of axisTargetIntervals(spec, axis)) {
+      const v = measureAxisOverRange(det, iv.f0, iv.f1, axis);
       if (v !== null) {
-        total += Math.abs(sec.air - v);
+        total += Math.abs(iv.v - v);
         n++;
       }
     }
-    if (sec.speed !== undefined) {
-      const v = measureAxisOverRange(det, f0, f1, "speed");
-      if (v !== null) {
-        total += Math.abs(sec.speed - v);
-        n++;
-      }
-    }
-    if (sec.grain !== undefined) {
-      const vals: number[] = [];
-      for (let j = 0; j < gaps.length; j++) {
-        const gap = gaps[j];
-        const fit = fits[j];
-        if (!gap.endsWithContact || fit === null) continue;
-        if (gap.endFrame >= f0 && gap.endFrame <= f1) vals.push(measureFitGrain(fit));
-      }
-      if (vals.length > 0) {
-        const achieved = vals.reduce((a, b) => a + b, 0) / vals.length;
-        total += Math.abs(sec.grain - achieved);
-        n++;
-      }
-    }
+  }
+  // grain: median catch length over the gaps landing inside each grain interval.
+  for (const iv of axisTargetIntervals(spec, "grain")) {
+    const entries = grainFitsInRange(iv.f0, iv.f1, gaps, fits);
+    if (entries.length === 0) continue;
+    const achieved = entries
+      .map(({ fit }) => measureFitGrain(fit))
+      .reduce((a, b) => a + b, 0) / entries.length;
+    total += Math.abs(iv.v - achieved);
+    n++;
   }
   return n > 0 ? total / n : Infinity;
 }

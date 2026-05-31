@@ -22,6 +22,7 @@ import { makeRng } from "../../lib/rng.ts";
 import {
   type GapFit,
   type ResolvedStart,
+  axesAtFrame,
   buildDriftReport,
   buildTrackJson,
   effectiveAxes,
@@ -31,7 +32,7 @@ import {
   sliceTimeline,
   validateSpec,
 } from "../core/substrate.ts";
-import { CALIB, START_DEFAULTS, secToFrame, type Gap, type SectionAxes } from "../types.ts";
+import { CALIB, START_DEFAULTS, secToFrame, type Gap, type AxisValues } from "../types.ts";
 import { axisLookaheadEndFrame, readTargetState, tryCandidate } from "../core/candidate.ts";
 import { pickLowestCost, solveOneGap } from "./solver.ts";
 import { getCandidatesSorted, extendNode, isLeafNode, makeRootNode, type SearchNode } from "./node.ts";
@@ -796,7 +797,7 @@ function buildStartOptions(
     return [{ rank: 0, start: defaultSpecStart, state: defaultStart }];
   }
 
-  const axes = firstSectionAxes(rawSpec);
+  const axes = firstAxes(rawSpec);
   const starts = startCandidates(axes);
   const seen = new Set<string>();
   const [first, ...rest] = [defaultSpecStart, ...starts]
@@ -846,7 +847,7 @@ function buildStartOptions(
   }));
 }
 
-function useStartFeasibilityScoring(axes: SectionAxes, gaps: Gap[]): boolean {
+function useStartFeasibilityScoring(axes: AxisValues, gaps: Gap[]): boolean {
   const firstGapIndex = nextContactGapIndex(gaps, 0);
   if (firstGapIndex < 0) return false;
   const secondGapIndex = nextContactGapIndex(gaps, firstGapIndex + 1);
@@ -865,7 +866,7 @@ function useStartFeasibilityScoring(axes: SectionAxes, gaps: Gap[]): boolean {
 function startFeasibilityCost(
   start: NonNullable<Spec["start"]>,
   searchSpec: Spec,
-  axes: SectionAxes,
+  axes: AxisValues,
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
@@ -918,7 +919,7 @@ function startFeasibilityCost(
   return best + START_HEURISTIC_WEIGHT * startHeuristicCost(start, axes);
 }
 
-function startCandidates(firstAxes: SectionAxes): NonNullable<Spec["start"]>[] {
+function startCandidates(firstAxes: AxisValues): NonNullable<Spec["start"]>[] {
   const targetSpeed = (firstAxes.speed ?? 0.45) * CALIB.SPEED_CAP;
   const speedAnchors = targetSpeed >= 9
     ? [6, 8.5, 11, 13.5]
@@ -947,7 +948,7 @@ function startCandidates(firstAxes: SectionAxes): NonNullable<Spec["start"]>[] {
   return out;
 }
 
-function startHeuristicCost(start: NonNullable<Spec["start"]>, axes: SectionAxes): number {
+function startHeuristicCost(start: NonNullable<Spec["start"]>, axes: AxisValues): number {
   const targetSpeed = (axes.speed ?? 0.45) * CALIB.SPEED_CAP;
   const speed = Math.hypot(start.vx, start.vy);
   const angle = (Math.atan2(start.vy, start.vx) * 180) / Math.PI;
@@ -958,33 +959,25 @@ function startHeuristicCost(start: NonNullable<Spec["start"]>, axes: SectionAxes
   return speedCost + 0.35 * angleCost + lowSpeedPenalty;
 }
 
-function targetStartAngle(axes: SectionAxes): number {
+function targetStartAngle(axes: AxisValues): number {
   const air = axes.air ?? 0.5;
   if (air >= 0.7) return -12;
   if (air <= 0.3) return 24;
   return 6;
 }
 
-function startAngles(firstAxes: SectionAxes): number[] {
+function startAngles(firstAxes: AxisValues): number[] {
   const air = firstAxes.air ?? 0.5;
   if (air >= 0.7) return [-35, -18, -5, 10, 25];
   if (air <= 0.3) return [-5, 8, 20, 35, 50];
   return [-20, -8, 5, 18, 32];
 }
 
-function firstSectionAxes(spec: Spec): SectionAxes {
-  const axes: SectionAxes = { ...(spec.defaults ?? {}) };
-  const activeAtZero = spec.sections.filter((sec) => sec.t0 <= 0 && sec.t1 >= 0);
-  const sections = activeAtZero.length > 0
-    ? activeAtZero
-    : [...spec.sections].sort((a, b) => a.t0 - b.t0).slice(0, 1);
-  for (const sec of sections) {
-    if (sec.air !== undefined) axes.air = sec.air;
-    if (sec.speed !== undefined) axes.speed = sec.speed;
-    if (sec.contact_style !== undefined) axes.contact_style = sec.contact_style;
-    if (sec.grain !== undefined) axes.grain = sec.grain;
-  }
-  return axes;
+function firstAxes(spec: Spec): AxisValues {
+  // Axis targets active at the start of the track (t=0). `axesAtFrame` resolves
+  // both the curve form (each curve at t=0) and the legacy section form (the
+  // section covering t=0), so this stays form-agnostic across the migration.
+  return axesAtFrame(0, spec);
 }
 
 function uniqueRounded(xs: number[]): number[] {
@@ -1027,7 +1020,7 @@ function evaluateNode(
   const rawReport = buildDriftReport(
     det, spec, gaps, allContactFrames, durationFrames, [], paddedFits(node, gaps.length),
   );
-  const report = fullDuration ? rawReport : asPartialReport(rawReport, spec, partialHorizonFrame);
+  const report = fullDuration ? rawReport : asPartialReport(rawReport, partialHorizonFrame);
   return {
     report,
     key: leafKeyForReport(report, durationFrames),
@@ -1050,7 +1043,7 @@ function partialOutputDurationFrames(horizonFrame: number, durationFrames: numbe
   return Math.max(1, Math.min(durationFrames, horizonFrame + 20));
 }
 
-function asPartialReport(report: DriftReport, spec: Spec, horizonFrame: number): DriftReport {
+function asPartialReport(report: DriftReport, horizonFrame: number): DriftReport {
   const reachedContacts = report.contacts
     .filter((contact) => secToFrame(contact.t_target) <= horizonFrame);
   const futureContacts = report.contacts
@@ -1065,8 +1058,8 @@ function asPartialReport(report: DriftReport, spec: Spec, horizonFrame: number):
   return {
     ...report,
     contacts: [...reachedContacts, ...futureContacts],
-    sections: report.sections
-      .filter((section) => secToFrame(spec.sections[section.section_index]?.t1 ?? 0) <= horizonFrame),
+    gaps: report.gaps
+      .filter((gap) => secToFrame(gap.t_end) <= horizonFrame),
     off_beat_landings: report.off_beat_landings
       .filter((landing) => landing.frame <= horizonFrame),
     terminus: {

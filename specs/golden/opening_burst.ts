@@ -4,8 +4,13 @@
  * The first three seconds ask for quarter-second contacts while speed and air
  * are already high. This keeps pre-roll/initial-state quality visible instead
  * of letting the compiler warm up during an easy intro.
+ *
+ *   [0–3s]  air 0.82  speed 0.94  grain 0.62  contact 0.28
+ *   [3–8s]  air 0.45  speed 0.72  grain 0.30  contact 0.70
+ *   [8–14s] air 0.78  speed 0.82  grain 0.72  contact 0.55
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
+import { keyframes } from "../../scripts/v0/core/curves.ts";
 
 const contacts: Contact[] = [];
 for (let t = 0.50; t <= 3.00 + 1e-6; t += 0.25) {
@@ -18,11 +23,12 @@ for (let t = 3.50; t < 14; t += 0.50) {
 const spec: Spec = {
   duration: 14,
   contacts,
-  sections: [
-    { t0: 0, t1: 3, air: 0.82, speed: 0.94, grain: 0.62, contact_style: 0.28 },
-    { t0: 3, t1: 8, air: 0.45, speed: 0.72, grain: 0.30, contact_style: 0.70 },
-    { t0: 8, t1: 14, air: 0.78, speed: 0.82, grain: 0.72, contact_style: 0.55 },
-  ],
+  axes: {
+    air:           keyframes([{ t: 0, v: 0.82 }, { t: 3, v: 0.45 }, { t: 8, v: 0.78 }], "hold"),
+    speed:         keyframes([{ t: 0, v: 0.94 }, { t: 3, v: 0.72 }, { t: 8, v: 0.82 }], "hold"),
+    grain:         keyframes([{ t: 0, v: 0.62 }, { t: 3, v: 0.30 }, { t: 8, v: 0.72 }], "hold"),
+    contact_style: keyframes([{ t: 0, v: 0.28 }, { t: 3, v: 0.70 }, { t: 8, v: 0.55 }], "hold"),
+  },
   preroll: 5,
 };
 

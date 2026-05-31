@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import type { Spec } from "./types.ts";
+import { AXES, type Spec } from "./types.ts";
 import type { Budget } from "./optimizer/types.ts";
 
 export const GOLDEN_SPECS = [
@@ -63,7 +63,7 @@ export const FAST_SEED = 0;
  * drift are not comparable to history. A DELIBERATE ruler change (a charter
  * revision) updates this constant in the same commit. Soft tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "e159a6bc5e41";
+export const EVALUATOR_FINGERPRINT = "66fb1347b29c";
 
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. The compiler is
@@ -102,8 +102,8 @@ function cloneSpec(spec: Spec): Spec {
   return {
     duration: spec.duration,
     contacts: spec.contacts.map((contact) => ({ ...contact })),
-    sections: spec.sections.map((section) => ({ ...section })),
-    ...(spec.defaults ? { defaults: { ...spec.defaults } } : {}),
+    // Axis curves are immutable pure functions, so a shallow copy is a safe clone.
+    ...(spec.axes ? { axes: { ...spec.axes } } : {}),
     ...(spec.start ? { start: { ...spec.start } } : {}),
     ...(spec.preroll !== undefined ? { preroll: spec.preroll } : {}),
   };
@@ -123,17 +123,8 @@ export function assertValidSpec(spec: Spec, label: string): void {
     }
     lastContact = contact.t;
   }
-  for (const section of spec.sections) {
-    if (
-      !Number.isFinite(section.t0) ||
-      !Number.isFinite(section.t1) ||
-      section.t0 < 0 ||
-      section.t1 > spec.duration ||
-      section.t1 <= section.t0
-    ) {
-      throw new Error(`${label}: invalid section ${section.t0}-${section.t1}`);
-    }
-  }
+  // Axis-range validation lives in validateSpec (substrate); the suite only
+  // checks the timeline shape here.
 }
 
 export function applyVariant(base: Spec, variant: VariantName): Spec {
@@ -156,17 +147,23 @@ export function applyVariant(base: Spec, variant: VariantName): Spec {
 
   if (variant === "time_stretch_102") {
     const factor = 1.02;
+    // Stretch curves by composing: a curve defined in original seconds is
+    // evaluated at t/factor, so the same shape spans the stretched timeline —
+    // general for any curve, no per-keyframe rescaling needed.
+    const stretchedAxes: NonNullable<Spec["axes"]> = {};
+    if (spec.axes) {
+      for (const name of AXES) {
+        const curve = spec.axes[name];
+        if (curve !== undefined) stretchedAxes[name] = (t: number) => curve(t / factor);
+      }
+    }
     const scaled: Spec = {
       ...spec,
       duration: Number((spec.duration * factor).toFixed(3)),
       contacts: spec.contacts.map((contact) => ({
         t: Number((contact.t * factor).toFixed(3)),
       })),
-      sections: spec.sections.map((section) => ({
-        ...section,
-        t0: Number((section.t0 * factor).toFixed(3)),
-        t1: Number((section.t1 * factor).toFixed(3)),
-      })),
+      ...(spec.axes ? { axes: stretchedAxes } : {}),
     };
     assertValidSpec(scaled, variant);
     return scaled;

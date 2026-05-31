@@ -3,8 +3,12 @@
  * budget floor. Confirms small specs no longer get a free runtime pass under
  * the affine soft/hard budget; gives the optimizer one tiny case where every
  * single contact matters.
+ *
+ *   [0.0–2.5s]  air 0.55  speed 0.65  grain 0.50  contact 0.40
+ *   [2.5–5.0s]  air 0.70  speed 0.55  grain 0.65  contact 0.70
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
+import { keyframes } from "../../scripts/v0/core/curves.ts";
 
 const contacts: Contact[] = [];
 for (let t = 0.60; t < 5.0; t += 0.65) {
@@ -14,10 +18,12 @@ for (let t = 0.60; t < 5.0; t += 0.65) {
 const spec: Spec = {
   duration: 5,
   contacts,
-  sections: [
-    { t0: 0.0, t1: 2.5, air: 0.55, speed: 0.65, grain: 0.50, contact_style: 0.40 },
-    { t0: 2.5, t1: 5.0, air: 0.70, speed: 0.55, grain: 0.65, contact_style: 0.70 },
-  ],
+  axes: {
+    air:           keyframes([{ t: 0, v: 0.55 }, { t: 2.5, v: 0.70 }], "hold"),
+    speed:         keyframes([{ t: 0, v: 0.65 }, { t: 2.5, v: 0.55 }], "hold"),
+    grain:         keyframes([{ t: 0, v: 0.50 }, { t: 2.5, v: 0.65 }], "hold"),
+    contact_style: keyframes([{ t: 0, v: 0.40 }, { t: 2.5, v: 0.70 }], "hold"),
+  },
   preroll: 5,
 };
 

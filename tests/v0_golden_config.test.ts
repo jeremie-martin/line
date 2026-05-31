@@ -7,7 +7,7 @@ import {
   loadGoldenSpec,
   variantCases,
 } from "../scripts/v0/golden_suite.ts";
-import type { Spec } from "../scripts/v0/types.ts";
+import { AXES, type Spec } from "../scripts/v0/types.ts";
 
 function expectValidSpec(spec: Spec): void {
   expect(spec.duration).toBeGreaterThan(0);
@@ -18,10 +18,20 @@ function expectValidSpec(spec: Spec): void {
     expect(contact.t).toBeGreaterThanOrEqual(last);
     last = contact.t;
   }
-  for (const section of spec.sections) {
-    expect(section.t0).toBeGreaterThanOrEqual(0);
-    expect(section.t1).toBeLessThanOrEqual(spec.duration);
-    expect(section.t1).toBeGreaterThan(section.t0);
+  // Golden specs are authored as axis curves; each present curve must stay in
+  // range across the track (air in [0, 0.99], others in [0, 1]).
+  expect(spec.axes).toBeDefined();
+  const durationFrames = Math.round(spec.duration * 40);
+  for (const name of AXES) {
+    const curve = spec.axes?.[name];
+    if (curve === undefined) continue;
+    const hi = name === "air" ? 0.99 : 1;
+    for (let f = 0; f <= durationFrames; f++) {
+      const v = curve(f / 40);
+      if (v === undefined) continue;
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThanOrEqual(hi);
+    }
   }
 }
 

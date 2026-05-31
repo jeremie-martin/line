@@ -8,6 +8,7 @@
  */
 import { describe, test, expect } from "vitest";
 import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
+import { constant } from "../scripts/v0/core/curves.ts";
 import { type Spec } from "../scripts/v0/types.ts";
 import { LineRiderEngine, createLineFromJson } from "../scripts/lib/_lr_engine.ts";
 
@@ -23,7 +24,7 @@ function replayEngine(track: { lines: unknown[]; riders: { startPosition: { x: n
   return chained;
 }
 
-const TRIVIAL: Spec = { duration: 1, contacts: [], sections: [] };
+const TRIVIAL: Spec = { duration: 1, contacts: [], axes: {} };
 const TEST_BUDGET = { kind: "work" as const, units: 40_000 };
 
 function compile(spec: Spec, seed = 0) {
@@ -71,19 +72,20 @@ describe("v0 spec.preroll", () => {
     const spec: Spec = {
       duration: 3,
       contacts: [{ t: 1 }, { t: 2 }],
-      sections: [{ t0: 0, t1: 3, air: 0.5 }],
+      axes: { air: constant(0.5) },
     };
     const { report } = compile(spec, 0);
     expect(report.contacts).toHaveLength(2);
-    expect(report.sections).toHaveLength(1);
-    expect(report.sections[0].section_index).toBe(0);
+    // Per-gap report: one entry per contact gap that received a catch.
+    expect(report.gaps.length).toBeGreaterThanOrEqual(1);
+    expect(report.gaps[0].gap_index).toBe(0);
   });
 
   test("preroll preserves user timeline and report coords", () => {
     const userSpec: Spec = {
       duration: 3,
       contacts: [{ t: 1 }, { t: 2 }],
-      sections: [{ t0: 0, t1: 3, air: 0.5 }],
+      axes: { air: constant(0.5) },
       preroll: 2,
     };
     const { track, report } = compile(userSpec, 0);
@@ -96,9 +98,9 @@ describe("v0 spec.preroll", () => {
     expect(report.contacts[0].t_target).toBeCloseTo(1, 6);
     expect(report.contacts[1].t_target).toBeCloseTo(2, 6);
 
-    // User sees only their one section, re-indexed to 0.
-    expect(report.sections).toHaveLength(1);
-    expect(report.sections[0].section_index).toBe(0);
+    // User sees per-gap axes for their own timeline, gap indices from 0.
+    expect(report.gaps.length).toBeGreaterThanOrEqual(1);
+    expect(report.gaps[0].gap_index).toBe(0);
   });
 
   test("preroll > MAX_S is rejected", () => {

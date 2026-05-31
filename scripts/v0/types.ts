@@ -1,5 +1,5 @@
 /**
- * v0 types — Spec, Section, Contact, Arc, DriftReport.
+ * v0 types — Spec, Contact, axis curves, Arc, DriftReport.
  * See ../../DESIGN.md for the canonical definitions.
  */
 
@@ -10,12 +10,14 @@ import type { TrackLine } from "../lib/primitive.ts";
 export type Spec = {
   /** Track duration, seconds. */
   duration: number;
-  /** Default axis values that sections may override per-axis. */
-  defaults?: Partial<SectionAxes>;
   /** Hard sync events. */
   contacts: Contact[];
-  /** Soft style blocks, may stack (last-declared wins per axis). */
-  sections: Section[];
+  /**
+   * Per-axis target curves — the authoring surface. Each axis is a function of
+   * track time (seconds); an absent key means that axis is never targeted. See
+   * `core/curves.ts` for the `constant`/`ramp`/`keyframes` builders.
+   */
+  axes: AxisCurves;
   /**
    * Optional rider initial state. Omitted => default (0,0)+v=(0.4,0).
    * Manual override only — use `preroll` instead if you want the compiler to
@@ -46,23 +48,38 @@ export type Contact = {
   t: number;
 };
 
-export type Section = {
-  /** Seconds. */
-  t0: number;
-  /** Seconds. */
-  t1: number;
-} & SectionAxes;
+/**
+ * Axis target curve: absolute track time (seconds) → axis value, or
+ * `undefined` for "no pressure on this axis at this time". Built from the
+ * helpers in `core/curves.ts` (`constant`, `ramp`, `keyframes`); raw lambdas
+ * are allowed too.
+ */
+export type Curve = (t: number) => number | undefined;
 
-export type SectionAxes = {
-  /** Airborne-frame fraction. [0, 0.99]. */
-  air?: number;
-  /** mean(|velocity|) / SPEED_CAP. [0, 1]. */
-  speed?: number;
-  /** Per-contact traversed/segment-length ratio, averaged. [0, 1]. */
-  contact_style?: number;
-  /** median(line_length) / LINE_LENGTH_CAP. [0, 1]. */
-  grain?: number;
-};
+/**
+ * The four creative axes, in canonical order. Single source of iteration.
+ * Axis semantics (all normalized):
+ *   - `air`           — airborne-frame fraction, [0, 0.99].
+ *   - `speed`         — mean(|velocity|) / SPEED_CAP, [0, 1].
+ *   - `contact_style` — per-contact traversed/segment-length ratio, averaged, [0, 1].
+ *   - `grain`         — median(line_length) / LINE_LENGTH_CAP, [0, 1].
+ */
+export const AXES = ["air", "speed", "contact_style", "grain"] as const;
+export type AxisName = (typeof AXES)[number];
+
+/**
+ * Resolved or measured per-axis scalar values for one gap (or one frame).
+ * The numeric bag flowing through `gap.targets`, candidate `achieved`,
+ * `axisCost`, and `sampleGapTargets`.
+ */
+export type AxisValues = Partial<Record<AxisName, number>>;
+
+/**
+ * Authoring surface: an optional target curve per axis. An absent key means the
+ * axis is never targeted; a present curve returning `undefined` at some t means
+ * "not targeted there".
+ */
+export type AxisCurves = Partial<Record<AxisName, Curve>>;
 
 // ─────────── Arc (placement primitive) ───────────
 
@@ -86,7 +103,8 @@ export { type TrackLine } from "../lib/primitive.ts";
 
 export type DriftReport = {
   contacts: ContactReport[];
-  sections: SectionReport[];
+  /** Per-gap achieved-vs-target axes (replaces the former per-section `sections`). */
+  gaps: GapAxisReport[];
   /** Landing events not aligned with any Contact (hard violation, see C3). */
   off_beat_landings: { frame: number }[];
   terminus: { frame: number; reason: string };
@@ -200,8 +218,17 @@ export type ContactReport = {
   status: "hit" | "drift" | "missing";
 };
 
-export type SectionReport = {
-  section_index: number;
+/**
+ * Per-gap achieved-vs-target axis report — the section-free replacement for
+ * `SectionReport`. One entry per contact gap that received a catch; `axes`
+ * holds only the axes actually targeted there (target = the gap's resolved
+ * curve mean, achieved = measured on the final track).
+ */
+export type GapAxisReport = {
+  /** Gap index in time order (matches `Gap.index`). */
+  gap_index: number;
+  /** Landing time of the gap's terminating contact, seconds. */
+  t_end: number;
   survived: boolean;
   axes: {
     [axis: string]: { target: number; achieved: number; error: number };
@@ -220,7 +247,7 @@ export type Gap = {
   /** True iff this gap's end is a hard Contact (false for tail gap). */
   endsWithContact: boolean;
   /** Per-axis targets sampled for this gap. */
-  targets: SectionAxes;
+  targets: AxisValues;
 };
 
 // ─────────── Conventions ───────────

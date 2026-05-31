@@ -51,7 +51,7 @@ export const MISSING_CONTACT_TOLERANCE = 1.0;
 export const OFF_BEAT_TOLERANCE = 1.0;
 
 export type AxisDetail = {
-  section_index: number;
+  gap_index: number;
   axis: string;
   target: number;
   achieved: number;
@@ -121,10 +121,10 @@ export type ScoreOptions = {
 
 export function axisDetails(report: DriftReport): AxisDetail[] {
   const out: AxisDetail[] = [];
-  for (const section of report.sections) {
-    for (const [axis, value] of Object.entries(section.axes)) {
+  for (const gap of report.gaps) {
+    for (const [axis, value] of Object.entries(gap.axes)) {
       out.push({
-        section_index: section.section_index,
+        gap_index: gap.gap_index,
         axis,
         target: value.target,
         achieved: value.achieved,

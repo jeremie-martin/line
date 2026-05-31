@@ -12,11 +12,12 @@ import {
 } from "../../lib/detector.ts";
 import type { TrackJson } from "../../lib/primitive.ts";
 import {
-  type Spec, type SectionAxes,
+  type Spec, type AxisValues,
   type Arc, type TrackLine, type DriftReport, type Gap,
-  type ContactReport, type SectionReport,
-  CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
+  type ContactReport, type GapAxisReport,
+  AXES, CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
 } from "../types.ts";
+import { measureGapAxes } from "./measure.ts";
 
 export type ResolvedStart = {
   position: { x: number; y: number };
@@ -27,7 +28,7 @@ export type GapFit = {
   arc: Arc;
   lines: TrackLine[];
   /** Achieved axis values for this gap (for the DriftReport). */
-  achieved: SectionAxes;
+  achieved: AxisValues;
   /** Aggregate axis cost (lower = better fit). */
   cost: number;
   /** Sled reference position (lowest sled point) at the gap's landing frame
@@ -241,14 +242,14 @@ export function sliceTimeline(contactFrames: number[], durationFrames: number): 
   return gaps;
 }
 
-export function effectiveAxes(gap: Gap, spec: Spec): SectionAxes {
-  const sums: Record<keyof SectionAxes, number> = {
+export function effectiveAxes(gap: Gap, spec: Spec): AxisValues {
+  const sums: Record<keyof AxisValues, number> = {
     air: 0,
     speed: 0,
     contact_style: 0,
     grain: 0,
   };
-  const counts: Record<keyof SectionAxes, number> = {
+  const counts: Record<keyof AxisValues, number> = {
     air: 0,
     speed: 0,
     contact_style: 0,
@@ -265,22 +266,20 @@ export function effectiveAxes(gap: Gap, spec: Spec): SectionAxes {
     }
   }
 
-  const out: SectionAxes = {};
+  const out: AxisValues = {};
   for (const key of ["air", "speed", "contact_style", "grain"] as const) {
     if (counts[key] > 0) out[key] = sums[key] / counts[key];
   }
   return out;
 }
 
-export function axesAtFrame(frame: number, spec: Spec): SectionAxes {
+export function axesAtFrame(frame: number, spec: Spec): AxisValues {
   const t = frame / FPS;
-  const axes: SectionAxes = { ...(spec.defaults ?? {}) };
-  for (const sec of spec.sections) {
-    if (sec.t0 > t || sec.t1 < t) continue;
-    if (sec.air !== undefined) axes.air = sec.air;
-    if (sec.speed !== undefined) axes.speed = sec.speed;
-    if (sec.contact_style !== undefined) axes.contact_style = sec.contact_style;
-    if (sec.grain !== undefined) axes.grain = sec.grain;
+  // Evaluate each present axis curve at this frame's time.
+  const axes: AxisValues = {};
+  for (const name of AXES) {
+    const v = spec.axes[name]?.(t);
+    if (v !== undefined) axes[name] = v;
   }
   return axes;
 }
@@ -288,11 +287,11 @@ export function axesAtFrame(frame: number, spec: Spec): SectionAxes {
 // ─────────── Cross-gap target sampling ───────────
 
 export function sampleGapTargets(
-  section: SectionAxes,
+  section: AxisValues,
   sigma: number,
   rng: () => number,
-): SectionAxes {
-  const out: SectionAxes = {};
+): AxisValues {
+  const out: AxisValues = {};
   if (section.air !== undefined)           out.air = clamp(gauss(rng, section.air, sigma), 0, 0.99);
   if (section.speed !== undefined)         out.speed = clamp(gauss(rng, section.speed, sigma), 0, 1);
   if (section.contact_style !== undefined) out.contact_style = clamp(gauss(rng, section.contact_style, sigma), 0, 1);
@@ -328,22 +327,30 @@ export function validateSpec(spec: Spec): void {
       throw new Error(`Contact.t (${c.t}) out of [0, ${spec.duration}]`);
     }
   }
-  for (const s of spec.sections) {
-    if (s.t0 < 0 || s.t1 > spec.duration || s.t0 >= s.t1) {
-      throw new Error(`Section [${s.t0}, ${s.t1}] invalid for duration ${spec.duration}`);
-    }
-    if (s.air !== undefined && (s.air < 0 || s.air > 0.99)) {
-      throw new Error(`Section.air (${s.air}) out of [0, 0.99]`);
-    }
-    for (const k of ["speed", "contact_style", "grain"] as const) {
-      const v = s[k];
-      if (v !== undefined && (v < 0 || v > 1)) {
-        throw new Error(`Section.${k} (${v}) out of [0, 1]`);
+  validateAxisCurves(spec);
+  validateStartSpec(spec.start);
+  validatePreroll(spec.preroll);
+}
+
+/**
+ * Validate axis curves stay in range across the track. A curve is continuous,
+ * so we sample it at every frame (the resolution the compiler actually sees)
+ * and bound-check each defined value. `air ∈ [0, 0.99]`, others `∈ [0, 1]`.
+ */
+function validateAxisCurves(spec: Spec): void {
+  const durationFrames = secToFrame(spec.duration);
+  for (const name of AXES) {
+    const curve = spec.axes?.[name];
+    if (curve === undefined) continue;
+    const hi = name === "air" ? 0.99 : 1;
+    for (let f = 0; f <= durationFrames; f++) {
+      const v = curve(f / FPS);
+      if (v === undefined) continue;
+      if (!Number.isFinite(v) || v < 0 || v > hi) {
+        throw new Error(`axes.${name} (${v}) at t=${(f / FPS).toFixed(3)}s out of [0, ${hi}]`);
       }
     }
   }
-  validateStartSpec(spec.start);
-  validatePreroll(spec.preroll);
 }
 
 export function validateStartSpec(start: Spec["start"]): void {
@@ -429,60 +436,29 @@ export function buildDriftReport(
     return { t_target: c.t, t_actual: null, frame_error: null, status: "missing" };
   });
 
-  const sections: SectionReport[] = spec.sections.map((sec, i) => {
-    const f0 = secToFrame(sec.t0);
-    const f1 = secToFrame(sec.t1);
-    const survived = det.terminus.frame >= f1
-      || det.terminus.reason === "endOfSpec";
-
-    // Per-gap fits whose end-Contact falls in this section's frame range.
-    // Used for axes that are most cleanly measured per-gap and then
-    // aggregated (grain, contact_style).
-    const fitsInSection: GapFit[] = [];
-    for (let j = 0; j < gaps.length; j++) {
-      const g = gaps[j];
-      const f = fits[j];
-      if (!g.endsWithContact || f === null) continue;
-      if (g.endFrame >= f0 && g.endFrame <= f1) fitsInSection.push(f);
-    }
-
-    const achieved: SectionReport["axes"] = {};
-
-    // air, speed: measured directly from the final-track simulation over the
-    // section's frame range (rider-state axes).
-    for (const k of ["air", "speed"] as const) {
-      const t = sec[k];
+  // Per-gap achieved-vs-target axes. Each contact gap owns exactly one catch,
+  // so there is no section-range fit-matching: the target is the gap's resolved
+  // curve mean (`effectiveAxes`), the achieved is measured on the final track
+  // (`measureGapAxes`) over that gap. Only axes actually targeted are reported.
+  const gapReports: GapAxisReport[] = [];
+  for (let j = 0; j < gaps.length; j++) {
+    const g = gaps[j];
+    const f = fits[j];
+    if (!g.endsWithContact || f === null) continue;
+    const targets = effectiveAxes(g, spec);
+    const achievedAll = measureGapAxes(det, g, f.lines, g.endFrame);
+    const axes: GapAxisReport["axes"] = {};
+    for (const name of AXES) {
+      const t = targets[name];
       if (t === undefined) continue;
-      const av = measureAxisOverRange(det, f0, f1, k);
-      if (av !== null) achieved[k] = { target: t, achieved: av, error: Math.abs(t - av) };
+      const a = achievedAll[name];
+      if (a === undefined) continue;
+      axes[name] = { target: t, achieved: a, error: Math.abs(t - a) };
     }
-
-    if (sec.grain !== undefined) {
-      const vals = fitsInSection.map(measureFitGrain);
-      if (vals.length > 0) {
-        const m = vals.reduce((a, b) => a + b, 0) / vals.length;
-        achieved.grain = { target: sec.grain, achieved: m, error: Math.abs(sec.grain - m) };
-      }
-    }
-
-    if (sec.contact_style !== undefined) {
-      const vals: number[] = [];
-      for (const f of fitsInSection) {
-        const v = f.achieved.contact_style;
-        if (v !== undefined) vals.push(v);
-      }
-      if (vals.length > 0) {
-        const m = vals.reduce((a, b) => a + b, 0) / vals.length;
-        achieved.contact_style = {
-          target: sec.contact_style,
-          achieved: m,
-          error: Math.abs(sec.contact_style - m),
-        };
-      }
-    }
-
-    return { section_index: i, survived, axes: achieved };
-  });
+    const survived = det.terminus.frame >= g.endFrame
+      || det.terminus.reason === "endOfSpec";
+    gapReports.push({ gap_index: g.index, t_end: g.endFrame / FPS, survived, axes });
+  }
 
   const off_beat_landings = det.events
     .filter((e) => e.type === "landing"
@@ -491,7 +467,7 @@ export function buildDriftReport(
 
   return {
     contacts,
-    sections,
+    gaps: gapReports,
     off_beat_landings,
     terminus: { frame: det.terminus.frame, reason: det.terminus.reason },
   };

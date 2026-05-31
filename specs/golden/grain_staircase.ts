@@ -1,11 +1,12 @@
 /**
  * grain_staircase — isolates grain as direct arc-size intent.
  *
- * Speed, air, and contact style stay moderate while grain walks short → medium
+ * Speed, air, and contact style stay constant while grain walks short → medium
  * → long → short. The intended pressure is visible line scale, not solving an
  * inverse timing problem through unrelated axes.
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
+import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
 
 const contacts: Contact[] = [];
 for (let t = 0.75; t < 20; t += 0.50) {
@@ -15,12 +16,15 @@ for (let t = 0.75; t < 20; t += 0.50) {
 const spec: Spec = {
   duration: 20,
   contacts,
-  sections: [
-    { t0: 0, t1: 5, air: 0.55, speed: 0.58, grain: 0.18, contact_style: 0.48 },
-    { t0: 5, t1: 10, air: 0.55, speed: 0.58, grain: 0.45, contact_style: 0.48 },
-    { t0: 10, t1: 15, air: 0.55, speed: 0.58, grain: 0.82, contact_style: 0.48 },
-    { t0: 15, t1: 20, air: 0.55, speed: 0.58, grain: 0.28, contact_style: 0.48 },
-  ],
+  axes: {
+    air: constant(0.55),
+    speed: constant(0.58),
+    grain: keyframes(
+      [{ t: 0, v: 0.18 }, { t: 5, v: 0.45 }, { t: 10, v: 0.82 }, { t: 15, v: 0.28 }],
+      "hold",
+    ),
+    contact_style: constant(0.48),
+  },
   preroll: 5,
 };
 

@@ -18,7 +18,8 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve, basename } from "node:path";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import type { Budget } from "./optimizer/types.ts";
-import type { Spec } from "./types.ts";
+import { AXES, FPS, type Spec } from "./types.ts";
+import { axisDetails, scoreDriftReport } from "./score.ts";
 
 const COMPILERS = {
   handoff: compileHandoff,
@@ -74,23 +75,48 @@ writeFileSync(resolve(`${outPrefix}.track.json`), JSON.stringify(track, null, 2)
 writeFileSync(resolve(`${outPrefix}.report.json`), JSON.stringify(report, null, 2));
 
 // Console summary
-const hardOffBeats = report.off_beat_landings.length;
+// Terminal summary: small and sync-first. Full per-gap detail lives in the
+// report JSON (and the dashboard); the terminal shows only what you scan for.
 const contactSummary = report.contacts.reduce(
   (acc, c) => { acc[c.status]++; return acc; },
   { hit: 0, drift: 0, missing: 0 } as Record<string, number>,
 );
-const sectionSummary = report.sections.map((s) => {
-  const axes = Object.entries(s.axes).map(([k, v]) =>
-    `${k}=${v.achieved.toFixed(2)}(target ${v.target.toFixed(2)})`,
-  ).join(" ");
-  return `  §${s.section_index} survived=${s.survived} ${axes}`;
-}).join("\n");
+const score = scoreDriftReport(report, { totalFrames: track.duration });
+const axes = axisDetails(report);
 
-console.log(`
-compiled in ${elapsedMs}ms → ${track.lines.length} lines
-contacts: ${contactSummary.hit} hit / ${contactSummary.drift} drift / ${contactSummary.missing} missing
-off-beat landings (hard violations): ${hardOffBeats}
-terminus: ${report.terminus.reason} @ frame ${report.terminus.frame}
-sections:
-${sectionSummary}
-`);
+// Per-axis mean |error| roll-up (which axis is hurting, without listing gaps).
+const byAxis = AXES.map((name) => {
+  const errs = axes.filter((a) => a.axis === name).map((a) => Math.abs(a.error));
+  if (errs.length === 0) return null;
+  const mean = errs.reduce((s, e) => s + e, 0) / errs.length;
+  return `${name} ${mean.toFixed(2)}`;
+}).filter((s): s is string => s !== null);
+
+// The few worst-error gaps (target→achieved per axis on that gap).
+const worstGaps = [...report.gaps]
+  .map((g) => ({
+    g,
+    maxErr: Math.max(0, ...Object.values(g.axes).map((v) => Math.abs(v.error))),
+  }))
+  .filter((x) => x.maxErr > 0)
+  .sort((a, b) => b.maxErr - a.maxErr)
+  .slice(0, 5)
+  .map(({ g }) => {
+    const parts = Object.entries(g.axes)
+      .map(([k, v]) => `${k} ${v.target.toFixed(2)}→${v.achieved.toFixed(2)}`)
+      .join("  ");
+    return `  g${g.gap_index} ${g.t_end.toFixed(1)}s  ${parts}`;
+  });
+
+const durS = (track.duration / FPS).toFixed(1);
+const lines = [
+  `compiled ${durS}s → ${track.lines.length} lines  (${elapsedMs}ms)`,
+  `contacts  ${contactSummary.hit}/${report.contacts.length} hit · ${contactSummary.drift} drift · ` +
+    `${contactSummary.missing} missing · ${report.off_beat_landings.length} off-beat`,
+  `survival  ${report.terminus.reason}@${report.terminus.frame}   ` +
+    `score ${score.score.toFixed(1)}   axis_rms ${score.axis_error_rms.toFixed(3)}`,
+];
+if (byAxis.length > 0) lines.push(`by axis (mean|err|):  ${byAxis.join("  ")}`);
+if (worstGaps.length > 0) lines.push("worst gaps (target→achieved):", ...worstGaps);
+lines.push(`full report → ${outPrefix}.report.json`);
+console.log("\n" + lines.join("\n") + "\n");

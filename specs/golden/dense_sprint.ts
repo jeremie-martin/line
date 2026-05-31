@@ -6,11 +6,12 @@
  * spec-frame 0 with enough useful velocity and contact history to survive a
  * dense opening burst, not gradually warm up during an easy intro.
  *
- *   §0 [ 0– 4s]  sprint   high air, very fast, short contact, compact lines
- *   §1 [ 4–10s]  brake    lower air, medium speed, short lines, long contact
- *   §2 [10–20s]  carry    airy medium speed, long lines, long contact
+ *   [ 0– 4s]  sprint   high air, very fast, short contact, compact lines
+ *   [ 4–10s]  brake    lower air, medium speed, short lines, long contact
+ *   [10–20s]  carry    airy medium speed, long lines, long contact
  */
 import type { Spec } from "../../scripts/v0/types.ts";
+import { keyframes } from "../../scripts/v0/core/curves.ts";
 
 const contactTimes = [
   0.75, 1.00, 1.25, 1.50, 1.75,
@@ -22,11 +23,12 @@ for (let t = 2.25; t < 20; t += 0.5) {
 const spec: Spec = {
   duration: 20,
   contacts: contactTimes.map((t) => ({ t })),
-  sections: [
-    { t0:  0, t1:  4, air: 0.85, speed: 0.95, grain: 0.35, contact_style: 0.20 },
-    { t0:  4, t1: 10, air: 0.35, speed: 0.55, grain: 0.25, contact_style: 0.65 },
-    { t0: 10, t1: 20, air: 0.75, speed: 0.65, grain: 0.75, contact_style: 0.75 },
-  ],
+  axes: {
+    air:           keyframes([{ t: 0, v: 0.85 }, { t: 4, v: 0.35 }, { t: 10, v: 0.75 }], "hold"),
+    speed:         keyframes([{ t: 0, v: 0.95 }, { t: 4, v: 0.55 }, { t: 10, v: 0.65 }], "hold"),
+    grain:         keyframes([{ t: 0, v: 0.35 }, { t: 4, v: 0.25 }, { t: 10, v: 0.75 }], "hold"),
+    contact_style: keyframes([{ t: 0, v: 0.20 }, { t: 4, v: 0.65 }, { t: 10, v: 0.75 }], "hold"),
+  },
   preroll: 5,
 };
 

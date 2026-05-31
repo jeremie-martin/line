@@ -375,7 +375,7 @@ function formatWorstAxes(axes: ScoredSpec["axes"]): string {
   return top.map((a) => {
     const delta = a.achieved - a.target;
     const sign = delta >= 0 ? "+" : "";
-    return `s${a.section_index}.${a.axis}=${a.achieved.toFixed(2)}(${sign}${delta.toFixed(2)})`;
+    return `g${a.gap_index}.${a.axis}=${a.achieved.toFixed(2)}(${sign}${delta.toFixed(2)})`;
   }).join("  ");
 }
 
@@ -446,7 +446,7 @@ function printSummary(label: string, rows: ScoredSpec[], keyOf: (row: ScoredSpec
       const sign = delta >= 0 ? "+" : "";
       console.log(
         `    ${caseLabel(row).padEnd(38)} seed=${row.seed} ` +
-          `s${axis.section_index}.${axis.axis}=${axis.achieved.toFixed(2)}(${sign}${delta.toFixed(2)})`,
+          `g${axis.gap_index}.${axis.axis}=${axis.achieved.toFixed(2)}(${sign}${delta.toFixed(2)})`,
       );
     }
   }

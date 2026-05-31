@@ -26,7 +26,7 @@ import {
   sampleImpactAnchoredArc,
 } from "../arc_placement.ts";
 import {
-  type SectionAxes,
+  type AxisValues,
   type Arc, type TrackLine, type Gap,
   CALIB, FPS,
 } from "../types.ts";
@@ -36,10 +36,8 @@ import {
   median,
   engineLineFromTrackLine,
   contactLineIdsAt,
-  airborneAt,
-  speedAt,
-  measurementLastFrame,
 } from "./substrate.ts";
+import { measureGapAxes } from "./measure.ts";
 
 const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
 
@@ -145,7 +143,7 @@ export function sampleArcParams(
   rng: () => number,
   refX: number,
   refY: number,
-  targets: SectionAxes,
+  targets: AxisValues,
   targetState: TargetState,
   attempt: number,
   gap: Gap,
@@ -254,7 +252,7 @@ export function tryCandidate(
   lineIdStart: number,
   allContactFrames: number[],
   axisMeasureEnd: number,
-  searchTargets: SectionAxes,
+  searchTargets: AxisValues,
   useWindowDetection: boolean,
 ): GapFit | null {
   // Impact-anchored placement (LR_ARC_PLACEMENT=impact_anchor): the arc is
@@ -305,7 +303,7 @@ function tryCandidateWithBisection(
   lineIdStart: number,
   allContactFrames: number[],
   axisMeasureEnd: number,
-  searchTargets: SectionAxes,
+  searchTargets: AxisValues,
   useWindowDetection: boolean,
 ): GapFit | null {
   // Bisect anchor Y for Contact precision.
@@ -329,7 +327,7 @@ function evaluateCandidateLines(
   lineIdStart: number,
   axisMeasureEnd: number,
   allContactFrames: number[],
-  searchTargets: SectionAxes,
+  searchTargets: AxisValues,
   useWindowDetection: boolean,
 ): GapFit | null {
   let best = evaluateGapFit(
@@ -364,7 +362,7 @@ function evaluateGapFit(
   lines: TrackLine[],
   axisMeasureEnd: number,
   allContactFrames: number[],
-  searchTargets: SectionAxes,
+  searchTargets: AxisValues,
   useWindowDetection: boolean,
 ): Pick<GapFit, "lines" | "achieved" | "cost"> | null {
   // deno-lint-ignore no-explicit-any
@@ -398,7 +396,7 @@ function evaluateGapFit(
   );
   if (offBeat > 0) return null;
 
-  const achieved = measureAxes(det, gap, lines, axisMeasureEnd);
+  const achieved = measureGapAxes(det, gap, lines, axisMeasureEnd);
   const cost = axisCost(searchTargets, achieved);
   return { lines, achieved, cost };
 }
@@ -541,59 +539,11 @@ export function countOffBeatLandings(
 }
 
 // ─────────── Axis measurement ───────────
+// The per-axis reductions now live in `./measure.ts` (AXIS_MEASURE registry) so
+// each axis's achieved value is defined in exactly one place. `measureGapAxes`
+// is the verbatim equivalent of the former inline `measureAxes`.
 
-function measureAxes(
-  det: Detection, gap: Gap, gapLines: TrackLine[],
-  rangeEndFrame = gap.endFrame,
-): SectionAxes {
-  const out: SectionAxes = {};
-  const a = gap.startFrame;
-  const b = Math.min(rangeEndFrame, measurementLastFrame(det));
-
-  // air
-  let airFrames = 0, total = 0;
-  for (let f = a; f <= b; f++) {
-    if (airborneAt(det, f)) airFrames++;
-    total++;
-  }
-  if (total > 0) out.air = airFrames / total;
-
-  // speed
-  let speedSum = 0, speedCount = 0;
-  for (let f = a; f <= b; f++) {
-    const s = speedAt(det, f);
-    if (s !== undefined) { speedSum += s; speedCount++; }
-  }
-  if (speedCount > 0) out.speed = speedSum / speedCount / CALIB.SPEED_CAP;
-
-  // contact_style — per-contact traversed / segment length, averaged.
-  // For v0's single-Arc-per-gap, this reduces to: how many frames did the
-  // rider stay in contact with this Arc, scaled by the per-line traversal
-  // implied by velocity × frames vs line length. Approximation: count the
-  // contiguous in-contact frames immediately following gap.endFrame and
-  // divide by the median line length / mean speed (rough).
-  const lineLens = gapLines.map((l) => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
-  const medianLen = median(lineLens);
-  if (medianLen > 0) {
-    let contactFramesAtArc = 0;
-    for (let f = gap.endFrame; f <= measurementLastFrame(det); f++) {
-      if (airborneAt(det, f) === false) contactFramesAtArc++;
-      else break;
-    }
-    const meanSpeed = (out.speed ?? 0) * CALIB.SPEED_CAP || 1;
-    const traversed = meanSpeed * contactFramesAtArc;
-    out.contact_style = Math.min(1, traversed / medianLen);
-  }
-
-  // grain
-  if (lineLens.length > 0) {
-    out.grain = Math.min(1, median(lineLens) / CALIB.LINE_LENGTH_CAP);
-  }
-
-  return out;
-}
-
-export function axisCost(target: SectionAxes, achieved: SectionAxes): number {
+export function axisCost(target: AxisValues, achieved: AxisValues): number {
   // Equal-axis L2 cost. The suite scores axes equally; keeping the local
   // optimizer equal-weighted avoids region-specific ranking bias while
   // preserving a smooth gradient for nearby candidate choices.

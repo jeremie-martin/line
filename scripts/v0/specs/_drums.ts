@@ -11,7 +11,7 @@
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { Spec, Section, Contact } from "../types.ts";
+import type { AxisCurves, Spec, Contact } from "../types.ts";
 
 type Onset = { t: number; votes: number };
 
@@ -31,10 +31,10 @@ function filteredContacts(): Contact[] {
   return out;
 }
 
-export function drumsSpec(sections: Section[]): Spec {
+export function drumsSpec(axes: AxisCurves): Spec {
   return {
     duration: raw.range_s[1],
     contacts: filteredContacts(),
-    sections,
+    axes,
   };
 }

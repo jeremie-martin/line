@@ -6,6 +6,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Spec, Contact } from "../types.ts";
+import { constant } from "../core/curves.ts";
 
 const raw = JSON.parse(
   readFileSync(resolve("beats/drums_0_56s_60_125.json"), "utf8"),

@@ -7,7 +7,7 @@
  */
 
 import { getRiderMetered } from "../lib/detector.ts";
-import type { Arc, CompileStats, Gap, SectionAxes, TrackLine } from "./types.ts";
+import type { Arc, CompileStats, Gap, AxisValues, TrackLine } from "./types.ts";
 
 const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
 
@@ -99,7 +99,7 @@ export function recordImpactAnchorFallbackLanding(): void {
 export function sampleImpactAnchoredArc(
   rng: () => number,
   targetState: ImpactAnchorTargetState,
-  targets: SectionAxes,
+  targets: AxisValues,
   length: number,
   startAngleDeg: number,
   endAngleDeg: number,

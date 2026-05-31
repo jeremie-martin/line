@@ -122,6 +122,9 @@ const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
 const PREVIEW_COST_WEIGHT = 0;
 const HANDOFF_STATE_WEIGHT = 0.08;
+/** Weight on a candidate's speed OVERSHOOT (achieved - target, when positive) in
+ *  the handoff feasibility ranking. Selection-only bias against speed creep. */
+const HANDOFF_SPEED_OVERSHOOT_WEIGHT = 8;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 3;
@@ -601,13 +604,27 @@ function scoreCandidateForHandoff(
     ? 0
     : preview.firstCost * PREVIEW_COST_WEIGHT;
   const statePenalty = handoffStatePenalty(child.prefixEngine, gaps[node.gapIndex]);
+  // Asymmetric speed-overshoot penalty (selection-only, handoff-only — does NOT
+  // change candidate geometry, so no chaos/LDS impact). The rider creeps faster
+  // than target over long runs (catches are net-downhill) and eventually stalls;
+  // candidate.cost penalizes speed error symmetrically (1 of 4 axes), too weakly
+  // to arrest creep. This extra term prefers, among the pool, catches whose
+  // achieved speed does NOT overshoot the target — bleeding the creep using
+  // catches that already exist (no new geometry). Only penalizes OVERshoot.
+  const gap = gaps[node.gapIndex];
+  let overshoot = 0;
+  const tgtSpeed = gap.targets?.speed;
+  const achSpeed = candidate.achieved?.speed;
+  if (tgtSpeed !== undefined && achSpeed !== undefined && achSpeed > tgtSpeed) {
+    overshoot = HANDOFF_SPEED_OVERSHOOT_WEIGHT * (achSpeed - tgtSpeed) * (achSpeed - tgtSpeed);
+  }
 
   return {
     candidate,
     rank,
     previewContacts: preview.landed,
     previewSurvivors: preview.survivors,
-    score: candidate.cost + scarcity + previewCost + statePenalty,
+    score: candidate.cost + scarcity + previewCost + statePenalty + overshoot,
   };
 }
 

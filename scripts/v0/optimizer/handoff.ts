@@ -113,7 +113,7 @@ const HANDOFF_PREVIEW_K = 1;
 /** How many of the most-recent committed catches to translate+reuse per gap. */
 const HANDOFF_REUSE_K = 2;
 const HANDOFF_PREVIEW_HORIZON = 1;
-const START_OPTION_LIMIT = 4;
+const START_OPTION_LIMIT = 6;
 const START_SCORING_POOL = 12;
 const START_FIRST_K = 8;
 const START_FIRST_OPTIONS = 3;

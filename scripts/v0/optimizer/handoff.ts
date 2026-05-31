@@ -110,6 +110,7 @@ const HANDOFF_BROAD_CANDIDATE_POOL = 8;
 const HANDOFF_MEDIUM_DENSE_MIN_CONTACTS = 30;
 const HANDOFF_LONG_DENSE_CONTACTS = 60;
 const HANDOFF_BRANCHING = 3;
+const HANDOFF_SPARSE_BRANCHING = 4;
 const HANDOFF_IMMEDIATE_DENSE_OPENING_BRANCHING = 2;
 const HANDOFF_IMMEDIATE_OPENING_MAX_FIRST_DELAY = 24;
 const HANDOFF_IMMEDIATE_OPENING_MAX_SECOND_INTERVAL = 12;
@@ -496,8 +497,9 @@ function usesMediumDensePolicy(ctx: SpecContext): boolean {
 }
 
 function handoffBranching(gaps: Gap[]): number {
-  return hasImmediateDenseOpening(gaps)
-    ? HANDOFF_IMMEDIATE_DENSE_OPENING_BRANCHING
+  if (hasImmediateDenseOpening(gaps)) return HANDOFF_IMMEDIATE_DENSE_OPENING_BRANCHING;
+  return contactCount(gaps) < HANDOFF_MEDIUM_DENSE_MIN_CONTACTS
+    ? HANDOFF_SPARSE_BRANCHING
     : HANDOFF_BRANCHING;
 }
 
@@ -511,6 +513,12 @@ function hasImmediateDenseOpening(gaps: Gap[]): boolean {
   const secondIntervalFrames = gaps[secondGapIndex].endFrame - gaps[firstGapIndex].endFrame;
   return firstDelayFrames <= HANDOFF_IMMEDIATE_OPENING_MAX_FIRST_DELAY &&
     secondIntervalFrames <= HANDOFF_IMMEDIATE_OPENING_MAX_SECOND_INTERVAL;
+}
+
+function contactCount(gaps: Gap[]): number {
+  let count = 0;
+  for (const gap of gaps) if (gap.endsWithContact) count++;
+  return count;
 }
 
 function completeNearTail(

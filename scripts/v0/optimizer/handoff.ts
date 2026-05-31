@@ -125,6 +125,8 @@ const HANDOFF_STATE_WEIGHT = 0.08;
 /** Weight on a candidate's speed OVERSHOOT (achieved - target, when positive) in
  *  the handoff feasibility ranking. Selection-only bias against speed creep. */
 const HANDOFF_SPEED_OVERSHOOT_WEIGHT = 16;
+/** Weight on a candidate's AIR overshoot (achieved - target, when positive). */
+const HANDOFF_AIR_OVERSHOOT_WEIGHT = 16;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 3;
@@ -617,6 +619,13 @@ function scoreCandidateForHandoff(
   const achSpeed = candidate.achieved?.speed;
   if (tgtSpeed !== undefined && achSpeed !== undefined && achSpeed > tgtSpeed) {
     overshoot = HANDOFF_SPEED_OVERSHOOT_WEIGHT * (achSpeed - tgtSpeed) * (achSpeed - tgtSpeed);
+  }
+  // Air overshoot is the other systematic suite-wide axis error (rider stays
+  // airborne longer than target); same selection-only asymmetric bias.
+  const tgtAir = gap.targets?.air;
+  const achAir = candidate.achieved?.air;
+  if (tgtAir !== undefined && achAir !== undefined && achAir > tgtAir) {
+    overshoot += HANDOFF_AIR_OVERSHOOT_WEIGHT * (achAir - tgtAir) * (achAir - tgtAir);
   }
 
   return {

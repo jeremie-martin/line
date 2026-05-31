@@ -607,7 +607,7 @@ function completeNearTail(
       continue;
     }
 
-    const [option] = rankedOptions(search, gaps, ctx, seed, telemetry, TAIL_COMPLETION_PREVIEW_K);
+    const [option] = rankedTailOptions(search, gaps, ctx, seed, telemetry);
     if (option === undefined || option.candidate === null) return null;
     search = option.search;
     ranks.push(option.rank);
@@ -624,6 +624,18 @@ function completeNearTail(
     ranks,
     skippedContacts: node.skippedContacts,
   };
+}
+
+function rankedTailOptions(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  telemetry: HandoffTelemetry,
+): RankedOption[] {
+  const options = rankedOptions(node, gaps, ctx, seed, telemetry);
+  if (options[0]?.previewSurvivors !== 0) return options;
+  return rankedOptions(node, gaps, ctx, seed, telemetry, TAIL_COMPLETION_PREVIEW_K);
 }
 
 function usesTailCheckpointPolicy(ctx: SpecContext): boolean {

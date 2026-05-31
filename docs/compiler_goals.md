@@ -37,7 +37,7 @@ The compiler work does not change:
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
 - `npm run golden` is the full-suite score.
-- `npm run golden -- --jobs=4 --budget=40000 --compiler=handoff` is the current
+- `npm run golden -- --jobs=4 --budget=50000 --compiler=handoff` is the current
   low-budget campaign metric.
 
 Any compiler change should preserve these tests and report its impact through the

@@ -49,7 +49,7 @@ npx vitest run tests/optimizer_handoff.test.ts
 ## Campaign Command
 
 ```bash
-npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
+npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
 ```
 
 Before the cleanup that made handoff the only/default compiler, this command

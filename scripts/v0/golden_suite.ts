@@ -38,7 +38,7 @@ export const GOLDEN_SEEDS = [0, 1, 2] as const;
  * `optimizer/sim_frames.ts`).
  *
  * The handoff compiler also supports explicit fixed-budget campaign runs, e.g.
- * `npm run golden -- --budget=40000`. The default is intentionally generous for
+ * `npm run golden -- --budget=50000`. The default is intentionally generous for
  * normal quality checks; explicit budgets are the sharper optimization signal.
  */
 export const HANDOFF_BUDGET_PHYS = 200_000;

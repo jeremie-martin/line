@@ -42,7 +42,7 @@ The default golden compiler is handoff:
 ```bash
 npm run golden
 npm run golden -- --compiler=handoff
-npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
+npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
 ```
 
 `--compiler=handoff` is kept even though it is currently the only compiler so a

@@ -1,6 +1,5 @@
 /**
  * v0 types — Spec, Contact, axis curves, Arc, DriftReport.
- * See ../../DESIGN.md for the canonical definitions.
  */
 
 import type { TrackLine } from "../lib/primitive.ts";
@@ -267,7 +266,6 @@ export const FPS = 40;
 
 /**
  * Calibration constants. TODO calibrate empirically against rendered tracks.
- * See ../../DESIGN.md § Calibration constants.
  */
 export const CALIB = {
   /** Divisor for `speed` axis. px/frame. */

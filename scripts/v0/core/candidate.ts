@@ -154,8 +154,9 @@ export function sampleArcParams(
    *  breaking landing geometry. Default false = normal sampling. */
   brake = false,
 ): Arc {
-  if (!brake && shouldUseSteepCatch(targetState, gap) && attempt < CATCH_TEMPLATES.length) {
-    return sampleSteepCatchArc(targetState, CATCH_TEMPLATES[attempt]);
+  const steepTemplateIndex = steepCatchTemplateIndex(attempt);
+  if (!brake && steepTemplateIndex !== null && shouldUseSteepCatch(targetState, gap)) {
+    return sampleSteepCatchArc(targetState, CATCH_TEMPLATES[steepTemplateIndex]);
   }
 
   const A = CALIB.ARC;
@@ -215,9 +216,23 @@ export function sampleArcParams(
   };
 }
 
-function shouldUseSteepCatch(targetState: TargetState, gap: Gap): boolean {
+function shouldUseSteepCatch(targetState: { speed: number; angleDeg: number }, gap: Gap): boolean {
   const gapFrames = gap.endFrame - gap.startFrame;
   return gapFrames >= 60 && (targetState.speed >= 10 || targetState.angleDeg >= 55);
+}
+
+export function usesSteepCatchTemplateAttempt(
+  targetState: { speed: number; angleDeg: number },
+  gap: Gap,
+  attempt: number,
+): boolean {
+  return steepCatchTemplateIndex(attempt) !== null && shouldUseSteepCatch(targetState, gap);
+}
+
+export function steepCatchTemplateIndex(attempt: number): number | null {
+  if (!Number.isInteger(attempt) || attempt < 0 || attempt % 2 !== 0) return null;
+  const index = attempt / 2;
+  return index < CATCH_TEMPLATES.length ? index : null;
 }
 
 function sampleSteepCatchArc(

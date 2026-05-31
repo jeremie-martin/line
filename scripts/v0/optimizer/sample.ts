@@ -63,10 +63,10 @@ export function sampleOneCandidate(
   rng: () => number,
   ctx: SpecContext,
   lineIdStart: number,
-  /** Attempt index within a gap's K-sample loop. Drives the steep-catch
-   *  CATCH_TEMPLATES selection in sampleArcParams; the K-candidate solver passes
-   *  0..K-1 so the templates are actually swept rather than all collapsing to
-   *  template 0 (review P2). Defaults to 0 for single-sample callers. */
+  /** Attempt index within a gap's K-sample loop. Drives the steep-catch template
+   *  interleave in sampleArcParams; the K-candidate solver passes 0..K-1 so
+   *  templates and normal random samples are swept deterministically. Defaults to
+   *  0 for single-sample callers. */
   attempt = 0,
   /** Brake mode: sample an uphill-entry arc that bleeds speed before contact
    *  (handoff speed-creep control). Default false = normal. */
@@ -82,10 +82,9 @@ export function sampleOneCandidate(
   const targetState = readTargetState(engine, gap.endFrame, refX, refY);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
 
-  // Pass the real attempt index: on steep-catch gaps sampleArcParams selects
-  // CATCH_TEMPLATES[attempt] (before consuming RNG), so threading 0..K-1 sweeps
-  // the templates instead of every K sample reusing template 0 (review P2). For
-  // non-steep gaps the attempt arg is unused and the RNG drives diversity.
+  // Pass the real attempt index: on steep-catch gaps sampleArcParams interleaves
+  // template catches with normal random samples. For non-steep gaps the attempt
+  // arg is unused and the RNG drives diversity.
   const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap, brake);
 
   // The atomic sample uses the gap's own targets directly (multi-gap residual

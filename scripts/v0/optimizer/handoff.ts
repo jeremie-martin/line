@@ -99,18 +99,14 @@ type HandoffTelemetry = {
 };
 
 const DEFAULT_MAX_NODES = 800;
-const HANDOFF_MEDIUM_DENSE_CANDIDATE_POOL = 5;
-const HANDOFF_BROAD_CANDIDATE_POOL = 8;
-const HANDOFF_MEDIUM_DENSE_MIN_CONTACTS = 30;
-const HANDOFF_LONG_DENSE_CONTACTS = 60;
+const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
- *  pool of ~5-8 by feasibility and branches 3-wide, so sampling the full
- *  default pool is mostly wasted per-node work that starves bounded-budget
- *  exploration.
+ *  bounded pool by feasibility and branches 3-wide, so sampling the full default
+ *  pool is mostly wasted per-node work that starves bounded-budget exploration.
  *  Generating ~16 (a deterministic prefix of the 32-sample order) roughly halves
- *  node cost, letting the search reach skip-free completions on budget-starved
- *  deep specs within the same budget. Must stay >= HANDOFF_BROAD_CANDIDATE_POOL. */
+ *  node cost while keeping enough local variety for reachability. Must stay
+ *  >= HANDOFF_CANDIDATE_POOL. */
 const HANDOFF_N_CAND = 16;
 const HANDOFF_PREVIEW_K = 1;
 /** How many of the most-recent committed catches to translate+reuse per gap. */
@@ -137,7 +133,9 @@ const HANDOFF_AIR_OVERSHOOT_WEIGHT = 16;
  *  lose the ranking — no collateral. Excluded from reuse. */
 const HANDOFF_BRAKE_TARGET_MAX = 0.78;
 const HANDOFF_BRAKE_RATIO_MIN = 1.0;
-const HANDOFF_BRAKE_K = 3;
+const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
+const HANDOFF_BRAKE_BASE_K = 2;
+const HANDOFF_BRAKE_HIGH_OVERSPEED_K = 3;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 3;
@@ -474,27 +472,25 @@ function rankedOptions(
   telemetry: HandoffTelemetry,
 ): RankedOption[] {
   const sorted = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_N_CAND);
-  const poolSize = handoffCandidatePool(ctx);
+  const poolSize = handoffCandidatePool();
   const pool = sorted.slice(0, poolSize);
   const scored = pool.map((candidate, rank) =>
     scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry)
   );
   // Catch-reuse: translate the most recent committed catches to this gap's entry
-  // state and offer them as extra candidates. On a periodic rhythm the rider
-  // reaches a near-steady state, so a catch that landed a few contacts ago lands
-  // this one too — found in ~1 sim instead of re-rolling 16 random arcs and
-  // backtracking. This is what lets a budget-starved periodic spec (solo_run)
-  // complete within budget. Deterministic (pure function of the prefix); only
-  // ADDS candidates, so monotonicity holds.
+  // state and offer them as extra candidates. On a steady periodic rhythm, a
+  // recent sled-relative catch can remain valid at a later similar entry state.
+  // Deterministic (pure function of the prefix); only ADDS candidates, so
+  // monotonicity holds.
   const reuse = reuseCatchCandidates(node, gaps, ctx);
   reuse.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(node, candidate, poolSize + j, gaps, ctx, seed, telemetry))
   );
   // Brake catches: uphill-entry arcs that bleed speed before contact, offered as
   // EXTRA candidates when the rider runs over a MODERATE target speed. Decoupled
-  // from landing (impact-anchor still lands the contact), so they only WIN when
-  // the overshoot penalty rewards their lower speed (genuine creep, e.g.
-  // solo_run) and simply lose elsewhere — no collateral. Excluded from reuse.
+  // from landing (impact-anchor still lands the contact), so they only win when
+  // the overshoot penalty rewards their lower speed and simply lose elsewhere.
+  // Excluded from reuse.
   const brake = brakeCatchCandidates(node, gaps, ctx, seed);
   brake.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(node, candidate, poolSize + reuse.length + j, gaps, ctx, seed, telemetry))
@@ -522,13 +518,10 @@ function brakeCatchCandidates(
   if (tgt === undefined || tgt <= 0 || tgt > HANDOFF_BRAKE_TARGET_MAX) return [];
   const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
-  if (ts.speed / (tgt * CALIB.SPEED_CAP) < HANDOFF_BRAKE_RATIO_MIN) return [];
+  const speedRatio = ts.speed / (tgt * CALIB.SPEED_CAP);
+  const brakeK = brakeCandidateCount(speedRatio);
+  if (brakeK <= 0) return [];
   const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 7919) | 0);
-  // Brake budget per gap scales DOWN with contact density: a deep run (solo_run,
-  // 77 contacts) is budget-starved, so fewer brake sims per gap leave room for it
-  // to complete; shorter specs afford the richer brake pool. Compute-per-contact
-  // allocation, not a spec-name gate.
-  const brakeK = Math.max(2, Math.min(3, Math.round(165 / Math.max(1, ctx.allContactFrames.length))));
   const out: Candidate[] = [];
   for (let attempt = 0; attempt < brakeK; attempt++) {
     const cand = sampleOneCandidate(
@@ -540,6 +533,13 @@ function brakeCatchCandidates(
     }
   }
   return out;
+}
+
+export function brakeCandidateCount(speedRatio: number): number {
+  if (!Number.isFinite(speedRatio) || speedRatio < HANDOFF_BRAKE_RATIO_MIN) return 0;
+  return speedRatio >= HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO
+    ? HANDOFF_BRAKE_HIGH_OVERSPEED_K
+    : HANDOFF_BRAKE_BASE_K;
 }
 
 /** Translate the most-recent committed catches (which carry a sled `ref`) to
@@ -580,17 +580,8 @@ function reuseCatchCandidates(
   return out;
 }
 
-function handoffCandidatePool(ctx: SpecContext): number {
-  // Medium-dense rows are preview-cost bound; sparse and very long dense rows
-  // need the broader pool for quality/reachability.
-  return usesMediumDensePolicy(ctx)
-    ? HANDOFF_MEDIUM_DENSE_CANDIDATE_POOL
-    : HANDOFF_BROAD_CANDIDATE_POOL;
-}
-
-function usesMediumDensePolicy(ctx: SpecContext): boolean {
-  const contacts = ctx.allContactFrames.length;
-  return contacts >= HANDOFF_MEDIUM_DENSE_MIN_CONTACTS && contacts <= HANDOFF_LONG_DENSE_CONTACTS;
+export function handoffCandidatePool(): number {
+  return HANDOFF_CANDIDATE_POOL;
 }
 
 function completeNearTail(
@@ -600,9 +591,7 @@ function completeNearTail(
   seed: number,
   telemetry: HandoffTelemetry,
 ): HandoffNode | null {
-  if (!usesMediumDensePolicy(ctx)) return null;
-  if (node.skippedContacts > 0 || isTerminalNode(node.search, gaps)) return null;
-  if (remainingContactCount(node.search, gaps) > TAIL_COMPLETION_CONTACT_WINDOW) return null;
+  if (!shouldAttemptNearTailCompletion(node, gaps)) return null;
   telemetry.tailCompletionAttempts++;
 
   let search = node.search;
@@ -631,6 +620,14 @@ function completeNearTail(
     ranks,
     skippedContacts: node.skippedContacts,
   };
+}
+
+export function shouldAttemptNearTailCompletion(
+  node: { search: SearchNode; skippedContacts: number },
+  gaps: Gap[],
+): boolean {
+  if (node.skippedContacts > 0 || isTerminalNode(node.search, gaps)) return false;
+  return remainingContactCount(node.search, gaps) <= TAIL_COMPLETION_CONTACT_WINDOW;
 }
 
 function remainingContactCount(node: SearchNode, gaps: Gap[]): number {
@@ -818,7 +815,7 @@ function buildStartOptions(
       .slice(0, Math.max(0, START_SCORING_POOL - 1)),
   ];
 
-  if (!useStartFeasibilityScoring(axes, gaps)) {
+  if (!hasStartFeasibilityLookahead(gaps)) {
     return heuristicPool.slice(0, START_OPTION_LIMIT).map((start, rank) => ({
       rank,
       start,
@@ -847,20 +844,11 @@ function buildStartOptions(
   }));
 }
 
-function useStartFeasibilityScoring(axes: AxisValues, gaps: Gap[]): boolean {
+export function hasStartFeasibilityLookahead(gaps: Gap[]): boolean {
   const firstGapIndex = nextContactGapIndex(gaps, 0);
   if (firstGapIndex < 0) return false;
   const secondGapIndex = nextContactGapIndex(gaps, firstGapIndex + 1);
-  if (secondGapIndex < 0) return false;
-
-  const firstDelayFrames = gaps[firstGapIndex].endFrame;
-  const secondIntervalFrames = gaps[secondGapIndex].endFrame - gaps[firstGapIndex].endFrame;
-  const denseOpening = firstDelayFrames <= 24 && secondIntervalFrames <= 22;
-  const hardOpening =
-    (axes.speed ?? 0.45) >= 0.6 ||
-    (axes.air ?? 0.5) >= 0.6 ||
-    (axes.contact_style ?? 0.5) <= 0.35;
-  return denseOpening && hardOpening;
+  return secondGapIndex >= 0;
 }
 
 function startFeasibilityCost(
@@ -959,18 +947,14 @@ function startHeuristicCost(start: NonNullable<Spec["start"]>, axes: AxisValues)
   return speedCost + 0.35 * angleCost + lowSpeedPenalty;
 }
 
-function targetStartAngle(axes: AxisValues): number {
+export function targetStartAngle(axes: AxisValues): number {
   const air = axes.air ?? 0.5;
-  if (air >= 0.7) return -12;
-  if (air <= 0.3) return 24;
-  return 6;
+  return Math.max(-12, Math.min(24, 6 + (0.5 - air) * 90));
 }
 
-function startAngles(firstAxes: AxisValues): number[] {
-  const air = firstAxes.air ?? 0.5;
-  if (air >= 0.7) return [-35, -18, -5, 10, 25];
-  if (air <= 0.3) return [-5, 8, 20, 35, 50];
-  return [-20, -8, 5, 18, 32];
+export function startAngles(firstAxes: AxisValues): number[] {
+  const center = targetStartAngle(firstAxes);
+  return [-26, -13, 0, 13, 26].map((offset) => round3(center + offset));
 }
 
 function firstAxes(spec: Spec): AxisValues {

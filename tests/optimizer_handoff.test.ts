@@ -24,7 +24,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         polish: false,
       });
     assertBudgetSearchContract(compile, "tiny_dance/handoff", spec, {
-      budgets: [1, 1_000, 5_000],
+      budgets: [1, 7_000, 20_000],
       checkFreeze: true,
       freezeMaxNodes: 12,
     });
@@ -32,7 +32,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
 
   test("same (spec, seed, budget) records identical work and previews", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
-    const budget = { kind: "work" as const, units: 5_000 };
+    const budget = { kind: "work" as const, units: 20_000 };
     const a = compileHandoff(spec, 0, { budget, maxNodes: 12, polish: false });
     const b = compileHandoff(spec, 0, { budget, maxNodes: 12, polish: false });
     expect(hashTrack(a.track)).toBe(hashTrack(b.track));
@@ -70,7 +70,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const seen: { gapIndex: number; deferExpansion: boolean }[] = [];
     const result = compileHandoff(spec, 0, {
-      budget: { kind: "work", units: 100 },
+      budget: { kind: "work", units: 6_700 },
       maxNodes: 12,
       polish: false,
       onNode: (node) => {

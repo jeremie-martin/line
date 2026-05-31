@@ -31,6 +31,16 @@ export type Spec = {
    * geometry that reaches the chosen initial condition.
    */
   preroll?: number;
+  /**
+   * Per-gap target jitter (Gaussian σ): each gap's resolved axis target is
+   * perturbed by `gauss(target, jitter)` once, for neighbor-to-neighbor
+   * variety so adjacent catches aren't identical on a flat curve. Omitted ⇒
+   * `CALIB.SIGMA` (0.05, the legacy default). Set `0` for an exact, un-jittered
+   * read of the curve (useful when the curve itself carries the variation, e.g.
+   * the continuous showcase specs). First step of moving jitter out of CALIB
+   * into the spec; a future per-axis form may follow.
+   */
+  jitter?: number;
 };
 
 /** Manual override for rider initial state. px / px·frame⁻¹. */

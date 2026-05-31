@@ -190,7 +190,7 @@ export function compileHandoff(
     const masterRng = makeRng(seed);
     for (const gap of gaps) {
       const sec = effectiveAxes(gap, spec);
-      gap.targets = sampleGapTargets(sec, CALIB.SIGMA, masterRng);
+      gap.targets = sampleGapTargets(sec, spec.jitter ?? CALIB.SIGMA, masterRng);
     }
 
     const ctx: SpecContext = { allContactFrames, durationFrames };

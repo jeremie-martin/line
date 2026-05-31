@@ -17,4 +17,5 @@ const spec = drumsSpec({
   grain: ramp(0, 0.62, 30, 0.35),
 });
 spec.preroll = 5;
+spec.jitter = 0; // continuous curve carries the variation; no per-gap jitter
 export default spec;

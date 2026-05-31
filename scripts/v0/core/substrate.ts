@@ -330,6 +330,9 @@ export function validateSpec(spec: Spec): void {
   validateAxisCurves(spec);
   validateStartSpec(spec.start);
   validatePreroll(spec.preroll);
+  if (spec.jitter !== undefined && (!Number.isFinite(spec.jitter) || spec.jitter < 0)) {
+    throw new Error(`Spec.jitter must be ≥0 (got ${spec.jitter})`);
+  }
 }
 
 /**

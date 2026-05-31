@@ -20,4 +20,5 @@ const spec = drumsSpec({
   ]),
 });
 spec.preroll = 5;
+spec.jitter = 0; // continuous curve carries the variation; no per-gap jitter
 export default spec;

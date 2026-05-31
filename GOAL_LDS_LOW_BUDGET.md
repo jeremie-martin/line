@@ -35,9 +35,12 @@ npm run golden -- --compiler=handoff --jobs=48 --budget=40000
   This is deliberately **not** the canonical project `goal_score` run. The harness
   will label it non-canonical because `--compiler=handoff` and `--budget` are
   explicit. Treat it as the low-budget campaign run of record.
+  The harness does **not** default to handoff. Every golden command for this
+  campaign must pass `--compiler=handoff`, including default-budget sanity checks
+  where `--budget` is intentionally omitted.
 - **Design pressure:** the optimizer should work decently, and improve over time,
   at `--budget=20000`; it should then improve or hold as budget rises to
-  `--budget=40000`, `--budget=60000`, and handoff default-budget runs invoked
+  `--budget=40000`, `--budget=60000`, and default-budget handoff runs invoked
   with `--compiler=handoff`.
 - **The active root cause:** every current failing row that has been probed is
   budget-starved by the floor. The budget-exempt d=0 descent consumes at least the
@@ -124,6 +127,10 @@ Bare `npm run golden` still uses the default LDS compiler and the suite's
 calibrated default budgets. It is the official project `GOAL_SCORE` described by
 `GOAL_LDS.md`, but it is not a command for this campaign.
 
+Command rule: any `npm run golden` command used for this charter must include
+`--compiler=handoff`. A handoff default-budget check means omitting `--budget`,
+not omitting `--compiler=handoff`.
+
 This campaign intentionally uses an explicit fixed budget:
 
 ```
@@ -147,6 +154,9 @@ npm run golden -- --compiler=handoff --jobs=48 --budget=20000
 
 npm run golden -- --compiler=handoff --jobs=48 --budget=60000
   # Curve check: more budget should help or hold, not expose budget-specific hacks.
+
+npm run golden -- --compiler=handoff --jobs=48
+  # Default-budget handoff sanity check: still handoff, just without a fixed budget override.
 
 npm run golden -- --compiler=handoff --jobs=48 --specs=drums_pendulum,drums_crescendo,solo_run --budget=40000 --details
   # Targeted current frontier.

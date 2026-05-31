@@ -68,6 +68,9 @@ export function sampleOneCandidate(
    *  0..K-1 so the templates are actually swept rather than all collapsing to
    *  template 0 (review P2). Defaults to 0 for single-sample callers. */
   attempt = 0,
+  /** Brake mode: sample an uphill-entry arc that bleeds speed before contact
+   *  (handoff speed-creep control). Default false = normal. */
+  brake = false,
 ): Candidate | null {
   // Use the METERED rider read for the first probe: the raw engine.getRider
   // advances lr-core to gap.endFrame without charging the physics-frame counter,
@@ -83,7 +86,7 @@ export function sampleOneCandidate(
   // CATCH_TEMPLATES[attempt] (before consuming RNG), so threading 0..K-1 sweeps
   // the templates instead of every K sample reusing template 0 (review P2). For
   // non-steep gaps the attempt arg is unused and the RNG drives diversity.
-  const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap);
+  const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap, brake);
 
   // The atomic sample uses the gap's own targets directly (multi-gap residual
   // targeting is a higher-level concern).

@@ -53,6 +53,11 @@ import {
 
 const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
 
+/** Uphill start-angle band (degrees, negative = uphill in Y-down) for brake-mode
+ *  catches: the rider rides up the arc's front to bleed speed before contact. */
+const BRAKE_START_ANGLE_MIN = -28;
+const BRAKE_START_ANGLE_MAX = -6;
+
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 
 type WindowDetection = Detection & { frameOffset?: number };
@@ -154,8 +159,14 @@ export function sampleArcParams(
   targetState: TargetState,
   attempt: number,
   gap: Gap,
+  /** Brake mode (handoff speed-creep control): sample an UPHILL start angle so
+   *  the rider rides up the arc's front (bleeding speed) before contacting near
+   *  its middle (impact-anchor still lands the contact point). Decoupled from the
+   *  landing — does NOT shorten the arc or move the impact — so it brakes without
+   *  breaking landing geometry. Default false = normal sampling (LDS unchanged). */
+  brake = false,
 ): Arc {
-  if (shouldUseSteepCatch(targetState, gap) && attempt < CATCH_TEMPLATES.length) {
+  if (!brake && shouldUseSteepCatch(targetState, gap) && attempt < CATCH_TEMPLATES.length) {
     return sampleSteepCatchArc(targetState, CATCH_TEMPLATES[attempt]);
   }
 
@@ -181,8 +192,12 @@ export function sampleArcParams(
     segments = A.SEGMENTS_MIN + Math.floor(segRoll * (A.SEGMENTS_MAX - A.SEGMENTS_MIN + 1));
   }
 
-  const startAngleDeg = A.START_ANGLE_MIN_DEG
-    + rng() * (A.START_ANGLE_MAX_DEG - A.START_ANGLE_MIN_DEG);
+  // Brake mode samples an uphill (negative) start angle so the rider decelerates
+  // riding up the arc's front before contacting near impactT (~middle); normal
+  // mode uses the calibrated downhill-catch start band.
+  const startAngleDeg = brake
+    ? BRAKE_START_ANGLE_MIN + rng() * (BRAKE_START_ANGLE_MAX - BRAKE_START_ANGLE_MIN)
+    : A.START_ANGLE_MIN_DEG + rng() * (A.START_ANGLE_MAX_DEG - A.START_ANGLE_MIN_DEG);
   const endAngleDeg = A.END_ANGLE_MIN_DEG
     + rng() * (A.END_ANGLE_MAX_DEG - A.END_ANGLE_MIN_DEG);
   const curveBias = -1 + 2 * rng();

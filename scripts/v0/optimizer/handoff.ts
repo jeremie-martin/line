@@ -43,6 +43,7 @@ import {
   setSimFrameLimit,
 } from "./sim_frames.ts";
 import { resetArcPlacementStats, snapshotArcPlacementStats } from "../arc_placement.ts";
+import { sampleOneCandidate } from "./sample.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Budget, CompileOutput, DriftReport, Spec } from "./types.ts";
 
@@ -127,6 +128,13 @@ const HANDOFF_STATE_WEIGHT = 0.08;
 const HANDOFF_SPEED_OVERSHOOT_WEIGHT = 16;
 /** Weight on a candidate's AIR overshoot (achieved - target, when positive). */
 const HANDOFF_AIR_OVERSHOOT_WEIGHT = 16;
+/** Brake catches (uphill-entry, bleed speed) are offered as EXTRA candidates on
+ *  MODERATE-target gaps where the rider runs even mildly over target (early, to
+ *  pre-empt creep). Decoupled from landing, so on non-creeping specs they simply
+ *  lose the ranking — no collateral. Excluded from reuse. */
+const HANDOFF_BRAKE_TARGET_MAX = 0.78;
+const HANDOFF_BRAKE_RATIO_MIN = 1.1;
+const HANDOFF_BRAKE_K = 2;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 3;
@@ -479,12 +487,51 @@ function rankedOptions(
   reuse.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(node, candidate, poolSize + j, gaps, ctx, seed, telemetry))
   );
+  // Brake catches: uphill-entry arcs that bleed speed before contact, offered as
+  // EXTRA candidates when the rider runs over a MODERATE target speed. Decoupled
+  // from landing (impact-anchor still lands the contact), so they only WIN when
+  // the overshoot penalty rewards their lower speed (genuine creep, e.g.
+  // solo_run) and simply lose elsewhere — no collateral. Excluded from reuse.
+  const brake = brakeCatchCandidates(node, gaps, ctx, seed);
+  brake.forEach((candidate, j) =>
+    scored.push(scoreCandidateForHandoff(node, candidate, poolSize + reuse.length + j, gaps, ctx, seed, telemetry))
+  );
   scored.sort((a, b) =>
     a.score - b.score ||
     (a.candidate?.cost ?? Infinity) - (b.candidate?.cost ?? Infinity) ||
     a.rank - b.rank
   );
   return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+/** Offer uphill-entry brake catches when the rider runs over a moderate target
+ *  speed (early creep pre-emption). Each is one tryCandidate sim; deterministic
+ *  (own seeded RNG); ref cleared so a brake is never a steady-state reuse seed. */
+function brakeCatchCandidates(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+): Candidate[] {
+  const gap = gaps[node.gapIndex];
+  if (!gap.endsWithContact) return [];
+  const tgt = gap.targets?.speed;
+  if (tgt === undefined || tgt <= 0 || tgt > HANDOFF_BRAKE_TARGET_MAX) return [];
+  const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
+  const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
+  if (ts.speed / (tgt * CALIB.SPEED_CAP) < HANDOFF_BRAKE_RATIO_MIN) return [];
+  const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 7919) | 0);
+  const out: Candidate[] = [];
+  for (let attempt = 0; attempt < HANDOFF_BRAKE_K; attempt++) {
+    const cand = sampleOneCandidate(
+      node.prefixEngine, gap, rng, ctx, node.prefixNextLineId, attempt, /*brake*/ true,
+    );
+    if (cand !== null) {
+      cand.ref = undefined; // never reuse a brake catch as a steady-state seed
+      out.push(cand);
+    }
+  }
+  return out;
 }
 
 /** Translate the most-recent committed catches (which carry a sled `ref`) to

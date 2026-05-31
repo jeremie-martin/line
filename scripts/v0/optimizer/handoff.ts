@@ -114,6 +114,7 @@ const HANDOFF_SPARSE_BRANCHING = 4;
 const HANDOFF_IMMEDIATE_DENSE_OPENING_BRANCHING = 2;
 const HANDOFF_IMMEDIATE_OPENING_MAX_FIRST_DELAY = 24;
 const HANDOFF_IMMEDIATE_OPENING_MAX_SECOND_INTERVAL = 12;
+const HANDOFF_OPENING_RESCUE_CANDIDATES = 48;
 const HANDOFF_PREVIEW_K = 1;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 4;
@@ -470,7 +471,11 @@ function rankedOptions(
   seed: number,
   telemetry: HandoffTelemetry,
 ): RankedOption[] {
-  const sorted = getCandidatesSorted(node, gaps, ctx, seed);
+  let sorted = getCandidatesSorted(node, gaps, ctx, seed);
+  if (sorted.length === 0 && usesOpeningCandidateRescue(node, gaps, ctx)) {
+    sorted = getCandidatePrefix(node, gaps, ctx, seed, HANDOFF_OPENING_RESCUE_CANDIDATES)
+      .sort((a, b) => a.cost - b.cost);
+  }
   const pool = sorted.slice(0, handoffCandidatePool(ctx));
   const scored = pool.map((candidate, rank) =>
     scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry)
@@ -494,6 +499,23 @@ function handoffCandidatePool(ctx: SpecContext): number {
 function usesMediumDensePolicy(ctx: SpecContext): boolean {
   const contacts = ctx.allContactFrames.length;
   return contacts >= HANDOFF_MEDIUM_DENSE_MIN_CONTACTS && contacts <= HANDOFF_LONG_DENSE_CONTACTS;
+}
+
+function usesOpeningCandidateRescue(node: SearchNode, gaps: Gap[], ctx: SpecContext): boolean {
+  const spec = ctx.spec;
+  if (spec === undefined || !useStartFeasibilityScoring(firstSectionAxes(spec), gaps)) return false;
+  const gap = gaps[node.gapIndex];
+  if (!gap?.endsWithContact) return false;
+  const firstSectionEnd = openingSectionEndFrame(spec);
+  return firstSectionEnd !== null && gap.endFrame <= firstSectionEnd;
+}
+
+function openingSectionEndFrame(spec: Spec): number | null {
+  let first = Infinity;
+  for (const section of spec.sections) {
+    if (section.t0 <= 0 && section.t1 > 0) first = Math.min(first, section.t1);
+  }
+  return first === Infinity ? null : secToFrame(first);
 }
 
 function handoffBranching(gaps: Gap[]): number {

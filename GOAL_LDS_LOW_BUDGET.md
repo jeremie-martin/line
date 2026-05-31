@@ -9,31 +9,41 @@ campaign notes and is linked from past work. The active compiler is now
 Use this command as the low-budget run of record:
 
 ```bash
-npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
+npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
 ```
 
 `--compiler=handoff` is explicit but optional; handoff is the default compiler.
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline before the housekeeping cleanup:
+Current baseline (23-spec golden suite, per-gap axis metric):
 
-- `SCORE 354.55`
-- `valid 36/39`
-- `contract_pass_rate 92%`
+- `goal_score 290.86`
+- `valid 65/69` (23 specs × 3 seeds)
+- `contract_pass_rate 94%`
+- `evaluator_fingerprint 76a6ebe91c07`
+
+> **Not comparable to the old `SCORE 354.55 / valid 36/39 / 92%`.** Two things
+> changed the ruler since that figure: (1) axis intent moved from piecewise
+> `sections` to continuous per-axis **curves**, and axis quality is now graded
+> **per contact (per gap)** instead of per-section average — a stricter, more
+> honest metric (re-scoring identical tracks the old way reproduced ~354, so
+> tracks did not regress; the number did). (2) The suite grew from 13 to 23
+> specs, adding 10 continuous-curve showcases that are deliberately harder. The
+> `EVALUATOR_FINGERPRINT` is re-baselined accordingly.
 
 ## What To Optimize
 
 The compiler turns a `Spec` into a Line Rider `Track` whose simulated rider lands
-on authored contacts and expresses section axes: `air`, `speed`, `grain`, and
-`contact_style`.
+on authored contacts and expresses per-axis target **curves** (`(t) => value`)
+for `air`, `speed`, `grain`, and `contact_style`.
 
 Two outcomes matter together:
 
 - **Contract progress:** no drifted contacts, no missing contacts, no off-beat
   landings, and survival to end-of-spec.
 - **Quality progress:** among contract-passing outputs, higher axis/contact
-  quality matters.
+  quality matters — graded per gap against the curve's value there.
 
 The score is still computed by `scripts/v0/score.ts`; do not move the scorer or
 golden specs to improve the number.
@@ -68,7 +78,7 @@ Important diagnostics:
 
 1. Make one explainable compiler change.
 2. Probe targeted rows first with `--specs`, `--seed`, and `--details`.
-3. Run the 40k campaign command before trusting the change.
+3. Run the 50k campaign command before trusting the change.
 4. Run `npx vitest run tests/optimizer_handoff.test.ts` after changes to search,
    candidate ordering, budget handling, or the register.
 5. Check variants before declaring a broad win:
@@ -79,10 +89,26 @@ npm run golden -- --variants --compiler=handoff
 
 ## Current Frontier
 
-At 40k, the hard rows are budget-bound around `solo_run` seed 0 and
-`opening_burst` seeds 0/2. They already improve at higher budgets, so the useful
-work is to make the fixed-budget prefix search reach better completions sooner
-without reading the budget from policy.
+At 50k, only 4 of 69 rows miss the contract — concentrated in 3 specs:
+
+- `solo_run` 41.9 (2/3) — sustained ~80-contact density; the lowest scorer,
+  budget-bound at this contact count
+- `opening_burst` 168.0 (1/3) — hot dense opening; initial-state bound
+- `drums_archway` 244.1 (2/3) — a tall isolated air arch; the only flaky one of
+  the 10 new curve specs
+
+`solo_run` and `opening_burst` are the same rows that were hard before: they
+improve at higher budgets, so the useful work is reaching better completions
+sooner without reading the budget from policy. They are budget/density-bound,
+not metric-bound.
+
+The 10 continuous-curve showcase specs are otherwise the *strongest* rows in the
+suite (e.g. `drums_zigzag` 475.7, `drums_pulse` 461.9, `drums_accelerando`
+456.3, `drums_crosscut` 452.9, all 3/3) — the curve paradigm is not a stressor
+for contract pass. The visible residual on several specs is *speed* overshooting
+its target on the dense/late back half (a physics-saturation effect, clear in
+the dashboard's measured-vs-target view); `air` and `grain` track faithfully.
+That caps axis quality, not survival.
 
 Promising levers:
 
@@ -91,6 +117,8 @@ Promising levers:
 - reusable candidate patterns for periodic contact runs
 - start-state search that improves the first few gaps without hidden prepasses
 - polish variants that are cheap enough to be worth their metered frames
+- speed-bleed / braking that holds a *descending or flat* speed curve on the
+  back half (the curve specs make this gap explicit)
 
 Hard rules:
 

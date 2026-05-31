@@ -521,8 +521,13 @@ function brakeCatchCandidates(
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
   if (ts.speed / (tgt * CALIB.SPEED_CAP) < HANDOFF_BRAKE_RATIO_MIN) return [];
   const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 7919) | 0);
+  // Brake budget per gap scales DOWN with contact density: a deep run (solo_run,
+  // 77 contacts) is budget-starved, so fewer brake sims per gap leave room for it
+  // to complete; shorter specs afford the richer brake pool. Compute-per-contact
+  // allocation, not a spec-name gate.
+  const brakeK = Math.max(2, Math.min(3, Math.round(165 / Math.max(1, ctx.allContactFrames.length))));
   const out: Candidate[] = [];
-  for (let attempt = 0; attempt < HANDOFF_BRAKE_K; attempt++) {
+  for (let attempt = 0; attempt < brakeK; attempt++) {
     const cand = sampleOneCandidate(
       node.prefixEngine, gap, rng, ctx, node.prefixNextLineId, attempt, /*brake*/ true,
     );

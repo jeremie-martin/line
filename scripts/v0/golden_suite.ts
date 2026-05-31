@@ -73,7 +73,7 @@ export const FAST_SEED = 0;
  * drift are not comparable to history. A DELIBERATE ruler change (a charter
  * revision) updates this constant in the same commit. Soft tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "99a6cd8c63c7";
+export const EVALUATOR_FINGERPRINT = "76a6ebe91c07";
 
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. The compiler is

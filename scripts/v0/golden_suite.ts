@@ -16,6 +16,16 @@ export const GOLDEN_SPECS = [
   "tiny_dance",
   "solo_run",
   "verse_chorus",
+  "drums_swell",
+  "drums_crosscut",
+  "drums_tide",
+  "drums_winddown",
+  "drums_dropout",
+  "drums_accelerando",
+  "drums_breath",
+  "drums_pulse",
+  "drums_archway",
+  "drums_zigzag",
 ] as const;
 
 export const REPORT_VARIANTS = [
@@ -63,7 +73,7 @@ export const FAST_SEED = 0;
  * drift are not comparable to history. A DELIBERATE ruler change (a charter
  * revision) updates this constant in the same commit. Soft tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "66fb1347b29c";
+export const EVALUATOR_FINGERPRINT = "cb734bf9da99";
 
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. The compiler is

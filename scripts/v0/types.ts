@@ -264,7 +264,14 @@ export const CALIB = {
   SPEED_CAP: 12,
   /** Divisor for `grain` axis. units. */
   LINE_LENGTH_CAP: 49,
-  /** Cross-gap target sampling spread (Gaussian σ). */
+  /**
+   * Per-gap target jitter (Gaussian σ): each gap's resolved axis target gets
+   * `gauss(target, SIGMA)` noise for neighbor-to-neighbor variety. Global for
+   * now. FUTURE (deferred, see project memory): move jitter into the spec as a
+   * creative lever — per-axis (steady speed but jittery air), and ultimately a
+   * curve that can oscillate fast *within* a single gap (sub-gap variation),
+   * not just one sample per gap. Tracked as a follow-up to the curve refactor.
+   */
   SIGMA: 0.05,
   /**
    * Default Arc parameter bounds.
@@ -302,7 +309,8 @@ export const CALIB = {
 export const START_DEFAULTS = {
   POSITION: { x: 0, y: 0 },
   VELOCITY: { x: 0.4, y: 0 },
-  /** Sanity cap on |vx|, |vy|. px/frame. ~2.2× SPEED_CAP. */
+  /** Sanity cap on |vx|, |vy|. px/frame. ~1.7× SPEED_CAP; rejects absurd
+   *  manual start velocities without constraining normal play. */
   VELOCITY_SANITY_CAP: 20,
 } as const;
 

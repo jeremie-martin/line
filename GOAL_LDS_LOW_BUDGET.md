@@ -16,17 +16,17 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline (20-spec golden suite, after overspeed dead-end rescue):
+Current baseline (20-spec golden suite, after short-deadline rescue):
 
-- `goal_score 301.21`
-- `valid 58/60` (20 specs × 3 seeds)
-- `contract_pass_rate 97%`
+- `goal_score 309.77`
+- `valid 60/60` (20 specs × 3 seeds)
+- `contract_pass_rate 100%`
 - `evaluator_fingerprint e9f938701119`
 
 Variant probe at the same 50k budget:
 
-- `variant_report_score 263.01`
-- `valid 112/120`
+- `variant_report_score 277.13`
+- `valid 117/120`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
 > landing is compared to the axis curve's target there, combined as RMS. Older
@@ -92,23 +92,29 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff --variants
 
 ## Current Frontier
 
-At 50k, 2 of 60 rows miss the contract — both in the same hard opening spec:
+At 50k, all 60 base rows now pass the contract. The former base frontier:
 
-- `opening_burst` 135.6 (1/3) — hot dense opening; still initial-state/search
-  bound
+- `opening_burst` now passes 3/3 after clean-prefix short-deadline rescue
 
-`verse_chorus`, `drums_swell`, and `drums_breath` now pass 3/3 at 50k. The
-previous sustained-density row, `solo_run`, remains 3/3. The useful work remains
-reaching better complete prefixes sooner without reading the budget from policy,
-especially in hot starts where the first few contacts determine whether the
-search ever gets a clean prefix.
+`verse_chorus`, `drums_swell`, and `drums_breath` remain 3/3 at 50k. The
+previous sustained-density row, `solo_run`, remains 3/3. The useful work shifts
+from base-suite contract recovery toward variant robustness and quality:
+reaching complete prefixes with lower speed saturation, and doing so without
+letting rescue work starve the cheap common path.
+
+Remaining 50k report-only variant failures:
+
+- `opening_burst/time_stretch_102#0` — 5 missing, died at frame 449
+- `drums_pulse/time_stretch_102#0` — 5 missing, died at frame 1097
+- `rhythm_ladder/time_stretch_102#1` — 1 missing, died at frame 712
 
 The continuous-curve showcase is now 3/3 across the base suite. The visible
 residual on several specs is still *speed* overshooting its target on the
 dense/late back half (a physics-saturation effect, clear in the dashboard's
 measured-vs-target view), but the overspeed dead-end rescue prevents that from
 becoming a base-suite survival miss on the former `drums_swell`/`drums_breath`
-frontier rows.
+frontier rows, and short-deadline rescue prevents the hot opening from turning a
+rare zero-candidate 10-frame gap into a skipped contact.
 
 Promising levers:
 

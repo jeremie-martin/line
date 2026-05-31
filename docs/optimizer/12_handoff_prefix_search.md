@@ -17,10 +17,15 @@ engine-validated arc fits ranked by:
 4. speed/air overshoot penalties where appropriate.
 
 If that cheap normal batch finds no viable catch for a required contact, handoff
-may spend one larger deterministic rescue batch, but only for a physically
-catchable moderate-speed overshoot state. This keeps the common path cheap and
-avoids starving very dense runs, while giving late speed-saturation prefixes a
-last local chance before becoming skipped-contact fallbacks.
+may spend a larger deterministic rescue batch at true local dead-ends. Two
+rescues are currently enabled:
+
+- a moderate-speed overshoot rescue for physically catchable braking states;
+- a short-deadline rescue for clean prefixes at sub-0.3s required-contact gaps.
+
+Both keep the common path cheap and budget-independent: they run only after the
+normal batch has no viable catch, and the policy is a pure function of the local
+gap/prefix state, not remaining budget.
 
 The preview is engine-in-loop and charged in simulated frames. It is also a pure
 policy function of `(spec, seed, prefix)`; it does not read the remaining budget.
@@ -60,19 +65,25 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 
 Current 20-spec result:
 
-- `SCORE 301.21`
-- `valid 58/60`
-- `contract_pass_rate 97%`
+- `SCORE 309.77`
+- `valid 60/60`
+- `contract_pass_rate 100%`
 
-The same budget with report-only timing variants reports `112/120` valid rows.
+The same budget with report-only timing variants reports `117/120` valid rows
+with `variant_report_score 277.13`.
 
 ## Known Frontier
 
-At the 50k campaign budget, the remaining hard rows are `opening_burst` seeds 0
-and 1: the hot dense opening misses one early contact before the search has a
-clean prefix. The former late-speed frontier rows (`verse_chorus`,
-`drums_swell`, `drums_breath`) and the sustained-density `solo_run` row pass
-3/3.
+At the 50k campaign budget, all base rows pass the hard contract. The remaining
+frontier is robustness and quality:
+
+- `opening_burst/time_stretch_102#0` still dies after five missing contacts;
+- `drums_pulse/time_stretch_102#0` still dies after five missing contacts;
+- `rhythm_ladder/time_stretch_102#1` still has one missing contact.
+
+The former late-speed frontier rows (`verse_chorus`, `drums_swell`,
+`drums_breath`), the hot opening row (`opening_burst`), and the sustained-density
+`solo_run` row all pass 3/3 in the base suite.
 
 Promising areas:
 

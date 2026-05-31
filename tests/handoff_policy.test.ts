@@ -4,6 +4,7 @@ import {
   handoffCandidatePool,
   hasStartFeasibilityLookahead,
   shouldAttemptNearTailCompletion,
+  shortDeadlineRescueCandidateCount,
   startAngles,
   targetStartAngle,
 } from "../scripts/v0/optimizer/handoff.ts";
@@ -104,5 +105,13 @@ describe("steep catch attempt policy", () => {
     expect(usesSteepCatchTemplateAttempt({ speed: 9.9, angleDeg: 55 }, steepGap, 2)).toBe(true);
     expect(usesSteepCatchTemplateAttempt({ speed: 9.9, angleDeg: 54.9 }, steepGap, 2)).toBe(false);
     expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, gap(0, 0, 59), 0)).toBe(false);
+  });
+
+  test("short-deadline rescue is based on local gap duration", () => {
+    expect(shortDeadlineRescueCandidateCount(0)).toBe(0);
+    expect(shortDeadlineRescueCandidateCount(10)).toBe(96);
+    expect(shortDeadlineRescueCandidateCount(11)).toBe(96);
+    expect(shortDeadlineRescueCandidateCount(12)).toBe(0);
+    expect(shortDeadlineRescueCandidateCount(16)).toBe(0);
   });
 });

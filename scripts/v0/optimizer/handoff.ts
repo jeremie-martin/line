@@ -33,7 +33,11 @@ import {
   validateSpec,
 } from "../core/substrate.ts";
 import { CALIB, START_DEFAULTS, secToFrame, type Gap, type AxisValues } from "../types.ts";
-import { axisLookaheadEndFrame, readTargetState, tryCandidate } from "../core/candidate.ts";
+import {
+  axisLookaheadEndFrame,
+  readTargetState,
+  tryCandidate,
+} from "../core/candidate.ts";
 import { pickLowestCost, solveOneGap } from "./solver.ts";
 import { getCandidatesSorted, extendNode, isLeafNode, makeRootNode, type SearchNode } from "./node.ts";
 import { polishLeafVariant } from "./polish.ts";
@@ -117,6 +121,13 @@ const HANDOFF_N_CAND = 16;
 const HANDOFF_RESCUE_N_CAND = 32;
 const HANDOFF_RESCUE_CANDIDATE_POOL = 12;
 const HANDOFF_RESCUE_MIN_GAP_FRAMES = 16;
+/** Sub-0.3s required-contact gaps are deadline-dominated: the normal cheap
+ *  16-sample prefix can have zero hits even when a catch exists later in the
+ *  deterministic sample order. Rescue only clean prefixes at true dead-ends so
+ *  already-working dense paths keep their normal cheap order. */
+const HANDOFF_SHORT_RESCUE_N_CAND = 96;
+const HANDOFF_SHORT_RESCUE_CANDIDATE_POOL = 16;
+const HANDOFF_SHORT_RESCUE_MAX_GAP_FRAMES = 12;
 const HANDOFF_PREVIEW_K = 1;
 /** How many of the most-recent committed catches to translate+reuse per gap. */
 const HANDOFF_REUSE_K = 2;
@@ -460,6 +471,18 @@ function expandNode(
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
+  if (
+    options.length === 0 &&
+    node.skippedContacts === 0 &&
+    shouldAttemptShortDeadlineRescue(gap)
+  ) {
+    telemetry.rescueAttempts++;
+    options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
+      nCand: HANDOFF_SHORT_RESCUE_N_CAND,
+      poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
+    });
+    if (options.length > 0) telemetry.rescueSuccesses++;
+  }
   if (options.length === 0) {
     telemetry.skips++;
     telemetry.deferredSkips++;
@@ -496,6 +519,18 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
   const speedRatio = ts.speed / (targetSpeed * CALIB.SPEED_CAP);
   return speedRatio >= HANDOFF_BRAKE_RATIO_MIN;
+}
+
+function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {
+  return gap.endsWithContact &&
+    shortDeadlineRescueCandidateCount(gap.endFrame - gap.startFrame) > 0;
+}
+
+export function shortDeadlineRescueCandidateCount(gapFrames: number): number {
+  if (!Number.isFinite(gapFrames) || gapFrames <= 0) return 0;
+  return gapFrames < HANDOFF_SHORT_RESCUE_MAX_GAP_FRAMES
+    ? HANDOFF_SHORT_RESCUE_N_CAND
+    : 0;
 }
 
 function rankedOptions(

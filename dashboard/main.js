@@ -3,6 +3,8 @@
  *
  * URL: ?run=<name>          ⇒ loads /shakedown/<name>/{detection.json, video.mp4}
  * URL: ?demo=1              ⇒ loads ./demo-detection.json (no video)
+ * URL: ?report=<url>        ⇒ axes view; loads a DriftReport JSON directly
+ *                            (e.g. ?report=/generated/v0_crescendo.report.json)
  * URL: (no params)          ⇒ landing page; lists /shakedown/runs.json entries.
  *
  * Cursor sync: video time → cursor → all UI; timeline click → video.currentTime.
@@ -28,11 +30,28 @@ const COLORS = {
 
 const EVENT_TYPES = ["landing", "bounce", "kick", "flyThrough"];
 
+// Axis palette for the measured-vs-target panel (one hue per creative axis).
+const AXIS_INFO = {
+  air:           { label: "air",           color: "#1e5a6e", max: 0.99 },
+  speed:         { label: "speed",         color: "#9b3a2a", max: 1 },
+  contact_style: { label: "contact_style", color: "#7a8a5a", max: 1 },
+  grain:         { label: "grain",         color: "#b58326", max: 1 },
+};
+const AXIS_ORDER = ["air", "speed", "contact_style", "grain"];
+
 const params  = new URLSearchParams(location.search);
 const runName = params.get("run");
 const isDemo  = params.get("demo") === "1";
+const reportUrl = params.get("report");
 
-if (runName || isDemo) {
+if (reportUrl) {
+  mountReportView(reportUrl).catch((e) => {
+    console.error(e);
+    document.body.innerHTML =
+      `<pre style="padding:24px;color:#9b3a2a;font-family:monospace">
+Failed to load report "${reportUrl}":\n${String(e)}</pre>`;
+  });
+} else if (runName || isDemo) {
   mountRunView(runName || "demo").catch((e) => {
     console.error(e);
     document.body.innerHTML =
@@ -41,6 +60,163 @@ Failed to load run "${runName || "demo"}":\n${String(e)}</pre>`;
   });
 } else {
   mountLandingView();
+}
+
+// ── Report (measured-vs-target axes) view ────────────────────────
+//
+// Loads a DriftReport JSON and plots, per creative axis, the target curve
+// (what the spec asked for, averaged over each gap) against what the rider
+// actually achieved. x = gap.t_end (landing time, seconds); y in [0, max].
+// One small stacked chart per axis; only axes that appear in gaps[] render.
+
+async function mountReportView(url) {
+  document.getElementById("report-view").hidden = false;
+
+  const report = await fetch(url, { cache: "no-cache" }).then((r) => {
+    if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
+    return r.json();
+  });
+
+  const gaps = (report.gaps ?? []).slice().sort((a, b) => a.t_end - b.t_end);
+
+  // Which axes actually appear in the gaps, in canonical order.
+  const present = new Set();
+  for (const g of gaps) for (const k of Object.keys(g.axes ?? {})) present.add(k);
+  const axes = AXIS_ORDER.filter((a) => present.has(a))
+    .concat([...present].filter((a) => !AXIS_ORDER.includes(a)));
+
+  const tMax = gaps.length ? Math.max(...gaps.map((g) => g.t_end)) : 1;
+
+  // Header / meta.
+  const name = url.split("/").pop().replace(/\.report\.json$/, "").replace(/\.json$/, "");
+  setText("rp-name", name);
+  const surv = gaps.filter((g) => g.survived).length;
+  const offBeat = (report.off_beat_landings ?? []).length;
+  const term = report.terminus;
+  setText("rp-meta",
+    `${gaps.length} gaps · ${axes.length} axes · ${surv}/${gaps.length} survived` +
+    (offBeat ? ` · ${offBeat} off-beat` : "") +
+    (term ? ` · terminus ${term.reason}@${term.frame}` : ""));
+
+  const host = document.getElementById("rp-charts");
+  host.innerHTML = "";
+  if (!axes.length) {
+    host.innerHTML = `<p class="hint">No per-axis gap data in this report.</p>`;
+    return;
+  }
+  for (const axis of axes) renderAxisChart(host, axis, gaps, tMax);
+}
+
+function renderAxisChart(host, axis, gaps, tMax) {
+  const info = AXIS_INFO[axis] ?? { label: axis, color: "#5d564a", max: 1 };
+  const yMax = info.max;
+
+  // Pull the per-gap series for this axis (gaps where the axis was targeted).
+  const series = gaps
+    .filter((g) => g.axes && g.axes[axis])
+    .map((g) => ({
+      t: g.t_end,
+      target: g.axes[axis].target,
+      achieved: g.axes[axis].achieved,
+      error: g.axes[axis].error,
+      survived: g.survived,
+    }));
+  if (!series.length) return;
+
+  const meanAbsErr = series.reduce((s, p) => s + Math.abs(p.error), 0) / series.length;
+
+  const card = document.createElement("div");
+  card.className = "rp-card";
+  card.innerHTML =
+    `<div class="rp-card-head">` +
+      `<span class="rp-axis-name" style="color:${info.color}">${escapeHtml(info.label)}</span>` +
+      `<span class="rp-legend">` +
+        `<span class="lg lg-target" style="--c:${info.color}">target</span>` +
+        `<span class="lg lg-achieved" style="--c:${info.color}">achieved</span>` +
+        `<span class="lg lg-err">mean |err| ${meanAbsErr.toFixed(3)}</span>` +
+      `</span>` +
+    `</div>`;
+  host.appendChild(card);
+
+  const W = 944, H = 150;
+  const padL = 54, padR = 16, padT = 12, padB = 24;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "rp-svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  card.appendChild(svg);
+
+  const el = (tag, attrs = {}, text) => {
+    const n = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v == null) continue;
+      n.setAttribute(k, String(v));
+    }
+    if (text != null) n.textContent = text;
+    return n;
+  };
+
+  const xAt = (t) => padL + (tMax > 0 ? t / tMax : 0) * innerW;
+  const yAt = (v) => padT + (1 - Math.max(0, Math.min(yMax, v)) / yMax) * innerH;
+
+  // Horizontal grid + y labels (0, mid, max).
+  for (const g of [0, 0.5, 1]) {
+    const v = g * yMax;
+    const y = yAt(v);
+    svg.appendChild(el("line", { class: "rp-grid", x1: padL, x2: padL + innerW, y1: y, y2: y }));
+    svg.appendChild(el("text", { class: "rp-ylabel", x: padL - 8, y: y + 3, "text-anchor": "end" },
+      v.toFixed(2)));
+  }
+
+  // Error ribbons: vertical segment per gap between target and achieved.
+  for (const p of series) {
+    const x = xAt(p.t);
+    svg.appendChild(el("line", {
+      class: "rp-errband",
+      x1: x, x2: x, y1: yAt(p.target), y2: yAt(p.achieved),
+      style: `stroke:${info.color}`,
+    }));
+  }
+
+  // Target curve (solid line).
+  let dt = "";
+  series.forEach((p, i) => {
+    dt += (i === 0 ? "M" : "L") + xAt(p.t).toFixed(2) + "," + yAt(p.target).toFixed(2);
+  });
+  svg.appendChild(el("path", { class: "rp-target", d: dt, style: `stroke:${info.color}` }));
+
+  // Achieved series (dashed line + dots; hollow dot when the gap didn't survive).
+  let da = "";
+  series.forEach((p, i) => {
+    da += (i === 0 ? "M" : "L") + xAt(p.t).toFixed(2) + "," + yAt(p.achieved).toFixed(2);
+  });
+  svg.appendChild(el("path", { class: "rp-achieved", d: da, style: `stroke:${info.color}` }));
+
+  for (const p of series) {
+    const c = el("circle", {
+      class: "rp-dot" + (p.survived ? "" : " dead"),
+      cx: xAt(p.t), cy: yAt(p.achieved), r: 2.6,
+      style: `--c:${info.color}`,
+    });
+    c.appendChild(el("title", {}, `t=${p.t.toFixed(2)}s · target ${p.target.toFixed(3)} · ` +
+      `achieved ${p.achieved.toFixed(3)} · err ${p.error >= 0 ? "+" : ""}${p.error.toFixed(3)}` +
+      (p.survived ? "" : " · did not survive")));
+    svg.appendChild(c);
+  }
+
+  // x ruler (seconds).
+  const totalSec = Math.ceil(tMax);
+  const stepSec = totalSec > 12 ? 5 : 1;
+  for (let s = 0; s <= totalSec; s += stepSec) {
+    const x = xAt(s);
+    svg.appendChild(el("line", { class: "rp-tick", x1: x, x2: x, y1: padT + innerH, y2: padT + innerH + 4 }));
+    svg.appendChild(el("text", { class: "rp-xlabel", x, y: padT + innerH + 16, "text-anchor": "middle" },
+      `${s}s`));
+  }
 }
 
 // ── Landing view ─────────────────────────────────────────────────

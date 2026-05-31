@@ -34,6 +34,10 @@
 
 * { box-sizing: border-box; }
 
+/* The `hidden` attribute must win over layout `display` (e.g. #run-view's
+   display:grid) so only the active top-level view renders. */
+[hidden] { display: none !important; }
+
 html, body { margin: 0; padding: 0; height: 100%; }
 
 body {
@@ -632,3 +636,92 @@ code {
   .main-col { padding: 18px 20px; }
   .ledger { max-height: 280px; }
 }
+
+/* ─── Report (measured-vs-target axes) view ──────────────────────── */
+
+#report-view {
+  padding: 22px 28px 40px;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+.report-head {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+.report-title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.report-title #rp-name { font-style: normal; font-family: var(--mono); font-size: 17px; }
+.report-meta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-fade);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.report-charts {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rp-card {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  padding: 8px 14px 6px;
+}
+.rp-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+.rp-axis-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.rp-legend {
+  display: flex;
+  gap: 14px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-fade);
+}
+.rp-legend .lg { display: inline-flex; align-items: center; gap: 5px; }
+.rp-legend .lg::before {
+  content: "";
+  display: inline-block;
+  width: 16px; height: 0;
+}
+.rp-legend .lg-target::before   { border-top: 1.6px solid var(--c); }
+.rp-legend .lg-achieved::before { border-top: 1.6px dashed var(--c); }
+.rp-legend .lg-err { color: var(--ink-mid); }
+.rp-legend .lg-err::before { width: 0; }
+
+.rp-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+.rp-svg .rp-grid    { stroke: var(--rule-soft); stroke-width: 0.5; stroke-dasharray: 2 4; }
+.rp-svg .rp-ylabel  { font-family: var(--mono); font-size: 9px;  fill: var(--ink-fade); }
+.rp-svg .rp-xlabel  { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-mid); }
+.rp-svg .rp-tick    { stroke: var(--ink-fade); stroke-width: 0.5; }
+.rp-svg .rp-errband { stroke-width: 3; stroke-opacity: 0.16; }
+.rp-svg .rp-target  { fill: none; stroke-width: 1.4; stroke-linejoin: round; }
+.rp-svg .rp-achieved{ fill: none; stroke-width: 1.1; stroke-opacity: 0.85; stroke-dasharray: 4 3; stroke-linejoin: round; }
+.rp-svg .rp-dot      { fill: var(--c); stroke: var(--panel); stroke-width: 0.6; }
+.rp-svg .rp-dot.dead { fill: var(--panel); stroke: var(--c); stroke-width: 1.1; }

@@ -605,7 +605,7 @@
         <div class="step-title">Read the spec</div>
         <div class="step-body">
           Validate the spec, convert contact times to frames, split the timeline
-          into gaps, and sample section axis targets with the seeded RNG.
+          into gaps, and samples each gap's axis targets (from the curves) with the seeded RNG.
         </div>
       </div>
       <div class="flow-row">
@@ -929,26 +929,54 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
     <pre class="command">npm run golden -- --jobs=4 --budget=40000
 npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
 
-SCORE 354.55 - valid 36/39 - invalid 3 - timeout 0
+SCORE 244.08 - valid 36/39 - invalid 3 - timeout 0
 contract_pass_rate 92%</pre>
 
     <div class="panel" style="margin-top:16px">
       <h3>Spec scores</h3>
       <div class="score-list" aria-label="Spec scores at 40k budget">
-        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:62.7%"></span></div><span class="num">627.17</span></div>
-        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:52.2%"></span></div><span class="num">521.65</span></div>
-        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:47.7%"></span></div><span class="num">477.00</span></div>
-        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:47.0%"></span></div><span class="num">469.80</span></div>
-        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:44.8%"></span></div><span class="num">448.22</span></div>
-        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:42.7%"></span></div><span class="num">426.93</span></div>
-        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:42.3%"></span></div><span class="num">422.99</span></div>
-        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:38.0%"></span></div><span class="num">379.59</span></div>
-        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:36.9%"></span></div><span class="num">369.39</span></div>
-        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:36.1%"></span></div><span class="num">360.93</span></div>
-        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:33.3%"></span></div><span class="num">332.50</span></div>
-        <div class="score-row fail"><span>opening_burst</span><div class="bar"><span style="width:25.0%"></span></div><span class="num">250.48</span></div>
-        <div class="score-row fail"><span>solo_run</span><div class="bar"><span style="width:5.5%"></span></div><span class="num">55.32</span></div>
+        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:32.9%"></span></div><span class="num">328.57</span></div>
+        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:32.7%"></span></div><span class="num">326.89</span></div>
+        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:29.3%"></span></div><span class="num">292.95</span></div>
+        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:29.2%"></span></div><span class="num">291.62</span></div>
+        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:28.4%"></span></div><span class="num">283.81</span></div>
+        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:27.7%"></span></div><span class="num">277.45</span></div>
+        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:26.6%"></span></div><span class="num">265.84</span></div>
+        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:25.8%"></span></div><span class="num">257.82</span></div>
+        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:25.2%"></span></div><span class="num">251.80</span></div>
+        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:25.0%"></span></div><span class="num">249.84</span></div>
+        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:23.9%"></span></div><span class="num">238.64</span></div>
+        <div class="score-row fail"><span>opening_burst</span><div class="bar"><span style="width:16.8%"></span></div><span class="num">167.97</span></div>
+        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:8.4%"></span></div><span class="num">84.20</span></div>
       </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h3>Why this is lower than the old 354.55 — the ruler changed, not the rider</h3>
+      <p>
+        Axis targets used to be <b>sections</b>: constant blocks of time. Axis
+        quality was graded per section — the achieved value was <i>averaged over
+        the whole block</i> before comparing to target. Targets are now
+        continuous <b>curves</b>, and quality is graded <b>per contact</b> (per
+        beat): the achieved value at each landing is compared to target, then
+        combined as RMS.
+      </p>
+      <p>
+        This is not just finer resolution. Section-averaging let within-block
+        swings cancel — a beat at +0.3 and one at −0.3 averaged to ~0 error, so
+        the old score only measured <i>average bias</i> and forgave the wobble.
+        Per-contact grading measures bias <i>and</i> the wobble, so the same ride
+        scores lower. It is a stricter, more honest ruler at the same resolution
+        the sync metric already uses (the beat).
+      </p>
+      <p>
+        The tracks did not get worse. Re-scoring the current compiler's output
+        with the old section-averaged metric reproduces the old number almost
+        exactly (<b>354.42</b> vs 354.55 at 40k), and the contract pass rate is
+        unchanged (36/39, 92%). Old absolute scores are therefore not comparable
+        to new ones; the <code>EVALUATOR_FINGERPRINT</code> was re-baselined so
+        the harness flags the boundary.
+      </p>
     </div>
   </section>
 

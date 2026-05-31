@@ -133,7 +133,7 @@ const HANDOFF_AIR_OVERSHOOT_WEIGHT = 16;
  *  pre-empt creep). Decoupled from landing, so on non-creeping specs they simply
  *  lose the ranking — no collateral. Excluded from reuse. */
 const HANDOFF_BRAKE_TARGET_MAX = 0.78;
-const HANDOFF_BRAKE_RATIO_MIN = 1.1;
+const HANDOFF_BRAKE_RATIO_MIN = 1.0;
 const HANDOFF_BRAKE_K = 2;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;

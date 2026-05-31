@@ -65,19 +65,18 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 
 Current 20-spec result:
 
-- `SCORE 309.77`
+- `SCORE 309.95`
 - `valid 60/60`
 - `contract_pass_rate 100%`
 
-The same budget with report-only timing variants reports `117/120` valid rows
-with `variant_report_score 277.13`.
+The same budget with report-only timing variants reports `118/120` valid rows
+with `variant_report_score 288.09`.
 
 ## Known Frontier
 
 At the 50k campaign budget, all base rows pass the hard contract. The remaining
 frontier is robustness and quality:
 
-- `opening_burst/time_stretch_102#0` still dies after five missing contacts;
 - `drums_pulse/time_stretch_102#0` still dies after five missing contacts;
 - `rhythm_ladder/time_stretch_102#1` still has one missing contact.
 

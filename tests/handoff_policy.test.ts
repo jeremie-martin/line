@@ -63,6 +63,8 @@ describe("handoff policy boundaries", () => {
     expect(brakeCandidateCount(1.0)).toBe(2);
     expect(brakeCandidateCount(1.14)).toBe(2);
     expect(brakeCandidateCount(1.15)).toBe(3);
+    expect(brakeCandidateCount(1.49)).toBe(3);
+    expect(brakeCandidateCount(1.5)).toBe(3);
     expect(brakeCandidateCount(2.0)).toBe(3);
   });
 
@@ -109,8 +111,8 @@ describe("steep catch attempt policy", () => {
 
   test("short-deadline rescue is based on local gap duration", () => {
     expect(shortDeadlineRescueCandidateCount(0)).toBe(0);
-    expect(shortDeadlineRescueCandidateCount(10)).toBe(96);
-    expect(shortDeadlineRescueCandidateCount(11)).toBe(96);
+    expect(shortDeadlineRescueCandidateCount(10)).toBe(80);
+    expect(shortDeadlineRescueCandidateCount(11)).toBe(80);
     expect(shortDeadlineRescueCandidateCount(12)).toBe(0);
     expect(shortDeadlineRescueCandidateCount(16)).toBe(0);
   });

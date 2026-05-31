@@ -125,7 +125,7 @@ const HANDOFF_RESCUE_MIN_GAP_FRAMES = 16;
  *  16-sample prefix can have zero hits even when a catch exists later in the
  *  deterministic sample order. Rescue only clean prefixes at true dead-ends so
  *  already-working dense paths keep their normal cheap order. */
-const HANDOFF_SHORT_RESCUE_N_CAND = 96;
+const HANDOFF_SHORT_RESCUE_N_CAND = 80;
 const HANDOFF_SHORT_RESCUE_CANDIDATE_POOL = 16;
 const HANDOFF_SHORT_RESCUE_MAX_GAP_FRAMES = 12;
 const HANDOFF_PREVIEW_K = 1;

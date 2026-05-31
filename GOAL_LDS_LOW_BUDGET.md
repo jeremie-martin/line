@@ -18,15 +18,15 @@ the CLI shape.
 
 Current baseline (20-spec golden suite, after short-deadline rescue):
 
-- `goal_score 309.77`
+- `goal_score 309.95`
 - `valid 60/60` (20 specs × 3 seeds)
 - `contract_pass_rate 100%`
 - `evaluator_fingerprint e9f938701119`
 
 Variant probe at the same 50k budget:
 
-- `variant_report_score 277.13`
-- `valid 117/120`
+- `variant_report_score 288.09`
+- `valid 118/120`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
 > landing is compared to the axis curve's target there, combined as RMS. Older
@@ -104,7 +104,6 @@ letting rescue work starve the cheap common path.
 
 Remaining 50k report-only variant failures:
 
-- `opening_burst/time_stretch_102#0` — 5 missing, died at frame 449
 - `drums_pulse/time_stretch_102#0` — 5 missing, died at frame 1097
 - `rhythm_ladder/time_stretch_102#1` — 1 missing, died at frame 712
 
@@ -114,7 +113,9 @@ dense/late back half (a physics-saturation effect, clear in the dashboard's
 measured-vs-target view), but the overspeed dead-end rescue prevents that from
 becoming a base-suite survival miss on the former `drums_swell`/`drums_breath`
 frontier rows, and short-deadline rescue prevents the hot opening from turning a
-rare zero-candidate 10-frame gap into a skipped contact.
+rare zero-candidate 10-frame gap into a skipped contact. Trimming that
+short-deadline rescue from 96 to 80 deterministic samples kept the base contract
+clean while freeing enough work for the stretched hot opening variant to finish.
 
 Promising levers:
 

@@ -539,9 +539,9 @@
     </p>
   </div>
   <aside class="hero-card">
-    <div class="label">50k sanity run</div>
-    <div class="score"><span>284.65</span> / 1000</div>
-    <div class="note">57 valid rows out of 60. The default compiler is <code>handoff</code>; the explicit <code>--compiler=handoff</code> flag is still supported.</div>
+    <div class="label"><!--BASELINE:budget_label-->50k sanity run<!--/BASELINE--></div>
+    <div class="score"><span><!--BASELINE:goal_score-->284.65<!--/BASELINE--></span> / 1000</div>
+    <div class="note"><!--BASELINE:valid_note-->57 valid rows out of 60.<!--/BASELINE--> The default compiler is <code>handoff</code>; the explicit <code>--compiler=handoff</code> flag is still supported.</div>
   </aside>
 </section>
 
@@ -929,12 +929,13 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
     <pre class="command">npm run golden -- --jobs=4 --budget=50000
 npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
 
-SCORE 284.65 - valid 57/60 - invalid 3 - timeout 0
-contract_pass_rate 95%</pre>
+<!--BASELINE:score_block-->SCORE 284.65 - valid 57/60 - invalid 3 - timeout 0
+contract_pass_rate 95%<!--/BASELINE--></pre>
 
     <div class="panel" style="margin-top:16px">
       <h3>Spec scores</h3>
       <div class="score-list" aria-label="Spec scores at 50k budget">
+        <!--BASELINE:spec_rows-->
         <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:47.6%"></span></div><span class="num">475.68</span></div>
         <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:46.2%"></span></div><span class="num">461.91</span></div>
         <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:45.3%"></span></div><span class="num">452.90</span></div>
@@ -955,6 +956,7 @@ contract_pass_rate 95%</pre>
         <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:23.9%"></span></div><span class="num">238.64</span></div>
         <div class="score-row fail"><span>opening_burst</span><div class="bar"><span style="width:16.8%"></span></div><span class="num">167.97</span></div>
         <div class="score-row fail"><span>solo_run</span><div class="bar"><span style="width:4.2%"></span></div><span class="num">41.88</span></div>
+        <!--/BASELINE-->
       </div>
     </div>
 
@@ -1137,8 +1139,9 @@ setTab(location.hash.replace("#", "") || "compiler", false);
 
 // History reset at the curve-era / per-gap-metric / 20-spec re-baseline; older
 // per-section scores are not comparable, so the series restarts here.
+// Append a point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
 const campaignData = [
-  ["20-spec @50k", 284.65],
+  /*BASELINE:campaign*/["20-spec @50k", 284.65]/*/BASELINE*/
 ];
 
 function drawCampaignChart() {

@@ -115,6 +115,8 @@ const HANDOFF_IMMEDIATE_DENSE_OPENING_BRANCHING = 2;
 const HANDOFF_IMMEDIATE_OPENING_MAX_FIRST_DELAY = 24;
 const HANDOFF_IMMEDIATE_OPENING_MAX_SECOND_INTERVAL = 12;
 const HANDOFF_OPENING_RESCUE_CANDIDATES = 48;
+const HANDOFF_OPENING_PREVIEW_RESCUE_POOL = 12;
+const HANDOFF_OPENING_PREVIEW_RESCUE_K = 8;
 const HANDOFF_PREVIEW_K = 1;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 4;
@@ -477,9 +479,29 @@ function rankedOptions(
       .sort((a, b) => a.cost - b.cost);
   }
   const pool = sorted.slice(0, handoffCandidatePool(ctx));
-  const scored = pool.map((candidate, rank) =>
+  let scored = pool.map((candidate, rank) =>
     scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry)
   );
+  if (
+    scored.length > 0 &&
+    scored.every((option) => option.previewSurvivors === 0) &&
+    usesImmediateOpeningPreviewRescue(node, gaps, ctx)
+  ) {
+    scored = sorted
+      .slice(0, Math.max(pool.length, HANDOFF_OPENING_PREVIEW_RESCUE_POOL))
+      .map((candidate, rank) =>
+        scoreCandidateForHandoff(
+          node,
+          candidate,
+          rank,
+          gaps,
+          ctx,
+          seed,
+          telemetry,
+          HANDOFF_OPENING_PREVIEW_RESCUE_K,
+        )
+      );
+  }
   scored.sort((a, b) =>
     a.score - b.score ||
     (a.candidate?.cost ?? Infinity) - (b.candidate?.cost ?? Infinity) ||
@@ -508,6 +530,10 @@ function usesOpeningCandidateRescue(node: SearchNode, gaps: Gap[], ctx: SpecCont
   if (!gap?.endsWithContact) return false;
   const firstSectionEnd = openingSectionEndFrame(spec);
   return firstSectionEnd !== null && gap.endFrame <= firstSectionEnd;
+}
+
+function usesImmediateOpeningPreviewRescue(node: SearchNode, gaps: Gap[], ctx: SpecContext): boolean {
+  return hasImmediateDenseOpening(gaps) && usesOpeningCandidateRescue(node, gaps, ctx);
 }
 
 function openingSectionEndFrame(spec: Spec): number | null {
@@ -619,9 +645,10 @@ function scoreCandidateForHandoff(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
+  previewK = HANDOFF_PREVIEW_K,
 ): RankedOption {
   const child = extendNode(node, candidate);
-  const preview = previewFutureContacts(child, gaps, ctx, seed, telemetry);
+  const preview = previewFutureContacts(child, gaps, ctx, seed, telemetry, previewK);
   const scarcity = preview.horizon === 0
     ? 0
     : preview.firstSurvivors === 0
@@ -648,6 +675,7 @@ function previewFutureContacts(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
+  previewK: number,
 ): {
   horizon: number;
   landed: number;
@@ -660,7 +688,7 @@ function previewFutureContacts(
   let horizon = 0;
   let landed = 0;
   let survivors = 0;
-  let firstSurvivors = HANDOFF_PREVIEW_K;
+  let firstSurvivors = previewK;
   let firstCost = 0;
   let totalCost = 0;
 
@@ -671,7 +699,7 @@ function previewFutureContacts(
     while (node.gapIndex < nextGapIndex) node = extendNode(node, null);
 
     horizon++;
-    const candidates = getCandidatePrefix(node, gaps, ctx, seed, HANDOFF_PREVIEW_K);
+    const candidates = getCandidatePrefix(node, gaps, ctx, seed, previewK);
     telemetry.previews++;
     telemetry.previewSurvivors += candidates.length;
     survivors += candidates.length;

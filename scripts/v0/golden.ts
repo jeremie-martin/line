@@ -624,7 +624,7 @@ async function runMain(): Promise<void> {
 
   if (!jsonOnly) {
     const fp = evaluatorFingerprint();
-    console.log(`evaluator_fingerprint ${fp}${fp === EVALUATOR_FINGERPRINT ? "" : "  ⚠ DRIFTED from committed ruler — scores not comparable to history; see GOAL.md"}`);
+    console.log(`evaluator_fingerprint ${fp}${fp === EVALUATOR_FINGERPRINT ? "" : "  ⚠ DRIFTED from committed ruler — scores not comparable to history; see GOAL_LDS_LOW_BUDGET.md"}`);
     if (jobs > 1) {
       console.log("note: per-row t= readings are wall-clock under contention (informational; not scored). Use --jobs=1 for clean timing.");
     }

@@ -1,7 +1,6 @@
 /**
  * v0 first milestone — small spec sufficient to validate the architecture
  * end-to-end. 10 seconds, 5 Contacts, a constant `air = 0.7` target.
- * See ../../../DESIGN.md § First milestone.
  */
 
 import type { Spec } from "../types.ts";

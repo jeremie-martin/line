@@ -53,6 +53,7 @@ export type SpecContext = {
   gaps?: Gap[];
 };
 
+const AIR_RESIDUAL_TARGET_GAIN = 0.25;
 const GRAIN_RESIDUAL_TARGET_GAIN = 0.15;
 
 /** Sample exactly one candidate at the given gap from the given
@@ -121,9 +122,50 @@ function optimizerSearchTargetsForCost(
   ctx: SpecContext,
   prefixFits: (GapFit | null)[] | undefined,
 ): SectionAxes {
-  const baseTargets = searchTargetsForCost(targets, gap, axisMeasureEnd, allContactFrames);
+  const residualAir = residualAirTargetForGap(gap, ctx, prefixFits);
+  const airTargets = residualAir === undefined ? targets : { ...targets, air: residualAir };
+  const baseTargets = searchTargetsForCost(airTargets, gap, axisMeasureEnd, allContactFrames);
   const residualGrain = residualGrainTargetForGap(gap, ctx, prefixFits);
   return residualGrain === undefined ? baseTargets : { ...baseTargets, grain: residualGrain };
+}
+
+function residualAirTargetForGap(
+  gap: Gap,
+  ctx: SpecContext,
+  prefixFits: (GapFit | null)[] | undefined,
+): number | undefined {
+  if (ctx.spec === undefined || ctx.gaps === undefined || prefixFits === undefined) {
+    return undefined;
+  }
+  const window = airTargetWindow(gap, ctx.spec);
+  if (window === null) return undefined;
+
+  let totalFrames = 0;
+  let prefixFrames = 0;
+  let prefixAirFrames = 0;
+  for (const other of ctx.gaps) {
+    if (!other.endsWithContact) continue;
+    const frames = gapWindowFrameCount(other, window.startFrame, window.endFrame);
+    if (frames <= 0) continue;
+    totalFrames += frames;
+    if (other.index >= gap.index) continue;
+    const fit = prefixFits[other.index];
+    if (fit?.achieved.air === undefined) continue;
+    prefixFrames += frames;
+    prefixAirFrames += fit.achieved.air * frames;
+  }
+  if (prefixFrames <= 0 || totalFrames <= prefixFrames) return undefined;
+
+  const remainingFrames = totalFrames - prefixFrames;
+  const neededMean = clamp(
+    (window.air * totalFrames - prefixAirFrames) / remainingFrames,
+    0,
+    0.99,
+  );
+  const current = gap.targets.air ?? window.air;
+  const residualPressure = Math.min(1, Math.abs(window.air - 0.5) * 2);
+  const gain = AIR_RESIDUAL_TARGET_GAIN * residualPressure;
+  return clamp(current + gain * (neededMean - current), 0, 0.99);
 }
 
 function residualGrainTargetForGap(
@@ -160,6 +202,30 @@ function residualGrainTargetForGap(
   return clamp(current + gain * (neededMean - current), 0, 1);
 }
 
+function airTargetWindow(
+  gap: Gap,
+  spec: Spec,
+): { air: number; startFrame: number; endFrame: number } | null {
+  const t = gap.endFrame / FPS;
+  let out: { air: number; startFrame: number; endFrame: number } | null = null;
+  if (spec.defaults?.air !== undefined) {
+    out = {
+      air: spec.defaults.air,
+      startFrame: 0,
+      endFrame: secToFrame(spec.duration),
+    };
+  }
+  for (const sec of spec.sections) {
+    if (sec.air === undefined || sec.t0 > t || sec.t1 < t) continue;
+    out = {
+      air: sec.air,
+      startFrame: secToFrame(sec.t0),
+      endFrame: secToFrame(sec.t1),
+    };
+  }
+  return out;
+}
+
 function grainTargetWindow(
   gap: Gap,
   spec: Spec,
@@ -182,4 +248,10 @@ function grainTargetWindow(
     };
   }
   return out;
+}
+
+function gapWindowFrameCount(gap: Gap, startFrame: number, endFrame: number): number {
+  const start = Math.max(gap.startFrame, startFrame);
+  const end = Math.min(gap.endFrame, endFrame);
+  return end >= start ? end - start + 1 : 0;
 }

@@ -116,6 +116,7 @@ const HANDOFF_IMMEDIATE_OPENING_MAX_SECOND_INTERVAL = 12;
 const HANDOFF_PREVIEW_K = 1;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 4;
+const START_BROAD_OPTION_LIMIT = 6;
 const START_SCORING_POOL = 12;
 const START_FIRST_K = 8;
 const START_FIRST_OPTIONS = 3;
@@ -730,7 +731,7 @@ function buildStartOptions(
   ];
 
   if (!useStartFeasibilityScoring(axes, gaps)) {
-    return heuristicPool.slice(0, START_OPTION_LIMIT).map((start, rank) => ({
+    return heuristicPool.slice(0, startOptionLimit(gaps)).map((start, rank) => ({
       rank,
       start,
       state: resolveStartState({ ...searchSpec, start }),
@@ -749,13 +750,17 @@ function buildStartOptions(
       a.originalRank - b.originalRank ||
       startKey(a.start).localeCompare(startKey(b.start))
     )
-    .slice(0, START_OPTION_LIMIT);
+    .slice(0, startOptionLimit(gaps));
 
   return ordered.map(({ start }, rank) => ({
     rank,
     start,
     state: resolveStartState({ ...searchSpec, start }),
   }));
+}
+
+function startOptionLimit(gaps: Gap[]): number {
+  return hasImmediateDenseOpening(gaps) ? START_OPTION_LIMIT : START_BROAD_OPTION_LIMIT;
 }
 
 function useStartFeasibilityScoring(axes: SectionAxes, gaps: Gap[]): boolean {

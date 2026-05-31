@@ -539,9 +539,9 @@
     </p>
   </div>
   <aside class="hero-card">
-    <div class="label">40k sanity run</div>
-    <div class="score"><span>354.55</span> / 1000</div>
-    <div class="note">36 valid rows out of 39. The default compiler is <code>handoff</code>; the explicit <code>--compiler=handoff</code> flag is still supported.</div>
+    <div class="label">50k sanity run</div>
+    <div class="score"><span>341.81</span> / 1000</div>
+    <div class="note">57 valid rows out of 60. The default compiler is <code>handoff</code>; the explicit <code>--compiler=handoff</code> flag is still supported.</div>
   </aside>
 </section>
 
@@ -665,10 +665,10 @@
         </p>
       </div>
     </div>
-    <pre class="command">npm run golden -- --jobs=4 --budget=40000
-npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
+    <pre class="command">npm run golden -- --jobs=4 --budget=50000
+npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
 
-npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff --budget=40000</pre>
+npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff --budget=50000</pre>
   </section>
 </article>
 
@@ -918,7 +918,7 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
     <div class="section-head">
       <div class="eyebrow">Current score</div>
       <div>
-        <h2>40k golden sanity result</h2>
+        <h2>50k golden sanity result</h2>
         <p class="sub">
           The cleanup sanity check is the fixed-budget command below. Default
           handoff and explicit handoff produce the same aggregate.
@@ -926,58 +926,38 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
       </div>
     </div>
 
-    <pre class="command">npm run golden -- --jobs=4 --budget=40000
-npm run golden -- --jobs=4 --budget=40000 --compiler=handoff
+    <pre class="command">npm run golden -- --jobs=4 --budget=50000
+npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
 
-SCORE 244.08 - valid 36/39 - invalid 3 - timeout 0
-contract_pass_rate 92%</pre>
+SCORE 341.81 - valid 57/60 - invalid 3 - timeout 0
+contract_pass_rate 95%</pre>
 
     <div class="panel" style="margin-top:16px">
       <h3>Spec scores</h3>
-      <div class="score-list" aria-label="Spec scores at 40k budget">
+      <div class="score-list" aria-label="Spec scores at 50k budget">
+        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:47.6%"></span></div><span class="num">475.68</span></div>
+        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:46.2%"></span></div><span class="num">461.91</span></div>
+        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:45.3%"></span></div><span class="num">452.90</span></div>
+        <div class="score-row"><span>drums_swell</span><div class="bar"><span style="width:42.4%"></span></div><span class="num">423.65</span></div>
+        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:40.4%"></span></div><span class="num">404.11</span></div>
+        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:39.4%"></span></div><span class="num">394.46</span></div>
+        <div class="score-row"><span>drums_breath</span><div class="bar"><span style="width:32.9%"></span></div><span class="num">329.05</span></div>
         <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:32.9%"></span></div><span class="num">328.57</span></div>
         <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:32.7%"></span></div><span class="num">326.89</span></div>
-        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:29.3%"></span></div><span class="num">292.95</span></div>
-        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:29.2%"></span></div><span class="num">291.62</span></div>
-        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:28.4%"></span></div><span class="num">283.81</span></div>
+        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:29.7%"></span></div><span class="num">297.33</span></div>
+        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:29.3%"></span></div><span class="num">293.37</span></div>
+        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:28.6%"></span></div><span class="num">285.77</span></div>
         <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:27.7%"></span></div><span class="num">277.45</span></div>
-        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:26.6%"></span></div><span class="num">265.84</span></div>
+        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:26.6%"></span></div><span class="num">266.50</span></div>
         <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:25.8%"></span></div><span class="num">257.82</span></div>
         <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:25.2%"></span></div><span class="num">251.80</span></div>
-        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:25.0%"></span></div><span class="num">249.84</span></div>
+        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:25.2%"></span></div><span class="num">251.64</span></div>
         <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:23.9%"></span></div><span class="num">238.64</span></div>
         <div class="score-row fail"><span>opening_burst</span><div class="bar"><span style="width:16.8%"></span></div><span class="num">167.97</span></div>
-        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:8.4%"></span></div><span class="num">84.20</span></div>
+        <div class="score-row fail"><span>solo_run</span><div class="bar"><span style="width:4.2%"></span></div><span class="num">41.88</span></div>
       </div>
     </div>
 
-    <div class="panel" style="margin-top:16px">
-      <h3>Why this is lower than the old 354.55 — the ruler changed, not the rider</h3>
-      <p>
-        Axis targets used to be <b>sections</b>: constant blocks of time. Axis
-        quality was graded per section — the achieved value was <i>averaged over
-        the whole block</i> before comparing to target. Targets are now
-        continuous <b>curves</b>, and quality is graded <b>per contact</b> (per
-        beat): the achieved value at each landing is compared to target, then
-        combined as RMS.
-      </p>
-      <p>
-        This is not just finer resolution. Section-averaging let within-block
-        swings cancel — a beat at +0.3 and one at −0.3 averaged to ~0 error, so
-        the old score only measured <i>average bias</i> and forgave the wobble.
-        Per-contact grading measures bias <i>and</i> the wobble, so the same ride
-        scores lower. It is a stricter, more honest ruler at the same resolution
-        the sync metric already uses (the beat).
-      </p>
-      <p>
-        The tracks did not get worse. Re-scoring the current compiler's output
-        with the old section-averaged metric reproduces the old number almost
-        exactly (<b>354.42</b> vs 354.55 at 40k), and the contract pass rate is
-        unchanged (36/39, 92%). Old absolute scores are therefore not comparable
-        to new ones; the <code>EVALUATOR_FINGERPRINT</code> was re-baselined so
-        the harness flags the boundary.
-      </p>
-    </div>
   </section>
 
   <section class="section">
@@ -1155,17 +1135,10 @@ for (const tab of tabs) {
 }
 setTab(location.hash.replace("#", "") || "compiler", false);
 
+// History reset at the curve-era / per-gap-metric / 20-spec re-baseline; older
+// per-section scores are not comparable, so the series restarts here.
 const campaignData = [
-  ["start", 44.06],
-  ["ef56ec9", 89.37],
-  ["1c80246", 136.56],
-  ["b9f6442", 140.00],
-  ["c9801a0", 188.42],
-  ["c49b19f", 192.32],
-  ["28dd652", 195.42],
-  ["8ab8594", 200.05],
-  ["b94b8ad", 315.52],
-  ["9c2eec2", 354.55],
+  ["20-spec @50k", 341.81],
 ];
 
 function drawCampaignChart() {

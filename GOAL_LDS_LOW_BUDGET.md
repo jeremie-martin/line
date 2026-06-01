@@ -18,9 +18,9 @@ the CLI shape.
 
 Current baseline (20-spec golden suite):
 
-- `goal_score 235.09`
-- `valid 55/60` (20 specs × 3 seeds)
-- `contract_pass_rate 92%`
+- `goal_score 285.60`
+- `valid 57/60` (20 specs × 3 seeds)
+- `contract_pass_rate 95%`
 - `evaluator_fingerprint e9f938701119`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
@@ -85,25 +85,30 @@ npm run golden -- --variants --compiler=handoff
 
 ## Current Frontier
 
-At 50k, 5 of 60 rows miss the contract — across 4 specs:
+At 50k, 3 of 60 rows miss the contract — across 2 specs:
 
-- `opening_burst` 135.2 (1/3) — hot dense opening; still initial-state/search
+- `opening_burst` 147.3 (1/3) — hot dense opening; still initial-state/search
   bound
-- `verse_chorus` 58.6 (2/3) — one late survival miss after the anti-cliff policy
-  cleanup
-- `drums_swell` 59.5 (2/3) — late speed growth can still outrun the suffix
-- `drums_breath` 43.9 (2/3) — late speed growth can still outrun the suffix
+- `drums_breath` 44.5 (2/3) — late speed growth can still outrun the suffix on
+  one seed
 
-The previous sustained-density row, `solo_run`, now passes 3/3 at 50k. The useful
-work remains reaching better complete prefixes sooner without reading the budget
-from policy, especially where late speed saturation turns into survival misses.
+`drums_swell` (now 473, 3/3) and `verse_chorus` (now 276, 3/3) were recovered by
+the **sustained-runaway defer**: a prefix whose achieved speed is *climbing while
+its target curve recedes* (a wrong-way derivative measured over the last few
+committed catches) is routed to the deprioritized fallback search tier, so the
+DFS commits its budget to controlled branches first and escapes the runaway
+corner the plain LIFO stack got trapped in. It is a *defer*, not a prune, so a
+sustained-density spec whose only completion genuinely runs hot (`solo_run`) keeps
+that branch. The derivative is target-relative, so legitimately fast sections (a
+crescendo's rising target, a pendulum's oscillating speed) are structurally
+exempt — no spec knowledge, no absolute speed floor.
 
-The continuous-curve showcase is now mixed: `drums_tide`, `drums_dropout`,
-`drums_pulse`, `drums_crosscut`, and `drums_zigzag` remain strong 3/3 rows, while
-`drums_swell` and `drums_breath` are frontier rows. The visible residual on
-several specs is still *speed* overshooting its target on the dense/late back
-half (a physics-saturation effect, clear in the dashboard's measured-vs-target
-view); on the frontier rows that can cap survival, not only axis quality.
+The continuous-curve showcase is strong: `drums_tide`, `drums_dropout`,
+`drums_pulse`, `drums_crosscut`, `drums_zigzag`, and `drums_swell` are 3/3 rows;
+`drums_breath` is the remaining frontier row. The visible residual on several
+specs is still *speed* overshooting its target on the dense/late back half (a
+physics-saturation effect, clear in the dashboard's measured-vs-target view); on
+the last frontier seed it still caps survival, not only axis quality.
 
 Promising levers:
 

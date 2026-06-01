@@ -205,6 +205,10 @@ export type CompileStats = {
    *  alternatives, so local handoff siblings get searched before marching past
    *  a missed contact. */
   handoff_deferred_skips?: number;
+  /** Prefixes deferred to the fallback search tier as sustained speed runaways
+   *  (the rider's speed was climbing while its target receded). Non-scoring
+   *  diagnostic. */
+  handoff_runaway_defers?: number;
 
   /** Impact-anchored arc placement counters (only present when
    *  LR_ARC_PLACEMENT=impact_anchor). Non-scoring diagnostics. */

@@ -96,6 +96,7 @@ type HandoffTelemetry = {
   previewSurvivors: number;
   skips: number;
   deferredSkips: number;
+  runawayDefers: number;
 };
 
 const DEFAULT_MAX_NODES = 800;
@@ -136,6 +137,19 @@ const HANDOFF_BRAKE_RATIO_MIN = 1.0;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
 const HANDOFF_BRAKE_BASE_K = 2;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_K = 3;
+/** Normalized speed overshoot (achieved mean − gap target) the most recent catch
+ *  must still exceed to confirm a runaway (see isOverEnergetic). Generous so a
+ *  branch that has already bled back toward its target is not deferred, and so a
+ *  spec whose only viable completion runs moderately hot (a sustained-density
+ *  ride) keeps that branch rather than having it diverted away. */
+const RUNAWAY_OVERSHOOT_MARGIN = 0.5;
+/** Window length (committed catches) over which the speed-rise / target-fall
+ *  runaway derivative is measured. */
+const RUNAWAY_RUN_LEN = 3;
+/** Minimum normalized speed RISE across the window to count as a runaway rather
+ *  than steady fast riding. Tuned so the gradual net-downhill creep is caught
+ *  while normal catch-to-catch speed variation is not. */
+const RUNAWAY_RISE_MIN = 0.18;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 3;
@@ -218,6 +232,7 @@ export function compileHandoff(
       previewSurvivors: 0,
       skips: 0,
       deferredSkips: 0,
+      runawayDefers: 0,
     };
     const polishEnabled = opts.polish ?? true;
     let polishTried = 0;
@@ -319,7 +334,7 @@ export function compileHandoff(
         const children = expandNode(node, gaps, ctx, seed, startOptions, telemetry);
         telemetry.nodesExpanded++;
         for (let i = children.length - 1; i >= 0; i--) {
-          enqueueChild(children[i], passStack, fallbackStack);
+          enqueueChild(children[i], gaps, passStack, fallbackStack, telemetry);
         }
         telemetry.frontierMaxSize = Math.max(
           telemetry.frontierMaxSize,
@@ -368,6 +383,7 @@ export function compileHandoff(
         handoff_skips: best.stats.handoff_skips ?? 0,
         handoff_skip_branches: telemetry.skips,
         handoff_deferred_skips: telemetry.deferredSkips,
+        handoff_runaway_defers: telemetry.runawayDefers,
         ...(arcStats ? { arc_placement: arcStats } : {}),
       },
     };
@@ -385,11 +401,54 @@ function activeFrontier(
 
 function enqueueChild(
   node: HandoffNode,
+  gaps: Gap[],
   passStack: HandoffNode[],
   fallbackStack: HandoffNode[],
+  telemetry: HandoffTelemetry,
 ): void {
-  if (node.skippedContacts === 0) passStack.push(node);
-  else fallbackStack.push(node);
+  // A prefix is "pass-tier" only if it skipped no contact AND is not in a
+  // sustained speed runaway. A runaway prefix is DEFERRED to the fallback tier,
+  // not dropped: the DFS spends its depth-first budget on controlled branches
+  // first (so swell/breath/verse escape the runaway corner the plain LIFO stack
+  // gets trapped in), but the runaway branch remains reachable if the controlled
+  // siblings all dead-end — so a sustained-density spec whose only completion
+  // genuinely runs hot (solo_run) is preserved rather than pruned away. Pure
+  // function of the committed prefix → deterministic, budget-independent.
+  if (node.skippedContacts === 0 && !isOverEnergetic(node, gaps)) {
+    passStack.push(node);
+  } else {
+    if (node.skippedContacts === 0) telemetry.runawayDefers++;
+    fallbackStack.push(node);
+  }
+}
+
+/** True iff the prefix is in a genuine speed runaway: the rider's achieved speed
+ *  has RISEN across the last RUNAWAY_RUN_LEN committed catches WHILE the spec's
+ *  speed target was flat-or-falling there, and the rider is now overshooting.
+ *  That wrong-way derivative — speed climbing as the curve recedes — is the exact
+ *  signature of the net-downhill energy creep that outruns a suffix, and it is
+ *  structurally ABSENT from a legitimately fast section: a crescendo's target is
+ *  rising (exempt), and a steady fast section's speed is flat, not climbing
+ *  (exempt). So this separates "runaway" from "correctly fast" without a magic
+ *  absolute floor. Uses already-measured achieved mean speed (no extra sims). */
+function isOverEnergetic(node: HandoffNode, gaps: Gap[]): boolean {
+  const fits = node.search.prefixFits;
+  const catches: { sp: number; tgt: number }[] = [];
+  for (let i = fits.length - 1; i >= 0 && catches.length <= RUNAWAY_RUN_LEN; i--) {
+    const f = fits[i];
+    if (f === null) continue; // non-contact / skipped gap
+    const sp = f.achieved?.speed;
+    const tgt = gaps[i]?.targets?.speed;
+    if (sp === undefined || tgt === undefined) return false;
+    catches.push({ sp, tgt });
+  }
+  if (catches.length <= RUNAWAY_RUN_LEN) return false;
+  const recent = catches[0]; // most recent committed catch
+  const past = catches[RUNAWAY_RUN_LEN]; // RUNAWAY_RUN_LEN catches earlier
+  const speedRose = recent.sp - past.sp > RUNAWAY_RISE_MIN;
+  const targetFellOrFlat = recent.tgt <= past.tgt + 1e-6;
+  const overshooting = recent.sp - recent.tgt > RUNAWAY_OVERSHOOT_MARGIN;
+  return speedRose && targetFellOrFlat && overshooting;
 }
 
 function enqueueDeferred(

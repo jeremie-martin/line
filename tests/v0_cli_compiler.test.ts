@@ -16,7 +16,7 @@ function combinedOutput(result: ReturnType<typeof runCli>): string {
 
 describe("v0 CLI compiler validation", () => {
   test("golden rejects inherited Object keys as compiler names", () => {
-    const result = runCli(["scripts/v0/golden.ts", "--compiler=toString", "--fast"]);
+    const result = runCli(["scripts/v0/golden.ts", "--compiler=toString"]);
 
     expect(result.error).toBeUndefined();
     expect(result.status).toBe(1);
@@ -33,5 +33,21 @@ describe("v0 CLI compiler validation", () => {
     expect(result.error).toBeUndefined();
     expect(result.status).toBe(1);
     expect(combinedOutput(result)).toContain("unknown --compiler=constructor (expected handoff)");
+  });
+
+  test("golden rejects removed single-budget flag", () => {
+    const result = runCli(["scripts/v0/golden.ts", "--budget=50000"]);
+
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(1);
+    expect(combinedOutput(result)).toContain("--budget has been removed from golden");
+  });
+
+  test("golden rejects duplicate budget checkpoints", () => {
+    const result = runCli(["scripts/v0/golden.ts", "--budgets=30000,30000"]);
+
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(1);
+    expect(combinedOutput(result)).toContain("--budgets contains duplicate budget 30000");
   });
 });

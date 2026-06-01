@@ -17,7 +17,6 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve, basename } from "node:path";
 import { compileHandoff } from "./optimizer/handoff.ts";
-import type { Budget } from "./optimizer/types.ts";
 import { AXES, FPS, type Spec } from "./types.ts";
 import { axisDetails, scoreDriftReport } from "./score.ts";
 
@@ -51,8 +50,12 @@ if (!isCompilerName(rawCompiler)) {
   process.exit(1);
 }
 const compiler: CompilerName = rawCompiler;
-const budgetUnits = arg("budget") !== null ? parseInt(arg("budget")!, 10) : 200_000;
-const budget: Budget = { kind: "work", units: budgetUnits };
+const rawBudget = arg("budget");
+const budgetUnits = rawBudget !== null ? Number(rawBudget) : 200_000;
+if (!Number.isSafeInteger(budgetUnits) || budgetUnits <= 0) {
+  console.error(`invalid --budget=${arg("budget")} (expected positive integer)`);
+  process.exit(1);
+}
 
 const specName = basename(specPath).replace(/\.ts$/, "");
 const outPrefix = arg("out") ?? `generated/v0_${specName}`;
@@ -67,7 +70,8 @@ if (!spec) {
 }
 
 const t0 = Date.now();
-const { track, report } = COMPILERS[compiler](spec, seed, { budget });
+const { checkpoints } = COMPILERS[compiler](spec, seed, { budgets: [budgetUnits] });
+const [{ track, report }] = checkpoints;
 const elapsedMs = Date.now() - t0;
 
 mkdirSync(dirname(resolve(`${outPrefix}.track.json`)), { recursive: true });

@@ -10,9 +10,9 @@ output in a strict best-so-far register.
 
 ## Contract
 
-1. **Determinism.** Same `(spec, seed, budget)` produces the same track.
-2. **Budget monotonicity.** Budget only truncates a deterministic node sequence;
-   it is never an input to candidate policy.
+1. **Determinism.** Same `(spec, seed, budgets)` produces the same checkpoint tracks.
+2. **Budget monotonicity.** Budgets only snapshot/truncate a deterministic node
+   sequence; they are never inputs to candidate policy.
 3. **Cheat resistance.** Work is metered in simulated rider frames at the
    trajectory-extraction boundary.
 4. **Engine honesty.** Every geometric decision is validated by `lr-core` and the
@@ -27,8 +27,8 @@ node.ts         prefix-search state and deterministic expansion helpers
 handoff.ts      compileHandoff public entry point
 register.ts     strict best-so-far comparator
 polish.ts       clone-and-test polish variants
-sim_frames.ts   physics-frame budget instrumentation
-types.ts        budget and compile-output types
+sim_frames.ts   physics-frame instrumentation
+types.ts        checkpoint and compile-output types
 ```
 
 `node.ts`, `sample.ts`, and `solver.ts` are intentionally generic because future
@@ -42,7 +42,7 @@ The default golden compiler is handoff:
 ```bash
 npm run golden
 npm run golden -- --compiler=handoff
-npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
+npm run golden -- --jobs=4 --budgets=30000,50000,70000 --specs=tiny_dance --seed=0
 ```
 
 `--compiler=handoff` is kept even though it is currently the only compiler so a

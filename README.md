@@ -45,8 +45,13 @@ npm run golden
 # same compiler, explicit selector kept for future compiler additions
 npm run golden -- --compiler=handoff
 
+# targeted budget-curve probe
+npm run golden -- --specs=tiny_dance --seed=0 --budgets=30000,50000,70000
+
 # compact machine-readable output
 npm run golden -- --json
+
+# every golden run archives golden.json plus checkpoint tracks/reports under generated/golden-runs/
 
 # alias for the same benchmark
 npm run goal

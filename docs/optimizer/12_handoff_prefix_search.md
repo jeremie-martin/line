@@ -17,9 +17,9 @@ engine-validated arc fits ranked by:
 4. speed/air overshoot penalties where appropriate.
 
 The preview is engine-in-loop and charged in simulated frames. It is also a pure
-policy function of `(spec, seed, prefix)`; it does not read the remaining budget.
-Budget only truncates how far through the deterministic prefix-node sequence the
-compiler gets.
+policy function of `(spec, seed, prefix)`; it does not read the requested
+budgets. Budgets only define checkpoints along the deterministic prefix-node
+sequence.
 
 The frontier prioritizes branches with no skipped contacts. Skipped-contact
 branches remain available as honest fallback partial outputs, but they cannot
@@ -32,7 +32,8 @@ orders hard openings with a small first/second-contact feasibility probe.
 ## Budget Contract
 
 Every scored prefix output is offered to the strict best-so-far register. Larger
-budgets see a prefix superset and cannot return a strictly worse comparator key.
+budget checkpoints see a prefix superset and cannot return a strictly worse
+comparator key.
 
 Nonterminal prefixes have explicit partial-output semantics: they are evaluated
 through their committed horizon plus a short detector margin, include a bounded
@@ -49,24 +50,21 @@ npx vitest run tests/optimizer_handoff.test.ts
 ## Campaign Command
 
 ```bash
-npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
+npm run golden -- --jobs=4 --compiler=handoff
 ```
 
-Before the cleanup that made handoff the only/default compiler, this command
-reported:
+The command reports `CURVE_SCORE`, per-budget scores, row checkpoint hashes, and
+compact checkpoint stats. Targeted probes use the same shape:
 
-- `SCORE 354.55`
-- `valid 36/39`
-- `contract_pass_rate 92%`
-
-The same result should hold after housekeeping.
+```bash
+npm run golden -- --specs=tiny_dance,opening_burst --seed=0 --budgets=30000,50000,70000 --verify-checkpoints
+```
 
 ## Known Frontier
 
-At the 40k campaign budget, the remaining hard rows are mainly budget-bound
-around `solo_run` seed 0 and `opening_burst` seeds 0/2. They improve at higher
-budgets, so the next useful work is to reach better complete prefixes sooner
-without making budget a policy input.
+The budget curve separates search-bound rows, budget-bound rows, and early
+plateaus. The next useful work is to move improvements earlier on the curve and
+raise the plateau without making budget a policy input.
 
 Promising areas:
 

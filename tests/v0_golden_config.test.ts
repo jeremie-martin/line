@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
+  DEFAULT_BUDGETS,
   GOLDEN_SPECS,
   REPORT_VARIANTS,
   applyVariant,
@@ -72,6 +73,20 @@ describe("v0 golden configuration", () => {
     for (const testCase of variantCases()) {
       expect(testCase.variant).not.toBe("base");
     }
+  });
+
+  test("default budget curve is the campaign grid", () => {
+    expect([...DEFAULT_BUDGETS]).toEqual([
+      35_000,
+      40_000,
+      45_000,
+      50_000,
+      55_000,
+      60_000,
+      65_000,
+      70_000,
+      75_000,
+    ]);
   });
 
   test("deterministic variants preserve valid spec timelines", async () => {

@@ -7,9 +7,16 @@ import {
   assertBudgetSearchContract,
   type BudgetCompile,
 } from "./budget_contract_harness.ts";
+import type { CompileCheckpoint, CompileResult } from "../scripts/v0/optimizer/types.ts";
 
 function hashTrack(track: unknown): string {
   return createHash("sha256").update(JSON.stringify(track)).digest("hex");
+}
+
+function checkpoint(result: CompileResult, budget: number): CompileCheckpoint {
+  const found = result.checkpoints.find((c) => c.budget === budget);
+  if (found === undefined) throw new Error(`missing checkpoint ${budget}`);
+  return found;
 }
 
 describe("optimizer/handoff.ts - prefix hand-off search", () => {
@@ -17,9 +24,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const compile: BudgetCompile = (inputSpec, opts) =>
       compileHandoff(inputSpec, opts.seed, {
-        budget: Number.isFinite(opts.budgetUnits)
-          ? { kind: "work", units: opts.budgetUnits }
-          : undefined,
+        budgets: opts.budgets,
         maxNodes: opts.maxNodes ?? 12,
         polish: false,
       });
@@ -32,9 +37,9 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
 
   test("same (spec, seed, budget) records identical work and previews", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
-    const budget = { kind: "work" as const, units: 20_000 };
-    const a = compileHandoff(spec, 0, { budget, maxNodes: 12, polish: false });
-    const b = compileHandoff(spec, 0, { budget, maxNodes: 12, polish: false });
+    const budget = 20_000;
+    const a = checkpoint(compileHandoff(spec, 0, { budgets: [budget], maxNodes: 12, polish: false }), budget);
+    const b = checkpoint(compileHandoff(spec, 0, { budgets: [budget], maxNodes: 12, polish: false }), budget);
     expect(hashTrack(a.track)).toBe(hashTrack(b.track));
     expect(a.stats.sim_frames).toBe(b.stats.sim_frames);
     expect(a.stats.search_nodes_expanded).toBeGreaterThan(0);
@@ -51,11 +56,11 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
 
   test("can return an honest partial/failing prefix under a small budget", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
-    const result = compileHandoff(spec, 0, {
-      budget: { kind: "work", units: 1 },
+    const result = checkpoint(compileHandoff(spec, 0, {
+      budgets: [1],
       maxNodes: 12,
       polish: false,
-    });
+    }), 1);
     expect(result.track.lines.length).toBeGreaterThanOrEqual(0);
     expect(result.track.duration).toBeLessThan(secToFrame(spec.duration) + 20);
     expect(result.report.terminus.reason).not.toBe("endOfSpec");
@@ -69,8 +74,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
   test("does not requeue deferred nodes after soft budget exhaustion", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const seen: { gapIndex: number; deferExpansion: boolean }[] = [];
-    const result = compileHandoff(spec, 0, {
-      budget: { kind: "work", units: 6_700 },
+    const result = checkpoint(compileHandoff(spec, 0, {
+      budgets: [6_700],
       maxNodes: 12,
       polish: false,
       onNode: (node) => {
@@ -79,7 +84,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
           deferExpansion: node.deferExpansion,
         });
       },
-    });
+    }), 6_700);
 
     expect(result.stats.budget_exhausted).toBe(true);
     expect(seen.length).toBeGreaterThan(1);
@@ -89,12 +94,22 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
 
   test("polish path uses the selected root start state", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
-    const result = compileHandoff(spec, 0, {
-      budget: { kind: "work", units: 8_000 },
+    const result = checkpoint(compileHandoff(spec, 0, {
+      budgets: [8_000],
       maxNodes: 12,
       polish: true,
-    });
+    }), 8_000);
     expect(result.stats.handoff_start_options).toBeGreaterThan(1);
     expect(result.stats.leaves_considered).toBeGreaterThan(0);
   }, 60_000);
+
+  test("multi-budget checkpoints match standalone budget compiles byte-for-byte", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const budgets = [7_000, 20_000, 30_000];
+    const multi = compileHandoff(spec, 0, { budgets, maxNodes: 20, polish: false });
+    for (const budget of budgets) {
+      const standalone = compileHandoff(spec, 0, { budgets: [budget], maxNodes: 20, polish: false });
+      expect(hashTrack(checkpoint(multi, budget).track)).toBe(hashTrack(checkpoint(standalone, budget).track));
+    }
+  }, 120_000);
 });

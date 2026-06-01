@@ -10,7 +10,7 @@
  *
  * The harness checks that proof against an abstract `BudgetCompile` shape only —
  * it never imports a specific compiler mechanism. It depends only on:
- *   - a `compile(spec, {seed, budgetUnits, maxNodes?}) → CompileOutput`,
+ *   - a `compile(spec, {seed, budgets, maxNodes?}) → CompileResult`,
  *   - the scoring comparator (`register.ts`), which DEFINES "better track" and
  *     is held constant across compiler rewrites.
  *
@@ -33,14 +33,13 @@
 import { createHash } from "node:crypto";
 import { isStrictlyBetter, leafKeyForReport } from "../scripts/v0/optimizer/register.ts";
 import { secToFrame, type Spec } from "../scripts/v0/types.ts";
-import type { CompileOutput } from "../scripts/v0/optimizer/types.ts";
+import type { CompileCheckpoint, CompileResult } from "../scripts/v0/optimizer/types.ts";
 
-/** The architecture-agnostic compile signature the contract is stated against.
- *  A non-finite `budgetUnits` means "unbounded". */
+/** The architecture-agnostic compile signature the contract is stated against. */
 export type BudgetCompile = (
   spec: Spec,
-  opts: { seed: number; budgetUnits: number; maxNodes?: number },
-) => CompileOutput;
+  opts: { seed: number; budgets: number[]; maxNodes?: number },
+) => CompileResult;
 
 export type ContractConfig = {
   /** Ascending sim-frame budgets for the monotonicity grid. */
@@ -70,8 +69,16 @@ export type ContractReport = {
   violations: string[];
 };
 
-const trackHash = (out: CompileOutput): string =>
+const trackHash = (out: CompileCheckpoint): string =>
   createHash("sha256").update(JSON.stringify(out.track)).digest("hex");
+
+function checkpointFor(result: CompileResult, budget: number): CompileCheckpoint {
+  const checkpoint = result.checkpoints.find((c) => c.budget === budget);
+  if (checkpoint === undefined) {
+    throw new Error(`missing checkpoint for budget ${budget}`);
+  }
+  return checkpoint;
+}
 
 /** Run the full contract for one (compile, spec) and RETURN what happened. Never
  *  throws on a contract violation (only on a misconfigured run, e.g. a freeze
@@ -84,7 +91,7 @@ export function checkBudgetSearchContract(
 ): ContractReport {
   const seed = cfg.seed ?? 0;
   const totalFrames = secToFrame(spec.duration);
-  const keyOf = (out: CompileOutput) => leafKeyForReport(out.report, totalFrames);
+  const keyOf = (out: CompileCheckpoint) => leafKeyForReport(out.report, totalFrames);
   const report: ContractReport = {
     spec: specName,
     deterministic: true,
@@ -98,8 +105,8 @@ export function checkBudgetSearchContract(
   // particular budget. Use the cheapest (smallest) budget.
   {
     const budget = cfg.budgets[0];
-    const a = compile(spec, { seed, budgetUnits: budget });
-    const b = compile(spec, { seed, budgetUnits: budget });
+    const a = checkpointFor(compile(spec, { seed, budgets: [budget] }), budget);
+    const b = checkpointFor(compile(spec, { seed, budgets: [budget] }), budget);
     if (trackHash(a) !== trackHash(b)) {
       report.deterministic = false;
       report.violations.push(`non-deterministic Track at budget ${budget}`);
@@ -113,8 +120,9 @@ export function checkBudgetSearchContract(
   // in, and the same reconstruction `optimizer_anytime.test.ts` uses.
   let prevKey: ReturnType<typeof keyOf> | null = null;
   let prevBudget = 0;
+  const curve = compile(spec, { seed, budgets: cfg.budgets });
   for (const budget of cfg.budgets) {
-    const out = compile(spec, { seed, budgetUnits: budget });
+    const out = checkpointFor(curve, budget);
     const key = keyOf(out);
     if (prevKey !== null && isStrictlyBetter(prevKey, key)) {
       const detail =
@@ -135,7 +143,11 @@ export function checkBudgetSearchContract(
   // sequence" from "budget is an input to the search policy".
   if (cfg.checkFreeze) {
     const maxNodes = cfg.freezeMaxNodes ?? 12;
-    const exhaustive = compile(spec, { seed, budgetUnits: Infinity, maxNodes });
+    const exhaustiveBudget = 1_000_000_000;
+    const exhaustive = checkpointFor(
+      compile(spec, { seed, budgets: [exhaustiveBudget], maxNodes }),
+      exhaustiveBudget,
+    );
     const fullCost = exhaustive.stats.sim_frames;
     if (!(fullCost > 0)) {
       throw new Error(`${specName}: exhaustive run charged 0 sim-frames — cannot test freeze`);
@@ -143,7 +155,10 @@ export function checkBudgetSearchContract(
     const exhaustiveHash = trackHash(exhaustive);
     for (const mult of [1.5, 3, 6]) {
       const budgetUnits = Math.ceil(fullCost * mult) + 5_000;
-      const h = trackHash(compile(spec, { seed, budgetUnits, maxNodes }));
+      const h = trackHash(checkpointFor(
+        compile(spec, { seed, budgets: [budgetUnits], maxNodes }),
+        budgetUnits,
+      ));
       if (h !== exhaustiveHash) {
         const detail =
           `output NOT frozen at budget ${budgetUnits} (≈${mult}× full cost ${fullCost}) — ` +

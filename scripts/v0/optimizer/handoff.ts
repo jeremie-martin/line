@@ -539,13 +539,14 @@ function rankedOptions(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
-  config: { nCand?: number; poolSize?: number } = {},
+  config: { nCand?: number; poolSize?: number; preview?: boolean } = {},
 ): RankedOption[] {
   const sorted = getCandidatesSorted(node, gaps, ctx, seed, config.nCand ?? HANDOFF_N_CAND);
   const poolSize = config.poolSize ?? handoffCandidatePool();
   const pool = sorted.slice(0, poolSize);
+  const preview = config.preview ?? true;
   const scored = pool.map((candidate, rank) =>
-    scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry)
+    scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry, preview)
   );
   // Catch-reuse: translate the most recent committed catches to this gap's entry
   // state and offer them as extra candidates. On a steady periodic rhythm, a
@@ -554,7 +555,7 @@ function rankedOptions(
   // monotonicity holds.
   const reuse = reuseCatchCandidates(node, gaps, ctx);
   reuse.forEach((candidate, j) =>
-    scored.push(scoreCandidateForHandoff(node, candidate, poolSize + j, gaps, ctx, seed, telemetry))
+    scored.push(scoreCandidateForHandoff(node, candidate, poolSize + j, gaps, ctx, seed, telemetry, preview))
   );
   // Brake catches: uphill-entry arcs that bleed speed before contact, offered as
   // EXTRA candidates when the rider runs over a MODERATE target speed. Decoupled
@@ -563,7 +564,7 @@ function rankedOptions(
   // Excluded from reuse.
   const brake = brakeCatchCandidates(node, gaps, ctx, seed);
   brake.forEach((candidate, j) =>
-    scored.push(scoreCandidateForHandoff(node, candidate, poolSize + reuse.length + j, gaps, ctx, seed, telemetry))
+    scored.push(scoreCandidateForHandoff(node, candidate, poolSize + reuse.length + j, gaps, ctx, seed, telemetry, preview))
   );
   scored.sort((a, b) =>
     a.score - b.score ||
@@ -674,7 +675,7 @@ function completeNearTail(
       continue;
     }
 
-    const [option] = rankedOptions(search, gaps, ctx, seed, telemetry);
+    const [option] = rankedOptions(search, gaps, ctx, seed, telemetry, { preview: false });
     if (option === undefined || option.candidate === null) return null;
     search = extendNode(search, option.candidate);
     ranks.push(option.rank);
@@ -716,9 +717,19 @@ function scoreCandidateForHandoff(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
+  usePreview = true,
 ): RankedOption {
   const child = extendNode(node, candidate);
-  const preview = previewFutureContacts(child, gaps, ctx, seed, telemetry);
+  const preview = usePreview
+    ? previewFutureContacts(child, gaps, ctx, seed, telemetry)
+    : {
+      horizon: 0,
+      landed: 0,
+      survivors: 0,
+      firstSurvivors: HANDOFF_PREVIEW_K,
+      firstCost: 0,
+      totalCost: 0,
+    };
   const scarcity = preview.horizon === 0
     ? 0
     : preview.firstSurvivors === 0

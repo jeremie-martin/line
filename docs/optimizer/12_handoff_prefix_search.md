@@ -38,6 +38,12 @@ policy function of `(spec, seed, prefix)`; it does not read the remaining budget
 Budget only truncates how far through the deterministic prefix-node sequence the
 compiler gets.
 
+Greedy near-tail completion is an exception to future previewing inside
+candidate ranking: the suffix completion itself is already rolling the future
+forward. It ranks local options without nesting another one-contact preview,
+which avoids duplicate speculative simulation in the most budget-sensitive part
+of the search.
+
 The frontier prioritizes branches with no skipped contacts. Skipped-contact
 branches remain available as honest fallback partial outputs, but they cannot
 produce a contract-passing track.
@@ -71,12 +77,12 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 
 Current 20-spec result:
 
-- `SCORE 309.99`
+- `SCORE 311.67`
 - `valid 60/60`
 - `contract_pass_rate 100%`
 
 The same budget with report-only timing variants reports `119/120` valid rows
-with `variant_report_score 299.23`.
+with `variant_report_score 300.18`.
 
 ## Known Frontier
 

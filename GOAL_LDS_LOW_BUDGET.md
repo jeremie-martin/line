@@ -16,16 +16,16 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline (20-spec golden suite, after extendable rescue candidate cache):
+Current baseline (20-spec golden suite, after tail-completion preview elision):
 
-- `goal_score 309.99`
+- `goal_score 311.67`
 - `valid 60/60` (20 specs × 3 seeds)
 - `contract_pass_rate 100%`
 - `evaluator_fingerprint e9f938701119`
 
 Variant probe at the same 50k budget:
 
-- `variant_report_score 299.23`
+- `variant_report_score 300.18`
 - `valid 119/120`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
@@ -119,6 +119,10 @@ The extendable per-node candidate cache then removed duplicate normal-prefix
 sampling when a node escalates from the cheap 16-sample batch to 32/80-sample
 rescue. That preserved candidate order, held the base contract at 60/60, and
 let `drums_pulse/time_stretch_102#0` reach a terminal prefix at 50k.
+Tail completion now ranks its greedy suffix steps without a nested future
+preview. The suffix walk itself is already the future feasibility check, so
+skipping the extra one-contact preview removes redundant simulation and moves
+more useful prefix outputs under the same deterministic 50k budget.
 
 Promising levers:
 

@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   brakeCandidateCount,
   handoffCandidatePool,
+  handoffPreviewCostWeight,
   handoffSampleCount,
   hasStartFeasibilityLookahead,
   shouldOfferBrakeCandidates,
@@ -86,6 +87,14 @@ describe("handoff policy boundaries", () => {
       targets: { contact_style: 0.5 },
     })).toBe(true);
     expect(shouldUseExpandedBrakeSearch(true, false, gap(0, 0, 13))).toBe(true);
+  });
+
+  test("preview cost is suppressed on contact-style gaps", () => {
+    expect(handoffPreviewCostWeight(gap(0, 0, 20))).toBeGreaterThan(0);
+    expect(handoffPreviewCostWeight({
+      ...gap(0, 0, 20),
+      targets: { contact_style: 0.5 },
+    })).toBe(0);
   });
 
   test("near-tail completion is based on remaining contacts, not total contacts", () => {

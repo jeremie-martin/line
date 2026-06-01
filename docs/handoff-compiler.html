@@ -776,8 +776,8 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
       </div>
       <div class="panel">
         <h3>Future-contact probe</h3>
-        <p>Preview one future contact with one candidate. A dead end gets a heavy penalty; scarce survivor count gets a smaller penalty. Preview cost itself is not used.</p>
-        <div class="tags"><span class="tag">horizon 1</span><span class="tag">preview K 1</span></div>
+        <p>Preview one future contact with one candidate. A dead end gets a heavy penalty; scarce survivor count gets a smaller penalty. The preview's local cost is a small ranking signal except on contact-style gaps, where survivor-only scoring avoids over-steering brittle contact-duration catches.</p>
+        <div class="tags"><span class="tag">horizon 1</span><span class="tag">preview K 1</span><span class="tag">cost 0.25</span></div>
       </div>
       <div class="panel">
         <h3>Overshoot control</h3>

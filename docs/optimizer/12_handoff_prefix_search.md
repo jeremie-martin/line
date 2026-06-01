@@ -45,7 +45,11 @@ budgets. Budgets only define checkpoints along the deterministic prefix-node
 sequence. Future-contact previews use the same extendable per-node candidate
 cache as expansion, and expansion carries the previewed child node forward, so
 the previewed first future-contact sample can be reused when that branch is
-later expanded.
+later expanded. The preview's first future local cost is now a small ranking
+signal for smooth axes, reusing work the probe already performed. Gaps that
+target `contact_style` keep survivor-only preview scoring because contact style
+is a brittle contact-duration effect; letting one-step future cost steer those
+catches can damage the current handoff.
 
 Near-tail completion is an exception to future previewing inside candidate
 ranking: the suffix completion itself is already rolling the future forward. It
@@ -139,6 +143,7 @@ raise the plateau without making budget a policy input.
 Promising areas:
 
 - better handoff-state scoring for catchability;
-- cheaper, more informative future-contact previews;
+- more informative future-contact previews without over-steering brittle
+  contact-style catches;
 - iterative start-state exploration;
 - selective full-duration terminal scoring or cache reuse.

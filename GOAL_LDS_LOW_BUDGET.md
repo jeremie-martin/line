@@ -37,8 +37,13 @@ Every golden run archives `golden.json` plus checkpoint track/report artifacts
 under `generated/golden-runs/<run>/`, which is gitignored through `generated/`.
 The JSON records the git commit and dirty state for commit-to-commit comparison.
 
-Current baseline is intentionally pending until the next full curve run is
-recorded with the new JSON schema.
+Current seed-0 evidence after the guarded preview-cost ranking change:
+
+- base `CURVE_SCORE 343.15`, valid `180/180`;
+- report-only variants `VARIANT_CURVE_SCORE 246.43`, valid `330/360`.
+
+Use this as a local comparison point, not a permanent target. Re-run the command
+of record after each broad policy change.
 
 ## What To Optimize
 
@@ -121,7 +126,8 @@ the requested budgets.
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot
-- cheaper future-contact previews with more useful survivor signal
+- future-contact previews that reuse already-metered local cost without
+  over-steering brittle axes such as `contact_style`
 - reusable candidate patterns for periodic contact runs
 - start-state search that improves the first few gaps without hidden prepasses
 - polish variants that are cheap enough to be worth their metered frames

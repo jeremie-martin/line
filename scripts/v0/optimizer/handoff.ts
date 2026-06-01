@@ -169,7 +169,11 @@ const START_NEXT_K = 8;
 const START_HEURISTIC_WEIGHT = 0.15;
 const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
-const PREVIEW_COST_WEIGHT = 0;
+/** The one-contact preview already pays for a future candidate. Reuse its local
+ *  cost as a small quality signal for smooth axes, but not when the current gap
+ *  targets contact_style: that axis is a discrete contact-duration effect, and
+ *  preview cost over-steers the fragile current catch. */
+const PREVIEW_COST_WEIGHT = 0.25;
 const HANDOFF_STATE_WEIGHT = 0.08;
 /** Weight on a candidate's speed OVERSHOOT (achieved - target, when positive) in
  *  the handoff feasibility ranking. Selection-only bias against speed creep. */
@@ -552,6 +556,7 @@ function expandNode(
   let options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
     nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
     expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+    previewCostWeight: handoffPreviewCostWeight(gap),
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
     telemetry.rescueAttempts++;
@@ -559,6 +564,7 @@ function expandNode(
       nCand: HANDOFF_RESCUE_N_CAND,
       poolSize: HANDOFF_RESCUE_CANDIDATE_POOL,
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+      previewCostWeight: handoffPreviewCostWeight(gap),
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -572,6 +578,7 @@ function expandNode(
       nCand: HANDOFF_SHORT_RESCUE_N_CAND,
       poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+      previewCostWeight: handoffPreviewCostWeight(gap),
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -643,7 +650,13 @@ function rankedOptions(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
-  config: { nCand?: number; poolSize?: number; preview?: boolean; expandedBrakeSearch?: boolean } = {},
+  config: {
+    nCand?: number;
+    poolSize?: number;
+    preview?: boolean;
+    expandedBrakeSearch?: boolean;
+    previewCostWeight?: number;
+  } = {},
 ): RankedOption[] {
   const sorted = getCandidatesSorted(
     node,
@@ -655,8 +668,11 @@ function rankedOptions(
   const poolSize = config.poolSize ?? handoffCandidatePool();
   const pool = sorted.slice(0, poolSize);
   const preview = config.preview ?? true;
+  const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
   const scored = pool.map((candidate, rank) =>
-    scoreCandidateForHandoff(node, candidate, rank, gaps, ctx, seed, telemetry, preview)
+    scoreCandidateForHandoff(
+      node, candidate, rank, gaps, ctx, seed, telemetry, preview, previewCostWeight,
+    )
   );
   // Catch-reuse: translate the most recent committed catches to this gap's entry
   // state and offer them as extra candidates. On a steady periodic rhythm, a
@@ -665,7 +681,9 @@ function rankedOptions(
   // monotonicity holds.
   const reuse = cachedReuseCatchCandidates(node, gaps, ctx);
   reuse.forEach((candidate, j) =>
-    scored.push(scoreCandidateForHandoff(node, candidate, poolSize + j, gaps, ctx, seed, telemetry, preview))
+    scored.push(scoreCandidateForHandoff(
+      node, candidate, poolSize + j, gaps, ctx, seed, telemetry, preview, previewCostWeight,
+    ))
   );
   // Brake catches: uphill-entry arcs that bleed speed before contact, offered as
   // EXTRA candidates when the rider runs over a MODERATE target speed. Decoupled
@@ -674,7 +692,17 @@ function rankedOptions(
   // Excluded from reuse.
   const brake = cachedBrakeCatchCandidates(node, gaps, ctx, seed, config.expandedBrakeSearch ?? false);
   brake.forEach((candidate, j) =>
-    scored.push(scoreCandidateForHandoff(node, candidate, poolSize + reuse.length + j, gaps, ctx, seed, telemetry, preview))
+    scored.push(scoreCandidateForHandoff(
+      node,
+      candidate,
+      poolSize + reuse.length + j,
+      gaps,
+      ctx,
+      seed,
+      telemetry,
+      preview,
+      previewCostWeight,
+    ))
   );
   scored.sort((a, b) =>
     a.score - b.score ||
@@ -904,6 +932,7 @@ function completeNearTailSuffix(
       nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
       preview: false,
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+      previewCostWeight: handoffPreviewCostWeight(gap),
     })
       .filter((option) => option.candidate !== null)
       .slice(0, TAIL_COMPLETION_FALLBACK_BRANCHING);
@@ -924,6 +953,12 @@ export function handoffSampleCount(
 ): number {
   if (qualitySearch) return HANDOFF_QUALITY_N_CAND;
   return sparseContractSearch ? HANDOFF_SPARSE_CONTRACT_N_CAND : HANDOFF_CONTRACT_N_CAND;
+}
+
+export function handoffPreviewCostWeight(gap: Gap): number {
+  return gap.targets?.contact_style === undefined
+    ? PREVIEW_COST_WEIGHT
+    : 0;
 }
 
 export function usesSparseContractSearch(gaps: readonly Gap[]): boolean {
@@ -971,6 +1006,7 @@ function scoreCandidateForHandoff(
   seed: number,
   telemetry: HandoffTelemetry,
   usePreview = true,
+  previewCostWeight = PREVIEW_COST_WEIGHT,
 ): RankedOption {
   const child = extendNodeCached(node, candidate);
   const preview = usePreview
@@ -990,7 +1026,7 @@ function scoreCandidateForHandoff(
       : SURVIVOR_SCARCITY_PENALTY / preview.firstSurvivors;
   const previewCost = preview.firstCost === Infinity
     ? 0
-    : preview.firstCost * PREVIEW_COST_WEIGHT;
+    : preview.firstCost * previewCostWeight;
   const statePenalty = handoffStatePenalty(child.prefixEngine, gaps[node.gapIndex]);
   // Asymmetric speed-overshoot penalty (selection-only, handoff-only — does NOT
   // change candidate geometry). The rider creeps faster

@@ -29,12 +29,21 @@ type CompileStats = {
   handoff_frontier_mean_gap_lag?: number;
   handoff_frontier_far_back_count?: number;
   handoff_far_back_pulses?: number;
+  handoff_tail_completion_attempts?: number;
+  handoff_tail_completion_successes?: number;
+  handoff_start_options?: number;
   handoff_start_ranks_seen?: number;
   handoff_start_ranks_with_fits?: number;
   handoff_full_evaluations?: number;
   handoff_partial_evaluations?: number;
   handoff_previews?: number;
+  handoff_preview_contacts?: number;
+  handoff_preview_survivors?: number;
+  handoff_rescue_attempts?: number;
+  handoff_rescue_successes?: number;
   handoff_skips?: number;
+  handoff_skip_branches?: number;
+  handoff_deferred_skips?: number;
 };
 
 type AxisError = {
@@ -111,6 +120,9 @@ function fmtStats(stats: CompileStats | undefined): string {
     `meanLag=${stats.handoff_frontier_mean_gap_lag ?? "?"}`,
     `far=${stats.handoff_frontier_far_back_count ?? "?"}`,
     `pulses=${stats.handoff_far_back_pulses ?? "?"}`,
+    `tail=${stats.handoff_tail_completion_successes ?? "?"}/${stats.handoff_tail_completion_attempts ?? "?"}`,
+    `rescue=${stats.handoff_rescue_successes ?? "?"}/${stats.handoff_rescue_attempts ?? "?"}`,
+    `preview=${stats.handoff_preview_contacts ?? "?"}/${stats.handoff_previews ?? "?"}`,
     `starts=${stats.handoff_start_ranks_with_fits ?? "?"}/${stats.handoff_start_ranks_seen ?? "?"}`,
     `full=${stats.handoff_full_evaluations ?? "?"}`,
     `partial=${stats.handoff_partial_evaluations ?? "?"}`,

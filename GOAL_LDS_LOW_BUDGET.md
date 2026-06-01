@@ -117,6 +117,18 @@ Important diagnostics:
 npm run golden -- --variants --compiler=handoff
 ```
 
+For plateau work, keep the inner loop small enough to iterate quickly. A useful
+starting set is:
+
+```bash
+npm run golden -- --specs=drums_swell,drums_crescendo,dense_sprint,opening_burst,rhythm_ladder --compiler=handoff --jobs=12 --details
+```
+
+This is not an acceptance gate and must not become a target to overfit. It is a
+diagnostic slice for rows that expose early plateaus, contact-style extremes,
+speed creep, and far-back repair behavior. Once a change moves that slice, rerun
+the full suite and variants before trusting it.
+
 ## Current Frontier
 
 The useful question is no longer "what wins at one budget?" It is the curve
@@ -172,6 +184,14 @@ states, widening the quality candidate scoring pool, and forcing candidate axis
 measurement to the current gap end all underperformed the current archive on the
 plateau subset. Future work should either change the geometry primitive or use
 stronger row diagnostics before spending more speculative local work.
+
+Focused plateau probes also rejected a few tempting generic changes: widening
+quality-phase catch reuse from two prior catches delayed existing wins under the
+curve metric, counting far-back pulses from quality-phase selection instead of
+the global frontier phase delayed the `opening_burst seed=2` repair past 65k,
+and naive contact-style ride-out continuations damaged contract progress. These
+failures are useful evidence: the plateau is not just "spend more"; extra work
+must be targeted enough to preserve the anytime curve.
 
 Start-state diversity needs the same treatment. Multi-start specs can show many
 `handoff_start_ranks_seen` but only one `handoff_start_ranks_with_fits`, meaning

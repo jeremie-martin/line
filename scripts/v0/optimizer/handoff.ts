@@ -121,7 +121,8 @@ type NodeEvaluation = {
 type ExtraCandidateCache = {
   reuse?: Candidate[];
   brakeSeed?: number;
-  brake?: Candidate[];
+  brakeContract?: Candidate[];
+  brakeQuality?: Candidate[];
 };
 
 const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
@@ -184,8 +185,11 @@ const HANDOFF_BRAKE_TARGET_MAX = 1.0;
 const HANDOFF_BRAKE_MILD_TARGET_MAX = 0.78;
 const HANDOFF_BRAKE_RATIO_MIN = 1.0;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
-const HANDOFF_BRAKE_BASE_K = 2;
-const HANDOFF_BRAKE_HIGH_OVERSPEED_K = 3;
+const HANDOFF_BRAKE_CONTRACT_BASE_K = 2;
+const HANDOFF_BRAKE_CONTRACT_HIGH_OVERSPEED_K = 3;
+const HANDOFF_BRAKE_QUALITY_BASE_K = 3;
+const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
+const HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES = HANDOFF_RESCUE_MIN_GAP_FRAMES;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 6;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
@@ -228,6 +232,7 @@ export function compileHandoff(
 
     const ctx: SpecContext = { allContactFrames, durationFrames };
     const sparseContractSearch = usesSparseContractSearch(gaps);
+    const expandedBrakeSearch = usesExpandedBrakeSearch(gaps);
     const startOptions = buildStartOptions(userSpec, spec, gaps, ctx, seed);
     const defaultStart = startOptions[0];
     const root: HandoffNode = {
@@ -352,6 +357,7 @@ export function compileHandoff(
         telemetry,
         register.getBestKey()?.contract_passed === true,
         sparseContractSearch,
+        expandedBrakeSearch,
       );
       if (tailNode !== null) {
         const tailKey = consider(tailNode);
@@ -423,6 +429,7 @@ export function compileHandoff(
         telemetry,
         register.getBestKey()?.contract_passed === true,
         sparseContractSearch,
+        expandedBrakeSearch,
       );
       telemetry.nodesExpanded++;
       for (let i = children.length - 1; i >= 0; i--) {
@@ -515,6 +522,7 @@ function expandNode(
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
   sparseContractSearch: boolean,
+  expandedBrakeSearch: boolean,
 ): HandoffNode[] {
   if (isTerminalNode(node.search, gaps)) return [];
   if (!node.startExpanded) {
@@ -543,12 +551,14 @@ function expandNode(
 
   let options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
     nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
+    expandedBrakeSearch: qualitySearch || expandedBrakeSearch,
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
     telemetry.rescueAttempts++;
     options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
       nCand: HANDOFF_RESCUE_N_CAND,
       poolSize: HANDOFF_RESCUE_CANDIDATE_POOL,
+      expandedBrakeSearch: qualitySearch || expandedBrakeSearch,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -561,6 +571,7 @@ function expandNode(
     options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
       nCand: HANDOFF_SHORT_RESCUE_N_CAND,
       poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
+      expandedBrakeSearch: qualitySearch || expandedBrakeSearch,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -624,7 +635,7 @@ function rankedOptions(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
-  config: { nCand?: number; poolSize?: number; preview?: boolean } = {},
+  config: { nCand?: number; poolSize?: number; preview?: boolean; expandedBrakeSearch?: boolean } = {},
 ): RankedOption[] {
   const sorted = getCandidatesSorted(
     node,
@@ -653,7 +664,7 @@ function rankedOptions(
   // from landing (impact-anchor still lands the contact), so they only win when
   // the overshoot penalty rewards their lower speed and simply lose elsewhere.
   // Excluded from reuse.
-  const brake = cachedBrakeCatchCandidates(node, gaps, ctx, seed);
+  const brake = cachedBrakeCatchCandidates(node, gaps, ctx, seed, config.expandedBrakeSearch ?? false);
   brake.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(node, candidate, poolSize + reuse.length + j, gaps, ctx, seed, telemetry, preview))
   );
@@ -683,14 +694,27 @@ function cachedBrakeCatchCandidates(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  expandedBrakeSearch: boolean,
 ): Candidate[] {
   const cache = extraCandidateCache.get(node) ?? {};
-  if (cache.brake === undefined || cache.brakeSeed !== seed) {
-    cache.brake = brakeCatchCandidates(node, gaps, ctx, seed);
-    cache.brakeSeed = seed;
-    extraCandidateCache.set(node, cache);
+  if (cache.brakeSeed !== undefined && cache.brakeSeed !== seed) {
+    cache.brakeContract = undefined;
+    cache.brakeQuality = undefined;
   }
-  return cache.brake;
+  const cached = expandedBrakeSearch ? cache.brakeQuality : cache.brakeContract;
+  if (cached !== undefined && cache.brakeSeed === seed) return cached;
+
+  const generated = brakeCatchCandidates(node, gaps, ctx, seed, expandedBrakeSearch);
+  if (expandedBrakeSearch) {
+    cache.brakeQuality = generated;
+  } else {
+    cache.brakeContract = generated;
+  }
+  if (cache.brakeSeed !== seed) {
+    cache.brakeSeed = seed;
+  }
+  extraCandidateCache.set(node, cache);
+  return generated;
 }
 
 /** Offer uphill-entry brake catches when the rider runs over a moderate target
@@ -701,6 +725,7 @@ function brakeCatchCandidates(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  expandedBrakeSearch: boolean,
 ): Candidate[] {
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return [];
@@ -709,10 +734,15 @@ function brakeCatchCandidates(
   const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
   const speedRatio = ts.speed / (tgt * CALIB.SPEED_CAP);
-  if (!shouldOfferBrakeCandidates(tgt, speedRatio, gap.targets?.contact_style !== undefined)) {
+  if (!shouldOfferBrakeCandidates(
+    tgt,
+    speedRatio,
+    gap.targets?.contact_style !== undefined,
+    expandedBrakeSearch,
+  )) {
     return [];
   }
-  const brakeK = brakeCandidateCount(speedRatio);
+  const brakeK = brakeCandidateCount(speedRatio, expandedBrakeSearch);
   if (brakeK <= 0) return [];
   const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 7919) | 0);
   const out: Candidate[] = [];
@@ -728,23 +758,34 @@ function brakeCatchCandidates(
   return out;
 }
 
-export function brakeCandidateCount(speedRatio: number): number {
+export function brakeCandidateCount(speedRatio: number, expandedBrakeSearch = false): number {
   if (!Number.isFinite(speedRatio) || speedRatio < HANDOFF_BRAKE_RATIO_MIN) return 0;
+  const highOverspeedK = expandedBrakeSearch
+    ? HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K
+    : HANDOFF_BRAKE_CONTRACT_HIGH_OVERSPEED_K;
+  const baseK = expandedBrakeSearch
+    ? HANDOFF_BRAKE_QUALITY_BASE_K
+    : HANDOFF_BRAKE_CONTRACT_BASE_K;
   return speedRatio >= HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO
-    ? HANDOFF_BRAKE_HIGH_OVERSPEED_K
-    : HANDOFF_BRAKE_BASE_K;
+    ? highOverspeedK
+    : baseK;
 }
 
 export function shouldOfferBrakeCandidates(
   targetSpeed: number,
   speedRatio: number,
   hasContactStyleTarget: boolean,
+  expandedBrakeSearch = false,
 ): boolean {
   if (targetSpeed <= HANDOFF_BRAKE_MILD_TARGET_MAX) {
-    return brakeCandidateCount(speedRatio) > 0;
+    return brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
   }
+  const highOverspeedK = brakeCandidateCount(
+    HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO,
+    expandedBrakeSearch,
+  );
   return hasContactStyleTarget &&
-    brakeCandidateCount(speedRatio) === HANDOFF_BRAKE_HIGH_OVERSPEED_K;
+    brakeCandidateCount(speedRatio, expandedBrakeSearch) === highOverspeedK;
 }
 
 /** Translate the most-recent committed catches (which carry a sled `ref`) to
@@ -797,6 +838,7 @@ function completeNearTail(
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
   sparseContractSearch: boolean,
+  expandedBrakeSearch: boolean,
 ): HandoffNode | null {
   if (!shouldAttemptNearTailCompletion(node, gaps)) return null;
   telemetry.tailCompletionAttempts++;
@@ -810,6 +852,7 @@ function completeNearTail(
     telemetry,
     qualitySearch,
     sparseContractSearch,
+    expandedBrakeSearch,
   );
   if (completed === null) return null;
 
@@ -834,6 +877,7 @@ function completeNearTailSuffix(
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
   sparseContractSearch: boolean,
+  expandedBrakeSearch: boolean,
 ): { search: SearchNode; ranks: number[] } | null {
   const stack: { search: SearchNode; ranks: number[] }[] = [{ search: start, ranks: startRanks }];
   while (stack.length > 0) {
@@ -850,6 +894,7 @@ function completeNearTailSuffix(
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
       nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
       preview: false,
+      expandedBrakeSearch: qualitySearch || expandedBrakeSearch,
     })
       .filter((option) => option.candidate !== null)
       .slice(0, TAIL_COMPLETION_FALLBACK_BRANCHING);
@@ -873,13 +918,22 @@ export function handoffSampleCount(
 }
 
 export function usesSparseContractSearch(gaps: readonly Gap[]): boolean {
+  const median = medianContactGapFrames(gaps);
+  return median !== null && median >= HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES;
+}
+
+export function usesExpandedBrakeSearch(gaps: readonly Gap[]): boolean {
+  const median = medianContactGapFrames(gaps);
+  return median !== null && median >= HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES;
+}
+
+function medianContactGapFrames(gaps: readonly Gap[]): number | null {
   const contactGapFrames = gaps
     .filter((gap) => gap.endsWithContact)
     .map((gap) => gap.endFrame - gap.startFrame);
-  if (contactGapFrames.length === 0) return false;
+  if (contactGapFrames.length === 0) return null;
   const sorted = [...contactGapFrames].sort((a, b) => a - b);
-  const median = sorted[Math.floor(sorted.length / 2)];
-  return median >= HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES;
+  return sorted[Math.floor(sorted.length / 2)];
 }
 
 export function shouldAttemptNearTailCompletion(

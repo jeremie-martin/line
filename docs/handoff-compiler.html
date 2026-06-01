@@ -816,8 +816,10 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
           If the current speed is already over a moderate target, the compiler
           offers uphill-entry brake catches. High speed targets get the same
           probes only when contact style also matters and the overspeed is
-          severe. The per-gap brake count is clamped to <code>2..3</code>, so
-          long dense specs do not spend all budget braking.
+          severe. Dense first-pass cadences keep the smaller <code>2..3</code>
+          brake set so they do not starve contract search; more spacious
+          cadences, and post-contract quality search, widen to <code>3..4</code>.
+          This adapts to spec/search difficulty without reading checkpoint budgets.
         </p>
       </div>
     </div>

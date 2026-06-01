@@ -111,6 +111,13 @@ shape:
 - rows that regress violate the budget-search contract and must be fixed before
   optimizing further.
 
+Budget adaptation should stay progressive and empirical. Prefer one small
+spec/search-state signal at a time, such as median contact cadence or whether a
+contract-passing output already exists, before making the compiler broadly
+budget-aware. The goal is an adaptive compiler, but the checkpoint contract still
+requires one deterministic policy sequence whose candidate choices do not read
+the requested budgets.
+
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot
@@ -118,7 +125,7 @@ Promising levers:
 - reusable candidate patterns for periodic contact runs
 - start-state search that improves the first few gaps without hidden prepasses
 - polish variants that are cheap enough to be worth their metered frames
-- speed-bleed / braking that holds a descending or flat speed curve on the back half
+- cadence-aware speed-bleed / braking that holds a descending or flat speed curve
 
 Hard rules:
 

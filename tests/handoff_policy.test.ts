@@ -9,6 +9,7 @@ import {
   shortDeadlineRescueCandidateCount,
   startAngles,
   targetStartAngle,
+  usesExpandedBrakeSearch,
   usesSparseContractSearch,
 } from "../scripts/v0/optimizer/handoff.ts";
 import {
@@ -64,6 +65,19 @@ describe("handoff policy boundaries", () => {
     ])).toBe(true);
   });
 
+  test("expanded first-pass brake search avoids dense cadences", () => {
+    expect(usesExpandedBrakeSearch([
+      gap(0, 0, 13),
+      gap(1, 13, 26),
+      gap(2, 26, 39),
+    ])).toBe(false);
+    expect(usesExpandedBrakeSearch([
+      gap(0, 0, 15),
+      gap(1, 15, 31),
+      gap(2, 31, 49),
+    ])).toBe(true);
+  });
+
   test("near-tail completion is based on remaining contacts, not total contacts", () => {
     for (const totalContacts of [29, 30, 31, 60, 61, 77]) {
       const gaps = contactGaps(totalContacts);
@@ -100,6 +114,8 @@ describe("handoff policy boundaries", () => {
     expect(brakeCandidateCount(1.49)).toBe(3);
     expect(brakeCandidateCount(1.5)).toBe(3);
     expect(brakeCandidateCount(2.0)).toBe(3);
+    expect(brakeCandidateCount(1.0, true)).toBe(3);
+    expect(brakeCandidateCount(1.15, true)).toBe(4);
   });
 
   test("high-speed brake work needs contact style and severe overspeed", () => {
@@ -107,6 +123,7 @@ describe("handoff policy boundaries", () => {
     expect(shouldOfferBrakeCandidates(0.8, 1.14, true)).toBe(false);
     expect(shouldOfferBrakeCandidates(0.8, 1.15, false)).toBe(false);
     expect(shouldOfferBrakeCandidates(0.8, 1.15, true)).toBe(true);
+    expect(shouldOfferBrakeCandidates(0.8, 1.15, true, true)).toBe(true);
   });
 
   test("start feasibility scoring only requires two future contacts", () => {

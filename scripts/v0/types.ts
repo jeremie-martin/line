@@ -192,6 +192,9 @@ export type CompileStats = {
   /** Remaining branches at least three gap expansions behind the deepest seen
    *  prefix. This is an instrumentation-only proxy for "far-back" alternatives. */
   handoff_frontier_far_back_count?: number;
+  /** Quality-phase scheduler pulses that selected a lagged pass-frontier branch
+   *  instead of the normal LIFO branch. */
+  handoff_far_back_pulses?: number;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
    *  terminal prefixes use the full spec duration. */

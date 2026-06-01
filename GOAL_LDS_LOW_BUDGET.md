@@ -88,6 +88,7 @@ Important diagnostics:
 - `handoff_frontier_oldest_gap_lag`
 - `handoff_frontier_mean_gap_lag`
 - `handoff_frontier_far_back_count`
+- `handoff_far_back_pulses`
 - `handoff_partial_evaluations`
 - `handoff_full_evaluations`
 - `handoff_previews`
@@ -142,6 +143,20 @@ frontier scheduling or explicit ancestor repair may be worth testing. Check
 one deferred start root does not masquerade as a broad backlog. A small lag or
 empty frontier points more toward local candidate generation, ranking, or suffix
 quality than retro-branching.
+
+The first accepted far-back policy is intentionally narrow: after a
+contract-passing output exists but `axis_quality` is still below `0.24`, every
+16 completed frontier selections may pull the oldest lagged pass-frontier
+branch. This is not budget-aware candidate logic; it is deterministic repair
+scheduling keyed by search state. Full golden evidence moved `CURVE_SCORE
+315.05 -> 317.19` with the same `533/540` valid checkpoints. The common-row
+budget deltas were flat through 55k, then positive from 60k onward, with the
+largest win coming from moving `opening_burst seed=2`'s better branch into the
+65k+ window. The narrower gate kept the only non-zero 75k regression to
+`drums_pendulum seed=1 -1.25`. Report-only variants kept the same `1020/1080`
+valid checkpoints and no timeouts, but `VARIANT_CURVE_SCORE` dipped slightly
+from `247.21` to `246.84`; treat this as a guardrail to revisit, not as part of
+the headline acceptance metric.
 
 High-speed start ordering is the current confirmed budget-curve win. Reusing the
 handoff speed/air overshoot penalty only for high-speed first-axis starts moved

@@ -63,11 +63,15 @@ can backtrack to the second-ranked local option within the same bounded window.
 
 The frontier prioritizes branches with no skipped contacts. Skipped-contact
 branches remain available as honest fallback partial outputs, but they cannot
-produce a contract-passing track. Checkpoint stats record the remaining frontier
-size, pass/fallback split, min/max remaining gap, deepest seen gap, oldest-gap
-lag, mean lag, and count of branches at least three gaps behind so we can tell
-whether late plateaus leave promising far-back alternatives unexplored before
-adding any explicit retro-branching policy.
+produce a contract-passing track. Normal selection is LIFO, with one narrow
+exception: after a contract-passing output exists but its axis quality is still
+very low, handoff periodically pulls an older pass-frontier branch that lags the
+deepest seen prefix. This is still a deterministic policy sequence and does not
+read the requested budgets; it only keeps a poor early branch from monopolizing
+the quality phase. Checkpoint stats record the remaining frontier size,
+pass/fallback split, min/max remaining gap, deepest seen gap, oldest-gap lag,
+mean lag, count of branches at least three gaps behind, and the number of
+far-back pulses used.
 
 Initial conditions are part of the same search. If a spec has `preroll > 0` and
 no manual `start`, handoff builds deterministic root velocity alternatives and
@@ -157,5 +161,5 @@ Promising areas:
   contact-style catches;
 - iterative start-state exploration;
 - selective full-duration terminal scoring or cache reuse;
-- frontier scheduling or ancestor repair, but only after the frontier-depth
-  diagnostics show that late budget is leaving useful older branches behind.
+- ancestor repair, but only after the frontier-depth diagnostics show that late
+  budget is leaving useful older branches behind.

@@ -28,6 +28,7 @@ type CompileStats = {
   handoff_frontier_oldest_gap_lag?: number;
   handoff_frontier_mean_gap_lag?: number;
   handoff_frontier_far_back_count?: number;
+  handoff_far_back_pulses?: number;
   handoff_start_ranks_seen?: number;
   handoff_start_ranks_with_fits?: number;
   handoff_full_evaluations?: number;
@@ -109,6 +110,7 @@ function fmtStats(stats: CompileStats | undefined): string {
     `lag=${stats.handoff_frontier_oldest_gap_lag ?? "?"}`,
     `meanLag=${stats.handoff_frontier_mean_gap_lag ?? "?"}`,
     `far=${stats.handoff_frontier_far_back_count ?? "?"}`,
+    `pulses=${stats.handoff_far_back_pulses ?? "?"}`,
     `starts=${stats.handoff_start_ranks_with_fits ?? "?"}/${stats.handoff_start_ranks_seen ?? "?"}`,
     `full=${stats.handoff_full_evaluations ?? "?"}`,
     `partial=${stats.handoff_partial_evaluations ?? "?"}`,

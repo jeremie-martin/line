@@ -52,9 +52,11 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_previews).toBeGreaterThan(0);
     expect(a.stats.handoff_preview_contacts).toBeGreaterThan(0);
     expect(a.stats.handoff_preview_survivors).toBeGreaterThan(0);
+    expect(a.stats.handoff_far_back_pulses).toBeGreaterThanOrEqual(0);
     expect(a.stats.handoff_partial_evaluations).toBe(b.stats.handoff_partial_evaluations);
     expect(a.stats.handoff_frontier_size).toBe(b.stats.handoff_frontier_size);
     expect(a.stats.handoff_frontier_oldest_gap_lag).toBe(b.stats.handoff_frontier_oldest_gap_lag);
+    expect(a.stats.handoff_far_back_pulses).toBe(b.stats.handoff_far_back_pulses);
     expect(a.stats.handoff_start_ranks_seen).toBe(b.stats.handoff_start_ranks_seen);
     expect(a.stats.handoff_start_ranks_with_fits).toBe(b.stats.handoff_start_ranks_with_fits);
     expect(a.stats.handoff_full_evaluations).toBe(b.stats.handoff_full_evaluations);

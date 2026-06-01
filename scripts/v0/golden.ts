@@ -774,6 +774,7 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_frontier_oldest_gap_lag: stats.handoff_frontier_oldest_gap_lag,
     handoff_frontier_mean_gap_lag: stats.handoff_frontier_mean_gap_lag,
     handoff_frontier_far_back_count: stats.handoff_frontier_far_back_count,
+    handoff_far_back_pulses: stats.handoff_far_back_pulses,
     handoff_partial_evaluations: stats.handoff_partial_evaluations,
     handoff_full_evaluations: stats.handoff_full_evaluations,
     handoff_start_rank: stats.handoff_start_rank,

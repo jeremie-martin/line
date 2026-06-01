@@ -18,10 +18,11 @@ npm run golden -- --jobs=4 --compiler=handoff
 ```
 
 The headline metric is `CURVE_SCORE`: the shifted geometric mean of the suite
-score at each budget checkpoint. A targeted probe uses the same benchmark shape:
+score at each budget checkpoint. A targeted probe should still use that standard
+budget grid:
 
 ```bash
-npm run golden -- --specs=tiny_dance,opening_burst,drums_breath --seed=0 --budgets=30000,50000,70000 --verify-checkpoints --jobs=1
+npm run golden -- --specs=tiny_dance,opening_burst,drums_breath --seed=0 --verify-checkpoints --jobs=1
 ```
 
 Every golden run archives `golden.json` plus checkpoint track/report artifacts
@@ -79,7 +80,8 @@ Important diagnostics:
 ## Working Loop
 
 1. Make one explainable compiler change.
-2. Probe targeted rows first with `--specs`, `--seed`, `--budgets`, and `--details`.
+2. Probe targeted rows first with `--specs`, `--seed`, and `--details`, leaving
+   the standard budget grid in place.
 3. Use `--verify-checkpoints` on small probes after changes to budget handling.
 4. Run the default curve command before trusting a broad change.
 5. Run `npx vitest run tests/optimizer_handoff.test.ts` after changes to search,

@@ -769,6 +769,7 @@ function maybeForkPrefixBranch(
 ): HandoffNode | null {
   if (!allowPrefixBranching) return null;
   if (bestKey?.contract_passed !== true) return null;
+  if (bestKey.axis_quality < QUALITY_FAR_BACK_MAX_AXIS_QUALITY) return null;
   if (node.searchLane !== 0) return null;
   if (node.skippedContacts !== 0) return null;
   if (!node.startExpanded || node.deferExpansion) return null;

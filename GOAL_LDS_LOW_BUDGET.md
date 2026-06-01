@@ -389,6 +389,20 @@ should test how much of the oracle can be recovered with one deterministic
 fallback branch, better branch-point selection, and a small node cap before
 moving to broader policy.
 
+The first production prefix-branch step is intentionally small. `HandoffNode`
+now carries a downstream search-lane seed, and once a passing incumbent exists
+the normal frontier loop occasionally clones a clean baseline-lane prefix into
+one alternate downstream lane. The clone is ordinary frontier work: caches are
+rebuilt for the new lane, budgets still only snapshot the single deterministic
+sequence, and the strict register remains the only selector. This recovered a
+small slice of the oracle without a sidecar portfolio: full golden moved
+`CURVE_SCORE 319.45 -> 319.55` with the same `533/540` valid checkpoints.
+Report-only variants stayed effectively flat (`248.29 -> 248.23`, same
+`1020/1080` valid). Treat this as proof that production suffix diversification
+can fit the compiler contract, not as the final scheduler. The next improvement
+should reduce wasted forks and recover more oracle headroom without increasing
+variant fragility.
+
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot

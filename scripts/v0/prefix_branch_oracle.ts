@@ -349,6 +349,7 @@ async function runRow(specName: GoldenSpecName, seed: number, args: Args): Promi
     searchSeed: seed,
     onNode: (node, key, event) => {
       if (event.phase !== "main") return;
+      if (node.searchLane !== 0) return;
       if (!node.startExpanded || node.deferExpansion || node.skippedContacts !== 0) return;
       if (node.search.gapIndex <= 0 || node.search.gapIndex >= spec.contacts.length) return;
       for (const target of targets) {

@@ -199,6 +199,13 @@ export type CompileStats = {
    *  equals the public compile seed; diagnostics may vary it while keeping the
    *  public seed's target jitter fixed. */
   handoff_search_seed?: number;
+  /** Search-lane id for the returned best prefix. Lane 0 is the baseline handoff
+   *  sequence; higher lanes are deterministic downstream resampling branches. */
+  handoff_search_lane?: number;
+  /** Clean prefixes cloned into alternate downstream search lanes during this
+   *  compile. These are ordinary frontier nodes and are scored by the same
+   *  best-so-far register as baseline prefixes. */
+  handoff_prefix_branch_forks?: number;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
    *  terminal prefixes use the full spec duration. */

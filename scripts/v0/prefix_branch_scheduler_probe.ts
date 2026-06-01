@@ -431,6 +431,7 @@ async function runRow(selection: Selection, args: Args): Promise<RowResult> {
     onNode: (node, key, event) => {
       if (captured !== null) return;
       if (event.phase !== "main") return;
+      if (node.searchLane !== 0) return;
       if (!node.startExpanded || node.deferExpansion || node.skippedContacts !== 0) return;
       if (node.search.gapIndex < selection.targetGapIndex) return;
       if (node.search.gapIndex <= 0 || node.search.gapIndex >= spec.contacts.length) return;

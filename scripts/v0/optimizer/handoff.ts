@@ -84,6 +84,10 @@ export type HandoffNode = {
   search: SearchNode;
   startState: ResolvedStart;
   startRank: number;
+  /** Candidate-sampling seed for this prefix's downstream search lane. */
+  searchSeed: number;
+  /** Diagnostic lane id; lane 0 is the baseline deterministic handoff run. */
+  searchLane: number;
   startExpanded: boolean;
   deferExpansion: boolean;
   /** Sorted candidate rank per gap; -1 means a skipped contact/non-contact gap. */
@@ -142,6 +146,7 @@ type HandoffTelemetry = {
   rescueSuccesses: number;
   skips: number;
   deferredSkips: number;
+  prefixBranchForks: number;
   startRanksSeen: Set<number>;
   startRanksWithFits: Set<number>;
 };
@@ -257,6 +262,15 @@ const FAR_BACK_FRONTIER_LAG = 3;
  *  but does not let poor early choices monopolize the quality phase. */
 const QUALITY_FAR_BACK_FRONTIER_INTERVAL = 16;
 const QUALITY_FAR_BACK_MAX_AXIS_QUALITY = 0.24;
+/** Conservative production version of the prefix-branch probe: once a passing
+ *  incumbent exists, occasionally clone a clean baseline-lane prefix into one
+ *  alternate downstream sample lane. The clone is ordinary frontier work and
+ *  the existing register remains the only selector, so this preserves the
+ *  anytime/checkpoint contract. */
+const PREFIX_BRANCH_LANE = 1;
+const PREFIX_BRANCH_FRONTIER_INTERVAL = 16;
+const PREFIX_BRANCH_MIN_PREFIX_CONTACTS = 4;
+const PREFIX_BRANCH_MIN_REMAINING_CONTACTS = 4;
 
 export function compileHandoff(
   userSpec: Spec,
@@ -327,12 +341,14 @@ function compileHandoffInternal(
         search: startOptions[0].root,
         startState: startOptions[0].state,
         startRank: startOptions[0].rank,
+        searchSeed,
+        searchLane: 0,
         startExpanded: startOptions.length <= 1,
         deferExpansion: false,
         ranks: [],
         skippedContacts: 0,
       }
-      : cloneSnapshotRoot(initialSnapshot, gaps.length);
+      : cloneSnapshotRoot(initialSnapshot, gaps.length, searchSeed);
     const passStack: HandoffNode[] = root.skippedContacts === 0 ? [root] : [];
     const fallbackStack: HandoffNode[] = root.skippedContacts === 0 ? [] : [root];
     const register = new BestSoFarRegister();
@@ -353,6 +369,7 @@ function compileHandoffInternal(
       rescueSuccesses: 0,
       skips: 0,
       deferredSkips: 0,
+      prefixBranchForks: 0,
       startRanksSeen: new Set<number>(),
       startRanksWithFits: new Set<number>(),
     };
@@ -362,6 +379,9 @@ function compileHandoffInternal(
     const evaluationCache = new WeakMap<SearchNode, NodeEvaluation>();
     const checkpoints: CompileCheckpoint[] = [];
     let nextBudgetIndex = 0;
+    const allowPrefixBranching = initialSnapshot === null &&
+      (opts.searchSeed === undefined || opts.searchSeed === seed);
+    const branchedPrefixKeys = new Set<string>();
 
     const evaluateCached = (node: HandoffNode): NodeEvaluation => {
       const cached = evaluationCache.get(node.search);
@@ -447,7 +467,9 @@ function compileHandoffInternal(
           handoff_skip_branches: telemetry.skips,
           handoff_deferred_skips: telemetry.deferredSkips,
           handoff_far_back_pulses: telemetry.farBackPulses,
-          handoff_search_seed: searchSeed,
+          handoff_search_seed: best.stats.handoff_search_seed ?? searchSeed,
+          handoff_search_lane: best.stats.handoff_search_lane ?? 0,
+          handoff_prefix_branch_forks: telemetry.prefixBranchForks,
           ...(arcStats ? { arc_placement: arcStats } : {}),
         },
       };
@@ -475,7 +497,6 @@ function compileHandoffInternal(
         node,
         gaps,
         ctx,
-        searchSeed,
         telemetry,
         register.getBestKey()?.contract_passed === true,
         sparseContractSearch,
@@ -516,6 +537,8 @@ function compileHandoffInternal(
             },
             startState: node.startState,
             startRank: node.startRank,
+            searchSeed: node.searchSeed,
+            searchLane: node.searchLane,
             startExpanded: node.startExpanded,
             deferExpansion: node.deferExpansion,
             ranks: node.ranks,
@@ -550,11 +573,19 @@ function compileHandoffInternal(
 
       if (isTerminalNode(node.search, gaps)) continue;
 
+      const branchNode = maybeForkPrefixBranch(
+        node,
+        gaps,
+        searchSeed,
+        allowPrefixBranching,
+        branchedPrefixKeys,
+        telemetry,
+        register.getBestKey(),
+      );
       const children = expandNode(
         node,
         gaps,
         ctx,
-        searchSeed,
         startOptions,
         telemetry,
         register.getBestKey()?.contract_passed === true,
@@ -565,6 +596,7 @@ function compileHandoffInternal(
       for (let i = children.length - 1; i >= 0; i--) {
         enqueueChild(children[i], passStack, fallbackStack);
       }
+      if (branchNode !== null) enqueueChild(branchNode, passStack, fallbackStack);
       telemetry.frontierMaxSize = Math.max(
         telemetry.frontierMaxSize,
         frontierSize(passStack, fallbackStack),
@@ -593,9 +625,13 @@ export function snapshotHandoffNode(
   };
 }
 
-function cloneSnapshotRoot(snapshot: HandoffNodeSnapshot, gapCount: number): HandoffNode {
+function cloneSnapshotRoot(
+  snapshot: HandoffNodeSnapshot,
+  gapCount: number,
+  searchSeed: number,
+): HandoffNode {
   validateHandoffSnapshot(snapshot, gapCount);
-  return cloneHandoffNodeForBranch(snapshot.node);
+  return cloneHandoffNodeForBranch(snapshot.node, { searchSeed, searchLane: 0 });
 }
 
 function validateHandoffSnapshot(snapshot: HandoffNodeSnapshot, gapCount: number): void {
@@ -617,7 +653,10 @@ function validateHandoffSnapshot(snapshot: HandoffNodeSnapshot, gapCount: number
   }
 }
 
-function cloneHandoffNodeForBranch(node: HandoffNode): HandoffNode {
+function cloneHandoffNodeForBranch(
+  node: HandoffNode,
+  overrides: Partial<Pick<HandoffNode, "searchSeed" | "searchLane">> = {},
+): HandoffNode {
   const startState = cloneResolvedStart(node.startState);
   const prefixFits = node.search.prefixFits.map((fit) =>
     fit === null ? null : cloneGapFit(fit)
@@ -641,6 +680,8 @@ function cloneHandoffNodeForBranch(node: HandoffNode): HandoffNode {
     },
     startState,
     startRank: node.startRank,
+    searchSeed: overrides.searchSeed ?? node.searchSeed,
+    searchLane: overrides.searchLane ?? node.searchLane,
     startExpanded: node.startExpanded,
     deferExpansion: node.deferExpansion,
     ranks: [...node.ranks],
@@ -715,6 +756,44 @@ function popNextFrontierNode(
 
 function shouldPulseFarBackFrontier(key: LeafKey | null): boolean {
   return key?.contract_passed === true && key.axis_quality < QUALITY_FAR_BACK_MAX_AXIS_QUALITY;
+}
+
+function maybeForkPrefixBranch(
+  node: HandoffNode,
+  gaps: Gap[],
+  baseSearchSeed: number,
+  allowPrefixBranching: boolean,
+  branchedPrefixKeys: Set<string>,
+  telemetry: HandoffTelemetry,
+  bestKey: LeafKey | null,
+): HandoffNode | null {
+  if (!allowPrefixBranching) return null;
+  if (bestKey?.contract_passed !== true) return null;
+  if (node.searchLane !== 0) return null;
+  if (node.skippedContacts !== 0) return null;
+  if (!node.startExpanded || node.deferExpansion) return null;
+  if (isTerminalNode(node.search, gaps)) return null;
+  if (telemetry.frontierSelections % PREFIX_BRANCH_FRONTIER_INTERVAL !== 0) return null;
+  if (committedContactCount(node.search) < PREFIX_BRANCH_MIN_PREFIX_CONTACTS) return null;
+  if (remainingContactCount(node.search, gaps) < PREFIX_BRANCH_MIN_REMAINING_CONTACTS) return null;
+
+  const key = `${node.startRank}:${node.search.gapIndex}`;
+  if (branchedPrefixKeys.has(key)) return null;
+  branchedPrefixKeys.add(key);
+  telemetry.prefixBranchForks++;
+  return cloneHandoffNodeForBranch(node, {
+    searchSeed: searchSeedForLane(baseSearchSeed, PREFIX_BRANCH_LANE),
+    searchLane: PREFIX_BRANCH_LANE,
+  });
+}
+
+function searchSeedForLane(baseSearchSeed: number, lane: number): number {
+  if (lane === 0) return baseSearchSeed;
+  return (
+    Math.imul(baseSearchSeed | 0, 0x45d9f3b) ^
+    Math.imul(lane | 0, 0x119de1f3) ^
+    0x6a09e667
+  ) | 0;
 }
 
 function oldestLaggedFrontierIndex(frontier: HandoffNode[], deepestSeenGap: number): number {
@@ -826,7 +905,6 @@ function expandNode(
   node: HandoffNode,
   gaps: Gap[],
   ctx: SpecContext,
-  seed: number,
   startOptions: StartOption[],
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
@@ -839,6 +917,8 @@ function expandNode(
       search: option.root,
       startState: option.state,
       startRank: option.rank,
+      searchSeed: node.searchSeed,
+      searchLane: node.searchLane,
       startExpanded: true,
       deferExpansion: startOptions.length > 1,
       ranks: [],
@@ -851,6 +931,8 @@ function expandNode(
       search: extendNodeCached(node.search, null),
       startState: node.startState,
       startRank: node.startRank,
+      searchSeed: node.searchSeed,
+      searchLane: node.searchLane,
       startExpanded: node.startExpanded,
       deferExpansion: false,
       ranks: [...node.ranks, -1],
@@ -858,7 +940,7 @@ function expandNode(
     }];
   }
 
-  let options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
+  let options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
     nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
     preview: handoffUsesFuturePreview(qualitySearch),
     expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
@@ -866,7 +948,7 @@ function expandNode(
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
     telemetry.rescueAttempts++;
-    options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
+    options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
       nCand: HANDOFF_RESCUE_N_CAND,
       poolSize: HANDOFF_RESCUE_CANDIDATE_POOL,
       preview: handoffUsesFuturePreview(qualitySearch),
@@ -881,7 +963,7 @@ function expandNode(
     shouldAttemptShortDeadlineRescue(gap)
   ) {
     telemetry.rescueAttempts++;
-    options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
+    options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
       nCand: HANDOFF_SHORT_RESCUE_N_CAND,
       poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
       preview: handoffUsesFuturePreview(qualitySearch),
@@ -897,6 +979,8 @@ function expandNode(
       search: extendNodeCached(node.search, null),
       startState: node.startState,
       startRank: node.startRank,
+      searchSeed: node.searchSeed,
+      searchLane: node.searchLane,
       startExpanded: node.startExpanded,
       deferExpansion: true,
       ranks: [...node.ranks, -1],
@@ -908,6 +992,8 @@ function expandNode(
     search: option.child,
     startState: node.startState,
     startRank: node.startRank,
+    searchSeed: node.searchSeed,
+    searchLane: node.searchLane,
     startExpanded: node.startExpanded,
     deferExpansion: false,
     ranks: [...node.ranks, option.rank],
@@ -1178,7 +1264,6 @@ function completeNearTail(
   node: HandoffNode,
   gaps: Gap[],
   ctx: SpecContext,
-  seed: number,
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
   sparseContractSearch: boolean,
@@ -1192,7 +1277,7 @@ function completeNearTail(
     [...node.ranks],
     gaps,
     ctx,
-    seed,
+    node.searchSeed,
     telemetry,
     qualitySearch,
     sparseContractSearch,
@@ -1205,6 +1290,8 @@ function completeNearTail(
     search: completed.search,
     startState: node.startState,
     startRank: node.startRank,
+    searchSeed: node.searchSeed,
+    searchLane: node.searchLane,
     startExpanded: node.startExpanded,
     deferExpansion: false,
     ranks: completed.ranks,
@@ -1307,6 +1394,10 @@ function remainingContactCount(node: SearchNode, gaps: Gap[]): number {
     if (gaps[i].endsWithContact) contacts++;
   }
   return contacts;
+}
+
+function committedContactCount(node: SearchNode): number {
+  return node.prefixFits.filter((fit) => fit !== null).length;
 }
 
 function scoreCandidateForHandoff(
@@ -1772,6 +1863,8 @@ function buildNodeOutput(
       budget_exhausted: budgetExhausted,
       handoff_skips: node.skippedContacts,
       handoff_start_rank: node.startRank,
+      handoff_search_seed: node.searchSeed,
+      handoff_search_lane: node.searchLane,
     },
   };
 }

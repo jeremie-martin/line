@@ -26,6 +26,7 @@ import {
   buildDriftReport,
   buildTrackJson,
   effectiveAxes,
+  engineLineFromTrackLine,
   makeBaseEngine,
   resolveStartState,
   sampleGapTargets,
@@ -76,10 +77,10 @@ export type CompileHandoffOptions = {
    *  compiler behavior is unchanged. */
   searchSeed?: number;
   /** Test hook: called for each prefix output offered to the register. */
-  onNode?: (node: HandoffNode, key: LeafKey) => void;
+  onNode?: (node: HandoffNode, key: LeafKey, event: HandoffNodeEvent) => void;
 };
 
-type HandoffNode = {
+export type HandoffNode = {
   search: SearchNode;
   startState: ResolvedStart;
   startRank: number;
@@ -88,6 +89,24 @@ type HandoffNode = {
   /** Sorted candidate rank per gap; -1 means a skipped contact/non-contact gap. */
   ranks: number[];
   skippedContacts: number;
+};
+
+export type HandoffNodeEventPhase = "main" | "tail" | "polish";
+
+export type HandoffNodeEvent = {
+  phase: HandoffNodeEventPhase;
+  simFrames: number;
+  fullDuration: boolean;
+  outputDurationFrames: number;
+  improved: boolean;
+  improvementCount: number;
+  consideredCount: number;
+};
+
+export type HandoffNodeSnapshot = {
+  node: HandoffNode;
+  key: LeafKey;
+  event: HandoffNodeEvent;
 };
 
 type RankedOption = {
@@ -145,6 +164,11 @@ type NodeEvaluation = {
   key: LeafKey;
   outputDurationFrames: number;
   fullDuration: boolean;
+};
+
+type ConsiderResult = {
+  key: LeafKey;
+  event: HandoffNodeEvent;
 };
 
 type ExtraCandidateCache = {
@@ -239,6 +263,24 @@ export function compileHandoff(
   seed = 0,
   opts: CompileHandoffOptions = {},
 ): CompileResult {
+  return compileHandoffInternal(userSpec, seed, opts, null);
+}
+
+export function compileHandoffFromSnapshot(
+  userSpec: Spec,
+  seed: number,
+  snapshot: HandoffNodeSnapshot,
+  opts: CompileHandoffOptions = {},
+): CompileResult {
+  return compileHandoffInternal(userSpec, seed, opts, snapshot);
+}
+
+function compileHandoffInternal(
+  userSpec: Spec,
+  seed: number,
+  opts: CompileHandoffOptions,
+  initialSnapshot: HandoffNodeSnapshot | null,
+): CompileResult {
   if (!Number.isSafeInteger(seed)) {
     throw new Error(`compileHandoff: seed must be a safe integer, got ${seed}`);
   }
@@ -277,19 +319,22 @@ export function compileHandoff(
     const ctx: SpecContext = { allContactFrames, durationFrames };
     const sparseContractSearch = usesSparseContractSearch(gaps);
     const expandedBrakeSearch = usesExpandedBrakeSearch(gaps);
-    const startOptions = buildStartOptions(userSpec, spec, gaps, ctx, searchSeed);
-    const defaultStart = startOptions[0];
-    const root: HandoffNode = {
-      search: defaultStart.root,
-      startState: defaultStart.state,
-      startRank: defaultStart.rank,
-      startExpanded: startOptions.length <= 1,
-      deferExpansion: false,
-      ranks: [],
-      skippedContacts: 0,
-    };
-    const passStack: HandoffNode[] = [root];
-    const fallbackStack: HandoffNode[] = [];
+    const startOptions = initialSnapshot === null
+      ? buildStartOptions(userSpec, spec, gaps, ctx, searchSeed)
+      : [];
+    const root: HandoffNode = initialSnapshot === null
+      ? {
+        search: startOptions[0].root,
+        startState: startOptions[0].state,
+        startRank: startOptions[0].rank,
+        startExpanded: startOptions.length <= 1,
+        deferExpansion: false,
+        ranks: [],
+        skippedContacts: 0,
+      }
+      : cloneSnapshotRoot(initialSnapshot, gaps.length);
+    const passStack: HandoffNode[] = root.skippedContacts === 0 ? [root] : [];
+    const fallbackStack: HandoffNode[] = root.skippedContacts === 0 ? [] : [root];
     const register = new BestSoFarRegister();
     const telemetry: HandoffTelemetry = {
       frontierSelections: 0,
@@ -326,7 +371,10 @@ export function compileHandoff(
       return evaluation;
     };
 
-    const consider = (node: HandoffNode): LeafKey | null => {
+    const consider = (
+      node: HandoffNode,
+      phase: HandoffNodeEventPhase,
+    ): ConsiderResult | null => {
       telemetry.deepestSeenGap = Math.max(telemetry.deepestSeenGap, node.search.gapIndex);
       telemetry.startRanksSeen.add(node.startRank);
       if (node.search.prefixFits.some((fit) => fit !== null)) {
@@ -336,7 +384,7 @@ export function compileHandoff(
       const evaluation = evaluateCached(node);
       if (evaluation.fullDuration) telemetry.fullEvaluations++;
       else telemetry.partialEvaluations++;
-      register.consider(
+      const improved = register.consider(
         buildNodeOutput(
           node,
           evaluation.report,
@@ -346,7 +394,17 @@ export function compileHandoff(
         ),
         evaluation.key,
       );
-      return evaluation.key;
+      const event: HandoffNodeEvent = {
+        phase,
+        simFrames: getSimFrames(),
+        fullDuration: evaluation.fullDuration,
+        outputDurationFrames: evaluation.outputDurationFrames,
+        improved,
+        improvementCount: register.improvementCount,
+        consideredCount: register.consideredCount,
+      };
+      opts.onNode?.(node, evaluation.key, event);
+      return { key: evaluation.key, event };
     };
 
     const snapshot = (budget: number, budgetExhausted: boolean): CompileCheckpoint => {
@@ -411,8 +469,7 @@ export function compileHandoff(
         shouldPulseFarBackFrontier(bestKey),
       );
       telemetry.frontierSelections++;
-      const key = consider(node);
-      if (key !== null) opts.onNode?.(node, key);
+      consider(node, "main");
 
       const tailNode = completeNearTail(
         node,
@@ -425,8 +482,7 @@ export function compileHandoff(
         expandedBrakeSearch,
       );
       if (tailNode !== null) {
-        const tailKey = consider(tailNode);
-        if (tailKey !== null) opts.onNode?.(tailNode, tailKey);
+        consider(tailNode, "tail");
       }
 
       captureReachedBudgets();
@@ -452,7 +508,6 @@ export function compileHandoff(
         );
         if (variant !== null) {
           polishTried++;
-          const improvedBefore = register.improvementCount;
           const polishNode: HandoffNode = {
             search: {
               ...node.search,
@@ -469,7 +524,7 @@ export function compileHandoff(
           const evaluation = evaluateCached(polishNode);
           if (evaluation.fullDuration) telemetry.fullEvaluations++;
           else telemetry.partialEvaluations++;
-          register.consider(
+          const improved = register.consider(
             buildNodeOutput(
               polishNode,
               evaluation.report,
@@ -479,7 +534,17 @@ export function compileHandoff(
             ),
             evaluation.key,
           );
-          if (register.improvementCount > improvedBefore) polishAdopted++;
+          const event: HandoffNodeEvent = {
+            phase: "polish",
+            simFrames: getSimFrames(),
+            fullDuration: evaluation.fullDuration,
+            outputDurationFrames: evaluation.outputDurationFrames,
+            improved,
+            improvementCount: register.improvementCount,
+            consideredCount: register.consideredCount,
+          };
+          opts.onNode?.(polishNode, evaluation.key, event);
+          if (improved) polishAdopted++;
         }
       }
 
@@ -514,6 +579,90 @@ export function compileHandoff(
 
     return { checkpoints };
   }
+}
+
+export function snapshotHandoffNode(
+  node: HandoffNode,
+  key: LeafKey,
+  event: HandoffNodeEvent,
+): HandoffNodeSnapshot {
+  return {
+    node: cloneHandoffNodeForBranch(node),
+    key: { ...key },
+    event: { ...event },
+  };
+}
+
+function cloneSnapshotRoot(snapshot: HandoffNodeSnapshot, gapCount: number): HandoffNode {
+  validateHandoffSnapshot(snapshot, gapCount);
+  return cloneHandoffNodeForBranch(snapshot.node);
+}
+
+function validateHandoffSnapshot(snapshot: HandoffNodeSnapshot, gapCount: number): void {
+  const node = snapshot.node;
+  const gapIndex = node.search.gapIndex;
+  if (!node.startExpanded) {
+    throw new Error("compileHandoffFromSnapshot: snapshot node must have expanded start state");
+  }
+  if (!Number.isInteger(gapIndex) || gapIndex < 0 || gapIndex > gapCount) {
+    throw new Error(
+      `compileHandoffFromSnapshot: snapshot gapIndex ${gapIndex} is outside [0, ${gapCount}]`,
+    );
+  }
+  if (node.search.prefixFits.length !== gapIndex) {
+    throw new Error(
+      `compileHandoffFromSnapshot: snapshot prefixFits length ` +
+        `${node.search.prefixFits.length} does not match gapIndex ${gapIndex}`,
+    );
+  }
+}
+
+function cloneHandoffNodeForBranch(node: HandoffNode): HandoffNode {
+  const startState = cloneResolvedStart(node.startState);
+  const prefixFits = node.search.prefixFits.map((fit) =>
+    fit === null ? null : cloneGapFit(fit)
+  );
+  let prefixEngine = makeBaseEngine(startState);
+  for (const fit of prefixFits) {
+    if (fit === null) continue;
+    for (const line of fit.lines) {
+      prefixEngine = prefixEngine.addLine(engineLineFromTrackLine(line));
+    }
+  }
+  return {
+    search: {
+      gapIndex: node.search.gapIndex,
+      prefixFits,
+      prefixEngine,
+      prefixNextLineId: node.search.prefixNextLineId,
+      cumulativeCost: node.search.cumulativeCost,
+      _candidatesCache: null,
+      _childrenCache: undefined,
+    },
+    startState,
+    startRank: node.startRank,
+    startExpanded: node.startExpanded,
+    deferExpansion: node.deferExpansion,
+    ranks: [...node.ranks],
+    skippedContacts: node.skippedContacts,
+  };
+}
+
+function cloneResolvedStart(start: ResolvedStart): ResolvedStart {
+  return {
+    position: { ...start.position },
+    velocity: { ...start.velocity },
+  };
+}
+
+function cloneGapFit(fit: GapFit): GapFit {
+  return {
+    arc: { ...fit.arc, anchor: { ...fit.arc.anchor } },
+    lines: fit.lines.map((line) => ({ ...line })),
+    achieved: { ...fit.achieved },
+    cost: fit.cost,
+    ...(fit.ref === undefined ? {} : { ref: { ...fit.ref } }),
+  };
 }
 
 function normalizeBudgets(raw: number[] | undefined): number[] {
@@ -1632,5 +1781,3 @@ function paddedFits(node: HandoffNode, gapCount: number): (GapFit | null)[] {
   while (fits.length < gapCount) fits.push(null);
   return fits;
 }
-
-export type { HandoffNode };

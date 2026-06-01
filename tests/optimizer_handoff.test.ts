@@ -1,6 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { createHash } from "node:crypto";
-import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
+import {
+  compileHandoff,
+  compileHandoffFromSnapshot,
+  snapshotHandoffNode,
+  type HandoffNodeSnapshot,
+} from "../scripts/v0/optimizer/handoff.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import { secToFrame } from "../scripts/v0/types.ts";
 import {
@@ -17,6 +22,25 @@ function checkpoint(result: CompileResult, budget: number): CompileCheckpoint {
   const found = result.checkpoints.find((c) => c.budget === budget);
   if (found === undefined) throw new Error(`missing checkpoint ${budget}`);
   return found;
+}
+
+async function firstCleanSnapshot(): Promise<HandoffNodeSnapshot> {
+  const spec = await loadGoldenSpec("tiny_dance", "base");
+  let snapshot: HandoffNodeSnapshot | null = null;
+  compileHandoff(spec, 0, {
+    budgets: [20_000],
+    maxNodes: 12,
+    polish: false,
+    onNode: (node, key, event) => {
+      if (snapshot !== null) return;
+      if (event.phase !== "main") return;
+      if (!node.startExpanded || node.deferExpansion || node.skippedContacts !== 0) return;
+      if (node.search.gapIndex <= 0) return;
+      snapshot = snapshotHandoffNode(node, key, event);
+    },
+  });
+  if (snapshot === null) throw new Error("expected a clean handoff snapshot");
+  return snapshot;
 }
 
 describe("optimizer/handoff.ts - prefix hand-off search", () => {
@@ -145,4 +169,34 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       expect(hashTrack(checkpoint(multi, budget).track)).toBe(hashTrack(checkpoint(standalone, budget).track));
     }
   }, 120_000);
+
+  test("handoff snapshots clear search caches while preserving prefix state", async () => {
+    const snapshot = await firstCleanSnapshot();
+    expect(snapshot.node.search.gapIndex).toBeGreaterThan(0);
+    expect(snapshot.node.search.prefixFits.length).toBe(snapshot.node.search.gapIndex);
+    expect(snapshot.node.search._candidatesCache).toBeNull();
+    expect(snapshot.node.search._childrenCache).toBeUndefined();
+    expect(snapshot.node.ranks.length).toBe(snapshot.node.search.gapIndex);
+    expect(snapshot.node.skippedContacts).toBe(0);
+    expect(snapshot.event.simFrames).toBeGreaterThan(0);
+  }, 60_000);
+
+  test("can continue handoff search from a prefix snapshot", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const snapshot = await firstCleanSnapshot();
+    const prefixLineCount = snapshot.node.search.prefixFits
+      .reduce((sum, fit) => sum + (fit === null ? 0 : fit.lines.length), 0);
+    const result = checkpoint(compileHandoffFromSnapshot(spec, 0, snapshot, {
+      budgets: [5_000],
+      searchSeed: 123,
+      maxNodes: 8,
+      polish: false,
+    }), 5_000);
+
+    expect(result.stats.sim_frames).toBeGreaterThan(0);
+    expect(result.stats.handoff_start_options).toBe(0);
+    expect(result.stats.handoff_start_rank).toBe(snapshot.node.startRank);
+    expect(result.stats.handoff_search_seed).toBe(123);
+    expect(result.track.lines.length).toBeGreaterThanOrEqual(prefixLineCount);
+  }, 60_000);
 });

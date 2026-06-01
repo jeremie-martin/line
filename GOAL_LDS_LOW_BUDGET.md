@@ -318,6 +318,34 @@ whole-run portfolio from frame zero; if portfolio work continues, prioritize
 post-pass/prefix-level diversification or diagnosing what the winning lane does
 differently on contact-style rows.
 
+The next diagnostic tool is `scripts/v0/prefix_branch_oracle.ts`. It runs one
+normal baseline, snapshots clean main-search prefixes near requested track
+fractions, then resumes those prefixes with alternate downstream search-lane
+seeds:
+
+```bash
+npx tsx scripts/v0/prefix_branch_oracle.ts \
+  --specs=drums_crescendo --seed=0 --lanes=1,2,3 \
+  --fractions=0.25,0.5,0.75 \
+  --json-out=generated/golden-runs/prefix-branch-crescendo-seed0.json
+```
+
+This is still oracle/probe work. Prefix snapshots rebuild a clean engine and
+clear candidate/child caches before resuming, so a downstream lane actually
+resamples from that point instead of inheriting stale candidates. The JSON
+records prefix simulated frames, suffix budget, suffix simulated frames, and
+estimated total frames for every branch candidate. Treat any branch-oracle gain
+as evidence about where restart headroom exists, not as a production budget
+scheduler.
+
+A small no-polish smoke probe on `drums_crescendo seed=0` with one downstream
+lane found real mid-prefix headroom: branching from the 25% prefix improved the
+35k/75k checkpoint score from `262.39` to `268.46`. The selected branch used
+about `35.2k` estimated total frames at the 35k checkpoint and `69.4k` at 75k;
+the whole diagnostic run spent `173k` frames because it also ran the baseline
+and an extra 50% branch. This is not a fair scheduler result, but it is evidence
+that at least one contact-style plateau has useful downstream restart headroom.
+
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot

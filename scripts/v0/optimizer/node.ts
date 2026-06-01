@@ -48,6 +48,10 @@ export type SearchNode = {
    *  larger deterministic prefix when a required contact would otherwise be
    *  skipped. */
   _candidatesCache: { nCand: number; sampleOrder: Candidate[]; candidates: Candidate[] } | null;
+  /** Optional memoized child nodes for repeated extension of the same parent by
+   *  the same sampled candidate. This lets lookahead and later expansion share
+   *  any candidate cache acquired by the child, without changing candidate order. */
+  _childrenCache?: { byCandidate: WeakMap<Candidate, SearchNode>; nullChild: SearchNode | null };
 };
 
 /** Construct the root node for a compile. */
@@ -63,6 +67,7 @@ export function makeRootNode(
     prefixNextLineId: 1,
     cumulativeCost: 0,
     _candidatesCache: null,
+    _childrenCache: undefined,
   };
 }
 
@@ -100,6 +105,9 @@ export function getCandidatesSorted(
   // Byte-identical to the old `(seed|0)*1000003 + …` for int32-range seeds.
   const perGapRng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
   const cached = node._candidatesCache;
+  if (cached !== null && cached.nCand > nCand) {
+    return sortCandidatesByCost(samplePrefix(cached.sampleOrder, nCand));
+  }
   const sampleOrder = cached !== null && cached.nCand < nCand
     ? [
       ...cached.sampleOrder,
@@ -110,10 +118,21 @@ export function getCandidatesSorted(
     : solveOneGap(
       node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
     );
-  // Sort by cost ascending. Stable sort: ties keep sample-order.
-  const sorted = [...sampleOrder].sort((a, b) => a.cost - b.cost);
+  const sorted = sortCandidatesByCost(sampleOrder);
   node._candidatesCache = { nCand, sampleOrder, candidates: sorted };
   return sorted;
+}
+
+function samplePrefix(sampleOrder: Candidate[], nCand: number): Candidate[] {
+  return sampleOrder.filter((candidate) => {
+    const attempt = candidate.sampleAttempt;
+    return attempt !== undefined && attempt < nCand;
+  });
+}
+
+function sortCandidatesByCost(sampleOrder: Candidate[]): Candidate[] {
+  // Sort by cost ascending. Stable sort: ties keep sample-order.
+  return [...sampleOrder].sort((a, b) => a.cost - b.cost);
 }
 
 function solveAdditionalCandidates(
@@ -162,6 +181,7 @@ export function extendNode(
       prefixNextLineId: parent.prefixNextLineId,
       cumulativeCost: parent.cumulativeCost,
       _candidatesCache: null,
+      _childrenCache: undefined,
     };
   }
   // Extend the engine with the candidate's lines.
@@ -176,7 +196,29 @@ export function extendNode(
     prefixNextLineId: parent.prefixNextLineId + candidate.lines.length,
     cumulativeCost: parent.cumulativeCost + candidate.cost,
     _candidatesCache: null,
+    _childrenCache: undefined,
   };
+}
+
+/** Cached form of `extendNode` for search code that may revisit the same
+ *  parent/candidate edge during fixed lookahead and later real expansion. */
+export function extendNodeCached(
+  parent: SearchNode,
+  candidate: Candidate | null,
+): SearchNode {
+  const cache = parent._childrenCache ??= {
+    byCandidate: new WeakMap<Candidate, SearchNode>(),
+    nullChild: null,
+  };
+  if (candidate === null) {
+    if (cache.nullChild === null) cache.nullChild = extendNode(parent, null);
+    return cache.nullChild;
+  }
+  const cached = cache.byCandidate.get(candidate);
+  if (cached !== undefined) return cached;
+  const child = extendNode(parent, candidate);
+  cache.byCandidate.set(candidate, child);
+  return child;
 }
 
 /** True iff the node represents a complete partial-track (all gaps

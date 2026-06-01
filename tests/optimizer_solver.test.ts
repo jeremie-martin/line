@@ -142,4 +142,20 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
       expect(candKey(extended[i])).toBe(candKey(fresh[i]));
     }
   });
+
+  test("node candidate cache can answer smaller deterministic prefixes from a larger cache", async () => {
+    const { engine, gap, ctx } = await setupAtGap0("syncopated_switchback", 0);
+    const seed = 19;
+    const cachedNode = makeRootNode(engine, 1);
+    getCandidatesSorted(cachedNode, [gap], ctx, seed, 16);
+    const prefix = getCandidatesSorted(cachedNode, [gap], ctx, seed, 4);
+
+    const freshNode = makeRootNode(engine, 1);
+    const fresh = getCandidatesSorted(freshNode, [gap], ctx, seed, 4);
+
+    expect(prefix.length).toBe(fresh.length);
+    for (let i = 0; i < fresh.length; i++) {
+      expect(candKey(prefix[i])).toBe(candKey(fresh[i]));
+    }
+  });
 });

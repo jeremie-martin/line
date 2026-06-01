@@ -16,16 +16,16 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline (20-spec golden suite, after start-lookahead cache reuse):
+Current baseline (20-spec golden suite, after child-prefix cache reuse):
 
-- `goal_score 311.80`
+- `goal_score 311.90`
 - `valid 60/60` (20 specs × 3 seeds)
 - `contract_pass_rate 100%`
 - `evaluator_fingerprint e9f938701119`
 
 Variant probe at the same 50k budget:
 
-- `variant_report_score 302.94`
+- `variant_report_score 303.42`
 - `valid 120/120`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
@@ -129,6 +129,12 @@ the first-contact feasibility probe extends from its cached 8-sample prefix to
 the normal 16-sample batch instead of replaying those physics samples. Candidate
 order is unchanged; the saved work lets the 50k variants reach a few additional
 prefix evaluations and nudges the report score to 302.94.
+Child-node extension is now memoized by `(parent, sampled candidate)`, and
+candidate caches can answer smaller deterministic prefixes from a larger cached
+sample set. That lets the second-contact portion of start lookahead seed the
+same child nodes that later preview/expand, avoiding another duplicate physics
+path while preserving exact K-prefix semantics. The 50k base score moves to
+311.90 and the variants report to 303.42, still with every row valid.
 
 Promising levers:
 

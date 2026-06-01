@@ -38,8 +38,14 @@ import {
   readTargetState,
   tryCandidate,
 } from "../core/candidate.ts";
-import { pickLowestCost, solveOneGap } from "./solver.ts";
-import { getCandidatesSorted, extendNode, isLeafNode, makeRootNode, type SearchNode } from "./node.ts";
+import { pickLowestCost } from "./solver.ts";
+import {
+  getCandidatesSorted,
+  extendNodeCached,
+  isLeafNode,
+  makeRootNode,
+  type SearchNode,
+} from "./node.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
 import {
@@ -454,7 +460,7 @@ function expandNode(
   const gap = gaps[node.search.gapIndex];
   if (!gap.endsWithContact) {
     return [{
-      search: extendNode(node.search, null),
+      search: extendNodeCached(node.search, null),
       startState: node.startState,
       startRank: node.startRank,
       startExpanded: node.startExpanded,
@@ -489,7 +495,7 @@ function expandNode(
     telemetry.skips++;
     telemetry.deferredSkips++;
     return [{
-      search: extendNode(node.search, null),
+      search: extendNodeCached(node.search, null),
       startState: node.startState,
       startRank: node.startRank,
       startExpanded: node.startExpanded,
@@ -672,14 +678,14 @@ function completeNearTail(
   while (!isTerminalNode(search, gaps)) {
     const gap = gaps[search.gapIndex];
     if (!gap.endsWithContact) {
-      search = extendNode(search, null);
+      search = extendNodeCached(search, null);
       ranks.push(-1);
       continue;
     }
 
     const [option] = rankedOptions(search, gaps, ctx, seed, telemetry, { preview: false });
     if (option === undefined || option.candidate === null) return null;
-    search = extendNode(search, option.candidate);
+    search = extendNodeCached(search, option.candidate);
     ranks.push(option.rank);
   }
 
@@ -721,7 +727,7 @@ function scoreCandidateForHandoff(
   telemetry: HandoffTelemetry,
   usePreview = true,
 ): RankedOption {
-  const child = extendNode(node, candidate);
+  const child = extendNodeCached(node, candidate);
   const preview = usePreview
     ? previewFutureContacts(child, gaps, ctx, seed, telemetry)
     : {
@@ -799,7 +805,7 @@ function previewFutureContacts(
     if (horizon >= HANDOFF_PREVIEW_HORIZON) break;
     const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex);
     if (nextGapIndex < 0) break;
-    while (node.gapIndex < nextGapIndex) node = extendNode(node, null);
+    while (node.gapIndex < nextGapIndex) node = extendNodeCached(node, null);
 
     horizon++;
     const candidates = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_PREVIEW_K);
@@ -814,7 +820,7 @@ function previewFutureContacts(
     totalCost += best.cost;
     landed++;
     telemetry.previewContacts++;
-    node = extendNode(node, best);
+    node = extendNodeCached(node, best);
   }
 
   return { horizon, landed, survivors, firstSurvivors, firstCost, totalCost };
@@ -845,10 +851,6 @@ function nextContactGapIndex(gaps: Gap[], from: number): number {
 function isTerminalNode(node: SearchNode, gaps: Gap[]): boolean {
   if (isLeafNode(node, gaps.length)) return true;
   return nextContactGapIndex(gaps, node.gapIndex) < 0;
-}
-
-function perGapRng(seed: number, gapIndex: number): () => number {
-  return makeRng((Math.imul(seed | 0, 1000003) + gapIndex + 1) | 0);
 }
 
 function buildStartOptions(
@@ -954,7 +956,7 @@ function startFeasibilityCost(
   const firstGapIndex = nextContactGapIndex(gaps, root.gapIndex);
   if (firstGapIndex < 0) return START_HEURISTIC_WEIGHT * startHeuristicCost(start, axes);
   let prefix = root;
-  while (prefix.gapIndex < firstGapIndex) prefix = extendNode(prefix, null);
+  while (prefix.gapIndex < firstGapIndex) prefix = extendNodeCached(prefix, null);
 
   const firstCandidates = getCandidatesSorted(prefix, gaps, ctx, seed, START_FIRST_K);
 
@@ -964,22 +966,15 @@ function startFeasibilityCost(
 
   let best = Infinity;
   for (const candidate of firstCandidates.slice(0, START_FIRST_OPTIONS)) {
-    const child = extendNode(prefix, candidate);
+    const child = extendNodeCached(prefix, candidate);
     const nextGapIndex = nextContactGapIndex(gaps, child.gapIndex);
     if (nextGapIndex < 0) {
       best = Math.min(best, candidate.cost);
       continue;
     }
     let nextPrefix = child;
-    while (nextPrefix.gapIndex < nextGapIndex) nextPrefix = extendNode(nextPrefix, null);
-    const nextCandidates = solveOneGap(
-      nextPrefix.prefixEngine,
-      gaps[nextGapIndex],
-      perGapRng(seed, nextGapIndex),
-      START_NEXT_K,
-      ctx,
-      nextPrefix.prefixNextLineId,
-    );
+    while (nextPrefix.gapIndex < nextGapIndex) nextPrefix = extendNodeCached(nextPrefix, null);
+    const nextCandidates = getCandidatesSorted(nextPrefix, gaps, ctx, seed, START_NEXT_K);
     const nextBest = pickLowestCost(nextCandidates);
     const nextCost = nextBest === null ? 0 : nextBest.cost * PREVIEW_COST_WEIGHT;
     const nextPenalty = nextCandidates.length === 0

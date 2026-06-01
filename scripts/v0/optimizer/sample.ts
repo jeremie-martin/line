@@ -31,7 +31,11 @@ import type { Gap } from "./types.ts";
 /** A Candidate is exactly the existing `GapFit` shape: arc + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
  *  surface self-contained. */
-export type Candidate = GapFit;
+export type Candidate = GapFit & {
+  /** Attempt index inside the deterministic per-gap sample prefix. This lets a
+   *  larger cached prefix answer a later smaller-K request exactly. */
+  sampleAttempt?: number;
+};
 
 /** Context that is constant across all gaps of a single compile call.
  *  Computed once by the chainer (Step 3) from the spec; passed
@@ -98,7 +102,10 @@ export function sampleOneCandidate(
   // similar entry state can translate this arc and reuse it (catch-reuse on
   // periodic specs). Sled-relative geometry → translating by the sled delta
   // reproduces the same catch shape at the new entry.
-  if (fit !== null) fit.ref = { x: targetState.sledX, y: targetState.sledY };
+  if (fit !== null) {
+    fit.ref = { x: targetState.sledX, y: targetState.sledY };
+    fit.sampleAttempt = attempt;
+  }
 
   return fit;
 }

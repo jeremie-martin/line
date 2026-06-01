@@ -31,7 +31,9 @@ Candidate sampling is memoized per search node as an extendable deterministic
 prefix. If rescue escalates from the normal 16 attempts to 32 or 80, the cache
 burns RNG state for the already-sampled attempts and simulates only the
 additional attempts, preserving the exact full-batch candidate order without
-paying duplicate physics work.
+paying duplicate physics work. If a larger prefix is already cached, smaller-K
+lookahead requests are answered by filtering the stored sample attempts, so the
+smaller deterministic prefix is still exact.
 
 The preview is engine-in-loop and charged in simulated frames. It is also a pure
 policy function of `(spec, seed, prefix)`; it does not read the remaining budget.
@@ -55,7 +57,10 @@ Initial conditions are part of the same search. If a spec has `preroll > 0` and
 no manual `start`, handoff builds deterministic root velocity alternatives and
 orders hard openings with a small first/second-contact feasibility probe. The
 selected root nodes carry the first-contact candidate cache from that probe, so
-real expansion extends the sampled prefix instead of replaying it.
+real expansion extends the sampled prefix instead of replaying it. Repeated
+extension of the same parent by the same sampled candidate is cached too, so the
+second-contact lookahead can seed the child node later used by preview and
+expansion.
 
 ## Budget Contract
 
@@ -82,12 +87,12 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 
 Current 20-spec result:
 
-- `SCORE 311.80`
+- `SCORE 311.90`
 - `valid 60/60`
 - `contract_pass_rate 100%`
 
 The same budget with report-only timing variants reports `120/120` valid rows
-with `variant_report_score 302.94`.
+with `variant_report_score 303.42`.
 
 ## Known Frontier
 

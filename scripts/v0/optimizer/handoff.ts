@@ -112,6 +112,13 @@ type HandoffTelemetry = {
   deferredSkips: number;
 };
 
+type NodeEvaluation = {
+  report: DriftReport;
+  key: LeafKey;
+  outputDurationFrames: number;
+  fullDuration: boolean;
+};
+
 type ExtraCandidateCache = {
   reuse?: Candidate[];
   brakeSeed?: number;
@@ -262,9 +269,18 @@ export function compileHandoff(
     let polishAdopted = 0;
     let budgetExhausted = false;
     let hardLimitError: PhysicsFrameLimitExceeded | null = null;
+    const evaluationCache = new WeakMap<SearchNode, NodeEvaluation>();
+
+    const evaluateCached = (node: HandoffNode): NodeEvaluation => {
+      const cached = evaluationCache.get(node.search);
+      if (cached !== undefined) return cached;
+      const evaluation = evaluateNode(node, spec, gaps, allContactFrames, durationFrames);
+      evaluationCache.set(node.search, evaluation);
+      return evaluation;
+    };
 
     const consider = (node: HandoffNode): LeafKey => {
-      const evaluation = evaluateNode(node, spec, gaps, allContactFrames, durationFrames);
+      const evaluation = evaluateCached(node);
       if (evaluation.fullDuration) telemetry.fullEvaluations++;
       else telemetry.partialEvaluations++;
       register.consider(
@@ -333,9 +349,7 @@ export function compileHandoff(
               ranks: node.ranks,
               skippedContacts: node.skippedContacts,
             };
-            const evaluation = evaluateNode(
-              polishNode, spec, gaps, allContactFrames, durationFrames,
-            );
+            const evaluation = evaluateCached(polishNode);
             if (evaluation.fullDuration) telemetry.fullEvaluations++;
             else telemetry.partialEvaluations++;
             register.consider(

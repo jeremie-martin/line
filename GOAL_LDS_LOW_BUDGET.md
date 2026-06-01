@@ -16,16 +16,16 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline (20-spec golden suite, after extra-candidate cache reuse):
+Current baseline (20-spec golden suite, after node-evaluation cache reuse):
 
-- `goal_score 312.15`
+- `goal_score 312.23`
 - `valid 60/60` (20 specs × 3 seeds)
 - `contract_pass_rate 100%`
 - `evaluator_fingerprint e9f938701119`
 
 Variant probe at the same 50k budget:
 
-- `variant_report_score 304.36`
+- `variant_report_score 304.37`
 - `valid 120/120`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
@@ -143,6 +143,12 @@ candidates leaves scoring and previews per-call, but frees enough 50k budget for
 more nodes, leaves, full evaluations, and tail completions. The base score moves
 to 312.15 and the variants report to 304.36, with 60/60 base rows and 120/120
 variant rows valid.
+Detector evaluation results are now cached per `SearchNode` within a compile
+call. The same prefix can be offered to the register more than once through
+start-option deferral or near-tail speculative completion; caching the
+report/key preserves the register offer order while avoiding duplicate
+trajectory extraction and drift scoring. The 50k base score moves to 312.23 and
+the variants report to 304.37, again with every base and variant row valid.
 
 Promising levers:
 

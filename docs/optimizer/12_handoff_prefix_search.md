@@ -68,6 +68,11 @@ normal expansion both rank the same node, the compiler reuses the already
 validated extra candidates while still recomputing scoring and previews for the
 current ranking mode.
 
+Detector evaluation results are cached per search node within one compile call.
+The same prefix can be offered to the register from start-option deferral or
+near-tail speculative completion; reusing its report/key avoids duplicate
+trajectory extraction while preserving the same register offer order.
+
 ## Budget Contract
 
 Every scored prefix output is offered to the strict best-so-far register. Larger
@@ -93,12 +98,12 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 
 Current 20-spec result:
 
-- `SCORE 312.15`
+- `SCORE 312.23`
 - `valid 60/60`
 - `contract_pass_rate 100%`
 
 The same budget with report-only timing variants reports `120/120` valid rows
-with `variant_report_score 304.36`.
+with `variant_report_score 304.37`.
 
 ## Known Frontier
 

@@ -57,17 +57,33 @@ export const EVALUATOR_FINGERPRINT = "e9f938701119";
 
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. The compiler
- * checkpoints by sim-frame budgets, so the cap is scaled off the maximum
- * requested budget with generous safety. golden.ts further multiplies this by --jobs, since
- * parallel contention stretches wall-clock. Safety net, not a quality term.
+ * checkpoints by sim-frame budgets, so normal runs scale off the maximum
+ * requested budget. Checkpoint verification runs one additional standalone
+ * compile per checkpoint, so its timeout scales by that extra budget work too.
+ * golden.ts further multiplies this by --jobs, since parallel contention
+ * stretches wall-clock. Safety net, not a quality term.
  */
 export const HANDOFF_MS_PER_PHYSFRAME = 0.35; // measured upper bound
 export const HANDOFF_WORKER_SAFETY = 3;
 export const HANDOFF_WORKER_TIMEOUT_FLOOR_MS = 120_000;
 export const HANDOFF_WORKER_TIMEOUT_CAP_MS = 600_000;
 
-export function compilerWorkerTimeoutMs(maxBudget: number): number {
-  const raw = Math.round(maxBudget * HANDOFF_MS_PER_PHYSFRAME * HANDOFF_WORKER_SAFETY);
+export function compilerWorkerTimeoutBudget(
+  budgets: readonly number[],
+  verifyCheckpoints: boolean,
+): number {
+  if (budgets.length === 0) {
+    throw new Error("compilerWorkerTimeoutBudget: budgets must not be empty");
+  }
+  const maxBudget = Math.max(...budgets);
+  const checkpointVerificationBudget = verifyCheckpoints
+    ? budgets.reduce((sum, budget) => sum + budget, 0)
+    : 0;
+  return maxBudget + checkpointVerificationBudget;
+}
+
+export function compilerWorkerTimeoutMs(workBudget: number): number {
+  const raw = Math.round(workBudget * HANDOFF_MS_PER_PHYSFRAME * HANDOFF_WORKER_SAFETY);
   return Math.min(
     HANDOFF_WORKER_TIMEOUT_CAP_MS,
     Math.max(HANDOFF_WORKER_TIMEOUT_FLOOR_MS, raw),

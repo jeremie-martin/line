@@ -41,6 +41,7 @@ import {
   GOLDEN_SPECS,
   REPORT_VARIANTS,
   compilerWorkerTimeoutMs,
+  compilerWorkerTimeoutBudget,
   headlineCases,
   loadGoldenSpec,
   variantCases,
@@ -490,10 +491,15 @@ function scoreRunResult(
   };
 }
 
-function specContext(spec: Spec, budgets: number[], concurrency: number): ScoreContext {
-  const maxBudget = Math.max(...budgets);
+function specContext(
+  spec: Spec,
+  budgets: number[],
+  concurrency: number,
+  verifyCheckpoints: boolean,
+): ScoreContext {
+  const timeoutBudget = compilerWorkerTimeoutBudget(budgets, verifyCheckpoints);
   return {
-    worker_timeout_ms: compilerWorkerTimeoutMs(maxBudget) * concurrency,
+    worker_timeout_ms: compilerWorkerTimeoutMs(timeoutBudget) * concurrency,
     total_frames: Math.round(spec.duration * FPS),
   };
 }
@@ -715,7 +721,7 @@ async function runRows(
     const key = `${testCase.specName}/${testCase.variant}`;
     if (!contexts.has(key)) {
       const spec = await loadGoldenSpec(testCase.specName, testCase.variant);
-      contexts.set(key, specContext(spec, budgets, jobs));
+      contexts.set(key, specContext(spec, budgets, jobs, verifyCheckpoints));
     }
   }
   const tasks = seeds.flatMap((seed) => cases.map((testCase) => ({ seed, testCase })));

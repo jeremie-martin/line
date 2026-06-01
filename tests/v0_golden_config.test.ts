@@ -4,6 +4,8 @@ import {
   GOLDEN_SPECS,
   REPORT_VARIANTS,
   applyVariant,
+  compilerWorkerTimeoutBudget,
+  compilerWorkerTimeoutMs,
   headlineCases,
   loadGoldenSpec,
   variantCases,
@@ -87,6 +89,19 @@ describe("v0 golden configuration", () => {
       70_000,
       75_000,
     ]);
+  });
+
+  test("checkpoint verification timeout accounts for standalone checkpoint compiles", () => {
+    expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, false)).toBe(75_000);
+    expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, true)).toBe(570_000);
+
+    const normalTimeout = compilerWorkerTimeoutMs(
+      compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, false),
+    );
+    const verifyingTimeout = compilerWorkerTimeoutMs(
+      compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, true),
+    );
+    expect(verifyingTimeout).toBeGreaterThan(normalTimeout);
   });
 
   test("deterministic variants preserve valid spec timelines", async () => {

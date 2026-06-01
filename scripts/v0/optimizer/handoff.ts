@@ -433,18 +433,33 @@ function enqueueChild(
  *  absolute floor. Uses already-measured achieved mean speed (no extra sims). */
 function isOverEnergetic(node: HandoffNode, gaps: Gap[]): boolean {
   const fits = node.search.prefixFits;
-  const catches: { sp: number; tgt: number }[] = [];
-  for (let i = fits.length - 1; i >= 0 && catches.length <= RUNAWAY_RUN_LEN; i--) {
+  // Most-recent-first (achieved mean speed, gap speed target) of the last
+  // RUNAWAY_RUN_LEN+1 committed contact catches. Skipped / non-contact gaps are
+  // not part of a run; an untargeted-speed gap is a hard stop (can't judge creep).
+  const recentCatches: { sp: number; tgt: number }[] = [];
+  for (let i = fits.length - 1; i >= 0 && recentCatches.length <= RUNAWAY_RUN_LEN; i--) {
     const f = fits[i];
-    if (f === null) continue; // non-contact / skipped gap
+    if (f === null) continue;
     const sp = f.achieved?.speed;
     const tgt = gaps[i]?.targets?.speed;
     if (sp === undefined || tgt === undefined) return false;
-    catches.push({ sp, tgt });
+    recentCatches.push({ sp, tgt });
   }
-  if (catches.length <= RUNAWAY_RUN_LEN) return false;
-  const recent = catches[0]; // most recent committed catch
-  const past = catches[RUNAWAY_RUN_LEN]; // RUNAWAY_RUN_LEN catches earlier
+  return isSpeedRunaway(recentCatches);
+}
+
+/** Pure runaway test on the most-recent-first sequence of committed
+ *  (achieved mean speed `sp`, gap speed target `tgt`) catch readings. A runaway
+ *  is a wrong-way derivative: speed has RISEN by more than RUNAWAY_RISE_MIN
+ *  across the RUNAWAY_RUN_LEN-catch window while the target was flat-or-falling,
+ *  and the most recent catch still overshoots its target by more than
+ *  RUNAWAY_OVERSHOOT_MARGIN. Returns false unless the window is full (needs
+ *  RUNAWAY_RUN_LEN+1 readings). Exported for unit testing the decision in
+ *  isolation from the search. */
+export function isSpeedRunaway(recentCatches: { sp: number; tgt: number }[]): boolean {
+  if (recentCatches.length <= RUNAWAY_RUN_LEN) return false;
+  const recent = recentCatches[0];
+  const past = recentCatches[RUNAWAY_RUN_LEN];
   const speedRose = recent.sp - past.sp > RUNAWAY_RISE_MIN;
   const targetFellOrFlat = recent.tgt <= past.tgt + 1e-6;
   const overshooting = recent.sp - recent.tgt > RUNAWAY_OVERSHOOT_MARGIN;

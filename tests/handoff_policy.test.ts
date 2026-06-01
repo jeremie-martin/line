@@ -3,6 +3,7 @@ import {
   brakeCandidateCount,
   handoffCandidatePool,
   hasStartFeasibilityLookahead,
+  isSpeedRunaway,
   shouldAttemptNearTailCompletion,
   startAngles,
   targetStartAngle,
@@ -104,5 +105,58 @@ describe("steep catch attempt policy", () => {
     expect(usesSteepCatchTemplateAttempt({ speed: 9.9, angleDeg: 55 }, steepGap, 2)).toBe(true);
     expect(usesSteepCatchTemplateAttempt({ speed: 9.9, angleDeg: 54.9 }, steepGap, 2)).toBe(false);
     expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, gap(0, 0, 59), 0)).toBe(false);
+  });
+});
+
+describe("sustained speed-runaway detector (isSpeedRunaway)", () => {
+  // Readings are most-recent-first; the window needs RUNAWAY_RUN_LEN+1 (=4) of
+  // them. Defaults at time of writing: RUN_LEN=3, RISE_MIN=0.18, MARGIN=0.5.
+  test("fires on a genuine runaway: speed climbing while target recedes, still overshooting", () => {
+    const runaway = [
+      { sp: 1.50, tgt: 0.50 }, // recent
+      { sp: 1.30, tgt: 0.55 },
+      { sp: 1.15, tgt: 0.58 },
+      { sp: 1.00, tgt: 0.60 }, // RUN_LEN catches back
+    ];
+    expect(isSpeedRunaway(runaway)).toBe(true);
+  });
+
+  test("exempts a legitimately fast section whose target is RISING (a crescendo)", () => {
+    // Speed rose and overshoots, but the target rose too — on-curve, not a runaway.
+    const crescendo = [
+      { sp: 1.50, tgt: 0.90 },
+      { sp: 1.30, tgt: 0.78 },
+      { sp: 1.15, tgt: 0.70 },
+      { sp: 1.00, tgt: 0.60 },
+    ];
+    expect(isSpeedRunaway(crescendo)).toBe(false);
+  });
+
+  test("exempts steady fast riding: target flat but speed not climbing", () => {
+    const steady = [
+      { sp: 1.20, tgt: 0.50 },
+      { sp: 1.18, tgt: 0.50 },
+      { sp: 1.17, tgt: 0.50 },
+      { sp: 1.15, tgt: 0.50 },
+    ];
+    expect(isSpeedRunaway(steady)).toBe(false);
+  });
+
+  test("does not fire once the rider has bled back near target (overshoot under margin)", () => {
+    const recovered = [
+      { sp: 0.90, tgt: 0.50 }, // climbed, target flat, but overshoot 0.40 < 0.50
+      { sp: 0.75, tgt: 0.50 },
+      { sp: 0.65, tgt: 0.50 },
+      { sp: 0.60, tgt: 0.50 },
+    ];
+    expect(isSpeedRunaway(recovered)).toBe(false);
+  });
+
+  test("needs a full window — too few committed catches never trips it", () => {
+    const short = [
+      { sp: 1.50, tgt: 0.50 },
+      { sp: 1.00, tgt: 0.60 },
+    ];
+    expect(isSpeedRunaway(short)).toBe(false);
   });
 });

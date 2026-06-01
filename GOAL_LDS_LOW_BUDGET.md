@@ -129,6 +129,27 @@ diagnostic slice for rows that expose early plateaus, contact-style extremes,
 speed creep, and far-back repair behavior. Once a change moves that slice, rerun
 the full suite and variants before trusting it.
 
+The plateau loop should be family-based rather than spec-name-based. Use small
+representative slices to iterate quickly, but keep them as diagnostics:
+
+```bash
+# low-air / groundedness pressure
+npm run golden -- --specs=drums_pendulum,cold_start --compiler=handoff --jobs=6 --details
+
+# speed creep and braking pressure
+npm run golden -- --specs=drums_swell,verse_chorus,dense_sprint,drums_crosscut --compiler=handoff --jobs=12 --details
+
+# contact-style extremes and discrete contact-duration choices
+npm run golden -- --specs=drums_crescendo,rhythm_ladder,syncopated_switchback,drums_signature --compiler=handoff --jobs=12 --details
+
+# contract/start/far-back repair behavior
+npm run golden -- --specs=solo_run,opening_burst,drums_pulse,tiny_dance --compiler=handoff --jobs=12 --details
+```
+
+Do not optimize directly against these slices. They are a cheap way to reject
+bad ideas and understand which plateau family moved before paying for the full
+suite.
+
 ## Current Frontier
 
 The useful question is no longer "what wins at one budget?" It is the curve
@@ -213,6 +234,78 @@ prefixes before budget ran out. Naive breadth scheduling and first-contact
 start-layer deferral both hurt the curve in targeted probes, so future start
 work should be more selective than "expand every start earlier."
 
+## Portfolio / Restart Search Idea
+
+The plateau evidence makes a portfolio search worth serious consideration. The
+basic idea is to spend extra compute on multiple deterministic attempts and keep
+the best result in the same strict register, instead of asking one local search
+schedule to discover every qualitatively different track. This could range from
+very simple independent runs with different seeded sample streams to more
+targeted restarts from saved prefixes.
+
+This is compatible with the benchmark only if the portfolio schedule itself is
+deterministic and budget-prefix compatible. A 75k checkpoint must be the same
+portfolio sequence continued past the 35k checkpoint, not a different policy
+chosen because the requested budget is larger. Budget may stop the schedule; it
+must not choose different candidate rules for a checkpoint.
+
+Existing machinery already has partial versions of this idea:
+
+- deterministic start alternatives (`handoff_start_options`);
+- DFS frontier branches and a pass/fallback split;
+- sparse far-back pulses when a poor passing incumbent leaves old alternatives;
+- dead-end rescue widening;
+- near-tail completion;
+- catch reuse and brake candidates as extra local alternatives.
+
+What does not exist yet is a true portfolio controller: no top-level racing of
+independent runs, no fixed allocation across run variants, and no explicit
+"perturb this promising prefix and re-search downstream" operation.
+
+Possible implementation levels, from least invasive to most flexible:
+
+- **Whole-run portfolio:** run `compileHandoff` several times with deterministic
+  seed offsets or policy profiles, interleave fixed work quanta, and feed all
+  outputs to one register. This is the easiest proof of concept, but repeats
+  the early track and may be expensive on specs where the prefix is already
+  good. Do not naively change the public compile seed for this: today that seed
+  also samples per-gap target jitter. A portfolio needs a separate search-lane
+  stream or deterministic lane offsets after targets are resolved.
+- **Start/root portfolio:** expand more start roots only when diagnostics show
+  poor start coverage, but schedule them as a deterministic work queue rather
+  than broadening every spec.
+- **Prefix restart portfolio:** snapshot promising prefixes, perturb candidate
+  sample streams or geometry knobs from that point, and search the suffix. This
+  is closer to the "branch from the middle" idea and should be cheaper than
+  rerunning from frame zero, but it needs careful state/caching design.
+- **Plateau-triggered diversification:** when a passing incumbent has not
+  improved after a deterministic amount of work and frontier diagnostics show
+  many viable alternatives, allocate a small fixed pulse to restarts or older
+  ancestors. The trigger must depend on search state, not requested budget.
+
+Before implementation, characterize it empirically. Useful first probes are
+offline wrappers that run multiple existing seeds/policy variants on a few
+plateau slices, compute the oracle best-per-row curve, and estimate how much
+headroom a real interleaved portfolio could capture. If the oracle gain is small,
+the plateau is more likely candidate geometry/scoring than exploration. If the
+oracle gain is large, implement the smallest deterministic portfolio that can
+capture part of it and then run the budget-contract tests.
+
+The first diagnostic tool for this is:
+
+```bash
+npx tsx scripts/v0/portfolio_oracle.ts \
+  --specs=drums_pendulum,drums_swell,drums_crescendo,opening_burst \
+  --seed=0 --lanes=0,1,2,3
+```
+
+It uses `compileHandoff(..., { searchSeed })` so the public seed still fixes the
+row's target jitter while each lane changes only search sampling/start
+lookahead. Treat the full-lane oracle as an optimistic upper bound because it
+spends one full checkpoint budget per lane. The equal-slice oracle is closer to
+a same-total-budget portfolio, but still only a diagnostic proxy for a real
+interleaved scheduler.
+
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot
@@ -224,6 +317,8 @@ Promising levers:
 - cadence-aware speed-bleed / braking that holds a descending or flat speed curve
 - frontier scheduling / ancestor repair when frontier-depth diagnostics show
   promising older alternatives left unexplored
+- deterministic portfolio/restart search if offline oracle probes show real
+  cross-run or cross-prefix headroom
 
 Hard rules:
 

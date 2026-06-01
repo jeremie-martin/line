@@ -64,6 +64,27 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_preview_survivors).toBe(b.stats.handoff_preview_survivors);
   }, 60_000);
 
+  test("explicit default search seed preserves public compile behavior", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const budget = 20_000;
+    const implicit = checkpoint(
+      compileHandoff(spec, 2, { budgets: [budget], maxNodes: 12, polish: false }),
+      budget,
+    );
+    const explicit = checkpoint(
+      compileHandoff(spec, 2, {
+        budgets: [budget],
+        maxNodes: 12,
+        polish: false,
+        searchSeed: 2,
+      }),
+      budget,
+    );
+    expect(hashTrack(explicit.track)).toBe(hashTrack(implicit.track));
+    expect(explicit.stats.sim_frames).toBe(implicit.stats.sim_frames);
+    expect(explicit.stats.handoff_search_seed).toBe(2);
+  }, 60_000);
+
   test("can return an honest partial/failing prefix under a small budget", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const result = checkpoint(compileHandoff(spec, 0, {

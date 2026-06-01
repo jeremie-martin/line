@@ -71,6 +71,10 @@ export type CompileHandoffOptions = {
   maxNodes?: number;
   /** Clone-and-test polish variants for each prefix considered. Default true. */
   polish?: boolean;
+  /** Diagnostic/research hook: keep the public seed's target jitter fixed while
+   *  changing only search sampling/start lookahead. Defaults to `seed`, so normal
+   *  compiler behavior is unchanged. */
+  searchSeed?: number;
   /** Test hook: called for each prefix output offered to the register. */
   onNode?: (node: HandoffNode, key: LeafKey) => void;
 };
@@ -238,6 +242,10 @@ export function compileHandoff(
   if (!Number.isSafeInteger(seed)) {
     throw new Error(`compileHandoff: seed must be a safe integer, got ${seed}`);
   }
+  const searchSeed = opts.searchSeed ?? seed;
+  if (!Number.isSafeInteger(searchSeed)) {
+    throw new Error(`compileHandoff: searchSeed must be a safe integer, got ${searchSeed}`);
+  }
   const budgets = normalizeBudgets(opts.budgets);
   const maxNodes = opts.maxNodes ?? DEFAULT_MAX_NODES;
   if (!Number.isInteger(maxNodes) || maxNodes < 1) {
@@ -269,7 +277,7 @@ export function compileHandoff(
     const ctx: SpecContext = { allContactFrames, durationFrames };
     const sparseContractSearch = usesSparseContractSearch(gaps);
     const expandedBrakeSearch = usesExpandedBrakeSearch(gaps);
-    const startOptions = buildStartOptions(userSpec, spec, gaps, ctx, seed);
+    const startOptions = buildStartOptions(userSpec, spec, gaps, ctx, searchSeed);
     const defaultStart = startOptions[0];
     const root: HandoffNode = {
       search: defaultStart.root,
@@ -381,6 +389,7 @@ export function compileHandoff(
           handoff_skip_branches: telemetry.skips,
           handoff_deferred_skips: telemetry.deferredSkips,
           handoff_far_back_pulses: telemetry.farBackPulses,
+          handoff_search_seed: searchSeed,
           ...(arcStats ? { arc_placement: arcStats } : {}),
         },
       };
@@ -409,7 +418,7 @@ export function compileHandoff(
         node,
         gaps,
         ctx,
-        seed,
+        searchSeed,
         telemetry,
         register.getBestKey()?.contract_passed === true,
         sparseContractSearch,
@@ -480,7 +489,7 @@ export function compileHandoff(
         node,
         gaps,
         ctx,
-        seed,
+        searchSeed,
         startOptions,
         telemetry,
         register.getBestKey()?.contract_passed === true,

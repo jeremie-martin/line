@@ -195,6 +195,10 @@ export type CompileStats = {
   /** Quality-phase scheduler pulses that selected a lagged pass-frontier branch
    *  instead of the normal LIFO branch. */
   handoff_far_back_pulses?: number;
+  /** Search-lane seed used for candidate sampling/start lookahead. Normally
+   *  equals the public compile seed; diagnostics may vary it while keeping the
+   *  public seed's target jitter fixed. */
+  handoff_search_seed?: number;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
    *  terminal prefixes use the full spec duration. */

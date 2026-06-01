@@ -151,6 +151,13 @@ remained monotone with `VARIANT_CURVE_SCORE 247.21` (`1020/1080` valid). This is
 a useful example of progressive adaptation: the policy is keyed by spec/search
 state, not by requested budget.
 
+Recent plateau probes rejected more work as a cure-all. Increasing severe
+overspeed brake samples in quality search, limiting that widening to near-tail
+states, widening the quality candidate scoring pool, and forcing candidate axis
+measurement to the current gap end all underperformed the current archive on the
+plateau subset. Future work should either change the geometry primitive or use
+stronger row diagnostics before spending more speculative local work.
+
 Start-state diversity needs the same treatment. Multi-start specs can show many
 `handoff_start_ranks_seen` but only one `handoff_start_ranks_with_fits`, meaning
 alternate starts were visited as root partials but not expanded into real catch

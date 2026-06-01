@@ -181,7 +181,7 @@ const HANDOFF_BRAKE_BASE_K = 2;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_K = 3;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
-const TAIL_COMPLETION_CONTACT_WINDOW = 3;
+const TAIL_COMPLETION_CONTACT_WINDOW = 4;
 
 export function compileHandoff(
   userSpec: Spec,
@@ -756,6 +756,7 @@ export function shouldAttemptNearTailCompletion(
   gaps: Gap[],
 ): boolean {
   if (node.skippedContacts > 0 || isTerminalNode(node.search, gaps)) return false;
+  if (!node.search.prefixFits.some((fit) => fit !== null)) return false;
   return remainingContactCount(node.search, gaps) <= TAIL_COMPLETION_CONTACT_WINDOW;
 }
 

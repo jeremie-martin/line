@@ -47,7 +47,9 @@ Greedy near-tail completion is an exception to future previewing inside
 candidate ranking: the suffix completion itself is already rolling the future
 forward. It ranks local options without nesting another one-contact preview,
 which avoids duplicate speculative simulation in the most budget-sensitive part
-of the search.
+of the search. The suffix walk starts with up to four remaining contacts, but
+only after at least one real catch has already been committed; this prevents a
+short four-contact spec from becoming a whole-track greedy solve from the root.
 
 The frontier prioritizes branches with no skipped contacts. Skipped-contact
 branches remain available as honest fallback partial outputs, but they cannot
@@ -98,12 +100,12 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 
 Current 20-spec result:
 
-- `SCORE 312.23`
+- `SCORE 312.51`
 - `valid 60/60`
 - `contract_pass_rate 100%`
 
 The same budget with report-only timing variants reports `120/120` valid rows
-with `variant_report_score 304.37`.
+with `variant_report_score 304.55`.
 
 ## Known Frontier
 

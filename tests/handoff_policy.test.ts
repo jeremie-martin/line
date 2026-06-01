@@ -3,6 +3,7 @@ import {
   brakeCandidateCount,
   handoffCandidatePool,
   hasStartFeasibilityLookahead,
+  shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
   shortDeadlineRescueCandidateCount,
   startAngles,
@@ -78,6 +79,13 @@ describe("handoff policy boundaries", () => {
     expect(brakeCandidateCount(1.49)).toBe(3);
     expect(brakeCandidateCount(1.5)).toBe(3);
     expect(brakeCandidateCount(2.0)).toBe(3);
+  });
+
+  test("high-speed brake work needs contact style and severe overspeed", () => {
+    expect(shouldOfferBrakeCandidates(0.78, 1.0, false)).toBe(true);
+    expect(shouldOfferBrakeCandidates(0.8, 1.14, true)).toBe(false);
+    expect(shouldOfferBrakeCandidates(0.8, 1.15, false)).toBe(false);
+    expect(shouldOfferBrakeCandidates(0.8, 1.15, true)).toBe(true);
   });
 
   test("start feasibility scoring only requires two future contacts", () => {

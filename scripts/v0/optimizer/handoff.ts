@@ -171,9 +171,11 @@ const HANDOFF_SPEED_OVERSHOOT_WEIGHT = 16;
 const HANDOFF_AIR_OVERSHOOT_WEIGHT = 16;
 /** Brake catches (uphill-entry, bleed speed) are offered as EXTRA candidates on
  *  MODERATE-target gaps where the rider runs even mildly over target (early, to
- *  pre-empt creep). Decoupled from landing, so on non-creeping specs they simply
- *  lose the ranking — no collateral. Excluded from reuse. */
-const HANDOFF_BRAKE_TARGET_MAX = 0.78;
+ *  pre-empt creep). High-target gaps only get brake probes when contact style
+ *  also matters and overspeed is severe. Decoupled from landing, so on
+ *  non-creeping specs they simply lose the ranking. Excluded from reuse. */
+const HANDOFF_BRAKE_TARGET_MAX = 1.0;
+const HANDOFF_BRAKE_MILD_TARGET_MAX = 0.78;
 const HANDOFF_BRAKE_RATIO_MIN = 1.0;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
 const HANDOFF_BRAKE_BASE_K = 2;
@@ -569,7 +571,11 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
   const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
   const speedRatio = ts.speed / (targetSpeed * CALIB.SPEED_CAP);
-  return speedRatio >= HANDOFF_BRAKE_RATIO_MIN;
+  return shouldOfferBrakeCandidates(
+    targetSpeed,
+    speedRatio,
+    gap.targets?.contact_style !== undefined,
+  );
 }
 
 function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {
@@ -669,6 +675,9 @@ function brakeCatchCandidates(
   const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
   const speedRatio = ts.speed / (tgt * CALIB.SPEED_CAP);
+  if (!shouldOfferBrakeCandidates(tgt, speedRatio, gap.targets?.contact_style !== undefined)) {
+    return [];
+  }
   const brakeK = brakeCandidateCount(speedRatio);
   if (brakeK <= 0) return [];
   const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 7919) | 0);
@@ -690,6 +699,18 @@ export function brakeCandidateCount(speedRatio: number): number {
   return speedRatio >= HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO
     ? HANDOFF_BRAKE_HIGH_OVERSPEED_K
     : HANDOFF_BRAKE_BASE_K;
+}
+
+export function shouldOfferBrakeCandidates(
+  targetSpeed: number,
+  speedRatio: number,
+  hasContactStyleTarget: boolean,
+): boolean {
+  if (targetSpeed <= HANDOFF_BRAKE_MILD_TARGET_MAX) {
+    return brakeCandidateCount(speedRatio) > 0;
+  }
+  return hasContactStyleTarget &&
+    brakeCandidateCount(speedRatio) === HANDOFF_BRAKE_HIGH_OVERSPEED_K;
 }
 
 /** Translate the most-recent committed catches (which carry a sled `ref`) to
@@ -861,7 +882,6 @@ function scoreCandidateForHandoff(
   if (tgtAir !== undefined && achAir !== undefined && achAir > tgtAir) {
     overshoot += HANDOFF_AIR_OVERSHOOT_WEIGHT * (achAir - tgtAir) * (achAir - tgtAir);
   }
-
   return {
     candidate,
     child,

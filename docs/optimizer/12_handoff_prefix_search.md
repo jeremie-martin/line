@@ -70,7 +70,10 @@ Handoff-only extra candidates are cached at the node as well. Reuse catches and
 brake catches are deterministic prefix-state probes, so when tail completion and
 normal expansion both rank the same node, the compiler reuses the already
 validated extra candidates while still recomputing scoring and previews for the
-current ranking mode.
+current ranking mode. Brake probes remain local-policy work: moderate speed
+targets get them at the first overspeed, while high speed targets require both a
+contact-style target and severe overspeed before the compiler spends the extra
+candidate slots.
 
 Detector evaluation results are cached per search node within one compile call.
 The same prefix can be offered to the register from start-option deferral or

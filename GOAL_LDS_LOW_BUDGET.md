@@ -8,7 +8,7 @@ compiler is `compileHandoff` in `scripts/v0/optimizer/handoff.ts`.
 Use this command as the run of record:
 
 ```bash
-npm run golden -- --jobs=4 --compiler=handoff
+npm run golden -- --jobs=60 --compiler=handoff
 ```
 
 `npm run golden` evaluates the default budget grid:
@@ -22,7 +22,7 @@ score at each budget checkpoint. A targeted probe should still use that standard
 budget grid:
 
 ```bash
-npm run golden -- --specs=tiny_dance,opening_burst,drums_breath --seed=0 --verify-checkpoints --jobs=1
+npm run golden -- --specs=tiny_dance,opening_burst,drums_breath --seed=0 --verify-checkpoints --jobs=20
 ```
 
 Use `CURVE_SCORE` as the campaign headline, not as a blind scalar. The curve

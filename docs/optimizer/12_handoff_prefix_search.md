@@ -78,9 +78,11 @@ current ranking mode. Brake probes remain local-policy work: moderate speed
 targets get them at the first overspeed, while high speed targets require both a
 contact-style target and severe overspeed before the compiler spends the extra
 candidate slots. Dense first-pass cadences keep the smaller brake set so they do
-not starve contract search; more spacious cadences, and post-contract quality
-search, widen the deterministic brake set by one candidate. This adapts to
-spec/search difficulty, not to the caller's checkpoint budgets.
+not starve contract search. More spacious first-pass cadences widen the
+deterministic brake set by one candidate only on gaps that also target
+contact-style; after a passing output exists, quality search may widen any local
+brake probe. This adapts to spec/search difficulty, not to the caller's
+checkpoint budgets.
 
 Detector evaluation results are cached per search node within one compile call.
 The same prefix can be offered to the register from start-option deferral or

@@ -817,9 +817,11 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
           offers uphill-entry brake catches. High speed targets get the same
           probes only when contact style also matters and the overspeed is
           severe. Dense first-pass cadences keep the smaller <code>2..3</code>
-          brake set so they do not starve contract search; more spacious
-          cadences, and post-contract quality search, widen to <code>3..4</code>.
-          This adapts to spec/search difficulty without reading checkpoint budgets.
+          brake set so they do not starve contract search. More spacious
+          first-pass cadences widen to <code>3..4</code> only on gaps that also
+          target contact style; after a passing output exists, quality search may
+          widen any local brake probe. This adapts to spec/search difficulty
+          without reading checkpoint budgets.
         </p>
       </div>
     </div>

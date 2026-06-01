@@ -551,14 +551,14 @@ function expandNode(
 
   let options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
     nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
-    expandedBrakeSearch: qualitySearch || expandedBrakeSearch,
+    expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
     telemetry.rescueAttempts++;
     options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
       nCand: HANDOFF_RESCUE_N_CAND,
       poolSize: HANDOFF_RESCUE_CANDIDATE_POOL,
-      expandedBrakeSearch: qualitySearch || expandedBrakeSearch,
+      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -571,7 +571,7 @@ function expandNode(
     options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
       nCand: HANDOFF_SHORT_RESCUE_N_CAND,
       poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
-      expandedBrakeSearch: qualitySearch || expandedBrakeSearch,
+      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -620,6 +620,14 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
 function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {
   return gap.endsWithContact &&
     shortDeadlineRescueCandidateCount(gap.endFrame - gap.startFrame) > 0;
+}
+
+export function shouldUseExpandedBrakeSearch(
+  qualitySearch: boolean,
+  expandedBrakeSearch: boolean,
+  gap: Gap,
+): boolean {
+  return qualitySearch || (expandedBrakeSearch && gap.targets?.contact_style !== undefined);
 }
 
 export function shortDeadlineRescueCandidateCount(gapFrames: number): number {
@@ -891,10 +899,11 @@ function completeNearTailSuffix(
     }
     if (isTerminalNode(search, gaps)) return { search, ranks };
 
+    const gap = gaps[search.gapIndex];
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
       nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
       preview: false,
-      expandedBrakeSearch: qualitySearch || expandedBrakeSearch,
+      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
     })
       .filter((option) => option.candidate !== null)
       .slice(0, TAIL_COMPLETION_FALLBACK_BRANCHING);

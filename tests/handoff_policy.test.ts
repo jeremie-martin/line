@@ -6,6 +6,7 @@ import {
   hasStartFeasibilityLookahead,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
+  shouldUseExpandedBrakeSearch,
   shortDeadlineRescueCandidateCount,
   startAngles,
   targetStartAngle,
@@ -76,6 +77,15 @@ describe("handoff policy boundaries", () => {
       gap(1, 15, 31),
       gap(2, 31, 49),
     ])).toBe(true);
+  });
+
+  test("expanded first-pass brake work needs contact-style pressure", () => {
+    expect(shouldUseExpandedBrakeSearch(false, true, gap(0, 0, 20))).toBe(false);
+    expect(shouldUseExpandedBrakeSearch(false, true, {
+      ...gap(0, 0, 20),
+      targets: { contact_style: 0.5 },
+    })).toBe(true);
+    expect(shouldUseExpandedBrakeSearch(true, false, gap(0, 0, 13))).toBe(true);
   });
 
   test("near-tail completion is based on remaining contacts, not total contacts", () => {

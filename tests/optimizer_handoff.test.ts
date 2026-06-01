@@ -66,7 +66,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(result.stats.handoff_partial_evaluations).toBeGreaterThan(0);
   }, 120_000);
 
-  test("does not requeue deferred nodes after soft budget exhaustion", async () => {
+  test("visits deferred start roots before requeueing one under a small budget", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const seen: { gapIndex: number; deferExpansion: boolean }[] = [];
     const result = compileHandoff(spec, 0, {
@@ -83,8 +83,10 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
 
     expect(result.stats.budget_exhausted).toBe(true);
     expect(seen.length).toBeGreaterThan(1);
-    expect(seen.slice(1).every((node) => node.deferExpansion)).toBe(true);
-    expect(seen.every((node) => node.gapIndex === 0)).toBe(true);
+    const firstRequeued = seen.findIndex((node, index) => index > 0 && !node.deferExpansion);
+    expect(firstRequeued).toBeGreaterThan(1);
+    expect(seen.slice(1, firstRequeued).every((node) => node.deferExpansion)).toBe(true);
+    expect(seen.slice(0, firstRequeued).every((node) => node.gapIndex === 0)).toBe(true);
   }, 60_000);
 
   test("polish path uses the selected root start state", async () => {

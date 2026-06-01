@@ -53,7 +53,9 @@ produce a contract-passing track.
 
 Initial conditions are part of the same search. If a spec has `preroll > 0` and
 no manual `start`, handoff builds deterministic root velocity alternatives and
-orders hard openings with a small first/second-contact feasibility probe.
+orders hard openings with a small first/second-contact feasibility probe. The
+selected root nodes carry the first-contact candidate cache from that probe, so
+real expansion extends the sampled prefix instead of replaying it.
 
 ## Budget Contract
 
@@ -85,7 +87,7 @@ Current 20-spec result:
 - `contract_pass_rate 100%`
 
 The same budget with report-only timing variants reports `120/120` valid rows
-with `variant_report_score 302.92`.
+with `variant_report_score 302.94`.
 
 ## Known Frontier
 

@@ -16,7 +16,7 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline (20-spec golden suite, after preview cache reuse):
+Current baseline (20-spec golden suite, after start-lookahead cache reuse):
 
 - `goal_score 311.80`
 - `valid 60/60` (20 specs × 3 seeds)
@@ -25,7 +25,7 @@ Current baseline (20-spec golden suite, after preview cache reuse):
 
 Variant probe at the same 50k budget:
 
-- `variant_report_score 302.92`
+- `variant_report_score 302.94`
 - `valid 120/120`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
@@ -124,6 +124,11 @@ and expansion carries the previewed child node forward. That avoids simulating
 the first future-contact sample twice, preserves deterministic candidate order
 when expansion later extends from preview `K=1` to the normal batch, and brings
 the report-only 50k variants to 120/120 valid rows.
+Start-state lookahead now carries its sampled root node into the real search, so
+the first-contact feasibility probe extends from its cached 8-sample prefix to
+the normal 16-sample batch instead of replaying those physics samples. Candidate
+order is unchanged; the saved work lets the 50k variants reach a few additional
+prefix evaluations and nudges the report score to 302.94.
 
 Promising levers:
 

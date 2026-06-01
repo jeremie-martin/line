@@ -87,6 +87,7 @@ type StartOption = {
   rank: number;
   start: NonNullable<Spec["start"]>;
   state: ResolvedStart;
+  root: SearchNode;
 };
 
 type HandoffTelemetry = {
@@ -216,7 +217,7 @@ export function compileHandoff(
     const startOptions = buildStartOptions(userSpec, spec, gaps, ctx, seed);
     const defaultStart = startOptions[0];
     const root: HandoffNode = {
-      search: makeRootNode(makeBaseEngine(defaultStart.state), gaps.length),
+      search: defaultStart.root,
       startState: defaultStart.state,
       startRank: defaultStart.rank,
       startExpanded: startOptions.length <= 1,
@@ -441,7 +442,7 @@ function expandNode(
   if (isTerminalNode(node.search, gaps)) return [];
   if (!node.startExpanded) {
     return startOptions.map((option) => ({
-      search: makeRootNode(makeBaseEngine(option.state), gaps.length),
+      search: option.root,
       startState: option.state,
       startRank: option.rank,
       startExpanded: true,
@@ -866,7 +867,12 @@ function buildStartOptions(
   };
 
   if (rawSpec.start !== undefined || (rawSpec.preroll ?? 0) <= 0) {
-    return [{ rank: 0, start: defaultSpecStart, state: defaultStart }];
+    return [{
+      rank: 0,
+      start: defaultSpecStart,
+      state: defaultStart,
+      root: makeRootNode(makeBaseEngine(defaultStart), gaps.length),
+    }];
   }
 
   const axes = firstAxes(rawSpec);
@@ -891,19 +897,29 @@ function buildStartOptions(
   ];
 
   if (!hasStartFeasibilityLookahead(gaps)) {
-    return heuristicPool.slice(0, START_OPTION_LIMIT).map((start, rank) => ({
-      rank,
-      start,
-      state: resolveStartState({ ...searchSpec, start }),
-    }));
+    return heuristicPool.slice(0, START_OPTION_LIMIT).map((start, rank) => {
+      const state = resolveStartState({ ...searchSpec, start });
+      return {
+        rank,
+        start,
+        state,
+        root: makeRootNode(makeBaseEngine(state), gaps.length),
+      };
+    });
   }
 
   const ordered = heuristicPool
-    .map((start, originalRank) => ({
-      start,
-      originalRank,
-      score: startFeasibilityCost(start, searchSpec, axes, gaps, ctx, seed),
-    }))
+    .map((start, originalRank) => {
+      const state = resolveStartState({ ...searchSpec, start });
+      const root = makeRootNode(makeBaseEngine(state), gaps.length);
+      return {
+        start,
+        state,
+        root,
+        originalRank,
+        score: startFeasibilityCost(root, start, axes, gaps, ctx, seed),
+      };
+    })
     .sort((a, b) =>
       a.score - b.score ||
       startHeuristicCost(a.start, axes) - startHeuristicCost(b.start, axes) ||
@@ -912,10 +928,11 @@ function buildStartOptions(
     )
     .slice(0, START_OPTION_LIMIT);
 
-  return ordered.map(({ start }, rank) => ({
+  return ordered.map(({ start, state, root }, rank) => ({
     rank,
     start,
-    state: resolveStartState({ ...searchSpec, start }),
+    state,
+    root,
   }));
 }
 
@@ -927,27 +944,19 @@ export function hasStartFeasibilityLookahead(gaps: Gap[]): boolean {
 }
 
 function startFeasibilityCost(
+  root: SearchNode,
   start: NonNullable<Spec["start"]>,
-  searchSpec: Spec,
   axes: AxisValues,
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
 ): number {
-  const root = makeRootNode(makeBaseEngine(resolveStartState({ ...searchSpec, start })), gaps.length);
   const firstGapIndex = nextContactGapIndex(gaps, root.gapIndex);
   if (firstGapIndex < 0) return START_HEURISTIC_WEIGHT * startHeuristicCost(start, axes);
   let prefix = root;
   while (prefix.gapIndex < firstGapIndex) prefix = extendNode(prefix, null);
 
-  const firstCandidates = solveOneGap(
-    prefix.prefixEngine,
-    gaps[firstGapIndex],
-    perGapRng(seed, firstGapIndex),
-    START_FIRST_K,
-    ctx,
-    prefix.prefixNextLineId,
-  ).sort((a, b) => a.cost - b.cost);
+  const firstCandidates = getCandidatesSorted(prefix, gaps, ctx, seed, START_FIRST_K);
 
   if (firstCandidates.length === 0) {
     return DEAD_END_PENALTY * 2 + START_HEURISTIC_WEIGHT * startHeuristicCost(start, axes);

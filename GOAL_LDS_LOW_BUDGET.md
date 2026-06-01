@@ -422,6 +422,16 @@ knob, not the final branching policy; future work should look for a similarly
 general branch-readiness signal that improves on cadence without spending the
 branch on the first merely passing prefix.
 
+The next branch diagnostic should look at conversion, not just branch volume.
+The compiler now reports `handoff_prefix_branch_evaluations`,
+`handoff_prefix_branch_full_evaluations`, and
+`handoff_prefix_branch_improvements` alongside fork count and selected search
+lane. Use these counters to separate rows where alternate-lane work is actually
+entering the register from rows where forks are created but never become useful
+full-duration candidates. A future readiness signal should improve that
+conversion rate with generic search-state features, not by naming specs, lanes,
+or fixed branch fractions.
+
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot

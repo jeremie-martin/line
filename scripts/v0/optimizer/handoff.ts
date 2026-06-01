@@ -147,6 +147,9 @@ type HandoffTelemetry = {
   skips: number;
   deferredSkips: number;
   prefixBranchForks: number;
+  prefixBranchEvaluations: number;
+  prefixBranchFullEvaluations: number;
+  prefixBranchImprovements: number;
   startRanksSeen: Set<number>;
   startRanksWithFits: Set<number>;
 };
@@ -370,6 +373,9 @@ function compileHandoffInternal(
       skips: 0,
       deferredSkips: 0,
       prefixBranchForks: 0,
+      prefixBranchEvaluations: 0,
+      prefixBranchFullEvaluations: 0,
+      prefixBranchImprovements: 0,
       startRanksSeen: new Set<number>(),
       startRanksWithFits: new Set<number>(),
     };
@@ -414,6 +420,11 @@ function compileHandoffInternal(
         ),
         evaluation.key,
       );
+      if (node.searchLane !== 0) {
+        telemetry.prefixBranchEvaluations++;
+        if (evaluation.fullDuration) telemetry.prefixBranchFullEvaluations++;
+        if (improved) telemetry.prefixBranchImprovements++;
+      }
       const event: HandoffNodeEvent = {
         phase,
         simFrames: getSimFrames(),
@@ -470,6 +481,9 @@ function compileHandoffInternal(
           handoff_search_seed: best.stats.handoff_search_seed ?? searchSeed,
           handoff_search_lane: best.stats.handoff_search_lane ?? 0,
           handoff_prefix_branch_forks: telemetry.prefixBranchForks,
+          handoff_prefix_branch_evaluations: telemetry.prefixBranchEvaluations,
+          handoff_prefix_branch_full_evaluations: telemetry.prefixBranchFullEvaluations,
+          handoff_prefix_branch_improvements: telemetry.prefixBranchImprovements,
           ...(arcStats ? { arc_placement: arcStats } : {}),
         },
       };
@@ -557,6 +571,11 @@ function compileHandoffInternal(
             ),
             evaluation.key,
           );
+          if (polishNode.searchLane !== 0) {
+            telemetry.prefixBranchEvaluations++;
+            if (evaluation.fullDuration) telemetry.prefixBranchFullEvaluations++;
+            if (improved) telemetry.prefixBranchImprovements++;
+          }
           const event: HandoffNodeEvent = {
             phase: "polish",
             simFrames: getSimFrames(),

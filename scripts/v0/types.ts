@@ -206,6 +206,13 @@ export type CompileStats = {
    *  compile. These are ordinary frontier nodes and are scored by the same
    *  best-so-far register as baseline prefixes. */
   handoff_prefix_branch_forks?: number;
+  /** Alternate-lane outputs actually offered to the best-so-far register, how
+   *  many of them were full-duration outputs, and how many strictly improved
+   *  the register. Forks alone only show branch volume; these counters show
+   *  whether branch work converted into accepted downstream basins. */
+  handoff_prefix_branch_evaluations?: number;
+  handoff_prefix_branch_full_evaluations?: number;
+  handoff_prefix_branch_improvements?: number;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
    *  terminal prefixes use the full spec duration. */

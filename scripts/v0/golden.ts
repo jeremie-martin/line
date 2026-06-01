@@ -793,6 +793,12 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_skips: stats.handoff_skips,
     handoff_skip_branches: stats.handoff_skip_branches,
     handoff_deferred_skips: stats.handoff_deferred_skips,
+    handoff_search_seed: stats.handoff_search_seed,
+    handoff_search_lane: stats.handoff_search_lane,
+    handoff_prefix_branch_forks: stats.handoff_prefix_branch_forks,
+    handoff_prefix_branch_evaluations: stats.handoff_prefix_branch_evaluations,
+    handoff_prefix_branch_full_evaluations: stats.handoff_prefix_branch_full_evaluations,
+    handoff_prefix_branch_improvements: stats.handoff_prefix_branch_improvements,
   };
 }
 

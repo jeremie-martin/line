@@ -44,6 +44,11 @@ type CompileStats = {
   handoff_skips?: number;
   handoff_skip_branches?: number;
   handoff_deferred_skips?: number;
+  handoff_search_lane?: number;
+  handoff_prefix_branch_forks?: number;
+  handoff_prefix_branch_evaluations?: number;
+  handoff_prefix_branch_full_evaluations?: number;
+  handoff_prefix_branch_improvements?: number;
 };
 
 type AxisError = {
@@ -124,6 +129,11 @@ function fmtStats(stats: CompileStats | undefined): string {
     `rescue=${stats.handoff_rescue_successes ?? "?"}/${stats.handoff_rescue_attempts ?? "?"}`,
     `preview=${stats.handoff_preview_contacts ?? "?"}/${stats.handoff_previews ?? "?"}`,
     `starts=${stats.handoff_start_ranks_with_fits ?? "?"}/${stats.handoff_start_ranks_seen ?? "?"}`,
+    `lane=${stats.handoff_search_lane ?? "?"}`,
+    `branch=${stats.handoff_prefix_branch_improvements ?? "?"}/` +
+      `${stats.handoff_prefix_branch_evaluations ?? "?"}` +
+      `(${stats.handoff_prefix_branch_full_evaluations ?? "?"}f,` +
+      `${stats.handoff_prefix_branch_forks ?? "?"}forks)`,
     `full=${stats.handoff_full_evaluations ?? "?"}`,
     `partial=${stats.handoff_partial_evaluations ?? "?"}`,
   ];

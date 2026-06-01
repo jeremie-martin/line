@@ -405,6 +405,23 @@ can fit the compiler contract, not as the final scheduler. The next improvement
 should recover more oracle headroom with better branch timing or selection,
 while avoiding broad branch fanout and spec-specific rules.
 
+The first branch-scheduler tuning pass supports a simple lesson: branch cadence
+matters more than clever branch-point predicates, at least so far. A diagnostic
+slice rejected making the branch second-priority after the best baseline child,
+because useful suffix branches need early stack priority. It also rejected
+forking only when a prefix's near-tail completion first improves the passing
+incumbent; that spends the single branch too early on a merely viable prefix.
+Cadence sweeps on the same branch-heavy slice were `16=305.61`, `8=305.97`,
+`6=305.51`, `4=306.43`, and `2=305.60`, showing a useful middle zone between
+"too sparse" and "branch almost every time." Moving the production cadence from
+16 to 4 full-suite frontier selections recovered more oracle headroom without
+changing the compiler contract: full golden moved `CURVE_SCORE 319.64 -> 320.14`
+with the same `533/540` valid checkpoints. Report-only variants moved
+`248.23 -> 248.29`, same `1020/1080` valid. This remains a blunt scheduler
+knob, not the final branching policy; future work should look for a similarly
+general branch-readiness signal that improves on cadence without spending the
+branch on the first merely passing prefix.
+
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot

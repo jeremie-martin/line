@@ -268,7 +268,7 @@ const QUALITY_FAR_BACK_MAX_AXIS_QUALITY = 0.24;
  *  the existing register remains the only selector, so this preserves the
  *  anytime/checkpoint contract. */
 const PREFIX_BRANCH_LANE = 1;
-const PREFIX_BRANCH_FRONTIER_INTERVAL = 16;
+const PREFIX_BRANCH_FRONTIER_INTERVAL = 4;
 const PREFIX_BRANCH_MIN_PREFIX_CONTACTS = 4;
 const PREFIX_BRANCH_MIN_REMAINING_CONTACTS = 4;
 

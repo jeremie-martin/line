@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   brakeCandidateCount,
   handoffCandidatePool,
+  handoffSampleCount,
   hasStartFeasibilityLookahead,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
@@ -41,6 +42,11 @@ describe("handoff policy boundaries", () => {
   test("candidate pool has no contact-count regime cliff", () => {
     const formerCliffCounts = [29, 30, 31, 60, 61, 77];
     expect(formerCliffCounts.map(() => handoffCandidatePool())).toEqual([8, 8, 8, 8, 8, 8]);
+  });
+
+  test("sample schedule widens after contract success", () => {
+    expect(handoffSampleCount(false)).toBe(14);
+    expect(handoffSampleCount(true)).toBe(16);
   });
 
   test("near-tail completion is based on remaining contacts, not total contacts", () => {

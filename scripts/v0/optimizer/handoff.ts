@@ -132,10 +132,12 @@ const HANDOFF_BRANCHING = 3;
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
  *  pool is mostly wasted per-node work that starves bounded-budget exploration.
- *  Generating ~16 (a deterministic prefix of the 32-sample order) roughly halves
- *  node cost while keeping enough local variety for reachability. Must stay
- *  >= HANDOFF_CANDIDATE_POOL. */
-const HANDOFF_N_CAND = 16;
+ *  Before any passing output exists, use a cheaper deterministic prefix to
+ *  expose complete tracks earlier. Once the register has a passing output,
+ *  expand the deterministic prefix for quality search. This adapts to search
+ *  state, not requested budgets. Must stay >= HANDOFF_CANDIDATE_POOL. */
+const HANDOFF_CONTRACT_N_CAND = 14;
+const HANDOFF_QUALITY_N_CAND = 16;
 /** Extra deterministic sampling only when the normal batch finds no viable
  *  catch for a required contact. This preserves the cheap common path while
  *  spending bounded work at true contract dead-ends instead of immediately
@@ -337,7 +339,14 @@ export function compileHandoff(
       const key = consider(node);
       if (key !== null) opts.onNode?.(node, key);
 
-      const tailNode = completeNearTail(node, gaps, ctx, seed, telemetry);
+      const tailNode = completeNearTail(
+        node,
+        gaps,
+        ctx,
+        seed,
+        telemetry,
+        register.getBestKey()?.contract_passed === true,
+      );
       if (tailNode !== null) {
         const tailKey = consider(tailNode);
         if (tailKey !== null) opts.onNode?.(tailNode, tailKey);
@@ -399,7 +408,15 @@ export function compileHandoff(
 
       if (isTerminalNode(node.search, gaps)) continue;
 
-      const children = expandNode(node, gaps, ctx, seed, startOptions, telemetry);
+      const children = expandNode(
+        node,
+        gaps,
+        ctx,
+        seed,
+        startOptions,
+        telemetry,
+        register.getBestKey()?.contract_passed === true,
+      );
       telemetry.nodesExpanded++;
       for (let i = children.length - 1; i >= 0; i--) {
         enqueueChild(children[i], passStack, fallbackStack);
@@ -489,6 +506,7 @@ function expandNode(
   seed: number,
   startOptions: StartOption[],
   telemetry: HandoffTelemetry,
+  qualitySearch: boolean,
 ): HandoffNode[] {
   if (isTerminalNode(node.search, gaps)) return [];
   if (!node.startExpanded) {
@@ -515,7 +533,9 @@ function expandNode(
     }];
   }
 
-  let options = rankedOptions(node.search, gaps, ctx, seed, telemetry);
+  let options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
+    nCand: handoffSampleCount(qualitySearch),
+  });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
     telemetry.rescueAttempts++;
     options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
@@ -598,7 +618,13 @@ function rankedOptions(
   telemetry: HandoffTelemetry,
   config: { nCand?: number; poolSize?: number; preview?: boolean } = {},
 ): RankedOption[] {
-  const sorted = getCandidatesSorted(node, gaps, ctx, seed, config.nCand ?? HANDOFF_N_CAND);
+  const sorted = getCandidatesSorted(
+    node,
+    gaps,
+    ctx,
+    seed,
+    config.nCand ?? HANDOFF_CONTRACT_N_CAND,
+  );
   const poolSize = config.poolSize ?? handoffCandidatePool();
   const pool = sorted.slice(0, poolSize);
   const preview = config.preview ?? true;
@@ -761,11 +787,20 @@ function completeNearTail(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
+  qualitySearch: boolean,
 ): HandoffNode | null {
   if (!shouldAttemptNearTailCompletion(node, gaps)) return null;
   telemetry.tailCompletionAttempts++;
 
-  const completed = completeNearTailSuffix(node.search, [...node.ranks], gaps, ctx, seed, telemetry);
+  const completed = completeNearTailSuffix(
+    node.search,
+    [...node.ranks],
+    gaps,
+    ctx,
+    seed,
+    telemetry,
+    qualitySearch,
+  );
   if (completed === null) return null;
 
   telemetry.tailCompletionSuccesses++;
@@ -787,6 +822,7 @@ function completeNearTailSuffix(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
+  qualitySearch: boolean,
 ): { search: SearchNode; ranks: number[] } | null {
   const stack: { search: SearchNode; ranks: number[] }[] = [{ search: start, ranks: startRanks }];
   while (stack.length > 0) {
@@ -800,7 +836,10 @@ function completeNearTailSuffix(
     }
     if (isTerminalNode(search, gaps)) return { search, ranks };
 
-    const options = rankedOptions(search, gaps, ctx, seed, telemetry, { preview: false })
+    const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
+      nCand: handoffSampleCount(qualitySearch),
+      preview: false,
+    })
       .filter((option) => option.candidate !== null)
       .slice(0, TAIL_COMPLETION_FALLBACK_BRANCHING);
     for (let i = options.length - 1; i >= 0; i--) {
@@ -812,6 +851,10 @@ function completeNearTailSuffix(
     }
   }
   return null;
+}
+
+export function handoffSampleCount(qualitySearch: boolean): number {
+  return qualitySearch ? HANDOFF_QUALITY_N_CAND : HANDOFF_CONTRACT_N_CAND;
 }
 
 export function shouldAttemptNearTailCompletion(

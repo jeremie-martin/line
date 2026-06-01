@@ -28,12 +28,15 @@ normal batch has no viable catch, and the policy is a pure function of the local
 gap/prefix state, not remaining budget.
 
 Candidate sampling is memoized per search node as an extendable deterministic
-prefix. If rescue escalates from the normal 16 attempts to 32 or 80, the cache
-burns RNG state for the already-sampled attempts and simulates only the
-additional attempts, preserving the exact full-batch candidate order without
-paying duplicate physics work. If a larger prefix is already cached, smaller-K
-lookahead requests are answered by filtering the stored sample attempts, so the
-smaller deterministic prefix is still exact.
+prefix. Before any passing output exists, normal expansion samples a 14-attempt
+prefix so long or difficult specs can expose a complete track earlier. After the
+register has a passing output, expansion widens to a 16-attempt prefix for
+quality search. If rescue escalates to 32 or 80 attempts, the cache burns RNG
+state for the already-sampled attempts and simulates only the additional
+attempts, preserving the exact full-batch candidate order without paying
+duplicate physics work. If a larger prefix is already cached, smaller-K lookahead
+requests are answered by filtering the stored sample attempts, so the smaller
+deterministic prefix is still exact.
 
 The preview is engine-in-loop and charged in simulated frames. It is also a pure
 policy function of `(spec, seed, prefix)`; it does not read the requested

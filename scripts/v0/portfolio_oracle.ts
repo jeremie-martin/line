@@ -199,6 +199,18 @@ function bestByScore(candidates: LaneCheckpoint[]): LaneCheckpoint {
   return candidates.reduce((best, row) => row.score > best.score ? row : best);
 }
 
+function laneCheckpointSummary(row: LaneCheckpoint): object {
+  return {
+    lane: row.lane,
+    search_seed: row.searchSeed,
+    score: row.score,
+    pass: row.pass,
+    axis_quality: row.axisQuality,
+    sim_frames: row.simFrames,
+    track_hash: row.trackHash,
+  };
+}
+
 function scaledBudget(totalBudget: number, laneCount: number): number {
   return Math.max(1, Math.floor(totalBudget / laneCount));
 }
@@ -391,6 +403,26 @@ function writeJson(rows: RowResult[], args: Args): void {
         score: row.score,
         pass: row.pass,
       })),
+      rows: rows.map((row, index) => {
+        const base = baseline[index];
+        const full = fullOracle[index];
+        const equal = equalSlice[index];
+        return {
+          spec: row.specName,
+          seed: row.seed,
+          baseline: laneCheckpointSummary(base),
+          full_lane_winner: laneCheckpointSummary(full),
+          full_lane_delta: full.score - base.score,
+          equal_slice_winner: laneCheckpointSummary(equal),
+          equal_slice_delta: equal.score - base.score,
+          lanes: args.lanes.map((lane) =>
+            laneCheckpointSummary(rowCheckpoint(row, lane, budget))
+          ),
+          equal_slice_lanes: args.lanes.map((lane) =>
+            laneCheckpointSummary(rowCheckpoint(row, lane, equalBudget))
+          ),
+        };
+      }),
     };
   });
   writeFileSync(outputPath, JSON.stringify({

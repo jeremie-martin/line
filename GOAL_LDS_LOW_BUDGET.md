@@ -346,6 +346,49 @@ the whole diagnostic run spent `173k` frames because it also ran the baseline
 and an extra 50% branch. This is not a fair scheduler result, but it is evidence
 that at least one contact-style plateau has useful downstream restart headroom.
 
+Larger seed-0 probes make the mechanism more credible without making the exact
+row identities sacred. A no-polish full-suite lane-1 prefix-branch oracle moved
+the 20-row curve from `256.75` to `266.21` (`+9.47`) with the same `19/20`
+passing rows at every checkpoint. All 12 material wins were positive at every
+budget. Re-running those 12 rows with polish preserved the wins and moved their
+curve from `312.69` to `332.01` (`+19.32`), so polish does not appear to erase
+the prefix-branch signal.
+
+Lane sensitivity is also real, but should be treated as search-dynamics evidence
+rather than spec astrology. Sweeping lanes 2-4 on the previous non-winners found
+additional oracle headroom, including one contract rescue and three smaller
+quality wins; the four new winners also survived a polish-on rerun. The broader
+lesson is not that any fixed fraction, lane, or named spec is special. It is
+that the deterministic handoff schedule can over-commit to a locally acceptable
+prefix, while a later suffix resampling from the same prefix can enter a better
+downstream basin.
+
+The first scheduler approximation is `scripts/v0/prefix_branch_scheduler_probe.ts`.
+It consumes a prefix-branch oracle JSON, reruns the selected prefix, and measures
+two cheaper policies:
+
+- `replace`: spend only the original remaining suffix budget and return that
+  branch directly;
+- `extra`: keep the normal baseline as fallback, spend a capped extra suffix
+  budget, and accept the branch only through the existing score comparator.
+
+This probe reinforces the safety rule. On the 11 selected full-suite lane-1 rows
+with `branchMaxNodes=30`, `replace` collapsed the selected-row curve
+`310.05 -> 40.06`. The fallback `extra` policy recovered useful signal:
+`+8.50` selected-row curve at `20%` nominal overhead and `+10.58` at `60%`.
+Projected back onto all 20 seed-0 rows by leaving unselected rows at baseline,
+that is roughly `+3.85` to `+4.78` curve against the `+9.47` oracle. The measured
+75k work ratio was about `1.28x` to `1.31x` because the shallow branch cap often
+stopped before consuming the nominal overhead.
+
+The same shallow scheduler did not recover most lane-sensitive non-winner
+headroom: it kept the baseline on the largest rescue and only captured the
+smallest robust quality win. That is an important negative result. The next
+production-shaped probe should not blindly add more branches everywhere; it
+should test how much of the oracle can be recovered with one deterministic
+fallback branch, better branch-point selection, and a small node cap before
+moving to broader policy.
+
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot

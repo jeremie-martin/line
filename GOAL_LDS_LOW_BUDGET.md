@@ -16,16 +16,16 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline (20-spec golden suite, after guarded five-contact tail completion):
+Current baseline (20-spec golden suite, after bounded tail fallback):
 
-- `goal_score 312.99`
+- `goal_score 313.16`
 - `valid 60/60` (20 specs × 3 seeds)
 - `contract_pass_rate 100%`
 - `evaluator_fingerprint e9f938701119`
 
 Variant probe at the same 50k budget:
 
-- `variant_report_score 304.72`
+- `variant_report_score 304.80`
 - `valid 120/120`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
@@ -156,6 +156,12 @@ committed-catch guard avoids turning a four-contact spec into a whole-track
 greedy solve from the root. The base score moves to 312.99 and the variants
 report to 304.72, with no row regressions against the node-evaluation cache
 baseline and all rows valid.
+Near-tail completion now keeps the greedy suffix path as the first attempt, but
+if that path reaches a local dead end it can backtrack to the second-ranked
+local option within the same five-contact window. This spends extra work only on
+failed tail completions, raises tail-completion successes, and moves more full
+evaluations under the same 50k budget. The base score moves to 313.16 and the
+variants report to 304.80; all base and variant rows remain valid.
 
 Promising levers:
 

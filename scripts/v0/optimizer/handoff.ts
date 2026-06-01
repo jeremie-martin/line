@@ -182,6 +182,7 @@ const HANDOFF_BRAKE_HIGH_OVERSPEED_K = 3;
 const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 5;
+const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
 
 export function compileHandoff(
   userSpec: Spec,
@@ -723,32 +724,53 @@ function completeNearTail(
   if (!shouldAttemptNearTailCompletion(node, gaps)) return null;
   telemetry.tailCompletionAttempts++;
 
-  let search = node.search;
-  const ranks = [...node.ranks];
-  while (!isTerminalNode(search, gaps)) {
-    const gap = gaps[search.gapIndex];
-    if (!gap.endsWithContact) {
-      search = extendNodeCached(search, null);
-      ranks.push(-1);
-      continue;
-    }
-
-    const [option] = rankedOptions(search, gaps, ctx, seed, telemetry, { preview: false });
-    if (option === undefined || option.candidate === null) return null;
-    search = extendNodeCached(search, option.candidate);
-    ranks.push(option.rank);
-  }
+  const completed = completeNearTailSuffix(node.search, [...node.ranks], gaps, ctx, seed, telemetry);
+  if (completed === null) return null;
 
   telemetry.tailCompletionSuccesses++;
   return {
-    search,
+    search: completed.search,
     startState: node.startState,
     startRank: node.startRank,
     startExpanded: node.startExpanded,
     deferExpansion: false,
-    ranks,
+    ranks: completed.ranks,
     skippedContacts: node.skippedContacts,
   };
+}
+
+function completeNearTailSuffix(
+  start: SearchNode,
+  startRanks: number[],
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  telemetry: HandoffTelemetry,
+): { search: SearchNode; ranks: number[] } | null {
+  const stack: { search: SearchNode; ranks: number[] }[] = [{ search: start, ranks: startRanks }];
+  while (stack.length > 0) {
+    const state = stack.pop()!;
+    let search = state.search;
+    const ranks = [...state.ranks];
+
+    while (!isTerminalNode(search, gaps) && !gaps[search.gapIndex].endsWithContact) {
+      search = extendNodeCached(search, null);
+      ranks.push(-1);
+    }
+    if (isTerminalNode(search, gaps)) return { search, ranks };
+
+    const options = rankedOptions(search, gaps, ctx, seed, telemetry, { preview: false })
+      .filter((option) => option.candidate !== null)
+      .slice(0, TAIL_COMPLETION_FALLBACK_BRANCHING);
+    for (let i = options.length - 1; i >= 0; i--) {
+      const option = options[i];
+      stack.push({
+        search: extendNodeCached(search, option.candidate!),
+        ranks: [...ranks, option.rank],
+      });
+    }
+  }
+  return null;
 }
 
 export function shouldAttemptNearTailCompletion(

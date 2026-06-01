@@ -16,17 +16,17 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline (20-spec golden suite, after tail-completion preview elision):
+Current baseline (20-spec golden suite, after preview cache reuse):
 
-- `goal_score 311.67`
+- `goal_score 311.80`
 - `valid 60/60` (20 specs × 3 seeds)
 - `contract_pass_rate 100%`
 - `evaluator_fingerprint e9f938701119`
 
 Variant probe at the same 50k budget:
 
-- `variant_report_score 300.18`
-- `valid 119/120`
+- `variant_report_score 302.92`
+- `valid 120/120`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
 > landing is compared to the axis curve's target there, combined as RMS. Older
@@ -97,14 +97,10 @@ At 50k, all 60 base rows now pass the contract. The former base frontier:
 - `opening_burst` now passes 3/3 after clean-prefix short-deadline rescue
 
 `verse_chorus`, `drums_swell`, and `drums_breath` remain 3/3 at 50k. The
-previous sustained-density row, `solo_run`, remains 3/3. The useful work shifts
-from base-suite contract recovery toward variant robustness and quality:
-reaching complete prefixes with lower speed saturation, and doing so without
-letting rescue work starve the cheap common path.
-
-Remaining 50k report-only variant failure:
-
-- `rhythm_ladder/time_stretch_102#1` — 1 missing, died at frame 712
+previous sustained-density row, `solo_run`, remains 3/3. The useful work has
+shifted from base-suite contract recovery through variant contract recovery and
+toward quality: reaching complete prefixes with lower speed saturation, and
+doing so without letting rescue work starve the cheap common path.
 
 The continuous-curve showcase is now 3/3 across the base suite. The visible
 residual on several specs is still *speed* overshooting its target on the
@@ -123,6 +119,11 @@ Tail completion now ranks its greedy suffix steps without a nested future
 preview. The suffix walk itself is already the future feasibility check, so
 skipping the extra one-contact preview removes redundant simulation and moves
 more useful prefix outputs under the same deterministic 50k budget.
+Future-contact previews now use the same per-node candidate cache as expansion,
+and expansion carries the previewed child node forward. That avoids simulating
+the first future-contact sample twice, preserves deterministic candidate order
+when expansion later extends from preview `K=1` to the normal batch, and brings
+the report-only 50k variants to 120/120 valid rows.
 
 Promising levers:
 

@@ -36,7 +36,10 @@ paying duplicate physics work.
 The preview is engine-in-loop and charged in simulated frames. It is also a pure
 policy function of `(spec, seed, prefix)`; it does not read the remaining budget.
 Budget only truncates how far through the deterministic prefix-node sequence the
-compiler gets.
+compiler gets. Future-contact previews use the same extendable per-node
+candidate cache as expansion, and expansion carries the previewed child node
+forward, so the previewed first future-contact sample can be reused when that
+branch is later expanded.
 
 Greedy near-tail completion is an exception to future previewing inside
 candidate ranking: the suffix completion itself is already rolling the future
@@ -77,19 +80,17 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 
 Current 20-spec result:
 
-- `SCORE 311.67`
+- `SCORE 311.80`
 - `valid 60/60`
 - `contract_pass_rate 100%`
 
-The same budget with report-only timing variants reports `119/120` valid rows
-with `variant_report_score 300.18`.
+The same budget with report-only timing variants reports `120/120` valid rows
+with `variant_report_score 302.92`.
 
 ## Known Frontier
 
 At the 50k campaign budget, all base rows pass the hard contract. The remaining
-frontier is robustness and quality:
-
-- `rhythm_ladder/time_stretch_102#1` still has one missing contact.
+frontier is robustness and quality.
 
 The former late-speed frontier rows (`verse_chorus`, `drums_swell`,
 `drums_breath`), the hot opening row (`opening_burst`), and the sustained-density

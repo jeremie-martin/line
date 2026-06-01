@@ -76,6 +76,7 @@ type HandoffNode = {
 
 type RankedOption = {
   candidate: Candidate | null;
+  child: SearchNode;
   rank: number;
   score: number;
   previewContacts: number;
@@ -498,7 +499,7 @@ function expandNode(
   }
 
   return options.map((option) => ({
-    search: extendNode(node.search, option.candidate),
+    search: option.child,
     startState: node.startState,
     startRank: node.startRank,
     startExpanded: node.startExpanded,
@@ -763,6 +764,7 @@ function scoreCandidateForHandoff(
 
   return {
     candidate,
+    child,
     rank,
     previewContacts: preview.landed,
     previewSurvivors: preview.survivors,
@@ -799,15 +801,7 @@ function previewFutureContacts(
     while (node.gapIndex < nextGapIndex) node = extendNode(node, null);
 
     horizon++;
-    const nextGap = gaps[nextGapIndex];
-    const candidates = solveOneGap(
-      node.prefixEngine,
-      nextGap,
-      perGapRng(seed, nextGapIndex),
-      HANDOFF_PREVIEW_K,
-      ctx,
-      node.prefixNextLineId,
-    );
+    const candidates = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_PREVIEW_K);
     telemetry.previews++;
     telemetry.previewSurvivors += candidates.length;
     survivors += candidates.length;

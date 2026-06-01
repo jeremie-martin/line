@@ -79,6 +79,15 @@ Important diagnostics:
 - `leaves_considered`
 - `search_nodes_expanded`
 - `frontier_max_size`
+- `handoff_frontier_size`
+- `handoff_pass_frontier_size`
+- `handoff_fallback_frontier_size`
+- `handoff_frontier_min_gap`
+- `handoff_frontier_max_gap`
+- `handoff_deepest_seen_gap`
+- `handoff_frontier_oldest_gap_lag`
+- `handoff_frontier_mean_gap_lag`
+- `handoff_frontier_far_back_count`
 - `handoff_partial_evaluations`
 - `handoff_full_evaluations`
 - `handoff_previews`
@@ -123,6 +132,15 @@ budget-aware. The goal is an adaptive compiler, but the checkpoint contract stil
 requires one deterministic policy sequence whose candidate choices do not read
 the requested budgets.
 
+The "branch from far back" idea should start as diagnosis, not as policy. A large
+`handoff_frontier_oldest_gap_lag` at late checkpoints means the compiler has seen
+deeper prefixes while older alternatives remain available; if those rows plateau,
+frontier scheduling or explicit ancestor repair may be worth testing. Check
+`handoff_frontier_mean_gap_lag` and `handoff_frontier_far_back_count` as well so
+one deferred start root does not masquerade as a broad backlog. A small lag or
+empty frontier points more toward local candidate generation, ranking, or suffix
+quality than retro-branching.
+
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot
@@ -132,6 +150,8 @@ Promising levers:
 - start-state search that improves the first few gaps without hidden prepasses
 - polish variants that are cheap enough to be worth their metered frames
 - cadence-aware speed-bleed / braking that holds a descending or flat speed curve
+- frontier scheduling / ancestor repair when frontier-depth diagnostics show
+  promising older alternatives left unexplored
 
 Hard rules:
 

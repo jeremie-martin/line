@@ -55,7 +55,14 @@ import {
 import { resetArcPlacementStats, snapshotArcPlacementStats } from "../arc_placement.ts";
 import { sampleOneCandidate } from "./sample.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
-import type { CompileCheckpoint, CompileOutput, CompileResult, DriftReport, Spec } from "./types.ts";
+import type {
+  CompileCheckpoint,
+  CompileOutput,
+  CompileResult,
+  CompileStats,
+  DriftReport,
+  Spec,
+} from "./types.ts";
 
 export type CompileHandoffOptions = {
   /** Ascending simulated-frame checkpoints to return from one deterministic run. */
@@ -98,6 +105,7 @@ type StartOption = {
 type HandoffTelemetry = {
   nodesExpanded: number;
   frontierMaxSize: number;
+  deepestSeenGap: number;
   partialEvaluations: number;
   fullEvaluations: number;
   tailCompletionAttempts: number;
@@ -110,6 +118,19 @@ type HandoffTelemetry = {
   skips: number;
   deferredSkips: number;
 };
+
+type HandoffFrontierStats = Pick<
+  CompileStats,
+  | "handoff_frontier_size"
+  | "handoff_pass_frontier_size"
+  | "handoff_fallback_frontier_size"
+  | "handoff_frontier_min_gap"
+  | "handoff_frontier_max_gap"
+  | "handoff_deepest_seen_gap"
+  | "handoff_frontier_oldest_gap_lag"
+  | "handoff_frontier_mean_gap_lag"
+  | "handoff_frontier_far_back_count"
+>;
 
 type NodeEvaluation = {
   report: DriftReport;
@@ -197,6 +218,7 @@ const HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES = HANDOFF_RESCUE_MIN_GAP_FRAMES;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 6;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
+const FAR_BACK_FRONTIER_LAG = 3;
 
 export function compileHandoff(
   userSpec: Spec,
@@ -254,6 +276,7 @@ export function compileHandoff(
     const telemetry: HandoffTelemetry = {
       nodesExpanded: 0,
       frontierMaxSize: frontierSize(passStack, fallbackStack),
+      deepestSeenGap: -1,
       partialEvaluations: 0,
       fullEvaluations: 0,
       tailCompletionAttempts: 0,
@@ -282,6 +305,7 @@ export function compileHandoff(
     };
 
     const consider = (node: HandoffNode): LeafKey | null => {
+      telemetry.deepestSeenGap = Math.max(telemetry.deepestSeenGap, node.search.gapIndex);
       if (canSkipPartialEvaluation(node, gaps, register)) return null;
       const evaluation = evaluateCached(node);
       if (evaluation.fullDuration) telemetry.fullEvaluations++;
@@ -321,6 +345,7 @@ export function compileHandoff(
           polish_variants_adopted: polishAdopted,
           search_nodes_expanded: telemetry.nodesExpanded,
           frontier_max_size: telemetry.frontierMaxSize,
+          ...snapshotFrontierStats(passStack, fallbackStack, telemetry),
           handoff_partial_evaluations: telemetry.partialEvaluations,
           handoff_full_evaluations: telemetry.fullEvaluations,
           handoff_tail_completion_attempts: telemetry.tailCompletionAttempts,
@@ -501,6 +526,60 @@ function enqueueDeferred(
 
 function frontierSize(passStack: HandoffNode[], fallbackStack: HandoffNode[]): number {
   return passStack.length + fallbackStack.length;
+}
+
+function snapshotFrontierStats(
+  passStack: HandoffNode[],
+  fallbackStack: HandoffNode[],
+  telemetry: HandoffTelemetry,
+): HandoffFrontierStats {
+  const stats: HandoffFrontierStats = {
+    handoff_frontier_size: frontierSize(passStack, fallbackStack),
+    handoff_pass_frontier_size: passStack.length,
+    handoff_fallback_frontier_size: fallbackStack.length,
+  };
+  const summary = frontierGapSummary(passStack, fallbackStack, telemetry.deepestSeenGap);
+  if (summary.min !== undefined) {
+    stats.handoff_frontier_min_gap = summary.min;
+    if (telemetry.deepestSeenGap >= 0) {
+      stats.handoff_frontier_oldest_gap_lag = Math.max(0, telemetry.deepestSeenGap - summary.min);
+      stats.handoff_frontier_mean_gap_lag = summary.meanGapLag;
+      stats.handoff_frontier_far_back_count = summary.farBackCount;
+    }
+  }
+  if (summary.max !== undefined) stats.handoff_frontier_max_gap = summary.max;
+  if (telemetry.deepestSeenGap >= 0) stats.handoff_deepest_seen_gap = telemetry.deepestSeenGap;
+  return stats;
+}
+
+function frontierGapSummary(
+  passStack: HandoffNode[],
+  fallbackStack: HandoffNode[],
+  deepestSeenGap: number,
+): { min?: number; max?: number; meanGapLag?: number; farBackCount?: number } {
+  let min: number | undefined;
+  let max: number | undefined;
+  let lagSum = 0;
+  let farBackCount = 0;
+  const visit = (node: HandoffNode): void => {
+    const gap = node.search.gapIndex;
+    min = min === undefined ? gap : Math.min(min, gap);
+    max = max === undefined ? gap : Math.max(max, gap);
+    if (deepestSeenGap >= 0) {
+      const lag = Math.max(0, deepestSeenGap - gap);
+      lagSum += lag;
+      if (lag >= FAR_BACK_FRONTIER_LAG) farBackCount++;
+    }
+  };
+  for (const node of passStack) visit(node);
+  for (const node of fallbackStack) visit(node);
+  const count = frontierSize(passStack, fallbackStack);
+  return {
+    min,
+    max,
+    meanGapLag: deepestSeenGap >= 0 && count > 0 ? round3(lagSum / count) : undefined,
+    farBackCount: deepestSeenGap >= 0 && count > 0 ? farBackCount : undefined,
+  };
 }
 
 function canSkipPartialEvaluation(

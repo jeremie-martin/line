@@ -178,6 +178,20 @@ export type CompileStats = {
    *  prefix state at a gap boundary; most nodes are not whole tracks yet. */
   search_nodes_expanded?: number;
   frontier_max_size?: number;
+  /** Remaining handoff frontier at this checkpoint. `gap` is the next gap index
+   *  to expand on that branch; a positive oldest-gap lag means the search has
+   *  seen deeper prefixes while older alternatives are still waiting. */
+  handoff_frontier_size?: number;
+  handoff_pass_frontier_size?: number;
+  handoff_fallback_frontier_size?: number;
+  handoff_frontier_min_gap?: number;
+  handoff_frontier_max_gap?: number;
+  handoff_deepest_seen_gap?: number;
+  handoff_frontier_oldest_gap_lag?: number;
+  handoff_frontier_mean_gap_lag?: number;
+  /** Remaining branches at least three gap expansions behind the deepest seen
+   *  prefix. This is an instrumentation-only proxy for "far-back" alternatives. */
+  handoff_frontier_far_back_count?: number;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
    *  terminal prefixes use the full spec duration. */

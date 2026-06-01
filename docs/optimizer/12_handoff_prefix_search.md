@@ -77,10 +77,20 @@ The same prefix can be offered to the register from start-option deferral or
 near-tail speculative completion; reusing its report/key avoids duplicate
 trajectory extraction while preserving the same register offer order.
 
+After a full contract-passing output has reached the register, nonterminal
+partial reports are dominated because they still include future missing contacts
+and a pre-end terminus. Handoff still expands those nodes and still evaluates
+terminal/tail-completed leaves, but it skips the dominated partial detector
+offer so the remaining budget is spent on outputs that can improve the passing
+incumbent.
+
 ## Budget Contract
 
 Every scored prefix output is offered to the strict best-so-far register. Larger
 budgets see a prefix superset and cannot return a strictly worse comparator key.
+The only skipped reports are nonterminal partials after a passing full-duration
+incumbent exists; those reports cannot dominate that incumbent under the
+register comparator.
 
 Nonterminal prefixes have explicit partial-output semantics: they are evaluated
 through their committed horizon plus a short detector margin, include a bounded
@@ -102,7 +112,7 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 
 Current 20-spec result:
 
-- `SCORE 313.16`
+- `SCORE 313.40`
 - `valid 60/60`
 - `contract_pass_rate 100%`
 

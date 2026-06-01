@@ -280,7 +280,8 @@ export function compileHandoff(
       return evaluation;
     };
 
-    const consider = (node: HandoffNode): LeafKey => {
+    const consider = (node: HandoffNode): LeafKey | null => {
+      if (canSkipPartialEvaluation(node, gaps, register)) return null;
       const evaluation = evaluateCached(node);
       if (evaluation.fullDuration) telemetry.fullEvaluations++;
       else telemetry.partialEvaluations++;
@@ -302,13 +303,13 @@ export function compileHandoff(
         const frontier = activeFrontier(passStack, fallbackStack);
         const node = frontier.pop()!;
         const key = consider(node);
-        opts.onNode?.(node, key);
+        if (key !== null) opts.onNode?.(node, key);
         if (register.consideredCount === 1) setSimFrameLimit(hardBudgetLimit);
 
         const tailNode = completeNearTail(node, gaps, ctx, seed, telemetry);
         if (tailNode !== null) {
           const tailKey = consider(tailNode);
-          opts.onNode?.(tailNode, tailKey);
+          if (tailKey !== null) opts.onNode?.(tailNode, tailKey);
         }
 
         if (getSimFrames() >= budgetUnits) {
@@ -458,6 +459,20 @@ function enqueueDeferred(
 
 function frontierSize(passStack: HandoffNode[], fallbackStack: HandoffNode[]): number {
   return passStack.length + fallbackStack.length;
+}
+
+function canSkipPartialEvaluation(
+  node: HandoffNode,
+  gaps: Gap[],
+  register: BestSoFarRegister,
+): boolean {
+  // A nonterminal partial report is always contract-failing (future contacts are
+  // missing and the terminus is forced before end-of-spec). Once a full passing
+  // output exists, scoring more dominated partials cannot improve the register;
+  // keep expanding the node, but spend detector work only on terminal/tail
+  // completions that can still improve axis quality.
+  const bestKey = register.getBestKey();
+  return bestKey?.contract_passed === true && !isTerminalNode(node.search, gaps);
 }
 
 function expandNode(

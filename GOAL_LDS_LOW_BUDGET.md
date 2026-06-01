@@ -16,9 +16,9 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline (20-spec golden suite, after bounded tail fallback):
+Current baseline (20-spec golden suite, after dominated partial skip):
 
-- `goal_score 313.16`
+- `goal_score 313.40`
 - `valid 60/60` (20 specs × 3 seeds)
 - `contract_pass_rate 100%`
 - `evaluator_fingerprint e9f938701119`
@@ -162,6 +162,13 @@ local option within the same five-contact window. This spends extra work only on
 failed tail completions, raises tail-completion successes, and moves more full
 evaluations under the same 50k budget. The base score moves to 313.16 and the
 variants report to 304.80; all base and variant rows remain valid.
+Once the register already holds a full contract-passing output, later
+nonterminal partial reports are dominated: by construction they still contain
+future missing contacts and cannot beat a passing incumbent. Handoff now keeps
+expanding those nodes but skips the detector/report scoring for the dominated
+partial offer, saving work for terminal leaves and tail completions. The base
+score moves to 313.40, the variants remain at 304.80, and all 180 base+variant
+rows remain valid.
 
 Promising levers:
 

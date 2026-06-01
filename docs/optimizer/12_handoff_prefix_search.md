@@ -71,14 +71,18 @@ adding any explicit retro-branching policy.
 
 Initial conditions are part of the same search. If a spec has `preroll > 0` and
 no manual `start`, handoff builds deterministic root velocity alternatives and
-orders hard openings with a small first/second-contact feasibility probe. The
-selected root nodes carry the first-contact candidate cache from that probe, so
-real expansion extends the sampled prefix instead of replaying it. Repeated
-extension of the same parent by the same sampled candidate is cached too, so the
-second-contact lookahead can seed the child node later used by preview and
-expansion. Checkpoint stats also count start ranks seen versus start ranks that
-reach a committed catch, which distinguishes "alternative starts were considered
-as roots" from "alternative starts actually received search budget."
+orders hard openings with a small first/second-contact feasibility probe. For
+high-speed openings, that probe uses the same speed/air overshoot penalty as
+handoff candidate ranking, so early root ordering does not seed avoidable speed
+creep before normal expansion starts. Lower-speed openings keep the cheaper
+symmetric local-cost probe. The selected root nodes carry the first-contact
+candidate cache from that probe, so real expansion extends the sampled prefix
+instead of replaying it. Repeated extension of the same parent by the same
+sampled candidate is cached too, so the second-contact lookahead can seed the
+child node later used by preview and expansion. Checkpoint stats also count start
+ranks seen versus start ranks that reach a committed catch, which distinguishes
+"alternative starts were considered as roots" from "alternative starts actually
+received search budget."
 
 Handoff-only extra candidates are cached at the node as well. Reuse catches and
 brake catches are deterministic prefix-state probes, so when tail completion and

@@ -12,6 +12,7 @@ import {
   startAngles,
   targetStartAngle,
   usesExpandedBrakeSearch,
+  usesHighSpeedStartOvershootScoring,
   usesSparseContractSearch,
 } from "../scripts/v0/optimizer/handoff.ts";
 import {
@@ -150,6 +151,12 @@ describe("handoff policy boundaries", () => {
     expect(hasStartFeasibilityLookahead([gap(0, 0, 24), gap(1, 24, 46)])).toBe(true);
     expect(hasStartFeasibilityLookahead([gap(0, 0, 25), gap(1, 25, 48)])).toBe(true);
     expect(hasStartFeasibilityLookahead([gap(0, 0, 40), gap(1, 40, 80)])).toBe(true);
+  });
+
+  test("start overshoot scoring is gated to high-speed openings", () => {
+    expect(usesHighSpeedStartOvershootScoring({ speed: 0.75 })).toBe(true);
+    expect(usesHighSpeedStartOvershootScoring({ speed: 0.74 })).toBe(false);
+    expect(usesHighSpeedStartOvershootScoring({})).toBe(false);
   });
 
   test("start-angle policy is continuous around former air bands", () => {

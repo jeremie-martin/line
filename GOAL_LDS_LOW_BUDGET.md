@@ -143,6 +143,14 @@ one deferred start root does not masquerade as a broad backlog. A small lag or
 empty frontier points more toward local candidate generation, ranking, or suffix
 quality than retro-branching.
 
+High-speed start ordering is the current confirmed budget-curve win. Reusing the
+handoff speed/air overshoot penalty only for high-speed first-axis starts moved
+the full golden curve from `306.72` to `315.05` (`533/540` valid checkpoints),
+with the 35k checkpoint improving from `202.89` to `224.75`. The variants probe
+remained monotone with `VARIANT_CURVE_SCORE 247.21` (`1020/1080` valid). This is
+a useful example of progressive adaptation: the policy is keyed by spec/search
+state, not by requested budget.
+
 Start-state diversity needs the same treatment. Multi-start specs can show many
 `handoff_start_ranks_seen` but only one `handoff_start_ranks_with_fits`, meaning
 alternate starts were visited as root partials but not expanded into real catch

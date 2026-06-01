@@ -1125,6 +1125,18 @@ function scoreCandidateForHandoff(
   // achieved speed does NOT overshoot the target — bleeding the creep using
   // catches that already exist (no new geometry). Only penalizes OVERshoot.
   const gap = gaps[node.gapIndex];
+  const overshoot = candidateOvershootPenalty(candidate, gap);
+  return {
+    candidate,
+    child,
+    rank,
+    previewContacts: preview.landed,
+    previewSurvivors: preview.survivors,
+    score: candidate.cost + scarcity + previewCost + statePenalty + overshoot,
+  };
+}
+
+function candidateOvershootPenalty(candidate: Candidate, gap: Gap): number {
   let overshoot = 0;
   const tgtSpeed = gap.targets?.speed;
   const achSpeed = candidate.achieved?.speed;
@@ -1138,14 +1150,7 @@ function scoreCandidateForHandoff(
   if (tgtAir !== undefined && achAir !== undefined && achAir > tgtAir) {
     overshoot += HANDOFF_AIR_OVERSHOOT_WEIGHT * (achAir - tgtAir) * (achAir - tgtAir);
   }
-  return {
-    candidate,
-    child,
-    rank,
-    previewContacts: preview.landed,
-    previewSurvivors: preview.survivors,
-    score: candidate.cost + scarcity + previewCost + statePenalty + overshoot,
-  };
+  return overshoot;
 }
 
 function previewFutureContacts(
@@ -1333,26 +1338,43 @@ function startFeasibilityCost(
     return DEAD_END_PENALTY * 2 + START_HEURISTIC_WEIGHT * startHeuristicCost(start, axes);
   }
 
+  const useOvershootStartScoring = usesHighSpeedStartOvershootScoring(axes);
   let best = Infinity;
   for (const candidate of firstCandidates.slice(0, START_FIRST_OPTIONS)) {
     const child = extendNodeCached(prefix, candidate);
     const nextGapIndex = nextContactGapIndex(gaps, child.gapIndex);
     if (nextGapIndex < 0) {
-      best = Math.min(best, candidate.cost);
+      best = Math.min(best, startCandidateCost(candidate, gaps[firstGapIndex], useOvershootStartScoring));
       continue;
     }
     let nextPrefix = child;
     while (nextPrefix.gapIndex < nextGapIndex) nextPrefix = extendNodeCached(nextPrefix, null);
     const nextCandidates = getCandidatesSorted(nextPrefix, gaps, ctx, seed, START_NEXT_K);
     const nextBest = pickLowestCost(nextCandidates);
-    const nextCost = nextBest === null ? 0 : nextBest.cost * PREVIEW_COST_WEIGHT;
+    const firstCost = startCandidateCost(candidate, gaps[firstGapIndex], useOvershootStartScoring);
+    const nextCost = nextBest === null
+      ? 0
+      : startCandidateCost(nextBest, gaps[nextGapIndex], useOvershootStartScoring) * PREVIEW_COST_WEIGHT;
     const nextPenalty = nextCandidates.length === 0
       ? DEAD_END_PENALTY
       : SURVIVOR_SCARCITY_PENALTY / nextCandidates.length;
-    best = Math.min(best, candidate.cost + nextPenalty + nextCost);
+    best = Math.min(best, firstCost + nextPenalty + nextCost);
   }
 
   return best + START_HEURISTIC_WEIGHT * startHeuristicCost(start, axes);
+}
+
+function startCandidateCost(
+  candidate: Candidate,
+  gap: Gap,
+  useOvershootStartScoring: boolean,
+): number {
+  return candidate.cost +
+    (useOvershootStartScoring ? candidateOvershootPenalty(candidate, gap) : 0);
+}
+
+export function usesHighSpeedStartOvershootScoring(axes: AxisValues): boolean {
+  return (axes.speed ?? 0.45) * CALIB.SPEED_CAP >= 9;
 }
 
 function startCandidates(firstAxes: AxisValues): NonNullable<Spec["start"]>[] {

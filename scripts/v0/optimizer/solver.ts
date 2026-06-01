@@ -43,8 +43,27 @@ export function solveOneGap(
   if (!Number.isInteger(K) || K < 0) {
     throw new Error(`solveOneGap: K must be a non-negative integer, got ${K}`);
   }
+  return solveOneGapAttemptRange(engine, gap, rng, 0, K, ctx, lineIdStart);
+}
+
+export function solveOneGapAttemptRange(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  rng: () => number,
+  attemptStart: number,
+  attemptEnd: number,
+  ctx: SpecContext,
+  lineIdStart: number,
+): Candidate[] {
+  if (!Number.isInteger(attemptStart) || attemptStart < 0) {
+    throw new Error(`solveOneGapAttemptRange: attemptStart must be a non-negative integer, got ${attemptStart}`);
+  }
+  if (!Number.isInteger(attemptEnd) || attemptEnd < attemptStart) {
+    throw new Error(`solveOneGapAttemptRange: attemptEnd must be an integer >= attemptStart, got ${attemptEnd}`);
+  }
   const out: Candidate[] = [];
-  for (let attempt = 0; attempt < K; attempt++) {
+  for (let attempt = attemptStart; attempt < attemptEnd; attempt++) {
     const c = sampleOneCandidate(engine, gap, rng, ctx, lineIdStart, attempt);
     if (c !== null) out.push(c);
   }

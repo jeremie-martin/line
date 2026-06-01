@@ -27,6 +27,12 @@ Both keep the common path cheap and budget-independent: they run only after the
 normal batch has no viable catch, and the policy is a pure function of the local
 gap/prefix state, not remaining budget.
 
+Candidate sampling is memoized per search node as an extendable deterministic
+prefix. If rescue escalates from the normal 16 attempts to 32 or 80, the cache
+burns RNG state for the already-sampled attempts and simulates only the
+additional attempts, preserving the exact full-batch candidate order without
+paying duplicate physics work.
+
 The preview is engine-in-loop and charged in simulated frames. It is also a pure
 policy function of `(spec, seed, prefix)`; it does not read the remaining budget.
 Budget only truncates how far through the deterministic prefix-node sequence the
@@ -65,19 +71,18 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 
 Current 20-spec result:
 
-- `SCORE 309.95`
+- `SCORE 309.99`
 - `valid 60/60`
 - `contract_pass_rate 100%`
 
-The same budget with report-only timing variants reports `118/120` valid rows
-with `variant_report_score 288.09`.
+The same budget with report-only timing variants reports `119/120` valid rows
+with `variant_report_score 299.23`.
 
 ## Known Frontier
 
 At the 50k campaign budget, all base rows pass the hard contract. The remaining
 frontier is robustness and quality:
 
-- `drums_pulse/time_stretch_102#0` still dies after five missing contacts;
 - `rhythm_ladder/time_stretch_102#1` still has one missing contact.
 
 The former late-speed frontier rows (`verse_chorus`, `drums_swell`,

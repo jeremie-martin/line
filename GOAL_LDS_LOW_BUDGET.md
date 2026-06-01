@@ -16,17 +16,17 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 The explicit option remains so future compilers can be added without changing
 the CLI shape.
 
-Current baseline (20-spec golden suite, after short-deadline rescue):
+Current baseline (20-spec golden suite, after extendable rescue candidate cache):
 
-- `goal_score 309.95`
+- `goal_score 309.99`
 - `valid 60/60` (20 specs × 3 seeds)
 - `contract_pass_rate 100%`
 - `evaluator_fingerprint e9f938701119`
 
 Variant probe at the same 50k budget:
 
-- `variant_report_score 288.09`
-- `valid 118/120`
+- `variant_report_score 299.23`
+- `valid 119/120`
 
 > Axis quality is graded **per contact (per gap)**: the achieved value at each
 > landing is compared to the axis curve's target there, combined as RMS. Older
@@ -102,9 +102,8 @@ from base-suite contract recovery toward variant robustness and quality:
 reaching complete prefixes with lower speed saturation, and doing so without
 letting rescue work starve the cheap common path.
 
-Remaining 50k report-only variant failures:
+Remaining 50k report-only variant failure:
 
-- `drums_pulse/time_stretch_102#0` — 5 missing, died at frame 1097
 - `rhythm_ladder/time_stretch_102#1` — 1 missing, died at frame 712
 
 The continuous-curve showcase is now 3/3 across the base suite. The visible
@@ -116,6 +115,10 @@ frontier rows, and short-deadline rescue prevents the hot opening from turning a
 rare zero-candidate 10-frame gap into a skipped contact. Trimming that
 short-deadline rescue from 96 to 80 deterministic samples kept the base contract
 clean while freeing enough work for the stretched hot opening variant to finish.
+The extendable per-node candidate cache then removed duplicate normal-prefix
+sampling when a node escalates from the cheap 16-sample batch to 32/80-sample
+rescue. That preserved candidate order, held the base contract at 60/60, and
+let `drums_pulse/time_stretch_102#0` reach a terminal prefix at 50k.
 
 Promising levers:
 

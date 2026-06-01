@@ -11,11 +11,16 @@
  */
 
 import { makeRng } from "../../lib/rng.ts";
+import { getRiderMetered } from "../../lib/detector.ts";
 import {
   type GapFit,
   engineLineFromTrackLine,
 } from "../core/substrate.ts";
-import { solveOneGap } from "./solver.ts";
+import {
+  readTargetState,
+  sampleArcParamsRngDraws,
+} from "../core/candidate.ts";
+import { solveOneGap, solveOneGapAttemptRange } from "./solver.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
 
@@ -42,7 +47,7 @@ export type SearchNode = {
    *  handoff compiler normally asks for a cheap prefix, but may later ask for a
    *  larger deterministic prefix when a required contact would otherwise be
    *  skipped. */
-  _candidatesCache: { nCand: number; candidates: Candidate[] } | null;
+  _candidatesCache: { nCand: number; sampleOrder: Candidate[]; candidates: Candidate[] } | null;
 };
 
 /** Construct the root node for a compile. */
@@ -85,7 +90,7 @@ export function getCandidatesSorted(
   }
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) {
-    node._candidatesCache = { nCand, candidates: [] };
+    node._candidatesCache = { nCand, sampleOrder: [], candidates: [] };
     return [];
   }
   // Fresh per-gap RNG. Determined
@@ -94,13 +99,51 @@ export function getCandidatesSorted(
   // collide (the plain `*` overflowed past 2^53 for big seeds — review #10).
   // Byte-identical to the old `(seed|0)*1000003 + …` for int32-range seeds.
   const perGapRng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
-  const sampleOrder = solveOneGap(
-    node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
-  );
+  const cached = node._candidatesCache;
+  const sampleOrder = cached !== null && cached.nCand < nCand
+    ? [
+      ...cached.sampleOrder,
+      ...solveAdditionalCandidates(
+        node.prefixEngine, gap, perGapRng, cached.nCand, nCand, ctx, node.prefixNextLineId,
+      ),
+    ]
+    : solveOneGap(
+      node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
+    );
   // Sort by cost ascending. Stable sort: ties keep sample-order.
   const sorted = [...sampleOrder].sort((a, b) => a.cost - b.cost);
-  node._candidatesCache = { nCand, candidates: sorted };
+  node._candidatesCache = { nCand, sampleOrder, candidates: sorted };
   return sorted;
+}
+
+function solveAdditionalCandidates(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  rng: () => number,
+  attemptStart: number,
+  attemptEnd: number,
+  ctx: SpecContext,
+  lineIdStart: number,
+): Candidate[] {
+  advanceCandidateRng(engine, gap, rng, attemptStart);
+  return solveOneGapAttemptRange(engine, gap, rng, attemptStart, attemptEnd, ctx, lineIdStart);
+}
+
+function advanceCandidateRng(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  rng: () => number,
+  attempts: number,
+): void {
+  if (attempts <= 0) return;
+  const rider = getRiderMetered(engine, gap.endFrame);
+  const targetState = readTargetState(engine, gap.endFrame, rider.position.x, rider.position.y);
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const draws = sampleArcParamsRngDraws(targetState, gap, attempt);
+    for (let draw = 0; draw < draws; draw++) rng();
+  }
 }
 
 /** Extend a node by committing the given candidate (or null for a

@@ -11,6 +11,7 @@
  */
 import { describe, test, expect } from "vitest";
 import { solveOneGap, pickLowestCost } from "../scripts/v0/optimizer/solver.ts";
+import { getCandidatesSorted, makeRootNode } from "../scripts/v0/optimizer/node.ts";
 import type { SpecContext } from "../scripts/v0/optimizer/sample.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import { CALIB, secToFrame } from "../scripts/v0/types.ts";
@@ -123,6 +124,22 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
     }
     for (let i = 0; i < lows.length - 1; i++) {
       expect(lows[i + 1]).toBeLessThanOrEqual(lows[i] + 1e-9);
+    }
+  });
+
+  test("node candidate cache extends deterministic prefixes without changing sorted candidates", async () => {
+    const { engine, gap, ctx } = await setupAtGap0("syncopated_switchback", 0);
+    const seed = 17;
+    const cachedNode = makeRootNode(engine, 1);
+    getCandidatesSorted(cachedNode, [gap], ctx, seed, 4);
+    const extended = getCandidatesSorted(cachedNode, [gap], ctx, seed, 16);
+
+    const freshNode = makeRootNode(engine, 1);
+    const fresh = getCandidatesSorted(freshNode, [gap], ctx, seed, 16);
+
+    expect(extended.length).toBe(fresh.length);
+    for (let i = 0; i < fresh.length; i++) {
+      expect(candKey(extended[i])).toBe(candKey(fresh[i]));
     }
   });
 });

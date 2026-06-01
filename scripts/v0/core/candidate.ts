@@ -229,6 +229,16 @@ export function usesSteepCatchTemplateAttempt(
   return steepCatchTemplateIndex(attempt) !== null && shouldUseSteepCatch(targetState, gap);
 }
 
+export function sampleArcParamsRngDraws(
+  targetState: { speed: number; angleDeg: number },
+  gap: Gap,
+  attempt: number,
+  brake = false,
+): number {
+  if (!brake && usesSteepCatchTemplateAttempt(targetState, gap, attempt)) return 0;
+  return impactAnchorEnabled() ? 8 : 7;
+}
+
 export function steepCatchTemplateIndex(attempt: number): number | null {
   if (!Number.isInteger(attempt) || attempt < 0 || attempt % 2 !== 0) return null;
   const index = attempt / 2;

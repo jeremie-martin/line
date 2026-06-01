@@ -296,7 +296,8 @@ The first diagnostic tool for this is:
 ```bash
 npx tsx scripts/v0/portfolio_oracle.ts \
   --specs=drums_pendulum,drums_swell,drums_crescendo,opening_burst \
-  --seed=0 --lanes=0,1,2,3
+  --seed=0 --lanes=0,1,2,3 \
+  --json-out=generated/golden-runs/portfolio-oracle.json
 ```
 
 It uses `compileHandoff(..., { searchSeed })` so the public seed still fixes the
@@ -305,6 +306,17 @@ lookahead. Treat the full-lane oracle as an optimistic upper bound because it
 spends one full checkpoint budget per lane. The equal-slice oracle is closer to
 a same-total-budget portfolio, but still only a diagnostic proxy for a real
 interleaved scheduler.
+
+Early oracle evidence is mixed, which is useful. Two-lane probes on
+`drums_pendulum seed=0` and `drums_swell seed=0` found no full-lane headroom, so
+those plateaus are unlikely to be fixed by simply changing the root sample
+stream. A four-lane probe on `drums_crescendo seed=0` did find a better lane at
+75k (`265.47 -> 285.59`), while `opening_burst seed=0` was best on lane 0. In
+the same run, equal-slice was much worse because each lane was too starved to
+reach useful complete tracks. That argues against a naive same-total-budget
+whole-run portfolio from frame zero; if portfolio work continues, prioritize
+post-pass/prefix-level diversification or diagnosing what the winning lane does
+differently on contact-style rows.
 
 Promising levers:
 

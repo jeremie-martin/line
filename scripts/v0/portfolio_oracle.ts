@@ -19,6 +19,8 @@
  */
 
 import { createHash } from "node:crypto";
+import { writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { DEFAULT_BUDGETS, GOLDEN_SEEDS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { scoreDriftReport, shiftedGeometricMean } from "./score.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
@@ -32,6 +34,8 @@ type Args = {
   lanes: number[];
   maxNodes?: number;
   polish: boolean;
+  progress: boolean;
+  jsonOut?: string;
 };
 
 type LaneCheckpoint = {
@@ -120,6 +124,8 @@ function parseArgs(): Args {
     lanes: parseLaneIds(arg("lanes")),
     maxNodes,
     polish: !has("no-polish"),
+    progress: !has("quiet"),
+    jsonOut: arg("json-out") ?? undefined,
   };
 }
 
@@ -185,6 +191,10 @@ function fmt(n: number): string {
   return n.toFixed(2);
 }
 
+function elapsed(startMs: number): string {
+  return `${((Date.now() - startMs) / 1000).toFixed(1)}s`;
+}
+
 function bestByScore(candidates: LaneCheckpoint[]): LaneCheckpoint {
   return candidates.reduce((best, row) => row.score > best.score ? row : best);
 }
@@ -194,6 +204,10 @@ function scaledBudget(totalBudget: number, laneCount: number): number {
 }
 
 async function runRow(specName: GoldenSpecName, seed: number, args: Args): Promise<RowResult> {
+  const rowStart = Date.now();
+  if (args.progress) {
+    console.error(`[portfolio] start ${specName} seed=${seed}`);
+  }
   const spec = await loadGoldenSpec(specName, "base");
   const totalFrames = secToFrame(spec.duration);
   const laneBudgets = [...new Set([
@@ -204,6 +218,13 @@ async function runRow(specName: GoldenSpecName, seed: number, args: Args): Promi
 
   for (const lane of args.lanes) {
     const searchSeed = searchSeedForLane(seed, lane);
+    const laneStart = Date.now();
+    if (args.progress) {
+      console.error(
+        `[portfolio]   lane=${lane} searchSeed=${searchSeed} budgets=` +
+          laneBudgets.map(fmtBudget).join(","),
+      );
+    }
     const result = compileHandoff(spec, seed, {
       budgets: laneBudgets,
       searchSeed,
@@ -216,8 +237,18 @@ async function runRow(specName: GoldenSpecName, seed: number, args: Args): Promi
         scoreCheckpoint(checkpoint(result, budget), totalFrames, lane, searchSeed)
       ),
     );
+    if (args.progress) {
+      const last = rowCheckpoint({ specName, seed, byLane }, lane, laneBudgets[laneBudgets.length - 1]);
+      console.error(
+        `[portfolio]   done lane=${lane} score=${fmt(last.score)} ` +
+          `pass=${last.pass ? "yes" : "no"} sim=${last.simFrames} t=${elapsed(laneStart)}`,
+      );
+    }
   }
 
+  if (args.progress) {
+    console.error(`[portfolio] done ${specName} seed=${seed} t=${elapsed(rowStart)}`);
+  }
   return { specName, seed, byLane };
 }
 
@@ -325,6 +356,66 @@ function printSummary(rows: RowResult[], args: Args): void {
     });
 }
 
+function writeJson(rows: RowResult[], args: Args): void {
+  if (args.jsonOut === undefined) return;
+  const outputPath = resolve(args.jsonOut);
+  const rowKeys = rows.map((row) => row.specName);
+  const baselineLane = args.lanes.includes(0) ? 0 : args.lanes[0];
+  const budgets = args.budgets.map((budget) => {
+    const equalBudget = scaledBudget(budget, args.lanes.length);
+    const baseline = rows.map((row) => rowCheckpoint(row, baselineLane, budget));
+    const fullOracle = rows.map((row) =>
+      bestByScore(args.lanes.map((lane) => rowCheckpoint(row, lane, budget)))
+    );
+    const equalSlice = rows.map((row) =>
+      bestByScore(args.lanes.map((lane) => rowCheckpoint(row, lane, equalBudget)))
+    );
+    return {
+      budget,
+      equal_slice_lane_budget: equalBudget,
+      baseline_score: suiteScore(baseline, rowKeys),
+      full_lane_oracle_score: suiteScore(fullOracle, rowKeys),
+      equal_slice_oracle_score: suiteScore(equalSlice, rowKeys),
+      baseline_passed: baseline.filter((row) => row.pass).length,
+      full_lane_passed: fullOracle.filter((row) => row.pass).length,
+      equal_slice_passed: equalSlice.filter((row) => row.pass).length,
+      full_lane_winners: fullOracle.map((row) => ({
+        lane: row.lane,
+        search_seed: row.searchSeed,
+        score: row.score,
+        pass: row.pass,
+      })),
+      equal_slice_winners: equalSlice.map((row) => ({
+        lane: row.lane,
+        search_seed: row.searchSeed,
+        score: row.score,
+        pass: row.pass,
+      })),
+    };
+  });
+  writeFileSync(outputPath, JSON.stringify({
+    source: "scripts/v0/portfolio_oracle.ts",
+    args: {
+      specs: args.specs,
+      seeds: args.seeds,
+      budgets: args.budgets,
+      lanes: args.lanes,
+      max_nodes: args.maxNodes ?? null,
+      polish: args.polish,
+    },
+    budgets,
+    rows: rows.map((row) => ({
+      spec: row.specName,
+      seed: row.seed,
+      lanes: args.lanes.map((lane) => ({
+        lane,
+        checkpoints: row.byLane.get(lane) ?? [],
+      })),
+    })),
+  }, null, 2));
+  console.error(`[portfolio] wrote ${outputPath}`);
+}
+
 async function main(): Promise<void> {
   const args = parseArgs();
   const rows: RowResult[] = [];
@@ -334,6 +425,7 @@ async function main(): Promise<void> {
     }
   }
   printSummary(rows, args);
+  writeJson(rows, args);
 }
 
 main().catch((err) => {

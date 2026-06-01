@@ -9,6 +9,7 @@ import {
   shortDeadlineRescueCandidateCount,
   startAngles,
   targetStartAngle,
+  usesSparseContractSearch,
 } from "../scripts/v0/optimizer/handoff.ts";
 import {
   steepCatchTemplateIndex,
@@ -46,7 +47,21 @@ describe("handoff policy boundaries", () => {
 
   test("sample schedule widens after contract success", () => {
     expect(handoffSampleCount(false)).toBe(14);
+    expect(handoffSampleCount(false, true)).toBe(13);
     expect(handoffSampleCount(true)).toBe(16);
+  });
+
+  test("sparse contract search is based on median contact cadence", () => {
+    expect(usesSparseContractSearch([
+      gap(0, 0, 20),
+      gap(1, 20, 40),
+      gap(2, 40, 60),
+    ])).toBe(false);
+    expect(usesSparseContractSearch([
+      gap(0, 0, 22),
+      gap(1, 22, 53),
+      gap(2, 53, 84),
+    ])).toBe(true);
   });
 
   test("near-tail completion is based on remaining contacts, not total contacts", () => {

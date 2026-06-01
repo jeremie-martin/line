@@ -29,9 +29,10 @@ gap/prefix state, not remaining budget.
 
 Candidate sampling is memoized per search node as an extendable deterministic
 prefix. Before any passing output exists, normal expansion samples a 14-attempt
-prefix so long or difficult specs can expose a complete track earlier. After the
-register has a passing output, expansion widens to a 16-attempt prefix for
-quality search. If rescue escalates to 32 or 80 attempts, the cache burns RNG
+prefix; sparse contact cadences use a 13-attempt prefix so they can expose a
+complete track earlier. After the register has a passing output, expansion
+widens to a 16-attempt prefix for quality search. If rescue escalates to 32 or
+80 attempts, the cache burns RNG
 state for the already-sampled attempts and simulates only the additional
 attempts, preserving the exact full-batch candidate order without paying
 duplicate physics work. If a larger prefix is already cached, smaller-K lookahead

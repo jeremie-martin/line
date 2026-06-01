@@ -32,7 +32,7 @@ import {
   sliceTimeline,
   validateSpec,
 } from "../core/substrate.ts";
-import { CALIB, START_DEFAULTS, secToFrame, type Gap, type AxisValues } from "../types.ts";
+import { CALIB, FPS, START_DEFAULTS, secToFrame, type Gap, type AxisValues } from "../types.ts";
 import {
   axisLookaheadEndFrame,
   readTargetState,
@@ -132,12 +132,16 @@ const HANDOFF_BRANCHING = 3;
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
  *  pool is mostly wasted per-node work that starves bounded-budget exploration.
- *  Before any passing output exists, use a cheaper deterministic prefix to
- *  expose complete tracks earlier. Once the register has a passing output,
- *  expand the deterministic prefix for quality search. This adapts to search
- *  state, not requested budgets. Must stay >= HANDOFF_CANDIDATE_POOL. */
+ *  Before any passing output exists, use a cheaper deterministic prefix. Sparse
+ *  contact cadences get one fewer first-pass sample to expose complete tracks
+ *  earlier; dense cadences keep the safer 14-sample prefix. Once the register
+ *  has a passing output, expand the deterministic prefix for quality search.
+ *  This adapts to spec/search state, not requested budgets. Must stay >=
+ *  HANDOFF_CANDIDATE_POOL. */
+const HANDOFF_SPARSE_CONTRACT_N_CAND = 13;
 const HANDOFF_CONTRACT_N_CAND = 14;
 const HANDOFF_QUALITY_N_CAND = 16;
+const HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES = Math.round(FPS * 0.75);
 /** Extra deterministic sampling only when the normal batch finds no viable
  *  catch for a required contact. This preserves the cheap common path while
  *  spending bounded work at true contract dead-ends instead of immediately
@@ -223,6 +227,7 @@ export function compileHandoff(
     }
 
     const ctx: SpecContext = { allContactFrames, durationFrames };
+    const sparseContractSearch = usesSparseContractSearch(gaps);
     const startOptions = buildStartOptions(userSpec, spec, gaps, ctx, seed);
     const defaultStart = startOptions[0];
     const root: HandoffNode = {
@@ -346,6 +351,7 @@ export function compileHandoff(
         seed,
         telemetry,
         register.getBestKey()?.contract_passed === true,
+        sparseContractSearch,
       );
       if (tailNode !== null) {
         const tailKey = consider(tailNode);
@@ -416,6 +422,7 @@ export function compileHandoff(
         startOptions,
         telemetry,
         register.getBestKey()?.contract_passed === true,
+        sparseContractSearch,
       );
       telemetry.nodesExpanded++;
       for (let i = children.length - 1; i >= 0; i--) {
@@ -507,6 +514,7 @@ function expandNode(
   startOptions: StartOption[],
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
+  sparseContractSearch: boolean,
 ): HandoffNode[] {
   if (isTerminalNode(node.search, gaps)) return [];
   if (!node.startExpanded) {
@@ -534,7 +542,7 @@ function expandNode(
   }
 
   let options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
-    nCand: handoffSampleCount(qualitySearch),
+    nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
     telemetry.rescueAttempts++;
@@ -788,6 +796,7 @@ function completeNearTail(
   seed: number,
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
+  sparseContractSearch: boolean,
 ): HandoffNode | null {
   if (!shouldAttemptNearTailCompletion(node, gaps)) return null;
   telemetry.tailCompletionAttempts++;
@@ -800,6 +809,7 @@ function completeNearTail(
     seed,
     telemetry,
     qualitySearch,
+    sparseContractSearch,
   );
   if (completed === null) return null;
 
@@ -823,6 +833,7 @@ function completeNearTailSuffix(
   seed: number,
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
+  sparseContractSearch: boolean,
 ): { search: SearchNode; ranks: number[] } | null {
   const stack: { search: SearchNode; ranks: number[] }[] = [{ search: start, ranks: startRanks }];
   while (stack.length > 0) {
@@ -837,7 +848,7 @@ function completeNearTailSuffix(
     if (isTerminalNode(search, gaps)) return { search, ranks };
 
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
-      nCand: handoffSampleCount(qualitySearch),
+      nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
       preview: false,
     })
       .filter((option) => option.candidate !== null)
@@ -853,8 +864,22 @@ function completeNearTailSuffix(
   return null;
 }
 
-export function handoffSampleCount(qualitySearch: boolean): number {
-  return qualitySearch ? HANDOFF_QUALITY_N_CAND : HANDOFF_CONTRACT_N_CAND;
+export function handoffSampleCount(
+  qualitySearch: boolean,
+  sparseContractSearch = false,
+): number {
+  if (qualitySearch) return HANDOFF_QUALITY_N_CAND;
+  return sparseContractSearch ? HANDOFF_SPARSE_CONTRACT_N_CAND : HANDOFF_CONTRACT_N_CAND;
+}
+
+export function usesSparseContractSearch(gaps: readonly Gap[]): boolean {
+  const contactGapFrames = gaps
+    .filter((gap) => gap.endsWithContact)
+    .map((gap) => gap.endFrame - gap.startFrame);
+  if (contactGapFrames.length === 0) return false;
+  const sorted = [...contactGapFrames].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  return median >= HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES;
 }
 
 export function shouldAttemptNearTailCompletion(

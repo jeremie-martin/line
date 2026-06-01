@@ -8,8 +8,8 @@ start-state rank, next line id, and skipped-contact count.
 
 ## Search Shape
 
-Expansion is one gap at a time. For each contact gap, candidates are
-engine-validated arc fits ranked by:
+Expansion is one gap at a time. During contract search, each contact gap's
+engine-validated arc fits are ranked by:
 
 1. local axis cost;
 2. first future-contact feasibility, including survivor count;
@@ -45,11 +45,20 @@ budgets. Budgets only define checkpoints along the deterministic prefix-node
 sequence. Future-contact previews use the same extendable per-node candidate
 cache as expansion, and expansion carries the previewed child node forward, so
 the previewed first future-contact sample can be reused when that branch is
-later expanded. The preview's first future local cost is now a small ranking
-signal for smooth axes, reusing work the probe already performed. Gaps that
-target `contact_style` keep survivor-only preview scoring because contact style
-is a brittle contact-duration effect; letting one-step future cost steer those
+later expanded. The preview's first future local cost is a small ranking signal
+for smooth axes, reusing work the probe already performed. Gaps that target
+`contact_style` keep survivor-only preview scoring because contact style is a
+brittle contact-duration effect; letting one-step future cost steer those
 catches can damage the current handoff.
+
+After the register has a full contract-passing incumbent, normal quality search
+stops doing future-contact previews. At that point the contract is already
+protected by the incumbent, and focused probes showed that the preview rollouts
+spent late budget on speculative one-contact checks instead of evaluating more
+whole-track alternatives. Quality-phase candidate ranking still uses local axis
+cost, handoff-state penalties, overshoot penalties, reuse candidates, and brake
+candidates; the saved preview work is spent on expanding and scoring actual
+branches.
 
 Near-tail completion is an exception to future previewing inside candidate
 ranking: the suffix completion itself is already rolling the future forward. It
@@ -91,9 +100,9 @@ received search budget."
 Handoff-only extra candidates are cached at the node as well. Reuse catches and
 brake catches are deterministic prefix-state probes, so when tail completion and
 normal expansion both rank the same node, the compiler reuses the already
-validated extra candidates while still recomputing scoring and previews for the
-current ranking mode. Brake probes remain local-policy work: moderate speed
-targets get them at the first overspeed, while high speed targets require both a
+validated extra candidates while still recomputing scoring for the current
+ranking mode. Brake probes remain local-policy work: moderate speed targets get
+them at the first overspeed, while high speed targets require both a
 contact-style target and severe overspeed before the compiler spends the extra
 candidate slots. Dense first-pass cadences keep the smaller brake set so they do
 not starve contract search. More spacious first-pass cadences widen the

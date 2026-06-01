@@ -4,6 +4,7 @@ import {
   handoffCandidatePool,
   handoffPreviewCostWeight,
   handoffSampleCount,
+  handoffUsesFuturePreview,
   hasStartFeasibilityLookahead,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
@@ -96,6 +97,11 @@ describe("handoff policy boundaries", () => {
       ...gap(0, 0, 20),
       targets: { contact_style: 0.5 },
     })).toBe(0);
+  });
+
+  test("future preview is reserved for contract search", () => {
+    expect(handoffUsesFuturePreview(false)).toBe(true);
+    expect(handoffUsesFuturePreview(true)).toBe(false);
   });
 
   test("near-tail completion is based on remaining contacts, not total contacts", () => {

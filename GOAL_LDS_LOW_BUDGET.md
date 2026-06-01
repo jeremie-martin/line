@@ -170,6 +170,19 @@ valid checkpoints and no timeouts, but `VARIANT_CURVE_SCORE` dipped slightly
 from `247.21` to `246.84`; treat this as a guardrail to revisit, not as part of
 the headline acceptance metric.
 
+The next accepted budget-curve win is quality-phase preview deferral. Future
+contact previews remain enabled while the compiler is still trying to find a
+contract-passing output, but after a passing incumbent exists, normal expansion
+and rescue ranking stop spending metered frames on one-contact preview rollouts.
+Those frames instead expand and score actual branch alternatives. Full golden
+evidence moved `CURVE_SCORE 317.19 -> 319.45` with the same `533/540` valid
+checkpoints and positive common-row deltas at every budget. Variants also moved
+`VARIANT_CURVE_SCORE 246.84 -> 248.29` with the same `1020/1080` valid
+checkpoints and no timeouts. The largest 75k headline regressions were bounded
+(`drums_signature seed=0 -3.74`, `verse_chorus seed=2 -3.29`,
+`drums_zigzag seed=1 -2.90`) against larger generic wins such as
+`cold_start seed=1 +48.29` and `opening_burst seed=2 +43.11`.
+
 High-speed start ordering is the current confirmed budget-curve win. Reusing the
 handoff speed/air overshoot penalty only for high-speed first-axis starts moved
 the full golden curve from `306.72` to `315.05` (`533/540` valid checkpoints),
@@ -203,8 +216,8 @@ work should be more selective than "expand every start earlier."
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot
-- future-contact previews that reuse already-metered local cost without
-  over-steering brittle axes such as `contact_style`
+- more selective future-contact previews if diagnostics show contract search
+  needs them without reintroducing quality-phase preview waste
 - reusable candidate patterns for periodic contact runs
 - start-state search that improves the first few gaps without hidden prepasses
 - polish variants that are cheap enough to be worth their metered frames

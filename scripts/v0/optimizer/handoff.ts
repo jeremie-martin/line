@@ -702,6 +702,7 @@ function expandNode(
 
   let options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
     nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
+    preview: handoffUsesFuturePreview(qualitySearch),
     expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
     previewCostWeight: handoffPreviewCostWeight(gap),
   });
@@ -710,6 +711,7 @@ function expandNode(
     options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
       nCand: HANDOFF_RESCUE_N_CAND,
       poolSize: HANDOFF_RESCUE_CANDIDATE_POOL,
+      preview: handoffUsesFuturePreview(qualitySearch),
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
       previewCostWeight: handoffPreviewCostWeight(gap),
     });
@@ -724,6 +726,7 @@ function expandNode(
     options = rankedOptions(node.search, gaps, ctx, seed, telemetry, {
       nCand: HANDOFF_SHORT_RESCUE_N_CAND,
       poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
+      preview: handoffUsesFuturePreview(qualitySearch),
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
       previewCostWeight: handoffPreviewCostWeight(gap),
     });
@@ -1106,6 +1109,10 @@ export function handoffPreviewCostWeight(gap: Gap): number {
   return gap.targets?.contact_style === undefined
     ? PREVIEW_COST_WEIGHT
     : 0;
+}
+
+export function handoffUsesFuturePreview(qualitySearch: boolean): boolean {
+  return !qualitySearch;
 }
 
 export function usesSparseContractSearch(gaps: readonly Gap[]): boolean {

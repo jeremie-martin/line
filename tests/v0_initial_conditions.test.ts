@@ -25,14 +25,15 @@ function replayEngine(track: { lines: unknown[]; riders: { startPosition: { x: n
 }
 
 const TRIVIAL: Spec = { duration: 1, contacts: [], axes: {} };
-const TEST_BUDGET = { kind: "work" as const, units: 40_000 };
+const TEST_BUDGET = 40_000;
 
 function compile(spec: Spec, seed = 0) {
-  return compileHandoff(spec, seed, {
-    budget: TEST_BUDGET,
+  const result = compileHandoff(spec, seed, {
+    budgets: [TEST_BUDGET],
     maxNodes: 100,
     polish: false,
   });
+  return result.checkpoints[0];
 }
 
 describe("v0 spec.start (manual knob)", () => {

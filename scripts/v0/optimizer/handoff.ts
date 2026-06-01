@@ -10,11 +10,11 @@
  *    much candidate slack does it have?"
  *
  * That probe is engine-in-loop and charged in sim-frames, but it is a fixed
- * policy decision independent of the caller's budget. The budget only stops how
- * far into the deterministic node sequence we go; a strict best-so-far register
- * ranks every prefix output considered. The budget contract only requires that
- * budget truncates a deterministic node sequence; the search policy itself does
- * not read the budget.
+ * policy decision independent of the caller's budgets. Budgets only define
+ * checkpoints along the deterministic node sequence; a strict best-so-far
+ * register ranks every prefix output considered. The budget contract only
+ * requires that checkpoints expose prefixes of one deterministic node sequence;
+ * the search policy itself does not read the budgets.
  */
 
 import { detect, extractRawTrajectory, getRiderMetered } from "../../lib/detector.ts";
@@ -49,18 +49,17 @@ import {
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
 import {
-  PhysicsFrameLimitExceeded,
   getSimFrames,
   resetSimFrames,
-  setSimFrameLimit,
 } from "./sim_frames.ts";
 import { resetArcPlacementStats, snapshotArcPlacementStats } from "../arc_placement.ts";
 import { sampleOneCandidate } from "./sample.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
-import type { Budget, CompileOutput, DriftReport, Spec } from "./types.ts";
+import type { CompileCheckpoint, CompileOutput, CompileResult, DriftReport, Spec } from "./types.ts";
 
 export type CompileHandoffOptions = {
-  budget?: Budget;
+  /** Ascending simulated-frame checkpoints to return from one deterministic run. */
+  budgets?: number[];
   /** Fixed search-size cap, independent of budget. Keeps unbudgeted probes finite. */
   maxNodes?: number;
   /** Clone-and-test polish variants for each prefix considered. Default true. */
@@ -179,7 +178,6 @@ const HANDOFF_BRAKE_RATIO_MIN = 1.0;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
 const HANDOFF_BRAKE_BASE_K = 2;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_K = 3;
-const BUDGET_HARD_LIMIT_MULTIPLIER = 1.2;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 5;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
@@ -188,35 +186,20 @@ export function compileHandoff(
   userSpec: Spec,
   seed = 0,
   opts: CompileHandoffOptions = {},
-): CompileOutput {
+): CompileResult {
   if (!Number.isSafeInteger(seed)) {
     throw new Error(`compileHandoff: seed must be a safe integer, got ${seed}`);
   }
+  const budgets = normalizeBudgets(opts.budgets);
   const maxNodes = opts.maxNodes ?? DEFAULT_MAX_NODES;
   if (!Number.isInteger(maxNodes) || maxNodes < 1) {
     throw new Error(`compileHandoff: maxNodes must be a positive integer, got ${maxNodes}`);
   }
-  const budgetUnits = opts.budget?.units ?? Infinity;
-  if (opts.budget !== undefined) {
-    if (opts.budget.kind !== "work") {
-      throw new Error(`compileHandoff: only Budget.kind === "work" is supported`);
-    }
-    if (!Number.isFinite(budgetUnits) || budgetUnits <= 0) {
-      throw new Error(`compileHandoff: budget.units must be positive, got ${budgetUnits}`);
-    }
-  }
 
   resetSimFrames();
   resetArcPlacementStats();
-  const hardBudgetLimit = opts.budget === undefined
-    ? null
-    : Math.ceil(budgetUnits * BUDGET_HARD_LIMIT_MULTIPLIER);
-  // The root prefix is the fallback output for every positive budget. Do not
-  // arm the hard in-op guard until after that first prefix is scored, otherwise
-  // a tiny budget can throw before the best-so-far register contains anything.
-  setSimFrameLimit(null);
 
-  try {
+  {
     validateSpec(userSpec);
     // Do not run a separate optimized-preroll pre-pass here. In the handoff
     // optimizer, the initial condition is the first state boundary of the search;
@@ -268,9 +251,9 @@ export function compileHandoff(
     const polishEnabled = opts.polish ?? true;
     let polishTried = 0;
     let polishAdopted = 0;
-    let budgetExhausted = false;
-    let hardLimitError: PhysicsFrameLimitExceeded | null = null;
     const evaluationCache = new WeakMap<SearchNode, NodeEvaluation>();
+    const checkpoints: CompileCheckpoint[] = [];
+    let nextBudgetIndex = 0;
 
     const evaluateCached = (node: HandoffNode): NodeEvaluation => {
       const cached = evaluationCache.get(node.search);
@@ -291,145 +274,167 @@ export function compileHandoff(
           evaluation.report,
           gaps,
           evaluation.outputDurationFrames,
-          budgetExhausted,
+          false,
         ),
         evaluation.key,
       );
       return evaluation.key;
     };
 
-    try {
-      while (frontierSize(passStack, fallbackStack) > 0 && telemetry.nodesExpanded < maxNodes) {
-        const frontier = activeFrontier(passStack, fallbackStack);
-        const node = frontier.pop()!;
-        const key = consider(node);
-        if (key !== null) opts.onNode?.(node, key);
-        if (register.consideredCount === 1) setSimFrameLimit(hardBudgetLimit);
+    const snapshot = (budget: number, budgetExhausted: boolean): CompileCheckpoint => {
+      const best = register.getBest();
+      if (best === null) {
+        throw new Error(
+          `compileHandoff: no prefix output could be evaluated ` +
+          `(seed=${seed}, budget=${budget}, sim_frames_used=${getSimFrames()})`,
+        );
+      }
+      const arcStats = snapshotArcPlacementStats();
+      return {
+        ...best,
+        budget,
+        stats: {
+          ...best.stats,
+          budget_exhausted: budgetExhausted,
+          sim_frames: getSimFrames(),
+          leaves_considered: register.consideredCount,
+          improvements: register.improvementCount,
+          polish_variants_tried: polishTried,
+          polish_variants_adopted: polishAdopted,
+          search_nodes_expanded: telemetry.nodesExpanded,
+          frontier_max_size: telemetry.frontierMaxSize,
+          handoff_partial_evaluations: telemetry.partialEvaluations,
+          handoff_full_evaluations: telemetry.fullEvaluations,
+          handoff_tail_completion_attempts: telemetry.tailCompletionAttempts,
+          handoff_tail_completion_successes: telemetry.tailCompletionSuccesses,
+          handoff_start_options: startOptions.length,
+          handoff_start_rank: best.stats.handoff_start_rank ?? 0,
+          handoff_previews: telemetry.previews,
+          handoff_preview_contacts: telemetry.previewContacts,
+          handoff_preview_survivors: telemetry.previewSurvivors,
+          handoff_rescue_attempts: telemetry.rescueAttempts,
+          handoff_rescue_successes: telemetry.rescueSuccesses,
+          handoff_skips: best.stats.handoff_skips ?? 0,
+          handoff_skip_branches: telemetry.skips,
+          handoff_deferred_skips: telemetry.deferredSkips,
+          ...(arcStats ? { arc_placement: arcStats } : {}),
+        },
+      };
+    };
 
-        const tailNode = completeNearTail(node, gaps, ctx, seed, telemetry);
-        if (tailNode !== null) {
-          const tailKey = consider(tailNode);
-          if (tailKey !== null) opts.onNode?.(tailNode, tailKey);
-        }
+    const captureReachedBudgets = (): void => {
+      while (nextBudgetIndex < budgets.length && getSimFrames() >= budgets[nextBudgetIndex]) {
+        checkpoints.push(snapshot(budgets[nextBudgetIndex], true));
+        nextBudgetIndex++;
+      }
+    };
 
-        if (getSimFrames() >= budgetUnits) {
-          budgetExhausted = true;
-          break;
-        }
+    while (frontierSize(passStack, fallbackStack) > 0 && telemetry.nodesExpanded < maxNodes) {
+      const frontier = activeFrontier(passStack, fallbackStack);
+      const node = frontier.pop()!;
+      const key = consider(node);
+      if (key !== null) opts.onNode?.(node, key);
 
-        if (node.deferExpansion) {
-          enqueueDeferred({ ...node, deferExpansion: false }, passStack, fallbackStack);
-          telemetry.frontierMaxSize = Math.max(
-            telemetry.frontierMaxSize,
-            frontierSize(passStack, fallbackStack),
-          );
-          continue;
-        }
+      const tailNode = completeNearTail(node, gaps, ctx, seed, telemetry);
+      if (tailNode !== null) {
+        const tailKey = consider(tailNode);
+        if (tailKey !== null) opts.onNode?.(tailNode, tailKey);
+      }
 
-        if (
-          polishEnabled &&
-          isTerminalNode(node.search, gaps) &&
-          node.search.prefixFits.some((fit) => fit !== null)
-        ) {
-          const padded = paddedFits(node, gaps.length);
-          const variant = polishLeafVariant(
-            padded, spec, gaps, allContactFrames, durationFrames, node.startState,
-          );
-          if (variant !== null) {
-            polishTried++;
-            const improvedBefore = register.improvementCount;
-            const polishNode: HandoffNode = {
-              search: {
-                ...node.search,
-                prefixFits: variant.fits,
-                prefixEngine: variant.engine,
-              },
-              startState: node.startState,
-              startRank: node.startRank,
-              startExpanded: node.startExpanded,
-              deferExpansion: node.deferExpansion,
-              ranks: node.ranks,
-              skippedContacts: node.skippedContacts,
-            };
-            const evaluation = evaluateCached(polishNode);
-            if (evaluation.fullDuration) telemetry.fullEvaluations++;
-            else telemetry.partialEvaluations++;
-            register.consider(
-              buildNodeOutput(
-                polishNode,
-                evaluation.report,
-                gaps,
-                evaluation.outputDurationFrames,
-                budgetExhausted,
-              ),
-              evaluation.key,
-            );
-            if (register.improvementCount > improvedBefore) polishAdopted++;
-          }
-        }
+      captureReachedBudgets();
+      if (nextBudgetIndex >= budgets.length) break;
 
-        if (isTerminalNode(node.search, gaps)) continue;
-
-        const children = expandNode(node, gaps, ctx, seed, startOptions, telemetry);
-        telemetry.nodesExpanded++;
-        for (let i = children.length - 1; i >= 0; i--) {
-          enqueueChild(children[i], passStack, fallbackStack);
-        }
+      if (node.deferExpansion) {
+        enqueueDeferred({ ...node, deferExpansion: false }, passStack, fallbackStack);
         telemetry.frontierMaxSize = Math.max(
           telemetry.frontierMaxSize,
           frontierSize(passStack, fallbackStack),
         );
+        continue;
       }
-    } catch (error) {
-      if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;
-      hardLimitError = error;
-      budgetExhausted = true;
-    }
 
-    if (getSimFrames() >= budgetUnits) budgetExhausted = true;
-    const best = register.getBest();
-    if (best === null) {
-      if (hardLimitError !== null) throw hardLimitError;
-      throw new Error(
-        `compileHandoff: no prefix output could be evaluated ` +
-        `(seed=${seed}, budget=${opts.budget ? opts.budget.units : "unset"}, ` +
-        `sim_frames_used=${getSimFrames()})`,
+      if (
+        polishEnabled &&
+        isTerminalNode(node.search, gaps) &&
+        node.search.prefixFits.some((fit) => fit !== null)
+      ) {
+        const padded = paddedFits(node, gaps.length);
+        const variant = polishLeafVariant(
+          padded, spec, gaps, allContactFrames, durationFrames, node.startState,
+        );
+        if (variant !== null) {
+          polishTried++;
+          const improvedBefore = register.improvementCount;
+          const polishNode: HandoffNode = {
+            search: {
+              ...node.search,
+              prefixFits: variant.fits,
+              prefixEngine: variant.engine,
+            },
+            startState: node.startState,
+            startRank: node.startRank,
+            startExpanded: node.startExpanded,
+            deferExpansion: node.deferExpansion,
+            ranks: node.ranks,
+            skippedContacts: node.skippedContacts,
+          };
+          const evaluation = evaluateCached(polishNode);
+          if (evaluation.fullDuration) telemetry.fullEvaluations++;
+          else telemetry.partialEvaluations++;
+          register.consider(
+            buildNodeOutput(
+              polishNode,
+              evaluation.report,
+              gaps,
+              evaluation.outputDurationFrames,
+              false,
+            ),
+            evaluation.key,
+          );
+          if (register.improvementCount > improvedBefore) polishAdopted++;
+        }
+      }
+
+      if (isTerminalNode(node.search, gaps)) continue;
+
+      const children = expandNode(node, gaps, ctx, seed, startOptions, telemetry);
+      telemetry.nodesExpanded++;
+      for (let i = children.length - 1; i >= 0; i--) {
+        enqueueChild(children[i], passStack, fallbackStack);
+      }
+      telemetry.frontierMaxSize = Math.max(
+        telemetry.frontierMaxSize,
+        frontierSize(passStack, fallbackStack),
       );
     }
 
-    const arcStats = snapshotArcPlacementStats();
-    return {
-      ...best,
-      stats: {
-        ...best.stats,
-        budget_exhausted: budgetExhausted,
-        sim_frames: getSimFrames(),
-        leaves_considered: register.consideredCount,
-        improvements: register.improvementCount,
-        polish_variants_tried: polishTried,
-        polish_variants_adopted: polishAdopted,
-        search_nodes_expanded: telemetry.nodesExpanded,
-        frontier_max_size: telemetry.frontierMaxSize,
-        handoff_partial_evaluations: telemetry.partialEvaluations,
-        handoff_full_evaluations: telemetry.fullEvaluations,
-        handoff_tail_completion_attempts: telemetry.tailCompletionAttempts,
-        handoff_tail_completion_successes: telemetry.tailCompletionSuccesses,
-        handoff_start_options: startOptions.length,
-        handoff_start_rank: best.stats.handoff_start_rank ?? 0,
-        handoff_previews: telemetry.previews,
-        handoff_preview_contacts: telemetry.previewContacts,
-        handoff_preview_survivors: telemetry.previewSurvivors,
-        handoff_rescue_attempts: telemetry.rescueAttempts,
-        handoff_rescue_successes: telemetry.rescueSuccesses,
-        handoff_skips: best.stats.handoff_skips ?? 0,
-        handoff_skip_branches: telemetry.skips,
-        handoff_deferred_skips: telemetry.deferredSkips,
-        ...(arcStats ? { arc_placement: arcStats } : {}),
-      },
-    };
-  } finally {
-    setSimFrameLimit(null);
+    while (nextBudgetIndex < budgets.length) {
+      const budget = budgets[nextBudgetIndex];
+      checkpoints.push(snapshot(budget, getSimFrames() >= budget));
+      nextBudgetIndex++;
+    }
+
+    return { checkpoints };
   }
+}
+
+function normalizeBudgets(raw: number[] | undefined): number[] {
+  if (raw === undefined || raw.length === 0) {
+    throw new Error("compileHandoff: budgets must contain at least one positive number");
+  }
+  const budgets = raw.slice();
+  const seen = new Set<number>();
+  for (let i = 0; i < budgets.length; i++) {
+    const budget = budgets[i];
+    if (!Number.isSafeInteger(budget) || budget <= 0) {
+      throw new Error(`compileHandoff: budgets must be positive safe integers, got ${raw[i]}`);
+    }
+    if (seen.has(budget)) {
+      throw new Error(`compileHandoff: duplicate budget ${budget}`);
+    }
+    seen.add(budget);
+  }
+  return budgets.sort((a, b) => a - b);
 }
 
 function activeFrontier(

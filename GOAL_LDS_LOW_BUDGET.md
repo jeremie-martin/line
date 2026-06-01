@@ -1,53 +1,51 @@
-# Goal - low-budget handoff compiler
+# Goal - budget-curve handoff compiler
 
-This file intentionally keeps its historical name because it has useful
-campaign notes and is linked from past work. The active compiler is now
-`compileHandoff` in `scripts/v0/optimizer/handoff.ts`.
+This file keeps its historical name because past work links here. The active
+compiler is `compileHandoff` in `scripts/v0/optimizer/handoff.ts`.
 
 ## Campaign Metric
 
-Use this command as the low-budget run of record:
+Use this command as the run of record:
 
 ```bash
-npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
+npm run golden -- --jobs=4 --compiler=handoff
 ```
 
-`--compiler=handoff` is explicit but optional; handoff is the default compiler.
-The explicit option remains so future compilers can be added without changing
-the CLI shape.
+`npm run golden` evaluates the default budget grid:
 
-Current baseline (20-spec golden suite, after dominated partial skip):
+```text
+35000,40000,45000,50000,55000,60000,65000,70000,75000
+```
 
-- `goal_score 313.40`
-- `valid 60/60` (20 specs × 3 seeds)
-- `contract_pass_rate 100%`
-- `evaluator_fingerprint e9f938701119`
+The headline metric is `CURVE_SCORE`: the shifted geometric mean of the suite
+score at each budget checkpoint. A targeted probe uses the same benchmark shape:
 
-Variant probe at the same 50k budget:
+```bash
+npm run golden -- --specs=tiny_dance,opening_burst,drums_breath --seed=0 --budgets=30000,50000,70000 --verify-checkpoints --jobs=1
+```
 
-- `variant_report_score 304.80`
-- `valid 120/120`
+Every golden run archives `golden.json` plus checkpoint track/report artifacts
+under `generated/golden-runs/<run>/`, which is gitignored through `generated/`.
+The JSON records the git commit and dirty state for commit-to-commit comparison.
 
-> Axis quality is graded **per contact (per gap)**: the achieved value at each
-> landing is compared to the axis curve's target there, combined as RMS. Older
-> absolute scores are not comparable (the suite and metric have changed since);
-> the `EVALUATOR_FINGERPRINT` marks the current ruler.
+Current baseline is intentionally pending until the next full curve run is
+recorded with the new JSON schema.
 
 ## What To Optimize
 
-The compiler turns a `Spec` into a Line Rider `Track` whose simulated rider lands
-on authored contacts and expresses per-axis target **curves** (`(t) => value`)
-for `air`, `speed`, `grain`, and `contact_style`.
+The compiler turns a `Spec` into Line Rider `Track` checkpoints whose simulated
+rider lands on authored contacts and expresses per-axis target curves (`air`,
+`speed`, `grain`, and `contact_style`).
 
 Two outcomes matter together:
 
 - **Contract progress:** no drifted contacts, no missing contacts, no off-beat
   landings, and survival to end-of-spec.
 - **Quality progress:** among contract-passing outputs, higher axis/contact
-  quality matters — graded per gap against the curve's value there.
+  quality matters, graded per gap against the curve value there.
 
-The score is still computed by `scripts/v0/score.ts`; do not move the scorer or
-golden specs to improve the number.
+The scorer and golden specs are the ruler. Do not move or edit them to improve
+the number.
 
 ## Handoff Architecture
 
@@ -55,10 +53,11 @@ The search state is a partial prefix at a gap boundary. Each expansion commits
 one candidate catch or skips a non-contact gap, then the register scores the
 best complete-or-partial output seen so far.
 
-Budget is measured in simulated rider frames and acts only as a stop condition.
-The candidate policy must not read the budget. This preserves determinism and
-monotonicity: more budget visits a longer prefix of the same deterministic node
-sequence, and the strict best-so-far register can only hold or improve.
+Budget is measured in simulated rider frames and acts only as a checkpoint/stop
+condition. Candidate policy must not read budget. A single run walks a
+deterministic node sequence and snapshots the strict best-so-far register at
+each requested budget. More budget can hold or improve the returned register key,
+but must not regress it.
 
 Important diagnostics:
 
@@ -80,95 +79,27 @@ Important diagnostics:
 ## Working Loop
 
 1. Make one explainable compiler change.
-2. Probe targeted rows first with `--specs`, `--seed`, and `--details`.
-3. Run the 50k campaign command before trusting the change.
-4. Run `npx vitest run tests/optimizer_handoff.test.ts` after changes to search,
+2. Probe targeted rows first with `--specs`, `--seed`, `--budgets`, and `--details`.
+3. Use `--verify-checkpoints` on small probes after changes to budget handling.
+4. Run the default curve command before trusting a broad change.
+5. Run `npx vitest run tests/optimizer_handoff.test.ts` after changes to search,
    candidate ordering, budget handling, or the register.
-5. Check variants before declaring a broad win:
+6. Check variants before declaring a broad win:
 
 ```bash
-npm run golden -- --jobs=60 --budget=50000 --compiler=handoff --variants
+npm run golden -- --variants --compiler=handoff
 ```
 
 ## Current Frontier
 
-At 50k, all 60 base rows now pass the contract. The former base frontier:
+The useful question is no longer "what wins at one budget?" It is the curve
+shape:
 
-- `opening_burst` now passes 3/3 after clean-prefix short-deadline rescue
-
-`verse_chorus`, `drums_swell`, and `drums_breath` remain 3/3 at 50k. The
-previous sustained-density row, `solo_run`, remains 3/3. The useful work has
-shifted from base-suite contract recovery through variant contract recovery and
-toward quality: reaching complete prefixes with lower speed saturation, and
-doing so without letting rescue work starve the cheap common path.
-
-The continuous-curve showcase is now 3/3 across the base suite. The visible
-residual on several specs is still *speed* overshooting its target on the
-dense/late back half (a physics-saturation effect, clear in the dashboard's
-measured-vs-target view), but the overspeed dead-end rescue prevents that from
-becoming a base-suite survival miss on the former `drums_swell`/`drums_breath`
-frontier rows, and short-deadline rescue prevents the hot opening from turning a
-rare zero-candidate 10-frame gap into a skipped contact. Trimming that
-short-deadline rescue from 96 to 80 deterministic samples kept the base contract
-clean while freeing enough work for the stretched hot opening variant to finish.
-The extendable per-node candidate cache then removed duplicate normal-prefix
-sampling when a node escalates from the cheap 16-sample batch to 32/80-sample
-rescue. That preserved candidate order, held the base contract at 60/60, and
-let `drums_pulse/time_stretch_102#0` reach a terminal prefix at 50k.
-Tail completion now ranks its greedy suffix steps without a nested future
-preview. The suffix walk itself is already the future feasibility check, so
-skipping the extra one-contact preview removes redundant simulation and moves
-more useful prefix outputs under the same deterministic 50k budget.
-Future-contact previews now use the same per-node candidate cache as expansion,
-and expansion carries the previewed child node forward. That avoids simulating
-the first future-contact sample twice, preserves deterministic candidate order
-when expansion later extends from preview `K=1` to the normal batch, and brings
-the report-only 50k variants to 120/120 valid rows.
-Start-state lookahead now carries its sampled root node into the real search, so
-the first-contact feasibility probe extends from its cached 8-sample prefix to
-the normal 16-sample batch instead of replaying those physics samples. Candidate
-order is unchanged; the saved work lets the 50k variants reach a few additional
-prefix evaluations and nudges the report score to 302.94.
-Child-node extension is now memoized by `(parent, sampled candidate)`, and
-candidate caches can answer smaller deterministic prefixes from a larger cached
-sample set. That lets the second-contact portion of start lookahead seed the
-same child nodes that later preview/expand, avoiding another duplicate physics
-path while preserving exact K-prefix semantics. The 50k base score moves to
-311.90 and the variants report to 303.42, still with every row valid.
-Handoff-specific reuse/brake catch candidates are now cached per node as well.
-Those candidates are deterministic functions of the same prefix state but were
-being recomputed when tail completion ranked a node and normal expansion later
-ranked it again with previews enabled. Caching only the validated extra
-candidates leaves scoring and previews per-call, but frees enough 50k budget for
-more nodes, leaves, full evaluations, and tail completions. The base score moves
-to 312.15 and the variants report to 304.36, with 60/60 base rows and 120/120
-variant rows valid.
-Detector evaluation results are now cached per `SearchNode` within a compile
-call. The same prefix can be offered to the register more than once through
-start-option deferral or near-tail speculative completion; caching the
-report/key preserves the register offer order while avoiding duplicate
-trajectory extraction and drift scoring. The 50k base score moves to 312.23 and
-the variants report to 304.37, again with every base and variant row valid.
-Near-tail completion now starts with five remaining contacts once the prefix has
-already committed at least one real catch. That extra contact gives longer specs
-one more chance to reach a complete suffix under the 50k budget, while the
-committed-catch guard avoids turning a four-contact spec into a whole-track
-greedy solve from the root. The base score moves to 312.99 and the variants
-report to 304.72, with no row regressions against the node-evaluation cache
-baseline and all rows valid.
-Near-tail completion now keeps the greedy suffix path as the first attempt, but
-if that path reaches a local dead end it can backtrack to the second-ranked
-local option within the same five-contact window. This spends extra work only on
-failed tail completions, raises tail-completion successes, and moves more full
-evaluations under the same 50k budget. The base score moves to 313.16 and the
-variants report to 304.80; all base and variant rows remain valid.
-Once the register already holds a full contract-passing output, later
-nonterminal partial reports are dominated: by construction they still contain
-future missing contacts and cannot beat a passing incumbent. Handoff now keeps
-expanding those nodes but skips the detector/report scoring for the dominated
-partial offer, saving work for terminal leaves and tail completions. The base
-score moves to 313.40, the variants remain at 304.80, and all 180 base+variant
-rows remain valid.
+- rows invalid across the grid are search-bound;
+- rows that improve late are budget-bound;
+- rows that plateau early are not converting extra budget into better tracks;
+- rows that regress violate the budget-search contract and must be fixed before
+  optimizing further.
 
 Promising levers:
 
@@ -177,8 +108,7 @@ Promising levers:
 - reusable candidate patterns for periodic contact runs
 - start-state search that improves the first few gaps without hidden prepasses
 - polish variants that are cheap enough to be worth their metered frames
-- speed-bleed / braking that holds a *descending or flat* speed curve on the
-  back half (the curve specs make this gap explicit)
+- speed-bleed / braking that holds a descending or flat speed curve on the back half
 
 Hard rules:
 
@@ -186,3 +116,4 @@ Hard rules:
 - no wall-clock inputs
 - no unseeded randomness
 - no scorer or golden-spec edits for score
+- no budget-dependent candidate policy

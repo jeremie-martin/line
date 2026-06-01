@@ -24,44 +24,36 @@ export type { CompileStats, DriftReport, Gap, Spec };
 
 // ─────────── New types for the rebuild ───────────
 
-/** The compute budget controlling how much work the optimizer is
- *  allowed to do.
+/** A compute checkpoint in simulated rider frames.
  *
- *  - `work` : abstract iteration units measured in **simulated rider
- *             frames** (one frame = one engine integration step,
- *             charged at the trajectory-extraction boundary). Same
- *             (spec, seed, units) → byte-identical Track on any
- *             machine. Cheat-resistant: you cannot establish a
- *             candidate's physical viability without simulating its
- *             frames, so any genuine extra search work eventually
- *             shows up as more sim_frames and is charged
- *             proportionally.
- *
- *  Why simulated frames over `engine.addLine`: addLine registers
- *  geometry, but wall-clock cost is dominated by per-frame stepping
- *  (lr-core uses spatial-grid collision; per-frame cost is O(local
- *  density), not O(total lines) — verified in Stage 0b). Sim-frames
- *  is therefore the unit that satisfies Property 2 by construction.
- *
- *  A `wall_ms` mode is intentionally NOT part of the core contract.
- *  Wall-clock cannot be deterministic across machines. If a use case
- *  needs a real-time deadline later, it can be added as an explicitly-
- *  non-deterministic convenience wrapper. */
-export type Budget = { kind: "work"; units: number };
+ * Budgets are plain positive frame counts. They are stop/checkpoint thresholds
+ * only: the search policy must never read the current budget. A compile with
+ * multiple budgets walks one deterministic search sequence and snapshots the
+ * best-so-far register at each threshold.
+ */
+export type CompileBudget = number;
 
-/** Inputs to a budgeted compiler entry point. */
+/** Inputs to the compiler entry point. */
 export type CompileInput = {
   spec: Spec;
   seed?: number;
-  /** If omitted, the optimizer runs to natural completion (no budget cap). */
-  budget?: Budget;
+  budgets: CompileBudget[];
 };
 
-/** Outputs from a compiler entry point. */
+/** Output for one budget checkpoint. */
 export type CompileOutput = {
   track: TrackJson;
   report: DriftReport;
   stats: CompileStats;
+};
+
+export type CompileCheckpoint = CompileOutput & {
+  budget: CompileBudget;
+};
+
+/** Outputs from a compiler entry point. */
+export type CompileResult = {
+  checkpoints: CompileCheckpoint[];
 };
 
 /** A scalar score used for "is track A better than track B" comparisons.

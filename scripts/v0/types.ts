@@ -124,8 +124,9 @@ export type DriftReport = {
  * anytime-budget investigation — captures where the compiler spends
  * effort so we can pick a cheat-resistant iteration unit later.
  *
- * All counters are monotonic within one `compile()` call and reset
- * at the top of each call.
+ * Counters are captured per budget checkpoint. Work counters such as
+ * `sim_frames` and `leaves_considered` are monotonic across checkpoints within
+ * one `compile()` call and reset at the top of each call.
  */
 export type CompileStats = {
   // ─── Generic compile counters ───
@@ -159,8 +160,8 @@ export type CompileStats = {
    *  in this compile call. This is the compiler's budget unit, charged
    *  at the trajectory-extraction boundary in `optimizer/sim_frames.ts`. */
   sim_frames: number;
-  /** True iff the compiler hit its work-units budget before natural search
-   *  completion. False if no budget was set or search completed within budget. */
+  /** True iff this checkpoint's budget was reached before the search stopped
+   *  naturally or by the fixed node cap. */
   budget_exhausted: boolean;
 
   // ─── Search diagnostics ───

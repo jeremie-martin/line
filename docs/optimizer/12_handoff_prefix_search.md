@@ -36,12 +36,12 @@ lookahead requests are answered by filtering the stored sample attempts, so the
 smaller deterministic prefix is still exact.
 
 The preview is engine-in-loop and charged in simulated frames. It is also a pure
-policy function of `(spec, seed, prefix)`; it does not read the remaining budget.
-Budget only truncates how far through the deterministic prefix-node sequence the
-compiler gets. Future-contact previews use the same extendable per-node
-candidate cache as expansion, and expansion carries the previewed child node
-forward, so the previewed first future-contact sample can be reused when that
-branch is later expanded.
+policy function of `(spec, seed, prefix)`; it does not read the requested
+budgets. Budgets only define checkpoints along the deterministic prefix-node
+sequence. Future-contact previews use the same extendable per-node candidate
+cache as expansion, and expansion carries the previewed child node forward, so
+the previewed first future-contact sample can be reused when that branch is
+later expanded.
 
 Near-tail completion is an exception to future previewing inside candidate
 ranking: the suffix completion itself is already rolling the future forward. It
@@ -87,7 +87,8 @@ incumbent.
 ## Budget Contract
 
 Every scored prefix output is offered to the strict best-so-far register. Larger
-budgets see a prefix superset and cannot return a strictly worse comparator key.
+budget checkpoints see a prefix superset and cannot return a strictly worse
+comparator key.
 The only skipped reports are nonterminal partials after a passing full-duration
 incumbent exists; those reports cannot dominate that incumbent under the
 register comparator.
@@ -107,26 +108,21 @@ npx vitest run tests/optimizer_handoff.test.ts
 ## Campaign Command
 
 ```bash
-npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
+npm run golden -- --jobs=4 --compiler=handoff
 ```
 
-Current 20-spec result:
+The command reports `CURVE_SCORE`, per-budget scores, row checkpoint hashes, and
+compact checkpoint stats. Targeted probes use the same shape:
 
-- `SCORE 313.40`
-- `valid 60/60`
-- `contract_pass_rate 100%`
-
-The same budget with report-only timing variants reports `120/120` valid rows
-with `variant_report_score 304.80`.
+```bash
+npm run golden -- --specs=tiny_dance,opening_burst --seed=0 --budgets=30000,50000,70000 --verify-checkpoints
+```
 
 ## Known Frontier
 
-At the 50k campaign budget, all base rows pass the hard contract. The remaining
-frontier is robustness and quality.
-
-The former late-speed frontier rows (`verse_chorus`, `drums_swell`,
-`drums_breath`), the hot opening row (`opening_burst`), and the sustained-density
-`solo_run` row all pass 3/3 in the base suite.
+The budget curve separates search-bound rows, budget-bound rows, and early
+plateaus. The next useful work is to move improvements earlier on the curve and
+raise the plateau without making budget a policy input.
 
 Promising areas:
 

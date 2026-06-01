@@ -539,9 +539,9 @@
     </p>
   </div>
   <aside class="hero-card">
-    <div class="label"><!--BASELINE:budget_label-->50k sanity run<!--/BASELINE--></div>
-    <div class="score"><span><!--BASELINE:goal_score-->235.09<!--/BASELINE--></span> / 1000</div>
-    <div class="note"><!--BASELINE:valid_note-->55 valid rows out of 60.<!--/BASELINE--> The default compiler is <code>handoff</code>; the explicit <code>--compiler=handoff</code> flag is still supported.</div>
+    <div class="label"><!--BASELINE:budget_label-->35k-75k curve<!--/BASELINE--></div>
+    <div class="score"><span><!--BASELINE:curve_score-->pending<!--/BASELINE--></span> / 1000</div>
+    <div class="note"><!--BASELINE:valid_note-->Run <code>npm run golden</code> to refresh.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
   </aside>
 </section>
 
@@ -592,9 +592,9 @@
       <div>
         <h2>Spec -> gaps -> catches -> track</h2>
         <p class="sub">
-          A spec names a duration, contacts, and style sections. Contacts are the
-          beats the rider must hit; sections provide axis targets for what the
-          ride should feel like between those beats.
+          A spec names a duration, contacts, and axis target curves. Contacts
+          are the beats the rider must hit; curves describe what the ride should
+          feel like between those beats.
         </p>
       </div>
     </div>
@@ -657,16 +657,17 @@
     <div class="section-head">
       <div class="eyebrow">Run it</div>
       <div>
-        <h2>Default and explicit forms are equivalent</h2>
+        <h2>Run the budget curve</h2>
         <p class="sub">
-          Handoff is the default compiler, but the compiler selector remains in
-          the CLI so another implementation can be added without changing the
-          command shape.
+          Golden runs one deterministic compiler pass per row and reports
+          checkpoints across the configured sim-frame budgets.
         </p>
       </div>
     </div>
-    <pre class="command">npm run golden -- --jobs=4 --budget=50000
-npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
+    <pre class="command">npm run golden -- --jobs=4
+npm run golden -- --jobs=4 --budgets=30000,50000,70000 --specs=tiny_dance --seed=0
+
+# each run archives golden.json and checkpoint tracks/reports under generated/golden-runs/
 
 npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff --budget=50000</pre>
   </section>
@@ -838,15 +839,15 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
     <div class="grid-3">
       <div class="panel">
         <h3>Tail completion</h3>
-        <p>For medium-dense skip-free prefixes near the end, handoff tries a short greedy finish when at most three contacts remain.</p>
+        <p>For medium-dense skip-free prefixes near the end, handoff tries a short greedy finish when at most five contacts remain.</p>
       </div>
       <div class="panel">
         <h3>Polish</h3>
         <p>Terminal prefixes can be clone-tested by <code>polishLeafVariant</code>. The variant is offered to the same register and only adopted on strict improvement.</p>
       </div>
       <div class="panel">
-        <h3>Hard budget guard</h3>
-        <p>The caller budget stops the loop. A hard backstop at <code>budget * 1.2</code> catches runaway in-operation physics reads.</p>
+        <h3>Budget checkpoints</h3>
+        <p>Requested budgets are checkpoints along one deterministic node sequence. Each checkpoint snapshots the same strict best-so-far register.</p>
       </div>
     </div>
   </section>
@@ -916,46 +917,28 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
 
   <section class="section">
     <div class="section-head">
-      <div class="eyebrow">Current score</div>
+      <div class="eyebrow">Current curve</div>
       <div>
-        <h2>50k golden sanity result</h2>
+        <h2>Golden budget-curve result</h2>
         <p class="sub">
-          The cleanup sanity check is the fixed-budget command below. Default
-          handoff and explicit handoff produce the same aggregate.
+          The default benchmark scores the compiler across a grid of simulated
+          physics budgets, so optimizations are judged by the shape of the curve
+          rather than a single 50k point.
         </p>
       </div>
     </div>
 
-    <pre class="command">npm run golden -- --jobs=4 --budget=50000
-npm run golden -- --jobs=4 --budget=50000 --compiler=handoff
+    <pre class="command">npm run golden -- --jobs=4
+npm run golden -- --jobs=4 --compiler=handoff
 
-<!--BASELINE:score_block-->SCORE 235.09 - valid 55/60 - invalid 5 - timeout 0
-contract_pass_rate 92%<!--/BASELINE--></pre>
+<!--BASELINE:score_block-->
+pending<!--/BASELINE--></pre>
 
     <div class="panel" style="margin-top:16px">
-      <h3>Spec scores</h3>
-      <div class="score-list" aria-label="Spec scores at 50k budget">
+      <h3>Spec scores at the largest budget</h3>
+      <div class="score-list" aria-label="Spec scores at largest curve budget">
         <!--BASELINE:spec_rows-->
-        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:48.5%"></span></div><span class="num">485.24</span></div>
-        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:47.5%"></span></div><span class="num">475.25</span></div>
-        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:44.8%"></span></div><span class="num">447.73</span></div>
-        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:40.6%"></span></div><span class="num">405.76</span></div>
-        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:39.1%"></span></div><span class="num">391.00</span></div>
-        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:36.9%"></span></div><span class="num">369.17</span></div>
-        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:34.7%"></span></div><span class="num">347.22</span></div>
-        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:30.9%"></span></div><span class="num">308.65</span></div>
-        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:29.5%"></span></div><span class="num">295.17</span></div>
-        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:29.1%"></span></div><span class="num">291.45</span></div>
-        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:25.7%"></span></div><span class="num">256.94</span></div>
-        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:25.6%"></span></div><span class="num">256.07</span></div>
-        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:25.4%"></span></div><span class="num">254.49</span></div>
-        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:25.1%"></span></div><span class="num">251.04</span></div>
-        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:23.7%"></span></div><span class="num">236.55</span></div>
-        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:22.5%"></span></div><span class="num">225.14</span></div>
-        <div class="score-row fail"><span>opening_burst</span><div class="bar"><span style="width:13.5%"></span></div><span class="num">135.19</span></div>
-        <div class="score-row fail"><span>drums_swell</span><div class="bar"><span style="width:5.9%"></span></div><span class="num">59.47</span></div>
-        <div class="score-row fail"><span>verse_chorus</span><div class="bar"><span style="width:5.9%"></span></div><span class="num">58.60</span></div>
-        <div class="score-row fail"><span>drums_breath</span><div class="bar"><span style="width:4.4%"></span></div><span class="num">43.88</span></div>
+        <div class="score-row"><span>pending</span><div class="bar"><span style="width:0%"></span></div><span class="num">0.00</span></div>
         <!--/BASELINE-->
       </div>
     </div>
@@ -982,8 +965,8 @@ npx vitest run tests/v0_determinism.test.ts</pre>
       </div>
       <div class="panel">
         <h3>Current known frontier</h3>
-        <p>At the 50k campaign budget, the failing rows are concentrated in <code>opening_burst</code>, <code>verse_chorus</code>, <code>drums_swell</code>, and <code>drums_breath</code>. The current frontier is reaching complete prefixes sooner without reintroducing contact-count or benchmark-shaped policy cliffs.</p>
-        <div class="tags"><span class="tag warn">opening_burst 1/3</span><span class="tag warn">verse_chorus 2/3</span><span class="tag warn">drums_swell 2/3</span><span class="tag warn">drums_breath 2/3</span></div>
+        <p>The budget curve makes frontier rows visible as trajectories: rows that stay invalid across the grid are search-bound, rows that improve late are budget-bound, and rows that plateau early show where more budget is not being converted into better tracks.</p>
+        <div class="tags"><span class="tag warn">search-bound</span><span class="tag warn">budget-bound</span><span class="tag warn">early plateau</span></div>
       </div>
     </div>
   </section>
@@ -998,7 +981,7 @@ npx vitest run tests/v0_determinism.test.ts</pre>
         <p class="sub">
           This tab is historical context only. The current compiler is explained
           in the other tabs; the log records which measured changes produced the
-          40k fixed-budget result.
+          earlier scalar benchmark results.
         </p>
       </div>
     </div>
@@ -1137,11 +1120,11 @@ for (const tab of tabs) {
 }
 setTab(location.hash.replace("#", "") || "compiler", false);
 
-// History reset at the curve-era / per-gap-metric / 20-spec re-baseline; older
-// per-section scores are not comparable, so the series restarts here.
-// Append a point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
+// History reset at the budget-curve benchmark. Older scalar points are not
+// comparable, so the series restarts here.
+// Replace the point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
 const campaignData = [
-  /*BASELINE:campaign*/["20-spec @50k", 235.09]/*/BASELINE*/
+  /*BASELINE:campaign*/["35k-75k curve", 0]/*/BASELINE*/
 ];
 
 function drawCampaignChart() {

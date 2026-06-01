@@ -87,9 +87,9 @@ Scores this produced (all 111/113 contacts hit, full ride, 0 off-beat):
 **63.26** → `v3` (good air arc + modest speed) **79.63**. Tune, recompile, read
 the achieved column, repeat.
 
-> Budget note: handoff is **budget-saturated** on these specs — `--budget=2000000`
-> produced byte-identical output to the 200k default. More compute is not the
-> lever; spec design is.
+> Budget note: handoff can be **budget-saturated** on these specs. When the
+> golden budget curve shows identical hashes across later checkpoints, more
+> compute is not the lever; spec design is.
 
 ## 5. Render to mp4 with audio
 

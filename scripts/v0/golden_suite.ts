@@ -1,6 +1,5 @@
 import { resolve } from "node:path";
 import { AXES, type Spec } from "./types.ts";
-import type { Budget } from "./optimizer/types.ts";
 
 export const GOLDEN_SPECS = [
   "drums_signature",
@@ -32,35 +31,19 @@ export const REPORT_VARIANTS = [
 
 export const GOLDEN_SEEDS = [0, 1, 2] as const;
 
-/**
- * Default compute budget for the handoff compiler, in PHYSICS frames (the
- * honest work unit — frames the engine actually integrates; see
- * `optimizer/sim_frames.ts`).
- *
- * The handoff compiler also supports explicit fixed-budget campaign runs, e.g.
- * `npm run golden -- --budget=50000`. The default is intentionally generous for
- * normal quality checks; explicit budgets are the sharper optimization signal.
- */
-export const HANDOFF_BUDGET_PHYS = 200_000;
-
-export function budgetFor(_spec: Spec): Budget {
-  return { kind: "work", units: HANDOFF_BUDGET_PHYS };
-}
-
-/**
- * Fast inner-loop preset (`golden.ts --fast`). A small, diverse subset of specs
- * and a reduced budget. Gives a quick signal for iteration, NOT the canonical
- * goal_score — the harness labels fast runs as indicative and refuses to print
- * GOAL_SCORE for them. Use the full run before trusting a result or committing.
- */
-export const FAST_SPECS: GoldenSpecName[] = [
-  "tiny_dance",
-  "mini_burst",
-  "cold_start",
-  "rhythm_ladder",
-];
-export const FAST_BUDGET_PHYS = 40_000;
-export const FAST_SEED = 0;
+/** Default compute checkpoints for the golden budget curve, in simulated rider
+ * frames (the honest work unit; see `optimizer/sim_frames.ts`). */
+export const DEFAULT_BUDGETS = [
+  35_000,
+  40_000,
+  45_000,
+  50_000,
+  55_000,
+  60_000,
+  65_000,
+  70_000,
+  75_000,
+] as const;
 
 /**
  * Committed fingerprint of the "ruler" — `score.ts` + every `specs/golden/*.ts`
@@ -73,9 +56,9 @@ export const FAST_SEED = 0;
 export const EVALUATOR_FINGERPRINT = "e9f938701119";
 
 /**
- * Worker-timeout (hang-detection safety cap) for the compile. The compiler is
- * budget-metered in sim-frames, so the cap is scaled off the effective budget
- * with generous safety. golden.ts further multiplies this by --jobs, since
+ * Worker-timeout (hang-detection safety cap) for the compile. The compiler
+ * checkpoints by sim-frame budgets, so the cap is scaled off the maximum
+ * requested budget with generous safety. golden.ts further multiplies this by --jobs, since
  * parallel contention stretches wall-clock. Safety net, not a quality term.
  */
 export const HANDOFF_MS_PER_PHYSFRAME = 0.35; // measured upper bound
@@ -83,8 +66,8 @@ export const HANDOFF_WORKER_SAFETY = 3;
 export const HANDOFF_WORKER_TIMEOUT_FLOOR_MS = 120_000;
 export const HANDOFF_WORKER_TIMEOUT_CAP_MS = 600_000;
 
-export function compilerWorkerTimeoutMs(budgetUnits: number): number {
-  const raw = Math.round(budgetUnits * HANDOFF_MS_PER_PHYSFRAME * HANDOFF_WORKER_SAFETY);
+export function compilerWorkerTimeoutMs(maxBudget: number): number {
+  const raw = Math.round(maxBudget * HANDOFF_MS_PER_PHYSFRAME * HANDOFF_WORKER_SAFETY);
   return Math.min(
     HANDOFF_WORKER_TIMEOUT_CAP_MS,
     Math.max(HANDOFF_WORKER_TIMEOUT_FLOOR_MS, raw),

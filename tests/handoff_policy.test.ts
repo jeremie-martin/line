@@ -46,11 +46,11 @@ describe("handoff policy boundaries", () => {
     for (const totalContacts of [29, 30, 31, 60, 61, 77]) {
       const gaps = contactGaps(totalContacts);
       expect(shouldAttemptNearTailCompletion({
-        search: nodeAt(totalContacts - 5),
+        search: nodeAt(totalContacts - 6),
         skippedContacts: 0,
       }, gaps)).toBe(true);
       expect(shouldAttemptNearTailCompletion({
-        search: nodeAt(totalContacts - 6),
+        search: nodeAt(totalContacts - 7),
         skippedContacts: 0,
       }, gaps)).toBe(false);
     }

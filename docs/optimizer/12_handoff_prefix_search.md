@@ -47,7 +47,7 @@ Near-tail completion is an exception to future previewing inside candidate
 ranking: the suffix completion itself is already rolling the future forward. It
 ranks local options without nesting another one-contact preview, which avoids
 duplicate speculative simulation in the most budget-sensitive part of the
-search. The suffix walk starts with up to five remaining contacts, but only
+search. The suffix walk starts with up to six remaining contacts, but only
 after at least one real catch has already been committed; this prevents a short
 four-contact spec from becoming a whole-track greedy solve from the root. The
 greedy suffix path remains first, and if it hits a local dead end the completion

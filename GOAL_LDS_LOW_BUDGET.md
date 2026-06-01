@@ -25,6 +25,14 @@ budget grid:
 npm run golden -- --specs=tiny_dance,opening_burst,drums_breath --seed=0 --verify-checkpoints --jobs=1
 ```
 
+Use `CURVE_SCORE` as the campaign headline, not as a blind scalar. The curve
+metric is meant to reward improvements that arrive earlier, preserve later
+checkpoints, and avoid one-budget overfitting. The budget grid is therefore part
+of the benchmark definition: changing `35k..75k` changes what the optimizer is
+being asked to do. When judging a change, inspect the per-budget table too:
+budget regressions, max-budget validity, and worst rows remain guardrails even
+when the aggregate score rises.
+
 Every golden run archives `golden.json` plus checkpoint track/report artifacts
 under `generated/golden-runs/<run>/`, which is gitignored through `generated/`.
 The JSON records the git commit and dirty state for commit-to-commit comparison.

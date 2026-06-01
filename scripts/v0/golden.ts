@@ -777,6 +777,8 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_partial_evaluations: stats.handoff_partial_evaluations,
     handoff_full_evaluations: stats.handoff_full_evaluations,
     handoff_start_rank: stats.handoff_start_rank,
+    handoff_start_ranks_seen: stats.handoff_start_ranks_seen,
+    handoff_start_ranks_with_fits: stats.handoff_start_ranks_with_fits,
     handoff_skips: stats.handoff_skips,
   };
 }

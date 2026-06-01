@@ -98,6 +98,8 @@ Important diagnostics:
 - `handoff_skips`
 - `handoff_tail_completion_attempts`
 - `handoff_tail_completion_successes`
+- `handoff_start_ranks_seen`
+- `handoff_start_ranks_with_fits`
 
 ## Working Loop
 
@@ -140,6 +142,13 @@ frontier scheduling or explicit ancestor repair may be worth testing. Check
 one deferred start root does not masquerade as a broad backlog. A small lag or
 empty frontier points more toward local candidate generation, ranking, or suffix
 quality than retro-branching.
+
+Start-state diversity needs the same treatment. Multi-start specs can show many
+`handoff_start_ranks_seen` but only one `handoff_start_ranks_with_fits`, meaning
+alternate starts were visited as root partials but not expanded into real catch
+prefixes before budget ran out. Naive breadth scheduling and first-contact
+start-layer deferral both hurt the curve in targeted probes, so future start
+work should be more selective than "expand every start earlier."
 
 Promising levers:
 

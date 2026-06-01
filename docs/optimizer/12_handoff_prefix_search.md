@@ -76,7 +76,9 @@ selected root nodes carry the first-contact candidate cache from that probe, so
 real expansion extends the sampled prefix instead of replaying it. Repeated
 extension of the same parent by the same sampled candidate is cached too, so the
 second-contact lookahead can seed the child node later used by preview and
-expansion.
+expansion. Checkpoint stats also count start ranks seen versus start ranks that
+reach a committed catch, which distinguishes "alternative starts were considered
+as roots" from "alternative starts actually received search budget."
 
 Handoff-only extra candidates are cached at the node as well. Reuse catches and
 brake catches are deterministic prefix-state probes, so when tail completion and

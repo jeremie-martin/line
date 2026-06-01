@@ -205,6 +205,10 @@ export type CompileStats = {
    *  and the selected rank for the returned best prefix. */
   handoff_start_options?: number;
   handoff_start_rank?: number;
+  /** Start-state diversity reached by the search. `seen` includes root partials;
+   *  `with_fits` counts start ranks that reached at least one committed catch. */
+  handoff_start_ranks_seen?: number;
+  handoff_start_ranks_with_fits?: number;
   handoff_previews?: number;
   /** Future contacts successfully rolled forward inside handoff preview
    *  rollouts. Higher means candidate ranking is using multi-gap feasibility,

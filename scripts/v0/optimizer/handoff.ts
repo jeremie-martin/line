@@ -117,6 +117,8 @@ type HandoffTelemetry = {
   rescueSuccesses: number;
   skips: number;
   deferredSkips: number;
+  startRanksSeen: Set<number>;
+  startRanksWithFits: Set<number>;
 };
 
 type HandoffFrontierStats = Pick<
@@ -288,6 +290,8 @@ export function compileHandoff(
       rescueSuccesses: 0,
       skips: 0,
       deferredSkips: 0,
+      startRanksSeen: new Set<number>(),
+      startRanksWithFits: new Set<number>(),
     };
     const polishEnabled = opts.polish ?? true;
     let polishTried = 0;
@@ -306,6 +310,10 @@ export function compileHandoff(
 
     const consider = (node: HandoffNode): LeafKey | null => {
       telemetry.deepestSeenGap = Math.max(telemetry.deepestSeenGap, node.search.gapIndex);
+      telemetry.startRanksSeen.add(node.startRank);
+      if (node.search.prefixFits.some((fit) => fit !== null)) {
+        telemetry.startRanksWithFits.add(node.startRank);
+      }
       if (canSkipPartialEvaluation(node, gaps, register)) return null;
       const evaluation = evaluateCached(node);
       if (evaluation.fullDuration) telemetry.fullEvaluations++;
@@ -352,6 +360,8 @@ export function compileHandoff(
           handoff_tail_completion_successes: telemetry.tailCompletionSuccesses,
           handoff_start_options: startOptions.length,
           handoff_start_rank: best.stats.handoff_start_rank ?? 0,
+          handoff_start_ranks_seen: telemetry.startRanksSeen.size,
+          handoff_start_ranks_with_fits: telemetry.startRanksWithFits.size,
           handoff_previews: telemetry.previews,
           handoff_preview_contacts: telemetry.previewContacts,
           handoff_preview_survivors: telemetry.previewSurvivors,

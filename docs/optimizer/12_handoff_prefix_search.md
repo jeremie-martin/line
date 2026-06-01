@@ -62,6 +62,12 @@ extension of the same parent by the same sampled candidate is cached too, so the
 second-contact lookahead can seed the child node later used by preview and
 expansion.
 
+Handoff-only extra candidates are cached at the node as well. Reuse catches and
+brake catches are deterministic prefix-state probes, so when tail completion and
+normal expansion both rank the same node, the compiler reuses the already
+validated extra candidates while still recomputing scoring and previews for the
+current ranking mode.
+
 ## Budget Contract
 
 Every scored prefix output is offered to the strict best-so-far register. Larger
@@ -87,12 +93,12 @@ npm run golden -- --jobs=60 --budget=50000 --compiler=handoff
 
 Current 20-spec result:
 
-- `SCORE 311.90`
+- `SCORE 312.15`
 - `valid 60/60`
 - `contract_pass_rate 100%`
 
 The same budget with report-only timing variants reports `120/120` valid rows
-with `variant_report_score 303.42`.
+with `variant_report_score 304.36`.
 
 ## Known Frontier
 

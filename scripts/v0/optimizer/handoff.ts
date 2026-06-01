@@ -112,6 +112,14 @@ type HandoffTelemetry = {
   deferredSkips: number;
 };
 
+type ExtraCandidateCache = {
+  reuse?: Candidate[];
+  brakeSeed?: number;
+  brake?: Candidate[];
+};
+
+const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
+
 const DEFAULT_MAX_NODES = 800;
 const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
@@ -561,7 +569,7 @@ function rankedOptions(
   // recent sled-relative catch can remain valid at a later similar entry state.
   // Deterministic (pure function of the prefix); only ADDS candidates, so
   // monotonicity holds.
-  const reuse = reuseCatchCandidates(node, gaps, ctx);
+  const reuse = cachedReuseCatchCandidates(node, gaps, ctx);
   reuse.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(node, candidate, poolSize + j, gaps, ctx, seed, telemetry, preview))
   );
@@ -570,7 +578,7 @@ function rankedOptions(
   // from landing (impact-anchor still lands the contact), so they only win when
   // the overshoot penalty rewards their lower speed and simply lose elsewhere.
   // Excluded from reuse.
-  const brake = brakeCatchCandidates(node, gaps, ctx, seed);
+  const brake = cachedBrakeCatchCandidates(node, gaps, ctx, seed);
   brake.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(node, candidate, poolSize + reuse.length + j, gaps, ctx, seed, telemetry, preview))
   );
@@ -580,6 +588,34 @@ function rankedOptions(
     a.rank - b.rank
   );
   return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+function cachedReuseCatchCandidates(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+): Candidate[] {
+  const cache = extraCandidateCache.get(node) ?? {};
+  if (cache.reuse === undefined) {
+    cache.reuse = reuseCatchCandidates(node, gaps, ctx);
+    extraCandidateCache.set(node, cache);
+  }
+  return cache.reuse;
+}
+
+function cachedBrakeCatchCandidates(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+): Candidate[] {
+  const cache = extraCandidateCache.get(node) ?? {};
+  if (cache.brake === undefined || cache.brakeSeed !== seed) {
+    cache.brake = brakeCatchCandidates(node, gaps, ctx, seed);
+    cache.brakeSeed = seed;
+    extraCandidateCache.set(node, cache);
+  }
+  return cache.brake;
 }
 
 /** Offer uphill-entry brake catches when the rider runs over a moderate target

@@ -174,6 +174,16 @@ survive hard gates and return a `GapFit`. The analyzer prints sampled/viable as
 `cand=a/b`, so future probes can separate raw sampling volume from hard-gate
 attrition.
 
+Golden compact JSON now also preserves impact-anchor placement counters, and
+the curve analyzer prints suite-level placement yield. This is diagnostic-only:
+it exposes sampled arc count, pre-target preclear rejects, direct impact-anchor
+landing rate, and fallback-bisection use before changing geometry policy. On a
+2-spec smoke (`drums_pendulum`, `opening_burst`; budgets `75k,150k`), common
+rows matched the prior source/rank artifact at every checkpoint with
+`workΔ(sim=+0 cand=+0 viable=+0)`. The new analyzer line showed the current
+impact-anchor shape at `150k`: `63845` sampled arcs, `31829` preclear rejects,
+and direct landing `12133/68704` (`17.7%`), with fallback disabled (`0/0`).
+
 Analyzer comparison mode now reports average per-row work deltas at each common
 budget: `workΔ(sim=... cand=... viable=...)`. Use this when judging whether a
 probe improved the curve by spending substantially more compute or by using the

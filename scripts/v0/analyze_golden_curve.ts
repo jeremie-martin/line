@@ -21,6 +21,17 @@ type BudgetScore = {
   regressions: number;
 };
 
+type ArcPlacementStats = {
+  mode?: "impact_anchor";
+  sampled?: number;
+  preclear_rejected?: number;
+  direct_attempted?: number;
+  direct_landed?: number;
+  direct_failed?: number;
+  fallback_attempted?: number;
+  fallback_landed?: number;
+};
+
 type CompileStats = {
   candidates_sampled?: number;
   candidates_viable?: number;
@@ -85,6 +96,7 @@ type CompileStats = {
   handoff_prefix_branch_full_evaluations?: number;
   handoff_prefix_branch_improvements?: number;
   handoff_prefix_branch_prunes?: number;
+  arc_placement?: ArcPlacementStats;
 };
 
 type AxisError = {
@@ -591,6 +603,49 @@ function printStreamDiagnostics(data: GoldenCurveJson): void {
   for (const line of lines) console.log(line);
 }
 
+function printArcPlacementDiagnostics(data: GoldenCurveJson): void {
+  const rows = data.rows ?? [];
+  const budgets = data.budgets ?? data.budget_scores?.map((summary) => summary.budget) ?? [];
+  if (rows.length === 0 || budgets.length === 0) return;
+  const lastBudget = budgets[budgets.length - 1];
+  const checkpoints = rows
+    .map((row) => checkpointAt(row, lastBudget))
+    .filter((checkpoint): checkpoint is CheckpointRow =>
+      checkpoint?.compile_stats?.arc_placement !== undefined
+    );
+  if (checkpoints.length === 0) return;
+
+  const sampled = sumArcPlacementStat(checkpoints, "sampled");
+  const preclear = sumArcPlacementStat(checkpoints, "preclear_rejected");
+  const directAttempted = sumArcPlacementStat(checkpoints, "direct_attempted");
+  const directLanded = sumArcPlacementStat(checkpoints, "direct_landed");
+  const directFailed = sumArcPlacementStat(checkpoints, "direct_failed");
+  const fallbackAttempted = sumArcPlacementStat(checkpoints, "fallback_attempted");
+  const fallbackLanded = sumArcPlacementStat(checkpoints, "fallback_landed");
+
+  console.log("");
+  console.log(`impact-anchor placement at ${fmtBudget(lastBudget)}:`);
+  console.log(
+    `  sampled=${sampled} attempts/row=${(sampled / checkpoints.length).toFixed(1)} ` +
+      `preclear=${preclear} direct=${directLanded}/${directAttempted} ` +
+      `rate=${fmtRate(directLanded, directAttempted)} failed=${directFailed} ` +
+      `fallback=${fallbackLanded}/${fallbackAttempted} ` +
+      `rate=${fmtRate(fallbackLanded, fallbackAttempted)}`,
+  );
+}
+
+function sumArcPlacementStat(
+  checkpoints: CheckpointRow[],
+  key: keyof ArcPlacementStats,
+): number {
+  let sum = 0;
+  for (const checkpoint of checkpoints) {
+    const value = checkpoint.compile_stats?.arc_placement?.[key];
+    if (typeof value === "number") sum += value;
+  }
+  return sum;
+}
+
 function sumCheckpointStat(checkpoints: CheckpointRow[], key: keyof CompileStats): number {
   let sum = 0;
   for (const checkpoint of checkpoints) {
@@ -788,6 +843,7 @@ function main(): void {
   }
   printRowDiagnostics(data);
   printStreamDiagnostics(data);
+  printArcPlacementDiagnostics(data);
   printStartDiagnostics(data);
   printCandidateRankDiagnostics(data);
   printAxisDiagnostics(data);

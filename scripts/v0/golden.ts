@@ -833,6 +833,7 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_prefix_branch_full_evaluations: stats.handoff_prefix_branch_full_evaluations,
     handoff_prefix_branch_improvements: stats.handoff_prefix_branch_improvements,
     handoff_prefix_branch_prunes: stats.handoff_prefix_branch_prunes,
+    arc_placement: stats.arc_placement,
   };
 }
 

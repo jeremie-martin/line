@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
   brakeCandidateCount,
-  contactStyleQualityCandidateCount,
   handoffCandidatePool,
   handoffAxisOvershootPenalty,
   handoffPreviewCostWeight,
@@ -104,13 +103,6 @@ describe("handoff policy boundaries", () => {
   test("future preview is reserved for contract search", () => {
     expect(handoffUsesFuturePreview(false)).toBe(true);
     expect(handoffUsesFuturePreview(true)).toBe(false);
-  });
-
-  test("high contact-style quality search gets one extra sample", () => {
-    expect(contactStyleQualityCandidateCount(0.25)).toBe(2);
-    expect(contactStyleQualityCandidateCount(0.74)).toBe(2);
-    expect(contactStyleQualityCandidateCount(0.75)).toBe(3);
-    expect(contactStyleQualityCandidateCount(1.0)).toBe(3);
   });
 
   test("near-tail completion is based on remaining contacts, not total contacts", () => {

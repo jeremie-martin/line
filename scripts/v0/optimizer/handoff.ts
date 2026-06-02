@@ -285,12 +285,10 @@ const HANDOFF_BRAKE_CONTRACT_HIGH_OVERSPEED_K = 3;
 const HANDOFF_BRAKE_QUALITY_BASE_K = 3;
 const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
 /** Contact-style quality search gets a tiny extra deterministic sample stream.
- *  High contact-style targets are especially sensitive to the discrete
- *  contact-duration/line-length ratio, so give those gaps one additional
- *  quality-only sample while keeping lower targets on the cheaper default. */
+ *  Keep the allocation fixed for every contact-style target; target-threshold
+ *  micro-policy is easy to overfit and makes candidate work harder to reason
+ *  about when axes evolve. */
 const HANDOFF_CONTACT_STYLE_QUALITY_K = 2;
-const HANDOFF_HIGH_CONTACT_STYLE_QUALITY_K = 3;
-const HANDOFF_HIGH_CONTACT_STYLE_TARGET = 0.75;
 const HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES = HANDOFF_RESCUE_MIN_GAP_FRAMES;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 6;
@@ -1321,8 +1319,7 @@ function contactStyleQualityCandidates(
   if (!gap.endsWithContact || gap.targets?.contact_style === undefined) return [];
   const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 0x5bd1e995) | 0);
   const out: Candidate[] = [];
-  const attempts = contactStyleQualityCandidateCount(gap.targets.contact_style);
-  for (let attempt = 0; attempt < attempts; attempt++) {
+  for (let attempt = 0; attempt < HANDOFF_CONTACT_STYLE_QUALITY_K; attempt++) {
     const candidate = sampleOneCandidate(
       node.prefixEngine,
       gap,
@@ -1334,12 +1331,6 @@ function contactStyleQualityCandidates(
     if (candidate !== null) out.push(candidate);
   }
   return out;
-}
-
-export function contactStyleQualityCandidateCount(target: number): number {
-  return target >= HANDOFF_HIGH_CONTACT_STYLE_TARGET
-    ? HANDOFF_HIGH_CONTACT_STYLE_QUALITY_K
-    : HANDOFF_CONTACT_STYLE_QUALITY_K;
 }
 
 function cachedReuseCatchCandidates(

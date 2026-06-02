@@ -283,10 +283,8 @@ function axisTargetIntervals(spec: Spec, axis: AxisName): { f0: number; f1: numb
 }
 
 function hasOnlyAirSectionTargets(spec: Spec): boolean {
-  return axisTargeted(spec, "air")
-    && !axisTargeted(spec, "speed")
-    && !axisTargeted(spec, "grain")
-    && !axisTargeted(spec, "contact_style");
+  return axisTargeted(spec, "air") &&
+    AXES.every((axis) => axis === "air" || !axisTargeted(spec, axis));
 }
 
 function passesFinalHardGates(det: Detection, contactFrames: number[]): boolean {

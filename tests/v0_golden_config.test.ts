@@ -10,7 +10,12 @@ import {
   loadGoldenSpec,
   variantCases,
 } from "../scripts/v0/golden_suite.ts";
-import { AXES, AXIS_VALUE_MAX, type Spec } from "../scripts/v0/types.ts";
+import {
+  AXES,
+  AXIS_VALUE_MAX,
+  hasExactlyTargetAxes,
+  type Spec,
+} from "../scripts/v0/types.ts";
 
 function expectValidSpec(spec: Spec): void {
   expect(spec.duration).toBeGreaterThan(0);
@@ -39,6 +44,13 @@ function expectValidSpec(spec: Spec): void {
 }
 
 describe("v0 golden configuration", () => {
+  test("axis target-set helpers are canonical and exact", () => {
+    expect(hasExactlyTargetAxes({}, [])).toBe(true);
+    expect(hasExactlyTargetAxes({ air: 0.5 }, ["air"])).toBe(true);
+    expect(hasExactlyTargetAxes({ air: 0.5, speed: 0.4 }, ["air"])).toBe(false);
+    expect(hasExactlyTargetAxes({ speed: 0.4 }, ["air"])).toBe(false);
+  });
+
   test("headline suite is the hand-authored spec registry", async () => {
     expect([...GOLDEN_SPECS]).toEqual([
       "drums_signature",

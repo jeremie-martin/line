@@ -112,6 +112,12 @@ two-sample allocation. This does not claim a curve-score gain; it removes a
 named-axis branch from candidate control flow and makes any future axis-specific
 extra work a visible policy-table decision.
 
+A related axis-extensibility cleanup adds an exact canonical target-set helper.
+The air-only ride-out candidate gate and the air-only polish guard now ask for
+exactly the `air` target set instead of spelling out "not speed, not grain, not
+contact_style". Current behavior is unchanged, but a future axis can no longer
+silently slip through those air-only paths.
+
 A start-policy diagnostic cleanup now records the selected start speed and
 angle in `CompileStats`, carries those fields through golden JSON, and prints
 them in the curve analyzer. This does not change compiler behavior; it makes

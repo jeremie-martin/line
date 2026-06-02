@@ -30,6 +30,7 @@ import {
   type AxisValues,
   type Arc, type TrackLine, type Gap,
   CALIB, FPS,
+  hasExactlyTargetAxes,
 } from "../types.ts";
 import {
   type GapFit,
@@ -431,10 +432,7 @@ function shouldTryCandidateRideOut(
   gap: Gap,
   axisMeasureEnd: number,
 ): boolean {
-  return gap.targets.air !== undefined
-    && gap.targets.speed === undefined
-    && gap.targets.grain === undefined
-    && gap.targets.contact_style === undefined
+  return hasExactlyTargetAxes(gap.targets, ["air"])
     && axisMeasureEnd > gap.endFrame
     && (
       gap.endFrame - gap.startFrame >= 60

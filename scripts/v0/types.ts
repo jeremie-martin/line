@@ -92,6 +92,23 @@ export const AXIS_VALUE_MAX = {
 export type AxisValues = Partial<Record<AxisName, number>>;
 
 /**
+ * True when the resolved target bag contains exactly this canonical axis set.
+ * This is intentionally AXES-driven: adding a future axis must not silently keep
+ * old "air-only" or similar policies active when that new axis is targeted.
+ */
+export function hasExactlyTargetAxes(
+  values: AxisValues,
+  requiredAxes: readonly AxisName[],
+): boolean {
+  const required = new Set(requiredAxes);
+  for (const axis of AXES) {
+    const hasTarget = values[axis] !== undefined;
+    if (hasTarget !== required.has(axis)) return false;
+  }
+  return true;
+}
+
+/**
  * Authoring surface: an optional target curve per axis. An absent key means the
  * axis is never targeted; a present curve returning `undefined` at some t means
  * "not targeted there".

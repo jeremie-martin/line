@@ -294,6 +294,19 @@ Rejected follow-up probes:
   broader lesson is useful: richer quality sampling can find better basins, but
   "current incumbent is weak" is not a safe scheduler signal because rows that
   later recover can pass through a weak early phase and get redirected.
+- Delaying those richer quality samples behind the normal top-3 children also
+  failed on the full workbench. The idea was to preserve the normal path first
+  and append at most one extra child only when attempts `16..17` would beat the
+  worst selected normal child. It looked plausible on the 18-row smoke
+  (`-0.23` at `75k`, `+0.50` at `150k`), but the 10-spec dense `150k`
+  workbench moved `CURVE_SCORE` `330.66 -> 329.45`; every common checkpoint was
+  negative, including a severe `65k` delta of `-9.31`, and `150k` still landed
+  slightly down (`343.63 -> 343.59`). The largest `150k` win was
+  `opening_burst seed=1 +13.67`, but it was outweighed by losses such as
+  `drums_pendulum seed=0 -6.63`, `dense_sprint seed=2 -2.72`, and
+  `drums_signature seed=1 -2.29`. Preserving normal child order helps, but a
+  broad delayed-extra child still spends and schedules enough alternative work
+  to perturb budget checkpoints without reliably improving the plateau.
 - Lowering the prefix-branch incumbent floor (`axis_quality 0.24 -> 0.20`) was
   a smoke-scale no-op. On a 4-spec low-plateau/start smoke
   (`drums_pendulum`, `opening_burst`, `drums_tide`, `drums_dropout`) common rows

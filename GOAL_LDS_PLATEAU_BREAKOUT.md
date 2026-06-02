@@ -126,7 +126,7 @@ array.
 
 The handoff substrate now also has an explicit `CONTACT_EVENT_AXES` category for
 axes whose achieved value is tied to the local contact/catch event. Today that
-category is only `contact_style`, matching previous behavior, but brake gating
+category is only `contact_style`, matching previous behavior, but brake gating,
 preview-cost suppression, and final-polish compatibility guards no longer ask
 for that named axis directly.
 
@@ -225,6 +225,14 @@ Rejected follow-up probes:
   is not reachable through post-contact continuation under the current
   measurement windows; a real fix likely needs pre-contact/approach geometry or
   ranking changes.
+- Scoring air lookahead through exact half-second next-contact spans
+  (`postContactFrames > FPS/2` to `>=`) was too blunt. It created meaningful
+  wins (`drums_tide seed=0 +61.70`, `drums_pendulum seed=2 +34.21` at `150k`)
+  but moved the 10-spec dense `150k` workbench from `CURVE_SCORE`
+  `326.09 -> 294.97`, dropped early `35k` validity from `30/30` to `24/30`,
+  and regressed `drums_dropout seed=0` by `-145.20`. Next-gap carry is a real
+  signal, but it needs targeted scheduling or policy, not a blanket
+  measurement-horizon boundary change.
 - A naive quality-phase poor-fit rescue, which reran the larger deterministic
   rescue batch whenever the best local candidate cost was severe, made the
   focused handoff test run take `155s`. Poor-fit rescue may still be worth

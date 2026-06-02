@@ -129,6 +129,13 @@ Rejected follow-up probes:
   `145s`. Inline poor-fit rescue appears to be the wrong shape; any future
   version should probably be a targeted branch/scheduler experiment, not an
   expansion-time rerun.
+- A targeted poor-fit prefix branch was tried next: quality-only, capped at four
+  forks, pulsed every `32` frontier selections, and using a distinct downstream
+  lane from the weak local prefix. It was cheaper than inline rescue but still
+  regressed seed-0 curve score by `-0.35`, with `dense_sprint seed=0` losing
+  `9.83` at `150k`. Poor-fit branching can starve an existing useful branch
+  lane, so local-cost signals need a more careful scheduler than simple
+  add-another-lane.
 
 ## Implementation Guardrails
 

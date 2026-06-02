@@ -63,6 +63,12 @@ Before trusting a plateau-campaign optimizer change:
 1. Probe the 10-spec `150k` workbench.
 2. Inspect per-budget deltas and row-level plateaus, not only the aggregate.
 
+Treat semantic axis categories and target-bucket policies differently. Categories
+such as "frame-span axis" or "contact-event axis" are acceptable substrate when
+they make axis additions explicit; target thresholds such as "only when air is
+below X" are overfit risks and should either be removed by subtractive probe or
+kept with clear evidence that they address a broad geometry failure.
+
 Full golden runs are later promotion checks, not part of the fast plateau loop.
 Use them only when a change looks strong enough to consider as general default
 compiler policy. The campaign loop should stay fast enough to test ideas that
@@ -152,7 +158,11 @@ scores and work matched the accepted baseline exactly on common rows, while the
 new diagnostic showed substantial diversity in returned paths: `177/261`
 selected contact choices had nonzero source rank at `150k` (`mean=5.41`,
 `max=13`), and the source split was `113/55/75/18`
-(`pool/reuse/brake/axisq`).
+(`pool/reuse/brake/axisq`). The full 10-spec dense `150k` workbench then
+confirmed the same diagnostic shape without behavior change: common rows matched
+the prior current-head artifact at every checkpoint with `workΔ(sim=+0 cand=+0
+viable=+0)`, and the selected `150k` path split was `724/285/306/29` over
+`1344` contacts with `871` nonzero source ranks (`mean=4.53`, `max=14`).
 
 Work accounting now reports real `candidates_sampled` values for handoff:
 `sampleOneCandidate` calls are counted per compile, carried through golden JSON,
@@ -257,7 +267,14 @@ made common-row deltas positive from `70k` onward. At `150k`, common score moved
 `339.30 -> 339.87`; the headline win was `drums_pendulum seed=2 +17.67`, and
 the only material loss was `drums_pendulum seed=0 -0.58`. The extra stream is
 narrow enough that average work changed only modestly at `150k`
-(`workΔ(sim=+31 cand=+35 viable=+12)`).
+(`workΔ(sim=+31 cand=+35 viable=+12)`). Because the target threshold is an
+overfit risk, a subtractive no-low-air-stream probe was rerun after the later
+suffix-repair and diagnostic changes. It was not an acceptable simplification:
+on the same 10-spec dense workbench, `CURVE_SCORE` dropped `330.66 -> 329.58`,
+common-row `150k` score dropped by `0.77`, and the material regressions were
+concentrated on the intended low-air failure mode (`drums_pendulum seed=2
+-15.77`, `seed=1 -7.96`). Keep this stream for now, but do not use it as a
+pattern for more target-bucket micro-policy without stronger general evidence.
 
 The next accepted base-search scheduling change widens near-tail speculative
 completion from `6` to `8` remaining contacts. This lets more deep prefixes

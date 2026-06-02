@@ -233,6 +233,16 @@ Rejected follow-up probes:
   and regressed `drums_dropout seed=0` by `-145.20`. Next-gap carry is a real
   signal, but it needs targeted scheduling or policy, not a blanket
   measurement-horizon boundary change.
+- Re-enabling one-contact future preview during quality search with zero
+  preview-cost weight was rejected before the full workbench. The focused
+  handoff tests passed but took `191.70s`, and a 3-spec smoke
+  (`drums_pendulum`, `opening_burst`, `drums_dropout`; `75k,150k`) showed the
+  expected tradeoff: common rows improved by `+0.57` at `75k` but regressed by
+  `-2.75` at `150k`, with `opening_burst seed=2 -19.22`. Scarcity-only preview
+  can move some early choices, but the broad form spends too many metered frames
+  on lookahead rollouts and displaces actual suffix expansion. Keep the
+  quality-phase preview deferral unless a much narrower scheduler signal earns
+  the work.
 - A naive quality-phase poor-fit rescue, which reran the larger deterministic
   rescue batch whenever the best local candidate cost was severe, made the
   focused handoff test run take `155s`. Poor-fit rescue may still be worth

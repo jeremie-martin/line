@@ -38,12 +38,14 @@ import {
   CALIB,
   CONTACT_EVENT_AXES,
   FPS,
+  HANDOFF_CANDIDATE_SOURCES,
   START_DEFAULTS,
   secToFrame,
   type AxisName,
   type AxisValues,
   type CandidateSampleMode,
   type Gap,
+  type HandoffCandidateSourceName,
   hasAnyTargetAxis,
 } from "../types.ts";
 import {
@@ -117,7 +119,7 @@ export type HandoffNode = {
   skippedContacts: number;
 };
 
-export type HandoffCandidateSource = "pool" | "reuse" | "brake" | "axisq" | "skip";
+export type HandoffCandidateSource = HandoffCandidateSourceName | "skip";
 
 export type HandoffNodeEventPhase = "main" | "tail" | "polish";
 
@@ -2446,6 +2448,7 @@ function buildNodeOutput(
       ),
       handoff_selected_candidate_nonzero_ranks:
         candidateRanks.filter((rank) => rank > 0).length,
+      handoff_selected_candidate_by_source: { ...sourceCounts },
       handoff_selected_candidate_pool_count: sourceCounts.pool,
       handoff_selected_candidate_reuse_count: sourceCounts.reuse,
       handoff_selected_candidate_brake_count: sourceCounts.brake,
@@ -2456,13 +2459,10 @@ function buildNodeOutput(
 
 function selectedCandidateSourceCounts(
   node: HandoffNode,
-): Record<Exclude<HandoffCandidateSource, "skip">, number> {
-  const counts: Record<Exclude<HandoffCandidateSource, "skip">, number> = {
-    pool: 0,
-    reuse: 0,
-    brake: 0,
-    axisq: 0,
-  };
+): Record<HandoffCandidateSourceName, number> {
+  const counts = Object.fromEntries(
+    HANDOFF_CANDIDATE_SOURCES.map((source) => [source, 0]),
+  ) as Record<HandoffCandidateSourceName, number>;
   for (let i = 0; i < node.ranks.length; i++) {
     if (node.ranks[i] < 0) continue;
     const source = node.rankSources[i] ?? "pool";

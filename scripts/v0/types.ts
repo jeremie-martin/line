@@ -104,6 +104,11 @@ export type AxisQualityStreamCounter = {
   successes: number;
 };
 
+/** Candidate sources that can be selected into the returned handoff prefix. */
+export const HANDOFF_CANDIDATE_SOURCES = ["pool", "reuse", "brake", "axisq"] as const;
+export type HandoffCandidateSourceName = (typeof HANDOFF_CANDIDATE_SOURCES)[number];
+export type HandoffCandidateSourceCounter = Partial<Record<HandoffCandidateSourceName, number>>;
+
 /** Compiler-owned candidate sampling streams. Normal is the main deterministic
  *  candidate prefix; extra streams must justify their sample budget separately. */
 export const CANDIDATE_SAMPLE_MODES = ["normal", "brake", "air_support"] as const;
@@ -275,6 +280,10 @@ export type CompileStats = {
   handoff_selected_candidate_rank_mean?: number;
   handoff_selected_candidate_rank_max?: number;
   handoff_selected_candidate_nonzero_ranks?: number;
+  /** Selected candidate source counts for the returned best prefix. Prefer this
+   *  map for new analyzer/reporting code; the flattened fields below are kept as
+   *  compact JSON compatibility mirrors. */
+  handoff_selected_candidate_by_source?: HandoffCandidateSourceCounter;
   handoff_selected_candidate_pool_count?: number;
   handoff_selected_candidate_reuse_count?: number;
   handoff_selected_candidate_brake_count?: number;

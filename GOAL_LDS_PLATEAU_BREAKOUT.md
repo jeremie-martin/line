@@ -171,6 +171,11 @@ confirmed the same diagnostic shape without behavior change: common rows matched
 the prior current-head artifact at every checkpoint with `workΔ(sim=+0 cand=+0
 viable=+0)`, and the selected `150k` path split was `724/285/306/29` over
 `1344` contacts with `871` nonzero source ranks (`mean=4.53`, `max=14`).
+The selected-source split is now also emitted as a structured
+`handoff_selected_candidate_by_source` map, with the old flattened counters kept
+as compatibility mirrors. This is a behavior-preserving anti-overfit cleanup:
+future candidate streams can be reported through one registry-backed accounting
+path instead of adding another bespoke stat name per stream.
 
 Work accounting now reports real `candidates_sampled` values for handoff:
 `sampleOneCandidate` calls are counted per compile, carried through golden JSON,

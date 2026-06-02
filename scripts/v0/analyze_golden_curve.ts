@@ -11,9 +11,11 @@ import { shiftedGeometricMean } from "./score.ts";
 import {
   AXES,
   CANDIDATE_SAMPLE_MODES,
+  HANDOFF_CANDIDATE_SOURCES,
   type ArcPlacementCounter,
   type AxisName,
   type CandidateSampleMode,
+  type HandoffCandidateSourceName,
 } from "./types.ts";
 
 type BudgetScore = {
@@ -96,6 +98,7 @@ type CompileStats = {
   handoff_selected_candidate_rank_mean?: number;
   handoff_selected_candidate_rank_max?: number;
   handoff_selected_candidate_nonzero_ranks?: number;
+  handoff_selected_candidate_by_source?: Partial<Record<HandoffCandidateSourceName, number>>;
   handoff_selected_candidate_pool_count?: number;
   handoff_selected_candidate_reuse_count?: number;
   handoff_selected_candidate_brake_count?: number;
@@ -230,10 +233,7 @@ function fmtStats(stats: CompileStats | undefined): string {
       `${stats.handoff_selected_candidate_rank_count ?? "?"}@` +
       `${stats.handoff_selected_candidate_rank_mean ?? "?"}/` +
       `${stats.handoff_selected_candidate_rank_max ?? "?"}`,
-    `src=${stats.handoff_selected_candidate_pool_count ?? "?"}/` +
-      `${stats.handoff_selected_candidate_reuse_count ?? "?"}/` +
-      `${stats.handoff_selected_candidate_brake_count ?? "?"}/` +
-      `${stats.handoff_selected_candidate_axis_quality_count ?? "?"}`,
+    `src=${formatSelectedCandidateSources(stats)}`,
     `branch=${stats.handoff_prefix_branch_improvements ?? "?"}/` +
       `${stats.handoff_prefix_branch_evaluations ?? "?"}` +
       `(${stats.handoff_prefix_branch_full_evaluations ?? "?"}f,` +
@@ -259,6 +259,12 @@ function formatUniqueFullEvaluations(stats: CompileStats): string {
     );
   }
   return "?";
+}
+
+function formatSelectedCandidateSources(stats: CompileStats): string {
+  return HANDOFF_CANDIDATE_SOURCES
+    .map((source) => selectedCandidateSourceStat(stats, source) ?? "?")
+    .join("/");
 }
 
 function fmtCandidateStats(stats: CompileStats): string {
@@ -575,10 +581,10 @@ function accumulateRankSummary(
   summary.nonzero += nonzero;
   summary.weightedRankSum += meanRank * count;
   summary.maxRank = Math.max(summary.maxRank, maxRank);
-  summary.pool += stats.handoff_selected_candidate_pool_count ?? 0;
-  summary.reuse += stats.handoff_selected_candidate_reuse_count ?? 0;
-  summary.brake += stats.handoff_selected_candidate_brake_count ?? 0;
-  summary.axisq += stats.handoff_selected_candidate_axis_quality_count ?? 0;
+  summary.pool += selectedCandidateSourceStat(stats, "pool") ?? 0;
+  summary.reuse += selectedCandidateSourceStat(stats, "reuse") ?? 0;
+  summary.brake += selectedCandidateSourceStat(stats, "brake") ?? 0;
+  summary.axisq += selectedCandidateSourceStat(stats, "axisq") ?? 0;
 }
 
 function printCandidateRankSummary(label: string, summary: CandidateRankSummary): void {
@@ -699,6 +705,26 @@ function legacyAxisQualityStat(
       ? stats?.handoff_axis_quality_contact_style_attempts
       : stats?.handoff_axis_quality_contact_style_successes;
   }
+  return undefined;
+}
+
+function selectedCandidateSourceStat(
+  stats: CompileStats | undefined,
+  source: HandoffCandidateSourceName,
+): number | undefined {
+  const mapped = stats?.handoff_selected_candidate_by_source?.[source];
+  if (typeof mapped === "number" && Number.isFinite(mapped)) return mapped;
+  return legacySelectedCandidateSourceStat(stats, source);
+}
+
+function legacySelectedCandidateSourceStat(
+  stats: CompileStats | undefined,
+  source: HandoffCandidateSourceName,
+): number | undefined {
+  if (source === "pool") return stats?.handoff_selected_candidate_pool_count;
+  if (source === "reuse") return stats?.handoff_selected_candidate_reuse_count;
+  if (source === "brake") return stats?.handoff_selected_candidate_brake_count;
+  if (source === "axisq") return stats?.handoff_selected_candidate_axis_quality_count;
   return undefined;
 }
 

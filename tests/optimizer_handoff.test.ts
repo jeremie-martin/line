@@ -7,7 +7,7 @@ import {
   type HandoffNodeSnapshot,
 } from "../scripts/v0/optimizer/handoff.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
-import { AXES, secToFrame } from "../scripts/v0/types.ts";
+import { AXES, HANDOFF_CANDIDATE_SOURCES, secToFrame } from "../scripts/v0/types.ts";
 import {
   assertBudgetSearchContract,
   type BudgetCompile,
@@ -181,11 +181,23 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       a.stats.handoff_selected_candidate_rank_count ?? 0,
     );
     const selectedSourceCount =
-      (a.stats.handoff_selected_candidate_pool_count ?? 0) +
-      (a.stats.handoff_selected_candidate_reuse_count ?? 0) +
-      (a.stats.handoff_selected_candidate_brake_count ?? 0) +
-      (a.stats.handoff_selected_candidate_axis_quality_count ?? 0);
+      HANDOFF_CANDIDATE_SOURCES.reduce(
+        (sum, source) => sum + (a.stats.handoff_selected_candidate_by_source?.[source] ?? 0),
+        0,
+      );
     expect(selectedSourceCount).toBe(a.stats.handoff_selected_candidate_rank_count);
+    expect(a.stats.handoff_selected_candidate_by_source?.pool ?? 0).toBe(
+      a.stats.handoff_selected_candidate_pool_count ?? 0,
+    );
+    expect(a.stats.handoff_selected_candidate_by_source?.reuse ?? 0).toBe(
+      a.stats.handoff_selected_candidate_reuse_count ?? 0,
+    );
+    expect(a.stats.handoff_selected_candidate_by_source?.brake ?? 0).toBe(
+      a.stats.handoff_selected_candidate_brake_count ?? 0,
+    );
+    expect(a.stats.handoff_selected_candidate_by_source?.axisq ?? 0).toBe(
+      a.stats.handoff_selected_candidate_axis_quality_count ?? 0,
+    );
     expect(a.stats.handoff_partial_evaluations).toBeGreaterThan(0);
     expect(a.stats.handoff_full_evaluations).toBeGreaterThan(0);
     expect(a.stats.handoff_previews).toBeGreaterThan(0);
@@ -224,6 +236,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       .toBe(b.stats.handoff_selected_candidate_brake_count);
     expect(a.stats.handoff_selected_candidate_axis_quality_count)
       .toBe(b.stats.handoff_selected_candidate_axis_quality_count);
+    expect(a.stats.handoff_selected_candidate_by_source)
+      .toEqual(b.stats.handoff_selected_candidate_by_source);
     expect(a.stats.handoff_full_evaluations).toBe(b.stats.handoff_full_evaluations);
     expect(a.stats.handoff_preview_contacts).toBe(b.stats.handoff_preview_contacts);
     expect(a.stats.handoff_preview_survivors).toBe(b.stats.handoff_preview_survivors);

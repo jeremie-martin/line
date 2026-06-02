@@ -111,7 +111,9 @@ them in the curve analyzer. This does not change compiler behavior; it makes
 future start-state probes explainable without rerunning ad hoc track inspection.
 The analyzer now also aggregates selected starts by first speed and air target
 bands, including mean start speed/angle and nonzero start-rank frequency, so
-start-policy probes can be compared without spec-keyed inspection.
+start-policy probes can be compared without spec-keyed inspection. Comparison
+output now includes selected-start transitions on largest regressions,
+improvements, and validity flips.
 
 Rejected follow-up probes:
 

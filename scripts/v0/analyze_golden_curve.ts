@@ -158,6 +158,14 @@ function fmtStart(stats: CompileStats): string {
   return `${speed.toFixed(2)}@${angle.toFixed(1)}deg`;
 }
 
+function fmtCheckpointStart(checkpoint: CheckpointRow): string {
+  const stats = checkpoint.compile_stats;
+  if (stats === undefined) return "?";
+  const start = fmtStart(stats);
+  const rank = stats.handoff_start_rank;
+  return rank === undefined ? start : `${start}/r${rank}`;
+}
+
 function worstAxes(checkpoint: CheckpointRow, limit: number): string {
   const axes = checkpoint.axes ?? [];
   const localCosts = checkpoint.compile_stats?.committed_costs_per_gap;
@@ -466,7 +474,8 @@ function printComparison(current: GoldenCurveJson, baseline: GoldenCurveJson): v
       console.log(
         `    ${rowLabel(delta.row).padEnd(42)} ` +
           `${delta.baseline.status}->${delta.current.status} ` +
-          `${fmtNum(delta.baseline.score)} -> ${fmtNum(delta.current.score)}`,
+          `${fmtNum(delta.baseline.score)} -> ${fmtNum(delta.current.score)} ` +
+          `start=${fmtCheckpointStart(delta.baseline)}->${fmtCheckpointStart(delta.current)}`,
       );
     }
   }
@@ -479,7 +488,8 @@ function printComparison(current: GoldenCurveJson, baseline: GoldenCurveJson): v
     console.log(
       `    ${rowLabel(delta.row).padEnd(42)} ` +
         `${fmtNum(delta.baseline.score)} -> ${fmtNum(delta.current.score)} ` +
-        `delta=${fmtSigned(delta.delta)}`,
+        `delta=${fmtSigned(delta.delta)} ` +
+        `start=${fmtCheckpointStart(delta.baseline)}->${fmtCheckpointStart(delta.current)}`,
     );
   }
 
@@ -491,7 +501,8 @@ function printComparison(current: GoldenCurveJson, baseline: GoldenCurveJson): v
     console.log(
       `    ${rowLabel(delta.row).padEnd(42)} ` +
         `${fmtNum(delta.baseline.score)} -> ${fmtNum(delta.current.score)} ` +
-        `delta=${fmtSigned(delta.delta)}`,
+        `delta=${fmtSigned(delta.delta)} ` +
+        `start=${fmtCheckpointStart(delta.baseline)}->${fmtCheckpointStart(delta.current)}`,
     );
   }
 }

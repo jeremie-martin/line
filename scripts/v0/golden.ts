@@ -798,6 +798,12 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_brake_successes: stats.handoff_brake_successes,
     handoff_axis_quality_attempts: stats.handoff_axis_quality_attempts,
     handoff_axis_quality_successes: stats.handoff_axis_quality_successes,
+    handoff_axis_quality_air_attempts: stats.handoff_axis_quality_air_attempts,
+    handoff_axis_quality_air_successes: stats.handoff_axis_quality_air_successes,
+    handoff_axis_quality_contact_style_attempts:
+      stats.handoff_axis_quality_contact_style_attempts,
+    handoff_axis_quality_contact_style_successes:
+      stats.handoff_axis_quality_contact_style_successes,
     handoff_rescue_attempts: stats.handoff_rescue_attempts,
     handoff_rescue_successes: stats.handoff_rescue_successes,
     handoff_skips: stats.handoff_skips,

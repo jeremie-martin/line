@@ -52,6 +52,10 @@ type CompileStats = {
   handoff_brake_successes?: number;
   handoff_axis_quality_attempts?: number;
   handoff_axis_quality_successes?: number;
+  handoff_axis_quality_air_attempts?: number;
+  handoff_axis_quality_air_successes?: number;
+  handoff_axis_quality_contact_style_attempts?: number;
+  handoff_axis_quality_contact_style_successes?: number;
   handoff_rescue_attempts?: number;
   handoff_rescue_successes?: number;
   handoff_skips?: number;
@@ -108,9 +112,16 @@ const STREAM_YIELD_STATS = [
   ["reuse", "handoff_reuse_successes", "handoff_reuse_attempts"],
   ["brake", "handoff_brake_successes", "handoff_brake_attempts"],
   ["axisq", "handoff_axis_quality_successes", "handoff_axis_quality_attempts"],
+  ["axisq_air", "handoff_axis_quality_air_successes", "handoff_axis_quality_air_attempts"],
+  [
+    "axisq_contact",
+    "handoff_axis_quality_contact_style_successes",
+    "handoff_axis_quality_contact_style_attempts",
+  ],
   ["rescue", "handoff_rescue_successes", "handoff_rescue_attempts"],
   ["branch", "handoff_prefix_branch_improvements", "handoff_prefix_branch_evaluations"],
 ] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats, keyof CompileStats]>;
+const STREAM_YIELD_LABEL_WIDTH = Math.max(...STREAM_YIELD_STATS.map(([label]) => label.length));
 
 function fmtBudget(budget: number): string {
   return budget % 1000 === 0 ? `${budget / 1000}k` : String(budget);
@@ -428,7 +439,7 @@ function printStreamDiagnostics(data: GoldenCurveJson): void {
       const successes = sumCheckpointStat(checkpoints, successKey);
       if (attempts === 0 && successes === 0) return null;
       return (
-        `  ${label.padEnd(6)} ` +
+        `  ${label.padEnd(STREAM_YIELD_LABEL_WIDTH)} ` +
         `${String(successes).padStart(6)}/${String(attempts).padEnd(6)} ` +
         `rate=${fmtRate(successes, attempts).padStart(6)} ` +
         `attempts/row=${(attempts / checkpoints.length).toFixed(1)}`

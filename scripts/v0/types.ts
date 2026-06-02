@@ -296,6 +296,13 @@ export type CompileStats = {
   /** Registered axis-quality extra-stream samples and viable candidates. */
   handoff_axis_quality_attempts?: number;
   handoff_axis_quality_successes?: number;
+  /** Axis-quality stream counters split by registered stream axis. These are
+   *  diagnostic-only; the aggregate counters above remain the compatibility
+   *  total. */
+  handoff_axis_quality_air_attempts?: number;
+  handoff_axis_quality_air_successes?: number;
+  handoff_axis_quality_contact_style_attempts?: number;
+  handoff_axis_quality_contact_style_successes?: number;
   /** Required-contact dead-ends where handoff spent one larger deterministic
    *  candidate batch before accepting a skip, and how often that rescue batch
    *  found at least one viable catch. */

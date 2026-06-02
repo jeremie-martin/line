@@ -167,6 +167,8 @@ type HandoffTelemetry = {
   brakeSuccesses: number;
   axisQualityAttempts: number;
   axisQualitySuccesses: number;
+  axisQualityAttemptsByAxis: Partial<Record<AxisName, number>>;
+  axisQualitySuccessesByAxis: Partial<Record<AxisName, number>>;
   rescueAttempts: number;
   rescueSuccesses: number;
   skips: number;
@@ -466,6 +468,8 @@ function compileHandoffInternal(
       brakeSuccesses: 0,
       axisQualityAttempts: 0,
       axisQualitySuccesses: 0,
+      axisQualityAttemptsByAxis: {},
+      axisQualitySuccessesByAxis: {},
       rescueAttempts: 0,
       rescueSuccesses: 0,
       skips: 0,
@@ -576,6 +580,12 @@ function compileHandoffInternal(
           handoff_brake_successes: telemetry.brakeSuccesses,
           handoff_axis_quality_attempts: telemetry.axisQualityAttempts,
           handoff_axis_quality_successes: telemetry.axisQualitySuccesses,
+          handoff_axis_quality_air_attempts: telemetry.axisQualityAttemptsByAxis.air ?? 0,
+          handoff_axis_quality_air_successes: telemetry.axisQualitySuccessesByAxis.air ?? 0,
+          handoff_axis_quality_contact_style_attempts:
+            telemetry.axisQualityAttemptsByAxis.contact_style ?? 0,
+          handoff_axis_quality_contact_style_successes:
+            telemetry.axisQualitySuccessesByAxis.contact_style ?? 0,
           handoff_rescue_attempts: telemetry.rescueAttempts,
           handoff_rescue_successes: telemetry.rescueSuccesses,
           handoff_skips: best.stats.handoff_skips ?? 0,
@@ -1392,6 +1402,8 @@ function axisQualityCandidates(
     const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
     for (let attempt = 0; attempt < policy.samples; attempt++) {
       telemetry.axisQualityAttempts++;
+      telemetry.axisQualityAttemptsByAxis[axis] =
+        (telemetry.axisQualityAttemptsByAxis[axis] ?? 0) + 1;
       const candidate = sampleOneCandidate(
         node.prefixEngine,
         gap,
@@ -1403,6 +1415,8 @@ function axisQualityCandidates(
       );
       if (candidate !== null) {
         telemetry.axisQualitySuccesses++;
+        telemetry.axisQualitySuccessesByAxis[axis] =
+          (telemetry.axisQualitySuccessesByAxis[axis] ?? 0) + 1;
         out.push(candidate);
       }
     }

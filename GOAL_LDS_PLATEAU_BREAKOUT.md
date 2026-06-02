@@ -475,6 +475,18 @@ Rejected follow-up probes:
   work, but even a longer post-improvement window still cut off late branch
   gains on seed 0. Branch lanes can improve after long irregular gaps, so a
   simple post-improvement cap is too blunt.
+- Not counting already-stalled, pre-pruned branch nodes as frontier selections
+  was also rejected. The idea was scheduler-semantics cleanup: if a dead branch
+  node is discarded before scoring, maybe it should not advance the
+  `frontierSelections` cadence used by branch forks, far-back pulses, and suffix
+  repair. On the 10-spec dense `150k` workbench it saved visible branch work
+  (`branch evaluations 7209 -> 6669`, full evaluations `16325 -> 16211`) but
+  moved `CURVE_SCORE 330.66 -> 330.55`, with every checkpoint negative and
+  `150k` down `0.23`. The largest losses were `opening_burst seed=2 -9.94`,
+  `dense_sprint seed=2 -3.99`, and `opening_burst seed=1 -0.57`, partly offset
+  by `dense_sprint seed=1 +6.71`. Even discarded branch nodes currently act as
+  part of the deterministic scheduler clock; removing that clock pressure
+  changes branch/repair timing in ways that lose rare late wins.
 - Halving the prefix-branch fork cadence (`PREFIX_BRANCH_FRONTIER_INTERVAL`
   `4 -> 8`) also saved branch work but cut away too many rare wins. On the
   10-spec dense `150k` workbench it moved `CURVE_SCORE` `326.09 -> 325.07`,

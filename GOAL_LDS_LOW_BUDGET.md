@@ -445,6 +445,19 @@ existing suffix-branch wins. The broader lesson is that useful prefix branches
 need both enough suffix breadth and a stronger branch-readiness signal; simple
 global lane, timing, or width knobs are not the next likely win.
 
+Axis-level details should be read with signed errors, not only absolute worst
+rows. `scripts/v0/analyze_golden_curve.ts` now prints achieved-minus-target
+summaries by axis and target band when run on `--details` JSON. A low-air /
+contact-style plus speed-family diagnostic pass showed broad mechanical biases:
+low and mid `air` overshoot, `speed` often overshoots, high `grain` undershoots,
+and `contact_style` is often an extreme 0-or-1 outcome rather than a smooth
+middle value. A direct high-grain quality-search widening (`16 -> 18/20`
+samples only on high-grain gaps) was rejected: it improved some early slice
+checkpoints but regressed the late guardrail where high grain coexists with
+contact-style pressure. Future geometry work should treat grain/contact-style
+coupling as a primitive/measurement problem, not just "sample more high-grain
+candidates."
+
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot

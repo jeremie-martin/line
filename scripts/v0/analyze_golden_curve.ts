@@ -84,6 +84,9 @@ type GoldenCurveJson = {
   rows?: RunRow[];
 };
 
+const AXIS_NAMES = ["air", "speed", "contact_style", "grain"] as const;
+const TARGET_BANDS = ["<0.25", "0.25-0.5", "0.5-0.75", ">=0.75"] as const;
+
 function fmtBudget(budget: number): string {
   return budget % 1000 === 0 ? `${budget / 1000}k` : String(budget);
 }
@@ -165,6 +168,47 @@ function commonBudgets(a: GoldenCurveJson, b: GoldenCurveJson): number[] {
   const aBudgets = a.budgets ?? a.budget_scores?.map((summary) => summary.budget) ?? [];
   const bBudgets = new Set(b.budgets ?? b.budget_scores?.map((summary) => summary.budget) ?? []);
   return aBudgets.filter((budget) => bBudgets.has(budget));
+}
+
+function targetBand(target: number): typeof TARGET_BANDS[number] {
+  if (target < 0.25) return "<0.25";
+  if (target < 0.5) return "0.25-0.5";
+  if (target < 0.75) return "0.5-0.75";
+  return ">=0.75";
+}
+
+function printAxisDiagnostics(data: GoldenCurveJson): void {
+  const rows = data.rows ?? [];
+  const budgets = data.budgets ?? data.budget_scores?.map((summary) => summary.budget) ?? [];
+  if (rows.length === 0 || budgets.length === 0) return;
+  const lastBudget = budgets[budgets.length - 1];
+  const axes = rows.flatMap((row) =>
+    (checkpointAt(row, lastBudget)?.axes ?? []).map((axis) => ({
+      ...axis,
+      signed: axis.achieved - axis.target,
+    }))
+  );
+  if (axes.length === 0) return;
+
+  console.log("");
+  console.log(`axis signed errors at ${fmtBudget(lastBudget)} (achieved-target):`);
+  for (const axisName of AXIS_NAMES) {
+    const axisRows = axes.filter((axis) => axis.axis === axisName);
+    if (axisRows.length === 0) continue;
+    console.log(`  ${axisName}:`);
+    for (const band of TARGET_BANDS) {
+      const bucket = axisRows.filter((axis) => targetBand(axis.target) === band);
+      if (bucket.length === 0) continue;
+      const signedMean = bucket.reduce((sum, axis) => sum + axis.signed, 0) / bucket.length;
+      const absMean = bucket.reduce((sum, axis) => sum + Math.abs(axis.signed), 0) / bucket.length;
+      const overPct = 100 * bucket.filter((axis) => axis.signed > 0).length / bucket.length;
+      console.log(
+        `    target ${band.padEnd(8)} n=${String(bucket.length).padStart(3)} ` +
+          `signed=${fmtSigned(signedMean, 3).padStart(7)} ` +
+          `abs=${absMean.toFixed(3)} over=${overPct.toFixed(1)}%`,
+      );
+    }
+  }
 }
 
 function printRowDiagnostics(data: GoldenCurveJson): void {
@@ -360,6 +404,7 @@ function main(): void {
     );
   }
   printRowDiagnostics(data);
+  printAxisDiagnostics(data);
   if (baseline !== null) printComparison(data, baseline);
 }
 

@@ -473,9 +473,28 @@ Future geometry work should treat low-air, grain, and contact-style coupling as
 primitive/measurement problems, not just "sample more candidates" or "score a
 longer continuation."
 
+Simple scalar overshoot reweighting is also too fragile to be the next
+production lever. Doubling the global air-overshoot ranking penalty (`16 -> 32`)
+collapsed the low-air/contact-style diagnostic slice (`CURVE_SCORE 294.74 ->
+222.38`) and lost early validity. A milder low-air-only boost (`24` for
+targets `<=0.5`) kept validity but still moved the same slice `294.74 ->
+290.25`, negative at every budget. A mild speed-overshoot boost (`16 -> 24`)
+also failed on the speed-family slice (`326.20 -> 276.37`), with one hard row
+dominating the loss despite isolated wins elsewhere. The broader lesson is that
+the existing speed/air biases are useful, but further improvements probably need
+better candidate primitives, candidate-set diversity, or state diagnostics,
+not a stronger global scalar.
+
+Polish is not currently the obvious budget sink. A default-vs-`--no-polish`
+smoke on `tiny_dance,drums_crescendo` produced identical curves, row scores,
+75k sim-frame counts, and zero changed polish variants. That does not prove
+polish is useless suite-wide, but it argues against prioritizing polish gating
+over search/candidate improvements without stronger evidence.
+
 Promising levers:
 
-- better handoff-state scoring for catchability and speed/air overshoot
+- better handoff-state diagnostics and catchability scoring; speed/air work
+  should be primitive- or state-aware, not just a larger overshoot scalar
 - more selective future-contact previews if diagnostics show contract search
   needs them without reintroducing quality-phase preview waste
 - reusable candidate patterns for periodic contact runs

@@ -294,6 +294,14 @@ Rejected follow-up probes:
   stream, while work did not clearly improve (`150k workDelta(sim=+26 cand=+19
   viable=-12)`). Keep `0.25` as the current semantic "very low air" gate unless
   a broader workbench shows a real efficiency gain.
+- Increasing the accepted very-low-air support stream from one extra sample to
+  two was also rejected at smoke scale. On a 4-spec low-air/start smoke
+  (`drums_pendulum`, `opening_burst`, `drums_tide`, `drums_dropout`) it moved
+  common rows by `-0.92` at `75k` and `-0.39` at `150k`, with
+  `drums_pendulum seed=2 -7.10`; the worst low-air plateau
+  (`drums_pendulum seed=1`) stayed flat. The current one-sample stream remains
+  the better tradeoff until a different low-air primitive or scheduler signal is
+  found.
 - A naive quality-phase poor-fit rescue, which reran the larger deterministic
   rescue batch whenever the best local candidate cost was severe, made the
   focused handoff test run take `155s`. Poor-fit rescue may still be worth

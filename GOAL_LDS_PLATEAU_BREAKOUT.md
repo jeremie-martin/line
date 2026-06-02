@@ -585,6 +585,19 @@ Rejected follow-up probes:
   score-identical to baseline. The contact-style primitive gap is real, but a
   simple line-length/angle bias is not robust enough to replace the generic
   two-sample stream.
+- Widening impact-anchor contact-point jitter was also rejected. The broad
+  primitive hypothesis was reasonable: keep the same sample count and policies,
+  but let impact-anchored arcs cover more along-arc contact points
+  (`IMPACT_ANCHOR_T_JITTER 0.24 -> 0.36`) so contact-style extremes might be
+  reachable. The focused handoff suite failed its small-budget deferred-start
+  scheduling check, and the 10-spec dense `150k` workbench collapsed:
+  `CURVE_SCORE 330.66 -> 301.29`, with every checkpoint negative. It did expose
+  real alternate basins (`drums_tide seed=0 +166.07`, `dense_sprint seed=0
+  +89.24`, `opening_burst seed=1 +54.19` at `150k`), but broad jitter destroyed
+  too many stable rows (`drums_dropout seed=0 -345.87`,
+  `opening_burst seed=2 -92.36`, `drums_crescendo seed=2 -76.51`). Contact-point
+  diversity may be useful, but it needs a controlled scheduler or stream, not a
+  global replacement of the base impact-anchor spread.
 - Replacing the start-speed regimes with one broad common anchor set was also
   too blunt. It removed the `6`/`9` px/frame candidate cliff and produced some
   striking wins, but the 10-spec dense `150k` workbench moved `CURVE_SCORE`

@@ -461,6 +461,15 @@ moved `CURVE_SCORE 282.23 -> 282.12`, did not improve the intended
 `-14.83`. Keep the `0.24` branch floor; repeated far-back repair pulses alone
 are not a good readiness signal.
 
+A second conversion gate was also rejected as ineffective. Stopping future
+prefix forks after `64` alternate-lane full evaluations with zero branch
+improvements looked like a direct way to save wasted branch work, but on the
+branch-conversion diagnostic slice it was a no-op: `CURVE_SCORE 302.66 ->
+302.66` with identical branch fork/full/improvement counters. The cost is mostly
+inside already-spawned alternate-lane subtrees, not in later forks, so future
+branch-efficiency work needs either subtree scheduling or better pre-fork
+readiness, not a global "no conversion yet" fork stop.
+
 The next branch diagnostic should look at conversion, not just branch volume.
 The compiler now reports `handoff_prefix_branch_evaluations`,
 `handoff_prefix_branch_full_evaluations`, and
@@ -510,6 +519,15 @@ contacts to `5` looked superficially good on one mixed slice
 near-tail window at `6` until a scheduler can decide from stronger suffix-state
 evidence; changing the global window is too blunt.
 
+Tail completion is a real work sink, but simple high-quality gating is also too
+blunt. A probe that stopped near-tail completion after a passing incumbent
+reached `0.50` axis quality reduced tail attempts on a high-quality slice
+(`1985 -> 1279`) and full evaluations (`3921 -> 3480`), but moved the slice
+curve `406.27 -> 406.17` by losing early 35k quality. That reinforces the
+anytime lesson: even when a row is already strong at 75k, suffix completion can
+be part of how it becomes strong early. Do not gate tail work only on incumbent
+quality.
+
 Axis-level details should be read with signed errors, not only absolute worst
 rows. `scripts/v0/analyze_golden_curve.ts` now prints achieved-minus-target
 summaries by axis and target band when run on `--details` JSON. A low-air /
@@ -525,6 +543,20 @@ while forcing low-air scoring out to the next contact collapsed full outputs.
 Future geometry work should treat low-air, grain, and contact-style coupling as
 primitive/measurement problems, not just "sample more candidates" or "score a
 longer continuation."
+
+A contact-style segment-count primitive was rejected in its naive form.
+Contact-style is measured as traversed contact distance divided by median line
+length, so it was plausible to allocate some segment samples to
+contact-style-directed line lengths. The contact-style-only version was a no-op
+on the diagnostic slice because current golden contact-style rows also target
+grain, whose segment count correctly took priority. The blended version kept
+the normal `70%` grain-directed samples and used part of the remaining uniform
+segment samples for contact-style-directed line length, but it collapsed the
+same slice (`CURVE_SCORE 302.90 -> 251.19`) with early validity loss. The
+mechanical lesson is clear: contact-style and grain are coupled, but segment
+count is too central to grain/contract stability to retarget naively. Future
+work should add contact-style diversity as extra candidates or a measured
+post-candidate selector, not by stealing the base grain-directed segment path.
 
 Simple scalar overshoot reweighting is also too fragile to be the next
 production lever. Doubling the global air-overshoot ranking penalty (`16 -> 32`)

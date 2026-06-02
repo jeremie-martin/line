@@ -105,6 +105,13 @@ canonical axis registry for target averaging, target jitter clamping, and spec
 validation. This is also behavior-preserving; its purpose is to keep new-axis
 work from requiring edits to several hidden four-axis lists.
 
+The next handoff cleanup factors the contact-style quality sample stream into
+an explicit axis-quality stream registry. Only `contact_style` is registered
+today, with the same deterministic seed salt, attempt offset, and fixed
+two-sample allocation. This does not claim a curve-score gain; it removes a
+named-axis branch from candidate control flow and makes any future axis-specific
+extra work a visible policy-table decision.
+
 A start-policy diagnostic cleanup now records the selected start speed and
 angle in `CompileStats`, carries those fields through golden JSON, and prints
 them in the curve analyzer. This does not change compiler behavior; it makes

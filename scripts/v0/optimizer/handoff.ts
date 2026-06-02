@@ -213,8 +213,14 @@ type ExtraCandidateCache = {
   brakeSeed?: number;
   brakeContract?: Candidate[];
   brakeQuality?: Candidate[];
-  contactStyleSeed?: number;
-  contactStyleQuality?: Candidate[];
+  axisQualitySeed?: number;
+  axisQuality?: Candidate[];
+};
+
+type AxisQualityStreamPolicy = {
+  samples: number;
+  seedSalt: number;
+  attemptOffset: number;
 };
 
 const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
@@ -271,10 +277,10 @@ const HANDOFF_STATE_WEIGHT = 0.08;
  *  ranking. Axes omitted from this table use only the symmetric candidate cost;
  *  adding a future axis should be an explicit policy choice, not an accidental
  *  named-axis branch in the ranker. */
-const HANDOFF_AXIS_OVERSHOOT_WEIGHTS = {
+const HANDOFF_AXIS_OVERSHOOT_WEIGHTS: Partial<Record<AxisName, number>> = {
   speed: 16,
   air: 16,
-} as const satisfies Partial<Record<AxisName, number>>;
+};
 /** Brake catches (uphill-entry, bleed speed) are offered as EXTRA candidates on
  *  MODERATE-target gaps where the rider runs even mildly over target (early, to
  *  pre-empt creep). High-target gaps only get brake probes when contact style
@@ -293,6 +299,13 @@ const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
  *  micro-policy is easy to overfit and makes candidate work harder to reason
  *  about when axes evolve. */
 const HANDOFF_CONTACT_STYLE_QUALITY_K = 2;
+const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy>> = {
+  contact_style: {
+    samples: HANDOFF_CONTACT_STYLE_QUALITY_K,
+    seedSalt: 0x5bd1e995,
+    attemptOffset: 1000,
+  },
+};
 const HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES = HANDOFF_RESCUE_MIN_GAP_FRAMES;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 6;
@@ -1102,7 +1115,7 @@ function expandNode(
     nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
     preview: handoffUsesFuturePreview(qualitySearch),
     expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
-    contactStyleQualitySearch: qualitySearch,
+    axisQualitySearch: qualitySearch,
     previewCostWeight: handoffPreviewCostWeight(gap),
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
@@ -1112,7 +1125,7 @@ function expandNode(
       poolSize: HANDOFF_RESCUE_CANDIDATE_POOL,
       preview: handoffUsesFuturePreview(qualitySearch),
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
-      contactStyleQualitySearch: qualitySearch,
+      axisQualitySearch: qualitySearch,
       previewCostWeight: handoffPreviewCostWeight(gap),
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1128,7 +1141,7 @@ function expandNode(
       poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
       preview: handoffUsesFuturePreview(qualitySearch),
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
-      contactStyleQualitySearch: qualitySearch,
+      axisQualitySearch: qualitySearch,
       previewCostWeight: handoffPreviewCostWeight(gap),
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1212,7 +1225,7 @@ function rankedOptions(
     poolSize?: number;
     preview?: boolean;
     expandedBrakeSearch?: boolean;
-    contactStyleQualitySearch?: boolean;
+    axisQualitySearch?: boolean;
     previewCostWeight?: number;
   } = {},
 ): RankedOption[] {
@@ -1262,16 +1275,16 @@ function rankedOptions(
       previewCostWeight,
     ))
   );
-  // Contact-style quality search gets a tiny extra deterministic sample stream.
-  // Contract search keeps the normal cheap candidate sequence unchanged.
-  const contactStyle = cachedContactStyleQualityCandidates(
+  // Axis-specific quality streams add only the small, explicitly registered
+  // streams. Contract search keeps the normal cheap candidate sequence unchanged.
+  const axisQuality = cachedAxisQualityCandidates(
     node,
     gaps,
     ctx,
     seed,
-    config.contactStyleQualitySearch ?? false,
+    config.axisQualitySearch ?? false,
   );
-  contactStyle.forEach((candidate, j) =>
+  axisQuality.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(
       node,
       candidate,
@@ -1292,7 +1305,7 @@ function rankedOptions(
   return scored.slice(0, HANDOFF_BRANCHING);
 }
 
-function cachedContactStyleQualityCandidates(
+function cachedAxisQualityCandidates(
   node: SearchNode,
   gaps: Gap[],
   ctx: SpecContext,
@@ -1301,42 +1314,54 @@ function cachedContactStyleQualityCandidates(
 ): Candidate[] {
   if (!enabled) return [];
   const cache = extraCandidateCache.get(node) ?? {};
-  if (cache.contactStyleSeed !== undefined && cache.contactStyleSeed !== seed) {
-    cache.contactStyleQuality = undefined;
+  if (cache.axisQualitySeed !== undefined && cache.axisQualitySeed !== seed) {
+    cache.axisQuality = undefined;
   }
-  if (cache.contactStyleQuality !== undefined && cache.contactStyleSeed === seed) {
-    return cache.contactStyleQuality;
+  if (cache.axisQuality !== undefined && cache.axisQualitySeed === seed) {
+    return cache.axisQuality;
   }
 
-  const generated = contactStyleQualityCandidates(node, gaps, ctx, seed);
-  cache.contactStyleSeed = seed;
-  cache.contactStyleQuality = generated;
+  const generated = axisQualityCandidates(node, gaps, ctx, seed);
+  cache.axisQualitySeed = seed;
+  cache.axisQuality = generated;
   extraCandidateCache.set(node, cache);
   return generated;
 }
 
-function contactStyleQualityCandidates(
+function axisQualityCandidates(
   node: SearchNode,
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
 ): Candidate[] {
   const gap = gaps[node.gapIndex];
-  if (!gap.endsWithContact || gap.targets?.contact_style === undefined) return [];
-  const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 0x5bd1e995) | 0);
+  if (!gap.endsWithContact) return [];
   const out: Candidate[] = [];
-  for (let attempt = 0; attempt < HANDOFF_CONTACT_STYLE_QUALITY_K; attempt++) {
-    const candidate = sampleOneCandidate(
-      node.prefixEngine,
-      gap,
-      rng,
-      ctx,
-      node.prefixNextLineId,
-      1000 + attempt,
-    );
-    if (candidate !== null) out.push(candidate);
+  for (const axis of AXES) {
+    const policy = HANDOFF_AXIS_QUALITY_STREAMS[axis];
+    if (policy === undefined || gap.targets?.[axis] === undefined) continue;
+    const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
+    for (let attempt = 0; attempt < policy.samples; attempt++) {
+      const candidate = sampleOneCandidate(
+        node.prefixEngine,
+        gap,
+        rng,
+        ctx,
+        node.prefixNextLineId,
+        policy.attemptOffset + attempt,
+      );
+      if (candidate !== null) out.push(candidate);
+    }
   }
   return out;
+}
+
+function axisQualityStreamSeed(
+  seed: number,
+  gapIndex: number,
+  policy: AxisQualityStreamPolicy,
+): number {
+  return (Math.imul(seed | 0, 1000003) + gapIndex + policy.seedSalt) | 0;
 }
 
 function cachedReuseCatchCandidates(
@@ -1561,7 +1586,7 @@ function completeNearTailSuffix(
       nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
       preview: false,
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
-      contactStyleQualitySearch: qualitySearch,
+      axisQualitySearch: qualitySearch,
       previewCostWeight: handoffPreviewCostWeight(gap),
     })
       .filter((option) => option.candidate !== null)

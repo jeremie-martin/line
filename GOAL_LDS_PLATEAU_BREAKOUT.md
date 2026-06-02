@@ -368,6 +368,13 @@ Rejected follow-up probes:
   the weakest low-air row and several material rows while making branch/full
   evaluation counts volatile. Keep the `8`-contact window until a scheduler can
   choose suffix completion work more selectively than a larger global window.
+- Capping near-tail completion after `128` full-duration evaluations was also
+  too blunt. On the 4-spec plateau smoke it reduced completed tail suffixes at
+  `150k` from `2039` to `605` and raised `tail_best` from `2.7%` to `7.4%`, but
+  common rows still moved `-0.05` at `150k`; the lost late improvement was
+  `opening_burst seed=1 -0.57`. Low aggregate improvement yield does not imply
+  late tail completions are dispensable. Future tail scheduling needs a sharper
+  signal than a global full-evaluation cap.
 - Raising the global air-overshoot ranking weight from `16` to `24` looked
   strong on seed 0, but the full 30-row workbench fell from `326.09` to
   `303.66` and validity dropped to `29/30`. Global ranker retuning can move the

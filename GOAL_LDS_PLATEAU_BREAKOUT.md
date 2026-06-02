@@ -273,6 +273,12 @@ Rejected follow-up probes:
   `-3.61` at `75k` and `-4.44` at `150k`, with `opening_burst seed=2 -57.02`.
   The accepted version is intentionally `targetMax=0.25`: broader "air support"
   over-samples mid/high-air rows and can starve better contact-style basins.
+- Tightening the very-low-air support gate from `targetMax=0.25` to `0.20`
+  was also rejected at smoke scale. On the same 3-spec low-air/start smoke it
+  produced identical scores at `75k` and `150k` versus the accepted `0.25`
+  stream, while work did not clearly improve (`150k workDelta(sim=+26 cand=+19
+  viable=-12)`). Keep `0.25` as the current semantic "very low air" gate unless
+  a broader workbench shows a real efficiency gain.
 - A naive quality-phase poor-fit rescue, which reran the larger deterministic
   rescue batch whenever the best local candidate cost was severe, made the
   focused handoff test run take `155s`. Poor-fit rescue may still be worth

@@ -124,6 +124,11 @@ Rejected follow-up probes:
   rescue batch whenever the best local candidate cost was severe, made the
   focused handoff test run take `155s`. Poor-fit rescue may still be worth
   revisiting, but only with a much tighter scheduler or cheaper trigger.
+- A sparse/capped poor-fit rescue pulse (`64` frontier selections, max `8`
+  rescues) was still too expensive: the same focused handoff test run took
+  `145s`. Inline poor-fit rescue appears to be the wrong shape; any future
+  version should probably be a targeted branch/scheduler experiment, not an
+  expansion-time rerun.
 
 ## Implementation Guardrails
 

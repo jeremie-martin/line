@@ -63,7 +63,11 @@ import {
   resetSimFrames,
 } from "./sim_frames.ts";
 import { resetArcPlacementStats, snapshotArcPlacementStats } from "../arc_placement.ts";
-import { sampleOneCandidate } from "./sample.ts";
+import {
+  getCandidateSamples,
+  resetCandidateSamples,
+  sampleOneCandidate,
+} from "./sample.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type {
   CompileCheckpoint,
@@ -361,6 +365,7 @@ function compileHandoffInternal(
   }
 
   resetSimFrames();
+  resetCandidateSamples();
   resetArcPlacementStats();
 
   {
@@ -500,6 +505,7 @@ function compileHandoffInternal(
         budget,
         stats: {
           ...best.stats,
+          candidates_sampled: getCandidateSamples(),
           budget_exhausted: budgetExhausted,
           sim_frames: getSimFrames(),
           leaves_considered: register.consideredCount,
@@ -2084,7 +2090,7 @@ function buildNodeOutput(
     track: buildTrackJson(allLines, outputDurationFrames, node.startState),
     report,
     stats: {
-      candidates_sampled: 0,
+      candidates_sampled: getCandidateSamples(),
       engine_rebuilds: 0,
       gap_commits: fits.filter((fit) => fit !== null).length,
       gap_backtracks: 0,

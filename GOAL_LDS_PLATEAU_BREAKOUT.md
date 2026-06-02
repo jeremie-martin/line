@@ -115,6 +115,11 @@ start-policy probes can be compared without spec-keyed inspection. Comparison
 output now includes selected-start transitions on largest regressions,
 improvements, and validity flips.
 
+Work accounting now reports real `candidates_sampled` values for handoff:
+`sampleOneCandidate` calls are counted per compile, carried through golden JSON,
+and printed by the curve analyzer. This makes future probes easier to judge on
+candidate-work waste as well as simulated-frame budget.
+
 Rejected follow-up probes:
 
 - Baseline-first branch scheduling, where the best normal child runs before the

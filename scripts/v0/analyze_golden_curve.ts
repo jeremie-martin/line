@@ -22,6 +22,7 @@ type BudgetScore = {
 };
 
 type CompileStats = {
+  candidates_sampled?: number;
   sim_frames?: number;
   committed_costs_per_gap?: Array<number | null>;
   leaves_considered?: number;
@@ -126,6 +127,7 @@ function fmtStats(stats: CompileStats | undefined): string {
   if (stats === undefined) return "";
   const parts = [
     `sim=${stats.sim_frames ?? "?"}`,
+    `cand=${stats.candidates_sampled ?? "?"}`,
     `leaves=${stats.leaves_considered ?? "?"}`,
     `expanded=${stats.search_nodes_expanded ?? "?"}`,
     `frontier=${stats.handoff_frontier_size ?? "?"}`,

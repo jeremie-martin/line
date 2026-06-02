@@ -48,6 +48,16 @@ export type SpecContext = {
   durationFrames: number;
 };
 
+let candidateSampleCount = 0;
+
+export function resetCandidateSamples(): void {
+  candidateSampleCount = 0;
+}
+
+export function getCandidateSamples(): number {
+  return candidateSampleCount;
+}
+
 /** Sample exactly one candidate at the given gap from the given
  *  engine state. Pure function: same `(engine, gap, rng-state, ctx,
  *  lineIdStart)` → identical output (Candidate or null).
@@ -76,6 +86,7 @@ export function sampleOneCandidate(
    *  (handoff speed-creep control). Default false = normal. */
   brake = false,
 ): Candidate | null {
+  candidateSampleCount++;
   // Use the METERED rider read for the first probe: the raw engine.getRider
   // advances lr-core to gap.endFrame without charging the physics-frame counter,
   // and the subsequent readTargetState (getRiderMetered) then hits the cached

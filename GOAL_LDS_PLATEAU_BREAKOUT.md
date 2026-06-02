@@ -544,6 +544,16 @@ Rejected follow-up probes:
   `opening_burst seed=1 -0.57`. Low aggregate improvement yield does not imply
   late tail completions are dispensable. Future tail scheduling needs a sharper
   signal than a global full-evaluation cap.
+- Skipping one-contact near-tail completion (`remaining >= 2`) looked like a
+  plausible cleanup on the 4-spec plateau smoke: it cut completed tail suffixes
+  from `2039` to `938`, reduced full offers from `4897` to `3818`, kept `150k`
+  unchanged, and moved `75k` by `+0.04`. The full 10-spec dense `150k`
+  workbench rejected it: `CURVE_SCORE` moved `330.66 -> 330.44` (`-0.22`),
+  most checkpoints were negative, and the largest `150k` losses were
+  `dense_sprint seed=2 -3.99` and `syncopated_switchback seed=0 -2.05`, partly
+  offset by `dense_sprint seed=1 +6.71`. Treat this as an overfit-style
+  shortcut: `rem=1` is low-yield but not safely disposable, and tail-depth
+  scheduling needs a softer signal than a hard minimum remaining-contact rule.
 - Duplicate-aware branch stall accounting was also rejected as an optimizer
   change. The structural hypothesis was reasonable: exact duplicate `SearchNode`
   offers should not consume the per-branch no-improvement full-evaluation cap.

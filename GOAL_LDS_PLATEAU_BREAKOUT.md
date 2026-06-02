@@ -153,6 +153,16 @@ Rejected follow-up probes:
   `opening_burst seed=2 -17.46`, `drums_pendulum seed=0 -17.22`) despite a few
   large wins. The fixed two-sample stream earns its current complexity; the
   rejected part was only the high-target threshold.
+- Replacing the start-speed regimes with one broad common anchor set was also
+  too blunt. It removed the `6`/`9` px/frame candidate cliff and produced some
+  striking wins, but the 10-spec dense `150k` workbench moved `CURVE_SCORE`
+  `326.09 -> 317.90`, `150k` `332.38 -> 328.92`, and introduced one early
+  checkpoint contract miss. The largest `150k` losses were
+  `drums_pendulum seed=0 -190.87` and `drums_tide seed=1 -76.82`; the largest
+  wins were `drums_dropout seed=1 +205.94` and `drums_tide seed=0 +193.09`.
+  The current start-speed bands are still unsatisfying, but a production change
+  needs a softer start-state policy that preserves low-speed/low-air protection
+  instead of simply scoring a much wider common set.
 
 ## Implementation Guardrails
 

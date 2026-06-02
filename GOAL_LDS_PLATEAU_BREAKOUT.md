@@ -76,6 +76,25 @@ branch prunes from `101` to `197`. The largest `150k` win was
 `drums_dropout seed=1 +3.51`; the only material `150k` row regression was
 `drums_tide seed=0 -0.64`.
 
+Rejected follow-up probes:
+
+- Baseline-first branch scheduling, where the best normal child runs before the
+  alternate branch, improved seed-0 curve by `+0.37` but lost `0.24` at `150k`
+  and regressed a material row. The useful branch lane often needs immediate
+  priority to show up by the late checkpoints.
+- Sliding branch re-stall pruning after any branch improvement saved branch
+  work, but even a longer post-improvement window still cut off late branch
+  gains on seed 0. Branch lanes can improve after long irregular gaps, so a
+  simple post-improvement cap is too blunt.
+- Raising the global air-overshoot ranking weight from `16` to `24` looked
+  strong on seed 0, but the full 30-row workbench fell from `326.09` to
+  `303.66` and validity dropped to `29/30`. Global ranker retuning can move the
+  search into better basins on some rows but is not safe as a blanket policy.
+- Using that stronger air bias only in prefix-branch lanes avoided the global
+  contract failure but did not earn its compute: replacing lane 1 lost an
+  existing branch win, and adding a second lane increased branch work while
+  slightly reducing the seed-0 curve.
+
 ## Implementation Guardrails
 
 - Do not identify or indirectly key logic to benchmark spec names.

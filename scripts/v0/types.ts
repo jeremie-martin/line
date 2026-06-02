@@ -312,6 +312,14 @@ export type CompileStats = {
   /** Alternate-lane branch subtrees pruned after producing full-duration
    *  evaluations without any register improvement. */
   handoff_prefix_branch_prunes?: number;
+  /** Prefix-branch work split by how many required contacts remained at the
+   *  source prefix. This is diagnostic-only depth attribution for scheduler
+   *  probes; it does not affect branch policy or scoring. */
+  handoff_prefix_branch_forks_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_prefix_branch_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_prefix_branch_full_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_prefix_branch_improvements_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_prefix_branch_prunes_by_remaining_contacts?: HandoffContactCountCounter;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
    *  terminal prefixes use the full spec duration. */

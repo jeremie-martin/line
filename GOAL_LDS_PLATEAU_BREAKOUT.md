@@ -343,6 +343,19 @@ attempt) but most tail improvements came from scarce `rem=8` completions
 (`4/6/7`). This is not enough to hard-code a depth preference; it says future
 tail scheduling should measure depth-specific yield before changing the window.
 
+Prefix-branch work is now also attributed by source-prefix remaining contact
+count through `handoff_prefix_branch_*_by_remaining_contacts`, and the analyzer
+prints a branch-depth yield table. This is behavior-preserving instrumentation
+for the same anti-overfit reason: branch timing/cap changes should be judged by
+where forks were spawned and whether those forks reached full outputs or best
+updates, not by named row anecdotes. On the 2-spec branch-depth smoke
+(`drums_pendulum`, `opening_burst`; budgets `75k,150k`), the analyzer exposed
+both late compact forks (`rem=4..8`) and early long-suffix forks (`rem=48..50`).
+Some spawned depths had no evaluations by `150k` (`rem=23..28`), while the
+highest best/full rate in that small smoke came from `rem=49` (`1/9`). Treat
+this as a scheduler diagnostic only; it is not enough to promote a branch-depth
+policy.
+
 The analyzer now also reports polish adoption in the same work-accounting view
 as candidate, suffix, rescue, and branch machinery. Suite-level yield reports
 `polish=adopted/tried`, where `tried` means a terminal leaf actually passed

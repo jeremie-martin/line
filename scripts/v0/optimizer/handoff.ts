@@ -211,6 +211,11 @@ type HandoffTelemetry = {
   prefixBranchFullEvaluations: number;
   prefixBranchImprovements: number;
   prefixBranchPrunes: number;
+  prefixBranchForksByRemainingContacts: Record<number, number>;
+  prefixBranchEvaluationsByRemainingContacts: Record<number, number>;
+  prefixBranchFullEvaluationsByRemainingContacts: Record<number, number>;
+  prefixBranchImprovementsByRemainingContacts: Record<number, number>;
+  prefixBranchPrunesByRemainingContacts: Record<number, number>;
   startRanksSeen: Set<number>;
   startRanksWithFits: Set<number>;
 };
@@ -223,6 +228,7 @@ type PrefixBranchController = {
 };
 
 type PrefixBranchWork = {
+  remainingContacts: number;
   evaluations: number;
   fullEvaluations: number;
   improvements: number;
@@ -542,6 +548,11 @@ function compileHandoffInternal(
       prefixBranchFullEvaluations: 0,
       prefixBranchImprovements: 0,
       prefixBranchPrunes: 0,
+      prefixBranchForksByRemainingContacts: {},
+      prefixBranchEvaluationsByRemainingContacts: {},
+      prefixBranchFullEvaluationsByRemainingContacts: {},
+      prefixBranchImprovementsByRemainingContacts: {},
+      prefixBranchPrunesByRemainingContacts: {},
       startRanksSeen: new Set<number>(),
       startRanksWithFits: new Set<number>(),
     };
@@ -595,7 +606,14 @@ function compileHandoffInternal(
         evaluation.key,
       );
       recordImprovementTelemetry(telemetry, phase, improved);
-      recordPrefixBranchEvaluation(node, prefixBranches, telemetry, evaluation.fullDuration, improved);
+      recordPrefixBranchEvaluation(
+        node,
+        gaps,
+        prefixBranches,
+        telemetry,
+        evaluation.fullDuration,
+        improved,
+      );
       const event: HandoffNodeEvent = {
         phase,
         simFrames: getSimFrames(),
@@ -693,6 +711,16 @@ function compileHandoffInternal(
           handoff_prefix_branch_full_evaluations: telemetry.prefixBranchFullEvaluations,
           handoff_prefix_branch_improvements: telemetry.prefixBranchImprovements,
           handoff_prefix_branch_prunes: telemetry.prefixBranchPrunes,
+          handoff_prefix_branch_forks_by_remaining_contacts:
+            snapshotContactCountCounter(telemetry.prefixBranchForksByRemainingContacts),
+          handoff_prefix_branch_evaluations_by_remaining_contacts:
+            snapshotContactCountCounter(telemetry.prefixBranchEvaluationsByRemainingContacts),
+          handoff_prefix_branch_full_evaluations_by_remaining_contacts:
+            snapshotContactCountCounter(telemetry.prefixBranchFullEvaluationsByRemainingContacts),
+          handoff_prefix_branch_improvements_by_remaining_contacts:
+            snapshotContactCountCounter(telemetry.prefixBranchImprovementsByRemainingContacts),
+          handoff_prefix_branch_prunes_by_remaining_contacts:
+            snapshotContactCountCounter(telemetry.prefixBranchPrunesByRemainingContacts),
           ...(arcStats ? { arc_placement: arcStats } : {}),
         },
       };
@@ -824,6 +852,7 @@ function compileHandoffInternal(
           recordImprovementTelemetry(telemetry, "polish", improved);
           recordPrefixBranchEvaluation(
             polishNode,
+            gaps,
             prefixBranches,
             telemetry,
             evaluation.fullDuration,
@@ -1099,7 +1128,15 @@ function maybeForkPrefixBranch(
   const key = `${node.startRank}:${node.search.gapIndex}`;
   if (prefixBranches.forkedKeys.has(key)) return null;
   prefixBranches.forkedKeys.add(key);
+  const remainingContacts = remainingContactCount(node.search, gaps);
+  prefixBranches.work.set(key, {
+    remainingContacts,
+    evaluations: 0,
+    fullEvaluations: 0,
+    improvements: 0,
+  });
   telemetry.prefixBranchForks++;
+  incrementContactCountCounter(telemetry.prefixBranchForksByRemainingContacts, remainingContacts);
   return cloneHandoffNodeForBranch(node, {
     searchSeed: searchSeedForLane(prefixBranches.baseSearchSeed, PREFIX_BRANCH_LANE),
     searchLane: PREFIX_BRANCH_LANE,
@@ -1109,6 +1146,7 @@ function maybeForkPrefixBranch(
 
 function recordPrefixBranchEvaluation(
   node: HandoffNode,
+  gaps: Gap[],
   prefixBranches: PrefixBranchController,
   telemetry: HandoffTelemetry,
   fullDuration: boolean,
@@ -1123,12 +1161,30 @@ function recordPrefixBranchEvaluation(
   if (key === undefined) return;
   let work = prefixBranches.work.get(key);
   if (work === undefined) {
-    work = { evaluations: 0, fullEvaluations: 0, improvements: 0 };
+    const remainingContacts = remainingContactCountForBranchKey(key, gaps);
+    if (remainingContacts === null) return;
+    work = { remainingContacts, evaluations: 0, fullEvaluations: 0, improvements: 0 };
     prefixBranches.work.set(key, work);
   }
   work.evaluations++;
-  if (fullDuration) work.fullEvaluations++;
-  if (improved) work.improvements++;
+  incrementContactCountCounter(
+    telemetry.prefixBranchEvaluationsByRemainingContacts,
+    work.remainingContacts,
+  );
+  if (fullDuration) {
+    work.fullEvaluations++;
+    incrementContactCountCounter(
+      telemetry.prefixBranchFullEvaluationsByRemainingContacts,
+      work.remainingContacts,
+    );
+  }
+  if (improved) {
+    work.improvements++;
+    incrementContactCountCounter(
+      telemetry.prefixBranchImprovementsByRemainingContacts,
+      work.remainingContacts,
+    );
+  }
 }
 
 function maybePruneStalledPrefixBranch(
@@ -1143,7 +1199,13 @@ function maybePruneStalledPrefixBranch(
   const shouldPrune = work !== undefined &&
     work.improvements === 0 &&
     work.fullEvaluations >= PREFIX_BRANCH_STALLED_FULL_EVAL_CAP;
-  if (shouldPrune) telemetry.prefixBranchPrunes++;
+  if (shouldPrune) {
+    telemetry.prefixBranchPrunes++;
+    incrementContactCountCounter(
+      telemetry.prefixBranchPrunesByRemainingContacts,
+      work.remainingContacts,
+    );
+  }
   return shouldPrune;
 }
 
@@ -1154,6 +1216,14 @@ function searchSeedForLane(baseSearchSeed: number, lane: number): number {
     Math.imul(lane | 0, 0x119de1f3) ^
     0x6a09e667
   ) | 0;
+}
+
+function remainingContactCountForBranchKey(key: string, gaps: Gap[]): number | null {
+  const rawGapIndex = key.split(":")[1];
+  if (rawGapIndex === undefined) return null;
+  const gapIndex = Number(rawGapIndex);
+  if (!Number.isSafeInteger(gapIndex) || gapIndex < 0 || gapIndex > gaps.length) return null;
+  return remainingContactCountFromGapIndex(gapIndex, gaps);
 }
 
 function oldestLaggedFrontierIndex(frontier: HandoffNode[], deepestSeenGap: number): number {
@@ -2081,8 +2151,12 @@ function uniqueFullEvaluations(telemetry: HandoffTelemetry): number {
 }
 
 function remainingContactCount(node: SearchNode, gaps: Gap[]): number {
+  return remainingContactCountFromGapIndex(node.gapIndex, gaps);
+}
+
+function remainingContactCountFromGapIndex(gapIndex: number, gaps: Gap[]): number {
   let contacts = 0;
-  for (let i = Math.min(node.gapIndex, gaps.length); i < gaps.length; i++) {
+  for (let i = Math.min(gapIndex, gaps.length); i < gaps.length; i++) {
     if (gaps[i].endsWithContact) contacts++;
   }
   return contacts;

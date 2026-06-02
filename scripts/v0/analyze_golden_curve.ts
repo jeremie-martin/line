@@ -120,6 +120,11 @@ type CompileStats = {
   handoff_prefix_branch_full_evaluations?: number;
   handoff_prefix_branch_improvements?: number;
   handoff_prefix_branch_prunes?: number;
+  handoff_prefix_branch_forks_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_prefix_branch_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_prefix_branch_full_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_prefix_branch_improvements_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_prefix_branch_prunes_by_remaining_contacts?: HandoffContactCountCounter;
   arc_placement?: ArcPlacementStats;
 };
 
@@ -701,6 +706,7 @@ function printTerminalFeedbackDiagnostics(data: GoldenCurveJson): void {
     );
   }
   printTailDepthRows(checkpoints);
+  printBranchDepthRows(checkpoints);
 }
 
 function printPhaseFeedbackRows(
@@ -756,6 +762,49 @@ function printTailDepthRows(checkpoints: CheckpointRow[]): void {
         `${String(successCount).padStart(4)}/` +
         `${String(attemptCount).padEnd(4)} ` +
         `best/success=${fmtRate(improvementCount, successCount).padStart(6)}`,
+    );
+  }
+}
+
+function printBranchDepthRows(checkpoints: CheckpointRow[]): void {
+  const forks = sumContactCountCounter(
+    checkpoints,
+    "handoff_prefix_branch_forks_by_remaining_contacts",
+  );
+  const evaluations = sumContactCountCounter(
+    checkpoints,
+    "handoff_prefix_branch_evaluations_by_remaining_contacts",
+  );
+  const full = sumContactCountCounter(
+    checkpoints,
+    "handoff_prefix_branch_full_evaluations_by_remaining_contacts",
+  );
+  const improvements = sumContactCountCounter(
+    checkpoints,
+    "handoff_prefix_branch_improvements_by_remaining_contacts",
+  );
+  const prunes = sumContactCountCounter(
+    checkpoints,
+    "handoff_prefix_branch_prunes_by_remaining_contacts",
+  );
+  const depths = sortedContactCounts(forks, evaluations, full, improvements, prunes);
+  if (depths.length === 0) return;
+
+  console.log("  branch depth yield:");
+  for (const depth of depths) {
+    const forkCount = forks[depth] ?? 0;
+    const evaluationCount = evaluations[depth] ?? 0;
+    const fullCount = full[depth] ?? 0;
+    const improvementCount = improvements[depth] ?? 0;
+    const pruneCount = prunes[depth] ?? 0;
+    console.log(
+      `    rem=${String(depth).padStart(2)} ` +
+        `fork=${String(forkCount).padStart(4)} ` +
+        `eval=${String(evaluationCount).padStart(5)} ` +
+        `full=${String(fullCount).padStart(5)} ` +
+        `best=${String(improvementCount).padStart(4)} ` +
+        `prune=${String(pruneCount).padStart(4)} ` +
+        `best/full=${fmtRate(improvementCount, fullCount).padStart(6)}`,
     );
   }
 }
@@ -1051,7 +1100,12 @@ function sumContactCountCounter(
   key:
     | "handoff_tail_completion_attempts_by_remaining_contacts"
     | "handoff_tail_completion_successes_by_remaining_contacts"
-    | "handoff_tail_completion_improvements_by_remaining_contacts",
+    | "handoff_tail_completion_improvements_by_remaining_contacts"
+    | "handoff_prefix_branch_forks_by_remaining_contacts"
+    | "handoff_prefix_branch_evaluations_by_remaining_contacts"
+    | "handoff_prefix_branch_full_evaluations_by_remaining_contacts"
+    | "handoff_prefix_branch_improvements_by_remaining_contacts"
+    | "handoff_prefix_branch_prunes_by_remaining_contacts",
 ): Record<number, number> {
   const sums: Record<number, number> = {};
   for (const checkpoint of checkpoints) {

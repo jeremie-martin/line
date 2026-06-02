@@ -268,6 +268,12 @@ export type CompileStats = {
    *  prefixes before the normal soft-budget stop. */
   handoff_tail_completion_attempts?: number;
   handoff_tail_completion_successes?: number;
+  /** Sparse bounded suffix-branch completions from weak-quality prefixes with
+   *  scarce terminal feedback. Completions are scored by the same best-so-far
+   *  register as ordinary leaves. */
+  handoff_suffix_repair_attempts?: number;
+  handoff_suffix_repair_successes?: number;
+  handoff_suffix_repair_nodes?: number;
   /** Deterministic root/start-state alternatives available to compileHandoff,
    *  and the selected rank for the returned best prefix. */
   handoff_start_options?: number;

@@ -172,9 +172,9 @@ spec anecdotes or hidden named-axis branches.
 
 The curve analyzer also aggregates these counters at the last budget as
 suite-level extra-work yield (`reuse`, `brake`, aggregate `axisq`,
-`axisq_air`, `axisq_contact`, `rescue`, and `branch`). Use those rates before
-drawing conclusions from individual row examples; the point is to judge broad
-mechanics, not memorize spec anecdotes.
+`axisq_air`, `axisq_contact`, `suffix`, `rescue`, and `branch`). Use those
+rates before drawing conclusions from individual row examples; the point is to
+judge broad mechanics, not memorize spec anecdotes.
 
 Candidate caches are now explicitly search-seed-aware. A `SearchNode` can still
 extend or shrink deterministic candidate-count prefixes for the same lane, but a
@@ -213,6 +213,20 @@ modestly (`workΔ(sim=-59 cand=+79 viable=+26)`), though branch evaluations
 roughly doubled because more suffix completions expose branch-lane improvements.
 This does not fix the worst low-air plateau (`drums_pendulum seed=1` stayed
 flat); treat it as a suffix-feedback improvement, not a low-air primitive.
+
+The first accepted scarce-terminal-feedback repair is a bounded two-wide suffix
+completion pulse for weak passing incumbents with very few full evaluations. It
+only runs on clean baseline prefixes, uses the existing candidate ranker, and
+offers any completed suffix to the same best-so-far register. On the 10-spec
+dense `150k` workbench it moved `CURVE_SCORE` `329.03 -> 330.66`, kept validity
+`30/30`, and made every common checkpoint from `50k` onward positive by
+`+1.45`. At `150k`, common score moved `342.18 -> 343.63`; average work changed
+slightly (`workΔ(sim=+1 cand=-86 viable=-12)`). The important row was the former
+worst low-air plateau, `drums_pendulum seed=1`: suffix repair fired only there,
+converted `1/2` attempts using `64` suffix nodes, raised full evaluations from
+`2` to `31`, and improved score `235.93 -> 279.45`. This supports the sharper
+hypothesis that some plateau rows need bounded suffix branching/repair, not just
+earlier scoring or more one-step candidate samples.
 
 Rejected follow-up probes:
 

@@ -340,9 +340,10 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(snapshot.node.search.prefixFits.length).toBe(snapshot.node.search.gapIndex);
     expect(snapshot.node.search._candidatesCache).toBeNull();
     expect(snapshot.node.search._childrenCache).toBeUndefined();
-    expect(snapshot.node.ranks.length).toBe(snapshot.node.search.gapIndex);
-    expect(snapshot.node.rankSources.length).toBe(snapshot.node.ranks.length);
-    expect(snapshot.node.rankSourceAxes.length).toBe(snapshot.node.ranks.length);
+    expect(snapshot.node.rankTrace.length).toBe(snapshot.node.search.gapIndex);
+    for (const entry of snapshot.node.rankTrace) {
+      expect(entry.source === "axisq" || entry.sourceAxis === undefined).toBe(true);
+    }
     expect(snapshot.node.skippedContacts).toBe(0);
     expect(snapshot.event.simFrames).toBeGreaterThan(0);
   }, 60_000);

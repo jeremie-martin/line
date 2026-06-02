@@ -184,6 +184,14 @@ viability and actual best-path adoption. On a fresh 2-row smoke
 matched the prior selected-source artifact exactly (`CURVE_SCORE` delta `+0.00`,
 `workΔ(sim=+0 cand=+0 viable=+0)` at both checkpoints), while the two selected
 `axisq` candidates were both attributed to `contact_style`.
+The internal selected-candidate trace was then simplified from three parallel
+arrays (`ranks`, `rankSources`, `rankSourceAxes`) into one `rankTrace` entry
+array. This is behavior-preserving design cleanup: suffix completions, snapshots,
+and prefix-branch probe summaries now derive their rank/source diagnostics from a
+single trace, reducing the chance that future candidate streams add another
+misaligned side channel. On the same 2-row smoke, common rows again matched the
+prior artifact exactly (`CURVE_SCORE` delta `+0.00`, zero work deltas at `75k`
+and `150k`), and selected-source attribution stayed `contact_style:2`.
 
 Work accounting now reports real `candidates_sampled` values for handoff:
 `sampleOneCandidate` calls are counted per compile, carried through golden JSON,

@@ -348,7 +348,7 @@ function captureSummary(snapshot: HandoffNodeSnapshot, selection: Selection): Ca
     output_duration_frames: snapshot.event.outputDurationFrames,
     start_rank: snapshot.node.startRank,
     skipped_contacts: snapshot.node.skippedContacts,
-    ranks: [...snapshot.node.ranks],
+    ranks: snapshot.node.rankTrace.map((entry) => entry.rank),
     key: snapshot.key,
   };
 }

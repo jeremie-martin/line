@@ -111,18 +111,20 @@ export type HandoffNode = {
   prefixBranchKey?: string;
   startExpanded: boolean;
   deferExpansion: boolean;
-  /** Sorted candidate rank per gap; -1 means a skipped contact/non-contact gap. */
-  ranks: number[];
-  /** Candidate stream per gap, parallel to `ranks`; `skip` means no contact
-   *  candidate was committed for that gap. */
-  rankSources: HandoffCandidateSource[];
-  /** Registered axis-quality stream axis per gap, parallel to `rankSources`.
-   *  Non-axisq sources and skipped gaps use null. */
-  rankSourceAxes: Array<AxisName | null>;
+  /** Per-gap selected candidate trace. `rank=-1` means a skipped
+   *  contact/non-contact gap; otherwise `rank` is the sorted candidate rank. */
+  rankTrace: HandoffRankTraceEntry[];
   skippedContacts: number;
 };
 
 export type HandoffCandidateSource = HandoffCandidateSourceName | "skip";
+
+export type HandoffRankTraceEntry = {
+  rank: number;
+  source: HandoffCandidateSource;
+  /** Registered axis-quality stream axis when `source === "axisq"`. */
+  sourceAxis?: AxisName;
+};
 
 export type HandoffNodeEventPhase = "main" | "tail" | "polish";
 
@@ -476,9 +478,7 @@ function compileHandoffInternal(
         prefixBranchKey: undefined,
         startExpanded: startOptions.length <= 1,
         deferExpansion: false,
-        ranks: [],
-        rankSources: [],
-        rankSourceAxes: [],
+        rankTrace: [],
         skippedContacts: 0,
       }
       : cloneSnapshotRoot(initialSnapshot, gaps.length, searchSeed);
@@ -760,9 +760,7 @@ function compileHandoffInternal(
             prefixBranchKey: node.prefixBranchKey,
             startExpanded: node.startExpanded,
             deferExpansion: node.deferExpansion,
-            ranks: node.ranks,
-            rankSources: node.rankSources,
-            rankSourceAxes: node.rankSourceAxes,
+            rankTrace: node.rankTrace,
             skippedContacts: node.skippedContacts,
           };
           const evaluation = evaluateCached(polishNode);
@@ -919,9 +917,7 @@ function cloneHandoffNodeForBranch(
       : overrides.prefixBranchKey ?? node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: node.deferExpansion,
-    ranks: [...node.ranks],
-    rankSources: [...node.rankSources],
-    rankSourceAxes: [...node.rankSourceAxes],
+    rankTrace: cloneRankTrace(node.rankTrace),
     skippedContacts: node.skippedContacts,
   };
 }
@@ -941,6 +937,27 @@ function cloneGapFit(fit: GapFit): GapFit {
     cost: fit.cost,
     ...(fit.ref === undefined ? {} : { ref: { ...fit.ref } }),
   };
+}
+
+function cloneRankTrace(trace: HandoffRankTraceEntry[]): HandoffRankTraceEntry[] {
+  return trace.map((entry) => ({ ...entry }));
+}
+
+function appendSkipTrace(trace: HandoffRankTraceEntry[]): HandoffRankTraceEntry[] {
+  return [...trace, { rank: -1, source: "skip" }];
+}
+
+function appendOptionTrace(
+  trace: HandoffRankTraceEntry[],
+  option: RankedOption,
+): HandoffRankTraceEntry[] {
+  return [...trace, rankTraceEntryForOption(option)];
+}
+
+function rankTraceEntryForOption(option: RankedOption): HandoffRankTraceEntry {
+  return option.sourceAxis === undefined
+    ? { rank: option.rank, source: option.source }
+    : { rank: option.rank, source: option.source, sourceAxis: option.sourceAxis };
 }
 
 function normalizeBudgets(raw: number[] | undefined): number[] {
@@ -1232,9 +1249,7 @@ function expandNode(
       prefixBranchKey: node.prefixBranchKey,
       startExpanded: true,
       deferExpansion: startOptions.length > 1,
-      ranks: [],
-      rankSources: [],
-      rankSourceAxes: [],
+      rankTrace: [],
       skippedContacts: 0,
     }));
   }
@@ -1249,9 +1264,7 @@ function expandNode(
       prefixBranchKey: node.prefixBranchKey,
       startExpanded: node.startExpanded,
       deferExpansion: false,
-      ranks: [...node.ranks, -1],
-      rankSources: [...node.rankSources, "skip"],
-      rankSourceAxes: [...node.rankSourceAxes, null],
+      rankTrace: appendSkipTrace(node.rankTrace),
       skippedContacts: node.skippedContacts,
     }];
   }
@@ -1303,9 +1316,7 @@ function expandNode(
       prefixBranchKey: node.prefixBranchKey,
       startExpanded: node.startExpanded,
       deferExpansion: true,
-      ranks: [...node.ranks, -1],
-      rankSources: [...node.rankSources, "skip"],
-      rankSourceAxes: [...node.rankSourceAxes, null],
+      rankTrace: appendSkipTrace(node.rankTrace),
       skippedContacts: node.skippedContacts + 1,
     }];
   }
@@ -1319,9 +1330,7 @@ function expandNode(
     prefixBranchKey: node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: false,
-    ranks: [...node.ranks, option.rank],
-    rankSources: [...node.rankSources, option.source],
-    rankSourceAxes: [...node.rankSourceAxes, option.sourceAxis ?? null],
+    rankTrace: appendOptionTrace(node.rankTrace, option),
     skippedContacts: node.skippedContacts + (option.candidate === null ? 1 : 0),
   }));
 }
@@ -1713,9 +1722,7 @@ function completeNearTail(
 
   const completed = completeNearTailSuffix(
     node.search,
-    [...node.ranks],
-    [...node.rankSources],
-    [...node.rankSourceAxes],
+    cloneRankTrace(node.rankTrace),
     gaps,
     ctx,
     node.searchSeed,
@@ -1736,9 +1743,7 @@ function completeNearTail(
     prefixBranchKey: node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: false,
-    ranks: completed.ranks,
-    rankSources: completed.rankSources,
-    rankSourceAxes: completed.rankSourceAxes,
+    rankTrace: completed.rankTrace,
     skippedContacts: node.skippedContacts,
   };
 }
@@ -1757,9 +1762,7 @@ function completeWeakPrefixWithBoundedSuffix(
 
   const completed = completeBoundedSuffix(
     node.search,
-    [...node.ranks],
-    [...node.rankSources],
-    [...node.rankSourceAxes],
+    cloneRankTrace(node.rankTrace),
     gaps,
     ctx,
     node.searchSeed,
@@ -1780,25 +1783,19 @@ function completeWeakPrefixWithBoundedSuffix(
     prefixBranchKey: node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: false,
-    ranks: completed.result.ranks,
-    rankSources: completed.result.rankSources,
-    rankSourceAxes: completed.result.rankSourceAxes,
+    rankTrace: completed.result.rankTrace,
     skippedContacts: node.skippedContacts,
   };
 }
 
 type CompletedHandoffSuffix = {
   search: SearchNode;
-  ranks: number[];
-  rankSources: HandoffCandidateSource[];
-  rankSourceAxes: Array<AxisName | null>;
+  rankTrace: HandoffRankTraceEntry[];
 };
 
 function completeNearTailSuffix(
   start: SearchNode,
-  startRanks: number[],
-  startSources: HandoffCandidateSource[],
-  startSourceAxes: Array<AxisName | null>,
+  startTrace: HandoffRankTraceEntry[],
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
@@ -1810,25 +1807,19 @@ function completeNearTailSuffix(
   const stack: CompletedHandoffSuffix[] = [
     {
       search: start,
-      ranks: startRanks,
-      rankSources: startSources,
-      rankSourceAxes: startSourceAxes,
+      rankTrace: startTrace,
     },
   ];
   while (stack.length > 0) {
     const state = stack.pop()!;
     let search = state.search;
-    const ranks = [...state.ranks];
-    const rankSources = [...state.rankSources];
-    const rankSourceAxes = [...state.rankSourceAxes];
+    let rankTrace = cloneRankTrace(state.rankTrace);
 
     while (!isTerminalNode(search, gaps) && !gaps[search.gapIndex].endsWithContact) {
       search = extendNodeCached(search, null);
-      ranks.push(-1);
-      rankSources.push("skip");
-      rankSourceAxes.push(null);
+      rankTrace = appendSkipTrace(rankTrace);
     }
-    if (isTerminalNode(search, gaps)) return { search, ranks, rankSources, rankSourceAxes };
+    if (isTerminalNode(search, gaps)) return { search, rankTrace };
 
     const gap = gaps[search.gapIndex];
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
@@ -1844,9 +1835,7 @@ function completeNearTailSuffix(
       const option = options[i];
       stack.push({
         search: extendNodeCached(search, option.candidate!),
-        ranks: [...ranks, option.rank],
-        rankSources: [...rankSources, option.source],
-        rankSourceAxes: [...rankSourceAxes, option.sourceAxis ?? null],
+        rankTrace: appendOptionTrace(rankTrace, option),
       });
     }
   }
@@ -1855,9 +1844,7 @@ function completeNearTailSuffix(
 
 function completeBoundedSuffix(
   start: SearchNode,
-  startRanks: number[],
-  startSources: HandoffCandidateSource[],
-  startSourceAxes: Array<AxisName | null>,
+  startTrace: HandoffRankTraceEntry[],
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
@@ -1868,9 +1855,7 @@ function completeBoundedSuffix(
   const stack: CompletedHandoffSuffix[] = [
     {
       search: start,
-      ranks: startRanks,
-      rankSources: startSources,
-      rankSourceAxes: startSourceAxes,
+      rankTrace: startTrace,
     },
   ];
   let nodes = 0;
@@ -1878,18 +1863,14 @@ function completeBoundedSuffix(
   while (stack.length > 0 && nodes < QUALITY_SUFFIX_REPAIR_MAX_NODES) {
     const state = stack.pop()!;
     let search = state.search;
-    const ranks = [...state.ranks];
-    const rankSources = [...state.rankSources];
-    const rankSourceAxes = [...state.rankSourceAxes];
+    let rankTrace = cloneRankTrace(state.rankTrace);
 
     while (!isTerminalNode(search, gaps) && !gaps[search.gapIndex].endsWithContact) {
       search = extendNodeCached(search, null);
-      ranks.push(-1);
-      rankSources.push("skip");
-      rankSourceAxes.push(null);
+      rankTrace = appendSkipTrace(rankTrace);
     }
     if (isTerminalNode(search, gaps)) {
-      return { result: { search, ranks, rankSources, rankSourceAxes }, nodes };
+      return { result: { search, rankTrace }, nodes };
     }
 
     nodes++;
@@ -1907,9 +1888,7 @@ function completeBoundedSuffix(
       const option = options[i];
       stack.push({
         search: extendNodeCached(search, option.candidate!),
-        ranks: [...ranks, option.rank],
-        rankSources: [...rankSources, option.source],
-        rankSourceAxes: [...rankSourceAxes, option.sourceAxis ?? null],
+        rankTrace: appendOptionTrace(rankTrace, option),
       });
     }
   }
@@ -2457,7 +2436,7 @@ function buildNodeOutput(
   const startVelocity = node.startState.velocity;
   const startSpeed = Math.hypot(startVelocity.x, startVelocity.y);
   const startAngleDeg = (Math.atan2(startVelocity.y, startVelocity.x) * 180) / Math.PI;
-  const candidateRanks = node.ranks.filter((rank) => rank >= 0);
+  const candidateRanks = selectedCandidateRanks(node.rankTrace);
   const candidateRankSum = candidateRanks.reduce((sum, rank) => sum + rank, 0);
   const candidateRankCount = candidateRanks.length;
   const sourceCounts = selectedCandidateSourceCounts(node);
@@ -2509,9 +2488,9 @@ function selectedCandidateSourceCounts(
   const counts = Object.fromEntries(
     HANDOFF_CANDIDATE_SOURCES.map((source) => [source, 0]),
   ) as Record<HandoffCandidateSourceName, number>;
-  for (let i = 0; i < node.ranks.length; i++) {
-    if (node.ranks[i] < 0) continue;
-    const source = node.rankSources[i] ?? "pool";
+  for (const entry of node.rankTrace) {
+    if (entry.rank < 0) continue;
+    const source = entry.source;
     if (source === "skip") continue;
     counts[source]++;
   }
@@ -2522,13 +2501,19 @@ function selectedAxisQualitySourceCounts(
   node: HandoffNode,
 ): Partial<Record<AxisName, number>> {
   const counts: Partial<Record<AxisName, number>> = {};
-  for (let i = 0; i < node.ranks.length; i++) {
-    if (node.ranks[i] < 0 || node.rankSources[i] !== "axisq") continue;
-    const axis = node.rankSourceAxes[i];
-    if (axis === null || axis === undefined) continue;
+  for (const entry of node.rankTrace) {
+    if (entry.rank < 0 || entry.source !== "axisq") continue;
+    const axis = entry.sourceAxis;
+    if (axis === undefined) continue;
     counts[axis] = (counts[axis] ?? 0) + 1;
   }
   return counts;
+}
+
+function selectedCandidateRanks(trace: HandoffRankTraceEntry[]): number[] {
+  return trace
+    .filter((entry) => entry.rank >= 0)
+    .map((entry) => entry.rank);
 }
 
 function paddedFits(node: HandoffNode, gapCount: number): (GapFit | null)[] {

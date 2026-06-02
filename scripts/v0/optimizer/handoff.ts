@@ -153,9 +153,15 @@ type HandoffTelemetry = {
   prefixBranchFullEvaluations: number;
   prefixBranchImprovements: number;
   prefixBranchPrunes: number;
-  prefixBranchWork: Map<string, PrefixBranchWork>;
   startRanksSeen: Set<number>;
   startRanksWithFits: Set<number>;
+};
+
+type PrefixBranchController = {
+  enabled: boolean;
+  baseSearchSeed: number;
+  forkedKeys: Set<string>;
+  work: Map<string, PrefixBranchWork>;
 };
 
 type PrefixBranchWork = {
@@ -405,7 +411,6 @@ function compileHandoffInternal(
       prefixBranchFullEvaluations: 0,
       prefixBranchImprovements: 0,
       prefixBranchPrunes: 0,
-      prefixBranchWork: new Map<string, PrefixBranchWork>(),
       startRanksSeen: new Set<number>(),
       startRanksWithFits: new Set<number>(),
     };
@@ -415,9 +420,10 @@ function compileHandoffInternal(
     const evaluationCache = new WeakMap<SearchNode, NodeEvaluation>();
     const checkpoints: CompileCheckpoint[] = [];
     let nextBudgetIndex = 0;
-    const allowPrefixBranching = initialSnapshot === null &&
-      (opts.searchSeed === undefined || opts.searchSeed === seed);
-    const branchedPrefixKeys = new Set<string>();
+    const prefixBranches = createPrefixBranchController(
+      initialSnapshot === null && (opts.searchSeed === undefined || opts.searchSeed === seed),
+      searchSeed,
+    );
 
     const evaluateCached = (node: HandoffNode): NodeEvaluation => {
       const cached = evaluationCache.get(node.search);
@@ -450,12 +456,7 @@ function compileHandoffInternal(
         ),
         evaluation.key,
       );
-      if (node.searchLane !== 0) {
-        telemetry.prefixBranchEvaluations++;
-        if (evaluation.fullDuration) telemetry.prefixBranchFullEvaluations++;
-        if (improved) telemetry.prefixBranchImprovements++;
-        recordPrefixBranchWork(node, telemetry, evaluation.fullDuration, improved);
-      }
+      recordPrefixBranchEvaluation(node, prefixBranches, telemetry, evaluation.fullDuration, improved);
       const event: HandoffNodeEvent = {
         phase,
         simFrames: getSimFrames(),
@@ -539,8 +540,7 @@ function compileHandoffInternal(
       telemetry.frontierSelections++;
       consider(node, "main");
 
-      if (shouldPruneStalledPrefixBranch(node, telemetry)) {
-        telemetry.prefixBranchPrunes++;
+      if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {
         captureReachedBudgets();
         if (nextBudgetIndex >= budgets.length) break;
         continue;
@@ -559,8 +559,7 @@ function compileHandoffInternal(
         consider(tailNode, "tail");
       }
 
-      if (shouldPruneStalledPrefixBranch(node, telemetry)) {
-        telemetry.prefixBranchPrunes++;
+      if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {
         captureReachedBudgets();
         if (nextBudgetIndex >= budgets.length) break;
         continue;
@@ -618,12 +617,13 @@ function compileHandoffInternal(
             ),
             evaluation.key,
           );
-          if (polishNode.searchLane !== 0) {
-            telemetry.prefixBranchEvaluations++;
-            if (evaluation.fullDuration) telemetry.prefixBranchFullEvaluations++;
-            if (improved) telemetry.prefixBranchImprovements++;
-            recordPrefixBranchWork(polishNode, telemetry, evaluation.fullDuration, improved);
-          }
+          recordPrefixBranchEvaluation(
+            polishNode,
+            prefixBranches,
+            telemetry,
+            evaluation.fullDuration,
+            improved,
+          );
           const event: HandoffNodeEvent = {
             phase: "polish",
             simFrames: getSimFrames(),
@@ -643,9 +643,7 @@ function compileHandoffInternal(
       const branchNode = maybeForkPrefixBranch(
         node,
         gaps,
-        searchSeed,
-        allowPrefixBranching,
-        branchedPrefixKeys,
+        prefixBranches,
         telemetry,
         register.getBestKey(),
       );
@@ -841,16 +839,26 @@ function farBackFrontierPulseInterval(key: LeafKey | null): number | null {
   return null;
 }
 
+function createPrefixBranchController(
+  enabled: boolean,
+  baseSearchSeed: number,
+): PrefixBranchController {
+  return {
+    enabled,
+    baseSearchSeed,
+    forkedKeys: new Set<string>(),
+    work: new Map<string, PrefixBranchWork>(),
+  };
+}
+
 function maybeForkPrefixBranch(
   node: HandoffNode,
   gaps: Gap[],
-  baseSearchSeed: number,
-  allowPrefixBranching: boolean,
-  branchedPrefixKeys: Set<string>,
+  prefixBranches: PrefixBranchController,
   telemetry: HandoffTelemetry,
   bestKey: LeafKey | null,
 ): HandoffNode | null {
-  if (!allowPrefixBranching) return null;
+  if (!prefixBranches.enabled) return null;
   if (bestKey?.contract_passed !== true) return null;
   if (bestKey.axis_quality < PREFIX_BRANCH_MIN_AXIS_QUALITY) return null;
   if (bestKey.axis_quality >= PREFIX_BRANCH_MAX_AXIS_QUALITY) return null;
@@ -863,45 +871,54 @@ function maybeForkPrefixBranch(
   if (remainingContactCount(node.search, gaps) < PREFIX_BRANCH_MIN_REMAINING_CONTACTS) return null;
 
   const key = `${node.startRank}:${node.search.gapIndex}`;
-  if (branchedPrefixKeys.has(key)) return null;
-  branchedPrefixKeys.add(key);
+  if (prefixBranches.forkedKeys.has(key)) return null;
+  prefixBranches.forkedKeys.add(key);
   telemetry.prefixBranchForks++;
   return cloneHandoffNodeForBranch(node, {
-    searchSeed: searchSeedForLane(baseSearchSeed, PREFIX_BRANCH_LANE),
+    searchSeed: searchSeedForLane(prefixBranches.baseSearchSeed, PREFIX_BRANCH_LANE),
     searchLane: PREFIX_BRANCH_LANE,
     prefixBranchKey: key,
   });
 }
 
-function recordPrefixBranchWork(
+function recordPrefixBranchEvaluation(
   node: HandoffNode,
+  prefixBranches: PrefixBranchController,
   telemetry: HandoffTelemetry,
   fullDuration: boolean,
   improved: boolean,
 ): void {
+  if (node.searchLane === 0) return;
+  telemetry.prefixBranchEvaluations++;
+  if (fullDuration) telemetry.prefixBranchFullEvaluations++;
+  if (improved) telemetry.prefixBranchImprovements++;
+
   const key = node.prefixBranchKey;
   if (key === undefined) return;
-  let work = telemetry.prefixBranchWork.get(key);
+  let work = prefixBranches.work.get(key);
   if (work === undefined) {
     work = { evaluations: 0, fullEvaluations: 0, improvements: 0 };
-    telemetry.prefixBranchWork.set(key, work);
+    prefixBranches.work.set(key, work);
   }
   work.evaluations++;
   if (fullDuration) work.fullEvaluations++;
   if (improved) work.improvements++;
 }
 
-function shouldPruneStalledPrefixBranch(
+function maybePruneStalledPrefixBranch(
   node: HandoffNode,
+  prefixBranches: PrefixBranchController,
   telemetry: HandoffTelemetry,
 ): boolean {
   if (node.searchLane === 0) return false;
   const key = node.prefixBranchKey;
   if (key === undefined) return false;
-  const work = telemetry.prefixBranchWork.get(key);
-  return work !== undefined &&
+  const work = prefixBranches.work.get(key);
+  const shouldPrune = work !== undefined &&
     work.improvements === 0 &&
     work.fullEvaluations >= PREFIX_BRANCH_STALLED_FULL_EVAL_CAP;
+  if (shouldPrune) telemetry.prefixBranchPrunes++;
+  return shouldPrune;
 }
 
 function searchSeedForLane(baseSearchSeed: number, lane: number): number {

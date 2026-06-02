@@ -3,6 +3,12 @@
 This file keeps its historical name because past work links here. The active
 compiler is `compileHandoff` in `scripts/v0/optimizer/handoff.ts`.
 
+For the current extended-budget plateau campaign, see
+`GOAL_LDS_PLATEAU_BREAKOUT.md`. That document defines the 10-spec `150k`
+diagnostic loop used to study whether the optimizer can convert substantially
+more compute into better tracks without turning prefix branching into a messy
+wrapper layer.
+
 ## Campaign Metric
 
 Use this command as the run of record:

@@ -437,6 +437,15 @@ Rejected follow-up probes:
   one-wide greedy suffix under the current candidate primitives. Future versions
   should look at bounded suffix branching/repair or better low-air transition
   primitives, not a score-only greedy completion layer.
+- Running the accepted bounded suffix repair twice as often was also rejected.
+  Changing the repair cadence from every `32` frontier selections to every `16`
+  made the low-plateau/start smoke worse against the accepted repair:
+  common-row deltas were `-1.79` at `75k` and `-1.74` at `150k`, with the
+  repaired `drums_pendulum seed=1` row dropping `279.45 -> 258.63`. The earlier
+  pulse did complete a suffix (`1/1` using `58` nodes), but it locked in a worse
+  start/suffix basin than the later `32`-selection cadence. Keep the repair
+  sparse; earlier terminal feedback is not automatically better in this
+  forward-fragile search.
 
 ## Implementation Guardrails
 

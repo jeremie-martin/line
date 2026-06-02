@@ -158,6 +158,8 @@ type HandoffTelemetry = {
   previews: number;
   previewContacts: number;
   previewSurvivors: number;
+  reuseAttempts: number;
+  reuseSuccesses: number;
   rescueAttempts: number;
   rescueSuccesses: number;
   skips: number;
@@ -437,6 +439,8 @@ function compileHandoffInternal(
       previews: 0,
       previewContacts: 0,
       previewSurvivors: 0,
+      reuseAttempts: 0,
+      reuseSuccesses: 0,
       rescueAttempts: 0,
       rescueSuccesses: 0,
       skips: 0,
@@ -541,6 +545,8 @@ function compileHandoffInternal(
           handoff_previews: telemetry.previews,
           handoff_preview_contacts: telemetry.previewContacts,
           handoff_preview_survivors: telemetry.previewSurvivors,
+          handoff_reuse_attempts: telemetry.reuseAttempts,
+          handoff_reuse_successes: telemetry.reuseSuccesses,
           handoff_rescue_attempts: telemetry.rescueAttempts,
           handoff_rescue_successes: telemetry.rescueSuccesses,
           handoff_skips: best.stats.handoff_skips ?? 0,
@@ -1252,7 +1258,7 @@ function rankedOptions(
   // recent sled-relative catch can remain valid at a later similar entry state.
   // Deterministic (pure function of the prefix); only ADDS candidates, so
   // monotonicity holds.
-  const reuse = cachedReuseCatchCandidates(node, gaps, ctx);
+  const reuse = cachedReuseCatchCandidates(node, gaps, ctx, telemetry);
   reuse.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(
       node, candidate, poolSize + j, gaps, ctx, seed, telemetry, preview, previewCostWeight,
@@ -1370,10 +1376,11 @@ function cachedReuseCatchCandidates(
   node: SearchNode,
   gaps: Gap[],
   ctx: SpecContext,
+  telemetry: HandoffTelemetry,
 ): Candidate[] {
   const cache = extraCandidateCache.get(node) ?? {};
   if (cache.reuse === undefined) {
-    cache.reuse = reuseCatchCandidates(node, gaps, ctx);
+    cache.reuse = reuseCatchCandidates(node, gaps, ctx, telemetry);
     extraCandidateCache.set(node, cache);
   }
   return cache.reuse;
@@ -1489,6 +1496,7 @@ function reuseCatchCandidates(
   node: SearchNode,
   gaps: Gap[],
   ctx: SpecContext,
+  telemetry: HandoffTelemetry,
 ): Candidate[] {
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return [];
@@ -1504,11 +1512,13 @@ function reuseCatchCandidates(
     const dx = ts.sledX - f.ref.x;
     const dy = ts.sledY - f.ref.y;
     const arc = { ...f.arc, anchor: { x: f.arc.anchor.x + dx, y: f.arc.anchor.y + dy } };
+    telemetry.reuseAttempts++;
     const cand = tryCandidate(
       node.prefixEngine, gap, arc, node.prefixNextLineId, ctx.allContactFrames,
       axisMeasureEnd, gap.targets, true,
     );
     if (cand !== null) {
+      telemetry.reuseSuccesses++;
       cand.ref = { x: ts.sledX, y: ts.sledY };
       out.push(cand);
     }

@@ -792,6 +792,8 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_previews: stats.handoff_previews,
     handoff_preview_contacts: stats.handoff_preview_contacts,
     handoff_preview_survivors: stats.handoff_preview_survivors,
+    handoff_reuse_attempts: stats.handoff_reuse_attempts,
+    handoff_reuse_successes: stats.handoff_reuse_successes,
     handoff_rescue_attempts: stats.handoff_rescue_attempts,
     handoff_rescue_successes: stats.handoff_rescue_successes,
     handoff_skips: stats.handoff_skips,

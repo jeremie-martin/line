@@ -274,6 +274,10 @@ export type CompileStats = {
    *  not only one-step survival. */
   handoff_preview_contacts?: number;
   handoff_preview_survivors?: number;
+  /** Translated recent-catch candidates validated at the current gap, and how
+   *  often those reuse validations returned a viable catch. */
+  handoff_reuse_attempts?: number;
+  handoff_reuse_successes?: number;
   /** Required-contact dead-ends where handoff spent one larger deterministic
    *  candidate batch before accepting a skip, and how often that rescue batch
    *  found at least one viable catch. */

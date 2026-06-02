@@ -149,6 +149,11 @@ budget: `workΔ(sim=... cand=... viable=...)`. Use this when judging whether a
 probe improved the curve by spending substantially more compute or by using the
 same deterministic work sequence more effectively.
 
+Catch-reuse validation work is now visible as `reuse=successes/attempts` in the
+analyzer and as `handoff_reuse_*` stats in golden JSON. Reuse candidates are
+translated from recent catches and validated with physics, so this exposes
+whether that extra deterministic work is converting into viable candidates.
+
 Candidate caches are now explicitly search-seed-aware. A `SearchNode` can still
 extend or shrink deterministic candidate-count prefixes for the same lane, but a
 request with a different search seed resamples instead of reusing a stale cache.

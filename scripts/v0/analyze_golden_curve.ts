@@ -48,6 +48,10 @@ type CompileStats = {
   handoff_preview_survivors?: number;
   handoff_reuse_attempts?: number;
   handoff_reuse_successes?: number;
+  handoff_brake_attempts?: number;
+  handoff_brake_successes?: number;
+  handoff_axis_quality_attempts?: number;
+  handoff_axis_quality_successes?: number;
   handoff_rescue_attempts?: number;
   handoff_rescue_successes?: number;
   handoff_skips?: number;
@@ -149,6 +153,8 @@ function fmtStats(stats: CompileStats | undefined): string {
     `pulses=${stats.handoff_far_back_pulses ?? "?"}`,
     `tail=${stats.handoff_tail_completion_successes ?? "?"}/${stats.handoff_tail_completion_attempts ?? "?"}`,
     `reuse=${stats.handoff_reuse_successes ?? "?"}/${stats.handoff_reuse_attempts ?? "?"}`,
+    `brake=${stats.handoff_brake_successes ?? "?"}/${stats.handoff_brake_attempts ?? "?"}`,
+    `axisq=${stats.handoff_axis_quality_successes ?? "?"}/${stats.handoff_axis_quality_attempts ?? "?"}`,
     `rescue=${stats.handoff_rescue_successes ?? "?"}/${stats.handoff_rescue_attempts ?? "?"}`,
     `preview=${stats.handoff_preview_contacts ?? "?"}/${stats.handoff_previews ?? "?"}`,
     `starts=${stats.handoff_start_ranks_with_fits ?? "?"}/${stats.handoff_start_ranks_seen ?? "?"}`,

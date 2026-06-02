@@ -278,6 +278,12 @@ export type CompileStats = {
    *  often those reuse validations returned a viable catch. */
   handoff_reuse_attempts?: number;
   handoff_reuse_successes?: number;
+  /** Extra brake-mode candidate samples and viable brake catches. */
+  handoff_brake_attempts?: number;
+  handoff_brake_successes?: number;
+  /** Registered axis-quality extra-stream samples and viable candidates. */
+  handoff_axis_quality_attempts?: number;
+  handoff_axis_quality_successes?: number;
   /** Required-contact dead-ends where handoff spent one larger deterministic
    *  candidate batch before accepting a skip, and how often that rescue batch
    *  found at least one viable catch. */

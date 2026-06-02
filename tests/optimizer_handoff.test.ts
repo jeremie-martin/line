@@ -74,6 +74,14 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_reuse_attempts ?? 0).toBeGreaterThanOrEqual(a.stats.handoff_reuse_successes ?? 0);
     expect(a.stats.handoff_reuse_attempts).toBe(b.stats.handoff_reuse_attempts);
     expect(a.stats.handoff_reuse_successes).toBe(b.stats.handoff_reuse_successes);
+    expect(a.stats.handoff_brake_attempts ?? 0).toBeGreaterThanOrEqual(a.stats.handoff_brake_successes ?? 0);
+    expect(a.stats.handoff_brake_attempts).toBe(b.stats.handoff_brake_attempts);
+    expect(a.stats.handoff_brake_successes).toBe(b.stats.handoff_brake_successes);
+    expect(a.stats.handoff_axis_quality_attempts ?? 0).toBeGreaterThanOrEqual(
+      a.stats.handoff_axis_quality_successes ?? 0,
+    );
+    expect(a.stats.handoff_axis_quality_attempts).toBe(b.stats.handoff_axis_quality_attempts);
+    expect(a.stats.handoff_axis_quality_successes).toBe(b.stats.handoff_axis_quality_successes);
     expect(a.stats.search_nodes_expanded).toBeGreaterThan(0);
     expect(a.stats.handoff_frontier_size).toBeGreaterThanOrEqual(0);
     expect(a.stats.handoff_deepest_seen_gap).toBeGreaterThanOrEqual(0);

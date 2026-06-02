@@ -154,6 +154,11 @@ analyzer and as `handoff_reuse_*` stats in golden JSON. Reuse candidates are
 translated from recent catches and validated with physics, so this exposes
 whether that extra deterministic work is converting into viable candidates.
 
+Brake and registered axis-quality extra streams are also reported as
+`brake=successes/attempts` and `axisq=successes/attempts`. These are
+diagnostic-only counters for judging whether extra candidate machinery earns its
+sample budget before adding or removing policy.
+
 Candidate caches are now explicitly search-seed-aware. A `SearchNode` can still
 extend or shrink deterministic candidate-count prefixes for the same lane, but a
 request with a different search seed resamples instead of reusing a stale cache.

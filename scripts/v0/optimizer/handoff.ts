@@ -160,6 +160,10 @@ type HandoffTelemetry = {
   previewSurvivors: number;
   reuseAttempts: number;
   reuseSuccesses: number;
+  brakeAttempts: number;
+  brakeSuccesses: number;
+  axisQualityAttempts: number;
+  axisQualitySuccesses: number;
   rescueAttempts: number;
   rescueSuccesses: number;
   skips: number;
@@ -441,6 +445,10 @@ function compileHandoffInternal(
       previewSurvivors: 0,
       reuseAttempts: 0,
       reuseSuccesses: 0,
+      brakeAttempts: 0,
+      brakeSuccesses: 0,
+      axisQualityAttempts: 0,
+      axisQualitySuccesses: 0,
       rescueAttempts: 0,
       rescueSuccesses: 0,
       skips: 0,
@@ -547,6 +555,10 @@ function compileHandoffInternal(
           handoff_preview_survivors: telemetry.previewSurvivors,
           handoff_reuse_attempts: telemetry.reuseAttempts,
           handoff_reuse_successes: telemetry.reuseSuccesses,
+          handoff_brake_attempts: telemetry.brakeAttempts,
+          handoff_brake_successes: telemetry.brakeSuccesses,
+          handoff_axis_quality_attempts: telemetry.axisQualityAttempts,
+          handoff_axis_quality_successes: telemetry.axisQualitySuccesses,
           handoff_rescue_attempts: telemetry.rescueAttempts,
           handoff_rescue_successes: telemetry.rescueSuccesses,
           handoff_skips: best.stats.handoff_skips ?? 0,
@@ -1269,7 +1281,14 @@ function rankedOptions(
   // from landing (impact-anchor still lands the contact), so they only win when
   // the overshoot penalty rewards their lower speed and simply lose elsewhere.
   // Excluded from reuse.
-  const brake = cachedBrakeCatchCandidates(node, gaps, ctx, seed, config.expandedBrakeSearch ?? false);
+  const brake = cachedBrakeCatchCandidates(
+    node,
+    gaps,
+    ctx,
+    seed,
+    config.expandedBrakeSearch ?? false,
+    telemetry,
+  );
   brake.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(
       node,
@@ -1291,6 +1310,7 @@ function rankedOptions(
     ctx,
     seed,
     config.axisQualitySearch ?? false,
+    telemetry,
   );
   axisQuality.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(
@@ -1319,6 +1339,7 @@ function cachedAxisQualityCandidates(
   ctx: SpecContext,
   seed: number,
   enabled: boolean,
+  telemetry: HandoffTelemetry,
 ): Candidate[] {
   if (!enabled) return [];
   const cache = extraCandidateCache.get(node) ?? {};
@@ -1329,7 +1350,7 @@ function cachedAxisQualityCandidates(
     return cache.axisQuality;
   }
 
-  const generated = axisQualityCandidates(node, gaps, ctx, seed);
+  const generated = axisQualityCandidates(node, gaps, ctx, seed, telemetry);
   cache.axisQualitySeed = seed;
   cache.axisQuality = generated;
   extraCandidateCache.set(node, cache);
@@ -1341,6 +1362,7 @@ function axisQualityCandidates(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  telemetry: HandoffTelemetry,
 ): Candidate[] {
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return [];
@@ -1350,6 +1372,7 @@ function axisQualityCandidates(
     if (policy === undefined || gap.targets?.[axis] === undefined) continue;
     const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
     for (let attempt = 0; attempt < policy.samples; attempt++) {
+      telemetry.axisQualityAttempts++;
       const candidate = sampleOneCandidate(
         node.prefixEngine,
         gap,
@@ -1358,7 +1381,10 @@ function axisQualityCandidates(
         node.prefixNextLineId,
         policy.attemptOffset + attempt,
       );
-      if (candidate !== null) out.push(candidate);
+      if (candidate !== null) {
+        telemetry.axisQualitySuccesses++;
+        out.push(candidate);
+      }
     }
   }
   return out;
@@ -1392,6 +1418,7 @@ function cachedBrakeCatchCandidates(
   ctx: SpecContext,
   seed: number,
   expandedBrakeSearch: boolean,
+  telemetry: HandoffTelemetry,
 ): Candidate[] {
   const cache = extraCandidateCache.get(node) ?? {};
   if (cache.brakeSeed !== undefined && cache.brakeSeed !== seed) {
@@ -1401,7 +1428,7 @@ function cachedBrakeCatchCandidates(
   const cached = expandedBrakeSearch ? cache.brakeQuality : cache.brakeContract;
   if (cached !== undefined && cache.brakeSeed === seed) return cached;
 
-  const generated = brakeCatchCandidates(node, gaps, ctx, seed, expandedBrakeSearch);
+  const generated = brakeCatchCandidates(node, gaps, ctx, seed, expandedBrakeSearch, telemetry);
   if (expandedBrakeSearch) {
     cache.brakeQuality = generated;
   } else {
@@ -1423,6 +1450,7 @@ function brakeCatchCandidates(
   ctx: SpecContext,
   seed: number,
   expandedBrakeSearch: boolean,
+  telemetry: HandoffTelemetry,
 ): Candidate[] {
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return [];
@@ -1444,10 +1472,12 @@ function brakeCatchCandidates(
   const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 7919) | 0);
   const out: Candidate[] = [];
   for (let attempt = 0; attempt < brakeK; attempt++) {
+    telemetry.brakeAttempts++;
     const cand = sampleOneCandidate(
       node.prefixEngine, gap, rng, ctx, node.prefixNextLineId, attempt, /*brake*/ true,
     );
     if (cand !== null) {
+      telemetry.brakeSuccesses++;
       cand.ref = undefined; // never reuse a brake catch as a steady-state seed
       out.push(cand);
     }

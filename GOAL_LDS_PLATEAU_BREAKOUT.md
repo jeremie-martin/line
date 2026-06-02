@@ -124,6 +124,11 @@ only `air` and `speed`, matching the previous behavior, but the final-track
 axis-error roll-up no longer hides that semantic assumption in a local literal
 array.
 
+The handoff substrate now also has an explicit `CONTACT_EVENT_AXES` category for
+axes whose achieved value is tied to the local contact/catch event. Today that
+category is only `contact_style`, matching previous behavior, but brake gating
+and preview-cost suppression no longer ask for that named axis directly.
+
 A start-policy diagnostic cleanup now records the selected start speed and
 angle in `CompileStats`, carries those fields through golden JSON, and prints
 them in the curve analyzer. This does not change compiler behavior; it makes

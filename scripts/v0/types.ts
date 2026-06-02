@@ -88,6 +88,10 @@ export const AXIS_VALUE_MAX = {
 export const FRAME_SPAN_AXES = ["air", "speed"] as const satisfies readonly AxisName[];
 export type FrameSpanAxisName = (typeof FRAME_SPAN_AXES)[number];
 
+/** Axes whose achieved value is tied to the contact event/placed catch geometry. */
+export const CONTACT_EVENT_AXES = ["contact_style"] as const satisfies readonly AxisName[];
+export type ContactEventAxisName = (typeof CONTACT_EVENT_AXES)[number];
+
 /**
  * Resolved or measured per-axis scalar values for one gap (or one frame).
  * The numeric bag flowing through `gap.targets`, candidate `achieved`,
@@ -110,6 +114,14 @@ export function hasExactlyTargetAxes(
     if (hasTarget !== required.has(axis)) return false;
   }
   return true;
+}
+
+/** True when any axis in the provided canonical category is targeted. */
+export function hasAnyTargetAxis(
+  values: AxisValues,
+  axes: readonly AxisName[],
+): boolean {
+  return axes.some((axis) => values[axis] !== undefined);
 }
 
 /**

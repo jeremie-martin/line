@@ -36,12 +36,14 @@ import {
 import {
   AXES,
   CALIB,
+  CONTACT_EVENT_AXES,
   FPS,
   START_DEFAULTS,
   secToFrame,
   type AxisName,
   type AxisValues,
   type Gap,
+  hasAnyTargetAxis,
 } from "../types.ts";
 import {
   axisLookaheadEndFrame,
@@ -275,9 +277,9 @@ const START_HEURISTIC_WEIGHT = 0.15;
 const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
 /** The one-contact preview already pays for a future candidate. Reuse its local
- *  cost as a small quality signal for smooth axes, but not when the current gap
- *  targets contact_style: that axis is a discrete contact-duration effect, and
- *  preview cost over-steers the fragile current catch. */
+ *  cost as a small quality signal for frame-span/smooth axes, but not when the
+ *  current gap targets contact-event axes: those are local catch-geometry
+ *  effects, and preview cost over-steers the fragile current catch. */
 const PREVIEW_COST_WEIGHT = 0.25;
 const HANDOFF_STATE_WEIGHT = 0.08;
 /** Selection-only asymmetric overshoot pressure in the handoff feasibility
@@ -290,8 +292,8 @@ const HANDOFF_AXIS_OVERSHOOT_WEIGHTS: Partial<Record<AxisName, number>> = {
 };
 /** Brake catches (uphill-entry, bleed speed) are offered as EXTRA candidates on
  *  MODERATE-target gaps where the rider runs even mildly over target (early, to
- *  pre-empt creep). High-target gaps only get brake probes when contact style
- *  also matters and overspeed is severe. Decoupled from landing, so on
+ *  pre-empt creep). High-target gaps only get brake probes when contact-event
+ *  quality also matters and overspeed is severe. Decoupled from landing, so on
  *  non-creeping specs they simply lose the ranking. Excluded from reuse. */
 const HANDOFF_BRAKE_TARGET_MAX = 1.0;
 const HANDOFF_BRAKE_MILD_TARGET_MAX = 0.78;
@@ -1210,7 +1212,7 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
   return shouldOfferBrakeCandidates(
     targetSpeed,
     speedRatio,
-    gap.targets?.contact_style !== undefined,
+    hasContactEventTarget(gap),
   );
 }
 
@@ -1224,7 +1226,7 @@ export function shouldUseExpandedBrakeSearch(
   expandedBrakeSearch: boolean,
   gap: Gap,
 ): boolean {
-  return qualitySearch || (expandedBrakeSearch && gap.targets?.contact_style !== undefined);
+  return qualitySearch || (expandedBrakeSearch && hasContactEventTarget(gap));
 }
 
 export function shortDeadlineRescueCandidateCount(gapFrames: number): number {
@@ -1462,7 +1464,7 @@ function brakeCatchCandidates(
   if (!shouldOfferBrakeCandidates(
     tgt,
     speedRatio,
-    gap.targets?.contact_style !== undefined,
+    hasContactEventTarget(gap),
     expandedBrakeSearch,
   )) {
     return [];
@@ -1501,7 +1503,7 @@ export function brakeCandidateCount(speedRatio: number, expandedBrakeSearch = fa
 export function shouldOfferBrakeCandidates(
   targetSpeed: number,
   speedRatio: number,
-  hasContactStyleTarget: boolean,
+  hasContactEventTarget: boolean,
   expandedBrakeSearch = false,
 ): boolean {
   if (targetSpeed <= HANDOFF_BRAKE_MILD_TARGET_MAX) {
@@ -1511,7 +1513,7 @@ export function shouldOfferBrakeCandidates(
     HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO,
     expandedBrakeSearch,
   );
-  return hasContactStyleTarget &&
+  return hasContactEventTarget &&
     brakeCandidateCount(speedRatio, expandedBrakeSearch) === highOverspeedK;
 }
 
@@ -1653,9 +1655,11 @@ export function handoffSampleCount(
 }
 
 export function handoffPreviewCostWeight(gap: Gap): number {
-  return gap.targets?.contact_style === undefined
-    ? PREVIEW_COST_WEIGHT
-    : 0;
+  return hasContactEventTarget(gap) ? 0 : PREVIEW_COST_WEIGHT;
+}
+
+function hasContactEventTarget(gap: Gap): boolean {
+  return hasAnyTargetAxis(gap.targets, CONTACT_EVENT_AXES);
 }
 
 export function handoffUsesFuturePreview(qualitySearch: boolean): boolean {

@@ -83,7 +83,7 @@ describe("handoff policy boundaries", () => {
     ])).toBe(true);
   });
 
-  test("expanded first-pass brake work needs contact-style pressure", () => {
+  test("expanded first-pass brake work needs contact-event pressure", () => {
     expect(shouldUseExpandedBrakeSearch(false, true, gap(0, 0, 20))).toBe(false);
     expect(shouldUseExpandedBrakeSearch(false, true, {
       ...gap(0, 0, 20),
@@ -92,7 +92,7 @@ describe("handoff policy boundaries", () => {
     expect(shouldUseExpandedBrakeSearch(true, false, gap(0, 0, 13))).toBe(true);
   });
 
-  test("preview cost is suppressed on contact-style gaps", () => {
+  test("preview cost is suppressed on contact-event gaps", () => {
     expect(handoffPreviewCostWeight(gap(0, 0, 20))).toBeGreaterThan(0);
     expect(handoffPreviewCostWeight({
       ...gap(0, 0, 20),
@@ -160,7 +160,7 @@ describe("handoff policy boundaries", () => {
     )).toBe(0);
   });
 
-  test("high-speed brake work needs contact style and severe overspeed", () => {
+  test("high-speed brake work needs contact-event pressure and severe overspeed", () => {
     expect(shouldOfferBrakeCandidates(0.78, 1.0, false)).toBe(true);
     expect(shouldOfferBrakeCandidates(0.8, 1.14, true)).toBe(false);
     expect(shouldOfferBrakeCandidates(0.8, 1.15, false)).toBe(false);

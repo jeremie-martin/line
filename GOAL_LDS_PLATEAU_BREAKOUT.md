@@ -401,6 +401,19 @@ Rejected follow-up probes:
   and `150k`, first-gap air stayed unchanged, and only a few extra samples were
   spent. The support geometry is either not surviving/ranking into useful
   prefixes, or it needs a much richer transition model than a single flat line.
+- A sparse one-wide terminal-feedback pulse was rejected as a compiler change.
+  The hypothesis was broad rather than axis-specific: when a weak passing
+  incumbent has produced very few full leaves, occasionally complete a clean
+  prefix greedily to the end and score that full track immediately. On the
+  4-spec low-plateau/start smoke (`drums_pendulum`, `opening_burst`,
+  `drums_tide`, `drums_dropout`; `75k,150k`) it was score-identical to
+  baseline. The only row where the pulse fired was the worst plateau,
+  `drums_pendulum seed=1`, and it produced `0/8` successful completions while
+  full evaluations stayed `2`. This says the scarce-terminal-feedback problem
+  is not merely delayed scoring; those prefixes cannot be completed by a
+  one-wide greedy suffix under the current candidate primitives. Future versions
+  should look at bounded suffix branching/repair or better low-air transition
+  primitives, not a score-only greedy completion layer.
 
 ## Implementation Guardrails
 

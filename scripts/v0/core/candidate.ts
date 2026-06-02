@@ -47,6 +47,12 @@ const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
  *  catches: the rider rides up the arc's front to bleed speed before contact. */
 const BRAKE_START_ANGLE_MIN = -28;
 const BRAKE_START_ANGLE_MAX = -6;
+const AIR_SUPPORT_LENGTH_MIN = 100;
+const AIR_SUPPORT_START_ANGLE_MIN = -8;
+const AIR_SUPPORT_START_ANGLE_MAX = 14;
+const AIR_SUPPORT_END_ANGLE_MIN = -6;
+const AIR_SUPPORT_END_ANGLE_MAX = 10;
+const AIR_SUPPORT_CURVE_BIAS_MAX = 0.35;
 
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 
@@ -99,6 +105,8 @@ type TargetState = {
   angleDeg: number;
 };
 
+export type CandidateSampleMode = "normal" | "brake" | "air_support";
+
 export function readTargetState(
   // deno-lint-ignore no-explicit-any
   engine: any,
@@ -149,15 +157,14 @@ export function sampleArcParams(
   targetState: TargetState,
   attempt: number,
   gap: Gap,
-  /** Brake mode (handoff speed-creep control): sample an UPHILL start angle so
-   *  the rider rides up the arc's front (bleeding speed) before contacting near
-   *  its middle (impact-anchor still lands the contact point). Decoupled from the
-   *  landing — does NOT shorten the arc or move the impact — so it brakes without
-   *  breaking landing geometry. Default false = normal sampling. */
-  brake = false,
+  /** Sampling mode for compiler-owned extra streams. Normal mode is the
+   *  deterministic K-prefix. Brake mode samples uphill-entry catches to bleed
+   *  overspeed. Air-support mode samples shallow, longer catches that may keep
+   *  the rider riding through low-air spans. */
+  mode: CandidateSampleMode = "normal",
 ): Arc {
   const steepTemplateIndex = steepCatchTemplateIndex(attempt);
-  if (!brake && steepTemplateIndex !== null && shouldUseSteepCatch(targetState, gap)) {
+  if (mode === "normal" && steepTemplateIndex !== null && shouldUseSteepCatch(targetState, gap)) {
     return sampleSteepCatchArc(targetState, CATCH_TEMPLATES[steepTemplateIndex]);
   }
 
@@ -165,8 +172,11 @@ export function sampleArcParams(
   // Wide uniform sampling within parameter bounds. Anchor X is offset around
   // the predicted rider x at landing frame; anchor Y is a STARTING value that
   // will be bisected for Contact precision.
-  const lengthRange = A.LENGTH_MAX - A.LENGTH_MIN;
-  const length = A.LENGTH_MIN + rng() * lengthRange;
+  const lengthMin = mode === "air_support"
+    ? Math.min(A.LENGTH_MAX, AIR_SUPPORT_LENGTH_MIN)
+    : A.LENGTH_MIN;
+  const lengthRange = A.LENGTH_MAX - lengthMin;
+  const length = lengthMin + rng() * lengthRange;
   // Segments. When `grain` is targeted, derive segment count directly from
   // length / desired-median-line-length so the resulting arc is much more
   // likely to hit the grain target. Sprinkle some uniform sampling for variety.
@@ -186,12 +196,19 @@ export function sampleArcParams(
   // Brake mode samples an uphill (negative) start angle so the rider decelerates
   // riding up the arc's front before contacting near impactT (~middle); normal
   // mode uses the calibrated downhill-catch start band.
-  const startAngleDeg = brake
+  const startAngleDeg = mode === "brake"
     ? BRAKE_START_ANGLE_MIN + rng() * (BRAKE_START_ANGLE_MAX - BRAKE_START_ANGLE_MIN)
+    : mode === "air_support"
+    ? AIR_SUPPORT_START_ANGLE_MIN +
+      rng() * (AIR_SUPPORT_START_ANGLE_MAX - AIR_SUPPORT_START_ANGLE_MIN)
     : A.START_ANGLE_MIN_DEG + rng() * (A.START_ANGLE_MAX_DEG - A.START_ANGLE_MIN_DEG);
-  const endAngleDeg = A.END_ANGLE_MIN_DEG
-    + rng() * (A.END_ANGLE_MAX_DEG - A.END_ANGLE_MIN_DEG);
-  const curveBias = -1 + 2 * rng();
+  const endAngleDeg = mode === "air_support"
+    ? AIR_SUPPORT_END_ANGLE_MIN +
+      rng() * (AIR_SUPPORT_END_ANGLE_MAX - AIR_SUPPORT_END_ANGLE_MIN)
+    : A.END_ANGLE_MIN_DEG + rng() * (A.END_ANGLE_MAX_DEG - A.END_ANGLE_MIN_DEG);
+  const curveBias = mode === "air_support"
+    ? (rng() - 0.5) * 2 * AIR_SUPPORT_CURVE_BIAS_MAX
+    : -1 + 2 * rng();
 
   if (impactAnchorEnabled()) {
     recordImpactAnchorSample();
@@ -235,9 +252,9 @@ export function sampleArcParamsRngDraws(
   targetState: { speed: number; angleDeg: number },
   gap: Gap,
   attempt: number,
-  brake = false,
+  mode: CandidateSampleMode = "normal",
 ): number {
-  if (!brake && usesSteepCatchTemplateAttempt(targetState, gap, attempt)) return 0;
+  if (mode === "normal" && usesSteepCatchTemplateAttempt(targetState, gap, attempt)) return 0;
   return impactAnchorEnabled() ? 8 : 7;
 }
 

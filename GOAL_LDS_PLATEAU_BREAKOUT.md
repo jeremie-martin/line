@@ -181,6 +181,18 @@ so invalid candidate-count requests cannot be accidentally satisfied from an
 existing larger prefix. This keeps the deterministic-prefix cache contract
 aligned with `solveOneGap`'s non-negative-integer candidate-count contract.
 
+The first accepted primitive-level plateau change is a very-low-air support
+stream. During quality search, gaps whose sampled `air` target is at most
+`0.25` get one extra deterministic shallow/long catch sample. This is a
+candidate primitive, not a ranker scalar: the normal hard gates and existing
+register still decide whether it is useful. On the 10-spec dense `150k`
+workbench it moved `CURVE_SCORE` `326.09 -> 326.40`, kept validity `30/30`, and
+made common-row deltas positive from `70k` onward. At `150k`, common score moved
+`339.30 -> 339.87`; the headline win was `drums_pendulum seed=2 +17.67`, and
+the only material loss was `drums_pendulum seed=0 -0.58`. The extra stream is
+narrow enough that average work changed only modestly at `150k`
+(`workΔ(sim=+31 cand=+35 viable=+12)`).
+
 Rejected follow-up probes:
 
 - Baseline-first branch scheduling, where the best normal child runs before the
@@ -254,6 +266,13 @@ Rejected follow-up probes:
   broad extra ranking term can steer contact-style/start basins badly. Revisit
   only with a sharper causal primitive or scheduler signal, not a blanket
   next-gap cost.
+- Broader air-support streams were rejected before the full workbench. Adding
+  the shallow/long support primitive for every air-targeted quality gap moved a
+  3-spec smoke by `-6.70` at `75k` and `-7.23` at `150k`, with
+  `opening_burst seed=2 -67.11`; even a `targetMax=0.35` gate still lost
+  `-3.61` at `75k` and `-4.44` at `150k`, with `opening_burst seed=2 -57.02`.
+  The accepted version is intentionally `targetMax=0.25`: broader "air support"
+  over-samples mid/high-air rows and can starve better contact-style basins.
 - A naive quality-phase poor-fit rescue, which reran the larger deterministic
   rescue batch whenever the best local candidate cost was severe, made the
   focused handoff test run take `155s`. Poor-fit rescue may still be worth

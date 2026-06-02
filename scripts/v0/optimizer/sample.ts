@@ -22,6 +22,7 @@
 import { type GapFit } from "../core/substrate.ts";
 import {
   axisLookaheadEndFrame,
+  type CandidateSampleMode,
   readTargetState,
   sampleArcParams,
   tryCandidate,
@@ -89,9 +90,9 @@ export function sampleOneCandidate(
    *  templates and normal random samples are swept deterministically. Defaults to
    *  0 for single-sample callers. */
   attempt = 0,
-  /** Brake mode: sample an uphill-entry arc that bleeds speed before contact
-   *  (handoff speed-creep control). Default false = normal. */
-  brake = false,
+  /** Sampling mode. Extra compiler streams use non-normal modes; the main
+   *  K-prefix remains normal and deterministic. */
+  mode: CandidateSampleMode = "normal",
 ): Candidate | null {
   candidateSampleCount++;
   // Use the METERED rider read for the first probe: the raw engine.getRider
@@ -107,7 +108,7 @@ export function sampleOneCandidate(
   // Pass the real attempt index: on steep-catch gaps sampleArcParams interleaves
   // template catches with normal random samples. For non-steep gaps the attempt
   // arg is unused and the RNG drives diversity.
-  const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap, brake);
+  const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap, mode);
 
   // The atomic sample uses the gap's own targets directly (multi-gap residual
   // targeting is a higher-level concern).

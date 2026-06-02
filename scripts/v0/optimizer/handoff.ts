@@ -47,6 +47,7 @@ import {
 } from "../types.ts";
 import {
   axisLookaheadEndFrame,
+  type CandidateSampleMode,
   readTargetState,
   tryCandidate,
 } from "../core/candidate.ts";
@@ -230,6 +231,8 @@ type AxisQualityStreamPolicy = {
   samples: number;
   seedSalt: number;
   attemptOffset: number;
+  mode?: CandidateSampleMode;
+  targetMax?: number;
 };
 
 const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
@@ -308,7 +311,16 @@ const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
  *  micro-policy is easy to overfit and makes candidate work harder to reason
  *  about when axes evolve. */
 const HANDOFF_CONTACT_STYLE_QUALITY_K = 2;
+const HANDOFF_AIR_SUPPORT_QUALITY_K = 1;
+const HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX = 0.25;
 const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy>> = {
+  air: {
+    samples: HANDOFF_AIR_SUPPORT_QUALITY_K,
+    seedSalt: 0x27d4eb2f,
+    attemptOffset: 2000,
+    mode: "air_support",
+    targetMax: HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX,
+  },
   contact_style: {
     samples: HANDOFF_CONTACT_STYLE_QUALITY_K,
     seedSalt: 0x5bd1e995,
@@ -1371,7 +1383,9 @@ function axisQualityCandidates(
   const out: Candidate[] = [];
   for (const axis of AXES) {
     const policy = HANDOFF_AXIS_QUALITY_STREAMS[axis];
-    if (policy === undefined || gap.targets?.[axis] === undefined) continue;
+    const target = gap.targets?.[axis];
+    if (policy === undefined || target === undefined) continue;
+    if (policy.targetMax !== undefined && target > policy.targetMax) continue;
     const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
     for (let attempt = 0; attempt < policy.samples; attempt++) {
       telemetry.axisQualityAttempts++;
@@ -1382,6 +1396,7 @@ function axisQualityCandidates(
         ctx,
         node.prefixNextLineId,
         policy.attemptOffset + attempt,
+        policy.mode ?? "normal",
       );
       if (candidate !== null) {
         telemetry.axisQualitySuccesses++;
@@ -1476,7 +1491,7 @@ function brakeCatchCandidates(
   for (let attempt = 0; attempt < brakeK; attempt++) {
     telemetry.brakeAttempts++;
     const cand = sampleOneCandidate(
-      node.prefixEngine, gap, rng, ctx, node.prefixNextLineId, attempt, /*brake*/ true,
+      node.prefixEngine, gap, rng, ctx, node.prefixNextLineId, attempt, "brake",
     );
     if (cand !== null) {
       telemetry.brakeSuccesses++;

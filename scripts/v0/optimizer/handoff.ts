@@ -270,6 +270,10 @@ const QUALITY_FAR_BACK_MAX_AXIS_QUALITY = 0.24;
 const MODERATE_QUALITY_FAR_BACK_FRONTIER_INTERVAL = 64;
 const MODERATE_QUALITY_FAR_BACK_MAX_AXIS_QUALITY = 0.28;
 const PREFIX_BRANCH_MIN_AXIS_QUALITY = 0.24;
+/** Prefix branching is an escape hatch for weak-to-good incumbents, not a polish
+ *  mechanism for rows that are already very strong. Above this quality, spend
+ *  the remaining deterministic sequence on the baseline/frontier instead. */
+const PREFIX_BRANCH_MAX_AXIS_QUALITY = 0.5;
 /** Conservative production version of the prefix-branch probe: once a passing
  *  incumbent exists, occasionally clone a clean baseline-lane prefix into one
  *  alternate downstream sample lane. The clone is ordinary frontier work and
@@ -801,6 +805,7 @@ function maybeForkPrefixBranch(
   if (!allowPrefixBranching) return null;
   if (bestKey?.contract_passed !== true) return null;
   if (bestKey.axis_quality < PREFIX_BRANCH_MIN_AXIS_QUALITY) return null;
+  if (bestKey.axis_quality >= PREFIX_BRANCH_MAX_AXIS_QUALITY) return null;
   if (node.searchLane !== 0) return null;
   if (node.skippedContacts !== 0) return null;
   if (!node.startExpanded || node.deferExpansion) return null;

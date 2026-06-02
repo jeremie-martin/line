@@ -443,6 +443,24 @@ late-curve plateaus sometimes need a small amount of ancestor repair even after
 the incumbent is no longer awful, but the evidence still favors a sparse,
 state-keyed scheduler over broad branch fanout or spec-specific rules.
 
+Branch conversion diagnostics then produced one small accepted pruning rule and
+one useful rejection. A conservative high-quality ceiling stops spawning new
+prefix branches once the passing incumbent reaches `0.50` axis quality. This
+does not make branching budget-aware; it treats alternate-lane suffix search as
+an escape/diversification tool rather than a polish mechanism for rows that are
+already very strong. Full golden moved `CURVE_SCORE 321.42 -> 321.52` with the
+same `533/540` valid checkpoints. Headline branch full evaluations at 75k
+dropped `4641 -> 4036`, with branch forks `90 -> 81` and only two non-zero 75k
+row score changes (`drums_tide seed=2 +1.45`, `drums_breath seed=0 -1.54`).
+Report-only variants stayed effectively flat-positive,
+`VARIANT_CURVE_SCORE 249.54 -> 249.55`, with the same `1020/1080` valid
+checkpoints. The rejected counterpart was unlocking low-quality prefix branches
+after eight severe far-back pulses. On the plateau/branch diagnostic slice it
+moved `CURVE_SCORE 282.23 -> 282.12`, did not improve the intended
+`drums_pendulum seed=1` plateau, and regressed `opening_burst seed=2` at 75k by
+`-14.83`. Keep the `0.24` branch floor; repeated far-back repair pulses alone
+are not a good readiness signal.
+
 The next branch diagnostic should look at conversion, not just branch volume.
 The compiler now reports `handoff_prefix_branch_evaluations`,
 `handoff_prefix_branch_full_evaluations`, and

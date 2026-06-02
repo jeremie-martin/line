@@ -317,6 +317,16 @@ Rejected follow-up probes:
   `opening_burst seed=2 -17.46`, `drums_pendulum seed=0 -17.22`) despite a few
   large wins. The fixed two-sample stream earns its current complexity; the
   rejected part was only the high-target threshold.
+- Replacing or reshaping the fixed contact-style quality stream with
+  contact-style-specific geometry was also rejected at smoke scale. A broad
+  shaped mode for both extra samples improved a 4-spec contact-style smoke by
+  `+3.39` at `150k`, but caused a material start-basin regression
+  (`drums_crescendo seed=2 -17.79`). A mixed stream with one normal and one
+  shaped sample removed that regression but introduced `opening_burst seed=2
+  -15.72` and only moved common rows by `+0.65`; a low-contact-only variant was
+  score-identical to baseline. The contact-style primitive gap is real, but a
+  simple line-length/angle bias is not robust enough to replace the generic
+  two-sample stream.
 - Replacing the start-speed regimes with one broad common anchor set was also
   too blunt. It removed the `6`/`9` px/frame candidate cliff and produced some
   striking wins, but the 10-spec dense `150k` workbench moved `CURVE_SCORE`

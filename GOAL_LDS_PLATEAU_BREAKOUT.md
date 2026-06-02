@@ -139,6 +139,12 @@ Work accounting now reports real `candidates_sampled` values for handoff:
 and printed by the curve analyzer. This makes future probes easier to judge on
 candidate-work waste as well as simulated-frame budget.
 
+Candidate caches are now explicitly search-seed-aware. A `SearchNode` can still
+extend or shrink deterministic candidate-count prefixes for the same lane, but a
+request with a different search seed resamples instead of reusing a stale cache.
+Normal handoff behavior is unchanged; this makes future snapshot and branch-lane
+experiments less fragile.
+
 Rejected follow-up probes:
 
 - Baseline-first branch scheduling, where the best normal child runs before the

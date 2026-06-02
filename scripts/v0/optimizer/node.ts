@@ -47,7 +47,12 @@ export type SearchNode = {
    *  handoff compiler normally asks for a cheap prefix, but may later ask for a
    *  larger deterministic prefix when a required contact would otherwise be
    *  skipped. */
-  _candidatesCache: { nCand: number; sampleOrder: Candidate[]; candidates: Candidate[] } | null;
+  _candidatesCache: {
+    seed: number;
+    nCand: number;
+    sampleOrder: Candidate[];
+    candidates: Candidate[];
+  } | null;
   /** Optional memoized child nodes for repeated extension of the same parent by
    *  the same sampled candidate. This lets lookahead and later expansion share
    *  any candidate cache acquired by the child, without changing candidate order. */
@@ -90,12 +95,16 @@ export function getCandidatesSorted(
    *  cheaper pool stays a subset of the richer one (same seed → same samples). */
   nCand: number = N_CAND,
 ): Candidate[] {
-  if (node._candidatesCache !== null && node._candidatesCache.nCand === nCand) {
+  if (
+    node._candidatesCache !== null &&
+    node._candidatesCache.seed === seed &&
+    node._candidatesCache.nCand === nCand
+  ) {
     return node._candidatesCache.candidates;
   }
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) {
-    node._candidatesCache = { nCand, sampleOrder: [], candidates: [] };
+    node._candidatesCache = { seed, nCand, sampleOrder: [], candidates: [] };
     return [];
   }
   // Fresh per-gap RNG. Determined
@@ -105,10 +114,10 @@ export function getCandidatesSorted(
   // Byte-identical to the old `(seed|0)*1000003 + …` for int32-range seeds.
   const perGapRng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
   const cached = node._candidatesCache;
-  if (cached !== null && cached.nCand > nCand) {
+  if (cached !== null && cached.seed === seed && cached.nCand > nCand) {
     return sortCandidatesByCost(samplePrefix(cached.sampleOrder, nCand));
   }
-  const sampleOrder = cached !== null && cached.nCand < nCand
+  const sampleOrder = cached !== null && cached.seed === seed && cached.nCand < nCand
     ? [
       ...cached.sampleOrder,
       ...solveAdditionalCandidates(
@@ -119,7 +128,7 @@ export function getCandidatesSorted(
       node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
     );
   const sorted = sortCandidatesByCost(sampleOrder);
-  node._candidatesCache = { nCand, sampleOrder, candidates: sorted };
+  node._candidatesCache = { seed, nCand, sampleOrder, candidates: sorted };
   return sorted;
 }
 

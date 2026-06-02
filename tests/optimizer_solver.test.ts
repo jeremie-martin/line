@@ -158,4 +158,19 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
       expect(candKey(prefix[i])).toBe(candKey(fresh[i]));
     }
   });
+
+  test("node candidate cache is isolated by search seed", async () => {
+    const { engine, gap, ctx } = await setupAtGap0("syncopated_switchback", 0);
+    const cachedNode = makeRootNode(engine, 1);
+    getCandidatesSorted(cachedNode, [gap], ctx, 17, 16);
+    const fromSeed18 = getCandidatesSorted(cachedNode, [gap], ctx, 18, 16);
+
+    const freshNode = makeRootNode(engine, 1);
+    const freshSeed18 = getCandidatesSorted(freshNode, [gap], ctx, 18, 16);
+
+    expect(fromSeed18.length).toBe(freshSeed18.length);
+    for (let i = 0; i < freshSeed18.length; i++) {
+      expect(candKey(fromSeed18[i])).toBe(candKey(freshSeed18[i]));
+    }
+  });
 });

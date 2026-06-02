@@ -99,6 +99,11 @@ export type ContactEventAxisName = (typeof CONTACT_EVENT_AXES)[number];
  */
 export type AxisValues = Partial<Record<AxisName, number>>;
 
+export type AxisQualityStreamCounter = {
+  attempts: number;
+  successes: number;
+};
+
 /** Compiler-owned candidate sampling streams. Normal is the main deterministic
  *  candidate prefix; extra streams must justify their sample budget separately. */
 export const CANDIDATE_SAMPLE_MODES = ["normal", "brake", "air_support"] as const;
@@ -341,6 +346,9 @@ export type CompileStats = {
   /** Axis-quality stream counters split by registered stream axis. These are
    *  diagnostic-only; the aggregate counters above remain the compatibility
    *  total. */
+  handoff_axis_quality_by_axis?: Partial<Record<AxisName, AxisQualityStreamCounter>>;
+  /** Legacy flattened counters for compact golden compatibility. Prefer
+   *  `handoff_axis_quality_by_axis` for new analyzer/reporting code. */
   handoff_axis_quality_air_attempts?: number;
   handoff_axis_quality_air_successes?: number;
   handoff_axis_quality_contact_style_attempts?: number;

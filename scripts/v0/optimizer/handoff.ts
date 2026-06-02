@@ -627,6 +627,7 @@ function compileHandoffInternal(
           handoff_brake_successes: telemetry.brakeSuccesses,
           handoff_axis_quality_attempts: telemetry.axisQualityAttempts,
           handoff_axis_quality_successes: telemetry.axisQualitySuccesses,
+          handoff_axis_quality_by_axis: snapshotAxisQualityByAxis(telemetry),
           handoff_axis_quality_air_attempts: telemetry.axisQualityAttemptsByAxis.air ?? 0,
           handoff_axis_quality_air_successes: telemetry.axisQualitySuccessesByAxis.air ?? 0,
           handoff_axis_quality_contact_style_attempts:
@@ -1166,6 +1167,19 @@ function frontierGapSummary(
     meanGapLag: deepestSeenGap >= 0 && count > 0 ? round3(lagSum / count) : undefined,
     farBackCount: deepestSeenGap >= 0 && count > 0 ? farBackCount : undefined,
   };
+}
+
+function snapshotAxisQualityByAxis(
+  telemetry: HandoffTelemetry,
+): Partial<Record<AxisName, { attempts: number; successes: number }>> {
+  const byAxis: Partial<Record<AxisName, { attempts: number; successes: number }>> = {};
+  for (const axis of AXES) {
+    const attempts = telemetry.axisQualityAttemptsByAxis[axis] ?? 0;
+    const successes = telemetry.axisQualitySuccessesByAxis[axis] ?? 0;
+    if (attempts === 0 && successes === 0) continue;
+    byAxis[axis] = { attempts, successes };
+  }
+  return byAxis;
 }
 
 function canSkipPartialEvaluation(

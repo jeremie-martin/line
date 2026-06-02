@@ -7,7 +7,7 @@ import {
   type HandoffNodeSnapshot,
 } from "../scripts/v0/optimizer/handoff.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
-import { secToFrame } from "../scripts/v0/types.ts";
+import { AXES, secToFrame } from "../scripts/v0/types.ts";
 import {
   assertBudgetSearchContract,
   type BudgetCompile,
@@ -85,6 +85,29 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     );
     expect(a.stats.handoff_axis_quality_attempts).toBe(b.stats.handoff_axis_quality_attempts);
     expect(a.stats.handoff_axis_quality_successes).toBe(b.stats.handoff_axis_quality_successes);
+    expect(a.stats.handoff_axis_quality_by_axis).toEqual(b.stats.handoff_axis_quality_by_axis);
+    const axisQualityTotal = AXES.reduce(
+      (sum, axis) => sum + (a.stats.handoff_axis_quality_by_axis?.[axis]?.attempts ?? 0),
+      0,
+    );
+    const axisQualitySuccessTotal = AXES.reduce(
+      (sum, axis) => sum + (a.stats.handoff_axis_quality_by_axis?.[axis]?.successes ?? 0),
+      0,
+    );
+    expect(axisQualityTotal).toBe(a.stats.handoff_axis_quality_attempts ?? 0);
+    expect(axisQualitySuccessTotal).toBe(a.stats.handoff_axis_quality_successes ?? 0);
+    expect(a.stats.handoff_axis_quality_by_axis?.air?.attempts ?? 0).toBe(
+      a.stats.handoff_axis_quality_air_attempts ?? 0,
+    );
+    expect(a.stats.handoff_axis_quality_by_axis?.air?.successes ?? 0).toBe(
+      a.stats.handoff_axis_quality_air_successes ?? 0,
+    );
+    expect(a.stats.handoff_axis_quality_by_axis?.contact_style?.attempts ?? 0).toBe(
+      a.stats.handoff_axis_quality_contact_style_attempts ?? 0,
+    );
+    expect(a.stats.handoff_axis_quality_by_axis?.contact_style?.successes ?? 0).toBe(
+      a.stats.handoff_axis_quality_contact_style_successes ?? 0,
+    );
     expect(a.stats.handoff_axis_quality_air_attempts ?? 0).toBeGreaterThanOrEqual(
       a.stats.handoff_axis_quality_air_successes ?? 0,
     );

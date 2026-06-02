@@ -806,6 +806,7 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_brake_successes: stats.handoff_brake_successes,
     handoff_axis_quality_attempts: stats.handoff_axis_quality_attempts,
     handoff_axis_quality_successes: stats.handoff_axis_quality_successes,
+    handoff_axis_quality_by_axis: stats.handoff_axis_quality_by_axis,
     handoff_axis_quality_air_attempts: stats.handoff_axis_quality_air_attempts,
     handoff_axis_quality_air_successes: stats.handoff_axis_quality_air_successes,
     handoff_axis_quality_contact_style_attempts:

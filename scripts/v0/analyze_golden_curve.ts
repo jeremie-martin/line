@@ -34,6 +34,11 @@ type ArcPlacementStats = PartialArcPlacementCounter & {
   by_sample_mode?: Partial<Record<CandidateSampleMode, PartialArcPlacementCounter>>;
 };
 
+type AxisQualityCounter = {
+  attempts?: number;
+  successes?: number;
+};
+
 type CompileStats = {
   candidates_sampled?: number;
   candidates_viable?: number;
@@ -75,6 +80,7 @@ type CompileStats = {
   handoff_brake_successes?: number;
   handoff_axis_quality_attempts?: number;
   handoff_axis_quality_successes?: number;
+  handoff_axis_quality_by_axis?: Partial<Record<AxisName, AxisQualityCounter>>;
   handoff_axis_quality_air_attempts?: number;
   handoff_axis_quality_air_successes?: number;
   handoff_axis_quality_contact_style_attempts?: number;
@@ -146,18 +152,11 @@ const STREAM_YIELD_STATS = [
   ["reuse", "handoff_reuse_successes", "handoff_reuse_attempts"],
   ["brake", "handoff_brake_successes", "handoff_brake_attempts"],
   ["axisq", "handoff_axis_quality_successes", "handoff_axis_quality_attempts"],
-  ["axisq_air", "handoff_axis_quality_air_successes", "handoff_axis_quality_air_attempts"],
-  [
-    "axisq_contact",
-    "handoff_axis_quality_contact_style_successes",
-    "handoff_axis_quality_contact_style_attempts",
-  ],
   ["suffix", "handoff_suffix_repair_successes", "handoff_suffix_repair_attempts"],
   ["suffix_best", "handoff_suffix_repair_improvements", "handoff_suffix_repair_successes"],
   ["rescue", "handoff_rescue_successes", "handoff_rescue_attempts"],
   ["branch", "handoff_prefix_branch_improvements", "handoff_prefix_branch_evaluations"],
 ] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats, keyof CompileStats]>;
-const STREAM_YIELD_LABEL_WIDTH = Math.max(...STREAM_YIELD_STATS.map(([label]) => label.length));
 
 function fmtBudget(budget: number): string {
   return budget % 1000 === 0 ? `${budget / 1000}k` : String(budget);
@@ -585,24 +584,80 @@ function printStreamDiagnostics(data: GoldenCurveJson): void {
     .filter((checkpoint): checkpoint is CheckpointRow => checkpoint !== undefined);
   if (checkpoints.length === 0) return;
 
-  const lines = STREAM_YIELD_STATS
-    .map(([label, successKey, attemptKey]) => {
-      const attempts = sumCheckpointStat(checkpoints, attemptKey);
-      const successes = sumCheckpointStat(checkpoints, successKey);
-      if (attempts === 0 && successes === 0 && label !== "polish") return null;
-      return (
-        `  ${label.padEnd(STREAM_YIELD_LABEL_WIDTH)} ` +
-        `${String(successes).padStart(6)}/${String(attempts).padEnd(6)} ` +
-        `rate=${fmtRate(successes, attempts).padStart(6)} ` +
-        `attempts/row=${(attempts / checkpoints.length).toFixed(1)}`
-      );
-    })
-    .filter((line): line is string => line !== null);
+  const rowsToPrint = streamYieldRows(checkpoints);
+  const labelWidth = Math.max(...rowsToPrint.map((row) => row.label.length));
+  const lines = rowsToPrint.map((row) =>
+    `  ${row.label.padEnd(labelWidth)} ` +
+    `${String(row.successes).padStart(6)}/${String(row.attempts).padEnd(6)} ` +
+    `rate=${fmtRate(row.successes, row.attempts).padStart(6)} ` +
+    `attempts/row=${(row.attempts / checkpoints.length).toFixed(1)}`
+  );
   if (lines.length === 0) return;
 
   console.log("");
   console.log(`extra work yield at ${fmtBudget(lastBudget)}:`);
   for (const line of lines) console.log(line);
+}
+
+function streamYieldRows(
+  checkpoints: CheckpointRow[],
+): Array<{ label: string; successes: number; attempts: number }> {
+  const rows: Array<{ label: string; successes: number; attempts: number }> = [];
+  for (const [label, successKey, attemptKey] of STREAM_YIELD_STATS) {
+    const attempts = sumCheckpointStat(checkpoints, attemptKey);
+    const successes = sumCheckpointStat(checkpoints, successKey);
+    if (attempts === 0 && successes === 0 && label !== "polish") continue;
+    rows.push({ label, successes, attempts });
+    if (label !== "axisq") continue;
+    for (const axis of AXES) {
+      const split = sumAxisQualityCounter(checkpoints, axis);
+      if (split.attempts === 0 && split.successes === 0) continue;
+      rows.push({
+        label: `axisq_${axis}`,
+        successes: split.successes,
+        attempts: split.attempts,
+      });
+    }
+  }
+  return rows;
+}
+
+function sumAxisQualityCounter(
+  checkpoints: CheckpointRow[],
+  axis: AxisName,
+): { attempts: number; successes: number } {
+  let attempts = 0;
+  let successes = 0;
+  for (const checkpoint of checkpoints) {
+    const stats = checkpoint.compile_stats;
+    const counter = stats?.handoff_axis_quality_by_axis?.[axis];
+    if (counter !== undefined) {
+      attempts += counter.attempts ?? 0;
+      successes += counter.successes ?? 0;
+      continue;
+    }
+    attempts += legacyAxisQualityStat(stats, axis, "attempts") ?? 0;
+    successes += legacyAxisQualityStat(stats, axis, "successes") ?? 0;
+  }
+  return { attempts, successes };
+}
+
+function legacyAxisQualityStat(
+  stats: CompileStats | undefined,
+  axis: AxisName,
+  kind: "attempts" | "successes",
+): number | undefined {
+  if (axis === "air") {
+    return kind === "attempts"
+      ? stats?.handoff_axis_quality_air_attempts
+      : stats?.handoff_axis_quality_air_successes;
+  }
+  if (axis === "contact_style") {
+    return kind === "attempts"
+      ? stats?.handoff_axis_quality_contact_style_attempts
+      : stats?.handoff_axis_quality_contact_style_successes;
+  }
+  return undefined;
 }
 
 function printArcPlacementDiagnostics(data: GoldenCurveJson): void {

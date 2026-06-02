@@ -217,15 +217,26 @@ diagnostic-only counters for judging whether extra candidate machinery earns its
 sample budget before adding or removing policy.
 
 Axis-quality stream accounting is now also split by registered stream axis:
-`axisq_air` and `axisq_contact`. This is behavior-preserving; it lets future
-low-air and contact-style probes judge broad stream yield without relying on
-spec anecdotes or hidden named-axis branches.
+`axisq_air` and `axisq_contact_style`. This is behavior-preserving; it lets
+future low-air and contact-style probes judge broad stream yield without
+relying on spec anecdotes or hidden named-axis branches.
+
+That split is now represented in compact golden JSON as the generic
+`handoff_axis_quality_by_axis` map, keyed by the canonical `AXES` registry. The
+legacy flattened `air` and `contact_style` counters are still emitted for
+compatibility, but analyzer output now derives per-axis stream rows from the
+map, falling back to legacy fields for old artifacts. On the 2-spec placement
+smoke (`drums_pendulum`, `opening_burst`; budgets `75k,150k`), the new JSON
+matched the prior artifact exactly (`CURVE_SCORE` delta `+0.00`; common-row
+deltas `+0.00`; `workΔ(sim=+0 cand=+0 viable=+0)`), while the map summed to the
+aggregate `axisq` counters. This keeps future axis additions explicit without
+requiring another hard-coded analyzer/stat pair.
 
 The curve analyzer also aggregates these counters at the last budget as
 suite-level extra-work yield (`reuse`, `brake`, aggregate `axisq`,
-`axisq_air`, `axisq_contact`, `suffix`, `rescue`, and `branch`). Use those
-rates before drawing conclusions from individual row examples; the point is to
-judge broad mechanics, not memorize spec anecdotes.
+`axisq_air`, `axisq_contact_style`, `suffix`, `rescue`, and `branch`). Use
+those rates before drawing conclusions from individual row examples; the point
+is to judge broad mechanics, not memorize spec anecdotes.
 
 Terminal feedback accounting now separates structural completion from register
 value. Row diagnostics report tail and suffix repair as
@@ -594,8 +605,8 @@ Rejected follow-up probes:
   large wins. The fixed two-sample stream earns its current complexity; the
   rejected part was only the high-target threshold.
 - Reducing the fixed contact-style quality stream from two samples to one was
-  also rejected. The new split diagnostics showed low aggregate yield for
-  `axisq_contact`, but the middle-ground simplification still moved a 4-spec
+  also rejected. The split diagnostics showed low aggregate yield for
+  `axisq_contact_style`, but the middle-ground simplification still moved a 4-spec
   contact-style smoke (`drums_crescendo`, `rhythm_ladder`,
   `syncopated_switchback`, `opening_burst`; `75k,150k`) by `-2.87` at `75k`
   and `-3.25` at `150k`, with material `150k` losses on `opening_burst seed=2`

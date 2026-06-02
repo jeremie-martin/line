@@ -224,6 +224,25 @@ Rejected follow-up probes:
   `75k` `329.57 -> 327.42`, and `150k` `332.38 -> 331.83`, while branch
   evaluations dropped from `3509` to `1887`. This reinforces that branch
   throttling needs a smarter scheduler signal than a blunt global cadence.
+- Lowering the prefix-branch incumbent floor (`axis_quality 0.24 -> 0.20`) was
+  a smoke-scale no-op. On a 4-spec low-plateau/start smoke
+  (`drums_pendulum`, `opening_burst`, `drums_tide`, `drums_dropout`) common rows
+  were identical at `75k` and `150k`; the only new visible behavior was the
+  weakest row (`drums_pendulum seed=1`) queuing `34` branch forks that never
+  reached evaluation by `150k`. This says the weak plateau is not merely
+  excluded by the branch-quality gate; queued branch objects still need useful
+  scheduler headroom.
+- Slowing very-low-quality far-back frontier pulses (`16 -> 32`) also failed.
+  On the same smoke it moved common rows by `-22.10` at `75k` and `-0.07` at
+  `150k`. It reduced `drums_pendulum seed=1` far-back pulses (`31 -> 14`) and
+  expansions (`539 -> 480`) but left full-duration evaluations stuck at `2`, so
+  the issue is not just over-serving old prefixes.
+- Widening near-tail completion past the accepted `8` contacts was not clean.
+  A `9`-contact window moved the same smoke by `-0.39` at `75k` and `-0.14` at
+  `150k`; a `10`-contact window moved it by `+0.43` and `+0.28`, but regressed
+  the weakest low-air row and several material rows while making branch/full
+  evaluation counts volatile. Keep the `8`-contact window until a scheduler can
+  choose suffix completion work more selectively than a larger global window.
 - Raising the global air-overshoot ranking weight from `16` to `24` looked
   strong on seed 0, but the full 30-row workbench fell from `326.09` to
   `303.66` and validity dropped to `29/30`. Global ranker retuning can move the

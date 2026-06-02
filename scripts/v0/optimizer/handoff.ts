@@ -605,6 +605,7 @@ function compileHandoffInternal(
           ...snapshotFrontierStats(passStack, fallbackStack, telemetry),
           handoff_partial_evaluations: telemetry.partialEvaluations,
           handoff_full_evaluations: telemetry.fullEvaluations,
+          handoff_unique_full_evaluations: uniqueFullEvaluations(telemetry),
           handoff_duplicate_evaluations: telemetry.duplicateEvaluations,
           handoff_duplicate_full_evaluations: telemetry.duplicateFullEvaluations,
           handoff_tail_completion_attempts: telemetry.tailCompletionAttempts,

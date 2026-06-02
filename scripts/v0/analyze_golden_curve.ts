@@ -66,6 +66,7 @@ type CompileStats = {
   handoff_start_ranks_seen?: number;
   handoff_start_ranks_with_fits?: number;
   handoff_full_evaluations?: number;
+  handoff_unique_full_evaluations?: number;
   handoff_partial_evaluations?: number;
   handoff_suffix_repair_attempts?: number;
   handoff_suffix_repair_successes?: number;
@@ -239,9 +240,25 @@ function fmtStats(stats: CompileStats | undefined): string {
       `${stats.handoff_prefix_branch_forks ?? "?"}forks,` +
       `${stats.handoff_prefix_branch_prunes ?? "?"}prunes)`,
     `full=${stats.handoff_full_evaluations ?? "?"}`,
+    `ufull=${formatUniqueFullEvaluations(stats)}`,
     `partial=${stats.handoff_partial_evaluations ?? "?"}`,
   ];
   return parts.join(" ");
+}
+
+function formatUniqueFullEvaluations(stats: CompileStats): string {
+  if (stats.handoff_unique_full_evaluations !== undefined) {
+    return String(stats.handoff_unique_full_evaluations);
+  }
+  if (
+    stats.handoff_full_evaluations !== undefined &&
+    stats.handoff_duplicate_full_evaluations !== undefined
+  ) {
+    return String(
+      Math.max(0, stats.handoff_full_evaluations - stats.handoff_duplicate_full_evaluations),
+    );
+  }
+  return "?";
 }
 
 function fmtCandidateStats(stats: CompileStats): string {

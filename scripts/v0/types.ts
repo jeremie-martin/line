@@ -298,6 +298,9 @@ export type CompileStats = {
    *  terminal prefixes use the full spec duration. */
   handoff_partial_evaluations?: number;
   handoff_full_evaluations?: number;
+  /** Full-duration output offers minus exact duplicate full SearchNode offers.
+   *  This is the terminal-basin scarcity signal used by bounded suffix repair. */
+  handoff_unique_full_evaluations?: number;
   /** Exact SearchNode outputs offered to the register more than once, usually
    *  because speculative completion reached a node before normal frontier
    *  traversal. */

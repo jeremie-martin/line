@@ -432,6 +432,19 @@ full-duration candidates. A future readiness signal should improve that
 conversion rate with generic search-state features, not by naming specs, lanes,
 or fixed branch fractions.
 
+Follow-up scheduler probes reinforced that constraint. Deterministic lane
+diversity with the same fork volume was noisy: hash-based lane choice helped
+some early mixed-slice checkpoints but regressed the 75k guardrail, while
+cycling lanes after lane 1 was net negative. Broadening late branch eligibility
+from four remaining contacts to two or three increased fork volume and sometimes
+conversion, but it also spent work on branch-resistant rows and damaged late
+quality. Gating the later branch on an observed branch improvement avoided the
+worst regressions but was effectively neutral. Narrowing alternate-lane subtree
+branching to one or two options saved branch work, but it lost too many of the
+existing suffix-branch wins. The broader lesson is that useful prefix branches
+need both enough suffix breadth and a stronger branch-readiness signal; simple
+global lane, timing, or width knobs are not the next likely win.
+
 Promising levers:
 
 - better handoff-state scoring for catchability and speed/air overshoot

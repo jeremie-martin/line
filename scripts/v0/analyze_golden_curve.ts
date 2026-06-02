@@ -34,6 +34,7 @@ type CompileStats = {
   handoff_tail_completion_attempts?: number;
   handoff_tail_completion_successes?: number;
   handoff_start_options?: number;
+  handoff_start_rank?: number;
   handoff_start_speed?: number;
   handoff_start_angle_deg?: number;
   handoff_start_ranks_seen?: number;
@@ -137,6 +138,7 @@ function fmtStats(stats: CompileStats | undefined): string {
     `preview=${stats.handoff_preview_contacts ?? "?"}/${stats.handoff_previews ?? "?"}`,
     `starts=${stats.handoff_start_ranks_with_fits ?? "?"}/${stats.handoff_start_ranks_seen ?? "?"}`,
     `start=${fmtStart(stats)}`,
+    `startRank=${stats.handoff_start_rank ?? "?"}`,
     `lane=${stats.handoff_search_lane ?? "?"}`,
     `branch=${stats.handoff_prefix_branch_improvements ?? "?"}/` +
       `${stats.handoff_prefix_branch_evaluations ?? "?"}` +
@@ -299,6 +301,93 @@ function printRowDiagnostics(data: GoldenCurveJson): void {
   }
 }
 
+type StartDiagnosticRow = {
+  startSpeed: number;
+  startAngleDeg: number;
+  startRank?: number;
+  firstSpeedTarget?: number;
+  firstAirTarget?: number;
+};
+
+function printStartDiagnostics(data: GoldenCurveJson): void {
+  const rows = data.rows ?? [];
+  const budgets = data.budgets ?? data.budget_scores?.map((summary) => summary.budget) ?? [];
+  if (rows.length === 0 || budgets.length === 0) return;
+  const lastBudget = budgets[budgets.length - 1];
+  const startRows = rows
+    .map((row) => {
+      const checkpoint = checkpointAt(row, lastBudget);
+      const stats = checkpoint?.compile_stats;
+      if (
+        checkpoint === undefined ||
+        stats?.handoff_start_speed === undefined ||
+        stats.handoff_start_angle_deg === undefined
+      ) {
+        return null;
+      }
+      return {
+        startSpeed: stats.handoff_start_speed,
+        startAngleDeg: stats.handoff_start_angle_deg,
+        startRank: stats.handoff_start_rank,
+        firstSpeedTarget: firstGapTarget(checkpoint, "speed"),
+        firstAirTarget: firstGapTarget(checkpoint, "air"),
+      };
+    })
+    .filter((row): row is StartDiagnosticRow => row !== null);
+  if (startRows.length === 0) return;
+
+  console.log("");
+  console.log(`selected starts at ${fmtBudget(lastBudget)}:`);
+  printStartBucket("all", startRows);
+  printStartBandBuckets("first speed", startRows, (row) => row.firstSpeedTarget);
+  printStartBandBuckets("first air", startRows, (row) => row.firstAirTarget);
+}
+
+function firstGapTarget(checkpoint: CheckpointRow, axis: AxisName): number | undefined {
+  return checkpoint.axes?.find((entry) => entry.gap_index === 0 && entry.axis === axis)?.target;
+}
+
+function printStartBandBuckets(
+  label: string,
+  rows: StartDiagnosticRow[],
+  target: (row: StartDiagnosticRow) => number | undefined,
+): void {
+  const rowsWithTarget = rows
+    .map((row) => ({ row, target: target(row) }))
+    .filter((entry): entry is { row: StartDiagnosticRow; target: number } =>
+      entry.target !== undefined
+    );
+  if (rowsWithTarget.length === 0) return;
+  console.log(`  ${label} target bands:`);
+  for (const band of TARGET_BANDS) {
+    const bucket = rowsWithTarget
+      .filter((entry) => targetBand(entry.target) === band)
+      .map((entry) => entry.row);
+    if (bucket.length === 0) continue;
+    printStartBucket(`target ${band}`, bucket, "    ");
+  }
+}
+
+function printStartBucket(label: string, rows: StartDiagnosticRow[], indent = "  "): void {
+  const meanSpeed = mean(rows.map((row) => row.startSpeed));
+  const meanAngle = mean(rows.map((row) => row.startAngleDeg));
+  const nonzeroRanks = rows.filter((row) => (row.startRank ?? 0) > 0).length;
+  const rankValues = rows
+    .map((row) => row.startRank)
+    .filter((rank): rank is number => rank !== undefined);
+  const rankText = rankValues.length === 0
+    ? "rank=?"
+    : `rankMean=${mean(rankValues).toFixed(2)} nonzeroRank=${nonzeroRanks}/${rows.length}`;
+  console.log(
+    `${indent}${label.padEnd(13)} n=${String(rows.length).padStart(3)} ` +
+      `speed=${meanSpeed.toFixed(2)} angle=${meanAngle.toFixed(1)}deg ${rankText}`,
+  );
+}
+
+function mean(values: number[]): number {
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
 function printComparison(current: GoldenCurveJson, baseline: GoldenCurveJson): void {
   const currentRows = current.rows ?? [];
   const baselineRows = baseline.rows ?? [];
@@ -433,6 +522,7 @@ function main(): void {
     );
   }
   printRowDiagnostics(data);
+  printStartDiagnostics(data);
   printAxisDiagnostics(data);
   if (baseline !== null) printComparison(data, baseline);
 }

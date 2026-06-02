@@ -109,6 +109,9 @@ A start-policy diagnostic cleanup now records the selected start speed and
 angle in `CompileStats`, carries those fields through golden JSON, and prints
 them in the curve analyzer. This does not change compiler behavior; it makes
 future start-state probes explainable without rerunning ad hoc track inspection.
+The analyzer now also aggregates selected starts by first speed and air target
+bands, including mean start speed/angle and nonzero start-rank frequency, so
+start-policy probes can be compared without spec-keyed inspection.
 
 Rejected follow-up probes:
 

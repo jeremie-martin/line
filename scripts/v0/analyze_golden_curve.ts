@@ -8,6 +8,7 @@
 
 import { readFileSync } from "node:fs";
 import { shiftedGeometricMean } from "./score.ts";
+import { AXES, type AxisName } from "./types.ts";
 
 type BudgetScore = {
   budget: number;
@@ -55,7 +56,7 @@ type CompileStats = {
 
 type AxisError = {
   gap_index: number;
-  axis: string;
+  axis: AxisName;
   target: number;
   achieved: number;
   error: number;
@@ -86,7 +87,6 @@ type GoldenCurveJson = {
   rows?: RunRow[];
 };
 
-const AXIS_NAMES = ["air", "speed", "contact_style", "grain"] as const;
 const TARGET_BANDS = ["<0.25", "0.25-0.5", "0.5-0.75", ">=0.75"] as const;
 
 function fmtBudget(budget: number): string {
@@ -205,7 +205,7 @@ function printAxisDiagnostics(data: GoldenCurveJson): void {
 
   console.log("");
   console.log(`axis signed errors at ${fmtBudget(lastBudget)} (achieved-target):`);
-  for (const axisName of AXIS_NAMES) {
+  for (const axisName of AXES) {
     const axisRows = axes.filter((axis) => axis.axis === axisName);
     if (axisRows.length === 0) continue;
     console.log(`  ${axisName}:`);

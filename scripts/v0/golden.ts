@@ -849,6 +849,7 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_prefix_branch_full_evaluations: stats.handoff_prefix_branch_full_evaluations,
     handoff_prefix_branch_improvements: stats.handoff_prefix_branch_improvements,
     handoff_prefix_branch_prunes: stats.handoff_prefix_branch_prunes,
+    handoff_prefix_branch_duplicate_key_skips: stats.handoff_prefix_branch_duplicate_key_skips,
     handoff_prefix_branch_forks_by_remaining_contacts:
       stats.handoff_prefix_branch_forks_by_remaining_contacts,
     handoff_prefix_branch_evaluations_by_remaining_contacts:
@@ -859,6 +860,8 @@ function compactStats(stats: CompileStats | null): object | null {
       stats.handoff_prefix_branch_improvements_by_remaining_contacts,
     handoff_prefix_branch_prunes_by_remaining_contacts:
       stats.handoff_prefix_branch_prunes_by_remaining_contacts,
+    handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts:
+      stats.handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts,
     arc_placement: stats.arc_placement,
   };
 }

@@ -211,11 +211,13 @@ type HandoffTelemetry = {
   prefixBranchFullEvaluations: number;
   prefixBranchImprovements: number;
   prefixBranchPrunes: number;
+  prefixBranchDuplicateKeySkips: number;
   prefixBranchForksByRemainingContacts: Record<number, number>;
   prefixBranchEvaluationsByRemainingContacts: Record<number, number>;
   prefixBranchFullEvaluationsByRemainingContacts: Record<number, number>;
   prefixBranchImprovementsByRemainingContacts: Record<number, number>;
   prefixBranchPrunesByRemainingContacts: Record<number, number>;
+  prefixBranchDuplicateKeySkipsByRemainingContacts: Record<number, number>;
   startRanksSeen: Set<number>;
   startRanksWithFits: Set<number>;
 };
@@ -548,11 +550,13 @@ function compileHandoffInternal(
       prefixBranchFullEvaluations: 0,
       prefixBranchImprovements: 0,
       prefixBranchPrunes: 0,
+      prefixBranchDuplicateKeySkips: 0,
       prefixBranchForksByRemainingContacts: {},
       prefixBranchEvaluationsByRemainingContacts: {},
       prefixBranchFullEvaluationsByRemainingContacts: {},
       prefixBranchImprovementsByRemainingContacts: {},
       prefixBranchPrunesByRemainingContacts: {},
+      prefixBranchDuplicateKeySkipsByRemainingContacts: {},
       startRanksSeen: new Set<number>(),
       startRanksWithFits: new Set<number>(),
     };
@@ -711,6 +715,7 @@ function compileHandoffInternal(
           handoff_prefix_branch_full_evaluations: telemetry.prefixBranchFullEvaluations,
           handoff_prefix_branch_improvements: telemetry.prefixBranchImprovements,
           handoff_prefix_branch_prunes: telemetry.prefixBranchPrunes,
+          handoff_prefix_branch_duplicate_key_skips: telemetry.prefixBranchDuplicateKeySkips,
           handoff_prefix_branch_forks_by_remaining_contacts:
             snapshotContactCountCounter(telemetry.prefixBranchForksByRemainingContacts),
           handoff_prefix_branch_evaluations_by_remaining_contacts:
@@ -721,6 +726,8 @@ function compileHandoffInternal(
             snapshotContactCountCounter(telemetry.prefixBranchImprovementsByRemainingContacts),
           handoff_prefix_branch_prunes_by_remaining_contacts:
             snapshotContactCountCounter(telemetry.prefixBranchPrunesByRemainingContacts),
+          handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts:
+            snapshotContactCountCounter(telemetry.prefixBranchDuplicateKeySkipsByRemainingContacts),
           ...(arcStats ? { arc_placement: arcStats } : {}),
         },
       };
@@ -1129,12 +1136,19 @@ function maybeForkPrefixBranch(
   if (isTerminalNode(node.search, gaps)) return null;
   if (telemetry.frontierSelections % PREFIX_BRANCH_FRONTIER_INTERVAL !== 0) return null;
   if (committedContactCount(node.search) < PREFIX_BRANCH_MIN_PREFIX_CONTACTS) return null;
-  if (remainingContactCount(node.search, gaps) < PREFIX_BRANCH_MIN_REMAINING_CONTACTS) return null;
+  const remainingContacts = remainingContactCount(node.search, gaps);
+  if (remainingContacts < PREFIX_BRANCH_MIN_REMAINING_CONTACTS) return null;
 
   const key = `${node.startRank}:${node.search.gapIndex}`;
-  if (prefixBranches.forkedKeys.has(key)) return null;
+  if (prefixBranches.forkedKeys.has(key)) {
+    telemetry.prefixBranchDuplicateKeySkips++;
+    incrementContactCountCounter(
+      telemetry.prefixBranchDuplicateKeySkipsByRemainingContacts,
+      remainingContacts,
+    );
+    return null;
+  }
   prefixBranches.forkedKeys.add(key);
-  const remainingContacts = remainingContactCount(node.search, gaps);
   prefixBranches.work.set(key, {
     remainingContacts,
     evaluations: 0,

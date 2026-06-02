@@ -312,6 +312,10 @@ export type CompileStats = {
   /** Alternate-lane branch subtrees pruned after producing full-duration
    *  evaluations without any register improvement. */
   handoff_prefix_branch_prunes?: number;
+  /** Clean baseline prefixes that reached the branch fork gates but were not
+   *  cloned because another prefix with the same branch key had already forked.
+   *  This measures the current branch-key granularity before changing it. */
+  handoff_prefix_branch_duplicate_key_skips?: number;
   /** Prefix-branch work split by how many required contacts remained at the
    *  source prefix. This is diagnostic-only depth attribution for scheduler
    *  probes; it does not affect branch policy or scoring. */
@@ -320,6 +324,7 @@ export type CompileStats = {
   handoff_prefix_branch_full_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
   handoff_prefix_branch_improvements_by_remaining_contacts?: HandoffContactCountCounter;
   handoff_prefix_branch_prunes_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts?: HandoffContactCountCounter;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
    *  terminal prefixes use the full spec duration. */

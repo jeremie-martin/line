@@ -274,6 +274,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_prefix_branch_evaluations).toBeGreaterThanOrEqual(0);
     expect(a.stats.handoff_prefix_branch_full_evaluations).toBeGreaterThanOrEqual(0);
     expect(a.stats.handoff_prefix_branch_improvements).toBeGreaterThanOrEqual(0);
+    expect(a.stats.handoff_prefix_branch_duplicate_key_skips).toBeGreaterThanOrEqual(0);
     expect(sumContactCountCounter(a.stats.handoff_prefix_branch_forks_by_remaining_contacts))
       .toBe(a.stats.handoff_prefix_branch_forks ?? 0);
     expect(sumContactCountCounter(a.stats.handoff_prefix_branch_evaluations_by_remaining_contacts))
@@ -286,6 +287,11 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     ).toBe(a.stats.handoff_prefix_branch_improvements ?? 0);
     expect(sumContactCountCounter(a.stats.handoff_prefix_branch_prunes_by_remaining_contacts))
       .toBe(a.stats.handoff_prefix_branch_prunes ?? 0);
+    expect(
+      sumContactCountCounter(
+        a.stats.handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts,
+      ),
+    ).toBe(a.stats.handoff_prefix_branch_duplicate_key_skips ?? 0);
     expect(a.stats.handoff_partial_evaluations).toBe(b.stats.handoff_partial_evaluations);
     expect(a.stats.handoff_frontier_size).toBe(b.stats.handoff_frontier_size);
     expect(a.stats.handoff_frontier_oldest_gap_lag).toBe(b.stats.handoff_frontier_oldest_gap_lag);
@@ -310,6 +316,12 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     );
     expect(a.stats.handoff_prefix_branch_prunes_by_remaining_contacts).toEqual(
       b.stats.handoff_prefix_branch_prunes_by_remaining_contacts,
+    );
+    expect(a.stats.handoff_prefix_branch_duplicate_key_skips).toBe(
+      b.stats.handoff_prefix_branch_duplicate_key_skips,
+    );
+    expect(a.stats.handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts).toEqual(
+      b.stats.handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts,
     );
     expect(a.stats.handoff_start_ranks_seen).toBe(b.stats.handoff_start_ranks_seen);
     expect(a.stats.handoff_start_ranks_with_fits).toBe(b.stats.handoff_start_ranks_with_fits);

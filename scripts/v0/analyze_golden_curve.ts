@@ -120,11 +120,13 @@ type CompileStats = {
   handoff_prefix_branch_full_evaluations?: number;
   handoff_prefix_branch_improvements?: number;
   handoff_prefix_branch_prunes?: number;
+  handoff_prefix_branch_duplicate_key_skips?: number;
   handoff_prefix_branch_forks_by_remaining_contacts?: HandoffContactCountCounter;
   handoff_prefix_branch_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
   handoff_prefix_branch_full_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
   handoff_prefix_branch_improvements_by_remaining_contacts?: HandoffContactCountCounter;
   handoff_prefix_branch_prunes_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts?: HandoffContactCountCounter;
   arc_placement?: ArcPlacementStats;
 };
 
@@ -255,7 +257,8 @@ function fmtStats(stats: CompileStats | undefined): string {
       `${stats.handoff_prefix_branch_evaluations ?? "?"}` +
       `(${stats.handoff_prefix_branch_full_evaluations ?? "?"}f,` +
       `${stats.handoff_prefix_branch_forks ?? "?"}forks,` +
-      `${stats.handoff_prefix_branch_prunes ?? "?"}prunes)`,
+      `${stats.handoff_prefix_branch_prunes ?? "?"}prunes,` +
+      `${stats.handoff_prefix_branch_duplicate_key_skips ?? "?"}keySkips)`,
     `full=${stats.handoff_full_evaluations ?? "?"}`,
     `ufull=${formatUniqueFullEvaluations(stats)}`,
     `partial=${stats.handoff_partial_evaluations ?? "?"}`,
@@ -787,7 +790,18 @@ function printBranchDepthRows(checkpoints: CheckpointRow[]): void {
     checkpoints,
     "handoff_prefix_branch_prunes_by_remaining_contacts",
   );
-  const depths = sortedContactCounts(forks, evaluations, full, improvements, prunes);
+  const duplicateKeySkips = sumContactCountCounter(
+    checkpoints,
+    "handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts",
+  );
+  const depths = sortedContactCounts(
+    forks,
+    evaluations,
+    full,
+    improvements,
+    prunes,
+    duplicateKeySkips,
+  );
   if (depths.length === 0) return;
 
   console.log("  branch depth yield:");
@@ -797,6 +811,7 @@ function printBranchDepthRows(checkpoints: CheckpointRow[]): void {
     const fullCount = full[depth] ?? 0;
     const improvementCount = improvements[depth] ?? 0;
     const pruneCount = prunes[depth] ?? 0;
+    const keySkipCount = duplicateKeySkips[depth] ?? 0;
     console.log(
       `    rem=${String(depth).padStart(2)} ` +
         `fork=${String(forkCount).padStart(4)} ` +
@@ -804,6 +819,7 @@ function printBranchDepthRows(checkpoints: CheckpointRow[]): void {
         `full=${String(fullCount).padStart(5)} ` +
         `best=${String(improvementCount).padStart(4)} ` +
         `prune=${String(pruneCount).padStart(4)} ` +
+        `keySkip=${String(keySkipCount).padStart(4)} ` +
         `best/full=${fmtRate(improvementCount, fullCount).padStart(6)}`,
     );
   }
@@ -1105,7 +1121,8 @@ function sumContactCountCounter(
     | "handoff_prefix_branch_evaluations_by_remaining_contacts"
     | "handoff_prefix_branch_full_evaluations_by_remaining_contacts"
     | "handoff_prefix_branch_improvements_by_remaining_contacts"
-    | "handoff_prefix_branch_prunes_by_remaining_contacts",
+    | "handoff_prefix_branch_prunes_by_remaining_contacts"
+    | "handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts",
 ): Record<number, number> {
   const sums: Record<number, number> = {};
   for (const checkpoint of checkpoints) {

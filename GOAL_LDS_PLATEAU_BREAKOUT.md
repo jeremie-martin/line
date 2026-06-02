@@ -368,6 +368,21 @@ checkpoint versus the accepted branch-depth artifact (`CURVE_SCORE 330.66`,
 work moved by `workDelta(sim=-13 cand=+0 viable=+0)`. This is a compute hygiene
 cleanup, not a plateau breakout.
 
+Prefix-branch duplicate-key suppression is now visible as
+`handoff_prefix_branch_duplicate_key_skips` and
+`handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts`; analyzer row
+stats include `keySkips`, and the branch-depth table prints `keySkip=...`.
+This is behavior-preserving instrumentation for the current branch-key
+granularity (`startRank:gapIndex`): it measures clean baseline prefixes that
+passed all branch gates but were not cloned because another prefix at the same
+start/depth had already forked. The 10-spec dense `150k` workbench matched the
+accepted pre-prune artifact exactly at every checkpoint (`CURVE_SCORE 330.66`,
+zero score/work deltas), and exposed a real denominator: `87` branch forks and
+`55` duplicate-key skips at `150k`, mostly at `rem=4` (`28`) and `rem=5`
+(`16`). This does not yet justify a multi-fork policy; it says branch-key
+granularity is a plausible future probe and should be evaluated with fair
+work accounting.
+
 The analyzer now also reports polish adoption in the same work-accounting view
 as candidate, suffix, rescue, and branch machinery. Suite-level yield reports
 `polish=adopted/tried`, where `tried` means a terminal leaf actually passed

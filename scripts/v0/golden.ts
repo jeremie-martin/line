@@ -794,6 +794,12 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_tail_completion_attempts: stats.handoff_tail_completion_attempts,
     handoff_tail_completion_successes: stats.handoff_tail_completion_successes,
     handoff_tail_completion_improvements: stats.handoff_tail_completion_improvements,
+    handoff_tail_completion_attempts_by_remaining_contacts:
+      stats.handoff_tail_completion_attempts_by_remaining_contacts,
+    handoff_tail_completion_successes_by_remaining_contacts:
+      stats.handoff_tail_completion_successes_by_remaining_contacts,
+    handoff_tail_completion_improvements_by_remaining_contacts:
+      stats.handoff_tail_completion_improvements_by_remaining_contacts,
     handoff_suffix_repair_attempts: stats.handoff_suffix_repair_attempts,
     handoff_suffix_repair_successes: stats.handoff_suffix_repair_successes,
     handoff_suffix_repair_improvements: stats.handoff_suffix_repair_improvements,

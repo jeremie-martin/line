@@ -332,6 +332,17 @@ reported `best/full=15.4%` and `dupFull=35.7%`, while speculative `tail`
 reported `best/full=2.0%` and `dupFull=41.3%`. Treat this as a diagnostic for
 future tail scheduling, not as a reason to apply another blunt global cap.
 
+Near-tail completion is now also attributed by source-prefix remaining contact
+count through `handoff_tail_completion_*_by_remaining_contacts`, and the
+analyzer prints a tail-depth yield table. This is the missing denominator for
+future tail-window scheduling: the accepted `8`-contact window helped, but
+wider windows and global caps were too blunt. On the same 2-spec smoke, common
+rows again matched exactly (`CURVE_SCORE` delta `+0.00`, zero work deltas). The
+depth table showed high-volume `rem=1` completions (`1/174/196` best/success/
+attempt) but most tail improvements came from scarce `rem=8` completions
+(`4/6/7`). This is not enough to hard-code a depth preference; it says future
+tail scheduling should measure depth-specific yield before changing the window.
+
 The analyzer now also reports polish adoption in the same work-accounting view
 as candidate, suffix, rescue, and branch machinery. Suite-level yield reports
 `polish=adopted/tried`, where `tried` means a terminal leaf actually passed

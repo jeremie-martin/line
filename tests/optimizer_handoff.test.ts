@@ -35,6 +35,12 @@ function sumPhaseCounter(
   return HANDOFF_EVALUATION_PHASES.reduce((sum, phase) => sum + (counter?.[phase] ?? 0), 0);
 }
 
+function sumContactCountCounter(
+  counter: CompileStats["handoff_tail_completion_attempts_by_remaining_contacts"],
+): number {
+  return Object.values(counter ?? {}).reduce((sum, count) => sum + count, 0);
+}
+
 async function firstCleanSnapshot(): Promise<HandoffNodeSnapshot> {
   const spec = await loadGoldenSpec("tiny_dance", "base");
   let snapshot: HandoffNodeSnapshot | null = null;
@@ -147,6 +153,22 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_tail_completion_successes).toBe(b.stats.handoff_tail_completion_successes);
     expect(a.stats.handoff_tail_completion_improvements)
       .toBe(b.stats.handoff_tail_completion_improvements);
+    expect(sumContactCountCounter(a.stats.handoff_tail_completion_attempts_by_remaining_contacts))
+      .toBe(a.stats.handoff_tail_completion_attempts ?? 0);
+    expect(sumContactCountCounter(a.stats.handoff_tail_completion_successes_by_remaining_contacts))
+      .toBe(a.stats.handoff_tail_completion_successes ?? 0);
+    expect(
+      sumContactCountCounter(a.stats.handoff_tail_completion_improvements_by_remaining_contacts),
+    ).toBe(a.stats.handoff_tail_completion_improvements ?? 0);
+    expect(a.stats.handoff_tail_completion_attempts_by_remaining_contacts).toEqual(
+      b.stats.handoff_tail_completion_attempts_by_remaining_contacts,
+    );
+    expect(a.stats.handoff_tail_completion_successes_by_remaining_contacts).toEqual(
+      b.stats.handoff_tail_completion_successes_by_remaining_contacts,
+    );
+    expect(a.stats.handoff_tail_completion_improvements_by_remaining_contacts).toEqual(
+      b.stats.handoff_tail_completion_improvements_by_remaining_contacts,
+    );
     expect(a.stats.handoff_suffix_repair_attempts ?? 0).toBeGreaterThanOrEqual(
       a.stats.handoff_suffix_repair_successes ?? 0,
     );

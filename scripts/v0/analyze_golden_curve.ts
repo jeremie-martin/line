@@ -16,6 +16,7 @@ import {
   type ArcPlacementCounter,
   type AxisName,
   type CandidateSampleMode,
+  type HandoffContactCountCounter,
   type HandoffEvaluationPhase,
   type HandoffCandidateSourceName,
 } from "./types.ts";
@@ -65,6 +66,9 @@ type CompileStats = {
   handoff_tail_completion_attempts?: number;
   handoff_tail_completion_successes?: number;
   handoff_tail_completion_improvements?: number;
+  handoff_tail_completion_attempts_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_tail_completion_successes_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_tail_completion_improvements_by_remaining_contacts?: HandoffContactCountCounter;
   handoff_start_options?: number;
   handoff_start_rank?: number;
   handoff_start_speed?: number;
@@ -696,6 +700,7 @@ function printTerminalFeedbackDiagnostics(data: GoldenCurveJson): void {
         `dupFullByPhase=${formatPhaseCounter(duplicateFullByPhase)}`,
     );
   }
+  printTailDepthRows(checkpoints);
 }
 
 function printPhaseFeedbackRows(
@@ -720,6 +725,37 @@ function printPhaseFeedbackRows(
         `best/eval=${fmtRate(best, evaluations).padStart(6)} ` +
         `best/full=${fmtRate(best, full).padStart(6)} ` +
         `dupFull=${fmtRate(duplicateFull, full).padStart(6)}`,
+    );
+  }
+}
+
+function printTailDepthRows(checkpoints: CheckpointRow[]): void {
+  const attempts = sumContactCountCounter(
+    checkpoints,
+    "handoff_tail_completion_attempts_by_remaining_contacts",
+  );
+  const successes = sumContactCountCounter(
+    checkpoints,
+    "handoff_tail_completion_successes_by_remaining_contacts",
+  );
+  const improvements = sumContactCountCounter(
+    checkpoints,
+    "handoff_tail_completion_improvements_by_remaining_contacts",
+  );
+  const depths = sortedContactCounts(attempts, successes, improvements);
+  if (depths.length === 0) return;
+
+  console.log("  tail depth yield:");
+  for (const depth of depths) {
+    const attemptCount = attempts[depth] ?? 0;
+    const successCount = successes[depth] ?? 0;
+    const improvementCount = improvements[depth] ?? 0;
+    console.log(
+      `    rem=${String(depth).padStart(2)} ` +
+        `${String(improvementCount).padStart(4)}/` +
+        `${String(successCount).padStart(4)}/` +
+        `${String(attemptCount).padEnd(4)} ` +
+        `best/success=${fmtRate(improvementCount, successCount).padStart(6)}`,
     );
   }
 }
@@ -1008,6 +1044,38 @@ function sumPhaseCounter(
     }
   }
   return sums;
+}
+
+function sumContactCountCounter(
+  checkpoints: CheckpointRow[],
+  key:
+    | "handoff_tail_completion_attempts_by_remaining_contacts"
+    | "handoff_tail_completion_successes_by_remaining_contacts"
+    | "handoff_tail_completion_improvements_by_remaining_contacts",
+): Record<number, number> {
+  const sums: Record<number, number> = {};
+  for (const checkpoint of checkpoints) {
+    const counter = checkpoint.compile_stats?.[key];
+    if (counter === undefined) continue;
+    for (const [rawDepth, rawCount] of Object.entries(counter)) {
+      const depth = Number(rawDepth);
+      const count = Number(rawCount);
+      if (!Number.isFinite(depth) || !Number.isFinite(count)) continue;
+      sums[depth] = (sums[depth] ?? 0) + count;
+    }
+  }
+  return sums;
+}
+
+function sortedContactCounts(...counters: Array<Record<number, number>>): number[] {
+  const depths = new Set<number>();
+  for (const counter of counters) {
+    for (const rawDepth of Object.keys(counter)) {
+      const depth = Number(rawDepth);
+      if (Number.isFinite(depth)) depths.add(depth);
+    }
+  }
+  return [...depths].sort((a, b) => a - b);
 }
 
 function hasPhaseCounts(counter: Record<HandoffEvaluationPhase, number>): boolean {

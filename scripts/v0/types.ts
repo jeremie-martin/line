@@ -114,6 +114,7 @@ export type HandoffCandidateSourceCounter = Partial<Record<HandoffCandidateSourc
 export const HANDOFF_EVALUATION_PHASES = ["main", "tail", "suffix", "polish"] as const;
 export type HandoffEvaluationPhase = (typeof HANDOFF_EVALUATION_PHASES)[number];
 export type HandoffEvaluationPhaseCounter = Partial<Record<HandoffEvaluationPhase, number>>;
+export type HandoffContactCountCounter = Partial<Record<number, number>>;
 
 /** Compiler-owned candidate sampling streams. Normal is the main deterministic
  *  candidate prefix; extra streams must justify their sample budget separately. */
@@ -339,6 +340,13 @@ export type CompileStats = {
   handoff_tail_completion_attempts?: number;
   handoff_tail_completion_successes?: number;
   handoff_tail_completion_improvements?: number;
+  /** Tail-completion work split by how many required contacts remained at the
+   *  source prefix. This is diagnostic-only depth attribution for deciding
+   *  whether future tail scheduling should be more selective than one global
+   *  remaining-contact window. */
+  handoff_tail_completion_attempts_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_tail_completion_successes_by_remaining_contacts?: HandoffContactCountCounter;
+  handoff_tail_completion_improvements_by_remaining_contacts?: HandoffContactCountCounter;
   /** Sparse bounded suffix-branch completions from weak-quality prefixes with
    *  scarce terminal feedback. Completions are scored by the same best-so-far
    *  register as ordinary leaves. */

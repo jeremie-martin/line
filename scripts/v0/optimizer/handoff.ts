@@ -45,6 +45,7 @@ import {
   type AxisName,
   type AxisValues,
   type CandidateSampleMode,
+  type HandoffContactCountCounter,
   type HandoffEvaluationPhase,
   type HandoffEvaluationPhaseCounter,
   type Gap,
@@ -183,6 +184,9 @@ type HandoffTelemetry = {
   tailCompletionAttempts: number;
   tailCompletionSuccesses: number;
   tailCompletionImprovements: number;
+  tailCompletionAttemptsByRemainingContacts: Record<number, number>;
+  tailCompletionSuccessesByRemainingContacts: Record<number, number>;
+  tailCompletionImprovementsByRemainingContacts: Record<number, number>;
   suffixRepairAttempts: number;
   suffixRepairSuccesses: number;
   suffixRepairImprovements: number;
@@ -511,6 +515,9 @@ function compileHandoffInternal(
       tailCompletionAttempts: 0,
       tailCompletionSuccesses: 0,
       tailCompletionImprovements: 0,
+      tailCompletionAttemptsByRemainingContacts: {},
+      tailCompletionSuccessesByRemainingContacts: {},
+      tailCompletionImprovementsByRemainingContacts: {},
       suffixRepairAttempts: 0,
       suffixRepairSuccesses: 0,
       suffixRepairImprovements: 0,
@@ -643,6 +650,12 @@ function compileHandoffInternal(
           handoff_tail_completion_attempts: telemetry.tailCompletionAttempts,
           handoff_tail_completion_successes: telemetry.tailCompletionSuccesses,
           handoff_tail_completion_improvements: telemetry.tailCompletionImprovements,
+          handoff_tail_completion_attempts_by_remaining_contacts:
+            snapshotContactCountCounter(telemetry.tailCompletionAttemptsByRemainingContacts),
+          handoff_tail_completion_successes_by_remaining_contacts:
+            snapshotContactCountCounter(telemetry.tailCompletionSuccessesByRemainingContacts),
+          handoff_tail_completion_improvements_by_remaining_contacts:
+            snapshotContactCountCounter(telemetry.tailCompletionImprovementsByRemainingContacts),
           handoff_suffix_repair_attempts: telemetry.suffixRepairAttempts,
           handoff_suffix_repair_successes: telemetry.suffixRepairSuccesses,
           handoff_suffix_repair_improvements: telemetry.suffixRepairImprovements,
@@ -720,7 +733,14 @@ function compileHandoffInternal(
       );
       if (tailNode !== null) {
         const result = consider(tailNode, "tail");
-        if (result?.event.improved) telemetry.tailCompletionImprovements++;
+        if (result?.event.improved) {
+          telemetry.tailCompletionImprovements++;
+          const remaining = remainingContactCount(node.search, gaps);
+          incrementContactCountCounter(
+            telemetry.tailCompletionImprovementsByRemainingContacts,
+            remaining,
+          );
+        }
       }
 
       const repairedNode = completeWeakPrefixWithBoundedSuffix(
@@ -1255,6 +1275,19 @@ function snapshotPhaseCounter(
     if (count > 0) out[phase] = count;
   }
   return out;
+}
+
+function snapshotContactCountCounter(counter: Record<number, number>): HandoffContactCountCounter {
+  const out: HandoffContactCountCounter = {};
+  for (const key of Object.keys(counter).map(Number).sort((a, b) => a - b)) {
+    const count = counter[key] ?? 0;
+    if (count > 0) out[key] = count;
+  }
+  return out;
+}
+
+function incrementContactCountCounter(counter: Record<number, number>, contacts: number): void {
+  counter[contacts] = (counter[contacts] ?? 0) + 1;
 }
 
 function recordEvaluationTelemetry(
@@ -1793,7 +1826,9 @@ function completeNearTail(
   expandedBrakeSearch: boolean,
 ): HandoffNode | null {
   if (!shouldAttemptNearTailCompletion(node, gaps)) return null;
+  const remaining = remainingContactCount(node.search, gaps);
   telemetry.tailCompletionAttempts++;
+  incrementContactCountCounter(telemetry.tailCompletionAttemptsByRemainingContacts, remaining);
 
   const completed = completeNearTailSuffix(
     node.search,
@@ -1809,6 +1844,7 @@ function completeNearTail(
   if (completed === null) return null;
 
   telemetry.tailCompletionSuccesses++;
+  incrementContactCountCounter(telemetry.tailCompletionSuccessesByRemainingContacts, remaining);
   return {
     search: completed.search,
     startState: node.startState,

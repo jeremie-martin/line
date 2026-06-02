@@ -389,7 +389,12 @@ Rejected follow-up probes:
   `12/12` to `9/12`, and all three `drums_pendulum` seeds flipped from pass to
   fail. Do not add root support geometry without a much more careful contract
   and transition model; starting grounded can help the first measurement window
-  while destroying the downstream contact basin.
+  while destroying the downstream contact basin. A safer version that offered
+  one first-gap support line as an ordinary scored candidate preserved validity
+  but was a score no-op on the same smoke: common rows were identical at `75k`
+  and `150k`, first-gap air stayed unchanged, and only a few extra samples were
+  spent. The support geometry is either not surviving/ranking into useful
+  prefixes, or it needs a much richer transition model than a single flat line.
 
 ## Implementation Guardrails
 

@@ -192,12 +192,15 @@ function printAxisDiagnostics(data: GoldenCurveJson): void {
   const budgets = data.budgets ?? data.budget_scores?.map((summary) => summary.budget) ?? [];
   if (rows.length === 0 || budgets.length === 0) return;
   const lastBudget = budgets[budgets.length - 1];
-  const axes = rows.flatMap((row) =>
-    (checkpointAt(row, lastBudget)?.axes ?? []).map((axis) => ({
+  const axes = rows.flatMap((row) => {
+    const checkpoint = checkpointAt(row, lastBudget);
+    const localCosts = checkpoint?.compile_stats?.committed_costs_per_gap;
+    return (checkpoint?.axes ?? []).map((axis) => ({
       ...axis,
       signed: axis.achieved - axis.target,
-    }))
-  );
+      localCost: localCosts?.[axis.gap_index],
+    }));
+  });
   if (axes.length === 0) return;
 
   console.log("");
@@ -212,10 +215,16 @@ function printAxisDiagnostics(data: GoldenCurveJson): void {
       const signedMean = bucket.reduce((sum, axis) => sum + axis.signed, 0) / bucket.length;
       const absMean = bucket.reduce((sum, axis) => sum + Math.abs(axis.signed), 0) / bucket.length;
       const overPct = 100 * bucket.filter((axis) => axis.signed > 0).length / bucket.length;
+      const costValues = bucket
+        .map((axis) => axis.localCost)
+        .filter((cost): cost is number => typeof cost === "number" && Number.isFinite(cost));
+      const localCost = costValues.length === 0
+        ? ""
+        : ` localCost=${(costValues.reduce((sum, cost) => sum + cost, 0) / costValues.length).toFixed(3)}`;
       console.log(
         `    target ${band.padEnd(8)} n=${String(bucket.length).padStart(3)} ` +
           `signed=${fmtSigned(signedMean, 3).padStart(7)} ` +
-          `abs=${absMean.toFixed(3)} over=${overPct.toFixed(1)}%`,
+          `abs=${absMean.toFixed(3)} over=${overPct.toFixed(1)}%${localCost}`,
       );
     }
   }

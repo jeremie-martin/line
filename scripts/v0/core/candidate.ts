@@ -31,6 +31,7 @@ import {
   type Arc, type TrackLine, type Gap,
   CALIB, FPS,
   hasExactlyTargetAxes,
+  type CandidateSampleMode,
 } from "../types.ts";
 import {
   type GapFit,
@@ -104,8 +105,6 @@ type TargetState = {
   speed: number;
   angleDeg: number;
 };
-
-export type CandidateSampleMode = "normal" | "brake" | "air_support";
 
 export function readTargetState(
   // deno-lint-ignore no-explicit-any
@@ -212,7 +211,7 @@ export function sampleArcParams(
     : -1 + 2 * rng();
 
   if (impactAnchorEnabled()) {
-    recordImpactAnchorSample();
+    recordImpactAnchorSample(mode);
     return sampleImpactAnchoredArc(
       rng, targetState, targets, length, startAngleDeg, endAngleDeg, segments, curveBias,
     );
@@ -299,6 +298,7 @@ export function tryCandidate(
   axisMeasureEnd: number,
   searchTargets: AxisValues,
   useWindowDetection: boolean,
+  sampleMode?: CandidateSampleMode,
 ): GapFit | null {
   // Impact-anchored placement (LR_ARC_PLACEMENT=impact_anchor): the arc is
   // already translated so its intended impact point lies on the predicted sled
@@ -308,9 +308,9 @@ export function tryCandidate(
   // LR_IMPACT_ANCHOR_FALLBACK_BISECT=1) rescues direct failures.
   if (impactAnchorEnabled()) {
     const directLines = arcToLines(candArc, lineIdStart);
-    recordImpactAnchorDirectAttempt();
+    recordImpactAnchorDirectAttempt(sampleMode);
     if (hasPreTargetSledProximity(baseEngine, gap, directLines)) {
-      recordImpactAnchorPreclearReject();
+      recordImpactAnchorPreclearReject(sampleMode);
       return null;
     }
 
@@ -319,18 +319,18 @@ export function tryCandidate(
       allContactFrames, searchTargets, useWindowDetection,
     );
     if (direct !== null) {
-      recordImpactAnchorDirectLanding();
+      recordImpactAnchorDirectLanding(sampleMode);
       return direct;
     }
-    recordImpactAnchorDirectFailure();
+    recordImpactAnchorDirectFailure(sampleMode);
 
     if (!impactAnchorFallbackBisectEnabled()) return null;
-    recordImpactAnchorFallbackAttempt();
+    recordImpactAnchorFallbackAttempt(sampleMode);
     const fallback = tryCandidateWithBisection(
       baseEngine, gap, candArc, lineIdStart, allContactFrames, axisMeasureEnd,
       searchTargets, useWindowDetection,
     );
-    if (fallback !== null) recordImpactAnchorFallbackLanding();
+    if (fallback !== null) recordImpactAnchorFallbackLanding(sampleMode);
     return fallback;
   }
 

@@ -7,7 +7,16 @@
  */
 
 import { getRiderMetered } from "../lib/detector.ts";
-import type { Arc, CompileStats, Gap, AxisValues, TrackLine } from "./types.ts";
+import {
+  CANDIDATE_SAMPLE_MODES,
+  type Arc,
+  type ArcPlacementCounter,
+  type CandidateSampleMode,
+  type CompileStats,
+  type Gap,
+  type AxisValues,
+  type TrackLine,
+} from "./types.ts";
 
 const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
 
@@ -37,9 +46,8 @@ export function impactAnchorFallbackBisectEnabled(): boolean {
   return raw === "1";
 }
 
-function makeArcPlacementStats(): ArcPlacementStats {
+function makeArcPlacementCounter(): ArcPlacementCounter {
   return {
-    mode: "impact_anchor",
     sampled: 0,
     preclear_rejected: 0,
     direct_attempted: 0,
@@ -50,50 +58,81 @@ function makeArcPlacementStats(): ArcPlacementStats {
   };
 }
 
+function makeArcPlacementStats(): ArcPlacementStats {
+  return {
+    mode: "impact_anchor",
+    ...makeArcPlacementCounter(),
+    by_sample_mode: {
+      normal: makeArcPlacementCounter(),
+      brake: makeArcPlacementCounter(),
+      air_support: makeArcPlacementCounter(),
+    },
+  };
+}
+
 const arcPlacementStats: ArcPlacementStats = makeArcPlacementStats();
 
 export function resetArcPlacementStats(): void {
   const fresh = makeArcPlacementStats();
-  arcPlacementStats.sampled = fresh.sampled;
-  arcPlacementStats.preclear_rejected = fresh.preclear_rejected;
-  arcPlacementStats.direct_attempted = fresh.direct_attempted;
-  arcPlacementStats.direct_landed = fresh.direct_landed;
-  arcPlacementStats.direct_failed = fresh.direct_failed;
-  arcPlacementStats.fallback_attempted = fresh.fallback_attempted;
-  arcPlacementStats.fallback_landed = fresh.fallback_landed;
+  resetCounter(arcPlacementStats, fresh);
+  for (const mode of CANDIDATE_SAMPLE_MODES) {
+    resetCounter(arcPlacementStats.by_sample_mode[mode], fresh.by_sample_mode[mode]);
+  }
 }
 
 export function snapshotArcPlacementStats(): ArcPlacementStats | undefined {
   if (!impactAnchorEnabled()) return undefined;
-  return { ...arcPlacementStats };
+  return {
+    ...arcPlacementStats,
+    by_sample_mode: {
+      normal: { ...arcPlacementStats.by_sample_mode.normal },
+      brake: { ...arcPlacementStats.by_sample_mode.brake },
+      air_support: { ...arcPlacementStats.by_sample_mode.air_support },
+    },
+  };
 }
 
-export function recordImpactAnchorSample(): void {
-  arcPlacementStats.sampled++;
+export function recordImpactAnchorSample(mode?: CandidateSampleMode): void {
+  incrementCounter("sampled", mode);
 }
 
-export function recordImpactAnchorPreclearReject(): void {
-  arcPlacementStats.preclear_rejected++;
+export function recordImpactAnchorPreclearReject(mode?: CandidateSampleMode): void {
+  incrementCounter("preclear_rejected", mode);
 }
 
-export function recordImpactAnchorDirectAttempt(): void {
-  arcPlacementStats.direct_attempted++;
+export function recordImpactAnchorDirectAttempt(mode?: CandidateSampleMode): void {
+  incrementCounter("direct_attempted", mode);
 }
 
-export function recordImpactAnchorDirectLanding(): void {
-  arcPlacementStats.direct_landed++;
+export function recordImpactAnchorDirectLanding(mode?: CandidateSampleMode): void {
+  incrementCounter("direct_landed", mode);
 }
 
-export function recordImpactAnchorDirectFailure(): void {
-  arcPlacementStats.direct_failed++;
+export function recordImpactAnchorDirectFailure(mode?: CandidateSampleMode): void {
+  incrementCounter("direct_failed", mode);
 }
 
-export function recordImpactAnchorFallbackAttempt(): void {
-  arcPlacementStats.fallback_attempted++;
+export function recordImpactAnchorFallbackAttempt(mode?: CandidateSampleMode): void {
+  incrementCounter("fallback_attempted", mode);
 }
 
-export function recordImpactAnchorFallbackLanding(): void {
-  arcPlacementStats.fallback_landed++;
+export function recordImpactAnchorFallbackLanding(mode?: CandidateSampleMode): void {
+  incrementCounter("fallback_landed", mode);
+}
+
+function incrementCounter(key: keyof ArcPlacementCounter, mode?: CandidateSampleMode): void {
+  arcPlacementStats[key]++;
+  if (mode !== undefined) arcPlacementStats.by_sample_mode[mode][key]++;
+}
+
+function resetCounter(target: ArcPlacementCounter, fresh: ArcPlacementCounter): void {
+  target.sampled = fresh.sampled;
+  target.preclear_rejected = fresh.preclear_rejected;
+  target.direct_attempted = fresh.direct_attempted;
+  target.direct_landed = fresh.direct_landed;
+  target.direct_failed = fresh.direct_failed;
+  target.fallback_attempted = fresh.fallback_attempted;
+  target.fallback_landed = fresh.fallback_landed;
 }
 
 export function sampleImpactAnchoredArc(

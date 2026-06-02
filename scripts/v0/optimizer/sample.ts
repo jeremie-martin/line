@@ -22,13 +22,12 @@
 import { type GapFit } from "../core/substrate.ts";
 import {
   axisLookaheadEndFrame,
-  type CandidateSampleMode,
   readTargetState,
   sampleArcParams,
   tryCandidate,
 } from "../core/candidate.ts";
 import { getRiderMetered } from "../../lib/detector.ts";
-import type { Gap } from "./types.ts";
+import type { CandidateSampleMode, Gap } from "../types.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: arc + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
@@ -114,7 +113,7 @@ export function sampleOneCandidate(
   // targeting is a higher-level concern).
   const fit = tryCandidate(
     engine, gap, arc, lineIdStart, ctx.allContactFrames,
-    axisMeasureEnd, gap.targets, true,
+    axisMeasureEnd, gap.targets, true, mode,
   );
 
   // Record the sled reference used to place this catch, so a later gap with a

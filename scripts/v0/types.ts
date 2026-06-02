@@ -99,6 +99,21 @@ export type ContactEventAxisName = (typeof CONTACT_EVENT_AXES)[number];
  */
 export type AxisValues = Partial<Record<AxisName, number>>;
 
+/** Compiler-owned candidate sampling streams. Normal is the main deterministic
+ *  candidate prefix; extra streams must justify their sample budget separately. */
+export const CANDIDATE_SAMPLE_MODES = ["normal", "brake", "air_support"] as const;
+export type CandidateSampleMode = (typeof CANDIDATE_SAMPLE_MODES)[number];
+
+export type ArcPlacementCounter = {
+  sampled: number;
+  preclear_rejected: number;
+  direct_attempted: number;
+  direct_landed: number;
+  direct_failed: number;
+  fallback_attempted: number;
+  fallback_landed: number;
+};
+
 /**
  * True when the resolved target bag contains exactly this canonical axis set.
  * This is intentionally AXES-driven: adding a future axis must not silently keep
@@ -356,6 +371,7 @@ export type CompileStats = {
     direct_failed: number;
     fallback_attempted: number;
     fallback_landed: number;
+    by_sample_mode: Record<CandidateSampleMode, ArcPlacementCounter>;
   };
 };
 

@@ -69,6 +69,11 @@ they make axis additions explicit; target thresholds such as "only when air is
 below X" are overfit risks and should either be removed by subtractive probe or
 kept with clear evidence that they address a broad geometry failure.
 
+When an axis-specific stream or threshold survives, keep its work/yield visible.
+The campaign should prefer reusable mechanics and simplify away narrow policies
+when the measured regression is minor. A new axis should require explicit
+registration, not silent inheritance from old "not speed/not grain" conditions.
+
 Full golden runs are later promotion checks, not part of the fast plateau loop.
 Use them only when a change looks strong enough to consider as general default
 compiler policy. The campaign loop should stay fast enough to test ideas that
@@ -183,6 +188,18 @@ rows matched the prior source/rank artifact at every checkpoint with
 `workΔ(sim=+0 cand=+0 viable=+0)`. The new analyzer line showed the current
 impact-anchor shape at `150k`: `63845` sampled arcs, `31829` preclear rejects,
 and direct landing `12133/68704` (`17.7%`), with fallback disabled (`0/0`).
+
+Impact-anchor placement accounting is now also split by candidate sample stream:
+`normal`, `brake`, and `air_support`, with residual validation work reported as
+`unattributed` instead of being mislabeled as normal sampling. This is
+behavior-preserving and aimed directly at the overfit concern: axis-flavored or
+special-purpose streams must expose their conversion rate before they are
+expanded or removed. On the same 2-spec placement smoke, the new artifact
+matched the prior one exactly (`CURVE_SCORE` delta `+0.00`; common-row deltas
+`+0.00` at `75k` and `150k`; `workΔ(sim=+0 cand=+0 viable=+0)`). At `150k`,
+the split was: `normal` `7312/57430` direct landings (`12.7%`), `brake`
+`2519/5889` (`42.8%`), `air_support` `278/526` (`52.9%`), and unattributed
+translated validations `2024/4859` (`41.7%`).
 
 Analyzer comparison mode now reports average per-row work deltas at each common
 budget: `workΔ(sim=... cand=... viable=...)`. Use this when judging whether a

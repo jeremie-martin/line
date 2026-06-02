@@ -42,12 +42,12 @@ import {
   secToFrame,
   type AxisName,
   type AxisValues,
+  type CandidateSampleMode,
   type Gap,
   hasAnyTargetAxis,
 } from "../types.ts";
 import {
   axisLookaheadEndFrame,
-  type CandidateSampleMode,
   readTargetState,
   tryCandidate,
 } from "../core/candidate.ts";

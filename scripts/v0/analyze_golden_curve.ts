@@ -8,7 +8,13 @@
 
 import { readFileSync } from "node:fs";
 import { shiftedGeometricMean } from "./score.ts";
-import { AXES, type AxisName } from "./types.ts";
+import {
+  AXES,
+  CANDIDATE_SAMPLE_MODES,
+  type ArcPlacementCounter,
+  type AxisName,
+  type CandidateSampleMode,
+} from "./types.ts";
 
 type BudgetScore = {
   budget: number;
@@ -21,15 +27,11 @@ type BudgetScore = {
   regressions: number;
 };
 
-type ArcPlacementStats = {
+type PartialArcPlacementCounter = Partial<ArcPlacementCounter>;
+
+type ArcPlacementStats = PartialArcPlacementCounter & {
   mode?: "impact_anchor";
-  sampled?: number;
-  preclear_rejected?: number;
-  direct_attempted?: number;
-  direct_landed?: number;
-  direct_failed?: number;
-  fallback_attempted?: number;
-  fallback_landed?: number;
+  by_sample_mode?: Partial<Record<CandidateSampleMode, PartialArcPlacementCounter>>;
 };
 
 type CompileStats = {
@@ -615,35 +617,125 @@ function printArcPlacementDiagnostics(data: GoldenCurveJson): void {
     );
   if (checkpoints.length === 0) return;
 
-  const sampled = sumArcPlacementStat(checkpoints, "sampled");
-  const preclear = sumArcPlacementStat(checkpoints, "preclear_rejected");
-  const directAttempted = sumArcPlacementStat(checkpoints, "direct_attempted");
-  const directLanded = sumArcPlacementStat(checkpoints, "direct_landed");
-  const directFailed = sumArcPlacementStat(checkpoints, "direct_failed");
-  const fallbackAttempted = sumArcPlacementStat(checkpoints, "fallback_attempted");
-  const fallbackLanded = sumArcPlacementStat(checkpoints, "fallback_landed");
+  const aggregate = sumArcPlacementCounter(checkpoints);
 
   console.log("");
   console.log(`impact-anchor placement at ${fmtBudget(lastBudget)}:`);
-  console.log(
-    `  sampled=${sampled} attempts/row=${(sampled / checkpoints.length).toFixed(1)} ` +
-      `preclear=${preclear} direct=${directLanded}/${directAttempted} ` +
-      `rate=${fmtRate(directLanded, directAttempted)} failed=${directFailed} ` +
-      `fallback=${fallbackLanded}/${fallbackAttempted} ` +
-      `rate=${fmtRate(fallbackLanded, fallbackAttempted)}`,
+  console.log(formatArcPlacementCounter("all", aggregate, checkpoints.length));
+
+  const hasModeBreakdown = checkpoints.some((checkpoint) =>
+    checkpoint.compile_stats?.arc_placement?.by_sample_mode !== undefined
   );
+  if (!hasModeBreakdown) return;
+
+  let attributed = emptyArcPlacementCounter();
+  for (const mode of CANDIDATE_SAMPLE_MODES) {
+    const counter = sumArcPlacementCounter(checkpoints, mode);
+    attributed = addArcPlacementCounters(attributed, counter);
+    if (!hasAnyArcPlacementCounter(counter)) continue;
+    console.log(formatArcPlacementCounter(mode, counter, checkpoints.length));
+  }
+
+  const unattributed = subtractArcPlacementCounter(aggregate, attributed);
+  if (hasAnyArcPlacementCounter(unattributed)) {
+    console.log(formatArcPlacementCounter("unattributed", unattributed, checkpoints.length));
+  }
+}
+
+function formatArcPlacementCounter(
+  label: string,
+  counter: ArcPlacementCounter,
+  rowCount: number,
+): string {
+  return `  ${label.padEnd(12)} sampled=${counter.sampled} ` +
+    `sampled/row=${(counter.sampled / rowCount).toFixed(1)} ` +
+    `preclear=${counter.preclear_rejected} ` +
+    `direct=${counter.direct_landed}/${counter.direct_attempted} ` +
+    `rate=${fmtRate(counter.direct_landed, counter.direct_attempted)} ` +
+    `failed=${counter.direct_failed} ` +
+    `fallback=${counter.fallback_landed}/${counter.fallback_attempted} ` +
+    `rate=${fmtRate(counter.fallback_landed, counter.fallback_attempted)}`;
 }
 
 function sumArcPlacementStat(
   checkpoints: CheckpointRow[],
-  key: keyof ArcPlacementStats,
+  key: keyof ArcPlacementCounter,
+  mode?: CandidateSampleMode,
 ): number {
   let sum = 0;
   for (const checkpoint of checkpoints) {
-    const value = checkpoint.compile_stats?.arc_placement?.[key];
+    const stats = checkpoint.compile_stats?.arc_placement;
+    const value = mode === undefined ? stats?.[key] : stats?.by_sample_mode?.[mode]?.[key];
     if (typeof value === "number") sum += value;
   }
   return sum;
+}
+
+function sumArcPlacementCounter(
+  checkpoints: CheckpointRow[],
+  mode?: CandidateSampleMode,
+): ArcPlacementCounter {
+  return {
+    sampled: sumArcPlacementStat(checkpoints, "sampled", mode),
+    preclear_rejected: sumArcPlacementStat(checkpoints, "preclear_rejected", mode),
+    direct_attempted: sumArcPlacementStat(checkpoints, "direct_attempted", mode),
+    direct_landed: sumArcPlacementStat(checkpoints, "direct_landed", mode),
+    direct_failed: sumArcPlacementStat(checkpoints, "direct_failed", mode),
+    fallback_attempted: sumArcPlacementStat(checkpoints, "fallback_attempted", mode),
+    fallback_landed: sumArcPlacementStat(checkpoints, "fallback_landed", mode),
+  };
+}
+
+function emptyArcPlacementCounter(): ArcPlacementCounter {
+  return {
+    sampled: 0,
+    preclear_rejected: 0,
+    direct_attempted: 0,
+    direct_landed: 0,
+    direct_failed: 0,
+    fallback_attempted: 0,
+    fallback_landed: 0,
+  };
+}
+
+function addArcPlacementCounters(
+  left: ArcPlacementCounter,
+  right: ArcPlacementCounter,
+): ArcPlacementCounter {
+  return {
+    sampled: left.sampled + right.sampled,
+    preclear_rejected: left.preclear_rejected + right.preclear_rejected,
+    direct_attempted: left.direct_attempted + right.direct_attempted,
+    direct_landed: left.direct_landed + right.direct_landed,
+    direct_failed: left.direct_failed + right.direct_failed,
+    fallback_attempted: left.fallback_attempted + right.fallback_attempted,
+    fallback_landed: left.fallback_landed + right.fallback_landed,
+  };
+}
+
+function subtractArcPlacementCounter(
+  left: ArcPlacementCounter,
+  right: ArcPlacementCounter,
+): ArcPlacementCounter {
+  return {
+    sampled: left.sampled - right.sampled,
+    preclear_rejected: left.preclear_rejected - right.preclear_rejected,
+    direct_attempted: left.direct_attempted - right.direct_attempted,
+    direct_landed: left.direct_landed - right.direct_landed,
+    direct_failed: left.direct_failed - right.direct_failed,
+    fallback_attempted: left.fallback_attempted - right.fallback_attempted,
+    fallback_landed: left.fallback_landed - right.fallback_landed,
+  };
+}
+
+function hasAnyArcPlacementCounter(counter: ArcPlacementCounter): boolean {
+  return counter.sampled !== 0 ||
+    counter.preclear_rejected !== 0 ||
+    counter.direct_attempted !== 0 ||
+    counter.direct_landed !== 0 ||
+    counter.direct_failed !== 0 ||
+    counter.fallback_attempted !== 0 ||
+    counter.fallback_landed !== 0;
 }
 
 function sumCheckpointStat(checkpoints: CheckpointRow[], key: keyof CompileStats): number {

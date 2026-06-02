@@ -422,6 +422,27 @@ knob, not the final branching policy; future work should look for a similarly
 general branch-readiness signal that improves on cadence without spending the
 branch on the first merely passing prefix.
 
+The accepted follow-up is a two-tier far-back repair cadence. The severe
+low-quality path is unchanged: passing incumbents below `0.24` axis quality
+still pulse the oldest lagged pass-frontier branch every 16 frontier selections.
+Incumbents in the moderate band below `0.28` now get the same kind of repair
+only every 64 selections. This deliberately avoids the rejected blunt `0.28`
+policy: prefix branching keeps its old `0.24` quality floor, so the moderate
+repair signal can coexist with suffix diversification instead of postponing it.
+Full golden moved `CURVE_SCORE 320.14 -> 321.42` with the same `533/540` valid
+checkpoints. Budget-score deltas were slightly negative through 55k
+(`35k -0.07`, `40k -0.22`, `50k -0.08`, `55k -0.09`), then positive from 60k
+onward (`60k +0.36`, `65k +2.48`, `70k +4.99`, `75k +5.20`). Far-back pulses
+at the final checkpoint rose from `23` to `48`. The largest 75k wins were
+`drums_swell seed=0 +161.73`, `drums_crescendo seed=0 +58.63`, and
+`verse_chorus seed=2 +48.81`; the largest 75k regressions were bounded
+(`dense_sprint seed=0 -6.19`, `drums_pendulum seed=0 -4.96`). Report-only
+variants also improved, `VARIANT_CURVE_SCORE 248.29 -> 249.54`, with the same
+`1020/1080` valid checkpoints. The broader lesson is modest but useful:
+late-curve plateaus sometimes need a small amount of ancestor repair even after
+the incumbent is no longer awful, but the evidence still favors a sparse,
+state-keyed scheduler over broad branch fanout or spec-specific rules.
+
 The next branch diagnostic should look at conversion, not just branch volume.
 The compiler now reports `handoff_prefix_branch_evaluations`,
 `handoff_prefix_branch_full_evaluations`, and

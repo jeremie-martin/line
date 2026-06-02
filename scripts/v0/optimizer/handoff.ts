@@ -259,12 +259,17 @@ const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 6;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
 const FAR_BACK_FRONTIER_LAG = 3;
-/** Once a passing output exists but its axis quality is still very low, spend a
- *  sparse deterministic pulse on older pass-frontier branches. This is
- *  budget-agnostic repair scheduling: it still walks one fixed node sequence,
- *  but does not let poor early choices monopolize the quality phase. */
+/** Once a passing output exists but its axis quality is still weak, spend sparse
+ *  deterministic pulses on older pass-frontier branches. Very low incumbents
+ *  keep the original repair cadence; moderate incumbents get a much rarer
+ *  pulse. This is budget-agnostic repair scheduling: it still walks one fixed
+ *  node sequence, but does not let poor early choices monopolize the quality
+ *  phase. */
 const QUALITY_FAR_BACK_FRONTIER_INTERVAL = 16;
 const QUALITY_FAR_BACK_MAX_AXIS_QUALITY = 0.24;
+const MODERATE_QUALITY_FAR_BACK_FRONTIER_INTERVAL = 64;
+const MODERATE_QUALITY_FAR_BACK_MAX_AXIS_QUALITY = 0.28;
+const PREFIX_BRANCH_MIN_AXIS_QUALITY = 0.24;
 /** Conservative production version of the prefix-branch probe: once a passing
  *  incumbent exists, occasionally clone a clean baseline-lane prefix into one
  *  alternate downstream sample lane. The clone is ordinary frontier work and
@@ -502,7 +507,7 @@ function compileHandoffInternal(
         passStack,
         fallbackStack,
         telemetry,
-        shouldPulseFarBackFrontier(bestKey),
+        farBackFrontierPulseInterval(bestKey),
       );
       telemetry.frontierSelections++;
       consider(node, "main");
@@ -755,14 +760,14 @@ function popNextFrontierNode(
   passStack: HandoffNode[],
   fallbackStack: HandoffNode[],
   telemetry: HandoffTelemetry,
-  pulseFarBack: boolean,
+  farBackPulseInterval: number | null,
 ): HandoffNode {
   const frontier = activeFrontier(passStack, fallbackStack);
   if (
-    pulseFarBack &&
+    farBackPulseInterval !== null &&
     passStack.length > 0 &&
     telemetry.frontierSelections > 0 &&
-    telemetry.frontierSelections % QUALITY_FAR_BACK_FRONTIER_INTERVAL === 0
+    telemetry.frontierSelections % farBackPulseInterval === 0
   ) {
     const farBackIndex = oldestLaggedFrontierIndex(passStack, telemetry.deepestSeenGap);
     if (farBackIndex >= 0) {
@@ -773,8 +778,15 @@ function popNextFrontierNode(
   return frontier.pop()!;
 }
 
-function shouldPulseFarBackFrontier(key: LeafKey | null): boolean {
-  return key?.contract_passed === true && key.axis_quality < QUALITY_FAR_BACK_MAX_AXIS_QUALITY;
+function farBackFrontierPulseInterval(key: LeafKey | null): number | null {
+  if (key?.contract_passed !== true) return null;
+  if (key.axis_quality < QUALITY_FAR_BACK_MAX_AXIS_QUALITY) {
+    return QUALITY_FAR_BACK_FRONTIER_INTERVAL;
+  }
+  if (key.axis_quality < MODERATE_QUALITY_FAR_BACK_MAX_AXIS_QUALITY) {
+    return MODERATE_QUALITY_FAR_BACK_FRONTIER_INTERVAL;
+  }
+  return null;
 }
 
 function maybeForkPrefixBranch(
@@ -788,7 +800,7 @@ function maybeForkPrefixBranch(
 ): HandoffNode | null {
   if (!allowPrefixBranching) return null;
   if (bestKey?.contract_passed !== true) return null;
-  if (bestKey.axis_quality < QUALITY_FAR_BACK_MAX_AXIS_QUALITY) return null;
+  if (bestKey.axis_quality < PREFIX_BRANCH_MIN_AXIS_QUALITY) return null;
   if (node.searchLane !== 0) return null;
   if (node.skippedContacts !== 0) return null;
   if (!node.startExpanded || node.deferExpansion) return null;

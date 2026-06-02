@@ -135,6 +135,14 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_deepest_seen_gap).toBeGreaterThanOrEqual(0);
     expect(a.stats.handoff_start_ranks_seen).toBeGreaterThan(0);
     expect(a.stats.handoff_start_ranks_with_fits).toBeGreaterThan(0);
+    expect(a.stats.handoff_selected_candidate_rank_count ?? 0).toBeGreaterThan(0);
+    expect(a.stats.handoff_selected_candidate_rank_mean ?? 0).toBeGreaterThanOrEqual(0);
+    expect(a.stats.handoff_selected_candidate_rank_max ?? 0).toBeGreaterThanOrEqual(
+      a.stats.handoff_selected_candidate_rank_mean ?? 0,
+    );
+    expect(a.stats.handoff_selected_candidate_nonzero_ranks ?? 0).toBeLessThanOrEqual(
+      a.stats.handoff_selected_candidate_rank_count ?? 0,
+    );
     expect(a.stats.handoff_partial_evaluations).toBeGreaterThan(0);
     expect(a.stats.handoff_full_evaluations).toBeGreaterThan(0);
     expect(a.stats.handoff_previews).toBeGreaterThan(0);
@@ -157,6 +165,14 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       .toBe(b.stats.handoff_prefix_branch_improvements);
     expect(a.stats.handoff_start_ranks_seen).toBe(b.stats.handoff_start_ranks_seen);
     expect(a.stats.handoff_start_ranks_with_fits).toBe(b.stats.handoff_start_ranks_with_fits);
+    expect(a.stats.handoff_selected_candidate_rank_count)
+      .toBe(b.stats.handoff_selected_candidate_rank_count);
+    expect(a.stats.handoff_selected_candidate_rank_mean)
+      .toBe(b.stats.handoff_selected_candidate_rank_mean);
+    expect(a.stats.handoff_selected_candidate_rank_max)
+      .toBe(b.stats.handoff_selected_candidate_rank_max);
+    expect(a.stats.handoff_selected_candidate_nonzero_ranks)
+      .toBe(b.stats.handoff_selected_candidate_nonzero_ranks);
     expect(a.stats.handoff_full_evaluations).toBe(b.stats.handoff_full_evaluations);
     expect(a.stats.handoff_preview_contacts).toBe(b.stats.handoff_preview_contacts);
     expect(a.stats.handoff_preview_survivors).toBe(b.stats.handoff_preview_survivors);

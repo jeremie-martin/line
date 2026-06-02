@@ -72,6 +72,10 @@ type CompileStats = {
   handoff_skip_branches?: number;
   handoff_deferred_skips?: number;
   handoff_search_lane?: number;
+  handoff_selected_candidate_rank_count?: number;
+  handoff_selected_candidate_rank_mean?: number;
+  handoff_selected_candidate_rank_max?: number;
+  handoff_selected_candidate_nonzero_ranks?: number;
   handoff_prefix_branch_forks?: number;
   handoff_prefix_branch_evaluations?: number;
   handoff_prefix_branch_full_evaluations?: number;
@@ -204,6 +208,10 @@ function fmtStats(stats: CompileStats | undefined): string {
     `start=${fmtStart(stats)}`,
     `startRank=${stats.handoff_start_rank ?? "?"}`,
     `lane=${stats.handoff_search_lane ?? "?"}`,
+    `rank=${stats.handoff_selected_candidate_nonzero_ranks ?? "?"}/` +
+      `${stats.handoff_selected_candidate_rank_count ?? "?"}@` +
+      `${stats.handoff_selected_candidate_rank_mean ?? "?"}/` +
+      `${stats.handoff_selected_candidate_rank_max ?? "?"}`,
     `branch=${stats.handoff_prefix_branch_improvements ?? "?"}/` +
       `${stats.handoff_prefix_branch_evaluations ?? "?"}` +
       `(${stats.handoff_prefix_branch_full_evaluations ?? "?"}f,` +
@@ -448,6 +456,79 @@ function printStartDiagnostics(data: GoldenCurveJson): void {
   printStartBandBuckets("first air", startRows, (row) => row.firstAirTarget);
 }
 
+type CandidateRankSummary = {
+  rows: number;
+  contacts: number;
+  nonzero: number;
+  weightedRankSum: number;
+  maxRank: number;
+};
+
+function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
+  const rows = data.rows ?? [];
+  const budgets = data.budgets ?? data.budget_scores?.map((summary) => summary.budget) ?? [];
+  if (rows.length === 0 || budgets.length === 0) return;
+  const lastBudget = budgets[budgets.length - 1];
+  const byLane = new Map<string, CandidateRankSummary>();
+  const all: CandidateRankSummary = {
+    rows: 0,
+    contacts: 0,
+    nonzero: 0,
+    weightedRankSum: 0,
+    maxRank: 0,
+  };
+
+  for (const row of rows) {
+    const checkpoint = checkpointAt(row, lastBudget);
+    const stats = checkpoint?.compile_stats;
+    const count = stats?.handoff_selected_candidate_rank_count;
+    const meanRank = stats?.handoff_selected_candidate_rank_mean;
+    if (count === undefined || meanRank === undefined || count <= 0) continue;
+    const nonzero = stats?.handoff_selected_candidate_nonzero_ranks ?? 0;
+    const maxRank = stats?.handoff_selected_candidate_rank_max ?? 0;
+    accumulateRankSummary(all, count, nonzero, meanRank, maxRank);
+
+    const lane = `lane ${stats?.handoff_search_lane ?? "?"}`;
+    let summary = byLane.get(lane);
+    if (summary === undefined) {
+      summary = { rows: 0, contacts: 0, nonzero: 0, weightedRankSum: 0, maxRank: 0 };
+      byLane.set(lane, summary);
+    }
+    accumulateRankSummary(summary, count, nonzero, meanRank, maxRank);
+  }
+  if (all.rows === 0) return;
+
+  console.log("");
+  console.log(`selected candidate ranks at ${fmtBudget(lastBudget)}:`);
+  printCandidateRankSummary("all", all);
+  for (const [lane, summary] of [...byLane.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    printCandidateRankSummary(lane, summary);
+  }
+}
+
+function accumulateRankSummary(
+  summary: CandidateRankSummary,
+  count: number,
+  nonzero: number,
+  meanRank: number,
+  maxRank: number,
+): void {
+  summary.rows++;
+  summary.contacts += count;
+  summary.nonzero += nonzero;
+  summary.weightedRankSum += meanRank * count;
+  summary.maxRank = Math.max(summary.maxRank, maxRank);
+}
+
+function printCandidateRankSummary(label: string, summary: CandidateRankSummary): void {
+  const meanRank = summary.contacts > 0 ? summary.weightedRankSum / summary.contacts : 0;
+  console.log(
+    `  ${label.padEnd(8)} n=${String(summary.rows).padStart(3)} ` +
+      `nonzero=${summary.nonzero}/${summary.contacts} ` +
+      `mean=${meanRank.toFixed(2)} max=${summary.maxRank}`,
+  );
+}
+
 function printStreamDiagnostics(data: GoldenCurveJson): void {
   const rows = data.rows ?? [];
   const budgets = data.budgets ?? data.budget_scores?.map((summary) => summary.budget) ?? [];
@@ -676,6 +757,7 @@ function main(): void {
   printRowDiagnostics(data);
   printStreamDiagnostics(data);
   printStartDiagnostics(data);
+  printCandidateRankDiagnostics(data);
   printAxisDiagnostics(data);
   if (baseline !== null) printComparison(data, baseline);
 }

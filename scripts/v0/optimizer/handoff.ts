@@ -2350,6 +2350,9 @@ function buildNodeOutput(
   const startVelocity = node.startState.velocity;
   const startSpeed = Math.hypot(startVelocity.x, startVelocity.y);
   const startAngleDeg = (Math.atan2(startVelocity.y, startVelocity.x) * 180) / Math.PI;
+  const candidateRanks = node.ranks.filter((rank) => rank >= 0);
+  const candidateRankSum = candidateRanks.reduce((sum, rank) => sum + rank, 0);
+  const candidateRankCount = candidateRanks.length;
   return {
     track: buildTrackJson(allLines, outputDurationFrames, node.startState),
     report,
@@ -2371,6 +2374,16 @@ function buildNodeOutput(
       handoff_start_angle_deg: round3(startAngleDeg),
       handoff_search_seed: node.searchSeed,
       handoff_search_lane: node.searchLane,
+      handoff_selected_candidate_rank_count: candidateRankCount,
+      handoff_selected_candidate_rank_mean: candidateRankCount === 0
+        ? 0
+        : round3(candidateRankSum / candidateRankCount),
+      handoff_selected_candidate_rank_max: candidateRanks.reduce(
+        (max, rank) => Math.max(max, rank),
+        0,
+      ),
+      handoff_selected_candidate_nonzero_ranks:
+        candidateRanks.filter((rank) => rank > 0).length,
     },
   };
 }

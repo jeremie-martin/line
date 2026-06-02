@@ -247,6 +247,14 @@ export type CompileStats = {
   /** Search-lane id for the returned best prefix. Lane 0 is the baseline handoff
    *  sequence; higher lanes are deterministic downstream resampling branches. */
   handoff_search_lane?: number;
+  /** Source-rank summary for contact candidates used by the returned best
+   *  prefix. Non-contact gaps and skipped contacts are excluded. These are the
+   *  candidate source ranks recorded by handoff's ranked option stream, not
+   *  benchmark-specific labels. */
+  handoff_selected_candidate_rank_count?: number;
+  handoff_selected_candidate_rank_mean?: number;
+  handoff_selected_candidate_rank_max?: number;
+  handoff_selected_candidate_nonzero_ranks?: number;
   /** Clean prefixes cloned into alternate downstream search lanes during this
    *  compile. These are ordinary frontier nodes and are scored by the same
    *  best-so-far register as baseline prefixes. */

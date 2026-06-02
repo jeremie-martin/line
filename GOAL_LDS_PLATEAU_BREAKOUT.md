@@ -140,6 +140,17 @@ start-policy probes can be compared without spec-keyed inspection. Comparison
 output now includes selected-start transitions on largest regressions,
 improvements, and validity flips.
 
+Selected candidate source-rank accounting now records the returned best path's
+contact-candidate rank count, mean, max, and nonzero count. The analyzer prints
+this as `rank=nonzero/count@mean/max` per row and aggregates it by winning
+search lane at the last budget. This is behavior-preserving instrumentation for
+judging whether best tracks are mostly top local choices or rely on lower-ranked
+candidate diversity. On a 2-spec plateau smoke (`drums_pendulum`,
+`opening_burst`; budgets `75k,150k`), scores and work matched the accepted
+baseline exactly on common rows, while the new diagnostic showed substantial
+diversity in returned paths: `177/261` selected contact choices had nonzero
+source rank at `150k` (`mean=5.41`, `max=13`).
+
 Work accounting now reports real `candidates_sampled` values for handoff:
 `sampleOneCandidate` calls are counted per compile, carried through golden JSON,
 and printed by the curve analyzer. This makes future probes easier to judge on

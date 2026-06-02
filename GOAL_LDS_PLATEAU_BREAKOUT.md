@@ -193,6 +193,21 @@ the only material loss was `drums_pendulum seed=0 -0.58`. The extra stream is
 narrow enough that average work changed only modestly at `150k`
 (`workΔ(sim=+31 cand=+35 viable=+12)`).
 
+The next accepted base-search scheduling change widens near-tail speculative
+completion from `6` to `8` remaining contacts. This lets more deep prefixes
+offer full-duration outputs to the same best-so-far register without changing
+candidate policy or reading requested budgets. On the 10-spec dense `150k`
+workbench, after the very-low-air support stream, it moved `CURVE_SCORE`
+`326.40 -> 329.03`, kept validity `30/30`, and made every checkpoint positive.
+At `150k`, common score moved `339.87 -> 342.18`; the largest wins were
+`rhythm_ladder seed=2 +22.73`, `drums_dropout seed=1 +17.51`,
+`rhythm_ladder seed=1 +12.67`, and `dense_sprint seed=0 +9.83`. The largest
+regression was `drums_crescendo seed=1 -4.97`. Average `150k` work changed
+modestly (`workΔ(sim=-59 cand=+79 viable=+26)`), though branch evaluations
+roughly doubled because more suffix completions expose branch-lane improvements.
+This does not fix the worst low-air plateau (`drums_pendulum seed=1` stayed
+flat); treat it as a suffix-feedback improvement, not a low-air primitive.
+
 Rejected follow-up probes:
 
 - Baseline-first branch scheduling, where the best normal child runs before the

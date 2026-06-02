@@ -329,7 +329,10 @@ const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPo
 };
 const HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES = HANDOFF_RESCUE_MIN_GAP_FRAMES;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
-const TAIL_COMPLETION_CONTACT_WINDOW = 6;
+/** Speculative tail completion turns deep prefixes into full-duration register
+ *  candidates before ordinary DFS reaches a leaf. Keep the window small because
+ *  the completion suffix branches two-wide and is charged like normal search. */
+const TAIL_COMPLETION_CONTACT_WINDOW = 8;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
 const FAR_BACK_FRONTIER_LAG = 3;
 /** Once a passing output exists but its axis quality is still weak, spend sparse

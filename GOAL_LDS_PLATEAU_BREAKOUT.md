@@ -228,6 +228,15 @@ converted `1/2` attempts using `64` suffix nodes, raised full evaluations from
 hypothesis that some plateau rows need bounded suffix branching/repair, not just
 earlier scoring or more one-step candidate samples.
 
+Promotion sanity check: the current compiler with bounded suffix repair also
+completed the canonical 20-spec, 3-seed, default-budget golden curve without
+variants. It reported `CURVE_SCORE 322.46`, reached `60/60` validity by `55k`,
+and scored `353.77` at `75k`. This is not an isolated A/B against the
+pre-repair compiler because the available full-suite artifact predates several
+accepted changes, but it does show the repair is sparse on the broader suite:
+at `75k`, `suffix` fired only on `drums_pendulum seed=1` (`1/2`, `64` suffix
+nodes), preserving the same improvement shape seen in the 10-spec workbench.
+
 Rejected follow-up probes:
 
 - Baseline-first branch scheduling, where the best normal child runs before the

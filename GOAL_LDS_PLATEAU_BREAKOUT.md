@@ -243,6 +243,17 @@ Rejected follow-up probes:
   on lookahead rollouts and displaces actual suffix expansion. Keep the
   quality-phase preview deferral unless a much narrower scheduler signal earns
   the work.
+- Next-gap frame-span carry scoring during quality search was also rejected.
+  The hypothesis was structurally strong: the catch before a gap often owns that
+  gap's `air`/`speed` behavior, so current-gap scoring learns low-air failures
+  one contact too late. Asymmetric next-span overshoot pressure confirmed the
+  signal on low-air rows (`drums_pendulum seed=2 +16.79`, seed=0 `+14.17` at
+  `150k`), but the full 10-spec dense workbench moved `CURVE_SCORE`
+  `326.09 -> 324.31` and `150k` common-row score by `-0.82`; the worst row was
+  `drums_crescendo seed=0 -36.22`. This says temporal ownership is real, but a
+  broad extra ranking term can steer contact-style/start basins badly. Revisit
+  only with a sharper causal primitive or scheduler signal, not a blanket
+  next-gap cost.
 - A naive quality-phase poor-fit rescue, which reran the larger deterministic
   rescue batch whenever the best local candidate cost was severe, made the
   focused handoff test run take `155s`. Poor-fit rescue may still be worth

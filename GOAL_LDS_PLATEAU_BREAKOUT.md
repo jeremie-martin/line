@@ -253,6 +253,16 @@ Rejected follow-up probes:
   `75k` `329.57 -> 327.42`, and `150k` `332.38 -> 331.83`, while branch
   evaluations dropped from `3509` to `1887`. This reinforces that branch
   throttling needs a smarter scheduler signal than a blunt global cadence.
+- Tightening the stalled prefix-branch cap further (`24 -> 16` full-duration
+  branch evaluations) also failed on an 18-row branch-heavy smoke
+  (`grain_staircase`, `opening_burst`, `rhythm_ladder`,
+  `syncopated_switchback`, `dense_sprint`, `drums_crescendo`, budgets
+  `75k,150k`). Against the accepted suffix-repair baseline, common rows moved
+  `-0.16` at `75k` and `-0.46` at `150k`; the worst `150k` losses were
+  `opening_burst seed=2 -6.89` and `dense_sprint seed=2 -3.99`, partly offset
+  by `grain_staircase seed=2 +3.19`. This cheaper cap has the same shape as the
+  cadence failure: branch conversions are rare, but bluntly cutting patience
+  loses some high-value late suffixes.
 - Lowering the prefix-branch incumbent floor (`axis_quality 0.24 -> 0.20`) was
   a smoke-scale no-op. On a 4-spec low-plateau/start smoke
   (`drums_pendulum`, `opening_burst`, `drums_tide`, `drums_dropout`) common rows

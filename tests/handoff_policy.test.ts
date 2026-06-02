@@ -3,6 +3,7 @@ import {
   brakeCandidateCount,
   contactStyleQualityCandidateCount,
   handoffCandidatePool,
+  handoffAxisOvershootPenalty,
   handoffPreviewCostWeight,
   handoffSampleCount,
   handoffUsesFuturePreview,
@@ -150,6 +151,21 @@ describe("handoff policy boundaries", () => {
     expect(brakeCandidateCount(2.0)).toBe(3);
     expect(brakeCandidateCount(1.0, true)).toBe(3);
     expect(brakeCandidateCount(1.15, true)).toBe(4);
+  });
+
+  test("handoff overshoot pressure is asymmetric and policy-table driven", () => {
+    expect(handoffAxisOvershootPenalty(
+      { speed: 0.5, air: 0.25 },
+      { speed: 0.6, air: 0.5 },
+    )).toBeCloseTo(1.16, 6);
+    expect(handoffAxisOvershootPenalty(
+      { speed: 0.5, air: 0.25 },
+      { speed: 0.4, air: 0.1 },
+    )).toBe(0);
+    expect(handoffAxisOvershootPenalty(
+      { contact_style: 0.2, grain: 0.2 },
+      { contact_style: 1, grain: 1 },
+    )).toBe(0);
   });
 
   test("high-speed brake work needs contact style and severe overspeed", () => {

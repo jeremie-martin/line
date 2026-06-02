@@ -84,6 +84,12 @@ suite score by `+0.27`. The largest `150k` win was `dense_sprint seed=0 +9.83`;
 the material `150k` regressions were `rhythm_ladder seed=1 -1.54` and
 `dense_sprint seed=2 -0.19`.
 
+The first accepted design cleanup after that is behavior-preserving: local axis
+cost now iterates the canonical `AXES` registry, and handoff's asymmetric
+overshoot pressure is a small policy table rather than inline named-axis
+branches. This does not claim a curve-score gain; it makes future axis additions
+and ranker changes explicit, easier to test, and easier to remove.
+
 Rejected follow-up probes:
 
 - Baseline-first branch scheduling, where the best normal child runs before the

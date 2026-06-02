@@ -33,7 +33,16 @@ import {
   sliceTimeline,
   validateSpec,
 } from "../core/substrate.ts";
-import { CALIB, FPS, START_DEFAULTS, secToFrame, type Gap, type AxisValues } from "../types.ts";
+import {
+  AXES,
+  CALIB,
+  FPS,
+  START_DEFAULTS,
+  secToFrame,
+  type AxisName,
+  type AxisValues,
+  type Gap,
+} from "../types.ts";
 import {
   axisLookaheadEndFrame,
   readTargetState,
@@ -254,11 +263,14 @@ const SURVIVOR_SCARCITY_PENALTY = 4;
  *  preview cost over-steers the fragile current catch. */
 const PREVIEW_COST_WEIGHT = 0.25;
 const HANDOFF_STATE_WEIGHT = 0.08;
-/** Weight on a candidate's speed OVERSHOOT (achieved - target, when positive) in
- *  the handoff feasibility ranking. Selection-only bias against speed creep. */
-const HANDOFF_SPEED_OVERSHOOT_WEIGHT = 16;
-/** Weight on a candidate's AIR overshoot (achieved - target, when positive). */
-const HANDOFF_AIR_OVERSHOOT_WEIGHT = 16;
+/** Selection-only asymmetric overshoot pressure in the handoff feasibility
+ *  ranking. Axes omitted from this table use only the symmetric candidate cost;
+ *  adding a future axis should be an explicit policy choice, not an accidental
+ *  named-axis branch in the ranker. */
+const HANDOFF_AXIS_OVERSHOOT_WEIGHTS = {
+  speed: 16,
+  air: 16,
+} as const satisfies Partial<Record<AxisName, number>>;
 /** Brake catches (uphill-entry, bleed speed) are offered as EXTRA candidates on
  *  MODERATE-target gaps where the rider runs even mildly over target (early, to
  *  pre-empt creep). High-target gaps only get brake probes when contact style
@@ -1677,18 +1689,19 @@ function scoreCandidateForHandoff(
 }
 
 function candidateOvershootPenalty(candidate: Candidate, gap: Gap): number {
+  return handoffAxisOvershootPenalty(gap.targets, candidate.achieved);
+}
+
+export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisValues): number {
   let overshoot = 0;
-  const tgtSpeed = gap.targets?.speed;
-  const achSpeed = candidate.achieved?.speed;
-  if (tgtSpeed !== undefined && achSpeed !== undefined && achSpeed > tgtSpeed) {
-    overshoot = HANDOFF_SPEED_OVERSHOOT_WEIGHT * (achSpeed - tgtSpeed) * (achSpeed - tgtSpeed);
-  }
-  // Air overshoot is the other systematic suite-wide axis error (rider stays
-  // airborne longer than target); same selection-only asymmetric bias.
-  const tgtAir = gap.targets?.air;
-  const achAir = candidate.achieved?.air;
-  if (tgtAir !== undefined && achAir !== undefined && achAir > tgtAir) {
-    overshoot += HANDOFF_AIR_OVERSHOOT_WEIGHT * (achAir - tgtAir) * (achAir - tgtAir);
+  for (const axis of AXES) {
+    const weight = HANDOFF_AXIS_OVERSHOOT_WEIGHTS[axis];
+    const target = targets[axis];
+    const value = achieved[axis];
+    if (weight !== undefined && target !== undefined && value !== undefined && value > target) {
+      const delta = value - target;
+      overshoot += weight * delta * delta;
+    }
   }
   return overshoot;
 }

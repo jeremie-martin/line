@@ -176,6 +176,14 @@ The selected-source split is now also emitted as a structured
 as compatibility mirrors. This is a behavior-preserving anti-overfit cleanup:
 future candidate streams can be reported through one registry-backed accounting
 path instead of adding another bespoke stat name per stream.
+The selected `axisq` portion is now also attributed by registered stream axis as
+`handoff_selected_axis_quality_by_axis`, and the analyzer prints `axisqSrc=...`
+when that map is present. This closes the gap between axis-quality stream
+viability and actual best-path adoption. On a fresh 2-row smoke
+(`drums_pendulum`, `opening_burst`; seed `0`; budgets `75k,150k`), common rows
+matched the prior selected-source artifact exactly (`CURVE_SCORE` delta `+0.00`,
+`workΔ(sim=+0 cand=+0 viable=+0)` at both checkpoints), while the two selected
+`axisq` candidates were both attributed to `contact_style`.
 
 Work accounting now reports real `candidates_sampled` values for handoff:
 `sampleOneCandidate` calls are counted per compile, carried through golden JSON,

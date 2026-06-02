@@ -826,6 +826,7 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_selected_candidate_rank_max: stats.handoff_selected_candidate_rank_max,
     handoff_selected_candidate_nonzero_ranks: stats.handoff_selected_candidate_nonzero_ranks,
     handoff_selected_candidate_by_source: stats.handoff_selected_candidate_by_source,
+    handoff_selected_axis_quality_by_axis: stats.handoff_selected_axis_quality_by_axis,
     handoff_selected_candidate_pool_count: stats.handoff_selected_candidate_pool_count,
     handoff_selected_candidate_reuse_count: stats.handoff_selected_candidate_reuse_count,
     handoff_selected_candidate_brake_count: stats.handoff_selected_candidate_brake_count,

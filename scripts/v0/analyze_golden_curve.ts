@@ -99,6 +99,7 @@ type CompileStats = {
   handoff_selected_candidate_rank_max?: number;
   handoff_selected_candidate_nonzero_ranks?: number;
   handoff_selected_candidate_by_source?: Partial<Record<HandoffCandidateSourceName, number>>;
+  handoff_selected_axis_quality_by_axis?: Partial<Record<AxisName, number>>;
   handoff_selected_candidate_pool_count?: number;
   handoff_selected_candidate_reuse_count?: number;
   handoff_selected_candidate_brake_count?: number;
@@ -243,6 +244,8 @@ function fmtStats(stats: CompileStats | undefined): string {
     `ufull=${formatUniqueFullEvaluations(stats)}`,
     `partial=${stats.handoff_partial_evaluations ?? "?"}`,
   ];
+  const selectedAxisQualitySources = formatSelectedAxisQualitySources(stats);
+  if (selectedAxisQualitySources !== "") parts.push(`axisqSrc=${selectedAxisQualitySources}`);
   return parts.join(" ");
 }
 
@@ -265,6 +268,10 @@ function formatSelectedCandidateSources(stats: CompileStats): string {
   return HANDOFF_CANDIDATE_SOURCES
     .map((source) => selectedCandidateSourceStat(stats, source) ?? "?")
     .join("/");
+}
+
+function formatSelectedAxisQualitySources(stats: CompileStats): string {
+  return formatAxisCountMap(stats.handoff_selected_axis_quality_by_axis);
 }
 
 function fmtCandidateStats(stats: CompileStats): string {
@@ -510,6 +517,7 @@ type CandidateRankSummary = {
   reuse: number;
   brake: number;
   axisq: number;
+  axisqByAxis: Partial<Record<AxisName, number>>;
 };
 
 function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
@@ -528,6 +536,7 @@ function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
     reuse: 0,
     brake: 0,
     axisq: 0,
+    axisqByAxis: {},
   };
 
   for (const row of rows) {
@@ -553,6 +562,7 @@ function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
         reuse: 0,
         brake: 0,
         axisq: 0,
+        axisqByAxis: {},
       };
       byLane.set(lane, summary);
     }
@@ -585,15 +595,18 @@ function accumulateRankSummary(
   summary.reuse += selectedCandidateSourceStat(stats, "reuse") ?? 0;
   summary.brake += selectedCandidateSourceStat(stats, "brake") ?? 0;
   summary.axisq += selectedCandidateSourceStat(stats, "axisq") ?? 0;
+  accumulateAxisCountMap(summary.axisqByAxis, stats.handoff_selected_axis_quality_by_axis);
 }
 
 function printCandidateRankSummary(label: string, summary: CandidateRankSummary): void {
   const meanRank = summary.contacts > 0 ? summary.weightedRankSum / summary.contacts : 0;
+  const axisqByAxis = formatAxisCountMap(summary.axisqByAxis);
   console.log(
     `  ${label.padEnd(8)} n=${String(summary.rows).padStart(3)} ` +
       `nonzero=${summary.nonzero}/${summary.contacts} ` +
       `mean=${meanRank.toFixed(2)} max=${summary.maxRank} ` +
-      `src=${summary.pool}/${summary.reuse}/${summary.brake}/${summary.axisq}`,
+      `src=${summary.pool}/${summary.reuse}/${summary.brake}/${summary.axisq}` +
+      (axisqByAxis === "" ? "" : ` axisqSrc=${axisqByAxis}`),
   );
 }
 
@@ -726,6 +739,30 @@ function legacySelectedCandidateSourceStat(
   if (source === "brake") return stats?.handoff_selected_candidate_brake_count;
   if (source === "axisq") return stats?.handoff_selected_candidate_axis_quality_count;
   return undefined;
+}
+
+function accumulateAxisCountMap(
+  target: Partial<Record<AxisName, number>>,
+  source: Partial<Record<AxisName, number>> | undefined,
+): void {
+  if (source === undefined) return;
+  for (const axis of AXES) {
+    const value = source[axis];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      target[axis] = (target[axis] ?? 0) + value;
+    }
+  }
+}
+
+function formatAxisCountMap(counts: Partial<Record<AxisName, number>> | undefined): string {
+  if (counts === undefined) return "";
+  return AXES
+    .map((axis) => {
+      const count = counts[axis] ?? 0;
+      return count === 0 ? null : `${axis}:${count}`;
+    })
+    .filter((entry): entry is string => entry !== null)
+    .join(",");
 }
 
 function printArcPlacementDiagnostics(data: GoldenCurveJson): void {

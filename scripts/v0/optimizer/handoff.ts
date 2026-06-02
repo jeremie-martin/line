@@ -116,6 +116,9 @@ export type HandoffNode = {
   /** Candidate stream per gap, parallel to `ranks`; `skip` means no contact
    *  candidate was committed for that gap. */
   rankSources: HandoffCandidateSource[];
+  /** Registered axis-quality stream axis per gap, parallel to `rankSources`.
+   *  Non-axisq sources and skipped gaps use null. */
+  rankSourceAxes: Array<AxisName | null>;
   skippedContacts: number;
 };
 
@@ -144,6 +147,7 @@ type RankedOption = {
   child: SearchNode;
   rank: number;
   source: HandoffCandidateSource;
+  sourceAxis?: AxisName;
   score: number;
   previewContacts: number;
   previewSurvivors: number;
@@ -241,7 +245,12 @@ type ExtraCandidateCache = {
   brakeContract?: Candidate[];
   brakeQuality?: Candidate[];
   axisQualitySeed?: number;
-  axisQuality?: Candidate[];
+  axisQuality?: AxisQualityCandidate[];
+};
+
+type AxisQualityCandidate = {
+  candidate: Candidate;
+  axis: AxisName;
 };
 
 type AxisQualityStreamPolicy = {
@@ -469,6 +478,7 @@ function compileHandoffInternal(
         deferExpansion: false,
         ranks: [],
         rankSources: [],
+        rankSourceAxes: [],
         skippedContacts: 0,
       }
       : cloneSnapshotRoot(initialSnapshot, gaps.length, searchSeed);
@@ -752,6 +762,7 @@ function compileHandoffInternal(
             deferExpansion: node.deferExpansion,
             ranks: node.ranks,
             rankSources: node.rankSources,
+            rankSourceAxes: node.rankSourceAxes,
             skippedContacts: node.skippedContacts,
           };
           const evaluation = evaluateCached(polishNode);
@@ -910,6 +921,7 @@ function cloneHandoffNodeForBranch(
     deferExpansion: node.deferExpansion,
     ranks: [...node.ranks],
     rankSources: [...node.rankSources],
+    rankSourceAxes: [...node.rankSourceAxes],
     skippedContacts: node.skippedContacts,
   };
 }
@@ -1222,6 +1234,7 @@ function expandNode(
       deferExpansion: startOptions.length > 1,
       ranks: [],
       rankSources: [],
+      rankSourceAxes: [],
       skippedContacts: 0,
     }));
   }
@@ -1238,6 +1251,7 @@ function expandNode(
       deferExpansion: false,
       ranks: [...node.ranks, -1],
       rankSources: [...node.rankSources, "skip"],
+      rankSourceAxes: [...node.rankSourceAxes, null],
       skippedContacts: node.skippedContacts,
     }];
   }
@@ -1291,6 +1305,7 @@ function expandNode(
       deferExpansion: true,
       ranks: [...node.ranks, -1],
       rankSources: [...node.rankSources, "skip"],
+      rankSourceAxes: [...node.rankSourceAxes, null],
       skippedContacts: node.skippedContacts + 1,
     }];
   }
@@ -1306,6 +1321,7 @@ function expandNode(
     deferExpansion: false,
     ranks: [...node.ranks, option.rank],
     rankSources: [...node.rankSources, option.source],
+    rankSourceAxes: [...node.rankSourceAxes, option.sourceAxis ?? null],
     skippedContacts: node.skippedContacts + (option.candidate === null ? 1 : 0),
   }));
 }
@@ -1426,10 +1442,10 @@ function rankedOptions(
     config.axisQualitySearch ?? false,
     telemetry,
   );
-  axisQuality.forEach((candidate, j) =>
+  axisQuality.forEach((entry, j) =>
     scored.push(scoreCandidateForHandoff(
       node,
-      candidate,
+      entry.candidate,
       poolSize + reuse.length + brake.length + j,
       "axisq",
       gaps,
@@ -1438,6 +1454,7 @@ function rankedOptions(
       telemetry,
       preview,
       previewCostWeight,
+      entry.axis,
     ))
   );
   scored.sort((a, b) =>
@@ -1455,7 +1472,7 @@ function cachedAxisQualityCandidates(
   seed: number,
   enabled: boolean,
   telemetry: HandoffTelemetry,
-): Candidate[] {
+): AxisQualityCandidate[] {
   if (!enabled) return [];
   const cache = extraCandidateCache.get(node) ?? {};
   if (cache.axisQualitySeed !== undefined && cache.axisQualitySeed !== seed) {
@@ -1478,10 +1495,10 @@ function axisQualityCandidates(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
-): Candidate[] {
+): AxisQualityCandidate[] {
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return [];
-  const out: Candidate[] = [];
+  const out: AxisQualityCandidate[] = [];
   for (const axis of AXES) {
     const policy = HANDOFF_AXIS_QUALITY_STREAMS[axis];
     const target = gap.targets?.[axis];
@@ -1505,7 +1522,7 @@ function axisQualityCandidates(
         telemetry.axisQualitySuccesses++;
         telemetry.axisQualitySuccessesByAxis[axis] =
           (telemetry.axisQualitySuccessesByAxis[axis] ?? 0) + 1;
-        out.push(candidate);
+        out.push({ candidate, axis });
       }
     }
   }
@@ -1698,6 +1715,7 @@ function completeNearTail(
     node.search,
     [...node.ranks],
     [...node.rankSources],
+    [...node.rankSourceAxes],
     gaps,
     ctx,
     node.searchSeed,
@@ -1720,6 +1738,7 @@ function completeNearTail(
     deferExpansion: false,
     ranks: completed.ranks,
     rankSources: completed.rankSources,
+    rankSourceAxes: completed.rankSourceAxes,
     skippedContacts: node.skippedContacts,
   };
 }
@@ -1740,6 +1759,7 @@ function completeWeakPrefixWithBoundedSuffix(
     node.search,
     [...node.ranks],
     [...node.rankSources],
+    [...node.rankSourceAxes],
     gaps,
     ctx,
     node.searchSeed,
@@ -1762,6 +1782,7 @@ function completeWeakPrefixWithBoundedSuffix(
     deferExpansion: false,
     ranks: completed.result.ranks,
     rankSources: completed.result.rankSources,
+    rankSourceAxes: completed.result.rankSourceAxes,
     skippedContacts: node.skippedContacts,
   };
 }
@@ -1770,12 +1791,14 @@ type CompletedHandoffSuffix = {
   search: SearchNode;
   ranks: number[];
   rankSources: HandoffCandidateSource[];
+  rankSourceAxes: Array<AxisName | null>;
 };
 
 function completeNearTailSuffix(
   start: SearchNode,
   startRanks: number[],
   startSources: HandoffCandidateSource[],
+  startSourceAxes: Array<AxisName | null>,
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
@@ -1785,20 +1808,27 @@ function completeNearTailSuffix(
   expandedBrakeSearch: boolean,
 ): CompletedHandoffSuffix | null {
   const stack: CompletedHandoffSuffix[] = [
-    { search: start, ranks: startRanks, rankSources: startSources },
+    {
+      search: start,
+      ranks: startRanks,
+      rankSources: startSources,
+      rankSourceAxes: startSourceAxes,
+    },
   ];
   while (stack.length > 0) {
     const state = stack.pop()!;
     let search = state.search;
     const ranks = [...state.ranks];
     const rankSources = [...state.rankSources];
+    const rankSourceAxes = [...state.rankSourceAxes];
 
     while (!isTerminalNode(search, gaps) && !gaps[search.gapIndex].endsWithContact) {
       search = extendNodeCached(search, null);
       ranks.push(-1);
       rankSources.push("skip");
+      rankSourceAxes.push(null);
     }
-    if (isTerminalNode(search, gaps)) return { search, ranks, rankSources };
+    if (isTerminalNode(search, gaps)) return { search, ranks, rankSources, rankSourceAxes };
 
     const gap = gaps[search.gapIndex];
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
@@ -1816,6 +1846,7 @@ function completeNearTailSuffix(
         search: extendNodeCached(search, option.candidate!),
         ranks: [...ranks, option.rank],
         rankSources: [...rankSources, option.source],
+        rankSourceAxes: [...rankSourceAxes, option.sourceAxis ?? null],
       });
     }
   }
@@ -1826,6 +1857,7 @@ function completeBoundedSuffix(
   start: SearchNode,
   startRanks: number[],
   startSources: HandoffCandidateSource[],
+  startSourceAxes: Array<AxisName | null>,
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
@@ -1834,7 +1866,12 @@ function completeBoundedSuffix(
   expandedBrakeSearch: boolean,
 ): { result: CompletedHandoffSuffix | null; nodes: number } {
   const stack: CompletedHandoffSuffix[] = [
-    { search: start, ranks: startRanks, rankSources: startSources },
+    {
+      search: start,
+      ranks: startRanks,
+      rankSources: startSources,
+      rankSourceAxes: startSourceAxes,
+    },
   ];
   let nodes = 0;
 
@@ -1843,13 +1880,17 @@ function completeBoundedSuffix(
     let search = state.search;
     const ranks = [...state.ranks];
     const rankSources = [...state.rankSources];
+    const rankSourceAxes = [...state.rankSourceAxes];
 
     while (!isTerminalNode(search, gaps) && !gaps[search.gapIndex].endsWithContact) {
       search = extendNodeCached(search, null);
       ranks.push(-1);
       rankSources.push("skip");
+      rankSourceAxes.push(null);
     }
-    if (isTerminalNode(search, gaps)) return { result: { search, ranks, rankSources }, nodes };
+    if (isTerminalNode(search, gaps)) {
+      return { result: { search, ranks, rankSources, rankSourceAxes }, nodes };
+    }
 
     nodes++;
     const gap = gaps[search.gapIndex];
@@ -1868,6 +1909,7 @@ function completeBoundedSuffix(
         search: extendNodeCached(search, option.candidate!),
         ranks: [...ranks, option.rank],
         rankSources: [...rankSources, option.source],
+        rankSourceAxes: [...rankSourceAxes, option.sourceAxis ?? null],
       });
     }
   }
@@ -1971,6 +2013,7 @@ function scoreCandidateForHandoff(
   telemetry: HandoffTelemetry,
   usePreview = true,
   previewCostWeight = PREVIEW_COST_WEIGHT,
+  sourceAxis?: AxisName,
 ): RankedOption {
   const child = extendNodeCached(node, candidate);
   const preview = usePreview
@@ -2006,6 +2049,7 @@ function scoreCandidateForHandoff(
     child,
     rank,
     source,
+    sourceAxis,
     previewContacts: preview.landed,
     previewSurvivors: preview.survivors,
     score: candidate.cost + scarcity + previewCost + statePenalty + overshoot,
@@ -2417,6 +2461,7 @@ function buildNodeOutput(
   const candidateRankSum = candidateRanks.reduce((sum, rank) => sum + rank, 0);
   const candidateRankCount = candidateRanks.length;
   const sourceCounts = selectedCandidateSourceCounts(node);
+  const axisQualitySourceCounts = selectedAxisQualitySourceCounts(node);
   return {
     track: buildTrackJson(allLines, outputDurationFrames, node.startState),
     report,
@@ -2449,6 +2494,7 @@ function buildNodeOutput(
       handoff_selected_candidate_nonzero_ranks:
         candidateRanks.filter((rank) => rank > 0).length,
       handoff_selected_candidate_by_source: { ...sourceCounts },
+      handoff_selected_axis_quality_by_axis: axisQualitySourceCounts,
       handoff_selected_candidate_pool_count: sourceCounts.pool,
       handoff_selected_candidate_reuse_count: sourceCounts.reuse,
       handoff_selected_candidate_brake_count: sourceCounts.brake,
@@ -2468,6 +2514,19 @@ function selectedCandidateSourceCounts(
     const source = node.rankSources[i] ?? "pool";
     if (source === "skip") continue;
     counts[source]++;
+  }
+  return counts;
+}
+
+function selectedAxisQualitySourceCounts(
+  node: HandoffNode,
+): Partial<Record<AxisName, number>> {
+  const counts: Partial<Record<AxisName, number>> = {};
+  for (let i = 0; i < node.ranks.length; i++) {
+    if (node.ranks[i] < 0 || node.rankSources[i] !== "axisq") continue;
+    const axis = node.rankSourceAxes[i];
+    if (axis === null || axis === undefined) continue;
+    counts[axis] = (counts[axis] ?? 0) + 1;
   }
   return counts;
 }

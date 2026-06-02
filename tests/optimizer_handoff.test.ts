@@ -198,6 +198,13 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_selected_candidate_by_source?.axisq ?? 0).toBe(
       a.stats.handoff_selected_candidate_axis_quality_count ?? 0,
     );
+    const selectedAxisQualityByAxis = AXES.reduce(
+      (sum, axis) => sum + (a.stats.handoff_selected_axis_quality_by_axis?.[axis] ?? 0),
+      0,
+    );
+    expect(selectedAxisQualityByAxis).toBe(
+      a.stats.handoff_selected_candidate_by_source?.axisq ?? 0,
+    );
     expect(a.stats.handoff_partial_evaluations).toBeGreaterThan(0);
     expect(a.stats.handoff_full_evaluations).toBeGreaterThan(0);
     expect(a.stats.handoff_previews).toBeGreaterThan(0);
@@ -238,6 +245,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       .toBe(b.stats.handoff_selected_candidate_axis_quality_count);
     expect(a.stats.handoff_selected_candidate_by_source)
       .toEqual(b.stats.handoff_selected_candidate_by_source);
+    expect(a.stats.handoff_selected_axis_quality_by_axis)
+      .toEqual(b.stats.handoff_selected_axis_quality_by_axis);
     expect(a.stats.handoff_full_evaluations).toBe(b.stats.handoff_full_evaluations);
     expect(a.stats.handoff_preview_contacts).toBe(b.stats.handoff_preview_contacts);
     expect(a.stats.handoff_preview_survivors).toBe(b.stats.handoff_preview_survivors);
@@ -333,6 +342,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(snapshot.node.search._childrenCache).toBeUndefined();
     expect(snapshot.node.ranks.length).toBe(snapshot.node.search.gapIndex);
     expect(snapshot.node.rankSources.length).toBe(snapshot.node.ranks.length);
+    expect(snapshot.node.rankSourceAxes.length).toBe(snapshot.node.ranks.length);
     expect(snapshot.node.skippedContacts).toBe(0);
     expect(snapshot.event.simFrames).toBeGreaterThan(0);
   }, 60_000);

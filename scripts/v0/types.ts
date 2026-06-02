@@ -284,6 +284,9 @@ export type CompileStats = {
    *  map for new analyzer/reporting code; the flattened fields below are kept as
    *  compact JSON compatibility mirrors. */
   handoff_selected_candidate_by_source?: HandoffCandidateSourceCounter;
+  /** For selected candidates whose source is `axisq`, split selected best-path
+   *  usage by the registered axis-quality stream that produced the candidate. */
+  handoff_selected_axis_quality_by_axis?: Partial<Record<AxisName, number>>;
   handoff_selected_candidate_pool_count?: number;
   handoff_selected_candidate_reuse_count?: number;
   handoff_selected_candidate_brake_count?: number;

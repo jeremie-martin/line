@@ -760,6 +760,7 @@ function compactStats(stats: CompileStats | null): object | null {
   if (stats === null) return null;
   return {
     candidates_sampled: stats.candidates_sampled,
+    candidates_viable: stats.candidates_viable,
     sim_frames: stats.sim_frames,
     budget_exhausted: stats.budget_exhausted,
     leaves_considered: stats.leaves_considered,

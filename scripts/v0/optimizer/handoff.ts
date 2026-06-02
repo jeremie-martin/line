@@ -65,6 +65,7 @@ import {
 import { resetArcPlacementStats, snapshotArcPlacementStats } from "../arc_placement.ts";
 import {
   getCandidateSamples,
+  getViableCandidates,
   resetCandidateSamples,
   sampleOneCandidate,
 } from "./sample.ts";
@@ -519,6 +520,7 @@ function compileHandoffInternal(
         stats: {
           ...best.stats,
           candidates_sampled: getCandidateSamples(),
+          candidates_viable: getViableCandidates(),
           budget_exhausted: budgetExhausted,
           sim_frames: getSimFrames(),
           leaves_considered: register.consideredCount,
@@ -2116,6 +2118,7 @@ function buildNodeOutput(
     report,
     stats: {
       candidates_sampled: getCandidateSamples(),
+      candidates_viable: getViableCandidates(),
       engine_rebuilds: 0,
       gap_commits: fits.filter((fit) => fit !== null).length,
       gap_backtracks: 0,

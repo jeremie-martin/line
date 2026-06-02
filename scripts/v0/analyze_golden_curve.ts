@@ -23,6 +23,7 @@ type BudgetScore = {
 
 type CompileStats = {
   candidates_sampled?: number;
+  candidates_viable?: number;
   sim_frames?: number;
   committed_costs_per_gap?: Array<number | null>;
   leaves_considered?: number;
@@ -127,7 +128,7 @@ function fmtStats(stats: CompileStats | undefined): string {
   if (stats === undefined) return "";
   const parts = [
     `sim=${stats.sim_frames ?? "?"}`,
-    `cand=${stats.candidates_sampled ?? "?"}`,
+    `cand=${fmtCandidateStats(stats)}`,
     `leaves=${stats.leaves_considered ?? "?"}`,
     `expanded=${stats.search_nodes_expanded ?? "?"}`,
     `frontier=${stats.handoff_frontier_size ?? "?"}`,
@@ -151,6 +152,14 @@ function fmtStats(stats: CompileStats | undefined): string {
     `partial=${stats.handoff_partial_evaluations ?? "?"}`,
   ];
   return parts.join(" ");
+}
+
+function fmtCandidateStats(stats: CompileStats): string {
+  const sampled = stats.candidates_sampled;
+  const viable = stats.candidates_viable;
+  if (sampled === undefined) return "?";
+  if (viable === undefined) return String(sampled);
+  return `${sampled}/${viable}`;
 }
 
 function fmtStart(stats: CompileStats): string {

@@ -162,6 +162,8 @@ export type CompileStats = {
   /** Per-gap candidate samples (sampleArcParams calls). The most
    *  fine-grained unit of "search work" in the optimizer. */
   candidates_sampled: number;
+  /** Candidate samples that survived hard gates and returned a viable GapFit. */
+  candidates_viable: number;
   /** Full engine rebuilds (rebuildEngine calls). Coarse but explicit
    *  physics-replay cost; mostly triggered by polish passes. */
   engine_rebuilds: number;

@@ -139,6 +139,11 @@ Work accounting now reports real `candidates_sampled` values for handoff:
 and printed by the curve analyzer. This makes future probes easier to judge on
 candidate-work waste as well as simulated-frame budget.
 
+Work accounting also reports `candidates_viable`: sampled candidates that
+survive hard gates and return a `GapFit`. The analyzer prints sampled/viable as
+`cand=a/b`, so future probes can separate raw sampling volume from hard-gate
+attrition.
+
 Candidate caches are now explicitly search-seed-aware. A `SearchNode` can still
 extend or shrink deterministic candidate-count prefixes for the same lane, but a
 request with a different search seed resamples instead of reusing a stale cache.

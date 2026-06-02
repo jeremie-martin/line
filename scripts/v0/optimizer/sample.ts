@@ -7,8 +7,9 @@
  * null if the candidate doesn't survive the hard gates inside
  * `tryCandidate` (survival, on-beat landing, no off-beat).
  *
- * This is the smallest verifiable unit of the rebuild: a pure function
- * with no module-level state. Same inputs → same output, every time.
+ * This is the smallest verifiable unit of the rebuild: same inputs produce the
+ * same output every time. The only module-level state is non-behavioral work
+ * instrumentation, reset by compiler entry points before each compile.
  *
  * The chainer in Step 3+ wraps this call in a per-gap loop. The
  * solver in Step 2 wraps it in a "sample K then sort" pattern.
@@ -49,13 +50,19 @@ export type SpecContext = {
 };
 
 let candidateSampleCount = 0;
+let viableCandidateCount = 0;
 
 export function resetCandidateSamples(): void {
   candidateSampleCount = 0;
+  viableCandidateCount = 0;
 }
 
 export function getCandidateSamples(): number {
   return candidateSampleCount;
+}
+
+export function getViableCandidates(): number {
+  return viableCandidateCount;
 }
 
 /** Sample exactly one candidate at the given gap from the given
@@ -114,6 +121,7 @@ export function sampleOneCandidate(
   // periodic specs). Sled-relative geometry → translating by the sled delta
   // reproduces the same catch shape at the new entry.
   if (fit !== null) {
+    viableCandidateCount++;
     fit.ref = { x: targetState.sledX, y: targetState.sledY };
     fit.sampleAttempt = attempt;
   }

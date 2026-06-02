@@ -12,10 +12,10 @@ import {
 } from "../../lib/detector.ts";
 import type { TrackJson } from "../../lib/primitive.ts";
 import {
-  type Spec, type AxisValues,
+  type Spec, type AxisName, type AxisValues,
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
-  AXES, CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
+  AXES, AXIS_VALUE_MAX, CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
 } from "../types.ts";
 import { measureGapAxes } from "./measure.ts";
 
@@ -243,22 +243,12 @@ export function sliceTimeline(contactFrames: number[], durationFrames: number): 
 }
 
 export function effectiveAxes(gap: Gap, spec: Spec): AxisValues {
-  const sums: Record<keyof AxisValues, number> = {
-    air: 0,
-    speed: 0,
-    contact_style: 0,
-    grain: 0,
-  };
-  const counts: Record<keyof AxisValues, number> = {
-    air: 0,
-    speed: 0,
-    contact_style: 0,
-    grain: 0,
-  };
+  const sums = zeroAxisRecord();
+  const counts = zeroAxisRecord();
 
   for (let frame = gap.startFrame; frame <= gap.endFrame; frame++) {
     const axes = axesAtFrame(frame, spec);
-    for (const key of ["air", "speed", "contact_style", "grain"] as const) {
+    for (const key of AXES) {
       const value = axes[key];
       if (value === undefined) continue;
       sums[key] += value;
@@ -267,9 +257,15 @@ export function effectiveAxes(gap: Gap, spec: Spec): AxisValues {
   }
 
   const out: AxisValues = {};
-  for (const key of ["air", "speed", "contact_style", "grain"] as const) {
+  for (const key of AXES) {
     if (counts[key] > 0) out[key] = sums[key] / counts[key];
   }
+  return out;
+}
+
+function zeroAxisRecord(): Record<AxisName, number> {
+  const out = {} as Record<AxisName, number>;
+  for (const name of AXES) out[name] = 0;
   return out;
 }
 
@@ -292,10 +288,10 @@ export function sampleGapTargets(
   rng: () => number,
 ): AxisValues {
   const out: AxisValues = {};
-  if (section.air !== undefined)           out.air = clamp(gauss(rng, section.air, sigma), 0, 0.99);
-  if (section.speed !== undefined)         out.speed = clamp(gauss(rng, section.speed, sigma), 0, 1);
-  if (section.contact_style !== undefined) out.contact_style = clamp(gauss(rng, section.contact_style, sigma), 0, 1);
-  if (section.grain !== undefined)         out.grain = clamp(gauss(rng, section.grain, sigma), 0, 1);
+  for (const name of AXES) {
+    const value = section[name];
+    if (value !== undefined) out[name] = clamp(gauss(rng, value, sigma), 0, AXIS_VALUE_MAX[name]);
+  }
   return out;
 }
 
@@ -338,14 +334,14 @@ export function validateSpec(spec: Spec): void {
 /**
  * Validate axis curves stay in range across the track. A curve is continuous,
  * so we sample it at every frame (the resolution the compiler actually sees)
- * and bound-check each defined value. `air ∈ [0, 0.99]`, others `∈ [0, 1]`.
+ * and bound-check each defined value.
  */
 function validateAxisCurves(spec: Spec): void {
   const durationFrames = secToFrame(spec.duration);
   for (const name of AXES) {
     const curve = spec.axes?.[name];
     if (curve === undefined) continue;
-    const hi = name === "air" ? 0.99 : 1;
+    const hi = AXIS_VALUE_MAX[name];
     for (let f = 0; f <= durationFrames; f++) {
       const v = curve(f / FPS);
       if (v === undefined) continue;

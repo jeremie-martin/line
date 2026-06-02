@@ -10,7 +10,7 @@ import {
   loadGoldenSpec,
   variantCases,
 } from "../scripts/v0/golden_suite.ts";
-import { AXES, type Spec } from "../scripts/v0/types.ts";
+import { AXES, AXIS_VALUE_MAX, type Spec } from "../scripts/v0/types.ts";
 
 function expectValidSpec(spec: Spec): void {
   expect(spec.duration).toBeGreaterThan(0);
@@ -28,7 +28,7 @@ function expectValidSpec(spec: Spec): void {
   for (const name of AXES) {
     const curve = spec.axes?.[name];
     if (curve === undefined) continue;
-    const hi = name === "air" ? 0.99 : 1;
+    const hi = AXIS_VALUE_MAX[name];
     for (let f = 0; f <= durationFrames; f++) {
       const v = curve(f / 40);
       if (v === undefined) continue;

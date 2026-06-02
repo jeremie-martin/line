@@ -90,6 +90,11 @@ overshoot pressure is a small policy table rather than inline named-axis
 branches. This does not claim a curve-score gain; it makes future axis additions
 and ranker changes explicit, easier to test, and easier to remove.
 
+The follow-up substrate cleanup centralizes per-axis value bounds and uses the
+canonical axis registry for target averaging, target jitter clamping, and spec
+validation. This is also behavior-preserving; its purpose is to keep new-axis
+work from requiring edits to several hidden four-axis lists.
+
 Rejected follow-up probes:
 
 - Baseline-first branch scheduling, where the best normal child runs before the

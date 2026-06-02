@@ -76,6 +76,14 @@ export type Curve = (t: number) => number | undefined;
 export const AXES = ["air", "speed", "contact_style", "grain"] as const;
 export type AxisName = (typeof AXES)[number];
 
+/** Upper bound for each normalized authored/measured axis value. */
+export const AXIS_VALUE_MAX = {
+  air: 0.99,
+  speed: 1,
+  contact_style: 1,
+  grain: 1,
+} as const satisfies Record<AxisName, number>;
+
 /**
  * Resolved or measured per-axis scalar values for one gap (or one frame).
  * The numeric bag flowing through `gap.targets`, candidate `achieved`,

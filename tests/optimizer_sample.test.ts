@@ -11,7 +11,7 @@
 import { describe, test, expect } from "vitest";
 import { sampleOneCandidate, type SpecContext } from "../scripts/v0/optimizer/sample.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
-import { FPS, secToFrame } from "../scripts/v0/types.ts";
+import { AXIS_VALUE_MAX, FPS, secToFrame } from "../scripts/v0/types.ts";
 import { makeRng } from "../scripts/lib/rng.ts";
 import {
   effectiveAxes,
@@ -48,6 +48,15 @@ async function setupAt(name: string, seed: number) {
 }
 
 describe("optimizer/sample.ts — Step 1 atomic sample", () => {
+  test("gap target sampling uses canonical per-axis bounds", () => {
+    const sampled = sampleGapTargets(
+      { air: 2, speed: 2, contact_style: 2, grain: 2 },
+      0,
+      () => 0.5,
+    );
+    expect(sampled).toEqual(AXIS_VALUE_MAX);
+  });
+
   test("two calls with the same RNG seed produce identical candidates", async () => {
     const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
     const rngA = makeRng(42);

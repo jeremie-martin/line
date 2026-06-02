@@ -212,6 +212,12 @@ Rejected follow-up probes:
 - A weak contact-style segment-length prior for gaps without grain was also a
   score no-op on seed 0. Contact-style failures are not solved by a small
   median-line-length prior layered onto the existing random primitive.
+- Extending the air-only ride-out primitive to mixed low-air gaps as a capped
+  final-line continuation was a full-workbench no-op: the 10-spec dense `150k`
+  workbench was byte-identical in score and work counters. The low-air plateau
+  is not reachable through post-contact continuation under the current
+  measurement windows; a real fix likely needs pre-contact/approach geometry or
+  ranking changes.
 - A naive quality-phase poor-fit rescue, which reran the larger deterministic
   rescue batch whenever the best local candidate cost was severe, made the
   focused handoff test run take `155s`. Poor-fit rescue may still be worth

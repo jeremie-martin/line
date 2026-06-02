@@ -263,6 +263,14 @@ Rejected follow-up probes:
   by `grain_staircase seed=2 +3.19`. This cheaper cap has the same shape as the
   cadence failure: branch conversions are rare, but bluntly cutting patience
   loses some high-value late suffixes.
+- Requiring a deeper committed prefix before prefix branching
+  (`PREFIX_BRANCH_MIN_PREFIX_CONTACTS 4 -> 8`) was also too blunt. On the same
+  18-row branch-heavy smoke, common rows moved `-3.94` at `75k` and `-2.71` at
+  `150k`. The worst `150k` losses were `syncopated_switchback seed=1 -33.61`
+  and `drums_crescendo seed=0 -27.24`, partly offset by
+  `drums_crescendo seed=2 +12.10`. Useful branch opportunities are not just
+  later-prefix suffix resampling; some early-ish branch timing is part of the
+  current successful path.
 - Keeping future-contact preview enabled after a passing output exists was a
   broad base-optimizer probe, not a branch-wrapper change. It was strongly
   negative on the same 18-row smoke: common rows moved `-5.66` at `75k` and

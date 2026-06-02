@@ -118,7 +118,7 @@ export type HandoffContactCountCounter = Partial<Record<number, number>>;
 
 /** Compiler-owned candidate sampling streams. Normal is the main deterministic
  *  candidate prefix; extra streams must justify their sample budget separately. */
-export const CANDIDATE_SAMPLE_MODES = ["normal", "brake", "air_support"] as const;
+export const CANDIDATE_SAMPLE_MODES = ["normal", "brake", "air_support", "contact_shape"] as const;
 export type CandidateSampleMode = (typeof CANDIDATE_SAMPLE_MODES)[number];
 
 export type ArcPlacementCounter = {
@@ -431,6 +431,9 @@ export type CompileStats = {
     direct_failed: number;
     fallback_attempted: number;
     fallback_landed: number;
+    /** Catches whose contact-region tangent was rotated to the rider's incoming
+     *  velocity axis (contact_shape stream). Non-scoring diagnostic. */
+    tangent_biased: number;
     by_sample_mode: Record<CandidateSampleMode, ArcPlacementCounter>;
   };
 };

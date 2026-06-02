@@ -55,6 +55,12 @@ const AIR_SUPPORT_END_ANGLE_MIN = -6;
 const AIR_SUPPORT_END_ANGLE_MAX = 10;
 const AIR_SUPPORT_CURVE_BIAS_MAX = 0.35;
 
+/** contact_shape stream: half-spread (degrees) of the gentle base curvature
+ *  before the arc is rotated to the rider's velocity axis. Kept small so the
+ *  contact region is a near-straight ramp whose orientation (not curvature)
+ *  carries the contact_style/air control. */
+const CONTACT_SHAPE_CURVE_DEG = 12;
+
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 
 type WindowDetection = Detection & { frameOffset?: number };
@@ -165,6 +171,22 @@ export function sampleArcParams(
   const steepTemplateIndex = steepCatchTemplateIndex(attempt);
   if (mode === "normal" && steepTemplateIndex !== null && shouldUseSteepCatch(targetState, gap)) {
     return sampleSteepCatchArc(targetState, CATCH_TEMPLATES[steepTemplateIndex]);
+  }
+
+  if (mode === "contact_shape" && impactAnchorEnabled()) {
+    // Place a near-straight ramp through the simulated landing point, oriented at
+    // the rider's incoming velocity axis ± a sampled offset (done inside
+    // sampleImpactAnchoredArc via tangentBias). This injects orientation-relative-
+    // to-velocity, the degree of freedom the absolute-frame normal sampler lacks.
+    const Acs = CALIB.ARC;
+    const csLength = Acs.LENGTH_MIN + rng() * (Acs.LENGTH_MAX - Acs.LENGTH_MIN);
+    const csSegments = Acs.SEGMENTS_MIN
+      + Math.floor(rng() * (Acs.SEGMENTS_MAX - Acs.SEGMENTS_MIN + 1));
+    const csCurve = (rng() - 0.5) * 2 * CONTACT_SHAPE_CURVE_DEG;
+    recordImpactAnchorSample(mode);
+    return sampleImpactAnchoredArc(
+      rng, targetState, targets, csLength, -csCurve / 2, csCurve / 2, csSegments, 0, true,
+    );
   }
 
   const A = CALIB.ARC;

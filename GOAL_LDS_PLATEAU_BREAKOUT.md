@@ -305,6 +305,16 @@ converted `1/2` attempts using `64` suffix nodes, raised full evaluations from
 hypothesis that some plateau rows need bounded suffix branching/repair, not just
 earlier scoring or more one-step candidate samples.
 
+The suffix-repair scarcity gate now counts unique full-duration outputs rather
+than every full-duration register offer. Exact duplicate `SearchNode` offers do
+not represent new terminal basins, so they should not consume the "very few full
+evaluations" cap that decides whether bounded repair is still appropriate. This
+is a semantic cleanup, not a plateau-score gain: the 10-spec dense `150k`
+workbench matched the prior current-head artifact at every checkpoint with
+`workΔ(sim=+0 cand=+0 viable=+0)`, and the canonical 20-spec default golden
+curve also matched exactly (`CURVE_SCORE 322.46`, `75k` common-row delta
+`+0.00`, zero work deltas).
+
 Promotion sanity check: the current compiler with bounded suffix repair also
 completed the canonical 20-spec, 3-seed, default-budget golden curve without
 variants. It reported `CURVE_SCORE 322.46`, reached `60/60` validity by `55k`,

@@ -1914,7 +1914,10 @@ function shouldAttemptSuffixRepair(
 ): boolean {
   if (bestKey?.contract_passed !== true) return false;
   if (bestKey.axis_quality >= QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY) return false;
-  if (telemetry.fullEvaluations >= QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS) return false;
+  // Suffix repair is for genuinely scarce terminal feedback. Exact duplicate
+  // full-output offers do not add a new terminal basin, so do not let them
+  // consume the scarcity cap.
+  if (uniqueFullEvaluations(telemetry) >= QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS) return false;
   if (telemetry.suffixRepairAttempts >= QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS) return false;
   if (telemetry.frontierSelections % QUALITY_SUFFIX_REPAIR_INTERVAL !== 0) return false;
   if (node.searchLane !== 0) return false;
@@ -1922,6 +1925,10 @@ function shouldAttemptSuffixRepair(
   if (node.skippedContacts !== 0 || isTerminalNode(node.search, gaps)) return false;
   if (!node.search.prefixFits.some((fit) => fit !== null)) return false;
   return remainingContactCount(node.search, gaps) > TAIL_COMPLETION_CONTACT_WINDOW;
+}
+
+function uniqueFullEvaluations(telemetry: HandoffTelemetry): number {
+  return Math.max(0, telemetry.fullEvaluations - telemetry.duplicateFullEvaluations);
 }
 
 function remainingContactCount(node: SearchNode, gaps: Gap[]): number {

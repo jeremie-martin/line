@@ -93,6 +93,11 @@ type GoldenCurveJson = {
 };
 
 const TARGET_BANDS = ["<0.25", "0.25-0.5", "0.5-0.75", ">=0.75"] as const;
+const WORK_DELTA_STATS = [
+  ["sim", "sim_frames"],
+  ["cand", "candidates_sampled"],
+  ["viable", "candidates_viable"],
+] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats]>;
 
 function fmtBudget(budget: number): string {
   return budget % 1000 === 0 ? `${budget / 1000}k` : String(budget);
@@ -122,6 +127,10 @@ function fmtNum(value: number | undefined, digits = 2): string {
 
 function fmtSigned(value: number, digits = 2): string {
   return `${value >= 0 ? "+" : ""}${value.toFixed(digits)}`;
+}
+
+function fmtSignedInt(value: number): string {
+  return fmtSigned(value, 0);
 }
 
 function fmtStats(stats: CompileStats | undefined): string {
@@ -160,6 +169,31 @@ function fmtCandidateStats(stats: CompileStats): string {
   if (sampled === undefined) return "?";
   if (viable === undefined) return String(sampled);
   return `${sampled}/${viable}`;
+}
+
+function numericStat(stats: CompileStats | undefined, key: keyof CompileStats): number | undefined {
+  const value = stats?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function fmtWorkDeltas(
+  pairs: Array<{ currentRow: RunRow; baselineRow: RunRow }>,
+  budget: number,
+): string {
+  const parts: string[] = [];
+  for (const [label, key] of WORK_DELTA_STATS) {
+    let deltaSum = 0;
+    let count = 0;
+    for (const pair of pairs) {
+      const current = numericStat(checkpointAt(pair.currentRow, budget)?.compile_stats, key);
+      const baseline = numericStat(checkpointAt(pair.baselineRow, budget)?.compile_stats, key);
+      if (current === undefined || baseline === undefined) continue;
+      deltaSum += current - baseline;
+      count++;
+    }
+    if (count > 0) parts.push(`${label}=${fmtSignedInt(deltaSum / count)}`);
+  }
+  return parts.length === 0 ? "" : ` workΔ(${parts.join(" ")})`;
 }
 
 function fmtStart(stats: CompileStats): string {
@@ -457,7 +491,8 @@ function printComparison(current: GoldenCurveJson, baseline: GoldenCurveJson): v
       `    ${fmtBudget(budget).padStart(5)} ` +
         `${baselineMean.toFixed(2).padStart(7)} -> ${currentMean.toFixed(2).padStart(7)} ` +
         `delta=${fmtSigned(delta).padStart(7)} ` +
-        `valid=${currentPassed}/${count} (${fmtSigned(passDelta, 0)})`,
+        `valid=${currentPassed}/${count} (${fmtSigned(passDelta, 0)})` +
+        fmtWorkDeltas(pairs, budget),
     );
   }
 

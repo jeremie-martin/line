@@ -144,6 +144,11 @@ survive hard gates and return a `GapFit`. The analyzer prints sampled/viable as
 `cand=a/b`, so future probes can separate raw sampling volume from hard-gate
 attrition.
 
+Analyzer comparison mode now reports average per-row work deltas at each common
+budget: `workΔ(sim=... cand=... viable=...)`. Use this when judging whether a
+probe improved the curve by spending substantially more compute or by using the
+same deterministic work sequence more effectively.
+
 Candidate caches are now explicitly search-seed-aware. A `SearchNode` can still
 extend or shrink deterministic candidate-count prefixes for the same lane, but a
 request with a different search seed resamples instead of reusing a stale cache.

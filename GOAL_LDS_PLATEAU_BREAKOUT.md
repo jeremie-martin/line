@@ -263,6 +263,16 @@ Rejected follow-up probes:
   by `grain_staircase seed=2 +3.19`. This cheaper cap has the same shape as the
   cadence failure: branch conversions are rare, but bluntly cutting patience
   loses some high-value late suffixes.
+- Keeping future-contact preview enabled after a passing output exists was a
+  broad base-optimizer probe, not a branch-wrapper change. It was strongly
+  negative on the same 18-row smoke: common rows moved `-5.66` at `75k` and
+  `-7.34` at `150k`, with large `150k` losses on
+  `syncopated_switchback seed=1 -40.58`, `drums_crescendo seed=0 -28.99`,
+  `opening_burst seed=2 -19.22`, and `drums_crescendo seed=2 -17.79`. The
+  added lookahead reduced candidate/leaf throughput under fixed budgets and
+  steered some rows into worse starts or basins. Keep the current policy:
+  preview helps contract search, but quality search should remain cheaper and
+  deeper until a more selective lookahead signal exists.
 - Lowering the prefix-branch incumbent floor (`axis_quality 0.24 -> 0.20`) was
   a smoke-scale no-op. On a 4-spec low-plateau/start smoke
   (`drums_pendulum`, `opening_burst`, `drums_tide`, `drums_dropout`) common rows

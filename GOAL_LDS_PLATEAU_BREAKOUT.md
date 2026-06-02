@@ -113,6 +113,17 @@ Rejected follow-up probes:
   contract failure but did not earn its compute: replacing lane 1 lost an
   existing branch win, and adding a second lane increased branch work while
   slightly reducing the seed-0 curve.
+- Widening the quality ranking pool from the cheapest `8` sampled candidates to
+  `9`, and then to all `16` already-sampled quality candidates, was a score
+  no-op on the seed-0 diagnostic workbench. The plateau is not simply that the
+  ranker ignores slightly more expensive samples.
+- A weak contact-style segment-length prior for gaps without grain was also a
+  score no-op on seed 0. Contact-style failures are not solved by a small
+  median-line-length prior layered onto the existing random primitive.
+- A naive quality-phase poor-fit rescue, which reran the larger deterministic
+  rescue batch whenever the best local candidate cost was severe, made the
+  focused handoff test run take `155s`. Poor-fit rescue may still be worth
+  revisiting, but only with a much tighter scheduler or cheaper trigger.
 
 ## Implementation Guardrails
 

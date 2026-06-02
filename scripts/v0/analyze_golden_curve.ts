@@ -22,6 +22,7 @@ type BudgetScore = {
 
 type CompileStats = {
   sim_frames?: number;
+  committed_costs_per_gap?: Array<number | null>;
   leaves_considered?: number;
   search_nodes_expanded?: number;
   handoff_frontier_size?: number;
@@ -147,15 +148,22 @@ function fmtStats(stats: CompileStats | undefined): string {
 
 function worstAxes(checkpoint: CheckpointRow, limit: number): string {
   const axes = checkpoint.axes ?? [];
+  const localCosts = checkpoint.compile_stats?.committed_costs_per_gap;
   return axes
     .slice()
     .sort((a, b) => Math.abs(b.error) - Math.abs(a.error))
     .slice(0, limit)
     .map((axis) =>
       `g${axis.gap_index}.${axis.axis} target=${axis.target.toFixed(2)} ` +
-        `ach=${axis.achieved.toFixed(2)} err=${axis.error.toFixed(2)}`
+        `ach=${axis.achieved.toFixed(2)} err=${axis.error.toFixed(2)}` +
+        localCostSuffix(localCosts?.[axis.gap_index])
     )
     .join(" ");
+}
+
+function localCostSuffix(cost: number | null | undefined): string {
+  if (cost === undefined) return "";
+  return cost === null ? " localCost=null" : ` localCost=${cost.toFixed(3)}`;
 }
 
 function rowLabel(row: RunRow): string {

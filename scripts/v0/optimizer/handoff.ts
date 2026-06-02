@@ -306,7 +306,7 @@ const PREFIX_BRANCH_MIN_REMAINING_CONTACTS = 4;
  *  enough to justify continuing it. This cap is per branch key, not global:
  *  pruning one non-converting suffix does not stop later baseline prefixes from
  *  forking their own deterministic lane. */
-const PREFIX_BRANCH_STALLED_FULL_EVAL_CAP = 48;
+const PREFIX_BRANCH_STALLED_FULL_EVAL_CAP = 24;
 
 export function compileHandoff(
   userSpec: Spec,

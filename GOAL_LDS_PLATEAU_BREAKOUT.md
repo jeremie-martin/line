@@ -65,6 +65,17 @@ may fail.
 Variants remain a report-only guardrail and are not part of the fast plateau
 loop unless the change touches robustness-sensitive behavior.
 
+## Current Campaign Evidence
+
+The first accepted plateau-loop cleanup is tighter stalled prefix-branch pruning:
+lowering the no-improvement branch cap from `48` to `24` full-duration branch
+evaluations. On the 10-spec dense `150k` workbench, this moved `CURVE_SCORE`
+`325.88 -> 326.09` with all checkpoint budgets positive and validity unchanged.
+It reduced branch full evaluations at `150k` from `3918` to `3509` while raising
+branch prunes from `101` to `197`. The largest `150k` win was
+`drums_dropout seed=1 +3.51`; the only material `150k` row regression was
+`drums_tide seed=0 -0.64`.
+
 ## Implementation Guardrails
 
 - Do not identify or indirectly key logic to benchmark spec names.

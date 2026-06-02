@@ -49,6 +49,7 @@ type CompileStats = {
   handoff_prefix_branch_evaluations?: number;
   handoff_prefix_branch_full_evaluations?: number;
   handoff_prefix_branch_improvements?: number;
+  handoff_prefix_branch_prunes?: number;
 };
 
 type AxisError = {
@@ -136,7 +137,8 @@ function fmtStats(stats: CompileStats | undefined): string {
     `branch=${stats.handoff_prefix_branch_improvements ?? "?"}/` +
       `${stats.handoff_prefix_branch_evaluations ?? "?"}` +
       `(${stats.handoff_prefix_branch_full_evaluations ?? "?"}f,` +
-      `${stats.handoff_prefix_branch_forks ?? "?"}forks)`,
+      `${stats.handoff_prefix_branch_forks ?? "?"}forks,` +
+      `${stats.handoff_prefix_branch_prunes ?? "?"}prunes)`,
     `full=${stats.handoff_full_evaluations ?? "?"}`,
     `partial=${stats.handoff_partial_evaluations ?? "?"}`,
   ];

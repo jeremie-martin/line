@@ -213,6 +213,9 @@ export type CompileStats = {
   handoff_prefix_branch_evaluations?: number;
   handoff_prefix_branch_full_evaluations?: number;
   handoff_prefix_branch_improvements?: number;
+  /** Alternate-lane branch subtrees pruned after producing full-duration
+   *  evaluations without any register improvement. */
+  handoff_prefix_branch_prunes?: number;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
    *  terminal prefixes use the full spec duration. */

@@ -88,6 +88,8 @@ export type HandoffNode = {
   searchSeed: number;
   /** Diagnostic lane id; lane 0 is the baseline deterministic handoff run. */
   searchLane: number;
+  /** Stable id for one alternate-lane prefix subtree. Undefined on baseline lane. */
+  prefixBranchKey?: string;
   startExpanded: boolean;
   deferExpansion: boolean;
   /** Sorted candidate rank per gap; -1 means a skipped contact/non-contact gap. */
@@ -150,8 +152,16 @@ type HandoffTelemetry = {
   prefixBranchEvaluations: number;
   prefixBranchFullEvaluations: number;
   prefixBranchImprovements: number;
+  prefixBranchPrunes: number;
+  prefixBranchWork: Map<string, PrefixBranchWork>;
   startRanksSeen: Set<number>;
   startRanksWithFits: Set<number>;
+};
+
+type PrefixBranchWork = {
+  evaluations: number;
+  fullEvaluations: number;
+  improvements: number;
 };
 
 type HandoffFrontierStats = Pick<
@@ -286,6 +296,11 @@ const PREFIX_BRANCH_LANE = 1;
 const PREFIX_BRANCH_FRONTIER_INTERVAL = 4;
 const PREFIX_BRANCH_MIN_PREFIX_CONTACTS = 4;
 const PREFIX_BRANCH_MIN_REMAINING_CONTACTS = 4;
+/** A spawned alternate-lane subtree must convert into the register quickly
+ *  enough to justify continuing it. This cap is per branch key, not global:
+ *  pruning one non-converting suffix does not stop later baseline prefixes from
+ *  forking their own deterministic lane. */
+const PREFIX_BRANCH_STALLED_FULL_EVAL_CAP = 48;
 
 export function compileHandoff(
   userSpec: Spec,
@@ -358,6 +373,7 @@ function compileHandoffInternal(
         startRank: startOptions[0].rank,
         searchSeed,
         searchLane: 0,
+        prefixBranchKey: undefined,
         startExpanded: startOptions.length <= 1,
         deferExpansion: false,
         ranks: [],
@@ -388,6 +404,8 @@ function compileHandoffInternal(
       prefixBranchEvaluations: 0,
       prefixBranchFullEvaluations: 0,
       prefixBranchImprovements: 0,
+      prefixBranchPrunes: 0,
+      prefixBranchWork: new Map<string, PrefixBranchWork>(),
       startRanksSeen: new Set<number>(),
       startRanksWithFits: new Set<number>(),
     };
@@ -436,6 +454,7 @@ function compileHandoffInternal(
         telemetry.prefixBranchEvaluations++;
         if (evaluation.fullDuration) telemetry.prefixBranchFullEvaluations++;
         if (improved) telemetry.prefixBranchImprovements++;
+        recordPrefixBranchWork(node, telemetry, evaluation.fullDuration, improved);
       }
       const event: HandoffNodeEvent = {
         phase,
@@ -496,6 +515,7 @@ function compileHandoffInternal(
           handoff_prefix_branch_evaluations: telemetry.prefixBranchEvaluations,
           handoff_prefix_branch_full_evaluations: telemetry.prefixBranchFullEvaluations,
           handoff_prefix_branch_improvements: telemetry.prefixBranchImprovements,
+          handoff_prefix_branch_prunes: telemetry.prefixBranchPrunes,
           ...(arcStats ? { arc_placement: arcStats } : {}),
         },
       };
@@ -519,6 +539,13 @@ function compileHandoffInternal(
       telemetry.frontierSelections++;
       consider(node, "main");
 
+      if (shouldPruneStalledPrefixBranch(node, telemetry)) {
+        telemetry.prefixBranchPrunes++;
+        captureReachedBudgets();
+        if (nextBudgetIndex >= budgets.length) break;
+        continue;
+      }
+
       const tailNode = completeNearTail(
         node,
         gaps,
@@ -530,6 +557,13 @@ function compileHandoffInternal(
       );
       if (tailNode !== null) {
         consider(tailNode, "tail");
+      }
+
+      if (shouldPruneStalledPrefixBranch(node, telemetry)) {
+        telemetry.prefixBranchPrunes++;
+        captureReachedBudgets();
+        if (nextBudgetIndex >= budgets.length) break;
+        continue;
       }
 
       captureReachedBudgets();
@@ -565,6 +599,7 @@ function compileHandoffInternal(
             startRank: node.startRank,
             searchSeed: node.searchSeed,
             searchLane: node.searchLane,
+            prefixBranchKey: node.prefixBranchKey,
             startExpanded: node.startExpanded,
             deferExpansion: node.deferExpansion,
             ranks: node.ranks,
@@ -587,6 +622,7 @@ function compileHandoffInternal(
             telemetry.prefixBranchEvaluations++;
             if (evaluation.fullDuration) telemetry.prefixBranchFullEvaluations++;
             if (improved) telemetry.prefixBranchImprovements++;
+            recordPrefixBranchWork(polishNode, telemetry, evaluation.fullDuration, improved);
           }
           const event: HandoffNodeEvent = {
             phase: "polish",
@@ -662,7 +698,11 @@ function cloneSnapshotRoot(
   searchSeed: number,
 ): HandoffNode {
   validateHandoffSnapshot(snapshot, gapCount);
-  return cloneHandoffNodeForBranch(snapshot.node, { searchSeed, searchLane: 0 });
+  return cloneHandoffNodeForBranch(snapshot.node, {
+    searchSeed,
+    searchLane: 0,
+    prefixBranchKey: null,
+  });
 }
 
 function validateHandoffSnapshot(snapshot: HandoffNodeSnapshot, gapCount: number): void {
@@ -686,7 +726,9 @@ function validateHandoffSnapshot(snapshot: HandoffNodeSnapshot, gapCount: number
 
 function cloneHandoffNodeForBranch(
   node: HandoffNode,
-  overrides: Partial<Pick<HandoffNode, "searchSeed" | "searchLane">> = {},
+  overrides: Partial<Pick<HandoffNode, "searchSeed" | "searchLane">> & {
+    prefixBranchKey?: string | null;
+  } = {},
 ): HandoffNode {
   const startState = cloneResolvedStart(node.startState);
   const prefixFits = node.search.prefixFits.map((fit) =>
@@ -713,6 +755,9 @@ function cloneHandoffNodeForBranch(
     startRank: node.startRank,
     searchSeed: overrides.searchSeed ?? node.searchSeed,
     searchLane: overrides.searchLane ?? node.searchLane,
+    prefixBranchKey: overrides.prefixBranchKey === null
+      ? undefined
+      : overrides.prefixBranchKey ?? node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: node.deferExpansion,
     ranks: [...node.ranks],
@@ -824,7 +869,39 @@ function maybeForkPrefixBranch(
   return cloneHandoffNodeForBranch(node, {
     searchSeed: searchSeedForLane(baseSearchSeed, PREFIX_BRANCH_LANE),
     searchLane: PREFIX_BRANCH_LANE,
+    prefixBranchKey: key,
   });
+}
+
+function recordPrefixBranchWork(
+  node: HandoffNode,
+  telemetry: HandoffTelemetry,
+  fullDuration: boolean,
+  improved: boolean,
+): void {
+  const key = node.prefixBranchKey;
+  if (key === undefined) return;
+  let work = telemetry.prefixBranchWork.get(key);
+  if (work === undefined) {
+    work = { evaluations: 0, fullEvaluations: 0, improvements: 0 };
+    telemetry.prefixBranchWork.set(key, work);
+  }
+  work.evaluations++;
+  if (fullDuration) work.fullEvaluations++;
+  if (improved) work.improvements++;
+}
+
+function shouldPruneStalledPrefixBranch(
+  node: HandoffNode,
+  telemetry: HandoffTelemetry,
+): boolean {
+  if (node.searchLane === 0) return false;
+  const key = node.prefixBranchKey;
+  if (key === undefined) return false;
+  const work = telemetry.prefixBranchWork.get(key);
+  return work !== undefined &&
+    work.improvements === 0 &&
+    work.fullEvaluations >= PREFIX_BRANCH_STALLED_FULL_EVAL_CAP;
 }
 
 function searchSeedForLane(baseSearchSeed: number, lane: number): number {
@@ -959,6 +1036,7 @@ function expandNode(
       startRank: option.rank,
       searchSeed: node.searchSeed,
       searchLane: node.searchLane,
+      prefixBranchKey: node.prefixBranchKey,
       startExpanded: true,
       deferExpansion: startOptions.length > 1,
       ranks: [],
@@ -973,6 +1051,7 @@ function expandNode(
       startRank: node.startRank,
       searchSeed: node.searchSeed,
       searchLane: node.searchLane,
+      prefixBranchKey: node.prefixBranchKey,
       startExpanded: node.startExpanded,
       deferExpansion: false,
       ranks: [...node.ranks, -1],
@@ -1024,6 +1103,7 @@ function expandNode(
       startRank: node.startRank,
       searchSeed: node.searchSeed,
       searchLane: node.searchLane,
+      prefixBranchKey: node.prefixBranchKey,
       startExpanded: node.startExpanded,
       deferExpansion: true,
       ranks: [...node.ranks, -1],
@@ -1037,6 +1117,7 @@ function expandNode(
     startRank: node.startRank,
     searchSeed: node.searchSeed,
     searchLane: node.searchLane,
+    prefixBranchKey: node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: false,
     ranks: [...node.ranks, option.rank],
@@ -1405,6 +1486,7 @@ function completeNearTail(
     startRank: node.startRank,
     searchSeed: node.searchSeed,
     searchLane: node.searchLane,
+    prefixBranchKey: node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: false,
     ranks: completed.ranks,

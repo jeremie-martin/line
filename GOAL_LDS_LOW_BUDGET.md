@@ -470,15 +470,29 @@ inside already-spawned alternate-lane subtrees, not in later forks, so future
 branch-efficiency work needs either subtree scheduling or better pre-fork
 readiness, not a global "no conversion yet" fork stop.
 
+The accepted subtree version is narrow and deterministic. Each spawned
+alternate-lane prefix branch now carries its own branch key; if that subtree
+produces `48` full-duration evaluations without any strict register improvement,
+only that subtree is pruned. This is not a global branch kill switch and does
+not prevent later baseline prefixes from forking their own downstream lane. Full
+golden moved `CURVE_SCORE 321.61 -> 321.69` with the same `533/540` valid
+checkpoints; every headline checkpoint delta was non-negative and 24 row-budget
+cells improved. At 75k, branch full evaluations dropped `4020 -> 3323`, with
+`72` prunes and branch improvements nearly unchanged (`72 -> 71`). Report-only
+variants moved `VARIANT_CURVE_SCORE 249.65 -> 249.68` with the same `1020/1080`
+valid checkpoints; there were five small variant checkpoint regressions, worst
+`-0.60`, so keep treating this as a conservative work-reallocation rule rather
+than a broad quality lever.
+
 The next branch diagnostic should look at conversion, not just branch volume.
 The compiler now reports `handoff_prefix_branch_evaluations`,
 `handoff_prefix_branch_full_evaluations`, and
-`handoff_prefix_branch_improvements` alongside fork count and selected search
-lane. Use these counters to separate rows where alternate-lane work is actually
-entering the register from rows where forks are created but never become useful
-full-duration candidates. A future readiness signal should improve that
-conversion rate with generic search-state features, not by naming specs, lanes,
-or fixed branch fractions.
+`handoff_prefix_branch_improvements` alongside fork count, subtree prune count,
+and selected search lane. Use these counters to separate rows where
+alternate-lane work is actually entering the register from rows where forks are
+created but never become useful full-duration candidates. A future readiness
+signal should improve that conversion rate with generic search-state features,
+not by naming specs, lanes, or fixed branch fractions.
 
 Follow-up scheduler probes reinforced that constraint. Deterministic lane
 diversity with the same fork volume was noisy: hash-based lane choice helped

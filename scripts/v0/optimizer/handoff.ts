@@ -184,6 +184,8 @@ type ExtraCandidateCache = {
   brakeSeed?: number;
   brakeContract?: Candidate[];
   brakeQuality?: Candidate[];
+  contactStyleSeed?: number;
+  contactStyleQuality?: Candidate[];
 };
 
 const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
@@ -254,6 +256,7 @@ const HANDOFF_BRAKE_CONTRACT_BASE_K = 2;
 const HANDOFF_BRAKE_CONTRACT_HIGH_OVERSPEED_K = 3;
 const HANDOFF_BRAKE_QUALITY_BASE_K = 3;
 const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
+const HANDOFF_CONTACT_STYLE_QUALITY_K = 2;
 const HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES = HANDOFF_RESCUE_MIN_GAP_FRAMES;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 6;
@@ -981,6 +984,7 @@ function expandNode(
     nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
     preview: handoffUsesFuturePreview(qualitySearch),
     expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+    contactStyleQualitySearch: qualitySearch,
     previewCostWeight: handoffPreviewCostWeight(gap),
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
@@ -990,6 +994,7 @@ function expandNode(
       poolSize: HANDOFF_RESCUE_CANDIDATE_POOL,
       preview: handoffUsesFuturePreview(qualitySearch),
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+      contactStyleQualitySearch: qualitySearch,
       previewCostWeight: handoffPreviewCostWeight(gap),
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1005,6 +1010,7 @@ function expandNode(
       poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
       preview: handoffUsesFuturePreview(qualitySearch),
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+      contactStyleQualitySearch: qualitySearch,
       previewCostWeight: handoffPreviewCostWeight(gap),
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1086,6 +1092,7 @@ function rankedOptions(
     poolSize?: number;
     preview?: boolean;
     expandedBrakeSearch?: boolean;
+    contactStyleQualitySearch?: boolean;
     previewCostWeight?: number;
   } = {},
 ): RankedOption[] {
@@ -1135,12 +1142,81 @@ function rankedOptions(
       previewCostWeight,
     ))
   );
+  // Contact-style quality search gets a tiny extra deterministic sample stream.
+  // Contract search keeps the normal cheap candidate sequence unchanged.
+  const contactStyle = cachedContactStyleQualityCandidates(
+    node,
+    gaps,
+    ctx,
+    seed,
+    config.contactStyleQualitySearch ?? false,
+  );
+  contactStyle.forEach((candidate, j) =>
+    scored.push(scoreCandidateForHandoff(
+      node,
+      candidate,
+      poolSize + reuse.length + brake.length + j,
+      gaps,
+      ctx,
+      seed,
+      telemetry,
+      preview,
+      previewCostWeight,
+    ))
+  );
   scored.sort((a, b) =>
     a.score - b.score ||
     (a.candidate?.cost ?? Infinity) - (b.candidate?.cost ?? Infinity) ||
     a.rank - b.rank
   );
   return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+function cachedContactStyleQualityCandidates(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  enabled: boolean,
+): Candidate[] {
+  if (!enabled) return [];
+  const cache = extraCandidateCache.get(node) ?? {};
+  if (cache.contactStyleSeed !== undefined && cache.contactStyleSeed !== seed) {
+    cache.contactStyleQuality = undefined;
+  }
+  if (cache.contactStyleQuality !== undefined && cache.contactStyleSeed === seed) {
+    return cache.contactStyleQuality;
+  }
+
+  const generated = contactStyleQualityCandidates(node, gaps, ctx, seed);
+  cache.contactStyleSeed = seed;
+  cache.contactStyleQuality = generated;
+  extraCandidateCache.set(node, cache);
+  return generated;
+}
+
+function contactStyleQualityCandidates(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+): Candidate[] {
+  const gap = gaps[node.gapIndex];
+  if (!gap.endsWithContact || gap.targets?.contact_style === undefined) return [];
+  const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 0x5bd1e995) | 0);
+  const out: Candidate[] = [];
+  for (let attempt = 0; attempt < HANDOFF_CONTACT_STYLE_QUALITY_K; attempt++) {
+    const candidate = sampleOneCandidate(
+      node.prefixEngine,
+      gap,
+      rng,
+      ctx,
+      node.prefixNextLineId,
+      1000 + attempt,
+    );
+    if (candidate !== null) out.push(candidate);
+  }
+  return out;
 }
 
 function cachedReuseCatchCandidates(
@@ -1364,6 +1440,7 @@ function completeNearTailSuffix(
       nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
       preview: false,
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+      contactStyleQualitySearch: qualitySearch,
       previewCostWeight: handoffPreviewCostWeight(gap),
     })
       .filter((option) => option.candidate !== null)

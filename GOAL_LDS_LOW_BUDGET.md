@@ -558,6 +558,27 @@ count is too central to grain/contract stability to retarget naively. Future
 work should add contact-style diversity as extra candidates or a measured
 post-candidate selector, not by stealing the base grain-directed segment path.
 
+The first accepted contact-style follow-up is deliberately additive. During
+quality search only, explicit `contact_style` gaps now get two extra
+deterministic sample-stream candidates; contract search and the base sampler
+remain unchanged. This is a small win, not a new main lever by itself. Full
+golden moved `CURVE_SCORE 321.52 -> 321.61` with the same `533/540` valid
+checkpoints. Budget deltas were mixed (`35k -0.11`, `40k -0.44`, `45k +0.64`,
+`50k +0.82`, `55k +0.88`, `60k +0.17`, `65k -1.01`, `70k -0.12`, `75k +0.09`).
+Report-only variants moved `VARIANT_CURVE_SCORE 249.55 -> 249.65` with the same
+`1020/1080` valid checkpoints; their 75k delta was stronger (`+0.77`) but 65k
+was still negative (`-0.54`). The diagnostic lesson is broader than the score:
+contact-style rows do need more downstream candidate diversity, but even tiny
+additive diversity can reshuffle basins in both directions, so future work
+should keep using full-suite and variant guardrails.
+
+Direct impact-anchor remapping was rejected. A strong contact-style remap
+collapsed the low-air/contact-style diagnostic slice (`CURVE_SCORE 292.12 ->
+247.41`) and a milder remap was worse (`292.12 -> 225.22`), both with early
+validity loss. Do not move the base impact mapping without a stronger primitive
+story; extra candidates are currently safer than retargeting the shared landing
+geometry.
+
 Simple scalar overshoot reweighting is also too fragile to be the next
 production lever. Doubling the global air-overshoot ranking penalty (`16 -> 32`)
 collapsed the low-air/contact-style diagnostic slice (`CURVE_SCORE 294.74 ->

@@ -38,6 +38,7 @@ type CompileStats = {
   handoff_far_back_pulses?: number;
   handoff_tail_completion_attempts?: number;
   handoff_tail_completion_successes?: number;
+  handoff_tail_completion_improvements?: number;
   handoff_start_options?: number;
   handoff_start_rank?: number;
   handoff_start_speed?: number;
@@ -48,6 +49,7 @@ type CompileStats = {
   handoff_partial_evaluations?: number;
   handoff_suffix_repair_attempts?: number;
   handoff_suffix_repair_successes?: number;
+  handoff_suffix_repair_improvements?: number;
   handoff_suffix_repair_nodes?: number;
   handoff_previews?: number;
   handoff_preview_contacts?: number;
@@ -116,6 +118,7 @@ const WORK_DELTA_STATS = [
 ] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats]>;
 const STREAM_YIELD_STATS = [
   ["polish", "polish_variants_adopted", "polish_variants_tried"],
+  ["tail_best", "handoff_tail_completion_improvements", "handoff_tail_completion_successes"],
   ["reuse", "handoff_reuse_successes", "handoff_reuse_attempts"],
   ["brake", "handoff_brake_successes", "handoff_brake_attempts"],
   ["axisq", "handoff_axis_quality_successes", "handoff_axis_quality_attempts"],
@@ -126,6 +129,7 @@ const STREAM_YIELD_STATS = [
     "handoff_axis_quality_contact_style_attempts",
   ],
   ["suffix", "handoff_suffix_repair_successes", "handoff_suffix_repair_attempts"],
+  ["suffix_best", "handoff_suffix_repair_improvements", "handoff_suffix_repair_successes"],
   ["rescue", "handoff_rescue_successes", "handoff_rescue_attempts"],
   ["branch", "handoff_prefix_branch_improvements", "handoff_prefix_branch_evaluations"],
 ] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats, keyof CompileStats]>;
@@ -177,11 +181,14 @@ function fmtStats(stats: CompileStats | undefined): string {
     `meanLag=${stats.handoff_frontier_mean_gap_lag ?? "?"}`,
     `far=${stats.handoff_frontier_far_back_count ?? "?"}`,
     `pulses=${stats.handoff_far_back_pulses ?? "?"}`,
-    `tail=${stats.handoff_tail_completion_successes ?? "?"}/${stats.handoff_tail_completion_attempts ?? "?"}`,
+    `tail=${stats.handoff_tail_completion_improvements ?? "?"}/` +
+      `${stats.handoff_tail_completion_successes ?? "?"}/` +
+      `${stats.handoff_tail_completion_attempts ?? "?"}`,
     `polish=${stats.polish_variants_adopted ?? "?"}/` +
       `${stats.polish_variants_changed ?? "?"}/` +
       `${stats.polish_variants_tried ?? "?"}`,
-    `suffix=${stats.handoff_suffix_repair_successes ?? "?"}/` +
+    `suffix=${stats.handoff_suffix_repair_improvements ?? "?"}/` +
+      `${stats.handoff_suffix_repair_successes ?? "?"}/` +
       `${stats.handoff_suffix_repair_attempts ?? "?"}` +
       `(${stats.handoff_suffix_repair_nodes ?? "?"}n)`,
     `reuse=${stats.handoff_reuse_successes ?? "?"}/${stats.handoff_reuse_attempts ?? "?"}`,

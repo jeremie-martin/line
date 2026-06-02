@@ -158,8 +158,10 @@ type HandoffTelemetry = {
   fullEvaluations: number;
   tailCompletionAttempts: number;
   tailCompletionSuccesses: number;
+  tailCompletionImprovements: number;
   suffixRepairAttempts: number;
   suffixRepairSuccesses: number;
+  suffixRepairImprovements: number;
   suffixRepairNodes: number;
   previews: number;
   previewContacts: number;
@@ -472,8 +474,10 @@ function compileHandoffInternal(
       fullEvaluations: 0,
       tailCompletionAttempts: 0,
       tailCompletionSuccesses: 0,
+      tailCompletionImprovements: 0,
       suffixRepairAttempts: 0,
       suffixRepairSuccesses: 0,
+      suffixRepairImprovements: 0,
       suffixRepairNodes: 0,
       previews: 0,
       previewContacts: 0,
@@ -585,8 +589,10 @@ function compileHandoffInternal(
           handoff_full_evaluations: telemetry.fullEvaluations,
           handoff_tail_completion_attempts: telemetry.tailCompletionAttempts,
           handoff_tail_completion_successes: telemetry.tailCompletionSuccesses,
+          handoff_tail_completion_improvements: telemetry.tailCompletionImprovements,
           handoff_suffix_repair_attempts: telemetry.suffixRepairAttempts,
           handoff_suffix_repair_successes: telemetry.suffixRepairSuccesses,
+          handoff_suffix_repair_improvements: telemetry.suffixRepairImprovements,
           handoff_suffix_repair_nodes: telemetry.suffixRepairNodes,
           handoff_start_options: startOptions.length,
           handoff_start_rank: best.stats.handoff_start_rank ?? 0,
@@ -659,7 +665,8 @@ function compileHandoffInternal(
         expandedBrakeSearch,
       );
       if (tailNode !== null) {
-        consider(tailNode, "tail");
+        const result = consider(tailNode, "tail");
+        if (result?.event.improved) telemetry.tailCompletionImprovements++;
       }
 
       const repairedNode = completeWeakPrefixWithBoundedSuffix(
@@ -672,7 +679,8 @@ function compileHandoffInternal(
         expandedBrakeSearch,
       );
       if (repairedNode !== null) {
-        consider(repairedNode, "tail");
+        const result = consider(repairedNode, "tail");
+        if (result?.event.improved) telemetry.suffixRepairImprovements++;
       }
 
       if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {

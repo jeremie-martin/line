@@ -176,6 +176,21 @@ suite-level extra-work yield (`reuse`, `brake`, aggregate `axisq`,
 rates before drawing conclusions from individual row examples; the point is to
 judge broad mechanics, not memorize spec anecdotes.
 
+Terminal feedback accounting now separates structural completion from register
+value. Row diagnostics report tail and suffix repair as
+`improved/succeeded/attempted`, and suite-level yield includes `tail_best` and
+`suffix_best` rates. This is behavior-preserving; it lets scheduler probes ask
+whether terminal-feedback work is actually moving best-so-far, instead of only
+whether it can complete a suffix. On a 4-spec plateau smoke
+(`drums_pendulum`, `drums_crescendo`, `rhythm_ladder`, `opening_burst`;
+budgets `75k,150k`), near-tail completion produced `2039` completed suffixes
+at `150k`, but only `56` of them improved the register (`2.7%`). The accepted
+bounded suffix repair stayed sparse in the same smoke (`1/2` completed,
+`1/1` completed suffix improved). Treat this as a scheduler diagnostic, not a
+tail-window rejection by itself: the accepted `8`-contact window already earned
+its score, but future terminal-feedback work needs to focus on improvement
+yield, not completion rate alone.
+
 The analyzer now also reports polish adoption in the same work-accounting view
 as candidate, suffix, rescue, and branch machinery. Suite-level yield reports
 `polish=adopted/tried`, where `tried` means a terminal leaf actually passed

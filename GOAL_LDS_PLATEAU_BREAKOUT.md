@@ -608,6 +608,17 @@ Rejected follow-up probes:
   `opening_burst seed=2 -92.36`, `drums_crescendo seed=2 -76.51`). Contact-point
   diversity may be useful, but it needs a controlled scheduler or stream, not a
   global replacement of the base impact-anchor spread.
+- Enabling the existing impact-anchor fallback bisection path globally was also
+  rejected at smoke scale (`LR_IMPACT_ANCHOR_FALLBACK_BISECT=1`). On the
+  2-spec placement smoke (`drums_pendulum`, `opening_burst`; budgets
+  `75k,150k`), fallback landed `1653/9527` direct failures (`17.4%`), so it is
+  a real rescue mechanism. But it changed the deterministic search sequence too
+  much: `CURVE_SCORE 304.02 -> 158.11`, `75k` validity dropped `6/6 -> 5/6`,
+  and common-row scores moved `-112.43` at `75k` and `-29.79` at `150k`. The
+  only material `150k` win was `opening_burst seed=1 +31.74`, outweighed by
+  `opening_burst seed=2 -64.83` and all three `drums_pendulum` seeds losing
+  `36.88` to `49.76`. Fallback bisection may still be useful as a targeted
+  rescue stream, but not as a global replacement after every direct failure.
 - Replacing the start-speed regimes with one broad common anchor set was also
   too blunt. It removed the `6`/`9` px/frame candidate cliff and produced some
   striking wins, but the 10-spec dense `150k` workbench moved `CURVE_SCORE`

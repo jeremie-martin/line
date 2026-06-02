@@ -52,6 +52,12 @@ from `75k` to `150k`. Small clean positive curve deltas are still acceptable
 when they are explainable, preserve the budget-prefix contract, and do not add
 fragile complexity.
 
+A very small regression can also be acceptable when the change is a clear
+simplification, removes overfit or fragile policy, or makes future optimizer
+work easier to reason about. Do not grant this exception to added machinery:
+extra branching, scheduler, or candidate logic still needs evidence that the
+added complexity earns its keep.
+
 Before trusting a plateau-campaign optimizer change:
 
 1. Probe the 10-spec `150k` workbench.

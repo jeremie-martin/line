@@ -201,6 +201,13 @@ Rejected follow-up probes:
   strong on seed 0, but the full 30-row workbench fell from `326.09` to
   `303.66` and validity dropped to `29/30`. Global ranker retuning can move the
   search into better basins on some rows but is not safe as a blanket policy.
+- A milder target-sensitive air overshoot weight, rising from `16` at ordinary
+  air targets to `24` only at zero-air targets, was also rejected. It preserved
+  validity but moved the 10-spec dense `150k` workbench from `326.09` to
+  `319.18`; `drums_dropout seed=1` collapsed by `-133.40` from a late speed
+  blow-up. Stronger low-air rank pressure can trade the air problem for worse
+  speed basins, so this plateau needs better feasible primitives/search, not
+  just larger penalties over the same candidate pool.
 - Using that stronger air bias only in prefix-branch lanes avoided the global
   contract failure but did not earn its compute: replacing lane 1 lost an
   existing branch win, and adding a second lane increased branch work while

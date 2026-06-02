@@ -358,6 +358,15 @@ Rejected follow-up probes:
   `opening_burst seed=2 -17.46`, `drums_pendulum seed=0 -17.22`) despite a few
   large wins. The fixed two-sample stream earns its current complexity; the
   rejected part was only the high-target threshold.
+- Reducing the fixed contact-style quality stream from two samples to one was
+  also rejected. The new split diagnostics showed low aggregate yield for
+  `axisq_contact`, but the middle-ground simplification still moved a 4-spec
+  contact-style smoke (`drums_crescendo`, `rhythm_ladder`,
+  `syncopated_switchback`, `opening_burst`; `75k,150k`) by `-2.87` at `75k`
+  and `-3.25` at `150k`, with material `150k` losses on `opening_burst seed=2`
+  (`-45.81`) and `syncopated_switchback seed=1` (`-40.31`). Keep the fixed
+  two-sample stream for now; low viability does not imply the second sample is
+  wasted.
 - Replacing or reshaping the fixed contact-style quality stream with
   contact-style-specific geometry was also rejected at smoke scale. A broad
   shaped mode for both extra samples improved a 4-spec contact-style smoke by

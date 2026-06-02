@@ -184,9 +184,10 @@ export function sampleArcParams(
   let segments: number;
   if (targets.grain !== undefined && segRoll < 0.7) {
     // grain = median(line_length) / LINE_LENGTH_CAP. Solve for segment count.
-    // Add a small ±1 jitter so we don't collapse to one shape.
+    // Reuse the gate roll for a small, historically biased jitter so we do not
+    // collapse to one shape without consuming another RNG draw.
     const targetSegLen = Math.max(3, targets.grain * CALIB.LINE_LENGTH_CAP);
-    const jitter = Math.floor(segRoll * 3) - 1; // -1, 0, +1
+    const jitter = Math.floor(segRoll * 3) - 1; // mostly -1/0, rare +1
     const ideal = Math.round(length / targetSegLen) + jitter;
     segments = Math.max(A.SEGMENTS_MIN, Math.min(A.SEGMENTS_MAX, ideal));
   } else {

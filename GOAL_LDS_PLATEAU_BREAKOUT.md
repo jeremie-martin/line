@@ -356,6 +356,15 @@ Rejected follow-up probes:
 - A weak contact-style segment-length prior for gaps without grain was also a
   score no-op on seed 0. Contact-style failures are not solved by a small
   median-line-length prior layered onto the existing random primitive.
+- Normalizing the grain segment-count jitter was rejected. The sampler's grain
+  branch says `-1, 0, +1` jitter, but because it reuses the `segRoll < 0.7`
+  gate, `+1` is historically rare. Making those three outcomes uniform without
+  adding RNG draws looked like a clean primitive fix, but a grain/contact-heavy
+  smoke moved common rows `-37.56` at `75k` and `-32.80` at `150k`, flipped
+  `opening_burst seed=1` from pass to fail, and caused large regressions such as
+  `grain_staircase seed=1 -161.01`, `opening_burst seed=2 -82.01`, and
+  `drums_crescendo seed=2 -67.55`. The biased jitter is part of the current
+  viable basin; do not normalize it without a broader primitive redesign.
 - Extending the air-only ride-out primitive to mixed low-air gaps as a capped
   final-line continuation was a full-workbench no-op: the 10-spec dense `150k`
   workbench was byte-identical in score and work counters. The low-air plateau

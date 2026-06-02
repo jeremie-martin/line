@@ -167,6 +167,20 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_duplicate_evaluations).toBe(b.stats.handoff_duplicate_evaluations);
     expect(a.stats.handoff_duplicate_full_evaluations)
       .toBe(b.stats.handoff_duplicate_full_evaluations);
+    expect(sumPhaseCounter(a.stats.handoff_evaluations_by_phase)).toBe(
+      a.stats.leaves_considered ?? 0,
+    );
+    expect(sumPhaseCounter(a.stats.handoff_full_evaluations_by_phase)).toBe(
+      a.stats.handoff_full_evaluations ?? 0,
+    );
+    expect(sumPhaseCounter(a.stats.handoff_improvements_by_phase)).toBe(
+      a.stats.improvements ?? 0,
+    );
+    expect(a.stats.handoff_evaluations_by_phase).toEqual(b.stats.handoff_evaluations_by_phase);
+    expect(a.stats.handoff_full_evaluations_by_phase).toEqual(
+      b.stats.handoff_full_evaluations_by_phase,
+    );
+    expect(a.stats.handoff_improvements_by_phase).toEqual(b.stats.handoff_improvements_by_phase);
     expect(sumPhaseCounter(a.stats.handoff_duplicate_evaluations_by_phase)).toBe(
       a.stats.handoff_duplicate_evaluations ?? 0,
     );

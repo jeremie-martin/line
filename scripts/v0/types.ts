@@ -316,6 +316,12 @@ export type CompileStats = {
    *  terminal prefixes use the full spec duration. */
   handoff_partial_evaluations?: number;
   handoff_full_evaluations?: number;
+  /** Register offers, full-duration offers, and strict best-so-far improvements
+   *  split by evaluation origin. These are denominators for judging terminal
+   *  feedback work before changing scheduler policy. */
+  handoff_evaluations_by_phase?: HandoffEvaluationPhaseCounter;
+  handoff_full_evaluations_by_phase?: HandoffEvaluationPhaseCounter;
+  handoff_improvements_by_phase?: HandoffEvaluationPhaseCounter;
   /** Full-duration output offers minus exact duplicate full SearchNode offers.
    *  This is the terminal-basin scarcity signal used by bounded suffix repair. */
   handoff_unique_full_evaluations?: number;

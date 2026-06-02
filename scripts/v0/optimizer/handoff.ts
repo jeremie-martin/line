@@ -173,6 +173,9 @@ type HandoffTelemetry = {
   deepestSeenGap: number;
   partialEvaluations: number;
   fullEvaluations: number;
+  evaluationsByPhase: Record<HandoffNodeEventPhase, number>;
+  fullEvaluationsByPhase: Record<HandoffNodeEventPhase, number>;
+  improvementsByPhase: Record<HandoffNodeEventPhase, number>;
   duplicateEvaluations: number;
   duplicateFullEvaluations: number;
   duplicateEvaluationsByPhase: Record<HandoffNodeEventPhase, number>;
@@ -498,6 +501,9 @@ function compileHandoffInternal(
       deepestSeenGap: -1,
       partialEvaluations: 0,
       fullEvaluations: 0,
+      evaluationsByPhase: emptyPhaseCounter(),
+      fullEvaluationsByPhase: emptyPhaseCounter(),
+      improvementsByPhase: emptyPhaseCounter(),
       duplicateEvaluations: 0,
       duplicateFullEvaluations: 0,
       duplicateEvaluationsByPhase: emptyPhaseCounter(),
@@ -581,6 +587,7 @@ function compileHandoffInternal(
         ),
         evaluation.key,
       );
+      recordImprovementTelemetry(telemetry, phase, improved);
       recordPrefixBranchEvaluation(node, prefixBranches, telemetry, evaluation.fullDuration, improved);
       const event: HandoffNodeEvent = {
         phase,
@@ -623,6 +630,9 @@ function compileHandoffInternal(
           ...snapshotFrontierStats(passStack, fallbackStack, telemetry),
           handoff_partial_evaluations: telemetry.partialEvaluations,
           handoff_full_evaluations: telemetry.fullEvaluations,
+          handoff_evaluations_by_phase: snapshotPhaseCounter(telemetry.evaluationsByPhase),
+          handoff_full_evaluations_by_phase: snapshotPhaseCounter(telemetry.fullEvaluationsByPhase),
+          handoff_improvements_by_phase: snapshotPhaseCounter(telemetry.improvementsByPhase),
           handoff_unique_full_evaluations: uniqueFullEvaluations(telemetry),
           handoff_duplicate_evaluations: telemetry.duplicateEvaluations,
           handoff_duplicate_full_evaluations: telemetry.duplicateFullEvaluations,
@@ -791,6 +801,7 @@ function compileHandoffInternal(
             ),
             evaluation.key,
           );
+          recordImprovementTelemetry(telemetry, "polish", improved);
           recordPrefixBranchEvaluation(
             polishNode,
             prefixBranches,
@@ -1253,8 +1264,10 @@ function recordEvaluationTelemetry(
   fullDuration: boolean,
   phase: HandoffNodeEventPhase,
 ): void {
+  telemetry.evaluationsByPhase[phase]++;
   if (fullDuration) telemetry.fullEvaluations++;
   else telemetry.partialEvaluations++;
+  if (fullDuration) telemetry.fullEvaluationsByPhase[phase]++;
 
   if (consideredSearchNodes.has(search)) {
     telemetry.duplicateEvaluations++;
@@ -1266,6 +1279,14 @@ function recordEvaluationTelemetry(
     return;
   }
   consideredSearchNodes.add(search);
+}
+
+function recordImprovementTelemetry(
+  telemetry: HandoffTelemetry,
+  phase: HandoffNodeEventPhase,
+  improved: boolean,
+): void {
+  if (improved) telemetry.improvementsByPhase[phase]++;
 }
 
 function canSkipPartialEvaluation(

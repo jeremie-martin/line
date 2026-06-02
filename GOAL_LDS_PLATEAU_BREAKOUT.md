@@ -315,6 +315,17 @@ polish. On the 2-spec plateau smoke (`drums_pendulum`, `opening_burst`; seed
 artifact exactly (`CURVE_SCORE` delta `+0.00`, zero work deltas). At `150k`,
 the new aggregate split was `dupFullByPhase=main:174/tail:126/suffix:0/polish:0`.
 
+The same evaluation-origin registry now also reports the phase denominators:
+`handoff_evaluations_by_phase`, `handoff_full_evaluations_by_phase`, and
+`handoff_improvements_by_phase`. This turns duplicate attribution into a usable
+yield signal: future scheduler changes can compare total offers, full offers,
+strict best-so-far improvements, and duplicate offers by the same phase labels.
+On the same 2-spec smoke, common rows matched the prior duplicate-phase artifact
+exactly (`CURVE_SCORE` delta `+0.00`, zero work deltas). At `150k`, the analyzer
+reported `evalByPhase=main:646/tail:305/suffix:0/polish:0`,
+`fullByPhase=main:488/tail:305/suffix:0/polish:0`, and
+`bestByPhase=main:75/tail:6/suffix:0/polish:0`.
+
 The analyzer now also reports polish adoption in the same work-accounting view
 as candidate, suffix, rescue, and branch machinery. Suite-level yield reports
 `polish=adopted/tried`, where `tried` means a terminal leaf actually passed

@@ -72,6 +72,9 @@ type CompileStats = {
   handoff_start_ranks_seen?: number;
   handoff_start_ranks_with_fits?: number;
   handoff_full_evaluations?: number;
+  handoff_evaluations_by_phase?: Partial<Record<HandoffEvaluationPhase, number>>;
+  handoff_full_evaluations_by_phase?: Partial<Record<HandoffEvaluationPhase, number>>;
+  handoff_improvements_by_phase?: Partial<Record<HandoffEvaluationPhase, number>>;
   handoff_unique_full_evaluations?: number;
   handoff_partial_evaluations?: number;
   handoff_suffix_repair_attempts?: number;
@@ -653,6 +656,9 @@ function printTerminalFeedbackDiagnostics(data: GoldenCurveJson): void {
   const uniqueFull = sumUniqueFullEvaluations(checkpoints);
   if (full === 0 || uniqueFull === undefined) return;
 
+  const evaluationsByPhase = sumPhaseCounter(checkpoints, "handoff_evaluations_by_phase");
+  const fullByPhase = sumPhaseCounter(checkpoints, "handoff_full_evaluations_by_phase");
+  const improvementsByPhase = sumPhaseCounter(checkpoints, "handoff_improvements_by_phase");
   const duplicateFull = Math.max(0, full - uniqueFull);
   const duplicateByPhase = sumPhaseCounter(checkpoints, "handoff_duplicate_evaluations_by_phase");
   const duplicateFullByPhase = sumPhaseCounter(
@@ -667,6 +673,17 @@ function printTerminalFeedbackDiagnostics(data: GoldenCurveJson): void {
       `full/row=${(full / checkpoints.length).toFixed(1)} ` +
       `ufull/row=${(uniqueFull / checkpoints.length).toFixed(1)}`,
   );
+  if (
+    hasPhaseCounts(evaluationsByPhase) ||
+    hasPhaseCounts(fullByPhase) ||
+    hasPhaseCounts(improvementsByPhase)
+  ) {
+    console.log(
+      `  evalByPhase=${formatPhaseCounter(evaluationsByPhase)} ` +
+        `fullByPhase=${formatPhaseCounter(fullByPhase)} ` +
+        `bestByPhase=${formatPhaseCounter(improvementsByPhase)}`,
+    );
+  }
   if (hasPhaseCounts(duplicateByPhase) || hasPhaseCounts(duplicateFullByPhase)) {
     console.log(
       `  dupByPhase=${formatPhaseCounter(duplicateByPhase)} ` +
@@ -942,6 +959,9 @@ function sumUniqueFullEvaluations(checkpoints: CheckpointRow[]): number | undefi
 function sumPhaseCounter(
   checkpoints: CheckpointRow[],
   key:
+    | "handoff_evaluations_by_phase"
+    | "handoff_full_evaluations_by_phase"
+    | "handoff_improvements_by_phase"
     | "handoff_duplicate_evaluations_by_phase"
     | "handoff_duplicate_full_evaluations_by_phase",
 ): Record<HandoffEvaluationPhase, number> {

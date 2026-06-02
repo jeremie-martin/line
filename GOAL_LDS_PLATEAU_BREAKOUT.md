@@ -321,6 +321,14 @@ Rejected follow-up probes:
   (`drums_pendulum seed=1`) stayed flat. The current one-sample stream remains
   the better tradeoff until a different low-air primitive or scheduler signal is
   found.
+- Moving the very-low-air support stream into contract search was also
+  rejected. The hypothesis was that quality-only streams cannot repair early
+  low-air choices already expanded before the first passing track exists. That
+  causal issue still looks real, but the simple contract-phase stream moved the
+  same 4-spec smoke by `-4.98` at `75k` and `-1.89` at `150k`; the worst row
+  got worse (`drums_pendulum seed=1 -22.72`). Early low-air repair likely needs
+  a different primitive or explicit early-prefix resampling, not the current
+  air-support sample inserted into contract search.
 - A naive quality-phase poor-fit rescue, which reran the larger deterministic
   rescue batch whenever the best local candidate cost was severe, made the
   focused handoff test run take `155s`. Poor-fit rescue may still be worth

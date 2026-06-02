@@ -168,6 +168,14 @@ Rejected follow-up probes:
   The current start-speed bands are still unsatisfying, but a production change
   needs a softer start-state policy that preserves low-speed/low-air protection
   instead of simply scoring a much wider common set.
+- Smoothing the high-speed start overshoot scoring gate was rejected for the
+  same reason. Keeping the current candidate set but ramping overshoot pressure
+  from `6` to `9` px/frame moved `CURVE_SCORE` `326.09 -> 318.46` and `150k`
+  `332.38 -> 326.05`. The new start diagnostics showed the catastrophic row:
+  `drums_pendulum seed=0` selected `start=6.60@24.0deg`, fell to `88.94`
+  (`-190.87`), and had extreme late speed overshoot. This does not prove the
+  hard gate is principled; it proves the low-air/low-speed start protection is
+  real and must be preserved by any smoother replacement.
 
 ## Implementation Guardrails
 

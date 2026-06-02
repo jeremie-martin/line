@@ -27,6 +27,8 @@ type CompileStats = {
   sim_frames?: number;
   committed_costs_per_gap?: Array<number | null>;
   leaves_considered?: number;
+  polish_variants_tried?: number;
+  polish_variants_adopted?: number;
   search_nodes_expanded?: number;
   handoff_frontier_size?: number;
   handoff_frontier_oldest_gap_lag?: number;
@@ -112,6 +114,7 @@ const WORK_DELTA_STATS = [
   ["viable", "candidates_viable"],
 ] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats]>;
 const STREAM_YIELD_STATS = [
+  ["polish", "polish_variants_adopted", "polish_variants_tried"],
   ["reuse", "handoff_reuse_successes", "handoff_reuse_attempts"],
   ["brake", "handoff_brake_successes", "handoff_brake_attempts"],
   ["axisq", "handoff_axis_quality_successes", "handoff_axis_quality_attempts"],
@@ -174,6 +177,7 @@ function fmtStats(stats: CompileStats | undefined): string {
     `far=${stats.handoff_frontier_far_back_count ?? "?"}`,
     `pulses=${stats.handoff_far_back_pulses ?? "?"}`,
     `tail=${stats.handoff_tail_completion_successes ?? "?"}/${stats.handoff_tail_completion_attempts ?? "?"}`,
+    `polish=${stats.polish_variants_adopted ?? "?"}/${stats.polish_variants_tried ?? "?"}`,
     `suffix=${stats.handoff_suffix_repair_successes ?? "?"}/` +
       `${stats.handoff_suffix_repair_attempts ?? "?"}` +
       `(${stats.handoff_suffix_repair_nodes ?? "?"}n)`,
@@ -444,7 +448,7 @@ function printStreamDiagnostics(data: GoldenCurveJson): void {
     .map(([label, successKey, attemptKey]) => {
       const attempts = sumCheckpointStat(checkpoints, attemptKey);
       const successes = sumCheckpointStat(checkpoints, successKey);
-      if (attempts === 0 && successes === 0) return null;
+      if (attempts === 0 && successes === 0 && label !== "polish") return null;
       return (
         `  ${label.padEnd(STREAM_YIELD_LABEL_WIDTH)} ` +
         `${String(successes).padStart(6)}/${String(attempts).padEnd(6)} ` +

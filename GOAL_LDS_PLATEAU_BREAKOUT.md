@@ -176,6 +176,11 @@ suite-level extra-work yield (`reuse`, `brake`, aggregate `axisq`,
 rates before drawing conclusions from individual row examples; the point is to
 judge broad mechanics, not memorize spec anecdotes.
 
+The analyzer now also reports polish adoption as `polish=adopted/tried` in both
+row diagnostics and suite-level extra-work yield. This is behavior-preserving;
+it keeps future final-pass and polish-interaction probes visible in the same
+work-accounting view as candidate, suffix, rescue, and branch machinery.
+
 Candidate caches are now explicitly search-seed-aware. A `SearchNode` can still
 extend or shrink deterministic candidate-count prefixes for the same lane, but a
 request with a different search seed resamples instead of reusing a stale cache.

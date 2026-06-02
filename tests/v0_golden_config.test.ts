@@ -13,6 +13,7 @@ import {
 import {
   AXES,
   AXIS_VALUE_MAX,
+  FRAME_SPAN_AXES,
   hasExactlyTargetAxes,
   type Spec,
 } from "../scripts/v0/types.ts";
@@ -49,6 +50,13 @@ describe("v0 golden configuration", () => {
     expect(hasExactlyTargetAxes({ air: 0.5 }, ["air"])).toBe(true);
     expect(hasExactlyTargetAxes({ air: 0.5, speed: 0.4 }, ["air"])).toBe(false);
     expect(hasExactlyTargetAxes({ speed: 0.4 }, ["air"])).toBe(false);
+  });
+
+  test("frame-span axis category is explicit", () => {
+    expect([...FRAME_SPAN_AXES]).toEqual(["air", "speed"]);
+    for (const axis of FRAME_SPAN_AXES) {
+      expect(AXES).toContain(axis);
+    }
   });
 
   test("headline suite is the hand-authored spec registry", async () => {

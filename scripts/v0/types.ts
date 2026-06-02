@@ -84,6 +84,10 @@ export const AXIS_VALUE_MAX = {
   grain: 1,
 } as const satisfies Record<AxisName, number>;
 
+/** Axes whose achieved value can be measured over an arbitrary frame range. */
+export const FRAME_SPAN_AXES = ["air", "speed"] as const satisfies readonly AxisName[];
+export type FrameSpanAxisName = (typeof FRAME_SPAN_AXES)[number];
+
 /**
  * Resolved or measured per-axis scalar values for one gap (or one frame).
  * The numeric bag flowing through `gap.targets`, candidate `achieved`,

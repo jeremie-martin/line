@@ -13,6 +13,7 @@ import {
 import type { TrackJson } from "../../lib/primitive.ts";
 import {
   type Spec, type AxisName, type AxisValues,
+  type FrameSpanAxisName,
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
   AXES, AXIS_VALUE_MAX, CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
@@ -474,7 +475,7 @@ export function buildDriftReport(
 
 export function measureAxisOverRange(
   det: Detection, f0: number, f1: number,
-  axis: "air" | "speed",
+  axis: FrameSpanAxisName,
 ): number | null {
   const b = Math.min(f1, measurementLastFrame(det));
   if (axis === "air") {

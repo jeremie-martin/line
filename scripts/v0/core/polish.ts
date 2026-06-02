@@ -24,7 +24,7 @@ import { makeSolidLine } from "../arc.ts";
 import {
   type Spec, type AxisName,
   type TrackLine, type Gap,
-  AXES, CALIB, FPS, START_DEFAULTS, secToFrame,
+  AXES, CALIB, FPS, FRAME_SPAN_AXES, START_DEFAULTS, secToFrame,
 } from "../types.ts";
 import {
   type ResolvedStart,
@@ -1715,8 +1715,8 @@ function meanSectionAxisError(
 ): number {
   let total = 0;
   let n = 0;
-  // air / speed: per constant-target interval over the final-track measurement.
-  for (const axis of ["air", "speed"] as const) {
+  // Frame-span axes: per constant-target interval over the final-track measurement.
+  for (const axis of FRAME_SPAN_AXES) {
     for (const iv of axisTargetIntervals(spec, axis)) {
       const v = measureAxisOverRange(det, iv.f0, iv.f1, axis);
       if (v !== null) {

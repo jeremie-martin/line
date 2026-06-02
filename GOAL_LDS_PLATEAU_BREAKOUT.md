@@ -118,6 +118,12 @@ exactly the `air` target set instead of spelling out "not speed, not grain, not
 contact_style". Current behavior is unchanged, but a future axis can no longer
 silently slip through those air-only paths.
 
+The final-track polish substrate now also has an explicit `FRAME_SPAN_AXES`
+category for axes measurable over arbitrary frame ranges. Today that category is
+only `air` and `speed`, matching the previous behavior, but the final-track
+axis-error roll-up no longer hides that semantic assumption in a local literal
+array.
+
 A start-policy diagnostic cleanup now records the selected start speed and
 angle in `CompileStats`, carries those fields through golden JSON, and prints
 them in the curve analyzer. This does not change compiler behavior; it makes

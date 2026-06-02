@@ -457,6 +457,20 @@ windows as sufficiently broad signals. A better gate should be justified by
 branch conversion diagnostics or oracle/scheduler replay, not by a plausible
 story alone.
 
+Two more structural branch/suffix probes were rejected. Allowing up to two
+different rank-path signatures per `(startRank, gapIndex)` fork key tested
+whether the current scheduler spends its single branch on the first prefix to
+reach a depth. On the branch-heavy slice it was effectively neutral
+(`CURVE_SCORE 306.43 -> 306.43`) and slightly worse at 75k, while adding more
+forks; this is not enough evidence to broaden branch keying. Tail-completion
+window changes were more informative. Narrowing the near-tail window from `6`
+contacts to `5` looked superficially good on one mixed slice
+(`265.16 -> 267.20`), but full golden rejected it (`320.14 -> 317.44`) with a
+35k validity loss and negative common-row deltas at every budget. Widening to
+`7` was worse on the exact mixed-slice curve (`265.16 -> 262.63`). Keep the
+near-tail window at `6` until a scheduler can decide from stronger suffix-state
+evidence; changing the global window is too blunt.
+
 Axis-level details should be read with signed errors, not only absolute worst
 rows. `scripts/v0/analyze_golden_curve.ts` now prints achieved-minus-target
 summaries by axis and target band when run on `--details` JSON. A low-air /

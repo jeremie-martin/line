@@ -145,6 +145,11 @@ request with a different search seed resamples instead of reusing a stale cache.
 Normal handoff behavior is unchanged; this makes future snapshot and branch-lane
 experiments less fragile.
 
+The node candidate API now also validates `nCand` before consulting the cache,
+so invalid candidate-count requests cannot be accidentally satisfied from an
+existing larger prefix. This keeps the deterministic-prefix cache contract
+aligned with `solveOneGap`'s non-negative-integer candidate-count contract.
+
 Rejected follow-up probes:
 
 - Baseline-first branch scheduling, where the best normal child runs before the

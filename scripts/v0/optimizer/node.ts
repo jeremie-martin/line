@@ -95,6 +95,9 @@ export function getCandidatesSorted(
    *  cheaper pool stays a subset of the richer one (same seed → same samples). */
   nCand: number = N_CAND,
 ): Candidate[] {
+  if (!Number.isInteger(nCand) || nCand < 0) {
+    throw new Error(`getCandidatesSorted: nCand must be a non-negative integer, got ${nCand}`);
+  }
   if (
     node._candidatesCache !== null &&
     node._candidatesCache.seed === seed &&

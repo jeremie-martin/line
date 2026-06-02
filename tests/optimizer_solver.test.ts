@@ -173,4 +173,13 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
       expect(candKey(fromSeed18[i])).toBe(candKey(freshSeed18[i]));
     }
   });
+
+  test("node candidate cache validates candidate counts before cache hits", async () => {
+    const { engine, gap, ctx } = await setupAtGap0("syncopated_switchback", 0);
+    const node = makeRootNode(engine, 1);
+    getCandidatesSorted(node, [gap], ctx, 17, 16);
+
+    expect(() => getCandidatesSorted(node, [gap], ctx, 17, -1)).toThrow(/nCand/);
+    expect(() => getCandidatesSorted(node, [gap], ctx, 17, 3.5)).toThrow(/nCand/);
+  });
 });

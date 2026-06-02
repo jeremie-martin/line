@@ -273,6 +273,12 @@ Rejected follow-up probes:
   steered some rows into worse starts or basins. Keep the current policy:
   preview helps contract search, but quality search should remain cheaper and
   deeper until a more selective lookahead signal exists.
+- Raising the ranked candidate pool from `8` to `10` was not worth promoting.
+  On the same 18-row smoke, common rows moved `-0.39` at `75k` and `-0.01` at
+  `150k`. The broader pool did not materially change the flat rows, and the
+  only `150k` regression in the comparison was a tiny
+  `grain_staircase seed=2 -0.14`. This is close to neutral, but not a plateau
+  breakout and not worth adding broad per-node ranking work.
 - Lowering the prefix-branch incumbent floor (`axis_quality 0.24 -> 0.20`) was
   a smoke-scale no-op. On a 4-spec low-plateau/start smoke
   (`drums_pendulum`, `opening_burst`, `drums_tide`, `drums_dropout`) common rows

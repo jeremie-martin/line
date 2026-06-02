@@ -279,6 +279,21 @@ Rejected follow-up probes:
   only `150k` regression in the comparison was a tiny
   `grain_staircase seed=2 -0.14`. This is close to neutral, but not a plateau
   breakout and not worth adding broad per-node ranking work.
+- A quality-sample-count sweep showed real basin movement but too much
+  instability to promote as a global knob. Raising `HANDOFF_QUALITY_N_CAND`
+  from `16` to `20` on the same 18-row smoke moved common rows `-4.80` at
+  `75k` and `-2.03` at `150k`; `18` was more interesting (`-0.74` at `75k`,
+  `+0.63` at `150k`) but still had large `150k` losses
+  (`syncopated_switchback seed=1 -27.32`, `opening_burst seed=2 -11.53`) mixed
+  with real wins (`drums_crescendo seed=0 +26.26`,
+  `opening_burst seed=1 +14.29`, `drums_crescendo seed=2 +7.12`). The smaller
+  `17` step also lost (`-2.13` at `75k`, `-0.91` at `150k`). A generic
+  weak-incumbent gate (`18` samples only while the current passing
+  `axis_quality < 0.30`) reduced but did not remove the problem: `-0.62` at
+  `75k`, `+0.20` at `150k`, with the same kind of large row regressions. The
+  broader lesson is useful: richer quality sampling can find better basins, but
+  "current incumbent is weak" is not a safe scheduler signal because rows that
+  later recover can pass through a weak early phase and get redirected.
 - Lowering the prefix-branch incumbent floor (`axis_quality 0.24 -> 0.20`) was
   a smoke-scale no-op. On a 4-spec low-plateau/start smoke
   (`drums_pendulum`, `opening_burst`, `drums_tide`, `drums_dropout`) common rows

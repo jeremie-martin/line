@@ -455,6 +455,19 @@ Rejected follow-up probes:
   start/suffix basin than the later `32`-selection cadence. Keep the repair
   sparse; earlier terminal feedback is not automatically better in this
   forward-fragile search.
+- Broadening the suffix-repair trigger toward the existing moderate-quality
+  threshold was a smoke no-op. Raising the axis-quality ceiling to `0.28`, and
+  then pairing that with a looser scarce-full-evaluation cap (`4 -> 8`), produced
+  byte-identical scores and work on the 4-spec low-plateau/start smoke. The
+  accepted trigger is not currently missing an obvious nearby row under those
+  structural gates.
+- Evaluating multiple terminal suffixes from one bounded repair attempt was
+  also rejected. Keeping the same trigger and node cap but offering up to four
+  terminal suffix outputs found `4` outputs for the repaired low-air row, yet
+  the score stayed unchanged while `150k` average work increased slightly
+  (`workΔ(sim=+48 cand=+2 viable=+1)` on the smoke). The first terminal suffix
+  is enough for the current accepted repair; do not add multi-output machinery
+  without a row-independent signal that later terminal suffixes can beat it.
 
 ## Implementation Guardrails
 

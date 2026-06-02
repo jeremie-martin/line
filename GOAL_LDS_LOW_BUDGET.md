@@ -445,6 +445,18 @@ existing suffix-branch wins. The broader lesson is that useful prefix branches
 need both enough suffix breadth and a stronger branch-readiness signal; simple
 global lane, timing, or width knobs are not the next likely win.
 
+Two simple branch-readiness gates were also rejected on the branch-heavy
+diagnostic slice. Requiring the last four committed contact choices to have a
+low mean local candidate rank looked principled, but it starved useful suffix
+branches: mean-rank gates of `<=1.0` and `<=2.0` moved the slice curve
+`306.43 -> 304.88/305.00` with negative deltas at every budget. A short
+plateau gate, branching only after four frontier selections without a register
+improvement, was similarly negative (`306.43 -> 305.04`). This does not reject
+readiness gating in general; it rejects local-rank and tiny no-improvement
+windows as sufficiently broad signals. A better gate should be justified by
+branch conversion diagnostics or oracle/scheduler replay, not by a plausible
+story alone.
+
 Axis-level details should be read with signed errors, not only absolute worst
 rows. `scripts/v0/analyze_golden_curve.ts` now prints achieved-minus-target
 summaries by axis and target band when run on `--details` JSON. A low-air /
@@ -454,9 +466,12 @@ and `contact_style` is often an extreme 0-or-1 outcome rather than a smooth
 middle value. A direct high-grain quality-search widening (`16 -> 18/20`
 samples only on high-grain gaps) was rejected: it improved some early slice
 checkpoints but regressed the late guardrail where high grain coexists with
-contact-style pressure. Future geometry work should treat grain/contact-style
-coupling as a primitive/measurement problem, not just "sample more high-grain
-candidates."
+contact-style pressure. Low-air ride-out probes were also rejected: allowing the
+existing long ride-out path on low-air rows was a no-op on the diagnostic slice,
+while forcing low-air scoring out to the next contact collapsed full outputs.
+Future geometry work should treat low-air, grain, and contact-style coupling as
+primitive/measurement problems, not just "sample more candidates" or "score a
+longer continuation."
 
 Promising levers:
 

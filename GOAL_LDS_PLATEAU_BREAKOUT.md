@@ -76,6 +76,14 @@ branch prunes from `101` to `197`. The largest `150k` win was
 `drums_dropout seed=1 +3.51`; the only material `150k` row regression was
 `drums_tide seed=0 -0.64`.
 
+The second accepted cleanup gives high contact-style targets one additional
+quality-only candidate (`2 -> 3`) while keeping lower contact-style targets on
+the cheaper default. On the same 10-spec dense `150k` workbench, this moved
+`CURVE_SCORE` `326.09 -> 326.22`, kept validity `30/30`, and improved `150k`
+suite score by `+0.27`. The largest `150k` win was `dense_sprint seed=0 +9.83`;
+the material `150k` regressions were `rhythm_ladder seed=1 -1.54` and
+`dense_sprint seed=2 -0.19`.
+
 Rejected follow-up probes:
 
 - Baseline-first branch scheduling, where the best normal child runs before the

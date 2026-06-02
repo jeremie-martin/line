@@ -73,6 +73,9 @@ When an axis-specific stream or threshold survives, keep its work/yield visible.
 The campaign should prefer reusable mechanics and simplify away narrow policies
 when the measured regression is minor. A new axis should require explicit
 registration, not silent inheritance from old "not speed/not grain" conditions.
+Per-axis and per-spec diagnostics are evidence lenses, not policy templates:
+do not promote a rule because it explains a few named rows unless it also has a
+simple geometric reason and survives subtractive or broader-scope probes.
 
 Full golden runs are later promotion checks, not part of the fast plateau loop.
 Use them only when a change looks strong enough to consider as general default
@@ -267,13 +270,16 @@ contract and explicitly test branch-pruning side effects.
 
 The unique full-duration count used by bounded suffix repair is now visible as
 `handoff_unique_full_evaluations` in compact JSON and `ufull=...` in analyzer
-row diagnostics. It is `full - duplicateFull`, clamped at zero, so terminal
+row diagnostics. The analyzer also prints suite-level terminal feedback
+diversity at the last budget (`full`, `ufull`, `dupFull`, unique rate, and
+per-row rates). It is `full - duplicateFull`, clamped at zero, so terminal
 feedback scarcity can be audited directly instead of inferred from `full` and
 `dup`. This is behavior-preserving: on the 2-spec placement smoke
 (`drums_pendulum`, `opening_burst`; budgets `75k,150k`), the new artifact
 matched the prior one exactly (`CURVE_SCORE` delta `+0.00`; common-row deltas
 `+0.00`; `workΔ(sim=+0 cand=+0 viable=+0)`), and a direct JSON check confirmed
-`ufull` equals the internal scarcity formula.
+`ufull` equals the internal scarcity formula. The same smoke reports
+`full=2082`, `ufull=1261`, `dupFull=821`, and `uniqueRate=60.6%` at `150k`.
 
 The analyzer now also reports polish adoption in the same work-accounting view
 as candidate, suffix, rescue, and branch machinery. Suite-level yield reports

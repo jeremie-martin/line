@@ -616,6 +616,31 @@ function printStreamDiagnostics(data: GoldenCurveJson): void {
   for (const line of lines) console.log(line);
 }
 
+function printTerminalFeedbackDiagnostics(data: GoldenCurveJson): void {
+  const rows = data.rows ?? [];
+  const budgets = data.budgets ?? data.budget_scores?.map((summary) => summary.budget) ?? [];
+  if (rows.length === 0 || budgets.length === 0) return;
+  const lastBudget = budgets[budgets.length - 1];
+  const checkpoints = rows
+    .map((row) => checkpointAt(row, lastBudget))
+    .filter((checkpoint): checkpoint is CheckpointRow => checkpoint !== undefined);
+  if (checkpoints.length === 0) return;
+
+  const full = sumCheckpointStat(checkpoints, "handoff_full_evaluations");
+  const uniqueFull = sumUniqueFullEvaluations(checkpoints);
+  if (full === 0 || uniqueFull === undefined) return;
+
+  const duplicateFull = Math.max(0, full - uniqueFull);
+  console.log("");
+  console.log(`terminal feedback diversity at ${fmtBudget(lastBudget)}:`);
+  console.log(
+    `  full=${full} ufull=${uniqueFull} dupFull=${duplicateFull} ` +
+      `uniqueRate=${fmtRate(uniqueFull, full)} ` +
+      `full/row=${(full / checkpoints.length).toFixed(1)} ` +
+      `ufull/row=${(uniqueFull / checkpoints.length).toFixed(1)}`,
+  );
+}
+
 function streamYieldRows(
   checkpoints: CheckpointRow[],
 ): Array<{ label: string; successes: number; attempts: number }> {
@@ -819,6 +844,23 @@ function sumCheckpointStat(checkpoints: CheckpointRow[], key: keyof CompileStats
   return sum;
 }
 
+function sumUniqueFullEvaluations(checkpoints: CheckpointRow[]): number | undefined {
+  let sum = 0;
+  for (const checkpoint of checkpoints) {
+    const stats = checkpoint.compile_stats;
+    const uniqueFull = numericStat(stats, "handoff_unique_full_evaluations");
+    if (uniqueFull !== undefined) {
+      sum += uniqueFull;
+      continue;
+    }
+    const full = numericStat(stats, "handoff_full_evaluations");
+    const duplicateFull = numericStat(stats, "handoff_duplicate_full_evaluations");
+    if (full === undefined || duplicateFull === undefined) return undefined;
+    sum += Math.max(0, full - duplicateFull);
+  }
+  return sum;
+}
+
 function fmtRate(successes: number, attempts: number): string {
   return attempts === 0 ? "n/a" : `${(100 * successes / attempts).toFixed(1)}%`;
 }
@@ -1007,6 +1049,7 @@ function main(): void {
   }
   printRowDiagnostics(data);
   printStreamDiagnostics(data);
+  printTerminalFeedbackDiagnostics(data);
   printArcPlacementDiagnostics(data);
   printStartDiagnostics(data);
   printCandidateRankDiagnostics(data);

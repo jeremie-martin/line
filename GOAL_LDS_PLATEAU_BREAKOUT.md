@@ -146,6 +146,13 @@ Rejected follow-up probes:
   `9.83` at `150k`. Poor-fit branching can starve an existing useful branch
   lane, so local-cost signals need a more careful scheduler than simple
   add-another-lane.
+- Removing the whole contact-style quality sample stream was too costly. The
+  10-spec dense `150k` workbench moved `CURVE_SCORE` `326.09 -> 325.24` and
+  `150k` `332.38 -> 331.78`, validity still `30/30`. The simplification created
+  several large `150k` row losses (`syncopated_switchback seed=1 -29.66`,
+  `opening_burst seed=2 -17.46`, `drums_pendulum seed=0 -17.22`) despite a few
+  large wins. The fixed two-sample stream earns its current complexity; the
+  rejected part was only the high-target threshold.
 
 ## Implementation Guardrails
 

@@ -325,6 +325,12 @@ exactly (`CURVE_SCORE` delta `+0.00`, zero work deltas). At `150k`, the analyzer
 reported `evalByPhase=main:646/tail:305/suffix:0/polish:0`,
 `fullByPhase=main:488/tail:305/suffix:0/polish:0`, and
 `bestByPhase=main:75/tail:6/suffix:0/polish:0`.
+The analyzer now prints those phase counts as a small yield table with
+`best/eval`, `best/full`, and duplicate-full rate. On the same smoke this made
+the scheduler tradeoff explicit without changing compiler behavior: `main`
+reported `best/full=15.4%` and `dupFull=35.7%`, while speculative `tail`
+reported `best/full=2.0%` and `dupFull=41.3%`. Treat this as a diagnostic for
+future tail scheduling, not as a reason to apply another blunt global cap.
 
 The analyzer now also reports polish adoption in the same work-accounting view
 as candidate, suffix, rescue, and branch machinery. Suite-level yield reports

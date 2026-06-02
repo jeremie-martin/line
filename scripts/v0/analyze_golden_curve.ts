@@ -683,11 +683,43 @@ function printTerminalFeedbackDiagnostics(data: GoldenCurveJson): void {
         `fullByPhase=${formatPhaseCounter(fullByPhase)} ` +
         `bestByPhase=${formatPhaseCounter(improvementsByPhase)}`,
     );
+    printPhaseFeedbackRows(
+      evaluationsByPhase,
+      fullByPhase,
+      improvementsByPhase,
+      duplicateFullByPhase,
+    );
   }
   if (hasPhaseCounts(duplicateByPhase) || hasPhaseCounts(duplicateFullByPhase)) {
     console.log(
       `  dupByPhase=${formatPhaseCounter(duplicateByPhase)} ` +
         `dupFullByPhase=${formatPhaseCounter(duplicateFullByPhase)}`,
+    );
+  }
+}
+
+function printPhaseFeedbackRows(
+  evaluationsByPhase: Record<HandoffEvaluationPhase, number>,
+  fullByPhase: Record<HandoffEvaluationPhase, number>,
+  improvementsByPhase: Record<HandoffEvaluationPhase, number>,
+  duplicateFullByPhase: Record<HandoffEvaluationPhase, number>,
+): void {
+  for (const phase of HANDOFF_EVALUATION_PHASES) {
+    const evaluations = evaluationsByPhase[phase];
+    const full = fullByPhase[phase];
+    const best = improvementsByPhase[phase];
+    const duplicateFull = duplicateFullByPhase[phase];
+    if (evaluations === 0 && full === 0 && best === 0 && duplicateFull === 0) continue;
+    const uniqueFull = Math.max(0, full - duplicateFull);
+    console.log(
+      `  ${phase.padEnd(6)} ` +
+        `eval=${String(evaluations).padStart(5)} ` +
+        `full=${String(full).padStart(5)} ` +
+        `ufull=${String(uniqueFull).padStart(5)} ` +
+        `best=${String(best).padStart(4)} ` +
+        `best/eval=${fmtRate(best, evaluations).padStart(6)} ` +
+        `best/full=${fmtRate(best, full).padStart(6)} ` +
+        `dupFull=${fmtRate(duplicateFull, full).padStart(6)}`,
     );
   }
 }

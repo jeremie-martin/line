@@ -553,6 +553,16 @@ Rejected follow-up probes:
   (`workΔ(sim=+48 cand=+2 viable=+1)` on the smoke). The first terminal suffix
   is enough for the current accepted repair; do not add multi-output machinery
   without a row-independent signal that later terminal suffixes can beat it.
+- Unifying polish handling so speculative tail completions and bounded suffix
+  repairs would pass through the same clone-and-test polish path as ordinary
+  terminal DFS leaves was neutral on a 4-spec plateau smoke
+  (`drums_pendulum`, `drums_crescendo`, `rhythm_ladder`, `opening_burst`;
+  budgets `75k,150k`). Against the accepted baseline, common rows were
+  identical at both checkpoints (`delta=+0.00`, `workΔ(sim=+0 cand=+0
+  viable=+0)`), and both sides reported `polish=0/0`. This is a reasonable
+  symmetry idea, but current polish is not an active plateau lever in this
+  loop; do not promote extra polish routing without evidence that the polish
+  helpers produce useful variants under the budget sequence.
 
 ## Implementation Guardrails
 

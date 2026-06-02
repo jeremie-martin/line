@@ -190,6 +190,12 @@ Rejected follow-up probes:
   work, but even a longer post-improvement window still cut off late branch
   gains on seed 0. Branch lanes can improve after long irregular gaps, so a
   simple post-improvement cap is too blunt.
+- Halving the prefix-branch fork cadence (`PREFIX_BRANCH_FRONTIER_INTERVAL`
+  `4 -> 8`) also saved branch work but cut away too many rare wins. On the
+  10-spec dense `150k` workbench it moved `CURVE_SCORE` `326.09 -> 325.07`,
+  `75k` `329.57 -> 327.42`, and `150k` `332.38 -> 331.83`, while branch
+  evaluations dropped from `3509` to `1887`. This reinforces that branch
+  throttling needs a smarter scheduler signal than a blunt global cadence.
 - Raising the global air-overshoot ranking weight from `16` to `24` looked
   strong on seed 0, but the full 30-row workbench fell from `326.09` to
   `303.66` and validity dropped to `29/30`. Global ranker retuning can move the

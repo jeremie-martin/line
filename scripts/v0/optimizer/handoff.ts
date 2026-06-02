@@ -742,6 +742,12 @@ function compileHandoffInternal(
         farBackFrontierPulseInterval(bestKey),
       );
       telemetry.frontierSelections++;
+      if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {
+        captureReachedBudgets();
+        if (nextBudgetIndex >= budgets.length) break;
+        continue;
+      }
+
       consider(node, "main");
 
       if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {

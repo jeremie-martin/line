@@ -356,6 +356,18 @@ highest best/full rate in that small smoke came from `rem=49` (`1/9`). Treat
 this as a scheduler diagnostic only; it is not enough to promote a branch-depth
 policy.
 
+The first branch-depth cleanup is small but accepted: if an alternate-lane
+branch key has already reached the stalled full-evaluation cap without a
+register improvement, later queued nodes for that same branch are pruned before
+detector scoring instead of immediately after it. This does not change the cap
+or add a new threshold; it removes known-stalled duplicate scoring work. On the
+10-spec dense `150k` workbench, scores and validity were identical at every
+checkpoint versus the accepted branch-depth artifact (`CURVE_SCORE 330.66`,
+`30/30` valid, zero row-score deltas). At `150k`, branch evaluations fell from
+`7222` to `7209`, full evaluations from `16338` to `16325`, and common-row
+work moved by `workDelta(sim=-13 cand=+0 viable=+0)`. This is a compute hygiene
+cleanup, not a plateau breakout.
+
 The analyzer now also reports polish adoption in the same work-accounting view
 as candidate, suffix, rescue, and branch machinery. Suite-level yield reports
 `polish=adopted/tried`, where `tried` means a terminal leaf actually passed

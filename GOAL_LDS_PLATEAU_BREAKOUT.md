@@ -380,6 +380,16 @@ Rejected follow-up probes:
   (`-190.87`), and had extreme late speed overshoot. This does not prove the
   hard gate is principled; it proves the low-air/low-speed start protection is
   real and must be preserved by any smoother replacement.
+- A low-air start-support line was also rejected. The mechanics probe was
+  informative: a short flat line under the rider can lower first-gap air without
+  off-beat landing events in isolation, which confirms that the first low-air
+  gap has a genuine "start already grounded" primitive gap. But wiring that line
+  into low-air start roots broke the 4-spec low-air/start smoke: common rows
+  moved by `-57.01` at `75k` and `-58.26` at `150k`, validity dropped from
+  `12/12` to `9/12`, and all three `drums_pendulum` seeds flipped from pass to
+  fail. Do not add root support geometry without a much more careful contract
+  and transition model; starting grounded can help the first measurement window
+  while destroying the downstream contact basin.
 
 ## Implementation Guardrails
 

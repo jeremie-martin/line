@@ -143,6 +143,12 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_selected_candidate_nonzero_ranks ?? 0).toBeLessThanOrEqual(
       a.stats.handoff_selected_candidate_rank_count ?? 0,
     );
+    const selectedSourceCount =
+      (a.stats.handoff_selected_candidate_pool_count ?? 0) +
+      (a.stats.handoff_selected_candidate_reuse_count ?? 0) +
+      (a.stats.handoff_selected_candidate_brake_count ?? 0) +
+      (a.stats.handoff_selected_candidate_axis_quality_count ?? 0);
+    expect(selectedSourceCount).toBe(a.stats.handoff_selected_candidate_rank_count);
     expect(a.stats.handoff_partial_evaluations).toBeGreaterThan(0);
     expect(a.stats.handoff_full_evaluations).toBeGreaterThan(0);
     expect(a.stats.handoff_previews).toBeGreaterThan(0);
@@ -173,6 +179,14 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       .toBe(b.stats.handoff_selected_candidate_rank_max);
     expect(a.stats.handoff_selected_candidate_nonzero_ranks)
       .toBe(b.stats.handoff_selected_candidate_nonzero_ranks);
+    expect(a.stats.handoff_selected_candidate_pool_count)
+      .toBe(b.stats.handoff_selected_candidate_pool_count);
+    expect(a.stats.handoff_selected_candidate_reuse_count)
+      .toBe(b.stats.handoff_selected_candidate_reuse_count);
+    expect(a.stats.handoff_selected_candidate_brake_count)
+      .toBe(b.stats.handoff_selected_candidate_brake_count);
+    expect(a.stats.handoff_selected_candidate_axis_quality_count)
+      .toBe(b.stats.handoff_selected_candidate_axis_quality_count);
     expect(a.stats.handoff_full_evaluations).toBe(b.stats.handoff_full_evaluations);
     expect(a.stats.handoff_preview_contacts).toBe(b.stats.handoff_preview_contacts);
     expect(a.stats.handoff_preview_survivors).toBe(b.stats.handoff_preview_survivors);
@@ -267,6 +281,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(snapshot.node.search._candidatesCache).toBeNull();
     expect(snapshot.node.search._childrenCache).toBeUndefined();
     expect(snapshot.node.ranks.length).toBe(snapshot.node.search.gapIndex);
+    expect(snapshot.node.rankSources.length).toBe(snapshot.node.ranks.length);
     expect(snapshot.node.skippedContacts).toBe(0);
     expect(snapshot.event.simFrames).toBeGreaterThan(0);
   }, 60_000);

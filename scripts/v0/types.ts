@@ -255,6 +255,10 @@ export type CompileStats = {
   handoff_selected_candidate_rank_mean?: number;
   handoff_selected_candidate_rank_max?: number;
   handoff_selected_candidate_nonzero_ranks?: number;
+  handoff_selected_candidate_pool_count?: number;
+  handoff_selected_candidate_reuse_count?: number;
+  handoff_selected_candidate_brake_count?: number;
+  handoff_selected_candidate_axis_quality_count?: number;
   /** Clean prefixes cloned into alternate downstream search lanes during this
    *  compile. These are ordinary frontier nodes and are scored by the same
    *  best-so-far register as baseline prefixes. */

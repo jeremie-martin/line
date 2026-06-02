@@ -76,6 +76,10 @@ type CompileStats = {
   handoff_selected_candidate_rank_mean?: number;
   handoff_selected_candidate_rank_max?: number;
   handoff_selected_candidate_nonzero_ranks?: number;
+  handoff_selected_candidate_pool_count?: number;
+  handoff_selected_candidate_reuse_count?: number;
+  handoff_selected_candidate_brake_count?: number;
+  handoff_selected_candidate_axis_quality_count?: number;
   handoff_prefix_branch_forks?: number;
   handoff_prefix_branch_evaluations?: number;
   handoff_prefix_branch_full_evaluations?: number;
@@ -212,6 +216,10 @@ function fmtStats(stats: CompileStats | undefined): string {
       `${stats.handoff_selected_candidate_rank_count ?? "?"}@` +
       `${stats.handoff_selected_candidate_rank_mean ?? "?"}/` +
       `${stats.handoff_selected_candidate_rank_max ?? "?"}`,
+    `src=${stats.handoff_selected_candidate_pool_count ?? "?"}/` +
+      `${stats.handoff_selected_candidate_reuse_count ?? "?"}/` +
+      `${stats.handoff_selected_candidate_brake_count ?? "?"}/` +
+      `${stats.handoff_selected_candidate_axis_quality_count ?? "?"}`,
     `branch=${stats.handoff_prefix_branch_improvements ?? "?"}/` +
       `${stats.handoff_prefix_branch_evaluations ?? "?"}` +
       `(${stats.handoff_prefix_branch_full_evaluations ?? "?"}f,` +
@@ -462,6 +470,10 @@ type CandidateRankSummary = {
   nonzero: number;
   weightedRankSum: number;
   maxRank: number;
+  pool: number;
+  reuse: number;
+  brake: number;
+  axisq: number;
 };
 
 function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
@@ -476,6 +488,10 @@ function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
     nonzero: 0,
     weightedRankSum: 0,
     maxRank: 0,
+    pool: 0,
+    reuse: 0,
+    brake: 0,
+    axisq: 0,
   };
 
   for (const row of rows) {
@@ -486,15 +502,25 @@ function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
     if (count === undefined || meanRank === undefined || count <= 0) continue;
     const nonzero = stats?.handoff_selected_candidate_nonzero_ranks ?? 0;
     const maxRank = stats?.handoff_selected_candidate_rank_max ?? 0;
-    accumulateRankSummary(all, count, nonzero, meanRank, maxRank);
+    accumulateRankSummary(all, stats, count, nonzero, meanRank, maxRank);
 
     const lane = `lane ${stats?.handoff_search_lane ?? "?"}`;
     let summary = byLane.get(lane);
     if (summary === undefined) {
-      summary = { rows: 0, contacts: 0, nonzero: 0, weightedRankSum: 0, maxRank: 0 };
+      summary = {
+        rows: 0,
+        contacts: 0,
+        nonzero: 0,
+        weightedRankSum: 0,
+        maxRank: 0,
+        pool: 0,
+        reuse: 0,
+        brake: 0,
+        axisq: 0,
+      };
       byLane.set(lane, summary);
     }
-    accumulateRankSummary(summary, count, nonzero, meanRank, maxRank);
+    accumulateRankSummary(summary, stats, count, nonzero, meanRank, maxRank);
   }
   if (all.rows === 0) return;
 
@@ -508,6 +534,7 @@ function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
 
 function accumulateRankSummary(
   summary: CandidateRankSummary,
+  stats: CompileStats,
   count: number,
   nonzero: number,
   meanRank: number,
@@ -518,6 +545,10 @@ function accumulateRankSummary(
   summary.nonzero += nonzero;
   summary.weightedRankSum += meanRank * count;
   summary.maxRank = Math.max(summary.maxRank, maxRank);
+  summary.pool += stats.handoff_selected_candidate_pool_count ?? 0;
+  summary.reuse += stats.handoff_selected_candidate_reuse_count ?? 0;
+  summary.brake += stats.handoff_selected_candidate_brake_count ?? 0;
+  summary.axisq += stats.handoff_selected_candidate_axis_quality_count ?? 0;
 }
 
 function printCandidateRankSummary(label: string, summary: CandidateRankSummary): void {
@@ -525,7 +556,8 @@ function printCandidateRankSummary(label: string, summary: CandidateRankSummary)
   console.log(
     `  ${label.padEnd(8)} n=${String(summary.rows).padStart(3)} ` +
       `nonzero=${summary.nonzero}/${summary.contacts} ` +
-      `mean=${meanRank.toFixed(2)} max=${summary.maxRank}`,
+      `mean=${meanRank.toFixed(2)} max=${summary.maxRank} ` +
+      `src=${summary.pool}/${summary.reuse}/${summary.brake}/${summary.axisq}`,
   );
 }
 

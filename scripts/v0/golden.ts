@@ -823,6 +823,11 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_selected_candidate_rank_mean: stats.handoff_selected_candidate_rank_mean,
     handoff_selected_candidate_rank_max: stats.handoff_selected_candidate_rank_max,
     handoff_selected_candidate_nonzero_ranks: stats.handoff_selected_candidate_nonzero_ranks,
+    handoff_selected_candidate_pool_count: stats.handoff_selected_candidate_pool_count,
+    handoff_selected_candidate_reuse_count: stats.handoff_selected_candidate_reuse_count,
+    handoff_selected_candidate_brake_count: stats.handoff_selected_candidate_brake_count,
+    handoff_selected_candidate_axis_quality_count:
+      stats.handoff_selected_candidate_axis_quality_count,
     handoff_prefix_branch_forks: stats.handoff_prefix_branch_forks,
     handoff_prefix_branch_evaluations: stats.handoff_prefix_branch_evaluations,
     handoff_prefix_branch_full_evaluations: stats.handoff_prefix_branch_full_evaluations,

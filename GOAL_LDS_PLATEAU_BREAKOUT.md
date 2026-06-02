@@ -387,6 +387,15 @@ Rejected follow-up probes:
   `opening_burst seed=1 -0.57`. Low aggregate improvement yield does not imply
   late tail completions are dispensable. Future tail scheduling needs a sharper
   signal than a global full-evaluation cap.
+- Duplicate-aware branch stall accounting was also rejected as an optimizer
+  change. The structural hypothesis was reasonable: exact duplicate `SearchNode`
+  offers should not consume the per-branch no-improvement full-evaluation cap.
+  The focused handoff tests passed, but on the 4-spec plateau smoke
+  (`drums_pendulum`, `drums_crescendo`, `rhythm_ladder`, `opening_burst`;
+  budgets `75k,150k`) common rows moved `-0.46` at `75k` and only `+0.05` at
+  `150k`, with archive `CURVE_SCORE` down `0.20`. The only material `150k` gain
+  was `opening_burst seed=1 +0.57`. Duplicate offers are useful diagnostics, but
+  branch-patience accounting is not currently the plateau-breaking lever.
 - Raising the global air-overshoot ranking weight from `16` to `24` looked
   strong on seed 0, but the full 30-row workbench fell from `326.09` to
   `303.66` and validity dropped to `29/30`. Global ranker retuning can move the
@@ -616,6 +625,9 @@ Rejected follow-up probes:
 ## Implementation Guardrails
 
 - Do not identify or indirectly key logic to benchmark spec names.
+- Avoid treating incumbent-quality threshold retuning as a primary strategy;
+  without a broader structural reason it is too easy to fit the current flat
+  rows instead of improving the optimizer.
 - Keep candidate policy independent of the requested budgets until a deliberate
   budget-aware design is explicitly accepted.
 - Prefer base optimizer improvements over layers of wrapper logic.

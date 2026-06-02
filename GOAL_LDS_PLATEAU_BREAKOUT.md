@@ -396,6 +396,17 @@ Rejected follow-up probes:
   `150k`, with archive `CURVE_SCORE` down `0.20`. The only material `150k` gain
   was `opening_burst seed=1 +0.57`. Duplicate offers are useful diagnostics, but
   branch-patience accounting is not currently the plateau-breaking lever.
+- Score-directed far-back frontier selection was rejected. The idea was broad
+  and not spec-keyed: keep the existing far-back pulse cadence, but choose the
+  stale prefix nearest to the current best report's largest squared axis-error
+  gap instead of always choosing the oldest stale prefix. Focused handoff tests
+  passed, but the 4-spec plateau smoke collapsed against the accepted baseline:
+  `CURVE_SCORE 304.87 -> 280.58`, `75k 302.60 -> 271.63`, and
+  `150k 307.15 -> 289.83`. It did expose different basins, but too often by
+  redirecting starts/frontier order into worse speed or contact basins. The
+  lesson is that current-best worst-gap targeting is too myopic for this
+  forward-fragile search; repair targeting needs a safer notion of prefix
+  ownership and opportunity than "largest current local error".
 - Raising the global air-overshoot ranking weight from `16` to `24` looked
   strong on seed 0, but the full 30-row workbench fell from `326.09` to
   `303.66` and validity dropped to `29/30`. Global ranker retuning can move the

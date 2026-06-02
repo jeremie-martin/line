@@ -104,6 +104,13 @@ const WORK_DELTA_STATS = [
   ["cand", "candidates_sampled"],
   ["viable", "candidates_viable"],
 ] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats]>;
+const STREAM_YIELD_STATS = [
+  ["reuse", "handoff_reuse_successes", "handoff_reuse_attempts"],
+  ["brake", "handoff_brake_successes", "handoff_brake_attempts"],
+  ["axisq", "handoff_axis_quality_successes", "handoff_axis_quality_attempts"],
+  ["rescue", "handoff_rescue_successes", "handoff_rescue_attempts"],
+  ["branch", "handoff_prefix_branch_improvements", "handoff_prefix_branch_evaluations"],
+] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats, keyof CompileStats]>;
 
 function fmtBudget(budget: number): string {
   return budget % 1000 === 0 ? `${budget / 1000}k` : String(budget);
@@ -405,6 +412,49 @@ function printStartDiagnostics(data: GoldenCurveJson): void {
   printStartBandBuckets("first air", startRows, (row) => row.firstAirTarget);
 }
 
+function printStreamDiagnostics(data: GoldenCurveJson): void {
+  const rows = data.rows ?? [];
+  const budgets = data.budgets ?? data.budget_scores?.map((summary) => summary.budget) ?? [];
+  if (rows.length === 0 || budgets.length === 0) return;
+  const lastBudget = budgets[budgets.length - 1];
+  const checkpoints = rows
+    .map((row) => checkpointAt(row, lastBudget))
+    .filter((checkpoint): checkpoint is CheckpointRow => checkpoint !== undefined);
+  if (checkpoints.length === 0) return;
+
+  const lines = STREAM_YIELD_STATS
+    .map(([label, successKey, attemptKey]) => {
+      const attempts = sumCheckpointStat(checkpoints, attemptKey);
+      const successes = sumCheckpointStat(checkpoints, successKey);
+      if (attempts === 0 && successes === 0) return null;
+      return (
+        `  ${label.padEnd(6)} ` +
+        `${String(successes).padStart(6)}/${String(attempts).padEnd(6)} ` +
+        `rate=${fmtRate(successes, attempts).padStart(6)} ` +
+        `attempts/row=${(attempts / checkpoints.length).toFixed(1)}`
+      );
+    })
+    .filter((line): line is string => line !== null);
+  if (lines.length === 0) return;
+
+  console.log("");
+  console.log(`extra work yield at ${fmtBudget(lastBudget)}:`);
+  for (const line of lines) console.log(line);
+}
+
+function sumCheckpointStat(checkpoints: CheckpointRow[], key: keyof CompileStats): number {
+  let sum = 0;
+  for (const checkpoint of checkpoints) {
+    const value = numericStat(checkpoint.compile_stats, key);
+    if (value !== undefined) sum += value;
+  }
+  return sum;
+}
+
+function fmtRate(successes: number, attempts: number): string {
+  return attempts === 0 ? "n/a" : `${(100 * successes / attempts).toFixed(1)}%`;
+}
+
 function firstGapTarget(checkpoint: CheckpointRow, axis: AxisName): number | undefined {
   return checkpoint.axes?.find((entry) => entry.gap_index === 0 && entry.axis === axis)?.target;
 }
@@ -588,6 +638,7 @@ function main(): void {
     );
   }
   printRowDiagnostics(data);
+  printStreamDiagnostics(data);
   printStartDiagnostics(data);
   printAxisDiagnostics(data);
   if (baseline !== null) printComparison(data, baseline);

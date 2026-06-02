@@ -164,6 +164,11 @@ Brake and registered axis-quality extra streams are also reported as
 diagnostic-only counters for judging whether extra candidate machinery earns its
 sample budget before adding or removing policy.
 
+The curve analyzer also aggregates these counters at the last budget as
+suite-level extra-work yield (`reuse`, `brake`, `axisq`, `rescue`, and
+`branch`). Use those rates before drawing conclusions from individual row
+examples; the point is to judge broad mechanics, not memorize spec anecdotes.
+
 Candidate caches are now explicitly search-seed-aware. A `SearchNode` can still
 extend or shrink deterministic candidate-count prefixes for the same lane, but a
 request with a different search seed resamples instead of reusing a stale cache.

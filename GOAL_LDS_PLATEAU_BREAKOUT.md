@@ -176,10 +176,24 @@ suite-level extra-work yield (`reuse`, `brake`, aggregate `axisq`,
 rates before drawing conclusions from individual row examples; the point is to
 judge broad mechanics, not memorize spec anecdotes.
 
-The analyzer now also reports polish adoption as `polish=adopted/tried` in both
-row diagnostics and suite-level extra-work yield. This is behavior-preserving;
-it keeps future final-pass and polish-interaction probes visible in the same
-work-accounting view as candidate, suffix, rescue, and branch machinery.
+The analyzer now also reports polish adoption in the same work-accounting view
+as candidate, suffix, rescue, and branch machinery. Suite-level yield reports
+`polish=adopted/tried`, where `tried` means a terminal leaf actually passed
+through clone-and-test polish. Row diagnostics report
+`polish=adopted/changed/tried`, so no-op polish passes are visible instead of
+being confused with no polish work.
+
+Clone-and-test polish is now opt-in for `compileHandoff` instead of part of the
+default deterministic sequence. The corrected accounting showed the previous
+default doing many no-op terminal polish passes on a 4-spec plateau smoke
+(`2849` attempts at `150k`, `0` changed variants, `0` adoptions). Making polish
+opt-in preserved the smoke exactly, and the canonical 20-spec, 3-seed,
+default-budget golden curve also matched the prior suffix-repair full-suite
+artifact at every checkpoint (`CURVE_SCORE` `322.46`, `60/60` valid by `55k`,
+`75k` score `353.77`, common-row `workΔ(sim=+0 cand=+0 viable=+0)`). This is a
+simplification and accounting cleanup, not a plateau-score gain; future polish
+work should first prove that its helpers produce geometry-distinct variants
+worth routing through the register.
 
 Candidate caches are now explicitly search-seed-aware. A `SearchNode` can still
 extend or shrink deterministic candidate-count prefixes for the same lane, but a
@@ -559,10 +573,11 @@ Rejected follow-up probes:
   (`drums_pendulum`, `drums_crescendo`, `rhythm_ladder`, `opening_burst`;
   budgets `75k,150k`). Against the accepted baseline, common rows were
   identical at both checkpoints (`delta=+0.00`, `workΔ(sim=+0 cand=+0
-  viable=+0)`), and both sides reported `polish=0/0`. This is a reasonable
-  symmetry idea, but current polish is not an active plateau lever in this
-  loop; do not promote extra polish routing without evidence that the polish
-  helpers produce useful variants under the budget sequence.
+  viable=+0)`). Under the then-current changed-variant accounting, both sides
+  reported no changed/adopted polish variants. This is a reasonable symmetry
+  idea, but current polish is not an active plateau lever in this loop; do not
+  promote extra polish routing without evidence that the polish helpers produce
+  useful variants under the budget sequence.
 
 ## Implementation Guardrails
 

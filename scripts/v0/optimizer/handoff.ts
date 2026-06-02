@@ -87,7 +87,7 @@ export type CompileHandoffOptions = {
   budgets?: number[];
   /** Fixed search-size cap, independent of budget. Keeps unbudgeted probes finite. */
   maxNodes?: number;
-  /** Clone-and-test polish variants for each prefix considered. Default true. */
+  /** Clone-and-test polish variants for each prefix considered. Default false. */
   polish?: boolean;
   /** Diagnostic/research hook: keep the public seed's target jitter fixed while
    *  changing only search sampling/start lookahead. Defaults to `seed`, so normal
@@ -498,8 +498,9 @@ function compileHandoffInternal(
       startRanksSeen: new Set<number>(),
       startRanksWithFits: new Set<number>(),
     };
-    const polishEnabled = opts.polish ?? true;
+    const polishEnabled = opts.polish ?? false;
     let polishTried = 0;
+    let polishChanged = 0;
     let polishAdopted = 0;
     const evaluationCache = new WeakMap<SearchNode, NodeEvaluation>();
     const checkpoints: CompileCheckpoint[] = [];
@@ -575,6 +576,7 @@ function compileHandoffInternal(
           leaves_considered: register.consideredCount,
           improvements: register.improvementCount,
           polish_variants_tried: polishTried,
+          polish_variants_changed: polishChanged,
           polish_variants_adopted: polishAdopted,
           search_nodes_expanded: telemetry.nodesExpanded,
           frontier_max_size: telemetry.frontierMaxSize,
@@ -697,11 +699,12 @@ function compileHandoffInternal(
         node.search.prefixFits.some((fit) => fit !== null)
       ) {
         const padded = paddedFits(node, gaps.length);
+        polishTried++;
         const variant = polishLeafVariant(
           padded, spec, gaps, allContactFrames, durationFrames, node.startState,
         );
         if (variant !== null) {
-          polishTried++;
+          polishChanged++;
           const polishNode: HandoffNode = {
             search: {
               ...node.search,

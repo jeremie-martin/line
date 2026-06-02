@@ -212,9 +212,11 @@ export type CompileStats = {
   leaves_considered?: number;
   /** How many considered leaves strictly improved the best-so-far. */
   improvements?: number;
-  /** Polish clone-and-test variants that were geometry-distinct and so offered to
-   *  the register, and how many of those became the new best. */
+  /** Terminal leaves passed through clone-and-test polish. */
   polish_variants_tried?: number;
+  /** Polish passes that produced geometry-distinct variants offered to the
+   *  register, and how many of those became the new best. */
+  polish_variants_changed?: number;
   polish_variants_adopted?: number;
 
   /** Partial-prefix search diagnostics (compileHandoff). A node is one concrete

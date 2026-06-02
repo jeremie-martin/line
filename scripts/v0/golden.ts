@@ -766,6 +766,7 @@ function compactStats(stats: CompileStats | null): object | null {
     leaves_considered: stats.leaves_considered,
     improvements: stats.improvements,
     polish_variants_tried: stats.polish_variants_tried,
+    polish_variants_changed: stats.polish_variants_changed,
     polish_variants_adopted: stats.polish_variants_adopted,
     search_nodes_expanded: stats.search_nodes_expanded,
     frontier_max_size: stats.frontier_max_size,

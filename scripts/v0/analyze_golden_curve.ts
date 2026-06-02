@@ -28,6 +28,7 @@ type CompileStats = {
   committed_costs_per_gap?: Array<number | null>;
   leaves_considered?: number;
   polish_variants_tried?: number;
+  polish_variants_changed?: number;
   polish_variants_adopted?: number;
   search_nodes_expanded?: number;
   handoff_frontier_size?: number;
@@ -177,7 +178,9 @@ function fmtStats(stats: CompileStats | undefined): string {
     `far=${stats.handoff_frontier_far_back_count ?? "?"}`,
     `pulses=${stats.handoff_far_back_pulses ?? "?"}`,
     `tail=${stats.handoff_tail_completion_successes ?? "?"}/${stats.handoff_tail_completion_attempts ?? "?"}`,
-    `polish=${stats.polish_variants_adopted ?? "?"}/${stats.polish_variants_tried ?? "?"}`,
+    `polish=${stats.polish_variants_adopted ?? "?"}/` +
+      `${stats.polish_variants_changed ?? "?"}/` +
+      `${stats.polish_variants_tried ?? "?"}`,
     `suffix=${stats.handoff_suffix_repair_successes ?? "?"}/` +
       `${stats.handoff_suffix_repair_attempts ?? "?"}` +
       `(${stats.handoff_suffix_repair_nodes ?? "?"}n)`,

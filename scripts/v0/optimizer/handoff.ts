@@ -39,11 +39,14 @@ import {
   CONTACT_EVENT_AXES,
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
+  HANDOFF_EVALUATION_PHASES,
   START_DEFAULTS,
   secToFrame,
   type AxisName,
   type AxisValues,
   type CandidateSampleMode,
+  type HandoffEvaluationPhase,
+  type HandoffEvaluationPhaseCounter,
   type Gap,
   type HandoffCandidateSourceName,
   hasAnyTargetAxis,
@@ -126,7 +129,7 @@ export type HandoffRankTraceEntry = {
   sourceAxis?: AxisName;
 };
 
-export type HandoffNodeEventPhase = "main" | "tail" | "polish";
+export type HandoffNodeEventPhase = HandoffEvaluationPhase;
 
 export type HandoffNodeEvent = {
   phase: HandoffNodeEventPhase;
@@ -172,6 +175,8 @@ type HandoffTelemetry = {
   fullEvaluations: number;
   duplicateEvaluations: number;
   duplicateFullEvaluations: number;
+  duplicateEvaluationsByPhase: Record<HandoffNodeEventPhase, number>;
+  duplicateFullEvaluationsByPhase: Record<HandoffNodeEventPhase, number>;
   tailCompletionAttempts: number;
   tailCompletionSuccesses: number;
   tailCompletionImprovements: number;
@@ -495,6 +500,8 @@ function compileHandoffInternal(
       fullEvaluations: 0,
       duplicateEvaluations: 0,
       duplicateFullEvaluations: 0,
+      duplicateEvaluationsByPhase: emptyPhaseCounter(),
+      duplicateFullEvaluationsByPhase: emptyPhaseCounter(),
       tailCompletionAttempts: 0,
       tailCompletionSuccesses: 0,
       tailCompletionImprovements: 0,
@@ -557,14 +564,13 @@ function compileHandoffInternal(
       }
       if (canSkipPartialEvaluation(node, gaps, register)) return null;
       const evaluation = evaluateCached(node);
-      if (evaluation.fullDuration) telemetry.fullEvaluations++;
-      else telemetry.partialEvaluations++;
-      if (consideredSearchNodes.has(node.search)) {
-        telemetry.duplicateEvaluations++;
-        if (evaluation.fullDuration) telemetry.duplicateFullEvaluations++;
-      } else {
-        consideredSearchNodes.add(node.search);
-      }
+      recordEvaluationTelemetry(
+        telemetry,
+        consideredSearchNodes,
+        node.search,
+        evaluation.fullDuration,
+        phase,
+      );
       const improved = register.consider(
         buildNodeOutput(
           node,
@@ -620,6 +626,10 @@ function compileHandoffInternal(
           handoff_unique_full_evaluations: uniqueFullEvaluations(telemetry),
           handoff_duplicate_evaluations: telemetry.duplicateEvaluations,
           handoff_duplicate_full_evaluations: telemetry.duplicateFullEvaluations,
+          handoff_duplicate_evaluations_by_phase:
+            snapshotPhaseCounter(telemetry.duplicateEvaluationsByPhase),
+          handoff_duplicate_full_evaluations_by_phase:
+            snapshotPhaseCounter(telemetry.duplicateFullEvaluationsByPhase),
           handoff_tail_completion_attempts: telemetry.tailCompletionAttempts,
           handoff_tail_completion_successes: telemetry.tailCompletionSuccesses,
           handoff_tail_completion_improvements: telemetry.tailCompletionImprovements,
@@ -713,7 +723,7 @@ function compileHandoffInternal(
         expandedBrakeSearch,
       );
       if (repairedNode !== null) {
-        const result = consider(repairedNode, "tail");
+        const result = consider(repairedNode, "suffix");
         if (result?.event.improved) telemetry.suffixRepairImprovements++;
       }
 
@@ -764,8 +774,13 @@ function compileHandoffInternal(
             skippedContacts: node.skippedContacts,
           };
           const evaluation = evaluateCached(polishNode);
-          if (evaluation.fullDuration) telemetry.fullEvaluations++;
-          else telemetry.partialEvaluations++;
+          recordEvaluationTelemetry(
+            telemetry,
+            consideredSearchNodes,
+            polishNode.search,
+            evaluation.fullDuration,
+            "polish",
+          );
           const improved = register.consider(
             buildNodeOutput(
               polishNode,
@@ -1212,6 +1227,45 @@ function snapshotAxisQualityByAxis(
     byAxis[axis] = { attempts, successes };
   }
   return byAxis;
+}
+
+function emptyPhaseCounter(): Record<HandoffNodeEventPhase, number> {
+  return Object.fromEntries(
+    HANDOFF_EVALUATION_PHASES.map((phase) => [phase, 0]),
+  ) as Record<HandoffNodeEventPhase, number>;
+}
+
+function snapshotPhaseCounter(
+  counter: Record<HandoffNodeEventPhase, number>,
+): HandoffEvaluationPhaseCounter {
+  const out: HandoffEvaluationPhaseCounter = {};
+  for (const phase of HANDOFF_EVALUATION_PHASES) {
+    const count = counter[phase] ?? 0;
+    if (count > 0) out[phase] = count;
+  }
+  return out;
+}
+
+function recordEvaluationTelemetry(
+  telemetry: HandoffTelemetry,
+  consideredSearchNodes: WeakSet<SearchNode>,
+  search: SearchNode,
+  fullDuration: boolean,
+  phase: HandoffNodeEventPhase,
+): void {
+  if (fullDuration) telemetry.fullEvaluations++;
+  else telemetry.partialEvaluations++;
+
+  if (consideredSearchNodes.has(search)) {
+    telemetry.duplicateEvaluations++;
+    telemetry.duplicateEvaluationsByPhase[phase]++;
+    if (fullDuration) {
+      telemetry.duplicateFullEvaluations++;
+      telemetry.duplicateFullEvaluationsByPhase[phase]++;
+    }
+    return;
+  }
+  consideredSearchNodes.add(search);
 }
 
 function canSkipPartialEvaluation(

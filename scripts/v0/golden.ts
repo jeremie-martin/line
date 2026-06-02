@@ -785,6 +785,9 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_unique_full_evaluations: stats.handoff_unique_full_evaluations,
     handoff_duplicate_evaluations: stats.handoff_duplicate_evaluations,
     handoff_duplicate_full_evaluations: stats.handoff_duplicate_full_evaluations,
+    handoff_duplicate_evaluations_by_phase: stats.handoff_duplicate_evaluations_by_phase,
+    handoff_duplicate_full_evaluations_by_phase:
+      stats.handoff_duplicate_full_evaluations_by_phase,
     handoff_tail_completion_attempts: stats.handoff_tail_completion_attempts,
     handoff_tail_completion_successes: stats.handoff_tail_completion_successes,
     handoff_tail_completion_improvements: stats.handoff_tail_completion_improvements,

@@ -302,6 +302,19 @@ matched the prior one exactly (`CURVE_SCORE` delta `+0.00`; common-row deltas
 `ufull` equals the internal scarcity formula. The same smoke reports
 `full=2082`, `ufull=1261`, `dupFull=821`, and `uniqueRate=60.6%` at `150k`.
 
+Duplicate terminal feedback is now also attributed by evaluation origin as
+`handoff_duplicate_evaluations_by_phase` and
+`handoff_duplicate_full_evaluations_by_phase`, with phases `main`, `tail`,
+`suffix`, and `polish`. Bounded suffix repair now reports through its own
+`suffix` event phase instead of being folded into near-tail completion. This is
+behavior-preserving instrumentation for scheduler work: duplicate skipping was
+already rejected as too blunt, so future pruning needs to know whether repeated
+offers come from ordinary DFS, speculative tail completion, bounded repair, or
+polish. On the 2-spec plateau smoke (`drums_pendulum`, `opening_burst`; seed
+`0`; budgets `75k,150k`), common rows again matched the prior rank-trace
+artifact exactly (`CURVE_SCORE` delta `+0.00`, zero work deltas). At `150k`,
+the new aggregate split was `dupFullByPhase=main:174/tail:126/suffix:0/polish:0`.
+
 The analyzer now also reports polish adoption in the same work-accounting view
 as candidate, suffix, rescue, and branch machinery. Suite-level yield reports
 `polish=adopted/tried`, where `tried` means a terminal leaf actually passed

@@ -7,12 +7,17 @@ import {
   type HandoffNodeSnapshot,
 } from "../scripts/v0/optimizer/handoff.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
-import { AXES, HANDOFF_CANDIDATE_SOURCES, secToFrame } from "../scripts/v0/types.ts";
+import {
+  AXES,
+  HANDOFF_CANDIDATE_SOURCES,
+  HANDOFF_EVALUATION_PHASES,
+  secToFrame,
+} from "../scripts/v0/types.ts";
 import {
   assertBudgetSearchContract,
   type BudgetCompile,
 } from "./budget_contract_harness.ts";
-import type { CompileCheckpoint, CompileResult } from "../scripts/v0/optimizer/types.ts";
+import type { CompileCheckpoint, CompileResult, CompileStats } from "../scripts/v0/optimizer/types.ts";
 
 function hashTrack(track: unknown): string {
   return createHash("sha256").update(JSON.stringify(track)).digest("hex");
@@ -22,6 +27,12 @@ function checkpoint(result: CompileResult, budget: number): CompileCheckpoint {
   const found = result.checkpoints.find((c) => c.budget === budget);
   if (found === undefined) throw new Error(`missing checkpoint ${budget}`);
   return found;
+}
+
+function sumPhaseCounter(
+  counter: CompileStats["handoff_duplicate_evaluations_by_phase"],
+): number {
+  return HANDOFF_EVALUATION_PHASES.reduce((sum, phase) => sum + (counter?.[phase] ?? 0), 0);
 }
 
 async function firstCleanSnapshot(): Promise<HandoffNodeSnapshot> {
@@ -156,6 +167,18 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_duplicate_evaluations).toBe(b.stats.handoff_duplicate_evaluations);
     expect(a.stats.handoff_duplicate_full_evaluations)
       .toBe(b.stats.handoff_duplicate_full_evaluations);
+    expect(sumPhaseCounter(a.stats.handoff_duplicate_evaluations_by_phase)).toBe(
+      a.stats.handoff_duplicate_evaluations ?? 0,
+    );
+    expect(sumPhaseCounter(a.stats.handoff_duplicate_full_evaluations_by_phase)).toBe(
+      a.stats.handoff_duplicate_full_evaluations ?? 0,
+    );
+    expect(a.stats.handoff_duplicate_evaluations_by_phase).toEqual(
+      b.stats.handoff_duplicate_evaluations_by_phase,
+    );
+    expect(a.stats.handoff_duplicate_full_evaluations_by_phase).toEqual(
+      b.stats.handoff_duplicate_full_evaluations_by_phase,
+    );
     expect(a.stats.handoff_unique_full_evaluations ?? 0).toBeGreaterThanOrEqual(0);
     expect(a.stats.handoff_unique_full_evaluations ?? 0).toBe(
       Math.max(

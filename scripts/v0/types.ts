@@ -109,6 +109,12 @@ export const HANDOFF_CANDIDATE_SOURCES = ["pool", "reuse", "brake", "axisq"] as 
 export type HandoffCandidateSourceName = (typeof HANDOFF_CANDIDATE_SOURCES)[number];
 export type HandoffCandidateSourceCounter = Partial<Record<HandoffCandidateSourceName, number>>;
 
+/** Handoff evaluation origins. These are diagnostics only: they say which path
+ *  offered an output to the best-so-far register. */
+export const HANDOFF_EVALUATION_PHASES = ["main", "tail", "suffix", "polish"] as const;
+export type HandoffEvaluationPhase = (typeof HANDOFF_EVALUATION_PHASES)[number];
+export type HandoffEvaluationPhaseCounter = Partial<Record<HandoffEvaluationPhase, number>>;
+
 /** Compiler-owned candidate sampling streams. Normal is the main deterministic
  *  candidate prefix; extra streams must justify their sample budget separately. */
 export const CANDIDATE_SAMPLE_MODES = ["normal", "brake", "air_support"] as const;
@@ -315,9 +321,13 @@ export type CompileStats = {
   handoff_unique_full_evaluations?: number;
   /** Exact SearchNode outputs offered to the register more than once, usually
    *  because speculative completion reached a node before normal frontier
-   *  traversal. */
+   *  traversal. The phase maps attribute the repeated offer to the path that
+   *  made it visible, so future scheduler probes can separate ordinary DFS,
+   *  near-tail completion, bounded repair, and polish duplication. */
   handoff_duplicate_evaluations?: number;
   handoff_duplicate_full_evaluations?: number;
+  handoff_duplicate_evaluations_by_phase?: HandoffEvaluationPhaseCounter;
+  handoff_duplicate_full_evaluations_by_phase?: HandoffEvaluationPhaseCounter;
   /** Greedy suffix completions attempted/succeeded from near-tail handoff
    *  prefixes before the normal soft-budget stop. */
   handoff_tail_completion_attempts?: number;

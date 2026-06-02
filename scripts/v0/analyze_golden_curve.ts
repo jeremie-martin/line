@@ -12,9 +12,11 @@ import {
   AXES,
   CANDIDATE_SAMPLE_MODES,
   HANDOFF_CANDIDATE_SOURCES,
+  HANDOFF_EVALUATION_PHASES,
   type ArcPlacementCounter,
   type AxisName,
   type CandidateSampleMode,
+  type HandoffEvaluationPhase,
   type HandoffCandidateSourceName,
 } from "./types.ts";
 
@@ -58,6 +60,8 @@ type CompileStats = {
   handoff_far_back_pulses?: number;
   handoff_duplicate_evaluations?: number;
   handoff_duplicate_full_evaluations?: number;
+  handoff_duplicate_evaluations_by_phase?: Partial<Record<HandoffEvaluationPhase, number>>;
+  handoff_duplicate_full_evaluations_by_phase?: Partial<Record<HandoffEvaluationPhase, number>>;
   handoff_tail_completion_attempts?: number;
   handoff_tail_completion_successes?: number;
   handoff_tail_completion_improvements?: number;
@@ -650,6 +654,11 @@ function printTerminalFeedbackDiagnostics(data: GoldenCurveJson): void {
   if (full === 0 || uniqueFull === undefined) return;
 
   const duplicateFull = Math.max(0, full - uniqueFull);
+  const duplicateByPhase = sumPhaseCounter(checkpoints, "handoff_duplicate_evaluations_by_phase");
+  const duplicateFullByPhase = sumPhaseCounter(
+    checkpoints,
+    "handoff_duplicate_full_evaluations_by_phase",
+  );
   console.log("");
   console.log(`terminal feedback diversity at ${fmtBudget(lastBudget)}:`);
   console.log(
@@ -658,6 +667,12 @@ function printTerminalFeedbackDiagnostics(data: GoldenCurveJson): void {
       `full/row=${(full / checkpoints.length).toFixed(1)} ` +
       `ufull/row=${(uniqueFull / checkpoints.length).toFixed(1)}`,
   );
+  if (hasPhaseCounts(duplicateByPhase) || hasPhaseCounts(duplicateFullByPhase)) {
+    console.log(
+      `  dupByPhase=${formatPhaseCounter(duplicateByPhase)} ` +
+        `dupFullByPhase=${formatPhaseCounter(duplicateFullByPhase)}`,
+    );
+  }
 }
 
 function streamYieldRows(
@@ -922,6 +937,35 @@ function sumUniqueFullEvaluations(checkpoints: CheckpointRow[]): number | undefi
     sum += Math.max(0, full - duplicateFull);
   }
   return sum;
+}
+
+function sumPhaseCounter(
+  checkpoints: CheckpointRow[],
+  key:
+    | "handoff_duplicate_evaluations_by_phase"
+    | "handoff_duplicate_full_evaluations_by_phase",
+): Record<HandoffEvaluationPhase, number> {
+  const sums = Object.fromEntries(
+    HANDOFF_EVALUATION_PHASES.map((phase) => [phase, 0]),
+  ) as Record<HandoffEvaluationPhase, number>;
+  for (const checkpoint of checkpoints) {
+    const counter = checkpoint.compile_stats?.[key];
+    if (counter === undefined) continue;
+    for (const phase of HANDOFF_EVALUATION_PHASES) {
+      sums[phase] += counter[phase] ?? 0;
+    }
+  }
+  return sums;
+}
+
+function hasPhaseCounts(counter: Record<HandoffEvaluationPhase, number>): boolean {
+  return HANDOFF_EVALUATION_PHASES.some((phase) => counter[phase] !== 0);
+}
+
+function formatPhaseCounter(counter: Record<HandoffEvaluationPhase, number>): string {
+  return HANDOFF_EVALUATION_PHASES
+    .map((phase) => `${phase}:${counter[phase]}`)
+    .join("/");
 }
 
 function fmtRate(successes: number, attempts: number): string {

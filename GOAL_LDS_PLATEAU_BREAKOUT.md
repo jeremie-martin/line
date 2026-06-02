@@ -464,6 +464,15 @@ Rejected follow-up probes:
   The current start-speed bands are still unsatisfying, but a production change
   needs a softer start-state policy that preserves low-speed/low-air protection
   instead of simply scoring a much wider common set.
+- Increasing the start frontier capacity from `10` to `12` options was also too
+  blunt. The accepted baseline often selects rank `9`, so this was a natural
+  capacity probe, but the 18-row start-heavy smoke moved common rows `-5.32` at
+  `75k` and `-4.16` at `150k`. The worst loss was
+  `syncopated_switchback seed=1 -45.21`, where the selected start changed from
+  `9.84@14.0deg/r9` to `0.40@0.0deg/r0`; `rhythm_ladder seed=2` also lost
+  `-28.35` without a start-rank change. Seeing rank-9 winners does not mean the
+  fix is simply more roots: extra start options perturb early frontier timing and
+  can redirect rows into much worse basins.
 - Smoothing the high-speed start overshoot scoring gate was rejected for the
   same reason. Keeping the current candidate set but ramping overshoot pressure
   from `6` to `9` px/frame moved `CURVE_SCORE` `326.09 -> 318.46` and `150k`

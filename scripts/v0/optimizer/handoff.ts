@@ -2077,6 +2077,9 @@ function buildNodeOutput(
   const fits = paddedFits(node, gaps.length);
   const allLines = [];
   for (const fit of fits) if (fit !== null) allLines.push(...fit.lines);
+  const startVelocity = node.startState.velocity;
+  const startSpeed = Math.hypot(startVelocity.x, startVelocity.y);
+  const startAngleDeg = (Math.atan2(startVelocity.y, startVelocity.x) * 180) / Math.PI;
   return {
     track: buildTrackJson(allLines, outputDurationFrames, node.startState),
     report,
@@ -2093,6 +2096,8 @@ function buildNodeOutput(
       budget_exhausted: budgetExhausted,
       handoff_skips: node.skippedContacts,
       handoff_start_rank: node.startRank,
+      handoff_start_speed: round3(startSpeed),
+      handoff_start_angle_deg: round3(startAngleDeg),
       handoff_search_seed: node.searchSeed,
       handoff_search_lane: node.searchLane,
     },

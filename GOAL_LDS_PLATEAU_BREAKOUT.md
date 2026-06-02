@@ -105,6 +105,11 @@ canonical axis registry for target averaging, target jitter clamping, and spec
 validation. This is also behavior-preserving; its purpose is to keep new-axis
 work from requiring edits to several hidden four-axis lists.
 
+A start-policy diagnostic cleanup now records the selected start speed and
+angle in `CompileStats`, carries those fields through golden JSON, and prints
+them in the curve analyzer. This does not change compiler behavior; it makes
+future start-state probes explainable without rerunning ad hoc track inspection.
+
 Rejected follow-up probes:
 
 - Baseline-first branch scheduling, where the best normal child runs before the

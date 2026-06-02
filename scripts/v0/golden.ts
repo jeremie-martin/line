@@ -783,6 +783,8 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_tail_completion_successes: stats.handoff_tail_completion_successes,
     handoff_start_options: stats.handoff_start_options,
     handoff_start_rank: stats.handoff_start_rank,
+    handoff_start_speed: stats.handoff_start_speed,
+    handoff_start_angle_deg: stats.handoff_start_angle_deg,
     handoff_start_ranks_seen: stats.handoff_start_ranks_seen,
     handoff_start_ranks_with_fits: stats.handoff_start_ranks_with_fits,
     handoff_previews: stats.handoff_previews,

@@ -34,6 +34,8 @@ type CompileStats = {
   handoff_tail_completion_attempts?: number;
   handoff_tail_completion_successes?: number;
   handoff_start_options?: number;
+  handoff_start_speed?: number;
+  handoff_start_angle_deg?: number;
   handoff_start_ranks_seen?: number;
   handoff_start_ranks_with_fits?: number;
   handoff_full_evaluations?: number;
@@ -134,6 +136,7 @@ function fmtStats(stats: CompileStats | undefined): string {
     `rescue=${stats.handoff_rescue_successes ?? "?"}/${stats.handoff_rescue_attempts ?? "?"}`,
     `preview=${stats.handoff_preview_contacts ?? "?"}/${stats.handoff_previews ?? "?"}`,
     `starts=${stats.handoff_start_ranks_with_fits ?? "?"}/${stats.handoff_start_ranks_seen ?? "?"}`,
+    `start=${fmtStart(stats)}`,
     `lane=${stats.handoff_search_lane ?? "?"}`,
     `branch=${stats.handoff_prefix_branch_improvements ?? "?"}/` +
       `${stats.handoff_prefix_branch_evaluations ?? "?"}` +
@@ -144,6 +147,13 @@ function fmtStats(stats: CompileStats | undefined): string {
     `partial=${stats.handoff_partial_evaluations ?? "?"}`,
   ];
   return parts.join(" ");
+}
+
+function fmtStart(stats: CompileStats): string {
+  const speed = stats.handoff_start_speed;
+  const angle = stats.handoff_start_angle_deg;
+  if (speed === undefined || angle === undefined) return "?";
+  return `${speed.toFixed(2)}@${angle.toFixed(1)}deg`;
 }
 
 function worstAxes(checkpoint: CheckpointRow, limit: number): string {

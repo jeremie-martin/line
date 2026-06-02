@@ -237,6 +237,10 @@ export type CompileStats = {
    *  and the selected rank for the returned best prefix. */
   handoff_start_options?: number;
   handoff_start_rank?: number;
+  /** Selected start-state velocity in polar form. This is report-only
+   *  instrumentation for start-policy probes; it is not used by scoring. */
+  handoff_start_speed?: number;
+  handoff_start_angle_deg?: number;
   /** Start-state diversity reached by the search. `seen` includes root partials;
    *  `with_fits` counts start ranks that reached at least one committed catch. */
   handoff_start_ranks_seen?: number;

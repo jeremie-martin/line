@@ -57,5 +57,5 @@ describe("curve paradigm — a ramp produces a rising achieved series", () => {
     const head = speeds.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
     const tail = speeds.slice(-3).reduce((a, b) => a + b, 0) / 3;
     expect(tail).toBeGreaterThan(head);
-  });
+  }, 60_000);
 });

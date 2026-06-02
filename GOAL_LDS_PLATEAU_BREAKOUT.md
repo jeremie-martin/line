@@ -191,6 +191,18 @@ tail-window rejection by itself: the accepted `8`-contact window already earned
 its score, but future terminal-feedback work needs to focus on improvement
 yield, not completion rate alone.
 
+The analyzer also reports exact duplicate output offers as `dup=all/full`.
+These are repeated offers of the same `SearchNode` to the register, not merely
+similar scores. This is behavior-preserving instrumentation for understanding
+whether speculative terminal feedback is distorting evaluation/pruning counters
+after normal frontier traversal reaches the same node. On the same 4-spec
+plateau smoke at `150k`, exact duplicates were material: `2037/5720` register
+offers were duplicate nodes, and `2012/4897` full-duration evaluations were
+duplicate full nodes. This does not prove they are safe to skip: the current
+sequence also uses evaluation counters for branch pruning and terminal-feedback
+scheduling. Any future duplicate-skip cleanup should preserve the budget-prefix
+contract and explicitly test branch-pruning side effects.
+
 The analyzer now also reports polish adoption in the same work-accounting view
 as candidate, suffix, rescue, and branch machinery. Suite-level yield reports
 `polish=adopted/tried`, where `tried` means a terminal leaf actually passed

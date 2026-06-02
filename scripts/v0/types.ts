@@ -266,6 +266,11 @@ export type CompileStats = {
    *  terminal prefixes use the full spec duration. */
   handoff_partial_evaluations?: number;
   handoff_full_evaluations?: number;
+  /** Exact SearchNode outputs offered to the register more than once, usually
+   *  because speculative completion reached a node before normal frontier
+   *  traversal. */
+  handoff_duplicate_evaluations?: number;
+  handoff_duplicate_full_evaluations?: number;
   /** Greedy suffix completions attempted/succeeded from near-tail handoff
    *  prefixes before the normal soft-budget stop. */
   handoff_tail_completion_attempts?: number;

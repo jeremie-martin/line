@@ -121,6 +121,15 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_suffix_repair_improvements)
       .toBe(b.stats.handoff_suffix_repair_improvements);
     expect(a.stats.handoff_suffix_repair_nodes).toBe(b.stats.handoff_suffix_repair_nodes);
+    expect(a.stats.handoff_duplicate_evaluations ?? 0).toBeGreaterThanOrEqual(
+      a.stats.handoff_duplicate_full_evaluations ?? 0,
+    );
+    expect(a.stats.handoff_duplicate_evaluations ?? 0).toBeLessThanOrEqual(
+      a.stats.leaves_considered ?? 0,
+    );
+    expect(a.stats.handoff_duplicate_evaluations).toBe(b.stats.handoff_duplicate_evaluations);
+    expect(a.stats.handoff_duplicate_full_evaluations)
+      .toBe(b.stats.handoff_duplicate_full_evaluations);
     expect(a.stats.search_nodes_expanded).toBeGreaterThan(0);
     expect(a.stats.handoff_frontier_size).toBeGreaterThanOrEqual(0);
     expect(a.stats.handoff_deepest_seen_gap).toBeGreaterThanOrEqual(0);

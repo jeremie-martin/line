@@ -36,6 +36,8 @@ type CompileStats = {
   handoff_frontier_mean_gap_lag?: number;
   handoff_frontier_far_back_count?: number;
   handoff_far_back_pulses?: number;
+  handoff_duplicate_evaluations?: number;
+  handoff_duplicate_full_evaluations?: number;
   handoff_tail_completion_attempts?: number;
   handoff_tail_completion_successes?: number;
   handoff_tail_completion_improvements?: number;
@@ -181,6 +183,8 @@ function fmtStats(stats: CompileStats | undefined): string {
     `meanLag=${stats.handoff_frontier_mean_gap_lag ?? "?"}`,
     `far=${stats.handoff_frontier_far_back_count ?? "?"}`,
     `pulses=${stats.handoff_far_back_pulses ?? "?"}`,
+    `dup=${stats.handoff_duplicate_evaluations ?? "?"}/` +
+      `${stats.handoff_duplicate_full_evaluations ?? "?"}`,
     `tail=${stats.handoff_tail_completion_improvements ?? "?"}/` +
       `${stats.handoff_tail_completion_successes ?? "?"}/` +
       `${stats.handoff_tail_completion_attempts ?? "?"}`,

@@ -156,6 +156,8 @@ type HandoffTelemetry = {
   deepestSeenGap: number;
   partialEvaluations: number;
   fullEvaluations: number;
+  duplicateEvaluations: number;
+  duplicateFullEvaluations: number;
   tailCompletionAttempts: number;
   tailCompletionSuccesses: number;
   tailCompletionImprovements: number;
@@ -472,6 +474,8 @@ function compileHandoffInternal(
       deepestSeenGap: -1,
       partialEvaluations: 0,
       fullEvaluations: 0,
+      duplicateEvaluations: 0,
+      duplicateFullEvaluations: 0,
       tailCompletionAttempts: 0,
       tailCompletionSuccesses: 0,
       tailCompletionImprovements: 0,
@@ -507,6 +511,7 @@ function compileHandoffInternal(
     let polishChanged = 0;
     let polishAdopted = 0;
     const evaluationCache = new WeakMap<SearchNode, NodeEvaluation>();
+    const consideredSearchNodes = new WeakSet<SearchNode>();
     const checkpoints: CompileCheckpoint[] = [];
     let nextBudgetIndex = 0;
     const prefixBranches = createPrefixBranchController(
@@ -535,6 +540,12 @@ function compileHandoffInternal(
       const evaluation = evaluateCached(node);
       if (evaluation.fullDuration) telemetry.fullEvaluations++;
       else telemetry.partialEvaluations++;
+      if (consideredSearchNodes.has(node.search)) {
+        telemetry.duplicateEvaluations++;
+        if (evaluation.fullDuration) telemetry.duplicateFullEvaluations++;
+      } else {
+        consideredSearchNodes.add(node.search);
+      }
       const improved = register.consider(
         buildNodeOutput(
           node,
@@ -587,6 +598,8 @@ function compileHandoffInternal(
           ...snapshotFrontierStats(passStack, fallbackStack, telemetry),
           handoff_partial_evaluations: telemetry.partialEvaluations,
           handoff_full_evaluations: telemetry.fullEvaluations,
+          handoff_duplicate_evaluations: telemetry.duplicateEvaluations,
+          handoff_duplicate_full_evaluations: telemetry.duplicateFullEvaluations,
           handoff_tail_completion_attempts: telemetry.tailCompletionAttempts,
           handoff_tail_completion_successes: telemetry.tailCompletionSuccesses,
           handoff_tail_completion_improvements: telemetry.tailCompletionImprovements,

@@ -109,6 +109,7 @@ export function arcPlacementMode(): ArcPlacementRuntimeMode {
   if (raw === "uniform") return "uniform";
   if (raw === "impact_frame") return "impact_frame";
   if (raw === "contact_centered") return "contact_centered";
+  if (raw === "continuous") return "continuous";
   return "impact_anchor";
 }
 
@@ -166,6 +167,7 @@ function arcPlacementStatsMode(): ArcPlacementMode {
   const mode = arcPlacementMode();
   if (mode === "impact_frame") return "impact_frame";
   if (mode === "contact_centered") return "contact_centered";
+  if (mode === "continuous") return "continuous";
   return "impact_anchor";
 }
 
@@ -268,6 +270,25 @@ export function sampleArcPlacementGeometry(
   mode: CandidateSampleMode = "normal",
   allContactFrames: readonly number[] = [],
 ): ArcPlacementGeometry {
+  // Continuous mode replaces the normal stream's piecewise family selection
+  // (steep templates / impact-anchored arc / contact-centered lines, each gated
+  // by hard density/speed thresholds) with ONE generator. It uses the contact-
+  // centered line family for ALL contact gaps — not only dense ones — because the
+  // line family is the only one whose pre/post extents are decoupled from the
+  // contact tangent, and its post-support already scales continuously with the
+  // available downstream space. Removing the `nextGapFrames <= 22` gate lets that
+  // one continuum span sparse and dense gaps alike. Brake and air-support streams
+  // keep their own families.
+  if (arcPlacementMode() === "continuous" && mode === "normal") {
+    recordImpactAnchorSample(mode);
+    return {
+      kind: "lines",
+      lines: sampleContactCenteredLinesWithDiagnostics(
+        rng, targetState, targets, gap, lineIdStart, allContactFrames,
+      ).lines,
+    };
+  }
+
   const steepTemplateIndex = steepCatchTemplateIndex(attempt);
   if (mode === "normal" && steepTemplateIndex !== null && shouldUseSteepCatch(targetState, gap)) {
     return { kind: "arc", arc: sampleSteepCatchArc(targetState, CATCH_TEMPLATES[steepTemplateIndex]) };
@@ -401,6 +422,9 @@ export function usesSteepCatchTemplateAttempt(
   gap: Gap,
   attempt: number,
 ): boolean {
+  // Continuous mode replaces the normal stream entirely (no steep templates), so
+  // every normal attempt consumes the full draw budget like a non-template arc.
+  if (arcPlacementMode() === "continuous") return false;
   return steepCatchTemplateIndex(attempt) !== null && shouldUseSteepCatch(targetState, gap);
 }
 

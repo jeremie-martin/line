@@ -128,7 +128,11 @@ export type ArcPlacementCounter = {
   fallback_landed: number;
 };
 
-export type ArcPlacementMode = "impact_anchor" | "impact_frame" | "contact_centered";
+export type ArcPlacementMode =
+  | "impact_anchor"
+  | "impact_frame"
+  | "contact_centered"
+  | "continuous";
 
 /**
  * True when the resolved target bag contains exactly this canonical axis set.

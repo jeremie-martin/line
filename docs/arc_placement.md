@@ -239,6 +239,46 @@ Validation remains unchanged:
 - no off-beat landings;
 - normal axis measurement and handoff ranking.
 
+## Experimental third attempt: continuous (one generator, no density gate)
+
+```sh
+LR_ARC_PLACEMENT=continuous
+```
+
+This is the first step toward removing the piecewise, threshold-gated family
+selection. The default normal stream picks between three families by hard
+cutoffs: steep-template arcs (`gapFrames >= 60`), impact-anchored arcs (global
+`impactCenter`), and contact-centered lines (`nextGapFrames <= 22`). Those
+cutoffs are exactly the gap-density overfitting the campaign warns against, and
+no single family's constants can cross between regimes.
+
+`continuous` uses ONE generator for every normal contact gap: the contact-centered
+line family, with the `nextGapFrames <= 22` density gate removed. The line family
+is the only one whose pre/post extents are decoupled from the contact tangent (so
+it escapes the single-arc coupling between firm-landing, pre-impact clearance, and
+post support that pins `impact_anchor`'s `impactT` near `0.6`), and its
+post-support already scales continuously with the available downstream space. Brake
+and air-support streams keep their own families. Steep templates are disabled for
+the normal stream in this mode, so every normal attempt consumes the full,
+non-template draw budget and the deterministic sample prefix is preserved.
+
+Result (normal diagnostic, seeds 0/1/2): `CURVE 195.9`, `100k 485.5`, 30/30 valid
+— slightly above gated `contact_centered` (`183.7`, `476.6`) and the highest
+ceiling measured in the campaign (default `impact_anchor` saturates near `388`).
+It is NOT promotable as the default: its CURVE is far below `369` because of slow
+EARLY-budget convergence (50k `32`, 60k `167`), not poor yield (it finds MORE
+viable catches per budget) or a low ceiling.
+
+The remaining sub-problem is forward dependency. A line catch is placed for local
+axis fit plus a release-SPEED penalty, but its release TRAJECTORY is not shaped for
+WHEN the next beat arrives, so viable local catches chain slowly. The continuous
+direction worth pursuing next is forward-aware ride-out: predict the candidate's
+ballistic state at the next contact frame and shape/prefer catches that arrive
+catchable (descending, moderate speed), continuous in time-to-next-contact rather
+than gated by a density threshold. A first cadence-coupled exit shaping (ease the
+ride-out toward a clean horizontal launch as the next beat nears) was neutral on
+dense specs and was not kept.
+
 ## Diagnostic counters
 
 Golden stats expose non-scoring placement counters under `arc_placement`. The

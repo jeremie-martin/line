@@ -110,6 +110,24 @@ describe("optimizer/sample.ts — Step 1 atomic sample", () => {
     });
   });
 
+  test("continuous mode remains deterministic under the same RNG seed", async () => {
+    const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
+    withArcPlacementMode("continuous", () => {
+      const rngA = makeRng(42);
+      const rngB = makeRng(42);
+      const a = sampleOneCandidate(engine, gap, rngA, ctx, 1);
+      const b = sampleOneCandidate(engine, gap, rngB, ctx, 1);
+      expect(a === null).toBe(b === null);
+      if (a !== null && b !== null) {
+        expect(a.cost).toBe(b.cost);
+        expect(a.arc).toEqual(b.arc);
+        expect(a.geometry).toBe(b.geometry);
+        expect(a.lines).toEqual(b.lines);
+        expect(a.achieved).toEqual(b.achieved);
+      }
+    });
+  });
+
   test("contact-centered mode remains deterministic under the same RNG seed", async () => {
     const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
     withArcPlacementMode("contact_centered", () => {

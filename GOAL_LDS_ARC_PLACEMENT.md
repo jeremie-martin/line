@@ -187,33 +187,66 @@ and handoff ranker judge it.
 
 ## Metrics And Workbench
 
-Use small probes to reject ideas quickly, but do not optimize directly to them.
-The fast command is the default iteration loop. The normal command is for
-broader checks after a fast win.
+### Primary metric: last-budget mean score
 
-Fast focused loop:
+The campaign optimizes the **arithmetic mean per-row score at the LAST budget** —
+`150k` for the normal diagnostic, `100k` for the fast loop. This deliberately
+replaces `CURVE_SCORE` as the headline.
+
+Why: `CURVE_SCORE` integrates across all budgets, so it heavily weights the low
+budgets where a slow-converging placement has not finished, and it hides the
+ceiling. The 2026-06-03 full sweep showed the default `impact_anchor` placement is
+hard-plateaued — pinned near a `~428` mean / `59-of-60` valid from ~60k onward, no
+matter how much budget — while the decoupled `continuous` placement keeps climbing
+to a `~508` mean and `60/60` valid by `110k`. `CURVE_SCORE` ranked the plateaued
+default far ABOVE the higher-ceiling approach, purely because of slow warm-up. The
+last-budget mean is the metric that actually distinguishes a broken plateau from a
+real one.
+
+`CURVE_SCORE` and the budget curve remain useful SECONDARY diagnostics: they show
+HOW EARLY a given final quality is reached (convergence speed). A change that lifts
+the last-budget mean AND pulls the curve left (reaches that quality sooner) is
+strictly better; convergence speed is the standing secondary objective.
+
+Spirit of the metric (read this before optimizing to the number): the last-budget
+mean is a proxy. What we actually want is placement with a genuinely HIGH CEILING —
+one that keeps converting more budget into better, more reliable tracks, instead of
+plateauing early at a low cap (which is exactly the trap the default `impact_anchor`
+fell into: flat from ~60k, unable to land the last contacts at any budget). So
+favour approaches that raise the achievable ceiling and keep improving with budget,
+even if they start slower, over approaches that top out early. A curve that is still
+climbing is a sign of headroom worth chasing, not a defect — the numeric metric just
+happens to measure that ceiling at a fixed cutoff. Do not sacrifice ceiling for a
+prettier early curve.
+
+Use small probes to reject ideas quickly, but do not optimize directly to them.
+The fast command is the default iteration loop. The normal command is for broader
+checks after a fast win.
+
+Fast focused loop (optimize mean score at `100k`):
 
 ```bash
-env LR_ARC_PLACEMENT=contact_centered GOLDEN_SEEDS_OVERRIDE=0,1,2 \
+env LR_ARC_PLACEMENT=continuous GOLDEN_SEEDS_OVERRIDE=0,1,2 \
   npx tsx scripts/v0/golden.ts --details \
   --specs=solo_run,dense_sprint,opening_burst \
-  --budgets=50000,60000,70000,80000 \
+  --budgets=50000,60000,70000,80000,90000,100000 \
   --jobs=32 \
   --archive-dir=/tmp/line-contact-PROBE-fast
 ```
 
-Normal diagnostic:
+Normal diagnostic (optimize mean score at `150k`):
 
 ```bash
-env LR_ARC_PLACEMENT=contact_centered GOLDEN_SEEDS_OVERRIDE=0,1,2 \
+env LR_ARC_PLACEMENT=continuous GOLDEN_SEEDS_OVERRIDE=0,1,2 \
   npx tsx scripts/v0/golden.ts --details \
   --specs=solo_run,dense_sprint,opening_burst,tiny_dance,drums_pendulum,drums_crescendo,rhythm_ladder,syncopated_switchback,drums_tide,drums_dropout \
-  --budgets=50000,60000,70000,80000,90000,100000 \
+  --budgets=50000,60000,70000,80000,90000,100000,110000,120000,130000,140000,150000 \
   --jobs=32 \
   --archive-dir=/tmp/line-contact-PROBE-normal
 ```
 
-Full golden remains the promotion check for default compiler policy.
+Set `LR_ARC_PLACEMENT` to whichever placement you are probing (`continuous` is the
+current lead). Full golden remains the promotion check for default compiler policy.
 
 Always compare with:
 
@@ -221,10 +254,18 @@ Always compare with:
 npx tsx scripts/v0/analyze_golden_curve.ts CURRENT.json BASELINE.json
 ```
 
+Read the **last-budget row of the `common-row budget deltas`** table — its
+`base_mean -> cur_mean` arithmetic means at `150k` (or `100k` fast) are the primary
+number. The `CURVE_SCORE delta` line is secondary (convergence), not the target.
+Avoid optimizing to a single fixed seed/spec set: confirm a win on a held-out seed
+triple (e.g. `20,21,22`) and the full 20-spec suite before trusting it.
+
 Primary score lens:
 
-- `CURVE_SCORE` and per-budget valid counts;
-- last-budget score/validity;
+- **last-budget arithmetic mean score** (150k normal / 100k fast) and last-budget
+  valid count — the headline;
+- the budget at which the approach overtakes the prior best (convergence cost);
+- `CURVE_SCORE` and per-budget valid counts (secondary, convergence speed);
 - row-level regressions and validity flips;
 - candidate work and viable-candidate yield;
 - placement failure split.
@@ -237,42 +278,68 @@ The local campaign baseline was measured on 2026-06-03 from clean commit
 path.
 
 For compiler changes in this campaign, only commit changes that improve the
-normal diagnostic `CURVE_SCORE` by at least 5 points over the current normal
-score to beat. The current normal score to beat is `369.27`, so the current
-minimum compiler-change commit threshold is `374.27`. Documentation-only
-scoreboard updates are campaign bookkeeping.
+**normal diagnostic last-budget (`150k`) mean score** by at least 5 points over
+the current score to beat. Documentation-only scoreboard updates are campaign
+bookkeeping.
 
-The campaign goal is to reach a normal diagnostic `CURVE_SCORE` of `500`, while
-working solely on arc placement as defined in this document. Read this document
-carefully before changing code; do not pursue spec-name overfitting or unrelated
-handoff/search/scoring changes to reach the number.
+The campaign goal is a normal diagnostic `150k` mean score of `500`, robustly
+across seeds and the full spec suite, while working solely on arc placement as
+defined in this document. The 2026-06-03 full sweep showed `continuous` placement
+already crosses this on a held-out seed triple (`150k` mean `~508`, 60/60 valid) —
+so the live objectives are now: (a) keep pushing the `150k` mean higher and keep
+the win robust; (b) the standing secondary objective — reduce the budget needed to
+reach it (the convergence cost), which is what `continuous` currently pays. Read
+this document carefully before changing code; do not pursue spec-name overfitting
+or unrelated handoff/search/scoring changes to reach the number.
 
-Current baselines:
+The last-budget mean alone is the working metric. One caveat to keep in mind: the
+mean is only a fair ceiling estimate if the curve has actually flattened by the
+last budget. The `headroom` column below (last-budget mean minus the previous
+checkpoint's mean) is a cheap sanity read — if it is large, the cutoff is before
+the knee and the mean understates the ceiling. A richer "reward still-climbing"
+metric was considered and deliberately parked (it would perversely reward slow
+convergence); see `TODO.md`.
 
-| Scope | Archive | CURVE_SCORE | Last Budget | Validity |
-| --- | --- | ---: | ---: | --- |
-| Fast focused loop | `/tmp/line-arc-baseline-fast/golden.json` | `355.82` | `80k: 358.13` | `8/9` |
-| Normal diagnostic | `/tmp/line-arc-baseline-normal/golden.json` | `369.27` | `100k: 388.26` | `29/30` |
+### Current baselines (2026-06-03, seeds 0/1/2)
 
-Fast focused budget scores:
+| Scope | Mode | Archive | Last-budget mean | Valid | Headroom |
+| --- | --- | --- | ---: | --- | ---: |
+| Fast (mean@`100k`) | `impact_anchor` (default) | `/tmp/wb-fast-default` | `384.9` | `8/9` | `+0.2` |
+| Fast (mean@`100k`) | `continuous` (lead) | `/tmp/wb-fast-continuous` | `568.1` | `9/9` | `+129` |
+| Normal (mean@`150k`) | `impact_anchor` (default) | `/tmp/wb-normal-default` | `408.2` | `29/30` | `+0.6` |
+| Normal (mean@`150k`) | `continuous` (lead) | `/tmp/wb-normal-continuous` | `496.7` | `30/30` | `+2.2` |
 
-| Budget | Score | Valid |
-| ---: | ---: | --- |
-| `50k` | `353.17` | `8/9` |
-| `60k` | `354.07` | `8/9` |
-| `70k` | `357.95` | `8/9` |
-| `80k` | `358.13` | `8/9` |
+Score to beat (normal, mean@`150k`): **`496.7`** (`continuous`). Commit threshold
+for a new placement: **`501.7`** (+5). The default `impact_anchor` plateaus at
+`408.2` and cannot be pushed past it at any budget — `continuous` is the line to
+beat now.
 
-Normal diagnostic budget scores:
+Note the headroom column doing its job: the default is fully plateaued on both
+tiers; `continuous` is converged on the normal tier (`+2.2`) but **still climbing
+steeply on the fast tier at `100k` (`+129`)** — so `568.1` is a LOWER BOUND on the
+fast ceiling, and the fast loop is a quick pre-knee proxy, not `continuous`'s
+converged fast score. Use the normal tier for ceiling claims.
 
-| Budget | Score | Valid |
-| ---: | ---: | --- |
-| `50k` | `347.64` | `29/30` |
-| `60k` | `361.78` | `29/30` |
-| `70k` | `363.04` | `29/30` |
-| `80k` | `368.47` | `29/30` |
-| `90k` | `388.16` | `29/30` |
-| `100k` | `388.26` | `29/30` |
+Normal mean-score curve (seeds 0/1/2, 10 specs):
+
+| Budget | `impact_anchor` mean | valid | `continuous` mean | valid |
+| ---: | ---: | --- | ---: | --- |
+| `50k` | `370.1` | `29/30` | `267.8` | `17/30` |
+| `60k` | `383.0` | `29/30` | `392.8` | `25/30` |
+| `70k` | `383.5` | `29/30` | `395.3` | `25/30` |
+| `80k` | `388.3` | `29/30` | `449.5` | `28/30` |
+| `90k` | `403.0` | `29/30` | `471.8` | `29/30` |
+| `100k` | `403.1` | `29/30` | `491.5` | `30/30` |
+| `110k` | `406.3` | `29/30` | `492.0` | `30/30` |
+| `120k` | `407.4` | `29/30` | `494.3` | `30/30` |
+| `130k` | `407.6` | `29/30` | `494.4` | `30/30` |
+| `140k` | `408.1` | `29/30` | `495.3` | `30/30` |
+| `150k` | `408.2` | `29/30` | `496.7` | `30/30` |
+
+`continuous` overtakes the default at ~`60k` and is strictly better above it. The
+default never reaches 30/30; `continuous` does by `100k`. Held-out cross-check
+(seeds `20,21,22`, all 20 specs): default `150k` mean `428.6` / `59-of-60` valid
+vs `continuous` `507.6` / `60-of-60` — the win is not seed/spec-specific.
 
 Keep this section current. After every serious fast or normal diagnostic run,
 append or update the scoreboard with:
@@ -280,10 +347,85 @@ append or update the scoreboard with:
 - archive path;
 - tested placement mode or branch;
 - exact command scope if it differs from the workbench command;
-- `CURVE_SCORE`, per-budget scores, and validity;
-- delta versus the current normal score to beat, when the normal diagnostic was
-  run;
+- last-budget mean score and validity (the headline), the overtake budget, and
+  `CURVE_SCORE` as a secondary convergence number;
+- delta versus the current last-budget-mean score to beat, when the normal
+  diagnostic was run;
 - decision: rejected, keep investigating, or new score to beat.
+
+### Session probes 2026-06-03 (placement family/anchor experiments)
+
+All probes below were reverted (clean tree). None beat the commit threshold; they
+are recorded as evidence, not as score-chasing. The default `impact_anchor` path
+was kept byte-identical throughout (fast re-baseline reproduced `355.82`).
+
+| Probe | Mode/scope | Fast CURVE | Decision |
+| --- | --- | ---: | --- |
+| tangent-matched `impactT` (contact tangent ≈ incoming − flatten) | gated `impact_match`, fast | `64` (flatten 8) / `201` (flatten 28) | rejected |
+| firm-earliest `impactT` band (earliest contact ≥ margin flatter than fall, capped at 0.6) | gated `impact_match`, fast | `324` | rejected |
+| firmer contact tangent in contact-centered (baseline flatten 2 → 10/18) | `contact_centered`, fast | `5.0` / `0.4` | rejected |
+| impact-anchor arc seeded into earliest contact-centered attempt(s) | `contact_centered`, fast | `3.1` | rejected |
+| arc-seed + geometry-agnostic release-state cost | `contact_centered`, fast | `3.2` | rejected |
+| coarse-to-fine jitter annealing within the line family | `contact_centered`, fast | `47` (≈ neutral) | rejected |
+
+Quantitative findings (not constant-tuning conclusions — structural):
+
+- **`impact_anchor` `impactT` has ~zero headroom on dense gaps.** Every variation
+  that moves the contact off the proven flat-anchor region steepens the local
+  contact relative to the fall and collapses the owned-landing rate (e.g.
+  19% → 7–10%). On a single arc, `impactT` couples firm-landing (wants the flat
+  end), pre-impact exposure (preclear, wants short), and post-support (survival).
+  These cannot be separated on one arc, so the documented "per-gap geometry-derived
+  impact band" is a dead end *for dense specs* — `0.6` is locally optimal there.
+- **`contact_centered` is not candidate-starved.** At 100k normal it finds MORE
+  viable catches than `impact_anchor` (34,241 vs 30,049; 23.9% vs 17.4% viable;
+  21.2 vs 17.5 sim/cand) and reaches a much higher ceiling
+  (100k common-row `484.5` vs `403.1`, 30/30 vs 29/30, fixes opening_burst s1
+  fail→pass). Its whole weakness is **slow convergence** (50k `46`, crosses the
+  baseline by ~70k): its viable catches hand off rider states the *next* gap finds
+  harder — a forward-dependency / chaining cost, not a placement-yield cost.
+- **The two families are geometrically incompatible in the dense regime.** Seeding
+  an `impact_anchor` arc into a contact-centered (dense, next-contact ≤ 22f) gap
+  derails the whole prefix: arc geometry (length ≤ 180px, no spacing cap) spans
+  into the next contact → off-beat contamination. This explains the documented
+  "always-on impact-anchored portfolio derails" negative result, and why making
+  the cost comparison fair (geometry-agnostic release cost) does not rescue it.
+
+First continuous-paradigm step (KEPT as a gated experimental mode). These rows
+were recorded under the OLD `CURVE_SCORE` metric and a `50k–100k` budget window,
+before the metric switched to last-budget mean; kept as the discovery record. The
+current authoritative numbers are in "Current baselines" above.
+
+| Mode | Scope | CURVE (old metric) | 100k score | Validity |
+| --- | --- | ---: | ---: | --- |
+| `LR_ARC_PLACEMENT=continuous` | normal diagnostic | `195.90` | `485.46` | `30/30` |
+| `contact_centered` (prior best decoupled) | normal diagnostic | `183.68` | `476.63` | `30/30` |
+| `impact_anchor` (default) | normal diagnostic | `369.27` | `388.26` | `29/30` |
+
+`continuous` is the contact-centered line family run for ALL contact gaps with the
+`nextGapFrames <= 22` density gate removed — one generator, no density threshold.
+It edges out gated `contact_centered` (`195.9` vs `183.7`) and has the highest
+ceiling measured in this campaign (`100k 485.5`, 30/30 valid, vs default's `388`).
+It is NOT promotable as the default: its CURVE is far below `369` because of slow
+EARLY-budget convergence (50k `32`, 60k `167`), not poor yield or ceiling. The
+open sub-problem is forward-dependency: line catches chain slowly because the
+ride-out is placed blind to cadence. A first cadence-coupled exit shaping (ease the
+ride-out toward a clean ballistic launch as the next beat nears, continuous in
+time-to-next-contact) was neutral on dense specs; the real fix likely needs
+predicting the candidate's ballistic approach at the next beat and shaping/
+preferring catches that arrive catchable.
+
+Paradigm note (per maintainer steer, 2026-06-03): the smell is the **piecewise,
+threshold-gated multi-family structure** itself — steep-template arcs (`gapFrames
+≥ 60`), impact-anchored arcs (global `impactCenter 0.6`), and contact-centered
+lines (`nextGapFrames ≤ 22`) selected by hard density/speed cutoffs. Micro-tuning
+any one family's constants cannot cross between regimes. The direction worth
+pursuing is a **single continuous catch generator** whose pre/post extent and
+shape scale continuously with the locally-available space (≈ entry speed ×
+time-to-neighbor) and predicted contact state — so "long smooth arc" (sparse) and
+"short tight spacing-aware catch" (dense) emerge as one continuum with no mode
+switch and no literal density threshold. Forward-dependency (release-state shaping)
+is the core lever; the current placement is per-gap-blind.
 
 ## Diagnostics To Read First
 

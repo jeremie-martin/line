@@ -462,7 +462,18 @@ greedy local-axis-cost selection, which does not weigh multi-gap consequences.
 That is a search/scoring concern, which this brief deliberately keeps OUTSIDE the
 placement boundary.
 
-EMPIRICAL infeasibility proof (forced-start test, `rhythm_ladder`, continuous,
+RETRACTION (2026-06-04): the "infeasibility" conclusion below was WRONG. A
+slow-start + level-ride-out test brings `rhythm_ladder` to achieved speed 0.63 vs
+0.62 target (and `syncopated` to 0.63 vs 0.63) — the speed is NOT structurally
+floored. The forced-start test misled because it used DESCENDING continuous
+catches that re-accelerate; level catches reach the speed target. What collapses
+instead is VALIDITY (the slow-level rider misses the beats — 19 missing contacts on
+`rhythm_ladder`). So the real open problem is landing precisely ON-BEAT while slow,
+which is a PLACEMENT problem (joint speed + on-beat landing), not a physical
+impossibility. The analysis below is kept for the record but its infeasibility
+verdict is retracted.
+
+EMPIRICAL (now superseded) forced-start test (`rhythm_ladder`, continuous,
 150k): compiling with the start velocity FORCED slow does not produce a slow
 track — achieved speed stays ~0.89 for forced starts of vx = 5, 6, 7 and the
 searched ~8.5 (target 0.69), and the forced-slow runs go INVALID (missing

@@ -317,3 +317,25 @@ NET PRIORITY (reordered by evidence):
 2. **air band remap [~0.45,0.90]** — makes the optimizer honest on the 11.6% low-air
    targets; pair later with support geometry to actually extend the low end.
 3. speed/grain — no change needed (0% infeasible).
+
+### Exp 7 — contact_style angle re-measure IMPLEMENTED (gated LR_CS_ANGLE)
+`core/measure.ts`: contact_style := normalized angle between rider incoming velocity
+and catch-line tangent at contact, over achievable ceiling 69deg. Gated; OFF verified
+byte-identical to baseline (2-spec smoke delta +0.00, workΔ 0). Full workbench A/B
+(LR_NO_CONTACT_SHAPE=1 both arms; OFF=`base_full2.json` old cs, ON=angle cs):
+- **contact_style mean|err| 0.393 -> 0.273 (-30%)**; worst specs collapse:
+  drums_pendulum 0.45->0.16, grain_staircase 0.47->0.19, drums_signature 0.37->0.25,
+  syncopated 0.37->0.28. (dense_sprint 0.32->0.37 slightly worse; opening_burst,
+  rhythm_ladder ~flat.)
+- collateral negligible: air 0.200->0.201, grain 0.130->0.135; speed 0.166->0.185
+  (minor +0.019 from shifted catch choices).
+- **CURVE_SCORE 330.55 -> 348.50 (+17.95)**; validity 30/30 from 40k (35k dips to
+  27/30 — 3 rows take slightly longer to first-valid; recovers by 40k).
+NOTE: the +17.95 is partly a re-baseline (the metric now rewards a HITTABLE cs rather
+than penalizing an impossible one) — but the -30% error is a real capability gain: the
+optimizer can now satisfy contact_style. Verdict: the angle measure fixes a 99%-broken
+axis. Follow-ups before promoting to default: (a) the impactT generation heuristic in
+sampleArcParams still maps cs target via old slide semantics — realign it to the angle
+measure (contact_shape is the natural steering primitive); (b) measure cs-angle WITH
+contact_shape (expected synergistic: contact_shape sets exactly this tangent);
+(c) update any pinned golden fixtures when flipping the default (re-baseline).

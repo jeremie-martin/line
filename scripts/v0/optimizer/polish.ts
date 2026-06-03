@@ -36,13 +36,14 @@ import type { Gap } from "../types.ts";
 import type { Spec } from "./types.ts";
 
 /** Deep-clone a fits array so in-place polish helpers can't mutate the source
- *  leaf. Clones arc (incl. anchor), lines, and achieved; cost is a scalar. */
+ *  leaf. Clones source geometry, lines, and achieved; cost is a scalar. */
 export function cloneFits(fits: (GapFit | null)[]): (GapFit | null)[] {
   return fits.map((fit) =>
     fit === null
       ? null
       : {
-          arc: { ...fit.arc, anchor: { ...fit.arc.anchor } },
+          arc: fit.arc === null ? null : { ...fit.arc, anchor: { ...fit.arc.anchor } },
+          geometry: fit.geometry,
           lines: fit.lines.map((l) => ({ ...l })),
           achieved: { ...fit.achieved },
           cost: fit.cost,

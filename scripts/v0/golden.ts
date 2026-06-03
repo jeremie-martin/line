@@ -6,6 +6,7 @@
  *   npm run golden -- --json-full
  *   npm run golden -- --details
  *   npm run golden -- --seed=42
+ *   GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden
  *   npm run golden -- --specs=tiny_dance,opening_burst
  *   npm run golden -- --budgets=30000,50000,70000
  *   npm run golden -- --verify-checkpoints
@@ -956,6 +957,25 @@ function normalizeBudgets(raw: string | null): number[] {
   return budgets.sort((a, b) => a - b);
 }
 
+function normalizeSeedOverride(raw: string | undefined): number[] | null {
+  if (raw === undefined || raw.trim() === "") return null;
+  const parts = raw.split(",").map((part) => part.trim()).filter(Boolean);
+  if (parts.length === 0) throw new Error("GOLDEN_SEEDS_OVERRIDE must contain at least one seed");
+  const seeds = parts.map((part) => {
+    const value = Math.trunc(Number(part));
+    if (!Number.isFinite(value)) {
+      throw new Error(`GOLDEN_SEEDS_OVERRIDE values must be numbers, got ${part}`);
+    }
+    return value;
+  });
+  const seen = new Set<number>();
+  for (const seed of seeds) {
+    if (seen.has(seed)) throw new Error(`GOLDEN_SEEDS_OVERRIDE contains duplicate seed ${seed}`);
+    seen.add(seed);
+  }
+  return seeds;
+}
+
 function sameBudgets(a: readonly number[], b: readonly number[]): boolean {
   return a.length === b.length && a.every((budget, i) => budget === b[i]);
 }
@@ -982,6 +1002,10 @@ async function runMain(): Promise<void> {
   if (rawSeed !== null && !Number.isFinite(debugSeed)) {
     throw new Error(`--seed must be a number, got ${rawSeed}`);
   }
+  const seedOverride = normalizeSeedOverride(process.env.GOLDEN_SEEDS_OVERRIDE);
+  if (seedOverride !== null && rawSeed !== null) {
+    throw new Error("use either --seed or GOLDEN_SEEDS_OVERRIDE, not both");
+  }
 
   const rawCompiler = arg("compiler");
   let compiler: CompilerName = "handoff";
@@ -998,7 +1022,7 @@ async function runMain(): Promise<void> {
   }
   const jobs = rawJobs !== null ? Number(rawJobs) : DEFAULT_JOBS;
 
-  const seeds = debugSeed !== null ? [debugSeed] : [...GOLDEN_SEEDS];
+  const seeds = seedOverride ?? (debugSeed !== null ? [debugSeed] : [...GOLDEN_SEEDS]);
   const specFilter = arg("specs");
   const filterSet = specFilter ? new Set(specFilter.split(",").filter(Boolean)) : null;
   const keep = (c: SuiteCase) => filterSet === null || filterSet.has(c.specName);
@@ -1008,6 +1032,7 @@ async function runMain(): Promise<void> {
   const canonical =
     filterSet === null &&
     debugSeed === null &&
+    seedOverride === null &&
     sameBudgets(budgets, DEFAULT_BUDGETS);
 
   if (!jsonOnly) {

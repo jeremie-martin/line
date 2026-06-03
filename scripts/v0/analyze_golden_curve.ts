@@ -35,7 +35,7 @@ type BudgetScore = {
 type PartialArcPlacementCounter = Partial<ArcPlacementCounter>;
 
 type ArcPlacementStats = PartialArcPlacementCounter & {
-  mode?: "impact_anchor";
+  mode?: "impact_anchor" | "impact_frame";
   by_sample_mode?: Partial<Record<CandidateSampleMode, PartialArcPlacementCounter>>;
 };
 
@@ -936,9 +936,19 @@ function printArcPlacementDiagnostics(data: GoldenCurveJson): void {
   if (checkpoints.length === 0) return;
 
   const aggregate = sumArcPlacementCounter(checkpoints);
+  const placementModes = new Set(
+    checkpoints
+      .map((checkpoint) => checkpoint.compile_stats?.arc_placement?.mode)
+      .filter((mode): mode is NonNullable<ArcPlacementStats["mode"]> => mode !== undefined),
+  );
+  const placementLabel = placementModes.size === 1
+    ? [...placementModes][0]
+    : placementModes.size > 1
+    ? "mixed"
+    : "unknown";
 
   console.log("");
-  console.log(`impact-anchor placement at ${fmtBudget(lastBudget)}:`);
+  console.log(`arc placement (${placementLabel}) at ${fmtBudget(lastBudget)}:`);
   console.log(formatArcPlacementCounter("all", aggregate, checkpoints.length));
 
   const hasModeBreakdown = checkpoints.some((checkpoint) =>
@@ -971,6 +981,8 @@ function formatArcPlacementCounter(
     `direct=${counter.direct_landed}/${counter.direct_attempted} ` +
     `rate=${fmtRate(counter.direct_landed, counter.direct_attempted)} ` +
     `failed=${counter.direct_failed} ` +
+    `failReasons=${counter.direct_survival_failed}/` +
+      `${counter.direct_landing_failed}/${counter.direct_offbeat_failed} ` +
     `fallback=${counter.fallback_landed}/${counter.fallback_attempted} ` +
     `rate=${fmtRate(counter.fallback_landed, counter.fallback_attempted)}`;
 }
@@ -999,6 +1011,9 @@ function sumArcPlacementCounter(
     direct_attempted: sumArcPlacementStat(checkpoints, "direct_attempted", mode),
     direct_landed: sumArcPlacementStat(checkpoints, "direct_landed", mode),
     direct_failed: sumArcPlacementStat(checkpoints, "direct_failed", mode),
+    direct_survival_failed: sumArcPlacementStat(checkpoints, "direct_survival_failed", mode),
+    direct_landing_failed: sumArcPlacementStat(checkpoints, "direct_landing_failed", mode),
+    direct_offbeat_failed: sumArcPlacementStat(checkpoints, "direct_offbeat_failed", mode),
     fallback_attempted: sumArcPlacementStat(checkpoints, "fallback_attempted", mode),
     fallback_landed: sumArcPlacementStat(checkpoints, "fallback_landed", mode),
   };
@@ -1011,6 +1026,9 @@ function emptyArcPlacementCounter(): ArcPlacementCounter {
     direct_attempted: 0,
     direct_landed: 0,
     direct_failed: 0,
+    direct_survival_failed: 0,
+    direct_landing_failed: 0,
+    direct_offbeat_failed: 0,
     fallback_attempted: 0,
     fallback_landed: 0,
   };
@@ -1026,6 +1044,9 @@ function addArcPlacementCounters(
     direct_attempted: left.direct_attempted + right.direct_attempted,
     direct_landed: left.direct_landed + right.direct_landed,
     direct_failed: left.direct_failed + right.direct_failed,
+    direct_survival_failed: left.direct_survival_failed + right.direct_survival_failed,
+    direct_landing_failed: left.direct_landing_failed + right.direct_landing_failed,
+    direct_offbeat_failed: left.direct_offbeat_failed + right.direct_offbeat_failed,
     fallback_attempted: left.fallback_attempted + right.fallback_attempted,
     fallback_landed: left.fallback_landed + right.fallback_landed,
   };
@@ -1041,6 +1062,9 @@ function subtractArcPlacementCounter(
     direct_attempted: left.direct_attempted - right.direct_attempted,
     direct_landed: left.direct_landed - right.direct_landed,
     direct_failed: left.direct_failed - right.direct_failed,
+    direct_survival_failed: left.direct_survival_failed - right.direct_survival_failed,
+    direct_landing_failed: left.direct_landing_failed - right.direct_landing_failed,
+    direct_offbeat_failed: left.direct_offbeat_failed - right.direct_offbeat_failed,
     fallback_attempted: left.fallback_attempted - right.fallback_attempted,
     fallback_landed: left.fallback_landed - right.fallback_landed,
   };
@@ -1052,6 +1076,9 @@ function hasAnyArcPlacementCounter(counter: ArcPlacementCounter): boolean {
     counter.direct_attempted !== 0 ||
     counter.direct_landed !== 0 ||
     counter.direct_failed !== 0 ||
+    counter.direct_survival_failed !== 0 ||
+    counter.direct_landing_failed !== 0 ||
+    counter.direct_offbeat_failed !== 0 ||
     counter.fallback_attempted !== 0 ||
     counter.fallback_landed !== 0;
 }

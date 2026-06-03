@@ -17,9 +17,9 @@ import {
   engineLineFromTrackLine,
 } from "../core/substrate.ts";
 import {
-  readTargetState,
   sampleArcParamsRngDraws,
-} from "../core/candidate.ts";
+  readTargetState,
+} from "../arc_placement.ts";
 import { solveOneGap, solveOneGapAttemptRange } from "./solver.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";

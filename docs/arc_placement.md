@@ -1,5 +1,8 @@
 # Arc Placement Design Notes
 
+For the active campaign charter, boundary definition, and workbench commands,
+see `../GOAL_LDS_ARC_PLACEMENT.md`.
+
 ## Why this exists
 
 The current compiler has an impact-anchored arc placer in
@@ -13,7 +16,7 @@ one constant. The real goal is an efficient, robust arc-placement algorithm.
 Predicting rider/sled state at the intended contact time is still the right core
 idea; `impactCenter` is only one possible way to use that information.
 
-## Current placer
+## Current default placer
 
 For each candidate catch, the compiler currently:
 
@@ -32,6 +35,124 @@ For each candidate catch, the compiler currently:
 
 This makes placement arc-centered: first sample an arc, then decide where on
 that arc the rider should hit.
+
+## Experimental first attempt: impact-frame arc
+
+The first implementation probe was feature-gated behind:
+
+```sh
+LR_ARC_PLACEMENT=impact_frame
+```
+
+Unset `LR_ARC_PLACEMENT` still uses the current default placer. `uniform` still
+opts out to the old wide anchor-box sampler plus anchor-Y bisection path.
+
+`impact_frame` is intentionally a diagnostic bridge, not a replacement API. It
+still emits the existing `Arc` type so the rest of the compiler, preclear gate,
+direct validation path, and handoff ranking remain unchanged. The difference is
+where the sampled degrees of freedom live:
+
+1. Keep the same sampled length and segment count budget as the current placer.
+2. Read the predicted sled point, velocity, speed, target axes, and gap duration.
+3. Choose an intended contact tangent from incoming velocity and air target.
+4. Choose an intended post-contact/exit tangent separately from that contact
+   tangent.
+5. Choose a small curve bias and a derived `impactT` from local pressure
+   signals such as short deadlines and high speed.
+6. Solve the arc start/end angles so the polyline segment at the intended
+   impact frame has the chosen contact tangent.
+7. Translate the arc so the derived local impact point lands at the predicted
+   sled point, with small tangent/normal jitter.
+
+That makes `impactT` derived-ish bookkeeping rather than the only knob carrying
+tangent, curvature, pre-contact geometry, and support length. The current probe
+does not yet expose separate pre-contact and post-contact lengths; it is a
+minimal bridge that asks whether moving tangent control into the impact frame
+opens a more robust viability basin without changing downstream validation.
+
+The first guarded implementation applies this impact-frame sampler only to the
+normal candidate stream. Specialized `brake` and `air_support` streams keep
+their existing start/end angle and curve-bias families, then use the current
+impact-anchored translation/validation path. This avoids counting generic
+impact-frame shapes as brake or air-support work before those stream-specific
+impact-frame profiles have explicit physical controls.
+
+In targeted golden probes this was catastrophically worse than the default. It
+increased the number of preclear-safe direct attempts, but those attempts mostly
+failed to produce the owned landing at the target frame. The useful lesson was
+not the specific formula; it was that solving tangent at an `impactT` on a
+single arc still leaves pre-contact clearance and post-contact support coupled
+through arc length/shape.
+
+## Experimental second attempt: contact-centered lines
+
+The next guarded probe is:
+
+```sh
+LR_ARC_PLACEMENT=contact_centered
+```
+
+It is normal-stream-only. Steep catch templates still emit their tuned arcs, and
+the specialized `brake` and `air_support` streams still use their existing
+mode-specific arc families.
+
+`contact_centered` stops pretending that the placement primitive must be an
+`Arc`. It samples a small polyline directly around the predicted contact point:
+
+1. Read the predicted lowest sled/contact point, velocity, speed, target axes,
+   and gap duration at `gap.endFrame`.
+2. Choose a contact tangent from incoming velocity and target air.
+3. Compare predicted speed to authored target speed when `speed` is targeted.
+   Overspeed becomes explicit brake pressure; underspeed becomes explicit
+   acceleration pressure.
+4. Choose an explicit short pre-contact clearance/brake length.
+5. Choose an explicit post-contact support length.
+6. Choose a segment length from target grain when present, otherwise from a
+   broad local range.
+7. Build pre-contact solid lines that end exactly at the contact point.
+8. Build post-contact solid lines that begin exactly at that same point.
+9. Validate those lines with the same preclear, owned landing, survival,
+   off-beat, axis measurement, and ranking gates as arc-backed candidates.
+
+The first version intentionally consumes the same eight RNG draws as the
+non-uniform arc placers on non-steep normal attempts:
+
+- segment length;
+- contact tangent;
+- pre-contact length;
+- post-contact length;
+- pre-contact tangent jitter;
+- post-contact tangent jitter;
+- tangent-axis contact-point jitter;
+- normal-axis contact-point jitter.
+
+This makes the local controls more interpretable than `impactCenter`. There is
+no arc-local `impactT` in the emitted primitive; the contact seam is literal
+geometry. Arc-backed code still records `arc`, while line-native fits record
+`arc: null` and `geometry: "lines"`. Catch reuse translates either source arc or
+source lines by the stored sled-reference delta and revalidates the candidate.
+
+Line-native candidates also get a release-state ranking term. After a candidate
+lands, the evaluator samples rider speed at a release frame shortly after the
+contact (normally eight frames later, clipped before the next authored contact).
+If `speed` is targeted, the candidate cost gets a small penalty for release
+speed magnitude being away from the authored target. This is deliberately not a
+direction-to-next-beat heuristic and not a hard gate. It only says: after the
+catch, the rider should be alive and moving at roughly the intended speed. The
+shape of the next jump remains the next candidate's job.
+
+The second contact-centered iteration separates absolute speed from authored
+speed error. Absolute high speed can still shorten clearance-sensitive
+pre-contact geometry, but it no longer substitutes for target-aware braking.
+When predicted speed is above the authored target, the sampler progressively
+lowers the entry/contact tangents and gives the pre-contact section some extra
+length to bleed speed. The post-contact tangent does not keep steepening uphill;
+it recovers toward a flatter ride-out angle so braking remains local and the
+rider can still traverse to the next beat. The response is intentionally soft:
+one contact should bias speed, not try to correct the whole speed error at once
+and destroy downstream reachability. When predicted speed is below the target,
+it permits a more downhill contact. This keeps the control interpretable: it is
+not a `solo_run` constant, it is a direct response to the speed axis.
 
 ## Why `impactCenter` is overloaded
 
@@ -75,10 +196,10 @@ impactCenter = 0.72 + (0.28 - 0.72) * contact_style
 Removing that axis collapsed per-gap impact-point variation into one global
 constant. That exposed a placement fragility that already existed.
 
-## Better abstraction: impact-frame primitive
+## Better abstraction: impact-centered primitive
 
-The next replacement attempt should be an impact-frame primitive, not a better
-global `impactCenter`.
+The replacement direction should be an impact-centered primitive, not a better
+global `impactCenter` and not necessarily an `Arc`.
 
 The placer should be impact-centered:
 
@@ -117,6 +238,25 @@ Validation remains unchanged:
 - survival margin;
 - no off-beat landings;
 - normal axis measurement and handoff ranking.
+
+## Diagnostic counters
+
+Golden stats expose non-scoring placement counters under `arc_placement`. The
+top-level counter and each sample stream (`normal`, `brake`, `air_support`)
+record:
+
+- sampled candidates;
+- pre-target proximity rejects;
+- direct validation attempts and landings;
+- direct validation failures split as `survival`, `landing`, and `offbeat`;
+- optional bisection fallback attempts and landings.
+
+The direct failure split is the first diagnostic layer for comparing placement
+families such as `impact_anchor`, `impact_frame`, and `contact_centered`. It
+answers whether a placement family is mostly losing candidates before the beat,
+at the owned-contact gate, after contact survival, or through off-beat
+contamination. It does not change search behavior or consume extra simulation
+work.
 
 ## Role of per-gap impact bands
 

@@ -3,9 +3,9 @@
  *
  * Given an engine state at the START of a gap, a gap, an RNG callable
  * (each call consumes one random number), and a small per-spec context,
- * sample ONE candidate arc + try to fit it + return a Candidate or
+ * sample ONE candidate geometry + try to fit it + return a Candidate or
  * null if the candidate doesn't survive the hard gates inside
- * `tryCandidate` (survival, on-beat landing, no off-beat).
+ * `tryCandidateGeometry` (survival, on-beat landing, no off-beat).
  *
  * This is the smallest verifiable unit of the rebuild: same inputs produce the
  * same output every time. The only module-level state is non-behavioral work
@@ -22,14 +22,16 @@
 import { type GapFit } from "../core/substrate.ts";
 import {
   axisLookaheadEndFrame,
-  readTargetState,
-  sampleArcParams,
-  tryCandidate,
+  tryCandidateGeometry,
 } from "../core/candidate.ts";
+import {
+  readTargetState,
+  sampleArcPlacementGeometry,
+} from "../arc_placement.ts";
 import { getRiderMetered } from "../../lib/detector.ts";
 import type { CandidateSampleMode, Gap } from "../types.ts";
 
-/** A Candidate is exactly the existing `GapFit` shape: arc + lines
+/** A Candidate is exactly the existing `GapFit` shape: geometry + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
  *  surface self-contained. */
 export type Candidate = GapFit & {
@@ -70,7 +72,7 @@ export function getViableCandidates(): number {
  *  lineIdStart)` → identical output (Candidate or null).
  *
  *  The `rng` parameter is a callable RNG; one call to this function
- *  may consume one or more RNG draws (via `sampleArcParams`). After
+ *  may consume one or more RNG draws (via `sampleArcPlacementGeometry`). After
  *  this call returns, the rng is in a deterministic post-state.
  *
  *  `lineIdStart` is the next available line ID for this candidate's
@@ -85,7 +87,7 @@ export function sampleOneCandidate(
   ctx: SpecContext,
   lineIdStart: number,
   /** Attempt index within a gap's K-sample loop. Drives the steep-catch template
-   *  interleave in sampleArcParams; the K-candidate solver passes 0..K-1 so
+   *  interleave in sampleArcPlacementGeometry; the K-candidate solver passes 0..K-1 so
    *  templates and normal random samples are swept deterministically. Defaults to
    *  0 for single-sample callers. */
   attempt = 0,
@@ -104,21 +106,24 @@ export function sampleOneCandidate(
   const targetState = readTargetState(engine, gap.endFrame, refX, refY);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
 
-  // Pass the real attempt index: on steep-catch gaps sampleArcParams interleaves
-  // template catches with normal random samples. For non-steep gaps the attempt
-  // arg is unused and the RNG drives diversity.
-  const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap, mode);
+  // Pass the real attempt index: on steep-catch gaps the geometry sampler
+  // interleaves template catches with normal random samples. For non-steep gaps
+  // the attempt arg is unused and the RNG drives diversity.
+  const geometry = sampleArcPlacementGeometry(
+    rng, refX, refY, gap.targets, targetState, attempt, gap, lineIdStart, mode,
+    ctx.allContactFrames,
+  );
 
   // The atomic sample uses the gap's own targets directly (multi-gap residual
   // targeting is a higher-level concern).
-  const fit = tryCandidate(
-    engine, gap, arc, lineIdStart, ctx.allContactFrames,
+  const fit = tryCandidateGeometry(
+    engine, gap, geometry, lineIdStart, ctx.allContactFrames,
     axisMeasureEnd, gap.targets, true, mode,
-  );
+  ) as Candidate | null;
 
   // Record the sled reference used to place this catch, so a later gap with a
-  // similar entry state can translate this arc and reuse it (catch-reuse on
-  // periodic specs). Sled-relative geometry → translating by the sled delta
+  // similar entry state can translate this geometry and reuse it (catch-reuse
+  // on periodic specs). Sled-relative geometry → translating by the sled delta
   // reproduces the same catch shape at the new entry.
   if (fit !== null) {
     viableCandidateCount++;

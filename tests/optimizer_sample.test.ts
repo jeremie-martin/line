@@ -23,6 +23,24 @@ import {
 } from "../scripts/v0/core/substrate.ts";
 import { CALIB } from "../scripts/v0/types.ts";
 
+function withArcPlacementMode<T>(mode: string | undefined, fn: () => T): T {
+  const previous = process.env.LR_ARC_PLACEMENT;
+  if (mode === undefined) {
+    delete process.env.LR_ARC_PLACEMENT;
+  } else {
+    process.env.LR_ARC_PLACEMENT = mode;
+  }
+  try {
+    return fn();
+  } finally {
+    if (previous === undefined) {
+      delete process.env.LR_ARC_PLACEMENT;
+    } else {
+      process.env.LR_ARC_PLACEMENT = previous;
+    }
+  }
+}
+
 /** Build an `(engine_at_gap_0_start, gap_0, ctx)` triple from a
  *  golden spec for the determinism test. We deliberately use gap 0
  *  so the engine state is the initial state (no prior commits). */
@@ -68,9 +86,46 @@ describe("optimizer/sample.ts — Step 1 atomic sample", () => {
     if (a !== null && b !== null) {
       expect(a.cost).toBe(b.cost);
       expect(a.arc).toEqual(b.arc);
+      expect(a.geometry).toBe(b.geometry);
       expect(a.lines).toEqual(b.lines);
       expect(a.achieved).toEqual(b.achieved);
     }
+  });
+
+  test("impact-frame mode remains deterministic under the same RNG seed", async () => {
+    const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
+    withArcPlacementMode("impact_frame", () => {
+      const rngA = makeRng(42);
+      const rngB = makeRng(42);
+      const a = sampleOneCandidate(engine, gap, rngA, ctx, 1);
+      const b = sampleOneCandidate(engine, gap, rngB, ctx, 1);
+      expect(a === null).toBe(b === null);
+      if (a !== null && b !== null) {
+        expect(a.cost).toBe(b.cost);
+        expect(a.arc).toEqual(b.arc);
+        expect(a.geometry).toBe(b.geometry);
+        expect(a.lines).toEqual(b.lines);
+        expect(a.achieved).toEqual(b.achieved);
+      }
+    });
+  });
+
+  test("contact-centered mode remains deterministic under the same RNG seed", async () => {
+    const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
+    withArcPlacementMode("contact_centered", () => {
+      const rngA = makeRng(42);
+      const rngB = makeRng(42);
+      const a = sampleOneCandidate(engine, gap, rngA, ctx, 1);
+      const b = sampleOneCandidate(engine, gap, rngB, ctx, 1);
+      expect(a === null).toBe(b === null);
+      if (a !== null && b !== null) {
+        expect(a.cost).toBe(b.cost);
+        expect(a.arc).toEqual(b.arc);
+        expect(a.geometry).toBe(b.geometry);
+        expect(a.lines).toEqual(b.lines);
+        expect(a.achieved).toEqual(b.achieved);
+      }
+    });
   });
 
   test("different RNG seeds produce different candidates (on a viable gap)", async () => {
@@ -100,6 +155,7 @@ describe("optimizer/sample.ts — Step 1 atomic sample", () => {
     expect(withSample === null).toBe(cleanSample === null);
     if (withSample !== null && cleanSample !== null) {
       expect(withSample.cost).toBe(cleanSample.cost);
+      expect(withSample.geometry).toBe(cleanSample.geometry);
     }
   });
 

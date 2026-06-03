@@ -32,10 +32,12 @@ import {
 } from "../core/substrate.ts";
 import {
   axisLookaheadEndFrame,
-  readTargetState,
-  sampleArcParams,
   tryCandidate,
 } from "../core/candidate.ts";
+import {
+  readTargetState,
+  sampleArcParams,
+} from "../arc_placement.ts";
 import { CALIB, type Gap } from "../types.ts";
 
 /** Settle window after the contact frame at which we read the exit state, so a

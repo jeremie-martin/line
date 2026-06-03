@@ -1,18 +1,19 @@
 /**
- * v0 candidate-generation core — the per-gap candidate sampler, anchor-Y
- * bisection, hard-gate evaluation, and axis measurement used by the handoff
- * compiler.
+ * v0 candidate validation core — geometry validation, anchor-Y bisection,
+ * hard-gate evaluation, and axis measurement used by the handoff compiler.
  * These functions depend only on `../../lib/*`, `../types.ts`, `../arc.ts`,
  * and `./substrate.ts`, so they carry no compiler-only state.
  */
 
 import {
-  detect, extractRawTrajectory, extractRawTrajectoryWindow, getRiderMetered,
+  detect, extractRawTrajectory, extractRawTrajectoryWindow,
   K_BOUNCE_LANDING, PERSISTENCE_FRAMES,
   type Detection, type DetEvent,
 } from "../../lib/detector.ts";
 import { arcToLines, makeSolidLine } from "../arc.ts";
 import {
+  type ArcPlacementDirectFailureReason,
+  type ArcPlacementGeometry,
   hasPreTargetSledProximity,
   impactAnchorEnabled,
   impactAnchorFallbackBisectEnabled,
@@ -22,8 +23,6 @@ import {
   recordImpactAnchorFallbackAttempt,
   recordImpactAnchorFallbackLanding,
   recordImpactAnchorPreclearReject,
-  recordImpactAnchorSample,
-  sampleImpactAnchoredArc,
 } from "../arc_placement.ts";
 import {
   AXES,
@@ -39,25 +38,19 @@ import {
   median,
   engineLineFromTrackLine,
   contactLineIdsAt,
+  speedAt,
 } from "./substrate.ts";
 import { measureGapAxes } from "./measure.ts";
 
-const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
-
-/** Uphill start-angle band (degrees, negative = uphill in Y-down) for brake-mode
- *  catches: the rider rides up the arc's front to bleed speed before contact. */
-const BRAKE_START_ANGLE_MIN = -28;
-const BRAKE_START_ANGLE_MAX = -6;
-const AIR_SUPPORT_LENGTH_MIN = 100;
-const AIR_SUPPORT_START_ANGLE_MIN = -8;
-const AIR_SUPPORT_START_ANGLE_MAX = 14;
-const AIR_SUPPORT_END_ANGLE_MIN = -6;
-const AIR_SUPPORT_END_ANGLE_MAX = 10;
-const AIR_SUPPORT_CURVE_BIAS_MAX = 0.35;
-
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
+const RELEASE_STATE_FRAME_OFFSET = 8;
+const RELEASE_STATE_SPEED_WEIGHT = 0.35;
 
 type WindowDetection = Detection & { frameOffset?: number };
+
+type CandidateLinesEvaluation =
+  | { fit: GapFit; failure: null }
+  | { fit: null; failure: ArcPlacementDirectFailureReason };
 
 // deno-lint-ignore no-explicit-any
 export function detectWindow(engine: any, startFrame: number, endFrame: number): Detection {
@@ -98,196 +91,6 @@ export function makeContinuationLines(lineId: number, source: TrackLine): TrackL
     .map((candidate) => candidate.line);
 }
 
-type TargetState = {
-  sledX: number;
-  sledY: number;
-  velocity: { x: number; y: number };
-  speed: number;
-  angleDeg: number;
-};
-
-export function readTargetState(
-  // deno-lint-ignore no-explicit-any
-  engine: any,
-  frame: number,
-  fallbackX: number,
-  fallbackY: number,
-): TargetState {
-  const rider = getRiderMetered(engine, frame);
-  let sledX = fallbackX;
-  let sledY = fallbackY;
-  for (const name of SLED_POINTS) {
-    const p = rider.get(name);
-    if (p?.pos && p.pos.y > sledY) {
-      sledY = p.pos.y;
-      sledX = p.pos.x;
-    }
-  }
-  const velocity = rider.velocity ?? { x: 0, y: 0 };
-  const speed = Math.hypot(velocity.x, velocity.y);
-  const angleDeg = (Math.atan2(velocity.y, velocity.x) * 180) / Math.PI;
-  return { sledX, sledY, velocity, speed, angleDeg };
-}
-
-const CATCH_TEMPLATES = [
-  { startDelta: -8,  end: 45, segments: 14, segmentLength: 34, lead: 9,  offset: 13 },
-  { startDelta: -8,  end: 45, segments: 14, segmentLength: 34, lead: 9,  offset: -4 },
-  { startDelta: -8,  end: 45, segments: 14, segmentLength: 34, lead: 9,  offset: 4 },
-  { startDelta: -8,  end: 45, segments: 14, segmentLength: 34, lead: 9,  offset: -8 },
-  { startDelta: -3,  end: 47, segments: 15, segmentLength: 33, lead: 3,  offset: -6 },
-  { startDelta: -3,  end: 47, segments: 15, segmentLength: 33, lead: 3,  offset: 7 },
-  { startDelta: -3,  end: 47, segments: 15, segmentLength: 33, lead: 3,  offset: 4 },
-  { startDelta: -3,  end: 47, segments: 15, segmentLength: 33, lead: 3,  offset: 13 },
-  { startDelta: -10, end: 2,  segments: 20, segmentLength: 30, lead: 17, offset: 13 },
-  { startDelta: -10, end: 2,  segments: 20, segmentLength: 30, lead: 17, offset: 4 },
-  { startDelta: -10, end: 30, segments: 16, segmentLength: 35, lead: 1,  offset: 16 },
-  { startDelta: -12, end: 3,  segments: 18, segmentLength: 26, lead: 12, offset: 10 },
-  { startDelta: -7,  end: 14, segments: 18, segmentLength: 46, lead: 13, offset: 13 },
-  { startDelta: -5,  end: 25, segments: 12, segmentLength: 35, lead: 8,  offset: 0 },
-  { startDelta: -15, end: -5, segments: 22, segmentLength: 28, lead: 16, offset: 8 },
-  { startDelta: -10, end: 45, segments: 12, segmentLength: 40, lead: 12, offset: -10 },
-] as const;
-
-export function sampleArcParams(
-  rng: () => number,
-  refX: number,
-  refY: number,
-  targets: AxisValues,
-  targetState: TargetState,
-  attempt: number,
-  gap: Gap,
-  /** Sampling mode for compiler-owned extra streams. Normal mode is the
-   *  deterministic K-prefix. Brake mode samples uphill-entry catches to bleed
-   *  overspeed. Air-support mode samples shallow, longer catches that may keep
-   *  the rider riding through low-air spans. */
-  mode: CandidateSampleMode = "normal",
-): Arc {
-  const steepTemplateIndex = steepCatchTemplateIndex(attempt);
-  if (mode === "normal" && steepTemplateIndex !== null && shouldUseSteepCatch(targetState, gap)) {
-    return sampleSteepCatchArc(targetState, CATCH_TEMPLATES[steepTemplateIndex]);
-  }
-
-  const A = CALIB.ARC;
-  // Wide uniform sampling within parameter bounds. Anchor X is offset around
-  // the predicted rider x at landing frame; anchor Y is a STARTING value that
-  // will be bisected for Contact precision.
-  const lengthMin = mode === "air_support"
-    ? Math.min(A.LENGTH_MAX, AIR_SUPPORT_LENGTH_MIN)
-    : A.LENGTH_MIN;
-  const lengthRange = A.LENGTH_MAX - lengthMin;
-  const length = lengthMin + rng() * lengthRange;
-  // Segments. When `grain` is targeted, derive segment count directly from
-  // length / desired-median-line-length so the resulting arc is much more
-  // likely to hit the grain target. Sprinkle some uniform sampling for variety.
-  const segRoll = rng();
-  let segments: number;
-  if (targets.grain !== undefined && segRoll < 0.7) {
-    // grain = median(line_length) / LINE_LENGTH_CAP. Solve for segment count.
-    // Reuse the gate roll for a small, historically biased jitter so we do not
-    // collapse to one shape without consuming another RNG draw.
-    const targetSegLen = Math.max(3, targets.grain * CALIB.LINE_LENGTH_CAP);
-    const jitter = Math.floor(segRoll * 3) - 1; // mostly -1/0, rare +1
-    const ideal = Math.round(length / targetSegLen) + jitter;
-    segments = Math.max(A.SEGMENTS_MIN, Math.min(A.SEGMENTS_MAX, ideal));
-  } else {
-    segments = A.SEGMENTS_MIN + Math.floor(segRoll * (A.SEGMENTS_MAX - A.SEGMENTS_MIN + 1));
-  }
-
-  // Brake mode samples an uphill (negative) start angle so the rider decelerates
-  // riding up the arc's front before contacting near impactT (~middle); normal
-  // mode uses the calibrated downhill-catch start band.
-  const startAngleDeg = mode === "brake"
-    ? BRAKE_START_ANGLE_MIN + rng() * (BRAKE_START_ANGLE_MAX - BRAKE_START_ANGLE_MIN)
-    : mode === "air_support"
-    ? AIR_SUPPORT_START_ANGLE_MIN +
-      rng() * (AIR_SUPPORT_START_ANGLE_MAX - AIR_SUPPORT_START_ANGLE_MIN)
-    : A.START_ANGLE_MIN_DEG + rng() * (A.START_ANGLE_MAX_DEG - A.START_ANGLE_MIN_DEG);
-  const endAngleDeg = mode === "air_support"
-    ? AIR_SUPPORT_END_ANGLE_MIN +
-      rng() * (AIR_SUPPORT_END_ANGLE_MAX - AIR_SUPPORT_END_ANGLE_MIN)
-    : A.END_ANGLE_MIN_DEG + rng() * (A.END_ANGLE_MAX_DEG - A.END_ANGLE_MIN_DEG);
-  const curveBias = mode === "air_support"
-    ? (rng() - 0.5) * 2 * AIR_SUPPORT_CURVE_BIAS_MAX
-    : -1 + 2 * rng();
-
-  if (impactAnchorEnabled()) {
-    recordImpactAnchorSample(mode);
-    return sampleImpactAnchoredArc(
-      rng, targetState, length, startAngleDeg, endAngleDeg, segments, curveBias,
-    );
-  }
-
-  // Wide uniform sampling within parameter bounds. Anchor X is offset around
-  // the predicted rider x at landing frame; anchor Y is a STARTING value that
-  // will be bisected for Contact precision.
-  const anchorXOffset = A.ANCHOR_X_OFFSET_MIN
-    + rng() * (A.ANCHOR_X_OFFSET_MAX - A.ANCHOR_X_OFFSET_MIN);
-  const anchorYOffset = A.ANCHOR_Y_OFFSET_MIN
-    + rng() * (A.ANCHOR_Y_OFFSET_MAX - A.ANCHOR_Y_OFFSET_MIN);
-
-  return {
-    anchor: { x: refX - length / 2 + anchorXOffset, y: refY + anchorYOffset },
-    length,
-    startAngleDeg,
-    endAngleDeg,
-    segments,
-    curveBias,
-  };
-}
-
-function shouldUseSteepCatch(targetState: { speed: number; angleDeg: number }, gap: Gap): boolean {
-  const gapFrames = gap.endFrame - gap.startFrame;
-  return gapFrames >= 60 && (targetState.speed >= 10 || targetState.angleDeg >= 55);
-}
-
-export function usesSteepCatchTemplateAttempt(
-  targetState: { speed: number; angleDeg: number },
-  gap: Gap,
-  attempt: number,
-): boolean {
-  return steepCatchTemplateIndex(attempt) !== null && shouldUseSteepCatch(targetState, gap);
-}
-
-export function sampleArcParamsRngDraws(
-  targetState: { speed: number; angleDeg: number },
-  gap: Gap,
-  attempt: number,
-  mode: CandidateSampleMode = "normal",
-): number {
-  if (mode === "normal" && usesSteepCatchTemplateAttempt(targetState, gap, attempt)) return 0;
-  return impactAnchorEnabled() ? 8 : 7;
-}
-
-export function steepCatchTemplateIndex(attempt: number): number | null {
-  if (!Number.isInteger(attempt) || attempt < 0 || attempt % 2 !== 0) return null;
-  const index = attempt / 2;
-  return index < CATCH_TEMPLATES.length ? index : null;
-}
-
-function sampleSteepCatchArc(
-  targetState: TargetState,
-  template: typeof CATCH_TEMPLATES[number],
-): Arc {
-  const startAngleDeg = clamp(targetState.angleDeg + template.startDelta, 20, 88);
-  const endAngleDeg = clamp(template.end, -15, 55);
-  const a0 = (startAngleDeg * Math.PI) / 180;
-  const dx0 = Math.cos(a0);
-  const dy0 = Math.sin(a0);
-  const perpX = -dy0;
-  const perpY = dx0;
-  return {
-    anchor: {
-      x: targetState.sledX - dx0 * template.lead + perpX * template.offset,
-      y: targetState.sledY - dy0 * template.lead + perpY * template.offset,
-    },
-    length: template.segments * template.segmentLength,
-    startAngleDeg,
-    endAngleDeg,
-    segments: template.segments,
-    curveBias: 0,
-  };
-}
-
 export function tryCandidate(
   // deno-lint-ignore no-explicit-any
   baseEngine: any,
@@ -315,14 +118,14 @@ export function tryCandidate(
     }
 
     const direct = evaluateCandidateLines(
-      baseEngine, gap, candArc, directLines, lineIdStart, axisMeasureEnd,
+      baseEngine, gap, candArc, "arc", directLines, lineIdStart, axisMeasureEnd,
       allContactFrames, searchTargets, useWindowDetection,
     );
-    if (direct !== null) {
+    if (direct.fit !== null) {
       recordImpactAnchorDirectLanding(sampleMode);
-      return direct;
+      return direct.fit;
     }
-    recordImpactAnchorDirectFailure(sampleMode);
+    recordImpactAnchorDirectFailure(sampleMode, direct.failure);
 
     if (!impactAnchorFallbackBisectEnabled()) return null;
     recordImpactAnchorFallbackAttempt(sampleMode);
@@ -338,6 +141,76 @@ export function tryCandidate(
     baseEngine, gap, candArc, lineIdStart, allContactFrames, axisMeasureEnd,
     searchTargets, useWindowDetection,
   );
+}
+
+export function tryCandidateGeometry(
+  // deno-lint-ignore no-explicit-any
+  baseEngine: any,
+  gap: Gap,
+  geometry: ArcPlacementGeometry,
+  lineIdStart: number,
+  allContactFrames: number[],
+  axisMeasureEnd: number,
+  searchTargets: AxisValues,
+  useWindowDetection: boolean,
+  sampleMode?: CandidateSampleMode,
+): GapFit | null {
+  if (geometry.kind === "arc") {
+    return tryCandidate(
+      baseEngine, gap, geometry.arc, lineIdStart, allContactFrames, axisMeasureEnd,
+      searchTargets, useWindowDetection, sampleMode,
+    );
+  }
+  return tryCandidateLines(
+    baseEngine, gap, geometry.lines, lineIdStart, allContactFrames, axisMeasureEnd,
+    searchTargets, useWindowDetection, sampleMode,
+  );
+}
+
+export function tryCandidateLines(
+  // deno-lint-ignore no-explicit-any
+  baseEngine: any,
+  gap: Gap,
+  lines: TrackLine[],
+  lineIdStart: number,
+  allContactFrames: number[],
+  axisMeasureEnd: number,
+  searchTargets: AxisValues,
+  useWindowDetection: boolean,
+  sampleMode?: CandidateSampleMode,
+): GapFit | null {
+  if (!impactAnchorEnabled()) return null;
+  recordImpactAnchorDirectAttempt(sampleMode);
+  if (hasPreTargetSledProximity(baseEngine, gap, lines)) {
+    recordImpactAnchorPreclearReject(sampleMode);
+    return null;
+  }
+  const direct = evaluateCandidateLines(
+    baseEngine, gap, null, "lines", lines, lineIdStart, axisMeasureEnd,
+    allContactFrames, searchTargets, useWindowDetection,
+  );
+  if (direct.fit !== null) {
+    recordImpactAnchorDirectLanding(sampleMode);
+    return direct.fit;
+  }
+  recordImpactAnchorDirectFailure(sampleMode, direct.failure);
+  return null;
+}
+
+export function translateTrackLines(
+  lines: TrackLine[],
+  dx: number,
+  dy: number,
+  idStart: number,
+): TrackLine[] {
+  return lines.map((line, index) => ({
+    ...line,
+    id: idStart + index,
+    x1: line.x1 + dx,
+    y1: line.y1 + dy,
+    x2: line.x2 + dx,
+    y2: line.y2 + dy,
+  }));
 }
 
 function tryCandidateWithBisection(
@@ -357,29 +230,32 @@ function tryCandidateWithBisection(
   );
   if (bisected === null) return null;
 
-  return evaluateCandidateLines(
-    baseEngine, gap, bisected.arc, bisected.lines, lineIdStart, axisMeasureEnd,
+  const evaluated = evaluateCandidateLines(
+    baseEngine, gap, bisected.arc, "arc", bisected.lines, lineIdStart, axisMeasureEnd,
     allContactFrames, searchTargets, useWindowDetection,
   );
+  return evaluated.fit;
 }
 
 function evaluateCandidateLines(
   // deno-lint-ignore no-explicit-any
   baseEngine: any,
   gap: Gap,
-  arc: Arc,
+  arc: Arc | null,
+  geometry: GapFit["geometry"],
   lines: TrackLine[],
   lineIdStart: number,
   axisMeasureEnd: number,
   allContactFrames: number[],
   searchTargets: AxisValues,
   useWindowDetection: boolean,
-): GapFit | null {
+): CandidateLinesEvaluation {
+  const scoreReleaseState = geometry === "lines";
   let best = evaluateGapFit(
     baseEngine, gap, lines, axisMeasureEnd, allContactFrames,
-    searchTargets, useWindowDetection,
+    searchTargets, useWindowDetection, scoreReleaseState,
   );
-  if (best === null) return null;
+  if (best.fit === null) return best;
 
   if (shouldTryCandidateRideOut(gap, axisMeasureEnd)) {
     const rideOutId = lineIdStart + lines.length;
@@ -388,16 +264,19 @@ function evaluateCandidateLines(
         const extendedLines = [...lines, rideOut];
         const extended = evaluateGapFit(
           baseEngine, gap, extendedLines, axisMeasureEnd, allContactFrames,
-          searchTargets, useWindowDetection,
+          searchTargets, useWindowDetection, scoreReleaseState,
         );
-        if (extended !== null && extended.cost + 1e-6 < best.cost) {
+        if (extended.fit !== null && extended.fit.cost + 1e-6 < best.fit.cost) {
           best = extended;
         }
       }
     }
   }
 
-  return { arc, lines: best.lines, achieved: best.achieved, cost: best.cost };
+  return {
+    fit: { arc, geometry, lines: best.fit.lines, achieved: best.fit.achieved, cost: best.fit.cost },
+    failure: null,
+  };
 }
 
 function evaluateGapFit(
@@ -409,7 +288,11 @@ function evaluateGapFit(
   allContactFrames: number[],
   searchTargets: AxisValues,
   useWindowDetection: boolean,
-): Pick<GapFit, "lines" | "achieved" | "cost"> | null {
+  scoreReleaseState: boolean,
+): { fit: Pick<GapFit, "lines" | "achieved" | "cost">; failure: null } | {
+  fit: null;
+  failure: ArcPlacementDirectFailureReason;
+} {
   // deno-lint-ignore no-explicit-any
   let eng: any = baseEngine;
   for (const line of lines) eng = eng.addLine(engineLineFromTrackLine(line));
@@ -424,7 +307,9 @@ function evaluateGapFit(
   // remain alive long enough to plausibly bridge into the next gap.
   const SURVIVAL_MARGIN = 16;
   const minSurvival = Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd);
-  if (det.terminus.frame < minSurvival && det.terminus.reason !== "endOfSpec") return null;
+  if (det.terminus.frame < minSurvival && det.terminus.reason !== "endOfSpec") {
+    return { fit: null, failure: "survival" };
+  }
 
   // Hard gate 2: a landing event near gap.endFrame ±1.
   const owned = new Set(lines.map((l) => l.id));
@@ -433,17 +318,49 @@ function evaluateGapFit(
       && Math.abs(e.frame - gap.endFrame) <= 1
       && intersectsLineIds(e, det, owned),
   );
-  if (!landingNearTarget) return null;
+  if (!landingNearTarget) return { fit: null, failure: "landing" };
 
   // Hard gate 3: no off-beat landings before the next measurement boundary.
   const offBeat = countOffBeatLandings(
     det.events, gap.startFrame, axisMeasureEnd, allContactFrames,
   );
-  if (offBeat > 0) return null;
+  if (offBeat > 0) return { fit: null, failure: "offbeat" };
 
   const achieved = measureGapAxes(det, gap, lines, axisMeasureEnd);
-  const cost = axisCost(searchTargets, achieved);
-  return { lines, achieved, cost };
+  const cost = axisCost(searchTargets, achieved)
+    + (scoreReleaseState ? releaseStateCost(det, gap, allContactFrames, searchTargets) : 0);
+  return { fit: { lines, achieved, cost }, failure: null };
+}
+
+export function releaseStateFrame(gap: Gap, allContactFrames: number[]): number {
+  const preferred = gap.endFrame + RELEASE_STATE_FRAME_OFFSET;
+  const nextContact = allContactFrames.find((frame) => frame > gap.endFrame);
+  if (nextContact === undefined) return preferred;
+  const latestBeforeNext = nextContact - 2;
+  if (latestBeforeNext <= gap.endFrame) return gap.endFrame;
+  return Math.min(preferred, latestBeforeNext);
+}
+
+export function releaseSpeedPenalty(
+  releaseSpeedPxPerFrame: number | undefined,
+  targetSpeed: number | undefined,
+): number {
+  if (releaseSpeedPxPerFrame === undefined || targetSpeed === undefined) return 0;
+  const achieved = releaseSpeedPxPerFrame / CALIB.SPEED_CAP;
+  const error = targetSpeed - achieved;
+  return RELEASE_STATE_SPEED_WEIGHT * error * error;
+}
+
+function releaseStateCost(
+  det: Detection,
+  gap: Gap,
+  allContactFrames: number[],
+  searchTargets: AxisValues,
+): number {
+  return releaseSpeedPenalty(
+    speedAt(det, releaseStateFrame(gap, allContactFrames)),
+    searchTargets.speed,
+  );
 }
 
 function shouldTryCandidateRideOut(

@@ -121,9 +121,14 @@ export type ArcPlacementCounter = {
   direct_attempted: number;
   direct_landed: number;
   direct_failed: number;
+  direct_survival_failed: number;
+  direct_landing_failed: number;
+  direct_offbeat_failed: number;
   fallback_attempted: number;
   fallback_landed: number;
 };
+
+export type ArcPlacementMode = "impact_anchor" | "impact_frame" | "contact_centered";
 
 /**
  * True when the resolved target bag contains exactly this canonical axis set.
@@ -197,7 +202,7 @@ export type DriftReport = {
  */
 export type CompileStats = {
   // ─── Generic compile counters ───
-  /** Per-gap candidate samples (sampleArcParams calls). The most
+  /** Per-gap candidate samples (placement sampler calls). The most
    *  fine-grained unit of "search work" in the optimizer. */
   candidates_sampled: number;
   /** Candidate samples that survived hard gates and returned a viable GapFit. */
@@ -412,15 +417,18 @@ export type CompileStats = {
    *  a missed contact. */
   handoff_deferred_skips?: number;
 
-  /** Impact-anchored arc placement counters (only present when
-   *  LR_ARC_PLACEMENT=impact_anchor). Non-scoring diagnostics. */
+  /** Arc placement counters (only present when LR_ARC_PLACEMENT is not
+   *  `uniform`). Non-scoring diagnostics. */
   arc_placement?: {
-    mode: "impact_anchor";
+    mode: ArcPlacementMode;
     sampled: number;
     preclear_rejected: number;
     direct_attempted: number;
     direct_landed: number;
     direct_failed: number;
+    direct_survival_failed: number;
+    direct_landing_failed: number;
+    direct_offbeat_failed: number;
     fallback_attempted: number;
     fallback_landed: number;
     by_sample_mode: Record<CandidateSampleMode, ArcPlacementCounter>;

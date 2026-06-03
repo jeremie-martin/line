@@ -350,7 +350,7 @@
 
   .axis-strip {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     border: 1px solid var(--rule);
     border-radius: 4px;
     overflow: hidden;
@@ -649,7 +649,6 @@
       <div class="axis speed"><b>speed</b><span>How fast the rider should feel inside a section.</span></div>
       <div class="axis air"><b>air</b><span>How airborne or grounded the ride should be.</span></div>
       <div class="axis grain"><b>grain</b><span>How large and coarse the generated catch geometry feels.</span></div>
-      <div class="axis contact"><b>contact style</b><span>How much the ride favors sliding contact versus sharper impacts.</span></div>
     </div>
   </section>
 
@@ -750,6 +749,122 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
 
   <section class="section">
     <div class="section-head">
+      <div class="eyebrow">Arc placement</div>
+      <div>
+        <h2>How one catch becomes a landing</h2>
+        <p class="sub">
+          A candidate is not an absolute line picked from the canvas. The
+          compiler samples a local arc shape, chooses one local impact point on
+          that arc, translates the whole arc so that point meets the predicted
+          sled at the target contact frame, then asks lr-core whether the result
+          really lands and survives.
+        </p>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-row">
+        <div class="step-no">1</div>
+        <div class="step-title">Read target state</div>
+        <div class="step-body">
+          At <code>gap.endFrame</code>, the prefix engine predicts the rider
+          without the new catch. <code>readTargetState</code> records the rider
+          velocity and chooses the lowest sled point among
+          <code>PEG</code>, <code>TAIL</code>, <code>NOSE</code>, and
+          <code>STRING</code> as the intended contact anchor.
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="step-no">2</div>
+        <div class="step-title">Sample local arc</div>
+        <div class="step-body">
+          <code>sampleArcParams</code> samples length, segment count, start
+          angle, end angle, and curve bias. Grain targets steer segment count;
+          brake mode uses an uphill-entry angle band; air-support mode uses
+          longer, shallow catches. The arc is still local geometry with
+          <code>anchor = (0, 0)</code>.
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="step-no">3</div>
+        <div class="step-title">Pick impact point</div>
+        <div class="step-body">
+          In default impact-anchor mode, <code>impactT</code> is an along-arc
+          coordinate, not a time. Current default sampling is
+          <code>clamp(0.6 + jitter, 0.15, 0.85)</code>. The compiler evaluates
+          the local point and tangent at that <code>impactT</code>, adds small
+          tangent/normal jitter, and translates the entire arc so the chosen
+          point sits under the predicted sled.
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="step-no">4</div>
+        <div class="step-title">Preclear</div>
+        <div class="step-body">
+          <code>arcToLines</code> turns the placed arc into solid track lines.
+          Before running a full candidate simulation, the compiler scans the
+          prefix rider from <code>gap.startFrame</code> through
+          <code>gap.endFrame - 2</code>. If any sled point comes within the
+          collision-risk distance of the new lines, the candidate is rejected as
+          a likely pre-beat collision.
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="step-no">5</div>
+        <div class="step-title">Direct validation</div>
+        <div class="step-body">
+          The candidate lines are added to lr-core and detector events are read.
+          A fit survives only if the rider lives through the required margin,
+          an owned landing event occurs at <code>gap.endFrame +/- 1</code>, and
+          no off-beat landing occurs before the measurement boundary. Only then
+          are speed, air, and grain measured for ranking.
+        </div>
+      </div>
+    </div>
+
+    <div class="formula" style="margin-top:16px">local = arcLocalPointAt(baseArc, impactT)
+normal = (-local.tangentY, local.tangentX)
+anchor = targetSled - local + tangent * alongJitter + normal * normalJitter</div>
+
+    <div class="grid-2" style="margin-top:16px">
+      <div class="panel">
+        <h3>What <code>impactT</code> actually controls</h3>
+        <p>
+          Moving <code>impactT</code> changes the tangent, curvature, and amount
+          of arc before and after the intended contact point. It also changes
+          which parts of the arc can collide with the rider before the beat.
+          The downstream gates are binary: a small placement shift can delete a
+          candidate from the pool rather than merely making it a lower-quality
+          candidate.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Why the global constant is fragile</h3>
+        <p>
+          A low value such as <code>0.2</code> can avoid many preclear rejects,
+          but in the current arc family it usually presents the wrong local
+          catch shape at the beat and fails the owned-landing gate. A back-half
+          value near <code>0.6</code> preclears more often, but the survivors
+          land dense high-speed gaps much more reliably. A smarter compiler
+          could make <code>0.05</code> work by generating a different local
+          shape and clearance envelope; this compiler only translates the same
+          sampled arc family around one global point.
+        </p>
+      </div>
+    </div>
+
+    <div class="note warn" style="margin-top:16px">
+      The current <code>impactCenter = 0.6</code> is a shipped heuristic, not a
+      geometric law. The proper fix is a per-gap feasible impact band derived
+      from gap duration, entry speed, arc length, tangent, and preclear/survival
+      probes. Optional <code>LR_IMPACT_ANCHOR_FALLBACK_BISECT=1</code> can try
+      anchor-Y bisection after a direct failure, but the default impact-anchor
+      path validates directly.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
       <div class="eyebrow">Ranking</div>
       <div>
         <h2>Candidate score for one gap</h2>
@@ -776,7 +891,7 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
       </div>
       <div class="panel">
         <h3>Future-contact probe</h3>
-        <p>Preview one future contact with one candidate. A dead end gets a heavy penalty; scarce survivor count gets a smaller penalty. The preview's local cost is a small ranking signal except on contact-style gaps, where survivor-only scoring avoids over-steering brittle contact-duration catches.</p>
+        <p>Preview one future contact with one candidate. A dead end gets a heavy penalty, scarce survivor count gets a smaller penalty, and the preview's local cost is a small ranking signal during contract search.</p>
         <div class="tags"><span class="tag">horizon 1</span><span class="tag">preview K 1</span><span class="tag">cost 0.25</span></div>
       </div>
       <div class="panel">
@@ -800,7 +915,7 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
       </div>
     </div>
 
-    <div class="grid-2">
+    <div class="grid-3">
       <div class="panel">
         <h3>Catch reuse</h3>
         <p>
@@ -814,14 +929,21 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
         <h3>Brake catches</h3>
         <p>
           If the current speed is already over a moderate target, the compiler
-          offers uphill-entry brake catches. High speed targets get the same
-          probes only when contact style also matters and the overspeed is
-          severe. Dense first-pass cadences keep the smaller <code>2..3</code>
-          brake set so they do not starve contract search. More spacious
-          first-pass cadences widen to <code>3..4</code> only on gaps that also
-          target contact style; after a passing output exists, quality search may
-          widen any local brake probe. This adapts to spec/search difficulty
-          without reading checkpoint budgets.
+          offers uphill-entry brake catches. Contract search samples
+          <code>2..3</code> brake attempts depending on speed ratio; after a
+          passing output exists, quality search may widen the local brake probe
+          to <code>3..4</code>. Brake catches are excluded from reuse because
+          they are corrective catches, not steady-state rhythm shapes.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Air-support stream</h3>
+        <p>
+          Quality search has one explicitly registered axis-quality stream:
+          low-air gaps can receive one longer, shallow
+          <code>air_support</code> candidate. It is sampled with its own seed,
+          validated through the same impact-anchor and detector gates, and
+          simply loses if it does not improve the ranked options.
         </p>
       </div>
     </div>

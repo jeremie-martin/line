@@ -52,8 +52,9 @@ import {
 } from "../types.ts";
 import {
   axisLookaheadEndFrame,
-  readTargetState,
   tryCandidate,
+  translateTrackLines,
+  tryCandidateLines,
 } from "../core/candidate.ts";
 import { pickLowestCost } from "./solver.ts";
 import {
@@ -69,7 +70,11 @@ import {
   getSimFrames,
   resetSimFrames,
 } from "./sim_frames.ts";
-import { resetArcPlacementStats, snapshotArcPlacementStats } from "../arc_placement.ts";
+import {
+  readTargetState,
+  resetArcPlacementStats,
+  snapshotArcPlacementStats,
+} from "../arc_placement.ts";
 import {
   getCandidateSamples,
   getViableCandidates,
@@ -995,7 +1000,8 @@ function cloneResolvedStart(start: ResolvedStart): ResolvedStart {
 
 function cloneGapFit(fit: GapFit): GapFit {
   return {
-    arc: { ...fit.arc, anchor: { ...fit.arc.anchor } },
+    arc: fit.arc === null ? null : { ...fit.arc, anchor: { ...fit.arc.anchor } },
+    geometry: fit.geometry,
     lines: fit.lines.map((line) => ({ ...line })),
     achieved: { ...fit.achieved },
     cost: fit.cost,
@@ -1822,12 +1828,12 @@ export function shouldOfferBrakeCandidates(
 }
 
 /** Translate the most-recent committed catches (which carry a sled `ref`) to
- *  THIS gap's entry state and return the ones that still land+survive. The arc
- *  geometry is sled-relative, so translating a prior catch's arc by the sled
- *  delta reproduces the same catch shape at the new entry — on a periodic rhythm
+ *  THIS gap's entry state and return the ones that still land+survive. The
+ *  geometry is sled-relative, so translating a prior catch by the sled delta
+ *  reproduces the same catch shape at the new entry — on a periodic rhythm
  *  (steady-state ride) the same catch lands contact after contact. Each reuse is
- *  validated by one `tryCandidate` (one sim). Deterministic: a pure function of
- *  the node's committed prefix + engine state. */
+ *  validated by one candidate evaluation (one sim). Deterministic: a pure
+ *  function of the node's committed prefix + engine state. */
 function reuseCatchCandidates(
   node: SearchNode,
   gaps: Gap[],
@@ -1847,12 +1853,18 @@ function reuseCatchCandidates(
     tried++;
     const dx = ts.sledX - f.ref.x;
     const dy = ts.sledY - f.ref.y;
-    const arc = { ...f.arc, anchor: { x: f.arc.anchor.x + dx, y: f.arc.anchor.y + dy } };
     telemetry.reuseAttempts++;
-    const cand = tryCandidate(
-      node.prefixEngine, gap, arc, node.prefixNextLineId, ctx.allContactFrames,
-      axisMeasureEnd, gap.targets, true,
-    );
+    const cand = f.arc === null
+      ? tryCandidateLines(
+        node.prefixEngine, gap,
+        translateTrackLines(f.lines, dx, dy, node.prefixNextLineId),
+        node.prefixNextLineId, ctx.allContactFrames, axisMeasureEnd, gap.targets, true,
+      )
+      : tryCandidate(
+        node.prefixEngine, gap,
+        { ...f.arc, anchor: { x: f.arc.anchor.x + dx, y: f.arc.anchor.y + dy } },
+        node.prefixNextLineId, ctx.allContactFrames, axisMeasureEnd, gap.targets, true,
+      );
     if (cand !== null) {
       telemetry.reuseSuccesses++;
       cand.ref = { x: ts.sledX, y: ts.sledY };

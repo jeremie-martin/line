@@ -26,7 +26,10 @@ export type ResolvedStart = {
 };
 
 export type GapFit = {
-  arc: Arc;
+  /** Arc-backed candidates keep the source arc; line-native placement stores null. */
+  arc: Arc | null;
+  /** Source geometry family for diagnostics/reuse. Evaluation always uses `lines`. */
+  geometry: "arc" | "lines";
   lines: TrackLine[];
   /** Achieved axis values for this gap (for the DriftReport). */
   achieved: AxisValues;
@@ -34,8 +37,8 @@ export type GapFit = {
   cost: number;
   /** Sled reference position (lowest sled point) at the gap's landing frame
    *  when this catch was placed. Optional; set by `sampleOneCandidate`. Used to
-   *  translate this catch's arc to a different gap's entry state for catch-reuse
-   *  on periodic specs (the arc geometry is sled-relative). */
+   *  translate this catch's geometry to a different gap's entry state for
+   *  catch-reuse on periodic specs (the geometry is sled-relative). */
   ref?: { x: number; y: number };
 };
 

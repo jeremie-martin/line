@@ -462,6 +462,18 @@ greedy local-axis-cost selection, which does not weigh multi-gap consequences.
 That is a search/scoring concern, which this brief deliberately keeps OUTSIDE the
 placement boundary.
 
+Architectural root (verified by the level-track probe): the systematic speed
+overshoot is the track DESCENDING — each catch is anchored at the falling sled, so
+every contact sits lower than the last and the rider accelerates. The physics fix
+is a LEVEL track: launch the rider just enough to return to the same height next
+beat (release vy = -½·g·N). Implemented as a per-gap ride-out launch, it scored
+4.9 / 0-of-12 valid — because a contact-centered catch is a LANDING (rider
+descending onto it), and immediately relaunching it upward ejects it. You cannot
+land-and-relaunch at one point. A level track requires the rider to FLOW over a
+gently-undulating continuous surface without discrete land→catch events — a
+different compiler primitive (continuous surface), not per-gap catches. So the
+speed ceiling is a structural property of the per-gap-catch model itself.
+
 Quantified ceiling (per-track upper bound, seeds 0/1/2, `continuous`, 150k): if
 air AND grain errors were driven to ZERO and only the speed error the optimizer
 converges to remained, the mean caps at **~627** — still far below `800`. So the

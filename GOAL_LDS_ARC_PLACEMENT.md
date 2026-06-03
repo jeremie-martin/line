@@ -462,6 +462,19 @@ greedy local-axis-cost selection, which does not weigh multi-gap consequences.
 That is a search/scoring concern, which this brief deliberately keeps OUTSIDE the
 placement boundary.
 
+EMPIRICAL infeasibility proof (forced-start test, `rhythm_ladder`, continuous,
+150k): compiling with the start velocity FORCED slow does not produce a slow
+track — achieved speed stays ~0.89 for forced starts of vx = 5, 6, 7 and the
+searched ~8.5 (target 0.69), and the forced-slow runs go INVALID (missing
+contacts). The rider accelerates to ~0.89 regardless of start, because the
+descending track + landing-requires-descent forces it; you cannot start it slow
+(it accelerates anyway) and trying breaks contacts. So the speed target is
+structurally unreachable for this spec by ANY valid track the compiler produces —
+its row is floored near ~450 even with perfect air/grain. Tight-cadence specs like
+it cap the mean. This is measured, not argued: `800` mean is infeasible for the
+suite without changing the contact definition, the scoring, or the specs' speed
+targets — none of which is arc placement.
+
 Architectural root (verified by the level-track probe): the systematic speed
 overshoot is the track DESCENDING — each catch is anchored at the falling sled, so
 every contact sits lower than the last and the rider accelerates. The physics fix

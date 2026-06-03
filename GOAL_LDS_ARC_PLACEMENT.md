@@ -462,6 +462,27 @@ greedy local-axis-cost selection, which does not weigh multi-gap consequences.
 That is a search/scoring concern, which this brief deliberately keeps OUTSIDE the
 placement boundary.
 
+### Descend↔level ride-out span (committed, ON by default in `continuous`)
+
+After retracting the infeasibility claim (speed IS reducible — see below), the
+descend↔level span lifts the normal mean@`150k`:
+
+| Scope | base `continuous` | + level-span | delta |
+| --- | ---: | ---: | --- |
+| seeds 0/1/2, mean@150k | `496.7` (30/30) | `512.4` (29/30) | **+15.8** |
+| held-out 20/21/22, mean@150k | `503.1` (30/30) | `514.4` (29/30) | **+11.3** |
+
+The catch's ride-out is spanned across a gap's candidate batch from descending
+(fast, reliably on-beat) toward a per-gap level launch (vy = -½·g·N, which holds
+speed instead of building it); the handoff keeps the slowest catch that still
+lands on-beat. Big per-row gains land exactly on the overspeed specs
+(`syncopated_switchback` +118, `drums_pendulum` +86). Known regression: it breaks
+`rhythm_ladder` s0 (441→0) — a level catch there leads to an uncatchable later
+contact (a chain-break the handoff preview misses), so recovering that last
+validity flip needs chain-aware selection (search), not placement. Net mean still
+clears the +5 commit threshold robustly on both seed sets. New score to beat:
+`~512` (seeds 0/1/2 mean@150k).
+
 RETRACTION (2026-06-04): the "infeasibility" conclusion below was WRONG. A
 slow-start + level-ride-out test brings `rhythm_ladder` to achieved speed 0.63 vs
 0.62 target (and `syncopated` to 0.63 vs 0.63) — the speed is NOT structurally

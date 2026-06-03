@@ -284,7 +284,7 @@ export function sampleArcPlacementGeometry(
     return {
       kind: "lines",
       lines: sampleContactCenteredLinesWithDiagnostics(
-        rng, targetState, targets, gap, lineIdStart, allContactFrames,
+        rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
       ).lines,
     };
   }
@@ -628,6 +628,10 @@ export function sampleContactCenteredLinesWithDiagnostics(
   gap: Gap,
   lineIdStart: number,
   allContactFrames: readonly number[] = [],
+  /** Per-gap attempt index, used to SPAN the ride-out from descending (fast,
+   *  reliably on-beat) to level (slows the rider to target, but harder to land):
+   *  the handoff then keeps the slowest catch that still lands on-beat per gap. */
+  attempt = 0,
 ): ContactCenteredLineSample {
   const segmentLengthRoll = rng();
   const contactAngleRoll = rng();
@@ -714,11 +718,24 @@ export function sampleContactCenteredLinesWithDiagnostics(
     -8,
     18,
   );
-  const postAngleDeg = clamp(
+  const angledPostAngleDeg = clamp(
     lerp(nonBrakePostAngleDeg, brakeRideOutAngleDeg, brakePressure),
     -8,
     65,
   );
+  // Descend↔level span: blend the ride-out toward a level launch (sized per gap
+  // from the ballistic-return condition, vy=-½·g·N, which holds the rider's speed
+  // instead of building it) by a per-attempt amount, but only as far as overspeed
+  // warrants. The cost-sorted handoff keeps the slowest VALID catch per gap, so
+  // level is used only where it still lands on-beat. Continuous in the overspeed
+  // pressure and the attempt index; no spec-specific logic.
+  const levelBlend = levelSpanEnabled() && nextGapFrames !== null
+    ? clamp((((attempt % 8) + 8) % 8) / 7, 0, 1) * clamp(brakePressure + 0.2, 0, 1)
+    : 0;
+  const levelLaunchDeg = nextGapFrames === null
+    ? angledPostAngleDeg
+    : (Math.atan2(-0.5 * 0.175 * nextGapFrames, Math.max(1, targetState.speed)) * 180) / Math.PI;
+  const postAngleDeg = lerp(angledPostAngleDeg, levelLaunchDeg, levelBlend);
 
   const contactAngleRad = (contactAngleDeg * Math.PI) / 180;
   const tangentX = Math.cos(contactAngleRad);
@@ -754,6 +771,14 @@ export function sampleContactCenteredLinesWithDiagnostics(
     brakePressure,
     accelPressure,
   };
+}
+
+/** Descend↔level ride-out span: ON by default for continuous mode (it lifts the
+ *  last-budget mean by reducing the systematic speed overshoot); opt out with
+ *  LR_LEVELSPAN=0 for A/B. */
+function levelSpanEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_LEVELSPAN !== "0";
 }
 
 export function shouldUseContactCenteredLines(

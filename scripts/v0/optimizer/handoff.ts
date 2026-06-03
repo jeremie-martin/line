@@ -361,41 +361,19 @@ const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
 const HANDOFF_CONTACT_STYLE_QUALITY_K = 2;
 const HANDOFF_AIR_SUPPORT_QUALITY_K = 1;
 const HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX = 0.25;
-/** contact_shape candidates orient a near-straight catch to the rider's incoming
- *  velocity axis (± a swept offset). This is the causal-tangent control of the
- *  contact_style/air coupling, offered as extra ranked candidates; the normal
- *  stream and existing axis-quality streams are unchanged. */
-const HANDOFF_CONTACT_SHAPE_QUALITY_K = 2;
-/** contact_shape orients a near-straight catch to the rider's incoming velocity
- *  axis (± a swept offset) — the one generator degree of freedom the absolute-
- *  frame normal sampler lacks, and the physical driver of contact_style/air. It
- *  fires on every contact_style gap as extra ranked candidates (no target-bucket
- *  gating: those targets are quasi-continuous, so any threshold is knife-edge and
- *  overfit). Tradeoff is documented in PLATEAU_CAMPAIGN_LOG.md: it produces a
- *  large contact_style breakout (opening_burst s1 +58) but, applied everywhere,
- *  the extra sample budget also perturbs some air-dominated rows' start basins.
- *  LR_NO_CONTACT_SHAPE=1 disables it for subtractive probes. */
-const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy[]>> = {
-  air: [{
+const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy>> = {
+  air: {
     samples: HANDOFF_AIR_SUPPORT_QUALITY_K,
     seedSalt: 0x27d4eb2f,
     attemptOffset: 2000,
     mode: "air_support",
     targetMax: HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX,
-  }],
-  contact_style: [
-    {
-      samples: HANDOFF_CONTACT_STYLE_QUALITY_K,
-      seedSalt: 0x5bd1e995,
-      attemptOffset: 1000,
-    },
-    {
-      samples: HANDOFF_CONTACT_SHAPE_QUALITY_K,
-      seedSalt: 0x9e3779b1,
-      attemptOffset: 3000,
-      mode: "contact_shape",
-    },
-  ],
+  },
+  contact_style: {
+    samples: HANDOFF_CONTACT_STYLE_QUALITY_K,
+    seedSalt: 0x5bd1e995,
+    attemptOffset: 1000,
+  },
 };
 const HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES = HANDOFF_RESCUE_MIN_GAP_FRAMES;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
@@ -1729,45 +1707,33 @@ function axisQualityCandidates(
   if (!gap.endsWithContact) return [];
   const out: AxisQualityCandidate[] = [];
   for (const axis of AXES) {
-    const policies = HANDOFF_AXIS_QUALITY_STREAMS[axis];
+    const policy = HANDOFF_AXIS_QUALITY_STREAMS[axis];
     const target = gap.targets?.[axis];
-    if (policies === undefined || target === undefined) continue;
-    for (const policy of policies) {
-      if (policy.mode === "contact_shape" && contactShapeDisabled()) continue;
-      if (policy.targetMax !== undefined && target > policy.targetMax) continue;
-      const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
-      for (let attempt = 0; attempt < policy.samples; attempt++) {
-        telemetry.axisQualityAttempts++;
-        telemetry.axisQualityAttemptsByAxis[axis] =
-          (telemetry.axisQualityAttemptsByAxis[axis] ?? 0) + 1;
-        const candidate = sampleOneCandidate(
-          node.prefixEngine,
-          gap,
-          rng,
-          ctx,
-          node.prefixNextLineId,
-          policy.attemptOffset + attempt,
-          policy.mode ?? "normal",
-        );
-        if (candidate !== null) {
-          telemetry.axisQualitySuccesses++;
-          telemetry.axisQualitySuccessesByAxis[axis] =
-            (telemetry.axisQualitySuccessesByAxis[axis] ?? 0) + 1;
-          out.push({ candidate, axis });
-        }
+    if (policy === undefined || target === undefined) continue;
+    if (policy.targetMax !== undefined && target > policy.targetMax) continue;
+    const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
+    for (let attempt = 0; attempt < policy.samples; attempt++) {
+      telemetry.axisQualityAttempts++;
+      telemetry.axisQualityAttemptsByAxis[axis] =
+        (telemetry.axisQualityAttemptsByAxis[axis] ?? 0) + 1;
+      const candidate = sampleOneCandidate(
+        node.prefixEngine,
+        gap,
+        rng,
+        ctx,
+        node.prefixNextLineId,
+        policy.attemptOffset + attempt,
+        policy.mode ?? "normal",
+      );
+      if (candidate !== null) {
+        telemetry.axisQualitySuccesses++;
+        telemetry.axisQualitySuccessesByAxis[axis] =
+          (telemetry.axisQualitySuccessesByAxis[axis] ?? 0) + 1;
+        out.push({ candidate, axis });
       }
     }
   }
   return out;
-}
-
-/** A/B gate for the contact_shape stream so a single binary can produce the
- *  baseline (stream off) and variant (stream on) without source edits between
- *  golden runs. When off, axisQualityCandidates is byte-identical to the prior
- *  registry behavior. */
-function contactShapeDisabled(): boolean {
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_NO_CONTACT_SHAPE === "1";
 }
 
 function axisQualityStreamSeed(

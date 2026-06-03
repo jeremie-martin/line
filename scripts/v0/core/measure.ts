@@ -15,18 +15,7 @@
 
 import type { Detection } from "../../lib/detector.ts";
 import { AXES, type AxisName, type AxisValues, type Gap, type TrackLine, CALIB } from "../types.ts";
-import { airborneAt, contactLineIdsAt, measurementLastFrame, median, speedAt, velocityAt } from "./substrate.ts";
-
-/** Opt-in (LR_CS_ANGLE=1) angle-based contact_style measure. Read once at module
- *  load; off => the original slide-ratio measure (byte-identical). See
- *  PLATEAU_CAMPAIGN_LOG.md "contact_style re-measure". */
-const CS_ANGLE = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-  .process?.env?.LR_CS_ANGLE === "1";
-/** Author contact_style [0,1] maps onto this achievable contact-angle ceiling
- *  (degrees). Calibrated from measure_contact_style.ts (realized contact angle
- *  spans ~[0,69deg]); using the achievable ceiling makes author 1.0 reachable.
- *  Calibration-derived, not score-tuned. */
-const CONTACT_ANGLE_MAX_DEG = 69;
+import { airborneAt, measurementLastFrame, median, speedAt } from "./substrate.ts";
 
 /** Everything a per-gap reduction may need. Each reduction uses the subset it cares about. */
 export type GapMeasureCtx = {
@@ -70,7 +59,7 @@ const measureSpeed: AxisReduction = ({ det, gap, rangeEndFrame }) => {
  * contiguous in-contact frames after gap.endFrame × mean speed, over the catch's
  * median line length. Approximation preserved verbatim from the original.
  */
-const measureContactStyleSlide: AxisReduction = (ctx) => {
+const measureContactStyle: AxisReduction = (ctx) => {
   const { det, gap, gapLines } = ctx;
   const lineLens = gapLines.map((l) => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
   const medianLen = median(lineLens);
@@ -84,39 +73,6 @@ const measureContactStyleSlide: AxisReduction = (ctx) => {
   const traversed = meanSpeed * contactFramesAtArc;
   return Math.min(1, traversed / medianLen);
 };
-
-/**
- * Angle-based contact_style: the angle between the rider's incoming velocity and
- * the catch-line tangent at contact, normalized over the achievable range. Unlike
- * the slide-ratio measure (bimodal: 99% of targets unhittable), this is continuous
- * (~50% of catches land mid-range) and directly controllable (the catch tangent is
- * steerable). Intent-preserving: steep/head-on contact -> high (sticky); glancing/
- * parallel -> low (bounce-through) — the same direction as the slide measure
- * (corr 0.85). See measure_contact_style.ts and PLATEAU_CAMPAIGN_LOG.md.
- */
-const measureContactStyleAngle: AxisReduction = ({ det, gap, gapLines }) => {
-  if (gapLines.length === 0) return undefined;
-  const owned = new Set(gapLines.map((l) => l.id));
-  // Contact frame near gap.endFrame where an owned catch line is actually touched.
-  let lf = -1;
-  for (const f of [gap.endFrame, gap.endFrame - 1, gap.endFrame + 1]) {
-    if (contactLineIdsAt(det, f).some((id) => owned.has(id))) { lf = f; break; }
-  }
-  if (lf < 0) return undefined;
-  const inV = velocityAt(det, lf - 1) ?? velocityAt(det, lf);
-  if (inV === undefined) return undefined;
-  if (Math.hypot(inV.x, inV.y) <= 1e-6) return undefined;
-  const cids = contactLineIdsAt(det, lf).filter((id) => owned.has(id));
-  const ln = gapLines.find((l) => l.id === cids[0]);
-  if (ln === undefined) return undefined;
-  const inAngle = (Math.atan2(inV.y, inV.x) * 180) / Math.PI;
-  const lineAngle = (Math.atan2(ln.y2 - ln.y1, ln.x2 - ln.x1) * 180) / Math.PI;
-  let d = Math.abs(inAngle - lineAngle) % 180; // undirected line vs velocity
-  if (d > 90) d = 180 - d;
-  return Math.max(0, Math.min(1, d / CONTACT_ANGLE_MAX_DEG));
-};
-
-const measureContactStyle: AxisReduction = CS_ANGLE ? measureContactStyleAngle : measureContactStyleSlide;
 
 /** Median catch-line length, normalized by LINE_LENGTH_CAP. */
 const measureGrain: AxisReduction = ({ gapLines }) => {

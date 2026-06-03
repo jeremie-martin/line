@@ -24,20 +24,12 @@ const IMPACT_ANCHOR_PRECLEAR_DISTANCE = 2.5;
 const IMPACT_ANCHOR_T_JITTER = 0.24;
 const IMPACT_ANCHOR_ALONG_JITTER = 6;
 const IMPACT_ANCHOR_NORMAL_JITTER = 6;
-/** Max signed offset (degrees) of the contact-region tangent from the rider's
- *  incoming velocity axis when tangent-bias is requested. The contact_shape
- *  stream sweeps this band so the ranker sees both glancing (aligned → slides,
- *  high contact_style / low air) and deflecting (offset → bounces) catches. */
-const TANGENT_BIAS_OFFSET_DEG = 30;
 
 export type ArcPlacementStats = NonNullable<CompileStats["arc_placement"]>;
 
 export type ImpactAnchorTargetState = {
   sledX: number;
   sledY: number;
-  /** Rider velocity direction (degrees) at the target frame. Required only when
-   *  tangent-bias is requested; the contact-region tangent is rotated to it. */
-  angleDeg?: number;
 };
 
 export function impactAnchorEnabled(): boolean {
@@ -70,12 +62,10 @@ function makeArcPlacementStats(): ArcPlacementStats {
   return {
     mode: "impact_anchor",
     ...makeArcPlacementCounter(),
-    tangent_biased: 0,
     by_sample_mode: {
       normal: makeArcPlacementCounter(),
       brake: makeArcPlacementCounter(),
       air_support: makeArcPlacementCounter(),
-      contact_shape: makeArcPlacementCounter(),
     },
   };
 }
@@ -85,7 +75,6 @@ const arcPlacementStats: ArcPlacementStats = makeArcPlacementStats();
 export function resetArcPlacementStats(): void {
   const fresh = makeArcPlacementStats();
   resetCounter(arcPlacementStats, fresh);
-  arcPlacementStats.tangent_biased = fresh.tangent_biased;
   for (const mode of CANDIDATE_SAMPLE_MODES) {
     resetCounter(arcPlacementStats.by_sample_mode[mode], fresh.by_sample_mode[mode]);
   }
@@ -99,13 +88,8 @@ export function snapshotArcPlacementStats(): ArcPlacementStats | undefined {
       normal: { ...arcPlacementStats.by_sample_mode.normal },
       brake: { ...arcPlacementStats.by_sample_mode.brake },
       air_support: { ...arcPlacementStats.by_sample_mode.air_support },
-      contact_shape: { ...arcPlacementStats.by_sample_mode.contact_shape },
     },
   };
-}
-
-export function recordTangentBias(): void {
-  arcPlacementStats.tangent_biased++;
 }
 
 export function recordImpactAnchorSample(mode?: CandidateSampleMode): void {
@@ -160,16 +144,8 @@ export function sampleImpactAnchoredArc(
   endAngleDeg: number,
   segments: number,
   curveBias: number,
-  /** When true (and the target velocity angle is known), rotate the whole arc so
-   *  its tangent at the impact point aligns with the rider's incoming velocity
-   *  axis plus a sampled offset. This is the contact_shape primitive: it controls
-   *  the contact-region orientation RELATIVE TO the rider's motion — the physical
-   *  driver of contact_style/air — instead of leaving it to absolute-frame
-   *  sampling. Default false keeps the byte-identical impact-anchor path (no
-   *  extra RNG draw, no rotation). */
-  tangentBias = false,
 ): Arc {
-  let baseArc: Arc = {
+  const baseArc: Arc = {
     anchor: { x: 0, y: 0 },
     length,
     startAngleDeg,
@@ -184,23 +160,6 @@ export function sampleImpactAnchoredArc(
     0.15,
     0.85,
   );
-
-  if (tangentBias && targetState.angleDeg !== undefined) {
-    // Rotate every segment by the same delta (shape preserved, since arcToLines
-    // interpolates angles linearly) so the local tangent at impactT becomes the
-    // rider's velocity angle plus a sampled offset across ±TANGENT_BIAS_OFFSET_DEG.
-    const before = arcLocalPointAt(baseArc, impactT);
-    const localTangentDeg = (Math.atan2(before.tangentY, before.tangentX) * 180) / Math.PI;
-    const offsetDeg = (rng() - 0.5) * 2 * TANGENT_BIAS_OFFSET_DEG;
-    const delta = targetState.angleDeg + offsetDeg - localTangentDeg;
-    baseArc = {
-      ...baseArc,
-      startAngleDeg: startAngleDeg + delta,
-      endAngleDeg: endAngleDeg + delta,
-    };
-    recordTangentBias();
-  }
-
   const local = arcLocalPointAt(baseArc, impactT);
   const normalX = -local.tangentY;
   const normalY = local.tangentX;

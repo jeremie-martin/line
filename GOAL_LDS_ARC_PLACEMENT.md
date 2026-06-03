@@ -229,6 +229,62 @@ Primary score lens:
 - candidate work and viable-candidate yield;
 - placement failure split.
 
+## Baseline And Scoreboard
+
+The local campaign baseline was measured on 2026-06-03 from clean commit
+`f94b95589e89`, with evaluator fingerprint `ff8acb41f962` and
+`LR_ARC_PLACEMENT` unset. That is the current default `impact_anchor` placement
+path.
+
+For compiler changes in this campaign, only commit changes that improve the
+normal diagnostic `CURVE_SCORE` by at least 5 points over the current normal
+score to beat. The current normal score to beat is `369.27`, so the current
+minimum compiler-change commit threshold is `374.27`. Documentation-only
+scoreboard updates are campaign bookkeeping.
+
+The campaign goal is to reach a normal diagnostic `CURVE_SCORE` of `500`, while
+working solely on arc placement as defined in this document. Read this document
+carefully before changing code; do not pursue spec-name overfitting or unrelated
+handoff/search/scoring changes to reach the number.
+
+Current baselines:
+
+| Scope | Archive | CURVE_SCORE | Last Budget | Validity |
+| --- | --- | ---: | ---: | --- |
+| Fast focused loop | `/tmp/line-arc-baseline-fast/golden.json` | `355.82` | `80k: 358.13` | `8/9` |
+| Normal diagnostic | `/tmp/line-arc-baseline-normal/golden.json` | `369.27` | `100k: 388.26` | `29/30` |
+
+Fast focused budget scores:
+
+| Budget | Score | Valid |
+| ---: | ---: | --- |
+| `50k` | `353.17` | `8/9` |
+| `60k` | `354.07` | `8/9` |
+| `70k` | `357.95` | `8/9` |
+| `80k` | `358.13` | `8/9` |
+
+Normal diagnostic budget scores:
+
+| Budget | Score | Valid |
+| ---: | ---: | --- |
+| `50k` | `347.64` | `29/30` |
+| `60k` | `361.78` | `29/30` |
+| `70k` | `363.04` | `29/30` |
+| `80k` | `368.47` | `29/30` |
+| `90k` | `388.16` | `29/30` |
+| `100k` | `388.26` | `29/30` |
+
+Keep this section current. After every serious fast or normal diagnostic run,
+append or update the scoreboard with:
+
+- archive path;
+- tested placement mode or branch;
+- exact command scope if it differs from the workbench command;
+- `CURVE_SCORE`, per-budget scores, and validity;
+- delta versus the current normal score to beat, when the normal diagnostic was
+  run;
+- decision: rejected, keep investigating, or new score to beat.
+
 ## Diagnostics To Read First
 
 Placement counters:

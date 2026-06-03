@@ -451,14 +451,31 @@ off-beat gates and dropped validity. This is structural, not a tuning miss:
   cannot get slow while valid — their speed targets are physically out of reach
   for a valid track. Those rows cap the mean well below `800`.
 
-Implication: a `800` mean is likely NOT reachable by local catch geometry alone.
-Plausible paths, each beyond a single-catch geometry tweak: (a) closed-loop axis
-refinement — measure achieved axes in-engine and refine the catch toward target
-(two-stage placement; crosses the placement/validation seam); (b) global energy
-management / start-state shaping to lower the whole-track speed baseline (largely
-outside the placement boundary); (c) confirm whether some specs' speed targets are
-feasible for any valid track at all. Do NOT chase the number with braking hacks
-that trade validity for a lower mean — the campaign metric rewards valid quality.
+A seventh probe isolates WHERE the remaining bottleneck lives. Instead of forcing
+one slower catch, it gave the handoff a validity-preserving feasibility-band SWEEP
+across the speed-control dimension, so the cost-sorted selector could KEEP the
+slowest catch that still passes the gates. It regressed (459 → 376 on a speed
+subset, validity 18→15): the selector kept catches that pass their OWN gap's gates
+but hand off a state the NEXT gap cannot catch. So the placement is already
+offering candidates at the chain-feasible frontier; the limit is the handoff's
+greedy local-axis-cost selection, which does not weigh multi-gap consequences.
+That is a search/scoring concern, which this brief deliberately keeps OUTSIDE the
+placement boundary.
+
+Implication: a `800` mean is NOT reachable by local catch geometry, and the
+bottleneck has moved off placement. What this compiler "ought to be" for tight
+speed/air targets is **trajectory-aware**: speed and air are whole-path properties
+(energy and airtime accumulate across gaps), so they cannot be controlled by a
+per-gap greedy catch search. The architecture that could reach `800` plans the
+rider's energy/airtime profile across the track and then realises it with geometry
+— spanning start-state/energy planning, chain-aware selection (score candidates by
+multi-gap rollout, not one-gap axis cost), and placement together. Plausible
+concrete paths, each beyond a single-catch geometry tweak: (a) chain-aware
+selection in the handoff; (b) global energy / start-state shaping to lower the
+whole-track speed baseline; (c) confirm whether some specs' low speed targets are
+feasible for ANY valid track. Do NOT chase the number with braking hacks that
+trade validity for a lower mean — the metric rewards valid quality, and such hacks
+both fail and overfit.
 
 ## Diagnostics To Read First
 

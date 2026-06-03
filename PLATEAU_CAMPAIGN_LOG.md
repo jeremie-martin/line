@@ -396,6 +396,10 @@ land per gap geometry. This removes the global guess. Until then, treat any chan
 near `impactCenter`/`IMPACT_ANCHOR_T_JITTER` as high-risk and re-run the full
 workbench (validity is seed-sensitive here).
 
+Deeper design note: see `docs/arc_placement.md` for why `impactCenter` is the
+wrong abstraction boundary and why the first replacement attempt should be an
+impact-frame primitive, not a better global constant.
+
 ### 3-axis re-baseline result (seeds 100/101/102, impactCenter=0.6)
 CURVE_SCORE 311.10 · 30 rows · validity 27/30 at 150k (35k 20/30 → 75k 27/30).
 Per-row vs impactCenter=0.5 (which was 26/30): 0.6 recovered dense_sprint s100,

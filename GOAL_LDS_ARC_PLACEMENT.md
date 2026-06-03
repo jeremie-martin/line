@@ -427,6 +427,39 @@ time-to-neighbor) and predicted contact state — so "long smooth arc" (sparse) 
 switch and no literal density threshold. Forward-dependency (release-state shaping)
 is the core lever; the current placement is per-gap-blind.
 
+### Session 2026-06-04: axis-quality wall toward the `800` mean target
+
+Decomposing `continuous`'s `496.7` normal mean: for a valid+synced track
+`score = 1000 · exp(−rms(axis_error)/0.25)`, so a `800` mean needs rms axis error
+`≈ 0.056`; `continuous` sits at `≈ 0.175`. The residual is dominated by a
+**systematic speed OVERSHOOT** (+0.13…+0.26 mean per spec; the rider runs at
+~0.74–0.92 when targets want ~0.52–0.69) and air regressing to the middle. Speed
+and air are coupled (a rider that flies more free-falls and gains speed).
+
+Six placement probes aimed at lowering speed/air ALL failed (reverted): tangent-
+matched contact, an air-driven grounded↔launch ride-out, and a grounded floor
+(flatten-only, length-extended, and uphill-braking variants). Every change that
+would actually slow or ground the rider broke the owned-landing / survival /
+off-beat gates and dropped validity. This is structural, not a tuning miss:
+
+- A valid track needs the rider moving fast enough to stay synced and survive;
+  low-friction, descent-driven physics make it run fast by default.
+- Slowing it requires uphill/braking geometry that ejects or stalls the rider →
+  invalid. So per spec the achievable speed has a floor set by validity.
+- That floor is spec-dependent: `tiny_dance` reaches its `0.50` target validly,
+  but `rhythm_ladder` (`0.50→~1.0`) and `syncopated_switchback` (`0.45→~0.8`)
+  cannot get slow while valid — their speed targets are physically out of reach
+  for a valid track. Those rows cap the mean well below `800`.
+
+Implication: a `800` mean is likely NOT reachable by local catch geometry alone.
+Plausible paths, each beyond a single-catch geometry tweak: (a) closed-loop axis
+refinement — measure achieved axes in-engine and refine the catch toward target
+(two-stage placement; crosses the placement/validation seam); (b) global energy
+management / start-state shaping to lower the whole-track speed baseline (largely
+outside the placement boundary); (c) confirm whether some specs' speed targets are
+feasible for any valid track at all. Do NOT chase the number with braking hacks
+that trade validity for a lower mean — the campaign metric rewards valid quality.
+
 ## Diagnostics To Read First
 
 Placement counters:

@@ -462,9 +462,24 @@ greedy local-axis-cost selection, which does not weigh multi-gap consequences.
 That is a search/scoring concern, which this brief deliberately keeps OUTSIDE the
 placement boundary.
 
-Implication: a `800` mean is NOT reachable by local catch geometry, and the
-bottleneck has moved off placement. What this compiler "ought to be" for tight
-speed/air targets is **trajectory-aware**: speed and air are whole-path properties
+Mechanism (verified against `detector.ts`): a `landing` is only emitted when
+`airborneRun > K_BOUNCE_LANDING` (K=5) — every contact needs ≥6 airborne frames
+of descent before it. So each beat structurally injects a fall (→ speed gain), and
+shedding that speed needs a climb, which stops the descent so the NEXT contact
+bounces instead of landing. That fall-to-land↔speed cycle is the precise reason
+the speed-span catches broke the chain. It is spec-dependent: loose-cadence specs
+(e.g. `tiny_dance`) DO reach low speed targets; tight-cadence specs
+(`rhythm_ladder`, `syncopated_switchback`) cannot, and cap the mean. (Note: the
+per-gap air floor `6/gapFrames` is only `0.19–0.46` vs mean air targets
+`0.33–0.69`, so targets are mostly ABOVE the floor — the cap is the speed cycle,
+not a blanket air-floor infeasibility. An earlier "infeasible for the whole suite"
+framing was an overstatement and is retracted.)
+
+Implication: a `800` mean is not reachable by the placement levers tried, and is
+structurally very hard (not cleanly proven impossible) because of that cycle; the
+reachable bottleneck has largely moved off placement. What this compiler "ought to
+be" for tight speed/air targets is **trajectory-aware**: speed and air are
+whole-path properties
 (energy and airtime accumulate across gaps), so they cannot be controlled by a
 per-gap greedy catch search. The architecture that could reach `800` plans the
 rider's energy/airtime profile across the track and then realises it with geometry

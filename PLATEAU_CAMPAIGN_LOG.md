@@ -148,6 +148,42 @@ concern is correct.
 | ungated, K2 | 329.39 (-1.16) | +1.76 | drums_pendulum -14.27/-4.71, drums_crescendo -7.65 | none |
 | contact_style<=0.4 gate, K1 | 330.75 (+0.20) | +0.24 | none | tuned threshold (no breakout) |
 
+#### Exp 5 (Direction 3) — constant-budget REPLACE (substitute normal contact_style samples with contact_shape)
+Hypothesis: the ungated regressions are pure sample-budget competition, so spending
+the SAME budget (replace the 2 normal contact_style samples with 2 contact_shape,
+not add) should keep the win without churn. A/B from one binary; off-arm
+(LR_NO_CONTACT_SHAPE=1, normal mode) verified byte-identical to the original baseline.
+RESULT: **falsified, much worse.** CURVE_SCORE 324.85 (-5.70); 150k -3.52; big
+regressions (opening_burst s2 -63.67, drums_crescendo s0 -19.21, s2 -17.79,
+syncopated_switchback s1 -15.98, drums_pendulum s0 -14.20) and the opening_burst s1
++58 VANISHED. Starts churned everywhere.
+
+Key correction to the model: budget was held CONSTANT yet it churned MORE. So the
+churn is NOT mainly budget competition — it is **candidate-set change**: altering
+which candidates exist changes the deterministic best-path sequence → a different
+start lineage wins → forward-fragility churn. Removing the normal contact_style
+samples also destroyed paths many rows depended on (consistent with the earlier
+"removing the contact_style stream is costly" finding). This explains why **ADD beats
+REPLACE**: adding preserves every existing good path and only offers new options that
+win where strictly better. The opening_burst s1 +58 specifically needs the ADDED
+exploration (the normal + contact_shape candidate set together), not contact_shape alone.
+
+#### Direction-3 conclusion (why the tractable no-gate fixes don't work)
+- REPLACE (constant budget): worse — candidate-set churn + loss of relied-on normal samples.
+- MERIT admission (fire only where contact_shape helps): to decide cheaply BEFORE
+  generating (generation is what churns), the only signals are target values
+  (threshold = overfit, targets quasi-continuous) or incumbent state (charter-flagged
+  risky). Accurate targeting requires generating+measuring = the churn itself. And the
+  true discriminator is the contact_style-gain-vs-air-loss trade, which needs the air
+  target — the leaky air gate (Exp 4) proved that doesn't separate cleanly.
+- drums_pendulum fundamentally does NOT want what contact_shape offers: it wants MID
+  contact_style (0.45) at LOW air (0.15) = shorter grounded slide, NOT a bounce-off.
+  contact_shape (bounce-off, raises air) is simply the wrong primitive there; the clean
+  thing is for it to not touch those gaps — which is exactly what a gate does.
+- The genuine structural fix (decouple contact_style from air) is multi-arc /
+  backward-reachability (rethink doc direction B/D), a larger project whose shape the
+  doc itself defers until reachability is built.
+
 No free lunch: the opening_burst s1 +58 BREAKOUT needs 2 EXTRA contact_shape samples
 (added exploration). Added samples cause schedule/start churn → regressions on some
 rows. Only a gate that restricts WHERE to add removes the churn, and the only gate

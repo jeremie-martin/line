@@ -97,8 +97,6 @@ type CompileStats = {
   handoff_axis_quality_by_axis?: Partial<Record<AxisName, AxisQualityCounter>>;
   handoff_axis_quality_air_attempts?: number;
   handoff_axis_quality_air_successes?: number;
-  handoff_axis_quality_contact_style_attempts?: number;
-  handoff_axis_quality_contact_style_successes?: number;
   handoff_rescue_attempts?: number;
   handoff_rescue_successes?: number;
   handoff_skips?: number;
@@ -877,11 +875,6 @@ function legacyAxisQualityStat(
     return kind === "attempts"
       ? stats?.handoff_axis_quality_air_attempts
       : stats?.handoff_axis_quality_air_successes;
-  }
-  if (axis === "contact_style") {
-    return kind === "attempts"
-      ? stats?.handoff_axis_quality_contact_style_attempts
-      : stats?.handoff_axis_quality_contact_style_successes;
   }
   return undefined;
 }

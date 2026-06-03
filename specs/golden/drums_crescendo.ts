@@ -2,14 +2,14 @@
  * drums_crescendo — monotonic multi-axis build against
  * beats/drums_0_30s_60_125.json. Every axis grows across three 10-second
  * blocks: calm → driving → unleashed. Tests *graduated coupling*, not contrast —
- * each block is visibly more energetic than the last on all four axes at once.
+ * each block is visibly more energetic than the last across the axes at once.
  *
  * Ported to `hold` keyframes (step blocks, identical to the original sections).
  * A future revision could swap to eased ramps for a genuinely continuous build.
  *
- *   [ 0–10s]  whisper   air 0.30  speed 0.35  grain 0.20  contact 0.30
- *   [10–20s]  drive     air 0.55  speed 0.60  grain 0.50  contact 0.55
- *   [20–30s]  unleash   air 0.85  speed 0.90  grain 0.80  contact 0.85
+ *   [ 0–10s]  whisper   air 0.30  speed 0.35  grain 0.20
+ *   [10–20s]  drive     air 0.55  speed 0.60  grain 0.50
+ *   [20–30s]  unleash   air 0.85  speed 0.90  grain 0.80
  */
 import { drumsSpec } from "../../scripts/v0/specs/_drums.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";

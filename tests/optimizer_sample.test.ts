@@ -50,7 +50,7 @@ async function setupAt(name: string, seed: number) {
 describe("optimizer/sample.ts — Step 1 atomic sample", () => {
   test("gap target sampling uses canonical per-axis bounds", () => {
     const sampled = sampleGapTargets(
-      { air: 2, speed: 2, contact_style: 2, grain: 2 },
+      { air: 2, speed: 2, grain: 2 },
       0,
       () => 0.5,
     );

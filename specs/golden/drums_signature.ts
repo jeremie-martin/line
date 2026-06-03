@@ -1,11 +1,11 @@
 /**
  * drums_signature — 3-act narrative against beats/drums_0_30s_60_125.json.
- * The grip/skip acts hold speed constant and flip contact_style so the axis
+ * The grip/skip acts hold speed constant and flip grain (line length) so the act
  * change is legible on-screen; the opener sets a slower baseline so the kick lands.
  *
- *   [ 0–10s]  cruise   slow, mid-air                      — relaxed opener
- *   [10–20s]  grip     fast + long contact, long lines    — rider rides each line
- *   [20–30s]  skip     fast + short contact, short lines  — rider ricochets
+ *   [ 0–10s]  cruise   slow, mid-air            — relaxed opener
+ *   [10–20s]  grip     fast, long lines         — coarse grain
+ *   [20–30s]  skip     fast, short lines        — fine grain
  */
 import { drumsSpec } from "../../scripts/v0/specs/_drums.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";

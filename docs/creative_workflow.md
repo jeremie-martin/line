@@ -54,7 +54,9 @@ Sections are soft style blocks; each can set any of the axes (see
 - **`air`** — airborne fraction. The most expressive, most controllable axis.
 - **`speed`** — `mean|v| / cap`. Climbs naturally; see the caveat below.
 - **`grain`** — median line length (long swooping lines vs short choppy ones).
-- **`contact_style`** — slide-along-the-line ratio (subtle; usually left default).
+
+(A former `contact_style` axis — slide-along-the-line ratio — was removed: its
+bounce-or-ride physics made it bimodal, so it was not a usable continuous lever.)
 
 Put the section boundaries on the madmom phrase lines, then choose axis targets
 to match the energy contour: grounded/restrained intro, airy flowing verse, a

@@ -13,7 +13,6 @@ import {
 import {
   AXES,
   AXIS_VALUE_MAX,
-  CONTACT_EVENT_AXES,
   FRAME_SPAN_AXES,
   hasAnyTargetAxis,
   hasExactlyTargetAxes,
@@ -52,20 +51,13 @@ describe("v0 golden configuration", () => {
     expect(hasExactlyTargetAxes({ air: 0.5 }, ["air"])).toBe(true);
     expect(hasExactlyTargetAxes({ air: 0.5, speed: 0.4 }, ["air"])).toBe(false);
     expect(hasExactlyTargetAxes({ speed: 0.4 }, ["air"])).toBe(false);
-    expect(hasAnyTargetAxis({ speed: 0.4 }, CONTACT_EVENT_AXES)).toBe(false);
-    expect(hasAnyTargetAxis({ contact_style: 0.4 }, CONTACT_EVENT_AXES)).toBe(true);
+    expect(hasAnyTargetAxis({ speed: 0.4 }, ["air"])).toBe(false);
+    expect(hasAnyTargetAxis({ air: 0.4, speed: 0.4 }, ["air"])).toBe(true);
   });
 
   test("frame-span axis category is explicit", () => {
     expect([...FRAME_SPAN_AXES]).toEqual(["air", "speed"]);
     for (const axis of FRAME_SPAN_AXES) {
-      expect(AXES).toContain(axis);
-    }
-  });
-
-  test("contact-event axis category is explicit", () => {
-    expect([...CONTACT_EVENT_AXES]).toEqual(["contact_style"]);
-    for (const axis of CONTACT_EVENT_AXES) {
       expect(AXES).toContain(axis);
     }
   });

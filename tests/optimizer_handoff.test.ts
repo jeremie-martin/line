@@ -119,12 +119,6 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_axis_quality_by_axis?.air?.successes ?? 0).toBe(
       a.stats.handoff_axis_quality_air_successes ?? 0,
     );
-    expect(a.stats.handoff_axis_quality_by_axis?.contact_style?.attempts ?? 0).toBe(
-      a.stats.handoff_axis_quality_contact_style_attempts ?? 0,
-    );
-    expect(a.stats.handoff_axis_quality_by_axis?.contact_style?.successes ?? 0).toBe(
-      a.stats.handoff_axis_quality_contact_style_successes ?? 0,
-    );
     expect(a.stats.handoff_axis_quality_air_attempts ?? 0).toBeGreaterThanOrEqual(
       a.stats.handoff_axis_quality_air_successes ?? 0,
     );
@@ -133,15 +127,6 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     );
     expect(a.stats.handoff_axis_quality_air_successes).toBe(
       b.stats.handoff_axis_quality_air_successes,
-    );
-    expect(a.stats.handoff_axis_quality_contact_style_attempts ?? 0).toBeGreaterThanOrEqual(
-      a.stats.handoff_axis_quality_contact_style_successes ?? 0,
-    );
-    expect(a.stats.handoff_axis_quality_contact_style_attempts).toBe(
-      b.stats.handoff_axis_quality_contact_style_attempts,
-    );
-    expect(a.stats.handoff_axis_quality_contact_style_successes).toBe(
-      b.stats.handoff_axis_quality_contact_style_successes,
     );
     expect(a.stats.handoff_tail_completion_attempts ?? 0).toBeGreaterThanOrEqual(
       a.stats.handoff_tail_completion_successes ?? 0,

@@ -1,6 +1,6 @@
 /**
  * drums speed test — speed=0.5. Exercises the speed axis (untested in v0
- * baseline runs; air/grain/contact_style have been measured but speed
+ * baseline runs; air/grain have been measured but speed
  * targeting hasn't been stressed).
  *
  * 0.5 corresponds to roughly 6 px/frame mean velocity, close to natural

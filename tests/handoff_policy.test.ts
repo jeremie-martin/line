@@ -3,7 +3,6 @@ import {
   brakeCandidateCount,
   handoffCandidatePool,
   handoffAxisOvershootPenalty,
-  handoffPreviewCostWeight,
   handoffSampleCount,
   handoffUsesFuturePreview,
   hasStartFeasibilityLookahead,
@@ -84,21 +83,9 @@ describe("handoff policy boundaries", () => {
     ])).toBe(true);
   });
 
-  test("expanded first-pass brake work needs contact-event pressure", () => {
-    expect(shouldUseExpandedBrakeSearch(false, true, gap(0, 0, 20))).toBe(false);
-    expect(shouldUseExpandedBrakeSearch(false, true, {
-      ...gap(0, 0, 20),
-      targets: { contact_style: 0.5 },
-    })).toBe(true);
-    expect(shouldUseExpandedBrakeSearch(true, false, gap(0, 0, 13))).toBe(true);
-  });
-
-  test("preview cost is suppressed on contact-event gaps", () => {
-    expect(handoffPreviewCostWeight(gap(0, 0, 20))).toBeGreaterThan(0);
-    expect(handoffPreviewCostWeight({
-      ...gap(0, 0, 20),
-      targets: { contact_style: 0.5 },
-    })).toBe(0);
+  test("expanded brake breadth follows the quality phase", () => {
+    expect(shouldUseExpandedBrakeSearch(false)).toBe(false);
+    expect(shouldUseExpandedBrakeSearch(true)).toBe(true);
   });
 
   test("future preview is reserved for contract search", () => {
@@ -156,17 +143,16 @@ describe("handoff policy boundaries", () => {
       { speed: 0.4, air: 0.1 },
     )).toBe(0);
     expect(handoffAxisOvershootPenalty(
-      { contact_style: 0.2, grain: 0.2 },
-      { contact_style: 1, grain: 1 },
+      { grain: 0.2 },
+      { grain: 1 },
     )).toBe(0);
   });
 
-  test("high-speed brake work needs contact-event pressure and severe overspeed", () => {
-    expect(shouldOfferBrakeCandidates(0.78, 1.0, false)).toBe(true);
-    expect(shouldOfferBrakeCandidates(0.8, 1.14, true)).toBe(false);
-    expect(shouldOfferBrakeCandidates(0.8, 1.15, false)).toBe(false);
-    expect(shouldOfferBrakeCandidates(0.8, 1.15, true)).toBe(true);
-    expect(shouldOfferBrakeCandidates(0.8, 1.15, true, true)).toBe(true);
+  test("brake work fires only on mild-overspeed targets", () => {
+    expect(shouldOfferBrakeCandidates(0.78, 1.0)).toBe(true); // mild target, at ratio floor
+    expect(shouldOfferBrakeCandidates(0.78, 0.5)).toBe(false); // below the overspeed ratio floor
+    expect(shouldOfferBrakeCandidates(0.8, 1.15)).toBe(false); // above mild target -> no brake
+    expect(shouldOfferBrakeCandidates(0.8, 1.15, true)).toBe(false);
   });
 
   test("start feasibility scoring only requires two future contacts", () => {

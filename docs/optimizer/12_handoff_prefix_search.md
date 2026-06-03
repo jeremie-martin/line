@@ -46,10 +46,7 @@ sequence. Future-contact previews use the same extendable per-node candidate
 cache as expansion, and expansion carries the previewed child node forward, so
 the previewed first future-contact sample can be reused when that branch is
 later expanded. The preview's first future local cost is a small ranking signal
-for smooth axes, reusing work the probe already performed. Gaps that target
-`contact_style` keep survivor-only preview scoring because contact style is a
-brittle contact-duration effect; letting one-step future cost steer those
-catches can damage the current handoff.
+for smooth axes, reusing work the probe already performed.
 
 After the register has a full contract-passing incumbent, normal quality search
 stops doing future-contact previews. At that point the contract is already

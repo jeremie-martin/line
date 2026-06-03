@@ -24,7 +24,7 @@ import { makeSolidLine } from "../arc.ts";
 import {
   type Spec, type AxisName,
   type TrackLine, type Gap,
-  AXES, CALIB, CONTACT_EVENT_AXES, FPS, FRAME_SPAN_AXES, START_DEFAULTS, secToFrame,
+  AXES, CALIB, FPS, FRAME_SPAN_AXES, START_DEFAULTS, secToFrame,
 } from "../types.ts";
 import {
   type ResolvedStart,
@@ -256,10 +256,6 @@ function axisTargeted(spec: Spec, axis: AxisName): boolean {
     if (curve(f / FPS) !== undefined) return true;
   }
   return false;
-}
-
-function hasContactEventAxisTarget(spec: Spec): boolean {
-  return CONTACT_EVENT_AXES.some((axis) => axisTargeted(spec, axis));
 }
 
 /**
@@ -643,7 +639,6 @@ export function polishExcessContact(
 }
 
 function shouldPolishExcessContact(spec: Spec): boolean {
-  if (hasContactEventAxisTarget(spec)) return false;
   const hasAir = axisTargeted(spec, "air");
   const hasCompanionAxis = axisTargeted(spec, "speed") || axisTargeted(spec, "grain");
   return hasAir && hasCompanionAxis;
@@ -1061,7 +1056,6 @@ function polishGrainLength(
 }
 
 function shouldPolishGrainLength(spec: Spec): boolean {
-  if (hasContactEventAxisTarget(spec)) return false;
   return axisTargeted(spec, "grain");
 }
 
@@ -1139,7 +1133,6 @@ function polishEntrySpeed(
 }
 
 function shouldPolishEntrySpeed(spec: Spec): boolean {
-  if (hasContactEventAxisTarget(spec)) return false;
   return axisTargeted(spec, "speed");
 }
 

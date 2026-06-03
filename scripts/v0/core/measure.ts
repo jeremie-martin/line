@@ -3,7 +3,7 @@
  *
  * Each axis collapses a gap's worth of simulation into one normalized scalar,
  * and each does it DIFFERENTLY (air/speed are means over a frame range; grain is
- * a median of line lengths; contact_style is a contact-duration ratio). Keeping
+ * a median of line lengths). Keeping
  * these as a name-keyed map — rather than hardcoded inline — means the achieved
  * value of an axis is defined in exactly one place, and a future axis (e.g.
  * `amplitude`, whose reduction is a per-gap PEAK height, not a mean) is a single
@@ -21,7 +21,7 @@ import { airborneAt, measurementLastFrame, median, speedAt } from "./substrate.t
 export type GapMeasureCtx = {
   det: Detection;
   gap: Gap;
-  /** The catch lines placed for this gap (for geometry axes: grain, contact_style). */
+  /** The catch lines placed for this gap (for geometry axes: grain). */
   gapLines: TrackLine[];
   /** Inclusive last frame for span axes (air, speed). Defaults to gap.endFrame at the call site. */
   rangeEndFrame: number;

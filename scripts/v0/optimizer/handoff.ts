@@ -328,9 +328,7 @@ const START_HEURISTIC_WEIGHT = 0.15;
 const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
 /** The one-contact preview already pays for a future candidate. Reuse its local
- *  cost as a small quality signal for frame-span/smooth axes, but not when the
- *  current gap targets contact-event axes: those are local catch-geometry
- *  effects, and preview cost over-steers the fragile current catch. */
+ *  cost as a small quality signal for frame-span/smooth axes. */
 const PREVIEW_COST_WEIGHT = 0.25;
 const HANDOFF_STATE_WEIGHT = 0.08;
 /** Selection-only asymmetric overshoot pressure in the handoff feasibility
@@ -343,9 +341,8 @@ const HANDOFF_AXIS_OVERSHOOT_WEIGHTS: Partial<Record<AxisName, number>> = {
 };
 /** Brake catches (uphill-entry, bleed speed) are offered as EXTRA candidates on
  *  MODERATE-target gaps where the rider runs even mildly over target (early, to
- *  pre-empt creep). High-target gaps only get brake probes when contact-event
- *  quality also matters and overspeed is severe. Decoupled from landing, so on
- *  non-creeping specs they simply lose the ranking. Excluded from reuse. */
+ *  pre-empt creep). Decoupled from landing, so on non-creeping specs they simply
+ *  lose the ranking. Excluded from reuse. */
 const HANDOFF_BRAKE_TARGET_MAX = 1.0;
 const HANDOFF_BRAKE_MILD_TARGET_MAX = 0.78;
 const HANDOFF_BRAKE_RATIO_MIN = 1.0;
@@ -1456,9 +1453,9 @@ function expandNode(
   let options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
     nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
     preview: handoffUsesFuturePreview(qualitySearch),
-    expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+    expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
     axisQualitySearch: qualitySearch,
-    previewCostWeight: handoffPreviewCostWeight(gap),
+    previewCostWeight: PREVIEW_COST_WEIGHT,
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
     telemetry.rescueAttempts++;
@@ -1466,9 +1463,9 @@ function expandNode(
       nCand: HANDOFF_RESCUE_N_CAND,
       poolSize: HANDOFF_RESCUE_CANDIDATE_POOL,
       preview: handoffUsesFuturePreview(qualitySearch),
-      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
       axisQualitySearch: qualitySearch,
-      previewCostWeight: handoffPreviewCostWeight(gap),
+      previewCostWeight: PREVIEW_COST_WEIGHT,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -1482,9 +1479,9 @@ function expandNode(
       nCand: HANDOFF_SHORT_RESCUE_N_CAND,
       poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
       preview: handoffUsesFuturePreview(qualitySearch),
-      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
       axisQualitySearch: qualitySearch,
-      previewCostWeight: handoffPreviewCostWeight(gap),
+      previewCostWeight: PREVIEW_COST_WEIGHT,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -1529,11 +1526,7 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
   const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
   const speedRatio = ts.speed / (targetSpeed * CALIB.SPEED_CAP);
-  return shouldOfferBrakeCandidates(
-    targetSpeed,
-    speedRatio,
-    hasContactEventTarget(gap),
-  );
+  return shouldOfferBrakeCandidates(targetSpeed, speedRatio);
 }
 
 function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {
@@ -1541,12 +1534,11 @@ function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {
     shortDeadlineRescueCandidateCount(gap.endFrame - gap.startFrame) > 0;
 }
 
-export function shouldUseExpandedBrakeSearch(
-  qualitySearch: boolean,
-  expandedBrakeSearch: boolean,
-  gap: Gap,
-): boolean {
-  return qualitySearch || (expandedBrakeSearch && hasContactEventTarget(gap));
+export function shouldUseExpandedBrakeSearch(qualitySearch: boolean): boolean {
+  // Expanded brake breadth is used in the quality phase. (It was also enabled in
+  // the contract phase for contact-event gaps, an axis category that no longer
+  // exists.)
+  return qualitySearch;
 }
 
 export function shortDeadlineRescueCandidateCount(gapFrames: number): number {
@@ -1791,12 +1783,7 @@ function brakeCatchCandidates(
   const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
   const speedRatio = ts.speed / (tgt * CALIB.SPEED_CAP);
-  if (!shouldOfferBrakeCandidates(
-    tgt,
-    speedRatio,
-    hasContactEventTarget(gap),
-    expandedBrakeSearch,
-  )) {
+  if (!shouldOfferBrakeCandidates(tgt, speedRatio, expandedBrakeSearch)) {
     return [];
   }
   const brakeK = brakeCandidateCount(speedRatio, expandedBrakeSearch);
@@ -1833,18 +1820,13 @@ export function brakeCandidateCount(speedRatio: number, expandedBrakeSearch = fa
 export function shouldOfferBrakeCandidates(
   targetSpeed: number,
   speedRatio: number,
-  hasContactEventTarget: boolean,
   expandedBrakeSearch = false,
 ): boolean {
-  if (targetSpeed <= HANDOFF_BRAKE_MILD_TARGET_MAX) {
-    return brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
-  }
-  const highOverspeedK = brakeCandidateCount(
-    HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO,
-    expandedBrakeSearch,
-  );
-  return hasContactEventTarget &&
-    brakeCandidateCount(speedRatio, expandedBrakeSearch) === highOverspeedK;
+  // Brake probes only on mild-overspeed targets. (High-overspeed brakes were
+  // previously gated on a contact-event target, an axis category that no longer
+  // exists, so that branch is gone.)
+  return targetSpeed <= HANDOFF_BRAKE_MILD_TARGET_MAX
+    && brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
 }
 
 /** Translate the most-recent committed catches (which carry a sled `ref`) to
@@ -2012,9 +1994,9 @@ function completeNearTailSuffix(
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
       nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
       preview: false,
-      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch, expandedBrakeSearch, gap),
+      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
       axisQualitySearch: qualitySearch,
-      previewCostWeight: handoffPreviewCostWeight(gap),
+      previewCostWeight: PREVIEW_COST_WEIGHT,
     })
       .filter((option) => option.candidate !== null)
       .slice(0, TAIL_COMPLETION_FALLBACK_BRANCHING);
@@ -2065,9 +2047,9 @@ function completeBoundedSuffix(
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
       nCand: handoffSampleCount(true, sparseContractSearch),
       preview: false,
-      expandedBrakeSearch: shouldUseExpandedBrakeSearch(true, expandedBrakeSearch, gap),
+      expandedBrakeSearch: shouldUseExpandedBrakeSearch(true),
       axisQualitySearch: true,
-      previewCostWeight: handoffPreviewCostWeight(gap),
+      previewCostWeight: PREVIEW_COST_WEIGHT,
     })
       .filter((option) => option.candidate !== null)
       .slice(0, QUALITY_SUFFIX_REPAIR_BRANCHING);
@@ -2091,13 +2073,6 @@ export function handoffSampleCount(
   return sparseContractSearch ? HANDOFF_SPARSE_CONTRACT_N_CAND : HANDOFF_CONTRACT_N_CAND;
 }
 
-export function handoffPreviewCostWeight(gap: Gap): number {
-  return hasContactEventTarget(gap) ? 0 : PREVIEW_COST_WEIGHT;
-}
-
-function hasContactEventTarget(gap: Gap): boolean {
-  return hasAnyTargetAxis(gap.targets, CONTACT_EVENT_AXES);
-}
 
 export function handoffUsesFuturePreview(qualitySearch: boolean): boolean {
   return !qualitySearch;
@@ -2208,7 +2183,7 @@ function scoreCandidateForHandoff(
   // Asymmetric speed-overshoot penalty (selection-only, handoff-only — does NOT
   // change candidate geometry). The rider creeps faster
   // than target over long runs (catches are net-downhill) and eventually stalls;
-  // candidate.cost penalizes speed error symmetrically (1 of 4 axes), too weakly
+  // candidate.cost penalizes speed error symmetrically (1 of 3 axes), too weakly
   // to arrest creep. This extra term prefers, among the pool, catches whose
   // achieved speed does NOT overshoot the target — bleeding the creep using
   // catches that already exist (no new geometry). Only penalizes OVERshoot.

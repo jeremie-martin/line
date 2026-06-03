@@ -66,11 +66,10 @@ export type Contact = {
 export type Curve = (t: number) => number | undefined;
 
 /**
- * The four creative axes, in canonical order. Single source of iteration.
+ * The three creative axes, in canonical order. Single source of iteration.
  * Axis semantics (all normalized):
  *   - `air`           — airborne-frame fraction, [0, 0.99].
  *   - `speed`         — mean(|velocity|) / SPEED_CAP, [0, 1].
- *   - `contact_style` — per-contact traversed/segment-length ratio, averaged, [0, 1].
  *   - `grain`         — median(line_length) / LINE_LENGTH_CAP, [0, 1].
  */
 export const AXES = ["air", "speed", "grain"] as const;
@@ -86,13 +85,6 @@ export const AXIS_VALUE_MAX = {
 /** Axes whose achieved value can be measured over an arbitrary frame range. */
 export const FRAME_SPAN_AXES = ["air", "speed"] as const satisfies readonly AxisName[];
 export type FrameSpanAxisName = (typeof FRAME_SPAN_AXES)[number];
-
-/** Axes whose achieved value is tied to the contact event/placed catch geometry.
- *  Empty since `contact_style` was removed (bimodal, not a usable creative lever);
- *  the category is kept as substrate for any future contact-event axis, so the
- *  contact-event guards in handoff/polish are simply inert (never fire). */
-export const CONTACT_EVENT_AXES = [] as const satisfies readonly AxisName[];
-export type ContactEventAxisName = (typeof CONTACT_EVENT_AXES)[number];
 
 /**
  * Resolved or measured per-axis scalar values for one gap (or one frame).
@@ -405,8 +397,6 @@ export type CompileStats = {
    *  `handoff_axis_quality_by_axis` for new analyzer/reporting code. */
   handoff_axis_quality_air_attempts?: number;
   handoff_axis_quality_air_successes?: number;
-  handoff_axis_quality_contact_style_attempts?: number;
-  handoff_axis_quality_contact_style_successes?: number;
   /** Required-contact dead-ends where handoff spent one larger deterministic
    *  candidate batch before accepting a skip, and how often that rescue batch
    *  found at least one viable catch. */

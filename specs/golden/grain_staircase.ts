@@ -1,7 +1,7 @@
 /**
  * grain_staircase — isolates grain as direct arc-size intent.
  *
- * Speed, air, and contact style stay constant while grain walks short → medium
+ * Speed and air stay constant while grain walks short → medium
  * → long → short. The intended pressure is visible line scale, not solving an
  * inverse timing problem through unrelated axes.
  */

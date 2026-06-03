@@ -5,12 +5,15 @@
  * URL: ?demo=1              ⇒ loads ./demo-detection.json (no video)
  * URL: ?report=<url>        ⇒ axes view; loads a DriftReport JSON directly
  *                            (e.g. ?report=/generated/v0_crescendo.report.json)
+ * URL: ?golden=1            ⇒ golden-runs analyzer; loads generated/golden-runs
  * URL: (no params)          ⇒ landing page; lists /shakedown/runs.json entries.
  *
  * Cursor sync: video time → cursor → all UI; timeline click → video.currentTime.
  * rAF loop runs while video plays so badge timing isn't bottlenecked by the
  * browser's ~4Hz `timeupdate` cadence.
  */
+
+import uPlot from "/node_modules/uplot/dist/uPlot.esm.js";
 
 const COLORS = {
   landing:    "#9b3a2a",
@@ -34,33 +37,42 @@ const EVENT_TYPES = ["landing", "bounce", "kick", "flyThrough"];
 const AXIS_INFO = {
   air:           { label: "air",           color: "#1e5a6e", max: 0.99 },
   speed:         { label: "speed",         color: "#9b3a2a", max: 1 },
-  contact_style: { label: "contact_style", color: "#7a8a5a", max: 1 },
   grain:         { label: "grain",         color: "#b58326", max: 1 },
 };
-const AXIS_ORDER = ["air", "speed", "contact_style", "grain"];
+const AXIS_ORDER = ["air", "speed", "grain"];
 
 const params  = new URLSearchParams(location.search);
 const runName = params.get("run");
 const isDemo  = params.get("demo") === "1";
 const reportUrl = params.get("report");
+const isGolden = params.get("golden") === "1" || params.get("view") === "golden";
 
-if (reportUrl) {
-  mountReportView(reportUrl).catch((e) => {
-    console.error(e);
-    document.body.innerHTML =
-      `<pre style="padding:24px;color:#9b3a2a;font-family:monospace">
+queueMicrotask(() => {
+  if (isGolden) {
+    mountGoldenView().catch((e) => {
+      console.error(e);
+      document.body.innerHTML =
+        `<pre style="padding:24px;color:#9b3a2a;font-family:monospace">
+Failed to load golden runs:\n${String(e)}</pre>`;
+    });
+  } else if (reportUrl) {
+    mountReportView(reportUrl).catch((e) => {
+      console.error(e);
+      document.body.innerHTML =
+        `<pre style="padding:24px;color:#9b3a2a;font-family:monospace">
 Failed to load report "${reportUrl}":\n${String(e)}</pre>`;
-  });
-} else if (runName || isDemo) {
-  mountRunView(runName || "demo").catch((e) => {
-    console.error(e);
-    document.body.innerHTML =
-      `<pre style="padding:24px;color:#9b3a2a;font-family:monospace">
+    });
+  } else if (runName || isDemo) {
+    mountRunView(runName || "demo").catch((e) => {
+      console.error(e);
+      document.body.innerHTML =
+        `<pre style="padding:24px;color:#9b3a2a;font-family:monospace">
 Failed to load run "${runName || "demo"}":\n${String(e)}</pre>`;
-  });
-} else {
-  mountLandingView();
-}
+    });
+  } else {
+    mountLandingView();
+  }
+});
 
 // ── Report (measured-vs-target axes) view ────────────────────────
 //
@@ -217,6 +229,1139 @@ function renderAxisChart(host, axis, gaps, tMax) {
     svg.appendChild(el("text", { class: "rp-xlabel", x, y: padT + innerH + 16, "text-anchor": "middle" },
       `${s}s`));
   }
+}
+
+// ── Golden-runs analyzer ─────────────────────────────────────────
+
+const GOLDEN_RUN_COLORS = [
+  "#9b3a2a",
+  "#1e5a6e",
+  "#3d6b3a",
+  "#b58326",
+  "#3d3a78",
+  "#7a8a5a",
+  "#6f4a7c",
+  "#8f5a35",
+  "#2f6659",
+  "#5d564a",
+];
+
+const GOLDEN_METRICS = {
+  score: {
+    label: "score",
+    lowerBetter: false,
+    domain: [0, 500],
+    fmt: (v) => fmtGoldenNumber(v, 1),
+  },
+  pass_rate: {
+    label: "pass %",
+    lowerBetter: false,
+    domain: [0, 100],
+    fmt: (v) => `${fmtGoldenNumber(v, 0)}%`,
+  },
+  failures: {
+    label: "failures",
+    lowerBetter: true,
+    domain: null,
+    fmt: (v) => fmtGoldenNumber(v, 0),
+  },
+  missing: {
+    label: "missing avg",
+    lowerBetter: true,
+    domain: null,
+    fmt: (v) => fmtGoldenNumber(v, 2),
+  },
+  axis_error: {
+    label: "axis error",
+    lowerBetter: true,
+    domain: null,
+    fmt: (v) => fmtGoldenNumber(v, 3),
+  },
+  axis_loss: {
+    label: "axis loss",
+    lowerBetter: true,
+    domain: null,
+    fmt: (v) => fmtGoldenNumber(v, 3),
+  },
+  axis_quality: {
+    label: "axis quality",
+    lowerBetter: false,
+    domain: [0, 1],
+    fmt: (v) => fmtGoldenNumber(v, 3),
+  },
+  sim_frames: {
+    label: "sim frames avg",
+    lowerBetter: true,
+    domain: null,
+    fmt: (v) => fmtBudget(v),
+  },
+  elapsed: {
+    label: "elapsed avg",
+    lowerBetter: true,
+    domain: null,
+    fmt: (v) => `${fmtGoldenNumber(v, 1)}s`,
+  },
+  seed_sigma: {
+    label: "seed σ (score)",
+    lowerBetter: true,
+    domain: null,
+    fmt: (v) => fmtGoldenNumber(v, 1),
+  },
+};
+const GOLDEN_METRIC_ORDER = [
+  "score",
+  "pass_rate",
+  "failures",
+  "missing",
+  "seed_sigma",
+  "axis_error",
+  "axis_loss",
+  "axis_quality",
+  "sim_frames",
+  "elapsed",
+];
+
+async function mountGoldenView() {
+  const view = document.getElementById("golden-view");
+  view.hidden = false;
+
+  const metricSelect = document.getElementById("golden-metric");
+  metricSelect.innerHTML = GOLDEN_METRIC_ORDER.map((key) =>
+    `<option value="${key}">${escapeHtml(GOLDEN_METRICS[key].label)}</option>`).join("");
+
+  const manifestRes = await fetch("/api/golden-runs", { cache: "no-cache" });
+  if (!manifestRes.ok) {
+    throw new Error(`/api/golden-runs: HTTP ${manifestRes.status}. Start with npm run dash so archives can be discovered.`);
+  }
+  const manifest = await manifestRes.json();
+  const entries = Array.isArray(manifest.runs) ? manifest.runs : [];
+  if (!entries.length) {
+    setText("golden-meta", "no generated/golden-runs archives found");
+    document.getElementById("golden-kpis").innerHTML =
+      `<div class="golden-empty">No <code>generated/golden-runs/*/golden.json</code> archives found.</div>`;
+    return;
+  }
+
+  const loaded = await Promise.all(entries.map(async (entry) => {
+    try {
+      const res = await fetch(entry.json, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return normalizeGoldenRun(entry, await res.json());
+    } catch (error) {
+      console.warn("failed to load golden run", entry, error);
+      return null;
+    }
+  }));
+
+  const runs = loaded.filter(Boolean).sort((a, b) =>
+    a.createdMs - b.createdMs || a.id.localeCompare(b.id));
+  if (!runs.length) {
+    setText("golden-meta", "golden archives were found but none could be parsed");
+    return;
+  }
+  const palette = goldenPalette(runs.length);
+  runs.forEach((run, index) => { run.color = palette[index]; });
+
+  const focus = runs[runs.length - 1];
+  const state = {
+    runs,
+    byId: new Map(runs.map((run) => [run.id, run])),
+    selectedIds: new Set(runs.map((run) => run.id)),
+    focusId: focus.id,
+    baselineId: defaultGoldenBaseline(runs, focus)?.id ?? "",
+    metric: "score",
+    filter: "",
+    range: null,          // budget scoring window set by drag-zoom on the curve
+    _building: false,     // guard so uPlot's setScale hook ignores programmatic builds
+    _curve: null,         // live uPlot instance
+  };
+
+  setupGoldenControls(state);
+  renderGolden(state);
+}
+
+function normalizeGoldenRun(entry, data) {
+  const id = entry.name ?? data.archive?.dir?.split("/").pop() ?? "golden-run";
+  const createdMs = parseGoldenStamp(id) ?? entry.mtime_ms ?? 0;
+  const budgetScores = Array.isArray(data.budget_scores)
+    ? data.budget_scores.slice().sort((a, b) => a.budget - b.budget)
+    : [];
+  const budgets = Array.isArray(data.budgets) && data.budgets.length
+    ? data.budgets.slice().sort((a, b) => a - b)
+    : budgetScores.map((summary) => summary.budget);
+  const rows = Array.isArray(data.rows) ? data.rows : [];
+
+  const commit = entry.commit ?? data.source?.commit ?? null;
+  const subject = entry.subject ?? null;
+  const seqMatch = /^sweep_(\d+)_/.exec(id);
+  const seq = seqMatch ? Number(seqMatch[1]) : null;
+  const short = commit ? commit.slice(0, 7) : id.slice(0, 8);
+  const label = seq != null ? `${String(seq).padStart(2, "0")} · ${short}` : (commit ? short : goldenRunLabel(id, createdMs));
+
+  return {
+    id,
+    label,
+    short,
+    seq,
+    commit,
+    subject,
+    createdMs,
+    jsonUrl: entry.json,
+    sizeBytes: entry.size_bytes ?? 0,
+    canonical: Boolean(data.canonical),
+    compiler: data.compiler ?? "unknown",
+    evaluatorFingerprint: data.evaluator_fingerprint ?? "unknown",
+    source: data.source ?? {},
+    archive: data.archive ?? {},
+    curveScore: Number(data.curve_score ?? 0),
+    budgets,
+    budgetScores,
+    rows,
+    scope: data.scope ?? {},
+    scoring: data.scoring ?? {},
+    variants: data.variants ?? { enabled: false },
+    raw: data,
+    _agg: null,
+    _checkpoints: null,        // built lazily — only focus/baseline need the heavy flatten
+    _checkpointByKey: null,
+    _seedBand: null,
+  };
+}
+
+// Heavy per-checkpoint flatten, memoized. Only the focus/baseline runs ever build this,
+// so loading 19 runs no longer materializes ~tens of thousands of checkpoint objects.
+function runCheckpoints(run) {
+  if (run._checkpoints) return run._checkpoints;
+  const checkpoints = [];
+  for (const row of run.rows) {
+    const name = row.name ?? "unknown";
+    const variant = row.variant ?? "base";
+    const seed = row.seed ?? 0;
+    for (const checkpoint of (Array.isArray(row.checkpoints) ? row.checkpoints : [])) {
+      checkpoints.push({
+        ...checkpoint,
+        name,
+        variant,
+        seed,
+        row_status: row.status ?? "unknown",
+        key: goldenCaseKey(name, variant, seed, checkpoint.budget),
+      });
+    }
+  }
+  run._checkpoints = checkpoints;
+  return checkpoints;
+}
+
+function setupGoldenControls(state) {
+  const focusSelect = document.getElementById("golden-focus");
+  const baselineSelect = document.getElementById("golden-baseline");
+  const runOptions = state.runs.slice().reverse().map((run) =>
+    `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)} · ${fmtGoldenNumber(run.curveScore, 2)}</option>`).join("");
+  focusSelect.innerHTML = runOptions;
+  baselineSelect.innerHTML = `<option value="">none</option>${runOptions}`;
+
+  document.getElementById("golden-select-all").addEventListener("click", () => {
+    state.selectedIds = new Set(state.runs.map((run) => run.id));
+    renderGolden(state);
+  });
+  document.getElementById("golden-select-canonical").addEventListener("click", () => {
+    const canonical = state.runs.filter((run) => run.canonical);
+    state.selectedIds = new Set((canonical.length ? canonical : state.runs).map((run) => run.id));
+    renderGolden(state);
+  });
+  document.getElementById("golden-select-latest").addEventListener("click", () => {
+    state.selectedIds = new Set(state.runs.slice(-6).map((run) => run.id));
+    renderGolden(state);
+  });
+  focusSelect.addEventListener("change", () => {
+    state.focusId = focusSelect.value;
+    if (state.baselineId === state.focusId) {
+      state.baselineId = defaultGoldenBaseline(state.runs, state.byId.get(state.focusId))?.id ?? "";
+    }
+    renderGolden(state);
+  });
+  baselineSelect.addEventListener("change", () => {
+    state.baselineId = baselineSelect.value;
+    renderGolden(state);
+  });
+  document.getElementById("golden-metric").addEventListener("change", (ev) => {
+    state.metric = ev.target.value;
+    renderGolden(state);
+  });
+  document.getElementById("golden-filter").addEventListener("input", (ev) => {
+    state.filter = ev.target.value.trim().toLowerCase();
+    renderGolden(state);
+  });
+}
+
+function goldenResolve(state) {
+  const selected = state.runs.filter((run) => state.selectedIds.has(run.id));
+  const focus = state.byId.get(state.focusId) ?? state.runs[state.runs.length - 1];
+  let baseline = state.byId.get(state.baselineId) ?? null;
+  state.focusId = focus.id;
+  if (baseline?.id === focus.id) { state.baselineId = ""; baseline = null; }
+  return { selected, focus, baseline };
+}
+
+// Full render: rebuilds the (relatively expensive) uPlot curve, then everything else.
+// Called on selection / focus / metric / filter changes — not on zoom.
+function renderGolden(state) {
+  const { selected, focus, baseline } = goldenResolve(state);
+
+  setText("golden-meta",
+    `${state.runs.length} archives · ${state.runs.filter((run) => run.canonical).length} canonical · ` +
+    `focus ${focus.label} · ${focus.compiler} · ${focus.evaluatorFingerprint}`);
+  document.getElementById("golden-focus").value = state.focusId;
+  document.getElementById("golden-baseline").value = state.baselineId;
+  document.getElementById("golden-metric").value = state.metric;
+
+  renderGoldenCurve(state, selected, focus);
+  renderGoldenDependents(state);
+}
+
+// Everything downstream of the budget scoring window. Re-run on zoom WITHOUT
+// rebuilding the curve, so dragging a range is cheap and keeps the chart's view.
+function renderGoldenDependents(state) {
+  const { selected, focus, baseline } = goldenResolve(state);
+  setText("golden-selected-count", `${selected.length}/${state.runs.length} selected`);
+  renderGoldenRangeReadout(state, selected);
+  renderGoldenRunPills(state);
+  renderGoldenKpis(state, selected, focus, baseline);
+  renderGoldenProgression(state, selected);
+  renderGoldenDelta(document.getElementById("golden-delta"), focus, baseline, state.range);
+  renderGoldenMatrix(document.getElementById("golden-matrix"), focus, baseline, state.metric, state.filter, state.range);
+  renderGoldenCases(document.getElementById("golden-cases"), focus, baseline, state.filter);
+  renderGoldenCatalog(document.getElementById("golden-catalog"), state);
+}
+
+function renderGoldenRangeReadout(state, selected) {
+  const host = document.getElementById("golden-curve-legend");
+  if (!host) return;
+  const budgets = [...new Set(selected.flatMap((run) => run.budgets))].sort((a, b) => a - b);
+  const lo = budgets[0], hi = budgets[budgets.length - 1];
+  if (!state.range) {
+    host.innerHTML = `<span class="golden-range-note">scope <b>full</b>${
+      Number.isFinite(lo) ? ` · ${fmtBudget(lo)}–${fmtBudget(hi)}` : ""} · drag the curve to scope the score</span>`;
+    return;
+  }
+  host.innerHTML = `<span class="golden-range-note active">scope <b>${fmtBudget(state.range.min)}–${fmtBudget(state.range.max)}</b> · ` +
+    `<button type="button" id="golden-range-reset">reset</button></span>`;
+  const reset = document.getElementById("golden-range-reset");
+  if (reset) reset.addEventListener("click", () => {
+    state.range = null;
+    renderGolden(state);   // full rebuild restores the curve to its data extent
+  });
+}
+
+function renderGoldenRunPills(state) {
+  const host = document.getElementById("golden-run-pills");
+  const runs = state.runs.slice().reverse();
+  host.innerHTML = runs.map((run, index) => {
+    const color = goldenRunColor(run, state.runs.length - 1 - index);
+    const selected = state.selectedIds.has(run.id);
+    const focus = state.focusId === run.id;
+    return `<label class="golden-run-pill${selected ? " selected" : ""}${focus ? " focus" : ""}" style="--run-color:${color}">` +
+      `<input type="checkbox" value="${escapeHtml(run.id)}"${selected ? " checked" : ""}>` +
+      `<span>${escapeHtml(run.label)}</span>` +
+      `<small>${fmtGoldenNumber(rangeScopedScore(run, state.range), 2)}</small>` +
+    `</label>`;
+  }).join("");
+
+  host.querySelectorAll("input[type=checkbox]").forEach((input) => {
+    input.addEventListener("change", () => {
+      if (input.checked) state.selectedIds.add(input.value);
+      else state.selectedIds.delete(input.value);
+      renderGolden(state);
+    });
+  });
+}
+
+function renderGoldenKpis(state, selected, focus, baseline) {
+  const host = document.getElementById("golden-kpis");
+  const range = state.range;
+  const focusScore = rangeScopedScore(focus, range);
+  const curveDelta = baseline ? focusScore - rangeScopedScore(baseline, range) : null;
+  const scopedSummaries = rangeScopedSummaries(focus, range);
+  const firstFull = firstFullPassBudget(focus, range);
+  const finalSummary = scopedSummaries[scopedSummaries.length - 1];
+  const firstSummary = scopedSummaries[0];
+  const bestSelected = selected.reduce((best, run) =>
+    !best || rangeScopedScore(run, range) > rangeScopedScore(best, range) ? run : best, null);
+  const worst = weakestSpecs(focus, finalSummary?.budget).slice(0, 3);
+  const budgetGain = largestBudgetGain(focus, range);
+  const scopeLabel = range ? `${fmtBudget(range.min)}–${fmtBudget(range.max)}` : "full range";
+
+  const tile = (label, value, sub, klass = "") =>
+    `<div class="golden-kpi ${klass}">` +
+      `<div class="golden-kpi-label">${escapeHtml(label)}</div>` +
+      `<div class="golden-kpi-value">${value}</div>` +
+      `<div class="golden-kpi-sub">${sub}</div>` +
+    `</div>`;
+
+  host.innerHTML =
+    tile(
+      `focus curve · ${escapeHtml(scopeLabel)}`,
+      fmtGoldenNumber(focusScore, 2),
+      baseline
+        ? `${goldenSigned(curveDelta, 2)} vs ${escapeHtml(baseline.label)}`
+        : `${focus.canonical ? "canonical" : "indicative"} · ${escapeHtml(focus.compiler)}`,
+      curveDelta == null ? "" : curveDelta >= 0 ? "good" : "bad",
+    ) +
+    tile(
+      "contract",
+      firstFull ? fmtBudget(firstFull) : "not full",
+      finalSummary
+        ? `${finalSummary.passed}/${finalSummary.total} at ${fmtBudget(finalSummary.budget)} · start ${firstSummary?.passed ?? 0}/${firstSummary?.total ?? 0}`
+        : "no budget summaries",
+      finalSummary && finalSummary.passed === finalSummary.total ? "good" : "bad",
+    ) +
+    tile(
+      "best selected",
+      bestSelected ? fmtGoldenNumber(rangeScopedScore(bestSelected, range), 2) : "—",
+      bestSelected ? escapeHtml(bestSelected.label) : "no selected runs",
+      bestSelected?.id === focus.id ? "good" : "",
+    ) +
+    tile(
+      "weak spots",
+      worst.length ? escapeHtml(worst[0].name) : "—",
+      worst.length
+        ? worst.map((spec) => `${escapeHtml(spec.name)} ${fmtGoldenNumber(spec.score, 1)}`).join(" · ")
+        : "no spec scores",
+      worst.length && worst[0].passed < worst[0].total ? "bad" : "",
+    ) +
+    tile(
+      "best budget gain",
+      budgetGain ? goldenSigned(budgetGain.delta, 1) : "—",
+      budgetGain
+        ? `${fmtBudget(budgetGain.prevBudget)} to ${fmtBudget(budgetGain.budget)}`
+        : "single budget run",
+    );
+}
+
+const GOLDEN_AXIS_INK = "#928873";   // --ink-fade
+const GOLDEN_AXIS_GRID = "#ddd0b2";  // --rule-soft
+const GOLDEN_AXIS_FONT = "10px 'IBM Plex Mono', monospace";
+
+// Interactive budget curve (uPlot): auto-fit y, drag-zoom to scope the score,
+// live legend, and a seed-spread band under the focus run.
+function renderGoldenCurve(state, selected, focus) {
+  const host = document.getElementById("golden-curve");
+  if (state._curve) { state._curve.destroy(); state._curve = null; }
+  host.innerHTML = "";
+  if (!selected.length) {
+    host.innerHTML = `<div class="golden-empty">Select at least one run to draw the budget curve.</div>`;
+    return;
+  }
+
+  const budgets = [...new Set(selected.flatMap((run) => run.budgets))].sort((a, b) => a - b);
+  const data = [budgets];
+  const series = [{ label: "budget", value: (u, v) => (v == null ? "—" : fmtBudget(v)) }];
+
+  const focusSelected = focus && selected.includes(focus);
+  const band = focusSelected ? focusSeedBand(focus) : null;
+
+  for (const run of selected) {
+    const byBudget = new Map(run.budgetScores.map((s) => [s.budget, s.score]));
+    data.push(budgets.map((b) => (byBudget.has(b) ? byBudget.get(b) : null)));
+    const isFocus = run.id === focus?.id;
+    series.push({
+      label: run.label,
+      stroke: run.color,
+      width: isFocus ? 2.4 : 1.3,
+      alpha: selected.length > 10 && !isFocus ? 0.7 : 1,
+      points: { show: budgets.length <= 40, size: isFocus ? 5 : 3.2 },
+      value: (u, v) => (v == null ? "—" : fmtGoldenNumber(v, 1)),
+    });
+  }
+
+  const opts = {
+    width: (host.clientWidth || 900) - 28,
+    height: 330,
+    scales: { x: { time: false }, y: { auto: true } },
+    legend: { show: true, live: true },
+    cursor: { drag: { x: true, y: false }, focus: { prox: 28 }, points: { size: 6 } },
+    axes: [
+      { stroke: GOLDEN_AXIS_INK, grid: { stroke: GOLDEN_AXIS_GRID, width: 0.5 }, ticks: { stroke: GOLDEN_AXIS_GRID, width: 0.5 }, font: GOLDEN_AXIS_FONT, values: (u, vals) => vals.map(fmtBudget) },
+      { stroke: GOLDEN_AXIS_INK, grid: { stroke: GOLDEN_AXIS_GRID, width: 0.5 }, ticks: { stroke: GOLDEN_AXIS_GRID, width: 0.5 }, font: GOLDEN_AXIS_FONT, size: 52 },
+    ],
+    series,
+    hooks: {
+      // Drag-zoom (and double-click reset) drive the budget scoring window.
+      setScale: [(u, key) => {
+        if (key !== "x" || state._building) return;
+        const min = u.scales.x.min, max = u.scales.x.max;
+        const full = budgets[0], fullMax = budgets[budgets.length - 1];
+        state.range = (min <= full + 1e-6 && max >= fullMax - 1e-6) ? null : { min, max };
+        renderGoldenDependents(state);
+      }],
+      // Seed-spread band behind the lines (focus run only).
+      drawClear: [(u) => {
+        if (!band || !band.size) return;
+        const ctx = u.ctx;
+        ctx.save();
+        ctx.beginPath();
+        let started = false;
+        for (const b of budgets) {
+          const e = band.get(b);
+          if (!e) continue;
+          const x = u.valToPos(b, "x", true), y = u.valToPos(e.max, "y", true);
+          if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+        }
+        for (let i = budgets.length - 1; i >= 0; i--) {
+          const e = band.get(budgets[i]);
+          if (!e) continue;
+          ctx.lineTo(u.valToPos(budgets[i], "x", true), u.valToPos(e.min, "y", true));
+        }
+        ctx.closePath();
+        ctx.fillStyle = hexToRgba(focus.color, 0.13);
+        ctx.fill();
+        ctx.restore();
+      }],
+    },
+  };
+
+  state._building = true;
+  state._curve = new uPlot(opts, data, host);
+  state._building = false;
+}
+
+// Score-over-commits: range-scoped curve_score plotted against commit order.
+// Answers "did the compiler improve across this branch?" directly.
+function renderGoldenProgression(state, selected) {
+  const host = document.getElementById("golden-progression");
+  if (!host) return;
+  if (state._prog) { state._prog.destroy(); state._prog = null; }
+  host.innerHTML = "";
+
+  const runs = selected.slice().sort((a, b) =>
+    (a.seq ?? Infinity) - (b.seq ?? Infinity) || a.createdMs - b.createdMs);
+  if (runs.length < 2) {
+    host.innerHTML = `<div class="golden-empty">Select 2+ runs to chart score over commits.</div>`;
+    return;
+  }
+
+  const xs = runs.map((_, i) => i);
+  const ys = runs.map((run) => rangeScopedScore(run, state.range));
+  const tick = (run) => (run.seq != null ? String(run.seq).padStart(2, "0") : run.short);
+
+  const cap = document.createElement("div");
+  cap.className = "golden-prog-cap";
+  cap.textContent = state.range
+    ? `score over ${fmtBudget(state.range.min)}–${fmtBudget(state.range.max)} · hover a point`
+    : "full-range score · hover a point";
+
+  const opts = {
+    width: (host.clientWidth || 480) - 28,
+    height: 210,
+    scales: { x: { time: false }, y: { auto: true } },
+    legend: { show: false },
+    cursor: { focus: { prox: 28 }, points: { size: 6 } },
+    axes: [
+      { stroke: GOLDEN_AXIS_INK, grid: { stroke: GOLDEN_AXIS_GRID, width: 0.5 }, ticks: { stroke: GOLDEN_AXIS_GRID, width: 0.5 }, font: GOLDEN_AXIS_FONT, splits: () => xs, values: (u, vals) => vals.map((v) => (runs[v] ? tick(runs[v]) : "")) },
+      { stroke: GOLDEN_AXIS_INK, grid: { stroke: GOLDEN_AXIS_GRID, width: 0.5 }, ticks: { stroke: GOLDEN_AXIS_GRID, width: 0.5 }, font: GOLDEN_AXIS_FONT, size: 52 },
+    ],
+    series: [
+      {},
+      { stroke: "#9b3a2a", width: 2, points: { show: true, size: 6 }, value: (u, v) => (v == null ? "—" : fmtGoldenNumber(v, 2)) },
+    ],
+    hooks: {
+      setCursor: [(u) => {
+        const idx = u.cursor.idx;
+        const run = idx != null ? runs[idx] : null;
+        if (!run) {
+          cap.textContent = state.range
+            ? `score over ${fmtBudget(state.range.min)}–${fmtBudget(state.range.max)} · hover a point`
+            : "full-range score · hover a point";
+          return;
+        }
+        cap.textContent = `${run.label} · ${run.subject ?? "—"} · ${fmtGoldenNumber(rangeScopedScore(run, state.range), 2)}`;
+      }],
+    },
+  };
+
+  state._prog = new uPlot(opts, [xs, ys], host);
+  host.insertBefore(cap, host.firstChild);
+}
+
+function renderGoldenDelta(host, focus, baseline, range = null) {
+  host.innerHTML = "";
+  if (!baseline) {
+    host.innerHTML = `<div class="golden-empty">Pick a baseline run to see budget and spec movement.</div>`;
+    return;
+  }
+
+  const focusByBudget = new Map(focus.budgetScores.map((summary) => [summary.budget, summary]));
+  const baseByBudget = new Map(baseline.budgetScores.map((summary) => [summary.budget, summary]));
+  const budgets = budgetsInRange(focus.budgets, range).filter((budget) => baseByBudget.has(budget));
+  if (!budgets.length) {
+    host.innerHTML = `<div class="golden-empty">Focus and baseline have no common budgets.</div>`;
+    return;
+  }
+
+  const deltas = budgets.map((budget) => ({
+    budget,
+    score: (focusByBudget.get(budget)?.score ?? 0) - (baseByBudget.get(budget)?.score ?? 0),
+    pass: (focusByBudget.get(budget)?.passed ?? 0) - (baseByBudget.get(budget)?.passed ?? 0),
+  }));
+  const W = 480, H = 220;
+  const padL = 42, padR = 12, padT = 18, padB = 34;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+  const zeroY = padT + innerH / 2;
+  const maxAbs = Math.max(1, ...deltas.map((d) => Math.abs(d.score)));
+  const band = innerW / deltas.length;
+  const svg = goldenSvg("svg", { class: "golden-svg golden-delta-svg", viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "none" });
+  svg.appendChild(goldenSvg("line", { class: "golden-zero", x1: padL, x2: padL + innerW, y1: zeroY, y2: zeroY }));
+  for (const delta of deltas) {
+    const x = padL + deltas.indexOf(delta) * band + band * 0.18;
+    const h = Math.abs(delta.score) / maxAbs * (innerH / 2 - 8);
+    const y = delta.score >= 0 ? zeroY - h : zeroY;
+    const rect = goldenSvg("rect", {
+      class: `golden-delta-bar ${delta.score >= 0 ? "good" : "bad"}`,
+      x,
+      y,
+      width: Math.max(5, band * 0.64),
+      height: Math.max(1, h),
+    });
+    rect.appendChild(goldenSvg("title", {},
+      `${fmtBudget(delta.budget)} ${goldenSigned(delta.score, 2)} score · ${goldenSigned(delta.pass, 0)} passed`));
+    svg.appendChild(rect);
+    svg.appendChild(goldenSvg("text", { class: "golden-xlabel", x: x + band * 0.32, y: H - 12, "text-anchor": "middle" }, fmtBudget(delta.budget)));
+  }
+  host.appendChild(svg);
+
+  const specDeltas = specScoreDeltas(focus, baseline);
+  const movers = specDeltas.slice(0, 8);
+  const rows = movers.map((row) =>
+    `<tr>` +
+      `<td>${escapeHtml(row.name)}</td>` +
+      `<td class="${row.delta >= 0 ? "good-text" : "bad-text"}">${goldenSigned(row.delta, 1)}</td>` +
+      `<td>${fmtGoldenNumber(row.focus, 1)}</td>` +
+      `<td>${fmtGoldenNumber(row.base, 1)}</td>` +
+    `</tr>`).join("");
+  host.insertAdjacentHTML("beforeend",
+    `<table class="golden-mini-table">` +
+      `<thead><tr><th>spec @ ${fmtBudget(specDeltas.budget ?? 0)}</th><th>delta</th><th>focus</th><th>base</th></tr></thead>` +
+      `<tbody>${rows || `<tr><td colspan="4">No comparable spec scores.</td></tr>`}</tbody>` +
+    `</table>`);
+}
+
+function renderGoldenMatrix(host, focus, baseline, metricKey, filter, range = null) {
+  const metric = GOLDEN_METRICS[metricKey] ?? GOLDEN_METRICS.score;
+  const agg = goldenAggregates(focus);
+  const baseAgg = baseline ? goldenAggregates(baseline) : null;
+  const budgets = budgetsInRange(focus.budgets, range);
+  const filterText = filter.toLowerCase();
+  let specs = [...agg.keys()];
+  if (filterText) specs = specs.filter((spec) => spec.toLowerCase().includes(filterText));
+
+  const cells = [];
+  for (const spec of specs) {
+    for (const budget of budgets) {
+      const value = metricValue(agg.get(spec)?.get(budget), metricKey);
+      if (Number.isFinite(value)) cells.push(value);
+    }
+  }
+  const domain = metric.domain ?? [
+    Math.min(...cells, 0),
+    Math.max(...cells, metric.lowerBetter ? 1 : 0),
+  ];
+  if (domain[0] === domain[1]) domain[1] = domain[0] + 1;
+
+  specs.sort((a, b) => {
+    const lastBudget = budgets[budgets.length - 1];
+    const av = metricValue(agg.get(a)?.get(lastBudget), metricKey);
+    const bv = metricValue(agg.get(b)?.get(lastBudget), metricKey);
+    if (baseline && baseAgg) {
+      const ad = meanMetricDelta(agg, baseAgg, a, budgets, metricKey, metric.lowerBetter);
+      const bd = meanMetricDelta(agg, baseAgg, b, budgets, metricKey, metric.lowerBetter);
+      if (ad !== bd) return ad - bd;
+    }
+    if (metric.lowerBetter) return (bv ?? -Infinity) - (av ?? -Infinity);
+    return (av ?? Infinity) - (bv ?? Infinity);
+  });
+
+  setText("golden-matrix-key",
+    `${metric.label} · ${metric.lowerBetter ? "lower is better" : "higher is better"}` +
+    (baseline ? ` · delta vs ${baseline.label}` : ""));
+
+  if (!specs.length) {
+    host.innerHTML = `<div class="golden-empty">No specs match the current filter.</div>`;
+    return;
+  }
+
+  const head = `<thead><tr><th class="sticky-col">spec</th>${budgets.map((budget) =>
+    `<th>${fmtBudget(budget)}</th>`).join("")}</tr></thead>`;
+  const rows = specs.map((spec) => {
+    const tds = budgets.map((budget) => {
+      const stat = agg.get(spec)?.get(budget);
+      const value = metricValue(stat, metricKey);
+      const baseValue = baseAgg ? metricValue(baseAgg.get(spec)?.get(budget), metricKey) : null;
+      const delta = Number.isFinite(value) && Number.isFinite(baseValue) ? value - baseValue : null;
+      const normalized = clamp((value - domain[0]) / (domain[1] - domain[0]), 0, 1);
+      const goodness = metric.lowerBetter ? 1 - normalized : normalized;
+      const bg = goldenHeat(goodness);
+      const improved = delta == null ? null : metric.lowerBetter ? delta <= 0 : delta >= 0;
+      const title = `${spec} ${fmtBudget(budget)} ${metric.label}: ${metric.fmt(value)}` +
+        (delta == null ? "" : ` (${goldenSigned(delta, metricKey === "pass_rate" ? 0 : 2)} vs baseline)`) +
+        (stat ? `\n${stat.pass}/${stat.count} passed · missing ${fmtGoldenNumber(stat.missingSum / stat.count, 2)}` : "");
+      return `<td class="golden-heat${stat?.fail ? " has-fail" : ""}" style="background:${bg}" title="${escapeHtml(title)}">` +
+        `<span>${Number.isFinite(value) ? metric.fmt(value) : "—"}</span>` +
+        (delta == null ? "" : `<small class="${improved ? "good-text" : "bad-text"}">${goldenSigned(delta, metricKey === "pass_rate" ? 0 : 2)}</small>`) +
+      `</td>`;
+    }).join("");
+    return `<tr><th class="sticky-col">${escapeHtml(spec)}</th>${tds}</tr>`;
+  }).join("");
+
+  host.innerHTML = `<table class="golden-matrix">${head}<tbody>${rows}</tbody></table>`;
+}
+
+function renderGoldenCases(host, focus, baseline, filter) {
+  const baseMap = baseline ? checkpointByKey(baseline) : new Map();
+  const filterText = filter.toLowerCase();
+  const checkpoints = runCheckpoints(focus)
+    .filter((checkpoint) =>
+      !filterText ||
+      checkpoint.name.toLowerCase().includes(filterText) ||
+      String(checkpoint.seed).includes(filterText))
+    .slice()
+    .sort((a, b) => {
+      const af = checkpointFailed(a) ? 1 : 0;
+      const bf = checkpointFailed(b) ? 1 : 0;
+      if (af !== bf) return bf - af;
+      if ((a.score ?? 0) !== (b.score ?? 0)) return (a.score ?? 0) - (b.score ?? 0);
+      if ((a.missing ?? 0) !== (b.missing ?? 0)) return (b.missing ?? 0) - (a.missing ?? 0);
+      return a.budget - b.budget;
+    })
+    .slice(0, 48);
+
+  if (!checkpoints.length) {
+    host.innerHTML = `<div class="golden-empty">No checkpoints match the current filter.</div>`;
+    return;
+  }
+
+  const rows = checkpoints.map((checkpoint) => {
+    const base = baseMap.get(checkpoint.key);
+    const scoreDelta = base ? checkpoint.score - base.score : null;
+    const reportUrl = workspaceUrl(checkpoint.report_path);
+    const reportHref = reportUrl ? `?report=${encodeURIComponent(reportUrl)}` : "";
+    const statusClass = checkpointFailed(checkpoint) ? "bad-text" : "good-text";
+    return `<tr>` +
+      `<td><b>${escapeHtml(checkpoint.name)}</b><span>s${checkpoint.seed} · ${escapeHtml(checkpoint.variant)}</span></td>` +
+      `<td>${fmtBudget(checkpoint.budget)}</td>` +
+      `<td class="${statusClass}">${escapeHtml(checkpoint.status ?? "—")}</td>` +
+      `<td>${fmtGoldenNumber(checkpoint.score, 2)}</td>` +
+      `<td>${scoreDelta == null ? "—" : goldenSigned(scoreDelta, 2)}</td>` +
+      `<td>${checkpoint.missing ?? 0}/${checkpoint.drift ?? 0}</td>` +
+      `<td>${fmtGoldenNumber(checkpoint.axis_error_rms, 3)}</td>` +
+      `<td>${fmtBudget(checkpoint.compile_stats?.sim_frames ?? 0)}</td>` +
+      `<td>${reportHref ? `<a href="${escapeHtml(reportHref)}">report</a>` : "—"}</td>` +
+    `</tr>`;
+  }).join("");
+
+  host.innerHTML =
+    `<table class="golden-cases">` +
+      `<thead><tr><th>case</th><th>budget</th><th>status</th><th>score</th><th>delta</th><th>miss/drift</th><th>axis</th><th>sim</th><th></th></tr></thead>` +
+      `<tbody>${rows}</tbody>` +
+    `</table>`;
+}
+
+function renderGoldenCatalog(host, state) {
+  const rows = state.runs.slice().reverse().map((run) => {
+    const firstFull = firstFullPassBudget(run);
+    const first = run.budgetScores[0];
+    const last = run.budgetScores[run.budgetScores.length - 1];
+    const selected = state.selectedIds.has(run.id);
+    return `<tr class="${run.id === state.focusId ? "is-focus" : ""}">` +
+      `<td><input type="checkbox" data-run-toggle="${escapeHtml(run.id)}"${selected ? " checked" : ""}></td>` +
+      `<td><button type="button" data-focus-run="${escapeHtml(run.id)}">${escapeHtml(run.label)}</button><span>${escapeHtml(run.id)}</span></td>` +
+      `<td>${fmtGoldenNumber(run.curveScore, 2)}</td>` +
+      `<td>${run.canonical ? "yes" : "no"}</td>` +
+      `<td>${firstFull ? fmtBudget(firstFull) : "—"}</td>` +
+      `<td>${first ? `${first.passed}/${first.total}` : "—"} → ${last ? `${last.passed}/${last.total}` : "—"}</td>` +
+      `<td>${run.scope.row_count ?? run.rows.length} rows · ${run.scope.checkpoint_count ?? (run.rows.length * run.budgets.length)} cp</td>` +
+      `<td>${escapeHtml(run.source.commit ?? "unknown")}${run.source.dirty ? " dirty" : ""}</td>` +
+    `</tr>`;
+  }).join("");
+
+  host.innerHTML =
+    `<table class="golden-catalog">` +
+      `<thead><tr><th></th><th>run</th><th>curve</th><th>canon</th><th>full pass</th><th>pass curve</th><th>scope</th><th>source</th></tr></thead>` +
+      `<tbody>${rows}</tbody>` +
+    `</table>`;
+
+  host.querySelectorAll("[data-run-toggle]").forEach((input) => {
+    input.addEventListener("change", () => {
+      if (input.checked) state.selectedIds.add(input.dataset.runToggle);
+      else state.selectedIds.delete(input.dataset.runToggle);
+      renderGolden(state);
+    });
+  });
+  host.querySelectorAll("[data-focus-run]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.focusId = button.dataset.focusRun;
+      if (state.baselineId === state.focusId) {
+        state.baselineId = defaultGoldenBaseline(state.runs, state.byId.get(state.focusId))?.id ?? "";
+      }
+      renderGolden(state);
+    });
+  });
+}
+
+function goldenAggregates(run) {
+  if (run._agg) return run._agg;
+  const bySpec = new Map();
+  const getStat = (spec, budget) => {
+    if (!bySpec.has(spec)) bySpec.set(spec, new Map());
+    const byBudget = bySpec.get(spec);
+    if (!byBudget.has(budget)) {
+      byBudget.set(budget, {
+        count: 0,
+        pass: 0,
+        fail: 0,
+        scoreSum: 0,
+        scoreSqSum: 0,
+        missingSum: 0,
+        driftSum: 0,
+        axisErrorSum: 0,
+        axisLossSum: 0,
+        axisQualitySum: 0,
+        elapsedMsSum: 0,
+        simFramesSum: 0,
+        summaryScore: null,
+        summaryPassed: null,
+        summaryTotal: null,
+      });
+    }
+    return byBudget.get(budget);
+  };
+
+  for (const checkpoint of runCheckpoints(run)) {
+    const stat = getStat(checkpoint.name, checkpoint.budget);
+    stat.count += 1;
+    if (checkpoint.contract_passed || checkpoint.status === "pass") stat.pass += 1;
+    else stat.fail += 1;
+    const score = checkpoint.score ?? 0;
+    stat.scoreSum += score;
+    stat.scoreSqSum += score * score;
+    stat.missingSum += checkpoint.missing ?? 0;
+    stat.driftSum += checkpoint.drift ?? 0;
+    stat.axisErrorSum += checkpoint.axis_error_rms ?? 0;
+    stat.axisLossSum += checkpoint.axis_loss ?? 0;
+    stat.axisQualitySum += checkpoint.axis_quality ?? 0;
+    stat.elapsedMsSum += checkpoint.elapsed_ms ?? 0;
+    stat.simFramesSum += checkpoint.compile_stats?.sim_frames ?? 0;
+  }
+
+  for (const summary of run.budgetScores) {
+    for (const spec of summary.spec_scores ?? []) {
+      const stat = getStat(spec.name, summary.budget);
+      stat.summaryScore = spec.score;
+      stat.summaryPassed = spec.passed;
+      stat.summaryTotal = spec.total;
+    }
+  }
+
+  run._agg = bySpec;
+  return bySpec;
+}
+
+function checkpointByKey(run) {
+  if (!run._checkpointByKey) {
+    run._checkpointByKey = new Map(runCheckpoints(run).map((checkpoint) => [checkpoint.key, checkpoint]));
+  }
+  return run._checkpointByKey;
+}
+
+function metricValue(stat, metricKey) {
+  if (!stat || stat.count === 0) return NaN;
+  const avg = (value) => value / stat.count;
+  switch (metricKey) {
+    case "score": return stat.summaryScore ?? avg(stat.scoreSum);
+    case "pass_rate": {
+      const passed = stat.summaryPassed ?? stat.pass;
+      const total = stat.summaryTotal ?? stat.count;
+      return total > 0 ? passed / total * 100 : NaN;
+    }
+    case "failures": return stat.summaryTotal != null && stat.summaryPassed != null
+      ? stat.summaryTotal - stat.summaryPassed
+      : stat.fail;
+    case "missing": return avg(stat.missingSum);
+    case "axis_error": return avg(stat.axisErrorSum);
+    case "axis_loss": return avg(stat.axisLossSum);
+    case "axis_quality": return avg(stat.axisQualitySum);
+    case "sim_frames": return avg(stat.simFramesSum);
+    case "elapsed": return avg(stat.elapsedMsSum) / 1000;
+    case "seed_sigma": {
+      const mean = avg(stat.scoreSum);
+      return Math.sqrt(Math.max(0, avg(stat.scoreSqSum) - mean * mean));
+    }
+    default: return NaN;
+  }
+}
+
+function weakestSpecs(run, budget) {
+  const summary = budgetSummaryAt(run, budget);
+  return (summary?.spec_scores ?? []).slice().sort((a, b) => {
+    const ap = a.passed / Math.max(1, a.total);
+    const bp = b.passed / Math.max(1, b.total);
+    if (ap !== bp) return ap - bp;
+    return a.score - b.score;
+  });
+}
+
+function specScoreDeltas(focus, baseline) {
+  const commonBudgets = focus.budgets.filter((budget) => baseline.budgets.includes(budget));
+  const budget = commonBudgets[commonBudgets.length - 1];
+  const focusSummary = budgetSummaryAt(focus, budget);
+  const baseSummary = budgetSummaryAt(baseline, budget);
+  const baseBySpec = new Map((baseSummary?.spec_scores ?? []).map((spec) => [spec.name, spec]));
+  const deltas = (focusSummary?.spec_scores ?? [])
+    .filter((spec) => baseBySpec.has(spec.name))
+    .map((spec) => {
+      const base = baseBySpec.get(spec.name);
+      return {
+        name: spec.name,
+        focus: spec.score,
+        base: base.score,
+        delta: spec.score - base.score,
+      };
+    })
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+  deltas.budget = budget;
+  return deltas;
+}
+
+function meanMetricDelta(focusAgg, baseAgg, spec, budgets, metricKey, lowerBetter) {
+  let sum = 0;
+  let count = 0;
+  for (const budget of budgets) {
+    const focusValue = metricValue(focusAgg.get(spec)?.get(budget), metricKey);
+    const baseValue = metricValue(baseAgg.get(spec)?.get(budget), metricKey);
+    if (!Number.isFinite(focusValue) || !Number.isFinite(baseValue)) continue;
+    const delta = focusValue - baseValue;
+    sum += lowerBetter ? -delta : delta;
+    count += 1;
+  }
+  return count ? sum / count : 0;
+}
+
+function budgetSummaryAt(run, budget) {
+  return run.budgetScores.find((summary) => summary.budget === budget) ?? null;
+}
+
+function firstFullPassBudget(run, range = null) {
+  return rangeScopedSummaries(run, range).find((summary) => summary.total > 0 && summary.passed === summary.total)?.budget ?? null;
+}
+
+function largestBudgetGain(run, range = null) {
+  const summaries = rangeScopedSummaries(run, range);
+  let best = null;
+  for (let i = 1; i < summaries.length; i++) {
+    const prev = summaries[i - 1];
+    const cur = summaries[i];
+    const delta = cur.score - prev.score;
+    if (!best || delta > best.delta) best = { prevBudget: prev.budget, budget: cur.budget, delta };
+  }
+  return best;
+}
+
+function defaultGoldenBaseline(runs, focus) {
+  if (!focus) return null;
+  const before = runs.filter((run) => run.createdMs < focus.createdMs || (run.createdMs === focus.createdMs && run.id < focus.id));
+  return before.slice().reverse().find((run) => comparableGoldenRuns(run, focus)) ??
+    before[before.length - 1] ??
+    null;
+}
+
+function comparableGoldenRuns(a, b) {
+  return a &&
+    b &&
+    a.evaluatorFingerprint === b.evaluatorFingerprint &&
+    sameNumbers(a.budgets, b.budgets) &&
+    (a.scope.seed_count ?? a.scope.seeds?.length) === (b.scope.seed_count ?? b.scope.seeds?.length);
+}
+
+function checkpointFailed(checkpoint) {
+  return checkpoint.status !== "pass" || checkpoint.contract_passed === false;
+}
+
+function goldenRunColor(run, index) {
+  return run.color ?? GOLDEN_RUN_COLORS[index % GOLDEN_RUN_COLORS.length];
+}
+
+// Shifted geometric mean — the exact curve_score aggregation from score.ts
+// (shiftedGeometricMean(values, shift=1)). Replicated so range-scoped scores
+// match the canonical metric rather than approximating it.
+function goldenSgm(values, shift = 1) {
+  if (!values.length) return 0;
+  const logMean = values.reduce((sum, v) => {
+    const safe = Number.isFinite(v) ? Math.max(0, v) : 0;
+    return sum + Math.log(safe + shift);
+  }, 0) / values.length;
+  return Math.exp(logMean) - shift;
+}
+
+// curve_score restricted to a [min,max] budget window (null = full range).
+function rangeScopedScore(run, range) {
+  const summaries = rangeScopedSummaries(run, range);
+  if (!summaries.length) return run.curveScore;
+  return goldenSgm(summaries.map((s) => s.score));
+}
+
+function rangeScopedSummaries(run, range) {
+  if (!range) return run.budgetScores;
+  return run.budgetScores.filter((s) => s.budget >= range.min - 1e-6 && s.budget <= range.max + 1e-6);
+}
+
+function budgetsInRange(budgets, range) {
+  if (!range) return budgets;
+  return budgets.filter((b) => b >= range.min - 1e-6 && b <= range.max + 1e-6);
+}
+
+// Distinct, on-palette colors for any run count: the curated stops for <=10,
+// otherwise evenly sampled along the same piecewise-linear ramp.
+function goldenPalette(n) {
+  if (n <= GOLDEN_RUN_COLORS.length) return GOLDEN_RUN_COLORS.slice(0, n);
+  const stops = GOLDEN_RUN_COLORS.map(hexToRgb);
+  return Array.from({ length: n }, (_, i) => {
+    const t = (i / (n - 1)) * (stops.length - 1);
+    const lo = Math.floor(t);
+    const hi = Math.min(stops.length - 1, lo + 1);
+    const f = t - lo;
+    const mix = stops[lo].map((c, k) => Math.round(c + (stops[hi][k] - c) * f));
+    return rgbToHex(mix);
+  });
+}
+
+function rgbToHex(rgb) {
+  return "#" + rgb.map((c) => Math.max(0, Math.min(255, c)).toString(16).padStart(2, "0")).join("");
+}
+function hexToRgba(hex, alpha) {
+  const [r, g, b] = hexToRgb(hex);   // hexToRgb defined below (shared with the report view)
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// Per-budget seed spread for one run: for each budget, the min/mean/max across
+// seeds of that seed's mean score over specs. Used to draw a stability band on
+// the focus curve. Memoized.
+function focusSeedBand(run) {
+  if (run._seedBand) return run._seedBand;
+  const bySeed = new Map(); // seed -> budget -> {sum,count}
+  for (const cp of runCheckpoints(run)) {
+    if (!bySeed.has(cp.seed)) bySeed.set(cp.seed, new Map());
+    const byBudget = bySeed.get(cp.seed);
+    const acc = byBudget.get(cp.budget) ?? { sum: 0, count: 0 };
+    acc.sum += cp.score ?? 0;
+    acc.count += 1;
+    byBudget.set(cp.budget, acc);
+  }
+  const band = new Map(); // budget -> {min,max,mean}
+  for (const budget of run.budgets) {
+    const perSeed = [];
+    for (const byBudget of bySeed.values()) {
+      const acc = byBudget.get(budget);
+      if (acc && acc.count) perSeed.push(acc.sum / acc.count);
+    }
+    if (perSeed.length) {
+      band.set(budget, {
+        min: Math.min(...perSeed),
+        max: Math.max(...perSeed),
+        mean: perSeed.reduce((a, b) => a + b, 0) / perSeed.length,
+      });
+    }
+  }
+  run._seedBand = band;
+  return band;
+}
+
+function goldenCaseKey(name, variant, seed, budget) {
+  return `${name}::${variant}::${seed}::${budget}`;
+}
+
+function parseGoldenStamp(id) {
+  const match = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})Z/.exec(id);
+  if (!match) return null;
+  return Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +match[6]);
+}
+
+function goldenRunLabel(id, createdMs) {
+  if (createdMs) {
+    const iso = new Date(createdMs).toISOString();
+    return `${iso.slice(5, 10)} ${iso.slice(11, 16)}Z`;
+  }
+  return id.replace(/^generated-?/, "").slice(0, 18);
+}
+
+function fmtBudget(value) {
+  if (!Number.isFinite(value)) return "—";
+  if (Math.abs(value) >= 1000) {
+    const k = value / 1000;
+    return `${Number.isInteger(k) ? k.toFixed(0) : k.toFixed(1)}k`;
+  }
+  return String(Math.round(value));
+}
+
+function fmtGoldenNumber(value, digits = 2) {
+  if (!Number.isFinite(value)) return "—";
+  return Number(value).toFixed(digits);
+}
+
+function goldenSigned(value, digits = 2) {
+  if (!Number.isFinite(value)) return "—";
+  const abs = Math.abs(value).toFixed(digits);
+  return `${value >= 0 ? "+" : "-"}${abs}`;
+}
+
+function sameNumbers(a, b) {
+  return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => value === b[i]);
+}
+
+function workspaceUrl(filePath) {
+  if (!filePath) return "";
+  const generatedIdx = String(filePath).indexOf("/generated/");
+  if (generatedIdx >= 0) return String(filePath).slice(generatedIdx);
+  if (String(filePath).startsWith("generated/")) return `/${filePath}`;
+  if (String(filePath).startsWith("/")) return String(filePath);
+  return `/${filePath}`;
+}
+
+function goldenHeat(goodness) {
+  const clamped = clamp(goodness, 0, 1);
+  const raw = clamped < 0.5
+    ? mixHex("#9b3a2a", "#b58326", clamped * 2)
+    : mixHex("#b58326", "#3d6b3a", (clamped - 0.5) * 2);
+  return mixHex(raw, "#faf4e6", 0.64);
+}
+
+function mixHex(a, b, t) {
+  const ca = hexToRgb(a);
+  const cb = hexToRgb(b);
+  const mix = ca.map((value, i) => Math.round(value + (cb[i] - value) * t));
+  return `rgb(${mix[0]}, ${mix[1]}, ${mix[2]})`;
+}
+
+function hexToRgb(hex) {
+  const clean = hex.replace("#", "");
+  return [
+    parseInt(clean.slice(0, 2), 16),
+    parseInt(clean.slice(2, 4), 16),
+    parseInt(clean.slice(4, 6), 16),
+  ];
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function goldenSvg(tag, attrs = {}, text) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value == null) continue;
+    node.setAttribute(key, String(value));
+  }
+  if (text != null) node.textContent = text;
+  return node;
 }
 
 // ── Landing view ─────────────────────────────────────────────────

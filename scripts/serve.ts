@@ -11,8 +11,9 @@
  *   PORT=9000 npx tsx scripts/serve.ts            # custom port
  *   HOST=0.0.0.0 npx tsx scripts/serve.ts         # bind to all interfaces (LAN access)
  */
-import { createServer } from "node:http";
-import { createReadStream, statSync } from "node:fs";
+import { createServer, type ServerResponse } from "node:http";
+import { createReadStream, existsSync, readdirSync, statSync, openSync, readSync, closeSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { resolve, extname, normalize, sep } from "node:path";
 
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
@@ -35,9 +36,82 @@ const MIME: Record<string, string> = {
   ".txt":  "text/plain; charset=utf-8",
 };
 
+function json(res: ServerResponse, body: unknown): void {
+  const text = JSON.stringify(body, null, 2) + "\n";
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Content-Length", String(Buffer.byteLength(text)));
+  res.end(text);
+}
+
+/** Read `source.commit` from the top of a golden.json without loading the whole
+ *  (multi-MB) file — the source block sits in the first few hundred bytes. */
+function headCommit(file: string): string | null {
+  let fd: number | null = null;
+  try {
+    fd = openSync(file, "r");
+    const buf = Buffer.alloc(4096);
+    const n = readSync(fd, buf, 0, buf.length, 0);
+    const match = /"commit":\s*"([0-9a-fA-F]+)"/.exec(buf.toString("utf8", 0, n));
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  } finally {
+    if (fd !== null) closeSync(fd);
+  }
+}
+
+const subjectCache = new Map<string, string | null>();
+function commitSubject(commit: string | null): string | null {
+  if (!commit) return null;
+  if (subjectCache.has(commit)) return subjectCache.get(commit) ?? null;
+  let subject: string | null = null;
+  try {
+    subject = execFileSync("git", ["log", "-1", "--format=%s", commit], {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim() || null;
+  } catch {
+    subject = null;
+  }
+  subjectCache.set(commit, subject);
+  return subject;
+}
+
+function listGoldenRuns() {
+  const dir = resolve(ROOT, "generated", "golden-runs");
+  if (!existsSync(dir)) return [];
+
+  return readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => {
+      const file = resolve(dir, entry.name, "golden.json");
+      if (!existsSync(file)) return null;
+      const stat = statSync(file);
+      const commit = headCommit(file);
+      return {
+        name: entry.name,
+        json: `/generated/golden-runs/${encodeURIComponent(entry.name)}/golden.json`,
+        mtime_ms: stat.mtimeMs,
+        size_bytes: stat.size,
+        commit,
+        subject: commitSubject(commit),
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+    .sort((a, b) => b.mtime_ms - a.mtime_ms);
+}
+
 const server = createServer((req, res) => {
   if (!req.url) { res.statusCode = 400; return res.end("bad request"); }
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (url.pathname === "/api/golden-runs") {
+    return json(res, { runs: listGoldenRuns() });
+  }
+
   // Resolve under ROOT; reject any traversal.
   const reqPath = decodeURIComponent(url.pathname);
   const absPath = normalize(resolve(ROOT, "." + reqPath));

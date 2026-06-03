@@ -462,6 +462,17 @@ greedy local-axis-cost selection, which does not weigh multi-gap consequences.
 That is a search/scoring concern, which this brief deliberately keeps OUTSIDE the
 placement boundary.
 
+Quantified ceiling (per-track upper bound, seeds 0/1/2, `continuous`, 150k): if
+air AND grain errors were driven to ZERO and only the speed error the optimizer
+converges to remained, the mean caps at **~627** — still far below `800`. So the
+air/grain levers (the ones placement can move somewhat) cannot reach `800` on
+their own; `800` strictly requires cutting the SPEED error itself (roughly halving
+per-axis speed error, on top of perfect air/grain). That is the validity-floored
+fall-to-land speed cycle below, which breaks validity when fought with local
+geometry. Net: the honest placement ceiling here is ~`500` actual / ~`627` with
+perfect air+grain; `800` needs the speed cycle broken, which is search/energy
+territory the brief excludes.
+
 Mechanism (verified against `detector.ts`): a `landing` is only emitted when
 `airborneRun > K_BOUNCE_LANDING` (K=5) — every contact needs ≥6 airborne frames
 of descent before it. So each beat structurally injects a fall (→ speed gain), and

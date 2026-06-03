@@ -366,13 +366,15 @@ const HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX = 0.25;
  *  contact_style/air coupling, offered as extra ranked candidates; the normal
  *  stream and existing axis-quality streams are unchanged. */
 const HANDOFF_CONTACT_SHAPE_QUALITY_K = 2;
-/** contact_shape is a bounce-off primitive (a catch aligned-ish to the rider's
- *  velocity self-collides and is precleared, so the surviving catches deflect →
- *  low contact_style + raised air). Restrict it to LOW contact_style targets,
- *  where a quick bounce-off is the unmet need that single slide-catches saturate
- *  past (achieved contact_style pins near 1.0). Above this it only perturbs
- *  air-dominated rows. Below-midpoint, not finely tuned. */
-const HANDOFF_CONTACT_SHAPE_TARGET_MAX = 0.4;
+/** contact_shape orients a near-straight catch to the rider's incoming velocity
+ *  axis (± a swept offset) — the one generator degree of freedom the absolute-
+ *  frame normal sampler lacks, and the physical driver of contact_style/air. It
+ *  fires on every contact_style gap as extra ranked candidates (no target-bucket
+ *  gating: those targets are quasi-continuous, so any threshold is knife-edge and
+ *  overfit). Tradeoff is documented in PLATEAU_CAMPAIGN_LOG.md: it produces a
+ *  large contact_style breakout (opening_burst s1 +58) but, applied everywhere,
+ *  the extra sample budget also perturbs some air-dominated rows' start basins.
+ *  LR_NO_CONTACT_SHAPE=1 disables it for subtractive probes. */
 const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy[]>> = {
   air: [{
     samples: HANDOFF_AIR_SUPPORT_QUALITY_K,
@@ -392,7 +394,6 @@ const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPo
       seedSalt: 0x9e3779b1,
       attemptOffset: 3000,
       mode: "contact_shape",
-      targetMax: HANDOFF_CONTACT_SHAPE_TARGET_MAX,
     },
   ],
 };
@@ -1733,8 +1734,7 @@ function axisQualityCandidates(
     if (policies === undefined || target === undefined) continue;
     for (const policy of policies) {
       if (policy.mode === "contact_shape" && contactShapeDisabled()) continue;
-      const ignoreTargetMax = policy.mode === "contact_shape" && contactShapeUngated();
-      if (!ignoreTargetMax && policy.targetMax !== undefined && target > policy.targetMax) continue;
+      if (policy.targetMax !== undefined && target > policy.targetMax) continue;
       const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
       for (let attempt = 0; attempt < policy.samples; attempt++) {
         telemetry.axisQualityAttempts++;
@@ -1768,13 +1768,6 @@ function axisQualityCandidates(
 function contactShapeDisabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_NO_CONTACT_SHAPE === "1";
-}
-
-/** A/B gate to bypass the contact_shape low-target restriction (fire on every
- *  contact_style gap) for measuring the ungated variant from the same binary. */
-function contactShapeUngated(): boolean {
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_CONTACT_SHAPE_ALL === "1";
 }
 
 function axisQualityStreamSeed(

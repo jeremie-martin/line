@@ -88,5 +88,70 @@ gate contact_shape to LOW contact_style targets (targetMax ~0.4), where bounce-o
 unmet need — principled (addresses a broad single-arc geometry limit), keeps the opening_burst
 win, should remove the drums_pendulum air perturbation.
 
-#### Exp 1b — full 10-spec workbench A/B (ungated): pending
-#### Exp 2 — contact_shape gated to low contact_style targets: pending
+#### Exp 2 — contact_shape gated to low contact_style targets (commit 6513fd0)
+Full 10-spec workbench (35k..150k) vs verified clean baseline (CURVE_SCORE 330.55,
+30/30 valid). Gated: targetMax=0.4 on the contact_shape policy.
+- **150k common-row: +2.17** (343.63 -> 345.80), 30/30 valid, positive at nearly
+  every checkpoint. CURVE_SCORE 330.40 (-0.15 integral, see dip below).
+- **Zero row regressions at 150k.** Largest improvements: opening_burst s1 **+57.99**
+  (276.25->334.24), drums_signature s2 **+5.56**, syncopated_switchback s2 **+1.65**,
+  drums_signature s0 +0.02.
+- The gate worked exactly as predicted: drums_pendulum (contact_style 0.45 > 0.4)
+  is now untouched (+0.00), eliminating the ungated air perturbation.
+- 75k->150k conversion (the campaign's primary target) improved: 75k +0.26 -> 150k +2.17.
+
+Mid-budget dip: at 65k the common-row delta is -8.99, recovering to +0.26 by 70k.
+Cause = quality-phase schedule reordering, NOT a convergence delay (contact_shape
+fires only in quality search, never contract). opening_burst s2 reaches its strong
+basin a few checkpoints later (65k: 105 vs 372) but both land at ~390 by 150k;
+opening_burst s1's +58 is a pure late (post-75k) gain (flat 275.7 through 75k in
+both). Budget-prefix contract holds (each config monotone in its own budget). The
+-0.15 CURVE_SCORE integral is driven entirely by this transient dip.
+
+Verdict: a genuine fundamental generation win on the primary 150k-conversion metric
+with zero 150k regressions; the added candidate machinery earns its keep there. The
+mid-budget dip is inherent explore/exploit from adding quality-phase candidates.
+
+#### Exp 1b — ungated K=2 (fire on every contact_style gap)
+Full workbench vs baseline: 150k +1.76, but REGRESSIONS — drums_pendulum s2 -14.27,
+drums_crescendo s0 -7.65, drums_pendulum s0 -4.71. CURVE_SCORE 329.39 (-1.16).
+Keeps opening_burst s1 +59.96. Regressions come from contact_shape sampling on
+gaps where it isn't needed: the extra sample budget starves other expansions and
+shifts START-basin selection (drums_pendulum start moved r6->r7), forward-fragility.
+
+#### Exp 3 — minimal-machinery check: K=2 -> K=1 (contact_style<=0.4 gate)
+Full workbench: CURVE_SCORE 330.75 (+0.20, strictly positive, NO mid-budget dip),
+150k +0.24, zero regressions — BUT opening_burst s1 falls back to baseline (the +58
+is GONE). The second contact_shape sample is ESSENTIAL for finding that basin. So
+K=1 = safe small distributed gain; K=2 = the breakout. (User chose K=2.)
+
+#### Exp 4 — causal air-conflict gate K=2 (skip contact_shape when air target <= 0.25)
+Replaces the tuned contact_style<=0.4 threshold with a causal guard reusing the
+existing very-low-air constant. RESULT: leaky + regressive. CURVE_SCORE 330.12
+(-0.43); 150k +1.60; regressions drums_pendulum s0 -12.89, s2 -10.99, drums_crescendo
+s0 -7.65. drums_pendulum still regressed because its gaps target BOTH air (0.15) and
+contact_style (0.45), and per-gap jitter lets enough gaps escape the air<=0.25 guard
+that contact_shape still fires and shifts the start basin.
+
+#### Threshold-robustness check (overfit audit of the contact_style<=0.4 gate)
+Scanned all 30 rows: contact_style targets are quasi-continuous and DENSELY fill
+(0.30,0.45) — 123 gap-instances at 0.32/0.35/0.36/0.38/0.42/0.44. So `targetMax=0.4`
+is NOT in a clean cluster gap; it is a knife-edge tuned constant. The user's overfit
+concern is correct.
+
+### Decision state (the fundamental tradeoff, fully mapped)
+| config | CURVE_SCORE | 150k Δ | 150k regressions | gate |
+|---|---|---|---|---|
+| baseline | 330.55 | — | — | — |
+| **contact_style<=0.4 gate, K2** | 330.40 (-0.15) | **+2.17** | **none** | tuned threshold (dense region) |
+| air-causal gate, K2 | 330.12 (-0.43) | +1.60 | drums_pendulum -12.89/-10.99, drums_crescendo -7.65 | causal but LEAKY |
+| ungated, K2 | 329.39 (-1.16) | +1.76 | drums_pendulum -14.27/-4.71, drums_crescendo -7.65 | none |
+| contact_style<=0.4 gate, K1 | 330.75 (+0.20) | +0.24 | none | tuned threshold (no breakout) |
+
+No free lunch: the opening_burst s1 +58 BREAKOUT needs 2 EXTRA contact_shape samples
+(added exploration). Added samples cause schedule/start churn → regressions on some
+rows. Only a gate that restricts WHERE to add removes the churn, and the only gate
+that cleanly excludes the harmed rows (drums_pendulum) is a tuned contact_style
+threshold — because drums_pendulum's contact_style cluster (~0.45) sits just above
+it while its air/contact_style jitter defeats the causal air gate. So "K=2 clean win"
+and "no tuned gate" are in genuine tension under the current single-arc generator.

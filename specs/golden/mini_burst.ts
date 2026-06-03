@@ -4,8 +4,8 @@
  * the affine soft/hard budget; gives the optimizer one tiny case where every
  * single contact matters.
  *
- *   [0.0–2.5s]  air 0.55  speed 0.65  grain 0.50  contact 0.40
- *   [2.5–5.0s]  air 0.70  speed 0.55  grain 0.65  contact 0.70
+ *   [0.0–2.5s]  air 0.55  speed 0.65  grain 0.50
+ *   [2.5–5.0s]  air 0.70  speed 0.55  grain 0.65
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";

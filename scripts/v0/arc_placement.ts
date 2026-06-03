@@ -14,7 +14,6 @@ import {
   type CandidateSampleMode,
   type CompileStats,
   type Gap,
-  type AxisValues,
   type TrackLine,
 } from "./types.ts";
 
@@ -138,7 +137,6 @@ function resetCounter(target: ArcPlacementCounter, fresh: ArcPlacementCounter): 
 export function sampleImpactAnchoredArc(
   rng: () => number,
   targetState: ImpactAnchorTargetState,
-  targets: AxisValues,
   length: number,
   startAngleDeg: number,
   endAngleDeg: number,
@@ -153,9 +151,8 @@ export function sampleImpactAnchoredArc(
     segments,
     curveBias,
   };
-  // Impact point sits mid-arc. (Previously biased by the contact_style target,
-  // which has been removed as an axis; `targets` is retained for the air/grain
-  // shape decisions made in the caller.)
+  // Impact point sits mid-arc. (Arc shape — including any air/grain bias — is
+  // chosen by the caller; this just anchors the chosen arc onto the sled.)
   const impactCenter = 0.5;
   const impactT = clamp(
     impactCenter + (rng() - 0.5) * IMPACT_ANCHOR_T_JITTER,

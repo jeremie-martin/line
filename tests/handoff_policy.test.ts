@@ -12,7 +12,6 @@ import {
   shortDeadlineRescueCandidateCount,
   startAngles,
   targetStartAngle,
-  usesExpandedBrakeSearch,
   usesHighSpeedStartOvershootScoring,
   usesSparseContractSearch,
 } from "../scripts/v0/optimizer/handoff.ts";
@@ -67,19 +66,6 @@ describe("handoff policy boundaries", () => {
       gap(0, 0, 22),
       gap(1, 22, 53),
       gap(2, 53, 84),
-    ])).toBe(true);
-  });
-
-  test("expanded first-pass brake search avoids dense cadences", () => {
-    expect(usesExpandedBrakeSearch([
-      gap(0, 0, 13),
-      gap(1, 13, 26),
-      gap(2, 26, 39),
-    ])).toBe(false);
-    expect(usesExpandedBrakeSearch([
-      gap(0, 0, 15),
-      gap(1, 15, 31),
-      gap(2, 31, 49),
     ])).toBe(true);
   });
 

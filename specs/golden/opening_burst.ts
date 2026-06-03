@@ -5,9 +5,9 @@
  * are already high. This keeps pre-roll/initial-state quality visible instead
  * of letting the compiler warm up during an easy intro.
  *
- *   [0–3s]  air 0.82  speed 0.94  grain 0.62  contact 0.28
- *   [3–8s]  air 0.45  speed 0.72  grain 0.30  contact 0.70
- *   [8–14s] air 0.78  speed 0.82  grain 0.72  contact 0.55
+ *   [0–3s]  air 0.82  speed 0.94  grain 0.62
+ *   [3–8s]  air 0.45  speed 0.72  grain 0.30
+ *   [8–14s] air 0.78  speed 0.82  grain 0.72
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";

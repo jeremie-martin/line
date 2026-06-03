@@ -3,8 +3,8 @@
  * cost floor: the elapsed time here is almost pure fixed overhead (worker
  * startup, lr-core init, preroll setup), with negligible per-contact work.
  *
- *   [0.0–1.5s]  air 0.45  speed 0.50  grain 0.45  contact 0.50
- *   [1.5–3.0s]  air 0.55  speed 0.55  grain 0.55  contact 0.45
+ *   [0.0–1.5s]  air 0.45  speed 0.50  grain 0.45
+ *   [1.5–3.0s]  air 0.55  speed 0.55  grain 0.55
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";

@@ -36,7 +36,6 @@ import {
 import {
   AXES,
   CALIB,
-  CONTACT_EVENT_AXES,
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
   HANDOFF_EVALUATION_PHASES,
@@ -50,7 +49,6 @@ import {
   type HandoffEvaluationPhaseCounter,
   type Gap,
   type HandoffCandidateSourceName,
-  hasAnyTargetAxis,
 } from "../types.ts";
 import {
   axisLookaheadEndFrame,
@@ -362,7 +360,6 @@ const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPo
     targetMax: HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX,
   },
 };
-const HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES = HANDOFF_RESCUE_MIN_GAP_FRAMES;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 /** Speculative tail completion turns deep prefixes into full-duration register
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because
@@ -471,7 +468,6 @@ function compileHandoffInternal(
 
     const ctx: SpecContext = { allContactFrames, durationFrames };
     const sparseContractSearch = usesSparseContractSearch(gaps);
-    const expandedBrakeSearch = usesExpandedBrakeSearch(gaps);
     const startOptions = initialSnapshot === null
       ? buildStartOptions(userSpec, spec, gaps, ctx, searchSeed)
       : [];
@@ -753,7 +749,6 @@ function compileHandoffInternal(
         telemetry,
         register.getBestKey()?.contract_passed === true,
         sparseContractSearch,
-        expandedBrakeSearch,
       );
       if (tailNode !== null) {
         const result = consider(tailNode, "tail");
@@ -774,7 +769,6 @@ function compileHandoffInternal(
         telemetry,
         register.getBestKey(),
         sparseContractSearch,
-        expandedBrakeSearch,
       );
       if (repairedNode !== null) {
         const result = consider(repairedNode, "suffix");
@@ -885,7 +879,6 @@ function compileHandoffInternal(
         telemetry,
         register.getBestKey()?.contract_passed === true,
         sparseContractSearch,
-        expandedBrakeSearch,
       );
       telemetry.nodesExpanded++;
       for (let i = children.length - 1; i >= 0; i--) {
@@ -1417,7 +1410,6 @@ function expandNode(
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
   sparseContractSearch: boolean,
-  expandedBrakeSearch: boolean,
 ): HandoffNode[] {
   if (isTerminalNode(node.search, gaps)) return [];
   if (!node.startExpanded) {
@@ -1881,7 +1873,6 @@ function completeNearTail(
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
   sparseContractSearch: boolean,
-  expandedBrakeSearch: boolean,
 ): HandoffNode | null {
   if (!shouldAttemptNearTailCompletion(node, gaps)) return null;
   const remaining = remainingContactCount(node.search, gaps);
@@ -1897,7 +1888,6 @@ function completeNearTail(
     telemetry,
     qualitySearch,
     sparseContractSearch,
-    expandedBrakeSearch,
   );
   if (completed === null) return null;
 
@@ -1924,7 +1914,6 @@ function completeWeakPrefixWithBoundedSuffix(
   telemetry: HandoffTelemetry,
   bestKey: LeafKey | null,
   sparseContractSearch: boolean,
-  expandedBrakeSearch: boolean,
 ): HandoffNode | null {
   if (!shouldAttemptSuffixRepair(node, gaps, telemetry, bestKey)) return null;
   telemetry.suffixRepairAttempts++;
@@ -1937,7 +1926,6 @@ function completeWeakPrefixWithBoundedSuffix(
     node.searchSeed,
     telemetry,
     sparseContractSearch,
-    expandedBrakeSearch,
   );
   telemetry.suffixRepairNodes += completed.nodes;
   if (completed.result === null) return null;
@@ -1971,7 +1959,6 @@ function completeNearTailSuffix(
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
   sparseContractSearch: boolean,
-  expandedBrakeSearch: boolean,
 ): CompletedHandoffSuffix | null {
   const stack: CompletedHandoffSuffix[] = [
     {
@@ -2019,7 +2006,6 @@ function completeBoundedSuffix(
   seed: number,
   telemetry: HandoffTelemetry,
   sparseContractSearch: boolean,
-  expandedBrakeSearch: boolean,
 ): { result: CompletedHandoffSuffix | null; nodes: number } {
   const stack: CompletedHandoffSuffix[] = [
     {
@@ -2081,11 +2067,6 @@ export function handoffUsesFuturePreview(qualitySearch: boolean): boolean {
 export function usesSparseContractSearch(gaps: readonly Gap[]): boolean {
   const median = medianContactGapFrames(gaps);
   return median !== null && median >= HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES;
-}
-
-export function usesExpandedBrakeSearch(gaps: readonly Gap[]): boolean {
-  const median = medianContactGapFrames(gaps);
-  return median !== null && median >= HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES;
 }
 
 function medianContactGapFrames(gaps: readonly Gap[]): number | null {

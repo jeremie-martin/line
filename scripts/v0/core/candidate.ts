@@ -213,7 +213,7 @@ export function sampleArcParams(
   if (impactAnchorEnabled()) {
     recordImpactAnchorSample(mode);
     return sampleImpactAnchoredArc(
-      rng, targetState, targets, length, startAngleDeg, endAngleDeg, segments, curveBias,
+      rng, targetState, length, startAngleDeg, endAngleDeg, segments, curveBias,
     );
   }
 

@@ -7,9 +7,9 @@
  * cold start would be a different test entirely). Most production specs use
  * preroll>0; this spec exists so cold-start behavior is at least covered.
  *
- *   [0–4s]  air 0.30  speed 0.35  grain 0.40  contact 0.45
- *   [4–8s]  air 0.38  speed 0.42  grain 0.55  contact 0.55
- *   [8–12s] air 0.32  speed 0.40  grain 0.45  contact 0.40
+ *   [0–4s]  air 0.30  speed 0.35  grain 0.40
+ *   [4–8s]  air 0.38  speed 0.42  grain 0.55
+ *   [8–12s] air 0.32  speed 0.40  grain 0.45
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";

@@ -241,3 +241,40 @@ direction D (multi-arc bounce-off) which decouples contact_style from air and is
 structural answer the rethink doc defers; (c) accept that forward feasibility (the
 existing 1-contact preview) is already capturing most of the cheaply-available
 feasibility signal, and look elsewhere for the plateau lever.
+
+## Idea 3: feasible-band axis remapping (specs author [0,1] -> engine maps to achievable band)
+
+Reframe (user): the plateau is largely chasing INFEASIBLE targets. Let specs author
+in [0,1] (intuitive) and remap each axis under the hood to its achievable band, so
+the optimizer never chases impossible points. Needs the achievable envelope per axis.
+
+### Axis correlation (n=1014 gaps targeting both air & contact_style, baseline)
+- corr(air_target, cs_target)=+0.30; corr(air_achieved, cs_achieved)=**-0.05**;
+  corr(air_error, cs_error)=+0.27. air & contact_style are EMPIRICALLY ORTHOGONAL
+  in achievement -> no merge case; keep both. The plateau is NOT axis coupling.
+
+### Calibration (achievable envelope) — `scripts/v0/calibrate_axes.ts`
+Axes split by nature: air/speed are span/accumulated (multi-catch-context dependent)
+-> use REAL-context baseline achieved; contact_style/grain are local catch properties
+-> use the isolated-sweep probe (per gap, sweep entry velocities x random target
+vectors, pool achieved of every viable landing catch; no compiler change).
+
+Results (2011 viable isolated catches + baseline real-context):
+- **air**: isolated single-catch floor **0.82-0.95** (RISES with gap duration);
+  real-context floor **0.29**, p05 0.48, p50 0.73, p95 0.86. The 0.9->0.29 gap is
+  ENTIRELY neighbor/support geometry -> air's low end needs support spanning the gap;
+  the air plateau is STRUCTURAL (multi-arc/support), not a relabel. Band (real):
+  author[0,1] -> ~[0.35, 0.90], ideally context-aware (floor rises with duration).
+- **speed**: achievable ~[0.21, 1.57] (real), EXCEEDS 1.0 (rider outruns SPEED_CAP=12);
+  floor ~0.2. Band: author[0,1] -> ~[0.25, 1.25], or recalibrate SPEED_CAP up (~16-18).
+- **contact_style**: BIMODAL — isolated 36% near0 / **1% mid** / 63% near1 (real 10% mid).
+  A band remap does NOT help; mid stays unreachable. Needs the MEASURE redefined
+  (current min(1, slide/segLen) saturates -> binary). Highest-value single change.
+- **grain**: continuous; isolated & real agree ~[0.07, 0.80]. Cleanest remap.
+
+### Sequence / implication
+- grain, speed: clean band remaps (speed via band or SPEED_CAP recalibration).
+- air: remap makes the optimizer HONEST (stops chasing 0.15 -> removes infeasible
+  plateau) but does NOT add low-air capability -> still needs support geometry.
+- contact_style: re-measure first (a band can't fix bimodality).
+Big change: re-baselines all benchmark numbers (targets move into engine space).

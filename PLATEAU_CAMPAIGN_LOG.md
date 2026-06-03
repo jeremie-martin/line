@@ -278,3 +278,42 @@ Results (2011 viable isolated catches + baseline real-context):
   plateau) but does NOT add low-air capability -> still needs support geometry.
 - contact_style: re-measure first (a band can't fix bimodality).
 Big change: re-baselines all benchmark numbers (targets move into engine space).
+
+### Comprehensive re-measurements (`analyze_feasibility.ts`, `measure_contact_style.ts`)
+
+INFEASIBILITY AUDIT (% of current spec targets in an unreachable zone, baseline):
+- **contact_style: 99.1% infeasible** (1005/1014; targets [0.20,0.85] all land in the
+  bimodal dead zone). The axis is almost entirely unhittable as defined.
+- **air: 11.6%** (targets < ~0.30, i.e. drums_pendulum low-air gaps). Structural.
+- **speed: 0%** and **grain: 0%** — all targets already feasible. NO remap needed for
+  these two. (Speed achieved can exceed 1.0 but no spec asks for it.)
+=> The [0,1]->band remap only materially helps AIR; the real prize is contact_style,
+which is a broken MEASURE, not a band problem.
+
+REAL-CONTEXT bands by gap duration:
+- air floor (p02) ~0.40-0.49 across <0.4s / 0.4-0.8s / 0.8-1.2s (weaker duration
+  dependence than the isolated probe; a global air floor ~0.45 is defensible). Band
+  ~[0.45, 0.90].
+- speed ~[0.35, 1.30] real; covers all targets [0.35,0.95]. No action needed.
+
+CONTACT_STYLE RE-MEASURE (n=813 viable catches, 6 specs): candidate continuous defs
+vs continuity (mid%), controllability (corr with realized contact angle = the
+steerable quantity), intent (corr with old_cs):
+- old_cs:          mid= 1%  ctrl=0.85  intent=1.00   (bimodal, broken)
+- **contactAngle/90: mid=50%  ctrl=1.00  intent=0.85  <- WINNER**
+- contactFrac:      mid=78%  ctrl=0.31  intent=0.16   (continuous but not steerable)
+- slideSegFrac:     mid=41%  ctrl=0.79  intent=0.76   (decent middle option)
+- speedRetain:      mid=100% ctrl=-0.50 intent=-0.21  (continuous, wrong axis)
+
+DECISION: redefine contact_style as the normalized contact ANGLE between the rider's
+incoming velocity and the catch-line tangent at contact. Continuous (50% mid vs 1%),
+directly controllable (the contact_shape primitive sets the tangent), intent-preserving
+(corr 0.85; the old measure is essentially a binarized angle). Direction confirmed:
+steeper/head-on contact -> stickier (high cs); glancing/parallel -> bounce-through (low
+cs). Achievable angle range ~[0deg, 69deg]; map author cs [0,1] onto it.
+
+NET PRIORITY (reordered by evidence):
+1. **contact_style angle re-measure** — fixes a 99%-infeasible axis (highest value).
+2. **air band remap [~0.45,0.90]** — makes the optimizer honest on the 11.6% low-air
+   targets; pair later with support geometry to actually extend the low end.
+3. speed/grain — no change needed (0% infeasible).

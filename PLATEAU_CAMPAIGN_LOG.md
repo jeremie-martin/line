@@ -191,3 +191,53 @@ that cleanly excludes the harmed rows (drums_pendulum) is a tuned contact_style
 threshold — because drums_pendulum's contact_style cluster (~0.45) sits just above
 it while its air/contact_style jitter defeats the causal air gate. So "K=2 clean win"
 and "no tuned gate" are in genuine tension under the current single-arc generator.
+
+## Idea 2: margin-based backward reachability (rethink doc §5.B, "the real lever")
+
+Hypothesis: the forward-fragility above is the core problem; the fix is to rank
+catches by how DEEP the post-catch exit state sits inside the NEXT contact's
+catchable entry region (a robustness margin), not just whether the next contact
+barely survives. New module `scripts/v0/optimizer/reachability.ts`: reduced state
+`{vx,vy,speed,angleDeg,stability}`; per-gap catchable region built right-to-left
+by forward-simulating a 3×3 entry-velocity grid through an isolated-origin local
+catch (prefix-independent, memoized by (seed,gapIndex), charged in sim-frames);
+`reachabilityPenalty(exit, nextRegion)` = capped min stateDistance to a region
+sample. Plan: Phase A probe (byte-identical; handoff.ts untouched) → gate → Phase B
+wire into selection. Probe script: `scripts/v0/reach_probe.ts`.
+
+### Exp 6 (Phase A probe) — VERDICT: STOP at gate. Signal too weak, cost too high.
+10-spec × 3-seed, 150k. The probe compiles each row normally (compiler unchanged →
+byte-identical by construction), captures the winning full-duration node via
+`onNode`, then OUTSIDE the metered loop computes regions and the winning track's
+per-catch exit margin into the next region.
+- **§5.B premise (per-track): null.** `Pearson(axisQuality, meanMargin) = -0.065`.
+  Bottom vs top quality half: meanMargin 0.321 vs 0.346 (slightly WRONG direction).
+  Higher-quality tracks do NOT have deeper margins.
+- **Per-contact pooled (n=1314, decisive): weak.** `Pearson(margin, nextContactError)
+  = 0.238`. Quartile next-error is FLAT (~0.24) across the lowest 75% of margins;
+  only the extreme top quartile (margin>0.5) is modestly worse (0.283). Margin
+  barely predicts downstream difficulty.
+- **Per-dim:** none strong; vy weakly largest (low/high 0.147/0.176).
+- **Cost: prohibitive.** Region build ~22.6k frames/row mean (max ~30k) = 15-20%
+  of the 150k budget. The grid keeps ~45% of entries → region is permissive → low
+  discrimination. Margin also varies by source-gap duration (0.319/0.340/0.416 by
+  bucket), confirming the velocity-only region ignores the contact-frame-budget
+  axis (the load-bearing prefix-independence approximation is the wrong slice).
+
+Decision (per plan gate): do NOT build Phase B. A ~0.24-correlation signal costing
+15-20% of exploration cannot net-help a search this fragile to candidate-set change
+(any selection change churns ±; the steer here is far weaker than the churn). The
+probe-first design paid off — it prevented a wasted, near-certainly-negative Phase B
+workbench run.
+
+This is a documented NEGATIVE for THIS realization of §5.B (isolated-origin
+velocity-slice region as a graded ranking term), not a refutation of the feasibility
+thesis. The diagnosis points at the approximation (permissive coarse region; wrong
+cross-section — needs (velocity, gapFrames) at minimum) and the fragile-search cost
+ceiling. Artifacts (`reachability.ts`, `reach_probe.ts`) kept on `work-new` for any
+refined retry. Plausible next directions: (a) a sharper/cheaper region keyed on the
+contact-frame budget, only if a probe shows a much stronger correlation; (b) pivot to
+direction D (multi-arc bounce-off) which decouples contact_style from air and is the
+structural answer the rethink doc defers; (c) accept that forward feasibility (the
+existing 1-contact preview) is already capturing most of the cheaply-available
+feasibility signal, and look elsewhere for the plateau lever.

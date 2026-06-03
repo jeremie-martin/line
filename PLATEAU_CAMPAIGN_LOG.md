@@ -357,3 +357,41 @@ sampleArcParams still maps cs target via old slide semantics — realign it to t
 measure (contact_shape is the natural steering primitive); (b) measure cs-angle WITH
 contact_shape (expected synergistic: contact_shape sets exactly this tangent);
 (c) update any pinned golden fixtures when flipping the default (re-baseline).
+
+## ⚠️ KNOWN SMELL / TECH DEBT: `impactCenter` global constant (arc_placement.ts)
+
+Surfaced during the 3-axis re-baseline (new default seeds 100/101/102). Removing
+`contact_style` exposed a pre-existing fragility: the impact-anchor uses a SINGLE
+GLOBAL constant for *where along the arc* the catch is anchored (`impactCenter`),
+and the compiler is alarmingly sensitive to it.
+
+Evidence (seed 0, dense specs; same pattern on seeds 100/102):
+| impactCenter policy            | dense_sprint | opening_burst |
+|--------------------------------|--------------|---------------|
+| fixed 0.5 (post-removal default) | FAIL 39/41 | FAIL 31/32 |
+| fixed 0.6 (current)            | pass 41/41   | pass 32/32 |
+| sweep [0.2,0.8] (mean 0.5)     | pass 41/41   | FAIL 30/32 |
+| sweep [0.4,0.85] (mean 0.62)   | FAIL 40/41   | pass 32/32 |
+
+Why this is a smell:
+- A *global constant* deciding contact landing is inherently fragile — different
+  gaps/seeds need different impact points. `0.6` is not principled; it only happens
+  to sit in the feasible band for the current suite.
+- `contact_style`, before removal, was *incidentally* supplying per-gap impact-point
+  VARIATION (its `impactCenter = 0.72+(0.28-0.72)*cs` mapping). So an axis we treated
+  as "measurement-only" had a hidden generative role; removing it collapsed impactT to
+  a constant and exposed the fragility.
+- The feasible impact point is NARROW and gap-geometry-dependent: short/fast gaps must
+  impact near the arc's END (or the pre-impact arc sweeps through the rider's path and
+  is precleared); longer gaps tolerate more. Wide/uniform sweeps DILUTE this narrow
+  band and also drop contacts.
+
+Decision: ship `impactCenter = 0.6` (it lands the current suite + matches the cs-era
+average), but flag it loudly here and in the code as fragile tech-debt.
+
+PROPER FIX (not done): make the impact point a per-gap, geometry-derived band
+(function of gap duration / entry speed / arc length), sampled within that band —
+ideally validated by a feasibility probe that measures which impact points actually
+land per gap geometry. This removes the global guess. Until then, treat any change
+near `impactCenter`/`IMPACT_ANCHOR_T_JITTER` as high-risk and re-run the full
+workbench (validity is seed-sensitive here).

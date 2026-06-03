@@ -318,6 +318,24 @@ NET PRIORITY (reordered by evidence):
    targets; pair later with support geometry to actually extend the low end.
 3. speed/grain — no change needed (0% infeasible).
 
+## DECISION: remove contact_style entirely (3 axes: air, speed, grain)
+The angle re-measure made contact_style continuous, but "catch sharpness" isn't a
+clearly intuitive creative lever; the bounce-or-ride physics makes any "slide
+amount" measure bimodal. Decision (user): remove the axis rather than ship a
+confusing one. Done as a careful, agent-audited, codebase-wide removal on work-new:
+- Step 1 (dad5687): revert the experimental contact_shape/cs-angle/tangent machinery
+  to clean baseline a4403e1 (verified byte-identical, CURVE_SCORE 330.55).
+- Steps 2-4 (b2d6c9b): drop contact_style from AXES/AxisName/AXIS_VALUE_MAX/measure,
+  the contact_style axis-quality stream, impactCenter bias, and ~15 specs.
+- Step 5 (f382d55): prune all inert contact-event logic (hasContactEventTarget,
+  CONTACT_EVENT_AXES, preview-cost suppression, high-overspeed brake branch,
+  polish guards), re-baseline tests + golden_axis_resolution fixture, delete cs-era
+  probes, align comments/docs. 51 focused tests pass; determinism preserved.
+Remaining: full-workbench re-baseline to set the new 3-axis golden reference
+(deferred — heavy run). Known follow-up: vestigial usesExpandedBrakeSearch plumbing
+(brake/speed machinery, prunable). The air feasible-band remap (Idea 3) remains a
+separate future step.
+
 ### Exp 7 — contact_style angle re-measure IMPLEMENTED (gated LR_CS_ANGLE)
 `core/measure.ts`: contact_style := normalized angle between rider incoming velocity
 and catch-line tangent at contact, over achievable ceiling 69deg. Gated; OFF verified

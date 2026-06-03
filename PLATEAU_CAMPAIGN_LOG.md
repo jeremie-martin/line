@@ -395,3 +395,16 @@ ideally validated by a feasibility probe that measures which impact points actua
 land per gap geometry. This removes the global guess. Until then, treat any change
 near `impactCenter`/`IMPACT_ANCHOR_T_JITTER` as high-risk and re-run the full
 workbench (validity is seed-sensitive here).
+
+### 3-axis re-baseline result (seeds 100/101/102, impactCenter=0.6)
+CURVE_SCORE 311.10 · 30 rows · validity 27/30 at 150k (35k 20/30 → 75k 27/30).
+Per-row vs impactCenter=0.5 (which was 26/30): 0.6 recovered dense_sprint s100,
+broke nothing. Residual 3 invalid @150k (each drops exactly 1 contact):
+opening_burst s100 (31/32), opening_burst s102 (31/32), dense_sprint s102 (40/41).
+On seed 0, the same 0.6 lands BOTH dense_sprint and opening_burst — so the residual
+failures are seed-dependent, confirming the impactCenter fragility above: a global
+constant cannot robustly hit all (dense spec, seed) combos. 0.6 also trades early
+budgets (35k 20/30 vs 0.5's 24/30) for a higher 150k score (362 vs 335); CURVE
+integral is ~tied (311 vs 312). Accepted as the honest 3-axis baseline; the 3
+residual failures are tracked under the impactCenter tech-debt (proper fix =
+per-gap geometry-derived impact band).

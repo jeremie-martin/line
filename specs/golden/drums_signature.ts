@@ -14,7 +14,6 @@ const spec = drumsSpec({
   air:           keyframes([{ t: 0, v: 0.45 }, { t: 10, v: 0.60 }, { t: 20, v: 0.60 }], "hold"),
   speed:         keyframes([{ t: 0, v: 0.40 }, { t: 10, v: 0.80 }, { t: 20, v: 0.80 }], "hold"),
   grain:         keyframes([{ t: 0, v: 0.45 }, { t: 10, v: 0.75 }, { t: 20, v: 0.25 }], "hold"),
-  contact_style: keyframes([{ t: 0, v: 0.50 }, { t: 10, v: 0.80 }, { t: 20, v: 0.20 }], "hold"),
 });
 spec.preroll = 5;
 export default spec;

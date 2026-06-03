@@ -22,7 +22,6 @@ const spec: Spec = {
     air:           keyframes([{ t: 0, v: 0.50 }, { t: 8, v: 0.55 }, { t: 17, v: 0.50 }], "hold"),
     speed:         keyframes([{ t: 0, v: 0.65 }, { t: 8, v: 0.72 }, { t: 17, v: 0.68 }], "hold"),
     grain:         keyframes([{ t: 0, v: 0.45 }, { t: 8, v: 0.55 }, { t: 17, v: 0.50 }], "hold"),
-    contact_style: keyframes([{ t: 0, v: 0.50 }, { t: 8, v: 0.45 }, { t: 17, v: 0.55 }], "hold"),
   },
   preroll: 5,
 };

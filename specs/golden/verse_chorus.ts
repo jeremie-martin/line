@@ -37,13 +37,6 @@ const spec: Spec = {
       ],
       "hold",
     ),
-    contact_style: keyframes(
-      [
-        { t: 0, v: 0.50 }, { t: 3, v: 0.45 }, { t: 6, v: 0.55 }, { t: 9, v: 0.45 },
-        { t: 12, v: 0.50 }, { t: 15, v: 0.45 }, { t: 18, v: 0.55 }, { t: 21, v: 0.45 },
-      ],
-      "hold",
-    ),
   },
   preroll: 5,
 };

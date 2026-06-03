@@ -54,26 +54,6 @@ const measureSpeed: AxisReduction = ({ det, gap, rangeEndFrame }) => {
   return speedCount > 0 ? speedSum / speedCount / CALIB.SPEED_CAP : undefined;
 };
 
-/**
- * Per-contact traversed / segment length. For v0's single-Arc-per-gap this is:
- * contiguous in-contact frames after gap.endFrame × mean speed, over the catch's
- * median line length. Approximation preserved verbatim from the original.
- */
-const measureContactStyle: AxisReduction = (ctx) => {
-  const { det, gap, gapLines } = ctx;
-  const lineLens = gapLines.map((l) => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
-  const medianLen = median(lineLens);
-  if (medianLen <= 0) return undefined;
-  let contactFramesAtArc = 0;
-  for (let f = gap.endFrame; f <= measurementLastFrame(det); f++) {
-    if (airborneAt(det, f) === false) contactFramesAtArc++;
-    else break;
-  }
-  const meanSpeed = (measureSpeed(ctx) ?? 0) * CALIB.SPEED_CAP || 1;
-  const traversed = meanSpeed * contactFramesAtArc;
-  return Math.min(1, traversed / medianLen);
-};
-
 /** Median catch-line length, normalized by LINE_LENGTH_CAP. */
 const measureGrain: AxisReduction = ({ gapLines }) => {
   const lineLens = gapLines.map((l) => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
@@ -84,7 +64,6 @@ const measureGrain: AxisReduction = ({ gapLines }) => {
 export const AXIS_MEASURE: Record<AxisName, AxisReduction> = {
   air: measureAir,
   speed: measureSpeed,
-  contact_style: measureContactStyle,
   grain: measureGrain,
 };
 

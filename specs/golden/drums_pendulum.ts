@@ -26,7 +26,6 @@ const spec = drumsSpec({
   ),
   speed: constant(0.55),
   grain: constant(0.45),
-  contact_style: constant(0.45),
 });
 spec.preroll = 5;
 export default spec;

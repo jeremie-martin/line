@@ -354,11 +354,6 @@ const HANDOFF_BRAKE_CONTRACT_BASE_K = 2;
 const HANDOFF_BRAKE_CONTRACT_HIGH_OVERSPEED_K = 3;
 const HANDOFF_BRAKE_QUALITY_BASE_K = 3;
 const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
-/** Contact-style quality search gets a tiny extra deterministic sample stream.
- *  Keep the allocation fixed for every contact-style target; target-threshold
- *  micro-policy is easy to overfit and makes candidate work harder to reason
- *  about when axes evolve. */
-const HANDOFF_CONTACT_STYLE_QUALITY_K = 2;
 const HANDOFF_AIR_SUPPORT_QUALITY_K = 1;
 const HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX = 0.25;
 const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy>> = {
@@ -368,11 +363,6 @@ const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPo
     attemptOffset: 2000,
     mode: "air_support",
     targetMax: HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX,
-  },
-  contact_style: {
-    samples: HANDOFF_CONTACT_STYLE_QUALITY_K,
-    seedSalt: 0x5bd1e995,
-    attemptOffset: 1000,
   },
 };
 const HANDOFF_EXPANDED_BRAKE_MEDIAN_FRAMES = HANDOFF_RESCUE_MIN_GAP_FRAMES;
@@ -698,10 +688,6 @@ function compileHandoffInternal(
           handoff_axis_quality_by_axis: snapshotAxisQualityByAxis(telemetry),
           handoff_axis_quality_air_attempts: telemetry.axisQualityAttemptsByAxis.air ?? 0,
           handoff_axis_quality_air_successes: telemetry.axisQualitySuccessesByAxis.air ?? 0,
-          handoff_axis_quality_contact_style_attempts:
-            telemetry.axisQualityAttemptsByAxis.contact_style ?? 0,
-          handoff_axis_quality_contact_style_successes:
-            telemetry.axisQualitySuccessesByAxis.contact_style ?? 0,
           handoff_rescue_attempts: telemetry.rescueAttempts,
           handoff_rescue_successes: telemetry.rescueSuccesses,
           handoff_skips: best.stats.handoff_skips ?? 0,

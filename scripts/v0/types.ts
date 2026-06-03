@@ -73,14 +73,13 @@ export type Curve = (t: number) => number | undefined;
  *   - `contact_style` — per-contact traversed/segment-length ratio, averaged, [0, 1].
  *   - `grain`         — median(line_length) / LINE_LENGTH_CAP, [0, 1].
  */
-export const AXES = ["air", "speed", "contact_style", "grain"] as const;
+export const AXES = ["air", "speed", "grain"] as const;
 export type AxisName = (typeof AXES)[number];
 
 /** Upper bound for each normalized authored/measured axis value. */
 export const AXIS_VALUE_MAX = {
   air: 0.99,
   speed: 1,
-  contact_style: 1,
   grain: 1,
 } as const satisfies Record<AxisName, number>;
 
@@ -88,8 +87,11 @@ export const AXIS_VALUE_MAX = {
 export const FRAME_SPAN_AXES = ["air", "speed"] as const satisfies readonly AxisName[];
 export type FrameSpanAxisName = (typeof FRAME_SPAN_AXES)[number];
 
-/** Axes whose achieved value is tied to the contact event/placed catch geometry. */
-export const CONTACT_EVENT_AXES = ["contact_style"] as const satisfies readonly AxisName[];
+/** Axes whose achieved value is tied to the contact event/placed catch geometry.
+ *  Empty since `contact_style` was removed (bimodal, not a usable creative lever);
+ *  the category is kept as substrate for any future contact-event axis, so the
+ *  contact-event guards in handoff/polish are simply inert (never fire). */
+export const CONTACT_EVENT_AXES = [] as const satisfies readonly AxisName[];
 export type ContactEventAxisName = (typeof CONTACT_EVENT_AXES)[number];
 
 /**

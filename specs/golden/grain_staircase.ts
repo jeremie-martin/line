@@ -23,7 +23,6 @@ const spec: Spec = {
       [{ t: 0, v: 0.18 }, { t: 5, v: 0.45 }, { t: 10, v: 0.82 }, { t: 15, v: 0.28 }],
       "hold",
     ),
-    contact_style: constant(0.48),
   },
   preroll: 5,
 };

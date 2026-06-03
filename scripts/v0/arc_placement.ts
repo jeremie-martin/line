@@ -153,8 +153,10 @@ export function sampleImpactAnchoredArc(
     segments,
     curveBias,
   };
-  const contact = targets.contact_style;
-  const impactCenter = contact === undefined ? 0.5 : 0.72 + (0.28 - 0.72) * contact;
+  // Impact point sits mid-arc. (Previously biased by the contact_style target,
+  // which has been removed as an axis; `targets` is retained for the air/grain
+  // shape decisions made in the caller.)
+  const impactCenter = 0.5;
   const impactT = clamp(
     impactCenter + (rng() - 0.5) * IMPACT_ANCHOR_T_JITTER,
     0.15,

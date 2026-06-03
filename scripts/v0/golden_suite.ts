@@ -29,7 +29,7 @@ export const REPORT_VARIANTS = [
   "time_stretch_102",
 ] as const;
 
-export const GOLDEN_SEEDS = [0, 1, 2] as const;
+export const GOLDEN_SEEDS = [100, 101, 102] as const;
 
 /** Default compute checkpoints for the golden budget curve, in simulated rider
  * frames (the honest work unit; see `optimizer/sim_frames.ts`). */

@@ -740,9 +740,7 @@ export function sampleContactCenteredLinesWithDiagnostics(
   const spacingPostLengthCap = nextGapFrames === null || !needsGrainSpacingCap
     ? 220
     : clamp(targetState.speed * nextGapFrames * (0.52 + 0.16 * (1 - air)), 36, 180);
-  const postLength = clamp(Math.min(denseScaledPostLength, spacingPostLengthCap), 28, 220);
-  const preSegments = clampInt(Math.ceil(preLength / segmentLength), 1, 6);
-  const postSegments = clampInt(Math.ceil(postLength / segmentLength), 2, 14);
+  const sampledPostLength = clamp(Math.min(denseScaledPostLength, spacingPostLengthCap), 28, 220);
   const preAngleDeg = clamp(
     contactAngleDeg
       - (4 + 8 * clearancePressure + 4 * brakePressure)
@@ -766,27 +764,56 @@ export function sampleContactCenteredLinesWithDiagnostics(
     -8,
     65,
   );
-  // Descend↔level span: blend the ride-out toward a level launch (sized per gap
-  // from the ballistic-return condition, vy=-½·g·N, which holds the rider's speed
-  // instead of building it) across the gap's attempt batch. The cost-sorted
-  // handoff keeps the slowest VALID catch per gap, so a fully level launch is used
-  // only where it still lands on-beat. The span reaches a TRUE level launch only
-  // when the rider's HORIZONTAL pace already exceeds the gap's speed target — i.e.
-  // it is genuinely running too fast and should hold, not build, speed. The
-  // horizontal component is the right signal: the impact-speed MAGNITUDE is
-  // inflated by the vertical fall, which would (wrongly) trigger leveling even on
-  // high-speed specs that want the rider fast. When the pace is at/under target,
-  // the descend catches should win, so only a small exploratory blend is offered.
-  // Continuous in the attempt index; the ceiling reads only the sign of the
-  // pace-vs-target gap, never a suite-specific magnitude.
-  const levelCeiling = targetState.velocity.x > targetSpeedPx ? 1 : 0.15;
-  const levelBlend = levelSpanEnabled() && nextGapFrames !== null
-    ? clamp((((attempt % 8) + 8) % 8) / 7, 0, 1) * levelCeiling
-    : 0;
-  const levelLaunchDeg = nextGapFrames === null
-    ? angledPostAngleDeg
-    : (Math.atan2(-0.5 * 0.175 * nextGapFrames * LEVEL_SCALE, Math.max(1, targetState.speed)) * 180) / Math.PI;
-  const postAngleDeg = lerp(angledPostAngleDeg, levelLaunchDeg, levelBlend);
+  // ── Launch shaping: HEIGHT trajectory shapes speed ──────────────────────────
+  // The rider's measured pace is governed by where the track goes vertically, not
+  // by local geometry alone. A catch placed at the falling sled descends, so the
+  // rider keeps gaining speed (the systematic overshoot). Launching it to land
+  // HIGHER makes it climb into the next contact and shed speed (KE→PE) while
+  // gaining air on the way up; launching flatter lets it fall and gain speed with
+  // less air. The launch angle is therefore the lever that lets the track UNDULATE
+  // to track the speed/air curve instead of monotonically descending.
+  let postAngleDeg = angledPostAngleDeg;
+  if (levelSpanEnabled() && nextGapFrames !== null) {
+    const blend = clamp((((attempt % 8) + 8) % 8) / 7, 0, 1);
+    if (energyLaunchEnabled()) {
+      // Energy-targeted launch. By energy conservation, the height drop (down
+      // positive) that converts the rider's current horizontal pace v_in to the
+      // gap's pace target v_t is dh = (v_t² − v_in²)/(2g); the launch vy that lands
+      // the rider dh below its current height after N frames is vy = dh/N − ½gN
+      // (up negative). Brake (v_t < v_in ⇒ climb) and accel (v_t > v_in ⇒ dive)
+      // both fall out of this — no direction gate. vy is clamped so the rider is
+      // ALWAYS still descending at the next contact (apex strictly before it),
+      // else the landing event would not fire; the dive is capped likewise. The
+      // launch is spanned from the locally-natural ride-out to the fully energy-
+      // shaped one across the attempt batch, and the cost-sorted handoff keeps the
+      // best VALID catch, so energy shaping is used only where it lands on-beat.
+      const g = 0.175;
+      const N = nextGapFrames;
+      const vIn = Math.max(1, targetState.velocity.x);
+      const vT = Math.max(1, targetSpeedPx);
+      const dhDown = (vT * vT - vIn * vIn) / (2 * g);
+      const vyLevel = -0.5 * g * N;
+      const vyTarget = dhDown / N + vyLevel;
+      const vyClamped = clamp(vyTarget, -0.92 * g * N, 0.45 * g * N);
+      const energyLaunchDeg = (Math.atan2(vyClamped, vIn) * 180) / Math.PI;
+      postAngleDeg = lerp(angledPostAngleDeg, energyLaunchDeg, blend);
+    } else {
+      // Legacy level/over-return launch (LR_LAUNCH=level), kept for A/B. Reaches a
+      // level launch only when the rider's horizontal pace exceeds the target.
+      const levelCeiling = targetState.velocity.x > targetSpeedPx ? 1 : 0.15;
+      const levelLaunchDeg =
+        (Math.atan2(-0.5 * 0.175 * nextGapFrames * LEVEL_SCALE, Math.max(1, targetState.speed)) * 180) / Math.PI;
+      postAngleDeg = lerp(angledPostAngleDeg, levelLaunchDeg, blend * levelCeiling);
+    }
+  }
+
+  const postLength = clamp(sampledPostLength, 28, 220);
+  // Round (not ceil) the segment count so each emitted line length lands near the
+  // grain-derived `segmentLength` rather than systematically shorter: ceil always
+  // splits into MORE, hence SHORTER, segments, biasing the measured grain (median
+  // line length / cap) below the target. Rounding centres the median on the target.
+  const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
+  const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 14);
 
   const contactAngleRad = (contactAngleDeg * Math.PI) / 180;
   const tangentX = Math.cos(contactAngleRad);
@@ -829,6 +856,13 @@ export function sampleContactCenteredLinesWithDiagnostics(
  *  LR_LEVELSPAN=0 for A/B. */
 function levelSpanEnabled(): boolean {
   return envValue("LR_LEVELSPAN") !== "0";
+}
+
+/** Energy-targeted launch (height shapes speed): ON by default in continuous
+ *  mode; opt out with LR_LAUNCH=level for A/B against the prior level/over-return
+ *  launch. */
+function energyLaunchEnabled(): boolean {
+  return envValue("LR_LAUNCH") !== "level";
 }
 
 export function shouldUseContactCenteredLines(

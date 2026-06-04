@@ -1,11 +1,13 @@
 /**
- * cold_start — preroll=0, no initial-velocity optimization affordance.
+ * cold_start — low-energy opening: very low air and speed at the first
+ * contacts, ramping up. Stresses the compiler's ability to arrive gently and
+ * stay slow early (the opposite of the dense high-speed specs).
  *
- * Exercises the only spec path where the compiler must hit the first
- * contacts from the engine's default initial state. Per design, low air and
- * low speed are used so the cold-start regime is recoverable (a high-energy
- * cold start would be a different test entirely). Most production specs use
- * preroll>0; this spec exists so cold-start behavior is at least covered.
+ * Uses the default preroll like every production spec: no real spec omits
+ * preroll, so the compiler is given the usual permission to choose an initial
+ * velocity that arrives at the first contact already in stride rather than
+ * spinning up violently from the engine's rest state. (The former preroll=0
+ * "from-default" variant was removed as an unrealistic scenario.)
  *
  *   [0–4s]  air 0.30  speed 0.35  grain 0.40
  *   [4–8s]  air 0.38  speed 0.42  grain 0.55
@@ -27,7 +29,7 @@ const spec: Spec = {
     speed:         keyframes([{ t: 0, v: 0.35 }, { t: 4, v: 0.42 }, { t: 8, v: 0.40 }], "hold"),
     grain:         keyframes([{ t: 0, v: 0.40 }, { t: 4, v: 0.55 }, { t: 8, v: 0.45 }], "hold"),
   },
-  preroll: 0,
+  // Inherits the default preroll (PREROLL.DEFAULT_S) like every other spec.
 };
 
 export default spec;

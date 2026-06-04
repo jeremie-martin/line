@@ -598,6 +598,12 @@ export const START_DEFAULTS = {
 export const PREROLL = {
   /** Sanity cap on user-supplied preroll seconds. */
   MAX_S: 10,
+  /** Default preroll when a spec omits it. Preroll (compiler-chosen initial
+   * velocity) is enabled by default: every realistic spec wants the compiler to
+   * arrive at the first contact already in stride rather than spinning up from
+   * the engine's default rest state. A spec must opt OUT explicitly with
+   * `preroll: 0` (e.g. to test the from-default path). */
+  DEFAULT_S: 5,
 } as const;
 
 /** Convert seconds → frame index. */

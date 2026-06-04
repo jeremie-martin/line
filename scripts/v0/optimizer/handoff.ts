@@ -42,6 +42,7 @@ import {
   SPEED_AXIS,
   START_DEFAULTS,
   authoredSpeedToPx,
+  PREROLL,
   secToFrame,
   type AxisName,
   type AxisValues,
@@ -2323,7 +2324,7 @@ function buildStartOptions(
     vy: defaultStart.velocity.y,
   };
 
-  if (rawSpec.start !== undefined || (rawSpec.preroll ?? 0) <= 0) {
+  if (rawSpec.start !== undefined || (rawSpec.preroll ?? PREROLL.DEFAULT_S) <= 0) {
     return [{
       rank: 0,
       start: defaultSpecStart,

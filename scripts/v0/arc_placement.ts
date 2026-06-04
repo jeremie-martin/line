@@ -768,12 +768,20 @@ export function sampleContactCenteredLinesWithDiagnostics(
   );
   // Descend↔level span: blend the ride-out toward a level launch (sized per gap
   // from the ballistic-return condition, vy=-½·g·N, which holds the rider's speed
-  // instead of building it) by a per-attempt amount, but only as far as overspeed
-  // warrants. The cost-sorted handoff keeps the slowest VALID catch per gap, so
-  // level is used only where it still lands on-beat. Continuous in the overspeed
-  // pressure and the attempt index; no spec-specific logic.
+  // instead of building it) across the gap's attempt batch. The cost-sorted
+  // handoff keeps the slowest VALID catch per gap, so a fully level launch is used
+  // only where it still lands on-beat. The span reaches a TRUE level launch only
+  // when the rider's HORIZONTAL pace already exceeds the gap's speed target — i.e.
+  // it is genuinely running too fast and should hold, not build, speed. The
+  // horizontal component is the right signal: the impact-speed MAGNITUDE is
+  // inflated by the vertical fall, which would (wrongly) trigger leveling even on
+  // high-speed specs that want the rider fast. When the pace is at/under target,
+  // the descend catches should win, so only a small exploratory blend is offered.
+  // Continuous in the attempt index; the ceiling reads only the sign of the
+  // pace-vs-target gap, never a suite-specific magnitude.
+  const levelCeiling = targetState.velocity.x > targetSpeedPx ? 1 : 0.15;
   const levelBlend = levelSpanEnabled() && nextGapFrames !== null
-    ? clamp((((attempt % 8) + 8) % 8) / 7, 0, 1) * clamp(brakePressure + 0.2, 0, 1)
+    ? clamp((((attempt % 8) + 8) % 8) / 7, 0, 1) * levelCeiling
     : 0;
   const levelLaunchDeg = nextGapFrames === null
     ? angledPostAngleDeg

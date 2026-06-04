@@ -9,7 +9,7 @@
  * callers distinguish "server down, skip render" from "render itself failed".
  */
 import { chromium, type Browser, type Page } from "playwright";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, renameSync, rmSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 
 export type ExportOptions = {
@@ -112,7 +112,13 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
         ),
       ),
     ]);
-    await download.saveAs(opts.outPath);
+    const tmpPath = `${opts.outPath}.tmp-${process.pid}-${Date.now()}`;
+    try {
+      await download.saveAs(tmpPath);
+      renameSync(tmpPath, opts.outPath);
+    } finally {
+      rmSync(tmpPath, { force: true });
+    }
     log(`saved ${opts.outPath}`);
   } catch (e) {
     if (page) {

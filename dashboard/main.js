@@ -1,7 +1,7 @@
 /**
  * line · dashboard — cockpit
  *
- * URL: ?run=<name>          ⇒ loads /shakedown/<name>/{detection.json, video.mp4}
+ * URL: ?run=<name>          ⇒ loads /shakedown/<name>/{detection.json, video_with_audio.mp4|video.mp4}
  * URL: ?demo=1              ⇒ loads ./demo-detection.json (no video)
  * URL: ?report=<url>        ⇒ axes view; loads a DriftReport JSON directly
  *                            (e.g. ?report=/generated/v0_crescendo.report.json)
@@ -77,8 +77,8 @@ Failed to load run "${runName || "demo"}":\n${String(e)}</pre>`;
 // ── Report (measured-vs-target axes) view ────────────────────────
 //
 // Loads a DriftReport JSON and plots, per creative axis, the target curve
-// (what the spec asked for, averaged over each gap) against what the rider
-// actually achieved. x = gap.t_end (landing time, seconds); y in [0, max].
+// (what the spec asked for, averaged over each gap) against what the detector
+// measured. x = gap.t_end (landing time, seconds); y in [0, max].
 // One small stacked chart per axis; only axes that appear in gaps[] render.
 
 async function mountReportView(url) {
@@ -153,7 +153,7 @@ function renderAxisChart(host, axis, gaps, tMax) {
       `<span class="rp-axis-name" style="color:${info.color}">${escapeHtml(info.label)}</span>` +
       `<span class="rp-legend">` +
         `<span class="lg lg-target" style="--c:${info.color}">target</span>` +
-        `<span class="lg lg-achieved" style="--c:${info.color}">achieved</span>` +
+        `<span class="lg lg-achieved" style="--c:${info.color}">measured</span>` +
         `<span class="lg lg-err">mean |err| ${meanAbsErr.toFixed(3)}</span>` +
         (rawMeanAbsErr === null ? "" : `<span class="lg lg-err">raw ${rawMeanAbsErr.toFixed(2)} px/frame</span>`) +
       `</span>` +
@@ -213,7 +213,7 @@ function renderAxisChart(host, axis, gaps, tMax) {
   });
   svg.appendChild(el("path", { class: "rp-target", d: dt, style: `stroke:${info.color}` }));
 
-  // Achieved series (dashed line + dots; hollow dot when the gap didn't survive).
+  // Measured series (dashed line + dots; hollow dot when the gap didn't survive).
   let da = "";
   series.forEach((p, i) => {
     da += (i === 0 ? "M" : "L") + xAt(p.t).toFixed(2) + "," + yAt(p.achieved).toFixed(2);
@@ -227,7 +227,7 @@ function renderAxisChart(host, axis, gaps, tMax) {
       style: `--c:${info.color}`,
     });
     c.appendChild(el("title", {}, `t=${p.t.toFixed(2)}s · target ${p.target.toFixed(3)} · ` +
-      `achieved ${p.achieved.toFixed(3)} · |err| ${Math.abs(p.error).toFixed(3)}` +
+      `measured ${p.achieved.toFixed(3)} · |err| ${Math.abs(p.error).toFixed(3)}` +
       rawSpeedTitle(p.raw) +
       (p.survived ? "" : " · did not survive")));
     svg.appendChild(c);
@@ -1431,6 +1431,10 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+function authoredSpeedToPx(speed) {
+  return 5.4 + speed * (12.6 - 5.4);
+}
+
 function goldenSvg(tag, attrs = {}, text) {
   const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -1623,6 +1627,7 @@ function compactLocalTimestamp() {
     "_",
     pad(d.getHours(), 2),
     pad(d.getMinutes(), 2),
+    pad(d.getSeconds(), 2),
   ];
   return parts.join("");
 }
@@ -1655,7 +1660,8 @@ async function mountRunView(run) {
     console.warn("axis report unavailable", e);
     return null;
   });
-  const axisLive = renderAxisLive(axisReport ? buildAxisLiveState(axisReport, N, FPS) : null);
+  const axisState = axisReport ? buildAxisLiveState(axisReport, N, FPS) : null;
+  const axisLive = renderAxisLive(axisState);
 
   // ── Header ──
   setText("hd-run", run);
@@ -1671,14 +1677,32 @@ async function mountRunView(run) {
   termChip.classList.toggle("bad", !termGood);
 
   setText("vid-track-name", det.meta?.track ?? "—");
-  setText("vid-track-info", `line · ${FPS} fps`);
 
   // ── Video ──
   const video = document.getElementById("video");
   const videoWrap = document.getElementById("video-wrap");
   let hasVideo = false;
+  let usesMuxedVideo = false;
   if (!isDemo) {
-    video.src = `${base}/video.mp4`;
+    video.preload = "auto";
+    const mediaVersion = runAssetVersion(det);
+    const muxedVideoUrl = cacheBustUrl(`${base}/video_with_audio.mp4`, mediaVersion);
+    const plainVideoUrl = cacheBustUrl(`${base}/video.mp4`, mediaVersion);
+    const [muxedInfo, plainInfo] = await Promise.all([
+      mediaInfo(muxedVideoUrl),
+      mediaInfo(plainVideoUrl),
+    ]);
+    const canCompareMediaMtime = Number.isFinite(muxedInfo.mtimeMs) && Number.isFinite(plainInfo.mtimeMs);
+    usesMuxedVideo = muxedInfo.ok && (
+      !plainInfo.ok ||
+      !canCompareMediaMtime ||
+      muxedInfo.mtimeMs >= plainInfo.mtimeMs - 1000
+    );
+    if (muxedInfo.ok && plainInfo.ok && !usesMuxedVideo) {
+      console.warn("video_with_audio.mp4 is older than video.mp4; using video.mp4 to avoid stale muxed media");
+    }
+    video.src = usesMuxedVideo ? muxedVideoUrl : plainVideoUrl;
+    setText("vid-track-info", `line · ${FPS} fps${usesMuxedVideo ? " · muxed audio" : ""}`);
     video.addEventListener("loadedmetadata", () => {
       hasVideo = true;
       videoWrap.classList.add("has-video");
@@ -1688,34 +1712,67 @@ async function mountRunView(run) {
       video.hidden = true;
     });
   } else {
+    setText("vid-track-info", `line · ${FPS} fps`);
     video.hidden = true;
   }
 
-  // ── Audio (optional, synced to video) ──
-  // Convention: if `shakedown/<run>/audio.mp3` exists, the dashboard treats
-  // it as the soundtrack and mirrors video playback onto it. The audio
-  // element is hidden (no separate controls); video controls drive both.
-  // Drift correction every second keeps them within ~50ms.
+  // ── Audio fallback (optional, synced to video) ──
+  // Preferred runs use video_with_audio.mp4 above. This fallback is only for
+  // older run directories that still have silent video.mp4 plus audio.mp3.
+  // Small drift is corrected by nudging audio playbackRate; hard seeks are
+  // reserved for real seeks or large drift, because frequent currentTime writes
+  // can make the soundtrack wobble during normal playback.
   const audio = (() => {
-    if (isDemo) return null;
+    if (isDemo || usesMuxedVideo) return null;
     const a = new Audio(`${base}/audio.mp3`);
     a.preload = "auto";
     let audioReady = false;
+    let correctionTimer = null;
     a.addEventListener("canplay", () => { audioReady = true; });
     a.addEventListener("error", () => { /* no audio for this run; fine */ });
-    const sync = () => {
+    const sync = (force = false) => {
       if (!audioReady) return;
-      if (Math.abs(a.currentTime - video.currentTime) > 0.05) {
+      const drift = a.currentTime - video.currentTime;
+      if (force || Math.abs(drift) > 0.35) {
         a.currentTime = Math.min(a.duration || Infinity, video.currentTime);
+        a.playbackRate = video.playbackRate;
       }
     };
-    video.addEventListener("play", () => { if (audioReady) { sync(); a.play().catch(() => {}); } });
-    video.addEventListener("pause", () => a.pause());
-    video.addEventListener("seeking", sync);
-    video.addEventListener("seeked", sync);
+    const correctDrift = () => {
+      if (!audioReady || video.paused) return;
+      const drift = a.currentTime - video.currentTime;
+      if (Math.abs(drift) > 0.35) {
+        sync(true);
+      } else if (Math.abs(drift) > 0.04) {
+        a.playbackRate = clamp(video.playbackRate - drift * 0.35, 0.94, 1.06);
+      } else {
+        a.playbackRate = video.playbackRate;
+      }
+    };
+    video.addEventListener("play", () => {
+      if (!audioReady) return;
+      sync(true);
+      a.play().catch(() => {});
+      if (correctionTimer == null) correctionTimer = setInterval(correctDrift, 250);
+    });
+    video.addEventListener("pause", () => {
+      a.pause();
+      a.playbackRate = video.playbackRate;
+      if (correctionTimer != null) {
+        clearInterval(correctionTimer);
+        correctionTimer = null;
+      }
+    });
+    video.addEventListener("ended", () => {
+      a.pause();
+      if (correctionTimer != null) {
+        clearInterval(correctionTimer);
+        correctionTimer = null;
+      }
+    });
+    video.addEventListener("seeking", () => sync(true));
+    video.addEventListener("seeked", () => sync(true));
     video.addEventListener("ratechange", () => { a.playbackRate = video.playbackRate; });
-    // Drift correction during steady playback.
-    setInterval(() => { if (!video.paused) sync(); }, 1000);
     return a;
   })();
   void audio; // referenced for the lifetime of the page via event listeners
@@ -1734,12 +1791,17 @@ async function mountRunView(run) {
   setText("sb-ledger-total", `${events.length} total`);
 
   renderSummaryTiles(summary, FPS, det.terminus);
+  const scoreLive = renderScoreLive(axisReport?.report ?? null, N, FPS);
   buildLedger(events, FPS);
 
   // ── Timeline strip ──
   const tlSvg = document.getElementById("tl-svg");
-  setText("tl-meta", `${(N / FPS).toFixed(2)}s · ${N} frames · click to scrub`);
-  const tl = renderTimeline(tlSvg, { speed, airborne, events, N, summary, FPS });
+  const targetSpeed = axisState ? axisTargetSpeedSeries(axisState) : [];
+  setText("tl-meta",
+    `${(N / FPS).toFixed(2)}s · ${N} frames · ` +
+    (targetSpeed.length ? "solid measured · dashed target · " : "") +
+    "click to scrub");
+  const tl = renderTimeline(tlSvg, { speed, targetSpeed, airborne, events, N, summary, FPS });
 
   tlSvg.addEventListener("click", (ev) => {
     const frame = tl.frameAtClient(ev.clientX);
@@ -1768,9 +1830,11 @@ async function mountRunView(run) {
   const flashEl  = document.getElementById("vid-flash");
   const ledgerLis = document.querySelectorAll("#sb-ledger li");
 
+  let lastRenderedFrame = -1;
   function syncCursor() {
     cursorFrame = hasVideo ? video.currentTime * FPS : cursorFrame;
-    render();
+    const f = Math.floor(cursorFrame);
+    if (f !== lastRenderedFrame) render();
   }
 
   let rafId = null;
@@ -1795,6 +1859,7 @@ async function mountRunView(run) {
 
   function render() {
     const f = Math.floor(cursorFrame);
+    lastRenderedFrame = f;
     const tSec = f / FPS;
 
     setText("vid-ts-time", fmtTime(tSec));
@@ -1830,6 +1895,7 @@ async function mountRunView(run) {
     renderProximity(events, f, FPS, seekTo);
     renderBadges(badgesEl, events, tSec, FPS);
     renderLandingFlash(flashEl, events, tSec, FPS);
+    scoreLive?.update(f);
     axisLive?.update(f);
 
     let activeIdx = -1;
@@ -1989,6 +2055,29 @@ function buildAxisLiveState(axisReport, N, FPS) {
     scales,
     N,
   };
+}
+
+function axisTargetSpeedSeries(state) {
+  return state.points
+    .map((p) => {
+      const speed = p.axes?.speed;
+      if (!speed) return null;
+      const rawTarget = speed.raw?.target;
+      const authoredTarget = speed.target;
+      const value = Number.isFinite(rawTarget)
+        ? rawTarget
+        : Number.isFinite(authoredTarget)
+          ? authoredSpeedToPx(authoredTarget)
+          : null;
+      if (!Number.isFinite(value)) return null;
+      return {
+        frameStart: p.frameStart,
+        frameEnd: p.frameEnd,
+        value,
+        authored: authoredTarget,
+      };
+    })
+    .filter(Boolean);
 }
 
 function renderAxisLive(state) {
@@ -2156,17 +2245,259 @@ function axisStepPath(points, axis, key, xAt, yAt) {
 }
 
 function axisValueAtFrame(state, axis, frame) {
-  const active = state.points.find((p) => frame <= p.frameEnd) ?? state.points[state.points.length - 1];
+  const active = state.points.find((p) => frame >= p.frameStart && frame <= p.frameEnd)
+    ?? [...state.points].reverse().find((p) => p.frameEnd <= frame)
+    ?? null;
   if (active?.axes?.[axis]) return active.axes[axis];
-  for (let i = state.points.indexOf(active); i >= 0; i--) {
+  const startIndex = active ? state.points.indexOf(active) : -1;
+  for (let i = startIndex; i >= 0; i--) {
     const value = state.points[i]?.axes?.[axis];
     if (value) return value;
   }
-  return state.points.find((p) => p.axes?.[axis])?.axes?.[axis] ?? null;
+  if (active !== null) return null;
+  return state.points.find((p) => frame >= p.frameStart && p.axes?.[axis])?.axes?.[axis] ?? null;
 }
 
 function finiteAxisValue(value) {
   return Number.isFinite(value) ? value : 0;
+}
+
+const SCORE_TOLERANCE = {
+  axis: 0.25,
+  sync: 1,
+  missing: 1,
+  offBeat: 1,
+};
+
+function renderScoreLive(report, N, FPS) {
+  const host = document.getElementById("score-live");
+  if (!host) return null;
+  host.innerHTML = "";
+
+  const score = report ? scoreDriftReport(report, { totalFrames: N }) : null;
+  if (!score) {
+    host.hidden = true;
+    return null;
+  }
+
+  host.hidden = false;
+  const passed = score.contract_passed;
+  const factorRows = [
+    { key: "axis", label: "axis fit", value: score.axis_quality, detail: `rms ${score.axis_error_rms.toFixed(3)}` },
+    { key: "sync", label: "sync", value: score.sync_quality, detail: `${score.hits}/${score.contacts} hit` },
+    { key: "offbeat", label: "off-beat", value: score.off_beat_quality, detail: `${score.off_beat_landings}` },
+    { key: "survival", label: "survival", value: score.survival_quality, detail: `${(score.survival_quality * 100).toFixed(0)}%` },
+  ];
+
+  host.innerHTML =
+    `<div class="score-head">` +
+      `<div>` +
+        `<div class="label">run score</div>` +
+        `<div class="score-main"><span>${Math.round(score.score)}</span><small>/1000</small></div>` +
+      `</div>` +
+      `<span class="score-chip ${passed ? "good" : "bad"}">${passed ? "passed" : "review"}</span>` +
+    `</div>` +
+    `<div class="score-bars">` +
+      factorRows.map((row) =>
+        `<div class="score-factor" data-factor="${row.key}">` +
+          `<div class="score-factor-top">` +
+            `<span>${row.label}</span>` +
+            `<span>${Math.round(row.value * 100)}% · ${escapeHtml(row.detail)}</span>` +
+          `</div>` +
+          `<div class="score-factor-bar"><i style="width:${clamp(row.value * 100, 0, 100).toFixed(1)}%"></i></div>` +
+        `</div>`
+      ).join("") +
+    `</div>` +
+    `<div class="score-kpis">` +
+      `<span>${score.axis_count} axis samples</span>` +
+      `<span>max err ${score.axis_error_max.toFixed(3)}</span>` +
+      `<span>${score.drift} drift</span>` +
+      `<span>${score.missing} missing</span>` +
+    `</div>` +
+    `<div class="score-error-head">` +
+      `<span class="label">error timeline</span>` +
+      `<span class="small">axis error by gap</span>` +
+    `</div>` +
+    `<div class="score-error-spark"></div>`;
+
+  const spark = renderScoreErrorSpark(host.querySelector(".score-error-spark"), report, N, FPS);
+  return {
+    update(frame) {
+      spark?.setCursor(frame);
+    },
+  };
+}
+
+function renderScoreErrorSpark(host, report, N, FPS) {
+  if (!host) return null;
+  const normalized = normalizeAxisReport(report, N, FPS);
+  const points = normalized.points.filter((p) => Object.keys(p.axes ?? {}).length);
+  if (!points.length) {
+    host.innerHTML = `<div class="score-empty">no axis error samples</div>`;
+    return null;
+  }
+
+  const W = 360;
+  const H = 48;
+  const padL = 4, padR = 4, padT = 5, padB = 6;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+  const maxErr = Math.max(0.08, ...points.flatMap((p) =>
+    Object.values(p.axes ?? {}).map((v) => Math.abs(Number(v.error) || 0))
+  ));
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "score-error-svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  host.appendChild(svg);
+
+  const el = (tag, attrs = {}, text) => {
+    const n = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v == null) continue;
+      n.setAttribute(k, String(v));
+    }
+    if (text != null) n.textContent = text;
+    return n;
+  };
+  const xAt = (frame) => padL + clamp(frame / Math.max(1, N - 1), 0, 1) * innerW;
+
+  svg.appendChild(el("line", {
+    class: "score-error-base",
+    x1: padL,
+    x2: padL + innerW,
+    y1: H - padB,
+    y2: H - padB,
+  }));
+
+  for (const p of points) {
+    const axes = AXIS_ORDER.filter((axis) => p.axes?.[axis])
+      .concat(Object.keys(p.axes ?? {}).filter((axis) => !AXIS_ORDER.includes(axis)));
+    const x0 = xAt(p.frameStart);
+    const x1 = xAt(p.frameEnd);
+    const bandW = Math.max(1.1, x1 - x0);
+    const laneW = bandW / Math.max(1, axes.length);
+    axes.forEach((axis, index) => {
+      const err = Math.abs(Number(p.axes?.[axis]?.error) || 0);
+      const h = clamp(err / maxErr, 0, 1) * innerH;
+      const info = AXIS_INFO[axis] ?? { color: "#5d564a", label: axis };
+      const rect = el("rect", {
+        class: "score-error-bar",
+        x: x0 + index * laneW,
+        y: H - padB - h,
+        width: Math.max(0.7, laneW - 0.35),
+        height: Math.max(0.6, h),
+        style: `fill:${info.color}`,
+      });
+      rect.appendChild(el("title", {}, `${info.label} gap ${p.gap_index}: error ${err.toFixed(3)}`));
+      svg.appendChild(rect);
+    });
+  }
+
+  const cursor = el("line", { class: "score-error-cursor", y1: padT - 1, y2: H - padB + 2 });
+  svg.appendChild(cursor);
+  return {
+    setCursor(frame) {
+      const x = xAt(frame);
+      cursor.setAttribute("x1", x.toFixed(2));
+      cursor.setAttribute("x2", x.toFixed(2));
+    },
+  };
+}
+
+function scoreDriftReport(report, opts = {}) {
+  const contacts = Array.isArray(report?.contacts) ? report.contacts : [];
+  const hits = contacts.filter((c) => c.status === "hit").length;
+  const drift = contacts.filter((c) => c.status === "drift").length;
+  const missing = contacts.filter((c) => c.status === "missing").length;
+  const sync_score = contacts.length > 0 ? hits / contacts.length : 1;
+
+  const landed = contacts.filter((c) => c.status !== "missing");
+  const driftRms = landed.length > 0
+    ? Math.sqrt(landed.reduce((sum, c) => {
+      const frameError = Number.isFinite(c.frame_error) ? Math.abs(c.frame_error) : 0;
+      const excess = Math.max(0, frameError - 1);
+      return sum + excess * excess;
+    }, 0) / landed.length)
+    : 0;
+  const drift_quality = Math.exp(-driftRms / SCORE_TOLERANCE.sync);
+  const missing_quality = Math.exp(-missing / SCORE_TOLERANCE.missing);
+  const sync_quality = drift_quality * missing_quality;
+
+  const axes = axisScoreDetails(report);
+  const axis_count = axes.length;
+  const axis_error_total = axes.reduce((sum, a) => sum + Math.abs(a.error), 0);
+  const axis_error_mean = axis_count > 0 ? axis_error_total / axis_count : 0;
+  const axis_error_max = axes.reduce((max, a) => Math.max(max, Math.abs(a.error)), 0);
+  const axis_error_rms = axis_count > 0
+    ? Math.sqrt(axes.reduce((sum, a) => sum + a.error * a.error, 0) / axis_count)
+    : 0;
+  const axis_loss = axis_count > 0 ? axis_error_rms / SCORE_TOLERANCE.axis : 0;
+  const axis_quality = Math.exp(-axis_loss);
+
+  const off_beat_landings = Array.isArray(report?.off_beat_landings) ? report.off_beat_landings.length : 0;
+  const off_beat_quality = Math.exp(-off_beat_landings / SCORE_TOLERANCE.offBeat);
+
+  const reachedEnd = report?.terminus?.reason === "endOfSpec";
+  const survival_quality = reachedEnd
+    ? 1
+    : opts.totalFrames > 0
+      ? clamp((Number(report?.terminus?.frame) || 0) / opts.totalFrames, 0, 1)
+      : 0;
+
+  const hard_failures = [];
+  if (drift > 0 || missing > 0) hard_failures.push(`sync:${drift}drift/${missing}missing`);
+  if (!reachedEnd) hard_failures.push(`died:${report?.terminus?.reason ?? "unknown"}@${report?.terminus?.frame ?? "?"}`);
+  if (off_beat_landings > 0) hard_failures.push(`offBeat:${off_beat_landings}`);
+
+  return {
+    score: 1000 * axis_quality * drift_quality * missing_quality * off_beat_quality * survival_quality,
+    contract_passed: hard_failures.length === 0,
+    hard_failures,
+    contacts: contacts.length,
+    hits,
+    drift,
+    missing,
+    sync_score,
+    drift_quality,
+    missing_quality,
+    sync_quality,
+    off_beat_landings,
+    off_beat_quality,
+    survival_quality,
+    axis_count,
+    axis_error_total,
+    axis_error_mean,
+    axis_error_max,
+    axis_error_rms,
+    axis_loss,
+    axis_quality,
+  };
+}
+
+function axisScoreDetails(report) {
+  const source = Array.isArray(report?.gaps) && report.gaps.length
+    ? report.gaps
+    : Array.isArray(report?.sections)
+      ? report.sections
+      : [];
+  const out = [];
+  for (const row of source) {
+    for (const [axis, value] of Object.entries(row.axes ?? {})) {
+      const error = Number.isFinite(value.error)
+        ? value.error
+        : Math.abs((Number(value.target) || 0) - (Number(value.achieved) || 0));
+      out.push({
+        gap_index: row.gap_index ?? row.section_index ?? 0,
+        axis,
+        target: value.target,
+        achieved: value.achieved,
+        error,
+      });
+    }
+  }
+  return out;
 }
 
 function renderSummaryTiles(s, FPS, terminus) {
@@ -2306,7 +2637,7 @@ function renderLandingFlash(flashEl, events, tSec, FPS) {
 
 // ── Timeline SVG renderer ────────────────────────────────────────
 
-function renderTimeline(svg, { speed, airborne, events, N, summary, FPS }) {
+function renderTimeline(svg, { speed, targetSpeed = [], airborne, events, N, summary, FPS }) {
   const W = 944, H = 236;
   const padL = 60, padR = 14;
   const innerW = W - padL - padR;
@@ -2333,7 +2664,8 @@ function renderTimeline(svg, { speed, airborne, events, N, summary, FPS }) {
   if (speedPts[speedPts.length - 1].i !== N - 1) speedPts.push({ i: N - 1, v: speed[N - 1] });
 
   const sMin = 0;
-  const sMax = summary.maxSpeed;
+  const targetSpeedMax = Math.max(0, ...targetSpeed.map((p) => p.value).filter(Number.isFinite));
+  const sMax = Math.max(summary.maxSpeed, targetSpeedMax, 1);
   const speedYAt = (v) => speedY + 4 + (1 - (v - sMin) / (sMax - sMin || 1)) * (speedH - 8);
 
   while (svg.firstChild) svg.removeChild(svg.firstChild);
@@ -2378,7 +2710,7 @@ function renderTimeline(svg, { speed, airborne, events, N, summary, FPS }) {
     svg.appendChild(el("line", { class: `evt-rule t-${e.type}`, x1: x, x2: x, y1: speedY, y2: speedY + speedH }));
   }
 
-  // Speed area + line
+  // Speed area + measured line
   let d = "";
   for (let k = 0; k < speedPts.length; k++) {
     const x = xAtFrame(speedPts[k].i);
@@ -2388,6 +2720,12 @@ function renderTimeline(svg, { speed, airborne, events, N, summary, FPS }) {
   const lastX = xAtFrame(N - 1);
   const baseY = speedY + speedH - 4;
   svg.appendChild(el("path", { class: "speed-area", d: d + `L${lastX.toFixed(2)},${baseY}L${padL.toFixed(2)},${baseY}Z` }));
+  const dt = stepPath(targetSpeed, xAtFrame, speedYAt, N);
+  if (dt) {
+    const targetPath = el("path", { class: "target-speed-line", d: dt });
+    targetPath.appendChild(el("title", {}, "target speed in raw px/frame, held over each report gap"));
+    svg.appendChild(targetPath);
+  }
   svg.appendChild(el("path", { class: "speed-line", d }));
 
   // Peak callout
@@ -2504,7 +2842,61 @@ function renderTimeline(svg, { speed, airborne, events, N, summary, FPS }) {
   };
 }
 
+function stepPath(series, xAtFrame, yAt, N) {
+  let d = "";
+  for (const p of series) {
+    if (!Number.isFinite(p.value)) continue;
+    const x0 = xAtFrame(clamp(p.frameStart, 0, N - 1));
+    const x1 = xAtFrame(clamp(p.frameEnd, 0, N - 1));
+    const y = yAt(p.value);
+    if (!d) d = `M${x0.toFixed(2)},${y.toFixed(2)}`;
+    else d += `L${x0.toFixed(2)},${y.toFixed(2)}`;
+    d += `L${x1.toFixed(2)},${y.toFixed(2)}`;
+  }
+  return d;
+}
+
 // ── Utilities ────────────────────────────────────────────────────
+
+function runAssetVersion(det) {
+  const parts = [
+    det?.meta?.generatedAt,
+    det?.meta?.trackHash,
+    det?.meta?.track,
+    det?.measurements?.speed?.length,
+  ].filter((v) => v != null && v !== "");
+  return simpleHash(parts.length ? parts.join("|") : String(Date.now()));
+}
+
+function cacheBustUrl(url, version) {
+  const u = new URL(url, location.href);
+  u.searchParams.set("v", version);
+  return u.pathname + u.search + u.hash;
+}
+
+function simpleHash(value) {
+  let h = 2166136261;
+  const s = String(value);
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
+}
+
+async function mediaInfo(url) {
+  try {
+    const res = await fetch(url, { method: "HEAD", cache: "no-store" });
+    return {
+      ok: res.ok,
+      url,
+      mtimeMs: Number(res.headers.get("X-File-MTime-Ms") ?? NaN),
+      size: Number(res.headers.get("Content-Length") ?? NaN),
+    };
+  } catch {
+    return { ok: false, url, mtimeMs: NaN, size: NaN };
+  }
+}
 
 function setText(id, txt) {
   const el = document.getElementById(id);

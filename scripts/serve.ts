@@ -241,9 +241,20 @@ function cleanRunName(raw: string): string {
     .slice(0, 96);
 }
 
+function runNameInUse(name: string): boolean {
+  const outPrefix = resolve(ROOT, "generated", "dashboard", name);
+  const activeJob = [...jobs.values()].some((job) =>
+    job.runName === name && (job.status === "queued" || job.status === "running")
+  );
+  return activeJob ||
+    existsSync(resolve(ROOT, "shakedown", name)) ||
+    existsSync(`${outPrefix}.track.json`) ||
+    existsSync(`${outPrefix}.report.json`);
+}
+
 function uniqueRunName(base: string): string {
   let candidate = base;
-  for (let i = 2; existsSync(resolve(ROOT, "shakedown", candidate)); i++) {
+  for (let i = 2; runNameInUse(candidate); i++) {
     candidate = `${base}_${i}`;
   }
   return candidate;
@@ -265,7 +276,7 @@ function startGenerateJob(body: Record<string, unknown>): DashboardJob {
   const rawRunName = valueAsString(body, "runName");
   const baseName = cleanRunName(rawRunName ?? "");
   const specName = basename(specPath).replace(/\.ts$/, "");
-  const runName = baseName || uniqueRunName(cleanRunName(`${specName}_${compactTimestamp()}`));
+  const runName = uniqueRunName(baseName || cleanRunName(`${specName}_${compactTimestamp()}`));
   if (!runName) throw new Error("run name is empty after sanitizing");
 
   const outPrefix = resolve(ROOT, "generated", "dashboard", runName);
@@ -457,6 +468,8 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, root: string): v
 
   const size = stat.size;
   const mime = MIME[extname(target).toLowerCase()] ?? "application/octet-stream";
+  const lastModified = stat.mtime.toUTCString();
+  const cacheControl = "no-store";
 
   const range = req.headers.range;
   if (range) {
@@ -472,6 +485,9 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, root: string): v
       }
       res.statusCode = 206;
       res.setHeader("Content-Type", mime);
+      res.setHeader("Cache-Control", cacheControl);
+      res.setHeader("Last-Modified", lastModified);
+      res.setHeader("X-File-MTime-Ms", String(stat.mtimeMs));
       res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("Content-Range", `bytes ${start}-${end}/${size}`);
       res.setHeader("Content-Length", String(end - start + 1));
@@ -482,6 +498,9 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, root: string): v
 
   res.statusCode = 200;
   res.setHeader("Content-Type", mime);
+  res.setHeader("Cache-Control", cacheControl);
+  res.setHeader("Last-Modified", lastModified);
+  res.setHeader("X-File-MTime-Ms", String(stat.mtimeMs));
   res.setHeader("Accept-Ranges", "bytes");
   res.setHeader("Content-Length", String(size));
   if (req.method === "HEAD") {

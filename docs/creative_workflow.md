@@ -105,8 +105,9 @@ npx tsx scripts/serve.ts                                          # terminal 2 (
 npx tsx scripts/inspect.ts --track=generated/believer_v3.track.json --name=believer_v3 --render
 ```
 
-The render is silent video. For audio, the dashboard syncs `shakedown/<run>/audio.mp3`
-at playback; for a standalone shareable file, mux it in:
+The render is silent video. For audio, prefer a muxed file; the dashboard plays
+`shakedown/<run>/video_with_audio.mp4` when present and falls back to
+`video.mp4` plus separately synced `audio.mp3` only for older runs:
 
 ```
 cp beats/audio.mp3 shakedown/believer_v3/audio.mp3

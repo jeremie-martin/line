@@ -100,6 +100,82 @@
     throw new Error("[__lr] waitFor timed out after " + timeoutMs + "ms");
   }
 
+  function hashString(h, value) {
+    const s = String(value);
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function lineNumber(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n.toFixed(3) : "NaN";
+  }
+
+  function plainLine(line) {
+    const src = line && typeof line.toJSON === "function" ? line.toJSON() : line;
+    return {
+      id: src && src.id,
+      type: src && src.type,
+      x1: src && src.x1,
+      y1: src && src.y1,
+      x2: src && src.x2,
+      y2: src && src.y2,
+      flipped: !!(src && src.flipped),
+      leftExtended: !!(src && src.leftExtended),
+      rightExtended: !!(src && src.rightExtended),
+      layer: src && src.layer == null ? 0 : src && src.layer,
+    };
+  }
+
+  function trackFingerprintFromLines(lines) {
+    const normalized = (lines || []).map(plainLine).sort(function (a, b) {
+      const ai = Number(a.id);
+      const bi = Number(b.id);
+      if (ai !== bi) return ai - bi;
+      return String(a.type).localeCompare(String(b.type));
+    });
+    let h = 2166136261;
+    for (const line of normalized) {
+      h = hashString(h, [
+        line.id,
+        line.type,
+        lineNumber(line.x1),
+        lineNumber(line.y1),
+        lineNumber(line.x2),
+        lineNumber(line.y2),
+        line.flipped ? 1 : 0,
+        line.leftExtended ? 1 : 0,
+        line.rightExtended ? 1 : 0,
+        line.layer,
+      ].join(","));
+      h = hashString(h, ";");
+    }
+    return {
+      lineCount: normalized.length,
+      lineHash: (h >>> 0).toString(36),
+    };
+  }
+
+  function trackFingerprint(trackJson) {
+    const track = typeof trackJson === "string" ? JSON.parse(trackJson) : (trackJson || {});
+    return Object.assign(trackFingerprintFromLines(track.lines || []), {
+      label: track.label || "",
+    });
+  }
+
+  function loadedTrackFingerprint() {
+    const state = getStore().getState();
+    const lines = window.Selectors && typeof window.Selectors.getSimulatorLines === "function"
+      ? window.Selectors.getSimulatorLines()
+      : [];
+    return Object.assign(trackFingerprintFromLines(lines), {
+      label: state.trackData && state.trackData.label || "",
+    });
+  }
+
   const api = {
     // ---- Redux-only operations ----
     enterEditor: function () {
@@ -116,6 +192,18 @@
         throw new Error("[__lr] window.loadTrackFromString not yet available");
       }
       window.loadTrackFromString(s);
+    },
+
+    waitForTrackLoaded: async function (trackJson, opts) {
+      const expected = trackFingerprint(trackJson);
+      const loaded = await waitFor(function () {
+        const actual = loadedTrackFingerprint();
+        return actual.lineCount === expected.lineCount && actual.lineHash === expected.lineHash
+          ? actual
+          : null;
+      }, opts || { timeoutMs: 120000, intervalMs: 100 });
+      console.log("[__lr] track loaded", loaded);
+      return loaded;
     },
 
     setPlaybackZoom: function (zoom) {
@@ -289,8 +377,12 @@
       this.enterEditor();
       await delay(800);
 
-      if (cfg.track) this.loadTrack(cfg.track);
-      await delay(800);
+      if (cfg.track) {
+        this.loadTrack(cfg.track);
+        await this.waitForTrackLoaded(cfg.track);
+      } else {
+        await delay(800);
+      }
 
       if (cfg.zoom !== undefined && cfg.zoom !== null) this.setPlaybackZoom(cfg.zoom);
 

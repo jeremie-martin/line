@@ -10,10 +10,12 @@
  *   - track.json       copy of input track
  *   - video.mp4        rendered (auto if missing OR --render forced; otherwise
  *                      kept from a prior run)
+ *   - video_with_audio.mp4 optional muxed media preferred by the dashboard
  *
  * Plus `shakedown/runs.json` — dashboard landing-page index.
  */
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { resolve, basename, dirname } from "node:path";
 import {
   detect,
@@ -48,8 +50,28 @@ const zoom = arg("zoom") !== null ? parseFloat(arg("zoom")!) : 3;
 
 mkdirSync(outDir, { recursive: true });
 
+function hashJson(value: unknown): string {
+  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
+}
+
+function readJsonHash(path: string): string | null {
+  if (!existsSync(path)) return null;
+  try {
+    return hashJson(JSON.parse(readFileSync(path, "utf8")));
+  } catch {
+    return null;
+  }
+}
+
+function removeIfExists(path: string, reason: string): void {
+  if (!existsSync(path)) return;
+  rmSync(path, { force: true });
+  console.log(`removed stale ${path} (${reason})`);
+}
+
 // ── 1. Load track, build lr-core engine ──────────────────────────────────
 const trackJson = JSON.parse(readFileSync(trackPath, "utf8"));
+const currentTrackHash = hashJson(trackJson);
 const duration: number = trackJson.duration ?? 1200;
 const siblingReportPath = trackPath.replace(/\.track\.json$/i, ".report.json");
 const reportPath = siblingReportPath !== trackPath && existsSync(siblingReportPath)
@@ -132,6 +154,18 @@ console.log(
 
 // ── 3. Write detection + track copy ──────────────────────────────────────
 const detectionPath = resolve(outDir, "detection.json");
+const trackCopyPath = resolve(outDir, "track.json");
+const videoPath = resolve(outDir, "video.mp4");
+const muxedVideoPath = resolve(outDir, "video_with_audio.mp4");
+const previousTrackHash = readJsonHash(trackCopyPath);
+const trackChanged = previousTrackHash !== null && previousTrackHash !== currentTrackHash;
+if (trackChanged) {
+  removeIfExists(videoPath, "track changed");
+  removeIfExists(muxedVideoPath, "track changed");
+} else if (!skipRender && forceRender) {
+  removeIfExists(muxedVideoPath, "fresh render requested");
+}
+const generatedAt = new Date().toISOString();
 writeFileSync(
   detectionPath,
   JSON.stringify(
@@ -142,7 +176,8 @@ writeFileSync(
         run: runName,
         duration,
         fps: 40,
-        generatedAt: new Date().toISOString(),
+        generatedAt,
+        trackHash: currentTrackHash,
       },
       ...det,
     },
@@ -152,10 +187,9 @@ writeFileSync(
 );
 console.log(`wrote ${detectionPath}`);
 
-writeFileSync(resolve(outDir, "track.json"), JSON.stringify(trackJson, null, 2));
+writeFileSync(trackCopyPath, JSON.stringify(trackJson, null, 2));
 
 // ── 4. Render mp4 (auto if missing, or forced) ───────────────────────────
-const videoPath = resolve(outDir, "video.mp4");
 let videoRendered = false;
 const haveVideo = existsSync(videoPath);
 
@@ -212,7 +246,7 @@ runs.unshift({
   track: trackPath,
   updatedAt: new Date().toISOString(),
   duration,
-  hasVideo: existsSync(videoPath),
+  hasVideo: existsSync(videoPath) || existsSync(muxedVideoPath),
   eventCount: det.events.length,
 });
 writeFileSync(runsIndexPath, JSON.stringify(runs, null, 2));
@@ -222,7 +256,7 @@ const dashUrl = `http://127.0.0.1:8767/dashboard/?run=${encodeURIComponent(runNa
 console.log(`\nDashboard → ${dashUrl}`);
 console.log(`(run \`npm run dash\` from project root if not already serving)`);
 
-if (!videoRendered && !haveVideo) {
+if (!videoRendered && !existsSync(videoPath) && !existsSync(muxedVideoPath)) {
   console.log(`(video.mp4 missing; the dashboard will show plots only until you re-run with --render)`);
 }
 

@@ -1,13 +1,15 @@
 # TODO / parked ideas
 
-## ⚠️ HUGE TODO: restore `opening_burst` once fragile chains are hardened
+## `opening_burst`: RESTORED to the suite; chain-hardening still open
 
-Status: **opening_burst is temporarily EXCLUDED from the headline benchmark**
-(removed from `GOLDEN_SPECS` in `scripts/v0/golden_suite.ts`, from the workbench
-`--specs` in `GOAL_LDS_ARC_PLACEMENT.md`, and from the assertion in
-`tests/v0_golden_config.test.ts`).
+Status: **RESTORED 2026-06-04** to `GOLDEN_SPECS` and the `tests/v0_golden_config.ts`
+assertion. The reason it was excluded (a bimodal valid↔all-missing coin-flip that
+dragged a fused mean) is now handled honestly by the new metric: validity is a
+separate ceiling-focused guardrail (not fused into a bimodal mean), the 8-seed
+paired bootstrap averages out the seed-luck, and the headline is ceiling-weighted.
+The underlying robustness work below is still open but no longer blocks inclusion.
 
-Why: opening_burst is the suite's lone catastrophically-fragile spec. Its
+Why it was fragile: opening_burst is the suite's lone catastrophically-fragile spec. Its
 required-contact chain has a knife-edge forward dependency — under the tiniest
 placement perturbation it flips from fully valid to ~all-contacts-missing (a
 560→0 score swing), and WHICH seed breaks moves randomly run to run (s21, then
@@ -25,10 +27,17 @@ back in all three places above.
 
 ## Metric: reward "score is still climbing (did not plateau)", not just mean-last
 
-Status: parked. Current decision is that the **last-budget mean score** alone is
-probably good enough as the optimization metric (150k for the normal diagnostic,
-100k for the fast loop). This note records a refinement to revisit if mean-last
-turns out to under-reward high-ceiling approaches.
+Status: **IMPLEMENTED 2026-06-04** (this note is kept for rationale). The headline
+metric is now `HEADLINE = α·q(b_max) + (1−α)·logAUC` (α=0.7) in `scripts/v0/metric.ts`:
+the ceiling term `q(b_max)` is "how high it gets" and the log-AUC term rewards
+monotone diminishing-returns conversion — so a slow-but-higher-ceiling approach is
+no longer ranked below an early plateau (the failure this note feared). Decisions use
+a paired cluster-bootstrap CI (`analyze_golden_curve.ts decide`), and validity is a
+separate ceiling-focused guardrail. The "still-climbing as a guard on where to
+measure" idea below is partially realized; the full usage-weighted-budget refinement
+is the remaining open piece. Full context: `docs/metric_problem_statement.md`.
+
+Original note (rationale, pre-implementation):
 
 ### The idea
 

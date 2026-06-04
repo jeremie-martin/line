@@ -491,6 +491,13 @@ function normalizeGoldenRun(entry, data) {
     source: data.source ?? {},
     archive: data.archive ?? {},
     curveScore: Number(data.curve_score ?? 0),
+    // Canonical headline metric (α·q(b_max)+(1−α)·logAUC). Captured here so the UI
+    // can show the real metric; curveScore above is the LEGACY shifted-geomean.
+    // TODO(dashboard): surface `headline` as the primary KPI (score/ceiling/logAUC +
+    // validity), relabel the curveScore tile/columns "curve score (legacy SGM)", and
+    // add a budget-subset selector that recomputes the headline on chosen budgets
+    // (mirrors --score-budgets). Do this with the dashboard running (verify skill).
+    headline: data.headline ?? null,
     budgets,
     budgetScores,
     rows,

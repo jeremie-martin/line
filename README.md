@@ -40,7 +40,11 @@ npx tsx scripts/stress.ts
 npm run parity
 
 # current v0 handoff compiler golden benchmark
+# (reports the HEADLINE metric α·q(b_max)+(1−α)·logAUC; 8 seeds {0..7}, dense 5k–175k grid)
 npm run golden
+
+# decide whether a candidate beats a baseline (paired-bootstrap verdict; replaces "+5")
+npm run decide -- CANDIDATE/golden.json BASELINE/golden.json
 
 # same compiler, explicit selector kept for future compiler additions
 npm run golden -- --compiler=handoff

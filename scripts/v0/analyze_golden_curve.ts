@@ -9,6 +9,16 @@
 import { readFileSync } from "node:fs";
 import { shiftedGeometricMean } from "./score.ts";
 import {
+  DEFAULT_ALPHA,
+  headlineScore,
+  pairedBootstrapCI,
+  parseAlpha,
+  parseBudgetList,
+  selectScoreBudgets,
+  type ScoreCube,
+  type ValidCube,
+} from "./metric.ts";
+import {
   AXES,
   CANDIDATE_SAMPLE_MODES,
   HANDOFF_CANDIDATE_SOURCES,
@@ -155,6 +165,15 @@ type RunRow = {
 
 type GoldenCurveJson = {
   curve_score?: number;
+  headline?: {
+    score: number;
+    ceiling: number;
+    log_auc: number;
+    alpha: number;
+    score_budgets: number[];
+    validity: { budget: number; pass_rate: number }[];
+  };
+  evaluator_fingerprint?: string;
   budgets?: number[];
   budget_scores?: BudgetScore[];
   scope?: { row_count?: number; checkpoint_count?: number; seeds?: number[] };
@@ -1340,7 +1359,187 @@ function printComparison(current: GoldenCurveJson, baseline: GoldenCurveJson): v
   }
 }
 
+/** Build the per-config score + validity cubes (spec -> seed -> budget -> value)
+ *  from a golden archive's headline rows. */
+function buildCubes(data: GoldenCurveJson): { score: ScoreCube; valid: ValidCube; budgets: number[] } {
+  const score: ScoreCube = new Map();
+  const valid: ValidCube = new Map();
+  const budgets = new Set<number>();
+  for (const row of data.rows ?? []) {
+    if ((row.variant ?? "base") !== "base") continue; // headline rows only
+    if (!score.has(row.name)) {
+      score.set(row.name, new Map());
+      valid.set(row.name, new Map());
+    }
+    const sByBudget = new Map<number, number>();
+    const vByBudget = new Map<number, boolean>();
+    for (const ck of row.checkpoints) {
+      sByBudget.set(ck.budget, ck.score);
+      vByBudget.set(ck.budget, ck.contract_passed);
+      budgets.add(ck.budget);
+    }
+    score.get(row.name)!.set(row.seed, sByBudget);
+    valid.get(row.name)!.set(row.seed, vByBudget);
+  }
+  return { score, valid, budgets: [...budgets].sort((a, b) => a - b) };
+}
+
+function archiveHeadline(data: GoldenCurveJson, scoreBudgets: number[], alpha: number): number {
+  const points = scoreBudgets.map((b) => ({
+    budget: b,
+    score: data.budget_scores!.find((s) => s.budget === b)?.score ?? 0,
+  }));
+  return headlineScore(points, alpha).score;
+}
+
+/** `decide` subcommand: paired-bootstrap accept/reject verdict (replaces "+5"). */
+function runDecide(args: string[]): void {
+  const positional = args.filter((a) => !a.startsWith("--"));
+  const [candPath, basePath] = positional;
+  if (!candPath || !basePath) {
+    console.error(
+      "usage: analyze_golden_curve.ts decide <candidate.json> <baseline.json> " +
+        "[--alpha=0.7] [--score-budgets=50000,100000,150000]",
+    );
+    process.exit(1);
+  }
+  const flag = (n: string): string | null => {
+    const f = args.find((a) => a.startsWith(`--${n}=`));
+    return f ? f.slice(n.length + 3) : null;
+  };
+  const cand = readInput(candPath);
+  const base = readInput(basePath);
+  const C = buildCubes(cand);
+  const B = buildCubes(base);
+
+  // --- scope guard: refuse incomparable inputs LOUDLY (never silently "inconclusive") ---
+  const refuse = (msg: string): never => {
+    console.error(`REFUSING: ${msg}`);
+    process.exit(1);
+  };
+  const baseFp = base.evaluator_fingerprint;
+  const candFp = cand.evaluator_fingerprint;
+  if (baseFp && candFp && baseFp !== candFp) {
+    refuse(
+      `evaluator fingerprint differs (baseline ${baseFp} vs candidate ${candFp}). ` +
+        `The scoring ruler/specs changed; scores are not comparable — re-baseline.`,
+    );
+  }
+  const seedsIn = (cube: ScoreCube): Set<number> => {
+    const s = new Set<number>();
+    for (const bySeed of cube.values()) for (const se of bySeed.keys()) s.add(se);
+    return s;
+  };
+  const baseSpecs = new Set(B.score.keys());
+  const candSpecs = new Set(C.score.keys());
+  const commonSpecs = [...baseSpecs].filter((s) => candSpecs.has(s));
+  const baseSeeds = seedsIn(B.score);
+  const candSeeds = seedsIn(C.score);
+  const commonSeeds = [...baseSeeds].filter((se) => candSeeds.has(se));
+  const commonBudgets = C.budgets.filter((b) => B.budgets.includes(b));
+  if (commonSpecs.length === 0) refuse("no overlapping specs between the two archives.");
+  if (commonSeeds.length === 0) {
+    refuse(`no overlapping seeds (baseline [${[...baseSeeds].join(",")}] vs candidate [${[...candSeeds].join(",")}]) — re-baseline on matching seeds.`);
+  }
+  if (commonBudgets.length === 0) {
+    refuse(`no overlapping budgets (baseline [${B.budgets.join(",")}] vs candidate [${C.budgets.join(",")}]) — re-baseline on a matching grid.`);
+  }
+  // Default alpha + score-budgets from the archives' STORED headline settings, so
+  // `decide` judges the SAME scalar golden.ts wrote as HEADLINE rather than silently
+  // recomputing with DEFAULT_ALPHA over all budgets. An explicit flag overrides;
+  // archives that disagree refuse (you must pick a scope with a flag).
+  const sameList = (x?: number[], y?: number[]): boolean =>
+    !!x && !!y && x.length === y.length && x.every((v, i) => v === y[i]);
+  let alpha: number;
+  if (flag("alpha") !== null) {
+    alpha = parseAlpha(flag("alpha")!);
+  } else {
+    const ba = base.headline?.alpha;
+    const ca = cand.headline?.alpha;
+    if (ba !== undefined && ca !== undefined && ba !== ca) {
+      refuse(`archives disagree on headline alpha (baseline ${ba} vs candidate ${ca}); pass --alpha to override.`);
+    }
+    alpha = ca ?? ba ?? DEFAULT_ALPHA;
+  }
+  let subset: number[] | undefined;
+  if (flag("score-budgets")) {
+    subset = parseBudgetList(flag("score-budgets")!);
+  } else {
+    const bsb = base.headline?.score_budgets;
+    const csb = cand.headline?.score_budgets;
+    if (bsb && csb && !sameList(bsb, csb)) {
+      refuse(
+        `archives disagree on headline score_budgets (baseline [${bsb.join(",")}] vs candidate [${csb.join(",")}]); ` +
+          `pass --score-budgets to override.`,
+      );
+    }
+    subset = csb ?? bsb ?? undefined;
+  }
+  if (subset) {
+    const missing = subset.filter((b) => !commonBudgets.includes(b));
+    if (missing.length > 0) {
+      refuse(`score-budgets ${missing.join(",")} not present in BOTH archives' common budgets [${commonBudgets.join(",")}].`);
+    }
+  }
+  const scoreBudgets = selectScoreBudgets(commonBudgets, subset);
+  // Budget-grid equality is part of canonicality: comparing a dense run against a
+  // sparse/smoke archive narrows to the intersection and is NOT a canonical metric.
+  const sameBudgetGrid = B.budgets.length === C.budgets.length && B.budgets.every((b, i) => b === C.budgets[i]);
+  const canonicalScope =
+    baseSpecs.size === candSpecs.size &&
+    commonSpecs.length === baseSpecs.size &&
+    baseSeeds.size === candSeeds.size &&
+    commonSeeds.length === baseSeeds.size &&
+    sameBudgetGrid;
+  if (!canonicalScope) {
+    console.warn(
+      `WARNING: non-canonical scope — comparing on the intersection (${commonSpecs.length} specs, ` +
+        `${commonSeeds.length} seeds, ${scoreBudgets.length} budgets). Indicative, not a canonical/promotable decision.`,
+    );
+  }
+
+  const d = pairedBootstrapCI(B.score, C.score, scoreBudgets, {
+    alpha,
+    validBase: B.valid,
+    validCand: C.valid,
+    rngSeed: 12345,
+  });
+
+  console.log(`DECISION  paired cluster bootstrap · alpha=${alpha} · budgets=${scoreBudgets.map(fmtBudget).join(",")}`);
+  console.log(
+    `  scope: ${commonSpecs.length} specs × ${commonSeeds.length} seeds` +
+      `${canonicalScope ? " (canonical)" : " (intersection — INDICATIVE)"}` +
+      `${baseFp ? ` · fingerprint ${baseFp}` : ""}`,
+  );
+  console.log(
+    `  headline: baseline ${archiveHeadline(base, scoreBudgets, alpha).toFixed(1)} -> ` +
+      `candidate ${archiveHeadline(cand, scoreBudgets, alpha).toFixed(1)}`,
+  );
+  console.log(
+    `  Δheadline = ${d.delta >= 0 ? "+" : ""}${d.delta.toFixed(1)} · ` +
+      `95% CI [${d.ciLo.toFixed(1)}, ${d.ciHi.toFixed(1)}] · P(Δ≤0)=${(d.pLeZero * 100).toFixed(1)}% · effect=${d.effect.toFixed(2)}`,
+  );
+  if (d.validity.length > 0) {
+    const ceil = Math.max(...scoreBudgets);
+    console.log("  validity (pass-rate base->cand, ΔCI-low; gate = ceiling budget, cheap budgets are informational):");
+    for (const v of d.validity) {
+      const isGate = v.budget === ceil;
+      const regress = v.deltaCiLo < -1e-9;
+      const note = isGate ? "  <gate (see VERDICT)>" : regress ? "  (low-budget, not gating)" : "";
+      console.log(
+        `    ${fmtBudget(v.budget).padStart(5)}  ${(v.baseRate * 100).toFixed(0)}%->${(v.candRate * 100).toFixed(0)}%  ` +
+          `ΔCIlo=${(v.deltaCiLo * 100).toFixed(1)}%${note}`,
+      );
+    }
+  }
+  console.log(`  VERDICT: ${d.verdict.toUpperCase()}`);
+}
+
 function main(): void {
+  if (process.argv[2] === "decide") {
+    runDecide(process.argv.slice(3));
+    return;
+  }
   const path = process.argv[2];
   if (!path) {
     console.error("usage: analyze_golden_curve.ts <golden-curve.json | -> [baseline-golden.json]");
@@ -1349,10 +1548,30 @@ function main(): void {
   const data = readInput(path);
   const baselinePath = process.argv[3];
   const baseline = baselinePath === undefined ? null : readInput(baselinePath);
-  const curveScore = curveScoreFor(data);
   const rows = data.scope?.row_count ?? 0;
   const checkpoints = data.scope?.checkpoint_count ?? 0;
-  console.log(`CURVE_SCORE ${curveScore.toFixed(2)} · rows ${rows} · checkpoints ${checkpoints}`);
+  // Prefer the archive's STORED headline block (exact match to what golden.ts wrote,
+  // honoring its --alpha/--score-budgets); only recompute for legacy archives.
+  let headline: { score: number; ceiling: number; logAUC: number; alpha: number };
+  if (data.headline) {
+    headline = {
+      score: data.headline.score,
+      ceiling: data.headline.ceiling,
+      logAUC: data.headline.log_auc,
+      alpha: data.headline.alpha,
+    };
+  } else {
+    const allBudgets = data.budgets ?? data.budget_scores!.map((s) => s.budget);
+    const h = headlineScore(
+      allBudgets.map((b) => ({ budget: b, score: data.budget_scores!.find((s) => s.budget === b)?.score ?? 0 })),
+      DEFAULT_ALPHA,
+    );
+    headline = { score: h.score, ceiling: h.ceiling, logAUC: h.logAUC, alpha: DEFAULT_ALPHA };
+  }
+  console.log(
+    `HEADLINE ${headline.score.toFixed(2)} · ceiling=${headline.ceiling.toFixed(2)} · logAUC=${headline.logAUC.toFixed(2)} ` +
+      `(alpha=${headline.alpha}) · rows ${rows} · checkpoints ${checkpoints}`,
+  );
   console.log("budget curve:");
   for (const summary of data.budget_scores!) {
     console.log(

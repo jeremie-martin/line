@@ -13,9 +13,13 @@
  *   npm run golden -- --archive-dir=generated/golden-runs/my-run
  *   npm run golden -- --variants
  *
- * The headline metric is CURVE_SCORE: the shifted geometric mean of suite
- * scores across the configured budget grid. Optional variants are report-only
- * robustness probes and are not included in CURVE_SCORE.
+ * The headline metric is HEADLINE (see metric.ts): a ceiling-weighted blend
+ * `alpha*q(b_max) + (1-alpha)*logAUC` over the budget->quality curve, emitted in
+ * the `headline` JSON block. CURVE_SCORE (shifted geometric mean of suite scores
+ * across the budget grid) is retained as a LEGACY/secondary number. The accept/
+ * reject decision is made by `analyze_golden_curve.ts decide` (paired bootstrap),
+ * not by eyeballing either scalar. Optional variants are report-only robustness
+ * probes, excluded from both.
  */
 
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
@@ -35,6 +39,14 @@ const DEFAULT_JOBS = Math.max(1, Math.min(6, availableParallelism() - 1));
 
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
+import {
+  DEFAULT_ALPHA,
+  headlineScore,
+  parseAlpha,
+  parseBudgetList,
+  selectScoreBudgets,
+  type CurvePoint,
+} from "./metric.ts";
 import {
   DEFAULT_BUDGETS,
   EVALUATOR_FINGERPRINT,
@@ -1045,6 +1057,21 @@ async function runMain(): Promise<void> {
   const archiveDir = resolve(arg("archive-dir") ?? defaultArchiveDir());
   const checkpointDir = resolve(archiveDir, "checkpoints");
   const budgets = normalizeBudgets(arg("budgets"));
+  const alpha = arg("alpha") !== null ? parseAlpha(arg("alpha")!) : DEFAULT_ALPHA;
+  // Grid-agnostic headline: default scores over ALL measured budgets. A subset
+  // (e.g. --score-budgets=50000,100000,150000) recomputes the headline on the
+  // canonical few — the seam for honest cross-era comparison and the future
+  // budget-aware (non-anytime) mode. TODO: default to CANONICAL_SCORE_BUDGETS
+  // once the anytime->budget-aware migration lands.
+  const rawScoreBudgets = arg("score-budgets");
+  const scoreBudgetSubset = rawScoreBudgets ? parseBudgetList(rawScoreBudgets) : undefined;
+  if (scoreBudgetSubset) {
+    const missing = scoreBudgetSubset.filter((b) => !budgets.includes(b));
+    if (missing.length > 0) {
+      throw new Error(`--score-budgets ${missing.join(",")} not in the run's budget grid [${budgets.join(",")}]`);
+    }
+  }
+  const scoreBudgets = selectScoreBudgets(budgets, scoreBudgetSubset);
 
   const rawSeed = arg("seed");
   const debugSeed = rawSeed !== null ? Math.trunc(Number(rawSeed)) : null;
@@ -1135,10 +1162,16 @@ async function runMain(): Promise<void> {
 
   const headlineSummaries = summarizeBudgets(scored, budgets);
   const headlineCurveScore = curveScore(headlineSummaries);
+  const headlinePoints: CurvePoint[] = scoreBudgets.map((b) => ({
+    budget: b,
+    score: headlineSummaries.find((s) => s.budget === b)?.score ?? 0,
+  }));
+  const headlineMetric = headlineScore(headlinePoints, alpha);
 
   let variantRows: ScoredRunRow[] = [];
   let variantSummaries: BudgetSummary[] = [];
   let variantCurveScore = 0;
+  let variantHeadlineScore = 0;
   if (includeVariants) {
     if (!jsonOnly) {
       console.log("");
@@ -1163,6 +1196,10 @@ async function runMain(): Promise<void> {
     }
     variantSummaries = summarizeBudgets(variantRows, budgets);
     variantCurveScore = curveScore(variantSummaries);
+    variantHeadlineScore = headlineScore(
+      scoreBudgets.map((b) => ({ budget: b, score: variantSummaries.find((s) => s.budget === b)?.score ?? 0 })),
+      alpha,
+    ).score;
   }
 
   const output = {
@@ -1176,6 +1213,14 @@ async function runMain(): Promise<void> {
       checkpoint_dir: checkpointDir,
     },
     curve_score: round(headlineCurveScore),
+    headline: {
+      score: round(headlineMetric.score),
+      ceiling: round(headlineMetric.ceiling),
+      log_auc: round(headlineMetric.logAUC),
+      alpha: headlineMetric.alpha,
+      score_budgets: scoreBudgets,
+      validity: headlineSummaries.map((s) => ({ budget: s.budget, pass_rate: round(s.contract_pass_rate, 4) })),
+    },
     budgets,
     scoring: {
       axis_quality_tolerance: AXIS_QUALITY_TOLERANCE,
@@ -1199,6 +1244,7 @@ async function runMain(): Promise<void> {
       ? {
           enabled: true,
           curve_score: round(variantCurveScore),
+          headline_score: round(variantHeadlineScore),
           variants: [...REPORT_VARIANTS],
           budget_scores: variantSummaries.map(jsonBudgetSummary),
           rows: variantRows.map((row) => jsonRunRow(row, details)),
@@ -1213,6 +1259,14 @@ async function runMain(): Promise<void> {
     process.stdout.write(jsonText);
   } else {
     printCurveSummary("CURVE_SCORE", scored, budgets, canonical);
+    {
+      const bmax = headlineSummaries[headlineSummaries.length - 1];
+      console.log(
+        `  HEADLINE ${round(headlineMetric.score)} · ceiling=${round(headlineMetric.ceiling)} ` +
+          `logAUC=${round(headlineMetric.logAUC)} (alpha=${alpha}, budgets=${scoreBudgets.map(fmtBudget).join(",")}) · ` +
+          `validity@${fmtBudget(bmax.budget)}=${bmax.passed}/${bmax.total}`,
+      );
+    }
     if (includeVariants) {
       console.log("");
       printCurveSummary("VARIANT_CURVE_SCORE", variantRows, budgets, false);

@@ -1,5 +1,10 @@
 # Plateau campaign log (handoff compiler)
 
+> **HISTORICAL LOG.** Metric, seeds, and grid changed 2026-06-04: headline is now
+> `HEADLINE = α·q(b_max)+(1−α)·logAUC` (α=0.7), seeds `{0..7}`, dense 5k–175k grid,
+> decisions via `npm run decide`. Figures below are the era's CURVE_SCORE
+> (seeds 0/1/2 or 100/101/102); kept as record, not rewritten.
+
 Working log for the LDS plateau-breakout campaign. Charter:
 `GOAL_LDS_PLATEAU_BREAKOUT.md`. Philosophy (user): fundamental
 candidate-GENERATION changes over parameter tuning; the proven big win was

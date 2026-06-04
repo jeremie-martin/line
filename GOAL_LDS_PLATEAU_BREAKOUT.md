@@ -5,6 +5,14 @@ replace the default golden ruler in `GOAL_LDS_LOW_BUDGET.md`; it defines a
 faster diagnostic loop for learning how to make `compileHandoff` convert more
 compute into better tracks.
 
+> **⚠️ UPDATED 2026-06-04 — metric & acceptance changed.** Acceptance is now the
+> `npm run decide` paired-bootstrap VERDICT on the `HEADLINE` metric
+> (`α·q(b_max)+(1−α)·logAUC`, α=0.7), NOT a CURVE_SCORE delta. Canonical runs use 8
+> seeds {0..7} and the dense 5k–175k grid. The "Current Campaign Evidence" below is
+> HISTORICAL (CURVE_SCORE, seeds 0/1/2); re-test borderline calls with `decide`.
+> See `scripts/v0/metric.ts` and `docs/metric_problem_statement.md`. The plateau
+> intent itself is exactly what the HEADLINE's ceiling term + headroom now reward.
+
 ## Intent
 
 The goal is to break low-quality plateaus, not merely tune one checkpoint. The

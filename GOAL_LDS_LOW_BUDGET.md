@@ -9,6 +9,15 @@ diagnostic loop used to study whether the optimizer can convert substantially
 more compute into better tracks without turning prefix branching into a messy
 wrapper layer.
 
+> **⚠️ UPDATED 2026-06-04 — metric/grid/decision changed.** The headline is now
+> `HEADLINE = α·q(b_max)+(1−α)·logAUC` (α=0.7), not `CURVE_SCORE` (legacy).
+> `DEFAULT_BUDGETS` is the dense 5k–175k grid (the old 35k–75k grid is now
+> `EXPLORATORY_BUDGETS`, used by the oracle scripts). Decisions use
+> `npm run decide -- <cand> <base>` (paired bootstrap), not eyeballed CURVE_SCORE
+> deltas, over 8 seeds {0..7}. The "Current Frontier" log below is HISTORICAL —
+> its CURVE_SCORE figures predate this change; do not read them as the current
+> metric. See `scripts/v0/metric.ts` and `docs/metric_problem_statement.md`.
+
 ## Campaign Metric
 
 Use this command as the run of record:

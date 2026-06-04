@@ -11,7 +11,7 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { DEFAULT_BUDGETS, GOLDEN_SEEDS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
+import { EXPLORATORY_BUDGETS, GOLDEN_SEEDS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { scoreDriftReport, shiftedGeometricMean } from "./score.ts";
 import {
   compileHandoff,
@@ -162,7 +162,7 @@ function parseArgs(): Args {
   return {
     specs: parseSpecs(),
     seeds: parseSeeds(),
-    budgets: parsePositiveInts(arg("budgets"), DEFAULT_BUDGETS, "budgets"),
+    budgets: parsePositiveInts(arg("budgets"), EXPLORATORY_BUDGETS, "budgets"),
     lanes: parseLaneIds(arg("lanes")),
     fractions: parseFractions(arg("fractions")),
     maxNodes,

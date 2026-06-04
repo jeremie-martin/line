@@ -187,11 +187,34 @@ and handoff ranker judge it.
 
 ## Metrics And Workbench
 
-### Primary metric: last-budget mean score
+> **⚠️ UPDATED 2026-06-04 — metric & decision rule replaced. Read this first; the
+> subsections below predate it and are retained as historical rationale.**
+>
+> - **Headline metric:** `HEADLINE = α·q(b_max) + (1−α)·logAUC`, α=0.7 (ceiling-
+>   weighted area under quality-vs-log(budget)), emitted in `golden.json`'s
+>   `headline` block and printed by `npm run golden`. It supersedes both
+>   `CURVE_SCORE` (now legacy) and the "last-budget mean" framing below. See
+>   `scripts/v0/metric.ts` and `docs/metric_problem_statement.md`.
+> - **Decision rule:** run `npm run decide -- <candidate>/golden.json
+>   <baseline>/golden.json` → paired cluster-bootstrap VERDICT (accept iff the
+>   headline-Δ 95% CI lower bound > 0 AND validity does not regress at the ceiling
+>   budget). The fixed **"+5" commit threshold is RETIRED** — it is inside the
+>   measured noise. Convergence speed stays a reported, non-gating secondary.
+> - **Seeds:** the canonical decision uses the 8-seed default `{0..7}`;
+>   `GOLDEN_SEEDS_OVERRIDE=0,1,2` is a cheap *smoke*, not a decision basis.
+> - **Budgets:** canonical runs use the dense `DEFAULT_BUDGETS` (5k–175k);
+>   `--score-budgets=50000,100000,150000` scores the canonical few (and enables
+>   honest comparison against older archives).
+> - **Jobs:** for full canonical runs (8 seeds × dense grid) pass
+>   `--jobs=$(( $(nproc) / 2 ))`. A full `--jobs=$(nproc)` can OOM — each worker
+>   holds ~1 GB, so 32 workers OOM'd a 62 GB box.
 
-The campaign optimizes the **arithmetic mean per-row score at the LAST budget** —
-`150k` for the normal diagnostic, `100k` for the fast loop. This deliberately
-replaces `CURVE_SCORE` as the headline.
+### Primary metric (HISTORICAL framing — superseded; see banner above): last-budget mean score
+
+The campaign *previously* optimized the **arithmetic mean per-row score at the LAST
+budget** — `150k` for the normal diagnostic, `100k` for the fast loop, which itself
+had replaced `CURVE_SCORE`. The HEADLINE metric (banner) is now the headline; the
+"last-budget mean" survives only as the ceiling term `q(b_max)` inside it.
 
 Why: `CURVE_SCORE` integrates across all budgets, so it heavily weights the low
 budgets where a slow-converging placement has not finished, and it hides the
@@ -287,10 +310,12 @@ The local campaign baseline was measured on 2026-06-03 from clean commit
 `LR_ARC_PLACEMENT` unset. That is the current default `impact_anchor` placement
 path.
 
-For compiler changes in this campaign, only commit changes that improve the
-**normal diagnostic last-budget (`150k`) mean score** by at least 5 points over
-the current score to beat. Documentation-only scoreboard updates are campaign
-bookkeeping.
+For compiler changes in this campaign, commit a change only when
+`npm run decide -- <candidate>/golden.json <baseline>/golden.json` returns
+**VERDICT: accept** (headline-Δ CI lower bound > 0 and no ceiling-budget validity
+regression). The former "improve the last-budget mean by ≥5 points" rule is RETIRED
+(+5 is inside the measured noise; see the banner and `docs/metric_problem_statement.md`).
+Documentation-only scoreboard updates are campaign bookkeeping.
 
 The campaign goal is a normal diagnostic `150k` mean score of `500`, robustly
 across seeds and the full spec suite, while working solely on arc placement as
@@ -356,7 +381,7 @@ needs grounded-uphill braking (bleed speed while staying grounded/low-air — th
 ejection-prone primitive) or trajectory/chain-aware planning (out of the
 placement boundary).
 
-### Current baselines (2026-06-03, seeds 0/1/2)
+### Current baselines (2026-06-03, seeds 0/1/2) — HISTORICAL (pre-2026-06-04 metric; numbers are last-budget mean / CURVE_SCORE, seeds 0/1/2, not the HEADLINE)
 
 | Scope | Mode | Archive | Last-budget mean | Valid | Headroom |
 | --- | --- | --- | ---: | --- | ---: |

@@ -7,29 +7,14 @@ export const GOLDEN_SPECS = [
   "drums_crescendo",
   "dense_sprint",
   "syncopated_switchback",
-  // ───────────────────────────────────────────────────────────────────────────
-  // ⚠️⚠️⚠️  HUGE TODO — `opening_burst` is TEMPORARILY EXCLUDED from the headline
-  // benchmark.  RESTORE IT once the compiler is hardened to fragile chains.
-  //
-  // Why it is out: opening_burst is the suite's lone CATASTROPHICALLY-FRAGILE
-  // spec. Its required-contact chain has a knife-edge forward dependency — under
-  // the tiniest placement perturbation it flips from fully valid to ~all-contacts-
-  // missing (a 560→0 score swing), and WHICH seed breaks moves randomly run to
-  // run (s21, then s1, then s2…). So a valid opening_burst run is essentially
-  // LUCK, not a signal of placement quality: it rewards/penalises unrelated
-  // changes at random and drowns out real per-axis progress on the other specs.
-  // Keeping it in the scored mean makes the benchmark a coin-flip near the very
-  // improvements we are trying to measure.
-  //
-  // This is NOT "the spec is wrong" — it is "the compiler is not yet robust to
-  // fragile forward-dependency chains." That robustness is a real, separate work
-  // item (chain-aware selection / multi-gap rollout in the handoff — search/
-  // scheduler territory, OUTSIDE the arc-placement boundary). When that lands and
-  // opening_burst is reliably valid across seeds, PUT IT BACK in this list (and in
-  // the workbench `--specs` in GOAL_LDS_ARC_PLACEMENT.md and the assertion in
-  // tests/v0_golden_config.test.ts). Tracked in TODO.md.
-  // ───────────────────────────────────────────────────────────────────────────
-  // "opening_burst",
+  // opening_burst RESTORED 2026-06-04. It is a catastrophically-fragile chain (a
+  // tiny placement perturbation flips it valid↔~all-missing, and which seed breaks
+  // moves run to run). Under the new metric this is handled honestly rather than as
+  // a coin-flip: validity is a separate ceiling-focused guardrail (not fused into a
+  // bimodal mean), the 8-seed paired bootstrap averages out the seed-luck, and the
+  // headline is ceiling-weighted. Hardening its forward-dependency chain (chain-aware
+  // selection / multi-gap rollout) remains a real search/scheduler work item.
+  "opening_burst",
   "grain_staircase",
   "rhythm_ladder",
   "cold_start",
@@ -51,11 +36,38 @@ export const REPORT_VARIANTS = [
   "time_stretch_102",
 ] as const;
 
-export const GOLDEN_SEEDS = [100, 101, 102] as const;
+// 8 seeds: the measured noise floor (docs/metric_problem_statement.md) shows 3 is
+// under-powered (~14-pt min detectable paired delta) and ~8 resolves ~10-pt gains.
+// Contiguous 0..7 matches the variance-study population; decisions are paired, so
+// the old {100,101,102} lineage is not load-bearing. GOLDEN_SEEDS_OVERRIDE still
+// allows cheap 3-seed smoke runs during iteration.
+export const GOLDEN_SEEDS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 
 /** Default compute checkpoints for the golden budget curve, in simulated rider
- * frames (the honest work unit; see `optimizer/sim_frames.ts`). */
-export const DEFAULT_BUDGETS = [
+ * frames (the honest work unit; see `optimizer/sim_frames.ts`). Dense 5k..175k
+ * grid for the anytime budget->quality curve (measure-once: one compile to the
+ * max budget emits all checkpoints). NOTE: changing this redefines what a
+ * "canonical run" is, but does NOT affect EVALUATOR_FINGERPRINT (which hashes the
+ * per-run ruler, not the budget grid). */
+export const DEFAULT_BUDGETS: readonly number[] = Array.from({ length: 35 }, (_, i) => (i + 1) * 5_000);
+
+/**
+ * The canonical FEW budgets for honest cross-era comparison and the future
+ * budget-aware (non-anytime) mode, used via `--score-budgets`. The headline metric
+ * is grid-agnostic, so scoring on these few is just a different budget list.
+ * TODO(anytime->budget-aware): make this the default headline scope once the search
+ * runs at a single pre-allocated budget rather than across the dense anytime grid.
+ */
+export const CANONICAL_SCORE_BUDGETS = [50_000, 100_000, 150_000] as const;
+
+/**
+ * Lightweight grid for the exploratory oracle/probe scripts (portfolio_oracle,
+ * prefix_branch_oracle, prefix_branch_scheduler_probe). Those are cheap exploration
+ * tools, NOT the canonical decision, so they stay off the dense 5k-175k canonical
+ * grid — keeping a no-arg run fast. This is the grid `DEFAULT_BUDGETS` held before
+ * it grew to the dense anytime curve.
+ */
+export const EXPLORATORY_BUDGETS = [
   35_000,
   40_000,
   45_000,

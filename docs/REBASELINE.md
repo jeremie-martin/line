@@ -6,19 +6,32 @@ numbers from the golden JSON. Do not transcribe scores by hand.
 ## 1. Run the curve and capture JSON
 
 ```bash
-npx tsx scripts/v0/golden.ts --jobs=4 --archive-dir=generated/golden-runs/rebaseline
+# Full canonical run = 8 seeds × dense 5k–175k grid. Use about HALF the cores:
+# a full --jobs=$(nproc) can OOM (each worker holds ~1 GB; 32 workers OOM'd a 62 GB box).
+npx tsx scripts/v0/golden.ts --jobs=$(( $(nproc) / 2 )) --archive-dir=generated/golden-runs/rebaseline
 ```
 
-The JSON contains `curve_score`, `budgets`, `budget_scores`,
-`evaluator_fingerprint`, `source` git metadata, `scope`, and checkpoint rows
-with compact stats and track hashes. The run writes
+The JSON contains the `headline` block (`score`, `ceiling`, `log_auc`, `alpha`,
+`score_budgets`, `validity`) — the **baseline of record** — plus the legacy
+`curve_score`, `budgets`, `budget_scores`, `evaluator_fingerprint`, `source` git
+metadata, `scope`, and checkpoint rows with compact stats and track hashes. The
+run writes
 `generated/golden-runs/rebaseline/golden.json` and
 checkpoint track/report artifacts under `generated/golden-runs/rebaseline/checkpoints/`.
 
-Quick peek:
+Quick peek (prints the HEADLINE metric and the per-budget curve):
 
 ```bash
 npx tsx scripts/v0/analyze_golden_curve.ts generated/golden-runs/rebaseline/golden.json
+```
+
+To decide whether a candidate beats a baseline, use the paired-bootstrap VERDICT
+(not an eyeballed score delta or a fixed "+5" — both are inside the noise; see
+`docs/metric_problem_statement.md`):
+
+```bash
+npx tsx scripts/v0/analyze_golden_curve.ts decide CANDIDATE/golden.json BASELINE/golden.json
+# or: npm run decide -- CANDIDATE/golden.json BASELINE/golden.json
 ```
 
 ## 2. Does the fingerprint change?
@@ -33,6 +46,12 @@ constant.
 - Changes to the scorer, speed ruler, axis measurement/report assembly, or any
   golden spec are deliberate ruler changes. Update the constant in the same
   commit; scores before and after are not comparable.
+- Changing `GOLDEN_SEEDS`, `DEFAULT_BUDGETS`, `CANONICAL_SCORE_BUDGETS`, the
+  headline aggregation (`metric.ts`), or the `--alpha`/`--score-budgets` flags does
+  NOT change the fingerprint (it hashes the per-run ruler + golden specs only). It
+  does change what a "canonical run" is, so re-baseline the recorded numbers — and
+  `decide` will refuse to compare archives whose fingerprint, seeds, or budgets
+  differ, so a stale baseline fails loudly rather than silently.
 
 Recompute without a full run using the same source slices as
 `scripts/v0/golden.ts`:
@@ -56,9 +75,10 @@ the budget table, largest-budget per-spec rows, and the campaign chart point.
 
 ### b) `GOAL_LDS_LOW_BUDGET.md`
 
-Update the current baseline prose with `curve_score`, the budget grid,
-largest-budget valid rows, and the fingerprint. Update the frontier section if
-the curve shape changed materially.
+Update the current baseline prose with the `headline` metric (score / ceiling /
+logAUC), the budget grid, largest-budget valid rows, and the fingerprint
+(`curve_score` is legacy). Update the frontier section if the curve shape changed
+materially.
 
 ### c) `scripts/v0/golden_suite.ts`
 

@@ -146,8 +146,9 @@ npx vitest run tests/optimizer_handoff.test.ts
 npm run golden -- --jobs=4 --compiler=handoff
 ```
 
-The command reports `CURVE_SCORE`, per-budget scores, row checkpoint hashes, and
-compact checkpoint stats. Targeted probes use the same shape:
+The command reports the **HEADLINE** metric (and legacy CURVE_SCORE), per-budget
+scores, row checkpoint hashes, and compact checkpoint stats. Targeted probes use
+the same shape (canonical scoring budgets: `--score-budgets=50000,100000,150000`):
 
 ```bash
 npm run golden -- --specs=tiny_dance,opening_burst --seed=0 --budgets=30000,50000,70000 --verify-checkpoints

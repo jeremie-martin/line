@@ -3,6 +3,11 @@
 For the active campaign charter, boundary definition, and workbench commands,
 see `../GOAL_LDS_ARC_PLACEMENT.md`.
 
+> **Note (2026-06-04):** the CURVE_SCORE figures and promotability calls in this
+> doc predate the headline-metric + paired-bootstrap decision change. Promotion is
+> now decided by `npm run decide`; the qualitative findings still hold, but specific
+> CURVE bars (e.g. "below 369") are obsolete. See `docs/metric_problem_statement.md`.
+
 ## Why this exists
 
 The current compiler has an impact-anchored arc placer in

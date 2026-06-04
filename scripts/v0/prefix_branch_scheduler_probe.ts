@@ -12,7 +12,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { DEFAULT_BUDGETS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
+import { EXPLORATORY_BUDGETS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { scoreDriftReport, shiftedGeometricMean } from "./score.ts";
 import {
   compileHandoff,
@@ -246,7 +246,7 @@ function parseArgs(selection: OracleJson): Args {
     selectionJson,
     specs: parseSpecs(arg("specs")),
     seeds: parseSeeds(arg("seed"), arg("seeds")),
-    budgets: parsePositiveInts(arg("budgets"), DEFAULT_BUDGETS, "budgets"),
+    budgets: parsePositiveInts(arg("budgets"), EXPLORATORY_BUDGETS, "budgets"),
     modes: parseModes(arg("mode")),
     overheads: parseNumberList(arg("overheads"), [0.2, 0.4, 0.6], "overheads"),
     minSelectionDelta,

@@ -1,5 +1,11 @@
 # Speed Policy Follow-Ups
 
+> **HISTORICAL LOG (2026-06-04).** Scores below are single-point CURVE/score values
+> and the accept/reject calls predate the paired cluster-bootstrap decision rule —
+> sub-1-point "misses" (e.g. 513.60 vs 514.09) are well inside the noise and would
+> not gate under `npm run decide`. Re-test borderline calls before acting. The
+> evaluator fingerprint `9bd67dc960f1` is unchanged, so the runs remain comparable.
+
 ## Baseline Evidence
 
 The speed-axis remap made authored `speed` map to a raw velocity range:

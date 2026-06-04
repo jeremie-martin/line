@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import {
+  CANONICAL_SCORE_BUDGETS,
   DEFAULT_BUDGETS,
+  GOLDEN_SEEDS,
   GOLDEN_SPECS,
   REPORT_VARIANTS,
   applyVariant,
@@ -97,9 +99,7 @@ describe("v0 golden configuration", () => {
       "drums_crescendo",
       "dense_sprint",
       "syncopated_switchback",
-      // opening_burst TEMPORARILY EXCLUDED — fragile chain (passes by luck),
-      // restore once the compiler is hardened. See GOLDEN_SPECS in
-      // golden_suite.ts and TODO.md.
+      "opening_burst",
       "grain_staircase",
       "rhythm_ladder",
       "cold_start",
@@ -130,23 +130,24 @@ describe("v0 golden configuration", () => {
     }
   });
 
-  test("default budget curve is the campaign grid", () => {
-    expect([...DEFAULT_BUDGETS]).toEqual([
-      35_000,
-      40_000,
-      45_000,
-      50_000,
-      55_000,
-      60_000,
-      65_000,
-      70_000,
-      75_000,
-    ]);
+  test("default budget curve is the dense anytime grid (5k..175k step 5k)", () => {
+    expect(DEFAULT_BUDGETS).toHaveLength(35);
+    expect(DEFAULT_BUDGETS[0]).toBe(5_000);
+    expect(DEFAULT_BUDGETS[DEFAULT_BUDGETS.length - 1]).toBe(175_000);
+    for (let i = 1; i < DEFAULT_BUDGETS.length; i++) {
+      expect(DEFAULT_BUDGETS[i] - DEFAULT_BUDGETS[i - 1]).toBe(5_000);
+    }
+    // canonical few (for cross-era comparison / future budget-aware mode) are on the grid
+    for (const b of CANONICAL_SCORE_BUDGETS) expect(DEFAULT_BUDGETS).toContain(b);
+  });
+
+  test("golden seeds default to the contiguous 8-seed population (paired-decision power; see metric_problem_statement.md)", () => {
+    expect([...GOLDEN_SEEDS]).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
   });
 
   test("checkpoint verification timeout accounts for standalone checkpoint compiles", () => {
-    expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, false)).toBe(75_000);
-    expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, true)).toBe(570_000);
+    expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, false)).toBe(175_000);
+    expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, true)).toBe(3_325_000);
 
     const normalTimeout = compilerWorkerTimeoutMs(
       compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, false),

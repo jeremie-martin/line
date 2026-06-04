@@ -25,10 +25,14 @@ The compiler work does not change:
 - `Spec` and `DriftReport` shapes
 - `lr-core` physics
 - detector semantics
-- scoring formula
+- per-run scoring formula (`score.ts`) and `EVALUATOR_FINGERPRINT`
 - axis definitions and normalization
 - golden specs
 - contact/off-beat/survival hard-contract semantics
+
+(The HEADLINE aggregation and the accept/reject decision rule are **not** part of
+this frozen ruler — they live in `metric.ts` and `analyze_golden_curve.ts decide`
+and may evolve independently of the per-run scorer.)
 
 ## Acceptance
 
@@ -36,9 +40,17 @@ The compiler work does not change:
   handoff-specific diagnostics.
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
-- `npm run golden` is the full-suite budget-curve score.
-- `npm run golden -- --jobs=4 --compiler=handoff` is the current campaign metric.
+- `npm run golden` runs the full suite (8 seeds {0..7}, dense 5k–175k grid) and
+  reports the **HEADLINE** metric (`α·q(b_max) + (1−α)·logAUC`, α=0.7) plus the
+  per-budget curve and the legacy CURVE_SCORE. For the full run pass
+  `--jobs=$(( $(nproc) / 2 ))` (a full `--jobs=$(nproc)` can OOM — ~1 GB/worker).
+- To decide a change is a real improvement, run
+  `npm run decide -- <candidate>/golden.json <baseline>/golden.json` — a paired
+  cluster-bootstrap VERDICT (accept iff the headline-Δ CI lower bound > 0 and
+  validity does not regress at the ceiling budget). The old fixed "+5" threshold is
+  retired; it is inside the measured noise (`docs/metric_problem_statement.md`).
 
 Any compiler change should preserve these tests and report its impact through the
-golden breakdown: `CURVE_SCORE`, per-budget scores, pass/fail rows, checkpoint
-hashes, worst contacts, worst axes, and `compile_stats`.
+golden breakdown: the `headline` block (score / ceiling / logAUC / validity),
+per-budget scores, pass/fail rows, checkpoint hashes, worst contacts, worst axes,
+and `compile_stats` (CURVE_SCORE retained as a legacy secondary).

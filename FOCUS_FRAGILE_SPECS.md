@@ -121,4 +121,34 @@ degrades the rest.
 
 | label | change | curve | validLast(mean) | worst specs | notes |
 |-------|--------|-------|-----------------|-------------|-------|
-| baseline | continuous, as committed | _pending_ | | | feel run seeds 200–209 |
+| baseline | continuous, as committed | **451.1** | 9.2/10 | solo_run (curve 230, 6/10 valid, dead-ends); cold_start (curve 333, speed rms 0.411) | feel run seeds 200–209 |
+
+### Baseline per-spec (seeds 200–209, 60–120k)
+
+| spec | curve | last | validLast | minV | worst | std | dominant error |
+|------|-------|------|-----------|------|-------|-----|----------------|
+| cold_start | 333.0 | 334.0 | 10/10 | 10 | 290 | 31.7 | **speed rms 0.411** (overshoot all run) |
+| drums_breath | 615.6 | 616.9 | 10/10 | 10 | 530 | 44.2 | air 0.138 |
+| opening_burst | 553.6 | 584.2 | 10/10 | 9 | 518 | 37.7 | grain 0.103 / air 0.166 |
+| solo_run | 229.7 | 399.4 | **6/10** | **0** | **0** | **326.7** | **dead-ends (rideStalled)** — opening overspeed → 4 seeds never valid |
+| syncopated_switchback | 523.6 | 525.0 | 10/10 | 10 | 463 | 33.2 | air 0.192 |
+
+### Root cause (both top failures are one mechanism)
+
+Ballistic flight conserves energy: a hop returning to the same height arrives at
+the same speed; catches can only shed speed by landing *higher*, which can't be
+sustained over a long run (bounded vertical space). So ballistic catches **cannot
+sustainably reduce speed** — only **grounded uphill friction** can.
+
+- **cold_start** (`preroll=0`): must brake from the engine's high default entry
+  down to a 0.35 speed target and can't → overspeed all run (rms 0.411).
+- **solo_run** (~80 contacts): seeds that open fast creep/net-downhill until a
+  tight contact is unplaceable → search dead-ends (`rideStalled`); 4/10 seeds
+  never find a valid chain. The handoff already has a *selection-only* overshoot
+  penalty it calls "too weak to arrest creep" (handoff.ts:2200).
+
+Proposed first lever: **grounded-uphill braking** — a generic post-contact
+ride-out that climbs gently *while grounded* to bleed speed via the surface
+(continuously sized from the gap's speed target), giving sustained deceleration
+that ballistic launch-angle shaping physically cannot. Validity-first: measured on
+the focus curve + fragility metrics, guard-railed on the headline suite.

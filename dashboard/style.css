@@ -416,6 +416,133 @@ hr {
 .run-summary .tile.good .t-value { color: var(--good); }
 .run-summary .tile.bad  .t-value { color: var(--bad); }
 
+.axis-live {
+  margin-top: 12px;
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+}
+.axis-live-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.axis-live-head a {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-fade);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.axis-live-head a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+.axis-spark {
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 5px 6px 4px;
+  margin-bottom: 8px;
+}
+.axis-spark-svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.axis-spark-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  fill: var(--ink-fade);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.axis-spark-base {
+  stroke: var(--rule-soft);
+  stroke-width: 0.8;
+}
+.axis-spark-target {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.axis-spark-achieved {
+  fill: none;
+  stroke-width: 1.2;
+  stroke-opacity: 0.78;
+  stroke-dasharray: 4 3;
+  stroke-linejoin: round;
+}
+.axis-spark-cursor line {
+  stroke: var(--ink);
+  stroke-width: 0.9;
+  stroke-dasharray: 2 2;
+  opacity: 0.6;
+}
+.axis-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.axis-row {
+  --axis-color: var(--ink-mid);
+}
+.axis-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.axis-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--axis-color);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.axis-values {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-fade);
+  letter-spacing: 0.03em;
+}
+.axis-delta-val {
+  color: var(--ink-mid);
+}
+.axis-delta-val.good { color: var(--good); }
+.axis-delta-val.bad  { color: var(--bad); }
+.axis-meter {
+  position: relative;
+  height: 7px;
+  background: var(--rule-soft);
+  overflow: hidden;
+}
+.axis-target-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: color-mix(in srgb, var(--axis-color) 26%, transparent);
+  border-right: 1px solid var(--axis-color);
+}
+.axis-achieved-mark {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--axis-color);
+  box-shadow: 0 0 0 1px var(--panel);
+}
+.axis-row.missing {
+  opacity: 0.45;
+}
+
 .cursor-row {
   display: flex;
   justify-content: space-between;

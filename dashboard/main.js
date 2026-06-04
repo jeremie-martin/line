@@ -89,7 +89,9 @@ async function mountReportView(url) {
     return r.json();
   });
 
-  const gaps = (report.gaps ?? []).slice().sort((a, b) => a.t_end - b.t_end);
+  const durationFrames = Math.max(1, Math.ceil(reportDurationSec(report) * 40));
+  const axisReport = normalizeAxisReport(report, durationFrames, 40);
+  const gaps = axisReport.points;
 
   // Which axes actually appear in the gaps, in canonical order.
   const present = new Set();
@@ -106,7 +108,7 @@ async function mountReportView(url) {
   const offBeat = (report.off_beat_landings ?? []).length;
   const term = report.terminus;
   setText("rp-meta",
-    `${gaps.length} gaps · ${axes.length} axes · ${surv}/${gaps.length} survived` +
+    `${gaps.length} ${axisReport.kind} · ${axes.length} axes · ${surv}/${gaps.length} survived` +
     (offBeat ? ` · ${offBeat} off-beat` : "") +
     (term ? ` · terminus ${term.reason}@${term.frame}` : ""));
 
@@ -229,6 +231,56 @@ function renderAxisChart(host, axis, gaps, tMax) {
     svg.appendChild(el("text", { class: "rp-xlabel", x, y: padT + innerH + 16, "text-anchor": "middle" },
       `${s}s`));
   }
+}
+
+function normalizeAxisReport(report, N, FPS) {
+  const durationSec = Math.max(0.001, N / FPS);
+  if (Array.isArray(report?.gaps) && report.gaps.length) {
+    let prevFrame = 0;
+    const points = report.gaps
+      .slice()
+      .sort((a, b) => a.t_end - b.t_end)
+      .map((g, i) => {
+        const frameEnd = Math.max(prevFrame, Math.round((g.t_end ?? 0) * FPS));
+        const point = {
+          gap_index: g.gap_index ?? i,
+          t_end: frameEnd / FPS,
+          frameStart: prevFrame,
+          frameEnd,
+          survived: g.survived !== false,
+          axes: g.axes ?? {},
+        };
+        prevFrame = frameEnd;
+        return point;
+      });
+    return { kind: "gaps", points };
+  }
+
+  if (Array.isArray(report?.sections) && report.sections.length) {
+    const count = report.sections.length;
+    const points = report.sections.map((s, i) => {
+      const frameStart = Math.round((i / count) * N);
+      const frameEnd = Math.round(((i + 1) / count) * N);
+      return {
+        gap_index: s.section_index ?? i,
+        t_end: frameEnd / FPS,
+        frameStart,
+        frameEnd,
+        survived: s.survived !== false,
+        axes: s.axes ?? {},
+      };
+    });
+    return { kind: "sections", points };
+  }
+
+  return { kind: "gaps", points: [] };
+}
+
+function reportDurationSec(report) {
+  const gapEnd = Math.max(0, ...(report?.gaps ?? []).map((g) => Number(g.t_end) || 0));
+  const contactEnd = Math.max(0, ...(report?.contacts ?? []).map((c) => Number(c.t_target) || 0));
+  const terminusEnd = Number(report?.terminus?.frame) > 0 ? Number(report.terminus.frame) / 40 : 0;
+  return Math.max(gapEnd, contactEnd, terminusEnd, 1);
 }
 
 // ── Golden-runs analyzer ─────────────────────────────────────────
@@ -1574,6 +1626,11 @@ async function mountRunView(run) {
   const events = (det.events ?? []).slice().sort((a, b) => a.frame - b.frame);
 
   const summary = buildSummary(det, speed, posY, airborne, events, N, FPS);
+  const axisReport = await loadRunAxisReport(det, run).catch((e) => {
+    console.warn("axis report unavailable", e);
+    return null;
+  });
+  const axisLive = renderAxisLive(axisReport ? buildAxisLiveState(axisReport, N, FPS) : null);
 
   // ── Header ──
   setText("hd-run", run);
@@ -1748,6 +1805,7 @@ async function mountRunView(run) {
     renderProximity(events, f, FPS, seekTo);
     renderBadges(badgesEl, events, tSec, FPS);
     renderLandingFlash(flashEl, events, tSec, FPS);
+    axisLive?.update(f);
 
     let activeIdx = -1;
     let bestDist = Infinity;
@@ -1832,6 +1890,228 @@ function deriveLongestContact(airborne) {
     else cur = 0;
   }
   return longest;
+}
+
+async function loadRunAxisReport(det, run) {
+  const candidates = reportCandidateUrls(det, run);
+  for (const url of candidates) {
+    const res = await fetch(url, { cache: "no-cache" });
+    if (!res.ok) continue;
+    const report = await res.json();
+    const hasAxes =
+      (Array.isArray(report.gaps) && report.gaps.some((g) => Object.keys(g.axes ?? {}).length)) ||
+      (Array.isArray(report.sections) && report.sections.some((s) => Object.keys(s.axes ?? {}).length));
+    if (hasAxes) return { url, report };
+  }
+  return null;
+}
+
+function reportCandidateUrls(det, run) {
+  const urls = [];
+  const add = (url) => {
+    if (!url || urls.includes(url)) return;
+    urls.push(url);
+  };
+
+  add(workspaceUrl(det.meta?.report));
+
+  const track = det.meta?.track;
+  if (track && /\.track\.json$/i.test(String(track))) {
+    add(workspaceUrl(String(track).replace(/\.track\.json$/i, ".report.json")));
+  }
+
+  if (run) {
+    add(`/generated/dashboard/${encodeURIComponent(run)}.report.json`);
+    add(`/generated/${encodeURIComponent(run)}.report.json`);
+  }
+  return urls.filter(Boolean);
+}
+
+function buildAxisLiveState(axisReport, N, FPS) {
+  const normalized = normalizeAxisReport(axisReport.report, N, FPS);
+  const points = normalized.points.filter((p) => Object.keys(p.axes ?? {}).length);
+  const present = new Set();
+  for (const p of points) for (const axis of Object.keys(p.axes ?? {})) present.add(axis);
+  const axes = AXIS_ORDER.filter((a) => present.has(a))
+    .concat([...present].filter((a) => !AXIS_ORDER.includes(a)));
+  if (!axes.length || !points.length) return null;
+
+  const scales = {};
+  for (const axis of axes) {
+    const infoMax = AXIS_INFO[axis]?.max ?? 1;
+    let maxValue = infoMax;
+    for (const p of points) {
+      const v = p.axes?.[axis];
+      if (!v) continue;
+      maxValue = Math.max(maxValue, finiteAxisValue(v.target), finiteAxisValue(v.achieved));
+    }
+    scales[axis] = Math.max(0.001, maxValue);
+  }
+
+  return {
+    url: axisReport.url,
+    kind: normalized.kind,
+    points,
+    axes,
+    scales,
+    N,
+  };
+}
+
+function renderAxisLive(state) {
+  const panel = document.getElementById("axis-live");
+  const rowsHost = document.getElementById("axis-rows");
+  const sparkHost = document.getElementById("axis-spark");
+  const reportLink = document.getElementById("axis-report-link");
+
+  rowsHost.innerHTML = "";
+  sparkHost.innerHTML = "";
+
+  if (!state) {
+    panel.hidden = true;
+    reportLink.hidden = true;
+    return null;
+  }
+
+  panel.hidden = false;
+  reportLink.hidden = false;
+  reportLink.href = `?report=${encodeURIComponent(state.url)}`;
+
+  const rowByAxis = new Map();
+  for (const axis of state.axes) {
+    const info = AXIS_INFO[axis] ?? { label: axis, color: "#5d564a", max: 1 };
+    const row = document.createElement("div");
+    row.className = "axis-row";
+    row.dataset.axis = axis;
+    row.style.setProperty("--axis-color", info.color);
+    row.innerHTML =
+      `<div class="axis-row-top">` +
+        `<span class="axis-name">${escapeHtml(info.label)}</span>` +
+        `<span class="axis-values">` +
+          `<span class="axis-target-val">target —</span>` +
+          `<span class="axis-achieved-val">measured —</span>` +
+          `<span class="axis-delta-val">Δ —</span>` +
+        `</span>` +
+      `</div>` +
+      `<div class="axis-meter">` +
+        `<div class="axis-target-fill"></div>` +
+        `<i class="axis-achieved-mark"></i>` +
+      `</div>`;
+    rowsHost.appendChild(row);
+    rowByAxis.set(axis, row);
+  }
+
+  const spark = renderAxisSpark(sparkHost, state);
+
+  const update = (frame) => {
+    for (const axis of state.axes) {
+      const value = axisValueAtFrame(state, axis, frame);
+      const row = rowByAxis.get(axis);
+      if (!value || !row) {
+        row?.classList.add("missing");
+        continue;
+      }
+      row.classList.remove("missing");
+      const target = finiteAxisValue(value.target);
+      const achieved = finiteAxisValue(value.achieved);
+      const delta = achieved - target;
+      const scale = state.scales[axis] || 1;
+      row.querySelector(".axis-target-val").textContent = `target ${target.toFixed(2)}`;
+      row.querySelector(".axis-achieved-val").textContent = `measured ${achieved.toFixed(2)}`;
+      const deltaEl = row.querySelector(".axis-delta-val");
+      deltaEl.textContent = `Δ ${delta >= 0 ? "+" : ""}${delta.toFixed(2)}`;
+      deltaEl.classList.toggle("good", Math.abs(delta) <= 0.08);
+      deltaEl.classList.toggle("bad", Math.abs(delta) > 0.18);
+      row.querySelector(".axis-target-fill").style.width = `${clamp((target / scale) * 100, 0, 100)}%`;
+      row.querySelector(".axis-achieved-mark").style.left = `${clamp((achieved / scale) * 100, 0, 100)}%`;
+    }
+    spark.setCursor(frame);
+  };
+  update(0);
+  return { update };
+}
+
+function renderAxisSpark(host, state) {
+  const W = 360;
+  const rowH = 30;
+  const padL = 44, padR = 8, padT = 6, padB = 8;
+  const H = padT + padB + state.axes.length * rowH;
+  const innerW = W - padL - padR;
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "axis-spark-svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.style.height = `${H}px`;
+  host.appendChild(svg);
+
+  const el = (tag, attrs = {}, text) => {
+    const n = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v == null) continue;
+      n.setAttribute(k, String(v));
+    }
+    if (text != null) n.textContent = text;
+    return n;
+  };
+
+  const xAt = (frame) => padL + clamp(frame / Math.max(1, state.N - 1), 0, 1) * innerW;
+
+  for (let i = 0; i < state.axes.length; i++) {
+    const axis = state.axes[i];
+    const info = AXIS_INFO[axis] ?? { label: axis, color: "#5d564a", max: 1 };
+    const y0 = padT + i * rowH;
+    const yMid = y0 + rowH / 2;
+    const yAt = (value) => y0 + 4 + (1 - clamp(value / (state.scales[axis] || 1), 0, 1)) * (rowH - 8);
+
+    svg.appendChild(el("text", { class: "axis-spark-label", x: padL - 8, y: yMid + 3, "text-anchor": "end" }, info.label));
+    svg.appendChild(el("line", { class: "axis-spark-base", x1: padL, x2: padL + innerW, y1: yMid, y2: yMid }));
+
+    const targetPath = axisStepPath(state.points, axis, "target", xAt, yAt);
+    if (targetPath) svg.appendChild(el("path", { class: "axis-spark-target", d: targetPath, style: `stroke:${info.color}` }));
+    const achievedPath = axisStepPath(state.points, axis, "achieved", xAt, yAt);
+    if (achievedPath) svg.appendChild(el("path", { class: "axis-spark-achieved", d: achievedPath, style: `stroke:${info.color}` }));
+  }
+
+  const cursor = el("g", { class: "axis-spark-cursor" });
+  svg.appendChild(cursor);
+
+  return {
+    setCursor(frame) {
+      cursor.innerHTML = "";
+      const x = xAt(frame);
+      cursor.appendChild(el("line", { x1: x, x2: x, y1: padT - 2, y2: H - padB + 2 }));
+    },
+  };
+}
+
+function axisStepPath(points, axis, key, xAt, yAt) {
+  let d = "";
+  for (const p of points) {
+    const value = p.axes?.[axis]?.[key];
+    if (!Number.isFinite(value)) continue;
+    const y = yAt(value);
+    const x0 = xAt(p.frameStart);
+    const x1 = xAt(p.frameEnd);
+    if (!d) d = `M${x0.toFixed(2)},${y.toFixed(2)}`;
+    else d += `L${x0.toFixed(2)},${y.toFixed(2)}`;
+    d += `L${x1.toFixed(2)},${y.toFixed(2)}`;
+  }
+  return d;
+}
+
+function axisValueAtFrame(state, axis, frame) {
+  const active = state.points.find((p) => frame <= p.frameEnd) ?? state.points[state.points.length - 1];
+  if (active?.axes?.[axis]) return active.axes[axis];
+  for (let i = state.points.indexOf(active); i >= 0; i--) {
+    const value = state.points[i]?.axes?.[axis];
+    if (value) return value;
+  }
+  return state.points.find((p) => p.axes?.[axis])?.axes?.[axis] ?? null;
+}
+
+function finiteAxisValue(value) {
+  return Number.isFinite(value) ? value : 0;
 }
 
 function renderSummaryTiles(s, FPS, terminus) {

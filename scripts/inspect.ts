@@ -51,6 +51,10 @@ mkdirSync(outDir, { recursive: true });
 // ── 1. Load track, build lr-core engine ──────────────────────────────────
 const trackJson = JSON.parse(readFileSync(trackPath, "utf8"));
 const duration: number = trackJson.duration ?? 1200;
+const siblingReportPath = trackPath.replace(/\.track\.json$/i, ".report.json");
+const reportPath = siblingReportPath !== trackPath && existsSync(siblingReportPath)
+  ? siblingReportPath
+  : null;
 console.log(`track=${trackPath} (${trackJson.lines?.length ?? 0} lines, duration=${duration} frames)`);
 console.log(`run=${runName}, out=${outDir}`);
 
@@ -134,6 +138,7 @@ writeFileSync(
     {
       meta: {
         track: trackPath,
+        ...(reportPath ? { report: reportPath } : {}),
         run: runName,
         duration,
         fps: 40,

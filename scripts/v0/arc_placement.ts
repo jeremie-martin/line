@@ -807,13 +807,30 @@ export function sampleContactCenteredLinesWithDiagnostics(
     }
   }
 
-  const postLength = clamp(sampledPostLength, 28, 220);
+  // ── Air-targeted grounded ride-out length ───────────────────────────────────
+  // The measured airborne fraction over the gap is ~ 1 − groundedFrames/N: the
+  // longer the rider stays on the ride-out before the hop, the LESS air, and vice
+  // versa. So size the grounded ride toward (1−air_target) of the span to the next
+  // contact — but never past a safe fraction of that distance, else the ride-out
+  // reaches into the next beat and contaminates it (off-beat). Spanned across the
+  // attempt batch from the locally-sampled length to the air-targeted one; the
+  // cost-sorted handoff keeps the best valid catch. General for every gap; this is
+  // the air counterpart to the energy launch's speed control.
+  let postLength = clamp(sampledPostLength, 28, 220);
+  if (airLengthEnabled() && nextGapFrames !== null && targets.air !== undefined) {
+    const speed = Math.max(1, targetState.speed);
+    const groundedTargetLen = speed * clamp(1 - air, 0, 1) * nextGapFrames;
+    const safeCap = speed * nextGapFrames * 0.55;
+    const targetLen = clamp(Math.min(groundedTargetLen, safeCap), 28, 360);
+    const blend = clamp((((attempt % 8) + 8) % 8) / 7, 0, 1);
+    postLength = clamp(lerp(sampledPostLength, targetLen, blend * 0.6), 28, 360);
+  }
   // Round (not ceil) the segment count so each emitted line length lands near the
   // grain-derived `segmentLength` rather than systematically shorter: ceil always
   // splits into MORE, hence SHORTER, segments, biasing the measured grain (median
   // line length / cap) below the target. Rounding centres the median on the target.
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
-  const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 14);
+  const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
 
   const contactAngleRad = (contactAngleDeg * Math.PI) / 180;
   const tangentX = Math.cos(contactAngleRad);
@@ -863,6 +880,12 @@ function levelSpanEnabled(): boolean {
  *  launch. */
 function energyLaunchEnabled(): boolean {
   return envValue("LR_LAUNCH") !== "level";
+}
+
+/** Air-targeted grounded ride-out length: ON by default in continuous mode; opt
+ *  out with LR_AIRLEN=0 for A/B against the launch-only state. */
+function airLengthEnabled(): boolean {
+  return envValue("LR_AIRLEN") !== "0";
 }
 
 export function shouldUseContactCenteredLines(

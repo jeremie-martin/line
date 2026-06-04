@@ -565,13 +565,173 @@ hr {
 /* ─── Landing view ────────────────────────────────────────────── */
 
 #landing-view {
-  padding: 28px;
+  padding: 22px 28px 40px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.landing-head {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 12px;
+  margin-bottom: 14px;
 }
 #landing-view h2 {
   font-family: var(--serif);
   font-style: italic;
   font-size: 22px;
   margin: 0 0 14px;
+}
+.landing-head h2 {
+  font-size: 24px;
+  margin-bottom: 2px;
+}
+.launch-panel {
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  padding: 12px;
+  margin-bottom: 18px;
+}
+.launch-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.launch-panel-head h2,
+.recent-title {
+  margin-bottom: 0;
+}
+.launch-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.25fr) minmax(220px, 1.25fr) minmax(86px, 0.45fr) minmax(120px, 0.55fr) minmax(86px, 0.4fr) minmax(220px, 1fr) auto;
+  gap: 9px;
+  align-items: end;
+}
+.field {
+  min-width: 0;
+}
+.field span {
+  display: block;
+}
+.field input,
+.field select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  margin-top: 4px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 7px;
+}
+.field input:focus,
+.field select:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: 0;
+}
+.launch-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  min-height: 32px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 5px 8px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-mid);
+}
+.launch-toggles label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.launch-toggles input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+.launch-toggles label.disabled {
+  color: var(--ink-ghost);
+}
+#job-submit {
+  appearance: none;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--panel);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-height: 32px;
+  padding: 5px 12px;
+}
+#job-submit:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+#job-submit:disabled {
+  cursor: default;
+  opacity: 0.48;
+}
+.launch-form.busy {
+  opacity: 0.72;
+}
+.job-status {
+  margin-top: 12px;
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+}
+.job-status-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.job-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.job-links a {
+  border: 1px solid var(--rule);
+  background: var(--paper-warm);
+  padding: 4px 7px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.job-links a:hover {
+  text-decoration: none;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+#job-log {
+  margin: 0;
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink-mid);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.45;
+  padding: 8px;
+  white-space: pre-wrap;
+}
+.recent-title {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 #runs-list {
   list-style: none;
@@ -643,7 +803,7 @@ code {
   margin-top: 2px;
 }
 .golden-entry {
-  margin: -8px 0 14px;
+  margin: 0;
 }
 .golden-entry a {
   display: inline-flex;
@@ -1051,6 +1211,21 @@ code {
   }
   .main-col { padding: 18px 20px; }
   .ledger { max-height: 280px; }
+  #landing-view {
+    padding: 18px 16px 32px;
+  }
+  .landing-head,
+  .launch-panel-head,
+  .job-status-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .launch-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .launch-toggles {
+    align-items: flex-start;
+  }
   #golden-view {
     padding: 18px 16px 32px;
   }

@@ -125,12 +125,68 @@
 </main>
 
 <main id="landing-view" hidden>
-  <h2>recent runs</h2>
-  <p class="golden-entry"><a href="?golden=1">golden run analysis</a></p>
+  <header class="landing-head">
+    <a href="./" class="brand">line</a>
+    <div>
+      <h2>dashboard</h2>
+      <p class="golden-entry"><a href="?golden=1">golden run analysis</a></p>
+    </div>
+  </header>
+
+  <section class="launch-panel" id="launch-panel">
+    <div class="launch-panel-head">
+      <h2>new run</h2>
+      <span class="small" id="job-api-state">loading specs</span>
+    </div>
+
+    <form class="launch-form" id="job-form">
+      <label class="field field-wide">
+        <span class="label">spec</span>
+        <select id="job-spec" name="spec"></select>
+      </label>
+
+      <label class="field field-wide">
+        <span class="label">run</span>
+        <input id="job-run-name" name="runName" type="text" autocomplete="off" spellcheck="false">
+      </label>
+
+      <label class="field">
+        <span class="label">seed</span>
+        <input id="job-seed" name="seed" type="number" step="1" value="0">
+      </label>
+
+      <label class="field">
+        <span class="label">budget</span>
+        <input id="job-budget" name="budget" type="number" step="10000" min="10000" value="200000">
+      </label>
+
+      <label class="field">
+        <span class="label">zoom</span>
+        <input id="job-zoom" name="zoom" type="number" step="0.25" min="0.25" value="3">
+      </label>
+
+      <div class="launch-toggles" role="group" aria-label="render settings">
+        <label><input id="job-render" name="render" type="checkbox" checked> render video</label>
+        <label><input id="job-1080p" name="resolution" type="checkbox"> 1080p</label>
+        <label><input id="job-hq" name="hq" type="checkbox"> HQ</label>
+      </div>
+
+      <button type="submit" id="job-submit">generate</button>
+    </form>
+
+    <div class="job-status" id="job-status" hidden>
+      <div class="job-status-head">
+        <span class="chip" id="job-state">queued</span>
+        <div class="job-links" id="job-links"></div>
+      </div>
+      <pre id="job-log"></pre>
+    </div>
+  </section>
+
+  <h2 class="recent-title">recent runs</h2>
   <ol id="runs-list"></ol>
   <p class="hint">
     No run picked. Pass <code>?run=&lt;name&gt;</code> in the URL, or click a run above.
-    Runs are created by <code>npm run inspect -- --track=…</code>.
   </p>
 </main>
 

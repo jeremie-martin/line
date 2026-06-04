@@ -1369,7 +1369,16 @@ function goldenSvg(tag, attrs = {}, text) {
 async function mountLandingView() {
   const view = document.getElementById("landing-view");
   view.hidden = false;
+  initJobForm().catch((e) => {
+    console.error(e);
+    setText("job-api-state", "generation unavailable");
+  });
+  await refreshRunsList();
+}
+
+async function refreshRunsList() {
   const list = document.getElementById("runs-list");
+  list.innerHTML = "";
   try {
     const res = await fetch("/shakedown/runs.json", { cache: "no-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1390,6 +1399,155 @@ async function mountLandingView() {
   } catch (e) {
     list.innerHTML = `<li>No <code>shakedown/runs.json</code> yet — run <code>npm run inspect -- --track=…</code>.</li>`;
   }
+}
+
+async function initJobForm() {
+  const form = document.getElementById("job-form");
+  const specSelect = document.getElementById("job-spec");
+  const runInput = document.getElementById("job-run-name");
+  const renderInput = document.getElementById("job-render");
+  const resolutionInput = document.getElementById("job-1080p");
+  const hqInput = document.getElementById("job-hq");
+  const submit = document.getElementById("job-submit");
+
+  const res = await fetch("/api/specs", { cache: "no-cache" });
+  if (!res.ok) throw new Error(`specs: HTTP ${res.status}`);
+  const { specs } = await res.json();
+
+  specSelect.innerHTML = "";
+  for (const spec of specs ?? []) {
+    const option = document.createElement("option");
+    option.value = spec.path;
+    option.textContent = spec.label;
+    specSelect.appendChild(option);
+  }
+
+  if (!specSelect.options.length) {
+    setText("job-api-state", "no specs found");
+    submit.disabled = true;
+    return;
+  }
+
+  setText("job-api-state", `${specSelect.options.length} specs`);
+  autofillRunName();
+
+  runInput.addEventListener("input", () => {
+    runInput.dataset.userEdited = "1";
+  });
+  specSelect.addEventListener("change", () => {
+    if (runInput.dataset.userEdited !== "1") autofillRunName();
+  });
+  renderInput.addEventListener("change", syncRenderToggles);
+  syncRenderToggles();
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    submit.disabled = true;
+    form.classList.add("busy");
+    showJobStatus({ status: "queued", logs: ["queued"] });
+
+    try {
+      const payload = {
+        spec: specSelect.value,
+        runName: runInput.value,
+        seed: Number(document.getElementById("job-seed").value),
+        budget: Number(document.getElementById("job-budget").value),
+        zoom: Number(document.getElementById("job-zoom").value),
+        render: renderInput.checked,
+        resolution: resolutionInput.checked ? "1080p" : "720p",
+        hq: hqInput.checked,
+      };
+      const start = await fetch("/api/jobs/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await start.json();
+      if (!start.ok) throw new Error(body.error ?? `HTTP ${start.status}`);
+      pollJob(body.job.id, form, submit);
+    } catch (e) {
+      showJobStatus({ status: "failed", error: String(e), logs: [`ERROR: ${String(e)}`] });
+      form.classList.remove("busy");
+      submit.disabled = false;
+    }
+  });
+
+  function autofillRunName() {
+    runInput.value = `${specBaseName(specSelect.value)}_${compactLocalTimestamp()}`;
+  }
+
+  function syncRenderToggles() {
+    const enabled = renderInput.checked;
+    resolutionInput.disabled = !enabled;
+    hqInput.disabled = !enabled;
+    resolutionInput.closest("label").classList.toggle("disabled", !enabled);
+    hqInput.closest("label").classList.toggle("disabled", !enabled);
+  }
+}
+
+async function pollJob(id, form, submit) {
+  try {
+    const res = await fetch(`/api/jobs/${encodeURIComponent(id)}`, { cache: "no-cache" });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+    const job = body.job;
+    showJobStatus(job);
+    if (job.status === "queued" || job.status === "running") {
+      setTimeout(() => pollJob(id, form, submit), 1200);
+    } else {
+      form.classList.remove("busy");
+      submit.disabled = false;
+      refreshRunsList();
+    }
+  } catch (e) {
+    showJobStatus({ status: "failed", error: String(e), logs: [`ERROR: ${String(e)}`] });
+    form.classList.remove("busy");
+    submit.disabled = false;
+  }
+}
+
+function showJobStatus(job) {
+  const box = document.getElementById("job-status");
+  const state = document.getElementById("job-state");
+  const log = document.getElementById("job-log");
+  const links = document.getElementById("job-links");
+
+  box.hidden = false;
+  state.textContent = job.status ?? "queued";
+  state.classList.toggle("good", job.status === "succeeded");
+  state.classList.toggle("bad", job.status === "failed");
+  log.textContent = (job.logs ?? []).join("\n");
+  log.scrollTop = log.scrollHeight;
+
+  links.innerHTML = "";
+  if (job.dashboardUrl) links.appendChild(jobLink(job.dashboardUrl, "open run"));
+  if (job.reportUrl) links.appendChild(jobLink(job.reportUrl, "report"));
+  if (job.trackPath) links.appendChild(jobLink(job.trackPath, "track"));
+  if (job.reportPath) links.appendChild(jobLink(job.reportPath, "json"));
+}
+
+function jobLink(href, label) {
+  const a = document.createElement("a");
+  a.href = href;
+  a.textContent = label;
+  return a;
+}
+
+function specBaseName(path) {
+  return String(path).split("/").pop().replace(/\.ts$/, "").replace(/[^A-Za-z0-9._-]+/g, "_");
+}
+
+function compactLocalTimestamp() {
+  const d = new Date();
+  const parts = [
+    d.getFullYear(),
+    pad(d.getMonth() + 1, 2),
+    pad(d.getDate(), 2),
+    "_",
+    pad(d.getHours(), 2),
+    pad(d.getMinutes(), 2),
+  ];
+  return parts.join("");
 }
 
 // ── Run view ─────────────────────────────────────────────────────

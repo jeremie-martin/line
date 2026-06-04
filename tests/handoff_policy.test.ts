@@ -33,7 +33,7 @@ import {
   steepCatchTemplateIndex,
   usesSteepCatchTemplateAttempt,
 } from "../scripts/v0/arc_placement.ts";
-import type { Gap } from "../scripts/v0/types.ts";
+import { authoredSpeedToPx, type Gap } from "../scripts/v0/types.ts";
 import type { SearchNode } from "../scripts/v0/optimizer/node.ts";
 
 function gap(index: number, startFrame: number, endFrame: number, endsWithContact = true): Gap {
@@ -166,10 +166,10 @@ describe("handoff policy boundaries", () => {
   });
 
   test("brake work fires only on mild-overspeed targets", () => {
-    expect(shouldOfferBrakeCandidates(0.78, 1.0)).toBe(true); // mild target, at ratio floor
-    expect(shouldOfferBrakeCandidates(0.78, 0.5)).toBe(false); // below the overspeed ratio floor
-    expect(shouldOfferBrakeCandidates(0.8, 1.15)).toBe(false); // above mild target -> no brake
-    expect(shouldOfferBrakeCandidates(0.8, 1.15, true)).toBe(false);
+    expect(shouldOfferBrakeCandidates(9.36, 1.0)).toBe(true); // mild target, at ratio floor
+    expect(shouldOfferBrakeCandidates(9.36, 0.5)).toBe(false); // below the overspeed ratio floor
+    expect(shouldOfferBrakeCandidates(9.4, 1.15)).toBe(false); // above mild target -> no brake
+    expect(shouldOfferBrakeCandidates(9.4, 1.15, true)).toBe(false);
   });
 
   test("start feasibility scoring only requires two future contacts", () => {
@@ -180,8 +180,8 @@ describe("handoff policy boundaries", () => {
   });
 
   test("start overshoot scoring is gated to high-speed openings", () => {
-    expect(usesHighSpeedStartOvershootScoring({ speed: 0.75 })).toBe(true);
-    expect(usesHighSpeedStartOvershootScoring({ speed: 0.74 })).toBe(false);
+    expect(usesHighSpeedStartOvershootScoring({ speed: 0.5 })).toBe(true);
+    expect(usesHighSpeedStartOvershootScoring({ speed: 0.49 })).toBe(false);
     expect(usesHighSpeedStartOvershootScoring({})).toBe(false);
   });
 
@@ -325,7 +325,7 @@ describe("arc placement mode policy", () => {
     const overspeed = sampleContactCenteredLinesWithDiagnostics(
       () => 0.5,
       { ...baseState, speed: 12 },
-      { air: 0.5, speed: 0.5, grain: 0.5 },
+      { air: 0.5, speed: 0, grain: 0.5 },
       gap(0, 0, 24),
       20,
     );
@@ -546,10 +546,10 @@ describe("arc placement mode policy", () => {
     expect(releaseStateFrame(gap(0, 10, 20), [20])).toBe(28);
 
     expect(releaseSpeedPenalty(undefined, 0.5)).toBe(0);
-    expect(releaseSpeedPenalty(6, undefined)).toBe(0);
-    expect(releaseSpeedPenalty(6, 0.5)).toBe(0);
-    expect(releaseSpeedPenalty(12, 0.5)).toBeCloseTo(0.0875, 6);
-    expect(releaseSpeedPenalty(0, 0.5)).toBeCloseTo(0.0875, 6);
+    expect(releaseSpeedPenalty(authoredSpeedToPx(0.5), undefined)).toBe(0);
+    expect(releaseSpeedPenalty(authoredSpeedToPx(0.5), 0.5)).toBeCloseTo(0, 12);
+    expect(releaseSpeedPenalty(authoredSpeedToPx(1), 0.5)).toBeCloseTo(0.0875, 6);
+    expect(releaseSpeedPenalty(authoredSpeedToPx(0), 0.5)).toBeCloseTo(0.0875, 6);
   });
 
   test("arc placement diagnostics split direct failure reasons by sample mode", () => {

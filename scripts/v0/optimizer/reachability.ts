@@ -38,7 +38,7 @@ import {
   readTargetState,
   sampleArcParams,
 } from "../arc_placement.ts";
-import { CALIB, type Gap } from "../types.ts";
+import { SPEED_AXIS, authoredSpeedToPx, type Gap } from "../types.ts";
 
 /** Settle window after the contact frame at which we read the exit state, so a
  *  brief post-catch bounce has resolved (matches the candidate detector's
@@ -265,7 +265,10 @@ function localGap(gap: Gap): Gap {
 /** A small fixed grid of entry velocities (3 speeds × 3 angles) around the gap's
  *  target speed, with steeper angles when the gap wants high air. */
 function velocityGrid(gap: Gap): HandoffState[] {
-  const targetSpeed = Math.max(1.5, Math.min(14, (gap.targets.speed ?? 0.55) * CALIB.SPEED_CAP));
+  const rawTargetSpeed = gap.targets.speed === undefined
+    ? SPEED_AXIS.UNTARGETED_REACHABILITY_PX_PER_FRAME
+    : authoredSpeedToPx(gap.targets.speed);
+  const targetSpeed = Math.max(1.5, Math.min(14, rawTargetSpeed));
   const speeds = uniqueSorted(
     [targetSpeed - 3, targetSpeed, targetSpeed + 3].map((s) => Math.max(1.5, Math.min(16, s))),
   );

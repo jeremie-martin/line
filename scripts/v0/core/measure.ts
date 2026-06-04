@@ -14,8 +14,16 @@
  */
 
 import type { Detection } from "../../lib/detector.ts";
-import { AXES, type AxisName, type AxisValues, type Gap, type TrackLine, CALIB } from "../types.ts";
-import { airborneAt, measurementLastFrame, median, speedAt } from "./substrate.ts";
+import {
+  AXES,
+  type AxisName,
+  type AxisValues,
+  type Gap,
+  type TrackLine,
+  CALIB,
+  speedPxToAuthored,
+} from "../types.ts";
+import { airborneAt, meanSpeedPxOverRange, measurementLastFrame, median } from "./substrate.ts";
 
 /** Everything a per-gap reduction may need. Each reduction uses the subset it cares about. */
 export type GapMeasureCtx = {
@@ -42,16 +50,10 @@ const measureAir: AxisReduction = ({ det, gap, rangeEndFrame }) => {
   return total > 0 ? airFrames / total : undefined;
 };
 
-/** Mean |velocity| over [gap.start, rangeEndFrame], normalized by SPEED_CAP. */
+/** Mean |velocity| over [gap.start, rangeEndFrame], mapped to authored speed units. */
 const measureSpeed: AxisReduction = ({ det, gap, rangeEndFrame }) => {
-  const a = gap.startFrame;
-  const b = Math.min(rangeEndFrame, measurementLastFrame(det));
-  let speedSum = 0, speedCount = 0;
-  for (let f = a; f <= b; f++) {
-    const s = speedAt(det, f);
-    if (s !== undefined) { speedSum += s; speedCount++; }
-  }
-  return speedCount > 0 ? speedSum / speedCount / CALIB.SPEED_CAP : undefined;
+  const speedPx = meanSpeedPxOverRange(det, gap.startFrame, rangeEndFrame);
+  return speedPx !== null ? speedPxToAuthored(speedPx) : undefined;
 };
 
 /** Median catch-line length, normalized by LINE_LENGTH_CAP. */

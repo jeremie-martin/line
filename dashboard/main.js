@@ -123,7 +123,6 @@ async function mountReportView(url) {
 
 function renderAxisChart(host, axis, gaps, tMax) {
   const info = AXIS_INFO[axis] ?? { label: axis, color: "#5d564a", max: 1 };
-  const yMax = info.max;
 
   // Pull the per-gap series for this axis (gaps where the axis was targeted).
   const series = gaps
@@ -133,11 +132,19 @@ function renderAxisChart(host, axis, gaps, tMax) {
       target: g.axes[axis].target,
       achieved: g.axes[axis].achieved,
       error: g.axes[axis].error,
+      raw: g.axes[axis].raw,
       survived: g.survived,
     }));
   if (!series.length) return;
 
   const meanAbsErr = series.reduce((s, p) => s + Math.abs(p.error), 0) / series.length;
+  const authoredValues = series.flatMap((p) => [p.target, p.achieved].filter(Number.isFinite));
+  const yMin = Math.min(0, ...authoredValues);
+  const yMax = Math.max(info.max ?? 1, ...authoredValues);
+  const ySpan = Math.max(0.001, yMax - yMin);
+  const rawMeanAbsErr = axis === "speed"
+    ? meanRawSpeedError(series)
+    : null;
 
   const card = document.createElement("div");
   card.className = "rp-card";
@@ -148,6 +155,7 @@ function renderAxisChart(host, axis, gaps, tMax) {
         `<span class="lg lg-target" style="--c:${info.color}">target</span>` +
         `<span class="lg lg-achieved" style="--c:${info.color}">achieved</span>` +
         `<span class="lg lg-err">mean |err| ${meanAbsErr.toFixed(3)}</span>` +
+        (rawMeanAbsErr === null ? "" : `<span class="lg lg-err">raw ${rawMeanAbsErr.toFixed(2)} px/frame</span>`) +
       `</span>` +
     `</div>`;
   host.appendChild(card);
@@ -175,11 +183,13 @@ function renderAxisChart(host, axis, gaps, tMax) {
   };
 
   const xAt = (t) => padL + (tMax > 0 ? t / tMax : 0) * innerW;
-  const yAt = (v) => padT + (1 - Math.max(0, Math.min(yMax, v)) / yMax) * innerH;
+  const yAt = (v) => {
+    const clamped = Math.max(yMin, Math.min(yMax, v));
+    return padT + (1 - (clamped - yMin) / ySpan) * innerH;
+  };
 
-  // Horizontal grid + y labels (0, mid, max).
-  for (const g of [0, 0.5, 1]) {
-    const v = g * yMax;
+  // Horizontal grid + y labels (min, mid, max).
+  for (const v of [yMin, yMin + ySpan * 0.5, yMax]) {
     const y = yAt(v);
     svg.appendChild(el("line", { class: "rp-grid", x1: padL, x2: padL + innerW, y1: y, y2: y }));
     svg.appendChild(el("text", { class: "rp-ylabel", x: padL - 8, y: y + 3, "text-anchor": "end" },
@@ -218,6 +228,7 @@ function renderAxisChart(host, axis, gaps, tMax) {
     });
     c.appendChild(el("title", {}, `t=${p.t.toFixed(2)}s · target ${p.target.toFixed(3)} · ` +
       `achieved ${p.achieved.toFixed(3)} · err ${p.error >= 0 ? "+" : ""}${p.error.toFixed(3)}` +
+      rawSpeedTitle(p.raw) +
       (p.survived ? "" : " · did not survive")));
     svg.appendChild(c);
   }
@@ -231,6 +242,20 @@ function renderAxisChart(host, axis, gaps, tMax) {
     svg.appendChild(el("text", { class: "rp-xlabel", x, y: padT + innerH + 16, "text-anchor": "middle" },
       `${s}s`));
   }
+}
+
+function meanRawSpeedError(series) {
+  const values = series
+    .map((p) => p.raw?.error)
+    .filter(Number.isFinite);
+  return values.length ? values.reduce((sum, value) => sum + Math.abs(value), 0) / values.length : null;
+}
+
+function rawSpeedTitle(raw) {
+  if (!raw) return "";
+  return ` · raw target ${raw.target.toFixed(2)} px/frame` +
+    ` · raw achieved ${raw.achieved.toFixed(2)} px/frame` +
+    ` · raw err ${raw.error.toFixed(2)} px/frame`;
 }
 
 function normalizeAxisReport(report, N, FPS) {
@@ -2016,10 +2041,12 @@ function renderAxisLive(state) {
       const achieved = finiteAxisValue(value.achieved);
       const delta = achieved - target;
       const scale = state.scales[axis] || 1;
-      row.querySelector(".axis-target-val").textContent = `target ${target.toFixed(2)}`;
-      row.querySelector(".axis-achieved-val").textContent = `measured ${achieved.toFixed(2)}`;
+      row.querySelector(".axis-target-val").textContent =
+        axisLiveValueLabel(axis, "target", target, value.raw?.target);
+      row.querySelector(".axis-achieved-val").textContent =
+        axisLiveValueLabel(axis, "measured", achieved, value.raw?.achieved);
       const deltaEl = row.querySelector(".axis-delta-val");
-      deltaEl.textContent = `Δ ${delta >= 0 ? "+" : ""}${delta.toFixed(2)}`;
+      deltaEl.textContent = axisLiveDeltaLabel(axis, delta, value.raw?.error, achieved >= target);
       deltaEl.classList.toggle("good", Math.abs(delta) <= 0.08);
       deltaEl.classList.toggle("bad", Math.abs(delta) > 0.18);
       row.querySelector(".axis-target-fill").style.width = `${clamp((target / scale) * 100, 0, 100)}%`;
@@ -2029,6 +2056,22 @@ function renderAxisLive(state) {
   };
   update(0);
   return { update };
+}
+
+function axisLiveValueLabel(axis, label, authoredValue, rawValue) {
+  if (axis === "speed" && Number.isFinite(rawValue)) {
+    return `${label} ${authoredValue.toFixed(2)} · ${rawValue.toFixed(2)} px/frame`;
+  }
+  return `${label} ${authoredValue.toFixed(2)}`;
+}
+
+function axisLiveDeltaLabel(axis, authoredDelta, rawError, achievedAtOrAboveTarget) {
+  const signed = `${authoredDelta >= 0 ? "+" : ""}${authoredDelta.toFixed(2)}`;
+  if (axis === "speed" && Number.isFinite(rawError)) {
+    const rawSigned = `${achievedAtOrAboveTarget ? "+" : "-"}${Math.abs(rawError).toFixed(2)} px/frame`;
+    return `Δ ${signed} · ${rawSigned}`;
+  }
+  return `Δ ${signed}`;
 }
 
 function renderAxisSpark(host, state) {

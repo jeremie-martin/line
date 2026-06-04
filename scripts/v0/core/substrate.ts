@@ -17,6 +17,7 @@ import {
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
   AXES, AXIS_VALUE_MAX, CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
+  authoredSpeedToPx, speedPxToAuthored,
 } from "../types.ts";
 import { measureGapAxes } from "./measure.ts";
 
@@ -81,6 +82,19 @@ export function airborneAt(det: Detection, frame: number): boolean | undefined {
 export function speedAt(det: Detection, frame: number): number | undefined {
   const index = measurementIndex(det, frame);
   return index >= 0 ? det.measurements.speed[index] : undefined;
+}
+
+export function meanSpeedPxOverRange(det: Detection, f0: number, f1: number): number | null {
+  const b = Math.min(f1, measurementLastFrame(det));
+  let sum = 0, n = 0;
+  for (let f = f0; f <= b; f++) {
+    const s = speedAt(det, f);
+    if (s !== undefined) {
+      sum += s;
+      n++;
+    }
+  }
+  return n > 0 ? sum / n : null;
 }
 
 export function velocityAt(det: Detection, frame: number): { x: number; y: number } | undefined {
@@ -457,6 +471,18 @@ export function buildDriftReport(
       const a = achievedAll[name];
       if (a === undefined) continue;
       axes[name] = { target: t, achieved: a, error: Math.abs(t - a) };
+      if (name === "speed") {
+        const achievedRaw = meanSpeedPxOverRange(det, g.startFrame, g.endFrame);
+        if (achievedRaw !== null) {
+          const targetRaw = authoredSpeedToPx(t);
+          axes[name].raw = {
+            unit: "px/frame",
+            target: targetRaw,
+            achieved: achievedRaw,
+            error: Math.abs(targetRaw - achievedRaw),
+          };
+        }
+      }
     }
     const survived = det.terminus.frame >= g.endFrame
       || det.terminus.reason === "endOfSpec";
@@ -490,10 +516,6 @@ export function measureAxisOverRange(
     return total > 0 ? air / total : null;
   }
   // axis === "speed"
-  let sum = 0, n = 0;
-  for (let f = f0; f <= b; f++) {
-    const s = speedAt(det, f);
-    if (s !== undefined) { sum += s; n++; }
-  }
-  return n > 0 ? sum / n / CALIB.SPEED_CAP : null;
+  const speedPx = meanSpeedPxOverRange(det, f0, b);
+  return speedPx !== null ? speedPxToAuthored(speedPx) : null;
 }

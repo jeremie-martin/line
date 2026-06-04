@@ -5,7 +5,7 @@
  * Energy (onset activation): low intro (0–8s) → build (8–16s) → verse (16–31s) →
  * pre-chorus regroup (31–38s) → PEAK chorus (38–54s) → wind-down (54–56s).
  *
- * Axis story (air=airborne fraction, speed=|v|/cap ~0.55 floor, grain=line length):
+ * Axis story (air=airborne fraction, speed=authored pace mapped to raw px/frame, grain=line length):
  *   intro     restrained & grounded, short choppy lines (tension)
  *   build     lift begins
  *   verse     flowing, airy, longer lines
@@ -30,7 +30,8 @@ const contacts: Contact[] = raw.onsets.map((o) => ({ t: o.t }));
 // Phrase-aligned axis arc (4-bar phrase boundaries). Ported from the original
 // 6 hold-sections; `hold` keyframes reproduce the step blocks exactly. v3: air
 // carries the expressive arc; speed kept modest where the rider naturally lands
-// (it overshoots the cap late regardless), so axis error stays low.
+// (raw speed overshoots the authored 1.0 mapping late regardless), so axis error
+// stays low.
 const spec: Spec = {
   duration: raw.range_s[1],
   contacts,

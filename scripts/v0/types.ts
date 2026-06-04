@@ -67,9 +67,10 @@ export type Curve = (t: number) => number | undefined;
 
 /**
  * The three creative axes, in canonical order. Single source of iteration.
- * Axis semantics (all normalized):
+ * Axis semantics:
  *   - `air`           — airborne-frame fraction, [0, 0.99].
- *   - `speed`         — mean(|velocity|) / SPEED_CAP, [0, 1].
+ *   - `speed`         — authored pace, [0, 1], mapped to raw px/frame by
+ *                       `authoredSpeedToPx`.
  *   - `grain`         — median(line_length) / LINE_LENGTH_CAP, [0, 1].
  */
 export const AXES = ["air", "speed", "grain"] as const;
@@ -459,7 +460,21 @@ export type GapAxisReport = {
   t_end: number;
   survived: boolean;
   axes: {
-    [axis: string]: { target: number; achieved: number; error: number };
+    [axis: string]: GapAxisValueReport;
+  };
+};
+
+export type GapAxisValueReport = {
+  /** Authored axis units. For speed this may be outside [0, 1] on achieved values. */
+  target: number;
+  achieved: number;
+  error: number;
+  /** Raw diagnostic units for axes whose authored scale hides physical units. */
+  raw?: {
+    unit: "px/frame";
+    target: number;
+    achieved: number;
+    error: number;
   };
 };
 
@@ -486,9 +501,36 @@ export const FPS = 40;
 /**
  * Calibration constants. TODO calibrate empirically against rendered tracks.
  */
+export const SPEED_AXIS = {
+  /** Authored speed 0.0 maps to this physical velocity. */
+  MIN_PX_PER_FRAME: 5.4,
+  /** Authored speed 1.0 maps to this physical velocity. */
+  MAX_PX_PER_FRAME: 12.6,
+  RANGE_PX_PER_FRAME: 7.2,
+  /** No authored speed pressure at start: begin at the slowest meaningful pace. */
+  UNTARGETED_START_PX_PER_FRAME: 5.4,
+  /** No authored speed pressure in reachability probes: use a moderate pace. */
+  UNTARGETED_REACHABILITY_PX_PER_FRAME: 6.6,
+  /** Physical high-speed boundary used by start-policy overshoot scoring. */
+  HIGH_START_PX_PER_FRAME: 9.0,
+  /** Arc placement pressure thresholds preserved from the old physical scale. */
+  PRESSURE_START_PX_PER_FRAME: 7.8,
+  PRESSURE_SPAN_PX_PER_FRAME: 6.6,
+  CARRY_START_PX_PER_FRAME: 6.6,
+  CARRY_SPAN_PX_PER_FRAME: 4.8,
+  CARRY_FADE_START_PX_PER_FRAME: 9.36,
+  CARRY_FADE_SPAN_PX_PER_FRAME: 1.44,
+} as const;
+
+export function authoredSpeedToPx(speed: number): number {
+  return SPEED_AXIS.MIN_PX_PER_FRAME + speed * SPEED_AXIS.RANGE_PX_PER_FRAME;
+}
+
+export function speedPxToAuthored(pxPerFrame: number): number {
+  return (pxPerFrame - SPEED_AXIS.MIN_PX_PER_FRAME) / SPEED_AXIS.RANGE_PX_PER_FRAME;
+}
+
 export const CALIB = {
-  /** Divisor for `speed` axis. px/frame. */
-  SPEED_CAP: 12,
   /** Divisor for `grain` axis. units. */
   LINE_LENGTH_CAP: 49,
   /**
@@ -536,7 +578,7 @@ export const CALIB = {
 export const START_DEFAULTS = {
   POSITION: { x: 0, y: 0 },
   VELOCITY: { x: 0.4, y: 0 },
-  /** Sanity cap on |vx|, |vy|. px/frame. ~1.7× SPEED_CAP; rejects absurd
+  /** Sanity cap on |vx|, |vy|. px/frame. Rejects absurd
    *  manual start velocities without constraining normal play. */
   VELOCITY_SANITY_CAP: 20,
 } as const;

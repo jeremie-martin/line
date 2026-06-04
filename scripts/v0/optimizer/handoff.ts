@@ -39,7 +39,9 @@ import {
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
   HANDOFF_EVALUATION_PHASES,
+  SPEED_AXIS,
   START_DEFAULTS,
+  authoredSpeedToPx,
   secToFrame,
   type AxisName,
   type AxisValues,
@@ -346,8 +348,8 @@ const HANDOFF_AXIS_OVERSHOOT_WEIGHTS: Partial<Record<AxisName, number>> = {
  *  MODERATE-target gaps where the rider runs even mildly over target (early, to
  *  pre-empt creep). Decoupled from landing, so on non-creeping specs they simply
  *  lose the ranking. Excluded from reuse. */
-const HANDOFF_BRAKE_TARGET_MAX = 1.0;
-const HANDOFF_BRAKE_MILD_TARGET_MAX = 0.78;
+const HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME = 12.0;
+const HANDOFF_BRAKE_MILD_TARGET_MAX_PX_PER_FRAME = 9.36;
 const HANDOFF_BRAKE_RATIO_MIN = 1.0;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
 const HANDOFF_BRAKE_CONTRACT_BASE_K = 2;
@@ -1518,13 +1520,15 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
   if (!gap.endsWithContact) return false;
   if (gap.endFrame - gap.startFrame < HANDOFF_RESCUE_MIN_GAP_FRAMES) return false;
   const targetSpeed = gap.targets?.speed;
-  if (targetSpeed === undefined || targetSpeed <= 0 || targetSpeed > HANDOFF_BRAKE_TARGET_MAX) {
+  if (targetSpeed === undefined) {
     return false;
   }
+  const targetSpeedPx = authoredSpeedToPx(targetSpeed);
+  if (targetSpeedPx > HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME) return false;
   const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
-  const speedRatio = ts.speed / (targetSpeed * CALIB.SPEED_CAP);
-  return shouldOfferBrakeCandidates(targetSpeed, speedRatio);
+  const speedRatio = ts.speed / targetSpeedPx;
+  return shouldOfferBrakeCandidates(targetSpeedPx, speedRatio);
 }
 
 function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {
@@ -1777,11 +1781,13 @@ function brakeCatchCandidates(
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return [];
   const tgt = gap.targets?.speed;
-  if (tgt === undefined || tgt <= 0 || tgt > HANDOFF_BRAKE_TARGET_MAX) return [];
+  if (tgt === undefined) return [];
+  const targetSpeedPx = authoredSpeedToPx(tgt);
+  if (targetSpeedPx > HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME) return [];
   const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
-  const speedRatio = ts.speed / (tgt * CALIB.SPEED_CAP);
-  if (!shouldOfferBrakeCandidates(tgt, speedRatio, expandedBrakeSearch)) {
+  const speedRatio = ts.speed / targetSpeedPx;
+  if (!shouldOfferBrakeCandidates(targetSpeedPx, speedRatio, expandedBrakeSearch)) {
     return [];
   }
   const brakeK = brakeCandidateCount(speedRatio, expandedBrakeSearch);
@@ -1816,14 +1822,14 @@ export function brakeCandidateCount(speedRatio: number, expandedBrakeSearch = fa
 }
 
 export function shouldOfferBrakeCandidates(
-  targetSpeed: number,
+  targetSpeedPxPerFrame: number,
   speedRatio: number,
   expandedBrakeSearch = false,
 ): boolean {
   // Brake probes only on mild-overspeed targets. (High-overspeed brakes were
   // previously gated on a contact-event target, an axis category that no longer
   // exists, so that branch is gone.)
-  return targetSpeed <= HANDOFF_BRAKE_MILD_TARGET_MAX
+  return targetSpeedPxPerFrame <= HANDOFF_BRAKE_MILD_TARGET_MAX_PX_PER_FRAME
     && brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
 }
 
@@ -2433,12 +2439,12 @@ function startCandidateCost(
 }
 
 export function usesHighSpeedStartOvershootScoring(axes: AxisValues): boolean {
-  return (axes.speed ?? 0.45) * CALIB.SPEED_CAP >= 9;
+  return startTargetSpeedPx(axes) >= SPEED_AXIS.HIGH_START_PX_PER_FRAME;
 }
 
 function startCandidates(firstAxes: AxisValues): NonNullable<Spec["start"]>[] {
-  const targetSpeed = (firstAxes.speed ?? 0.45) * CALIB.SPEED_CAP;
-  const speedAnchors = targetSpeed >= 9
+  const targetSpeed = startTargetSpeedPx(firstAxes);
+  const speedAnchors = targetSpeed >= SPEED_AXIS.HIGH_START_PX_PER_FRAME
     ? [6, 8.5, 11, 13.5]
     : targetSpeed >= 6
     ? [3, 5.5, 8, 10.5]
@@ -2466,14 +2472,20 @@ function startCandidates(firstAxes: AxisValues): NonNullable<Spec["start"]>[] {
 }
 
 function startHeuristicCost(start: NonNullable<Spec["start"]>, axes: AxisValues): number {
-  const targetSpeed = (axes.speed ?? 0.45) * CALIB.SPEED_CAP;
+  const targetSpeed = startTargetSpeedPx(axes);
   const speed = Math.hypot(start.vx, start.vy);
   const angle = (Math.atan2(start.vy, start.vx) * 180) / Math.PI;
   const targetAngle = targetStartAngle(axes);
-  const speedCost = Math.pow((speed - targetSpeed) / CALIB.SPEED_CAP, 2);
+  const speedCost = Math.pow((speed - targetSpeed) / SPEED_AXIS.RANGE_PX_PER_FRAME, 2);
   const angleCost = Math.pow((angle - targetAngle) / 70, 2);
   const lowSpeedPenalty = targetSpeed >= 6 && speed < targetSpeed * 0.45 ? 1 : 0;
   return speedCost + 0.35 * angleCost + lowSpeedPenalty;
+}
+
+function startTargetSpeedPx(axes: AxisValues): number {
+  return axes.speed === undefined
+    ? SPEED_AXIS.UNTARGETED_START_PX_PER_FRAME
+    : authoredSpeedToPx(axes.speed);
 }
 
 export function targetStartAngle(axes: AxisValues): number {

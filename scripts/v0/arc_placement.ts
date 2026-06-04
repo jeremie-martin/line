@@ -11,6 +11,7 @@ import { makeSolidLine } from "./arc.ts";
 import {
   CANDIDATE_SAMPLE_MODES,
   CALIB,
+  SPEED_AXIS,
   type Arc,
   type ArcPlacementCounter,
   type ArcPlacementMode,
@@ -19,6 +20,7 @@ import {
   type CompileStats,
   type Gap,
   type TrackLine,
+  authoredSpeedToPx,
 } from "./types.ts";
 
 const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
@@ -550,10 +552,14 @@ export function sampleImpactFrameArcWithDiagnostics(
   const normalJitterRoll = rng();
 
   const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
-  const speedNorm = targetState.speed / CALIB.SPEED_CAP;
   const air = clamp(targets.air ?? 0.5, 0, 1);
   const deadlinePressure = clamp((18 - gapFrames) / 10, 0, 1);
-  const speedPressure = clamp((speedNorm - 0.65) / 0.55, 0, 1);
+  const speedPressure = clamp(
+    (targetState.speed - SPEED_AXIS.PRESSURE_START_PX_PER_FRAME) /
+      SPEED_AXIS.PRESSURE_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  );
   const clearancePressure = Math.max(deadlinePressure, speedPressure);
   const impactT = clamp(
     0.52 + 0.12 * clearancePressure + (preFractionRoll - 0.5) * 0.16,
@@ -643,19 +649,41 @@ export function sampleContactCenteredLinesWithDiagnostics(
   const normalJitterRoll = rng();
 
   const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
-  const speedNorm = targetState.speed / CALIB.SPEED_CAP;
-  const targetSpeed = targets.speed ?? speedNorm;
+  const targetSpeedPx = targets.speed === undefined
+    ? targetState.speed
+    : authoredSpeedToPx(targets.speed);
   const air = clamp(targets.air ?? 0.5, 0, 1);
   const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
   const denseContactPressure = nextGapFrames === null
     ? 0
     : clamp((20 - nextGapFrames) / 12, 0, 1);
   const deadlinePressure = clamp((18 - gapFrames) / 10, 0, 1);
-  const absoluteSpeedPressure = clamp((speedNorm - 0.65) / 0.55, 0, 1);
-  const brakePressure = clamp((speedNorm - targetSpeed) / 0.55, 0, 1);
-  const accelPressure = clamp((targetSpeed - speedNorm) / 0.55, 0, 1);
-  const speedCarryPressure = clamp((targetSpeed - 0.55) / 0.4, 0, 1)
-    * (1 - clamp((targetSpeed - 0.78) / 0.12, 0, 1));
+  const absoluteSpeedPressure = clamp(
+    (targetState.speed - SPEED_AXIS.PRESSURE_START_PX_PER_FRAME) /
+      SPEED_AXIS.PRESSURE_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  );
+  const brakePressure = clamp(
+    (targetState.speed - targetSpeedPx) / SPEED_AXIS.PRESSURE_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  );
+  const accelPressure = clamp(
+    (targetSpeedPx - targetState.speed) / SPEED_AXIS.PRESSURE_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  );
+  const speedCarryPressure = clamp(
+    (targetSpeedPx - SPEED_AXIS.CARRY_START_PX_PER_FRAME) / SPEED_AXIS.CARRY_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  ) * (1 - clamp(
+    (targetSpeedPx - SPEED_AXIS.CARRY_FADE_START_PX_PER_FRAME) /
+      SPEED_AXIS.CARRY_FADE_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  ));
   const sustainedContactCarryPressure = speedCarryPressure
     * (nextGapFrames === null ? 0 : clamp((15 - nextGapFrames) / 2, 0, 1))
     * (1 - clamp((air - 0.62) / 0.12, 0, 1));
@@ -732,9 +760,14 @@ export function sampleContactCenteredLinesWithDiagnostics(
   const levelBlend = levelSpanEnabled() && nextGapFrames !== null
     ? clamp((((attempt % 8) + 8) % 8) / 7, 0, 1) * clamp(brakePressure + 0.2, 0, 1)
     : 0;
+  const levelScaleRaw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_LEVEL_SCALE;
+  const levelScale = levelScaleRaw !== undefined && Number.isFinite(Number(levelScaleRaw))
+    ? Number(levelScaleRaw)
+    : 1;
   const levelLaunchDeg = nextGapFrames === null
     ? angledPostAngleDeg
-    : (Math.atan2(-0.5 * 0.175 * nextGapFrames, Math.max(1, targetState.speed)) * 180) / Math.PI;
+    : (Math.atan2(-0.5 * 0.175 * nextGapFrames * levelScale, Math.max(1, targetState.speed)) * 180) / Math.PI;
   const postAngleDeg = lerp(angledPostAngleDeg, levelLaunchDeg, levelBlend);
 
   const contactAngleRad = (contactAngleDeg * Math.PI) / 180;

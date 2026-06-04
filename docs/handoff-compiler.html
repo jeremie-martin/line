@@ -646,7 +646,7 @@
     </div>
 
     <div class="axis-strip" aria-label="Compiler style axes">
-      <div class="axis speed"><b>speed</b><span>How fast the rider should feel inside a section.</span></div>
+      <div class="axis speed"><b>speed</b><span>Authored pace mapped to raw px/frame.</span></div>
       <div class="axis air"><b>air</b><span>How airborne or grounded the ride should be.</span></div>
       <div class="axis grain"><b>grain</b><span>How large and coarse the generated catch geometry feels.</span></div>
     </div>
@@ -928,7 +928,8 @@ anchor = targetSled - local + tangent * alongJitter + normal * normalJitter</div
       <div class="panel">
         <h3>Brake catches</h3>
         <p>
-          If the current speed is already over a moderate target, the compiler
+          If the current raw speed is already over the authored target's raw
+          px/frame mapping, the compiler
           offers uphill-entry brake catches. Contract search samples
           <code>2..3</code> brake attempts depending on speed ratio; after a
           passing output exists, quality search may widen the local brake probe

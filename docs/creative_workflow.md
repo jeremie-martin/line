@@ -52,7 +52,9 @@ Sections are soft style blocks; each can set any of the axes (see
 `scripts/v0/types.ts`):
 
 - **`air`** — airborne fraction. The most expressive, most controllable axis.
-- **`speed`** — `mean|v| / cap`. Climbs naturally; see the caveat below.
+- **`speed`** — authored pace in `[0, 1]`, mapped to `5.4..12.6 px/frame`.
+  Achieved speed may report outside `[0, 1]` when the raw velocity is outside
+  that calibrated range.
 - **`grain`** — median line length (long swooping lines vs short choppy ones).
 
 (A former `contact_style` axis — slide-along-the-line ratio — was removed: its
@@ -77,10 +79,10 @@ example (v1→v3):
   grounded (a 0.50 target lands ~0.66) *and* truly airborne (0.85 → ~0.78).
   Design the air arc inside that band — it still reads clearly.
 - **Speed overshoots and gets *worse* the higher you aim.** The rider
-  accumulates speed under gravity; by the late chorus it exceeds the cap
-  (achieved 1.0–1.3) no matter the target. Raising speed targets (v2) made it
-  *faster* and dropped the score. Keep speed targets modest and let the natural
-  climb carry the energy.
+  accumulates speed under gravity; by the late chorus raw velocity can exceed
+  the authored 1.0 mapping no matter the target. Raising speed targets (v2)
+  made it *faster* and dropped the score. Keep speed targets modest and let the
+  natural climb carry the energy.
 - **Grain undershoots** in the big sections (0.70 target → ~0.57). Aim a touch
   high if you want long lines.
 

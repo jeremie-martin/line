@@ -180,7 +180,10 @@ function has(name: string): boolean {
 function evaluatorFingerprint(): string {
   const h = createHash("sha256");
   const specDir = resolve("specs/golden");
-  const files = [resolve("scripts/v0/score.ts")];
+  const files = [
+    resolve("scripts/v0/score.ts"),
+    resolve("scripts/v0/types.ts"),
+  ];
   for (const f of readdirSync(specDir).filter((n) => n.endsWith(".ts")).sort()) {
     files.push(resolve(specDir, f));
   }

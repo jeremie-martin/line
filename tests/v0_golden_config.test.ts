@@ -14,8 +14,10 @@ import {
   AXES,
   AXIS_VALUE_MAX,
   FRAME_SPAN_AXES,
+  authoredSpeedToPx,
   hasAnyTargetAxis,
   hasExactlyTargetAxes,
+  speedPxToAuthored,
   type Spec,
 } from "../scripts/v0/types.ts";
 
@@ -60,6 +62,15 @@ describe("v0 golden configuration", () => {
     for (const axis of FRAME_SPAN_AXES) {
       expect(AXES).toContain(axis);
     }
+  });
+
+  test("authored speed maps to the calibrated raw velocity range", () => {
+    expect(authoredSpeedToPx(0)).toBeCloseTo(5.4, 10);
+    expect(authoredSpeedToPx(1)).toBeCloseTo(12.6, 10);
+    expect(speedPxToAuthored(5.4)).toBeCloseTo(0, 10);
+    expect(speedPxToAuthored(12.6)).toBeCloseTo(1, 10);
+    expect(speedPxToAuthored(4.68)).toBeCloseTo(-0.1, 10);
+    expect(speedPxToAuthored(13.32)).toBeCloseTo(1.1, 10);
   });
 
   test("headline suite is the hand-authored spec registry", async () => {

@@ -28,9 +28,10 @@ import {
   AXES,
   type AxisValues,
   type Arc, type TrackLine, type Gap,
-  CALIB, FPS,
+  FPS,
   hasExactlyTargetAxes,
   type CandidateSampleMode,
+  speedPxToAuthored,
 } from "../types.ts";
 import {
   type GapFit,
@@ -346,7 +347,7 @@ export function releaseSpeedPenalty(
   targetSpeed: number | undefined,
 ): number {
   if (releaseSpeedPxPerFrame === undefined || targetSpeed === undefined) return 0;
-  const achieved = releaseSpeedPxPerFrame / CALIB.SPEED_CAP;
+  const achieved = speedPxToAuthored(releaseSpeedPxPerFrame);
   const error = targetSpeed - achieved;
   return RELEASE_STATE_SPEED_WEIGHT * error * error;
 }

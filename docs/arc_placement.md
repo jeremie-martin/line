@@ -102,9 +102,9 @@ mode-specific arc families.
 1. Read the predicted lowest sled/contact point, velocity, speed, target axes,
    and gap duration at `gap.endFrame`.
 2. Choose a contact tangent from incoming velocity and target air.
-3. Compare predicted speed to authored target speed when `speed` is targeted.
-   Overspeed becomes explicit brake pressure; underspeed becomes explicit
-   acceleration pressure.
+3. Convert authored target speed to raw px/frame when `speed` is targeted, then
+   compare it to predicted raw speed. Overspeed becomes explicit brake pressure;
+   underspeed becomes explicit acceleration pressure.
 4. Choose an explicit short pre-contact clearance/brake length.
 5. Choose an explicit post-contact support length.
 6. Choose a segment length from target grain when present, otherwise from a
@@ -135,16 +135,17 @@ source lines by the stored sled-reference delta and revalidates the candidate.
 Line-native candidates also get a release-state ranking term. After a candidate
 lands, the evaluator samples rider speed at a release frame shortly after the
 contact (normally eight frames later, clipped before the next authored contact).
-If `speed` is targeted, the candidate cost gets a small penalty for release
-speed magnitude being away from the authored target. This is deliberately not a
+If `speed` is targeted, the candidate cost converts release speed back into the
+authored speed scale and adds a small penalty for being away from the target.
+This is deliberately not a
 direction-to-next-beat heuristic and not a hard gate. It only says: after the
 catch, the rider should be alive and moving at roughly the intended speed. The
 shape of the next jump remains the next candidate's job.
 
-The second contact-centered iteration separates absolute speed from authored
+The second contact-centered iteration separates absolute raw speed from authored
 speed error. Absolute high speed can still shorten clearance-sensitive
 pre-contact geometry, but it no longer substitutes for target-aware braking.
-When predicted speed is above the authored target, the sampler progressively
+When predicted raw speed is above the authored target's raw px/frame mapping, the sampler progressively
 lowers the entry/contact tangents and gives the pre-contact section some extra
 length to bleed speed. The post-contact tangent does not keep steepening uphill;
 it recovers toward a flatter ride-out angle so braking remains local and the

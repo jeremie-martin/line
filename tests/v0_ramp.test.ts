@@ -9,7 +9,7 @@
 import { describe, expect, test } from "vitest";
 import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 import { ramp, constant } from "../scripts/v0/core/curves.ts";
-import type { Contact, Spec } from "../scripts/v0/types.ts";
+import { authoredSpeedToPx, type Contact, type Spec } from "../scripts/v0/types.ts";
 
 /** Least-squares slope of y over its index (sign tells trend direction). */
 function slope(ys: number[]): number {
@@ -25,7 +25,7 @@ function slope(ys: number[]): number {
 }
 
 describe("curve paradigm — a ramp produces a rising achieved series", () => {
-  test("speed ramp 0.45→0.85 yields an upward per-gap speed trend", () => {
+  test("speed ramp 0.00→0.40 yields an upward per-gap speed trend", () => {
     const contacts: Contact[] = [];
     for (let t = 0.6; t < 16; t += 0.5) contacts.push({ t: Number(t.toFixed(3)) });
 
@@ -34,7 +34,7 @@ describe("curve paradigm — a ramp produces a rising achieved series", () => {
       contacts,
       axes: {
         // The expressive lever under test: one continuous speed build.
-        speed: ramp(0, 0.45, 16, 0.85),
+        speed: ramp(0, 0.00, 16, 0.40),
         // Hold air flat so speed is the only intentional trend.
         air: constant(0.55),
       },
@@ -43,12 +43,16 @@ describe("curve paradigm — a ramp produces a rising achieved series", () => {
 
     const { report } = compileHandoff(spec, 0, { budgets: [50_000] }).checkpoints[0];
 
-    const speeds = report.gaps
-      .map((g) => g.axes.speed?.achieved)
-      .filter((v): v is number => v !== undefined);
+    const speedReports = report.gaps
+      .map((g) => g.axes.speed)
+      .filter((v): v is NonNullable<typeof v> => v !== undefined);
+    const speeds = speedReports.map((v) => v.achieved);
 
     // Enough gaps measured to read a trend.
     expect(speeds.length).toBeGreaterThanOrEqual(8);
+    expect(speedReports[0].raw?.unit).toBe("px/frame");
+    expect(speedReports[0].raw?.target).toBeCloseTo(authoredSpeedToPx(speedReports[0].target), 6);
+    expect(speedReports[0].raw?.achieved).toBeCloseTo(authoredSpeedToPx(speedReports[0].achieved), 6);
 
     // The achieved speed must trend upward (positive slope) and end clearly
     // higher than it began — the build is real, not flat. Physics adds noise and

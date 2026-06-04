@@ -376,8 +376,9 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
   test("visits deferred start roots before requeueing one under a small budget", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const seen: { gapIndex: number; deferExpansion: boolean }[] = [];
+    const budget = 8_000;
     const result = checkpoint(compileHandoff(spec, 0, {
-      budgets: [6_700],
+      budgets: [budget],
       maxNodes: 12,
       polish: false,
       onNode: (node) => {
@@ -386,7 +387,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
           deferExpansion: node.deferExpansion,
         });
       },
-    }), 6_700);
+    }), budget);
 
     expect(result.stats.budget_exhausted).toBe(true);
     expect(seen.length).toBeGreaterThan(1);

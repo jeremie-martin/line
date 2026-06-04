@@ -125,9 +125,26 @@ degrades the rest.
 | baseline2 | + 20 fresh seeds + cross-check | 455.4 | 18.6/20 | solo_run (13/20, dead-ends); cold_start (speed 0.385) | proper baseline |
 | preroll-default | cold_start inherits default preroll | **490.6** | 18.6/20 | solo_run (13/20, dead-ends) | cold_start 354→530 (+176), speed 0.385→0.167; commit 8f0c38a |
 
-solo_run remains the dominant fragility: 13/20 valid, dead-ends (`rideStalled`)
-when an opening-overspeed seed can't brake down on the tight 12.8-frame gaps and
-the chain becomes unplaceable. drums_breath dead-ends the same way on s100.
+| 2-D span (hybrid) | decouple launch×length candidate diversity (now DEFAULT) | **504.1** | 19.2/20 | solo_run (16/20) | +13.5 primary; cross-check 411→518 (+107); drums_breath s100 fixed; headline 0–9 +0.7 (90/90), 10–19 +7.7 (89→90 valid) |
+
+solo_run was the dominant fragility: 13/20 valid, dead-ends (`rideStalled`) when a
+seed can't keep the dense high-speed/high-air chain placeable and it becomes
+unplaceable. drums_breath dead-ends the same way on s100.
+
+### 2-D span (the placement-first fragility lever)
+
+The energy-launch and air-length controls both spanned the candidate batch on the
+SAME `blend = attempt%8/7`, so the 14-candidate pool only walked a 1-D coupled
+diagonal (launch and length move together; 6 attempts wasted as repeats). The
+fragile dense chains dead-end when no pooled catch both lands valid AND leaves a
+continuable state — a diversity problem. `LR_2DSPAN` keeps the full 8-level
+coupled diagonal (preserving easy-spec launch granularity) and spends the
+repeated attempts on the ANTI-diagonal (launch low ↔ length high), covering
+off-diagonal (launch × length) points the diagonal never reaches. Pure proposal
+diversity; the cost-sorted handoff still keeps the best valid catch (no
+search-policy change). Result: fixes solo_run (+3 valid) and drums_breath's s100
+dead-end, improves the easy specs too (off-diagonal length helps axis matching),
+and is neutral on the headline suite.
 
 ### Baseline per-spec (seeds 200–209, 60–120k)
 

@@ -774,7 +774,7 @@ export function sampleContactCenteredLinesWithDiagnostics(
   // to track the speed/air curve instead of monotonically descending.
   let postAngleDeg = angledPostAngleDeg;
   if (levelSpanEnabled() && nextGapFrames !== null) {
-    const blend = clamp((((attempt % 8) + 8) % 8) / 7, 0, 1);
+    const blend = clamp(spanBlends(attempt).launch, 0, 1);
     if (energyLaunchEnabled()) {
       // Energy-targeted launch. By energy conservation, the height drop (down
       // positive) that converts the rider's current horizontal pace v_in to the
@@ -822,7 +822,7 @@ export function sampleContactCenteredLinesWithDiagnostics(
     const groundedTargetLen = speed * clamp(1 - air, 0, 1) * nextGapFrames;
     const safeCap = speed * nextGapFrames * 0.55;
     const targetLen = clamp(Math.min(groundedTargetLen, safeCap), 28, 360);
-    const blend = clamp((((attempt % 8) + 8) % 8) / 7, 0, 1);
+    const blend = clamp(spanBlends(attempt).length, 0, 1);
     postLength = clamp(lerp(sampledPostLength, targetLen, blend * 0.6), 28, 360);
   }
   // Round (not ceil) the segment count so each emitted line length lands near the
@@ -886,6 +886,48 @@ function energyLaunchEnabled(): boolean {
  *  out with LR_AIRLEN=0 for A/B against the launch-only state. */
 function airLengthEnabled(): boolean {
   return envValue("LR_AIRLEN") !== "0";
+}
+
+/**
+ * Per-attempt span blends for the launch-shaping and ride-out-length controls.
+ *
+ * Default (1-D): both controls share `blend = attempt%8/7`, so the candidate
+ * pool walks a single coupled diagonal (fully-natural → fully-shaped on BOTH at
+ * once) — 8 distinct points across the 14-candidate budget, the rest repeats.
+ *
+ * 2-D (DEFAULT): launch and length vary INDEPENDENTLY, so the pool spans a
+ * (launch × length) grid instead of the diagonal. On dense fragile chains the
+ * search dead-ends when no pooled catch both lands valid and leaves a
+ * continuable state; covering the 2-D space gives strictly more diverse valid
+ * continuations per gap from the same budget (the cost-sorted handoff still
+ * keeps the best valid one — pure proposal diversity, no search-policy change).
+ * Opt out with LR_2DSPAN=0 to recover the legacy 1-D coupled diagonal.
+ *
+ * Measured (continuous): fragile focus mean +13.5, known-hard cross-check +107
+ * (fixes drums_breath's all-budget s100 dead-end, solo_run 13→16/20 valid);
+ * headline 9-spec neutral-to-positive on both disjoint seed sets (0–9 +0.7,
+ * 10–19 +7.7) with validity preserved/improved.
+ */
+function spanBlends(attempt: number): { launch: number; length: number } {
+  const a = ((attempt % 4096) + 4096) % 4096;
+  if (envValue("LR_2DSPAN") !== "0") {
+    // Keep the full 8-level coupled DIAGONAL (attempts 0-7) so already-valid
+    // specs retain their launch-shaping granularity, then spend the otherwise-
+    // repeated attempts (8+) on the ANTI-diagonal (launch low ↔ length high):
+    // off-diagonal (launch × length) points the 1-D diagonal never reaches.
+    // These are additive proposals; the cost-sorted handoff only takes one if it
+    // is the best valid catch, so easy specs are unaffected while fragile chains
+    // gain diverse valid continuations.
+    const k = a % 16;
+    if (k < 8) {
+      const b = k / 7;
+      return { launch: b, length: b };
+    }
+    const b = (k - 8) / 7;
+    return { launch: b, length: clamp(1 - b, 0, 1) };
+  }
+  const b = (a % 8) / 7;
+  return { launch: b, length: b };
 }
 
 export function shouldUseContactCenteredLines(

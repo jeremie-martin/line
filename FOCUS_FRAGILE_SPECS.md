@@ -119,9 +119,15 @@ degrades the rest.
 
 ## Scoreboard
 
-| label | change | curve | validLast(mean) | worst specs | notes |
+| label | change | primary curve | validLast | worst specs | notes |
 |-------|--------|-------|-----------------|-------------|-------|
-| baseline | continuous, as committed | **451.1** | 9.2/10 | solo_run (curve 230, 6/10 valid, dead-ends); cold_start (curve 333, speed rms 0.411) | feel run seeds 200–209 |
+| baseline | continuous, as committed | 451.1 (10 seeds) | 9.2/10 | solo_run; cold_start | first feel run, seeds 200–209 |
+| baseline2 | + 20 fresh seeds + cross-check | 455.4 | 18.6/20 | solo_run (13/20, dead-ends); cold_start (speed 0.385) | proper baseline |
+| preroll-default | cold_start inherits default preroll | **490.6** | 18.6/20 | solo_run (13/20, dead-ends) | cold_start 354→530 (+176), speed 0.385→0.167; commit 8f0c38a |
+
+solo_run remains the dominant fragility: 13/20 valid, dead-ends (`rideStalled`)
+when an opening-overspeed seed can't brake down on the tight 12.8-frame gaps and
+the chain becomes unplaceable. drums_breath dead-ends the same way on s100.
 
 ### Baseline per-spec (seeds 200–209, 60–120k)
 

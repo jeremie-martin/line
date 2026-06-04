@@ -310,6 +310,52 @@ the knee and the mean understates the ceiling. A richer "reward still-climbing"
 metric was considered and deliberately parked (it would perversely reward slow
 convergence); see `TODO.md`.
 
+### Session 2026-06-04 (PM): height-shaping paradigm — robust mean ~497 → ~557
+
+Worked the `continuous` normal stream on the **9-spec** suite (opening_burst now
+excluded from the benchmark — see above). Metric discipline this session:
+**every constant/structural choice was decided on 10 seeds AND cross-validated on
+a disjoint 10 seeds (0–9 vs 10–19)**, because the per-row mean has a ~±10–15
+validity-flip noise floor on a single 10-seed set. Committed wins (all on
+`work-new`):
+
+| Change | seeds 0–9 | seeds 10–19 | note |
+| --- | ---: | ---: | --- |
+| baseline (`continuous`, level launch) | `516.4` | `516.9` | 88/90, 89/90 |
+| + horizontal-pace-gated level span | — | — | folded into baseline |
+| + energy-targeted launch + grain round | `531.9` | `526.4` | speed rms `0.184→0.155` |
+| + air-targeted grounded ride-out length | **`561.3`** | **`552.1`** | 90/90, 89/90 |
+
+**New robust score to beat (9-spec mean@`150k`): ~`557`** (avg of `561.3`/`552.1`).
+
+Paradigm: the rider's measured pace is governed by the track's **height
+trajectory**, not local geometry. Two continuous, general controls (no per-spec
+branch), both derived from the gap's own targets:
+- **exit/launch angle ← speed target** (energy: `dh=(v_t²−v_in²)/2g` fixes the
+  launch `vy`; climb to brake, dive to accel; clamped to stay descending at the
+  next contact). Cut speed rms `0.184→0.150`.
+- **ride-out length ← air target** (`groundedFrames≈(1−air)·N`, capped below the
+  next-contact distance). Also stabilises the forward chain (recovered solo_run
+  multi-gap breaks: validity `87→90`).
+
+Rejected this session (clean, recorded as evidence):
+- `LR_LEVEL_SCALE` over-return tuning: `+10` on 0–9 but `−11` on 10–19 → overfit.
+- Aggressive grounded ride-out (length sized to full `(1−air)·N` with the old
+  level launch): catastrophic validity collapse (`~296`/`~243`).
+- Curvature-bounded ride-out (length OR segment smoothing of the exit turn): the
+  length variant regressed (`−22`); the segment variant was neutral. The
+  remaining solo_run-class breaks are multi-gap chain effects, not local bounces.
+- Air-length strength `0.9` vs `0.6`: a wash on mean (better air rms, noisier
+  validity) → kept `0.6`.
+
+Remaining wall (honest): speed is largely matched on most specs; the residual
+error is dominated by **air on DENSE gaps**, which is set by the *approach* flight
+(previous launch) and is coupled to speed through the single launch — the
+ride-out length only moves air on sparse gaps. Pushing past ~`557`→`700` likely
+needs grounded-uphill braking (bleed speed while staying grounded/low-air — the
+ejection-prone primitive) or trajectory/chain-aware planning (out of the
+placement boundary).
+
 ### Current baselines (2026-06-03, seeds 0/1/2)
 
 | Scope | Mode | Archive | Last-budget mean | Valid | Headroom |

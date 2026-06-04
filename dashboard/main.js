@@ -227,7 +227,7 @@ function renderAxisChart(host, axis, gaps, tMax) {
       style: `--c:${info.color}`,
     });
     c.appendChild(el("title", {}, `t=${p.t.toFixed(2)}s · target ${p.target.toFixed(3)} · ` +
-      `achieved ${p.achieved.toFixed(3)} · err ${p.error >= 0 ? "+" : ""}${p.error.toFixed(3)}` +
+      `achieved ${p.achieved.toFixed(3)} · |err| ${Math.abs(p.error).toFixed(3)}` +
       rawSpeedTitle(p.raw) +
       (p.survived ? "" : " · did not survive")));
     svg.appendChild(c);
@@ -255,7 +255,7 @@ function rawSpeedTitle(raw) {
   if (!raw) return "";
   return ` · raw target ${raw.target.toFixed(2)} px/frame` +
     ` · raw achieved ${raw.achieved.toFixed(2)} px/frame` +
-    ` · raw err ${raw.error.toFixed(2)} px/frame`;
+    ` · raw |err| ${Math.abs(raw.error).toFixed(2)} px/frame`;
 }
 
 function normalizeAxisReport(report, N, FPS) {

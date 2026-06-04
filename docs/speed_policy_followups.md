@@ -98,22 +98,27 @@ Interpretation:
 
 Current behavior:
 
-- The current experiment builds start candidates from continuous offsets around
-  the raw target speed, plus the default start velocity and multiplicative
+- Start candidates are built from continuous raw-velocity offsets around the
+  first targeted speed, plus the default start velocity and multiplicative
   probes.
-- Before this experiment, start candidates used three hard bands split at raw
-  target speeds `6` and `9 px/frame`.
+- Before this landed, start candidates used three hard bands split at raw target
+  speeds `6` and `9 px/frame`.
 
-Why this looks overfit:
+What changed:
 
-- A tiny target-speed change can switch the anchor family.
-- The remap changed how often specs land near those boundaries.
+- This removed the hard `6`/`9 px/frame` start-anchor family switch.
+- The default start velocity remains an explicit candidate, so specs that worked
+  with the old unpressured start still have that option.
 
-Safer direction:
+Evidence:
 
-- Build anchors as continuous offsets around the raw target speed instead of
-  picking one of three bands.
-- Keep the default start velocity as an explicit candidate.
+- `20 specs x 3 seeds`, 150k budget: baseline remap `514.09`, start anchors
+  `514.60`, both `60/60` valid.
+- Mean signed speed error improved from `+0.1430` to `+0.1346`; mean absolute
+  speed error improved from `0.1800` to `0.1785`.
+- Achieved speeds above authored `1.0` fell from `6.15%` to `5.37%`.
+- Broader validation is still pending; the 20x10 run was interrupted before the
+  review cleanup, so only the 20x3 evidence should be treated as complete.
 
 ### Reachability Velocity Grid
 
@@ -169,11 +174,45 @@ Safer direction:
 - Re-test pressure start/span values empirically against a 10-seed or larger
   panel before changing them.
 
+### Release-State Speed Weight
+
+Current behavior:
+
+- `handoffAxisOvershootPenalty` scores speed overshoot in authored units with
+  weight `16`.
+- `releaseSpeedPenalty` measures release speed error in authored speed units.
+- After the speed remap, one physical px/frame of release-speed error maps to a
+  larger authored delta because the authored range is `7.2 px/frame` wide rather
+  than the old implicit `12 px/frame` scale.
+- `RELEASE_STATE_SPEED_WEIGHT = 0.35` and the handoff speed overshoot weight
+  were not re-fit during the remap.
+
+Why this needs care:
+
+- For a fixed physical px/frame error, squared authored-unit penalties are about
+  `2.78x` stronger than they were on the old `/12` scale.
+- This is a heuristic ranking term, not an evaluator ruler, so changing it
+  should be benchmarked instead of bundled into a correctness cleanup.
+- `axisCost` also remains equal-weighted in authored axis units. That matches
+  the evaluator's equal-axis framing, but it is still part of the same local
+  ranking audit if speed keeps dominating candidate choice.
+
+Safer direction:
+
+- Run small sweeps around the old physical-equivalent weights before changing
+  the constants. Examples: release-state `0.126`, `0.20`, `0.35`; handoff
+  overshoot `5.76`, middle values, and current `16`.
+- Compare not only curve score, but start/early-gap speed errors and contract
+  stability.
+
 ## Suggested Order
 
-1. Start-speed anchors: likely affects contract stability and early speed.
-2. Reachability grid: useful but more expensive to validate.
-3. Steep-catch gate: potentially helpful, but template scheduling is discrete.
-4. Contact-centered constants: tune only after the selection policies settle.
+1. Reachability grid: useful but more expensive to validate.
+2. Steep-catch gate: potentially helpful, but template scheduling is discrete.
+3. Contact-centered constants: tune only after the selection policies settle.
+4. Handoff/release speed weights: sweep physical-equivalent values before
+   retuning ranking constants.
 5. Brake ranking/acceptance: revisit only with a narrower design than candidate
    eligibility widening.
+6. Start-speed anchors: run a clean 10-seed confirmation pass, but the 20x3
+   evidence was good enough to keep the landed continuous-anchor policy.

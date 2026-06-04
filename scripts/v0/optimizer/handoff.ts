@@ -351,6 +351,7 @@ const HANDOFF_AXIS_OVERSHOOT_WEIGHTS: Partial<Record<AxisName, number>> = {
  *  lose the ranking. Excluded from reuse. */
 const HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME = authoredSpeedToPx(1.0);
 const HANDOFF_BRAKE_MILD_TARGET_MAX_PX_PER_FRAME = authoredSpeedToPx(0.78);
+const HANDOFF_BRAKE_TARGET_MIN_PX_PER_FRAME = authoredSpeedToPx(0.0);
 const HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME = 1e-6;
 const HANDOFF_BRAKE_RATIO_MIN = 1.0;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
@@ -1526,6 +1527,9 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
     return false;
   }
   const targetSpeedPx = authoredSpeedToPx(targetSpeed);
+  if (targetSpeedPx <= HANDOFF_BRAKE_TARGET_MIN_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME) {
+    return false;
+  }
   if (targetSpeedPx > HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME) {
     return false;
   }
@@ -1787,6 +1791,9 @@ function brakeCatchCandidates(
   const tgt = gap.targets?.speed;
   if (tgt === undefined) return [];
   const targetSpeedPx = authoredSpeedToPx(tgt);
+  if (targetSpeedPx <= HANDOFF_BRAKE_TARGET_MIN_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME) {
+    return [];
+  }
   if (targetSpeedPx > HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME) {
     return [];
   }
@@ -1835,9 +1842,11 @@ export function shouldOfferBrakeCandidates(
   // Brake probes only on mild-overspeed targets. (High-overspeed brakes were
   // previously gated on a contact-event target, an axis category that no longer
   // exists, so that branch is gone.)
+  const aboveMinTarget = targetSpeedPxPerFrame >
+    HANDOFF_BRAKE_TARGET_MIN_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME;
   const withinMildTarget = targetSpeedPxPerFrame <=
     HANDOFF_BRAKE_MILD_TARGET_MAX_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME;
-  return withinMildTarget && brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
+  return aboveMinTarget && withinMildTarget && brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
 }
 
 /** Translate the most-recent committed catches (which carry a sled `ref`) to

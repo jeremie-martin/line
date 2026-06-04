@@ -46,14 +46,16 @@ export const DEFAULT_BUDGETS = [
 ] as const;
 
 /**
- * Committed fingerprint of the "ruler" — `score.ts` + every `specs/golden/*.ts`
- * (first 12 hex of their concatenated sha256; see `golden.ts evaluatorFingerprint`).
- * The harness prints the live fingerprint each run and warns on drift, so an
- * accidental (or sneaky) edit to the scorer or specs is visible — scores after a
- * drift are not comparable to history. A DELIBERATE ruler change (a charter
- * revision) updates this constant in the same commit. Soft tripwire, not a gate.
+ * Committed fingerprint of the evaluator ruler — `score.ts`, the authored-speed
+ * ruler/conversions, target-axis/report assembly, per-axis measurement
+ * reductions, and every `specs/golden/*.ts` (first 12 hex of their delimited
+ * sha256; see `golden.ts evaluatorFingerprint`). Compiler-only speed policy
+ * constants are intentionally excluded. The harness prints the live fingerprint
+ * each run and warns on drift, so an accidental scorer, speed-ruler, report, or
+ * spec edit is visible. A DELIBERATE ruler change updates this constant in the
+ * same commit. Soft tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "185b212a3045";
+export const EVALUATOR_FINGERPRINT = "9bd67dc960f1";
 
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. The compiler

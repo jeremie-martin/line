@@ -3,9 +3,9 @@
  * baseline runs; air/grain have been measured but speed
  * targeting hasn't been stressed).
  *
- * 0.5 corresponds to roughly 6 px/frame mean velocity, close to natural
- * rider behaviour after a few seconds of gravity-driven acceleration on
- * the drums beat density.
+ * 0.5 corresponds to 9.0 px/frame mean velocity under the authored speed
+ * ruler, close to natural rider behaviour after a few seconds of
+ * gravity-driven acceleration on the drums beat density.
  */
 import { drumsSpec } from "./_drums.ts";
 

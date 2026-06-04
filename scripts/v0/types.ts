@@ -76,7 +76,7 @@ export type Curve = (t: number) => number | undefined;
 export const AXES = ["air", "speed", "grain"] as const;
 export type AxisName = (typeof AXES)[number];
 
-/** Upper bound for each normalized authored/measured axis value. */
+/** Upper bound for each normalized authored target/sample value. */
 export const AXIS_VALUE_MAX = {
   air: 0.99,
   speed: 1,
@@ -498,23 +498,35 @@ export type Gap = {
 /** Engine framerate. Spec time (seconds) ↔ frame conversion. */
 export const FPS = 40;
 
-const SPEED_MIN_PX_PER_FRAME = 5.4;
-const SPEED_MAX_PX_PER_FRAME = 12.6;
-const SPEED_RANGE_PX_PER_FRAME = SPEED_MAX_PX_PER_FRAME - SPEED_MIN_PX_PER_FRAME;
-const speedAuthoredBreakpointToPx = (speed: number): number =>
-  SPEED_MIN_PX_PER_FRAME + speed * SPEED_RANGE_PX_PER_FRAME;
+export const SPEED_RULER = {
+  /** Authored speed 0.0 maps to this physical velocity. */
+  MIN_PX_PER_FRAME: 5.4,
+  /** Authored speed 1.0 maps to this physical velocity. */
+  MAX_PX_PER_FRAME: 12.6,
+  RANGE_PX_PER_FRAME: 12.6 - 5.4,
+} as const;
+
+export function authoredSpeedToPx(speed: number): number {
+  return SPEED_RULER.MIN_PX_PER_FRAME + speed * SPEED_RULER.RANGE_PX_PER_FRAME;
+}
+
+export function speedPxToAuthored(pxPerFrame: number): number {
+  return (pxPerFrame - SPEED_RULER.MIN_PX_PER_FRAME) / SPEED_RULER.RANGE_PX_PER_FRAME;
+}
+
+const speedAuthoredBreakpointToPx = authoredSpeedToPx;
 
 /**
  * Calibration constants. TODO calibrate empirically against rendered tracks.
  */
 export const SPEED_AXIS = {
   /** Authored speed 0.0 maps to this physical velocity. */
-  MIN_PX_PER_FRAME: SPEED_MIN_PX_PER_FRAME,
+  MIN_PX_PER_FRAME: SPEED_RULER.MIN_PX_PER_FRAME,
   /** Authored speed 1.0 maps to this physical velocity. */
-  MAX_PX_PER_FRAME: SPEED_MAX_PX_PER_FRAME,
-  RANGE_PX_PER_FRAME: SPEED_RANGE_PX_PER_FRAME,
+  MAX_PX_PER_FRAME: SPEED_RULER.MAX_PX_PER_FRAME,
+  RANGE_PX_PER_FRAME: SPEED_RULER.RANGE_PX_PER_FRAME,
   /** No authored speed pressure at start: begin at the slowest meaningful pace. */
-  UNTARGETED_START_PX_PER_FRAME: SPEED_MIN_PX_PER_FRAME,
+  UNTARGETED_START_PX_PER_FRAME: SPEED_RULER.MIN_PX_PER_FRAME,
   /** No authored speed pressure in reachability probes: use a moderate pace. */
   UNTARGETED_REACHABILITY_PX_PER_FRAME: 6.6,
   /** Physical high-speed boundary used by start-policy overshoot scoring. */
@@ -528,14 +540,6 @@ export const SPEED_AXIS = {
   CARRY_FADE_START_PX_PER_FRAME: speedAuthoredBreakpointToPx(0.78),
   CARRY_FADE_SPAN_PX_PER_FRAME: speedAuthoredBreakpointToPx(0.90) - speedAuthoredBreakpointToPx(0.78),
 } as const;
-
-export function authoredSpeedToPx(speed: number): number {
-  return SPEED_AXIS.MIN_PX_PER_FRAME + speed * SPEED_AXIS.RANGE_PX_PER_FRAME;
-}
-
-export function speedPxToAuthored(pxPerFrame: number): number {
-  return (pxPerFrame - SPEED_AXIS.MIN_PX_PER_FRAME) / SPEED_AXIS.RANGE_PX_PER_FRAME;
-}
 
 export const CALIB = {
   /** Divisor for `grain` axis. units. */

@@ -24,18 +24,21 @@ npx tsx scripts/v0/analyze_golden_curve.ts generated/golden-runs/rebaseline/gold
 ## 2. Does the fingerprint change?
 
 `EVALUATOR_FINGERPRINT` in `scripts/v0/golden_suite.ts` is a sha256 of the
-ruler: `scripts/v0/score.ts` plus every `specs/golden/*.ts`. The harness prints
+ruler: `scripts/v0/score.ts`, the authored-speed ruler/conversions, axis
+measurement/report assembly, and every `specs/golden/*.ts`. The harness prints
 the live fingerprint on every run and warns when it differs from the committed
 constant.
 
 - Compiler-only changes leave the ruler unchanged. Do not touch the constant.
-- Changes to `score.ts` or any golden spec are deliberate ruler changes. Update
-  the constant in the same commit; scores before and after are not comparable.
+- Changes to the scorer, speed ruler, axis measurement/report assembly, or any
+  golden spec are deliberate ruler changes. Update the constant in the same
+  commit; scores before and after are not comparable.
 
-Recompute without a full run:
+Recompute without a full run using the same source slices as
+`scripts/v0/golden.ts`:
 
 ```bash
-node -e 'const c=require("crypto"),fs=require("fs"),p=require("path");const h=c.createHash("sha256");const f=[p.resolve("scripts/v0/score.ts")];const d=p.resolve("specs/golden");for(const n of fs.readdirSync(d).filter(x=>x.endsWith(".ts")).sort())f.push(p.resolve(d,n));for(const x of f)h.update(fs.readFileSync(x));console.log(h.digest("hex").slice(0,12))'
+node --input-type=module -e 'import{readFileSync,readdirSync}from"node:fs";import{resolve}from"node:path";import{createHash}from"node:crypto";const s=(p,a,b)=>{const x=readFileSync(resolve(p),"utf8"),i=x.indexOf(a);if(i<0)throw Error(a);if(b===undefined)return x.slice(i);const j=x.indexOf(b,i);if(j<0)throw Error(b);return x.slice(i,j)};const h=createHash("sha256");h.update(readFileSync(resolve("scripts/v0/score.ts")));h.update("\0speed-ruler\0");h.update(s("scripts/v0/types.ts","export const SPEED_RULER","const speedAuthoredBreakpointToPx"));h.update("\0effective-axes\0");h.update(s("scripts/v0/core/substrate.ts","export function effectiveAxes","// ─────────── Cross-gap target sampling"));h.update("\0axis-measurement\0");h.update(s("scripts/v0/core/measure.ts","/** Airborne-frame fraction over [gap.start, rangeEndFrame]. */"));h.update("\0drift-report\0");h.update(s("scripts/v0/core/substrate.ts","export function buildDriftReport","export function measureAxisOverRange"));for(const f of readdirSync(resolve("specs/golden")).filter(n=>n.endsWith(".ts")).sort()){h.update("\0golden-spec\0");h.update(readFileSync(resolve("specs/golden",f)))}console.log(h.digest("hex").slice(0,12))'
 ```
 
 ## 3. Files to update

@@ -472,16 +472,14 @@ export function buildDriftReport(
       if (a === undefined) continue;
       axes[name] = { target: t, achieved: a, error: Math.abs(t - a) };
       if (name === "speed") {
-        const achievedRaw = meanSpeedPxOverRange(det, g.startFrame, g.endFrame);
-        if (achievedRaw !== null) {
-          const targetRaw = authoredSpeedToPx(t);
-          axes[name].raw = {
-            unit: "px/frame",
-            target: targetRaw,
-            achieved: achievedRaw,
-            error: Math.abs(targetRaw - achievedRaw),
-          };
-        }
+        const targetRaw = authoredSpeedToPx(t);
+        const achievedRaw = authoredSpeedToPx(a);
+        axes[name].raw = {
+          unit: "px/frame",
+          target: targetRaw,
+          achieved: achievedRaw,
+          error: Math.abs(targetRaw - achievedRaw),
+        };
       }
     }
     const survived = det.terminus.frame >= g.endFrame

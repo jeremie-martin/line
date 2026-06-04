@@ -98,15 +98,14 @@ Handoff-only extra candidates are cached at the node as well. Reuse catches and
 brake catches are deterministic prefix-state probes, so when tail completion and
 normal expansion both rank the same node, the compiler reuses the already
 validated extra candidates while still recomputing scoring for the current
-ranking mode. Brake probes remain local-policy work: moderate speed targets get
-them at the first overspeed, while high speed targets require both a
-contact-style target and severe overspeed before the compiler spends the extra
-candidate slots. Dense first-pass cadences keep the smaller brake set so they do
-not starve contract search. More spacious first-pass cadences widen the
-deterministic brake set by one candidate only on gaps that also target
-contact-style; after a passing output exists, quality search may widen any local
-brake probe. This adapts to spec/search difficulty, not to the caller's
-checkpoint budgets.
+ranking mode. Brake probes remain local-policy work: speed-targeted gaps at the
+authored minimum are excluded, and eligible targets use raw-velocity boundaries
+derived from the authored speed ruler (`speed=0.78` for the mild gate and
+`speed=1.0` for the hard cap). Once the local rider speed reaches the target,
+contract search samples two brake attempts, or three at stronger overspeed; after
+a passing output exists, quality search samples one additional local brake
+attempt. This adapts to spec/search difficulty, not to the caller's checkpoint
+budgets.
 
 Detector evaluation results are cached per search node within one compile call.
 The same prefix can be offered to the register from start-option deferral or

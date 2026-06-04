@@ -186,6 +186,9 @@ describe("handoff policy boundaries", () => {
   });
 
   test("brake work fires only on mild-overspeed targets", () => {
+    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0), 1.15)).toBe(false);
+    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0) + 1e-7, 1.15)).toBe(false);
+    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0) + 1e-3, 1.15)).toBe(true);
     expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.55), 1.0)).toBe(true);
     expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.55), 0.5)).toBe(false);
     expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.78), 1.15)).toBe(true);

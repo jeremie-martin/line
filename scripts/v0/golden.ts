@@ -177,17 +177,63 @@ function has(name: string): boolean {
   return process.argv.includes(`--${name}`);
 }
 
+function sourceSlice(path: string, startMarker: string, endMarker?: string): string {
+  const source = readFileSync(resolve(path), "utf8");
+  const start = source.indexOf(startMarker);
+  if (start < 0) throw new Error(`could not locate ${startMarker} in ${path}`);
+  if (endMarker === undefined) return source.slice(start);
+  const end = source.indexOf(endMarker, start);
+  if (end < 0) throw new Error(`could not locate ${endMarker} in ${path}`);
+  return source.slice(start, end);
+}
+
+function speedRulerFingerprintSource(): string {
+  return sourceSlice(
+    "scripts/v0/types.ts",
+    "export const SPEED_RULER",
+    "const speedAuthoredBreakpointToPx",
+  );
+}
+
+function effectiveAxesFingerprintSource(): string {
+  return sourceSlice(
+    "scripts/v0/core/substrate.ts",
+    "export function effectiveAxes",
+    "// ─────────── Cross-gap target sampling",
+  );
+}
+
+function driftReportFingerprintSource(): string {
+  return sourceSlice(
+    "scripts/v0/core/substrate.ts",
+    "export function buildDriftReport",
+    "export function measureAxisOverRange",
+  );
+}
+
+function axisMeasurementFingerprintSource(): string {
+  return sourceSlice(
+    "scripts/v0/core/measure.ts",
+    "/** Airborne-frame fraction over [gap.start, rangeEndFrame]. */",
+  );
+}
+
 function evaluatorFingerprint(): string {
   const h = createHash("sha256");
   const specDir = resolve("specs/golden");
-  const files = [
-    resolve("scripts/v0/score.ts"),
-    resolve("scripts/v0/types.ts"),
-  ];
+  h.update(readFileSync(resolve("scripts/v0/score.ts")));
+  h.update("\0speed-ruler\0");
+  h.update(speedRulerFingerprintSource());
+  h.update("\0effective-axes\0");
+  h.update(effectiveAxesFingerprintSource());
+  h.update("\0axis-measurement\0");
+  h.update(axisMeasurementFingerprintSource());
+  h.update("\0drift-report\0");
+  h.update(driftReportFingerprintSource());
   for (const f of readdirSync(specDir).filter((n) => n.endsWith(".ts")).sort()) {
-    files.push(resolve(specDir, f));
+    h.update("\0golden-spec\0");
+    h.update(readFileSync(resolve(specDir, f)));
   }
-  for (const f of files) h.update(readFileSync(f));
   return h.digest("hex").slice(0, 12);
 }
 

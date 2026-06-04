@@ -14,6 +14,7 @@ import {
   AXES,
   AXIS_VALUE_MAX,
   FRAME_SPAN_AXES,
+  SPEED_RULER,
   SPEED_AXIS,
   authoredSpeedToPx,
   hasAnyTargetAxis,
@@ -66,6 +67,12 @@ describe("v0 golden configuration", () => {
   });
 
   test("authored speed maps to the calibrated raw velocity range", () => {
+    expect(SPEED_RULER.MIN_PX_PER_FRAME).toBeCloseTo(5.4, 10);
+    expect(SPEED_RULER.MAX_PX_PER_FRAME).toBeCloseTo(12.6, 10);
+    expect(SPEED_RULER.RANGE_PX_PER_FRAME).toBeCloseTo(7.2, 10);
+    expect(SPEED_AXIS.MIN_PX_PER_FRAME).toBe(SPEED_RULER.MIN_PX_PER_FRAME);
+    expect(SPEED_AXIS.MAX_PX_PER_FRAME).toBe(SPEED_RULER.MAX_PX_PER_FRAME);
+    expect(SPEED_AXIS.RANGE_PX_PER_FRAME).toBe(SPEED_RULER.RANGE_PX_PER_FRAME);
     expect(authoredSpeedToPx(0)).toBeCloseTo(5.4, 10);
     expect(authoredSpeedToPx(1)).toBeCloseTo(12.6, 10);
     expect(speedPxToAuthored(5.4)).toBeCloseTo(0, 10);

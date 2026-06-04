@@ -928,13 +928,14 @@ anchor = targetSled - local + tangent * alongJitter + normal * normalJitter</div
       <div class="panel">
         <h3>Brake catches</h3>
         <p>
-          If the current raw speed is already over the authored target's raw
-          px/frame mapping, the compiler
-          offers uphill-entry brake catches. Contract search samples
-          <code>2..3</code> brake attempts depending on speed ratio; after a
-          passing output exists, quality search may widen the local brake probe
-          to <code>3..4</code>. Brake catches are excluded from reuse because
-          they are corrective catches, not steady-state rhythm shapes.
+          On speed-targeted gaps above the authored minimum, if the current raw
+          speed is already over the authored target's raw px/frame mapping and
+          the target is still inside the mild brake gate, the compiler offers
+          uphill-entry brake catches. Contract search samples <code>2..3</code>
+          brake attempts depending on speed ratio; after a passing output exists,
+          quality search may widen the local brake probe to <code>3..4</code>.
+          Brake catches are excluded from reuse because they are corrective
+          catches, not steady-state rhythm shapes.
         </p>
       </div>
       <div class="panel">

@@ -44,6 +44,23 @@ const AIR_SUPPORT_END_ANGLE_MIN = -6;
 const AIR_SUPPORT_END_ANGLE_MAX = 10;
 const AIR_SUPPORT_CURVE_BIAS_MAX = 0.35;
 
+type ProcessEnv = Record<string, string | undefined>;
+
+function envValue(name: string): string | undefined {
+  return (globalThis as { process?: { env?: ProcessEnv } }).process?.env?.[name];
+}
+
+export function readPositiveEnvNumber(name: string, fallback: number): number {
+  const raw = envValue(name);
+  if (raw === undefined) return fallback;
+  const trimmed = raw.trim();
+  if (trimmed === "") return fallback;
+  const value = Number(trimmed);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+const LEVEL_SCALE = readPositiveEnvNumber("LR_LEVEL_SCALE", 1);
+
 export type ArcPlacementStats = NonNullable<CompileStats["arc_placement"]>;
 export type ArcPlacementDirectFailureReason = "survival" | "landing" | "offbeat";
 
@@ -106,8 +123,7 @@ const CATCH_TEMPLATES = [
 ] as const;
 
 export function arcPlacementMode(): ArcPlacementRuntimeMode {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_ARC_PLACEMENT;
+  const raw = envValue("LR_ARC_PLACEMENT");
   if (raw === "uniform") return "uniform";
   if (raw === "impact_frame") return "impact_frame";
   if (raw === "contact_centered") return "contact_centered";
@@ -122,8 +138,7 @@ export function impactAnchorEnabled(): boolean {
 }
 
 export function impactAnchorFallbackBisectEnabled(): boolean {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_IMPACT_ANCHOR_FALLBACK_BISECT;
+  const raw = envValue("LR_IMPACT_ANCHOR_FALLBACK_BISECT");
   return raw === "1";
 }
 
@@ -760,14 +775,9 @@ export function sampleContactCenteredLinesWithDiagnostics(
   const levelBlend = levelSpanEnabled() && nextGapFrames !== null
     ? clamp((((attempt % 8) + 8) % 8) / 7, 0, 1) * clamp(brakePressure + 0.2, 0, 1)
     : 0;
-  const levelScaleRaw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_LEVEL_SCALE;
-  const levelScale = levelScaleRaw !== undefined && Number.isFinite(Number(levelScaleRaw))
-    ? Number(levelScaleRaw)
-    : 1;
   const levelLaunchDeg = nextGapFrames === null
     ? angledPostAngleDeg
-    : (Math.atan2(-0.5 * 0.175 * nextGapFrames * levelScale, Math.max(1, targetState.speed)) * 180) / Math.PI;
+    : (Math.atan2(-0.5 * 0.175 * nextGapFrames * LEVEL_SCALE, Math.max(1, targetState.speed)) * 180) / Math.PI;
   const postAngleDeg = lerp(angledPostAngleDeg, levelLaunchDeg, levelBlend);
 
   const contactAngleRad = (contactAngleDeg * Math.PI) / 180;
@@ -810,8 +820,7 @@ export function sampleContactCenteredLinesWithDiagnostics(
  *  last-budget mean by reducing the systematic speed overshoot); opt out with
  *  LR_LEVELSPAN=0 for A/B. */
 function levelSpanEnabled(): boolean {
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_LEVELSPAN !== "0";
+  return envValue("LR_LEVELSPAN") !== "0";
 }
 
 export function shouldUseContactCenteredLines(

@@ -498,28 +498,35 @@ export type Gap = {
 /** Engine framerate. Spec time (seconds) ↔ frame conversion. */
 export const FPS = 40;
 
+const SPEED_MIN_PX_PER_FRAME = 5.4;
+const SPEED_MAX_PX_PER_FRAME = 12.6;
+const SPEED_RANGE_PX_PER_FRAME = SPEED_MAX_PX_PER_FRAME - SPEED_MIN_PX_PER_FRAME;
+const speedAuthoredBreakpointToPx = (speed: number): number =>
+  SPEED_MIN_PX_PER_FRAME + speed * SPEED_RANGE_PX_PER_FRAME;
+
 /**
  * Calibration constants. TODO calibrate empirically against rendered tracks.
  */
 export const SPEED_AXIS = {
   /** Authored speed 0.0 maps to this physical velocity. */
-  MIN_PX_PER_FRAME: 5.4,
+  MIN_PX_PER_FRAME: SPEED_MIN_PX_PER_FRAME,
   /** Authored speed 1.0 maps to this physical velocity. */
-  MAX_PX_PER_FRAME: 12.6,
-  RANGE_PX_PER_FRAME: 7.2,
+  MAX_PX_PER_FRAME: SPEED_MAX_PX_PER_FRAME,
+  RANGE_PX_PER_FRAME: SPEED_RANGE_PX_PER_FRAME,
   /** No authored speed pressure at start: begin at the slowest meaningful pace. */
-  UNTARGETED_START_PX_PER_FRAME: 5.4,
+  UNTARGETED_START_PX_PER_FRAME: SPEED_MIN_PX_PER_FRAME,
   /** No authored speed pressure in reachability probes: use a moderate pace. */
   UNTARGETED_REACHABILITY_PX_PER_FRAME: 6.6,
   /** Physical high-speed boundary used by start-policy overshoot scoring. */
   HIGH_START_PX_PER_FRAME: 9.0,
-  /** Arc placement pressure thresholds preserved from the old physical scale. */
+  /** Arc placement pressure thresholds keyed to actual physical speed. */
   PRESSURE_START_PX_PER_FRAME: 7.8,
   PRESSURE_SPAN_PX_PER_FRAME: 6.6,
-  CARRY_START_PX_PER_FRAME: 6.6,
-  CARRY_SPAN_PX_PER_FRAME: 4.8,
-  CARRY_FADE_START_PX_PER_FRAME: 9.36,
-  CARRY_FADE_SPAN_PX_PER_FRAME: 1.44,
+  /** Target-speed carry thresholds preserve the old authored breakpoints. */
+  CARRY_START_PX_PER_FRAME: speedAuthoredBreakpointToPx(0.55),
+  CARRY_SPAN_PX_PER_FRAME: speedAuthoredBreakpointToPx(0.95) - speedAuthoredBreakpointToPx(0.55),
+  CARRY_FADE_START_PX_PER_FRAME: speedAuthoredBreakpointToPx(0.78),
+  CARRY_FADE_SPAN_PX_PER_FRAME: speedAuthoredBreakpointToPx(0.90) - speedAuthoredBreakpointToPx(0.78),
 } as const;
 
 export function authoredSpeedToPx(speed: number): number {

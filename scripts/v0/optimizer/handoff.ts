@@ -330,6 +330,7 @@ const START_FIRST_K = 8;
 const START_FIRST_OPTIONS = 3;
 const START_NEXT_K = 8;
 const START_HEURISTIC_WEIGHT = 0.15;
+const START_SPEED_ANCHOR_OFFSETS_PX_PER_FRAME = [-2.5, -0.75, 0, 1.25, 2.5] as const;
 const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
 /** The one-contact preview already pays for a future candidate. Reuse its local
@@ -348,8 +349,9 @@ const HANDOFF_AXIS_OVERSHOOT_WEIGHTS: Partial<Record<AxisName, number>> = {
  *  MODERATE-target gaps where the rider runs even mildly over target (early, to
  *  pre-empt creep). Decoupled from landing, so on non-creeping specs they simply
  *  lose the ranking. Excluded from reuse. */
-const HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME = 12.0;
-const HANDOFF_BRAKE_MILD_TARGET_MAX_PX_PER_FRAME = 9.36;
+const HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME = authoredSpeedToPx(1.0);
+const HANDOFF_BRAKE_MILD_TARGET_MAX_PX_PER_FRAME = authoredSpeedToPx(0.78);
+const HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME = 1e-6;
 const HANDOFF_BRAKE_RATIO_MIN = 1.0;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
 const HANDOFF_BRAKE_CONTRACT_BASE_K = 2;
@@ -1524,7 +1526,9 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
     return false;
   }
   const targetSpeedPx = authoredSpeedToPx(targetSpeed);
-  if (targetSpeedPx > HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME) return false;
+  if (targetSpeedPx > HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME) {
+    return false;
+  }
   const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
   const speedRatio = ts.speed / targetSpeedPx;
@@ -1783,7 +1787,9 @@ function brakeCatchCandidates(
   const tgt = gap.targets?.speed;
   if (tgt === undefined) return [];
   const targetSpeedPx = authoredSpeedToPx(tgt);
-  if (targetSpeedPx > HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME) return [];
+  if (targetSpeedPx > HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME) {
+    return [];
+  }
   const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
   const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
   const speedRatio = ts.speed / targetSpeedPx;
@@ -1829,8 +1835,9 @@ export function shouldOfferBrakeCandidates(
   // Brake probes only on mild-overspeed targets. (High-overspeed brakes were
   // previously gated on a contact-event target, an axis category that no longer
   // exists, so that branch is gone.)
-  return targetSpeedPxPerFrame <= HANDOFF_BRAKE_MILD_TARGET_MAX_PX_PER_FRAME
-    && brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
+  const withinMildTarget = targetSpeedPxPerFrame <=
+    HANDOFF_BRAKE_MILD_TARGET_MAX_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME;
+  return withinMildTarget && brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
 }
 
 /** Translate the most-recent committed catches (which carry a sled `ref`) to
@@ -2444,19 +2451,7 @@ export function usesHighSpeedStartOvershootScoring(axes: AxisValues): boolean {
 
 function startCandidates(firstAxes: AxisValues): NonNullable<Spec["start"]>[] {
   const targetSpeed = startTargetSpeedPx(firstAxes);
-  const speedAnchors = targetSpeed >= SPEED_AXIS.HIGH_START_PX_PER_FRAME
-    ? [6, 8.5, 11, 13.5]
-    : targetSpeed >= 6
-    ? [3, 5.5, 8, 10.5]
-    : [0.4, 2, 4, 6];
-  const speeds = uniqueRounded([
-    START_DEFAULTS.VELOCITY.x,
-    ...speedAnchors,
-    targetSpeed * 0.75,
-    targetSpeed,
-    targetSpeed * 1.2,
-  ])
-    .filter((speed) => speed > 0 && speed <= START_DEFAULTS.VELOCITY_SANITY_CAP);
+  const speeds = startSpeedAnchors(targetSpeed);
   const angles = startAngles(firstAxes);
   const out: NonNullable<Spec["start"]>[] = [];
   for (const speed of speeds) {
@@ -2469,6 +2464,16 @@ function startCandidates(firstAxes: AxisValues): NonNullable<Spec["start"]>[] {
     }
   }
   return out;
+}
+
+export function startSpeedAnchors(targetSpeedPxPerFrame: number): number[] {
+  return uniqueRounded([
+    START_DEFAULTS.VELOCITY.x,
+    ...START_SPEED_ANCHOR_OFFSETS_PX_PER_FRAME.map((offset) => targetSpeedPxPerFrame + offset),
+    targetSpeedPxPerFrame * 0.75,
+    targetSpeedPxPerFrame * 1.2,
+  ])
+    .filter((speed) => speed > 0 && speed <= START_DEFAULTS.VELOCITY_SANITY_CAP);
 }
 
 function startHeuristicCost(start: NonNullable<Spec["start"]>, axes: AxisValues): number {

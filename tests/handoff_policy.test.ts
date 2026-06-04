@@ -11,6 +11,7 @@ import {
   shouldUseExpandedBrakeSearch,
   shortDeadlineRescueCandidateCount,
   startAngles,
+  startSpeedAnchors,
   targetStartAngle,
   usesHighSpeedStartOvershootScoring,
   usesSparseContractSearch,
@@ -23,6 +24,7 @@ import {
 import {
   arcPlacementMode,
   recordImpactAnchorDirectFailure,
+  readPositiveEnvNumber,
   resetArcPlacementStats,
   sampleArcParams,
   sampleArcParamsRngDraws,
@@ -54,6 +56,24 @@ function withArcPlacementMode<T>(mode: string | undefined, fn: () => T): T {
       delete process.env.LR_ARC_PLACEMENT;
     } else {
       process.env.LR_ARC_PLACEMENT = previous;
+    }
+  }
+}
+
+function withEnv<T>(name: string, value: string | undefined, fn: () => T): T {
+  const previous = process.env[name];
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+  try {
+    return fn();
+  } finally {
+    if (previous === undefined) {
+      delete process.env[name];
+    } else {
+      process.env[name] = previous;
     }
   }
 }
@@ -166,10 +186,12 @@ describe("handoff policy boundaries", () => {
   });
 
   test("brake work fires only on mild-overspeed targets", () => {
-    expect(shouldOfferBrakeCandidates(9.36, 1.0)).toBe(true); // mild target, at ratio floor
-    expect(shouldOfferBrakeCandidates(9.36, 0.5)).toBe(false); // below the overspeed ratio floor
-    expect(shouldOfferBrakeCandidates(9.4, 1.15)).toBe(false); // above mild target -> no brake
-    expect(shouldOfferBrakeCandidates(9.4, 1.15, true)).toBe(false);
+    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.55), 1.0)).toBe(true);
+    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.55), 0.5)).toBe(false);
+    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.78), 1.15)).toBe(true);
+    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.78) + 1e-7, 1.15)).toBe(true);
+    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.78) + 1e-3, 1.15)).toBe(false);
+    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.79), 1.15, true)).toBe(false);
   });
 
   test("start feasibility scoring only requires two future contacts", () => {
@@ -197,9 +219,37 @@ describe("handoff policy boundaries", () => {
       expect(Math.abs(angle - below[i])).toBeCloseTo(0.9, 6);
     }
   });
+
+  test("start-speed anchors are continuous around the old high-speed split", () => {
+    const below = [...startSpeedAnchors(8.99)].sort((a, b) => a - b);
+    const above = [...startSpeedAnchors(9.01)].sort((a, b) => a - b);
+
+    expect(below).toHaveLength(above.length);
+    expect(below[0]).toBe(0.4);
+    expect(above[0]).toBe(0.4);
+    expect(startSpeedAnchors(authoredSpeedToPx(0.5))).toContain(9);
+
+    const maxDelta = Math.max(...below.map((speed, index) => Math.abs(speed - above[index])));
+    expect(maxDelta).toBeLessThan(0.03);
+  });
 });
 
 describe("arc placement mode policy", () => {
+  test("positive numeric env parser rejects empty and non-positive values", () => {
+    expect(withEnv("LR_LEVEL_SCALE", undefined, () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
+      .toBe(1);
+    expect(withEnv("LR_LEVEL_SCALE", "", () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
+      .toBe(1);
+    expect(withEnv("LR_LEVEL_SCALE", "   ", () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
+      .toBe(1);
+    expect(withEnv("LR_LEVEL_SCALE", "0", () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
+      .toBe(1);
+    expect(withEnv("LR_LEVEL_SCALE", "-1", () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
+      .toBe(1);
+    expect(withEnv("LR_LEVEL_SCALE", "2.5", () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
+      .toBe(2.5);
+  });
+
   test("LR_ARC_PLACEMENT accepts only the explicit alternate modes", () => {
     expect(withArcPlacementMode(undefined, () => arcPlacementMode())).toBe("impact_anchor");
     expect(withArcPlacementMode("uniform", () => arcPlacementMode())).toBe("uniform");

@@ -1964,13 +1964,21 @@ function buildAxisLiveState(axisReport, N, FPS) {
   const scales = {};
   for (const axis of axes) {
     const infoMax = AXIS_INFO[axis]?.max ?? 1;
+    let minValue = 0;
     let maxValue = infoMax;
     for (const p of points) {
       const v = p.axes?.[axis];
       if (!v) continue;
-      maxValue = Math.max(maxValue, finiteAxisValue(v.target), finiteAxisValue(v.achieved));
+      const target = finiteAxisValue(v.target);
+      const achieved = finiteAxisValue(v.achieved);
+      minValue = Math.min(minValue, target, achieved);
+      maxValue = Math.max(maxValue, target, achieved);
     }
-    scales[axis] = Math.max(0.001, maxValue);
+    scales[axis] = {
+      min: minValue,
+      max: maxValue,
+      span: Math.max(0.001, maxValue - minValue),
+    };
   }
 
   return {
@@ -2040,7 +2048,7 @@ function renderAxisLive(state) {
       const target = finiteAxisValue(value.target);
       const achieved = finiteAxisValue(value.achieved);
       const delta = achieved - target;
-      const scale = state.scales[axis] || 1;
+      const scale = state.scales[axis] || { min: 0, span: 1 };
       row.querySelector(".axis-target-val").textContent =
         axisLiveValueLabel(axis, "target", target, value.raw?.target);
       row.querySelector(".axis-achieved-val").textContent =
@@ -2049,8 +2057,10 @@ function renderAxisLive(state) {
       deltaEl.textContent = axisLiveDeltaLabel(axis, delta, value.raw?.error, achieved >= target);
       deltaEl.classList.toggle("good", Math.abs(delta) <= 0.08);
       deltaEl.classList.toggle("bad", Math.abs(delta) > 0.18);
-      row.querySelector(".axis-target-fill").style.width = `${clamp((target / scale) * 100, 0, 100)}%`;
-      row.querySelector(".axis-achieved-mark").style.left = `${clamp((achieved / scale) * 100, 0, 100)}%`;
+      row.querySelector(".axis-target-fill").style.width =
+        `${clamp(((target - scale.min) / scale.span) * 100, 0, 100)}%`;
+      row.querySelector(".axis-achieved-mark").style.left =
+        `${clamp(((achieved - scale.min) / scale.span) * 100, 0, 100)}%`;
     }
     spark.setCursor(frame);
   };
@@ -2105,7 +2115,9 @@ function renderAxisSpark(host, state) {
     const info = AXIS_INFO[axis] ?? { label: axis, color: "#5d564a", max: 1 };
     const y0 = padT + i * rowH;
     const yMid = y0 + rowH / 2;
-    const yAt = (value) => y0 + 4 + (1 - clamp(value / (state.scales[axis] || 1), 0, 1)) * (rowH - 8);
+    const scale = state.scales[axis] || { min: 0, span: 1 };
+    const yAt = (value) =>
+      y0 + 4 + (1 - clamp((value - scale.min) / scale.span, 0, 1)) * (rowH - 8);
 
     svg.appendChild(el("text", { class: "axis-spark-label", x: padL - 8, y: yMid + 3, "text-anchor": "end" }, info.label));
     svg.appendChild(el("line", { class: "axis-spark-base", x1: padL, x2: padL + innerW, y1: yMid, y2: yMid }));

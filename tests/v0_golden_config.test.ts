@@ -14,6 +14,7 @@ import {
   AXES,
   AXIS_VALUE_MAX,
   FRAME_SPAN_AXES,
+  SPEED_AXIS,
   authoredSpeedToPx,
   hasAnyTargetAxis,
   hasExactlyTargetAxes,
@@ -71,6 +72,15 @@ describe("v0 golden configuration", () => {
     expect(speedPxToAuthored(12.6)).toBeCloseTo(1, 10);
     expect(speedPxToAuthored(4.68)).toBeCloseTo(-0.1, 10);
     expect(speedPxToAuthored(13.32)).toBeCloseTo(1.1, 10);
+  });
+
+  test("target-speed carry thresholds preserve authored breakpoints", () => {
+    expect(SPEED_AXIS.CARRY_START_PX_PER_FRAME).toBeCloseTo(authoredSpeedToPx(0.55), 10);
+    expect(SPEED_AXIS.CARRY_START_PX_PER_FRAME + SPEED_AXIS.CARRY_SPAN_PX_PER_FRAME)
+      .toBeCloseTo(authoredSpeedToPx(0.95), 10);
+    expect(SPEED_AXIS.CARRY_FADE_START_PX_PER_FRAME).toBeCloseTo(authoredSpeedToPx(0.78), 10);
+    expect(SPEED_AXIS.CARRY_FADE_START_PX_PER_FRAME + SPEED_AXIS.CARRY_FADE_SPAN_PX_PER_FRAME)
+      .toBeCloseTo(authoredSpeedToPx(0.90), 10);
   });
 
   test("headline suite is the hand-authored spec registry", async () => {

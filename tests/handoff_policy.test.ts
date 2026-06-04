@@ -174,7 +174,7 @@ describe("handoff policy boundaries", () => {
     expect(handoffAxisOvershootPenalty(
       { speed: 0.5, air: 0.25 },
       { speed: 0.6, air: 0.5 },
-    )).toBeCloseTo(1.16, 6);
+    )).toBeCloseTo(1.0576, 6);
     expect(handoffAxisOvershootPenalty(
       { speed: 0.5, air: 0.25 },
       { speed: 0.4, air: 0.1 },
@@ -601,8 +601,8 @@ describe("arc placement mode policy", () => {
     expect(releaseSpeedPenalty(undefined, 0.5)).toBe(0);
     expect(releaseSpeedPenalty(authoredSpeedToPx(0.5), undefined)).toBe(0);
     expect(releaseSpeedPenalty(authoredSpeedToPx(0.5), 0.5)).toBeCloseTo(0, 12);
-    expect(releaseSpeedPenalty(authoredSpeedToPx(1), 0.5)).toBeCloseTo(0.0875, 6);
-    expect(releaseSpeedPenalty(authoredSpeedToPx(0), 0.5)).toBeCloseTo(0.0875, 6);
+    expect(releaseSpeedPenalty(authoredSpeedToPx(1), 0.5)).toBeCloseTo(0.0315, 6);
+    expect(releaseSpeedPenalty(authoredSpeedToPx(0), 0.5)).toBeCloseTo(0.0315, 6);
   });
 
   test("arc placement diagnostics split direct failure reasons by sample mode", () => {

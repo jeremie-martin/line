@@ -342,7 +342,7 @@ const HANDOFF_STATE_WEIGHT = 0.08;
  *  adding a future axis should be an explicit policy choice, not an accidental
  *  named-axis branch in the ranker. */
 const HANDOFF_AXIS_OVERSHOOT_WEIGHTS: Partial<Record<AxisName, number>> = {
-  speed: 16,
+  speed: 5.76,
   air: 16,
 };
 /** Brake catches (uphill-entry, bleed speed) are offered as EXTRA candidates on

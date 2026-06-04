@@ -138,12 +138,25 @@ Safer direction:
 - Keep the grid small, but bias extra coverage toward physically hard low-speed
   targets.
 
+Experiment result:
+
+- Under `LR_ARC_PLACEMENT=continuous`, changing the grid span to
+  `clamp(0.25 * targetSpeed, 1.5, 3.0)` was exactly neutral on the 20x3 screen:
+  score `432.53`, valid `58/60`, no changed rows versus the continuous
+  baseline.
+- Recommendation: do not land the proportional reachability grid as-is. If we
+  revisit reachability, inspect whether the region penalty is actually changing
+  candidate ordering before trying another grid shape.
+
 ### Steep-Catch Template Gate
 
 Current behavior:
 
 - Steep catch templates are used only when `gapFrames >= 60` and either raw
   speed is at least `10 px/frame` or angle is at least `55 deg`.
+- The main `LR_ARC_PLACEMENT=continuous` normal stream bypasses steep templates;
+  this gate still affects reachability's isolated probe path through
+  `sampleArcParams`.
 
 Why this looks overfit:
 
@@ -154,6 +167,8 @@ Safer direction:
 
 - Turn the condition into a pressure and allow sparse template attempts near the
   boundary, with full template use only at clearly steep/high-speed states.
+- Do this only if the reachability probe path is the explicit target; it is not
+  a main-stream arc placement change under continuous mode.
 
 ### Contact-Centered Pressure Constants
 
@@ -179,39 +194,52 @@ Safer direction:
 Current behavior:
 
 - `handoffAxisOvershootPenalty` scores speed overshoot in authored units with
-  weight `16`.
+  speed weight `5.76`.
 - `releaseSpeedPenalty` measures release speed error in authored speed units.
-- After the speed remap, one physical px/frame of release-speed error maps to a
-  larger authored delta because the authored range is `7.2 px/frame` wide rather
-  than the old implicit `12 px/frame` scale.
-- `RELEASE_STATE_SPEED_WEIGHT = 0.35` and the handoff speed overshoot weight
-  were not re-fit during the remap.
+- `RELEASE_STATE_SPEED_WEIGHT = 0.126`.
+- These are the old physical-equivalent weights after the authored speed range
+  narrowed from the old implicit `12 px/frame` scale to `7.2 px/frame`.
 
-Why this needs care:
+Evidence:
 
-- For a fixed physical px/frame error, squared authored-unit penalties are about
-  `2.78x` stronger than they were on the old `/12` scale.
-- This is a heuristic ranking term, not an evaluator ruler, so changing it
-  should be benchmarked instead of bundled into a correctness cleanup.
-- `axisCost` also remains equal-weighted in authored axis units. That matches
-  the evaluator's equal-axis framing, but it is still part of the same local
-  ranking audit if speed keeps dominating candidate choice.
+All runs below use `LR_ARC_PLACEMENT=continuous`, 150k budget, and the cleaned
+speed-ruler migration baseline.
 
-Safer direction:
+| Variant | Archive | Scope | Score | Valid |
+| --- | --- | ---: | ---: | ---: |
+| continuous baseline | `/tmp/line-speed-policy-continuous-baseline-20x3-b150k` | 20x3 | 432.53 | 58/60 |
+| reachability proportional grid | `/tmp/line-speed-policy-continuous-r1-20x3-b150k` | 20x3 | 432.53 | 58/60 |
+| physical-equivalent weights | `/tmp/line-speed-policy-continuous-w1-20x3-b150k` | 20x3 | 476.83 | 59/60 |
+| midpoint weights | `/tmp/line-speed-policy-continuous-w2-20x3-b150k` | 20x3 | 475.88 | 59/60 |
+| continuous baseline | `/tmp/line-speed-policy-continuous-baseline-20x10-b150k` | 20x10 | 444.51 | 194/200 |
+| physical-equivalent weights | `/tmp/line-speed-policy-continuous-w1-20x10-b150k` | 20x10 | 483.86 | 197/200 |
 
-- Run small sweeps around the old physical-equivalent weights before changing
-  the constants. Examples: release-state `0.126`, `0.20`, `0.35`; handoff
-  overshoot `5.76`, middle values, and current `16`.
-- Compare not only curve score, but start/early-gap speed errors and contract
-  stability.
+Interpretation:
+
+- Physical-equivalent weights were the best 20x3 screen and confirmed on 20x10.
+- The 20x10 validity flips were net positive: baseline failures
+  `opening_burst` seeds `0/6/8` and `solo_run` seeds `2/6/7`; W1 failures
+  `opening_burst` seed `6`, `solo_run` seed `2`, and `drums_dropout` seed `3`.
+- The gain comes from ranking/selection behavior, not evaluator drift. The
+  evaluator fingerprint stayed `9bd67dc960f1`.
+
+Speed-only ceiling diagnostic:
+
+- On the continuous 20x3 baseline, rescoring the same reports with air and
+  grain errors forced to zero gives curve `530.86` versus actual `432.52`.
+- On W1 20x3, the same speed-only ceiling gives curve `577.69` versus actual
+  `476.83`.
+- Failed rows still fail in this diagnostic because contacts, off-beats, and
+  survival are left unchanged.
 
 ## Suggested Order
 
-1. Reachability grid: useful but more expensive to validate.
-2. Steep-catch gate: potentially helpful, but template scheduling is discrete.
-3. Contact-centered constants: tune only after the selection policies settle.
-4. Handoff/release speed weights: sweep physical-equivalent values before
-   retuning ranking constants.
+1. Contact-centered constants: tune only after the selection policies settle.
+2. Reachability: inspect region-penalty influence before changing the grid.
+3. Steep-catch gate: only revisit as a reachability-probe policy under
+   continuous placement.
+4. Handoff/release speed weights: landed physical-equivalent weights; revisit
+   only if future ranking changes make speed underweighted.
 5. Brake ranking/acceptance: revisit only with a narrower design than candidate
    eligibility widening.
 6. Start-speed anchors: run a clean 10-seed confirmation pass, but the 20x3

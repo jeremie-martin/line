@@ -45,7 +45,7 @@ import { measureGapAxes } from "./measure.ts";
 
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
-const RELEASE_STATE_SPEED_WEIGHT = 0.35;
+const RELEASE_STATE_SPEED_WEIGHT = 0.126;
 
 type WindowDetection = Detection & { frameOffset?: number };
 

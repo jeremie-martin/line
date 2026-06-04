@@ -58,6 +58,7 @@ import {
   headlineCases,
   loadGoldenSpec,
   variantCases,
+  type GoldenSpecName,
   type SuiteCase,
   type VariantName,
 } from "./golden_suite.ts";
@@ -1102,7 +1103,19 @@ async function runMain(): Promise<void> {
   const specFilter = arg("specs");
   const filterSet = specFilter ? new Set(specFilter.split(",").filter(Boolean)) : null;
   const keep = (c: SuiteCase) => filterSet === null || filterSet.has(c.specName);
-  const headline = headlineCases().filter(keep);
+  const headlineFiltered = headlineCases().filter(keep);
+  // Allow --specs to name specs OUTSIDE the headline GOLDEN_SPECS registry (e.g.
+  // the fragile/excluded `opening_burst`) by loading them directly from disk.
+  // This keeps the headline benchmark untouched while letting a focused campaign
+  // target excluded/fragile specs. Only base variant; --specs typo surfaces as a
+  // clear load error from loadGoldenSpec.
+  const present = new Set(headlineFiltered.map((c) => c.specName));
+  const extraCases: SuiteCase[] = filterSet
+    ? [...filterSet]
+        .filter((name) => !present.has(name as GoldenSpecName))
+        .map((name) => ({ specName: name as GoldenSpecName, variant: "base" as const }))
+    : [];
+  const headline = [...headlineFiltered, ...extraCases];
   const variants = variantCases().filter(keep);
 
   const canonical =

@@ -70,7 +70,7 @@ vendored` track-hash on all 4 specs). `vendored ≡ official` still holds (run
 
 Performance: the kernel alone is ~5× the JS engine (`wasm:bench`), and end-to-end
 (`LR_ENGINE=wasm npm run perf`) is now much faster than the JS engine
-(roughly 14k ns/physics-frame on the current W7 stack). The biggest boundary win is a
+(roughly 13.6k ns/physics-frame on the current W8 stack). The biggest boundary win is a
 fused raw-frame ABI for the detector hot path: Rust computes the BODY average,
 binding states, and collision records in one cache read, and the wrapper returns
 the detector's `RawFrame` shape directly instead of crossing wasm twice and

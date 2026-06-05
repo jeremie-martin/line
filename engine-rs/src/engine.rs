@@ -17,7 +17,7 @@
 //! lr-core applies. Forking is a cheap tree node; the heavy frame cache is shared.
 
 use crate::grid::{FlatIntMap, IntMap};
-use crate::kernel::{compute_rest_endur, init_state, step_state, State};
+use crate::kernel::{compute_rest_endur, init_state, step_state, LineCellCache, State};
 use crate::frame::{
     index_of_collision_in_cell, index_of_collision_with_line, rollback_collisions, rollback_grid,
     ActiveCellCache, Collisions, HistGrid, SnapNode,
@@ -38,6 +38,7 @@ struct Cache {
     rest: [f64; NITER],
     endur: [f64; NITER],
     cell_lines: FlatIntMap<Vec<Line>>, // ClassicGrid cellLinesMap (collision lookup)
+    line_cache: LineCellCache,           // frame-local shortcut for repeated line-grid cells
     lines_cells: IntMap<i32, Vec<i64>>, // ClassicGrid lineCellsMap (id → cells, for remove)
     frames: Vec<State>,                   // frames[0] = initial; lazily extended
     events: Vec<Event>,                   // flat per-frame collision records
@@ -61,6 +62,7 @@ impl Cache {
         Cache {
             rest, endur,
             cell_lines: FlatIntMap::default(),
+            line_cache: LineCellCache::default(),
             lines_cells: IntMap::default(),
             frames: vec![s.clone()],
             events: Vec::new(),
@@ -166,7 +168,8 @@ impl Cache {
             step_state::<true>(
                 &mut self.cur, &self.cell_lines, &self.rest, &self.endur,
                 &mut self.events, fi, &mut self.hist, &mut self.touched_cells,
-                &mut self.hist_snaps, &mut self.active_cells, &mut self.coll, &mut self.touched_lines,
+                &mut self.hist_snaps, &mut self.active_cells, &mut self.line_cache,
+                &mut self.coll, &mut self.touched_lines,
             );
             self.frames.push(self.cur.clone());
             self.event_offsets.push(self.events.len());

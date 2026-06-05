@@ -16,6 +16,56 @@ use crate::{
     LHAND, NENT, NITER, NOSE, PEG, RHAND, RIDER_MOUNTED, RFOOT, SHOULDER, STRING, TAIL,
 };
 
+const LINE_CELL_CACHE_SLOTS: usize = 64;
+
+pub(crate) struct LineCellCache {
+    keys: [i64; LINE_CELL_CACHE_SLOTS],
+    ptrs: [*const Vec<Line>; LINE_CELL_CACHE_SLOTS],
+    epochs: [u32; LINE_CELL_CACHE_SLOTS],
+    current_epoch: u32,
+}
+
+impl Default for LineCellCache {
+    fn default() -> LineCellCache {
+        LineCellCache {
+            keys: [0; LINE_CELL_CACHE_SLOTS],
+            ptrs: [std::ptr::null(); LINE_CELL_CACHE_SLOTS],
+            epochs: [0; LINE_CELL_CACHE_SLOTS],
+            current_epoch: 1,
+        }
+    }
+}
+
+impl LineCellCache {
+    #[inline]
+    fn begin_frame(&mut self) {
+        self.current_epoch = self.current_epoch.wrapping_add(1);
+        if self.current_epoch == 0 {
+            self.epochs.fill(0);
+            self.current_epoch = 1;
+        }
+    }
+
+    #[inline]
+    fn slot(cell: i64) -> usize {
+        ((cell as u64).wrapping_mul(0x9E3779B97F4A7C15) as usize) & (LINE_CELL_CACHE_SLOTS - 1)
+    }
+
+    #[inline]
+    fn lookup<'a>(&mut self, grid: &'a FlatIntMap<Vec<Line>>, cell: i64) -> Option<&'a Vec<Line>> {
+        let slot = Self::slot(cell);
+        if self.epochs[slot] == self.current_epoch && self.keys[slot] == cell {
+            let ptr = self.ptrs[slot];
+            return if ptr.is_null() { None } else { Some(unsafe { &*ptr }) };
+        }
+        let found = grid.get(&cell);
+        self.keys[slot] = cell;
+        self.ptrs[slot] = found.map(|bucket| bucket as *const Vec<Line>).unwrap_or(std::ptr::null());
+        self.epochs[slot] = self.current_epoch;
+        found
+    }
+}
+
 #[derive(Clone)]
 pub(crate) struct State {
     pub px: [f64; NENT],
@@ -175,10 +225,12 @@ pub(crate) fn step_state<const TRACK: bool>(
     touched_cells: &mut Vec<i64>,
     hist_snaps: &mut Vec<SnapNode>,
     active_cells: &mut ActiveCellCache,
+    line_cache: &mut LineCellCache,
     coll: &mut Collisions,
     touched_lines: &mut Vec<i32>,
 ) {
     active_cells.begin_frame();
+    line_cache.begin_frame();
     // step
     for i in 0..NENT {
         if IS_POINT[i] {
@@ -218,7 +270,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                 add_to_grid(hist, touched_cells, hist_snaps, active_cells, &cells, frame_index, pxi, pyi, vxi, vyi);
             }
             for &cell in cells.iter() {
-                if let Some(lns) = grid.get(&cell) {
+                if let Some(lns) = line_cache.lookup(grid, cell) {
                     for l in lns.iter() {
                         let ox = pxi - l.p1x;
                         let oy = pyi - l.p1y;

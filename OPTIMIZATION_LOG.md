@@ -782,3 +782,37 @@ Slot tuning (8 reps + 2 warmup): 64 slots **14,455 ns/frame**, 128 slots
 **Standing after W7:** **~14,100 ns/physics-frame** — bit-identical to lr-core,
 ≈23.7× faster than pristine JS (333k) and ≈5.2× faster than the parity-correct JS
 engine (B11 ~73k).
+
+## W8 — Direct-mapped line-cell lookup cache  (−3.4%, bit-identical)
+After W7, `add_to_grid` was reduced but the fused compute loop still probed the
+collision line grid for the same overlapping 3×3 cell neighborhoods. Added a
+second tiny frame-local cache, `LineCellCache`, for `cell_lines.get(cell)` results
+in `kernel.rs`. It caches both hits and misses (`cell → *const Vec<Line>` or null)
+for the current physics frame, then falls back to the existing `FlatIntMap` probe
+on a miss. The line grid is immutable during a frame, so the cached pointer is
+stable until the next `begin_frame`; any `addLine`/`removeLine` happens outside
+the step and cannot reuse the prior epoch.
+
+Tuning: 128 slots **13,614 ns/frame**, 64 slots **13,431 ns/frame**, 32 slots
+**14,123 ns/frame** on the 8-run signal → kept 64.
+
+Rejected post-W7 probes, all reverted:
+- `cells_near_entity` shared signed-coordinate encodings: **14,297 ns/frame**.
+- Force-inline active-cache helpers / `add_to_grid`: **14,554 ns/frame**.
+- Modest upfront reserves for cache vectors: **14,631 ns/frame**.
+- Low-bit active-history-cache slot index instead of multiply: **14,400 ns/frame**.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical · `cargo test
+  --manifest-path engine-rs/Cargo.toml` ✓.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 30 runs + 3 warmup):**
+
+  | stage | mean ns/frame | median |
+  |-------|---------------|--------|
+  | W7 standing | 14,055.5 ± 376.2 | 14,129.4 |
+  | **W8 line-cell cache** | **13,580.1 ± 315.8** | **13,582.8** |
+
+  **−3.4% mean / −3.9% median**, above the 1.6% commit bar → **kept**.
+
+**Standing after W8:** **~13,600 ns/physics-frame** — bit-identical to lr-core,
+≈24.5× faster than pristine JS (333k) and ≈5.4× faster than the parity-correct JS
+engine (B11 ~73k).

@@ -816,3 +816,71 @@ Rejected post-W7 probes, all reverted:
 **Standing after W8:** **~13,600 ns/physics-frame** — bit-identical to lr-core,
 ≈24.5× faster than pristine JS (333k) and ≈5.4× faster than the parity-correct JS
 engine (B11 ~73k).
+
+## Session 4 (2026-06-05 cont.) — crate/data-structure follow-up, no kept change
+
+Post-W8 profile still has most self time in the WASM compute path, especially the
+fused step/collision loop (`wasm-function[29]`) and history recording
+(`wasm-function[24]`). JS `pointSegmentCollisionRisk`/detector work is visible but
+smaller, so a Rust-side data-structure probe was still the right next experiment.
+
+Rejected crate probes, all reverted:
+
+- **`hashbrown 0.17.1` as a like-for-like replacement for residual `IntMap`:**
+  bit-identical, but regressed to **14,742 ns/frame** on an 8-run signal. The
+  standard map is already SwissTable-backed, and the crate swap did not improve
+  this WASM build.
+- **`hashbrown` raw-entry/prehashed append path for `HistGrid` and
+  `Collisions`:** bit-identical and better than the plain crate swap, but still
+  slower than W8 at **14,227 ns/frame** on the same 8-run signal. Rebuilt the
+  no-dependency W8 implementation afterward and measured **13,893 ns/frame** on
+  the dirty-worktree 8-run signal.
+
+Conclusion: there is still no drop-in crate that looks adequate for the current
+hot path. The only crate API that should have had a fair chance (`hashbrown`
+raw-entry with our exact precomputed integer hash) could not beat the committed
+`std::HashMap` + direct-mapped frame caches. `rustc-hash`, `foldhash`, `ahash`,
+and `nohash` remain unattractive here: this is dominated by integer-key probing,
+cache locality, and value work, not by generic hash quality. The next real wins
+are more likely structural: reduce history-recording volume, change the
+`CellFrame` storage/rollback shape, or avoid crossing back into JS for detector
+queries that repeatedly read WASM frames.
+
+## W9 — Shared history snapshot arena  (−2.3%, bit-identical)
+
+`add_to_grid` remained a hot WASM function after W8. Each history snapshot is the
+same `(px, py, vx, vy)` value fanned out into the entity's 3×3 cell neighborhood,
+but the old storage copied that 32-byte `Snap` into every touched cell frame/link.
+Changed the history representation so `add_to_grid` pushes one `Snap` into a
+shared `hist_snap_values` arena and stores compact `i32` snap indices in
+`CellFrame.first` / `SnapNode`. Rollback now truncates both the link arena and the
+value arena. `index_of_collision_in_cell` follows the indices when scanning
+candidate invalidations, so the predicate is unchanged.
+
+Safety/identity notes:
+- The shared snap value is frame-scoped and truncated with the same frame rollback
+  boundary as the old snap-link list.
+- Same-frame snapshot order still does not affect observable output:
+  invalidation asks whether any snapshot in a cell/frame collides, then returns
+  that frame index.
+- The `sim()` ABI harness passes a dummy snap-value arena; `TRACK=false` never
+  records history.
+
+Rejected probe:
+- Manual unroll of the fixed 9-cell `add_to_grid` loop: bit-identical, but
+  regressed to **15,056 ns/frame** on an 8-run signal. The compact loop remains
+  better after `wasm-opt`/V8.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 30 runs + 3 warmup):**
+
+  | stage | mean ns/frame | median |
+  |-------|---------------|--------|
+  | W8 standing | 13,580.1 ± 315.8 | 13,582.8 |
+  | **W9 shared snap arena** | **13,115.4 ± 431.6** | **13,130.1** |
+
+  **−3.4% mean / −3.3% median**, above the 1.6% commit bar → **kept**.
+
+**Standing after W9:** **~13,100 ns/physics-frame** — bit-identical to lr-core,
+≈25.4× faster than pristine JS (333k) and ≈5.6× faster than the parity-correct JS
+engine (B11 ~73k).

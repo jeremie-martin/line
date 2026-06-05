@@ -20,7 +20,7 @@ use crate::grid::{FlatIntMap, IntMap};
 use crate::kernel::{compute_rest_endur, init_state, step_state, LineCellCache, State};
 use crate::frame::{
     index_of_collision_in_cell, index_of_collision_with_line, rollback_collisions, rollback_grid,
-    ActiveCellCache, Collisions, HistGrid, SnapNode,
+    ActiveCellCache, Collisions, HistGrid, Snap, SnapNode,
 };
 use crate::line::{build_line, line_cells, push_line, remove_line, Line};
 use crate::{
@@ -46,8 +46,10 @@ struct Cache {
     hist: HistGrid,                       // Frame.grid: collision-history for addLine invalidation
     touched_cells: Vec<i64>,              // flat per-frame reverse patch for hist rollback
     touched_cell_offsets: Vec<usize>,
-    hist_snaps: Vec<SnapNode>,            // extra same-cell/same-frame snapshots
+    hist_snaps: Vec<SnapNode>,            // same-cell/same-frame links into hist_snap_values
+    hist_snap_values: Vec<Snap>,          // shared snapshot values, usually referenced by 9 cells
     hist_snap_offsets: Vec<usize>,
+    hist_snap_value_offsets: Vec<usize>,
     active_cells: ActiveCellCache,         // frame-local shortcut for repeated history cells
     coll: Collisions,                     // Frame.collisions: line id → frames (for removeLine)
     touched_lines: Vec<i32>,              // flat per-frame reverse patch for coll rollback
@@ -71,7 +73,9 @@ impl Cache {
             touched_cells: Vec::new(),
             touched_cell_offsets: vec![0, 0],
             hist_snaps: Vec::new(),
+            hist_snap_values: Vec::new(),
             hist_snap_offsets: vec![0, 0],
+            hist_snap_value_offsets: vec![0, 0],
             active_cells: ActiveCellCache::default(),
             coll: IntMap::default(),
             touched_lines: Vec::new(),
@@ -105,7 +109,9 @@ impl Cache {
         self.touched_cells.truncate(self.touched_cell_offsets[len]);
         self.touched_cell_offsets.truncate(len + 1);
         self.hist_snaps.truncate(self.hist_snap_offsets[len]);
+        self.hist_snap_values.truncate(self.hist_snap_value_offsets[len]);
         self.hist_snap_offsets.truncate(len + 1);
+        self.hist_snap_value_offsets.truncate(len + 1);
         self.touched_lines.truncate(self.touched_line_offsets[len]);
         self.touched_line_offsets.truncate(len + 1);
         self.cur = self.frames[len - 1].clone();
@@ -122,7 +128,7 @@ impl Cache {
         self.lines_cells.insert(l.id, cells.clone());
         push_line(&mut self.cell_lines, l.clone(), &cells);
         for &cell in cells.iter() {
-            if let Some(idx) = index_of_collision_in_cell(&self.hist, &self.hist_snaps, cell, &l) {
+            if let Some(idx) = index_of_collision_in_cell(&self.hist, &self.hist_snaps, &self.hist_snap_values, cell, &l) {
                 self.set_frames_length(idx as usize);
             }
         }
@@ -153,8 +159,11 @@ impl Cache {
         self.touched_cell_offsets.clear();
         self.touched_cell_offsets.extend_from_slice(&[0, 0]);
         self.hist_snaps.clear();
+        self.hist_snap_values.clear();
         self.hist_snap_offsets.clear();
+        self.hist_snap_value_offsets.clear();
         self.hist_snap_offsets.extend_from_slice(&[0, 0]);
+        self.hist_snap_value_offsets.extend_from_slice(&[0, 0]);
         self.touched_lines.clear();
         self.touched_line_offsets.clear();
         self.touched_line_offsets.extend_from_slice(&[0, 0]);
@@ -168,13 +177,14 @@ impl Cache {
             step_state::<true>(
                 &mut self.cur, &self.cell_lines, &self.rest, &self.endur,
                 &mut self.events, fi, &mut self.hist, &mut self.touched_cells,
-                &mut self.hist_snaps, &mut self.active_cells, &mut self.line_cache,
+                &mut self.hist_snaps, &mut self.hist_snap_values, &mut self.active_cells, &mut self.line_cache,
                 &mut self.coll, &mut self.touched_lines,
             );
             self.frames.push(self.cur.clone());
             self.event_offsets.push(self.events.len());
             self.touched_cell_offsets.push(self.touched_cells.len());
             self.hist_snap_offsets.push(self.hist_snaps.len());
+            self.hist_snap_value_offsets.push(self.hist_snap_values.len());
             self.touched_line_offsets.push(self.touched_lines.len());
         }
     }

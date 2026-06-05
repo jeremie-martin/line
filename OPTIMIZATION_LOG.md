@@ -884,3 +884,70 @@ Rejected probe:
 **Standing after W9:** **~13,100 ns/physics-frame** — bit-identical to lr-core,
 ≈25.4× faster than pristine JS (333k) and ≈5.6× faster than the parity-correct JS
 engine (B11 ~73k).
+
+## Session 5 (2026-06-05 cont.) — vendored lr-core follow-up, no kept change
+
+Compared the post-W9 Rust path against the optimized vendored lr-core files:
+`Frame.js`, `LineEngine.js`, `ClassicGrid.js`, `SolidLine.js`, and Immo. Most
+vendored wins are already represented in Rust/WASM: shared `getCellsNearEntity`
+work, direct per-cell line-bucket iteration, mutable point collision response,
+minimal `{pos, vel}` history snapshots, singleton non-collision updates in the JS
+wrapper, and re-versioning history only when a cell receives a new frame node.
+
+Rejected probe, reverted:
+
+- **Delay `line_pos` until after direction/perpendicular collision checks:**
+  `SolidLine.js` notes normalized line-position as the slow part of collision.
+  In Rust this was bit-identical, but full perf regressed to
+  **13,449.5 ns/frame** (median **13,540.4**) versus W9's **13,115.4**. The
+  extra branch shape costs more in the optimized WASM loop than the skipped dot
+  products save.
+- **WASM monotonic read metering / metered `getRider` export:** bit-identical and
+  preserved `sim_frames`, but did not clear the commit bar. Monotonic JS-side
+  charging alone measured **13,015.3 ns/frame** (median **13,035.0**); the combined
+  Rust metered-rider export measured **13,126.2 ns/frame** (median **13,154.1**).
+  Both are within W9 noise and below the required >1.6% win.
+- **Post-W9 cache-size retune:** `LineCellCache` 128 slots (**13,237.6**) and 32
+  slots (**13,553.0**) both lost to local W9 64-slot signal (**12,907.2**).
+  `ActiveCellCache` 256 slots (**13,163.7**) and 64 slots (**13,370.6**) both lost
+  to W9's 128-slot setting. Constants restored.
+
+Conclusion: the vendored engine is a useful checklist, but no remaining obvious
+vendored micro-optimization is unported and profitable. The next likely wins are
+outside literal lr-core parity tricks: bulkier WASM-side detector/raw-frame
+extraction, further history-storage reductions, or a larger change to the
+step/history contract.
+
+## W10 — Precomputed pre-target line-risk geometry  (−2.8%, bit-identical)
+
+The CPU profile after W9 showed the largest non-WASM hotspot in
+`hasPreTargetSledProximityFromTrace` / `pointSegmentCollisionRisk`, where every
+pre-target sled point recomputed the same candidate-line `dx`, `dy`, `hypot`, and
+`len * len`. This mirrors the vendored `SolidLine.getComputed()` idea, but on the
+optimizer-side impact-anchor preclear path rather than the core engine.
+
+Changed `hasPreTargetSledProximityFromTrace` to prepare compact per-line risk
+records once per candidate, then reuse them across all traced sled points. The
+boolean predicate is unchanged: same along-line bounds check, same signed-distance
+side check, same `IMPACT_ANCHOR_PRECLEAR_DISTANCE`.
+
+Drift bracket:
+
+| stage | config | mean ns/frame | median |
+|-------|--------|---------------|--------|
+| W9 baseline, source-clean except log | 8 runs + 2 warmup | 13,297.0 ± 408.3 | 13,313.5 |
+| prepared line-risk geometry | 8 runs + 2 warmup | 12,834.7 ± 357.3 | 12,854.3 |
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 30 runs + 3 warmup):**
+
+  | stage | mean ns/frame | median |
+  |-------|---------------|--------|
+  | W9 standing | 13,115.4 ± 431.6 | 13,130.1 |
+  | **W10 prepared line-risk geometry** | **12,830.9 ± 436.1** | **12,902.0** |
+
+  **−2.2% mean / −1.7% median**, above the 1.6% commit bar → **kept**.
+
+**Standing after W10:** **~12,830 ns/physics-frame** — bit-identical to lr-core,
+≈26.0× faster than pristine JS (333k) and ≈5.7× faster than the parity-correct JS
+engine (B11 ~73k).

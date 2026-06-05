@@ -78,6 +78,15 @@ export type PreTargetSledTrace = {
   frame: number;
   points: { x: number; y: number }[];
 }[];
+type SegmentCollisionRiskLine = {
+  x1: number;
+  y1: number;
+  dx: number;
+  dy: number;
+  len: number;
+  lenSq: number;
+  flipped: boolean;
+};
 
 export type ArcPlacementRuntimeMode = ArcPlacementMode | "uniform";
 
@@ -1006,10 +1015,11 @@ export function hasPreTargetSledProximityFromTrace(
   lines: TrackLine[],
 ): boolean {
   if (lines.length === 0) return false;
+  const riskLines = makeSegmentCollisionRiskLines(lines);
   for (const frame of trace) {
     for (const pos of frame.points) {
-      for (const line of lines) {
-        if (pointSegmentCollisionRisk(pos.x, pos.y, line)) {
+      for (const line of riskLines) {
+        if (pointSegmentCollisionRiskPrepared(pos.x, pos.y, line)) {
           return true;
         }
       }
@@ -1128,14 +1138,36 @@ function arcLocalPointAt(
   return { x, y, tangentX: 1, tangentY: 0 };
 }
 
-function pointSegmentCollisionRisk(px: number, py: number, line: TrackLine): boolean {
-  const dx = line.x2 - line.x1;
-  const dy = line.y2 - line.y1;
-  const len = Math.hypot(dx, dy);
-  if (len <= 0) return false;
-  const along = ((px - line.x1) * dx + (py - line.y1) * dy) / (len * len);
+function makeSegmentCollisionRiskLines(lines: TrackLine[]): SegmentCollisionRiskLine[] {
+  const riskLines: SegmentCollisionRiskLine[] = [];
+  for (const line of lines) {
+    const dx = line.x2 - line.x1;
+    const dy = line.y2 - line.y1;
+    const len = Math.hypot(dx, dy);
+    if (len <= 0) continue;
+    riskLines.push({
+      x1: line.x1,
+      y1: line.y1,
+      dx,
+      dy,
+      len,
+      lenSq: len * len,
+      flipped: line.flipped,
+    });
+  }
+  return riskLines;
+}
+
+function pointSegmentCollisionRiskPrepared(
+  px: number,
+  py: number,
+  line: SegmentCollisionRiskLine,
+): boolean {
+  const ox = px - line.x1;
+  const oy = py - line.y1;
+  const along = (ox * line.dx + oy * line.dy) / line.lenSq;
   if (along < 0 || along > 1) return false;
-  const signedDistance = (dx * (py - line.y1) - dy * (px - line.x1)) / len;
+  const signedDistance = (line.dx * oy - line.dy * ox) / line.len;
   const collidableSideDistance = line.flipped ? signedDistance : -signedDistance;
   return collidableSideDistance >= 0
     && Math.abs(signedDistance) <= IMPACT_ANCHOR_PRECLEAR_DISTANCE;

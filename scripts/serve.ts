@@ -367,7 +367,15 @@ async function runTsx(job: DashboardJob, args: string[]): Promise<void> {
   await new Promise<void>((resolveOk, reject) => {
     const child = spawn(process.execPath, [TSX_CLI, ...args], {
       cwd: ROOT,
-      env: process.env,
+      // Enlarge V8 young-gen for the spawned compile (scavenge-heavy workload →
+      // ~6-8% faster, output unaffected). This path goes through the tsx CLI's
+      // child, so NODE_OPTIONS (inherited by that child) is the reliable carrier.
+      env: {
+        ...process.env,
+        NODE_OPTIONS: [process.env.NODE_OPTIONS, "--max-semi-space-size=64"]
+          .filter(Boolean)
+          .join(" "),
+      },
       stdio: ["ignore", "pipe", "pipe"],
     });
     child.stdout.on("data", (chunk: Buffer) => appendOutput(job, chunk));

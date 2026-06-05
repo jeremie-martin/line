@@ -323,7 +323,17 @@ async function runWithTimeout(
     const worker = new Worker(workerPath, {
       workerData: input,
       execArgv: process.execArgv,
-      resourceLimits: { maxOldGenerationSizeMb: WORKER_MEM_CAP_MB },
+      // Enlarge V8 young-gen for the compile isolate: this workload is
+      // scavenge-heavy (frame clones, CollisionUpdate, transient arrays), so a
+      // larger young-gen cuts minor-GC frequency for ~6% faster compiles. Output
+      // is unaffected (GC is transparent). maxYoungGenerationSizeMb is the worker-
+      // sanctioned knob (--max-semi-space-size is rejected in worker execArgv);
+      // note it sets TOTAL young-gen, so 128 ≈ --max-semi-space-size=64 (the two
+      // semi-spaces). Measured −6.3% at 128, only −1.8% at 64. ~+0.77GB / 6 workers.
+      resourceLimits: {
+        maxOldGenerationSizeMb: WORKER_MEM_CAP_MB,
+        maxYoungGenerationSizeMb: 128,
+      },
     });
     let settled = false;
     const timer = setTimeout(() => {

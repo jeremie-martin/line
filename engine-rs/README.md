@@ -13,7 +13,8 @@ Run from the repo root.
 | command | what it does |
 |---|---|
 | **`npm run wasm:all`** | **Start here.** Builds the `.wasm`, then runs every check and prints a summary. Exits nonzero only on a regression (WASM diverging from JS); not-yet-implemented gates are reported, not failures. |
-| **`npm run wasm:compile`** | The swap-in acceptance gate: compiles 4 cases under **vendored / official / wasm** and asserts identical `{track, stats}` hash. `vendored ≡ official` runs even without a built `.wasm`; `wasm ≡ vendored` is the red→green target. |
+| **`npm run wasm:compile`** | The swap-in acceptance gate (fast inner loop): compiles 4 cases under **wasm** and **vendored** and asserts identical `{track, stats}` hash. This is the red→green target while building the WASM engine. |
+| `npm run wasm:compile -- --official` | Also re-checks **vendored ≡ official** (the slow published engine). That leg is a stable fact, so it's opt-in — run it after editing `vendor/lr-core`, not every time. Since `vendored ≡ official` is transitive, `wasm ≡ vendored ⇒ wasm ≡ official`. |
 | `npm run build:wasm` | Rebuild `lr_engine.wasm` after editing `src/lib.rs`. |
 
 Individual checks (all also run by `wasm:all`):

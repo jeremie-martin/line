@@ -1,22 +1,26 @@
 /**
- * End-to-end swap-in gate: compile each case under three engines and assert the
- * resulting compiled TRACK HASH ({track, stats}) is identical. This is the
- * definition of done for the WASM engine — you can swap any of these in and get
- * exactly the same compiled track:
+ * End-to-end swap-in gate: compile each case under multiple engines and assert
+ * the compiled TRACK HASH ({track, stats}) is identical. The definition of done
+ * for the WASM engine — swap it in and get exactly the same compiled track:
  *
  *   - js       = our optimized vendored lr-core   (LR_ENGINE unset)
- *   - official = the untouched published lr-core   (LR_ENGINE=official)
- *   - wasm     = the Rust→WASM engine              (LR_ENGINE=wasm)
+ *   - wasm     = the Rust→WASM engine             (LR_ENGINE=wasm)
+ *   - official = the untouched published lr-core  (LR_ENGINE=official) — SLOW
  *
- * Two independent legs, so the gate is useful at every stage:
- *   1. vendored ≡ official — proves our optimizations + parity fix kept us
- *      byte-identical to the published engine. Runs NOW (no .wasm needed); a
- *      failure here means our lr-core drifted from official and must be fixed.
- *   2. wasm ≡ vendored      — the WASM swap. SKIPPED if no .wasm is built yet;
- *      once built, a mismatch is the acceptance gate to close.
+ * Default = the fast inner-loop leg you run while developing the WASM engine:
+ *   wasm ≡ vendored.
+ *
+ * `--official` additionally re-checks vendored ≡ official. That leg is a STABLE
+ * fact (it only changes if our lr-core changes), and `official` is the slow
+ * unoptimized engine, so it is NOT run by default — only when you want to
+ * re-confirm the published-parity foundation (e.g. after editing vendor/lr-core).
+ * Because vendored ≡ official is transitive, wasm ≡ vendored ⇒ wasm ≡ official.
  *
  * Each engine runs in its own process (LR_ENGINE is read once at module load).
  * Cases mirror verify:optimizer so the two gates speak about the same specs.
+ *
+ *   npm run wasm:compile                # wasm ≡ vendored  (fast)
+ *   npm run wasm:compile -- --official  # + vendored ≡ official  (slow, occasional)
  */
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
@@ -55,9 +59,11 @@ function compileHash(spec: string, seed: number, engine: Engine): Probe {
 }
 
 function main() {
+  const checkOfficial = process.argv.includes("--official");
+
   console.log("");
   console.log(`Swap-in track-hash parity (budget=${BUDGET})`);
-  console.log(`  legs: [vendored ≡ official]  [wasm ≡ vendored]`);
+  console.log(checkOfficial ? "  legs: [wasm ≡ vendored]  [vendored ≡ official]" : "  leg: [wasm ≡ vendored]   (add --official for the slow vendored≡official leg)");
   console.log("");
 
   let officialFail = false;
@@ -66,13 +72,9 @@ function main() {
 
   for (const [spec, seed] of CASES) {
     const js = compileHash(spec, seed, "js");
-    const official = compileHash(spec, seed, "official");
     const wasm = compileHash(spec, seed, "wasm");
+    const official = checkOfficial ? compileHash(spec, seed, "official") : null;
 
-    const officialOk = js.hash !== null && js.hash === official.hash;
-    if (!officialOk) officialFail = true;
-
-    // A wasm probe "ran" only if it produced a hash (else .wasm absent / not built).
     let wasmVerdict: string;
     if (wasm.hash !== null) {
       wasmRan = true;
@@ -83,32 +85,40 @@ function main() {
       wasmVerdict = `wasm—(${wasm.note})`;
     }
 
+    let officialVerdict = "";
+    if (official) {
+      const officialOk = js.hash !== null && js.hash === official.hash;
+      if (!officialOk) officialFail = true;
+      officialVerdict = officialOk ? "  official✓" : "  official✗";
+    }
+
     const key = `${spec}|seed${seed}`;
-    console.log(
-      `  ${key.padEnd(28)} js=${(js.hash ?? js.note).slice(0, 16).padEnd(16)} ` +
-        `${officialOk ? "official✓" : "official✗"}  ${wasmVerdict}`,
-    );
+    console.log(`  ${key.padEnd(28)} js=${(js.hash ?? js.note).slice(0, 16).padEnd(16)} ${wasmVerdict}${officialVerdict}`);
   }
 
   console.log("");
-  // Leg 1: vendored ≡ official — must always hold; this is our correctness floor.
-  if (officialFail) {
-    console.log("✗ vendored ≢ official — our lr-core drifted from the published engine. FIX FIRST.");
-    process.exit(1);
+  // Leg: vendored ≡ official (opt-in) — our correctness floor vs the published engine.
+  if (checkOfficial) {
+    if (officialFail) {
+      console.log("✗ vendored ≢ official — our lr-core drifted from the published engine. FIX FIRST.");
+      process.exit(1);
+    }
+    console.log("✓ vendored ≡ official on all cases (our optimized lr-core is byte-identical to published).");
   }
-  console.log("✓ vendored ≡ official on all cases (our optimized lr-core is byte-identical to published).");
 
-  // Leg 2: wasm ≡ vendored — the swap-in acceptance gate.
+  // Leg: wasm ≡ vendored — the swap-in acceptance gate (the default inner loop).
   if (!wasmRan) {
-    console.log("· wasm leg SKIPPED — no built .wasm (run `npm run build:wasm`). The above is still a full");
-    console.log("  parity check of our engine vs official; the wasm leg is the remaining work.");
+    console.log("· wasm leg SKIPPED — no built .wasm (run `npm run build:wasm`).");
+    if (!checkOfficial) console.log("  Nothing was checked. Build the wasm, or pass --official to check vendored≡official.");
     return;
   }
   if (wasmFail) {
     console.log("✗ wasm ≢ vendored — the WASM engine is not yet a drop-in. This is the acceptance gate.");
     process.exit(2);
   }
-  console.log("✓ wasm ≡ vendored ≡ official — WASM is a bit-identical drop-in. DONE.");
+  console.log(checkOfficial
+    ? "✓ wasm ≡ vendored ≡ official — WASM is a bit-identical drop-in. DONE."
+    : "✓ wasm ≡ vendored — WASM is a drop-in for our lr-core (≡ official, transitively).");
 }
 
 main();

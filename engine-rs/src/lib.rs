@@ -92,7 +92,11 @@ static mut OUT: [f64; (MAX_FRAMES + 1) * OUT_STRIDE] = [0.0; (MAX_FRAMES + 1) * 
 const SCRATCH_LEN: usize = NENT * 6 + NENT;
 static mut SCRATCH: [f64; SCRATCH_LEN] = [0.0; SCRATCH_LEN];
 // per-frame collision records, read by get_updates: pairs of (iteration, line_id).
-const EVENTS_LEN: usize = 8192;
+// per-frame collision records read by get_updates: (iteration, line_id,
+// point_idx) f64 triples. Sized far above any realistic per-frame collision
+// count (~10 collidables × 6 iterations × a few lines ≈ 100s); get_updates caps
+// the write at EVENTS_LEN/3 and returns the written count.
+const EVENTS_LEN: usize = 49152; // 16384 collision records × 3
 static mut EVENTS: [f64; EVENTS_LEN] = [0.0; EVENTS_LEN];
 
 #[no_mangle]
@@ -245,13 +249,18 @@ fn build_line(id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) 
     }
 }
 
-fn register_line(lines: &mut Vec<Line>, grid: &mut BTreeMap<i64, Vec<u32>>, id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) {
+// Cells a line rasterizes into, or empty for non-collidable lines.
+fn line_cells(l: &Line) -> Vec<i64> {
+    if l.collidable { classic_cells(l) } else { Vec::new() }
+}
+
+// Append a line and register its (precomputed) cells into the grid. Shared by
+// sim() and add_line() so registration lives in one place; add_line reuses the
+// same `cells` it already computed for invalidation (no double rasterization).
+fn push_line(lines: &mut Vec<Line>, grid: &mut BTreeMap<i64, Vec<u32>>, l: Line, cells: &[i64]) {
     let li = lines.len() as u32;
-    let l = build_line(id, x1, y1, x2, y2, ty, flags);
-    if l.collidable {
-        for cell in classic_cells(&l) {
-            grid.entry(cell).or_default().push(li);
-        }
+    for &cell in cells {
+        grid.entry(cell).or_default().push(li);
     }
     lines.push(l);
 }
@@ -317,8 +326,10 @@ fn add_to_history(h: &mut History, frame: u32, px: f64, py: f64, vx: f64, vy: f6
 
 // The per-frame kernel: step → 6×(constraints, collision) → BindJoints.
 // Proven bit-identical to lr-core's _getNextFrame on all 5 fixtures.
-// `events` records (iteration, line_id) for each collision in occurrence order —
-// exactly the CollisionUpdates lr-core emits, for getUpdatesAtFrame parity.
+// `events` records (iteration, line_id, point_idx) for each collision in
+// occurrence order — the CollisionUpdates lr-core emits (line id + which point
+// hit, so the wrapper can rebuild `.updated` for the detector's sled-contact
+// attribution), for getUpdatesAtFrame parity.
 // When `track`, also records the addToGrid collision history into `history` at
 // frame `frame_index` (for exact addLine invalidation). Recording is purely
 // additive — it does not affect the physics.
@@ -328,7 +339,7 @@ fn step_state(
     grid: &BTreeMap<i64, Vec<u32>>,
     rest: &[f64; NITER],
     endur: &[f64; NITER],
-    events: &mut Vec<(u8, i32)>,
+    events: &mut Vec<(u8, i32, i32)>,
     track: bool,
     frame_index: u32,
     history: &mut History,
@@ -432,7 +443,7 @@ fn step_state(
                                 s.py[i] = posy;
                                 s.prevx[i] = fvx;
                                 s.prevy[i] = fvy;
-                                events.push((it as u8, l.id));
+                                events.push((it as u8, l.id, i as i32));
                                 // addToGrid (B): record the post-collision snapshot
                                 if track {
                                     add_to_history(history, frame_index, s.px[i], s.py[i], s.vx[i], s.vy[i]);
@@ -471,12 +482,8 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
         let l = unsafe {
             build_line(li as i32, LINES_IN[b], LINES_IN[b + 1], LINES_IN[b + 2], LINES_IN[b + 3], LINES_IN[b + 4] as i64, LINES_IN[b + 5] as i64)
         };
-        if l.collidable {
-            for cell in classic_cells(&l) {
-                grid.entry(cell).or_default().push(li as u32);
-            }
-        }
-        lines.push(l);
+        let cells = line_cells(&l);
+        push_line(&mut lines, &mut grid, l, &cells);
     }
     let (rest, endur) = compute_rest_endur();
     let mut s = init_state(sx, sy, svx, svy);
@@ -493,7 +500,7 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
         }
     };
     write(0, &s);
-    let mut ev: Vec<(u8, i32)> = Vec::new();
+    let mut ev: Vec<(u8, i32, i32)> = Vec::new();
     let mut hist = History::new(); // unused: sim() is pure forward simulation (track=false)
     for f in 1..=frames {
         ev.clear();
@@ -517,7 +524,7 @@ struct Engine {
     rest: [f64; NITER],
     endur: [f64; NITER],
     frames: Vec<State>,               // frames[0] = initial; lazily extended
-    events: Vec<Vec<(u8, i32)>>,      // per-frame collision records (frame 0 = empty)
+    events: Vec<Vec<(u8, i32, i32)>>, // per-frame collision records: (iter, line_id, point_idx)
     cur: State,                       // == frames.last(); the working state for stepping
     history: History,                 // collision history for exact addLine invalidation
     track_history: bool,              // build history (compiler) vs skip it (pure sim)
@@ -533,7 +540,7 @@ impl Engine {
     fn compute_to(&mut self, frame: usize) {
         while self.frames.len() <= frame {
             let fi = self.frames.len() as u32;
-            let mut ev: Vec<(u8, i32)> = Vec::new();
+            let mut ev: Vec<(u8, i32, i32)> = Vec::new();
             step_state(&mut self.cur, &self.lines, &self.grid, &self.rest, &self.endur, &mut ev, self.track_history, fi, &mut self.history);
             self.frames.push(self.cur.clone());
             self.events.push(ev);
@@ -601,31 +608,45 @@ fn collides_with(l: &Line, px: f64, py: f64, vx: f64, vy: f64) -> bool {
     dir > 0.0 && perp > 0.0 && perp < MAX_FORCE_LENGTH && line_pos >= l.left_bound && line_pos <= l.right_bound
 }
 
-/// Fork a new engine = parent + one line, with EXACT lr-core invalidation:
-/// truncate the inherited frame cache to the new line's first-collision frame
-/// (replicating _addLine → getIndexOfCollisionInCell), so getLastFrameIndex /
-/// physics-frame budget match bit-for-bit. Frames/events/history before the
-/// truncation point are reused; everything after is recomputed lazily.
+/// Fork a new engine = parent + one line, invalidating the inherited frame cache
+/// to the frame the new line first affects, so getLastFrameIndex / physics-frame
+/// budget track lr-core. Frames/events/history before that point are reused;
+/// everything after is recomputed lazily.
+///
+/// Invalidation index = the EARLIEST frame any of the new line's cells recorded a
+/// colliding snapshot (min over cells). This is the smallest frame the line can
+/// affect, so it never under-invalidates (state stays correct). lr-core's
+/// `_addLine` sets frames.length per cell in classic_cells order; for the short
+/// arc segments the compiler emits (where all of a line's cells are crossed in
+/// the same frame) that coincides with this minimum. The two could differ only
+/// for a long line whose cells first-collide at different frames — final bit-exact
+/// budget parity on such inputs is confirmed by the Tier-3 track-hash gate.
 #[no_mangle]
 pub extern "C" fn add_line(h: u32, id: i32, ty: i32, x1: f64, y1: f64, x2: f64, y2: f64, flags: i32) -> u32 {
     let l = build_line(id, x1, y1, x2, y2, ty as i64, flags as i64);
+    let cells = line_cells(&l); // computed once: used for invalidation AND registration
     let (mut lines, mut grid, rest, endur, frames, events, cur, mut history, track, trunc_len, orig_len) = {
         let p = engines()[h as usize].as_ref().unwrap();
         let orig_len = p.frames.len();
-        // invalidation index (frames.length after _setFramesLength; lr-core sets
-        // it per-cell in classic_cells order, last collision-cell wins).
         let mut trunc_len = orig_len;
-        if l.collidable && p.track_history && orig_len > 1 {
-            for cell in classic_cells(&l) {
-                if let Some(snaps) = p.history.get(&cell) {
-                    for &(frame, px, py, vx, vy) in snaps.iter() {
-                        if collides_with(&l, px, py, vx, vy) {
-                            // earliest collision across all the new line's cells
-                            trunc_len = trunc_len.min(frame as usize);
-                            break;
+        if l.collidable && orig_len > 1 {
+            if p.track_history {
+                for &cell in &cells {
+                    if let Some(snaps) = p.history.get(&cell) {
+                        for &(frame, px, py, vx, vy) in snaps.iter() {
+                            if collides_with(&l, px, py, vx, vy) {
+                                trunc_len = trunc_len.min(frame as usize);
+                                break; // earliest in this cell (snapshots are frame-ordered)
+                            }
                         }
                     }
                 }
+            } else {
+                // No history (pure-sim engine): can't compute the exact index, so
+                // fall back to full invalidation — correct (recompute everything
+                // with the new line), just no budget reuse. Keeps correctness
+                // independent of the track_history perf toggle.
+                trunc_len = 1;
             }
         }
         (
@@ -648,14 +669,7 @@ pub extern "C" fn add_line(h: u32, id: i32, ty: i32, x1: f64, y1: f64, x2: f64, 
             v.retain(|&(f, _, _, _, _)| (f as usize) < trunc_len);
         }
     }
-    // register the new line into lines + grid
-    let li = lines.len() as u32;
-    if l.collidable {
-        for cell in classic_cells(&l) {
-            grid.entry(cell).or_default().push(li);
-        }
-    }
-    lines.push(l);
+    push_line(&mut lines, &mut grid, l, &cells);
     alloc(Engine { lines, grid, rest, endur, frames, events, cur, history, track_history: track })
 }
 
@@ -690,21 +704,23 @@ pub extern "C" fn get_state_map(h: u32, f: i32) {
 }
 
 /// Compute (if needed) frame `f` of engine `h` and write its collision records
-/// into EVENTS as (iteration, line_id) f64 pairs; returns the collision count.
-/// The JS wrapper synthesizes the full lr-core update sequence from these
-/// (StepUpdate, 22 ConstraintUpdates per iteration with collisions interleaved,
-/// 3 BindJoint ConstraintUpdates).
+/// into EVENTS as (iteration, line_id, point_idx) f64 triples; returns the
+/// collision count (capped at EVENTS_LEN/3, far above any realistic per-frame
+/// count). The JS wrapper synthesizes the full lr-core update sequence from
+/// these (StepUpdate, 22 ConstraintUpdates per iteration with CollisionUpdates
+/// — carrying line id + collided point — interleaved, 3 BindJoint updates).
 #[no_mangle]
 pub extern "C" fn get_updates(h: u32, f: i32) -> i32 {
     if let Some(Some(e)) = engines().get_mut(h as usize) {
         let f = f as usize;
         e.compute_to(f);
         let ev = &e.events[f];
-        let n = ev.len().min(EVENTS_LEN / 2);
+        let n = ev.len().min(EVENTS_LEN / 3);
         unsafe {
-            for (k, &(it, id)) in ev.iter().take(n).enumerate() {
-                EVENTS[k * 2] = it as f64;
-                EVENTS[k * 2 + 1] = id as f64;
+            for (k, &(it, id, pt)) in ev.iter().take(n).enumerate() {
+                EVENTS[k * 3] = it as f64;
+                EVENTS[k * 3 + 1] = id as f64;
+                EVENTS[k * 3 + 2] = pt as f64;
             }
         }
         return n as i32;

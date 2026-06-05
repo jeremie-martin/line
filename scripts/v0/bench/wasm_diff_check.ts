@@ -16,6 +16,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { loadTrackJson } from "./_fixture.ts";
 import { LineRiderEngine as WasmEngine, createLineFromJson as wasmLine } from "../../lib/_lr_engine_wasm.ts";
+import { jsGroundTruth, extractState, extractUpdates } from "./_engine_probe.ts";
 
 const TRACK = "scripts/v0/bench/tracks/long_track.json";
 
@@ -28,17 +29,6 @@ function mulberry32(seed: number) {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-const isScarf = (id: unknown) => typeof id === "string" && id.startsWith("SCARF");
-
-async function jsApi() {
-  // deno-lint-ignore no-explicit-any
-  const m: any = await import("../../../vendor/lr-core/line-rider-engine/index.js");
-  const isFn = (x: unknown) => typeof x === "function";
-  const Engine = isFn(m.default) ? m.default : isFn(m.default?.default) ? m.default.default : m.default;
-  const createLine = isFn(m.createLineFromJson) ? m.createLineFromJson : m.default?.createLineFromJson;
-  return { Engine, createLine };
 }
 
 type Op =
@@ -76,31 +66,6 @@ function genOps(rng: () => number, nLines: number, count: number): Op[] {
 }
 
 // deno-lint-ignore no-explicit-any
-function extractState(engine: any, f: number): string {
-  const sm = engine.getStateMapAtFrame(f);
-  const ids = [...sm.keys()].filter((id) => !isScarf(id)).sort();
-  const out: number[] = [];
-  for (const id of ids) {
-    const e = sm.get(id);
-    const st = e.__state__ ?? e;
-    if (st.pos) out.push(st.pos.x, st.pos.y, st.prevPos.x, st.prevPos.y, st.vel.x, st.vel.y);
-    else out.push(st.framesSinceUnbind);
-  }
-  return out.join(",");
-}
-
-// deno-lint-ignore no-explicit-any
-function extractUpdates(engine: any, f: number): string {
-  const ups = engine.getUpdatesAtFrame(f);
-  const out: string[] = [];
-  for (const u of ups) {
-    if (isScarf(u?.id)) continue;
-    out.push(`${u.type}:${typeof u.id === "number" ? u.id : ""}`);
-  }
-  return out.join("|");
-}
-
-// deno-lint-ignore no-explicit-any
 function exec(ops: Op[], Engine: any, createLine: any, lines: any[], start: any, vel: any): string[] {
   const inst: any[] = [new Engine().setStart(start, vel)];
   const results: string[] = [];
@@ -127,7 +92,7 @@ async function main() {
   const lines = src.lines.slice(0, 220);
 
   const ops = genOps(mulberry32(seed), lines.length, count);
-  const js = await jsApi();
+  const js = await jsGroundTruth();
   const jsRes = exec(ops, js.Engine, js.createLine, lines, src.start, src.velocity);
   const wRes = exec(ops, WasmEngine, wasmLine, lines, src.start, src.velocity);
 

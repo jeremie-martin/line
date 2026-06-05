@@ -87,9 +87,7 @@ export class LineRiderEngine {
     return ex.get_last_frame_index(this.h);
   }
   // deno-lint-ignore no-explicit-any
-  getStateMapAtFrame(frame: number): Map<string, any> {
-    ex.get_state_map(this.h, frame);
-    const sc = scratch();
+  private stateMapFrom(sc: Float64Array): Map<string, any> {
     const m = new Map<string, any>();
     for (let i = 0; i < NENT; i++) {
       m.set(ENTITY_IDS[i], i < 2 ? bindingState(sc, i) : pointState(sc, i));
@@ -97,21 +95,29 @@ export class LineRiderEngine {
     return m;
   }
   // deno-lint-ignore no-explicit-any
+  getStateMapAtFrame(frame: number): Map<string, any> {
+    ex.get_state_map(this.h, frame);
+    return this.stateMapFrom(scratch());
+  }
+  // deno-lint-ignore no-explicit-any
   getUpdatesAtFrame(frame: number): any[] {
     if (frame === 0) return [];
     const n = ex.get_updates(this.h, frame);
-    const ev = new Int32Array(2 * n);
-    const view = new Float64Array(ex.memory.buffer, ex.events_ptr(), 2 * n);
-    for (let k = 0; k < 2 * n; k++) ev[k] = view[k];
+    // events are (iter, line_id, point_idx) triples — copy out before any
+    // further wasm call can grow/detach the buffer.
+    const ev = new Int32Array(3 * n);
+    const view = new Float64Array(ex.memory.buffer, ex.events_ptr(), 3 * n);
+    for (let k = 0; k < 3 * n; k++) ev[k] = view[k];
     // synthesize lr-core's per-frame update sequence (scarf excluded):
     // StepUpdate, then 6×(22 ConstraintUpdate + collisions of that iteration),
-    // then 3 BindJoint ConstraintUpdates.
+    // then 3 BindJoint ConstraintUpdates. CollisionUpdate carries the line id
+    // (.id) and the collided point (.updated:[{id}]) the detector reads.
     const updates: any[] = [STEP_UPDATE];
     let p = 0;
     for (let it = 0; it < 6; it++) {
       for (let c = 0; c < 22; c++) updates.push(CONSTRAINT_UPDATE);
-      while (p < n && ev[p * 2] === it) {
-        updates.push({ type: "CollisionUpdate", id: ev[p * 2 + 1] });
+      while (p < n && ev[p * 3] === it) {
+        updates.push({ type: "CollisionUpdate", id: ev[p * 3 + 1], updated: [{ id: ENTITY_IDS[ev[p * 3 + 2]] }] });
         p++;
       }
     }
@@ -126,7 +132,8 @@ export class LineRiderEngine {
     let px = 0, py = 0, vx = 0, vy = 0;
     for (const i of BODY) { px += sc[i * 6]; py += sc[i * 6 + 1]; vx += sc[i * 6 + 4]; vy += sc[i * 6 + 5]; }
     const n = BODY.length;
-    const stateMap = this.getStateMapAtFrame(frame);
+    // build the get(id) view from the SAME scratch read (no second get_state_map)
+    const stateMap = this.stateMapFrom(sc);
     return {
       position: { x: px / n, y: py / n },
       velocity: { x: vx / n, y: vy / n },

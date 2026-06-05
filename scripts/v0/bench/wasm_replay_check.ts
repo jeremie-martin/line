@@ -11,41 +11,9 @@
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { LineRiderEngine as WasmEngine, createLineFromJson as wasmLine } from "../../lib/_lr_engine_wasm.ts";
+import { jsGroundTruth, extractState, extractUpdates, riderSig } from "./_engine_probe.ts";
 
 const OPS = "generated/trace/compile_ops.json";
-const isScarf = (id: unknown) => typeof id === "string" && id.startsWith("SCARF");
-
-async function jsApi() {
-  // deno-lint-ignore no-explicit-any
-  const m: any = await import("../../../vendor/lr-core/line-rider-engine/index.js");
-  const isFn = (x: unknown) => typeof x === "function";
-  const Engine = isFn(m.default) ? m.default : isFn(m.default?.default) ? m.default.default : m.default;
-  const createLine = isFn(m.createLineFromJson) ? m.createLineFromJson : m.default?.createLineFromJson;
-  return { Engine, createLine };
-}
-
-// deno-lint-ignore no-explicit-any
-function extractState(engine: any, f: number): string {
-  const sm = engine.getStateMapAtFrame(f);
-  const ids = [...sm.keys()].filter((id) => !isScarf(id)).sort();
-  const out: number[] = [];
-  for (const id of ids) {
-    const e = sm.get(id);
-    const st = e.__state__ ?? e;
-    if (st.pos) out.push(st.pos.x, st.pos.y, st.prevPos.x, st.prevPos.y, st.vel.x, st.vel.y);
-    else out.push(st.framesSinceUnbind);
-  }
-  return out.join(",");
-}
-// deno-lint-ignore no-explicit-any
-function extractUpdates(engine: any, f: number): string {
-  return engine.getUpdatesAtFrame(f).filter((u: any) => !isScarf(u?.id)).map((u: any) => `${u.type}:${typeof u.id === "number" ? u.id : ""}`).join("|");
-}
-// deno-lint-ignore no-explicit-any
-function riderSig(engine: any, f: number): string {
-  const r = engine.getRider(f);
-  return `${r.position.x},${r.position.y},${r.velocity.x},${r.velocity.y}`;
-}
 
 // deno-lint-ignore no-explicit-any
 function readResult(engine: any, op: any): string {
@@ -65,7 +33,7 @@ async function main() {
     process.exit(1);
   }
   const { count, capped, ops } = JSON.parse(readFileSync(resolve(OPS), "utf8"));
-  const js = await jsApi();
+  const js = await jsGroundTruth();
 
   // deno-lint-ignore no-explicit-any
   const jsInst: any[] = [];

@@ -11,27 +11,12 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { loadTrackJson } from "./_fixture.ts";
 import { LineRiderEngine as WasmEngine, createLineFromJson as wasmLine } from "../../lib/_lr_engine_wasm.ts";
+import { jsGroundTruth, riderSig } from "./_engine_probe.ts";
 
 const TRACK = "scripts/v0/bench/tracks/long_track.json";
 
-async function jsEngineApi() {
-  // deno-lint-ignore no-explicit-any
-  const m: any = await import("../../../vendor/lr-core/line-rider-engine/index.js");
-  const isFn = (x: unknown) => typeof x === "function";
-  const Engine = isFn(m.default) ? m.default : isFn(m.default?.default) ? m.default.default : m.default;
-  const createLine = isFn(m.createLineFromJson) ? m.createLineFromJson : m.default?.createLineFromJson;
-  return { Engine, createLine };
-}
-
-// deno-lint-ignore no-explicit-any
-function riderSig(engine: any, f: number): string {
-  // body position from getRider — a compact bit-exact signature for agreement
-  const r = engine.getRider(f);
-  return `${r.position.x},${r.position.y},${r.velocity.x},${r.velocity.y}`;
-}
-
 async function main() {
-  const js = await jsEngineApi();
+  const js = await jsGroundTruth();
   const json = JSON.parse(readFileSync(resolve(TRACK), "utf8"));
   const src = loadTrackJson("long_track", json);
   const lines = src.lines;

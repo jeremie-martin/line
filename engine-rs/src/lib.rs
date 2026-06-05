@@ -297,10 +297,31 @@ fn init_state(sx: f64, sy: f64, svx: f64, svy: f64) -> State {
     s
 }
 
+// Per-cell collision history (lr-core's Frame.grid): cell → (frame, pos, vel)
+// snapshots recorded at each addToGrid call. Only built when `track` is set
+// (the compiler needs it for exact addLine invalidation; pure simulation skips
+// it and stays at full speed). Used by getIndexOfCollisionInCell.
+type History = BTreeMap<i64, Vec<(u32, f64, f64, f64, f64)>>;
+
+// Record an entity's addToGrid snapshot into its 3×3 cells (getCellsNearEntity).
+#[inline]
+fn add_to_history(h: &mut History, frame: u32, px: f64, py: f64, vx: f64, vy: f64) {
+    let gx = (px / GRID_SIZE).floor() as i64;
+    let gy = (py / GRID_SIZE).floor() as i64;
+    for ci in -1..=1i64 {
+        for cj in -1..=1i64 {
+            h.entry(hash_int_pair(ci + gx, cj + gy)).or_default().push((frame, px, py, vx, vy));
+        }
+    }
+}
+
 // The per-frame kernel: step → 6×(constraints, collision) → BindJoints.
 // Proven bit-identical to lr-core's _getNextFrame on all 5 fixtures.
 // `events` records (iteration, line_id) for each collision in occurrence order —
 // exactly the CollisionUpdates lr-core emits, for getUpdatesAtFrame parity.
+// When `track`, also records the addToGrid collision history into `history` at
+// frame `frame_index` (for exact addLine invalidation). Recording is purely
+// additive — it does not affect the physics.
 fn step_state(
     s: &mut State,
     lines: &[Line],
@@ -308,6 +329,9 @@ fn step_state(
     rest: &[f64; NITER],
     endur: &[f64; NITER],
     events: &mut Vec<(u8, i32)>,
+    track: bool,
+    frame_index: u32,
+    history: &mut History,
 ) {
     // step
     for i in 0..NENT {
@@ -367,6 +391,10 @@ fn step_state(
             }
         }
         for &i in COLLIDABLES.iter() {
+            // addToGrid (A): record the pre-collision snapshot into the 3×3 cells
+            if track {
+                add_to_history(history, frame_index, s.px[i], s.py[i], s.vx[i], s.vy[i]);
+            }
             let gx = (s.px[i] / GRID_SIZE).floor() as i64;
             let gy = (s.py[i] / GRID_SIZE).floor() as i64;
             for ci in -1..=1i64 {
@@ -405,6 +433,10 @@ fn step_state(
                                 s.prevx[i] = fvx;
                                 s.prevy[i] = fvy;
                                 events.push((it as u8, l.id));
+                                // addToGrid (B): record the post-collision snapshot
+                                if track {
+                                    add_to_history(history, frame_index, s.px[i], s.py[i], s.vx[i], s.vy[i]);
+                                }
                             }
                         }
                     }
@@ -462,9 +494,10 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
     };
     write(0, &s);
     let mut ev: Vec<(u8, i32)> = Vec::new();
+    let mut hist = History::new(); // unused: sim() is pure forward simulation (track=false)
     for f in 1..=frames {
         ev.clear();
-        step_state(&mut s, &lines, &grid, &rest, &endur, &mut ev);
+        step_state(&mut s, &lines, &grid, &rest, &endur, &mut ev, false, 0, &mut hist);
         write(f, &s);
     }
     frames as u32
@@ -486,19 +519,22 @@ struct Engine {
     frames: Vec<State>,               // frames[0] = initial; lazily extended
     events: Vec<Vec<(u8, i32)>>,      // per-frame collision records (frame 0 = empty)
     cur: State,                       // == frames.last(); the working state for stepping
+    history: History,                 // collision history for exact addLine invalidation
+    track_history: bool,              // build history (compiler) vs skip it (pure sim)
 }
 
 impl Engine {
     fn new() -> Engine {
         let (rest, endur) = compute_rest_endur();
         let s = init_state(0.0, 0.0, 0.4, 0.0); // DEFAULT_START
-        Engine { lines: Vec::new(), grid: BTreeMap::new(), rest, endur, frames: vec![s.clone()], events: vec![Vec::new()], cur: s }
+        Engine { lines: Vec::new(), grid: BTreeMap::new(), rest, endur, frames: vec![s.clone()], events: vec![Vec::new()], cur: s, history: History::new(), track_history: true }
     }
 
     fn compute_to(&mut self, frame: usize) {
         while self.frames.len() <= frame {
+            let fi = self.frames.len() as u32;
             let mut ev: Vec<(u8, i32)> = Vec::new();
-            step_state(&mut self.cur, &self.lines, &self.grid, &self.rest, &self.endur, &mut ev);
+            step_state(&mut self.cur, &self.lines, &self.grid, &self.rest, &self.endur, &mut ev, self.track_history, fi, &mut self.history);
             self.frames.push(self.cur.clone());
             self.events.push(ev);
         }
@@ -551,20 +587,76 @@ pub extern "C" fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) -> u32 {
         (p.lines.clone(), p.grid.clone(), p.rest, p.endur)
     };
     let s = init_state(px, py, vx, vy);
-    alloc(Engine { lines, grid, rest, endur, frames: vec![s.clone()], events: vec![Vec::new()], cur: s })
+    alloc(Engine { lines, grid, rest, endur, frames: vec![s.clone()], events: vec![Vec::new()], cur: s, history: History::new(), track_history: true })
 }
 
-/// Fork a new engine = parent + one line. Increment 1: conservatively reset the
-/// frame cache to the initial state (correct result; budget differs — Increment 2
-/// adds exact invalidation + frame reuse for budget parity).
+// line.collidesWith(snapshot) — the shouldCollide test, for invalidation.
+#[inline]
+fn collides_with(l: &Line, px: f64, py: f64, vx: f64, vy: f64) -> bool {
+    let ox = px - l.p1x;
+    let oy = py - l.p1y;
+    let perp = l.normx * ox + l.normy * oy;
+    let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
+    let dir = l.normx * vx + l.normy * vy;
+    dir > 0.0 && perp > 0.0 && perp < MAX_FORCE_LENGTH && line_pos >= l.left_bound && line_pos <= l.right_bound
+}
+
+/// Fork a new engine = parent + one line, with EXACT lr-core invalidation:
+/// truncate the inherited frame cache to the new line's first-collision frame
+/// (replicating _addLine → getIndexOfCollisionInCell), so getLastFrameIndex /
+/// physics-frame budget match bit-for-bit. Frames/events/history before the
+/// truncation point are reused; everything after is recomputed lazily.
 #[no_mangle]
 pub extern "C" fn add_line(h: u32, id: i32, ty: i32, x1: f64, y1: f64, x2: f64, y2: f64, flags: i32) -> u32 {
-    let (mut lines, mut grid, rest, endur, init) = {
+    let l = build_line(id, x1, y1, x2, y2, ty as i64, flags as i64);
+    let (mut lines, mut grid, rest, endur, frames, events, cur, mut history, track, trunc_len, orig_len) = {
         let p = engines()[h as usize].as_ref().unwrap();
-        (p.lines.clone(), p.grid.clone(), p.rest, p.endur, p.frames[0].clone())
+        let orig_len = p.frames.len();
+        // invalidation index (frames.length after _setFramesLength; lr-core sets
+        // it per-cell in classic_cells order, last collision-cell wins).
+        let mut trunc_len = orig_len;
+        if l.collidable && p.track_history && orig_len > 1 {
+            for cell in classic_cells(&l) {
+                if let Some(snaps) = p.history.get(&cell) {
+                    for &(frame, px, py, vx, vy) in snaps.iter() {
+                        if collides_with(&l, px, py, vx, vy) {
+                            // earliest collision across all the new line's cells
+                            trunc_len = trunc_len.min(frame as usize);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        (
+            p.lines.clone(),
+            p.grid.clone(),
+            p.rest,
+            p.endur,
+            p.frames[..trunc_len].to_vec(),
+            p.events[..trunc_len].to_vec(),
+            p.frames[trunc_len - 1].clone(),
+            p.history.clone(),
+            p.track_history,
+            trunc_len,
+            orig_len,
+        )
     };
-    register_line(&mut lines, &mut grid, id, x1, y1, x2, y2, ty as i64, flags as i64);
-    alloc(Engine { lines, grid, rest, endur, frames: vec![init.clone()], events: vec![Vec::new()], cur: init })
+    // discard history snapshots for the invalidated (recomputed) frames
+    if trunc_len < orig_len {
+        for v in history.values_mut() {
+            v.retain(|&(f, _, _, _, _)| (f as usize) < trunc_len);
+        }
+    }
+    // register the new line into lines + grid
+    let li = lines.len() as u32;
+    if l.collidable {
+        for cell in classic_cells(&l) {
+            grid.entry(cell).or_default().push(li);
+        }
+    }
+    lines.push(l);
+    alloc(Engine { lines, grid, rest, endur, frames, events, cur, history, track_history: track })
 }
 
 #[no_mangle]

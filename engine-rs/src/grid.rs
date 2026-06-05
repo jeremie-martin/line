@@ -31,7 +31,15 @@ impl BuildHasher for IntBuildHasher {
 impl Hasher for IntHasher {
     #[inline]
     fn finish(&self) -> u64 {
-        self.state
+        // The integer write_* paths fold a key in verbatim (identity). hashbrown
+        // (SwissTable) derives the home bucket from the low bits AND a 7-bit control
+        // tag from the TOP 7 bits of the hash. Our keys are small-magnitude Szudzik
+        // cell ids / small line ids, so identity leaves the top bits ~all zero —
+        // every key collides on the control tag, defeating the SIMD tag filter.
+        // Multiply by the golden-ratio odd constant (bijective on u64, so no new key
+        // collisions) to spread entropy into both the tag and bucket bits. Affects
+        // only internal probe order, never key→value mapping or output ordering.
+        self.state.wrapping_mul(0x9E3779B97F4A7C15)
     }
 
     #[inline]

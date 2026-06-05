@@ -563,3 +563,48 @@ these were below the 2% commit bar; together they clear it.
 - **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
 - **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):** 29,414.7 →
   **28,259.2 ns/physics-frame** (**−3.9% mean / −4.5% median**).
+
+## W4 — Bit-mixing grid hasher + `codegen-units=1`  (−18%, bit-identical)
+The per-frame hot loop (`kernel.rs::step_state`) does ~540 `cell_lines.get` + ~540
+`hist.entry` HashMap ops per physics frame. The maps use a custom `IntHasher`
+(`engine-rs/src/grid.rs`) that folded each integer key in **verbatim** (identity).
+But std `HashMap` is hashbrown/SwissTable: it derives the home bucket from the low
+bits **and a 7-bit control tag from the top 7 bits** of the hash. The keys are
+small-magnitude Szudzik cell ids / small line ids, so identity hashing left the top
+bits ~all zero — every key shared the same control tag, defeating the SIMD tag
+filter and degrading every probe. `IntHasher::finish` now multiplies the folded key
+by the golden-ratio odd constant `0x9E3779B97F4A7C15`, spreading entropy into both
+the tag and bucket bits. Multiply-by-odd is bijective on u64, so no two distinct
+keys collide; the hash affects only internal probe order/slot placement, never
+key→value mapping or output ordering (bucket *contents* order is set explicitly by
+`push_line`'s descending-id insert and by append order in `hist`/`coll`, and no map
+is ever iterated in hash order to produce output). Bundled with it: `codegen-units=1`
+in `Cargo.toml` `[profile.release]` (one codegen unit before LTO → more aggressive
+cross-function inlining; pure codegen, no fast-math, so float op order is preserved).
+
+The hasher is the headline; `codegen-units=1` measured ~−1.9% alone (marginal,
+sub-2%), so it is bundled per the commit rule. `wasm-opt --converge` was also
+evaluated and **dropped** — on the already-`-O3` binary it changed size by 90 bytes
+(52,958 → 52,868), an unmeasurable runtime effect well below the bar.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical (engine fingerprint +
+  optimizer hash) · `verify:engine --diff` ✓ **max err 0** over 1500/1220/1220/2260/
+  740 frames across all 5 fixtures.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup, back-to-back):**
+
+  | engine | mean ns/frame | median |
+  |--------|---------------|--------|
+  | W3 baseline (this machine) | 28,727.2 ± 574.8 | 28,836.2 |
+  | + `codegen-units=1` | 28,187.1 ± 591.7 | 28,262.9 |
+  | **+ bit-mixed hasher (bundle)** | **23,543.9 ± 615.9** | **23,635.3** |
+  | bundle (confirm run) | 23,189.7 ± 613.5 | 23,286.8 |
+
+  **−18.0% mean / −18.0% median** vs the W3 baseline (the hasher alone accounts for
+  ~−16.5% on top of `codegen-units`). Far above the ~2% noise band → **kept.**
+
+**Standing after W4:** **~23,400 ns/physics-frame** — bit-identical to lr-core,
+≈14.3× faster than pristine JS (333k) and ≈3.1× faster than the parity-correct JS
+engine (B11 ~73k). The grid HashMap traffic is no longer probe-bound; the next
+levers are the fixed per-frame math (irreducible without breaking bits) and the
+fork-reconcile `Line` clones (deferred — high review cost, touches the
+path-dependent budget).

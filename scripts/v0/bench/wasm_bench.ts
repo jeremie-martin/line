@@ -1,9 +1,9 @@
 /**
- * Quick standalone speed check of the Rust→WASM kernel (synthetic fixture),
- * to compare ns/frame against the JS engine baseline (~1,000,000 ns/frame,
- * ~1,000 frames/sec). NOTE: the kernel is NOT yet optimized — it rebuilds the
- * grid as a BTreeMap each sim() call and does map lookups in the collision hot
- * loop. This is a floor, not a ceiling.
+ * Quick standalone speed check of the Rust→WASM batch kernel on a synthetic
+ * fixture. This is kernel-only throughput for the `sim()` ABI; it is not directly
+ * comparable to `npm run perf`, which measures the full TypeScript compiler path.
+ * For end-to-end JS vs WASM numbers, compare `npm run perf` with
+ * `LR_ENGINE=wasm npm run perf`.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -37,17 +37,12 @@ function main() {
   const median = times[times.length >> 1];
   const min = times[0];
   const nsPerFrame = (median * 1e6) / frames;
-  // Current optimized JS engine baseline from `npm run perf` (mini_burst @ 50k):
-  // ~73,000 ns/physics-frame after B1-B11 + young-gen tuning + the official-parity
-  // snapshot. (The old 1,000,000 here predated the whole B-series.)
-  const baselineNs = 73_000;
   console.log("");
   console.log(`wasm_bench  frames=${frames}  reps=${reps}`);
   console.log(`  min        ${min.toFixed(3)} ms`);
   console.log(`  median     ${median.toFixed(3)} ms`);
   console.log(`  ns/frame   ${nsPerFrame.toFixed(1)}  (median)`);
   console.log(`  frames/sec ${(frames / (median / 1000)).toFixed(0)}`);
-  console.log(`  vs JS      ${(baselineNs / nsPerFrame).toFixed(1)}x vs the current ~73,000 ns/frame optimized-JS baseline`);
 }
 
 main();

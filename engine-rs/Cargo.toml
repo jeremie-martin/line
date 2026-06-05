@@ -7,10 +7,9 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-# Persistent (structurally-shared) Vector/OrdMap so engine forks share the frame
-# cache / history / grid in O(1) instead of full-cloning. Rc-based (single-thread,
-# right for wasm). Only Vector + OrdMap used — no HashMap, so no entropy needed.
-im-rc = "15"
+# (none) — the engine uses only std BTreeMap/Vec. Forking is a cheap version-tree
+# node over ONE shared mutable cache per lineage (see engine.rs), not per-fork
+# structural sharing, so no persistent-collection crate is needed.
 
 [profile.release]
 opt-level = 3

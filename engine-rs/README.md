@@ -40,11 +40,36 @@ Individual checks (all also run by `wasm:all`):
 | `wasm` | this Rust→WASM engine |
 | `record` | wraps vendored, logs the compile's op-DAG → `generated/trace/compile_ops.json` (for `wasm:replay`) |
 
+## Architecture (`src/`)
+
+A clean-room reimplementation organized 1:1 with lr-core so each module audits
+against one JS source file:
+
+| module | mirrors | notes |
+|---|---|---|
+| `grid.rs` | hashNumberPair.js + getCellsFromLine.js + ClassicGrid geom | hash, classicCells, 3×3 cellsNearEntity |
+| `line.rs` | Line/SolidLine/AccLine.js + cellLinesMap | geometry, `collidesWith`, grid registration |
+| `kernel.rs` | states + constraints + SolidLine.collide | the per-frame solver (ported verbatim — proven) |
+| `frame.rs` | Frame.js | collision-history grid + collisions map + invalidation scan |
+| `engine.rs` | LineEngine.js + Immo | **one shared mutable cache per lineage**, version-patch tree, `updateComputed` walk |
+| `abi.rs` | the WASM export surface | frozen contract + `sim()` regression harness |
+
+The load-bearing insight: lr-core keeps ONE `__computed__` frame cache per lineage,
+reconciled lazily on every read (`updateComputed` diffs the version's line-list and
+replays `_addLine`/`_removeLine`, truncating the shared cache). This makes the
+physics-frame budget path-dependent on the search's read order; `engine.rs` models
+it as a version tree whose `compareTo` is a walk of the patch chain.
+
 ## Current state
 
-The verification scaffolding is current and proves `vendored ≡ official`. The
-WASM engine is **not yet bit-identical**: the committed `.wasm` / `src/lib.rs`
-predate the official-parity grid-snapshot fix, so its `addLine` invalidation must
-be brought in line with the current JS before `wasm:compile`'s `wasm ≡ vendored`
-leg goes green. Let the gate's hash — not the phase label — tell you when it's a
-drop-in.
+**The WASM engine is a bit-identical drop-in.** All gates green: `wasm:check`,
+`wasm:engine`, `trace`/`trace:diff` (max err 0), `wasm:diff`, `wasm:budget`,
+`wasm:replay` (0 mismatches on the real op-DAG), and `wasm:compile` (`wasm ≡
+vendored` track-hash on all 4 specs). `vendored ≡ official` still holds (run
+`wasm:compile -- --official` to re-confirm), so `wasm ≡ official` transitively.
+
+Performance: the kernel alone is ~5× the JS engine (`wasm:bench`), but end-to-end
+(`LR_ENGINE=wasm npm run perf`) is currently ~20% **slower** than the JS engine —
+the JS↔WASM per-read boundary (rebuilding the stateMap/entity objects from the
+scratch buffer on every `getRider`/`getStateMapAtFrame`) dominates. Bit-identity is
+done; closing that boundary is the next optimization.

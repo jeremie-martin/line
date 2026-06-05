@@ -4,10 +4,11 @@
  * setStart / addLine / getStateMapAtFrame / getUpdatesAtFrame / getLastFrameIndex
  * (+ getRider for the detector path). Selected via LR_ENGINE=wasm in _lr_engine.ts.
  *
- * Scope note: addLine currently mutates one handle in place and returns a fresh
- * wrapper over it — correct for the linear add-all-then-read pattern the trace
- * oracle uses, NOT yet for the compiler's beam frontier / mid-stream addLine
- * (that's Phase 2b: forking + exact invalidation + budget parity).
+ * The Rust engine (engine-rs) reproduces lr-core's shared-cache model exactly, so
+ * this is a bit-identical drop-in on the compiler's full beam-frontier / mid-stream
+ * addLine access pattern (forking + invalidation + physics-frame budget) — proven
+ * by wasm:replay (real op-DAG) and wasm:compile (track-hash parity). addLine takes
+ * a single line or the compiler's batched array.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -86,8 +87,19 @@ export class LineRiderEngine {
   }
   // deno-lint-ignore no-explicit-any
   addLine(line: any): LineRiderEngine {
-    const flags = (line.flipped ? 1 : 0) | (line.leftExtended ? 2 : 0) | (line.rightExtended ? 4 : 0);
-    return new LineRiderEngine(ex.add_line(this.h, line.id ?? 0, line.type ?? 0, line.x1, line.y1, line.x2, line.y2, flags));
+    // The compiler adds an arc as a batch (array). lr-core's addLine([l1..ln])
+    // runs _addLine per line against the same (progressively-truncated) frame
+    // cache with no recompute in between; adding them one at a time through the
+    // ABI with no read in between is the same sequence of _addLine truncations.
+    const lines = Array.isArray(line) ? line : [line];
+    let h = this.h;
+    for (const l of lines) {
+      const flags = (l.flipped ? 1 : 0) | (l.leftExtended ? 2 : 0) | (l.rightExtended ? 4 : 0);
+      const next = ex.add_line(h, l.id ?? 0, l.type ?? 0, l.x1, l.y1, l.x2, l.y2, flags);
+      if (h !== this.h) ex.free_engine(h); // free transient intermediate handles
+      h = next;
+    }
+    return new LineRiderEngine(h);
   }
   getLastFrameIndex(): number {
     return ex.get_last_frame_index(this.h);

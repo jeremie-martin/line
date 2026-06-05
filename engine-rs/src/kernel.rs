@@ -10,7 +10,7 @@
 
 use crate::grid::{cells_near_entity, IntMap};
 use crate::line::{Line, MAX_FORCE_LENGTH};
-use crate::frame::{add_to_collisions, add_to_grid, Collisions, HistGrid};
+use crate::frame::{add_to_collisions, add_to_grid, Collisions, HistGrid, SnapNode};
 use crate::{
     BASE, COLLIDABLES, FRIC, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, NENT, NITER,
 };
@@ -80,6 +80,7 @@ pub(crate) fn step_state(
     track: bool,
     hist: &mut HistGrid,
     touched_cells: &mut Vec<i64>,
+    hist_snaps: &mut Vec<SnapNode>,
     coll: &mut Collisions,
     touched_lines: &mut Vec<i32>,
 ) {
@@ -145,7 +146,7 @@ pub(crate) fn step_state(
             let cells = cells_near_entity(s.px[i], s.py[i]);
             // addToGrid (A): pre-collision snapshot into all 3×3 cells.
             if track {
-                add_to_grid(hist, touched_cells, &cells, frame_index, s.px[i], s.py[i], s.vx[i], s.vy[i]);
+                add_to_grid(hist, touched_cells, hist_snaps, &cells, frame_index, s.px[i], s.py[i], s.vx[i], s.vy[i]);
             }
             for &cell in cells.iter() {
                 if let Some(lns) = grid.get(&cell) {
@@ -183,7 +184,7 @@ pub(crate) fn step_state(
                             // addToGrid (B) + addToCollisions: post-collision, cells around the MOVED entity.
                             if track {
                                 let pcells = cells_near_entity(s.px[i], s.py[i]);
-                                add_to_grid(hist, touched_cells, &pcells, frame_index, s.px[i], s.py[i], s.vx[i], s.vy[i]);
+                                add_to_grid(hist, touched_cells, hist_snaps, &pcells, frame_index, s.px[i], s.py[i], s.vx[i], s.vy[i]);
                                 add_to_collisions(coll, touched_lines, l.id, frame_index);
                             }
                         }

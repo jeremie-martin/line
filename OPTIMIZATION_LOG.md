@@ -592,3 +592,23 @@ hot `compute_to` path.
 
   **−2.7% mean** vs the rebuilt same-toolchain baseline; **−3.9%** vs the
   user-corrected 16,956.2 baseline. Holds above the 1.6% commit bar.
+
+## W5 — Arena-backed history-grid snapshot lists  (−33.5%, bit-identical)
+The frame-history grid still allocated one small `Vec<Snap>` for nearly every
+cell/frame that saw more than one rider-point snapshot. That was the dominant
+remaining Rust/WASM allocator bucket. `CellFrame` now keeps its first snapshot
+inline and links additional same-cell/same-frame snapshots through one cache-owned
+flat `SnapNode` arena, truncated by per-frame offsets during rollback. Invalidation
+still asks the same question (`any snapshot collides with this line?`); the rest
+snapshot scan order is irrelevant because `collides_with` is pure and only the
+boolean/frame index is observed.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):**
+
+  | path | ns/physics-frame |
+  |---|---|
+  | W4 flat cache logs | 16,298.8 ± 218.6 |
+  | **W5 arena snapshot lists** | **10,834.8 ± 83.3** |
+
+  **−33.5% mean** vs W4; **−36.1%** vs the user-corrected 16,956.2 baseline.

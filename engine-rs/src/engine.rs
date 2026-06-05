@@ -20,7 +20,7 @@ use crate::grid::IntMap;
 use crate::kernel::{compute_rest_endur, init_state, step_state, State};
 use crate::frame::{
     index_of_collision_in_cell, index_of_collision_with_line, rollback_collisions, rollback_grid,
-    Collisions, HistGrid,
+    Collisions, HistGrid, SnapNode,
 };
 use crate::line::{build_line, line_cells, push_line, remove_line, Line};
 use crate::{
@@ -44,6 +44,8 @@ struct Cache {
     hist: HistGrid,                       // Frame.grid: collision-history for addLine invalidation
     touched_cells: Vec<i64>,              // flat per-frame reverse patch for hist rollback
     touched_cell_offsets: Vec<usize>,
+    hist_snaps: Vec<SnapNode>,            // extra same-cell/same-frame snapshots
+    hist_snap_offsets: Vec<usize>,
     coll: Collisions,                     // Frame.collisions: line id → frames (for removeLine)
     touched_lines: Vec<i32>,              // flat per-frame reverse patch for coll rollback
     touched_line_offsets: Vec<usize>,
@@ -64,6 +66,8 @@ impl Cache {
             hist: IntMap::default(),
             touched_cells: Vec::new(),
             touched_cell_offsets: vec![0, 0],
+            hist_snaps: Vec::new(),
+            hist_snap_offsets: vec![0, 0],
             coll: IntMap::default(),
             touched_lines: Vec::new(),
             touched_line_offsets: vec![0, 0],
@@ -95,6 +99,8 @@ impl Cache {
         self.event_offsets.truncate(len + 1);
         self.touched_cells.truncate(self.touched_cell_offsets[len]);
         self.touched_cell_offsets.truncate(len + 1);
+        self.hist_snaps.truncate(self.hist_snap_offsets[len]);
+        self.hist_snap_offsets.truncate(len + 1);
         self.touched_lines.truncate(self.touched_line_offsets[len]);
         self.touched_line_offsets.truncate(len + 1);
         self.cur = self.frames[len - 1].clone();
@@ -111,7 +117,7 @@ impl Cache {
         self.lines_cells.insert(l.id, cells.clone());
         push_line(&mut self.cell_lines, l.clone(), &cells);
         for &cell in cells.iter() {
-            if let Some(idx) = index_of_collision_in_cell(&self.hist, cell, &l) {
+            if let Some(idx) = index_of_collision_in_cell(&self.hist, &self.hist_snaps, cell, &l) {
                 self.set_frames_length(idx as usize);
             }
         }
@@ -141,6 +147,9 @@ impl Cache {
         self.touched_cells.clear();
         self.touched_cell_offsets.clear();
         self.touched_cell_offsets.extend_from_slice(&[0, 0]);
+        self.hist_snaps.clear();
+        self.hist_snap_offsets.clear();
+        self.hist_snap_offsets.extend_from_slice(&[0, 0]);
         self.touched_lines.clear();
         self.touched_line_offsets.clear();
         self.touched_line_offsets.extend_from_slice(&[0, 0]);
@@ -154,11 +163,12 @@ impl Cache {
             step_state(
                 &mut self.cur, &self.cell_lines, &self.rest, &self.endur,
                 &mut self.events, fi, true, &mut self.hist, &mut self.touched_cells,
-                &mut self.coll, &mut self.touched_lines,
+                &mut self.hist_snaps, &mut self.coll, &mut self.touched_lines,
             );
             self.frames.push(self.cur.clone());
             self.event_offsets.push(self.events.len());
             self.touched_cell_offsets.push(self.touched_cells.len());
+            self.hist_snap_offsets.push(self.hist_snaps.len());
             self.touched_line_offsets.push(self.touched_lines.len());
         }
     }

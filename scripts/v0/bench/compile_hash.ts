@@ -22,9 +22,18 @@ async function main() {
   const res = compileHandoff(spec, seed, { budgets: [budget] });
   const cp = res.checkpoints[res.checkpoints.length - 1];
   const track = cp.track;
-  const hash = createHash("sha256").update(JSON.stringify(track)).digest("hex").slice(0, 16);
+  // Hash the COMPILED TRACK *and* the deterministic search stats. For the
+  // handoff path cp.track.lines is often empty — the meaningful, fully
+  // deterministic output is cp.stats (candidates sampled/viable/landed,
+  // sim_frames, improvements, …; all integer/float counts, no timing). Hashing
+  // both makes this a real end-to-end behavioral fingerprint: any change in the
+  // engine's physics or budget accounting shifts the search trajectory → hash.
+  const hash = createHash("sha256")
+    .update(JSON.stringify({ track, stats: cp.stats }))
+    .digest("hex").slice(0, 16);
   const lineCount = track?.lines?.length ?? -1;
-  console.log(`HASH spec=${specName} seed=${seed} budget=${budget} engine=${engine} lines=${lineCount} ${hash}`);
+  const simFrames = cp.stats?.sim_frames ?? -1;
+  console.log(`HASH spec=${specName} seed=${seed} budget=${budget} engine=${engine} lines=${lineCount} sim_frames=${simFrames} ${hash}`);
 }
 
 main();

@@ -98,12 +98,19 @@ function isScarfId(id: unknown): boolean {
 }
 
 /**
- * Fingerprint a single frame → 32-bit number. Covers (scarf excluded unless
- * includeScarf):
+ * Fingerprint a single frame → 32-bit number. Covers ONLY what the compiler
+ * actually consumes (scarf excluded unless includeScarf):
  *  - the state map (every non-scarf entity's __state__: positions, vel, binding)
- *  - the per-frame `updates` the detector consumes via getUpdatesAtFrame
- *    (type, line id, and the ids of updated non-scarf entities, in order) — this
- *    catches contact-bookkeeping divergence (which line was recorded as hit).
+ *  - the CollisionUpdate records the detector reads via getUpdatesAtFrame
+ *    (line id + contacted point ids, in order) — which line/point was hit.
+ *
+ * It deliberately does NOT fold Step/Constraint updates. Those are internal
+ * solver bookkeeping the compiler never reads (detector.ts skips every update
+ * whose type !== "CollisionUpdate"), and the body state folded above already
+ * captures every physics result they produce. Folding them would couple this
+ * correctness gate to engine implementation details — e.g. whether update
+ * objects are freshly allocated or shared singletons, or whether the cosmetic
+ * scarf is simulated at all — and block legitimate engine optimizations.
  */
 // deno-lint-ignore no-explicit-any
 function fingerprintFrame(stateMap: Map<any, any>, updates: any[], includeScarf: boolean): number {
@@ -119,18 +126,20 @@ function fingerprintFrame(stateMap: Map<any, any>, updates: any[], includeScarf:
       : { pos: entity?.pos, prevPos: entity?.prevPos, vel: entity?.vel, framesSinceUnbind: entity?.framesSinceUnbind };
     [h1, h2] = mixState(h1, h2, state);
   }
-  // fold the per-frame update records (order matters — it's a sequence)
+  // Fold only the collision records (order matters — it's a sequence). These are
+  // the exact inputs the detector reads: the line id (numeric) and the contacted
+  // point ids (string body ids; scarf points never collide).
   if (updates) {
     for (const u of updates) {
-      // skip updates that belong wholly to the scarf (e.g. the SCARF chain update)
-      if (!includeScarf && isScarfId(u?.id)) continue;
-      [h1, h2] = mixString(h1, h2, u?.type ?? u?.constructor?.name ?? "?");
+      if ((u?.type ?? u?.constructor?.name) !== "CollisionUpdate") continue;
+      [h1, h2] = mixString(h1, h2, "CollisionUpdate");
       if (typeof u?.id === "number") [h1, h2] = mixNumber(h1, h2, u.id);
       const upd = u?.updated;
       if (Array.isArray(upd)) {
         for (const e of upd) {
-          if (!includeScarf && isScarfId(e?.id)) continue; // drop scarf points from mixed updates
+          if (!includeScarf && isScarfId(e?.id)) continue;
           if (typeof e?.id === "number") [h1, h2] = mixNumber(h1, h2, e.id);
+          else if (typeof e?.id === "string") [h1, h2] = mixString(h1, h2, e.id);
         }
       }
     }

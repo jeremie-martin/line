@@ -79,4 +79,34 @@ consumes `CollisionUpdate` only).
   | **B1**   | **323,865 ± 3,858** | **322,812** |
 
   **−2.75% mean / −3.1% median.** Medians separated by 10,457 ns (> either σ).
-  Holds above the 2% bar → **kept** (commit pending).
+  Holds above the 2% bar → **kept** (commit `c6f7baa`).
+
+### B2 — Don't simulate the cosmetic scarf
+`vendor/lr-core/line-rider-engine/Rider.js`. The rider now drops the scarf from
+the simulated state + constraints: the 7 `FlutterPoint` states (`SCARF_0..6`) and
+the `DirectedChain` that drives them. The scarf is a non-collidable one-way
+follower anchored at `SHOULDER` — no body part or constraint reads a scarf point,
+the chain only *writes* the scarf, and the compiler never reads it. Removing it
+eliminates the engine's only transcendental math (7× `sin`/`cos`/`expm1`/`pow`
+per frame), 7 stepped-point allocations/frame, the chain resolve, and 7
+stateMap entries cloned per frame. This was unblocked by the S1 oracle fix.
+
+- **Gates:** verify ✓ byte-identical · diff ✓ max err 0 · compile-hash ✓ identical
+  (the stateMap no longer contains `SCARF_*` keys, yet body + compiled output are
+  unchanged — the strongest confirmation the scarf was pure overhead).
+- **Perf (clean back-to-back, 20k / 8 reps):**
+
+  | engine | mean ns/frame | median |
+  |--------|---------------|--------|
+  | B1 (scarf on) | 326,094 ± 4,282 | 326,624 |
+  | **B2 (scarf off)** | **312,905 ± 5,466** | **312,874** |
+
+  **−4.0% mean / −4.2% median.** → **kept**.
+
+## Cumulative
+
+| milestone | ns/physics-frame (20k/8reps) | vs pristine |
+|-----------|------------------------------|-------------|
+| pristine (point-mutation) | 333,033 | — |
+| B1 singleton updates | 323,865 | −2.8% |
+| B2 scarf off | 312,905 | **−6.0%** |

@@ -19,11 +19,23 @@ export default class Rider {
   constructor (riderBody = classicRiderBody) {
     // TODO: validate riderBody
     this.body = riderBody
+    // Drop the cosmetic scarf from the simulated rider. The scarf is a set of
+    // FlutterPoints driven by a one-way DirectedChain: it follows the body
+    // (anchored at SHOULDER) but never feeds back into it (no body part or
+    // constraint references a SCARF point, and the chain only *writes* the
+    // scarf), it is non-collidable, and the compiler never reads it. Removing
+    // it eliminates the engine's only transcendental math (sin/cos/expm1/pow)
+    // and 7 stepped points + a chain resolve every frame, with zero effect on
+    // the body trajectory or collisions. (A renderer would need the scarf; this
+    // vendored engine is compiler-only.) Identified structurally: the scarf
+    // points are the FlutterPoints, driven by the DirectedChain.
+    this.stateData = this.body.states.filter((s) => s.type !== 'FlutterPoint')
+    let constraintData = this.body.constraints.filter((c) => c.type !== 'DirectedChain')
     let initialStateMap = new Map(this.makeStateArray().map((state) => [state.id, state]))
-    this.constraints = riderBody.constraints.map((data) => createConstraintFromJson(data, initialStateMap))
+    this.constraints = constraintData.map((data) => createConstraintFromJson(data, initialStateMap))
   }
   makeStateArray (position, velocity) {
-    return this.body.states.map((stateData) =>
+    return this.stateData.map((stateData) =>
       createStateFromJson(stateData, {position, velocity})
     )
   }

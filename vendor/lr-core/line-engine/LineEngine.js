@@ -4,7 +4,17 @@ import Immo, {setupImmo} from '../immo'
 // import {abstractClass} from '../abstract-interface.js'
 
 import Frame from './Frame.js'
-import {StepUpdate, ConstraintUpdate, CollisionUpdate} from './StateUpdate.js'
+import {CollisionUpdate} from './StateUpdate.js'
+
+// Step and constraint updates are pushed to frame.updates only so an update
+// reader sees the right per-frame sequence; nothing downstream reads their id
+// or updated entities (the detector consumes CollisionUpdate exclusively, and
+// the resulting point state is already applied to the stateMap). So a single
+// shared frozen singleton per kind is behaviourally identical to a fresh object
+// every call — and saves ~130 allocations per frame. (CollisionUpdate stays a
+// real per-instance object: it carries the numeric line id the detector reads.)
+const STEP_UPDATE = Object.freeze({type: 'StepUpdate', updated: Object.freeze([])})
+const CONSTRAINT_UPDATE = Object.freeze({type: 'ConstraintUpdate', updated: Object.freeze([])})
 
 // @setupImmo
 // @abstractClass('makeGrid', 'preIterate', 'postIterate')
@@ -194,17 +204,29 @@ export default class LineEngine extends Immo {
   }
 
   _stepStates (frame, stateIDs) {
-    let updatedStates = stateIDs.map((id) => (
-      frame.stateMap.get(id).step(this.stepOptions)
-      )
-    )
-    frame.updateStateMap(new StepUpdate(updatedStates))
+    // Each step() reads only its own point's prior state, so set-as-we-go is
+    // equivalent to map-all-then-set and skips the intermediate array.
+    let stateMap = frame.stateMap
+    for (let id of stateIDs) {
+      let stepped = stateMap.get(id).step(this.stepOptions)
+      stateMap.set(stepped.id, stepped)
+    }
+    frame.updates.push(STEP_UPDATE)
   }
 
   _resolveConstraints (frame, constraintIDs) {
+    let stateMap = frame.stateMap
     for (let id of constraintIDs) {
       let constraint = this.constraints.get(id)
-      frame.updateStateMap(new ConstraintUpdate(constraint.resolve(frame.stateMap), id))
+      // resolve() mutates collidable points in place (returning the same refs)
+      // and only allocates a fresh entity for a binding unbind — set whatever it
+      // returns so those rare new bindings still land in the stateMap.
+      let updated = constraint.resolve(stateMap)
+      for (let i = 0; i < updated.length; i++) {
+        let e = updated[i]
+        stateMap.set(e.id, e)
+      }
+      frame.updates.push(CONSTRAINT_UPDATE)
     }
   }
 

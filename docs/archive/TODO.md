@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical record, not live guidance. Live docs: [`docs/README.md`](../README.md). The one still-open item (`opening_burst` chain-hardening) now lives in [`FOCUS_FRAGILE_SPECS.md`](../../FOCUS_FRAGILE_SPECS.md).
+
 # TODO / parked ideas
 
 ## `opening_burst`: RESTORED to the suite; chain-hardening still open

@@ -73,12 +73,13 @@ npx tsx scripts/v0/update_compiler_doc.ts generated/golden-runs/rebaseline/golde
 It fills the baseline regions from the curve JSON: hero label, `CURVE_SCORE`,
 the budget table, largest-budget per-spec rows, and the campaign chart point.
 
-### b) `GOAL_LDS_LOW_BUDGET.md`
+### b) `docs/HOW_TO_WORK.md` — "Current baseline (of record)"
 
-Update the current baseline prose with the `headline` metric (score / ceiling /
-logAUC), the budget grid, largest-budget valid rows, and the fingerprint
-(`curve_score` is legacy). Update the frontier section if the curve shape changed
-materially.
+Step (a) already regenerates the full per-budget / per-spec baseline into
+`docs/handoff-compiler.html` from the curve JSON — that generated doc **is** the
+recorded baseline; do not hand-transcribe a second copy. Just refresh the one-line
+orientation snapshot in HOW_TO_WORK's "Current baseline" section (headline figure,
+default placement, fingerprint) so a reader sees the current number at a glance.
 
 ### c) `scripts/v0/golden_suite.ts`
 

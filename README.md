@@ -13,6 +13,9 @@ Status: **substrate built**. The right half of the pipeline (JSON track → mp4)
 is automated end-to-end and pixel-deterministic. The left half (audio → JSON
 track — the actual procedural generator) is the remaining work.
 
+> **Working on the compiler?** Start at [`docs/HOW_TO_WORK.md`](docs/HOW_TO_WORK.md)
+> — the single how-to-work doc. The full documentation map is [`docs/README.md`](docs/README.md).
+
 ## Quick start
 
 ```bash
@@ -39,11 +42,11 @@ npx tsx scripts/stress.ts
 # verify lr-core (Node-native physics) still matches the bundle exactly
 npm run parity
 
-# current v0 handoff compiler golden benchmark
-# (reports the HEADLINE metric α·q(b_max)+(1−α)·logAUC; 8 seeds {0..7}, dense 5k–175k grid)
-npm run golden
+# v0 handoff compiler golden benchmark (metric, run tiers, decide: docs/HOW_TO_WORK.md)
+npm run golden                  # canonical 8-seed run, the promotable basis
+npm run screen                  # ~10-min indicative pre-filter
 
-# decide whether a candidate beats a baseline (paired-bootstrap verdict; replaces "+5")
+# decide whether a candidate beats a baseline (paired-bootstrap verdict)
 npm run decide -- CANDIDATE/golden.json BASELINE/golden.json
 
 # same compiler, explicit selector kept for future compiler additions

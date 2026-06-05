@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical record, not live guidance. Live docs: [`docs/README.md`](../README.md). The baseline of record now lives in [`docs/HOW_TO_WORK.md`](../HOW_TO_WORK.md) + the generated `docs/handoff-compiler.html`.
+
 # Goal - budget-curve handoff compiler
 
 This file keeps its historical name because past work links here. The active

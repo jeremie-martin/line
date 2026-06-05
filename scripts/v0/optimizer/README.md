@@ -37,12 +37,10 @@ building blocks.
 
 ## Benchmark
 
-The default golden compiler is handoff. `npm run golden` runs 8 seeds {0..7} over
-the dense 5k–175k grid and reports the **HEADLINE** metric (`α·q(b_max) +
-(1−α)·logAUC`, α=0.7); pass `--score-budgets=50000,100000,150000` for the canonical
-few-budget headline. Legacy CURVE_SCORE is still printed. Decide a change with
-`npm run decide -- <cand>/golden.json <base>/golden.json` (paired-bootstrap verdict).
-For the full run pass `--jobs=$(( $(nproc) / 2 ))` — a full `--jobs=$(nproc)` can OOM.
+The default golden compiler is handoff. The benchmark, the HEADLINE metric, the run
+tiers, the `decide` rule, and the jobs/OOM caveat are documented once in
+[`docs/HOW_TO_WORK.md`](../../../docs/HOW_TO_WORK.md) (metric formula + frozen contract:
+[`docs/compiler_goals.md`](../../../docs/compiler_goals.md)).
 
 ```bash
 npm run golden

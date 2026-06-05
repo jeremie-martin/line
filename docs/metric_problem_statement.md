@@ -1,5 +1,12 @@
 # Problem & Scope — the optimization metric and its statistical validation
 
+> **REFERENCE / rationale.** This is the problem statement that *led to* the current
+> metric + decision rule; it reasons from the then-current **3-seed** benchmark and
+> concludes 3 is under-powered. The resolved outcome is now canonical — HEADLINE
+> metric, paired-bootstrap `decide`, and **8 seeds {0..7}** — and lives in
+> [`compiler_goals.md`](compiler_goals.md) / [`HOW_TO_WORK.md`](HOW_TO_WORK.md). Read
+> the "3 seeds" below as the historical premise, not the current setup.
+
 This is a deliberately solution-free statement of the problem. It gives the full
 context and constraints but none of our own conclusions, so that a fresh
 statistician / engineer / agent can reason from it independently.

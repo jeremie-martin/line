@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical record, not live guidance. Live docs: [`docs/README.md`](../README.md).
+
 # Arc Placement Design Notes
 
 For the active campaign charter, boundary definition, and workbench commands,

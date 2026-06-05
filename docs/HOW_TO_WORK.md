@@ -1,3 +1,80 @@
+# How to work — the handoff compiler
+
+The single entry point for working on the compiler. **Read this first**, then open the
+campaign doc for whatever you're improving. The doc map is `docs/README.md`.
+
+## Goal & boundary
+
+- **What:** turn a musical/rhythm `Spec` into a beat-synced Line Rider `Track`. Problem
+  statement and success criteria: [`PROBLEM.md`](../PROBLEM.md).
+- **Frozen contract** (what must not change) **and the HEADLINE metric definition:**
+  [`docs/compiler_goals.md`](compiler_goals.md) — the single source of truth for both.
+- **Active algorithm reference:** [`docs/optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md).
+
+## How to run
+
+Three tiers, cheap → authoritative:
+
+1. **smoke** — `GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden` — fast iteration, **not a
+   decision basis**.
+2. **screen** — `npm run screen` — ~10-min pre-filter (representative specs × full 8
+   seeds × coarse budgets). Indicative only; `decide` flags it non-canonical. Use it to
+   kill bad ideas before paying for a canonical run.
+3. **canonical** — `npm run golden` — 20 specs × 8 seeds × dense 5k–175k grid; the **only
+   promotable basis**.
+
+- **Jobs:** `npm run golden -- --jobs=$(( $(nproc) / 2 ))`. A full `--jobs=$(nproc)` can
+  OOM (~1 GB/worker; 32 workers OOM'd a 62 GB box).
+- **Baseline reuse:** the baseline is produced **once and reused**. For each idea, run
+  only the *candidate*, then `decide` it against the committed baseline — do **not**
+  re-run the baseline per candidate. There is intentionally no "two configs in one run"
+  mode: when memory caps usable cores, two runs at N/2 cores ≈ two serial runs at N
+  cores, so it saves no wall-clock.
+- **Artifacts:** every run archives `golden.json` + checkpoint tracks/reports under
+  `generated/golden-runs/` (gitignored working artifacts, not source).
+- **Per-axis diagnostics** need `--details` (or `--json-full`); plain `--json` is compact
+  and drops the per-axis data.
+
+## Deciding
+
+```bash
+npm run decide -- <candidate>/golden.json <baseline>/golden.json
+```
+
+Paired cluster-bootstrap VERDICT: **accept** iff the headline-Δ 95% CI lower bound > 0
+**and** validity does not regress at the ceiling budget. The HEADLINE formula and the
+frozen ruler live in [`docs/compiler_goals.md`](compiler_goals.md); the implementation is
+`scripts/v0/metric.ts` + `scripts/v0/analyze_golden_curve.ts`. The old fixed "+5"
+threshold is retired (inside the measured noise). On a positive-but-inconclusive result,
+`decide` prints how many more seeds would resolve it. Statistical rationale (noise floor,
+seed counts): [`docs/metric_problem_statement.md`](metric_problem_statement.md).
+
+## Current baseline (of record)
+
+The baseline of record is the **generated** [`docs/handoff-compiler.html`](handoff-compiler.html)
+(per-budget / per-spec table), regenerated from a canonical `golden.json` — never
+hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
+
+- Evaluator fingerprint: **`9b9776df145f`** (`scripts/v0/golden_suite.ts`).
+- Current committed default: the **`continuous`** placement family (HEADLINE ≈ 461 —
+  commit `fc00318`, 2026-06-05). Read the generated HTML for the live numbers.
+
+## Active campaigns
+
+Point work at one of these; each carries its own particularities (the *what to try* and
+the *scoreboard*), but all share the metric, decision rule, and principles here:
+
+- **Arc placement** — [`GOAL_LDS_ARC_PLACEMENT.md`](../GOAL_LDS_ARC_PLACEMENT.md). The
+  latest in-boundary campaign: how required-contact catch geometry is placed.
+- **Fragile specs** — [`FOCUS_FRAGILE_SPECS.md`](../FOCUS_FRAGILE_SPECS.md). A side
+  campaign to make 5 unstable specs reliable. Note: it uses a **different harness** —
+  fresh seeds 200–209 and a curve metric over 60k–120k, *not* the headline suite — and
+  deliberately trades a little headline mean for robustness.
+
+Finished campaigns live under `docs/archive/` (historical record, not live guidance).
+
+## Working principles
+
 - **Be honest.** Report what the data shows, including failures and "polish was a
   no-op." Never claim a win without a measured number behind it. If a property turns
   out unreachable, that finding is a deliverable — say so.
@@ -22,7 +99,7 @@
   workaround, is not acceptable — back it out and find the sane change. Everything must stay
   compatible with the goals AND with the rest of the system, and we must understand *why* a
   change helps before keeping it.
-- **COMMIT AFTER EVERY POINT.** Each work item below ends with a commit to `master` (clear
+- **COMMIT AFTER EVERY POINT.** Each work item ends with a commit to `master` (clear
   message, no push) once it is validated. This is mandatory, not optional — do not batch
   multiple items into one commit, and do not proceed to the next item with the previous one
   uncommitted. Keep throwaway probes (`_probe_*`) out of commits.

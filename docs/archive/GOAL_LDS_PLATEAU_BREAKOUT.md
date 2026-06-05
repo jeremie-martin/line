@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical record, not live guidance. Live docs: [`docs/README.md`](../README.md).
+
 # Goal - 150k plateau-breakout handoff compiler
 
 This document is the working charter for the next plateau campaign. It does not

@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical record, not live guidance. Live docs: [`docs/README.md`](../README.md).
+
 # Speed Policy Follow-Ups
 
 > **HISTORICAL LOG (2026-06-04).** Scores below are single-point CURVE/score values

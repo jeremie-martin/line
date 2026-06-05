@@ -518,7 +518,7 @@ export function sampleImpactAnchoredArc(
   // Wide/uniform sweeps were tried and DILUTE the narrow feasible band → also fail.
   // PROPER FIX (not done): derive the feasible impact-point band PER GAP from
   // geometry (gap duration, entry speed, arc length) and sample within it, instead
-  // of this global guess. See PLATEAU_CAMPAIGN_LOG.md "impactCenter fragility".
+  // of this global guess. See docs/archive/PLATEAU_CAMPAIGN_LOG.md "impactCenter fragility".
   const impactCenter = 0.6;
   const impactT = clamp(
     impactCenter + (rng() - 0.5) * IMPACT_ANCHOR_T_JITTER,

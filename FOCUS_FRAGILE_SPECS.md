@@ -1,7 +1,8 @@
 # Focus campaign — make the fragile specs robust
 
 Companion to `GOAL_LDS_ARC_PLACEMENT.md`. Same code boundary, same anti-overfit
-rules. Different objective and different eval harness.
+rules. Different objective and different eval harness. Shared workflow, metric, and
+decision rule: see [`docs/HOW_TO_WORK.md`](docs/HOW_TO_WORK.md).
 
 ## Why this campaign
 
@@ -16,10 +17,10 @@ opening_burst   drums_breath   solo_run   cold_start   syncopated_switchback
 ```
 
 `opening_burst` is currently *excluded* from the headline benchmark precisely
-because it flips valid→broken at random (see `golden_suite.ts` / `TODO.md`). The
-goal here is to make all five **work very well and reliably**, so the compiler is
-trustworthy on them — and, eventually, so `opening_burst` can return to the
-headline list.
+because it flips valid→broken at random (see `golden_suite.ts` and the restore
+checklist at the bottom of this doc). The goal here is to make all five **work very
+well and reliably**, so the compiler is trustworthy on them — and, eventually, so
+`opening_burst` can return to the headline list.
 
 ## The deal (what we are willing to trade)
 
@@ -175,3 +176,20 @@ ride-out that climbs gently *while grounded* to bleed speed via the surface
 (continuously sized from the gap's speed target), giving sustained deceleration
 that ballistic launch-angle shaping physically cannot. Validity-first: measured on
 the focus curve + fragility metrics, guard-railed on the headline suite.
+
+## Open: restoring `opening_burst` to the headline
+
+`opening_burst` is the suite's lone catastrophically-fragile spec: its
+required-contact chain has a knife-edge forward dependency — under the tiniest
+placement perturbation it flips fully-valid → ~all-contacts-missing (a ~560→0 swing),
+and *which* seed breaks moves run to run. It was restored to `GOLDEN_SPECS` on
+2026-06-04 (the new metric handles the coin-flip honestly: validity is a separate
+ceiling guardrail, the 8-seed paired bootstrap averages out seed-luck, the headline
+is ceiling-weighted), but the underlying robustness is still open.
+
+The structural fix is **chain-aware candidate selection / multi-gap rollout** in the
+handoff — so a locally-cheap catch that dooms a contact two gaps later is rejected.
+That is search/scheduler territory, **outside** the arc-placement boundary
+(`handoff.ts`, off-limits here). When it lands and `opening_burst` is reliably valid
+across seeds, it's already in the headline list — keep it; this campaign's
+fragility work is the path there.

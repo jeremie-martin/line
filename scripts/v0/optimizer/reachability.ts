@@ -9,7 +9,7 @@
  * candidate's exit sits from the nearest catchable entry of the next contact.
  * That margin is a robustness signal: selecting catches whose exit lands deep in
  * the next region commits to hand-offs the forward-fragile search can't easily
- * flip (see PLATEAU_CAMPAIGN_LOG.md).
+ * flip (see docs/archive/PLATEAU_CAMPAIGN_LOG.md).
  *
  * Contract: this only ORDERS/scores; the engine stays the ground-truth gate
  * (real candidates still pass the hard gates in core/candidate.ts), so an

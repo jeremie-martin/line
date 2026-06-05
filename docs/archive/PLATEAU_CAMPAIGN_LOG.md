@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical record, not live guidance. Live docs: [`docs/README.md`](../README.md).
+
 # Plateau campaign log (handoff compiler)
 
 > **HISTORICAL LOG.** Metric, seeds, and grid changed 2026-06-04: headline is now

@@ -77,7 +77,7 @@ pub(crate) fn collides_with(l: &Line, px: f64, py: f64, vx: f64, vy: f64) -> boo
 pub(crate) fn push_line(grid: &mut IntMap<i64, Vec<Line>>, l: Line, cells: &[i64]) {
     let id = l.id;
     for &cell in cells {
-        let bucket = grid.entry(cell).or_default();
+        let bucket = grid.get_or_default(cell);
         if bucket.iter().any(|e| e.id == id) {
             continue;
         }

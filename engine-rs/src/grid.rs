@@ -4,64 +4,207 @@
 //!   - grids/ClassicGrid.js `getCellsNearEntity` (the 3×3 neighborhood)
 //! Pure functions of geometry; no engine state. 14px cells.
 
-use std::collections::HashMap;
-use std::hash::{BuildHasher, Hasher};
+use std::marker::PhantomData;
+use std::ops::Index;
 
 pub(crate) const GRID_SIZE: f64 = 14.0;
 
-pub(crate) type IntMap<K, V> = HashMap<K, V, IntBuildHasher>;
-
-#[derive(Clone, Copy, Default)]
-pub(crate) struct IntBuildHasher;
-
-#[derive(Default)]
-pub(crate) struct IntHasher {
-    state: u64,
+pub(crate) trait IntKey: Copy {
+    fn into_key(self) -> u64;
 }
 
-impl BuildHasher for IntBuildHasher {
-    type Hasher = IntHasher;
-
+impl IntKey for i64 {
     #[inline]
-    fn build_hasher(&self) -> IntHasher {
-        IntHasher { state: 0 }
+    fn into_key(self) -> u64 {
+        self as u64
     }
 }
 
-impl Hasher for IntHasher {
+impl IntKey for i32 {
     #[inline]
-    fn finish(&self) -> u64 {
-        self.state
+    fn into_key(self) -> u64 {
+        self as u32 as u64
+    }
+}
+
+enum Bucket<V> {
+    Empty,
+    Deleted,
+    Full { key: u64, value: V },
+}
+
+/// Small integer-key map for the WASM engine's grids. `std::HashMap` is general
+/// and hashbrown-heavy; these maps only need exact-key lookup/update/remove, no
+/// iteration and no randomized hashing.
+pub(crate) struct IntMap<K: IntKey, V> {
+    buckets: Vec<Bucket<V>>,
+    len: usize,
+    deleted: usize,
+    _key: PhantomData<K>,
+}
+
+impl<K: IntKey, V> Default for IntMap<K, V> {
+    fn default() -> Self {
+        IntMap { buckets: Vec::new(), len: 0, deleted: 0, _key: PhantomData }
+    }
+}
+
+impl<K: IntKey, V> IntMap<K, V> {
+    #[inline]
+    fn hash(key: u64) -> usize {
+        ((key ^ (key >> 32)) as usize).wrapping_mul(0x9e3779b1usize)
+    }
+
+    fn empty_buckets(cap: usize) -> Vec<Bucket<V>> {
+        let mut buckets = Vec::with_capacity(cap);
+        buckets.resize_with(cap, || Bucket::Empty);
+        buckets
     }
 
     #[inline]
-    fn write(&mut self, bytes: &[u8]) {
-        let mut h = 0xcbf29ce484222325u64;
-        for &b in bytes {
-            h ^= b as u64;
-            h = h.wrapping_mul(0x100000001b3);
+    fn find_slot(&self, key: u64) -> Result<usize, usize> {
+        if self.buckets.is_empty() {
+            return Err(usize::MAX);
         }
-        self.state = h;
+        let mask = self.buckets.len() - 1;
+        let mut i = Self::hash(key) & mask;
+        let mut first_deleted = usize::MAX;
+        loop {
+            match &self.buckets[i] {
+                Bucket::Empty => return Err(if first_deleted == usize::MAX { i } else { first_deleted }),
+                Bucket::Deleted => {
+                    if first_deleted == usize::MAX {
+                        first_deleted = i;
+                    }
+                }
+                Bucket::Full { key: k, .. } if *k == key => return Ok(i),
+                Bucket::Full { .. } => {}
+            }
+            i = (i + 1) & mask;
+        }
     }
 
     #[inline]
-    fn write_i32(&mut self, i: i32) {
-        self.state = i as u32 as u64;
+    fn should_grow(&self) -> bool {
+        self.buckets.is_empty() || (self.len + self.deleted + 1) * 4 >= self.buckets.len() * 3
+    }
+
+    fn grow(&mut self) {
+        let new_cap = if self.buckets.is_empty() { 16 } else { self.buckets.len() * 2 };
+        let old = std::mem::replace(&mut self.buckets, Self::empty_buckets(new_cap));
+        self.len = 0;
+        self.deleted = 0;
+        for bucket in old {
+            if let Bucket::Full { key, value } = bucket {
+                self.insert_raw(key, value);
+            }
+        }
+    }
+
+    fn insert_raw(&mut self, key: u64, value: V) {
+        let idx = match self.find_slot(key) {
+            Ok(idx) | Err(idx) => idx,
+        };
+        self.buckets[idx] = Bucket::Full { key, value };
+        self.len += 1;
     }
 
     #[inline]
-    fn write_u32(&mut self, i: u32) {
-        self.state = i as u64;
+    pub(crate) fn get(&self, key: &K) -> Option<&V> {
+        match self.find_slot((*key).into_key()) {
+            Ok(idx) => match &self.buckets[idx] {
+                Bucket::Full { value, .. } => Some(value),
+                _ => None,
+            },
+            Err(_) => None,
+        }
     }
 
     #[inline]
-    fn write_i64(&mut self, i: i64) {
-        self.state = i as u64;
+    pub(crate) fn get_mut(&mut self, key: &K) -> Option<&mut V> {
+        match self.find_slot((*key).into_key()) {
+            Ok(idx) => match &mut self.buckets[idx] {
+                Bucket::Full { value, .. } => Some(value),
+                _ => None,
+            },
+            Err(_) => None,
+        }
     }
 
-    #[inline]
-    fn write_u64(&mut self, i: u64) {
-        self.state = i;
+    pub(crate) fn insert(&mut self, key: K, value: V) -> Option<V> {
+        if self.should_grow() {
+            self.grow();
+        }
+        let key = key.into_key();
+        match self.find_slot(key) {
+            Ok(idx) => match std::mem::replace(&mut self.buckets[idx], Bucket::Full { key, value }) {
+                Bucket::Full { value: old, .. } => Some(old),
+                _ => None,
+            },
+            Err(idx) => {
+                if matches!(self.buckets[idx], Bucket::Deleted) {
+                    self.deleted -= 1;
+                }
+                self.buckets[idx] = Bucket::Full { key, value };
+                self.len += 1;
+                None
+            }
+        }
+    }
+
+    pub(crate) fn get_or_default(&mut self, key: K) -> &mut V where V: Default {
+        if self.should_grow() {
+            self.grow();
+        }
+        let key = key.into_key();
+        let idx = match self.find_slot(key) {
+            Ok(idx) => idx,
+            Err(idx) => {
+                if matches!(self.buckets[idx], Bucket::Deleted) {
+                    self.deleted -= 1;
+                }
+                self.buckets[idx] = Bucket::Full { key, value: V::default() };
+                self.len += 1;
+                idx
+            }
+        };
+        match &mut self.buckets[idx] {
+            Bucket::Full { value, .. } => value,
+            _ => unreachable!(),
+        }
+    }
+
+    pub(crate) fn remove(&mut self, key: &K) -> Option<V> {
+        let idx = self.find_slot((*key).into_key()).ok()?;
+        let old = std::mem::replace(&mut self.buckets[idx], Bucket::Deleted);
+        if let Bucket::Full { value, .. } = old {
+            self.len -= 1;
+            self.deleted += 1;
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    pub(crate) fn clear(&mut self) {
+        for bucket in self.buckets.iter_mut() {
+            *bucket = Bucket::Empty;
+        }
+        self.len = 0;
+        self.deleted = 0;
+    }
+
+    #[cfg(test)]
+    pub(crate) fn contains_key(&self, key: &K) -> bool {
+        self.get(key).is_some()
+    }
+}
+
+impl<K: IntKey, V> Index<&K> for IntMap<K, V> {
+    type Output = V;
+
+    fn index(&self, index: &K) -> &Self::Output {
+        self.get(index).unwrap()
     }
 }
 

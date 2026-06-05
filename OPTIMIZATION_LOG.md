@@ -611,3 +611,27 @@ did not hold): defer `line_pos` until after cheaper collision predicates
 (regressed), direct impact/sled-point wrapper reads (regressed), pre-reserve
 frame-cache vectors in `compute_to` (regressed), and pre-encode the 3×3 cell
 hash coordinates (no win).
+
+## W6 — Replace wasm grid `HashMap`s with a small integer map  (−13.4%, bit-identical)
+The remaining profile still showed allocator/hash-table machinery in the grid:
+line lookup (`cell_lines`), collision history (`hist`), per-line collision
+records (`coll`), and line-id→cells (`lines_cells`) all used `std::HashMap` with
+an identity hasher. That avoids randomized hashing, but hashbrown is still a
+general-purpose table with generic entry machinery. The WASM engine only needs
+exact integer-key lookup/update/remove and never iterates map entries, so W6
+replaces the alias with a compact open-addressing `IntMap` over `Vec<Bucket<V>>`
+and a direct `get_or_default` helper for the three former `entry(...).or_default()`
+hot paths. Bucket/list ordering inside each cell is unchanged.
+
+- **Extra local check:** `cargo test --manifest-path engine-rs/Cargo.toml` ✓
+  (line-grid ordering/dedup/remove unit tests).
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf:**
+
+  | config | before | after |
+  |---|---:|---:|
+  | quick signal (`--budget=20000 --reps=5 --warmup=1`) | 21,900.7 ± 484.2 | **20,054.0 ± 803.4** |
+  | required default (`budget=50000`, 20 runs + 3 warmup) | 21,756.1 ± 510.2 | **18,838.7 ± 432.3** |
+
+  **−8.4% quick / −13.4% required default.** New standing: **18,838.7
+  ns/physics-frame**, still above the ~12.5k 2× target.

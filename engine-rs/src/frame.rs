@@ -66,7 +66,7 @@ pub(crate) type Collisions = IntMap<i32, Vec<i32>>;
 /// frame's reverse patch `touched`).
 #[inline]
 fn add_to_cell(grid: &mut HistGrid, touched: &mut Vec<i64>, cell: i64, index: i32, snap: &Snap) {
-    let list = grid.entry(cell).or_default();
+    let list = grid.get_or_default(cell);
     if let Some(last) = list.last_mut() {
         if last.index == index {
             last.entities.push(snap.clone());
@@ -115,7 +115,7 @@ pub(crate) fn index_of_collision_in_cell(grid: &HistGrid, cell: i64, l: &Line) -
 /// frame's reverse patch `touched_lines` when a new entry is created.
 #[inline]
 pub(crate) fn add_to_collisions(coll: &mut Collisions, touched_lines: &mut Vec<i32>, line_id: i32, index: i32) {
-    let list = coll.entry(line_id).or_default();
+    let list = coll.get_or_default(line_id);
     if list.last() == Some(&index) {
         return;
     }

@@ -31,7 +31,11 @@
     "cbench": "tsx scripts/v0/bench/compile_bench.ts",
     "cbench:prof": "node --cpu-prof --cpu-prof-dir=generated/prof --cpu-prof-name=compile.cpuprofile --import tsx scripts/v0/bench/compile_bench.ts",
     "trace:dump": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts --dump",
-    "trace:diff": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts --diff"
+    "trace:diff": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts --diff",
+    "build:wasm": "cargo build --release --target wasm32-unknown-unknown --manifest-path engine-rs/Cargo.toml",
+    "wasm:probe": "tsx scripts/v0/bench/wasm_probe.ts",
+    "wasm:check": "tsx scripts/v0/bench/wasm_kernel_check.ts",
+    "wasm:bench": "tsx scripts/v0/bench/wasm_bench.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

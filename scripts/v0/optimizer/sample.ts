@@ -25,8 +25,11 @@ import {
   tryCandidateGeometry,
 } from "../core/candidate.ts";
 import {
-  readTargetState,
+  readPreTargetSledTrace,
+  readTargetStateFromRider,
   sampleArcPlacementGeometry,
+  type ImpactFrameTargetState,
+  type PreTargetSledTrace,
 } from "../arc_placement.ts";
 import { getRiderMetered } from "../../lib/detector.ts";
 import type { CandidateSampleMode, Gap } from "../types.ts";
@@ -49,6 +52,16 @@ export type SpecContext = {
   allContactFrames: number[];
   /** Total frames in the spec. Used in survival checks downstream. */
   durationFrames: number;
+  /** Per-compile, per-engine/gap probe cache. The engine objects are immutable
+   *  prefix states, so a WeakMap keeps the cache scoped to live search nodes. */
+  probeCache?: WeakMap<object, Map<string, CandidateProbe>>;
+};
+
+export type CandidateProbe = {
+  refX: number;
+  refY: number;
+  targetState: ImpactFrameTargetState;
+  preTargetSledTrace: () => PreTargetSledTrace;
 };
 
 let candidateSampleCount = 0;
@@ -65,6 +78,35 @@ export function getCandidateSamples(): number {
 
 export function getViableCandidates(): number {
   return viableCandidateCount;
+}
+
+// deno-lint-ignore no-explicit-any
+export function getCandidateProbe(engine: any, gap: Gap, ctx: SpecContext): CandidateProbe {
+  const key = `${gap.index}:${gap.startFrame}:${gap.endFrame}`;
+  const cache = ctx.probeCache ??= new WeakMap<object, Map<string, CandidateProbe>>();
+  let byGap = cache.get(engine);
+  if (byGap === undefined) {
+    byGap = new Map<string, CandidateProbe>();
+    cache.set(engine, byGap);
+  }
+  const cached = byGap.get(key);
+  if (cached !== undefined) return cached;
+
+  // Use the METERED rider read for the first probe: a raw engine.getRider
+  // advances lr-core to gap.endFrame without charging the physics-frame counter.
+  const rider = getRiderMetered(engine, gap.endFrame);
+  const refX = rider.position.x;
+  const refY = rider.position.y;
+  const targetState = readTargetStateFromRider(rider, refX, refY);
+  let preTargetTrace: PreTargetSledTrace | undefined;
+  const probe: CandidateProbe = {
+    refX,
+    refY,
+    targetState,
+    preTargetSledTrace: () => preTargetTrace ??= readPreTargetSledTrace(engine, gap),
+  };
+  byGap.set(key, probe);
+  return probe;
 }
 
 /** Sample exactly one candidate at the given gap from the given
@@ -96,21 +138,14 @@ export function sampleOneCandidate(
   mode: CandidateSampleMode = "normal",
 ): Candidate | null {
   candidateSampleCount++;
-  // Use the METERED rider read for the first probe: the raw engine.getRider
-  // advances lr-core to gap.endFrame without charging the physics-frame counter,
-  // and the subsequent readTargetState (getRiderMetered) then hits the cached
-  // frame for zero — so candidate-generation work went uncounted (review P2).
-  const rider = getRiderMetered(engine, gap.endFrame);
-  const refX = rider.position.x;
-  const refY = rider.position.y;
-  const targetState = readTargetState(engine, gap.endFrame, refX, refY);
+  const probe = getCandidateProbe(engine, gap, ctx);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
 
   // Pass the real attempt index: on steep-catch gaps the geometry sampler
   // interleaves template catches with normal random samples. For non-steep gaps
   // the attempt arg is unused and the RNG drives diversity.
   const geometry = sampleArcPlacementGeometry(
-    rng, refX, refY, gap.targets, targetState, attempt, gap, lineIdStart, mode,
+    rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap, lineIdStart, mode,
     ctx.allContactFrames,
   );
 
@@ -118,7 +153,7 @@ export function sampleOneCandidate(
   // targeting is a higher-level concern).
   const fit = tryCandidateGeometry(
     engine, gap, geometry, lineIdStart, ctx.allContactFrames,
-    axisMeasureEnd, gap.targets, true, mode,
+    axisMeasureEnd, gap.targets, true, mode, probe.preTargetSledTrace,
   ) as Candidate | null;
 
   // Record the sled reference used to place this catch, so a later gap with a
@@ -127,7 +162,7 @@ export function sampleOneCandidate(
   // reproduces the same catch shape at the new entry.
   if (fit !== null) {
     viableCandidateCount++;
-    fit.ref = { x: targetState.sledX, y: targetState.sledY };
+    fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
     fit.sampleAttempt = attempt;
   }
 

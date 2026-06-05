@@ -35,8 +35,10 @@ import {
   tryCandidate,
 } from "../core/candidate.ts";
 import {
-  readTargetState,
+  readPreTargetSledTrace,
+  readTargetStateFromRider,
   sampleArcParams,
+  type PreTargetSledTrace,
 } from "../arc_placement.ts";
 import { SPEED_AXIS, authoredSpeedToPx, type Gap } from "../types.ts";
 
@@ -214,16 +216,21 @@ function bestLocalExit(
   const rider = getRiderMetered(engine, gap.endFrame);
   const refX = rider.position.x;
   const refY = rider.position.y;
-  const targetState = readTargetState(engine, gap.endFrame, refX, refY);
+  const targetState = readTargetStateFromRider(rider, refX, refY);
   const allContactFrames = [gap.endFrame];
   const axisMeasureEnd = axisLookaheadEndFrame(gap, allContactFrames);
   const rng = makeRng((seed | 0) * 1_000_003 + gapIndex * 9_176 + sampleIndex + 1);
+  let preTargetTrace: PreTargetSledTrace | undefined;
+  const preTargetSledTrace = () => preTargetTrace ??= readPreTargetSledTrace(engine, gap);
 
   let best: HandoffState | null = null;
   let bestPenalty = Infinity;
   for (let attempt = 0; attempt < PROBE_ATTEMPTS; attempt++) {
     const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap);
-    const fit = tryCandidate(engine, gap, arc, 1, allContactFrames, axisMeasureEnd, gap.targets, true);
+    const fit = tryCandidate(
+      engine, gap, arc, 1, allContactFrames, axisMeasureEnd, gap.targets, true,
+      undefined, preTargetSledTrace,
+    );
     if (fit === null) continue;
     const exit = exitAfterFit(engine, fit, gap.endFrame + HANDOFF_SETTLE_FRAMES);
     const penalty = reachabilityPenalty(exit, nextRegion);

@@ -14,7 +14,9 @@ import { arcToLines, makeSolidLine } from "../arc.ts";
 import {
   type ArcPlacementDirectFailureReason,
   type ArcPlacementGeometry,
+  type PreTargetSledTrace,
   hasPreTargetSledProximity,
+  hasPreTargetSledProximityFromTrace,
   impactAnchorEnabled,
   impactAnchorFallbackBisectEnabled,
   recordImpactAnchorDirectAttempt,
@@ -52,6 +54,7 @@ type WindowDetection = Detection & { frameOffset?: number };
 type CandidateLinesEvaluation =
   | { fit: GapFit; failure: null }
   | { fit: null; failure: ArcPlacementDirectFailureReason };
+type PreTargetSledTraceProvider = () => PreTargetSledTrace;
 
 // deno-lint-ignore no-explicit-any
 export function detectWindow(engine: any, startFrame: number, endFrame: number): Detection {
@@ -103,6 +106,7 @@ export function tryCandidate(
   searchTargets: AxisValues,
   useWindowDetection: boolean,
   sampleMode?: CandidateSampleMode,
+  preTargetSledTrace?: PreTargetSledTraceProvider,
 ): GapFit | null {
   // Impact-anchored placement (LR_ARC_PLACEMENT=impact_anchor): the arc is
   // already translated so its intended impact point lies on the predicted sled
@@ -113,7 +117,7 @@ export function tryCandidate(
   if (impactAnchorEnabled()) {
     const directLines = arcToLines(candArc, lineIdStart);
     recordImpactAnchorDirectAttempt(sampleMode);
-    if (hasPreTargetSledProximity(baseEngine, gap, directLines)) {
+    if (preTargetSledProximity(baseEngine, gap, directLines, preTargetSledTrace)) {
       recordImpactAnchorPreclearReject(sampleMode);
       return null;
     }
@@ -155,16 +159,17 @@ export function tryCandidateGeometry(
   searchTargets: AxisValues,
   useWindowDetection: boolean,
   sampleMode?: CandidateSampleMode,
+  preTargetSledTrace?: PreTargetSledTraceProvider,
 ): GapFit | null {
   if (geometry.kind === "arc") {
     return tryCandidate(
       baseEngine, gap, geometry.arc, lineIdStart, allContactFrames, axisMeasureEnd,
-      searchTargets, useWindowDetection, sampleMode,
+      searchTargets, useWindowDetection, sampleMode, preTargetSledTrace,
     );
   }
   return tryCandidateLines(
     baseEngine, gap, geometry.lines, lineIdStart, allContactFrames, axisMeasureEnd,
-    searchTargets, useWindowDetection, sampleMode,
+    searchTargets, useWindowDetection, sampleMode, preTargetSledTrace,
   );
 }
 
@@ -179,10 +184,11 @@ export function tryCandidateLines(
   searchTargets: AxisValues,
   useWindowDetection: boolean,
   sampleMode?: CandidateSampleMode,
+  preTargetSledTrace?: PreTargetSledTraceProvider,
 ): GapFit | null {
   if (!impactAnchorEnabled()) return null;
   recordImpactAnchorDirectAttempt(sampleMode);
-  if (hasPreTargetSledProximity(baseEngine, gap, lines)) {
+  if (preTargetSledProximity(baseEngine, gap, lines, preTargetSledTrace)) {
     recordImpactAnchorPreclearReject(sampleMode);
     return null;
   }
@@ -212,6 +218,18 @@ export function translateTrackLines(
     x2: line.x2 + dx,
     y2: line.y2 + dy,
   }));
+}
+
+function preTargetSledProximity(
+  // deno-lint-ignore no-explicit-any
+  baseEngine: any,
+  gap: Gap,
+  lines: TrackLine[],
+  preTargetSledTrace: PreTargetSledTraceProvider | undefined,
+): boolean {
+  return preTargetSledTrace === undefined
+    ? hasPreTargetSledProximity(baseEngine, gap, lines)
+    : hasPreTargetSledProximityFromTrace(preTargetSledTrace(), lines);
 }
 
 function tryCandidateWithBisection(

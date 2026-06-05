@@ -74,6 +74,10 @@ export type ImpactFrameTargetState = ImpactAnchorTargetState & {
   speed: number;
   angleDeg: number;
 };
+export type PreTargetSledTrace = {
+  frame: number;
+  points: { x: number; y: number }[];
+}[];
 
 export type ArcPlacementRuntimeMode = ArcPlacementMode | "uniform";
 
@@ -250,6 +254,15 @@ export function readTargetState(
   fallbackY: number,
 ): ImpactFrameTargetState {
   const rider = getRiderMetered(engine, frame);
+  return readTargetStateFromRider(rider, fallbackX, fallbackY);
+}
+
+// deno-lint-ignore no-explicit-any
+export function readTargetStateFromRider(
+  rider: any,
+  fallbackX: number,
+  fallbackY: number,
+): ImpactFrameTargetState {
   let sledX = fallbackX;
   let sledY = fallbackY;
   for (const name of SLED_POINTS) {
@@ -961,15 +974,40 @@ export function hasPreTargetSledProximity(
   gap: Gap,
   lines: TrackLine[],
 ): boolean {
-  if (lines.length === 0) return false;
+  return hasPreTargetSledProximityFromTrace(
+    readPreTargetSledTrace(baseEngine, gap),
+    lines,
+  );
+}
+
+// deno-lint-ignore no-explicit-any
+export function readPreTargetSledTrace(
+  baseEngine: any,
+  gap: Gap,
+): PreTargetSledTrace {
+  const trace: PreTargetSledTrace = [];
   const firstFrame = Math.max(0, gap.startFrame);
   const lastFrame = gap.endFrame - 2;
   for (let frame = firstFrame; frame <= lastFrame; frame++) {
     const rider = getRiderMetered(baseEngine, frame);
+    const points: { x: number; y: number }[] = [];
     for (const name of SLED_POINTS) {
       const point = rider.get(name);
       const pos = point?.pos;
-      if (!pos) continue;
+      if (pos) points.push({ x: pos.x, y: pos.y });
+    }
+    trace.push({ frame, points });
+  }
+  return trace;
+}
+
+export function hasPreTargetSledProximityFromTrace(
+  trace: PreTargetSledTrace,
+  lines: TrackLine[],
+): boolean {
+  if (lines.length === 0) return false;
+  for (const frame of trace) {
+    for (const pos of frame.points) {
       for (const line of lines) {
         if (pointSegmentCollisionRisk(pos.x, pos.y, line)) {
           return true;

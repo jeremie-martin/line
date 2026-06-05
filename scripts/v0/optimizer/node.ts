@@ -18,7 +18,7 @@ import {
 } from "../core/substrate.ts";
 import {
   sampleArcParamsRngDraws,
-  readTargetState,
+  readTargetStateFromRider,
 } from "../arc_placement.ts";
 import { solveOneGap, solveOneGapAttemptRange } from "./solver.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
@@ -170,7 +170,7 @@ function advanceCandidateRng(
 ): void {
   if (attempts <= 0) return;
   const rider = getRiderMetered(engine, gap.endFrame);
-  const targetState = readTargetState(engine, gap.endFrame, rider.position.x, rider.position.y);
+  const targetState = readTargetStateFromRider(rider, rider.position.x, rider.position.y);
   for (let attempt = 0; attempt < attempts; attempt++) {
     const draws = sampleArcParamsRngDraws(targetState, gap, attempt);
     for (let draw = 0; draw < draws; draw++) rng();

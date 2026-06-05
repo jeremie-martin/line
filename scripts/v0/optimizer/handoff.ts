@@ -74,11 +74,11 @@ import {
   resetSimFrames,
 } from "./sim_frames.ts";
 import {
-  readTargetState,
   resetArcPlacementStats,
   snapshotArcPlacementStats,
 } from "../arc_placement.ts";
 import {
+  getCandidateProbe,
   getCandidateSamples,
   getViableCandidates,
   resetCandidateSamples,
@@ -1459,7 +1459,7 @@ function expandNode(
     axisQualitySearch: qualitySearch,
     previewCostWeight: PREVIEW_COST_WEIGHT,
   });
-  if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap)) {
+  if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap, ctx)) {
     telemetry.rescueAttempts++;
     options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
       nCand: HANDOFF_RESCUE_N_CAND,
@@ -1518,7 +1518,7 @@ function expandNode(
   }));
 }
 
-function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
+function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap, ctx: SpecContext): boolean {
   if (!gap.endsWithContact) return false;
   if (gap.endFrame - gap.startFrame < HANDOFF_RESCUE_MIN_GAP_FRAMES) return false;
   const targetSpeed = gap.targets?.speed;
@@ -1532,8 +1532,7 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap): boolean {
   if (targetSpeedPx > HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME) {
     return false;
   }
-  const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
-  const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
+  const ts = getCandidateProbe(node.prefixEngine, gap, ctx).targetState;
   const speedRatio = ts.speed / targetSpeedPx;
   return shouldOfferBrakeCandidates(targetSpeedPx, speedRatio);
 }
@@ -1796,8 +1795,7 @@ function brakeCatchCandidates(
   if (targetSpeedPx > HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME) {
     return [];
   }
-  const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
-  const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
+  const ts = getCandidateProbe(node.prefixEngine, gap, ctx).targetState;
   const speedRatio = ts.speed / targetSpeedPx;
   if (!shouldOfferBrakeCandidates(targetSpeedPx, speedRatio, expandedBrakeSearch)) {
     return [];
@@ -1863,8 +1861,8 @@ function reuseCatchCandidates(
 ): Candidate[] {
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return [];
-  const rider = getRiderMetered(node.prefixEngine, gap.endFrame);
-  const ts = readTargetState(node.prefixEngine, gap.endFrame, rider.position.x, rider.position.y);
+  const probe = getCandidateProbe(node.prefixEngine, gap, ctx);
+  const ts = probe.targetState;
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const out: Candidate[] = [];
   let tried = 0;
@@ -1880,11 +1878,13 @@ function reuseCatchCandidates(
         node.prefixEngine, gap,
         translateTrackLines(f.lines, dx, dy, node.prefixNextLineId),
         node.prefixNextLineId, ctx.allContactFrames, axisMeasureEnd, gap.targets, true,
+        undefined, probe.preTargetSledTrace,
       )
       : tryCandidate(
         node.prefixEngine, gap,
         { ...f.arc, anchor: { x: f.arc.anchor.x + dx, y: f.arc.anchor.y + dy } },
         node.prefixNextLineId, ctx.allContactFrames, axisMeasureEnd, gap.targets, true,
+        undefined, probe.preTargetSledTrace,
       );
     if (cand !== null) {
       telemetry.reuseSuccesses++;

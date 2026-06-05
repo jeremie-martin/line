@@ -126,3 +126,10 @@ pub extern "C" fn get_updates(h: u32, f: i32) -> i32 {
     let out = unsafe { &mut *&raw mut EVENTS };
     engine::events_into(h, f, out, EVENTS_LEN / 3) as i32
 }
+
+#[no_mangle]
+pub extern "C" fn get_raw_frame(h: u32, f: i32) -> i32 {
+    let scratch = unsafe { &mut *&raw mut SCRATCH };
+    let events = unsafe { &mut *&raw mut EVENTS };
+    engine::raw_frame_into(h, f, scratch, events, EVENTS_LEN / 3) as i32
+}

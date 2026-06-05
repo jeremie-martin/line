@@ -534,6 +534,10 @@ export function getRiderMetered(engine: any, frame: number): any {
 // deno-lint-ignore no-explicit-any
 function extractRawFrame(engine: any, frame: number): RawFrame {
   _frameCount++;
+  const fastRawFrame = engine?.getRawFrameAtFrame;
+  if (typeof fastRawFrame === "function") {
+    return fastRawFrame.call(engine, frame) as RawFrame;
+  }
   const rider = engine.getRider(frame);
   const updates = engine.getUpdatesAtFrame(frame);
 

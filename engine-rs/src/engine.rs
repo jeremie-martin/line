@@ -452,3 +452,41 @@ pub(crate) fn events_into(h: u32, f: i32, out: &mut [f64], cap: usize) -> usize 
     }
     n
 }
+
+/// Combined detector hot path: compute frame `f` once, then write the getRider
+/// summary to `scratch` and collision records to `events`.
+pub(crate) fn raw_frame_into(h: u32, f: i32, scratch: &mut [f64], events: &mut [f64], cap: usize) -> usize {
+    if !valid(h) || f < 0 {
+        return 0;
+    }
+    update_computed(h);
+    let holder = ver(h as i32).holder;
+    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
+    let f = f as usize;
+    cache.compute_to(f);
+    let s = &cache.frames[f];
+
+    let (mut px, mut py, mut vx, mut vy) = (0.0, 0.0, 0.0, 0.0);
+    for &i in BODY.iter() {
+        px += s.px[i];
+        py += s.py[i];
+        vx += s.vx[i];
+        vy += s.vy[i];
+    }
+    let n_body = BODY.len() as f64;
+    scratch[0] = px / n_body;
+    scratch[1] = py / n_body;
+    scratch[2] = vx / n_body;
+    scratch[3] = vy / n_body;
+    scratch[4] = s.fsu[RIDER_MOUNTED] as f64;
+    scratch[5] = s.fsu[SLED_INTACT] as f64;
+
+    let ev = &cache.events[f];
+    let n = ev.len().min(cap);
+    for (k, &(it, id, pt)) in ev.iter().take(n).enumerate() {
+        events[k * 3] = it as f64;
+        events[k * 3 + 1] = id as f64;
+        events[k * 3 + 2] = pt as f64;
+    }
+    n
+}

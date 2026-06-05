@@ -24,6 +24,7 @@ const ENTITY_IDS = [
 const NENT = 12;
 const LEFT_EXTENDED = 1;
 const RIGHT_EXTENDED = 2;
+const SLED_POINT_MASK = 0b111100;
 
 // shared singletons — the oracle only reads .type/.id/.updated, never mutates
 const STEP_UPDATE = { type: "StepUpdate" };
@@ -153,6 +154,41 @@ export class LineRiderEngine {
     }
     for (let c = 0; c < 3; c++) updates.push(CONSTRAINT_UPDATE);
     return updates;
+  }
+  // deno-lint-ignore no-explicit-any
+  getRawFrameAtFrame(frame: number): any {
+    const n = ex.get_raw_frame(this.h, frame);
+    const sc = scratch();
+    const sledContacts: string[] = [];
+    const contactLineIds: number[] = [];
+    let seenPoints = 0;
+    if (n > 0) {
+      const ev = new Float64Array(ex.memory.buffer, ex.events_ptr(), 3 * n);
+      const seenLines = new Set<number>();
+      for (let p = 0; p < n; p++) {
+        const pointIdx = ev[p * 3 + 2] | 0;
+        const bit = 1 << pointIdx;
+        if ((SLED_POINT_MASK & bit) === 0) continue;
+        if ((seenPoints & bit) === 0) {
+          seenPoints |= bit;
+          sledContacts.push(ENTITY_IDS[pointIdx]);
+        }
+        const lineId = ev[p * 3 + 1];
+        if (!seenLines.has(lineId)) {
+          seenLines.add(lineId);
+          contactLineIds.push(lineId);
+        }
+      }
+    }
+    return {
+      frame,
+      position: { x: sc[0], y: sc[1] },
+      velocity: { x: sc[2], y: sc[3] },
+      sledContacts,
+      contactLineIds,
+      sledBroken: sc[5] !== -1,
+      riderEjected: sc[4] !== -1,
+    };
   }
   // deno-lint-ignore no-explicit-any
   getRider(frame: number): any {

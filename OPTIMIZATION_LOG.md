@@ -10,7 +10,7 @@ per change attempt, with its verification result and its measured effect.
   is per-frame **allocation count**, not the math.
 - **Single metric:** `ns / physics-frame` from `npm run perf` (wall-clock ÷
   physics frames actually simulated; work-normalized, lower is better).
-  Default config: `mini_burst` @ 50k budget, 10 timed runs + 2 warmup.
+  Default config: `mini_burst` @ 50k budget, 20 timed runs + 3 warmup.
   Fast inner-loop signal: `npm run perf -- --reps=5 --budget=20000`.
 - **Correctness gates** (must all hold for every kept change):
   1. `npm run verify:engine` — per-frame oracle: non-scarf body state +
@@ -521,3 +521,23 @@ vel:{x,y} }` instead of the full entity (8 fields + 3 vectors). Dropped the
 lr-core**, ≈4.6× faster than pristine (333k). (The young-gen flag and B1–B9 still
 apply; the residual gap vs the pre-parity ~63k is the irreducible snapshot
 allocation, the price of correctness.)
+
+## W1 — WASM raw-frame detector ABI  (−26%, bit-identical)
+`engine-rs` now exposes `get_raw_frame`, which computes the detector hot-path read
+in one cache sync: BODY position/velocity, the two binding states, and collision
+events. The WASM wrapper returns the detector's `RawFrame` shape directly via an
+optional `getRawFrameAtFrame` method, and `detector.ts` uses that fast path only
+when the selected engine provides it. Non-WASM engines keep the generic
+`getRider` + `getUpdatesAtFrame` path.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):**
+
+  | path | ns/physics-frame |
+  |---|---|
+  | accepted WASM baseline | 41,750.1 ± 1,196.2 |
+  | **fused raw-frame ABI** | **30,879.4 ± 657.4** |
+
+  **−26.0% mean / −26.3% median.** This is a boundary win: it removes one wasm
+  call per extracted frame and avoids allocating lr-core-compatible rider/update
+  objects the detector immediately reduces back into raw-frame fields.

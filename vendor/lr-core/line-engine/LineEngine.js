@@ -229,22 +229,45 @@ export default class LineEngine extends Immo {
   }
 
   _collideEntities (frame, stateIDs, index) {
+    let grid = this.grid
+    let getCellLines = grid.getCellLines
     for (let id of stateIDs) {
       let entity = frame.stateMap.get(id)
       // The 3x3 cell neighborhood is identical for addToGrid and
       // getLinesNearEntity on this entity — compute it once and share it.
-      let cells = this.grid.getCellsNearEntity(entity)
-      frame.addToGrid(this.grid, entity, index, cells)
+      let cells = grid.getCellsNearEntity(entity)
+      frame.addToGrid(grid, entity, index, cells)
 
-      let lines = this.grid.getLinesNearEntity(entity, cells)
-      for (let line of lines) {
-        let nextEntity = line.collide(entity)
-        if (nextEntity) {
-          frame.updateStateMap(new CollisionUpdate(nextEntity, line.id))
-          entity = nextEntity
+      if (getCellLines) {
+        // ClassicGrid hot path: visit the existing per-cell line buckets
+        // directly instead of allocating a candidate array for every point.
+        for (let c = 0; c < cells.length; c++) {
+          let cellLines = getCellLines.call(grid, cells[c])
+          if (!cellLines) continue
+          let lines = cellLines.toArray()
+          for (let l = 0; l < lines.length; l++) {
+            let line = lines[l]
+            let nextEntity = line.collide(entity)
+            if (nextEntity) {
+              frame.updateStateMap(new CollisionUpdate(nextEntity, line.id))
+              entity = nextEntity
 
-          frame.addToGrid(this.grid, entity, index)
-          frame.addToCollisions(line, index)
+              frame.addToGrid(grid, entity, index)
+              frame.addToCollisions(line, index)
+            }
+          }
+        }
+      } else {
+        let lines = grid.getLinesNearEntity(entity, cells)
+        for (let line of lines) {
+          let nextEntity = line.collide(entity)
+          if (nextEntity) {
+            frame.updateStateMap(new CollisionUpdate(nextEntity, line.id))
+            entity = nextEntity
+
+            frame.addToGrid(grid, entity, index)
+            frame.addToCollisions(line, index)
+          }
         }
       }
     }

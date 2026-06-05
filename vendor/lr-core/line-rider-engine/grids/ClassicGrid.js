@@ -78,12 +78,16 @@ export default class ClassicGrid {
     let lines = []
     if (!cells) cells = this.getCellsNearEntity(entity)
     for (let cell of cells) {
-      let cellLines = this.cellLinesMap.get(cell)
+      let cellLines = this.getCellLines(cell)
       if (!cellLines) continue
       for (let line of cellLines) {
         lines.push(line)
       }
     }
     return lines
+  }
+
+  getCellLines (cell) {
+    return this.cellLinesMap.get(cell)
   }
 }

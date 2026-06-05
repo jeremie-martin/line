@@ -13,12 +13,72 @@ class CellFrame {
   }
 }
 
+class CellFrameList {
+  constructor (cellFrame, parent = null) {
+    this.cellFrame = cellFrame
+    this.parent = parent
+    this.length = parent ? parent.length + 1 : 1
+    this.array = null
+  }
+  size () {
+    return this.length
+  }
+  last () {
+    return this.cellFrame
+  }
+  get (index) {
+    if (!this.array) {
+      let array = new Array(this.length)
+      let node = this
+      for (let i = this.length - 1; i >= 0; i--) {
+        array[i] = node.cellFrame
+        node = node.parent
+      }
+      this.array = array
+    }
+    return this.array[index]
+  }
+  push (cellFrame) {
+    return new CellFrameList(cellFrame, this)
+  }
+}
+
+class IndexList {
+  constructor (index, parent = null) {
+    this.index = index
+    this.parent = parent
+    this.length = parent ? parent.length + 1 : 1
+    this.first = parent ? parent.first : index
+    this.array = null
+  }
+  size () {
+    return this.length
+  }
+  get (index) {
+    if (index === 0) return this.first
+    if (index === this.length - 1) return this.index
+    if (!this.array) {
+      let array = new Array(this.length)
+      let node = this
+      for (let i = this.length - 1; i >= 0; i--) {
+        array[i] = node.index
+        node = node.parent
+      }
+      this.array = array
+    }
+    return this.array[index]
+  }
+  push (index) {
+    return new IndexList(index, this)
+  }
+}
+
 function makeCellFrames (index, entity) {
-  return new Immy.List([new CellFrame(index, entity)])
+  return new CellFrameList(new CellFrame(index, entity))
 }
 
 function addEntityToCellFrames (cellFrames, index, entity) {
-  let cellFrame = cellFrames.get(cellFrames.size() - 1)
+  let cellFrame = cellFrames.last()
   if (index === cellFrame.index) {
     cellFrame.add(entity)
     return cellFrames
@@ -100,7 +160,7 @@ export default class Frame {
   addToCollisions (line, index) {
     let lineCollisions = this.collisions.get(line.id)
     if (!lineCollisions) {
-      lineCollisions = new Immy.List([index])
+      lineCollisions = new IndexList(index)
     } else if (lineCollisions.get(lineCollisions.size() - 1) !== index) {
       lineCollisions = lineCollisions.push(index)
     } else {

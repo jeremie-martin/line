@@ -199,6 +199,30 @@ all instances of a class share **one** hidden class → monomorphic loads.
   **−35.5% mean / −35.3% median.** Bigger than the ~23% megamorphic self-time —
   monomorphic receivers also unlock inlining downstream. → **kept**.
 
+### B9 — Replace `Immy.List` with lightweight persistent cons-lists *(JM)*
+`vendor/lr-core/line-engine/Frame.js`. The per-cell frame lists (`CellFrames`)
+and per-line collision-index lists were `Immy.List`s, which carry the same
+patch-based persistence overhead as `ImmyMap` (a node + reverse patch per push).
+Replaced them with purpose-built immutable cons-lists — `CellFrameList` and
+`IndexList` — each a `{value, parent, length}` node with O(1) `push` and fast
+paths for exactly the accesses the hot path makes: `.last()` (newest), `.get(0)`
+(oldest, via a tracked `first`), and `.get(size-1)` (newest). A flat array is
+materialized lazily only on arbitrary-index access, which happens just in the
+cold `_addLine` invalidation scan — never during forward simulation. Persistence
+(push → new node, parent shared) is preserved, so frame forking/rollback is
+unaffected.
+
+- **Gates:** verify ✓ byte-identical · diff ✓ max err 0 · compile-hash ✓ identical.
+- **Perf (clean back-to-back, 20k / 10 reps):**
+
+  | engine | mean ns/frame | median |
+  |--------|---------------|--------|
+  | B8 (`Immy.List`) | 72,024 ± 902 | 71,717 |
+  | **B9 (cons-lists)** | **63,408 ± 662** | **63,313** |
+
+  **−12.0% mean / −11.7% median.** → **kept** (this is the "collapse the per-cell
+  Immy-List churn" item from the frontier list below).
+
 ## Cumulative
 
 Each row is the "after" of an independent back-to-back pair (absolute numbers
@@ -215,6 +239,7 @@ figure). Compounding the measured per-step deltas: **≈ −17% vs pristine.**
 | B6 skip redundant grid versions | −57.4% | **the dominant cost; 333,033 → 116,462 overall (≈2.86×)** |
 | B7 cells computed once per entity | −6.8% | 333,033 → 109,955 overall (**≈3.03×**) |
 | B8 monomorphize Immo versions | −35.5% | **333,033 → 70,504 overall (≈4.72×)** |
+| B9 cons-lists for cell/collision lists (JM) | −12.0% | **333,033 → 63,408 overall (≈5.25×)** |
 
 **End-to-end confirmation:** the full `npm test` suite (245 tests) dropped from
 ~313 s (pristine) to ~89 s — a 3.5× faster suite, i.e. the per-frame win
@@ -247,8 +272,9 @@ algorithmic redesign, not a surgical edit. Candidate directions:
   in `addToGrid`'s changed-value path.
 - A flatter grid representation keyed for SMI-fast `Map` access with fewer
   lookups per entity.
-These are larger, riskier changes than B1–B8 and are deferred pending a careful
-design pass.
+The first item (per-cell Immy-List churn) is **done** — see B9. The remaining
+grid `Map` cost (the line grid + entity-grid lookups, `FindOrderedHashMapEntry`)
+is a larger, riskier redesign, deferred pending a careful design pass.
 
 ## Code-review follow-up (hardening, perf-neutral)
 

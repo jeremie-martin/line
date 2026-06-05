@@ -13,12 +13,18 @@ Running log of friction points hit while working the arc-placement campaign
   Mildly surprising; easy to produce a baseline that can't be diagnosed without a
   re-run. Suggestion: have `analyze` warn "no per-axis data — re-run with --details"
   instead of silently skipping.
+  - **RESOLVED 2026-06-05:** `printAxisDiagnostics` now detects compact archives
+    (last-budget checkpoints present but no `axes` field) and warns to re-run with
+    `--details`/`--json-full` instead of printing nothing.
 
 - **`--json` produces NO output until the run completes** (jsonOnly suppresses the
   progress header). For a ~15-min canonical run there's no liveness signal on
   stdout; you have to watch the `checkpoints/` dir filling up to gauge progress.
   A periodic stderr heartbeat (rows done / total) would help, especially for
   background runs.
+  - **RESOLVED 2026-06-05:** under `--json`/`--json-full`, `runRows` now writes a
+    `[k/N] compiled` heartbeat (plus a start header) to **stderr**, leaving stdout
+    as pure JSON.
 
 ## Decision workflow
 
@@ -26,6 +32,9 @@ Running log of friction points hit while working the arc-placement campaign
   `evaluator_fingerprint`, `headline.alpha`, and `headline.score_budgets`, else it
   refuses. Good guardrail, but means an interrupted/partial baseline can't be
   compared — you re-run from scratch. (Working as intended; noting for awareness.)
+  - **2026-06-05:** left as-is (the guardrail is correct). The related "must I re-run
+    the baseline each candidate?" confusion is addressed by the LIVE GUIDANCE note in
+    `GOAL_LDS_ARC_PLACEMENT.md`: the baseline is produced once and reused.
 
 ## Iteration loop economics
 
@@ -39,11 +48,19 @@ Running log of friction points hit while working the arc-placement campaign
   "screen" that's ~10 min and statistically powered enough to pre-filter before the
   full decide — would make the loop much tighter. Right now it's easy to either burn
   an hour on a probe-rejected idea or wrongly reject on an under-powered smoke.
+  - **RESOLVED 2026-06-05:** added the `screen` middle tier (`npm run screen` /
+    `golden --screen`): `SCREEN_SPECS` (6 representative specs) × full 8 seeds ×
+    `SCREEN_BUDGETS` (coarse grid), ~10 min. Strict subset ⇒ `decide` flags it
+    INDICATIVE, so it self-labels as a pre-filter, not a promotion.
 - **You cannot run two `--jobs=32` canonical runs in parallel** on a 62 GB box
   (~1 GB+/worker ⇒ 64 workers OOM), so candidates must be confirmed serially even
   though half the cores sit idle during a single run. A built-in "compare two
   configs in one run" mode (alternating env per worker) would halve wall-clock for
   A/B decisions.
+  - **2026-06-05 — won't do:** the premise doesn't hold. When memory caps usable
+    cores, two configs at N/2 cores each ≈ two serial runs at N cores — no wall-clock
+    win. And the baseline doesn't need re-running per candidate (run once, reuse).
+    Documented the reuse workflow in `GOAL_LDS_ARC_PLACEMENT.md` instead.
 
 ## Decision resolution vs effect size
 
@@ -57,6 +74,10 @@ Running log of friction points hit while working the arc-placement campaign
   result is "positive but under-powered — N more seeds would resolve it" would help
   distinguish "promising lead" from "true null." (Worked around by amplifying the
   mechanism.)
+  - **RESOLVED 2026-06-05:** `decide` now prints a `hint:` on positive INCONCLUSIVE
+    results — `Δ positive … but under-powered — ~N more seeds (~M total) would likely
+    resolve it`, estimating N from the current CI width (~1/√seeds). Output-only; the
+    verdict logic is unchanged.
 
 ## Docs
 
@@ -67,3 +88,7 @@ Running log of friction points hit while working the arc-placement campaign
   paragraph. The historical record is valuable; a short "LIVE GUIDANCE" digest at the
   very top (separate from the archive) would reduce the chance of chasing a retracted
   conclusion.
+  - **RESOLVED 2026-06-05:** added a `## LIVE GUIDANCE (read this first)` digest at the
+    top of `GOAL_LDS_ARC_PLACEMENT.md` (metric, decision rule, the three run tiers,
+    baseline reuse, jobs, the `--details` axis gotcha) that flags the subsections below
+    as historical/partly-retracted.

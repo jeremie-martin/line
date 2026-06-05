@@ -19,6 +19,7 @@
     "test:watch": "vitest",
     "goal": "tsx scripts/v0/golden.ts",
     "golden": "tsx scripts/v0/golden.ts",
+    "screen": "tsx scripts/v0/golden.ts --screen",
     "decide": "tsx scripts/v0/analyze_golden_curve.ts decide",
     "compose": "tsx scripts/compose.ts",
     "dash": "tsx scripts/serve.ts",

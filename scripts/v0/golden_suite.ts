@@ -61,6 +61,27 @@ export const DEFAULT_BUDGETS: readonly number[] = Array.from({ length: 35 }, (_,
 export const CANONICAL_SCORE_BUDGETS = [50_000, 100_000, 150_000] as const;
 
 /**
+ * The "screen" middle tier (`npm run screen` / `golden --screen`): a ~10-min
+ * pre-filter that sits between the cheap 3-seed smoke (not a decision basis) and the
+ * ~1-h canonical run. It keeps the full 8 seeds — its job is to be *powered enough to
+ * pre-filter*, not cheap-but-noisy — but trims to a representative spread of specs and
+ * a coarse budget grid. A screen is INDICATIVE only: it is a strict subset, so
+ * `decide` flags it non-canonical. Both lists are tunable; the spec spread aims to
+ * cover cold-start, dense, syncopation, the grain axis, a representative drums case,
+ * and the slow dense tail (`solo_run`).
+ */
+export const SCREEN_SPECS = [
+  "cold_start",
+  "dense_sprint",
+  "syncopated_switchback",
+  "grain_staircase",
+  "drums_signature",
+  "solo_run",
+] as const satisfies readonly (typeof GOLDEN_SPECS)[number][];
+
+export const SCREEN_BUDGETS: readonly number[] = [5_000, 25_000, 50_000, 100_000, 150_000];
+
+/**
  * Lightweight grid for the exploratory oracle/probe scripts (portfolio_oracle,
  * prefix_branch_oracle, prefix_branch_scheduler_probe). Those are cheap exploration
  * tools, NOT the canonical decision, so they stay off the dense 5k-175k canonical

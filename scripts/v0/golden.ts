@@ -53,6 +53,8 @@ import {
   GOLDEN_SEEDS,
   GOLDEN_SPECS,
   REPORT_VARIANTS,
+  SCREEN_BUDGETS,
+  SCREEN_SPECS,
   compilerWorkerTimeoutMs,
   compilerWorkerTimeoutBudget,
   headlineCases,
@@ -789,12 +791,16 @@ async function runRows(
   }
   const tasks = seeds.flatMap((seed) => cases.map((testCase) => ({ seed, testCase })));
   let done = 0;
+  const header =
+    `${label}: ${tasks.length} compile${tasks.length === 1 ? "" : "s"}, ` +
+    `${budgets.length} checkpoint${budgets.length === 1 ? "" : "s"}, ` +
+    `${Math.min(jobs, tasks.length)} parallel`;
   if (!jsonOnly) {
-    console.log(
-      `${label}: ${tasks.length} compile${tasks.length === 1 ? "" : "s"}, ` +
-        `${budgets.length} checkpoint${budgets.length === 1 ? "" : "s"}, ` +
-        `${Math.min(jobs, tasks.length)} parallel`,
-    );
+    console.log(header);
+  } else {
+    // stdout must stay pure JSON under --json; emit a liveness heartbeat to stderr so
+    // long background runs show progress instead of nothing until completion.
+    process.stderr.write(`${header}\n`);
   }
   const scored = await runPool(tasks, jobs, async ({ seed, testCase }) => {
     const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
@@ -808,14 +814,17 @@ async function runRows(
       verifyCheckpoints,
     );
     const row = scoreRunResult(result, seed, budgets, ctx);
+    done++;
     if (!jsonOnly) {
-      done++;
       process.stdout.write(`  [${String(done).padStart(2)}/${tasks.length}] `);
       printRunRow(row, details);
+    } else {
+      process.stderr.write(`\r  [${String(done).padStart(2)}/${tasks.length}] compiled`);
     }
     return row;
   });
   if (!jsonOnly) console.log("");
+  else process.stderr.write("\n");
   return scored;
 }
 
@@ -1057,7 +1066,12 @@ async function runMain(): Promise<void> {
   const source = gitMetadata();
   const archiveDir = resolve(arg("archive-dir") ?? defaultArchiveDir());
   const checkpointDir = resolve(archiveDir, "checkpoints");
-  const budgets = normalizeBudgets(arg("budgets"));
+  // `--screen`: the ~10-min middle-tier pre-filter. It presets the spec spread and a
+  // coarse budget grid (see SCREEN_SPECS/SCREEN_BUDGETS) while keeping the full 8
+  // seeds; explicit --specs/--budgets still override. A screen is a strict subset and
+  // thus a NON-CANONICAL, indicative run by construction.
+  const screen = has("screen");
+  const budgets = arg("budgets") === null && screen ? [...SCREEN_BUDGETS] : normalizeBudgets(arg("budgets"));
   const alpha = arg("alpha") !== null ? parseAlpha(arg("alpha")!) : DEFAULT_ALPHA;
   // Grid-agnostic headline: default scores over ALL measured budgets. A subset
   // (e.g. --score-budgets=50000,100000,150000) recomputes the headline on the
@@ -1100,7 +1114,7 @@ async function runMain(): Promise<void> {
   const jobs = rawJobs !== null ? Number(rawJobs) : DEFAULT_JOBS;
 
   const seeds = seedOverride ?? (debugSeed !== null ? [debugSeed] : [...GOLDEN_SEEDS]);
-  const specFilter = arg("specs");
+  const specFilter = arg("specs") ?? (screen ? SCREEN_SPECS.join(",") : null);
   const filterSet = specFilter ? new Set(specFilter.split(",").filter(Boolean)) : null;
   const keep = (c: SuiteCase) => filterSet === null || filterSet.has(c.specName);
   const headlineFiltered = headlineCases().filter(keep);

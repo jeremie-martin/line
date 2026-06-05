@@ -404,6 +404,16 @@ function printAxisDiagnostics(data: GoldenCurveJson): void {
   const budgets = data.budgets ?? data.budget_scores?.map((summary) => summary.budget) ?? [];
   if (rows.length === 0 || budgets.length === 0) return;
   const lastBudget = budgets[budgets.length - 1];
+  const lastCheckpoints = rows.map((row) => checkpointAt(row, lastBudget)).filter((c): c is CheckpointRow => c !== undefined);
+  // Compact `--json` output drops the per-checkpoint `axes` array, so the diagnostics
+  // would silently print nothing. Distinguish that from a legitimately-empty archive
+  // and tell the user how to capture per-axis data.
+  if (lastCheckpoints.length > 0 && lastCheckpoints.every((c) => c.axes === undefined)) {
+    console.warn(
+      "note: no per-axis data in this archive (compact --json) — re-run golden with --details (or --json-full) to capture per-axis signed-error diagnostics.",
+    );
+    return;
+  }
   const axes = rows.flatMap((row) => {
     const checkpoint = checkpointAt(row, lastBudget);
     const localCosts = checkpoint?.compile_stats?.committed_costs_per_gap;
@@ -1533,6 +1543,21 @@ function runDecide(args: string[]): void {
     }
   }
   console.log(`  VERDICT: ${d.verdict.toUpperCase()}`);
+
+  // A genuine but sub-resolution gain (positive Δ, CI lower bound just below 0) lands
+  // as INCONCLUSIVE, indistinguishable at the verdict level from a true null. Estimate
+  // how many more seeds would push the lower bound above zero: the half-width toward
+  // zero is (Δ - ciLo) and shrinks ~1/√n, so n_need ≈ n_now·((Δ-ciLo)/Δ)². Output-only.
+  if (d.verdict === "inconclusive" && d.delta > 0) {
+    const nNow = commonSeeds.length;
+    const nNeed = Math.ceil(nNow * ((d.delta - d.ciLo) / d.delta) ** 2);
+    const extra = Math.max(1, nNeed - nNow);
+    console.log(
+      `  hint: Δ positive (+${d.delta.toFixed(1)}, P(Δ>0)=${((1 - d.pLeZero) * 100).toFixed(0)}%) but under-powered — ` +
+        `~${extra} more seed${extra === 1 ? "" : "s"} (~${nNow + extra} total) would likely resolve it. ` +
+        `Approximate; CI width scales ~1/√seeds.`,
+    );
+  }
 }
 
 function main(): void {

@@ -10,6 +10,38 @@ goal. It is engineering substrate: the code should make the placement boundary
 clear enough that an agent can test different placement algorithms without
 rewriting handoff search, validation, or scoring.
 
+## LIVE GUIDANCE (read this first)
+
+> This is the current, load-bearing summary. Subsections further down predate it and
+> some are explicitly **retracted** (e.g. the "infeasibility" verdict ~line 690) —
+> treat everything below as historical rationale, not instructions. The fuller metric
+> banner is under **Metrics And Workbench**.
+
+- **Metric:** `HEADLINE = α·q(b_max) + (1−α)·logAUC`, α=0.7 (ceiling-weighted area
+  under quality-vs-log(budget)). Emitted in `golden.json`'s `headline` block. It
+  supersedes `CURVE_SCORE` and any "last-budget mean" framing.
+- **Decision:** `npm run decide -- <candidate>/golden.json <baseline>/golden.json` →
+  paired cluster-bootstrap verdict (accept iff Δheadline 95% CI lower bound > 0 AND
+  validity doesn't regress at the ceiling budget). The fixed "+5" threshold is
+  **retired** (inside the noise). On a positive-but-inconclusive result, `decide`
+  prints a `hint:` estimating how many more seeds would resolve it.
+- **Three run tiers** (cheap→authoritative):
+  1. **smoke** — `GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden`; fast, *not* a decision basis.
+  2. **screen** — `npm run screen`; ~10-min pre-filter (representative spec spread ×
+     full 8 seeds × coarse budgets). INDICATIVE only — `decide` flags it non-canonical.
+     Use it to kill bad ideas before paying for a canonical run.
+  3. **canonical** — `npm run golden` (20 specs × 8 seeds × dense 5k–175k grid); the
+     only promotable basis.
+- **Baseline is run once and reused.** You do **not** re-run the baseline per
+  candidate — produce/commit it once, then for each idea run only the *candidate* and
+  `decide` it against the committed baseline (~1 h/candidate, not two). There is
+  intentionally **no "compare two configs in one run" mode**: when memory caps usable
+  cores (~1 GB/worker), two runs at N/2 cores ≈ two serial runs at N cores, so it
+  would save no wall-clock.
+- **Jobs:** `--jobs=$(( $(nproc) / 2 ))`. A full `--jobs=$(nproc)` can OOM.
+- **Per-axis diagnostics:** plain `--json` is compact and drops per-axis data
+  (`analyze` then warns); capture `--details` (or `--json-full`) to keep it.
+
 ## Objective
 
 Improve the compiler by improving local required-contact geometry placement.

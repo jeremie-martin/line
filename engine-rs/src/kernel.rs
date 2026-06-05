@@ -8,8 +8,7 @@
 //! to compute the 3×3 cells once (cells_near_entity) and share them between the
 //! line lookup and the faithful addToGrid history recording.
 
-use std::collections::HashMap;
-use crate::grid::cells_near_entity;
+use crate::grid::{cells_near_entity, IntMap};
 use crate::line::{Line, MAX_FORCE_LENGTH};
 use crate::frame::{add_to_collisions, add_to_grid, Collisions, HistGrid};
 use crate::{
@@ -73,7 +72,7 @@ pub(crate) fn compute_rest_endur() -> ([f64; NITER], [f64; NITER]) {
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn step_state(
     s: &mut State,
-    grid: &HashMap<i64, Vec<Line>>,
+    grid: &IntMap<i64, Vec<Line>>,
     rest: &[f64; NITER],
     endur: &[f64; NITER],
     events: &mut Vec<(u8, i32, i32)>,

@@ -4,7 +4,66 @@
 //!   - grids/ClassicGrid.js `getCellsNearEntity` (the 3×3 neighborhood)
 //! Pure functions of geometry; no engine state. 14px cells.
 
+use std::collections::HashMap;
+use std::hash::{BuildHasher, Hasher};
+
 pub(crate) const GRID_SIZE: f64 = 14.0;
+
+pub(crate) type IntMap<K, V> = HashMap<K, V, IntBuildHasher>;
+
+#[derive(Clone, Copy, Default)]
+pub(crate) struct IntBuildHasher;
+
+#[derive(Default)]
+pub(crate) struct IntHasher {
+    state: u64,
+}
+
+impl BuildHasher for IntBuildHasher {
+    type Hasher = IntHasher;
+
+    #[inline]
+    fn build_hasher(&self) -> IntHasher {
+        IntHasher { state: 0 }
+    }
+}
+
+impl Hasher for IntHasher {
+    #[inline]
+    fn finish(&self) -> u64 {
+        self.state
+    }
+
+    #[inline]
+    fn write(&mut self, bytes: &[u8]) {
+        let mut h = 0xcbf29ce484222325u64;
+        for &b in bytes {
+            h ^= b as u64;
+            h = h.wrapping_mul(0x100000001b3);
+        }
+        self.state = h;
+    }
+
+    #[inline]
+    fn write_i32(&mut self, i: i32) {
+        self.state = i as u32 as u64;
+    }
+
+    #[inline]
+    fn write_u32(&mut self, i: u32) {
+        self.state = i as u64;
+    }
+
+    #[inline]
+    fn write_i64(&mut self, i: i64) {
+        self.state = i as u64;
+    }
+
+    #[inline]
+    fn write_u64(&mut self, i: u64) {
+        self.state = i;
+    }
+}
 
 /// hashNumberPair.js: encode each coord (Szudzik), pair, then fold to a signed
 /// int. Used verbatim for cell keys; must be exact for negative coords.

@@ -9,7 +9,7 @@
 //!   - `Frame.grid` (cell → CellFrameList) + addToGrid + getIndexOfCollisionInCell
 //!   - `Frame.collisions` (line id → frames) + addToCollisions + getIndexOfCollisionWithLine
 
-use std::collections::HashMap;
+use crate::grid::IntMap;
 use crate::line::{collides_with, Line};
 
 /// snapshotEntity: pos + vel only (Frame.js:16 — the only fields the invalidation
@@ -57,9 +57,9 @@ pub(crate) struct CellFrame {
 }
 
 /// Frame.grid: cell hash → CellFrameList (ascending-index nodes).
-pub(crate) type HistGrid = HashMap<i64, Vec<CellFrame>>;
+pub(crate) type HistGrid = IntMap<i64, Vec<CellFrame>>;
 /// Frame.collisions: line id → ascending frame indices it collided (the IndexList).
-pub(crate) type Collisions = HashMap<i32, Vec<i32>>;
+pub(crate) type Collisions = IntMap<i32, Vec<i32>>;
 
 /// addToGrid for one cell (addEntityToCellFrames, Frame.js:100): append to the
 /// cell's current-frame node, or start a new node (recording the cell in this

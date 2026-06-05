@@ -43,20 +43,19 @@ npx tsx scripts/stress.ts
 npm run parity
 
 # v0 handoff compiler golden benchmark (metric, run tiers, decide: docs/HOW_TO_WORK.md)
-npm run golden                  # canonical 8-seed run, the promotable basis
-npm run screen                  # ~10-min indicative pre-filter
+LR_ENGINE=wasm npm run golden -- --jobs=6   # canonical 24-seed run, the promotable basis
 
 # decide whether a candidate beats a baseline (paired-bootstrap verdict)
 npm run decide -- CANDIDATE/golden.json BASELINE/golden.json
 
 # same compiler, explicit selector kept for future compiler additions
-npm run golden -- --compiler=handoff
+LR_ENGINE=wasm npm run golden -- --compiler=handoff --jobs=6
 
 # targeted budget-curve probe
-npm run golden -- --specs=tiny_dance --seed=0 --budgets=30000,50000,70000
+LR_ENGINE=wasm npm run golden -- --specs=tiny_dance --seed=0 --budgets=30000,50000,70000 --jobs=6
 
 # compact machine-readable output
-npm run golden -- --json
+LR_ENGINE=wasm npm run golden -- --json --jobs=6
 
 # every golden run archives golden.json plus checkpoint tracks/reports under generated/golden-runs/
 

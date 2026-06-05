@@ -3,7 +3,7 @@
 > **REFERENCE / rationale.** This is the problem statement that *led to* the current
 > metric + decision rule; it reasons from the then-current **3-seed** benchmark and
 > concludes 3 is under-powered. The resolved outcome is now canonical — HEADLINE
-> metric, paired-bootstrap `decide`, and **8 seeds {0..7}** — and lives in
+> metric, paired-bootstrap `decide`, and **24 seeds {0..23}** — and lives in
 > [`compiler_goals.md`](compiler_goals.md) / [`HOW_TO_WORK.md`](HOW_TO_WORK.md). Read
 > the "3 seeds" below as the historical premise, not the current setup.
 

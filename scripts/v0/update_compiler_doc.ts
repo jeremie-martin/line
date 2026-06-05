@@ -3,11 +3,11 @@
  * from a golden budget-curve JSON.
  *
  * Usage:
- *   npx tsx scripts/v0/golden.ts --jobs=4 --archive-dir=generated/golden-runs/rebaseline
+ *   LR_ENGINE=wasm npx tsx scripts/v0/golden.ts --jobs=6 --archive-dir=generated/golden-runs/rebaseline
  *   npx tsx scripts/v0/update_compiler_doc.ts generated/golden-runs/rebaseline/golden.json
  *
  * Or pipe directly:
- *   npx tsx scripts/v0/golden.ts --json --jobs=4 \
+ *   LR_ENGINE=wasm npx tsx scripts/v0/golden.ts --json --jobs=6 \
  *     | npx tsx scripts/v0/update_compiler_doc.ts -
  */
 import { readFileSync, writeFileSync } from "node:fs";

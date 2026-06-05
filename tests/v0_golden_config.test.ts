@@ -141,8 +141,12 @@ describe("v0 golden configuration", () => {
     for (const b of CANONICAL_SCORE_BUDGETS) expect(DEFAULT_BUDGETS).toContain(b);
   });
 
-  test("golden seeds default to the contiguous 8-seed population (paired-decision power; see metric_problem_statement.md)", () => {
-    expect([...GOLDEN_SEEDS]).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+  test("golden seeds default to the contiguous 24-seed population (paired-decision power; see metric_problem_statement.md)", () => {
+    expect([...GOLDEN_SEEDS]).toEqual([
+      0, 1, 2, 3, 4, 5, 6, 7,
+      8, 9, 10, 11, 12, 13, 14, 15,
+      16, 17, 18, 19, 20, 21, 22, 23,
+    ]);
   });
 
   test("checkpoint verification timeout accounts for standalone checkpoint compiles", () => {

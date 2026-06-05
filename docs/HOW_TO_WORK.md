@@ -13,18 +13,26 @@ campaign doc for whatever you're improving. The doc map is `docs/README.md`.
 
 ## How to run
 
-Three tiers, cheap → authoritative:
+Two tiers, cheap → authoritative:
 
-1. **smoke** — `GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden` — fast iteration, **not a
-   decision basis**.
-2. **screen** — `npm run screen` — ~10-min pre-filter (representative specs × full 8
-   seeds × coarse budgets). Indicative only; `decide` flags it non-canonical. Use it to
-   kill bad ideas before paying for a canonical run.
-3. **canonical** — `npm run golden` — 20 specs × 8 seeds × dense 5k–175k grid; the **only
-   promotable basis**.
+1. **tiny** — fast iteration, **not a decision basis**:
 
-- **Jobs:** `npm run golden -- --jobs=$(( $(nproc) / 2 ))`. A full `--jobs=$(nproc)` can
-  OOM (~1 GB/worker; 32 workers OOM'd a 62 GB box).
+   ```bash
+   LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4 npm run golden -- \
+     --specs=tiny_dance,opening_burst \
+     --budgets=5000,15000,25000,35000,45000,55000,65000,75000,85000,95000,105000,115000,125000 \
+     --jobs=6
+   ```
+
+2. **canonical** — 20 specs × 24 seeds × dense 5k–175k grid; the **only
+   promotable basis**:
+
+   ```bash
+   LR_ENGINE=wasm npm run golden -- --jobs=6
+   ```
+
+- **Jobs:** use `--jobs=6` unless you deliberately need a different worker count.
+  Very high job counts can OOM (~1 GB/worker).
 - **Baseline reuse:** the baseline is produced **once and reused**. For each idea, run
   only the *candidate*, then `decide` it against the committed baseline — do **not**
   re-run the baseline per candidate. There is intentionally no "two configs in one run"
@@ -44,10 +52,11 @@ npm run decide -- <candidate>/golden.json <baseline>/golden.json
 Paired cluster-bootstrap VERDICT: **accept** iff the headline-Δ 95% CI lower bound > 0
 **and** validity does not regress at the ceiling budget. The HEADLINE formula and the
 frozen ruler live in [`docs/compiler_goals.md`](compiler_goals.md); the implementation is
-`scripts/v0/metric.ts` + `scripts/v0/analyze_golden_curve.ts`. The old fixed "+5"
-threshold is retired (inside the measured noise). On a positive-but-inconclusive result,
-`decide` prints how many more seeds would resolve it. Statistical rationale (noise floor,
-seed counts): [`docs/metric_problem_statement.md`](metric_problem_statement.md).
+`scripts/v0/metric.ts` + `scripts/v0/analyze_golden_curve.ts`. A raw score delta is not
+an acceptance rule; the active compiler campaign adds a promotion threshold after
+`decide`. On a positive-but-inconclusive result, `decide` prints how many more seeds
+would resolve it. Statistical rationale (noise floor, seed counts):
+[`docs/metric_problem_statement.md`](metric_problem_statement.md).
 
 ## Current baseline (of record)
 
@@ -56,19 +65,20 @@ The baseline of record is the **generated** [`docs/handoff-compiler.html`](hando
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
 - Evaluator fingerprint: **`9b9776df145f`** (`scripts/v0/golden_suite.ts`).
-- Current committed default: the **`continuous`** placement family (HEADLINE ≈ 461 —
-  commit `fc00318`, 2026-06-05). Read the generated HTML for the live numbers.
+- Current committed compiler: `compileHandoff`. The canonical seed population is now
+  24 seeds; refresh the generated HTML from a 24-seed rebaseline before quoting live
+  HEADLINE numbers.
 
 ## Active campaigns
 
 Point work at one of these; each carries its own particularities (the *what to try* and
 the *scoreboard*), but all share the metric, decision rule, and principles here:
 
-- **Arc placement** — [`GOAL_LDS_ARC_PLACEMENT.md`](../GOAL_LDS_ARC_PLACEMENT.md). The
-  latest in-boundary campaign: how required-contact catch geometry is placed.
+- **Compiler improvement** — [`GOAL_LDS_COMPILER_IMPROVEMENT.md`](../GOAL_LDS_COMPILER_IMPROVEMENT.md).
+  The primary campaign for raising HEADLINE across the compiler.
 - **Fragile specs** — [`FOCUS_FRAGILE_SPECS.md`](../FOCUS_FRAGILE_SPECS.md). A side
   campaign to make 5 unstable specs reliable. Note: it uses a **different harness** —
-  fresh seeds 200–209 and a curve metric over 60k–120k, *not* the headline suite — and
+  fresh seeds 200–219 and a curve metric over 60k–120k, *not* the headline suite — and
   deliberately trades a little headline mean for robustness.
 
 Finished campaigns live under `docs/archive/` (historical record, not live guidance).

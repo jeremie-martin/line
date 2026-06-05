@@ -1,17 +1,17 @@
 /**
  * v0 golden budget-curve benchmark — single source of truth for compiler work.
  *
- *   npm run golden
- *   npm run golden -- --json
- *   npm run golden -- --json-full
- *   npm run golden -- --details
- *   npm run golden -- --seed=42
- *   GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden
- *   npm run golden -- --specs=tiny_dance,opening_burst
- *   npm run golden -- --budgets=30000,50000,70000
- *   npm run golden -- --verify-checkpoints
- *   npm run golden -- --archive-dir=generated/golden-runs/my-run
- *   npm run golden -- --variants
+ *   LR_ENGINE=wasm npm run golden -- --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --json --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --json-full --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --details --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --seed=42 --jobs=6
+ *   LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4 npm run golden -- --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --budgets=30000,50000,70000 --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --verify-checkpoints --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --archive-dir=generated/golden-runs/my-run --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --variants --jobs=6
  *
  * The headline metric is HEADLINE (see metric.ts): a ceiling-weighted blend
  * `alpha*q(b_max) + (1-alpha)*logAUC` over the budget->quality curve, emitted in
@@ -53,8 +53,6 @@ import {
   GOLDEN_SEEDS,
   GOLDEN_SPECS,
   REPORT_VARIANTS,
-  SCREEN_BUDGETS,
-  SCREEN_SPECS,
   compilerWorkerTimeoutMs,
   compilerWorkerTimeoutBudget,
   headlineCases,
@@ -1068,6 +1066,9 @@ async function runMain(): Promise<void> {
   if (has("fast")) {
     throw new Error("--fast has been removed from golden; use --specs, --seed, and --budgets for targeted probes");
   }
+  if (has("screen")) {
+    throw new Error("--screen has been removed from golden; use tiny probes or full canonical runs");
+  }
 
   const jsonOnly = has("json") || has("json-full");
   const details = has("details") || has("json-full");
@@ -1076,12 +1077,7 @@ async function runMain(): Promise<void> {
   const source = gitMetadata();
   const archiveDir = resolve(arg("archive-dir") ?? defaultArchiveDir());
   const checkpointDir = resolve(archiveDir, "checkpoints");
-  // `--screen`: the ~10-min middle-tier pre-filter. It presets the spec spread and a
-  // coarse budget grid (see SCREEN_SPECS/SCREEN_BUDGETS) while keeping the full 8
-  // seeds; explicit --specs/--budgets still override. A screen is a strict subset and
-  // thus a NON-CANONICAL, indicative run by construction.
-  const screen = has("screen");
-  const budgets = arg("budgets") === null && screen ? [...SCREEN_BUDGETS] : normalizeBudgets(arg("budgets"));
+  const budgets = normalizeBudgets(arg("budgets"));
   const alpha = arg("alpha") !== null ? parseAlpha(arg("alpha")!) : DEFAULT_ALPHA;
   // Grid-agnostic headline: default scores over ALL measured budgets. A subset
   // (e.g. --score-budgets=50000,100000,150000) recomputes the headline on the
@@ -1124,7 +1120,7 @@ async function runMain(): Promise<void> {
   const jobs = rawJobs !== null ? Number(rawJobs) : DEFAULT_JOBS;
 
   const seeds = seedOverride ?? (debugSeed !== null ? [debugSeed] : [...GOLDEN_SEEDS]);
-  const specFilter = arg("specs") ?? (screen ? SCREEN_SPECS.join(",") : null);
+  const specFilter = arg("specs");
   const filterSet = specFilter ? new Set(specFilter.split(",").filter(Boolean)) : null;
   const keep = (c: SuiteCase) => filterSet === null || filterSet.has(c.specName);
   const headlineFiltered = headlineCases().filter(keep);

@@ -1,8 +1,8 @@
 # Focus campaign — make the fragile specs robust
 
-Companion to `GOAL_LDS_ARC_PLACEMENT.md`. Same code boundary, same anti-overfit
-rules. Different objective and different eval harness. Shared workflow, metric, and
-decision rule: see [`docs/HOW_TO_WORK.md`](docs/HOW_TO_WORK.md).
+Companion to `GOAL_LDS_COMPILER_IMPROVEMENT.md`. Same anti-overfit rules; different
+objective and different eval harness. Shared workflow, metric, and decision rule:
+see [`docs/HOW_TO_WORK.md`](docs/HOW_TO_WORK.md).
 
 ## Why this campaign
 
@@ -36,8 +36,9 @@ well and reliably**, so the compiler is trustworthy on them — and, eventually,
 
 ## Eval harness (the focus loop)
 
-Fresh seeds **200–209** — deliberately disjoint from every seed used in the
-headline campaign (0–19, 100–102), so improvements can't be memorized seed noise.
+Fresh primary seeds **200–219** — deliberately disjoint from the headline seeds
+`{0..23}`, so improvements can't be memorized seed noise. `focus.sh` also reports
+known-hard cross-check seeds `100–102` separately; do not tune against them.
 
 ```
 scripts/v0/focus.sh <label>
@@ -47,9 +48,9 @@ node scripts/v0/focus_report.mjs generated/focus-runs/<label>/golden.json
 - specs: the 5 above (`focus.sh` loads `opening_burst` directly even though it is
   excluded from the headline `GOLDEN_SPECS` — `--specs` now accepts off-registry
   specs).
-- seeds: 200–209 (10).
+- seeds: 200–219 for the primary metric, plus 100–102 as a reported cross-check.
 - budgets: 60k → 120k, step 5k (13 checkpoints).
-- placement: `LR_ARC_PLACEMENT=continuous` (the default under test).
+- compiler: current default `compileHandoff`.
 
 ### Primary metric: the **curve score** over 60k–120k
 
@@ -77,18 +78,17 @@ kill the tail, not nudge the average.
 ## Guardrail: keep the headline gains
 
 After any change that improves the focus set, confirm the broad suite did not
-regress materially. Run the headline diagnostic on its own seeds (NOT 200–209):
+regress materially. Run the headline diagnostic on its own seeds (NOT 200–219):
 
 ```
-GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4,5,6,7,8,9 LR_ARC_PLACEMENT=continuous \
+LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 \
   npx tsx scripts/v0/golden.ts --json --details \
   --specs=solo_run,dense_sprint,tiny_dance,drums_pendulum,drums_crescendo,rhythm_ladder,syncopated_switchback,drums_tide,drums_dropout \
-  --budgets=50000,...,150000 --jobs=16 --archive-dir=generated/focus-runs/guard09
+  --budgets=50000,...,150000 --jobs=6 --archive-dir=generated/focus-runs/guard
 ```
 
-and cross-check on seeds 10–19. Accept small mean deltas (a few points); reject
-broad collapses. The fragile-spec win must not come from a mechanism that quietly
-degrades the rest.
+Accept small mean deltas (a few points); reject broad collapses. The fragile-spec
+win must not come from a mechanism that quietly degrades the rest.
 
 ## Working method
 
@@ -109,7 +109,7 @@ degrades the rest.
    disjoint held-out set before committing. Same noise discipline as the headline
    campaign (~±10–15 validity-flip noise on a single 10-seed mean).
 
-## Boundary (unchanged from GOAL_LDS_ARC_PLACEMENT.md)
+## Boundary
 
 - `arc_placement.ts` — placement geometry proposal.
 - `core/candidate.ts` — validation/measurement of emitted geometry.
@@ -184,7 +184,7 @@ required-contact chain has a knife-edge forward dependency — under the tiniest
 placement perturbation it flips fully-valid → ~all-contacts-missing (a ~560→0 swing),
 and *which* seed breaks moves run to run. It was restored to `GOLDEN_SPECS` on
 2026-06-04 (the new metric handles the coin-flip honestly: validity is a separate
-ceiling guardrail, the 8-seed paired bootstrap averages out seed-luck, the headline
+ceiling guardrail, the 24-seed paired bootstrap averages out seed-luck, the headline
 is ceiling-weighted), but the underlying robustness is still open.
 
 The structural fix is **chain-aware candidate selection / multi-gap rollout** in the

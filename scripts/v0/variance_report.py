@@ -16,8 +16,8 @@ decision methodology rests on:
 
 Produce the inputs with e.g.:
   GOLDEN_SEEDS_OVERRIDE=0,1,2,...,11,20,21,22,100,101,102 \\
-    npx tsx scripts/v0/golden.ts --budgets=50000,75000,100000,125000,150000 \\
-    --jobs=10 --archive-dir=generated/golden-runs/_base
+    LR_ENGINE=wasm npx tsx scripts/v0/golden.ts --budgets=50000,75000,100000,125000,150000 \\
+    --jobs=6 --archive-dir=generated/golden-runs/_base
   (set LR_ARC_PLACEMENT=continuous for the candidate)
 
 Usage:

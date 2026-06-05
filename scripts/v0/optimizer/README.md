@@ -43,9 +43,9 @@ tiers, the `decide` rule, and the jobs/OOM caveat are documented once in
 [`docs/compiler_goals.md`](../../../docs/compiler_goals.md)).
 
 ```bash
-npm run golden
-npm run golden -- --compiler=handoff
-npm run golden -- --jobs=4 --budgets=30000,50000,70000 --specs=tiny_dance --seed=0
+LR_ENGINE=wasm npm run golden -- --jobs=6
+LR_ENGINE=wasm npm run golden -- --compiler=handoff --jobs=6
+LR_ENGINE=wasm npm run golden -- --budgets=30000,50000,70000 --specs=tiny_dance --seed=0 --jobs=6
 ```
 
 `--compiler=handoff` is kept even though it is currently the only compiler so a

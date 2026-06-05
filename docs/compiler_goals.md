@@ -40,15 +40,15 @@ and may evolve independently of the per-run scorer.)
   handoff-specific diagnostics.
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
-- `npm run golden` runs the full suite (8 seeds {0..7}, dense 5k–175k grid) and
-  reports the **HEADLINE** metric (`α·q(b_max) + (1−α)·logAUC`, α=0.7) plus the
-  per-budget curve and the legacy CURVE_SCORE. For the full run pass
-  `--jobs=$(( $(nproc) / 2 ))` (a full `--jobs=$(nproc)` can OOM — ~1 GB/worker).
+- `LR_ENGINE=wasm npm run golden` runs the full suite (24 seeds {0..23}, dense
+  5k–175k grid) and reports the **HEADLINE** metric (`α·q(b_max) + (1−α)·logAUC`,
+  α=0.7) plus the per-budget curve and the legacy CURVE_SCORE. For the full run use
+  `--jobs=6` unless you deliberately need a different worker count.
 - To decide a change is a real improvement, run
   `npm run decide -- <candidate>/golden.json <baseline>/golden.json` — a paired
   cluster-bootstrap VERDICT (accept iff the headline-Δ CI lower bound > 0 and
-  validity does not regress at the ceiling budget). The old fixed "+5" threshold is
-  retired; it is inside the measured noise (`docs/metric_problem_statement.md`).
+  validity does not regress at the ceiling budget). Raw score deltas are not an
+  acceptance rule; promotion thresholds live in active campaign docs.
 
 Any compiler change should preserve these tests and report its impact through the
 golden breakdown: the `headline` block (score / ceiling / logAUC / validity),

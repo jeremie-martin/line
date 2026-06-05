@@ -6,9 +6,8 @@ numbers from the golden JSON. Do not transcribe scores by hand.
 ## 1. Run the curve and capture JSON
 
 ```bash
-# Full canonical run = 8 seeds × dense 5k–175k grid. Use about HALF the cores:
-# a full --jobs=$(nproc) can OOM (each worker holds ~1 GB; 32 workers OOM'd a 62 GB box).
-npx tsx scripts/v0/golden.ts --jobs=$(( $(nproc) / 2 )) --archive-dir=generated/golden-runs/rebaseline
+# Full canonical run = 24 seeds × dense 5k–175k grid.
+LR_ENGINE=wasm npx tsx scripts/v0/golden.ts --jobs=6 --archive-dir=generated/golden-runs/rebaseline
 ```
 
 The JSON contains the `headline` block (`score`, `ceiling`, `log_auc`, `alpha`,
@@ -25,9 +24,8 @@ Quick peek (prints the HEADLINE metric and the per-budget curve):
 npx tsx scripts/v0/analyze_golden_curve.ts generated/golden-runs/rebaseline/golden.json
 ```
 
-To decide whether a candidate beats a baseline, use the paired-bootstrap VERDICT
-(not an eyeballed score delta or a fixed "+5" — both are inside the noise; see
-`docs/metric_problem_statement.md`):
+To decide whether a candidate beats a baseline, use the paired-bootstrap VERDICT,
+not an eyeballed score delta:
 
 ```bash
 npx tsx scripts/v0/analyze_golden_curve.ts decide CANDIDATE/golden.json BASELINE/golden.json

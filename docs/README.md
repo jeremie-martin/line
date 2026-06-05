@@ -19,8 +19,8 @@ historical record, not live guidance.
 
 | Doc | Tag | What |
 |---|---|---|
-| [`../GOAL_LDS_ARC_PLACEMENT.md`](../GOAL_LDS_ARC_PLACEMENT.md) | LIVE | Latest in-boundary campaign: catch-geometry placement. |
-| [`../FOCUS_FRAGILE_SPECS.md`](../FOCUS_FRAGILE_SPECS.md) | LIVE | Side campaign to stabilize 5 fragile specs (separate harness: seeds 200–209, curve metric). |
+| [`../GOAL_LDS_COMPILER_IMPROVEMENT.md`](../GOAL_LDS_COMPILER_IMPROVEMENT.md) | LIVE | Primary compiler-improvement campaign for raising HEADLINE. |
+| [`../FOCUS_FRAGILE_SPECS.md`](../FOCUS_FRAGILE_SPECS.md) | LIVE | Side campaign to stabilize 5 fragile specs (separate harness: seeds 200–219, curve metric). |
 
 ## Reference
 

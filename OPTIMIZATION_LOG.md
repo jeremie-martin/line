@@ -608,3 +608,40 @@ engine (B11 ~73k). The grid HashMap traffic is no longer probe-bound; the next
 levers are the fixed per-frame math (irreducible without breaking bits) and the
 fork-reconcile `Line` clones (deferred — high review cost, touches the
 path-dependent budget).
+
+## W5 — Integrate constraint-solver unroll + lean rider sled points  (−4%, bit-identical)
+Two changes ported from the parallel `work-new-wams-opti-1` branch (which had forked
+from the same W3 base) that compose cleanly with W4:
+- **Unroll the constraint solver** (`engine-rs/src/kernel.rs`): the `for k in
+  0..NITER { match kind … }` loop over the `ITER` table is replaced with 22 explicit
+  `resolve_stick`/`resolve_repel`/`resolve_bind` calls in the table's exact order.
+  Same ops, same order, so bit-identical. `resolve_bind` also defers the `dist`
+  (sqrt) into the `fsu == -1` branch — the original computed `length` unconditionally
+  but discarded it for already-unbound binds, so skipping that side-effect-free sqrt
+  changes no state (free win for the airborne rider whose binds are intact).
+- **Lean rider sled points** (`engine-rs/src/engine.rs` `rider_into` + the WASM
+  wrapper): `get_rider` now also writes the PEG/TAIL/NOSE/STRING point states into
+  scratch slots 6..29, and the wrapper serves those four ids from the lean payload
+  instead of falling back to the cold full 12-entity stateMap rebuild. Read-path
+  only; the values are identical to the fallback's.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical · `verify:engine
+  --diff` ✓ **max err 0** over all 5 fixtures · `cargo test` ✓ (grid unit tests).
+- **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup, back-to-back):**
+  W4 baseline 23,189.7 / 23,286.8 → **22,486.8 / 22,637.8** (first), 21,870.9 /
+  21,965.8 (confirm). **≈−4% mean / −4% median** → **kept.**
+
+### W6 (rejected) — custom open-addressing integer grid map
+The same branch's third commit replaced `std::HashMap` (with our identity `IntHasher`)
+by a hand-rolled `Vec`-backed open-addressing `IntMap` (linear probing, golden-ratio
+32-bit hash). It claimed −13.4% **there** — but that was measured against an
+*identity-hashed* HashMap baseline that **W4 already superseded**. Applied on top of
+W4+W5 and measured back-to-back against the bit-mixed `std::HashMap`, it **regressed**:
+23,704.6 / 23,832.9 and 23,834.6 / 23,974.9 vs the hasher's 21,870.9 / 21,965.8 —
+**≈+8% slower** (well outside the ~2% noise band; `verify` stayed byte-identical, so
+this is purely a speed verdict). hashbrown's SIMD group probing beats the hand-rolled
+linear-probe map once the key hash distributes well, which the W4 finalizer already
+ensures. **Not integrated.**
+
+**Standing after W5:** **~22,000 ns/physics-frame** — bit-identical to lr-core,
+≈15.1× faster than pristine JS (333k).

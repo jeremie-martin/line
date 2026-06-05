@@ -12,7 +12,9 @@ use crate::grid::{cells_near_entity, IntMap};
 use crate::line::{Line, MAX_FORCE_LENGTH};
 use crate::frame::{add_to_collisions, add_to_grid, Collisions, HistGrid};
 use crate::{
-    BASE, COLLIDABLES, FRIC, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, NENT, NITER,
+    BASE, BUTT, COLLIDABLES, FRIC, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS,
+    LFOOT, LHAND, NENT, NITER, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER,
+    STRING, TAIL,
 };
 
 #[derive(Clone)]
@@ -64,6 +66,47 @@ pub(crate) fn compute_rest_endur() -> ([f64; NITER], [f64; NITER]) {
     (rest, endur)
 }
 
+#[inline(always)]
+fn resolve_stick(s: &mut State, p1: usize, p2: usize, rest: f64) {
+    let length = dist(s.px[p1], s.py[p1], s.px[p2], s.py[p2]);
+    let gd = if length == 0.0 { 0.0 } else { (length - rest) / length };
+    let diff = gd * 0.5;
+    let dx = (s.px[p1] - s.px[p2]) * diff;
+    let dy = (s.py[p1] - s.py[p2]) * diff;
+    s.px[p1] -= dx; s.py[p1] -= dy;
+    s.px[p2] += dx; s.py[p2] += dy;
+}
+
+#[inline(always)]
+fn resolve_repel(s: &mut State, p1: usize, p2: usize, rest: f64) {
+    let length = dist(s.px[p1], s.py[p1], s.px[p2], s.py[p2]);
+    if length < rest {
+        let gd = if length == 0.0 { 0.0 } else { (length - rest) / length };
+        let diff = gd * 0.5;
+        let dx = (s.px[p1] - s.px[p2]) * diff;
+        let dy = (s.py[p1] - s.py[p2]) * diff;
+        s.px[p1] -= dx; s.py[p1] -= dy;
+        s.px[p2] += dx; s.py[p2] += dy;
+    }
+}
+
+#[inline(always)]
+fn resolve_bind(s: &mut State, p1: usize, p2: usize, bind: usize, rest: f64, endur: f64) {
+    if s.fsu[bind] == -1 {
+        let length = dist(s.px[p1], s.py[p1], s.px[p2], s.py[p2]);
+        let gd = if length == 0.0 { 0.0 } else { (length - rest) / length };
+        let diff = gd * 0.5;
+        if diff > endur {
+            s.fsu[bind] = 0;
+        } else {
+            let dx = (s.px[p1] - s.px[p2]) * diff;
+            let dy = (s.py[p1] - s.py[p2]) * diff;
+            s.px[p1] -= dx; s.py[p1] -= dy;
+            s.px[p2] += dx; s.py[p2] += dy;
+        }
+    }
+}
+
 /// One frame: step → 6×(constraints, collision) → BindJoints. `events` collects
 /// (iteration, line_id, point_idx) per collision (for getUpdatesAtFrame). When
 /// `track`, the addToGrid collision-history (→ `hist`, new cells → `touched_cells`)
@@ -102,44 +145,28 @@ pub(crate) fn step_state(
     }
 
     for it in 0..ITERATE {
-        for k in 0..NITER {
-            let (kind, p1, p2, bind, _ep, _lf) = ITER[k];
-            let length = dist(s.px[p1], s.py[p1], s.px[p2], s.py[p2]);
-            match kind {
-                0 => {
-                    let gd = if length == 0.0 { 0.0 } else { (length - rest[k]) / length };
-                    let diff = gd * 0.5;
-                    let dx = (s.px[p1] - s.px[p2]) * diff;
-                    let dy = (s.py[p1] - s.py[p2]) * diff;
-                    s.px[p1] -= dx; s.py[p1] -= dy;
-                    s.px[p2] += dx; s.py[p2] += dy;
-                }
-                2 => {
-                    if length < rest[k] {
-                        let gd = if length == 0.0 { 0.0 } else { (length - rest[k]) / length };
-                        let diff = gd * 0.5;
-                        let dx = (s.px[p1] - s.px[p2]) * diff;
-                        let dy = (s.py[p1] - s.py[p2]) * diff;
-                        s.px[p1] -= dx; s.py[p1] -= dy;
-                        s.px[p2] += dx; s.py[p2] += dy;
-                    }
-                }
-                _ => {
-                    if s.fsu[bind] == -1 {
-                        let gd = if length == 0.0 { 0.0 } else { (length - rest[k]) / length };
-                        let diff = gd * 0.5;
-                        if diff > endur[k] {
-                            s.fsu[bind] = 0;
-                        } else {
-                            let dx = (s.px[p1] - s.px[p2]) * diff;
-                            let dy = (s.py[p1] - s.py[p2]) * diff;
-                            s.px[p1] -= dx; s.py[p1] -= dy;
-                            s.px[p2] += dx; s.py[p2] += dy;
-                        }
-                    }
-                }
-            }
-        }
+        resolve_stick(s, PEG, TAIL, rest[0]);
+        resolve_stick(s, TAIL, NOSE, rest[1]);
+        resolve_stick(s, NOSE, STRING, rest[2]);
+        resolve_stick(s, STRING, PEG, rest[3]);
+        resolve_stick(s, PEG, NOSE, rest[4]);
+        resolve_stick(s, STRING, TAIL, rest[5]);
+        resolve_bind(s, PEG, BUTT, RIDER_MOUNTED, rest[6], endur[6]);
+        resolve_bind(s, TAIL, BUTT, RIDER_MOUNTED, rest[7], endur[7]);
+        resolve_bind(s, NOSE, BUTT, RIDER_MOUNTED, rest[8], endur[8]);
+        resolve_stick(s, SHOULDER, BUTT, rest[9]);
+        resolve_stick(s, SHOULDER, LHAND, rest[10]);
+        resolve_stick(s, SHOULDER, RHAND, rest[11]);
+        resolve_stick(s, BUTT, LFOOT, rest[12]);
+        resolve_stick(s, BUTT, RFOOT, rest[13]);
+        resolve_stick(s, SHOULDER, RHAND, rest[14]);
+        resolve_bind(s, SHOULDER, PEG, RIDER_MOUNTED, rest[15], endur[15]);
+        resolve_bind(s, STRING, LHAND, RIDER_MOUNTED, rest[16], endur[16]);
+        resolve_bind(s, STRING, RHAND, RIDER_MOUNTED, rest[17], endur[17]);
+        resolve_bind(s, LFOOT, NOSE, RIDER_MOUNTED, rest[18], endur[18]);
+        resolve_bind(s, RFOOT, NOSE, RIDER_MOUNTED, rest[19], endur[19]);
+        resolve_repel(s, SHOULDER, LFOOT, rest[20]);
+        resolve_repel(s, SHOULDER, RFOOT, rest[21]);
         for &i in COLLIDABLES.iter() {
             // getCellsNearEntity once (pre-collision pos), shared by addToGrid + lookup.
             let cells = cells_near_entity(s.px[i], s.py[i]);

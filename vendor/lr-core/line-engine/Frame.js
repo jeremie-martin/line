@@ -57,15 +57,23 @@ export default class Frame {
     }
   }
 
+  // Write an array of updated entities into the stateMap. Single source of the
+  // "index by entity.id" convention, shared by updateStateMap and the engine's
+  // constraint pass.
+  setStates (entities) {
+    for (let i = 0; i < entities.length; i++) {
+      let e = entities[i]
+      this.stateMap.set(e.id, e)
+    }
+  }
+
   updateStateMap (stateUpdate) {
     if (!stateUpdate) return
     if (stateUpdate instanceof Array) {
       return stateUpdate.forEach((update) => this.updateStateMap(update))
     }
     this.updates.push(stateUpdate)
-    for (let nextEntity of stateUpdate.updated) {
-      this.stateMap.set(nextEntity.id, nextEntity)
-    }
+    this.setStates(stateUpdate.updated)
   }
 
   addToGrid (lineGrid, entity, index, cells) {

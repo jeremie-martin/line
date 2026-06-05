@@ -14,6 +14,8 @@
  * with hand-built fixtures.
  */
 
+import { COLLISION_UPDATE_TYPE } from "./update_types.ts";
+
 // ────────── Pinned constants (PROBLEM.md §Definitions) ──────────
 
 /** Bounce-vs-landing threshold: airborne for >K frames ⇒ landing, 1..K ⇒ bounce. */
@@ -541,7 +543,7 @@ function extractRawFrame(engine: any, frame: number): RawFrame {
     const seenPoints = new Set<string>();
     const seenLines = new Set<number>();
     for (const u of updates) {
-      if (!u || u.type !== "CollisionUpdate" || !Array.isArray(u.updated)) continue;
+      if (!u || u.type !== COLLISION_UPDATE_TYPE || !Array.isArray(u.updated)) continue;
       // Only count this update if at least one of its updated points is
       // sled-side. Lr-core also emits CollisionUpdates for rider-side
       // points (BUTT, LFOOT, etc.); we don't want those.

@@ -36,6 +36,10 @@ export class Stick {
     return true
   }
   constructor ({id, p1, p2, length, lengthFactor = 1}, initialStateMap) {
+    // stickResolve mutates p1/p2 positions in place, which is only correct if
+    // they are distinct points (distinct ids → distinct pos objects). Guard the
+    // invariant once, at setup, rather than per-resolve in the hot loop.
+    if (p1 === p2) throw new Error(`Stick ${id}: p1 and p2 must be distinct (${p1})`)
     length = length != null ? length : V2.dist(initialStateMap.get(p1).pos, initialStateMap.get(p2).pos)
     length *= lengthFactor
     Object.assign(this, {id, p1, p2, length})
@@ -58,7 +62,7 @@ export class RepelStick extends Stick {
     let p2 = stateMap.get(this.p2)
     let length = V2.dist(p1.pos, p2.pos)
     if (length >= this.length) {
-      return []
+      return NO_UPDATES
     }
     return stickResolve(p1, p2, this.getDiff(length))
   }
@@ -73,7 +77,7 @@ export class BindStick extends Stick {
   resolve (stateMap) {
     let binding = stateMap.get(this.binding)
     if (!binding.isBinded()) {
-      return []
+      return NO_UPDATES
     }
     let p1 = stateMap.get(this.p1)
     let p2 = stateMap.get(this.p2)
@@ -103,13 +107,16 @@ export class BindJoint {
     let binding = stateMap.get(this.binding)
     // allow kramuals
     if (V2.cross(V2(p2.pos).sub(p1.pos), V2(q2.pos).sub(q1.pos)) >= 0) {
-      return []
+      return NO_UPDATES
     } else if (binding.isBinded()) {
       return [binding.setBind(false)]
     }
-    return []
+    return NO_UPDATES
   }
 }
+// NOTE: DirectedChain drives only the cosmetic scarf, which Rider.js excludes
+// from the simulated body (see Rider). It is retained to match upstream lr-core
+// and rider-data, but is not instantiated by the compiler-only engine.
 export class DirectedChain {
   get iterating () {
     return false

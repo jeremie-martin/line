@@ -249,3 +249,29 @@ algorithmic redesign, not a surgical edit. Candidate directions:
   lookups per entity.
 These are larger, riskier changes than B1–B8 and are deferred pending a careful
 design pass.
+
+## Code-review follow-up (hardening, perf-neutral)
+
+A medium-effort review of B1–B8 surfaced no live bugs (all gated green) but 8
+latent-risk / maintainability items, all addressed in one bit-identical commit
+(verify ✓, diff ✓ max err 0, compile-hash ✓, perf 70,636 vs 70,504 — no change):
+
+1. `Stick` constructor now asserts `p1 !== p2` (the in-place `stickResolve`
+   mutation's distinct-points invariant), once at setup, not per-frame.
+2. `immo`: extracted a single `setImmoSlots()` used by both the constructor and
+   `updateState`, so the property set+order that the B8 monomorphism depends on
+   has one source of truth and can't silently drift.
+3. `Rider`: scarf is now identified from the authoritative `parts.SCARF` (not by
+   `FlutterPoint`/`DirectedChain` class type), and a guard asserts no kept
+   constraint references a removed point.
+4. `immo`: dropped the dead `__init__` slot (written, never read after B8; it was
+   also a `this`-self-cycle footgun for any accidental serialization).
+5. `Frame.setStates()` factors the "index entities by id" loop shared by
+   `updateStateMap` and the engine's constraint pass.
+6. Shared `COLLISION_UPDATE_TYPE` constant (`scripts/lib/update_types.ts`) used by
+   both the detector and the trace oracle, so the gate's coverage is explicitly
+   tied to what the detector reads.
+7. `NO_UPDATES` (shared frozen empty) now returned from all no-op constraint
+   branches (RepelStick/BindStick/BindJoint), not a fresh `[]`.
+8. Noted `FlutterPoint`/`DirectedChain` as retained-but-unsimulated (scarf), and
+   removed the derivable `Rider.stateData` field (filter inline).

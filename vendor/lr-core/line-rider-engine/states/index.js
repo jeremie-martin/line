@@ -71,6 +71,10 @@ function rand (seed) {
 }
 const INTENSITY = 2
 const SPEED_THRESHOLD = 40 // as this gets smaller, the scarf intensifies faster while speed increases
+// NOTE: FlutterPoint is the cosmetic scarf point (the engine's only user of
+// transcendentals). Rider.js excludes the scarf from the simulated body, so this
+// is not instantiated by the compiler-only engine; retained to match upstream
+// lr-core and rider-data.
 export class FlutterPoint extends Point {
   static getFlutter (vel, seed) {
     let speed = Math.pow(V2.lenSq(vel), 0.25)

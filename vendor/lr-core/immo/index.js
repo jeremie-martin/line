@@ -40,30 +40,27 @@ export default class Immo {
   set __current__ (next) { this.__holder__.current = next }
 
   constructor ({props, state, computed} = {}) {
-    // Assign the immo slots as plain own properties, in a fixed order, off the
-    // class prototype. updateState() builds every subsequent version exactly the
-    // same way, so all versions of all instances of a class share ONE hidden
-    // class — keeping hot accessors (entity.pos/.vel/.prevPos/.friction) MONO-
-    // morphic. (The previous Object.create(this.__init__, …) gave each logical
-    // entity its own prototype, so the ~12 rider points produced ~12 hidden
-    // classes → megamorphic property loads, ~20% of engine time.)
-    this.__props__ = Object.assign(this.constructor.__props__.call(this), props)
-    this.__state__ = Object.assign(this.constructor.__state__.call(this), state)
-    this.__computed__ = Object.assign(this.constructor.__computed__.call(this), computed)
-    this.__init__ = this
-    this.__holder__ = { current: this }
+    setImmoSlots(
+      this,
+      Object.assign(this.constructor.__props__.call(this), props),
+      Object.assign(this.constructor.__state__.call(this), state),
+      Object.assign(this.constructor.__computed__.call(this), computed),
+      { current: this }
+    )
   }
   updateState (updated) {
-    // Same prototype + same own-property set/order as the constructor → same
-    // hidden class. __props__/__computed__/__holder__ are shared by reference
-    // (matching the old prototype-inheritance semantics: props are immutable and
-    // computed is shared mutable derived data); only __state__ is a fresh copy.
-    let next = Object.create(Object.getPrototypeOf(this))
-    next.__props__ = this.__props__
-    next.__state__ = Object.assign({}, this.__state__, updated)
-    next.__computed__ = this.__computed__
-    next.__init__ = this.__init__
-    next.__holder__ = this.__holder__
+    // Built off the same (class) prototype with the same slots in the same order
+    // as the constructor → same hidden class (see setImmoSlots).
+    // __props__/__computed__/__holder__ are shared by reference (matching the old
+    // prototype-inheritance semantics: props immutable, computed shared mutable
+    // derived data); only __state__ is a fresh copy.
+    let next = setImmoSlots(
+      Object.create(Object.getPrototypeOf(this)),
+      this.__props__,
+      Object.assign({}, this.__state__, updated),
+      this.__computed__,
+      this.__holder__
+    )
     this.__holder__.current = next
     return next
   }
@@ -81,6 +78,25 @@ export default class Immo {
       }
     }
   }
+}
+
+// Single source of truth for the immo own-property set AND its assignment order.
+// The constructor and updateState both go through here, so a version object can
+// never drift into a different hidden class from the original (or from another
+// instance of the same class). That shared hidden class is what keeps the hot
+// accessors (entity.pos/.vel/.prevPos/.friction) MONOMORPHIC — the previous
+// Object.create(this.__init__, …) gave each logical entity its own prototype, so
+// the ~12 rider points produced ~12 hidden classes → megamorphic loads (~20% of
+// engine time). If you add/reorder a slot, do it ONLY here.
+//
+// NOTE: these are engine-internal slots, and __holder__ ↔ version forms a cycle;
+// do not JSON.stringify()/structuredClone()/spread an immo entity.
+function setImmoSlots (target, props, state, computed, holder) {
+  target.__props__ = props
+  target.__state__ = state
+  target.__computed__ = computed
+  target.__holder__ = holder
+  return target
 }
 
 export function setupImmo (Subclass) {

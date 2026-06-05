@@ -218,14 +218,12 @@ export default class LineEngine extends Immo {
     let stateMap = frame.stateMap
     for (let id of constraintIDs) {
       let constraint = this.constraints.get(id)
-      // resolve() mutates collidable points in place (returning the same refs)
-      // and only allocates a fresh entity for a binding unbind — set whatever it
-      // returns so those rare new bindings still land in the stateMap.
-      let updated = constraint.resolve(stateMap)
-      for (let i = 0; i < updated.length; i++) {
-        let e = updated[i]
-        stateMap.set(e.id, e)
-      }
+      // resolve() mutates collidable points in place (returning the same refs,
+      // usually the shared empty NO_UPDATES) and only allocates a fresh entity
+      // for a binding unbind — frame.setStates lands those rare new bindings in
+      // the stateMap. The CONSTRAINT_UPDATE singleton keeps the update sequence
+      // intact without per-constraint allocation.
+      frame.setStates(constraint.resolve(stateMap))
       frame.updates.push(CONSTRAINT_UPDATE)
     }
   }

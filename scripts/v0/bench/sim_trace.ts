@@ -26,6 +26,7 @@
 import { readFileSync, mkdirSync, existsSync, writeFileSync, readdirSync } from "node:fs";
 import { resolve, basename } from "node:path";
 import { buildEngine, buildTrack, loadTrackJson, type LoadedTrack } from "./_fixture.ts";
+import { COLLISION_UPDATE_TYPE } from "../../lib/update_types.ts";
 
 const OUT_DIR = "generated/trace";
 // Track fixtures the oracle checks by default. Drop any *.json export here and
@@ -131,8 +132,8 @@ function fingerprintFrame(stateMap: Map<any, any>, updates: any[], includeScarf:
   // point ids (string body ids; scarf points never collide).
   if (updates) {
     for (const u of updates) {
-      if ((u?.type ?? u?.constructor?.name) !== "CollisionUpdate") continue;
-      [h1, h2] = mixString(h1, h2, "CollisionUpdate");
+      if ((u?.type ?? u?.constructor?.name) !== COLLISION_UPDATE_TYPE) continue;
+      [h1, h2] = mixString(h1, h2, COLLISION_UPDATE_TYPE);
       if (typeof u?.id === "number") [h1, h2] = mixNumber(h1, h2, u.id);
       const upd = u?.updated;
       if (Array.isArray(upd)) {

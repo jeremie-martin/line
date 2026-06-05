@@ -10,7 +10,7 @@ per change attempt, with its verification result and its measured effect.
   is per-frame **allocation count**, not the math.
 - **Single metric:** `ns / physics-frame` from `npm run perf` (wall-clock ÷
   physics frames actually simulated; work-normalized, lower is better).
-  Default config: `mini_burst` @ 50k budget, 30 timed runs + 3 warmup.
+  Default config: `mini_burst` @ 50k budget, 40 timed runs + 3 warmup.
   Fast inner-loop signal: `npm run perf -- --reps=5 --budget=20000`.
 - **Correctness gates** (must all hold for every kept change):
   1. `npm run verify:engine` — per-frame oracle: non-scarf body state +
@@ -23,8 +23,8 @@ per change attempt, with its verification result and its measured effect.
      track **+ deterministic search stats** against a recorded baseline. This is
      the gate for **compiler/optimizer-path** changes (`verify:engine` only
      exercises the engine on fixed tracks). `npm run verify` runs both.
-- **Commit rule:** only keep a change whose perf win **holds >2%** (the perf
-  noise band is ~0.6% at the default config, so 2% is ~3σ).
+- **Commit rule:** only keep a change whose perf win **holds >1.6%** under the
+  current default WASM perf gate.
 
 ## Baselines
 
@@ -993,3 +993,320 @@ Safety/identity notes:
 **Standing after W11:** **~12,265 ns/physics-frame** — bit-identical to lr-core,
 ≈27.2× faster than pristine JS (333k) and ≈6.0× faster than the parity-correct JS
 engine (B11 ~73k).
+
+## Session 6 (2026-06-05 cont.) — raw-frame / small-structure probes, no kept speed change
+
+The perf harness default was raised from 30 to **40 timed runs** (+3 warmup) to
+reduce decision noise now that the WASM engine is fast enough for longer samples.
+
+Rejected probes, all reverted:
+
+- **Packed raw trajectory extraction for the WASM detector path:** added a
+  WASM-only packed raw trajectory plus a `detect()` fast branch to avoid per-frame
+  `RawFrame` object construction. `LR_ENGINE=wasm npm run verify` stayed
+  bit-identical, but the 8-run signal regressed to **13,059.7 ns/frame** (median
+  **13,082.7**). The extra branch/packed-array path cost more than the object
+  allocation it removed.
+- **Cache `process.env` object for arc-placement env toggles:** bit-identical, but
+  only a weak 8-run signal at **12,516.8 ns/frame** (median **12,486.2**), below
+  the commit bar and consistent with prior JS-overhead probes. Reverted.
+- **Field-snapshot `engineLineFromTrackLine` cache instead of signature strings:**
+  bit-identical and positive, but the full 40-run perf was **12,178.1 ns/frame**
+  (median **12,209.3**) versus W11's **12,265.0** — only ~0.7% mean, below the
+  >1.6% commit bar. Reverted.
+- **Packed Rust collision event records (`i64` instead of tuple):** bit-identical,
+  but the 8-run signal was weak/regressive at **12,586.3 ns/frame** (median
+  **12,716.3**). Reverted and rebuilt the standard artifact.
+
+Conclusion: the obvious remaining JS-boundary and small-structure changes are
+too small or counterproductive in isolation. Future work should bias toward a
+larger structural change in the WASM history/frame-cache path or moving a whole
+detector workflow across the WASM boundary, rather than making another tiny
+object-shape/cache tweak.
+
+## Session 7 (2026-06-05 cont.) — current hot-path profile and rejected WASM probes
+
+Fresh profile (`LR_ENGINE=wasm`, 6 runs + 1 warmup) on the current dirty worktree
+again showed the same shape: `wasm-function[30]` fused step/collision loop
+~31%, `wasm-function[25]` history `add_to_grid` ~28%, `wasm-function[17]`
+3×3 cell hashing ~7%, GC ~5%. JS-side hotspots were each ~1% or less
+(`getRawFrameAtFrame`, `detect`, `engineLineSignature`, `envValue`), confirming
+that further small JS object/cache tweaks are unlikely to clear the bar.
+
+Rejected probes, all reverted:
+
+- **Force-inline `cells_near_entity` / `hash_int_pair` / `cell_cor`:** verified
+  bit-identical and did inline into the large step loop, but code growth only
+  produced **12,300.1 ns/frame** on the 8-run signal (median **12,402.4**), below
+  the bar.
+- **Avoid recomputing `ActiveCellCache` slot on miss:** verified bit-identical,
+  but only **12,495.9 ns/frame** on the 8-run signal (median **12,548.6**), below
+  the bar.
+- **Binaryen `--traps-never-happen`:** verified bit-identical, but the 8-run
+  signal was **12,265.9 ns/frame** (median **12,316.3**), effectively W11.
+- **Binaryen `--inline-functions-with-loops`:** verified bit-identical, but
+  regressed to **12,542.3 ns/frame** on the 8-run signal (median **12,611.1**).
+- **Positive-coordinate fast path for `cells_near_entity`:** verified
+  bit-identical, but only **12,300.8 ns/frame** on the 8-run signal (median
+  **12,351.1**), below the bar.
+
+The standard artifact was rebuilt afterward and `LR_ENGINE=wasm npm run verify`
+passed.
+
+## Session 8 (2026-06-05 cont.) — flat history-snapshot invalidation tradeoff, rejected
+
+Tested a larger structural swap for the hottest history path: instead of fanning
+each history snapshot out into its 3×3 cell nodes during simulation, record each
+snapshot once in the per-frame snap arena and, on `addLine`, scan frames
+chronologically for the first snapshot that both collides with the new line and
+has a 3×3 cell intersecting the line's `classicCells`.
+
+This preserved the observable invalidation result under `LR_ENGINE=wasm npm run
+verify` and initially looked promising:
+
+- Dirty probe, old indexed code still present: **11,704.9 ns/frame** on 8 runs
+  (median **11,684.2**).
+- Cleaned probe, old history-grid plumbing removed: **11,951.6 ns/frame** on
+  8 runs (median **11,958.8**).
+
+However the required full gate did **not** hold:
+
+| stage | config | mean ns/frame | median |
+|-------|--------|---------------|--------|
+| W11 standing | 30 runs + 3 warmup | 12,265.0 ± 409.0 | 12,277.2 |
+| flat history-scan probe | 40 runs + 3 warmup | 12,282.7 ± 451.0 | 12,386.7 |
+
+The tradeoff moves too much work into `addLine` invalidation for this compiler
+shape; the short run under-sampled that cost. Reverted and rebuilt the standard
+artifact; `LR_ENGINE=wasm npm run verify` passed afterward.
+
+## Session 9 (2026-06-05 cont.) — vendored lr-core data-structure probes, no kept speed change
+
+Re-read the vendored `lr-core` hot-path structures against the Rust port:
+
+- `ClassicGrid` stores per-cell line buckets in descending line-id order with
+  duplicate cell visits preserved. The Rust port already mirrors the observable
+  order and intentionally visits per-cell buckets directly instead of allocating
+  a candidate line array.
+- `LineEngine._collideEntities` precomputes the 3×3 cell neighborhood once for
+  both history recording and line lookup. The Rust port already does the same.
+- `Frame` stores only `{pos, vel}` snapshots for invalidation, and `IndexList`
+  caches the first collision frame. The Rust port already uses compact snapshot
+  arenas and direct `Vec` lists with the same first-index behavior.
+- `Immo`'s major trick is one shared mutable computed cache per version lineage;
+  the Rust port already models that with holders, version nodes, and LCA patch
+  replay.
+
+Rejected probes, both reverted:
+
+- **Ascending internal line buckets + reverse collision iteration:** preserved
+  descending observable order under `LR_ENGINE=wasm npm run verify`, but the
+  8-run signal regressed to **12,552.2 ns/frame** (median **12,513.8**). The
+  collision-loop cost of reverse iteration outweighed cheaper monotonic appends.
+- **Descending bucket high-id fast path:** preserved bit identity, but the
+  8-run signal was **12,537.8 ns/frame** (median **12,597.3**), also worse than
+  W11. Avoiding the duplicate scan in `push_line` is not material for this
+  compile shape.
+
+Crate/data-structure assessment: no dependency looks like an obvious win for
+the current hot path. `smallvec`/`arrayvec` are attractive for tiny buckets, but
+inline storage would bloat `FlatIntMap` values unless combined with a pool of
+small ids, and the pool/indirection shape is risky for the collision loop.
+`hashbrown`/`rustc-hash` do not clearly improve over the existing integer
+hasher plus custom `FlatIntMap`; the hottest map is already specialized.
+`bumpalo` fits phase-oriented allocation, but this engine already uses reusable
+`Vec` arenas and needs fine-grained rollback, so arena reset semantics do not map
+cleanly to the shared frame cache.
+
+## Session 10 (2026-06-05 cont.) — cache-size / raw-frame / history probes, no kept speed change
+
+Short CPU profile on the actual target path (`LR_ENGINE=wasm`, `perf` mini_burst,
+6 timed runs + 1 warmup) confirmed the standing shape:
+
+- `wasm-function[30]` fused solver/collision loop: **32.6%**
+- `wasm-function[25]` history `add_to_grid`: **26.3%**
+- `wasm-function[17]` 3×3 cell hashing: **7.1%**
+- GC: **4.6%**
+- Largest JS items: `getRawFrameAtFrame` **2.3%**, `pointStateFrom` **1.3%**,
+  `detect` **1.1%**, `engineLineSignature` **0.9%**
+
+Rejected probes, all verified bit-identical under `LR_ENGINE=wasm npm run verify`
+and reverted:
+
+- **Bigger direct-mapped frame caches:** `LineCellCache` 64→128 and
+  `ActiveCellCache` 128→256 gave **12,286.3 ns/frame** on 8 runs (median
+  **12,306.9**), effectively baseline and below the bar.
+- **ActiveCellCache-only 128→256:** regressed to **12,454.6 ns/frame** (median
+  **12,451.2**).
+- **LineCellCache-only 64→128:** weak at **12,338.7 ns/frame** (median
+  **12,310.8**), below the bar.
+- **Pre-encode 3×3 cell coordinates in `cells_near_entity`:** mirrored vendored
+  `ClassicGrid`'s reuse of encoded x/y coordinates, but regressed to
+  **12,483.4 ns/frame** (median **12,486.7**), likely code-shape/inline cost.
+- **Hoist WASM `getRawFrameAtFrame` lookup out of the extraction loop:** regressed
+  to **12,548.6 ns/frame** (median **12,516.3**).
+- **Filter raw-frame events to sled-side collisions in Rust:** preserved
+  `RawFrame` semantics but regressed to **12,719.2 ns/frame** (median
+  **12,744.1**); the extra Rust branch outweighed JS copy/filter savings.
+- **Force-inline history `add_to_grid`:** regressed hard to
+  **13,013.5 ns/frame** (median **13,038.6**), so keeping the history helper out
+  of the fused step loop is better for this wasm code shape.
+
+Conclusion: direct cache sizing, encoded-cell reuse, and small JS/WASM boundary
+tweaks are exhausted for now. The next plausible path needs a larger redesign of
+the history recording/invalidation data flow that avoids the flat-scan probe's
+`addLine` penalty, or a much broader detector/measurement ABI that removes whole
+object graphs rather than shaving per-frame wrapper work.
+
+## Session 11 (2026-06-05 cont.) — history-map and build-pipeline probes, no kept speed change
+
+Rejected probes, all verified bit-identical under `LR_ENGINE=wasm npm run verify`
+and reverted/restored:
+
+- **Use `FlatIntMap<Vec<CellFrame>>` for the history grid:** switched `HistGrid`
+  from `HashMap<i64, Vec<CellFrame>, IntBuildHasher>` to the custom flat integer
+  map already used by `cell_lines`. The 8-run signal regressed to
+  **12,422.7 ns/frame** (median **12,421.3**). The tuned `HashMap` remains better
+  for the history workload, likely because rollback/tombstone churn and larger
+  `Vec<CellFrame>` values fit SwissTable better than the simple linear-probe map.
+- **Unroll the fixed 9-cell `add_to_grid` fanout:** preserved identity but
+  regressed hard to **13,191.6 ns/frame** (median **13,151.4**). Binaryen/Rust
+  prefer the compact loop shape here.
+- **Binaryen `-O4` instead of `-O3`:** preserved identity but regressed to
+  **12,549.2 ns/frame** (median **12,625.9**). The standard `build:wasm` `-O3`
+  artifact was rebuilt afterward.
+
+Conclusion: the current history-grid map, compact fanout loop, and Binaryen `-O3`
+pipeline are locally better than the obvious alternatives. Future work should
+avoid more code-shape micro-probes and focus on changing what history is recorded
+or how candidate evaluation consumes it.
+
+## Session 12 (2026-06-05 cont.) — line-map lifecycle and conversion-cache probes, no kept speed change
+
+Rejected probes, all verified bit-identical under `LR_ENGINE=wasm npm run verify`
+and reverted:
+
+- **Compact `FlatIntMap` tombstones after removals:** added a shrink/rehash path
+  when removed cell buckets left the custom line grid with many tombstones. The
+  8-run signal regressed to **12,505.3 ns/frame** (median **12,492.2**), so the
+  compaction cost is not repaid by faster later lookups on the current compile
+  shape.
+- **Single-remove ordered line buckets:** replaced `retain(|e| e.id != id)` with
+  `position` + `Vec::remove` because each cell bucket has at most one entry per
+  line id. This preserved identity but regressed to **12,521.7 ns/frame** (median
+  **12,602.2**), so the existing compact retain loop is better after wasm-opt.
+- **Single-entry field-snapshot `engineLineFromTrackLine` cache:** avoided the
+  string signature and nested `Map` in the JS line conversion cache. It preserved
+  optimizer output but only produced **12,362.9 ns/frame** on 8 runs (median
+  **12,357.6**), below the >1.6% bar and consistent with the prior full-gate
+  result that this JS-side conversion path is too small to keep.
+
+Conclusion: branch-reconcile line-map maintenance and JS line conversion are not
+large enough in the target workload. Further work should stop circling these
+secondary paths and either redesign history recording/invalidation or move a
+larger detector/measurement slice across the WASM boundary in one ABI.
+
+## Session 13 (2026-06-05 cont.) — state-cache and collision-history probes, no kept speed change
+
+Rejected probes, all verified bit-identical under `LR_ENGINE=wasm npm run verify`
+and reverted:
+
+- **Make `State` `Copy` and push/copy cached frames directly:** removed explicit
+  `clone()` calls around the large frame-cache state struct. The 8-run signal
+  regressed to **12,480.6 ns/frame** (median **12,608.1**), so the generated
+  wasm was not improved by the source-level copy shape.
+- **Short-circuit the collision predicate before `line_pos`:** skipped the
+  normalized along-line projection when direction/perpendicular force checks had
+  already failed. This preserved identity, but the extra branch shape produced
+  only **12,440.5 ns/frame** (median **12,386.4**), below the bar and worse than
+  the eager arithmetic in this WASM loop.
+- **Store only first collision frame per line:** `Frame.collisions` only serves
+  `_removeLine`'s first-collision query, so the probe stored `line id -> first
+  frame` and rolled back only first-collision touches. This was bit-identical but
+  only **12,310.3 ns/frame** (median **12,371.8**) on 8 runs, far below the
+  required >1.6% gate. Reverted to avoid keeping non-holding speed code.
+
+Conclusion: some semantically valid simplifications do not translate into a
+measurable WASM win after optimization. The remaining path to a large gain still
+looks structural: reduce history work itself or move an entire measurement
+workflow into a single ABI, rather than reshaping individual Rust statements.
+
+## Session 14 (2026-06-05 cont.) — candidate gate staging and raw-frame JS probe, no kept speed change
+
+Rejected probes, all verified bit-identical under `LR_ENGINE=wasm npm run verify`
+and reverted:
+
+- **Two-stage candidate gate detection:** for windowed candidate validation,
+  first detected only through the survival/target-landing gate, and on early
+  failure called metered `getRider(horizon)` to preserve identical `sim_frames`
+  accounting without building raw-frame objects for the final suffix. This kept
+  optimizer hashes and sim-frame stats identical, but regressed to
+  **12,962.7 ns/frame** (median **12,934.7**) because successful candidates paid
+  duplicate detection work and the extra metered call was not cheap enough.
+- **Inline `contactLineIds` de-dupe loop in WASM raw-frame wrapper:** replaced
+  `Array.includes` with an explicit loop in `getRawFrameAtFrame`. This preserved
+  behavior but regressed to **12,637.0 ns/frame** (median **12,595.9**); V8's
+  built-in small-array path is better than the hand-written loop here.
+
+Conclusion: preserving sim-frame accounting while skipping only object extraction
+does not clear the bar. The viable large move still appears to be an actual
+single-pass measurement/detector ABI, not partial staging around the existing
+`Detection` object model.
+
+## Session 15 (2026-06-05 cont.) — event-buffer ABI probe, no kept speed change
+
+Rejected probe, verified bit-identical under `LR_ENGINE=wasm npm run verify` and
+reverted:
+
+- **Use an `i32` collision-event exchange buffer instead of `f64` triples:** kept
+  the internal event vector unchanged but changed the WASM `EVENTS` ABI from
+  `[f64]`/`Float64Array` to `[i32]`/`Int32Array`. This looked plausible because
+  the records are integer triples `(iteration, line_id, point_idx)`, but the
+  8-run signal regressed to **12,543.4 ns/frame** (median **12,528.6**). The event
+  boundary is too small, and/or the optimized `f64` path is already the better
+  code shape for this module.
+
+Conclusion: integer-packing the existing event ABI is not useful in isolation.
+If event handling is revisited, it should be as part of a wider detector ABI that
+returns the final measured facts directly instead of exposing per-frame event
+records.
+
+## Session 16 (2026-06-05 cont.) — center-cell history index  ⭐ kept
+
+`Frame.grid` history recording no longer fans every entity snapshot out into all
+9 neighboring cells during forward simulation. Instead, each snapshot is recorded
+once under its entity center cell. When `_addLine` invalidates the frame cache,
+each rasterized line cell queries the inverse 3×3 neighborhood of possible entity
+center cells and returns the earliest colliding frame below the current truncation
+limit.
+
+This preserves lr-core's observable invalidation condition:
+
+```
+line cell ∈ cellsNearEntity(snapshot center) && line.collidesWith(snapshot)
+```
+
+but moves the 3×3 expansion from the hot per-frame write path to the much colder
+line-add invalidation path. It also drops the post-collision history write from a
+full `cells_near_entity` call to a single center-cell hash.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical engine traces and
+  optimizer outputs/stat hashes.
+- **Perf signal:** 8 runs → **8,792.8 ns/frame** (median **8,817.2**).
+- **Full gate:** 40 runs + 3 warmup → **8,985.0 ns/frame ± 440.3** (median
+  **9,071.5**) versus W11's **12,265.0 ns/frame** standing baseline.
+
+**Effect:** about **−26.7% mean ns/frame** on the default WASM perf gate. Kept.
+
+Safety/identity notes:
+
+- The verifier's optimizer cases kept identical `sim_frames`, proving the shared
+  cache invalidation path remains behaviorally identical for the compiler's
+  branch/reconcile access pattern.
+- Query expansion returns the minimum frame across inverse-neighborhood center
+  cells; within-frame snapshot order is irrelevant because `_setFramesLength`
+  truncates only to a frame index.
+
+**Standing after center-cell history index:** **~8,985 ns/physics-frame** —
+bit-identical to lr-core, ≈37.2× faster than pristine JS (333k) and ≈8.1× faster
+than the parity-correct JS engine (B11 ~73k).

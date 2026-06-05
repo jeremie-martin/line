@@ -13,7 +13,7 @@
  * mean ± σ and min … max across the timed runs so you can tell a real change
  * from noise.
  *
- *   npm run perf                       # mini_burst @ 50k, 30 runs
+ *   npm run perf                       # mini_burst @ 50k, 40 runs
  *   npm run perf -- --reps=10          # faster signal
  *   npm run perf -- --specs=mini_burst,tiny_dance
  *   LR_ENGINE=wasm npm run perf        # measure the WASM engine instead
@@ -43,7 +43,7 @@ async function main() {
   const specs = arg("specs", "mini_burst").split(",");
   const budget = Number(arg("budget", "50000"));
   const seed = Number(arg("seed", "0"));
-  const reps = Number(arg("reps", "30"));
+  const reps = Number(arg("reps", "40"));
   const warmup = Number(arg("warmup", "3"));
   const engine = process.env.LR_ENGINE === "wasm" ? "wasm" : "js";
 

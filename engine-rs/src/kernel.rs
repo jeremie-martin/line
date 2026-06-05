@@ -5,10 +5,10 @@
 //!
 //! The arithmetic here is REUSED VERBATIM from the proven kernel (bit-identical on
 //! all 5 fixtures via wasm:check/trace) — only the collision section is restructured
-//! to compute the 3×3 cells once (cells_near_entity) and share them between the
-//! line lookup and the faithful addToGrid history recording.
+//! to compute the 3×3 cells once (cells_near_entity), share them with line lookup,
+//! and record collision history through an equivalent center-cell index.
 
-use crate::grid::{cells_near_entity, FlatIntMap};
+use crate::grid::{cell_hash, cells_near_entity, FlatIntMap};
 use crate::line::{Line, MAX_FORCE_LENGTH};
 use crate::frame::{add_to_collisions, add_to_grid, ActiveCellCache, Collisions, HistGrid, Snap, SnapNode};
 use crate::{
@@ -264,11 +264,12 @@ pub(crate) fn step_state<const TRACK: bool>(
                     *FRIC.get_unchecked(i),
                 )
             };
-            // getCellsNearEntity once (pre-collision pos), shared by addToGrid + lookup.
+            // getCellsNearEntity once (pre-collision pos), shared by history center-cell
+            // recording and collision line lookup.
             let cells = cells_near_entity(pxi, pyi);
-            // addToGrid (A): pre-collision snapshot into all 3×3 cells.
+            // addToGrid (A): pre-collision snapshot.
             if TRACK {
-                add_to_grid(hist, touched_cells, hist_snaps, hist_snap_values, active_cells, &cells, frame_index, pxi, pyi, vxi, vyi);
+                add_to_grid(hist, touched_cells, hist_snaps, hist_snap_values, active_cells, cells[4], frame_index, pxi, pyi, vxi, vyi);
             }
             for &cell in cells.iter() {
                 if let Some(lns) = line_cache.lookup(grid, cell) {
@@ -309,10 +310,10 @@ pub(crate) fn step_state<const TRACK: bool>(
                             prevxi = fvx;
                             prevyi = fvy;
                             events.push((it as u8, l.id, i as i32));
-                            // addToGrid (B) + addToCollisions: post-collision, cells around the MOVED entity.
+                            // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
                             if TRACK {
-                                let pcells = cells_near_entity(pxi, pyi);
-                                add_to_grid(hist, touched_cells, hist_snaps, hist_snap_values, active_cells, &pcells, frame_index, pxi, pyi, vxi, vyi);
+                                let pcell = cell_hash(pxi, pyi);
+                                add_to_grid(hist, touched_cells, hist_snaps, hist_snap_values, active_cells, pcell, frame_index, pxi, pyi, vxi, vyi);
                                 add_to_collisions(coll, touched_lines, l.id, frame_index);
                             }
                         }

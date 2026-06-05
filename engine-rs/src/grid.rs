@@ -217,9 +217,24 @@ pub(crate) fn hash_int_pair(a: i64, b: i64) -> i64 {
     if c & 1 != 0 { -(c - 1) / 2 - 1 } else { c / 2 }
 }
 
+pub(crate) fn unhash_int_pair(n: i64) -> (i64, i64) {
+    let c = if n >= 0 { n * 2 } else { -(n + 1) * 2 + 1 };
+    let x = (c as f64).sqrt() as i64;
+    let r = c - x * x;
+    let (aa, bb) = if r < x { (r, x) } else { (x, r - x) };
+    let a = if aa & 1 != 0 { -(aa + 1) / 2 } else { aa / 2 };
+    let b = if bb & 1 != 0 { -(bb + 1) / 2 } else { bb / 2 };
+    (a, b)
+}
+
 #[inline]
 pub(crate) fn cell_cor(x: f64) -> i64 {
     (x / GRID_SIZE).floor() as i64
+}
+
+#[inline]
+pub(crate) fn cell_hash(px: f64, py: f64) -> i64 {
+    hash_int_pair(cell_cor(px), cell_cor(py))
 }
 
 /// ClassicGrid.getCellsNearEntity: the 3×3 cell hashes around the entity's cell,
@@ -310,4 +325,18 @@ pub(crate) fn classic_cells(p1x: f64, p1y: f64, vecx: f64, vecy: f64) -> Vec<i64
         }
     }
     cells
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn hash_int_pair_round_trips_grid_coords() {
+        for x in -32..=32 {
+            for y in -32..=32 {
+                assert_eq!(unhash_int_pair(hash_int_pair(x, y)), (x, y));
+            }
+        }
+    }
 }

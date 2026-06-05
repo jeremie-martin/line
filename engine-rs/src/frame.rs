@@ -6,10 +6,10 @@
 //! identical to lr-core's persistent per-frame structures.
 //!
 //!   - `snapshotEntity` → `Snap{pos,vel}` (the parity fix)
-//!   - `Frame.grid` (cell → CellFrameList) + addToGrid + getIndexOfCollisionInCell
+//!   - `Frame.grid` (center cell → CellFrameList) + addToGrid + getIndexOfCollisionInCell
 //!   - `Frame.collisions` (line id → frames) + addToCollisions + getIndexOfCollisionWithLine
 
-use crate::grid::IntMap;
+use crate::grid::{hash_int_pair, unhash_int_pair, IntMap};
 use crate::line::{collides_with, Line};
 
 /// snapshotEntity: pos + vel only (Frame.js:16 — the only fields the invalidation
@@ -27,8 +27,8 @@ pub(crate) struct SnapNode {
     next: i32,
 }
 
-/// A CellFrameList node: snapshots recorded in one cell at one frame index, in
-/// insertion order (COLLIDABLES order × the 3×3 fan-out × pre/post per collision).
+/// A CellFrameList node: snapshots recorded in one center cell at one frame index,
+/// in insertion order (COLLIDABLES order × pre/post per collision).
 #[derive(Clone)]
 pub(crate) struct CellFrame {
     pub index: i32,
@@ -110,7 +110,7 @@ impl CellFrame {
     }
 }
 
-/// Frame.grid: cell hash → CellFrameList (ascending-index nodes).
+/// Frame.grid: entity center-cell hash → CellFrameList (ascending-index nodes).
 pub(crate) type HistGrid = IntMap<i64, Vec<CellFrame>>;
 /// Frame.collisions: line id → ascending frame indices it collided (the IndexList).
 pub(crate) type Collisions = IntMap<i32, Vec<i32>>;
@@ -153,8 +153,9 @@ fn add_to_cell(
     touched.push(cell);
 }
 
-/// addToGrid(entity, index, cells): record the snapshot into all of the entity's
-/// 3×3 cells (Frame.js:159).
+/// addToGrid(entity, index): record the snapshot in the entity center cell.
+/// Query-time expansion over a line cell's inverse 3×3 neighborhood preserves
+/// lr-core's observable invalidation condition while avoiding the 9-way write fanout.
 #[inline]
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn add_to_grid(
@@ -163,7 +164,7 @@ pub(crate) fn add_to_grid(
     snap_links: &mut Vec<SnapNode>,
     snap_values: &mut Vec<Snap>,
     active: &mut ActiveCellCache,
-    cells: &[i64; 9],
+    center_cell: i64,
     index: i32,
     px: f64,
     py: f64,
@@ -172,13 +173,35 @@ pub(crate) fn add_to_grid(
 ) {
     let snap = snap_values.len() as i32;
     snap_values.push(Snap { px, py, vx, vy });
-    for &cell in cells.iter() {
-        add_to_cell(grid, touched, snap_links, active, cell, index, snap);
-    }
+    add_to_cell(grid, touched, snap_links, active, center_cell, index, snap);
 }
 
-/// Frame.getIndexOfCollisionInCell (Frame.js:122): first node (ascending index)
-/// any of whose entities collides with the line.
+/// First node below `before` (ascending index) in one center-cell list whose
+/// snapshots collide with the line.
+#[inline]
+fn index_of_collision_in_center_cell(
+    grid: &HistGrid,
+    snap_links: &[SnapNode],
+    snap_values: &[Snap],
+    cell: i64,
+    l: &Line,
+    before: i32,
+) -> Option<i32> {
+    let list = grid.get(&cell)?;
+    for cf in list.iter() {
+        if cf.index >= before {
+            break;
+        }
+        if cf.any_collides(snap_links, snap_values, l) {
+            return Some(cf.index);
+        }
+    }
+    None
+}
+
+/// Frame.getIndexOfCollisionInCell (Frame.js:122), represented through a
+/// center-cell index: a line cell can collide with snapshots whose center cell is
+/// any of the inverse 3×3 neighborhood cells.
 #[inline]
 pub(crate) fn index_of_collision_in_cell(
     grid: &HistGrid,
@@ -187,13 +210,17 @@ pub(crate) fn index_of_collision_in_cell(
     cell: i64,
     l: &Line,
 ) -> Option<i32> {
-    let list = grid.get(&cell)?;
-    for cf in list.iter() {
-        if cf.any_collides(snap_links, snap_values, l) {
-            return Some(cf.index);
+    let (gx, gy) = unhash_int_pair(cell);
+    let mut best = i32::MAX;
+    for dx in -1..=1 {
+        for dy in -1..=1 {
+            let center = hash_int_pair(gx + dx, gy + dy);
+            if let Some(idx) = index_of_collision_in_center_cell(grid, snap_links, snap_values, center, l, best) {
+                best = idx;
+            }
         }
     }
-    None
+    if best == i32::MAX { None } else { Some(best) }
 }
 
 /// addToCollisions(line, index) (Frame.js:182): append `index` to the line's frame

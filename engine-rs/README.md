@@ -15,7 +15,7 @@ Run from the repo root.
 | **`npm run wasm:all`** | **Start here.** Builds the `.wasm`, then runs every check and prints a summary. Exits nonzero only on a regression (WASM diverging from JS); not-yet-implemented gates are reported, not failures. |
 | **`npm run wasm:compile`** | The swap-in acceptance gate (fast inner loop): compiles 4 cases under **wasm** and **vendored** and asserts identical `{track, stats}` hash. This is the red→green target while building the WASM engine. |
 | `npm run wasm:compile -- --official` | Also re-checks **vendored ≡ official** (the slow published engine). That leg is a stable fact, so it's opt-in — run it after editing `vendor/lr-core`, not every time. Since `vendored ≡ official` is transitive, `wasm ≡ vendored ⇒ wasm ≡ official`. |
-| `npm run build:wasm` | Rebuild `lr_engine.wasm` after editing `src/lib.rs`. |
+| `npm run build:wasm` | Rebuild and Binaryen-optimize `lr_engine.wasm` after editing Rust. Requires `wasm-opt` from Binaryen. |
 | **`LR_ENGINE=wasm npm run perf`** | Speed of the WASM engine, end-to-end. `perf` is engine-aware, so this reports the same `ns/physics-frame` (hyperfine-style mean ± σ / median / range) as plain `npm run perf` — run both and compare directly. No separate baseline to maintain. |
 
 Individual checks (all also run by `wasm:all`):
@@ -70,7 +70,7 @@ vendored` track-hash on all 4 specs). `vendored ≡ official` still holds (run
 
 Performance: the kernel alone is ~5× the JS engine (`wasm:bench`), and end-to-end
 (`LR_ENGINE=wasm npm run perf`) is now much faster than the JS engine
-(~29.4k ns/physics-frame with the 20-run default). The biggest boundary win is a
+(~28.3k ns/physics-frame with the 20-run default). The biggest boundary win is a
 fused raw-frame ABI for the detector hot path: Rust computes the BODY average,
 binding states, and collision records in one cache read, and the wrapper returns
 the detector's `RawFrame` shape directly instead of crossing wasm twice and

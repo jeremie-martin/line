@@ -32,7 +32,7 @@
     "cbench:prof": "node --cpu-prof --cpu-prof-dir=generated/prof --cpu-prof-name=compile.cpuprofile --import tsx scripts/v0/bench/compile_bench.ts",
     "trace:dump": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts --dump",
     "trace:diff": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts --diff",
-    "build:wasm": "cargo build --release --target wasm32-unknown-unknown --manifest-path engine-rs/Cargo.toml",
+    "build:wasm": "cargo build --release --target wasm32-unknown-unknown --manifest-path engine-rs/Cargo.toml && wasm-opt --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext -O3 engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm -o engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm",
     "wasm:check": "tsx scripts/v0/bench/wasm_kernel_check.ts",
     "wasm:bench": "tsx scripts/v0/bench/wasm_bench.ts",
     "wasm:engine": "tsx scripts/v0/bench/wasm_engine_check.ts",

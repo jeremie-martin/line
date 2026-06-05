@@ -552,3 +552,14 @@ memoizes its cold full-stateMap fallback, so multi-point probes (`PEG`/`TAIL`/
 - **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
 - **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):** 30,879.4 →
   **29,414.7 ns/physics-frame** (**−4.7% mean / −4.7% median**).
+
+## W3 — Pair wrapper allocation cuts with `wasm-opt`  (−3.9%, bit-identical)
+Two sub-threshold changes only held when measured together: the wrapper reuses the
+static events view and shared empty contact arrays for collision-free raw frames,
+while `npm run build:wasm` now runs Binaryen `wasm-opt -O3` with the wasm features
+Rust emits (`bulk-memory`, non-trapping float-to-int, sign-ext). Individually,
+these were below the 2% commit bar; together they clear it.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):** 29,414.7 →
+  **28,259.2 ns/physics-frame** (**−3.9% mean / −4.5% median**).

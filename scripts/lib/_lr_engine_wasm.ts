@@ -27,6 +27,10 @@ const RIGHT_EXTENDED = 2;
 const SLED_POINT_MASK = 0b111100;
 const SCRATCH_LEN = NENT * 6 + NENT;
 const SCRATCH_PTR = ex.scratch_ptr();
+const EVENTS_LEN = 49152;
+const EVENTS_PTR = ex.events_ptr();
+const EMPTY_SLED_CONTACTS = Object.freeze([]) as unknown as string[];
+const EMPTY_CONTACT_LINE_IDS = Object.freeze([]) as unknown as number[];
 
 // shared singletons — the oracle only reads .type/.id/.updated, never mutates
 const STEP_UPDATE = { type: "StepUpdate" };
@@ -58,6 +62,17 @@ function scratch(): Float64Array {
     scratchView = new Float64Array(buffer, SCRATCH_PTR, SCRATCH_LEN);
   }
   return scratchView as Float64Array;
+}
+
+let eventsBuffer: ArrayBuffer | undefined;
+let eventsView: Float64Array | undefined;
+function events(): Float64Array {
+  const buffer = ex.memory.buffer;
+  if (buffer !== eventsBuffer) {
+    eventsBuffer = buffer;
+    eventsView = new Float64Array(buffer, EVENTS_PTR, EVENTS_LEN);
+  }
+  return eventsView as Float64Array;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -146,7 +161,7 @@ export class LineRiderEngine {
     // events are (iter, line_id, point_idx) triples — copy out before any
     // further wasm call can grow/detach the buffer.
     const ev = new Int32Array(3 * n);
-    const view = new Float64Array(ex.memory.buffer, ex.events_ptr(), 3 * n);
+    const view = events();
     for (let k = 0; k < 3 * n; k++) ev[k] = view[k];
     // synthesize lr-core's per-frame update sequence (scarf excluded):
     // StepUpdate, then 6×(22 ConstraintUpdate + collisions of that iteration),
@@ -168,23 +183,23 @@ export class LineRiderEngine {
   getRawFrameAtFrame(frame: number): any {
     const n = ex.get_raw_frame(this.h, frame);
     const sc = scratch();
-    const sledContacts: string[] = [];
-    const contactLineIds: number[] = [];
+    let sledContacts: string[] | undefined;
+    let contactLineIds: number[] | undefined;
     let seenPoints = 0;
     if (n > 0) {
-      const ev = new Float64Array(ex.memory.buffer, ex.events_ptr(), 3 * n);
-      const seenLines = new Set<number>();
+      const ev = events();
       for (let p = 0; p < n; p++) {
         const pointIdx = ev[p * 3 + 2] | 0;
         const bit = 1 << pointIdx;
         if ((SLED_POINT_MASK & bit) === 0) continue;
         if ((seenPoints & bit) === 0) {
           seenPoints |= bit;
+          sledContacts ??= [];
           sledContacts.push(ENTITY_IDS[pointIdx]);
         }
         const lineId = ev[p * 3 + 1];
-        if (!seenLines.has(lineId)) {
-          seenLines.add(lineId);
+        contactLineIds ??= [];
+        if (!contactLineIds.includes(lineId)) {
           contactLineIds.push(lineId);
         }
       }
@@ -193,8 +208,8 @@ export class LineRiderEngine {
       frame,
       position: { x: sc[0], y: sc[1] },
       velocity: { x: sc[2], y: sc[3] },
-      sledContacts,
-      contactLineIds,
+      sledContacts: sledContacts ?? EMPTY_SLED_CONTACTS,
+      contactLineIds: contactLineIds ?? EMPTY_CONTACT_LINE_IDS,
       sledBroken: sc[5] !== -1,
       riderEjected: sc[4] !== -1,
     };

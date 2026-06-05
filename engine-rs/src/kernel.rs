@@ -8,13 +8,12 @@
 //! to compute the 3×3 cells once (cells_near_entity) and share them between the
 //! line lookup and the faithful addToGrid history recording.
 
-use crate::grid::{cells_near_entity, IntMap};
+use crate::grid::{cells_near_entity, FlatIntMap};
 use crate::line::{Line, MAX_FORCE_LENGTH};
-use crate::frame::{add_to_collisions, add_to_grid, Collisions, HistGrid};
+use crate::frame::{add_to_collisions, add_to_grid, Collisions, HistGrid, SnapNode};
 use crate::{
-    BASE, BUTT, COLLIDABLES, FRIC, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS,
-    LFOOT, LHAND, NENT, NITER, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER,
-    STRING, TAIL,
+    BASE, BUTT, COLLIDABLES, FRIC, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT,
+    LHAND, NENT, NITER, NOSE, PEG, RHAND, RIDER_MOUNTED, RFOOT, SHOULDER, STRING, TAIL,
 };
 
 #[derive(Clone)]
@@ -67,44 +66,96 @@ pub(crate) fn compute_rest_endur() -> ([f64; NITER], [f64; NITER]) {
 }
 
 #[inline(always)]
-fn resolve_stick(s: &mut State, p1: usize, p2: usize, rest: f64) {
-    let length = dist(s.px[p1], s.py[p1], s.px[p2], s.py[p2]);
-    let gd = if length == 0.0 { 0.0 } else { (length - rest) / length };
+unsafe fn resolve_stick(s: &mut State, rest: &[f64; NITER], k: usize, p1: usize, p2: usize) {
+    let p1x = *s.px.get_unchecked(p1);
+    let p1y = *s.py.get_unchecked(p1);
+    let p2x = *s.px.get_unchecked(p2);
+    let p2y = *s.py.get_unchecked(p2);
+    let length = dist(p1x, p1y, p2x, p2y);
+    let gd = if length == 0.0 { 0.0 } else { (length - *rest.get_unchecked(k)) / length };
     let diff = gd * 0.5;
-    let dx = (s.px[p1] - s.px[p2]) * diff;
-    let dy = (s.py[p1] - s.py[p2]) * diff;
-    s.px[p1] -= dx; s.py[p1] -= dy;
-    s.px[p2] += dx; s.py[p2] += dy;
+    let dx = (p1x - p2x) * diff;
+    let dy = (p1y - p2y) * diff;
+    *s.px.get_unchecked_mut(p1) = p1x - dx;
+    *s.py.get_unchecked_mut(p1) = p1y - dy;
+    *s.px.get_unchecked_mut(p2) = p2x + dx;
+    *s.py.get_unchecked_mut(p2) = p2y + dy;
 }
 
 #[inline(always)]
-fn resolve_repel(s: &mut State, p1: usize, p2: usize, rest: f64) {
-    let length = dist(s.px[p1], s.py[p1], s.px[p2], s.py[p2]);
-    if length < rest {
-        let gd = if length == 0.0 { 0.0 } else { (length - rest) / length };
+unsafe fn resolve_repel(s: &mut State, rest: &[f64; NITER], k: usize, p1: usize, p2: usize) {
+    let p1x = *s.px.get_unchecked(p1);
+    let p1y = *s.py.get_unchecked(p1);
+    let p2x = *s.px.get_unchecked(p2);
+    let p2y = *s.py.get_unchecked(p2);
+    let length = dist(p1x, p1y, p2x, p2y);
+    if length < *rest.get_unchecked(k) {
+        let gd = if length == 0.0 { 0.0 } else { (length - *rest.get_unchecked(k)) / length };
         let diff = gd * 0.5;
-        let dx = (s.px[p1] - s.px[p2]) * diff;
-        let dy = (s.py[p1] - s.py[p2]) * diff;
-        s.px[p1] -= dx; s.py[p1] -= dy;
-        s.px[p2] += dx; s.py[p2] += dy;
+        let dx = (p1x - p2x) * diff;
+        let dy = (p1y - p2y) * diff;
+        *s.px.get_unchecked_mut(p1) = p1x - dx;
+        *s.py.get_unchecked_mut(p1) = p1y - dy;
+        *s.px.get_unchecked_mut(p2) = p2x + dx;
+        *s.py.get_unchecked_mut(p2) = p2y + dy;
     }
 }
 
 #[inline(always)]
-fn resolve_bind(s: &mut State, p1: usize, p2: usize, bind: usize, rest: f64, endur: f64) {
-    if s.fsu[bind] == -1 {
-        let length = dist(s.px[p1], s.py[p1], s.px[p2], s.py[p2]);
-        let gd = if length == 0.0 { 0.0 } else { (length - rest) / length };
+unsafe fn resolve_bind(
+    s: &mut State,
+    rest: &[f64; NITER],
+    endur: &[f64; NITER],
+    k: usize,
+    p1: usize,
+    p2: usize,
+    bind: usize,
+) {
+    let p1x = *s.px.get_unchecked(p1);
+    let p1y = *s.py.get_unchecked(p1);
+    let p2x = *s.px.get_unchecked(p2);
+    let p2y = *s.py.get_unchecked(p2);
+    let length = dist(p1x, p1y, p2x, p2y);
+    if *s.fsu.get_unchecked(bind) == -1 {
+        let gd = if length == 0.0 { 0.0 } else { (length - *rest.get_unchecked(k)) / length };
         let diff = gd * 0.5;
-        if diff > endur {
-            s.fsu[bind] = 0;
+        if diff > *endur.get_unchecked(k) {
+            *s.fsu.get_unchecked_mut(bind) = 0;
         } else {
-            let dx = (s.px[p1] - s.px[p2]) * diff;
-            let dy = (s.py[p1] - s.py[p2]) * diff;
-            s.px[p1] -= dx; s.py[p1] -= dy;
-            s.px[p2] += dx; s.py[p2] += dy;
+            let dx = (p1x - p2x) * diff;
+            let dy = (p1y - p2y) * diff;
+            *s.px.get_unchecked_mut(p1) = p1x - dx;
+            *s.py.get_unchecked_mut(p1) = p1y - dy;
+            *s.px.get_unchecked_mut(p2) = p2x + dx;
+            *s.py.get_unchecked_mut(p2) = p2y + dy;
         }
     }
+}
+
+#[inline(always)]
+unsafe fn resolve_iter_constraints(s: &mut State, rest: &[f64; NITER], endur: &[f64; NITER]) {
+    resolve_stick(s, rest, 0, PEG, TAIL);
+    resolve_stick(s, rest, 1, TAIL, NOSE);
+    resolve_stick(s, rest, 2, NOSE, STRING);
+    resolve_stick(s, rest, 3, STRING, PEG);
+    resolve_stick(s, rest, 4, PEG, NOSE);
+    resolve_stick(s, rest, 5, STRING, TAIL);
+    resolve_bind(s, rest, endur, 6, PEG, BUTT, RIDER_MOUNTED);
+    resolve_bind(s, rest, endur, 7, TAIL, BUTT, RIDER_MOUNTED);
+    resolve_bind(s, rest, endur, 8, NOSE, BUTT, RIDER_MOUNTED);
+    resolve_stick(s, rest, 9, SHOULDER, BUTT);
+    resolve_stick(s, rest, 10, SHOULDER, LHAND);
+    resolve_stick(s, rest, 11, SHOULDER, RHAND);
+    resolve_stick(s, rest, 12, BUTT, LFOOT);
+    resolve_stick(s, rest, 13, BUTT, RFOOT);
+    resolve_stick(s, rest, 14, SHOULDER, RHAND);
+    resolve_bind(s, rest, endur, 15, SHOULDER, PEG, RIDER_MOUNTED);
+    resolve_bind(s, rest, endur, 16, STRING, LHAND, RIDER_MOUNTED);
+    resolve_bind(s, rest, endur, 17, STRING, RHAND, RIDER_MOUNTED);
+    resolve_bind(s, rest, endur, 18, LFOOT, NOSE, RIDER_MOUNTED);
+    resolve_bind(s, rest, endur, 19, RFOOT, NOSE, RIDER_MOUNTED);
+    resolve_repel(s, rest, 20, SHOULDER, LFOOT);
+    resolve_repel(s, rest, 21, SHOULDER, RFOOT);
 }
 
 /// One frame: step → 6×(constraints, collision) → BindJoints. `events` collects
@@ -113,16 +164,16 @@ fn resolve_bind(s: &mut State, p1: usize, p2: usize, bind: usize, rest: f64, end
 /// and addToCollisions (→ `coll`, new line ids → `touched_lines`) are recorded at
 /// `frame_index`; recording is purely additive — it does not affect the physics.
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn step_state(
+pub(crate) fn step_state<const TRACK: bool>(
     s: &mut State,
-    grid: &IntMap<i64, Vec<Line>>,
+    grid: &FlatIntMap<Vec<Line>>,
     rest: &[f64; NITER],
     endur: &[f64; NITER],
     events: &mut Vec<(u8, i32, i32)>,
     frame_index: i32,
-    track: bool,
     hist: &mut HistGrid,
     touched_cells: &mut Vec<i64>,
+    hist_snaps: &mut Vec<SnapNode>,
     coll: &mut Collisions,
     touched_lines: &mut Vec<i32>,
 ) {
@@ -145,72 +196,68 @@ pub(crate) fn step_state(
     }
 
     for it in 0..ITERATE {
-        resolve_stick(s, PEG, TAIL, rest[0]);
-        resolve_stick(s, TAIL, NOSE, rest[1]);
-        resolve_stick(s, NOSE, STRING, rest[2]);
-        resolve_stick(s, STRING, PEG, rest[3]);
-        resolve_stick(s, PEG, NOSE, rest[4]);
-        resolve_stick(s, STRING, TAIL, rest[5]);
-        resolve_bind(s, PEG, BUTT, RIDER_MOUNTED, rest[6], endur[6]);
-        resolve_bind(s, TAIL, BUTT, RIDER_MOUNTED, rest[7], endur[7]);
-        resolve_bind(s, NOSE, BUTT, RIDER_MOUNTED, rest[8], endur[8]);
-        resolve_stick(s, SHOULDER, BUTT, rest[9]);
-        resolve_stick(s, SHOULDER, LHAND, rest[10]);
-        resolve_stick(s, SHOULDER, RHAND, rest[11]);
-        resolve_stick(s, BUTT, LFOOT, rest[12]);
-        resolve_stick(s, BUTT, RFOOT, rest[13]);
-        resolve_stick(s, SHOULDER, RHAND, rest[14]);
-        resolve_bind(s, SHOULDER, PEG, RIDER_MOUNTED, rest[15], endur[15]);
-        resolve_bind(s, STRING, LHAND, RIDER_MOUNTED, rest[16], endur[16]);
-        resolve_bind(s, STRING, RHAND, RIDER_MOUNTED, rest[17], endur[17]);
-        resolve_bind(s, LFOOT, NOSE, RIDER_MOUNTED, rest[18], endur[18]);
-        resolve_bind(s, RFOOT, NOSE, RIDER_MOUNTED, rest[19], endur[19]);
-        resolve_repel(s, SHOULDER, LFOOT, rest[20]);
-        resolve_repel(s, SHOULDER, RFOOT, rest[21]);
+        unsafe { resolve_iter_constraints(s, rest, endur); }
         for &i in COLLIDABLES.iter() {
+            let (mut pxi, mut pyi, mut prevxi, mut prevyi, vxi, vyi, fric) = unsafe {
+                (
+                    *s.px.get_unchecked(i),
+                    *s.py.get_unchecked(i),
+                    *s.prevx.get_unchecked(i),
+                    *s.prevy.get_unchecked(i),
+                    *s.vx.get_unchecked(i),
+                    *s.vy.get_unchecked(i),
+                    *FRIC.get_unchecked(i),
+                )
+            };
             // getCellsNearEntity once (pre-collision pos), shared by addToGrid + lookup.
-            let cells = cells_near_entity(s.px[i], s.py[i]);
+            let cells = cells_near_entity(pxi, pyi);
             // addToGrid (A): pre-collision snapshot into all 3×3 cells.
-            if track {
-                add_to_grid(hist, touched_cells, &cells, frame_index, s.px[i], s.py[i], s.vx[i], s.vy[i]);
+            if TRACK {
+                add_to_grid(hist, touched_cells, hist_snaps, &cells, frame_index, pxi, pyi, vxi, vyi);
             }
             for &cell in cells.iter() {
                 if let Some(lns) = grid.get(&cell) {
                     for l in lns.iter() {
-                        let ox = s.px[i] - l.p1x;
-                        let oy = s.py[i] - l.p1y;
+                        let ox = pxi - l.p1x;
+                        let oy = pyi - l.p1y;
                         let perp_comp = l.normx * ox + l.normy * oy;
                         let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
-                        let pnt_dir = l.normx * s.vx[i] + l.normy * s.vy[i];
+                        let pnt_dir = l.normx * vxi + l.normy * vyi;
                         if pnt_dir > 0.0
                             && perp_comp > 0.0
                             && perp_comp < MAX_FORCE_LENGTH
                             && line_pos >= l.left_bound
                             && line_pos <= l.right_bound
                         {
-                            let tx = l.normx * perp_comp - s.px[i];
-                            let ty = l.normy * perp_comp - s.py[i];
+                            let tx = l.normx * perp_comp - pxi;
+                            let ty = l.normy * perp_comp - pyi;
                             let posx = tx * -1.0;
                             let posy = ty * -1.0;
-                            let mut fvx = (l.normy * FRIC[i]) * perp_comp;
-                            let mut fvy = ((-l.normx) * FRIC[i]) * perp_comp;
-                            if s.prevx[i] >= posx { fvx = fvx * -1.0; }
-                            if s.prevy[i] < posy { fvy = fvy * -1.0; }
-                            fvx = fvx + s.prevx[i];
-                            fvy = fvy + s.prevy[i];
+                            let mut fvx = (l.normy * fric) * perp_comp;
+                            let mut fvy = ((-l.normx) * fric) * perp_comp;
+                            if prevxi >= posx { fvx = fvx * -1.0; }
+                            if prevyi < posy { fvy = fvy * -1.0; }
+                            fvx = fvx + prevxi;
+                            fvy = fvy + prevyi;
                             if l.is_acc {
                                 fvx = fvx + l.accx;
                                 fvy = fvy + l.accy;
                             }
-                            s.px[i] = posx;
-                            s.py[i] = posy;
-                            s.prevx[i] = fvx;
-                            s.prevy[i] = fvy;
+                            unsafe {
+                                *s.px.get_unchecked_mut(i) = posx;
+                                *s.py.get_unchecked_mut(i) = posy;
+                                *s.prevx.get_unchecked_mut(i) = fvx;
+                                *s.prevy.get_unchecked_mut(i) = fvy;
+                            }
+                            pxi = posx;
+                            pyi = posy;
+                            prevxi = fvx;
+                            prevyi = fvy;
                             events.push((it as u8, l.id, i as i32));
                             // addToGrid (B) + addToCollisions: post-collision, cells around the MOVED entity.
-                            if track {
-                                let pcells = cells_near_entity(s.px[i], s.py[i]);
-                                add_to_grid(hist, touched_cells, &pcells, frame_index, s.px[i], s.py[i], s.vx[i], s.vy[i]);
+                            if TRACK {
+                                let pcells = cells_near_entity(pxi, pyi);
+                                add_to_grid(hist, touched_cells, hist_snaps, &pcells, frame_index, pxi, pyi, vxi, vyi);
                                 add_to_collisions(coll, touched_lines, l.id, frame_index);
                             }
                         }

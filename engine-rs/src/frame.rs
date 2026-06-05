@@ -14,7 +14,7 @@ use crate::line::{collides_with, Line};
 
 /// snapshotEntity: pos + vel only (Frame.js:16 — the only fields the invalidation
 /// replay reads).
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub(crate) struct Snap {
     pub px: f64,
     pub py: f64,
@@ -22,30 +22,9 @@ pub(crate) struct Snap {
     pub vy: f64,
 }
 
-/// Most cell-frame records start with a single snapshot. Keep that first entry
-/// inline so creating a new CellFrame does not allocate a one-element Vec.
-#[derive(Clone)]
-pub(crate) struct SnapList {
-    first: Snap,
-    rest: Vec<Snap>,
-}
-
-impl SnapList {
-    #[inline]
-    fn new(first: Snap) -> SnapList {
-        SnapList { first, rest: Vec::new() }
-    }
-
-    #[inline]
-    fn push(&mut self, snap: Snap) {
-        self.rest.push(snap);
-    }
-
-    #[inline]
-    fn any_collides(&self, l: &Line) -> bool {
-        collides_with(l, self.first.px, self.first.py, self.first.vx, self.first.vy)
-            || self.rest.iter().any(|s| collides_with(l, s.px, s.py, s.vx, s.vy))
-    }
+pub(crate) struct SnapNode {
+    snap: Snap,
+    next: i32,
 }
 
 /// A CellFrameList node: snapshots recorded in one cell at one frame index, in
@@ -53,7 +32,26 @@ impl SnapList {
 #[derive(Clone)]
 pub(crate) struct CellFrame {
     pub index: i32,
-    pub entities: SnapList,
+    first: Snap,
+    rest_head: i32,
+}
+
+impl CellFrame {
+    #[inline]
+    fn any_collides(&self, snaps: &[SnapNode], l: &Line) -> bool {
+        if collides_with(l, self.first.px, self.first.py, self.first.vx, self.first.vy) {
+            return true;
+        }
+        let mut next = self.rest_head;
+        while next != -1 {
+            let n = &snaps[next as usize];
+            if collides_with(l, n.snap.px, n.snap.py, n.snap.vx, n.snap.vy) {
+                return true;
+            }
+            next = n.next;
+        }
+        false
+    }
 }
 
 /// Frame.grid: cell hash → CellFrameList (ascending-index nodes).
@@ -65,15 +63,17 @@ pub(crate) type Collisions = IntMap<i32, Vec<i32>>;
 /// cell's current-frame node, or start a new node (recording the cell in this
 /// frame's reverse patch `touched`).
 #[inline]
-fn add_to_cell(grid: &mut HistGrid, touched: &mut Vec<i64>, cell: i64, index: i32, snap: &Snap) {
+fn add_to_cell(grid: &mut HistGrid, touched: &mut Vec<i64>, snaps: &mut Vec<SnapNode>, cell: i64, index: i32, snap: Snap) {
     let list = grid.entry(cell).or_default();
     if let Some(last) = list.last_mut() {
         if last.index == index {
-            last.entities.push(snap.clone());
+            let next = last.rest_head;
+            last.rest_head = snaps.len() as i32;
+            snaps.push(SnapNode { snap, next });
             return;
         }
     }
-    list.push(CellFrame { index, entities: SnapList::new(snap.clone()) });
+    list.push(CellFrame { index, first: snap, rest_head: -1 });
     touched.push(cell);
 }
 
@@ -84,6 +84,7 @@ fn add_to_cell(grid: &mut HistGrid, touched: &mut Vec<i64>, cell: i64, index: i3
 pub(crate) fn add_to_grid(
     grid: &mut HistGrid,
     touched: &mut Vec<i64>,
+    snaps: &mut Vec<SnapNode>,
     cells: &[i64; 9],
     index: i32,
     px: f64,
@@ -93,17 +94,17 @@ pub(crate) fn add_to_grid(
 ) {
     let snap = Snap { px, py, vx, vy };
     for &cell in cells.iter() {
-        add_to_cell(grid, touched, cell, index, &snap);
+        add_to_cell(grid, touched, snaps, cell, index, snap);
     }
 }
 
 /// Frame.getIndexOfCollisionInCell (Frame.js:122): first node (ascending index)
 /// any of whose entities collides with the line.
 #[inline]
-pub(crate) fn index_of_collision_in_cell(grid: &HistGrid, cell: i64, l: &Line) -> Option<i32> {
+pub(crate) fn index_of_collision_in_cell(grid: &HistGrid, snaps: &[SnapNode], cell: i64, l: &Line) -> Option<i32> {
     let list = grid.get(&cell)?;
     for cf in list.iter() {
-        if cf.entities.any_collides(l) {
+        if cf.any_collides(snaps, l) {
             return Some(cf.index);
         }
     }
@@ -132,9 +133,9 @@ pub(crate) fn index_of_collision_with_line(coll: &Collisions, line_id: i32) -> O
 
 /// Roll the history grid back to `len` frames: for f in [len, top) descending, drop
 /// the index-f node each cell it touched created (the reverse patch).
-pub(crate) fn rollback_grid(grid: &mut HistGrid, touched: &[Vec<i64>], len: usize) {
-    for f in (len..touched.len()).rev() {
-        for &cell in touched[f].iter() {
+pub(crate) fn rollback_grid(grid: &mut HistGrid, touched: &[i64], offsets: &[usize], len: usize) {
+    for f in (len..offsets.len() - 1).rev() {
+        for &cell in touched[offsets[f]..offsets[f + 1]].iter() {
             if let Some(list) = grid.get_mut(&cell) {
                 list.pop();
                 if list.is_empty() {
@@ -146,9 +147,9 @@ pub(crate) fn rollback_grid(grid: &mut HistGrid, touched: &[Vec<i64>], len: usiz
 }
 
 /// Roll the collisions map back to `len` frames (same reverse-patch shape).
-pub(crate) fn rollback_collisions(coll: &mut Collisions, touched_lines: &[Vec<i32>], len: usize) {
-    for f in (len..touched_lines.len()).rev() {
-        for &id in touched_lines[f].iter() {
+pub(crate) fn rollback_collisions(coll: &mut Collisions, touched_lines: &[i32], offsets: &[usize], len: usize) {
+    for f in (len..offsets.len() - 1).rev() {
+        for &id in touched_lines[offsets[f]..offsets[f + 1]].iter() {
             if let Some(list) = coll.get_mut(&id) {
                 list.pop();
                 if list.is_empty() {

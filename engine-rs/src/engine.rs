@@ -16,11 +16,11 @@
 //! (`_removeLine`), then redo the target branch's (`_addLine`) — exactly the diff
 //! lr-core applies. Forking is a cheap tree node; the heavy frame cache is shared.
 
-use crate::grid::IntMap;
+use crate::grid::{FlatIntMap, IntMap};
 use crate::kernel::{compute_rest_endur, init_state, step_state, State};
 use crate::frame::{
     index_of_collision_in_cell, index_of_collision_with_line, rollback_collisions, rollback_grid,
-    Collisions, HistGrid,
+    Collisions, HistGrid, SnapNode,
 };
 use crate::line::{build_line, line_cells, push_line, remove_line, Line};
 use crate::{
@@ -31,19 +31,25 @@ use crate::{
 // parts.BODY in lr-core order — the entities getRider averages (sum in this order
 // then /6, matching Rider.getBody's averageVectors so the result is bit-identical).
 const BODY: [usize; 6] = [BUTT, SHOULDER, RHAND, LHAND, LFOOT, RFOOT];
+type Event = (u8, i32, i32);
 
 // ── the single shared cache per lineage (LineEngine.__computed__ + Frame.grid/collisions) ──
 struct Cache {
     rest: [f64; NITER],
     endur: [f64; NITER],
-    cell_lines: IntMap<i64, Vec<Line>>, // ClassicGrid cellLinesMap (collision lookup)
+    cell_lines: FlatIntMap<Vec<Line>>, // ClassicGrid cellLinesMap (collision lookup)
     lines_cells: IntMap<i32, Vec<i64>>, // ClassicGrid lineCellsMap (id → cells, for remove)
     frames: Vec<State>,                   // frames[0] = initial; lazily extended
-    events: Vec<Vec<(u8, i32, i32)>>,     // per-frame collision records (iter, line_id, point_idx)
+    events: Vec<Event>,                   // flat per-frame collision records
+    event_offsets: Vec<usize>,            // frame f => events[offset[f]..offset[f+1]]
     hist: HistGrid,                       // Frame.grid: collision-history for addLine invalidation
-    touched_cells: Vec<Vec<i64>>,         // per-frame reverse patch for hist rollback
+    touched_cells: Vec<i64>,              // flat per-frame reverse patch for hist rollback
+    touched_cell_offsets: Vec<usize>,
+    hist_snaps: Vec<SnapNode>,            // extra same-cell/same-frame snapshots
+    hist_snap_offsets: Vec<usize>,
     coll: Collisions,                     // Frame.collisions: line id → frames (for removeLine)
-    touched_lines: Vec<Vec<i32>>,         // per-frame reverse patch for coll rollback
+    touched_lines: Vec<i32>,              // flat per-frame reverse patch for coll rollback
+    touched_line_offsets: Vec<usize>,
     cur: State,                           // == frames.last(); working state for stepping
 }
 
@@ -53,14 +59,19 @@ impl Cache {
         let s = init_state(0.0, 0.0, 0.4, 0.0); // DEFAULT_START
         Cache {
             rest, endur,
-            cell_lines: IntMap::default(),
+            cell_lines: FlatIntMap::default(),
             lines_cells: IntMap::default(),
             frames: vec![s.clone()],
-            events: vec![Vec::new()],
+            events: Vec::new(),
+            event_offsets: vec![0, 0],
             hist: IntMap::default(),
-            touched_cells: vec![Vec::new()],
+            touched_cells: Vec::new(),
+            touched_cell_offsets: vec![0, 0],
+            hist_snaps: Vec::new(),
+            hist_snap_offsets: vec![0, 0],
             coll: IntMap::default(),
-            touched_lines: vec![Vec::new()],
+            touched_lines: Vec::new(),
+            touched_line_offsets: vec![0, 0],
             cur: s,
         }
     }
@@ -82,12 +93,17 @@ impl Cache {
         if len == 0 || len >= self.frames.len() {
             return;
         }
-        rollback_grid(&mut self.hist, &self.touched_cells, len);
-        rollback_collisions(&mut self.coll, &self.touched_lines, len);
+        rollback_grid(&mut self.hist, &self.touched_cells, &self.touched_cell_offsets, len);
+        rollback_collisions(&mut self.coll, &self.touched_lines, &self.touched_line_offsets, len);
         self.frames.truncate(len);
-        self.events.truncate(len);
-        self.touched_cells.truncate(len);
-        self.touched_lines.truncate(len);
+        self.events.truncate(self.event_offsets[len]);
+        self.event_offsets.truncate(len + 1);
+        self.touched_cells.truncate(self.touched_cell_offsets[len]);
+        self.touched_cell_offsets.truncate(len + 1);
+        self.hist_snaps.truncate(self.hist_snap_offsets[len]);
+        self.hist_snap_offsets.truncate(len + 1);
+        self.touched_lines.truncate(self.touched_line_offsets[len]);
+        self.touched_line_offsets.truncate(len + 1);
         self.cur = self.frames[len - 1].clone();
     }
 
@@ -102,7 +118,7 @@ impl Cache {
         self.lines_cells.insert(l.id, cells.clone());
         push_line(&mut self.cell_lines, l.clone(), &cells);
         for &cell in cells.iter() {
-            if let Some(idx) = index_of_collision_in_cell(&self.hist, cell, &l) {
+            if let Some(idx) = index_of_collision_in_cell(&self.hist, &self.hist_snaps, cell, &l) {
                 self.set_frames_length(idx as usize);
             }
         }
@@ -127,11 +143,17 @@ impl Cache {
         self.frames.clear();
         self.frames.push(s.clone());
         self.events.clear();
-        self.events.push(Vec::new());
+        self.event_offsets.clear();
+        self.event_offsets.extend_from_slice(&[0, 0]);
         self.touched_cells.clear();
-        self.touched_cells.push(Vec::new());
+        self.touched_cell_offsets.clear();
+        self.touched_cell_offsets.extend_from_slice(&[0, 0]);
+        self.hist_snaps.clear();
+        self.hist_snap_offsets.clear();
+        self.hist_snap_offsets.extend_from_slice(&[0, 0]);
         self.touched_lines.clear();
-        self.touched_lines.push(Vec::new());
+        self.touched_line_offsets.clear();
+        self.touched_line_offsets.extend_from_slice(&[0, 0]);
         self.cur = s;
     }
 
@@ -139,18 +161,22 @@ impl Cache {
     fn compute_to(&mut self, frame: usize) {
         while self.frames.len() <= frame {
             let fi = self.frames.len() as i32;
-            let mut ev: Vec<(u8, i32, i32)> = Vec::new();
-            let mut tc: Vec<i64> = Vec::new();
-            let mut tl: Vec<i32> = Vec::new();
-            step_state(
+            step_state::<true>(
                 &mut self.cur, &self.cell_lines, &self.rest, &self.endur,
-                &mut ev, fi, true, &mut self.hist, &mut tc, &mut self.coll, &mut tl,
+                &mut self.events, fi, &mut self.hist, &mut self.touched_cells,
+                &mut self.hist_snaps, &mut self.coll, &mut self.touched_lines,
             );
             self.frames.push(self.cur.clone());
-            self.events.push(ev);
-            self.touched_cells.push(tc);
-            self.touched_lines.push(tl);
+            self.event_offsets.push(self.events.len());
+            self.touched_cell_offsets.push(self.touched_cells.len());
+            self.hist_snap_offsets.push(self.hist_snaps.len());
+            self.touched_line_offsets.push(self.touched_lines.len());
         }
+    }
+
+    #[inline]
+    fn events_at(&self, f: usize) -> &[Event] {
+        &self.events[self.event_offsets[f]..self.event_offsets[f + 1]]
     }
 }
 
@@ -407,11 +433,6 @@ pub(crate) fn state_into(h: u32, f: i32, out: &mut [f64]) {
 /// Writes 6 f64: avg BODY pos.x/y, avg BODY vel.x/y (summed in BODY order then /6
 /// — bit-identical to Rider.getBody), then the RIDER_MOUNTED and SLED_INTACT fsu
 /// (the only two bindings the detector reads via rider.get(id).isBinded()).
-///
-/// Slots 6..29 carry PEG/TAIL/NOSE/STRING point states as 4 ×
-/// [px,py,prevx,prevy,vx,vy]. Those are the only point ids the compiler probes
-/// through getRider on the WASM path, and keeping them in the lean payload avoids
-/// the cold full stateMap fallback without changing the public getRider API.
 pub(crate) fn rider_into(h: u32, f: i32, out: &mut [f64]) {
     if !valid(h) || f < 0 {
         return;
@@ -436,6 +457,9 @@ pub(crate) fn rider_into(h: u32, f: i32, out: &mut [f64]) {
     out[3] = vy / n;
     out[4] = s.fsu[RIDER_MOUNTED] as f64;
     out[5] = s.fsu[SLED_INTACT] as f64;
+    // Slots 6..29: PEG/TAIL/NOSE/STRING point states as 4 × [px,py,prevx,prevy,vx,vy].
+    // These are the only point ids the compiler probes through getRider on the WASM
+    // path; keeping them in the lean payload avoids the cold full-stateMap fallback.
     for (k, &i) in [PEG, TAIL, NOSE, STRING].iter().enumerate() {
         let o = 6 + k * 6;
         out[o] = s.px[i];
@@ -458,7 +482,7 @@ pub(crate) fn events_into(h: u32, f: i32, out: &mut [f64], cap: usize) -> usize 
     let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
     let f = f as usize;
     cache.compute_to(f);
-    let ev = &cache.events[f];
+    let ev = cache.events_at(f);
     let n = ev.len().min(cap);
     for (k, &(it, id, pt)) in ev.iter().take(n).enumerate() {
         out[k * 3] = it as f64;
@@ -496,7 +520,7 @@ pub(crate) fn raw_frame_into(h: u32, f: i32, scratch: &mut [f64], events: &mut [
     scratch[4] = s.fsu[RIDER_MOUNTED] as f64;
     scratch[5] = s.fsu[SLED_INTACT] as f64;
 
-    let ev = &cache.events[f];
+    let ev = cache.events_at(f);
     let n = ev.len().min(cap);
     for (k, &(it, id, pt)) in ev.iter().take(n).enumerate() {
         events[k * 3] = it as f64;

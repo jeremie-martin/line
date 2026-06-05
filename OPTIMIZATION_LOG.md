@@ -645,3 +645,56 @@ ensures. **Not integrated.**
 
 **Standing after W5:** **~22,000 ns/physics-frame** — bit-identical to lr-core,
 ≈15.1× faster than pristine JS (333k).
+
+## W6 — Integrate the `work-new-wams-opti-2` stack + re-mix the residual maps  (−27%, bit-identical)
+The parallel `work-new-wams-opti-2` branch (also forked from the W3 base) carried a
+deeper, interdependent set of engine rewrites that are largely **orthogonal** to W4/W5
+and far faster. Adopted its four-commit stack wholesale (its kernel rewrite supersedes
+W5's simpler unroll), then re-layered the parts of W4/W5 it does not contain:
+
+- **Flat per-frame cache logs** (`engine.rs`, `frame.rs`): collision events, touched
+  history cells, and touched collision-line ids move from per-frame `Vec<Vec<_>>` to
+  flat vectors with per-frame offset tables — same replay/rollback slices, no per-frame
+  inner-`Vec` churn in `compute_to`.
+- **Arena-backed history-grid snapshots** (`frame.rs`, `engine.rs`, `kernel.rs`,
+  `abi.rs`): the dominant remaining allocator bucket. `CellFrame` keeps its first
+  snapshot inline and links extra same-cell/same-frame snapshots through one
+  cache-owned flat `SnapNode` arena, truncated by per-frame offsets on rollback.
+  Invalidation asks the same `any-snapshot-collides?` question; scan order is
+  unobservable because `collides_with` is pure. **This is the headline win.**
+- **Specialized kernel topology** (`kernel.rs`): the fixed rider topology lets the
+  solver use unchecked array access, a const-generic tracked/untracked split, and 22
+  explicit constraint calls in the original order (superset of W5's unroll).
+  Arithmetic order is unchanged.
+- **Flat open-addressed map for `cell_lines`** (`grid.rs`, `line.rs`): the hot
+  collision-lookup grid moves off `std::HashMap` to a purpose-built open-addressed
+  integer map (murmur-mix hash); cell buckets keep the same descending-id `Vec<Line>`.
+  `hist`/`coll`/`lines_cells` stay on `std::HashMap`.
+
+Re-layered on top (not present in opti-2): **`codegen-units=1`** (W4, untouched), the
+**lean rider sled-points** payload (W5 — `rider_into` re-extended to write
+PEG/TAIL/NOSE/STRING into scratch; wrapper untouched), and the **bit-mix hasher** (W4)
+re-applied to `IntHasher::finish` — opti-2 left `hist`/`coll`/`lines_cells` on the
+identity-hashed `std::HashMap`, and `hist.entry` is ~540 ops/frame, so the finalizer
+still pays off there even though `cell_lines` now uses the flat map.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical (engine fingerprint +
+  optimizer hash) · `verify:engine --diff` ✓ **max err 0** over all 5 fixtures ·
+  `cargo test` ✓.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup, back-to-back):**
+
+  | stage | mean ns/frame | median |
+  |-------|---------------|--------|
+  | W5 standing (this machine) | ~22,000 | ~22,000 |
+  | opti-2 stack + `codegen-units` + lean rider | 17,058.0 ± 268.1 | 17,013.5 |
+  | **+ bit-mix hasher on residual maps** | **16,167.3 ± 246.3** | **16,138.8** |
+  | hasher (confirm run) | 15,803.8 ± 241.0 | 15,793.4 |
+
+  **≈−27% vs the W5 standing**, the bulk from the arena snapshots; the residual-map
+  hasher adds a further **−5.2% / −5.1%** on its own (17,058 → 16,167) → **kept.**
+  (Absolute numbers are not comparable to opti-2's own log, which was measured on
+  Binaryen 130; this machine's `wasm-opt` is v108. The relative wins hold.)
+
+**Standing after W6:** **~16,000 ns/physics-frame** — bit-identical to lr-core,
+≈20.8× faster than pristine JS (333k) and ≈4.6× faster than the parity-correct JS
+engine (B11 ~73k).

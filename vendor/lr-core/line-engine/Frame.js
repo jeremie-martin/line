@@ -13,6 +13,27 @@ class CellFrame {
   }
 }
 
+function snapshotVector (v) {
+  return { x: v.x, y: v.y }
+}
+
+function snapshotEntity (entity) {
+  // Frame.grid is historical invalidation data: later addLine() calls replay
+  // line.collidesWith() against these records to decide how far to truncate the
+  // frame cache. The live stateMap points are intentionally mutable in the hot
+  // solver, so grid entries must keep their own immutable coordinate snapshot.
+  return {
+    id: entity.id,
+    friction: entity.friction,
+    airFriction: entity.airFriction,
+    collidable: entity.collidable,
+    steppable: entity.steppable,
+    pos: snapshotVector(entity.pos),
+    prevPos: snapshotVector(entity.prevPos),
+    vel: snapshotVector(entity.vel)
+  }
+}
+
 class CellFrameList {
   constructor (cellFrame, parent = null) {
     this.cellFrame = cellFrame
@@ -140,11 +161,12 @@ export default class Frame {
     // cells may be precomputed by the caller (getCellsNearEntity is identical for
     // addToGrid + getLinesNearEntity on the same entity — compute it once).
     if (!cells) cells = lineGrid.getCellsNearEntity(entity)
+    let snapshot = snapshotEntity(entity)
     for (let cell of cells) {
       let prev = this.grid.get(cell)
       let next = prev
-        ? addEntityToCellFrames(prev, index, entity)
-        : makeCellFrames(index, entity)
+        ? addEntityToCellFrames(prev, index, snapshot)
+        : makeCellFrames(index, snapshot)
       // addEntityToCellFrames mutates the existing CellFrame in place and returns
       // the SAME list when another entity lands in a cell already touched this
       // frame (the common case — rider points cluster, so their 3x3 cells

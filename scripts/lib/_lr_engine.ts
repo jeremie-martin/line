@@ -32,6 +32,21 @@ if (process.env.LR_ENGINE === "wasm") {
   const r = await import("./_lr_engine_record.ts");
   _LineRiderEngine = r.LineRiderEngine;
   _createLineFromJson = r.createLineFromJson;
+} else if (process.env.LR_ENGINE === "official") {
+  // Reference path for parity probes: the untouched published lr-core CJS build.
+  // deno-lint-ignore no-explicit-any
+  const lrCore: any = await import("lr-core/line-rider-engine/index.js");
+  const isFn = (x: unknown) => typeof x === "function";
+  const top = lrCore;
+  const nested = lrCore.default;
+  _LineRiderEngine =
+    isFn(top.default) ? top.default :
+    isFn(nested?.default) ? nested.default :
+    top.default;
+  _createLineFromJson =
+    isFn(top.createLineFromJson) ? top.createLineFromJson :
+    isFn(nested?.createLineFromJson) ? nested.createLineFromJson :
+    top.createLineFromJson;
 } else {
   // deno-lint-ignore no-explicit-any
   const lrCore: any = await import("../../vendor/lr-core/line-rider-engine/index.js");

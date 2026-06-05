@@ -28,6 +28,10 @@ if (process.env.LR_ENGINE === "wasm") {
   const w = await import("./_lr_engine_wasm.ts");
   _LineRiderEngine = w.LineRiderEngine;
   _createLineFromJson = w.createLineFromJson;
+} else if (process.env.LR_ENGINE === "record") {
+  const r = await import("./_lr_engine_record.ts");
+  _LineRiderEngine = r.LineRiderEngine;
+  _createLineFromJson = r.createLineFromJson;
 } else {
   // deno-lint-ignore no-explicit-any
   const lrCore: any = await import("../../vendor/lr-core/line-rider-engine/index.js");

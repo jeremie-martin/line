@@ -37,7 +37,10 @@
     "wasm:check": "tsx scripts/v0/bench/wasm_kernel_check.ts",
     "wasm:bench": "tsx scripts/v0/bench/wasm_bench.ts",
     "wasm:engine": "tsx scripts/v0/bench/wasm_engine_check.ts",
-    "wasm:budget": "tsx scripts/v0/bench/wasm_budget_check.ts"
+    "wasm:budget": "tsx scripts/v0/bench/wasm_budget_check.ts",
+    "wasm:diff": "tsx scripts/v0/bench/wasm_diff_check.ts",
+    "wasm:compile": "tsx scripts/v0/bench/wasm_compile_check.ts",
+    "wasm:replay": "tsx scripts/v0/bench/wasm_replay_check.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

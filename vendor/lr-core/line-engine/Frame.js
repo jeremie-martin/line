@@ -13,24 +13,23 @@ class CellFrame {
   }
 }
 
-function snapshotVector (v) {
-  return { x: v.x, y: v.y }
-}
-
 function snapshotEntity (entity) {
   // Frame.grid is historical invalidation data: later addLine() calls replay
   // line.collidesWith() against these records to decide how far to truncate the
-  // frame cache. The live stateMap points are intentionally mutable in the hot
-  // solver, so grid entries must keep their own immutable coordinate snapshot.
+  // frame cache. The live stateMap points are intentionally mutated in place by
+  // the hot solver, so grid entries must keep their own immutable copy.
+  //
+  // Copy ONLY pos and vel: the invalidation replay path
+  // (getIndexOfCollisionInCell -> hasCollisionWith -> SolidLine.collidesWith)
+  // reads exactly p.pos (offset) and p.vel (shouldCollide's norm·vel) and nothing
+  // else. prevPos/friction/airFriction/collidable/steppable/id are read only by
+  // collide() — the forward-sim response, which always runs on the live point,
+  // never on a grid snapshot. So {pos, vel} is sufficient and byte-identical to
+  // official lr-core (collidesWith sees the same inputs), at ~half the allocation
+  // of a full-entity copy.
   return {
-    id: entity.id,
-    friction: entity.friction,
-    airFriction: entity.airFriction,
-    collidable: entity.collidable,
-    steppable: entity.steppable,
-    pos: snapshotVector(entity.pos),
-    prevPos: snapshotVector(entity.prevPos),
-    vel: snapshotVector(entity.vel)
+    pos: { x: entity.pos.x, y: entity.pos.y },
+    vel: { x: entity.vel.x, y: entity.vel.y }
   }
 }
 

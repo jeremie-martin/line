@@ -33,14 +33,14 @@
     "trace:dump": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts --dump",
     "trace:diff": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts --diff",
     "build:wasm": "cargo build --release --target wasm32-unknown-unknown --manifest-path engine-rs/Cargo.toml",
-    "wasm:probe": "tsx scripts/v0/bench/wasm_probe.ts",
     "wasm:check": "tsx scripts/v0/bench/wasm_kernel_check.ts",
     "wasm:bench": "tsx scripts/v0/bench/wasm_bench.ts",
     "wasm:engine": "tsx scripts/v0/bench/wasm_engine_check.ts",
     "wasm:budget": "tsx scripts/v0/bench/wasm_budget_check.ts",
     "wasm:diff": "tsx scripts/v0/bench/wasm_diff_check.ts",
     "wasm:compile": "tsx scripts/v0/bench/wasm_compile_check.ts",
-    "wasm:replay": "tsx scripts/v0/bench/wasm_replay_check.ts"
+    "wasm:replay": "tsx scripts/v0/bench/wasm_replay_check.ts",
+    "wasm:all": "tsx scripts/v0/bench/wasm_all.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

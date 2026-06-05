@@ -75,6 +75,7 @@ async function main() {
     console.log("WASM-BUDGET: PASS — invalidation + budget match lr-core.");
   } else if (stateOk) {
     console.log("WASM-BUDGET: state identical; budget parity is the remaining Phase-2b work (expected).");
+    process.exit(2); // known gap, not a regression
   } else {
     console.log("WASM-BUDGET: STATE MISMATCH — investigate.");
     process.exit(1);

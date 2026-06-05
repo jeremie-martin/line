@@ -36,7 +36,8 @@
     "wasm:probe": "tsx scripts/v0/bench/wasm_probe.ts",
     "wasm:check": "tsx scripts/v0/bench/wasm_kernel_check.ts",
     "wasm:bench": "tsx scripts/v0/bench/wasm_bench.ts",
-    "wasm:engine": "tsx scripts/v0/bench/wasm_engine_check.ts"
+    "wasm:engine": "tsx scripts/v0/bench/wasm_engine_check.ts",
+    "wasm:budget": "tsx scripts/v0/bench/wasm_budget_check.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

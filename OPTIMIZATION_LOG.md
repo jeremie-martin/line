@@ -442,3 +442,56 @@ persistent-structure GC (~8%, budget-load-bearing). The only remaining
 *order-of-magnitude* lever is the **Rust→WASM engine rewrite** (flat zero-alloc
 memory, native kernel) — the profile (collision+grid+GC ≈ 70%) is exactly its
 thesis. Incremental JS engine tuning is past the point of useful return.
+
+---
+
+# Post-rebase (2026-06-05) — official-parity fix changes the standing
+
+A rebase pulled in commit `0074fdb engine: snapshot frame grid entities for parity`
+(JM) — a **correctness fix** — plus a new `LR_ENGINE=official` reference path for
+parity probes.
+
+## What it fixes
+`addToGrid` stored the **live** stateMap entity reference in `frame.grid` (the
+historical invalidation records `getIndexOfCollisionInCell` replays during a later
+`addLine`). But since B3/B8 the solver mutates point `pos` **in place** — so a
+stored grid entity's coordinates were silently overwritten by later frames before
+the invalidation replay read them. `snapshotEntity` now stores an immutable copy
+(id, friction, airFriction, collidable, steppable + pos/prevPos/vel vectors).
+
+## Correctness: now byte-identical to OFFICIAL lr-core (a stronger guarantee)
+- `verify:engine` ✓ byte-identical — forward simulation on fixed tracks never used
+  the corrupted grid records (only `addLine` invalidation does).
+- `verify:optimizer` **diverged** — `sim_frames` shifted (mini_burst 40484→40489,
+  syncopated_switchback 40300→40313, drums_signature 40499→40503; tiny_dance
+  unchanged at 40965). Confirmed against `LR_ENGINE=official`: the new output
+  **matches official lr-core exactly** on all probed cases. So this is a strict
+  upgrade — our prior baseline was subtly divergent from official; the new output
+  is correct. Baseline re-recorded: the optimizer gate now pins
+  **parity-with-official**, stronger than parity-with-our-pristine-snapshot.
+
+## Perf cost: +27%
+`snapshotEntity` allocates a fresh object + 3 vectors per `addToGrid` call
+(~72–90×/frame) in the hottest path — heavy young-gen churn, exactly what B6–B9 +
+the young-gen flag had driven down.
+
+| | ns/physics-frame | note |
+|---|---|---|
+| snapshot OFF (pre-rebase) | 63,218 ± 531 | subtly divergent from official |
+| **snapshot ON (current HEAD)** | **~80,491** (80,288 / 80,695) | **+27%**, official-parity |
+
+Current standing: **~80,500 ns/frame** — correct, ≈4.1× vs pristine (333k), but the
+young-gen win (−7.8%) and part of the grid wins are now masked by the parity
+allocation.
+
+## This reopens a cheap lever (revises the "only WASM left" conclusion)
+The snapshot is over-copied. The invalidation replay path —
+`getIndexOfCollisionInCell` → `hasCollisionWith` → `SolidLine.collidesWith` —
+reads **only `p.pos` (offset) and `p.vel` (`shouldCollide`'s `norm·vel`)**. It never
+reads `prevPos`/`friction`/`airFriction`/`collidable`/`steppable`/`id`; those are
+used only by `collide()` (the forward-sim response, run on the *live* point, never
+the snapshot). So `snapshotEntity` can drop to `{ pos:{x,y}, vel:{x,y} }` (2 vectors
+vs an 8-field object + 3 vectors) — fewer/smaller allocations, **parity preserved**
+because `collidesWith` is unaffected (gate: `verify:optimizer` must stay equal to
+`LR_ENGINE=official`). This is the obvious next lever, ahead of WASM: recover much
+of the +27% without giving up correctness.

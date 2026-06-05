@@ -253,12 +253,15 @@ describe("arc placement mode policy", () => {
       .toBe(2.5);
   });
 
-  test("LR_ARC_PLACEMENT accepts only the explicit alternate modes", () => {
-    expect(withArcPlacementMode(undefined, () => arcPlacementMode())).toBe("impact_anchor");
+  test("LR_ARC_PLACEMENT selects the named mode; default and unknown are continuous", () => {
+    // DEFAULT is now `continuous` (promoted: it beats the old `impact_anchor` default
+    // by +178 HEADLINE on the canonical decide). impact_anchor remains selectable.
+    expect(withArcPlacementMode(undefined, () => arcPlacementMode())).toBe("continuous");
     expect(withArcPlacementMode("uniform", () => arcPlacementMode())).toBe("uniform");
     expect(withArcPlacementMode("impact_frame", () => arcPlacementMode())).toBe("impact_frame");
     expect(withArcPlacementMode("contact_centered", () => arcPlacementMode())).toBe("contact_centered");
-    expect(withArcPlacementMode("unknown", () => arcPlacementMode())).toBe("impact_anchor");
+    expect(withArcPlacementMode("impact_anchor", () => arcPlacementMode())).toBe("impact_anchor");
+    expect(withArcPlacementMode("unknown", () => arcPlacementMode())).toBe("continuous");
   });
 
   test("alternate placement modes preserve candidate RNG draw accounting", () => {
@@ -638,19 +641,26 @@ describe("steep catch attempt policy", () => {
     expect(steepCatchTemplateIndex(32)).toBe(null);
   });
 
+  // Steep catch templates are an `impact_anchor`-family feature (the now-default
+  // `continuous` stream has none — usesSteepCatchTemplateAttempt returns false), so
+  // these pin impact_anchor to exercise that family's steep-template policy.
   test("steep catch template attempts still require steep local state", () => {
-    expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, steepGap, 0)).toBe(true);
-    expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, steepGap, 1)).toBe(false);
-    expect(usesSteepCatchTemplateAttempt({ speed: 9.9, angleDeg: 55 }, steepGap, 2)).toBe(true);
-    expect(usesSteepCatchTemplateAttempt({ speed: 9.9, angleDeg: 54.9 }, steepGap, 2)).toBe(false);
-    expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, gap(0, 0, 59), 0)).toBe(false);
+    withArcPlacementMode("impact_anchor", () => {
+      expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, steepGap, 0)).toBe(true);
+      expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, steepGap, 1)).toBe(false);
+      expect(usesSteepCatchTemplateAttempt({ speed: 9.9, angleDeg: 55 }, steepGap, 2)).toBe(true);
+      expect(usesSteepCatchTemplateAttempt({ speed: 9.9, angleDeg: 54.9 }, steepGap, 2)).toBe(false);
+      expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, gap(0, 0, 59), 0)).toBe(false);
+    });
   });
 
   test("extra sampler modes do not consume normal steep-template slots", () => {
-    const steepState = { speed: 10, angleDeg: 0 };
-    expect(sampleArcParamsRngDraws(steepState, steepGap, 0)).toBe(0);
-    expect(sampleArcParamsRngDraws(steepState, steepGap, 0, "brake")).toBeGreaterThan(0);
-    expect(sampleArcParamsRngDraws(steepState, steepGap, 0, "air_support")).toBeGreaterThan(0);
+    withArcPlacementMode("impact_anchor", () => {
+      const steepState = { speed: 10, angleDeg: 0 };
+      expect(sampleArcParamsRngDraws(steepState, steepGap, 0)).toBe(0);
+      expect(sampleArcParamsRngDraws(steepState, steepGap, 0, "brake")).toBeGreaterThan(0);
+      expect(sampleArcParamsRngDraws(steepState, steepGap, 0, "air_support")).toBeGreaterThan(0);
+    });
   });
 
   test("short-deadline rescue is based on local gap duration", () => {

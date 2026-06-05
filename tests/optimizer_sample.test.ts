@@ -149,12 +149,19 @@ describe("optimizer/sample.ts — Step 1 atomic sample", () => {
   test("different RNG seeds produce different candidates (on a viable gap)", async () => {
     const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
     // Try a handful of seeds and assert we get at least two distinct
-    // outcomes — sanity check that sampling isn't constant.
-    const outcomes = new Set<string>();
-    for (let s = 1; s <= 10; s++) {
-      const fit = sampleOneCandidate(engine, gap, makeRng(s), ctx, 1);
-      outcomes.add(fit === null ? "null" : JSON.stringify(fit.arc));
-    }
+    // outcomes — sanity check that sampling isn't constant. Pin impact_anchor: it
+    // yields a viable arc on this first gap from a single K=1 sample, whereas the
+    // now-default `continuous` line family needs the handoff's K-sample batch to
+    // land the start gap (a single sample there is null), which would make every
+    // outcome "null". Serialize the whole geometry so it's robust either way.
+    const outcomes = withArcPlacementMode("impact_anchor", () => {
+      const seen = new Set<string>();
+      for (let s = 1; s <= 10; s++) {
+        const fit = sampleOneCandidate(engine, gap, makeRng(s), ctx, 1);
+        seen.add(fit === null ? "null" : JSON.stringify({ arc: fit.arc, lines: fit.lines }));
+      }
+      return seen;
+    });
     expect(outcomes.size).toBeGreaterThan(1);
   });
 

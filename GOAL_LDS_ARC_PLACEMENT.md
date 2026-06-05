@@ -335,6 +335,127 @@ the knee and the mean understates the ceiling. A richer "reward still-climbing"
 metric was considered and deliberately parked (it would perversely reward slow
 convergence); see `TODO.md`.
 
+### Session 2026-06-05 (COMMITTED): promote `continuous` to the default placement — HEADLINE 282 → 461
+
+**The accepted change.** The shipped compiler default was `impact_anchor`
+(`LR_ARC_PLACEMENT` unset) — the campaign's true baseline. `continuous` had been the
+gated lead for weeks but was never promoted because the OLD `CURVE_SCORE` metric
+over-rewarded `impact_anchor`'s fast-but-low plateau. The NEW ceiling-weighted
+HEADLINE metric (designed for exactly this) flips the verdict decisively:
+
+| Default (`decide`, canonical 8 seeds × dense 5k–175k) | HEADLINE | ceiling | logAUC |
+| --- | ---: | ---: | ---: |
+| `impact_anchor` (old default, `/tmp/base-impact`) | 282.4 | 342.0 | 143.1 |
+| `continuous` (new default, `/tmp/base-cc-0`) | **460.6** | **583.9** | 172.9 |
+
+`npm run decide -- /tmp/base-cc-0/golden.json /tmp/base-impact/golden.json`:
+**Δheadline +178.2 · 95% CI [140.1, 231.7] · P(Δ≤0)=0.0% · effect 7.73 → VERDICT:
+ACCEPT** (ceiling validity also improves: continuous is 160/160 by 115k; impact_anchor
+never reaches it). The change is one line in `arcPlacementMode()` (default → continuous,
+impact_anchor kept selectable); pure placement-family selection, no spec-identifying
+logic, budget-oblivious. New canonical baseline: **HEADLINE 460.55** (`/tmp/base-cc-0`).
+
+Everything below this entry studied improvements *within* `continuous` (now the default)
+and found none that clear the bar — but the family promotion itself is the session's win.
+
+### Session 2026-06-05: HEADLINE baseline + four placement probes (all reverted)
+
+First session under the new `HEADLINE = 0.7·q(b_max) + 0.3·logAUC` metric + `npm run
+decide` rule, on the canonical 8-seed × dense-5k–175k grid (`continuous`).
+
+**Canonical baseline (`/tmp/base-cc-0`, `LR_ARC_PLACEMENT=continuous`, commit
+`3df5ef4`, fingerprint `9b9776df145f`):**
+
+```
+HEADLINE 460.55 · ceiling=583.85 · logAUC=172.85 (alpha=0.7) · 160/160 valid @175k
+```
+
+The ceiling is CONVERGED (582→584 from 115k→175k); logAUC is the large gap.
+
+**Diagnosis (the two walls, quantified):**
+
+1. *Ceiling is axis-quality-bound, dominated by AIR, which COMPRESSES to the middle.*
+   Aggregate signed air error at 175k (achieved−target): target `<0.25` n=216
+   `+0.311` (**100% over**); `0.25–0.5` `+0.080`; `0.5–0.75` `−0.039`; `>=0.75`
+   n=1296 `−0.139` (**90% under**). Speed is centered (signed ≈0, abs ≈0.10); grain
+   is excellent (abs ≈0.05). For a valid track the score reduces to
+   `1000·exp(−rms_axis/0.25)` (drift/missing/survival gates already force ≤±1), so
+   the ONLY ceiling lever is axis-error, and that is air. The worst rows
+   (drums_pendulum/crescendo, ~444–475) are air-walled on alternating-air gaps and
+   on the first contact (g0 air ≈0.90 vs target 0.15–0.35).
+2. *logAUC is gated by long-dense-spec CHAIN COMPLETION, not placement yield.* Fast
+   specs validate at 30–40k; the slow ones come online 50–65k; `solo_run` (25 s,
+   ~78 contacts) is `0/8` even at 65k. That is search-depth/scheduler, outside the
+   placement boundary.
+
+**Why AIR is structurally walled within placement (first-principles, verified):**
+air over a gap = airborne-frame fraction over `[prevContact, thisContact]`. The
+rider is airborne the whole flight unless GROUNDED on a ride surface; grounded
+frames come from (a) the previous ride-out and (b) catch-crossings — but the
+ride-out is an UP launch (energy-speed-shaped) that EJECTS the rider rather than
+grounding it, so ride-out length barely moves air. Low air needs a long continuous
+ground, which a per-gap catch cannot supply, and any landing onto such a surface in
+`[start, contact]` trips the off-beat gate. g0 low-air is doubly blocked: grounding
+the first free-flight needs either a start-ramp landing (off-beat reject) or a
+start-VELOCITY change (start policy) — both outside placement.
+
+**Four placement-only probes, all REVERTED (cheap-probe evidence; none merited a
+canonical decide):**
+
+| Probe | Mechanism | Result |
+| --- | --- | --- |
+| forward-air ride-out (`LR_NEXTAIR`) | size grounded ride-out by the NEXT gap's air (the flight it actually grounds), fixing an off-by-one on alternating-air specs | air bands unchanged (ride-out is an up-launch ⇒ doesn't ground); per-row **net-negative** on the alternating specs it targeted (drums_pendulum −10) |
+| pre-air shorten, always (`LR_PREAIR`) | shorten high-air pre-contact approach (drop in more airborne) | improved yield (preclear −32%, landing 34→39%) + logAUC, but **cost ceiling** (516→505 probe) — same knob, net wash |
+| pre-air shorten, odd-attempt diversity | keep full ramp in pool, add short variant | **worse on both** ceiling (537→525) and logAUC (167→148) |
+| energy-launch dive clamp (`LR_DIVE_CLAMP` 0.45→0.70) | allow steeper accelerating dive for high-speed targets | ceiling ≈flat, **logAUC 304→250** (steeper dives break low-budget validity); aggregate speed is already slightly OVER, so the stalls are localized chain effects, not a dive-clamp limit |
+| contact-Y landing span (`LR_CYSPAN`) | deterministic per-attempt vertical contact-point offset = a compute-free landing-frame search to raise the 32% landing yield | **catastrophic** (HEADLINE 445→74, landing 29%→7%, survival fails 1.9k→13k). The predicted-sled contact placement is already well-calibrated; offsetting it just misses/ejects. Landing failures come from the APPROACH geometry, and grounding the approach to aid landing fights low-air via the >=6-airborne-frame rule — coupled, not separable |
+
+**Two CANONICAL pre-air candidates (8 seeds × 20 specs, decided by `npm run decide`):**
+
+One probe above (pre-air shorten) had a REAL general mechanism — a shorter
+high-air pre-contact ramp is less exposed pre-beat, so preclear rejects fall and
+the rider drops in more airborne → more valid catches/gap. The 4-spec smoke's
+ceiling dip was noise; the full canonical disagreed. So it was promoted to a
+canonical decide:
+
+| Candidate | mechanism | canonical `decide` vs baseline |
+| --- | --- | --- |
+| `pre-air K=0.5/T=0.5` (mild, high-air only) | shorten high-air pre-contact ≤50% | **Δheadline +5.7**, ceiling 583.85→**591.41**, logAUC +1.4, preclear −25%, landing 31.6→35.2%, validity held. CI **[−3.1, 16.6]**, P(Δ≤0)=10.9%, effect 1.18 → **INCONCLUSIVE** (real gain, but at/below the metric's ~10-pt 8-seed noise floor — exactly the regime the retired "+5" rule was retired for) |
+| `pre-air K=0.6/T=0.35` (broadened) | also shorten moderate-air gaps | **Δheadline −10.8**, ceiling 571.3, CI [−86.9, 17.3], ceiling validity 100→99% → **REJECT-grade**. The big negative tail = broadening to T=0.35 shortened moderate-air gaps and broke a fragile chain on a spec/seed |
+
+**Probe-overfit caution (important):** a 6-spec × 3-seed probe ranked `0.6/0.35`
+**+20 over** `0.5/0.5`; the full 8-seed canonical **inverted** it to **−16**. Cheap
+smokes are unreliable for choosing a continuous control's setpoint — confirming the
+brief's "smokes are not a decision basis." Only the mild high-air-only version is
+positive, and it caps at ~+5.7 (the preLength is already small, so amplifying within
+the safe region adds little; broadening regresses).
+
+**16-seed held-out cross-validation kills the +5.7 (decisive).** Because the 8-seed
+CI lower bound was only −3.1, I ran the held-out seeds `{8..15}` for both baseline
+and `pre-air K=0.5/T=0.5`, merged to a 16-seed cube, and re-ran `decide`:
+**Δheadline +0.1 · CI [−15.1, 10.2] · P(Δ≤0)=42.3% · effect 0.02.** The gain
+**vanishes** — `{0..7}` is +5.7, so `{8..15}` is ≈−5.5: the change helps some seeds
+and hurts others, netting ~zero. The +5.7 was **seed luck**, exactly as the metric's
+~10-pt 8-seed noise floor flagged. So `pre-air` is NOT a real improvement and was
+correctly NOT committed. (This also validates the strict rule over the maintainer's
+older cross-validated-commit practice: here the single-set positive was a fluke.)
+
+**Conclusion (matches and sharpens the brief's own "reachable bottleneck has moved
+off placement"):** at `continuous`'s converged ceiling (584, already well past the
+campaign's original 500 goal), the best in-boundary placement lever found (high-air
+pre-contact shortening) looked like +5.7 on the 8-seed canonical but a **16-seed
+held-out cross-validation collapsed it to +0.1 (seed luck)**; every other lever was
+≤0. No placement change tested achieves a real, robust HEADLINE gain — the
+achievable gains are at/below the metric's noise floor, so there is currently
+nothing to commit under the `decide`-accept rule. The remaining real headroom
+requires off-placement work: (a) chain-aware / multi-gap-rollout selection in the
+handoff to complete long chains earlier — the logAUC limiter (`solo_run` 0/8 even
+@65k) and the source of the broadening regression; (b) a continuous-surface /
+start-ground primitive + start-energy planning to reach extreme (esp. low) air
+targets and fix the systematic g0 air. No code change kept this session; baseline
+preserved at HEADLINE 460.55 (`/tmp/base-cc-0`), validated against a held-out
+16-seed set.
+
 ### Session 2026-06-04 (PM): height-shaping paradigm — robust mean ~497 → ~557
 
 Worked the `continuous` normal stream on the **9-spec** suite (opening_burst now

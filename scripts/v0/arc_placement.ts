@@ -127,8 +127,16 @@ export function arcPlacementMode(): ArcPlacementRuntimeMode {
   if (raw === "uniform") return "uniform";
   if (raw === "impact_frame") return "impact_frame";
   if (raw === "contact_centered") return "contact_centered";
+  if (raw === "impact_anchor") return "impact_anchor";
   if (raw === "continuous") return "continuous";
-  return "impact_anchor";
+  // DEFAULT = continuous. The old default `impact_anchor` is hard-plateaued (ceiling
+  // ~342, HEADLINE 282 on the canonical 8-seed × dense 5k-175k grid); `continuous`
+  // reaches ceiling ~584 / HEADLINE 461 and is 160/160 valid by 115k. Under the
+  // ceiling-weighted HEADLINE metric (which superseded CURVE_SCORE precisely because
+  // CURVE_SCORE over-rewarded impact_anchor's fast-but-low plateau over continuous's
+  // higher ceiling) the promotion is a decisive `decide` ACCEPT: Δheadline +178.2,
+  // 95% CI [140.1, 231.7], P(Δ≤0)=0%. `impact_anchor` stays selectable via the env.
+  return "continuous";
 }
 
 export function impactAnchorEnabled(): boolean {

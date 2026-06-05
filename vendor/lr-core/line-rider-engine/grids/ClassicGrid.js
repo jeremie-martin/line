@@ -74,9 +74,9 @@ export default class ClassicGrid {
   }
 
   // the lines in the 3x3 grid around entity, with duplicates
-  getLinesNearEntity (entity) {
+  getLinesNearEntity (entity, cells) {
     let lines = []
-    let cells = this.getCellsNearEntity(entity)
+    if (!cells) cells = this.getCellsNearEntity(entity)
     for (let cell of cells) {
       let cellLines = this.cellLinesMap.get(cell)
       if (!cellLines) continue

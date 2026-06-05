@@ -233,9 +233,12 @@ export default class LineEngine extends Immo {
   _collideEntities (frame, stateIDs, index) {
     for (let id of stateIDs) {
       let entity = frame.stateMap.get(id)
-      frame.addToGrid(this.grid, entity, index)
+      // The 3x3 cell neighborhood is identical for addToGrid and
+      // getLinesNearEntity on this entity — compute it once and share it.
+      let cells = this.grid.getCellsNearEntity(entity)
+      frame.addToGrid(this.grid, entity, index, cells)
 
-      let lines = this.grid.getLinesNearEntity(entity)
+      let lines = this.grid.getLinesNearEntity(entity, cells)
       for (let line of lines) {
         let nextEntity = line.collide(entity)
         if (nextEntity) {

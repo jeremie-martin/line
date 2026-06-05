@@ -68,8 +68,10 @@ export default class Frame {
     }
   }
 
-  addToGrid (lineGrid, entity, index) {
-    let cells = lineGrid.getCellsNearEntity(entity)
+  addToGrid (lineGrid, entity, index, cells) {
+    // cells may be precomputed by the caller (getCellsNearEntity is identical for
+    // addToGrid + getLinesNearEntity on the same entity — compute it once).
+    if (!cells) cells = lineGrid.getCellsNearEntity(entity)
     for (let cell of cells) {
       let prev = this.grid.get(cell)
       let next = prev

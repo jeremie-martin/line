@@ -160,6 +160,22 @@ changed, cutting ~70 of ~90 grid writes/frame and shortening the patch chain.
 
   **−57.4% mean / −57.5% median.** A 2.35× speedup, bit-identical. → **kept**.
 
+### B7 — Compute the 3×3 cell neighborhood once per entity
+`_collideEntities` called `getCellsNearEntity(entity)` twice for each entity —
+once inside `addToGrid`, once inside `getLinesNearEntity` — each allocating a
+9-element array + 9 `hashIntPair`s. Compute it once and pass it to both (optional
+`cells` param, backward-compatible with `NoGrid`).
+
+- **Gates:** verify ✓ byte-identical · diff ✓ max err 0 · compile-hash ✓ identical.
+- **Perf (clean back-to-back, 20k / 10 reps):**
+
+  | engine | mean ns/frame | median |
+  |--------|---------------|--------|
+  | B6 | 117,908 ± 695 | 118,197 |
+  | **B7** | **109,955 ± 853** | **110,053** |
+
+  **−6.8% mean / −6.9% median.** → **kept**.
+
 ## Cumulative
 
 Each row is the "after" of an independent back-to-back pair (absolute numbers
@@ -174,3 +190,4 @@ figure). Compounding the measured per-step deltas: **≈ −17% vs pristine.**
 | B3 scalar in-place stickResolve | −10.8% | V2 temporaries were the bulk of GC |
 | B4 scalar collide offset | (reverted) | non-escaping → already free |
 | B6 skip redundant grid versions | −57.4% | **the dominant cost; 333,033 → 116,462 overall (≈2.86×)** |
+| B7 cells computed once per entity | −6.8% | 333,033 → 109,955 overall (**≈3.03×**) |

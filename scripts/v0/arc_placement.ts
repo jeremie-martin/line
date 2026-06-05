@@ -33,6 +33,11 @@ const IMPACT_FRAME_ALONG_JITTER = 4;
 const IMPACT_FRAME_NORMAL_JITTER = 4;
 const CONTACT_CENTERED_POINT_JITTER = 4;
 const CONTACT_CENTERED_MAX_NEXT_CONTACT_FRAMES = 22;
+const FIRST_CONTACT_IMPACT_MAX_NEXT_CONTACT_FRAMES = 20;
+const DENSE_SPACING_CAP_GRAIN_MIN = 0.50;
+const DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES = 14;
+const LEGACY_DENSE_SPACING_CAP_GRAIN_MIN = 0.55;
+const LEGACY_DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES = 12;
 /** Uphill start-angle band (degrees, negative = uphill in Y-down) for brake-mode
  *  catches: the rider rides up the arc's front to bleed speed before contact. */
 const BRAKE_START_ANGLE_MIN = -28;
@@ -151,6 +156,25 @@ export function impactAnchorEnabled(): boolean {
 export function impactAnchorFallbackBisectEnabled(): boolean {
   const raw = envValue("LR_IMPACT_ANCHOR_FALLBACK_BISECT");
   return raw === "1";
+}
+
+function firstContactImpactAnchorEnabled(
+  gap: Gap,
+  attempt: number,
+  allContactFrames: readonly number[],
+): boolean {
+  if (gap.index !== 0) return false;
+  const mode = envValue("LR_FIRST_CONTACT_ARC")?.trim();
+  if (mode === "0" || mode === "off" || mode === "legacy" || mode === "lines") return false;
+  if (mode === "impact_anchor") return true;
+  const headCount = mode?.match(/^head(\d+)$/)?.[1];
+  if (headCount !== undefined) return attempt < clampInt(Number(headCount), 0, 64);
+  const nearFrames = mode?.match(/^near(\d+)$/)?.[1];
+  const maxNextContactFrames = nearFrames === undefined
+    ? FIRST_CONTACT_IMPACT_MAX_NEXT_CONTACT_FRAMES
+    : clampInt(Number(nearFrames), 0, 120);
+  const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
+  return nextGapFrames !== null && nextGapFrames <= maxNextContactFrames;
 }
 
 function makeArcPlacementCounter(): ArcPlacementCounter {
@@ -317,6 +341,14 @@ export function sampleArcPlacementGeometry(
   // one continuum span sparse and dense gaps alike. Brake and air-support streams
   // keep their own families.
   if (arcPlacementMode() === "continuous" && mode === "normal") {
+    // The first contact gets the impact-anchored arc family only when cadence is
+    // tight enough that the next contact needs early ride-out structure.
+    if (firstContactImpactAnchorEnabled(gap, attempt, allContactFrames)) {
+      return {
+        kind: "arc",
+        arc: sampleArcParams(rng, refX, refY, targets, targetState, attempt, gap, mode),
+      };
+    }
     recordImpactAnchorSample(mode);
     return {
       kind: "lines",
@@ -754,9 +786,7 @@ export function sampleContactCenteredLinesWithDiagnostics(
       + 0.12 * brakePressure
     );
   const denseScaledPostLength = rawPostLength * (1 - 0.55 * denseContactPressure);
-  const needsGrainSpacingCap = (targets.grain ?? 0) >= 0.55
-    && nextGapFrames !== null
-    && nextGapFrames <= 12;
+  const needsGrainSpacingCap = needsDenseSpacingPostLengthCap(targets, nextGapFrames);
   const spacingPostLengthCap = nextGapFrames === null || !needsGrainSpacingCap
     ? 220
     : clamp(targetState.speed * nextGapFrames * (0.52 + 0.16 * (1 - air)), 36, 180);
@@ -906,6 +936,21 @@ function energyLaunchEnabled(): boolean {
  *  out with LR_AIRLEN=0 for A/B against the launch-only state. */
 function airLengthEnabled(): boolean {
   return envValue("LR_AIRLEN") !== "0";
+}
+
+function needsDenseSpacingPostLengthCap(targets: AxisValues, nextGapFrames: number | null): boolean {
+  if (nextGapFrames === null) return false;
+  const mode = envValue("LR_DENSE_SPACING_CAP")?.trim();
+  if (mode === "0" || mode === "off" || mode === "legacy") {
+    return (targets.grain ?? 0) >= LEGACY_DENSE_SPACING_CAP_GRAIN_MIN
+      && nextGapFrames <= LEGACY_DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES;
+  }
+  const wideFrames = mode?.match(/^wide(\d+)$/)?.[1];
+  const maxNextContactFrames = wideFrames === undefined
+    ? DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES
+    : clampInt(Number(wideFrames), 0, 120);
+  return (targets.grain ?? 0) >= DENSE_SPACING_CAP_GRAIN_MIN
+    && nextGapFrames <= maxNextContactFrames;
 }
 
 /**

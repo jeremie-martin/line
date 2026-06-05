@@ -197,16 +197,25 @@ and handoff ranker judge it.
 
 ## Current state
 
-The committed default is the **`continuous`** placement family (promoted 2026-06-05).
-On the canonical `decide` (8 seeds × dense 5k–175k) it beats the old `impact_anchor`
-default decisively — **HEADLINE 282 → 461** (ceiling 342 → 584; Δ +178, 95% CI
-[140, 232], VERDICT ACCEPT), and reaches ceiling validity (160/160 by 115k) which
-`impact_anchor` never did. The change was one line in `arcPlacementMode()`
-(default → `continuous`; `impact_anchor` kept selectable) — pure placement-family
-selection, no spec-identifying logic. New canonical baseline: **HEADLINE 460.55**.
+The current default is the **`continuous`** placement family plus two accepted
+normal-stream placement refinements (accepted 2026-06-05):
 
-Probes *within* `continuous` since then found nothing clearing the bar (logged under
-**Archive** below). Workflow, metric, run tiers, and decision rule:
+- first required-contact gaps use the impact-anchored arc family only when the
+  next authored contact is near (`<=20` frames), giving tight openings early
+  ride-out structure without applying the arc family to sparse openings;
+- dense-grain post-contact spacing uses the wider cap (`grain >= 0.50`,
+  next-contact spacing `<=14` frames).
+
+On the canonical `decide` (8 seeds × dense 5k–175k), the default now improves the
+post-`continuous` baseline **HEADLINE 461.0 → 473.6** (ceiling 584.0 → 590.4,
+logAUC 174.2 → 201.1; Δ +12.5, 95% CI [0.7, 24.7], VERDICT ACCEPT), with
+160/160 validity at 175k. Archive:
+`generated/golden-runs/arc-near20-spacing-default-canonical-wasm/golden.json`.
+New canonical baseline: **HEADLINE 473.56**.
+
+The older `continuous` promotion over `impact_anchor` remains important context:
+it moved the default from **HEADLINE 282 → 461** and made `impact_anchor`
+selectable rather than default. Workflow, metric, run tiers, and decision rule:
 [`docs/HOW_TO_WORK.md`](docs/HOW_TO_WORK.md).
 
 ## Archive — historical session log & rejected probes (not live guidance)
@@ -365,6 +374,30 @@ checkpoint's mean) is a cheap sanity read — if it is large, the cutoff is befo
 the knee and the mean understates the ceiling. A richer "reward still-climbing"
 metric was considered and deliberately parked (it would perversely reward slow
 convergence); see `docs/archive/TODO.md`.
+
+### Session 2026-06-05 (ACCEPTED): cadence-aware first contact + dense spacing cap — HEADLINE 461 → 474
+
+**Accepted change.** Within the `continuous` normal stream, keep contact-centered
+lines as the default geometry, but use the impact-anchored arc family for the
+first required-contact gap when the next contact is within 20 frames. This is a
+generic cadence signal, not spec-name logic: sparse openings stay on lines, tight
+openings get earlier ride-out structure. The same change promotes the wider
+dense-grain post-length cap (`grain >= 0.50`, next contact `<=14` frames), which
+keeps closely spaced dense contacts from overextending downstream support.
+
+| Default (`decide`, canonical 8 seeds × dense 5k–175k) | HEADLINE | ceiling | logAUC | validity@175k |
+| --- | ---: | ---: | ---: | ---: |
+| baseline `continuous` (`arc-baseline-canonical-wasm`) | 461.0 | 584.0 | 174.2 | 160/160 |
+| default with near-first arc + wide spacing (`arc-near20-spacing-default-canonical-wasm`) | **473.6** | **590.4** | **201.1** | **160/160** |
+
+Decision output:
+`Δheadline = +12.5 · 95% CI [0.7, 24.7] · P(Δ≤0)=1.9% · effect=2.06 · VERDICT: ACCEPT`.
+
+Verification:
+
+- `LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts` — 31/31 pass.
+- `LR_ENGINE=wasm npm run golden -- --details --jobs=8 --archive-dir=generated/golden-runs/arc-near20-spacing-default-canonical-wasm`
+- `npm run decide -- generated/golden-runs/arc-near20-spacing-default-canonical-wasm/golden.json generated/golden-runs/arc-baseline-canonical-wasm/golden.json`
 
 ### Session 2026-06-05 (COMMITTED): promote `continuous` to the default placement — HEADLINE 282 → 461
 

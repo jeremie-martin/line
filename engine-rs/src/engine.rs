@@ -16,7 +16,7 @@
 //! (`_removeLine`), then redo the target branch's (`_addLine`) — exactly the diff
 //! lr-core applies. Forking is a cheap tree node; the heavy frame cache is shared.
 
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use crate::kernel::{compute_rest_endur, init_state, step_state, State};
 use crate::frame::{
     index_of_collision_in_cell, index_of_collision_with_line, rollback_collisions, rollback_grid,
@@ -35,8 +35,8 @@ const BODY: [usize; 6] = [BUTT, SHOULDER, RHAND, LHAND, LFOOT, RFOOT];
 struct Cache {
     rest: [f64; NITER],
     endur: [f64; NITER],
-    cell_lines: BTreeMap<i64, Vec<Line>>, // ClassicGrid cellLinesMap (collision lookup)
-    lines_cells: BTreeMap<i32, Vec<i64>>, // ClassicGrid lineCellsMap (id → cells, for remove)
+    cell_lines: HashMap<i64, Vec<Line>>, // ClassicGrid cellLinesMap (collision lookup)
+    lines_cells: HashMap<i32, Vec<i64>>, // ClassicGrid lineCellsMap (id → cells, for remove)
     frames: Vec<State>,                   // frames[0] = initial; lazily extended
     events: Vec<Vec<(u8, i32, i32)>>,     // per-frame collision records (iter, line_id, point_idx)
     hist: HistGrid,                       // Frame.grid: collision-history for addLine invalidation
@@ -52,13 +52,13 @@ impl Cache {
         let s = init_state(0.0, 0.0, 0.4, 0.0); // DEFAULT_START
         Cache {
             rest, endur,
-            cell_lines: BTreeMap::new(),
-            lines_cells: BTreeMap::new(),
+            cell_lines: HashMap::new(),
+            lines_cells: HashMap::new(),
             frames: vec![s.clone()],
             events: vec![Vec::new()],
-            hist: BTreeMap::new(),
+            hist: HashMap::new(),
             touched_cells: vec![Vec::new()],
-            coll: BTreeMap::new(),
+            coll: HashMap::new(),
             touched_lines: vec![Vec::new()],
             cur: s,
         }

@@ -4,7 +4,7 @@
 //! (the Phase-0b regression harness, wasm:check). The stateful engine state lives
 //! in engine.rs (one shared cache per lineage); these are thin marshalling shims.
 
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use crate::engine;
 use crate::kernel::{compute_rest_endur, init_state, step_state, State};
 use crate::line::{build_line, line_cells, push_line, Line};
@@ -40,7 +40,7 @@ pub extern "C" fn events_ptr() -> u32 { &raw const EVENTS as u32 }
 pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames: u32) -> u32 {
     let n_lines = n_lines as usize;
     let frames = (frames as usize).min(MAX_FRAMES);
-    let mut grid: BTreeMap<i64, Vec<Line>> = BTreeMap::new();
+    let mut grid: HashMap<i64, Vec<Line>> = HashMap::new();
     for li in 0..n_lines {
         let b = li * LINE_STRIDE;
         let l = unsafe {
@@ -65,9 +65,9 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
     };
     write(0, &s);
     let mut ev: Vec<(u8, i32, i32)> = Vec::new();
-    let mut hist = BTreeMap::new();
+    let mut hist = HashMap::new();
     let mut tc: Vec<i64> = Vec::new();
-    let mut coll = BTreeMap::new();
+    let mut coll = HashMap::new();
     let mut tl: Vec<i32> = Vec::new();
     for f in 1..=frames {
         ev.clear();

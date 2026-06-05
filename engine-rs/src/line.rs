@@ -4,7 +4,7 @@
 //! `collide` (the forward-sim response) lives in the kernel; this owns the line
 //! record, the `shouldCollide`/`collidesWith` predicate, and grid registration.
 
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use crate::grid::classic_cells;
 
 pub(crate) const MAX_FORCE_LENGTH: f64 = 10.0;
@@ -75,7 +75,7 @@ pub(crate) fn collides_with(l: &Line, px: f64, py: f64, vx: f64, vy: f64) -> boo
 /// ClassicGrid cellLinesMap.add: register a line (by value) into each of its
 /// cells. Each cell's bucket is ordered by DESCENDING line id (OrderedObjectArray
 /// 'id', true), one entry per id per cell.
-pub(crate) fn push_line(grid: &mut BTreeMap<i64, Vec<Line>>, l: Line, cells: &[i64]) {
+pub(crate) fn push_line(grid: &mut HashMap<i64, Vec<Line>>, l: Line, cells: &[i64]) {
     let id = l.id;
     for &cell in cells {
         let bucket = grid.entry(cell).or_default();
@@ -89,7 +89,7 @@ pub(crate) fn push_line(grid: &mut BTreeMap<i64, Vec<Line>>, l: Line, cells: &[i
 
 /// ClassicGrid cellLinesMap.remove: drop the line id from each of its cells
 /// (emptied cells are removed).
-pub(crate) fn remove_line(grid: &mut BTreeMap<i64, Vec<Line>>, id: i32, cells: &[i64]) {
+pub(crate) fn remove_line(grid: &mut HashMap<i64, Vec<Line>>, id: i32, cells: &[i64]) {
     for &cell in cells {
         if let Some(bucket) = grid.get_mut(&cell) {
             bucket.retain(|e| e.id != id);
@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     fn push_line_orders_each_cell_by_descending_line_id() {
-        let mut grid = BTreeMap::new();
+        let mut grid = HashMap::new();
         let cell = 42;
         push_line(&mut grid, test_line(10), &[cell]);
         push_line(&mut grid, test_line(30), &[cell]);
@@ -121,7 +121,7 @@ mod tests {
 
     #[test]
     fn push_line_keeps_one_entry_per_line_id_per_cell() {
-        let mut grid = BTreeMap::new();
+        let mut grid = HashMap::new();
         let cell = 42;
         push_line(&mut grid, test_line(10), &[cell, cell]);
         let ids: Vec<i32> = grid[&cell].iter().map(|e| e.id).collect();
@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn remove_line_drops_id_and_empties_cell() {
-        let mut grid = BTreeMap::new();
+        let mut grid = HashMap::new();
         let cell = 42;
         push_line(&mut grid, test_line(10), &[cell]);
         push_line(&mut grid, test_line(20), &[cell]);

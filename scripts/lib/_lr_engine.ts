@@ -11,9 +11,15 @@
  * context they're in.
  *
  * This file is interop-only — it does NOT change compiler / search behavior.
+ *
+ * The engine is VENDORED at vendor/lr-core (a copy of lr-core's ES6 source,
+ * verified byte-identical to the published build via `npm run trace`). We own
+ * it so the per-frame hot path can be optimized in-repo with the trace oracle
+ * guarding behavior. The original `lr-core` package is kept as a devDependency
+ * (reference + supplies the `immy`/`lodash` leaf deps the engine imports).
  */
 // deno-lint-ignore no-explicit-any
-const lrCore: any = await import("lr-core/line-rider-engine/index.js");
+const lrCore: any = await import("../../vendor/lr-core/line-rider-engine/index.js");
 
 // Pick whichever shape exposes a callable LineRiderEngine.
 const isFn = (x: unknown) => typeof x === "function";

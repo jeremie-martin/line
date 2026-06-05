@@ -68,8 +68,12 @@ it as a version tree whose `compareTo` is a walk of the patch chain.
 vendored` track-hash on all 4 specs). `vendored ≡ official` still holds (run
 `wasm:compile -- --official` to re-confirm), so `wasm ≡ official` transitively.
 
-Performance: the kernel alone is ~5× the JS engine (`wasm:bench`), but end-to-end
-(`LR_ENGINE=wasm npm run perf`) is currently ~20% **slower** than the JS engine —
-the JS↔WASM per-read boundary (rebuilding the stateMap/entity objects from the
-scratch buffer on every `getRider`/`getStateMapAtFrame`) dominates. Bit-identity is
-done; closing that boundary is the next optimization.
+Performance: the kernel alone is ~5× the JS engine (`wasm:bench`), and end-to-end
+(`LR_ENGINE=wasm npm run perf`) is now slightly **faster** than the JS engine
+(~58.3k vs ~59.6k ns/physics-frame). The win came from a lean `get_rider` ABI that
+computes the BODY average + the two binding states in Rust (the detector's hot
+read), so the wrapper no longer rebuilds the 12-entity stateMap every frame, plus a
+shared precomputed update sequence for collision-free frames. The remaining cost is
+dominated by the JS-side compiler/search logic (unchanged by the engine swap), so
+further engine tuning (storing cell lines by index, in-place frame stepping) has
+diminishing end-to-end returns.

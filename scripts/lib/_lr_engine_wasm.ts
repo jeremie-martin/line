@@ -21,7 +21,6 @@ const ENTITY_IDS = [
   "RIDER_MOUNTED", "SLED_INTACT", "PEG", "TAIL", "NOSE", "STRING",
   "BUTT", "SHOULDER", "RHAND", "LHAND", "LFOOT", "RFOOT",
 ] as const;
-const BODY = [6, 7, 8, 9, 10, 11]; // parts.BODY indices: BUTT,SHOULDER,RHAND,LHAND,LFOOT,RFOOT
 const NENT = 12;
 const LEFT_EXTENDED = 1;
 const RIGHT_EXTENDED = 2;
@@ -29,6 +28,16 @@ const RIGHT_EXTENDED = 2;
 // shared singletons — the oracle only reads .type/.id/.updated, never mutates
 const STEP_UPDATE = { type: "StepUpdate" };
 const CONSTRAINT_UPDATE = { type: "ConstraintUpdate" };
+
+// A collision-free frame's update sequence is always the same: StepUpdate, then
+// 6×22 + 3 ConstraintUpdate singletons. Precompute it once and share it (callers
+// only read), so the common airborne/no-contact frame allocates nothing.
+const NO_COLLISION_UPDATES: any[] = (() => {
+  const u: any[] = [STEP_UPDATE];
+  for (let it = 0; it < 6; it++) for (let c = 0; c < 22; c++) u.push(CONSTRAINT_UPDATE);
+  for (let c = 0; c < 3; c++) u.push(CONSTRAINT_UPDATE);
+  return Object.freeze(u) as any[];
+})();
 
 // Engines are immutable: setStart/addLine fork a new handle. The compiler holds
 // many live engines (beam frontier) and discards transient candidates — free
@@ -121,6 +130,9 @@ export class LineRiderEngine {
   getUpdatesAtFrame(frame: number): any[] {
     if (frame === 0) return [];
     const n = ex.get_updates(this.h, frame);
+    // Common case: no collisions this frame → the fixed StepUpdate + ConstraintUpdate
+    // sequence, shared (read-only) instead of rebuilt.
+    if (n === 0) return NO_COLLISION_UPDATES;
     // events are (iter, line_id, point_idx) triples — copy out before any
     // further wasm call can grow/detach the buffer.
     const ev = new Int32Array(3 * n);
@@ -144,18 +156,24 @@ export class LineRiderEngine {
   }
   // deno-lint-ignore no-explicit-any
   getRider(frame: number): any {
-    ex.get_state_map(this.h, frame);
+    // Lean path: the kernel computes the BODY average + the two binding fsu in
+    // Rust (get_rider writes 6 f64 to the head of SCRATCH), so the hot detector
+    // loop never rebuilds the 12-entity stateMap. position/velocity are summed in
+    // BODY order in Rust → bit-identical to Rider.getBody. get(id) serves the two
+    // bindings the detector reads from these fsu; any other id (a point) falls
+    // back to the full stateMap (cold path — not hit by the compiler loop).
+    ex.get_rider(this.h, frame);
     const sc = scratch();
-    // averageVectors: reduce add in BODY order, then div(6) — matches Rider.getBody
-    let px = 0, py = 0, vx = 0, vy = 0;
-    for (const i of BODY) { px += sc[i * 6]; py += sc[i * 6 + 1]; vx += sc[i * 6 + 4]; vy += sc[i * 6 + 5]; }
-    const n = BODY.length;
-    // build the get(id) view from the SAME scratch read (no second get_state_map)
-    const stateMap = this.stateMapFrom(sc);
+    const fsuRider = sc[4], fsuSled = sc[5];
     return {
-      position: { x: px / n, y: py / n },
-      velocity: { x: vx / n, y: vy / n },
-      get: (id: string) => stateMap.get(id),
+      position: { x: sc[0], y: sc[1] },
+      velocity: { x: sc[2], y: sc[3] },
+      // deno-lint-ignore no-explicit-any
+      get: (id: string): any => {
+        if (id === "RIDER_MOUNTED") return { framesSinceUnbind: fsuRider, isBinded: () => fsuRider === -1 };
+        if (id === "SLED_INTACT") return { framesSinceUnbind: fsuSled, isBinded: () => fsuSled === -1 };
+        return this.getStateMapAtFrame(frame).get(id);
+      },
     };
   }
 }

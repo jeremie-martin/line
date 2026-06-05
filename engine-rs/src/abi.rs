@@ -112,6 +112,15 @@ pub extern "C" fn get_state_map(h: u32, f: i32) {
     engine::state_into(h, f, out);
 }
 
+// Lean getRider for the detector hot path: writes 6 f64 to the head of SCRATCH
+// (avg pos.x/y, avg vel.x/y, RIDER_MOUNTED fsu, SLED_INTACT fsu) — no 12-entity
+// stateMap reconstruction across the boundary.
+#[no_mangle]
+pub extern "C" fn get_rider(h: u32, f: i32) {
+    let out = unsafe { &mut *&raw mut SCRATCH };
+    engine::rider_into(h, f, out);
+}
+
 #[no_mangle]
 pub extern "C" fn get_updates(h: u32, f: i32) -> i32 {
     let out = unsafe { &mut *&raw mut EVENTS };

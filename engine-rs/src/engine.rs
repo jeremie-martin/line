@@ -23,7 +23,13 @@ use crate::frame::{
     Collisions, HistGrid,
 };
 use crate::line::{build_line, line_cells, push_line, remove_line, Line};
-use crate::{NENT, NITER};
+use crate::{
+    BUTT, LFOOT, LHAND, NENT, NITER, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, SLED_INTACT,
+};
+
+// parts.BODY in lr-core order — the entities getRider averages (sum in this order
+// then /6, matching Rider.getBody's averageVectors so the result is bit-identical).
+const BODY: [usize; 6] = [BUTT, SHOULDER, RHAND, LHAND, LFOOT, RFOOT];
 
 // ── the single shared cache per lineage (LineEngine.__computed__ + Frame.grid/collisions) ──
 struct Cache {
@@ -394,6 +400,36 @@ pub(crate) fn state_into(h: u32, f: i32, out: &mut [f64]) {
     for i in 0..NENT {
         out[NENT * 6 + i] = s.fsu[i] as f64;
     }
+}
+
+/// getRider, computed in Rust to avoid rebuilding the JS stateMap on the hot path.
+/// Writes 6 f64: avg BODY pos.x/y, avg BODY vel.x/y (summed in BODY order then /6
+/// — bit-identical to Rider.getBody), then the RIDER_MOUNTED and SLED_INTACT fsu
+/// (the only two bindings the detector reads via rider.get(id).isBinded()).
+pub(crate) fn rider_into(h: u32, f: i32, out: &mut [f64]) {
+    if !valid(h) || f < 0 {
+        return;
+    }
+    update_computed(h);
+    let holder = ver(h as i32).holder;
+    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
+    let f = f as usize;
+    cache.compute_to(f);
+    let s = &cache.frames[f];
+    let (mut px, mut py, mut vx, mut vy) = (0.0, 0.0, 0.0, 0.0);
+    for &i in BODY.iter() {
+        px += s.px[i];
+        py += s.py[i];
+        vx += s.vx[i];
+        vy += s.vy[i];
+    }
+    let n = BODY.len() as f64;
+    out[0] = px / n;
+    out[1] = py / n;
+    out[2] = vx / n;
+    out[3] = vy / n;
+    out[4] = s.fsu[RIDER_MOUNTED] as f64;
+    out[5] = s.fsu[SLED_INTACT] as f64;
 }
 
 /// Compute (if needed) frame `f` and write its collision records into `out` as

@@ -29,6 +29,9 @@ const SCRATCH_LEN = NENT * 6 + NENT;
 const SCRATCH_PTR = ex.scratch_ptr();
 const EVENTS_LEN = 49152;
 const EVENTS_PTR = ex.events_ptr();
+const RIDER_SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
+const RIDER_SLED_OFFSET = 6;
+const RIDER_POINT_STRIDE = 6;
 const EMPTY_SLED_CONTACTS = Object.freeze([]) as unknown as string[];
 const EMPTY_CONTACT_LINE_IDS = Object.freeze([]) as unknown as number[];
 
@@ -87,11 +90,16 @@ export function createLineFromJson(data: any): any {
 // deno-lint-ignore no-explicit-any
 function pointState(sc: Float64Array, i: number): any {
   const o = i * 6;
+  return pointStateFrom(sc[o], sc[o + 1], sc[o + 2], sc[o + 3], sc[o + 4], sc[o + 5]);
+}
+
+// deno-lint-ignore no-explicit-any
+function pointStateFrom(px: number, py: number, prevx: number, prevy: number, vx: number, vy: number): any {
   return {
     __state__: {
-      pos: { x: sc[o], y: sc[o + 1] },
-      prevPos: { x: sc[o + 2], y: sc[o + 3] },
-      vel: { x: sc[o + 4], y: sc[o + 5] },
+      pos: { x: px, y: py },
+      prevPos: { x: prevx, y: prevy },
+      vel: { x: vx, y: vy },
     },
     get pos() { return this.__state__.pos; },
     get prevPos() { return this.__state__.prevPos; },
@@ -225,6 +233,19 @@ export class LineRiderEngine {
     ex.get_rider(this.h, frame);
     const sc = scratch();
     const fsuRider = sc[4], fsuSled = sc[5];
+    const peg = RIDER_SLED_OFFSET;
+    const tail = peg + RIDER_POINT_STRIDE;
+    const nose = tail + RIDER_POINT_STRIDE;
+    const stringPoint = nose + RIDER_POINT_STRIDE;
+    const pegPx = sc[peg], pegPy = sc[peg + 1];
+    const pegPrevx = sc[peg + 2], pegPrevy = sc[peg + 3], pegVx = sc[peg + 4], pegVy = sc[peg + 5];
+    const tailPx = sc[tail], tailPy = sc[tail + 1];
+    const tailPrevx = sc[tail + 2], tailPrevy = sc[tail + 3], tailVx = sc[tail + 4], tailVy = sc[tail + 5];
+    const nosePx = sc[nose], nosePy = sc[nose + 1];
+    const nosePrevx = sc[nose + 2], nosePrevy = sc[nose + 3], noseVx = sc[nose + 4], noseVy = sc[nose + 5];
+    const stringPx = sc[stringPoint], stringPy = sc[stringPoint + 1];
+    const stringPrevx = sc[stringPoint + 2], stringPrevy = sc[stringPoint + 3];
+    const stringVx = sc[stringPoint + 4], stringVy = sc[stringPoint + 5];
     let stateMap: Map<string, any> | undefined;
     return {
       position: { x: sc[0], y: sc[1] },
@@ -233,6 +254,10 @@ export class LineRiderEngine {
       get: (id: string): any => {
         if (id === "RIDER_MOUNTED") return { framesSinceUnbind: fsuRider, isBinded: () => fsuRider === -1 };
         if (id === "SLED_INTACT") return { framesSinceUnbind: fsuSled, isBinded: () => fsuSled === -1 };
+        if (id === RIDER_SLED_POINTS[0]) return pointStateFrom(pegPx, pegPy, pegPrevx, pegPrevy, pegVx, pegVy);
+        if (id === RIDER_SLED_POINTS[1]) return pointStateFrom(tailPx, tailPy, tailPrevx, tailPrevy, tailVx, tailVy);
+        if (id === RIDER_SLED_POINTS[2]) return pointStateFrom(nosePx, nosePy, nosePrevx, nosePrevy, noseVx, noseVy);
+        if (id === RIDER_SLED_POINTS[3]) return pointStateFrom(stringPx, stringPy, stringPrevx, stringPrevy, stringVx, stringVy);
         stateMap ??= this.getStateMapAtFrame(frame);
         return stateMap.get(id);
       },

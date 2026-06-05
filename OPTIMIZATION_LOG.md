@@ -563,3 +563,24 @@ these were below the 2% commit bar; together they clear it.
 - **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
 - **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):** 29,414.7 →
   **28,259.2 ns/physics-frame** (**−3.9% mean / −4.5% median**).
+
+## W4 — Serve sled points from the lean WASM `getRider` payload  (−9.3%, bit-identical)
+After W3, the current iteration baseline was **25,707.4 ns/physics-frame** on the
+fast 20k signal, so the new phase target is ≈ **12.5–12.9k ns/frame** for a 2×
+win. The remaining JS-visible fallback was `getRider(...).get("PEG"|"TAIL"|"NOSE"|
+"STRING")`: `get_rider` already returned BODY position/velocity and binding fsu,
+but these sled-point probes still forced the wrapper to call `get_state_map` and
+build all 12 entity objects for each rider. `get_rider` now also writes the four
+sled point states into scratch slots 6..29, and the wrapper serves those ids
+directly while preserving the full stateMap fallback for cold point ids.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf:**
+
+  | config | before | after |
+  |---|---:|---:|
+  | quick signal (`--budget=20000 --reps=5 --warmup=1`) | 25,707.4 ± 358.0 | **23,042.6 ± 556.4** |
+  | required default (`budget=50000`, 20 runs + 3 warmup) | 24,820.9 ± 1,011.9 | **22,509.5 ± 527.1** |
+
+  **−10.4% quick / −9.3% required default.** New standing: **22,509.5
+  ns/physics-frame**, still above the ~12.5k 2× target, so continue.

@@ -24,7 +24,8 @@ use crate::frame::{
 };
 use crate::line::{build_line, line_cells, push_line, remove_line, Line};
 use crate::{
-    BUTT, LFOOT, LHAND, NENT, NITER, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, SLED_INTACT,
+    BUTT, LFOOT, LHAND, NENT, NITER, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER,
+    SLED_INTACT, STRING, TAIL,
 };
 
 // parts.BODY in lr-core order — the entities getRider averages (sum in this order
@@ -406,6 +407,11 @@ pub(crate) fn state_into(h: u32, f: i32, out: &mut [f64]) {
 /// Writes 6 f64: avg BODY pos.x/y, avg BODY vel.x/y (summed in BODY order then /6
 /// — bit-identical to Rider.getBody), then the RIDER_MOUNTED and SLED_INTACT fsu
 /// (the only two bindings the detector reads via rider.get(id).isBinded()).
+///
+/// Slots 6..29 carry PEG/TAIL/NOSE/STRING point states as 4 ×
+/// [px,py,prevx,prevy,vx,vy]. Those are the only point ids the compiler probes
+/// through getRider on the WASM path, and keeping them in the lean payload avoids
+/// the cold full stateMap fallback without changing the public getRider API.
 pub(crate) fn rider_into(h: u32, f: i32, out: &mut [f64]) {
     if !valid(h) || f < 0 {
         return;
@@ -430,6 +436,15 @@ pub(crate) fn rider_into(h: u32, f: i32, out: &mut [f64]) {
     out[3] = vy / n;
     out[4] = s.fsu[RIDER_MOUNTED] as f64;
     out[5] = s.fsu[SLED_INTACT] as f64;
+    for (k, &i) in [PEG, TAIL, NOSE, STRING].iter().enumerate() {
+        let o = 6 + k * 6;
+        out[o] = s.px[i];
+        out[o + 1] = s.py[i];
+        out[o + 2] = s.prevx[i];
+        out[o + 3] = s.prevy[i];
+        out[o + 4] = s.vx[i];
+        out[o + 5] = s.vy[i];
+    }
 }
 
 /// Compute (if needed) frame `f` and write its collision records into `out` as

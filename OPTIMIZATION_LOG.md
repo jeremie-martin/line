@@ -1491,3 +1491,203 @@ is small and gives a steadier mean.
 **Standing after single-entry line conversion cache:** **~6,616 ns/physics-frame** —
 bit-identical to lr-core/optimizer baselines, ≈50.3× faster than pristine JS
 (333k) and ≈11.0× faster than the parity-correct JS engine (B11 ~73k).
+
+## Session 26 (2026-06-06 cont.) — external Rust map crates, rejected
+
+Rejected crate/data-structure probes:
+
+- **Use `rustc-hash` for the remaining integer-keyed `HashMap`s:** replacing
+  `IntMap`'s custom single-multiply hasher with `rustc_hash::FxBuildHasher`
+  built successfully but did not improve the 8-run signal: **6,562.2 ns/frame**
+  (median **6,636.5**) versus the same temp checkout's **6,554.9 ns/frame**
+  baseline. Rejected without full gate.
+- **Use `hashbrown::HashMap` for `FlatIntMap` line-grid buckets:** replacing the
+  hand-rolled open-addressed table with `hashbrown` looked promising in the
+  8-run signal at **6,290.2 ns/frame** (median **6,350.8**), but the required
+  full gate was only **6,531.6 ns/frame ± 391.0** (median **6,577.8**) versus the
+  standing **6,616.4 ns/frame** baseline: about **−1.3%**, below the >1.6% keep
+  bar. Verified bit-identical before rejection (`cargo test` ✓,
+  `LR_ENGINE=wasm npm run verify` ✓), then reverted.
+
+Conclusion: for this workload, the current no-dependency map setup remains the
+better choice. `hashbrown` is a good general SwissTable implementation, but the
+custom `FlatIntMap` is competitive enough in the wasm hot path that the full
+compiler gate does not justify the extra dependency. The more useful
+data-structure wins continue to be workload-specific layout changes, not a
+generic crate swap.
+
+## Session 27 (2026-06-06 cont.) — streaming detector window fast path, rejected
+
+Rejected probe:
+
+- **Read WASM raw-frame parts into a reusable object and detect windowed
+  trajectories without constructing `RawFrame` wrappers:** added a
+  `getRawFrameAtFrameInto` method on the WASM wrapper and changed the hot
+  candidate `detectWindow` path to build `Detection` measurements directly.
+  The implementation still extracted through the full requested horizon to keep
+  physics-frame accounting and optimizer stats identical.
+
+Gating notes:
+
+- Current `HEAD` (`75c9330`, arc cadence handling) changes optimizer outputs
+  relative to the checked-in `generated/verify-optimizer/baseline.json`. Clean
+  `HEAD` fails `verify:optimizer` for `syncopated_switchback|seed1` and
+  `drums_signature|seed2`. For this probe, a temporary clean-worktree baseline
+  was regenerated from `HEAD`, then the detector patch was checked against that
+  baseline.
+- With that temp current-HEAD baseline: `LR_ENGINE=wasm npm run verify` ✓.
+- Clean current-HEAD 8-run baseline: **6,677.8 ns/frame** (median **6,784.1**).
+- Patch 8-run signal: **6,498.3 ns/frame** (median **6,566.1**).
+- Required 50-run gate with the patch: **6,777.1 ns/frame ± 411.9** (median
+  **6,871.7**), a regression rather than a held win. Reverted.
+
+Conclusion: avoiding the `RawFrame` wrapper object is not enough; the extra
+branching and duplicated detector loop shape lose under full sampling. A future
+detector optimization should move more work across the WASM boundary or compute
+the final measured facts directly, not just stream the existing JS object model.
+
+## Session 28 (2026-06-06 cont.) — cache arc env object, rejected
+
+Rejected probe:
+
+- **Cache the `process.env` object reference in `arc_placement.ts`:** kept dynamic
+  property reads so tests that mutate `process.env.LR_*` would still see changes,
+  but avoided repeated `globalThis.process?.env` optional-chain lookup in hot
+  arc-placement mode checks.
+
+Measurement:
+
+- Current `HEAD` full baseline after `75c9330`: **6,534.1 ns/frame ± 375.7**
+  (median **6,625.0**). This supersedes the older Session 25 standing number for
+  local comparisons; the arc cadence commit shifted the compiler path.
+- Patch 8-run signal: **6,490.6 ns/frame** (median **6,560.6**), only about
+  **−0.7%** versus the full current-HEAD baseline and below the >1.6% keep bar.
+  Reverted without full gate.
+
+Conclusion: `envValue` showing in the profiler is mostly noise/leaf attribution;
+the simple object-reference cache is too small to matter.
+
+## Session 29 (2026-06-06 cont.) — batched WASM `addLine([...])`, rejected
+
+Rejected probe:
+
+- **Add a Rust-side `add_lines` ABI for JS array `addLine` calls:** the wrapper
+  wrote line records into a shared f64 buffer, called one wasm function for the
+  whole arc/candidate batch, and the engine represented the batch as one version
+  node whose patch expanded to the same per-line `_addLine` order during
+  reconciliation. Undo order was reverse-addition, redo order original-addition,
+  matching the old chain of transient per-line version nodes.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓ and `npm run build:wasm` ✓.
+- 8-run signal: **6,569.6 ns/frame** (median **6,633.0**), slower than the
+  current full baseline of **6,534.1 ns/frame**. Reverted without full gate.
+
+Conclusion: reducing wasm call count/version-node count does not pay for the
+extra JS buffer fill and batch `Vec<Line>` construction in the current compiler
+path. The hot wasm self-time is not dominated by per-line ABI overhead.
+
+## Session 30 (2026-06-06 cont.) — one-pass grid-bucket insertion, rejected
+
+Rejected probe:
+
+- **Combine duplicate detection and sorted-position search in
+  `insert_grid_line`:** the expanded line grid's add path scanned each bucket
+  once for an existing `(group,id)` entry and again for the insertion position.
+  The probe combined these into a single loop while preserving group order and
+  descending line-id order.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓ and `npm run build:wasm` ✓.
+- 8-run signal: **6,560.1 ns/frame** (median **6,659.0**), above the current full
+  baseline of **6,534.1 ns/frame**. Reverted without full gate.
+
+Conclusion: the two short iterator scans are not a meaningful bottleneck after
+wasm-opt; the manual loop shape was neutral/slower.
+
+## Session 31 (2026-06-06 cont.) — precompute version line cells, rejected
+
+Rejected probe:
+
+- **Store classic grid cells in AddLine version patches:** extended the version
+  patch to keep each line's precomputed `classic_cells` alongside the line, with
+  the goal of avoiding a repeated `line_cells` calculation during cache
+  reconciliation redo.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓ and `npm run build:wasm` ✓.
+- 8-run signal: **6,558.0 ns/frame**, above the current full baseline of
+  **6,534.1 ns/frame**. Reverted without full gate.
+
+Conclusion: the extra patch payload and clone traffic were not offset by saving
+the cell recomputation. The existing `LineCellCache` and cheap cell generation are
+already adequate for this path.
+
+## Session 32 (2026-06-06 cont.) — open WASM batch addLine, rejected
+
+Rejected probe:
+
+- **Use the public `addLine([segments])` semantic without f64 buffer staging:**
+  added begin/push/finish wasm calls so JS still passed each segment directly,
+  while Rust synced the shared cache once, mutated it per segment, and recorded
+  the whole batch as one public version node. This tested whether the compiler's
+  multi-line call shape had leverage without the extra shared-buffer fill cost
+  from Session 29.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓ and `npm run build:wasm` ✓.
+- 8-run signal: **6,582.2 ns/frame** (median **6,643.6**), slower than the
+  current full baseline of **6,534.1 ns/frame**. Reverted without full gate.
+
+Conclusion: batching public `addLine([...])` versions is not the bottleneck by
+itself. The compiler-aware opportunity is likely at a coarser boundary: add a
+candidate's lines, compute the narrow detector/scoring facts, then discard the
+candidate without materializing a general-purpose child engine.
+
+## Session 33 (2026-06-06 cont.) — inline single-owner history snapshots  ⭐ kept
+
+After the center-cell history redesign (Session 16), each history snapshot is
+recorded in exactly one center-cell list. The older shared `hist_snap_values`
+arena was introduced for the pre-center-index 9-cell fanout, where many cell
+nodes referenced the same snapshot. With fanout gone, it had become pure extra
+state: one `Snap` push, one extra offsets vector, one rollback truncate, and an
+extra indexed load during invalidation.
+
+`CellFrame.first` and `SnapNode.snap` now store `Snap` inline again, and the
+separate `hist_snap_values` / `hist_snap_value_offsets` vectors are removed.
+Rollback still truncates the same per-frame `hist_snaps` link arena; the first
+snapshot of each cell-frame node lives inside the node that `rollback_grid`
+already pops.
+
+Correctness notes:
+
+- Same-cell/same-frame insertion order remains irrelevant to observable output:
+  invalidation only asks whether **any** snapshot in the cell-frame node collides,
+  then truncates to the frame index.
+- A clean temporary worktree at `HEAD` produced the same optimizer hashes and
+  `sim_frames` as the patch. The local gitignored optimizer baseline was stale
+  from the arc-cadence change, so it was refreshed to current `HEAD` before the
+  final full verify.
+
+Gates:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓
+- `npm run build:wasm` ✓
+- `LR_ENGINE=wasm npm run verify` ✓
+
+Perf (default 50 runs + 3 warmup, `LR_ENGINE=wasm npm run perf`):
+
+| engine | ns/physics-frame | median |
+|---|---:|---:|
+| clean `HEAD` baseline | 6,551.6 ± 398.6 | 6,636.6 |
+| **inline snapshots** | **6,433.1 ± 374.2** | **6,508.7** |
+
+**Effect:** **−1.8% mean / −1.9% median**, clearing the >1.5% keep bar. Kept.
+
+**Standing after inline single-owner snapshots:** **~6,433 ns/physics-frame** —
+bit-identical to the current lr-core/optimizer baselines, ≈51.8× faster than
+pristine JS (333k), but still above the <3,000 ns/frame goal.

@@ -9,7 +9,7 @@
 //! 3×3 neighborhood queries.
 
 use crate::frame::{
-    add_to_collisions, add_to_grid, ActiveCellCache, Collisions, HistGrid, Snap, SnapNode,
+    add_to_collisions, add_to_grid, ActiveCellCache, Collisions, HistGrid, SnapNode,
 };
 use crate::grid::{cell_hash, FlatIntMap};
 use crate::line::{GridLine, MAX_FORCE_LENGTH};
@@ -253,7 +253,6 @@ pub(crate) fn step_state<const TRACK: bool>(
     hist: &mut HistGrid,
     touched_cells: &mut Vec<i64>,
     hist_snaps: &mut Vec<SnapNode>,
-    hist_snap_values: &mut Vec<Snap>,
     active_cells: &mut ActiveCellCache,
     line_cache: &mut LineCellCache,
     coll: &mut Collisions,
@@ -302,7 +301,6 @@ pub(crate) fn step_state<const TRACK: bool>(
                     hist,
                     touched_cells,
                     hist_snaps,
-                    hist_snap_values,
                     active_cells,
                     center_cell,
                     frame_index,
@@ -362,7 +360,6 @@ pub(crate) fn step_state<const TRACK: bool>(
                                 hist,
                                 touched_cells,
                                 hist_snaps,
-                                hist_snap_values,
                                 active_cells,
                                 pcell,
                                 frame_index,

@@ -23,7 +23,7 @@ pub(crate) struct Snap {
 }
 
 pub(crate) struct SnapNode {
-    snap: i32,
+    snap: Snap,
     next: i32,
 }
 
@@ -32,7 +32,7 @@ pub(crate) struct SnapNode {
 #[derive(Clone)]
 pub(crate) struct CellFrame {
     pub index: i32,
-    first: i32,
+    first: Snap,
     rest_head: i32,
 }
 
@@ -92,16 +92,14 @@ impl ActiveCellCache {
 
 impl CellFrame {
     #[inline]
-    fn any_collides(&self, snap_links: &[SnapNode], snap_values: &[Snap], l: &Line) -> bool {
-        let first = snap_values[self.first as usize];
-        if collides_with(l, first.px, first.py, first.vx, first.vy) {
+    fn any_collides(&self, snap_links: &[SnapNode], l: &Line) -> bool {
+        if collides_with(l, self.first.px, self.first.py, self.first.vx, self.first.vy) {
             return true;
         }
         let mut next = self.rest_head;
         while next != -1 {
             let n = &snap_links[next as usize];
-            let snap = snap_values[n.snap as usize];
-            if collides_with(l, snap.px, snap.py, snap.vx, snap.vy) {
+            if collides_with(l, n.snap.px, n.snap.py, n.snap.vx, n.snap.vy) {
                 return true;
             }
             next = n.next;
@@ -116,7 +114,7 @@ pub(crate) type HistGrid = IntMap<i64, Vec<CellFrame>>;
 pub(crate) type Collisions = IntMap<i32, Vec<i32>>;
 
 #[inline]
-fn append_snapshot(frame: &mut CellFrame, snap_links: &mut Vec<SnapNode>, snap: i32) {
+fn append_snapshot(frame: &mut CellFrame, snap_links: &mut Vec<SnapNode>, snap: Snap) {
     let next = frame.rest_head;
     frame.rest_head = snap_links.len() as i32;
     snap_links.push(SnapNode { snap, next });
@@ -133,7 +131,7 @@ fn add_to_cell(
     active: &mut ActiveCellCache,
     cell: i64,
     index: i32,
-    snap: i32,
+    snap: Snap,
 ) {
     if let Some(frame) = active.get(cell) {
         append_snapshot(frame, snap_links, snap);
@@ -162,7 +160,6 @@ pub(crate) fn add_to_grid(
     grid: &mut HistGrid,
     touched: &mut Vec<i64>,
     snap_links: &mut Vec<SnapNode>,
-    snap_values: &mut Vec<Snap>,
     active: &mut ActiveCellCache,
     center_cell: i64,
     index: i32,
@@ -171,8 +168,7 @@ pub(crate) fn add_to_grid(
     vx: f64,
     vy: f64,
 ) {
-    let snap = snap_values.len() as i32;
-    snap_values.push(Snap { px, py, vx, vy });
+    let snap = Snap { px, py, vx, vy };
     add_to_cell(grid, touched, snap_links, active, center_cell, index, snap);
 }
 
@@ -182,7 +178,6 @@ pub(crate) fn add_to_grid(
 fn index_of_collision_in_center_cell(
     grid: &HistGrid,
     snap_links: &[SnapNode],
-    snap_values: &[Snap],
     cell: i64,
     l: &Line,
     before: i32,
@@ -192,7 +187,7 @@ fn index_of_collision_in_center_cell(
         if cf.index >= before {
             break;
         }
-        if cf.any_collides(snap_links, snap_values, l) {
+        if cf.any_collides(snap_links, l) {
             return Some(cf.index);
         }
     }
@@ -206,7 +201,6 @@ fn index_of_collision_in_center_cell(
 pub(crate) fn index_of_collision_in_cell(
     grid: &HistGrid,
     snap_links: &[SnapNode],
-    snap_values: &[Snap],
     cell: i64,
     l: &Line,
 ) -> Option<i32> {
@@ -215,7 +209,7 @@ pub(crate) fn index_of_collision_in_cell(
     for dx in -1..=1 {
         for dy in -1..=1 {
             let center = hash_int_pair(gx + dx, gy + dy);
-            if let Some(idx) = index_of_collision_in_center_cell(grid, snap_links, snap_values, center, l, best) {
+            if let Some(idx) = index_of_collision_in_center_cell(grid, snap_links, center, l, best) {
                 best = idx;
             }
         }

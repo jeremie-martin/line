@@ -5,7 +5,7 @@
 //! in engine.rs (one shared cache per lineage); these are thin marshalling shims.
 
 use crate::engine;
-use crate::frame::{ActiveCellCache, Snap};
+use crate::frame::ActiveCellCache;
 use crate::grid::{FlatIntMap, IntMap};
 use crate::kernel::{compute_rest_endur, init_state, step_state, LineCellCache, State};
 use crate::line::{build_line, line_cells, push_line, GridLine};
@@ -88,7 +88,6 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
     let mut hist = IntMap::default();
     let mut tc: Vec<i64> = Vec::new();
     let mut hs = Vec::new();
-    let mut hsv: Vec<Snap> = Vec::new();
     let mut ac = ActiveCellCache::default();
     let mut lc = LineCellCache::default();
     let mut coll = IntMap::default();
@@ -96,7 +95,7 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
     for f in 1..=frames {
         ev.clear();
         step_state::<false>(
-            &mut s, &grid, &rest, &endur, &mut ev, f as i32, &mut hist, &mut tc, &mut hs, &mut hsv,
+            &mut s, &grid, &rest, &endur, &mut ev, f as i32, &mut hist, &mut tc, &mut hs,
             &mut ac, &mut lc, &mut coll, &mut tl,
         );
         write(f, &s);

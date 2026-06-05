@@ -43,7 +43,10 @@ class RecordEngine {
   // deno-lint-ignore no-explicit-any
   addLine(line: any) {
     const id = nextId++;
-    rec({ op: "addLine", parent: this.id, child: id, line: line.toJSON() });
+    // The compiler batches a whole arc into one addLine(array) call (→ one child
+    // instance). Normalize to an array of line JSONs; replay re-adds as one batch.
+    const lines = Array.isArray(line) ? line : [line];
+    rec({ op: "addLine", parent: this.id, child: id, lines: lines.map((l: any) => l.toJSON()) });
     return new RecordEngine(this.real.addLine(line), id);
   }
   getRider(f: number) {

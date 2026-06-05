@@ -52,8 +52,12 @@ async function main() {
       jsInst[op.child] = jsInst[op.parent].setStart(op.pos, op.vel);
       wInst[op.child] = wInst[op.parent].setStart(op.pos, op.vel);
     } else if (op.op === "addLine") {
-      jsInst[op.child] = jsInst[op.parent].addLine(js.createLine(op.line));
-      wInst[op.child] = wInst[op.parent].addLine(wasmLine(op.line));
+      // op.lines (current) is the batched arc the compiler adds in one call;
+      // tolerate the legacy single-line op.line format too. The whole batch must
+      // become ONE child engine (matches the engine's array-addLine contract).
+      const lineJsons = op.lines ?? [op.line];
+      jsInst[op.child] = jsInst[op.parent].addLine(lineJsons.map((j: any) => js.createLine(j)));
+      wInst[op.child] = wInst[op.parent].addLine(lineJsons.map((j: any) => wasmLine(j)));
     } else {
       // read op
       reads++;

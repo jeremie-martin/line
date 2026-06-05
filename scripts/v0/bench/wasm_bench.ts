@@ -37,14 +37,17 @@ function main() {
   const median = times[times.length >> 1];
   const min = times[0];
   const nsPerFrame = (median * 1e6) / frames;
-  const baselineNs = 1_000_000;
+  // Current optimized JS engine baseline from `npm run perf` (mini_burst @ 50k):
+  // ~73,000 ns/physics-frame after B1-B11 + young-gen tuning + the official-parity
+  // snapshot. (The old 1,000,000 here predated the whole B-series.)
+  const baselineNs = 73_000;
   console.log("");
-  console.log(`wasm_bench  frames=${frames}  reps=${reps}  (unoptimized: BTreeMap grid)`);
+  console.log(`wasm_bench  frames=${frames}  reps=${reps}`);
   console.log(`  min        ${min.toFixed(3)} ms`);
   console.log(`  median     ${median.toFixed(3)} ms`);
   console.log(`  ns/frame   ${nsPerFrame.toFixed(1)}  (median)`);
   console.log(`  frames/sec ${(frames / (median / 1000)).toFixed(0)}`);
-  console.log(`  vs JS      ${(baselineNs / nsPerFrame).toFixed(1)}x faster than the ~1,000,000 ns/frame JS baseline`);
+  console.log(`  vs JS      ${(baselineNs / nsPerFrame).toFixed(1)}x vs the current ~73,000 ns/frame optimized-JS baseline`);
 }
 
 main();

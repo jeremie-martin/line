@@ -584,3 +584,30 @@ directly while preserving the full stateMap fallback for cold point ids.
 
   **−10.4% quick / −9.3% required default.** New standing: **22,509.5
   ns/physics-frame**, still above the ~12.5k 2× target, so continue.
+
+## W5 — Unroll the fixed WASM constraint loop  (−3.35%, bit-identical)
+`step_state`'s hottest section is the 6×22 iterating-constraint solve. The Rust
+port kept it as a faithful loop over the static `ITER` tuple table, matching the
+JS object-list shape but forcing wasm to load `(kind,p1,p2,bind)` and branch on
+`kind` for every constraint. The rider topology is fixed, so W5 replaces that
+inner loop with explicit inlined calls in the same rider-data order:
+`Stick × 14`, `BindStick × 6`, `RepelStick × 2`. Arithmetic order inside each
+constraint is unchanged; `BindStick` also follows the JS order by checking the
+binding before measuring length.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf:**
+
+  | config | before | after |
+  |---|---:|---:|
+  | quick signal (`--budget=20000 --reps=5 --warmup=1`) | 23,042.6 ± 556.4 | **21,900.7 ± 484.2** |
+  | required default (`budget=50000`, 20 runs + 3 warmup) | 22,509.5 ± 527.1 | **21,756.1 ± 510.2** |
+
+  **−5.0% quick / −3.35% required default.** New standing: **21,756.1
+  ns/physics-frame**.
+
+Rejected probes after W4 (verified where applicable, then reverted because perf
+did not hold): defer `line_pos` until after cheaper collision predicates
+(regressed), direct impact/sled-point wrapper reads (regressed), pre-reserve
+frame-cache vectors in `compute_to` (regressed), and pre-encode the 3×3 cell
+hash coordinates (no win).

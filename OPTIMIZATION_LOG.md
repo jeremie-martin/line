@@ -495,3 +495,29 @@ vs an 8-field object + 3 vectors) — fewer/smaller allocations, **parity preser
 because `collidesWith` is unaffected (gate: `verify:optimizer` must stay equal to
 `LR_ENGINE=official`). This is the obvious next lever, ahead of WASM: recover much
 of the +27% without giving up correctness.
+
+## B11 — slim the frame-grid snapshot to `{pos, vel}`  (−10%, official-parity, commit `f6b39d1`)
+Implemented the lever above: `snapshotEntity` now copies only `{ pos:{x,y},
+vel:{x,y} }` instead of the full entity (8 fields + 3 vectors). Dropped the
+`snapshotVector` helper (inlined).
+
+- **Gates:** verify:engine ✓ byte-identical · verify:optimizer ✓ · **direct parity
+  vs `LR_ENGINE=official` ✓** on mini_burst/drums_signature/syncopated_switchback ·
+  245/245 tests.
+- **Perf (drift-bracketed, 8 reps):**
+
+  | snapshot | ns/physics-frame |
+  |---|---|
+  | full entity (post-rebase HEAD) | 81,144 ± 360 |
+  | **slim `{pos, vel}`** | **~73,068** (72,947 / 73,189) |
+
+  **−10.0%.** Recovers ~8k of the ~17k parity cost. The floor here is 3 object
+  allocations per snapshot (outer + 2 coord vectors); they persist in the grid so
+  can't be pooled, and going lower means a flat-grid redesign or changing the
+  shared `collidesWith` signature — neither cheap-and-parity-safe. So this is the
+  clean win.
+
+**Standing after B11:** **~73,000 ns/physics-frame** — byte-identical to **official
+lr-core**, ≈4.6× faster than pristine (333k). (The young-gen flag and B1–B9 still
+apply; the residual gap vs the pre-parity ~63k is the irreducible snapshot
+allocation, the price of correctness.)

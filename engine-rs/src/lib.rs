@@ -1,13 +1,13 @@
-//! Phase-0b: full per-frame Line Rider body physics, ported bit-faithfully from
-//! vendored lr-core (scarf dropped). Standalone `sim()` simulates a fixed line
-//! set and writes the 10 collision points' per-frame state for diffing against
-//! the JS engine's recorded dump. Only +,-,*,/,sqrt — wasm f64 ops are IEEE-754
-//! correctly-rounded, matching V8, so this is bit-identical when op order is
-//! reproduced exactly (lr-core warns "multiplication is not associative").
+//! Line Rider body physics, ported bit-faithfully from vendored lr-core (scarf
+//! dropped). Two layers:
+//!   - the per-frame kernel (`step_state`) — proven bit-identical to the JS
+//!     engine on all 5 fixtures (Phase 0b).
+//!   - a stateful, handle-based `Engine` with a lazy per-frame cache (Phase 2),
+//!     the shape the JS wrapper drives.
 //!
-//! `std` is used only for `f64::sqrt` (→ wasm `f64.sqrt` opcode) and BTreeMap
-//! (deterministic, no entropy — unlike HashMap's RandomState). No per-frame
-//! allocation in steady state matters later; Phase-0b prioritizes correctness.
+//! Only +,-,*,/,sqrt; `std` is used for `f64::sqrt` (→ wasm `f64.sqrt`,
+//! IEEE-754 correctly-rounded, identical to V8) and BTreeMap (deterministic,
+//! no entropy). Exact operation order is preserved (the chaotic sim demands it).
 
 use std::collections::BTreeMap;
 
@@ -26,20 +26,9 @@ const LFOOT: usize = 10;
 const RFOOT: usize = 11;
 const NENT: usize = 12;
 
-// base skeleton positions (no start offset); bindings are placeholders
 const BASE: [(f64, f64); NENT] = [
-    (0.0, 0.0),   // RIDER_MOUNTED
-    (0.0, 0.0),   // SLED_INTACT
-    (0.0, 0.0),   // PEG
-    (0.0, 5.0),   // TAIL
-    (15.0, 5.0),  // NOSE
-    (17.5, 0.0),  // STRING
-    (5.0, 0.0),   // BUTT
-    (5.0, -5.5),  // SHOULDER
-    (11.5, -5.0), // RHAND
-    (11.5, -5.0), // LHAND
-    (10.0, 5.0),  // LFOOT
-    (10.0, 5.0),  // RFOOT
+    (0.0, 0.0), (0.0, 0.0), (0.0, 0.0), (0.0, 5.0), (15.0, 5.0), (17.5, 0.0),
+    (5.0, 0.0), (5.0, -5.5), (11.5, -5.0), (11.5, -5.0), (10.0, 5.0), (10.0, 5.0),
 ];
 const FRIC: [f64; NENT] = [0.0, 0.0, 0.8, 0.0, 0.0, 0.0, 0.8, 0.8, 0.1, 0.1, 0.0, 0.0];
 const IS_POINT: [bool; NENT] = [
@@ -81,9 +70,7 @@ const JOINTS: [(usize, usize, usize, usize, usize); 3] = [
     (PEG, TAIL, STRING, PEG, RIDER_MOUNTED),
 ];
 
-// collidable points, in state-array order
 const COLLIDABLES: [usize; 10] = [PEG, TAIL, NOSE, STRING, BUTT, SHOULDER, RHAND, LHAND, LFOOT, RFOOT];
-// output order = dump order = alphabetical by id
 const OUT_ORDER: [usize; 10] = [BUTT, LFOOT, LHAND, NOSE, PEG, RFOOT, RHAND, SHOULDER, STRING, TAIL];
 
 const GRAVITY_X: f64 = 0.0;
@@ -98,8 +85,12 @@ const MAX_FRAMES: usize = 2400;
 const LINE_STRIDE: usize = 6; // x1,y1,x2,y2,type,flags
 const OUT_STRIDE: usize = 60; // 10 points * 6
 
+// Exchange buffers. LINES_IN: caller writes line data. OUT: batch sim() output.
+// SCRATCH: stateful engine reads/writes (12 entities × 6 f64 = 72, then 12 fsu).
 static mut LINES_IN: [f64; MAX_LINES * LINE_STRIDE] = [0.0; MAX_LINES * LINE_STRIDE];
 static mut OUT: [f64; (MAX_FRAMES + 1) * OUT_STRIDE] = [0.0; (MAX_FRAMES + 1) * OUT_STRIDE];
+const SCRATCH_LEN: usize = NENT * 6 + NENT;
+static mut SCRATCH: [f64; SCRATCH_LEN] = [0.0; SCRATCH_LEN];
 
 #[no_mangle]
 pub extern "C" fn lines_in_ptr() -> u32 {
@@ -108,6 +99,10 @@ pub extern "C" fn lines_in_ptr() -> u32 {
 #[no_mangle]
 pub extern "C" fn out_ptr() -> u32 {
     &raw const OUT as u32
+}
+#[no_mangle]
+pub extern "C" fn scratch_ptr() -> u32 {
+    &raw const SCRATCH as u32
 }
 
 // ── precomputed line geometry ──
@@ -124,6 +119,7 @@ struct Line {
     is_acc: bool,
     accx: f64,
     accy: f64,
+    collidable: bool,
 }
 
 fn hash_int_pair(a: i64, b: i64) -> i64 {
@@ -143,7 +139,6 @@ fn classic_cells(l: &Line) -> Vec<i64> {
     let p1y = l.p1y;
     let p2x = l.p1x + l.vecx;
     let p2y = l.p1y + l.vecy;
-    // getCellPosAndOffset
     let cs_x = cell_cor(p1x);
     let cs_y = cell_cor(p1y);
     let mut cur_x = cs_x;
@@ -157,7 +152,6 @@ fn classic_cells(l: &Line) -> Vec<i64> {
     if (l.vecx == 0.0 && l.vecy == 0.0) || (cs_x == ce_x && cs_y == ce_y) {
         return cells;
     }
-    // box of cell coords
     let box_left = cs_x.min(ce_x);
     let box_right = cs_x.max(ce_x);
     let box_top = cs_y.min(ce_y);
@@ -166,7 +160,6 @@ fn classic_cells(l: &Line) -> Vec<i64> {
     let mut posx = p1x;
     let mut posy = p1y;
     loop {
-        // getDelta
         let dx;
         let dy;
         if cur_x < 0 {
@@ -179,7 +172,6 @@ fn classic_cells(l: &Line) -> Vec<i64> {
         } else {
             dy = -cur_gy + (if l.vecy > 0.0 { GRID_SIZE } else { -1.0 });
         }
-        // getNextPos
         let (nposx, nposy) = if l.vecx == 0.0 {
             (posx, posy + dy)
         } else if l.vecy == 0.0 {
@@ -195,7 +187,6 @@ fn classic_cells(l: &Line) -> Vec<i64> {
                 (posx + l.vecx * dy / l.vecy, posy + dy)
             }
         };
-        // getCellPosAndOffset(nextPos)
         let nc_x = cell_cor(nposx);
         let nc_y = cell_cor(nposy);
         if nc_x >= box_left && nc_x <= box_right && nc_y >= box_top && nc_y <= box_bottom {
@@ -219,60 +210,33 @@ fn dist(ax: f64, ay: f64, bx: f64, by: f64) -> f64 {
     (dx * dx + dy * dy).sqrt()
 }
 
-#[no_mangle]
-pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames: u32) -> u32 {
-    let n_lines = n_lines as usize;
-    let frames = (frames as usize).min(MAX_FRAMES);
-
-    // ── build lines + grid ──
-    let mut lines: Vec<Line> = Vec::with_capacity(n_lines);
-    let mut grid: BTreeMap<i64, Vec<u32>> = BTreeMap::new();
-    for li in 0..n_lines {
-        let base = li * LINE_STRIDE;
-        let (x1, y1, x2, y2, ty, flags) = unsafe {
-            (
-                LINES_IN[base],
-                LINES_IN[base + 1],
-                LINES_IN[base + 2],
-                LINES_IN[base + 3],
-                LINES_IN[base + 4] as i64,
-                LINES_IN[base + 5] as i64,
-            )
-        };
-        let flipped = (flags & 1) != 0;
-        let left_ext = (flags & 2) != 0;
-        let right_ext = (flags & 4) != 0;
-        let is_acc = ty == 1;
-        let vecx = x2 - x1;
-        let vecy = y2 - y1;
-        let len_sq = vecx * vecx + vecy * vecy;
-        let inv_len_sq = 1.0 / len_sq;
-        let length = len_sq.sqrt();
-        let inv_length = 1.0 / length;
-        let flip_sign = if flipped { -1.0 } else { 1.0 };
-        // norm = vec.rotCW() * (invLength * flipSign); rotCW: (-y, x)
-        let normx = (-vecy) * (inv_length * flip_sign);
-        let normy = (vecx) * (inv_length * flip_sign);
-        let extension = (MAX_FORCE_LENGTH / length).min(0.25);
-        let left_bound = if left_ext { -extension } else { 0.0 };
-        let right_bound = if right_ext { 1.0 + extension } else { 1.0 };
-        // acc = norm.rotCW() * (ACC * flipSign); rotCW(norm): (-normy, normx)
-        let accx = (-normy) * (ACC * flip_sign);
-        let accy = (normx) * (ACC * flip_sign);
-        let line = Line {
-            p1x: x1, p1y: y1, vecx, vecy, normx, normy, inv_len_sq,
-            left_bound, right_bound, is_acc, accx, accy,
-        };
-        // register into grid (only collidable: SOLID(0)/ACC(1); SCENERY(2) not)
-        if ty == 0 || ty == 1 {
-            for cell in classic_cells(&line) {
-                grid.entry(cell).or_default().push(li as u32);
-            }
-        }
-        lines.push(line);
+fn build_line(x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) -> Line {
+    let flipped = (flags & 1) != 0;
+    let left_ext = (flags & 2) != 0;
+    let right_ext = (flags & 4) != 0;
+    let is_acc = ty == 1;
+    let vecx = x2 - x1;
+    let vecy = y2 - y1;
+    let len_sq = vecx * vecx + vecy * vecy;
+    let inv_len_sq = 1.0 / len_sq;
+    let length = len_sq.sqrt();
+    let inv_length = 1.0 / length;
+    let flip_sign = if flipped { -1.0 } else { 1.0 };
+    let normx = (-vecy) * (inv_length * flip_sign);
+    let normy = (vecx) * (inv_length * flip_sign);
+    let extension = (MAX_FORCE_LENGTH / length).min(0.25);
+    let left_bound = if left_ext { -extension } else { 0.0 };
+    let right_bound = if right_ext { 1.0 + extension } else { 1.0 };
+    let accx = (-normy) * (ACC * flip_sign);
+    let accy = (normx) * (ACC * flip_sign);
+    Line {
+        p1x: x1, p1y: y1, vecx, vecy, normx, normy, inv_len_sq,
+        left_bound, right_bound, is_acc, accx, accy,
+        collidable: ty == 0 || ty == 1, // SCENERY(2) not collidable
     }
+}
 
-    // ── rest lengths + endurance ──
+fn compute_rest_endur() -> ([f64; NITER], [f64; NITER]) {
     let mut rest = [0.0f64; NITER];
     let mut endur = [0.0f64; NITER];
     for k in 0..NITER {
@@ -281,172 +245,328 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
         rest[k] = r;
         endur[k] = ep * r * 0.5;
     }
+    (rest, endur)
+}
 
-    // ── initial state ──
-    let mut px = [0.0f64; NENT];
-    let mut py = [0.0f64; NENT];
-    let mut prevx = [0.0f64; NENT];
-    let mut prevy = [0.0f64; NENT];
-    let mut vx = [0.0f64; NENT];
-    let mut vy = [0.0f64; NENT];
-    let mut fsu = [-1i32; NENT]; // framesSinceUnbind; -1 = binded
+#[derive(Clone)]
+struct State {
+    px: [f64; NENT],
+    py: [f64; NENT],
+    prevx: [f64; NENT],
+    prevy: [f64; NENT],
+    vx: [f64; NENT],
+    vy: [f64; NENT],
+    fsu: [i32; NENT],
+}
+
+fn init_state(sx: f64, sy: f64, svx: f64, svy: f64) -> State {
+    let mut s = State {
+        px: [0.0; NENT], py: [0.0; NENT], prevx: [0.0; NENT], prevy: [0.0; NENT],
+        vx: [0.0; NENT], vy: [0.0; NENT], fsu: [-1; NENT],
+    };
     for i in 0..NENT {
         if IS_POINT[i] {
-            px[i] = BASE[i].0 + sx;
-            py[i] = BASE[i].1 + sy;
-            prevx[i] = px[i] - svx;
-            prevy[i] = py[i] - svy;
-            vx[i] = svx;
-            vy[i] = svy;
+            s.px[i] = BASE[i].0 + sx;
+            s.py[i] = BASE[i].1 + sy;
+            s.prevx[i] = s.px[i] - svx;
+            s.prevy[i] = s.py[i] - svy;
+            s.vx[i] = svx;
+            s.vy[i] = svy;
+        }
+    }
+    s
+}
+
+// The per-frame kernel: step → 6×(constraints, collision) → BindJoints.
+// Proven bit-identical to lr-core's _getNextFrame on all 5 fixtures.
+fn step_state(s: &mut State, lines: &[Line], grid: &BTreeMap<i64, Vec<u32>>, rest: &[f64; NITER], endur: &[f64; NITER]) {
+    // step
+    for i in 0..NENT {
+        if IS_POINT[i] {
+            let nvx = (s.px[i] - s.prevx[i]) * (1.0 - 0.0) + GRAVITY_X;
+            let nvy = (s.py[i] - s.prevy[i]) * (1.0 - 0.0) + GRAVITY_Y;
+            let nx = s.px[i] + nvx;
+            let ny = s.py[i] + nvy;
+            s.prevx[i] = s.px[i];
+            s.prevy[i] = s.py[i];
+            s.px[i] = nx;
+            s.py[i] = ny;
+            s.vx[i] = nvx;
+            s.vy[i] = nvy;
+        } else if s.fsu[i] != -1 {
+            s.fsu[i] += 1;
         }
     }
 
-    let write_frame = |f: usize, px: &[f64; NENT], py: &[f64; NENT], prevx: &[f64; NENT], prevy: &[f64; NENT], vx: &[f64; NENT], vy: &[f64; NENT]| {
+    for _ in 0..ITERATE {
+        for k in 0..NITER {
+            let (kind, p1, p2, bind, _ep, _lf) = ITER[k];
+            let length = dist(s.px[p1], s.py[p1], s.px[p2], s.py[p2]);
+            match kind {
+                0 => {
+                    let gd = if length == 0.0 { 0.0 } else { (length - rest[k]) / length };
+                    let diff = gd * 0.5;
+                    let dx = (s.px[p1] - s.px[p2]) * diff;
+                    let dy = (s.py[p1] - s.py[p2]) * diff;
+                    s.px[p1] -= dx; s.py[p1] -= dy;
+                    s.px[p2] += dx; s.py[p2] += dy;
+                }
+                2 => {
+                    if length < rest[k] {
+                        let gd = if length == 0.0 { 0.0 } else { (length - rest[k]) / length };
+                        let diff = gd * 0.5;
+                        let dx = (s.px[p1] - s.px[p2]) * diff;
+                        let dy = (s.py[p1] - s.py[p2]) * diff;
+                        s.px[p1] -= dx; s.py[p1] -= dy;
+                        s.px[p2] += dx; s.py[p2] += dy;
+                    }
+                }
+                _ => {
+                    if s.fsu[bind] == -1 {
+                        let gd = if length == 0.0 { 0.0 } else { (length - rest[k]) / length };
+                        let diff = gd * 0.5;
+                        if diff > endur[k] {
+                            s.fsu[bind] = 0;
+                        } else {
+                            let dx = (s.px[p1] - s.px[p2]) * diff;
+                            let dy = (s.py[p1] - s.py[p2]) * diff;
+                            s.px[p1] -= dx; s.py[p1] -= dy;
+                            s.px[p2] += dx; s.py[p2] += dy;
+                        }
+                    }
+                }
+            }
+        }
+        for &i in COLLIDABLES.iter() {
+            let gx = (s.px[i] / GRID_SIZE).floor() as i64;
+            let gy = (s.py[i] / GRID_SIZE).floor() as i64;
+            for ci in -1..=1i64 {
+                for cj in -1..=1i64 {
+                    let cell = hash_int_pair(ci + gx, cj + gy);
+                    if let Some(lns) = grid.get(&cell) {
+                        for &lidx in lns.iter() {
+                            let l = &lines[lidx as usize];
+                            let ox = s.px[i] - l.p1x;
+                            let oy = s.py[i] - l.p1y;
+                            let perp_comp = l.normx * ox + l.normy * oy;
+                            let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
+                            let pnt_dir = l.normx * s.vx[i] + l.normy * s.vy[i];
+                            if pnt_dir > 0.0
+                                && perp_comp > 0.0
+                                && perp_comp < MAX_FORCE_LENGTH
+                                && line_pos >= l.left_bound
+                                && line_pos <= l.right_bound
+                            {
+                                let tx = l.normx * perp_comp - s.px[i];
+                                let ty = l.normy * perp_comp - s.py[i];
+                                let posx = tx * -1.0;
+                                let posy = ty * -1.0;
+                                let mut fvx = (l.normy * FRIC[i]) * perp_comp;
+                                let mut fvy = ((-l.normx) * FRIC[i]) * perp_comp;
+                                if s.prevx[i] >= posx { fvx = fvx * -1.0; }
+                                if s.prevy[i] < posy { fvy = fvy * -1.0; }
+                                fvx = fvx + s.prevx[i];
+                                fvy = fvy + s.prevy[i];
+                                if l.is_acc {
+                                    fvx = fvx + l.accx;
+                                    fvy = fvy + l.accy;
+                                }
+                                s.px[i] = posx;
+                                s.py[i] = posy;
+                                s.prevx[i] = fvx;
+                                s.prevy[i] = fvy;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for &(p1, p2, q1, q2, bind) in JOINTS.iter() {
+        let ax = s.px[p2] - s.px[p1];
+        let ay = s.py[p2] - s.py[p1];
+        let bx = s.px[q2] - s.px[q1];
+        let by = s.py[q2] - s.py[q1];
+        let cross = ax * by - ay * bx;
+        if cross >= 0.0 {
+            // allow
+        } else if s.fsu[bind] == -1 {
+            s.fsu[bind] = 0;
+        }
+    }
+}
+
+// ── batch sim() — kept as the Phase-0b regression harness (wasm:check) ──
+#[no_mangle]
+pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames: u32) -> u32 {
+    let n_lines = n_lines as usize;
+    let frames = (frames as usize).min(MAX_FRAMES);
+    let mut lines: Vec<Line> = Vec::with_capacity(n_lines);
+    let mut grid: BTreeMap<i64, Vec<u32>> = BTreeMap::new();
+    for li in 0..n_lines {
+        let b = li * LINE_STRIDE;
+        let l = unsafe {
+            build_line(LINES_IN[b], LINES_IN[b + 1], LINES_IN[b + 2], LINES_IN[b + 3], LINES_IN[b + 4] as i64, LINES_IN[b + 5] as i64)
+        };
+        if l.collidable {
+            for cell in classic_cells(&l) {
+                grid.entry(cell).or_default().push(li as u32);
+            }
+        }
+        lines.push(l);
+    }
+    let (rest, endur) = compute_rest_endur();
+    let mut s = init_state(sx, sy, svx, svy);
+
+    let write = |f: usize, s: &State| {
         let base = f * OUT_STRIDE;
         for (k, &i) in OUT_ORDER.iter().enumerate() {
             let o = base + k * 6;
             unsafe {
-                OUT[o] = px[i];
-                OUT[o + 1] = py[i];
-                OUT[o + 2] = prevx[i];
-                OUT[o + 3] = prevy[i];
-                OUT[o + 4] = vx[i];
-                OUT[o + 5] = vy[i];
+                OUT[o] = s.px[i]; OUT[o + 1] = s.py[i];
+                OUT[o + 2] = s.prevx[i]; OUT[o + 3] = s.prevy[i];
+                OUT[o + 4] = s.vx[i]; OUT[o + 5] = s.vy[i];
             }
         }
     };
-
-    write_frame(0, &px, &py, &prevx, &prevy, &vx, &vy);
-
+    write(0, &s);
     for f in 1..=frames {
-        // ── step ──
-        for i in 0..NENT {
-            if IS_POINT[i] {
-                let nvx = (px[i] - prevx[i]) * (1.0 - 0.0) + GRAVITY_X;
-                let nvy = (py[i] - prevy[i]) * (1.0 - 0.0) + GRAVITY_Y;
-                let nx = px[i] + nvx;
-                let ny = py[i] + nvy;
-                prevx[i] = px[i];
-                prevy[i] = py[i];
-                px[i] = nx;
-                py[i] = ny;
-                vx[i] = nvx;
-                vy[i] = nvy;
-            } else {
-                // Binding.step: if unbinded, framesSinceUnbind += 1
-                if fsu[i] != -1 {
-                    fsu[i] += 1;
-                }
-            }
-        }
+        step_state(&mut s, &lines, &grid, &rest, &endur);
+        write(f, &s);
+    }
+    frames as u32
+}
 
-        // ── 6 iterations of (constraints, collision) ──
-        for _ in 0..ITERATE {
-            for k in 0..NITER {
-                let (kind, p1, p2, bind, _ep, _lf) = ITER[k];
-                let length = dist(px[p1], py[p1], px[p2], py[p2]);
-                match kind {
-                    0 => {
-                        // Stick
-                        let gd = if length == 0.0 { 0.0 } else { (length - rest[k]) / length };
-                        let diff = gd * 0.5;
-                        let dx = (px[p1] - px[p2]) * diff;
-                        let dy = (py[p1] - py[p2]) * diff;
-                        px[p1] -= dx; py[p1] -= dy;
-                        px[p2] += dx; py[p2] += dy;
-                    }
-                    2 => {
-                        // RepelStick
-                        if length < rest[k] {
-                            let gd = if length == 0.0 { 0.0 } else { (length - rest[k]) / length };
-                            let diff = gd * 0.5;
-                            let dx = (px[p1] - px[p2]) * diff;
-                            let dy = (py[p1] - py[p2]) * diff;
-                            px[p1] -= dx; py[p1] -= dy;
-                            px[p2] += dx; py[p2] += dy;
-                        }
-                    }
-                    _ => {
-                        // BindStick
-                        if fsu[bind] == -1 {
-                            let gd = if length == 0.0 { 0.0 } else { (length - rest[k]) / length };
-                            let diff = gd * 0.5;
-                            if diff > endur[k] {
-                                fsu[bind] = 0; // setBind(false)
-                            } else {
-                                let dx = (px[p1] - px[p2]) * diff;
-                                let dy = (py[p1] - py[p2]) * diff;
-                                px[p1] -= dx; py[p1] -= dy;
-                                px[p2] += dx; py[p2] += dy;
-                            }
-                        }
-                    }
-                }
-            }
-            // ── collision ──
-            for &i in COLLIDABLES.iter() {
-                let gx = (px[i] / GRID_SIZE).floor() as i64;
-                let gy = (py[i] / GRID_SIZE).floor() as i64;
-                for ci in -1..=1i64 {
-                    for cj in -1..=1i64 {
-                        let cell = hash_int_pair(ci + gx, cj + gy);
-                        if let Some(lns) = grid.get(&cell) {
-                            for &lidx in lns.iter() {
-                                let l = &lines[lidx as usize];
-                                let ox = px[i] - l.p1x;
-                                let oy = py[i] - l.p1y;
-                                let perp_comp = l.normx * ox + l.normy * oy;
-                                let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
-                                let pnt_dir = l.normx * vx[i] + l.normy * vy[i];
-                                if pnt_dir > 0.0
-                                    && perp_comp > 0.0
-                                    && perp_comp < MAX_FORCE_LENGTH
-                                    && line_pos >= l.left_bound
-                                    && line_pos <= l.right_bound
-                                {
-                                    let tx = l.normx * perp_comp - px[i];
-                                    let ty = l.normy * perp_comp - py[i];
-                                    let posx = tx * -1.0;
-                                    let posy = ty * -1.0;
-                                    let mut fvx = (l.normy * FRIC[i]) * perp_comp;
-                                    let mut fvy = ((-l.normx) * FRIC[i]) * perp_comp;
-                                    if prevx[i] >= posx { fvx = fvx * -1.0; }
-                                    if prevy[i] < posy { fvy = fvy * -1.0; }
-                                    fvx = fvx + prevx[i];
-                                    fvy = fvy + prevy[i];
-                                    if l.is_acc {
-                                        fvx = fvx + l.accx;
-                                        fvy = fvy + l.accy;
-                                    }
-                                    px[i] = posx;
-                                    py[i] = posy;
-                                    prevx[i] = fvx;
-                                    prevy[i] = fvy;
-                                    // vel unchanged
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+// ───────────────────────── stateful, handle-based Engine ─────────────────────
+//
+// Mirrors lr-core's LineEngine read surface: lazy per-frame cache, monotonic
+// getLastFrameIndex, getStateMapAtFrame. addLine currently APPENDS + rebuilds
+// the grid; exact mid-stream invalidation (truncating the cache to the new
+// line's first collision frame, for physics-frame budget parity) is Phase 2b —
+// NOT needed for the trace gate, which adds all lines before reading any frame.
 
-        // ── non-iterating BindJoints ──
-        for &(p1, p2, q1, q2, bind) in JOINTS.iter() {
-            let ax = px[p2] - px[p1];
-            let ay = py[p2] - py[p1];
-            let bx = px[q2] - px[q1];
-            let by = py[q2] - py[q1];
-            let cross = ax * by - ay * bx;
-            if cross >= 0.0 {
-                // allow
-            } else if fsu[bind] == -1 {
-                fsu[bind] = 0;
-            }
-        }
+struct Engine {
+    lines: Vec<Line>,
+    grid: BTreeMap<i64, Vec<u32>>,
+    rest: [f64; NITER],
+    endur: [f64; NITER],
+    frames: Vec<State>, // frames[0] = initial; lazily extended
+    cur: State,         // == frames.last(); the working state for stepping
+}
 
-        write_frame(f, &px, &py, &prevx, &prevy, &vx, &vy);
+impl Engine {
+    fn new() -> Engine {
+        let (rest, endur) = compute_rest_endur();
+        let s = init_state(0.0, 0.0, 0.4, 0.0); // DEFAULT_START
+        Engine { lines: Vec::new(), grid: BTreeMap::new(), rest, endur, frames: vec![s.clone()], cur: s }
     }
 
-    frames as u32
+    fn set_start(&mut self, sx: f64, sy: f64, svx: f64, svy: f64) {
+        let s = init_state(sx, sy, svx, svy);
+        self.frames = vec![s.clone()];
+        self.cur = s;
+    }
+
+    fn add_line(&mut self, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) {
+        let li = self.lines.len() as u32;
+        let l = build_line(x1, y1, x2, y2, ty, flags);
+        if l.collidable {
+            for cell in classic_cells(&l) {
+                self.grid.entry(cell).or_default().push(li);
+            }
+        }
+        self.lines.push(l);
+        // Phase 2b: if frames beyond the initial are cached, truncate to the new
+        // line's first-collision frame. Until then, conservatively invalidate all
+        // computed frames (correct RESULT; budget differs — fine for the trace
+        // gate, where only frame 0 exists at addLine time so this is a no-op).
+        if self.frames.len() > 1 {
+            self.cur = self.frames[0].clone();
+            self.frames.truncate(1);
+        }
+    }
+
+    fn compute_to(&mut self, frame: usize) {
+        while self.frames.len() <= frame {
+            step_state(&mut self.cur, &self.lines, &self.grid, &self.rest, &self.endur);
+            self.frames.push(self.cur.clone());
+        }
+    }
+
+    fn last_frame_index(&self) -> i32 {
+        (self.frames.len() - 1) as i32
+    }
+}
+
+// handle registry (slots; free() sets None). wasm is single-threaded per module.
+static mut ENGINES: Vec<Option<Engine>> = Vec::new();
+
+fn engines() -> &'static mut Vec<Option<Engine>> {
+    unsafe { &mut *&raw mut ENGINES }
+}
+
+#[no_mangle]
+pub extern "C" fn create_engine() -> u32 {
+    let v = engines();
+    for (i, slot) in v.iter().enumerate() {
+        if slot.is_none() {
+            v[i] = Some(Engine::new());
+            return i as u32;
+        }
+    }
+    v.push(Some(Engine::new()));
+    (v.len() - 1) as u32
+}
+
+#[no_mangle]
+pub extern "C" fn free_engine(h: u32) {
+    let v = engines();
+    if let Some(slot) = v.get_mut(h as usize) {
+        *slot = None;
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) {
+    if let Some(Some(e)) = engines().get_mut(h as usize) {
+        e.set_start(px, py, vx, vy);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn add_line(h: u32, _id: i32, ty: i32, x1: f64, y1: f64, x2: f64, y2: f64, flags: i32) {
+    if let Some(Some(e)) = engines().get_mut(h as usize) {
+        e.add_line(x1, y1, x2, y2, ty as i64, flags as i64);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn get_last_frame_index(h: u32) -> i32 {
+    match engines().get(h as usize) {
+        Some(Some(e)) => e.last_frame_index(),
+        _ => -1,
+    }
+}
+
+/// Compute (if needed) and write frame `f` of engine `h` into SCRATCH:
+/// 12 entities × [px,py,prevx,prevy,vx,vy] (72 f64), then 12 fsu (i32 as f64).
+#[no_mangle]
+pub extern "C" fn get_state_map(h: u32, f: i32) {
+    if let Some(Some(e)) = engines().get_mut(h as usize) {
+        let f = f as usize;
+        e.compute_to(f);
+        let s = &e.frames[f];
+        unsafe {
+            for i in 0..NENT {
+                let o = i * 6;
+                SCRATCH[o] = s.px[i]; SCRATCH[o + 1] = s.py[i];
+                SCRATCH[o + 2] = s.prevx[i]; SCRATCH[o + 3] = s.prevy[i];
+                SCRATCH[o + 4] = s.vx[i]; SCRATCH[o + 5] = s.vy[i];
+            }
+            for i in 0..NENT {
+                SCRATCH[NENT * 6 + i] = s.fsu[i] as f64;
+            }
+        }
+    }
 }

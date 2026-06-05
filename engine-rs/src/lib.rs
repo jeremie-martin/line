@@ -91,6 +91,9 @@ static mut LINES_IN: [f64; MAX_LINES * LINE_STRIDE] = [0.0; MAX_LINES * LINE_STR
 static mut OUT: [f64; (MAX_FRAMES + 1) * OUT_STRIDE] = [0.0; (MAX_FRAMES + 1) * OUT_STRIDE];
 const SCRATCH_LEN: usize = NENT * 6 + NENT;
 static mut SCRATCH: [f64; SCRATCH_LEN] = [0.0; SCRATCH_LEN];
+// per-frame collision records, read by get_updates: pairs of (iteration, line_id).
+const EVENTS_LEN: usize = 8192;
+static mut EVENTS: [f64; EVENTS_LEN] = [0.0; EVENTS_LEN];
 
 #[no_mangle]
 pub extern "C" fn lines_in_ptr() -> u32 {
@@ -104,9 +107,14 @@ pub extern "C" fn out_ptr() -> u32 {
 pub extern "C" fn scratch_ptr() -> u32 {
     &raw const SCRATCH as u32
 }
+#[no_mangle]
+pub extern "C" fn events_ptr() -> u32 {
+    &raw const EVENTS as u32
+}
 
 // ── precomputed line geometry ──
 struct Line {
+    id: i32,
     p1x: f64,
     p1y: f64,
     vecx: f64,
@@ -210,7 +218,7 @@ fn dist(ax: f64, ay: f64, bx: f64, by: f64) -> f64 {
     (dx * dx + dy * dy).sqrt()
 }
 
-fn build_line(x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) -> Line {
+fn build_line(id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) -> Line {
     let flipped = (flags & 1) != 0;
     let left_ext = (flags & 2) != 0;
     let right_ext = (flags & 4) != 0;
@@ -230,7 +238,7 @@ fn build_line(x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) -> Line {
     let accx = (-normy) * (ACC * flip_sign);
     let accy = (normx) * (ACC * flip_sign);
     Line {
-        p1x: x1, p1y: y1, vecx, vecy, normx, normy, inv_len_sq,
+        id, p1x: x1, p1y: y1, vecx, vecy, normx, normy, inv_len_sq,
         left_bound, right_bound, is_acc, accx, accy,
         collidable: ty == 0 || ty == 1, // SCENERY(2) not collidable
     }
@@ -279,7 +287,16 @@ fn init_state(sx: f64, sy: f64, svx: f64, svy: f64) -> State {
 
 // The per-frame kernel: step → 6×(constraints, collision) → BindJoints.
 // Proven bit-identical to lr-core's _getNextFrame on all 5 fixtures.
-fn step_state(s: &mut State, lines: &[Line], grid: &BTreeMap<i64, Vec<u32>>, rest: &[f64; NITER], endur: &[f64; NITER]) {
+// `events` records (iteration, line_id) for each collision in occurrence order —
+// exactly the CollisionUpdates lr-core emits, for getUpdatesAtFrame parity.
+fn step_state(
+    s: &mut State,
+    lines: &[Line],
+    grid: &BTreeMap<i64, Vec<u32>>,
+    rest: &[f64; NITER],
+    endur: &[f64; NITER],
+    events: &mut Vec<(u8, i32)>,
+) {
     // step
     for i in 0..NENT {
         if IS_POINT[i] {
@@ -298,7 +315,7 @@ fn step_state(s: &mut State, lines: &[Line], grid: &BTreeMap<i64, Vec<u32>>, res
         }
     }
 
-    for _ in 0..ITERATE {
+    for it in 0..ITERATE {
         for k in 0..NITER {
             let (kind, p1, p2, bind, _ep, _lf) = ITER[k];
             let length = dist(s.px[p1], s.py[p1], s.px[p2], s.py[p2]);
@@ -375,6 +392,7 @@ fn step_state(s: &mut State, lines: &[Line], grid: &BTreeMap<i64, Vec<u32>>, res
                                 s.py[i] = posy;
                                 s.prevx[i] = fvx;
                                 s.prevy[i] = fvy;
+                                events.push((it as u8, l.id));
                             }
                         }
                     }
@@ -407,7 +425,7 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
     for li in 0..n_lines {
         let b = li * LINE_STRIDE;
         let l = unsafe {
-            build_line(LINES_IN[b], LINES_IN[b + 1], LINES_IN[b + 2], LINES_IN[b + 3], LINES_IN[b + 4] as i64, LINES_IN[b + 5] as i64)
+            build_line(li as i32, LINES_IN[b], LINES_IN[b + 1], LINES_IN[b + 2], LINES_IN[b + 3], LINES_IN[b + 4] as i64, LINES_IN[b + 5] as i64)
         };
         if l.collidable {
             for cell in classic_cells(&l) {
@@ -431,8 +449,10 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
         }
     };
     write(0, &s);
+    let mut ev: Vec<(u8, i32)> = Vec::new();
     for f in 1..=frames {
-        step_state(&mut s, &lines, &grid, &rest, &endur);
+        ev.clear();
+        step_state(&mut s, &lines, &grid, &rest, &endur, &mut ev);
         write(f, &s);
     }
     frames as u32
@@ -451,26 +471,28 @@ struct Engine {
     grid: BTreeMap<i64, Vec<u32>>,
     rest: [f64; NITER],
     endur: [f64; NITER],
-    frames: Vec<State>, // frames[0] = initial; lazily extended
-    cur: State,         // == frames.last(); the working state for stepping
+    frames: Vec<State>,               // frames[0] = initial; lazily extended
+    events: Vec<Vec<(u8, i32)>>,      // per-frame collision records (frame 0 = empty)
+    cur: State,                       // == frames.last(); the working state for stepping
 }
 
 impl Engine {
     fn new() -> Engine {
         let (rest, endur) = compute_rest_endur();
         let s = init_state(0.0, 0.0, 0.4, 0.0); // DEFAULT_START
-        Engine { lines: Vec::new(), grid: BTreeMap::new(), rest, endur, frames: vec![s.clone()], cur: s }
+        Engine { lines: Vec::new(), grid: BTreeMap::new(), rest, endur, frames: vec![s.clone()], events: vec![Vec::new()], cur: s }
     }
 
     fn set_start(&mut self, sx: f64, sy: f64, svx: f64, svy: f64) {
         let s = init_state(sx, sy, svx, svy);
         self.frames = vec![s.clone()];
+        self.events = vec![Vec::new()];
         self.cur = s;
     }
 
-    fn add_line(&mut self, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) {
+    fn add_line(&mut self, id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) {
         let li = self.lines.len() as u32;
-        let l = build_line(x1, y1, x2, y2, ty, flags);
+        let l = build_line(id, x1, y1, x2, y2, ty, flags);
         if l.collidable {
             for cell in classic_cells(&l) {
                 self.grid.entry(cell).or_default().push(li);
@@ -484,13 +506,16 @@ impl Engine {
         if self.frames.len() > 1 {
             self.cur = self.frames[0].clone();
             self.frames.truncate(1);
+            self.events.truncate(1);
         }
     }
 
     fn compute_to(&mut self, frame: usize) {
         while self.frames.len() <= frame {
-            step_state(&mut self.cur, &self.lines, &self.grid, &self.rest, &self.endur);
+            let mut ev: Vec<(u8, i32)> = Vec::new();
+            step_state(&mut self.cur, &self.lines, &self.grid, &self.rest, &self.endur, &mut ev);
             self.frames.push(self.cur.clone());
+            self.events.push(ev);
         }
     }
 
@@ -535,9 +560,9 @@ pub extern "C" fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) {
 }
 
 #[no_mangle]
-pub extern "C" fn add_line(h: u32, _id: i32, ty: i32, x1: f64, y1: f64, x2: f64, y2: f64, flags: i32) {
+pub extern "C" fn add_line(h: u32, id: i32, ty: i32, x1: f64, y1: f64, x2: f64, y2: f64, flags: i32) {
     if let Some(Some(e)) = engines().get_mut(h as usize) {
-        e.add_line(x1, y1, x2, y2, ty as i64, flags as i64);
+        e.add_line(id, x1, y1, x2, y2, ty as i64, flags as i64);
     }
 }
 
@@ -569,4 +594,27 @@ pub extern "C" fn get_state_map(h: u32, f: i32) {
             }
         }
     }
+}
+
+/// Compute (if needed) frame `f` of engine `h` and write its collision records
+/// into EVENTS as (iteration, line_id) f64 pairs; returns the collision count.
+/// The JS wrapper synthesizes the full lr-core update sequence from these
+/// (StepUpdate, 22 ConstraintUpdates per iteration with collisions interleaved,
+/// 3 BindJoint ConstraintUpdates).
+#[no_mangle]
+pub extern "C" fn get_updates(h: u32, f: i32) -> i32 {
+    if let Some(Some(e)) = engines().get_mut(h as usize) {
+        let f = f as usize;
+        e.compute_to(f);
+        let ev = &e.events[f];
+        let n = ev.len().min(EVENTS_LEN / 2);
+        unsafe {
+            for (k, &(it, id)) in ev.iter().take(n).enumerate() {
+                EVENTS[k * 2] = it as f64;
+                EVENTS[k * 2 + 1] = id as f64;
+            }
+        }
+        return n as i32;
+    }
+    0
 }

@@ -18,6 +18,9 @@ export default class AccLine extends SolidLine {
   }
   doCollide (p, pos, prevPos) {
     prevPos.add(this.c.acc)
-    return p.updateState({pos, prevPos})
+    // Mutate in place (see Point.setPosition / SolidLine.doCollide).
+    p.__state__.pos = pos
+    p.__state__.prevPos = prevPos
+    return p
   }
 }

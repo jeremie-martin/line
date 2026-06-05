@@ -95,7 +95,11 @@ export default class SolidLine extends Line {
   }
 
   doCollide (p, pos, prevPos) {
-    return p.updateState({pos, prevPos})
+    // Mutate in place (see Point.setPosition) — p is the current frame's own
+    // post-step point, so no previous snapshot is affected.
+    p.__state__.pos = pos
+    p.__state__.prevPos = prevPos
+    return p
   }
 
   equals (line) {

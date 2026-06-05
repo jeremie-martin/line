@@ -42,7 +42,13 @@ export class Point extends Immo {
     })
   }
   setPosition (pos) {
-    return this.updateState({pos})
+    // Mutate in place instead of allocating a new immutable Point. Safe because
+    // Point.step() always produces a fresh per-frame copy (no early return), so
+    // by the time constraints/collisions call setPosition every point is the
+    // current frame's own — a previous frame's snapshot is never touched. This
+    // collapses the per-frame constraint+collision Point allocations to zero.
+    this.__state__.pos = pos
+    return this
   }
 }
 setupImmo(Point)

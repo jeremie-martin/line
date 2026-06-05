@@ -32,34 +32,39 @@ export default class Immo {
   static get __update__ () {
     return {}
   }
+  // __current__ tracks the latest version of an object across updateState()s. It
+  // lives in a shared one-slot holder rather than a per-instance closure so that
+  // every version can carry it as a plain own property (see updateState) without
+  // forcing a distinct hidden class.
+  get __current__ () { return this.__holder__.current }
+  set __current__ (next) { this.__holder__.current = next }
+
   constructor ({props, state, computed} = {}) {
-    let current = this
-    Object.defineProperties(this, {
-      __init__: {
-        value: this
-      },
-      __current__: {
-        get: () => current,
-        set: (next) => { current = next }
-      },
-      __props__: {
-        value: Object.assign(this.constructor.__props__.call(this), props)
-      },
-      __state__: {
-        value: Object.assign(this.constructor.__state__.call(this), state)
-      },
-      __computed__: {
-        value: Object.assign(this.constructor.__computed__.call(this), computed)
-      }
-    })
+    // Assign the immo slots as plain own properties, in a fixed order, off the
+    // class prototype. updateState() builds every subsequent version exactly the
+    // same way, so all versions of all instances of a class share ONE hidden
+    // class — keeping hot accessors (entity.pos/.vel/.prevPos/.friction) MONO-
+    // morphic. (The previous Object.create(this.__init__, …) gave each logical
+    // entity its own prototype, so the ~12 rider points produced ~12 hidden
+    // classes → megamorphic property loads, ~20% of engine time.)
+    this.__props__ = Object.assign(this.constructor.__props__.call(this), props)
+    this.__state__ = Object.assign(this.constructor.__state__.call(this), state)
+    this.__computed__ = Object.assign(this.constructor.__computed__.call(this), computed)
+    this.__init__ = this
+    this.__holder__ = { current: this }
   }
   updateState (updated) {
-    let next = Object.create(this.__init__, {
-      __state__: {
-        value: Object.assign({}, this.__state__, updated)
-      }
-    })
-    this.__current__ = next
+    // Same prototype + same own-property set/order as the constructor → same
+    // hidden class. __props__/__computed__/__holder__ are shared by reference
+    // (matching the old prototype-inheritance semantics: props are immutable and
+    // computed is shared mutable derived data); only __state__ is a fresh copy.
+    let next = Object.create(Object.getPrototypeOf(this))
+    next.__props__ = this.__props__
+    next.__state__ = Object.assign({}, this.__state__, updated)
+    next.__computed__ = this.__computed__
+    next.__init__ = this.__init__
+    next.__holder__ = this.__holder__
+    this.__holder__.current = next
     return next
   }
   updateComputed () {

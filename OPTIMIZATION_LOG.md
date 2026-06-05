@@ -176,6 +176,29 @@ once inside `addToGrid`, once inside `getLinesNearEntity` — each allocating a
 
   **−6.8% mean / −6.9% median.** → **kept**.
 
+### B8 — Monomorphize Immo version objects  ⭐ second breakthrough
+`vendor/lr-core/immo/index.js`. `updateState` created each new version via
+`Object.create(this.__init__, {__state__})`, so a version's prototype was its
+*original* instance. The ~12 rider points each have a distinct `__init__`, so the
+per-frame version objects had ~12 distinct hidden classes → every `entity.pos` /
+`.vel` / `.prevPos` / `.friction` access (the Immo accessors, used in every hot
+path) was **megamorphic**. Rebuilt version creation to use the stable **class
+prototype** with the immo slots as plain own properties in a fixed order
+(`__props__`/`__computed__`/`__holder__` shared by reference, `__state__` a fresh
+copy), and moved `__current__` into a shared one-slot holder. Now all versions of
+all instances of a class share **one** hidden class → monomorphic loads.
+
+- **Gates:** verify ✓ byte-identical · diff ✓ max err 0 · compile-hash ✓ identical.
+- **Perf (clean back-to-back, 20k / 10 reps):**
+
+  | engine | mean ns/frame | median |
+  |--------|---------------|--------|
+  | B7 | 109,334 ± 755 | 109,274 |
+  | **B8** | **70,504 ± 820** | **70,655** |
+
+  **−35.5% mean / −35.3% median.** Bigger than the ~23% megamorphic self-time —
+  monomorphic receivers also unlock inlining downstream. → **kept**.
+
 ## Cumulative
 
 Each row is the "after" of an independent back-to-back pair (absolute numbers
@@ -191,3 +214,4 @@ figure). Compounding the measured per-step deltas: **≈ −17% vs pristine.**
 | B4 scalar collide offset | (reverted) | non-escaping → already free |
 | B6 skip redundant grid versions | −57.4% | **the dominant cost; 333,033 → 116,462 overall (≈2.86×)** |
 | B7 cells computed once per entity | −6.8% | 333,033 → 109,955 overall (**≈3.03×**) |
+| B8 monomorphize Immo versions | −35.5% | **333,033 → 70,504 overall (≈4.72×)** |

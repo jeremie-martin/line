@@ -16,6 +16,7 @@ Run from the repo root.
 | **`npm run wasm:compile`** | The swap-in acceptance gate (fast inner loop): compiles 4 cases under **wasm** and **vendored** and asserts identical `{track, stats}` hash. This is the red→green target while building the WASM engine. |
 | `npm run wasm:compile -- --official` | Also re-checks **vendored ≡ official** (the slow published engine). That leg is a stable fact, so it's opt-in — run it after editing `vendor/lr-core`, not every time. Since `vendored ≡ official` is transitive, `wasm ≡ vendored ⇒ wasm ≡ official`. |
 | `npm run build:wasm` | Rebuild `lr_engine.wasm` after editing `src/lib.rs`. |
+| **`LR_ENGINE=wasm npm run perf`** | Speed of the WASM engine, end-to-end. `perf` is engine-aware, so this reports the same `ns/physics-frame` (hyperfine-style mean ± σ / median / range) as plain `npm run perf` — run both and compare directly. No separate baseline to maintain. |
 
 Individual checks (all also run by `wasm:all`):
 
@@ -28,7 +29,7 @@ Individual checks (all also run by `wasm:all`):
 | `npm run wasm:budget` | mid-stream `addLine` budget/invalidation parity |
 | `npm run wasm:diff` | differential (forking + op-space) |
 | `npm run wasm:replay` | replays a real recorded compile op-DAG through both engines |
-| `npm run wasm:bench` | kernel speed vs the ~73k ns/frame optimized-JS baseline |
+| `npm run wasm:bench` | low-level kernel-only throughput (forward sim of a fixture, no compile). For the end-to-end speed that matters, use `LR_ENGINE=wasm npm run perf` above. |
 
 ## The `LR_ENGINE` switch (`scripts/lib/_lr_engine.ts`)
 

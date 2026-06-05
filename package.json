@@ -40,7 +40,9 @@
     "wasm:diff": "tsx scripts/v0/bench/wasm_diff_check.ts",
     "wasm:compile": "tsx scripts/v0/bench/wasm_compile_check.ts",
     "wasm:replay": "tsx scripts/v0/bench/wasm_replay_check.ts",
-    "wasm:all": "tsx scripts/v0/bench/wasm_all.ts"
+    "wasm:all": "tsx scripts/v0/bench/wasm_all.ts",
+    "perf": "tsx scripts/v0/bench/perf.ts",
+    "verify": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

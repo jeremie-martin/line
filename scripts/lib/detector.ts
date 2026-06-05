@@ -376,9 +376,7 @@ function computeSummary(m: Measurements, specDuration: number): Summary {
  * Returns 0 if either vector is zero (no defined direction).
  */
 function signedAngleDeg(v0: Vec2, v1: Vec2): number {
-  const m0 = Math.hypot(v0.x, v0.y);
-  const m1 = Math.hypot(v1.x, v1.y);
-  if (m0 === 0 || m1 === 0) return 0;
+  if ((v0.x === 0 && v0.y === 0) || (v1.x === 0 && v1.y === 0)) return 0;
   const dot = v0.x * v1.x + v0.y * v1.y;
   const cross = v0.x * v1.y - v0.y * v1.x;
   return Math.atan2(cross, dot) * (180 / Math.PI);

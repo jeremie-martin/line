@@ -1382,3 +1382,82 @@ Safety/identity notes:
 **Standing after expanded center-cell line lookup:** **~6,990 ns/physics-frame** —
 bit-identical to lr-core, ≈47.8× faster than pristine JS (333k) and ≈10.4× faster
 than the parity-correct JS engine (B11 ~73k).
+
+## Session 20 (2026-06-06 cont.) — line-cache bypass after expanded lookup, rejected
+
+Rejected probe, verified bit-identical under `LR_ENGINE=wasm npm run
+verify:engine` and `npm run wasm:replay`, then reverted:
+
+- **Bypass `LineCellCache` and call `FlatIntMap::get` directly:** after the
+  expanded center-cell lookup reduced each point to one line bucket, the
+  direct-mapped cache looked potentially unnecessary. The 8-run signal regressed
+  to **7,042.9 ns/frame** (median **7,066.9**) versus the expanded-lookup
+  baseline of **6,990.0**, so repeated center-cell hits still repay the cache.
+
+Conclusion: keep `LineCellCache` in the expanded lookup design.
+
+## Session 21 (2026-06-06 cont.) — expanded-lookup line-cache size, rejected
+
+Rejected probe, verified bit-identical under `LR_ENGINE=wasm npm run
+verify:engine` and reverted:
+
+- **Increase `LineCellCache` from 64 to 128 slots:** after expanded center-cell
+  lookup, the cache remains useful, so a larger table was retested. The 8-run
+  signal was **6,960.7 ns/frame** (median **7,106.5**), effectively the
+  expanded-lookup baseline and below the >1.6% keep bar.
+
+Conclusion: keep the 64-slot cache.
+
+## Session 22 (2026-06-06 cont.) — collision predicate short-circuit, rejected
+
+Rejected probe, verified bit-identical under `LR_ENGINE=wasm npm run
+verify:engine` and `npm run wasm:replay`, then reverted:
+
+- **Short-circuit before `line_pos` in the expanded lookup collision loop:** this
+  had failed before the expanded line grid, so it was retested against the new
+  bucket shape. The 8-run signal looked weakly positive at **6,859.2 ns/frame**
+  (median **6,900.8**), but the required 40-run gate was **6,984.7 ns/frame**
+  (median **7,117.9**), effectively the expanded-lookup baseline of **6,990.0**.
+
+Conclusion: the eager collision predicate arithmetic remains the better/neutral
+wasm code shape after full-gate sampling.
+
+## Session 23 (2026-06-06 cont.) — `GridLine` field order, rejected
+
+Rejected probe, verified bit-identical under `LR_ENGINE=wasm npm run
+verify:engine` and `npm run wasm:replay`, then reverted:
+
+- **Move hot `GridLine.line` before cold `group`:** put the embedded `Line` at
+  offset 0 so the collision loop did not read through a cold tag prefix. The
+  8-run signal was weakly positive at **6,859.7 ns/frame** (median **6,986.0**),
+  but the 40-run gate was **6,987.9 ns/frame** (median **7,119.3**), effectively
+  baseline.
+
+Conclusion: field order does not matter measurably after wasm-opt.
+
+## Session 24 (2026-06-06 cont.) — skip detector angle magnitudes  ⭐ kept
+
+`signedAngleDeg` used `Math.hypot` twice only to detect zero-length velocity
+vectors before computing `atan2(cross, dot)`. The detector now checks exact zero
+components directly:
+
+```
+(vx === 0 && vy === 0)
+```
+
+and otherwise computes the same dot/cross/atan2 result. The magnitudes were not
+used in the returned angle.
+
+- **Gates:**
+  - `LR_ENGINE=wasm npm run verify` ✓ in a clean temporary worktree with only
+    this detector patch applied (the main worktree had unrelated dirty
+    `arc_placement.ts` changes that currently alter optimizer hashes)
+- **Perf signal:** 8 runs → **6,761.6 ns/frame** (median **6,775.2**).
+- **Full gate:** 40 runs + 3 warmup → **6,765.9 ns/frame ± 441.7** (median
+  **6,914.1**) versus the expanded-lookup baseline of **6,990.0 ns/frame**.
+
+**Effect:** about **−3.2% mean ns/frame** on the default WASM perf gate. Kept.
+
+**Standing after detector angle zero-check:** **~6,766 ns/physics-frame** —
+bit-identical to lr-core/optimizer baselines, ≈49.3× faster than pristine JS
+(333k) and ≈10.8× faster than the parity-correct JS engine (B11 ~73k).

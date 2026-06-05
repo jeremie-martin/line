@@ -74,19 +74,9 @@ export type ImpactFrameTargetState = ImpactAnchorTargetState & {
   speed: number;
   angleDeg: number;
 };
-export type PreTargetSledTrace = {
-  frame: number;
-  points: { x: number; y: number }[];
-}[];
-type SegmentCollisionRiskLine = {
-  x1: number;
-  y1: number;
-  dx: number;
-  dy: number;
-  len: number;
-  lenSq: number;
-  flipped: boolean;
-};
+export type PreTargetSledTrace = number[];
+type SegmentCollisionRiskLines = number[];
+const SEGMENT_COLLISION_RISK_STRIDE = 7;
 
 export type ArcPlacementRuntimeMode = ArcPlacementMode | "uniform";
 
@@ -999,13 +989,13 @@ export function readPreTargetSledTrace(
   const lastFrame = gap.endFrame - 2;
   for (let frame = firstFrame; frame <= lastFrame; frame++) {
     const rider = getRiderMetered(baseEngine, frame);
-    const points: { x: number; y: number }[] = [];
     for (const name of SLED_POINTS) {
       const point = rider.get(name);
       const pos = point?.pos;
-      if (pos) points.push({ x: pos.x, y: pos.y });
+      if (pos) {
+        trace.push(pos.x, pos.y);
+      }
     }
-    trace.push({ frame, points });
   }
   return trace;
 }
@@ -1016,12 +1006,27 @@ export function hasPreTargetSledProximityFromTrace(
 ): boolean {
   if (lines.length === 0) return false;
   const riskLines = makeSegmentCollisionRiskLines(lines);
-  for (const frame of trace) {
-    for (const pos of frame.points) {
-      for (const line of riskLines) {
-        if (pointSegmentCollisionRiskPrepared(pos.x, pos.y, line)) {
-          return true;
-        }
+  for (let i = 0; i < trace.length; i += 2) {
+    const px = trace[i];
+    const py = trace[i + 1];
+    for (let j = 0; j < riskLines.length; j += SEGMENT_COLLISION_RISK_STRIDE) {
+      const x1 = riskLines[j];
+      const y1 = riskLines[j + 1];
+      const dx = riskLines[j + 2];
+      const dy = riskLines[j + 3];
+      const len = riskLines[j + 4];
+      const lenSq = riskLines[j + 5];
+      const ox = px - x1;
+      const oy = py - y1;
+      const along = (ox * dx + oy * dy) / lenSq;
+      if (along < 0 || along > 1) continue;
+      const signedDistance = (dx * oy - dy * ox) / len;
+      const collidableSideDistance = riskLines[j + 6] !== 0 ? signedDistance : -signedDistance;
+      if (
+        collidableSideDistance >= 0 &&
+        Math.abs(signedDistance) <= IMPACT_ANCHOR_PRECLEAR_DISTANCE
+      ) {
+        return true;
       }
     }
   }
@@ -1138,39 +1143,24 @@ function arcLocalPointAt(
   return { x, y, tangentX: 1, tangentY: 0 };
 }
 
-function makeSegmentCollisionRiskLines(lines: TrackLine[]): SegmentCollisionRiskLine[] {
-  const riskLines: SegmentCollisionRiskLine[] = [];
+function makeSegmentCollisionRiskLines(lines: TrackLine[]): SegmentCollisionRiskLines {
+  const riskLines: SegmentCollisionRiskLines = [];
   for (const line of lines) {
     const dx = line.x2 - line.x1;
     const dy = line.y2 - line.y1;
     const len = Math.hypot(dx, dy);
     if (len <= 0) continue;
-    riskLines.push({
-      x1: line.x1,
-      y1: line.y1,
+    riskLines.push(
+      line.x1,
+      line.y1,
       dx,
       dy,
       len,
-      lenSq: len * len,
-      flipped: line.flipped,
-    });
+      len * len,
+      line.flipped ? 1 : 0,
+    );
   }
   return riskLines;
-}
-
-function pointSegmentCollisionRiskPrepared(
-  px: number,
-  py: number,
-  line: SegmentCollisionRiskLine,
-): boolean {
-  const ox = px - line.x1;
-  const oy = py - line.y1;
-  const along = (ox * line.dx + oy * line.dy) / line.lenSq;
-  if (along < 0 || along > 1) return false;
-  const signedDistance = (line.dx * oy - line.dy * ox) / line.len;
-  const collidableSideDistance = line.flipped ? signedDistance : -signedDistance;
-  return collidableSideDistance >= 0
-    && Math.abs(signedDistance) <= IMPACT_ANCHOR_PRECLEAR_DISTANCE;
 }
 
 function applyArcCurveBias(t: number, bias: number): number {

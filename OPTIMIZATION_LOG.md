@@ -951,3 +951,45 @@ Drift bracket:
 **Standing after W10:** **~12,830 ns/physics-frame** — bit-identical to lr-core,
 ≈26.0× faster than pristine JS (333k) and ≈5.7× faster than the parity-correct JS
 engine (B11 ~73k).
+
+## W11 — Flat preclear trace/risk arrays  (−4.4%, bit-identical)
+
+W10 moved repeated line geometry out of the inner pre-target sled proximity loop,
+but the profile still showed `hasPreTargetSledProximityFromTrace` and
+`readPreTargetSledTrace` as visible JS work. The remaining overhead was mostly
+shape/iteration churn: the trace stored `{ frame, points: [{ x, y }] }` even
+though the proximity predicate never reads `frame`, and prepared line-risk records
+were small objects consumed in the innermost loop.
+
+Changed the preclear data to flat numeric arrays:
+
+- `PreTargetSledTrace` is now an x/y number sequence in the same frame-major,
+  `SLED_POINTS` order as before.
+- Prepared line-risk geometry is now a numeric stride
+  `[x1, y1, dx, dy, len, lenSq, flippedFlag]`.
+- The predicate is inlined in the nested loop with the same arithmetic order and
+  branch conditions as W10.
+
+Safety/identity notes:
+- The check order is unchanged: ascending frame, sled point order, candidate line
+  order.
+- The trace frame number was not read by any caller; it was allocation-only
+  metadata.
+- Same along-line bounds, signed-distance side check, and
+  `IMPACT_ANCHOR_PRECLEAR_DISTANCE`.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Signal (`LR_ENGINE=wasm npm run perf -- --reps=8 --warmup=2`):**
+  **12,548.0 ± 279.8** ns/frame, median **12,539.7**.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 30 runs + 3 warmup):**
+
+  | stage | mean ns/frame | median |
+  |-------|---------------|--------|
+  | W10 standing | 12,830.9 ± 436.1 | 12,902.0 |
+  | **W11 flat preclear arrays** | **12,265.0 ± 409.0** | **12,277.2** |
+
+  **−4.4% mean / −4.8% median**, above the 1.6% commit bar → **kept**.
+
+**Standing after W11:** **~12,265 ns/physics-frame** — bit-identical to lr-core,
+≈27.2× faster than pristine JS (333k) and ≈6.0× faster than the parity-correct JS
+engine (B11 ~73k).

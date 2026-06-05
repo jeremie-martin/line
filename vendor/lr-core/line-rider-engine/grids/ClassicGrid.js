@@ -1,9 +1,17 @@
 import {classicCells as getCellsFromLine} from './getCellsFromLine.js'
-import {hashIntPair} from '../../utils/hashNumberPair.js'
 import {SubclassableMap} from '../../subclassable/index.js'
 import OrderedObjectArray from '../../ordered-object-array/index.js'
 
 const GRID_SIZE = 14
+
+function encodeIntForHash (n) {
+  return n >= 0 ? 2 * n : -2 * n - 1
+}
+
+function hashEncodedIntPair (a, b) {
+  let c = (a >= b) ? (a * a + a + b) : (b * b + a)
+  return (c & 1) ? -(c - 1) / 2 - 1 : c / 2
+}
 
 class LineCellsMap extends SubclassableMap {
   add (line, cells) {
@@ -64,13 +72,23 @@ export default class ClassicGrid {
   getCellsNearEntity (entity) {
     let gx = Math.floor(entity.pos.x / GRID_SIZE)
     let gy = Math.floor(entity.pos.y / GRID_SIZE)
-    let cells = []
-    for (let i = -1; i <= 1; i++) {
-      for (let j = -1; j <= 1; j++) {
-        cells.push(hashIntPair(i + gx, j + gy))
-      }
-    }
-    return cells
+    let x0 = encodeIntForHash(gx - 1)
+    let x1 = encodeIntForHash(gx)
+    let x2 = encodeIntForHash(gx + 1)
+    let y0 = encodeIntForHash(gy - 1)
+    let y1 = encodeIntForHash(gy)
+    let y2 = encodeIntForHash(gy + 1)
+    return [
+      hashEncodedIntPair(x0, y0),
+      hashEncodedIntPair(x0, y1),
+      hashEncodedIntPair(x0, y2),
+      hashEncodedIntPair(x1, y0),
+      hashEncodedIntPair(x1, y1),
+      hashEncodedIntPair(x1, y2),
+      hashEncodedIntPair(x2, y0),
+      hashEncodedIntPair(x2, y1),
+      hashEncodedIntPair(x2, y2)
+    ]
   }
 
   // the lines in the 3x3 grid around entity, with duplicates

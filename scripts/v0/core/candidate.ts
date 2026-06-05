@@ -295,8 +295,7 @@ function evaluateGapFit(
   failure: ArcPlacementDirectFailureReason;
 } {
   // deno-lint-ignore no-explicit-any
-  let eng: any = baseEngine;
-  for (const line of lines) eng = eng.addLine(engineLineFromTrackLine(line));
+  const eng: any = baseEngine.addLine(lines.map((line) => engineLineFromTrackLine(line)));
   const horizon = Math.max(gap.endFrame + 20, axisMeasureEnd + 20);
   const det = useWindowDetection
     ? detectWindow(eng, gap.startFrame, horizon)
@@ -423,8 +422,7 @@ function bisectAnchorY(
     const arc: Arc = { ...baseArc, anchor: { x: baseArc.anchor.x, y } };
     const lines = arcToLines(arc, lineIdStart);
     // deno-lint-ignore no-explicit-any
-    let eng: any = baseEngine;
-    for (const line of lines) eng = eng.addLine(engineLineFromTrackLine(line));
+    const eng: any = baseEngine.addLine(lines.map((line) => engineLineFromTrackLine(line)));
     const det = useWindowDetection
       ? detectWindow(eng, windowStart, windowEnd)
       : detect(extractRawTrajectory(eng, targetFrame + PERSISTENCE_FRAMES + 1));

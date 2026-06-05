@@ -969,9 +969,7 @@ function cloneHandoffNodeForBranch(
   let prefixEngine = makeBaseEngine(startState);
   for (const fit of prefixFits) {
     if (fit === null) continue;
-    for (const line of fit.lines) {
-      prefixEngine = prefixEngine.addLine(engineLineFromTrackLine(line));
-    }
+    prefixEngine = prefixEngine.addLine(fit.lines.map((line) => engineLineFromTrackLine(line)));
   }
   return {
     search: {

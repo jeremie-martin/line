@@ -244,8 +244,7 @@ function exitAfterFit(
   fit: GapFit,
   frame: number,
 ): HandoffState {
-  let child = engine;
-  for (const line of fit.lines) child = child.addLine(engineLineFromTrackLine(line));
+  const child = engine.addLine(fit.lines.map((line) => engineLineFromTrackLine(line)));
   return readHandoffState(child, frame);
 }
 

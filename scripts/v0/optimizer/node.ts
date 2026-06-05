@@ -196,11 +196,11 @@ export function extendNode(
       _childrenCache: undefined,
     };
   }
-  // Extend the engine with the candidate's lines.
-  let newEngine = parent.prefixEngine;
-  for (const line of candidate.lines) {
-    newEngine = newEngine.addLine(engineLineFromTrackLine(line));
-  }
+  // Extend the engine with the candidate's whole arc in one call (addLine
+  // accepts an array — same result as adding line-by-line).
+  const newEngine = parent.prefixEngine.addLine(
+    candidate.lines.map((line) => engineLineFromTrackLine(line)),
+  );
   return {
     gapIndex: parent.gapIndex + 1,
     prefixFits: [...parent.prefixFits, candidate],

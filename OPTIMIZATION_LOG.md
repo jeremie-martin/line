@@ -563,3 +563,32 @@ these were below the 2% commit bar; together they clear it.
 - **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
 - **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):** 29,414.7 →
   **28,259.2 ns/physics-frame** (**−3.9% mean / −4.5% median**).
+
+## Current WASM continuation baseline
+Per user correction, the continued WASM optimization baseline is **16,956.2
+ns/physics-frame**, not the older accepted-WASM baseline above. The 2× target for
+this phase is therefore **≤8,478.1 ns/physics-frame**. After installing Binaryen
+130 and rebuilding via the normal `npm run build:wasm`, the same source measured
+**16,745.8 ± 226.6 ns/physics-frame**; commit decisions below use that rebuilt
+same-toolchain number as the conservative local comparison while still reporting
+the user-corrected baseline.
+
+## W4 — Flatten WASM per-frame cache logs  (−2.7%, bit-identical)
+`engine-rs` no longer stores cache events and rollback patches as per-frame
+`Vec<Vec<_>>` lists. Collision events, touched history-grid cells, and touched
+collision-line ids now append into flat vectors with per-frame offset tables. This
+keeps frame replay and rollback order identical (`frame f` still maps to exactly
+the same slice), but removes per-frame inner `Vec` allocation/free churn from the
+hot `compute_to` path.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):**
+
+  | path | ns/physics-frame |
+  |---|---|
+  | user-corrected baseline | 16,956.2 |
+  | rebuilt pre-W4 source (Binaryen 130) | 16,745.8 ± 226.6 |
+  | **W4 flat cache logs** | **16,298.8 ± 218.6** |
+
+  **−2.7% mean** vs the rebuilt same-toolchain baseline; **−3.9%** vs the
+  user-corrected 16,956.2 baseline. Holds above the 1.6% commit bar.

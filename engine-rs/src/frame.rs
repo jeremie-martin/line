@@ -132,9 +132,9 @@ pub(crate) fn index_of_collision_with_line(coll: &Collisions, line_id: i32) -> O
 
 /// Roll the history grid back to `len` frames: for f in [len, top) descending, drop
 /// the index-f node each cell it touched created (the reverse patch).
-pub(crate) fn rollback_grid(grid: &mut HistGrid, touched: &[Vec<i64>], len: usize) {
-    for f in (len..touched.len()).rev() {
-        for &cell in touched[f].iter() {
+pub(crate) fn rollback_grid(grid: &mut HistGrid, touched: &[i64], offsets: &[usize], len: usize) {
+    for f in (len..offsets.len() - 1).rev() {
+        for &cell in touched[offsets[f]..offsets[f + 1]].iter() {
             if let Some(list) = grid.get_mut(&cell) {
                 list.pop();
                 if list.is_empty() {
@@ -146,9 +146,9 @@ pub(crate) fn rollback_grid(grid: &mut HistGrid, touched: &[Vec<i64>], len: usiz
 }
 
 /// Roll the collisions map back to `len` frames (same reverse-patch shape).
-pub(crate) fn rollback_collisions(coll: &mut Collisions, touched_lines: &[Vec<i32>], len: usize) {
-    for f in (len..touched_lines.len()).rev() {
-        for &id in touched_lines[f].iter() {
+pub(crate) fn rollback_collisions(coll: &mut Collisions, touched_lines: &[i32], offsets: &[usize], len: usize) {
+    for f in (len..offsets.len() - 1).rev() {
+        for &id in touched_lines[offsets[f]..offsets[f + 1]].iter() {
             if let Some(list) = coll.get_mut(&id) {
                 list.pop();
                 if list.is_empty() {

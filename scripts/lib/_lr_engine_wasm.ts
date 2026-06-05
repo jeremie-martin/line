@@ -22,6 +22,8 @@ const ENTITY_IDS = [
 ] as const;
 const BODY = [6, 7, 8, 9, 10, 11]; // parts.BODY indices: BUTT,SHOULDER,RHAND,LHAND,LFOOT,RFOOT
 const NENT = 12;
+const LEFT_EXTENDED = 1;
+const RIGHT_EXTENDED = 2;
 
 // shared singletons — the oracle only reads .type/.id/.updated, never mutates
 const STEP_UPDATE = { type: "StepUpdate" };
@@ -40,7 +42,11 @@ function scratch(): Float64Array {
 
 // deno-lint-ignore no-explicit-any
 export function createLineFromJson(data: any): any {
-  return data; // passthrough; the kernel precomputes geometry from raw fields
+  if (data.extended) {
+    data.leftExtended = !!(LEFT_EXTENDED & data.extended);
+    data.rightExtended = !!(RIGHT_EXTENDED & data.extended);
+  }
+  return data; // passthrough; the kernel precomputes geometry from normalized fields
 }
 
 // deno-lint-ignore no-explicit-any

@@ -259,10 +259,54 @@ fn line_cells(l: &Line) -> Vec<i64> {
 // same `cells` it already computed for invalidation (no double rasterization).
 fn push_line(lines: &mut Vec<Line>, grid: &mut BTreeMap<i64, Vec<u32>>, l: Line, cells: &[i64]) {
     let li = lines.len() as u32;
-    for &cell in cells {
-        grid.entry(cell).or_default().push(li);
-    }
+    let id = l.id;
     lines.push(l);
+    for &cell in cells {
+        let cell_lines = grid.entry(cell).or_default();
+        if cell_lines.iter().any(|&idx| lines[idx as usize].id == id) {
+            continue;
+        }
+        let pos = cell_lines
+            .iter()
+            .position(|&idx| lines[idx as usize].id < id)
+            .unwrap_or(cell_lines.len());
+        cell_lines.insert(pos, li);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_line(id: i32) -> Line {
+        build_line(id, 0.0, 0.0, 14.0, 1.0, 0, 0)
+    }
+
+    #[test]
+    fn push_line_orders_each_cell_by_descending_line_id() {
+        let mut lines = Vec::new();
+        let mut grid = BTreeMap::new();
+        let cell = 42;
+
+        push_line(&mut lines, &mut grid, test_line(10), &[cell]);
+        push_line(&mut lines, &mut grid, test_line(30), &[cell]);
+        push_line(&mut lines, &mut grid, test_line(20), &[cell]);
+
+        let ids: Vec<i32> = grid[&cell].iter().map(|&idx| lines[idx as usize].id).collect();
+        assert_eq!(ids, vec![30, 20, 10]);
+    }
+
+    #[test]
+    fn push_line_keeps_one_entry_per_line_id_per_cell() {
+        let mut lines = Vec::new();
+        let mut grid = BTreeMap::new();
+        let cell = 42;
+
+        push_line(&mut lines, &mut grid, test_line(10), &[cell, cell]);
+
+        let ids: Vec<i32> = grid[&cell].iter().map(|&idx| lines[idx as usize].id).collect();
+        assert_eq!(ids, vec![10]);
+    }
 }
 
 fn compute_rest_endur() -> ([f64; NITER], [f64; NITER]) {

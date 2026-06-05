@@ -126,6 +126,40 @@ final `delta+p2.pos` is commutative in IEEE-754).
 
   **−10.8% mean / −10.8% median.** → **kept**.
 
+### B4 — Scalar offset in `SolidLine.collide`/`collidesWith` — REVERTED
+Tried replacing the `offset` V2 with scalars. Measured **~2% slower** (279,065 vs
+273,690, 10 reps, medians cleanly separated). Reverted.
+
+**Why it failed — a useful rule:** the `offset` V2 doesn't escape (it's local,
+consumed immediately to compute two scalars), so V8's escape analysis already
+scalar-replaces it — there was no real allocation to remove, and the manual
+version is marginally worse codegen. **Only *escaping* allocations are worth
+targeting** (returned, stored in a field, or captured into a persistent
+structure). `stickResolve`'s temporaries escaped (returned) → B3 won big; the
+grid's Immy versions/patches escape → B6 won huge; local throwaway vectors are
+already free.
+
+### B6 — Skip redundant grid re-versioning  ⭐ biggest win
+`vendor/lr-core/line-engine/Frame.js` `addToGrid`. When several rider points land
+in the same grid cell on the same frame (the common case — points cluster, so
+their 3×3 neighborhoods overlap heavily), `addEntityToCellFrames` mutates that
+cell's `CellFrame` in place and returns the **same** list. The old code still
+called `withKeySetToValue(cell, sameList)` every time, creating a fresh
+persistent map version + reverse patch for an unchanged value — and doing a
+`Map.get`+`Map.set` on the grid map, which accumulates every cell ever visited
+(thousands of entries). We now re-version only when the value reference actually
+changed, cutting ~70 of ~90 grid writes/frame and shortening the patch chain.
+
+- **Gates:** verify ✓ byte-identical · diff ✓ max err 0 · compile-hash ✓ identical.
+- **Perf (clean back-to-back, 20k / 10 reps):**
+
+  | engine | mean ns/frame | median |
+  |--------|---------------|--------|
+  | B3 | 273,340 ± 2,871 | 273,374 |
+  | **B6** | **116,462 ± 1,519** | **116,027** |
+
+  **−57.4% mean / −57.5% median.** A 2.35× speedup, bit-identical. → **kept**.
+
 ## Cumulative
 
 Each row is the "after" of an independent back-to-back pair (absolute numbers
@@ -138,3 +172,5 @@ figure). Compounding the measured per-step deltas: **≈ −17% vs pristine.**
 | B1 singleton updates | −2.8% | |
 | B2 scarf off | −4.0% | |
 | B3 scalar in-place stickResolve | −10.8% | V2 temporaries were the bulk of GC |
+| B4 scalar collide offset | (reverted) | non-escaping → already free |
+| B6 skip redundant grid versions | −57.4% | **the dominant cost; 333,033 → 116,462 overall (≈2.86×)** |

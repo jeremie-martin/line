@@ -71,13 +71,19 @@ export default class Frame {
   addToGrid (lineGrid, entity, index) {
     let cells = lineGrid.getCellsNearEntity(entity)
     for (let cell of cells) {
-      let cellFrames = this.grid.get(cell)
-      if (!cellFrames) {
-        cellFrames = makeCellFrames(index, entity)
-      } else {
-        cellFrames = addEntityToCellFrames(cellFrames, index, entity)
+      let prev = this.grid.get(cell)
+      let next = prev
+        ? addEntityToCellFrames(prev, index, entity)
+        : makeCellFrames(index, entity)
+      // addEntityToCellFrames mutates the existing CellFrame in place and returns
+      // the SAME list when another entity lands in a cell already touched this
+      // frame (the common case — rider points cluster, so their 3x3 cells
+      // overlap heavily). The grid value is then unchanged, so creating a new
+      // persistent version + its reverse patch would be pure overhead. Only
+      // re-version when the value actually changed.
+      if (next !== prev) {
+        this.grid = this.grid.withKeySetToValue(cell, next)
       }
-      this.grid = this.grid.withKeySetToValue(cell, cellFrames)
     }
   }
 

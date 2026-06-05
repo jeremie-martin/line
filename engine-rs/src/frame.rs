@@ -22,12 +22,38 @@ pub(crate) struct Snap {
     pub vy: f64,
 }
 
+/// Most cell-frame records start with a single snapshot. Keep that first entry
+/// inline so creating a new CellFrame does not allocate a one-element Vec.
+#[derive(Clone)]
+pub(crate) struct SnapList {
+    first: Snap,
+    rest: Vec<Snap>,
+}
+
+impl SnapList {
+    #[inline]
+    fn new(first: Snap) -> SnapList {
+        SnapList { first, rest: Vec::new() }
+    }
+
+    #[inline]
+    fn push(&mut self, snap: Snap) {
+        self.rest.push(snap);
+    }
+
+    #[inline]
+    fn any_collides(&self, l: &Line) -> bool {
+        collides_with(l, self.first.px, self.first.py, self.first.vx, self.first.vy)
+            || self.rest.iter().any(|s| collides_with(l, s.px, s.py, s.vx, s.vy))
+    }
+}
+
 /// A CellFrameList node: snapshots recorded in one cell at one frame index, in
 /// insertion order (COLLIDABLES order × the 3×3 fan-out × pre/post per collision).
 #[derive(Clone)]
 pub(crate) struct CellFrame {
     pub index: i32,
-    pub entities: Vec<Snap>,
+    pub entities: SnapList,
 }
 
 /// Frame.grid: cell hash → CellFrameList (ascending-index nodes).
@@ -47,7 +73,7 @@ fn add_to_cell(grid: &mut HistGrid, touched: &mut Vec<i64>, cell: i64, index: i3
             return;
         }
     }
-    list.push(CellFrame { index, entities: vec![snap.clone()] });
+    list.push(CellFrame { index, entities: SnapList::new(snap.clone()) });
     touched.push(cell);
 }
 
@@ -77,7 +103,7 @@ pub(crate) fn add_to_grid(
 pub(crate) fn index_of_collision_in_cell(grid: &HistGrid, cell: i64, l: &Line) -> Option<i32> {
     let list = grid.get(&cell)?;
     for cf in list.iter() {
-        if cf.entities.iter().any(|s| collides_with(l, s.px, s.py, s.vx, s.vy)) {
+        if cf.entities.any_collides(l) {
             return Some(cf.index);
         }
     }

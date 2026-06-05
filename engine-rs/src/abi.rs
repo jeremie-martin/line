@@ -72,7 +72,7 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
     let mut tl: Vec<i32> = Vec::new();
     for f in 1..=frames {
         ev.clear();
-        step_state(&mut s, &grid, &rest, &endur, &mut ev, f as i32, false, &mut hist, &mut tc, &mut hs, &mut coll, &mut tl);
+        step_state::<false>(&mut s, &grid, &rest, &endur, &mut ev, f as i32, &mut hist, &mut tc, &mut hs, &mut coll, &mut tl);
         write(f, &s);
     }
     frames as u32

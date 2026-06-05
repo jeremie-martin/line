@@ -160,9 +160,9 @@ impl Cache {
     fn compute_to(&mut self, frame: usize) {
         while self.frames.len() <= frame {
             let fi = self.frames.len() as i32;
-            step_state(
+            step_state::<true>(
                 &mut self.cur, &self.cell_lines, &self.rest, &self.endur,
-                &mut self.events, fi, true, &mut self.hist, &mut self.touched_cells,
+                &mut self.events, fi, &mut self.hist, &mut self.touched_cells,
                 &mut self.hist_snaps, &mut self.coll, &mut self.touched_lines,
             );
             self.frames.push(self.cur.clone());

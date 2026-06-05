@@ -612,3 +612,18 @@ boolean/frame index is observed.
   | **W5 arena snapshot lists** | **10,834.8 ± 83.3** |
 
   **−33.5% mean** vs W4; **−36.1%** vs the user-corrected 16,956.2 baseline.
+
+## W6 — Specialize the WASM kernel topology  (−1.7%, bit-identical)
+The remaining hot path is the solver itself. The rider topology is fixed, so the
+WASM kernel now avoids generic indexing/branching in that loop: constraint and
+collidable point indices use topology-proven unchecked array access, tracked vs
+untracked solver calls are monomorphized with a const generic, and the 22
+iterating constraints are explicit helper calls in the original order instead of
+loading `ITER[k]` and branching on kind each time. Arithmetic order inside each
+constraint and collision response is unchanged.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):** W5
+  **10,834.8 ± 83.3** → **10,649.8 ± 78.8 ns/physics-frame**.
+
+  **−1.7% mean** vs W5; **−37.2%** vs the user-corrected 16,956.2 baseline.

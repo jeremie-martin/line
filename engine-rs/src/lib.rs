@@ -113,6 +113,7 @@ pub extern "C" fn events_ptr() -> u32 {
 }
 
 // ── precomputed line geometry ──
+#[derive(Clone)]
 struct Line {
     id: i32,
     p1x: f64,
@@ -242,6 +243,17 @@ fn build_line(id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) 
         left_bound, right_bound, is_acc, accx, accy,
         collidable: ty == 0 || ty == 1, // SCENERY(2) not collidable
     }
+}
+
+fn register_line(lines: &mut Vec<Line>, grid: &mut BTreeMap<i64, Vec<u32>>, id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) {
+    let li = lines.len() as u32;
+    let l = build_line(id, x1, y1, x2, y2, ty, flags);
+    if l.collidable {
+        for cell in classic_cells(&l) {
+            grid.entry(cell).or_default().push(li);
+        }
+    }
+    lines.push(l);
 }
 
 fn compute_rest_endur() -> ([f64; NITER], [f64; NITER]) {
@@ -483,33 +495,6 @@ impl Engine {
         Engine { lines: Vec::new(), grid: BTreeMap::new(), rest, endur, frames: vec![s.clone()], events: vec![Vec::new()], cur: s }
     }
 
-    fn set_start(&mut self, sx: f64, sy: f64, svx: f64, svy: f64) {
-        let s = init_state(sx, sy, svx, svy);
-        self.frames = vec![s.clone()];
-        self.events = vec![Vec::new()];
-        self.cur = s;
-    }
-
-    fn add_line(&mut self, id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) {
-        let li = self.lines.len() as u32;
-        let l = build_line(id, x1, y1, x2, y2, ty, flags);
-        if l.collidable {
-            for cell in classic_cells(&l) {
-                self.grid.entry(cell).or_default().push(li);
-            }
-        }
-        self.lines.push(l);
-        // Phase 2b: if frames beyond the initial are cached, truncate to the new
-        // line's first-collision frame. Until then, conservatively invalidate all
-        // computed frames (correct RESULT; budget differs — fine for the trace
-        // gate, where only frame 0 exists at addLine time so this is a no-op).
-        if self.frames.len() > 1 {
-            self.cur = self.frames[0].clone();
-            self.frames.truncate(1);
-            self.events.truncate(1);
-        }
-    }
-
     fn compute_to(&mut self, frame: usize) {
         while self.frames.len() <= frame {
             let mut ev: Vec<(u8, i32)> = Vec::new();
@@ -525,45 +510,61 @@ impl Engine {
 }
 
 // handle registry (slots; free() sets None). wasm is single-threaded per module.
+// Engines are IMMUTABLE: set_start/add_line fork a new handle, parent untouched
+// (the compiler's beam frontier holds many live engines). A FinalizationRegistry
+// in the JS wrapper frees discarded handles.
 static mut ENGINES: Vec<Option<Engine>> = Vec::new();
 
 fn engines() -> &'static mut Vec<Option<Engine>> {
     unsafe { &mut *&raw mut ENGINES }
 }
 
-#[no_mangle]
-pub extern "C" fn create_engine() -> u32 {
+fn alloc(e: Engine) -> u32 {
     let v = engines();
     for (i, slot) in v.iter().enumerate() {
         if slot.is_none() {
-            v[i] = Some(Engine::new());
+            v[i] = Some(e);
             return i as u32;
         }
     }
-    v.push(Some(Engine::new()));
+    v.push(Some(e));
     (v.len() - 1) as u32
 }
 
 #[no_mangle]
+pub extern "C" fn create_engine() -> u32 {
+    alloc(Engine::new())
+}
+
+#[no_mangle]
 pub extern "C" fn free_engine(h: u32) {
-    let v = engines();
-    if let Some(slot) = v.get_mut(h as usize) {
+    if let Some(slot) = engines().get_mut(h as usize) {
         *slot = None;
     }
 }
 
+/// Fork a new engine with the parent's lines + grid, reset to a fresh start.
 #[no_mangle]
-pub extern "C" fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) {
-    if let Some(Some(e)) = engines().get_mut(h as usize) {
-        e.set_start(px, py, vx, vy);
-    }
+pub extern "C" fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) -> u32 {
+    let (lines, grid, rest, endur) = {
+        let p = engines()[h as usize].as_ref().unwrap();
+        (p.lines.clone(), p.grid.clone(), p.rest, p.endur)
+    };
+    let s = init_state(px, py, vx, vy);
+    alloc(Engine { lines, grid, rest, endur, frames: vec![s.clone()], events: vec![Vec::new()], cur: s })
 }
 
+/// Fork a new engine = parent + one line. Increment 1: conservatively reset the
+/// frame cache to the initial state (correct result; budget differs — Increment 2
+/// adds exact invalidation + frame reuse for budget parity).
 #[no_mangle]
-pub extern "C" fn add_line(h: u32, id: i32, ty: i32, x1: f64, y1: f64, x2: f64, y2: f64, flags: i32) {
-    if let Some(Some(e)) = engines().get_mut(h as usize) {
-        e.add_line(id, x1, y1, x2, y2, ty as i64, flags as i64);
-    }
+pub extern "C" fn add_line(h: u32, id: i32, ty: i32, x1: f64, y1: f64, x2: f64, y2: f64, flags: i32) -> u32 {
+    let (mut lines, mut grid, rest, endur, init) = {
+        let p = engines()[h as usize].as_ref().unwrap();
+        (p.lines.clone(), p.grid.clone(), p.rest, p.endur, p.frames[0].clone())
+    };
+    register_line(&mut lines, &mut grid, id, x1, y1, x2, y2, ty as i64, flags as i64);
+    alloc(Engine { lines, grid, rest, endur, frames: vec![init.clone()], events: vec![Vec::new()], cur: init })
 }
 
 #[no_mangle]

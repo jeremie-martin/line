@@ -45,9 +45,10 @@ function main() {
     const dump = JSON.parse(readFileSync(resolve(TRACE_DIR, `${fx.name}.dump.json`), "utf8")) as { frames: number; ids: string[]; data: number[][] };
     const order = dump.ids.map((id) => DUMP_IDX[id]);
 
-    const h = ex.create_engine();
-    ex.set_start(h, fx.start.x, fx.start.y, fx.vel.x, fx.vel.y);
-    for (const l of fx.lines) ex.add_line(h, l.id ?? 0, l.type ?? 0, l.x1, l.y1, l.x2, l.y2, flags(l));
+    // set_start/add_line now FORK (return a new handle) — chain them.
+    let h = ex.create_engine();
+    h = ex.set_start(h, fx.start.x, fx.start.y, fx.vel.x, fx.vel.y);
+    for (const l of fx.lines) h = ex.add_line(h, l.id ?? 0, l.type ?? 0, l.x1, l.y1, l.x2, l.y2, flags(l));
 
     // fresh engine: only frame 0 cached
     const lfi0 = ex.get_last_frame_index(h);

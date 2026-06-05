@@ -27,6 +27,11 @@ const NENT = 12;
 const STEP_UPDATE = { type: "StepUpdate" };
 const CONSTRAINT_UPDATE = { type: "ConstraintUpdate" };
 
+// Engines are immutable: setStart/addLine fork a new handle. The compiler holds
+// many live engines (beam frontier) and discards transient candidates — free
+// their handles when the JS wrapper is GC'd, or a real compile leaks/OOMs.
+const FINALIZER = new FinalizationRegistry<number>((h) => ex.free_engine(h));
+
 // Views are re-created after each wasm call: the kernel's Vec growth can call
 // memory.grow, which detaches existing ArrayBuffers.
 function scratch(): Float64Array {
@@ -67,17 +72,16 @@ export class LineRiderEngine {
   private h: number;
   constructor(handle?: number) {
     this.h = handle ?? ex.create_engine();
+    FINALIZER.register(this, this.h);
   }
   // deno-lint-ignore no-explicit-any
   setStart(position: any, velocity: any): LineRiderEngine {
-    ex.set_start(this.h, position.x, position.y, velocity.x, velocity.y);
-    return this;
+    return new LineRiderEngine(ex.set_start(this.h, position.x, position.y, velocity.x, velocity.y));
   }
   // deno-lint-ignore no-explicit-any
   addLine(line: any): LineRiderEngine {
     const flags = (line.flipped ? 1 : 0) | (line.leftExtended ? 2 : 0) | (line.rightExtended ? 4 : 0);
-    ex.add_line(this.h, line.id ?? 0, line.type ?? 0, line.x1, line.y1, line.x2, line.y2, flags);
-    return this;
+    return new LineRiderEngine(ex.add_line(this.h, line.id ?? 0, line.type ?? 0, line.x1, line.y1, line.x2, line.y2, flags));
   }
   getLastFrameIndex(): number {
     return ex.get_last_frame_index(this.h);

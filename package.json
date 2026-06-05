@@ -21,10 +21,17 @@
     "golden": "tsx scripts/v0/golden.ts",
     "screen": "tsx scripts/v0/golden.ts --screen",
     "decide": "tsx scripts/v0/analyze_golden_curve.ts decide",
+    "bench": "tsx scripts/v0/bench/sim_bench.ts",
+    "bench:prof": "node --cpu-prof --cpu-prof-dir=generated/prof --cpu-prof-name=sim.cpuprofile --import tsx scripts/v0/bench/sim_bench.ts",
+    "trace": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts",
     "compose": "tsx scripts/compose.ts",
     "dash": "tsx scripts/serve.ts",
     "unpack": "webcrack -f -o unpacked mirror/_v2153.0/main.js",
-    "parity": "tsx scripts/parity.ts"
+    "parity": "tsx scripts/parity.ts",
+    "cbench": "tsx scripts/v0/bench/compile_bench.ts",
+    "cbench:prof": "node --cpu-prof --cpu-prof-dir=generated/prof --cpu-prof-name=compile.cpuprofile --import tsx scripts/v0/bench/compile_bench.ts",
+    "trace:dump": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts --dump",
+    "trace:diff": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts --diff"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

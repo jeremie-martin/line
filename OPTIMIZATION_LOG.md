@@ -10,7 +10,7 @@ per change attempt, with its verification result and its measured effect.
   is per-frame **allocation count**, not the math.
 - **Single metric:** `ns / physics-frame` from `npm run perf` (wall-clock ÷
   physics frames actually simulated; work-normalized, lower is better).
-  Default config: `mini_burst` @ 50k budget, 20 timed runs + 3 warmup.
+  Default config: `mini_burst` @ 50k budget, 30 timed runs + 3 warmup.
   Fast inner-loop signal: `npm run perf -- --reps=5 --budget=20000`.
 - **Correctness gates** (must all hold for every kept change):
   1. `npm run verify:engine` — per-frame oracle: non-scarf body state +
@@ -697,4 +697,88 @@ still pays off there even though `cell_lines` now uses the flat map.
 
 **Standing after W6:** **~16,000 ns/physics-frame** — bit-identical to lr-core,
 ≈20.8× faster than pristine JS (333k) and ≈4.6× faster than the parity-correct JS
+engine (B11 ~73k).
+
+## Session 3 (2026-06-05 cont.) — data-structure probes, no kept engine change
+
+At the current W6 standing the easy map/allocator wins are largely exhausted.
+Default `perf` was increased from **20 → 30 timed runs** (+3 warmup unchanged) to
+reduce noise now that one full WASM compile is cheap enough. Current 30-run
+standing:
+
+```
+LR_ENGINE=wasm npm run verify  ✓ byte-identical
+LR_ENGINE=wasm npm run perf    15,855.9 ns/physics-frame ± 310.1
+median 15,869.1, range [14,817.7 … 16,557.7], frames=50,415, runs=30
+```
+
+Rejected probes, all reverted:
+
+- **History grid on `FlatIntMap` instead of hashbrown/std `HashMap`:** regressed
+  to **17,635 ns/frame** on an 8-run signal. W6's custom flat map is still right
+  for `cell_lines`, but hashbrown remains better for the mutating history grid.
+- **Per-frame active-cell cache for repeated history-grid writes:** regressed
+  (lookback 32: **16,097 ns/frame**; lookback 8: **17,897 ns/frame**). Extra
+  side-cache scans/pointers cost more than the hash lookups they skip.
+- **`get_mut`+`insert` split instead of `entry(...).or_default()`:** regressed to
+  **16,669 ns/frame**. The entry API still generates the better path here.
+- **Force-inline `add_to_grid`/`add_to_cell`:** not a win (**16,032 ns/frame**).
+- **WASM wrapper last-frame hint:** regressed/noise (**16,082 ns/frame**). The
+  default extraction path only needs a trailing `getLastFrameIndex` per window,
+  not per frame, so the hint bookkeeping is not worthwhile.
+- **Stronger Murmur-style finalizer for residual `HashMap`s:** regressed to
+  **16,690 ns/frame**. The current one-multiply finalizer is the right balance:
+  it fixes SwissTable's high-bit control tags without spending too many cycles per
+  integer key.
+
+Crate/data-structure conclusion: no obvious drop-in crate is likely to beat the
+current code. `std::collections::HashMap` is already hashbrown/SwissTable, and the
+residual maps already use a tiny deterministic integer hasher tuned for this key
+shape. `nohash`/identity hashing is the W4 failure mode (bad high-bit tags);
+stronger hashers (`aHash`, foldhash-style, Murmur-style) add work that the integer
+key distribution does not repay; `rustc-hash` is plausible but its own guidance
+matches our result — for single integers, spending more cycles on hash quality
+often does not win. A future crate-backed experiment that still looks defensible
+is **direct `hashbrown` with raw-entry/prehashed APIs** for one residual map, but
+only if a profile shows `Hash`/entry overhead specifically rather than table
+probing or value work. The larger remaining wins are structural: frame storage /
+rollback representation, line clone/reconcile shape, or moving more detector work
+inside the WASM boundary.
+
+## W7 — Direct-mapped active history-cell cache  (−11.4%, bit-identical)
+The profiled hot function after W6 was still `add_to_grid`: every tracked snapshot
+records into a 3×3 history-cell neighborhood, and most rider points overlap the
+same cells within a physics frame. The rejected vector lookback cache proved the
+hit rate exists but scans are too expensive. Replaced that with a tiny direct-mapped
+`ActiveCellCache` (128 slots): `cell → *mut current CellFrame`, scoped by a
+monotonic per-step epoch. On a hit, `add_to_cell` appends the `SnapNode` directly
+to the current frame's node and skips `HashMap::entry`.
+
+Safety/identity notes:
+- Epochs are not frame numbers, so rollback and re-simulation of the same frame
+  index cannot reuse stale pointers.
+- The pointer targets the `Vec<CellFrame>` allocation for that cell. Rehashing the
+  outer `HashMap` moves the `Vec` header, not the element buffer; the only operation
+  that can reallocate the cell's buffer is starting a new `CellFrame`, and the cache
+  pointer is refreshed immediately after that push.
+- Snapshot insertion order inside a same-frame node is unchanged (`rest_head` push),
+  and invalidation only asks "does any snapshot in this node collide?", so output
+  stays byte-identical.
+
+Slot tuning (8 reps + 2 warmup): 64 slots **14,455 ns/frame**, 128 slots
+**14,202 ns/frame**, 256 slots **14,233 ns/frame** → kept 128.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical · `cargo test
+  --manifest-path engine-rs/Cargo.toml` ✓.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 30 runs + 3 warmup):**
+
+  | stage | mean ns/frame | median |
+  |-------|---------------|--------|
+  | W6 standing (30-run default) | 15,855.9 ± 310.1 | 15,869.1 |
+  | **W7 active-cell cache** | **14,055.5 ± 376.2** | **14,129.4** |
+
+  **−11.4% mean / −11.0% median**, well above the 1.6% commit bar → **kept**.
+
+**Standing after W7:** **~14,100 ns/physics-frame** — bit-identical to lr-core,
+≈23.7× faster than pristine JS (333k) and ≈5.2× faster than the parity-correct JS
 engine (B11 ~73k).

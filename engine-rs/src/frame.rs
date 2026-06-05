@@ -36,6 +36,60 @@ pub(crate) struct CellFrame {
     rest_head: i32,
 }
 
+const ACTIVE_CELL_SLOTS: usize = 128;
+
+pub(crate) struct ActiveCellCache {
+    keys: [i64; ACTIVE_CELL_SLOTS],
+    ptrs: [*mut CellFrame; ACTIVE_CELL_SLOTS],
+    epochs: [u32; ACTIVE_CELL_SLOTS],
+    current_epoch: u32,
+}
+
+impl Default for ActiveCellCache {
+    fn default() -> ActiveCellCache {
+        ActiveCellCache {
+            keys: [0; ACTIVE_CELL_SLOTS],
+            ptrs: [std::ptr::null_mut(); ACTIVE_CELL_SLOTS],
+            epochs: [0; ACTIVE_CELL_SLOTS],
+            current_epoch: 1,
+        }
+    }
+}
+
+impl ActiveCellCache {
+    #[inline]
+    pub(crate) fn begin_frame(&mut self) {
+        self.current_epoch = self.current_epoch.wrapping_add(1);
+        if self.current_epoch == 0 {
+            self.epochs.fill(0);
+            self.current_epoch = 1;
+        }
+    }
+
+    #[inline]
+    fn slot(cell: i64) -> usize {
+        ((cell as u64).wrapping_mul(0x9E3779B97F4A7C15) as usize) & (ACTIVE_CELL_SLOTS - 1)
+    }
+
+    #[inline]
+    fn get(&mut self, cell: i64) -> Option<&mut CellFrame> {
+        let slot = Self::slot(cell);
+        if self.epochs[slot] == self.current_epoch && self.keys[slot] == cell {
+            Some(unsafe { &mut *self.ptrs[slot] })
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    fn put(&mut self, cell: i64, frame: &mut CellFrame) {
+        let slot = Self::slot(cell);
+        self.keys[slot] = cell;
+        self.ptrs[slot] = frame;
+        self.epochs[slot] = self.current_epoch;
+    }
+}
+
 impl CellFrame {
     #[inline]
     fn any_collides(&self, snaps: &[SnapNode], l: &Line) -> bool {
@@ -59,21 +113,41 @@ pub(crate) type HistGrid = IntMap<i64, Vec<CellFrame>>;
 /// Frame.collisions: line id → ascending frame indices it collided (the IndexList).
 pub(crate) type Collisions = IntMap<i32, Vec<i32>>;
 
+#[inline]
+fn append_snapshot(frame: &mut CellFrame, snaps: &mut Vec<SnapNode>, snap: Snap) {
+    let next = frame.rest_head;
+    frame.rest_head = snaps.len() as i32;
+    snaps.push(SnapNode { snap, next });
+}
+
 /// addToGrid for one cell (addEntityToCellFrames, Frame.js:100): append to the
 /// cell's current-frame node, or start a new node (recording the cell in this
 /// frame's reverse patch `touched`).
 #[inline]
-fn add_to_cell(grid: &mut HistGrid, touched: &mut Vec<i64>, snaps: &mut Vec<SnapNode>, cell: i64, index: i32, snap: Snap) {
+fn add_to_cell(
+    grid: &mut HistGrid,
+    touched: &mut Vec<i64>,
+    snaps: &mut Vec<SnapNode>,
+    active: &mut ActiveCellCache,
+    cell: i64,
+    index: i32,
+    snap: Snap,
+) {
+    if let Some(frame) = active.get(cell) {
+        append_snapshot(frame, snaps, snap);
+        return;
+    }
+
     let list = grid.entry(cell).or_default();
     if let Some(last) = list.last_mut() {
         if last.index == index {
-            let next = last.rest_head;
-            last.rest_head = snaps.len() as i32;
-            snaps.push(SnapNode { snap, next });
+            append_snapshot(last, snaps, snap);
+            active.put(cell, last);
             return;
         }
     }
     list.push(CellFrame { index, first: snap, rest_head: -1 });
+    active.put(cell, list.last_mut().unwrap());
     touched.push(cell);
 }
 
@@ -85,6 +159,7 @@ pub(crate) fn add_to_grid(
     grid: &mut HistGrid,
     touched: &mut Vec<i64>,
     snaps: &mut Vec<SnapNode>,
+    active: &mut ActiveCellCache,
     cells: &[i64; 9],
     index: i32,
     px: f64,
@@ -94,7 +169,7 @@ pub(crate) fn add_to_grid(
 ) {
     let snap = Snap { px, py, vx, vy };
     for &cell in cells.iter() {
-        add_to_cell(grid, touched, snaps, cell, index, snap);
+        add_to_cell(grid, touched, snaps, active, cell, index, snap);
     }
 }
 

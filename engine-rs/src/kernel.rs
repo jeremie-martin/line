@@ -10,7 +10,7 @@
 
 use crate::grid::{cells_near_entity, FlatIntMap};
 use crate::line::{Line, MAX_FORCE_LENGTH};
-use crate::frame::{add_to_collisions, add_to_grid, Collisions, HistGrid, SnapNode};
+use crate::frame::{add_to_collisions, add_to_grid, ActiveCellCache, Collisions, HistGrid, SnapNode};
 use crate::{
     BASE, BUTT, COLLIDABLES, FRIC, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT,
     LHAND, NENT, NITER, NOSE, PEG, RHAND, RIDER_MOUNTED, RFOOT, SHOULDER, STRING, TAIL,
@@ -174,9 +174,11 @@ pub(crate) fn step_state<const TRACK: bool>(
     hist: &mut HistGrid,
     touched_cells: &mut Vec<i64>,
     hist_snaps: &mut Vec<SnapNode>,
+    active_cells: &mut ActiveCellCache,
     coll: &mut Collisions,
     touched_lines: &mut Vec<i32>,
 ) {
+    active_cells.begin_frame();
     // step
     for i in 0..NENT {
         if IS_POINT[i] {
@@ -213,7 +215,7 @@ pub(crate) fn step_state<const TRACK: bool>(
             let cells = cells_near_entity(pxi, pyi);
             // addToGrid (A): pre-collision snapshot into all 3×3 cells.
             if TRACK {
-                add_to_grid(hist, touched_cells, hist_snaps, &cells, frame_index, pxi, pyi, vxi, vyi);
+                add_to_grid(hist, touched_cells, hist_snaps, active_cells, &cells, frame_index, pxi, pyi, vxi, vyi);
             }
             for &cell in cells.iter() {
                 if let Some(lns) = grid.get(&cell) {
@@ -257,7 +259,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                             // addToGrid (B) + addToCollisions: post-collision, cells around the MOVED entity.
                             if TRACK {
                                 let pcells = cells_near_entity(pxi, pyi);
-                                add_to_grid(hist, touched_cells, hist_snaps, &pcells, frame_index, pxi, pyi, vxi, vyi);
+                                add_to_grid(hist, touched_cells, hist_snaps, active_cells, &pcells, frame_index, pxi, pyi, vxi, vyi);
                                 add_to_collisions(coll, touched_lines, l.id, frame_index);
                             }
                         }

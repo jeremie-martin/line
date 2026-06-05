@@ -20,7 +20,7 @@ use crate::grid::{FlatIntMap, IntMap};
 use crate::kernel::{compute_rest_endur, init_state, step_state, State};
 use crate::frame::{
     index_of_collision_in_cell, index_of_collision_with_line, rollback_collisions, rollback_grid,
-    Collisions, HistGrid, SnapNode,
+    ActiveCellCache, Collisions, HistGrid, SnapNode,
 };
 use crate::line::{build_line, line_cells, push_line, remove_line, Line};
 use crate::{
@@ -47,6 +47,7 @@ struct Cache {
     touched_cell_offsets: Vec<usize>,
     hist_snaps: Vec<SnapNode>,            // extra same-cell/same-frame snapshots
     hist_snap_offsets: Vec<usize>,
+    active_cells: ActiveCellCache,         // frame-local shortcut for repeated history cells
     coll: Collisions,                     // Frame.collisions: line id → frames (for removeLine)
     touched_lines: Vec<i32>,              // flat per-frame reverse patch for coll rollback
     touched_line_offsets: Vec<usize>,
@@ -69,6 +70,7 @@ impl Cache {
             touched_cell_offsets: vec![0, 0],
             hist_snaps: Vec::new(),
             hist_snap_offsets: vec![0, 0],
+            active_cells: ActiveCellCache::default(),
             coll: IntMap::default(),
             touched_lines: Vec::new(),
             touched_line_offsets: vec![0, 0],
@@ -164,7 +166,7 @@ impl Cache {
             step_state::<true>(
                 &mut self.cur, &self.cell_lines, &self.rest, &self.endur,
                 &mut self.events, fi, &mut self.hist, &mut self.touched_cells,
-                &mut self.hist_snaps, &mut self.coll, &mut self.touched_lines,
+                &mut self.hist_snaps, &mut self.active_cells, &mut self.coll, &mut self.touched_lines,
             );
             self.frames.push(self.cur.clone());
             self.event_offsets.push(self.events.len());

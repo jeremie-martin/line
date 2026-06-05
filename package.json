@@ -42,7 +42,9 @@
     "wasm:replay": "tsx scripts/v0/bench/wasm_replay_check.ts",
     "wasm:all": "tsx scripts/v0/bench/wasm_all.ts",
     "perf": "tsx scripts/v0/bench/perf.ts",
-    "verify": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts"
+    "verify": "npm run verify:engine && npm run verify:optimizer",
+    "verify:engine": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts",
+    "verify:optimizer": "tsx scripts/v0/bench/verify_optimizer.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

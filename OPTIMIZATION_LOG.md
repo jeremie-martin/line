@@ -13,13 +13,16 @@ per change attempt, with its verification result and its measured effect.
   Default config: `mini_burst` @ 50k budget, 10 timed runs + 2 warmup.
   Fast inner-loop signal: `npm run perf -- --reps=5 --budget=20000`.
 - **Correctness gates** (must all hold for every kept change):
-  1. `npm run verify` — per-frame oracle: non-scarf body state + `CollisionUpdate`
-     records, byte-identical to recorded baseline over 5 fixtures.
-  2. `npm run verify -- --diff` — numeric microscope: every non-scarf point
-     position bit-identical (`max err 0`) over thousands of frames.
-  3. **compile-hash ground truth** — `compile_hash.ts` hashes the actual
-     compiled track **+ deterministic search stats**; must equal the pristine
-     hash for each spec/seed. This is the end-to-end "behaviour unchanged" proof.
+  1. `npm run verify:engine` — per-frame oracle: non-scarf body state +
+     `CollisionUpdate` records, byte-identical to recorded baseline over 5
+     fixtures. (Was `npm run verify` before the engine/optimizer split.)
+  2. `npm run verify:engine -- --diff` — numeric microscope: every non-scarf
+     point position bit-identical (`max err 0`) over thousands of frames.
+  3. `npm run verify:optimizer` — end-to-end compiler regression gate: runs the
+     real `compileHandoff` on 4 curated golden cases and hashes the compiled
+     track **+ deterministic search stats** against a recorded baseline. This is
+     the gate for **compiler/optimizer-path** changes (`verify:engine` only
+     exercises the engine on fixed tracks). `npm run verify` runs both.
 - **Commit rule:** only keep a change whose perf win **holds >2%** (the perf
   noise band is ~0.6% at the default config, so 2% is ~3σ).
 

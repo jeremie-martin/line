@@ -304,3 +304,141 @@ latent-risk / maintainability items, all addressed in one bit-identical commit
    branches (RepelStick/BindStick/BindJoint), not a fresh `[]`.
 8. Noted `FlutterPoint`/`DirectedChain` as retained-but-unsimulated (scarf), and
    removed the derivable `Rider.stateData` field (filter inline).
+
+---
+
+# Session 2 (2026-06-05 cont.) — compiler-aware levers & runtime tuning
+
+A second round after B9, asking a different question: does the **compiler's use of
+the engine** (forking, candidate fan-out, re-reads) have wins, separate from the
+engine internals? And can the **Node/V8 runtime** be tuned? Net: the compiler
+harness turned out to be already lean and the engine already compute-bound, so the
+compiler-aware levers were washes or already-implemented — but a V8 GC flag
+delivered a clean, byte-identical **−7.8%**. The negative results are recorded
+below so they aren't re-explored. (This session deliberately expanded scope beyond
+`vendor/lr-core` to the runtime, at the user's request.)
+
+## S3 — Split `verify` into engine + optimizer gates  (commit `2b39d48`)
+The B-series were all engine-internal, covered by the per-frame oracle. But the
+compiler-aware work touches the **optimizer/search path**, which that oracle never
+exercises — it replays fixed tracks and never runs `compileHandoff`. The existing
+optimizer tests (`v0_determinism`, `optimizer_handoff`) only assert
+*self-consistency* (compile twice → same hash), not regression vs a baseline, so a
+deterministic output change passes them green.
+
+- Renamed `verify` → `verify:engine`. Added `verify:optimizer`: runs the real
+  `compileHandoff` on 4 curated cases (the determinism test's small/medium/large
+  sample + `mini_burst`, the perf spec) and hashes `{track, stats}` against a
+  local gitignored baseline, mirroring the engine oracle's UX (`--update` to
+  re-baseline; baseline captured on clean HEAD). `verify` runs both. ~12s.
+- Proven: clean pass; corrupting a baseline hash exits non-zero, **names and
+  classifies** the drift (`track bytes` vs `sim_frames` vs `lines`).
+
+## Lever 1 — batch an arc's lines into one `addLine`  (wash; kept as readability, commit `855057b`)
+`addLine` already accepts an array (`_modifyLinesList` reduces over it → one
+`updateState` for the whole arc); the handoff path was adding arcs one segment at
+a time. Switched the 5 arc-writing sites (`node.ts`, `candidate.ts` ×2,
+`handoff.ts`, `reachability.ts`) to the array form.
+
+- Gate: verify:optimizer ✓ byte-identical · 245/245 tests.
+- Perf (back-to-back): **wash** — 68,248 → 68,279 (+0.04% mean, inside noise).
+- **Why no win:** the engine already shares the simulated prefix across forks (the
+  Immo computed cache is truncated only at the new line's collision and the prefix
+  is reused), recomputing only the suffix — so arc-as-1-call vs arc-as-N-calls does
+  identical *simulation* work; only trivial allocation bookkeeping differs, roughly
+  cancelled by the `.map()` array. Kept purely as readability (single `const` expr
+  vs reassign-in-loop), committed honestly as "no perf change."
+
+## Lever 2 — share the prefix extract/detect across candidates  (already implemented)
+Hypothesis: candidates re-extract/re-detect the shared trajectory prefix `[0,
+gap.startFrame)` per candidate. **Already done:** the sampler hardcodes
+`useWindowDetection=true` (`sample.ts:121`), so candidate eval runs
+`detectWindow(eng, gap.startFrame, horizon)` → `extractRawTrajectoryWindow`, which
+reads only `[gap.startFrame, horizon]`, not from frame 0. No redundancy to remove.
+
+## Why compiler-aware levers are largely off the table
+`cbench:prof` on `mini_burst@50k`: **~92% of wall-clock is the physics engine**,
+only **~5% is the compiler/search** (extract + detect + candidate gen + scoring).
+And the search **budget *is* `sim_frames`** (charged by `getLastFrameIndex`
+deltas) — so any compiler-aware lever that simulates *less* reduces the budget →
+reshapes the search → changes the compiled track. "Compiler-aware" and
+"bit-identical" are therefore nearly mutually exclusive here; the only two that
+were compatible are Levers 1–2, and both are spent.
+
+- Measured the biggest budget-changing lever — **early-terminate doomed
+  candidates** (skip simulating frames past the detector's terminus): instrumented
+  `detect()`, only **~1.3–2.8%** of the eval window is past terminus (the horizon
+  `gap.endFrame+20` is already tight). Even discarding bit-identity, ~2%. Not
+  pursued.
+
+Self-time profile of the compile (3 reps, `mini_burst@50k`):
+
+| % | function | layer |
+|---|---|---|
+| 20.3% | `_collideEntities` | engine collision |
+| 11.7% | `addToGrid` | engine grid (persistent map) |
+| 8.2% | garbage collector | engine alloc |
+| 6.9% | `getCellsNearEntity` | engine grid |
+| 6.7% | `getLinesNearEntity` | engine grid |
+| ~13% | constraint `resolve` + grid add/remove | engine |
+| **~5%** | extract + detect + arc placement | **compiler/search** |
+
+## B10 — reuse a scratch buffer in `getCellsNearEntity` — REVERTED
+Tried returning a reused 9-element instance buffer (`this._cellScratch`) instead of
+a fresh `[]` (allocated ~72×/frame, escapes to two consumers).
+
+- Gate: verify:engine ✓ byte-identical · verify:optimizer ✓.
+- Perf: **+6.6% slower** (69,403 → 73,975, ranges fully disjoint). Reverted.
+- **Why it failed (B4 redux):** V8 handles short-lived small arrays superbly
+  (young-gen bump allocation, packed-SMI shape, cheap collection). A long-lived
+  instance-property buffer adds a property load per call + write barriers, and
+  `hashIntPair` can exceed SMI range → element-kind transitions. The transient
+  array wasn't a real cost — `getCellsNearEntity` is **compute-bound** (`Math.floor`
+  + 9× `hashIntPair`), not alloc-bound. This confirms the per-frame *transient*
+  allocations are already effectively free; the 8% GC comes from the **persistent**
+  structures (frame-grid versions, `CollisionUpdate`), which are budget-load-bearing
+  and can't be cheaply restructured. The cheap bit-identical engine wins are spent.
+
+## Runtime / configuration (outside `vendor/lr-core`)
+
+### Bun vs Node — Node (V8) wins
+Same code under bun 1.3.14 (JSC) vs node (V8), identical output (50,729 frames):
+bun **−18% slower** and ~5× noisier (81,742 vs 69,170 ns/frame). This compile is a
+long-running, hot, monomorphic numeric loop — V8/TurboFan's strength — and the
+whole B-series was tuned *to V8* (B8 hidden classes, escape-analysis reliance, B10).
+JSC's strengths (startup/IO) don't apply. Stick with node.
+
+### V8 young-gen tuning — −7.8%, byte-identical  (commit `088238f`) ⭐ session win
+The 8% GC is young-gen scavenge pressure we can't cheaply remove (allocations are
+load-bearing or already V8-optimized — see B10). Instead, enlarge the young
+generation so V8 collects it less often. Pure GC tuning → output byte-identical
+(`sim_frames` constant throughout; verify:engine ✓, verify:optimizer ✓, 245/245).
+
+- Perf (drift-bracketed, real `npm run perf`): 68,776 → ~63,434 ns/frame,
+  **−7.8%**, non-overlapping ranges. Sweet spot at semi-space **64** (≈ 128MB total
+  young-gen); 128 ≈ equal, 256 regresses (larger scavenges).
+- **Delivery matters** (two gotchas, both baked in): the flag must hit the
+  *isolate that runs the compile*. Routed through the `tsx` binary or
+  `NODE_OPTIONS`+`npm` it diluted to ~2–4%; as a direct `node
+  --max-semi-space-size=64` flag, the full ~8%. And worker `execArgv` **rejects**
+  `--max-semi-space-size` — use `resourceLimits.maxYoungGenerationSizeMb`, which is
+  *total* young-gen, so **128 ≈ semi-space 64** (measured in-worker: 128 → −6.3%,
+  64 → only −1.8%).
+- Applied at every compile site: `perf`/`cbench` (node flag), golden **worker pool**
+  (`maxYoungGenerationSizeMb:128`), serve dashboard spawn (`NODE_OPTIONS`). Memory
+  +0.77GB worst case across the 6-worker pool (43GB free).
+
+> Note: `npm run perf` now runs with `--max-semi-space-size=64`, so post-`088238f`
+> ns/frame figures (~63k) reflect production config. Pre-`088238f` figures (~69k,
+> flagless) are the comparison baseline. The −7.8% is config, not engine code, so
+> it is not folded into the B-series cumulative table above.
+
+## Session 2 conclusion — the remaining lever is WASM
+Two negative results (Lever 1 wash, B10 regression) plus the profile establish that
+the engine hot path has gone **compute-bound**: the easy bit-identical allocation
+wins are exhausted (B1–B9 took them, 5.25×; transient allocs are now V8-free), and
+what remains is genuine collision/grid compute (~50%) + constraint solves (~13%) +
+persistent-structure GC (~8%, budget-load-bearing). The only remaining
+*order-of-magnitude* lever is the **Rust→WASM engine rewrite** (flat zero-alloc
+memory, native kernel) — the profile (collision+grid+GC ≈ 70%) is exactly its
+thesis. Incremental JS engine tuning is past the point of useful return.

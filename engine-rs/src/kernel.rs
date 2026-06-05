@@ -5,22 +5,24 @@
 //!
 //! The arithmetic here is REUSED VERBATIM from the proven kernel (bit-identical on
 //! all 5 fixtures via wasm:check/trace) — only the collision section is restructured
-//! to compute the 3×3 cells once (cells_near_entity), share them with line lookup,
-//! and record collision history through an equivalent center-cell index.
+//! to use center-cell history and line lookup indexes equivalent to lr-core's
+//! 3×3 neighborhood queries.
 
-use crate::grid::{cell_hash, cells_near_entity, FlatIntMap};
-use crate::line::{Line, MAX_FORCE_LENGTH};
-use crate::frame::{add_to_collisions, add_to_grid, ActiveCellCache, Collisions, HistGrid, Snap, SnapNode};
+use crate::frame::{
+    add_to_collisions, add_to_grid, ActiveCellCache, Collisions, HistGrid, Snap, SnapNode,
+};
+use crate::grid::{cell_hash, FlatIntMap};
+use crate::line::{GridLine, MAX_FORCE_LENGTH};
 use crate::{
     BASE, BUTT, COLLIDABLES, FRIC, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT,
-    LHAND, NENT, NITER, NOSE, PEG, RHAND, RIDER_MOUNTED, RFOOT, SHOULDER, STRING, TAIL,
+    LHAND, NENT, NITER, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, STRING, TAIL,
 };
 
 const LINE_CELL_CACHE_SLOTS: usize = 64;
 
 pub(crate) struct LineCellCache {
     keys: [i64; LINE_CELL_CACHE_SLOTS],
-    ptrs: [*const Vec<Line>; LINE_CELL_CACHE_SLOTS],
+    ptrs: [*const Vec<GridLine>; LINE_CELL_CACHE_SLOTS],
     epochs: [u32; LINE_CELL_CACHE_SLOTS],
     current_epoch: u32,
 }
@@ -52,15 +54,25 @@ impl LineCellCache {
     }
 
     #[inline]
-    fn lookup<'a>(&mut self, grid: &'a FlatIntMap<Vec<Line>>, cell: i64) -> Option<&'a Vec<Line>> {
+    fn lookup<'a>(
+        &mut self,
+        grid: &'a FlatIntMap<Vec<GridLine>>,
+        cell: i64,
+    ) -> Option<&'a Vec<GridLine>> {
         let slot = Self::slot(cell);
         if self.epochs[slot] == self.current_epoch && self.keys[slot] == cell {
             let ptr = self.ptrs[slot];
-            return if ptr.is_null() { None } else { Some(unsafe { &*ptr }) };
+            return if ptr.is_null() {
+                None
+            } else {
+                Some(unsafe { &*ptr })
+            };
         }
         let found = grid.get(&cell);
         self.keys[slot] = cell;
-        self.ptrs[slot] = found.map(|bucket| bucket as *const Vec<Line>).unwrap_or(std::ptr::null());
+        self.ptrs[slot] = found
+            .map(|bucket| bucket as *const Vec<GridLine>)
+            .unwrap_or(std::ptr::null());
         self.epochs[slot] = self.current_epoch;
         found
     }
@@ -86,8 +98,13 @@ fn dist(ax: f64, ay: f64, bx: f64, by: f64) -> f64 {
 
 pub(crate) fn init_state(sx: f64, sy: f64, svx: f64, svy: f64) -> State {
     let mut s = State {
-        px: [0.0; NENT], py: [0.0; NENT], prevx: [0.0; NENT], prevy: [0.0; NENT],
-        vx: [0.0; NENT], vy: [0.0; NENT], fsu: [-1; NENT],
+        px: [0.0; NENT],
+        py: [0.0; NENT],
+        prevx: [0.0; NENT],
+        prevy: [0.0; NENT],
+        vx: [0.0; NENT],
+        vy: [0.0; NENT],
+        fsu: [-1; NENT],
     };
     for i in 0..NENT {
         if IS_POINT[i] {
@@ -122,7 +139,11 @@ unsafe fn resolve_stick(s: &mut State, rest: &[f64; NITER], k: usize, p1: usize,
     let p2x = *s.px.get_unchecked(p2);
     let p2y = *s.py.get_unchecked(p2);
     let length = dist(p1x, p1y, p2x, p2y);
-    let gd = if length == 0.0 { 0.0 } else { (length - *rest.get_unchecked(k)) / length };
+    let gd = if length == 0.0 {
+        0.0
+    } else {
+        (length - *rest.get_unchecked(k)) / length
+    };
     let diff = gd * 0.5;
     let dx = (p1x - p2x) * diff;
     let dy = (p1y - p2y) * diff;
@@ -140,7 +161,11 @@ unsafe fn resolve_repel(s: &mut State, rest: &[f64; NITER], k: usize, p1: usize,
     let p2y = *s.py.get_unchecked(p2);
     let length = dist(p1x, p1y, p2x, p2y);
     if length < *rest.get_unchecked(k) {
-        let gd = if length == 0.0 { 0.0 } else { (length - *rest.get_unchecked(k)) / length };
+        let gd = if length == 0.0 {
+            0.0
+        } else {
+            (length - *rest.get_unchecked(k)) / length
+        };
         let diff = gd * 0.5;
         let dx = (p1x - p2x) * diff;
         let dy = (p1y - p2y) * diff;
@@ -167,7 +192,11 @@ unsafe fn resolve_bind(
     let p2y = *s.py.get_unchecked(p2);
     let length = dist(p1x, p1y, p2x, p2y);
     if *s.fsu.get_unchecked(bind) == -1 {
-        let gd = if length == 0.0 { 0.0 } else { (length - *rest.get_unchecked(k)) / length };
+        let gd = if length == 0.0 {
+            0.0
+        } else {
+            (length - *rest.get_unchecked(k)) / length
+        };
         let diff = gd * 0.5;
         if diff > *endur.get_unchecked(k) {
             *s.fsu.get_unchecked_mut(bind) = 0;
@@ -216,7 +245,7 @@ unsafe fn resolve_iter_constraints(s: &mut State, rest: &[f64; NITER], endur: &[
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn step_state<const TRACK: bool>(
     s: &mut State,
-    grid: &FlatIntMap<Vec<Line>>,
+    grid: &FlatIntMap<Vec<GridLine>>,
     rest: &[f64; NITER],
     endur: &[f64; NITER],
     events: &mut Vec<(u8, i32, i32)>,
@@ -251,7 +280,9 @@ pub(crate) fn step_state<const TRACK: bool>(
     }
 
     for it in 0..ITERATE {
-        unsafe { resolve_iter_constraints(s, rest, endur); }
+        unsafe {
+            resolve_iter_constraints(s, rest, endur);
+        }
         for &i in COLLIDABLES.iter() {
             let (mut pxi, mut pyi, mut prevxi, mut prevyi, vxi, vyi, fric) = unsafe {
                 (
@@ -264,58 +295,83 @@ pub(crate) fn step_state<const TRACK: bool>(
                     *FRIC.get_unchecked(i),
                 )
             };
-            // getCellsNearEntity once (pre-collision pos), shared by history center-cell
-            // recording and collision line lookup.
-            let cells = cells_near_entity(pxi, pyi);
+            let center_cell = cell_hash(pxi, pyi);
             // addToGrid (A): pre-collision snapshot.
             if TRACK {
-                add_to_grid(hist, touched_cells, hist_snaps, hist_snap_values, active_cells, cells[4], frame_index, pxi, pyi, vxi, vyi);
+                add_to_grid(
+                    hist,
+                    touched_cells,
+                    hist_snaps,
+                    hist_snap_values,
+                    active_cells,
+                    center_cell,
+                    frame_index,
+                    pxi,
+                    pyi,
+                    vxi,
+                    vyi,
+                );
             }
-            for &cell in cells.iter() {
-                if let Some(lns) = line_cache.lookup(grid, cell) {
-                    for l in lns.iter() {
-                        let ox = pxi - l.p1x;
-                        let oy = pyi - l.p1y;
-                        let perp_comp = l.normx * ox + l.normy * oy;
-                        let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
-                        let pnt_dir = l.normx * vxi + l.normy * vyi;
-                        if pnt_dir > 0.0
-                            && perp_comp > 0.0
-                            && perp_comp < MAX_FORCE_LENGTH
-                            && line_pos >= l.left_bound
-                            && line_pos <= l.right_bound
-                        {
-                            let tx = l.normx * perp_comp - pxi;
-                            let ty = l.normy * perp_comp - pyi;
-                            let posx = tx * -1.0;
-                            let posy = ty * -1.0;
-                            let mut fvx = (l.normy * fric) * perp_comp;
-                            let mut fvy = ((-l.normx) * fric) * perp_comp;
-                            if prevxi >= posx { fvx = fvx * -1.0; }
-                            if prevyi < posy { fvy = fvy * -1.0; }
-                            fvx = fvx + prevxi;
-                            fvy = fvy + prevyi;
-                            if l.is_acc {
-                                fvx = fvx + l.accx;
-                                fvy = fvy + l.accy;
-                            }
-                            unsafe {
-                                *s.px.get_unchecked_mut(i) = posx;
-                                *s.py.get_unchecked_mut(i) = posy;
-                                *s.prevx.get_unchecked_mut(i) = fvx;
-                                *s.prevy.get_unchecked_mut(i) = fvy;
-                            }
-                            pxi = posx;
-                            pyi = posy;
-                            prevxi = fvx;
-                            prevyi = fvy;
-                            events.push((it as u8, l.id, i as i32));
-                            // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
-                            if TRACK {
-                                let pcell = cell_hash(pxi, pyi);
-                                add_to_grid(hist, touched_cells, hist_snaps, hist_snap_values, active_cells, pcell, frame_index, pxi, pyi, vxi, vyi);
-                                add_to_collisions(coll, touched_lines, l.id, frame_index);
-                            }
+            if let Some(lns) = line_cache.lookup(grid, center_cell) {
+                for entry in lns.iter() {
+                    let l = &entry.line;
+                    let ox = pxi - l.p1x;
+                    let oy = pyi - l.p1y;
+                    let perp_comp = l.normx * ox + l.normy * oy;
+                    let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
+                    let pnt_dir = l.normx * vxi + l.normy * vyi;
+                    if pnt_dir > 0.0
+                        && perp_comp > 0.0
+                        && perp_comp < MAX_FORCE_LENGTH
+                        && line_pos >= l.left_bound
+                        && line_pos <= l.right_bound
+                    {
+                        let tx = l.normx * perp_comp - pxi;
+                        let ty = l.normy * perp_comp - pyi;
+                        let posx = tx * -1.0;
+                        let posy = ty * -1.0;
+                        let mut fvx = (l.normy * fric) * perp_comp;
+                        let mut fvy = ((-l.normx) * fric) * perp_comp;
+                        if prevxi >= posx {
+                            fvx = fvx * -1.0;
+                        }
+                        if prevyi < posy {
+                            fvy = fvy * -1.0;
+                        }
+                        fvx = fvx + prevxi;
+                        fvy = fvy + prevyi;
+                        if l.is_acc {
+                            fvx = fvx + l.accx;
+                            fvy = fvy + l.accy;
+                        }
+                        unsafe {
+                            *s.px.get_unchecked_mut(i) = posx;
+                            *s.py.get_unchecked_mut(i) = posy;
+                            *s.prevx.get_unchecked_mut(i) = fvx;
+                            *s.prevy.get_unchecked_mut(i) = fvy;
+                        }
+                        pxi = posx;
+                        pyi = posy;
+                        prevxi = fvx;
+                        prevyi = fvy;
+                        events.push((it as u8, l.id, i as i32));
+                        // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
+                        if TRACK {
+                            let pcell = cell_hash(pxi, pyi);
+                            add_to_grid(
+                                hist,
+                                touched_cells,
+                                hist_snaps,
+                                hist_snap_values,
+                                active_cells,
+                                pcell,
+                                frame_index,
+                                pxi,
+                                pyi,
+                                vxi,
+                                vyi,
+                            );
+                            add_to_collisions(coll, touched_lines, l.id, frame_index);
                         }
                     }
                 }

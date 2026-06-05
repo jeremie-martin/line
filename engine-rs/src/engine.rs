@@ -16,16 +16,16 @@
 //! (`_removeLine`), then redo the target branch's (`_addLine`) — exactly the diff
 //! lr-core applies. Forking is a cheap tree node; the heavy frame cache is shared.
 
-use crate::grid::{FlatIntMap, IntMap};
-use crate::kernel::{compute_rest_endur, init_state, step_state, LineCellCache, State};
 use crate::frame::{
     index_of_collision_in_cell, index_of_collision_with_line, rollback_collisions, rollback_grid,
     ActiveCellCache, Collisions, HistGrid, Snap, SnapNode,
 };
-use crate::line::{build_line, line_cells, push_line, remove_line, Line};
+use crate::grid::{FlatIntMap, IntMap};
+use crate::kernel::{compute_rest_endur, init_state, step_state, LineCellCache, State};
+use crate::line::{build_line, line_cells, push_line, remove_line, GridLine, Line};
 use crate::{
-    BUTT, LFOOT, LHAND, NENT, NITER, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER,
-    SLED_INTACT, STRING, TAIL,
+    BUTT, LFOOT, LHAND, NENT, NITER, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, SLED_INTACT,
+    STRING, TAIL,
 };
 
 // parts.BODY in lr-core order — the entities getRider averages (sum in this order
@@ -37,24 +37,24 @@ type Event = (u8, i32, i32);
 struct Cache {
     rest: [f64; NITER],
     endur: [f64; NITER],
-    cell_lines: FlatIntMap<Vec<Line>>, // ClassicGrid cellLinesMap (collision lookup)
-    line_cache: LineCellCache,           // frame-local shortcut for repeated line-grid cells
-    lines_cells: IntMap<i32, Vec<i64>>, // ClassicGrid lineCellsMap (id → cells, for remove)
-    frames: Vec<State>,                   // frames[0] = initial; lazily extended
-    events: Vec<Event>,                   // flat per-frame collision records
-    event_offsets: Vec<usize>,            // frame f => events[offset[f]..offset[f+1]]
-    hist: HistGrid,                       // Frame.grid: collision-history for addLine invalidation
-    touched_cells: Vec<i64>,              // flat per-frame reverse patch for hist rollback
+    cell_lines: FlatIntMap<Vec<GridLine>>, // ClassicGrid cellLinesMap (collision lookup)
+    line_cache: LineCellCache,             // frame-local shortcut for repeated line-grid cells
+    lines_cells: IntMap<i32, Vec<i64>>,    // ClassicGrid lineCellsMap (id → cells, for remove)
+    frames: Vec<State>,                    // frames[0] = initial; lazily extended
+    events: Vec<Event>,                    // flat per-frame collision records
+    event_offsets: Vec<usize>,             // frame f => events[offset[f]..offset[f+1]]
+    hist: HistGrid,                        // Frame.grid: collision-history for addLine invalidation
+    touched_cells: Vec<i64>,               // flat per-frame reverse patch for hist rollback
     touched_cell_offsets: Vec<usize>,
-    hist_snaps: Vec<SnapNode>,            // same-cell/same-frame links into hist_snap_values
-    hist_snap_values: Vec<Snap>,          // shared snapshot values, usually referenced by 9 cells
+    hist_snaps: Vec<SnapNode>, // same-cell/same-frame links into hist_snap_values
+    hist_snap_values: Vec<Snap>, // shared snapshot values, usually referenced by 9 cells
     hist_snap_offsets: Vec<usize>,
     hist_snap_value_offsets: Vec<usize>,
-    active_cells: ActiveCellCache,         // frame-local shortcut for repeated history cells
-    coll: Collisions,                     // Frame.collisions: line id → frames (for removeLine)
-    touched_lines: Vec<i32>,              // flat per-frame reverse patch for coll rollback
+    active_cells: ActiveCellCache, // frame-local shortcut for repeated history cells
+    coll: Collisions,              // Frame.collisions: line id → frames (for removeLine)
+    touched_lines: Vec<i32>,       // flat per-frame reverse patch for coll rollback
     touched_line_offsets: Vec<usize>,
-    cur: State,                           // == frames.last(); working state for stepping
+    cur: State, // == frames.last(); working state for stepping
 }
 
 impl Cache {
@@ -62,7 +62,8 @@ impl Cache {
         let (rest, endur) = compute_rest_endur();
         let s = init_state(0.0, 0.0, 0.4, 0.0); // DEFAULT_START
         Cache {
-            rest, endur,
+            rest,
+            endur,
             cell_lines: FlatIntMap::default(),
             line_cache: LineCellCache::default(),
             lines_cells: IntMap::default(),
@@ -97,19 +98,33 @@ impl Cache {
     /// invariant instead of silently diverging from JS. `len == 0` is unreachable
     /// (collision indices are ≥ 1) but guarded to avoid a `frames[len-1]` underflow.
     fn set_frames_length(&mut self, len: usize) {
-        debug_assert!(len <= self.frames.len(), "set_frames_length would grow the cache (diverges from lr-core)");
+        debug_assert!(
+            len <= self.frames.len(),
+            "set_frames_length would grow the cache (diverges from lr-core)"
+        );
         if len == 0 || len >= self.frames.len() {
             return;
         }
-        rollback_grid(&mut self.hist, &self.touched_cells, &self.touched_cell_offsets, len);
-        rollback_collisions(&mut self.coll, &self.touched_lines, &self.touched_line_offsets, len);
+        rollback_grid(
+            &mut self.hist,
+            &self.touched_cells,
+            &self.touched_cell_offsets,
+            len,
+        );
+        rollback_collisions(
+            &mut self.coll,
+            &self.touched_lines,
+            &self.touched_line_offsets,
+            len,
+        );
         self.frames.truncate(len);
         self.events.truncate(self.event_offsets[len]);
         self.event_offsets.truncate(len + 1);
         self.touched_cells.truncate(self.touched_cell_offsets[len]);
         self.touched_cell_offsets.truncate(len + 1);
         self.hist_snaps.truncate(self.hist_snap_offsets[len]);
-        self.hist_snap_values.truncate(self.hist_snap_value_offsets[len]);
+        self.hist_snap_values
+            .truncate(self.hist_snap_value_offsets[len]);
         self.hist_snap_offsets.truncate(len + 1);
         self.hist_snap_value_offsets.truncate(len + 1);
         self.touched_lines.truncate(self.touched_line_offsets[len]);
@@ -128,7 +143,13 @@ impl Cache {
         self.lines_cells.insert(l.id, cells.clone());
         push_line(&mut self.cell_lines, l.clone(), &cells);
         for &cell in cells.iter() {
-            if let Some(idx) = index_of_collision_in_cell(&self.hist, &self.hist_snaps, &self.hist_snap_values, cell, &l) {
+            if let Some(idx) = index_of_collision_in_cell(
+                &self.hist,
+                &self.hist_snaps,
+                &self.hist_snap_values,
+                cell,
+                &l,
+            ) {
                 self.set_frames_length(idx as usize);
             }
         }
@@ -175,16 +196,27 @@ impl Cache {
         while self.frames.len() <= frame {
             let fi = self.frames.len() as i32;
             step_state::<true>(
-                &mut self.cur, &self.cell_lines, &self.rest, &self.endur,
-                &mut self.events, fi, &mut self.hist, &mut self.touched_cells,
-                &mut self.hist_snaps, &mut self.hist_snap_values, &mut self.active_cells, &mut self.line_cache,
-                &mut self.coll, &mut self.touched_lines,
+                &mut self.cur,
+                &self.cell_lines,
+                &self.rest,
+                &self.endur,
+                &mut self.events,
+                fi,
+                &mut self.hist,
+                &mut self.touched_cells,
+                &mut self.hist_snaps,
+                &mut self.hist_snap_values,
+                &mut self.active_cells,
+                &mut self.line_cache,
+                &mut self.coll,
+                &mut self.touched_lines,
             );
             self.frames.push(self.cur.clone());
             self.event_offsets.push(self.events.len());
             self.touched_cell_offsets.push(self.touched_cells.len());
             self.hist_snap_offsets.push(self.hist_snaps.len());
-            self.hist_snap_value_offsets.push(self.hist_snap_values.len());
+            self.hist_snap_value_offsets
+                .push(self.hist_snap_values.len());
             self.touched_line_offsets.push(self.touched_lines.len());
         }
     }
@@ -214,9 +246,9 @@ struct Version {
 
 struct Holder {
     cache: Cache,
-    current: i32,           // version the cache is currently synced to
-    live: u32,              // handles in this lineage whose JS wrapper hasn't been freed
-    version_ids: Vec<u32>,  // every version in this lineage (for reclamation)
+    current: i32,          // version the cache is currently synced to
+    live: u32,             // handles in this lineage whose JS wrapper hasn't been freed
+    version_ids: Vec<u32>, // every version in this lineage (for reclamation)
 }
 
 // Versions/holders are kept in slot arenas with free lists. A whole lineage (its
@@ -231,13 +263,21 @@ static mut FREE_HOLDERS: Vec<u32> = Vec::new();
 static mut GEN: u32 = 0;
 
 #[allow(static_mut_refs)]
-fn versions() -> &'static mut Vec<Option<Version>> { unsafe { &mut VERSIONS } }
+fn versions() -> &'static mut Vec<Option<Version>> {
+    unsafe { &mut VERSIONS }
+}
 #[allow(static_mut_refs)]
-fn holders() -> &'static mut Vec<Option<Holder>> { unsafe { &mut HOLDERS } }
+fn holders() -> &'static mut Vec<Option<Holder>> {
+    unsafe { &mut HOLDERS }
+}
 #[allow(static_mut_refs)]
-fn free_versions() -> &'static mut Vec<u32> { unsafe { &mut FREE_VERSIONS } }
+fn free_versions() -> &'static mut Vec<u32> {
+    unsafe { &mut FREE_VERSIONS }
+}
 #[allow(static_mut_refs)]
-fn free_holders() -> &'static mut Vec<u32> { unsafe { &mut FREE_HOLDERS } }
+fn free_holders() -> &'static mut Vec<u32> {
+    unsafe { &mut FREE_HOLDERS }
+}
 fn next_gen() -> u32 {
     unsafe {
         GEN += 1;
@@ -271,11 +311,19 @@ pub(crate) fn create() -> u32 {
         (holders().len() - 1) as u32
     };
     let vid = alloc_version(Version {
-        holder, parent: -1, depth: 0, patch: Patch::Root,
-        start: [0.0, 0.0, 0.4, 0.0], start_gen: 0, freed: false,
+        holder,
+        parent: -1,
+        depth: 0,
+        patch: Patch::Root,
+        start: [0.0, 0.0, 0.4, 0.0],
+        start_gen: 0,
+        freed: false,
     });
     holders()[holder as usize] = Some(Holder {
-        cache: Cache::new(), current: vid as i32, live: 1, version_ids: vec![vid],
+        cache: Cache::new(),
+        current: vid as i32,
+        live: 1,
+        version_ids: vec![vid],
     });
     vid
 }
@@ -284,11 +332,19 @@ pub(crate) fn create() -> u32 {
 /// and create a new version with a fresh initialStateMap identity.
 pub(crate) fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) -> u32 {
     update_computed(h);
-    let (holder, parent_depth) = { let p = ver(h as i32); (p.holder, p.depth) };
+    let (holder, parent_depth) = {
+        let p = ver(h as i32);
+        (p.holder, p.depth)
+    };
     let g = next_gen();
     let vid = alloc_version(Version {
-        holder, parent: h as i32, depth: parent_depth + 1, patch: Patch::SetStart,
-        start: [px, py, vx, vy], start_gen: g, freed: false,
+        holder,
+        parent: h as i32,
+        depth: parent_depth + 1,
+        patch: Patch::SetStart,
+        start: [px, py, vx, vy],
+        start_gen: g,
+        freed: false,
     });
     let hh = holders()[holder as usize].as_mut().unwrap();
     hh.cache.set_initial_states(px, py, vx, vy);
@@ -300,7 +356,16 @@ pub(crate) fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) -> u32 {
 
 /// addLine: sync the cache to `h`, add the line to the shared cache, create a new
 /// version (AddLine patch) that becomes the cache's current.
-pub(crate) fn add_line(h: u32, id: i32, ty: i32, x1: f64, y1: f64, x2: f64, y2: f64, flags: i32) -> u32 {
+pub(crate) fn add_line(
+    h: u32,
+    id: i32,
+    ty: i32,
+    x1: f64,
+    y1: f64,
+    x2: f64,
+    y2: f64,
+    flags: i32,
+) -> u32 {
     update_computed(h);
     let l = build_line(id, x1, y1, x2, y2, ty as i64, flags as i64);
     let (holder, parent_depth, start, start_gen) = {
@@ -308,8 +373,13 @@ pub(crate) fn add_line(h: u32, id: i32, ty: i32, x1: f64, y1: f64, x2: f64, y2: 
         (p.holder, p.depth, p.start, p.start_gen)
     };
     let vid = alloc_version(Version {
-        holder, parent: h as i32, depth: parent_depth + 1, patch: Patch::AddLine(l.clone()),
-        start, start_gen, freed: false,
+        holder,
+        parent: h as i32,
+        depth: parent_depth + 1,
+        patch: Patch::AddLine(l.clone()),
+        start,
+        start_gen,
+        freed: false,
     });
     let hh = holders()[holder as usize].as_mut().unwrap();
     hh.cache.add_line(l);
@@ -405,7 +475,12 @@ fn update_computed(target: u32) {
     }
     // initialStateMap reconcile: a SetStart somewhere between the two versions.
     if start_changed {
-        cache.set_initial_states(target_start[0], target_start[1], target_start[2], target_start[3]);
+        cache.set_initial_states(
+            target_start[0],
+            target_start[1],
+            target_start[2],
+            target_start[3],
+        );
     }
     holders()[holder as usize].as_mut().unwrap().current = target;
 }
@@ -416,7 +491,11 @@ pub(crate) fn last_frame_index(h: u32) -> i32 {
     }
     update_computed(h);
     let holder = ver(h as i32).holder;
-    holders()[holder as usize].as_ref().unwrap().cache.last_frame_index()
+    holders()[holder as usize]
+        .as_ref()
+        .unwrap()
+        .cache
+        .last_frame_index()
 }
 
 /// Compute (if needed) frame `f` of version `h` and write it into `out`:
@@ -435,9 +514,12 @@ pub(crate) fn state_into(h: u32, f: i32, out: &mut [f64]) {
     let s = &cache.frames[f];
     for i in 0..NENT {
         let o = i * 6;
-        out[o] = s.px[i]; out[o + 1] = s.py[i];
-        out[o + 2] = s.prevx[i]; out[o + 3] = s.prevy[i];
-        out[o + 4] = s.vx[i]; out[o + 5] = s.vy[i];
+        out[o] = s.px[i];
+        out[o + 1] = s.py[i];
+        out[o + 2] = s.prevx[i];
+        out[o + 3] = s.prevy[i];
+        out[o + 4] = s.vx[i];
+        out[o + 5] = s.vy[i];
     }
     for i in 0..NENT {
         out[NENT * 6 + i] = s.fsu[i] as f64;
@@ -509,7 +591,13 @@ pub(crate) fn events_into(h: u32, f: i32, out: &mut [f64], cap: usize) -> usize 
 
 /// Combined detector hot path: compute frame `f` once, then write the getRider
 /// summary to `scratch` and collision records to `events`.
-pub(crate) fn raw_frame_into(h: u32, f: i32, scratch: &mut [f64], events: &mut [f64], cap: usize) -> usize {
+pub(crate) fn raw_frame_into(
+    h: u32,
+    f: i32,
+    scratch: &mut [f64],
+    events: &mut [f64],
+    cap: usize,
+) -> usize {
     if !valid(h) || f < 0 {
         return 0;
     }

@@ -21,7 +21,13 @@ pub(crate) struct FlatIntMap<V> {
 
 impl<V> Default for FlatIntMap<V> {
     fn default() -> FlatIntMap<V> {
-        FlatIntMap { keys: Vec::new(), values: Vec::new(), states: Vec::new(), len: 0, used: 0 }
+        FlatIntMap {
+            keys: Vec::new(),
+            values: Vec::new(),
+            states: Vec::new(),
+            len: 0,
+            used: 0,
+        }
     }
 }
 
@@ -43,7 +49,11 @@ impl<V> FlatIntMap<V> {
         let old_states = std::mem::replace(&mut self.states, vec![0; cap]);
         self.len = 0;
         self.used = 0;
-        for ((key, value), state) in old_keys.into_iter().zip(old_values.into_iter()).zip(old_states.into_iter()) {
+        for ((key, value), state) in old_keys
+            .into_iter()
+            .zip(old_values.into_iter())
+            .zip(old_states.into_iter())
+        {
             if state == 1 {
                 self.insert(key, value.unwrap());
             }
@@ -79,7 +89,13 @@ impl<V> FlatIntMap<V> {
         let mut first_tombstone = usize::MAX;
         loop {
             match self.states[i] {
-                0 => return Err(if first_tombstone != usize::MAX { first_tombstone } else { i }),
+                0 => {
+                    return Err(if first_tombstone != usize::MAX {
+                        first_tombstone
+                    } else {
+                        i
+                    })
+                }
                 1 if self.keys[i] == key => return Ok(i),
                 2 if first_tombstone == usize::MAX => first_tombstone = i,
                 _ => {}
@@ -213,8 +229,16 @@ impl Hasher for IntHasher {
 pub(crate) fn hash_int_pair(a: i64, b: i64) -> i64 {
     let aa = if a >= 0 { 2 * a } else { -2 * a - 1 };
     let bb = if b >= 0 { 2 * b } else { -2 * b - 1 };
-    let c = if aa >= bb { aa * aa + aa + bb } else { bb * bb + aa };
-    if c & 1 != 0 { -(c - 1) / 2 - 1 } else { c / 2 }
+    let c = if aa >= bb {
+        aa * aa + aa + bb
+    } else {
+        bb * bb + aa
+    };
+    if c & 1 != 0 {
+        -(c - 1) / 2 - 1
+    } else {
+        c / 2
+    }
 }
 
 pub(crate) fn unhash_int_pair(n: i64) -> (i64, i64) {
@@ -235,26 +259,6 @@ pub(crate) fn cell_cor(x: f64) -> i64 {
 #[inline]
 pub(crate) fn cell_hash(px: f64, py: f64) -> i64 {
     hash_int_pair(cell_cor(px), cell_cor(py))
-}
-
-/// ClassicGrid.getCellsNearEntity: the 3×3 cell hashes around the entity's cell,
-/// in lr-core's exact emission order (x0y0,x0y1,x0y2,x1y0,x1y1,x1y2,x2y0,x2y1,x2y2).
-/// Shared by addToGrid (history recording) and the collision line lookup.
-#[inline]
-pub(crate) fn cells_near_entity(px: f64, py: f64) -> [i64; 9] {
-    let gx = cell_cor(px);
-    let gy = cell_cor(py);
-    [
-        hash_int_pair(gx - 1, gy - 1),
-        hash_int_pair(gx - 1, gy),
-        hash_int_pair(gx - 1, gy + 1),
-        hash_int_pair(gx, gy - 1),
-        hash_int_pair(gx, gy),
-        hash_int_pair(gx, gy + 1),
-        hash_int_pair(gx + 1, gy - 1),
-        hash_int_pair(gx + 1, gy),
-        hash_int_pair(gx + 1, gy + 1),
-    ]
 }
 
 /// getCellsFromLine.js classicCells — the faithful float walk producing the cell

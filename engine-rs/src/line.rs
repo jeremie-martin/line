@@ -4,7 +4,7 @@
 //! `collide` (the forward-sim response) lives in the kernel; this owns the line
 //! record, the `shouldCollide`/`collidesWith` predicate, and grid registration.
 
-use crate::grid::{classic_cells, FlatIntMap};
+use crate::grid::{classic_cells, hash_int_pair, unhash_int_pair, FlatIntMap};
 
 pub(crate) const MAX_FORCE_LENGTH: f64 = 10.0;
 pub(crate) const ACC: f64 = 0.1;
@@ -28,6 +28,12 @@ pub(crate) struct Line {
     pub collidable: bool,
 }
 
+#[derive(Clone)]
+pub(crate) struct GridLine {
+    pub group: u8,
+    pub line: Line,
+}
+
 pub(crate) fn build_line(id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) -> Line {
     let flipped = (flags & 1) != 0;
     let left_ext = (flags & 2) != 0;
@@ -48,15 +54,30 @@ pub(crate) fn build_line(id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, f
     let accx = (-normy) * (ACC * flip_sign);
     let accy = (normx) * (ACC * flip_sign);
     Line {
-        id, p1x: x1, p1y: y1, vecx, vecy, normx, normy, inv_len_sq,
-        left_bound, right_bound, is_acc, accx, accy,
+        id,
+        p1x: x1,
+        p1y: y1,
+        vecx,
+        vecy,
+        normx,
+        normy,
+        inv_len_sq,
+        left_bound,
+        right_bound,
+        is_acc,
+        accx,
+        accy,
         collidable: ty == 0 || ty == 1, // SCENERY(2) not collidable
     }
 }
 
 /// Cells a line rasterizes into, or empty for non-collidable lines.
 pub(crate) fn line_cells(l: &Line) -> Vec<i64> {
-    if l.collidable { classic_cells(l.p1x, l.p1y, l.vecx, l.vecy) } else { Vec::new() }
+    if l.collidable {
+        classic_cells(l.p1x, l.p1y, l.vecx, l.vecy)
+    } else {
+        Vec::new()
+    }
 }
 
 /// SolidLine.collidesWith / `shouldCollide` — the predicate (reads only pos+vel),
@@ -68,32 +89,68 @@ pub(crate) fn collides_with(l: &Line, px: f64, py: f64, vx: f64, vy: f64) -> boo
     let perp = l.normx * ox + l.normy * oy;
     let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
     let dir = l.normx * vx + l.normy * vy;
-    dir > 0.0 && perp > 0.0 && perp < MAX_FORCE_LENGTH && line_pos >= l.left_bound && line_pos <= l.right_bound
+    dir > 0.0
+        && perp > 0.0
+        && perp < MAX_FORCE_LENGTH
+        && line_pos >= l.left_bound
+        && line_pos <= l.right_bound
 }
 
-/// ClassicGrid cellLinesMap.add: register a line (by value) into each of its
-/// cells. Each cell's bucket is ordered by DESCENDING line id (OrderedObjectArray
-/// 'id', true), one entry per id per cell.
-pub(crate) fn push_line(grid: &mut FlatIntMap<Vec<Line>>, l: Line, cells: &[i64]) {
+#[inline]
+fn center_group(dx: i64, dy: i64) -> u8 {
+    ((dx + 1) * 3 + (dy + 1)) as u8
+}
+
+#[inline]
+fn insert_grid_line(bucket: &mut Vec<GridLine>, group: u8, l: &Line) {
     let id = l.id;
+    if bucket.iter().any(|e| e.group == group && e.line.id == id) {
+        return;
+    }
+    let pos = bucket
+        .iter()
+        .position(|e| e.group > group || (e.group == group && e.line.id < id))
+        .unwrap_or(bucket.len());
+    bucket.insert(
+        pos,
+        GridLine {
+            group,
+            line: l.clone(),
+        },
+    );
+}
+
+/// ClassicGrid cellLinesMap.add, inverted for center-cell lookup: a line in
+/// original cell C contributes to every entity center cell whose 3×3 neighborhood
+/// contains C. Each center bucket is sorted by the original 3×3 cell order, then
+/// by DESCENDING line id inside that cell, preserving getLinesNearEntity order.
+pub(crate) fn push_line(grid: &mut FlatIntMap<Vec<GridLine>>, l: Line, cells: &[i64]) {
     for &cell in cells {
-        let bucket = grid.get_or_insert_default(cell);
-        if bucket.iter().any(|e| e.id == id) {
-            continue;
+        let (cx, cy) = unhash_int_pair(cell);
+        for dx in -1..=1 {
+            for dy in -1..=1 {
+                let center = hash_int_pair(cx - dx, cy - dy);
+                let group = center_group(dx, dy);
+                insert_grid_line(grid.get_or_insert_default(center), group, &l);
+            }
         }
-        let pos = bucket.iter().position(|e| e.id < id).unwrap_or(bucket.len());
-        bucket.insert(pos, l.clone());
     }
 }
 
-/// ClassicGrid cellLinesMap.remove: drop the line id from each of its cells
-/// (emptied cells are removed).
-pub(crate) fn remove_line(grid: &mut FlatIntMap<Vec<Line>>, id: i32, cells: &[i64]) {
+/// ClassicGrid cellLinesMap.remove for the expanded center-cell buckets.
+pub(crate) fn remove_line(grid: &mut FlatIntMap<Vec<GridLine>>, id: i32, cells: &[i64]) {
     for &cell in cells {
-        if let Some(bucket) = grid.get_mut(&cell) {
-            bucket.retain(|e| e.id != id);
-            if bucket.is_empty() {
-                grid.remove(&cell);
+        let (cx, cy) = unhash_int_pair(cell);
+        for dx in -1..=1 {
+            for dy in -1..=1 {
+                let center = hash_int_pair(cx - dx, cy - dy);
+                let group = center_group(dx, dy);
+                if let Some(bucket) = grid.get_mut(&center) {
+                    bucket.retain(|e| !(e.line.id == id && e.group == group));
+                    if bucket.is_empty() {
+                        grid.remove(&center);
+                    }
+                }
             }
         }
     }
@@ -114,7 +171,7 @@ mod tests {
         push_line(&mut grid, test_line(10), &[cell]);
         push_line(&mut grid, test_line(30), &[cell]);
         push_line(&mut grid, test_line(20), &[cell]);
-        let ids: Vec<i32> = grid.get(&cell).unwrap().iter().map(|e| e.id).collect();
+        let ids: Vec<i32> = grid.get(&cell).unwrap().iter().map(|e| e.line.id).collect();
         assert_eq!(ids, vec![30, 20, 10]);
     }
 
@@ -123,8 +180,26 @@ mod tests {
         let mut grid = FlatIntMap::default();
         let cell = 42;
         push_line(&mut grid, test_line(10), &[cell, cell]);
-        let ids: Vec<i32> = grid.get(&cell).unwrap().iter().map(|e| e.id).collect();
+        let ids: Vec<i32> = grid.get(&cell).unwrap().iter().map(|e| e.line.id).collect();
         assert_eq!(ids, vec![10]);
+    }
+
+    #[test]
+    fn push_line_preserves_3x3_query_order_and_duplicates() {
+        let mut grid = FlatIntMap::default();
+        let center = hash_int_pair(0, 0);
+        let group0 = hash_int_pair(-1, -1);
+        let group1 = hash_int_pair(-1, 0);
+        push_line(&mut grid, test_line(20), &[group0]);
+        push_line(&mut grid, test_line(10), &[group1]);
+        push_line(&mut grid, test_line(30), &[group0, group1]);
+        let got: Vec<(u8, i32)> = grid
+            .get(&center)
+            .unwrap()
+            .iter()
+            .map(|e| (e.group, e.line.id))
+            .collect();
+        assert_eq!(got, vec![(0, 30), (0, 20), (1, 30), (1, 10)]);
     }
 
     #[test]
@@ -134,7 +209,14 @@ mod tests {
         push_line(&mut grid, test_line(10), &[cell]);
         push_line(&mut grid, test_line(20), &[cell]);
         remove_line(&mut grid, 10, &[cell]);
-        assert_eq!(grid.get(&cell).unwrap().iter().map(|e| e.id).collect::<Vec<_>>(), vec![20]);
+        assert_eq!(
+            grid.get(&cell)
+                .unwrap()
+                .iter()
+                .map(|e| e.line.id)
+                .collect::<Vec<_>>(),
+            vec![20]
+        );
         remove_line(&mut grid, 20, &[cell]);
         assert!(grid.get(&cell).is_none());
     }

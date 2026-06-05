@@ -1310,3 +1310,75 @@ Safety/identity notes:
 **Standing after center-cell history index:** **~8,985 ns/physics-frame** —
 bit-identical to lr-core, ≈37.2× faster than pristine JS (333k) and ≈8.1× faster
 than the parity-correct JS engine (B11 ~73k).
+
+## Session 17 (2026-06-05 cont.) — post-center-index collision-loop probe, rejected
+
+Rejected probe, verified bit-identical under `LR_ENGINE=wasm npm run verify` and
+reverted:
+
+- **Manual indexed loops for collision cell/bucket iteration:** replaced the
+  iterator-based `for &cell in cells.iter()` and `for l in lns.iter()` loops in
+  the fused collision path with explicit `while` loops and unchecked indexing.
+  The 8-run signal looked positive at **8,745.7 ns/frame** (median **8,816.7**),
+  but the required full 40-run gate regressed to **9,256.2 ns/frame** (median
+  **9,382.6**) versus the center-index baseline of **8,985.0**. Reverted.
+
+Conclusion: after wasm-opt, the idiomatic iterator loop remains the better code
+shape for the hottest collision bucket walk.
+
+## Session 18 (2026-06-05 cont.) — empty-line-grid fast path, rejected
+
+Rejected probe, verified bit-identical under `LR_ENGINE=wasm npm run verify` and
+reverted:
+
+- **Skip 3×3 line lookup when the spatial line grid is empty:** added a
+  `FlatIntMap::is_empty` check once per frame and, for empty grids, recorded only
+  the center-cell history snapshot without computing the full
+  `cells_near_entity` neighborhood. The 8-run signal was only
+  **8,868.8 ns/frame** (median **8,873.4**), about 1.3% versus the
+  center-index baseline and below the >1.6% keep bar. Reverted.
+
+Conclusion: the compiler's measured path does not spend enough time simulating
+empty line grids for this branch to justify keeping.
+
+## Session 19 (2026-06-06) — expanded center-cell line lookup  ⭐ kept
+
+The line collision grid now mirrors the center-cell idea used for history, but on
+the lookup side. Instead of computing a 3×3 neighborhood and probing 9 line-cell
+buckets for every collidable point, `push_line` expands each original
+`classicCells` line cell into the possible entity center cells whose 3×3
+neighborhood would include it. Each expanded center bucket is sorted by:
+
+1. lr-core's original 3×3 cell order (`x-1/y-1`, `x-1/y`, ...), then
+2. descending line id inside that original cell.
+
+That preserves `ClassicGrid.getLinesNearEntity` order, including duplicate line
+visits across neighboring cells, while the hot collision loop does one
+center-cell hash + one bucket lookup per point.
+
+- **Gates:**
+  - `cargo test --manifest-path engine-rs/Cargo.toml` ✓
+  - `LR_ENGINE=wasm npm run verify:engine` ✓ in the main worktree
+  - `npm run wasm:replay` ✓ on a freshly recorded `syncopated_switchback`
+    compiler op DAG (158,219 ops / 156,926 reads)
+  - `LR_ENGINE=wasm npm run verify` ✓ in a clean temporary worktree with only
+    this engine patch applied (the main worktree had unrelated dirty
+    `arc_placement.ts` changes that currently alter optimizer hashes)
+- **Perf signal:** 8 runs → **6,942.8 ns/frame** (median **7,011.6**).
+- **Full gate:** 40 runs + 3 warmup → **6,990.0 ns/frame ± 481.0** (median
+  **7,132.0**) versus the center-index baseline of **8,985.0 ns/frame**.
+
+**Effect:** about **−22.2% mean ns/frame** on the default WASM perf gate. Kept.
+
+Safety/identity notes:
+
+- The expanded bucket stores a small `group` tag so center-cell iteration is
+  exactly equivalent to lr-core's old 9-bucket concatenation, not merely a set of
+  nearby lines.
+- `remove_line` removes by `(line id, group)`, matching lr-core's per-original-cell
+  bucket removal semantics even if a line id appears in multiple neighboring
+  groups.
+
+**Standing after expanded center-cell line lookup:** **~6,990 ns/physics-frame** —
+bit-identical to lr-core, ≈47.8× faster than pristine JS (333k) and ≈10.4× faster
+than the parity-correct JS engine (B11 ~73k).

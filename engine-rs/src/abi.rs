@@ -8,7 +8,7 @@ use crate::engine;
 use crate::frame::{ActiveCellCache, Snap};
 use crate::grid::{FlatIntMap, IntMap};
 use crate::kernel::{compute_rest_endur, init_state, step_state, LineCellCache, State};
-use crate::line::{build_line, line_cells, push_line, Line};
+use crate::line::{build_line, line_cells, push_line, GridLine};
 use crate::{NENT, OUT_ORDER};
 
 const MAX_LINES: usize = 1024;
@@ -27,13 +27,21 @@ const EVENTS_LEN: usize = 49152; // 16384 collision records × 3
 static mut EVENTS: [f64; EVENTS_LEN] = [0.0; EVENTS_LEN];
 
 #[no_mangle]
-pub extern "C" fn lines_in_ptr() -> u32 { &raw const LINES_IN as u32 }
+pub extern "C" fn lines_in_ptr() -> u32 {
+    &raw const LINES_IN as u32
+}
 #[no_mangle]
-pub extern "C" fn out_ptr() -> u32 { &raw const OUT as u32 }
+pub extern "C" fn out_ptr() -> u32 {
+    &raw const OUT as u32
+}
 #[no_mangle]
-pub extern "C" fn scratch_ptr() -> u32 { &raw const SCRATCH as u32 }
+pub extern "C" fn scratch_ptr() -> u32 {
+    &raw const SCRATCH as u32
+}
 #[no_mangle]
-pub extern "C" fn events_ptr() -> u32 { &raw const EVENTS as u32 }
+pub extern "C" fn events_ptr() -> u32 {
+    &raw const EVENTS as u32
+}
 
 // ── batch sim() — Phase-0b regression harness (wasm:check). Pure forward sim of a
 // fixed track from a start state; no history/collisions recording (track=false). ──
@@ -41,11 +49,19 @@ pub extern "C" fn events_ptr() -> u32 { &raw const EVENTS as u32 }
 pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames: u32) -> u32 {
     let n_lines = n_lines as usize;
     let frames = (frames as usize).min(MAX_FRAMES);
-    let mut grid: FlatIntMap<Vec<Line>> = FlatIntMap::default();
+    let mut grid: FlatIntMap<Vec<GridLine>> = FlatIntMap::default();
     for li in 0..n_lines {
         let b = li * LINE_STRIDE;
         let l = unsafe {
-            build_line(li as i32, LINES_IN[b], LINES_IN[b + 1], LINES_IN[b + 2], LINES_IN[b + 3], LINES_IN[b + 4] as i64, LINES_IN[b + 5] as i64)
+            build_line(
+                li as i32,
+                LINES_IN[b],
+                LINES_IN[b + 1],
+                LINES_IN[b + 2],
+                LINES_IN[b + 3],
+                LINES_IN[b + 4] as i64,
+                LINES_IN[b + 5] as i64,
+            )
         };
         let cells = line_cells(&l);
         push_line(&mut grid, l, &cells);
@@ -58,9 +74,12 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
         for (k, &i) in OUT_ORDER.iter().enumerate() {
             let o = base + k * 6;
             unsafe {
-                OUT[o] = s.px[i]; OUT[o + 1] = s.py[i];
-                OUT[o + 2] = s.prevx[i]; OUT[o + 3] = s.prevy[i];
-                OUT[o + 4] = s.vx[i]; OUT[o + 5] = s.vy[i];
+                OUT[o] = s.px[i];
+                OUT[o + 1] = s.py[i];
+                OUT[o + 2] = s.prevx[i];
+                OUT[o + 3] = s.prevy[i];
+                OUT[o + 4] = s.vx[i];
+                OUT[o + 5] = s.vy[i];
             }
         }
     };
@@ -76,7 +95,10 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
     let mut tl: Vec<i32> = Vec::new();
     for f in 1..=frames {
         ev.clear();
-        step_state::<false>(&mut s, &grid, &rest, &endur, &mut ev, f as i32, &mut hist, &mut tc, &mut hs, &mut hsv, &mut ac, &mut lc, &mut coll, &mut tl);
+        step_state::<false>(
+            &mut s, &grid, &rest, &endur, &mut ev, f as i32, &mut hist, &mut tc, &mut hs, &mut hsv,
+            &mut ac, &mut lc, &mut coll, &mut tl,
+        );
         write(f, &s);
     }
     frames as u32
@@ -102,7 +124,16 @@ pub extern "C" fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) -> u32 {
 }
 
 #[no_mangle]
-pub extern "C" fn add_line(h: u32, id: i32, ty: i32, x1: f64, y1: f64, x2: f64, y2: f64, flags: i32) -> u32 {
+pub extern "C" fn add_line(
+    h: u32,
+    id: i32,
+    ty: i32,
+    x1: f64,
+    y1: f64,
+    x2: f64,
+    y2: f64,
+    flags: i32,
+) -> u32 {
     engine::add_line(h, id, ty, x1, y1, x2, y2, flags)
 }
 

@@ -14,6 +14,7 @@ bench/v2/records.jsonl
 bench/v2/per_beat.csv
 benchmark-results/**/*.local.json
 benchmark-results/**/*.tmp.json
+new/
 
 # Large binaries — audio/video sources, archives, vendored repos
 *.webm
@@ -30,3 +31,6 @@ beats/stems/htdemucs/
 
 # throwaway optimizer probes
 scripts/v0/_probe*.ts
+
+# git worktrees (full repo copies — keep out of git + test/file scans)
+.matrix-worktrees/

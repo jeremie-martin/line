@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, configDefaults } from "vitest/config";
 
 export default defineConfig({
   test: {
@@ -9,5 +9,8 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 30_000,
     include: ["tests/**/*.test.ts"],
+    // Keep file collection out of the git worktrees (full repo copies, each with
+    // their own tests/), on top of vitest's defaults (node_modules, dist, …).
+    exclude: [...configDefaults.exclude, "**/.matrix-worktrees/**"],
   },
 });

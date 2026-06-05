@@ -138,8 +138,8 @@ export default class LineEngine extends Immo {
   setConstraints (constraints) {
     this.updateComputed()
     this._setFramesLength(1)
-    this.iterating = constraints.filter(({iterating}) => iterating).map(({id}) => id)
-    this.noniterating = constraints.filter(({iterating}) => !iterating).map(({id}) => id)
+    this.iterating = constraints.filter(({iterating}) => iterating)
+    this.noniterating = constraints.filter(({iterating}) => !iterating)
     let constraintsMap = new Map(constraints.map((constraint) => [constraint.id, constraint]))
     return this.updateState({constraints: constraintsMap})
   }
@@ -214,10 +214,9 @@ export default class LineEngine extends Immo {
     frame.updates.push(STEP_UPDATE)
   }
 
-  _resolveConstraints (frame, constraintIDs) {
+  _resolveConstraints (frame, constraints) {
     let stateMap = frame.stateMap
-    for (let id of constraintIDs) {
-      let constraint = this.constraints.get(id)
+    for (let constraint of constraints) {
       // resolve() mutates collidable points in place (returning the same refs,
       // usually the shared empty NO_UPDATES) and only allocates a fresh entity
       // for a binding unbind — frame.setStates lands those rare new bindings in

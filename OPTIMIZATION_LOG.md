@@ -1461,3 +1461,33 @@ used in the returned angle.
 **Standing after detector angle zero-check:** **~6,766 ns/physics-frame** —
 bit-identical to lr-core/optimizer baselines, ≈49.3× faster than pristine JS
 (333k) and ≈10.8× faster than the parity-correct JS engine (B11 ~73k).
+
+## Session 25 (2026-06-06 cont.) — single-entry engine-line conversion cache  ⭐ kept
+
+`engineLineFromTrackLine` no longer builds a pipe-joined geometry signature and
+looks it up in a per-line `Map` on every cache hit. It now keeps one structural
+snapshot per `TrackLine` object in the existing `WeakMap`; if any field that
+affects engine line construction changes, the snapshot misses and is refreshed.
+
+This preserves the compiler's current-geometry semantics while removing hot
+string allocation and `Map` work from repeated engine rebuilds. Historical
+geometry entries for a mutated line object are not retained, which is acceptable:
+the compiler only passes the current geometry to `addLine`, and converted line
+object identity is not an observable API.
+
+The default `npm run perf` gate was also raised from 40 to 50 timed runs (+3
+warmup) because the WASM engine is now fast enough that the extra sampling cost
+is small and gives a steadier mean.
+
+- **Gates:**
+  - `LR_ENGINE=wasm npm run verify` ✓ in a clean temporary worktree with only
+    this cache/perf patch applied.
+- **Perf signal:** 8 runs → **6,553.2 ns/frame** (median **6,662.9**).
+- **Full gate:** 50 runs + 3 warmup → **6,616.4 ns/frame ± 375.9** (median
+  **6,700.6**) versus Session 24's **6,765.9 ns/frame** standing baseline.
+
+**Effect:** about **−2.2% mean ns/frame** on the default WASM perf gate. Kept.
+
+**Standing after single-entry line conversion cache:** **~6,616 ns/physics-frame** —
+bit-identical to lr-core/optimizer baselines, ≈50.3× faster than pristine JS
+(333k) and ≈11.0× faster than the parity-correct JS engine (B11 ~73k).

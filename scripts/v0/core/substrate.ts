@@ -171,27 +171,61 @@ export function measureFitGrain(fit: GapFit): number {
   return lineLens.length > 0 ? Math.min(1, median(lineLens) / CALIB.LINE_LENGTH_CAP) : 0;
 }
 
+type EngineLineCacheEntry = {
+  id: number;
+  type: number;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  flipped: boolean;
+  leftExtended: boolean;
+  rightExtended: boolean;
+  // deno-lint-ignore no-explicit-any
+  converted: any;
+};
+
 // lr-core Line objects snapshot TrackLine geometry at construction. The
-// compiler rebuilds engines repeatedly from the same TrackLine objects; cache
-// conversions by object plus geometry signature, while still invalidating
-// whenever a polish mutates line endpoints.
-// deno-lint-ignore no-explicit-any
-export const engineLineCache = new WeakMap<TrackLine, Map<string, any>>();
+// compiler rebuilds engines repeatedly from the same TrackLine objects, so keep
+// the last converted geometry on the object without constructing a string key on
+// every cache hit. If polish mutates any geometry field, the snapshot misses and
+// is refreshed.
+export const engineLineCache = new WeakMap<TrackLine, EngineLineCacheEntry>();
 
 // deno-lint-ignore no-explicit-any
 export function engineLineFromTrackLine(line: TrackLine): any {
-  const signature = engineLineSignature(line);
-  let cachedBySignature = engineLineCache.get(line);
-  if (cachedBySignature === undefined) {
-    cachedBySignature = new Map();
-    engineLineCache.set(line, cachedBySignature);
+  const flipped = !!line.flipped;
+  const leftExtended = !!line.leftExtended;
+  const rightExtended = !!line.rightExtended;
+  const cached = engineLineCache.get(line);
+  if (
+    cached !== undefined &&
+    cached.id === line.id &&
+    cached.type === line.type &&
+    cached.x1 === line.x1 &&
+    cached.y1 === line.y1 &&
+    cached.x2 === line.x2 &&
+    cached.y2 === line.y2 &&
+    cached.flipped === flipped &&
+    cached.leftExtended === leftExtended &&
+    cached.rightExtended === rightExtended
+  ) {
+    return cached.converted;
   }
 
-  const cached = cachedBySignature.get(signature);
-  if (cached !== undefined) return cached;
-
   const converted = createLineFromJson(line);
-  cachedBySignature.set(signature, converted);
+  engineLineCache.set(line, {
+    id: line.id,
+    type: line.type,
+    x1: line.x1,
+    y1: line.y1,
+    x2: line.x2,
+    y2: line.y2,
+    flipped,
+    leftExtended,
+    rightExtended,
+    converted,
+  });
   return converted;
 }
 

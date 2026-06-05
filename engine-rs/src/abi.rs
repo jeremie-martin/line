@@ -5,7 +5,7 @@
 //! in engine.rs (one shared cache per lineage); these are thin marshalling shims.
 
 use crate::engine;
-use crate::grid::IntMap;
+use crate::grid::{FlatIntMap, IntMap};
 use crate::kernel::{compute_rest_endur, init_state, step_state, State};
 use crate::line::{build_line, line_cells, push_line, Line};
 use crate::{NENT, OUT_ORDER};
@@ -40,7 +40,7 @@ pub extern "C" fn events_ptr() -> u32 { &raw const EVENTS as u32 }
 pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames: u32) -> u32 {
     let n_lines = n_lines as usize;
     let frames = (frames as usize).min(MAX_FRAMES);
-    let mut grid: IntMap<i64, Vec<Line>> = IntMap::default();
+    let mut grid: FlatIntMap<Vec<Line>> = FlatIntMap::default();
     for li in 0..n_lines {
         let b = li * LINE_STRIDE;
         let l = unsafe {

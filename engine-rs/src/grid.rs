@@ -11,6 +11,139 @@ pub(crate) const GRID_SIZE: f64 = 14.0;
 
 pub(crate) type IntMap<K, V> = HashMap<K, V, IntBuildHasher>;
 
+pub(crate) struct FlatIntMap<V> {
+    keys: Vec<i64>,
+    values: Vec<Option<V>>,
+    states: Vec<u8>, // 0 empty, 1 occupied, 2 tombstone
+    len: usize,
+    used: usize,
+}
+
+impl<V> Default for FlatIntMap<V> {
+    fn default() -> FlatIntMap<V> {
+        FlatIntMap { keys: Vec::new(), values: Vec::new(), states: Vec::new(), len: 0, used: 0 }
+    }
+}
+
+impl<V> FlatIntMap<V> {
+    #[inline]
+    fn hash(key: i64) -> usize {
+        let mut x = key as u64;
+        x ^= x >> 33;
+        x = x.wrapping_mul(0xff51afd7ed558ccd);
+        x ^= x >> 33;
+        x = x.wrapping_mul(0xc4ceb9fe1a85ec53);
+        (x ^ (x >> 33)) as usize
+    }
+
+    fn resize(&mut self, new_cap: usize) {
+        let cap = new_cap.next_power_of_two().max(16);
+        let old_keys = std::mem::replace(&mut self.keys, vec![0; cap]);
+        let old_values = std::mem::replace(&mut self.values, (0..cap).map(|_| None).collect());
+        let old_states = std::mem::replace(&mut self.states, vec![0; cap]);
+        self.len = 0;
+        self.used = 0;
+        for ((key, value), state) in old_keys.into_iter().zip(old_values.into_iter()).zip(old_states.into_iter()) {
+            if state == 1 {
+                self.insert(key, value.unwrap());
+            }
+        }
+    }
+
+    #[inline]
+    fn ensure_insert_capacity(&mut self) {
+        if self.states.is_empty() || (self.used + 1) * 10 >= self.states.len() * 7 {
+            self.resize((self.len + 1) * 2);
+        }
+    }
+
+    #[inline]
+    fn find(&self, key: i64) -> Option<usize> {
+        if self.states.is_empty() {
+            return None;
+        }
+        let mask = self.states.len() - 1;
+        let mut i = Self::hash(key) & mask;
+        loop {
+            match self.states[i] {
+                0 => return None,
+                1 if self.keys[i] == key => return Some(i),
+                _ => i = (i + 1) & mask,
+            }
+        }
+    }
+
+    fn find_insert_slot(&self, key: i64) -> Result<usize, usize> {
+        let mask = self.states.len() - 1;
+        let mut i = Self::hash(key) & mask;
+        let mut first_tombstone = usize::MAX;
+        loop {
+            match self.states[i] {
+                0 => return Err(if first_tombstone != usize::MAX { first_tombstone } else { i }),
+                1 if self.keys[i] == key => return Ok(i),
+                2 if first_tombstone == usize::MAX => first_tombstone = i,
+                _ => {}
+            }
+            i = (i + 1) & mask;
+        }
+    }
+
+    #[inline]
+    pub(crate) fn get(&self, key: &i64) -> Option<&V> {
+        self.find(*key).and_then(|i| self.values[i].as_ref())
+    }
+
+    #[inline]
+    pub(crate) fn get_mut(&mut self, key: &i64) -> Option<&mut V> {
+        let i = self.find(*key)?;
+        self.values[i].as_mut()
+    }
+
+    pub(crate) fn get_or_insert_default(&mut self, key: i64) -> &mut V
+    where
+        V: Default,
+    {
+        self.ensure_insert_capacity();
+        match self.find_insert_slot(key) {
+            Ok(i) => self.values[i].as_mut().unwrap(),
+            Err(i) => {
+                if self.states[i] == 0 {
+                    self.used += 1;
+                }
+                self.states[i] = 1;
+                self.keys[i] = key;
+                self.values[i] = Some(V::default());
+                self.len += 1;
+                self.values[i].as_mut().unwrap()
+            }
+        }
+    }
+
+    pub(crate) fn insert(&mut self, key: i64, value: V) -> Option<V> {
+        self.ensure_insert_capacity();
+        match self.find_insert_slot(key) {
+            Ok(i) => self.values[i].replace(value),
+            Err(i) => {
+                if self.states[i] == 0 {
+                    self.used += 1;
+                }
+                self.states[i] = 1;
+                self.keys[i] = key;
+                self.values[i] = Some(value);
+                self.len += 1;
+                None
+            }
+        }
+    }
+
+    pub(crate) fn remove(&mut self, key: &i64) -> Option<V> {
+        let i = self.find(*key)?;
+        self.states[i] = 2;
+        self.len -= 1;
+        self.values[i].take()
+    }
+}
+
 #[derive(Clone, Copy, Default)]
 pub(crate) struct IntBuildHasher;
 

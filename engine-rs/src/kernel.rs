@@ -8,7 +8,7 @@
 //! to compute the 3×3 cells once (cells_near_entity) and share them between the
 //! line lookup and the faithful addToGrid history recording.
 
-use crate::grid::{cells_near_entity, IntMap};
+use crate::grid::{cells_near_entity, FlatIntMap};
 use crate::line::{Line, MAX_FORCE_LENGTH};
 use crate::frame::{add_to_collisions, add_to_grid, Collisions, HistGrid, SnapNode};
 use crate::{
@@ -166,7 +166,7 @@ unsafe fn resolve_iter_constraints(s: &mut State, rest: &[f64; NITER], endur: &[
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn step_state<const TRACK: bool>(
     s: &mut State,
-    grid: &IntMap<i64, Vec<Line>>,
+    grid: &FlatIntMap<Vec<Line>>,
     rest: &[f64; NITER],
     endur: &[f64; NITER],
     events: &mut Vec<(u8, i32, i32)>,

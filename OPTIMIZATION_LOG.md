@@ -627,3 +627,16 @@ constraint and collision response is unchanged.
   **10,834.8 ± 83.3** → **10,649.8 ± 78.8 ns/physics-frame**.
 
   **−1.7% mean** vs W5; **−37.2%** vs the user-corrected 16,956.2 baseline.
+
+## W7 — Flat open-addressed map for WASM line-grid lookups  (−9.1%, bit-identical)
+`cell_lines`, the immutable line collision grid read in the hot solver loop, moved
+from `std::collections::HashMap` to a small purpose-built open-addressed integer
+map. Cell keys are still the exact lr-core hash integers, and each cell bucket
+still stores `Vec<Line>` in the same descending-id order; only the map lookup
+mechanics changed. The history grid and collision maps stay on `HashMap`.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):** W6
+  **10,649.8 ± 78.8** → **9,676.4 ± 99.7 ns/physics-frame**.
+
+  **−9.1% mean** vs W6; **−42.9%** vs the user-corrected 16,956.2 baseline.

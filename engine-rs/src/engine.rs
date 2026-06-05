@@ -16,7 +16,7 @@
 //! (`_removeLine`), then redo the target branch's (`_addLine`) — exactly the diff
 //! lr-core applies. Forking is a cheap tree node; the heavy frame cache is shared.
 
-use crate::grid::IntMap;
+use crate::grid::{FlatIntMap, IntMap};
 use crate::kernel::{compute_rest_endur, init_state, step_state, State};
 use crate::frame::{
     index_of_collision_in_cell, index_of_collision_with_line, rollback_collisions, rollback_grid,
@@ -36,7 +36,7 @@ type Event = (u8, i32, i32);
 struct Cache {
     rest: [f64; NITER],
     endur: [f64; NITER],
-    cell_lines: IntMap<i64, Vec<Line>>, // ClassicGrid cellLinesMap (collision lookup)
+    cell_lines: FlatIntMap<Vec<Line>>, // ClassicGrid cellLinesMap (collision lookup)
     lines_cells: IntMap<i32, Vec<i64>>, // ClassicGrid lineCellsMap (id → cells, for remove)
     frames: Vec<State>,                   // frames[0] = initial; lazily extended
     events: Vec<Event>,                   // flat per-frame collision records
@@ -58,7 +58,7 @@ impl Cache {
         let s = init_state(0.0, 0.0, 0.4, 0.0); // DEFAULT_START
         Cache {
             rest, endur,
-            cell_lines: IntMap::default(),
+            cell_lines: FlatIntMap::default(),
             lines_cells: IntMap::default(),
             frames: vec![s.clone()],
             events: Vec::new(),

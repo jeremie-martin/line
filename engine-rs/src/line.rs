@@ -4,7 +4,7 @@
 //! `collide` (the forward-sim response) lives in the kernel; this owns the line
 //! record, the `shouldCollide`/`collidesWith` predicate, and grid registration.
 
-use crate::grid::{classic_cells, IntMap};
+use crate::grid::{classic_cells, FlatIntMap};
 
 pub(crate) const MAX_FORCE_LENGTH: f64 = 10.0;
 pub(crate) const ACC: f64 = 0.1;
@@ -74,10 +74,10 @@ pub(crate) fn collides_with(l: &Line, px: f64, py: f64, vx: f64, vy: f64) -> boo
 /// ClassicGrid cellLinesMap.add: register a line (by value) into each of its
 /// cells. Each cell's bucket is ordered by DESCENDING line id (OrderedObjectArray
 /// 'id', true), one entry per id per cell.
-pub(crate) fn push_line(grid: &mut IntMap<i64, Vec<Line>>, l: Line, cells: &[i64]) {
+pub(crate) fn push_line(grid: &mut FlatIntMap<Vec<Line>>, l: Line, cells: &[i64]) {
     let id = l.id;
     for &cell in cells {
-        let bucket = grid.entry(cell).or_default();
+        let bucket = grid.get_or_insert_default(cell);
         if bucket.iter().any(|e| e.id == id) {
             continue;
         }
@@ -88,7 +88,7 @@ pub(crate) fn push_line(grid: &mut IntMap<i64, Vec<Line>>, l: Line, cells: &[i64
 
 /// ClassicGrid cellLinesMap.remove: drop the line id from each of its cells
 /// (emptied cells are removed).
-pub(crate) fn remove_line(grid: &mut IntMap<i64, Vec<Line>>, id: i32, cells: &[i64]) {
+pub(crate) fn remove_line(grid: &mut FlatIntMap<Vec<Line>>, id: i32, cells: &[i64]) {
     for &cell in cells {
         if let Some(bucket) = grid.get_mut(&cell) {
             bucket.retain(|e| e.id != id);
@@ -109,33 +109,33 @@ mod tests {
 
     #[test]
     fn push_line_orders_each_cell_by_descending_line_id() {
-        let mut grid = IntMap::default();
+        let mut grid = FlatIntMap::default();
         let cell = 42;
         push_line(&mut grid, test_line(10), &[cell]);
         push_line(&mut grid, test_line(30), &[cell]);
         push_line(&mut grid, test_line(20), &[cell]);
-        let ids: Vec<i32> = grid[&cell].iter().map(|e| e.id).collect();
+        let ids: Vec<i32> = grid.get(&cell).unwrap().iter().map(|e| e.id).collect();
         assert_eq!(ids, vec![30, 20, 10]);
     }
 
     #[test]
     fn push_line_keeps_one_entry_per_line_id_per_cell() {
-        let mut grid = IntMap::default();
+        let mut grid = FlatIntMap::default();
         let cell = 42;
         push_line(&mut grid, test_line(10), &[cell, cell]);
-        let ids: Vec<i32> = grid[&cell].iter().map(|e| e.id).collect();
+        let ids: Vec<i32> = grid.get(&cell).unwrap().iter().map(|e| e.id).collect();
         assert_eq!(ids, vec![10]);
     }
 
     #[test]
     fn remove_line_drops_id_and_empties_cell() {
-        let mut grid = IntMap::default();
+        let mut grid = FlatIntMap::default();
         let cell = 42;
         push_line(&mut grid, test_line(10), &[cell]);
         push_line(&mut grid, test_line(20), &[cell]);
         remove_line(&mut grid, 10, &[cell]);
-        assert_eq!(grid[&cell].iter().map(|e| e.id).collect::<Vec<_>>(), vec![20]);
+        assert_eq!(grid.get(&cell).unwrap().iter().map(|e| e.id).collect::<Vec<_>>(), vec![20]);
         remove_line(&mut grid, 20, &[cell]);
-        assert!(!grid.contains_key(&cell));
+        assert!(grid.get(&cell).is_none());
     }
 }

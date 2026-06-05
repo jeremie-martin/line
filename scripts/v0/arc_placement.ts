@@ -6,7 +6,7 @@
  * sled position at the target frame, then let the engine validate.
  */
 
-import { getRiderMetered } from "../lib/detector.ts";
+import { getRiderMetered, getSledPointPositionsMetered } from "../lib/detector.ts";
 import { makeSolidLine } from "./arc.ts";
 import {
   CANDIDATE_SAMPLE_MODES,
@@ -1032,14 +1032,11 @@ export function readPreTargetSledTrace(
   const trace: PreTargetSledTrace = [];
   const firstFrame = Math.max(0, gap.startFrame);
   const lastFrame = gap.endFrame - 2;
+  const sledPositions: number[] = [];
   for (let frame = firstFrame; frame <= lastFrame; frame++) {
-    const rider = getRiderMetered(baseEngine, frame);
-    for (const name of SLED_POINTS) {
-      const point = rider.get(name);
-      const pos = point?.pos;
-      if (pos) {
-        trace.push(pos.x, pos.y);
-      }
+    getSledPointPositionsMetered(baseEngine, frame, sledPositions);
+    for (let i = 0; i < sledPositions.length; i += 2) {
+      trace.push(sledPositions[i], sledPositions[i + 1]);
     }
   }
   return trace;

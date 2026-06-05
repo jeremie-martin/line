@@ -33,7 +33,8 @@ export const PERSISTENCE_FRAMES = 5;
 /** Fraction of the persistence window that must be in contact (≥). */
 export const PERSISTENCE_RATIO = 0.5;
 /** Names of collision points that count as "sled-side" contact. */
-export const SLED_POINT_NAMES = new Set(["PEG", "TAIL", "NOSE", "STRING"]);
+export const SLED_POINT_ORDER = ["PEG", "TAIL", "NOSE", "STRING"] as const;
+export const SLED_POINT_NAMES = new Set<string>(SLED_POINT_ORDER);
 
 // ────────── Types ──────────
 
@@ -527,6 +528,39 @@ export function getRiderMetered(engine: any, frame: number): any {
   const after = engineLastFrameIndex(engine);
   if (before !== null && after !== null) chargePhysicsFrames(Math.max(0, after - before));
   return rider;
+}
+
+// deno-lint-ignore no-explicit-any
+export function getSledPointPositionsMetered(engine: any, frame: number, out: number[] = []): number[] {
+  const before = engineLastFrameIndex(engine);
+  if (
+    _physicsFrameLimit !== null &&
+    before !== null &&
+    frame > before &&
+    _physicsFrames + (frame - before) > _physicsFrameLimit
+  ) {
+    throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, _physicsFrames + (frame - before));
+  }
+
+  const fast = engine?.getSledPointPositionsAtFrame;
+  if (typeof fast === "function") {
+    fast.call(engine, frame, out);
+  } else {
+    const rider = engine.getRider(frame);
+    let o = 0;
+    for (const name of SLED_POINT_ORDER) {
+      const pos = rider.get(name)?.pos;
+      if (pos) {
+        out[o++] = pos.x;
+        out[o++] = pos.y;
+      }
+    }
+    out.length = o;
+  }
+
+  const after = engineLastFrameIndex(engine);
+  if (before !== null && after !== null) chargePhysicsFrames(Math.max(0, after - before));
+  return out;
 }
 
 // deno-lint-ignore no-explicit-any

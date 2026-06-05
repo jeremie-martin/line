@@ -1691,3 +1691,46 @@ Perf (default 50 runs + 3 warmup, `LR_ENGINE=wasm npm run perf`):
 **Standing after inline single-owner snapshots:** **~6,433 ns/physics-frame** —
 bit-identical to the current lr-core/optimizer baselines, ≈51.8× faster than
 pristine JS (333k), but still above the <3,000 ns/frame goal.
+
+## Session 34 (2026-06-06 cont.) — fast metered sled-point trace  ⭐ kept
+
+The profile after Session 33 showed the compiler still spending visible JS time
+inside WASM `getRider` sled-point probes: `pointStateFrom`, `getRawFrameAtFrame`,
+and the pre-target proximity trace were now large enough to matter. The hottest
+trace path (`readPreTargetSledTrace`) needs only four sled-point positions
+(`PEG`, `TAIL`, `NOSE`, `STRING`) per frame, but the old code called
+`getRiderMetered(frame)` and then materialized four full point-state objects
+with `pos`/`prevPos`/`vel` wrappers.
+
+Added an optional WASM wrapper method:
+
+```
+getSledPointPositionsAtFrame(frame, out)
+```
+
+It reuses the existing `get_rider` ABI payload and writes the four sled-point
+`pos.x/pos.y` pairs into a caller-provided numeric buffer. `detector.ts` exposes
+`getSledPointPositionsMetered`, which preserves the exact same physics-frame
+charging and hard-limit behavior as `getRiderMetered`, falling back to the old
+rider API for non-WASM engines. `readPreTargetSledTrace` now reuses one small
+buffer and appends those coordinates directly.
+
+Gates:
+
+- `LR_ENGINE=wasm npm run verify` ✓
+
+Perf:
+
+- 8-run signal: **6,142.7 ns/frame** (median **6,173.3**).
+- Full gate (`LR_ENGINE=wasm npm run perf`, 50 runs + 3 warmup):
+
+  | engine | ns/physics-frame | median |
+  |---|---:|---:|
+  | Session 33 standing | 6,433.1 ± 374.2 | 6,508.7 |
+  | **fast sled trace** | **6,112.7 ± 317.4** | **6,179.3** |
+
+**Effect:** **−5.0% mean / −5.1% median**, clearing the >1.5% keep bar. Kept.
+
+**Standing after fast metered sled trace:** **~6,113 ns/physics-frame** —
+bit-identical to the current lr-core/optimizer baselines, ≈54.5× faster than
+pristine JS (333k), still above the <3,000 ns/frame goal.

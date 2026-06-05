@@ -263,4 +263,18 @@ export class LineRiderEngine {
       },
     };
   }
+  getSledPointPositionsAtFrame(frame: number, out: number[] = []): number[] {
+    ex.get_rider(this.h, frame);
+    const sc = scratch();
+    out[0] = sc[RIDER_SLED_OFFSET];
+    out[1] = sc[RIDER_SLED_OFFSET + 1];
+    out[2] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE];
+    out[3] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE + 1];
+    out[4] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE * 2];
+    out[5] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE * 2 + 1];
+    out[6] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE * 3];
+    out[7] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE * 3 + 1];
+    out.length = 8;
+    return out;
+  }
 }

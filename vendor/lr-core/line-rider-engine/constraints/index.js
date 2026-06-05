@@ -1,12 +1,30 @@
 import V2 from '../../v2'
 
-function stickResolve (p1, p2, diff) {
-  let delta = V2(p1.pos).sub(p2.pos).mul(diff)
+// Shared "no stateMap changes" result. stickResolve mutates point positions in
+// place, so the points it touches are already the current frame's own entries —
+// there is nothing new to set, and returning a fresh [] every call would be
+// ~132 throwaway arrays per frame.
+const NO_UPDATES = Object.freeze([])
 
-  return [
-    p1.setPosition(V2(p1.pos).sub(delta)),
-    p2.setPosition(delta.add(p2.pos))
-  ]
+function stickResolve (p1, p2, diff) {
+  // Mutate each point's pos IN PLACE instead of allocating V2 temporaries + new
+  // Points. Safe because a point's pos object is freshly allocated every frame
+  // by step()/collide() and is owned solely by this frame (its prevPos — the
+  // only object shared with the previous frame — is never written here), and p1
+  // and p2 are always distinct points (distinct pos objects). This reproduces
+  // the original V2 expression order exactly:
+  //   delta = (p1.pos - p2.pos) * diff ;  p1.pos -= delta ;  p2.pos += delta
+  // (the final `delta.add(p2.pos)` is `delta + p2.pos`, but + is commutative in
+  // IEEE-754, so `p2.pos += delta` is bit-identical).
+  let a = p1.__state__.pos
+  let b = p2.__state__.pos
+  let dx = (a.x - b.x) * diff
+  let dy = (a.y - b.y) * diff
+  a.x -= dx
+  a.y -= dy
+  b.x += dx
+  b.y += dy
+  return NO_UPDATES
 }
 
 function getDiff (restLength, length) {

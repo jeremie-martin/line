@@ -103,10 +103,38 @@ stateMap entries cloned per frame. This was unblocked by the S1 oracle fix.
 
   **−4.0% mean / −4.2% median.** → **kept**.
 
+### B3 — Scalar in-place math in `stickResolve`
+`vendor/lr-core/line-rider-engine/constraints/index.js`. The constraint solver's
+hottest path ran ~132×/frame and allocated, per call, 2 `V2` temporaries + a
+new `[p1, p2]` array (~264 V2 + ~132 arrays/frame). Rewrote it to mutate each
+point's `pos.x/.y` in place with scalar math and return a shared frozen `[]`.
+
+Safe because a point's `pos` object is freshly allocated every frame by
+`step()`/`collide()` and owned solely by the current frame — its `prevPos` (the
+only object shared with the previous frame) is never written by the solver — and
+the two points of a stick are always distinct. Op order reproduced exactly
+(`delta = (p1.pos−p2.pos)*diff; p1.pos−=delta; p2.pos+=delta`; the original's
+final `delta+p2.pos` is commutative in IEEE-754).
+
+- **Gates:** verify ✓ byte-identical · diff ✓ max err 0 · compile-hash ✓ identical.
+- **Perf (clean back-to-back, 20k / 8 reps):**
+
+  | engine | mean ns/frame | median |
+  |--------|---------------|--------|
+  | B2 | 308,924 ± 5,415 | 308,958 |
+  | **B3** | **275,710 ± 3,464** | **275,659** |
+
+  **−10.8% mean / −10.8% median.** → **kept**.
+
 ## Cumulative
 
-| milestone | ns/physics-frame (20k/8reps) | vs pristine |
-|-----------|------------------------------|-------------|
-| pristine (point-mutation) | 333,033 | — |
-| B1 singleton updates | 323,865 | −2.8% |
-| B2 scarf off | 312,905 | **−6.0%** |
+Each row is the "after" of an independent back-to-back pair (absolute numbers
+drift a little between runs with machine load; the per-step Δ is the reliable
+figure). Compounding the measured per-step deltas: **≈ −17% vs pristine.**
+
+| milestone | per-step Δ | note |
+|-----------|-----------|------|
+| pristine (point-mutation) | — | baseline 333,033 |
+| B1 singleton updates | −2.8% | |
+| B2 scarf off | −4.0% | |
+| B3 scalar in-place stickResolve | −10.8% | V2 temporaries were the bulk of GC |

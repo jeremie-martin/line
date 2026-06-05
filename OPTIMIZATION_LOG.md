@@ -215,3 +215,37 @@ figure). Compounding the measured per-step deltas: **≈ −17% vs pristine.**
 | B6 skip redundant grid versions | −57.4% | **the dominant cost; 333,033 → 116,462 overall (≈2.86×)** |
 | B7 cells computed once per entity | −6.8% | 333,033 → 109,955 overall (**≈3.03×**) |
 | B8 monomorphize Immo versions | −35.5% | **333,033 → 70,504 overall (≈4.72×)** |
+
+**End-to-end confirmation:** the full `npm test` suite (245 tests) dropped from
+~313 s (pristine) to ~89 s — a 3.5× faster suite, i.e. the per-frame win
+compounds across the whole compiler, not just the microbenchmark.
+
+## Profile evolution (where the time goes)
+
+`node --prof` on a `mini_burst@8k` compile, % of non-library ticks:
+
+| | pristine-ish (after B3) | after B6 | after B8 |
+|---|---|---|---|
+| GC | 45% | 7% | 9% |
+| grid: `addToGrid` | 20% | 12% | 16% |
+| grid: `FindOrderedHashMapEntry` | 9% | 13% | 18% |
+| grid: `getLinesNearEntity`/`getCellsNearEntity` | 7% | 10% | 11% |
+| megamorphic `LoadIC`/`KeyedLoadIC` | — | 20% | ~8% (half now in the detector, out of scope) |
+| constraint `resolve` | <1% | <1% | <1% |
+
+We flipped from **GC-bound → compute-bound**, and the remaining hot spot is the
+**spatial-hashing grid** (~45% of in-scope time): ~180 `Map` lookups/frame on the
+line grid + the per-frame entity grid, which accumulate every cell ever visited.
+
+## Next frontier (deeper / higher-risk)
+
+The grid is the last big bucket but it backs the `addLine` invalidation that
+drives the search **budget**, so any change there must keep `compile-hash`
+(sim_frames + search stats) byte-identical — the gate covers it, but it's an
+algorithmic redesign, not a surgical edit. Candidate directions:
+- Entity grid: collapse the per-cell Immy-List churn / avoid the double `Map.get`
+  in `addToGrid`'s changed-value path.
+- A flatter grid representation keyed for SMI-fast `Map` access with fewer
+  lookups per entity.
+These are larger, riskier changes than B1–B8 and are deferred pending a careful
+design pass.

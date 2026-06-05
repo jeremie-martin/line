@@ -1,4 +1,4 @@
-import V2 from '../../v2'
+import V2 from '../../v2/index.js'
 
 // Shared "no stateMap changes" result. stickResolve mutates point positions in
 // place, so the points it touches are already the current frame's own entries —

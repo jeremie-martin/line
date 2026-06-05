@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import Immo, {setupImmo} from './immo'
+import Immo, {setupImmo} from './immo/index.js'
 
 let testUpdater = (TestClass, self, target, current, currentThis) =>
   target !== current && self instanceof TestClass && currentThis instanceof TestClass

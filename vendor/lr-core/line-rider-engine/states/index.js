@@ -1,5 +1,5 @@
-import Immo, {setupImmo} from '../../immo'
-import V2 from '../../v2'
+import Immo, {setupImmo} from '../../immo/index.js'
+import V2 from '../../v2/index.js'
 
 let ZERO_VEC = {x: 0, y: 0}
 // @setupImmo

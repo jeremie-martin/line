@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import LineSpace from './line-space'
+import LineSpace from './line-space/index.js'
 
 /*
   0 1 2 3 4

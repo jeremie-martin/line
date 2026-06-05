@@ -1,5 +1,5 @@
-import OrderedObjectArray from '../ordered-object-array'
-import {lineInBox, pointLineDistanceSquared} from '../g2'
+import OrderedObjectArray from '../ordered-object-array/index.js'
+import {lineInBox, pointLineDistanceSquared} from '../g2/index.js'
 
 export default class LineSpace {
   constructor (getLineCoordinates) {

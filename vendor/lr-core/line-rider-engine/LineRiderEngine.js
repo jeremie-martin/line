@@ -1,10 +1,10 @@
-import {setupImmo} from '../immo'
-import LineEngine from '../line-engine'
-import LineSpace from '../line-space'
+import {setupImmo} from '../immo/index.js'
+import LineEngine from '../line-engine/index.js'
+import LineSpace from '../line-space/index.js'
 
 import {ITERATE, GRAVITY, DEFAULT_START_POSITION, DEFAULT_START_VELOCITY} from './constants.js'
 import Rider from './Rider.js'
-import {ClassicGrid} from './grids'
+import {ClassicGrid} from './grids/index.js'
 
 // @setupImmo
 export default class LineRiderEngine extends LineEngine {

@@ -1,6 +1,6 @@
 import Immy from 'immy'
 
-import Immo, {setupImmo} from '../immo'
+import Immo, {setupImmo} from '../immo/index.js'
 // import {abstractClass} from '../abstract-interface.js'
 
 import Frame from './Frame.js'

@@ -1,7 +1,7 @@
-import classicRiderBody from './rider-data'
-import * as States from './states'
-import * as Constraints from './constraints'
-import V2 from '../v2'
+import classicRiderBody from './rider-data/index.json' with { type: 'json' }
+import * as States from './states/index.js'
+import * as Constraints from './constraints/index.js'
+import V2 from '../v2/index.js'
 
 function createConstraintFromJson (data, initialStateMap) {
   return new Constraints[data.type](data, initialStateMap)

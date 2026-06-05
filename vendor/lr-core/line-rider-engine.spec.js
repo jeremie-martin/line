@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import LineRiderEngine, {createLineFromJson, LineTypes, CustomLineRiderEngine} from './line-rider-engine'
+import LineRiderEngine, {createLineFromJson, LineTypes, CustomLineRiderEngine} from './line-rider-engine/index.js'
 import {DEFAULT_START_POSITION, DEFAULT_START_VELOCITY} from './line-rider-engine/constants.js'
 
 // import printSim from './test-utils/printSim.js'

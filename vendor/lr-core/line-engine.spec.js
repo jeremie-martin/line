@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import LineEngine from './line-engine'
+import LineEngine from './line-engine/index.js'
 
 class SimpleState {
   constructor ({id, x, y, collidable = false}) {

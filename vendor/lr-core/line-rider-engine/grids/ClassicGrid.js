@@ -1,7 +1,7 @@
 import {classicCells as getCellsFromLine} from './getCellsFromLine.js'
 import {hashIntPair} from '../../utils/hashNumberPair.js'
-import {SubclassableMap} from '../../subclassable'
-import OrderedObjectArray from '../../ordered-object-array'
+import {SubclassableMap} from '../../subclassable/index.js'
+import OrderedObjectArray from '../../ordered-object-array/index.js'
 
 const GRID_SIZE = 14
 

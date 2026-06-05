@@ -1,6 +1,6 @@
 import sortedIndexBy from 'lodash/sortedIndexBy.js'
 
-import {SubclassableArray} from '../subclassable'
+import {SubclassableArray} from '../subclassable/index.js'
 
 export default class OrderedObjectArray extends SubclassableArray {
   constructor (key, descending = false) {

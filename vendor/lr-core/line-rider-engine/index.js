@@ -1,5 +1,5 @@
 export {default} from './LineRiderEngine.js'
-export {createLineFromJson, LineTypes} from './lines'
+export {createLineFromJson, LineTypes} from './lines/index.js'
 
 import LineRiderEngine from './LineRiderEngine.js'
 import {legacyCells} from './grids/getCellsFromLine.js'

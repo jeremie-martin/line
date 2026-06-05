@@ -25,6 +25,8 @@ const NENT = 12;
 const LEFT_EXTENDED = 1;
 const RIGHT_EXTENDED = 2;
 const SLED_POINT_MASK = 0b111100;
+const SCRATCH_LEN = NENT * 6 + NENT;
+const SCRATCH_PTR = ex.scratch_ptr();
 
 // shared singletons — the oracle only reads .type/.id/.updated, never mutates
 const STEP_UPDATE = { type: "StepUpdate" };
@@ -45,10 +47,17 @@ const NO_COLLISION_UPDATES: any[] = (() => {
 // their handles when the JS wrapper is GC'd, or a real compile leaks/OOMs.
 const FINALIZER = new FinalizationRegistry<number>((h) => ex.free_engine(h));
 
-// Views are re-created after each wasm call: the kernel's Vec growth can call
-// memory.grow, which detaches existing ArrayBuffers.
+// The scratch address is static. Only the backing ArrayBuffer can change after
+// memory.grow, so reuse the view until the buffer identity changes.
+let scratchBuffer: ArrayBuffer | undefined;
+let scratchView: Float64Array | undefined;
 function scratch(): Float64Array {
-  return new Float64Array(ex.memory.buffer, ex.scratch_ptr(), NENT * 6 + NENT);
+  const buffer = ex.memory.buffer;
+  if (buffer !== scratchBuffer) {
+    scratchBuffer = buffer;
+    scratchView = new Float64Array(buffer, SCRATCH_PTR, SCRATCH_LEN);
+  }
+  return scratchView as Float64Array;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -201,6 +210,7 @@ export class LineRiderEngine {
     ex.get_rider(this.h, frame);
     const sc = scratch();
     const fsuRider = sc[4], fsuSled = sc[5];
+    let stateMap: Map<string, any> | undefined;
     return {
       position: { x: sc[0], y: sc[1] },
       velocity: { x: sc[2], y: sc[3] },
@@ -208,7 +218,8 @@ export class LineRiderEngine {
       get: (id: string): any => {
         if (id === "RIDER_MOUNTED") return { framesSinceUnbind: fsuRider, isBinded: () => fsuRider === -1 };
         if (id === "SLED_INTACT") return { framesSinceUnbind: fsuSled, isBinded: () => fsuSled === -1 };
-        return this.getStateMapAtFrame(frame).get(id);
+        stateMap ??= this.getStateMapAtFrame(frame);
+        return stateMap.get(id);
       },
     };
   }

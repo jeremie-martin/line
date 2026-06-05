@@ -541,3 +541,14 @@ when the selected engine provides it. Non-WASM engines keep the generic
   **−26.0% mean / −26.3% median.** This is a boundary win: it removes one wasm
   call per extracted frame and avoids allocating lr-core-compatible rider/update
   objects the detector immediately reduces back into raw-frame fields.
+
+## W2 — Cache the WASM scratch view and lazy point stateMap  (−4.7%, bit-identical)
+The WASM scratch address is static; only the `memory.buffer` identity changes after
+`memory.grow`. The wrapper now reuses one `Float64Array` scratch view until the
+buffer changes, instead of allocating a view on every read. `getRider` also
+memoizes its cold full-stateMap fallback, so multi-point probes (`PEG`/`TAIL`/
+`NOSE`/`STRING`) build the map once per rider object instead of once per point.
+
+- **Gates:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical.
+- **Perf (`LR_ENGINE=wasm npm run perf`, 20 runs + 3 warmup):** 30,879.4 →
+  **29,414.7 ns/physics-frame** (**−4.7% mean / −4.7% median**).

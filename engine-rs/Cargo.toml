@@ -6,6 +6,12 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib"]
 
+[dependencies]
+# Persistent (structurally-shared) Vector/OrdMap so engine forks share the frame
+# cache / history / grid in O(1) instead of full-cloning. Rc-based (single-thread,
+# right for wasm). Only Vector + OrdMap used — no HashMap, so no entropy needed.
+im-rc = "15"
+
 [profile.release]
 opt-level = 3
 panic = "abort"

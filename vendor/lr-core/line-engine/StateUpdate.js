@@ -20,8 +20,12 @@ export class StepUpdate extends StateUpdate {}
 
 export class ConstraintUpdate extends StateUpdate {}
 
-export class CollisionUpdate extends StateUpdate {
+export class CollisionUpdate {
   constructor (updated, id) {
-    super([updated], id)
+    this.type = 'CollisionUpdate'
+    this.updated = [updated]
+    if (id != null) {
+      this.id = id
+    }
   }
 }

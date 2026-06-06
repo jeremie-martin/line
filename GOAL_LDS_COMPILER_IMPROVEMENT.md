@@ -44,10 +44,9 @@ npm run decide -- <candidate>/golden.json <baseline>/golden.json
 
 Keep/promote a change only when:
 
-- `decide` prints `VERDICT: ACCEPT` on a **canonical-tier** comparison (a `probe`-tier
-  archive is indicative only — never promotable). ACCEPT is a standard one-sided
-  significance test at α=0.05 on the paired bootstrap (`P(Δ≤0) < 0.05`); there is no
-  separate absolute-`Δ` floor;
+- `decide` prints `VERDICT: ACCEPT` on a **canonical-tier** comparison. ACCEPT is a
+  standard one-sided significance test at α=0.05 on the paired bootstrap
+  (`P(Δ≤0) < 0.05`); there is no separate absolute-`Δ` floor;
 - the mechanism is generic, deterministic per `(spec, seed, budget)`, and not keyed to
   the benchmark specs.
 
@@ -62,31 +61,31 @@ deliberate ruler/scope change.
 
 ## Run Workflow
 
-Use tiny probes to find bugs and shape hypotheses. Use canonical runs to decide.
-Because each budget is an independent run, a probe over a couple of budgets is cheap;
-the canonical run pays for all five. A non-canonical run (fewer specs/seeds, or the
-fast-probe budget subset) is a lower-power **preview**: still comparable to canonical
-via `decide` on the shared specs/seeds/budgets (fewer seeds widens the CI; it does not
-break comparability), but it is `tier:"probe"` and non-promotable. **Never compare raw
-headline scalars across different budget grids — only via `decide` on the intersection.**
+Use normal full canonical runs for this campaign. A canonical run is the full
+20-spec × 12-seed × `{25,50,100,150,200}k` budget grid, launched with
+`LR_ENGINE=wasm` and `--jobs=6`, with no spec, seed, or budget overrides.
+
+Give every baseline and candidate a clear archive label so attempts stay identifiable
+in `generated/golden-runs/` and in the dashboard. The label is the archive directory
+name supplied through `--archive-dir`; use names such as `baseline-<commit>` or
+`attempt-<mechanism>-a01`. **Never compare raw headline scalars across runs — decide
+only by comparing canonical `golden.json` archives with `npm run decide`.**
 
 ```bash
-# Tiny probe: 3 seeds, the fast-probe budget endpoints. Not a decision basis.
-LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- \
-  --specs=tiny_dance,opening_burst \
-  --budgets=25000,200000 \
-  --jobs=6 \
-  --archive-dir=generated/golden-runs/<label>-probe
-
-# Canonical candidate run: the only promotable evidence.
+# Current baseline of record, only when a fresh baseline is needed.
 LR_ENGINE=wasm npm run golden -- \
   --jobs=6 \
-  --archive-dir=generated/golden-runs/<label>
+  --archive-dir=generated/golden-runs/<baseline-label>
+
+# Candidate attempt: the normal full canonical run for a mechanism.
+LR_ENGINE=wasm npm run golden -- \
+  --jobs=6 \
+  --archive-dir=generated/golden-runs/<attempt-label>
 
 # Decision against the current baseline of record.
 npm run decide -- \
-  generated/golden-runs/<label>/golden.json \
-  generated/golden-runs/<baseline>/golden.json
+  generated/golden-runs/<attempt-label>/golden.json \
+  generated/golden-runs/<baseline-label>/golden.json
 ```
 
 For compiler tests and verification, also use the WASM engine:

@@ -26,19 +26,27 @@ type BudgetScore = {
   spec_scores: SpecScore[];
 };
 type GoldenCurve = {
-  curve_score: number;
+  headline: {
+    kind: string;
+    score: number;
+  };
   budgets: number[];
   evaluator_fingerprint: string;
   budget_scores: BudgetScore[];
 };
 
 const HTML_PATH = resolve("docs/handoff-compiler.html");
+const HEADLINE_KIND = "weighted_budget_average";
 
 function readGolden(arg: string): GoldenCurve {
   const raw = arg === "-" ? readFileSync(0, "utf8") : readFileSync(resolve(arg), "utf8");
   const d = JSON.parse(raw) as GoldenCurve;
-  if (!Array.isArray(d.budget_scores) || typeof d.curve_score !== "number") {
-    throw new Error("input does not look like a golden curve run (missing budget_scores/curve_score)");
+  if (
+    !Array.isArray(d.budget_scores) ||
+    d.headline?.kind !== HEADLINE_KIND ||
+    typeof d.headline.score !== "number"
+  ) {
+    throw new Error(`input does not look like a weighted golden curve run (missing budget_scores/headline.score kind=${HEADLINE_KIND})`);
   }
   return d;
 }
@@ -102,7 +110,7 @@ function main(): void {
   let html = readFileSync(HTML_PATH, "utf8");
 
   html = fillComment(html, "budget_label", budgetLabel(d.budgets));
-  html = fillComment(html, "curve_score", d.curve_score.toFixed(2));
+  html = fillComment(html, "headline_score", d.headline.score.toFixed(2));
   html = fillComment(
     html,
     "valid_note",
@@ -111,12 +119,12 @@ function main(): void {
   html = fillComment(html, "score_block", scoreBlock(d.budget_scores));
   html = fillComment(html, "spec_rows", specRows(last.spec_scores));
 
-  const point = `["${budgetLabel(d.budgets)}", ${d.curve_score.toFixed(2)}]`;
+  const point = `["${budgetLabel(d.budgets)}", ${d.headline.score.toFixed(2)}]`;
   html = fillScriptBaseline(html, "campaign", point);
 
   writeFileSync(HTML_PATH, html);
   console.log(
-    `updated docs/handoff-compiler.html -> curve ${d.curve_score.toFixed(2)}, ` +
+    `updated docs/handoff-compiler.html -> headline ${d.headline.score.toFixed(2)}, ` +
       `${last.passed}/${last.total} valid at ${last.budget}, fp ${d.evaluator_fingerprint}`,
   );
 }

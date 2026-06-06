@@ -539,9 +539,9 @@
     </p>
   </div>
   <aside class="hero-card">
-    <div class="label"><!--BASELINE:budget_label-->35k-75k curve<!--/BASELINE--></div>
-    <div class="score"><span><!--BASELINE:curve_score-->pending<!--/BASELINE--></span> / 1000</div>
-    <div class="note"><!--BASELINE:valid_note-->Run <code>npm run golden</code> to refresh.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
+    <div class="label"><!--BASELINE:budget_label-->25k-200k curve<!--/BASELINE--></div>
+    <div class="score"><span><!--BASELINE:headline_score-->534.19<!--/BASELINE--></span> / 1000</div>
+    <div class="note"><!--BASELINE:valid_note-->480 valid rows out of 480 at 200000.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
   </aside>
 </section>
 
@@ -975,8 +975,8 @@ anchor = targetSled - local + tangent * alongJitter + normal * normalJitter</div
         <p>Terminal prefixes can be clone-tested by <code>polishLeafVariant</code>. The variant is offered to the same register and only adopted on strict improvement.</p>
       </div>
       <div class="panel">
-        <h3>Budget checkpoints</h3>
-        <p>Requested budgets are checkpoints along one deterministic node sequence. Each checkpoint snapshots the same strict best-so-far register.</p>
+        <h3>Independent per-budget runs</h3>
+        <p>Each requested budget is an independent full run from scratch (no anytime sharing): the budget is an input, and the run returns the strict best-so-far register reached at that budget.</p>
       </div>
     </div>
   </section>
@@ -1061,13 +1061,36 @@ anchor = targetSled - local + tangent * alongJitter + normal * normalJitter</div
 npm run golden -- --jobs=4 --compiler=handoff
 
 <!--BASELINE:score_block-->
-pending<!--/BASELINE--></pre>
+ 25000  score    4.07  valid 121/480  changed  0  improved  0  plateau  0  regress  0
+ 50000  score  356.34  valid 441/480  changed 452  improved 452  plateau 28  regress  0
+100000  score  569.00  valid 478/480  changed 371  improved 371  plateau 109  regress  0
+150000  score  586.70  valid 480/480  changed 199  improved 199  plateau 281  regress  0
+200000  score  588.14  valid 480/480  changed 163  improved 163  plateau 317  regress  0<!--/BASELINE--></pre>
 
     <div class="panel" style="margin-top:16px">
       <h3>Spec scores at the largest budget</h3>
       <div class="score-list" aria-label="Spec scores at largest curve budget">
         <!--BASELINE:spec_rows-->
-        <div class="score-row"><span>pending</span><div class="bar"><span style="width:0%"></span></div><span class="num">0.00</span></div>
+        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:67.0%"></span></div><span class="num">670.24</span></div>
+        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:66.1%"></span></div><span class="num">661.46</span></div>
+        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:63.8%"></span></div><span class="num">638.41</span></div>
+        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:63.5%"></span></div><span class="num">635.22</span></div>
+        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:63.1%"></span></div><span class="num">630.56</span></div>
+        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:62.4%"></span></div><span class="num">623.94</span></div>
+        <div class="score-row"><span>drums_swell</span><div class="bar"><span style="width:61.5%"></span></div><span class="num">615.40</span></div>
+        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:61.3%"></span></div><span class="num">613.17</span></div>
+        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:60.6%"></span></div><span class="num">605.74</span></div>
+        <div class="score-row"><span>drums_breath</span><div class="bar"><span style="width:60.4%"></span></div><span class="num">604.06</span></div>
+        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:60.0%"></span></div><span class="num">599.62</span></div>
+        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:59.2%"></span></div><span class="num">592.13</span></div>
+        <div class="score-row"><span>opening_burst</span><div class="bar"><span style="width:59.0%"></span></div><span class="num">589.82</span></div>
+        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:56.7%"></span></div><span class="num">566.99</span></div>
+        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:54.7%"></span></div><span class="num">547.29</span></div>
+        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:54.0%"></span></div><span class="num">539.53</span></div>
+        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:53.9%"></span></div><span class="num">538.97</span></div>
+        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:53.8%"></span></div><span class="num">537.72</span></div>
+        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:53.1%"></span></div><span class="num">531.49</span></div>
+        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:46.5%"></span></div><span class="num">464.85</span></div>
         <!--/BASELINE-->
       </div>
     </div>
@@ -1253,7 +1276,7 @@ setTab(location.hash.replace("#", "") || "compiler", false);
 // comparable, so the series restarts here.
 // Replace the point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
 const campaignData = [
-  /*BASELINE:campaign*/["35k-75k curve", 0]/*/BASELINE*/
+  /*BASELINE:campaign*/["25k-200k curve", 534.19]/*/BASELINE*/
 ];
 
 function drawCampaignChart() {

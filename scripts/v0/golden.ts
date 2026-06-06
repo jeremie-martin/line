@@ -8,18 +8,18 @@
  *   LR_ENGINE=wasm npm run golden -- --seed=42 --jobs=6
  *   LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4 npm run golden -- --jobs=6
  *   LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --budgets=30000,50000,70000 --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --verify-checkpoints --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --budgets=25000,200000 --jobs=6
  *   LR_ENGINE=wasm npm run golden -- --archive-dir=generated/golden-runs/my-run --jobs=6
  *   LR_ENGINE=wasm npm run golden -- --variants --jobs=6
  *
- * The headline metric is HEADLINE (see metric.ts): a ceiling-weighted blend
- * `alpha*q(b_max) + (1-alpha)*logAUC` over the budget->quality curve, emitted in
- * the `headline` JSON block. CURVE_SCORE (shifted geometric mean of suite scores
- * across the budget grid) is retained as a LEGACY/secondary number. The accept/
- * reject decision is made by `analyze_golden_curve.ts decide` (paired bootstrap),
- * not by eyeballing either scalar. Optional variants are report-only robustness
- * probes, excluded from both.
+ * Each budget is an INDEPENDENT full run (no anytime sharing): passing N budgets
+ * runs N compiles per (spec, seed). The headline metric (see metric.ts) is the
+ * budget-value-WEIGHTED AVERAGE of the per-budget suite scores, emitted in the
+ * `headline` JSON block (with `ceiling`/`log_auc` as reported secondaries).
+ * CURVE_SCORE (shifted geometric mean across the budget grid) is retained as a
+ * LEGACY/secondary number. The accept/reject decision is made by
+ * `analyze_golden_curve.ts decide` (paired bootstrap), not by eyeballing either
+ * scalar. Optional variants are report-only robustness probes, excluded from both.
  */
 
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
@@ -40,11 +40,9 @@ const DEFAULT_JOBS = Math.max(1, Math.min(6, availableParallelism() - 1));
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
-  DEFAULT_ALPHA,
-  headlineScore,
-  parseAlpha,
-  parseBudgetList,
-  selectScoreBudgets,
+  ceilingAt,
+  logAUC,
+  weightedBudgetScore,
   type CurvePoint,
 } from "./metric.ts";
 import {
@@ -53,6 +51,7 @@ import {
   GOLDEN_SEEDS,
   GOLDEN_SPECS,
   REPORT_VARIANTS,
+  budgetWeights,
   compilerWorkerTimeoutMs,
   compilerWorkerTimeoutBudget,
   headlineCases,
@@ -89,20 +88,24 @@ type WorkerInput = SuiteCase & {
   budgets: number[];
   compiler: CompilerName;
   checkpointDir: string;
-  verifyCheckpoints: boolean;
 };
 type WorkerCheckpoint = {
   budget: number;
+  /** Per-budget compile wall-clock (each budget is an independent run). */
+  elapsed_ms: number;
   report: DriftReport;
   stats: CompileStats;
   track_hash: string;
   track_path: string | null;
   report_path: string | null;
 };
-type VerificationMismatch = {
+/** A budget whose independent compile threw — the other budgets in the row still
+ *  succeed (per-budget partial failure). */
+type BudgetFailure = {
   budget: number;
-  checkpoint_hash: string;
-  standalone_hash: string;
+  /** Wall-clock the failed compile burned before throwing (so partial-row time rollups stay honest). */
+  elapsed_ms: number;
+  message: string;
 };
 type WorkerOk = {
   kind: "ok";
@@ -110,7 +113,7 @@ type WorkerOk = {
   variant: VariantName;
   elapsed_ms: number;
   checkpoints: WorkerCheckpoint[];
-  verification_mismatches: VerificationMismatch[];
+  budgetFailures: BudgetFailure[];
 };
 type WorkerErr = {
   kind: "error";
@@ -152,11 +155,13 @@ type ScoredRunRow = {
   name: string;
   variant: VariantName;
   seed: number;
+  /** Display-only rollup: sum of the row's per-budget compile wall-clock. */
   elapsed_ms: number;
   worker_timeout_ms: number;
-  status: "ok" | "timeout" | "error";
+  /** `partial` = some (not all) budgets failed; the row still has one checkpoint
+   *  per budget (failed budgets carry an error checkpoint). */
+  status: "ok" | "partial" | "timeout" | "error";
   message: string | null;
-  verification_mismatches: VerificationMismatch[];
   checkpoints: ScoredCheckpoint[];
 };
 
@@ -306,7 +311,6 @@ async function runWithTimeout(
   budgets: number[],
   compiler: CompilerName,
   checkpointDir: string,
-  verifyCheckpoints: boolean,
 ): Promise<RunResult> {
   const workerPath = fileURLToPath(import.meta.url);
   const input: WorkerInput = {
@@ -315,7 +319,6 @@ async function runWithTimeout(
     budgets,
     compiler,
     checkpointDir,
-    verifyCheckpoints,
   };
   return await new Promise<RunResult>((resolvePromise) => {
     const worker = new Worker(workerPath, {
@@ -388,37 +391,27 @@ async function runWorker(): Promise<void> {
   try {
     const spec = await loadGoldenSpec(input.specName, input.variant);
     const compile = COMPILERS[input.compiler];
-    const result = compile(spec, input.seed, { budgets: input.budgets });
-    const checkpoints: WorkerCheckpoint[] = result.checkpoints.map((checkpoint) => {
-      const hash = trackHash(checkpoint.track);
-      const paths = writeCheckpointArtifacts(
-        input,
-        checkpoint.budget,
-        checkpoint.track,
-        checkpoint.report,
-      );
-      return {
-        budget: checkpoint.budget,
-        report: checkpoint.report,
-        stats: checkpoint.stats,
-        track_hash: hash,
-        ...paths,
-      };
-    });
-
-    const verification_mismatches: VerificationMismatch[] = [];
-    if (input.verifyCheckpoints) {
-      for (const checkpoint of checkpoints) {
-        const standalone = compile(spec, input.seed, { budgets: [checkpoint.budget] });
-        const [standaloneCheckpoint] = standalone.checkpoints;
-        const standaloneHash = trackHash(standaloneCheckpoint.track);
-        if (standaloneHash !== checkpoint.track_hash) {
-          verification_mismatches.push({
-            budget: checkpoint.budget,
-            checkpoint_hash: checkpoint.track_hash,
-            standalone_hash: standaloneHash,
-          });
-        }
+    // Load spec + WASM once, then run each budget as an INDEPENDENT full compile.
+    // Per-budget try/catch so one budget's failure doesn't lose the others.
+    const checkpoints: WorkerCheckpoint[] = [];
+    const budgetFailures: BudgetFailure[] = [];
+    for (const budget of input.budgets) {
+      const cb0 = Date.now();
+      try {
+        const checkpoint = compile(spec, input.seed, { budget });
+        const elapsed_ms = Date.now() - cb0;
+        const hash = trackHash(checkpoint.track);
+        const paths = writeCheckpointArtifacts(input, budget, checkpoint.track, checkpoint.report);
+        checkpoints.push({
+          budget,
+          elapsed_ms,
+          report: checkpoint.report,
+          stats: checkpoint.stats,
+          track_hash: hash,
+          ...paths,
+        });
+      } catch (error) {
+        budgetFailures.push({ budget, elapsed_ms: Date.now() - cb0, message: String(error).slice(0, 200) });
       }
     }
 
@@ -428,7 +421,7 @@ async function runWorker(): Promise<void> {
       variant: input.variant,
       elapsed_ms: Date.now() - t0,
       checkpoints,
-      verification_mismatches,
+      budgetFailures,
     } satisfies WorkerOk);
   } catch (error) {
     parentPort.postMessage({
@@ -476,23 +469,27 @@ function emptyScore(): V0ContractScore {
   };
 }
 
-function errorCheckpoint(
-  result: TimeoutResult | WorkerErr,
+function failedCheckpoint(
+  name: string,
+  variant: VariantName,
   seed: number,
   budget: number,
+  status: "timeout" | "error",
+  message: string,
+  elapsed_ms: number,
   ctx: ScoreContext,
 ): ScoredCheckpoint {
   return {
     ...emptyScore(),
-    hard_failures: [result.kind],
+    hard_failures: [status],
     budget,
-    name: result.specName,
-    variant: result.variant,
+    name,
+    variant,
     seed,
-    status: result.kind,
+    status,
     worker_timeout_ms: ctx.worker_timeout_ms,
-    elapsed_ms: result.elapsed_ms,
-    message: result.message,
+    elapsed_ms,
+    message,
     track_hash: null,
     track_path: null,
     report_path: null,
@@ -501,6 +498,25 @@ function errorCheckpoint(
     off_beat_frames: [],
     compile_stats: null,
   };
+}
+
+/** Whole-row failure (worker timeout/crash): one error checkpoint per budget. */
+function errorCheckpoint(
+  result: TimeoutResult | WorkerErr,
+  seed: number,
+  budget: number,
+  ctx: ScoreContext,
+): ScoredCheckpoint {
+  return failedCheckpoint(
+    result.specName,
+    result.variant,
+    seed,
+    budget,
+    result.kind,
+    result.message,
+    result.elapsed_ms,
+    ctx,
+  );
 }
 
 function scoreCheckpoint(
@@ -518,7 +534,7 @@ function scoreCheckpoint(
     seed,
     status: score.contract_passed ? "pass" : "fail",
     worker_timeout_ms: ctx.worker_timeout_ms,
-    elapsed_ms: result.elapsed_ms,
+    elapsed_ms: checkpoint.elapsed_ms,
     message: score.hard_failures.length > 0 ? score.hard_failures.join(",") : null,
     track_hash: checkpoint.track_hash,
     track_path: checkpoint.track_path,
@@ -545,22 +561,37 @@ function scoreRunResult(
       worker_timeout_ms: ctx.worker_timeout_ms,
       status: result.kind,
       message: result.message,
-      verification_mismatches: [],
       checkpoints: budgets.map((budget) => errorCheckpoint(result, seed, budget, ctx)),
     };
   }
+  // Reassemble one checkpoint per budget: a successful compile is scored; a
+  // per-budget failure (or a missing budget) gets a synthesized error checkpoint,
+  // so row.checkpoints.length === budgets.length stays invariant.
+  const okByBudget = new Map(result.checkpoints.map((c) => [c.budget, c]));
+  const failByBudget = new Map(result.budgetFailures.map((f) => [f.budget, f]));
+  const checkpoints = budgets.map((budget) => {
+    const ok = okByBudget.get(budget);
+    if (ok) return scoreCheckpoint(result, ok, seed, ctx);
+    const fail = failByBudget.get(budget);
+    const message = fail ? fail.message : "missing checkpoint";
+    return failedCheckpoint(result.specName, result.variant, seed, budget, "error", message, fail?.elapsed_ms ?? 0, ctx);
+  });
+  const failedCount = budgets.length - result.checkpoints.length;
   return {
     name: result.specName,
     variant: result.variant,
     seed,
-    elapsed_ms: result.elapsed_ms,
+    // Display-only rollup: total per-budget compile wall-clock for the row, including
+    // time burned by budgets that failed before throwing.
+    elapsed_ms:
+      result.checkpoints.reduce((sum, c) => sum + c.elapsed_ms, 0) +
+      result.budgetFailures.reduce((sum, f) => sum + f.elapsed_ms, 0),
     worker_timeout_ms: ctx.worker_timeout_ms,
-    status: "ok",
-    message: null,
-    verification_mismatches: result.verification_mismatches,
-    checkpoints: result.checkpoints.map((checkpoint) =>
-      scoreCheckpoint(result, checkpoint, seed, ctx)
-    ),
+    status: failedCount > 0 ? "partial" : "ok",
+    message: failedCount > 0
+      ? `${failedCount}/${budgets.length} budgets failed: ${result.budgetFailures.map((f) => fmtBudget(f.budget)).join(",")}`
+      : null,
+    checkpoints,
   };
 }
 
@@ -568,9 +599,8 @@ function specContext(
   spec: Spec,
   budgets: number[],
   concurrency: number,
-  verifyCheckpoints: boolean,
 ): ScoreContext {
-  const timeoutBudget = compilerWorkerTimeoutBudget(budgets, verifyCheckpoints);
+  const timeoutBudget = compilerWorkerTimeoutBudget(budgets);
   return {
     worker_timeout_ms: compilerWorkerTimeoutMs(timeoutBudget) * concurrency,
     total_frames: Math.round(spec.duration * FPS),
@@ -701,7 +731,7 @@ function printRunRow(row: ScoredRunRow, details: boolean): void {
       `score=${last.score.toFixed(0).padStart(4)} valid=${last.contract_passed ? "yes" : "no"} ` +
       `sim=${String(last.compile_stats?.sim_frames ?? 0).padStart(6)} t=${fmtMs(row.elapsed_ms)}`,
   );
-  if (details || row.status !== "ok" || row.verification_mismatches.length > 0) {
+  if (details || row.status !== "ok") {
     console.log(
       `  budgets:        ` +
         row.checkpoints.map((c) => `${fmtBudget(c.budget)}=${c.score.toFixed(0)}`).join("  "),
@@ -714,12 +744,6 @@ function printRunRow(row: ScoredRunRow, details: boolean): void {
       console.log(`  off-beat:       frames ${last.off_beat_frames.join(", ")}`);
     }
     if (row.message) console.log(`  note:           ${row.message}`);
-    for (const mismatch of row.verification_mismatches) {
-      console.log(
-        `  verify:         budget ${mismatch.budget} checkpoint ${mismatch.checkpoint_hash.slice(0, 12)} ` +
-          `!= standalone ${mismatch.standalone_hash.slice(0, 12)}`,
-      );
-    }
   }
 }
 
@@ -787,14 +811,13 @@ async function runRows(
   jobs: number,
   compiler: CompilerName,
   checkpointDir: string,
-  verifyCheckpoints: boolean,
 ): Promise<ScoredRunRow[]> {
   const contexts = new Map<string, ScoreContext>();
   for (const testCase of cases) {
     const key = `${testCase.specName}/${testCase.variant}`;
     if (!contexts.has(key)) {
       const spec = await loadGoldenSpec(testCase.specName, testCase.variant);
-      contexts.set(key, specContext(spec, budgets, jobs, verifyCheckpoints));
+      contexts.set(key, specContext(spec, budgets, jobs));
     }
   }
   const tasks = seeds.flatMap((seed) => cases.map((testCase) => ({ seed, testCase })));
@@ -819,7 +842,6 @@ async function runRows(
       budgets,
       compiler,
       checkpointDir,
-      verifyCheckpoints,
     );
     const row = scoreRunResult(result, seed, budgets, ctx);
     done++;
@@ -994,7 +1016,6 @@ function jsonRunRow(row: ScoredRunRow, detailed: boolean): object {
     status: row.status,
     elapsed_ms: row.elapsed_ms,
     message: row.message,
-    verification_mismatches: row.verification_mismatches,
     checkpoints: row.checkpoints.map(detailed ? detailedJsonCheckpoint : compactJsonCheckpoint),
   };
 }
@@ -1070,29 +1091,21 @@ async function runMain(): Promise<void> {
     throw new Error("--screen has been removed from golden; use tiny probes or full canonical runs");
   }
 
+  if (has("verify-checkpoints")) {
+    throw new Error("--verify-checkpoints has been removed: every budget is now an independent standalone run");
+  }
+  if (arg("score-budgets") !== null || arg("alpha") !== null) {
+    throw new Error("--score-budgets/--alpha are removed: the headline is the budget-value-weighted average over the run's budgets");
+  }
   const jsonOnly = has("json") || has("json-full");
   const details = has("details") || has("json-full");
   const includeVariants = has("variants");
-  const verifyCheckpoints = has("verify-checkpoints");
   const source = gitMetadata();
   const archiveDir = resolve(arg("archive-dir") ?? defaultArchiveDir());
   const checkpointDir = resolve(archiveDir, "checkpoints");
   const budgets = normalizeBudgets(arg("budgets"));
-  const alpha = arg("alpha") !== null ? parseAlpha(arg("alpha")!) : DEFAULT_ALPHA;
-  // Grid-agnostic headline: default scores over ALL measured budgets. A subset
-  // (e.g. --score-budgets=50000,100000,150000) recomputes the headline on the
-  // canonical few — the seam for honest cross-era comparison and the future
-  // budget-aware (non-anytime) mode. TODO: default to CANONICAL_SCORE_BUDGETS
-  // once the anytime->budget-aware migration lands.
-  const rawScoreBudgets = arg("score-budgets");
-  const scoreBudgetSubset = rawScoreBudgets ? parseBudgetList(rawScoreBudgets) : undefined;
-  if (scoreBudgetSubset) {
-    const missing = scoreBudgetSubset.filter((b) => !budgets.includes(b));
-    if (missing.length > 0) {
-      throw new Error(`--score-budgets ${missing.join(",")} not in the run's budget grid [${budgets.join(",")}]`);
-    }
-  }
-  const scoreBudgets = selectScoreBudgets(budgets, scoreBudgetSubset);
+  // The headline scores over ALL of the run's budgets, weighted by budget value.
+  const weightByBudget = budgetWeights(budgets);
 
   const rawSeed = arg("seed");
   const debugSeed = rawSeed !== null ? Math.trunc(Number(rawSeed)) : null;
@@ -1143,6 +1156,9 @@ async function runMain(): Promise<void> {
     debugSeed === null &&
     seedOverride === null &&
     sameBudgets(budgets, DEFAULT_BUDGETS);
+  // A non-canonical run is a lower-power preview: comparable via `decide` on the
+  // shared budgets/seeds, but never promotable on its own.
+  const tier: "canonical" | "probe" = canonical ? "canonical" : "probe";
 
   if (!jsonOnly) {
     const fp = evaluatorFingerprint();
@@ -1166,7 +1182,6 @@ async function runMain(): Promise<void> {
     }
     console.log(`archive: ${archiveDir}`);
     console.log(`checkpoint artifacts: ${checkpointDir}`);
-    if (verifyCheckpoints) console.log("checkpoint verification: enabled");
     console.log(
       `v0 golden budget curve · ${headline.length} spec${headline.length === 1 ? "" : "s"} × ` +
         `${seeds.length} seed${seeds.length === 1 ? "" : "s"} × ${budgets.length} budgets · ` +
@@ -1186,20 +1201,19 @@ async function runMain(): Promise<void> {
     jobs,
     compiler,
     checkpointDir,
-    verifyCheckpoints,
   );
-  const verificationFailures = scored.flatMap((row) => row.verification_mismatches);
-  if (verificationFailures.length > 0) {
-    throw new Error(`checkpoint verification failed (${verificationFailures.length} mismatch${verificationFailures.length === 1 ? "" : "es"})`);
-  }
 
   const headlineSummaries = summarizeBudgets(scored, budgets);
   const headlineCurveScore = curveScore(headlineSummaries);
-  const headlinePoints: CurvePoint[] = scoreBudgets.map((b) => ({
+  const headlinePoints: CurvePoint[] = budgets.map((b) => ({
     budget: b,
     score: headlineSummaries.find((s) => s.budget === b)?.score ?? 0,
   }));
-  const headlineMetric = headlineScore(headlinePoints, alpha);
+  const headlineMetric = {
+    score: weightedBudgetScore(headlinePoints, weightByBudget),
+    ceiling: ceilingAt(headlinePoints),
+    logAUC: logAUC(headlinePoints),
+  };
 
   let variantRows: ScoredRunRow[] = [];
   let variantSummaries: BudgetSummary[] = [];
@@ -1221,18 +1235,13 @@ async function runMain(): Promise<void> {
       jobs,
       compiler,
       checkpointDir,
-      verifyCheckpoints,
     );
-    const variantVerificationFailures = variantRows.flatMap((row) => row.verification_mismatches);
-    if (variantVerificationFailures.length > 0) {
-      throw new Error(`variant checkpoint verification failed (${variantVerificationFailures.length} mismatch${variantVerificationFailures.length === 1 ? "" : "es"})`);
-    }
     variantSummaries = summarizeBudgets(variantRows, budgets);
     variantCurveScore = curveScore(variantSummaries);
-    variantHeadlineScore = headlineScore(
-      scoreBudgets.map((b) => ({ budget: b, score: variantSummaries.find((s) => s.budget === b)?.score ?? 0 })),
-      alpha,
-    ).score;
+    variantHeadlineScore = weightedBudgetScore(
+      budgets.map((b) => ({ budget: b, score: variantSummaries.find((s) => s.budget === b)?.score ?? 0 })),
+      weightByBudget,
+    );
   }
 
   const output = {
@@ -1247,11 +1256,16 @@ async function runMain(): Promise<void> {
     },
     curve_score: round(headlineCurveScore),
     headline: {
+      kind: "weighted_budget_average",
+      tier,
+      n_seeds: seeds.length,
       score: round(headlineMetric.score),
+      weight_by_budget: weightByBudget.map((w) => ({ budget: w.budget, weight: round(w.weight, 6) })),
+      budgets: [...budgets],
+      // Reported secondaries only — NOT the decision scalar.
       ceiling: round(headlineMetric.ceiling),
       log_auc: round(headlineMetric.logAUC),
-      alpha: headlineMetric.alpha,
-      score_budgets: scoreBudgets,
+      // Per-budget validity is a diagnostic; it does not gate the decision.
       validity: headlineSummaries.map((s) => ({ budget: s.budget, pass_rate: round(s.contract_pass_rate, 4) })),
     },
     budgets,
@@ -1295,9 +1309,9 @@ async function runMain(): Promise<void> {
     {
       const bmax = headlineSummaries[headlineSummaries.length - 1];
       console.log(
-        `  HEADLINE ${round(headlineMetric.score)} · ceiling=${round(headlineMetric.ceiling)} ` +
-          `logAUC=${round(headlineMetric.logAUC)} (alpha=${alpha}, budgets=${scoreBudgets.map(fmtBudget).join(",")}) · ` +
-          `validity@${fmtBudget(bmax.budget)}=${bmax.passed}/${bmax.total}`,
+        `  HEADLINE ${round(headlineMetric.score)} · weighted-avg over budgets=${budgets.map(fmtBudget).join(",")} ` +
+          `(weights∝budget) · ceiling=${round(headlineMetric.ceiling)} logAUC=${round(headlineMetric.logAUC)} · ` +
+          `tier=${tier} · validity@${fmtBudget(bmax.budget)}=${bmax.passed}/${bmax.total}`,
       );
     }
     if (includeVariants) {

@@ -32,13 +32,13 @@ async function main() {
   // deno-lint-ignore no-explicit-any
   const spec = await loadGoldenSpec(specName as any, variant as any);
 
-  for (let i = 0; i < warmup; i++) compileHandoff(spec, seed, { budgets: [budget] });
+  for (let i = 0; i < warmup; i++) compileHandoff(spec, seed, { budget });
 
   const times: number[] = [];
   let trackHash = "";
   for (let i = 0; i < reps; i++) {
     const t0 = process.hrtime.bigint();
-    const res = compileHandoff(spec, seed, { budgets: [budget] });
+    const res = compileHandoff(spec, seed, { budget });
     const t1 = process.hrtime.bigint();
     times.push(Number(t1 - t0) / 1e6);
     // stable signature of the result so we can confirm determinism across reps

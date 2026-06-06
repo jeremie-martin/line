@@ -6,12 +6,12 @@ numbers from the golden JSON. Do not transcribe scores by hand.
 ## 1. Run the curve and capture JSON
 
 ```bash
-# Full canonical run = 24 seeds × dense 5k–175k grid.
+# Full canonical run = 24 seeds × budgets {25,50,100,150,200}k (each an independent run).
 LR_ENGINE=wasm npx tsx scripts/v0/golden.ts --jobs=6 --archive-dir=generated/golden-runs/rebaseline
 ```
 
-The JSON contains the `headline` block (`score`, `ceiling`, `log_auc`, `alpha`,
-`score_budgets`, `validity`) — the **baseline of record** — plus the legacy
+The JSON contains the `headline` block (`kind`, `tier`, `score`, `weight_by_budget`,
+`budgets`, `ceiling`/`log_auc` secondaries, `validity`) — the **baseline of record** — plus the legacy
 `curve_score`, `budgets`, `budget_scores`, `evaluator_fingerprint`, `source` git
 metadata, `scope`, and checkpoint rows with compact stats and track hashes. The
 run writes
@@ -44,12 +44,13 @@ constant.
 - Changes to the scorer, speed ruler, axis measurement/report assembly, or any
   golden spec are deliberate ruler changes. Update the constant in the same
   commit; scores before and after are not comparable.
-- Changing `GOLDEN_SEEDS`, `DEFAULT_BUDGETS`, `CANONICAL_SCORE_BUDGETS`, the
-  headline aggregation (`metric.ts`), or the `--alpha`/`--score-budgets` flags does
-  NOT change the fingerprint (it hashes the per-run ruler + golden specs only). It
-  does change what a "canonical run" is, so re-baseline the recorded numbers — and
-  `decide` will refuse to compare archives whose fingerprint, seeds, or budgets
-  differ, so a stale baseline fails loudly rather than silently.
+- Changing `GOLDEN_SEEDS`, `DEFAULT_BUDGETS`, the budget weights, or the headline
+  aggregation (`metric.ts`) does NOT change the fingerprint (it hashes the per-run
+  ruler + golden specs only). It does change what a "canonical run" is, so re-baseline
+  the recorded numbers — and `decide` will refuse to compare archives whose
+  fingerprint differs, whose budget weighting differs, or that predate the
+  weighted-average metric (no `headline.kind`), so a stale baseline fails loudly
+  rather than silently.
 
 Recompute without a full run using the same source slices as
 `scripts/v0/golden.ts`:
@@ -68,8 +69,8 @@ Run the generator:
 npx tsx scripts/v0/update_compiler_doc.ts generated/golden-runs/rebaseline/golden.json
 ```
 
-It fills the baseline regions from the curve JSON: hero label, `CURVE_SCORE`,
-the budget table, largest-budget per-spec rows, and the campaign chart point.
+It fills the baseline regions from the curve JSON: hero label, weighted HEADLINE
+score, the budget table, largest-budget per-spec rows, and the campaign chart point.
 
 ### b) `docs/HOW_TO_WORK.md` — "Current baseline (of record)"
 

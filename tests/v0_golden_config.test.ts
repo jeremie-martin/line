@@ -1,11 +1,12 @@
 import { describe, expect, test } from "vitest";
 import {
-  CANONICAL_SCORE_BUDGETS,
   DEFAULT_BUDGETS,
+  FAST_PROBE_BUDGETS,
   GOLDEN_SEEDS,
   GOLDEN_SPECS,
   REPORT_VARIANTS,
   applyVariant,
+  budgetWeights,
   compilerWorkerTimeoutBudget,
   compilerWorkerTimeoutMs,
   headlineCases,
@@ -130,15 +131,20 @@ describe("v0 golden configuration", () => {
     }
   });
 
-  test("default budget curve is the dense anytime grid (5k..175k step 5k)", () => {
-    expect(DEFAULT_BUDGETS).toHaveLength(35);
-    expect(DEFAULT_BUDGETS[0]).toBe(5_000);
-    expect(DEFAULT_BUDGETS[DEFAULT_BUDGETS.length - 1]).toBe(175_000);
-    for (let i = 1; i < DEFAULT_BUDGETS.length; i++) {
-      expect(DEFAULT_BUDGETS[i] - DEFAULT_BUDGETS[i - 1]).toBe(5_000);
-    }
-    // canonical few (for cross-era comparison / future budget-aware mode) are on the grid
-    for (const b of CANONICAL_SCORE_BUDGETS) expect(DEFAULT_BUDGETS).toContain(b);
+  test("canonical budget grid is {25,50,100,150,200}k; fast probe is a subset", () => {
+    expect([...DEFAULT_BUDGETS]).toEqual([25_000, 50_000, 100_000, 150_000, 200_000]);
+    expect([...FAST_PROBE_BUDGETS]).toEqual([25_000, 200_000]);
+    // fast probe budgets are a strict subset of canonical, so `decide` can pair them.
+    for (const b of FAST_PROBE_BUDGETS) expect(DEFAULT_BUDGETS).toContain(b);
+  });
+
+  test("budget weights are value-proportional, keyed by budget, sum to 1, increasing", () => {
+    const w = budgetWeights(DEFAULT_BUDGETS);
+    expect(w.map((x) => x.budget)).toEqual([...DEFAULT_BUDGETS]);
+    const sum = DEFAULT_BUDGETS.reduce((s, b) => s + b, 0);
+    for (const { budget, weight } of w) expect(weight).toBeCloseTo(budget / sum, 9);
+    expect(w.reduce((s, x) => s + x.weight, 0)).toBeCloseTo(1, 9);
+    for (let i = 1; i < w.length; i++) expect(w[i].weight).toBeGreaterThan(w[i - 1].weight);
   });
 
   test("golden seeds default to the contiguous 24-seed population (paired-decision power; see metric_problem_statement.md)", () => {
@@ -149,17 +155,16 @@ describe("v0 golden configuration", () => {
     ]);
   });
 
-  test("checkpoint verification timeout accounts for standalone checkpoint compiles", () => {
-    expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, false)).toBe(175_000);
-    expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, true)).toBe(3_325_000);
-
-    const normalTimeout = compilerWorkerTimeoutMs(
-      compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, false),
+  test("worker timeout budget is the SUM of the independent per-budget runs", () => {
+    // Each budget is now an independent full run, so one worker's work for a
+    // (spec, seed) is the SUM of the grid's budgets, not the max of one shared run.
+    const sum = DEFAULT_BUDGETS.reduce((s, b) => s + b, 0); // 525_000
+    expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS)).toBe(sum);
+    expect(compilerWorkerTimeoutBudget([25_000])).toBe(25_000);
+    // more budgets -> at-least-as-large a timeout
+    expect(compilerWorkerTimeoutMs(compilerWorkerTimeoutBudget([25_000]))).toBeLessThanOrEqual(
+      compilerWorkerTimeoutMs(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS)),
     );
-    const verifyingTimeout = compilerWorkerTimeoutMs(
-      compilerWorkerTimeoutBudget(DEFAULT_BUDGETS, true),
-    );
-    expect(verifyingTimeout).toBeGreaterThan(normalTimeout);
   });
 
   test("deterministic variants preserve valid spec timelines", async () => {

@@ -53,8 +53,7 @@ function key(spec: string, seed: number): string {
 async function compileCell(spec: string, seed: number): Promise<Cell> {
   // deno-lint-ignore no-explicit-any
   const loaded = await loadGoldenSpec(spec as any, "base" as any);
-  const res = compileHandoff(loaded, seed, { budgets: [BUDGET] });
-  const cp = res.checkpoints[res.checkpoints.length - 1];
+  const cp = compileHandoff(loaded, seed, { budget: BUDGET });
   const hash = createHash("sha256")
     .update(JSON.stringify({ track: cp.track, stats: cp.stats }))
     .digest("hex")

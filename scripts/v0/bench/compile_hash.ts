@@ -19,8 +19,7 @@ async function main() {
 
   // deno-lint-ignore no-explicit-any
   const spec = await loadGoldenSpec(specName as any, variant as any);
-  const res = compileHandoff(spec, seed, { budgets: [budget] });
-  const cp = res.checkpoints[res.checkpoints.length - 1];
+  const cp = compileHandoff(spec, seed, { budget });
   const track = cp.track;
   // Hash the COMPILED TRACK *and* the deterministic search stats. For the
   // handoff path cp.track.lines is often empty — the meaningful, fully

@@ -137,8 +137,8 @@ async function probeRow(specName: string, seed: number, budget: number): Promise
   // 1) Compile exactly as the harness does; capture the best full-duration node.
   let bestNode: HandoffNode | null = null;
   let bestKey: LeafKey | null = null;
-  const res = compileHandoff(spec, seed, {
-    budgets: [budget],
+  const last = compileHandoff(spec, seed, {
+    budget,
     onNode: (node, key, event) => {
       if (!event.fullDuration) return;
       if (bestKey === null || isStrictlyBetter(key, bestKey)) {
@@ -147,7 +147,6 @@ async function probeRow(specName: string, seed: number, budget: number): Promise
       }
     },
   });
-  const last = res.checkpoints[res.checkpoints.length - 1];
   const sc = scoreDriftReport(last.report);
 
   // 2) OUTSIDE the metered search: build gaps + regions, measure region cost.

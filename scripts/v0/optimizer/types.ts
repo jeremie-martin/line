@@ -47,13 +47,9 @@ export type CompileOutput = {
   stats: CompileStats;
 };
 
+/** A compiler entry point produces one checkpoint per (independent) budget run. */
 export type CompileCheckpoint = CompileOutput & {
   budget: CompileBudget;
-};
-
-/** Outputs from a compiler entry point. */
-export type CompileResult = {
-  checkpoints: CompileCheckpoint[];
 };
 
 /** A scalar score used for "is track A better than track B" comparisons.

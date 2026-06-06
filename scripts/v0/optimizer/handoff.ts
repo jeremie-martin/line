@@ -9,12 +9,13 @@
  *   "If we commit this catch, does the next contact remain reachable, and how
  *    much candidate slack does it have?"
  *
- * That probe is engine-in-loop and charged in sim-frames, but it is a fixed
- * policy decision independent of the caller's budgets. Budgets only define
- * checkpoints along the deterministic node sequence; a strict best-so-far
- * register ranks every prefix output considered. The budget contract only
- * requires that checkpoints expose prefixes of one deterministic node sequence;
- * the search policy itself does not read the budgets.
+ * That probe is engine-in-loop and charged in sim-frames. Each call runs at one
+ * scalar budget (an independent full run; the budget is the stop condition) and a
+ * strict best-so-far register ranks every prefix output considered, returning the
+ * best reached at that budget. The enforced contract is determinism per
+ * (spec, seed, budget). NOTE: this step's search does not yet READ the budget to
+ * change its policy — making it budget-aware is the next project (see
+ * `docs/compiler_goals.md`).
  */
 
 import { detect, extractRawTrajectory, getRiderMetered } from "../../lib/detector.ts";
@@ -88,15 +89,17 @@ import type { Candidate, SpecContext } from "./sample.ts";
 import type {
   CompileCheckpoint,
   CompileOutput,
-  CompileResult,
   CompileStats,
   DriftReport,
   Spec,
 } from "./types.ts";
 
 export type CompileHandoffOptions = {
-  /** Ascending simulated-frame checkpoints to return from one deterministic run. */
-  budgets?: number[];
+  /** Simulated-frame budget for this run. One scalar budget = one independent full
+   *  run from scratch; pass multiple budgets by calling N times (see
+   *  `compileBudgetCurve`). The search policy is still budget-oblivious this step —
+   *  the budget is only the stop condition. */
+  budget: number;
   /** Fixed search-size cap, independent of budget. Keeps unbudgeted probes finite. */
   maxNodes?: number;
   /** Clone-and-test polish variants for each prefix considered. Default false. */
@@ -408,8 +411,8 @@ const PREFIX_BRANCH_MAX_AXIS_QUALITY = 0.5;
 /** Conservative production version of the prefix-branch probe: once a passing
  *  incumbent exists, occasionally clone a clean baseline-lane prefix into one
  *  alternate downstream sample lane. The clone is ordinary frontier work and
- *  the existing register remains the only selector, so this preserves the
- *  anytime/checkpoint contract. */
+ *  the existing register remains the only selector, so this preserves
+ *  determinism per (spec, seed, budget). */
 const PREFIX_BRANCH_LANE = 1;
 const PREFIX_BRANCH_FRONTIER_INTERVAL = 4;
 const PREFIX_BRANCH_MIN_PREFIX_CONTACTS = 4;
@@ -423,8 +426,8 @@ const PREFIX_BRANCH_STALLED_FULL_EVAL_CAP = 24;
 export function compileHandoff(
   userSpec: Spec,
   seed = 0,
-  opts: CompileHandoffOptions = {},
-): CompileResult {
+  opts: CompileHandoffOptions,
+): CompileCheckpoint {
   return compileHandoffInternal(userSpec, seed, opts, null);
 }
 
@@ -432,9 +435,49 @@ export function compileHandoffFromSnapshot(
   userSpec: Spec,
   seed: number,
   snapshot: HandoffNodeSnapshot,
-  opts: CompileHandoffOptions = {},
-): CompileResult {
+  opts: CompileHandoffOptions,
+): CompileCheckpoint {
   return compileHandoffInternal(userSpec, seed, opts, snapshot);
+}
+
+/** Build a budget->checkpoint curve as N INDEPENDENT full runs from scratch (no
+ *  anytime sharing) — the single place that defines "a curve is one compile per
+ *  budget, merging the shared opts". `runOne` is the per-budget compile call. */
+function budgetCurve(
+  budgets: number[],
+  opts: Omit<CompileHandoffOptions, "budget">,
+  runOne: (o: CompileHandoffOptions) => CompileCheckpoint,
+): CompileCheckpoint[] {
+  return budgets.map((budget) => runOne({ ...opts, budget }));
+}
+
+/** Diagnostic helper: a budget->checkpoint curve as N independent `compileHandoff` runs. */
+export function compileBudgetCurve(
+  userSpec: Spec,
+  seed: number,
+  budgets: number[],
+  opts: Omit<CompileHandoffOptions, "budget"> = {},
+): CompileCheckpoint[] {
+  return budgetCurve(budgets, opts, (o) => compileHandoff(userSpec, seed, o));
+}
+
+/** Snapshot-resumed variant of `compileBudgetCurve` (N independent suffix runs). */
+export function compileBudgetCurveFromSnapshot(
+  userSpec: Spec,
+  seed: number,
+  snapshot: HandoffNodeSnapshot,
+  budgets: number[],
+  opts: Omit<CompileHandoffOptions, "budget"> = {},
+): CompileCheckpoint[] {
+  return budgetCurve(budgets, opts, (o) => compileHandoffFromSnapshot(userSpec, seed, snapshot, o));
+}
+
+/** Find the checkpoint for `budget` in a `compileBudgetCurve*` result; throws if
+ *  absent. Shared by the diagnostic oracle/probe scripts. */
+export function checkpointAt(curve: CompileCheckpoint[], budget: number): CompileCheckpoint {
+  const found = curve.find((c) => c.budget === budget);
+  if (found === undefined) throw new Error(`missing checkpoint for budget ${budget}`);
+  return found;
 }
 
 function compileHandoffInternal(
@@ -442,7 +485,7 @@ function compileHandoffInternal(
   seed: number,
   opts: CompileHandoffOptions,
   initialSnapshot: HandoffNodeSnapshot | null,
-): CompileResult {
+): CompileCheckpoint {
   if (!Number.isSafeInteger(seed)) {
     throw new Error(`compileHandoff: seed must be a safe integer, got ${seed}`);
   }
@@ -450,7 +493,7 @@ function compileHandoffInternal(
   if (!Number.isSafeInteger(searchSeed)) {
     throw new Error(`compileHandoff: searchSeed must be a safe integer, got ${searchSeed}`);
   }
-  const budgets = normalizeBudgets(opts.budgets);
+  const targetBudget = validateBudget(opts.budget);
   const maxNodes = opts.maxNodes ?? DEFAULT_MAX_NODES;
   if (!Number.isInteger(maxNodes) || maxNodes < 1) {
     throw new Error(`compileHandoff: maxNodes must be a positive integer, got ${maxNodes}`);
@@ -562,8 +605,7 @@ function compileHandoffInternal(
     let polishAdopted = 0;
     const evaluationCache = new WeakMap<SearchNode, NodeEvaluation>();
     const consideredSearchNodes = new WeakSet<SearchNode>();
-    const checkpoints: CompileCheckpoint[] = [];
-    let nextBudgetIndex = 0;
+    let captured: CompileCheckpoint | null = null;
     const prefixBranches = createPrefixBranchController(
       initialSnapshot === null && (opts.searchSeed === undefined || opts.searchSeed === seed),
       searchSeed,
@@ -725,10 +767,12 @@ function compileHandoffInternal(
       };
     };
 
-    const captureReachedBudgets = (): void => {
-      while (nextBudgetIndex < budgets.length && getSimFrames() >= budgets[nextBudgetIndex]) {
-        checkpoints.push(snapshot(budgets[nextBudgetIndex], true));
-        nextBudgetIndex++;
+    // Capture the single requested budget the first time sim-frames reach it, at
+    // the exact loop checkpoint the anytime path captured it — this verbatim timing
+    // is what keeps a scalar run byte-identical to the old anytime checkpoint.
+    const captureReachedBudget = (): void => {
+      if (captured === null && getSimFrames() >= targetBudget) {
+        captured = snapshot(targetBudget, true);
       }
     };
 
@@ -742,16 +786,16 @@ function compileHandoffInternal(
       );
       telemetry.frontierSelections++;
       if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {
-        captureReachedBudgets();
-        if (nextBudgetIndex >= budgets.length) break;
+        captureReachedBudget();
+        if (captured !== null) break;
         continue;
       }
 
       consider(node, "main");
 
       if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {
-        captureReachedBudgets();
-        if (nextBudgetIndex >= budgets.length) break;
+        captureReachedBudget();
+        if (captured !== null) break;
         continue;
       }
 
@@ -789,13 +833,13 @@ function compileHandoffInternal(
       }
 
       if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {
-        captureReachedBudgets();
-        if (nextBudgetIndex >= budgets.length) break;
+        captureReachedBudget();
+        if (captured !== null) break;
         continue;
       }
 
-      captureReachedBudgets();
-      if (nextBudgetIndex >= budgets.length) break;
+      captureReachedBudget();
+      if (captured !== null) break;
 
       if (node.deferExpansion) {
         enqueueDeferred({ ...node, deferExpansion: false }, passStack, fallbackStack);
@@ -904,13 +948,13 @@ function compileHandoffInternal(
       );
     }
 
-    while (nextBudgetIndex < budgets.length) {
-      const budget = budgets[nextBudgetIndex];
-      checkpoints.push(snapshot(budget, getSimFrames() >= budget));
-      nextBudgetIndex++;
+    // Frontier exhausted (or node cap hit) before the budget was reached: snapshot
+    // the converged best, flagging whether the budget was actually exhausted.
+    if (captured === null) {
+      captured = snapshot(targetBudget, getSimFrames() >= targetBudget);
     }
 
-    return { checkpoints };
+    return captured;
   }
 }
 
@@ -1036,23 +1080,14 @@ function rankTraceEntryForOption(option: RankedOption): HandoffRankTraceEntry {
     : { rank: option.rank, source: option.source, sourceAxis: option.sourceAxis };
 }
 
-function normalizeBudgets(raw: number[] | undefined): number[] {
-  if (raw === undefined || raw.length === 0) {
-    throw new Error("compileHandoff: budgets must contain at least one positive number");
+function validateBudget(raw: number | undefined): number {
+  if (raw === undefined) {
+    throw new Error("compileHandoff: a budget is required");
   }
-  const budgets = raw.slice();
-  const seen = new Set<number>();
-  for (let i = 0; i < budgets.length; i++) {
-    const budget = budgets[i];
-    if (!Number.isSafeInteger(budget) || budget <= 0) {
-      throw new Error(`compileHandoff: budgets must be positive safe integers, got ${raw[i]}`);
-    }
-    if (seen.has(budget)) {
-      throw new Error(`compileHandoff: duplicate budget ${budget}`);
-    }
-    seen.add(budget);
+  if (!Number.isSafeInteger(raw) || raw <= 0) {
+    throw new Error(`compileHandoff: budget must be a positive safe integer, got ${raw}`);
   }
-  return budgets.sort((a, b) => a - b);
+  return raw;
 }
 
 function activeFrontier(

@@ -23,9 +23,10 @@ rescues are currently enabled:
 - a moderate-speed overshoot rescue for physically catchable braking states;
 - a short-deadline rescue for clean prefixes at sub-0.3s required-contact gaps.
 
-Both keep the common path cheap and budget-independent: they run only after the
-normal batch has no viable catch, and the policy is a pure function of the local
-gap/prefix state, not remaining budget.
+Both keep the common path cheap: they run only after the normal batch has no viable
+catch, and the policy is a pure function of the local gap/prefix state. (Today's
+search does not yet read the requested budget; making it budget-aware is the next
+project — see `compiler_goals.md`.)
 
 Candidate sampling is memoized per search node as an extendable deterministic
 prefix. Before any passing output exists, normal expansion samples a 14-attempt
@@ -40,9 +41,10 @@ requests are answered by filtering the stored sample attempts, so the smaller
 deterministic prefix is still exact.
 
 The preview is engine-in-loop and charged in simulated frames. It is also a pure
-policy function of `(spec, seed, prefix)`; it does not read the requested
-budgets. Budgets only define checkpoints along the deterministic prefix-node
-sequence. Future-contact previews use the same extendable per-node candidate
+policy function of `(spec, seed, prefix)`. Each compile runs at one scalar budget (an
+independent full run; the budget is the stop condition). Today's policy does not yet
+read the budget — making it budget-aware is the next project (see `compiler_goals.md`).
+Future-contact previews use the same extendable per-node candidate
 cache as expansion, and expansion carries the previewed child node forward, so
 the previewed first future-contact sample can be reused when that branch is
 later expanded. The preview's first future local cost is a small ranking signal
@@ -150,10 +152,10 @@ LR_ENGINE=wasm npm run golden -- --compiler=handoff --jobs=6
 
 The command reports the **HEADLINE** metric (and legacy CURVE_SCORE), per-budget
 scores, row checkpoint hashes, and compact checkpoint stats. Targeted probes use
-the same shape (canonical scoring budgets: `--score-budgets=50000,100000,150000`):
+the same shape, on a subset of the canonical budgets (e.g. `--budgets=25000,200000`):
 
 ```bash
-LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst --seed=0 --budgets=30000,50000,70000 --verify-checkpoints --jobs=6
+LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst --seed=0 --budgets=30000,50000,70000 --jobs=6
 ```
 
 ## Known Frontier

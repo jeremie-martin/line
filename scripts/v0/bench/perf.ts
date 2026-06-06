@@ -58,7 +58,7 @@ async function main() {
 
   // Warmup: full set, untimed (JIT, caches, GC settle).
   for (let i = 0; i < warmup; i++) {
-    for (const l of loaded) compileHandoff(l.spec as never, seed, { budgets: [budget] });
+    for (const l of loaded) compileHandoff(l.spec as never, seed, { budget });
   }
 
   // Timed runs. Per rep we record each spec's ms and the rep's overall
@@ -73,9 +73,8 @@ async function main() {
     for (let s = 0; s < loaded.length; s++) {
       const l = loaded[s];
       const t0 = process.hrtime.bigint();
-      const res = compileHandoff(l.spec as never, seed, { budgets: [budget] });
+      const cp = compileHandoff(l.spec as never, seed, { budget });
       const ms = Number(process.hrtime.bigint() - t0) / 1e6;
-      const cp = res.checkpoints[res.checkpoints.length - 1];
       const frames = cp.stats?.sim_frames ?? 0;
       const sig = `${cp.track?.lines?.length ?? -1}:${frames}`;
       if (l.sig === "") { l.sig = sig; l.frames = frames; }

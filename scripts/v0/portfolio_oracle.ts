@@ -23,9 +23,9 @@ import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { EXPLORATORY_BUDGETS, GOLDEN_SEEDS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { scoreDriftReport, shiftedGeometricMean } from "./score.ts";
-import { compileHandoff } from "./optimizer/handoff.ts";
+import { checkpointAt, compileBudgetCurve } from "./optimizer/handoff.ts";
 import { secToFrame } from "./types.ts";
-import type { CompileCheckpoint, CompileResult } from "./optimizer/types.ts";
+import type { CompileCheckpoint } from "./optimizer/types.ts";
 
 type Args = {
   specs: GoldenSpecName[];
@@ -138,12 +138,6 @@ function searchSeedForLane(publicSeed: number, lane: number): number {
   ) | 0;
 }
 
-function checkpoint(result: CompileResult, budget: number): CompileCheckpoint {
-  const found = result.checkpoints.find((candidate) => candidate.budget === budget);
-  if (found === undefined) throw new Error(`missing checkpoint for budget ${budget}`);
-  return found;
-}
-
 function trackHash(checkpoint: CompileCheckpoint): string {
   return createHash("sha256").update(JSON.stringify(checkpoint.track)).digest("hex");
 }
@@ -237,8 +231,7 @@ async function runRow(specName: GoldenSpecName, seed: number, args: Args): Promi
           laneBudgets.map(fmtBudget).join(","),
       );
     }
-    const result = compileHandoff(spec, seed, {
-      budgets: laneBudgets,
+    const result = compileBudgetCurve(spec, seed, laneBudgets, {
       searchSeed,
       maxNodes: args.maxNodes,
       polish: args.polish,
@@ -246,7 +239,7 @@ async function runRow(specName: GoldenSpecName, seed: number, args: Args): Promi
     byLane.set(
       lane,
       laneBudgets.map((budget) =>
-        scoreCheckpoint(checkpoint(result, budget), totalFrames, lane, searchSeed)
+        scoreCheckpoint(checkpointAt(result, budget), totalFrames, lane, searchSeed)
       ),
     );
     if (args.progress) {

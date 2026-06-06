@@ -13,18 +13,22 @@ campaign doc for whatever you're improving. The doc map is `docs/README.md`.
 
 ## How to run
 
-Two tiers, cheap → authoritative:
+Each budget is an **independent full run** (no anytime/shared checkpoints): passing N
+budgets runs N compiles per (spec, seed). Two tiers, cheap → authoritative:
 
-1. **tiny** — fast iteration, **not a decision basis**:
+1. **probe** — fast iteration, **not a decision basis**. A lower-power preview in the
+   same score space (the fast-probe budget endpoints + a few seeds), comparable to
+   canonical via `decide` on the shared specs/seeds/budgets; archives are `tier:"probe"`
+   and non-promotable:
 
    ```bash
-   LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4 npm run golden -- \
+   LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- \
      --specs=tiny_dance,opening_burst \
-     --budgets=5000,15000,25000,35000,45000,55000,65000,75000,85000,95000,105000,115000,125000 \
+     --budgets=25000,200000 \
      --jobs=6
    ```
 
-2. **canonical** — 20 specs × 24 seeds × dense 5k–175k grid; the **only
+2. **canonical** — 20 specs × 24 seeds × budgets `{25,50,100,150,200}k`; the **only
    promotable basis**:
 
    ```bash
@@ -49,9 +53,14 @@ Two tiers, cheap → authoritative:
 npm run decide -- <candidate>/golden.json <baseline>/golden.json
 ```
 
-Paired cluster-bootstrap VERDICT: **accept** iff the headline-Δ 95% CI lower bound > 0
-**and** validity does not regress at the ceiling budget. The HEADLINE formula and the
-frozen ruler live in [`docs/compiler_goals.md`](compiler_goals.md); the implementation is
+Paired cluster-bootstrap VERDICT: **accept** iff the headline-Δ 95% CI lower bound > 0.
+The HEADLINE is the budget-value-weighted average of the per-budget suite scores;
+validity is **reported per budget but never gates** (an invalid run already scores ~0).
+`decide` recomputes both sides on the shared budgets, so a `probe`-tier or
+fewer-seed archive still produces a valid paired comparison — just **indicative /
+non-promotable** (and `decide` labels it so). It **refuses** legacy (pre-weighted-average)
+archives and never compares raw scalars across different budget grids. The metric and
+ruler live in [`docs/compiler_goals.md`](compiler_goals.md); the implementation is
 `scripts/v0/metric.ts` + `scripts/v0/analyze_golden_curve.ts`. A raw score delta is not
 an acceptance rule; the active compiler campaign adds a promotion threshold after
 `decide`. On a positive-but-inconclusive result, `decide` prints how many more seeds
@@ -65,9 +74,10 @@ The baseline of record is the **generated** [`docs/handoff-compiler.html`](hando
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
 - Evaluator fingerprint: **`9b9776df145f`** (`scripts/v0/golden_suite.ts`).
-- Current committed compiler: `compileHandoff`. The canonical seed population is now
-  24 seeds; refresh the generated HTML from a 24-seed rebaseline before quoting live
-  HEADLINE numbers.
+- Current committed compiler: `compileHandoff`. Latest 24-seed canonical baseline
+  (budgets `{25,50,100,150,200}k`, weighted-average HEADLINE): **HEADLINE ≈ 534.2**
+  (ceiling ≈ 588.1, logAUC ≈ 408.2), validity 480/480 at 200k. Refresh the generated
+  HTML from a fresh 24-seed rebaseline before quoting live numbers.
 
 ## Active campaigns
 
@@ -75,13 +85,10 @@ Point work at one of these; each carries its own particularities (the *what to t
 the *scoreboard*), but all share the metric, decision rule, and principles here:
 
 - **Compiler improvement** — [`GOAL_LDS_COMPILER_IMPROVEMENT.md`](../GOAL_LDS_COMPILER_IMPROVEMENT.md).
-  The primary campaign for raising HEADLINE across the compiler.
-- **Fragile specs** — [`FOCUS_FRAGILE_SPECS.md`](../FOCUS_FRAGILE_SPECS.md). A side
-  campaign to make 5 unstable specs reliable. Note: it uses a **different harness** —
-  fresh seeds 200–219 and a curve metric over 60k–120k, *not* the headline suite — and
-  deliberately trades a little headline mean for robustness.
+  The primary (and current standard) campaign for raising HEADLINE across the compiler.
 
-Finished campaigns live under `docs/archive/` (historical record, not live guidance).
+Earlier campaigns (arc placement, fragile specs, plateau, low-budget) live under
+`docs/archive/` (historical record, not live guidance).
 
 ## Working principles
 

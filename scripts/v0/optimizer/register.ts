@@ -6,9 +6,9 @@
  * (which falls out of "only swap on strict improvement, considered
  * in E order") give two properties simultaneously:
  *
- *   1. Monotonicity-in-budget: more considered outputs -> never worse best.
- *   2. Budget-stable ties: equal-quality leaves don't flip the
- *      answer as budget grows.
+ *   1. Monotonic best-so-far: more considered outputs -> never a worse best.
+ *   2. Stable ties: equal-quality leaves don't flip the answer as more
+ *      outputs are considered.
  *
  * Comparator, in order:
  *   1. `contract_passed` — a passing leaf strictly dominates any

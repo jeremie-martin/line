@@ -197,13 +197,10 @@ export type DriftReport = {
 };
 
 /**
- * Per-compile work counters. Non-modifying instrumentation for the
- * anytime-budget investigation — captures where the compiler spends
- * effort so we can pick a cheat-resistant iteration unit later.
- *
- * Counters are captured per budget checkpoint. Work counters such as
- * `sim_frames` and `leaves_considered` are monotonic across checkpoints within
- * one `compile()` call and reset at the top of each call.
+ * Per-compile work counters. Non-modifying instrumentation that captures where the
+ * compiler spends effort. Each compile is one independent run at a single budget;
+ * counters such as `sim_frames` and `leaves_considered` accumulate within that run
+ * and reset at the top of each `compile()` call.
  */
 export type CompileStats = {
   // ─── Generic compile counters ───

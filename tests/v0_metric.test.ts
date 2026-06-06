@@ -1,20 +1,21 @@
 import { describe, expect, test } from "vitest";
 import {
   ceilingAt,
-  headlineScore,
   logAUC,
   pairedBootstrapCI,
-  parseAlpha,
   parseBudgetList,
-  selectScoreBudgets,
   suiteFromGroups,
+  weightedBudgetScore,
+  type BudgetWeight,
   type CurvePoint,
   type ScoreCube,
   type ValidCube,
 } from "../scripts/v0/metric.ts";
+import { budgetWeights } from "../scripts/v0/golden_suite.ts";
 import { shiftedGeometricMean } from "../scripts/v0/score.ts";
 
 const BUDGETS = [50_000, 100_000, 200_000];
+const WEIGHTS: BudgetWeight[] = budgetWeights(BUDGETS);
 
 function pts(scores: number[], budgets = BUDGETS): CurvePoint[] {
   return budgets.map((budget, i) => ({ budget, score: scores[i] }));
@@ -48,63 +49,55 @@ function validCube(specs: string[], seeds: number[], f: (spec: string) => boolea
   return cube;
 }
 
-describe("logAUC", () => {
-  test("grid-invariance: refining a grid on the same log-linear curve is unchanged", () => {
-    const f = (budget: number) => 50 + 30 * Math.log(budget);
-    const coarse = logAUC([50_000, 200_000].map((b) => ({ budget: b, score: f(b) })));
-    const fine = logAUC([50_000, 100_000, 200_000].map((b) => ({ budget: b, score: f(b) })));
-    expect(Math.abs(coarse - fine)).toBeLessThan(1e-6);
+describe("weightedBudgetScore", () => {
+  test("weights are proportional to budget value — the largest budget dominates", () => {
+    // {50,100,200}k -> normalized weights {1/7, 2/7, 4/7}. Improving the TOP budget
+    // raises the headline more than the same improvement at the cheapest budget.
+    const improveTop = weightedBudgetScore(pts([300, 300, 400]), WEIGHTS);
+    const improveBottom = weightedBudgetScore(pts([400, 300, 300]), WEIGHTS);
+    expect(improveTop).toBeGreaterThan(improveBottom);
   });
 
-  test("monotonicity: a uniformly higher curve has higher logAUC", () => {
-    const a = logAUC(pts([300, 350, 400]));
-    const b = logAUC(pts([350, 400, 450]));
-    expect(b).toBeGreaterThan(a);
-    expect(Math.abs(b - a - 50)).toBeLessThan(1e-6); // +50 everywhere -> +50 logAUC
+  test("a uniformly higher curve scores exactly +delta higher", () => {
+    const a = weightedBudgetScore(pts([300, 350, 400]), WEIGHTS);
+    const b = weightedBudgetScore(pts([350, 400, 450]), WEIGHTS);
+    expect(b - a).toBeCloseTo(50, 9);
+  });
+
+  test("explicit weighted mean matches Σw·s/Σw", () => {
+    const scores = [300, 360, 600];
+    const sumW = WEIGHTS.reduce((s, w) => s + w.weight, 0);
+    const expected = WEIGHTS.reduce((s, w, i) => s + w.weight * scores[i], 0) / sumW;
+    expect(weightedBudgetScore(pts(scores), WEIGHTS)).toBeCloseTo(expected, 9);
+  });
+
+  test("a budget SUBSET renormalizes over the weights actually used", () => {
+    // Only the 50k and 200k points present: divisor is w50+w200, not the full sum.
+    const subset = [
+      { budget: 50_000, score: 300 },
+      { budget: 200_000, score: 600 },
+    ];
+    const w50 = WEIGHTS.find((w) => w.budget === 50_000)!.weight;
+    const w200 = WEIGHTS.find((w) => w.budget === 200_000)!.weight;
+    const expected = (w50 * 300 + w200 * 600) / (w50 + w200);
+    expect(weightedBudgetScore(subset, WEIGHTS)).toBeCloseTo(expected, 9);
   });
 });
 
-describe("headlineScore", () => {
+describe("reported secondaries (not the decision scalar)", () => {
   test("ceilingAt picks the max-budget score", () => {
     expect(ceilingAt(pts([300, 400, 500]))).toBe(500);
   });
 
-  test("alpha=1 reduces to ceiling, alpha=0 reduces to logAUC", () => {
-    const p = pts([300, 400, 500]);
-    expect(headlineScore(p, 1).score).toBeCloseTo(ceilingAt(p), 9);
-    expect(headlineScore(p, 0).score).toBeCloseTo(logAUC(p), 9);
-  });
-
-  test("FAILURE MODE 1: a slow-but-higher-ceiling curve beats an early plateau", () => {
-    const plateau = headlineScore(pts([400, 410, 410])); // great early, low ceiling
-    const climber = headlineScore(pts([200, 350, 500])); // slow start, high ceiling
-    expect(climber.score).toBeGreaterThan(plateau.score);
-  });
-
-  test("FAILURE MODE 2: a single-budget spike does not beat a monotone curve", () => {
-    const spike = headlineScore(pts([0, 600, 0])); // huge mid spike, nothing at the ceiling
-    const monotone = headlineScore(pts([300, 400, 450]));
-    expect(monotone.score).toBeGreaterThan(spike.score);
-  });
-});
-
-describe("selectScoreBudgets", () => {
-  test("default = all; subset keeps only present budgets", () => {
-    expect(selectScoreBudgets(BUDGETS)).toEqual(BUDGETS);
-    expect(selectScoreBudgets(BUDGETS, [100_000, 999_999])).toEqual([100_000]);
+  test("logAUC: a uniformly higher curve has higher logAUC", () => {
+    const a = logAUC(pts([300, 350, 400]));
+    const b = logAUC(pts([350, 400, 450]));
+    expect(b).toBeGreaterThan(a);
+    expect(Math.abs(b - a - 50)).toBeLessThan(1e-6);
   });
 });
 
 describe("CLI value validators", () => {
-  test("parseAlpha accepts [0,1] and rejects NaN / out-of-range", () => {
-    expect(parseAlpha("0.7")).toBe(0.7);
-    expect(parseAlpha("0")).toBe(0);
-    expect(parseAlpha("1")).toBe(1);
-    expect(() => parseAlpha("fast")).toThrow();
-    expect(() => parseAlpha("1.5")).toThrow();
-    expect(() => parseAlpha("-0.1")).toThrow();
-  });
-
   test("parseBudgetList rejects 'k'-suffixed / non-integer / non-positive (no silent parseInt)", () => {
     expect(parseBudgetList("50000,100000")).toEqual([50_000, 100_000]);
     expect(() => parseBudgetList("50k,100k")).toThrow(); // would silently become 50/100 with parseInt
@@ -123,7 +116,6 @@ describe("suiteFromGroups", () => {
     ];
     const expected = shiftedGeometricMean(groups.map((g) => shiftedGeometricMean(g)));
     expect(suiteFromGroups(groups)).toBeCloseTo(expected, 9);
-    // a uniformly higher group set scores strictly higher (no aggregation inversion)
     const higher = groups.map((g) => g.map((v) => v + 50));
     expect(suiteFromGroups(higher)).toBeGreaterThan(suiteFromGroups(groups));
   });
@@ -136,41 +128,55 @@ describe("pairedBootstrapCI", () => {
   test("a large broad gain is accepted with CI clear of zero", () => {
     const base = scoreCube(specs, seeds, () => 300);
     const cand = scoreCube(specs, seeds, () => 500);
-    const d = pairedBootstrapCI(base, cand, BUDGETS, { B: 500, rngSeed: 1 });
+    const d = pairedBootstrapCI(base, cand, BUDGETS, { weightByBudget: WEIGHTS, B: 500, rngSeed: 1 });
     expect(d.verdict).toBe("accept");
     expect(d.ciLo).toBeGreaterThan(0);
     expect(d.pLeZero).toBe(0);
+    expect(d.baseHeadline).toBeCloseTo(300, 5);
+    expect(d.candidateHeadline).toBeCloseTo(500, 5);
     expect(d.delta).toBeCloseTo(200, 5);
   });
 
   test("no real change is inconclusive, not accepted", () => {
     const base = scoreCube(specs, seeds, () => 300);
     const cand = scoreCube(specs, seeds, () => 300);
-    const d = pairedBootstrapCI(base, cand, BUDGETS, { B: 500, rngSeed: 1 });
+    const d = pairedBootstrapCI(base, cand, BUDGETS, { weightByBudget: WEIGHTS, B: 500, rngSeed: 1 });
     expect(d.verdict).toBe("inconclusive");
     expect(d.ciLo).toBeLessThanOrEqual(0);
   });
 
-  test("a validity regression vetoes a quality gain", () => {
+  test("a purely negative change is rejected", () => {
+    const base = scoreCube(specs, seeds, () => 500);
+    const cand = scoreCube(specs, seeds, () => 300);
+    const d = pairedBootstrapCI(base, cand, BUDGETS, { weightByBudget: WEIGHTS, B: 500, rngSeed: 1 });
+    expect(d.verdict).toBe("reject");
+    expect(d.ciHi).toBeLessThan(0);
+  });
+
+  test("validity is REPORTED but does NOT gate the verdict (a quality gain still accepts)", () => {
     const base = scoreCube(specs, seeds, () => 300);
     const cand = scoreCube(specs, seeds, () => 500);
     const vBase = validCube(specs, seeds, () => true);
     const vCand = validCube(specs, seeds, (spec) => spec !== "a"); // spec a now fails
     const d = pairedBootstrapCI(base, cand, BUDGETS, {
+      weightByBudget: WEIGHTS,
       B: 500,
       rngSeed: 1,
       validBase: vBase,
       validCand: vCand,
     });
-    expect(d.ciLo).toBeGreaterThan(0); // quality genuinely improved
-    expect(d.verdict).toBe("reject"); // but validity regressed -> veto
+    expect(d.ciLo).toBeGreaterThan(0);
+    expect(d.verdict).toBe("accept"); // validity regression does NOT veto anymore
+    // ...but the regression is visible in the reported per-budget validity rates.
+    expect(d.validity.length).toBe(BUDGETS.length);
+    for (const v of d.validity) expect(v.candRate).toBeLessThan(v.baseRate);
   });
 
   test("fixed rngSeed is reproducible", () => {
     const base = scoreCube(specs, seeds, (s, se) => 300 + se * 10);
     const cand = scoreCube(specs, seeds, (s, se) => 320 + se * 10);
-    const a = pairedBootstrapCI(base, cand, BUDGETS, { B: 500, rngSeed: 7 });
-    const b = pairedBootstrapCI(base, cand, BUDGETS, { B: 500, rngSeed: 7 });
+    const a = pairedBootstrapCI(base, cand, BUDGETS, { weightByBudget: WEIGHTS, B: 500, rngSeed: 7 });
+    const b = pairedBootstrapCI(base, cand, BUDGETS, { weightByBudget: WEIGHTS, B: 500, rngSeed: 7 });
     expect(a.ciLo).toBe(b.ciLo);
     expect(a.ciHi).toBe(b.ciHi);
   });

@@ -6,17 +6,18 @@ The compiler turns a musical/rhythm `Spec` into a Line Rider `Track` and
 
 ## Contract
 
-1. **Monotonicity in compute.** For the same `(spec, seed)`, a larger sim-frame
-   budget checkpoint must not return a worse register key than a smaller budget.
-   The search policy must be deterministic and budget-independent; budgets only
-   snapshot/truncate the node sequence.
+1. **Budget is an input.** Each budget is an independent full run from scratch; the
+   search may use the requested budget to drive effort allocation. Passing N budgets
+   means N runs (no anytime/shared-checkpoint mode). Monotonicity across budgets is a
+   reported diagnostic, not a contract — a budget-aware search may legitimately spend
+   a small budget differently than a prefix of a large-budget run.
 2. **Wall-clock predictability.** Sim-frame budget should be a meaningful runtime
    knob. Wall-clock is measured for diagnostics, never used in scoring.
 3. **Cheat resistance.** Work is charged as simulated rider frames at the
    trajectory-extraction boundary. Extra physical validation must show up as more
    charged frames.
-4. **Determinism.** The same `(spec, seed, budgets)` must produce
-   byte-identical checkpoint `Track`s for a given compiler build.
+4. **Determinism.** The same `(spec, seed, budget)` must produce a byte-identical
+   `Track` for a given compiler build.
 
 ## Held Constant
 
@@ -40,15 +41,16 @@ and may evolve independently of the per-run scorer.)
   handoff-specific diagnostics.
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
-- `LR_ENGINE=wasm npm run golden` runs the full suite (24 seeds {0..23}, dense
-  5k–175k grid) and reports the **HEADLINE** metric (`α·q(b_max) + (1−α)·logAUC`,
-  α=0.7) plus the per-budget curve and the legacy CURVE_SCORE. For the full run use
+- `LR_ENGINE=wasm npm run golden` runs the full suite (24 seeds {0..23}, budgets
+  `{25,50,100,150,200}k`) and reports the **HEADLINE** metric (the budget-value-weighted
+  average of the per-budget suite scores) plus the per-budget curve, the reported
+  secondaries `ceiling`/`logAUC`, and the legacy CURVE_SCORE. For the full run use
   `--jobs=6` unless you deliberately need a different worker count.
 - To decide a change is a real improvement, run
   `npm run decide -- <candidate>/golden.json <baseline>/golden.json` — a paired
-  cluster-bootstrap VERDICT (accept iff the headline-Δ CI lower bound > 0 and
-  validity does not regress at the ceiling budget). Raw score deltas are not an
-  acceptance rule; promotion thresholds live in active campaign docs.
+  cluster-bootstrap VERDICT (accept iff the headline-Δ CI lower bound > 0). Validity is
+  reported per budget but does not gate. Raw score deltas are not an acceptance rule;
+  promotion thresholds live in active campaign docs.
 
 Any compiler change should preserve these tests and report its impact through the
 golden breakdown: the `headline` block (score / ceiling / logAUC / validity),

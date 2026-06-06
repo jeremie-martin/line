@@ -15,13 +15,14 @@ import { dirname, resolve } from "node:path";
 import { EXPLORATORY_BUDGETS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { scoreDriftReport, shiftedGeometricMean } from "./score.ts";
 import {
-  compileHandoff,
-  compileHandoffFromSnapshot,
+  checkpointAt as curveCheckpointAt,
+  compileBudgetCurve,
+  compileBudgetCurveFromSnapshot,
   snapshotHandoffNode,
   type HandoffNodeSnapshot,
 } from "./optimizer/handoff.ts";
 import { secToFrame } from "./types.ts";
-import type { CompileCheckpoint, CompileResult } from "./optimizer/types.ts";
+import type { CompileCheckpoint } from "./optimizer/types.ts";
 import type { LeafKey } from "./optimizer/register.ts";
 
 type Mode = "replace" | "extra";
@@ -314,12 +315,6 @@ function selectRows(selection: OracleJson, args: Args): Selection[] {
   );
 }
 
-function checkpoint(result: CompileResult, budget: number): CompileCheckpoint {
-  const found = result.checkpoints.find((candidate) => candidate.budget === budget);
-  if (found === undefined) throw new Error(`missing checkpoint for budget ${budget}`);
-  return found;
-}
-
 function trackHash(checkpoint: CompileCheckpoint): string {
   return createHash("sha256").update(JSON.stringify(checkpoint.track)).digest("hex");
 }
@@ -423,8 +418,7 @@ async function runRow(selection: Selection, args: Args): Promise<RowResult> {
   const spec = await loadGoldenSpec(selection.specName, "base");
   const totalFrames = secToFrame(spec.duration);
   let captured: HandoffNodeSnapshot | null = null;
-  const baselineResult = compileHandoff(spec, selection.seed, {
-    budgets: args.budgets,
+  const baselineResult = compileBudgetCurve(spec, selection.seed, args.budgets, {
     maxNodes: args.baselineMaxNodes,
     polish: args.polish,
     searchSeed: selection.seed,
@@ -439,7 +433,7 @@ async function runRow(selection: Selection, args: Args): Promise<RowResult> {
     },
   });
   const baseline = args.budgets.map((budget) =>
-    summarizeCheckpoint(checkpoint(baselineResult, budget), totalFrames)
+    summarizeCheckpoint(curveCheckpointAt(baselineResult, budget), totalFrames)
   );
   if (captured === null) {
     if (args.progress) {
@@ -466,8 +460,7 @@ async function runRow(selection: Selection, args: Args): Promise<RowResult> {
       const requests = scenarioSuffixBudgets(mode, overhead, args.budgets, capture.sim_frames);
       const bySuffixBudget = new Map<number, BranchCandidateSummary>();
       if (requests.length > 0) {
-        const branchResult = compileHandoffFromSnapshot(spec, selection.seed, captured, {
-          budgets: uniqueBudgets(requests),
+        const branchResult = compileBudgetCurveFromSnapshot(spec, selection.seed, captured, uniqueBudgets(requests), {
           searchSeed: selection.searchSeed,
           maxNodes: args.branchMaxNodes,
           polish: args.polish,
@@ -479,7 +472,7 @@ async function runRow(selection: Selection, args: Args): Promise<RowResult> {
             overhead,
             request.globalBudget,
             request.suffixBudget,
-            checkpoint(branchResult, request.suffixBudget),
+            curveCheckpointAt(branchResult, request.suffixBudget),
             totalFrames,
             base,
             capture,

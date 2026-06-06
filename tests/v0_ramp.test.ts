@@ -41,7 +41,7 @@ describe("curve paradigm — a ramp produces a rising achieved series", () => {
       preroll: 5,
     };
 
-    const { report } = compileHandoff(spec, 0, { budgets: [50_000] }).checkpoints[0];
+    const { report } = compileHandoff(spec, 0, { budget: 50_000 });
 
     const speedReports = report.gaps
       .map((g) => g.axes.speed)

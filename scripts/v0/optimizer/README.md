@@ -10,9 +10,10 @@ output in a strict best-so-far register.
 
 ## Contract
 
-1. **Determinism.** Same `(spec, seed, budgets)` produces the same checkpoint tracks.
-2. **Budget monotonicity.** Budgets only snapshot/truncate a deterministic node
-   sequence; they are never inputs to candidate policy.
+1. **Determinism.** Same `(spec, seed, budget)` produces the same Track.
+2. **Budget is an input.** Each budget is an independent full run; the search may use
+   the requested budget. (Today's search is still budget-oblivious, but that is no
+   longer a contract — it is the lever the next project will use.)
 3. **Cheat resistance.** Work is metered in simulated rider frames at the
    trajectory-extraction boundary.
 4. **Engine honesty.** Every geometric decision is validated by `lr-core` and the

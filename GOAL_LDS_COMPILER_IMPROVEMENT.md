@@ -2,17 +2,20 @@
 
 > **Read this first.** Optimize the compiler, not a local proxy.
 >
-> - **Metric:** `HEADLINE = alpha * q(b_max) + (1 - alpha) * logAUC`, `alpha=0.7`.
->   `q(b_max)` is the suite score at the largest scored budget; `logAUC` is the
->   normalized area under quality vs log budget.
-> - **Canonical decision:** 20 specs x 24 seeds `{0..23}` x dense 5k-175k budget
->   grid, judged by `npm run decide`.
+> - **Metric:** `HEADLINE` = the **budget-value-weighted average** of the per-budget
+>   suite scores over the canonical grid. Weights are proportional to budget value
+>   (higher-quality expensive runs matter more; lower budgets still count). `ceiling`
+>   and `logAUC` are reported **secondaries only**, not the decision scalar.
+> - **Runs are independent per budget.** Passing N budgets means **N full runs from
+>   scratch** — there is no anytime/shared-checkpoint mode. The budget is an input.
+> - **Canonical decision:** 20 specs × 24 seeds `{0..23}` × budgets
+>   `{25,50,100,150,200}k`, judged by `npm run decide`.
 > - **Engine:** use `LR_ENGINE=wasm` for compiler, benchmark, verification, and
 >   performance commands that run physics. Pure analyzers such as `npm run decide`
 >   do not need it.
 > - **Jobs:** use `--jobs=6` for golden runs.
-> - **Promotion gate:** first require `VERDICT: ACCEPT`; then commit only if the
->   canonical 24-seed `Δheadline` is greater than `+5`.
+> - **Promotion gate:** first require a **canonical-tier** `VERDICT: ACCEPT`; then
+>   commit only if the canonical 24-seed `Δheadline` is greater than `+5`.
 
 ## Objective
 
@@ -21,14 +24,13 @@ a beat-synced Line Rider `Track`.
 
 This is a trajectory-constrained procedural-generation problem with fragile forward
 dependency: every local catch changes the rider state that future catches inherit.
-The compiler should keep converting additional simulated-frame budget into better,
-more reliable tracks. Prefer mechanisms that raise the achievable ceiling and
-reduce structural plateaus. Do not buy early-budget prettiness by lowering the
-ceiling.
+The compiler should convert its allotted simulated-frame budget into the best, most
+reliable track it can **at that budget**. The budget is an input the search may use:
+each budget is its own optimization target, run independently from scratch.
 
 Good changes are generic compiler improvements: better prefix search, candidate
-generation, validation, ranking, reuse, repair, start handling, diagnostics, or
-performance that preserves the measured contract. The route is open; the ruler is
+generation, validation, ranking, reuse, repair, start handling, budget allocation,
+or performance that preserves the measured contract. The route is open; the ruler is
 not.
 
 ## What Success Means
@@ -41,31 +43,38 @@ npm run decide -- <candidate>/golden.json <baseline>/golden.json
 
 Keep/promote a change only when:
 
-- `decide` prints `VERDICT: ACCEPT`;
+- `decide` prints `VERDICT: ACCEPT` on a **canonical-tier** comparison (a `probe`-tier
+  archive is indicative only — never promotable);
 - the canonical 24-seed `Δheadline` is greater than `+5`;
-- validity does not regress at the ceiling budget;
-- the mechanism is generic, budget-oblivious, deterministic, and not keyed to the
-  benchmark specs.
+- the mechanism is generic, deterministic per `(spec, seed, budget)`, and not keyed to
+  the benchmark specs.
+
+Validity (`contract_passed`) is **reported as a diagnostic, never a gate**: an invalid
+run already scores ~0, and the per-budget 24-seed aggregation folds that into the
+score, so a separate veto is redundant. Watch the reported per-budget validity rates,
+but the decision is the weighted-average score delta alone.
 
 After an accepted promotion, commit it before starting the next mechanism and treat
-that candidate as the new baseline. Re-run the baseline only after a kept change or
-a deliberate ruler/scope change.
+that candidate as the new baseline. Re-run the baseline only after a kept change or a
+deliberate ruler/scope change.
 
 ## Run Workflow
 
 Use tiny probes to find bugs and shape hypotheses. Use canonical runs to decide.
-Budget checkpoints inside one run are cheap; the largest budget drives the work.
-Canonical decision archives should be compact: do not pass `--details` on the
-20-spec x 24-seed dense run. `--details` is useful for smaller diagnostic probes,
-but the full canonical archive can become too large to serialize.
+Because each budget is an independent run, a probe over a couple of budgets is cheap;
+the canonical run pays for all five. A non-canonical run (fewer specs/seeds, or the
+fast-probe budget subset) is a lower-power **preview**: still comparable to canonical
+via `decide` on the shared specs/seeds/budgets (fewer seeds widens the CI; it does not
+break comparability), but it is `tier:"probe"` and non-promotable. **Never compare raw
+headline scalars across different budget grids — only via `decide` on the intersection.**
 
 ```bash
-# Tiny probe: 5 seeds, 10k-spaced checkpoints to 125k. Not a decision basis.
-LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4 npm run golden -- \
+# Tiny probe: 3 seeds, the fast-probe budget endpoints. Not a decision basis.
+LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- \
   --specs=tiny_dance,opening_burst \
-  --budgets=5000,15000,25000,35000,45000,55000,65000,75000,85000,95000,105000,115000,125000 \
+  --budgets=25000,200000 \
   --jobs=6 \
-  --archive-dir=generated/golden-runs/<label>-tiny
+  --archive-dir=generated/golden-runs/<label>-probe
 
 # Canonical candidate run: the only promotable evidence.
 LR_ENGINE=wasm npm run golden -- \
@@ -87,46 +96,41 @@ LR_ENGINE=wasm npm run verify
 
 ## Rules That Must Not Move
 
-- The search policy must not read requested budgets. Budgets are checkpoints along
-  one deterministic search sequence.
-- No spec-name branches, no thresholds that identify the test suite indirectly,
-  and no logic tuned to a single seed, budget, or known fragile row.
+- The search must be **deterministic per `(spec, seed, budget)`** — the same inputs
+  produce a byte-identical Track. (It may read the budget; it must not read wall-clock.)
+- No spec-name branches, no thresholds that identify the test suite indirectly, and no
+  logic tuned to a single seed, budget, or known fragile row. Tuning to the *canonical
+  budget grid as a whole* is also overfitting — the grid is a fixed estimator for a
+  wider budget distribution, not the only budgets we care about.
 - Do not edit the scorer, golden specs, evaluator fingerprint, metric, seed set, or
-  budget grid to make a compiler change look better. If the ruler changes
-  deliberately, re-baseline and compare only like with like.
-- Validity is a guardrail, not a lever. A candidate should become valid because the
-  generated track is better, not because the gates were weakened.
+  budget grid to make a compiler change look better. If the ruler changes deliberately,
+  re-baseline and compare only like with like.
 - Wall-clock is diagnostic only. The work budget is simulated rider frames.
 
 ## How To Think About Changes
 
 Start from the failure shape, not from a favorite knob:
 
-- Where does quality stop improving as budget rises?
-- Which rows flip validity, miss contacts, land off-beat, die, or plateau with
-  unchanged track hashes?
+- At a given budget, where does the search stop converting compute into quality?
+- Which rows flip validity, miss contacts, land off-beat, die, or plateau?
 - Are full evaluations starved, duplicate, too local, too expensive, or ranking the
   wrong prefixes?
 - Does a local improvement preserve the future state needed by later contacts?
-- Does extra compute create new useful alternatives, or just more versions of the
-  same basin?
-
-Prefer changes that make the compiler's search space healthier: more viable
-continuations, better ordering of genuinely promising prefixes, less duplicate
-work, stronger suffix recovery, and clearer engine-grounded diagnostics.
+- Could the search spend its budget better — more useful alternatives, less duplicate
+  work, earlier convergence at the cheap budgets and a higher ceiling at the expensive
+  ones?
 
 ## Reading Results
 
-Read the `headline` block first: `score`, `ceiling`, `log_auc`, `validity`, and
-`score_budgets`. Then inspect:
+Read the `headline` block first: `score`, `tier`, `weight_by_budget`, the per-budget
+`budget_scores`, `validity`, and the secondaries `ceiling`/`log_auc`. Then inspect:
 
 - per-budget score and validity curves;
-- largest last-budget regressions and improvements;
-- validity flips at the ceiling budget;
+- largest per-budget regressions and improvements;
 - `compile_stats` for search depth, full evaluations, duplicates, repair attempts,
-  candidate viability, and plateaued checkpoints;
+  candidate viability;
 - worst contacts and worst axes for rows that changed.
 
 Do not trust an eyeballed HEADLINE delta. The metric rationale in
-`docs/metric_problem_statement.md` shows why paired comparisons matter and why 24
-seeds are now the right canonical population for resolving roughly 5-point gains.
+`docs/metric_problem_statement.md` (historical) shows why paired comparisons matter and
+why 24 seeds resolve roughly 5-point gains.

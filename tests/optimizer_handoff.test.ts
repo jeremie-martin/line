@@ -17,16 +17,15 @@ import {
   assertBudgetSearchContract,
   type BudgetCompile,
 } from "./budget_contract_harness.ts";
-import type { CompileCheckpoint, CompileResult, CompileStats } from "../scripts/v0/optimizer/types.ts";
+import type { CompileCheckpoint, CompileStats } from "../scripts/v0/optimizer/types.ts";
 
 function hashTrack(track: unknown): string {
   return createHash("sha256").update(JSON.stringify(track)).digest("hex");
 }
 
-function checkpoint(result: CompileResult, budget: number): CompileCheckpoint {
-  const found = result.checkpoints.find((c) => c.budget === budget);
-  if (found === undefined) throw new Error(`missing checkpoint ${budget}`);
-  return found;
+function checkpoint(result: CompileCheckpoint, budget: number): CompileCheckpoint {
+  if (result.budget !== budget) throw new Error(`expected checkpoint ${budget}, got ${result.budget}`);
+  return result;
 }
 
 function sumPhaseCounter(
@@ -45,7 +44,7 @@ async function firstCleanSnapshot(): Promise<HandoffNodeSnapshot> {
   const spec = await loadGoldenSpec("tiny_dance", "base");
   let snapshot: HandoffNodeSnapshot | null = null;
   compileHandoff(spec, 0, {
-    budgets: [20_000],
+    budget: 20_000,
     maxNodes: 12,
     polish: false,
     onNode: (node, key, event) => {
@@ -65,7 +64,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const compile: BudgetCompile = (inputSpec, opts) =>
       compileHandoff(inputSpec, opts.seed, {
-        budgets: opts.budgets,
+        budget: opts.budget,
         maxNodes: opts.maxNodes ?? 12,
         polish: false,
       });
@@ -79,8 +78,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
   test("same (spec, seed, budget) records identical work and previews", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const budget = 20_000;
-    const a = checkpoint(compileHandoff(spec, 0, { budgets: [budget], maxNodes: 12, polish: false }), budget);
-    const b = checkpoint(compileHandoff(spec, 0, { budgets: [budget], maxNodes: 12, polish: false }), budget);
+    const a = checkpoint(compileHandoff(spec, 0, { budget, maxNodes: 12, polish: false }), budget);
+    const b = checkpoint(compileHandoff(spec, 0, { budget, maxNodes: 12, polish: false }), budget);
     expect(hashTrack(a.track)).toBe(hashTrack(b.track));
     expect(a.stats.sim_frames).toBe(b.stats.sim_frames);
     expect(a.stats.candidates_sampled).toBeGreaterThan(0);
@@ -339,12 +338,12 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const budget = 20_000;
     const implicit = checkpoint(
-      compileHandoff(spec, 2, { budgets: [budget], maxNodes: 12, polish: false }),
+      compileHandoff(spec, 2, { budget, maxNodes: 12, polish: false }),
       budget,
     );
     const explicit = checkpoint(
       compileHandoff(spec, 2, {
-        budgets: [budget],
+        budget,
         maxNodes: 12,
         polish: false,
         searchSeed: 2,
@@ -359,7 +358,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
   test("can return an honest partial/failing prefix under a small budget", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const result = checkpoint(compileHandoff(spec, 0, {
-      budgets: [1],
+      budget: 1,
       maxNodes: 12,
       polish: false,
     }), 1);
@@ -387,7 +386,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     let result;
     try {
       result = checkpoint(compileHandoff(spec, 0, {
-        budgets: [budget],
+        budget,
         maxNodes: 12,
         polish: false,
         onNode: (node) => {
@@ -413,23 +412,13 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
   test("polish path uses the selected root start state", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const result = checkpoint(compileHandoff(spec, 0, {
-      budgets: [8_000],
+      budget: 8_000,
       maxNodes: 12,
       polish: true,
     }), 8_000);
     expect(result.stats.handoff_start_options).toBeGreaterThan(1);
     expect(result.stats.leaves_considered).toBeGreaterThan(0);
   }, 60_000);
-
-  test("multi-budget checkpoints match standalone budget compiles byte-for-byte", async () => {
-    const spec = await loadGoldenSpec("tiny_dance", "base");
-    const budgets = [7_000, 20_000, 30_000];
-    const multi = compileHandoff(spec, 0, { budgets, maxNodes: 20, polish: false });
-    for (const budget of budgets) {
-      const standalone = compileHandoff(spec, 0, { budgets: [budget], maxNodes: 20, polish: false });
-      expect(hashTrack(checkpoint(multi, budget).track)).toBe(hashTrack(checkpoint(standalone, budget).track));
-    }
-  }, 120_000);
 
   test("handoff snapshots clear search caches while preserving prefix state", async () => {
     const snapshot = await firstCleanSnapshot();
@@ -451,7 +440,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const prefixLineCount = snapshot.node.search.prefixFits
       .reduce((sum, fit) => sum + (fit === null ? 0 : fit.lines.length), 0);
     const result = checkpoint(compileHandoffFromSnapshot(spec, 0, snapshot, {
-      budgets: [5_000],
+      budget: 5_000,
       searchSeed: 123,
       maxNodes: 8,
       polish: false,

@@ -14,13 +14,14 @@ import { dirname, resolve } from "node:path";
 import { EXPLORATORY_BUDGETS, GOLDEN_SEEDS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { scoreDriftReport, shiftedGeometricMean } from "./score.ts";
 import {
-  compileHandoff,
-  compileHandoffFromSnapshot,
+  checkpointAt,
+  compileBudgetCurve,
+  compileBudgetCurveFromSnapshot,
   snapshotHandoffNode,
   type HandoffNodeSnapshot,
 } from "./optimizer/handoff.ts";
 import { secToFrame } from "./types.ts";
-import type { CompileCheckpoint, CompileResult } from "./optimizer/types.ts";
+import type { CompileCheckpoint } from "./optimizer/types.ts";
 import type { LeafKey } from "./optimizer/register.ts";
 
 type Args = {
@@ -181,12 +182,6 @@ function searchSeedForLane(publicSeed: number, lane: number): number {
   ) | 0;
 }
 
-function checkpoint(result: CompileResult, budget: number): CompileCheckpoint {
-  const found = result.checkpoints.find((candidate) => candidate.budget === budget);
-  if (found === undefined) throw new Error(`missing checkpoint for budget ${budget}`);
-  return found;
-}
-
 function trackHash(checkpoint: CompileCheckpoint): string {
   return createHash("sha256").update(JSON.stringify(checkpoint.track)).digest("hex");
 }
@@ -342,8 +337,7 @@ async function runRow(specName: GoldenSpecName, seed: number, args: Args): Promi
   const targets = captureTargets(spec.contacts.length, args.fractions);
   const capturesByTarget = new Map<number, CaptureRecord>();
 
-  const baselineResult = compileHandoff(spec, seed, {
-    budgets: args.budgets,
+  const baselineResult = compileBudgetCurve(spec, seed, args.budgets, {
     maxNodes: args.maxNodes,
     polish: args.polish,
     searchSeed: seed,
@@ -365,7 +359,7 @@ async function runRow(specName: GoldenSpecName, seed: number, args: Args): Promi
     },
   });
   const baseline = args.budgets.map((budget) =>
-    baselineCandidate(checkpoint(baselineResult, budget), totalFrames)
+    baselineCandidate(checkpointAt(baselineResult, budget), totalFrames)
   );
   const captures = targets
     .map((target) => capturesByTarget.get(target.targetGapIndex))
@@ -398,8 +392,7 @@ async function runRow(specName: GoldenSpecName, seed: number, args: Args): Promi
             `seed=${searchSeed} suffixBudgets=${suffixBudgets.map(fmtBudget).join(",")}`,
         );
       }
-      const branchResult = compileHandoffFromSnapshot(spec, seed, capture.snapshot, {
-        budgets: suffixBudgets,
+      const branchResult = compileBudgetCurveFromSnapshot(spec, seed, capture.snapshot, suffixBudgets, {
         searchSeed,
         maxNodes: args.maxNodes,
         polish: args.polish,
@@ -408,7 +401,7 @@ async function runRow(specName: GoldenSpecName, seed: number, args: Args): Promi
         branchCandidate(
           globalBudget,
           suffixBudget,
-          checkpoint(branchResult, suffixBudget),
+          checkpointAt(branchResult, suffixBudget),
           totalFrames,
           capture,
           lane,

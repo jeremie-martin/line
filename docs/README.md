@@ -19,8 +19,7 @@ historical record, not live guidance.
 
 | Doc | Tag | What |
 |---|---|---|
-| [`../GOAL_LDS_COMPILER_IMPROVEMENT.md`](../GOAL_LDS_COMPILER_IMPROVEMENT.md) | LIVE | Primary compiler-improvement campaign for raising HEADLINE. |
-| [`../FOCUS_FRAGILE_SPECS.md`](../FOCUS_FRAGILE_SPECS.md) | LIVE | Side campaign to stabilize 5 fragile specs (separate harness: seeds 200–219, curve metric). |
+| [`../GOAL_LDS_COMPILER_IMPROVEMENT.md`](../GOAL_LDS_COMPILER_IMPROVEMENT.md) | LIVE | The current standard campaign: raise HEADLINE (budget-value-weighted average) across the compiler. |
 
 ## Reference
 
@@ -41,6 +40,7 @@ metric/workflow.
 
 ## Archive (`docs/archive/` — historical, not live)
 
-`PLATEAU_CAMPAIGN_LOG.md`, `GOAL_LDS_PLATEAU_BREAKOUT.md`, `GOAL_LDS_LOW_BUDGET.md`,
-`speed_policy_followups.md`, `arc_placement.md`, `TODO.md`. Kept for the "don't-retry"
-record and design rationale; their scores predate the 2026-06-04 metric change.
+`GOAL_LDS_ARC_PLACEMENT.md`, `FOCUS_FRAGILE_SPECS.md`, `PLATEAU_CAMPAIGN_LOG.md`,
+`GOAL_LDS_PLATEAU_BREAKOUT.md`, `GOAL_LDS_LOW_BUDGET.md`, `speed_policy_followups.md`,
+`arc_placement.md`, `TODO.md`. Kept for the "don't-retry" record and design rationale;
+their scores predate the 2026-06 anytime→budget-aware / weighted-average metric change.

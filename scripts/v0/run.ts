@@ -70,8 +70,7 @@ if (!spec) {
 }
 
 const t0 = Date.now();
-const { checkpoints } = COMPILERS[compiler](spec, seed, { budgets: [budgetUnits] });
-const [{ track, report }] = checkpoints;
+const { track, report } = COMPILERS[compiler](spec, seed, { budget: budgetUnits });
 const elapsedMs = Date.now() - t0;
 
 mkdirSync(dirname(resolve(`${outPrefix}.track.json`)), { recursive: true });

@@ -46,9 +46,9 @@ Running log of friction points hit while working the arc-placement campaign
 
 ## Decision workflow
 
-- `npm run decide` requires BOTH archives to carry the same
-  `evaluator_fingerprint`, `headline.alpha`, and `headline.score_budgets`, else it
-  refuses. Good guardrail, but means an interrupted/partial baseline can't be
+- `npm run decide` requires BOTH archives to carry the same `evaluator_fingerprint`,
+  the weighted-average `headline.kind`, and a matching budget weighting, else it
+  refuses (and refuses legacy pre-weighted-average archives). Good guardrail, but means an interrupted/partial baseline can't be
   compared — you re-run from scratch. (Working as intended; noting for awareness.)
   - **2026-06-05:** left as-is (the guardrail is correct). The related "must I re-run
     the baseline each candidate?" confusion is addressed by the LIVE GUIDANCE note in

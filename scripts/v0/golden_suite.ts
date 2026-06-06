@@ -9,11 +9,13 @@ export const GOLDEN_SPECS = [
   "syncopated_switchback",
   // opening_burst RESTORED 2026-06-04. It is a catastrophically-fragile chain (a
   // tiny placement perturbation flips it valid↔~all-missing, and which seed breaks
-  // moves run to run). Under the new metric this is handled honestly rather than as
-  // a coin-flip: validity is a separate ceiling-focused guardrail (not fused into a
-  // bimodal mean), the 24-seed paired bootstrap averages out the seed-luck, and the
-  // headline is ceiling-weighted. Hardening its forward-dependency chain (chain-aware
-  // selection / multi-gap rollout) remains a real search/scheduler work item.
+  // moves run to run). This is handled honestly by the metric rather than as a
+  // coin-flip: an invalid run already scores ~0, and the per-budget 24-seed
+  // aggregation (shifted geomean over seeds, then specs) absorbs that bimodality
+  // into a smooth score — so validity is reported as a diagnostic, never gates, and
+  // the headline is the budget-value-weighted average of those per-budget scores.
+  // Hardening its forward-dependency chain (chain-aware selection / multi-gap
+  // rollout) remains a real search/scheduler work item.
   "opening_burst",
   "grain_staircase",
   "rhythm_ladder",
@@ -47,22 +49,36 @@ export const GOLDEN_SEEDS = [
   16, 17, 18, 19, 20, 21, 22, 23,
 ] as const;
 
-/** Default compute checkpoints for the golden budget curve, in simulated rider
- * frames (the honest work unit; see `optimizer/sim_frames.ts`). Dense 5k..175k
- * grid for the anytime budget->quality curve (measure-once: one compile to the
- * max budget emits all checkpoints). NOTE: changing this redefines what a
- * "canonical run" is, but does NOT affect EVALUATOR_FINGERPRINT (which hashes the
- * per-run ruler, not the budget grid). */
-export const DEFAULT_BUDGETS: readonly number[] = Array.from({ length: 35 }, (_, i) => (i + 1) * 5_000);
+/** Canonical budget grid, in simulated rider frames (the honest work unit; see
+ * `optimizer/sim_frames.ts`). Each budget is an INDEPENDENT full run from scratch
+ * (no anytime sharing) — passing N budgets means N runs. This grid is a fixed
+ * ESTIMATOR for a wider budget distribution, not "the only budgets we care about".
+ * The 175k cap was historical; WASM made higher budgets affordable, so the ruler
+ * now reaches 200k. NOTE: changing this redefines what a "canonical run" is, but
+ * does NOT affect EVALUATOR_FINGERPRINT (which hashes the per-run ruler, not the
+ * budget grid) — so a grid change still requires a fresh, like-with-like baseline. */
+export const DEFAULT_BUDGETS: readonly number[] = [25_000, 50_000, 100_000, 150_000, 200_000];
 
-/**
- * The canonical FEW budgets for honest cross-era comparison and the future
- * budget-aware (non-anytime) mode, used via `--score-budgets`. The headline metric
- * is grid-agnostic, so scoring on these few is just a different budget list.
- * TODO(anytime->budget-aware): make this the default headline scope once the search
- * runs at a single pre-allocated budget rather than across the dense anytime grid.
- */
-export const CANONICAL_SCORE_BUDGETS = [50_000, 100_000, 150_000] as const;
+/** Fast-probe grid: a cheap, lower-power PREVIEW of the canonical decision in the
+ * same score space — a strict subset of the canonical budgets (the endpoints), so
+ * `decide` can pair it against canonical on the shared budgets. Fewer seeds/budgets
+ * costs statistical power (wider CI), not comparability. */
+export const FAST_PROBE_BUDGETS: readonly number[] = [25_000, 200_000];
+
+/** Headline decision weights, keyed by budget and proportional to budget value
+ * (higher-quality expensive runs matter more; lower budgets still count). Stored
+ * keyed by budget — not position — so `decide` recomputes safely on intersections /
+ * probe tiers without ordering drift. Principled (a function of budget value), not
+ * tuned to flatter a result. `weightedBudgetScore` divides by the sum of the weights
+ * it actually uses, so an intersection subset renormalizes automatically. */
+export function budgetWeights(
+  budgets: readonly number[],
+): { budget: number; weight: number }[] {
+  const sum = budgets.reduce((s, b) => s + b, 0);
+  return [...budgets].sort((a, b) => a - b).map((budget) => ({ budget, weight: budget / sum }));
+}
+
+export const CANONICAL_BUDGET_WEIGHTS = budgetWeights(DEFAULT_BUDGETS);
 
 /**
  * Lightweight grid for the exploratory oracle/probe scripts (portfolio_oracle,
@@ -96,30 +112,23 @@ export const EXPLORATORY_BUDGETS = [
 export const EVALUATOR_FINGERPRINT = "9b9776df145f";
 
 /**
- * Worker-timeout (hang-detection safety cap) for the compile. The compiler
- * checkpoints by sim-frame budgets, so normal runs scale off the maximum
- * requested budget. Checkpoint verification runs one additional standalone
- * compile per checkpoint, so its timeout scales by that extra budget work too.
- * golden.ts further multiplies this by --jobs, since parallel contention
- * stretches wall-clock. Safety net, not a quality term.
+ * Worker-timeout (hang-detection safety cap) for the compile. Each budget is now an
+ * INDEPENDENT full run, and one worker runs all budgets for a (spec, seed) back to
+ * back, so the worker's total work scales off the SUM of the budgets it runs (not
+ * the max of a single shared anytime run). golden.ts further multiplies this by
+ * --jobs, since parallel contention stretches wall-clock. Safety net, not a quality
+ * term.
  */
 export const HANDOFF_MS_PER_PHYSFRAME = 0.35; // measured upper bound
 export const HANDOFF_WORKER_SAFETY = 3;
 export const HANDOFF_WORKER_TIMEOUT_FLOOR_MS = 120_000;
 export const HANDOFF_WORKER_TIMEOUT_CAP_MS = 600_000;
 
-export function compilerWorkerTimeoutBudget(
-  budgets: readonly number[],
-  verifyCheckpoints: boolean,
-): number {
+export function compilerWorkerTimeoutBudget(budgets: readonly number[]): number {
   if (budgets.length === 0) {
     throw new Error("compilerWorkerTimeoutBudget: budgets must not be empty");
   }
-  const maxBudget = Math.max(...budgets);
-  const checkpointVerificationBudget = verifyCheckpoints
-    ? budgets.reduce((sum, budget) => sum + budget, 0)
-    : 0;
-  return maxBudget + checkpointVerificationBudget;
+  return budgets.reduce((sum, budget) => sum + budget, 0);
 }
 
 export function compilerWorkerTimeoutMs(workBudget: number): number {

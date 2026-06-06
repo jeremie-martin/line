@@ -6,25 +6,27 @@
  * scorer) on purpose: this module aggregates already-computed suite scores and
  * must NOT enter `evaluatorFingerprint()` (which hashes the per-run ruler).
  *
- * Design (see docs/metric_problem_statement.md):
- *  - The compiler is an anytime algorithm: one compile to the max budget emits a
- *    quality score at every budget checkpoint (measure-once). What we want is the
- *    CEILING within an affordable budget, while still rewarding monotone
- *    diminishing-returns conversion of compute — NOT a uniform average over a low
- *    budget window (which penalized slow-but-higher-ceiling approaches).
- *  - Headline: Score = alpha*q(b_max) + (1-alpha)*logAUC, alpha=0.7.
- *  - Decision: PAIRED cluster bootstrap on the headline delta (same specs+seeds
- *    for both configs), because pairing cancels common-mode seed luck (~10x noise
- *    collapse). The fixed "+5" rule is retired — it is inside the noise.
- *  - Scoring is grid-agnostic and budget-subset selectable (selectScoreBudgets),
- *    the seam for the future canonical few-budget mode and the budget-aware
- *    (non-anytime) algorithm, which will run on fewer budgets.
+ * Design:
+ *  - Each budget is an INDEPENDENT full run (no anytime sharing). The headline is the
+ *    WEIGHTED AVERAGE of the per-budget suite scores, weights proportional to budget
+ *    value (higher-quality expensive runs matter more; lower budgets still count).
+ *    Each budget is its own optimization target, so averaging per-budget optima is
+ *    the right scalar — `ceiling`/`logAUC` are kept only as reported secondaries.
+ *    Interim trade: while the search is still budget-oblivious this rewards
+ *    early-budget gains the prior ceiling-heavy metric penalized; that is expected.
+ *  - Decision: PAIRED cluster bootstrap on the headline delta (same specs+seeds for
+ *    both configs), because pairing cancels common-mode seed luck (~10x noise
+ *    collapse). The verdict is the score delta CI alone — accept iff ciLo>0.
+ *  - Validity is NOT a gate: an invalid run already scores ~0, and the per-budget
+ *    24-seed aggregation folds that into the score. Per-budget validity is reported
+ *    as a diagnostic only.
+ *  - Weights are keyed by budget (not position), so the decision recomputes safely on
+ *    a budget intersection (e.g. a probe tier subset), renormalizing automatically.
  */
 import { shiftedGeometricMean } from "./score.ts";
 
-export const DEFAULT_ALPHA = 0.7;
-
 export type CurvePoint = { budget: number; score: number };
+export type BudgetWeight = { budget: number; weight: number };
 
 /** Per-config score cube: spec -> seed -> (budget -> score). */
 export type ScoreCube = Map<string, Map<number, Map<number, number>>>;
@@ -64,33 +66,34 @@ export function ceilingAt(points: CurvePoint[]): number {
   return points.reduce((best, p) => (p.budget > best.budget ? p : best), points[0]).score;
 }
 
-export type HeadlineScore = { score: number; ceiling: number; logAUC: number; alpha: number };
-
-/** The headline scalar, returned WITH its components (anti-Goodhart: a reviewer
- *  must be able to see whether a gain is ceiling vs cheap-run). */
-export function headlineScore(points: CurvePoint[], alpha = DEFAULT_ALPHA): HeadlineScore {
-  const ceiling = ceilingAt(points);
-  const auc = logAUC(points);
-  return { score: alpha * ceiling + (1 - alpha) * auc, ceiling, logAUC: auc, alpha };
+/**
+ * THE HEADLINE SCALAR: weighted average of per-budget suite scores,
+ * `Σ w_b·score_b / Σ w_b`, over the budgets present in BOTH `points` and
+ * `weightByBudget`. Weights are looked up by budget (not position), and the divisor
+ * is the sum of the weights actually used — so scoring a budget SUBSET (an
+ * intersection / probe tier) renormalizes automatically with no positional drift.
+ */
+export function weightedBudgetScore(points: CurvePoint[], weightByBudget: BudgetWeight[]): number {
+  return weightedBudgetScoreFromMap(points, weightMapOf(weightByBudget));
 }
 
-/** Grid-agnostic budget selection: default = all measured budgets; a subset (e.g.
- *  the canonical few {50k,100k,150k}) keeps only those that were actually run. */
-export function selectScoreBudgets(allBudgets: number[], subset?: number[]): number[] {
-  if (!subset || subset.length === 0) return [...allBudgets];
-  const present = new Set(allBudgets);
-  return subset.filter((b) => present.has(b));
+/** Build the budget→weight lookup once; hoist out of hot loops. */
+function weightMapOf(weightByBudget: BudgetWeight[]): Map<number, number> {
+  return new Map(weightByBudget.map((x) => [x.budget, x.weight]));
 }
 
-/** Parse/validate `--alpha`: a finite number in [0,1]. Throws on bad input so a
- *  typo (e.g. `--alpha=fast`) fails loudly instead of poisoning the headline with
- *  NaN. */
-export function parseAlpha(raw: string): number {
-  const a = Number(raw);
-  if (!Number.isFinite(a) || a < 0 || a > 1) {
-    throw new Error(`--alpha must be a number in [0,1], got "${raw}"`);
+/** weightedBudgetScore with a precomputed weight map — used in the bootstrap hot
+ *  loop so the (constant) map isn't rebuilt per resample. */
+function weightedBudgetScoreFromMap(points: CurvePoint[], w: Map<number, number>): number {
+  let num = 0;
+  let den = 0;
+  for (const p of points) {
+    const wb = w.get(p.budget);
+    if (wb === undefined || wb <= 0) continue;
+    num += wb * p.score;
+    den += wb;
   }
-  return a;
+  return den > 0 ? num / den : 0;
 }
 
 /** Parse/validate a comma-separated budget list (positive integer frames). Uses
@@ -135,13 +138,15 @@ function quantile(sorted: number[], q: number): number {
   return sorted[idx];
 }
 
-/** Headline score for a (possibly resampled) set of specs and per-spec seeds. */
+/** Headline score for a (possibly resampled) set of specs and per-spec seeds.
+ *  Takes a precomputed weight map (the bootstrap calls this ~2·B times with the
+ *  same constant weighting, so the map is built once by the caller). */
 function headlineForSample(
   cube: ScoreCube,
   specsSample: string[],
   seedsBySpec: Map<string, number[]>,
   budgets: number[],
-  alpha: number,
+  weightMap: Map<number, number>,
 ): number {
   const points: CurvePoint[] = budgets.map((b) => {
     const groups: number[][] = [];
@@ -150,14 +155,14 @@ function headlineForSample(
       const seeds = seedsBySpec.get(spec);
       if (!seedCurves || !seeds || seeds.length === 0) continue;
       // Missing cells default to 0, but the decide-tool scope guard ensures common
-      // specs/seeds/budgets and measure-once guarantees every budget per row, so
-      // this fallback should not fire on well-formed archives.
+      // specs/seeds/budgets and each (spec,seed,budget) is its own run, so this
+      // fallback should not fire on well-formed archives.
       groups.push(seeds.map((se) => seedCurves.get(se)?.get(b) ?? 0));
     }
     // Same two-level aggregation as golden.ts's per-budget suiteScore (see suiteFromGroups).
     return { budget: b, score: suiteFromGroups(groups) };
   });
-  return headlineScore(points, alpha).score;
+  return weightedBudgetScoreFromMap(points, weightMap);
 }
 
 /** Suite validity rate per budget (mean over specs of mean-over-seeds pass rate). */
@@ -174,14 +179,17 @@ export function validityByBudget(valid: ValidCube, budgets: number[]): { budget:
 }
 
 export type Decision = {
+  baseHeadline: number;
+  candidateHeadline: number;
   delta: number;
   ciLo: number;
   ciHi: number;
   pLeZero: number;
   effect: number; // mean / sd  (paired Cohen's d analog)
-  alpha: number;
   budgets: number[];
-  validity: { budget: number; baseRate: number; candRate: number; deltaCiLo: number }[];
+  weightByBudget: BudgetWeight[];
+  /** Per-budget validity rates, REPORTED as a diagnostic only — they never gate. */
+  validity: { budget: number; baseRate: number; candRate: number }[];
   verdict: "accept" | "reject" | "inconclusive";
 };
 
@@ -191,27 +199,27 @@ export type Decision = {
  * replacement; apply the SAME resample to both configs (paired). Propagates both
  * between-spec and within-spec (seed) variance.
  *
- * Accept iff the headline delta CI lower bound > 0 AND validity does not regress
- * beyond noise at any budget (per-budget rate-delta CI lower bound > -tol).
+ * The verdict is the score delta CI ALONE: accept iff ciLo>0, reject iff ciHi<0,
+ * else inconclusive. Validity does not gate (an invalid run already scores ~0); the
+ * per-budget validity rates are computed and returned for reporting only.
  */
 export function pairedBootstrapCI(
   base: ScoreCube,
   cand: ScoreCube,
   budgets: number[],
   opts: {
-    alpha?: number;
+    weightByBudget: BudgetWeight[];
     B?: number;
     level?: number;
     rngSeed?: number;
-    validityTol?: number;
     validBase?: ValidCube;
     validCand?: ValidCube;
-  } = {},
+  },
 ): Decision {
-  const alpha = opts.alpha ?? DEFAULT_ALPHA;
+  const weightByBudget = opts.weightByBudget;
+  const weightMap = weightMapOf(weightByBudget); // built once; reused across all resamples
   const B = opts.B ?? 10000;
   const level = opts.level ?? 0.95;
-  const tol = opts.validityTol ?? 0.02;
   const rand = mulberry32(opts.rngSeed ?? 12345);
 
   const specs = [...base.keys()].filter((s) => cand.has(s)).sort();
@@ -227,8 +235,6 @@ export function pairedBootstrapCI(
   // iterations); the loop only resamples from it.
   const seedsBySpecAll = new Map(specs.map((s) => [s, seedsOf(s)] as const));
   const deltas: number[] = [];
-  const budgetForValidity = opts.validBase && opts.validCand ? budgets : [];
-  const validDeltaSamples: number[][] = budgetForValidity.map(() => []);
 
   for (let i = 0; i < B; i++) {
     const specsSample = specs.map(() => pick(specs));
@@ -238,60 +244,43 @@ export function pairedBootstrapCI(
       seedsBySpec.set(spec, seeds.map(() => pick(seeds)));
     }
     deltas.push(
-      headlineForSample(cand, specsSample, seedsBySpec, budgets, alpha) -
-        headlineForSample(base, specsSample, seedsBySpec, budgets, alpha),
+      headlineForSample(cand, specsSample, seedsBySpec, budgets, weightMap) -
+        headlineForSample(base, specsSample, seedsBySpec, budgets, weightMap),
     );
-    if (opts.validBase && opts.validCand) {
-      budgetForValidity.forEach((b, bi) => {
-        const rate = (cube: ValidCube): number => {
-          const perSpec = specsSample.map((spec) => {
-            const seeds = seedsBySpec.get(spec)!;
-            const sc = cube.get(spec);
-            if (!sc) return 0;
-            return mean(seeds.map((se) => (sc.get(se)?.get(b) ? 1 : 0)));
-          });
-          return mean(perSpec);
-        };
-        validDeltaSamples[bi].push(rate(opts.validCand!) - rate(opts.validBase!));
-      });
-    }
   }
 
   deltas.sort((a, b) => a - b);
   const lo = (1 - level) / 2;
   const dMean = mean(deltas);
   const sd = Math.sqrt(mean(deltas.map((d) => (d - dMean) ** 2)));
-  const pointDelta =
-    headlineForSample(cand, specs, seedsBySpecAll, budgets, alpha) -
-    headlineForSample(base, specs, seedsBySpecAll, budgets, alpha);
+  const baseHeadline = headlineForSample(base, specs, seedsBySpecAll, budgets, weightMap);
+  const candidateHeadline = headlineForSample(cand, specs, seedsBySpecAll, budgets, weightMap);
+  const pointDelta = candidateHeadline - baseHeadline;
   const ciLo = quantile(deltas, lo);
   const ciHi = quantile(deltas, 1 - lo);
 
-  const validity = budgetForValidity.map((b, bi) => {
-    const samp = [...validDeltaSamples[bi]].sort((x, y) => x - y);
-    const baseRate = validityByBudget(opts.validBase!, [b])[0].rate;
-    const candRate = validityByBudget(opts.validCand!, [b])[0].rate;
-    return { budget: b, baseRate, candRate, deltaCiLo: quantile(samp, lo) };
-  });
+  // Reported diagnostic only — per-budget validity rates, NOT a gate.
+  const validity = opts.validBase && opts.validCand
+    ? budgets.map((b) => ({
+      budget: b,
+      baseRate: validityByBudget(opts.validBase!, [b])[0].rate,
+      candRate: validityByBudget(opts.validCand!, [b])[0].rate,
+    }))
+    : [];
 
-  // Ceiling-focused guardrail: a higher-ceiling approach is ALLOWED to be worse at
-  // cheap budgets (slow convergence is the tradeoff we want) — we only veto a
-  // validity regression at the ceiling (max score budget), where we operate.
-  // Mid/low-budget validity collapses already hurt the headline via the logAUC term.
-  const ceilingBudget = budgets.length > 0 ? Math.max(...budgets) : 0;
-  const ceilingValidity = validity.find((v) => v.budget === ceilingBudget);
-  const validityOk = !ceilingValidity || ceilingValidity.deltaCiLo > -tol - 1e-9;
   const verdict: Decision["verdict"] =
-    ciLo > 0 ? (validityOk ? "accept" : "reject") : ciHi < 0 ? "reject" : "inconclusive";
+    ciLo > 0 ? "accept" : ciHi < 0 ? "reject" : "inconclusive";
 
   return {
+    baseHeadline,
+    candidateHeadline,
     delta: pointDelta,
     ciLo,
     ciHi,
     pLeZero: mean(deltas.map((d) => (d <= 0 ? 1 : 0))),
     effect: sd > 0 ? dMean / sd : 0,
-    alpha,
     budgets,
+    weightByBudget,
     validity,
     verdict,
   };

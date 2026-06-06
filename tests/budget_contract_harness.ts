@@ -1,88 +1,68 @@
 /**
- * Architecture-agnostic budget-search contract harness.
+ * Budget-search contract harness (post anytime -> scalar-budget migration).
  *
- * Architecture-agnostic budget-search contract harness.
+ * Each budget is now an INDEPENDENT full run from scratch. The ONE enforced contract
+ * is DETERMINISM: the same (spec, seed, budget) yields a byte-identical Track. That
+ * is the property a budget-aware search must keep — a run must be reproducible.
  *
- * Any deterministic search whose explored sequence only grows with budget, fed
- * a sim-frame budget that acts as a pure stop condition, and topped by a
- * strict-improvement register, satisfies determinism + monotonicity-in-budget +
- * objective-budget simultaneously.
+ * Monotonicity-in-budget and the old "budget is a pure stop condition" freeze are
+ * recorded as OPTIONAL DIAGNOSTICS, not contracts. They held for the budget-oblivious
+ * anytime search (budgets truncated one shared sequence), but a budget-AWARE search
+ * may legitimately break them — it may spend a small budget on a different strategy
+ * than a prefix of a large-budget run. So this harness OBSERVES AND RECORDS them
+ * (project test philosophy: experiments, not gatekeepers) without failing on them.
  *
- * The harness checks that proof against an abstract `BudgetCompile` shape only —
- * it never imports a specific compiler mechanism. It depends only on:
- *   - a `compile(spec, {seed, budgets, maxNodes?}) → CompileResult`,
- *   - the scoring comparator (`register.ts`), which DEFINES "better track" and
- *     is held constant across compiler rewrites.
- *
- * So when the search is rebuilt (the state-handoff / feasibility architecture,
- * §5), it is dropped into THIS SAME harness unchanged. The contract is the
- * guardrail for the rebuild, not a test of one implementation.
- *
- * It OBSERVES AND RECORDS (project test philosophy: experiments, not gatekeepers)
- * — `checkBudgetSearchContract` returns a structured report of every violation
- * rather than throwing on the first, so a caller can diagnose the full picture.
- * `assertBudgetSearchContract` wraps it to fail on any violation, for specs
- * expected to be fully conformant.
- *
- * The three pillars map 1:1 to the three load-bearing conditions in §7:
- *   Pillar 1  ← condition 1 (policy is a pure function of inputs): determinism.
- *   Pillar 2  ← conditions 1+3 (fixed order + strict register): monotonicity.
- *   Pillar 3  ← condition 2 (budget is a pure stop condition): convergence+freeze.
+ * The harness depends only on an abstract `BudgetCompile` shape and the scoring
+ * comparator (`register.ts`), never on a specific compiler mechanism — so a rebuilt
+ * search drops into the same harness unchanged.
  */
 
 import { createHash } from "node:crypto";
 import { isStrictlyBetter, leafKeyForReport } from "../scripts/v0/optimizer/register.ts";
 import { secToFrame, type Spec } from "../scripts/v0/types.ts";
-import type { CompileCheckpoint, CompileResult } from "../scripts/v0/optimizer/types.ts";
+import type { CompileCheckpoint } from "../scripts/v0/optimizer/types.ts";
 
-/** The architecture-agnostic compile signature the contract is stated against. */
+/** The architecture-agnostic compile signature the contract is stated against: one
+ *  scalar budget = one independent run, returning a single checkpoint. */
 export type BudgetCompile = (
   spec: Spec,
-  opts: { seed: number; budgets: number[]; maxNodes?: number },
-) => CompileResult;
+  opts: { seed: number; budget: number; maxNodes?: number },
+) => CompileCheckpoint;
 
 export type ContractConfig = {
-  /** Ascending sim-frame budgets for the monotonicity grid. */
+  /** Ascending sim-frame budgets for the (diagnostic) monotonicity sweep. */
   budgets: number[];
   seed?: number;
-  /** Run the convergence/freeze pillar. Requires that exhaustive search under
-   *  the supplied cap is affordable for this spec. */
+  /** Run the (diagnostic) convergence/freeze observation. Requires that exhaustive
+   *  search under the supplied cap is affordable for this spec. */
   checkFreeze?: boolean;
-  /** Small maxNodes for the freeze pillar so exhaustive enumeration is cheap.
+  /** Small maxNodes for the freeze observation so exhaustive enumeration is cheap.
    *  Ignored unless `checkFreeze`. */
   freezeMaxNodes?: number;
 };
 
-/** Structured outcome — observe & record, don't throw. Empty `violations` ⇒ the
- *  spec satisfies the full budget-search contract at the tested budgets. */
+/** Structured outcome — observe & record. `violations` carries ONLY the enforced
+ *  contract (determinism); monotonicity/freeze findings are diagnostics. */
 export type ContractReport = {
   spec: string;
-  /** Pillar 1. */
+  /** ENFORCED: same (spec, seed, budget) -> byte-identical Track. */
   deterministic: boolean;
-  /** Pillar 2: a higher budget returned a STRICTLY WORSE comparator key. Each
-   *  entry is a (lower, higher) budget pair where the regression appeared. */
-  monotonicityViolations: { lowerBudget: number; higherBudget: number; detail: string }[];
-  /** Pillar 3: an above-full-cost budget did not reproduce the exhaustive output
-   *  byte-for-byte (budget is not a pure stop condition). Empty if not checked. */
-  freezeViolations: { budget: number; detail: string }[];
-  /** All Pillar-2/3 problems flattened into human-readable strings. */
+  /** DIAGNOSTIC (not a contract): a higher budget returned a STRICTLY WORSE
+   *  comparator key. A budget-aware search may legitimately do this. */
+  monotonicityDiagnostics: { lowerBudget: number; higherBudget: number; detail: string }[];
+  /** DIAGNOSTIC (not a contract): an above-full-cost budget did not reproduce the
+   *  exhaustive output byte-for-byte. Empty if not checked. */
+  freezeDiagnostics: { budget: number; detail: string }[];
+  /** Enforced-contract failures only (determinism). Empty ⇒ the contract holds. */
   violations: string[];
 };
 
 const trackHash = (out: CompileCheckpoint): string =>
   createHash("sha256").update(JSON.stringify(out.track)).digest("hex");
 
-function checkpointFor(result: CompileResult, budget: number): CompileCheckpoint {
-  const checkpoint = result.checkpoints.find((c) => c.budget === budget);
-  if (checkpoint === undefined) {
-    throw new Error(`missing checkpoint for budget ${budget}`);
-  }
-  return checkpoint;
-}
-
-/** Run the full contract for one (compile, spec) and RETURN what happened. Never
- *  throws on a contract violation (only on a misconfigured run, e.g. a freeze
- *  check on a spec that charges 0 frames). */
+/** Run the contract for one (compile, spec) and RETURN what happened. Never throws
+ *  on a diagnostic finding; only on a misconfigured run (e.g. a freeze check on a
+ *  spec that charges 0 frames). */
 export function checkBudgetSearchContract(
   compile: BudgetCompile,
   specName: string,
@@ -95,76 +75,62 @@ export function checkBudgetSearchContract(
   const report: ContractReport = {
     spec: specName,
     deterministic: true,
-    monotonicityViolations: [],
-    freezeViolations: [],
+    monotonicityDiagnostics: [],
+    freezeDiagnostics: [],
     violations: [],
   };
 
-  // ── Pillar 1 — Determinism (condition 1: output is a pure function of inputs).
+  // ── ENFORCED — Determinism: output is a pure function of (spec, seed, budget).
   // One budget suffices: nondeterminism is a property of the function, not of a
   // particular budget. Use the cheapest (smallest) budget.
   {
     const budget = cfg.budgets[0];
-    const a = checkpointFor(compile(spec, { seed, budgets: [budget] }), budget);
-    const b = checkpointFor(compile(spec, { seed, budgets: [budget] }), budget);
+    const a = compile(spec, { seed, budget });
+    const b = compile(spec, { seed, budget });
     if (trackHash(a) !== trackHash(b)) {
       report.deterministic = false;
       report.violations.push(`non-deterministic Track at budget ${budget}`);
     }
   }
 
-  // ── Pillar 2 — Monotonicity-in-budget (conditions 1+3: fixed deterministic
-  // order + strict-improvement register ⇒ the comparator key never regresses as
-  // budget grows). The register's exact comparator, reconstructed from each
-  // output's DriftReport — the same key `compiler_goals.md` Property 1 is stated
-  // in, and the same reconstruction `optimizer_anytime.test.ts` uses.
+  // ── DIAGNOSTIC — Monotonicity-in-budget. Recorded, never a violation: a
+  // budget-aware search may spend a small budget on a different strategy than a
+  // prefix of a large-budget run, so a higher budget is NOT required to dominate.
   let prevKey: ReturnType<typeof keyOf> | null = null;
   let prevBudget = 0;
-  const curve = compile(spec, { seed, budgets: cfg.budgets });
   for (const budget of cfg.budgets) {
-    const out = checkpointFor(curve, budget);
+    const out = compile(spec, { seed, budget });
     const key = keyOf(out);
     if (prevKey !== null && isStrictlyBetter(prevKey, key)) {
       const detail =
         `budget ${budget} (full=${key.full_score.toFixed(2)}, pass=${key.contract_passed}) ` +
         `is STRICTLY WORSE than ${prevBudget} (full=${prevKey.full_score.toFixed(2)}, ` +
         `pass=${prevKey.contract_passed})`;
-      report.monotonicityViolations.push({ lowerBudget: prevBudget, higherBudget: budget, detail });
-      report.violations.push(`monotonicity: ${detail}`);
+      report.monotonicityDiagnostics.push({ lowerBudget: prevBudget, higherBudget: budget, detail });
     }
     prevKey = key;
     prevBudget = budget;
   }
 
-  // ── Pillar 3 — Budget is a pure stop condition: convergence + freeze
-  // (condition 2). Beyond the cost of FULL enumeration, more budget is a no-op:
-  // the output freezes to the exhaustive best, byte-identically. This is the
-  // black-box fingerprint distinguishing "budget truncates a fixed deterministic
-  // sequence" from "budget is an input to the search policy".
+  // ── DIAGNOSTIC — Freeze / convergence: beyond the cost of FULL enumeration, more
+  // budget WAS a no-op for the anytime search. Recorded for observation only.
   if (cfg.checkFreeze) {
     const maxNodes = cfg.freezeMaxNodes ?? 12;
     const exhaustiveBudget = 1_000_000_000;
-    const exhaustive = checkpointFor(
-      compile(spec, { seed, budgets: [exhaustiveBudget], maxNodes }),
-      exhaustiveBudget,
-    );
+    const exhaustive = compile(spec, { seed, budget: exhaustiveBudget, maxNodes });
     const fullCost = exhaustive.stats.sim_frames;
     if (!(fullCost > 0)) {
       throw new Error(`${specName}: exhaustive run charged 0 sim-frames — cannot test freeze`);
     }
     const exhaustiveHash = trackHash(exhaustive);
     for (const mult of [1.5, 3, 6]) {
-      const budgetUnits = Math.ceil(fullCost * mult) + 5_000;
-      const h = trackHash(checkpointFor(
-        compile(spec, { seed, budgets: [budgetUnits], maxNodes }),
-        budgetUnits,
-      ));
+      const budget = Math.ceil(fullCost * mult) + 5_000;
+      const h = trackHash(compile(spec, { seed, budget, maxNodes }));
       if (h !== exhaustiveHash) {
-        const detail =
-          `output NOT frozen at budget ${budgetUnits} (≈${mult}× full cost ${fullCost}) — ` +
-          `budget is not a pure stop condition`;
-        report.freezeViolations.push({ budget: budgetUnits, detail });
-        report.violations.push(`freeze: ${detail}`);
+        report.freezeDiagnostics.push({
+          budget,
+          detail: `output NOT frozen at budget ${budget} (≈${mult}× full cost ${fullCost})`,
+        });
       }
     }
   }
@@ -172,8 +138,8 @@ export function checkBudgetSearchContract(
   return report;
 }
 
-/** Strict wrapper: assert the spec satisfies the FULL contract (no violations).
- *  Use for specs expected to be fully conformant. Throws with all violations. */
+/** Strict wrapper: assert the spec satisfies the ENFORCED contract (determinism).
+ *  Monotonicity/freeze diagnostics are returned for inspection but do NOT throw. */
 export function assertBudgetSearchContract(
   compile: BudgetCompile,
   specName: string,

@@ -36,6 +36,7 @@ import {
 } from "../core/substrate.ts";
 import {
   AXES,
+  AXIS_VALUE_MAX,
   CALIB,
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
@@ -267,6 +268,7 @@ type AxisQualityStreamPolicy = {
   targetMax?: number;
   overspeedScale?: number;
   targetSource?: "current" | "next";
+  targetBias?: number;
 };
 
 const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
@@ -379,6 +381,9 @@ const HANDOFF_SPEED_DRAG_QUALITY_K = 1;
 const HANDOFF_SPEED_DRAG_OVERSPEED_SCALE = 0.45;
 const HANDOFF_NEXT_SPEED_DRAG_QUALITY_K = 1;
 const HANDOFF_NEXT_SPEED_DRAG_OVERSPEED_SCALE = 0.45;
+const HANDOFF_NEXT_SPEED_SETTLE_QUALITY_K = 1;
+const HANDOFF_NEXT_SPEED_SETTLE_OVERSPEED_SCALE = 0.55;
+const HANDOFF_NEXT_SPEED_SETTLE_TARGET_BIAS = -0.16;
 const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy[]>> = {
   air: [{
     samples: HANDOFF_AIR_SUPPORT_QUALITY_K,
@@ -409,6 +414,15 @@ const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPo
       mode: "speed_drag",
       overspeedScale: HANDOFF_NEXT_SPEED_DRAG_OVERSPEED_SCALE,
       targetSource: "next",
+    },
+    {
+      samples: HANDOFF_NEXT_SPEED_SETTLE_QUALITY_K,
+      seedSalt: 0x27d4eb4d,
+      attemptOffset: 8000,
+      mode: "speed_drag",
+      overspeedScale: HANDOFF_NEXT_SPEED_SETTLE_OVERSPEED_SCALE,
+      targetSource: "next",
+      targetBias: HANDOFF_NEXT_SPEED_SETTLE_TARGET_BIAS,
     },
   ],
 };
@@ -1698,7 +1712,13 @@ function axisQualityPolicyTarget(
   if (policy.targetSource !== "next") return gaps[gapIndex].targets[axis];
   const nextGapIndex = nextContactGapIndex(gaps, gapIndex + 1);
   if (nextGapIndex < 0) return undefined;
-  return gaps[nextGapIndex].targets[axis];
+  const target = gaps[nextGapIndex].targets[axis];
+  if (target === undefined) return undefined;
+  return clampAxisTarget(axis, target + (policy.targetBias ?? 0));
+}
+
+function clampAxisTarget(axis: AxisName, target: number): number {
+  return Math.max(0, Math.min(AXIS_VALUE_MAX[axis], target));
 }
 
 function axisQualityStreamSampleCount(

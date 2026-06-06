@@ -37,6 +37,7 @@ import {
   median,
   engineLineFromTrackLine,
   contactLineIdsAt,
+  airborneAt,
   speedAt,
 } from "./substrate.ts";
 import { measureGapAxes } from "./measure.ts";
@@ -484,6 +485,10 @@ function evaluateCandidateLines(
       achieved: best.fit.achieved,
       cost: best.fit.cost,
       ...(best.fit.releaseSpeed === undefined ? {} : { releaseSpeed: best.fit.releaseSpeed }),
+      ...(best.fit.releaseGroundedFrames === undefined
+        ? {}
+        : { releaseGroundedFrames: best.fit.releaseGroundedFrames }),
+      ...(best.fit.releaseAirborne === undefined ? {} : { releaseAirborne: best.fit.releaseAirborne }),
     },
     failure: null,
   };
@@ -499,7 +504,13 @@ function evaluateGapFit(
   searchTargets: AxisValues,
   useWindowDetection: boolean,
   scoreReleaseState: boolean,
-): { fit: Pick<GapFit, "lines" | "achieved" | "cost" | "releaseSpeed">; failure: null } | {
+): {
+  fit: Pick<
+    GapFit,
+    "lines" | "achieved" | "cost" | "releaseSpeed" | "releaseGroundedFrames" | "releaseAirborne"
+  >;
+  failure: null;
+} | {
   fit: null;
   failure: ArcPlacementDirectFailureReason;
 } {
@@ -536,10 +547,31 @@ function evaluateGapFit(
   if (offBeat > 0) return { fit: null, failure: "offbeat" };
 
   const achieved = measureGapAxes(det, gap, lines, axisMeasureEnd);
-  const releaseSpeed = speedAt(det, releaseStateFrame(gap, allContactFrames));
+  const releaseFrame = releaseStateFrame(gap, allContactFrames);
+  const releaseSpeed = speedAt(det, releaseFrame);
+  const releaseGroundedFrames = groundedFramesInRange(det, gap.endFrame, releaseFrame);
+  const releaseAirborne = airborneAt(det, releaseFrame);
   const cost = axisCost(searchTargets, achieved)
     + (scoreReleaseState ? releaseSpeedPenalty(releaseSpeed, searchTargets.speed) : 0);
-  return { fit: { lines, achieved, cost, releaseSpeed }, failure: null };
+  return {
+    fit: {
+      lines,
+      achieved,
+      cost,
+      releaseSpeed,
+      releaseGroundedFrames,
+      ...(releaseAirborne === undefined ? {} : { releaseAirborne }),
+    },
+    failure: null,
+  };
+}
+
+function groundedFramesInRange(det: Detection, startFrame: number, endFrame: number): number {
+  let frames = 0;
+  for (let frame = startFrame; frame <= endFrame; frame++) {
+    if (airborneAt(det, frame) === false) frames++;
+  }
+  return frames;
 }
 
 export function releaseStateFrame(gap: Gap, allContactFrames: number[]): number {

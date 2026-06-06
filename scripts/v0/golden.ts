@@ -937,6 +937,25 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_selected_candidate_brake_count: stats.handoff_selected_candidate_brake_count,
     handoff_selected_candidate_axis_quality_count:
       stats.handoff_selected_candidate_axis_quality_count,
+    handoff_candidate_release_count: stats.handoff_candidate_release_count,
+    handoff_candidate_release_speed_mean: stats.handoff_candidate_release_speed_mean,
+    handoff_candidate_release_speed_min: stats.handoff_candidate_release_speed_min,
+    handoff_candidate_release_speed_max: stats.handoff_candidate_release_speed_max,
+    handoff_candidate_release_speed_std: stats.handoff_candidate_release_speed_std,
+    handoff_candidate_release_grounded_mean: stats.handoff_candidate_release_grounded_mean,
+    handoff_candidate_release_grounded_min: stats.handoff_candidate_release_grounded_min,
+    handoff_candidate_release_grounded_max: stats.handoff_candidate_release_grounded_max,
+    handoff_candidate_release_zero_grounded_count:
+      stats.handoff_candidate_release_zero_grounded_count,
+    handoff_candidate_release_airborne_count: stats.handoff_candidate_release_airborne_count,
+    handoff_candidate_preview_count: stats.handoff_candidate_preview_count,
+    handoff_candidate_preview_zero_next_count: stats.handoff_candidate_preview_zero_next_count,
+    handoff_candidate_preview_first_survivors_mean:
+      stats.handoff_candidate_preview_first_survivors_mean,
+    handoff_candidate_preview_first_survivors_min:
+      stats.handoff_candidate_preview_first_survivors_min,
+    handoff_candidate_preview_first_survivors_max:
+      stats.handoff_candidate_preview_first_survivors_max,
     arc_placement: stats.arc_placement,
   };
 }

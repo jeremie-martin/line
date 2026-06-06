@@ -39,6 +39,12 @@ export type GapFit = {
   /** Rider speed at the post-catch release probe frame, in raw px/frame.
    *  Used by compiler rankers to set up the next contact's speed target. */
   releaseSpeed?: number;
+  /** Grounded frames between the target contact and post-catch release probe.
+   *  Diagnostic-only coverage signal for separating low-air/support futures. */
+  releaseGroundedFrames?: number;
+  /** Whether the sled is airborne at the post-catch release probe frame.
+   *  Diagnostic-only coverage signal for release-state diversity. */
+  releaseAirborne?: boolean;
   /** Sled reference position (lowest sled point) at the gap's landing frame
    *  when this catch was placed. Optional; set by `sampleOneCandidate`. Used to
    *  translate this catch's geometry to a different gap's entry state for

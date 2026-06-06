@@ -44,6 +44,7 @@ import {
   SPEED_AXIS,
   START_DEFAULTS,
   authoredSpeedToPx,
+  speedPxToAuthored,
   PREROLL,
   secToFrame,
   type AxisName,
@@ -213,12 +214,37 @@ type HandoffTelemetry = {
   axisQualitySuccesses: number;
   axisQualityAttemptsByAxis: Partial<Record<AxisName, number>>;
   axisQualitySuccessesByAxis: Partial<Record<AxisName, number>>;
+  candidateReleaseCoverage: CandidateReleaseCoverageAccumulator;
+  candidatePreviewCoverage: CandidatePreviewCoverageAccumulator;
   rescueAttempts: number;
   rescueSuccesses: number;
   skips: number;
   deferredSkips: number;
   startRanksSeen: Set<number>;
   startRanksWithFits: Set<number>;
+};
+
+type CandidateReleaseCoverageAccumulator = {
+  count: number;
+  speedCount: number;
+  speedSum: number;
+  speedSquareSum: number;
+  speedMin: number;
+  speedMax: number;
+  groundedCount: number;
+  groundedSum: number;
+  groundedMin: number;
+  groundedMax: number;
+  zeroGroundedCount: number;
+  airborneAtReleaseCount: number;
+};
+
+type CandidatePreviewCoverageAccumulator = {
+  count: number;
+  zeroFirstSurvivors: number;
+  firstSurvivorSum: number;
+  firstSurvivorMin: number;
+  firstSurvivorMax: number;
 };
 
 type HandoffFrontierStats = Pick<
@@ -431,6 +457,8 @@ const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because
  *  the completion suffix branches two-wide and is charged like normal search. */
 const TAIL_COMPLETION_CONTACT_WINDOW = 8;
+const TAIL_COMPLETION_BUDGET_WINDOW_EXTRA = 2;
+const TAIL_COMPLETION_BUDGET_SCALE_FRAMES = 150_000;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
 const FAR_BACK_FRONTIER_LAG = 3;
 /** Once a passing output exists but its axis quality is still weak, spend sparse
@@ -611,6 +639,8 @@ function compileHandoffInternal(
       axisQualitySuccesses: 0,
       axisQualityAttemptsByAxis: {},
       axisQualitySuccessesByAxis: {},
+      candidateReleaseCoverage: emptyCandidateReleaseCoverage(),
+      candidatePreviewCoverage: emptyCandidatePreviewCoverage(),
       rescueAttempts: 0,
       rescueSuccesses: 0,
       skips: 0,
@@ -752,6 +782,8 @@ function compileHandoffInternal(
           handoff_deferred_skips: telemetry.deferredSkips,
           handoff_far_back_pulses: telemetry.farBackPulses,
           handoff_search_seed: best.stats.handoff_search_seed ?? searchSeed,
+          ...snapshotCandidateReleaseCoverage(telemetry),
+          ...snapshotCandidatePreviewCoverage(telemetry),
           ...(arcStats ? { arc_placement: arcStats } : {}),
         },
       };
@@ -806,6 +838,7 @@ function compileHandoffInternal(
         telemetry,
         register.getBestKey(),
         sparseContractSearch,
+        targetBudget,
       );
       if (repairedNode !== null) {
         const result = consider(repairedNode, "suffix");
@@ -1003,6 +1036,10 @@ function cloneGapFit(fit: GapFit): GapFit {
     achieved: { ...fit.achieved },
     cost: fit.cost,
     ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
+    ...(fit.releaseGroundedFrames === undefined
+      ? {}
+      : { releaseGroundedFrames: fit.releaseGroundedFrames }),
+    ...(fit.releaseAirborne === undefined ? {} : { releaseAirborne: fit.releaseAirborne }),
     ...(fit.ref === undefined ? {} : { ref: { ...fit.ref } }),
   };
 }
@@ -1185,6 +1222,117 @@ function snapshotAxisQualityByAxis(
     byAxis[axis] = { attempts, successes };
   }
   return byAxis;
+}
+
+function emptyCandidateReleaseCoverage(): CandidateReleaseCoverageAccumulator {
+  return {
+    count: 0,
+    speedCount: 0,
+    speedSum: 0,
+    speedSquareSum: 0,
+    speedMin: Infinity,
+    speedMax: -Infinity,
+    groundedCount: 0,
+    groundedSum: 0,
+    groundedMin: Infinity,
+    groundedMax: -Infinity,
+    zeroGroundedCount: 0,
+    airborneAtReleaseCount: 0,
+  };
+}
+
+function recordCandidateReleaseCoverage(
+  telemetry: HandoffTelemetry,
+  candidate: Candidate,
+): void {
+  const coverage = telemetry.candidateReleaseCoverage;
+  coverage.count++;
+  if (candidate.releaseSpeed !== undefined) {
+    const speed = speedPxToAuthored(candidate.releaseSpeed);
+    coverage.speedCount++;
+    coverage.speedSum += speed;
+    coverage.speedSquareSum += speed * speed;
+    coverage.speedMin = Math.min(coverage.speedMin, speed);
+    coverage.speedMax = Math.max(coverage.speedMax, speed);
+  }
+  if (candidate.releaseGroundedFrames !== undefined) {
+    const grounded = candidate.releaseGroundedFrames;
+    coverage.groundedCount++;
+    coverage.groundedSum += grounded;
+    coverage.groundedMin = Math.min(coverage.groundedMin, grounded);
+    coverage.groundedMax = Math.max(coverage.groundedMax, grounded);
+    if (grounded === 0) coverage.zeroGroundedCount++;
+  }
+  if (candidate.releaseAirborne === true) coverage.airborneAtReleaseCount++;
+}
+
+function snapshotCandidateReleaseCoverage(
+  telemetry: HandoffTelemetry,
+): Partial<CompileStats> {
+  const coverage = telemetry.candidateReleaseCoverage;
+  if (coverage.count === 0) return {};
+  const speedMean = coverage.speedCount === 0 ? undefined : coverage.speedSum / coverage.speedCount;
+  const speedVariance = speedMean === undefined
+    ? undefined
+    : Math.max(0, coverage.speedSquareSum / coverage.speedCount - speedMean * speedMean);
+  return {
+    handoff_candidate_release_count: coverage.count,
+    ...(coverage.speedCount === 0
+      ? {}
+      : {
+        handoff_candidate_release_speed_mean: round3(speedMean!),
+        handoff_candidate_release_speed_min: round3(coverage.speedMin),
+        handoff_candidate_release_speed_max: round3(coverage.speedMax),
+        handoff_candidate_release_speed_std: round3(Math.sqrt(speedVariance!)),
+      }),
+    ...(coverage.groundedCount === 0
+      ? {}
+      : {
+        handoff_candidate_release_grounded_mean: round3(coverage.groundedSum / coverage.groundedCount),
+        handoff_candidate_release_grounded_min: coverage.groundedMin,
+        handoff_candidate_release_grounded_max: coverage.groundedMax,
+        handoff_candidate_release_zero_grounded_count: coverage.zeroGroundedCount,
+      }),
+    handoff_candidate_release_airborne_count: coverage.airborneAtReleaseCount,
+  };
+}
+
+function emptyCandidatePreviewCoverage(): CandidatePreviewCoverageAccumulator {
+  return {
+    count: 0,
+    zeroFirstSurvivors: 0,
+    firstSurvivorSum: 0,
+    firstSurvivorMin: Infinity,
+    firstSurvivorMax: -Infinity,
+  };
+}
+
+function recordCandidatePreviewCoverage(
+  telemetry: HandoffTelemetry,
+  preview: ReturnType<typeof previewFutureContacts>,
+): void {
+  if (preview.horizon <= 0) return;
+  const coverage = telemetry.candidatePreviewCoverage;
+  coverage.count++;
+  coverage.firstSurvivorSum += preview.firstSurvivors;
+  coverage.firstSurvivorMin = Math.min(coverage.firstSurvivorMin, preview.firstSurvivors);
+  coverage.firstSurvivorMax = Math.max(coverage.firstSurvivorMax, preview.firstSurvivors);
+  if (preview.firstSurvivors === 0) coverage.zeroFirstSurvivors++;
+}
+
+function snapshotCandidatePreviewCoverage(
+  telemetry: HandoffTelemetry,
+): Partial<CompileStats> {
+  const coverage = telemetry.candidatePreviewCoverage;
+  if (coverage.count === 0) return {};
+  return {
+    handoff_candidate_preview_count: coverage.count,
+    handoff_candidate_preview_zero_next_count: coverage.zeroFirstSurvivors,
+    handoff_candidate_preview_first_survivors_mean:
+      round3(coverage.firstSurvivorSum / coverage.count),
+    handoff_candidate_preview_first_survivors_min: coverage.firstSurvivorMin,
+    handoff_candidate_preview_first_survivors_max: coverage.firstSurvivorMax,
+  };
 }
 
 function emptyPhaseCounter(): Record<HandoffNodeEventPhase, number> {
@@ -1974,7 +2122,7 @@ function completeNearTail(
   sparseContractSearch: boolean,
   targetBudget: number,
 ): HandoffNode | null {
-  if (!shouldAttemptNearTailCompletion(node, gaps)) return null;
+  if (!shouldAttemptNearTailCompletion(node, gaps, targetBudget)) return null;
   const remaining = remainingContactCount(node.search, gaps);
   telemetry.tailCompletionAttempts++;
   incrementContactCountCounter(telemetry.tailCompletionAttemptsByRemainingContacts, remaining);
@@ -2013,8 +2161,9 @@ function completeWeakPrefixWithBoundedSuffix(
   telemetry: HandoffTelemetry,
   bestKey: LeafKey | null,
   sparseContractSearch: boolean,
+  targetBudget: number,
 ): HandoffNode | null {
-  if (!shouldAttemptSuffixRepair(node, gaps, telemetry, bestKey)) return null;
+  if (!shouldAttemptSuffixRepair(node, gaps, telemetry, bestKey, targetBudget)) return null;
   telemetry.suffixRepairAttempts++;
 
   const completed = completeBoundedSuffix(
@@ -2218,10 +2367,11 @@ function medianContactGapFrames(gaps: readonly Gap[]): number | null {
 export function shouldAttemptNearTailCompletion(
   node: { search: SearchNode; skippedContacts: number },
   gaps: Gap[],
+  targetBudget = 0,
 ): boolean {
   if (node.skippedContacts > 0 || isTerminalNode(node.search, gaps)) return false;
   if (!node.search.prefixFits.some((fit) => fit !== null)) return false;
-  return remainingContactCount(node.search, gaps) <= TAIL_COMPLETION_CONTACT_WINDOW;
+  return remainingContactCount(node.search, gaps) <= tailCompletionContactWindow(targetBudget);
 }
 
 function shouldAttemptSuffixRepair(
@@ -2229,6 +2379,7 @@ function shouldAttemptSuffixRepair(
   gaps: Gap[],
   telemetry: HandoffTelemetry,
   bestKey: LeafKey | null,
+  targetBudget: number,
 ): boolean {
   if (bestKey?.contract_passed !== true) return false;
   if (bestKey.axis_quality >= QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY) return false;
@@ -2241,7 +2392,13 @@ function shouldAttemptSuffixRepair(
   if (!node.startExpanded || node.deferExpansion) return false;
   if (node.skippedContacts !== 0 || isTerminalNode(node.search, gaps)) return false;
   if (!node.search.prefixFits.some((fit) => fit !== null)) return false;
-  return remainingContactCount(node.search, gaps) > TAIL_COMPLETION_CONTACT_WINDOW;
+  return remainingContactCount(node.search, gaps) > tailCompletionContactWindow(targetBudget);
+}
+
+function tailCompletionContactWindow(targetBudget: number): number {
+  const budget = Math.max(0, targetBudget);
+  const pressure = smoothstep(clamp01(budget / (budget + TAIL_COMPLETION_BUDGET_SCALE_FRAMES)));
+  return TAIL_COMPLETION_CONTACT_WINDOW + TAIL_COMPLETION_BUDGET_WINDOW_EXTRA * pressure;
 }
 
 function uniqueFullEvaluations(telemetry: HandoffTelemetry): number {
@@ -2290,6 +2447,7 @@ function scoreCandidateForHandoff(
     : preview.firstSurvivors === 0
       ? DEAD_END_PENALTY
       : SURVIVOR_SCARCITY_PENALTY / preview.firstSurvivors;
+  recordCandidatePreviewCoverage(telemetry, preview);
   const previewCost = preview.firstCost === Infinity
     ? 0
     : preview.firstCost * previewCostWeight;
@@ -2306,6 +2464,7 @@ function scoreCandidateForHandoff(
   const releasePenalty = releaseSetup
     ? candidateReleaseSetupPenalty(candidate, gaps, node.gapIndex)
     : 0;
+  recordCandidateReleaseCoverage(telemetry, candidate);
   return {
     candidate,
     child,

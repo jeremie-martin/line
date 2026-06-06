@@ -293,6 +293,27 @@ export type CompileStats = {
   handoff_selected_candidate_brake_count?: number;
   handoff_selected_candidate_startup_count?: number;
   handoff_selected_candidate_axis_quality_count?: number;
+  /** Viable candidates scored by handoff, summarized by post-catch release
+   *  state. These are candidate-pool coverage diagnostics only; they are not
+   *  used by ranking or scoring. Release speed is in authored speed units. */
+  handoff_candidate_release_count?: number;
+  handoff_candidate_release_speed_mean?: number;
+  handoff_candidate_release_speed_min?: number;
+  handoff_candidate_release_speed_max?: number;
+  handoff_candidate_release_speed_std?: number;
+  handoff_candidate_release_grounded_mean?: number;
+  handoff_candidate_release_grounded_min?: number;
+  handoff_candidate_release_grounded_max?: number;
+  handoff_candidate_release_zero_grounded_count?: number;
+  handoff_candidate_release_airborne_count?: number;
+  /** Candidate next-contact preview coverage from previews the search already
+   *  paid for. These are diagnostic-only; quality search currently disables
+   *  universal previews, so this summarizes previewed contract/rescue options. */
+  handoff_candidate_preview_count?: number;
+  handoff_candidate_preview_zero_next_count?: number;
+  handoff_candidate_preview_first_survivors_mean?: number;
+  handoff_candidate_preview_first_survivors_min?: number;
+  handoff_candidate_preview_first_survivors_max?: number;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
    *  terminal prefixes use the full spec duration. */

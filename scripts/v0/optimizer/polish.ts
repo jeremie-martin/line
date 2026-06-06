@@ -48,6 +48,10 @@ export function cloneFits(fits: (GapFit | null)[]): (GapFit | null)[] {
           achieved: { ...fit.achieved },
           cost: fit.cost,
           ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
+          ...(fit.releaseGroundedFrames === undefined
+            ? {}
+            : { releaseGroundedFrames: fit.releaseGroundedFrames }),
+          ...(fit.releaseAirborne === undefined ? {} : { releaseAirborne: fit.releaseAirborne }),
         },
   );
 }

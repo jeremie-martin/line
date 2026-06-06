@@ -100,7 +100,7 @@ export type AxisQualityStreamCounter = {
 };
 
 /** Candidate sources that can be selected into the returned handoff prefix. */
-export const HANDOFF_CANDIDATE_SOURCES = ["pool", "reuse", "brake", "axisq"] as const;
+export const HANDOFF_CANDIDATE_SOURCES = ["pool", "reuse", "brake", "startup", "axisq"] as const;
 export type HandoffCandidateSourceName = (typeof HANDOFF_CANDIDATE_SOURCES)[number];
 export type HandoffCandidateSourceCounter = Partial<Record<HandoffCandidateSourceName, number>>;
 
@@ -113,7 +113,7 @@ export type HandoffContactCountCounter = Partial<Record<number, number>>;
 
 /** Compiler-owned candidate sampling streams. Normal is the main deterministic
  *  candidate prefix; extra streams must justify their sample budget separately. */
-export const CANDIDATE_SAMPLE_MODES = ["normal", "brake", "air_support", "speed_drag"] as const;
+export const CANDIDATE_SAMPLE_MODES = ["normal", "brake", "startup_catch", "air_support", "speed_drag"] as const;
 export type CandidateSampleMode = (typeof CANDIDATE_SAMPLE_MODES)[number];
 
 export type ArcPlacementCounter = {
@@ -291,6 +291,7 @@ export type CompileStats = {
   handoff_selected_candidate_pool_count?: number;
   handoff_selected_candidate_reuse_count?: number;
   handoff_selected_candidate_brake_count?: number;
+  handoff_selected_candidate_startup_count?: number;
   handoff_selected_candidate_axis_quality_count?: number;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
@@ -359,6 +360,10 @@ export type CompileStats = {
   /** Extra brake-mode candidate samples and viable brake catches. */
   handoff_brake_attempts?: number;
   handoff_brake_successes?: number;
+  /** Startup dead-end catch samples and viable catches. These run only after the
+   *  ordinary contract/rescue batches cannot produce a required-contact option. */
+  handoff_startup_attempts?: number;
+  handoff_startup_successes?: number;
   /** Registered axis-quality extra-stream samples and viable candidates. */
   handoff_axis_quality_attempts?: number;
   handoff_axis_quality_successes?: number;

@@ -100,6 +100,8 @@ type CompileStats = {
   handoff_reuse_successes?: number;
   handoff_brake_attempts?: number;
   handoff_brake_successes?: number;
+  handoff_startup_attempts?: number;
+  handoff_startup_successes?: number;
   handoff_axis_quality_attempts?: number;
   handoff_axis_quality_successes?: number;
   handoff_axis_quality_by_axis?: Partial<Record<AxisName, AxisQualityCounter>>;
@@ -119,6 +121,7 @@ type CompileStats = {
   handoff_selected_candidate_pool_count?: number;
   handoff_selected_candidate_reuse_count?: number;
   handoff_selected_candidate_brake_count?: number;
+  handoff_selected_candidate_startup_count?: number;
   handoff_selected_candidate_axis_quality_count?: number;
   arc_placement?: ArcPlacementStats;
 };
@@ -178,6 +181,7 @@ const STREAM_YIELD_STATS = [
   ["tail_best", "handoff_tail_completion_improvements", "handoff_tail_completion_successes"],
   ["reuse", "handoff_reuse_successes", "handoff_reuse_attempts"],
   ["brake", "handoff_brake_successes", "handoff_brake_attempts"],
+  ["startup", "handoff_startup_successes", "handoff_startup_attempts"],
   ["axisq", "handoff_axis_quality_successes", "handoff_axis_quality_attempts"],
   ["suffix", "handoff_suffix_repair_successes", "handoff_suffix_repair_attempts"],
   ["suffix_best", "handoff_suffix_repair_improvements", "handoff_suffix_repair_successes"],
@@ -536,6 +540,7 @@ type CandidateRankSummary = {
   pool: number;
   reuse: number;
   brake: number;
+  startup: number;
   axisq: number;
   axisqByAxis: Partial<Record<AxisName, number>>;
 };
@@ -554,6 +559,7 @@ function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
     pool: 0,
     reuse: 0,
     brake: 0,
+    startup: 0,
     axisq: 0,
     axisqByAxis: {},
   };
@@ -591,6 +597,7 @@ function accumulateRankSummary(
   summary.pool += selectedCandidateSourceStat(stats, "pool") ?? 0;
   summary.reuse += selectedCandidateSourceStat(stats, "reuse") ?? 0;
   summary.brake += selectedCandidateSourceStat(stats, "brake") ?? 0;
+  summary.startup += selectedCandidateSourceStat(stats, "startup") ?? 0;
   summary.axisq += selectedCandidateSourceStat(stats, "axisq") ?? 0;
   accumulateAxisCountMap(summary.axisqByAxis, stats.handoff_selected_axis_quality_by_axis);
 }
@@ -602,7 +609,7 @@ function printCandidateRankSummary(label: string, summary: CandidateRankSummary)
     `  ${label.padEnd(8)} n=${String(summary.rows).padStart(3)} ` +
       `nonzero=${summary.nonzero}/${summary.contacts} ` +
       `mean=${meanRank.toFixed(2)} max=${summary.maxRank} ` +
-      `src=${summary.pool}/${summary.reuse}/${summary.brake}/${summary.axisq}` +
+      `src=${summary.pool}/${summary.reuse}/${summary.brake}/${summary.startup}/${summary.axisq}` +
       (axisqByAxis === "" ? "" : ` axisqSrc=${axisqByAxis}`),
   );
 }
@@ -818,6 +825,7 @@ function legacySelectedCandidateSourceStat(
   if (source === "pool") return stats?.handoff_selected_candidate_pool_count;
   if (source === "reuse") return stats?.handoff_selected_candidate_reuse_count;
   if (source === "brake") return stats?.handoff_selected_candidate_brake_count;
+  if (source === "startup") return stats?.handoff_selected_candidate_startup_count;
   if (source === "axisq") return stats?.handoff_selected_candidate_axis_quality_count;
   return undefined;
 }

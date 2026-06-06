@@ -206,6 +206,8 @@ type HandoffTelemetry = {
   reuseSuccesses: number;
   brakeAttempts: number;
   brakeSuccesses: number;
+  startupAttempts: number;
+  startupSuccesses: number;
   axisQualityAttempts: number;
   axisQualitySuccesses: number;
   axisQualityAttemptsByAxis: Partial<Record<AxisName, number>>;
@@ -317,6 +319,10 @@ const HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND = 48;
 const HANDOFF_RESCUE_CANDIDATE_POOL = 12;
 const HANDOFF_RESCUE_STARTUP_EXTRA_POOL = 4;
 const HANDOFF_RESCUE_MIN_GAP_FRAMES = 16;
+/** Distinct startup catch stream used only when the ordinary contract/rescue
+ *  batches have zero viable options. This targets missing first/tight contacts
+ *  without inserting an extra family into already-working contract search. */
+const HANDOFF_STARTUP_DEAD_END_MAX_K = 24;
 /** Sub-0.3s required-contact gaps are deadline-dominated: the normal cheap
  *  16-sample prefix can have zero hits even when a catch exists later in the
  *  deterministic sample order. Rescue only clean prefixes at true dead-ends so
@@ -585,6 +591,8 @@ function compileHandoffInternal(
       reuseSuccesses: 0,
       brakeAttempts: 0,
       brakeSuccesses: 0,
+      startupAttempts: 0,
+      startupSuccesses: 0,
       axisQualityAttempts: 0,
       axisQualitySuccesses: 0,
       axisQualityAttemptsByAxis: {},
@@ -716,6 +724,8 @@ function compileHandoffInternal(
           handoff_reuse_successes: telemetry.reuseSuccesses,
           handoff_brake_attempts: telemetry.brakeAttempts,
           handoff_brake_successes: telemetry.brakeSuccesses,
+          handoff_startup_attempts: telemetry.startupAttempts,
+          handoff_startup_successes: telemetry.startupSuccesses,
           handoff_axis_quality_attempts: telemetry.axisQualityAttempts,
           handoff_axis_quality_successes: telemetry.axisQualitySuccesses,
           handoff_axis_quality_by_axis: snapshotAxisQualityByAxis(telemetry),
@@ -1322,6 +1332,15 @@ function expandNode(
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
+  if (options.length === 0 && shouldAttemptStartupDeadEndRescue(gap)) {
+    telemetry.rescueAttempts++;
+    options = startupDeadEndOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
+      preview: handoffUsesFuturePreview(qualitySearch),
+      releaseSetup: qualitySearch,
+      previewCostWeight: PREVIEW_COST_WEIGHT,
+    });
+    if (options.length > 0) telemetry.rescueSuccesses++;
+  }
   if (options.length === 0) {
     telemetry.skips++;
     telemetry.deferredSkips++;
@@ -1391,6 +1410,10 @@ function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {
     shortDeadlineRescueCandidateCount(gap.endFrame - gap.startFrame) > 0;
 }
 
+function shouldAttemptStartupDeadEndRescue(gap: Gap): boolean {
+  return gap.endsWithContact && startupDeadEndCandidateCount(gap) > 0;
+}
+
 export function shouldUseExpandedBrakeSearch(qualitySearch: boolean): boolean {
   // Expanded brake breadth is used in the quality phase. (It was also enabled in
   // the contract phase for contact-event gaps, an axis category that no longer
@@ -1403,6 +1426,87 @@ export function shortDeadlineRescueCandidateCount(gapFrames: number): number {
   return gapFrames < HANDOFF_SHORT_RESCUE_MAX_GAP_FRAMES
     ? HANDOFF_SHORT_RESCUE_N_CAND
     : 0;
+}
+
+function startupDeadEndOptions(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  telemetry: HandoffTelemetry,
+  config: {
+    preview?: boolean;
+    previewCostWeight?: number;
+    releaseSetup?: boolean;
+  } = {},
+): RankedOption[] {
+  const candidates = startupDeadEndCandidates(node, gaps, ctx, seed, telemetry);
+  if (candidates.length === 0) return [];
+  const preview = config.preview ?? true;
+  const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
+  const scored = candidates.map((candidate, rank) =>
+    scoreCandidateForHandoff(
+      node,
+      candidate,
+      rank,
+      "startup",
+      gaps,
+      ctx,
+      seed,
+      telemetry,
+      preview,
+      previewCostWeight,
+      config.releaseSetup ?? false,
+    )
+  );
+  scored.sort((a, b) =>
+    a.score - b.score ||
+    (a.candidate?.cost ?? Infinity) - (b.candidate?.cost ?? Infinity) ||
+    a.rank - b.rank
+  );
+  return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+function startupDeadEndCandidates(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  telemetry: HandoffTelemetry,
+): Candidate[] {
+  const gap = gaps[node.gapIndex];
+  if (!gap.endsWithContact) return [];
+  const k = startupDeadEndCandidateCount(gap);
+  if (k <= 0) return [];
+  const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 0x85ebca6b) | 0);
+  const out: Candidate[] = [];
+  for (let attempt = 0; attempt < k; attempt++) {
+    telemetry.startupAttempts++;
+    const candidate = sampleOneCandidate(
+      node.prefixEngine,
+      gap,
+      rng,
+      ctx,
+      node.prefixNextLineId,
+      7000 + attempt,
+      "startup_catch",
+    );
+    if (candidate !== null) {
+      telemetry.startupSuccesses++;
+      candidate.ref = undefined;
+      out.push(candidate);
+    }
+  }
+  return out;
+}
+
+function startupDeadEndCandidateCount(gap: Gap): number {
+  const pressure = startupRescuePressure(gap.endFrame);
+  return clampIntLocal(
+    Math.round(HANDOFF_STARTUP_DEAD_END_MAX_K * pressure),
+    0,
+    HANDOFF_STARTUP_DEAD_END_MAX_K,
+  );
 }
 
 function rankedOptions(
@@ -2619,6 +2723,7 @@ function buildNodeOutput(
       handoff_selected_candidate_pool_count: sourceCounts.pool,
       handoff_selected_candidate_reuse_count: sourceCounts.reuse,
       handoff_selected_candidate_brake_count: sourceCounts.brake,
+      handoff_selected_candidate_startup_count: sourceCounts.startup,
       handoff_selected_candidate_axis_quality_count: sourceCounts.axisq,
     },
   };

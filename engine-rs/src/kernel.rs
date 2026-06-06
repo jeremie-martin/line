@@ -204,8 +204,12 @@ unsafe fn resolve_bind(
     let p1y = *s.py.get_unchecked(p1);
     let p2x = *s.px.get_unchecked(p2);
     let p2y = *s.py.get_unchecked(p2);
-    let length = dist(p1x, p1y, p2x, p2y);
+    // `length` (a sqrt) is only used on the intact branch (fsu == -1, ~97% of the
+    // time). Computing it lazily inside the branch skips the sqrt for the ~3%
+    // broken-bind calls where it was discarded — strictly bit-identical (the value,
+    // when used, is the same dist(); when unused it has no observable effect).
     if *s.fsu.get_unchecked(bind) == -1 {
+        let length = dist(p1x, p1y, p2x, p2y);
         let gd = if length == 0.0 {
             0.0
         } else {

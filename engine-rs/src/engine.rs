@@ -133,8 +133,13 @@ impl Cache {
             return; // grid.add returns [] for non-collidable: no registration, no invalidation
         }
         let cells = line_cells(&l);
-        self.lines_cells.insert(l.id, cells.clone());
-        push_line(&mut self.cell_lines, l.clone(), &cells);
+        let id = l.id;
+        // Invalidation reads only hist/hist_snaps (via index_of_collision_in_cell)
+        // and set_frames_length touches only hist/coll/frames — both disjoint from
+        // cell_lines/lines_cells. So we run the invalidation loop first (borrowing
+        // &l), then move l into push_line and cells into lines_cells, avoiding the
+        // line + cells-Vec clones the original eager registration required. The grid
+        // registration order vs invalidation is immaterial (disjoint state).
         for &cell in cells.iter() {
             if let Some(idx) = index_of_collision_in_cell(
                 &self.hist,
@@ -145,6 +150,8 @@ impl Cache {
                 self.set_frames_length(idx as usize);
             }
         }
+        push_line(&mut self.cell_lines, l, &cells);
+        self.lines_cells.insert(id, cells);
     }
 
     /// _removeLine: unregister the line, truncate to its FIRST collision frame.

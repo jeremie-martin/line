@@ -4679,3 +4679,38 @@ verdict. This quantifies the add_line clone cost: real but ≲0.2% — the recon
 bucket's allocation overhead is too thin per-call to bank under the gate. Reverted;
 standing unchanged at ~5,884 ns/frame. (If a future structural change makes add_line
 materially hotter — e.g. more lines/compile — re-test; the reorder remains correct.)
+
+## Session 176 (2026-06-06 cont.) — `add_line` move-not-clone + `resolve_bind` lazy sqrt (bundle) ⭐ KEPT (−1.15%)
+
+Re-tested the S175 `add_line` clone-elimination **bundled** with a second strictly
+bit-identical work-reduction, on the theory that two independent sub-resolution
+reductions clear the R=100 floor together where neither did alone:
+
+1. **`Cache::add_line` move-not-clone** (engine.rs) — run the invalidation loop
+   first (it + `set_frames_length` touch only `hist`/`coll`/`frames`, disjoint from
+   `cell_lines`/`lines_cells`), then **move** `l` into `push_line` and `cells` into
+   `lines_cells` instead of cloning both. Removes one `Line` + one `Vec<i64>` heap
+   clone per collidable add. (S175 measured this alone at −0.19%, P=84.9% — real but
+   sub-resolution at R=100.)
+2. **`resolve_bind` lazy sqrt** (kernel.rs) — `let length = dist(...)` was computed
+   unconditionally but consumed only on the intact branch (`fsu == -1`, ~97%). Moved
+   it inside the branch so the ~3% broken-bind calls skip the sqrt. **Strictly
+   bit-identical** — unlike the S173 repel gate there is no comparison-semantics
+   band: the value, when used, is the identical `dist()`; when unused it has no
+   observable effect.
+
+- **Gates:** `cargo test` ✓ · `LR_ENGINE=wasm npm run verify` ✓ **byte-identical**
+  (engine 5/5 fixtures + optimizer 4/4 cases). Both are pure data-flow reorders, no
+  float result changed.
+- **A/B (R=150, pre-committed for resolution on the expected ~0.26% combined
+  effect):** Δ median **−1.15%** / mean −1.16%, 95% CI **[−1.33%, −0.96%]**,
+  candidate won **132/150** rounds (p=0.000), **P(faster)=100%** → ✓ **KEEP**.
+
+The measured −1.15% is much larger than the ~0.26% the per-change estimates
+predicted. Two readings: (a) S175's standalone −0.19% was an unlucky R=100 draw and
+the true `add_line` effect is larger; (b) a favorable fixed code-layout offset from
+this build pair (the floor R cannot remove, doc warns ≲0.5%). The sign test
+(132/150) and tight CI rule out pure per-run noise, but to disentangle a layout
+artifact the cumulative **3σ confirmation below rebuilds a fresh base arm** (averages
+layout luck) — kept only if it survives that. **Standing after S176: ~5,866
+ns/frame** (was ~5,884), pending 3σ confirmation.

@@ -540,7 +540,7 @@
   </div>
   <aside class="hero-card">
     <div class="label"><!--BASELINE:budget_label-->25k-200k curve<!--/BASELINE--></div>
-    <div class="score"><span><!--BASELINE:headline_score-->552.47<!--/BASELINE--></span> / 1000</div>
+    <div class="score"><span><!--BASELINE:headline_score-->552.48<!--/BASELINE--></span> / 1000</div>
     <div class="note"><!--BASELINE:valid_note-->240 valid rows out of 240 at 200000.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
   </aside>
 </section>
@@ -1061,11 +1061,11 @@ anchor = targetSled - local + tangent * alongJitter + normal * normalJitter</div
 npm run golden -- --jobs=4 --compiler=handoff
 
 <!--BASELINE:score_block-->
- 25000  score   11.62  valid 95/240  changed  0  improved  0  plateau  0  regress  0
- 50000  score  508.80  valid 235/240  changed 234  improved 222  plateau  6  regress 12
-100000  score  576.57  valid 239/240  changed 211  improved 171  plateau 29  regress 40
-150000  score  589.85  valid 240/240  changed 121  improved 112  plateau 119  regress  9
-200000  score  590.90  valid 240/240  changed 84  improved 81  plateau 156  regress  3<!--/BASELINE--></pre>
+ 25000  score   11.61  valid 95/240  changed  0  improved  0  plateau  0  regress  0
+ 50000  score  508.86  valid 235/240  changed 234  improved 222  plateau  6  regress 12
+100000  score  576.56  valid 239/240  changed 211  improved 171  plateau 29  regress 40
+150000  score  589.87  valid 240/240  changed 123  improved 114  plateau 117  regress  9
+200000  score  590.93  valid 240/240  changed 81  improved 78  plateau 159  regress  3<!--/BASELINE--></pre>
 
     <div class="panel" style="margin-top:16px">
       <h3>Spec scores at the largest budget</h3>
@@ -1085,12 +1085,12 @@ npm run golden -- --jobs=4 --compiler=handoff
         <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:59.9%"></span></div><span class="num">598.94</span></div>
         <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:59.0%"></span></div><span class="num">589.92</span></div>
         <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:57.3%"></span></div><span class="num">573.09</span></div>
-        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:55.8%"></span></div><span class="num">558.35</span></div>
-        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:54.6%"></span></div><span class="num">546.27</span></div>
+        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:55.9%"></span></div><span class="num">558.75</span></div>
+        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:54.7%"></span></div><span class="num">546.56</span></div>
         <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:54.5%"></span></div><span class="num">544.75</span></div>
-        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:54.0%"></span></div><span class="num">540.18</span></div>
-        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:53.2%"></span></div><span class="num">531.93</span></div>
-        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:46.6%"></span></div><span class="num">465.71</span></div>
+        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:54.0%"></span></div><span class="num">539.99</span></div>
+        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:53.2%"></span></div><span class="num">532.07</span></div>
+        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:46.6%"></span></div><span class="num">465.59</span></div>
         <!--/BASELINE-->
       </div>
     </div>
@@ -1276,7 +1276,7 @@ setTab(location.hash.replace("#", "") || "compiler", false);
 // comparable, so the series restarts here.
 // Replace the point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
 const campaignData = [
-  /*BASELINE:campaign*/["25k-200k curve", 552.47]/*/BASELINE*/
+  /*BASELINE:campaign*/["25k-200k curve", 552.48]/*/BASELINE*/
 ];
 
 function drawCampaignChart() {

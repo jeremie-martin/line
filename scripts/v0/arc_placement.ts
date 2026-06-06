@@ -33,6 +33,9 @@ const IMPACT_FRAME_ALONG_JITTER = 4;
 const IMPACT_FRAME_NORMAL_JITTER = 4;
 const CONTACT_CENTERED_POINT_JITTER = 4;
 const CONTACT_CENTERED_MAX_NEXT_CONTACT_FRAMES = 22;
+const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
+const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
+const CONTACT_CENTERED_GUIDED_POINT_SPREAD = 0.08;
 const FIRST_CONTACT_IMPACT_MAX_NEXT_CONTACT_FRAMES = 20;
 const DENSE_SPACING_CAP_GRAIN_MIN = 0.50;
 const DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES = 14;
@@ -106,6 +109,17 @@ export type ContactCenteredLineSample = {
   postSegments: number;
   brakePressure: number;
   accelPressure: number;
+};
+
+type ContactCenteredRolls = {
+  segmentLengthRoll: number;
+  contactAngleRoll: number;
+  preLengthRoll: number;
+  postLengthRoll: number;
+  preAngleRoll: number;
+  postAngleRoll: number;
+  tangentJitterRoll: number;
+  normalJitterRoll: number;
 };
 
 export type ArcPlacementGeometry =
@@ -757,6 +771,23 @@ export function sampleContactCenteredLinesWithDiagnostics(
   const postAngleRoll = rng();
   const tangentJitterRoll = rng();
   const normalJitterRoll = rng();
+  const guidedRolls = guideContactCenteredRolls(
+    {
+      segmentLengthRoll,
+      contactAngleRoll,
+      preLengthRoll,
+      postLengthRoll,
+      preAngleRoll,
+      postAngleRoll,
+      tangentJitterRoll,
+      normalJitterRoll,
+    },
+    targetState,
+    targets,
+    gap,
+    allContactFrames,
+    attempt,
+  );
 
   const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
   const targetSpeedPx = targets.speed === undefined
@@ -800,8 +831,8 @@ export function sampleContactCenteredLinesWithDiagnostics(
   const clearancePressure = Math.max(deadlinePressure, absoluteSpeedPressure * 0.6);
 
   const segmentLength = targets.grain !== undefined
-    ? clamp(targets.grain * CALIB.LINE_LENGTH_CAP + (segmentLengthRoll - 0.5) * 8, 4, 49)
-    : 16 + segmentLengthRoll * 28;
+    ? clamp(targets.grain * CALIB.LINE_LENGTH_CAP + (guidedRolls.segmentLengthRoll - 0.5) * 8, 4, 49)
+    : 16 + guidedRolls.segmentLengthRoll * 28;
   const contactAngleDeg = clamp(
     targetState.angleDeg
       - (2 + 5 * air)
@@ -809,18 +840,18 @@ export function sampleContactCenteredLinesWithDiagnostics(
       + 16 * accelPressure
       + 8 * speedCarryPressure
       + 2 * sustainedContactCarryPressure
-      + (contactAngleRoll - 0.5) * 12,
+      + (guidedRolls.contactAngleRoll - 0.5) * 12,
     -12,
     65,
   );
   const preLength = clamp(
-    (6 + preLengthRoll * 28)
+    (6 + guidedRolls.preLengthRoll * 28)
       * (1 - 0.45 * clearancePressure)
       * (1 + 0.35 * brakePressure),
     4,
     44,
   );
-  const rawPostLength = (45 + postLengthRoll * 135)
+  const rawPostLength = (45 + guidedRolls.postLengthRoll * 135)
     * (
       0.95
       + 0.25 * (1 - air)
@@ -837,7 +868,7 @@ export function sampleContactCenteredLinesWithDiagnostics(
   const preAngleDeg = clamp(
     contactAngleDeg
       - (4 + 8 * clearancePressure + 4 * brakePressure)
-      + (preAngleRoll - 0.5) * 12,
+      + (guidedRolls.preAngleRoll - 0.5) * 12,
     -20,
     70,
   );
@@ -846,9 +877,9 @@ export function sampleContactCenteredLinesWithDiagnostics(
     + 10 * accelPressure
     + 6 * speedCarryPressure
     + 6 * sustainedContactCarryPressure
-    + (postAngleRoll - 0.5) * 10;
+    + (guidedRolls.postAngleRoll - 0.5) * 10;
   const brakeRideOutAngleDeg = clamp(
-    contactAngleDeg + 8 + (postAngleRoll - 0.5) * 10,
+    contactAngleDeg + 8 + (guidedRolls.postAngleRoll - 0.5) * 10,
     -8,
     18,
   );
@@ -930,8 +961,8 @@ export function sampleContactCenteredLinesWithDiagnostics(
   const tangentY = Math.sin(contactAngleRad);
   const normalX = -tangentY;
   const normalY = tangentX;
-  const tangentJitter = (tangentJitterRoll - 0.5) * CONTACT_CENTERED_POINT_JITTER;
-  const normalJitter = (normalJitterRoll - 0.5) * CONTACT_CENTERED_POINT_JITTER;
+  const tangentJitter = (guidedRolls.tangentJitterRoll - 0.5) * CONTACT_CENTERED_POINT_JITTER;
+  const normalJitter = (guidedRolls.normalJitterRoll - 0.5) * CONTACT_CENTERED_POINT_JITTER;
   const contactPoint = {
     x: targetState.sledX + tangentX * tangentJitter + normalX * normalJitter,
     y: targetState.sledY + tangentY * tangentJitter + normalY * normalJitter,
@@ -959,6 +990,133 @@ export function sampleContactCenteredLinesWithDiagnostics(
     brakePressure,
     accelPressure,
   };
+}
+
+function guideContactCenteredRolls(
+  rolls: ContactCenteredRolls,
+  targetState: ImpactFrameTargetState,
+  targets: AxisValues,
+  gap: Gap,
+  allContactFrames: readonly number[],
+  attempt: number,
+): ContactCenteredRolls {
+  const targetSpeedPx = targets.speed === undefined
+    ? targetState.speed
+    : authoredSpeedToPx(targets.speed);
+  const air = clamp(targets.air ?? 0.5, 0, 1);
+  const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
+  const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
+  const denseContactPressure = nextGapFrames === null
+    ? 0
+    : clamp((20 - nextGapFrames) / 12, 0, 1);
+  const deadlinePressure = clamp((18 - gapFrames) / 10, 0, 1);
+  const absoluteSpeedPressure = clamp(
+    (targetState.speed - SPEED_AXIS.PRESSURE_START_PX_PER_FRAME) /
+      SPEED_AXIS.PRESSURE_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  );
+  const brakePressure = clamp(
+    (targetState.speed - targetSpeedPx) / SPEED_AXIS.PRESSURE_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  );
+  const accelPressure = clamp(
+    (targetSpeedPx - targetState.speed) / SPEED_AXIS.PRESSURE_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  );
+  const speedCarryPressure = clamp(
+    (targetSpeedPx - SPEED_AXIS.CARRY_START_PX_PER_FRAME) / SPEED_AXIS.CARRY_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  ) * (1 - clamp(
+    (targetSpeedPx - SPEED_AXIS.CARRY_FADE_START_PX_PER_FRAME) /
+      SPEED_AXIS.CARRY_FADE_SPAN_PX_PER_FRAME,
+    0,
+    1,
+  ));
+  const scarcity = Math.max(deadlinePressure, denseContactPressure);
+
+  const guided: ContactCenteredRolls = {
+    segmentLengthRoll: targets.grain === undefined
+      ? clamp(0.42 + 0.12 * denseContactPressure - 0.08 * air, 0.20, 0.80)
+      : 0.50,
+    contactAngleRoll: clamp(
+      0.50 - 0.08 * brakePressure + 0.06 * accelPressure + 0.04 * denseContactPressure,
+      0.24,
+      0.76,
+    ),
+    preLengthRoll: clamp(
+      0.36 + 0.18 * brakePressure - 0.18 * scarcity + 0.08 * absoluteSpeedPressure,
+      0.10,
+      0.82,
+    ),
+    postLengthRoll: clamp(
+      0.24 + 0.48 * (1 - air) + 0.14 * speedCarryPressure +
+        0.08 * brakePressure - 0.22 * denseContactPressure,
+      0.08,
+      0.90,
+    ),
+    preAngleRoll: clamp(0.50 - 0.10 * deadlinePressure - 0.06 * brakePressure, 0.22, 0.78),
+    postAngleRoll: clamp(
+      0.48 + 0.10 * accelPressure + 0.08 * speedCarryPressure -
+        0.06 * air + 0.04 * denseContactPressure,
+      0.22,
+      0.82,
+    ),
+    tangentJitterRoll: 0.50,
+    normalJitterRoll: 0.50,
+  };
+
+  const guide = contactCenteredGuideWeight(attempt);
+  return {
+    segmentLengthRoll: guidedRoll(rolls.segmentLengthRoll, guided.segmentLengthRoll, attempt, 0, guide),
+    contactAngleRoll: guidedRoll(rolls.contactAngleRoll, guided.contactAngleRoll, attempt, 1, guide),
+    preLengthRoll: guidedRoll(rolls.preLengthRoll, guided.preLengthRoll, attempt, 2, guide),
+    postLengthRoll: guidedRoll(rolls.postLengthRoll, guided.postLengthRoll, attempt, 3, guide),
+    preAngleRoll: guidedRoll(rolls.preAngleRoll, guided.preAngleRoll, attempt, 4, guide),
+    postAngleRoll: guidedRoll(rolls.postAngleRoll, guided.postAngleRoll, attempt, 5, guide),
+    tangentJitterRoll: guidedRoll(
+      rolls.tangentJitterRoll,
+      guided.tangentJitterRoll,
+      attempt,
+      6,
+      guide,
+      CONTACT_CENTERED_GUIDED_POINT_SPREAD,
+    ),
+    normalJitterRoll: guidedRoll(
+      rolls.normalJitterRoll,
+      guided.normalJitterRoll,
+      attempt,
+      7,
+      guide,
+      CONTACT_CENTERED_GUIDED_POINT_SPREAD,
+    ),
+  };
+}
+
+function contactCenteredGuideWeight(attempt: number): number {
+  const scaled = Math.max(0, attempt) / CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS;
+  return 1 / (1 + scaled * scaled);
+}
+
+function guidedRoll(
+  raw: number,
+  center: number,
+  attempt: number,
+  salt: number,
+  weight: number,
+  spread = CONTACT_CENTERED_GUIDED_ROLL_SPREAD,
+): number {
+  const guided = clamp(center + (lowDiscrepancyRoll(attempt, salt) - 0.5) * spread, 0, 1);
+  return clamp(lerp(raw, guided, weight), 0, 1);
+}
+
+function lowDiscrepancyRoll(attempt: number, salt: number): number {
+  const stride = 0.6180339887498949;
+  const offset = (salt + 1) * 0.137503523749935;
+  return fract((Math.max(0, attempt) + 1) * stride + offset);
 }
 
 /** Descend↔level ride-out span: ON by default for continuous mode (it lifts the
@@ -1307,4 +1465,8 @@ function clampInt(x: number, lo: number, hi: number): number {
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
+}
+
+function fract(x: number): number {
+  return x - Math.floor(x);
 }

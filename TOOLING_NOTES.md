@@ -123,3 +123,20 @@ or shell out per (spec,seed,budget). Single-seed sweeps were fine; 3-seed×5-bud
 was not. Also: single-seed suite numbers are NOT representative — warmup=1 looked
 like a +160 win at 50k seed-0 but was a regression across 3 seeds. Always
 multi-seed before forming a hypothesis.
+
+## current-fingerprint baseline drift (2026-06-06)
+`npm run golden` currently prints live evaluator fingerprint `816c00d44528`
+while `scripts/v0/golden_suite.ts` still records `9b9776df145f`. The focused
+optimizer tests pass and a fresh canonical baseline completed, but historical
+archives with the old fingerprint correctly refuse `decide` comparison. Treat
+`generated/golden-runs/baseline-current-plan/golden.json` as the current local
+baseline for compiler probes until the fingerprint tripwire is reconciled in a
+separate ruler/baseline cleanup.
+
+During planning, the first identical
+`tiny_dance,opening_burst × seeds 0,1,2 × budgets 25k,200k` archive landed at
+HEADLINE `41.76`, while repeated runs immediately afterward were stable at
+`531.50` with matching row hashes. The later repeated archives and direct
+single-spec runs agree, so the first archive is best treated as a stale/anomalous
+probe artifact. When a tiny probe shows a very large swing, repeat the same
+archive before using it as a failure-shape diagnosis.

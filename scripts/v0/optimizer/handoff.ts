@@ -367,21 +367,32 @@ const HANDOFF_AIR_SUPPORT_QUALITY_K = 1;
 const HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX = 0.25;
 const HANDOFF_SPEED_SUPPORT_QUALITY_K = 2;
 const HANDOFF_SPEED_SUPPORT_OVERSPEED_SCALE = 0.45;
-const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy>> = {
-  air: {
+const HANDOFF_SPEED_DRAG_QUALITY_K = 1;
+const HANDOFF_SPEED_DRAG_OVERSPEED_SCALE = 0.45;
+const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy[]>> = {
+  air: [{
     samples: HANDOFF_AIR_SUPPORT_QUALITY_K,
     seedSalt: 0x27d4eb2f,
     attemptOffset: 2000,
     mode: "air_support",
     targetMax: HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX,
-  },
-  speed: {
-    samples: HANDOFF_SPEED_SUPPORT_QUALITY_K,
-    seedSalt: 0x165667b1,
-    attemptOffset: 3000,
-    mode: "brake",
-    overspeedScale: HANDOFF_SPEED_SUPPORT_OVERSPEED_SCALE,
-  },
+  }],
+  speed: [
+    {
+      samples: HANDOFF_SPEED_SUPPORT_QUALITY_K,
+      seedSalt: 0x165667b1,
+      attemptOffset: 3000,
+      mode: "brake",
+      overspeedScale: HANDOFF_SPEED_SUPPORT_OVERSPEED_SCALE,
+    },
+    {
+      samples: HANDOFF_SPEED_DRAG_QUALITY_K,
+      seedSalt: 0x9e3779b1,
+      attemptOffset: 4000,
+      mode: "speed_drag",
+      overspeedScale: HANDOFF_SPEED_DRAG_OVERSPEED_SCALE,
+    },
+  ],
 };
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 /** Speculative tail completion turns deep prefixes into full-duration register
@@ -1516,31 +1527,33 @@ function axisQualityCandidates(
   const out: AxisQualityCandidate[] = [];
   const probe = getCandidateProbe(node.prefixEngine, gap, ctx);
   for (const axis of AXES) {
-    const policy = HANDOFF_AXIS_QUALITY_STREAMS[axis];
+    const policies = HANDOFF_AXIS_QUALITY_STREAMS[axis] ?? [];
     const target = gap.targets?.[axis];
-    if (policy === undefined || target === undefined) continue;
-    if (policy.targetMax !== undefined && target > policy.targetMax) continue;
-    const samples = axisQualityStreamSampleCount(axis, policy, target, probe.targetState.speed);
-    if (samples <= 0) continue;
-    const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
-    for (let attempt = 0; attempt < samples; attempt++) {
-      telemetry.axisQualityAttempts++;
-      telemetry.axisQualityAttemptsByAxis[axis] =
-        (telemetry.axisQualityAttemptsByAxis[axis] ?? 0) + 1;
-      const candidate = sampleOneCandidate(
-        node.prefixEngine,
-        gap,
-        rng,
-        ctx,
-        node.prefixNextLineId,
-        policy.attemptOffset + attempt,
-        policy.mode ?? "normal",
-      );
-      if (candidate !== null) {
-        telemetry.axisQualitySuccesses++;
-        telemetry.axisQualitySuccessesByAxis[axis] =
-          (telemetry.axisQualitySuccessesByAxis[axis] ?? 0) + 1;
-        out.push({ candidate, axis });
+    if (target === undefined) continue;
+    for (const policy of policies) {
+      if (policy.targetMax !== undefined && target > policy.targetMax) continue;
+      const samples = axisQualityStreamSampleCount(axis, policy, target, probe.targetState.speed);
+      if (samples <= 0) continue;
+      const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
+      for (let attempt = 0; attempt < samples; attempt++) {
+        telemetry.axisQualityAttempts++;
+        telemetry.axisQualityAttemptsByAxis[axis] =
+          (telemetry.axisQualityAttemptsByAxis[axis] ?? 0) + 1;
+        const candidate = sampleOneCandidate(
+          node.prefixEngine,
+          gap,
+          rng,
+          ctx,
+          node.prefixNextLineId,
+          policy.attemptOffset + attempt,
+          policy.mode ?? "normal",
+        );
+        if (candidate !== null) {
+          telemetry.axisQualitySuccesses++;
+          telemetry.axisQualitySuccessesByAxis[axis] =
+            (telemetry.axisQualitySuccessesByAxis[axis] ?? 0) + 1;
+          out.push({ candidate, axis });
+        }
       }
     }
   }

@@ -353,22 +353,27 @@ function targetStateControls(
   const brakeModePressure = mode === "brake" && targets.speed !== undefined
     ? smoothstep(overspeed)
     : 0;
+  const speedDragModePressure = mode === "speed_drag" && targets.speed !== undefined
+    ? smoothstep(overspeed)
+    : 0;
   const deadline = clamp((18 - gapFrames) / 12, 0, 1);
   const dense = nextGapFrames === null ? 0 : clamp((18 - nextGapFrames) / 14, 0, 1);
   const denseFastAir = highAir * dense * targetPace;
-  const brakeLandingUncertainty = brakeModePressure * clamp(
+  const brakeLandingUncertainty = (brakeModePressure + 0.6 * speedDragModePressure) * clamp(
     0.35 + 0.35 * targetPace + 0.30 * highAir,
     0,
     1,
   );
   const contactJitter = CONTACT_POINT_JITTER * lerp(1, 1.5, brakeLandingUncertainty);
   const preclearPressure = clamp(
-    0.35 * deadline + denseFastAir + 0.32 * overspeed + 0.18 * brakeModePressure,
+    0.35 * deadline + denseFastAir + 0.32 * overspeed +
+      0.18 * brakeModePressure + 0.12 * speedDragModePressure,
     0,
     1,
   );
   const speedControlPressure = clamp(
-    overspeed + 0.55 * denseFastAir + 0.38 * brakeModePressure,
+    overspeed + 0.55 * denseFastAir + 0.38 * brakeModePressure +
+      0.50 * speedDragModePressure,
     0,
     1,
   );
@@ -386,6 +391,7 @@ function targetStateControls(
       + 4 * dense
       - 10 * preclearPressure
       - 5 * brakeModePressure
+      - 8 * speedDragModePressure
       + (rolls.contactAngle - 0.5) * 14,
     -22,
     74,
@@ -396,10 +402,12 @@ function targetStateControls(
       - 8 * deadline
       + 3 * lowAir
       - 6 * brakeModePressure
+      - 10 * speedDragModePressure
       + (rolls.preAngle - 0.5) * 10,
     -28,
     78,
   );
+  const postAngleMin = lerp(-26, -42, speedDragModePressure);
   const postAngleDeg = clamp(
     contactAngleDeg
       + 14 * speedError
@@ -408,8 +416,9 @@ function targetStateControls(
       - 8 * dense
       - 18 * speedControlPressure
       - 12 * brakeModePressure
+      - 28 * speedDragModePressure
       + (rolls.postAngle - 0.5) * 14,
-    -26,
+    postAngleMin,
     78,
   );
 
@@ -426,7 +435,8 @@ function targetStateControls(
     (28 + rolls.postLength * 140) *
     (1 + 0.20 * lowAir + 0.12 * highAir) *
     (1 - 0.34 * speedControlPressure) *
-    (1 - 0.18 * brakeModePressure);
+    (1 - 0.18 * brakeModePressure) *
+    (1 + 0.35 * speedDragModePressure);
   const targetGroundFrames = nextGapFrames === null
     ? 6 + 18 * lowAir
     : clamp((1 - air) * nextGapFrames, 2, nextGapFrames * (0.72 - 0.22 * dense));
@@ -438,13 +448,18 @@ function targetStateControls(
         nextGapFrames *
         (0.34 + 0.26 * lowAir - 0.08 * dense) *
         (1 - 0.30 * speedControlPressure) *
-        (1 - 0.18 * brakeModePressure),
+        (1 - 0.18 * brakeModePressure) *
+        (1 + 0.45 * speedDragModePressure),
       14,
       260,
     );
-  const postFloor = Math.min(
+  const basePostFloor = Math.min(
     safePostCap,
     lerp(18, 8, clamp(denseFastAir + overspeed + 0.6 * brakeModePressure, 0, 1)),
+  );
+  const postFloor = Math.min(
+    safePostCap,
+    lerp(basePostFloor, Math.min(safePostCap, 28), speedDragModePressure),
   );
   const postLength = clamp(
     lerp(sampledPost, Math.min(targetPost, safePostCap), 0.72),

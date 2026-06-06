@@ -250,3 +250,123 @@
 - Decide result: `VERDICT: ACCEPT`; baseline `390.5` -> candidate `395.7`; `Δheadline = +5.1`, 95% CI `[1.0, 9.6]`, `P(Δ<=0)=0.7%`.
 - Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.9`, `100k=+3.9`, `150k=+5.3`, `200k=+7.4`; validity was unchanged. At 200k the speed stream produced `37796/75813` viable candidates and the selected best prefixes used `625` speed axis-quality candidates. Largest 200k gains were `syncopated_switchback` seed 11, `drums_crescendo` seed 8, `drums_breath` seed 11, `syncopated_switchback` seed 2, and `drums_breath` seed 0. Main 200k regressions were `drums_crescendo` seed 0, `drums_tide` seed 2, `syncopated_switchback` seed 10, `rhythm_ladder` seed 9, and `drums_dropout` seed 2.
 - Status: Kept and committed as the new baseline.
+
+## arc-speed-quality-depth-24
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: The accepted speed stream was selected often and many low rows remained speed-limited, so a third brake-mode speed sample under stronger overspeed pressure might add useful diversity without broadening mild-overspeed work.
+- Code changes made: Temporarily changed the speed axis-quality stream cap from `2` to `3` and widened the overspeed scale from `0.45` to `0.60`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-speed-quality-depth-24`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `395.7` -> candidate `395.9`; `Δheadline = +0.2`, 95% CI `[-1.7, 2.2]`, `P(Δ<=0)=41.9%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=-0.1`, `100k=+1.5`, `150k=+0.6`, `200k=-0.7`; validity was unchanged. The extra depth increased 200k speed-stream work to `42258/92902` viable candidates and selected `684` speed axis-quality candidates, but mostly traded rows. Largest 200k gains were `drums_tide` seed 2, `drums_zigzag` seed 5, `drums_crescendo` seed 1, and `drums_signature` seeds 11 and 3; largest regressions were `drums_pendulum` seed 0, `verse_chorus` seed 3, `drums_crescendo` seed 8, `drums_breath` seed 11, and `drums_dropout` seed 5.
+- Status: Reverted; not committed.
+
+## arc-quality-speed-rank-25
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: The accepted speed stream exposed useful speed-bleeding candidates, but low rows remained speed-overshoot dominated. Increasing only the quality-phase speed overshoot ranking pressure should pick better speed tradeoffs without changing the pre-validity contract race.
+- Code changes made: Temporarily added a `1.5` multiplier to the speed overshoot penalty only for quality-phase `rankedOptions` calls, including tail and suffix completion. Contract-phase ranking kept the existing weight.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-quality-speed-rank-25`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `395.7` -> candidate `395.3`; `Δheadline = -0.4`, 95% CI `[-3.2, 2.0]`, `P(Δ<=0)=60.8%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=-0.0`, `50k=+0.2`, `100k=+0.3`, `150k=-0.2`, `200k=-1.1`; validity was unchanged. The multiplier caused broad row churn and hurt high budgets, with 200k regressions including `syncopated_switchback` seed 11, `drums_tide` seed 2, `drums_crosscut` seed 1, `verse_chorus` seed 8, and `drums_zigzag` seed 10; notable gains included `verse_chorus` seed 1, `drums_crosscut` seed 0, `drums_crescendo` seed 3, and `rhythm_ladder` seed 8.
+- Status: Reverted; not committed.
+
+## arc-air-support-geometry-26
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: The existing `air_support` stream had a distinct sample mode but no distinct placement controls, so it was mostly just another low-air normal sample. Strengthening low-air geometry only for that quality-phase stream might reduce large air overshoots without changing contract search.
+- Code changes made: Temporarily added `airSupportPressure` in `targetStateControls` for `mode === "air_support"`, flattening contact/post angles and extending low-air pre/post/ground targets for those candidates only.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-air-support-geometry-26`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `395.7` -> candidate `395.2`; `Δheadline = -0.5`, 95% CI `[-2.3, 0.9]`, `P(Δ<=0)=73.3%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.1`, `100k=-0.2`, `150k=-0.9`, `200k=-0.4`; validity was unchanged. The air stream viability rose at 200k from roughly `1550/5454` to `2430/6021` and selected air candidates from `3` to `12`, but the row tradeoff was negative. Largest 200k gains included `drums_crescendo` seed 9, `drums_dropout` seed 2, `drums_crescendo` seed 1, `cold_start` seed 1, and `syncopated_switchback` seed 6; largest regressions included `drums_crescendo` seeds 8 and 11, `drums_dropout` seed 5, and `drums_pendulum` seeds 0 and 3.
+- Status: Reverted; not committed.
+
+## arc-tail-window-9-after-speed-27
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: After the accepted speed-support stream, a slightly earlier speculative tail completion might create cheaper terminal feedback from deep prefixes without changing candidate geometry.
+- Code changes made: Temporarily increased `TAIL_COMPLETION_CONTACT_WINDOW` from `8` to `9`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-tail-window-9-after-speed-27`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `395.7` -> candidate `396.5`; `Δheadline = +0.8`, 95% CI `[-1.5, 4.3]`, `P(Δ<=0)=23.6%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.7`, `50k=+7.2`, `100k=+0.2`, `150k=+0.5`, `200k=-0.2`; validity changed only at 25k from `33%` to `34%`. The new remaining-depth-9 tail work produced `404/647/1257` best/success/attempted counts but did not convert at high budget. Largest 200k gains included `drums_crescendo` seed 1, `dense_sprint` seed 7, `drums_crescendo` seed 3, `opening_burst` seed 9, and `drums_dropout` seed 3; largest regressions included `verse_chorus` seed 3, `drums_crescendo` seed 8, `syncopated_switchback` seed 2, `drums_dropout` seed 8, and `cold_start` seed 0.
+- Status: Reverted; not committed.
+
+## arc-axis-debt-quality-28
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: The current handoff ranker scores each gap locally even though speed/air state bias carries forward. After a passing output exists, tracking a decayed signed residual from committed dynamic axes and nudging quality-phase ranking against that debt might steer future catches toward better global axis quality without changing candidate geometry or contract search.
+- Code changes made: Temporarily added a quality-phase-only `axisDebtSearch` ranking adjustment. It tracked decayed signed `air` and `speed` residuals from `prefixFits`, then scored each candidate as if its local dynamic-axis target were shifted against the prefix debt. Main, rescue, tail, and bounded-suffix quality paths used the same deterministic debt signal; contract-phase search and candidate generation were unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-axis-debt-quality-28`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `395.7` -> candidate `394.8`; `Δheadline = -0.9`, 95% CI `[-4.1, 2.6]`, `P(Δ<=0)=71.5%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=-0.0`, `50k=+0.5`, `100k=-0.4`, `150k=-1.3`, `200k=-1.3`; validity was unchanged at every budget. The change created broad valid-row churn rather than a stable quality lift: largest 200k gains included `dense_sprint` seed 11, `drums_pendulum` seed 4, `drums_breath` seed 1, `drums_tide` seed 2, and `rhythm_ladder` seed 10; largest 200k regressions included `drums_crescendo` seed 3, `verse_chorus` seed 2, `drums_zigzag` seed 0, `drums_breath` seed 0, and `drums_crosscut` seed 1. Extra work was roughly neutral at 200k (`sim +90`, `candidates +101`, `viable -14` on common rows), so the failure was ranking quality, not wall-clock starvation.
+- Status: Reverted; not committed.
+
+## arc-quality-source-diversity-29
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: The quality ranker collapses pool, reuse, brake, and axis-quality candidates into one scalar list before the frontier sees them. Preserving one branch slot for a not-yet-represented source/axis group after the top scalar choices might improve alternative survival without changing candidate geometry, sample counts, scorer, or contract-phase routing.
+- Code changes made: Temporarily added quality-phase-only source-diverse branch selection in `rankedOptions`: keep the top two scalar-ranked options, then use the third branch for the best candidate from a source/axis group not already represented when available. Main, rescue, tail, and bounded-suffix quality paths enabled the selector; contract-phase search was unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-quality-source-diversity-29`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `395.7` -> candidate `396.4`; `Δheadline = +0.7`, 95% CI `[-2.0, 3.5]`, `P(Δ<=0)=30.1%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.2`, `100k=+0.9`, `150k=+1.1`, `200k=+0.5`; validity was unchanged at every budget. Source diversity increased 200k selected axis-quality candidates (`594` -> `688`) and full terminal feedback (`95577` -> `97921`) with a small positive curve, but still mostly traded valid rows. Largest 200k gains included `syncopated_switchback` seed 0, `drums_tide` seed 9, `mini_burst` seed 1, `drums_crescendo` seed 1, and `drums_dropout` seed 2; largest regressions included `syncopated_switchback` seed 11, `drums_dropout` seed 5, `opening_burst` seed 3, `drums_pendulum` seed 0, and `drums_zigzag` seed 10.
+- Status: Reverted; not committed.
+
+## arc-report-guided-repair-30
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: Generic far-back pulses are blind to the current best report. When a full passing output improves the register, the compiler can identify the weakest per-gap axis error, rebuild the prefix before that gap, and enqueue that prefix into quality search. This should target actual bad spans with quality streams instead of waiting for undirected frontier scheduling.
+- Code changes made: Temporarily threaded the full report through `consider()`, added a de-duplicated `(searchSeed,startRank,gapIndex)` report-repair queue for improved full passing outputs, rebuilt replay prefixes before the weakest reported axis gap, and added temporary compact compile-stat counters for repair enqueues/duplicates. Candidate geometry, scorer, golden specs, seed set, metric, and budget grid were unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-report-guided-repair-30`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `395.7` -> candidate `395.6`; `Δheadline = -0.1`, 95% CI `[-2.6, 2.6]`, `P(Δ<=0)=52.8%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=-0.0`, `50k=-1.6`, `100k=+2.3`, `150k=+0.0`, `200k=-0.9`; validity was unchanged at every budget. The mechanism was active (`527` repair enqueues and `988` duplicates at 200k), but it consumed terminal-feedback budget: 200k full offers dropped from roughly `95577` to `81552`, and unique full offers dropped from roughly `58725` to `50235`. Largest 200k gains included `verse_chorus` seed 10, `drums_pendulum` seed 4, `drums_dropout` seed 11, `rhythm_ladder` seed 6, and `dense_sprint` seed 10; largest 200k regressions included `drums_crescendo` seed 3, `verse_chorus` seed 3, `drums_dropout` seed 5, `syncopated_switchback` seed 2, and `grain_staircase` seed 4.
+- Status: Reverted; not committed.
+
+## arc-tail-duplicate-avoidance-31
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: Near-tail speculative completion was spending heavily on `remaining=1` and `remaining=2`, where normal DFS is close to a terminal leaf and improvement yield is low. Suppressing those duplicate-prone completions while preserving the wider tail window should free terminal-feedback budget for ordinary quality exploration.
+- Code changes made: Temporarily added `TAIL_COMPLETION_MIN_CONTACTS = 3` and changed `shouldAttemptNearTailCompletion()` to run only when remaining required contacts were in `[3, 8]`. Candidate geometry, scorer, golden specs, seed set, metric, and budget grid were unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-tail-duplicate-avoidance-31`
+- Decide result: `VERDICT: ACCEPT`, but below the promotion bar; baseline `395.7` -> candidate `395.9`; `Δheadline = +0.2`, 95% CI `[-0.0, 0.7]`, `P(Δ<=0)=3.7%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=-0.0`, `100k=+0.0`, `150k=+0.0`, `200k=+0.5`; validity was unchanged at every budget. The mechanism did reduce duplicate-prone terminal work: 200k tail attempts dropped from `45395` to `11948`, tail successes from `37792` to `8559`, and full duplicate offers from roughly `36852` to `8254`, while unique full offers were roughly flat-to-up (`58725` -> `60530`). Largest 200k gains included `drums_crescendo` seed 1, `dense_sprint` seed 7, `syncopated_switchback` seed 6, `dense_sprint` seed 4, and `drums_pulse` seed 7; the main 200k regressions were `drums_crescendo` seed 8 and a tiny drop on `drums_breath` seed 6.
+- Status: Reverted because the explicit promotion rule requires both `VERDICT: ACCEPT` and canonical `Δheadline > +5`; not committed.
+
+## arc-alt-search-lane-32
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: The current quality search sees only one deterministic candidate-sampling lane per `(spec, seed)`. After a weak passing output exists, enqueueing one alternate search lane with a mixed `searchSeed` should expose genuinely different candidate sequences while keeping the authored target jitter and contract race unchanged.
+- Code changes made: Temporarily added one alternate root lane after the first improved full passing output whose quality was weak enough to activate the existing far-back scheduler. The alternate lane reused the same start options but used `alternateQualitySearchSeed(searchSeed)`, with no changes to candidate geometry, scoring, specs, seed set, metric, or budget grid.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-alt-search-lane-32`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `395.7` -> candidate `395.5`; `Δheadline = -0.2`, 95% CI `[-2.4, 1.5]`, `P(Δ<=0)=54.4%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.5`, `100k=-0.1`, `150k=-0.0`, `200k=-0.6`; validity was unchanged at every budget. The alternate lane affected returned tracks (`18/240` rows selected a non-public search seed at 200k), but the row tradeoff was negative. Largest 200k gains included `tiny_dance` seed 9, `drums_tide` seed 11, `tiny_dance` seed 4, `tiny_dance` seed 10, and `drums_signature` seed 11; largest regressions included `drums_crosscut` seeds 0, 9, and 6, `dense_sprint` seed 4, and `tiny_dance` seed 1.
+- Status: Reverted; not committed.
+
+## arc-tail-high-yield-depths-33
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: Tail diagnostics showed `remaining=1..6` speculative completions were mostly duplicate-prone or low-yield, while `remaining=7..8` had much higher best/success rates. Keeping only the deeper tail completions might preserve the useful terminal-feedback channel while avoiding shallow duplicate work.
+- Code changes made: Temporarily added `TAIL_COMPLETION_MIN_CONTACTS = 7` and changed `shouldAttemptNearTailCompletion()` to run only when remaining required contacts were in `[7, 8]`. Candidate geometry, scorer, golden specs, seed set, metric, and budget grid were unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-tail-high-yield-depths-33`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `395.7` -> candidate `395.7`; `Δheadline = +0.0`, 95% CI `[-1.3, 0.9]`, `P(Δ<=0)=43.2%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=-0.3`, `50k=-1.0`, `100k=+0.0`, `150k=-0.0`, `200k=+0.4`. Low-budget validity regressed (`25k 33% -> 31%`) and 50k quality also moved negative, even though the 200k row tradeoff was slightly positive. This confirms that tail duplicate avoidance is real but too small and too budget-shape-sensitive to serve as the next structural mechanism.
+- Status: Reverted; not committed.
+
+## arc-improvement-gated-polish-34
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: High-budget rows are mostly valid but speed/air axis quality is still poor, and the compiler already has a geometry polish subsystem that can clone a terminal leaf, mutate local arc geometry, and submit the result through the same best-so-far register. Enabling polish only for terminal leaves that just improved the register should create a structural full-track refinement channel without spending budget on non-improving terminal churn.
+- Code changes made: Temporarily changed the default `polish` option from disabled to enabled and gated polish attempts on `main` terminal improvements (`mainResult.event.improved === true`), leaving explicit `opts.polish=false` available. Candidate geometry, scorer, golden specs, seed set, metric, and budget grid were unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-improvement-gated-polish-34`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `395.7` -> candidate `395.7`; `Δheadline = +0.0`, 95% CI `[0.0, 0.0]`, `P(Δ<=0)=100.0%`.
+- Notable regressions/improvements: No score, validity, or row changes occurred. The mechanism was active enough to try `1522` polish variants across the canonical run (`548` at 200k), but `polish_variants_changed=0` and there were no polish evaluations or adoptions. The existing polish helpers do not mutate the current canonical handoff line geometry, so enabling them is structurally inert.
+- Status: Reverted; not committed.
+
+## arc-speed-drag-stream-35
+
+- Baseline used: `arc-speed-quality-pressure-23` at commit `8459665`.
+- Hypothesis: The current baseline's high-budget valid rows remain dominated by speed error, and the accepted brake stream still uses the same general catch family. Adding a distinct quality-only `speed_drag` placement mode should generate longer, steeper uphill post-contact segments under smooth overspeed pressure, giving the search a real release-speed control mechanism instead of only re-ranking or deepening existing brake samples.
+- Code changes made: Added `speed_drag` to candidate sample modes, added speed-drag target-state line controls in `arc_placement.ts`, changed axis-quality stream registration to allow multiple policies per axis, and registered a second speed quality stream using `mode: "speed_drag"`. Normal, brake, and air-support streams remain available; scorer, golden specs, seed set, metric, and budget grid were unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-speed-drag-stream-35`
+- Decide result: `VERDICT: ACCEPT`; baseline `395.7` -> candidate `401.1`; `Δheadline = +5.5`, 95% CI `[1.1, 9.7]`, `P(Δ<=0)=0.8%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+1.6`, `100k=+6.4`, `150k=+6.8`, `200k=+5.6`; validity was unchanged at every budget. At 200k the new stream added `15671/36411` landed speed-drag samples, speed axis-quality attempts rose from `75813/37796` successful to `109078/52286`, and selected axis-quality candidates rose from `628` to `1023`. Aggregate 200k signed speed error improved (`MAE 0.2590 -> 0.2523`, signed `+0.1928 -> +0.1866`) with tiny air improvement and slight grain MAE regression. Largest 200k gains included `dense_sprint` seed 6, `verse_chorus` seed 8, `drums_crescendo` seed 4, `cold_start` seed 1, and `drums_zigzag` seed 7; largest regressions included `syncopated_switchback` seeds 11 and 2, `drums_crescendo` seed 3, `verse_chorus` seeds 1 and 2, and `dense_sprint` seed 4.
+- Status: Kept and committed as the new baseline.

@@ -113,7 +113,7 @@ export type HandoffContactCountCounter = Partial<Record<number, number>>;
 
 /** Compiler-owned candidate sampling streams. Normal is the main deterministic
  *  candidate prefix; extra streams must justify their sample budget separately. */
-export const CANDIDATE_SAMPLE_MODES = ["normal", "brake", "air_support"] as const;
+export const CANDIDATE_SAMPLE_MODES = ["normal", "brake", "air_support", "speed_drag"] as const;
 export type CandidateSampleMode = (typeof CANDIDATE_SAMPLE_MODES)[number];
 
 export type ArcPlacementCounter = {

@@ -5020,3 +5020,33 @@ baseline `c1da29a`:
 → base mean 5810.5 ns/frame, candidate mean 5721.6 ns/frame; Δ median/mean
 **−1.40% / −1.52%**, 95% CI **[−1.85%, −1.27%]**, candidate won **92/100**,
 **P(candidate faster)=100.0%** → ✓ confirmed compounded win at 3σ.
+
+## Session 184 (2026-06-06 cont.) — candidate-only lightweight window detector, KEEP (−1.38%)
+
+Fresh post-S183 profile showed the remaining JS surface concentrated in the
+candidate-eval detector path: `detect` (82 samples), `detectWindow` (28),
+`extractRawFrame` (37), `signedAngleDeg` (16), `computeSummary` (10), plus high GC.
+`evaluateGapFit` only consumes candidate-window `terminus`, `landing` events,
+`speed`, `airborne`, and `contactLineIds`; it never reads full position/velocity
+measurement arrays, sled-contact arrays, summary, or kick events. Candidate:
+replace `detectWindow` with a local lightweight detector for candidate simulations
+only. The full detector remains unchanged for final report/output detection.
+
+The lightweight detector preserves the same terminus checks, persisted-landing
+logic, speed samples, airborne samples, and contact-line-id samples, but skips
+unused kick-event emission, summary construction, and unused measurement arrays.
+
+**Correctness:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical (engine 5/5 +
+optimizer 4/4).
+
+**A/B:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100`: base mean
+5713.4 ns/frame, candidate mean 5640.0 ns/frame; Δ median/mean
+**−1.38% / −1.28%**, 95% CI **[−1.45%, −1.00%]**, candidate won **89/100**,
+**P(candidate faster)=100.0%** → ✓ **KEEP**.
+
+**Cumulative 3σ confirmation:** accumulated S182+S183+S184 HEAD against
+pre-JS-bundle baseline `c1da29a`:
+`npx tsx scripts/v0/bench/perf_ab.ts --js --ref=c1da29a --rounds=100 --p=0.9987`
+→ base mean 5792.7 ns/frame, candidate mean 5631.4 ns/frame; Δ median/mean
+**−2.77% / −2.78%**, 95% CI **[−2.97%, −2.51%]**, candidate won **98/100**,
+**P(candidate faster)=100.0%** → ✓ confirmed compounded win at 3σ.

@@ -448,9 +448,9 @@ const QUALITY_FAR_BACK_ZERO_AXIS_QUALITY = 0.50;
  *  reaches the tail window. This is deliberately scarce and only uses existing
  *  candidate ranking; the register still decides whether the full output helps. */
 const QUALITY_SUFFIX_REPAIR_INTERVAL = 32;
-const QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY = 0.24;
-const QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS = 4;
-const QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS = 4;
+const QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY = 0.34;
+const QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS = 16;
+const QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS = 6;
 const QUALITY_SUFFIX_REPAIR_MAX_NODES = 128;
 const QUALITY_SUFFIX_REPAIR_BRANCHING = 2;
 

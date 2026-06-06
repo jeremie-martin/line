@@ -36,6 +36,9 @@ export type GapFit = {
   achieved: AxisValues;
   /** Aggregate axis cost (lower = better fit). */
   cost: number;
+  /** Rider speed at the post-catch release probe frame, in raw px/frame.
+   *  Used by compiler rankers to set up the next contact's speed target. */
+  releaseSpeed?: number;
   /** Sled reference position (lowest sled point) at the gap's landing frame
    *  when this catch was placed. Optional; set by `sampleOneCandidate`. Used to
    *  translate this catch's geometry to a different gap's entry state for

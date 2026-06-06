@@ -477,7 +477,14 @@ function evaluateCandidateLines(
   }
 
   return {
-    fit: { arc, geometry, lines: best.fit.lines, achieved: best.fit.achieved, cost: best.fit.cost },
+    fit: {
+      arc,
+      geometry,
+      lines: best.fit.lines,
+      achieved: best.fit.achieved,
+      cost: best.fit.cost,
+      ...(best.fit.releaseSpeed === undefined ? {} : { releaseSpeed: best.fit.releaseSpeed }),
+    },
     failure: null,
   };
 }
@@ -492,7 +499,7 @@ function evaluateGapFit(
   searchTargets: AxisValues,
   useWindowDetection: boolean,
   scoreReleaseState: boolean,
-): { fit: Pick<GapFit, "lines" | "achieved" | "cost">; failure: null } | {
+): { fit: Pick<GapFit, "lines" | "achieved" | "cost" | "releaseSpeed">; failure: null } | {
   fit: null;
   failure: ArcPlacementDirectFailureReason;
 } {
@@ -529,9 +536,10 @@ function evaluateGapFit(
   if (offBeat > 0) return { fit: null, failure: "offbeat" };
 
   const achieved = measureGapAxes(det, gap, lines, axisMeasureEnd);
+  const releaseSpeed = speedAt(det, releaseStateFrame(gap, allContactFrames));
   const cost = axisCost(searchTargets, achieved)
-    + (scoreReleaseState ? releaseStateCost(det, gap, allContactFrames, searchTargets) : 0);
-  return { fit: { lines, achieved, cost }, failure: null };
+    + (scoreReleaseState ? releaseSpeedPenalty(releaseSpeed, searchTargets.speed) : 0);
+  return { fit: { lines, achieved, cost, releaseSpeed }, failure: null };
 }
 
 export function releaseStateFrame(gap: Gap, allContactFrames: number[]): number {
@@ -551,18 +559,6 @@ export function releaseSpeedPenalty(
   const achieved = speedPxToAuthored(releaseSpeedPxPerFrame);
   const error = targetSpeed - achieved;
   return RELEASE_STATE_SPEED_WEIGHT * error * error;
-}
-
-function releaseStateCost(
-  det: Detection,
-  gap: Gap,
-  allContactFrames: number[],
-  searchTargets: AxisValues,
-): number {
-  return releaseSpeedPenalty(
-    speedAt(det, releaseStateFrame(gap, allContactFrames)),
-    searchTargets.speed,
-  );
 }
 
 function shouldTryCandidateRideOut(

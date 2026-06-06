@@ -57,6 +57,7 @@ import {
 import {
   axisLookaheadEndFrame,
   detectWindow,
+  releaseSpeedPenalty,
   tryCandidate,
   translateTrackLines,
   tryCandidateLines,
@@ -966,6 +967,7 @@ function cloneGapFit(fit: GapFit): GapFit {
     lines: fit.lines.map((line) => ({ ...line })),
     achieved: { ...fit.achieved },
     cost: fit.cost,
+    ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
     ...(fit.ref === undefined ? {} : { ref: { ...fit.ref } }),
   };
 }
@@ -1275,6 +1277,7 @@ function expandNode(
     preview: handoffUsesFuturePreview(qualitySearch),
     expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
     axisQualitySearch: qualitySearch,
+    releaseSetup: qualitySearch,
     previewCostWeight: PREVIEW_COST_WEIGHT,
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap, ctx)) {
@@ -1286,6 +1289,7 @@ function expandNode(
       preview: handoffUsesFuturePreview(qualitySearch),
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
       axisQualitySearch: qualitySearch,
+      releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1302,6 +1306,7 @@ function expandNode(
       preview: handoffUsesFuturePreview(qualitySearch),
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
       axisQualitySearch: qualitySearch,
+      releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1402,6 +1407,7 @@ function rankedOptions(
     expandedBrakeSearch?: boolean;
     axisQualitySearch?: boolean;
     previewCostWeight?: number;
+    releaseSetup?: boolean;
   } = {},
 ): RankedOption[] {
   const sorted = getCandidatesSorted(
@@ -1418,6 +1424,7 @@ function rankedOptions(
   const scored = pool.map((candidate, rank) =>
     scoreCandidateForHandoff(
       node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
+      config.releaseSetup ?? false,
     )
   );
   // Catch-reuse: translate the most recent committed catch to this gap's entry
@@ -1429,6 +1436,7 @@ function rankedOptions(
   reuse.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(
       node, candidate, poolSize + j, "reuse", gaps, ctx, seed, telemetry, preview, previewCostWeight,
+      config.releaseSetup ?? false,
     ))
   );
   // Brake catches: uphill-entry arcs that bleed speed before contact, offered as
@@ -1456,6 +1464,7 @@ function rankedOptions(
       telemetry,
       preview,
       previewCostWeight,
+      config.releaseSetup ?? false,
     ))
   );
   // Axis-specific quality streams add only the small, explicitly registered
@@ -1480,6 +1489,7 @@ function rankedOptions(
       telemetry,
       preview,
       previewCostWeight,
+      config.releaseSetup ?? false,
       entry.axis,
     ))
   );
@@ -1883,6 +1893,7 @@ function completeNearTailSuffix(
       preview: false,
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
       axisQualitySearch: qualitySearch,
+      releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
     })
       .filter((option) => option.candidate !== null)
@@ -1935,6 +1946,7 @@ function completeBoundedSuffix(
       preview: false,
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(true),
       axisQualitySearch: true,
+      releaseSetup: true,
       previewCostWeight: PREVIEW_COST_WEIGHT,
     })
       .filter((option) => option.candidate !== null)
@@ -2064,6 +2076,7 @@ function scoreCandidateForHandoff(
   telemetry: HandoffTelemetry,
   usePreview = true,
   previewCostWeight = PREVIEW_COST_WEIGHT,
+  releaseSetup = false,
   sourceAxis?: AxisName,
 ): RankedOption {
   const child = extendNodeCached(node, candidate);
@@ -2095,6 +2108,9 @@ function scoreCandidateForHandoff(
   // catches that already exist (no new geometry). Only penalizes OVERshoot.
   const gap = gaps[node.gapIndex];
   const overshoot = candidateOvershootPenalty(candidate, gap);
+  const releasePenalty = releaseSetup
+    ? candidateReleaseSetupPenalty(candidate, gaps, node.gapIndex)
+    : 0;
   return {
     candidate,
     child,
@@ -2103,8 +2119,18 @@ function scoreCandidateForHandoff(
     sourceAxis,
     previewContacts: preview.landed,
     previewSurvivors: preview.survivors,
-    score: candidate.cost + scarcity + previewCost + statePenalty + overshoot,
+    score: candidate.cost + scarcity + previewCost + statePenalty + overshoot + releasePenalty,
   };
+}
+
+function candidateReleaseSetupPenalty(
+  candidate: Candidate,
+  gaps: Gap[],
+  gapIndex: number,
+): number {
+  const nextGapIndex = nextContactGapIndex(gaps, gapIndex + 1);
+  if (nextGapIndex < 0) return 0;
+  return releaseSpeedPenalty(candidate.releaseSpeed, gaps[nextGapIndex].targets.speed);
 }
 
 function candidateOvershootPenalty(candidate: Candidate, gap: Gap): number {

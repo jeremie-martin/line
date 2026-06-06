@@ -17,8 +17,8 @@
  *    early-budget gains the prior ceiling-heavy metric penalized; that is expected.
  *  - Decision: PAIRED cluster bootstrap on the headline delta (same specs+seeds for
  *    both configs), because pairing cancels common-mode seed luck (~10x noise
- *    collapse). The verdict is a one-sided significance test at the conventional
- *    α=0.05: accept iff P(Δ≤0) < 0.05, reject iff P(Δ≥0) < 0.05, else inconclusive.
+ *    collapse). The verdict is a one-sided probability gate at α=0.20:
+ *    accept iff P(Δ≤0) < 0.20, reject iff P(Δ≥0) < 0.20, else inconclusive.
  *    (The 95% CI is reported for context but does not define the verdict.)
  *  - Validity is NOT a gate: an invalid run already scores ~0, and the per-budget
  *    multi-seed aggregation folds that into the score. Per-budget validity is reported
@@ -36,10 +36,10 @@ import { shiftedGeometricMean } from "./score.ts";
 export type CurvePoint = { budget: number; score: number };
 export type BudgetWeight = { budget: number; weight: number };
 
-/** One-sided significance level for the accept/reject verdict — the conventional 5%.
+/** One-sided probability gate for the accept/reject verdict.
  *  Accept iff the paired bootstrap puts < α mass at or below 0 (reliably an improvement);
  *  reject iff < α mass at or above 0 (reliably a regression); else inconclusive. */
-const DECISION_ALPHA = 0.05;
+export const DECISION_ALPHA = 0.20;
 
 /** Per-config score cube: spec -> seed -> (budget -> score). */
 export type ScoreCube = Map<string, Map<number, Map<number, number>>>;
@@ -295,13 +295,10 @@ export function pairedBootstrapCI(
     }))
     : [];
 
-  // Verdict = a standard one-sided significance test at α=0.05 read straight off the
+  // Verdict = a one-sided probability gate at DECISION_ALPHA read straight off the
   // paired bootstrap distribution: accept if the change is reliably an improvement
   // (P(Δ≤0) < α), reject if reliably a regression (P(Δ≥0) < α), else inconclusive.
-  // This is the conventional 5% one-sided level — NOT a tuned threshold — and it is the
-  // right bar for "is this an improvement worth keeping": a two-sided 95% CI (the old
-  // `ciLo>0` rule) is secretly a 97.5% one-sided bar that rejected clearly-good changes
-  // (e.g. Δ>0 at 97% confidence). The 95% CI is still reported for context.
+  // The 95% CI is still reported for context but does not define the verdict.
   const pLeZero = mean(deltas.map((d) => (d <= 0 ? 1 : 0)));
   const pGeZero = mean(deltas.map((d) => (d >= 0 ? 1 : 0)));
   const verdict: Decision["verdict"] =

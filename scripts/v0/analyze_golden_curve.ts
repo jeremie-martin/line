@@ -8,6 +8,7 @@
 
 import { readFileSync } from "node:fs";
 import {
+  DECISION_ALPHA,
   pairedBootstrapCI,
   weightedBudgetScore,
   type BudgetWeight,
@@ -1412,7 +1413,10 @@ function runDecide(args: string[]): void {
     rngSeed: 12345,
   });
 
-  console.log(`DECISION  paired cluster bootstrap · weighted-avg (weights∝budget) · budgets=${scoreBudgets.map(fmtBudget).join(",")}`);
+  console.log(
+    `DECISION  paired cluster bootstrap · weighted-avg (weights∝budget) · ` +
+      `α=${DECISION_ALPHA.toFixed(2)} · budgets=${scoreBudgets.map(fmtBudget).join(",")}`,
+  );
   console.log(
     `  scope: ${commonSpecs.length} specs × ${commonSeeds.length} seeds` +
       `${canonicalScope ? " (canonical)" : " (intersection — INDICATIVE)"}` +
@@ -1455,18 +1459,19 @@ function runDecide(args: string[]): void {
       (promotable ? "" : "  (INDICATIVE — non-promotable; canonical run required to promote)"),
   );
 
-  // A genuine but sub-resolution gain (positive Δ, not yet significant at α=0.05) lands
+  // A genuine but sub-resolution gain (positive Δ, not yet accepted at the current
+  // one-sided probability gate) lands
   // as INCONCLUSIVE, indistinguishable at the verdict level from a true null. Estimate
   // how many more seeds would reach significance: the gap toward zero is (Δ - ciLo) and
-  // shrinks ~1/√n, so n_need ≈ n_now·((Δ-ciLo)/Δ)² (conservative — uses the 95% CI
-  // bound, slightly tighter than the α=0.05 one-sided bar). Output-only.
+  // shrinks ~1/√n, so n_need ≈ n_now·((Δ-ciLo)/Δ)². This uses the 95% CI bound as a
+  // conservative output-only proxy; the verdict itself uses DECISION_ALPHA above.
   if (d.verdict === "inconclusive" && d.delta > 0) {
     const nNow = commonSeeds.length;
     const nNeed = Math.ceil(nNow * ((d.delta - d.ciLo) / d.delta) ** 2);
     const extra = Math.max(1, nNeed - nNow);
     console.log(
       `  hint: Δ positive (+${d.delta.toFixed(1)}, P(Δ>0)=${((1 - d.pLeZero) * 100).toFixed(0)}%) but not yet ` +
-        `significant at α=0.05 — ~${extra} more seed${extra === 1 ? "" : "s"} (~${nNow + extra} total) would ` +
+        `accepted at α=${DECISION_ALPHA.toFixed(2)} — ~${extra} more seed${extra === 1 ? "" : "s"} (~${nNow + extra} total) would ` +
         `likely resolve it. Approximate; CI width scales ~1/√seeds.`,
     );
   }

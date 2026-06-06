@@ -255,8 +255,8 @@ function sampleTargetStateLines(
   const tangentY = Math.sin(contactAngleRad);
   const normalX = -tangentY;
   const normalY = tangentX;
-  const pointTangent = (rolls.point - 0.5) * CONTACT_POINT_JITTER;
-  const pointNormal = (lowDiscrepancyRoll(attempt, 6) - 0.5) * CONTACT_POINT_JITTER;
+  const pointTangent = (rolls.point - 0.5) * controls.contactJitter;
+  const pointNormal = (lowDiscrepancyRoll(attempt, 6) - 0.5) * controls.contactJitter;
   const contactPoint = {
     x: targetState.sledX + tangentX * pointTangent + normalX * pointNormal,
     y: targetState.sledY + tangentY * pointTangent + normalY * pointNormal,
@@ -329,6 +329,7 @@ function targetStateControls(
   postLength: number;
   preSegments: number;
   postSegments: number;
+  contactJitter: number;
 } {
   const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
   const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
@@ -355,6 +356,12 @@ function targetStateControls(
   const deadline = clamp((18 - gapFrames) / 12, 0, 1);
   const dense = nextGapFrames === null ? 0 : clamp((18 - nextGapFrames) / 14, 0, 1);
   const denseFastAir = highAir * dense * targetPace;
+  const brakeLandingUncertainty = brakeModePressure * clamp(
+    0.35 + 0.35 * targetPace + 0.30 * highAir,
+    0,
+    1,
+  );
+  const contactJitter = CONTACT_POINT_JITTER * lerp(1, 1.5, brakeLandingUncertainty);
   const preclearPressure = clamp(
     0.35 * deadline + denseFastAir + 0.32 * overspeed + 0.18 * brakeModePressure,
     0,
@@ -454,6 +461,7 @@ function targetStateControls(
     postLength,
     preSegments: preLength <= 1 ? 0 : clampInt(Math.round(preLength / segmentLength), 1, 6),
     postSegments: clampInt(Math.round(postLength / segmentLength), 2, 18),
+    contactJitter,
   };
 }
 

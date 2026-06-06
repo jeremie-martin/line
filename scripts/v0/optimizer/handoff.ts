@@ -1622,14 +1622,20 @@ export function shouldOfferBrakeCandidates(
   speedRatio: number,
   expandedBrakeSearch = false,
 ): boolean {
-  // Brake probes only on mild-overspeed targets. (High-overspeed brakes were
-  // previously gated on a contact-event target, an axis category that no longer
-  // exists, so that branch is gone.)
+  // Mild-speed targets can use brake probes on any overspeed. Higher target
+  // speeds only get them once the existing high-overspeed band is reached, where
+  // normal catch geometry is least likely to bleed enough speed on its own.
   const aboveMinTarget = targetSpeedPxPerFrame >
     HANDOFF_BRAKE_TARGET_MIN_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME;
   const withinMildTarget = targetSpeedPxPerFrame <=
     HANDOFF_BRAKE_MILD_TARGET_MAX_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME;
-  return aboveMinTarget && withinMildTarget && brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
+  const withinTarget = targetSpeedPxPerFrame <=
+    HANDOFF_BRAKE_TARGET_MAX_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME;
+  const highOverspeed = speedRatio >= HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO;
+  return aboveMinTarget &&
+    withinTarget &&
+    (withinMildTarget || highOverspeed) &&
+    brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
 }
 
 /** Translate the most-recent committed catch (which carries a sled `ref`) to

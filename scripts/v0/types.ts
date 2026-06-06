@@ -476,11 +476,6 @@ export function speedPxToAuthored(pxPerFrame: number): number {
   return (pxPerFrame - SPEED_RULER.MIN_PX_PER_FRAME) / SPEED_RULER.RANGE_PX_PER_FRAME;
 }
 
-const speedAuthoredBreakpointToPx = authoredSpeedToPx;
-
-/**
- * Calibration constants. TODO calibrate empirically against rendered tracks.
- */
 export const SPEED_AXIS = {
   /** Authored speed 0.0 maps to this physical velocity. */
   MIN_PX_PER_FRAME: SPEED_RULER.MIN_PX_PER_FRAME,
@@ -493,14 +488,6 @@ export const SPEED_AXIS = {
   UNTARGETED_REACHABILITY_PX_PER_FRAME: 6.6,
   /** Physical high-speed boundary used by start-policy overshoot scoring. */
   HIGH_START_PX_PER_FRAME: 9.0,
-  /** Arc placement pressure thresholds keyed to actual physical speed. */
-  PRESSURE_START_PX_PER_FRAME: 7.8,
-  PRESSURE_SPAN_PX_PER_FRAME: 6.6,
-  /** Target-speed carry thresholds preserve the old authored breakpoints. */
-  CARRY_START_PX_PER_FRAME: speedAuthoredBreakpointToPx(0.55),
-  CARRY_SPAN_PX_PER_FRAME: speedAuthoredBreakpointToPx(0.95) - speedAuthoredBreakpointToPx(0.55),
-  CARRY_FADE_START_PX_PER_FRAME: speedAuthoredBreakpointToPx(0.78),
-  CARRY_FADE_SPAN_PX_PER_FRAME: speedAuthoredBreakpointToPx(0.90) - speedAuthoredBreakpointToPx(0.78),
 } as const;
 
 export const CALIB = {
@@ -515,34 +502,6 @@ export const CALIB = {
    * not just one sample per gap. Tracked as a follow-up to the curve refactor.
    */
   SIGMA: 0.05,
-  /**
-   * Default Arc parameter bounds.
-   * Initial values are an empirical guess loosely centered on shapes that
-   * are known to survive impact in the engine (gentle downward slopes,
-   * multi-segment). TODO: widen as we learn what actually survives — the
-   * design principle is wide random sampling, but bounds tight enough that
-   * most samples are at least plausible.
-   */
-  ARC: {
-    LENGTH_MIN: 25,
-    LENGTH_MAX: 180,
-    /** Start tangent — wide range so steep catches (for high-vy riders) and
-     *  gentle catches (for low-vy riders) are both in the sample space. */
-    START_ANGLE_MIN_DEG: 5,
-    START_ANGLE_MAX_DEG: 70,
-    /** End tangent — always flatter than start; allows mild upward (rebound). */
-    END_ANGLE_MIN_DEG: -5,
-    END_ANGLE_MAX_DEG: 20,
-    SEGMENTS_MIN: 3,
-    SEGMENTS_MAX: 12,
-    /** Anchor X offset relative to rider's predicted x at landing frame. */
-    ANCHOR_X_OFFSET_MIN: -14,
-    ANCHOR_X_OFFSET_MAX: 4,
-    /** Anchor Y offset relative to rider's predicted y at landing frame.
-     *  Bisection adjusts further; this is the starting point. */
-    ANCHOR_Y_OFFSET_MIN: -4,
-    ANCHOR_Y_OFFSET_MAX: 10,
-  },
 } as const;
 
 /**

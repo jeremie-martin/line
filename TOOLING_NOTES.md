@@ -49,6 +49,15 @@ Running log of friction points hit while working the arc-placement campaign
   creating an auto-named archive before it was killed. Either wire a real help
   handler or reject unknown flags before starting worker jobs.
 
+## TypeScript verification
+
+- **Repo-wide `npx tsc --noEmit` is currently too noisy to use as a local verifier.**
+  On 2026-06-06 it failed immediately on pre-existing project-wide issues
+  (`allowImportingTsExtensions`, missing declarations for `lr-core`, and legacy
+  scripts), plus unrelated analyzer/polish typing errors. Focused `vitest` and
+  golden smoke runs are the practical checks for compiler edits until the TS
+  project config is split or cleaned up.
+
 ## Decision workflow
 
 - `npm run decide` requires BOTH archives to carry the same `evaluator_fingerprint`,

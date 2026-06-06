@@ -7,7 +7,20 @@ import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { detect, extractRawTrajectory } from "../lib/detector.ts";
 import { makeRng } from "../lib/rng.ts";
 import { arcToLines } from "./arc.ts";
-import { CALIB, type Arc } from "./types.ts";
+import type { Arc } from "./types.ts";
+
+const DIAG_ARC = {
+  LENGTH_MIN: 25,
+  LENGTH_MAX: 180,
+  START_ANGLE_MIN_DEG: 5,
+  START_ANGLE_MAX_DEG: 70,
+  END_ANGLE_MIN_DEG: -5,
+  END_ANGLE_MAX_DEG: 20,
+  SEGMENTS_MIN: 3,
+  SEGMENTS_MAX: 12,
+  ANCHOR_X_OFFSET_MIN: -14,
+  ANCHOR_X_OFFSET_MAX: 4,
+} as const;
 
 const targetFrame = 80; // first Contact at t=2.0s, fps=40
 
@@ -18,7 +31,7 @@ console.log(`Rider at frame ${targetFrame} (no Arc): pos=(${f.position.x.toFixed
 console.log("");
 
 const rng = makeRng(42);
-const A = CALIB.ARC;
+const A = DIAG_ARC;
 
 let stats = {
   total: 0,

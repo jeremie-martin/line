@@ -207,7 +207,7 @@ function speedRulerFingerprintSource(): string {
   return sourceSlice(
     "scripts/v0/types.ts",
     "export const SPEED_RULER",
-    "const speedAuthoredBreakpointToPx",
+    "export const SPEED_AXIS",
   );
 }
 

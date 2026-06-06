@@ -12,8 +12,6 @@ import { appendSledPointPositionsRangeMetered, getRiderMetered } from "../lib/de
 import { makeSolidLine } from "./arc.ts";
 import {
   CANDIDATE_SAMPLE_MODES,
-  CALIB,
-  SPEED_AXIS,
   type Arc,
   type ArcPlacementCounter,
   type ArcPlacementMode,
@@ -29,6 +27,9 @@ const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
 
 const GEOMETRY_RNG_DRAWS = 7;
 const CONTACT_POINT_JITTER = 3.5;
+const TARGET_GRAIN_LINE_LENGTH_PX = 49;
+const PLACEMENT_SPEED_SPAN_PX = authoredSpeedToPx(1) - authoredSpeedToPx(0);
+const PLACEMENT_SPEED_MIN_PX = authoredSpeedToPx(0);
 const PRE_TARGET_PRECLEAR_DISTANCE = 2.5;
 const SEGMENT_COLLISION_RISK_STRIDE = 7;
 
@@ -348,17 +349,26 @@ function targetStateControls(
   const air = clamp(targets.air ?? 0.5, 0, 1);
   const lowAir = clamp((0.55 - air) / 0.55, 0, 1);
   const highAir = clamp((air - 0.45) / 0.55, 0, 1);
+  const targetPace = clamp(
+    (targetSpeedPx - PLACEMENT_SPEED_MIN_PX) / PLACEMENT_SPEED_SPAN_PX,
+    0,
+    1,
+  );
   const speedError = clamp(
-    (targetSpeedPx - targetState.speed) / SPEED_AXIS.PRESSURE_SPAN_PX_PER_FRAME,
+    (targetSpeedPx - targetState.speed) / PLACEMENT_SPEED_SPAN_PX,
     -1,
     1,
   );
+  const overspeed = clamp(-speedError, 0, 1);
   const deadline = clamp((18 - gapFrames) / 12, 0, 1);
   const dense = nextGapFrames === null ? 0 : clamp((18 - nextGapFrames) / 14, 0, 1);
+  const denseFastAir = highAir * dense * targetPace;
+  const preclearPressure = clamp(0.35 * deadline + denseFastAir, 0, 1);
+  const speedControlPressure = clamp(overspeed + 0.55 * denseFastAir, 0, 1);
 
   const segmentLength = targets.grain === undefined
     ? 12 + rolls.segmentLength * 28
-    : clamp(targets.grain * CALIB.LINE_LENGTH_CAP + (rolls.segmentLength - 0.5) * 8, 5, 49);
+    : clamp(targets.grain * TARGET_GRAIN_LINE_LENGTH_PX + (rolls.segmentLength - 0.5) * 8, 5, 49);
 
   const baseAngle = clamp(targetState.angleDeg, -25, 75);
   const contactAngleDeg = clamp(
@@ -367,6 +377,7 @@ function targetStateControls(
       - 14 * lowAir
       + 10 * highAir
       + 4 * dense
+      - 10 * preclearPressure
       + (rolls.contactAngle - 0.5) * 14,
     -22,
     74,
@@ -386,17 +397,24 @@ function targetStateControls(
       - 18 * lowAir
       + 20 * highAir
       - 8 * dense
+      - 18 * speedControlPressure
       + (rolls.postAngle - 0.5) * 14,
     -26,
     78,
   );
 
   const preLength = clamp(
-    (6 + rolls.preLength * 32) * (1 - 0.45 * deadline) * (1 + 0.25 * lowAir),
-    4,
+    (6 + rolls.preLength * 32) *
+      (1 - 0.45 * deadline) *
+      (1 + 0.25 * lowAir) *
+      (1 - 0.88 * preclearPressure),
+    0,
     50,
   );
-  const sampledPost = (28 + rolls.postLength * 140) * (1 + 0.20 * lowAir + 0.12 * highAir);
+  const sampledPost =
+    (28 + rolls.postLength * 140) *
+    (1 + 0.20 * lowAir + 0.12 * highAir) *
+    (1 - 0.34 * speedControlPressure);
   const targetGroundFrames = nextGapFrames === null
     ? 6 + 18 * lowAir
     : clamp((1 - air) * nextGapFrames, 2, nextGapFrames * (0.72 - 0.22 * dense));
@@ -404,13 +422,20 @@ function targetStateControls(
   const safePostCap = nextGapFrames === null
     ? 220
     : clamp(
-      Math.max(1, targetState.speed) * nextGapFrames * (0.34 + 0.26 * lowAir - 0.08 * dense),
-      24,
+      Math.max(1, targetState.speed) *
+        nextGapFrames *
+        (0.34 + 0.26 * lowAir - 0.08 * dense) *
+        (1 - 0.30 * speedControlPressure),
+      14,
       260,
     );
+  const postFloor = Math.min(
+    safePostCap,
+    lerp(18, 9, clamp(denseFastAir + overspeed, 0, 1)),
+  );
   const postLength = clamp(
     lerp(sampledPost, Math.min(targetPost, safePostCap), 0.72),
-    18,
+    postFloor,
     safePostCap,
   );
 
@@ -421,7 +446,7 @@ function targetStateControls(
     postAngleDeg,
     preLength,
     postLength,
-    preSegments: clampInt(Math.round(preLength / segmentLength), 1, 6),
+    preSegments: preLength <= 1 ? 0 : clampInt(Math.round(preLength / segmentLength), 1, 6),
     postSegments: clampInt(Math.round(postLength / segmentLength), 2, 18),
   };
 }
@@ -457,6 +482,7 @@ function buildPreContactLines(
   length: number,
   segments: number,
 ): TrackLine[] {
+  if (segments <= 0 || length <= 0) return [];
   const segLen = length / segments;
   const dxs = new Array<number>(segments);
   const dys = new Array<number>(segments);

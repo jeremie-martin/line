@@ -4476,3 +4476,32 @@ neutral-or-worse after `wasm-opt`/V8. A further ~2× to reach <3,000 most likely
 requires either a change that is *not* bit-identical (a different invalidation
 algorithm that records less history, or relaxed-precision math) or a larger rewrite
 (e.g. an AoS+SIMD kernel), neither of which fits the current bit-identical gate.
+
+## Session 171 (2026-06-06 cont.) — first campaign under the statistical gate: 3 re-mined candidates, all null
+
+With the paired-bootstrap `perf_ab` gate in place (commit `2f59b17`, hardened in
+`155561f`), re-tested the most promising previously-"failed-but-positive" probes
+from this log at **R=100** (discovery rule: keep iff `P(faster) ≥ 0.95` and median
+Δ < 0). All three were definitively null — the old 8-run signals that sourced them
+were noise the new gate is designed to reject:
+
+| candidate | old 8-run signal | R=100 verdict (base = HEAD `2f59b17`/`155561f`) |
+|---|---|---|
+| reconcile `add_line` cells-clone removal | (plausible) | Δ mean −0.03%, CI **[−0.27%, +0.26%]**, 50/100, P=53% — null |
+| #2 redo-pop in `update_computed` (Session 152, "−1.0%") | −1.0% | Δ mean +0.07%, CI **[−0.13%, +0.26%]**, 46/100, P=30% — null (leaned slower) |
+| #4 `detect()` default-params fast path (Session 161, "−0.8%") | −0.8% | Δ mean +0.05%, CI **[−0.15%, +0.26%]**, 48/100, P=32% — null |
+
+All verified bit-identical (`LR_ENGINE=wasm npm run verify`) before measurement;
+all reverted. #4 used the new `perf_ab --js` source-swap mode (validated end-to-end:
+swaps only the changed `.ts`, shares the committed WASM, restores the tree).
+
+**Conclusion.** The gate works exactly as intended — it bounds each effect to ±0.27%
+and refuses to bank noise. But the corollary is decisive: the log's "sub-1.5%
+positive 8-run signals" were **noise, not wins suppressed by the old bar** — so
+re-mining them is low-yield. Sessions ~90–170 explored the WASM micro-surface
+exhaustively; this confirms it is genuinely flat at the ~0.3% level. Real progress
+toward <3,000 now requires a higher-ceiling lever (a profiled ≥1% target, a
+larger structural change, or stepping outside strict bit-identity), not more
+micro-probes. The decisive deliverable of this stretch is the **measurement
+instrument** (calibrated paired-bootstrap A/B with WASM- and JS-swap modes), which
+makes every future verdict trustworthy.

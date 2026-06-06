@@ -4714,3 +4714,13 @@ this build pair (the floor R cannot remove, doc warns ≲0.5%). The sign test
 artifact the cumulative **3σ confirmation below rebuilds a fresh base arm** (averages
 layout luck) — kept only if it survives that. **Standing after S176: ~5,866
 ns/frame** (was ~5,884), pending 3σ confirmation.
+
+**3σ confirmation (S176) — survives, not a layout artifact.** `perf_ab
+--ref=de8ad7d --rounds=100 --p=0.9987` (base = start-of-session HEAD, **rebuilt fresh
+in a worktree** → an independent build pair, so any fixed code-layout offset is
+re-rolled): Δ median **−1.41%** / mean −1.23%, 95% CI **[−1.43%, −1.02%]**, candidate
+won **90/100** rounds, **P(faster)=100% ≥ 99.87%** → ✓ CONFIRMED. An independent base
+build still shows ~−1.4%, so the effect is the change, not build luck; S175's
+standalone −0.19% was simply an underpowered/unlucky R=100 draw. **Standing after
+S176: ~5,833 ns/frame** (confirmed; was ~5,884). The second statistical-gate win, and
+the first to clear the 3σ cumulative bar this campaign.

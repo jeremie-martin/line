@@ -129,11 +129,7 @@ export type ArcPlacementCounter = {
   fallback_landed: number;
 };
 
-export type ArcPlacementMode =
-  | "impact_anchor"
-  | "impact_frame"
-  | "contact_centered"
-  | "continuous";
+export type ArcPlacementMode = "target_state";
 
 /**
  * True when the resolved target bag contains exactly this canonical axis set.
@@ -389,8 +385,7 @@ export type CompileStats = {
    *  a missed contact. */
   handoff_deferred_skips?: number;
 
-  /** Arc placement counters (only present when LR_ARC_PLACEMENT is not
-   *  `uniform`). Non-scoring diagnostics. */
+  /** Target-state placement counters. Non-scoring diagnostics. */
   arc_placement?: {
     mode: ArcPlacementMode;
     sampled: number;

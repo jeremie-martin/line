@@ -44,6 +44,11 @@ Running log of friction points hit while working the arc-placement campaign
   mechanisms that fire around or just after the probe ceiling; use them for obvious
   regressions, not as proof that late-search mechanisms are inert.
 
+- **`--help` is not a help path.** On 2026-06-06, `npm run golden -- --help`
+  ignored the apparent help flag and started a full default canonical run,
+  creating an auto-named archive before it was killed. Either wire a real help
+  handler or reject unknown flags before starting worker jobs.
+
 ## Decision workflow
 
 - `npm run decide` requires BOTH archives to carry the same `evaluator_fingerprint`,
@@ -132,6 +137,11 @@ archives with the old fingerprint correctly refuse `decide` comparison. Treat
 `generated/golden-runs/baseline-current-plan/golden.json` as the current local
 baseline for compiler probes until the fingerprint tripwire is reconciled in a
 separate ruler/baseline cleanup.
+
+Fresh canonical reruns on 2026-06-06 also showed the same drift. The clean-reset
+baseline comparison anchor before the reset was
+`generated/golden-runs/baseline-7f91ce8/golden.json`; the first target-state-only
+reset archive was `generated/golden-runs/attempt-target-state-reset-a01/golden.json`.
 
 During planning, the first identical
 `tiny_dance,opening_burst × seeds 0,1,2 × budgets 25k,200k` archive landed at

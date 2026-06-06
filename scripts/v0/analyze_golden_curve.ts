@@ -42,7 +42,7 @@ type BudgetScore = {
 type PartialArcPlacementCounter = Partial<ArcPlacementCounter>;
 
 type ArcPlacementStats = PartialArcPlacementCounter & {
-  mode?: "impact_anchor" | "impact_frame";
+  mode?: string;
   by_sample_mode?: Partial<Record<CandidateSampleMode, PartialArcPlacementCounter>>;
 };
 

@@ -10,8 +10,9 @@
  */
 import { describe, test, expect } from "vitest";
 import { sampleOneCandidate, type SpecContext } from "../scripts/v0/optimizer/sample.ts";
+import { sampleArcPlacementGeometry } from "../scripts/v0/arc_placement.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
-import { AXIS_VALUE_MAX, FPS, secToFrame } from "../scripts/v0/types.ts";
+import { AXIS_VALUE_MAX, FPS, secToFrame, type Gap } from "../scripts/v0/types.ts";
 import { makeRng } from "../scripts/lib/rng.ts";
 import {
   effectiveAxes,
@@ -22,24 +23,6 @@ import {
   validateSpec,
 } from "../scripts/v0/core/substrate.ts";
 import { CALIB } from "../scripts/v0/types.ts";
-
-function withArcPlacementMode<T>(mode: string | undefined, fn: () => T): T {
-  const previous = process.env.LR_ARC_PLACEMENT;
-  if (mode === undefined) {
-    delete process.env.LR_ARC_PLACEMENT;
-  } else {
-    process.env.LR_ARC_PLACEMENT = mode;
-  }
-  try {
-    return fn();
-  } finally {
-    if (previous === undefined) {
-      delete process.env.LR_ARC_PLACEMENT;
-    } else {
-      process.env.LR_ARC_PLACEMENT = previous;
-    }
-  }
-}
 
 /** Build an `(engine_at_gap_0_start, gap_0, ctx)` triple from a
  *  golden spec for the determinism test. We deliberately use gap 0
@@ -92,76 +75,28 @@ describe("optimizer/sample.ts — Step 1 atomic sample", () => {
     }
   });
 
-  test("impact-frame mode remains deterministic under the same RNG seed", async () => {
-    const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
-    withArcPlacementMode("impact_frame", () => {
-      const rngA = makeRng(42);
-      const rngB = makeRng(42);
-      const a = sampleOneCandidate(engine, gap, rngA, ctx, 1);
-      const b = sampleOneCandidate(engine, gap, rngB, ctx, 1);
-      expect(a === null).toBe(b === null);
-      if (a !== null && b !== null) {
-        expect(a.cost).toBe(b.cost);
-        expect(a.arc).toEqual(b.arc);
-        expect(a.geometry).toBe(b.geometry);
-        expect(a.lines).toEqual(b.lines);
-        expect(a.achieved).toEqual(b.achieved);
-      }
-    });
-  });
-
-  test("continuous mode remains deterministic under the same RNG seed", async () => {
-    const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
-    withArcPlacementMode("continuous", () => {
-      const rngA = makeRng(42);
-      const rngB = makeRng(42);
-      const a = sampleOneCandidate(engine, gap, rngA, ctx, 1);
-      const b = sampleOneCandidate(engine, gap, rngB, ctx, 1);
-      expect(a === null).toBe(b === null);
-      if (a !== null && b !== null) {
-        expect(a.cost).toBe(b.cost);
-        expect(a.arc).toEqual(b.arc);
-        expect(a.geometry).toBe(b.geometry);
-        expect(a.lines).toEqual(b.lines);
-        expect(a.achieved).toEqual(b.achieved);
-      }
-    });
-  });
-
-  test("contact-centered mode remains deterministic under the same RNG seed", async () => {
-    const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
-    withArcPlacementMode("contact_centered", () => {
-      const rngA = makeRng(42);
-      const rngB = makeRng(42);
-      const a = sampleOneCandidate(engine, gap, rngA, ctx, 1);
-      const b = sampleOneCandidate(engine, gap, rngB, ctx, 1);
-      expect(a === null).toBe(b === null);
-      if (a !== null && b !== null) {
-        expect(a.cost).toBe(b.cost);
-        expect(a.arc).toEqual(b.arc);
-        expect(a.geometry).toBe(b.geometry);
-        expect(a.lines).toEqual(b.lines);
-        expect(a.achieved).toEqual(b.achieved);
-      }
-    });
-  });
-
-  test("different RNG seeds produce different candidates (on a viable gap)", async () => {
-    const { engine, gap, ctx } = await setupAt("tiny_dance", 0);
-    // Try a handful of seeds and assert we get at least two distinct
-    // outcomes — sanity check that sampling isn't constant. Pin impact_anchor: it
-    // yields a viable arc on this first gap from a single K=1 sample, whereas the
-    // now-default `continuous` line family needs the handoff's K-sample batch to
-    // land the start gap (a single sample there is null), which would make every
-    // outcome "null". Serialize the whole geometry so it's robust either way.
-    const outcomes = withArcPlacementMode("impact_anchor", () => {
-      const seen = new Set<string>();
-      for (let s = 1; s <= 10; s++) {
-        const fit = sampleOneCandidate(engine, gap, makeRng(s), ctx, 1);
-        seen.add(fit === null ? "null" : JSON.stringify({ arc: fit.arc, lines: fit.lines }));
-      }
-      return seen;
-    });
+  test("target-state geometry sampler has RNG diversity before engine gates", () => {
+    const gap: Gap = {
+      index: 0,
+      startFrame: 0,
+      endFrame: 24,
+      endsWithContact: true,
+      targets: { air: 0.45, speed: 0.55, grain: 0.5 },
+    };
+    const targetState = {
+      sledX: 100,
+      sledY: 50,
+      velocity: { x: 8, y: 2 },
+      speed: Math.hypot(8, 2),
+      angleDeg: 14,
+    };
+    const outcomes = new Set<string>();
+    for (let s = 1; s <= 10; s++) {
+      const geometry = sampleArcPlacementGeometry(
+        makeRng(s), 100, 50, gap.targets, targetState, 8, gap, 1, "normal", [24, 52],
+      );
+      outcomes.add(JSON.stringify(geometry));
+    }
     expect(outcomes.size).toBeGreaterThan(1);
   });
 

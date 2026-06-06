@@ -24,58 +24,17 @@ import {
 import {
   arcPlacementMode,
   recordImpactAnchorDirectFailure,
-  readPositiveEnvNumber,
   resetArcPlacementStats,
   sampleArcParams,
   sampleArcParamsRngDraws,
   sampleArcPlacementGeometry,
-  sampleContactCenteredLinesWithDiagnostics,
-  sampleImpactFrameArcWithDiagnostics,
   snapshotArcPlacementStats,
-  steepCatchTemplateIndex,
-  usesSteepCatchTemplateAttempt,
 } from "../scripts/v0/arc_placement.ts";
-import { authoredSpeedToPx, type Gap } from "../scripts/v0/types.ts";
+import { authoredSpeedToPx, type Gap, type TrackLine } from "../scripts/v0/types.ts";
 import type { SearchNode } from "../scripts/v0/optimizer/node.ts";
 
 function gap(index: number, startFrame: number, endFrame: number, endsWithContact = true): Gap {
   return { index, startFrame, endFrame, endsWithContact, targets: {} };
-}
-
-function withArcPlacementMode<T>(mode: string | undefined, fn: () => T): T {
-  const previous = process.env.LR_ARC_PLACEMENT;
-  if (mode === undefined) {
-    delete process.env.LR_ARC_PLACEMENT;
-  } else {
-    process.env.LR_ARC_PLACEMENT = mode;
-  }
-  try {
-    return fn();
-  } finally {
-    if (previous === undefined) {
-      delete process.env.LR_ARC_PLACEMENT;
-    } else {
-      process.env.LR_ARC_PLACEMENT = previous;
-    }
-  }
-}
-
-function withEnv<T>(name: string, value: string | undefined, fn: () => T): T {
-  const previous = process.env[name];
-  if (value === undefined) {
-    delete process.env[name];
-  } else {
-    process.env[name] = value;
-  }
-  try {
-    return fn();
-  } finally {
-    if (previous === undefined) {
-      delete process.env[name];
-    } else {
-      process.env[name] = previous;
-    }
-  }
 }
 
 function contactGaps(count: number): Gap[] {
@@ -93,6 +52,28 @@ function nodeAt(gapIndex: number, hasCommittedCatch = gapIndex > 0): SearchNode 
     cumulativeCost: 0,
     _candidatesCache: null,
   };
+}
+
+function targetState(speed = Math.hypot(8, 2), angleDeg = 14) {
+  return {
+    sledX: 100,
+    sledY: 50,
+    velocity: {
+      x: Math.cos((angleDeg * Math.PI) / 180) * speed,
+      y: Math.sin((angleDeg * Math.PI) / 180) * speed,
+    },
+    speed,
+    angleDeg,
+  };
+}
+
+function linesFromGeometry(geometry: ReturnType<typeof sampleArcPlacementGeometry>): TrackLine[] {
+  if (geometry.kind !== "lines") throw new Error("expected line-native placement geometry");
+  return geometry.lines;
+}
+
+function totalLineLength(lines: TrackLine[]): number {
+  return lines.reduce((sum, line) => sum + Math.hypot(line.x2 - line.x1, line.y2 - line.y1), 0);
 }
 
 describe("handoff policy boundaries", () => {
@@ -237,332 +218,117 @@ describe("handoff policy boundaries", () => {
   });
 });
 
-describe("arc placement mode policy", () => {
-  test("positive numeric env parser rejects empty and non-positive values", () => {
-    expect(withEnv("LR_LEVEL_SCALE", undefined, () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
-      .toBe(1);
-    expect(withEnv("LR_LEVEL_SCALE", "", () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
-      .toBe(1);
-    expect(withEnv("LR_LEVEL_SCALE", "   ", () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
-      .toBe(1);
-    expect(withEnv("LR_LEVEL_SCALE", "0", () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
-      .toBe(1);
-    expect(withEnv("LR_LEVEL_SCALE", "-1", () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
-      .toBe(1);
-    expect(withEnv("LR_LEVEL_SCALE", "2.5", () => readPositiveEnvNumber("LR_LEVEL_SCALE", 1)))
-      .toBe(2.5);
+describe("target-state arc placement", () => {
+  test("uses the clean target-state placement mode", () => {
+    expect(arcPlacementMode()).toBe("target_state");
   });
 
-  test("LR_ARC_PLACEMENT selects the named mode; default and unknown are continuous", () => {
-    // DEFAULT is now `continuous` (promoted: it beats the old `impact_anchor` default
-    // by +178 HEADLINE on the canonical decide). impact_anchor remains selectable.
-    expect(withArcPlacementMode(undefined, () => arcPlacementMode())).toBe("continuous");
-    expect(withArcPlacementMode("uniform", () => arcPlacementMode())).toBe("uniform");
-    expect(withArcPlacementMode("impact_frame", () => arcPlacementMode())).toBe("impact_frame");
-    expect(withArcPlacementMode("contact_centered", () => arcPlacementMode())).toBe("contact_centered");
-    expect(withArcPlacementMode("impact_anchor", () => arcPlacementMode())).toBe("impact_anchor");
-    expect(withArcPlacementMode("unknown", () => arcPlacementMode())).toBe("continuous");
+  test("candidate RNG draw accounting is fixed for the target-state sampler", () => {
+    expect(sampleArcParamsRngDraws({ speed: 4, angleDeg: 10 }, gap(0, 0, 20), 0)).toBe(7);
+    expect(sampleArcParamsRngDraws({ speed: 10, angleDeg: 70 }, gap(0, 0, 80), 7, "brake")).toBe(7);
   });
 
-  test("alternate placement modes preserve candidate RNG draw accounting", () => {
-    const state = { speed: 4, angleDeg: 10 };
-    const normalGap = gap(0, 0, 20);
-    expect(withArcPlacementMode(undefined, () => sampleArcParamsRngDraws(state, normalGap, 1))).toBe(8);
-    expect(withArcPlacementMode("impact_frame", () => sampleArcParamsRngDraws(state, normalGap, 1))).toBe(8);
-    expect(withArcPlacementMode("contact_centered", () => sampleArcParamsRngDraws(state, normalGap, 1))).toBe(8);
-    expect(withArcPlacementMode("uniform", () => sampleArcParamsRngDraws(state, normalGap, 1))).toBe(7);
-  });
-
-  test("impact-frame sampler makes contact tangent an explicit local control", () => {
-    const sample = sampleImpactFrameArcWithDiagnostics(
+  test("line sampler emits contiguous target-state geometry with stable ids", () => {
+    const lines = linesFromGeometry(sampleArcPlacementGeometry(
       () => 0.5,
-      {
-        sledX: 100,
-        sledY: 50,
-        velocity: { x: 4, y: 2 },
-        speed: Math.hypot(4, 2),
-        angleDeg: 35,
-      },
+      100,
+      50,
       { air: 0.5, speed: 0.4, grain: 0.5 },
-      gap(0, 0, 20),
-      120,
-      8,
-    );
-
-    expect(sample.impactT).toBeGreaterThanOrEqual(0.30);
-    expect(sample.impactT).toBeLessThanOrEqual(0.76);
-    expect(sample.localTangentAngleDeg).toBeCloseTo(sample.contactAngleDeg, 6);
-    expect(Number.isFinite(sample.arc.anchor.x)).toBe(true);
-    expect(Number.isFinite(sample.arc.anchor.y)).toBe(true);
-    expect(sample.arc.segments).toBe(8);
-  });
-
-  test("impact-frame mode preserves specialized brake and air-support geometry", () => {
-    const targetState = {
-      sledX: 100,
-      sledY: 50,
-      velocity: { x: 4, y: 2 },
-      speed: Math.hypot(4, 2),
-      angleDeg: 35,
-    };
-
-    withArcPlacementMode("impact_frame", () => {
-      const brake = sampleArcParams(
-        () => 0.5,
-        100,
-        50,
-        {},
-        targetState,
-        1,
-        gap(0, 0, 20),
-        "brake",
-      );
-      expect(brake.startAngleDeg).toBeGreaterThanOrEqual(-28);
-      expect(brake.startAngleDeg).toBeLessThanOrEqual(-6);
-
-      const airSupport = sampleArcParams(
-        () => 0.5,
-        100,
-        50,
-        {},
-        targetState,
-        1,
-        gap(0, 0, 20),
-        "air_support",
-      );
-      expect(airSupport.length).toBeGreaterThanOrEqual(100);
-      expect(airSupport.startAngleDeg).toBeGreaterThanOrEqual(-8);
-      expect(airSupport.startAngleDeg).toBeLessThanOrEqual(14);
-      expect(airSupport.endAngleDeg).toBeGreaterThanOrEqual(-6);
-      expect(airSupport.endAngleDeg).toBeLessThanOrEqual(10);
-      expect(Math.abs(airSupport.curveBias)).toBeLessThanOrEqual(0.35);
-    });
-  });
-
-  test("contact-centered line sampler emits contiguous geometry around the contact point", () => {
-    const sample = sampleContactCenteredLinesWithDiagnostics(
-      () => 0.5,
-      {
-        sledX: 100,
-        sledY: 50,
-        velocity: { x: 4, y: 2 },
-        speed: Math.hypot(4, 2),
-        angleDeg: 35,
-      },
-      { air: 0.5, speed: 0.4, grain: 0.5 },
-      gap(0, 0, 20),
-      20,
-    );
-
-    expect(sample.preSegments).toBeGreaterThanOrEqual(1);
-    expect(sample.preSegments).toBeLessThanOrEqual(6);
-    expect(sample.postSegments).toBeGreaterThanOrEqual(2);
-    expect(sample.postSegments).toBeLessThanOrEqual(14);
-    expect(sample.lines).toHaveLength(sample.preSegments + sample.postSegments);
-    expect(sample.lines.map((line) => line.id)).toEqual(
-      Array.from({ length: sample.lines.length }, (_, index) => 20 + index),
-    );
-
-    const preContact = sample.lines[sample.preSegments - 1];
-    const postContact = sample.lines[sample.preSegments];
-    expect(preContact.x2).toBeCloseTo(sample.contactPoint.x, 10);
-    expect(preContact.y2).toBeCloseTo(sample.contactPoint.y, 10);
-    expect(postContact.x1).toBeCloseTo(sample.contactPoint.x, 10);
-    expect(postContact.y1).toBeCloseTo(sample.contactPoint.y, 10);
-  });
-
-  test("contact-centered sampler turns authored overspeed into uphill support pressure", () => {
-    const baseState = {
-      sledX: 100,
-      sledY: 50,
-      velocity: { x: 8, y: 5 },
-      angleDeg: 35,
-    };
-    const overspeed = sampleContactCenteredLinesWithDiagnostics(
-      () => 0.5,
-      { ...baseState, speed: 12 },
-      { air: 0.5, speed: 0, grain: 0.5 },
+      targetState(8, 20),
+      0,
       gap(0, 0, 24),
       20,
+      "normal",
+      [24, 52],
+    ));
+
+    expect(lines.length).toBeGreaterThanOrEqual(3);
+    expect(lines.map((line) => line.id)).toEqual(
+      Array.from({ length: lines.length }, (_, index) => 20 + index),
     );
-    const underspeed = sampleContactCenteredLinesWithDiagnostics(
+    for (let i = 1; i < lines.length; i++) {
+      expect(lines[i].x1).toBeCloseTo(lines[i - 1].x2, 10);
+      expect(lines[i].y1).toBeCloseTo(lines[i - 1].y2, 10);
+    }
+  });
+
+  test("low-air targets receive longer grounded support than high-air targets", () => {
+    const state = targetState(9, 18);
+    const baseGap = gap(0, 0, 30);
+    const lowAir = linesFromGeometry(sampleArcPlacementGeometry(
       () => 0.5,
-      { ...baseState, speed: 6 },
-      { air: 0.5, speed: 1, grain: 0.5 },
+      100,
+      50,
+      { air: 0.15, speed: 0.55, grain: 0.45 },
+      state,
+      0,
+      baseGap,
+      1,
+      "normal",
+      [30, 70],
+    ));
+    const highAir = linesFromGeometry(sampleArcPlacementGeometry(
+      () => 0.5,
+      100,
+      50,
+      { air: 0.85, speed: 0.55, grain: 0.45 },
+      state,
+      0,
+      baseGap,
+      1,
+      "normal",
+      [30, 70],
+    ));
+
+    expect(totalLineLength(lowAir)).toBeGreaterThan(totalLineLength(highAir));
+  });
+
+  test("near downstream contacts cap support length continuously", () => {
+    const state = targetState(10, 12);
+    const targets = { air: 0.35, speed: 0.55, grain: 0.6 };
+    const loose = linesFromGeometry(sampleArcPlacementGeometry(
+      () => 0.5,
+      100,
+      50,
+      targets,
+      state,
+      0,
+      gap(0, 0, 30),
+      1,
+      "normal",
+      [30, 65],
+    ));
+    const dense = linesFromGeometry(sampleArcPlacementGeometry(
+      () => 0.5,
+      100,
+      50,
+      targets,
+      state,
+      0,
+      gap(0, 0, 30),
+      1,
+      "normal",
+      [30, 42],
+    ));
+
+    expect(totalLineLength(dense)).toBeLessThan(totalLineLength(loose));
+  });
+
+  test("arc compatibility sampler remains target-state anchored and finite", () => {
+    const arc = sampleArcParams(
+      () => 0.5,
+      100,
+      50,
+      { air: 0.4, speed: 0.6, grain: 0.5 },
+      targetState(8, 25),
+      0,
       gap(0, 0, 24),
-      20,
     );
 
-    expect(overspeed.brakePressure).toBeGreaterThan(0.9);
-    expect(underspeed.accelPressure).toBeGreaterThan(0.9);
-    expect(overspeed.contactAngleDeg).toBeLessThan(underspeed.contactAngleDeg);
-    expect(overspeed.postAngleDeg).toBeLessThan(underspeed.postAngleDeg);
-    expect(overspeed.preLength).toBeGreaterThan(underspeed.preLength);
-  });
-
-  test("contact-centered sampler shortens ride-out before dense next contacts", () => {
-    const state = {
-      sledX: 100,
-      sledY: 50,
-      velocity: { x: 10, y: 3 },
-      speed: Math.hypot(10, 3),
-      angleDeg: 17,
-    };
-    const targets = { air: 0.85, speed: 0.95, grain: 0.62 };
-    const loose = sampleContactCenteredLinesWithDiagnostics(
-      () => 0.5,
-      state,
-      targets,
-      gap(0, 0, 30),
-      20,
-      [30],
-    );
-    const dense = sampleContactCenteredLinesWithDiagnostics(
-      () => 0.5,
-      state,
-      targets,
-      gap(0, 0, 30),
-      20,
-      [30, 40],
-    );
-
-    expect(dense.postLength).toBeLessThan(loose.postLength * 0.7);
-    expect(dense.postSegments).toBeLessThanOrEqual(loose.postSegments);
-    expect(dense.contactAngleDeg).toBeGreaterThan(0);
-  });
-
-  test("contact-centered sampler carries tight moderate-speed rhythms forward", () => {
-    const state = {
-      sledX: 100,
-      sledY: 50,
-      velocity: { x: 8, y: 2 },
-      speed: Math.hypot(8, 2),
-      angleDeg: 14,
-    };
-    const targets = { air: 0.55, speed: 0.72, grain: 0.5 };
-    const loose = sampleContactCenteredLinesWithDiagnostics(
-      () => 0.5,
-      state,
-      targets,
-      gap(0, 0, 30),
-      20,
-      [30],
-    );
-    const tight = sampleContactCenteredLinesWithDiagnostics(
-      () => 0.5,
-      state,
-      targets,
-      gap(0, 0, 30),
-      20,
-      [30, 43],
-    );
-
-    expect(tight.contactAngleDeg).toBeGreaterThan(loose.contactAngleDeg);
-    expect(tight.postAngleDeg).toBeGreaterThan(loose.postAngleDeg);
-    expect(tight.postLength).toBeLessThan(loose.postLength);
-  });
-
-  test("contact-centered mode preserves specialized brake and air-support geometry", () => {
-    const targetState = {
-      sledX: 100,
-      sledY: 50,
-      velocity: { x: 4, y: 2 },
-      speed: Math.hypot(4, 2),
-      angleDeg: 35,
-    };
-
-    withArcPlacementMode("contact_centered", () => {
-      const normal = sampleArcPlacementGeometry(
-        () => 0.5,
-        100,
-        50,
-        {},
-        targetState,
-        1,
-        gap(0, 0, 20),
-        10,
-        "normal",
-      );
-      expect(normal.kind).toBe("lines");
-
-      const brake = sampleArcPlacementGeometry(
-        () => 0.5,
-        100,
-        50,
-        {},
-        targetState,
-        1,
-        gap(0, 0, 20),
-        10,
-        "brake",
-      );
-      expect(brake.kind).toBe("arc");
-      if (brake.kind === "arc") {
-        expect(brake.arc.startAngleDeg).toBeGreaterThanOrEqual(-28);
-        expect(brake.arc.startAngleDeg).toBeLessThanOrEqual(-6);
-      }
-
-      const airSupport = sampleArcPlacementGeometry(
-        () => 0.5,
-        100,
-        50,
-        {},
-        targetState,
-        1,
-        gap(0, 0, 20),
-        10,
-        "air_support",
-      );
-      expect(airSupport.kind).toBe("arc");
-      if (airSupport.kind === "arc") {
-        expect(airSupport.arc.length).toBeGreaterThanOrEqual(100);
-        expect(airSupport.arc.startAngleDeg).toBeGreaterThanOrEqual(-8);
-        expect(airSupport.arc.startAngleDeg).toBeLessThanOrEqual(14);
-        expect(airSupport.arc.endAngleDeg).toBeGreaterThanOrEqual(-6);
-        expect(airSupport.arc.endAngleDeg).toBeLessThanOrEqual(10);
-        expect(Math.abs(airSupport.arc.curveBias)).toBeLessThanOrEqual(0.35);
-      }
-    });
-  });
-
-  test("contact-centered mode falls back to impact arcs for loose contact spacing", () => {
-    const targetState = {
-      sledX: 100,
-      sledY: 50,
-      velocity: { x: 4, y: 2 },
-      speed: Math.hypot(4, 2),
-      angleDeg: 35,
-    };
-
-    withArcPlacementMode("contact_centered", () => {
-      const defaultTimeline = sampleArcPlacementGeometry(
-        () => 0.5,
-        100,
-        50,
-        {},
-        targetState,
-        1,
-        gap(0, 0, 20),
-        10,
-        "normal",
-      );
-      expect(defaultTimeline.kind).toBe("lines");
-
-      const looseTimeline = sampleArcPlacementGeometry(
-        () => 0.5,
-        100,
-        50,
-        {},
-        targetState,
-        1,
-        gap(0, 0, 20),
-        10,
-        "normal",
-        [20, 50],
-      );
-      expect(looseTimeline.kind).toBe("arc");
-
-    });
+    expect(Number.isFinite(arc.anchor.x)).toBe(true);
+    expect(Number.isFinite(arc.anchor.y)).toBe(true);
+    expect(arc.length).toBeGreaterThan(0);
+    expect(arc.segments).toBeGreaterThanOrEqual(3);
   });
 
   test("translateTrackLines moves endpoints and assigns fresh contiguous ids", () => {
@@ -608,61 +374,26 @@ describe("arc placement mode policy", () => {
     expect(releaseSpeedPenalty(authoredSpeedToPx(0), 0.5)).toBeCloseTo(0.0315, 6);
   });
 
-  test("arc placement diagnostics split direct failure reasons by sample mode", () => {
-    withArcPlacementMode("impact_frame", () => {
-      resetArcPlacementStats();
-      recordImpactAnchorDirectFailure("normal", "survival");
-      recordImpactAnchorDirectFailure("normal", "landing");
-      recordImpactAnchorDirectFailure("brake", "offbeat");
+  test("placement diagnostics split direct failure reasons by sample mode", () => {
+    resetArcPlacementStats();
+    recordImpactAnchorDirectFailure("normal", "survival");
+    recordImpactAnchorDirectFailure("normal", "landing");
+    recordImpactAnchorDirectFailure("brake", "offbeat");
 
-      const stats = snapshotArcPlacementStats();
-      expect(stats?.direct_failed).toBe(3);
-      expect(stats?.direct_survival_failed).toBe(1);
-      expect(stats?.direct_landing_failed).toBe(1);
-      expect(stats?.direct_offbeat_failed).toBe(1);
-      expect(stats?.by_sample_mode.normal.direct_failed).toBe(2);
-      expect(stats?.by_sample_mode.normal.direct_survival_failed).toBe(1);
-      expect(stats?.by_sample_mode.normal.direct_landing_failed).toBe(1);
-      expect(stats?.by_sample_mode.brake.direct_failed).toBe(1);
-      expect(stats?.by_sample_mode.brake.direct_offbeat_failed).toBe(1);
-    });
+    const stats = snapshotArcPlacementStats();
+    expect(stats.direct_failed).toBe(3);
+    expect(stats.direct_survival_failed).toBe(1);
+    expect(stats.direct_landing_failed).toBe(1);
+    expect(stats.direct_offbeat_failed).toBe(1);
+    expect(stats.by_sample_mode.normal.direct_failed).toBe(2);
+    expect(stats.by_sample_mode.normal.direct_survival_failed).toBe(1);
+    expect(stats.by_sample_mode.normal.direct_landing_failed).toBe(1);
+    expect(stats.by_sample_mode.brake.direct_failed).toBe(1);
+    expect(stats.by_sample_mode.brake.direct_offbeat_failed).toBe(1);
   });
 });
 
-describe("steep catch attempt policy", () => {
-  const steepGap = gap(0, 0, 60);
-
-  test("steep catch templates interleave with normal random attempts", () => {
-    expect(steepCatchTemplateIndex(0)).toBe(0);
-    expect(steepCatchTemplateIndex(1)).toBe(null);
-    expect(steepCatchTemplateIndex(2)).toBe(1);
-    expect(steepCatchTemplateIndex(30)).toBe(15);
-    expect(steepCatchTemplateIndex(31)).toBe(null);
-    expect(steepCatchTemplateIndex(32)).toBe(null);
-  });
-
-  // Steep catch templates are an `impact_anchor`-family feature (the now-default
-  // `continuous` stream has none — usesSteepCatchTemplateAttempt returns false), so
-  // these pin impact_anchor to exercise that family's steep-template policy.
-  test("steep catch template attempts still require steep local state", () => {
-    withArcPlacementMode("impact_anchor", () => {
-      expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, steepGap, 0)).toBe(true);
-      expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, steepGap, 1)).toBe(false);
-      expect(usesSteepCatchTemplateAttempt({ speed: 9.9, angleDeg: 55 }, steepGap, 2)).toBe(true);
-      expect(usesSteepCatchTemplateAttempt({ speed: 9.9, angleDeg: 54.9 }, steepGap, 2)).toBe(false);
-      expect(usesSteepCatchTemplateAttempt({ speed: 10, angleDeg: 0 }, gap(0, 0, 59), 0)).toBe(false);
-    });
-  });
-
-  test("extra sampler modes do not consume normal steep-template slots", () => {
-    withArcPlacementMode("impact_anchor", () => {
-      const steepState = { speed: 10, angleDeg: 0 };
-      expect(sampleArcParamsRngDraws(steepState, steepGap, 0)).toBe(0);
-      expect(sampleArcParamsRngDraws(steepState, steepGap, 0, "brake")).toBeGreaterThan(0);
-      expect(sampleArcParamsRngDraws(steepState, steepGap, 0, "air_support")).toBeGreaterThan(0);
-    });
-  });
-
+describe("short deadline rescue policy", () => {
   test("short-deadline rescue is based on local gap duration", () => {
     expect(shortDeadlineRescueCandidateCount(0)).toBe(0);
     expect(shortDeadlineRescueCandidateCount(10)).toBe(80);

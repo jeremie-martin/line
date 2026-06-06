@@ -55,6 +55,9 @@ a deliberate ruler/scope change.
 
 Use tiny probes to find bugs and shape hypotheses. Use canonical runs to decide.
 Budget checkpoints inside one run are cheap; the largest budget drives the work.
+Canonical decision archives should be compact: do not pass `--details` on the
+20-spec x 24-seed dense run. `--details` is useful for smaller diagnostic probes,
+but the full canonical archive can become too large to serialize.
 
 ```bash
 # Tiny probe: 5 seeds, 10k-spaced checkpoints to 125k. Not a decision basis.
@@ -66,7 +69,6 @@ LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4 npm run golden -- \
 
 # Canonical candidate run: the only promotable evidence.
 LR_ENGINE=wasm npm run golden -- \
-  --details \
   --jobs=6 \
   --archive-dir=generated/golden-runs/<label>
 

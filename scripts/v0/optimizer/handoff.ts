@@ -322,8 +322,10 @@ const HANDOFF_SHORT_RESCUE_N_CAND = 80;
 const HANDOFF_SHORT_RESCUE_CANDIDATE_POOL = 16;
 const HANDOFF_SHORT_RESCUE_MAX_GAP_FRAMES = 12;
 const HANDOFF_PREVIEW_K = 1;
-/** How many of the most-recent committed catches to translate+reuse per gap. */
-const HANDOFF_REUSE_K = 2;
+/** Reuse only the latest committed catch. Older translated catches can over-lock
+ *  dense forward-dependent chains into a locally steady but globally brittle
+ *  rhythm. */
+const HANDOFF_REUSE_K = 1;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 10;
 const START_SCORING_POOL = 16;
@@ -1587,7 +1589,7 @@ function rankedOptions(
       node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
     )
   );
-  // Catch-reuse: translate the most recent committed catches to this gap's entry
+  // Catch-reuse: translate the most recent committed catch to this gap's entry
   // state and offer them as extra candidates. On a steady periodic rhythm, a
   // recent sled-relative catch can remain valid at a later similar entry state.
   // Deterministic (pure function of the prefix); only ADDS candidates, so
@@ -1846,7 +1848,7 @@ export function shouldOfferBrakeCandidates(
   return aboveMinTarget && withinMildTarget && brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
 }
 
-/** Translate the most-recent committed catches (which carry a sled `ref`) to
+/** Translate the most-recent committed catch (which carries a sled `ref`) to
  *  THIS gap's entry state and return the ones that still land+survive. The
  *  geometry is sled-relative, so translating a prior catch by the sled delta
  *  reproduces the same catch shape at the new entry — on a periodic rhythm

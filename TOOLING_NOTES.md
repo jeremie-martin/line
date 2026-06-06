@@ -26,6 +26,24 @@ Running log of friction points hit while working the arc-placement campaign
     `[k/N] compiled` heartbeat (plus a start header) to **stderr**, leaving stdout
     as pure JSON.
 
+- **`--details` can fail to serialize a 24-seed canonical archive.** On 2026-06-06,
+  `LR_ENGINE=wasm npm run golden -- --details --jobs=6` completed all 480 headline
+  compiles and wrote 33,600 checkpoint artifacts (~1.4 GB), then crashed before
+  `golden.json` with `Invalid string length` while building the detailed JSON. This
+  makes the documented canonical command unusable as a baseline/candidate archive
+  on the current 20 specs x 24 seeds x 35 budgets scope. Workaround: run canonical
+  archives in compact mode for `decide`, and use smaller `--details` probes for
+  per-axis diagnostics.
+
+- **A max-budget probe can under-exercise end-of-loop mechanisms.** While working
+  `GOAL_LDS_COMPILER_IMPROVEMENT.md`, a 5-seed probe capped at 125k reported zero
+  prefix-branch work, but the 24-seed canonical baseline had branch forks already
+  visible at its 125k checkpoint for the same seeds. The compiler stops as soon as
+  the final requested checkpoint is captured, whereas a longer canonical run keeps
+  expanding after that checkpoint. This makes max-budget probes a weak screen for
+  mechanisms that fire around or just after the probe ceiling; use them for obvious
+  regressions, not as proof that late-search mechanisms are inert.
+
 ## Decision workflow
 
 - `npm run decide` requires BOTH archives to carry the same

@@ -98,7 +98,9 @@ Handoff-only extra candidates are cached at the node as well. Reuse catches and
 brake catches are deterministic prefix-state probes, so when tail completion and
 normal expansion both rank the same node, the compiler reuses the already
 validated extra candidates while still recomputing scoring for the current
-ranking mode. Brake probes remain local-policy work: speed-targeted gaps at the
+ranking mode. Reuse is limited to the latest committed catch; older translated
+patterns can over-stabilize dense fragile chains. Brake probes remain
+local-policy work: speed-targeted gaps at the
 authored minimum are excluded, and eligible targets use raw-velocity boundaries
 derived from the authored speed ruler (`speed=0.78` for the mild gate and
 `speed=1.0` for the hard cap). Once the local rider speed reaches the target,

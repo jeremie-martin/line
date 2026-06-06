@@ -4993,3 +4993,30 @@ optimizer 4/4). Extra env-mutation regression slice:
 Single-run standing after keep: `LR_ENGINE=wasm npm run perf` reported
 **5,931.8 ns/physics-frame ±327.4** (noisy absolute run; paired A/B is the keep
 evidence). The `<3000` objective remains open.
+
+## Session 183 (2026-06-06 cont.) — cached arc-placement env flag reads, KEEP (−0.23%)
+
+Fresh post-S182 CPU profile still showed `envValue` visible in the JS
+candidate-eval surface (39 samples in the short profile, alongside
+`sampleContactCenteredLinesWithDiagnostics` and detector work). Candidate: cache
+the parsed arc-placement mode/feature flags by the raw `process.env.KEY` value
+(`LR_ARC_PLACEMENT`, fallback-bisect, level span, launch mode, air length,
+dense-spacing cap, 2D span). The cache still checks the current raw env value on
+each call, so in-process `process.env.KEY` mutation remains observable.
+
+**Correctness:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical (engine 5/5 +
+optimizer 4/4). Env-mutation regression slice:
+`LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+✓ 48/48.
+
+**A/B:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100`: base mean
+5735.5 ns/frame, candidate mean 5710.9 ns/frame; Δ median/mean
+**−0.23% / −0.41%**, 95% CI **[−0.76%, −0.10%]**, candidate won **61/100**,
+**P(candidate faster)=99.8%** → ✓ **KEEP**.
+
+**Cumulative 3σ confirmation:** accumulated S182+S183 HEAD against pre-JS-bundle
+baseline `c1da29a`:
+`npx tsx scripts/v0/bench/perf_ab.ts --js --ref=c1da29a --rounds=100 --p=0.9987`
+→ base mean 5810.5 ns/frame, candidate mean 5721.6 ns/frame; Δ median/mean
+**−1.40% / −1.52%**, 95% CI **[−1.85%, −1.27%]**, candidate won **92/100**,
+**P(candidate faster)=100.0%** → ✓ confirmed compounded win at 3σ.

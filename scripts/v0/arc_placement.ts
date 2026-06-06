@@ -112,6 +112,35 @@ export type ArcPlacementGeometry =
   | { kind: "arc"; arc: Arc }
   | { kind: "lines"; lines: TrackLine[] };
 
+let arcPlacementModeRaw: string | undefined;
+let arcPlacementModeValue: ArcPlacementRuntimeMode = "continuous";
+let arcPlacementModeValid = false;
+let fallbackBisectRaw: string | undefined;
+let fallbackBisectValue = false;
+let fallbackBisectValid = false;
+let levelSpanRaw: string | undefined;
+let levelSpanValue = true;
+let levelSpanValid = false;
+let launchRaw: string | undefined;
+let energyLaunchValue = true;
+let energyLaunchValid = false;
+let airLengthRaw: string | undefined;
+let airLengthValue = true;
+let airLengthValid = false;
+let twoDSpanRaw: string | undefined;
+let twoDSpanValue = true;
+let twoDSpanValid = false;
+type DenseSpacingCapConfig = {
+  legacy: boolean;
+  maxNextContactFrames: number;
+};
+let denseSpacingCapRaw: string | undefined;
+let denseSpacingCapValue: DenseSpacingCapConfig = {
+  legacy: false,
+  maxNextContactFrames: DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES,
+};
+let denseSpacingCapValid = false;
+
 const CATCH_TEMPLATES = [
   { startDelta: -8,  end: 45, segments: 14, segmentLength: 34, lead: 9,  offset: 13 },
   { startDelta: -8,  end: 45, segments: 14, segmentLength: 34, lead: 9,  offset: -4 },
@@ -132,12 +161,20 @@ const CATCH_TEMPLATES = [
 ] as const;
 
 export function arcPlacementMode(): ArcPlacementRuntimeMode {
-  const raw = envValue("LR_ARC_PLACEMENT");
-  if (raw === "uniform") return "uniform";
-  if (raw === "impact_frame") return "impact_frame";
-  if (raw === "contact_centered") return "contact_centered";
-  if (raw === "impact_anchor") return "impact_anchor";
-  if (raw === "continuous") return "continuous";
+  const raw = PROCESS_ENV?.LR_ARC_PLACEMENT;
+  if (arcPlacementModeValid && raw === arcPlacementModeRaw) return arcPlacementModeValue;
+  arcPlacementModeRaw = raw;
+  arcPlacementModeValid = true;
+  if (
+    raw === "uniform" ||
+    raw === "impact_frame" ||
+    raw === "contact_centered" ||
+    raw === "impact_anchor" ||
+    raw === "continuous"
+  ) {
+    arcPlacementModeValue = raw;
+    return arcPlacementModeValue;
+  }
   // DEFAULT = continuous. The old default `impact_anchor` is hard-plateaued (ceiling
   // ~342, HEADLINE 282 on the canonical 8-seed × dense 5k-175k grid); `continuous`
   // reaches ceiling ~584 / HEADLINE 461 and is 160/160 valid by 115k. Under the
@@ -145,7 +182,8 @@ export function arcPlacementMode(): ArcPlacementRuntimeMode {
   // CURVE_SCORE over-rewarded impact_anchor's fast-but-low plateau over continuous's
   // higher ceiling) the promotion is a decisive `decide` ACCEPT: Δheadline +178.2,
   // 95% CI [140.1, 231.7], P(Δ≤0)=0%. `impact_anchor` stays selectable via the env.
-  return "continuous";
+  arcPlacementModeValue = "continuous";
+  return arcPlacementModeValue;
 }
 
 export function impactAnchorEnabled(): boolean {
@@ -155,8 +193,12 @@ export function impactAnchorEnabled(): boolean {
 }
 
 export function impactAnchorFallbackBisectEnabled(): boolean {
-  const raw = envValue("LR_IMPACT_ANCHOR_FALLBACK_BISECT");
-  return raw === "1";
+  const raw = PROCESS_ENV?.LR_IMPACT_ANCHOR_FALLBACK_BISECT;
+  if (fallbackBisectValid && raw === fallbackBisectRaw) return fallbackBisectValue;
+  fallbackBisectRaw = raw;
+  fallbackBisectValid = true;
+  fallbackBisectValue = raw === "1";
+  return fallbackBisectValue;
 }
 
 function firstContactImpactAnchorEnabled(
@@ -923,35 +965,78 @@ export function sampleContactCenteredLinesWithDiagnostics(
  *  last-budget mean by reducing the systematic speed overshoot); opt out with
  *  LR_LEVELSPAN=0 for A/B. */
 function levelSpanEnabled(): boolean {
-  return envValue("LR_LEVELSPAN") !== "0";
+  const raw = PROCESS_ENV?.LR_LEVELSPAN;
+  if (levelSpanValid && raw === levelSpanRaw) return levelSpanValue;
+  levelSpanRaw = raw;
+  levelSpanValid = true;
+  levelSpanValue = raw !== "0";
+  return levelSpanValue;
 }
 
 /** Energy-targeted launch (height shapes speed): ON by default in continuous
  *  mode; opt out with LR_LAUNCH=level for A/B against the prior level/over-return
  *  launch. */
 function energyLaunchEnabled(): boolean {
-  return envValue("LR_LAUNCH") !== "level";
+  const raw = PROCESS_ENV?.LR_LAUNCH;
+  if (energyLaunchValid && raw === launchRaw) return energyLaunchValue;
+  launchRaw = raw;
+  energyLaunchValid = true;
+  energyLaunchValue = raw !== "level";
+  return energyLaunchValue;
 }
 
 /** Air-targeted grounded ride-out length: ON by default in continuous mode; opt
  *  out with LR_AIRLEN=0 for A/B against the launch-only state. */
 function airLengthEnabled(): boolean {
-  return envValue("LR_AIRLEN") !== "0";
+  const raw = PROCESS_ENV?.LR_AIRLEN;
+  if (airLengthValid && raw === airLengthRaw) return airLengthValue;
+  airLengthRaw = raw;
+  airLengthValid = true;
+  airLengthValue = raw !== "0";
+  return airLengthValue;
+}
+
+function denseSpacingCapConfig(): DenseSpacingCapConfig {
+  const raw = PROCESS_ENV?.LR_DENSE_SPACING_CAP;
+  if (denseSpacingCapValid && raw === denseSpacingCapRaw) return denseSpacingCapValue;
+  denseSpacingCapRaw = raw;
+  denseSpacingCapValid = true;
+  const mode = raw?.trim();
+  if (mode === "0" || mode === "off" || mode === "legacy") {
+    denseSpacingCapValue = {
+      legacy: true,
+      maxNextContactFrames: LEGACY_DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES,
+    };
+    return denseSpacingCapValue;
+  }
+  const wideFrames = mode?.match(/^wide(\d+)$/)?.[1];
+  denseSpacingCapValue = {
+    legacy: false,
+    maxNextContactFrames: wideFrames === undefined
+      ? DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES
+      : clampInt(Number(wideFrames), 0, 120),
+  };
+  return denseSpacingCapValue;
 }
 
 function needsDenseSpacingPostLengthCap(targets: AxisValues, nextGapFrames: number | null): boolean {
   if (nextGapFrames === null) return false;
-  const mode = envValue("LR_DENSE_SPACING_CAP")?.trim();
-  if (mode === "0" || mode === "off" || mode === "legacy") {
+  const config = denseSpacingCapConfig();
+  if (config.legacy) {
     return (targets.grain ?? 0) >= LEGACY_DENSE_SPACING_CAP_GRAIN_MIN
       && nextGapFrames <= LEGACY_DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES;
   }
-  const wideFrames = mode?.match(/^wide(\d+)$/)?.[1];
-  const maxNextContactFrames = wideFrames === undefined
-    ? DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES
-    : clampInt(Number(wideFrames), 0, 120);
   return (targets.grain ?? 0) >= DENSE_SPACING_CAP_GRAIN_MIN
-    && nextGapFrames <= maxNextContactFrames;
+    && nextGapFrames <= config.maxNextContactFrames;
+}
+
+function twoDSpanEnabled(): boolean {
+  const raw = PROCESS_ENV?.LR_2DSPAN;
+  if (twoDSpanValid && raw === twoDSpanRaw) return twoDSpanValue;
+  twoDSpanRaw = raw;
+  twoDSpanValid = true;
+  twoDSpanValue = raw !== "0";
+  return twoDSpanValue;
 }
 
 /**
@@ -976,7 +1061,7 @@ function needsDenseSpacingPostLengthCap(targets: AxisValues, nextGapFrames: numb
  */
 function spanBlends(attempt: number): { launch: number; length: number } {
   const a = ((attempt % 4096) + 4096) % 4096;
-  if (envValue("LR_2DSPAN") !== "0") {
+  if (twoDSpanEnabled()) {
     // Keep the full 8-level coupled DIAGONAL (attempts 0-7) so already-valid
     // specs retain their launch-shaping granularity, then spend the otherwise-
     // repeated attempts (8+) on the ANTI-diagonal (launch low ↔ length high):

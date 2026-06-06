@@ -4788,3 +4788,15 @@ neighbors' hashes, computed from coords), so nothing downstream needs it.
 - **A/B (R=100):** Δ median **−0.46%** / mean −0.45%, 95% CI **[−0.74%, −0.21%]**,
   candidate won **68/100** rounds (p=0.000), **P(faster)=100%** → ✓ **KEEP**.
   **Standing after S178: ~5,774 ns/frame** (was ~5,803).
+
+**Cumulative 3σ confirmation (S176–S178) — four wins compound to −2.23%.** `perf_ab
+--ref=de8ad7d --rounds=100 --p=0.9987` (base = start-of-session HEAD, rebuilt fresh →
+independent build pair): Δ median **−2.23%** / mean −2.40%, 95% CI **[−2.75%,
+−2.04%]**, candidate won **97/100** rounds, **P(faster)=100% ≥ 99.87%** → ✓ CONFIRMED.
+The four banked reconcile/physics reductions (add_line clone-elim + bind lazy sqrt
+−1.4%; update_computed scratch reuse + lazy cur −0.44%; unhash-sqrt removal −0.46%)
+compound with no false-positive leakage. **Confirmed standing: ~5,781 ns/frame** (was
+~5,925 at de8ad7d). The reconcile bucket's per-fork allocation + redundant-sqrt churn
+was this session's productive seam; the "bundle independent sub-resolution reductions"
+method banked three of the four (the S175 single-probe rule would have discarded the
+clone-elim and the scratch-reuse).

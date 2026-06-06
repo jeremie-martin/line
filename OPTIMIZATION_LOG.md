@@ -4640,3 +4640,42 @@ step_state S173, detector S174) the instrument-first method found exactly **one*
 fresh strict-bit-identical win — the repel sqrt-skip (S173, −0.49%). Standing
 unchanged at ~5,884 ns/frame. The path below this needs relaxed bit-identity (gated
 by the quality `decide`) or a structural rewrite, not further micro-surveys.
+
+## Session 175 (2026-06-06 cont.) — `add_line` clone-elimination (move not clone), REJECT (inconclusive)
+
+First probe into the ~26% reconcile bucket (methodology flags it "under-explored").
+Looked at `Cache::add_line` (engine.rs), the per-collidable-line registration on the
+compiler's hot fork→add→read path. Original eagerly **clones twice** per call before
+the invalidation scan:
+
+```rust
+let cells = line_cells(&l);
+self.lines_cells.insert(l.id, cells.clone());      // clone #1: Vec<i64>
+push_line(&mut self.cell_lines, l.clone(), &cells); // clone #2: Line
+for &cell in cells.iter() { … index_of_collision_in_cell(&self.hist, …, &l) … }
+```
+
+**Candidate — reorder so both moves replace clones.** Verified the dependency graph:
+`index_of_collision_in_cell` reads only `hist`/`hist_snaps` (+ `&l`), and
+`set_frames_length` mutates only `hist`/`coll`/`frames`/`events` — **all disjoint
+from `cell_lines`/`lines_cells`**. So the grid registration (`push_line`) and the
+`lines_cells` insert can move *after* the invalidation loop with byte-identical
+result, letting `l` move into `push_line` and `cells` move into `lines_cells` —
+**eliminating both heap clones** (one `Line`, one `Vec<i64>`) per collidable add.
+
+- **Gates:** `cargo test` ✓ · `LR_ENGINE=wasm npm run verify` ✓ **byte-identical**
+  (engine 5/5 fixtures + optimizer 4/4 cases). Pure data-structure reorder, no float
+  math touched, so identity was expected and held.
+- **A/B (R=100):** Δ median **−0.19%** / mean −0.09%, 95% CI **[−0.30%, +0.14%]**,
+  candidate won **57/100** rounds (two-sided p=0.193), **P(faster)=84.9%** →
+  **~ INCONCLUSIVE** (below the 0.95 discovery bar; CI straddles 0).
+
+Verdict: **REJECT / revert.** The change is genuinely sound (two fewer allocations
+per add, never slower in theory) and the data leans faster — but a true effect this
+small (~0.19%) sits below R=100's ±0.26% resolution, so it cannot clear 0.95.
+Escalating rounds *only* on this favorable-looking probe would be optional-stopping
+bias (inflates the campaign FPR), so per the rule I reverted rather than fish for a
+verdict. This quantifies the add_line clone cost: real but ≲0.2% — the reconcile
+bucket's allocation overhead is too thin per-call to bank under the gate. Reverted;
+standing unchanged at ~5,884 ns/frame. (If a future structural change makes add_line
+materially hotter — e.g. more lines/compile — re-test; the reorder remains correct.)

@@ -5050,3 +5050,25 @@ pre-JS-bundle baseline `c1da29a`:
 → base mean 5792.7 ns/frame, candidate mean 5631.4 ns/frame; Δ median/mean
 **−2.77% / −2.78%**, 95% CI **[−2.97%, −2.51%]**, candidate won **98/100**,
 **P(candidate faster)=100.0%** → ✓ confirmed compounded win at 3σ.
+
+## Session 185 (2026-06-06 cont.) — stream candidate-window extraction into lightweight detector, REJECT (regressed +0.68%)
+
+Post-S184 profile still showed `detectCandidateWindowRaw` (56 samples),
+`extractRawFrame` (31), `extractRawTrajectoryWindow` (22), and high GC. Candidate:
+avoid building the intermediate `RawFrame[]` by exporting a streaming
+candidate-window detector from `detector.ts` that still reads every requested frame
+for identical physics-frame accounting, then truncates measurements to the detected
+live window.
+
+**Correctness:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical (engine 5/5 +
+optimizer 4/4; `sim_frames` unchanged).
+
+**A/B:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100`: base mean
+5636.2 ns/frame, candidate mean 5672.0 ns/frame; Δ median/mean
+**+0.68% / +0.64%**, 95% CI **[+0.42%, +0.88%]**, candidate won **24/100**,
+**P(candidate faster)=0.0%** → ✗ **REJECT**.
+
+The extra streaming/control-flow work was slower than allocating and then scanning
+the raw-frame array. Reverted the source; keep the S184 local lightweight detector
+that passed, but do not re-attempt this streaming fusion without moving more of
+the raw-frame ABI into the WASM boundary.

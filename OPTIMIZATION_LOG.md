@@ -4819,3 +4819,40 @@ materializing `holder` on its early-return path too) costs more than it saves �
 ILP/codegen-layout, not arithmetic. Reverted, standard artifact rebuilt; standing
 unchanged at ~5,781 ns/frame. Confirms the read-path is at its codegen floor; the
 remaining cuts are not in per-call lookup count.
+
+## Session 178 — summary & state of the search
+
+This session opened a seam prior sessions had under-explored — the **reconcile
+bucket's per-fork allocation + redundant-sqrt churn** — and banked **four
+strict-bit-identical wins, cumulatively −2.23% (3σ-confirmed vs de8ad7d, fresh build
+pair, 97/100 rounds):**
+
+1. `add_line` move-not-clone + `resolve_bind` lazy sqrt (S176, −1.15%, 3σ −1.41%)
+2. `update_computed` scratch-Vec reuse + lazy `cur` State resync (S177, −0.44%)
+3. `classic_cells` carries cell coords not hashes → drops the reconcile-path
+   `unhash_int_pair` sqrts (S178, −0.46%)
+
+**Method lesson banked:** *bundling independent sub-resolution reductions* clears the
+R=100 gate where each alone is stuck at P≈0.90–0.93 — three of the four wins would
+have been discarded by the S175 single-probe rule. The S176/S177 bundles were the
+vehicle.
+
+**What was tried and rejected this session** (the codegen/ILP floor reasserting,
+cf. S172): the `add_line` clone-elim *alone* (S175, P=84.9%), and the
+`update_computed` holder-return lookup consolidation (S178b, **regressed +0.19%** —
+removing a "redundant" version-arena lookup made it slower; the inline `ver(h).holder`
+CSEs cheaper than threading a return out of the non-inlined fn).
+
+**State of the search.** The accessible strict-bit-identical surface is again at its
+floor. Surveyed-and-locked this session: `push_line`'s 9× `Line` clone (load-bearing —
+inline `GridLine` keeps the 41% collision loop cache-friendly; an arena/`Rc` adds a
+per-line-test pointer-chase), the `compute_to` per-frame `State` clone (the frame
+cache itself, irreducible), cross-line-cell 3×3 dedup (perturbs the truncation
+interleaving — S172), the coarse-occupancy all-miss index (S172's flagged lever; the
+maintenance cost in the 3M-call/compile `add_to_grid` path is estimated to exceed the
+savings over ~200k all-miss scans — unfavorable EV), and the read-path lookup count
+(178b regressed). Standing **≈5,800 ns/frame** (paired-confirmed; absolute `perf`
+floats 5,800–5,980 on machine drift). The path from here to <3,000 is what the methodology
+doc already states: **relaxed bit-identity gated by the quality `decide`, or an
+algorithmic restructure** — not further per-call micro-surveys, which now mostly wash
+or regress.

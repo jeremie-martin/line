@@ -220,3 +220,13 @@
 - Decide result: `VERDICT: ACCEPT`; baseline `364.4` -> candidate `372.8`; `Δheadline = +8.4`, 95% CI `[3.5, 14.3]`, `P(Δ<=0)=0.0%`.
 - Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.4`, `100k=+4.0`, `150k=+10.2`, `200k=+12.2`; validity was unchanged at every budget. Largest 200k gains were `drums_crescendo` seed 3, `drums_swell` seed 0, `drums_dropout` seeds 3 and 2, and `drums_zigzag` seed 1. Main 200k regressions were `drums_pendulum` seeds 6, 1, and 5 plus `opening_burst` seed 2, but the canonical paired result cleared the promotion bar.
 - Status: Kept and committed as the new baseline.
+
+## arc-farback-moderate-quality-21
+
+- Baseline used: `arc-smooth-farback-quality-20` at commit `4a7de31`.
+- Hypothesis: The new baseline still had most valid rows in the `axis_quality=0.36..0.50` band, but far-back repair tapered to zero at `0.36`. Extending the taper into moderate quality, while making the rare end of the interval less frequent, should keep older deterministic pass-frontier branches alive at high budgets without changing candidate geometry or contract search.
+- Code changes made: Increased `QUALITY_FAR_BACK_ZERO_AXIS_QUALITY` from `0.36` to `0.50` and increased `QUALITY_FAR_BACK_MAX_INTERVAL` from `96` to `128`, preserving the existing smooth interval down to 16 at `axis_quality=0.18`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-farback-moderate-quality-21`
+- Decide result: `VERDICT: ACCEPT`; baseline `372.8` -> candidate `390.5`; `Δheadline = +17.8`, 95% CI `[10.1, 26.9]`, `P(Δ<=0)=0.0%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.7`, `100k=+11.6`, `150k=+20.4`, `200k=+25.4`; validity was unchanged at every budget. Largest 200k gains were `mini_burst` seed 6, `verse_chorus` seed 2, `mini_burst` seed 9, `verse_chorus` seed 8, and `drums_breath` seed 3. Main 200k regressions were `drums_crescendo` seed 3, `drums_pendulum` seed 8, `mini_burst` seed 4, and `drums_crescendo` seeds 8 and 4. The remaining 200k failures stayed `opening_burst` seed 10 and `drums_crosscut` seeds 7 and 10.
+- Status: Kept and committed as the new baseline.

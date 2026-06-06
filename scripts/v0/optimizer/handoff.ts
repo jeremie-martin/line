@@ -387,9 +387,9 @@ const FAR_BACK_FRONTIER_LAG = 3;
  *  node sequence, but does not let poor early choices monopolize the quality
  *  phase. */
 const QUALITY_FAR_BACK_MIN_INTERVAL = 16;
-const QUALITY_FAR_BACK_MAX_INTERVAL = 96;
+const QUALITY_FAR_BACK_MAX_INTERVAL = 128;
 const QUALITY_FAR_BACK_FULL_AXIS_QUALITY = 0.18;
-const QUALITY_FAR_BACK_ZERO_AXIS_QUALITY = 0.36;
+const QUALITY_FAR_BACK_ZERO_AXIS_QUALITY = 0.50;
 /** For weak rows with almost no terminal feedback, occasionally run a
  *  bounded two-wide suffix completion from a clean prefix before ordinary DFS
  *  reaches the tail window. This is deliberately scarce and only uses existing

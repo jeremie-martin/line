@@ -4505,3 +4505,45 @@ larger structural change, or stepping outside strict bit-identity), not more
 micro-probes. The decisive deliverable of this stretch is the **measurement
 instrument** (calibrated paired-bootstrap A/B with WASM- and JS-swap modes), which
 makes every future verdict trustworthy.
+
+## Session 172 (2026-06-06 cont.) — instrumented the invalidation path; collides_with short-circuit rejected
+
+User asked whether the addLine invalidation scan could be sped with a cheap
+position pre-check before the full collision predicate. Rather than guess, added
+throwaway counters (reverted after) to one `mini_burst@50k` compile:
+
+```
+addLine invalidations          : 13,201
+  all-miss (no rider snap in any cell) : 7,078  (53.6%)   ← global early-out ceiling
+grid lookups (hist.get)        : 375,156   (28.4 / invalidation, 12% hit)
+collides_with calls            : 1,683,168   (127.5 / invalidation)
+  → true                       : 808  (0.05%)
+  → false, dir<=0 (velocity)   : 315,118  (18.7%)
+  → false, dir>0 pos/bounds    : 1,367,242 (81.2%)        ← per-snapshot guard ceiling
+ops ratio  lookups : collides  = 0.22 : 1
+```
+
+Findings: `collides_with` is the dominant invalidation cost (1.68M calls, ~4.5×
+the lookups), and it computes `line_pos` (the costliest term) eagerly on all of
+them though ~81% are already doomed by `dir`/`perp`. So the *logical* ceiling for a
+short-circuit is large. (Also overturned a prior guess: >50% of invalidations touch
+no rider snapshot at all, so a coarse early-out has real ceiling too.)
+
+Tested two bit-identical short-circuit forms of `collides_with` (verify ✓ each):
+
+| variant | R=100 verdict |
+|---|---|
+| two early-return branches (dir, then perp), `line_pos` last | **REJECT** — Δ +0.34%, CI [+0.13%, +0.54%], P(faster)=0.1% |
+| eager dir/ox/oy/perp + **one** guard skipping only `line_pos` | **wash** — Δ +0.01%, CI [−0.22%, +0.23%], P(faster)=44% |
+
+Conclusion: the per-call predicate is **ILP-bound, not op-bound** — the eager
+branchless form lets the CPU compute `dir`/`perp`/`line_pos` in parallel; adding
+branches to skip work serializes it and loses more than the ~3 skipped mults save
+(2-branch regressed; 1-branch recovered only to a wash). The bit-identity rule
+blocks the genuinely-cheaper algebraic forms (folding `inv_len_sq` into the bounds,
+precomputing `normx·p1x+normy·p1y`) because they change float rounding. So per-call
+invalidation optimization is exhausted. The remaining grounded lever is
+**structural** — cut the 1.68M call count or skip the 53.6% all-miss invalidations'
+lookups via a coarse occupancy/AABB index — a larger redesign that carries the same
+"added-check overhead vs saved work" risk this session just demonstrated. Both
+variants reverted; standing unchanged at ~5,950 ns/frame.

@@ -18,7 +18,7 @@
  * `docs/compiler_goals.md`).
  */
 
-import { detect, extractRawTrajectory, getRiderMetered } from "../../lib/detector.ts";
+import { getRiderMetered } from "../../lib/detector.ts";
 import { makeRng } from "../../lib/rng.ts";
 import {
   type GapFit,
@@ -56,6 +56,7 @@ import {
 } from "../types.ts";
 import {
   axisLookaheadEndFrame,
+  detectWindow,
   tryCandidate,
   translateTrackLines,
   tryCandidateLines,
@@ -2370,7 +2371,7 @@ function evaluateNode(
   const outputDurationFrames = fullDuration
     ? durationFrames + 20
     : partialOutputDurationFrames(partialHorizonFrame, durationFrames);
-  const det = detect(extractRawTrajectory(node.search.prefixEngine, outputDurationFrames));
+  const det = detectWindow(node.search.prefixEngine, 0, outputDurationFrames);
   const rawReport = buildDriftReport(
     det, spec, gaps, allContactFrames, durationFrames, [], paddedFits(node, gaps.length),
   );

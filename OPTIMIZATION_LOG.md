@@ -5121,3 +5121,33 @@ known-good local baseline.
 This is the larger ABI reduction S185 pointed at: it removes the 93.8k per-compile
 RawFrame object transport for candidate evaluation without moving behavior-defining
 detector math into Rust. The `<3000` objective remains open.
+
+## Session 187 (2026-06-06 cont.) — reuse compact detector for report evaluation, KEEP (−1.66%)
+
+Post-S186 profile/counters showed the candidate ABI removed the large candidate
+raw-frame surface, but `evaluateNode` report detection still performed **22,576**
+`getRawFrameAtFrame` reads per `mini_burst@50k` compile (mostly the 101 full/partial
+report windows), plus full detector work that builds position/velocity/sled-contact
+arrays, kick/bounce/fly-through events, and a summary. `buildDriftReport` in the v0
+handoff path only consumes the subset already preserved by the compact/lightweight
+window detector: landing events, speed, airborne flags, contact line ids, and
+terminus.
+
+Candidate: replace `detect(extractRawTrajectory(prefixEngine, outputDurationFrames))`
+inside `evaluateNode` with `detectWindow(prefixEngine, 0, outputDurationFrames)`.
+This keeps the same landing/terminus/speed/air/contact-line logic and the same
+physics-frame accounting, while skipping unused full-detector allocations/work for
+report scoring. The old full detector remains in place for non-handoff callers.
+
+- **Correctness:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical (engine 5/5 +
+  optimizer 4/4; `sim_frames` unchanged).
+- **A/B:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100`: base mean
+  **5433.3 ns/frame**, candidate mean **5352.4 ns/frame**; Δ median/mean
+  **−1.66% / −1.48%**, 95% CI **[−1.80%, −1.11%]**, candidate won **92/100**
+  rounds, **P(candidate faster)=100.0%** → ✓ **KEEP**.
+- **Standing:** `LR_ENGINE=wasm npm run perf` after keep reported
+  **5,409.4 ns/physics-frame ±255.7** (single noisy absolute run; paired A/B is
+  the keep evidence).
+
+This closes the obvious remaining RawFrame-object transport in the hot v0 handoff
+compile path. The `<3000` objective remains open.

@@ -241,6 +241,10 @@ pub(crate) fn hash_int_pair(a: i64, b: i64) -> i64 {
     }
 }
 
+// Retained as the inverse of hash_int_pair for the round-trip property test; the hot
+// paths now carry cell coords directly (classic_cells emits them) so no production
+// code unhashes a stored cell any more.
+#[allow(dead_code)]
 pub(crate) fn unhash_int_pair(n: i64) -> (i64, i64) {
     let c = if n >= 0 { n * 2 } else { -(n + 1) * 2 + 1 };
     let x = (c as f64).sqrt() as i64;
@@ -261,9 +265,12 @@ pub(crate) fn cell_hash(px: f64, py: f64) -> i64 {
     hash_int_pair(cell_cor(px), cell_cor(py))
 }
 
-/// getCellsFromLine.js classicCells — the faithful float walk producing the cell
-/// hashes a line rasterizes into, in walk order. `(p1x,p1y)`→`(p1x+vecx,p1y+vecy)`.
-pub(crate) fn classic_cells(p1x: f64, p1y: f64, vecx: f64, vecy: f64) -> Vec<i64> {
+/// getCellsFromLine.js classicCells — the faithful float walk producing the integer
+/// cell coords a line rasterizes into, in walk order. `(p1x,p1y)`→`(p1x+vecx,p1y+vecy)`.
+/// Returns `(cx, cy)` pairs (not the Szudzik hash): every consumer immediately needs
+/// the coords to enumerate the line's inverse-3×3 neighborhood, and emitting them
+/// here avoids an `unhash_int_pair` (a sqrt) per stored cell downstream.
+pub(crate) fn classic_cells(p1x: f64, p1y: f64, vecx: f64, vecy: f64) -> Vec<(i64, i64)> {
     let p2x = p1x + vecx;
     let p2y = p1y + vecy;
     let cs_x = cell_cor(p1x);
@@ -275,7 +282,7 @@ pub(crate) fn classic_cells(p1x: f64, p1y: f64, vecx: f64, vecy: f64) -> Vec<i64
     let ce_x = cell_cor(p2x);
     let ce_y = cell_cor(p2y);
 
-    let mut cells = vec![hash_int_pair(cs_x, cs_y)];
+    let mut cells = vec![(cs_x, cs_y)];
     if (vecx == 0.0 && vecy == 0.0) || (cs_x == ce_x && cs_y == ce_y) {
         return cells;
     }
@@ -317,7 +324,7 @@ pub(crate) fn classic_cells(p1x: f64, p1y: f64, vecx: f64, vecy: f64) -> Vec<i64
         let nc_x = cell_cor(nposx);
         let nc_y = cell_cor(nposy);
         if nc_x >= box_left && nc_x <= box_right && nc_y >= box_top && nc_y <= box_bottom {
-            cells.push(hash_int_pair(nc_x, nc_y));
+            cells.push((nc_x, nc_y));
             cur_x = nc_x;
             cur_y = nc_y;
             cur_gx = nposx - GRID_SIZE * nc_x as f64;

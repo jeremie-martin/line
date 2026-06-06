@@ -4764,3 +4764,27 @@ strict-bit-identical wins this campaign now clear the 3σ cumulative bar; the
 reconcile bucket's per-fork allocation churn was the productive seam (clone + Vec
 reuse + lazy State resync), found by the "bundle independent sub-resolution
 reductions" method that the S175 single-probe rule would have discarded.
+
+## Session 178 (2026-06-06 cont.) — drop the reconcile-path `unhash_int_pair` sqrt: carry cell coords, not hashes ⭐ KEPT (−0.46%)
+
+Instrument-free structural win in the reconcile bucket. `classic_cells` rasterized a
+line into a `Vec<i64>` of **Szudzik cell hashes**, but all three consumers
+(`push_line`, `remove_line`, `index_of_collision_in_cell`) immediately **unhashed**
+each stored cell back to `(cx, cy)` coords to enumerate the inverse-3×3 neighborhood —
+and `unhash_int_pair` contains a **`sqrt`** (Szudzik unpairing). Since `classic_cells`
+already computes the integer coords (`nc_x, nc_y`) *before* hashing them, it now emits
+`(cx, cy)` directly; the line-cell's own hash was never used as a grid key (only its
+neighbors' hashes, computed from coords), so nothing downstream needs it.
+
+- Removed ~**2–3 unhash sqrts per add_line / remove_line** (one per stored line-cell
+  in each of push/remove/invalidate). `lines_cells` now stores `Vec<(i64,i64)>`;
+  `index_of_collision_in_cell` takes `(gx, gy)` and drops its unhash. `unhash_int_pair`
+  is retained `#[allow(dead_code)]` solely for the hash round-trip property test.
+- **Strictly bit-identical** — grid keys are still `hash_int_pair(cx±dx, cy±dy)` over
+  the identical coords; the change removes a hash→unhash round-trip the old code
+  *depended on*, so it is if anything more robust (no reliance on unhash inverting).
+- **Gates:** `cargo test` ✓ · `LR_ENGINE=wasm npm run verify` ✓ byte-identical ·
+  `verify:engine --diff` ✓ **max err 0** over 6,940 frames (all 5 fixtures).
+- **A/B (R=100):** Δ median **−0.46%** / mean −0.45%, 95% CI **[−0.74%, −0.21%]**,
+  candidate won **68/100** rounds (p=0.000), **P(faster)=100%** → ✓ **KEEP**.
+  **Standing after S178: ~5,774 ns/frame** (was ~5,803).

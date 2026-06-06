@@ -39,7 +39,7 @@ struct Cache {
     endur: [f64; NITER],
     cell_lines: FlatIntMap<Vec<GridLine>>, // ClassicGrid cellLinesMap (collision lookup)
     line_cache: LineCellCache,             // frame-local shortcut for repeated line-grid cells
-    lines_cells: IntMap<i32, Vec<i64>>,    // ClassicGrid lineCellsMap (id → cells, for remove)
+    lines_cells: IntMap<i32, Vec<(i64, i64)>>, // ClassicGrid lineCellsMap (id → cell coords, for remove)
     frames: Vec<State>,                    // frames[0] = initial; lazily extended
     events: Vec<Event>,                    // flat per-frame collision records
     event_offsets: Vec<usize>,             // frame f => events[offset[f]..offset[f+1]]
@@ -146,11 +146,12 @@ impl Cache {
         // &l), then move l into push_line and cells into lines_cells, avoiding the
         // line + cells-Vec clones the original eager registration required. The grid
         // registration order vs invalidation is immaterial (disjoint state).
-        for &cell in cells.iter() {
+        for &(cx, cy) in cells.iter() {
             if let Some(idx) = index_of_collision_in_cell(
                 &self.hist,
                 &self.hist_snaps,
-                cell,
+                cx,
+                cy,
                 &l,
             ) {
                 self.set_frames_length(idx as usize);

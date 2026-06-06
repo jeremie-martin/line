@@ -9,7 +9,7 @@
 //!   - `Frame.grid` (center cell → CellFrameList) + addToGrid + getIndexOfCollisionInCell
 //!   - `Frame.collisions` (line id → frames) + addToCollisions + getIndexOfCollisionWithLine
 
-use crate::grid::{hash_int_pair, unhash_int_pair, IntMap};
+use crate::grid::{hash_int_pair, IntMap};
 use crate::line::{collides_with, Line};
 
 /// snapshotEntity: pos + vel only (Frame.js:16 — the only fields the invalidation
@@ -201,10 +201,10 @@ fn index_of_collision_in_center_cell(
 pub(crate) fn index_of_collision_in_cell(
     grid: &HistGrid,
     snap_links: &[SnapNode],
-    cell: i64,
+    gx: i64,
+    gy: i64,
     l: &Line,
 ) -> Option<i32> {
-    let (gx, gy) = unhash_int_pair(cell);
     let mut best = i32::MAX;
     for dx in -1..=1 {
         for dy in -1..=1 {

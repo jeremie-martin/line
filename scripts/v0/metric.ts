@@ -19,7 +19,7 @@
  *    both configs), because pairing cancels common-mode seed luck (~10x noise
  *    collapse). The verdict is the score delta CI alone — accept iff ciLo>0.
  *  - Validity is NOT a gate: an invalid run already scores ~0, and the per-budget
- *    24-seed aggregation folds that into the score. Per-budget validity is reported
+ *    multi-seed aggregation folds that into the score. Per-budget validity is reported
  *    as a diagnostic only.
  *  - Weights are keyed by budget (not position), so the decision recomputes safely on
  *    a budget intersection (e.g. a probe tier subset), renormalizing automatically.

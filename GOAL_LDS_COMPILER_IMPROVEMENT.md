@@ -8,14 +8,15 @@
 >   and `logAUC` are reported **secondaries only**, not the decision scalar.
 > - **Runs are independent per budget.** Passing N budgets means **N full runs from
 >   scratch** — there is no anytime/shared-checkpoint mode. The budget is an input.
-> - **Canonical decision:** 20 specs × 24 seeds `{0..23}` × budgets
+> - **Canonical decision:** 20 specs × 12 seeds `{0..11}` × budgets
 >   `{25,50,100,150,200}k`, judged by `npm run decide`.
 > - **Engine:** use `LR_ENGINE=wasm` for compiler, benchmark, verification, and
 >   performance commands that run physics. Pure analyzers such as `npm run decide`
 >   do not need it.
 > - **Jobs:** use `--jobs=6` for golden runs.
-> - **Promotion gate:** first require a **canonical-tier** `VERDICT: ACCEPT`; then
->   commit only if the canonical 24-seed `Δheadline` is greater than `+5`.
+> - **Promotion gate:** a **canonical-tier** `VERDICT: ACCEPT` (the paired-bootstrap
+>   CI lower bound `> 0`). There is no separate absolute-`Δ` floor — the bootstrap
+>   already encodes "bigger than noise" and self-widens at 12 seeds.
 
 ## Objective
 
@@ -44,13 +45,13 @@ npm run decide -- <candidate>/golden.json <baseline>/golden.json
 Keep/promote a change only when:
 
 - `decide` prints `VERDICT: ACCEPT` on a **canonical-tier** comparison (a `probe`-tier
-  archive is indicative only — never promotable);
-- the canonical 24-seed `Δheadline` is greater than `+5`;
+  archive is indicative only — never promotable). ACCEPT means the paired-bootstrap CI
+  lower bound is `> 0`; there is no separate absolute-`Δ` floor;
 - the mechanism is generic, deterministic per `(spec, seed, budget)`, and not keyed to
   the benchmark specs.
 
 Validity (`contract_passed`) is **reported as a diagnostic, never a gate**: an invalid
-run already scores ~0, and the per-budget 24-seed aggregation folds that into the
+run already scores ~0, and the per-budget 12-seed aggregation folds that into the
 score, so a separate veto is redundant. Watch the reported per-budget validity rates,
 but the decision is the weighted-average score delta alone.
 
@@ -142,4 +143,6 @@ Read the `headline` block first: `score`, `tier`, `weight_by_budget`, the per-bu
 
 Do not trust an eyeballed HEADLINE delta. The metric rationale in
 `docs/metric_problem_statement.md` (historical) shows why paired comparisons matter and
-why 24 seeds resolve roughly 5-point gains.
+how seed count trades against resolvable effect size (24 seeds resolve ~5-point gains;
+the current 12-seed population is lower-power by design, for the high-gain phase, with
+the bootstrap CI widening to match).

@@ -56,10 +56,11 @@ Running log of friction points hit while working the arc-placement campaign
 
 ## Iteration loop economics
 
-- **A canonical run (20 specs × 24 seeds × 5 budgets {25,50,100,150,200}k, each an
+- **A canonical run (20 specs × 12 seeds × 5 budgets {25,50,100,150,200}k, each an
   independent run) takes tens of minutes** at `--jobs=6`; the slow tail is dominated by
-  a few long specs (`solo_run` last). The `decide` arbiter requires canonical runs,
-  but each candidate therefore costs ~1 h. Meanwhile the brief is explicit that the
+  a few long specs (`solo_run` last). The `decide` arbiter requires canonical runs;
+  the 12-seed population (down from 24, for the high-gain phase) roughly halves that
+  cost per candidate. Meanwhile the brief is explicit that the
   3-seed `GOLDEN_SEEDS_OVERRIDE` smoke is "not a decision basis." That leaves a wide
   gap between "cheap smoke (noisy, can't decide)" and "canonical (1 h/candidate)".
   A documented *middle* tier — e.g. a recommended 6-spec × 8-seed × coarse-budget

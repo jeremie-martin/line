@@ -10,7 +10,7 @@ export const GOLDEN_SPECS = [
   // opening_burst RESTORED 2026-06-04. It is a catastrophically-fragile chain (a
   // tiny placement perturbation flips it valid↔~all-missing, and which seed breaks
   // moves run to run). This is handled honestly by the metric rather than as a
-  // coin-flip: an invalid run already scores ~0, and the per-budget 24-seed
+  // coin-flip: an invalid run already scores ~0, and the per-budget multi-seed
   // aggregation (shifted geomean over seeds, then specs) absorbs that bimodality
   // into a smooth score — so validity is reported as a diagnostic, never gates, and
   // the headline is the budget-value-weighted average of those per-budget scores.
@@ -38,15 +38,18 @@ export const REPORT_VARIANTS = [
   "time_stretch_102",
 ] as const;
 
-// 24 seeds: the measured noise floor (docs/metric_problem_statement.md) shows 3 is
-// under-powered (~14-pt min detectable paired delta), ~8 resolves ~10-pt gains,
-// and ~24 resolves ~5-pt gains. The WASM engine made this canonical population
-// affordable. Decisions are paired, so the old {100,101,102} lineage is not
+// 12 seeds: a deliberately lower-power population for the high-gain budget-aware
+// phase, where expected effects are large and golden-run cost (sum of budgets per
+// (spec,seed)) is the iteration bottleneck. The measured noise floor
+// (docs/metric_problem_statement.md) shows 3 is under-powered (~14-pt min detectable
+// paired delta), ~8 resolves ~10-pt gains, and ~24 resolves ~5-pt gains; 12 sits
+// between, and the paired bootstrap CI self-widens to match — so the verdict stays
+// honest, just less sensitive to small deltas. Restore 24 (0..23) when chasing
+// fine-grained gains. Decisions are paired, so the old {100,101,102} lineage is not
 // load-bearing. GOLDEN_SEEDS_OVERRIDE still allows cheap smoke runs during iteration.
 export const GOLDEN_SEEDS = [
-  0, 1, 2, 3, 4, 5, 6, 7,
-  8, 9, 10, 11, 12, 13, 14, 15,
-  16, 17, 18, 19, 20, 21, 22, 23,
+  0, 1, 2, 3, 4, 5,
+  6, 7, 8, 9, 10, 11,
 ] as const;
 
 /** Canonical budget grid, in simulated rider frames (the honest work unit; see

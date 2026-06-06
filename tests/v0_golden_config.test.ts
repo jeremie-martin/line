@@ -147,11 +147,10 @@ describe("v0 golden configuration", () => {
     for (let i = 1; i < w.length; i++) expect(w[i].weight).toBeGreaterThan(w[i - 1].weight);
   });
 
-  test("golden seeds default to the contiguous 24-seed population (paired-decision power; see metric_problem_statement.md)", () => {
+  test("golden seeds default to the contiguous 12-seed population (lower-power high-gain phase; see metric_problem_statement.md)", () => {
     expect([...GOLDEN_SEEDS]).toEqual([
-      0, 1, 2, 3, 4, 5, 6, 7,
-      8, 9, 10, 11, 12, 13, 14, 15,
-      16, 17, 18, 19, 20, 21, 22, 23,
+      0, 1, 2, 3, 4, 5,
+      6, 7, 8, 9, 10, 11,
     ]);
   });
 

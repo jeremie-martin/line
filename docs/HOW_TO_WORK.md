@@ -28,7 +28,7 @@ budgets runs N compiles per (spec, seed). Two tiers, cheap → authoritative:
      --jobs=6
    ```
 
-2. **canonical** — 20 specs × 24 seeds × budgets `{25,50,100,150,200}k`; the **only
+2. **canonical** — 20 specs × 12 seeds × budgets `{25,50,100,150,200}k`; the **only
    promotable basis**:
 
    ```bash
@@ -74,10 +74,11 @@ The baseline of record is the **generated** [`docs/handoff-compiler.html`](hando
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
 - Evaluator fingerprint: **`9b9776df145f`** (`scripts/v0/golden_suite.ts`).
-- Current committed compiler: `compileHandoff`. Latest 24-seed canonical baseline
-  (budgets `{25,50,100,150,200}k`, weighted-average HEADLINE): **HEADLINE ≈ 534.2**
-  (ceiling ≈ 588.1, logAUC ≈ 408.2), validity 480/480 at 200k. Refresh the generated
-  HTML from a fresh 24-seed rebaseline before quoting live numbers.
+- Current committed compiler: `compileHandoff`. Canonical baseline is the 12-seed
+  population (budgets `{25,50,100,150,200}k`, weighted-average HEADLINE): **HEADLINE ≈
+  536.0**, validity 240/240 at 200k. (For reference the prior 24-seed baseline read
+  HEADLINE ≈ 534.2.) Always refresh the generated HTML and the quoted number from a
+  fresh 12-seed rebaseline before relying on live figures.
 
 ## Active campaigns
 

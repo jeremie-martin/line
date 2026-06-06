@@ -43,7 +43,7 @@ npx tsx scripts/stress.ts
 npm run parity
 
 # v0 handoff compiler golden benchmark (metric, run tiers, decide: docs/HOW_TO_WORK.md)
-LR_ENGINE=wasm npm run golden -- --jobs=6   # canonical 24-seed run, the promotable basis
+LR_ENGINE=wasm npm run golden -- --jobs=6   # canonical 12-seed run, the promotable basis
 
 # decide whether a candidate beats a baseline (paired-bootstrap verdict)
 npm run decide -- CANDIDATE/golden.json BASELINE/golden.json

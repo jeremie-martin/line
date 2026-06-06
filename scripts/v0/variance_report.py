@@ -17,7 +17,7 @@ decision methodology rests on:
 Produce the inputs with e.g.:
   LR_ENGINE=wasm npx tsx scripts/v0/golden.ts --budgets=25000,50000,100000,150000,200000 \\
     --jobs=6 --archive-dir=generated/golden-runs/_base
-  (the canonical population is the 24 contiguous seeds 0..23)
+  (the canonical population is the 12 contiguous seeds 0..11)
 
 Usage:
   python3 scripts/v0/variance_report.py BASE.json [CANDIDATE.json] [--budget=150000]
@@ -29,8 +29,8 @@ import random
 import statistics as st
 from math import sqrt
 
-POP_SEEDS = list(range(24))  # the canonical contiguous population (seeds 0..23)
-TRIPLES = {"low(0-2)": [0, 1, 2], "high(21-23)": [21, 22, 23]}
+POP_SEEDS = list(range(12))  # the canonical contiguous population (seeds 0..11)
+TRIPLES = {"low(0-2)": [0, 1, 2], "high(9-11)": [9, 10, 11]}
 SUBSAMPLE_CAP = 1500
 random.seed(0)
 

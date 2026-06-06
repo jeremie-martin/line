@@ -1562,18 +1562,19 @@ function runDecide(args: string[]): void {
       (promotable ? "" : "  (INDICATIVE — non-promotable; canonical run required to promote)"),
   );
 
-  // A genuine but sub-resolution gain (positive Δ, CI lower bound just below 0) lands
+  // A genuine but sub-resolution gain (positive Δ, not yet significant at α=0.05) lands
   // as INCONCLUSIVE, indistinguishable at the verdict level from a true null. Estimate
-  // how many more seeds would push the lower bound above zero: the half-width toward
-  // zero is (Δ - ciLo) and shrinks ~1/√n, so n_need ≈ n_now·((Δ-ciLo)/Δ)². Output-only.
+  // how many more seeds would reach significance: the gap toward zero is (Δ - ciLo) and
+  // shrinks ~1/√n, so n_need ≈ n_now·((Δ-ciLo)/Δ)² (conservative — uses the 95% CI
+  // bound, slightly tighter than the α=0.05 one-sided bar). Output-only.
   if (d.verdict === "inconclusive" && d.delta > 0) {
     const nNow = commonSeeds.length;
     const nNeed = Math.ceil(nNow * ((d.delta - d.ciLo) / d.delta) ** 2);
     const extra = Math.max(1, nNeed - nNow);
     console.log(
-      `  hint: Δ positive (+${d.delta.toFixed(1)}, P(Δ>0)=${((1 - d.pLeZero) * 100).toFixed(0)}%) but under-powered — ` +
-        `~${extra} more seed${extra === 1 ? "" : "s"} (~${nNow + extra} total) would likely resolve it. ` +
-        `Approximate; CI width scales ~1/√seeds.`,
+      `  hint: Δ positive (+${d.delta.toFixed(1)}, P(Δ>0)=${((1 - d.pLeZero) * 100).toFixed(0)}%) but not yet ` +
+        `significant at α=0.05 — ~${extra} more seed${extra === 1 ? "" : "s"} (~${nNow + extra} total) would ` +
+        `likely resolve it. Approximate; CI width scales ~1/√seeds.`,
     );
   }
 }

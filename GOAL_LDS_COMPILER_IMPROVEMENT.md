@@ -14,9 +14,9 @@
 >   performance commands that run physics. Pure analyzers such as `npm run decide`
 >   do not need it.
 > - **Jobs:** use `--jobs=6` for golden runs.
-> - **Promotion gate:** a **canonical-tier** `VERDICT: ACCEPT` (the paired-bootstrap
->   CI lower bound `> 0`). There is no separate absolute-`Δ` floor — the bootstrap
->   already encodes "bigger than noise" and self-widens at 12 seeds.
+> - **Promotion gate:** a **canonical-tier** `VERDICT: ACCEPT` — a standard one-sided
+>   significance test at α=0.05 on the paired bootstrap (`P(Δ≤0) < 0.05`). There is no
+>   separate absolute-`Δ` floor — significance is the bar, and it self-widens at 12 seeds.
 
 ## Objective
 
@@ -45,8 +45,9 @@ npm run decide -- <candidate>/golden.json <baseline>/golden.json
 Keep/promote a change only when:
 
 - `decide` prints `VERDICT: ACCEPT` on a **canonical-tier** comparison (a `probe`-tier
-  archive is indicative only — never promotable). ACCEPT means the paired-bootstrap CI
-  lower bound is `> 0`; there is no separate absolute-`Δ` floor;
+  archive is indicative only — never promotable). ACCEPT is a standard one-sided
+  significance test at α=0.05 on the paired bootstrap (`P(Δ≤0) < 0.05`); there is no
+  separate absolute-`Δ` floor;
 - the mechanism is generic, deterministic per `(spec, seed, budget)`, and not keyed to
   the benchmark specs.
 

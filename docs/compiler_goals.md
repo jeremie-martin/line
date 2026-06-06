@@ -47,7 +47,8 @@ and may evolve independently of the per-run scorer.)
   `--jobs=6` unless you deliberately need a different worker count.
 - To decide a change is a real improvement, run
   `npm run decide -- <candidate>/golden.json <baseline>/golden.json` — a paired
-  cluster-bootstrap VERDICT (accept iff the headline-Δ CI lower bound > 0), with
+  cluster-bootstrap VERDICT (accept iff the headline-Δ is significant one-sided at
+  α=0.05, i.e. `P(Δ≤0) < 0.05`), with
   per-budget deltas reported. Validity is reported per budget but does not gate. Raw
   score deltas are not an acceptance rule; promotion thresholds live in active campaign docs.
 

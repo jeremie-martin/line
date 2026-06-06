@@ -53,7 +53,9 @@ budgets runs N compiles per (spec, seed). Two tiers, cheap → authoritative:
 npm run decide -- <candidate>/golden.json <baseline>/golden.json
 ```
 
-Paired cluster-bootstrap VERDICT: **accept** iff the headline-Δ 95% CI lower bound > 0.
+Paired cluster-bootstrap VERDICT: **accept** iff the headline-Δ is significant at the
+standard one-sided α=0.05 (`P(Δ≤0) < 0.05`); **reject** iff `P(Δ≥0) < 0.05`; else
+inconclusive. (The 95% CI is reported for context but does not define the verdict.)
 The HEADLINE is the budget-value-weighted average of the per-budget suite scores;
 validity is **reported per budget but never gates** (an invalid run already scores ~0).
 `decide` recomputes both sides on the shared budgets, so a `probe`-tier or

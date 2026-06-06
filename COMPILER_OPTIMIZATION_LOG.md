@@ -170,3 +170,53 @@
 - Decide result: `VERDICT: ACCEPT`; baseline `353.1` -> candidate `364.4`; `Δheadline = +11.3`, 95% CI `[-0.2, 38.0]`, `P(Δ<=0)=3.4%`.
 - Notable regressions/improvements: Per-budget deltas were `25k=+0.2`, `50k=+1.4`, `100k=+5.9`, `150k=+14.9`, `200k=+15.1`. Validity improved from `233/240 -> 237/240` at 200k and `225/240 -> 227/240` at 50k. Largest 200k validity flips were `drums_pendulum` seed 7, `drums_dropout` seed 6, and `drums_crosscut` seeds 0 and 9 becoming pass. Main regressions included `drums_dropout` seeds 3 and 4 quality drops at high budgets and `verse_chorus` seed 0 regressing at 50k, but these did not overcome the accepted paired headline gain.
 - Status: Kept and committed as the new baseline for the next mechanism.
+
+## arc-startup-rescue-breadth-16
+
+- Baseline used: `arc-startup-rescue-15` at commit `59197f9`.
+- Hypothesis: The remaining 200k failures were still early-contact skips after the accepted startup rescue. Increasing the same smooth startup rescue boost might find the next viable first-contact basin while preserving the successful late-gap behavior.
+- Code changes made: Increased `HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND` from `48` to `96` and `HANDOFF_RESCUE_STARTUP_EXTRA_POOL` from `4` to `8`. Reverted after decision.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-startup-rescue-breadth-16`
+- Decide result: `VERDICT: REJECT`; baseline `364.4` -> candidate `362.3`; `Δheadline = -2.1`, 95% CI `[-5.9, 0.6]`, `P(Δ<=0)=91.6%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.6`, `50k=-16.2`, `100k=-0.5`, `150k=-0.9`, `200k=-0.6`. The broader rescue gained a few extra 25k passes but damaged the 50k transition, including large regressions on `rhythm_ladder` seed 10 and `syncopated_switchback` seed 1; it did not fix the remaining `opening_burst` seed 10 or `drums_crosscut` seeds 7 and 10 failures at 200k.
+- Status: Reverted; not committed.
+
+## arc-start-lookahead-breadth-17
+
+- Baseline used: `arc-startup-rescue-15` at commit `59197f9`.
+- Hypothesis: Remaining early-contact failures might come from start-basin ordering where a useful first-contact continuation is hidden behind only the first few scored first-contact branches. Scoring five first-contact branches during start feasibility, without changing main search candidate generation, might pick more robust starts.
+- Code changes made: Increased `START_FIRST_OPTIONS` from `3` to `5`. Reverted after decision.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-start-lookahead-breadth-17`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `364.4` -> candidate `363.3`; `Δheadline = -1.1`, 95% CI `[-6.3, 3.2]`, `P(Δ<=0)=68.0%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=-1.6`, `50k=-13.7`, `100k=+1.6`, `150k=-0.1`, `200k=+0.1`. It did not change the three remaining 200k failures and cost too much low-budget validity (`25k 33% -> 29%`, `50k 95% -> 94%`) to promote.
+- Status: Reverted; not committed.
+
+## arc-speed-quality-stream-18
+
+- Baseline used: `arc-startup-rescue-15` at commit `59197f9`.
+- Hypothesis: With most contract failures fixed, high-weight score is limited by speed-axis overshoot on otherwise valid rows. A single quality-phase brake-mode stream on overspeed gaps should provide speed-bleeding alternatives without changing the pre-validity contract race.
+- Code changes made: Added one `speed` axis-quality stream using `mode: "brake"` and attempt offset `3000`, gated to gaps where the rider was above the authored speed target. Reverted after decision because the accepted delta was below the promotion threshold.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-speed-quality-stream-18`
+- Decide result: `VERDICT: ACCEPT`; baseline `364.4` -> candidate `364.7`; `Δheadline = +0.3`, 95% CI `[-0.4, 1.2]`, `P(Δ<=0)=16.4%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.4`, `100k=+0.8`, `150k=+0.4`, `200k=+0.1`, with validity unchanged. The stream is directionally positive but far below the required `+5` canonical delta.
+- Status: Reverted; not committed.
+
+## arc-startup-landing-jitter-19
+
+- Baseline used: `arc-startup-rescue-15` at commit `59197f9`.
+- Hypothesis: Remaining early-contact misses had high normal-sample preclear and landing failures. Adding a small smooth startup-only contact-point jitter for normal samples, gated by target pace and high-air pressure, might widen the first-contact landing basin without extra sample cost.
+- Code changes made: Added `startupPlacementPressure(gap.startFrame) * targetPace * highAir` into normal-mode contact jitter with a `0.65` scale. Reverted after decision.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-startup-landing-jitter-19`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `364.4` -> candidate `358.1`; `Δheadline = -6.3`, 95% CI `[-40.4, 14.7]`, `P(Δ<=0)=63.9%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.4`, `50k=-13.8`, `100k=+1.6`, `150k=-7.9`, `200k=-7.9`. It perturbed normal geometry too broadly, creating new high-budget failures including `drums_pendulum` seed 7 and `drums_crosscut` seed 0, and reducing 200k validity from `237/240` to `236/240`.
+- Status: Reverted; not committed.
+
+## arc-smooth-farback-quality-20
+
+- Baseline used: `arc-startup-rescue-15` at commit `59197f9`.
+- Hypothesis: Additional budget was not converting in moderate-quality passing rows because far-back repair shut off above `axis_quality=0.28`; using a smooth interval through moderate quality should keep deterministic repair pressure alive without changing candidate geometry or contract search.
+- Code changes made: Replaced hard `0.24/0.28` far-back pulse thresholds with a smooth interval from 96 frames/selections at `axis_quality=0.36` down to 16 at `axis_quality=0.18`; left suffix repair cutoff at `0.24`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-smooth-farback-quality-20`
+- Decide result: `VERDICT: ACCEPT`; baseline `364.4` -> candidate `372.8`; `Δheadline = +8.4`, 95% CI `[3.5, 14.3]`, `P(Δ<=0)=0.0%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.4`, `100k=+4.0`, `150k=+10.2`, `200k=+12.2`; validity was unchanged at every budget. Largest 200k gains were `drums_crescendo` seed 3, `drums_swell` seed 0, `drums_dropout` seeds 3 and 2, and `drums_zigzag` seed 1. Main 200k regressions were `drums_pendulum` seeds 6, 1, and 5 plus `opening_burst` seed 2, but the canonical paired result cleared the promotion bar.
+- Status: Kept and committed as the new baseline.

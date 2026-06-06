@@ -386,16 +386,16 @@ const FAR_BACK_FRONTIER_LAG = 3;
  *  pulse. This is budget-agnostic repair scheduling: it still walks one fixed
  *  node sequence, but does not let poor early choices monopolize the quality
  *  phase. */
-const QUALITY_FAR_BACK_FRONTIER_INTERVAL = 16;
-const QUALITY_FAR_BACK_MAX_AXIS_QUALITY = 0.24;
-const MODERATE_QUALITY_FAR_BACK_FRONTIER_INTERVAL = 64;
-const MODERATE_QUALITY_FAR_BACK_MAX_AXIS_QUALITY = 0.28;
+const QUALITY_FAR_BACK_MIN_INTERVAL = 16;
+const QUALITY_FAR_BACK_MAX_INTERVAL = 96;
+const QUALITY_FAR_BACK_FULL_AXIS_QUALITY = 0.18;
+const QUALITY_FAR_BACK_ZERO_AXIS_QUALITY = 0.36;
 /** For weak rows with almost no terminal feedback, occasionally run a
  *  bounded two-wide suffix completion from a clean prefix before ordinary DFS
  *  reaches the tail window. This is deliberately scarce and only uses existing
  *  candidate ranking; the register still decides whether the full output helps. */
 const QUALITY_SUFFIX_REPAIR_INTERVAL = 32;
-const QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY = QUALITY_FAR_BACK_MAX_AXIS_QUALITY;
+const QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY = 0.24;
 const QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS = 4;
 const QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS = 4;
 const QUALITY_SUFFIX_REPAIR_MAX_NODES = 128;
@@ -1011,13 +1011,18 @@ function popNextFrontierNode(
 
 function farBackFrontierPulseInterval(key: LeafKey | null): number | null {
   if (key?.contract_passed !== true) return null;
-  if (key.axis_quality < QUALITY_FAR_BACK_MAX_AXIS_QUALITY) {
-    return QUALITY_FAR_BACK_FRONTIER_INTERVAL;
-  }
-  if (key.axis_quality < MODERATE_QUALITY_FAR_BACK_MAX_AXIS_QUALITY) {
-    return MODERATE_QUALITY_FAR_BACK_FRONTIER_INTERVAL;
-  }
-  return null;
+  const width = QUALITY_FAR_BACK_ZERO_AXIS_QUALITY - QUALITY_FAR_BACK_FULL_AXIS_QUALITY;
+  const weakness = width <= 0
+    ? 0
+    : clamp01((QUALITY_FAR_BACK_ZERO_AXIS_QUALITY - key.axis_quality) / width);
+  if (weakness <= 0) return null;
+  return Math.max(
+    1,
+    Math.round(
+      QUALITY_FAR_BACK_MAX_INTERVAL -
+        (QUALITY_FAR_BACK_MAX_INTERVAL - QUALITY_FAR_BACK_MIN_INTERVAL) * weakness,
+    ),
+  );
 }
 
 function oldestLaggedFrontierIndex(frontier: HandoffNode[], deepestSeenGap: number): number {
@@ -2377,6 +2382,10 @@ function uniqueRounded(xs: number[]): number[] {
 
 function round3(x: number): number {
   return Math.round(x * 1000) / 1000;
+}
+
+function clamp01(x: number): number {
+  return Math.max(0, Math.min(1, x));
 }
 
 function startKey(start: NonNullable<Spec["start"]>): string {

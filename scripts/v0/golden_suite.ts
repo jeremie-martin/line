@@ -84,10 +84,10 @@ export function budgetWeights(
 export const CANONICAL_BUDGET_WEIGHTS = budgetWeights(DEFAULT_BUDGETS);
 
 /**
- * Lightweight grid for the exploratory oracle/probe scripts (portfolio_oracle,
- * prefix_branch_oracle, prefix_branch_scheduler_probe). Those are cheap exploration
- * tools, NOT the canonical decision, so they use their own dense low-budget grid
- * (distinct from the canonical `DEFAULT_BUDGETS`) to keep a no-arg run fast.
+ * Lightweight grid for the exploratory oracle/probe scripts (portfolio_oracle).
+ * Those are cheap exploration tools, NOT the canonical decision, so they use
+ * their own dense low-budget grid (distinct from the canonical `DEFAULT_BUDGETS`)
+ * to keep a no-arg run fast.
  */
 export const EXPLORATORY_BUDGETS = [
   35_000,

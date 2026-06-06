@@ -111,3 +111,15 @@ Running log of friction points hit while working the arc-placement campaign
     top of `GOAL_LDS_ARC_PLACEMENT.md` (metric, decision rule, the three run tiers,
     baseline reuse, jobs, the `--details` axis gotcha) that flags the subsections below
     as historical/partly-retracted.
+
+## suite_probe.ts single-process OOM ceiling (2026-06-06)
+A single-process probe that runs many compiles (e.g. 20 specs × 3 seeds × 5
+budgets = 300 compiles, including 150k/200k) silently drops later high-budget
+rows: the run exits 0 but the 150k/200k suite lines never print. Almost
+certainly the WASM-engine memory ceiling after 100+ in-process compiles (the
+golden harness sidesteps this with one worker process per job). Keep ad-hoc
+in-process probes SMALL (few specs/seeds, or split budgets across invocations),
+or shell out per (spec,seed,budget). Single-seed sweeps were fine; 3-seed×5-budget
+was not. Also: single-seed suite numbers are NOT representative — warmup=1 looked
+like a +160 win at 50k seed-0 but was a regression across 3 seeds. Always
+multi-seed before forming a hypothesis.

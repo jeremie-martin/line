@@ -109,7 +109,6 @@ type CompileStats = {
   handoff_skips?: number;
   handoff_skip_branches?: number;
   handoff_deferred_skips?: number;
-  handoff_search_lane?: number;
   handoff_selected_candidate_rank_count?: number;
   handoff_selected_candidate_rank_mean?: number;
   handoff_selected_candidate_rank_max?: number;
@@ -120,18 +119,6 @@ type CompileStats = {
   handoff_selected_candidate_reuse_count?: number;
   handoff_selected_candidate_brake_count?: number;
   handoff_selected_candidate_axis_quality_count?: number;
-  handoff_prefix_branch_forks?: number;
-  handoff_prefix_branch_evaluations?: number;
-  handoff_prefix_branch_full_evaluations?: number;
-  handoff_prefix_branch_improvements?: number;
-  handoff_prefix_branch_prunes?: number;
-  handoff_prefix_branch_duplicate_key_skips?: number;
-  handoff_prefix_branch_forks_by_remaining_contacts?: HandoffContactCountCounter;
-  handoff_prefix_branch_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
-  handoff_prefix_branch_full_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
-  handoff_prefix_branch_improvements_by_remaining_contacts?: HandoffContactCountCounter;
-  handoff_prefix_branch_prunes_by_remaining_contacts?: HandoffContactCountCounter;
-  handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts?: HandoffContactCountCounter;
   arc_placement?: ArcPlacementStats;
 };
 
@@ -194,7 +181,6 @@ const STREAM_YIELD_STATS = [
   ["suffix", "handoff_suffix_repair_successes", "handoff_suffix_repair_attempts"],
   ["suffix_best", "handoff_suffix_repair_improvements", "handoff_suffix_repair_successes"],
   ["rescue", "handoff_rescue_successes", "handoff_rescue_attempts"],
-  ["branch", "handoff_prefix_branch_improvements", "handoff_prefix_branch_evaluations"],
 ] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats, keyof CompileStats]>;
 
 function fmtBudget(budget: number): string {
@@ -258,18 +244,11 @@ function fmtStats(stats: CompileStats | undefined): string {
     `starts=${stats.handoff_start_ranks_with_fits ?? "?"}/${stats.handoff_start_ranks_seen ?? "?"}`,
     `start=${fmtStart(stats)}`,
     `startRank=${stats.handoff_start_rank ?? "?"}`,
-    `lane=${stats.handoff_search_lane ?? "?"}`,
     `rank=${stats.handoff_selected_candidate_nonzero_ranks ?? "?"}/` +
       `${stats.handoff_selected_candidate_rank_count ?? "?"}@` +
       `${stats.handoff_selected_candidate_rank_mean ?? "?"}/` +
       `${stats.handoff_selected_candidate_rank_max ?? "?"}`,
     `src=${formatSelectedCandidateSources(stats)}`,
-    `branch=${stats.handoff_prefix_branch_improvements ?? "?"}/` +
-      `${stats.handoff_prefix_branch_evaluations ?? "?"}` +
-      `(${stats.handoff_prefix_branch_full_evaluations ?? "?"}f,` +
-      `${stats.handoff_prefix_branch_forks ?? "?"}forks,` +
-      `${stats.handoff_prefix_branch_prunes ?? "?"}prunes,` +
-      `${stats.handoff_prefix_branch_duplicate_key_skips ?? "?"}keySkips)`,
     `full=${stats.handoff_full_evaluations ?? "?"}`,
     `ufull=${formatUniqueFullEvaluations(stats)}`,
     `partial=${stats.handoff_partial_evaluations ?? "?"}`,
@@ -565,7 +544,6 @@ function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
   const budgets = data.budgets ?? data.budget_scores?.map((summary) => summary.budget) ?? [];
   if (rows.length === 0 || budgets.length === 0) return;
   const lastBudget = budgets[budgets.length - 1];
-  const byLane = new Map<string, CandidateRankSummary>();
   const all: CandidateRankSummary = {
     rows: 0,
     contacts: 0,
@@ -588,34 +566,12 @@ function printCandidateRankDiagnostics(data: GoldenCurveJson): void {
     const nonzero = stats?.handoff_selected_candidate_nonzero_ranks ?? 0;
     const maxRank = stats?.handoff_selected_candidate_rank_max ?? 0;
     accumulateRankSummary(all, stats, count, nonzero, meanRank, maxRank);
-
-    const lane = `lane ${stats?.handoff_search_lane ?? "?"}`;
-    let summary = byLane.get(lane);
-    if (summary === undefined) {
-      summary = {
-        rows: 0,
-        contacts: 0,
-        nonzero: 0,
-        weightedRankSum: 0,
-        maxRank: 0,
-        pool: 0,
-        reuse: 0,
-        brake: 0,
-        axisq: 0,
-        axisqByAxis: {},
-      };
-      byLane.set(lane, summary);
-    }
-    accumulateRankSummary(summary, stats, count, nonzero, meanRank, maxRank);
   }
   if (all.rows === 0) return;
 
   console.log("");
   console.log(`selected candidate ranks at ${fmtBudget(lastBudget)}:`);
   printCandidateRankSummary("all", all);
-  for (const [lane, summary] of [...byLane.entries()].sort(([a], [b]) => a.localeCompare(b))) {
-    printCandidateRankSummary(lane, summary);
-  }
 }
 
 function accumulateRankSummary(
@@ -730,7 +686,6 @@ function printTerminalFeedbackDiagnostics(data: GoldenCurveJson): void {
     );
   }
   printTailDepthRows(checkpoints);
-  printBranchDepthRows(checkpoints);
 }
 
 function printPhaseFeedbackRows(
@@ -786,62 +741,6 @@ function printTailDepthRows(checkpoints: CheckpointRow[]): void {
         `${String(successCount).padStart(4)}/` +
         `${String(attemptCount).padEnd(4)} ` +
         `best/success=${fmtRate(improvementCount, successCount).padStart(6)}`,
-    );
-  }
-}
-
-function printBranchDepthRows(checkpoints: CheckpointRow[]): void {
-  const forks = sumContactCountCounter(
-    checkpoints,
-    "handoff_prefix_branch_forks_by_remaining_contacts",
-  );
-  const evaluations = sumContactCountCounter(
-    checkpoints,
-    "handoff_prefix_branch_evaluations_by_remaining_contacts",
-  );
-  const full = sumContactCountCounter(
-    checkpoints,
-    "handoff_prefix_branch_full_evaluations_by_remaining_contacts",
-  );
-  const improvements = sumContactCountCounter(
-    checkpoints,
-    "handoff_prefix_branch_improvements_by_remaining_contacts",
-  );
-  const prunes = sumContactCountCounter(
-    checkpoints,
-    "handoff_prefix_branch_prunes_by_remaining_contacts",
-  );
-  const duplicateKeySkips = sumContactCountCounter(
-    checkpoints,
-    "handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts",
-  );
-  const depths = sortedContactCounts(
-    forks,
-    evaluations,
-    full,
-    improvements,
-    prunes,
-    duplicateKeySkips,
-  );
-  if (depths.length === 0) return;
-
-  console.log("  branch depth yield:");
-  for (const depth of depths) {
-    const forkCount = forks[depth] ?? 0;
-    const evaluationCount = evaluations[depth] ?? 0;
-    const fullCount = full[depth] ?? 0;
-    const improvementCount = improvements[depth] ?? 0;
-    const pruneCount = prunes[depth] ?? 0;
-    const keySkipCount = duplicateKeySkips[depth] ?? 0;
-    console.log(
-      `    rem=${String(depth).padStart(2)} ` +
-        `fork=${String(forkCount).padStart(4)} ` +
-        `eval=${String(evaluationCount).padStart(5)} ` +
-        `full=${String(fullCount).padStart(5)} ` +
-        `best=${String(improvementCount).padStart(4)} ` +
-        `prune=${String(pruneCount).padStart(4)} ` +
-        `keySkip=${String(keySkipCount).padStart(4)} ` +
-        `best/full=${fmtRate(improvementCount, fullCount).padStart(6)}`,
     );
   }
 }
@@ -1159,13 +1058,7 @@ function sumContactCountCounter(
   key:
     | "handoff_tail_completion_attempts_by_remaining_contacts"
     | "handoff_tail_completion_successes_by_remaining_contacts"
-    | "handoff_tail_completion_improvements_by_remaining_contacts"
-    | "handoff_prefix_branch_forks_by_remaining_contacts"
-    | "handoff_prefix_branch_evaluations_by_remaining_contacts"
-    | "handoff_prefix_branch_full_evaluations_by_remaining_contacts"
-    | "handoff_prefix_branch_improvements_by_remaining_contacts"
-    | "handoff_prefix_branch_prunes_by_remaining_contacts"
-    | "handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts",
+    | "handoff_tail_completion_improvements_by_remaining_contacts",
 ): Record<number, number> {
   const sums: Record<number, number> = {};
   for (const checkpoint of checkpoints) {

@@ -119,10 +119,6 @@ export type HandoffNode = {
   startRank: number;
   /** Candidate-sampling seed for this prefix's downstream search lane. */
   searchSeed: number;
-  /** Diagnostic lane id; lane 0 is the baseline deterministic handoff run. */
-  searchLane: number;
-  /** Stable id for one alternate-lane prefix subtree. Undefined on baseline lane. */
-  prefixBranchKey?: string;
   startExpanded: boolean;
   deferExpansion: boolean;
   /** Per-gap selected candidate trace. `rank=-1` means a skipped
@@ -216,34 +212,8 @@ type HandoffTelemetry = {
   rescueSuccesses: number;
   skips: number;
   deferredSkips: number;
-  prefixBranchForks: number;
-  prefixBranchEvaluations: number;
-  prefixBranchFullEvaluations: number;
-  prefixBranchImprovements: number;
-  prefixBranchPrunes: number;
-  prefixBranchDuplicateKeySkips: number;
-  prefixBranchForksByRemainingContacts: Record<number, number>;
-  prefixBranchEvaluationsByRemainingContacts: Record<number, number>;
-  prefixBranchFullEvaluationsByRemainingContacts: Record<number, number>;
-  prefixBranchImprovementsByRemainingContacts: Record<number, number>;
-  prefixBranchPrunesByRemainingContacts: Record<number, number>;
-  prefixBranchDuplicateKeySkipsByRemainingContacts: Record<number, number>;
   startRanksSeen: Set<number>;
   startRanksWithFits: Set<number>;
-};
-
-type PrefixBranchController = {
-  enabled: boolean;
-  baseSearchSeed: number;
-  forkedKeys: Set<string>;
-  work: Map<string, PrefixBranchWork>;
-};
-
-type PrefixBranchWork = {
-  remainingContacts: number;
-  evaluations: number;
-  fullEvaluations: number;
-  improvements: number;
 };
 
 type HandoffFrontierStats = Pick<
@@ -427,25 +397,6 @@ const QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS = 4;
 const QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS = 4;
 const QUALITY_SUFFIX_REPAIR_MAX_NODES = 128;
 const QUALITY_SUFFIX_REPAIR_BRANCHING = 2;
-const PREFIX_BRANCH_MIN_AXIS_QUALITY = 0.24;
-/** Prefix branching is an escape hatch for weak-to-good incumbents, not a polish
- *  mechanism for rows that are already very strong. Above this quality, spend
- *  the remaining deterministic sequence on the baseline/frontier instead. */
-const PREFIX_BRANCH_MAX_AXIS_QUALITY = 0.5;
-/** Conservative production version of the prefix-branch probe: once a passing
- *  incumbent exists, occasionally clone a clean baseline-lane prefix into one
- *  alternate downstream sample lane. The clone is ordinary frontier work and
- *  the existing register remains the only selector, so this preserves
- *  determinism per (spec, seed, budget). */
-const PREFIX_BRANCH_LANE = 1;
-const PREFIX_BRANCH_FRONTIER_INTERVAL = 4;
-const PREFIX_BRANCH_MIN_PREFIX_CONTACTS = 4;
-const PREFIX_BRANCH_MIN_REMAINING_CONTACTS = 4;
-/** A spawned alternate-lane subtree must convert into the register quickly
- *  enough to justify continuing it. This cap is per branch key, not global:
- *  pruning one non-converting suffix does not stop later baseline prefixes from
- *  forking their own deterministic lane. */
-const PREFIX_BRANCH_STALLED_FULL_EVAL_CAP = 24;
 
 export function compileHandoff(
   userSpec: Spec,
@@ -557,8 +508,6 @@ function compileHandoffInternal(
         startState: startOptions[0].state,
         startRank: startOptions[0].rank,
         searchSeed,
-        searchLane: 0,
-        prefixBranchKey: undefined,
         startExpanded: startOptions.length <= 1,
         deferExpansion: false,
         rankTrace: [],
@@ -608,18 +557,6 @@ function compileHandoffInternal(
       rescueSuccesses: 0,
       skips: 0,
       deferredSkips: 0,
-      prefixBranchForks: 0,
-      prefixBranchEvaluations: 0,
-      prefixBranchFullEvaluations: 0,
-      prefixBranchImprovements: 0,
-      prefixBranchPrunes: 0,
-      prefixBranchDuplicateKeySkips: 0,
-      prefixBranchForksByRemainingContacts: {},
-      prefixBranchEvaluationsByRemainingContacts: {},
-      prefixBranchFullEvaluationsByRemainingContacts: {},
-      prefixBranchImprovementsByRemainingContacts: {},
-      prefixBranchPrunesByRemainingContacts: {},
-      prefixBranchDuplicateKeySkipsByRemainingContacts: {},
       startRanksSeen: new Set<number>(),
       startRanksWithFits: new Set<number>(),
     };
@@ -630,10 +567,6 @@ function compileHandoffInternal(
     const evaluationCache = new WeakMap<SearchNode, NodeEvaluation>();
     const consideredSearchNodes = new WeakSet<SearchNode>();
     let captured: CompileCheckpoint | null = null;
-    const prefixBranches = createPrefixBranchController(
-      initialSnapshot === null && (opts.searchSeed === undefined || opts.searchSeed === seed),
-      searchSeed,
-    );
 
     const evaluateCached = (node: HandoffNode): NodeEvaluation => {
       const cached = evaluationCache.get(node.search);
@@ -672,14 +605,6 @@ function compileHandoffInternal(
         evaluation.key,
       );
       recordImprovementTelemetry(telemetry, phase, improved);
-      recordPrefixBranchEvaluation(
-        node,
-        gaps,
-        prefixBranches,
-        telemetry,
-        evaluation.fullDuration,
-        improved,
-      );
       const event: HandoffNodeEvent = {
         phase,
         simFrames: getSimFrames(),
@@ -767,25 +692,6 @@ function compileHandoffInternal(
           handoff_deferred_skips: telemetry.deferredSkips,
           handoff_far_back_pulses: telemetry.farBackPulses,
           handoff_search_seed: best.stats.handoff_search_seed ?? searchSeed,
-          handoff_search_lane: best.stats.handoff_search_lane ?? 0,
-          handoff_prefix_branch_forks: telemetry.prefixBranchForks,
-          handoff_prefix_branch_evaluations: telemetry.prefixBranchEvaluations,
-          handoff_prefix_branch_full_evaluations: telemetry.prefixBranchFullEvaluations,
-          handoff_prefix_branch_improvements: telemetry.prefixBranchImprovements,
-          handoff_prefix_branch_prunes: telemetry.prefixBranchPrunes,
-          handoff_prefix_branch_duplicate_key_skips: telemetry.prefixBranchDuplicateKeySkips,
-          handoff_prefix_branch_forks_by_remaining_contacts:
-            snapshotContactCountCounter(telemetry.prefixBranchForksByRemainingContacts),
-          handoff_prefix_branch_evaluations_by_remaining_contacts:
-            snapshotContactCountCounter(telemetry.prefixBranchEvaluationsByRemainingContacts),
-          handoff_prefix_branch_full_evaluations_by_remaining_contacts:
-            snapshotContactCountCounter(telemetry.prefixBranchFullEvaluationsByRemainingContacts),
-          handoff_prefix_branch_improvements_by_remaining_contacts:
-            snapshotContactCountCounter(telemetry.prefixBranchImprovementsByRemainingContacts),
-          handoff_prefix_branch_prunes_by_remaining_contacts:
-            snapshotContactCountCounter(telemetry.prefixBranchPrunesByRemainingContacts),
-          handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts:
-            snapshotContactCountCounter(telemetry.prefixBranchDuplicateKeySkipsByRemainingContacts),
           ...(arcStats ? { arc_placement: arcStats } : {}),
         },
       };
@@ -809,19 +715,8 @@ function compileHandoffInternal(
         farBackFrontierPulseInterval(bestKey),
       );
       telemetry.frontierSelections++;
-      if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {
-        captureReachedBudget();
-        if (captured !== null) break;
-        continue;
-      }
 
       consider(node, "main");
-
-      if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {
-        captureReachedBudget();
-        if (captured !== null) break;
-        continue;
-      }
 
       const tailNode = completeNearTail(
         node,
@@ -857,12 +752,6 @@ function compileHandoffInternal(
         if (result?.event.improved) telemetry.suffixRepairImprovements++;
       }
 
-      if (maybePruneStalledPrefixBranch(node, prefixBranches, telemetry)) {
-        captureReachedBudget();
-        if (captured !== null) break;
-        continue;
-      }
-
       captureReachedBudget();
       if (captured !== null) break;
 
@@ -896,8 +785,6 @@ function compileHandoffInternal(
             startState: node.startState,
             startRank: node.startRank,
             searchSeed: node.searchSeed,
-            searchLane: node.searchLane,
-            prefixBranchKey: node.prefixBranchKey,
             startExpanded: node.startExpanded,
             deferExpansion: node.deferExpansion,
             rankTrace: node.rankTrace,
@@ -922,14 +809,6 @@ function compileHandoffInternal(
             evaluation.key,
           );
           recordImprovementTelemetry(telemetry, "polish", improved);
-          recordPrefixBranchEvaluation(
-            polishNode,
-            gaps,
-            prefixBranches,
-            telemetry,
-            evaluation.fullDuration,
-            improved,
-          );
           const event: HandoffNodeEvent = {
             phase: "polish",
             simFrames: getSimFrames(),
@@ -946,13 +825,6 @@ function compileHandoffInternal(
 
       if (isTerminalNode(node.search, gaps)) continue;
 
-      const branchNode = maybeForkPrefixBranch(
-        node,
-        gaps,
-        prefixBranches,
-        telemetry,
-        register.getBestKey(),
-      );
       const children = expandNode(
         node,
         gaps,
@@ -967,7 +839,6 @@ function compileHandoffInternal(
       for (let i = children.length - 1; i >= 0; i--) {
         enqueueChild(children[i], passStack, fallbackStack);
       }
-      if (branchNode !== null) enqueueChild(branchNode, passStack, fallbackStack);
       telemetry.frontierMaxSize = Math.max(
         telemetry.frontierMaxSize,
         frontierSize(passStack, fallbackStack),
@@ -1002,11 +873,7 @@ function cloneSnapshotRoot(
   searchSeed: number,
 ): HandoffNode {
   validateHandoffSnapshot(snapshot, gapCount);
-  return cloneHandoffNodeForBranch(snapshot.node, {
-    searchSeed,
-    searchLane: 0,
-    prefixBranchKey: null,
-  });
+  return cloneHandoffNodeForBranch(snapshot.node, { searchSeed });
 }
 
 function validateHandoffSnapshot(snapshot: HandoffNodeSnapshot, gapCount: number): void {
@@ -1030,9 +897,7 @@ function validateHandoffSnapshot(snapshot: HandoffNodeSnapshot, gapCount: number
 
 function cloneHandoffNodeForBranch(
   node: HandoffNode,
-  overrides: Partial<Pick<HandoffNode, "searchSeed" | "searchLane">> & {
-    prefixBranchKey?: string | null;
-  } = {},
+  overrides: Partial<Pick<HandoffNode, "searchSeed">> = {},
 ): HandoffNode {
   const startState = cloneResolvedStart(node.startState);
   const prefixFits = node.search.prefixFits.map((fit) =>
@@ -1056,10 +921,6 @@ function cloneHandoffNodeForBranch(
     startState,
     startRank: node.startRank,
     searchSeed: overrides.searchSeed ?? node.searchSeed,
-    searchLane: overrides.searchLane ?? node.searchLane,
-    prefixBranchKey: overrides.prefixBranchKey === null
-      ? undefined
-      : overrides.prefixBranchKey ?? node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: node.deferExpansion,
     rankTrace: cloneRankTrace(node.rankTrace),
@@ -1154,145 +1015,6 @@ function farBackFrontierPulseInterval(key: LeafKey | null): number | null {
     return MODERATE_QUALITY_FAR_BACK_FRONTIER_INTERVAL;
   }
   return null;
-}
-
-function createPrefixBranchController(
-  enabled: boolean,
-  baseSearchSeed: number,
-): PrefixBranchController {
-  return {
-    enabled,
-    baseSearchSeed,
-    forkedKeys: new Set<string>(),
-    work: new Map<string, PrefixBranchWork>(),
-  };
-}
-
-function maybeForkPrefixBranch(
-  node: HandoffNode,
-  gaps: Gap[],
-  prefixBranches: PrefixBranchController,
-  telemetry: HandoffTelemetry,
-  bestKey: LeafKey | null,
-): HandoffNode | null {
-  if (!prefixBranches.enabled) return null;
-  if (bestKey?.contract_passed !== true) return null;
-  if (bestKey.axis_quality < PREFIX_BRANCH_MIN_AXIS_QUALITY) return null;
-  if (bestKey.axis_quality >= PREFIX_BRANCH_MAX_AXIS_QUALITY) return null;
-  if (node.searchLane !== 0) return null;
-  if (node.skippedContacts !== 0) return null;
-  if (!node.startExpanded || node.deferExpansion) return null;
-  if (isTerminalNode(node.search, gaps)) return null;
-  if (telemetry.frontierSelections % PREFIX_BRANCH_FRONTIER_INTERVAL !== 0) return null;
-  if (committedContactCount(node.search) < PREFIX_BRANCH_MIN_PREFIX_CONTACTS) return null;
-  const remainingContacts = remainingContactCount(node.search, gaps);
-  if (remainingContacts < PREFIX_BRANCH_MIN_REMAINING_CONTACTS) return null;
-
-  const key = `${node.startRank}:${node.search.gapIndex}`;
-  if (prefixBranches.forkedKeys.has(key)) {
-    telemetry.prefixBranchDuplicateKeySkips++;
-    incrementContactCountCounter(
-      telemetry.prefixBranchDuplicateKeySkipsByRemainingContacts,
-      remainingContacts,
-    );
-    return null;
-  }
-  prefixBranches.forkedKeys.add(key);
-  prefixBranches.work.set(key, {
-    remainingContacts,
-    evaluations: 0,
-    fullEvaluations: 0,
-    improvements: 0,
-  });
-  telemetry.prefixBranchForks++;
-  incrementContactCountCounter(telemetry.prefixBranchForksByRemainingContacts, remainingContacts);
-  return cloneHandoffNodeForBranch(node, {
-    searchSeed: searchSeedForLane(prefixBranches.baseSearchSeed, PREFIX_BRANCH_LANE),
-    searchLane: PREFIX_BRANCH_LANE,
-    prefixBranchKey: key,
-  });
-}
-
-function recordPrefixBranchEvaluation(
-  node: HandoffNode,
-  gaps: Gap[],
-  prefixBranches: PrefixBranchController,
-  telemetry: HandoffTelemetry,
-  fullDuration: boolean,
-  improved: boolean,
-): void {
-  if (node.searchLane === 0) return;
-  telemetry.prefixBranchEvaluations++;
-  if (fullDuration) telemetry.prefixBranchFullEvaluations++;
-  if (improved) telemetry.prefixBranchImprovements++;
-
-  const key = node.prefixBranchKey;
-  if (key === undefined) return;
-  let work = prefixBranches.work.get(key);
-  if (work === undefined) {
-    const remainingContacts = remainingContactCountForBranchKey(key, gaps);
-    if (remainingContacts === null) return;
-    work = { remainingContacts, evaluations: 0, fullEvaluations: 0, improvements: 0 };
-    prefixBranches.work.set(key, work);
-  }
-  work.evaluations++;
-  incrementContactCountCounter(
-    telemetry.prefixBranchEvaluationsByRemainingContacts,
-    work.remainingContacts,
-  );
-  if (fullDuration) {
-    work.fullEvaluations++;
-    incrementContactCountCounter(
-      telemetry.prefixBranchFullEvaluationsByRemainingContacts,
-      work.remainingContacts,
-    );
-  }
-  if (improved) {
-    work.improvements++;
-    incrementContactCountCounter(
-      telemetry.prefixBranchImprovementsByRemainingContacts,
-      work.remainingContacts,
-    );
-  }
-}
-
-function maybePruneStalledPrefixBranch(
-  node: HandoffNode,
-  prefixBranches: PrefixBranchController,
-  telemetry: HandoffTelemetry,
-): boolean {
-  if (node.searchLane === 0) return false;
-  const key = node.prefixBranchKey;
-  if (key === undefined) return false;
-  const work = prefixBranches.work.get(key);
-  const shouldPrune = work !== undefined &&
-    work.improvements === 0 &&
-    work.fullEvaluations >= PREFIX_BRANCH_STALLED_FULL_EVAL_CAP;
-  if (shouldPrune) {
-    telemetry.prefixBranchPrunes++;
-    incrementContactCountCounter(
-      telemetry.prefixBranchPrunesByRemainingContacts,
-      work.remainingContacts,
-    );
-  }
-  return shouldPrune;
-}
-
-function searchSeedForLane(baseSearchSeed: number, lane: number): number {
-  if (lane === 0) return baseSearchSeed;
-  return (
-    Math.imul(baseSearchSeed | 0, 0x45d9f3b) ^
-    Math.imul(lane | 0, 0x119de1f3) ^
-    0x6a09e667
-  ) | 0;
-}
-
-function remainingContactCountForBranchKey(key: string, gaps: Gap[]): number | null {
-  const rawGapIndex = key.split(":")[1];
-  if (rawGapIndex === undefined) return null;
-  const gapIndex = Number(rawGapIndex);
-  if (!Number.isSafeInteger(gapIndex) || gapIndex < 0 || gapIndex > gaps.length) return null;
-  return remainingContactCountFromGapIndex(gapIndex, gaps);
 }
 
 function oldestLaggedFrontierIndex(frontier: HandoffNode[], deepestSeenGap: number): number {
@@ -1492,8 +1214,6 @@ function expandNode(
       startState: option.state,
       startRank: option.rank,
       searchSeed: node.searchSeed,
-      searchLane: node.searchLane,
-      prefixBranchKey: node.prefixBranchKey,
       startExpanded: true,
       deferExpansion: startOptions.length > 1,
       rankTrace: [],
@@ -1507,8 +1227,6 @@ function expandNode(
       startState: node.startState,
       startRank: node.startRank,
       searchSeed: node.searchSeed,
-      searchLane: node.searchLane,
-      prefixBranchKey: node.prefixBranchKey,
       startExpanded: node.startExpanded,
       deferExpansion: false,
       rankTrace: appendSkipTrace(node.rankTrace),
@@ -1566,8 +1284,6 @@ function expandNode(
       startState: node.startState,
       startRank: node.startRank,
       searchSeed: node.searchSeed,
-      searchLane: node.searchLane,
-      prefixBranchKey: node.prefixBranchKey,
       startExpanded: node.startExpanded,
       deferExpansion: true,
       rankTrace: appendSkipTrace(node.rankTrace),
@@ -1580,8 +1296,6 @@ function expandNode(
     startState: node.startState,
     startRank: node.startRank,
     searchSeed: node.searchSeed,
-    searchLane: node.searchLane,
-    prefixBranchKey: node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: false,
     rankTrace: appendOptionTrace(node.rankTrace, option),
@@ -2004,8 +1718,6 @@ function completeNearTail(
     startState: node.startState,
     startRank: node.startRank,
     searchSeed: node.searchSeed,
-    searchLane: node.searchLane,
-    prefixBranchKey: node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: false,
     rankTrace: completed.rankTrace,
@@ -2042,8 +1754,6 @@ function completeWeakPrefixWithBoundedSuffix(
     startState: node.startState,
     startRank: node.startRank,
     searchSeed: node.searchSeed,
-    searchLane: node.searchLane,
-    prefixBranchKey: node.prefixBranchKey,
     startExpanded: node.startExpanded,
     deferExpansion: false,
     rankTrace: completed.result.rankTrace,
@@ -2245,7 +1955,6 @@ function shouldAttemptSuffixRepair(
   if (uniqueFullEvaluations(telemetry) >= QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS) return false;
   if (telemetry.suffixRepairAttempts >= QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS) return false;
   if (telemetry.frontierSelections % QUALITY_SUFFIX_REPAIR_INTERVAL !== 0) return false;
-  if (node.searchLane !== 0) return false;
   if (!node.startExpanded || node.deferExpansion) return false;
   if (node.skippedContacts !== 0 || isTerminalNode(node.search, gaps)) return false;
   if (!node.search.prefixFits.some((fit) => fit !== null)) return false;
@@ -2266,10 +1975,6 @@ function remainingContactCountFromGapIndex(gapIndex: number, gaps: Gap[]): numbe
     if (gaps[i].endsWithContact) contacts++;
   }
   return contacts;
-}
-
-function committedContactCount(node: SearchNode): number {
-  return node.prefixFits.filter((fit) => fit !== null).length;
 }
 
 function scoreCandidateForHandoff(
@@ -2756,7 +2461,6 @@ function buildNodeOutput(
       handoff_start_speed: round3(startSpeed),
       handoff_start_angle_deg: round3(startAngleDeg),
       handoff_search_seed: node.searchSeed,
-      handoff_search_lane: node.searchLane,
       handoff_selected_candidate_rank_count: candidateRankCount,
       handoff_selected_candidate_rank_mean: candidateRankCount === 0
         ? 0

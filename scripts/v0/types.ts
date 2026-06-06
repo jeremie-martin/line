@@ -277,9 +277,6 @@ export type CompileStats = {
    *  equals the public compile seed; diagnostics may vary it while keeping the
    *  public seed's target jitter fixed. */
   handoff_search_seed?: number;
-  /** Search-lane id for the returned best prefix. Lane 0 is the baseline handoff
-   *  sequence; higher lanes are deterministic downstream resampling branches. */
-  handoff_search_lane?: number;
   /** Source-rank summary for contact candidates used by the returned best
    *  prefix. Non-contact gaps and skipped contacts are excluded. These are the
    *  candidate source ranks recorded by handoff's ranked option stream, not
@@ -299,33 +296,6 @@ export type CompileStats = {
   handoff_selected_candidate_reuse_count?: number;
   handoff_selected_candidate_brake_count?: number;
   handoff_selected_candidate_axis_quality_count?: number;
-  /** Clean prefixes cloned into alternate downstream search lanes during this
-   *  compile. These are ordinary frontier nodes and are scored by the same
-   *  best-so-far register as baseline prefixes. */
-  handoff_prefix_branch_forks?: number;
-  /** Alternate-lane outputs actually offered to the best-so-far register, how
-   *  many of them were full-duration outputs, and how many strictly improved
-   *  the register. Forks alone only show branch volume; these counters show
-   *  whether branch work converted into accepted downstream basins. */
-  handoff_prefix_branch_evaluations?: number;
-  handoff_prefix_branch_full_evaluations?: number;
-  handoff_prefix_branch_improvements?: number;
-  /** Alternate-lane branch subtrees pruned after producing full-duration
-   *  evaluations without any register improvement. */
-  handoff_prefix_branch_prunes?: number;
-  /** Clean baseline prefixes that reached the branch fork gates but were not
-   *  cloned because another prefix with the same branch key had already forked.
-   *  This measures the current branch-key granularity before changing it. */
-  handoff_prefix_branch_duplicate_key_skips?: number;
-  /** Prefix-branch work split by how many required contacts remained at the
-   *  source prefix. This is diagnostic-only depth attribution for scheduler
-   *  probes; it does not affect branch policy or scoring. */
-  handoff_prefix_branch_forks_by_remaining_contacts?: HandoffContactCountCounter;
-  handoff_prefix_branch_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
-  handoff_prefix_branch_full_evaluations_by_remaining_contacts?: HandoffContactCountCounter;
-  handoff_prefix_branch_improvements_by_remaining_contacts?: HandoffContactCountCounter;
-  handoff_prefix_branch_prunes_by_remaining_contacts?: HandoffContactCountCounter;
-  handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts?: HandoffContactCountCounter;
   /** Prefix reports scored through the best-so-far register. Nonterminal
    *  prefixes are intentionally partial reports over their committed horizon;
    *  terminal prefixes use the full spec duration. */

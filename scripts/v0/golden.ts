@@ -926,7 +926,6 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_skip_branches: stats.handoff_skip_branches,
     handoff_deferred_skips: stats.handoff_deferred_skips,
     handoff_search_seed: stats.handoff_search_seed,
-    handoff_search_lane: stats.handoff_search_lane,
     handoff_selected_candidate_rank_count: stats.handoff_selected_candidate_rank_count,
     handoff_selected_candidate_rank_mean: stats.handoff_selected_candidate_rank_mean,
     handoff_selected_candidate_rank_max: stats.handoff_selected_candidate_rank_max,
@@ -938,24 +937,6 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_selected_candidate_brake_count: stats.handoff_selected_candidate_brake_count,
     handoff_selected_candidate_axis_quality_count:
       stats.handoff_selected_candidate_axis_quality_count,
-    handoff_prefix_branch_forks: stats.handoff_prefix_branch_forks,
-    handoff_prefix_branch_evaluations: stats.handoff_prefix_branch_evaluations,
-    handoff_prefix_branch_full_evaluations: stats.handoff_prefix_branch_full_evaluations,
-    handoff_prefix_branch_improvements: stats.handoff_prefix_branch_improvements,
-    handoff_prefix_branch_prunes: stats.handoff_prefix_branch_prunes,
-    handoff_prefix_branch_duplicate_key_skips: stats.handoff_prefix_branch_duplicate_key_skips,
-    handoff_prefix_branch_forks_by_remaining_contacts:
-      stats.handoff_prefix_branch_forks_by_remaining_contacts,
-    handoff_prefix_branch_evaluations_by_remaining_contacts:
-      stats.handoff_prefix_branch_evaluations_by_remaining_contacts,
-    handoff_prefix_branch_full_evaluations_by_remaining_contacts:
-      stats.handoff_prefix_branch_full_evaluations_by_remaining_contacts,
-    handoff_prefix_branch_improvements_by_remaining_contacts:
-      stats.handoff_prefix_branch_improvements_by_remaining_contacts,
-    handoff_prefix_branch_prunes_by_remaining_contacts:
-      stats.handoff_prefix_branch_prunes_by_remaining_contacts,
-    handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts:
-      stats.handoff_prefix_branch_duplicate_key_skips_by_remaining_contacts,
     arc_placement: stats.arc_placement,
   };
 }

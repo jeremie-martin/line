@@ -4891,3 +4891,16 @@ gate answer to S172's multi-session-open question: the coarse-occupancy index is
 net-negative, not merely marginal.** Reverted all 4 files; standing unchanged at
 ~5,800 ns/frame (4 confirmed wins this campaign, −2.23%). The structural-restructure
 lever under strict byte-identity is exhausted alongside the micro surface.
+
+**S179 addendum — why no filter variant rescues this lever (do not re-attempt).** The
+regression was *uniform* (+2.76%, 97/100 base wins), not a near-wash. If the skipped
+work were costly, even a heavy filter would show partial benefit; it didn't, because
+the all-miss scan it targets is **already near-free** — `index_of_collision_in_center_cell`
+early-outs on a single `grid.get(&cell)?` probe to an empty hashbrown slot. So the
+*benefit ceiling is intrinsically low*, independent of filter cost. A cheaper filter
+(flat counting array, counting Bloom) would shrink the maintenance/check overhead but
+cannot raise the near-zero savings above it — best case a wash, and it still adds the
+per-call check + transition maintenance. Conclusion: the all-miss invalidation-skip is
+a dead lever at the data-structure level, not just the hashmap level. The 88% "wasted"
+absent probes are cheap waste; eliminating cheap waste pays nothing. This closes the
+S172 lever permanently under strict byte-identity.

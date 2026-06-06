@@ -104,13 +104,15 @@ fn center_group(dx: i64, dy: i64) -> u8 {
 #[inline]
 fn insert_grid_line(bucket: &mut Vec<GridLine>, group: u8, l: &Line) {
     let id = l.id;
-    if bucket.iter().any(|e| e.group == group && e.line.id == id) {
-        return;
+    let mut pos = bucket.len();
+    for (idx, e) in bucket.iter().enumerate() {
+        if e.group == group && e.line.id == id {
+            return;
+        }
+        if pos == bucket.len() && (e.group > group || (e.group == group && e.line.id < id)) {
+            pos = idx;
+        }
     }
-    let pos = bucket
-        .iter()
-        .position(|e| e.group > group || (e.group == group && e.line.id < id))
-        .unwrap_or(bucket.len());
     bucket.insert(
         pos,
         GridLine {

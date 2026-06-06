@@ -190,14 +190,16 @@ type EngineLineCacheEntry = {
 // the last converted geometry on the object without constructing a string key on
 // every cache hit. If polish mutates any geometry field, the snapshot misses and
 // is refreshed.
-export const engineLineCache = new WeakMap<TrackLine, EngineLineCacheEntry>();
+const ENGINE_LINE_CACHE = Symbol("engineLineCache");
+type CachedTrackLine = TrackLine & { [ENGINE_LINE_CACHE]?: EngineLineCacheEntry };
 
 // deno-lint-ignore no-explicit-any
 export function engineLineFromTrackLine(line: TrackLine): any {
   const flipped = !!line.flipped;
   const leftExtended = !!line.leftExtended;
   const rightExtended = !!line.rightExtended;
-  const cached = engineLineCache.get(line);
+  const cachedLine = line as CachedTrackLine;
+  const cached = cachedLine[ENGINE_LINE_CACHE];
   if (
     cached !== undefined &&
     cached.id === line.id &&
@@ -214,7 +216,7 @@ export function engineLineFromTrackLine(line: TrackLine): any {
   }
 
   const converted = createLineFromJson(line);
-  engineLineCache.set(line, {
+  cachedLine[ENGINE_LINE_CACHE] = {
     id: line.id,
     type: line.type,
     x1: line.x1,
@@ -225,7 +227,7 @@ export function engineLineFromTrackLine(line: TrackLine): any {
     leftExtended,
     rightExtended,
     converted,
-  });
+  };
   return converted;
 }
 

@@ -283,15 +283,12 @@ pub(crate) fn step_state<const TRACK: bool>(
             resolve_iter_constraints(s, rest, endur);
         }
         for &i in COLLIDABLES.iter() {
-            let (mut pxi, mut pyi, mut prevxi, mut prevyi, vxi, vyi, fric) = unsafe {
+            let (mut pxi, mut pyi, vxi, vyi) = unsafe {
                 (
                     *s.px.get_unchecked(i),
                     *s.py.get_unchecked(i),
-                    *s.prevx.get_unchecked(i),
-                    *s.prevy.get_unchecked(i),
                     *s.vx.get_unchecked(i),
                     *s.vy.get_unchecked(i),
-                    *FRIC.get_unchecked(i),
                 )
             };
             let center_cell = cell_hash(pxi, pyi);
@@ -311,6 +308,13 @@ pub(crate) fn step_state<const TRACK: bool>(
                 );
             }
             if let Some(lns) = line_cache.lookup(grid, center_cell) {
+                let (mut prevxi, mut prevyi, fric) = unsafe {
+                    (
+                        *s.prevx.get_unchecked(i),
+                        *s.prevy.get_unchecked(i),
+                        *FRIC.get_unchecked(i),
+                    )
+                };
                 for entry in lns.iter() {
                     let l = &entry.line;
                     let ox = pxi - l.p1x;

@@ -197,6 +197,7 @@ export function sampleArcPlacementGeometry(
     kind: "lines",
     lines: sampleTargetStateLines(
       drawPlacementRolls(rng), targetState, targets, gap, lineIdStart, allContactFrames, attempt,
+      mode,
     ),
   };
 }
@@ -211,9 +212,9 @@ export function sampleArcParams(
   targetState: ImpactFrameTargetState,
   attempt: number,
   gap: Gap,
-  _mode: CandidateSampleMode = "normal",
+  mode: CandidateSampleMode = "normal",
 ): Arc {
-  return sampleTargetStateArc(drawPlacementRolls(rng), targetState, targets, gap, attempt);
+  return sampleTargetStateArc(drawPlacementRolls(rng), targetState, targets, gap, attempt, mode);
 }
 
 export function sampleArcParamsRngDraws(
@@ -245,9 +246,10 @@ function sampleTargetStateLines(
   lineIdStart: number,
   allContactFrames: readonly number[],
   attempt: number,
+  mode: CandidateSampleMode,
 ): TrackLine[] {
   const rolls = guidedRolls(rawRolls, attempt, targetState, targets, gap, allContactFrames);
-  const controls = targetStateControls(targetState, targets, gap, allContactFrames, rolls);
+  const controls = targetStateControls(targetState, targets, gap, allContactFrames, rolls, mode);
   const contactAngleRad = (controls.contactAngleDeg * Math.PI) / 180;
   const tangentX = Math.cos(contactAngleRad);
   const tangentY = Math.sin(contactAngleRad);
@@ -285,9 +287,10 @@ function sampleTargetStateArc(
   targets: AxisValues,
   gap: Gap,
   attempt: number,
+  mode: CandidateSampleMode,
 ): Arc {
   const rolls = guidedRolls(rawRolls, attempt, targetState, targets, gap, []);
-  const controls = targetStateControls(targetState, targets, gap, [], rolls);
+  const controls = targetStateControls(targetState, targets, gap, [], rolls, mode);
   const length = clamp(controls.preLength + controls.postLength, 45, 180);
   const segments = clampInt(Math.round(length / controls.segmentLength), 3, 12);
   const curveBias = clamp((rolls.postAngle - 0.5) * 0.8, -0.6, 0.6);
@@ -316,6 +319,7 @@ function targetStateControls(
   gap: Gap,
   allContactFrames: readonly number[],
   rolls: PlacementRolls,
+  mode: CandidateSampleMode,
 ): {
   segmentLength: number;
   contactAngleDeg: number;
@@ -345,11 +349,22 @@ function targetStateControls(
     1,
   );
   const overspeed = clamp(-speedError, 0, 1);
+  const brakeModePressure = mode === "brake" && targets.speed !== undefined
+    ? smoothstep(overspeed)
+    : 0;
   const deadline = clamp((18 - gapFrames) / 12, 0, 1);
   const dense = nextGapFrames === null ? 0 : clamp((18 - nextGapFrames) / 14, 0, 1);
   const denseFastAir = highAir * dense * targetPace;
-  const preclearPressure = clamp(0.35 * deadline + denseFastAir, 0, 1);
-  const speedControlPressure = clamp(overspeed + 0.55 * denseFastAir, 0, 1);
+  const preclearPressure = clamp(
+    0.35 * deadline + denseFastAir + 0.32 * overspeed + 0.18 * brakeModePressure,
+    0,
+    1,
+  );
+  const speedControlPressure = clamp(
+    overspeed + 0.55 * denseFastAir + 0.38 * brakeModePressure,
+    0,
+    1,
+  );
 
   const segmentLength = targets.grain === undefined
     ? 12 + rolls.segmentLength * 28
@@ -363,6 +378,7 @@ function targetStateControls(
       + 10 * highAir
       + 4 * dense
       - 10 * preclearPressure
+      - 5 * brakeModePressure
       + (rolls.contactAngle - 0.5) * 14,
     -22,
     74,
@@ -372,6 +388,7 @@ function targetStateControls(
       - 5
       - 8 * deadline
       + 3 * lowAir
+      - 6 * brakeModePressure
       + (rolls.preAngle - 0.5) * 10,
     -28,
     78,
@@ -383,6 +400,7 @@ function targetStateControls(
       + 20 * highAir
       - 8 * dense
       - 18 * speedControlPressure
+      - 12 * brakeModePressure
       + (rolls.postAngle - 0.5) * 14,
     -26,
     78,
@@ -392,14 +410,16 @@ function targetStateControls(
     (6 + rolls.preLength * 32) *
       (1 - 0.45 * deadline) *
       (1 + 0.25 * lowAir) *
-      (1 - 0.88 * preclearPressure),
+      (1 - 0.88 * preclearPressure) *
+      (1 - 0.24 * brakeModePressure),
     0,
     50,
   );
   const sampledPost =
     (28 + rolls.postLength * 140) *
     (1 + 0.20 * lowAir + 0.12 * highAir) *
-    (1 - 0.34 * speedControlPressure);
+    (1 - 0.34 * speedControlPressure) *
+    (1 - 0.18 * brakeModePressure);
   const targetGroundFrames = nextGapFrames === null
     ? 6 + 18 * lowAir
     : clamp((1 - air) * nextGapFrames, 2, nextGapFrames * (0.72 - 0.22 * dense));
@@ -410,13 +430,14 @@ function targetStateControls(
       Math.max(1, targetState.speed) *
         nextGapFrames *
         (0.34 + 0.26 * lowAir - 0.08 * dense) *
-        (1 - 0.30 * speedControlPressure),
+        (1 - 0.30 * speedControlPressure) *
+        (1 - 0.18 * brakeModePressure),
       14,
       260,
     );
   const postFloor = Math.min(
     safePostCap,
-    lerp(18, 9, clamp(denseFastAir + overspeed, 0, 1)),
+    lerp(18, 8, clamp(denseFastAir + overspeed + 0.6 * brakeModePressure, 0, 1)),
   );
   const postLength = clamp(
     lerp(sampledPost, Math.min(targetPost, safePostCap), 0.72),
@@ -701,6 +722,11 @@ function clampInt(x: number, lo: number, hi: number): number {
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
+}
+
+function smoothstep(t: number): number {
+  const x = clamp(t, 0, 1);
+  return x * x * (3 - 2 * x);
 }
 
 function fract(x: number): number {

@@ -4583,11 +4583,18 @@ the sqrt + apply when `len_sq ≥ r*r`.
 - **A/B (R=100):** Δ median **−0.49%** / mean −0.43%, 95% CI **[−0.65%, −0.19%]**,
   candidate won **79/100** rounds (p=0.000), **P(faster)=100%** → ✓ KEEP.
 
-Caveat (honest): this is a *comparison-semantics* change — proven byte-identical on
-the full gate (6,940 frames + 4 optimizer cases), not algebraically proven for all
-possible inputs. A pathological track whose repel `len_sq` lands in the ULP band
-around `rest²` could differ; the gate is our arbiter and it is clean. If stricter
-assurance is wanted later, add a repel-stressing fixture or a `rest²` rounding proof.
+Equivalence — **proven for the actual rest, not just fixture-clean.** A standalone
+exhaustive check on the real repel `rest = 0.5·√135.25` shows the original's
+apply-region ends 2 ULPs *below* where the gate skips:
+`L = sup{len_sq : √len_sq < rest} = 33.81249999999999` < `R2 = rest² = 33.81250000000001`.
+The dangerous region `[R2, L]` (gate skips yet original would apply) is therefore
+**empty — no f64 `len_sq` can make `len_sq < rest²` disagree with `length < rest`**.
+Confirmed by a 4,000,005-value exhaustive scan of the f64 boundary window (0
+disagreements) and a 5,000,000 boundary-biased full-function fuzz (0 mismatches);
+also 0 of 200,000 *random* rests even have a non-empty band. So the
+comparison-semantics worry does not apply to this constant. (The caveat narrows to:
+a *different* repel rest could in principle have a non-empty band — re-run the
+`R2 > L` check if the rider topology / length-factor ever changes.)
 
 **Standing after Session 173:** **~5,884 ns/physics-frame** (was ~5,950), bit-identical
 to the gate baselines. First win banked under the statistical gate — and the first

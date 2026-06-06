@@ -230,3 +230,23 @@
 - Decide result: `VERDICT: ACCEPT`; baseline `372.8` -> candidate `390.5`; `Δheadline = +17.8`, 95% CI `[10.1, 26.9]`, `P(Δ<=0)=0.0%`.
 - Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.7`, `100k=+11.6`, `150k=+20.4`, `200k=+25.4`; validity was unchanged at every budget. Largest 200k gains were `mini_burst` seed 6, `verse_chorus` seed 2, `mini_burst` seed 9, `verse_chorus` seed 8, and `drums_breath` seed 3. Main 200k regressions were `drums_crescendo` seed 3, `drums_pendulum` seed 8, `mini_burst` seed 4, and `drums_crescendo` seeds 8 and 4. The remaining 200k failures stayed `opening_burst` seed 10 and `drums_crosscut` seeds 7 and 10.
 - Status: Kept and committed as the new baseline.
+
+## arc-farback-wide-quality-22
+
+- Baseline used: `arc-farback-moderate-quality-21` at commit `c455b89`.
+- Hypothesis: After attempt 21, a smaller set of rows had moved into `axis_quality=0.50..0.65`. Extending the far-back taper from `0.50` to `0.58` with a rarer max interval might keep converting high-budget quality while preserving the accepted cadence around the median row.
+- Code changes made: Temporarily increased `QUALITY_FAR_BACK_ZERO_AXIS_QUALITY` from `0.50` to `0.58` and `QUALITY_FAR_BACK_MAX_INTERVAL` from `128` to `160`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-farback-wide-quality-22`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `390.5` -> candidate `390.6`; `Δheadline = +0.1`, 95% CI `[-1.3, 2.1]`, `P(Δ<=0)=50.0%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=-0.1`, `100k=+0.2`, `150k=+0.5`, `200k=-0.3`; validity was unchanged. The wider taper mostly traded rows, with large 200k gains on `drums_breath` seed 11 and `solo_run` seeds 3/4/7/11 but offsetting regressions on `drums_crescendo` seed 0, `mini_burst` seed 2, `drums_pulse` seed 1, `opening_burst` seed 3, and `drums_swell` seed 5.
+- Status: Reverted; not committed.
+
+## arc-speed-quality-pressure-23
+
+- Baseline used: `arc-farback-moderate-quality-21` at commit `c455b89`.
+- Hypothesis: Low valid rows were still dominated by speed overshoot, while the existing axis-quality stream only covered low-air support. Adding a quality-phase-only speed stream with a smooth overspeed-pressure sample count should improve speed-limited rows without perturbing the pre-validity contract race.
+- Code changes made: Added a `speed` axis-quality stream using brake-mode samples at attempt offset `3000`, capped at two samples and scaled by `smoothstep(normalizedOverspeed / 0.45)`. Added local `smoothstep` and integer-clamp helpers; contract-phase sampling and normal candidate geometry were unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-speed-quality-pressure-23`
+- Decide result: `VERDICT: ACCEPT`; baseline `390.5` -> candidate `395.7`; `Δheadline = +5.1`, 95% CI `[1.0, 9.6]`, `P(Δ<=0)=0.7%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.9`, `100k=+3.9`, `150k=+5.3`, `200k=+7.4`; validity was unchanged. At 200k the speed stream produced `37796/75813` viable candidates and the selected best prefixes used `625` speed axis-quality candidates. Largest 200k gains were `syncopated_switchback` seed 11, `drums_crescendo` seed 8, `drums_breath` seed 11, `syncopated_switchback` seed 2, and `drums_breath` seed 0. Main 200k regressions were `drums_crescendo` seed 0, `drums_tide` seed 2, `syncopated_switchback` seed 10, `rhythm_ladder` seed 9, and `drums_dropout` seed 2.
+- Status: Kept and committed as the new baseline.

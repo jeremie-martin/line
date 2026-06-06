@@ -262,6 +262,7 @@ type AxisQualityStreamPolicy = {
   attemptOffset: number;
   mode?: CandidateSampleMode;
   targetMax?: number;
+  overspeedScale?: number;
 };
 
 const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
@@ -364,6 +365,8 @@ const HANDOFF_BRAKE_QUALITY_BASE_K = 3;
 const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
 const HANDOFF_AIR_SUPPORT_QUALITY_K = 1;
 const HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX = 0.25;
+const HANDOFF_SPEED_SUPPORT_QUALITY_K = 2;
+const HANDOFF_SPEED_SUPPORT_OVERSPEED_SCALE = 0.45;
 const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy>> = {
   air: {
     samples: HANDOFF_AIR_SUPPORT_QUALITY_K,
@@ -371,6 +374,13 @@ const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPo
     attemptOffset: 2000,
     mode: "air_support",
     targetMax: HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX,
+  },
+  speed: {
+    samples: HANDOFF_SPEED_SUPPORT_QUALITY_K,
+    seedSalt: 0x165667b1,
+    attemptOffset: 3000,
+    mode: "brake",
+    overspeedScale: HANDOFF_SPEED_SUPPORT_OVERSPEED_SCALE,
   },
 };
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
@@ -1504,13 +1514,16 @@ function axisQualityCandidates(
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return [];
   const out: AxisQualityCandidate[] = [];
+  const probe = getCandidateProbe(node.prefixEngine, gap, ctx);
   for (const axis of AXES) {
     const policy = HANDOFF_AXIS_QUALITY_STREAMS[axis];
     const target = gap.targets?.[axis];
     if (policy === undefined || target === undefined) continue;
     if (policy.targetMax !== undefined && target > policy.targetMax) continue;
+    const samples = axisQualityStreamSampleCount(axis, policy, target, probe.targetState.speed);
+    if (samples <= 0) continue;
     const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
-    for (let attempt = 0; attempt < policy.samples; attempt++) {
+    for (let attempt = 0; attempt < samples; attempt++) {
       telemetry.axisQualityAttempts++;
       telemetry.axisQualityAttemptsByAxis[axis] =
         (telemetry.axisQualityAttemptsByAxis[axis] ?? 0) + 1;
@@ -1532,6 +1545,23 @@ function axisQualityCandidates(
     }
   }
   return out;
+}
+
+function axisQualityStreamSampleCount(
+  axis: AxisName,
+  policy: AxisQualityStreamPolicy,
+  target: number,
+  currentSpeedPxPerFrame: number,
+): number {
+  if (axis !== "speed" || policy.overspeedScale === undefined) return policy.samples;
+  const targetSpeedPxPerFrame = authoredSpeedToPx(target);
+  if (targetSpeedPxPerFrame <= HANDOFF_BRAKE_TARGET_MIN_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME) {
+    return 0;
+  }
+  const normalizedOverspeed =
+    (currentSpeedPxPerFrame - targetSpeedPxPerFrame) / SPEED_AXIS.RANGE_PX_PER_FRAME;
+  const pressure = smoothstep(clamp01(normalizedOverspeed / policy.overspeedScale));
+  return clampIntLocal(Math.round(policy.samples * pressure), 0, policy.samples);
 }
 
 function axisQualityStreamSeed(
@@ -2386,6 +2416,15 @@ function round3(x: number): number {
 
 function clamp01(x: number): number {
   return Math.max(0, Math.min(1, x));
+}
+
+function smoothstep(x: number): number {
+  const t = clamp01(x);
+  return t * t * (3 - 2 * t);
+}
+
+function clampIntLocal(x: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, Math.round(x)));
 }
 
 function startKey(start: NonNullable<Spec["start"]>): string {

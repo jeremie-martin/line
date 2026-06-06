@@ -12,6 +12,7 @@ import { appendSledPointPositionsRangeMetered, getRiderMetered } from "../lib/de
 import { makeSolidLine } from "./arc.ts";
 import {
   CANDIDATE_SAMPLE_MODES,
+  FPS,
   type Arc,
   type ArcPlacementCounter,
   type ArcPlacementMode,
@@ -245,7 +246,7 @@ function sampleTargetStateLines(
   allContactFrames: readonly number[],
   attempt: number,
 ): TrackLine[] {
-  const rolls = guidedRolls(rawRolls, attempt);
+  const rolls = guidedRolls(rawRolls, attempt, targetState, targets, gap, allContactFrames);
   const controls = targetStateControls(targetState, targets, gap, allContactFrames, rolls);
   const contactAngleRad = (controls.contactAngleDeg * Math.PI) / 180;
   const tangentX = Math.cos(contactAngleRad);
@@ -285,7 +286,7 @@ function sampleTargetStateArc(
   gap: Gap,
   attempt: number,
 ): Arc {
-  const rolls = guidedRolls(rawRolls, attempt);
+  const rolls = guidedRolls(rawRolls, attempt, targetState, targets, gap, []);
   const controls = targetStateControls(targetState, targets, gap, [], rolls);
   const length = clamp(controls.preLength + controls.postLength, 45, 180);
   const segments = clampInt(Math.round(length / controls.segmentLength), 3, 12);
@@ -435,8 +436,15 @@ function targetStateControls(
   };
 }
 
-function guidedRolls(rolls: PlacementRolls, attempt: number): PlacementRolls {
-  const guide = 1 / (1 + Math.pow(Math.max(0, attempt) / 6, 2));
+function guidedRolls(
+  rolls: PlacementRolls,
+  attempt: number,
+  targetState: ImpactFrameTargetState,
+  targets: AxisValues,
+  gap: Gap,
+  allContactFrames: readonly number[],
+): PlacementRolls {
+  const guide = placementGuideWeight(attempt, targetState, targets, gap, allContactFrames);
   return {
     segmentLength: guidedRoll(rolls.segmentLength, attempt, 0, guide),
     contactAngle: guidedRoll(rolls.contactAngle, attempt, 1, guide),
@@ -446,6 +454,37 @@ function guidedRolls(rolls: PlacementRolls, attempt: number): PlacementRolls {
     postAngle: guidedRoll(rolls.postAngle, attempt, 5, guide),
     point: guidedRoll(rolls.point, attempt, 6, guide),
   };
+}
+
+function placementGuideWeight(
+  attempt: number,
+  targetState: ImpactFrameTargetState,
+  targets: AxisValues,
+  gap: Gap,
+  allContactFrames: readonly number[],
+): number {
+  const baseGuide = 1 / (1 + Math.pow(Math.max(0, attempt) / 6, 2));
+  const targetSpeedPx = targets.speed === undefined
+    ? targetState.speed
+    : authoredSpeedToPx(targets.speed);
+  const targetPace = clamp(
+    (targetSpeedPx - PLACEMENT_SPEED_MIN_PX) / PLACEMENT_SPEED_SPAN_PX,
+    0,
+    1,
+  );
+  const air = clamp(targets.air ?? 0.5, 0, 1);
+  const highAir = clamp((air - 0.45) / 0.55, 0, 1);
+  const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
+  const cadencePressure = nextGapFrames === null
+    ? 0
+    : 1 / (1 + Math.pow(nextGapFrames / (FPS * 0.55), 2));
+  const startupPressure = 1 / (1 + Math.pow(gap.startFrame / (FPS * 1.25), 2));
+  const explorationPressure = clamp(
+    targetPace * (0.50 * startupPressure + 0.35 * cadencePressure + 0.15 * highAir),
+    0,
+    1,
+  );
+  return baseGuide * lerp(1, 0.35, explorationPressure);
 }
 
 function guidedRoll(raw: number, attempt: number, salt: number, weight: number): number {

@@ -159,20 +159,34 @@ unsafe fn resolve_repel(s: &mut State, rest: &[f64; NITER], k: usize, p1: usize,
     let p1y = *s.py.get_unchecked(p1);
     let p2x = *s.px.get_unchecked(p2);
     let p2y = *s.py.get_unchecked(p2);
-    let length = dist(p1x, p1y, p2x, p2y);
-    if length < *rest.get_unchecked(k) {
-        let gd = if length == 0.0 {
-            0.0
-        } else {
-            (length - *rest.get_unchecked(k)) / length
-        };
-        let diff = gd * 0.5;
-        let dx = (p1x - p2x) * diff;
-        let dy = (p1y - p2y) * diff;
-        *s.px.get_unchecked_mut(p1) = p1x - dx;
-        *s.py.get_unchecked_mut(p1) = p1y - dy;
-        *s.px.get_unchecked_mut(p2) = p2x + dx;
-        *s.py.get_unchecked_mut(p2) = p2y + dy;
+    // Repels fire only when length < rest, which is rare (~2% — feet rarely closer
+    // to the shoulder than rest). Gate the sqrt on len_sq < rest² so the common
+    // inactive case skips the sqrt entirely. Inside the gate, `length` and the
+    // applied math are byte-identical to the original (same len_sq, same sqrt, same
+    // `length < rest` branch). The ONLY semantic difference is the gate vs the
+    // original `length < rest` comparison, which can disagree in a ULP-wide band
+    // where round(rest²) rounds below rest² — `verify`/`--diff` is the arbiter of
+    // whether that band ever occurs for these inputs.
+    let dx0 = p2x - p1x;
+    let dy0 = p2y - p1y;
+    let len_sq = dx0 * dx0 + dy0 * dy0;
+    let r = *rest.get_unchecked(k);
+    if len_sq < r * r {
+        let length = len_sq.sqrt();
+        if length < r {
+            let gd = if length == 0.0 {
+                0.0
+            } else {
+                (length - r) / length
+            };
+            let diff = gd * 0.5;
+            let dx = (p1x - p2x) * diff;
+            let dy = (p1y - p2y) * diff;
+            *s.px.get_unchecked_mut(p1) = p1x - dx;
+            *s.py.get_unchecked_mut(p1) = p1y - dy;
+            *s.px.get_unchecked_mut(p2) = p2x + dx;
+            *s.py.get_unchecked_mut(p2) = p2y + dy;
+        }
     }
 }
 

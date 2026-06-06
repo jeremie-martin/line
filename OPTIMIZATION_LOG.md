@@ -4547,3 +4547,49 @@ invalidation optimization is exhausted. The remaining grounded lever is
 lookups via a coarse occupancy/AABB index — a larger redesign that carries the same
 "added-check overhead vs saved work" risk this session just demonstrated. Both
 variants reverted; standing unchanged at ~5,950 ns/frame.
+
+## Session 173 (2026-06-06 cont.) — instrumented step_state; repel sqrt-skip ⭐ KEPT (first statistical-gate win)
+
+Generalized the instrument-first approach to the biggest unprofiled bucket,
+`step_state` (~41% of compile). Throwaway counters on one `mini_burst@50k`
+(reverted after):
+
+```
+sqrt budget          : 132/frame (6.65M total)
+  sticks (always)    : 72/frame (54.5%)
+  repels             : 12/frame; ACTIVE only 2.0% → 8.9% of all sqrt WASTED
+  binds              : 48/frame; INTACT 96.8% → 1.2% wasted
+  total wasted sqrt  : 10.1%
+collision loop       : 60 visits/frame, 43% bucket-hit, 107 line-tests/frame, 8.9% hit
+history add_to_grid  : 69.5/frame, active-cache 94.4% hit (already efficient)
+```
+
+Findings: the one real waste is the constraint solver's `sqrt` (~11% of compile),
+almost all of it the two **repel** constraints (SHOULDER↔feet), inactive 98% of the
+time yet computing `sqrt` every call. The collision predicate (91% miss) is
+cheap/ILP-bound — short-circuiting won't help (Session 172 lesson); history is
+already 94% cheap-append.
+
+**Kept change — gate the repel sqrt on `len_sq < rest²`** (`kernel.rs::resolve_repel`):
+compute `len_sq` without sqrt; only when `len_sq < r*r` compute `length =
+len_sq.sqrt()` and run the *exact* original `if length < rest { … }`. Inside the
+gate every value is byte-identical to the original; the only difference is skipping
+the sqrt + apply when `len_sq ≥ r*r`.
+
+- **Gates:** `cargo test` ✓ · `LR_ENGINE=wasm npm run verify` ✓ byte-identical
+  (engine + optimizer) · `verify:engine --diff` ✓ **max err 0 over 6,940 frames**
+  (all 5 fixtures). The ULP band where `len_sq < r*r` could disagree with
+  `length < rest` does not occur for these inputs.
+- **A/B (R=100):** Δ median **−0.49%** / mean −0.43%, 95% CI **[−0.65%, −0.19%]**,
+  candidate won **79/100** rounds (p=0.000), **P(faster)=100%** → ✓ KEEP.
+
+Caveat (honest): this is a *comparison-semantics* change — proven byte-identical on
+the full gate (6,940 frames + 4 optimizer cases), not algebraically proven for all
+possible inputs. A pathological track whose repel `len_sq` lands in the ULP band
+around `rest²` could differ; the gate is our arbiter and it is clean. If stricter
+assurance is wanted later, add a repel-stressing fixture or a `rest²` rounding proof.
+
+**Standing after Session 173:** **~5,884 ns/physics-frame** (was ~5,950), bit-identical
+to the gate baselines. First win banked under the statistical gate — and the first
+demonstration that instrument-survey → grounded candidate → R=100 gate yields a real,
+trustworthy improvement the old >1.5% bar would have thrown away.

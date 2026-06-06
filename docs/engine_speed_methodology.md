@@ -4,7 +4,7 @@
 >
 > - **What we optimize:** `ns / physics-frame` from `LR_ENGINE=wasm npm run perf` —
 >   wall-clock ÷ physics frames the compiler actually simulated. Work-normalized,
->   lower is better. **Standing ≈ 5,950 ns/frame; goal < 3,000.**
+>   lower is better. **Standing ≈ 5,884 ns/frame; goal < 3,000.**
 > - **Correctness gate (non-negotiable, binary):** `LR_ENGINE=wasm npm run verify`
 >   must stay byte-identical to the recorded baselines — the compiler-consumed
 >   per-frame fingerprint + optimizer output/stat hashes (a *missing* baseline

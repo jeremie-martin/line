@@ -469,6 +469,7 @@ export function buildDriftReport(
   contactFrames: number[], durationFrames: number,
   gapFailures: number[],
   fits: (GapFit | null)[],
+  gapAxisTargets?: AxisValues[],
 ): DriftReport {
   const contacts: ContactReport[] = spec.contacts.map((c) => {
     const target = secToFrame(c.t);
@@ -498,7 +499,7 @@ export function buildDriftReport(
     const g = gaps[j];
     const f = fits[j];
     if (!g.endsWithContact || f === null) continue;
-    const targets = effectiveAxes(g, spec);
+    const targets = gapAxisTargets?.[g.index] ?? effectiveAxes(g, spec);
     const achievedAll = measureGapAxes(det, g, f.lines, g.endFrame);
     const axes: GapAxisReport["axes"] = {};
     for (const name of AXES) {

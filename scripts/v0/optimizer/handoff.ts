@@ -493,9 +493,9 @@ function compileHandoffInternal(
 
     const gaps = sliceTimeline(allContactFrames, durationFrames);
     const masterRng = makeRng(seed);
+    const gapAxisTargets = gaps.map((gap) => effectiveAxes(gap, spec));
     for (const gap of gaps) {
-      const sec = effectiveAxes(gap, spec);
-      gap.targets = sampleGapTargets(sec, spec.jitter ?? CALIB.SIGMA, masterRng);
+      gap.targets = sampleGapTargets(gapAxisTargets[gap.index], spec.jitter ?? CALIB.SIGMA, masterRng);
     }
 
     const ctx: SpecContext = { allContactFrames, durationFrames };
@@ -572,7 +572,7 @@ function compileHandoffInternal(
     const evaluateCached = (node: HandoffNode): NodeEvaluation => {
       const cached = evaluationCache.get(node.search);
       if (cached !== undefined) return cached;
-      const evaluation = evaluateNode(node, spec, gaps, allContactFrames, durationFrames);
+      const evaluation = evaluateNode(node, spec, gaps, allContactFrames, durationFrames, gapAxisTargets);
       evaluationCache.set(node.search, evaluation);
       return evaluation;
     };
@@ -2363,6 +2363,7 @@ function evaluateNode(
   gaps: Gap[],
   allContactFrames: number[],
   durationFrames: number,
+  gapAxisTargets: AxisValues[],
 ): { report: DriftReport; key: LeafKey; outputDurationFrames: number; fullDuration: boolean } {
   const fullDuration = isTerminalNode(node.search, gaps);
   const partialHorizonFrame = fullDuration
@@ -2373,7 +2374,7 @@ function evaluateNode(
     : partialOutputDurationFrames(partialHorizonFrame, durationFrames);
   const det = detectWindow(node.search.prefixEngine, 0, outputDurationFrames);
   const rawReport = buildDriftReport(
-    det, spec, gaps, allContactFrames, durationFrames, [], paddedFits(node, gaps.length),
+    det, spec, gaps, allContactFrames, durationFrames, [], paddedFits(node, gaps.length), gapAxisTargets,
   );
   const report = fullDuration ? rawReport : asPartialReport(rawReport, partialHorizonFrame);
   return {

@@ -5151,3 +5151,39 @@ report scoring. The old full detector remains in place for non-handoff callers.
 
 This closes the obvious remaining RawFrame-object transport in the hot v0 handoff
 compile path. The `<3000` objective remains open.
+
+## Session 188 (2026-06-06 cont.) — cache per-gap report axis targets, KEEP (−1.84%)
+
+Post-S187 profile showed JS was down to ~15.9% of compile time, with no hot
+RawFrame reads left (`rawFrameCalls=0`). The largest remaining non-WASM JS item was
+`effectiveAxes`/`axesAtFrame`. A no-edit counter wrapped the `mini_burst` spec axis
+curves and found **57,966 axis-curve calls** in one `mini_burst@50k` compile. Those
+calls were mostly repeated report-target reductions: the gap timeline and authored
+axis curves are fixed per compile, but `buildDriftReport` recomputed each gap's
+target axis means for every evaluated prefix.
+
+Candidate: compute `gapAxisTargets = gaps.map(effectiveAxes)` once at compile start,
+reuse those values for both jittered local target sampling and `buildDriftReport`,
+and keep `buildDriftReport`'s old `effectiveAxes` fallback for other callers. This
+does not change any numeric target values; it just avoids recomputing the same
+per-gap curve means for every node evaluation.
+
+- **Correctness:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical (engine 5/5 +
+  optimizer 4/4; `sim_frames` unchanged).
+- **A/B:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100`: base mean
+  **5335.2 ns/frame**, candidate mean **5236.5 ns/frame**; Δ median/mean
+  **−1.84% / −1.84%**, 95% CI **[−2.11%, −1.59%]**, candidate won **91/100**
+  rounds, **P(candidate faster)=100.0%** → ✓ **KEEP**.
+- **Standing:** `LR_ENGINE=wasm npm run perf` after keep reported
+  **5,339.2 ns/physics-frame ±252.7** (single noisy absolute run; paired A/B is
+  the keep evidence).
+- **Cumulative 3σ confirmation:** accumulated local JS/ABI wins against clean
+  post-rebase upstream baseline `1eb0c2d`:
+  `npx tsx scripts/v0/bench/perf_ab.ts --js --ref=1eb0c2d --rounds=100 --p=0.9987`
+  → base mean **5820.5 ns/frame**, candidate mean **5230.8 ns/frame**; Δ
+  median/mean **−10.11% / −10.12%**, 95% CI **[−10.37%, −9.87%]**, candidate won
+  **100/100** rounds, **P(candidate faster)=100.0%** → ✓ confirmed compounded win
+  at 3σ.
+
+This removes a repeated JS report-reduction cost after the RawFrame transport wins.
+The `<3000` objective remains open.

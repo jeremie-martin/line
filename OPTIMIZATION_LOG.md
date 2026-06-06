@@ -4904,3 +4904,40 @@ per-call check + transition maintenance. Conclusion: the all-miss invalidation-s
 a dead lever at the data-structure level, not just the hashmap level. The 88% "wasted"
 absent probes are cheap waste; eliminating cheap waste pays nothing. This closes the
 S172 lever permanently under strict byte-identity.
+
+## Session 180 (2026-06-06 cont.) — instrument-first re-survey of reconcile/invalidation (post-S178); kills presence-index + parent/child fast-path
+
+Per reviewer guidance, re-instrumented after the S176–S178 wins (throwaway DIAG
+counters, reverted). One mini_burst@50k compile:
+
+**`update_computed` call shapes (117,721 calls):**
+- `current == target` (free early-return): **97.9%** (115,202) — the cache is almost
+  always already synced (sequential reads of one handle).
+- parent→child AddLine: **0**. child→parent AddLine: **0**.
+- general / sibling / deep-LCA: 2.1% (2,519), avg **undo 5.18 / redo 1.84**.
+
+⇒ **The proposed parent/child `update_computed` fast path has a ZERO hit rate** —
+version switches are never simple adjacency; they undo ~5 and redo ~2 (sibling/deep).
+The fast path would never fire. *Dead lever, not implemented.* (And `update_computed`
+itself is now ~free: 97.9% early-return, only 2,519 real reconciles — the S177
+scratch-reuse + the general structure already took the meat.)
+
+**Presence-index ceiling (exact per-line-cell variant, reviewer's #1):**
+- index_of_collision_in_cell: 41,763 calls, **67.4% all-9-absent** (28,142 skippable);
+  88.2% of 376k neighbor gets absent.
+- **new CellFrame nodes: 177,106** → an exact presence index keyed by line-cell
+  (increment the 9 line-cells that query each new node's center) costs **177,106 × 9 =
+  1,593,954 increments + 1,593,954 decrements (rollback) ≈ 3.19M presence ops**, plus
+  41,763 presence-gets, to save **~225,136** (cheap) absent `grid.get`s.
+
+⇒ **~14:1 cost:benefit AGAINST** — the exact version is *worse* than S179's coarse
+blocks (more write fan-out per node). Confirms S179's addendum from a different angle:
+the all-miss skip is dead because (a) the saved probes are cheap and (b) any O(1)-read
+presence structure needs O(9)-write fan-out over 177k nodes. *Not implemented.*
+
+**Net:** instrument-first (as the methodology prescribes) pre-killed two net-negative
+changes. The reconcile bucket is now largely tapped (the 4 S176–S178 wins took the
+meat); `update_computed` is ~free, invalidation is ILP-locked (present cells) +
+skip-negative (absent cells). Remaining ceiling is in `step_state` (irreducible
+physics) and the JS/detector/GC surface — the latter is the reviewer's #4
+(transient candidate-eval ABI), a larger redesign. Standing ~5,800 ns/frame.

@@ -3635,3 +3635,844 @@ gate. Kept and committed.
 
 **Standing after three-way construction/collision composite:** **5,978.5
 ns/physics-frame**. Still above the <3,000 ns/frame goal.
+
+## Session 132 (2026-06-06 cont.) — compute-to frame reserve retest, rejected
+
+Rejected Rust probe:
+
+- **Reserve `frames` and per-frame side-offset vectors before `Cache::compute_to`
+  extends the shared frame cache:** retested Session 55's small reserve idea
+  against the new Session 131 baseline, where allocation/code shape around
+  construction and collision changed.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,942.3 ns/frame** (median **5,989.8**) versus the
+  current standing **5,978.5 ns/frame**: only about **0.6%**, below the required
+  >1.5% threshold.
+
+Conclusion: pre-reserving frame metadata remains too small/noisy to keep.
+Reverted the source change and rebuilt the standard WASM artifact.
+
+## Session 133 (2026-06-06 cont.) — engine-line cache flag packing, rejected
+
+Rejected JS probe:
+
+- **Store `flipped`/`leftExtended`/`rightExtended` as one numeric `flags` field in
+  the object-attached engine-line cache:** aimed to reduce hot cache-hit
+  comparisons in `engineLineFromTrackLine` after Session 131 made this cache part
+  of the committed baseline.
+
+Result:
+
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,964.0 ns/frame** (median **5,998.2**) versus the
+  current standing **5,978.5 ns/frame**: effectively flat and below the required
+  >1.5% threshold.
+
+Conclusion: the packed flag field does not provide a material win and changes the
+JS object shape enough to stay below the keep bar. Reverted without a full gate.
+
+## Session 134 (2026-06-06 cont.) — indexed WASM `addLine` loop, rejected
+
+Rejected JS wrapper probe:
+
+- **Replace the WASM wrapper's `for...of` over batched `addLine` arrays with an
+  indexed `for` loop:** aimed to avoid iterator overhead while adding candidate
+  line batches through the WASM ABI.
+
+Result:
+
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,940.4 ns/frame** (median **5,953.4**) versus the
+  current standing **5,978.5 ns/frame**: about **0.64%**, below the required
+  >1.5% threshold.
+
+Conclusion: the indexed loop is directionally positive but too small to keep on
+the new baseline. Reverted without a full gate.
+
+## Session 135 (2026-06-06 cont.) — current weak-positive composite, rejected
+
+Rejected composite probe:
+
+- **Stack Sessions 132, 133, and 134:** combine `compute_to` frame/offset
+  pre-reserve, packed object-cache line flags, and indexed WASM `addLine` batch
+  iteration to test whether the current-baseline weak positives compose into a
+  keep-worthy win.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,974.5 ns/frame** (median **6,008.7**) versus the
+  current standing **5,978.5 ns/frame**: effectively flat, far below the required
+  >1.5% threshold.
+
+Conclusion: these weak positives do not compose; the changed shapes interfere or
+fall into noise. Reverted all three source changes and rebuilt the standard WASM
+artifact.
+
+## Session 136 (2026-06-06 cont.) — larger line-cell cache retune, rejected
+
+Rejected Rust probe:
+
+- **Increase `LINE_CELL_CACHE_SLOTS` from 64 to 128 on the Session 131 baseline:**
+  retested the frame-local line-bucket cache size after lazy collision-response
+  loads changed the surrounding collision-loop cost.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **5,991.0 ns/frame** (median **6,036.4**) versus the
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the larger cache footprint/code shape is still slower than the
+64-slot direct-mapped cache. Reverted and rebuilt the standard WASM artifact.
+
+## Session 137 (2026-06-06 cont.) — Binaryen `-O4` retest, rejected
+
+Rejected build-pipeline probe:
+
+- **Run the current Session 131 WASM artifact through `wasm-opt -O4` instead of
+  the standard build script's `-O3`:** retested Binaryen's more aggressive pass
+  after the kept construction/collision composite changed the final WASM code.
+
+Result:
+
+- `npm run build:wasm && wasm-opt ... -O4 ...` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,933.5 ns/frame** (median **5,950.0**) versus the
+  current standing **5,978.5 ns/frame**: about **0.75%**, below the required
+  >1.5% threshold.
+
+Conclusion: O4 is directionally positive on the short signal but still too small
+to keep. Rebuilt the standard `-O3` artifact.
+
+## Session 138 (2026-06-06 cont.) — O4 plus indexed addLine loop, rejected
+
+Rejected composite probe:
+
+- **Combine Binaryen `-O4` with indexed WASM wrapper `addLine` iteration:**
+  aimed to see whether the directionally positive O4 artifact and directionally
+  positive indexed adapter loop stacked into a held >1.5% improvement on the
+  Session 131 baseline.
+
+Result:
+
+- `npm run build:wasm && wasm-opt ... -O4 ...` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,026.1 ns/frame** (median **6,064.0**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the two changes do not compose; the indexed loop worsened the O4
+artifact shape. Reverted the JS change and rebuilt the standard `-O3` artifact.
+
+## Session 139 (2026-06-06 cont.) — inline FlatIntMap mutation helpers, rejected
+
+Rejected Rust code-shape probe:
+
+- **Add `#[inline]` to `FlatIntMap::get_or_insert_default`, `insert`, and
+  `remove`:** aimed to improve the custom line-grid map's mutation call shape
+  during line registration/removal after the kept one-pass bucket insertion
+  change.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **6,007.0 ns/frame** (median **6,073.9**) versus current
+  standing **5,978.5 ns/frame**.
+
+Conclusion: the inlining hints changed the WASM/codegen shape for the worse on
+the current baseline. Reverted the source change and rebuilt the standard WASM
+artifact.
+
+## Session 140 (2026-06-06 cont.) — narrow line-cache epochs, rejected
+
+Rejected Rust cache-layout probe:
+
+- **Change `LineCellCache` epochs/current epoch from `u32` to `u16`:** aimed to
+  reduce the frame-local line-bucket cache footprint and compare width without
+  changing lookup semantics; wrap still clears the epoch array and invalidates
+  cache entries.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,979.9 ns/frame** (median **6,000.3**) versus current
+  standing **5,978.5 ns/frame**, effectively flat and far below the required
+  >1.5% threshold.
+
+Conclusion: narrower epoch storage does not move the current baseline. Reverted
+the source change and rebuilt the standard WASM artifact.
+
+## Session 141 (2026-06-06 cont.) — first-collision-only line collision map retest, rejected
+
+Rejected Rust collision-bookkeeping probe:
+
+- **Store only the first collision frame per line in `Frame.collisions`:**
+  retested the old structurally valid simplification on the Session 131 baseline.
+  `_removeLine` only asks for the first collision frame, so later per-line
+  collision entries are not semantically needed if rollback removes the first
+  entry when its frame is truncated.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal looked keep-worthy at **5,871.4 ns/frame** (median **5,934.0**)
+  versus current standing **5,978.5 ns/frame**.
+- Required full gate failed: `LR_ENGINE=wasm npm run perf` measured
+  **6,020.9 ns/frame** (median **6,084.8**), slower than the current standing.
+
+Conclusion: this remains a noisy short-run near miss and does not hold under the
+required full perf gate. Reverted the source change and rebuilt the standard WASM
+artifact.
+
+## Session 142 (2026-06-06 cont.) — first-collision map plus O4 artifact, rejected
+
+Rejected composite probe:
+
+- **Combine first-collision-only `Frame.collisions` storage with Binaryen `-O4`:**
+  aimed to see whether the noisy full-gate failure from Session 141 composed with
+  the directionally positive O4 artifact shape from Session 137.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm && wasm-opt ... -O4 ...` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,008.7 ns/frame** (median **5,965.8**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the source change and O4 artifact shape do not compose. Reverted the
+Rust source and rebuilt the standard `-O3` artifact.
+
+## Session 143 (2026-06-06 cont.) — adjacent duplicate collision-line skip, rejected
+
+Rejected Rust hot-path probe:
+
+- **Skip `add_to_collisions` when the immediately previous collision in the same
+  frame had the same line id:** preserved the full collision history and event
+  stream, but aimed to avoid duplicate line-collision HashMap work for adjacent
+  repeated hits.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,001.5 ns/frame** (median **6,018.9**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the extra branch/local in the collision loop costs more than any
+avoided duplicate collision-map call. Reverted the source change and rebuilt the
+standard WASM artifact.
+
+## Session 144 (2026-06-06 cont.) — latest-frame `cache.cur` read path, rejected
+
+Rejected Rust export-path probe:
+
+- **Use `cache.cur` instead of indexing `cache.frames[f]` when the requested
+  frame is the latest cached frame:** aimed to speed the common sequential
+  detector read path after `compute_to(f)`, where `cur` is maintained as
+  `frames.last()`.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,969.8 ns/frame** (median **6,013.9**) versus current
+  standing **5,978.5 ns/frame**: a tiny mean improvement, but far below the
+  required >1.5% threshold and with worse median.
+
+Conclusion: the extra branch/helper shape is not worth keeping. Reverted the
+source change and rebuilt the standard WASM artifact.
+
+## Session 145 (2026-06-06 cont.) — narrow active-cell cache epochs, rejected
+
+Rejected Rust cache-layout probe:
+
+- **Change `ActiveCellCache` epochs/current epoch from `u32` to `u16`:** aimed to
+  reduce the frame-local history-cell cache footprint on the hot `add_to_grid`
+  append path. Epoch wrap behavior still clears the epoch array and invalidates
+  cache entries.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,966.7 ns/frame** (median **5,968.3**) versus current
+  standing **5,978.5 ns/frame**: directionally positive but only about **0.2%**,
+  far below the required >1.5% threshold.
+
+Conclusion: narrower active-cache epochs do not move the current baseline enough
+to keep. Reverted the source change and rebuilt the standard WASM artifact.
+
+## Session 146 (2026-06-06 cont.) — unrolled invalidation 3x3 scan, rejected
+
+Rejected Rust invalidation-path probe:
+
+- **Unroll the fixed inverse 3x3 neighborhood scan in
+  `index_of_collision_in_cell`:** preserved the exact current scan order
+  `dx=-1..1`, `dy=-1..1` and the same running `best` cutoff, but removed the two
+  small loop counters from add-line history invalidation.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,090.6 ns/frame** (median **6,147.8**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the fixed unroll bloats or worsens the invalidation code shape. The
+compact nested loop is better on the current baseline. Reverted the source change
+and rebuilt the standard WASM artifact.
+
+## Session 147 (2026-06-06 cont.) — outline collision-map append helper, rejected
+
+Rejected Rust code-layout probe:
+
+- **Change `add_to_collisions` from `#[inline]` to `#[inline(never)]`:** aimed to
+  keep the collision-success branch and the fused step loop smaller by forcing the
+  HashMap append path out of line.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **5,993.7 ns/frame** (median **6,038.3**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the call overhead/code layout is worse than the existing inline
+helper. Restored `#[inline]` and rebuilt the standard WASM artifact.
+
+## Session 148 (2026-06-06 cont.) — active-cell slot carry retest, rejected
+
+Rejected Rust history-cache probe:
+
+- **Carry the computed `ActiveCellCache` slot through the `add_to_cell` miss
+  path:** retested the old "avoid recomputing active-cache slot on miss" idea on
+  the Session 131 baseline by using slot-aware `get`/`put` helpers.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,954.0 ns/frame** (median **5,968.6**) versus current
+  standing **5,978.5 ns/frame**: directionally positive but only about **0.4%**,
+  below the required >1.5% threshold.
+
+Conclusion: slot carry remains too small to keep on the current baseline.
+Reverted the source change and rebuilt the standard WASM artifact.
+
+## Session 149 (2026-06-06 cont.) — active-cell slot carry plus narrow epochs, rejected
+
+Rejected active-cache composite:
+
+- **Combine Session 148's active-cache slot carry with Session 145's `u16`
+  active-cache epochs:** aimed to see whether two directionally positive
+  history-cell-cache layout changes compose into a keep-worthy improvement.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,961.0 ns/frame** (median **5,987.7**) versus current
+  standing **5,978.5 ns/frame**, still far below the required >1.5% threshold.
+
+Conclusion: the two active-cache tweaks do not compose into a material win.
+Reverted both source changes and rebuilt the standard WASM artifact.
+
+## Session 150 (2026-06-06 cont.) — history-grid `get_mut` fast path, rejected
+
+Rejected Rust history-map probe:
+
+- **Replace `grid.entry(cell).or_default()` in `add_to_cell` with a
+  `grid.get_mut(&cell)` existing-cell fast path plus `entry` only for new
+  cells:** aimed to avoid `Entry` construction on active-cache misses where the
+  history cell already exists from prior frames.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,006.0 ns/frame** (median **6,073.2**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the extra branch/double-lookup shape is slower than the existing
+single `entry(...).or_default()` path. Reverted the source change and rebuilt the
+standard WASM artifact.
+
+## Session 151 (2026-06-06 cont.) — explicit LineCellCache fill branch, rejected
+
+Rejected Rust line-cache code-shape probe:
+
+- **Replace `LineCellCache::lookup`'s `Option::map(...).unwrap_or(null)` miss-fill
+  shape with an explicit `if let Some(bucket)` branch:** aimed to simplify the
+  dominant line-bucket cache fill path without changing hit/miss caching
+  semantics.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,965.3 ns/frame** (median **6,031.4**) versus current
+  standing **5,978.5 ns/frame**: a tiny mean improvement, below the required
+  >1.5% threshold and with worse median.
+
+Conclusion: the explicit branch shape is not material and does not hold enough
+to keep. Reverted the source change and rebuilt the standard WASM artifact.
+
+## Session 152 (2026-06-06 cont.) — redo-vector pop instead of reverse, rejected
+
+Rejected Rust reconciliation probe:
+
+- **Apply `update_computed` redo lines with `while let Some(l) = redo_lines.pop()`
+  instead of `redo_lines.reverse(); for l in redo_lines`:** preserved oldest-first
+  replay because redo lines are collected most-recent-first, but avoided the
+  explicit reverse pass.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,920.4 ns/frame** (median **5,924.3**) versus current
+  standing **5,978.5 ns/frame**: directionally positive, but about **1.0%** and
+  below the required >1.5% threshold.
+
+Conclusion: redo-pop is a near miss but not commit-worthy by itself. Reverted the
+source change and rebuilt the standard WASM artifact.
+
+## Session 153 (2026-06-06 cont.) — redo-pop plus O4 artifact, rejected
+
+Rejected composite probe:
+
+- **Combine Session 152's redo-pop source shape with Binaryen `-O4`:** aimed to
+  see whether a directionally positive reconciliation change and the directionally
+  positive O4 artifact shape would compose into a held improvement.
+
+Result:
+
+- `wasm-opt ... -O4` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,000.2 ns/frame** (median **6,037.8**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: redo-pop and O4 do not compose. Reverted the Rust source and rebuilt
+the standard `-O3` artifact.
+
+## Session 154 (2026-06-06 cont.) — redo-pop plus active-cache slot carry, rejected
+
+Rejected composite probe:
+
+- **Combine redo-vector pop replay with active-cell slot carry:** aimed to see
+  whether Session 152's ~1.0% reconciliation signal and Session 148's ~0.4%
+  history-cache signal stack into a keep-worthy >1.5% improvement.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,929.3 ns/frame** (median **5,941.2**) versus current
+  standing **5,978.5 ns/frame**: directionally positive, but still only about
+  **0.8%** and below the required >1.5% threshold.
+
+Conclusion: the two near-misses do not stack enough to keep. Reverted both source
+changes and rebuilt the standard WASM artifact.
+
+## Session 155 (2026-06-06 cont.) — current WASM SIMD artifact retest, rejected
+
+Rejected artifact/build probe:
+
+- **Build the current engine with WebAssembly SIMD enabled:** retested the SIMD
+  route after the latest committed Rust/kernel changes, using
+  `RUSTFLAGS='-C target-feature=+simd128'` and `wasm-opt --enable-simd -O3`.
+  Direct AVX is not exposed for the `wasm32-unknown-unknown` target; this is the
+  path V8 can lower to host SIMD instructions.
+
+Result:
+
+- `RUSTFLAGS='-C target-feature=+simd128' cargo build --release --target wasm32-unknown-unknown --manifest-path engine-rs/Cargo.toml` ✓.
+- `wasm-opt --enable-simd ... -O3` ✓.
+- `wasm-objdump` confirmed `v128`/lane SIMD instructions in the artifact.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,915.1 ns/frame** (median **5,923.5**) versus current
+  standing **5,978.5 ns/frame**: directionally positive, but only about **1.1%**
+  and below the required >1.5% threshold.
+
+Conclusion: current WASM SIMD is still a near miss, not a keep. Rebuilt the
+standard non-SIMD `npm run build:wasm` artifact and confirmed the source/WASM diff
+is clean.
+
+## Session 156 (2026-06-06 cont.) — one-entry frame-cache last-cell fast path, rejected
+
+Rejected Rust cache-shape probe:
+
+- **Add a one-entry "last cell" shortcut in front of `LineCellCache` and
+  `ActiveCellCache`:** aimed to skip the multiplicative direct-mapped slot hash
+  for immediate repeated center-cell lookups/writes, especially adjacent paired
+  rider points that often share a grid cell. The existing direct-mapped cache
+  tables were left intact; the shortcut used the same per-frame epoch guard.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,039.9 ns/frame** (median **6,059.2**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the extra branch/state in the hot lookup path costs more than any
+avoided slot hash. Reverted the Rust source and rebuilt the standard WASM
+artifact.
+
+## Session 157 (2026-06-06 cont.) — outline `step_state`, rejected
+
+Rejected Rust code-layout probe:
+
+- **Add `#[inline(never)]` to `step_state`:** a fresh CPU profile showed the top
+  anonymous WASM function is the large optimized `Cache::compute_to` body with
+  the solver inlined. This probe tried to split the per-frame solver into a
+  stable out-of-line hot function, reducing the wrapper/JIT body size without
+  changing physics arithmetic or call order.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,004.6 ns/frame** (median **6,029.2**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the call/code-layout tradeoff is worse than the current inlined
+solver. Removed the attribute and rebuilt the standard WASM artifact.
+
+## Session 158 (2026-06-06 cont.) — by-value collidable loop, rejected
+
+Rejected Rust hot-loop shape probe:
+
+- **Iterate `COLLIDABLES` by copied array value (`for i in COLLIDABLES`) instead
+  of by reference (`for &i in COLLIDABLES.iter()`):** narrower than the earlier
+  const-generic collidable unroll, aimed to trim the fixed point loop without
+  changing collision order or specializing each point.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,980.9 ns/frame** (median **5,953.7**) versus current
+  standing **5,978.5 ns/frame**: effectively flat and below the required >1.5%
+  threshold.
+
+Conclusion: the current reference-iterator loop remains the better baseline
+shape. Reverted the source change and rebuilt the standard WASM artifact.
+
+## Session 159 (2026-06-06 cont.) — history CellFrame list initial capacity, rejected
+
+Rejected Rust allocation/code-shape probe:
+
+- **Use `grid.entry(cell).or_insert_with(|| Vec::with_capacity(4))` for new
+  history-cell frame lists:** kept the existing `HashMap::entry` path but tried
+  to reduce small `Vec<CellFrame>` growth for cells revisited over multiple
+  frames.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **5,995.7 ns/frame** (median **5,994.4**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: extra initial capacity and closure/code shape cost more than any
+avoided per-cell list growth. Reverted to `entry(...).or_default()` and rebuilt
+the standard WASM artifact.
+
+## Session 160 (2026-06-06 cont.) — collision-map `get_mut` fast path, rejected
+
+Rejected Rust collision-history probe:
+
+- **Replace `coll.entry(line_id).or_default()` in `add_to_collisions` with an
+  existing-list `get_mut` fast path and `insert(vec![index])` only for first
+  collisions:** aimed to avoid `Entry` construction after a line id already has a
+  collision list, while preserving per-frame dedup and rollback touch order.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,040.3 ns/frame** (median **6,066.7**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the split get/insert shape is worse than the existing single
+`entry(...).or_default()` path for collision history too. Reverted the source
+change and rebuilt the standard WASM artifact.
+
+## Session 161 (2026-06-06 cont.) — detector default-params fast path, rejected
+
+Rejected JS detector setup probe:
+
+- **Make `detect(raw)` avoid the default-parameter `{}` allocation and second
+  spread:** changed the default-call path to `params === undefined ?
+  { ...DEFAULT_PARAMS } : { ...DEFAULT_PARAMS, ...params }`, preserving a fresh
+  returned params object while trimming setup work for the common no-custom-params
+  call.
+
+Result:
+
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,928.5 ns/frame** (median **5,964.1**) versus current
+  standing **5,978.5 ns/frame**: directionally positive but only about **0.8%**,
+  below the required >1.5% threshold.
+
+Conclusion: default-params setup is a near miss, not commit-worthy. Reverted the
+JS source change.
+
+## Session 162 (2026-06-06 cont.) — redo-pop plus detector params fast path, rejected
+
+Rejected composite probe:
+
+- **Combine redo-vector pop replay with the detector default-params fast path:**
+  aimed to see whether Session 152's Rust reconciliation near miss and Session
+  161's JS detector setup near miss stack into a keep-worthy >1.5% improvement.
+
+Result:
+
+- `cargo test --manifest-path engine-rs/Cargo.toml` ✓.
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,960.4 ns/frame** (median **5,958.5**) versus current
+  standing **5,978.5 ns/frame**: only about **0.3%** and below the required
+  >1.5% threshold.
+
+Conclusion: these near misses do not compose. Reverted both source changes and
+rebuilt the standard WASM artifact.
+
+## Session 163 (2026-06-06 cont.) — SIMD artifact plus detector params fast path, rejected
+
+Rejected artifact/JS composite probe:
+
+- **Combine current WebAssembly SIMD build with the detector default-params fast
+  path:** aimed to see whether Session 155's SIMD artifact near miss and Session
+  161's JS detector setup near miss stack into a keep-worthy >1.5% improvement.
+
+Result:
+
+- `RUSTFLAGS='-C target-feature=+simd128' cargo build --release --target wasm32-unknown-unknown --manifest-path engine-rs/Cargo.toml` ✓.
+- `wasm-opt --enable-simd ... -O3` ✓.
+- `wasm-objdump` confirmed `v128`/lane SIMD instructions in the artifact.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,914.2 ns/frame** (median **5,911.5**) versus current
+  standing **5,978.5 ns/frame**: directionally positive, but only about **1.1%**
+  and below the required >1.5% threshold.
+
+Conclusion: SIMD and detector setup do not compose enough to keep. Reverted the
+JS source change, rebuilt the standard non-SIMD artifact, and confirmed the
+source/WASM diff is clean.
+
+## Session 164 (2026-06-06 cont.) — manual offbeat contact scan, rejected
+
+Rejected JS hard-gate probe:
+
+- **Replace `contactFrames.some((cf) => Math.abs(cf - e.frame) <= 1)` in
+  `countOffBeatLandings` with an explicit order-independent loop:** aimed to avoid
+  callback overhead in hot candidate hard-gate evaluation without relying on
+  sorted contact-frame order.
+
+Result:
+
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,980.7 ns/frame** (median **6,018.7**) versus current
+  standing **5,978.5 ns/frame**: effectively flat/regressive and below the
+  required >1.5% threshold.
+
+Conclusion: V8's optimized `Array.some` shape is at least as good as the manual
+loop here. Reverted the JS source change.
+
+## Session 165 (2026-06-06 cont.) — manual next-contact find loops, rejected
+
+Rejected JS hard-gate probe:
+
+- **Replace `Array.find` with explicit first-match loops in `releaseStateFrame`
+  and `axisLookaheadEndFrame`:** preserved first-greater-contact semantics while
+  avoiding callback allocation/dispatch in two candidate setup helpers.
+
+Result:
+
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,013.7 ns/frame** (median **6,032.5**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: the existing `Array.find` shape is better under V8 for this workload.
+Reverted the JS source change.
+
+## Session 166 (2026-06-06 cont.) — fixed sled-contact name mapping, rejected
+
+Rejected JS WASM-wrapper probe:
+
+- **Use a fixed sled-point index-to-name table in `getRawFrameAtFrame` instead of
+  `ENTITY_IDS[pointIdx]`:** aimed to avoid a generic entity-name lookup after the
+  existing sled-point bitmask already restricts `pointIdx` to PEG/TAIL/NOSE/STRING.
+
+Result:
+
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,968.5 ns/frame** (median **5,975.6**) versus current
+  standing **5,978.5 ns/frame**: a tiny mean improvement, below the required
+  >1.5% threshold.
+
+Conclusion: the specialized mapping is too small to keep. Reverted the JS source
+change.
+
+## Session 167 (2026-06-06 cont.) — targeted gap-axis measurement, rejected
+
+Rejected JS candidate-evaluation probe:
+
+- **Add an optional target-axis filter to `measureGapAxes` and use it in
+  `evaluateCandidateLines`:** aimed to avoid measuring axes that `axisCost` will
+  not score for the current gap while preserving full-axis measurement for final
+  reporting and other default call sites.
+
+Result:
+
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal regressed to **6,072.3 ns/frame** (median **5,999.0**) versus
+  current standing **5,978.5 ns/frame**.
+
+Conclusion: narrowing candidate `achieved` measurement is not a useful hot-path
+win and likely hurts code shape more than it saves. Reverted the JS source
+change.
+
+## Session 168 (2026-06-06 cont.) — Rust-side raw-frame sled-event filter, rejected
+
+Rejected WASM raw-frame probe:
+
+- **Filter `raw_frame_into` collision records to sled-side points before writing
+  the JS events buffer:** aimed to avoid copying and then JS-filtering non-sled
+  collision events in the detector hot path while preserving sled-event ordering
+  and JS-side line-id de-duplication.
+
+Result:
+
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓.
+- 8-run signal measured **5,975.7 ns/frame** (median **6,000.7**) versus current
+  standing **5,978.5 ns/frame**: effectively flat and below the required >1.5%
+  threshold.
+
+Conclusion: raw-frame event filtering is not material for this workload. Reverted
+the Rust source change and rebuilt the standard WASM artifact.
+
+## Session 169 (2026-06-06 cont.) — collapsed WASM metered-rider call, rejected
+
+Rejected WASM/JS boundary probe:
+
+- **Add `get_rider_delta` and a WASM-wrapper fast path for `getRiderMetered`:**
+  aimed to collapse the hot `getLastFrameIndex` → `getRider` →
+  `getLastFrameIndex` sequence into one WASM call when no hard frame limit is
+  active, preserving exact delta charging by computing the pre/post frame indexes
+  inside the reconciled Rust cache.
+- Also tested a tighter JS shape that returned the rider object directly with an
+  attached delta instead of allocating a `{ rider, delta }` wrapper.
+
+Result:
+
+- `npm run build:wasm` ✓.
+- `LR_ENGINE=wasm npm run verify` ✓ for both JS wrapper shapes.
+- Initial 8-run pair-object shape regressed to **6,005.6 ns/frame** (median
+  **5,988.8**).
+- Tighter rider-object shape gave a promising 8-run signal of **5,863.8 ns/frame**
+  (median **5,924.2**), but the required full `LR_ENGINE=wasm npm run perf`
+  regressed to **6,005.6 ns/frame** (median **6,080.9**) and did not hold the
+  >1.5% threshold.
+
+Conclusion: collapsing metered rider probes is too noisy/regressive in the full
+gate. Reverted the Rust/JS source changes and rebuilt the standard WASM artifact.
+
+## Session 170 (2026-06-06 cont.) — closed-form metering, cell-key encoding/memo, all rejected
+
+Fresh CPU profile of the current build (`LR_ENGINE=wasm`, perf mini_burst, 6 runs
++ 1 warmup) reconfirms the standing shape: `wasm-function[27]` (the fused
+step/collision/history loop, the largest function at 6,143 bytes) dominates
+self-time (~36% across its samples); JS is ~8% total (`getRawFrameAtFrame` ~3.6%
+the largest JS leaf, `detect` ~2.4%, `buildDriftReport`/`effectiveAxes` ~0.9% each),
+GC ~4.6%. The WASM core is the whole game and is already heavily optimized.
+
+Standing baseline this session (8 runs + 2 warmup): **~5,950 ns/frame**.
+
+Rejected probes, all verified bit-identical under `LR_ENGINE=wasm npm run verify`
+(engine + optimizer) and reverted:
+
+- **Closed-form physics-frame charging in the metered detector paths:** in
+  `extractRawTrajectoryWindow`, `getRiderMetered`, and `getSledPointPositionsMetered`,
+  the *second* `getLastFrameIndex()` WASM call (the "after" read) is provably
+  redundant. After the "before" read syncs the shared cache to the engine's
+  version, that version is fixed, so each subsequent `getRider`/`get_raw_frame`
+  reconcile is a no-op and `compute_to(frame)` grows the cache to exactly `frame`
+  without overshooting. Hence `after == max(before, frame)` exactly — a closed
+  form that removes one WASM boundary call per metered frame (one per extracted
+  frame in the window loop) while charging the identical delta. Bit-identical
+  (verify ✓), but **perf-neutral**: 8-run signal **5,976.7 ns/frame** vs **5,950.9**
+  baseline (flat, within noise). The no-op `getLastFrameIndex` (early-return
+  reconcile + return `len-1`) is already cheap and well-inlined by V8; removing it
+  saved nothing measurable. Reverted (below the >1.5% bar).
+
+- **Branchless bit-pack cell key instead of Szudzik `hash_int_pair`:** the i64
+  cell key is purely internal (only ever a grid-map key / unpacked for the 3×3
+  neighborhood; never returned to JS or folded into output), so any consistent
+  bijection over the coordinate range is byte-identical. Replaced the Szudzik fold
+  with `(cx << 32) | (cy & 0xFFFFFFFF)`. Bit-identical (verify ✓, cargo tests ✓),
+  but **+26% regression** (8-run **7,522.7** vs **5,950.9**). Root cause: the
+  direct-mapped cache slot functions (`(cell as u64).wrapping_mul(GOLDEN) & mask`)
+  derive the slot from the **low** bits of the 64-bit product, but `(cx<<32)*GOLDEN`
+  only influences the **high** bits — so the slot collapses to a function of `cy`
+  alone, and every cell in a grid row aliases to one `ActiveCellCache`/`LineCellCache`
+  slot → catastrophic cache thrashing. **Lesson:** Szudzik's compact keys (both
+  coords influencing the low bits, nearby cells → nearby small values) are
+  *load-bearing* for the cache-slot multiply-hashers; the key encoding is not free
+  to change even though it doesn't affect output. Reverted.
+
+- **Per-point center-cell key memoization across the 6 constraint iterations:** a
+  collidable point's sub-14px per-iteration nudge usually keeps it in the same
+  grid cell, so the integer cell coords (`cell_cor`, computed regardless) often
+  repeat — letting us skip the Szudzik fold and reuse the prior key. Pure
+  memoization (identical key value → byte-identical, verify ✓), but **perf-neutral**
+  (8-run **5,963.1** vs **5,950.9**): the memo array loads/compares cancel the saved
+  fold. Confirms `hash_int_pair` is not a meaningful cost in the optimized build —
+  V8/wasm-opt handle the Szudzik fold efficiently. Reverted.
+
+**Standing after Session 170:** **~5,950 ns/physics-frame**, unchanged — bit-identical
+to lr-core/optimizer baselines, ≈56× faster than pristine JS (333k). Still above the
+<3,000 goal. The accumulated evidence (Sessions ~90–170: ~80 consecutive rejected
+probes across the WASM core, the JS detector, build flags, data structures, and now
+the metering boundary and cell-key encoding) indicates the engine is at its practical
+**bit-identical floor**: the dominant cost is the irreducible per-frame physics
+(constraint solves + collision predicate + per-iteration history snapshots required
+for exact addLine invalidation), and micro/structural reshaping of it is consistently
+neutral-or-worse after `wasm-opt`/V8. A further ~2× to reach <3,000 most likely
+requires either a change that is *not* bit-identical (a different invalidation
+algorithm that records less history, or relaxed-precision math) or a larger rewrite
+(e.g. an AoS+SIMD kernel), neither of which fits the current bit-identical gate.

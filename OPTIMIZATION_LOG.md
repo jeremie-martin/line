@@ -4753,3 +4753,14 @@ together). Both target per-fork-switch heap churn on the hottest reconcile paths
   **[−0.63%, −0.16%]**, candidate won **106/150** rounds (p=0.000), **P(faster)=100%**
   → ✓ **KEEP**. **Standing after S177: ~5,802 ns/frame** (was ~5,833), pending the
   cumulative 3σ confirmation below.
+
+**Cumulative 3σ confirmation (S176+S177) — wins compound.** `perf_ab --ref=de8ad7d
+--rounds=100 --p=0.9987` (base = start-of-session HEAD, rebuilt fresh → independent
+build pair): Δ median **−1.78%** / mean −1.68%, 95% CI **[−1.89%, −1.47%]**, candidate
+won **89/100** rounds, **P(faster)=100% ≥ 99.87%** → ✓ CONFIRMED. The two bundles
+(−1.4% + −0.44%) compound to −1.78% with no false-positive leakage. **Confirmed
+standing after this session: ~5,803 ns/frame** (was ~5,902 at de8ad7d). Three banked
+strict-bit-identical wins this campaign now clear the 3σ cumulative bar; the
+reconcile bucket's per-fork allocation churn was the productive seam (clone + Vec
+reuse + lazy State resync), found by the "bundle independent sub-resolution
+reductions" method that the S175 single-probe rule would have discarded.

@@ -1539,12 +1539,16 @@ function rankedOptions(
     releaseSetup?: boolean;
   } = {},
 ): RankedOption[] {
+  const requestedCandidates = config.nCand ?? HANDOFF_CONTRACT_N_CAND;
+  const normalCandidates = config.axisQualitySearch
+    ? scarceFeedbackQualityNormalCandidateCount(node, gaps, ctx, telemetry, requestedCandidates)
+    : requestedCandidates;
   const sorted = getCandidatesSorted(
     node,
     gaps,
     ctx,
     seed,
-    config.nCand ?? HANDOFF_CONTRACT_N_CAND,
+    normalCandidates,
   );
   const poolSize = config.poolSize ?? handoffCandidatePool();
   const pool = sorted.slice(0, poolSize);
@@ -1628,6 +1632,46 @@ function rankedOptions(
     a.rank - b.rank
   );
   return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+function scarceFeedbackQualityNormalCandidateCount(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  telemetry: HandoffTelemetry,
+  requestedCandidates: number,
+): number {
+  const semanticSamples = estimateAxisQualitySampleCount(node, gaps, ctx);
+  if (semanticSamples <= 0) return requestedCandidates;
+  const terminalFeedback = uniqueFullEvaluations(telemetry);
+  const scarcityPressure = 1 / (1 + Math.pow(terminalFeedback / 48, 2));
+  const reserve = clampIntLocal(Math.round(semanticSamples * 0.5 * scarcityPressure), 0, 3);
+  return clampIntLocal(
+    requestedCandidates - reserve,
+    HANDOFF_CANDIDATE_POOL,
+    requestedCandidates,
+  );
+}
+
+function estimateAxisQualitySampleCount(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+): number {
+  const gap = gaps[node.gapIndex];
+  if (!gap.endsWithContact) return 0;
+  const probe = getCandidateProbe(node.prefixEngine, gap, ctx);
+  let samples = 0;
+  for (const axis of AXES) {
+    const policies = HANDOFF_AXIS_QUALITY_STREAMS[axis] ?? [];
+    for (const policy of policies) {
+      const target = axisQualityPolicyTarget(axis, policy, node.gapIndex, gaps);
+      if (target === undefined) continue;
+      if (policy.targetMax !== undefined && target > policy.targetMax) continue;
+      samples += axisQualityStreamSampleCount(axis, policy, target, probe.targetState.speed);
+    }
+  }
+  return samples;
 }
 
 function cachedAxisQualityCandidates(

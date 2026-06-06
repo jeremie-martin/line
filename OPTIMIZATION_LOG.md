@@ -4941,3 +4941,55 @@ meat); `update_computed` is ~free, invalidation is ILP-locked (present cells) +
 skip-negative (absent cells). Remaining ceiling is in `step_state` (irreducible
 physics) and the JS/detector/GC surface — the latter is the reviewer's #4
 (transient candidate-eval ABI), a larger redesign. Standing ~5,800 ns/frame.
+
+## Session 181 (2026-06-06 cont.) — pre-target sled-trace range metering, REJECT (inconclusive P=80.1%)
+
+Instrument-first JS boundary survey on one `mini_burst@50k` compile (throwaway
+`LR_SPEED_DIAG`, reverted): 1,290 `detect` calls over 92,472 detector frames;
+93,844 raw-frame reads; 1,392 metered rider reads; 2,868 pre-target sled-point
+reads; 11,100 `getLastFrameIndex` calls. Candidate: batch
+`readPreTargetSledTrace` through a new range-metered helper so the consecutive
+sled-point reads charged the same final sim-frame delta with one before/after
+`getLastFrameIndex` pair instead of per-frame before/after calls.
+
+- **Correctness:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical (engine 5/5 +
+  optimizer 4/4; `mini_burst` optimizer hash unchanged, sim_frames unchanged).
+- **A/B:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100`:
+  base mean 5809.3 ns/frame, candidate mean 5800.4 ns/frame; Δ median/mean
+  **−0.16% / −0.14%**, 95% CI **[−0.48%, +0.16%]**, candidate won **57/100**,
+  **P(candidate faster)=80.1%** → ✗ **REJECT / INCONCLUSIVE** (<95% gate).
+
+The measured savings from removing ~5.7k wrapper-side `getLastFrameIndex` calls per
+compile is below the noise floor; likely those calls are cheap next to the
+underlying `get_rider`/physics and detector allocation work. Reverted the helper
+and caller change; do not re-attempt this micro-batching alone without bundling it
+with a larger candidate-eval ABI reduction.
+
+## Session 182 (2026-06-06 cont.) — JS candidate-eval allocation/lookup bundle, KEEP (−1.39%)
+
+Bundled the sub-threshold S181 range-metering reduction with two profiler-grounded
+JS allocation/lookup cuts in the same candidate-eval surface:
+
+- capture `process.env` once as `PROCESS_ENV` so `envValue()` no longer performs a
+  repeated `globalThis.process?.env` lookup while still observing normal
+  `process.env.KEY` mutation in tests;
+- rewrite contact-centered pre/post line builders from `Array.from`/`reduce`/`map`
+  plus transient vector objects to straight loops that preserve operation order and
+  emitted line coordinates;
+- reintroduce the pre-target sled trace range-metering helper so the 2,868
+  consecutive sled-point reads in `mini_burst@50k` charge the same final sim-frame
+  delta with one before/after pair instead of per-frame before/after metering.
+
+**Correctness:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical (engine 5/5 +
+optimizer 4/4). Extra env-mutation regression slice:
+`LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+✓ 48/48.
+
+**A/B:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100`: base mean
+5817.2 ns/frame, candidate mean 5739.4 ns/frame; Δ median/mean
+**−1.39% / −1.33%**, 95% CI **[−1.54%, −1.11%]**, candidate won **89/100**,
+**P(candidate faster)=100.0%** → ✓ **KEEP**.
+
+Single-run standing after keep: `LR_ENGINE=wasm npm run perf` reported
+**5,931.8 ns/physics-frame ±327.4** (noisy absolute run; paired A/B is the keep
+evidence). The `<3000` objective remains open.

@@ -564,6 +564,66 @@ export function getSledPointPositionsMetered(engine: any, frame: number, out: nu
 }
 
 // deno-lint-ignore no-explicit-any
+export function appendSledPointPositionsRangeMetered(
+  engine: any,
+  firstFrame: number,
+  lastFrame: number,
+  out: number[] = [],
+): number[] {
+  const first = Math.max(0, firstFrame);
+  if (lastFrame < first) return out;
+
+  const before = engineLastFrameIndex(engine);
+  let chargedThrough = before;
+  const fast = engine?.getSledPointPositionsAtFrame;
+  const sledPositions: number[] = [];
+
+  for (let frame = first; frame <= lastFrame; frame++) {
+    if (
+      _physicsFrameLimit !== null &&
+      chargedThrough !== null &&
+      frame > chargedThrough &&
+      _physicsFrames + (frame - chargedThrough) > _physicsFrameLimit
+    ) {
+      throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, _physicsFrames + (frame - chargedThrough));
+    }
+
+    if (typeof fast === "function") {
+      fast.call(engine, frame, sledPositions);
+    } else {
+      const rider = engine.getRider(frame);
+      let o = 0;
+      for (const name of SLED_POINT_ORDER) {
+        const pos = rider.get(name)?.pos;
+        if (pos) {
+          sledPositions[o++] = pos.x;
+          sledPositions[o++] = pos.y;
+        }
+      }
+      sledPositions.length = o;
+    }
+
+    for (let i = 0; i < sledPositions.length; i += 2) {
+      out.push(sledPositions[i], sledPositions[i + 1]);
+    }
+
+    if (_physicsFrameLimit !== null && chargedThrough !== null) {
+      const afterFrame = engineLastFrameIndex(engine);
+      if (afterFrame !== null) {
+        chargePhysicsFrames(Math.max(0, afterFrame - chargedThrough));
+        chargedThrough = afterFrame;
+      }
+    }
+  }
+
+  const after = engineLastFrameIndex(engine);
+  if (_physicsFrameLimit === null && before !== null && after !== null) {
+    chargePhysicsFrames(Math.max(0, after - before));
+  }
+  return out;
+}
+
+// deno-lint-ignore no-explicit-any
 function extractRawFrame(engine: any, frame: number): RawFrame {
   _frameCount++;
   const fastRawFrame = engine?.getRawFrameAtFrame;

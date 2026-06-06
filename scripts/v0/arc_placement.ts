@@ -6,7 +6,7 @@
  * sled position at the target frame, then let the engine validate.
  */
 
-import { getRiderMetered, getSledPointPositionsMetered } from "../lib/detector.ts";
+import { appendSledPointPositionsRangeMetered, getRiderMetered } from "../lib/detector.ts";
 import { makeSolidLine } from "./arc.ts";
 import {
   CANDIDATE_SAMPLE_MODES,
@@ -50,9 +50,10 @@ const AIR_SUPPORT_END_ANGLE_MAX = 10;
 const AIR_SUPPORT_CURVE_BIAS_MAX = 0.35;
 
 type ProcessEnv = Record<string, string | undefined>;
+const PROCESS_ENV = (globalThis as { process?: { env?: ProcessEnv } }).process?.env;
 
 function envValue(name: string): string | undefined {
-  return (globalThis as { process?: { env?: ProcessEnv } }).process?.env?.[name];
+  return PROCESS_ENV?.[name];
 }
 
 export function readPositiveEnvNumber(name: string, fallback: number): number {
@@ -1029,17 +1030,9 @@ export function readPreTargetSledTrace(
   baseEngine: any,
   gap: Gap,
 ): PreTargetSledTrace {
-  const trace: PreTargetSledTrace = [];
   const firstFrame = Math.max(0, gap.startFrame);
   const lastFrame = gap.endFrame - 2;
-  const sledPositions: number[] = [];
-  for (let frame = firstFrame; frame <= lastFrame; frame++) {
-    getSledPointPositionsMetered(baseEngine, frame, sledPositions);
-    for (let i = 0; i < sledPositions.length; i += 2) {
-      trace.push(sledPositions[i], sledPositions[i + 1]);
-    }
-  }
-  return trace;
+  return appendSledPointPositionsRangeMetered(baseEngine, firstFrame, lastFrame, []);
 }
 
 export function hasPreTargetSledProximityFromTrace(
@@ -1101,24 +1094,32 @@ function buildPreContactLines(
   segments: number,
 ): TrackLine[] {
   const segLen = length / segments;
-  const vectors = Array.from({ length: segments }, (_, i) => {
+  const dxs = new Array<number>(segments);
+  const dys = new Array<number>(segments);
+  let totalX = 0;
+  let totalY = 0;
+  for (let i = 0; i < segments; i++) {
     const t = segments === 1 ? 1 : i / (segments - 1);
-    return vectorFromAngle(lerp(startAngleDeg, endAngleDeg, t), segLen);
-  });
-  const total = vectors.reduce(
-    (acc, v) => ({ x: acc.x + v.x, y: acc.y + v.y }),
-    { x: 0, y: 0 },
-  );
-  let x = contactPoint.x - total.x;
-  let y = contactPoint.y - total.y;
-  return vectors.map((v, i) => {
-    const x2 = i === vectors.length - 1 ? contactPoint.x : x + v.x;
-    const y2 = i === vectors.length - 1 ? contactPoint.y : y + v.y;
-    const line = makeSolidLine(lineIdStart + i, x, y, x2, y2);
+    const a = (lerp(startAngleDeg, endAngleDeg, t) * Math.PI) / 180;
+    const dx = Math.cos(a) * segLen;
+    const dy = Math.sin(a) * segLen;
+    dxs[i] = dx;
+    dys[i] = dy;
+    totalX += dx;
+    totalY += dy;
+  }
+
+  let x = contactPoint.x - totalX;
+  let y = contactPoint.y - totalY;
+  const lines = new Array<TrackLine>(segments);
+  for (let i = 0; i < segments; i++) {
+    const x2 = i === segments - 1 ? contactPoint.x : x + dxs[i];
+    const y2 = i === segments - 1 ? contactPoint.y : y + dys[i];
+    lines[i] = makeSolidLine(lineIdStart + i, x, y, x2, y2);
     x = x2;
     y = y2;
-    return line;
-  });
+  }
+  return lines;
 }
 
 function buildPostContactLines(
@@ -1132,13 +1133,13 @@ function buildPostContactLines(
   const segLen = length / segments;
   let x = contactPoint.x;
   let y = contactPoint.y;
-  const lines: TrackLine[] = [];
+  const lines = new Array<TrackLine>(segments);
   for (let i = 0; i < segments; i++) {
     const t = segments === 1 ? 1 : i / (segments - 1);
-    const v = vectorFromAngle(lerp(startAngleDeg, endAngleDeg, t), segLen);
-    const x2 = x + v.x;
-    const y2 = y + v.y;
-    lines.push(makeSolidLine(lineIdStart + i, x, y, x2, y2));
+    const a = (lerp(startAngleDeg, endAngleDeg, t) * Math.PI) / 180;
+    const x2 = x + Math.cos(a) * segLen;
+    const y2 = y + Math.sin(a) * segLen;
+    lines[i] = makeSolidLine(lineIdStart + i, x, y, x2, y2);
     x = x2;
     y = y2;
   }

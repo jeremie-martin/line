@@ -309,8 +309,10 @@ const HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES = Math.round(FPS * 0.75);
  *  catch for a required contact. This preserves the cheap common path while
  *  spending bounded work at true contract dead-ends instead of immediately
  *  turning the prefix into a skipped-contact fallback. */
-const HANDOFF_RESCUE_N_CAND = 32;
+const HANDOFF_RESCUE_BASE_N_CAND = 32;
+const HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND = 48;
 const HANDOFF_RESCUE_CANDIDATE_POOL = 12;
+const HANDOFF_RESCUE_STARTUP_EXTRA_POOL = 4;
 const HANDOFF_RESCUE_MIN_GAP_FRAMES = 16;
 /** Sub-0.3s required-contact gaps are deadline-dominated: the normal cheap
  *  16-sample prefix can have zero hits even when a catch exists later in the
@@ -1251,9 +1253,10 @@ function expandNode(
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap, ctx)) {
     telemetry.rescueAttempts++;
+    const rescueNCand = deadEndRescueCandidateCount(gap);
     options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
-      nCand: HANDOFF_RESCUE_N_CAND,
-      poolSize: HANDOFF_RESCUE_CANDIDATE_POOL,
+      nCand: rescueNCand,
+      poolSize: deadEndRescueCandidatePoolSize(gap, rescueNCand),
       preview: handoffUsesFuturePreview(qualitySearch),
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
       axisQualitySearch: qualitySearch,
@@ -1321,6 +1324,24 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap, ctx: SpecContext
   const ts = getCandidateProbe(node.prefixEngine, gap, ctx).targetState;
   const speedRatio = ts.speed / targetSpeedPx;
   return shouldOfferBrakeCandidates(targetSpeedPx, speedRatio);
+}
+
+function deadEndRescueCandidateCount(gap: Gap): number {
+  const startupPressure = startupRescuePressure(gap.endFrame);
+  return HANDOFF_RESCUE_BASE_N_CAND +
+    Math.round(HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND * startupPressure);
+}
+
+function deadEndRescueCandidatePoolSize(gap: Gap, nCand: number): number {
+  const startupPressure = startupRescuePressure(gap.endFrame);
+  const pool = HANDOFF_RESCUE_CANDIDATE_POOL +
+    Math.round(HANDOFF_RESCUE_STARTUP_EXTRA_POOL * startupPressure);
+  return Math.min(nCand, pool);
+}
+
+function startupRescuePressure(endFrame: number): number {
+  const t = Math.max(0, endFrame) / (FPS * 1.1);
+  return 1 / (1 + t * t);
 }
 
 function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {

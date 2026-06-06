@@ -94,6 +94,15 @@ LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_poli
 LR_ENGINE=wasm npm run verify
 ```
 
+> **`npm run verify` is the engine-parity gate, not a quality gate.** `verify:engine`
+> + `verify:optimizer` assert the compiler output is byte-identical to a recorded
+> baseline — that is the correctness gate for **engine-speed** work
+> (`docs/engine_speed_methodology.md`), where the output must NOT change. A
+> **compiler-quality** change *intends* to change the output, so `verify:optimizer`
+> is *expected* to diverge: re-baseline it with `npm run verify:optimizer -- --update`
+> on the accepted HEAD (the same way you re-baseline the golden HEADLINE). Don't
+> "fix" a quality change to satisfy the byte-identity baseline.
+
 ## Rules That Must Not Move
 
 - The search must be **deterministic per `(spec, seed, budget)`** — the same inputs

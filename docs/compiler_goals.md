@@ -43,16 +43,15 @@ and may evolve independently of the per-run scorer.)
   specs at a fixed budget.
 - `LR_ENGINE=wasm npm run golden` runs the full suite (24 seeds {0..23}, budgets
   `{25,50,100,150,200}k`) and reports the **HEADLINE** metric (the budget-value-weighted
-  average of the per-budget suite scores) plus the per-budget curve, the reported
-  secondaries `ceiling`/`logAUC`, and the legacy CURVE_SCORE. For the full run use
+  average of the per-budget suite scores) plus the per-budget curve. For the full run use
   `--jobs=6` unless you deliberately need a different worker count.
 - To decide a change is a real improvement, run
   `npm run decide -- <candidate>/golden.json <baseline>/golden.json` — a paired
-  cluster-bootstrap VERDICT (accept iff the headline-Δ CI lower bound > 0). Validity is
-  reported per budget but does not gate. Raw score deltas are not an acceptance rule;
-  promotion thresholds live in active campaign docs.
+  cluster-bootstrap VERDICT (accept iff the headline-Δ CI lower bound > 0), with
+  per-budget deltas reported. Validity is reported per budget but does not gate. Raw
+  score deltas are not an acceptance rule; promotion thresholds live in active campaign docs.
 
 Any compiler change should preserve these tests and report its impact through the
-golden breakdown: the `headline` block (score / ceiling / logAUC / validity),
+golden breakdown: the `headline` block (score / weight_by_budget / tier / validity),
 per-budget scores, pass/fail rows, checkpoint hashes, worst contacts, worst axes,
-and `compile_stats` (CURVE_SCORE retained as a legacy secondary).
+and `compile_stats`.

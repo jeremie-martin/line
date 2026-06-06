@@ -1,7 +1,5 @@
 import { describe, expect, test } from "vitest";
 import {
-  ceilingAt,
-  logAUC,
   pairedBootstrapCI,
   parseBudgetList,
   suiteFromGroups,
@@ -81,19 +79,6 @@ describe("weightedBudgetScore", () => {
     const w200 = WEIGHTS.find((w) => w.budget === 200_000)!.weight;
     const expected = (w50 * 300 + w200 * 600) / (w50 + w200);
     expect(weightedBudgetScore(subset, WEIGHTS)).toBeCloseTo(expected, 9);
-  });
-});
-
-describe("reported secondaries (not the decision scalar)", () => {
-  test("ceilingAt picks the max-budget score", () => {
-    expect(ceilingAt(pts([300, 400, 500]))).toBe(500);
-  });
-
-  test("logAUC: a uniformly higher curve has higher logAUC", () => {
-    const a = logAUC(pts([300, 350, 400]));
-    const b = logAUC(pts([350, 400, 450]));
-    expect(b).toBeGreaterThan(a);
-    expect(Math.abs(b - a - 50)).toBeLessThan(1e-6);
   });
 });
 

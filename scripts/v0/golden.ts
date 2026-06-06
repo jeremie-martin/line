@@ -15,11 +15,10 @@
  * Each budget is an INDEPENDENT full run (no anytime sharing): passing N budgets
  * runs N compiles per (spec, seed). The headline metric (see metric.ts) is the
  * budget-value-WEIGHTED AVERAGE of the per-budget suite scores, emitted in the
- * `headline` JSON block (with `ceiling`/`log_auc` as reported secondaries).
- * CURVE_SCORE (shifted geometric mean across the budget grid) is retained as a
- * LEGACY/secondary number. The accept/reject decision is made by
- * `analyze_golden_curve.ts decide` (paired bootstrap), not by eyeballing either
- * scalar. Optional variants are report-only robustness probes, excluded from both.
+ * `headline` JSON block. The accept/reject decision is made by
+ * `analyze_golden_curve.ts decide` (paired bootstrap with per-budget deltas), not by
+ * eyeballing the scalar. Optional variants are report-only robustness probes,
+ * excluded from the headline.
  */
 
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
@@ -40,8 +39,6 @@ const DEFAULT_JOBS = Math.max(1, Math.min(6, availableParallelism() - 1));
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
-  ceilingAt,
-  logAUC,
   weightedBudgetScore,
   type CurvePoint,
 } from "./metric.ts";
@@ -700,10 +697,6 @@ function summarizeBudgets(rows: ScoredRunRow[], budgets: number[]): BudgetSummar
   });
 }
 
-function curveScore(summaries: BudgetSummary[]): number {
-  return shiftedGeometricMean(summaries.map((summary) => summary.score));
-}
-
 function formatWorstAxes(axes: ScoredCheckpoint["axes"]): string {
   if (axes.length === 0) return "";
   const top = [...axes].sort((a, b) => Math.abs(b.error) - Math.abs(a.error)).slice(0, 4);
@@ -747,16 +740,15 @@ function printRunRow(row: ScoredRunRow, details: boolean): void {
   }
 }
 
-function printCurveSummary(label: string, rows: ScoredRunRow[], budgets: number[], canonical: boolean): void {
+function printBudgetCurve(label: string, rows: ScoredRunRow[], budgets: number[], canonical: boolean): void {
   const summaries = summarizeBudgets(rows, budgets);
-  const score = curveScore(summaries);
   const flat = flattenCheckpoints(rows);
   const passed = flat.filter((row) => row.status === "pass").length;
   const timeouts = flat.filter((row) => row.status === "timeout").length;
   const invalid = flat.filter((row) => row.status === "fail" || row.status === "error").length;
 
   console.log(
-    `${canonical ? label : `${label} (indicative)`} ${score.toFixed(2)} · ` +
+    `${canonical ? label : `${label} (indicative)`} · ` +
       `valid ${passed}/${flat.length} · invalid ${invalid} · timeout ${timeouts}`,
   );
   console.log("  budget curve:");
@@ -1204,20 +1196,14 @@ async function runMain(): Promise<void> {
   );
 
   const headlineSummaries = summarizeBudgets(scored, budgets);
-  const headlineCurveScore = curveScore(headlineSummaries);
   const headlinePoints: CurvePoint[] = budgets.map((b) => ({
     budget: b,
     score: headlineSummaries.find((s) => s.budget === b)?.score ?? 0,
   }));
-  const headlineMetric = {
-    score: weightedBudgetScore(headlinePoints, weightByBudget),
-    ceiling: ceilingAt(headlinePoints),
-    logAUC: logAUC(headlinePoints),
-  };
+  const headlineScoreValue = weightedBudgetScore(headlinePoints, weightByBudget);
 
   let variantRows: ScoredRunRow[] = [];
   let variantSummaries: BudgetSummary[] = [];
-  let variantCurveScore = 0;
   let variantHeadlineScore = 0;
   if (includeVariants) {
     if (!jsonOnly) {
@@ -1237,7 +1223,6 @@ async function runMain(): Promise<void> {
       checkpointDir,
     );
     variantSummaries = summarizeBudgets(variantRows, budgets);
-    variantCurveScore = curveScore(variantSummaries);
     variantHeadlineScore = weightedBudgetScore(
       budgets.map((b) => ({ budget: b, score: variantSummaries.find((s) => s.budget === b)?.score ?? 0 })),
       weightByBudget,
@@ -1254,17 +1239,13 @@ async function runMain(): Promise<void> {
       json_path: resolve(archiveDir, "golden.json"),
       checkpoint_dir: checkpointDir,
     },
-    curve_score: round(headlineCurveScore),
     headline: {
       kind: "weighted_budget_average",
       tier,
       n_seeds: seeds.length,
-      score: round(headlineMetric.score),
+      score: round(headlineScoreValue),
       weight_by_budget: weightByBudget.map((w) => ({ budget: w.budget, weight: round(w.weight, 6) })),
       budgets: [...budgets],
-      // Reported secondaries only — NOT the decision scalar.
-      ceiling: round(headlineMetric.ceiling),
-      log_auc: round(headlineMetric.logAUC),
       // Per-budget validity is a diagnostic; it does not gate the decision.
       validity: headlineSummaries.map((s) => ({ budget: s.budget, pass_rate: round(s.contract_pass_rate, 4) })),
     },
@@ -1290,7 +1271,6 @@ async function runMain(): Promise<void> {
     variants: includeVariants
       ? {
           enabled: true,
-          curve_score: round(variantCurveScore),
           headline_score: round(variantHeadlineScore),
           variants: [...REPORT_VARIANTS],
           budget_scores: variantSummaries.map(jsonBudgetSummary),
@@ -1305,19 +1285,18 @@ async function runMain(): Promise<void> {
   if (jsonOnly) {
     process.stdout.write(jsonText);
   } else {
-    printCurveSummary("CURVE_SCORE", scored, budgets, canonical);
+    printBudgetCurve("budget curve", scored, budgets, canonical);
     {
       const bmax = headlineSummaries[headlineSummaries.length - 1];
       console.log(
-        `  HEADLINE ${round(headlineMetric.score)} · weighted-avg over budgets=${budgets.map(fmtBudget).join(",")} ` +
-          `(weights∝budget) · ceiling=${round(headlineMetric.ceiling)} logAUC=${round(headlineMetric.logAUC)} · ` +
-          `tier=${tier} · validity@${fmtBudget(bmax.budget)}=${bmax.passed}/${bmax.total}`,
+        `  HEADLINE ${round(headlineScoreValue)} · weighted-avg over budgets=${budgets.map(fmtBudget).join(",")} ` +
+          `(weights∝budget) · tier=${tier} · validity@${fmtBudget(bmax.budget)}=${bmax.passed}/${bmax.total}`,
       );
     }
     if (includeVariants) {
       console.log("");
-      printCurveSummary("VARIANT_CURVE_SCORE", variantRows, budgets, false);
-      console.log("  variants probe generalization (perturbed timing/stretch); excluded from CURVE_SCORE.");
+      printBudgetCurve("variant budget curve", variantRows, budgets, false);
+      console.log("  variants probe generalization (perturbed timing/stretch); excluded from HEADLINE.");
     }
     console.log("");
     console.log(`archived golden JSON -> ${output.archive.json_path}`);

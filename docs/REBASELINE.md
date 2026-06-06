@@ -11,10 +11,9 @@ LR_ENGINE=wasm npx tsx scripts/v0/golden.ts --jobs=6 --archive-dir=generated/gol
 ```
 
 The JSON contains the `headline` block (`kind`, `tier`, `score`, `weight_by_budget`,
-`budgets`, `ceiling`/`log_auc` secondaries, `validity`) — the **baseline of record** — plus the legacy
-`curve_score`, `budgets`, `budget_scores`, `evaluator_fingerprint`, `source` git
-metadata, `scope`, and checkpoint rows with compact stats and track hashes. The
-run writes
+`budgets`, `validity`) — the **baseline of record** — plus `budget_scores`,
+`evaluator_fingerprint`, `source` git metadata, `scope`, and checkpoint rows with
+compact stats and track hashes. The run writes
 `generated/golden-runs/rebaseline/golden.json` and
 checkpoint track/report artifacts under `generated/golden-runs/rebaseline/checkpoints/`.
 

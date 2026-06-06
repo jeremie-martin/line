@@ -490,13 +490,10 @@ function normalizeGoldenRun(entry, data) {
     evaluatorFingerprint: data.evaluator_fingerprint ?? "unknown",
     source: data.source ?? {},
     archive: data.archive ?? {},
-    curveScore: Number(data.curve_score ?? 0),
-    // Headline metric: budget-value-weighted average of the per-budget suite scores
-    // (see metric.ts); `ceiling`/`log_auc` are reported secondaries. Captured here so
-    // the UI can show the real metric; curveScore above is the LEGACY shifted-geomean.
-    // TODO(dashboard): surface `headline` as the primary KPI (score + weight_by_budget
-    // + tier + validity), and relabel the curveScore tile/columns "curve score (legacy
-    // SGM)". Do this with the dashboard running (verify skill).
+    // HEADLINE = budget-value-weighted average of the per-budget suite scores (see
+    // metric.ts). This is THE metric the UI surfaces; the legacy curve_score (SGM) is
+    // gone. Full headline block kept for tier/weights/validity detail.
+    headlineScore: Number(data.headline?.score ?? 0),
     headline: data.headline ?? null,
     budgets,
     budgetScores,
@@ -540,7 +537,7 @@ function setupGoldenControls(state) {
   const focusSelect = document.getElementById("golden-focus");
   const baselineSelect = document.getElementById("golden-baseline");
   const runOptions = state.runs.slice().reverse().map((run) =>
-    `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)} · ${fmtGoldenNumber(run.curveScore, 2)}</option>`).join("");
+    `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)} · ${fmtGoldenNumber(run.headlineScore, 2)}</option>`).join("");
   focusSelect.innerHTML = runOptions;
   baselineSelect.innerHTML = `<option value="">none</option>${runOptions}`;
 
@@ -809,7 +806,7 @@ function renderGoldenCurve(state, selected, focus) {
   state._building = false;
 }
 
-// Score-over-commits: range-scoped curve_score plotted against commit order.
+// Score-over-commits: range-scoped HEADLINE plotted against commit order.
 // Answers "did the compiler improve across this branch?" directly.
 function renderGoldenProgression(state, selected) {
   const host = document.getElementById("golden-progression");
@@ -1059,7 +1056,7 @@ function renderGoldenCatalog(host, state) {
     return `<tr class="${run.id === state.focusId ? "is-focus" : ""}">` +
       `<td><input type="checkbox" data-run-toggle="${escapeHtml(run.id)}"${selected ? " checked" : ""}></td>` +
       `<td><button type="button" data-focus-run="${escapeHtml(run.id)}">${escapeHtml(run.label)}</button><span>${escapeHtml(run.id)}</span></td>` +
-      `<td>${fmtGoldenNumber(run.curveScore, 2)}</td>` +
+      `<td>${fmtGoldenNumber(run.headlineScore, 2)}</td>` +
       `<td>${run.canonical ? "yes" : "no"}</td>` +
       `<td>${firstFull ? fmtBudget(firstFull) : "—"}</td>` +
       `<td>${first ? `${first.passed}/${first.total}` : "—"} → ${last ? `${last.passed}/${last.total}` : "—"}</td>` +
@@ -1274,23 +1271,20 @@ function goldenRunColor(run, index) {
   return run.color ?? GOLDEN_RUN_COLORS[index % GOLDEN_RUN_COLORS.length];
 }
 
-// Shifted geometric mean — the exact curve_score aggregation from score.ts
-// (shiftedGeometricMean(values, shift=1)). Replicated so range-scoped scores
-// match the canonical metric rather than approximating it.
-function goldenSgm(values, shift = 1) {
-  if (!values.length) return 0;
-  const logMean = values.reduce((sum, v) => {
-    const safe = Number.isFinite(v) ? Math.max(0, v) : 0;
-    return sum + Math.log(safe + shift);
-  }, 0) / values.length;
-  return Math.exp(logMean) - shift;
+// Budget-value-weighted average of per-budget suite scores — the HEADLINE
+// aggregation (metric.ts weightedBudgetScore: weights ∝ budget value). Replicated so
+// a range-scoped score matches the canonical metric over the windowed budgets.
+function goldenWeightedAvg(summaries) {
+  let num = 0, den = 0;
+  for (const s of summaries) { num += s.budget * s.score; den += s.budget; }
+  return den > 0 ? num / den : 0;
 }
 
-// curve_score restricted to a [min,max] budget window (null = full range).
+// HEADLINE restricted to a [min,max] budget window (null = full range).
 function rangeScopedScore(run, range) {
   const summaries = rangeScopedSummaries(run, range);
-  if (!summaries.length) return run.curveScore;
-  return goldenSgm(summaries.map((s) => s.score));
+  if (!summaries.length) return run.headlineScore;
+  return goldenWeightedAvg(summaries);
 }
 
 function rangeScopedSummaries(run, range) {

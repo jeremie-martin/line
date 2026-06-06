@@ -15,10 +15,9 @@ decision methodology rests on:
     absolute metric. The paired bootstrap CI is the real decision threshold.
 
 Produce the inputs with e.g.:
-  GOLDEN_SEEDS_OVERRIDE=0,1,2,...,11,20,21,22,100,101,102 \\
-    LR_ENGINE=wasm npx tsx scripts/v0/golden.ts --budgets=50000,75000,100000,125000,150000 \\
+  LR_ENGINE=wasm npx tsx scripts/v0/golden.ts --budgets=25000,50000,100000,150000,200000 \\
     --jobs=6 --archive-dir=generated/golden-runs/_base
-  (set LR_ARC_PLACEMENT=continuous for the candidate)
+  (the canonical population is the 24 contiguous seeds 0..23)
 
 Usage:
   python3 scripts/v0/variance_report.py BASE.json [CANDIDATE.json] [--budget=150000]
@@ -30,8 +29,8 @@ import random
 import statistics as st
 from math import sqrt
 
-POP_SEEDS = list(range(12))  # clean contiguous population for variance estimation
-TRIPLES = {"canonical(100-102)": [100, 101, 102], "holdout(20-22)": [20, 21, 22]}
+POP_SEEDS = list(range(24))  # the canonical contiguous population (seeds 0..23)
+TRIPLES = {"low(0-2)": [0, 1, 2], "high(21-23)": [21, 22, 23]}
 SUBSAMPLE_CAP = 1500
 random.seed(0)
 

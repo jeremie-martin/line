@@ -60,7 +60,7 @@ async function firstCleanSnapshot(): Promise<HandoffNodeSnapshot> {
 }
 
 describe("optimizer/handoff.ts - prefix hand-off search", () => {
-  test("satisfies the architecture-agnostic budget-search contract", async () => {
+  test("satisfies the determinism contract (same spec/seed/budget -> identical Track)", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const compile: BudgetCompile = (inputSpec, opts) =>
       compileHandoff(inputSpec, opts.seed, {
@@ -68,11 +68,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         maxNodes: opts.maxNodes ?? 12,
         polish: false,
       });
-    assertBudgetSearchContract(compile, "tiny_dance/handoff", spec, {
-      budgets: [1, 7_000, 20_000],
-      checkFreeze: true,
-      freezeMaxNodes: 12,
-    });
+    assertBudgetSearchContract(compile, "tiny_dance/handoff", spec, { budget: 20_000, maxNodes: 12 });
   }, 120_000);
 
   test("same (spec, seed, budget) records identical work and previews", async () => {

@@ -100,7 +100,8 @@ export type CompileHandoffOptions = {
    *  `compileBudgetCurve`). The search policy is still budget-oblivious this step —
    *  the budget is only the stop condition. */
   budget: number;
-  /** Fixed search-size cap, independent of budget. Keeps unbudgeted probes finite. */
+  /** Optional hard node cap for diagnostic probes. Production leaves this unset and
+   *  is bounded by the frame budget alone (a default runaway backstop applies). */
   maxNodes?: number;
   /** Clone-and-test polish variants for each prefix considered. Default false. */
   polish?: boolean;
@@ -294,7 +295,14 @@ type AxisQualityStreamPolicy = {
 
 const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
 
-const DEFAULT_MAX_NODES = 800;
+// Production runs are bounded by the FRAME BUDGET, not a node cap — the budget is
+// the effort knob, so a fixed node ceiling must not silently override it (at higher
+// budgets, or once the search scales breadth with budget, an 800-node cap would bind
+// before the frame budget and make budget stop mattering). This large value is only a
+// runaway/hang backstop (e.g. against a pathological 0-frame-charging loop), set far
+// above any budget-reachable node count; diagnostic probes still pass an explicit,
+// small `maxNodes`. Output-neutral on the canonical grid (worst spec ≈672 nodes @200k).
+const DEFAULT_MAX_NODES = 5_000_000;
 const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a

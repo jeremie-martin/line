@@ -18,7 +18,7 @@ set -euo pipefail
 MAIN="${MAIN:-/home/jmartin/line}"
 FROM_COMMIT="${FROM_COMMIT:-646b0da}"
 BRANCH="${BRANCH:-reach-handoff-wyss}"
-BUDGETS="${BUDGETS:-$(seq -s, 5000 5000 200000)}"   # 40 checkpoints, 5k..200k
+BUDGETS="${BUDGETS:-25000,50000,100000,150000,200000}"   # canonical grid (each an independent run)
 SEEDS="${SEEDS:-$(seq -s, 10 1 19)}"                # seeds 10..19
 JOBS="${JOBS:-8}"
 SPECS="${SPECS:-}"                                  # empty = all 20 headline specs
@@ -90,7 +90,7 @@ apply_seed_patch() {
 }
 
 # ---- golden.json completeness validator -------------------------------------
-# exit 0 = complete; nonzero = missing/partial. Prints curve_score on success.
+# exit 0 = complete; nonzero = missing/partial. Prints headline.score on success.
 validate_json() {
   node -e '
     const fs = require("fs");
@@ -104,7 +104,7 @@ validate_json() {
     const expRows = Number(nSpecs) * wantSeeds.length;
     if (rows.length !== expRows) { console.error("row count "+rows.length+" != "+expRows); process.exit(5); }
     for (const r of rows) if (!Array.isArray(r.checkpoints) || r.checkpoints.length !== Number(nBudget)) { console.error("row "+r.name+" seed "+r.seed+" checkpoints "+(r.checkpoints||[]).length); process.exit(6); }
-    process.stdout.write(String(j.curve_score));
+    process.stdout.write(String(j.headline.score));
   ' "$1" "$EXPECT_BUDGET_COUNT" "$EXPECT_SEEDS" "${2:-20}"
 }
 
@@ -161,7 +161,7 @@ calibrate() {
   echo "  peak process RSS   : ${rssg} GB  (cap is ${JOBS}x3GB; RAM=30GB)"
   echo "  golden.json size   : $jsz  (stripped, $ncs specs)"
   echo "  checkpoints        : $nchk  (expect $((EXPECT_BUDGET_COUNT*ncs*nseeds)))"
-  echo "  curve_score        : $cs"
+  echo "  headline           : $cs"
   echo "  ---- extrapolation to all 20 headline specs ----"
   echo "  per-commit (20 specs)  : ~${per_commit_s}s  (~$((per_commit_s/60)) min)"
   echo "  full sweep (20 commits): ~$((per_commit_s*20/3600))h  (rough; specs vary in cost)"
@@ -211,12 +211,12 @@ sweep() {
     [ "$KEEP_CHECKPOINTS" = "1" ] || rm -rf "$archive/checkpoints"
     strip_json "$archive/golden.json"
     local jsz; jsz="$(du -h "$archive/golden.json" | cut -f1)"
-    log "  done curve_score=$cs  ${dt}s  json=$jsz"
+    log "  done headline=$cs  ${dt}s  json=$jsz"
   done
 
   echo
   echo "================ SWEEP SUMMARY ===================="
-  printf '  %-4s %-13s %-12s %s\n' NN commit curve_score size
+  printf '  %-4s %-13s %-12s %s\n' NN commit headline size
   for ((i=0; i<total; i++)); do
     local nn; nn="$(printf '%02d' "$i")"
     local short; short="$(git -C "$MAIN" rev-parse --short=12 "${HASHES[$i]}")"
@@ -224,7 +224,7 @@ sweep() {
     if [ -n "${SKIP[$nn]:-}" ]; then
       printf '  %-4s %-13s %-12s %s\n' "$nn" "$short" "skipped" "-"
     elif [ -f "$archive/golden.json" ]; then
-      local cs; cs="$(node -e 'try{console.log(require(process.argv[1]).curve_score)}catch{console.log("?")}' "$archive/golden.json")"
+      local cs; cs="$(node -e 'try{console.log(require(process.argv[1]).headline.score)}catch{console.log("?")}' "$archive/golden.json")"
       local jsz; jsz="$(du -h "$archive/golden.json" | cut -f1)"
       printf '  %-4s %-13s %-12s %s\n' "$nn" "$short" "$cs" "$jsz"
     else

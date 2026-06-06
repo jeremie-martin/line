@@ -150,9 +150,9 @@ LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts
 LR_ENGINE=wasm npm run golden -- --compiler=handoff --jobs=6
 ```
 
-The command reports the **HEADLINE** metric (and legacy CURVE_SCORE), per-budget
-scores, row checkpoint hashes, and compact checkpoint stats. Targeted probes use
-the same shape, on a subset of the canonical budgets (e.g. `--budgets=25000,200000`):
+The command reports the **HEADLINE** metric, per-budget scores, row checkpoint
+hashes, and compact checkpoint stats. Targeted probes use the same shape, on a
+subset of the canonical budgets (e.g. `--budgets=25000,200000`):
 
 ```bash
 LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst --seed=0 --budgets=30000,50000,70000 --jobs=6

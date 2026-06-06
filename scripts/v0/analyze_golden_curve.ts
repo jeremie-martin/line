@@ -7,10 +7,7 @@
  */
 
 import { readFileSync } from "node:fs";
-import { shiftedGeometricMean } from "./score.ts";
 import {
-  ceilingAt,
-  logAUC,
   pairedBootstrapCI,
   weightedBudgetScore,
   type BudgetWeight,
@@ -164,7 +161,6 @@ type RunRow = {
 };
 
 type GoldenCurveJson = {
-  curve_score?: number;
   headline?: {
     kind?: string;
     tier?: "canonical" | "probe";
@@ -172,13 +168,9 @@ type GoldenCurveJson = {
     score: number;
     weight_by_budget?: { budget: number; weight: number }[];
     budgets?: number[];
-    ceiling: number;
-    log_auc: number;
     validity: { budget: number; pass_rate: number }[];
-    // Legacy (pre-migration) ceiling-blend archives carried these; their presence
-    // without `kind` marks an archive that `decide` refuses as non-comparable.
-    alpha?: number;
-    score_budgets?: number[];
+    // A legacy (pre-migration) archive lacks `kind`; `decide` refuses it as
+    // non-comparable rather than reading any old ceiling-blend fields.
   };
   evaluator_fingerprint?: string;
   budgets?: number[];
@@ -216,11 +208,6 @@ function readInput(path: string): GoldenCurveJson {
     throw new Error("input does not look like golden curve JSON (missing budget_scores)");
   }
   return parsed;
-}
-
-function curveScoreFor(data: GoldenCurveJson): number {
-  return data.curve_score ??
-    shiftedGeometricMean(data.budget_scores!.map((summary) => summary.score));
 }
 
 function checkpointAt(row: RunRow, budget: number): CheckpointRow | undefined {
@@ -1281,13 +1268,6 @@ function printComparison(current: GoldenCurveJson, baseline: GoldenCurveJson): v
 
   console.log("");
   console.log(`comparison vs baseline (${pairs.length} common rows):`);
-  const sameArchiveScope = pairs.length === currentRows.length && pairs.length === baselineRows.length;
-  if (sameArchiveScope && current.curve_score !== undefined && baseline.curve_score !== undefined) {
-    const delta = curveScoreFor(current) - curveScoreFor(baseline);
-    console.log(`  archive CURVE_SCORE delta: ${fmtSigned(delta)}`);
-  } else if (current.curve_score !== undefined && baseline.curve_score !== undefined) {
-    console.log("  archive CURVE_SCORE delta: not comparable (different row scope)");
-  }
   console.log("  common-row budget deltas:");
   for (const budget of budgets) {
     let currentScore = 0;
@@ -1550,6 +1530,19 @@ function runDecide(args: string[]): void {
     `  Δheadline = ${d.delta >= 0 ? "+" : ""}${d.delta.toFixed(1)} · ` +
       `95% CI [${d.ciLo.toFixed(1)}, ${d.ciHi.toFixed(1)}] · P(Δ≤0)=${(d.pLeZero * 100).toFixed(1)}% · effect=${d.effect.toFixed(2)}`,
   );
+  if (d.perBudget.length > 1) {
+    // Per-budget paired deltas: each budget is its own optimization target, so a
+    // budget-trading change (helps cheap, dents expensive, or vice-versa) is visible
+    // here rather than averaged into the headline. Reported; does not gate.
+    console.log("  per-budget Δ (base->cand, 95% CI; reported, does NOT gate):");
+    for (const p of d.perBudget) {
+      const sign = p.delta >= 0 ? "+" : "";
+      console.log(
+        `    ${fmtBudget(p.budget).padStart(5)}  ${p.baseScore.toFixed(1)}->${p.candScore.toFixed(1)}  ` +
+          `Δ=${sign}${p.delta.toFixed(1)}  CI[${p.ciLo.toFixed(1)}, ${p.ciHi.toFixed(1)}]  P(Δ≤0)=${(p.pLeZero * 100).toFixed(0)}%`,
+      );
+    }
+  }
   if (d.validity.length > 0) {
     console.log("  validity (pass-rate base->cand; reported diagnostic — does NOT gate the verdict):");
     for (const v of d.validity) {
@@ -1595,31 +1588,24 @@ function main(): void {
   const rows = data.scope?.row_count ?? 0;
   const checkpoints = data.scope?.checkpoint_count ?? 0;
   // Prefer the archive's STORED headline block (exact match to what golden.ts wrote);
-  // only recompute for archives that lack one.
-  let headline: { score: number; ceiling: number; logAUC: number; tier: string };
+  // only recompute for legacy archives that lack one.
+  let headlineScoreValue: number;
+  let tier: string;
   if (data.headline) {
-    headline = {
-      score: data.headline.score,
-      ceiling: data.headline.ceiling,
-      logAUC: data.headline.log_auc,
-      tier: data.headline.tier ?? (data.headline.kind === HEADLINE_KIND ? "?" : "legacy"),
-    };
+    headlineScoreValue = data.headline.score;
+    tier = data.headline.tier ?? (data.headline.kind === HEADLINE_KIND ? "?" : "legacy");
   } else {
     const allBudgets = data.budgets ?? data.budget_scores!.map((s) => s.budget);
     const points = allBudgets.map((b) => ({
       budget: b,
       score: data.budget_scores!.find((s) => s.budget === b)?.score ?? 0,
     }));
-    headline = {
-      score: weightedBudgetScore(points, budgetWeights(allBudgets)),
-      ceiling: ceilingAt(points),
-      logAUC: logAUC(points),
-      tier: "recomputed",
-    };
+    headlineScoreValue = weightedBudgetScore(points, budgetWeights(allBudgets));
+    tier = "recomputed";
   }
   console.log(
-    `HEADLINE ${headline.score.toFixed(2)} · ceiling=${headline.ceiling.toFixed(2)} · logAUC=${headline.logAUC.toFixed(2)} ` +
-      `(weighted-avg, tier=${headline.tier}) · rows ${rows} · checkpoints ${checkpoints}`,
+    `HEADLINE ${headlineScoreValue.toFixed(2)} (weighted-avg, tier=${tier}) · ` +
+      `rows ${rows} · checkpoints ${checkpoints}`,
   );
   console.log("budget curve:");
   for (const summary of data.budget_scores!) {

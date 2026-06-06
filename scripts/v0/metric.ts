@@ -11,7 +11,8 @@
  *    WEIGHTED AVERAGE of the per-budget suite scores, weights proportional to budget
  *    value (higher-quality expensive runs matter more; lower budgets still count).
  *    Each budget is its own optimization target, so averaging per-budget optima is
- *    the right scalar — `ceiling`/`logAUC` are kept only as reported secondaries.
+ *    the right scalar. `decide` also reports the per-budget paired deltas/CIs so a
+ *    budget-trading change is visible, not averaged away.
  *    Interim trade: while the search is still budget-oblivious this rewards
  *    early-budget gains the prior ceiling-heavy metric penalized; that is expected.
  *  - Decision: PAIRED cluster bootstrap on the headline delta (same specs+seeds for
@@ -22,6 +23,11 @@
  *    as a diagnostic only.
  *  - Weights are keyed by budget (not position), so the decision recomputes safely on
  *    a budget intersection (e.g. a probe tier subset), renormalizing automatically.
+ *  - The per-budget deltas share ONE resample per iteration across budgets (the
+ *    aggregate's basis), so they reconcile with the weighted Δ. A future per-budget
+ *    significance methodology (analogous to docs/engine_speed_methodology.md for the
+ *    engine) may instead bootstrap each budget's column independently; that is the
+ *    intended evolution, not a change this module makes yet.
  */
 import { shiftedGeometricMean } from "./score.ts";
 
@@ -33,38 +39,6 @@ export type ScoreCube = Map<string, Map<number, Map<number, number>>>;
 /** Per-config validity cube: spec -> seed -> (budget -> contract_passed). */
 export type ValidCube = Map<string, Map<number, Map<number, boolean>>>;
 
-/**
- * Area under the quality-vs-log(budget) curve, normalized by the log-budget span
- * so the result is in score units (comparable to a single-budget score).
- * Trapezoidal in log-budget because diminishing returns live in log space and so
- * the value is robust to refining the budget grid.
- *
- * TODO(usage-weighting): `budgetWeights[i]` weights the i-th log-budget interval
- * by real deployment-budget frequency instead of uniform. Unused today (uniform);
- * wire to a deployment usage distribution when one is chosen.
- */
-export function logAUC(points: CurvePoint[], budgetWeights?: number[]): number {
-  const pts = points.filter((p) => p.budget > 0).sort((a, b) => a.budget - b.budget);
-  if (pts.length === 0) return 0;
-  if (pts.length === 1) return pts[0].score;
-  const xs = pts.map((p) => Math.log(p.budget));
-  let area = 0;
-  let span = 0;
-  for (let i = 1; i < pts.length; i++) {
-    const dx = xs[i] - xs[i - 1];
-    const w = budgetWeights ? budgetWeights[i - 1] ?? 1 : 1;
-    area += w * dx * (pts[i].score + pts[i - 1].score) / 2;
-    span += w * dx;
-  }
-  if (span <= 0) return pts.reduce((s, p) => s + p.score, 0) / pts.length;
-  return area / span;
-}
-
-/** Suite quality at the largest budget present (the ceiling). */
-export function ceilingAt(points: CurvePoint[]): number {
-  if (points.length === 0) return 0;
-  return points.reduce((best, p) => (p.budget > best.budget ? p : best), points[0]).score;
-}
 
 /**
  * THE HEADLINE SCALAR: weighted average of per-budget suite scores,
@@ -138,17 +112,17 @@ function quantile(sorted: number[], q: number): number {
   return sorted[idx];
 }
 
-/** Headline score for a (possibly resampled) set of specs and per-spec seeds.
- *  Takes a precomputed weight map (the bootstrap calls this ~2·B times with the
- *  same constant weighting, so the map is built once by the caller). */
-function headlineForSample(
+/** Per-budget suite scores for a (possibly resampled) set of specs and per-spec
+ *  seeds — one suite score per budget (shifted-geomean over seeds then specs). The
+ *  bootstrap reuses this vector for BOTH the per-budget deltas and the weighted
+ *  aggregate, so each resample computes it once. */
+function perBudgetSuite(
   cube: ScoreCube,
   specsSample: string[],
   seedsBySpec: Map<string, number[]>,
   budgets: number[],
-  weightMap: Map<number, number>,
-): number {
-  const points: CurvePoint[] = budgets.map((b) => {
+): number[] {
+  return budgets.map((b) => {
     const groups: number[][] = [];
     for (const spec of specsSample) {
       const seedCurves = cube.get(spec);
@@ -160,9 +134,22 @@ function headlineForSample(
       groups.push(seeds.map((se) => seedCurves.get(se)?.get(b) ?? 0));
     }
     // Same two-level aggregation as golden.ts's per-budget suiteScore (see suiteFromGroups).
-    return { budget: b, score: suiteFromGroups(groups) };
+    return suiteFromGroups(groups);
   });
-  return weightedBudgetScoreFromMap(points, weightMap);
+}
+
+/** Weighted aggregate of a per-budget suite vector (divides by the weights used,
+ *  so a budget subset renormalizes — matching `weightedBudgetScore`). */
+function weightedFromVec(vec: number[], budgets: number[], weightMap: Map<number, number>): number {
+  let num = 0;
+  let den = 0;
+  for (let i = 0; i < budgets.length; i++) {
+    const wb = weightMap.get(budgets[i]);
+    if (wb === undefined || wb <= 0) continue;
+    num += wb * vec[i];
+    den += wb;
+  }
+  return den > 0 ? num / den : 0;
 }
 
 /** Suite validity rate per budget (mean over specs of mean-over-seeds pass rate). */
@@ -178,6 +165,19 @@ export function validityByBudget(valid: ValidCube, budgets: number[]): { budget:
   });
 }
 
+/** A paired delta + CI for ONE budget — so a budget-trading change (helps cheap,
+ *  hurts expensive, or vice-versa) is visible rather than averaged into the headline.
+ *  Reported, not gating; the seed for the future per-budget significance methodology. */
+export type PerBudgetDelta = {
+  budget: number;
+  baseScore: number;
+  candScore: number;
+  delta: number;
+  ciLo: number;
+  ciHi: number;
+  pLeZero: number;
+};
+
 export type Decision = {
   baseHeadline: number;
   candidateHeadline: number;
@@ -188,6 +188,8 @@ export type Decision = {
   effect: number; // mean / sd  (paired Cohen's d analog)
   budgets: number[];
   weightByBudget: BudgetWeight[];
+  /** Per-budget paired deltas + CIs (same resample basis as the aggregate). */
+  perBudget: PerBudgetDelta[];
   /** Per-budget validity rates, REPORTED as a diagnostic only — they never gate. */
   validity: { budget: number; baseRate: number; candRate: number }[];
   verdict: "accept" | "reject" | "inconclusive";
@@ -235,6 +237,11 @@ export function pairedBootstrapCI(
   // iterations); the loop only resamples from it.
   const seedsBySpecAll = new Map(specs.map((s) => [s, seedsOf(s)] as const));
   const deltas: number[] = [];
+  // Per-budget delta samples, same resample basis as the aggregate (one resample per
+  // iteration applied to all budgets) — so the per-budget deltas reconcile with the
+  // weighted aggregate. (A future significance redesign may bootstrap each budget's
+  // column independently; documented in the metric header.)
+  const perBudgetDeltaSamples: number[][] = budgets.map(() => []);
 
   for (let i = 0; i < B; i++) {
     const specsSample = specs.map(() => pick(specs));
@@ -243,9 +250,13 @@ export function pairedBootstrapCI(
       const seeds = seedsBySpecAll.get(spec)!;
       seedsBySpec.set(spec, seeds.map(() => pick(seeds)));
     }
+    const candVec = perBudgetSuite(cand, specsSample, seedsBySpec, budgets);
+    const baseVec = perBudgetSuite(base, specsSample, seedsBySpec, budgets);
+    for (let bi = 0; bi < budgets.length; bi++) {
+      perBudgetDeltaSamples[bi].push(candVec[bi] - baseVec[bi]);
+    }
     deltas.push(
-      headlineForSample(cand, specsSample, seedsBySpec, budgets, weightMap) -
-        headlineForSample(base, specsSample, seedsBySpec, budgets, weightMap),
+      weightedFromVec(candVec, budgets, weightMap) - weightedFromVec(baseVec, budgets, weightMap),
     );
   }
 
@@ -253,11 +264,26 @@ export function pairedBootstrapCI(
   const lo = (1 - level) / 2;
   const dMean = mean(deltas);
   const sd = Math.sqrt(mean(deltas.map((d) => (d - dMean) ** 2)));
-  const baseHeadline = headlineForSample(base, specs, seedsBySpecAll, budgets, weightMap);
-  const candidateHeadline = headlineForSample(cand, specs, seedsBySpecAll, budgets, weightMap);
+  const baseVecAll = perBudgetSuite(base, specs, seedsBySpecAll, budgets);
+  const candVecAll = perBudgetSuite(cand, specs, seedsBySpecAll, budgets);
+  const baseHeadline = weightedFromVec(baseVecAll, budgets, weightMap);
+  const candidateHeadline = weightedFromVec(candVecAll, budgets, weightMap);
   const pointDelta = candidateHeadline - baseHeadline;
   const ciLo = quantile(deltas, lo);
   const ciHi = quantile(deltas, 1 - lo);
+
+  const perBudget: PerBudgetDelta[] = budgets.map((b, bi) => {
+    const samp = [...perBudgetDeltaSamples[bi]].sort((x, y) => x - y);
+    return {
+      budget: b,
+      baseScore: baseVecAll[bi],
+      candScore: candVecAll[bi],
+      delta: candVecAll[bi] - baseVecAll[bi],
+      ciLo: quantile(samp, lo),
+      ciHi: quantile(samp, 1 - lo),
+      pLeZero: mean(samp.map((d) => (d <= 0 ? 1 : 0))),
+    };
+  });
 
   // Reported diagnostic only — per-budget validity rates, NOT a gate.
   const validity = opts.validBase && opts.validCand
@@ -281,6 +307,7 @@ export function pairedBootstrapCI(
     effect: sd > 0 ? dMean / sd : 0,
     budgets,
     weightByBudget,
+    perBudget,
     validity,
     verdict,
   };

@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-// Focus-campaign metric reader for the fragile-spec loop.
+// Fragility diagnostic reader (companion to the archived fragile-spec campaign,
+// docs/archive/FOCUS_FRAGILE_SPECS.md). NOT the decision metric — the headline is
+// the budget-value-weighted average (metric.ts); this is a fragility lens only.
 //   node scripts/v0/focus_report.mjs <golden.json> [loBudget] [hiBudget]
 //
-// Reports, for the 5 fragile specs (or whatever is in the archive):
-//   - CURVE        : mean per-row score over the [lo,hi] budget window (the
-//                    optimization target — rewards both height and convergence).
+// Reports, for whatever specs are in the archive:
+//   - CURVE        : mean per-row score over the [lo,hi] budget window (a fragility
+//                    lens — rewards both height and convergence; not the headline).
 //   - last         : mean per-row score at the last budget (headline-comparable).
 //   - validLast    : # seeds whose last-budget compile passed the contract.
 //   - minValid     : worst valid-seed count across the window (fragility floor).

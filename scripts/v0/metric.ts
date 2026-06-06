@@ -57,17 +57,11 @@ function weightMapOf(weightByBudget: BudgetWeight[]): Map<number, number> {
 }
 
 /** weightedBudgetScore with a precomputed weight map — used in the bootstrap hot
- *  loop so the (constant) map isn't rebuilt per resample. */
+ *  loop so the (constant) map isn't rebuilt per resample. Thin shape adapter over
+ *  the single weighted-mean kernel `weightedFromVec` (keeps one place that defines
+ *  the renormalize / zero-weight / empty-divisor semantics). */
 function weightedBudgetScoreFromMap(points: CurvePoint[], w: Map<number, number>): number {
-  let num = 0;
-  let den = 0;
-  for (const p of points) {
-    const wb = w.get(p.budget);
-    if (wb === undefined || wb <= 0) continue;
-    num += wb * p.score;
-    den += wb;
-  }
-  return den > 0 ? num / den : 0;
+  return weightedFromVec(points.map((p) => p.score), points.map((p) => p.budget), w);
 }
 
 /** Parse/validate a comma-separated budget list (positive integer frames). Uses

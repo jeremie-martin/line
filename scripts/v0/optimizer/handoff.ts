@@ -295,14 +295,16 @@ type AxisQualityStreamPolicy = {
 
 const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
 
-// Production runs are bounded by the FRAME BUDGET, not a node cap — the budget is
-// the effort knob, so a fixed node ceiling must not silently override it (at higher
-// budgets, or once the search scales breadth with budget, an 800-node cap would bind
-// before the frame budget and make budget stop mattering). This large value is only a
-// runaway/hang backstop (e.g. against a pathological 0-frame-charging loop), set far
-// above any budget-reachable node count; diagnostic probes still pass an explicit,
-// small `maxNodes`. Output-neutral on the canonical grid (worst spec ≈672 nodes @200k).
-const DEFAULT_MAX_NODES = 5_000_000;
+// Production runs are bounded by the FRAME BUDGET, not a node cap — the budget is the
+// effort knob, so a fixed node ceiling must not silently override it. When no explicit
+// `maxNodes` is given the backstop is DERIVED from the budget: `max(floor, budget)`.
+// A healthy search charges many sim-frames per node (a catch simulates dozens-hundreds
+// of frames), so node count is a small fraction of the frame budget (worst canonical
+// spec ≈672 nodes @200k ≈ 0.003 nodes/frame). Capping at ~budget nodes therefore never
+// binds a legitimate run (≈300× headroom) yet bounds a pathological 0-frame-charging
+// loop at ~budget nodes (seconds) instead of an unbounded hang. The floor covers tiny
+// budgets; diagnostic probes still pass an explicit small `maxNodes`.
+const MAX_NODES_FLOOR = 50_000;
 const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
@@ -502,7 +504,7 @@ function compileHandoffInternal(
     throw new Error(`compileHandoff: searchSeed must be a safe integer, got ${searchSeed}`);
   }
   const targetBudget = validateBudget(opts.budget);
-  const maxNodes = opts.maxNodes ?? DEFAULT_MAX_NODES;
+  const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
   if (!Number.isInteger(maxNodes) || maxNodes < 1) {
     throw new Error(`compileHandoff: maxNodes must be a positive integer, got ${maxNodes}`);
   }

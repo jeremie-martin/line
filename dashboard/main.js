@@ -474,6 +474,7 @@ function normalizeGoldenRun(entry, data) {
   const seq = seqMatch ? Number(seqMatch[1]) : null;
   const short = commit ? commit.slice(0, 7) : id.slice(0, 8);
   const label = seq != null ? `${String(seq).padStart(2, "0")} · ${short}` : (commit ? short : goldenRunLabel(id, createdMs));
+  const headline = data.headline?.kind === "weighted_budget_average" ? data.headline : null;
 
   return {
     id,
@@ -492,9 +493,11 @@ function normalizeGoldenRun(entry, data) {
     archive: data.archive ?? {},
     // HEADLINE = budget-value-weighted average of the per-budget suite scores (see
     // metric.ts). This is THE metric the UI surfaces; the legacy curve_score (SGM) is
-    // gone. Full headline block kept for tier/weights/validity detail.
-    headlineScore: Number(data.headline?.score ?? 0),
-    headline: data.headline ?? null,
+    // gone. `null` for pre-migration archives, including old headline-shaped blocks
+    // without the current kind (rendered as "legacy", not 0). Full current headline
+    // block kept for tier/weights/validity detail.
+    headlineScore: headline?.score ?? null,
+    headline,
     budgets,
     budgetScores,
     rows,
@@ -537,7 +540,7 @@ function setupGoldenControls(state) {
   const focusSelect = document.getElementById("golden-focus");
   const baselineSelect = document.getElementById("golden-baseline");
   const runOptions = state.runs.slice().reverse().map((run) =>
-    `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)} · ${fmtGoldenNumber(run.headlineScore, 2)}</option>`).join("");
+    `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)} · ${run.headlineScore == null ? "legacy" : fmtGoldenNumber(run.headlineScore, 2)}</option>`).join("");
   focusSelect.innerHTML = runOptions;
   baselineSelect.innerHTML = `<option value="">none</option>${runOptions}`;
 
@@ -661,13 +664,19 @@ function renderGoldenKpis(state, selected, focus, baseline) {
   const host = document.getElementById("golden-kpis");
   const range = state.range;
   const focusScore = rangeScopedScore(focus, range);
-  const curveDelta = baseline ? focusScore - rangeScopedScore(baseline, range) : null;
+  const baselineScore = baseline ? rangeScopedScore(baseline, range) : null;
+  const curveDelta = Number.isFinite(focusScore) && Number.isFinite(baselineScore)
+    ? focusScore - baselineScore
+    : null;
   const scopedSummaries = rangeScopedSummaries(focus, range);
   const firstFull = firstFullPassBudget(focus, range);
   const finalSummary = scopedSummaries[scopedSummaries.length - 1];
   const firstSummary = scopedSummaries[0];
-  const bestSelected = selected.reduce((best, run) =>
-    !best || rangeScopedScore(run, range) > rangeScopedScore(best, range) ? run : best, null);
+  const bestSelected = selected.reduce((best, run) => {
+    const score = rangeScopedScore(run, range);
+    if (!Number.isFinite(score)) return best;
+    return !best || score > best.score ? { run, score } : best;
+  }, null);
   const worst = weakestSpecs(focus, finalSummary?.budget).slice(0, 3);
   const budgetGain = largestBudgetGain(focus, range);
   const scopeLabel = range ? `${fmtBudget(range.min)}–${fmtBudget(range.max)}` : "full range";
@@ -698,9 +707,9 @@ function renderGoldenKpis(state, selected, focus, baseline) {
     ) +
     tile(
       "best selected",
-      bestSelected ? fmtGoldenNumber(rangeScopedScore(bestSelected, range), 2) : "—",
-      bestSelected ? escapeHtml(bestSelected.label) : "no selected runs",
-      bestSelected?.id === focus.id ? "good" : "",
+      bestSelected ? fmtGoldenNumber(bestSelected.score, 2) : "—",
+      bestSelected ? escapeHtml(bestSelected.run.label) : "no selected current-score runs",
+      bestSelected?.run.id === focus.id ? "good" : "",
     ) +
     tile(
       "weak spots",
@@ -1056,7 +1065,7 @@ function renderGoldenCatalog(host, state) {
     return `<tr class="${run.id === state.focusId ? "is-focus" : ""}">` +
       `<td><input type="checkbox" data-run-toggle="${escapeHtml(run.id)}"${selected ? " checked" : ""}></td>` +
       `<td><button type="button" data-focus-run="${escapeHtml(run.id)}">${escapeHtml(run.label)}</button><span>${escapeHtml(run.id)}</span></td>` +
-      `<td>${fmtGoldenNumber(run.headlineScore, 2)}</td>` +
+      `<td>${run.headlineScore == null ? "legacy" : fmtGoldenNumber(run.headlineScore, 2)}</td>` +
       `<td>${run.canonical ? "yes" : "no"}</td>` +
       `<td>${firstFull ? fmtBudget(firstFull) : "—"}</td>` +
       `<td>${first ? `${first.passed}/${first.total}` : "—"} → ${last ? `${last.passed}/${last.total}` : "—"}</td>` +
@@ -1271,20 +1280,37 @@ function goldenRunColor(run, index) {
   return run.color ?? GOLDEN_RUN_COLORS[index % GOLDEN_RUN_COLORS.length];
 }
 
-// Budget-value-weighted average of per-budget suite scores — the HEADLINE
-// aggregation (metric.ts weightedBudgetScore: weights ∝ budget value). Replicated so
-// a range-scoped score matches the canonical metric over the windowed budgets.
-function goldenWeightedAvg(summaries) {
+// The run's stored per-budget weight map (budget -> weight), or null for a legacy
+// archive that didn't record one (caller then falls back to budget-proportional).
+function runWeightMap(run) {
+  const wbb = run.headline?.weight_by_budget;
+  if (!Array.isArray(wbb) || wbb.length === 0) return null;
+  return new Map(wbb.map((w) => [w.budget, w.weight]));
+}
+
+// Weighted average of per-budget suite scores — the HEADLINE aggregation (metric.ts
+// weightedBudgetScore). Uses the archive's STORED weights when available (matching
+// `decide`, so a future weighting-formula change stays honest per-archive); falls back
+// to budget-proportional only for legacy archives with no stored weights.
+function goldenWeightedAvg(summaries, weightMap) {
   let num = 0, den = 0;
-  for (const s of summaries) { num += s.budget * s.score; den += s.budget; }
+  for (const s of summaries) {
+    const w = weightMap ? (weightMap.get(s.budget) ?? 0) : s.budget;
+    if (w <= 0) continue;
+    num += w * s.score;
+    den += w;
+  }
   return den > 0 ? num / den : 0;
 }
 
-// HEADLINE restricted to a [min,max] budget window (null = full range).
+// HEADLINE restricted to a [min,max] budget window (null = full range). Returns null
+// for a legacy archive with no headline block (rendered as a gap, not 0).
 function rangeScopedScore(run, range) {
+  if (run.headline == null) return null;
+  if (!range) return run.headlineScore;
   const summaries = rangeScopedSummaries(run, range);
   if (!summaries.length) return run.headlineScore;
-  return goldenWeightedAvg(summaries);
+  return goldenWeightedAvg(summaries, runWeightMap(run));
 }
 
 function rangeScopedSummaries(run, range) {

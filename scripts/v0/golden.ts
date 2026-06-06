@@ -39,6 +39,7 @@ const DEFAULT_JOBS = Math.max(1, Math.min(6, availableParallelism() - 1));
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
+  parseBudgetList,
   weightedBudgetScore,
   type CurvePoint,
 } from "./metric.ts";
@@ -573,7 +574,10 @@ function scoreRunResult(
     const message = fail ? fail.message : "missing checkpoint";
     return failedCheckpoint(result.specName, result.variant, seed, budget, "error", message, fail?.elapsed_ms ?? 0, ctx);
   });
-  const failedCount = budgets.length - result.checkpoints.length;
+  // Single source of truth: a budget failed iff it has no ok checkpoint. The count and
+  // the enumerated list both derive from this, so they can never disagree (covers both
+  // thrown failures and any missing-from-both budget).
+  const failedBudgets = budgets.filter((budget) => !okByBudget.has(budget));
   return {
     name: result.specName,
     variant: result.variant,
@@ -584,9 +588,9 @@ function scoreRunResult(
       result.checkpoints.reduce((sum, c) => sum + c.elapsed_ms, 0) +
       result.budgetFailures.reduce((sum, f) => sum + f.elapsed_ms, 0),
     worker_timeout_ms: ctx.worker_timeout_ms,
-    status: failedCount > 0 ? "partial" : "ok",
-    message: failedCount > 0
-      ? `${failedCount}/${budgets.length} budgets failed: ${result.budgetFailures.map((f) => fmtBudget(f.budget)).join(",")}`
+    status: failedBudgets.length > 0 ? "partial" : "ok",
+    message: failedBudgets.length > 0
+      ? `${failedBudgets.length}/${budgets.length} budgets failed: ${failedBudgets.map(fmtBudget).join(",")}`
       : null,
     checkpoints,
   };
@@ -1032,15 +1036,10 @@ function jsonBudgetSummary(summary: BudgetSummary): object {
 
 function normalizeBudgets(raw: string | null): number[] {
   const source = raw ?? [...DEFAULT_BUDGETS].join(",");
-  const parts = source.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length === 0) throw new Error("--budgets must contain at least one positive number");
-  const budgets = parts.map((part) => {
-    const value = Number(part);
-    if (!Number.isSafeInteger(value) || value <= 0) {
-      throw new Error(`--budgets values must be positive integers, got ${part}`);
-    }
-    return value;
-  });
+  // Reuse the canonical comma-split + Number(not parseInt) validator (rejects "50k"
+  // loudly instead of silently truncating); golden adds dedup + sort on top.
+  const budgets = parseBudgetList(source);
+  if (budgets.length === 0) throw new Error("--budgets must contain at least one positive number");
   const seen = new Set<number>();
   for (const budget of budgets) {
     if (seen.has(budget)) throw new Error(`--budgets contains duplicate budget ${budget}`);

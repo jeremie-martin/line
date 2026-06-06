@@ -920,8 +920,8 @@ anchor = targetSled - local + tangent * alongJitter + normal * normalJitter</div
         <h3>Catch reuse</h3>
         <p>
           On periodic rhythms, a recent sled-relative catch can work again.
-          The compiler translates up to the last two reusable catches from the
-          prefix into the current sled frame and validates each survivor with
+          The compiler translates the latest committed catch from the prefix into
+          the current sled frame and validates the survivor with
           <code>tryCandidate</code>.
         </p>
       </div>

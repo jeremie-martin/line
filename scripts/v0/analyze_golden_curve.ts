@@ -1462,13 +1462,19 @@ function runDecide(args: string[]): void {
     new Map((data.headline?.weight_by_budget ?? []).map((w) => [w.budget, w.weight]));
   const baseWMap = storedWeights(base);
   const candWMap = storedWeights(cand);
-  const weightByBudget: BudgetWeight[] = scoreBudgets.map((b) => ({ budget: b, weight: candWMap.get(b) ?? 0 }));
-  if (!(weightByBudget.reduce((s, w) => s + w.weight, 0) > 0)) {
+  // Every shared scored budget must carry a positive stored weight in BOTH archives —
+  // otherwise it would be silently dropped from the gating headline (weight 0) while
+  // still showing a per-budget delta. Refuse rather than quietly narrow the scope.
+  const unweighted = scoreBudgets.filter(
+    (b) => !((candWMap.get(b) ?? 0) > 0) || !((baseWMap.get(b) ?? 0) > 0),
+  );
+  if (unweighted.length > 0) {
     refuse(
-      `archives carry no headline weights for the shared budgets ` +
-        `[${scoreBudgets.map(fmtBudget).join(",")}] — re-baseline.`,
+      `archive(s) carry no headline weight for shared budget(s) ` +
+        `[${unweighted.map(fmtBudget).join(",")}] — re-baseline.`,
     );
   }
+  const weightByBudget: BudgetWeight[] = scoreBudgets.map((b) => ({ budget: b, weight: candWMap.get(b)! }));
   // Both archives must weight the shared budgets the SAME way (normalized), so the
   // comparison is like-with-like. Tolerance is loose relative to the 6-dp precision
   // weights are stored at, yet far tighter than any real scheme difference.

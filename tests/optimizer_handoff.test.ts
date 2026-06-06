@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { createHash } from "node:crypto";
 import {
+  checkpointAt,
+  compileBudgetCurve,
   compileHandoff,
   compileHandoffFromSnapshot,
   snapshotHandoffNode,
@@ -69,6 +71,19 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
         polish: false,
       });
     assertBudgetSearchContract(compile, "tiny_dance/handoff", spec, { budget: 20_000, maxNodes: 12 });
+  }, 120_000);
+
+  test("compileBudgetCurve returns one checkpoint per budget; checkpointAt finds/throws", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const budgets = [7_000, 20_000];
+    const curve = compileBudgetCurve(spec, 0, budgets, { maxNodes: 12, polish: false });
+    expect(curve.map((c) => c.budget)).toEqual(budgets);
+    // each curve entry is an INDEPENDENT run == a direct single-budget compile (byte-identical)
+    for (const budget of budgets) {
+      const direct = compileHandoff(spec, 0, { budget, maxNodes: 12, polish: false });
+      expect(hashTrack(checkpointAt(curve, budget).track)).toBe(hashTrack(direct.track));
+    }
+    expect(() => checkpointAt(curve, 999_999)).toThrow(/missing checkpoint for budget 999999/);
   }, 120_000);
 
   test("same (spec, seed, budget) records identical work and previews", async () => {

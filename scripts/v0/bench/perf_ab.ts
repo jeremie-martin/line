@@ -20,19 +20,25 @@
  *     and (b) P(candidate faster) from a paired bootstrap. Both are robust and
  *     directly interpretable.
  *
- * SCOPE: this gate swaps WASM, so it measures engine-rs (kernel) changes. JS-only
- * changes are identical in both passes here — use the `verify` + a separate JS A/B
- * for those. Bit-identity is a SEPARATE gate (`LR_ENGINE=wasm npm run verify`);
- * this only decides speed once correctness is established.
+ * SCOPE: two modes.
+ *   - default (WASM): swaps the built kernel between arms — measures engine-rs
+ *     (Rust) changes. Builds the base kernel from `--ref` in a throwaway worktree.
+ *   - `--js`: swaps the changed *.ts/*.js source files between arms (base =
+ *     `git show <ref>:file`, cand = working copy), sharing the committed WASM for
+ *     both arms — measures JS hot-path changes (detector/wrapper/compiler) with no
+ *     rebuild. Same dir, so no environment bias either way.
+ * Bit-identity is a SEPARATE gate (`LR_ENGINE=wasm npm run verify`); this only
+ * decides speed once correctness is established.
  *
  * USAGE
- *   1. build your candidate kernel:  npm run build:wasm
+ *   1. build your candidate kernel:  npm run build:wasm   (WASM mode only)
  *   2. tsx scripts/v0/bench/perf_ab.ts                  # base = HEAD, cand = working tree
  *      tsx scripts/v0/bench/perf_ab.ts --ref=HEAD~1 --rounds=100 --reps=8
+ *      tsx scripts/v0/bench/perf_ab.ts --js --rounds=100               # JS/TS change A/B
  *      tsx scripts/v0/bench/perf_ab.ts --ref=<old-baseline> --rounds=100 --p=0.9987  # cumulative 3σ confirm
  */
 import { execFileSync, execSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdtempSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -47,6 +53,7 @@ const specs = arg("specs", "mini_burst");
 const budget = arg("budget", "50000");
 const ref = arg("ref", "HEAD");
 const keepThreshold = Number(arg("p", "0.95")); // accept if P(faster) ≥ this
+const jsMode = flag("js"); // A/B a JS/TS change by swapping source files (no WASM rebuild)
 const bootIters = 50000;
 
 const repoRoot = execSync("git rev-parse --show-toplevel").toString().trim();
@@ -86,8 +93,31 @@ function runPerf(): number {
   if (!line) throw new Error("no PERF line");
   return JSON.parse(line.slice(5)).ns_per_frame_mean as number;
 }
+// JS mode: A/B a JS/TS change with no WASM rebuild. We snapshot every source file
+// that differs from `ref` (base = `git show ref:file`, cand = working copy) and
+// swap them in place between passes — same dir, same committed WASM for both arms,
+// so only the changed JS differs. tsx reads sources at process start, so swapping
+// before each spawned `perf` pass is sufficient.
+const jsFiles: string[] = [];
+const baseSrc: Record<string, string> = {};
+const candSrc: Record<string, string> = {};
+function setupJs() {
+  const out = execSync(`git diff --name-only ${ref} -- '*.ts' '*.js' '*.mjs'`, { cwd: repoRoot }).toString().trim();
+  for (const f of out.split("\n").filter(Boolean)) {
+    jsFiles.push(f);
+    baseSrc[f] = execSync(`git show ${ref}:${f}`, { cwd: repoRoot, maxBuffer: 1 << 26 }).toString();
+    candSrc[f] = readFileSync(resolve(repoRoot, f), "utf8");
+  }
+}
+function restoreJs() {
+  for (const f of jsFiles) writeFileSync(resolve(repoRoot, f), candSrc[f]);
+}
 function measure(which: "base" | "cand"): number {
-  copyFileSync(which === "base" ? baseWasm : candWasm, LOAD_PATH);
+  if (jsMode) {
+    for (const f of jsFiles) writeFileSync(resolve(repoRoot, f), which === "base" ? baseSrc[f] : candSrc[f]);
+  } else {
+    copyFileSync(which === "base" ? baseWasm : candWasm, LOAD_PATH);
+  }
   return runPerf();
 }
 
@@ -97,15 +127,21 @@ let _seed = 0x2545f491;
 const rnd = () => { _seed = (_seed * 1103515245 + 12345) & 0x7fffffff; return _seed / 0x7fffffff; };
 
 async function main() {
-  if (!existsSync(LOAD_PATH)) throw new Error(`no candidate kernel at ${LOAD_PATH} — run 'npm run build:wasm' first`);
-  copyFileSync(LOAD_PATH, candWasm); // snapshot the current (candidate) build
-  console.log(`perf_ab: base=${ref}  cand=working-tree   rounds=${rounds} reps=${reps} specs=${specs} budget=${budget}`);
-  console.log(`building base kernel (${ref}) …`);
-  buildBase();
-  const h = (f: string) => execSync(`md5sum ${f}`).toString().slice(0, 12);
-  const sameBytes = h(baseWasm) === h(candWasm);
-  console.log(`kernels: base=${h(baseWasm)} cand=${h(candWasm)}` +
-    (sameBytes ? "  (BYTE-IDENTICAL — zero build-layout floor; this is a null)" : ""));
+  if (!existsSync(LOAD_PATH)) throw new Error(`no kernel at ${LOAD_PATH} — run 'npm run build:wasm' first`);
+  console.log(`perf_ab: base=${ref}  cand=working-tree   rounds=${rounds} reps=${reps} specs=${specs} budget=${budget}` + (jsMode ? "  [JS mode]" : ""));
+  if (jsMode) {
+    setupJs();
+    if (jsFiles.length === 0) throw new Error(`--js: no changed *.ts/*.js files vs ${ref}`);
+    console.log(`swapping ${jsFiles.length} source file(s): ${jsFiles.join(", ")}  (shared WASM for both arms)`);
+  } else {
+    copyFileSync(LOAD_PATH, candWasm); // snapshot the current (candidate) build
+    console.log(`building base kernel (${ref}) …`);
+    buildBase();
+    const h = (f: string) => execSync(`md5sum ${f}`).toString().slice(0, 12);
+    const sameBytes = h(baseWasm) === h(candWasm);
+    console.log(`kernels: base=${h(baseWasm)} cand=${h(candWasm)}` +
+      (sameBytes ? "  (BYTE-IDENTICAL — zero build-layout floor; this is a null)" : ""));
+  }
 
   // warmup (untimed) one of each
   measure("base"); measure("cand");
@@ -123,7 +159,7 @@ async function main() {
     if (c < b) candWins++;
     console.log(`round ${String(r + 1).padStart(2)}: base=${b.toFixed(1)}  cand=${c.toFixed(1)}  Δ=${d >= 0 ? "+" : ""}${d.toFixed(2)}%  ${c < b ? "cand✓" : "base✓"}`);
   }
-  copyFileSync(candWasm, LOAD_PATH); // restore candidate artifact
+  if (jsMode) restoreJs(); else copyFileSync(candWasm, LOAD_PATH); // restore working state
 
   // paired bootstrap over rounds → P(candidate truly faster) and 95% CI on Δ
   let pFaster = 0;
@@ -154,12 +190,17 @@ async function main() {
   console.log(`Δ 95% CI         : [${lo.toFixed(2)}%, ${hi.toFixed(2)}%]`);
   console.log(`sign test        : candidate won ${candWins}/${rounds} rounds  (two-sided p=${signP.toFixed(3)})`);
   console.log(`P(candidate faster): ${(100 * pFaster).toFixed(1)}%   [paired bootstrap, ${bootIters} resamples]`);
-  const keep = pFaster >= keepThreshold;
+  // Keep requires BOTH a high P(faster) (mean-bootstrap favorable) AND a negative
+  // median Δ — the latter guards against heavy-tailed cases where a few large-Δ
+  // rounds pull the mean favorable while the typical round is actually slower.
+  const medNeg = median(diffPct) < 0;
+  const keep = pFaster >= keepThreshold && medNeg;
   const reject = (1 - pFaster) >= keepThreshold;
-  console.log(`verdict          : ${keep ? `✓ KEEP — P(faster)=${(100 * pFaster).toFixed(1)}% ≥ ${(100 * keepThreshold).toFixed(0)}%, ~${(-median(diffPct)).toFixed(2)}% faster`
+  console.log(`verdict          : ${keep ? `✓ KEEP — P(faster)=${(100 * pFaster).toFixed(1)}% ≥ ${(100 * keepThreshold).toFixed(0)}% and median Δ<0, ~${(-median(diffPct)).toFixed(2)}% faster`
     : reject ? `✗ REJECT — likely a regression (P(faster)=${(100 * pFaster).toFixed(1)}%)`
+    : pFaster >= keepThreshold && !medNeg ? `~ INCONCLUSIVE — P(faster)=${(100 * pFaster).toFixed(1)}% but median Δ≥0 (heavy-tailed; not kept)`
     : `~ INCONCLUSIVE — P(faster)=${(100 * pFaster).toFixed(1)}% (need more rounds, or effect ≈ 0)`}`);
 
   rmSync(tmp, { recursive: true, force: true });
 }
-main().catch((e) => { try { copyFileSync(candWasm, LOAD_PATH); } catch {} console.error(e); process.exit(1); });
+main().catch((e) => { try { if (jsMode) restoreJs(); else copyFileSync(candWasm, LOAD_PATH); } catch {} console.error(e); process.exit(1); });

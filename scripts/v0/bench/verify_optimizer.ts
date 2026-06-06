@@ -81,14 +81,19 @@ async function main(): Promise<void> {
 
   mkdirSync(OUT_DIR, { recursive: true });
 
-  if (update || !existsSync(BASELINE)) {
+  if (update) {
     const baseline: Baseline = { budget: BUDGET, cases: current };
     writeFileSync(BASELINE, JSON.stringify(baseline, null, 2) + "\n");
-    console.log(
-      `\n${update ? "Re-baselined" : "No baseline found — recorded"} ` +
-        `${CASES.length} cases → ${BASELINE}`,
-    );
+    console.log(`\nRe-baselined ${CASES.length} cases → ${BASELINE}`);
     return;
+  }
+  if (!existsSync(BASELINE)) {
+    // Fail rather than auto-record: a missing baseline means there is nothing to
+    // verify against, so passing would be a false green on a fresh checkout.
+    console.error(
+      `\nNo baseline at ${BASELINE} — cannot verify. Record it on known-good HEAD: npm run verify:optimizer -- --update`,
+    );
+    process.exit(1);
   }
 
   const baseline: Baseline = JSON.parse(readFileSync(BASELINE, "utf8"));

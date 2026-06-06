@@ -333,6 +333,7 @@ function main() {
   mkdirSync(OUT_DIR, { recursive: true });
   let anyMismatch = false;
   let anyWritten = false;
+  let anyMissing = false;
 
   // ── numeric divergence report (the cross-language microscope) ──
   if (diff) {
@@ -381,10 +382,18 @@ function main() {
       writeFileSync(resolve(OUT_DIR, `${src.name}.dump.json`), JSON.stringify(collectTrajectory(src, frames)));
     }
 
-    if (!existsSync(refPath) || update) {
+    if (update) {
       writeFileSync(refPath, JSON.stringify(actual));
       anyWritten = true;
       console.log(`  REC   ${src.name.padEnd(18)} frames=${frames} lines=${actual.lineCount}  hash=${actual.fullHash}  → ${refPath}`);
+      continue;
+    }
+    if (!existsSync(refPath)) {
+      // A missing baseline must FAIL, not silently auto-record — otherwise the gate
+      // would "pass" on a fresh checkout by adopting whatever the current (possibly
+      // broken) code emits. Capture baselines on known-good HEAD with --update only.
+      anyMissing = true;
+      console.log(`  MISS  ${src.name.padEnd(18)} no baseline at ${refPath} — record on known-good HEAD: npm run verify:engine -- --update`);
       continue;
     }
 
@@ -405,6 +414,9 @@ function main() {
   console.log("");
   if (anyMismatch) {
     console.log("TRACE: MISMATCH — behavior changed. Do NOT keep this engine change.");
+    process.exit(1);
+  } else if (anyMissing) {
+    console.log("TRACE: MISSING baseline(s) — cannot verify. Record on known-good HEAD: npm run verify:engine -- --update");
     process.exit(1);
   } else if (anyWritten) {
     console.log("TRACE: reference recorded. Re-run after an engine change to verify byte-identical behavior.");

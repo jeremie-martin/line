@@ -6,8 +6,9 @@
 >   wall-clock ÷ physics frames the compiler actually simulated. Work-normalized,
 >   lower is better. **Standing ≈ 5,950 ns/frame; goal < 3,000.**
 > - **Correctness gate (non-negotiable, binary):** `LR_ENGINE=wasm npm run verify`
->   must stay **byte-identical** (engine trace hashes + optimizer output/stat
->   hashes). Speed is only considered *after* a change is bit-identical.
+>   must stay byte-identical to the recorded baselines — the compiler-consumed
+>   per-frame fingerprint + optimizer output/stat hashes (a *missing* baseline
+>   fails, not auto-records). Speed is only considered *after* this passes.
 > - **Speed decision (statistical, not a flat threshold):** build the candidate
 >   kernel, then `tsx scripts/v0/bench/perf_ab.ts --rounds=100`. Two-stage:
 >   **discovery — keep iff `P(candidate faster) ≥ 0.95` at R=100** (R=100 → CI
@@ -40,15 +41,23 @@ one ULP off is a *different compiler*, not a faster one.
 A change must pass **both**, in order:
 
 1. **Correctness — binary, no statistics.** `LR_ENGINE=wasm npm run verify`:
-   - `verify:engine` — per-frame oracle, byte-identical body state + collision
-     records over 5 fixtures (`--diff` proves every point position bit-identical,
-     `max err 0`).
+   - `verify:engine` — per-frame oracle over the **compiler-consumed** state:
+     non-scarf body state + `CollisionUpdate` records, hashed over 5 fixtures. The
+     cosmetic scarf is excluded and `-0` is normalized to `+0` (the compiler reads
+     neither), so this is *compiler-equivalence*, not literal full-engine byte
+     identity. A separate, stronger numeric microscope —
+     `npm run verify:engine -- --diff` — proves every point position bit-identical
+     (`max err 0`) over thousands of frames; it is **not** run by the default gate,
+     so use it when a change could perturb the cosmetic/scarf path.
    - `verify:optimizer` — real `compileHandoff` on 4 golden cases, hashing
      `{track, stats}` (incl. `sim_frames`) against the recorded baseline.
    - For Rust changes also `cargo test --manifest-path engine-rs/Cargo.toml`.
 
-   If correctness is not byte-identical, the change is rejected outright,
-   regardless of speed.
+   Baselines live in gitignored `generated/` and must be captured on **known-good
+   HEAD** (`-- --update`). A **missing** baseline FAILS the gate (it no longer
+   auto-records), so a fresh checkout cannot silently pass; re-baseline only by an
+   explicit, reviewed `--update`. If correctness is not byte-identical to the
+   baseline, the change is rejected outright, regardless of speed.
 
 2. **Speed — statistical decision (below).** Only run this once gate 1 is green.
 
@@ -101,10 +110,13 @@ design that answers it cheaply and honestly:
 
 - **Interleave** base and candidate runs close together, **alternating order**, so
   slow machine drift and any first/second-run bias cancel within each round.
-- **Same directory, swap only the WASM bytes.** Running the two arms from two
-  worktrees introduced a ~0.5% environment bias; swapping just the kernel at the
-  load path removes it. (This scopes the gate to `engine-rs` changes — JS-only
-  changes are identical in both arms here; A/B those separately.)
+- **Same directory, swap only what changed.** Running the two arms from two
+  worktrees introduced a ~0.5% environment bias; swapping just the changed artifact
+  at its path removes it. Two modes: default swaps the built **WASM** kernel
+  (engine-rs changes); `--js` swaps the changed **`.ts`/`.js` source files**
+  (base = `git show <ref>:file`, cand = working copy) while sharing the committed
+  kernel across both arms — so JS hot-path changes (detector/wrapper/compiler) get
+  the same interleaving + stats with no rebuild.
 - **Use the paired differences, not just the mean.** Per round `r`,
   `Δ_r = (cand − base) / base`. Report two robust, interpretable summaries:
   - **Sign test** — how many of `R` rounds the candidate won (binomial p).
@@ -178,18 +190,19 @@ npm run build:wasm
 LR_ENGINE=wasm npm run verify
 cargo test --manifest-path engine-rs/Cargo.toml      # for Rust changes
 
-# 2. speed decision — keep iff P(candidate faster) ≥ 0.95 (discovery)
-tsx scripts/v0/bench/perf_ab.ts --rounds=100         # base = HEAD, cand = working tree
+# 2. speed decision — keep iff P(faster) ≥ 0.95 AND median Δ < 0 (discovery)
+tsx scripts/v0/bench/perf_ab.ts --rounds=100         # WASM change: base = HEAD, cand = working tree
+tsx scripts/v0/bench/perf_ab.ts --js --rounds=100    # JS/TS change: swaps changed source files
 #    --ref=<git ref>   compare against another base (use for cumulative confirmation)
 #    --rounds=N        more rounds → finer resolution (~±0.26% at 100)
 #    --reps=K          timed reps per pass within a round
-#    --p=0.9987        confirmation threshold (3σ) for the cumulative re-A/B
+#    --p=0.9987        stricter threshold (3σ) for the cumulative re-A/B
 
 # 3a. if KEPT: log it, then commit (commit only kept, holding changes)
 # 3b. if REJECTED/INCONCLUSIVE: revert the source, rebuild the standard artifact
 
-# periodic: confirm the wins compounded
-tsx scripts/v0/bench/perf_ab.ts --ref=<older-baseline-ref> --rounds=30
+# periodic: confirm the wins compounded (3σ confirmation at full rounds)
+tsx scripts/v0/bench/perf_ab.ts --ref=<older-baseline-ref> --rounds=100 --p=0.9987
 ```
 
 Every run — accept or reject — is one entry in `OPTIMIZATION_LOG.md`: what was
@@ -233,9 +246,11 @@ plentiful. To reach <3,000 from ~5,950, the math requires real cuts to the physi
 
 - `scripts/v0/bench/perf.ts` — the single-config metric (`mean ± σ`, median, range,
   `PERF {…}` json). `--specs --budget --reps --warmup`.
-- `scripts/v0/bench/perf_ab.ts` — the interleaved paired A/B decision gate. Builds
-  the base kernel from a git ref in a throwaway worktree, runs both arms in the
-  repo dir swapping only the WASM, reports win-count + `P(faster)` + Δ CI + verdict.
+- `scripts/v0/bench/perf_ab.ts` — the interleaved paired A/B decision gate. Default
+  mode builds the base kernel from a git ref in a throwaway worktree and swaps the
+  **WASM** between arms; `--js` swaps the changed **source files** instead (shared
+  kernel). Runs both arms in the repo dir, reports win-count + `P(faster)` + Δ CI +
+  verdict (keep needs `P(faster) ≥ 0.95` **and** median Δ < 0).
 - `LR_ENGINE=wasm npm run verify` (`verify:engine` + `verify:optimizer`) — the
   correctness gate.
 - `OPTIMIZATION_LOG.md` — the running, chronological record of every attempt.
@@ -282,7 +297,8 @@ or the warmup/steady-state regime changes.
    and simulated 40k experiments per cell. Measured **false-positive rate** under H0
    (P≥0.95 → 4.2%, P≥0.99 → 0.5%, 3σ → 0.06% — well-calibrated) and **power** vs
    effect/rounds (0.5% win: 24% at 3σ/R=30 vs 72% at P≥0.95; 1% win: 91% at 3σ/R=30).
-   ⇒ the two-stage discovery(P≥0.99)/confirmation(3σ) policy in *Decision rule*.
+   ⇒ the two-stage discovery(P≥0.95 at R=100)/confirmation(3σ at R≥100) policy in
+   *Decision rule*.
 
 7. **End-to-end confirmation (does the whole gate detect a real effect?).** Injected
    a `black_box`-guarded dummy loop into `step_state` — extra compute, no state

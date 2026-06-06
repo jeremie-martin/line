@@ -675,37 +675,108 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
 <article class="view" id="view-mechanics" hidden>
   <section class="section">
     <div class="section-head">
-      <div class="eyebrow">Data model</div>
+      <div class="eyebrow">Orientation</div>
       <div>
-        <h2>What a search node contains</h2>
+        <h2>The problem, in one picture</h2>
         <p class="sub">
-          The compiler never needs to rebuild a full track to branch. A node is
-          the engine state after a committed prefix plus enough bookkeeping to
-          extend the next gap deterministically.
+          A spec is a row of <em>beats</em> the rider must hit on time, plus a
+          target <em>feel</em> for the ride between them. The compiler draws track
+          so the rider lands on every beat and the ride between beats matches the
+          target. The hard part: it is one continuous ride, so every catch you
+          draw changes the state the rider carries into the next beat. Nothing is
+          independent &mdash; a locally perfect catch that leaves a bad exit state
+          can make the next beat impossible.
+        </p>
+      </div>
+    </div>
+
+    <svg viewBox="0 0 920 230" role="img" aria-label="A spec is beats over time; the rider arcs between them and must land on each beat"
+         style="display:block;width:100%;height:auto;border:1px solid #cdbfa3;border-radius:4px;background:#faf4e6">
+      <!-- ground baseline -->
+      <line x1="40" y1="170" x2="880" y2="170" stroke="#cdbfa3" stroke-width="1"/>
+      <text x="40" y="200" font-family="monospace" font-size="11" fill="#928873">t = 0</text>
+      <text x="826" y="200" font-family="monospace" font-size="11" fill="#928873">duration</text>
+      <!-- beats -->
+      <g font-family="monospace" font-size="11" fill="#1e5a6e">
+        <line x1="120" y1="160" x2="120" y2="180" stroke="#1e5a6e" stroke-width="2"/>
+        <line x1="270" y1="160" x2="270" y2="180" stroke="#1e5a6e" stroke-width="2"/>
+        <line x1="420" y1="160" x2="420" y2="180" stroke="#1e5a6e" stroke-width="2"/>
+        <line x1="570" y1="160" x2="570" y2="180" stroke="#1e5a6e" stroke-width="2"/>
+        <line x1="720" y1="160" x2="720" y2="180" stroke="#1e5a6e" stroke-width="2"/>
+        <text x="112" y="198">beat</text>
+        <text x="262" y="198">beat</text>
+        <text x="412" y="198">beat</text>
+        <text x="562" y="198">beat</text>
+        <text x="712" y="198">beat</text>
+      </g>
+      <!-- rider path: airborne arcs that land on each beat -->
+      <path d="M40 170 Q80 120 120 170 Q195 95 270 170 Q345 110 420 170 Q495 100 570 170 Q645 115 720 170 Q800 130 880 170"
+            fill="none" stroke="#9b3a2a" stroke-width="2"/>
+      <!-- landing dots on beats -->
+      <g fill="#9b3a2a">
+        <circle cx="120" cy="170" r="3.5"/><circle cx="270" cy="170" r="3.5"/>
+        <circle cx="420" cy="170" r="3.5"/><circle cx="570" cy="170" r="3.5"/>
+        <circle cx="720" cy="170" r="3.5"/>
+      </g>
+      <!-- gap brace -->
+      <line x1="270" y1="150" x2="420" y2="150" stroke="#928873" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="320" y="144" font-family="serif" font-size="13" fill="#5d564a">one gap</text>
+      <!-- feel chips above one beat -->
+      <g font-family="monospace" font-size="10">
+        <rect x="380" y="24" width="58" height="18" fill="#faf4e6" stroke="#3d3a78"/><text x="388" y="37" fill="#3d3a78">speed</text>
+        <rect x="442" y="24" width="44" height="18" fill="#faf4e6" stroke="#8a9a78"/><text x="450" y="37" fill="#6f7d5e">air</text>
+        <rect x="490" y="24" width="52" height="18" fill="#faf4e6" stroke="#b58326"/><text x="498" y="37" fill="#8a6516">grain</text>
+        <line x1="461" y1="42" x2="461" y2="158" stroke="#cdbfa3" stroke-width="1" stroke-dasharray="2 3"/>
+        <text x="380" y="60" font-family="serif" font-size="12" fill="#5d564a">the target "feel" sampled for this gap</text>
+      </g>
+    </svg>
+
+    <div class="axis-strip">
+      <div class="axis speed"><b>speed</b><span>mean pace over the gap. Set by where the track sends the rider vertically &mdash; downhill gains speed, climbing sheds it.</span></div>
+      <div class="axis air"><b>air</b><span>fraction of the gap the rider is off the ground. High = lofted hops; low = glued, riding along the track.</span></div>
+      <div class="axis grain"><b>grain</b><span>texture of the catch &mdash; the median length of the lines that make it. Short lines feel busy; long lines feel smooth.</span></div>
+    </div>
+    <p class="sub" style="margin-top:12px">
+      Score for a finished, valid track is essentially <code>1000 &middot; exp(-error / tolerance)</code>,
+      where the error is how far the achieved speed/air/grain land from their targets, pooled over every gap.
+      So once a track lands all its beats cleanly, <strong>all that is left is precision</strong>: how close the
+      feel comes to the target, gap by gap.
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">Search state</div>
+      <div>
+        <h2>A node is a "track so far"</h2>
+        <p class="sub">
+          The search never rebuilds a whole track to try something new. A node is
+          the catches committed up to one beat, the exact rider/engine state at
+          that point, and a little bookkeeping. Extending a node into the next
+          gap is cheap because everything before it is already simulated and
+          frozen.
         </p>
       </div>
     </div>
 
     <div class="grid-2">
       <div class="panel">
-        <h3><code>SearchNode</code></h3>
+        <h3>What the node holds</h3>
         <ul>
-          <li><code>gapIndex</code>: next gap to expand.</li>
-          <li><code>prefixFits</code>: committed catch fits or <code>null</code> for non-contact/skipped gaps.</li>
-          <li><code>prefixEngine</code>: lr-core state after the prefix.</li>
-          <li><code>prefixNextLineId</code>: stable line ids for new geometry.</li>
-          <li><code>cumulativeCost</code>: local candidate cost sum, used for diagnostics and ordering.</li>
-          <li><code>_candidatesCache</code>: memoized candidates for this gap.</li>
+          <li><b>which beat is next</b> &mdash; how far the prefix has been built.</li>
+          <li><b>the committed catches</b> so far (with a marker for any beat that had to be skipped).</li>
+          <li><b>the engine state</b> &mdash; the rider's exact position and velocity at the end of the prefix.</li>
+          <li><b>the next line id</b>, so new geometry gets stable identifiers.</li>
+          <li>a memoized candidate cache, so re-visiting a node never re-samples.</li>
         </ul>
       </div>
       <div class="panel">
-        <h3><code>HandoffNode</code></h3>
+        <h3>Plus the choices around it</h3>
         <ul>
-          <li>Wraps the search node with the selected start state and start rank.</li>
-          <li>Tracks whether start alternatives have been expanded.</li>
-          <li>Tracks candidate ranks per gap for diagnostics.</li>
-          <li>Counts skipped contacts so fallback branches can be deprioritized.</li>
-          <li>Can defer expansion after a skip so honest partial outputs are evaluated first.</li>
+          <li>which <b>start</b> (initial condition) this prefix grew from, and its rank.</li>
+          <li>whether the start alternatives have been expanded yet.</li>
+          <li>how many beats this branch has <b>skipped</b> &mdash; used to deprioritize it.</li>
+          <li>a flag to <b>defer expansion</b> after a skip, so honest partial outputs are scored before the search digs deeper.</li>
         </ul>
       </div>
     </div>
@@ -713,51 +784,15 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
 
   <section class="section">
     <div class="section-head">
-      <div class="eyebrow">Frontier</div>
+      <div class="eyebrow">One catch</div>
       <div>
-        <h2>Two stacks, one deterministic order</h2>
+        <h2>How a single landing is built</h2>
         <p class="sub">
-          The frontier is split into a pass stack and a fallback stack. The pass
-          stack is drained first, so a branch that has landed every contact so
-          far always gets priority over one that has skipped a contact.
-        </p>
-      </div>
-    </div>
-
-    <svg class="diagram" viewBox="0 0 920 250" role="img" aria-label="Frontier search diagram">
-      <rect x="24" y="28" width="190" height="46" fill="#faf4e6" stroke="#cdbfa3"/>
-      <text x="42" y="56" font-family="monospace" font-size="13" fill="#1f1a14">root prefix</text>
-      <line x1="214" y1="51" x2="295" y2="51" stroke="#928873" stroke-width="1.5"/>
-      <path d="M295 51 l-8 -5 m8 5 l-8 5" fill="none" stroke="#928873"/>
-      <rect x="300" y="18" width="220" height="86" fill="#faf4e6" stroke="#cdbfa3"/>
-      <text x="322" y="47" font-family="monospace" font-size="12" fill="#1f1a14">pass stack</text>
-      <text x="322" y="72" font-family="serif" font-size="14" fill="#5d564a">skip-free prefixes</text>
-      <rect x="300" y="135" width="220" height="86" fill="#faf4e6" stroke="#cdbfa3"/>
-      <text x="322" y="164" font-family="monospace" font-size="12" fill="#1f1a14">fallback stack</text>
-      <text x="322" y="189" font-family="serif" font-size="14" fill="#5d564a">branches with skips</text>
-      <line x1="520" y1="61" x2="635" y2="61" stroke="#928873" stroke-width="1.5"/>
-      <path d="M635 61 l-8 -5 m8 5 l-8 5" fill="none" stroke="#928873"/>
-      <line x1="520" y1="178" x2="635" y2="178" stroke="#928873" stroke-width="1.5" stroke-dasharray="5 5"/>
-      <path d="M635 178 l-8 -5 m8 5 l-8 5" fill="none" stroke="#928873"/>
-      <rect x="640" y="38" width="236" height="74" fill="#faf4e6" stroke="#1e5a6e"/>
-      <text x="662" y="68" font-family="monospace" font-size="12" fill="#1f1a14">evaluate + register</text>
-      <text x="662" y="92" font-family="serif" font-size="14" fill="#5d564a">then expand next contact gap</text>
-      <rect x="640" y="148" width="236" height="54" fill="#f0e7d6" stroke="#cdbfa3"/>
-      <text x="662" y="181" font-family="serif" font-size="14" fill="#5d564a">used only when pass stack is empty</text>
-    </svg>
-  </section>
-
-  <section class="section">
-    <div class="section-head">
-      <div class="eyebrow">Arc placement</div>
-      <div>
-        <h2>How one catch becomes a landing</h2>
-        <p class="sub">
-          A candidate is not an absolute line picked from the canvas. The
-          compiler samples a local arc shape, chooses one local impact point on
-          that arc, translates the whole arc so that point meets the predicted
-          sled at the target contact frame, then asks lr-core whether the result
-          really lands and survives.
+          A candidate is not a line picked from the canvas. The compiler predicts
+          where the rider will be at the beat, samples an arc <em>shape</em>,
+          slides the whole arc so one chosen point on it sits exactly under the
+          rider at the beat frame, then asks the real physics engine whether it
+          truly lands on time and survives. Only survivors get measured.
         </p>
       </div>
     </div>
@@ -765,101 +800,151 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
     <div class="flow">
       <div class="flow-row">
         <div class="step-no">1</div>
-        <div class="step-title">Read target state</div>
+        <div class="step-title">Predict the rider</div>
         <div class="step-body">
-          At <code>gap.endFrame</code>, the prefix engine predicts the rider
-          without the new catch. <code>readTargetState</code> records the rider
-          velocity and chooses the lowest sled point among
-          <code>PEG</code>, <code>TAIL</code>, <code>NOSE</code>, and
-          <code>STRING</code> as the intended contact anchor.
+          Run the prefix forward to the beat frame <em>without</em> any new track.
+          Record the rider's velocity and pick the lowest point of the sled as the
+          spot the catch must meet.
         </div>
       </div>
       <div class="flow-row">
         <div class="step-no">2</div>
-        <div class="step-title">Sample local arc</div>
+        <div class="step-title">Sample an arc shape</div>
         <div class="step-body">
-          <code>sampleArcParams</code> samples length, segment count, start
-          angle, end angle, and curve bias. Grain targets steer segment count;
-          brake mode uses an uphill-entry angle band; air-support mode uses
-          longer, shallow catches. The arc is still local geometry with
-          <code>anchor = (0, 0)</code>.
+          Pick length, segment count, entry and exit angles, and curvature. Grain
+          steers segment count; air steers how grounded the ride-in and ride-out
+          are; speed steers whether the exit climbs (sheds speed) or dives (gains
+          it). At this point the arc is still abstract geometry anchored at the
+          origin.
         </div>
       </div>
       <div class="flow-row">
         <div class="step-no">3</div>
-        <div class="step-title">Pick impact point</div>
+        <div class="step-title">Anchor it at the impact point</div>
         <div class="step-body">
-          In default impact-anchor mode, <code>impactT</code> is an along-arc
-          coordinate, not a time. Current default sampling is
-          <code>clamp(0.6 + jitter, 0.15, 0.85)</code>. The compiler evaluates
-          the local point and tangent at that <code>impactT</code>, adds small
-          tangent/normal jitter, and translates the entire arc so the chosen
-          point sits under the predicted sled.
+          Choose a point along the arc to be the contact, then translate the whole
+          arc so that point lands under the predicted sled at the beat frame.
+          Moving the impact point changes the catch's shape, clearance, and which
+          parts could collide with the rider before the beat.
         </div>
       </div>
       <div class="flow-row">
         <div class="step-no">4</div>
-        <div class="step-title">Preclear</div>
+        <div class="step-title">Pre-clear, then validate with physics</div>
         <div class="step-body">
-          <code>arcToLines</code> turns the placed arc into solid track lines.
-          Before running a full candidate simulation, the compiler scans the
-          prefix rider from <code>gap.startFrame</code> through
-          <code>gap.endFrame - 2</code>. If any sled point comes within the
-          collision-risk distance of the new lines, the candidate is rejected as
-          a likely pre-beat collision.
+          Reject candidates whose lines would hit the rider <em>before</em> the
+          beat. Then add the lines to lr-core and read the detector: the fit is
+          kept only if the rider survives, an owned landing fires within
+          &plusmn;1 frame of the beat, and no stray landing happens first. Survivors
+          are then measured for speed, air, and grain.
         </div>
-      </div>
-      <div class="flow-row">
-        <div class="step-no">5</div>
-        <div class="step-title">Direct validation</div>
-        <div class="step-body">
-          The candidate lines are added to lr-core and detector events are read.
-          A fit survives only if the rider lives through the required margin,
-          an owned landing event occurs at <code>gap.endFrame +/- 1</code>, and
-          no off-beat landing occurs before the measurement boundary. Only then
-          are speed, air, and grain measured for ranking.
-        </div>
-      </div>
-    </div>
-
-    <div class="formula" style="margin-top:16px">local = arcLocalPointAt(baseArc, impactT)
-normal = (-local.tangentY, local.tangentX)
-anchor = targetSled - local + tangent * alongJitter + normal * normalJitter</div>
-
-    <div class="grid-2" style="margin-top:16px">
-      <div class="panel">
-        <h3>What <code>impactT</code> actually controls</h3>
-        <p>
-          Moving <code>impactT</code> changes the tangent, curvature, and amount
-          of arc before and after the intended contact point. It also changes
-          which parts of the arc can collide with the rider before the beat.
-          The downstream gates are binary: a small placement shift can delete a
-          candidate from the pool rather than merely making it a lower-quality
-          candidate.
-        </p>
-      </div>
-      <div class="panel">
-        <h3>Why the global constant is fragile</h3>
-        <p>
-          A low value such as <code>0.2</code> can avoid many preclear rejects,
-          but in the current arc family it usually presents the wrong local
-          catch shape at the beat and fails the owned-landing gate. A back-half
-          value near <code>0.6</code> preclears more often, but the survivors
-          land dense high-speed gaps much more reliably. A smarter compiler
-          could make <code>0.05</code> work by generating a different local
-          shape and clearance envelope; this compiler only translates the same
-          sampled arc family around one global point.
-        </p>
       </div>
     </div>
 
     <div class="note warn" style="margin-top:16px">
-      The current <code>impactCenter = 0.6</code> is a shipped heuristic, not a
-      geometric law. The proper fix is a per-gap feasible impact band derived
-      from gap duration, entry speed, arc length, tangent, and preclear/survival
-      probes. Optional <code>LR_IMPACT_ANCHOR_FALLBACK_BISECT=1</code> can try
-      anchor-Y bisection after a direct failure, but the default impact-anchor
-      path validates directly.
+      The impact point is a single shipped heuristic, not a geometric law. It is
+      one of the reasons the generator can only make a limited family of catch
+      shapes &mdash; a real lever (see <em>the frontier today</em>) is a smarter,
+      per-gap choice of shape and impact rather than translating one family.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">The search tree</div>
+      <div>
+        <h2>Every beat forks the track</h2>
+        <p class="sub">
+          At each beat the ranker keeps the best three catches, so a node spawns
+          (at most) three children. Partial tracks therefore form a tree: depth is
+          the beat index, branches are alternative catches. The tree is
+          astronomically large; the budget decides how much of it gets walked.
+        </p>
+      </div>
+    </div>
+
+    <svg viewBox="0 0 920 300" role="img" aria-label="Partial tracks form a tree; each beat branches three ways and the search dives the best spine first"
+         style="display:block;width:100%;height:auto;border:1px solid #cdbfa3;border-radius:4px;background:#faf4e6">
+      <!-- edges: spine highlighted, siblings faded -->
+      <g stroke="#cdbfa3" stroke-width="1" fill="none">
+        <path d="M120 150 L300 70"/><path d="M120 150 L300 230"/>
+        <path d="M300 150 L480 110"/><path d="M300 150 L480 230"/>
+        <path d="M480 150 L660 110"/><path d="M480 150 L660 230"/>
+      </g>
+      <!-- spine (best-first dive) -->
+      <g stroke="#9b3a2a" stroke-width="2" fill="none">
+        <path d="M120 150 L300 150"/><path d="M300 150 L480 150"/>
+        <path d="M480 150 L660 150"/><path d="M660 150 L820 150"/>
+      </g>
+      <!-- nodes -->
+      <g font-family="monospace" font-size="11">
+        <circle cx="120" cy="150" r="9" fill="#faf4e6" stroke="#1f1a14" stroke-width="1.5"/>
+        <circle cx="300" cy="70" r="7" fill="#f0e7d6" stroke="#cdbfa3"/>
+        <circle cx="300" cy="150" r="9" fill="#faf4e6" stroke="#9b3a2a" stroke-width="1.5"/>
+        <circle cx="300" cy="230" r="7" fill="#f0e7d6" stroke="#cdbfa3"/>
+        <circle cx="480" cy="110" r="7" fill="#f0e7d6" stroke="#cdbfa3"/>
+        <circle cx="480" cy="150" r="9" fill="#faf4e6" stroke="#9b3a2a" stroke-width="1.5"/>
+        <circle cx="480" cy="230" r="7" fill="#f0e7d6" stroke="#cdbfa3"/>
+        <circle cx="660" cy="110" r="7" fill="#f0e7d6" stroke="#cdbfa3"/>
+        <circle cx="660" cy="150" r="9" fill="#faf4e6" stroke="#9b3a2a" stroke-width="1.5"/>
+        <circle cx="820" cy="150" r="9" fill="#faf4e6" stroke="#3d6b3a" stroke-width="2"/>
+      </g>
+      <text x="96" y="135" font-family="serif" font-size="12" fill="#5d564a">start</text>
+      <text x="792" y="135" font-family="serif" font-size="12" fill="#3d6b3a">complete</text>
+      <!-- depth axis -->
+      <g font-family="monospace" font-size="10" fill="#928873">
+        <text x="104" y="285">beat 0</text><text x="284" y="285">beat 1</text>
+        <text x="464" y="285">beat 2</text><text x="644" y="285">beat 3</text>
+        <text x="800" y="285">...</text>
+      </g>
+      <text x="320" y="58" font-family="serif" font-size="12" fill="#928873">three best catches per beat</text>
+    </svg>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">Walking the tree</div>
+      <div>
+        <h2>Dive on the best, keep the best, back up when stuck</h2>
+        <p class="sub">
+          The walk is depth-first: children are pushed best-first and the most
+          recent is always popped, so it dives down the most promising catch to
+          reach a complete track quickly. A separate <em>best-so-far register</em>
+          watches every prefix that goes by and remembers the single best
+          <strong>complete</strong> track seen anywhere &mdash; so the answer is
+          not the greedy path, it is the global best the walk happened to touch.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h3>Two stacks, clean first</h3>
+        <p>
+          The frontier is split: prefixes that have landed <em>every</em> beat so
+          far (the pass stack) are drained before prefixes that had to skip a beat
+          (the fallback stack). So a clean branch always gets priority, and a
+          skipped branch is only explored when nothing clean remains.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Backing up &amp; far-back pulses</h3>
+        <p>
+          When a dive dead-ends or finishes, the stack naturally backs up to the
+          next sibling. Periodically the walk also reaches <em>far back</em> to an
+          old, shallow node it skipped past &mdash; so one strong-looking early
+          catch can never monopolize the whole budget and starve better early
+          choices.
+        </p>
+      </div>
+    </div>
+
+    <div class="tags" style="margin-top:14px">
+      <span class="tag">depth-first dive</span>
+      <span class="tag">register = global best</span>
+      <span class="tag">pass before fallback</span>
+      <span class="tag">far-back pulse</span>
+      <span class="tag">partial outputs scored too</span>
     </div>
   </section>
 
@@ -867,116 +952,166 @@ anchor = targetSled - local + tangent * alongJitter + normal * normalJitter</div
     <div class="section-head">
       <div class="eyebrow">Ranking</div>
       <div>
-        <h2>Candidate score for one gap</h2>
+        <h2>Which three catches survive</h2>
         <p class="sub">
-          For a contact gap, handoff samples a deterministic candidate prefix,
-          keeps a small pool, adds special candidates, ranks them, and branches
-          on the best three.
+          For each gap the compiler samples a pool of candidates, scores them, and
+          branches on the best three. Lower score is better. Four of the five
+          terms are about <em>this</em> beat or the immediate exit state; only one
+          looks forward, and only by a single beat.
         </p>
       </div>
     </div>
 
     <div class="formula">score =
-  candidate.cost
-  + future-contact scarcity
-  + state penalty
-  + speed overshoot penalty
-  + air overshoot penalty</div>
+  candidate.cost          <span style="color:#5d564a"># local fit: how close speed / air / grain land this gap</span>
+  + future scarcity       <span style="color:#5d564a"># peek ONE beat ahead: does it still have catches? (dead end = heavy penalty)</span>
+  + preview cost          <span style="color:#5d564a"># how cheap the best next catch looked, one beat ahead</span>
+  + exit-state penalty    <span style="color:#5d564a"># punish leaving the rider too steep / too vertical</span>
+  + overshoot penalty     <span style="color:#5d564a"># punish speed/air that lands OVER target (anti-creep)</span></div>
 
     <div class="grid-3" style="margin-top:16px">
       <div class="panel">
-        <h3>Base pool</h3>
-        <p>Sample <code>14</code> candidates while searching for the first passing output, or <code>13</code> on sparse contact cadences, then widen to <code>16</code> for quality search. Rank a pool of <code>8</code> and branch on the best <code>3</code>.</p>
-        <div class="tags"><span class="tag">contract K 14/13</span><span class="tag">quality K 16</span><span class="tag">branching 3</span></div>
+        <h3>Local fit</h3>
+        <p>The squared distance from this gap's speed, air, and grain targets, weighted equally. This is the bulk of the signal.</p>
+        <div class="tags"><span class="tag">pool 8</span><span class="tag">branch 3</span></div>
       </div>
       <div class="panel">
-        <h3>Future-contact probe</h3>
-        <p>Preview one future contact with one candidate. A dead end gets a heavy penalty, scarce survivor count gets a smaller penalty, and the preview's local cost is a small ranking signal during contract search.</p>
-        <div class="tags"><span class="tag">horizon 1</span><span class="tag">preview K 1</span><span class="tag">cost 0.25</span></div>
+        <h3>One-beat preview</h3>
+        <p>Tentatively commit the catch, look one beat ahead, and check how many viable catches survive there and how cheap the best one is. A dead end is heavily penalized; few survivors a little. <strong>This is the only forward-looking term.</strong></p>
+        <div class="tags"><span class="tag">horizon 1</span></div>
       </div>
       <div class="panel">
-        <h3>Overshoot control</h3>
-        <p>Speed and air are penalized asymmetrically only when achieved values exceed targets. This is selection-only; it does not alter the candidate generator.</p>
-        <div class="tags"><span class="tag">speed 16</span><span class="tag">air 16</span></div>
+        <h3>Exit state &amp; overshoot</h3>
+        <p>Penalize an exit that is too vertical or too steep, and penalize speed/air that overshoots target (catches are net-downhill, so the rider tends to creep faster over time). Selection-only &mdash; it never changes the geometry, only which candidate wins.</p>
       </div>
+    </div>
+
+    <div class="note" style="margin-top:16px">
+      The single-beat horizon is exactly the spot where ranking is blind to the
+      long run: a catch that looks great now and one beat ahead can still steer
+      the rider into a state that quietly degrades quality three beats later.
+      Widening this horizon into a real multi-gap objective is the most promising
+      open direction.
     </div>
   </section>
 
   <section class="section">
     <div class="section-head">
-      <div class="eyebrow">Candidate sources</div>
+      <div class="eyebrow">Extra candidates</div>
       <div>
-        <h2>Extra options that lose gracefully</h2>
+        <h2>Options that lose gracefully</h2>
         <p class="sub">
-          Handoff adds candidates that are still fully physics-validated. They
-          only help when the ranking says they help; otherwise they simply lose
-          to the normal pool.
+          Besides the normal pool, the compiler offers a few special catches.
+          They are all fully physics-validated and simply lose the ranking when
+          they do not help &mdash; so they can only ever add a better option,
+          never remove a good one.
         </p>
       </div>
     </div>
-
     <div class="grid-3">
       <div class="panel">
         <h3>Catch reuse</h3>
-        <p>
-          On periodic rhythms, a recent sled-relative catch can work again.
-          The compiler translates the latest committed catch from the prefix into
-          the current sled frame and validates the survivor with
-          <code>tryCandidate</code>.
-        </p>
+        <p>On a steady rhythm, a recent catch translated to the current sled frame can land again &mdash; a cheap way to keep a periodic ride consistent.</p>
       </div>
       <div class="panel">
         <h3>Brake catches</h3>
-        <p>
-          On speed-targeted gaps above the authored minimum, if the current raw
-          speed is already over the authored target's raw px/frame mapping and
-          the target is still inside the mild brake gate, the compiler offers
-          uphill-entry brake catches. Contract search samples <code>2..3</code>
-          brake attempts depending on speed ratio; after a passing output exists,
-          quality search may widen the local brake probe to <code>3..4</code>.
-          Brake catches are excluded from reuse because they are corrective
-          catches, not steady-state rhythm shapes.
-        </p>
+        <p>When the rider is running over target speed, uphill-entry catches that bleed speed are offered. On specs that are not creeping they simply lose.</p>
       </div>
       <div class="panel">
         <h3>Air-support stream</h3>
-        <p>
-          Quality search has one explicitly registered axis-quality stream:
-          low-air gaps can receive one longer, shallow
-          <code>air_support</code> candidate. It is sampled with its own seed,
-          validated through the same impact-anchor and detector gates, and
-          simply loses if it does not improve the ranked options.
-        </p>
+        <p>For low-air (glued) gaps, a longer, shallower catch is offered to keep the rider riding rather than hopping. Validated through the same gates.</p>
       </div>
     </div>
   </section>
 
   <section class="section">
     <div class="section-head">
-      <div class="eyebrow">Terminal behavior</div>
+      <div class="eyebrow">When nothing lands</div>
       <div>
-        <h2>Partial outputs are first-class</h2>
+        <h2>Rescue, skip, stay honest</h2>
         <p class="sub">
-          The compiler can return a failing prefix honestly. Nonterminal prefixes
-          are detected through their committed horizon, include a bounded window
-          of future contacts marked missing, and force a failing terminus at the
-          cutoff. Terminal prefixes are scored over the full spec.
+          Sometimes no sampled catch lands a required beat. The compiler does not
+          give up or lie about it.
         </p>
       </div>
     </div>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="step-no">1</div>
+        <div class="step-title">Rescue</div>
+        <div class="step-body">At a true dead end, sample many more candidates than usual &mdash; and for very tight (sub-0.3s) beats, sample more still &mdash; before giving up on the beat.</div>
+      </div>
+      <div class="flow-row">
+        <div class="step-no">2</div>
+        <div class="step-title">Skip</div>
+        <div class="step-body">If rescue still finds nothing, mark the beat skipped, drop the branch to the fallback stack, and keep going. A skipped beat fails the contract (scores near zero) but lets the walk reach the end.</div>
+      </div>
+      <div class="flow-row">
+        <div class="step-no">3</div>
+        <div class="step-title">Partials are first-class</div>
+        <div class="step-body">A prefix that never finished is scored honestly for what it achieved, with the unreached beats marked missing. So the register always has <em>something</em> to return, and a half-built track never masquerades as complete.</div>
+      </div>
+    </div>
+    <p class="sub" style="margin-top:14px">
+      Two speculative finishers also run: <b>tail completion</b> greedily finishes
+      a near-complete clean prefix early, and <b>polish</b> clone-tests small
+      tweaks of a finished track &mdash; both only ever adopted on a strict
+      register improvement.
+    </p>
+  </section>
 
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">The budget</div>
+      <div>
+        <h2>The clock is rider-frames, not wall-time</h2>
+        <p class="sub">
+          Work is metered in <em>simulated rider frames</em>: every candidate trial
+          costs the frames lr-core actually steps. The walk runs until the budget
+          is spent, then returns the register's best. Wall-clock is never scored,
+          so a faster machine cannot buy a better track.
+        </p>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>More budget = more tree</h3>
+        <p>A bigger budget simply walks more of the same deterministic tree: more candidates per gap early on, more branches explored, more of the frontier revisited. The policy is fixed; the budget is just how far it gets to look.</p>
+      </div>
+      <div class="panel">
+        <h3>Independent per budget</h3>
+        <p>Each budget on the curve is a full run from scratch &mdash; there is no shared "anytime" checkpoint curve. The same (spec, seed, budget) always produces a byte-identical track.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">The frontier today</div>
+      <div>
+        <h2>Where extra budget stops converting</h2>
+        <p class="sub">
+          Past a moderate budget the score plateaus, and the reason is specific
+          and measured: the wall is candidate <strong>generation</strong>, not the
+          search. More candidates, more start options, wider branching, and more
+          search diversity were each tried at high budget and were all neutral
+          &mdash; the search is already finding the best catches the current
+          generator can make, and those are not good enough.
+        </p>
+      </div>
+    </div>
     <div class="grid-3">
       <div class="panel">
-        <h3>Tail completion</h3>
-        <p>For medium-dense skip-free prefixes near the end, handoff tries a short greedy finish when at most six contacts remain.</p>
+        <h3>Air is the limiting axis</h3>
+        <p>Across specs, the dominant error is the air axis &mdash; the rider carries too much air on glued targets, and the generator cannot produce lower-air catches that still land on-beat. Halving the air error alone would move the headline most of the way to its target.</p>
       </div>
       <div class="panel">
-        <h3>Polish</h3>
-        <p>Terminal prefixes can be clone-tested by <code>polishLeafVariant</code>. The variant is offered to the same register and only adopted on strict improvement.</p>
+        <h3>Ranking sees one beat</h3>
+        <p>The only forward-looking term is the one-beat preview, so ranking is mostly local. A deeper, multi-gap objective &mdash; "does this catch lead toward a state compatible with the rest of the track?" &mdash; is an open lever, and a naturally budget-aware one.</p>
       </div>
       <div class="panel">
-        <h3>Independent per-budget runs</h3>
-        <p>Each requested budget is an independent full run from scratch (no anytime sharing): the budget is an input, and the run returns the strict best-so-far register reached at that budget.</p>
+        <h3>So: generation, then ranking</h3>
+        <p>A deeper lookahead only helps if the candidate pool <em>contains</em> better catches to choose among. The two levers compound: richer catch generation (especially for air), and a forward-looking objective to choose among the richer pool.</p>
       </div>
     </div>
   </section>

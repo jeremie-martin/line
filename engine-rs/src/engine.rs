@@ -31,6 +31,8 @@ use crate::{
 // parts.BODY in lr-core order — the entities getRider averages (sum in this order
 // then /6, matching Rider.getBody's averageVectors so the result is bit-identical).
 const BODY: [usize; 6] = [BUTT, SHOULDER, RHAND, LHAND, LFOOT, RFOOT];
+const SLED_POINT_MASK: u32 = (1u32 << PEG) | (1u32 << TAIL) | (1u32 << NOSE) | (1u32 << STRING);
+const CANDIDATE_WINDOW_STRIDE: usize = 9;
 type Event = (u8, i32, i32);
 
 // ── the single shared cache per lineage (LineEngine.__computed__ + Frame.grid/collisions) ──
@@ -40,11 +42,11 @@ struct Cache {
     cell_lines: FlatIntMap<Vec<GridLine>>, // ClassicGrid cellLinesMap (collision lookup)
     line_cache: LineCellCache,             // frame-local shortcut for repeated line-grid cells
     lines_cells: IntMap<i32, Vec<(i64, i64)>>, // ClassicGrid lineCellsMap (id → cell coords, for remove)
-    frames: Vec<State>,                    // frames[0] = initial; lazily extended
-    events: Vec<Event>,                    // flat per-frame collision records
-    event_offsets: Vec<usize>,             // frame f => events[offset[f]..offset[f+1]]
-    hist: HistGrid,                        // Frame.grid: collision-history for addLine invalidation
-    touched_cells: Vec<i64>,               // flat per-frame reverse patch for hist rollback
+    frames: Vec<State>,                        // frames[0] = initial; lazily extended
+    events: Vec<Event>,                        // flat per-frame collision records
+    event_offsets: Vec<usize>,                 // frame f => events[offset[f]..offset[f+1]]
+    hist: HistGrid,          // Frame.grid: collision-history for addLine invalidation
+    touched_cells: Vec<i64>, // flat per-frame reverse patch for hist rollback
     touched_cell_offsets: Vec<usize>,
     hist_snaps: Vec<SnapNode>, // extra same-cell/same-frame snapshots
     hist_snap_offsets: Vec<usize>,
@@ -147,13 +149,8 @@ impl Cache {
         // line + cells-Vec clones the original eager registration required. The grid
         // registration order vs invalidation is immaterial (disjoint state).
         for &(cx, cy) in cells.iter() {
-            if let Some(idx) = index_of_collision_in_cell(
-                &self.hist,
-                &self.hist_snaps,
-                cx,
-                cy,
-                &l,
-            ) {
+            if let Some(idx) = index_of_collision_in_cell(&self.hist, &self.hist_snaps, cx, cy, &l)
+            {
                 self.set_frames_length(idx as usize);
             }
         }
@@ -651,4 +648,83 @@ pub(crate) fn raw_frame_into(
         events[k * 3 + 2] = pt as f64;
     }
     n
+}
+
+/// Candidate-window detector ABI: compute a consecutive frame window once and
+/// write just the fields candidate scoring consumes. Layout per frame:
+/// [body_px, body_py, body_vx, body_vy, rider_fsu, sled_fsu, sled_mask,
+///  contact_offset, contact_count]. Sled-side contact line ids are written
+/// contiguously to `contacts`, deduped per frame in collision-event order.
+pub(crate) fn candidate_window_into(
+    h: u32,
+    start: i32,
+    end: i32,
+    out: &mut [f64],
+    contacts: &mut [f64],
+    cap: usize,
+) -> i32 {
+    if !valid(h) || start < 0 || end < start {
+        return -1;
+    }
+    let frame_count = (end - start + 1) as usize;
+    if frame_count * CANDIDATE_WINDOW_STRIDE > out.len() {
+        return -1;
+    }
+
+    update_computed(h);
+    let holder = ver(h as i32).holder;
+    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
+    cache.compute_to(end as usize);
+
+    let mut contact_total = 0usize;
+    for i in 0..frame_count {
+        let frame = start as usize + i;
+        let s = &cache.frames[frame];
+        let base = i * CANDIDATE_WINDOW_STRIDE;
+
+        let (mut px, mut py, mut vx, mut vy) = (0.0, 0.0, 0.0, 0.0);
+        for &entity in BODY.iter() {
+            px += s.px[entity];
+            py += s.py[entity];
+            vx += s.vx[entity];
+            vy += s.vy[entity];
+        }
+        let n_body = BODY.len() as f64;
+        out[base] = px / n_body;
+        out[base + 1] = py / n_body;
+        out[base + 2] = vx / n_body;
+        out[base + 3] = vy / n_body;
+        out[base + 4] = s.fsu[RIDER_MOUNTED] as f64;
+        out[base + 5] = s.fsu[SLED_INTACT] as f64;
+
+        let contact_start = contact_total;
+        let mut sled_mask = 0u32;
+        for &(_, line_id, point_idx) in cache.events_at(frame) {
+            let bit = 1u32 << (point_idx as u32);
+            if (SLED_POINT_MASK & bit) == 0 {
+                continue;
+            }
+            sled_mask |= bit;
+            let mut seen_line = false;
+            for &seen in contacts.iter().take(contact_total).skip(contact_start) {
+                if seen == line_id as f64 {
+                    seen_line = true;
+                    break;
+                }
+            }
+            if !seen_line {
+                if contact_total >= cap {
+                    return -1;
+                }
+                contacts[contact_total] = line_id as f64;
+                contact_total += 1;
+            }
+        }
+
+        out[base + 6] = sled_mask as f64;
+        out[base + 7] = contact_start as f64;
+        out[base + 8] = (contact_total - contact_start) as f64;
+    }
+
+    contact_total as i32
 }

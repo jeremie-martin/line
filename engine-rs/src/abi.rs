@@ -95,8 +95,8 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
     for f in 1..=frames {
         ev.clear();
         step_state::<false>(
-            &mut s, &grid, &rest, &endur, &mut ev, f as i32, &mut hist, &mut tc, &mut hs,
-            &mut ac, &mut lc, &mut coll, &mut tl,
+            &mut s, &grid, &rest, &endur, &mut ev, f as i32, &mut hist, &mut tc, &mut hs, &mut ac,
+            &mut lc, &mut coll, &mut tl,
         );
         write(f, &s);
     }
@@ -167,4 +167,11 @@ pub extern "C" fn get_raw_frame(h: u32, f: i32) -> i32 {
     let scratch = unsafe { &mut *&raw mut SCRATCH };
     let events = unsafe { &mut *&raw mut EVENTS };
     engine::raw_frame_into(h, f, scratch, events, EVENTS_LEN / 3) as i32
+}
+
+#[no_mangle]
+pub extern "C" fn get_candidate_window(h: u32, start: i32, end: i32) -> i32 {
+    let out = unsafe { &mut *&raw mut OUT };
+    let contacts = unsafe { &mut *&raw mut EVENTS };
+    engine::candidate_window_into(h, start, end, out, contacts, EVENTS_LEN)
 }

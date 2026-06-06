@@ -7,9 +7,9 @@
 
 import {
   DEFAULT_PARAMS,
-  detect, extractRawTrajectory, extractRawTrajectoryWindow,
+  detect, extractCandidateWindow, extractRawTrajectory, extractRawTrajectoryWindow,
   K_BOUNCE_LANDING, PERSISTENCE_FRAMES,
-  type Detection, type DetEvent, type RawTrajectory,
+  type CandidateWindowRaw, type Detection, type DetEvent, type RawTrajectory,
 } from "../../lib/detector.ts";
 import { arcToLines, makeSolidLine } from "../arc.ts";
 import {
@@ -72,13 +72,139 @@ const EMPTY_CANDIDATE_SUMMARY: Detection["summary"] = {
   meanVxAirborne: 0,
   slideSegments: [],
 };
+const EMPTY_WINDOW_CONTACT_LINE_IDS = Object.freeze([]) as unknown as number[];
+
+const WINDOW_PX = 0;
+const WINDOW_PY = 1;
+const WINDOW_VX = 2;
+const WINDOW_VY = 3;
+const WINDOW_RIDER_FSU = 4;
+const WINDOW_SLED_FSU = 5;
+const WINDOW_SLED_MASK = 6;
+const WINDOW_CONTACT_OFFSET = 7;
+const WINDOW_CONTACT_COUNT = 8;
 
 // deno-lint-ignore no-explicit-any
 export function detectWindow(engine: any, startFrame: number, endFrame: number): Detection {
   const start = Math.max(0, startFrame);
+  const fast = detectCandidateWindowBuffer(extractCandidateWindow(engine, start, endFrame));
+  if (fast !== null) {
+    fast.frameOffset = start;
+    return fast;
+  }
   const det = detectCandidateWindowRaw(extractRawTrajectoryWindow(engine, start, endFrame)) as WindowDetection;
   det.frameOffset = start;
   return det;
+}
+
+function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDetection | null {
+  if (raw === null) return null;
+  const frameCount = raw.frames;
+  if (frameCount === 0) {
+    throw new Error("detect: empty trajectory");
+  }
+
+  const { data, contacts, stride } = raw;
+  const speed: number[] = [];
+  const contactLineIds: number[][] = [];
+  const airborne: boolean[] = [];
+  const events: DetEvent[] = [];
+
+  let stallRun = 0;
+  let airborneRun = 0;
+  let airborneFrom = -1;
+  let terminus: Detection["terminus"] | null = null;
+
+  const frameAt = (index: number): number => raw.startFrame + index;
+  const baseAt = (index: number): number => index * stride;
+  const sledMaskAt = (index: number): number => data[baseAt(index) + WINDOW_SLED_MASK];
+  const contactLineIdsAtIndex = (index: number): number[] => {
+    const base = baseAt(index);
+    const count = data[base + WINDOW_CONTACT_COUNT] | 0;
+    if (count === 0) return EMPTY_WINDOW_CONTACT_LINE_IDS;
+    const offset = data[base + WINDOW_CONTACT_OFFSET] | 0;
+    const ids = new Array<number>(count);
+    for (let i = 0; i < count; i++) ids[i] = contacts[offset + i];
+    return ids;
+  };
+
+  for (let i = 0; i < frameCount; i++) {
+    const base = baseAt(i);
+    const frame = frameAt(i);
+    const vx = data[base + WINDOW_VX];
+    const vy = data[base + WINDOW_VY];
+    const sp = Math.hypot(vx, vy);
+    speed.push(sp);
+    contactLineIds.push(contactLineIdsAtIndex(i));
+    const isAir = sledMaskAt(i) === 0;
+    airborne.push(isAir);
+
+    if (data[base + WINDOW_RIDER_FSU] !== -1) {
+      terminus = { frame, reason: "riderEjected" };
+      break;
+    }
+    if (data[base + WINDOW_SLED_FSU] !== -1) {
+      terminus = { frame, reason: "sledBroken" };
+      break;
+    }
+    if (sp < DEFAULT_PARAMS.vStall) {
+      stallRun++;
+      if (stallRun >= DEFAULT_PARAMS.vStallFrames) {
+        terminus = { frame, reason: "rideStalled" };
+        break;
+      }
+    } else {
+      stallRun = 0;
+    }
+    if (
+      Math.abs(data[base + WINDOW_PX]) > DEFAULT_PARAMS.worldEnvelope ||
+      Math.abs(data[base + WINDOW_PY]) > DEFAULT_PARAMS.worldEnvelope
+    ) {
+      terminus = { frame, reason: "leftWorld" };
+      break;
+    }
+
+    if (isAir) {
+      if (airborneRun === 0) airborneFrom = frame;
+      airborneRun++;
+    } else if (airborneRun > 0) {
+      const windowEnd = Math.min(frameCount, i + DEFAULT_PARAMS.persistenceFrames);
+      const windowLen = windowEnd - i;
+      let groundedInWindow = 1;
+      for (let j = i + 1; j < windowEnd; j++) {
+        if (sledMaskAt(j) !== 0) groundedInWindow++;
+      }
+
+      if (airborneRun > DEFAULT_PARAMS.K && groundedInWindow / windowLen >= DEFAULT_PARAMS.persistenceRatio) {
+        events.push({ frame, type: "landing", airborneFrom });
+      }
+      airborneRun = 0;
+      airborneFrom = -1;
+    }
+  }
+
+  if (terminus === null) {
+    const lastFrame = raw.startFrame + frameCount - 1;
+    terminus = {
+      frame: Math.min(lastFrame, raw.duration),
+      reason: lastFrame >= raw.duration ? "endOfSpec" : "rideStalled",
+    };
+  }
+
+  return {
+    measurements: {
+      position: [],
+      velocity: [],
+      speed,
+      sledContacts: [],
+      contactLineIds,
+      airborne,
+    },
+    events,
+    terminus,
+    params: DEFAULT_PARAMS,
+    summary: EMPTY_CANDIDATE_SUMMARY,
+  };
 }
 
 function detectCandidateWindowRaw(raw: RawTrajectory): Detection {

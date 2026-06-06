@@ -5072,3 +5072,52 @@ The extra streaming/control-flow work was slower than allocating and then scanni
 the raw-frame array. Reverted the source; keep the S184 local lightweight detector
 that passed, but do not re-attempt this streaming fusion without moving more of
 the raw-frame ABI into the WASM boundary.
+
+## Session 186 (2026-06-06 cont.) — compact WASM candidate-window ABI, KEEP (−3.50%)
+
+Per user guidance, did not continue compiler micro-edits after the rebase. Instead
+ran a no-edit profile/counter survey first. Clean post-rebase standing:
+`LR_ENGINE=wasm npm run perf` → **5,711.0 ns/physics-frame ±279.1**. CPU profile
+was ~67.5% WASM, ~20.3% local JS, ~5.9% GC. Runtime monkey-patch counters on one
+`mini_burst@50k` compile showed **1,290 candidate/raw windows**, **93,844 raw-frame
+object reads**, and **5,596 getLastFrameIndex calls**; windows were mostly fixed
+47/73-frame spans (559×47, 523×73, 101×221). This identified a large boundary/GC
+surface rather than another per-helper cleanup.
+
+Candidate: add a compact WASM candidate-window export that fills existing exchange
+buffers with just the data the candidate detector consumes:
+body position/velocity, rider/sled binding fsu, sled contact mask, and per-frame
+deduped sled-side contact line ids. The detector math and event decisions stay in
+JS (`Math.hypot`, stall/terminus/persistence logic unchanged), so the behavior risk
+is limited to raw data transport. `detectWindow` uses the compact path when present
+and falls back to the old raw-frame path otherwise.
+
+Note: after `git pull --rebase`, the local gitignored optimizer baseline was stale:
+clean rebased HEAD rebuilt from source failed `verify:optimizer` with the same hashes
+as the candidate. Refreshed `generated/verify-optimizer/baseline.json` on clean
+rebased HEAD, verified clean HEAD passed, then tested this candidate against that
+known-good local baseline.
+
+- **Correctness:** `cargo test --manifest-path engine-rs/Cargo.toml` ✓ (5/5);
+  `npm run build:wasm` ✓; `LR_ENGINE=wasm npm run verify` ✓ byte-identical
+  (engine 5/5 + optimizer 4/4, sim_frames unchanged).
+- **A/B:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100` with the
+  candidate WASM artifact shared by both arms (base JS ignores the new export,
+  candidate JS uses it): base mean **5635.5 ns/frame**, candidate mean
+  **5432.2 ns/frame**; Δ median/mean **−3.50% / −3.60%**, 95% CI
+  **[−3.80%, −3.31%]**, candidate won **99/100** rounds,
+  **P(candidate faster)=100.0%** → ✓ **KEEP**.
+- **Standing:** `LR_ENGINE=wasm npm run perf` after keep reported
+  **5,496.4 ns/physics-frame ±266.0** (single noisy absolute run; paired A/B is
+  the keep evidence).
+- **Cumulative 3σ confirmation:** accumulated local JS/ABI wins against clean
+  post-rebase upstream baseline `1eb0c2d`:
+  `npx tsx scripts/v0/bench/perf_ab.ts --js --ref=1eb0c2d --rounds=100 --p=0.9987`
+  → base mean **5808.2 ns/frame**, candidate mean **5436.7 ns/frame**; Δ
+  median/mean **−6.51% / −6.39%**, 95% CI **[−6.58%, −6.17%]**, candidate won
+  **100/100** rounds, **P(candidate faster)=100.0%** → ✓ confirmed compounded win
+  at 3σ.
+
+This is the larger ABI reduction S185 pointed at: it removes the 93.8k per-compile
+RawFrame object transport for candidate evaluation without moving behavior-defining
+detector math into Rust. The `<3000` objective remains open.

@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 const WASM_URL = new URL("../../engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm", import.meta.url);
 // deno-lint-ignore no-explicit-any
 const ex: any = new WebAssembly.Instance(new WebAssembly.Module(readFileSync(fileURLToPath(WASM_URL))), {}).exports;
+const GET_CANDIDATE_WINDOW = ex.get_candidate_window;
 
 const ENTITY_IDS = [
   "RIDER_MOUNTED", "SLED_INTACT", "PEG", "TAIL", "NOSE", "STRING",
@@ -27,11 +28,14 @@ const RIGHT_EXTENDED = 2;
 const SLED_POINT_MASK = 0b111100;
 const SCRATCH_LEN = NENT * 6 + NENT;
 const SCRATCH_PTR = ex.scratch_ptr();
+const OUT_LEN = (2400 + 1) * 60;
+const OUT_PTR = ex.out_ptr();
 const EVENTS_LEN = 49152;
 const EVENTS_PTR = ex.events_ptr();
 const RIDER_SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
 const RIDER_SLED_OFFSET = 6;
 const RIDER_POINT_STRIDE = 6;
+const CANDIDATE_WINDOW_STRIDE = 9;
 const EMPTY_SLED_CONTACTS = Object.freeze([]) as unknown as string[];
 const EMPTY_CONTACT_LINE_IDS = Object.freeze([]) as unknown as number[];
 
@@ -65,6 +69,17 @@ function scratch(): Float64Array {
     scratchView = new Float64Array(buffer, SCRATCH_PTR, SCRATCH_LEN);
   }
   return scratchView as Float64Array;
+}
+
+let outBuffer: ArrayBuffer | undefined;
+let outView: Float64Array | undefined;
+function out(): Float64Array {
+  const buffer = ex.memory.buffer;
+  if (buffer !== outBuffer) {
+    outBuffer = buffer;
+    outView = new Float64Array(buffer, OUT_PTR, OUT_LEN);
+  }
+  return outView as Float64Array;
 }
 
 let eventsBuffer: ArrayBuffer | undefined;
@@ -220,6 +235,25 @@ export class LineRiderEngine {
       contactLineIds: contactLineIds ?? EMPTY_CONTACT_LINE_IDS,
       sledBroken: sc[5] !== -1,
       riderEjected: sc[4] !== -1,
+    };
+  }
+  getCandidateWindow(startFrame: number, endFrame: number): any | null {
+    if (typeof GET_CANDIDATE_WINDOW !== "function") return null;
+    const start = Math.max(0, Math.trunc(startFrame));
+    const end = Math.trunc(endFrame);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return null;
+    const frames = end - start + 1;
+    if (frames * CANDIDATE_WINDOW_STRIDE > OUT_LEN) return null;
+    const contactCount = GET_CANDIDATE_WINDOW(this.h, start, end);
+    if (contactCount < 0) return null;
+    return {
+      startFrame: start,
+      duration: end,
+      frames,
+      stride: CANDIDATE_WINDOW_STRIDE,
+      data: out(),
+      contacts: events(),
+      contactCount,
     };
   }
   // deno-lint-ignore no-explicit-any

@@ -65,6 +65,17 @@ export type RawTrajectory = {
   frames: RawFrame[];
 };
 
+export type CandidateWindowRaw = {
+  startFrame: number;
+  /** Inclusive last frame requested for the window. */
+  duration: number;
+  frames: number;
+  stride: number;
+  data: Float64Array;
+  contacts: Float64Array;
+  contactCount: number;
+};
+
 export type DetectorParams = {
   K: number;
   thetaDeg: number;
@@ -427,6 +438,33 @@ export function extractRawTrajectoryWindow(
     chargePhysicsFrames(Math.max(0, after - before));
   }
   return { duration, frames };
+}
+
+// deno-lint-ignore no-explicit-any
+export function extractCandidateWindow(engine: any, startFrame: number, duration: number): CandidateWindowRaw | null {
+  const fast = engine?.getCandidateWindow;
+  if (typeof fast !== "function") return null;
+  const start = Math.max(0, startFrame);
+  if (duration < start) return null;
+
+  const before = engineLastFrameIndex(engine);
+  if (
+    _physicsFrameLimit !== null &&
+    before !== null &&
+    duration > before &&
+    _physicsFrames + (duration - before) > _physicsFrameLimit
+  ) {
+    throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, _physicsFrames + (duration - before));
+  }
+
+  const window = fast.call(engine, start, duration) as CandidateWindowRaw | null;
+  const after = engineLastFrameIndex(engine);
+  if (before !== null && after !== null) {
+    chargePhysicsFrames(Math.max(0, after - before));
+  }
+  if (window === null) return null;
+  _frameCount += window.frames;
+  return window;
 }
 
 /** Two work-unit counters, both reset per compile and non-reentrant

@@ -540,7 +540,7 @@
   </div>
   <aside class="hero-card">
     <div class="label"><!--BASELINE:budget_label-->25k-200k curve<!--/BASELINE--></div>
-    <div class="score"><span><!--BASELINE:headline_score-->536.00<!--/BASELINE--></span> / 1000</div>
+    <div class="score"><span><!--BASELINE:headline_score-->552.47<!--/BASELINE--></span> / 1000</div>
     <div class="note"><!--BASELINE:valid_note-->240 valid rows out of 240 at 200000.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
   </aside>
 </section>
@@ -1061,17 +1061,17 @@ anchor = targetSled - local + tangent * alongJitter + normal * normalJitter</div
 npm run golden -- --jobs=4 --compiler=handoff
 
 <!--BASELINE:score_block-->
- 25000  score    3.90  valid 60/240  changed  0  improved  0  plateau  0  regress  0
- 50000  score  348.43  valid 219/240  changed 231  improved 231  plateau  9  regress  0
-100000  score  572.15  valid 239/240  changed 186  improved 186  plateau 54  regress  0
-150000  score  589.71  valid 240/240  changed 106  improved 106  plateau 134  regress  0
-200000  score  591.06  valid 240/240  changed 81  improved 81  plateau 159  regress  0<!--/BASELINE--></pre>
+ 25000  score   11.62  valid 95/240  changed  0  improved  0  plateau  0  regress  0
+ 50000  score  508.80  valid 235/240  changed 234  improved 222  plateau  6  regress 12
+100000  score  576.57  valid 239/240  changed 211  improved 171  plateau 29  regress 40
+150000  score  589.85  valid 240/240  changed 121  improved 112  plateau 119  regress  9
+200000  score  590.90  valid 240/240  changed 84  improved 81  plateau 156  regress  3<!--/BASELINE--></pre>
 
     <div class="panel" style="margin-top:16px">
       <h3>Spec scores at the largest budget</h3>
       <div class="score-list" aria-label="Spec scores at largest curve budget">
         <!--BASELINE:spec_rows-->
-        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:67.4%"></span></div><span class="num">674.34</span></div>
+        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:67.1%"></span></div><span class="num">670.71</span></div>
         <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:65.8%"></span></div><span class="num">658.06</span></div>
         <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:63.6%"></span></div><span class="num">636.22</span></div>
         <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:63.5%"></span></div><span class="num">635.48</span></div>
@@ -1276,7 +1276,7 @@ setTab(location.hash.replace("#", "") || "compiler", false);
 // comparable, so the series restarts here.
 // Replace the point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
 const campaignData = [
-  /*BASELINE:campaign*/["25k-200k curve", 536.00]/*/BASELINE*/
+  /*BASELINE:campaign*/["25k-200k curve", 552.47]/*/BASELINE*/
 ];
 
 function drawCampaignChart() {

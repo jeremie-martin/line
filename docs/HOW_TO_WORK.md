@@ -76,11 +76,12 @@ The baseline of record is the **generated** [`docs/handoff-compiler.html`](hando
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
 - Evaluator fingerprint: **`9b9776df145f`** (`scripts/v0/golden_suite.ts`).
-- Current committed compiler: `compileHandoff`. Canonical baseline is the 12-seed
-  population (budgets `{25,50,100,150,200}k`, weighted-average HEADLINE): **HEADLINE ≈
-  536.0**, validity 240/240 at 200k. (For reference the prior 24-seed baseline read
-  HEADLINE ≈ 534.2.) Always refresh the generated HTML and the quoted number from a
-  fresh 12-seed rebaseline before relying on live figures.
+- Current committed compiler: `compileHandoff` with budget-aware contract candidate
+  count. Canonical baseline is the 12-seed population (budgets `{25,50,100,150,200}k`,
+  weighted-average HEADLINE): **HEADLINE ≈ 552.5**, validity 240/240 at 200k (up from
+  ≈536.0 before the budget-aware change; the gain is concentrated at 25k/50k). Always
+  refresh the generated HTML and the quoted number from a fresh 12-seed rebaseline before
+  relying on live figures.
 
 ## Active campaigns
 

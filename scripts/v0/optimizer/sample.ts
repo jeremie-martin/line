@@ -32,7 +32,7 @@ import {
   type PreTargetSledTrace,
 } from "../arc_placement.ts";
 import { getRiderMetered } from "../../lib/detector.ts";
-import type { CandidateSampleMode, Gap } from "../types.ts";
+import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
@@ -136,6 +136,9 @@ export function sampleOneCandidate(
   /** Sampling mode. Extra compiler streams use non-normal modes; the main
    *  K-prefix remains normal and deterministic. */
   mode: CandidateSampleMode = "normal",
+  /** Optional geometry-only target override. Candidate scoring and hard gates
+   *  still use `gap.targets`; this only shapes the sampled line fragment. */
+  geometryTargets: AxisValues = gap.targets,
 ): Candidate | null {
   candidateSampleCount++;
   const probe = getCandidateProbe(engine, gap, ctx);
@@ -145,7 +148,7 @@ export function sampleOneCandidate(
   // interleaves template catches with normal random samples. For non-steep gaps
   // the attempt arg is unused and the RNG drives diversity.
   const geometry = sampleArcPlacementGeometry(
-    rng, probe.refX, probe.refY, gap.targets, probe.targetState, attempt, gap, lineIdStart, mode,
+    rng, probe.refX, probe.refY, geometryTargets, probe.targetState, attempt, gap, lineIdStart, mode,
     ctx.allContactFrames,
   );
 

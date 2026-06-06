@@ -380,3 +380,33 @@
 - Decide result: `VERDICT: ACCEPT`; baseline `401.1` -> candidate `406.8`; `Δheadline = +5.6`, 95% CI `[1.8, 10.1]`, `P(Δ<=0)=0.1%`.
 - Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.9`, `100k=+4.8`, `150k=+7.0`, `200k=+6.9`; validity was unchanged at every budget. At 200k unique full evaluations rose from `60165` to `61063`, selected axis-quality candidates rose from `1023` to `1067`, and aggregate speed error improved again (`MAE 0.2523 -> 0.2439`, signed `+0.1866 -> +0.1783`) with small air/grain tradeoffs. Largest 200k gains included `drums_crescendo` seed 3, `drums_crescendo` seed 11, `drums_dropout` seed 9, `verse_chorus` seed 6, and `drums_breath` seed 6; largest regressions included `dense_sprint` seeds 6 and 3, `drums_pendulum` seed 9, `drums_tide` seed 1, and `drums_crosscut` seed 1.
 - Status: Kept and committed as the new baseline.
+
+## arc-air-ground-support-37
+
+- Baseline used: `arc-release-speed-setup-36` at commit `a9b6ea5`.
+- Hypothesis: After the speed-focused improvements, low remaining pass rows still have large air residuals, especially low/moderate-air targets in `drums_pendulum`, `cold_start`, and related rows. Giving the existing `air_support` stream real low-air geometry should reduce airborne overshoot by generating longer, flatter post-contact ride-out candidates instead of merely offering another normal RNG lane.
+- Code changes made: Temporarily added mode-specific air-support pressure in `targetStateControls`, reducing contact jitter and biasing low-air support candidates toward flatter contact/post angles, longer post-contact lines, higher post floors, and a stronger safe post cap. Widened the air-support quality stream target maximum from `0.25` to `0.45`. Contract-phase search, scorer, golden specs, seed set, metric, and budget grid were unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-air-ground-support-37`
+- Decide result: `VERDICT: ACCEPT`, but below the promotion bar; baseline `406.8` -> candidate `408.6`; `Δheadline = +1.8`, 95% CI `[-0.3, 4.7]`, `P(Δ<=0)=5.1%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.4`, `100k=+1.1`, `150k=+1.5`, `200k=+3.0`; validity was unchanged at every budget. The stream became active (`air` axis-quality attempts `5363/1562` -> `16408/4060`, selected air axis-quality candidates `2` -> `42`) and helped several rows, including `drums_pendulum` seed 4, `rhythm_ladder` seed 6, `verse_chorus` seed 11, and `dense_sprint` seed 1. Regressions included `dense_sprint` seed 2, `drums_pendulum` seed 3, and `drums_crescendo` seed 0. Directionally useful, but not large enough to promote under the explicit `Δheadline > +5` rule.
+- Status: Reverted; not committed.
+
+## arc-speed-push-stream-38
+
+- Baseline used: `arc-release-speed-setup-36` at commit `a9b6ea5`.
+- Hypothesis: The accepted speed-drag and release-setup changes address broad overspeed, but several of the remaining low rows still have large speed MAE with signed underspeed on many gaps. A complementary quality-only `speed_push` placement mode, gated by smooth underspeed pressure, should generate longer, more downhill post-contact candidates that recover speed where the new release setup otherwise over-brakes.
+- Code changes made: Temporarily added `speed_push` to candidate sample modes, added target-state line controls for push-mode candidates, added speed-pressure direction support to axis-quality stream policies, and registered a third speed quality stream using `mode: "speed_push"` with underspeed gating. Contract-phase search, scorer, golden specs, seed set, metric, and budget grid were unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-speed-push-stream-38`
+- Decide result: `VERDICT: INCONCLUSIVE`; baseline `406.8` -> candidate `407.0`; `Δheadline = +0.2`, 95% CI `[-0.8, 1.5]`, `P(Δ<=0)=37.4%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.0`, `100k=-0.4`, `150k=-0.2`, `200k=+0.9`; validity was unchanged at every budget. The mode changed several `drums_pendulum` rows and produced no 200k regressions by the run summary, but the paired canonical effect was tiny and high-budget-only, so it did not meet either promotion gate.
+- Status: Reverted; not committed.
+
+## arc-next-speed-geometry-39
+
+- Baseline used: `arc-release-speed-setup-36` at commit `a9b6ea5`.
+- Hypothesis: Release-speed setup can only choose among candidates generated for the current gap target. A next-speed geometry stream should shape a current catch using the next contact gap's speed target while still scoring and gating against the current gap, exposing structural drag placements that set up the following span instead of merely re-ranking existing geometry.
+- Code changes made: Added optional geometry-only targets to `sampleOneCandidate`, added `targetSource` to axis-quality stream policies, and registered a speed-drag quality stream whose geometry target comes from the next required contact gap. Contract-phase search, scorer, golden specs, seed set, metric, and budget grid are unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/arc-next-speed-geometry-39`
+- Decide result: `VERDICT: ACCEPT`; baseline `406.8` -> candidate `412.1`; `Δheadline = +5.3`, 95% CI `[1.3, 9.4]`, `P(Δ<=0)=0.4%`.
+- Notable regressions/improvements: Per-budget deltas were `25k=+0.0`, `50k=+0.6`, `100k=+0.4`, `150k=+6.5`, `200k=+8.7`; validity was unchanged at every budget. At 200k selected axis-quality candidates rose from `1067` to `1349` (`speed:1065 -> 1344`), speed-drag placements sampled rose from `35855` to `56247`, and speed error improved (`MAE 0.2439 -> 0.2348`, signed `+0.1783 -> +0.1698`) with small air/grain tradeoffs. Unique full evaluations were essentially flat (`61063 -> 61149`), so the lift came from better high-budget speed geometry rather than more terminal feedback. Largest 200k gains included `drums_dropout` seed 0, `mini_burst` seed 8, `dense_sprint` seed 1, `drums_crescendo` seed 10, and `drums_breath` seed 11; largest 200k regressions included `mini_burst` seeds 9 and 2, `verse_chorus` seed 3, `dense_sprint` seed 11, and `syncopated_switchback` seed 9. Remaining worst rows are unchanged validity failures on `opening_burst` seed 10 and `drums_crosscut` seeds 10 and 7, followed by low `drums_pendulum` pass rows; remaining worst axes are still speed-heavy, especially `drums_pendulum`, `syncopated_switchback`, and `dense_sprint`.
+- Status: Kept and committed as the new baseline.

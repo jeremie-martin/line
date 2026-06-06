@@ -4800,3 +4800,22 @@ compound with no false-positive leakage. **Confirmed standing: ~5,781 ns/frame**
 was this session's productive seam; the "bundle independent sub-resolution reductions"
 method banked three of the four (the S175 single-probe rule would have discarded the
 clone-elim and the scratch-reuse).
+
+## Session 178b (2026-06-06 cont.) — update_computed holder-return lookup consolidation, REJECT (regressed)
+
+Probed the hot read path (`raw_frame_into`/`rider_into`/`state_into`/`events_into`/
+`last_frame_index`, ~94k calls/compile): each does `update_computed(h)` then re-fetches
+`ver(h).holder`, though `update_computed` already computes the holder. Made it return
+`u32` so the five readers reuse it (one fewer version-arena lookup + unwrap per call).
+
+- **Gates:** `cargo test` ✓ · `verify` ✓ byte-identical (engine 5/5 + optimizer 4/4).
+- **A/B (R=100):** Δ median **+0.19%** / mean +0.36%, 95% CI **[+0.10%, +0.63%]**,
+  candidate won **42/100** rounds, **P(faster)=0.2%** → ✗ **REJECT — regression.**
+
+Removing a "redundant" lookup made it *slower*. The op-count intuition is wrong again
+(cf. S172): the inline `ver(h).holder` is a local the compiler CSEs cheaply, whereas
+threading the value out of the separate, non-inlined `update_computed` (and
+materializing `holder` on its early-return path too) costs more than it saves —
+ILP/codegen-layout, not arithmetic. Reverted, standard artifact rebuilt; standing
+unchanged at ~5,781 ns/frame. Confirms the read-path is at its codegen floor; the
+remaining cuts are not in per-call lookup count.

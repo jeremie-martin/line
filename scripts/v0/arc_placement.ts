@@ -51,6 +51,9 @@ const AIR_SUPPORT_START_ANGLE_MAX = 14;
 const AIR_SUPPORT_END_ANGLE_MIN = -6;
 const AIR_SUPPORT_END_ANGLE_MAX = 10;
 const AIR_SUPPORT_CURVE_BIAS_MAX = 0.35;
+const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
+const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
+const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
 
 type ProcessEnv = Record<string, string | undefined>;
 const PROCESS_ENV = (globalThis as { process?: { env?: ProcessEnv } }).process?.env;
@@ -947,7 +950,13 @@ export function sampleContactCenteredLinesWithDiagnostics(
     const safeCap = speed * nextGapFrames * 0.55;
     const targetLen = clamp(Math.min(groundedTargetLen, safeCap), 28, 360);
     const blend = clamp(spanBlends(attempt).length, 0, 1);
-    postLength = clamp(lerp(sampledPostLength, targetLen, blend * 0.6), 28, 360);
+    const highAirPressure = clamp(
+      (air - HIGH_AIR_LENGTH_BLEND_PRESSURE_START) / HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN,
+      0,
+      1,
+    );
+    const blendStrength = 0.6 + HIGH_AIR_LENGTH_BLEND_EXTRA * highAirPressure;
+    postLength = clamp(lerp(sampledPostLength, targetLen, blend * blendStrength), 28, 360);
   }
   // Round (not ceil) the segment count so each emitted line length lands near the
   // grain-derived `segmentLength` rather than systematically shorter: ceil always

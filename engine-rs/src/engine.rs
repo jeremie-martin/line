@@ -52,7 +52,8 @@ struct Cache {
     coll: Collisions,              // Frame.collisions: line id → frames (for removeLine)
     touched_lines: Vec<i32>,       // flat per-frame reverse patch for coll rollback
     touched_line_offsets: Vec<usize>,
-    cur: State, // == frames.last(); working state for stepping
+    cur: State,      // == frames.last() when !cur_dirty; working state for stepping
+    cur_dirty: bool, // set on truncation: `cur` is stale, resync from frames.last() before next step
 }
 
 impl Cache {
@@ -78,6 +79,7 @@ impl Cache {
             touched_lines: Vec::new(),
             touched_line_offsets: vec![0, 0],
             cur: s,
+            cur_dirty: false,
         }
     }
 
@@ -122,7 +124,11 @@ impl Cache {
         self.hist_snap_offsets.truncate(len + 1);
         self.touched_lines.truncate(self.touched_line_offsets[len]);
         self.touched_line_offsets.truncate(len + 1);
-        self.cur = self.frames[len - 1].clone();
+        // Defer the `cur = frames[len-1].clone()` resync: a multi-line arc add
+        // truncates many times in a row with no intervening step, so an eager clone
+        // here is overwritten by the next truncation before it is ever stepped.
+        // Mark stale instead; compute_to resyncs once, only when about to step.
+        self.cur_dirty = true;
     }
 
     /// _addLine: register the line, then truncate the frame cache to its first
@@ -185,10 +191,17 @@ impl Cache {
         self.touched_line_offsets.clear();
         self.touched_line_offsets.extend_from_slice(&[0, 0]);
         self.cur = s;
+        self.cur_dirty = false;
     }
 
     /// _computeFrame: lazily extend the cache to include frame `frame`.
     fn compute_to(&mut self, frame: usize) {
+        // Resync `cur` from the (possibly truncated) tail once, only when we are
+        // actually about to step — see set_frames_length's deferred-resync note.
+        if self.frames.len() <= frame && self.cur_dirty {
+            self.cur = self.frames[self.frames.len() - 1].clone();
+            self.cur_dirty = false;
+        }
         while self.frames.len() <= frame {
             let fi = self.frames.len() as i32;
             step_state::<true>(
@@ -254,6 +267,13 @@ static mut HOLDERS: Vec<Option<Holder>> = Vec::new();
 static mut FREE_VERSIONS: Vec<u32> = Vec::new();
 static mut FREE_HOLDERS: Vec<u32> = Vec::new();
 static mut GEN: u32 = 0;
+// Reusable scratch for update_computed's patch-walk (undo ids + redo lines). Hoisted
+// out of the per-call hot path: drained (not dropped) each reconcile so the backing
+// allocations amortize to zero after warmup. Single-threaded WASM + no re-entrancy
+// (the redo loop's cache.add_line never calls update_computed), so the statics are
+// safe and the walk produces the identical id/line sequence as the old locals.
+static mut RECONCILE_UNDO: Vec<i32> = Vec::new();
+static mut RECONCILE_REDO: Vec<Line> = Vec::new();
 
 #[allow(static_mut_refs)]
 fn versions() -> &'static mut Vec<Option<Version>> {
@@ -426,11 +446,16 @@ fn update_computed(target: u32) {
 
     // Walk to the LCA, collecting line ops (Immy.List.compareTo over a shared root).
     // Only AddLine patches exist in the tree (Root/SetStart carry no line), so undo
-    // is purely removes and redo purely adds.
+    // is purely removes and redo purely adds. Scratch buffers are reused across calls
+    // (cleared here, drained below) to avoid a per-reconcile Vec allocation.
+    #[allow(static_mut_refs)]
+    let undo_ids: &mut Vec<i32> = unsafe { &mut RECONCILE_UNDO }; // current-side AddLines to remove, most-recent-first
+    #[allow(static_mut_refs)]
+    let redo_lines: &mut Vec<Line> = unsafe { &mut RECONCILE_REDO }; // target-side AddLines to add, most-recent-first → reversed
+    undo_ids.clear();
+    redo_lines.clear();
     let mut a = current;
     let mut b = target;
-    let mut undo_ids: Vec<i32> = Vec::new(); // current-side AddLines to remove, most-recent-first
-    let mut redo_lines: Vec<Line> = Vec::new(); // target-side AddLines to add, most-recent-first → reversed
     while ver(a).depth > ver(b).depth {
         if let Patch::AddLine(l) = &ver(a).patch {
             undo_ids.push(l.id);
@@ -459,11 +484,12 @@ fn update_computed(target: u32) {
     let target_start = ver(target).start;
 
     let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
-    // linesList reconcile (Immo runs this before initialStateMap).
-    for id in undo_ids {
+    // linesList reconcile (Immo runs this before initialStateMap). Drain the redo
+    // scratch (moves the Lines out, keeps the buffer's capacity for reuse).
+    for &id in undo_ids.iter() {
         cache.remove_line(id);
     }
-    for l in redo_lines {
+    for l in redo_lines.drain(..) {
         cache.add_line(l);
     }
     // initialStateMap reconcile: a SetStart somewhere between the two versions.

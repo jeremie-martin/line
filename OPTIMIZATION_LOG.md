@@ -4724,3 +4724,32 @@ build still shows ~−1.4%, so the effect is the change, not build luck; S175's
 standalone −0.19% was simply an underpowered/unlucky R=100 draw. **Standing after
 S176: ~5,833 ns/frame** (confirmed; was ~5,884). The second statistical-gate win, and
 the first to clear the 3σ cumulative bar this campaign.
+
+## Session 177 (2026-06-06 cont.) — reconcile allocation cuts: update_computed scratch reuse + lazy `cur` resync (bundle) ⭐ KEPT (−0.44%)
+
+Continued mining the reconcile bucket with the S176 bundle strategy (two independent,
+strictly bit-identical allocation reductions, each sub-resolution alone, gated
+together). Both target per-fork-switch heap churn on the hottest reconcile paths:
+
+1. **`update_computed` scratch reuse** (engine.rs) — the patch-walk allocated two
+   fresh `Vec`s (`undo_ids: Vec<i32>`, `redo_lines: Vec<Line>`) on every reconcile.
+   Hoisted them to module statics (`RECONCILE_UNDO/REDO`, matching the existing
+   `static mut` arena idiom), cleared on entry and **drained** on apply so the
+   backing allocations amortize to zero after warmup. Single-threaded WASM, no
+   re-entrancy (the redo loop's `cache.add_line` never calls `update_computed`), and
+   the walk yields the identical id/line sequence. *Standalone R=100: median −0.36%,
+   P=93.1%, won 64/150, sign p=0.007 — real but just under the 0.95 bar.*
+2. **Lazy `cur` resync** (engine.rs) — `set_frames_length` eagerly did
+   `cur = frames[len-1].clone()` (a full ~624-byte `State` copy) on **every**
+   truncation. A multi-line arc add truncates many times in a row with no step
+   between, so all but the last clone are overwritten before they're ever stepped.
+   Replaced with a `cur_dirty` flag; `compute_to` resyncs once, only when actually
+   about to step. `cur` is read only in `compute_to` (verified), so the flag is
+   sound; `set_initial_states` clears it.
+
+- **Gates:** `cargo test` ✓ · `LR_ENGINE=wasm npm run verify` ✓ **byte-identical**
+  (engine 5/5 + optimizer 4/4). Pure allocation/timing changes, no float touched.
+- **A/B (R=150, bundle vs S176 HEAD):** Δ median **−0.44%** / mean −0.41%, 95% CI
+  **[−0.63%, −0.16%]**, candidate won **106/150** rounds (p=0.000), **P(faster)=100%**
+  → ✓ **KEEP**. **Standing after S177: ~5,802 ns/frame** (was ~5,833), pending the
+  cumulative 3σ confirmation below.

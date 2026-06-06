@@ -4856,3 +4856,38 @@ floats 5,800–5,980 on machine drift). The path from here to <3,000 is what the
 doc already states: **relaxed bit-identity gated by the quality `decide`, or an
 algorithmic restructure** — not further per-call micro-surveys, which now mostly wash
 or regress.
+
+## Session 179 (2026-06-06 cont.) — coarse-occupancy invalidation-skip index (structural), REJECT (regressed +2.76%)
+
+User authorized the **structural restructure** path (keeping strict byte-identity).
+Implemented the long-flagged (S172) lever: a coarse occupancy index over the history
+grid to skip the all-miss `index_of_collision_in_cell` 3×3 scans.
+
+**Instrument-first survey** (throwaway counters, mini_burst@50k, reverted): of 41,763
+invalidation scans, **67.4% hit all-9-neighbors-absent** (>S172's 53.6% estimate);
+88.2% of the 376k neighbor `grid.get` probes are wasted. Crucially the maintenance is
+**transition-driven**: only 1.98% of the 3.47M `add_to_cell` calls are occupancy
+transitions (68.7k occupy + 67.3k vacate) — off the per-frame hot path. EV sketch (in
+`grid.get`-equiv ops): +253k skip − 54k coarse-check − 136k maintenance = **+63k net**.
+
+**Implementation** (full, ~10 call sites / 4 files): `CoarseOcc = IntMap<i64,u32>` of
+`(gx>>2, gy>>2)` block → occupied-fine-cell count; `coarse_inc` on the `Entry::Vacant`
+branch of `add_to_cell` (absent→occupied), `coarse_dec` in `rollback_grid` on vacate;
+`touched_cells` carried as `(i64,i64)` coords (so rollback decrements without an
+unhash); `index_of_collision_in_cell` skips when every covering coarse block is absent.
+
+- **Gates:** `cargo test` ✓ · `verify` ✓ **byte-identical** (engine 5/5 + optimizer
+  4/4) · `verify:engine --diff` ✓ **max err 0** over 6,940 frames. The accelerator is
+  provably sound — it only skips scans that would return `None`.
+- **A/B (R=100):** Δ median **+2.76%** / mean +2.82%, 95% CI **[+2.58%, +3.11%]**,
+  candidate won **3/100** rounds, **P(faster)=0.0%** → ✗ **REJECT — large regression.**
+
+**The op-count sketch was wrong** — the real per-op costs flip the sign: maintaining a
+*second hashmap* (allocation, 136k inserts/removes, gets on every index call) adds
+memory traffic + cache pressure that dwarfs the saved *absent* `grid.get`s (which are
+nearly free — one probe to an empty slot). The `Entry`-match restructure of the
+3.47M-call `add_to_cell` may also have perturbed its codegen. This is the **definitive
+gate answer to S172's multi-session-open question: the coarse-occupancy index is
+net-negative, not merely marginal.** Reverted all 4 files; standing unchanged at
+~5,800 ns/frame (4 confirmed wins this campaign, −2.23%). The structural-restructure
+lever under strict byte-identity is exhausted alongside the micro surface.

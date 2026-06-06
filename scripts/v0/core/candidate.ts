@@ -8,7 +8,6 @@
 import {
   DEFAULT_PARAMS,
   detect, extractCandidateWindow, extractRawTrajectory, extractRawTrajectoryWindow,
-  K_BOUNCE_LANDING, PERSISTENCE_FRAMES,
   type CandidateWindowRaw, type Detection, type DetEvent, type RawTrajectory,
 } from "../../lib/detector.ts";
 import { arcToLines, makeSolidLine } from "../arc.ts";
@@ -18,14 +17,10 @@ import {
   type PreTargetSledTrace,
   hasPreTargetSledProximity,
   hasPreTargetSledProximityFromTrace,
-  impactAnchorEnabled,
-  impactAnchorFallbackBisectEnabled,
-  recordImpactAnchorDirectAttempt,
-  recordImpactAnchorDirectFailure,
-  recordImpactAnchorDirectLanding,
-  recordImpactAnchorFallbackAttempt,
-  recordImpactAnchorFallbackLanding,
-  recordImpactAnchorPreclearReject,
+  recordArcPlacementDirectAttempt,
+  recordArcPlacementDirectFailure,
+  recordArcPlacementDirectLanding,
+  recordArcPlacementPreclearReject,
 } from "../arc_placement.ts";
 import {
   AXES,
@@ -343,44 +338,23 @@ export function tryCandidate(
   sampleMode?: CandidateSampleMode,
   preTargetSledTrace?: PreTargetSledTraceProvider,
 ): GapFit | null {
-  // Impact-anchored placement (LR_ARC_PLACEMENT=impact_anchor): the arc is
-  // already translated so its intended impact point lies on the predicted sled
-  // position at the target frame, so we validate it DIRECTLY (no anchor-Y
-  // bisection). A pre-target sled-proximity check rejects candidates likely to
-  // collide before the contact. Optional bisection fallback (gated by
-  // LR_IMPACT_ANCHOR_FALLBACK_BISECT=1) rescues direct failures.
-  if (impactAnchorEnabled()) {
-    const directLines = arcToLines(candArc, lineIdStart);
-    recordImpactAnchorDirectAttempt(sampleMode);
-    if (preTargetSledProximity(baseEngine, gap, directLines, preTargetSledTrace)) {
-      recordImpactAnchorPreclearReject(sampleMode);
-      return null;
-    }
-
-    const direct = evaluateCandidateLines(
-      baseEngine, gap, candArc, "arc", directLines, lineIdStart, axisMeasureEnd,
-      allContactFrames, searchTargets, useWindowDetection,
-    );
-    if (direct.fit !== null) {
-      recordImpactAnchorDirectLanding(sampleMode);
-      return direct.fit;
-    }
-    recordImpactAnchorDirectFailure(sampleMode, direct.failure);
-
-    if (!impactAnchorFallbackBisectEnabled()) return null;
-    recordImpactAnchorFallbackAttempt(sampleMode);
-    const fallback = tryCandidateWithBisection(
-      baseEngine, gap, candArc, lineIdStart, allContactFrames, axisMeasureEnd,
-      searchTargets, useWindowDetection,
-    );
-    if (fallback !== null) recordImpactAnchorFallbackLanding(sampleMode);
-    return fallback;
+  const directLines = arcToLines(candArc, lineIdStart);
+  recordArcPlacementDirectAttempt(sampleMode);
+  if (preTargetSledProximity(baseEngine, gap, directLines, preTargetSledTrace)) {
+    recordArcPlacementPreclearReject(sampleMode);
+    return null;
   }
 
-  return tryCandidateWithBisection(
-    baseEngine, gap, candArc, lineIdStart, allContactFrames, axisMeasureEnd,
-    searchTargets, useWindowDetection,
+  const direct = evaluateCandidateLines(
+    baseEngine, gap, candArc, "arc", directLines, lineIdStart, axisMeasureEnd,
+    allContactFrames, searchTargets, useWindowDetection,
   );
+  if (direct.fit !== null) {
+    recordArcPlacementDirectLanding(sampleMode);
+    return direct.fit;
+  }
+  recordArcPlacementDirectFailure(sampleMode, direct.failure);
+  return null;
 }
 
 export function tryCandidateGeometry(
@@ -421,10 +395,9 @@ export function tryCandidateLines(
   sampleMode?: CandidateSampleMode,
   preTargetSledTrace?: PreTargetSledTraceProvider,
 ): GapFit | null {
-  if (!impactAnchorEnabled()) return null;
-  recordImpactAnchorDirectAttempt(sampleMode);
+  recordArcPlacementDirectAttempt(sampleMode);
   if (preTargetSledProximity(baseEngine, gap, lines, preTargetSledTrace)) {
-    recordImpactAnchorPreclearReject(sampleMode);
+    recordArcPlacementPreclearReject(sampleMode);
     return null;
   }
   const direct = evaluateCandidateLines(
@@ -432,10 +405,10 @@ export function tryCandidateLines(
     allContactFrames, searchTargets, useWindowDetection,
   );
   if (direct.fit !== null) {
-    recordImpactAnchorDirectLanding(sampleMode);
+    recordArcPlacementDirectLanding(sampleMode);
     return direct.fit;
   }
-  recordImpactAnchorDirectFailure(sampleMode, direct.failure);
+  recordArcPlacementDirectFailure(sampleMode, direct.failure);
   return null;
 }
 
@@ -465,30 +438,6 @@ function preTargetSledProximity(
   return preTargetSledTrace === undefined
     ? hasPreTargetSledProximity(baseEngine, gap, lines)
     : hasPreTargetSledProximityFromTrace(preTargetSledTrace(), lines);
-}
-
-function tryCandidateWithBisection(
-  // deno-lint-ignore no-explicit-any
-  baseEngine: any,
-  gap: Gap,
-  candArc: Arc,
-  lineIdStart: number,
-  allContactFrames: number[],
-  axisMeasureEnd: number,
-  searchTargets: AxisValues,
-  useWindowDetection: boolean,
-): GapFit | null {
-  // Bisect anchor Y for Contact precision.
-  const bisected = bisectAnchorY(
-    baseEngine, candArc, gap.endFrame, lineIdStart, useWindowDetection,
-  );
-  if (bisected === null) return null;
-
-  const evaluated = evaluateCandidateLines(
-    baseEngine, gap, bisected.arc, "arc", bisected.lines, lineIdStart, axisMeasureEnd,
-    allContactFrames, searchTargets, useWindowDetection,
-  );
-  return evaluated.fit;
 }
 
 function evaluateCandidateLines(
@@ -641,89 +590,6 @@ export function axisLookaheadEndFrame(gap: Gap, allContactFrames: number[]): num
   if (gap.endFrame - gap.startFrame >= 60) return nextContact;
   if (postContactFrames > Math.floor(FPS / 2)) return nextContact;
   return gap.endFrame;
-}
-
-// ─────────── Bisection: adjust anchor Y so the landing fires AT gap.endFrame ───────────
-
-/**
- * Bisect Arc.anchor.y so that, when the Arc is added to the engine, a landing
- * event attributable to the Arc's lines fires at gap.endFrame ±1.
- *
- * Direction: larger Y → line lower → rider hits LATER. (World Y increases
- * downward in the engine's coordinate frame.)
- *
- * Falls back to coarse grid search if bisection diverges (non-monotone region).
- * Returns null if neither converges.
- */
-function bisectAnchorY(
-  // deno-lint-ignore no-explicit-any
-  baseEngine: any,
-  baseArc: Arc,
-  targetFrame: number,
-  lineIdStart: number,
-  useWindowDetection: boolean,
-): { arc: Arc; lines: TrackLine[] } | null {
-  const SEARCH_RADIUS = 14;
-  const MAX_ITERS = 18;
-  const windowStart = Math.max(
-    0,
-    targetFrame - SEARCH_RADIUS - K_BOUNCE_LANDING - PERSISTENCE_FRAMES - 2,
-  );
-  const windowEnd = targetFrame + PERSISTENCE_FRAMES + 1;
-
-  const evalAt = (y: number): { frame: number | null; arc: Arc; lines: TrackLine[] } => {
-    const arc: Arc = { ...baseArc, anchor: { x: baseArc.anchor.x, y } };
-    const lines = arcToLines(arc, lineIdStart);
-    // deno-lint-ignore no-explicit-any
-    const eng: any = baseEngine.addLine(lines.map((line) => engineLineFromTrackLine(line)));
-    const det = useWindowDetection
-      ? detectWindow(eng, windowStart, windowEnd)
-      : detect(extractRawTrajectory(eng, targetFrame + PERSISTENCE_FRAMES + 1));
-    const owned = new Set(lines.map((l) => l.id));
-    const landing = det.events.find(
-      (e) => e.type === "landing"
-        && Math.abs(e.frame - targetFrame) <= SEARCH_RADIUS
-        && intersectsLineIds(e, det, owned),
-    );
-    return { frame: landing ? landing.frame : null, arc, lines };
-  };
-
-  let lo = baseArc.anchor.y - SEARCH_RADIUS;
-  let hi = baseArc.anchor.y + SEARCH_RADIUS;
-  let bestRes = evalAt(baseArc.anchor.y);
-  let bestErr = bestRes.frame !== null ? Math.abs(bestRes.frame - targetFrame) : Infinity;
-  if (bestErr <= 1) return { arc: bestRes.arc, lines: bestRes.lines };
-
-  for (let i = 0; i < MAX_ITERS; i++) {
-    const mid = (lo + hi) / 2;
-    const r = evalAt(mid);
-    if (r.frame !== null) {
-      const err = Math.abs(r.frame - targetFrame);
-      if (err < bestErr) { bestErr = err; bestRes = r; }
-      if (err <= 1) return { arc: r.arc, lines: r.lines };
-      if (r.frame > targetFrame) hi = mid; else lo = mid;
-    } else {
-      // No landing detected at this Y — line too far away. Move toward "closer".
-      lo = mid;
-    }
-    if (hi - lo < 0.05) break;
-  }
-
-  // Coarse grid fallback if bisection didn't converge to ±1.
-  if (bestErr > 1) {
-    const STEPS = 16;
-    for (let i = 0; i <= STEPS; i++) {
-      const y = baseArc.anchor.y - SEARCH_RADIUS + (2 * SEARCH_RADIUS * i) / STEPS;
-      const r = evalAt(y);
-      if (r.frame !== null) {
-        const err = Math.abs(r.frame - targetFrame);
-        if (err < bestErr) { bestErr = err; bestRes = r; }
-        if (err <= 1) return { arc: r.arc, lines: r.lines };
-      }
-    }
-  }
-
-  return bestErr <= 1 ? { arc: bestRes.arc, lines: bestRes.lines } : null;
 }
 
 // ─────────── Hard-gate helpers ───────────

@@ -338,30 +338,17 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const seen: { gapIndex: number; deferExpansion: boolean }[] = [];
     const budget = 10_000;
-    // This characterizes the scheduler's deferred-start-root requeueing under a tiny
-    // budget. The pattern depends on per-gap candidate yield at 10k; it was written
-    // for the `impact_anchor` family (fast early yield). The now-default `continuous`
-    // converges slower, so pin impact_anchor to keep testing the scheduler property
-    // it was designed around (the scheduler logic itself is mode-agnostic).
-    const prevMode = process.env.LR_ARC_PLACEMENT;
-    process.env.LR_ARC_PLACEMENT = "impact_anchor";
-    let result;
-    try {
-      result = checkpoint(compileHandoff(spec, 0, {
-        budget,
-        maxNodes: 12,
-        polish: false,
-        onNode: (node) => {
-          seen.push({
-            gapIndex: node.search.gapIndex,
-            deferExpansion: node.deferExpansion,
-          });
-        },
-      }), budget);
-    } finally {
-      if (prevMode === undefined) delete process.env.LR_ARC_PLACEMENT;
-      else process.env.LR_ARC_PLACEMENT = prevMode;
-    }
+    const result = checkpoint(compileHandoff(spec, 0, {
+      budget,
+      maxNodes: 12,
+      polish: false,
+      onNode: (node) => {
+        seen.push({
+          gapIndex: node.search.gapIndex,
+          deferExpansion: node.deferExpansion,
+        });
+      },
+    }), budget);
 
     expect(result.stats.budget_exhausted).toBe(true);
     expect(seen.length).toBeGreaterThan(1);

@@ -5000,9 +5000,9 @@ Fresh post-S182 CPU profile still showed `envValue` visible in the JS
 candidate-eval surface (39 samples in the short profile, alongside
 `sampleContactCenteredLinesWithDiagnostics` and detector work). Candidate: cache
 the parsed arc-placement mode/feature flags by the raw `process.env.KEY` value
-(`LR_ARC_PLACEMENT`, fallback-bisect, level span, launch mode, air length,
-dense-spacing cap, 2D span). The cache still checks the current raw env value on
-each call, so in-process `process.env.KEY` mutation remains observable.
+(legacy mode and geometry-tuning flags). The cache still checks the current raw
+env value on each call, so in-process `process.env.KEY` mutation remains
+observable.
 
 **Correctness:** `LR_ENGINE=wasm npm run verify` ✓ byte-identical (engine 5/5 +
 optimizer 4/4). Env-mutation regression slice:

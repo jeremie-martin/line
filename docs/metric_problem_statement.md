@@ -93,9 +93,8 @@ the noise, to ground the decision methodology in numbers rather than guesses. It
 appended after the fact and is not part of the solution-free brief.
 
 **Setup.** Two golden sweeps, 19 specs × 18 seeds (a clean population `0–11` plus the
-documented triples `{20,21,22}` and `{100,101,102}`), budgets `{50,75,100,125,150}k`:
-`base` = `impact_anchor` (evaluator fingerprint `9bd67dc960f1`); `candidate` =
-`continuous` at HEAD `1865964`. Compilation is deterministic per `(spec, seed, budget)`,
+documented triples `{20,21,22}` and `{100,101,102}`), budgets `{50,75,100,125,150}k`.
+Compilation is deterministic per `(spec, seed, budget)`,
 so the only source of variability is the seed draw. Reproduce with
 `scripts/v0/variance_report.py BASE.json CANDIDATE.json`.
 

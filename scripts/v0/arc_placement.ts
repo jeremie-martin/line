@@ -38,12 +38,12 @@ type SegmentCollisionRiskLines = number[];
 export type ArcPlacementStats = NonNullable<CompileStats["arc_placement"]>;
 export type ArcPlacementDirectFailureReason = "survival" | "landing" | "offbeat";
 
-export type ImpactAnchorTargetState = {
+export type ImpactTargetPointState = {
   sledX: number;
   sledY: number;
 };
 
-export type ImpactFrameTargetState = ImpactAnchorTargetState & {
+export type ImpactFrameTargetState = ImpactTargetPointState & {
   velocity: { x: number; y: number };
   speed: number;
   angleDeg: number;
@@ -69,14 +69,6 @@ type PlacementRolls = {
 
 export function arcPlacementMode(): ArcPlacementRuntimeMode {
   return "target_state";
-}
-
-export function impactAnchorEnabled(): boolean {
-  return true;
-}
-
-export function impactAnchorFallbackBisectEnabled(): boolean {
-  return false;
 }
 
 function makeArcPlacementCounter(): ArcPlacementCounter {
@@ -127,23 +119,23 @@ export function snapshotArcPlacementStats(): ArcPlacementStats {
   };
 }
 
-export function recordImpactAnchorSample(mode?: CandidateSampleMode): void {
+export function recordArcPlacementSample(mode?: CandidateSampleMode): void {
   incrementCounter("sampled", mode);
 }
 
-export function recordImpactAnchorPreclearReject(mode?: CandidateSampleMode): void {
+export function recordArcPlacementPreclearReject(mode?: CandidateSampleMode): void {
   incrementCounter("preclear_rejected", mode);
 }
 
-export function recordImpactAnchorDirectAttempt(mode?: CandidateSampleMode): void {
+export function recordArcPlacementDirectAttempt(mode?: CandidateSampleMode): void {
   incrementCounter("direct_attempted", mode);
 }
 
-export function recordImpactAnchorDirectLanding(mode?: CandidateSampleMode): void {
+export function recordArcPlacementDirectLanding(mode?: CandidateSampleMode): void {
   incrementCounter("direct_landed", mode);
 }
 
-export function recordImpactAnchorDirectFailure(
+export function recordArcPlacementDirectFailure(
   mode?: CandidateSampleMode,
   reason?: ArcPlacementDirectFailureReason,
 ): void {
@@ -151,14 +143,6 @@ export function recordImpactAnchorDirectFailure(
   if (reason === "survival") incrementCounter("direct_survival_failed", mode);
   if (reason === "landing") incrementCounter("direct_landing_failed", mode);
   if (reason === "offbeat") incrementCounter("direct_offbeat_failed", mode);
-}
-
-export function recordImpactAnchorFallbackAttempt(mode?: CandidateSampleMode): void {
-  incrementCounter("fallback_attempted", mode);
-}
-
-export function recordImpactAnchorFallbackLanding(mode?: CandidateSampleMode): void {
-  incrementCounter("fallback_landed", mode);
 }
 
 export function readTargetState(
@@ -207,7 +191,7 @@ export function sampleArcPlacementGeometry(
   mode: CandidateSampleMode = "normal",
   allContactFrames: readonly number[] = [],
 ): ArcPlacementGeometry {
-  recordImpactAnchorSample(mode);
+  recordArcPlacementSample(mode);
   return {
     kind: "lines",
     lines: sampleTargetStateLines(

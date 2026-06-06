@@ -23,7 +23,7 @@ import {
 } from "../scripts/v0/core/candidate.ts";
 import {
   arcPlacementMode,
-  recordImpactAnchorDirectFailure,
+  recordArcPlacementDirectFailure,
   resetArcPlacementStats,
   sampleArcParams,
   sampleArcParamsRngDraws,
@@ -376,9 +376,9 @@ describe("target-state arc placement", () => {
 
   test("placement diagnostics split direct failure reasons by sample mode", () => {
     resetArcPlacementStats();
-    recordImpactAnchorDirectFailure("normal", "survival");
-    recordImpactAnchorDirectFailure("normal", "landing");
-    recordImpactAnchorDirectFailure("brake", "offbeat");
+    recordArcPlacementDirectFailure("normal", "survival");
+    recordArcPlacementDirectFailure("normal", "landing");
+    recordArcPlacementDirectFailure("brake", "offbeat");
 
     const stats = snapshotArcPlacementStats();
     expect(stats.direct_failed).toBe(3);

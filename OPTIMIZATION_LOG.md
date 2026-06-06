@@ -4600,3 +4600,43 @@ a *different* repel rest could in principle have a non-empty band — re-run the
 to the gate baselines. First win banked under the statistical gate — and the first
 demonstration that instrument-survey → grounded candidate → R=100 gate yields a real,
 trustworthy improvement the old >1.5% bar would have thrown away.
+
+## Session 174 (2026-06-06 cont.) — instrumented the JS detector bucket (~21%); no fresh lever
+
+Continued the instrument-survey on the next-biggest unprofiled bucket. Throwaway
+counters (globalThis.__DIAG, reverted after) on one `mini_burst@50k`:
+
+```
+physics frames simulated        : 50,415
+extractRawFrame calls           : 94,152   (1.87× → ~44k cache-hit re-extractions)
+RawFrame objects built          : 94,152   (per-frame {pos,vel,arrays} → the ~5% GC)
+collision event records scanned : 976,842  (10.4/frame; contactLineIds.includes work)
+detect() calls                  : 1,294    (72.8 frames/call)
+frames walked / supplied        : 92,561 / 94,152  (98.3% — only 1.7% past terminus)
+signedAngleDeg (kick) calls     : 91,216   (~1/walked frame, atan2 each)
+computeSummary calls            : 1.00/detect
+```
+
+Findings — the bucket is dominated by the **94k `RawFrame` object allocations** (the
+~5% GC), which is exactly what Sessions 11/27/46/74 already attacked (streaming, flat
+arrays, pre-sized arrays, direct raw-window evaluator) and all **regressed** — V8
+prefers the current object shape. Everything else is necessary-and-locked:
+- only **1.7% past-terminus** over-extraction (too small; Session 2 ~1.3–2.8%);
+- kicks computed ~1/frame, but removing them in candidate windows was a wash
+  (Session 38) and the angle math is bit-sensitive (Session 37 — `hypot`→`sqrt`
+  changed track bytes), so the `atan2` is locked;
+- `computeSummary`-skip regressed (Sessions 36/51); the `includes` dedup probed
+  (Session 14).
+
+The only not-previously-isolated quantity is the **1.87× extraction multiplier**
+(~44k re-extractions of already-simulated frames), but those are re-reads across
+*different forked versions* (each rebuilding the object), not same-(version,frame)
+hits — so a memo cache doesn't cleanly apply, and it's the same allocation cost the
+streaming probes already failed to remove.
+
+Conclusion: the detector bucket, like the WASM engine, is at its bit-identical
+floor. Across the three surveyed buckets (reconcile/invalidation S171–172,
+step_state S173, detector S174) the instrument-first method found exactly **one**
+fresh strict-bit-identical win — the repel sqrt-skip (S173, −0.49%). Standing
+unchanged at ~5,884 ns/frame. The path below this needs relaxed bit-identity (gated
+by the quality `decide`) or a structural rewrite, not further micro-surveys.

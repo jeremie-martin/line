@@ -314,11 +314,25 @@ const HANDOFF_BRANCHING = 3;
  *  contact cadences get one fewer first-pass sample to expose complete tracks
  *  earlier; dense cadences keep the safer 14-sample prefix. Once the register
  *  has a passing output, expand the deterministic prefix for quality search.
- *  This adapts to spec/search state, not requested budgets. Must stay >=
- *  HANDOFF_CANDIDATE_POOL. */
+ *  These contract-phase values are the CAP: the pre-validity race scales the count
+ *  DOWN toward CONTRACT_N_CAND_FLOOR when the frame budget is scarce (see
+ *  `budgetAwareContractSampleCount`) so a small budget still reaches a complete
+ *  track; an ample budget keeps the full cap. */
 const HANDOFF_SPARSE_CONTRACT_N_CAND = 13;
 const HANDOFF_CONTRACT_N_CAND = 14;
 const HANDOFF_QUALITY_N_CAND = 16;
+/** Floor for the budget-scaled contract sample count: even the leanest low-budget
+ *  race samples at least this many candidates per contact gap, so greedy completion
+ *  keeps enough breadth to route around dead ends (3 was the value that flipped deep
+ *  specs from "never completes at 25k" to "valid at 25k" in the budget probe). */
+const CONTRACT_N_CAND_FLOOR = 3;
+/** Warm-up depth before the budget projection is trusted. The cost rate
+ *  (`simFrames / depthReached`) is noisy and start-overhead-inflated at depth 1-2, which
+ *  would lean spuriously even when the budget is ample. Holding the full cap until a few
+ *  gaps of cost have accrued makes an ample budget a true no-op (every gap keeps the cap
+ *  → search identical to the budget-oblivious baseline) and only a genuinely scarce
+ *  budget ever scales breadth down. */
+const CONTRACT_BUDGET_WARMUP_GAPS = 4;
 const HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES = Math.round(FPS * 0.75);
 /** Extra deterministic sampling only when the normal batch finds no viable
  *  catch for a required contact. This preserves the cheap common path while
@@ -816,6 +830,7 @@ function compileHandoffInternal(
         telemetry,
         register.getBestKey()?.contract_passed === true,
         sparseContractSearch,
+        targetBudget,
       );
       if (tailNode !== null) {
         const result = consider(tailNode, "tail");
@@ -946,6 +961,7 @@ function compileHandoffInternal(
         telemetry,
         register.getBestKey()?.contract_passed === true,
         sparseContractSearch,
+        targetBudget,
       );
       telemetry.nodesExpanded++;
       for (let i = children.length - 1; i >= 0; i--) {
@@ -1467,6 +1483,7 @@ function expandNode(
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
   sparseContractSearch: boolean,
+  targetBudget: number,
 ): HandoffNode[] {
   if (isTerminalNode(node.search, gaps)) return [];
   if (!node.startExpanded) {
@@ -1500,7 +1517,14 @@ function expandNode(
   }
 
   let options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
-    nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
+    nCand: qualitySearch
+      ? handoffSampleCount(true, sparseContractSearch)
+      : budgetAwareContractSampleCount(
+        targetBudget,
+        gaps.length - node.search.gapIndex,
+        telemetry.deepestSeenGap + 1,
+        sparseContractSearch,
+      ),
     preview: handoffUsesFuturePreview(qualitySearch),
     expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
     axisQualitySearch: qualitySearch,
@@ -1953,6 +1977,7 @@ function completeNearTail(
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
   sparseContractSearch: boolean,
+  targetBudget: number,
 ): HandoffNode | null {
   if (!shouldAttemptNearTailCompletion(node, gaps)) return null;
   const remaining = remainingContactCount(node.search, gaps);
@@ -1968,6 +1993,7 @@ function completeNearTail(
     telemetry,
     qualitySearch,
     sparseContractSearch,
+    targetBudget,
   );
   if (completed === null) return null;
 
@@ -2039,6 +2065,7 @@ function completeNearTailSuffix(
   telemetry: HandoffTelemetry,
   qualitySearch: boolean,
   sparseContractSearch: boolean,
+  targetBudget: number,
 ): CompletedHandoffSuffix | null {
   const stack: CompletedHandoffSuffix[] = [
     {
@@ -2059,7 +2086,14 @@ function completeNearTailSuffix(
 
     const gap = gaps[search.gapIndex];
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
-      nCand: handoffSampleCount(qualitySearch, sparseContractSearch),
+      nCand: qualitySearch
+        ? handoffSampleCount(true, sparseContractSearch)
+        : budgetAwareContractSampleCount(
+          targetBudget,
+          gaps.length - search.gapIndex,
+          telemetry.deepestSeenGap + 1,
+          sparseContractSearch,
+        ),
       preview: false,
       expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
       axisQualitySearch: qualitySearch,
@@ -2137,6 +2171,36 @@ export function handoffSampleCount(
 ): number {
   if (qualitySearch) return HANDOFF_QUALITY_N_CAND;
   return sparseContractSearch ? HANDOFF_SPARSE_CONTRACT_N_CAND : HANDOFF_CONTRACT_N_CAND;
+}
+
+/** Budget-aware candidate count for the pre-validity (contract) race to a first
+ *  complete track. The full per-gap breadth (`handoffSampleCount`) is the right effort
+ *  when frames are ample, but on a scarce budget it is spent mid-prefix and the run
+ *  scores zero (deep specs never reach the tail). So we estimate, from the search's own
+ *  measured cost so far, whether finishing the remaining gaps at full breadth fits the
+ *  frames still available; if not, breadth is scaled down from the cap in proportion to
+ *  the shortfall (frames/node scales with breadth, so the projected cost scales with it
+ *  too). Cost rate is `simFrames / depthReached` (frames per gap of depth achieved,
+ *  which already folds in sibling/branching overhead); projected over `remainingGaps`
+ *  that is the frames a full-breadth completion would need. Self-calibrating per
+ *  (spec, seed, budget); parameter-free apart from the floor/cap; grid-independent. */
+function budgetAwareContractSampleCount(
+  targetBudget: number,
+  remainingGaps: number,
+  depthReached: number,
+  sparseContractSearch: boolean,
+): number {
+  const cap = handoffSampleCount(false, sparseContractSearch);
+  // Hold full breadth until the cost rate is trustworthy; ample budgets never get past
+  // this and stay byte-identical to the budget-oblivious baseline.
+  if (depthReached < CONTRACT_BUDGET_WARMUP_GAPS || remainingGaps <= 0) return cap;
+  const framesPerGap = getSimFrames() / depthReached;
+  if (!(framesPerGap > 0)) return cap;
+  const projectedToFinish = framesPerGap * remainingGaps;
+  const framesLeft = Math.max(0, targetBudget - getSimFrames());
+  if (projectedToFinish <= framesLeft) return cap; // full breadth fits → keep it
+  const scaled = Math.round((cap * framesLeft) / projectedToFinish);
+  return Math.max(CONTRACT_N_CAND_FLOOR, Math.min(cap, scaled));
 }
 
 

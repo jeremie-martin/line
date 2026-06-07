@@ -898,10 +898,6 @@ function compactStats(stats: CompileStats | null): object | null {
       stats.handoff_tail_completion_successes_by_remaining_contacts,
     handoff_tail_completion_improvements_by_remaining_contacts:
       stats.handoff_tail_completion_improvements_by_remaining_contacts,
-    handoff_suffix_repair_attempts: stats.handoff_suffix_repair_attempts,
-    handoff_suffix_repair_successes: stats.handoff_suffix_repair_successes,
-    handoff_suffix_repair_improvements: stats.handoff_suffix_repair_improvements,
-    handoff_suffix_repair_nodes: stats.handoff_suffix_repair_nodes,
     handoff_start_options: stats.handoff_start_options,
     handoff_start_rank: stats.handoff_start_rank,
     handoff_start_speed: stats.handoff_start_speed,

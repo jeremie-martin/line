@@ -356,13 +356,6 @@ export type CompileStats = {
   handoff_tail_completion_attempts_by_remaining_contacts?: HandoffContactCountCounter;
   handoff_tail_completion_successes_by_remaining_contacts?: HandoffContactCountCounter;
   handoff_tail_completion_improvements_by_remaining_contacts?: HandoffContactCountCounter;
-  /** Sparse bounded suffix-branch completions from weak-quality prefixes with
-   *  scarce terminal feedback. Completions are scored by the same best-so-far
-   *  register as ordinary leaves. */
-  handoff_suffix_repair_attempts?: number;
-  handoff_suffix_repair_successes?: number;
-  handoff_suffix_repair_improvements?: number;
-  handoff_suffix_repair_nodes?: number;
   /** Deterministic root/start-state alternatives available to compileHandoff,
    *  and the selected rank for the returned best prefix. */
   handoff_start_options?: number;

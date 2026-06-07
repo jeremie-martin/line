@@ -89,10 +89,6 @@ type CompileStats = {
   handoff_improvements_by_phase?: Partial<Record<HandoffEvaluationPhase, number>>;
   handoff_unique_full_evaluations?: number;
   handoff_partial_evaluations?: number;
-  handoff_suffix_repair_attempts?: number;
-  handoff_suffix_repair_successes?: number;
-  handoff_suffix_repair_improvements?: number;
-  handoff_suffix_repair_nodes?: number;
   handoff_previews?: number;
   handoff_preview_contacts?: number;
   handoff_preview_survivors?: number;
@@ -183,8 +179,6 @@ const STREAM_YIELD_STATS = [
   ["brake", "handoff_brake_successes", "handoff_brake_attempts"],
   ["startup", "handoff_startup_successes", "handoff_startup_attempts"],
   ["axisq", "handoff_axis_quality_successes", "handoff_axis_quality_attempts"],
-  ["suffix", "handoff_suffix_repair_successes", "handoff_suffix_repair_attempts"],
-  ["suffix_best", "handoff_suffix_repair_improvements", "handoff_suffix_repair_successes"],
   ["rescue", "handoff_rescue_successes", "handoff_rescue_attempts"],
 ] as const satisfies ReadonlyArray<readonly [string, keyof CompileStats, keyof CompileStats]>;
 
@@ -237,10 +231,6 @@ function fmtStats(stats: CompileStats | undefined): string {
     `polish=${stats.polish_variants_adopted ?? "?"}/` +
       `${stats.polish_variants_changed ?? "?"}/` +
       `${stats.polish_variants_tried ?? "?"}`,
-    `suffix=${stats.handoff_suffix_repair_improvements ?? "?"}/` +
-      `${stats.handoff_suffix_repair_successes ?? "?"}/` +
-      `${stats.handoff_suffix_repair_attempts ?? "?"}` +
-      `(${stats.handoff_suffix_repair_nodes ?? "?"}n)`,
     `reuse=${stats.handoff_reuse_successes ?? "?"}/${stats.handoff_reuse_attempts ?? "?"}`,
     `brake=${stats.handoff_brake_successes ?? "?"}/${stats.handoff_brake_attempts ?? "?"}`,
     `axisq=${stats.handoff_axis_quality_successes ?? "?"}/${stats.handoff_axis_quality_attempts ?? "?"}`,

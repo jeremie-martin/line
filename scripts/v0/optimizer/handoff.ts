@@ -197,10 +197,6 @@ type HandoffTelemetry = {
   tailCompletionAttemptsByRemainingContacts: Record<number, number>;
   tailCompletionSuccessesByRemainingContacts: Record<number, number>;
   tailCompletionImprovementsByRemainingContacts: Record<number, number>;
-  suffixRepairAttempts: number;
-  suffixRepairSuccesses: number;
-  suffixRepairImprovements: number;
-  suffixRepairNodes: number;
   previews: number;
   previewContacts: number;
   previewSurvivors: number;
@@ -539,23 +535,6 @@ const QUALITY_FAR_BACK_MIN_INTERVAL = 16;
 const QUALITY_FAR_BACK_MAX_INTERVAL = 128;
 const QUALITY_FAR_BACK_FULL_AXIS_QUALITY = 0.18;
 const QUALITY_FAR_BACK_ZERO_AXIS_QUALITY = 0.50;
-/** For weak rows with almost no terminal feedback, occasionally run a
- *  bounded two-wide suffix completion from a clean prefix before ordinary DFS
- *  reaches the tail window. This is deliberately scarce and only uses existing
- *  candidate ranking; the register still decides whether the full output helps. */
-const QUALITY_SUFFIX_REPAIR_INTERVAL = 32;
-const QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY = 0.34;
-const QUALITY_SUFFIX_REPAIR_SCARCE_ZERO_AXIS_QUALITY = 0.45;
-const QUALITY_SUFFIX_REPAIR_EXTRA_AXIS_QUALITY = 0.12;
-const QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS = 16;
-const QUALITY_SUFFIX_REPAIR_EXTRA_FULL_EVALUATIONS = 32;
-const QUALITY_SUFFIX_REPAIR_BUDGET_SCALE_FRAMES = 200_000;
-const QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS = 6;
-const QUALITY_SUFFIX_REPAIR_EXTRA_ATTEMPTS = 2;
-const QUALITY_SUFFIX_REPAIR_SCARCE_FULL_EVALUATIONS = 12;
-const QUALITY_SUFFIX_REPAIR_MAX_NODES = 128;
-const QUALITY_SUFFIX_REPAIR_BRANCHING = 2;
-
 export function compileHandoff(
   userSpec: Spec,
   seed = 0,
@@ -696,10 +675,6 @@ function compileHandoffInternal(
       tailCompletionAttemptsByRemainingContacts: {},
       tailCompletionSuccessesByRemainingContacts: {},
       tailCompletionImprovementsByRemainingContacts: {},
-      suffixRepairAttempts: 0,
-      suffixRepairSuccesses: 0,
-      suffixRepairImprovements: 0,
-      suffixRepairNodes: 0,
       previews: 0,
       previewContacts: 0,
       previewSurvivors: 0,
@@ -827,10 +802,6 @@ function compileHandoffInternal(
             snapshotContactCountCounter(telemetry.tailCompletionSuccessesByRemainingContacts),
           handoff_tail_completion_improvements_by_remaining_contacts:
             snapshotContactCountCounter(telemetry.tailCompletionImprovementsByRemainingContacts),
-          handoff_suffix_repair_attempts: telemetry.suffixRepairAttempts,
-          handoff_suffix_repair_successes: telemetry.suffixRepairSuccesses,
-          handoff_suffix_repair_improvements: telemetry.suffixRepairImprovements,
-          handoff_suffix_repair_nodes: telemetry.suffixRepairNodes,
           handoff_start_options: startOptions.length,
           handoff_start_rank: best.stats.handoff_start_rank ?? 0,
           handoff_start_ranks_seen: telemetry.startRanksSeen.size,
@@ -903,20 +874,6 @@ function compileHandoffInternal(
             remaining,
           );
         }
-      }
-
-      const repairedNode = completeWeakPrefixWithBoundedSuffix(
-        node,
-        gaps,
-        ctx,
-        telemetry,
-        register.getBestKey(),
-        sparseContractSearch,
-        targetBudget,
-      );
-      if (repairedNode !== null) {
-        const result = consider(repairedNode, "suffix");
-        if (result?.event.improved) telemetry.suffixRepairImprovements++;
       }
 
       captureReachedBudget();
@@ -2659,44 +2616,6 @@ function completeNearTail(
   };
 }
 
-function completeWeakPrefixWithBoundedSuffix(
-  node: HandoffNode,
-  gaps: Gap[],
-  ctx: SpecContext,
-  telemetry: HandoffTelemetry,
-  bestKey: LeafKey | null,
-  sparseContractSearch: boolean,
-  targetBudget: number,
-): HandoffNode | null {
-  if (!shouldAttemptSuffixRepair(node, gaps, telemetry, bestKey, targetBudget)) return null;
-  telemetry.suffixRepairAttempts++;
-
-  const completed = completeBoundedSuffix(
-    node.search,
-    cloneRankTrace(node.rankTrace),
-    gaps,
-    ctx,
-    node.searchSeed,
-    telemetry,
-    sparseContractSearch,
-    targetBudget,
-  );
-  telemetry.suffixRepairNodes += completed.nodes;
-  if (completed.result === null) return null;
-
-  telemetry.suffixRepairSuccesses++;
-  return {
-    search: completed.result.search,
-    startState: node.startState,
-    startRank: node.startRank,
-    searchSeed: node.searchSeed,
-    startExpanded: node.startExpanded,
-    deferExpansion: false,
-    rankTrace: completed.result.rankTrace,
-    skippedContacts: node.skippedContacts,
-  };
-}
-
 type CompletedHandoffSuffix = {
   search: SearchNode;
   rankTrace: HandoffRankTraceEntry[];
@@ -2758,62 +2677,6 @@ function completeNearTailSuffix(
     }
   }
   return null;
-}
-
-function completeBoundedSuffix(
-  start: SearchNode,
-  startTrace: HandoffRankTraceEntry[],
-  gaps: Gap[],
-  ctx: SpecContext,
-  seed: number,
-  telemetry: HandoffTelemetry,
-  sparseContractSearch: boolean,
-  targetBudget: number,
-): { result: CompletedHandoffSuffix | null; nodes: number } {
-  const stack: CompletedHandoffSuffix[] = [
-    {
-      search: start,
-      rankTrace: startTrace,
-    },
-  ];
-  let nodes = 0;
-
-  while (stack.length > 0 && nodes < QUALITY_SUFFIX_REPAIR_MAX_NODES) {
-    const state = stack.pop()!;
-    let search = state.search;
-    let rankTrace = cloneRankTrace(state.rankTrace);
-
-    while (!isTerminalNode(search, gaps) && !gaps[search.gapIndex].endsWithContact) {
-      search = extendNodeCached(search, null);
-      rankTrace = appendSkipTrace(rankTrace);
-    }
-    if (isTerminalNode(search, gaps)) {
-      return { result: { search, rankTrace }, nodes };
-    }
-
-    nodes++;
-    const gap = gaps[search.gapIndex];
-    const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
-      nCand: handoffSampleCount(true, sparseContractSearch),
-      preview: false,
-      expandedBrakeSearch: shouldUseExpandedBrakeSearch(true),
-      axisQualitySearch: true,
-      releaseSetup: true,
-      previewCostWeight: PREVIEW_COST_WEIGHT,
-      targetBudget,
-    })
-      .filter((option) => option.candidate !== null)
-      .slice(0, QUALITY_SUFFIX_REPAIR_BRANCHING);
-    for (let i = options.length - 1; i >= 0; i--) {
-      const option = options[i];
-      stack.push({
-        search: extendNodeCached(search, option.candidate!),
-        rankTrace: appendOptionTrace(rankTrace, option),
-      });
-    }
-  }
-
-  return { result: null, nodes };
 }
 
 export function handoffSampleCount(
@@ -2946,85 +2809,6 @@ function shallowQualityTailThrottleSeed(node: SearchNode, remainingContacts: num
     Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
     Math.imul(remainingContacts + 1, 0x27d4eb2d)
   ) | 0;
-}
-
-function shouldAttemptSuffixRepair(
-  node: HandoffNode,
-  gaps: Gap[],
-  telemetry: HandoffTelemetry,
-  bestKey: LeafKey | null,
-  targetBudget: number,
-): boolean {
-  if (bestKey?.contract_passed !== true) return false;
-  const weakness = suffixRepairWeaknessPressure(bestKey.axis_quality);
-  if (bestKey.axis_quality >= suffixRepairAxisQualityLimit(targetBudget, weakness)) {
-    return false;
-  }
-  // Suffix repair is for genuinely scarce terminal feedback. Exact duplicate
-  // full-output offers do not add a new terminal basin, so do not let them
-  // consume the scarcity cap.
-  if (
-    uniqueFullEvaluations(telemetry) >=
-      suffixRepairFullEvaluationLimit(targetBudget, weakness)
-  ) {
-    return false;
-  }
-  if (
-    telemetry.suffixRepairAttempts >=
-      suffixRepairAttemptLimit(targetBudget, weakness, uniqueFullEvaluations(telemetry))
-  ) {
-    return false;
-  }
-  if (telemetry.frontierSelections % QUALITY_SUFFIX_REPAIR_INTERVAL !== 0) return false;
-  if (!node.startExpanded || node.deferExpansion) return false;
-  if (node.skippedContacts !== 0 || isTerminalNode(node.search, gaps)) return false;
-  if (!node.search.prefixFits.some((fit) => fit !== null)) return false;
-  return remainingContactCount(node.search, gaps) > tailCompletionContactWindow(targetBudget);
-}
-
-function suffixRepairAxisQualityLimit(targetBudget: number, weakness: number): number {
-  return QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY +
-    QUALITY_SUFFIX_REPAIR_EXTRA_AXIS_QUALITY * suffixRepairBudgetPressure(targetBudget) * weakness;
-}
-
-function suffixRepairFullEvaluationLimit(targetBudget: number, weakness: number): number {
-  return Math.round(
-    QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS +
-      QUALITY_SUFFIX_REPAIR_EXTRA_FULL_EVALUATIONS *
-        suffixRepairBudgetPressure(targetBudget) *
-        weakness,
-  );
-}
-
-function suffixRepairAttemptLimit(
-  targetBudget: number,
-  weakness: number,
-  uniqueFull: number,
-): number {
-  const pressure = suffixRepairBudgetPressure(targetBudget) *
-    weakness *
-    suffixRepairAttemptScarcityPressure(uniqueFull);
-  return QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS +
-    Math.round(QUALITY_SUFFIX_REPAIR_EXTRA_ATTEMPTS * pressure);
-}
-
-function suffixRepairAttemptScarcityPressure(uniqueFull: number): number {
-  const feedback = Math.max(0, uniqueFull);
-  return 1 - smoothstep(
-    clamp01(feedback / (feedback + QUALITY_SUFFIX_REPAIR_SCARCE_FULL_EVALUATIONS)),
-  );
-}
-
-function suffixRepairWeaknessPressure(axisQuality: number): number {
-  const width = QUALITY_SUFFIX_REPAIR_SCARCE_ZERO_AXIS_QUALITY -
-    QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY;
-  if (width <= 0) return 0;
-  return clamp01((QUALITY_SUFFIX_REPAIR_SCARCE_ZERO_AXIS_QUALITY - axisQuality) / width);
-}
-
-function suffixRepairBudgetPressure(targetBudget: number): number {
-  const budget = Math.max(0, targetBudget);
-  return smoothstep(clamp01(budget / (budget + QUALITY_SUFFIX_REPAIR_BUDGET_SCALE_FRAMES)));
 }
 
 function tailCompletionContactWindow(targetBudget: number, qualitySearch = true): number {

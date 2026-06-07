@@ -942,10 +942,31 @@ function compileHandoffInternal(
     // (sims charged), deterministic per (spec,seed,budget). See TRACK_REPAIR_EXPERIMENTS.md.
     const runRepairPhase = (): void => {
       if (repair === null) return;
-      // Cost model: avg frames per contact-gap of the full search, from the main phase.
+      // Coarse fallback cost model: avg frames per contact-gap of the full search.
       const perGap = firstCompletionFrame > 0
         ? firstCompletionFrame / Math.max(1, telemetry.deepestSeenGap + 1)
         : 0;
+      // MEASURED per-gap cost-to-end (Jérémie's "each arc associated with a budget"): from the first
+      // incumbent's own path, costToEnd[k] = firstCompletionFrame − framesAtReach[node@k] = the frames
+      // the main search actually spent getting from gap k to completion. Replaces the dead-end-biased
+      // perGap estimate for feasibility/ceiling. Computed once from the original incumbent (stable profile).
+      const costToEnd: number[] = [];
+      {
+        const inc0 = bestCompleteNode;
+        const root0 = inc0 ? startOptions.find((o) => o.rank === inc0.startRank)?.root : undefined;
+        if (inc0 && root0 && firstCompletionFrame > 0) {
+          let n = root0;
+          for (let k = 0; k <= gaps.length; k++) {
+            const reach = framesAtReach.get(n);
+            costToEnd[k] = reach !== undefined ? Math.max(0, firstCompletionFrame - reach) : -1;
+            if (k < gaps.length) n = extendNodeCached(n, inc0.search.prefixFits[k] ?? null);
+          }
+        }
+      }
+      const estCostOf = (k: number): number => {
+        const m = costToEnd[k];
+        return m !== undefined && m >= 0 ? m : perGap * Math.max(1, gaps.length - k);
+      };
       const exhausted = new Set<number>();
       let attempts = 0;
       let restartCounter = 0;
@@ -959,10 +980,11 @@ function compileHandoffInternal(
         const root = startOptions.find((o) => o.rank === incumbent.startRank)?.root;
         if (root === undefined) break;
         const remaining = targetBudget - getSimFrames();
-        // Worst AFFORDABLE gap (symptom): largest axis-error² whose est. cost to re-complete
-        // fits the remaining budget. Falls back to later/cheaper gaps when budget is tight.
+        // Worst AFFORDABLE gap whose MEASURED cost-to-re-complete fits the remaining budget. With
+        // valueDensity, ranked by axis-error²/cost (best score-gain-per-frame) instead of raw error².
         const kWorst = pickFeasibleWeakGap(
-          evaluateCached(incumbent).report, gaps, exhausted, perGap, remaining * (1 / repair.feasMargin),
+          evaluateCached(incumbent).report, gaps, exhausted,
+          estCostOf, remaining / repair.feasMargin, repair.valueDensity,
         );
         if (kWorst < 0) break;
 
@@ -976,9 +998,9 @@ function compileHandoffInternal(
         for (let up = 0; up <= repair.maxUpstream; up++) {
           const k = kWorst - up;
           if (k < 0 || attempts >= repair.maxAttempts || getSimFrames() >= targetBudget) break;
-          const estCost = perGap * Math.max(1, gaps.length - k);
+          const estCost = estCostOf(k);
           // Walking upstream only gets more expensive; stop if we can't afford to finish.
-          if (perGap > 0 && estCost * repair.feasMargin > targetBudget - getSimFrames()) break;
+          if (estCost > 0 && estCost * repair.feasMargin > targetBudget - getSimFrames()) break;
           attempts++;
           restartCounter++;
           const restartSeed = ((incumbent.searchSeed | 0) ^ Math.imul(restartCounter, 0x9e3779b1)) | 0;
@@ -2295,21 +2317,24 @@ function pickFeasibleWeakGap(
   report: DriftReport,
   gaps: Gap[],
   exhausted: Set<number>,
-  perGap: number,
+  estCostOf: (k: number) => number,
   budgetCap: number,
+  valueDensity: boolean,
 ): number {
-  const ranked: { gap: number; sse: number }[] = [];
+  const ranked: { gap: number; key: number }[] = [];
   for (const g of report.gaps) {
     if (exhausted.has(g.gap_index)) continue;
     if (!gaps[g.gap_index]?.endsWithContact) continue;
     let sse = 0;
     for (const v of Object.values(g.axes)) sse += v.error * v.error;
-    ranked.push({ gap: g.gap_index, sse });
+    // valueDensity: score-gain-per-frame proxy = axis-error² / measured cost-to-re-complete.
+    const key = valueDensity ? sse / Math.max(1, estCostOf(g.gap_index)) : sse;
+    ranked.push({ gap: g.gap_index, key });
   }
-  ranked.sort((a, b) => b.sse - a.sse || a.gap - b.gap);
+  ranked.sort((a, b) => b.key - a.key || a.gap - b.gap);
   for (const r of ranked) {
-    const estCost = perGap * Math.max(1, gaps.length - r.gap);
-    if (perGap <= 0 || estCost <= budgetCap) return r.gap;
+    const cost = estCostOf(r.gap);
+    if (cost <= 0 || cost <= budgetCap) return r.gap;
   }
   return -1;
 }
@@ -2726,6 +2751,7 @@ type RepairConfig = {
   feasMargin: number;
   maxAttempts: number;
   maxUpstream: number;
+  valueDensity: boolean;
   log: boolean;
 };
 function repairConfig(): RepairConfig | null {
@@ -2754,6 +2780,9 @@ function repairConfig(): RepairConfig | null {
     // same incumbent at 35-55k frames each — wasted budget vs spending it on more worst gaps.
     // Kept as a tunable. >0 walks up to N parents when a restart re-converges.
     maxUpstream: num("LR_REPAIR_MAX_UPSTREAM", 0, 0, 64),
+    // Pick gaps by value-DENSITY (axis-error² / measured cost-to-end) instead of raw axis-error².
+    // Spends budget where the score-gain-per-frame is highest rather than always the single worst gap.
+    valueDensity: readEnv("LR_REPAIR_VALUE_DENSITY") === "1",
     log: readEnv("LR_REPAIR_LOG") === "1",
   };
 }

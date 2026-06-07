@@ -155,9 +155,46 @@ framesAtReach (budget timestamp per node) + per-restart records {worst,anchor,up
 estCost,before/afterScore,accepted,inherited release state}; aggregates restarts/accepts/frames_spent/
 gaps_touched/reconverged. In the golden archive (golden.ts compactStats); only present when repair ran.
 
+## Research agenda — budget-aware allocation (Jérémie's vision; study later, not now)
+The deep game underneath all of this is **how to spend a frame budget**, and it's the same question in
+several places — repair is just the newest instance:
+- **Spend-per-branch vs number-of-branches.** Is it better to complete a branch FASTER (cheaper per branch →
+  try more branches, each likely lower quality, bet on volume) or to complete FEWER branches at HIGHER quality
+  (more compute per branch)? This is a real dial in *node evaluation depth* (how deep we evaluate / how much
+  lookahead per node = compute-per-branch) and in repair (restart ceiling / breadth). There is no global
+  answer — it depends on budget and on where we are in the search. The goal is to CHARACTERIZE: in which
+  circumstances does each win, especially at LOWER budget where the choice bites hardest.
+- **The compiler already has several budget-aware mechanisms OUTSIDE repair** (budgetAwareContractSampleCount,
+  the curvature fade, forward-eval budget gating). How these interact with repair — and whether they should be
+  unified under one budget-allocation policy — is open. Jérémie is confident the high-budget repair learnings
+  can be made to pay at 100k/150k/200k too, by getting this allocation right.
+- **Adaptive restart placement by remaining budget (NOT yet implemented).** Where to start the new search
+  should depend on how much budget remains: lots left → restart early (high blast radius); little left →
+  restart near the end (cheap, guaranteed to finish). The feasibility filter is a crude first step; the real
+  version uses the MEASURED per-node cost (now instrumented) to place restarts optimally.
+- Per-node budget/state metadata (framesAtReach, cost-to-end, inherited release state) is the scaffolding that
+  makes all of the above data-driven rather than guessed.
+
+## Decisions
+- **500k rung in the canonical suite: NOT now.** Repair works best at high budget (the real 1M use case) and
+  the headline can't see >200k — but adding rungs redefines the metric (re-baseline everything) and ~doubles
+  runtime per rung. For now: keep the canonical suite for comparable promotion, use 350k/500k as OFF-SUITE
+  tuning/diagnostic. Revisit adding 350k+500k once the budget-aware allocation work matures and we want the
+  headline to reward it.
+
+### Measured-cost allocation (honest full canonical, vs prior repair 589.6)
+Per-gap MEASURED cost-to-end (costToEnd[k] = firstCompletionFrame − framesAtReach[node@k], from the first
+incumbent's own path) replaces the dead-end-biased perGap for feasibility + restart ceiling.
+| variant | HEADLINE | Δ vs prior repair | verdict |
+|---|---|---|---|
+| measured-cost feasibility (default) | 590.54 | +0.9 (P=1.8%) | ACCEPT — kept |
+| + value-density picking (SSE/cost) | 588.23 | −1.4 (P=97.7%) | REJECT — tunable, default off |
+**Measured > estimated** (small clean +0.9). **Value-density REJECTED** — useful negative: with a GEOMETRIC-
+MEAN objective, fixing the single WORST gap beats spreading budget by value-per-frame (one bad gap tanks the
+whole track, so skipping it for "efficiency" backfires). Worst-gap-first is correct for this objective.
+Honest branch total: committed **569.7 → 590.5 = +20.8** (fwd-eval +14.8, repair +5.1, measured-cost +0.9).
+
 ## Plan (methodical, one change per decide)
-- Measured-cost budget allocation: feed compile_stats.repair per-gap measured cost into a value-per-frame
-  picker, replacing the coarse perGap estimate.
 - Repair the START/early gaps with fresh seeds (highest blast radius on a forward-dependent chain).
 - Portfolio of top-K incumbents; compose with LR_QUALITY_NCAND=24.
-- Methodology: a 500k rung in the canonical estimator so the headline can reward high-budget gains.
+- (Deferred) the budget-aware research agenda above; adaptive restart placement by remaining budget.

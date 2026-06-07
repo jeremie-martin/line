@@ -2488,7 +2488,9 @@ function forwardEvalConfig(): ForwardEvalConfig | null {
 /** True partial-track score (scoreDriftReport.full_score) of a forward SearchNode. */
 function forwardNodeScore(search: SearchNode, gaps: Gap[], ctx: SpecContext): number {
   const spec = fwdEvalSpec;
-  if (spec === null) return 0;
+  if (spec === null) {
+    throw new Error("forwardNodeScore: forward-eval context unset — setForwardEvalContext must run first");
+  }
   const fullDuration = isTerminalNode(search, gaps);
   const horizonFrame = fullDuration ? ctx.durationFrames : processedHorizonFrame(search, gaps);
   const outputDurationFrames = fullDuration
@@ -2549,15 +2551,18 @@ function forwardArcValue(
   child: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, cfg: ForwardEvalConfig,
 ): number {
   const saved = getSimFrames();
-  const value = cfg.variant === "avg"
-    ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch)
-    : forwardRolloutScore(child, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1);
   // POC default REFUNDS the rollout frames (free, isolates eval quality). Set
   // LR_FWD_EVAL_CHARGE=1 to bill them honestly — the affordability reality-check.
+  // try/finally so a throw mid-rollout (e.g. a future frame limit) can't leak frames.
   const charge = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_FWD_EVAL_CHARGE === "1";
-  if (!charge) refundSimFramesTo(saved);
-  return value;
+  try {
+    return cfg.variant === "avg"
+      ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch)
+      : forwardRolloutScore(child, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1);
+  } finally {
+    if (!charge) refundSimFramesTo(saved);
+  }
 }
 
 function previewFutureContacts(
@@ -2586,29 +2591,31 @@ function previewFutureContacts(
   let firstCost = 0;
   let totalCost = 0;
 
-  for (;;) {
-    if (horizon >= maxHorizon) break;
-    const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex);
-    if (nextGapIndex < 0) break;
-    while (node.gapIndex < nextGapIndex) node = extendNodeCached(node, null);
+  try {
+    for (;;) {
+      if (horizon >= maxHorizon) break;
+      const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex);
+      if (nextGapIndex < 0) break;
+      while (node.gapIndex < nextGapIndex) node = extendNodeCached(node, null);
 
-    horizon++;
-    const candidates = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_PREVIEW_K);
-    telemetry.previews++;
-    telemetry.previewSurvivors += candidates.length;
-    survivors += candidates.length;
-    if (horizon === 1) firstSurvivors = candidates.length;
+      horizon++;
+      const candidates = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_PREVIEW_K);
+      telemetry.previews++;
+      telemetry.previewSurvivors += candidates.length;
+      survivors += candidates.length;
+      if (horizon === 1) firstSurvivors = candidates.length;
 
-    const best = pickLowestCost(candidates);
-    if (horizon === 1) firstCost = best === null ? Infinity : best.cost;
-    if (best === null) break;
-    totalCost += best.cost;
-    landed++;
-    telemetry.previewContacts++;
-    node = extendNodeCached(node, best);
+      const best = pickLowestCost(candidates);
+      if (horizon === 1) firstCost = best === null ? Infinity : best.cost;
+      if (best === null) break;
+      totalCost += best.cost;
+      landed++;
+      telemetry.previewContacts++;
+      node = extendNodeCached(node, best);
+    }
+  } finally {
+    if (savedFrames >= 0) refundSimFramesTo(savedFrames);
   }
-
-  if (savedFrames >= 0) refundSimFramesTo(savedFrames);
   return { horizon, landed, survivors, firstSurvivors, firstCost, totalCost };
 }
 

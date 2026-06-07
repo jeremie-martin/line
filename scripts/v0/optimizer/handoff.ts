@@ -2774,19 +2774,41 @@ function forwardEvalMinBudget(): number {
 /** Candidate ranker. DEFAULT greedy:2 (true forward-rollout score) — the high-budget win.
  *  LR_FWD_EVAL=off|0 reverts to the local axis-L2 proxy; LR_FWD_EVAL=<greedy|best|avg>[:depth[:branch]]
  *  selects a variant. Charged honestly by default (see forwardArcValue / LR_FWD_EVAL_CHARGE). */
-function forwardEvalConfig(): ForwardEvalConfig | null {
-  const env = readEnv("LR_FWD_EVAL");
-  if (env === "0" || env === "off") return null;
-  const raw = env === undefined || env === "" ? "greedy:2" : env;
+/** Parse a `<greedy|best|avg>[:depth[:branch]]` spec into a ForwardEvalConfig (always charged). */
+function parseForwardSpec(raw: string): ForwardEvalConfig | null {
   const [v, d, b] = raw.split(":");
   if (v !== "greedy" && v !== "best" && v !== "avg") return null;
   const depth = d ? Math.max(1, Math.min(6, Number.parseInt(d, 10) || 2)) : 2;
   const defBranch = v === "avg" ? 6 : v === "best" ? 3 : 1;
   const branch = b ? Math.max(1, Math.min(8, Number.parseInt(b, 10) || defBranch)) : defBranch;
+  return { variant: v, depth, branch, charge: true };
+}
+
+function forwardEvalConfig(): ForwardEvalConfig | null {
+  const env = readEnv("LR_FWD_EVAL");
+  if (env === "0" || env === "off") return null;
+  const cfg = parseForwardSpec(env === undefined || env === "" ? "greedy:2" : env);
   // Rollout frames are CHARGED honestly by default; LR_FWD_EVAL_CHARGE=0 refunds them (the
   // budget-refunded ceiling experiment). Resolved once here, not re-read per candidate.
-  const charge = readEnv("LR_FWD_EVAL_CHARGE") !== "0";
-  return { variant: v, depth, branch, charge };
+  return cfg === null ? null : { ...cfg, charge: readEnv("LR_FWD_EVAL_CHARGE") !== "0" };
+}
+
+/** Start-selection eval (experiment): rank initial conditions by the TRUE forward score of where
+ *  they lead, instead of the local axis-L2 proxy. OFF by default. LR_START_EVAL=<greedy|best|avg>
+ *  [:depth[:branch]]. Always charged honestly (the start eval is a one-time up-front cost). */
+function startEvalConfig(): ForwardEvalConfig | null {
+  const env = readEnv("LR_START_EVAL");
+  if (env === undefined || env === "" || env === "0" || env === "off") return null;
+  return parseForwardSpec(env);
+}
+
+/** True forward-rollout score of a start root (charged). Higher = better start. */
+function startForwardScore(
+  root: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, cfg: ForwardEvalConfig,
+): number {
+  return cfg.variant === "avg"
+    ? forwardAvgNextScore(root, gaps, ctx, seed, cfg.branch)
+    : forwardRolloutScore(root, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1);
 }
 
 /** True partial-track score (scoreDriftReport.full_score) of a forward SearchNode. */
@@ -3006,6 +3028,10 @@ function buildStartOptions(
     });
   }
 
+  // Start-eval experiment: rank initial conditions by the TRUE forward score of where they lead
+  // (charged) instead of the local axis-L2 feasibility proxy. The start is the most consequential
+  // choice on a forward-dependent chain, yet it was the one decision still on the old proxy.
+  const startCfg = startEvalConfig();
   const ordered = heuristicPool
     .map((start, originalRank) => {
       const state = resolveStartState({ ...searchSpec, start });
@@ -3015,7 +3041,10 @@ function buildStartOptions(
         state,
         root,
         originalRank,
-        score: startFeasibilityCost(root, start, axes, gaps, ctx, seed),
+        // Forward score is higher=better; negate so lower=better matches the proxy's ordering.
+        score: startCfg !== null
+          ? -startForwardScore(root, gaps, ctx, seed, startCfg)
+          : startFeasibilityCost(root, start, axes, gaps, ctx, seed),
       };
     })
     .sort((a, b) =>

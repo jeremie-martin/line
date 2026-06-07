@@ -22,8 +22,9 @@ npm run decide -- generated/golden-runs/<attempt-label>/golden.json generated/go
 - Validity + wall-clock are diagnostic; the score is the decision signal.
 
 ## Baselines of record
-- **`cand-ncand24` — HEADLINE 582.3** (CURRENT, attempt 2 accepted). Quality breadth 16→24.
-  Per-budget 276 / 429 / 606 / 617 / 621.
+- **`cand-repair100` — HEADLINE 582.8** (CURRENT, attempt 3 accepted). Repair gate 150k→100k.
+  Per-budget 276 / 429 / 609 / 617 / 621.
+- `cand-ncand24` — HEADLINE 582.3 (attempt 2). Quality breadth 16→24. 276 / 429 / 606 / 617 / 621.
 - `cand-arclen-room` — HEADLINE 580.42 (attempt 1). Room-gated arc-length opening.
   Per-budget 276 / 431 / 604 / 614 / 619.
 - `baseline-newgolden` — HEADLINE 572.74 (superseded by attempt 1). 30 specs (20 original + 10 new
@@ -91,6 +92,14 @@ ceiling on low-air (long ride-out) catches. Both are open for the campaign.
 - **NCAND=32 probed and rejected:** −1.4 vs 24 (over-spends breadth, dilutes). 24 is the sweet spot.
 - **Disposition:** KEPT (committed at user's call though Δ just under the +2 bar; the
   high-budget signal is clean and significant). New baseline-of-record.
+
+### Attempt 3: repair gate 150k→100k (ACCEPTED, +0.6)
+- **Baseline:** cand-ncand24 (582.3). **Candidate:** cand-repair100 (`LR_REPAIR_MIN_BUDGET` 150k→100k).
+- **Rationale:** all 30 specs already complete at 100k (validity 100%), so worst-gap
+  suffix repair there improves quality instead of starving completion.
+- **decide:** 582.3 → 582.8, **Δ+0.6** · CI[0.0, 1.1] · P(Δ≤0)=1.9% · **ACCEPT**.
+  Only 100k moved (+3.0, CI[0.2,5.7]); 25k/50k/150k/200k byte-identical.
+- **Disposition:** KEPT. New baseline-of-record.
 
 ### Null probes (not kept)
 - **Span LO 0.80→0.65** (deeper short end): Δ+1.1, INCONCLUSIVE (P=40%). Reverted.

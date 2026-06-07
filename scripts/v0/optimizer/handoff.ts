@@ -2758,9 +2758,12 @@ function repairConfig(): RepairConfig | null {
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
   };
   return {
-    // Gate: below this, completion is the hard part (DFS's job) and the carve starves it. ≤100k
-    // stays byte-identical to the no-repair baseline.
-    minBudget: num("LR_REPAIR_MIN_BUDGET", 150_000, 0, 100_000_000),
+    // Gate: below this, completion is the hard part (DFS's job) and the carve starves it.
+    // Lowered 150k→100k (2026-06-07): on the 30-spec board all specs already complete at
+    // 100k (validity 100%), so repair there improves QUALITY rather than stealing from
+    // completion — canonical decide +3.0 at 100k, Δ+0.6 headline, ACCEPT. Below 100k
+    // completion is still the binding constraint, so the gate stays.
+    minBudget: num("LR_REPAIR_MIN_BUDGET", 100_000, 0, 100_000_000),
     // Completion-triggered split: run the main search to firstCompletion*mainMargin, then repair.
     mainMargin: flt("LR_REPAIR_MAIN_MARGIN", 1.0, 1.0, 10.0),
     // Feasibility margin: require (measured cost-to-end × feasMargin) ≤ remaining budget, and size each

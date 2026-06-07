@@ -273,6 +273,7 @@ type ConsiderResult = {
 };
 
 type ExtraCandidateCache = {
+  reuseK?: number;
   reuse?: Candidate[];
   brakeSeed?: number;
   brakeContract?: Candidate[];
@@ -366,6 +367,9 @@ const HANDOFF_PREVIEW_K = 1;
  *  dense forward-dependent chains into a locally steady but globally brittle
  *  rhythm. */
 const HANDOFF_REUSE_K = 1;
+const HANDOFF_REUSE_MATURE_EXTRA_WEIGHT = 0.35;
+const HANDOFF_REUSE_MATURE_BUDGET_SCALE_FRAMES = 150_000;
+const HANDOFF_REUSE_MATURE_FULL_FEEDBACK_SCALE = 48;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const START_OPTION_LIMIT = 10;
 const START_SCORING_POOL = 16;
@@ -1749,7 +1753,18 @@ function rankedOptions(
   // recent sled-relative catch can remain valid at a later similar entry state.
   // Deterministic (pure function of the prefix); only ADDS candidates, so
   // monotonicity holds.
-  const reuse = cachedReuseCatchCandidates(node, gaps, ctx, telemetry);
+  const reuse = cachedReuseCatchCandidates(
+    node,
+    gaps,
+    ctx,
+    telemetry,
+    reuseCandidateLimit(
+      node,
+      config.axisQualitySearch ?? false,
+      targetBudget,
+      telemetry,
+    ),
+  );
   reuse.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(
       node, candidate, poolSize + j, "reuse", gaps, ctx, seed, telemetry, preview, previewCostWeight,
@@ -2098,13 +2113,47 @@ function cachedReuseCatchCandidates(
   gaps: Gap[],
   ctx: SpecContext,
   telemetry: HandoffTelemetry,
+  reuseLimit = HANDOFF_REUSE_K,
 ): Candidate[] {
   const cache = extraCandidateCache.get(node) ?? {};
-  if (cache.reuse === undefined) {
-    cache.reuse = reuseCatchCandidates(node, gaps, ctx, telemetry);
+  if (cache.reuse === undefined || cache.reuseK !== reuseLimit) {
+    cache.reuse = reuseCatchCandidates(node, gaps, ctx, telemetry, reuseLimit);
+    cache.reuseK = reuseLimit;
     extraCandidateCache.set(node, cache);
   }
   return cache.reuse;
+}
+
+function reuseCandidateLimit(
+  node: SearchNode,
+  qualitySearch: boolean,
+  targetBudget: number,
+  telemetry: HandoffTelemetry,
+): number {
+  if (!qualitySearch) return HANDOFF_REUSE_K;
+  const pressure = matureReuseExtraPressure(targetBudget, uniqueFullEvaluations(telemetry));
+  if (pressure <= 0) return HANDOFF_REUSE_K;
+  return HANDOFF_REUSE_K +
+    (unitHash(matureReuseExtraSeed(node)) < pressure ? 1 : 0);
+}
+
+function matureReuseExtraPressure(targetBudget: number, uniqueFull: number): number {
+  const budget = Math.max(0, targetBudget);
+  const budgetPressure = smoothstep(
+    clamp01(budget / (budget + HANDOFF_REUSE_MATURE_BUDGET_SCALE_FRAMES)),
+  );
+  const feedback = Math.max(0, uniqueFull);
+  const feedbackPressure = smoothstep(
+    clamp01(feedback / (feedback + HANDOFF_REUSE_MATURE_FULL_FEEDBACK_SCALE)),
+  );
+  return clamp01(HANDOFF_REUSE_MATURE_EXTRA_WEIGHT * budgetPressure * feedbackPressure);
+}
+
+function matureReuseExtraSeed(node: SearchNode): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b)
+  ) | 0;
 }
 
 function cachedBrakeCatchCandidates(
@@ -2227,6 +2276,7 @@ function reuseCatchCandidates(
   gaps: Gap[],
   ctx: SpecContext,
   telemetry: HandoffTelemetry,
+  reuseLimit = HANDOFF_REUSE_K,
 ): Candidate[] {
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return [];
@@ -2235,7 +2285,7 @@ function reuseCatchCandidates(
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const out: Candidate[] = [];
   let tried = 0;
-  for (let i = node.prefixFits.length - 1; i >= 0 && tried < HANDOFF_REUSE_K; i--) {
+  for (let i = node.prefixFits.length - 1; i >= 0 && tried < reuseLimit; i--) {
     const f = node.prefixFits[i];
     if (f === null || f.ref === undefined) continue;
     tried++;

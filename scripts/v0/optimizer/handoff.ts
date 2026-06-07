@@ -986,12 +986,11 @@ function compileHandoffInternal(
         const root = startOptions.find((o) => o.rank === incumbent.startRank)?.root;
         if (root === undefined) break;
         const remaining = targetBudget - getSimFrames();
-        // Worst AFFORDABLE gap whose MEASURED cost-to-re-complete fits the remaining budget. With
-        // valueDensity, ranked by axis-error²/cost (best score-gain-per-frame) instead of raw error².
+        // Worst AFFORDABLE gap: largest axis-error² whose measured cost-to-re-complete fits the
+        // remaining budget (×feasMargin). Falls back to later/cheaper gaps when budget is tight.
         const kWorst = pickFeasibleWeakGap(
           evaluateCached(incumbent).report, gaps, exhausted, estCostOf,
-          repair.feasibility ? remaining / repair.feasMargin : Number.POSITIVE_INFINITY,
-          repair.valueDensity,
+          remaining / repair.feasMargin,
         );
         if (kWorst < 0) break;
 
@@ -1007,7 +1006,7 @@ function compileHandoffInternal(
           if (k < 0 || attempts >= repair.maxAttempts || getSimFrames() >= targetBudget) break;
           const estCost = estCostOf(k);
           // Walking upstream only gets more expensive; stop if we can't afford to finish.
-          if (repair.feasibility && estCost > 0 && estCost * repair.feasMargin > targetBudget - getSimFrames()) break;
+          if (estCost > 0 && estCost * repair.feasMargin > targetBudget - getSimFrames()) break;
           attempts++;
           restartCounter++;
           const restartSeed = ((incumbent.searchSeed | 0) ^ Math.imul(restartCounter, 0x9e3779b1)) | 0;
@@ -2330,19 +2329,16 @@ function pickFeasibleWeakGap(
   exhausted: Set<number>,
   estCostOf: (k: number) => number,
   budgetCap: number,
-  valueDensity: boolean,
 ): number {
-  const ranked: { gap: number; key: number }[] = [];
+  const ranked: { gap: number; sse: number }[] = [];
   for (const g of report.gaps) {
     if (exhausted.has(g.gap_index)) continue;
     if (!gaps[g.gap_index]?.endsWithContact) continue;
     let sse = 0;
     for (const v of Object.values(g.axes)) sse += v.error * v.error;
-    // valueDensity: score-gain-per-frame proxy = axis-error² / measured cost-to-re-complete.
-    const key = valueDensity ? sse / Math.max(1, estCostOf(g.gap_index)) : sse;
-    ranked.push({ gap: g.gap_index, key });
+    ranked.push({ gap: g.gap_index, sse });
   }
-  ranked.sort((a, b) => b.key - a.key || a.gap - b.gap);
+  ranked.sort((a, b) => b.sse - a.sse || a.gap - b.gap);
   for (const r of ranked) {
     const cost = estCostOf(r.gap);
     if (cost <= 0 || cost <= budgetCap) return r.gap;
@@ -2577,12 +2573,8 @@ function scoreCandidateForHandoff(
       score: -value,
     };
   }
-  // FREE-PREVIEW POC: when on, ALWAYS run the (budget-refunded) N-contact rollout —
-  // including the quality phase, which normally has no lookahead at all.
-  const freeHorizon = freePreviewHorizon();
-  const doPreview = freeHorizon > 0 || usePreview;
-  const preview = doPreview
-    ? previewFutureContacts(child, gaps, ctx, seed, telemetry, freeHorizon)
+  const preview = usePreview
+    ? previewFutureContacts(child, gaps, ctx, seed, telemetry)
     : {
       horizon: 0,
       landed: 0,
@@ -2597,14 +2589,9 @@ function scoreCandidateForHandoff(
       ? DEAD_END_PENALTY
       : SURVIVOR_SCARCITY_PENALTY / preview.firstSurvivors;
   recordCandidatePreviewCoverage(telemetry, preview);
-  // Default ranks by the 1-ahead cost; the free-preview POC ranks by the CUMULATIVE
-  // quality of the best N-gap greedy continuation (totalCost) — a deeper evaluation
-  // of where this arc leads.
-  const previewCost = freeHorizon > 0
-    ? preview.totalCost * previewCostWeight
-    : preview.firstCost === Infinity
-      ? 0
-      : preview.firstCost * previewCostWeight;
+  const previewCost = preview.firstCost === Infinity
+    ? 0
+    : preview.firstCost * previewCostWeight;
   const statePenalty = handoffStatePenalty(child.prefixEngine, gaps[node.gapIndex]);
   // Asymmetric speed-overshoot penalty (selection-only, handoff-only — does NOT
   // change candidate geometry). The rider creeps faster
@@ -2710,19 +2697,6 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
   return overshoot;
 }
 
-/** FREE-PREVIEW proof-of-concept: LR_FREE_PREVIEW=N runs an N-contact forward
- *  rollout to rank each candidate (vs the default 1), and REFUNDS the rollout's
- *  sim-frames so the lookahead does not count against the budget. Isolates the
- *  question "does deeper forward-looking ranking help?" from "can we afford it?".
- *  Returns 0 when off. */
-function freePreviewHorizon(): number {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_FREE_PREVIEW;
-  if (raw === undefined) return 0;
-  const n = Number.parseInt(raw, 10);
-  return Number.isFinite(n) && n > 0 ? Math.min(n, 8) : 0;
-}
-
 // ── True-score forward arc evaluation (proof-of-concept, budget-refunded) ────────
 // Rank each candidate arc by the TRUE metric score (scoreDriftReport via
 // leafKeyForReport) of where it LEADS over a short forward lookahead, instead of the
@@ -2751,24 +2725,22 @@ function readEnv(name: string): string | undefined {
 }
 
 /** Track-repair config (worst-gap suffix rebuild, see TRACK_REPAIR_EXPERIMENTS.md).
- *  Off by default → baseline byte-identical. A repair carves a budget slice from the
- *  end of the compile: the main search runs to `(1-fraction)*budget`, then the weakest
- *  gap of the complete incumbent is re-decided and the suffix REBUILT to a complete
- *  track, accepted (via the register) iff it beats the incumbent. Honest (sims charged),
- *  budget-gated (completion is DFS's job at low budget), deterministic per (spec,seed,budget). */
+ *  ON by default; LR_REPAIR=0|off disables. Completion-triggered: the main search runs to the
+ *  first complete track, then the rest of the budget is spent restarting the real frontier-DFS
+ *  (fresh seed) from the weakest AFFORDABLE gap of the incumbent, rebuilding the suffix to a
+ *  complete track accepted iff it beats the incumbent. Honest (sims charged), gated to high budget
+ *  (completion is DFS's job at low budget → ≤100k byte-identical), deterministic per (spec,seed,budget). */
 type RepairConfig = {
   minBudget: number;
   mainMargin: number;
   feasMargin: number;
   maxAttempts: number;
   maxUpstream: number;
-  valueDensity: boolean;
-  feasibility: boolean;
   log: boolean;
 };
 function repairConfig(): RepairConfig | null {
   const raw = readEnv("LR_REPAIR");
-  if (raw === undefined || raw === "" || raw === "0" || raw === "off") return null;
+  if (raw === "0" || raw === "off") return null;
   const num = (name: string, def: number, lo: number, hi: number): number => {
     const n = Number.parseInt(readEnv(name) ?? "", 10);
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
@@ -2778,6 +2750,8 @@ function repairConfig(): RepairConfig | null {
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
   };
   return {
+    // Gate: below this, completion is the hard part (DFS's job) and the carve starves it. ≤100k
+    // stays byte-identical to the no-repair baseline.
     minBudget: num("LR_REPAIR_MIN_BUDGET", 150_000, 0, 100_000_000),
     // Completion-triggered split: run the main search to firstCompletion*mainMargin, then repair.
     mainMargin: flt("LR_REPAIR_MAIN_MARGIN", 1.0, 1.0, 10.0),
@@ -2790,37 +2764,34 @@ function repairConfig(): RepairConfig | null {
     // budgets exhaust the budget first, so a high cap is a no-op there. 16 plateaued 1M at 698;
     // 64 → 706.6 (the cap, not the budget, was the 1M plateau).
     maxAttempts: num("LR_REPAIR_MAX_ATTEMPTS", 64, 1, 1000),
-    // R3 upstream blame (TRIED, REJECTED −1.6 vs R2 @350k; default OFF): walking the anchor
-    // upstream re-runs the SAME deterministic search from the parent, which re-converges to the
-    // same incumbent at 35-55k frames each — wasted budget vs spending it on more worst gaps.
-    // Kept as a tunable. >0 walks up to N parents when a restart re-converges.
-    maxUpstream: num("LR_REPAIR_MAX_UPSTREAM", 0, 0, 64),
-    // Pick gaps by value-DENSITY (axis-error² / measured cost-to-end) instead of raw axis-error².
-    // Spends budget where the score-gain-per-frame is highest rather than always the single worst gap.
-    valueDensity: readEnv("LR_REPAIR_VALUE_DENSITY") === "1",
-    // Feasibility filter: only restart from gaps whose measured cost-to-end fits the remaining budget
-    // (×feasMargin). LR_REPAIR_NO_FEAS=1 disables it → pick the GLOBAL worst gap regardless of cost
-    // (A/B: does avoiding doomed early restarts actually help?).
-    feasibility: readEnv("LR_REPAIR_NO_FEAS") !== "1",
+    // Upstream blame: when a restart re-converges, walk the anchor up to N parents (each with a fresh
+    // seed, so it's genuinely different — not the same-seed re-run that R3 rejected). 3 is a small honest
+    // win (+1.1 vs 0). LR_REPAIR_MAX_UPSTREAM overrides.
+    maxUpstream: num("LR_REPAIR_MAX_UPSTREAM", 3, 0, 64),
     log: readEnv("LR_REPAIR_LOG") === "1",
   };
 }
 
-/** Budget-aware gate: forward eval only activates at/above this compile budget
- *  (LR_FWD_EVAL_MIN_BUDGET frames, default 0 = always). Charged forward eval pays
- *  for itself only at high budget, so this restricts it to where it's affordable. */
+/** Budget-aware gate: forward eval only activates at/above this compile budget.
+ *  DEFAULT 75000 — charged forward eval pays for itself only at high budget, and below
+ *  this the cheap local ranker wins (so ≤50k stays byte-identical to the pre-fwd-eval
+ *  baseline). Override with LR_FWD_EVAL_MIN_BUDGET; 0 = always on. */
 function forwardEvalMinBudget(): number {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_FWD_EVAL_MIN_BUDGET;
-  if (raw === undefined) return 0;
+  if (raw === undefined) return 75_000;
   const n = Number.parseInt(raw, 10);
-  return Number.isFinite(n) && n > 0 ? n : 0;
+  return Number.isFinite(n) && n >= 0 ? n : 75_000;
 }
 
+/** Candidate ranker. DEFAULT greedy:2 (true forward-rollout score) — the high-budget win.
+ *  LR_FWD_EVAL=off|0 reverts to the local axis-L2 proxy; LR_FWD_EVAL=<greedy|best|avg>[:depth[:branch]]
+ *  selects a variant. Charged honestly by default (see forwardArcValue / LR_FWD_EVAL_CHARGE). */
 function forwardEvalConfig(): ForwardEvalConfig | null {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_FWD_EVAL;
-  if (raw === undefined || raw === "" || raw === "0" || raw === "off") return null;
+  if (env === "0" || env === "off") return null;
+  const raw = env === undefined || env === "" ? "greedy:2" : env;
   const [v, d, b] = raw.split(":");
   if (v !== "greedy" && v !== "best" && v !== "avg") return null;
   const depth = d ? Math.max(1, Math.min(6, Number.parseInt(d, 10) || 2)) : 2;
@@ -2890,16 +2861,16 @@ function forwardAvgNextScore(
   return sum / cands.length;
 }
 
-/** Budget-refunded forward value of committing `child` (the prefix+candidate node). */
+/** Forward value of committing `child` (the prefix+candidate node). Rollout frames are
+ *  CHARGED against the budget by default (honest). LR_FWD_EVAL_CHARGE=0 refunds them — the
+ *  budget-refunded ceiling experiment that isolates eval quality from its cost. */
 function forwardArcValue(
   child: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, cfg: ForwardEvalConfig,
 ): number {
   const saved = getSimFrames();
-  // POC default REFUNDS the rollout frames (free, isolates eval quality). Set
-  // LR_FWD_EVAL_CHARGE=1 to bill them honestly — the affordability reality-check.
   // try/finally so a throw mid-rollout (e.g. a future frame limit) can't leak frames.
   const charge = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_FWD_EVAL_CHARGE === "1";
+    .process?.env?.LR_FWD_EVAL_CHARGE !== "0";
   try {
     return cfg.variant === "avg"
       ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch)

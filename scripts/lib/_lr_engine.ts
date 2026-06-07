@@ -18,17 +18,14 @@
  * guarding behavior. The original `lr-core` package is kept as a devDependency
  * (reference + supplies the `immy`/`lodash` leaf deps the engine imports).
  */
-// LR_ENGINE=wasm swaps in the Rust→WASM engine (engine-rs). Unset = vendored JS.
+// DEFAULT = Rust→WASM engine (engine-rs) — the one we always want. LR_ENGINE=js selects the
+// vendored JS engine (parity reference); record/official are diagnostic paths.
 // deno-lint-ignore no-explicit-any
 let _LineRiderEngine: any;
 // deno-lint-ignore no-explicit-any
 let _createLineFromJson: any;
 
-if (process.env.LR_ENGINE === "wasm") {
-  const w = await import("./_lr_engine_wasm.ts");
-  _LineRiderEngine = w.LineRiderEngine;
-  _createLineFromJson = w.createLineFromJson;
-} else if (process.env.LR_ENGINE === "record") {
+if (process.env.LR_ENGINE === "record") {
   const r = await import("./_lr_engine_record.ts");
   _LineRiderEngine = r.LineRiderEngine;
   _createLineFromJson = r.createLineFromJson;
@@ -47,7 +44,7 @@ if (process.env.LR_ENGINE === "wasm") {
     isFn(top.createLineFromJson) ? top.createLineFromJson :
     isFn(nested?.createLineFromJson) ? nested.createLineFromJson :
     top.createLineFromJson;
-} else {
+} else if (process.env.LR_ENGINE === "js") {
   // deno-lint-ignore no-explicit-any
   const lrCore: any = await import("../../vendor/lr-core/line-rider-engine/index.js");
   const isFn = (x: unknown) => typeof x === "function";
@@ -61,6 +58,11 @@ if (process.env.LR_ENGINE === "wasm") {
     isFn(top.createLineFromJson) ? top.createLineFromJson :
     isFn(nested?.createLineFromJson) ? nested.createLineFromJson :
     top.createLineFromJson;
+} else {
+  // Default: Rust→WASM.
+  const w = await import("./_lr_engine_wasm.ts");
+  _LineRiderEngine = w.LineRiderEngine;
+  _createLineFromJson = w.createLineFromJson;
 }
 
 export const LineRiderEngine = _LineRiderEngine;

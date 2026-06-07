@@ -1,0 +1,5 @@
+variant,archive_dir,headline_score,headline_tier,n_seeds,fingerprint,n_budgets,git
+base,curve-base,671.87,probe,12,816c00d44528,20,4a605337051b
+backjump,curve-backjump,672.78,probe,12,816c00d44528,20,4a605337051b
+bestjump_w1,curve-bestjump-w1,670.9,probe,12,816c00d44528,20,4a605337051b
+bestjump_w2,curve-bestjump-w2,671.65,probe,12,816c00d44528,20,4a605337051b

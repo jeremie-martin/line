@@ -399,7 +399,13 @@ async function runWorker(): Promise<void> {
         const checkpoint = compile(spec, input.seed, { budget });
         const elapsed_ms = Date.now() - cb0;
         const hash = trackHash(checkpoint.track);
-        const paths = writeCheckpointArtifacts(input, budget, checkpoint.track, checkpoint.report);
+        // Per-checkpoint track/report artifacts dominate archive size (~2 files ×
+        // specs × seeds × budgets). For large budget-curve sweeps where only the
+        // aggregated stats (golden.json rows) are needed, `GOLDEN_NO_ARTIFACTS=1`
+        // skips them — the row keeps null paths and the dataset is unaffected.
+        const paths = process.env.GOLDEN_NO_ARTIFACTS === "1"
+          ? { track_path: null, report_path: null }
+          : writeCheckpointArtifacts(input, budget, checkpoint.track, checkpoint.report);
         checkpoints.push({
           budget,
           elapsed_ms,

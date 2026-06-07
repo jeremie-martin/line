@@ -131,6 +131,12 @@ export type HandoffNode = {
    *  contact/non-contact gap; otherwise `rank` is the sorted candidate rank. */
   rankTrace: HandoffRankTraceEntry[];
   skippedContacts: number;
+  /** Per-step feasibility score of the ranked option that produced this node
+   *  (lower = better; same number that orders siblings). Set only on real ranked
+   *  catch children; undefined (≡ ∞, never preferentially jumped to) for forced
+   *  nodes (root, start, non-contact pass-through, skip). Read by the dead-end
+   *  best-jump experiment (`LR_BESTJUMP`) to compare siblings against uncles. */
+  optionScore?: number;
 };
 
 export type HandoffCandidateSource = HandoffCandidateSourceName | "skip";
@@ -991,6 +997,22 @@ function compileHandoffInternal(
       }
     };
 
+    // Dead-end re-selection experiments. Default off → the pop is the unmodified
+    // frontier-DFS and this run is byte-identical to baseline. On a clean-lane dead end
+    // (the node could not catch its contact) we arm `deadEndGap`, and the NEXT clean pop
+    // is redirected instead of taking the LIFO sibling:
+    //   LR_BACKJUMP=1 → positional jump to the nearest ancestor sibling (`popBackjumpNode`)
+    //   LR_BESTJUMP=1 → score jump to the best of {siblings ∪ uncles} (`popBestDeadEndNode`),
+    //     depth window via LR_BESTJUMP_WINDOW (default 1 = siblings + uncles)
+    // BESTJUMP takes precedence if both are set.
+    const backjumpEnabled = readEnv("LR_BACKJUMP") === "1";
+    const bestjumpEnabled = readEnv("LR_BESTJUMP") === "1";
+    const bestjumpWindow = Math.max(1, Number.parseInt(readEnv("LR_BESTJUMP_WINDOW") ?? "1", 10) || 1);
+    const deadEndLog = readEnv("LR_BACKJUMP_LOG") === "1" || readEnv("LR_BESTJUMP_LOG") === "1";
+    const deadEndReselect = backjumpEnabled || bestjumpEnabled;
+    let deadEndGap: number | null = null;
+    let deadEndJumps = 0;
+    let cleanDeadEnds = 0;
     while (frontierSize(passStack, fallbackStack) > 0 && telemetry.nodesExpanded < maxNodes) {
       // Completion-triggered handoff to repair: once the main search has a complete track,
       // stop it (after firstCompletion*mainMargin frames) and spend the rest on aimed repair.
@@ -1000,12 +1022,22 @@ function compileHandoffInternal(
         getSimFrames() >= firstCompletionFrame * repair!.mainMargin
       ) break;
       const bestKey = register.getBestKey();
-      const node = popNextFrontierNode(
-        passStack,
-        fallbackStack,
-        telemetry,
-        farBackFrontierPulseInterval(bestKey),
-      );
+      let node: HandoffNode | null = null;
+      if (deadEndReselect && deadEndGap !== null) {
+        node = bestjumpEnabled
+          ? popBestDeadEndNode(passStack, deadEndGap, bestjumpWindow)
+          : popBackjumpNode(passStack, fallbackStack, deadEndGap);
+        if (node !== null) deadEndJumps++;
+      }
+      deadEndGap = null;
+      if (node === null) {
+        node = popNextFrontierNode(
+          passStack,
+          fallbackStack,
+          telemetry,
+          farBackFrontierPulseInterval(bestKey),
+        );
+      }
       telemetry.frontierSelections++;
 
       const result = processNode(node);
@@ -1015,10 +1047,31 @@ function compileHandoffInternal(
         noteFrontierSize();
         continue;
       }
+      // A clean-lane dead end = the node could not catch its contact, so `expandNode`
+      // emitted a single skip child (deferExpansion, one more skippedContact). Arm a
+      // dead-end re-selection for the next pop. Completions (terminal, 0 children) and
+      // ordinary multi-child expansions do NOT arm it.
+      if (
+        deadEndReselect &&
+        node.skippedContacts === 0 &&
+        result.children.length === 1 &&
+        result.children[0].deferExpansion &&
+        result.children[0].skippedContacts > node.skippedContacts
+      ) {
+        deadEndGap = node.search.gapIndex;
+        cleanDeadEnds++;
+      }
       for (let i = result.children.length - 1; i >= 0; i--) {
         enqueueChild(result.children[i], passStack, fallbackStack);
       }
       noteFrontierSize();
+    }
+    if (deadEndLog) {
+      const mode = bestjumpEnabled ? `bestjump(w=${bestjumpWindow})` : "backjump";
+      process.stderr.write(
+        `deadend ${mode} seed=${seed} budget=${targetBudget} cleanDeadEnds=${cleanDeadEnds} ` +
+          `jumps=${deadEndJumps} nodes=${telemetry.nodesExpanded}\n`,
+      );
     }
 
     // Contained worst-gap suffix-rebuild post-pass on the reserved budget tail.
@@ -1191,6 +1244,64 @@ function popNextFrontierNode(
     }
   }
   return frontier.pop()!;
+}
+
+/** Dead-end backjump pop (experiment, env `LR_BACKJUMP`). After a clean-lane node
+ *  dead-ends (no viable catch ⇒ skip branch), its immediate siblings sit on top of
+ *  the pass stack — same parent, same inherited state, just a different arc at the
+ *  SAME gap. The hypothesis (see SEARCH_ALGORITHM_ANALYSIS.md) is that a dead end
+ *  usually indicts the INHERITED STATE (the parent's choice), not the local arc, so
+ *  the siblings are likely doomed too. Instead of the LIFO sibling, splice the
+ *  nearest-to-top node SHALLOWER than the dead gap (an ancestor's sibling) and dive
+ *  from there — a one-level backjump. It is a REORDER, not a prune: the skipped
+ *  siblings stay buried in the stack and are revisited only if the shallower branch
+ *  also runs dry, so dead ends cascade the jump upward organically. Falls back to a
+ *  normal pop when no shallower clean node exists (the dead node was near the root). */
+function popBackjumpNode(
+  passStack: HandoffNode[],
+  fallbackStack: HandoffNode[],
+  belowGap: number,
+): HandoffNode | null {
+  if (passStack.length === 0) return null;
+  for (let i = passStack.length - 1; i >= 0; i--) {
+    if (passStack[i].search.gapIndex < belowGap) {
+      return passStack.splice(i, 1)[0];
+    }
+  }
+  return null;
+}
+
+/** Dead-end best-jump pop (experiment, env `LR_BESTJUMP`). The backjump variant
+ *  (`popBackjumpNode`) jumps POSITIONALLY to the nearest uncle; this variant jumps by
+ *  SCORE. After a clean-lane dead end at gap g, gather the pending nodes within a depth
+ *  window `[g-window, g]` — the dead node's siblings (g) plus uncles (g-1) and, with a
+ *  wider window, great-uncles — and splice the single LOWEST-scored one (best per-step
+ *  feasibility). It generalizes both earlier variants: pure LIFO always takes the best
+ *  sibling; backjump always takes an uncle; best-jump takes whichever of {siblings,
+ *  uncles} actually scores best, which is the user's hypothesis ("jump to the best of
+ *  the siblings PLUS uncles"). Forced nodes (no ranked score ⇒ optionScore undefined)
+ *  are treated as +∞ and never preferentially chosen. Ties keep the nearest-to-top node
+ *  (LIFO tie-break, scan from top). Returns null when the window holds no scored node,
+ *  so the caller falls back to a normal pop. */
+function popBestDeadEndNode(
+  passStack: HandoffNode[],
+  deadGap: number,
+  window: number,
+): HandoffNode | null {
+  const minGap = deadGap - window;
+  let bestIndex = -1;
+  let bestScore = Infinity;
+  for (let i = passStack.length - 1; i >= 0; i--) {
+    const gap = passStack[i].search.gapIndex;
+    if (gap < minGap || gap > deadGap) continue;
+    const score = passStack[i].optionScore ?? Infinity;
+    if (score < bestScore) {
+      bestScore = score;
+      bestIndex = i;
+    }
+  }
+  if (bestIndex < 0) return null;
+  return passStack.splice(bestIndex, 1)[0];
 }
 
 function farBackFrontierPulseInterval(key: LeafKey | null): number | null {
@@ -1650,6 +1761,7 @@ function expandNode(
     deferExpansion: false,
     rankTrace: appendOptionTrace(node.rankTrace, option),
     skippedContacts: node.skippedContacts + (option.candidate === null ? 1 : 0),
+    optionScore: option.score,
   }));
 }
 

@@ -591,6 +591,15 @@ export const ELEVATION = {
    *  enough horizontal speed to carry the rider to the next catch. Conservative —
    *  climbing bleeds speed across gaps, so over-committing vertical stalls the ride. */
   VERTICAL_FRACTION: 0.5,
+  /** Fraction of the per-gap *apex* climb (the kinematic max a single isolated gap
+   *  could net) that the compiler can realistically deliver. The apex is optimistic
+   *  because sustained climbing bleeds speed across gaps and the multi-gap forward
+   *  search avoids speed-stranding climbs — so on the elevation benchmark, climb
+   *  tops out around ~0.6–0.65 on the axis scale regardless of how hard it's asked.
+   *  Used only for the reported `ceiling` diagnostic (never scored), to tell an
+   *  author "the realistic best climb here" vs the unreachable apex. Empirical,
+   *  grain-cap style — calibrate against study_elevation.ts, not intuition. */
+  ACHIEVABLE_CLIMB_FRACTION: 0.3,
 } as const;
 
 export type ElevationBand = {
@@ -642,15 +651,21 @@ export function netDyToElevation(dy: number, speedPx: number, frames: number): n
   return clamp01(0.5 - 0.5 * (dy / denom));
 }
 
-/** Maximum achievable elevation (normalized [0,1]) for a gap at the given entering
- *  speed: the band's steepest climb run through the same normalizer. ≈1.0 when
- *  there is climb headroom; drops below 1 (and below 0.5) when the rider is too
- *  slow to climb. A per-gap *theoretical* ceiling — sustained climbs bleed speed
- *  across gaps, so the multi-gap reality can be lower. */
+/**
+ * Realistically-achievable elevation (normalized [0,1]) for a gap at the given
+ * entering speed — the honest "best climb you can expect here". NOT the band's
+ * apex (which is tautologically ~1.0): the apex is a single-gap kinematic max the
+ * compiler can't sustain, so this discounts it by `ACHIEVABLE_CLIMB_FRACTION`
+ * (empirically ≈ the benchmark's observed climb cap). Drops below 0.5 only when
+ * the rider is genuinely too slow to climb. Report-only; never scored.
+ * `target > ceiling` ⇒ the shortfall is physics, not an optimizer miss.
+ */
 export function elevationCeiling(speedPx: number, frames: number): number {
   const b = elevationBand(speedPx, frames);
-  const dyClimb = b.vyClimb * b.frames + 0.5 * b.g * b.frames * b.frames;
-  return netDyToElevation(dyClimb, speedPx, frames);
+  const sag = 0.5 * b.g * b.frames * b.frames;
+  const dyApex = b.vyClimb * b.frames + sag; // optimistic single-gap kinematic climb
+  const dyAchievable = ELEVATION.ACHIEVABLE_CLIMB_FRACTION * dyApex;
+  return netDyToElevation(dyAchievable, speedPx, frames);
 }
 
 export const CALIB = {

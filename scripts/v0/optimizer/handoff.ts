@@ -418,6 +418,9 @@ const HANDOFF_NEXT_SPEED_DEEP_SETTLE_OVERSPEED_SCALE = 0.70;
 const HANDOFF_NEXT_SPEED_DEEP_SETTLE_TARGET_BIAS = -0.30;
 const HANDOFF_NEXT_SPEED_DEEP_SETTLE_BUDGET_SCALE_FRAMES = 150_000;
 const HANDOFF_NEXT_SPEED_DEEP_SETTLE_FULL_FEEDBACK_SCALE = 48;
+const HANDOFF_AXIS_QUALITY_MATURE_RESERVE_WEIGHT = 0.35;
+const HANDOFF_AXIS_QUALITY_MATURE_RESERVE_BUDGET_SCALE_FRAMES = 150_000;
+const HANDOFF_AXIS_QUALITY_MATURE_RESERVE_FULL_FEEDBACK_SCALE = 48;
 const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy[]>> = {
   air: [{
     samples: HANDOFF_AIR_SUPPORT_QUALITY_K,
@@ -1825,12 +1828,35 @@ function scarceFeedbackQualityNormalCandidateCount(
   if (semanticSamples <= 0) return requestedCandidates;
   const terminalFeedback = uniqueFullEvaluations(telemetry);
   const scarcityPressure = 1 / (1 + Math.pow(terminalFeedback / 48, 2));
-  const reserve = clampIntLocal(Math.round(semanticSamples * 0.5 * scarcityPressure), 0, 3);
+  const matureReservePressure = axisQualityMatureReservePressure(
+    targetBudget,
+    terminalFeedback,
+  );
+  const reservePressure = Math.max(scarcityPressure, matureReservePressure);
+  const reserve = clampIntLocal(Math.round(semanticSamples * 0.5 * reservePressure), 0, 3);
   return clampIntLocal(
     requestedCandidates - reserve,
     HANDOFF_CANDIDATE_POOL,
     requestedCandidates,
   );
+}
+
+function axisQualityMatureReservePressure(
+  targetBudget: number,
+  uniqueFullEvaluations: number,
+): number {
+  const budget = Math.max(0, targetBudget);
+  const budgetPressure = smoothstep(
+    clamp01(budget / (budget + HANDOFF_AXIS_QUALITY_MATURE_RESERVE_BUDGET_SCALE_FRAMES)),
+  );
+  const fullFeedback = Math.max(0, uniqueFullEvaluations);
+  const feedbackPressure = smoothstep(
+    clamp01(
+      fullFeedback /
+        (fullFeedback + HANDOFF_AXIS_QUALITY_MATURE_RESERVE_FULL_FEEDBACK_SCALE),
+    ),
+  );
+  return HANDOFF_AXIS_QUALITY_MATURE_RESERVE_WEIGHT * budgetPressure * feedbackPressure;
 }
 
 function estimateAxisQualitySampleCount(

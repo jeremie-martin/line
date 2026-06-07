@@ -105,6 +105,22 @@ ceiling on low-air (long ride-out) catches. Both are open for the campaign.
 - **Span LO 0.80→0.65** (deeper short end): Δ+1.1, INCONCLUSIVE (P=40%). Reverted.
 - **Forward-eval gate 75k→50k** (LR_FWD_EVAL_MIN_BUDGET): Δ−0.5; only 50k changed and
   it was a noisy −5.7. Charged rollouts don't pay below 75k even on sparse specs.
+- **Quality breadth NCAND=32**: Δ−1.4 vs ncand24 — worse at EVERY budget (high-budget
+  gains smaller than 24's, low budget worse). 24 is the peak; no budget-ramp would help.
+- **Forward-eval depth greedy:3**: Δ−16.1, REJECT. Charged deeper rollouts starve the
+  high budgets (100k −34.7) just as on the old board. Depth 2 is correct.
+- **High-air long-end damp** (`arcLenHi *= 1−smoothstep(air past 0.6)`): Δ−1.4,
+  INCONCLUSIVE. Recovered float_bounds (+8 @200k) but high-air specs do use long-arc
+  diversity productively; net null. The room-only gate (attempt 1) stands.
+
+## Structural ceiling note (honest)
+The 10 new specs average ~510 @200k vs ~620–760 for the dense originals, and several
+are at their physical frontier: amplitude pop ≤ g·N²/8, so float_bounds (40f gaps) caps
+near amplitude 0.58 while it asks 0.85; elevation trades against speed, so summit_push
+(climb 0.75 + speed 0.8) sits ~0.48. The headline is an average, so these capped specs
+hold it well below 700. Reaching 700 on this board is not physically attainable without
+relaxing the most over-ambitious targets; the realistic game is stacking ACCEPTs toward
+the achievable ceiling (currently 582.8, +10.1 over the new baseline).
 
 ## Selection / search facts (the deciding machinery)
 - Per-candidate generation: `arc_placement.ts`. Local validity gates + axis-L2 `cost`:

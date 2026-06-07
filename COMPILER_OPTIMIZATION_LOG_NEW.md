@@ -22,7 +22,9 @@ npm run decide -- generated/golden-runs/<attempt-label>/golden.json generated/go
 - Validity + wall-clock are diagnostic; the score is the decision signal.
 
 ## Baselines of record
-- **`baseline-newgolden` — HEADLINE 572.74** (current). 30 specs (20 original + 10 new
+- **`cand-arclen-room` — HEADLINE 580.42** (CURRENT, attempt 1 accepted). Room-gated
+  arc-length opening. Per-budget 276 / 431 / 604 / 614 / 619.
+- `baseline-newgolden` — HEADLINE 572.74 (superseded by attempt 1). 30 specs (20 original + 10 new
   sparse/creative), 12 seeds, fingerprint `2437d832b61e`. Per-budget 25k/50k/100k/150k/200k
   = 258 / 437 / 601 / 598 / 613. Validity 1741/1800 (@200k 360/360).
 - `baseline-db5afdb` — HEADLINE 624.6 (SUPERSEDED; pre-spec-addition, 20 specs only,
@@ -60,7 +62,20 @@ ceiling on low-air (long ride-out) catches. Both are open for the campaign.
 ### Probe: active widening (NOT kept; measured on the SUPERSEDED dense board)
 - SPAN 0.6..1.6 / FLOOR 16 / CAP 320 → HEADLINE 624.6 → 611.6, Δ−13, REJECT.
   The wider pool diluted faster than the forward-eval recovered. On the dense board
-  longer arcs only crowded the next landing. Re-evaluate on the new (sparse) board.
+  longer arcs only crowded the next landing.
+
+### Attempt 1: room-gated arc-length open (ACCEPTED, +7.7)
+- **Baseline:** baseline-newgolden (572.74). **Candidate:** cand-arclen-room.
+- **Change:** `SPAN 0.80..1.45`, `CAP 220→260`, and BOTH span ends fade to the
+  neutral 1.0 as room→0 (`arcLenRoom` ramps over nextGapFrames 26→46). Dense gaps
+  (the original 20 specs) stay byte-identical; only gaps with room get the wider
+  (shorter AND longer) ride-out pool, which the forward-eval ranks.
+- **decide:** HEADLINE 572.7 → 580.4, **Δ+7.7** · CI[−1.0, 23.6] · P(Δ≤0)=4.3% ·
+  **VERDICT: ACCEPT**. Per-budget 25k +18, 50k −6 (noise), 100k +3.7, 150k +15.8,
+  200k +5.7. Validity unchanged.
+- **Read:** the lever's failure on the dense board was crowding; gating it to gaps
+  with room turns it from −13 into +7.7. Confirms the board change was the unlock.
+- **Disposition:** KEPT. New baseline-of-record.
 
 ## Selection / search facts (the deciding machinery)
 - Per-candidate generation: `arc_placement.ts`. Local validity gates + axis-L2 `cost`:

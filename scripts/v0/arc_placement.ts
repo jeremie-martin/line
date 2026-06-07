@@ -100,11 +100,19 @@ const ELEVATION_POST_ANGLE_MAX = 70;
  *  range AND add the supporting arc-placement work (better landing setup for long
  *  ride-outs, selection/budget so longer arcs are kept only where they pay) until
  *  the canonical decide ACCEPTs. See COMPILER_OPTIMIZATION_LOG_NEW.md. */
-const ARC_LEN_SPAN_LO = 1.0;
-const ARC_LEN_SPAN_HI = 1.0;
+const ARC_LEN_SPAN_LO = 0.80;
+const ARC_LEN_SPAN_HI = 1.45;
 const ARC_LEN_FLOOR = 28;
-const ARC_LEN_CAP = 220;
+const ARC_LEN_CAP = 260;
 const ARC_LEN_SPAN_SALT = 9;
+/** Room-gating for the arc-length HIGH end: a longer ride-out is only safe when
+ *  the next contact is far (else it crowds the next landing — the failure that
+ *  sank the earlier uniform widening). The LOW (shorter) end is always allowed
+ *  (a shorter ride-out leaves MORE room). `room` = 0 at/below DENSE frames (HI
+ *  collapses to neutral 1.0 → dense gaps keep historical behavior), ramping to 1
+ *  at/above SPARSE frames (full HI). Smooth, deterministic, no spec-name branch. */
+const ARC_LEN_ROOM_DENSE_FRAMES = 26;
+const ARC_LEN_ROOM_SPARSE_FRAMES = 46;
 
 /** Per-compile frame budget, set once at compileHandoff entry (each compile is a
  *  single independent budget, run in its own worker / sequentially), read by the
@@ -774,8 +782,19 @@ function sampleContactCenteredLines(
   const spacingPostLengthCap = nextGapFrames === null || !needsGrainSpacingCap
     ? 220
     : clamp(targetState.speed * nextGapFrames * (0.52 + 0.16 * (1 - air)), 36, 180);
-  const arcLenFactor = ARC_LEN_SPAN_LO
-    + (ARC_LEN_SPAN_HI - ARC_LEN_SPAN_LO) * lowDiscrepancyRoll(attempt, ARC_LEN_SPAN_SALT);
+  const arcLenRoom = nextGapFrames === null
+    ? 1
+    : clamp(
+      (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
+        (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
+      0, 1,
+    );
+  // Both ends fade to the neutral 1.0 as room→0, so dense gaps (the original
+  // suite) stay byte-identical and only gaps with room get the wider pool.
+  const arcLenLo = 1 + (ARC_LEN_SPAN_LO - 1) * arcLenRoom;
+  const arcLenHi = 1 + (ARC_LEN_SPAN_HI - 1) * arcLenRoom;
+  const arcLenFactor = arcLenLo
+    + (arcLenHi - arcLenLo) * lowDiscrepancyRoll(attempt, ARC_LEN_SPAN_SALT);
   const sampledPostLength = clamp(
     Math.min(denseScaledPostLength, spacingPostLengthCap) * arcLenFactor,
     ARC_LEN_FLOOR, ARC_LEN_CAP,

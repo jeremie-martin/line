@@ -337,7 +337,11 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
   test("visits deferred start roots before requeueing one under a small budget", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const seen: { gapIndex: number; deferExpansion: boolean }[] = [];
-    const budget = 12_000;
+    // The contact-centered NORMAL family (default) emits longer ride-outs, so each
+    // candidate costs a few more sim-frames; 12k now exhausts within the first start
+    // root before any deferral. 20k re-exercises the same deferred-root scheduling
+    // path (root-0 deferred visits before the first requeue) with budget still spent.
+    const budget = 20_000;
     const result = checkpoint(compileHandoff(spec, 0, {
       budget,
       maxNodes: 12,

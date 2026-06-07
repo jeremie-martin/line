@@ -11,6 +11,7 @@
 import { appendSledPointPositionsRangeMetered, getRiderMetered } from "../lib/detector.ts";
 import { makeSolidLine } from "./arc.ts";
 import {
+  CALIB,
   CANDIDATE_SAMPLE_MODES,
   FPS,
   type Arc,
@@ -33,6 +34,57 @@ const PLACEMENT_SPEED_SPAN_PX = authoredSpeedToPx(1) - authoredSpeedToPx(0);
 const PLACEMENT_SPEED_MIN_PX = authoredSpeedToPx(0);
 const PRE_TARGET_PRECLEAR_DISTANCE = 2.5;
 const SEGMENT_COLLISION_RISK_STRIDE = 7;
+
+// ── work-new contact-centered line family (energy-launch + air-length + 2D span) ──
+// Ported from the work-new compiler (HEADLINE 579), whose `continuous` mode routed
+// every NORMAL contact through this family. It is the principled trajectory-shaping
+// generator the target_state rewrite simplified away: the post-contact launch angle
+// is derived from energy conservation so the track UNDULATES to hit the speed target,
+// the grounded ride-out length is sized to hit the air target, and both are SPANNED
+// across the per-gap attempt batch (the cost-sorted handoff keeps the best valid
+// catch) — that span is the generation diversity the search lacked.
+// Gated behind LR_NORMAL_FAMILY=contact_centered so the default path is unchanged
+// for clean A/B against the current baseline.
+//
+// SPEED_AXIS pressure/carry breakpoints are inlined here as locals because the
+// SPEED_AXIS object lives inside the fingerprint-hashed types.ts slice and must not
+// change. speedAuthoredBreakpointToPx is an alias of authoredSpeedToPx on work-new.
+const CC_PRESSURE_START_PX = 7.8;
+const CC_PRESSURE_SPAN_PX = 6.6;
+const CC_CARRY_START_PX = authoredSpeedToPx(0.55);
+const CC_CARRY_SPAN_PX = authoredSpeedToPx(0.95) - authoredSpeedToPx(0.55);
+const CC_CARRY_FADE_START_PX = authoredSpeedToPx(0.78);
+const CC_CARRY_FADE_SPAN_PX = authoredSpeedToPx(0.90) - authoredSpeedToPx(0.78);
+const CONTACT_CENTERED_POINT_JITTER = 4;
+const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
+const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
+const CONTACT_CENTERED_GUIDED_POINT_SPREAD = 0.08;
+const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
+const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
+const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
+const DENSE_SPACING_CAP_GRAIN_MIN = 0.50;
+const DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES = 14;
+const CONTACT_CENTERED_RNG_DRAWS = 8;
+const LAUNCH_GRAVITY_PX_PER_FRAME2 = 0.175;
+
+type ProcessEnv = Record<string, string | undefined>;
+const PROCESS_ENV = (globalThis as { process?: { env?: ProcessEnv } }).process?.env;
+let normalFamilyRaw: string | undefined;
+let normalFamilyValue = true;
+let normalFamilyValid = false;
+
+/** The NORMAL candidate stream uses the ported work-new contact-centered family
+ *  (energy launch + air-length + 2D span) by DEFAULT — it scores canonical HEADLINE
+ *  552 vs the target_state generator's 454 (decide ACCEPT, Δ+97.8). Opt back to the
+ *  old generator for A/B with LR_NORMAL_FAMILY=target_state. */
+export function contactCenteredNormalEnabled(): boolean {
+  const raw = PROCESS_ENV?.LR_NORMAL_FAMILY;
+  if (normalFamilyValid && raw === normalFamilyRaw) return normalFamilyValue;
+  normalFamilyRaw = raw;
+  normalFamilyValid = true;
+  normalFamilyValue = raw !== "target_state" && raw !== "0" && raw !== "off";
+  return normalFamilyValue;
+}
 
 type SegmentCollisionRiskLines = number[];
 
@@ -193,6 +245,14 @@ export function sampleArcPlacementGeometry(
   allContactFrames: readonly number[] = [],
 ): ArcPlacementGeometry {
   recordArcPlacementSample(mode);
+  if (mode === "normal" && contactCenteredNormalEnabled()) {
+    return {
+      kind: "lines",
+      lines: sampleContactCenteredLines(
+        rng, targetState, targets, gap, lineIdStart, allContactFrames, attempt,
+      ),
+    };
+  }
   return {
     kind: "lines",
     lines: sampleTargetStateLines(
@@ -221,8 +281,9 @@ export function sampleArcParamsRngDraws(
   _targetState: { speed: number; angleDeg: number },
   _gap: Gap,
   _attempt: number,
-  _mode: CandidateSampleMode = "normal",
+  mode: CandidateSampleMode = "normal",
 ): number {
+  if (mode === "normal" && contactCenteredNormalEnabled()) return CONTACT_CENTERED_RNG_DRAWS;
   return GEOMETRY_RNG_DRAWS;
 }
 
@@ -575,6 +636,286 @@ function lowDiscrepancyRoll(attempt: number, salt: number): number {
   const stride = 0.6180339887498949;
   const offset = (salt + 1) * 0.137503523749935;
   return fract((Math.max(0, attempt) + 1) * stride + offset);
+}
+
+type ContactCenteredRolls = {
+  segmentLengthRoll: number;
+  contactAngleRoll: number;
+  preLengthRoll: number;
+  postLengthRoll: number;
+  preAngleRoll: number;
+  postAngleRoll: number;
+  tangentJitterRoll: number;
+  normalJitterRoll: number;
+};
+
+/** Ported from work-new `sampleContactCenteredLinesWithDiagnostics`. Emits one
+ *  pre+post line catch through the predicted sled position, but the post-contact
+ *  launch angle and grounded ride-out length are physically shaped (energy launch
+ *  + air-targeted length) and SPANNED across the per-gap attempt batch so the
+ *  cost-sorted handoff can keep the best valid trajectory. Consumes exactly
+ *  CONTACT_CENTERED_RNG_DRAWS (8) rng() draws — must match sampleArcParamsRngDraws. */
+function sampleContactCenteredLines(
+  rng: () => number,
+  targetState: ImpactFrameTargetState,
+  targets: AxisValues,
+  gap: Gap,
+  lineIdStart: number,
+  allContactFrames: readonly number[],
+  attempt: number,
+): TrackLine[] {
+  const rawRolls: ContactCenteredRolls = {
+    segmentLengthRoll: rng(),
+    contactAngleRoll: rng(),
+    preLengthRoll: rng(),
+    postLengthRoll: rng(),
+    preAngleRoll: rng(),
+    postAngleRoll: rng(),
+    tangentJitterRoll: rng(),
+    normalJitterRoll: rng(),
+  };
+  const guidedRolls = guideContactCenteredRolls(
+    rawRolls, targetState, targets, gap, allContactFrames, attempt,
+  );
+
+  const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
+  const targetSpeedPx = targets.speed === undefined
+    ? targetState.speed
+    : authoredSpeedToPx(targets.speed);
+  const air = clamp(targets.air ?? 0.5, 0, 1);
+  const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
+  const denseContactPressure = nextGapFrames === null
+    ? 0
+    : clamp((20 - nextGapFrames) / 12, 0, 1);
+  const deadlinePressure = clamp((18 - gapFrames) / 10, 0, 1);
+  const absoluteSpeedPressure = clamp(
+    (targetState.speed - CC_PRESSURE_START_PX) / CC_PRESSURE_SPAN_PX, 0, 1,
+  );
+  const brakePressure = clamp((targetState.speed - targetSpeedPx) / CC_PRESSURE_SPAN_PX, 0, 1);
+  const accelPressure = clamp((targetSpeedPx - targetState.speed) / CC_PRESSURE_SPAN_PX, 0, 1);
+  const speedCarryPressure = clamp((targetSpeedPx - CC_CARRY_START_PX) / CC_CARRY_SPAN_PX, 0, 1)
+    * (1 - clamp((targetSpeedPx - CC_CARRY_FADE_START_PX) / CC_CARRY_FADE_SPAN_PX, 0, 1));
+  const sustainedContactCarryPressure = speedCarryPressure
+    * (nextGapFrames === null ? 0 : clamp((15 - nextGapFrames) / 2, 0, 1))
+    * (1 - clamp((air - 0.62) / 0.12, 0, 1));
+  const clearancePressure = Math.max(deadlinePressure, absoluteSpeedPressure * 0.6);
+
+  const segmentLength = targets.grain !== undefined
+    ? clamp(targets.grain * CALIB.LINE_LENGTH_CAP + (guidedRolls.segmentLengthRoll - 0.5) * 8, 4, 49)
+    : 16 + guidedRolls.segmentLengthRoll * 28;
+  const contactAngleDeg = clamp(
+    targetState.angleDeg
+      - (2 + 5 * air)
+      - 18 * brakePressure
+      + 16 * accelPressure
+      + 8 * speedCarryPressure
+      + 2 * sustainedContactCarryPressure
+      + (guidedRolls.contactAngleRoll - 0.5) * 12,
+    -12, 65,
+  );
+  const preLength = clamp(
+    (6 + guidedRolls.preLengthRoll * 28)
+      * (1 - 0.45 * clearancePressure)
+      * (1 + 0.35 * brakePressure),
+    4, 44,
+  );
+  const rawPostLength = (45 + guidedRolls.postLengthRoll * 135)
+    * (0.95 + 0.25 * (1 - air) + 0.20 * absoluteSpeedPressure
+      + 0.18 * sustainedContactCarryPressure + 0.12 * brakePressure);
+  const denseScaledPostLength = rawPostLength * (1 - 0.55 * denseContactPressure);
+  const needsGrainSpacingCap = needsDenseSpacingPostLengthCap(targets, nextGapFrames);
+  const spacingPostLengthCap = nextGapFrames === null || !needsGrainSpacingCap
+    ? 220
+    : clamp(targetState.speed * nextGapFrames * (0.52 + 0.16 * (1 - air)), 36, 180);
+  const sampledPostLength = clamp(Math.min(denseScaledPostLength, spacingPostLengthCap), 28, 220);
+  const preAngleDeg = clamp(
+    contactAngleDeg
+      - (4 + 8 * clearancePressure + 4 * brakePressure)
+      + (guidedRolls.preAngleRoll - 0.5) * 12,
+    -20, 70,
+  );
+  const nonBrakePostAngleDeg = contactAngleDeg
+    - (3 + 6 * air)
+    + 10 * accelPressure
+    + 6 * speedCarryPressure
+    + 6 * sustainedContactCarryPressure
+    + (guidedRolls.postAngleRoll - 0.5) * 10;
+  const brakeRideOutAngleDeg = clamp(
+    contactAngleDeg + 8 + (guidedRolls.postAngleRoll - 0.5) * 10, -8, 18,
+  );
+  const angledPostAngleDeg = clamp(
+    lerp(nonBrakePostAngleDeg, brakeRideOutAngleDeg, brakePressure), -8, 65,
+  );
+
+  // Energy-targeted launch: height shapes speed. dh = (vT²−vIn²)/2g is the drop
+  // that converts the rider's pace to the gap target; vy = dh/N − ½gN lands it that
+  // far below current height after N frames (clamped so it is still descending at
+  // the next contact). Spanned from the local ride-out to the fully energy-shaped.
+  let postAngleDeg = angledPostAngleDeg;
+  if (nextGapFrames !== null) {
+    const blend = clamp(ccSpanBlends(attempt).launch, 0, 1);
+    const g = LAUNCH_GRAVITY_PX_PER_FRAME2;
+    const N = nextGapFrames;
+    const vIn = Math.max(1, targetState.velocity.x);
+    const vT = Math.max(1, targetSpeedPx);
+    const dhDown = (vT * vT - vIn * vIn) / (2 * g);
+    const vyLevel = -0.5 * g * N;
+    const vyTarget = dhDown / N + vyLevel;
+    const vyClamped = clamp(vyTarget, -0.92 * g * N, 0.45 * g * N);
+    const energyLaunchDeg = (Math.atan2(vyClamped, vIn) * 180) / Math.PI;
+    postAngleDeg = lerp(angledPostAngleDeg, energyLaunchDeg, blend);
+  }
+
+  // Air-targeted grounded ride-out length: longer grounded ride ⇒ less air. Size
+  // toward (1−air) of the span to the next contact, capped so it never reaches the
+  // next beat. Spanned across the attempt batch.
+  let postLength = clamp(sampledPostLength, 28, 220);
+  if (nextGapFrames !== null && targets.air !== undefined) {
+    const speed = Math.max(1, targetState.speed);
+    const groundedTargetLen = speed * clamp(1 - air, 0, 1) * nextGapFrames;
+    const safeCap = speed * nextGapFrames * 0.55;
+    const targetLen = clamp(Math.min(groundedTargetLen, safeCap), 28, 360);
+    const blend = clamp(ccSpanBlends(attempt).length, 0, 1);
+    const highAirPressure = clamp(
+      (air - HIGH_AIR_LENGTH_BLEND_PRESSURE_START) / HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN, 0, 1,
+    );
+    const blendStrength = 0.6 + HIGH_AIR_LENGTH_BLEND_EXTRA * highAirPressure;
+    postLength = clamp(lerp(sampledPostLength, targetLen, blend * blendStrength), 28, 360);
+  }
+
+  const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
+  const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
+
+  const contactAngleRad = (contactAngleDeg * Math.PI) / 180;
+  const tangentX = Math.cos(contactAngleRad);
+  const tangentY = Math.sin(contactAngleRad);
+  const normalX = -tangentY;
+  const normalY = tangentX;
+  const tangentJitter = (guidedRolls.tangentJitterRoll - 0.5) * CONTACT_CENTERED_POINT_JITTER;
+  const normalJitter = (guidedRolls.normalJitterRoll - 0.5) * CONTACT_CENTERED_POINT_JITTER;
+  const contactPoint = {
+    x: targetState.sledX + tangentX * tangentJitter + normalX * normalJitter,
+    y: targetState.sledY + tangentY * tangentJitter + normalY * normalJitter,
+  };
+
+  const preLines = buildPreContactLines(
+    lineIdStart, contactPoint, preAngleDeg, contactAngleDeg, preLength, preSegments,
+  );
+  const postLines = buildPostContactLines(
+    lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
+    postLength, postSegments,
+  );
+  return [...preLines, ...postLines];
+}
+
+function guideContactCenteredRolls(
+  rolls: ContactCenteredRolls,
+  targetState: ImpactFrameTargetState,
+  targets: AxisValues,
+  gap: Gap,
+  allContactFrames: readonly number[],
+  attempt: number,
+): ContactCenteredRolls {
+  const targetSpeedPx = targets.speed === undefined
+    ? targetState.speed
+    : authoredSpeedToPx(targets.speed);
+  const air = clamp(targets.air ?? 0.5, 0, 1);
+  const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
+  const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
+  const denseContactPressure = nextGapFrames === null
+    ? 0
+    : clamp((20 - nextGapFrames) / 12, 0, 1);
+  const deadlinePressure = clamp((18 - gapFrames) / 10, 0, 1);
+  const absoluteSpeedPressure = clamp(
+    (targetState.speed - CC_PRESSURE_START_PX) / CC_PRESSURE_SPAN_PX, 0, 1,
+  );
+  const brakePressure = clamp((targetState.speed - targetSpeedPx) / CC_PRESSURE_SPAN_PX, 0, 1);
+  const accelPressure = clamp((targetSpeedPx - targetState.speed) / CC_PRESSURE_SPAN_PX, 0, 1);
+  const speedCarryPressure = clamp((targetSpeedPx - CC_CARRY_START_PX) / CC_CARRY_SPAN_PX, 0, 1)
+    * (1 - clamp((targetSpeedPx - CC_CARRY_FADE_START_PX) / CC_CARRY_FADE_SPAN_PX, 0, 1));
+  const scarcity = Math.max(deadlinePressure, denseContactPressure);
+
+  const guided: ContactCenteredRolls = {
+    segmentLengthRoll: targets.grain === undefined
+      ? clamp(0.42 + 0.12 * denseContactPressure - 0.08 * air, 0.20, 0.80)
+      : 0.50,
+    contactAngleRoll: clamp(
+      0.50 - 0.08 * brakePressure + 0.06 * accelPressure + 0.04 * denseContactPressure, 0.24, 0.76,
+    ),
+    preLengthRoll: clamp(
+      0.36 + 0.18 * brakePressure - 0.18 * scarcity + 0.08 * absoluteSpeedPressure, 0.10, 0.82,
+    ),
+    postLengthRoll: clamp(
+      0.24 + 0.48 * (1 - air) + 0.14 * speedCarryPressure
+        + 0.08 * brakePressure - 0.22 * denseContactPressure, 0.08, 0.90,
+    ),
+    preAngleRoll: clamp(0.50 - 0.10 * deadlinePressure - 0.06 * brakePressure, 0.22, 0.78),
+    postAngleRoll: clamp(
+      0.48 + 0.10 * accelPressure + 0.08 * speedCarryPressure
+        - 0.06 * air + 0.04 * denseContactPressure, 0.22, 0.82,
+    ),
+    tangentJitterRoll: 0.50,
+    normalJitterRoll: 0.50,
+  };
+
+  const guide = contactCenteredGuideWeight(attempt);
+  return {
+    segmentLengthRoll: ccGuidedRoll(rolls.segmentLengthRoll, guided.segmentLengthRoll, attempt, 0, guide),
+    contactAngleRoll: ccGuidedRoll(rolls.contactAngleRoll, guided.contactAngleRoll, attempt, 1, guide),
+    preLengthRoll: ccGuidedRoll(rolls.preLengthRoll, guided.preLengthRoll, attempt, 2, guide),
+    postLengthRoll: ccGuidedRoll(rolls.postLengthRoll, guided.postLengthRoll, attempt, 3, guide),
+    preAngleRoll: ccGuidedRoll(rolls.preAngleRoll, guided.preAngleRoll, attempt, 4, guide),
+    postAngleRoll: ccGuidedRoll(rolls.postAngleRoll, guided.postAngleRoll, attempt, 5, guide),
+    tangentJitterRoll: ccGuidedRoll(
+      rolls.tangentJitterRoll, guided.tangentJitterRoll, attempt, 6, guide,
+      CONTACT_CENTERED_GUIDED_POINT_SPREAD,
+    ),
+    normalJitterRoll: ccGuidedRoll(
+      rolls.normalJitterRoll, guided.normalJitterRoll, attempt, 7, guide,
+      CONTACT_CENTERED_GUIDED_POINT_SPREAD,
+    ),
+  };
+}
+
+function contactCenteredGuideWeight(attempt: number): number {
+  const scaled = Math.max(0, attempt) / CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS;
+  return 1 / (1 + scaled * scaled);
+}
+
+function ccGuidedRoll(
+  raw: number,
+  center: number,
+  attempt: number,
+  salt: number,
+  weight: number,
+  spread = CONTACT_CENTERED_GUIDED_ROLL_SPREAD,
+): number {
+  const guided = clamp(center + (lowDiscrepancyRoll(attempt, salt) - 0.5) * spread, 0, 1);
+  return clamp(lerp(raw, guided, weight), 0, 1);
+}
+
+/** Per-attempt span blends for launch shaping and ride-out length. 2-D (work-new
+ *  default): launch and length vary INDEPENDENTLY over a 16-step grid (8 coupled
+ *  diagonal + 8 anti-diagonal) so the pool covers off-diagonal (launch × length)
+ *  points the 1-D diagonal never reaches — more diverse valid continuations per gap. */
+function ccSpanBlends(attempt: number): { launch: number; length: number } {
+  const a = ((attempt % 4096) + 4096) % 4096;
+  const k = a % 16;
+  if (k < 8) {
+    const b = k / 7;
+    return { launch: b, length: b };
+  }
+  const b = (k - 8) / 7;
+  return { launch: b, length: clamp(1 - b, 0, 1) };
+}
+
+function needsDenseSpacingPostLengthCap(
+  targets: AxisValues,
+  nextGapFrames: number | null,
+): boolean {
+  if (nextGapFrames === null) return false;
+  return (targets.grain ?? 0) >= DENSE_SPACING_CAP_GRAIN_MIN
+    && nextGapFrames <= DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES;
 }
 
 function buildPreContactLines(

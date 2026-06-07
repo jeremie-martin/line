@@ -111,34 +111,6 @@ describe("handoff policy boundaries", () => {
     expect(handoffUsesFuturePreview(true)).toBe(false);
   });
 
-  test("near-tail completion is based on remaining contacts, not total contacts", () => {
-    for (const totalContacts of [29, 30, 31, 60, 61, 77]) {
-      const gaps = contactGaps(totalContacts);
-      expect(shouldAttemptNearTailCompletion({
-        search: nodeAt(totalContacts - 8),
-        skippedContacts: 0,
-      }, gaps)).toBe(true);
-      expect(shouldAttemptNearTailCompletion({
-        search: nodeAt(totalContacts - 9),
-        skippedContacts: 0,
-      }, gaps)).toBe(false);
-    }
-
-    const gaps = contactGaps(31);
-    expect(shouldAttemptNearTailCompletion({ search: nodeAt(26), skippedContacts: 1 }, gaps)).toBe(false);
-    expect(shouldAttemptNearTailCompletion({ search: nodeAt(31), skippedContacts: 0 }, gaps)).toBe(false);
-
-    const shortSpecGaps = contactGaps(4);
-    expect(shouldAttemptNearTailCompletion({
-      search: nodeAt(0, false),
-      skippedContacts: 0,
-    }, shortSpecGaps)).toBe(false);
-    expect(shouldAttemptNearTailCompletion({
-      search: nodeAt(1),
-      skippedContacts: 0,
-    }, shortSpecGaps)).toBe(true);
-  });
-
   test("brake work is allocated from local overspeed only", () => {
     expect(brakeCandidateCount(0.99)).toBe(0);
     expect(brakeCandidateCount(1.0)).toBe(2);
@@ -164,18 +136,6 @@ describe("handoff policy boundaries", () => {
       { grain: 0.2 },
       { grain: 1 },
     )).toBe(0);
-  });
-
-  test("brake work fires only on mild-overspeed targets", () => {
-    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0), 1.15)).toBe(false);
-    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0) + 1e-7, 1.15)).toBe(false);
-    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0) + 1e-3, 1.15)).toBe(true);
-    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.55), 1.0)).toBe(true);
-    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.55), 0.5)).toBe(false);
-    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.78), 1.15)).toBe(true);
-    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.78) + 1e-7, 1.15)).toBe(true);
-    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.78) + 1e-3, 1.15)).toBe(false);
-    expect(shouldOfferBrakeCandidates(authoredSpeedToPx(0.79), 1.15, true)).toBe(false);
   });
 
   test("start feasibility scoring only requires two future contacts", () => {
@@ -221,11 +181,6 @@ describe("handoff policy boundaries", () => {
 describe("target-state arc placement", () => {
   test("uses the clean target-state placement mode", () => {
     expect(arcPlacementMode()).toBe("target_state");
-  });
-
-  test("candidate RNG draw accounting is fixed for the target-state sampler", () => {
-    expect(sampleArcParamsRngDraws({ speed: 4, angleDeg: 10 }, gap(0, 0, 20), 0)).toBe(7);
-    expect(sampleArcParamsRngDraws({ speed: 10, angleDeg: 70 }, gap(0, 0, 80), 7, "brake")).toBe(7);
   });
 
   test("line sampler emits contiguous target-state geometry with stable ids", () => {

@@ -63,7 +63,16 @@ Sections are soft style blocks; each can set any of the axes (see
   `elevationBand`), so you set elevation and **mostly don't manage speed** — `1.0`
   always means "the steepest climb this moment can buy". Tracks its target across
   the whole `[0.05, 0.95]` range *in isolation* (probe_elevation_pure) with full
-  survival. The physics still bites in two honest ways: (1) if you *pin* speed
+  survival. **The scale is not symmetric around 0.5, by physics:** `0.5` (level)
+  is *not* "do nothing" — the rider is always falling between beats, so net-zero
+  altitude takes an active upward launch; "release and let gravity work" (free
+  fall) sits around `~0.33`, not `0.5`. Climb (`0.5→1`) fights gravity and is
+  speed-capped, so it spans only a small altitude range, while plunge (`0.5→0`)
+  has gravity helping and spans a much larger one — `0.5→~0.33` eases off into a
+  fall, and `~0.33→0` is an active dive *steeper* than free fall. The band
+  normalizes each side to a half so authoring *feels* uniform; the physical
+  magnitudes differ (down is the free direction). The physics bites in two more
+  honest ways: (1) if you *pin* speed
   low, the climb side caps (you can't climb hard at constant modest speed —
   `probe_elevation` tops out ~`0.46` at speed `0.5`); (2) if the rider is
   genuinely too slow to even reach level, max effort reads *below* `0.5` — the

@@ -76,9 +76,11 @@ export type Curve = (t: number) => number | undefined;
  *   - `grain`         — median(line_length) / LINE_LENGTH_CAP, [0, 1].
  *   - `elevation`     — altitude trend on a *relative climb-effort* scale, [0, 1]:
  *                       0.5 = level (net-zero altitude), →1 = climb as steeply as
- *                       the current speed safely allows, →0 = plunge hard. Resolved
+ *                       the current speed safely allows, →0 = dive hard. Resolved
  *                       per-gap against the speed-supported vertical-velocity band
  *                       (see `ELEVATION` / `elevationBand` / `netDyToElevation`).
+ *                       Asymmetric: free fall ≈ 0.33 (not 0.5), and plunge covers a
+ *                       much larger altitude range than climb — see `ELEVATION`.
  *   - `amplitude`     — peak upward bow of the trajectory above the takeoff→
  *                       landing chord (jump arc height / sagitta), normalized by
  *                       `CALIB.AMPLITUDE_CAP`, [0, 1]. Orthogonal to `air`:
@@ -555,8 +557,29 @@ export const SPEED_AXIS = {
  * length there is an achievable vertical-velocity *band*; the authored elevation
  * [0,1] is resolved against THAT band, so the meaning is speed-relative:
  *   1.0 = climb as steeply as the current speed safely allows (apex-at-next-beat,
- *         capped by a stall/reach margin), 0.5 = level (net-zero altitude),
- *         0.0 = plunge hard.
+ *         capped by a stall/reach margin),
+ *   0.5 = level (net-zero altitude over the gap),
+ *   0.0 = dive as steeply as the band allows.
+ *
+ * Two things that surprise authors, both honest consequences of gravity:
+ *
+ *  - **0.5 (level) is NOT "do nothing".** Between beats the rider is always
+ *    falling, so net-zero altitude needs an active *upward* launch to cancel the
+ *    drop. "Release and let gravity work" (free fall) lands around ~0.33, not 0.5.
+ *
+ *  - **The two halves are physically asymmetric**, even though each maps to a
+ *    [0,0.5] span of the axis. Climb (0.5→1) fights gravity and is tightly
+ *    speed-capped, so it covers a *small* altitude range; plunge (0.5→0) has
+ *    gravity helping, so it covers a *much larger* range (typically several× the
+ *    climb range). Concretely on a ~0.5s gap at mid speed: 0.5→1 ≈ a few tens of
+ *    px up, while 0.5→0 ≈ a few hundred px down. So 0.5→~0.33 is the gentle "ease
+ *    off into a fall" zone, and ~0.33→0 is an *active* dive steeper than free
+ *    fall. The band normalizes each side to a half so authoring *feels* uniform;
+ *    the underlying physics is not (down is the free direction). Plunge is
+ *    currently capped *symmetrically* with climb (same `VERTICAL_FRACTION` /
+ *    apex cap) for catchability — it could be opened up for a more violent
+ *    nosedive if a spec ever wants it.
+ *
  * Both the launch generator (`arc_placement`) and the achieved measurement
  * (`core/measure`) resolve against this same band so they agree. Up is −y.
  */

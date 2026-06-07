@@ -210,9 +210,31 @@ gaps to low-value late gaps. Fix = TIGHT margin (skip only the genuinely doomed)
 m1.1 > off > m1.5: +1.5 vs m1.5 (P=0.4%), +0.9 vs off (P=2.2%). Default feasMargin 1.5→1.1. Honest branch
 total: committed **569.7 → 592.0 = +22.3** (fwd-eval +14.8, repair +7.5).
 
-## Plan (methodical, one change per decide)
-- ★ "Retry the worst gap with a few fresh seeds until it completes" — instrumentation shows ~50% of worst-gap
-  restarts complete; today we exhaust-on-failure after one try and fall to a lesser gap, leaving high-value
-  early fixes on the table. Likely the next real win.
-- Portfolio of top-K incumbents; compose with LR_QUALITY_NCAND=24.
-- (Deferred) the budget-aware research agenda above; adaptive restart placement by remaining budget.
+### Retry-the-worst-gap-with-fresh-seeds — TRIED, REVERTED (budget-dependent, marginal)
+Give the worst gap up to N fresh-seed restarts before giving up (instead of one-and-done). Honest suite:
+retries=3 = 591.0 < retries=1 592.0 (−1.0) — at tight suite budgets, breadth (more distinct gaps) beats depth
+(more tries per gap). At 1M (subset) retries=3 helped (719.6 vs 717.4) but retries=8 hurt (709, over-
+concentration). A budget-aware ramp (1 at ≤200k → 3 at 500k+) kept the suite flat AND helped 1M, but the gain
+was tiny/off-suite and it's exactly the "spend-per-branch vs more-branches" budget-allocation game we agreed to
+STUDY DELIBERATELY LATER. Reverted as premature complexity for a marginal, off-suite gain. (Knob lives only in
+the research agenda now.)
+
+### Top-K incumbent portfolio — TRIED, REVERTED (wash; refine-best already covers basins)
+Refine the K best DISTINCT complete tracks (round-robin, deduped by early-choice signature) instead of the
+single best. Honest suite K=3 591.9 vs K=1 592.0 (−0.1, P=65% INCONCLUSIVE); 1M subset 717.1 vs 717.4. NO
+benefit anywhere. Root cause: seed-perturbed restarts ALREADY branch into different early-choice basins, and
+the register already keeps the global best across all of them — so refine-best isn't basin-stuck. A portfolio
+just dilutes budget across basins. Reverted.
+
+### Pattern (banked): the conceptually-clean CORE ideas won (track-repair, seed-perturbation, tight margin);
+the "smarter allocation" embellishments on top (value-density, budget-aware retries, top-K portfolio) all
+washed or rejected. The objective (geomean) + the existing seed-diversity make worst-gap-first + measured-cost-
+ceiling the right, simple policy. STOP adding allocation cleverness; the budget-allocation game is a deliberate
+future study, not incremental bolt-ons.
+
+## Plan (genuinely open)
+- (Deferred, deliberate study) the budget-aware research agenda above: spend-per-branch vs more-branches,
+  adaptive restart placement by remaining budget, unifying the compiler's budget-aware mechanisms with repair.
+- Compose repair with geometry diversity (LR_QUALITY_NCAND=24) — untested, cheap rider.
+- Promote: full canonical sweep to bank 592.0 as the new committed baseline (currently the gains are behind
+  the LR_FWD_EVAL/LR_REPAIR flags; productionizing them as defaults is its own decision).

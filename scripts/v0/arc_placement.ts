@@ -829,6 +829,28 @@ function sampleContactCenteredLines(
     postLength = clamp(lerp(sampledPostLength, targetLen, blend * blendStrength), 28, 360);
   }
 
+  // Amplitude-targeted ballistic arc. Gated on the axis being targeted so specs
+  // that never set amplitude stay byte-identical. Amplitude is the *height* of the
+  // airborne arc (pop above the takeoff→landing chord); for a ballistic arc that
+  // lands N frames later it is ≈ g·N²/8, maximized by launching the symmetric arc
+  // (vy = −½gN) that fills the whole gap AND shortening the grounded ride-out so
+  // the rider is aloft longer. This is bounded by gap length — big airs need long
+  // gaps — but it consolidates the per-gap arc into one clean pop instead of a
+  // flutter, and scales up naturally where contacts are sparse.
+  if (targets.amplitude !== undefined && nextGapFrames !== null) {
+    const amp = clamp(targets.amplitude, 0, 1);
+    const vyArc = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * nextGapFrames; // fills the gap
+    const vxArc = Math.max(1, targetState.velocity.x);
+    const arcLaunchDeg = (Math.atan2(vyArc, vxArc) * 180) / Math.PI;
+    const blend = clamp(ccSpanBlends(attempt).launch, 0, 1) * amp;
+    postAngleDeg = clamp(
+      lerp(postAngleDeg, arcLaunchDeg, blend),
+      ELEVATION_POST_ANGLE_MIN, ELEVATION_POST_ANGLE_MAX,
+    );
+    // Shorten the grounded ride-out so the airborne arc fills more of the gap.
+    postLength = lerp(postLength, 28, blend);
+  }
+
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
   const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
 

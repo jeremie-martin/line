@@ -514,6 +514,8 @@ const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 8;
 const TAIL_COMPLETION_BUDGET_WINDOW_EXTRA = 2;
 const TAIL_COMPLETION_BUDGET_SCALE_FRAMES = 150_000;
+const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_WINDOW_EXTRA = 14;
+const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_SCALE_FRAMES = 75_000;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
 const QUALITY_SHALLOW_TAIL_THROTTLE_MAX_PRESSURE = 1.0;
 const QUALITY_SHALLOW_TAIL_THROTTLE_BUDGET_SCALE_FRAMES = 150_000;
@@ -2881,7 +2883,7 @@ export function shouldAttemptNearTailCompletion(
   ) {
     return false;
   }
-  return remaining <= tailCompletionContactWindow(targetBudget);
+  return remaining <= tailCompletionContactWindow(targetBudget, qualitySearch);
 }
 
 function shouldKeepShallowQualityTailCompletion(
@@ -3003,8 +3005,18 @@ function suffixRepairBudgetPressure(targetBudget: number): number {
   return smoothstep(clamp01(budget / (budget + QUALITY_SUFFIX_REPAIR_BUDGET_SCALE_FRAMES)));
 }
 
-function tailCompletionContactWindow(targetBudget: number): number {
+function tailCompletionContactWindow(targetBudget: number, qualitySearch = true): number {
   const budget = Math.max(0, targetBudget);
+  if (!qualitySearch) {
+    const scarcityPressure = 1 - smoothstep(
+      clamp01(
+        budget /
+          (budget + CONTRACT_TAIL_COMPLETION_LOW_BUDGET_SCALE_FRAMES),
+      ),
+    );
+    return TAIL_COMPLETION_CONTACT_WINDOW +
+      CONTRACT_TAIL_COMPLETION_LOW_BUDGET_WINDOW_EXTRA * scarcityPressure;
+  }
   const pressure = smoothstep(clamp01(budget / (budget + TAIL_COMPLETION_BUDGET_SCALE_FRAMES)));
   return TAIL_COMPLETION_CONTACT_WINDOW + TAIL_COMPLETION_BUDGET_WINDOW_EXTRA * pressure;
 }

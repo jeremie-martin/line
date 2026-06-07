@@ -56,6 +56,22 @@ Sections are soft style blocks; each can set any of the axes (see
   Achieved speed may report outside `[0, 1]` when the raw velocity is outside
   that calibrated range.
 - **`grain`** — median line length (long swooping lines vs short choppy ones).
+- **`elevation`** — altitude trend over each gap, on a **relative climb-effort**
+  scale: `0.5` = level, `→1` = climb as steeply as the *current speed* safely
+  allows, `→0` = plunge hard. The value is resolved per-gap against the
+  vertical-velocity *band* the speed supports (see `types.ts` `ELEVATION` /
+  `elevationBand`), so you set elevation and **mostly don't manage speed** — `1.0`
+  always means "the steepest climb this moment can buy". Tracks its target across
+  the whole `[0.05, 0.95]` range *in isolation* (probe_elevation_pure) with full
+  survival. The physics still bites in two honest ways: (1) if you *pin* speed
+  low, the climb side caps (you can't climb hard at constant modest speed —
+  `probe_elevation` tops out ~`0.46` at speed `0.5`); (2) if the rider is
+  genuinely too slow to even reach level, max effort reads *below* `0.5` — the
+  axis telling you "feed me speed". For big sustained climbs, **bank speed first
+  and let it fall during the climb** (`probe_climb_banked` reaches ~`0.62`–`0.66`
+  that way). Note: elevation deliberately does *not* control the jumpy-vs-smooth
+  character of the ride (concave hops vs convex glides) — that is left free for a
+  possible future axis.
 
 (A former `contact_style` axis — slide-along-the-line ratio — was removed: its
 bounce-or-ride physics made it bimodal, so it was not a usable continuous lever.)

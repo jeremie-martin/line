@@ -66,14 +66,25 @@ export type Contact = {
 export type Curve = (t: number) => number | undefined;
 
 /**
- * The three creative axes, in canonical order. Single source of iteration.
+ * The creative axes, in canonical order. Single source of iteration. New axes
+ * are *appended* (never reordered): per-axis RNG draws in `sampleGapTargets`
+ * happen only for targeted axes, so appending keeps existing specs byte-identical.
  * Axis semantics:
  *   - `air`           — airborne-frame fraction, [0, 0.99].
  *   - `speed`         — authored pace, [0, 1], mapped to raw px/frame by
  *                       `authoredSpeedToPx`.
  *   - `grain`         — median(line_length) / LINE_LENGTH_CAP, [0, 1].
+ *   - `elevation`     — altitude trend on a *relative climb-effort* scale, [0, 1]:
+ *                       0.5 = level (net-zero altitude), →1 = climb as steeply as
+ *                       the current speed safely allows, →0 = plunge hard. Resolved
+ *                       per-gap against the speed-supported vertical-velocity band
+ *                       (see `ELEVATION` / `elevationBand` / `netDyToElevation`).
+ *   - `amplitude`     — peak upward bow of the trajectory above the takeoff→
+ *                       landing chord (jump arc height / sagitta), normalized by
+ *                       `CALIB.AMPLITUDE_CAP`, [0, 1]. Orthogonal to `air`:
+ *                       `air` is how *long* aloft, `amplitude` is how *high*.
  */
-export const AXES = ["air", "speed", "grain"] as const;
+export const AXES = ["air", "speed", "grain", "elevation", "amplitude"] as const;
 export type AxisName = (typeof AXES)[number];
 
 /** Upper bound for each normalized authored target/sample value. */
@@ -81,6 +92,8 @@ export const AXIS_VALUE_MAX = {
   air: 0.99,
   speed: 1,
   grain: 1,
+  elevation: 1,
+  amplitude: 1,
 } as const satisfies Record<AxisName, number>;
 
 /** Axes whose achieved value can be measured over an arbitrary frame range. */
@@ -472,6 +485,12 @@ export type GapAxisValueReport = {
   target: number;
   achieved: number;
   error: number;
+  /** Maximum achievable value of this axis at this gap, in the same [0,1] units —
+   *  the physical ceiling given the rider's state here. Currently populated for
+   *  `elevation` (the speed-supported climb ceiling): a target above `ceiling`
+   *  asked for more than physics allowed at this gap, so the shortfall is expected,
+   *  not a compiler miss. Absent for axes without a meaningful per-gap ceiling. */
+  ceiling?: number;
   /** Raw diagnostic units for axes whose authored scale hides physical units. */
   raw?: {
     unit: "px/frame";
@@ -531,9 +550,94 @@ export const SPEED_AXIS = {
   HIGH_START_PX_PER_FRAME: 9.0,
 } as const;
 
+/**
+ * Elevation axis model (relative climb-effort). At a given entering speed and gap
+ * length there is an achievable vertical-velocity *band*; the authored elevation
+ * [0,1] is resolved against THAT band, so the meaning is speed-relative:
+ *   1.0 = climb as steeply as the current speed safely allows (apex-at-next-beat,
+ *         capped by a stall/reach margin), 0.5 = level (net-zero altitude),
+ *         0.0 = plunge hard.
+ * Both the launch generator (`arc_placement`) and the achieved measurement
+ * (`core/measure`) resolve against this same band so they agree. Up is −y.
+ */
+export const ELEVATION = {
+  /** Gravity model (px/frame²). Matches the launch model in `arc_placement` so the
+   *  generator and the measurement share one band. */
+  GRAVITY_PX_PER_FRAME2: 0.175,
+  /** Cap on |vy| as a fraction of total speed: the stall/reach margin that keeps
+   *  enough horizontal speed to carry the rider to the next catch. Conservative —
+   *  climbing bleeds speed across gaps, so over-committing vertical stalls the ride. */
+  VERTICAL_FRACTION: 0.5,
+} as const;
+
+export type ElevationBand = {
+  /** Launch vy (px/frame, up = −) for the steepest safe climb. */
+  vyClimb: number;
+  /** Launch vy for net-zero altitude (the symmetric arc). */
+  vyLevel: number;
+  /** Launch vy for the steepest plunge. */
+  vyPlunge: number;
+  g: number;
+  frames: number;
+};
+
+/** Achievable vertical-velocity band for a gap of `frames` at entering `speedPx`. */
+export function elevationBand(speedPx: number, frames: number): ElevationBand {
+  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
+  const N = Math.max(1, frames);
+  const cap = Math.min(g * N, ELEVATION.VERTICAL_FRACTION * Math.max(1, speedPx));
+  return { vyClimb: -cap, vyLevel: -0.5 * g * N, vyPlunge: cap, g, frames: N };
+}
+
+/** Authored elevation [0,1] → launch vy (px/frame, up = −), resolved against the band. */
+export function elevationToLaunchVy(elevation: number, speedPx: number, frames: number): number {
+  const b = elevationBand(speedPx, frames);
+  const e = Math.max(0, Math.min(1, elevation));
+  const t = Math.abs(e - 0.5) / 0.5;
+  return e >= 0.5
+    ? b.vyLevel + (b.vyClimb - b.vyLevel) * t
+    : b.vyLevel + (b.vyPlunge - b.vyLevel) * t;
+}
+
+/**
+ * Net vertical displacement Δy (px, down = +) over a gap → achieved elevation
+ * [0,1], normalized against the same band. Level (Δy=0) anchors at 0.5; the band's
+ * steepest climb maps to 1.0, steepest plunge to 0.0. In the genuinely-too-slow
+ * regime (can't reach level) the climb side compresses below 0.5 — honest signal.
+ */
+export function netDyToElevation(dy: number, speedPx: number, frames: number): number {
+  const b = elevationBand(speedPx, frames);
+  const sag = 0.5 * b.g * b.frames * b.frames;
+  const dyClimb = b.vyClimb * b.frames + sag; // most-up the band allows (usually < 0)
+  const dyPlunge = b.vyPlunge * b.frames + sag; // most-down (> 0)
+  const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+  if (dy <= 0) {
+    const denom = dyClimb < 0 ? dyClimb : -1;
+    return clamp01(0.5 + 0.5 * (dy / denom));
+  }
+  const denom = dyPlunge > 0 ? dyPlunge : 1;
+  return clamp01(0.5 - 0.5 * (dy / denom));
+}
+
+/** Maximum achievable elevation (normalized [0,1]) for a gap at the given entering
+ *  speed: the band's steepest climb run through the same normalizer. ≈1.0 when
+ *  there is climb headroom; drops below 1 (and below 0.5) when the rider is too
+ *  slow to climb. A per-gap *theoretical* ceiling — sustained climbs bleed speed
+ *  across gaps, so the multi-gap reality can be lower. */
+export function elevationCeiling(speedPx: number, frames: number): number {
+  const b = elevationBand(speedPx, frames);
+  const dyClimb = b.vyClimb * b.frames + 0.5 * b.g * b.frames * b.frames;
+  return netDyToElevation(dyClimb, speedPx, frames);
+}
+
 export const CALIB = {
   /** Divisor for `grain` axis. units. */
   LINE_LENGTH_CAP: 49,
+  /** Divisor for `amplitude` axis: peak upward chord-relative sagitta (px) that
+   *  maps to a normalized amplitude of 1.0. Provisional — calibrate against the
+   *  achieved envelope on a soaring-arc probe spec, the same way grain's cap was
+   *  set. */
+  AMPLITUDE_CAP: 60,
   /**
    * Per-gap target jitter (Gaussian σ): each gap's resolved axis target gets
    * `gauss(target, SIGMA)` noise for neighbor-to-neighbor variety. Global for

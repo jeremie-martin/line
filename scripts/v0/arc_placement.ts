@@ -23,6 +23,7 @@ import {
   type Gap,
   type TrackLine,
   authoredSpeedToPx,
+  elevationToLaunchVy,
 } from "./types.ts";
 
 const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
@@ -75,6 +76,15 @@ const LAUNCH_GRAVITY_PX_PER_FRAME2 = 0.175;
 const CONTACT_CENTERED_POST_CURVE_BIAS_SPAN = 0.6;
 const CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES = 50_000;
 const CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES = 50_000;
+
+/** Elevation steering. The post-contact ride-out angle decides where the rider
+ *  goes next; up is −angle (screen y points down). When `elevation` is targeted
+ *  we set that launch from the speed-relative elevation band (see types.ts
+ *  `elevationToLaunchVy`): the authored value resolves to a launch vy against the
+ *  vertical-velocity budget the current speed supports. The MIN/MAX widen the
+ *  post-angle range past its speed/air defaults so a real climb is reachable. */
+const ELEVATION_POST_ANGLE_MIN = -62;
+const ELEVATION_POST_ANGLE_MAX = 70;
 
 /** Per-compile frame budget, set once at compileHandoff entry (each compile is a
  *  single independent budget, run in its own worker / sequentially), read by the
@@ -781,6 +791,25 @@ function sampleContactCenteredLines(
     const vyClamped = clamp(vyTarget, -0.92 * g * N, 0.45 * g * N);
     const energyLaunchDeg = (Math.atan2(vyClamped, vIn) * 180) / Math.PI;
     postAngleDeg = lerp(angledPostAngleDeg, energyLaunchDeg, blend);
+  }
+
+  // Elevation-targeted launch (speed-relative). Gated on the axis being targeted
+  // so specs that never set elevation stay byte-identical. The authored elevation
+  // resolves against the vertical-velocity band the current speed supports, so
+  // climb is "as steep as this speed allows" rather than a fixed angle. Up is −y.
+  if (targets.elevation !== undefined && nextGapFrames !== null) {
+    const vy = elevationToLaunchVy(targets.elevation, targetState.speed, nextGapFrames);
+    const vx = Math.sqrt(Math.max(1, targetState.speed * targetState.speed - vy * vy));
+    const elevationLaunchDeg = (Math.atan2(vy, vx) * 180) / Math.PI;
+    // Span the climb aggressiveness across the attempt batch rather than forcing
+    // it every candidate: blend 0 keeps the speed-preserving ride-out, blend 1 is
+    // the full band launch. Survival gates drop the stallers and the cost ranks
+    // the rest, so the rider gets the steepest *surviving* climb.
+    const blend = clamp(ccSpanBlends(attempt).launch, 0, 1);
+    postAngleDeg = clamp(
+      lerp(postAngleDeg, elevationLaunchDeg, blend),
+      ELEVATION_POST_ANGLE_MIN, ELEVATION_POST_ANGLE_MAX,
+    );
   }
 
   // Air-targeted grounded ride-out length: longer grounded ride ⇒ less air. Size

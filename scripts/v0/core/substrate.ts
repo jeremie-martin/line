@@ -17,7 +17,7 @@ import {
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
   AXES, AXIS_VALUE_MAX, CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
-  authoredSpeedToPx, speedPxToAuthored,
+  authoredSpeedToPx, speedPxToAuthored, elevationCeiling,
 } from "../types.ts";
 import { measureGapAxes } from "./measure.ts";
 
@@ -520,6 +520,11 @@ export function buildDriftReport(
       const a = achievedAll[name];
       if (a === undefined) continue;
       axes[name] = { target: t, achieved: a, error: Math.abs(t - a) };
+      if (name === "elevation") {
+        const v0 = velocityAt(det, g.startFrame);
+        const speed = v0 !== undefined ? Math.hypot(v0.x, v0.y) : 0;
+        axes[name].ceiling = elevationCeiling(speed, g.endFrame - g.startFrame);
+      }
       if (name === "speed") {
         const targetRaw = authoredSpeedToPx(t);
         const achievedRaw = authoredSpeedToPx(a);

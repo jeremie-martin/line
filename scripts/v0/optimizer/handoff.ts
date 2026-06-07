@@ -617,10 +617,14 @@ function compileHandoffInternal(
     // repair restart, so the system can be characterized and budget-aware allocation built on
     // MEASURED cost (vs the current crude perGap estimate). Surfaced in compile_stats.repair.
     const framesAtReach = new WeakMap<SearchNode, number>();
+    // Count of complete tracks ever considered (any phase). A repair restart's delta tells us whether
+    // it REACHED the end at all (completed), separate from whether it beat the incumbent (accepted).
+    let terminalConsiders = 0;
     type RepairRecord = {
-      worst: number; anchor: number; up: number;
+      worst: number; anchor: number; up: number; totalGaps: number;
       framesAtAnchor: number; framesBefore: number; framesSpent: number;
-      estCost: number; beforeScore: number; afterScore: number; accepted: boolean;
+      estCost: number; predictedFeasible: boolean; completed: boolean;
+      beforeScore: number; afterScore: number; accepted: boolean;
       inhSpeed: number | null; inhVy: number | null; inhGrounded: number | null;
     };
     const repairRecords: RepairRecord[] = [];
@@ -662,7 +666,9 @@ function compileHandoffInternal(
         evaluation.key,
       );
       recordImprovementTelemetry(telemetry, phase, improved);
-      if (improved && isTerminalNode(node.search, gaps)) {
+      const terminal = isTerminalNode(node.search, gaps);
+      if (terminal) terminalConsiders++;
+      if (improved && terminal) {
         bestCompleteNode = node;
         if (firstCompletionFrame < 0) firstCompletionFrame = getSimFrames();
       }
@@ -983,8 +989,9 @@ function compileHandoffInternal(
         // Worst AFFORDABLE gap whose MEASURED cost-to-re-complete fits the remaining budget. With
         // valueDensity, ranked by axis-error²/cost (best score-gain-per-frame) instead of raw error².
         const kWorst = pickFeasibleWeakGap(
-          evaluateCached(incumbent).report, gaps, exhausted,
-          estCostOf, remaining / repair.feasMargin, repair.valueDensity,
+          evaluateCached(incumbent).report, gaps, exhausted, estCostOf,
+          repair.feasibility ? remaining / repair.feasMargin : Number.POSITIVE_INFINITY,
+          repair.valueDensity,
         );
         if (kWorst < 0) break;
 
@@ -1000,7 +1007,7 @@ function compileHandoffInternal(
           if (k < 0 || attempts >= repair.maxAttempts || getSimFrames() >= targetBudget) break;
           const estCost = estCostOf(k);
           // Walking upstream only gets more expensive; stop if we can't afford to finish.
-          if (estCost > 0 && estCost * repair.feasMargin > targetBudget - getSimFrames()) break;
+          if (repair.feasibility && estCost > 0 && estCost * repair.feasMargin > targetBudget - getSimFrames()) break;
           attempts++;
           restartCounter++;
           const restartSeed = ((incumbent.searchSeed | 0) ^ Math.imul(restartCounter, 0x9e3779b1)) | 0;
@@ -1021,7 +1028,10 @@ function compileHandoffInternal(
           const beforeScore = evaluateCached(incumbent).key.full_score;
           const framesBefore = getSimFrames();
           const incumbentBefore = bestCompleteNode;
+          const terminalsBefore = terminalConsiders;
+          const predictedFeasible = estCost <= 0 || estCost * repair.feasMargin <= targetBudget - framesBefore;
           runFrontierFrom(prefixNode, ceiling);
+          const completed = terminalConsiders > terminalsBefore;
           // Decide "improved" by whether the REGISTER actually adopted a new best (its passing-leaf
           // comparator is axis_quality, not full_score — they can disagree). dScore is logged for
           // characterization but does NOT drive the exhaust/re-pick decision.
@@ -1029,10 +1039,11 @@ function compileHandoffInternal(
           const afterScore = bestCompleteNode ? evaluateCached(bestCompleteNode).key.full_score : beforeScore;
           const fit = k > 0 ? incumbent.search.prefixFits[k - 1] : undefined;
           repairRecords.push({
-            worst: kWorst, anchor: k, up,
+            worst: kWorst, anchor: k, up, totalGaps: gaps.length,
             framesAtAnchor: framesAtReach.get(prefix) ?? -1,
             framesBefore, framesSpent: getSimFrames() - framesBefore,
-            estCost: Math.round(estCost), beforeScore, afterScore, accepted: improved,
+            estCost: Math.round(estCost), predictedFeasible, completed,
+            beforeScore, afterScore, accepted: improved,
             inhSpeed: fit?.releaseSpeed ?? null,
             inhVy: fit?.releaseVelocityY ?? null,
             inhGrounded: fit?.releaseGroundedFrames ?? null,
@@ -2752,6 +2763,7 @@ type RepairConfig = {
   maxAttempts: number;
   maxUpstream: number;
   valueDensity: boolean;
+  feasibility: boolean;
   log: boolean;
 };
 function repairConfig(): RepairConfig | null {
@@ -2769,8 +2781,11 @@ function repairConfig(): RepairConfig | null {
     minBudget: num("LR_REPAIR_MIN_BUDGET", 150_000, 0, 100_000_000),
     // Completion-triggered split: run the main search to firstCompletion*mainMargin, then repair.
     mainMargin: flt("LR_REPAIR_MAIN_MARGIN", 1.0, 1.0, 10.0),
-    // Feasibility: only restart from gap k if est. cost-to-complete * feasMargin <= remaining budget.
-    feasMargin: flt("LR_REPAIR_FEAS_MARGIN", 1.5, 1.0, 10.0),
+    // Feasibility margin: require (measured cost-to-end × feasMargin) ≤ remaining budget, and size each
+    // restart's ceiling to cost × feasMargin. TIGHT (1.1 = 10% headroom) is best: the worst/highest-value
+    // gaps are usually EARLY (expensive), so a loose margin (1.5) banished repairs to the cheap tail and
+    // cost score; 1.1 still skips genuinely-doomed restarts. (m1.1 592.0 > off 591.1 > m1.5 590.5, honest.)
+    feasMargin: flt("LR_REPAIR_FEAS_MARGIN", 1.1, 1.0, 10.0),
     // Cap on repair restarts. High-budget binds on this (1M affords ~30-40 restarts); low/mid
     // budgets exhaust the budget first, so a high cap is a no-op there. 16 plateaued 1M at 698;
     // 64 → 706.6 (the cap, not the budget, was the 1M plateau).
@@ -2783,6 +2798,10 @@ function repairConfig(): RepairConfig | null {
     // Pick gaps by value-DENSITY (axis-error² / measured cost-to-end) instead of raw axis-error².
     // Spends budget where the score-gain-per-frame is highest rather than always the single worst gap.
     valueDensity: readEnv("LR_REPAIR_VALUE_DENSITY") === "1",
+    // Feasibility filter: only restart from gaps whose measured cost-to-end fits the remaining budget
+    // (×feasMargin). LR_REPAIR_NO_FEAS=1 disables it → pick the GLOBAL worst gap regardless of cost
+    // (A/B: does avoiding doomed early restarts actually help?).
+    feasibility: readEnv("LR_REPAIR_NO_FEAS") !== "1",
     log: readEnv("LR_REPAIR_LOG") === "1",
   };
 }

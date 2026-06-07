@@ -194,7 +194,25 @@ MEAN objective, fixing the single WORST gap beats spreading budget by value-per-
 whole track, so skipping it for "efficiency" backfires). Worst-gap-first is correct for this objective.
 Honest branch total: committed **569.7 → 590.5 = +20.8** (fwd-eval +14.8, repair +5.1, measured-cost +0.9).
 
+### ★ Feasibility margin sweep (instrumented) — the margin, not the filter, was the bug
+The "feasibility filter is a wash" result was a SMELL. Instrumenting WHERE restarts start (compile_stats.repair
+records: anchor/totalGaps, predictedFeasible, completed, accepted) showed: with the loose default margin (1.5 =
+50% headroom) the median restart anchored at **0.70 of the track — the cheap TAIL** — because the worst/highest-
+value gaps are EARLY (expensive) and got banished as "unaffordable." And ~50% of restarts the filter would have
+BANNED actually complete (the cost estimate is pessimistic: a focused fresh-seed restart often finishes faster
+than the main race-to-first-completion it's based on). So the filter was diverting budget from high-value early
+gaps to low-value late gaps. Fix = TIGHT margin (skip only the genuinely doomed). Honest full canonical:
+| margin | HEADLINE | vs no-repair base 584.5 |
+|---|---|---|
+| 1.5 (old default) | 590.5 | +6.0 |
+| OFF (no filter) | 591.1 | +6.6 |
+| **1.1 (new default)** | **592.0** | **+7.5 ACCEPT (P=0%)** |
+m1.1 > off > m1.5: +1.5 vs m1.5 (P=0.4%), +0.9 vs off (P=2.2%). Default feasMargin 1.5→1.1. Honest branch
+total: committed **569.7 → 592.0 = +22.3** (fwd-eval +14.8, repair +7.5).
+
 ## Plan (methodical, one change per decide)
-- Repair the START/early gaps with fresh seeds (highest blast radius on a forward-dependent chain).
+- ★ "Retry the worst gap with a few fresh seeds until it completes" — instrumentation shows ~50% of worst-gap
+  restarts complete; today we exhaust-on-failure after one try and fall to a lesser gap, leaving high-value
+  early fixes on the table. Likely the next real win.
 - Portfolio of top-K incumbents; compose with LR_QUALITY_NCAND=24.
 - (Deferred) the budget-aware research agenda above; adaptive restart placement by remaining budget.

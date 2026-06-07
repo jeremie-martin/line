@@ -436,9 +436,10 @@ export type CompileStats = {
     gaps_touched: number;
     reconverged: number;
     records: Array<{
-      worst: number; anchor: number; up: number;
+      worst: number; anchor: number; up: number; totalGaps: number;
       framesAtAnchor: number; framesBefore: number; framesSpent: number;
-      estCost: number; beforeScore: number; afterScore: number; accepted: boolean;
+      estCost: number; predictedFeasible: boolean; completed: boolean;
+      beforeScore: number; afterScore: number; accepted: boolean;
       inhSpeed: number | null; inhVy: number | null; inhGrounded: number | null;
     }>;
   };

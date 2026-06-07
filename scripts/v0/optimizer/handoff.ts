@@ -80,6 +80,7 @@ import {
 } from "./sim_frames.ts";
 import {
   resetArcPlacementStats,
+  setCompileBudgetFrames,
   snapshotArcPlacementStats,
 } from "../arc_placement.ts";
 import {
@@ -498,6 +499,8 @@ function compileHandoffInternal(
     throw new Error(`compileHandoff: searchSeed must be a safe integer, got ${searchSeed}`);
   }
   const targetBudget = validateBudget(opts.budget);
+  // Budget-aware geometry reads this (per-compile constant) for the curvature fade.
+  setCompileBudgetFrames(targetBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
   if (!Number.isInteger(maxNodes) || maxNodes < 1) {
     throw new Error(`compileHandoff: maxNodes must be a positive integer, got ${maxNodes}`);

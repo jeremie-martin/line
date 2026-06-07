@@ -66,6 +66,25 @@ const DENSE_SPACING_CAP_GRAIN_MIN = 0.50;
 const DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES = 14;
 const CONTACT_CENTERED_RNG_DRAWS = 8;
 const LAUNCH_GRAVITY_PX_PER_FRAME2 = 0.175;
+/** Budget-aware post-contact ride-out CURVATURE. The ride-out angle was lerped
+ *  linearly start→end; biasing the interpolation makes the path concave/convex — a
+ *  new shape dimension across the attempt batch that the cost-sorted handoff selects
+ *  from. Measured: full curvature lifts scarce-budget COMPLETION a lot (25k +19, 50k
+ *  +54 — more shapes to find a valid chain) but DILUTES the converged high-budget
+ *  quality. So fade the span out as the compile budget grows: full ≤50k, off ≥100k.
+ *  Deterministic per attempt (low-discrepancy salt, no rng draw). */
+const CONTACT_CENTERED_POST_CURVE_BIAS_SPAN = 0.6;
+const CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES = 50_000;
+const CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES = 50_000;
+
+/** Per-compile frame budget, set once at compileHandoff entry (each compile is a
+ *  single independent budget, run in its own worker / sequentially), read by the
+ *  budget-aware geometry. A per-compile constant, so determinism stays per
+ *  (spec, seed, budget) and the per-node candidate cache remains valid. */
+let currentCompileBudgetFrames = 0;
+export function setCompileBudgetFrames(frames: number): void {
+  currentCompileBudgetFrames = Math.max(0, frames | 0);
+}
 
 type ProcessEnv = Record<string, string | undefined>;
 const PROCESS_ENV = (globalThis as { process?: { env?: ProcessEnv } }).process?.env;
@@ -798,12 +817,20 @@ function sampleContactCenteredLines(
     y: targetState.sledY + tangentY * tangentJitter + normalY * normalJitter,
   };
 
+  const curveFade = 1 - smoothstep(
+    (currentCompileBudgetFrames - CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES) /
+      CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES,
+  );
+  const postCurveBias = curveFade <= 0 ? 0
+    : (lowDiscrepancyRoll(attempt, 8) - 0.5) * 2 *
+      CONTACT_CENTERED_POST_CURVE_BIAS_SPAN * curveFade;
+
   const preLines = buildPreContactLines(
     lineIdStart, contactPoint, preAngleDeg, contactAngleDeg, preLength, preSegments,
   );
   const postLines = buildPostContactLines(
     lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
-    postLength, postSegments,
+    postLength, postSegments, postCurveBias,
   );
   return [...preLines, ...postLines];
 }
@@ -963,6 +990,7 @@ function buildPostContactLines(
   endAngleDeg: number,
   length: number,
   segments: number,
+  curveBias = 0,
 ): TrackLine[] {
   const segLen = length / segments;
   let x = contactPoint.x;
@@ -970,7 +998,8 @@ function buildPostContactLines(
   const lines = new Array<TrackLine>(segments);
   for (let i = 0; i < segments; i++) {
     const t = segments === 1 ? 1 : i / (segments - 1);
-    const a = (lerp(startAngleDeg, endAngleDeg, t) * Math.PI) / 180;
+    const ft = curveBias === 0 ? t : applyArcCurveBias(t, curveBias);
+    const a = (lerp(startAngleDeg, endAngleDeg, ft) * Math.PI) / 180;
     const x2 = x + Math.cos(a) * segLen;
     const y2 = y + Math.sin(a) * segLen;
     lines[i] = makeSolidLine(lineIdStart + i, x, y, x2, y2);

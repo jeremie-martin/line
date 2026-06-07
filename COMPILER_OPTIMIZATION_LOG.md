@@ -1802,3 +1802,18 @@
 - Decide result: `VERDICT: ACCEPT`; baseline `552.2` -> candidate `563.9`; `Delta headline = +11.7`, 95% CI `[-0.3, 48.7]`, `P(Delta<=0)=16.8%`.
 - Notable regressions/improvements: per-budget `25k/50k/100k` unchanged (fade off there), `150k 614.9->632.5`, `200k 616.4->633.9` — both now ABOVE work-new (626.8/627.9): first decisive high-budget ceiling break. Remaining deficit vs work-new is at 50k (271.8 vs 433.8) and 100k (580.6 vs 624.5), traced to the contract-search machinery failing to complete deep specs cheaply — the next lever.
 - Status: Kept and committed as the new baseline.
+
+## cleanup-suffix-repair + cleanup-axis-quality
+
+- Two dead-machinery removals (see commits 017dd2e, 5e63d14). Suffix-repair: 0.0 contribution, removed (~248 lines). Axis-quality 7 streams: -0.2 (noise) for large complexity, removed (~611 lines). handoff.ts 3695->2889. Baseline after cleanup: 563.7 (suffix byte-identical; axis-quality -0.2 intentional). Kept (ablation-confirmed load-bearing): preview (-274 if off), tail-completion (25k driver), reuse+brake (-274 if off), release-vertical.
+
+## arc-budget-curve-c01 (budget-aware ride-out curvature)
+
+- Baseline used: post-cleanup HEAD (HEADLINE 563.7, archive baseline-clean-563).
+- Diagnosis: high budget is converged and already beats work-new at 150k/200k; adding candidate breadth (16->24) or unconditional curvature both DILUTE it. But per-attempt post-contact ride-out curvature is a big LOW-budget COMPLETION lever (25k +19, 50k +54 — more shapes find a valid chain on deep specs) that only hurts high budget.
+- Hypothesis: make curvature BUDGET-AWARE — full span at scarce budget (completion), faded to zero at ample budget (protect the converged ceiling).
+- Code changes made: added a per-compile budget global (`setCompileBudgetFrames`, set once at compileHandoffInternal entry — budget is a per-compile constant, so determinism stays per (spec,seed,budget) and the per-node candidate cache stays valid). `sampleContactCenteredLines` now applies a post-contact `curveBias` (deterministic low-discrepancy per attempt, salt 8, no extra rng draw) scaled by `CONTACT_CENTERED_POST_CURVE_BIAS_SPAN=0.6 * (1 - smoothstep((budget-50k)/50k))` — full <=50k, off >=100k. `buildPostContactLines` gained an optional `curveBias` applied via `applyArcCurveBias` to the angle-interpolation t. No scorer/spec/fingerprint/seed/metric/grid changes; 816c00d44528 preserved.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/hb-curve-faded`
+- Decide result: `VERDICT: ACCEPT`; baseline `563.7` -> candidate `569.7`; `Delta headline = +6.0`, 95% CI `[-3.2, 16.4]`, `P(Delta<=0)=9.7%`.
+- Notable regressions/improvements: `25k 108.9->127.6 (+18.7)`, `50k 271.8->325.4 (+53.6)`; `100k/150k/200k` byte-identical (curvature faded off). Validity `25k 74%->76%`, `50k 87%->90%`. Closes a big chunk of the 50k gap to work-new (433.8). Establishes the budget-aware-generation infra for future budget-shaped diversity.
+- Status: Kept and committed as the new baseline (569.7).

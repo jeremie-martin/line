@@ -817,7 +817,9 @@ function sampleContactCenteredLines(
     y: targetState.sledY + tangentY * tangentJitter + normalY * normalJitter,
   };
 
-  const curveFade = 1 - smoothstep(
+  // LR_CURVE_FADE_OFF=1 keeps curvature at FULL span across all budgets (experiment:
+  // does this diversity now pay at high budget once the forward-eval ranker can sort it?).
+  const curveFade = PROCESS_ENV?.LR_CURVE_FADE_OFF === "1" ? 1 : 1 - smoothstep(
     (currentCompileBudgetFrames - CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES) /
       CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES,
   );

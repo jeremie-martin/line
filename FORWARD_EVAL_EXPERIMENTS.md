@@ -105,6 +105,33 @@ spend-a-fraction-of-budget-on-eval) per the "smooth budget scaling" rule; (b) dr
 affordable band toward the free ceiling (~650); (c) "more geometry" now that the high-budget ranker
 is strong; (d) productionize as default (budget-gated, charged) and re-baseline.
 
+## Geometry diversity × good ranking (does diversity pay now?) — YES
+
+With the forward-eval ranker ON (greedy:2, free), re-enable the diversity knobs that
+*hurt* under the old local ranker. Δ vs forward-eval-alone (fwd-greedy2 = 629.1):
+
+| knob | HEADLINE | Δ | 100k | 150k | 200k | verdict |
+|---|---|---|---|---|---|---|
+| `LR_QUALITY_NCAND=24` | 630.7 | +1.6 | +1.6 | +1.6 | +1.7 | ACCEPT (P=0.1%) |
+| `LR_CURVE_FADE_OFF=1` (curvature all budgets) | 637.0 | +7.9 | +15.7 | +17.2 | +0.1 | inconclusive (noisy) |
+| both | 638.1 | +9.0 | +16.8 | +18.2 | +1.2 | inconclusive |
+
+**The flips prove the thesis** (better ranking unlocks diversity):
+- candidate count 16→24: **−0.8 under the old local ranker → +1.6 (clean ACCEPT) now**.
+- unconditional curvature: **−17 at 100k under the old ranker → +15.7 at 100k now**.
+Diversity was always available; the local ranker couldn't sort it. Forward-eval can.
+Curvature helps mid-budget (100k/150k), flat at 200k, noisy overall. Knobs: handoff.ts
+`handoffSampleCount` (LR_QUALITY_NCAND), arc_placement.ts curveFade (LR_CURVE_FADE_OFF).
+
+## Big next frontier: smarter SEARCH (now that node evaluation is good)
+The handoff is a frontier-DFS that commits into the locally-best-3 and rarely revisits
+deferred older nodes — rational when node eval was noisy, limiting now that it's good.
+Forward-eval gives a usable TRUE partial-track score (forwardNodeScore) = exactly the
+priority signal a smarter traversal needs. Candidates (increasing ambition):
+(1) best-first over a global frontier keyed by true partial-score (revisits promising
+older nodes); (2) beam search (top-W partials/depth — pairs with diversity); (3)
+anytime/A*-like re-expansion. The search only needs an evaluation; we now have one.
+
 ## Planned experiments (methodic)
 1. Horizon sweep: greedy:1 / :2 / :3 / :4 — how deep does the lookahead need to be?
 2. best:2:2 / best:2:3 / best:3:2 — does optimistic branching beat greedy/avg, or over-shoot?

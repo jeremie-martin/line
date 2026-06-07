@@ -2078,7 +2078,14 @@ export function handoffSampleCount(
   qualitySearch: boolean,
   sparseContractSearch = false,
 ): number {
-  if (qualitySearch) return HANDOFF_QUALITY_N_CAND;
+  if (qualitySearch) {
+    // LR_QUALITY_NCAND=<n> overrides the quality-phase candidate breadth (experiment:
+    // does more geometry diversity pay now that the forward-eval ranker can sort it?).
+    const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.LR_QUALITY_NCAND;
+    const n = raw ? Number.parseInt(raw, 10) : 0;
+    return Number.isFinite(n) && n > 0 ? Math.min(64, n) : HANDOFF_QUALITY_N_CAND;
+  }
   return sparseContractSearch ? HANDOFF_SPARSE_CONTRACT_N_CAND : HANDOFF_CONTRACT_N_CAND;
 }
 

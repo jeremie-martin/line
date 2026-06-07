@@ -602,6 +602,17 @@ function compileHandoffInternal(
     const consideredSearchNodes = new WeakSet<SearchNode>();
     let captured: CompileCheckpoint | null = null;
 
+    // Track-repair: off by default, budget-gated. Completion-triggered (R2): the main
+    // search runs only until the first complete track (frame count `firstCompletionFrame`),
+    // then a post-pass spends the REST of the budget restarting the real frontier-DFS from
+    // the weakest gap of the complete incumbent (see runRepairPhase). `bestCompleteNode` is
+    // the live incumbent HandoffNode (updated on every register improvement) so repair can
+    // replay its fits to reconstruct any prefix node for free (extendNodeCached memoizes).
+    const repair = repairConfig();
+    const repairEnabled = repair !== null && targetBudget >= repair.minBudget && startOptions.length > 0;
+    let bestCompleteNode: HandoffNode | null = null;
+    let firstCompletionFrame = -1;
+
     const evaluateCached = (node: HandoffNode): NodeEvaluation => {
       const cached = evaluationCache.get(node.search);
       if (cached !== undefined) return cached;
@@ -639,6 +650,10 @@ function compileHandoffInternal(
         evaluation.key,
       );
       recordImprovementTelemetry(telemetry, phase, improved);
+      if (improved && isTerminalNode(node.search, gaps)) {
+        bestCompleteNode = node;
+        if (firstCompletionFrame < 0) firstCompletionFrame = getSimFrames();
+      }
       const event: HandoffNodeEvent = {
         phase,
         simFrames: getSimFrames(),
@@ -834,7 +849,10 @@ function compileHandoffInternal(
             consideredCount: register.consideredCount,
           };
           opts.onNode?.(polishNode, evaluation.key, event);
-          if (improved) polishAdopted++;
+          if (improved) {
+            polishAdopted++;
+            bestCompleteNode = polishNode;
+          }
         }
       }
 
@@ -862,7 +880,125 @@ function compileHandoffInternal(
       );
     };
 
+    // Run the REAL frontier-DFS (same machinery as the main search: rescue, far-back pulse,
+    // tail completion, register) seeded from one node, until `ceiling` sim-frames or the
+    // frontier empties. This is how repair re-searches a suffix — it branches into the OTHER
+    // arcs at the restart gap and rebuilds the whole tail with full power, not a greedy dive.
+    const runFrontierFrom = (initial: HandoffNode, ceiling: number): void => {
+      const pass: HandoffNode[] = initial.skippedContacts === 0 ? [initial] : [];
+      const fb: HandoffNode[] = initial.skippedContacts === 0 ? [] : [initial];
+      while (
+        frontierSize(pass, fb) > 0 &&
+        telemetry.nodesExpanded < maxNodes &&
+        getSimFrames() < ceiling
+      ) {
+        const node = popNextFrontierNode(pass, fb, telemetry, farBackFrontierPulseInterval(register.getBestKey()));
+        telemetry.frontierSelections++;
+        const result = processNode(node);
+        if (result.kind === "captured") return;
+        if (result.kind === "deferred") {
+          enqueueDeferred({ ...node, deferExpansion: false }, pass, fb);
+          continue;
+        }
+        for (let i = result.children.length - 1; i >= 0; i--) enqueueChild(result.children[i], pass, fb);
+      }
+    };
+
+    // Aimed-repair post-pass (R2): the main search has produced a complete incumbent using
+    // only `firstCompletionFrame*mainMargin` frames; spend the rest here. Repeatedly: find the
+    // weakest AFFORDABLE contact gap of the incumbent, reconstruct the prefix before it (free —
+    // replay the incumbent's own fits, extendNodeCached memoizes), and RESTART the real
+    // frontier-DFS from there with a feasibility-sized ceiling. The register accepts a rebuilt
+    // track iff it beats the incumbent (complete-or-discard). Contained (its own budget, NOT a
+    // shared-frontier enqueue — the distinction from the removed interleaved repair). Honest
+    // (sims charged), deterministic per (spec,seed,budget). See TRACK_REPAIR_EXPERIMENTS.md.
+    const runRepairPhase = (): void => {
+      if (repair === null) return;
+      // Cost model: avg frames per contact-gap of the full search, from the main phase.
+      const perGap = firstCompletionFrame > 0
+        ? firstCompletionFrame / Math.max(1, telemetry.deepestSeenGap + 1)
+        : 0;
+      const exhausted = new Set<number>();
+      let attempts = 0;
+      let restartCounter = 0;
+      while (
+        attempts < repair.maxAttempts &&
+        getSimFrames() < targetBudget &&
+        bestCompleteNode !== null &&
+        isTerminalNode(bestCompleteNode.search, gaps)
+      ) {
+        const incumbent = bestCompleteNode;
+        const root = startOptions.find((o) => o.rank === incumbent.startRank)?.root;
+        if (root === undefined) break;
+        const remaining = targetBudget - getSimFrames();
+        // Worst AFFORDABLE gap (symptom): largest axis-error² whose est. cost to re-complete
+        // fits the remaining budget. Falls back to later/cheaper gaps when budget is tight.
+        const kWorst = pickFeasibleWeakGap(
+          evaluateCached(incumbent).report, gaps, exhausted, perGap, remaining * (1 / repair.feasMargin),
+        );
+        if (kWorst < 0) break;
+
+        // R4 seed-perturbed restart: re-running the search from a gap with the SAME seed re-samples
+        // the SAME seeded candidates → re-converges to the same incumbent (wasted). A FRESH derived
+        // seed samples genuinely different arc geometry → real exploration (this is "try different
+        // arcs", via the proven search). Deterministic per (spec,seed,budget): the restart seed is a
+        // fixed mix of searchSeed and a restart counter. R3 upstream walk (LR_REPAIR_MAX_UPSTREAM)
+        // composes on top: if a restart re-converges anyway, escalate the anchor to the parent.
+        let improvedAny = false;
+        for (let up = 0; up <= repair.maxUpstream; up++) {
+          const k = kWorst - up;
+          if (k < 0 || attempts >= repair.maxAttempts || getSimFrames() >= targetBudget) break;
+          const estCost = perGap * Math.max(1, gaps.length - k);
+          // Walking upstream only gets more expensive; stop if we can't afford to finish.
+          if (perGap > 0 && estCost * repair.feasMargin > targetBudget - getSimFrames()) break;
+          attempts++;
+          restartCounter++;
+          const restartSeed = ((incumbent.searchSeed | 0) ^ Math.imul(restartCounter, 0x9e3779b1)) | 0;
+
+          let prefix = root;
+          for (let i = 0; i < k; i++) prefix = extendNodeCached(prefix, incumbent.search.prefixFits[i]);
+          const prefixNode: HandoffNode = {
+            search: prefix,
+            startState: incumbent.startState,
+            startRank: incumbent.startRank,
+            searchSeed: restartSeed,
+            startExpanded: true,
+            deferExpansion: false,
+            rankTrace: [],
+            skippedContacts: 0,
+          };
+          const ceiling = Math.min(targetBudget, getSimFrames() + Math.ceil(estCost * repair.feasMargin));
+          const beforeScore = evaluateCached(incumbent).key.full_score;
+          const framesBefore = getSimFrames();
+          runFrontierFrom(prefixNode, ceiling);
+          const afterScore = bestCompleteNode ? evaluateCached(bestCompleteNode).key.full_score : beforeScore;
+          const improved = afterScore > beforeScore + 1e-6;
+          if (repair.log) {
+            const fit = k > 0 ? incumbent.search.prefixFits[k - 1] : undefined;
+            process.stderr.write(
+              `repair seed=${seed} budget=${targetBudget} worst=${kWorst} anchor=${k} up=${up} ` +
+              `dScore=${(afterScore - beforeScore).toFixed(2)} frames=${getSimFrames() - framesBefore} ` +
+              `estCost=${Math.round(estCost)} inhSpeed=${fit?.releaseSpeed?.toFixed(2) ?? "na"} ` +
+              `inhVy=${fit?.releaseVelocityY?.toFixed(2) ?? "na"} ` +
+              `inhGrounded=${fit?.releaseGroundedFrames ?? "na"}\n`,
+            );
+          }
+          if (improved) { improvedAny = true; break; }
+        }
+        // Exhaust the gap only if no fresh-seed restart helped; a productive gap is re-picked
+        // (with the next fresh seed) so budget concentrates where it pays.
+        if (!improvedAny) exhausted.add(kWorst);
+      }
+    };
+
     while (frontierSize(passStack, fallbackStack) > 0 && telemetry.nodesExpanded < maxNodes) {
+      // Completion-triggered handoff to repair: once the main search has a complete track,
+      // stop it (after firstCompletion*mainMargin frames) and spend the rest on aimed repair.
+      // Off, or before any completion → runs to budget exactly → byte-identical baseline.
+      if (
+        repairEnabled && firstCompletionFrame >= 0 &&
+        getSimFrames() >= firstCompletionFrame * repair!.mainMargin
+      ) break;
       const bestKey = register.getBestKey();
       const node = popNextFrontierNode(
         passStack,
@@ -883,6 +1019,11 @@ function compileHandoffInternal(
         enqueueChild(result.children[i], passStack, fallbackStack);
       }
       noteFrontierSize();
+    }
+
+    // Contained worst-gap suffix-rebuild post-pass on the reserved budget tail.
+    if (repairEnabled && captured === null) {
+      runRepairPhase();
     }
 
     // Frontier exhausted (or node cap hit) before the budget was reached: snapshot
@@ -2044,6 +2185,10 @@ function completeNearTailSuffix(
   qualitySearch: boolean,
   sparseContractSearch: boolean,
   targetBudget: number,
+  /** Repair use: bound the rebuild so one attempt can't eat the whole slice.
+   *  Defaults preserve the near-tail caller (unbounded — its window is tiny). */
+  maxNodes: number = Infinity,
+  frameCeiling: number = Infinity,
 ): CompletedHandoffSuffix | null {
   const stack: CompletedHandoffSuffix[] = [
     {
@@ -2051,7 +2196,9 @@ function completeNearTailSuffix(
       rankTrace: startTrace,
     },
   ];
+  let nodes = 0;
   while (stack.length > 0) {
+    if (nodes >= maxNodes || getSimFrames() >= frameCeiling) return null;
     const state = stack.pop()!;
     let search = state.search;
     let rankTrace = cloneRankTrace(state.rankTrace);
@@ -2062,6 +2209,7 @@ function completeNearTailSuffix(
     }
     if (isTerminalNode(search, gaps)) return { search, rankTrace };
 
+    nodes++;
     const gap = gaps[search.gapIndex];
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
       nCand: qualitySearch
@@ -2090,6 +2238,37 @@ function completeNearTailSuffix(
     }
   }
   return null;
+}
+
+/** Weakest AFFORDABLE contact gap to restart repair from. Weakness = Σ axis-error² (its
+ *  share of the score's axis_error_rms; for a VALID track drift/missing are 0 by construction,
+ *  so axis_quality is the only quality lever → axis-SSE is the faithful "most valuable to
+ *  change" proxy — v1, a proxy for true upstream blame; see TRACK_REPAIR_EXPERIMENTS.md).
+ *  FEASIBILITY: skip gaps whose estimated cost to re-complete (`perGap*(gaps-k)`) exceeds
+ *  `budgetCap` — restarting from a gap we can't finish wastes the slice. Iterating worst-first
+ *  and returning the first feasible one naturally falls back to later/cheaper gaps when budget
+ *  is tight. Skips `exhausted`; ties → lower index. Returns -1 if none feasible/left. */
+function pickFeasibleWeakGap(
+  report: DriftReport,
+  gaps: Gap[],
+  exhausted: Set<number>,
+  perGap: number,
+  budgetCap: number,
+): number {
+  const ranked: { gap: number; sse: number }[] = [];
+  for (const g of report.gaps) {
+    if (exhausted.has(g.gap_index)) continue;
+    if (!gaps[g.gap_index]?.endsWithContact) continue;
+    let sse = 0;
+    for (const v of Object.values(g.axes)) sse += v.error * v.error;
+    ranked.push({ gap: g.gap_index, sse });
+  }
+  ranked.sort((a, b) => b.sse - a.sse || a.gap - b.gap);
+  for (const r of ranked) {
+    const estCost = perGap * Math.max(1, gaps.length - r.gap);
+    if (perGap <= 0 || estCost <= budgetCap) return r.gap;
+  }
+  return -1;
 }
 
 export function handoffSampleCount(
@@ -2485,6 +2664,55 @@ let fwdEvalGapAxisTargets: AxisValues[] = [];
 export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]): void {
   fwdEvalSpec = spec;
   fwdEvalGapAxisTargets = gapAxisTargets;
+}
+
+function readEnv(name: string): string | undefined {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.[name];
+}
+
+/** Track-repair config (worst-gap suffix rebuild, see TRACK_REPAIR_EXPERIMENTS.md).
+ *  Off by default → baseline byte-identical. A repair carves a budget slice from the
+ *  end of the compile: the main search runs to `(1-fraction)*budget`, then the weakest
+ *  gap of the complete incumbent is re-decided and the suffix REBUILT to a complete
+ *  track, accepted (via the register) iff it beats the incumbent. Honest (sims charged),
+ *  budget-gated (completion is DFS's job at low budget), deterministic per (spec,seed,budget). */
+type RepairConfig = {
+  minBudget: number;
+  mainMargin: number;
+  feasMargin: number;
+  maxAttempts: number;
+  maxUpstream: number;
+  log: boolean;
+};
+function repairConfig(): RepairConfig | null {
+  const raw = readEnv("LR_REPAIR");
+  if (raw === undefined || raw === "" || raw === "0" || raw === "off") return null;
+  const num = (name: string, def: number, lo: number, hi: number): number => {
+    const n = Number.parseInt(readEnv(name) ?? "", 10);
+    return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
+  };
+  const flt = (name: string, def: number, lo: number, hi: number): number => {
+    const n = Number.parseFloat(readEnv(name) ?? "");
+    return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
+  };
+  return {
+    minBudget: num("LR_REPAIR_MIN_BUDGET", 150_000, 0, 100_000_000),
+    // Completion-triggered split: run the main search to firstCompletion*mainMargin, then repair.
+    mainMargin: flt("LR_REPAIR_MAIN_MARGIN", 1.0, 1.0, 10.0),
+    // Feasibility: only restart from gap k if est. cost-to-complete * feasMargin <= remaining budget.
+    feasMargin: flt("LR_REPAIR_FEAS_MARGIN", 1.5, 1.0, 10.0),
+    // Cap on repair restarts. High-budget binds on this (1M affords ~30-40 restarts); low/mid
+    // budgets exhaust the budget first, so a high cap is a no-op there. 16 plateaued 1M at 698;
+    // 64 → 706.6 (the cap, not the budget, was the 1M plateau).
+    maxAttempts: num("LR_REPAIR_MAX_ATTEMPTS", 64, 1, 1000),
+    // R3 upstream blame (TRIED, REJECTED −1.6 vs R2 @350k; default OFF): walking the anchor
+    // upstream re-runs the SAME deterministic search from the parent, which re-converges to the
+    // same incumbent at 35-55k frames each — wasted budget vs spending it on more worst gaps.
+    // Kept as a tunable. >0 walks up to N parents when a restart re-converges.
+    maxUpstream: num("LR_REPAIR_MAX_UPSTREAM", 0, 0, 64),
+    log: readEnv("LR_REPAIR_LOG") === "1",
+  };
 }
 
 /** Budget-aware gate: forward eval only activates at/above this compile budget

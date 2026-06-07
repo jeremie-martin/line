@@ -63,6 +63,31 @@ diversity-preserving), prune the rest.
 - **Risk:** pruning a temporarily-worse prefix that would have recovered (classic beam myopia) —
   mitigate with diversity-preserving keep + always retaining the current best complete track.
 
+#### Beam result — TRIED, DEAD END (2026-06-07)
+Implemented depth-synchronized beam (env `LR_SEARCH=beam`, width `LR_BEAM_WIDTH`, branch
+`LR_BEAM_BRANCH`), beam pruned by true `full_score` (`forwardNodeScore`), budget-gated so DFS
+keeps low budget (`LR_BEAM_MIN_BUDGET`). Reused the shared `processNode`; parameterized
+`expandNode`'s branch slice. **The fair A/B (hold the ranker fixed at `LR_FWD_EVAL=greedy:2`,
+vary only traversal; 6 specs × 4 seeds):**
+
+| traversal (both greedy:2) | 100k | 200k | HEADLINE | valid@200k |
+|---|---|---|---|---|
+| **DFS** (state of the art) | 654.6 | 656.6 | **656.0** | 24/24 |
+| **beam** (W=4,K=3) | 127.1 | 176.8 | 160.3 | **13/24** |
+
+Beam loses by ~500 headline and **fails to complete half the specs** (solo_run 2–13,
+drums_signature 33–260) — and fails *with budget to spare* (beam emptied at 105–130k of 200k
+sim; DFS used the full 200k to dive+rescue to 24/24). Root cause = characteristics A+B: the
+highest-partial-score prefix *now* frequently dead-ends later (forward-dependency); once beam
+prunes the alternatives it cannot recover (beam myopia on a fragile-completion problem). The
+"always keep best complete track" mitigation doesn't help — on the failing specs beam never
+finds ANY valid terminal. **Same lesson as best-first: a from-root traversal that discards
+DFS's frontier+rescue completion machinery fails. Do not pursue from-root beam.** (Earlier
+"beam wins at high budget 604 vs 588" was an artifact: it compared beam against the *weak
+local-ranker* DFS on a lucky 2-spec subset, not against the real forward-eval DFS at 656.)
+Conclusion redirects to #4: the only traversal that respects DFS-for-completion is one that
+starts FROM a DFS-completed track.
+
 ### 4. ★ Iterated local refinement (on a COMPLETE track) — strongest high-budget quality lever
 Once DFS yields a valid complete track, repeatedly pick the weakest gap (lowest per-gap score —
 D gives us this directly) and re-search just that gap's catch (and a small downstream window,

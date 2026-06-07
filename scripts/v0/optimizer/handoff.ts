@@ -408,6 +408,22 @@ const HANDOFF_BRAKE_QUALITY_BASE_K = 3;
 const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
 const HANDOFF_AIR_SUPPORT_QUALITY_K = 1;
 const HANDOFF_LOW_AIR_SUPPORT_TARGET_MAX = 0.25;
+const HANDOFF_LOW_AIR_SETTLE_QUALITY_K = 3;
+const HANDOFF_LOW_AIR_SETTLE_TARGET_SCALE = 0.45;
+const HANDOFF_LOW_AIR_SETTLE_BUDGET_SCALE_FRAMES = 150_000;
+const HANDOFF_LOW_AIR_SETTLE_FULL_FEEDBACK_SCALE = 48;
+const HANDOFF_LOW_AIR_SETTLE_WEAK_AXIS_QUALITY = 0.40;
+const HANDOFF_LOW_AIR_SETTLE_WEAK_AXIS_QUALITY_WIDTH = 0.12;
+const HANDOFF_LOW_AIR_SETTLE_SEED_SALT = 0x7f4a7c15;
+const HANDOFF_LOW_AIR_SETTLE_ATTEMPT_OFFSET = 10000;
+const HANDOFF_WEAK_NEXT_AIR_SUPPORT_QUALITY_K = 1;
+const HANDOFF_WEAK_NEXT_AIR_SUPPORT_TARGET_SCALE = 0.45;
+const HANDOFF_WEAK_NEXT_AIR_SUPPORT_BUDGET_SCALE_FRAMES = 150_000;
+const HANDOFF_WEAK_NEXT_AIR_SUPPORT_FULL_FEEDBACK_SCALE = 48;
+const HANDOFF_WEAK_NEXT_AIR_SUPPORT_WEAK_AXIS_QUALITY = 0.62;
+const HANDOFF_WEAK_NEXT_AIR_SUPPORT_WEAK_AXIS_QUALITY_WIDTH = 0.30;
+const HANDOFF_WEAK_NEXT_AIR_SUPPORT_SEED_SALT = 0x5f356495;
+const HANDOFF_WEAK_NEXT_AIR_SUPPORT_ATTEMPT_OFFSET = 11000;
 const HANDOFF_SPEED_SUPPORT_QUALITY_K = 2;
 const HANDOFF_SPEED_SUPPORT_OVERSPEED_SCALE = 0.45;
 const HANDOFF_SPEED_DRAG_QUALITY_K = 1;
@@ -960,6 +976,7 @@ function compileHandoffInternal(
         register.getBestKey()?.contract_passed === true,
         sparseContractSearch,
         targetBudget,
+        register.getBestKey(),
       );
       telemetry.nodesExpanded++;
       for (let i = children.length - 1; i >= 0; i--) {
@@ -1453,6 +1470,7 @@ function expandNode(
   qualitySearch: boolean,
   sparseContractSearch: boolean,
   targetBudget: number,
+  bestKey: LeafKey | null,
 ): HandoffNode[] {
   if (isTerminalNode(node.search, gaps)) return [];
   if (!node.startExpanded) {
@@ -1496,6 +1514,7 @@ function expandNode(
     releaseSetup: qualitySearch,
     previewCostWeight: PREVIEW_COST_WEIGHT,
     targetBudget,
+    bestAxisQuality: bestKey?.axis_quality,
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap, ctx)) {
     telemetry.rescueAttempts++;
@@ -1509,6 +1528,7 @@ function expandNode(
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
       targetBudget,
+      bestAxisQuality: bestKey?.axis_quality,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -1527,6 +1547,7 @@ function expandNode(
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
       targetBudget,
+      bestAxisQuality: bestKey?.axis_quality,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -1722,6 +1743,7 @@ function rankedOptions(
     previewCostWeight?: number;
     releaseSetup?: boolean;
     targetBudget?: number;
+    bestAxisQuality?: number;
   } = {},
 ): RankedOption[] {
   const requestedCandidates = config.nCand ?? HANDOFF_CONTRACT_N_CAND;
@@ -1826,12 +1848,227 @@ function rankedOptions(
       entry.axis,
     ))
   );
+  const isolatedAxisQuality = [
+    ...weakLowAirSettleCandidates(
+      node,
+      gaps,
+      ctx,
+      seed,
+      config.axisQualitySearch ?? false,
+      telemetry,
+      targetBudget,
+      config.bestAxisQuality,
+    ).map((candidate) => ({ candidate, axis: "air" as AxisName })),
+    ...weakNextAirSupportCandidates(
+      node,
+      gaps,
+      ctx,
+      seed,
+      config.axisQualitySearch ?? false,
+      telemetry,
+      targetBudget,
+      config.bestAxisQuality,
+    ).map((candidate) => ({ candidate, axis: "air" as AxisName })),
+  ];
+  isolatedAxisQuality.forEach((entry, j) =>
+    scored.push(scoreCandidateForHandoff(
+      node,
+      entry.candidate,
+      poolSize + reuse.length + brake.length + axisQuality.length + j,
+      "axisq",
+      gaps,
+      ctx,
+      seed,
+      telemetry,
+      preview,
+      previewCostWeight,
+      config.releaseSetup ?? false,
+      entry.axis,
+    ))
+  );
   scored.sort((a, b) =>
     a.score - b.score ||
     (a.candidate?.cost ?? Infinity) - (b.candidate?.cost ?? Infinity) ||
     a.rank - b.rank
   );
   return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+function weakLowAirSettleCandidates(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  enabled: boolean,
+  telemetry: HandoffTelemetry,
+  targetBudget: number,
+  bestAxisQuality?: number,
+): Candidate[] {
+  if (!enabled || bestAxisQuality === undefined) return [];
+  const gap = gaps[node.gapIndex];
+  if (!gap.endsWithContact) return [];
+  const target = gap.targets.air;
+  if (target === undefined) return [];
+  const pressure =
+    lowAirTargetPressure(target, HANDOFF_LOW_AIR_SETTLE_TARGET_SCALE) *
+    weakAxisQualityPressure(
+      bestAxisQuality,
+      HANDOFF_LOW_AIR_SETTLE_WEAK_AXIS_QUALITY,
+      HANDOFF_LOW_AIR_SETTLE_WEAK_AXIS_QUALITY_WIDTH,
+    ) *
+    maturityPressure(targetBudget, HANDOFF_LOW_AIR_SETTLE_BUDGET_SCALE_FRAMES) *
+    fullFeedbackPressure(telemetry, HANDOFF_LOW_AIR_SETTLE_FULL_FEEDBACK_SCALE);
+  const samples = fractionalSampleCount(
+    HANDOFF_LOW_AIR_SETTLE_QUALITY_K,
+    pressure,
+    weakLowAirSettleDitherSeed(seed, node),
+  );
+  if (samples <= 0) return [];
+
+  const rng = makeRng(weakLowAirSettleSeed(seed, node.gapIndex));
+  const candidates: Candidate[] = [];
+  for (let attempt = 0; attempt < samples; attempt++) {
+    const candidate = sampleIsolatedAirQualityCandidate(
+      node,
+      gap,
+      rng,
+      ctx,
+      telemetry,
+      HANDOFF_LOW_AIR_SETTLE_ATTEMPT_OFFSET + attempt,
+      "low_air_settle",
+      gap.targets,
+    );
+    if (candidate !== null) candidates.push(candidate);
+  }
+  return candidates;
+}
+
+function weakNextAirSupportCandidates(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  enabled: boolean,
+  telemetry: HandoffTelemetry,
+  targetBudget: number,
+  bestAxisQuality?: number,
+): Candidate[] {
+  if (!enabled || bestAxisQuality === undefined) return [];
+  const gap = gaps[node.gapIndex];
+  if (!gap.endsWithContact) return [];
+  const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex + 1);
+  if (nextGapIndex < 0) return [];
+  const target = gaps[nextGapIndex].targets.air;
+  if (target === undefined) return [];
+  const pressure =
+    lowAirTargetPressure(target, HANDOFF_WEAK_NEXT_AIR_SUPPORT_TARGET_SCALE) *
+    weakAxisQualityPressure(
+      bestAxisQuality,
+      HANDOFF_WEAK_NEXT_AIR_SUPPORT_WEAK_AXIS_QUALITY,
+      HANDOFF_WEAK_NEXT_AIR_SUPPORT_WEAK_AXIS_QUALITY_WIDTH,
+    ) *
+    maturityPressure(targetBudget, HANDOFF_WEAK_NEXT_AIR_SUPPORT_BUDGET_SCALE_FRAMES) *
+    fullFeedbackPressure(telemetry, HANDOFF_WEAK_NEXT_AIR_SUPPORT_FULL_FEEDBACK_SCALE);
+  const samples = fractionalSampleCount(
+    HANDOFF_WEAK_NEXT_AIR_SUPPORT_QUALITY_K,
+    pressure,
+    weakNextAirSupportDitherSeed(seed, node),
+  );
+  if (samples <= 0) return [];
+
+  const rng = makeRng(weakNextAirSupportSeed(seed, node.gapIndex));
+  const geometryTargets = { ...gap.targets, air: target };
+  const candidates: Candidate[] = [];
+  for (let attempt = 0; attempt < samples; attempt++) {
+    const candidate = sampleIsolatedAirQualityCandidate(
+      node,
+      gap,
+      rng,
+      ctx,
+      telemetry,
+      HANDOFF_WEAK_NEXT_AIR_SUPPORT_ATTEMPT_OFFSET + attempt,
+      "air_support",
+      geometryTargets,
+    );
+    if (candidate !== null) candidates.push(candidate);
+  }
+  return candidates;
+}
+
+function sampleIsolatedAirQualityCandidate(
+  node: SearchNode,
+  gap: Gap,
+  rng: () => number,
+  ctx: SpecContext,
+  telemetry: HandoffTelemetry,
+  attempt: number,
+  mode: CandidateSampleMode,
+  geometryTargets: AxisValues,
+): Candidate | null {
+  telemetry.axisQualityAttempts++;
+  telemetry.axisQualityAttemptsByAxis.air =
+    (telemetry.axisQualityAttemptsByAxis.air ?? 0) + 1;
+  const candidate = sampleOneCandidate(
+    node.prefixEngine,
+    gap,
+    rng,
+    ctx,
+    node.prefixNextLineId,
+    attempt,
+    mode,
+    geometryTargets,
+  );
+  if (candidate === null) return null;
+  telemetry.axisQualitySuccesses++;
+  telemetry.axisQualitySuccessesByAxis.air =
+    (telemetry.axisQualitySuccessesByAxis.air ?? 0) + 1;
+  return candidate;
+}
+
+function lowAirTargetPressure(target: number, scale: number): number {
+  return smoothstep(clamp01((scale - target) / scale));
+}
+
+function weakAxisQualityPressure(axisQuality: number, weakQuality: number, width: number): number {
+  return smoothstep(clamp01((weakQuality - axisQuality) / width));
+}
+
+function maturityPressure(targetBudget: number, scaleFrames: number): number {
+  const budget = Math.max(0, targetBudget);
+  return smoothstep(clamp01(budget / (budget + scaleFrames)));
+}
+
+function fullFeedbackPressure(telemetry: HandoffTelemetry, scale: number): number {
+  const uniqueFull = uniqueFullEvaluations(telemetry);
+  return smoothstep(clamp01(uniqueFull / (uniqueFull + Math.max(1, scale))));
+}
+
+function weakLowAirSettleSeed(seed: number, gapIndex: number): number {
+  return (Math.imul(seed | 0, 1000003) + gapIndex + HANDOFF_LOW_AIR_SETTLE_SEED_SALT) | 0;
+}
+
+function weakLowAirSettleDitherSeed(seed: number, node: SearchNode): number {
+  return (
+    weakLowAirSettleSeed(seed, node.gapIndex) ^
+    Math.imul(node.prefixNextLineId | 0, 0x9e3779b1) ^
+    Math.imul(HANDOFF_LOW_AIR_SETTLE_ATTEMPT_OFFSET, 0x85ebca6b)
+  ) | 0;
+}
+
+function weakNextAirSupportSeed(seed: number, gapIndex: number): number {
+  return (
+    Math.imul(seed | 0, 1000003) +
+    gapIndex +
+    HANDOFF_WEAK_NEXT_AIR_SUPPORT_SEED_SALT
+  ) | 0;
+}
+
+function weakNextAirSupportDitherSeed(seed: number, node: SearchNode): number {
+  return (
+    weakNextAirSupportSeed(seed, node.gapIndex) ^
+    Math.imul(node.prefixNextLineId | 0, 0x9e3779b1) ^
+    Math.imul(HANDOFF_WEAK_NEXT_AIR_SUPPORT_ATTEMPT_OFFSET, 0x85ebca6b)
+  ) | 0;
 }
 
 function scarceFeedbackQualityNormalCandidateCount(

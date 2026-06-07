@@ -112,6 +112,23 @@ ceiling on low-air (long ride-out) catches. Both are open for the campaign.
 - **High-air long-end damp** (`arcLenHi *= 1−smoothstep(air past 0.6)`): Δ−1.4,
   INCONCLUSIVE. Recovered float_bounds (+8 @200k) but high-air specs do use long-arc
   diversity productively; net null. The room-only gate (attempt 1) stands.
+- **Short end open on high-air (regardless of room)**: Δ−5.9, INCONCLUSIVE. Perturbing
+  the tuned dense specs with shorter ride-outs cost 100k −19 and dipped validity. The
+  dense byte-identical boundary is load-bearing — don't perturb the original 20.
+- **Curvature fade off (LR_CURVE_FADE_OFF=1)**: Δ−2.7. Full post-contact curvature still
+  dilutes 100k (−18.8, validity dip) even with breadth 24 + forward-eval. The fade is correct.
+
+## Amplitude/elevation axis findings (measured)
+- **Amplitude is physically coupled to air.** One ballistic arc has pop ≈ g·(air·N)²/8,
+  so amplitude is pinned by airborne time (=air); achieved amplitude hugs the air-implied
+  ceiling and ignores its own target (big_air_ramp gap0: amp target 0.20, air ran to 0.98
+  → amp 0.99). Independently targeting low-amp+high-air (or high-amp at fixed mid-air) is
+  unsatisfiable with one catch per gap — it would need a multi-hop generator.
+- **Elevation is speed-bound.** Climb ceiling ≈0.65 (summit_push asks 0.75, climb_terrace
+  0.70 — above ceiling), and achieved (~0.49) sits below the ceiling because climbing
+  spends speed and these specs also demand high speed — a real Pareto trade.
+- **User decision (2026-06-07):** leave the specs as-is (treat as fixed hard cases),
+  keep the focus on the arc-length lever. So these specs cap the headline by design.
 
 ## Structural ceiling note (honest)
 The 10 new specs average ~510 @200k vs ~620–760 for the dense originals, and several

@@ -39,7 +39,7 @@ export type BudgetWeight = { budget: number; weight: number };
 /** One-sided probability gate for the accept/reject verdict.
  *  Accept iff the paired bootstrap puts < α mass at or below 0 (reliably an improvement);
  *  reject iff < α mass at or above 0 (reliably a regression); else inconclusive. */
-export const DECISION_ALPHA = 0.20;
+export const DECISION_ALPHA = 0.10;
 
 /** Per-config score cube: spec -> seed -> (budget -> score). */
 export type ScoreCube = Map<string, Map<number, Map<number, number>>>;

@@ -1,58 +1,33 @@
 /**
- * "Shelter" (Porter Robinson & Madeon) — first 65.5s, authored as continuous
- * curves over THREE axes: air, speed, and the new `elevation`.
+ * "Shelter" (Porter Robinson & Madeon) — first 65.5s. Three axes: air, speed,
+ * elevation (no grain), jitter 0.
  *
- * elevation ∈ [0,1] is an altitude *trend* relative to the speed-supported
- * vertical band: 0.5 = level (net-zero Δy), →1 = climb as steeply as the current
- * speed safely allows, →0 = plunge. It is RELATIVE to the maximum achievable, and
- * crucially coupled to speed: a rider must BANK speed before it can climb, and a
- * sustained climb spends that speed (constant-speed climb caps ~0.46). So the
- * authoring rule (probe_climb_banked) is: speed up first, then convert that
- * kinetic energy into a climb while speed falls.
+ * DENSITY follows the music (beats/shelter_65s.json is a VARIABLE-density grid):
+ * sparse 1.2s gaps in the intro & breakdown, tight 0.6s through the groove and
+ * chorus. The long gaps are deliberate — they become long slides / floaty airs
+ * where the music breathes, instead of a metronomic catch every 0.6s.
  *
- * Shelter is a soaring, emotional track — elevation is the perfect lead voice:
- * the rider literally rises into the hook and the big chorus, banks (descends to
- * gather speed) before the lift, and comes back down through the breakdown.
+ * elevation ∈ [0,1] = altitude trend vs the speed-supported vy band: 0.5 level,
+ * →1 climb, →0 plunge. RELATIVE and speed-coupled (bank speed, then spend it
+ * climbing). The honest per-gap `ceiling` (db5afdb) is ~0.65 at chorus speed, so
+ * the soar is authored to that — target above it is a true physics shortfall.
  *
- * Structure (madmom, beats/shelter_65s.mp3, 100 BPM dead-steady, 4/4):
- *   4-bar phrases: 0.33 / 9.93 / 19.53 / 29.13 / 38.73 / 48.33 / 57.93s
- *   onset-activation energy:
- *     0–8s   INTRO     low (~0.058)
- *     8–16s  HOOK      melody enters, lifts (~0.088)
- *     16–38s VERSE     settles, rolling mid (~0.068)
- *     38–44s RISE      building back up
- *     44–58s CHORUS    sustained peak — the emotional high (~0.093)
- *     58–66s BREAKDOWN drop then a small re-lift (~0.066)
+ * Axis story, mapped to structure (madmom, 100 BPM, phrases 0.33/9.93/19.53/
+ * 29.13/38.73/48.33/57.93):
+ *   INTRO  0–10s   sparse → long GROUNDED slides (low air), level
+ *   HOOK   10–20s  groove enters, air lifts, gentle elevation roll
+ *   VERSE  20–38s  flowing; then BANK (plunge + speed up) into the drop
+ *   CHORUS 38–58s  the SOAR — elevation pulse while banked speed is spent and
+ *                  air eases down so the climb wins (not floaty/level)
+ *   BREAK  58–65s  sparse → long FLOATY airs (high air), gentle descent, release
  *
- * Axis story:
- *   elevation  level intro → gentle lift into the hook → rolling verse around
- *              level → a deliberate BANK (descend to gain speed) into 38–44s →
- *              the big chorus SOAR (climb hard as banked speed converts to height)
- *              → release/descend through the breakdown back to level.
- *   speed      climbs through the verse and BANKS HIGH right before the chorus
- *              (38–44s) so there's energy to spend climbing, then decays across
- *              the soar (44–54s), recovering into the breakdown.
- *   air        grounded intro → flowing verse → airy chorus → settle.
- *
- * Contacts: clean 100 BPM grid (beats/shelter_65s.json), 109 contacts @0.6s —
- * the handoff compiler's sweet spot.
- *
- * jitter: 0 — the curves carry all variation; read them exactly.
- *
- * Result (handoff, seed 0, 2M budget): 109/109 hit, full ride, 0 off-beat,
- * score 720.3, axis_rms 0.082 (air 0.07 / speed 0.06 / elevation 0.06).
- *
- * Elevation note: with the honest `ceiling` diagnostic (db5afdb) the realistic
- * per-gap climb is ~0.65 at chorus speed (not 1.0) — so part of a very high
- * chorus target is a true PHYSICS shortfall (author within the ceiling). The rest
- * is AXIS COMPETITION: a high speed (or high air) target at the SAME gap as a
- * climb is antagonistic, because climbing spends speed and long floaty arcs are
- * net-level — equal-weight axis cost then trades the climb away. The fix: bank
- * speed BEFORE the chorus, then
- * let speed DECAY THROUGH the climb (overlap, don't hold), ease air down during
- * the soar, and shape elevation as a PULSE where speed is mid-fall (sustained
- * 0.8 after speed is spent just collapses). Achieved soar ~0.60 at the pulse vs
- * ~0.36 level elsewhere — a visible rise.
+ * Interestingness finding (analyze_track_shape.py): CONTACT DENSITY is the main
+ * spec-side lever. The uniform 0.6s grid is a flat glide (median pop ~3px, 0 big
+ * airs). This variable grid — sparse 1.8s breakdown + high air — produces real
+ * drama there: 4 big airs (max pop ~71px), vertical relief 235→582px, longest
+ * air 1.4s. The catch: the tight-synced chorus stays gentle (dense beats ⇒ small
+ * compiler arcs); drama inside dense sections needs the deeper compiler work
+ * (working `amplitude`, longer arcs). 93/93 hit; ~669 @300k.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -84,60 +59,54 @@ const spec: Spec = {
   contacts,
   jitter: 0,
   axes: {
-    // The vertical lead. Level → lift into the hook → rolling verse → BANK down
-    // (29–44s, gather speed) → the big CHORUS soar → descend through breakdown.
-    // The vertical lead. The climb ceiling is ~1.0 at chorus speed (per the report's
-    // `ceiling` field) — the limiter is AXIS COMPETITION, not physics. So the soar is
-    // authored HIGH and the other two axes give way during it (speed decays through
-    // the climb; air eases down). bank/plunge → release → big soar → descend.
+    // The vertical lead. Level intro → gentle hook roll → BANK (plunge to gather
+    // speed) → chorus SOAR pulse (authored to the ~0.65 honest ceiling) → release.
     elevation: keyframes([
-      { t: 0, v: 0.50, ease: "smooth" }, // level intro
-      { t: 9.93, v: 0.58, ease: "easeOut" }, // hook enters: gentle lift
-      { t: 14.0, v: 0.50, ease: "smooth" }, // settle
+      { t: 0, v: 0.50, ease: "smooth" }, // level intro slides
+      { t: 9.93, v: 0.56, ease: "easeOut" }, // hook lift
+      { t: 14.0, v: 0.50, ease: "smooth" },
       { t: 19.53, v: 0.55, ease: "smooth" }, // verse roll up
-      { t: 24.0, v: 0.45, ease: "smooth" }, // roll down
-      { t: 29.13, v: 0.40, ease: "easeIn" }, // begin the BANK (descend to gain speed)
-      { t: 38.73, v: 0.40, ease: "easeOut" }, // banked low, energy stored
-      { t: 44.0, v: 0.60, ease: "easeIn" }, // CHORUS: release into the climb
-      { t: 46.5, v: 0.74, ease: "smooth" }, // PEAK SOAR — pulse where speed is mid-fall
-      { t: 49.0, v: 0.56, ease: "easeOut" }, // come down after the pulse
-      { t: 52.0, v: 0.52, ease: "smooth" }, // settle — speed spent, no 2nd climb
-      { t: 55.0, v: 0.48, ease: "easeOut" }, // ease toward level
-      { t: 57.93, v: 0.40, ease: "smooth" }, // breakdown: descend
-      { t: 62.0, v: 0.50, ease: "smooth" }, // settle level
+      { t: 24.0, v: 0.46, ease: "smooth" }, // roll down
+      { t: 29.13, v: 0.40, ease: "easeIn" }, // BANK: plunge to gather speed
+      { t: 38.73, v: 0.40, ease: "easeOut" }, // banked low
+      { t: 44.0, v: 0.62, ease: "easeIn" }, // CHORUS: release into the climb
+      { t: 46.5, v: 0.66, ease: "smooth" }, // PEAK soar pulse (at the honest ceiling)
+      { t: 49.0, v: 0.56, ease: "easeOut" }, // come down as speed is spent
+      { t: 52.0, v: 0.50, ease: "smooth" },
+      { t: 57.93, v: 0.46, ease: "smooth" }, // breakdown: gentle descent over the long airs
+      { t: 62.0, v: 0.50, ease: "smooth" },
       { t: 65.5, v: 0.50 },
     ]),
-    // Bank speed BEFORE the chorus (38–44s), then let it DECAY THROUGH the climb
-    // (44–53s) — the decay must overlap the soar so the banked energy is spent on
-    // height, not held in antagonism with it. Recover into the breakdown.
+    // Bank speed BEFORE the chorus, spend it DURING the climb (overlap), recover
+    // for the breakdown so the long final gaps still carry the rider into airs.
     speed: keyframes([
-      { t: 0, v: 0.46, ease: "easeIn" },
-      { t: 9.93, v: 0.54, ease: "smooth" },
-      { t: 19.53, v: 0.60, ease: "smooth" },
+      { t: 0, v: 0.50, ease: "easeIn" }, // moderate — carries the long intro slides
+      { t: 9.93, v: 0.56, ease: "smooth" },
+      { t: 19.53, v: 0.62, ease: "smooth" },
       { t: 29.13, v: 0.70, ease: "easeIn" }, // start banking
-      { t: 38.73, v: 0.82, ease: "smooth" }, // banked high, ready to climb
-      { t: 44.0, v: 0.76, ease: "easeIn" }, // release — start spending immediately
-      { t: 47.0, v: 0.58, ease: "easeOut" }, // spent on the climb pulse (overlaps the soar)
-      { t: 50.0, v: 0.60, ease: "smooth" }, // hold a floor — don't crash the ride
-      { t: 53.0, v: 0.54, ease: "smooth" },
-      { t: 57.93, v: 0.58, ease: "smooth" }, // recover
-      { t: 65.5, v: 0.52 },
+      { t: 38.73, v: 0.82, ease: "smooth" }, // banked high
+      { t: 44.0, v: 0.74, ease: "easeIn" }, // release — spend immediately
+      { t: 47.0, v: 0.58, ease: "easeOut" }, // spent on the climb pulse
+      { t: 50.0, v: 0.60, ease: "smooth" }, // floor — keep the ride mobile
+      { t: 53.0, v: 0.56, ease: "smooth" },
+      { t: 57.93, v: 0.60, ease: "smooth" }, // enough speed for the long break airs
+      { t: 65.5, v: 0.54 },
     ]),
-    // Airborne fraction carries the verse; through the soar it EASES DOWN so long
-    // floaty (net-level) arcs don't pull against the climb — the chorus rises
-    // rather than floats. Lifts again afterward.
+    // Air: GROUNDED long slides in the sparse intro → flowing groove → eased down
+    // through the soar (so elevation wins) → HIGH over the long breakdown gaps for
+    // floaty release airs.
     air: keyframes([
-      { t: 0, v: 0.50, ease: "easeIn" },
-      { t: 9.93, v: 0.60, ease: "smooth" }, // hook
-      { t: 19.53, v: 0.70, ease: "smooth" }, // verse flowing — air leads here
-      { t: 29.13, v: 0.64, ease: "smooth" },
-      { t: 38.73, v: 0.62, ease: "smooth" }, // begin easing for the climb
-      { t: 44.0, v: 0.56, ease: "smooth" },
-      { t: 47.0, v: 0.52, ease: "smooth" }, // low at the climb pulse so elevation wins
-      { t: 50.0, v: 0.56, ease: "smooth" },
-      { t: 54.0, v: 0.60, ease: "easeOut" },
-      { t: 57.93, v: 0.62, ease: "easeOut" }, // breakdown lift
-      { t: 65.5, v: 0.50 },
+      { t: 0, v: 0.40, ease: "easeIn" }, // grounded long slides
+      { t: 9.93, v: 0.55, ease: "smooth" }, // hook
+      { t: 19.53, v: 0.66, ease: "smooth" }, // verse flowing
+      { t: 29.13, v: 0.62, ease: "smooth" },
+      { t: 38.73, v: 0.66, ease: "smooth" }, // rise
+      { t: 44.0, v: 0.56, ease: "smooth" }, // ease for the climb
+      { t: 49.0, v: 0.50, ease: "smooth" }, // low at the climb peak — elevation wins
+      { t: 54.0, v: 0.66, ease: "easeIn" },
+      { t: 57.93, v: 0.85, ease: "smooth" }, // BREAK: very high air over the long 1.8s gaps → big floaty airs
+      { t: 62.0, v: 0.80, ease: "easeOut" },
+      { t: 65.5, v: 0.66 },
     ]),
   },
 };

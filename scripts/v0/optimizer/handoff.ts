@@ -517,6 +517,8 @@ const TAIL_COMPLETION_BUDGET_SCALE_FRAMES = 150_000;
 const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_WINDOW_EXTRA = 14;
 const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_SCALE_FRAMES = 75_000;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
+const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_EXTRA_BRANCHES = 1;
+const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_BRANCH_SCALE_FRAMES = 75_000;
 const QUALITY_SHALLOW_TAIL_THROTTLE_MAX_PRESSURE = 1.0;
 const QUALITY_SHALLOW_TAIL_THROTTLE_BUDGET_SCALE_FRAMES = 150_000;
 const QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE = 24;
@@ -2740,7 +2742,7 @@ function completeNearTailSuffix(
       targetBudget,
     })
       .filter((option) => option.candidate !== null)
-      .slice(0, TAIL_COMPLETION_FALLBACK_BRANCHING);
+      .slice(0, tailCompletionBranching(search, targetBudget, qualitySearch));
     for (let i = options.length - 1; i >= 0; i--) {
       const option = options[i];
       stack.push({
@@ -3019,6 +3021,34 @@ function tailCompletionContactWindow(targetBudget: number, qualitySearch = true)
   }
   const pressure = smoothstep(clamp01(budget / (budget + TAIL_COMPLETION_BUDGET_SCALE_FRAMES)));
   return TAIL_COMPLETION_CONTACT_WINDOW + TAIL_COMPLETION_BUDGET_WINDOW_EXTRA * pressure;
+}
+
+function tailCompletionBranching(
+  node: SearchNode,
+  targetBudget: number,
+  qualitySearch: boolean,
+): number {
+  if (qualitySearch) return TAIL_COMPLETION_FALLBACK_BRANCHING;
+  const budget = Math.max(0, targetBudget);
+  const pressure = 1 - smoothstep(
+    clamp01(
+      budget /
+        (budget + CONTRACT_TAIL_COMPLETION_LOW_BUDGET_BRANCH_SCALE_FRAMES),
+    ),
+  );
+  if (pressure <= 0) return TAIL_COMPLETION_FALLBACK_BRANCHING;
+  const extraBranchPressure = clamp01(
+    CONTRACT_TAIL_COMPLETION_LOW_BUDGET_EXTRA_BRANCHES * pressure,
+  );
+  return TAIL_COMPLETION_FALLBACK_BRANCHING +
+    (unitHash(contractTailCompletionBranchSeed(node)) < extraBranchPressure ? 1 : 0);
+}
+
+function contractTailCompletionBranchSeed(node: SearchNode): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b)
+  ) | 0;
 }
 
 function uniqueFullEvaluations(telemetry: HandoffTelemetry): number {

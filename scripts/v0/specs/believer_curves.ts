@@ -53,6 +53,21 @@ const raw = JSON.parse(
 
 const contacts: Contact[] = raw.onsets.map((o) => ({ t: o.t }));
 
+/** Overlay metadata (title/artist/tempo + soft energy phases) for make_overlay_data.ts. */
+export const overlayMeta = {
+  title: "BELIEVER",
+  artist: "IMAGINE DRAGONS",
+  tempo: "125 BPM · 4/4",
+  phases: [
+    { name: "INTRO", t0: 0.0, t1: 7.69, color: "#5b8def" },
+    { name: "BUILD", t0: 7.69, t1: 15.36, color: "#3fb6a8" },
+    { name: "VERSE", t0: 15.36, t1: 23.04, color: "#6c8cf2" },
+    { name: "PRE-CHORUS", t0: 23.04, t1: 38.42, color: "#f0b429" },
+    { name: "CHORUS", t0: 38.42, t1: 53.78, color: "#f24f4f" },
+    { name: "WIND-DOWN", t0: 53.78, t1: 56.55, color: "#a06cf2" },
+  ],
+};
+
 const spec: Spec = {
   duration: raw.range_s[1],
   contacts,

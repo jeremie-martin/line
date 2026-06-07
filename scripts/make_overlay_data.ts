@@ -33,17 +33,29 @@ const reportPath = arg("report", "generated/believer_curves_2m.report.json");
 const trackPath = arg("track", "generated/believer_curves_2m.track.json");
 const outPath = arg("out", "remotion/public/believer_curves.overlay.json");
 
-const spec: Spec = (await import(resolve(specPath))).default;
+const specMod = await import(resolve(specPath));
+const spec: Spec = specMod.default;
 const report: DriftReport = JSON.parse(readFileSync(resolve(reportPath), "utf8"));
 const track = JSON.parse(readFileSync(resolve(trackPath), "utf8")) as { duration: number };
 
 const durationS = track.duration / FPS;
 
-// Per-axis color identity (cyan air / amber speed / violet grain).
+// Per-song overlay metadata (title/artist/tempo + soft energy phases). Specs may
+// `export const overlayMeta = {...}`; otherwise fall back to a neutral default.
+type OverlayMeta = {
+  title?: string; artist?: string; tempo?: string;
+  phases?: { name: string; t0: number; t1: number; color: string }[];
+};
+const meta: OverlayMeta = specMod.overlayMeta ?? {};
+
+// Per-axis color identity. Only axes the spec actually targets get plotted
+// (the AXES.filter below), so e.g. a spec with no grain never shows a grain chart.
 const AXIS_META: Record<string, { label: string; color: string }> = {
   air: { label: "AIR", color: "#38d6c8" },
   speed: { label: "SPEED", color: "#f0b429" },
   grain: { label: "GRAIN", color: "#b07cf2" },
+  elevation: { label: "ELEV", color: "#7bd44b" },
+  amplitude: { label: "AMP", color: "#f06bd0" },
 };
 
 // Dense sample of each authored target curve (the smooth line). 0.05s ≈ 1131 pts
@@ -74,22 +86,16 @@ const contacts = report.contacts.map((c) => ({
   landed: c.status !== "missing",
 }));
 
-// Soft energy phases (madmom onset-activation contour, beats/audio.mp3).
-const phases = [
-  { name: "INTRO", t0: 0.0, t1: 7.69, color: "#5b8def" },
-  { name: "BUILD", t0: 7.69, t1: 15.36, color: "#3fb6a8" },
-  { name: "VERSE", t0: 15.36, t1: 23.04, color: "#7bd44b" },
-  { name: "PRE-CHORUS", t0: 23.04, t1: 38.42, color: "#f0b429" },
-  { name: "CHORUS", t0: 38.42, t1: 53.78, color: "#f24f4f" },
-  { name: "WIND-DOWN", t0: 53.78, t1: durationS, color: "#a06cf2" },
-];
+// Soft energy phases (madmom onset-activation contour). Per-spec via overlayMeta;
+// fall back to a single span covering the whole track.
+const phases = meta.phases ?? [{ name: "TRACK", t0: 0, t1: durationS, color: "#5b8def" }];
 
 const score = scoreDriftReport(report, { totalFrames: track.duration });
 
 const bundle = {
-  title: "BELIEVER",
-  artist: "IMAGINE DRAGONS",
-  tempo: "125 BPM · 4/4",
+  title: meta.title ?? "TRACK",
+  artist: meta.artist ?? "",
+  tempo: meta.tempo ?? "",
   durationS: r3(durationS),
   fps: FPS,
   score: Math.round(score.score * 10) / 10,

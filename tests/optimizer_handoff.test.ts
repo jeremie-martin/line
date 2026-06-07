@@ -326,29 +326,38 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
   test("visits deferred start roots before requeueing one under a small budget", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const seen: { gapIndex: number; deferExpansion: boolean }[] = [];
-    // The contact-centered NORMAL family (default) emits longer ride-outs, so each
-    // candidate costs a few more sim-frames; 12k now exhausts within the first start
-    // root before any deferral. 20k re-exercises the same deferred-root scheduling
-    // path (root-0 deferred visits before the first requeue) with budget still spent.
-    const budget = 20_000;
-    const result = checkpoint(compileHandoff(spec, 0, {
-      budget,
-      maxNodes: 12,
-      polish: false,
-      onNode: (node) => {
-        seen.push({
-          gapIndex: node.search.gapIndex,
-          deferExpansion: node.deferExpansion,
-        });
-      },
-    }), budget);
+    // This exercises the raw deferred-start-root SCHEDULER, not the start ranker, so pin
+    // start-eval off (default greedy:2 reorders starts and spends up-front budget, perturbing
+    // this delicately-tuned scenario). At 20k fwd-eval (gate 75k) and repair (gate 150k) are
+    // already off. The contact-centered NORMAL family emits longer ride-outs, so 12k exhausts
+    // within the first start root before any deferral; 20k re-exercises the deferred-root path
+    // (root-0 deferred visits before the first requeue) with budget still spent.
+    const prevStartEval = process.env.LR_START_EVAL;
+    process.env.LR_START_EVAL = "off";
+    try {
+      const budget = 20_000;
+      const result = checkpoint(compileHandoff(spec, 0, {
+        budget,
+        maxNodes: 12,
+        polish: false,
+        onNode: (node) => {
+          seen.push({
+            gapIndex: node.search.gapIndex,
+            deferExpansion: node.deferExpansion,
+          });
+        },
+      }), budget);
 
-    expect(result.stats.budget_exhausted).toBe(true);
-    expect(seen.length).toBeGreaterThan(1);
-    const firstRequeued = seen.findIndex((node, index) => index > 0 && !node.deferExpansion);
-    expect(firstRequeued).toBeGreaterThan(1);
-    expect(seen.slice(1, firstRequeued).every((node) => node.deferExpansion)).toBe(true);
-    expect(seen.slice(0, firstRequeued).every((node) => node.gapIndex === 0)).toBe(true);
+      expect(result.stats.budget_exhausted).toBe(true);
+      expect(seen.length).toBeGreaterThan(1);
+      const firstRequeued = seen.findIndex((node, index) => index > 0 && !node.deferExpansion);
+      expect(firstRequeued).toBeGreaterThan(1);
+      expect(seen.slice(1, firstRequeued).every((node) => node.deferExpansion)).toBe(true);
+      expect(seen.slice(0, firstRequeued).every((node) => node.gapIndex === 0)).toBe(true);
+    } finally {
+      if (prevStartEval === undefined) delete process.env.LR_START_EVAL;
+      else process.env.LR_START_EVAL = prevStartEval;
+    }
   }, 60_000);
 
   test("polish path uses the selected root start state", async () => {

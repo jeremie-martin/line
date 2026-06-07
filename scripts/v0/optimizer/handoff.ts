@@ -2793,13 +2793,15 @@ function forwardEvalConfig(): ForwardEvalConfig | null {
   return cfg === null ? null : { ...cfg, charge: readEnv("LR_FWD_EVAL_CHARGE") !== "0" };
 }
 
-/** Start-selection eval (experiment): rank initial conditions by the TRUE forward score of where
- *  they lead, instead of the local axis-L2 proxy. OFF by default. LR_START_EVAL=<greedy|best|avg>
- *  [:depth[:branch]]. Always charged honestly (the start eval is a one-time up-front cost). */
+/** Start-selection eval: rank initial conditions by the TRUE forward score of where they lead,
+ *  instead of the local axis-L2 proxy. DEFAULT greedy:2 — the start is the most consequential
+ *  choice on a forward-dependent chain (inherited by the whole track), so the honest forward tool
+ *  pays here at EVERY budget (+32.5 headline, lifts validity). LR_START_EVAL=off reverts to the
+ *  proxy; greedy:2 is the sweet spot (best/avg/greedy:3 don't pay charged). Always charged. */
 function startEvalConfig(): ForwardEvalConfig | null {
   const env = readEnv("LR_START_EVAL");
-  if (env === undefined || env === "" || env === "0" || env === "off") return null;
-  return parseForwardSpec(env);
+  if (env === "0" || env === "off") return null;
+  return parseForwardSpec(env === undefined || env === "" ? "greedy:2" : env);
 }
 
 /** True forward-rollout score of a start root (charged). Higher = better start. */

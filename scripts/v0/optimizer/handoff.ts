@@ -278,6 +278,7 @@ type ExtraCandidateCache = {
   brakeContract?: Candidate[];
   brakeQuality?: Candidate[];
   axisQualitySeed?: number;
+  axisQualityBudget?: number;
   axisQuality?: AxisQualityCandidate[];
 };
 
@@ -295,6 +296,8 @@ type AxisQualityStreamPolicy = {
   overspeedScale?: number;
   targetSource?: "current" | "next";
   targetBias?: number;
+  budgetScaleFrames?: number;
+  fullFeedbackScale?: number;
 };
 
 const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
@@ -410,6 +413,11 @@ const HANDOFF_NEXT_SPEED_DRAG_OVERSPEED_SCALE = 0.45;
 const HANDOFF_NEXT_SPEED_SETTLE_QUALITY_K = 1;
 const HANDOFF_NEXT_SPEED_SETTLE_OVERSPEED_SCALE = 0.55;
 const HANDOFF_NEXT_SPEED_SETTLE_TARGET_BIAS = -0.16;
+const HANDOFF_NEXT_SPEED_DEEP_SETTLE_QUALITY_K = 1;
+const HANDOFF_NEXT_SPEED_DEEP_SETTLE_OVERSPEED_SCALE = 0.70;
+const HANDOFF_NEXT_SPEED_DEEP_SETTLE_TARGET_BIAS = -0.30;
+const HANDOFF_NEXT_SPEED_DEEP_SETTLE_BUDGET_SCALE_FRAMES = 150_000;
+const HANDOFF_NEXT_SPEED_DEEP_SETTLE_FULL_FEEDBACK_SCALE = 48;
 const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy[]>> = {
   air: [{
     samples: HANDOFF_AIR_SUPPORT_QUALITY_K,
@@ -449,6 +457,17 @@ const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPo
       overspeedScale: HANDOFF_NEXT_SPEED_SETTLE_OVERSPEED_SCALE,
       targetSource: "next",
       targetBias: HANDOFF_NEXT_SPEED_SETTLE_TARGET_BIAS,
+    },
+    {
+      samples: HANDOFF_NEXT_SPEED_DEEP_SETTLE_QUALITY_K,
+      seedSalt: 0x85ebca77,
+      attemptOffset: 9000,
+      mode: "speed_drag",
+      overspeedScale: HANDOFF_NEXT_SPEED_DEEP_SETTLE_OVERSPEED_SCALE,
+      targetSource: "next",
+      targetBias: HANDOFF_NEXT_SPEED_DEEP_SETTLE_TARGET_BIAS,
+      budgetScaleFrames: HANDOFF_NEXT_SPEED_DEEP_SETTLE_BUDGET_SCALE_FRAMES,
+      fullFeedbackScale: HANDOFF_NEXT_SPEED_DEEP_SETTLE_FULL_FEEDBACK_SCALE,
     },
   ],
 };
@@ -1462,6 +1481,7 @@ function expandNode(
     axisQualitySearch: qualitySearch,
     releaseSetup: qualitySearch,
     previewCostWeight: PREVIEW_COST_WEIGHT,
+    targetBudget,
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap, ctx)) {
     telemetry.rescueAttempts++;
@@ -1474,6 +1494,7 @@ function expandNode(
       axisQualitySearch: qualitySearch,
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -1491,6 +1512,7 @@ function expandNode(
       axisQualitySearch: qualitySearch,
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -1685,11 +1707,15 @@ function rankedOptions(
     axisQualitySearch?: boolean;
     previewCostWeight?: number;
     releaseSetup?: boolean;
+    targetBudget?: number;
   } = {},
 ): RankedOption[] {
   const requestedCandidates = config.nCand ?? HANDOFF_CONTRACT_N_CAND;
+  const targetBudget = config.targetBudget ?? 0;
   const normalCandidates = config.axisQualitySearch
-    ? scarceFeedbackQualityNormalCandidateCount(node, gaps, ctx, telemetry, requestedCandidates)
+    ? scarceFeedbackQualityNormalCandidateCount(
+      node, gaps, ctx, telemetry, requestedCandidates, targetBudget,
+    )
     : requestedCandidates;
   const sorted = getCandidatesSorted(
     node,
@@ -1757,6 +1783,7 @@ function rankedOptions(
     seed,
     config.axisQualitySearch ?? false,
     telemetry,
+    targetBudget,
   );
   axisQuality.forEach((entry, j) =>
     scored.push(scoreCandidateForHandoff(
@@ -1788,8 +1815,9 @@ function scarceFeedbackQualityNormalCandidateCount(
   ctx: SpecContext,
   telemetry: HandoffTelemetry,
   requestedCandidates: number,
+  targetBudget: number,
 ): number {
-  const semanticSamples = estimateAxisQualitySampleCount(node, gaps, ctx);
+  const semanticSamples = estimateAxisQualitySampleCount(node, gaps, ctx, telemetry, targetBudget);
   if (semanticSamples <= 0) return requestedCandidates;
   const terminalFeedback = uniqueFullEvaluations(telemetry);
   const scarcityPressure = 1 / (1 + Math.pow(terminalFeedback / 48, 2));
@@ -1805,6 +1833,8 @@ function estimateAxisQualitySampleCount(
   node: SearchNode,
   gaps: Gap[],
   ctx: SpecContext,
+  telemetry: HandoffTelemetry,
+  targetBudget: number,
 ): number {
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return 0;
@@ -1816,7 +1846,14 @@ function estimateAxisQualitySampleCount(
       const target = axisQualityPolicyTarget(axis, policy, node.gapIndex, gaps);
       if (target === undefined) continue;
       if (policy.targetMax !== undefined && target > policy.targetMax) continue;
-      samples += axisQualityStreamSampleCount(axis, policy, target, probe.targetState.speed);
+      samples += axisQualityStreamSampleCount(
+        axis,
+        policy,
+        target,
+        probe.targetState.speed,
+        targetBudget,
+        axisQualityFullFeedbackPressure(policy, telemetry),
+      );
     }
   }
   return samples;
@@ -1829,18 +1866,27 @@ function cachedAxisQualityCandidates(
   seed: number,
   enabled: boolean,
   telemetry: HandoffTelemetry,
+  targetBudget: number,
 ): AxisQualityCandidate[] {
   if (!enabled) return [];
   const cache = extraCandidateCache.get(node) ?? {};
-  if (cache.axisQualitySeed !== undefined && cache.axisQualitySeed !== seed) {
+  if (
+    cache.axisQualitySeed !== undefined &&
+    (cache.axisQualitySeed !== seed || cache.axisQualityBudget !== targetBudget)
+  ) {
     cache.axisQuality = undefined;
   }
-  if (cache.axisQuality !== undefined && cache.axisQualitySeed === seed) {
+  if (
+    cache.axisQuality !== undefined &&
+    cache.axisQualitySeed === seed &&
+    cache.axisQualityBudget === targetBudget
+  ) {
     return cache.axisQuality;
   }
 
-  const generated = axisQualityCandidates(node, gaps, ctx, seed, telemetry);
+  const generated = axisQualityCandidates(node, gaps, ctx, seed, telemetry, targetBudget);
   cache.axisQualitySeed = seed;
+  cache.axisQualityBudget = targetBudget;
   cache.axisQuality = generated;
   extraCandidateCache.set(node, cache);
   return generated;
@@ -1852,6 +1898,7 @@ function axisQualityCandidates(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
+  targetBudget: number,
 ): AxisQualityCandidate[] {
   const gap = gaps[node.gapIndex];
   if (!gap.endsWithContact) return [];
@@ -1863,7 +1910,15 @@ function axisQualityCandidates(
       const target = axisQualityPolicyTarget(axis, policy, node.gapIndex, gaps);
       if (target === undefined) continue;
       if (policy.targetMax !== undefined && target > policy.targetMax) continue;
-      const samples = axisQualityStreamSampleCount(axis, policy, target, probe.targetState.speed);
+      const samples = axisQualityStreamSampleCount(
+        axis,
+        policy,
+        target,
+        probe.targetState.speed,
+        targetBudget,
+        axisQualityFullFeedbackPressure(policy, telemetry),
+        axisQualityStreamDitherSeed(seed, node, policy),
+      );
       if (samples <= 0) continue;
       const rng = makeRng(axisQualityStreamSeed(seed, node.gapIndex, policy));
       const geometryTargets = policy.targetSource === "next"
@@ -1918,16 +1973,61 @@ function axisQualityStreamSampleCount(
   policy: AxisQualityStreamPolicy,
   target: number,
   currentSpeedPxPerFrame: number,
+  targetBudget: number,
+  fullFeedbackPressure = 1,
+  ditherSeed?: number,
 ): number {
-  if (axis !== "speed" || policy.overspeedScale === undefined) return policy.samples;
+  const pressure = axisQualityStreamPressure(axis, policy, target, currentSpeedPxPerFrame);
+  if (pressure <= 0) return 0;
+  const budgetPressure = axisQualityBudgetPressure(policy, targetBudget);
+  const combinedPressure = pressure * budgetPressure * fullFeedbackPressure;
+  if (policy.budgetScaleFrames !== undefined && ditherSeed !== undefined) {
+    return fractionalSampleCount(policy.samples, combinedPressure, ditherSeed);
+  }
+  return clampIntLocal(Math.round(policy.samples * combinedPressure), 0, policy.samples);
+}
+
+function axisQualityStreamPressure(
+  axis: AxisName,
+  policy: AxisQualityStreamPolicy,
+  target: number,
+  currentSpeedPxPerFrame: number,
+): number {
+  if (axis !== "speed" || policy.overspeedScale === undefined) return 1;
   const targetSpeedPxPerFrame = authoredSpeedToPx(target);
   if (targetSpeedPxPerFrame <= HANDOFF_BRAKE_TARGET_MIN_PX_PER_FRAME + HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME) {
     return 0;
   }
   const normalizedOverspeed =
     (currentSpeedPxPerFrame - targetSpeedPxPerFrame) / SPEED_AXIS.RANGE_PX_PER_FRAME;
-  const pressure = smoothstep(clamp01(normalizedOverspeed / policy.overspeedScale));
-  return clampIntLocal(Math.round(policy.samples * pressure), 0, policy.samples);
+  return smoothstep(clamp01(normalizedOverspeed / policy.overspeedScale));
+}
+
+function axisQualityBudgetPressure(
+  policy: AxisQualityStreamPolicy,
+  targetBudget: number,
+): number {
+  if (policy.budgetScaleFrames === undefined) return 1;
+  const budget = Math.max(0, targetBudget);
+  return smoothstep(clamp01(budget / (budget + policy.budgetScaleFrames)));
+}
+
+function axisQualityFullFeedbackPressure(
+  policy: AxisQualityStreamPolicy,
+  telemetry: HandoffTelemetry,
+): number {
+  if (policy.fullFeedbackScale === undefined) return 1;
+  const uniqueFull = uniqueFullEvaluations(telemetry);
+  const scale = Math.max(1, policy.fullFeedbackScale);
+  return smoothstep(clamp01(uniqueFull / (uniqueFull + scale)));
+}
+
+function fractionalSampleCount(samples: number, pressure: number, seed: number): number {
+  const expected = clampIntLocal(samples, 0, samples) * clamp01(pressure);
+  const whole = Math.floor(expected);
+  if (whole >= samples) return samples;
+  const fraction = expected - whole;
+  return whole + (unitHash(seed) < fraction ? 1 : 0);
 }
 
 function axisQualityStreamSeed(
@@ -1936,6 +2036,28 @@ function axisQualityStreamSeed(
   policy: AxisQualityStreamPolicy,
 ): number {
   return (Math.imul(seed | 0, 1000003) + gapIndex + policy.seedSalt) | 0;
+}
+
+function axisQualityStreamDitherSeed(
+  seed: number,
+  node: SearchNode,
+  policy: AxisQualityStreamPolicy,
+): number {
+  return (
+    axisQualityStreamSeed(seed, node.gapIndex, policy) ^
+    Math.imul(node.prefixNextLineId | 0, 0x9e3779b1) ^
+    Math.imul(policy.attemptOffset | 0, 0x85ebca6b)
+  ) | 0;
+}
+
+function unitHash(seed: number): number {
+  let x = seed | 0;
+  x ^= x >>> 16;
+  x = Math.imul(x, 0x7feb352d);
+  x ^= x >>> 15;
+  x = Math.imul(x, 0x846ca68b);
+  x ^= x >>> 16;
+  return (x >>> 0) / 0x100000000;
 }
 
 function cachedReuseCatchCandidates(
@@ -2174,6 +2296,7 @@ function completeWeakPrefixWithBoundedSuffix(
     node.searchSeed,
     telemetry,
     sparseContractSearch,
+    targetBudget,
   );
   telemetry.suffixRepairNodes += completed.nodes;
   if (completed.result === null) return null;
@@ -2239,6 +2362,7 @@ function completeNearTailSuffix(
       axisQualitySearch: qualitySearch,
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      targetBudget,
     })
       .filter((option) => option.candidate !== null)
       .slice(0, TAIL_COMPLETION_FALLBACK_BRANCHING);
@@ -2261,6 +2385,7 @@ function completeBoundedSuffix(
   seed: number,
   telemetry: HandoffTelemetry,
   sparseContractSearch: boolean,
+  targetBudget: number,
 ): { result: CompletedHandoffSuffix | null; nodes: number } {
   const stack: CompletedHandoffSuffix[] = [
     {
@@ -2292,6 +2417,7 @@ function completeBoundedSuffix(
       axisQualitySearch: true,
       releaseSetup: true,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      targetBudget,
     })
       .filter((option) => option.candidate !== null)
       .slice(0, QUALITY_SUFFIX_REPAIR_BRANCHING);

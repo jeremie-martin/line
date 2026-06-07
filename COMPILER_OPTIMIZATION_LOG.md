@@ -1791,3 +1791,14 @@
 - Decide result: `VERDICT: ACCEPT`; baseline `454.4` -> candidate `552.2`; `Delta headline = +97.8`, 95% CI `[29.4, 152.6]`, `P(Delta<=0)=0.7%`, effect 3.21.
 - Notable regressions/improvements: per-budget deltas `25k=+24.2`, `50k=-94.0`, `100k=+125.5`, `150k=+128.1`, `200k=+118.4`; validity `50k 87%->98%`, `100k 99%->100%`. vs work-new (579) the synthesis now WINS 25k (108.9 vs 10.9) and is roughly even at 100k-200k; it still trails work-new only at 50k (271.8 vs 433.8) — the next lever. Remaining 200k worst rows: `drums_crescendo` seed 0 (invalid), `drums_pendulum` seeds 7/9.
 - Status: Kept and committed as the new baseline.
+
+## arc-cc-fade-b03 (budget-faded contract breadth)
+
+- Baseline used: `arc-cc-family-a01` (HEADLINE 552.2).
+- Diagnosis: oracle ablations showed work-new completes deep specs (drums_pendulum/crescendo) at 50k with the SAME contact-centered family at high validity, while arc-rewrite's contract search does not. Separately, `budgetAwareContractSampleCount` (a protective race-to-first-complete breadth cut) was firing spuriously even at 150k/200k on deep specs — its cost projection over-estimates — locking a lower-quality first-complete basin and capping the high-budget ceiling.
+- Hypothesis: fading the breadth reduction OFF as total budget grows lets ample budgets keep full contract breadth (higher-quality first basin -> higher ceiling) while scarce budgets retain the protective cut.
+- Code changes made: in `budgetAwareContractSampleCount`, blend the reduced count toward the full cap by `smoothstep((targetBudget - 100k)/50k)` (constants `CONTRACT_BREADTH_FADE_START_FRAMES=100000`, `CONTRACT_BREADTH_FADE_SPAN_FRAMES=50000`); reduction fully active <=100k, off >=150k. SAME geometry family at all budgets — this only changes how many candidates the contract phase samples per gap. Added `LR_BUDGET_AWARE_CONTRACT=0` A/B escape hatch (full breadth always). No scorer/spec/fingerprint/seed/metric/grid changes; `816c00d44528` preserved.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-cc-fade-b03`
+- Decide result: `VERDICT: ACCEPT`; baseline `552.2` -> candidate `563.9`; `Delta headline = +11.7`, 95% CI `[-0.3, 48.7]`, `P(Delta<=0)=16.8%`.
+- Notable regressions/improvements: per-budget `25k/50k/100k` unchanged (fade off there), `150k 614.9->632.5`, `200k 616.4->633.9` — both now ABOVE work-new (626.8/627.9): first decisive high-budget ceiling break. Remaining deficit vs work-new is at 50k (271.8 vs 433.8) and 100k (580.6 vs 624.5), traced to the contract-search machinery failing to complete deep specs cheaply — the next lever.
+- Status: Kept and committed as the new baseline.

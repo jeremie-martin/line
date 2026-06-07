@@ -346,6 +346,12 @@ const CONTRACT_N_CAND_FLOOR = 3;
  *  → search identical to the budget-oblivious baseline) and only a genuinely scarce
  *  budget ever scales breadth down. */
 const CONTRACT_BUDGET_WARMUP_GAPS = 4;
+/** Budget range over which the protective contract-breadth reduction fades to OFF.
+ *  Below START the cut is fully applied (scarce budgets need it to ever complete);
+ *  above START+SPAN it is gone (ample budgets keep full breadth → higher ceiling).
+ *  Smooth/monotone in budget, deliberately wider than any single grid budget. */
+const CONTRACT_BREADTH_FADE_START_FRAMES = 100_000;
+const CONTRACT_BREADTH_FADE_SPAN_FRAMES = 50_000;
 const HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES = Math.round(FPS * 0.75);
 /** Extra deterministic sampling only when the normal batch finds no viable
  *  catch for a required contact. This preserves the cheap common path while
@@ -2836,6 +2842,10 @@ function budgetAwareContractSampleCount(
   sparseContractSearch: boolean,
 ): number {
   const cap = handoffSampleCount(false, sparseContractSearch);
+  // A/B: LR_BUDGET_AWARE_CONTRACT=0 disables the breadth reduction entirely (full
+  // breadth always, like work-new — breaks the high-budget ceiling but tanks 25k).
+  if ((globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.LR_BUDGET_AWARE_CONTRACT === "0") return cap;
   // Hold full breadth until the cost rate is trustworthy; ample budgets never get past
   // this and stay byte-identical to the budget-oblivious baseline.
   if (depthReached < CONTRACT_BUDGET_WARMUP_GAPS || remainingGaps <= 0) return cap;
@@ -2845,7 +2855,17 @@ function budgetAwareContractSampleCount(
   const framesLeft = Math.max(0, targetBudget - getSimFrames());
   if (projectedToFinish <= framesLeft) return cap; // full breadth fits → keep it
   const scaled = Math.round((cap * framesLeft) / projectedToFinish);
-  return Math.max(CONTRACT_N_CAND_FLOOR, Math.min(cap, scaled));
+  const reduced = Math.max(CONTRACT_N_CAND_FLOOR, Math.min(cap, scaled));
+  // The reduction is a protective race-to-first-complete cut: vital at scarce budgets
+  // (else the run burns frames mid-prefix and scores 0), but on deep specs its cost
+  // PROJECTION over-estimates and spuriously fires even when frames are ample, locking
+  // a lower-quality first-complete basin that caps the high-budget ceiling. Fade the
+  // cut out smoothly as total budget grows so ample budgets keep full contract breadth
+  // and convert it into a higher ceiling. Smooth, monotone, deterministic in budget.
+  const fade = smoothstep(
+    (targetBudget - CONTRACT_BREADTH_FADE_START_FRAMES) / CONTRACT_BREADTH_FADE_SPAN_FRAMES,
+  );
+  return clampIntLocal(reduced + (cap - reduced) * fade, CONTRACT_N_CAND_FLOOR, cap);
 }
 
 

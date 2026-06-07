@@ -39,6 +39,7 @@ import {
   contactLineIdsAt,
   airborneAt,
   speedAt,
+  velocityAt,
 } from "./substrate.ts";
 import { measureGapAxes } from "./measure.ts";
 
@@ -102,6 +103,7 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
 
   const { data, contacts, stride } = raw;
   const speed: number[] = [];
+  const velocity: { x: number; y: number }[] = [];
   const contactLineIds: number[][] = [];
   const airborne: boolean[] = [];
   const events: DetEvent[] = [];
@@ -131,6 +133,7 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
     const vy = data[base + WINDOW_VY];
     const sp = Math.hypot(vx, vy);
     speed.push(sp);
+    velocity.push({ x: vx, y: vy });
     contactLineIds.push(contactLineIdsAtIndex(i));
     const isAir = sledMaskAt(i) === 0;
     airborne.push(isAir);
@@ -190,7 +193,7 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
   return {
     measurements: {
       position: [],
-      velocity: [],
+      velocity,
       speed,
       sledContacts: [],
       contactLineIds,
@@ -210,6 +213,7 @@ function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
   }
 
   const speed: number[] = [];
+  const velocity: { x: number; y: number }[] = [];
   const contactLineIds: number[][] = [];
   const airborne: boolean[] = [];
   const events: DetEvent[] = [];
@@ -223,6 +227,7 @@ function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
     const fr = frames[i];
     const sp = Math.hypot(fr.velocity.x, fr.velocity.y);
     speed.push(sp);
+    velocity.push({ x: fr.velocity.x, y: fr.velocity.y });
     contactLineIds.push(fr.contactLineIds);
     const isAir = fr.sledContacts.length === 0;
     airborne.push(isAir);
@@ -282,7 +287,7 @@ function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
   return {
     measurements: {
       position: [],
-      velocity: [],
+      velocity,
       speed,
       sledContacts: [],
       contactLineIds,
@@ -485,6 +490,7 @@ function evaluateCandidateLines(
       achieved: best.fit.achieved,
       cost: best.fit.cost,
       ...(best.fit.releaseSpeed === undefined ? {} : { releaseSpeed: best.fit.releaseSpeed }),
+      ...(best.fit.releaseVelocityY === undefined ? {} : { releaseVelocityY: best.fit.releaseVelocityY }),
       ...(best.fit.releaseGroundedFrames === undefined
         ? {}
         : { releaseGroundedFrames: best.fit.releaseGroundedFrames }),
@@ -507,7 +513,13 @@ function evaluateGapFit(
 ): {
   fit: Pick<
     GapFit,
-    "lines" | "achieved" | "cost" | "releaseSpeed" | "releaseGroundedFrames" | "releaseAirborne"
+    | "lines"
+    | "achieved"
+    | "cost"
+    | "releaseSpeed"
+    | "releaseVelocityY"
+    | "releaseGroundedFrames"
+    | "releaseAirborne"
   >;
   failure: null;
 } | {
@@ -549,6 +561,7 @@ function evaluateGapFit(
   const achieved = measureGapAxes(det, gap, lines, axisMeasureEnd);
   const releaseFrame = releaseStateFrame(gap, allContactFrames);
   const releaseSpeed = speedAt(det, releaseFrame);
+  const releaseVelocity = velocityAt(det, releaseFrame);
   const releaseGroundedFrames = groundedFramesInRange(det, gap.endFrame, releaseFrame);
   const releaseAirborne = airborneAt(det, releaseFrame);
   const cost = axisCost(searchTargets, achieved)
@@ -559,6 +572,7 @@ function evaluateGapFit(
       achieved,
       cost,
       releaseSpeed,
+      ...(releaseVelocity === undefined ? {} : { releaseVelocityY: releaseVelocity.y }),
       releaseGroundedFrames,
       ...(releaseAirborne === undefined ? {} : { releaseAirborne }),
     },

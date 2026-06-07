@@ -39,6 +39,9 @@ export type GapFit = {
   /** Rider speed at the post-catch release probe frame, in raw px/frame.
    *  Used by compiler rankers to set up the next contact's speed target. */
   releaseSpeed?: number;
+  /** Rider vertical velocity at the post-catch release probe frame, in raw px/frame.
+   *  Used by quality search to avoid launchy exits before tight/low-air contacts. */
+  releaseVelocityY?: number;
   /** Grounded frames between the target contact and post-catch release probe.
    *  Diagnostic-only coverage signal for separating low-air/support futures. */
   releaseGroundedFrames?: number;

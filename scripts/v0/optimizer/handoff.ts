@@ -231,6 +231,11 @@ type CandidateReleaseCoverageAccumulator = {
   speedSquareSum: number;
   speedMin: number;
   speedMax: number;
+  velocityYCount: number;
+  velocityYSum: number;
+  velocityYSquareSum: number;
+  velocityYMin: number;
+  velocityYMax: number;
   groundedCount: number;
   groundedSum: number;
   groundedMin: number;
@@ -441,6 +446,14 @@ const HANDOFF_NEXT_SPEED_DEEP_SETTLE_FULL_FEEDBACK_SCALE = 48;
 const HANDOFF_AXIS_QUALITY_MATURE_RESERVE_WEIGHT = 0.35;
 const HANDOFF_AXIS_QUALITY_MATURE_RESERVE_BUDGET_SCALE_FRAMES = 150_000;
 const HANDOFF_AXIS_QUALITY_MATURE_RESERVE_FULL_FEEDBACK_SCALE = 48;
+const HANDOFF_RELEASE_VERTICAL_WEIGHT = 0.045;
+const HANDOFF_RELEASE_VERTICAL_BUDGET_SCALE_FRAMES = 150_000;
+const HANDOFF_RELEASE_VERTICAL_FULL_FEEDBACK_SCALE = 48;
+const HANDOFF_RELEASE_VERTICAL_LOW_AIR_TARGET_SCALE = 0.45;
+const HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_FRAMES = Math.round(FPS * 0.72);
+const HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_WIDTH = Math.round(FPS * 0.40);
+const HANDOFF_RELEASE_VERTICAL_SAFE_FAST_PX = 8;
+const HANDOFF_RELEASE_VERTICAL_SAFE_TIGHT_PX = 5;
 const HANDOFF_AXIS_QUALITY_STREAMS: Partial<Record<AxisName, AxisQualityStreamPolicy[]>> = {
   air: [{
     samples: HANDOFF_AIR_SUPPORT_QUALITY_K,
@@ -528,6 +541,8 @@ const QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS = 16;
 const QUALITY_SUFFIX_REPAIR_EXTRA_FULL_EVALUATIONS = 32;
 const QUALITY_SUFFIX_REPAIR_BUDGET_SCALE_FRAMES = 200_000;
 const QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS = 6;
+const QUALITY_SUFFIX_REPAIR_EXTRA_ATTEMPTS = 2;
+const QUALITY_SUFFIX_REPAIR_SCARCE_FULL_EVALUATIONS = 12;
 const QUALITY_SUFFIX_REPAIR_MAX_NODES = 128;
 const QUALITY_SUFFIX_REPAIR_BRANCHING = 2;
 
@@ -1086,6 +1101,7 @@ function cloneGapFit(fit: GapFit): GapFit {
     achieved: { ...fit.achieved },
     cost: fit.cost,
     ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
+    ...(fit.releaseVelocityY === undefined ? {} : { releaseVelocityY: fit.releaseVelocityY }),
     ...(fit.releaseGroundedFrames === undefined
       ? {}
       : { releaseGroundedFrames: fit.releaseGroundedFrames }),
@@ -1282,6 +1298,11 @@ function emptyCandidateReleaseCoverage(): CandidateReleaseCoverageAccumulator {
     speedSquareSum: 0,
     speedMin: Infinity,
     speedMax: -Infinity,
+    velocityYCount: 0,
+    velocityYSum: 0,
+    velocityYSquareSum: 0,
+    velocityYMin: Infinity,
+    velocityYMax: -Infinity,
     groundedCount: 0,
     groundedSum: 0,
     groundedMin: Infinity,
@@ -1305,6 +1326,14 @@ function recordCandidateReleaseCoverage(
     coverage.speedMin = Math.min(coverage.speedMin, speed);
     coverage.speedMax = Math.max(coverage.speedMax, speed);
   }
+  if (candidate.releaseVelocityY !== undefined) {
+    const velocityY = candidate.releaseVelocityY;
+    coverage.velocityYCount++;
+    coverage.velocityYSum += velocityY;
+    coverage.velocityYSquareSum += velocityY * velocityY;
+    coverage.velocityYMin = Math.min(coverage.velocityYMin, velocityY);
+    coverage.velocityYMax = Math.max(coverage.velocityYMax, velocityY);
+  }
   if (candidate.releaseGroundedFrames !== undefined) {
     const grounded = candidate.releaseGroundedFrames;
     coverage.groundedCount++;
@@ -1325,6 +1354,15 @@ function snapshotCandidateReleaseCoverage(
   const speedVariance = speedMean === undefined
     ? undefined
     : Math.max(0, coverage.speedSquareSum / coverage.speedCount - speedMean * speedMean);
+  const velocityYMean = coverage.velocityYCount === 0
+    ? undefined
+    : coverage.velocityYSum / coverage.velocityYCount;
+  const velocityYVariance = velocityYMean === undefined
+    ? undefined
+    : Math.max(
+      0,
+      coverage.velocityYSquareSum / coverage.velocityYCount - velocityYMean * velocityYMean,
+    );
   return {
     handoff_candidate_release_count: coverage.count,
     ...(coverage.speedCount === 0
@@ -1334,6 +1372,14 @@ function snapshotCandidateReleaseCoverage(
         handoff_candidate_release_speed_min: round3(coverage.speedMin),
         handoff_candidate_release_speed_max: round3(coverage.speedMax),
         handoff_candidate_release_speed_std: round3(Math.sqrt(speedVariance!)),
+      }),
+    ...(coverage.velocityYCount === 0
+      ? {}
+      : {
+        handoff_candidate_release_velocity_y_mean: round3(velocityYMean!),
+        handoff_candidate_release_velocity_y_min: round3(coverage.velocityYMin),
+        handoff_candidate_release_velocity_y_max: round3(coverage.velocityYMax),
+        handoff_candidate_release_velocity_y_std: round3(Math.sqrt(velocityYVariance!)),
       }),
     ...(coverage.groundedCount === 0
       ? {}
@@ -1768,6 +1814,7 @@ function rankedOptions(
     scoreCandidateForHandoff(
       node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
       config.releaseSetup ?? false,
+      targetBudget,
     )
   );
   // Catch-reuse: translate the most recent committed catch to this gap's entry
@@ -1791,6 +1838,7 @@ function rankedOptions(
     scored.push(scoreCandidateForHandoff(
       node, candidate, poolSize + j, "reuse", gaps, ctx, seed, telemetry, preview, previewCostWeight,
       config.releaseSetup ?? false,
+      targetBudget,
     ))
   );
   // Brake catches: uphill-entry arcs that bleed speed before contact, offered as
@@ -1819,6 +1867,7 @@ function rankedOptions(
       preview,
       previewCostWeight,
       config.releaseSetup ?? false,
+      targetBudget,
     ))
   );
   // Axis-specific quality streams add only the small, explicitly registered
@@ -1845,6 +1894,7 @@ function rankedOptions(
       preview,
       previewCostWeight,
       config.releaseSetup ?? false,
+      targetBudget,
       entry.axis,
     ))
   );
@@ -1883,6 +1933,7 @@ function rankedOptions(
       preview,
       previewCostWeight,
       config.releaseSetup ?? false,
+      targetBudget,
       entry.axis,
     ))
   );
@@ -2894,7 +2945,12 @@ function shouldAttemptSuffixRepair(
   ) {
     return false;
   }
-  if (telemetry.suffixRepairAttempts >= QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS) return false;
+  if (
+    telemetry.suffixRepairAttempts >=
+      suffixRepairAttemptLimit(targetBudget, weakness, uniqueFullEvaluations(telemetry))
+  ) {
+    return false;
+  }
   if (telemetry.frontierSelections % QUALITY_SUFFIX_REPAIR_INTERVAL !== 0) return false;
   if (!node.startExpanded || node.deferExpansion) return false;
   if (node.skippedContacts !== 0 || isTerminalNode(node.search, gaps)) return false;
@@ -2913,6 +2969,25 @@ function suffixRepairFullEvaluationLimit(targetBudget: number, weakness: number)
       QUALITY_SUFFIX_REPAIR_EXTRA_FULL_EVALUATIONS *
         suffixRepairBudgetPressure(targetBudget) *
         weakness,
+  );
+}
+
+function suffixRepairAttemptLimit(
+  targetBudget: number,
+  weakness: number,
+  uniqueFull: number,
+): number {
+  const pressure = suffixRepairBudgetPressure(targetBudget) *
+    weakness *
+    suffixRepairAttemptScarcityPressure(uniqueFull);
+  return QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS +
+    Math.round(QUALITY_SUFFIX_REPAIR_EXTRA_ATTEMPTS * pressure);
+}
+
+function suffixRepairAttemptScarcityPressure(uniqueFull: number): number {
+  const feedback = Math.max(0, uniqueFull);
+  return 1 - smoothstep(
+    clamp01(feedback / (feedback + QUALITY_SUFFIX_REPAIR_SCARCE_FULL_EVALUATIONS)),
   );
 }
 
@@ -2962,6 +3037,7 @@ function scoreCandidateForHandoff(
   usePreview = true,
   previewCostWeight = PREVIEW_COST_WEIGHT,
   releaseSetup = false,
+  targetBudget = 0,
   sourceAxis?: AxisName,
 ): RankedOption {
   const child = extendNodeCached(node, candidate);
@@ -2995,7 +3071,7 @@ function scoreCandidateForHandoff(
   const gap = gaps[node.gapIndex];
   const overshoot = candidateOvershootPenalty(candidate, gap);
   const releasePenalty = releaseSetup
-    ? candidateReleaseSetupPenalty(candidate, gaps, node.gapIndex)
+    ? candidateReleaseSetupPenalty(candidate, gaps, node.gapIndex, telemetry, targetBudget)
     : 0;
   recordCandidateReleaseCoverage(telemetry, candidate);
   return {
@@ -3014,10 +3090,61 @@ function candidateReleaseSetupPenalty(
   candidate: Candidate,
   gaps: Gap[],
   gapIndex: number,
+  telemetry: HandoffTelemetry,
+  targetBudget: number,
 ): number {
   const nextGapIndex = nextContactGapIndex(gaps, gapIndex + 1);
   if (nextGapIndex < 0) return 0;
-  return releaseSpeedPenalty(candidate.releaseSpeed, gaps[nextGapIndex].targets.speed);
+  const nextGap = gaps[nextGapIndex];
+  return releaseSpeedPenalty(candidate.releaseSpeed, nextGap.targets.speed) +
+    releaseVerticalSetupPenalty(
+      candidate,
+      gaps[gapIndex],
+      nextGap,
+      telemetry,
+      targetBudget,
+    );
+}
+
+function releaseVerticalSetupPenalty(
+  candidate: Candidate,
+  gap: Gap,
+  nextGap: Gap,
+  telemetry: HandoffTelemetry,
+  targetBudget: number,
+): number {
+  const releaseVelocityY = candidate.releaseVelocityY;
+  if (releaseVelocityY === undefined) return 0;
+  const pressure = releaseVerticalSetupPressure(gap, nextGap, telemetry, targetBudget);
+  if (pressure <= 0) return 0;
+  const safeAbsVelocity =
+    HANDOFF_RELEASE_VERTICAL_SAFE_FAST_PX -
+    (HANDOFF_RELEASE_VERTICAL_SAFE_FAST_PX - HANDOFF_RELEASE_VERTICAL_SAFE_TIGHT_PX) *
+      pressure;
+  const excess = Math.max(0, Math.abs(releaseVelocityY) - safeAbsVelocity);
+  return HANDOFF_RELEASE_VERTICAL_WEIGHT * pressure * excess * excess;
+}
+
+function releaseVerticalSetupPressure(
+  gap: Gap,
+  nextGap: Gap,
+  telemetry: HandoffTelemetry,
+  targetBudget: number,
+): number {
+  const nextAirTarget = nextGap.targets.air;
+  const lowAirPressure = nextAirTarget === undefined
+    ? 0
+    : lowAirTargetPressure(nextAirTarget, HANDOFF_RELEASE_VERTICAL_LOW_AIR_TARGET_SCALE);
+  const cadenceFrames = Math.max(0, nextGap.endFrame - gap.endFrame);
+  const cadencePressure = smoothstep(
+    (HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_FRAMES - cadenceFrames) /
+      HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_WIDTH,
+  );
+  const setupPressure = Math.max(lowAirPressure, cadencePressure);
+  if (setupPressure <= 0) return 0;
+  return setupPressure *
+    maturityPressure(targetBudget, HANDOFF_RELEASE_VERTICAL_BUDGET_SCALE_FRAMES) *
+    fullFeedbackPressure(telemetry, HANDOFF_RELEASE_VERTICAL_FULL_FEEDBACK_SCALE);
 }
 
 function candidateOvershootPenalty(candidate: Candidate, gap: Gap): number {

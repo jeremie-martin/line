@@ -482,6 +482,9 @@ const TAIL_COMPLETION_CONTACT_WINDOW = 8;
 const TAIL_COMPLETION_BUDGET_WINDOW_EXTRA = 2;
 const TAIL_COMPLETION_BUDGET_SCALE_FRAMES = 150_000;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
+const QUALITY_SHALLOW_TAIL_THROTTLE_MAX_PRESSURE = 1.0;
+const QUALITY_SHALLOW_TAIL_THROTTLE_BUDGET_SCALE_FRAMES = 150_000;
+const QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE = 24;
 const FAR_BACK_FRONTIER_LAG = 3;
 /** Once a passing output exists but its axis quality is still weak, spend sparse
  *  deterministic pulses on older pass-frontier branches. Very low incumbents
@@ -2274,7 +2277,9 @@ function completeNearTail(
   sparseContractSearch: boolean,
   targetBudget: number,
 ): HandoffNode | null {
-  if (!shouldAttemptNearTailCompletion(node, gaps, targetBudget)) return null;
+  if (!shouldAttemptNearTailCompletion(node, gaps, targetBudget, qualitySearch, telemetry)) {
+    return null;
+  }
   const remaining = remainingContactCount(node.search, gaps);
   telemetry.tailCompletionAttempts++;
   incrementContactCountCounter(telemetry.tailCompletionAttemptsByRemainingContacts, remaining);
@@ -2524,10 +2529,61 @@ export function shouldAttemptNearTailCompletion(
   node: { search: SearchNode; skippedContacts: number },
   gaps: Gap[],
   targetBudget = 0,
+  qualitySearch = false,
+  telemetry?: HandoffTelemetry,
 ): boolean {
   if (node.skippedContacts > 0 || isTerminalNode(node.search, gaps)) return false;
   if (!node.search.prefixFits.some((fit) => fit !== null)) return false;
-  return remainingContactCount(node.search, gaps) <= tailCompletionContactWindow(targetBudget);
+  const remaining = remainingContactCount(node.search, gaps);
+  if (
+    qualitySearch &&
+    telemetry !== undefined &&
+    remaining <= 2 &&
+    !shouldKeepShallowQualityTailCompletion(node.search, remaining, targetBudget, telemetry)
+  ) {
+    return false;
+  }
+  return remaining <= tailCompletionContactWindow(targetBudget);
+}
+
+function shouldKeepShallowQualityTailCompletion(
+  node: SearchNode,
+  remainingContacts: number,
+  targetBudget: number,
+  telemetry: HandoffTelemetry,
+): boolean {
+  const throttle = shallowQualityTailThrottlePressure(
+    targetBudget,
+    uniqueFullEvaluations(telemetry),
+  );
+  if (throttle <= 0) return true;
+  return unitHash(shallowQualityTailThrottleSeed(node, remainingContacts)) >= throttle;
+}
+
+function shallowQualityTailThrottlePressure(
+  targetBudget: number,
+  uniqueFull: number,
+): number {
+  const budget = Math.max(0, targetBudget);
+  const budgetPressure = smoothstep(
+    clamp01(budget / (budget + QUALITY_SHALLOW_TAIL_THROTTLE_BUDGET_SCALE_FRAMES)),
+  );
+  const fullFeedback = Math.max(0, uniqueFull);
+  const feedbackPressure = smoothstep(
+    clamp01(
+      fullFeedback /
+        (fullFeedback + QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE),
+    ),
+  );
+  return clamp01(QUALITY_SHALLOW_TAIL_THROTTLE_MAX_PRESSURE * budgetPressure * feedbackPressure);
+}
+
+function shallowQualityTailThrottleSeed(node: SearchNode, remainingContacts: number): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
+    Math.imul(remainingContacts + 1, 0x27d4eb2d)
+  ) | 0;
 }
 
 function shouldAttemptSuffixRepair(

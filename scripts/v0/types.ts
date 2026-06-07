@@ -117,9 +117,6 @@ export const CANDIDATE_SAMPLE_MODES = [
   "normal",
   "brake",
   "startup_catch",
-  "air_support",
-  "speed_drag",
-  "low_air_settle",
 ] as const;
 export type CandidateSampleMode = (typeof CANDIDATE_SAMPLE_MODES)[number];
 

@@ -43,8 +43,7 @@ const SEGMENT_COLLISION_RISK_STRIDE = 7;
 // the grounded ride-out length is sized to hit the air target, and both are SPANNED
 // across the per-gap attempt batch (the cost-sorted handoff keeps the best valid
 // catch) — that span is the generation diversity the search lacked.
-// Gated behind LR_NORMAL_FAMILY=contact_centered so the default path is unchanged
-// for clean A/B against the current baseline.
+// DEFAULT family; LR_NORMAL_FAMILY=target_state opts out to the old generator for A/B.
 //
 // SPEED_AXIS pressure/carry breakpoints are inlined here as locals because the
 // SPEED_AXIS object lives inside the fingerprint-hashed types.ts slice and must not
@@ -433,12 +432,11 @@ function targetStateControls(
   const brakeModePressure = mode === "brake" && targets.speed !== undefined
     ? smoothstep(overspeed)
     : 0;
-  const speedDragModePressure = mode === "speed_drag" && targets.speed !== undefined
-    ? smoothstep(overspeed)
-    : 0;
-  const lowAirSettlePressure = mode === "low_air_settle"
-    ? smoothstep(lowAir)
-    : 0;
+  // speed_drag / low_air_settle: retired candidate-sample modes (axis-quality streams ablated in
+  // Phase 2). Never generated → these pressures are always 0. Kept as 0 constants so the downstream
+  // geometry arithmetic stays byte-identical; the ×0 terms can be folded out in a later pass.
+  const speedDragModePressure = 0;
+  const lowAirSettlePressure = 0;
   const startupCatchPressure = mode === "startup_catch"
     ? smoothstep(1 / (1 + Math.pow(gap.startFrame / (FPS * 0.75), 2)))
     : 0;

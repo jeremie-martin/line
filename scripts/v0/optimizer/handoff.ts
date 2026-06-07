@@ -2543,8 +2543,8 @@ function scoreCandidateForHandoff(
   sourceAxis?: AxisName,
 ): RankedOption {
   const child = extendNodeCached(node, candidate);
-  // TRUE-SCORE FORWARD EVAL POC: rank purely by the true metric score of where this arc
-  // leads (budget-refunded forward rollout). Replaces the local axis-L2 ranking entirely.
+  // Forward-eval ranking (DEFAULT ≥75k): rank purely by the true metric score of where this arc
+  // leads (charged forward rollout), replacing the local axis-L2 proxy below the gate.
   const fwdCfg = fwdEvalCfg; // resolved once per compile in setForwardEvalContext
   if (fwdCfg !== null && targetBudget >= fwdEvalMin) {
     const value = forwardArcValue(child, gaps, ctx, seed, fwdCfg);
@@ -2679,12 +2679,12 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
   return overshoot;
 }
 
-// ── True-score forward arc evaluation (proof-of-concept, budget-refunded) ────────
-// Rank each candidate arc by the TRUE metric score (scoreDriftReport via
-// leafKeyForReport) of where it LEADS over a short forward lookahead, instead of the
-// local axis-L2 proxy. All rollouts are budget-REFUNDED (free) so we isolate
-// evaluation QUALITY from cost. Three intentional variants, selected by
-// LR_FWD_EVAL=<variant>[:depth[:branch]] (higher value = better arc; rank by -value):
+// ── True-score forward arc evaluation (DEFAULT ranker ≥75k; also start selection & repair) ──
+// Rank each candidate arc by the TRUE metric score (scoreDriftReport via leafKeyForReport) of
+// where it LEADS over a short forward lookahead, instead of the local axis-L2 proxy. Rollouts are
+// CHARGED honestly by default (LR_FWD_EVAL_CHARGE=0 refunds them to measure the free ceiling).
+// Three variants, selected by LR_FWD_EVAL=<variant>[:depth[:branch]] (higher value = better arc;
+// rank by -value); greedy:2 is the honest sweet spot:
 //   greedy : single locally-cheapest rollout `depth` contacts deep; value = true score
 //            of the resulting partial track. Cheap, directional.
 //   best   : branch the top-`branch` candidates `depth` deep; value = MAX true score over
@@ -2898,7 +2898,6 @@ function previewFutureContacts(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
-  horizonOverride = 0,
 ): {
   horizon: number;
   landed: number;
@@ -2907,9 +2906,6 @@ function previewFutureContacts(
   firstCost: number;
   totalCost: number;
 } {
-  const maxHorizon = horizonOverride > 0 ? horizonOverride : HANDOFF_PREVIEW_HORIZON;
-  // Refund all sim-frames consumed by this rollout when running the free-preview POC.
-  const savedFrames = horizonOverride > 0 ? getSimFrames() : -1;
   let node = child;
   let horizon = 0;
   let landed = 0;
@@ -2918,30 +2914,26 @@ function previewFutureContacts(
   let firstCost = 0;
   let totalCost = 0;
 
-  try {
-    for (;;) {
-      if (horizon >= maxHorizon) break;
-      const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex);
-      if (nextGapIndex < 0) break;
-      while (node.gapIndex < nextGapIndex) node = extendNodeCached(node, null);
+  for (;;) {
+    if (horizon >= HANDOFF_PREVIEW_HORIZON) break;
+    const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex);
+    if (nextGapIndex < 0) break;
+    while (node.gapIndex < nextGapIndex) node = extendNodeCached(node, null);
 
-      horizon++;
-      const candidates = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_PREVIEW_K);
-      telemetry.previews++;
-      telemetry.previewSurvivors += candidates.length;
-      survivors += candidates.length;
-      if (horizon === 1) firstSurvivors = candidates.length;
+    horizon++;
+    const candidates = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_PREVIEW_K);
+    telemetry.previews++;
+    telemetry.previewSurvivors += candidates.length;
+    survivors += candidates.length;
+    if (horizon === 1) firstSurvivors = candidates.length;
 
-      const best = pickLowestCost(candidates);
-      if (horizon === 1) firstCost = best === null ? Infinity : best.cost;
-      if (best === null) break;
-      totalCost += best.cost;
-      landed++;
-      telemetry.previewContacts++;
-      node = extendNodeCached(node, best);
-    }
-  } finally {
-    if (savedFrames >= 0) refundSimFramesTo(savedFrames);
+    const best = pickLowestCost(candidates);
+    if (horizon === 1) firstCost = best === null ? Infinity : best.cost;
+    if (best === null) break;
+    totalCost += best.cost;
+    landed++;
+    telemetry.previewContacts++;
+    node = extendNodeCached(node, best);
   }
   return { horizon, landed, survivors, firstSurvivors, firstCost, totalCost };
 }

@@ -4,7 +4,7 @@
   "private": true,
   "description": "One-off Remotion overlay: annotates the Believer track with its madmom-derived phase structure.",
   "scripts": {
-    "render": "remotion render src/index.ts PhaseOverlay out/believer_v3_annotated.mp4",
+    "render": "remotion render src/index.ts CurveOverlay out/believer_curves_annotated.mp4",
     "studio": "remotion studio src/index.ts"
   },
   "dependencies": {

@@ -1,18 +1,21 @@
 import React from "react";
-import { Composition } from "remotion";
-import { PhaseOverlay } from "./PhaseOverlay";
+import { Composition, getInputProps } from "remotion";
+import { CurveOverlay } from "./CurveOverlay";
 
-// Source video is 56.55s @ 1280x720 (the believer_v3 ride with muxed audio).
+// One annotated-overlay composition, parameterized by input props from the
+// pipeline (scripts/produce_video.sh): dataFile, videoFile, durationS.
 const FPS = 30;
-const DURATION_S = 56.55;
 
-export const RemotionRoot: React.FC = () => (
-  <Composition
-    id="PhaseOverlay"
-    component={PhaseOverlay}
-    durationInFrames={Math.ceil(DURATION_S * FPS)}
-    fps={FPS}
-    width={1920}
-    height={1080}
-  />
-);
+export const RemotionRoot: React.FC = () => {
+  const { durationS = 56.55 } = getInputProps() as { durationS?: number };
+  return (
+    <Composition
+      id="CurveOverlay"
+      component={CurveOverlay}
+      durationInFrames={Math.ceil(durationS * FPS)}
+      fps={FPS}
+      width={1920}
+      height={1080}
+    />
+  );
+};

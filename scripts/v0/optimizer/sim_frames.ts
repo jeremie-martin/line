@@ -37,6 +37,7 @@
 export {
   PhysicsFrameLimitExceeded,
   getPhysicsFrameCount as getSimFrames,
+  refundPhysicsFramesTo as refundSimFramesTo,
   resetFrameCount as resetSimFrames,
   setPhysicsFrameLimit as setSimFrameLimit,
 } from "../../lib/detector.ts";

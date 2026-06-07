@@ -523,6 +523,14 @@ export function resetFrameCount(): void {
   _physicsFrames = 0;
 }
 
+/** Refund the physics-frame counter back to a previously-saved value, discarding
+ *  frames simulated since. Used by the FREE-PREVIEW proof-of-concept so forward-
+ *  looking rollouts (which only inform ranking and whose nodes are discarded) do
+ *  not count against the compile budget. Only ever lowers the counter. */
+export function refundPhysicsFramesTo(saved: number): void {
+  if (saved >= 0 && saved < _physicsFrames) _physicsFrames = saved;
+}
+
 function chargePhysicsFrames(delta: number): void {
   if (delta <= 0) return;
   const attempted = _physicsFrames + delta;

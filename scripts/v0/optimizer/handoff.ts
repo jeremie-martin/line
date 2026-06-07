@@ -76,6 +76,7 @@ import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
 import {
   getSimFrames,
+  refundSimFramesTo,
   resetSimFrames,
 } from "./sim_frames.ts";
 import {
@@ -530,6 +531,7 @@ function compileHandoffInternal(
     }
 
     const ctx: SpecContext = { allContactFrames, durationFrames };
+    setForwardEvalContext(spec, gapAxisTargets);
     const sparseContractSearch = usesSparseContractSearch(gaps);
     const startOptions = initialSnapshot === null
       ? buildStartOptions(userSpec, spec, gaps, ctx, searchSeed)
@@ -2280,8 +2282,24 @@ function scoreCandidateForHandoff(
   sourceAxis?: AxisName,
 ): RankedOption {
   const child = extendNodeCached(node, candidate);
-  const preview = usePreview
-    ? previewFutureContacts(child, gaps, ctx, seed, telemetry)
+  // TRUE-SCORE FORWARD EVAL POC: rank purely by the true metric score of where this arc
+  // leads (budget-refunded forward rollout). Replaces the local axis-L2 ranking entirely.
+  const fwdCfg = forwardEvalConfig();
+  if (fwdCfg !== null && targetBudget >= forwardEvalMinBudget()) {
+    const value = forwardArcValue(child, gaps, ctx, seed, fwdCfg);
+    recordCandidateReleaseCoverage(telemetry, candidate);
+    return {
+      candidate, child, rank, source, sourceAxis,
+      previewContacts: 0, previewSurvivors: 0,
+      score: -value,
+    };
+  }
+  // FREE-PREVIEW POC: when on, ALWAYS run the (budget-refunded) N-contact rollout —
+  // including the quality phase, which normally has no lookahead at all.
+  const freeHorizon = freePreviewHorizon();
+  const doPreview = freeHorizon > 0 || usePreview;
+  const preview = doPreview
+    ? previewFutureContacts(child, gaps, ctx, seed, telemetry, freeHorizon)
     : {
       horizon: 0,
       landed: 0,
@@ -2296,9 +2314,14 @@ function scoreCandidateForHandoff(
       ? DEAD_END_PENALTY
       : SURVIVOR_SCARCITY_PENALTY / preview.firstSurvivors;
   recordCandidatePreviewCoverage(telemetry, preview);
-  const previewCost = preview.firstCost === Infinity
-    ? 0
-    : preview.firstCost * previewCostWeight;
+  // Default ranks by the 1-ahead cost; the free-preview POC ranks by the CUMULATIVE
+  // quality of the best N-gap greedy continuation (totalCost) — a deeper evaluation
+  // of where this arc leads.
+  const previewCost = freeHorizon > 0
+    ? preview.totalCost * previewCostWeight
+    : preview.firstCost === Infinity
+      ? 0
+      : preview.firstCost * previewCostWeight;
   const statePenalty = handoffStatePenalty(child.prefixEngine, gaps[node.gapIndex]);
   // Asymmetric speed-overshoot penalty (selection-only, handoff-only — does NOT
   // change candidate geometry). The rider creeps faster
@@ -2404,12 +2427,146 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
   return overshoot;
 }
 
+/** FREE-PREVIEW proof-of-concept: LR_FREE_PREVIEW=N runs an N-contact forward
+ *  rollout to rank each candidate (vs the default 1), and REFUNDS the rollout's
+ *  sim-frames so the lookahead does not count against the budget. Isolates the
+ *  question "does deeper forward-looking ranking help?" from "can we afford it?".
+ *  Returns 0 when off. */
+function freePreviewHorizon(): number {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_FREE_PREVIEW;
+  if (raw === undefined) return 0;
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 8) : 0;
+}
+
+// ── True-score forward arc evaluation (proof-of-concept, budget-refunded) ────────
+// Rank each candidate arc by the TRUE metric score (scoreDriftReport via
+// leafKeyForReport) of where it LEADS over a short forward lookahead, instead of the
+// local axis-L2 proxy. All rollouts are budget-REFUNDED (free) so we isolate
+// evaluation QUALITY from cost. Three intentional variants, selected by
+// LR_FWD_EVAL=<variant>[:depth[:branch]] (higher value = better arc; rank by -value):
+//   greedy : single locally-cheapest rollout `depth` contacts deep; value = true score
+//            of the resulting partial track. Cheap, directional.
+//   best   : branch the top-`branch` candidates `depth` deep; value = MAX true score over
+//            the leaves. Optimistic — the best the arc COULD lead to.
+//   avg    : at the next contact, value = MEAN true score over the top-`branch`
+//            alternatives (1 deep). Expected — robust to the DFS not taking the best.
+type ForwardEvalVariant = "greedy" | "best" | "avg";
+type ForwardEvalConfig = { variant: ForwardEvalVariant; depth: number; branch: number };
+
+let fwdEvalSpec: Spec | null = null;
+let fwdEvalGapAxisTargets: AxisValues[] = [];
+export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]): void {
+  fwdEvalSpec = spec;
+  fwdEvalGapAxisTargets = gapAxisTargets;
+}
+
+/** Budget-aware gate: forward eval only activates at/above this compile budget
+ *  (LR_FWD_EVAL_MIN_BUDGET frames, default 0 = always). Charged forward eval pays
+ *  for itself only at high budget, so this restricts it to where it's affordable. */
+function forwardEvalMinBudget(): number {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_FWD_EVAL_MIN_BUDGET;
+  if (raw === undefined) return 0;
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function forwardEvalConfig(): ForwardEvalConfig | null {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_FWD_EVAL;
+  if (raw === undefined || raw === "" || raw === "0" || raw === "off") return null;
+  const [v, d, b] = raw.split(":");
+  if (v !== "greedy" && v !== "best" && v !== "avg") return null;
+  const depth = d ? Math.max(1, Math.min(6, Number.parseInt(d, 10) || 2)) : 2;
+  const defBranch = v === "avg" ? 6 : v === "best" ? 3 : 1;
+  const branch = b ? Math.max(1, Math.min(8, Number.parseInt(b, 10) || defBranch)) : defBranch;
+  return { variant: v, depth, branch };
+}
+
+/** True partial-track score (scoreDriftReport.full_score) of a forward SearchNode. */
+function forwardNodeScore(search: SearchNode, gaps: Gap[], ctx: SpecContext): number {
+  const spec = fwdEvalSpec;
+  if (spec === null) return 0;
+  const fullDuration = isTerminalNode(search, gaps);
+  const horizonFrame = fullDuration ? ctx.durationFrames : processedHorizonFrame(search, gaps);
+  const outputDurationFrames = fullDuration
+    ? ctx.durationFrames + 20
+    : partialOutputDurationFrames(horizonFrame, ctx.durationFrames);
+  const det = detectWindow(search.prefixEngine, 0, outputDurationFrames);
+  const fits = search.prefixFits.slice();
+  while (fits.length < gaps.length) fits.push(null);
+  const rawReport = buildDriftReport(
+    det, spec, gaps, ctx.allContactFrames, ctx.durationFrames, [], fits, fwdEvalGapAxisTargets,
+  );
+  const report = fullDuration ? rawReport : asPartialReport(rawReport, horizonFrame);
+  return leafKeyForReport(report, ctx.durationFrames).full_score;
+}
+
+/** Advance past non-contact gaps to the next contact node, or null at terminus. */
+function advanceToNextContact(search: SearchNode, gaps: Gap[]): SearchNode | null {
+  const nextIdx = nextContactGapIndex(gaps, search.gapIndex);
+  if (nextIdx < 0) return null;
+  let n = search;
+  while (n.gapIndex < nextIdx) n = extendNodeCached(n, null);
+  return n;
+}
+
+/** greedy/best: best true partial-track score reachable from `search` within
+ *  `depthLeft` contact gaps, branching `branch` (1 = greedy single rollout). */
+function forwardRolloutScore(
+  search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, depthLeft: number, branch: number,
+): number {
+  if (depthLeft <= 0 || isTerminalNode(search, gaps)) return forwardNodeScore(search, gaps, ctx);
+  const at = advanceToNextContact(search, gaps);
+  if (at === null) return forwardNodeScore(search, gaps, ctx);
+  const cands = getCandidatesSorted(at, gaps, ctx, seed, branch);
+  if (cands.length === 0) return forwardNodeScore(search, gaps, ctx);
+  let best = -Infinity;
+  for (const c of cands) {
+    const s = forwardRolloutScore(extendNodeCached(at, c), gaps, ctx, seed, depthLeft - 1, branch);
+    if (s > best) best = s;
+  }
+  return best;
+}
+
+/** avg: mean true partial-track score over the top-`m` next-contact alternatives, 1 deep. */
+function forwardAvgNextScore(
+  search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, m: number,
+): number {
+  const at = advanceToNextContact(search, gaps);
+  if (at === null) return forwardNodeScore(search, gaps, ctx);
+  const cands = getCandidatesSorted(at, gaps, ctx, seed, m);
+  if (cands.length === 0) return forwardNodeScore(search, gaps, ctx);
+  let sum = 0;
+  for (const c of cands) sum += forwardNodeScore(extendNodeCached(at, c), gaps, ctx);
+  return sum / cands.length;
+}
+
+/** Budget-refunded forward value of committing `child` (the prefix+candidate node). */
+function forwardArcValue(
+  child: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, cfg: ForwardEvalConfig,
+): number {
+  const saved = getSimFrames();
+  const value = cfg.variant === "avg"
+    ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch)
+    : forwardRolloutScore(child, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1);
+  // POC default REFUNDS the rollout frames (free, isolates eval quality). Set
+  // LR_FWD_EVAL_CHARGE=1 to bill them honestly — the affordability reality-check.
+  const charge = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_FWD_EVAL_CHARGE === "1";
+  if (!charge) refundSimFramesTo(saved);
+  return value;
+}
+
 function previewFutureContacts(
   child: SearchNode,
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
+  horizonOverride = 0,
 ): {
   horizon: number;
   landed: number;
@@ -2418,6 +2575,9 @@ function previewFutureContacts(
   firstCost: number;
   totalCost: number;
 } {
+  const maxHorizon = horizonOverride > 0 ? horizonOverride : HANDOFF_PREVIEW_HORIZON;
+  // Refund all sim-frames consumed by this rollout when running the free-preview POC.
+  const savedFrames = horizonOverride > 0 ? getSimFrames() : -1;
   let node = child;
   let horizon = 0;
   let landed = 0;
@@ -2427,7 +2587,7 @@ function previewFutureContacts(
   let totalCost = 0;
 
   for (;;) {
-    if (horizon >= HANDOFF_PREVIEW_HORIZON) break;
+    if (horizon >= maxHorizon) break;
     const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex);
     if (nextGapIndex < 0) break;
     while (node.gapIndex < nextGapIndex) node = extendNodeCached(node, null);
@@ -2448,6 +2608,7 @@ function previewFutureContacts(
     node = extendNodeCached(node, best);
   }
 
+  if (savedFrames >= 0) refundSimFramesTo(savedFrames);
   return { horizon, landed, survivors, firstSurvivors, firstCost, totalCost };
 }
 

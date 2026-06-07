@@ -740,16 +740,17 @@ function compileHandoffInternal(
       }
     };
 
-    while (frontierSize(passStack, fallbackStack) > 0 && telemetry.nodesExpanded < maxNodes) {
-      const bestKey = register.getBestKey();
-      const node = popNextFrontierNode(
-        passStack,
-        fallbackStack,
-        telemetry,
-        farBackFrontierPulseInterval(bestKey),
-      );
-      telemetry.frontierSelections++;
-
+    // Per-node work shared by every traversal mode (DFS today, best-first next):
+    // consider the node + its speculative tail, check the budget, polish terminals, and
+    // expand into ranked children. It mutates the register/telemetry/budget exactly as the
+    // old inline loop did, and keeps the contract->quality phase wiring
+    // (register.getBestKey()) in ONE place so no traversal can silently drift from it. It
+    // does NOT touch the frontier container — the caller enqueues the returned children.
+    type ProcessResult =
+      | { kind: "captured" }
+      | { kind: "deferred" }
+      | { kind: "expanded"; children: HandoffNode[] };
+    const processNode = (node: HandoffNode): ProcessResult => {
       consider(node, "main");
 
       const tailNode = completeNearTail(
@@ -774,16 +775,9 @@ function compileHandoffInternal(
       }
 
       captureReachedBudget();
-      if (captured !== null) break;
+      if (captured !== null) return { kind: "captured" };
 
-      if (node.deferExpansion) {
-        enqueueDeferred({ ...node, deferExpansion: false }, passStack, fallbackStack);
-        telemetry.frontierMaxSize = Math.max(
-          telemetry.frontierMaxSize,
-          frontierSize(passStack, fallbackStack),
-        );
-        continue;
-      }
+      if (node.deferExpansion) return { kind: "deferred" };
 
       if (
         polishEnabled &&
@@ -844,7 +838,7 @@ function compileHandoffInternal(
         }
       }
 
-      if (isTerminalNode(node.search, gaps)) continue;
+      if (isTerminalNode(node.search, gaps)) return { kind: "expanded", children: [] };
 
       const children = expandNode(
         node,
@@ -858,13 +852,37 @@ function compileHandoffInternal(
         register.getBestKey(),
       );
       telemetry.nodesExpanded++;
-      for (let i = children.length - 1; i >= 0; i--) {
-        enqueueChild(children[i], passStack, fallbackStack);
-      }
+      return { kind: "expanded", children };
+    };
+
+    const noteFrontierSize = (): void => {
       telemetry.frontierMaxSize = Math.max(
         telemetry.frontierMaxSize,
         frontierSize(passStack, fallbackStack),
       );
+    };
+
+    while (frontierSize(passStack, fallbackStack) > 0 && telemetry.nodesExpanded < maxNodes) {
+      const bestKey = register.getBestKey();
+      const node = popNextFrontierNode(
+        passStack,
+        fallbackStack,
+        telemetry,
+        farBackFrontierPulseInterval(bestKey),
+      );
+      telemetry.frontierSelections++;
+
+      const result = processNode(node);
+      if (result.kind === "captured") break;
+      if (result.kind === "deferred") {
+        enqueueDeferred({ ...node, deferExpansion: false }, passStack, fallbackStack);
+        noteFrontierSize();
+        continue;
+      }
+      for (let i = result.children.length - 1; i >= 0; i--) {
+        enqueueChild(result.children[i], passStack, fallbackStack);
+      }
+      noteFrontierSize();
     }
 
     // Frontier exhausted (or node cap hit) before the budget was reached: snapshot

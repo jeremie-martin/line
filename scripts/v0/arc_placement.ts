@@ -86,6 +86,26 @@ const CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES = 50_000;
 const ELEVATION_POST_ANGLE_MIN = -62;
 const ELEVATION_POST_ANGLE_MAX = 70;
 
+/** Arc-length degree of freedom — the campaign lever for arc placement. The
+ *  ride-out length sets how long an arc the rider rides before going airborne.
+ *  This spans it across the per-gap attempt batch (factor `lowDiscrepancyRoll`,
+ *  no rng draw, deterministic) so the candidate pool can contain shorter AND
+ *  longer arcs; the forward-eval keeps whatever scores. SPAN/FLOOR/CAP below are
+ *  the knob.
+ *
+ *  Shipped at NEUTRAL (1.0/1.0/28/220 = the historical behavior, byte-identical
+ *  baseline) on purpose: an *active* widening to 0.6–1.6 / 16–320 was measured at
+ *  HEADLINE 611.6 vs 624.6 (Δ−13, decide REJECT) — the wider pool dilutes quality
+ *  faster than the forward-eval recovers it. The campaign's job is to OPEN this
+ *  range AND add the supporting arc-placement work (better landing setup for long
+ *  ride-outs, selection/budget so longer arcs are kept only where they pay) until
+ *  the canonical decide ACCEPTs. See COMPILER_OPTIMIZATION_LOG_NEW.md. */
+const ARC_LEN_SPAN_LO = 1.0;
+const ARC_LEN_SPAN_HI = 1.0;
+const ARC_LEN_FLOOR = 28;
+const ARC_LEN_CAP = 220;
+const ARC_LEN_SPAN_SALT = 9;
+
 /** Per-compile frame budget, set once at compileHandoff entry (each compile is a
  *  single independent budget, run in its own worker / sequentially), read by the
  *  budget-aware geometry. A per-compile constant, so determinism stays per
@@ -754,7 +774,12 @@ function sampleContactCenteredLines(
   const spacingPostLengthCap = nextGapFrames === null || !needsGrainSpacingCap
     ? 220
     : clamp(targetState.speed * nextGapFrames * (0.52 + 0.16 * (1 - air)), 36, 180);
-  const sampledPostLength = clamp(Math.min(denseScaledPostLength, spacingPostLengthCap), 28, 220);
+  const arcLenFactor = ARC_LEN_SPAN_LO
+    + (ARC_LEN_SPAN_HI - ARC_LEN_SPAN_LO) * lowDiscrepancyRoll(attempt, ARC_LEN_SPAN_SALT);
+  const sampledPostLength = clamp(
+    Math.min(denseScaledPostLength, spacingPostLengthCap) * arcLenFactor,
+    ARC_LEN_FLOOR, ARC_LEN_CAP,
+  );
   const preAngleDeg = clamp(
     contactAngleDeg
       - (4 + 8 * clearancePressure + 4 * brakePressure)

@@ -953,6 +953,7 @@ function compactStats(stats: CompileStats | null): object | null {
     handoff_candidate_preview_first_survivors_max:
       stats.handoff_candidate_preview_first_survivors_max,
     arc_placement: stats.arc_placement,
+    repair: stats.repair,
   };
 }
 

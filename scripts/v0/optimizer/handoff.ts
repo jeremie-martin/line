@@ -612,6 +612,18 @@ function compileHandoffInternal(
     const repairEnabled = repair !== null && targetBudget >= repair.minBudget && startOptions.length > 0;
     let bestCompleteNode: HandoffNode | null = null;
     let firstCompletionFrame = -1;
+    // Instrumentation scaffold (observe-only; never read by the search → byte-identical when off):
+    // when each node was first processed (its "budget timestamp") and a structured record of every
+    // repair restart, so the system can be characterized and budget-aware allocation built on
+    // MEASURED cost (vs the current crude perGap estimate). Surfaced in compile_stats.repair.
+    const framesAtReach = new WeakMap<SearchNode, number>();
+    type RepairRecord = {
+      worst: number; anchor: number; up: number;
+      framesAtAnchor: number; framesBefore: number; framesSpent: number;
+      estCost: number; beforeScore: number; afterScore: number; accepted: boolean;
+      inhSpeed: number | null; inhVy: number | null; inhGrounded: number | null;
+    };
+    const repairRecords: RepairRecord[] = [];
 
     const evaluateCached = (node: HandoffNode): NodeEvaluation => {
       const cached = evaluationCache.get(node.search);
@@ -742,6 +754,21 @@ function compileHandoffInternal(
           ...snapshotCandidateReleaseCoverage(telemetry),
           ...snapshotCandidatePreviewCoverage(telemetry),
           ...(arcStats ? { arc_placement: arcStats } : {}),
+          // Repair characterization (only present when the repair post-pass ran → baseline
+          // golden.json unchanged, no snapshot churn). Aggregates + per-restart records.
+          ...(repairRecords.length > 0
+            ? {
+              repair: {
+                first_completion_frame: firstCompletionFrame,
+                restarts: repairRecords.length,
+                accepts: repairRecords.filter((r) => r.accepted).length,
+                frames_spent: repairRecords.reduce((s, r) => s + r.framesSpent, 0),
+                gaps_touched: new Set(repairRecords.map((r) => r.worst)).size,
+                reconverged: repairRecords.filter((r) => !r.accepted && r.framesSpent > 0).length,
+                records: repairRecords,
+              },
+            }
+            : {}),
         },
       };
     };
@@ -766,6 +793,7 @@ function compileHandoffInternal(
       | { kind: "deferred" }
       | { kind: "expanded"; children: HandoffNode[] };
     const processNode = (node: HandoffNode): ProcessResult => {
+      if (!framesAtReach.has(node.search)) framesAtReach.set(node.search, getSimFrames());
       consider(node, "main");
 
       const tailNode = completeNearTail(
@@ -970,15 +998,30 @@ function compileHandoffInternal(
           const ceiling = Math.min(targetBudget, getSimFrames() + Math.ceil(estCost * repair.feasMargin));
           const beforeScore = evaluateCached(incumbent).key.full_score;
           const framesBefore = getSimFrames();
+          const incumbentBefore = bestCompleteNode;
           runFrontierFrom(prefixNode, ceiling);
+          // Decide "improved" by whether the REGISTER actually adopted a new best (its passing-leaf
+          // comparator is axis_quality, not full_score — they can disagree). dScore is logged for
+          // characterization but does NOT drive the exhaust/re-pick decision.
+          const improved = bestCompleteNode !== incumbentBefore;
           const afterScore = bestCompleteNode ? evaluateCached(bestCompleteNode).key.full_score : beforeScore;
-          const improved = afterScore > beforeScore + 1e-6;
+          const fit = k > 0 ? incumbent.search.prefixFits[k - 1] : undefined;
+          repairRecords.push({
+            worst: kWorst, anchor: k, up,
+            framesAtAnchor: framesAtReach.get(prefix) ?? -1,
+            framesBefore, framesSpent: getSimFrames() - framesBefore,
+            estCost: Math.round(estCost), beforeScore, afterScore, accepted: improved,
+            inhSpeed: fit?.releaseSpeed ?? null,
+            inhVy: fit?.releaseVelocityY ?? null,
+            inhGrounded: fit?.releaseGroundedFrames ?? null,
+          });
           if (repair.log) {
-            const fit = k > 0 ? incumbent.search.prefixFits[k - 1] : undefined;
             process.stderr.write(
               `repair seed=${seed} budget=${targetBudget} worst=${kWorst} anchor=${k} up=${up} ` +
-              `dScore=${(afterScore - beforeScore).toFixed(2)} frames=${getSimFrames() - framesBefore} ` +
-              `estCost=${Math.round(estCost)} inhSpeed=${fit?.releaseSpeed?.toFixed(2) ?? "na"} ` +
+              `accepted=${improved ? "yes" : "no"} dScore=${(afterScore - beforeScore).toFixed(2)} ` +
+              `frames=${getSimFrames() - framesBefore} estCost=${Math.round(estCost)} ` +
+              `framesAtAnchor=${framesAtReach.get(prefix) ?? -1} ` +
+              `inhSpeed=${fit?.releaseSpeed?.toFixed(2) ?? "na"} ` +
               `inhVy=${fit?.releaseVelocityY?.toFixed(2) ?? "na"} ` +
               `inhGrounded=${fit?.releaseGroundedFrames ?? "na"}\n`,
             );

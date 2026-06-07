@@ -125,9 +125,39 @@ target.** Default raised to 64 (low/mid budgets exhaust budget before the cap, s
 Session arc: baseline FLAT ~670 across all budgets → seed-perturbed repair CLIMBS to 706.6 @1M. Higher budget
 finally pays off. (Single-budget 1M headline; refunded ranker — honesty axis still pending.)
 
+### ★ HONEST + FULL CANONICAL SUITE — the promotable number
+Charged forward-eval (LR_FWD_EVAL=greedy:2 LR_FWD_EVAL_CHARGE=1 LR_FWD_EVAL_MIN_BUDGET=75000), repair gate
+150k + upstream=3, vs the SAME honest ranker WITHOUT repair. Full canonical 20×12×{25,50,100,150,200}k.
+Includes the obs-B comparator fix (repair "improved" = register's best CHANGED, not full_score delta).
+| budget | honest base | + repair | Δ |
+|---|---|---|---|
+| 25k/50k/100k | 127.6/325.4/596.9 | identical | 0.0 (gated, byte-identical) |
+| 150k | 650.4 | 655.7 | +5.3 (P=0%) |
+| 200k | 650.7 | 660.2 | +9.5 (P=0%) |
+| **HEADLINE** | **584.5** | **589.6** | **+5.1 ACCEPT (P=0%, effect 4.99)** |
+Validity 100%→100% at 150k/200k (no completion breakage). Full honest branch progress: committed **569.7 →
+589.6 = +19.9** (forward-eval +14.8, repair +5.1). The 706@1M is the off-suite high-budget CEILING (the real
+1M use case); the suite headline only samples 150k/200k so repair's *suite* contribution is +5.1.
+
+### Fresh-view agent's key findings (folded in)
+- **Headline blindness (confirmed):** canonical weights 200k≈38%/150k≈29%, never samples 350k-1M; repair gate
+  150k → repair only moves 150k/200k rows on the suite. 706@1M is off-suite. ⇒ consider adding a 500k rung to
+  the estimator (golden_suite.ts calls the grid "a fixed ESTIMATOR for a wider budget distribution").
+- **Comparator mismatch (obs B, FIXED):** repair improved-flag used full_score; register adopts passing leaves
+  by axis_quality. Now decided by register-best-changed identity.
+- **Cost model coarse (obs C):** perGap = firstCompletionFrame/(deepestSeenGap+1); deepestSeenGap counts
+  dead-end branches → biased feasibility gate. Replace with MEASURED per-gap cost (now instrumented).
+- Ranked next levers: measured-cost budget allocation (value/frame), repair the START/early gaps with fresh
+  seeds, portfolio of top-K incumbents, compose with geometry diversity (LR_QUALITY_NCAND=24).
+
+### Instrumentation scaffold (compile_stats.repair) — observe-only, baseline byte-identical
+framesAtReach (budget timestamp per node) + per-restart records {worst,anchor,up,framesAtAnchor,framesSpent,
+estCost,before/afterScore,accepted,inherited release state}; aggregates restarts/accepts/frames_spent/
+gaps_touched/reconverged. In the golden archive (golden.ts compactStats); only present when repair ran.
+
 ## Plan (methodical, one change per decide)
-- Honesty axis (the big one): replace refunded forward-eval with the gated-charged HONEST ranker; re-confirm
-  the climb survives. This is what makes 706 a real shippable number, not a ceiling.
-- Full-suite headline: confirm low/mid budgets stay byte-identical (gated) and the weighted headline reflects
-  the high-budget gains; promote via a full canonical sweep.
-- Further tuning: does maxAttempts>64 / higher feasMargin keep climbing past 706 at 1M (diminishing?).
+- Measured-cost budget allocation: feed compile_stats.repair per-gap measured cost into a value-per-frame
+  picker, replacing the coarse perGap estimate.
+- Repair the START/early gaps with fresh seeds (highest blast radius on a forward-dependent chain).
+- Portfolio of top-K incumbents; compose with LR_QUALITY_NCAND=24.
+- Methodology: a 500k rung in the canonical estimator so the headline can reward high-budget gains.

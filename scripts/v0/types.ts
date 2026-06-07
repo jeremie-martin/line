@@ -426,6 +426,22 @@ export type CompileStats = {
     fallback_landed: number;
     by_sample_mode: Record<CandidateSampleMode, ArcPlacementCounter>;
   };
+
+  /** Track-repair post-pass diagnostics (only present when repair ran). Non-scoring. */
+  repair?: {
+    first_completion_frame: number;
+    restarts: number;
+    accepts: number;
+    frames_spent: number;
+    gaps_touched: number;
+    reconverged: number;
+    records: Array<{
+      worst: number; anchor: number; up: number;
+      framesAtAnchor: number; framesBefore: number; framesSpent: number;
+      estCost: number; beforeScore: number; afterScore: number; accepted: boolean;
+      inhSpeed: number | null; inhVy: number | null; inhGrounded: number | null;
+    }>;
+  };
 };
 
 export type ContactReport = {

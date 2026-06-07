@@ -31,6 +31,21 @@ export const GOLDEN_SPECS = [
   "drums_breath",
   "drums_pulse",
   "drums_zigzag",
+  // Creative non-dense axis specs (added 2026-06-07): sparse/mixed cadence specs
+  // exercising the elevation and amplitude axes (air + speed always, no grain),
+  // where the arc-length / climb / pop levers have room to express. The original
+  // 20 specs are ~98% dense (median gap 19f), starving any longer-arc DOF; these
+  // give the optimization campaign signal. 5 elevation + 5 amplitude.
+  "climb_terrace",
+  "swoop_dive",
+  "rolling_hills",
+  "summit_push",
+  "mixed_grade",
+  "big_air_ramp",
+  "pop_train",
+  "soar_settle",
+  "leap_cadence",
+  "float_bounds",
 ] as const;
 
 export const REPORT_VARIANTS = [
@@ -111,7 +126,7 @@ export const EXPLORATORY_BUDGETS = [
  * spec edit is visible. A DELIBERATE ruler change updates this constant in the
  * same commit. Soft tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "9b9776df145f";
+export const EVALUATOR_FINGERPRINT = "2437d832b61e";
 
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. Each budget is now an

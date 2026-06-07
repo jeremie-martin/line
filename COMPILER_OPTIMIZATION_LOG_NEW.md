@@ -22,8 +22,10 @@ npm run decide -- generated/golden-runs/<attempt-label>/golden.json generated/go
 - Validity + wall-clock are diagnostic; the score is the decision signal.
 
 ## Baselines of record
-- **`cand-arclen-room` — HEADLINE 580.42** (CURRENT, attempt 1 accepted). Room-gated
-  arc-length opening. Per-budget 276 / 431 / 604 / 614 / 619.
+- **`cand-ncand24` — HEADLINE 582.3** (CURRENT, attempt 2 accepted). Quality breadth 16→24.
+  Per-budget 276 / 429 / 606 / 617 / 621.
+- `cand-arclen-room` — HEADLINE 580.42 (attempt 1). Room-gated arc-length opening.
+  Per-budget 276 / 431 / 604 / 614 / 619.
 - `baseline-newgolden` — HEADLINE 572.74 (superseded by attempt 1). 30 specs (20 original + 10 new
   sparse/creative), 12 seeds, fingerprint `2437d832b61e`. Per-budget 25k/50k/100k/150k/200k
   = 258 / 437 / 601 / 598 / 613. Validity 1741/1800 (@200k 360/360).
@@ -76,6 +78,24 @@ ceiling on low-air (long ride-out) catches. Both are open for the campaign.
 - **Read:** the lever's failure on the dense board was crowding; gating it to gaps
   with room turns it from −13 into +7.7. Confirms the board change was the unlock.
 - **Disposition:** KEPT. New baseline-of-record.
+
+### Attempt 2: quality-phase breadth 16→24 (ACCEPTED, +1.9)
+- **Baseline:** cand-arclen-room (580.4). **Candidate:** cand-ncand24 (`HANDOFF_QUALITY_N_CAND` 16→24).
+- **Rationale:** the sparse specs plateau across budget (summit_push 393→416 over 25k→200k)
+  — extra *budget* isn't finding better catches, so it's a generation-breadth limit, not
+  search depth. Wider per-gap sampling, ranked by the forward-eval's true score, finds
+  better Pareto catches at high budget.
+- **decide:** 580.4 → 582.3, **Δ+1.9** · CI[0.1, 3.6] · P(Δ≤0)=1.9% · effect 2.11 ·
+  **VERDICT: ACCEPT**. Per-budget: 25k −0.1, 50k −2.0 (breadth cost at scarce budget),
+  100k +1.5, 150k +2.9, 200k +2.5 — the value is at the high-weight budgets.
+- **NCAND=32 probed and rejected:** −1.4 vs 24 (over-spends breadth, dilutes). 24 is the sweet spot.
+- **Disposition:** KEPT (committed at user's call though Δ just under the +2 bar; the
+  high-budget signal is clean and significant). New baseline-of-record.
+
+### Null probes (not kept)
+- **Span LO 0.80→0.65** (deeper short end): Δ+1.1, INCONCLUSIVE (P=40%). Reverted.
+- **Forward-eval gate 75k→50k** (LR_FWD_EVAL_MIN_BUDGET): Δ−0.5; only 50k changed and
+  it was a noisy −5.7. Charged rollouts don't pay below 75k even on sparse specs.
 
 ## Selection / search facts (the deciding machinery)
 - Per-candidate generation: `arc_placement.ts`. Local validity gates + axis-L2 `cost`:

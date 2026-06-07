@@ -311,7 +311,12 @@ const HANDOFF_BRANCHING = 3;
  *  track; an ample budget keeps the full cap. */
 const HANDOFF_SPARSE_CONTRACT_N_CAND = 13;
 const HANDOFF_CONTRACT_N_CAND = 14;
-const HANDOFF_QUALITY_N_CAND = 16;
+// Quality-phase breadth raised 16→24 (2026-06-07): with the forward-eval ranker
+// sorting by true score and the new sparse specs plateauing on geometry diversity
+// (not search depth), wider per-gap sampling lifts the high-budget ceiling
+// (150k +2.9, 200k +2.5; canonical decide Δ+1.9 ACCEPT). 32 over-spends and
+// dilutes (−1.4 vs 24), so 24 is the measured sweet spot. LR_QUALITY_NCAND overrides.
+const HANDOFF_QUALITY_N_CAND = 24;
 /** Floor for the budget-scaled contract sample count: even the leanest low-budget
  *  race samples at least this many candidates per contact gap, so greedy completion
  *  keeps enough breadth to route around dead ends (3 was the value that flipped deep

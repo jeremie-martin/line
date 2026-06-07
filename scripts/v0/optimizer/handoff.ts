@@ -761,7 +761,9 @@ function compileHandoffInternal(
           ...snapshotCandidatePreviewCoverage(telemetry),
           ...(arcStats ? { arc_placement: arcStats } : {}),
           // Repair characterization (only present when the repair post-pass ran → baseline
-          // golden.json unchanged, no snapshot churn). Aggregates + per-restart records.
+          // golden.json unchanged, no snapshot churn). Aggregates are always cheap; the full
+          // per-restart records (up to maxAttempts each) are heavy archive bloat, so they ride
+          // behind LR_REPAIR_LOG — on only when you're actually debugging the repair phase.
           ...(repairRecords.length > 0
             ? {
               repair: {
@@ -771,7 +773,7 @@ function compileHandoffInternal(
                 frames_spent: repairRecords.reduce((s, r) => s + r.framesSpent, 0),
                 gaps_touched: new Set(repairRecords.map((r) => r.worst)).size,
                 reconverged: repairRecords.filter((r) => !r.accepted && r.framesSpent > 0).length,
-                records: repairRecords,
+                ...(repair?.log ? { records: repairRecords } : {}),
               },
             }
             : {}),
@@ -799,7 +801,8 @@ function compileHandoffInternal(
       | { kind: "deferred" }
       | { kind: "expanded"; children: HandoffNode[] };
     const processNode = (node: HandoffNode): ProcessResult => {
-      if (!framesAtReach.has(node.search)) framesAtReach.set(node.search, getSimFrames());
+      // Only tracked when repair can consume it (>=150k); a no-op on the low-budget hot path.
+      if (repairEnabled && !framesAtReach.has(node.search)) framesAtReach.set(node.search, getSimFrames());
       consider(node, "main");
 
       const tailNode = completeNearTail(
@@ -907,35 +910,36 @@ function compileHandoffInternal(
       return { kind: "expanded", children };
     };
 
-    const noteFrontierSize = (): void => {
-      telemetry.frontierMaxSize = Math.max(
-        telemetry.frontierMaxSize,
-        frontierSize(passStack, fallbackStack),
-      );
-    };
-
-    // Run the REAL frontier-DFS (same machinery as the main search: rescue, far-back pulse,
-    // tail completion, register) seeded from one node, until `ceiling` sim-frames or the
-    // frontier empties. This is how repair re-searches a suffix — it branches into the OTHER
-    // arcs at the restart gap and rebuilds the whole tail with full power, not a greedy dive.
-    const runFrontierFrom = (initial: HandoffNode, ceiling: number): void => {
-      const pass: HandoffNode[] = initial.skippedContacts === 0 ? [initial] : [];
-      const fb: HandoffNode[] = initial.skippedContacts === 0 ? [] : [initial];
-      while (
-        frontierSize(pass, fb) > 0 &&
-        telemetry.nodesExpanded < maxNodes &&
-        getSimFrames() < ceiling
-      ) {
+    // Shared frontier-DFS driver: pop → process → enqueue children, until the frontier empties,
+    // the node cap is hit, or `keepGoing()` returns false. Both the main search and each repair
+    // restart run on this — they differ only in their frontier stacks and stop predicate. Returns
+    // early when a budget snapshot is captured (kind:"captured") so the caller's post-loop runs.
+    const runFrontier = (
+      pass: HandoffNode[], fb: HandoffNode[], keepGoing: () => boolean,
+    ): void => {
+      while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
+        if (!keepGoing()) break;
         const node = popNextFrontierNode(pass, fb, telemetry, farBackFrontierPulseInterval(register.getBestKey()));
         telemetry.frontierSelections++;
         const result = processNode(node);
         if (result.kind === "captured") return;
         if (result.kind === "deferred") {
           enqueueDeferred({ ...node, deferExpansion: false }, pass, fb);
-          continue;
+        } else {
+          for (let i = result.children.length - 1; i >= 0; i--) enqueueChild(result.children[i], pass, fb);
         }
-        for (let i = result.children.length - 1; i >= 0; i--) enqueueChild(result.children[i], pass, fb);
+        telemetry.frontierMaxSize = Math.max(telemetry.frontierMaxSize, frontierSize(pass, fb));
       }
+    };
+
+    // Repair restart: re-run the REAL frontier-DFS (rescue, far-back pulse, tail completion,
+    // register — all via processNode) seeded from one node, until `ceiling` sim-frames or the
+    // frontier empties. Branches into the OTHER arcs at the restart gap, rebuilding the whole
+    // tail with full power, not a greedy dive.
+    const runFrontierFrom = (initial: HandoffNode, ceiling: number): void => {
+      const pass: HandoffNode[] = initial.skippedContacts === 0 ? [initial] : [];
+      const fb: HandoffNode[] = initial.skippedContacts === 0 ? [] : [initial];
+      runFrontier(pass, fb, () => getSimFrames() < ceiling);
     };
 
     // Aimed-repair post-pass (R2): the main search has produced a complete incumbent using
@@ -1066,35 +1070,13 @@ function compileHandoffInternal(
       }
     };
 
-    while (frontierSize(passStack, fallbackStack) > 0 && telemetry.nodesExpanded < maxNodes) {
-      // Completion-triggered handoff to repair: once the main search has a complete track,
-      // stop it (after firstCompletion*mainMargin frames) and spend the rest on aimed repair.
-      // Off, or before any completion → runs to budget exactly → byte-identical baseline.
-      if (
-        repairEnabled && firstCompletionFrame >= 0 &&
-        getSimFrames() >= firstCompletionFrame * repair!.mainMargin
-      ) break;
-      const bestKey = register.getBestKey();
-      const node = popNextFrontierNode(
-        passStack,
-        fallbackStack,
-        telemetry,
-        farBackFrontierPulseInterval(bestKey),
-      );
-      telemetry.frontierSelections++;
-
-      const result = processNode(node);
-      if (result.kind === "captured") break;
-      if (result.kind === "deferred") {
-        enqueueDeferred({ ...node, deferExpansion: false }, passStack, fallbackStack);
-        noteFrontierSize();
-        continue;
-      }
-      for (let i = result.children.length - 1; i >= 0; i--) {
-        enqueueChild(result.children[i], passStack, fallbackStack);
-      }
-      noteFrontierSize();
-    }
+    // Main search. Completion-triggered handoff to repair: once a complete track exists, stop the
+    // main search (after firstCompletion*mainMargin frames) and spend the rest on aimed repair.
+    // Repair off, or before any completion → runs to budget exactly → byte-identical baseline.
+    runFrontier(passStack, fallbackStack, () =>
+      !(repairEnabled && firstCompletionFrame >= 0 &&
+        getSimFrames() >= firstCompletionFrame * repair!.mainMargin),
+    );
 
     // Contained worst-gap suffix-rebuild post-pass on the reserved budget tail.
     if (repairEnabled && captured === null) {
@@ -2563,8 +2545,8 @@ function scoreCandidateForHandoff(
   const child = extendNodeCached(node, candidate);
   // TRUE-SCORE FORWARD EVAL POC: rank purely by the true metric score of where this arc
   // leads (budget-refunded forward rollout). Replaces the local axis-L2 ranking entirely.
-  const fwdCfg = forwardEvalConfig();
-  if (fwdCfg !== null && targetBudget >= forwardEvalMinBudget()) {
+  const fwdCfg = fwdEvalCfg; // resolved once per compile in setForwardEvalContext
+  if (fwdCfg !== null && targetBudget >= fwdEvalMin) {
     const value = forwardArcValue(child, gaps, ctx, seed, fwdCfg);
     recordCandidateReleaseCoverage(telemetry, candidate);
     return {
@@ -2710,13 +2692,19 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //   avg    : at the next contact, value = MEAN true score over the top-`branch`
 //            alternatives (1 deep). Expected — robust to the DFS not taking the best.
 type ForwardEvalVariant = "greedy" | "best" | "avg";
-type ForwardEvalConfig = { variant: ForwardEvalVariant; depth: number; branch: number };
+type ForwardEvalConfig = { variant: ForwardEvalVariant; depth: number; branch: number; charge: boolean };
 
 let fwdEvalSpec: Spec | null = null;
 let fwdEvalGapAxisTargets: AxisValues[] = [];
+// Forward-eval config/gate resolved ONCE per compile (env is constant per run) so the
+// per-candidate ranker reads these cached fields, not process.env, in the hot path.
+let fwdEvalCfg: ForwardEvalConfig | null = null;
+let fwdEvalMin = 0;
 export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]): void {
   fwdEvalSpec = spec;
   fwdEvalGapAxisTargets = gapAxisTargets;
+  fwdEvalCfg = forwardEvalConfig();
+  fwdEvalMin = forwardEvalMinBudget();
 }
 
 function readEnv(name: string): string | undefined {
@@ -2777,8 +2765,7 @@ function repairConfig(): RepairConfig | null {
  *  this the cheap local ranker wins (so ≤50k stays byte-identical to the pre-fwd-eval
  *  baseline). Override with LR_FWD_EVAL_MIN_BUDGET; 0 = always on. */
 function forwardEvalMinBudget(): number {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_FWD_EVAL_MIN_BUDGET;
+  const raw = readEnv("LR_FWD_EVAL_MIN_BUDGET");
   if (raw === undefined) return 75_000;
   const n = Number.parseInt(raw, 10);
   return Number.isFinite(n) && n >= 0 ? n : 75_000;
@@ -2788,8 +2775,7 @@ function forwardEvalMinBudget(): number {
  *  LR_FWD_EVAL=off|0 reverts to the local axis-L2 proxy; LR_FWD_EVAL=<greedy|best|avg>[:depth[:branch]]
  *  selects a variant. Charged honestly by default (see forwardArcValue / LR_FWD_EVAL_CHARGE). */
 function forwardEvalConfig(): ForwardEvalConfig | null {
-  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_FWD_EVAL;
+  const env = readEnv("LR_FWD_EVAL");
   if (env === "0" || env === "off") return null;
   const raw = env === undefined || env === "" ? "greedy:2" : env;
   const [v, d, b] = raw.split(":");
@@ -2797,7 +2783,10 @@ function forwardEvalConfig(): ForwardEvalConfig | null {
   const depth = d ? Math.max(1, Math.min(6, Number.parseInt(d, 10) || 2)) : 2;
   const defBranch = v === "avg" ? 6 : v === "best" ? 3 : 1;
   const branch = b ? Math.max(1, Math.min(8, Number.parseInt(b, 10) || defBranch)) : defBranch;
-  return { variant: v, depth, branch };
+  // Rollout frames are CHARGED honestly by default; LR_FWD_EVAL_CHARGE=0 refunds them (the
+  // budget-refunded ceiling experiment). Resolved once here, not re-read per candidate.
+  const charge = readEnv("LR_FWD_EVAL_CHARGE") !== "0";
+  return { variant: v, depth, branch, charge };
 }
 
 /** True partial-track score (scoreDriftReport.full_score) of a forward SearchNode. */
@@ -2869,8 +2858,7 @@ function forwardArcValue(
 ): number {
   const saved = getSimFrames();
   // try/finally so a throw mid-rollout (e.g. a future frame limit) can't leak frames.
-  const charge = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_FWD_EVAL_CHARGE !== "0";
+  const charge = cfg.charge;
   try {
     return cfg.variant === "avg"
       ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch)

@@ -435,7 +435,8 @@ export type CompileStats = {
     frames_spent: number;
     gaps_touched: number;
     reconverged: number;
-    records: Array<{
+    /** Per-restart detail; present only under LR_REPAIR_LOG (heavy — gated to keep archives lean). */
+    records?: Array<{
       worst: number; anchor: number; up: number; totalGaps: number;
       framesAtAnchor: number; framesBefore: number; framesSpent: number;
       estCost: number; predictedFeasible: boolean; completed: boolean;

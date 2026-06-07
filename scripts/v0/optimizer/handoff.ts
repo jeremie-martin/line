@@ -496,7 +496,11 @@ const QUALITY_FAR_BACK_ZERO_AXIS_QUALITY = 0.50;
  *  candidate ranking; the register still decides whether the full output helps. */
 const QUALITY_SUFFIX_REPAIR_INTERVAL = 32;
 const QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY = 0.34;
+const QUALITY_SUFFIX_REPAIR_SCARCE_ZERO_AXIS_QUALITY = 0.45;
+const QUALITY_SUFFIX_REPAIR_EXTRA_AXIS_QUALITY = 0.12;
 const QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS = 16;
+const QUALITY_SUFFIX_REPAIR_EXTRA_FULL_EVALUATIONS = 32;
+const QUALITY_SUFFIX_REPAIR_BUDGET_SCALE_FRAMES = 200_000;
 const QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS = 6;
 const QUALITY_SUFFIX_REPAIR_MAX_NODES = 128;
 const QUALITY_SUFFIX_REPAIR_BRANCHING = 2;
@@ -2508,17 +2512,51 @@ function shouldAttemptSuffixRepair(
   targetBudget: number,
 ): boolean {
   if (bestKey?.contract_passed !== true) return false;
-  if (bestKey.axis_quality >= QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY) return false;
+  const weakness = suffixRepairWeaknessPressure(bestKey.axis_quality);
+  if (bestKey.axis_quality >= suffixRepairAxisQualityLimit(targetBudget, weakness)) {
+    return false;
+  }
   // Suffix repair is for genuinely scarce terminal feedback. Exact duplicate
   // full-output offers do not add a new terminal basin, so do not let them
   // consume the scarcity cap.
-  if (uniqueFullEvaluations(telemetry) >= QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS) return false;
+  if (
+    uniqueFullEvaluations(telemetry) >=
+      suffixRepairFullEvaluationLimit(targetBudget, weakness)
+  ) {
+    return false;
+  }
   if (telemetry.suffixRepairAttempts >= QUALITY_SUFFIX_REPAIR_MAX_ATTEMPTS) return false;
   if (telemetry.frontierSelections % QUALITY_SUFFIX_REPAIR_INTERVAL !== 0) return false;
   if (!node.startExpanded || node.deferExpansion) return false;
   if (node.skippedContacts !== 0 || isTerminalNode(node.search, gaps)) return false;
   if (!node.search.prefixFits.some((fit) => fit !== null)) return false;
   return remainingContactCount(node.search, gaps) > tailCompletionContactWindow(targetBudget);
+}
+
+function suffixRepairAxisQualityLimit(targetBudget: number, weakness: number): number {
+  return QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY +
+    QUALITY_SUFFIX_REPAIR_EXTRA_AXIS_QUALITY * suffixRepairBudgetPressure(targetBudget) * weakness;
+}
+
+function suffixRepairFullEvaluationLimit(targetBudget: number, weakness: number): number {
+  return Math.round(
+    QUALITY_SUFFIX_REPAIR_MAX_FULL_EVALUATIONS +
+      QUALITY_SUFFIX_REPAIR_EXTRA_FULL_EVALUATIONS *
+        suffixRepairBudgetPressure(targetBudget) *
+        weakness,
+  );
+}
+
+function suffixRepairWeaknessPressure(axisQuality: number): number {
+  const width = QUALITY_SUFFIX_REPAIR_SCARCE_ZERO_AXIS_QUALITY -
+    QUALITY_SUFFIX_REPAIR_MAX_AXIS_QUALITY;
+  if (width <= 0) return 0;
+  return clamp01((QUALITY_SUFFIX_REPAIR_SCARCE_ZERO_AXIS_QUALITY - axisQuality) / width);
+}
+
+function suffixRepairBudgetPressure(targetBudget: number): number {
+  const budget = Math.max(0, targetBudget);
+  return smoothstep(clamp01(budget / (budget + QUALITY_SUFFIX_REPAIR_BUDGET_SCALE_FRAMES)));
 }
 
 function tailCompletionContactWindow(targetBudget: number): number {

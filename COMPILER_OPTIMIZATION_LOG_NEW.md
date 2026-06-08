@@ -22,11 +22,12 @@ npm run decide -- generated/golden-runs/<attempt-label>/golden.json generated/go
 - Validity + wall-clock are diagnostic; the score is the decision signal.
 
 ## Baselines of record
-- **`baseline-amp2` — HEADLINE 601.2** (CURRENT). Amplitude specs redesigned so air
-  co-varies with amplitude (satisfiable targets); fingerprint `ca224281e685`. Per-budget
-  282 / 440 / 628 / 637 / 641. This is a BOARD re-baseline (specs changed), not a paired
-  compiler delta — the +18 reflects the now-satisfiable amplitude specs. All committed
-  compiler wins (arc-length room-gate, breadth 24, repair gate 100k) carry forward.
+- **`baseline-elev2` — HEADLINE 618.4** (CURRENT). Elevation specs capped at the achievable
+  climb ceiling (~0.65); fingerprint `eb816157d129`. Per-budget 290 / 452 / 646 / 655 / 660.
+  Board re-baseline (specs changed). Elevation specs @200k: summit_push 433→620, climb_terrace
+  495→634, swoop_dive 568→638, mixed_grade 576→659 (rolling_hills left, already at ceiling).
+- `baseline-amp2` — HEADLINE 601.2. Amplitude specs redesigned so air co-varies with
+  amplitude (satisfiable); fingerprint `ca224281e685`. Per-budget 282 / 440 / 628 / 637 / 641.
 - `cand-repair100` — HEADLINE 582.8 (prior compiler baseline on the 2437d832b61e board).
   Repair gate 150k→100k. Per-budget 276 / 429 / 609 / 617 / 621.
 - `cand-ncand24` — HEADLINE 582.3 (attempt 2). Quality breadth 16→24. 276 / 429 / 606 / 617 / 621.
@@ -138,8 +139,14 @@ ceiling on low-air (long ride-out) catches. Both are open for the campaign.
   soar_settle 493→634, float_bounds 414→563, pop_train 529→628, leap_cadence 490→581,
   big_air_ramp 462→492. Board headline 582.8→601.2. Amplitude is now a working axis
   (the rider must consolidate into one clean arc of the targeted height to hit it).
-- **Elevation:** still speed-bound (climb ceiling ≈0.65; summit_push/climb_terrace targets
-  slightly above it). Left as a genuine Pareto trade for now.
+- **Elevation fix (2026-06-07, baseline-elev2):** elevationCeiling is a flat ~0.65 (the
+  achievable-climb discount in the axis definition), so targets above it (summit_push 0.75,
+  climb_terrace 0.70, mixed_grade 0.9) were unsatisfiable. Capped the 4 over-ambitious specs
+  at peak ~0.62 (rolling_hills already peaked at the ceiling, left). @200k: summit_push
+  433→620, climb_terrace 495→634, swoop_dive 568→638, mixed_grade 576→659. Board 601.2→618.4.
+  Both creative axes are now satisfiable; the new specs sit ~560–660, comparable to the dense
+  originals. Targets were capped to the measurement-defined achievable ceilings (not tuned to
+  flatter the compiler) — beyond those the axes are physically unmeasurable.
 
 ## Structural ceiling note (honest)
 The 10 new specs average ~510 @200k vs ~620–760 for the dense originals, and several

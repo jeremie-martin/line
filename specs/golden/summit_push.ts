@@ -3,7 +3,7 @@
  * over sparse ~1.1s gaps. Climbing spends speed, so this pairs a steep target
  * with a high speed target to keep the ascent feasible. Air mid; no grain.
  *
- *   elevation  0.5 → 1.0  (steady climb to the speed-supported ceiling)
+ *   elevation  0.5 → 0.62 (steady climb to the achievable ceiling ~0.65)
  *   speed      0.7 → 0.9  (high, to fund the climb)
  *   air        0.5 (flat)
  */
@@ -19,7 +19,7 @@ const spec: Spec = {
   axes: {
     air: constant(0.5),
     speed: keyframes([{ t: 0, v: 0.7 }, { t: 13, v: 0.9 }], "smooth"),
-    elevation: keyframes([{ t: 0, v: 0.5 }, { t: 13, v: 1.0 }], "smooth"),
+    elevation: keyframes([{ t: 0, v: 0.5 }, { t: 13, v: 0.62 }], "smooth"),
   },
   jitter: 0,
   preroll: 5,

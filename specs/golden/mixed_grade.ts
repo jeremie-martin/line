@@ -5,7 +5,7 @@
  * ride, the sparse body should climb. air + speed steady; no grain.
  *
  *   [dense  0.8–4.3s, 0.5s beats]  elevation 0.5  — flat warm-up
- *   [sparse 5.5–15.1s, 1.2s gaps]  elevation → 0.9 — climb with room
+ *   [sparse 5.5–15.1s, 1.2s gaps]  elevation → 0.62 — climb (ceiling ~0.65) with room
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
@@ -23,7 +23,7 @@ const spec: Spec = {
     air: constant(0.5),
     speed: constant(0.6),
     elevation: keyframes(
-      [{ t: 0, v: 0.5 }, { t: 4.5, v: 0.5 }, { t: 15, v: 0.9 }],
+      [{ t: 0, v: 0.5 }, { t: 4.5, v: 0.5 }, { t: 15, v: 0.62 }],
       "smooth",
     ),
   },

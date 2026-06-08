@@ -5,9 +5,9 @@
  * arc-length / launch lever: a climb spends speed, so the long gaps give the
  * compiler room to set up a surviving ascent between beats.
  *
- *   [ 0– 5s]  elevation 0.55  — gentle rise
- *   [ 5–10s]  elevation 0.70  — moderate climb
- *   [10–15s]  elevation 0.85  — steep climb
+ *   [ 0– 5s]  elevation 0.50  — gentle rise
+ *   [ 5–10s]  elevation 0.58  — moderate climb
+ *   [10–15s]  elevation 0.62  — steep climb (near the achievable ceiling ~0.65)
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
@@ -22,7 +22,7 @@ const spec: Spec = {
     air: constant(0.5),
     speed: constant(0.6),
     elevation: keyframes(
-      [{ t: 0, v: 0.55 }, { t: 5, v: 0.70 }, { t: 10, v: 0.85 }],
+      [{ t: 0, v: 0.50 }, { t: 5, v: 0.58 }, { t: 10, v: 0.62 }],
       "hold",
     ),
   },

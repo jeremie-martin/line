@@ -4,7 +4,7 @@
  * (0.8) as speed grows to fund the climb. Air mid; no grain. Tests that the
  * compiler can both shed and gain altitude on a sparse cadence.
  *
- *   elevation  0.5 → 0.2 (dive) → 0.8 (climb) → 0.6
+ *   elevation  0.5 → 0.2 (dive) → 0.62 (climb to ceiling) → 0.5
  *   speed      0.5 → 0.8 (smooth build)
  *   air        0.55 (flat)
  */
@@ -21,7 +21,7 @@ const spec: Spec = {
     air: constant(0.55),
     speed: keyframes([{ t: 0, v: 0.5 }, { t: 13, v: 0.8 }], "smooth"),
     elevation: keyframes(
-      [{ t: 0, v: 0.5 }, { t: 4, v: 0.2 }, { t: 9, v: 0.8 }, { t: 13, v: 0.6 }],
+      [{ t: 0, v: 0.5 }, { t: 4, v: 0.2 }, { t: 9, v: 0.62 }, { t: 13, v: 0.5 }],
       "smooth",
     ),
   },

@@ -126,7 +126,7 @@ export const EXPLORATORY_BUDGETS = [
  * spec edit is visible. A DELIBERATE ruler change updates this constant in the
  * same commit. Soft tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "ca224281e685";
+export const EVALUATOR_FINGERPRINT = "eb816157d129";
 
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. Each budget is now an

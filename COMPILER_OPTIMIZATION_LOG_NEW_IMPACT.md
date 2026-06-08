@@ -167,3 +167,14 @@ same normalized normal-impact scale the scorer reports.
 - Notable regressions: weighted spec losses were led by `dense_echo_climb -3.09`, `drums_crescendo -2.77`, `drums_swell -2.63`, `syncopated_switchback -2.38`, `verse_chorus -1.38`, `rolling_drop -1.14`, `drums_pulse -1.05`, `drums_dropout -0.84`, `drums_tide -0.84`, and `dense_sprint -0.62`. Largest `300k` row losses: `pop_train` seed `8` `-50.13`, `climb_terrace` seed `6` `-49.70`, `rolling_drop` seed `4` `-46.59`, `soar_settle` seed `7` `-40.14`, and `rolling_drop` seed `8` `-39.67`.
 - Axis diagnostics: impact MAE improved slightly at `50k` and `300k` (`50k 0.2834 -> 0.2832`, `300k 0.2013 -> 0.2010`) while `100k/200k` were essentially flat (`100k 0.2129 -> 0.2133`, `200k 0.2043 -> 0.2044`). Speed improved at mature budgets (`300k 0.1330 -> 0.1321`) and elevation improved slightly (`300k 0.1127 -> 0.1120`); air/amplitude ticked slightly worse.
 - Status: kept; canonical accepted. Use `impact-angle-sparse-extra-01` as the next baseline.
+
+## low-air-dense-safe-cap-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` at commit `5d01965`.
+- Hypothesis: remaining dense failures, especially `drums_pendulum`, still overshoot low-air targets. Expand only the long end of the existing air-targeted ride-out span by raising the `safeCap` fraction from `0.55` toward `0.70`, gated to low-air dense gaps and fading in after `75k`, so short candidates remain available and mature forward-eval can reject crowded continuations.
+- Code changes made: temporarily replaced `safeCap = speed * nextGapFrames * 0.55` in `scripts/v0/arc_placement.ts` with `lowAirDenseSafeCapFraction(air, nextGapFrames)`, using `LOW_AIR_DENSE_SAFE_CAP_EXTRA = 0.15`, dense room pressure, low-air pressure, and a `75k..150k` budget fade.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,solo_run,verse_chorus,drums_swell,drums_tide,drums_crescendo,cold_start --archive-dir=generated/golden-runs/low-air-dense-safe-cap-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE` with a strongly negative point estimate; 16-spec intersection headline `411.9 -> 401.1`, `Delta=-10.8`, 95% CI `[-38.5, 3.6]`, `P(Delta<=0)=85.2%`. Per-budget deltas: `50k +0.0`, `100k -10.1`, `200k -26.7`, `300k -2.3`. Validity fell at `50k` (`97% -> 93%`) and `100k` (`100% -> 98%`).
+- Diagnostics: even a gated, span-preserving cap expansion destabilized dense basins and mainly hurt the middle budgets. The low-air problem is not solved by simply allowing longer post-contact ride-outs under this sampler.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.

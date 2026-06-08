@@ -380,3 +380,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `469.5 -> 470.4`, `Delta=+0.9`, 95% CI `[-1.1, 3.2]`, `P(Delta<=0)=19.1%`. Per-budget deltas: `50k +0.0`, `100k +0.5`, `200k +1.4`, `300k +0.9`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
 - Diagnostics: the higher main margin produces a small positive mature-budget point estimate, but the signal is too weak for canonical promotion and exactly neutral at `50k`. Treat it as a possible future fine-tuning lead rather than a default change.
 - Status: env-only inconclusive; no canonical run and no behavior commit.
+
+## impact-repair-feas10-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: impact-aware search may benefit from more aggressive repair anchoring. Lowering the feasibility margin from `1.1` to `1.0` admits earlier weak gaps and gives each restart an exact measured-cost ceiling rather than 10% headroom.
+- Code changes made: none; ran with `LR_REPAIR_FEAS_MARGIN=1.0`.
+- Probe command: `LR_ENGINE=wasm LR_REPAIR_FEAS_MARGIN=1.0 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-repair-feas10-slice-01`
+- Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `469.5 -> 467.8`, `Delta=-1.8`, 95% CI `[-3.9, -0.1]`, `P(Delta<=0)=98.5%`. Per-budget deltas: `50k +0.0`, `100k +0.3`, `200k -1.3`, `300k -3.1`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: exact-cost ceilings improve neither score nor maturity. The small `100k` gain is outweighed by clear `200k/300k` losses, so the existing `1.1` margin is not too conservative for impact scoring.
+- Status: env-only rejected; no canonical run and no behavior commit.

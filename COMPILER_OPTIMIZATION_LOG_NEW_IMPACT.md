@@ -131,3 +131,13 @@ same normalized normal-impact scale the scorer reports.
 - Notable regressions: weighted spec losses were `leap_cadence -8.56`, `drums_signature -4.24`, `climb_terrace -3.46`, `soar_settle -3.14`, `skyline_push -1.66`, `dense_echo_climb -1.40`, and `drums_tide -1.22`. Largest `300k` row losses: `leap_cadence` seed `2` `-87.29`, `drums_signature` seed `8` `-80.99`, `dense_sprint` seed `8` `-79.46`, `dense_sprint` seed `11` `-73.29`, and `opening_burst` seed `11` `-69.71`.
 - Axis diagnostics: impact MAE improved at `50k` and high budgets (`50k 0.2886 -> 0.2837`, `200k 0.2050 -> 0.2043`, `300k 0.2026 -> 0.2013`) while `100k` ticked worse (`0.2113 -> 0.2133`). Speed improved materially (`300k 0.1393 -> 0.1330`) and elevation improved (`300k 0.1143 -> 0.1127`); air and amplitude moved slightly worse at high budget.
 - Status: kept; canonical accepted. Use `impact-angle-bias3-01` as the next baseline.
+
+## impact-angle-bias4-slice-01
+
+- Baseline used: `impact-angle-bias3-01` at commit `f5b1bf8`.
+- Hypothesis: the accepted `3deg` high-impact contact-centered angle bias might still be conservative; increasing the same no-extra-samples shift to `4deg` could improve impact under-hit without reintroducing the validity failures from exact angle steering.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG` in `scripts/v0/arc_placement.ts` from `3` to `4`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_dropout,syncopated_switchback,drums_pendulum,dense_sprint,rhythm_ladder,dense_echo_climb,drums_signature,opening_burst,drums_pulse,drums_crosscut --archive-dir=generated/golden-runs/impact-angle-bias4-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; focused headline `392.4 -> 392.8`, `Delta=+0.5`, 95% CI `[-12.8, 10.9]`, `P(Delta<=0)=39.1%`. Per-budget deltas: `50k +17.7`, `100k -13.3`, `200k +2.1`, `300k +1.1`.
+- Diagnostics: the extra degree mainly lifted `50k` and slightly helped high budgets, but the `100k` regression is too large for promotion and the point estimate is effectively neutral.
+- Status: reverted after focused inconclusive; no canonical run and no behavior commit.

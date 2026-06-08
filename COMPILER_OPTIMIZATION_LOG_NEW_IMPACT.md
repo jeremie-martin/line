@@ -39,3 +39,14 @@ same normalized normal-impact scale the scorer reports.
 - Notable regressions: weighted spec losses concentrated in `mixed_grade -24.24`, `swoop_dive -23.56`, `rolling_drop -1.95`, and `rolling_hills -1.11`. Largest `300k` row losses: `swoop_dive` seed `6` `-117.81`, `mixed_grade` seed `1` `-80.42`, `mixed_grade` seed `5` `-78.55`, `mixed_grade` seed `0` `-69.72`, and `rhythm_ladder` seed `8` `-61.71`.
 - Axis diagnostics: impact MAE improved at every budget: `50k 0.3724 -> 0.2886`, `100k 0.2214 -> 0.2113`, `200k 0.2161 -> 0.2050`, `300k 0.2141 -> 0.2026`; signed impact error improved from `-0.1961 -> -0.1868` at `300k`. The tradeoff was slightly worse air/speed local fit (`300k` air MAE `0.0910 -> 0.0917`, speed `0.1330 -> 0.1393`), but elevation/amplitude nudged better and the canonical decision accepted the net.
 - Status: kept; canonical accepted. Commit and use `impact-local-cost-w05-01` as the next baseline.
+
+## impact-angle-steer-slice-01
+
+- Baseline used: `impact-local-cost-w05-01` at commit `c081ef2`.
+- Hypothesis: residual impact errors are still dominated by high-target under-hit. Add a deterministic per-attempt contact-angle span for impact-authored beats, steering some catch tangents toward the angle that would kill the requested normal velocity, capped by `IMPACT.CATCHABLE_NORMAL_FRACTION`.
+- Code changes made: temporarily changed `sampleContactCenteredLines(...)` in `scripts/v0/arc_placement.ts` so high-impact targets blended contact angle toward `targetState.angleDeg - asin(targetImpact * CALIB.IMPACT_CAP / speed)`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_dropout,syncopated_switchback,drums_pendulum,dense_sprint,rhythm_ladder,dense_echo_climb,drums_signature,opening_burst,drums_pulse,drums_crosscut --archive-dir=generated/golden-runs/impact-angle-steer-slice-01`
+- Decide result: indicative `VERDICT: REJECT`; focused headline `383.7 -> 262.6`, `Delta=-121.0`, 95% CI `[-240.8, 19.5]`, `P(Delta<=0)=92.3%`. Per-budget deltas: `50k -45.7`, `100k -113.5`, `200k -135.4`, `300k -126.5`. Validity regressed on the slice (`300k 100% -> 94%`).
+- Notable regressions: `drums_pendulum` had multiple invalid high-budget rows; dense drum/support rows such as `drums_signature` and `drums_dropout` collapsed. The catch-angle shift creates hard surfaces but breaks catchability and continuation before the scorer can benefit.
+- Status: reverted after focused reject; no canonical run and no commit.

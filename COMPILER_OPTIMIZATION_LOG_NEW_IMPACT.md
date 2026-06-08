@@ -422,3 +422,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 467.7`, `Delta=-1.9`, 95% CI `[-11.3, 4.7]`, `P(Delta<=0)=77.3%`. Per-budget deltas: `50k +0.0`, `100k -10.8`, `200k -0.6`, `300k +0.0`; validity regressed at `100k` (`100% -> 99%`).
 - Diagnostics: the accepted `32` breadth flips the prior close mechanism negative. The larger altered pool no longer preserves the `100k` gain; it adds a validity loss and small `200k` regression.
 - Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-curve-fade-off-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: pre-impact experiments saw noisy upside from keeping contact-centered ride-out curvature diversity active at mature budgets (`LR_CURVE_FADE_OFF=1`). With impact scoring and `32` quality candidates, the forward ranker might exploit that extra geometry instead of being diluted by it.
+- Code changes made: none; ran with `LR_CURVE_FADE_OFF=1`.
+- Probe command: `LR_ENGINE=wasm LR_CURVE_FADE_OFF=1 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-curve-fade-off-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 468.9`, `Delta=-0.6`, 95% CI `[-8.8, 7.4]`, `P(Delta<=0)=57.4%`. Per-budget deltas: `50k +0.0`, `100k -0.5`, `200k -0.2`, `300k -1.0`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: mature curvature diversity is still dilution under impact scoring. It improves some sparse rows, but the focused aggregate and all non-50k budget point estimates are negative.
+- Status: env-only inconclusive/negative; no canonical run and no behavior commit.

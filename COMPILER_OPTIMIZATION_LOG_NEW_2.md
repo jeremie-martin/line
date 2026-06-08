@@ -1174,3 +1174,169 @@ only changes that print `VERDICT: ACCEPT`.
   `11` at `300k`, while the accepted aggregate signal came from better
   high-budget conversion.
 - Status: kept; committed as the next baseline.
+
+## mature-avg-branch1-01
+
+- Baseline used: `mature-avg-branch2-01` at commit `026ff3f`.
+- Hypothesis: branch `2` might still be over-broad for the mature vertical
+  average. Test the minimum branch count to see whether even cheaper ranking
+  preserves the amplitude/elevation signal and converts more high-budget search
+  into full completions.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `MATURE_AVG_FWD_EVAL_BRANCH` from `2` to `1`.
+- Golden commands:
+  - Probe: `LR_ENGINE=wasm npm run golden -- --jobs=16 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,big_air_ramp,pop_train,soar_settle,leap_cadence,float_bounds,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,dense_echo_climb,rolling_drop,skyline_push,syncopated_lift --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-mature-avg-branch1-01`
+  - Canonical: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-branch1-01`
+- Decide result: canonical `VERDICT: INCONCLUSIVE`; headline
+  `623.4 -> 623.9`, `Delta=+0.5`, 95% CI `[-0.4, 1.4]`,
+  `P(Delta<=0)=13.2%`. Per-budget deltas: `50k +0.0`, `100k +0.0`,
+  `200k +0.1`, `300k +1.0`. Validity was unchanged at all budgets.
+- Notable improvements: weighted wins on `summit_push +6.59`,
+  `syncopated_lift +4.60`, `dense_echo_climb +4.00`, `pop_train +2.83`,
+  `valley_bounce +2.28`, `swoop_dive +2.11`, `climb_terrace +1.78`,
+  `canyon_steps +1.72`, and `big_air_ramp +1.68`.
+- Notable regressions: weighted losses on `terrace_sprint -6.04`,
+  `glide_stairs -2.26`, `leap_cadence -1.04`, `float_bounds -0.90`,
+  `rolling_hills -0.43`, `switchback_pop -0.40`, and
+  `mixed_grade -0.32`.
+- Diagnostics: branch `1` did convert more budget into work, but not
+  decisively into score. At `300k`, unique full evaluations rose
+  `9301 -> 9416`, duplicate full evaluations fell `3235 -> 3170`, tail
+  improvements rose `2102 -> 2174`, repair accepts rose `1620 -> 1685`, and
+  repair reconvergence rose `3635 -> 4287`. Axis diagnostics improved `300k`
+  speed MAE `0.0565 -> 0.0552` and elevation MAE `0.0967 -> 0.0964`, but
+  amplitude regressed `0.1197 -> 0.1214` and air ticked up
+  `0.0749 -> 0.0750`. The largest losses were unstable vertical rows:
+  `terrace_sprint` seed `10` at `300k` (`-83.1`), `float_bounds` seed `2` at
+  `300k` (`-51.5`), and `climb_terrace` seed `6` at `300k` (`-39.8`).
+- Status: reverted after canonical decide; no commit.
+
+## probe-tail-window-extra5-branch2-01
+
+- Baseline used: `mature-avg-branch2-01` at commit `026ff3f`.
+- Hypothesis: branch2 increased high-budget completion and repair conversion,
+  but the quality tail-completion window still only reaches remaining-10 suffixes
+  at `200k`/`300k`. Increase the smooth high-budget tail window by one contact
+  to let remaining-11 suffixes compete under the newer ranker.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `TAIL_COMPLETION_BUDGET_WINDOW_EXTRA` from `4` to `5`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-tail-window-extra5-branch2-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `639.6 -> 639.5`,
+  `Delta=-0.1`, 95% CI `[-0.2, 0.0]`, `P(Delta<=0)=81.0%`. Per-budget
+  deltas were `200k -0.1`, `300k -0.0`; validity was unchanged.
+- Notable improvements: only small weighted wins on `solo_run +0.53`,
+  `dense_sprint +0.27`, `syncopated_lift +0.24`, `drums_breath +0.20`, and
+  `mixed_grade +0.08`.
+- Notable regressions: weighted losses on `float_bounds -1.07`,
+  `drums_crescendo -0.46`, `drums_pendulum -0.42`,
+  `dense_echo_climb -0.40`, `drums_swell -0.32`, and
+  `rolling_hills -0.22`.
+- Diagnostics: opening remaining-11 suffixes displaced productive remaining-10
+  work instead of adding useful terminal diversity. At `300k`, rem10 tail
+  attempts fell `2326 -> 326` and rem11 attempts rose `0 -> 2202`, but total
+  tail improvements fell `2102 -> 2092`, full evaluations fell
+  `12536 -> 12497`, and unique full evaluations fell `9301 -> 9271`. At
+  `200k`, rem10 improvements fell `994 -> 482` while rem11 produced `512`
+  improvements, leaving total tail improvements effectively flat
+  (`1650 -> 1651`) and score slightly worse.
+- Status: reverted after probe; no canonical run and no commit.
+
+## probe-repair-upstream5-branch2-01
+
+- Baseline used: `mature-avg-branch2-01` at commit `026ff3f`.
+- Hypothesis: branch2 improved repair accepts and reconvergence, so one more
+  upstream parent in the repair walk might now pay by exposing better setup
+  choices for high-budget rows without changing the main search.
+- Code changes made: none; probed the existing override
+  `LR_REPAIR_MAX_UPSTREAM=5` against the default `4`.
+- Golden command: `LR_ENGINE=wasm LR_REPAIR_MAX_UPSTREAM=5 npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-repair-upstream5-branch2-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `639.6 -> 639.7`,
+  `Delta=+0.1`, 95% CI `[-0.3, 0.7]`, `P(Delta<=0)=32.9%`. Per-budget
+  deltas were `200k +0.1`, `300k +0.1`; validity was unchanged.
+- Notable improvements: weighted wins on `opening_burst +3.28`,
+  `syncopated_lift +2.30`, `terrace_sprint +2.19`,
+  `climb_terrace +1.51`, and `skyline_push +0.93`.
+- Notable regressions: weighted losses on `switchback_pop -3.56`,
+  `syncopated_switchback -1.18`, `dense_echo_climb -0.55`,
+  `leap_cadence -0.30`, `mini_burst -0.28`, and `mixed_grade -0.25`.
+- Diagnostics: the fifth upstream parent slightly reshuffled repair but did not
+  create a stronger terminal pool. At `300k`, repair accepts fell
+  `1620 -> 1613`, tail improvements fell `2102 -> 2094`, full evaluations fell
+  `12536 -> 12475`, and unique full evaluations fell `9301 -> 9292`. At `200k`
+  repair accepts rose only `1144 -> 1150` while full and unique full
+  evaluations both fell.
+- Status: not kept; env-only probe, no canonical run and no commit.
+
+## probe-repair-feas10-branch2-01
+
+- Baseline used: `mature-avg-branch2-01` at commit `026ff3f`.
+- Hypothesis: the accepted branch2 baseline frees enough budget that repair's
+  `1.1` feasibility headroom might now be slightly conservative. Try a tighter
+  `1.0` margin so earlier/high-value repair gaps are considered affordable.
+- Code changes made: none; probed the existing override
+  `LR_REPAIR_FEAS_MARGIN=1.0` against the default `1.1`.
+- Golden command: `LR_ENGINE=wasm LR_REPAIR_FEAS_MARGIN=1.0 npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-repair-feas10-branch2-01`
+- Decide result: indicative `VERDICT: REJECT` on the paired `200k`/`300k`
+  intersection; headline `639.6 -> 638.1`, `Delta=-1.5`, 95% CI
+  `[-3.2, -0.3]`, `P(Delta<=0)=99.5%`. Per-budget deltas were `200k -1.3`
+  and `300k -1.6`; validity was unchanged.
+- Notable improvements: small weighted wins on `valley_bounce +2.19`,
+  `verse_chorus +0.89`, `drums_signature +0.85`, `glide_stairs +0.84`,
+  `climb_terrace +0.71`, and `mini_burst +0.69`.
+- Notable regressions: large weighted losses on `drums_tide -13.21`,
+  `drums_swell -12.63`, `drums_pulse -10.37`, `drums_zigzag -8.22`,
+  `drums_breath -7.97`, `solo_run -5.49`, and `rhythm_ladder -5.13`.
+- Diagnostics: the tighter margin starved terminal diversity. At `300k`,
+  full evaluations fell `12536 -> 10685`, unique full evaluations fell
+  `9301 -> 8398`, tail improvements fell `2102 -> 2073`, and repair accepts
+  fell `1620 -> 1583` despite more repair restarts. At `200k`, unique full
+  evaluations fell `6424 -> 5952` and repair accepts fell `1144 -> 1134`.
+- Status: not kept; env-only probe, no canonical run and no commit.
+
+## mature-avg-full200-01
+
+- Baseline used: `mature-avg-branch2-01` at commit `026ff3f`.
+- Hypothesis: branch count is now at the useful floor, but the mature vertical
+  average ranker may start too late. Move its smooth budget ramp earlier so
+  200k rows get full pressure while 300k behavior remains unchanged.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `MATURE_AVG_FWD_EVAL_START_FRAMES` from `150_000` to `100_000` and
+  `MATURE_AVG_FWD_EVAL_SPAN_FRAMES` from `150_000` to `100_000`.
+  `MATURE_AVG_FWD_EVAL_BRANCH` stayed at `2`.
+- Golden commands:
+  - Probe: `LR_ENGINE=wasm npm run golden -- --jobs=16 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,big_air_ramp,pop_train,soar_settle,leap_cadence,float_bounds,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,dense_echo_climb,rolling_drop,skyline_push,syncopated_lift --budgets=200000 --archive-dir=generated/golden-runs/probe-mature-avg-full200-01`
+  - Canonical: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-full200-01`
+- Decide result: canonical `VERDICT: ACCEPT`; headline `623.4 -> 625.9`,
+  `Delta=+2.5`, 95% CI `[0.8, 4.3]`, `P(Delta<=0)=0.3%`. Per-budget
+  deltas: `50k +0.0`, `100k +0.0`, `200k +8.3`, `300k +0.0`. Validity was
+  unchanged at all budgets (`50k 97% -> 97%`; `100k`, `200k`, and `300k`
+  stayed `100% -> 100%`).
+- Notable improvements: the score gain was isolated to 200k, with weighted
+  wins on `leap_cadence +16.90`, `float_bounds +15.34`,
+  `soar_settle +9.41`, `rolling_hills +9.36`, `glide_stairs +8.85`,
+  `big_air_ramp +8.43`, `terrace_sprint +6.73`, `skyline_push +6.59`,
+  `rolling_drop +5.72`, `canyon_steps +5.71`, `climb_terrace +4.16`, and
+  `mixed_grade +4.14`.
+- Notable regressions: weighted losses on `swoop_dive -5.93` and
+  `dense_echo_climb -1.22`. Largest 200k row regressions were
+  `pop_train` seed `3` (`650.4 -> 378.2`, `-272.3`),
+  `soar_settle` seed `11` (`663.9 -> 553.2`, `-110.7`), and
+  `swoop_dive` seeds `4`, `6`, `11`, `8`, and `2`.
+- Diagnostics: the earlier ramp converted budget into more 200k terminal work
+  without moving other budgets. At `200k`, candidates sampled rose
+  `1966082 -> 1997808`, unique full evaluations rose `6424 -> 6640`,
+  duplicate full evaluations were effectively flat (`2389 -> 2391`), tail
+  improvements rose `1650 -> 1708`, and repair accepts rose `1144 -> 1215`.
+  At `50k`, `100k`, and `300k`, compile stats and scores were unchanged. Axis
+  diagnostics at `200k` improved air MAE `0.0799 -> 0.0775`, speed MAE
+  `0.0607 -> 0.0596`, elevation MAE `0.0979 -> 0.0973`, and amplitude MAE
+  `0.1354 -> 0.1219`; `300k` axes were unchanged. Contact diagnostics were
+  unchanged except for slightly lower 200k mean absolute frame error
+  (`0.722 -> 0.707`), with all 200k/300k contacts still hit and no drift or
+  missing contacts. Worst remaining candidate axes are `pop_train` seed `3`
+  speed at 200k, persistent `drums_pendulum` first-gap air, and
+  `terrace_sprint` amplitude.
+- Status: kept; accepted by canonical decision gate. New baseline for
+  subsequent attempts is `mature-avg-full200-01`.

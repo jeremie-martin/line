@@ -453,3 +453,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 467.6`, `Delta=-1.9`, 95% CI `[-5.0, 1.3]`, `P(Delta<=0)=88.0%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k -4.1`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
 - Diagnostics: the extra optimistic rollout cost does not buy enough 300k quality. It changed almost every 300k row but doubled regressions (`103` regressions vs `136` improvements) and lowered the weighted score.
 - Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-contract-full-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: the budget-aware contract breadth reduction may now be too lean for impact-aware local ranking. Disable it with `LR_BUDGET_AWARE_CONTRACT=0` so the contract phase keeps full sampling at scarce budgets.
+- Code changes made: none; ran with `LR_BUDGET_AWARE_CONTRACT=0`.
+- Probe command: `LR_ENGINE=wasm LR_BUDGET_AWARE_CONTRACT=0 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-contract-full-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 467.2`, `Delta=-2.3`, 95% CI `[-14.0, 7.6]`, `P(Delta<=0)=68.0%`. Per-budget deltas: `50k -8.4`, `100k -10.9`, `200k +0.0`, `300k +0.0`; validity regressed at `100k` (`100% -> 99%`) and improved at `50k` (`97% -> 99%`).
+- Diagnostics: full contract sampling spends scarce budget without improving impact quality. The accepted budget-aware reduction remains the right completion/quality tradeoff.
+- Status: env-only inconclusive/negative; no canonical run and no behavior commit.

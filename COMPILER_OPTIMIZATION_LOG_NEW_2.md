@@ -1132,3 +1132,45 @@ only changes that print `VERDICT: ACCEPT`.
   `0.0578 -> 0.0577`, elevation MAE `0.0983 -> 0.0969`, and amplitude MAE
   `0.1209 -> 0.1206`; air stayed flat at `0.0752`.
 - Status: kept; committed as the next baseline.
+
+## mature-avg-branch2-01
+
+- Baseline used: `mature-avg-branch3-01` at commit `9d2dfd0`.
+- Hypothesis: branch `3` still looked slightly over-broad at mature vertical
+  budgets. Try one more smooth reduction to branch `2` so the averaged ranker
+  keeps the amplitude/elevation signal while spending less duplicate ranking
+  work and leaving more budget for completion and repair.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `MATURE_AVG_FWD_EVAL_BRANCH` from `3` to `2`. The existing budget fade
+  (`150k -> 300k`), vertical-axis gate, default-only behavior, and explicit
+  `LR_FWD_EVAL` override semantics remain unchanged.
+- Golden commands:
+  - Probe: `LR_ENGINE=wasm npm run golden -- --jobs=16 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,big_air_ramp,pop_train,soar_settle,leap_cadence,float_bounds,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,dense_echo_climb,rolling_drop,skyline_push,syncopated_lift --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-mature-avg-branch2-01`
+  - Canonical: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-branch2-01`
+- Decide result: canonical `VERDICT: ACCEPT`; headline `622.7 -> 623.4`,
+  `Delta=+0.7`, 95% CI `[-0.1, 1.5]`, `P(Delta<=0)=4.4%`. Per-budget
+  deltas: `50k +0.0`, `100k +0.0`, `200k +0.1`, `300k +1.4`. Validity was
+  unchanged at all budgets.
+- Notable improvements: weighted wins on `soar_settle +4.26`,
+  `switchback_pop +3.50`, `climb_terrace +3.25`,
+  `dense_echo_climb +3.12`, `canyon_steps +2.95`, `mixed_grade +2.62`,
+  `float_bounds +2.62`, `summit_push +2.61`, and `swoop_dive +1.48`.
+- Notable regressions: weighted losses on `pop_train -1.80`,
+  `syncopated_lift -1.58`, `glide_stairs -1.27`, `leap_cadence -0.18`, and
+  `ridge_pulse -0.07`; non-vertical rows remained byte-identical.
+- Diagnostics: the gain is concentrated where the smooth pressure is active.
+  At `300k`, unique full evaluations rose `8588 -> 9301`, duplicate full
+  evaluations rose `3077 -> 3235`, tail improvements rose `1978 -> 2102`,
+  repair accepts rose `1486 -> 1620`, and repair reconvergence rose
+  `3235 -> 3635`. At `200k`, the effect was much smaller: unique full
+  evaluations rose `6330 -> 6424`, tail improvements rose `1646 -> 1650`,
+  and repair accepts rose `1134 -> 1144`. Axis diagnostics at `300k` improved
+  speed MAE `0.0577 -> 0.0565`, air MAE `0.0752 -> 0.0749`, elevation MAE
+  `0.0969 -> 0.0967`, and amplitude MAE `0.1206 -> 0.1197`; `200k`
+  amplitude was slightly worse (`0.1344 -> 0.1354`). Contact timing stayed
+  effectively unchanged (`300k` contact MAE `0.71 -> 0.72`, all contacts
+  `hit`). Largest row regressions were concentrated in a few unstable vertical
+  rows, especially `terrace_sprint` seed `1` at `200k` and `pop_train` seed
+  `11` at `300k`, while the accepted aggregate signal came from better
+  high-budget conversion.
+- Status: kept; committed as the next baseline.

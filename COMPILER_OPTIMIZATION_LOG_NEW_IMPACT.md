@@ -60,3 +60,14 @@ same normalized normal-impact scale the scorer reports.
 - Decide result: indicative `VERDICT: INCONCLUSIVE`; focused headline `383.7 -> 384.0`, `Delta=+0.3`, 95% CI `[-12.3, 13.2]`, `P(Delta<=0)=47.5%`. Per-budget deltas: `50k +0.0`, `100k -2.0`, `200k +1.7`, `300k +0.2`. Validity was unchanged on the focused slice.
 - Diagnostics: the gate is effectively neutral; it slightly trades `100k` score for tiny high-budget gains. The effect is far too small to justify a canonical run.
 - Status: reverted after focused inconclusive; no canonical run and no behavior commit.
+
+## impact-local-cost-asym075-slice-01
+
+- Baseline used: `impact-local-cost-w05-01` at commit `c081ef2`.
+- Hypothesis: residual impact error is overwhelmingly under-hit (`300k` impact signed error `-0.1868`; under-hit contributes `0.1947` MAE vs `0.0079` from overshoot). Raising local impact cost only for under-hit from `0.5` to `0.75` might prioritize harder landings without over-penalizing soft-beat overshoot.
+- Code changes made: temporarily changed `axisCost(...)` in `scripts/v0/core/candidate.ts` to use `LOCAL_IMPACT_UNDERHIT_COST_WEIGHT = 0.75` when `target > achieved`, while keeping overshoot at `0.5`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/core/candidate.ts').then(() => console.log('candidate import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_dropout,syncopated_switchback,drums_pendulum,dense_sprint,rhythm_ladder,dense_echo_climb,drums_signature,opening_burst,drums_pulse,drums_crosscut --archive-dir=generated/golden-runs/impact-local-cost-asym075-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; focused headline `383.7 -> 382.9`, `Delta=-0.8`, 95% CI `[-7.2, 5.8]`, `P(Delta<=0)=65.1%`. Per-budget deltas: `50k +1.7`, `100k -0.8`, `200k -1.0`, `300k -1.2`; validity unchanged.
+- Diagnostics: the extra under-hit pressure buys a small low-budget gain but consistently hurts high-budget rows, suggesting the accepted `0.5` local weight is near the useful ceiling for this candidate prefix.
+- Status: reverted after focused negative signal; no canonical run and no commit.

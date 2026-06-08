@@ -105,3 +105,14 @@ same normalized normal-impact scale the scorer reports.
 - Decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; focused headline `383.7 -> 383.6`, `Delta=-0.1`, 95% CI `[-1.7, 1.2]`, `P(Delta<=0)=52.8%`. Per-budget deltas: `50k +0.0`, `100k +0.3`, `200k +0.4`, `300k -0.6`; validity unchanged.
 - Diagnostics: the extra normal sample helped mid budgets slightly but stole enough mature search/repair work or introduced enough noisy choices to regress `300k`, so it is not a viable default.
 - Status: reverted after focused negative signal; no canonical run and no commit.
+
+## impact-axisq-hard-slice-01
+
+- Baseline used: `impact-local-cost-w05-01` at commit `c081ef2`.
+- Hypothesis: the normal extra `axisq` stream did not create sufficiently different impact geometry. Add a stricter `impact_hard` sample mode as an extra quality-only candidate: contact-centered geometry with a small, capped contact-angle shift toward higher normal impact, gated to high targets whose current pool still under-hit.
+- Code changes made: temporarily added `impact_hard` to `CANDIDATE_SAMPLE_MODES`, allowed it through the contact-centered sampler, applied at most a `12deg` extra tangent shift away from incoming velocity for high impact targets, and sampled one gated `axisq`/`impact` candidate from `rankedOptions(...)`.
+- Import smoke: `npx tsx -e "Promise.all([import('./scripts/v0/arc_placement.ts'), import('./scripts/v0/optimizer/handoff.ts')]).then(() => console.log('impact hard imports ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_dropout,syncopated_switchback,drums_pendulum,dense_sprint,rhythm_ladder,dense_echo_climb,drums_signature,opening_burst,drums_pulse,drums_crosscut --archive-dir=generated/golden-runs/impact-axisq-hard-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; focused headline `383.7 -> 383.5`, `Delta=-0.2`, 95% CI `[-1.9, 1.0]`, `P(Delta<=0)=60.1%`. Per-budget deltas: `50k -0.0`, `100k -0.1`, `200k +0.0`, `300k -0.5`; validity unchanged.
+- Diagnostics: even a small hard-impact geometry stream fails to pay for its search cost/noise and again regresses mature `300k` quality. The earlier large contact-angle steering failed validity; this smaller extra-only version preserves validity but still loses score.
+- Status: reverted after focused negative signal; no canonical run and no commit.

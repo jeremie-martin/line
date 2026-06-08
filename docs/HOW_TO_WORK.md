@@ -24,11 +24,11 @@ budgets runs N compiles per (spec, seed). Two tiers, cheap → authoritative:
    ```bash
    LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- \
      --specs=tiny_dance,opening_burst \
-     --budgets=25000,200000 \
+     --budgets=50000,300000 \
      --jobs=6
    ```
 
-2. **canonical** — 20 specs × 12 seeds × budgets `{25,50,100,150,200}k`; the **only
+2. **canonical** — headline specs × 12 seeds × budgets `{50,100,200,300}k`; the **only
    promotable basis**:
 
    ```bash
@@ -77,7 +77,7 @@ hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
 - Evaluator fingerprint: **`9b9776df145f`** (`scripts/v0/golden_suite.ts`).
 - Current committed compiler: `compileHandoff` with budget-aware contract candidate
-  count. Canonical baseline is the 12-seed population (budgets `{25,50,100,150,200}k`,
+  count. Canonical baseline is the 12-seed population (budgets `{50,100,200,300}k`,
   weighted-average HEADLINE): **HEADLINE ≈ 552.5**, validity 240/240 at 200k (up from
   ≈536.0 before the budget-aware change; the gain is concentrated at 25k/50k). Always
   refresh the generated HTML and the quoted number from a fresh 12-seed rebaseline before

@@ -8,7 +8,7 @@
  *   LR_ENGINE=wasm npm run golden -- --seed=42 --jobs=6
  *   LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4 npm run golden -- --jobs=6
  *   LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --budgets=25000,200000 --jobs=6
+ *   LR_ENGINE=wasm npm run golden -- --budgets=50000,300000 --jobs=6
  *   LR_ENGINE=wasm npm run golden -- --archive-dir=generated/golden-runs/my-run --jobs=6
  *   LR_ENGINE=wasm npm run golden -- --variants --jobs=6
  *

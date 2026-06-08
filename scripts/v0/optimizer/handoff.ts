@@ -41,6 +41,7 @@ import {
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
   HANDOFF_EVALUATION_PHASES,
+  ELEVATION,
   SPEED_AXIS,
   START_DEFAULTS,
   authoredSpeedToPx,
@@ -372,6 +373,9 @@ const START_FIRST_OPTIONS = 3;
 const START_NEXT_K = 8;
 const START_HEURISTIC_WEIGHT = 0.15;
 const START_SPEED_ANCHOR_OFFSETS_PX_PER_FRAME = [-2.5, -0.75, 0, 1.25, 2.5] as const;
+const START_BALLISTIC_SCORING_POOL = 4;
+const START_BALLISTIC_BUDGET_START_FRAMES = 50_000;
+const START_BALLISTIC_BUDGET_SPAN_FRAMES = 50_000;
 const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
 /** The one-contact preview already pays for a future candidate. Reuse its local
@@ -559,7 +563,7 @@ function compileHandoffInternal(
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContractSearch = usesSparseContractSearch(gaps);
     const startOptions = initialSnapshot === null
-      ? buildStartOptions(userSpec, spec, gaps, ctx, searchSeed)
+      ? buildStartOptions(userSpec, spec, gaps, ctx, searchSeed, targetBudget)
       : [];
     const root: HandoffNode = initialSnapshot === null
       ? {
@@ -3047,6 +3051,7 @@ function buildStartOptions(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
+  targetBudget: number,
 ): StartOption[] {
   const defaultStart = resolveStartState(searchSpec);
   const defaultSpecStart: NonNullable<Spec["start"]> = {
@@ -3067,8 +3072,38 @@ function buildStartOptions(
 
   const axes = firstAxes(rawSpec);
   const starts = startCandidates(axes);
+  const firstGapIndex = nextContactGapIndex(gaps, 0);
+  const firstGap = firstGapIndex < 0 ? null : gaps[firstGapIndex];
+  const firstContactAxes = firstGap === null ? null : effectiveAxes(firstGap, rawSpec);
+  const ballisticStarts = firstGap === null ||
+    firstContactAxes === null ||
+    targetsVerticalDramaAxis(firstContactAxes)
+    ? []
+    : ballisticFirstContactStartCandidates(firstContactAxes, firstGap.endFrame);
   const seen = new Set<string>();
-  const [first, ...rest] = [defaultSpecStart, ...starts]
+  const orderedBaseStarts = starts
+    .sort((a, b) =>
+      startHeuristicCost(a, axes) - startHeuristicCost(b, axes) ||
+      startKey(a).localeCompare(startKey(b))
+    );
+  const orderedBallisticStarts = firstGap === null || firstContactAxes === null
+    ? []
+    : ballisticStarts.sort((a, b) =>
+      ballisticFirstContactCost(a, firstContactAxes, firstGap.endFrame) -
+        ballisticFirstContactCost(b, firstContactAxes, firstGap.endFrame) ||
+      startKey(a).localeCompare(startKey(b))
+    );
+  const ballisticStartPool = Math.min(
+    START_BALLISTIC_SCORING_POOL,
+    orderedBallisticStarts.length,
+    Math.floor(START_BALLISTIC_SCORING_POOL * ballisticStartBudgetPressure(targetBudget)),
+  );
+  const baseStartPool = Math.max(0, START_SCORING_POOL - 1 - ballisticStartPool);
+  const [first, ...rest] = [
+    defaultSpecStart,
+    ...orderedBaseStarts.slice(0, baseStartPool),
+    ...orderedBallisticStarts.slice(0, ballisticStartPool),
+  ]
     .filter((start) => {
       const key = startKey(start);
       if (seen.has(key)) return false;
@@ -3079,11 +3114,6 @@ function buildStartOptions(
   const heuristicPool = [
     first,
     ...rest
-      .sort((a, b) =>
-        startHeuristicCost(a, axes) - startHeuristicCost(b, axes) ||
-        startKey(a).localeCompare(startKey(b))
-      )
-      .slice(0, Math.max(0, START_SCORING_POOL - 1)),
   ];
 
   if (!hasStartFeasibilityLookahead(gaps)) {
@@ -3215,6 +3245,35 @@ function startCandidates(firstAxes: AxisValues): NonNullable<Spec["start"]>[] {
   return out;
 }
 
+function ballisticFirstContactStartCandidates(
+  firstContactAxes: AxisValues,
+  firstContactFrame: number,
+): NonNullable<Spec["start"]>[] {
+  const targetSpeed = startTargetSpeedPx(firstContactAxes);
+  const speeds = startSpeedAnchors(targetSpeed);
+  const impactAngles = startAngles(firstContactAxes);
+  const gravityVy = ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(1, firstContactFrame);
+  const out: NonNullable<Spec["start"]>[] = [];
+  for (const speed of speeds) {
+    for (const angleDeg of impactAngles) {
+      const angle = (angleDeg * Math.PI) / 180;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed - gravityVy;
+      const startSpeed = Math.hypot(vx, vy);
+      if (vx <= 0 || startSpeed <= 0 || startSpeed > START_DEFAULTS.VELOCITY_SANITY_CAP) continue;
+      out.push({ vx: round3(vx), vy: round3(vy) });
+    }
+  }
+  return out;
+}
+
+function ballisticStartBudgetPressure(targetBudget: number): number {
+  return smoothstep(
+    (Math.max(0, targetBudget) - START_BALLISTIC_BUDGET_START_FRAMES) /
+      START_BALLISTIC_BUDGET_SPAN_FRAMES,
+  );
+}
+
 export function startSpeedAnchors(targetSpeedPxPerFrame: number): number[] {
   return uniqueRounded([
     START_DEFAULTS.VELOCITY.x,
@@ -3234,6 +3293,24 @@ function startHeuristicCost(start: NonNullable<Spec["start"]>, axes: AxisValues)
   const angleCost = Math.pow((angle - targetAngle) / 70, 2);
   const lowSpeedPenalty = targetSpeed >= 6 && speed < targetSpeed * 0.45 ? 1 : 0;
   return speedCost + 0.35 * angleCost + lowSpeedPenalty;
+}
+
+function ballisticFirstContactCost(
+  start: NonNullable<Spec["start"]>,
+  firstContactAxes: AxisValues,
+  firstContactFrame: number,
+): number {
+  const targetSpeed = startTargetSpeedPx(firstContactAxes);
+  const impactVy = start.vy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(1, firstContactFrame);
+  const speed = Math.hypot(start.vx, impactVy);
+  const angle = (Math.atan2(
+    impactVy,
+    start.vx,
+  ) * 180) / Math.PI;
+  const targetAngle = targetStartAngle(firstContactAxes);
+  const speedCost = Math.pow((speed - targetSpeed) / SPEED_AXIS.RANGE_PX_PER_FRAME, 2);
+  const angleCost = Math.pow((angle - targetAngle) / 70, 2);
+  return speedCost + 0.35 * angleCost + START_HEURISTIC_WEIGHT * startHeuristicCost(start, firstContactAxes);
 }
 
 function startTargetSpeedPx(axes: AxisValues): number {

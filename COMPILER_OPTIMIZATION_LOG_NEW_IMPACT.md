@@ -244,3 +244,40 @@ same normalized normal-impact scale the scorer reports.
 - Decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; 20-spec intersection headline `467.4 -> 465.7`, `Delta=-1.7`, 95% CI `[-11.9, 4.8]`, `P(Delta<=0)=69.7%`. Per-budget deltas: `50k +0.0`, `100k -11.2`, `200k +0.0`, `300k +0.0`; `100k` validity moved `100% -> 99%`.
 - Diagnostics: the dense-only multiplier removed the sparse exposure but doubled the effective spread in the fragile dense region, converting the prior `100k` upside into a loss. Dense impact misses are not fixed by simply widening contact-angle diversity.
 - Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-angle-lowair-span-floor-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` behavior at commit `5d01965`.
+- Hypothesis: low-air impact-authored gaps are the worst remaining impact bucket (`300k` low-air impact MAE `0.2823` vs mid-air `0.1867`). The accepted impact angle bias is tied to the launch span, so low-launch/low-air candidates receive little hard-catch angle shift. Add a small low-air floor to that span so ride-out candidates can still land harder without adding samples.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_LOW_AIR_SPAN_FLOOR = 0.35` and replaced the impact shift span with a low-air lerp toward `max(launchSpan, 0.35)`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-angle-lowair-span-floor-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `467.4 -> 468.0`, `Delta=+0.6`, 95% CI `[-4.7, 7.0]`, `P(Delta<=0)=35.9%`. Per-budget deltas: `50k -18.8`, `100k +12.2`, `200k +0.7`, `300k -0.2`.
+- Diagnostics: the low-air floor created a clean `100k` improvement but made scarce-budget candidates too hard, causing a large `50k` loss. Tested a budget-gated derivative instead of promoting.
+- Status: reverted after derivative testing; no canonical run and no behavior commit.
+
+## impact-angle-lowair-budget-span-floor-01
+
+- Baseline used: `impact-angle-sparse-extra-01` behavior at commit `5d01965`.
+- Hypothesis: keep the useful low-air span-floor effect only where it scored: fade in from `75k..100k`, fade out from `220k..300k`, leaving `50k` and mature `300k` effectively unchanged.
+- Code changes made: temporarily kept `CONTACT_CENTERED_IMPACT_LOW_AIR_SPAN_FLOOR = 0.35` and added `contactCenteredImpactLowAirSpanBudgetPressure()` to multiply the low-air span floor.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-angle-lowair-budget-span-floor-slice-01`
+- Probe decide result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `467.4 -> 469.5`, `Delta=+2.1`, 95% CI `[-0.0, 9.1]`, `P(Delta<=0)=2.9%`. Per-budget deltas: `50k +0.0`, `100k +12.2`, `200k +0.7`, `300k +0.0`.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-angle-lowair-budget-span-floor-01`
+- Canonical decide result: `VERDICT: INCONCLUSIVE`; headline `487.8 -> 488.9`, `Delta=+1.0`, 95% CI `[-0.1, 4.9]`, `P(Delta<=0)=10.2%`. Per-budget deltas: `50k +0.0`, `100k +6.3`, `200k +0.2`, `300k +0.0`.
+- Diagnostics: this was close but missed the canonical acceptance threshold. The `100k` gain generalized only halfway across the full suite, and the `200k` gain was too small to carry the weighted headline.
+- Status: reverted after canonical inconclusive; no behavior commit.
+
+## impact-angle-lowair-budget-span-floor045-01
+
+- Baseline used: `impact-angle-sparse-extra-01` behavior at commit `5d01965`.
+- Hypothesis: the `0.35` low-air floor was close to canonical acceptance; raising the same smooth budget-gated floor to `0.45` might strengthen the `100k/200k` effect without touching `50k/300k`.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_LOW_AIR_SPAN_FLOOR` from `0.35` to `0.45`; all budget gates and target gates were unchanged.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-angle-lowair-budget-span-floor045-slice-01`
+- Probe decide result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `467.4 -> 469.8`, `Delta=+2.3`, 95% CI `[-0.0, 9.8]`, `P(Delta<=0)=2.9%`. Per-budget deltas: `50k +0.0`, `100k +12.2`, `200k +1.5`, `300k +0.0`.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-angle-lowair-budget-span-floor045-01`
+- Canonical decide result: `VERDICT: INCONCLUSIVE`; headline `487.8 -> 488.1`, `Delta=+0.3`, 95% CI `[-4.4, 4.9]`, `P(Delta<=0)=34.7%`. Per-budget deltas: `50k +0.0`, `100k +0.3`, `200k +0.8`, `300k +0.0`.
+- Diagnostics: the stronger floor improved the focused `200k` point estimate but collapsed the canonical `100k` gain. The mechanism is too suite-sensitive to keep without an accepted canonical verdict.
+- Status: reverted after canonical inconclusive; no behavior commit.

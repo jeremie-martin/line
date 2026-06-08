@@ -370,3 +370,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with neutral/slightly negative point estimate; 20-spec intersection headline `469.5 -> 469.5`, `Delta=-0.1`, 95% CI `[-1.0, 0.9]`, `P(Delta<=0)=56.9%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.1`, `300k -0.0`.
 - Diagnostics: deeper upstream walking barely changes the focused run, so the accepted repair depth is not the current bottleneck.
 - Status: env-only neutral/rejected; no canonical run and no behavior commit.
+
+## impact-repair-main125-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: repair acceptance may be too conservative after impact-aware local cost and wider quality breadth. Raising the main-score repair margin from `1.0` to `1.25` might let suffix repair keep locally rougher but globally better impact catches.
+- Code changes made: none; ran with `LR_REPAIR_MAIN_MARGIN=1.25`.
+- Probe command: `LR_ENGINE=wasm LR_REPAIR_MAIN_MARGIN=1.25 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb --archive-dir=generated/golden-runs/impact-repair-main125-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `469.5 -> 470.4`, `Delta=+0.9`, 95% CI `[-1.1, 3.2]`, `P(Delta<=0)=19.1%`. Per-budget deltas: `50k +0.0`, `100k +0.5`, `200k +1.4`, `300k +0.9`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: the higher main margin produces a small positive mature-budget point estimate, but the signal is too weak for canonical promotion and exactly neutral at `50k`. Treat it as a possible future fine-tuning lead rather than a default change.
+- Status: env-only inconclusive; no canonical run and no behavior commit.

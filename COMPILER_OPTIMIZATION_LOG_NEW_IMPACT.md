@@ -71,3 +71,26 @@ same normalized normal-impact scale the scorer reports.
 - Decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; focused headline `383.7 -> 382.9`, `Delta=-0.8`, 95% CI `[-7.2, 5.8]`, `P(Delta<=0)=65.1%`. Per-budget deltas: `50k +1.7`, `100k -0.8`, `200k -1.0`, `300k -1.2`; validity unchanged.
 - Diagnostics: the extra under-hit pressure buys a small low-budget gain but consistently hurts high-budget rows, suggesting the accepted `0.5` local weight is near the useful ceiling for this candidate prefix.
 - Status: reverted after focused negative signal; no canonical run and no commit.
+
+## impact-repair-weight15-01
+
+- Baseline used: `impact-local-cost-w05-01` at commit `c081ef2`.
+- Hypothesis: repair picks the weakest affordable gap using equal reported-axis SSE. Since impact is the newly dominant residual error and repair has many accepted high-budget restarts (`300k` baseline: `5770` restarts, `1608` accepts), weighting impact higher when selecting repair anchors might spend suffix rebuilds on more valuable high-impact under-hits.
+- Code changes made: temporarily added `REPAIR_IMPACT_WEAK_GAP_WEIGHT = 1.5` in `pickFeasibleWeakGap(...)`, multiplying only the repair weak-gap score for `impact` errors. This did not change candidate generation, local candidate cost, scorer, specs, or budget grid.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_dropout,syncopated_switchback,drums_pendulum,dense_sprint,rhythm_ladder,dense_echo_climb,drums_signature,opening_burst,drums_pulse,drums_crosscut --archive-dir=generated/golden-runs/impact-repair-weight15-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; focused headline `383.7 -> 384.3`, `Delta=+0.6`, 95% CI `[-1.2, 2.2]`, `P(Delta<=0)=17.3%`. Per-budget deltas: `50k +0.0`, `100k +0.3`, `200k +0.5`, `300k +0.8`.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-repair-weight15-01`
+- Canonical decide result: `VERDICT: INCONCLUSIVE`; headline `481.1 -> 481.4`, `Delta=+0.3`, 95% CI `[-0.9, 1.5]`, `P(Delta<=0)=29.0%`. Per-budget deltas: `50k +0.0`, `100k -0.0`, `200k +0.2`, `300k +0.6`; validity unchanged.
+- Diagnostics: strongest weighted spec gains were `rolling_drop +5.73`, `rolling_hills +5.01`, `mixed_grade +4.00`, `grain_staircase +3.59`, and `syncopated_lift +3.21`; losses were led by `skyline_push -6.86`, `climb_terrace -5.67`, `ridge_pulse -3.29`, `float_bounds -1.94`, and `pop_train -1.72`. Impact MAE moved `300k 0.2026 -> 0.2018`, but `100k/200k` were flat to slightly worse.
+- Status: reverted after canonical inconclusive; no behavior commit.
+
+## impact-repair-weight20-slice-01
+
+- Baseline used: `impact-local-cost-w05-01` at commit `c081ef2`.
+- Hypothesis: if `1.5x` repair impact weighting was too weak, `2.0x` might make the focused high-budget repair signal clearer.
+- Code changes made: temporarily changed `REPAIR_IMPACT_WEAK_GAP_WEIGHT` from `1.5` to `2.0`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_dropout,syncopated_switchback,drums_pendulum,dense_sprint,rhythm_ladder,dense_echo_climb,drums_signature,opening_burst,drums_pulse,drums_crosscut --archive-dir=generated/golden-runs/impact-repair-weight20-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; focused headline `383.7 -> 384.0`, `Delta=+0.3`, 95% CI `[-1.5, 1.9]`, `P(Delta<=0)=29.9%`. Per-budget deltas: `50k +0.0`, `100k +0.3`, `200k +0.7`, `300k +0.1`.
+- Diagnostics: `2.0x` over-focused repair relative to `1.5x`; the `300k` lift mostly disappeared, so it was not canonical-tested.
+- Status: reverted after focused weaker signal; no canonical run and no commit.

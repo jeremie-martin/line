@@ -463,3 +463,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 467.2`, `Delta=-2.3`, 95% CI `[-14.0, 7.6]`, `P(Delta<=0)=68.0%`. Per-budget deltas: `50k -8.4`, `100k -10.9`, `200k +0.0`, `300k +0.0`; validity regressed at `100k` (`100% -> 99%`) and improved at `50k` (`97% -> 99%`).
 - Diagnostics: full contract sampling spends scarce budget without improving impact quality. The accepted budget-aware reduction remains the right completion/quality tradeoff.
 - Status: env-only inconclusive/negative; no canonical run and no behavior commit.
+
+## impact-repair-main11-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: the `1.25` repair main margin probe gave a small mature-budget lift but was too noisy. A smaller `1.1` margin might keep the useful suffix-repair tolerance while avoiding the `100k` churn risk from a wider acceptance band.
+- Code changes made: none; ran with `LR_REPAIR_MAIN_MARGIN=1.1`.
+- Probe command: `LR_ENGINE=wasm LR_REPAIR_MAIN_MARGIN=1.1 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-repair-main11-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `469.5 -> 470.5`, `Delta=+1.0`, 95% CI `[-1.0, 3.2]`, `P(Delta<=0)=16.9%`. Per-budget deltas: `50k +0.0`, `100k -0.5`, `200k +1.4`, `300k +1.3`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: the smaller margin is slightly better than `1.25` on point estimate and avoids a large low-budget failure, but it still regresses `100k` and does not clear the focused accept bar. Treat as a live lead, not a default change.
+- Status: env-only inconclusive; no canonical run and no behavior commit.

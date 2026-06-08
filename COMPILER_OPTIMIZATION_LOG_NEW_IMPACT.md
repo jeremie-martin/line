@@ -339,3 +339,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 468.7`, `Delta=-0.8`, 95% CI `[-4.0, 2.3]`, `P(Delta<=0)=67.5%`. Per-budget deltas: `50k -1.5`, `100k -0.1`, `200k -1.1`, `300k -0.7`.
 - Diagnostics: `40` over-spends/dilutes relative to the newly accepted `32`; all budget point estimates were negative. Keep `32` as the current quality breadth default.
 - Status: env-only rejected; no canonical run and no behavior commit.
+
+## impact-quality-ncand36-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: interpolate between accepted `32` and rejected `40`; `36` might preserve most of the extra geometry without the full dilution seen at `40`.
+- Code changes made: none; ran with `LR_QUALITY_NCAND=36`.
+- Probe command: `LR_ENGINE=wasm LR_QUALITY_NCAND=36 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-quality-ncand36-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 469.2`, `Delta=-0.3`, 95% CI `[-2.8, 2.0]`, `P(Delta<=0)=58.5%`. Per-budget deltas: `50k +0.0`, `100k -0.1`, `200k +0.3`, `300k -0.8`.
+- Diagnostics: `36` was less harmful than `40`, but still regressed the high-weight `300k` budget. The current breadth peak remains `32`.
+- Status: env-only rejected; no canonical run and no behavior commit.

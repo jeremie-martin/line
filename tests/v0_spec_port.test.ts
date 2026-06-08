@@ -8,6 +8,8 @@
  *
  * This proves the idiomatic `keyframes(..., "hold")` / `constant()` rewrites
  * build the same step functions the sections did — independent of the compiler.
+ * The compiler now ignores authored `grain`, so fixture expectations are
+ * compared after dropping that axis.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -20,6 +22,11 @@ const fixture = JSON.parse(
   readFileSync(resolve("tests/fixtures/golden_axis_resolution.json"), "utf8"),
 ) as Record<string, Record<string, Record<string, number>>>;
 
+function withoutIgnoredAxes(axes: Record<string, number>): Record<string, number> {
+  const { grain: _grain, ...activeAxes } = axes;
+  return activeAxes;
+}
+
 describe("Tier 1: ported curve specs reproduce section resolution", () => {
   for (const name of Object.keys(fixture)) {
     test(`${name}: per-frame axes identical to captured section fixture`, async () => {
@@ -29,7 +36,7 @@ describe("Tier 1: ported curve specs reproduce section resolution", () => {
       const expected = fixture[name];
       const durationFrames = secToFrame(spec.duration);
       for (let f = 0; f <= durationFrames; f++) {
-        expect(axesAtFrame(f, spec), `${name} frame ${f}`).toEqual(expected[String(f)]);
+        expect(axesAtFrame(f, spec), `${name} frame ${f}`).toEqual(withoutIgnoredAxes(expected[String(f)]));
       }
     });
   }

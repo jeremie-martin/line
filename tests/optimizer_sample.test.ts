@@ -49,13 +49,16 @@ async function setupAt(name: string, seed: number) {
 }
 
 describe("optimizer/sample.ts — Step 1 atomic sample", () => {
-  test("gap target sampling uses canonical per-axis bounds", () => {
+  test("gap target sampling uses canonical per-axis bounds and ignores grain", () => {
     const sampled = sampleGapTargets(
       { air: 2, speed: 2, grain: 2 },
       0,
       () => 0.5,
     );
-    expect(sampled).toEqual(AXIS_VALUE_MAX);
+    expect(sampled).toEqual({
+      air: AXIS_VALUE_MAX.air,
+      speed: AXIS_VALUE_MAX.speed,
+    });
   });
 
   test("two calls with the same RNG seed produce identical candidates", async () => {

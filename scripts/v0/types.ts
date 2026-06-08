@@ -89,6 +89,15 @@ export type Curve = (t: number) => number | undefined;
 export const AXES = ["air", "speed", "grain", "elevation", "amplitude"] as const;
 export type AxisName = (typeof AXES)[number];
 
+/**
+ * Axes that can be authored as active optimization targets. `grain` remains in
+ * AXES for measured legacy data, but spec-authored grain is intentionally
+ * ignored while the grain axis is being removed from the compiler.
+ */
+export const TARGET_AXES = ["air", "speed", "elevation", "amplitude"] as const satisfies readonly AxisName[];
+export type TargetAxisName = (typeof TARGET_AXES)[number];
+const TARGET_AXIS_SET: ReadonlySet<AxisName> = new Set<AxisName>(TARGET_AXES);
+
 /** Upper bound for each normalized authored target/sample value. */
 export const AXIS_VALUE_MAX = {
   air: 0.99,
@@ -151,28 +160,31 @@ export type ArcPlacementCounter = {
 export type ArcPlacementMode = "target_state";
 
 /**
- * True when the resolved target bag contains exactly this canonical axis set.
- * This is intentionally AXES-driven: adding a future axis must not silently keep
- * old "air-only" or similar policies active when that new axis is targeted.
+ * True when the resolved target bag contains exactly this active target-axis
+ * set. Axes outside TARGET_AXES are ignored even if a legacy caller supplies
+ * them in the bag.
  */
 export function hasExactlyTargetAxes(
   values: AxisValues,
   requiredAxes: readonly AxisName[],
 ): boolean {
+  for (const axis of requiredAxes) {
+    if (!TARGET_AXIS_SET.has(axis)) return false;
+  }
   const required = new Set(requiredAxes);
-  for (const axis of AXES) {
+  for (const axis of TARGET_AXES) {
     const hasTarget = values[axis] !== undefined;
     if (hasTarget !== required.has(axis)) return false;
   }
   return true;
 }
 
-/** True when any axis in the provided canonical category is targeted. */
+/** True when any active target axis in the provided category is targeted. */
 export function hasAnyTargetAxis(
   values: AxisValues,
   axes: readonly AxisName[],
 ): boolean {
-  return axes.some((axis) => values[axis] !== undefined);
+  return axes.some((axis) => TARGET_AXIS_SET.has(axis) && values[axis] !== undefined);
 }
 
 /**

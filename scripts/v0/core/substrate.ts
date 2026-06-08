@@ -16,7 +16,7 @@ import {
   type FrameSpanAxisName,
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
-  AXES, AXIS_VALUE_MAX, CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
+  AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
   authoredSpeedToPx, speedPxToAuthored, elevationCeiling,
 } from "../types.ts";
 import { measureGapAxes } from "./measure.ts";
@@ -314,7 +314,7 @@ export function effectiveAxes(gap: Gap, spec: Spec): AxisValues {
 
   for (let frame = gap.startFrame; frame <= gap.endFrame; frame++) {
     const axes = axesAtFrame(frame, spec);
-    for (const key of AXES) {
+    for (const key of TARGET_AXES) {
       const value = axes[key];
       if (value === undefined) continue;
       sums[key] += value;
@@ -323,7 +323,7 @@ export function effectiveAxes(gap: Gap, spec: Spec): AxisValues {
   }
 
   const out: AxisValues = {};
-  for (const key of AXES) {
+  for (const key of TARGET_AXES) {
     if (counts[key] > 0) out[key] = sums[key] / counts[key];
   }
   return out;
@@ -339,7 +339,7 @@ export function axesAtFrame(frame: number, spec: Spec): AxisValues {
   const t = frame / FPS;
   // Evaluate each present axis curve at this frame's time.
   const axes: AxisValues = {};
-  for (const name of AXES) {
+  for (const name of TARGET_AXES) {
     const v = spec.axes[name]?.(t);
     if (v !== undefined) axes[name] = v;
   }
@@ -354,7 +354,7 @@ export function sampleGapTargets(
   rng: () => number,
 ): AxisValues {
   const out: AxisValues = {};
-  for (const name of AXES) {
+  for (const name of TARGET_AXES) {
     const value = section[name];
     if (value !== undefined) out[name] = clamp(gauss(rng, value, sigma), 0, AXIS_VALUE_MAX[name]);
   }
@@ -400,11 +400,12 @@ export function validateSpec(spec: Spec): void {
 /**
  * Validate axis curves stay in range across the track. A curve is continuous,
  * so we sample it at every frame (the resolution the compiler actually sees)
- * and bound-check each defined value.
+ * and bound-check each defined value. Axes outside TARGET_AXES are deliberately
+ * skipped here, so authored `grain` curves are ignored instead of validated.
  */
 function validateAxisCurves(spec: Spec): void {
   const durationFrames = secToFrame(spec.duration);
-  for (const name of AXES) {
+  for (const name of TARGET_AXES) {
     const curve = spec.axes?.[name];
     if (curve === undefined) continue;
     const hi = AXIS_VALUE_MAX[name];

@@ -23,7 +23,7 @@ import {
   recordArcPlacementPreclearReject,
 } from "../arc_placement.ts";
 import {
-  AXES,
+  TARGET_AXES,
   type AxisValues,
   type Arc, type TrackLine, type Gap,
   FPS,
@@ -667,7 +667,7 @@ export function axisCost(target: AxisValues, achieved: AxisValues): number {
   // optimizer equal-weighted avoids region-specific ranking bias while
   // preserving a smooth gradient for nearby candidate choices.
   let cost = 0;
-  for (const key of AXES) {
+  for (const key of TARGET_AXES) {
     const t = target[key];
     const a = achieved[key];
     if (t !== undefined && a !== undefined) {

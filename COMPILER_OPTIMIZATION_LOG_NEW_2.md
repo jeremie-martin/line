@@ -1147,6 +1147,47 @@ only changes that print `VERDICT: ACCEPT`.
 - Status: kept; accepted by canonical decision gate. New baseline for
   subsequent attempts is `mature-avg-start50-span100-01`.
 
+## mature-avg-start50-span75-01
+
+- Baseline used: `mature-avg-start50-span100-01` at commit `e6608a2`.
+- Hypothesis: the accepted `start50/span100` ramp improved `100k` at half
+  mature-ranker pressure. Shorten the smooth span to `75k` so `100k` receives
+  stronger pressure, while `50k` remains zero-pressure and `200k`/`300k`
+  remain fully saturated.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `MATURE_AVG_FWD_EVAL_SPAN_FRAMES` from `100_000` to `75_000`.
+  `MATURE_AVG_FWD_EVAL_START_FRAMES` stayed at `50_000`, and
+  `MATURE_AVG_FWD_EVAL_BRANCH` stayed at `2`.
+- Golden commands:
+  - Probe: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000 --archive-dir=generated/golden-runs/probe-mature-avg-start50-span75-100k-01`
+  - Canonical: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-start50-span75-01`
+- Decide result: canonical `VERDICT: ACCEPT`; headline `626.6 -> 627.0`,
+  `Delta=+0.4`, 95% CI `[-0.2, 1.1]`, `P(Delta<=0)=8.5%`. Per-budget
+  deltas: `50k +0.0`, `100k +2.7`, `200k +0.0`, `300k +0.0`. Validity was
+  unchanged (`50k 97% -> 97%`; `100k`, `200k`, and `300k` stayed
+  `100% -> 100%`).
+- Notable improvements: the gain was isolated to `100k`, with weighted wins on
+  `pop_train +3.94`, `skyline_push +3.73`, `leap_cadence +3.49`,
+  `float_bounds +3.13`, `soar_settle +1.66`, `glide_stairs +1.22`,
+  `rolling_hills +1.10`, `big_air_ramp +0.86`, `climb_terrace +0.84`,
+  `terrace_sprint +0.84`, and `mixed_grade +0.74`.
+- Notable regressions: weighted losses on `canyon_steps -1.89`,
+  `swoop_dive -1.37`, `switchback_pop -0.66`, `dense_echo_climb -0.48`,
+  `rolling_drop -0.46`, `valley_bounce -0.32`, `ridge_pulse -0.16`, and
+  `summit_push -0.15`. Largest row-level movement included `skyline_push`
+  max `+142.9`, `soar_settle` max `+130.7` / min `-161.8`, and
+  `canyon_steps` min `-115.2`.
+- Diagnostics: `50k`, `200k`, and `300k` compile stats were unchanged. At
+  `100k`, candidates sampled rose `966277 -> 970476`, viable candidates rose
+  `551200 -> 552594`, full evaluations rose `4956 -> 5229`, unique full
+  evaluations rose `3631 -> 3806`, tail improvements rose `1166 -> 1188`,
+  repair accepts rose `627 -> 650`, and repair reconvergence rose
+  `974 -> 1014`. Axis diagnostics at `100k` improved air MAE
+  `0.0844 -> 0.0839`, speed MAE `0.0651 -> 0.0650`, elevation MAE
+  `0.1008 -> 0.1007`, and amplitude MAE `0.1339 -> 0.1303`.
+- Status: kept; accepted by canonical decision gate. New baseline for
+  subsequent attempts is `mature-avg-start50-span75-01`.
+
 ## probe-weak-quality-ncand-extra-01
 
 - Baseline used: `mature-avg-full200-01` at commit `4757f8d`.

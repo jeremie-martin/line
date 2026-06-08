@@ -329,3 +329,13 @@ same normalized normal-impact scale the scorer reports.
 - Notable regressions: weighted spec losses were led by `float_bounds -6.64`, `glide_stairs -6.23`, `swoop_dive -4.77`, `skyline_push -4.41`, `mixed_grade -3.98`, `ridge_pulse -3.19`, `solo_run -2.15`, and `pop_train -1.43`. Largest `300k` row losses: `glide_stairs` seed `9` `-66.80`, `skyline_push` seed `3` `-63.51`, `climb_terrace` seed `2` `-49.27`, `leap_cadence` seed `0` `-48.87`, and `grain_staircase` seed `5` `-45.53`.
 - Axis diagnostics: impact MAE improved at `100k` and `300k` (`100k 0.2133 -> 0.2113`, `300k 0.2010 -> 0.1999`), with signed impact under-hit also slightly better (`300k -0.1853 -> -0.1841`). Speed improved (`300k 0.1321 -> 0.1299`), air improved (`300k 0.0927 -> 0.0911`), and amplitude improved slightly; elevation ticked worse.
 - Status: kept; canonical accepted. Use `impact-quality-ncand32-01` as the next baseline.
+
+## impact-quality-ncand40-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: since quality breadth `32` became canonical-accepted under impact scoring, the new optimum might be higher than `32`. Test `40` as an env-only step before changing the default.
+- Code changes made: none; ran with `LR_QUALITY_NCAND=40`.
+- Probe command: `LR_ENGINE=wasm LR_QUALITY_NCAND=40 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-quality-ncand40-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 468.7`, `Delta=-0.8`, 95% CI `[-4.0, 2.3]`, `P(Delta<=0)=67.5%`. Per-budget deltas: `50k -1.5`, `100k -0.1`, `200k -1.1`, `300k -0.7`.
+- Diagnostics: `40` over-spends/dilutes relative to the newly accepted `32`; all budget point estimates were negative. Keep `32` as the current quality breadth default.
+- Status: env-only rejected; no canonical run and no behavior commit.

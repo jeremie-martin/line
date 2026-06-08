@@ -412,7 +412,7 @@ const HANDOFF_RELEASE_VERTICAL_SAFE_TIGHT_PX = 5;
 // it globally starves dense drum/search feedback. Fade it in only for those gaps.
 const MATURE_AVG_FWD_EVAL_START_FRAMES = 50_000;
 const MATURE_AVG_FWD_EVAL_SPAN_FRAMES = 65_000;
-const MATURE_AVG_FWD_EVAL_BRANCH = 2;
+const MATURE_AVG_FWD_EVAL_BRANCH = 1;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 /** Speculative tail completion turns deep prefixes into full-duration register
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because

@@ -1251,6 +1251,94 @@ only changes that print `VERDICT: ACCEPT`.
 - Status: kept; accepted by canonical decision gate. New baseline for
   subsequent attempts is `mature-avg-start50-span65-01`.
 
+## probe-mature-avg-start50-span60-100k-01
+
+- Baseline used: `mature-avg-start50-span65-01` at commit `576fe54`.
+- Hypothesis: `span65` is accepted and `span50` is too noisy; `span60` may be
+  close enough to the boundary to capture additional `100k` upside without
+  triggering the severe full-pressure outlier.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `MATURE_AVG_FWD_EVAL_SPAN_FRAMES` from `65_000` to `60_000`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000 --archive-dir=generated/golden-runs/probe-mature-avg-start50-span60-100k-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; `100k` score
+  `624.4 -> 625.8`, `Delta=+1.4`, 95% CI `[-1.8, 5.1]`,
+  `P(Delta<=0)=18.6%`. Validity stayed `100%`.
+- Notable improvements: row wins on `soar_settle` seed `1` (`+179.7`),
+  `big_air_ramp` seed `6` (`+150.6`), `soar_settle` seed `4` (`+145.7`),
+  `canyon_steps` seed `2` (`+126.5`), and `soar_settle` seed `10`
+  (`+103.3`).
+- Notable regressions: the added pressure created a severe `float_bounds` seed
+  `4` collapse (`602.3 -> 412.3`, `-190.0`), plus `pop_train` seed `11`
+  (`-129.0`) and `soar_settle` seed `11` (`-88.7`).
+- Diagnostics: the mean was positive but the new outliers made the paired
+  decision too uncertain. This is below the canonical promotion threshold.
+- Status: not kept; code reverted to `span65`.
+
+## probe-mature-avg-start50-span62-100k-01
+
+- Baseline used: `mature-avg-start50-span65-01` at commit `576fe54`.
+- Hypothesis: a softer interpolation than `span60` might retain some upside
+  while reducing boundary outliers.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `MATURE_AVG_FWD_EVAL_SPAN_FRAMES` from `65_000` to `62_000`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000 --archive-dir=generated/golden-runs/probe-mature-avg-start50-span62-100k-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; `100k` score
+  `624.4 -> 625.2`, `Delta=+0.8`, 95% CI `[-2.5, 4.5]`,
+  `P(Delta<=0)=31.7%`. Validity stayed `100%`.
+- Notable improvements: row wins on `soar_settle` seed `1` (`+179.7`),
+  `big_air_ramp` seed `6` (`+150.6`), `soar_settle` seed `4` (`+145.4`),
+  `canyon_steps` seed `2` (`+126.5`), and `soar_settle` seed `10`
+  (`+103.3`).
+- Notable regressions: similar boundary failures remained: `float_bounds` seed
+  `4` (`-190.0`), `pop_train` seed `11` (`-125.6`), `soar_settle` seed `11`
+  (`-88.7`), and `pop_train` seed `4` (`-76.0`).
+- Diagnostics: weaker average than `span60` and worse confidence. The span
+  sweep suggests `span65` is the stable point on the current seed grid.
+- Status: not kept; code reverted to `span65`.
+
+## mature-avg-branch1-current-01
+
+- Baseline used: `mature-avg-start50-span65-01` at commit `576fe54`.
+- Hypothesis: after moving the mature average forward-ranker ramp earlier and
+  tightening it, the accepted `branch=2` setting may now be spending too much
+  work on sibling forward rollouts. Dropping to `branch=1` should keep the
+  mature average ranker active while freeing budget for reuse/brake/tail repair.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `MATURE_AVG_FWD_EVAL_BRANCH` from `2` to `1`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-branch1-current-01`
+- Decide result: canonical `VERDICT: ACCEPT`; headline `627.3 -> 628.5`,
+  `Delta=+1.2`, 95% CI `[-0.6, 3.2]`, `P(Delta<=0)=9.2%`. Per-budget
+  deltas: `50k +0.0`, `100k +0.6`, `200k +2.0`, `300k +1.0`. Validity was
+  unchanged (`50k 97% -> 97%`; `100k`, `200k`, and `300k` stayed
+  `100% -> 100%`).
+- Notable improvements: the strongest `300k` spec wins were `summit_push`
+  `+11.4`, `syncopated_lift +8.9`, `dense_echo_climb +7.8`, `pop_train +7.6`,
+  `swoop_dive +7.1`, `valley_bounce +4.7`, `soar_settle +4.6`, and
+  `big_air_ramp +3.6`. Largest row wins were `pop_train` seed `11`
+  (`616.98 -> 689.50`, `+72.52`), `syncopated_lift` seed `10` (`+44.48`),
+  `valley_bounce` seed `1` (`+42.99`), `swoop_dive` seed `8` (`+36.37`), and
+  `climb_terrace` seed `2` (`+32.23`).
+- Notable regressions: biggest `300k` spec losses were `terrace_sprint -12.3`,
+  `float_bounds -5.3`, `glide_stairs -2.9`, `rolling_hills -2.2`, and
+  `mixed_grade -1.9`. Largest row losses were `terrace_sprint` seed `10`
+  (`567.69 -> 484.60`, `-83.09`), `float_bounds` seed `2` (`-51.48`),
+  `climb_terrace` seed `6` (`-39.76`), `terrace_sprint` seed `7` (`-28.14`),
+  and `swoop_dive` seed `5` (`-25.65`).
+- Diagnostics: the accepted gain came from smoother work allocation rather than
+  a new geometry capability. At `300k`, sampled candidates rose
+  `3010844 -> 3033956`, viable candidates rose `1664289 -> 1668288`, full
+  evaluations rose `12536 -> 12586`, unique full evaluations rose
+  `9301 -> 9416`, duplicate full evaluations fell `3235 -> 3170`, tail
+  attempts rose `8658 -> 9356`, tail improvements rose `2102 -> 2174`, reuse
+  successes rose `50802 -> 54842`, and brake successes rose `25157 -> 28774`.
+  Axis MAE moved mostly through speed: at `300k`, air `0.0749 -> 0.0750`,
+  speed `0.0565 -> 0.0552`, elevation `0.0967 -> 0.0964`, and amplitude
+  `0.1197 -> 0.1214`. The remaining hard shape is still vertical/amplitude:
+  `drums_pendulum` is the lowest `300k` spec, and `terrace_sprint` has the
+  largest accepted-regression outlier.
+- Status: kept; accepted by canonical decision gate. New baseline for
+  subsequent attempts is `mature-avg-branch1-current-01`.
+
 ## probe-weak-quality-ncand-extra-01
 
 - Baseline used: `mature-avg-full200-01` at commit `4757f8d`.

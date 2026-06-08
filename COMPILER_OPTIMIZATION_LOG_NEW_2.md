@@ -867,3 +867,232 @@ only changes that print `VERDICT: ACCEPT`.
   budget on vertical rows (`300k` unique full evaluations `9639 -> 8866`, tail
   improvements `2129 -> 1857`), but the targeted quality gain outweighs it.
 - Status: kept and committed; new baseline for subsequent attempts.
+
+## mature-avg-amplitude-01
+
+- Baseline used: `mature-avg-vertical-01` at commit `8ac5153`.
+- Hypothesis: the accepted vertical gate's losses were concentrated in
+  elevation-only `swoop_dive`, while many amplitude rows retained their gains.
+  Narrow the mature `avg:2:6` blend from amplitude-or-elevation targets to
+  amplitude-targeted gaps only, letting pure elevation rows return to the
+  default `greedy:2` ranker.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  the axis gate from `targets.amplitude || targets.elevation` to
+  `targets.amplitude` only.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-amplitude-01`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `621.2 -> 621.3`,
+  `Delta=+0.1`, 95% CI `[-1.5, 1.9]`, `P(Delta<=0)=50.1%`. Per-budget
+  deltas: `50k +0.0`, `100k +0.0`, `200k +0.3`, `300k -0.1`. Validity was
+  unchanged at all budgets.
+- Notable improvements: weighted wins on `swoop_dive +26.38` and
+  `summit_push +2.64`. Largest `300k` row wins were mostly `swoop_dive`,
+  including seed 4 `+81.0`, seed 10 `+65.6`, seed 8 `+58.1`, seed 3 `+56.3`,
+  and seed 5 `+50.5`.
+- Notable regressions: weighted losses on `rolling_hills -18.12`,
+  `climb_terrace -6.45`, and `mixed_grade -3.81`. Largest `300k` row losses
+  included `rolling_hills` seed 10 `-55.6`, `climb_terrace` seed 8 `-55.2`,
+  `rolling_hills` seed 0 `-45.1`, seed 2 `-42.6`, and seed 3 `-39.7`.
+- Diagnostics: the change mostly swapped pure-elevation winners and losers
+  rather than adding a new robust signal. At `300k`, it spent more search on
+  fewer sampled candidates relative to the accepted vertical gate: unique full
+  evaluations `8866 -> 9333`, duplicate full evaluations `3216 -> 3392`, tail
+  completion attempts `7532 -> 8106`, and tail improvements `1857 -> 1897`.
+  The extra terminal work was not enough to convert into a reliable headline
+  gain.
+- Status: reverted; no commit.
+
+## probe-vertical-quality-breadth-01
+
+- Baseline used: `mature-avg-vertical-01` at commit `8ac5153`.
+- Hypothesis: flat `HANDOFF_QUALITY_N_CAND=28` previously had a positive but
+  inconclusive signal, while the accepted mature vertical ranker now gives
+  amplitude/elevation gaps a better way to use extra geometry. Add up to four
+  extra quality candidates only on amplitude/elevation-targeted gaps, smoothly
+  fading from `150k` to `300k`, and leave explicit `LR_QUALITY_NCAND` overrides
+  unchanged.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily threaded
+  `handoffQualitySampleCount` through main quality expansion and near-tail
+  suffix completion. The helper added deterministic node-hash fractional extra
+  candidates for vertical-axis gaps only.
+- Golden command: `GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4,5 LR_ENGINE=wasm npm run golden -- --jobs=12 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,big_air_ramp,pop_train,soar_settle,leap_cadence,float_bounds,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,dense_echo_climb,rolling_drop,skyline_push,syncopated_lift,drums_pendulum,drums_crescendo,drums_signature --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-vertical-quality-breadth-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`; paired
+  slice headline `602.4 -> 602.0`, `Delta=-0.4`, 95% CI `[-2.9, 1.9]`,
+  `P(Delta<=0)=60.2%`. Per-budget deltas: `200k -0.1`, `300k -0.5`.
+  Validity was unchanged on the slice.
+- Notable improvements: weighted wins on `big_air_ramp +5.92`,
+  `ridge_pulse +5.44`, `dense_echo_climb +4.70`, `swoop_dive +4.66`, and
+  `canyon_steps +1.20`.
+- Notable regressions: weighted losses on `rolling_hills -5.64`,
+  `leap_cadence -5.63`, `syncopated_lift -5.55`, `valley_bounce -5.34`,
+  `float_bounds -4.63`, and `soar_settle -3.21`.
+- Diagnostics: the targeted extra breadth did increase viable candidates on the
+  slice (`300k` `378663 -> 390850`) but starved terminal feedback:
+  unique full evaluations fell `2709 -> 2383`, tail attempts fell
+  `2280 -> 2020`, and tail improvements fell `503 -> 489`. Extra vertical
+  geometry is still too expensive unless it is paired with a cheaper evaluation
+  or a stronger selection signal.
+- Status: reverted after probe; no canonical run and no commit.
+
+## probe-mature-avg-divefade-01
+
+- Baseline used: `mature-avg-vertical-01` at commit `8ac5153`.
+- Hypothesis: the accepted mature `avg:2:6` gate helps climb/rolling elevation
+  rows but hurts dive-heavy elevation rows. Keep amplitude targets unchanged,
+  but multiply the mature `avg` pressure for elevation-only targets by a smooth
+  elevation pressure so true dives use the default `greedy:2` path.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily replaced
+  the boolean vertical-axis gate with `matureForwardEvalAxisPressure`. First
+  probe used elevation pressure `smoothstep((elevation - 0.42) / 0.16)`, then a
+  narrowed dive-only pressure `smoothstep((elevation - 0.25) / 0.15)`.
+- Golden commands:
+  - `LR_ENGINE=wasm npm run golden -- --jobs=16 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade --archive-dir=generated/golden-runs/probe-mature-avg-uphill-02`
+  - `LR_ENGINE=wasm npm run golden -- --jobs=16 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade --archive-dir=generated/golden-runs/probe-mature-avg-divefade-01`
+- Decide results: both indicative, non-promotable. Broad pressure:
+  `VERDICT: INCONCLUSIVE`, slice headline `635.9 -> 637.9`,
+  `Delta=+1.9`, 95% CI `[-8.7, 15.1]`, `P(Delta<=0)=39.3%`.
+  Narrow dive-only pressure: `VERDICT: INCONCLUSIVE`, slice headline
+  `635.9 -> 638.8`, `Delta=+2.9`, 95% CI `[0.0, 9.0]`,
+  `P(Delta<=0)=32.7%`. Both used the five pure-elevation specs across all
+  canonical seeds and budgets.
+- Notable improvements: the broad pressure recovered `swoop_dive +24.83`
+  weighted on the slice but regressed `rolling_hills -12.39` and
+  `climb_terrace -7.01`. The narrowed pressure preserved all non-dive
+  elevation specs byte-identically and improved only `swoop_dive +13.52`
+  weighted (`300k` mean `+19.77`, max row `+54.0`).
+- Diagnostics: target-value pressure is a real signal for dive rows, but the
+  clean version affects only one canonical spec. Diluted over the full 40-spec
+  board, the expected headline gain is too small and too concentrated to justify
+  a canonical run by itself.
+- Status: reverted after probes; no canonical run and no commit.
+
+## repair-main-margin-01
+
+- Baseline used: `mature-avg-vertical-01` at commit `8ac5153`.
+- Hypothesis: immediate repair after first completion may be starving rows where
+  the main frontier would find a better complete handoff shortly after the first
+  one. Raise the default repair split margin from `1.0` to `1.35`, leaving the
+  existing repair budget gate and explicit `LR_REPAIR_MAIN_MARGIN` overrides
+  intact.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  the default `LR_REPAIR_MAIN_MARGIN` fallback from `1.0` to `1.35`.
+- Golden commands:
+  - Probe: `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4,5 npm run golden -- --jobs=12 --specs=drums_pendulum,tiny_dance,big_air_ramp,skyline_push,syncopated_lift,terrace_sprint,switchback_pop,canyon_steps,dense_echo_climb,swoop_dive,drums_crescendo,drums_signature,opening_burst,solo_run --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-repair-main-margin-01`
+  - Canonical: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/repair-main-margin-01`
+- Decide result: canonical `VERDICT: INCONCLUSIVE`; headline
+  `621.2 -> 621.3`, `Delta=+0.1`, 95% CI `[-0.8, 1.2]`,
+  `P(Delta<=0)=43.9%`. Per-budget deltas: `50k +0.0`, `100k +1.2`,
+  `200k +0.1`, `300k -0.2`. Validity was unchanged at all budgets.
+- Notable improvements: weighted wins on `drums_pendulum +8.36`,
+  `soar_settle +3.28`, `pop_train +3.10`, `terrace_sprint +2.72`,
+  `canyon_steps +2.45`, `tiny_dance +2.39`, `skyline_push +2.27`, and
+  `big_air_ramp +1.50`.
+- Notable regressions: weighted losses on `drums_tide -3.67`,
+  `drums_breath -2.88`, `leap_cadence -2.67`, `float_bounds -2.55`,
+  `opening_burst -2.10`, `rhythm_ladder -1.83`, `solo_run -1.69`, and
+  `drums_pulse -1.66`.
+- Diagnostics: the probe signal was real at `100k`, but the constant margin
+  hurt high-budget conversion. At `100k`, sampled candidates fell
+  `958882 -> 937637`, unique full evaluations fell `3711 -> 3400`, repair
+  restarts rose `1619 -> 4147`, accepts fell `646 -> 430`, and reconverged
+  repairs fell `973 -> 697`. At `300k`, unique full evaluations fell
+  `8866 -> 8024`, repair restarts rose `4086 -> 5403`, accepts fell
+  `1355 -> 1098`, and the score slightly regressed.
+- Status: not kept; superseded by a budget-faded follow-up.
+
+## repair-main-fade-01
+
+- Baseline used: `mature-avg-vertical-01` at commit `8ac5153`.
+- Hypothesis: the `1.35` repair split margin appears useful around `100k`, but
+  it wastes too much high-budget search. Apply the larger margin only where the
+  low/mid-budget signal exists, fading smoothly from `1.35` at `100k` to the
+  accepted `1.0` behavior at `300k`; explicit `LR_REPAIR_MAIN_MARGIN` overrides
+  remain constant.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily added a
+  default-only `repairMainMargin` helper using `smoothstep` over budget and
+  changed the main search stop condition to use that faded value.
+- Golden commands:
+  - Probe: `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4,5 npm run golden -- --jobs=12 --specs=drums_pendulum,tiny_dance,big_air_ramp,skyline_push,syncopated_lift,terrace_sprint,switchback_pop,canyon_steps,dense_echo_climb,swoop_dive,drums_crescendo,drums_signature,opening_burst,solo_run --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-repair-main-fade-01`
+  - Canonical: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/repair-main-fade-01`
+- Decide result: canonical `VERDICT: INCONCLUSIVE`; headline
+  `621.2 -> 621.4`, `Delta=+0.2`, 95% CI `[-0.3, 0.9]`,
+  `P(Delta<=0)=21.2%`. Per-budget deltas: `50k +0.0`, `100k +1.2`,
+  `200k +0.1`, `300k +0.0`. Validity was unchanged at all budgets.
+- Notable improvements: weighted wins on `terrace_sprint +3.23`,
+  `pop_train +2.60`, `soar_settle +2.17`, `canyon_steps +1.61`,
+  `valley_bounce +1.60`, `big_air_ramp +1.27`, `float_bounds +1.27`, and
+  `skyline_push +1.22`.
+- Notable regressions: weighted losses on `climb_terrace -1.59`,
+  `drums_breath -1.41`, `rolling_drop -1.03`, `leap_cadence -0.85`,
+  `grain_staircase -0.79`, `opening_burst -0.78`, and
+  `rolling_hills -0.68`.
+- Diagnostics: the fade made the intended budgets byte-identical: `50k` and
+  `300k` compile stats were unchanged from baseline. At `100k`, it preserved
+  the useful extra tail improvements (`1191 -> 1210`) but reduced unique full
+  evaluations (`3711 -> 3400`) and repair accepts (`646 -> 430`). At `200k`,
+  unique full evaluations fell `6551 -> 6063` while tail improvements rose
+  `1623 -> 1712`. The signal was smoother than the constant margin, but still
+  not strong enough for canonical acceptance.
+- Status: reverted after canonical decide; no commit.
+
+## probe-low-air-brake-shape-01
+
+- Baseline used: `mature-avg-vertical-01` at commit `8ac5153`.
+- Hypothesis: the rejected low-air cap change made low-air rows stay grounded
+  longer but traded that for speed creep and stalls. Instead of reopening the
+  cap, bias contact-centered geometry only when a gap is both explicitly low-air
+  and overspeeding, making the catch more uphill/brake-shaped while keeping the
+  existing ride-out cap.
+- Code changes made: in `scripts/v0/arc_placement.ts`, temporarily added a
+  smooth `lowAirBrakePressure` to contact-centered normal placement, nudging
+  contact angle and brake ride-out angle uphill and slightly increasing raw
+  post length inside the existing cap.
+- Golden command: `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4,5 npm run golden -- --jobs=12 --specs=drums_pendulum,tiny_dance,summit_push,cold_start,swoop_dive,canyon_steps,climb_terrace,rolling_hills,terrace_sprint,glide_stairs,dense_echo_climb,skyline_push,drums_breath,drums_tide,drums_dropout,dense_sprint --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-low-air-brake-shape-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`; paired
+  slice headline `610.0 -> 598.2`, `Delta=-11.7`, 95% CI `[-40.4, 2.5]`,
+  `P(Delta<=0)=68.1%`. Per-budget deltas: `100k -72.0`, `200k -0.4`,
+  `300k +0.8`. Validity regressed on the slice at `100k` from `100% -> 98%`.
+- Notable improvements: at `300k`, slice wins included
+  `dense_echo_climb +8.4`, `terrace_sprint +6.5`, `dense_sprint +6.0`,
+  `drums_dropout +5.2`, and `cold_start +2.6`.
+- Notable regressions: `drums_pendulum` fell sharply at `100k`
+  (`mean -164.2`, row min `-465.8`) and still regressed at `200k/300k`;
+  `canyon_steps` also regressed at `300k` (`mean -8.8`, row min `-52.9`).
+- Diagnostics: the shape helped a few high-budget rows, but the low-budget
+  first-complete basin is too fragile. The useful `300k` signal is too small
+  and too concentrated to justify a budget-faded canonical run.
+- Status: reverted after probe; no canonical run and no commit.
+
+## mature-avg-branch4-01
+
+- Baseline used: `mature-avg-vertical-01` at commit `8ac5153`.
+- Hypothesis: the accepted mature vertical `avg:2:6` ranker improves
+  amplitude/elevation rows but spends enough budget to reduce terminal
+  conversion. A smaller default average branch might preserve the vertical
+  selection signal while freeing budget for more tail completions and repair.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `MATURE_AVG_FWD_EVAL_BRANCH` from `6` to `4`. The existing smooth budget
+  pressure (`150k -> 300k`), vertical-axis gate, default-only behavior, and
+  explicit `LR_FWD_EVAL` override semantics are unchanged.
+- Golden commands:
+  - Probe: `LR_ENGINE=wasm npm run golden -- --jobs=16 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,big_air_ramp,pop_train,soar_settle,leap_cadence,float_bounds,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,dense_echo_climb,rolling_drop,skyline_push,syncopated_lift --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-mature-avg-branch4-01`
+  - Canonical: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-branch4-01`
+- Decide result: canonical `VERDICT: ACCEPT`; headline `621.2 -> 622.2`,
+  `Delta=+1.0`, 95% CI `[0.2, 1.7]`, `P(Delta<=0)=1.0%`. Per-budget deltas:
+  `50k +0.0`, `100k +0.0`, `200k +0.8`, `300k +1.6`. Validity was unchanged
+  at all budgets.
+- Notable improvements: weighted wins on `ridge_pulse +4.99`,
+  `dense_echo_climb +3.88`, `float_bounds +3.88`, `swoop_dive +3.79`,
+  `skyline_push +3.34`, `canyon_steps +2.79`, `leap_cadence +2.66`,
+  `rolling_drop +2.21`, and `pop_train +2.17`.
+- Notable regressions: only small weighted losses on `climb_terrace -0.59`,
+  `syncopated_lift -0.30`, and `valley_bounce -0.03`; non-vertical drum rows
+  remained byte-identical.
+- Diagnostics: the smaller average is cheaper and converts better. At `300k`,
+  sampled candidates fell `3023940 -> 2997113`, viable candidates rose
+  `1657954 -> 1668216`, unique full evaluations rose `8866 -> 8966`, tail
+  improvements rose `1857 -> 1954`, repair accepts rose `1355 -> 1460`, and
+  repair reconvergence rose `2731 -> 3025`. Axis diagnostics improved
+  `300k` speed MAE `0.0590 -> 0.0578`, amplitude MAE `0.1217 -> 0.1209`, and
+  air MAE `0.0755 -> 0.0752`; elevation MAE ticked up
+  `0.0976 -> 0.0983` but the score gain dominated.
+- Status: kept; committed as the next baseline.

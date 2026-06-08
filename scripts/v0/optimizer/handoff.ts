@@ -2776,9 +2776,9 @@ function repairConfig(): RepairConfig | null {
     // 64 → 706.6 (the cap, not the budget, was the 1M plateau).
     maxAttempts: num("LR_REPAIR_MAX_ATTEMPTS", 64, 1, 1000),
     // Upstream blame: when a restart re-converges, walk the anchor up to N parents (each with a fresh
-    // seed, so it's genuinely different — not the same-seed re-run that R3 rejected). 3 is a small honest
-    // win (+1.1 vs 0). LR_REPAIR_MAX_UPSTREAM overrides.
-    maxUpstream: num("LR_REPAIR_MAX_UPSTREAM", 3, 0, 64),
+    // seed, so it's genuinely different — not the same-seed re-run that R3 rejected). LR_REPAIR_MAX_UPSTREAM
+    // overrides.
+    maxUpstream: num("LR_REPAIR_MAX_UPSTREAM", 4, 0, 64),
     log: readEnv("LR_REPAIR_LOG") === "1",
   };
 }

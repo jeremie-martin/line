@@ -189,3 +189,25 @@ same normalized normal-impact scale the scorer reports.
 - Decide result: indicative `VERDICT: INCONCLUSIVE`; 16-spec intersection headline `411.9 -> 413.0`, `Delta=+1.2`, 95% CI `[-1.8, 4.4]`, `P(Delta<=0)=23.3%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +2.4`, `300k +1.0`.
 - Diagnostics: the mature dense extra isolated the intended high-budget movement and avoided the large `100k` score regression, but the effect is too small/noisy for canonical promotion. Validity diagnostics also moved at `50k/100k` in the focused archive, so the mechanism is not clean enough to stack.
 - Status: reverted after focused inconclusive; no canonical run and no behavior commit.
+
+## impact-local-cost-target-scaled-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` at commit `aa50e9d`.
+- Hypothesis: a flat local impact cost weight may spend too much local selection pressure on soft landings and too little on hard landings. Scale the local impact weight smoothly from `0.35` for soft targets to `0.65` for hard targets, preserving the same candidate pool and scorer.
+- Code changes made: temporarily replaced `LOCAL_IMPACT_COST_WEIGHT = 0.5` in `scripts/v0/core/candidate.ts` with `LOCAL_IMPACT_COST_WEIGHT_SOFT = 0.35`, `LOCAL_IMPACT_COST_WEIGHT_HARD = 0.65`, and `localImpactCostWeight(target)`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/core/candidate.ts').then(() => console.log('candidate import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-local-cost-target-scaled-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `467.4 -> 467.4`, `Delta=-0.1`, 95% CI `[-5.8, 6.1]`, `P(Delta<=0)=48.4%`. Per-budget deltas: `50k -25.6`, `100k +11.2`, `200k +0.8`, `300k -0.1`.
+- Diagnostics: the target-scaled cost exposed a real `100k` tradeoff, but the soft-end downweighting cost too much scarce-budget quality and did not improve high budgets.
+- Status: reverted after focused neutral/negative signal; no canonical run and no behavior commit.
+
+## impact-local-cost-hard065-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` at commit `aa50e9d`.
+- Hypothesis: preserve the accepted `0.5` weight for soft impact targets and only raise hard targets to `0.65`, keeping the apparent `100k` benefit while avoiding the large `50k` loss from the `0.35..0.65` scaling probe.
+- Code changes made: temporarily changed the soft endpoint of `localImpactCostWeight(target)` to `0.5` while leaving the hard endpoint at `0.65`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/core/candidate.ts').then(() => console.log('candidate import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-local-cost-hard065-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; 20-spec intersection headline `467.4 -> 467.3`, `Delta=-0.2`, 95% CI `[-4.7, 7.4]`, `P(Delta<=0)=67.4%`. Per-budget deltas: `50k -9.4`, `100k +10.5`, `200k -1.1`, `300k -1.5`.
+- Diagnostics: keeping soft targets at `0.5` reduced the `50k` loss but converted high budgets negative. The accepted flat `0.5` local impact cost remains the better default.
+- Status: reverted after focused neutral/negative signal; no canonical run and no behavior commit.

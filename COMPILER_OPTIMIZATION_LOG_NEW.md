@@ -148,6 +148,19 @@ ceiling on low-air (long ride-out) catches. Both are open for the campaign.
   originals. Targets were capped to the measurement-defined achievable ceilings (not tuned to
   flatter the compiler) — beyond those the axes are physically unmeasurable.
 
+## Compiler-value verification on the healthy board (2026-06-07)
+Re-checked that the 3 committed compiler wins still pay after the spec refinements,
+by reverting all 3 (arc-length neutral, breadth 16, repair 150k) and running the same
+current specs: full compiler **618.4 vs reverted 605.6, Δ+12.8, P(Δ≤0)=0.3%, ACCEPT**
+(100k +12.4, 150k +21.0, 200k +10.3; 50k −5.4 noise). The lever pays MORE on the
+satisfiable/sparse board than the +10.1 it scored on the original creative board.
+
+## Progress ledger (new 30-spec board)
+- 572.74 baseline-newgolden (original creative specs)
+- +10.1 compiler wins → 582.8 (arc-length room-gate +7.7, breadth 16→24 +1.9, repair 100k +0.6)
+- amplitude specs made satisfiable → 601.2 (re-baseline)
+- elevation specs made satisfiable → 618.4 (re-baseline, CURRENT)
+
 ## Structural ceiling note (honest)
 The 10 new specs average ~510 @200k vs ~620–760 for the dense originals, and several
 are at their physical frontier: amplitude pop ≤ g·N²/8, so float_bounds (40f gaps) caps

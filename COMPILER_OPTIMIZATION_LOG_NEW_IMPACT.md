@@ -50,3 +50,13 @@ same normalized normal-impact scale the scorer reports.
 - Decide result: indicative `VERDICT: REJECT`; focused headline `383.7 -> 262.6`, `Delta=-121.0`, 95% CI `[-240.8, 19.5]`, `P(Delta<=0)=92.3%`. Per-budget deltas: `50k -45.7`, `100k -113.5`, `200k -135.4`, `300k -126.5`. Validity regressed on the slice (`300k 100% -> 94%`).
 - Notable regressions: `drums_pendulum` had multiple invalid high-budget rows; dense drum/support rows such as `drums_signature` and `drums_dropout` collapsed. The catch-angle shift creates hard surfaces but breaks catchability and continuation before the scorer can benefit.
 - Status: reverted after focused reject; no canonical run and no commit.
+
+## impact-mature-avg-gate-slice-01
+
+- Baseline used: `impact-local-cost-w05-01` at commit `c081ef2`.
+- Hypothesis: the mature forward ranker only switches from default `greedy:2` to the existing cheaper one-step `avg` variant for amplitude/elevation targets. Since impact is now scored and reported per gap, impact-authored gaps might benefit from the same robust true-score ranker without changing geometry.
+- Code changes made: temporarily changed `matureForwardEvalConfig(...)` in `scripts/v0/optimizer/handoff.ts` to activate on targets with `impact !== undefined`, while leaving first-contact ballistic start gating unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_dropout,syncopated_switchback,drums_pendulum,dense_sprint,rhythm_ladder,dense_echo_climb,drums_signature,opening_burst,drums_pulse,drums_crosscut --archive-dir=generated/golden-runs/impact-mature-avg-gate-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; focused headline `383.7 -> 384.0`, `Delta=+0.3`, 95% CI `[-12.3, 13.2]`, `P(Delta<=0)=47.5%`. Per-budget deltas: `50k +0.0`, `100k -2.0`, `200k +1.7`, `300k +0.2`. Validity was unchanged on the focused slice.
+- Diagnostics: the gate is effectively neutral; it slightly trades `100k` score for tiny high-budget gains. The effect is far too small to justify a canonical run.
+- Status: reverted after focused inconclusive; no canonical run and no behavior commit.

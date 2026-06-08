@@ -584,9 +584,9 @@ function compileHandoffInternal(
     // impact is authored on the Contact (not a curve), so it bypasses effectiveAxes/
     // sampleGapTargets entirely and is written here, AFTER all sampleGapTargets RNG
     // draws — so it consumes NO rng and the candidate GEOMETRY stays byte-identical.
-    // It's NOT in TARGET_AXES, so axisCost/candidate-ranking ignore it; it rides the
-    // per-gap report plumbing (buildDriftReport reads gapAxisTargets[idx]) and is now
-    // SCORED via the register's true score (the optimizer doesn't yet steer it).
+    // It is now included in local candidate cost as a measured axis, while
+    // buildDriftReport reads gapAxisTargets[idx] so the true scorer and repair
+    // phase see the same per-beat target.
     // validateSpec (above) already guaranteed any authored impact is in [0,1], so no
     // re-clamp here. Sub-frame-spaced beats that round to the same frame collide
     // (last write wins) — degenerate authoring; the gap timeline coalesces them too.

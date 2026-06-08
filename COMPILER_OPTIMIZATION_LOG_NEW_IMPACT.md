@@ -292,3 +292,25 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a slightly negative point estimate; 20-spec intersection headline `467.4 -> 467.1`, `Delta=-0.3`, 95% CI `[-6.8, 6.2]`, `P(Delta<=0)=50.7%`. Per-budget deltas: `50k -26.9`, `100k +11.0`, `200k +0.2`, `300k +0.0`; validity improved at `50k` (`97% -> 98%`) and stayed `100%` elsewhere.
 - Diagnostics: shortening low-air high-impact approaches created the same `100k` upside pattern seen in other low-air geometry probes, but it again made scarce-budget quality much worse. The effect is not robust enough for canonical testing.
 - Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.
+
+## impact-angle-midpressure-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` behavior at commit `5d01965`.
+- Hypothesis: residual impact under-hit is not limited to very hard targets; mid targets (`0.35..0.75`) are also consistently under-hit, but the accepted angle pressure is zero until `impact=0.55`. Lower the contact-angle pressure curve from `0.55..0.90` to `0.40..0.85` while keeping the same maximum `3deg + sparse room` shift.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_ANGLE_PRESSURE_START = 0.40` and `CONTACT_CENTERED_IMPACT_ANGLE_PRESSURE_SPAN = 0.45` in `scripts/v0/arc_placement.ts`, replacing the accepted `smoothstep((impact - 0.55) / 0.35)` pressure.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-angle-midpressure-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `467.4 -> 468.0`, `Delta=+0.5`, 95% CI `[-8.2, 7.8]`, `P(Delta<=0)=40.4%`. Per-budget deltas: `50k -8.5`, `100k +2.7`, `200k +1.5`, `300k +0.7`; validity improved at `50k` (`97% -> 99%`) and stayed `100%` elsewhere.
+- Diagnostics: lowering the pressure threshold did expose small `100k+` upside, but it lost scarce-budget score and the mature gains were small/noisy. Tested a budget-gated derivative instead of promoting.
+- Status: reverted after derivative testing; no canonical run and no behavior commit.
+
+## impact-angle-midpressure-budget-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` behavior at commit `5d01965`.
+- Hypothesis: keep the useful part of the mid-pressure probe by leaving the accepted pressure curve unchanged below `75k` and fading to the lower `0.40..0.85` pressure curve by `100k`.
+- Code changes made: temporarily added `contactCenteredImpactAnglePressure(impact)` in `scripts/v0/arc_placement.ts`, lerping from the accepted `0.55..0.90` pressure to the lower `0.40..0.85` pressure using a `75k..100k` compile-budget gate.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-angle-midpressure-budget-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `467.4 -> 468.6`, `Delta=+1.2`, 95% CI `[-6.1, 8.2]`, `P(Delta<=0)=34.3%`. Per-budget deltas: `50k +0.0`, `100k +2.7`, `200k +1.5`, `300k +0.7`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: the budget gate cleanly removed the `50k` loss, but per-row comparison showed large seed-level swaps and almost no mature mean gain (`300k` common-row delta about `+0.1`). The effect is too noisy and too small for canonical promotion.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

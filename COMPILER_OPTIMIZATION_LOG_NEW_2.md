@@ -1096,3 +1096,39 @@ only changes that print `VERDICT: ACCEPT`.
   air MAE `0.0755 -> 0.0752`; elevation MAE ticked up
   `0.0976 -> 0.0983` but the score gain dominated.
 - Status: kept; committed as the next baseline.
+
+## mature-avg-branch3-01
+
+- Baseline used: `mature-avg-branch4-01` at commit `349c6b2`.
+- Hypothesis: branch `4` proved that the mature vertical average was
+  over-broad at branch `6`. Try one more smooth reduction to branch `3` to see
+  whether the signal remains while candidate ranking becomes cheaper and less
+  noisy.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `MATURE_AVG_FWD_EVAL_BRANCH` from `4` to `3`. The existing budget fade,
+  vertical-axis gate, default-only behavior, and explicit `LR_FWD_EVAL`
+  override semantics remain unchanged.
+- Golden commands:
+  - Probe: `LR_ENGINE=wasm npm run golden -- --jobs=16 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,big_air_ramp,pop_train,soar_settle,leap_cadence,float_bounds,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,dense_echo_climb,rolling_drop,skyline_push,syncopated_lift --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-mature-avg-branch3-01`
+  - Canonical: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-branch3-01`
+- Decide result: canonical `VERDICT: ACCEPT`; headline `622.2 -> 622.7`,
+  `Delta=+0.5`, 95% CI `[-0.1, 1.5]`, `P(Delta<=0)=5.4%`. Per-budget
+  deltas: `50k +0.0`, `100k +0.0`, `200k +0.3`, `300k +0.9`. Validity was
+  unchanged at all budgets.
+- Notable improvements: weighted wins on `terrace_sprint +7.31`,
+  `syncopated_lift +2.69`, `soar_settle +2.54`, `climb_terrace +1.99`,
+  `canyon_steps +1.63`, `valley_bounce +1.25`, `ridge_pulse +0.89`, and
+  `big_air_ramp +0.75`.
+- Notable regressions: weighted losses on `summit_push -0.98`,
+  `dense_echo_climb -0.72`, `switchback_pop -0.46`, `leap_cadence -0.44`,
+  `float_bounds -0.04`, and `pop_train -0.02`; non-vertical rows remained
+  byte-identical.
+- Diagnostics: branch `3` improved aggregate axes but reduced some full
+  evaluation diversity. At `300k`, sampled candidates fell
+  `2997113 -> 2994329`, viable candidates rose `1668216 -> 1670279`, unique
+  full evaluations fell `8966 -> 8588`, tail improvements rose
+  `1954 -> 1978`, repair accepts rose `1460 -> 1486`, and repair reconvergence
+  rose `3025 -> 3235`. Axis diagnostics improved `300k` speed MAE
+  `0.0578 -> 0.0577`, elevation MAE `0.0983 -> 0.0969`, and amplitude MAE
+  `0.1209 -> 0.1206`; air stayed flat at `0.0752`.
+- Status: kept; committed as the next baseline.

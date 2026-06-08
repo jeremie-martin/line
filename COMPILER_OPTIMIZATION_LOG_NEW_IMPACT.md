@@ -442,3 +442,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `469.5 -> 463.7`, `Delta=-5.8`, 95% CI `[-10.6, 1.9]`, `P(Delta<=0)=95.2%`. Per-budget deltas: `50k +0.0`, `100k -37.9`, `200k +0.0`, `300k +0.0`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
 - Diagnostics: the current `75k` forward-eval gate remains essential under impact scoring; the local ranker loses a large amount of `100k` quality even though it preserves validity.
 - Status: env-only rejected; no canonical run and no behavior commit.
+
+## impact-fwd-best300-b2-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: the old free-ceiling work favored `best` forward rollouts, but charged cost was too high globally. Try a charged `best:2:2` only at the largest canonical budget (`300k`), leaving `50k/100k/200k` byte-identical to the accepted default.
+- Code changes made: temporarily added a high-budget branch in `matureForwardEvalConfig(...)` in `scripts/v0/optimizer/handoff.ts`, switching the default `greedy:2` config to `best:2:2` only when `targetBudget >= 300000`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-fwd-best300-b2-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 467.6`, `Delta=-1.9`, 95% CI `[-5.0, 1.3]`, `P(Delta<=0)=88.0%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k -4.1`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: the extra optimistic rollout cost does not buy enough 300k quality. It changed almost every 300k row but doubled regressions (`103` regressions vs `136` improvements) and lowered the weighted score.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.

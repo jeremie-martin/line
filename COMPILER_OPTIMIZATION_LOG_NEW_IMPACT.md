@@ -349,3 +349,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 469.2`, `Delta=-0.3`, 95% CI `[-2.8, 2.0]`, `P(Delta<=0)=58.5%`. Per-budget deltas: `50k +0.0`, `100k -0.1`, `200k +0.3`, `300k -0.8`.
 - Diagnostics: `36` was less harmful than `40`, but still regressed the high-weight `300k` budget. The current breadth peak remains `32`.
 - Status: env-only rejected; no canonical run and no behavior commit.
+
+## impact-quality-pool10-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: quality search now samples `32` candidates but still sends only the top local-cost `8` normal candidates to the true-score ranker. Expanding that pool to `10` might expose harder catches that local cost underranks but forward scoring can exploit.
+- Code changes made: temporarily changed `HANDOFF_CANDIDATE_POOL` from `8` to `10` in `scripts/v0/optimizer/handoff.ts`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-quality-pool10-slice-01`
+- Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `469.5 -> 462.3`, `Delta=-7.2`, 95% CI `[-24.2, 3.5]`, `P(Delta<=0)=90.2%`. Per-budget deltas: `50k -27.5`, `100k -2.3`, `200k -13.5`, `300k -1.3`.
+- Diagnostics: forwarding a wider local-cost pool to true-score ranking starved/diluted the search instead of finding better global catches. The accepted `32` breadth works through a better top-8 pool, not by widening the pool passed downstream.
+- Status: reverted after focused reject; no canonical run and no behavior commit.

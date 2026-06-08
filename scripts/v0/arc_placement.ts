@@ -842,8 +842,9 @@ function sampleContactCenteredLines(
   // resolves against the vertical-velocity band the current speed supports, so
   // climb is "as steep as this speed allows" rather than a fixed angle. Up is −y.
   if (targets.elevation !== undefined && nextGapFrames !== null) {
-    const vy = elevationToLaunchVy(targets.elevation, targetState.speed, nextGapFrames);
-    const vx = Math.sqrt(Math.max(1, targetState.speed * targetState.speed - vy * vy));
+    const elevationLaunchSpeed = Math.max(targetState.speed, targetSpeedPx);
+    const vy = elevationToLaunchVy(targets.elevation, elevationLaunchSpeed, nextGapFrames);
+    const vx = Math.sqrt(Math.max(1, elevationLaunchSpeed * elevationLaunchSpeed - vy * vy));
     const elevationLaunchDeg = (Math.atan2(vy, vx) * 180) / Math.PI;
     // Span the climb aggressiveness across the attempt batch rather than forcing
     // it every candidate: blend 0 keeps the speed-preserving ride-out, blend 1 is
@@ -883,10 +884,11 @@ function sampleContactCenteredLines(
   // flutter, and scales up naturally where contacts are sparse.
   if (targets.amplitude !== undefined && nextGapFrames !== null) {
     const amp = clamp(targets.amplitude, 0, 1);
+    const amplitudePressure = smoothstep((amp - 0.30) / 0.45);
     const vyArc = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * nextGapFrames; // fills the gap
     const vxArc = Math.max(1, targetState.velocity.x);
     const arcLaunchDeg = (Math.atan2(vyArc, vxArc) * 180) / Math.PI;
-    const blend = clamp(ccSpanBlends(attempt).launch, 0, 1) * amp;
+    const blend = clamp(ccSpanBlends(attempt).launch, 0, 1) * amplitudePressure;
     postAngleDeg = clamp(
       lerp(postAngleDeg, arcLaunchDeg, blend),
       ELEVATION_POST_ANGLE_MIN, ELEVATION_POST_ANGLE_MAX,

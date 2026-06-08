@@ -411,3 +411,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 469.1`, `Delta=-0.4`, 95% CI `[-6.7, 5.9]`, `P(Delta<=0)=60.3%`. Per-budget deltas: `50k +0.0`, `100k +0.1`, `200k -0.5`, `300k -0.7`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
 - Diagnostics: the narrower avg gate avoids the broad failure mode but still regresses mature budgets. The issue is not solved by swapping the true-score ranker variant on this subset.
 - Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.
+
+## impact-lowair-span-floor-ncand32-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: the earlier budget-gated low-air impact span floor nearly accepted canonically before the quality breadth change. Re-test the same mechanism under the accepted `HANDOFF_QUALITY_N_CAND = 32`, where the forward ranker sees a larger altered candidate batch.
+- Code changes made: temporarily reintroduced `CONTACT_CENTERED_IMPACT_LOW_AIR_SPAN_FLOOR = 0.35` in `scripts/v0/arc_placement.ts`, lerping low-air impact spans toward `max(launchSpan, 0.35)` with a `75k..100k` fade-in and `220k..300k` fade-out.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-span-floor-ncand32-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 467.7`, `Delta=-1.9`, 95% CI `[-11.3, 4.7]`, `P(Delta<=0)=77.3%`. Per-budget deltas: `50k +0.0`, `100k -10.8`, `200k -0.6`, `300k +0.0`; validity regressed at `100k` (`100% -> 99%`).
+- Diagnostics: the accepted `32` breadth flips the prior close mechanism negative. The larger altered pool no longer preserves the `100k` gain; it adds a validity loss and small `200k` regression.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.

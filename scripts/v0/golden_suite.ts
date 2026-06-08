@@ -46,6 +46,20 @@ export const GOLDEN_SPECS = [
   "soar_settle",
   "leap_cadence",
   "float_bounds",
+  // Combined elevation + amplitude specs (added 2026-06-08): every row targets
+  // air + speed + elevation + amplitude with jitter=0.05. The contact grids mix
+  // dense, sparse, and syncopated cadences so the active non-grain axes are
+  // exercised both under tight beat pressure and with longer arc room.
+  "canyon_steps",
+  "ridge_pulse",
+  "valley_bounce",
+  "switchback_pop",
+  "terrace_sprint",
+  "glide_stairs",
+  "dense_echo_climb",
+  "rolling_drop",
+  "skyline_push",
+  "syncopated_lift",
 ] as const;
 
 export const REPORT_VARIANTS = [
@@ -178,6 +192,7 @@ function cloneSpec(spec: Spec): Spec {
     ...(spec.axes ? { axes: { ...spec.axes } } : {}),
     ...(spec.start ? { start: { ...spec.start } } : {}),
     ...(spec.preroll !== undefined ? { preroll: spec.preroll } : {}),
+    ...(spec.jitter !== undefined ? { jitter: spec.jitter } : {}),
   };
 }
 

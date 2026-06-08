@@ -26,6 +26,19 @@ import {
   type Spec,
 } from "../scripts/v0/types.ts";
 
+const COMBINED_ELEVATION_AMPLITUDE_SPECS = [
+  "canyon_steps",
+  "ridge_pulse",
+  "valley_bounce",
+  "switchback_pop",
+  "terrace_sprint",
+  "glide_stairs",
+  "dense_echo_climb",
+  "rolling_drop",
+  "skyline_push",
+  "syncopated_lift",
+] as const;
+
 function expectValidSpec(spec: Spec): void {
   expect(spec.duration).toBeGreaterThan(0);
   let last = -Infinity;
@@ -106,6 +119,26 @@ describe("v0 golden configuration", () => {
       "drums_breath",
       "drums_pulse",
       "drums_zigzag",
+      "climb_terrace",
+      "swoop_dive",
+      "rolling_hills",
+      "summit_push",
+      "mixed_grade",
+      "big_air_ramp",
+      "pop_train",
+      "soar_settle",
+      "leap_cadence",
+      "float_bounds",
+      "canyon_steps",
+      "ridge_pulse",
+      "valley_bounce",
+      "switchback_pop",
+      "terrace_sprint",
+      "glide_stairs",
+      "dense_echo_climb",
+      "rolling_drop",
+      "skyline_push",
+      "syncopated_lift",
     ]);
     expect(headlineCases()).toHaveLength(GOLDEN_SPECS.length);
 
@@ -119,6 +152,18 @@ describe("v0 golden configuration", () => {
     expect(variantCases()).toHaveLength(GOLDEN_SPECS.length * REPORT_VARIANTS.length);
     for (const testCase of variantCases()) {
       expect(testCase.variant).not.toBe("base");
+    }
+  });
+
+  test("combined elevation/amplitude specs target active four-axis pressure", async () => {
+    for (const name of COMBINED_ELEVATION_AMPLITUDE_SPECS) {
+      const spec = await loadGoldenSpec(name, "base");
+      expect(spec.jitter).toBe(0.05);
+      expect(spec.axes.air).toBeDefined();
+      expect(spec.axes.speed).toBeDefined();
+      expect(spec.axes.elevation).toBeDefined();
+      expect(spec.axes.amplitude).toBeDefined();
+      expect(spec.axes.grain).toBeUndefined();
     }
   });
 

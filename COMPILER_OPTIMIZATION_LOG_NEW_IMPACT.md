@@ -211,3 +211,36 @@ same normalized normal-impact scale the scorer reports.
 - Decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; 20-spec intersection headline `467.4 -> 467.3`, `Delta=-0.2`, 95% CI `[-4.7, 7.4]`, `P(Delta<=0)=67.4%`. Per-budget deltas: `50k -9.4`, `100k +10.5`, `200k -1.1`, `300k -1.5`.
 - Diagnostics: keeping soft targets at `0.5` reduced the `50k` loss but converted high budgets negative. The accepted flat `0.5` local impact cost remains the better default.
 - Status: reverted after focused neutral/negative signal; no canonical run and no behavior commit.
+
+## impact-angle-spread-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` behavior at commit `5d01965`.
+- Hypothesis: the accepted high-impact angle bias still under-hits hard targets, but stronger uniform shifts destabilized dense cadence. Widen only the guided `contactAngleRoll` span for high-impact targets so the existing candidate sorter can choose harder catch orientations without adding samples or RNG draws.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_ANGLE_SPREAD_EXTRA = 0.16` and a `0.50..1.00` room-scaled spread multiplier in `scripts/v0/arc_placement.ts`; `guideContactCenteredRolls(...)` passed that spread into the existing `ccGuidedRoll(...)` call for `contactAngleRoll`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-angle-spread-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; 20-spec intersection headline `467.4 -> 465.0`, `Delta=-2.4`, 95% CI `[-9.6, 3.8]`, `P(Delta<=0)=78.2%`. Per-budget deltas: `50k -35.5`, `100k +10.3`, `200k -1.3`, `300k -2.0`.
+- Diagnostics: the spread exposed a real `100k` upside, but the same broader early guided geometry caused a large `50k` loss and small mature-budget regressions. This is not a promotable default.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-angle-spread-midbudget-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` behavior at commit `5d01965`.
+- Hypothesis: isolate the useful part of the full-spread probe by enabling the same high-impact guided angle spread only around the `100k` budget band: fade in from `75k..100k`, fade out from `150k..200k`, and keep `50k/200k/300k` byte-equivalent.
+- Code changes made: temporarily added budget-pressure gating around the `0.16` spread extra while retaining the `0.50..1.00` room-scaled spread multiplier.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-angle-spread-midbudget-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `467.4 -> 469.0`, `Delta=+1.6`, 95% CI `[-0.7, 9.0]`, `P(Delta<=0)=34.3%`. Per-budget deltas: `50k +0.0`, `100k +10.3`, `200k +0.0`, `300k +0.0`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: per-spec `100k` gains were concentrated in dense drum specs (`drums_pendulum +22.04`, `dense_sprint +14.37`, `drums_signature +9.47`), while sparse/mixed losses remained (`swoop_dive -10.77`, `big_air_ramp -6.52`, `rhythm_ladder -6.24`, `leap_cadence -6.12`). The headline lift is too small/noisy for a canonical run.
+- Status: reverted after focused inconclusive; no canonical run and no behavior commit.
+
+## impact-angle-spread-dense-midbudget-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` behavior at commit `5d01965`.
+- Hypothesis: because the midbudget spread's positive signal came from dense drum specs and its losses came from sparse/mixed specs, apply the `100k`-band spread only as next-contact room becomes dense (`1 - room`).
+- Code changes made: temporarily replaced the `0.50..1.00` room multiplier with a dense-only multiplier, `1 - contactCenteredRoomPressure(nextGapFrames)`, while keeping the same `0.16` spread extra and `75k..200k` budget gate.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-angle-spread-dense-midbudget-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; 20-spec intersection headline `467.4 -> 465.7`, `Delta=-1.7`, 95% CI `[-11.9, 4.8]`, `P(Delta<=0)=69.7%`. Per-budget deltas: `50k +0.0`, `100k -11.2`, `200k +0.0`, `300k +0.0`; `100k` validity moved `100% -> 99%`.
+- Diagnostics: the dense-only multiplier removed the sparse exposure but doubled the effective spread in the fragile dense region, converting the prior `100k` upside into a loss. Dense impact misses are not fixed by simply widening contact-angle diversity.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.

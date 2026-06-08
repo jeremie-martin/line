@@ -933,6 +933,37 @@ only changes that print `VERDICT: ACCEPT`.
   or a stronger selection signal.
 - Status: reverted after probe; no canonical run and no commit.
 
+## probe-repair-main-margin11-full200-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: `LR_REPAIR_MAIN_MARGIN=1.2` helped severe rows such as
+  `pop_train` but starved repair too much. A smaller proportional delay
+  (`1.1 * firstCompletionFrame`) might let the main frontier produce a better
+  incumbent while preserving most of the repair tail.
+- Code changes made: none; probed the existing override
+  `LR_REPAIR_MAIN_MARGIN=1.1` against the default `1.0`.
+- Golden command: `LR_ENGINE=wasm LR_REPAIR_MAIN_MARGIN=1.1 npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-repair-main-margin11-full200-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `642.9 -> 642.8`,
+  `Delta=-0.1`, 95% CI `[-0.9, 0.9]`, `P(Delta<=0)=57.3%`.
+  Per-budget deltas were `200k -0.2` and `300k +0.0`; validity was unchanged.
+- Notable improvements: weighted wins on `soar_settle +5.34`,
+  `terrace_sprint +4.59`, `switchback_pop +2.67`,
+  `drums_pendulum +2.53`, `pop_train +2.09`, `summit_push +1.98`,
+  and `float_bounds +1.15`.
+- Notable regressions: weighted losses on `swoop_dive -3.98`,
+  `opening_burst -2.96`, `drums_tide -2.71`, `rhythm_ladder -2.15`,
+  `rolling_hills -1.95`, `leap_cadence -1.93`,
+  `climb_terrace -1.92`, and `solo_run -1.79`.
+- Diagnostics: the smaller margin still traded away accepted repair work. At
+  `200k`, full evaluations fell `9031 -> 7943`, unique full evaluations fell
+  `6640 -> 6023`, and repair accepts fell `1215 -> 984`, even though tail
+  improvements rose `1708 -> 1758`. At `300k`, unique full evaluations fell
+  `9301 -> 8853` and repair accepts fell `1620 -> 1431`, while tail
+  improvements rose `2102 -> 2199`. Delaying repair globally reshapes which
+  rows win, but it does not convert budget into enough accepted improvements.
+- Status: not kept; env-only probe, no canonical run and no commit.
+
 ## probe-mature-avg-divefade-01
 
 - Baseline used: `mature-avg-vertical-01` at commit `8ac5153`.
@@ -1033,6 +1064,199 @@ only changes that print `VERDICT: ACCEPT`.
   `1623 -> 1712`. The signal was smoother than the constant margin, but still
   not strong enough for canonical acceptance.
 - Status: reverted after canonical decide; no commit.
+
+## probe-mature-avg-start75-span125-100k-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: the accepted mature average ranker only affects `200k`; start
+  the same smooth ramp earlier so `100k` receives some vertical average
+  pressure without changing the already-full `200k`/`300k` behavior.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `MATURE_AVG_FWD_EVAL_START_FRAMES` from `100_000` to `75_000` and
+  `MATURE_AVG_FWD_EVAL_SPAN_FRAMES` from `100_000` to `125_000`.
+  `MATURE_AVG_FWD_EVAL_BRANCH` stayed at `2`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000 --archive-dir=generated/golden-runs/probe-mature-avg-start75-span125-100k-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE` against
+  `mature-avg-full200-01`; `100k` score `615.1 -> 616.7`, `Delta=+1.5`,
+  95% CI `[-1.1, 5.0]`, `P(Delta<=0)=13.4%`. Validity stayed `100%`.
+- Notable improvements/regressions: directionally positive but not strong
+  enough to promote directly; it suggested that `100k` benefits from earlier
+  average-ranker pressure.
+- Diagnostics: only the `100k` grid was run. The smooth ramp avoided a hard
+  budget threshold, but the pressure at `100k` was light.
+- Status: not kept directly; superseded by stronger timing variants.
+
+## probe-mature-avg-start50-span150-100k-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: move the mature average ranker ramp even earlier while keeping a
+  long fade, giving `100k` moderate pressure and leaving `200k`/`300k` at full
+  pressure.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `MATURE_AVG_FWD_EVAL_START_FRAMES` from `100_000` to `50_000` and
+  `MATURE_AVG_FWD_EVAL_SPAN_FRAMES` from `100_000` to `150_000`.
+  `MATURE_AVG_FWD_EVAL_BRANCH` stayed at `2`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000 --archive-dir=generated/golden-runs/probe-mature-avg-start50-span150-100k-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE` against
+  `mature-avg-full200-01`; `100k` score `615.1 -> 617.5`, `Delta=+2.3`,
+  95% CI `[-1.3, 6.7]`, `P(Delta<=0)=10.1%`. Validity stayed `100%`.
+- Notable improvements/regressions: better than the `75k/125k` ramp, still
+  short of acceptance on the `100k` slice.
+- Diagnostics: the stronger early pressure improved `100k` more than the
+  lighter ramp, indicating the useful part of the timing curve is closer to
+  `50k` than `75k`.
+- Status: not kept directly; superseded by `start50/span100`.
+
+## mature-avg-start50-span100-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: keep the same smooth mature average ranker ramp shape, but start
+  it at `50k` so `100k` gets half pressure, while `200k`/`300k` remain fully
+  saturated and `50k` remains unchanged.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `MATURE_AVG_FWD_EVAL_START_FRAMES` from `100_000` to `50_000`.
+  `MATURE_AVG_FWD_EVAL_SPAN_FRAMES` stayed at `100_000`, and
+  `MATURE_AVG_FWD_EVAL_BRANCH` stayed at `2`.
+- Golden commands:
+  - Probe: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000 --archive-dir=generated/golden-runs/probe-mature-avg-start50-span100-100k-01`
+  - Canonical: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-start50-span100-01`
+- Decide result: canonical `VERDICT: ACCEPT`; headline `625.9 -> 626.6`,
+  `Delta=+0.7`, 95% CI `[0.0, 1.5]`, `P(Delta<=0)=2.5%`. Per-budget
+  deltas: `50k +0.0`, `100k +4.6`, `200k +0.0`, `300k +0.0`. Validity was
+  unchanged (`50k 97% -> 97%`; `100k`, `200k`, and `300k` stayed
+  `100% -> 100%`).
+- Notable improvements: the gain was isolated to `100k`, with weighted wins on
+  `pop_train +6.39`, `big_air_ramp +4.30`, `leap_cadence +3.32`,
+  `rolling_hills +3.22`, `rolling_drop +3.18`, `soar_settle +2.97`,
+  `glide_stairs +2.60`, `valley_bounce +2.07`, `syncopated_lift +1.72`,
+  and `float_bounds +1.72`.
+- Notable regressions: weighted losses on `swoop_dive -4.13`,
+  `canyon_steps -2.63`, `dense_echo_climb -0.87`, and `ridge_pulse -0.84`.
+  The largest row-level regression was `canyon_steps` at `100k`
+  (`min=-147.5`), while the largest row-level improvements included
+  `pop_train` (`max=199.3`) and `soar_settle` (`max=128.7`).
+- Diagnostics: `50k`, `200k`, and `300k` compile stats were unchanged, as
+  expected from the ramp. At `100k`, candidates sampled rose
+  `958882 -> 966277`, viable candidates rose `549087 -> 551200`, while full
+  evaluations fell slightly `5084 -> 4956`, unique full evaluations fell
+  `3711 -> 3631`, tail improvements fell `1191 -> 1166`, and repair accepts
+  fell `646 -> 627`. Despite slightly less terminal work, selected vertical
+  arcs improved: `100k` MAE improved on air `0.0862 -> 0.0844`, speed
+  `0.0658 -> 0.0651`, elevation `0.1016 -> 0.1008`, and amplitude
+  `0.1414 -> 0.1339`.
+- Status: kept; accepted by canonical decision gate. New baseline for
+  subsequent attempts is `mature-avg-start50-span100-01`.
+
+## probe-weak-quality-ncand-extra-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: the fixed `LR_QUALITY_NCAND=28` probe showed that wider quality
+  sampling can improve selected arc quality, but it over-spends on every quality
+  node. Add extra quality breadth only after a contract-passing incumbent exists,
+  and scale it smoothly with budget and weak incumbent axis quality, so weak
+  rows get a little more geometry diversity without broadly starving terminal
+  and repair work.
+- Code changes made: temporarily added `qualitySampleCount(...)` in
+  `scripts/v0/optimizer/handoff.ts`, increasing quality breadth by up to `4`
+  candidates only when the best incumbent had `axis_quality` below a smooth
+  `0.68 -> 0.50` band and budget was in the `100k -> 300k` ramp. Tail
+  completion used the same adaptive quality breadth.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-weak-quality-ncand-extra-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `642.9 -> 643.6`,
+  `Delta=+0.7`, 95% CI `[-0.6, 2.1]`, `P(Delta<=0)=12.5%`.
+  Per-budget deltas were `200k +0.6` and `300k +0.9`; validity was unchanged.
+- Notable improvements: weighted wins on `valley_bounce +7.71`,
+  `drums_pendulum +6.94`, `soar_settle +5.34`,
+  `syncopated_lift +3.85`, `skyline_push +2.84`,
+  `syncopated_switchback +2.34`, `drums_signature +2.27`,
+  `terrace_sprint +2.02`, and `big_air_ramp +2.01`.
+- Notable regressions: weighted losses on `swoop_dive -5.19`,
+  `rhythm_ladder -3.01`, `mini_burst -2.38`, `opening_burst -2.33`,
+  `rolling_drop -2.32`, `float_bounds -1.94`, and
+  `dense_sprint -0.70`.
+- Diagnostics: the targeted extra breadth preserved more throughput than fixed
+  `28`, but still took budget from terminal/repair conversion. At `200k`, full
+  evaluations fell `9031 -> 8767`, unique full evaluations fell
+  `6640 -> 6509`, tail improvements fell `1708 -> 1684`, and repair accepts
+  fell `1215 -> 1184`. At `300k`, full evaluations fell `12536 -> 11837`,
+  unique full evaluations fell `9301 -> 8948`, tail improvements fell
+  `2102 -> 2040`, and repair accepts fell `1620 -> 1551`. Axis diagnostics at
+  `300k` improved air MAE `0.0749 -> 0.0747`, speed MAE
+  `0.0565 -> 0.0558`, and amplitude MAE `0.1197 -> 0.1184`, but worsened
+  elevation MAE `0.0967 -> 0.0974`.
+- Status: not kept; no canonical run and no commit. Tuned tighter before
+  abandoning the mechanism.
+
+## probe-weak-quality-ncand-extra-tight62-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: the `0.68` weak-incumbent threshold gave a positive but
+  inconclusive signal while still reducing full-evaluation and repair
+  throughput. Tighten the smooth activation band to `0.62 -> 0.50` so only
+  clearly weak incumbents receive extra quality breadth.
+- Code changes made: kept the temporary adaptive `qualitySampleCount(...)`
+  mechanism but changed `HANDOFF_QUALITY_WEAK_EXTRA_OFF_AXIS_QUALITY` from
+  `0.68` to `0.62`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-weak-quality-ncand-extra-tight62-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `642.9 -> 643.4`,
+  `Delta=+0.5`, 95% CI `[-0.6, 1.7]`, `P(Delta<=0)=18.8%`.
+  Per-budget deltas were `200k +0.1` and `300k +0.7`; validity was unchanged.
+- Notable improvements: weighted wins on `drums_pendulum +7.85`,
+  `soar_settle +4.96`, `valley_bounce +4.00`, `syncopated_lift +2.25`,
+  `terrace_sprint +2.21`, `dense_sprint +2.14`, `drums_signature +1.80`,
+  and `big_air_ramp +1.52`.
+- Notable regressions: weighted losses on `swoop_dive -4.10`,
+  `rhythm_ladder -3.13`, `rolling_drop -1.60`, `opening_burst -1.05`,
+  `syncopated_switchback -0.92`, `canyon_steps -0.90`, and
+  `cold_start -0.51`.
+- Diagnostics: tightening reduced the broad throughput cost but also weakened
+  the score signal. At `200k`, full evaluations fell only `9031 -> 8897`, but
+  tail improvements still fell `1708 -> 1677` and repair accepts fell
+  `1215 -> 1187`; at `300k`, full evaluations fell `12536 -> 12349`, tail
+  improvements fell `2102 -> 2045`, and repair accepts fell `1620 -> 1577`.
+  Axis diagnostics at `300k` improved air MAE `0.0749 -> 0.0742`, speed MAE
+  `0.0565 -> 0.0561`, and amplitude MAE `0.1197 -> 0.1194`, but again
+  worsened elevation MAE `0.0967 -> 0.0973`.
+- Status: reverted after probe; no canonical run and no commit. The smoother
+  quality-breadth family is directionally interesting but not strong enough
+  against the current baseline because it spends the same scarce frames that
+  tail completion and repair convert into accepted improvements.
+
+## probe-amp-elev-contrast-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: baseline signed-error diagnostics show elevation is over-achieved
+  for low targets and under-achieved for high targets, while amplitude remains
+  slightly biased low across bands. Smoothly expand elevation targets away from
+  neutral before converting them to launch velocity, and move amplitude launch
+  pressure's onset lower so mid-amplitude targets get some pop without changing
+  specs that do not target those axes.
+- Code changes made: temporarily added a `0.35` smooth elevation target contrast
+  in `scripts/v0/arc_placement.ts` and changed amplitude pressure from
+  `smoothstep((amp - 0.30) / 0.45)` to a lower-onset
+  `smoothstep((amp - 0.24) / 0.50)`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-amp-elev-contrast-01`
+- Decide result: indicative, non-promotable `VERDICT: REJECT` on the paired
+  `200k`/`300k` intersection; headline `642.9 -> 640.8`, `Delta=-2.1`,
+  95% CI `[-5.3, 1.0]`, `P(Delta<=0)=91.4%`. Per-budget deltas were
+  `200k -2.4` and `300k -1.8`; validity was unchanged.
+- Notable improvements: weighted wins on `pop_train +19.32`,
+  `syncopated_lift +5.25`, `big_air_ramp +1.65`, `summit_push +1.24`,
+  `switchback_pop +0.41`, and `climb_terrace +0.21`.
+- Notable regressions: large weighted losses on `canyon_steps -24.95`,
+  `soar_settle -15.29`, `rolling_drop -13.38`, `leap_cadence -12.66`,
+  `swoop_dive -11.20`, `skyline_push -8.54`, and `float_bounds -6.86`.
+- Diagnostics: the change did not starve search; it actually increased
+  terminal/repair conversion (`300k` unique full `9301 -> 9552`, tail
+  improvements `2102 -> 2176`, repair accepts `1620 -> 1688`). The problem was
+  quality: at `300k`, speed MAE worsened `0.0565 -> 0.0574`, elevation MAE
+  worsened `0.0967 -> 0.0974`, and amplitude MAE worsened
+  `0.1197 -> 0.1206`; `200k` showed the same pattern. The simple target
+  exaggeration improves a few rows, especially `pop_train`, but perturbs the
+  coupled speed/elevation/amplitude dynamics enough to lose globally.
+- Status: reverted after probe; no canonical run and no commit.
 
 ## probe-low-air-brake-shape-01
 
@@ -1340,3 +1564,137 @@ only changes that print `VERDICT: ACCEPT`.
   `terrace_sprint` amplitude.
 - Status: kept; accepted by canonical decision gate. New baseline for
   subsequent attempts is `mature-avg-full200-01`.
+
+## probe-repair-main-margin12-full200-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: after the accepted 200k mature-ranker improvement, repair may be
+  starting from the first complete incumbent too eagerly. Letting the main
+  frontier run to `1.2 * firstCompletionFrame` before the repair handoff might
+  produce a stronger incumbent and cost profile while remaining smooth in each
+  row's measured completion cost.
+- Code changes made: none; probed the existing override
+  `LR_REPAIR_MAIN_MARGIN=1.2` against the default `1.0`.
+- Golden command: `LR_ENGINE=wasm LR_REPAIR_MAIN_MARGIN=1.2 npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-repair-main-margin12-full200-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `642.9 -> 643.1`,
+  `Delta=+0.2`, 95% CI `[-0.9, 2.1]`, `P(Delta<=0)=43.1%`. Per-budget
+  deltas were `200k +0.7` and `300k -0.1`; validity was unchanged.
+- Notable improvements: weighted wins on `pop_train +12.52`,
+  `soar_settle +5.34`, `terrace_sprint +4.59`, `drums_pendulum +3.27`,
+  `switchback_pop +2.67`, and `summit_push +1.98`.
+- Notable regressions: weighted losses on `drums_tide -4.31`,
+  `swoop_dive -3.98`, `solo_run -3.19`, `opening_burst -2.96`,
+  `rhythm_ladder -2.30`, `drums_breath -2.02`, `rolling_hills -1.95`,
+  `leap_cadence -1.93`, and `climb_terrace -1.92`.
+- Diagnostics: the margin helped the severe `pop_train` 200k outlier but
+  starved broad terminal conversion. At `200k`, full evaluations fell
+  `9031 -> 7770`, unique full evaluations fell `6640 -> 5804`, repair accepts
+  fell `1215 -> 983`, and repair frames fell by about `8.3M`; at `300k`, full
+  evaluations fell `12536 -> 11648`, unique full fell `9301 -> 8641`, and
+  repair accepts fell `1620 -> 1423`. Tail improvements rose slightly, but not
+  enough to offset lost repair/full-eval work. Axis MAE changed only marginally.
+- Status: not kept; env-only probe, no canonical run and no commit.
+
+## probe-quality-ncand20-full200-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: after the mature-ranker timing change, 24 quality candidates per
+  contact may over-spend per node. Reducing quality breadth to 20 might convert
+  more budget into full tracks and repairs while preserving enough arc variety.
+- Code changes made: none; probed the existing override
+  `LR_QUALITY_NCAND=20` against the default `24`.
+- Golden command: `LR_ENGINE=wasm LR_QUALITY_NCAND=20 npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-quality-ncand20-full200-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `642.9 -> 641.6`,
+  `Delta=-1.3`, 95% CI `[-3.7, 1.0]`, `P(Delta<=0)=87.6%`. Per-budget
+  deltas were `200k -1.3` and `300k -1.4`; validity was unchanged.
+- Notable improvements: weighted wins on `solo_run +6.01`,
+  `rhythm_ladder +4.41`, `syncopated_lift +4.29`, `skyline_push +4.27`,
+  `ridge_pulse +4.25`, `pop_train +4.23`, and `dense_echo_climb +2.80`.
+- Notable regressions: weighted losses on `drums_tide -13.41`,
+  `rolling_drop -10.75`, `opening_burst -10.66`, `drums_swell -10.51`,
+  `drums_crescendo -7.16`, `drums_crosscut -5.87`, `drums_zigzag -5.67`,
+  `swoop_dive -5.33`, `dense_sprint -4.94`, and
+  `drums_signature -4.88`.
+- Diagnostics: narrower quality breadth generated more terminal work but not
+  more useful terminal work. At `200k`, full evaluations rose `9031 -> 9738`
+  and unique full evaluations rose `6640 -> 6841`, but duplicate full
+  evaluations rose `2391 -> 2897`, tail improvements fell `1708 -> 1646`, and
+  repair accepts fell `1215 -> 1147`. At `300k`, full evaluations rose
+  `12536 -> 13998` and unique full rose `9301 -> 9936`, but duplicates rose
+  `3235 -> 4062`, tail improvements fell `2102 -> 2010`, and repair accepts
+  fell `1620 -> 1534`.
+- Status: not kept; env-only probe, no canonical run and no commit.
+
+## probe-quality-ncand28-full200-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: the `20`-candidate probe showed that more terminal quantity can
+  be low value. Try the other side of quality breadth: a slightly wider
+  candidate pool may reduce completion volume but improve selected arc quality
+  enough to lift 200k/300k.
+- Code changes made: none; probed the existing override
+  `LR_QUALITY_NCAND=28` against the default `24`.
+- Golden command: `LR_ENGINE=wasm LR_QUALITY_NCAND=28 npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-quality-ncand28-full200-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `642.9 -> 644.0`,
+  `Delta=+1.1`, 95% CI `[-1.1, 3.3]`, `P(Delta<=0)=15.4%`. Per-budget
+  deltas were `200k +0.9` and `300k +1.3`; validity was unchanged.
+- Notable improvements: weighted wins on `drums_crescendo +10.42`,
+  `drums_pendulum +10.14`, `syncopated_switchback +8.14`,
+  `drums_pulse +6.82`, `dense_sprint +6.69`, `valley_bounce +6.11`,
+  `grain_staircase +5.81`, `skyline_push +4.42`, `drums_dropout +3.59`,
+  `terrace_sprint +3.18`, `dense_echo_climb +2.98`, and
+  `drums_breath +2.80`.
+- Notable regressions: weighted losses on `drums_signature -8.11`,
+  `drums_tide -6.21`, `solo_run -6.15`, `drums_swell -5.69`,
+  `soar_settle -4.20`, `rolling_drop -3.90`, `mini_burst -3.81`,
+  and `rolling_hills -2.72`.
+- Diagnostics: wider quality breadth reduced terminal quantity but improved the
+  quality of selected arcs. At `200k`, candidates sampled rose
+  `1997808 -> 2076859`, but full evaluations fell `9031 -> 7338`, unique full
+  evaluations fell `6640 -> 5598`, tail improvements fell `1708 -> 1645`, and
+  repair accepts fell `1215 -> 1129`. At `300k`, candidates sampled rose
+  `3010844 -> 3127891`, full evaluations fell `12536 -> 10451`, unique full
+  fell `9301 -> 8074`, and repair accepts fell `1620 -> 1522`. Axis MAE
+  improved air `0.0775 -> 0.0760` and amplitude `0.1219 -> 0.1210` at `200k`,
+  and air `0.0749 -> 0.0736` and amplitude `0.1197 -> 0.1187` at `300k`, with
+  small elevation regression at `300k`.
+- Status: not kept yet; promoted to a code-level canonical attempt because the
+  probe was directionally positive and mechanically plausible.
+
+## quality-ncand28-01
+
+- Baseline used: `mature-avg-full200-01` at commit `4757f8d`.
+- Hypothesis: make the directionally positive `LR_QUALITY_NCAND=28` probe the
+  default and let the full canonical grid determine whether the higher-quality,
+  lower-volume candidate stream is worth keeping.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `HANDOFF_QUALITY_N_CAND` from `24` to `28`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/quality-ncand28-01`
+- Decide result: canonical `VERDICT: INCONCLUSIVE`; headline
+  `625.9 -> 626.8`, `Delta=+0.9`, 95% CI `[-0.9, 2.6]`,
+  `P(Delta<=0)=15.5%`. Per-budget deltas: `50k -0.2`, `100k +0.4`,
+  `200k +0.9`, `300k +1.3`. Validity was unchanged at all budgets.
+- Notable improvements: weighted wins on `drums_crescendo +8.22`,
+  `drums_pendulum +7.55`, `syncopated_switchback +6.47`,
+  `grain_staircase +6.07`, `drums_pulse +5.65`, `dense_sprint +5.53`,
+  `valley_bounce +4.86`, `skyline_push +3.97`,
+  `terrace_sprint +3.27`, and `drums_dropout +2.97`.
+- Notable regressions: weighted losses on `drums_signature -6.72`,
+  `soar_settle -5.05`, `solo_run -4.76`, `drums_swell -4.52`,
+  `drums_tide -4.52`, `mini_burst -3.07`, `rolling_drop -2.40`,
+  `rhythm_ladder -1.71`, and `pop_train -1.56`.
+- Diagnostics: broader quality sampling increased raw candidate work and
+  viability but reduced terminal/repair conversion at every budget. At `300k`,
+  candidates sampled rose `3010844 -> 3127891` and viable candidates rose
+  `1664289 -> 1723538`, but full evaluations fell `12536 -> 10451`, unique
+  full evaluations fell `9301 -> 8074`, tail improvements fell
+  `2102 -> 2015`, and repair accepts fell `1620 -> 1522`. At `200k`, full
+  evaluations fell `9031 -> 7338`, unique full fell `6640 -> 5598`, tail
+  improvements fell `1708 -> 1645`, and repair accepts fell `1215 -> 1129`.
+  Low budgets showed the same throughput reduction (`50k` unique full
+  `17019 -> 13954`, `100k` unique full `3711 -> 3336`), explaining the small
+  `50k` drag and weak canonical confidence.
+- Status: reverted after canonical decide; no commit.

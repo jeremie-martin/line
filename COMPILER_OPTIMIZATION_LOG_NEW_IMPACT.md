@@ -400,3 +400,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 469.3`, `Delta=-0.2`, 95% CI `[-1.4, 0.7]`, `P(Delta<=0)=66.9%`. Per-budget deltas: `50k +0.0`, `100k -1.0`, `200k -0.1`, `300k -0.1`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
 - Diagnostics: extra headroom does not produce a mature-budget lift and costs `100k`. Together with the rejected `1.0` probe, this brackets the current `1.1` default as still the best repair feasibility margin.
 - Status: env-only inconclusive/negative; no canonical run and no behavior commit.
+
+## impact-lowair-avg-gate-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: the current mature `avg` forward-eval gate is limited to elevation/amplitude gaps. Since low-air hard-impact targets are the worst reachable impact bucket (`300k` target `0.837`, achieved `0.378`, ceiling `0.996`), use the same mature avg ranker only when `impact >= 0.75` and `air <= 0.45`, without adding candidates or changing geometry.
+- Code changes made: temporarily added `targetsLowAirHardImpact(...)` in `scripts/v0/optimizer/handoff.ts` and allowed `matureForwardEvalConfig(...)` to use the existing avg path for vertical-drama gaps or low-air hard-impact gaps.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-avg-gate-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 469.1`, `Delta=-0.4`, 95% CI `[-6.7, 5.9]`, `P(Delta<=0)=60.3%`. Per-budget deltas: `50k +0.0`, `100k +0.1`, `200k -0.5`, `300k -0.7`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: the narrower avg gate avoids the broad failure mode but still regresses mature budgets. The issue is not solved by swapping the true-score ranker variant on this subset.
+- Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.

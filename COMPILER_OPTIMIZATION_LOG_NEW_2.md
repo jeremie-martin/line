@@ -1612,6 +1612,189 @@ only changes that print `VERDICT: ACCEPT`.
 - Status: kept; accepted by canonical decision gate. New baseline for
   subsequent attempts is `shallow-tail-feedback6-01`.
 
+## probe-farback-zero62-01
+
+- Baseline used: `shallow-tail-feedback6-01` at commit `0e0e7cb`.
+- Hypothesis: the far-back frontier pulse scheduler barely fires under the
+  accepted baseline, even on weak-axis incumbents with large lagged frontiers.
+  Raise the smooth zero-pressure threshold from axis quality `0.50` to `0.62`
+  so older passing branches are revisited earlier when the current incumbent is
+  weak, without changing the interval endpoints or adding spec-specific logic.
+- Code changes made: temporarily changed
+  `QUALITY_FAR_BACK_ZERO_AXIS_QUALITY` in `scripts/v0/optimizer/handoff.ts`
+  from `0.50` to `0.62`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,tiny_dance,big_air_ramp,syncopated_lift,skyline_push,switchback_pop,terrace_sprint,cold_start,valley_bounce,canyon_steps,dense_sprint,drums_crescendo,drums_signature,drums_swell,drums_crosscut,drums_breath,drums_tide,rolling_hills,mixed_grade,swoop_dive --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-farback-zero62-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired 20-spec `100k`/`200k`/`300k` slice; headline `613.9 -> 613.9`,
+  `Delta=+0.0`, 95% CI `[-1.6, 2.1]`, `P(Delta<=0)=55.5%`. Per-budget
+  deltas were `100k +0.0`, `200k +0.2`, and `300k -0.1`; validity stayed
+  `100% -> 100%`.
+- Notable improvements: the intended target moved on several rows:
+  `drums_pendulum` seed `8` improved `+73.98`, seed `3` improved `+43.40`,
+  seed `7` improved `+29.79`, seed `5` improved `+18.50`, and
+  `valley_bounce` seed `3` improved `+17.94`.
+- Notable regressions: the same mechanism caused large ranking churn:
+  `drums_signature` seed `1` regressed `-88.16`, `drums_crescendo` seed `3`
+  regressed `-62.53`, and `drums_pendulum` seeds `1`, `0`, and `4` regressed
+  `-36.53`, `-26.56`, and `-18.03`.
+- Diagnostics: far-back pulses on the slice rose from `14` to `41` at `300k`,
+  so the threshold did activate. It did not improve conversion: common-row
+  `300k` score fell `-0.16`, full evaluations on the slice were `5356`, unique
+  full evaluations were `4311`, and the largest changes were seed-specific
+  reshuffles rather than broad quality gains. The mechanism is too blunt in this
+  form.
+- Status: reverted after probe; no canonical run and no commit.
+
+## probe-repair-main-margin11-01
+
+- Baseline used: `shallow-tail-feedback6-01` at commit `0e0e7cb`.
+- Hypothesis: the earlier `1.2` repair main-margin probe let the main frontier
+  run too long and starved repair. A gentler `1.1 * firstCompletionFrame`
+  split might strengthen the terminal pool before repair while preserving most
+  of the repair budget.
+- Code changes made: none; probed the existing override
+  `LR_REPAIR_MAIN_MARGIN=1.1`.
+- Golden command: `LR_ENGINE=wasm LR_REPAIR_MAIN_MARGIN=1.1 npm run golden -- --jobs=32 --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-repair-main-margin11-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `100k`/`200k`/`300k` intersection; headline `641.1 -> 641.1`,
+  `Delta=+0.0`, 95% CI `[-0.7, 0.8]`, `P(Delta<=0)=49.0%`. Per-budget
+  deltas were `100k +0.3`, `200k -0.3`, and `300k +0.1`; validity was
+  unchanged.
+- Notable improvements: largest `300k` row wins were `skyline_push` seed `10`
+  (`+30.35`), `drums_crescendo` seed `6` (`+28.91`), `skyline_push` seed `5`
+  (`+27.10`), `float_bounds` seed `2` (`+24.60`), `swoop_dive` seed `5`
+  (`+24.21`), and `drums_pendulum` seed `9` (`+23.63`).
+- Notable regressions: largest `300k` row losses were `drums_tide` seed `10`
+  (`-27.77`), `opening_burst` seed `8` (`-21.12`), `switchback_pop` seed `4`
+  (`-20.87`), `mini_burst` seed `0` (`-20.46`), `soar_settle` seed `11`
+  (`-19.94`), and `terrace_sprint` seed `5` (`-19.46`).
+- Diagnostics: the split reduced terminal quantity but raised uniqueness. At
+  `300k`, full evaluations fell `12691 -> 11952`, unique full evaluations fell
+  less (`9957 -> 9652`), duplicate full evaluations fell `2734 -> 2300`, and
+  unique rate rose `78.5% -> 80.8%`. Tail attempts fell `8389 -> 7990` while
+  tail bests rose slightly `2143 -> 2171`. This is a mixed allocation trade:
+  more selective terminal work but no aggregate quality conversion, and a clear
+  `200k` loss.
+- Status: not kept; env-only probe, no canonical run and no commit.
+
+## probe-contract-fade75-01
+
+- Baseline used: `shallow-tail-feedback6-01` at commit `0e0e7cb`.
+- Hypothesis: with all `100k` rows valid, the pre-validity contract breadth
+  reduction may now be too conservative at `100k`. Move the smooth fade start
+  from `100k` to `75k` so `100k` gets partially restored contract breadth while
+  `50k` remains mostly protected and `200k+` stays effectively unchanged.
+- Code changes made: temporarily changed
+  `CONTRACT_BREADTH_FADE_START_FRAMES` in
+  `scripts/v0/optimizer/handoff.ts` from `100_000` to `75_000`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=50000,100000,200000 --archive-dir=generated/golden-runs/probe-contract-fade75-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `50k`/`100k`/`200k` intersection; headline `612.8 -> 612.8`,
+  `Delta=+0.0`, 95% CI `[-0.2, 0.2]`, `P(Delta<=0)=48.8%`. Per-budget
+  deltas were `50k +0.0`, `100k +0.0`, and `200k +0.0`; validity was
+  unchanged (`50k 97% -> 97%`, higher budgets `100% -> 100%`).
+- Notable improvements/regressions: none at decision scale. The common-row
+  comparison showed only `100k +0.03`, with `50k` and `200k` byte-identical at
+  aggregate score.
+- Diagnostics: the ramp moved work only marginally (`100k` average candidate
+  work `+2`, viable `+1`) and did not create a measurable score change. The
+  default fade is already near a plateau for the current budget grid.
+- Status: reverted after probe; no canonical run and no commit.
+
+## start-option-limit6-01
+
+- Baseline used: `shallow-tail-feedback6-01` at commit `0e0e7cb`.
+- Hypothesis: accepted tracks almost always use start rank `0` (only 5/480
+  nonzero at `50k`, and 2/480 at `100k+`, never above rank `4`). Reducing the
+  start option limit from `10` to `6` should preserve observed winning starts
+  while freeing root-level work for deeper search.
+- Code changes made: temporarily changed `START_OPTION_LIMIT` in
+  `scripts/v0/optimizer/handoff.ts` from `10` to `6`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/start-option-limit6-01`
+- Decide result: canonical `VERDICT: INCONCLUSIVE`; headline `628.5 -> 628.5`,
+  `Delta=-0.0`, 95% CI `[-0.1, 0.0]`, `P(Delta<=0)=66.1%`. Per-budget
+  deltas were `50k +0.0`, `100k +0.0`, `200k -0.0`, and `300k -0.0`;
+  validity was unchanged at all budgets.
+- Notable improvements: only sub-point noise, mainly `drums_pendulum` seed `8`
+  (`+0.11`) and seed `3` (`+0.03`) at `300k`.
+- Notable regressions: the largest `300k` row loss was `rhythm_ladder` seed `6`
+  (`-6.64`); aggregate common-row losses were small but consistent enough to
+  fail the decision gate.
+- Diagnostics: reducing roots did not free meaningful work. Common-row work
+  changed only by about `+1` candidate at `300k` and `+1` candidate at `200k`,
+  with no validity gain. The unused start options are not a material budget
+  sink under the current deferred expansion behavior.
+- Status: reverted after canonical decide; no commit.
+
+## shallow-tail-feedback3-01
+
+- Baseline used: `shallow-tail-feedback6-01` at commit `0e0e7cb`.
+- Hypothesis: the accepted shallow-tail feedback throttle may still be
+  conservative. Lowering
+  `QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE` from `6` to `3` should
+  further reduce remaining-1/2 quality tail completion after unique full
+  evaluations exist, shifting more work into main full evaluations.
+- Code changes made: temporarily changed
+  `QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE` in
+  `scripts/v0/optimizer/handoff.ts` from `6` to `3`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/shallow-tail-feedback3-01`
+- Decide result: canonical `VERDICT: REJECT`; headline `628.5 -> 628.5`,
+  `Delta=-0.0`, 95% CI `[-0.1, 0.0]`, `P(Delta<=0)=94.5%`. Per-budget
+  deltas were `50k +0.0`, `100k -0.0`, `200k -0.0`, and `300k -0.0`;
+  validity was unchanged at all budgets.
+- Notable improvements: only small `300k` row wins, led by `canyon_steps` seed
+  `3` (`+0.78`) and `tiny_dance` seed `3` (`+0.31`).
+- Notable regressions: largest `300k` row losses were `float_bounds` seed `6`
+  (`-7.41`), `leap_cadence` seed `2` (`-3.14`), `float_bounds` seed `9`
+  (`-1.12`), `drums_dropout` seed `2` (`-0.71`), and `float_bounds` seed `11`
+  (`-0.66`).
+- Diagnostics: the stronger throttle did shift work, but too far. At `300k`,
+  full evaluations rose `12691 -> 12790` and unique full evaluations rose
+  `9957 -> 10212`, but tail bests fell `2143 -> 2112`. Remaining-1 attempts
+  fell `827 -> 709` and remaining-2 attempts fell `485 -> 373`, indicating
+  scale `6` is near the useful floor while scale `3` removes some productive
+  shallow suffixes.
+- Status: reverted after canonical reject; no commit.
+
+## mature-avg-start35-01
+
+- Baseline used: `shallow-tail-feedback6-01` at commit `0e0e7cb`.
+- Hypothesis: the mature vertical average ranker is now useful at `100k`, but
+  starts late enough that some vertical-axis rows never get enough robust
+  lookahead pressure before the budget is exhausted. Move the smooth ramp start
+  from `50k` to `35k` while keeping the same `65k` span and branch count, so
+  `100k` receives more of the existing mechanism without changing `200k+`
+  saturation behavior.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `MATURE_AVG_FWD_EVAL_START_FRAMES` from `50_000` to `35_000`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-start35-01`
+- Decide result: canonical `VERDICT: ACCEPT`; headline `628.5 -> 629.1`,
+  `Delta=+0.5`, 95% CI `[0.1, 1.2]`, `P(Delta<=0)=0.7%`. Per-budget deltas:
+  `50k +0.0`, `100k +3.5`, `200k +0.0`, and `300k +0.0`. Validity was
+  unchanged at all budgets (`50k 97% -> 97%`; `100k`, `200k`, and `300k`
+  stayed `100% -> 100%`).
+- Notable improvements: the gain was isolated to `100k` vertical/drama rows,
+  led by spec means `soar_settle +42.63`, `leap_cadence +26.49`,
+  `canyon_steps +12.80`, `terrace_sprint +10.52`, `glide_stairs +7.66`,
+  `float_bounds +7.14`, `dense_echo_climb +7.08`, `rolling_hills +5.85`,
+  `skyline_push +5.11`, `climb_terrace +4.82`, `summit_push +4.72`, and
+  `mixed_grade +4.29`.
+- Notable regressions: `100k` spec losses were smaller and concentrated in
+  `swoop_dive -5.70`, `syncopated_lift -3.30`, `valley_bounce -1.02`, and
+  `ridge_pulse -0.16`. Largest row losses included `canyon_steps` seed `9`
+  (`-73.52`), `pop_train` seed `11` (`-62.15`), and `canyon_steps` seed `7`
+  (`-54.83`), while the largest row wins were larger and broader:
+  `soar_settle` seed `1` (`+209.85`), `canyon_steps` seed `2` (`+156.98`),
+  and `soar_settle` seed `4` (`+145.90`).
+- Diagnostics: common-row score moved only at `100k` (`+3.33`); `50k`,
+  `200k`, and `300k` aggregates were unchanged. The `100k` work profile changed
+  minimally (`sim -14`, `candidates +11`, viable unchanged), suggesting the
+  gain comes from smoother forward-eval choice rather than extra work. At
+  `300k`, compile stats were byte-equivalent to the baseline, preserving the
+  accepted shallow-tail feedback behavior.
+- Status: kept; accepted by canonical decision gate. New baseline for
+  subsequent attempts is `mature-avg-start35-01`.
+
 ## probe-weak-quality-ncand-extra-01
 
 - Baseline used: `mature-avg-full200-01` at commit `4757f8d`.

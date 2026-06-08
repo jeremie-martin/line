@@ -410,7 +410,7 @@ const HANDOFF_RELEASE_VERTICAL_SAFE_FAST_PX = 8;
 const HANDOFF_RELEASE_VERTICAL_SAFE_TIGHT_PX = 5;
 // Mature vertical-axis gaps benefit from the robust avg forward ranker, but using
 // it globally starves dense drum/search feedback. Fade it in only for those gaps.
-const MATURE_AVG_FWD_EVAL_START_FRAMES = 50_000;
+const MATURE_AVG_FWD_EVAL_START_FRAMES = 35_000;
 const MATURE_AVG_FWD_EVAL_SPAN_FRAMES = 65_000;
 const MATURE_AVG_FWD_EVAL_BRANCH = 1;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;

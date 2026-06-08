@@ -1188,6 +1188,69 @@ only changes that print `VERDICT: ACCEPT`.
 - Status: kept; accepted by canonical decision gate. New baseline for
   subsequent attempts is `mature-avg-start50-span75-01`.
 
+## probe-mature-avg-start50-span50-100k-01
+
+- Baseline used: `mature-avg-start50-span75-01` at commit `f9fcc20`.
+- Hypothesis: full mature average ranker pressure at `100k` may continue the
+  accepted span trend while still leaving `50k` at zero pressure and
+  `200k`/`300k` fully saturated.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `MATURE_AVG_FWD_EVAL_SPAN_FRAMES` from `75_000` to `50_000`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000 --archive-dir=generated/golden-runs/probe-mature-avg-start50-span50-100k-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; `100k` score
+  `622.4 -> 625.7`, `Delta=+3.3`, 95% CI `[-4.1, 8.7]`,
+  `P(Delta<=0)=12.4%`. Validity stayed `100%`.
+- Notable improvements: large row wins on `soar_settle` seed `1`
+  (`512.7 -> 687.3`, `+174.5`), `soar_settle` seed `4`
+  (`499.1 -> 656.4`, `+157.3`), `canyon_steps` seed `2`
+  (`441.2 -> 596.8`, `+155.6`), and `float_bounds` seed `2`
+  (`475.6 -> 596.5`, `+120.8`).
+- Notable regressions: the full-pressure boundary introduced a severe
+  `pop_train` seed `3` collapse (`689.8 -> 252.6`, `-437.2`) plus losses on
+  `soar_settle` seed `11` (`-116.1`), `pop_train` seed `11` (`-101.3`), and
+  `valley_bounce` seed `3` (`-78.8`).
+- Diagnostics: positive average but the outlier widened uncertainty beyond the
+  accept threshold. Treat this as a useful upper bound rather than a promotable
+  default.
+- Status: not kept; superseded by intermediate span probing.
+
+## mature-avg-start50-span65-01
+
+- Baseline used: `mature-avg-start50-span75-01` at commit `f9fcc20`.
+- Hypothesis: an intermediate span can capture most of the stronger `100k`
+  mature-ranker pressure while avoiding the full-pressure `span50` outlier.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `MATURE_AVG_FWD_EVAL_SPAN_FRAMES` from `75_000` to `65_000`.
+  `MATURE_AVG_FWD_EVAL_START_FRAMES` stayed at `50_000`, and
+  `MATURE_AVG_FWD_EVAL_BRANCH` stayed at `2`.
+- Golden commands:
+  - Probe: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000 --archive-dir=generated/golden-runs/probe-mature-avg-start50-span65-100k-01`
+  - Canonical: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-start50-span65-01`
+- Decide result: canonical `VERDICT: ACCEPT`; headline `627.0 -> 627.3`,
+  `Delta=+0.3`, 95% CI `[-0.1, 0.7]`, `P(Delta<=0)=4.3%`. Per-budget
+  deltas: `50k +0.0`, `100k +1.9`, `200k +0.0`, `300k +0.0`. Validity was
+  unchanged (`50k 97% -> 97%`; `100k`, `200k`, and `300k` stayed
+  `100% -> 100%`).
+- Notable improvements: the gain was isolated to `100k`, with weighted wins on
+  `canyon_steps +3.21`, `float_bounds +1.90`, `terrace_sprint +1.11`,
+  `leap_cadence +1.03`, `rolling_drop +1.02`, `switchback_pop +1.00`,
+  `rolling_hills +0.76`, `climb_terrace +0.63`, `syncopated_lift +0.39`,
+  `dense_echo_climb +0.38`, `ridge_pulse +0.36`, and `pop_train +0.35`.
+- Notable regressions: weighted losses on `swoop_dive -0.84`,
+  `big_air_ramp -0.69`, and `soar_settle -0.22`. Largest row-level
+  regression was `big_air_ramp` min `-124.8`, but this was much less damaging
+  than the `span50` `pop_train` collapse.
+- Diagnostics: `50k`, `200k`, and `300k` compile stats were unchanged. At
+  `100k`, candidates sampled rose `970476 -> 972953`, full evaluations rose
+  `5229 -> 5263`, unique full evaluations rose `3806 -> 3848`, duplicate full
+  evaluations fell `1423 -> 1415`, and repair accepts rose `650 -> 654`.
+  Tail improvements fell slightly `1188 -> 1178`, but selected tracks improved
+  enough to win. Axis diagnostics at `100k` improved air MAE
+  `0.0839 -> 0.0835`, speed MAE `0.0650 -> 0.0645`, elevation MAE
+  `0.1007 -> 0.0985`, and amplitude MAE `0.1303 -> 0.1276`.
+- Status: kept; accepted by canonical decision gate. New baseline for
+  subsequent attempts is `mature-avg-start50-span65-01`.
+
 ## probe-weak-quality-ncand-extra-01
 
 - Baseline used: `mature-avg-full200-01` at commit `4757f8d`.

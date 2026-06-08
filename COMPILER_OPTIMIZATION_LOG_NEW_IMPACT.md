@@ -360,3 +360,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `469.5 -> 462.3`, `Delta=-7.2`, 95% CI `[-24.2, 3.5]`, `P(Delta<=0)=90.2%`. Per-budget deltas: `50k -27.5`, `100k -2.3`, `200k -13.5`, `300k -1.3`.
 - Diagnostics: forwarding a wider local-cost pool to true-score ranking starved/diluted the search instead of finding better global catches. The accepted `32` breadth works through a better top-8 pool, not by widening the pool passed downstream.
 - Status: reverted after focused reject; no canonical run and no behavior commit.
+
+## impact-repair-upstream6-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: repair telemetry shows many reconverged restarts at `300k`; allowing the upstream blame walk to reach 6 parents instead of 4 might escape repeated suffix convergence on impact-heavy gaps.
+- Code changes made: none; ran with `LR_REPAIR_MAX_UPSTREAM=6`.
+- Probe command: `LR_ENGINE=wasm LR_REPAIR_MAX_UPSTREAM=6 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-repair-upstream6-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with neutral/slightly negative point estimate; 20-spec intersection headline `469.5 -> 469.5`, `Delta=-0.1`, 95% CI `[-1.0, 0.9]`, `P(Delta<=0)=56.9%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.1`, `300k -0.0`.
+- Diagnostics: deeper upstream walking barely changes the focused run, so the accepted repair depth is not the current bottleneck.
+- Status: env-only neutral/rejected; no canonical run and no behavior commit.

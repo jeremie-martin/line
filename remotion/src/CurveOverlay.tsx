@@ -6,6 +6,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
   interpolate,
+  interpolateColors,
   spring,
   delayRender,
   continueRender,
@@ -23,7 +24,7 @@ type Bundle = {
   score: number; axisRms: number;
   contactsHit: number; contactsTotal: number; offBeat: number; reachedEnd: boolean;
   axes: AxisData[];
-  contacts: { t: number; landed: boolean }[];
+  contacts: { t: number; landed: boolean; impact: number | null }[];
   phases: Phase[];
 };
 
@@ -116,6 +117,36 @@ const AxisChart: React.FC<{
   );
 };
 
+// ── beat-impact row: one bar per beat; height + soft→hard color = MEASURED
+//    landing intensity (normal impact speed). Bars light up as the playhead
+//    crosses each beat, with a brief glow on the hit. ────────────────────────
+const IMPACT_RAMP = ["#38d6c8", "#f0b429", "#ff5a4f"]; // soft → medium → hard
+const ImpactRow: React.FC<{
+  contacts: Bundle["contacts"]; w: number; h: number; t: number; tx: (t: number) => number;
+}> = ({ contacts, w, h, t, tx }) => {
+  const barMax = h - 16;
+  return (
+    <svg width={w} height={h} style={{ display: "block" }}>
+      <text x={12} y={h / 2 + 4} fontFamily={FONT} fontSize={12} fill="#8b93a7" letterSpacing={1}>IMPACT</text>
+      <line x1={CHART_PAD_L} y1={h - 0.5} x2={w - CHART_PAD_R} y2={h - 0.5} stroke="rgba(255,255,255,0.10)" />
+      {contacts.map((c, i) => {
+        if (c.impact == null) return null;
+        const x = tx(c.t);
+        const passed = c.t <= t;
+        const bh = 3 + c.impact * barMax;
+        const col = interpolateColors(c.impact, [0, 0.5, 1], IMPACT_RAMP);
+        const glow = passed ? interpolate(t - c.t, [0, 0.16], [1, 0], { extrapolateRight: "clamp" }) : 0;
+        return (
+          <g key={i}>
+            <rect x={x - 1.5} y={h - 1 - bh} width={3} height={bh} rx={1.5} fill={col} opacity={passed ? 0.95 : 0.16} />
+            {glow > 0 && <circle cx={x} cy={h - 1 - bh} r={5} fill={col} opacity={glow * 0.9} />}
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
 export const CurveOverlay: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -142,8 +173,9 @@ export const CurveOverlay: React.FC = () => {
   const panelW = Math.round((width - 2 * M) / 2.5);
   const chartH = 116; // ~10% shorter than the first cut
   const phaseH = 44; // taller band so the section labels read clearly
+  const impactH = 40; // beat-impact row
   const panelPadV = 12;
-  const contentH = chartH * data.axes.length + phaseH + 10;
+  const contentH = chartH * data.axes.length + impactH + phaseH + 10;
   const panelH = contentH + panelPadV * 2;
   const panelTop = 1080 - panelH - M;
   const panelLeft = M;
@@ -186,11 +218,15 @@ export const CurveOverlay: React.FC = () => {
           <span>target <span style={{ color: "#fff" }}>━</span></span>
           <span>measured <span style={{ color: "#fff" }}>●</span></span>
           <span>error <span style={{ color: "#ff6b6b" }}>┃</span><span style={{ color: "#5ad1ff" }}>┃</span></span>
+          <span>impact <span style={{ color: "#38d6c8" }}>▁</span><span style={{ color: "#f0b429" }}>▄</span><span style={{ color: "#ff5a4f" }}>█</span></span>
         </div>
 
         {data.axes.map((a) => (
           <AxisChart key={a.axis} data={a} w={panelW} h={chartH} durationS={dur} t={t} />
         ))}
+
+        {/* beat-impact row: measured landing intensity per beat */}
+        <ImpactRow contacts={data.contacts} w={panelW} h={impactH} t={t} tx={(tt) => tx(tt) - M} />
 
         {/* phase band */}
         <svg width={panelW} height={phaseH} style={{ display: "block" }}>

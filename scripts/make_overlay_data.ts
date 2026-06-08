@@ -17,8 +17,11 @@
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
-import { AXES, FPS, type Spec, type DriftReport } from "./v0/types.ts";
+import { AXES, FPS, CALIB, secToFrame, type Spec, type DriftReport } from "./v0/types.ts";
 import { scoreDriftReport } from "./v0/score.ts";
+import { LineRiderEngine, createLineFromJson } from "./lib/_lr_engine.ts";
+import { extractRawTrajectory, detect } from "./lib/detector.ts";
+import { contactLineIdsAt, velocityAt, findLandingNearFrame } from "./v0/core/substrate.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string, def?: string): string => {
@@ -36,9 +39,51 @@ const outPath = arg("out", "remotion/public/believer_curves.overlay.json");
 const specMod = await import(resolve(specPath));
 const spec: Spec = specMod.default;
 const report: DriftReport = JSON.parse(readFileSync(resolve(reportPath), "utf8"));
-const track = JSON.parse(readFileSync(resolve(trackPath), "utf8")) as { duration: number };
+const track = JSON.parse(readFileSync(resolve(trackPath), "utf8")) as {
+  duration: number;
+  lines?: { id: number; x1: number; y1: number; x2: number; y2: number }[];
+  startPosition?: { x: number; y: number };
+  riders?: { startVelocity?: { x: number; y: number } }[];
+};
 
 const durationS = track.duration / FPS;
+
+// Per-beat MEASURED landing impact (normal impact speed ⊥ catch line / IMPACT_CAP,
+// [0,1]) for the overlay's beat-impact row. Re-simulate the track and measure at
+// every landing — UNGATED (the scored `measureImpact` only runs where a beat
+// authored impact; here we want the achieved value on every beat as a read-out).
+// Same math as core/measure.ts measureImpact: pre-impact velocity ⊥ the fired
+// catch line's tangent.
+function impactByFrame(): Map<number, number> {
+  const out = new Map<number, number>();
+  if (!track.lines?.length) return out;
+  let eng: any = new LineRiderEngine().setStart(
+    { x: track.startPosition?.x ?? 0, y: track.startPosition?.y ?? 0 },
+    { x: track.riders?.[0]?.startVelocity?.x ?? 0.4, y: track.riders?.[0]?.startVelocity?.y ?? 0 },
+  );
+  const lineById = new Map<number, { x1: number; y1: number; x2: number; y2: number }>();
+  for (const ln of track.lines) { eng = eng.addLine(createLineFromJson(ln)); lineById.set(ln.id, ln); }
+  const det = detect(extractRawTrajectory(eng, track.duration));
+  for (const e of det.events) {
+    if (e.type !== "landing") continue;
+    let tx = 0, ty = 0;
+    for (const id of contactLineIdsAt(det, e.frame)) {
+      const ln = lineById.get(id); if (!ln) continue;
+      const dx = ln.x2 - ln.x1, dy = ln.y2 - ln.y1, l = Math.hypot(dx, dy);
+      if (l > 1e-9) { tx += dx / l; ty += dy / l; }
+    }
+    const tl = Math.hypot(tx, ty); if (tl <= 1e-9) continue; tx /= tl; ty /= tl;
+    const v = velocityAt(det, e.frame - 1) ?? velocityAt(det, e.frame); if (!v) continue;
+    out.set(e.frame, Math.min(1, Math.abs(tx * v.y - ty * v.x) / CALIB.IMPACT_CAP));
+  }
+  return out;
+}
+const impactFrames = impactByFrame();
+/** Measured impact [0,1] for a beat at time t (nearest landing within ±1 frame). */
+function beatImpact(tSec: number): number | undefined {
+  const f = secToFrame(tSec);
+  return impactFrames.get(f) ?? impactFrames.get(f - 1) ?? impactFrames.get(f + 1);
+}
 
 // Per-song overlay metadata (title/artist/tempo + soft energy phases). Specs may
 // `export const overlayMeta = {...}`; otherwise fall back to a neutral default.
@@ -81,10 +126,16 @@ const axesOut = AXES.filter((a) => spec.axes[a]).map((axis) => {
 });
 
 // Contacts with landed status, for the tick row (lit = landed).
-const contacts = report.contacts.map((c) => ({
-  t: r3(c.t_target),
-  landed: c.status !== "missing",
-}));
+const contacts = report.contacts.map((c) => {
+  const imp = beatImpact(c.t_target);
+  return {
+    t: r3(c.t_target),
+    landed: c.status !== "missing",
+    // Measured landing intensity [0,1] (normal impact speed / IMPACT_CAP); null if
+    // the beat didn't land. Report-only read-out — see core/measure.ts measureImpact.
+    impact: imp === undefined ? null : r3(imp),
+  };
+});
 
 // Soft energy phases (madmom onset-activation contour). Per-spec via overlayMeta;
 // fall back to a single span covering the whole track.

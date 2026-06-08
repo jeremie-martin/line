@@ -432,3 +432,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 468.9`, `Delta=-0.6`, 95% CI `[-8.8, 7.4]`, `P(Delta<=0)=57.4%`. Per-budget deltas: `50k +0.0`, `100k -0.5`, `200k -0.2`, `300k -1.0`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
 - Diagnostics: mature curvature diversity is still dilution under impact scoring. It improves some sparse rows, but the focused aggregate and all non-50k budget point estimates are negative.
 - Status: env-only inconclusive/negative; no canonical run and no behavior commit.
+
+## impact-fwd-min150k-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: impact scoring might make the charged `greedy:2` forward-eval ranker too expensive at exactly `100k`. Raise `LR_FWD_EVAL_MIN_BUDGET` from the default `75k` to `150k`, leaving `200k/300k` behavior unchanged while returning `100k` to the cheap local ranker.
+- Code changes made: none; ran with `LR_FWD_EVAL_MIN_BUDGET=150000`.
+- Probe command: `LR_ENGINE=wasm LR_FWD_EVAL_MIN_BUDGET=150000 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-fwd-min150k-slice-01`
+- Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `469.5 -> 463.7`, `Delta=-5.8`, 95% CI `[-10.6, 1.9]`, `P(Delta<=0)=95.2%`. Per-budget deltas: `50k +0.0`, `100k -37.9`, `200k +0.0`, `300k +0.0`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: the current `75k` forward-eval gate remains essential under impact scoring; the local ranker loses a large amount of `100k` quality even though it preserves validity.
+- Status: env-only rejected; no canonical run and no behavior commit.

@@ -33,6 +33,21 @@ const COLORS = {
 
 const EVENT_TYPES = ["landing", "bounce", "kick", "flyThrough"];
 
+// Landing-intensity color ramp (soft → hard), matching the Remotion overlay's
+// IMPACT row. `impact` ∈ [0,1] is the measured normal impact speed / IMPACT_CAP,
+// attached to landing events by scripts/inspect.ts.
+function impactColor(v) {
+  const stops = [[0, [56, 214, 200]], [0.5, [240, 180, 41]], [1, [255, 90, 79]]];
+  v = Math.max(0, Math.min(1, v));
+  let a = stops[0], b = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (v >= stops[i][0] && v <= stops[i + 1][0]) { a = stops[i]; b = stops[i + 1]; break; }
+  }
+  const t = (v - a[0]) / ((b[0] - a[0]) || 1);
+  const c = a[1].map((ch, i) => Math.round(ch + (b[1][i] - ch) * t));
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+}
+
 // Axis palette for the measured-vs-target panel (one hue per creative axis).
 const AXIS_INFO = {
   air:           { label: "air",           color: "#1e5a6e", max: 0.99 },
@@ -2800,6 +2815,24 @@ function renderTimeline(svg, { speed, targetSpeed = [], airborne, events, N, sum
     const count = events.filter((e) => e.type === ln.type).length;
     svg.appendChild(el("text", { class: "lane-count", x: padL + innerW + 4, y: ln.y + 3.5 }, String(count)));
   }
+  // impact legend (the landing lane's dots are sized + colored by measured impact,
+  // soft→hard). Placed in the empty gap just above the lanes, right-aligned, so it
+  // never overlaps the landing data.
+  {
+    const gy = lanesY - 1;
+    const n = 7, sp = 9;
+    const sw0 = padL + innerW - 30 - (n - 1) * sp;
+    svg.appendChild(el("text", { class: "ruler-label", x: sw0 - 36, y: gy + 3, "text-anchor": "end" }, "impact"));
+    svg.appendChild(el("text", { class: "ruler-label", x: sw0 - 6, y: gy + 3, "text-anchor": "end" }, "soft"));
+    for (let i = 0; i < n; i++) {
+      const c = el("circle", { cx: sw0 + i * sp, cy: gy, r: 2.2 });
+      c.style.fill = impactColor(i / (n - 1));
+      svg.appendChild(c);
+    }
+    svg.appendChild(el("text", { class: "ruler-label", x: sw0 + (n - 1) * sp + 6, y: gy + 3, "text-anchor": "start" }, "hard"));
+  }
+  // landing markers encode MEASURED impact: size + soft→hard color by e.impact.
+  const hasImpact = (e) => e.type === "landing" && typeof e.impact === "number";
   for (const e of events) {
     const ln = lanes.find((l) => l.type === e.type);
     if (!ln) continue;
@@ -2809,14 +2842,17 @@ function renderTimeline(svg, { speed, targetSpeed = [], airborne, events, N, sum
       mag = Math.min(7, 2.5 + Math.abs(e.angleDeg) / 8);
     } else if (e.type === "flyThrough") {
       mag = Math.min(7, 2.5 + (e.contactFraction ?? 0) * 5);
+    } else if (hasImpact(e)) {
+      mag = 2 + e.impact * 6; // taller = harder landing
     } else {
       mag = Math.min(7, 2.5 + (e.frame - e.airborneFrom) / 7);
     }
+    const color = hasImpact(e) ? impactColor(e.impact) : ln.color;
     const halo = el("circle", { cx: x, cy: ln.y, r: mag });
-    halo.style.fill = ln.color; halo.style.fillOpacity = 0.22;
+    halo.style.fill = color; halo.style.fillOpacity = 0.22;
     svg.appendChild(halo);
     const dot = el("circle", { cx: x, cy: ln.y, r: Math.max(1.4, mag - 1.3) });
-    dot.style.fill = ln.color;
+    dot.style.fill = color;
     svg.appendChild(dot);
   }
 

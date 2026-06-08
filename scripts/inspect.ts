@@ -23,6 +23,7 @@ import {
   DEFAULT_PARAMS,
 } from "./lib/detector.ts";
 import { exportVideo, MirrorUnreachableError } from "./lib/export.ts";
+import { CALIB } from "./v0/types.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | null => {
@@ -199,6 +200,35 @@ console.timeEnd("extract");
 console.time("detect");
 const det = detect(raw);
 console.timeEnd("detect");
+
+// Attach MEASURED landing impact to each landing event so the dashboard can show
+// per-beat intensity. Same definition as core/measure.ts measureImpact: the
+// pre-impact velocity's component ⊥ the fired catch line's tangent, normalized by
+// CALIB.IMPACT_CAP → [0,1]. Full-detect here, so frame indices are direct.
+{
+  const lineById = new Map<number, { x1: number; y1: number; x2: number; y2: number }>();
+  for (const ln of trackJson.lines ?? []) lineById.set(ln.id, ln);
+  const vel = det.measurements.velocity;
+  const cids = det.measurements.contactLineIds;
+  let n = 0, sum = 0;
+  for (const e of det.events) {
+    if (e.type !== "landing") continue;
+    const vIn = vel[e.frame - 1] ?? vel[e.frame];
+    let tx = 0, ty = 0;
+    for (const id of cids[e.frame] ?? []) {
+      const ln = lineById.get(id); if (!ln) continue;
+      const dx = ln.x2 - ln.x1, dy = ln.y2 - ln.y1, l = Math.hypot(dx, dy);
+      if (l > 1e-9) { tx += dx / l; ty += dy / l; }
+    }
+    const tl = Math.hypot(tx, ty);
+    if (vIn && tl > 1e-9) {
+      const impact = Math.min(1, Math.abs((tx / tl) * vIn.y - (ty / tl) * vIn.x) / CALIB.IMPACT_CAP);
+      (e as { impact?: number }).impact = Math.round(impact * 1000) / 1000;
+      n++; sum += impact;
+    }
+  }
+  if (n > 0) console.log(`impact: ${n} landings, mean ${(sum / n).toFixed(3)} (normal speed / ${CALIB.IMPACT_CAP}px·f⁻¹)`);
+}
 
 const byType = det.events.reduce<Record<string, number>>((acc, e) => {
   acc[e.type] = (acc[e.type] ?? 0) + 1;

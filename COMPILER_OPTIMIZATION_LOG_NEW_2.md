@@ -3451,3 +3451,109 @@ only changes that print `VERDICT: ACCEPT`.
   time.
 - Status: kept; accepted by canonical decision gate. New baseline for
   subsequent attempts is `start-support-air-062-01`.
+
+## probe-low-air-grounded-cap-01
+
+- Baseline used: `start-support-air-062-01` at commit `01869b4`.
+- Hypothesis: very low-air dense gaps may be structurally blocked by the
+  contact-centered ride-out cap. Smoothly raising the safe cap only when the
+  air target is low could let the optimizer produce longer grounded ride-outs
+  without changing moderate/high-air behavior.
+- Code changes made: temporarily added a smooth low-air pressure term in
+  `scripts/v0/arc_placement.ts`, increasing the air-targeted grounded ride-out
+  cap from `0.55` up toward `0.83` of the next gap as the air target falls below
+  roughly `0.45`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,rhythm_ladder,grain_staircase,mini_burst,valley_bounce,rolling_drop,skyline_push,switchback_pop,syncopated_lift,terrace_sprint,canyon_steps,swoop_dive,drums_signature,drums_crescendo,cold_start,tiny_dance --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-low-air-grounded-cap-01`
+- Decide result: indicative, non-promotable `VERDICT: REJECT` on the paired
+  `16` spec intersection; headline `650.9 -> 575.9`, `Delta=-75.0`, 95% CI
+  `[-167.4, 2.5]`, `P(Delta<=0)=93.6%`. Per-budget deltas were `50k -75.2`,
+  `100k -239.4`, `200k -90.3`, and `300k -9.9`.
+- Notable regressions at `300k`: `drums_pendulum` seed `10` `-190.25`,
+  seed `6` `-171.63`, seed `4` `-111.12`, seed `5` `-98.41`, seed `1`
+  `-96.70`, plus `drums_crescendo` seed `0` `-112.27` and seed `11` `-94.27`.
+- Notable improvements at `300k`: a few guardrail rows improved, including
+  `drums_crescendo` seed `5` `+78.96`, `drums_crescendo` seed `4` `+43.66`,
+  `canyon_steps` seed `8` `+42.75`, and `grain_staircase` seed `0` `+40.21`.
+- Diagnostics: the low-air cap change made the intended `drums_pendulum` target
+  substantially worse, so the issue is not simply insufficient local grounded
+  ride-out length. The modified early contacts changed selected starts and
+  downstream recoverability, suggesting that first/early placement work needs a
+  representation or ranking signal that preserves reachable state across the
+  following high-air transitions, not just a larger local cap.
+- Status: reverted; no canonical run and no commit.
+
+## probe-start-support-continuous-air-01
+
+- Baseline used: `start-support-air-062-01` at commit `01869b4`.
+- Hypothesis: the accepted startup support line should be a continuous
+  first-gap-air representation instead of stopping at a hard authored-air
+  cutoff. High-air sparse openings can need a short controlled run-in before
+  release; the target-shaped release timing can decide whether support is useful.
+- Code changes made: temporarily removed the `air <= 0.62` startup-support
+  eligibility cutoff in `scripts/v0/optimizer/handoff.ts` and allowed support
+  whenever the first gap had an air target and at least a minimal two-frame
+  run-up before release.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=skyline_push,leap_cadence,soar_settle,big_air_ramp,opening_burst,mini_burst,valley_bounce,drums_pendulum,cold_start,terrace_sprint,dense_echo_climb,canyon_steps,ridge_pulse,glide_stairs,switchback_pop,syncopated_lift,drums_crescendo,rhythm_ladder,tiny_dance,rolling_drop --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-continuous-air-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `20` spec intersection; headline `652.0 -> 656.9`, `Delta=+4.9`,
+  95% CI `[-0.0, 14.7]`, `P(Delta<=0)=12.9%`. Per-budget deltas were
+  `50k +1.9`, `100k +4.7`, `200k +5.2`, and `300k +5.3`.
+- Notable improvements at `300k`: `leap_cadence` improved across all seeds,
+  including seed `7` `+126.50`, seed `3` `+111.97`, seed `4` `+111.08`,
+  seed `2` `+110.47`, seed `9` `+109.14`, seed `11` `+106.39`, seed `10`
+  `+99.90`, and seed `0` `+99.64`.
+- Notable regressions at `300k`: `opening_burst` seed `7` `-20.95`, seed `2`
+  `-13.07`, and seed `0` `-12.00`; dense high-air openings were selecting a
+  support run-in that was too short to be physically meaningful.
+- Diagnostics: removing the air cutoff exposed a real high-air support basin, but
+  the two-frame minimum allowed support starts on dense high-speed openings with
+  only about four frames of run-up. This was refined into the guarded run-up
+  version below.
+- Status: refined; no canonical run and no commit.
+
+## start-support-runup-min-01
+
+- Baseline used: `start-support-air-062-01` at commit `01869b4`.
+- Hypothesis: startup support should be available continuously across authored
+  air when there is enough physical run-up before release, but not when a dense
+  high-air opening leaves only a few frames of support. Replace the hard air
+  cutoff with a release/run-up feasibility condition.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, removed
+  `START_SUPPORT_MID_AIR_MAX`, computed the target-shaped `releaseFrame`
+  directly, and skipped startup support unless `releaseFrame >=
+  K_BOUNCE_LANDING + 3`. Existing low-air multi-speed support seeds are
+  unchanged.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Focused golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=skyline_push,leap_cadence,soar_settle,big_air_ramp,opening_burst,mini_burst,valley_bounce,drums_pendulum,cold_start,terrace_sprint,dense_echo_climb,canyon_steps,ridge_pulse,glide_stairs,switchback_pop,syncopated_lift,drums_crescendo,rhythm_ladder,tiny_dance,rolling_drop --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-runup-min-01`
+- Focused decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `652.0 -> 656.4`, `Delta=+4.4`, 95% CI `[-0.0, 14.2]`,
+  `P(Delta<=0)=35.7%`. Per-budget deltas were `50k +1.4`, `100k +3.9`,
+  `200k +4.5`, and `300k +5.0`. The guard removed the opening-burst regressions;
+  largest listed `300k` regression was `soar_settle` seed `10` `-2.00`.
+- Extra focused golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=pop_train,float_bounds,drums_tide,drums_breath,drums_crosscut,dense_sprint,drums_dropout,syncopated_switchback,swoop_dive,climb_terrace,mixed_grade,summit_push,solo_run,verse_chorus,drums_zigzag --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-runup-min-extra-01`
+- Extra focused decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `695.8 -> 709.0`, `Delta=+13.1`, 95% CI `[0.0, 32.9]`,
+  `P(Delta<=0)=11.1%`. Per-budget deltas were `50k +1.7`, `100k +12.8`,
+  `200k +14.1`, and `300k +14.5`.
+- Canonical golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/start-support-runup-min-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `680.8 -> 687.9`,
+  `Delta=+7.1`, 95% CI `[0.0, 15.7]`, `P(Delta<=0)=4.5%`. Per-budget deltas
+  were `50k +1.4`, `100k +6.7`, `200k +7.5`, and `300k +7.9`; validity stayed
+  `96% -> 96%` at `50k` and `100% -> 100%` at `100k+`.
+- Notable improvements at `300k`: `float_bounds` seed `1` `+150.20`, seed `10`
+  `+147.69`, seed `2` `+146.74`, seed `7` `+144.79`, seed `8` `+118.92`;
+  `leap_cadence` seed `7` `+126.50`; `pop_train` seed `2` `+124.96` and seed
+  `5` `+118.31`.
+- Notable regressions at `300k`: `float_bounds` seed `6` `-21.82` and
+  `soar_settle` seed `10` `-2.00`; the remaining largest entries were unchanged
+  rows.
+- Diagnostics: the initial-condition problem was not lack of freedom but lack of
+  the right represented entry primitive. Sparse air+amplitude openings wanted a
+  supported run-in that releases into the first airborne span, while dense
+  high-speed openings should keep their ballistic/default starts. The run-up
+  guard expresses that distinction through physical feasibility rather than a
+  spec-name branch.
+- Status: kept; accepted by canonical decision gate. New baseline for
+  subsequent attempts is `start-support-runup-min-01`.

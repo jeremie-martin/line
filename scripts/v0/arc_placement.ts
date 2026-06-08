@@ -59,6 +59,7 @@ const CONTACT_CENTERED_POINT_JITTER = 4;
 const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
 const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
 const CONTACT_CENTERED_GUIDED_POINT_SPREAD = 0.08;
+const CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG = 3;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
@@ -758,7 +759,7 @@ function sampleContactCenteredLines(
   const segmentLength = targets.grain !== undefined
     ? clamp(targets.grain * CALIB.LINE_LENGTH_CAP + (guidedRolls.segmentLengthRoll - 0.5) * 8, 4, 49)
     : 16 + guidedRolls.segmentLengthRoll * 28;
-  const contactAngleDeg = clamp(
+  let contactAngleDeg = clamp(
     targetState.angleDeg
       - (2 + 5 * air)
       - 18 * brakePressure
@@ -768,6 +769,15 @@ function sampleContactCenteredLines(
       + (guidedRolls.contactAngleRoll - 0.5) * 12,
     -12, 65,
   );
+  if (targets.impact !== undefined) {
+    const highImpactPressure = smoothstep((targets.impact - 0.55) / 0.35);
+    const span = clamp(ccSpanBlends(attempt).launch, 0, 1);
+    contactAngleDeg = clamp(
+      contactAngleDeg - CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG * highImpactPressure * span,
+      -14,
+      65,
+    );
+  }
   const preLength = clamp(
     (6 + guidedRolls.preLengthRoll * 28)
       * (1 - 0.45 * clearancePressure)

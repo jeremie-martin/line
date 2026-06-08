@@ -70,12 +70,10 @@ export type Contact = {
    * plumbing — a deliberate implementation detail (each contact gap ends in
    * exactly one beat, so per-gap scalar ≡ per-beat value) that may change.
    *
-   * Status: SCORED (folds into the contract `axis_quality`), but the compiler does
-   * not yet STEER toward it — so an authored impact target currently lowers the
-   * score by however far the unsteered landing misses it (the v2 baseline the
-   * optimizer is built to recover). Measured by `normalImpactPxAtLanding`
-   * (substrate.ts); reported with target/achieved/error/ceiling. Steering
-   * (catch-line angle vs. the incoming velocity) is the next step.
+   * Status: SCORED (folds into the contract `axis_quality`) and partially steered
+   * by the compiler via local candidate cost plus a small high-impact contact-angle
+   * bias. Measured by `normalImpactPxAtLanding` (substrate.ts); reported with
+   * target/achieved/error/ceiling.
    */
   impact?: number;
 };
@@ -114,9 +112,10 @@ export type Curve = (t: number) => number | undefined;
  *                       `CALIB.IMPACT_CAP`, [0, 1]. NOT authored as a curve — it
  *                       is a per-beat qualifier (`Contact.impact`) resolved into
  *                       the terminating gap so it can reuse this per-gap plumbing.
- *                       SCORED but not yet steered (see `Contact.impact`). In AXES
- *                       and scored, but kept out of `TARGET_AXES` — it draws no
- *                       sampling RNG and isn't curve-authored (a per-beat qualifier).
+ *                       SCORED and partially steered (see `Contact.impact`). In
+ *                       AXES and scored, but kept out of `TARGET_AXES` — it draws
+ *                       no sampling RNG and isn't curve-authored (a per-beat
+ *                       qualifier).
  */
 export const AXES = ["air", "speed", "grain", "elevation", "amplitude", "impact"] as const;
 export type AxisName = (typeof AXES)[number];
@@ -138,10 +137,9 @@ const TARGET_AXIS_SET: ReadonlySet<AxisName> = new Set<AxisName>(TARGET_AXES);
  *
  * v2: now EMPTY — `impact` has been PROMOTED to a scored target (the golden suite
  * authors per-beat impact; the optimizer is expected to steer toward it). impact
- * stays in AXES (measured/reported) and out of TARGET_AXES (so it draws no
- * sampling RNG and the candidate-local cost is unchanged); the register's true
- * scorer now rewards hitting it. Until steering generation exists, authored impact
- * legitimately lowers the score — that's the baseline the optimizer recovers from.
+ * stays in AXES (measured/reported) and out of TARGET_AXES, so it draws no
+ * target-sampling RNG. The register's true scorer now rewards hitting it, and
+ * the compiler may use impact in deterministic ranking/geometry bias.
  */
 export const REPORT_ONLY_AXES = [] as const satisfies readonly AxisName[];
 export const REPORT_ONLY_AXIS_SET: ReadonlySet<string> = new Set<string>(REPORT_ONLY_AXES);

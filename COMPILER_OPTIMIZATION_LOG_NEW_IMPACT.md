@@ -178,3 +178,14 @@ same normalized normal-impact scale the scorer reports.
 - Decide result: indicative `VERDICT: INCONCLUSIVE` with a strongly negative point estimate; 16-spec intersection headline `411.9 -> 401.1`, `Delta=-10.8`, 95% CI `[-38.5, 3.6]`, `P(Delta<=0)=85.2%`. Per-budget deltas: `50k +0.0`, `100k -10.1`, `200k -26.7`, `300k -2.3`. Validity fell at `50k` (`97% -> 93%`) and `100k` (`100% -> 98%`).
 - Diagnostics: even a gated, span-preserving cap expansion destabilized dense basins and mainly hurt the middle budgets. The low-air problem is not solved by simply allowing longer post-contact ride-outs under this sampler.
 - Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-angle-dense-mature-extra-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` at commit `f8bb3ee`.
+- Hypothesis: the global `4deg` impact angle probe mainly failed at `100k`, while its high-budget dense deltas were slightly positive. Keep dense gaps at the accepted `3deg` through `100k`, but add the extra `1deg` only as a dense mature-budget pressure reaches full strength at `200k+`.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG = 1` in `scripts/v0/arc_placement.ts`; `contactCenteredImpactAngleShiftDeg(...)` became `3deg + sparseRoomExtra + denseMatureExtra`, where `denseMatureExtra` used `(1 - room) * smoothstep((budget - 150k) / 50k)`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,solo_run,verse_chorus,drums_swell,drums_tide,drums_crescendo,cold_start --archive-dir=generated/golden-runs/impact-angle-dense-mature-extra-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; 16-spec intersection headline `411.9 -> 413.0`, `Delta=+1.2`, 95% CI `[-1.8, 4.4]`, `P(Delta<=0)=23.3%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +2.4`, `300k +1.0`.
+- Diagnostics: the mature dense extra isolated the intended high-budget movement and avoided the large `100k` score regression, but the effect is too small/noisy for canonical promotion. Validity diagnostics also moved at `50k/100k` in the focused archive, so the mechanism is not clean enough to stack.
+- Status: reverted after focused inconclusive; no canonical run and no behavior commit.

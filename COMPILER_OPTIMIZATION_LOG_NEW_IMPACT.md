@@ -390,3 +390,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `469.5 -> 467.8`, `Delta=-1.8`, 95% CI `[-3.9, -0.1]`, `P(Delta<=0)=98.5%`. Per-budget deltas: `50k +0.0`, `100k +0.3`, `200k -1.3`, `300k -3.1`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
 - Diagnostics: exact-cost ceilings improve neither score nor maturity. The small `100k` gain is outweighed by clear `200k/300k` losses, so the existing `1.1` margin is not too conservative for impact scoring.
 - Status: env-only rejected; no canonical run and no behavior commit.
+
+## impact-repair-feas125-slice-01
+
+- Baseline used: `impact-quality-ncand32-01` behavior at commit `331c127`.
+- Hypothesis: if exact-cost repair ceilings are too tight, a slightly looser feasibility margin (`1.25`) might let suffix rebuilds complete more often without drifting as far as the old bad `1.5` setting.
+- Code changes made: none; ran with `LR_REPAIR_FEAS_MARGIN=1.25`.
+- Probe command: `LR_ENGINE=wasm LR_REPAIR_FEAS_MARGIN=1.25 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-repair-feas125-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `469.5 -> 469.3`, `Delta=-0.2`, 95% CI `[-1.4, 0.7]`, `P(Delta<=0)=66.9%`. Per-budget deltas: `50k +0.0`, `100k -1.0`, `200k -0.1`, `300k -0.1`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: extra headroom does not produce a mature-budget lift and costs `100k`. Together with the rejected `1.0` probe, this brackets the current `1.1` default as still the best repair feasibility margin.
+- Status: env-only inconclusive/negative; no canonical run and no behavior commit.

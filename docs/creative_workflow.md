@@ -7,7 +7,8 @@ compiler only ever *hits the detected beats*; everything expressive lives in the
 Worked examples (all on this pipeline):
 - `scripts/v0/specs/believer_curves.ts` — Believer 56s, air/speed/grain.
 - `scripts/v0/specs/shelter_curves.ts` — Shelter 65s, air/speed/**elevation**.
-- `scripts/v0/specs/shelter_amp.ts` — Shelter 81s, air/speed/**amplitude**.
+- `scripts/v0/specs/shelter_amp.ts` — Shelter 81s, air/speed/**amplitude** +
+  phrase-hit rests.
 
 ## One-shot pipeline
 
@@ -72,9 +73,10 @@ Set **`jitter: 0`** when the curves carry the variation (the curve specs do).
 ```
 
 Reads `shakedown/<name>/detection.json` (the rider trajectory) and reports a
-descriptive profile — pop above the takeoff→landing chord, vertical relief,
-airborne/slide runs, speed variety — and a static track-map PNG, plus soft
-"flat" flags. The companion to the numeric score for judging the *ride*.
+descriptive profile — pop above the takeoff→landing chord, air-arc path length,
+arc vertical span, vertical relief, airborne/slide runs, speed variety — and a
+static track-map PNG, plus soft "flat" flags. The companion to the numeric score
+for judging the *ride*.
 
 ## Camera / speed-aware zoom
 

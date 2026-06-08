@@ -79,11 +79,20 @@ def compute_metrics(det: dict[str, Any], fps: int = 40) -> dict[str, Any]:
     yu = y * up  # yu increases upward
 
     pops, sags, air_lens = [], [], []
+    air_paths, air_chords, air_vertical_spans = [], [], []
     for a0, b0 in _runs(air):
         a = max(0, a0 - 1)
         b = min(F - 1, b0 + 1)
         seg = np.arange(a, b + 1)
         air_lens.append((b0 - a0 + 1))
+        if len(seg) >= 2:
+            dx = np.diff(x[seg])
+            dy = np.diff(y[seg])
+            path_len = float(np.hypot(dx, dy).sum())
+            chord_len = float(np.hypot(x[b] - x[a], y[b] - y[a]))
+            air_paths.append(path_len)
+            air_chords.append(chord_len)
+            air_vertical_spans.append(float(y[seg].max() - y[seg].min()))
         if len(seg) >= 3:
             chord = np.linspace(yu[a], yu[b], len(seg))
             dev = yu[seg] - chord
@@ -92,6 +101,10 @@ def compute_metrics(det: dict[str, Any], fps: int = 40) -> dict[str, Any]:
     pops = np.array(pops) if pops else np.array([0.0])
     sags = np.array(sags) if sags else np.array([0.0])
     air_lens = np.array(air_lens) if air_lens else np.array([0])
+    air_paths = np.array(air_paths) if air_paths else np.array([0.0])
+    air_chords = np.array(air_chords) if air_chords else np.array([0.0])
+    air_vertical_spans = np.array(air_vertical_spans) if air_vertical_spans else np.array([0.0])
+    chord_ratio = air_paths / np.maximum(1e-6, air_chords)
 
     slide_lens = np.array([e - s + 1 for s, e in _runs(~air)]) if F else np.array([0])
 
@@ -110,11 +123,24 @@ def compute_metrics(det: dict[str, Any], fps: int = 40) -> dict[str, Any]:
         # pops = the missing ingredient when a track is flat
         "pop_px_mean": round(float(pops.mean()), 1),
         "pop_px_median": round(float(np.median(pops)), 1),
+        "pop_px_p75": round(float(np.percentile(pops, 75)), 1),
         "pop_px_p90": round(float(np.percentile(pops, 90)), 1),
         "pop_px_max": round(float(pops.max()), 1),
+        "pops_gt25": int((pops > 25).sum()),
         "big_pops_gt40": int((pops > 40).sum()),
         "n_airborne_arcs": int(len(pops)),
         "sag_px_median": round(float(np.median(sags)), 1),
+        "air_arc_frames_median": round(float(np.median(air_lens)), 1),
+        "air_arc_frames_p90": round(float(np.percentile(air_lens, 90)), 1),
+        "air_arc_path_px_median": round(float(np.median(air_paths)), 1),
+        "air_arc_path_px_p90": round(float(np.percentile(air_paths, 90)), 1),
+        "air_arc_path_px_max": round(float(air_paths.max()), 1),
+        "air_arc_chord_px_median": round(float(np.median(air_chords)), 1),
+        "air_arc_chord_px_p90": round(float(np.percentile(air_chords, 90)), 1),
+        "air_arc_path_chord_ratio_p90": round(float(np.percentile(chord_ratio, 90)), 3),
+        "air_arc_vertical_span_px_median": round(float(np.median(air_vertical_spans)), 1),
+        "air_arc_vertical_span_px_p90": round(float(np.percentile(air_vertical_spans, 90)), 1),
+        "air_arc_vertical_span_px_max": round(float(air_vertical_spans.max()), 1),
         "vertical_relief_px": round(relief, 1),
         "airborne_run_max_frames": int(air_lens.max()),
         "slide_run_max_frames": int(slide_lens.max()) if len(slide_lens) else 0,
@@ -141,8 +167,12 @@ def flags(mx: dict[str, Any]) -> list[str]:
 def report(name: str, mx: dict[str, Any]) -> None:
     print(f"=== {name}  ({mx['duration_s']}s, {mx['frames']}f) ===")
     print(f"  airborne {mx['airborne_pct']}%   x-span {mx['x_span_px']}px   net Δy {mx['net_dy_px']}px")
-    print(f"  POP above chord  median {mx['pop_px_median']:5.1f}  p90 {mx['pop_px_p90']:5.1f}  "
-          f"max {mx['pop_px_max']:5.1f}   big airs(>40px) {mx['big_pops_gt40']}  / {mx['n_airborne_arcs']} arcs")
+    print(f"  POP above chord  median {mx['pop_px_median']:5.1f}  p75 {mx['pop_px_p75']:5.1f}  "
+          f"p90 {mx['pop_px_p90']:5.1f}  max {mx['pop_px_max']:5.1f}   "
+          f"pops(>25px) {mx['pops_gt25']}  big airs(>40px) {mx['big_pops_gt40']}  / {mx['n_airborne_arcs']} arcs")
+    print(f"  air arcs  frames median {mx['air_arc_frames_median']:4.1f}  p90 {mx['air_arc_frames_p90']:4.1f}  "
+          f"path p90 {mx['air_arc_path_px_p90']:6.1f}px  max {mx['air_arc_path_px_max']:6.1f}px  "
+          f"vertical span p90 {mx['air_arc_vertical_span_px_p90']:5.1f}px  max {mx['air_arc_vertical_span_px_max']:5.1f}px")
     print(f"  vertical relief (detrended)  {mx['vertical_relief_px']:6.1f}px      sag median {mx['sag_px_median']}px")
     print(f"  runs: longest air {mx['airborne_run_max_frames']}f  longest slide {mx['slide_run_max_frames']}f  "
           f"mean slide {mx['slide_run_mean_frames']}f")

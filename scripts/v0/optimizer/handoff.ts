@@ -413,7 +413,7 @@ const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because
  *  the completion suffix branches two-wide and is charged like normal search. */
 const TAIL_COMPLETION_CONTACT_WINDOW = 8;
-const TAIL_COMPLETION_BUDGET_WINDOW_EXTRA = 3;
+const TAIL_COMPLETION_BUDGET_WINDOW_EXTRA = 4;
 const TAIL_COMPLETION_BUDGET_SCALE_FRAMES = 150_000;
 const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_WINDOW_EXTRA = 14;
 const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_SCALE_FRAMES = 75_000;

@@ -375,3 +375,37 @@ only changes that print `VERDICT: ACCEPT`.
   `0.0584 -> 0.0582`, elevation flat, amplitude `0.1368 -> 0.1369`).
 - Status: kept and committed; accepted by canonical decision gate. New baseline
   archive: `generated/golden-runs/tail-window-extra-03`.
+
+## tail-window-extra-04
+
+- Baseline used: `tail-window-extra-03` at commit `c9bddf1`.
+- Hypothesis: `tail-window-extra-03` opened remaining-10 suffix completions at
+  `300k` but left `200k` aggregate-identical. Increasing the same smooth
+  high-budget extra window from `3` to `4` should cross the remaining-10
+  boundary at `200k` while keeping `50k`, `100k`, and `300k` effectively
+  unchanged.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `TAIL_COMPLETION_BUDGET_WINDOW_EXTRA` from `3` to `4`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/tail-window-extra-04`
+- Decide result: `VERDICT: ACCEPT`; headline `617.5 -> 617.7`,
+  `Delta=+0.1`, 95% CI `[-0.0, 0.4]`, `P(Delta<=0)=8.2%`. Per-budget
+  deltas: `50k +0.0`, `100k +0.0`, `200k +0.4`, `300k +0.0`.
+- Notable improvements: weighted wins on `drums_tide +1.92`,
+  `rhythm_ladder +1.66`, `skyline_push +1.28`, `drums_signature +0.53`,
+  `drums_dropout +0.30`, and `drums_pendulum +0.26`. Largest `200k` row
+  wins included `drums_tide` seed 1 `+74.2`, `rhythm_ladder` seed 11
+  `+66.0`, `skyline_push` seed 10 `+49.9`, and `drums_signature` seed 9
+  `+21.5`.
+- Notable regressions: weighted losses on `drums_breath -0.40`,
+  `syncopated_switchback -0.12`, `ridge_pulse -0.09`,
+  `glide_stairs -0.06`, and `soar_settle -0.05`. Largest `200k` row losses
+  included `drums_breath` seed 4 `-9.5`, `drums_breath` seed 1 `-6.1`,
+  `syncopated_switchback` seed 3 `-4.9`, and `ridge_pulse` seed 9 `-3.5`.
+- Diagnostics: `100k` and `300k` tail stats were unchanged. At `200k`, tail
+  improvements shifted from remaining-9 to remaining-10 suffixes
+  (`rem9 587 -> 28`, `rem10 455 -> 1019`), while total tail attempts fell
+  `6276 -> 6221`. Aggregate `200k` axis MAE improved slightly on all four
+  targeted axes: `air 0.0809 -> 0.0807`, `speed 0.0613 -> 0.0610`,
+  `elevation 0.0990 -> 0.0989`, `amplitude 0.1382 -> 0.1381`.
+- Status: kept and committed; accepted by canonical decision gate. New baseline
+  archive: `generated/golden-runs/tail-window-extra-04`.

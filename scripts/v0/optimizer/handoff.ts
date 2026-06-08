@@ -386,6 +386,7 @@ const START_BALLISTIC_SCORING_POOL = 4;
 const START_BALLISTIC_BUDGET_START_FRAMES = 50_000;
 const START_BALLISTIC_BUDGET_SPAN_FRAMES = 50_000;
 const START_SUPPORT_LOW_AIR_MAX = 0.35;
+const START_SUPPORT_MID_AIR_MAX = 0.55;
 const START_SUPPORT_RELEASE_MARGIN_FRAMES = K_BOUNCE_LANDING + 2;
 const START_SUPPORT_LINE_Y = 5;
 const START_SUPPORT_LINE_BACKTRACK_PX = 80;
@@ -3216,16 +3217,17 @@ function startupSupportStartSeeds(
 ): StartSeed[] {
   if (firstGap === null || firstContactAxes === null) return [];
   const air = firstContactAxes.air;
-  if (air === undefined || air > START_SUPPORT_LOW_AIR_MAX) return [];
+  if (air === undefined || air > START_SUPPORT_MID_AIR_MAX) return [];
   if (firstGap.endFrame <= START_SUPPORT_RELEASE_MARGIN_FRAMES + K_BOUNCE_LANDING) return [];
 
-  const releaseFrame = Math.max(1, firstGap.endFrame - START_SUPPORT_RELEASE_MARGIN_FRAMES);
+  const targetAirborneFrames = Math.max(
+    START_SUPPORT_RELEASE_MARGIN_FRAMES,
+    Math.round(firstGap.endFrame * air),
+  );
+  const releaseFrame = Math.max(1, firstGap.endFrame - targetAirborneFrames);
   const targetSpeed = startTargetSpeedPx(firstContactAxes);
-  const speeds = uniqueRounded([
-    targetSpeed - 0.75,
-    targetSpeed,
-    targetSpeed + 1.25,
-  ])
+  const offsets = air <= START_SUPPORT_LOW_AIR_MAX ? [-0.75, 0, 1.25] : [0];
+  const speeds = uniqueRounded(offsets.map((offset) => targetSpeed + offset))
     .filter((speed) => speed > 0 && speed <= START_DEFAULTS.VELOCITY_SANITY_CAP);
 
   return speeds.map((vx) => {

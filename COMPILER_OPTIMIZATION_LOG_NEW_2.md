@@ -3314,3 +3314,46 @@ only changes that print `VERDICT: ACCEPT`.
   physically representable.
 - Status: kept; accepted by canonical decision gate. New baseline for subsequent
   attempts is `start-support-low-air-01`.
+
+## start-support-midair-01
+
+- Baseline used: `start-support-low-air-01` at commit `eb6c5d6`.
+- Hypothesis: the accepted low-air startup support is too narrowly gated.
+  Several first gaps with target air around `0.36-0.55` still start effectively
+  airborne for most of the gap, producing first-contact air near `0.9`. Extend
+  startup support to medium-low air targets, but shape the release frame by the
+  requested first-gap air so these starts do not collapse into the low-air case.
+- Code changes made: raised startup support eligibility from `air <= 0.35` to
+  `air <= 0.55`; computed support release as
+  `firstGap.endFrame - max(releaseMargin, round(firstGap.endFrame * air))`;
+  kept the existing three speed offsets for low-air starts and used only the
+  target speed for medium-air starts to avoid widening start-eval work.
+- Focused golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,cold_start,drums_crescendo,rhythm_ladder,tiny_dance,terrace_sprint,ridge_pulse,rolling_hills,verse_chorus,drums_signature,drums_swell,canyon_steps,syncopated_lift,switchback_pop,summit_push,climb_terrace,mixed_grade,solo_run,drums_pulse,big_air_ramp,dense_echo_climb --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-midair-01`
+- Focused decide result: indicative, non-promotable `VERDICT: ACCEPT` on the
+  paired `21` spec intersection; headline `616.5 -> 675.3`, `Delta=+58.8`,
+  95% CI `[27.5, 101.7]`, `P(Delta<=0)=0.0%`. Per-budget deltas were
+  `50k -0.0`, `100k +60.9`, `200k +63.0`, and `300k +65.1`.
+- Canonical golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/start-support-midair-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `638.1 -> 670.7`,
+  `Delta=+32.6`, 95% CI `[13.9, 57.1]`, `P(Delta<=0)=0.0%`. Per-budget deltas
+  were `50k +1.4`, `100k +34.2`, `200k +34.6`, and `300k +35.9`; validity moved
+  `97% -> 96%` at `50k` and stayed `100% -> 100%` for `100k+`.
+- Notable improvements at `300k`: `tiny_dance` gained massively across seeds,
+  including seed `8` `+438.87`, seed `9` `+433.53`, seed `10` `+428.00`, seed
+  `5` `+425.71`, seed `6` `+425.08`, seed `7` `+424.41`, seed `1` `+423.17`,
+  and seed `4` `+414.53`. Medium-air starts also lifted broad rows such as
+  `rolling_hills`, `verse_chorus`, and `big_air_ramp`.
+- Notable regressions at `300k`: `rhythm_ladder` seed `11` `-99.12`,
+  `solo_run` seed `2` `-75.96`, `cold_start` seed `2` `-64.78`,
+  `drums_zigzag` seed `5` `-57.69`, `rhythm_ladder` seed `5` `-53.88`,
+  `rhythm_ladder` seed `8` `-45.50`, `drums_zigzag` seed `7` `-36.59`, and
+  `cold_start` seed `10` `-33.43`.
+- Diagnostics: this confirms the beginning is a high-leverage area when the
+  representation changes, not just the ranking or scoring of existing starts.
+  The wins come from making medium-low first-gap air physically representable
+  with compiler-owned support geometry and a target-shaped release. The main
+  residual cost is that a few specs prefer the old ballistic start basin, so the
+  next start work should preserve multiple start families more deliberately
+  rather than only expanding support eligibility.
+- Status: kept; accepted by canonical decision gate. New baseline for
+  subsequent attempts is `start-support-midair-01`.

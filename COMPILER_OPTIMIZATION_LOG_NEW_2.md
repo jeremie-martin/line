@@ -3357,3 +3357,97 @@ only changes that print `VERDICT: ACCEPT`.
   rather than only expanding support eligibility.
 - Status: kept; accepted by canonical decision gate. New baseline for
   subsequent attempts is `start-support-midair-01`.
+
+## probe-low-amplitude-damped-launch-01
+
+- Baseline used: `start-support-midair-01` at commit `cb73791`.
+- Hypothesis: several weak amplitude rows overshoot low or medium-low amplitude
+  targets because the contact-centered generator only actively shapes high
+  amplitude. Add a spanned low-amplitude damping path that blends steep
+  elevation/energy launches back toward the ordinary post angle and keeps a
+  longer grounded ride-out.
+- Code changes made: temporarily added low-amplitude constants to
+  `scripts/v0/arc_placement.ts`; when `amplitude` was below roughly `0.48`, the
+  amplitude block blended `postAngleDeg` toward `angledPostAngleDeg`, limited
+  steep upward launch angles, and raised `postLength` toward the air-targeted
+  grounded length.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=terrace_sprint,skyline_push,valley_bounce,syncopated_lift,switchback_pop,drums_zigzag,rhythm_ladder,drums_pendulum,cold_start,solo_run,rolling_hills,verse_chorus,tiny_dance,big_air_ramp,dense_echo_climb,canyon_steps,climb_terrace,mixed_grade,summit_push,drums_signature --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-low-amplitude-damped-launch-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `20` spec intersection; headline `662.2 -> 661.0`, `Delta=-1.2`,
+  95% CI `[-7.5, 4.2]`, `P(Delta<=0)=65.3%`. Per-budget deltas were
+  `50k -3.8`, `100k -6.4`, `200k -0.9`, and `300k +0.7`.
+- Diagnostics: the broad damping helped some intended rows (`terrace_sprint`,
+  `dense_echo_climb`) but caused a large `skyline_push` seed `7` regression
+  (`-110.64`) and hurt several `valley_bounce`/`big_air_ramp` rows. The idea
+  was too broad for medium-low amplitude targets.
+- Status: reverted; no canonical run and no commit.
+
+## probe-low-amplitude-damped-launch-narrow-01
+
+- Baseline used: `start-support-midair-01` at commit `cb73791`.
+- Hypothesis: the damping representation may still be useful if restricted to
+  genuinely low amplitude targets, avoiding the medium-amplitude skyline cases
+  that regressed in the broad version.
+- Code changes made: temporarily narrowed the damping ramp to start around
+  `amplitude < 0.36` with a `0.24` span, preserving the same spanned launch/length
+  damping behavior for very low amplitude targets.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=terrace_sprint,skyline_push,valley_bounce,syncopated_lift,switchback_pop,drums_zigzag,rhythm_ladder,drums_pendulum,cold_start,solo_run,rolling_hills,verse_chorus,tiny_dance,big_air_ramp,dense_echo_climb,canyon_steps,climb_terrace,mixed_grade,summit_push,drums_signature --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-low-amplitude-damped-launch-narrow-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `20` spec intersection; headline `662.2 -> 663.7`, `Delta=+1.5`,
+  95% CI `[-3.2, 6.1]`, `P(Delta<=0)=26.4%`. Per-budget deltas were `50k -1.9`,
+  `100k +1.4`, `200k +1.5`, and `300k +2.1`.
+- Notable improvements at `300k`: `dense_echo_climb` seed `5` `+65.50`,
+  `terrace_sprint` seed `2` `+52.57`, `terrace_sprint` seed `6` `+47.12`,
+  `switchback_pop` seed `8` `+46.26`, and several additional
+  `dense_echo_climb`/`terrace_sprint` gains.
+- Notable regressions at `300k`: `valley_bounce` seed `1` `-65.78`,
+  `terrace_sprint` seed `11` `-37.66`, `valley_bounce` seed `4` `-37.05`,
+  `valley_bounce` seed `10` `-36.50`, and `valley_bounce` seed `8` `-32.27`.
+- Diagnostics: the narrower representation is directionally positive at mature
+  budgets but not decisive and still unstable on low-amplitude first/early gaps.
+  This is not strong enough to stack onto the accepted baseline. Future amplitude
+  work should probably distinguish first-gap support/air coupling from ordinary
+  low-amplitude launch damping.
+- Status: reverted; no canonical run and no commit.
+
+## start-support-air-062-01
+
+- Baseline used: `start-support-midair-01` at commit `cb73791`.
+- Hypothesis: after the accepted medium-air start support, the remaining
+  first-gap over-air cases include targets just above the `0.55` eligibility
+  cutoff. Let the same target-shaped support representation compete up to
+  `air <= 0.62`, still with only one medium-air support speed.
+- Code changes made: raised `START_SUPPORT_MID_AIR_MAX` from `0.55` to `0.62`
+  in `scripts/v0/optimizer/handoff.ts`. Release timing and speed offsets stayed
+  unchanged.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Focused golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=terrace_sprint,skyline_push,valley_bounce,syncopated_lift,switchback_pop,drums_zigzag,rhythm_ladder,drums_pendulum,cold_start,solo_run,rolling_hills,verse_chorus,tiny_dance,big_air_ramp,dense_echo_climb,canyon_steps,climb_terrace,mixed_grade,summit_push,drums_signature --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-air-062-01`
+- Focused decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `662.2 -> 664.5`, `Delta=+2.3`, 95% CI `[0.0, 7.6]`,
+  `P(Delta<=0)=35.6%`. The effect was concentrated in `valley_bounce`; the
+  slice showed no negative changed rows at `300k`, but cluster uncertainty was
+  high because many specs were unchanged.
+- Canonical golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/start-support-air-062-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `670.7 -> 680.8`,
+  `Delta=+10.1`, 95% CI `[1.6, 22.5]`, `P(Delta<=0)=0.5%`. Per-budget deltas
+  were `50k +5.7`, `100k +9.9`, `200k +10.4`, and `300k +10.7`; validity stayed
+  `96% -> 96%` at `50k` and `100% -> 100%` for `100k+`.
+- Notable improvements at `300k`: `mini_burst` gained massively across seeds,
+  including seed `11` `+251.10`, seed `5` `+244.48`, seed `9` `+242.34`, seed
+  `7` `+240.43`, seed `2` `+239.66`, seed `1` `+233.24`, seed `6` `+223.30`,
+  and seed `10` `+220.91`. `valley_bounce`, `grain_staircase`,
+  `rolling_drop`, and `swoop_dive` also improved where the first-gap air target
+  sat just above the previous cutoff.
+- Notable regressions at `300k`: none in the canonical paired analyzer's largest
+  rows; the largest listed deltas were unchanged `0.00` rows. The change is
+  narrow enough that most specs are byte-identical.
+- Diagnostics: extending support eligibility confirms that the beginning was
+  still representation-limited above the previous `0.55` cutoff. The accepted
+  change is simple and deterministic, but the threshold is now carrying more
+  semantic weight; future start work should consider a smoother family that
+  covers first-gap air continuously instead of widening constants one step at a
+  time.
+- Status: kept; accepted by canonical decision gate. New baseline for
+  subsequent attempts is `start-support-air-062-01`.

@@ -141,3 +141,29 @@ same normalized normal-impact scale the scorer reports.
 - Decide result: indicative `VERDICT: INCONCLUSIVE`; focused headline `392.4 -> 392.8`, `Delta=+0.5`, 95% CI `[-12.8, 10.9]`, `P(Delta<=0)=39.1%`. Per-budget deltas: `50k +17.7`, `100k -13.3`, `200k +2.1`, `300k +1.1`.
 - Diagnostics: the extra degree mainly lifted `50k` and slightly helped high budgets, but the `100k` regression is too large for promotion and the point estimate is effectively neutral.
 - Status: reverted after focused inconclusive; no canonical run and no behavior commit.
+
+## impact-angle-lowbudget-extra-slice-01
+
+- Baseline used: `impact-angle-bias3-01` behavior at commit `5538bf4`.
+- Hypothesis: since the global `4deg` probe helped `50k` but hurt `100k`, apply the extra degree only at scarce budget: `4deg` at `50k`, fading back to the accepted `3deg` by `100k`, with no extra samples or RNG changes.
+- Code changes made: temporarily added a budget-aware `contactCenteredImpactAngleShiftDeg()` in `scripts/v0/arc_placement.ts`, using `CONTACT_CENTERED_IMPACT_LOW_BUDGET_EXTRA_SHIFT_DEG = 1` and a `50k..100k` fade.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_dropout,syncopated_switchback,drums_pendulum,dense_sprint,rhythm_ladder,dense_echo_climb,drums_signature,opening_burst,drums_pulse,drums_crosscut --archive-dir=generated/golden-runs/impact-angle-lowbudget-extra-slice-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE`; focused headline `392.4 -> 393.7`, `Delta=+1.4`, 95% CI `[-3.3, 8.1]`, `P(Delta<=0)=26.2%`. Per-budget deltas: `50k +17.7`, `100k +0.0`, `200k +0.0`, `300k +0.0`. Validity moved `50k 98% -> 99%` and was unchanged elsewhere.
+- Diagnostics: the mechanism isolated the intended `50k` gain and removed the `100k` failure, but the headline lift was too small/noisy to justify canonical promotion.
+- Status: reverted after focused inconclusive; no canonical run and no behavior commit.
+
+## impact-angle-sparse-extra-01
+
+- Baseline used: `impact-angle-bias3-01` at commit `5538bf4`.
+- Hypothesis: the rejected global `4deg` bias failed in dense cadence, but sparse/mixed gaps have room for a slightly harder high-impact catch. Keep the accepted `3deg` shift in dense gaps and add up to `1deg` only as the existing arc-length room pressure ramps from dense (`26f`) to sparse (`46f`). This changes no candidate count and no RNG draws.
+- Code changes made: in `scripts/v0/arc_placement.ts`, added `CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG = 1`; changed the impact angle shift to call `contactCenteredImpactAngleShiftDeg(nextGapFrames)`, which returns `3deg + 1deg * room`. Dense gaps stay at `3deg`, last/sparse gaps can reach `4deg`. In `scripts/v0/types.ts`, updated the `Contact.impact` comment to mention the sparse-room angle bias.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,big_air_ramp,pop_train,soar_settle,leap_cadence,float_bounds,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,dense_echo_climb,rolling_drop,skyline_push,syncopated_lift --archive-dir=generated/golden-runs/impact-angle-sparse-extra-slice-01`
+- Probe decide result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `541.5 -> 544.8`, `Delta=+3.3`, 95% CI `[0.7, 6.4]`, `P(Delta<=0)=0.7%`. Per-budget deltas: `50k -0.0`, `100k +3.1`, `200k +4.3`, `300k +3.3`. Validity was `100%` for the candidate at every budget.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-angle-sparse-extra-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `486.0 -> 487.8`, `Delta=+1.8`, 95% CI `[-0.2, 4.5]`, `P(Delta<=0)=4.1%`. Per-budget deltas: `50k +4.3`, `100k +1.4`, `200k +1.7`, `300k +1.6`. Validity stayed `97%` at `50k` and `100%` for `100k+`.
+- Notable improvements: weighted spec means improved most on `big_air_ramp +10.67`, `soar_settle +10.60`, `tiny_dance +8.57`, `rolling_hills +8.09`, `pop_train +7.94`, `glide_stairs +7.58`, `swoop_dive +7.02`, `climb_terrace +5.76`, `leap_cadence +5.54`, and `mixed_grade +4.05`. Largest `300k` row wins: `pop_train` seed `5` `+73.52`, `mixed_grade` seed `5` `+68.07`, `soar_settle` seed `9` `+66.24`, `leap_cadence` seed `0` `+51.83`, and `climb_terrace` seed `2` `+50.57`.
+- Notable regressions: weighted spec losses were led by `dense_echo_climb -3.09`, `drums_crescendo -2.77`, `drums_swell -2.63`, `syncopated_switchback -2.38`, `verse_chorus -1.38`, `rolling_drop -1.14`, `drums_pulse -1.05`, `drums_dropout -0.84`, `drums_tide -0.84`, and `dense_sprint -0.62`. Largest `300k` row losses: `pop_train` seed `8` `-50.13`, `climb_terrace` seed `6` `-49.70`, `rolling_drop` seed `4` `-46.59`, `soar_settle` seed `7` `-40.14`, and `rolling_drop` seed `8` `-39.67`.
+- Axis diagnostics: impact MAE improved slightly at `50k` and `300k` (`50k 0.2834 -> 0.2832`, `300k 0.2013 -> 0.2010`) while `100k/200k` were essentially flat (`100k 0.2129 -> 0.2133`, `200k 0.2043 -> 0.2044`). Speed improved at mature budgets (`300k 0.1330 -> 0.1321`) and elevation improved slightly (`300k 0.1127 -> 0.1120`); air/amplitude ticked slightly worse.
+- Status: kept; canonical accepted. Use `impact-angle-sparse-extra-01` as the next baseline.

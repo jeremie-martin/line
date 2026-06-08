@@ -72,8 +72,8 @@ export type Contact = {
    *
    * Status: SCORED (folds into the contract `axis_quality`) and partially steered
    * by the compiler via local candidate cost plus a small high-impact contact-angle
-   * bias. Measured by `normalImpactPxAtLanding` (substrate.ts); reported with
-   * target/achieved/error/ceiling.
+   * bias that grows slightly when the next contact leaves room. Measured by
+   * `normalImpactPxAtLanding` (substrate.ts); reported with target/achieved/error/ceiling.
    */
   impact?: number;
 };

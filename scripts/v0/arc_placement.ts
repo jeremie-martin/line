@@ -60,6 +60,9 @@ const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
 const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
 const CONTACT_CENTERED_GUIDED_POINT_SPREAD = 0.08;
 const CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG = 3;
+// Sparse gaps have enough room to absorb a slightly harder high-impact catch;
+// dense gaps keep the accepted 3deg bias to avoid reintroducing cadence failures.
+const CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG = 1;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
@@ -772,8 +775,9 @@ function sampleContactCenteredLines(
   if (targets.impact !== undefined) {
     const highImpactPressure = smoothstep((targets.impact - 0.55) / 0.35);
     const span = clamp(ccSpanBlends(attempt).launch, 0, 1);
+    const shiftDeg = contactCenteredImpactAngleShiftDeg(nextGapFrames);
     contactAngleDeg = clamp(
-      contactAngleDeg - CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG * highImpactPressure * span,
+      contactAngleDeg - shiftDeg * highImpactPressure * span,
       -14,
       65,
     );
@@ -940,6 +944,15 @@ function sampleContactCenteredLines(
     postLength, postSegments, postCurveBias,
   );
   return [...preLines, ...postLines];
+}
+
+function contactCenteredImpactAngleShiftDeg(nextGapFrames: number | null): number {
+  const room = nextGapFrames === null ? 1 : smoothstep(
+    (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
+      (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
+  );
+  return CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG +
+    CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG * room;
 }
 
 function guideContactCenteredRolls(

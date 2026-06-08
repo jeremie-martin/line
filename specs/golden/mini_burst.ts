@@ -9,11 +9,15 @@
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
+import { withImpact } from "../../scripts/v0/core/beats.ts";
 
-const contacts: Contact[] = [];
+// a short burst: soft ramp-in to one hard mid-phrase accent, then back off.
+const burst = [0.2, 0.4, 0.6, 0.95, 0.55, 0.35, 0.25];
+const raw: Contact[] = [];
 for (let t = 0.60; t < 5.0; t += 0.65) {
-  contacts.push({ t: Number(t.toFixed(3)) });
+  raw.push({ t: Number(t.toFixed(3)) });
 }
+const contacts: Contact[] = withImpact(raw, (_t, i) => burst[i] ?? 0.3);
 
 const spec: Spec = {
   duration: 5,

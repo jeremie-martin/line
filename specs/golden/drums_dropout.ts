@@ -18,7 +18,7 @@ const spec = drumsSpec({
   ]),
   speed: constant(0.60),
   grain: constant(0.50),
-});
+}, (t) => (t >= 13 && t <= 19 ? 0.15 : 0.75)); // impact drops out with the air valley: hard landings except the soft mid-track dip
 spec.preroll = 5;
 spec.jitter = 0; // continuous curve carries the variation; no per-gap jitter
 export default spec;

@@ -10,6 +10,7 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { constant } from "../../scripts/v0/core/curves.ts";
+import { withImpact } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
@@ -22,7 +23,9 @@ const triangle = (lo: number, hi: number, P: number) => (t: number) => {
 
 const spec: Spec = {
   duration: 16,
-  contacts: beats(1.1, 1.1, 14), // ~1.1s gaps (44f)
+  // impact pulses IN PHASE with the pops: the tall pops land hard, the short
+  // ones soft — a rhythmic heavy↔light train.
+  contacts: withImpact(beats(1.1, 1.1, 14), triangle(0.2, 0.85, 8)), // ~1.1s gaps (44f)
   axes: {
     air: triangle(0.6, 0.9, 8),
     speed: constant(0.55),

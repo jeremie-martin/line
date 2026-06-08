@@ -9,13 +9,16 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
+import { withImpact } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
 
 const spec: Spec = {
   duration: 17,
-  contacts: beats(0.9, 0.9, 18), // ~0.9s gaps (36f)
+  // impact rides the wave in counter-phase to elevation: hard landings in the
+  // valleys (after each descent), soft grazes over the crests.
+  contacts: withImpact(beats(0.9, 0.9, 18), (t) => 0.5 + 0.35 * Math.cos((2 * Math.PI * t) / 6)), // ~0.9s gaps (36f)
   axes: {
     air: constant(0.45),
     speed: constant(0.55),

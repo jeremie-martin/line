@@ -12,7 +12,6 @@
  *  - `beats` / `withImpact` co-author timing + per-beat impact.
  */
 import { describe, expect, test } from "vitest";
-import { createHash } from "node:crypto";
 import { AXIS_MEASURE } from "../scripts/v0/core/measure.ts";
 import { beats, withImpact } from "../scripts/v0/core/beats.ts";
 import { constant } from "../scripts/v0/core/curves.ts";
@@ -131,22 +130,22 @@ describe("impactCeiling", () => {
   });
 });
 
-describe("impact is report-only / no-op (v1 contract)", () => {
+describe("impact is scored (v2)", () => {
   const grid = [{ t: 0.5 }, { t: 1.0 }, { t: 1.5 }, { t: 2.0 }, { t: 2.5 }];
-  const base: Spec = { duration: 3, contacts: grid, jitter: 0, axes: { air: constant(0.6), speed: constant(0.5) } };
-  const withImp: Spec = { ...base, contacts: withImpact(grid, (t) => 0.2 + 0.2 * t) };
+  const withImp: Spec = { duration: 3, contacts: withImpact(grid, (t) => 0.2 + 0.2 * t), jitter: 0, axes: { air: constant(0.6), speed: constant(0.5) } };
 
-  test("authoring impact leaves the track and contract score byte-identical", () => {
-    const a = compileHandoff(base, 0, { budget: 40_000 });
-    const b = compileHandoff(withImp, 0, { budget: 40_000 });
-    const h = (t: unknown) => createHash("sha256").update(JSON.stringify(t)).digest("hex");
-    expect(h(b.track)).toBe(h(a.track));
-    expect(b.stats.sim_frames).toBe(a.stats.sim_frames);
-    const sa = scoreDriftReport(a.report, { totalFrames: a.track.duration });
-    const sb = scoreDriftReport(b.report, { totalFrames: b.track.duration });
-    expect(sb.score).toBeCloseTo(sa.score, 9);
-    expect(sb.axis_quality).toBeCloseTo(sa.axis_quality, 9);
-  }, 120_000);
+  test("impact counts in axis_quality (promoted from report-only)", () => {
+    // A report whose only axis is impact, with error — must now be aggregated.
+    const report = {
+      contacts: [{ t_target: 1, t_actual: 1, frame_error: 0, status: "hit" }],
+      gaps: [{ gap_index: 0, t_end: 1, survived: true, axes: { impact: { target: 0.8, achieved: 0.4, error: 0.4 } } }],
+      off_beat_landings: [],
+      terminus: { frame: 40, reason: "endOfSpec" },
+    };
+    const sc = scoreDriftReport(report as never, { totalFrames: 40 });
+    expect(sc.axis_count).toBe(1);           // impact is aggregated, not filtered out (v1 was 0)
+    expect(sc.axis_quality).toBeLessThan(1); // its 0.4 error drags axis_quality down
+  });
 
   test("authored impact surfaces in the report with target/achieved/error/ceiling", () => {
     const { report } = compileHandoff(withImp, 0, { budget: 40_000 });

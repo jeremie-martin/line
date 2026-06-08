@@ -19,7 +19,7 @@ const spec = drumsSpec({
   air: swell(0.45, 0.80),
   speed: swell(0.50, 0.78),
   grain: swell(0.40, 0.62),
-});
+}, (t) => 0.15 + 0.75 * (1 - Math.abs(t - 15) / 15)); // impact swells with the hump: soft at the edges, hardest at the mid-track peak
 spec.preroll = 5;
 spec.jitter = 0; // continuous curve carries the variation; no per-gap jitter
 export default spec;

@@ -130,14 +130,18 @@ const TARGET_AXIS_SET: ReadonlySet<AxisName> = new Set<AxisName>(TARGET_AXES);
 
 /**
  * Axes that are MEASURED and surfaced in the drift report but EXCLUDED from the
- * scored `axis_quality` — currently `impact`, which is authored + reported in v1
- * but not yet steerable, so a probe shouldn't lose contract score for an intensity
- * it can't hit (see `Contact.impact`). `scoreDriftReport` filters these out of the
- * `axis_error_*` aggregation. Promoting impact to the scored set in v2 is just
- * removing it from here — the report-only boundary lives in one place, not as a
- * string literal in the scorer.
+ * scored `axis_quality`. `scoreDriftReport` filters these out of the `axis_error_*`
+ * aggregation, so the report-only boundary lives in one place, not as a string
+ * literal in the scorer.
+ *
+ * v2: now EMPTY — `impact` has been PROMOTED to a scored target (the golden suite
+ * authors per-beat impact; the optimizer is expected to steer toward it). impact
+ * stays in AXES (measured/reported) and out of TARGET_AXES (so it draws no
+ * sampling RNG and the candidate-local cost is unchanged); the register's true
+ * scorer now rewards hitting it. Until steering generation exists, authored impact
+ * legitimately lowers the score — that's the baseline the optimizer recovers from.
  */
-export const REPORT_ONLY_AXES = ["impact"] as const satisfies readonly AxisName[];
+export const REPORT_ONLY_AXES = [] as const satisfies readonly AxisName[];
 export const REPORT_ONLY_AXIS_SET: ReadonlySet<string> = new Set<string>(REPORT_ONLY_AXES);
 
 /** Upper bound for each normalized authored target/sample value. */

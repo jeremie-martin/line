@@ -4,17 +4,23 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
+import { withImpact } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
 
 const spec: Spec = {
   duration: 18,
-  contacts: [
-    ...beats(0.75, 0.55, 8),
-    ...beats(5.8, 1.15, 7),
-    ...beats(14.2, 0.65, 5),
-  ],
+  // impact in three steps matching the cadence: soft dense valley, firmer
+  // climbing middle, hard stepped pop accents on the final run-out.
+  contacts: withImpact(
+    [
+      ...beats(0.75, 0.55, 8),
+      ...beats(5.8, 1.15, 7),
+      ...beats(14.2, 0.65, 5),
+    ],
+    (t) => (t < 5.5 ? 0.22 : t < 14 ? 0.55 : 0.9),
+  ),
   axes: {
     air: keyframes([{ t: 0, v: 0.45 }, { t: 5, v: 0.78 }, { t: 14, v: 0.52 }], "smooth"),
     speed: keyframes([{ t: 0, v: 0.52 }, { t: 10, v: 0.72 }, { t: 18, v: 0.58 }], "smooth"),

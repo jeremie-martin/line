@@ -10,13 +10,18 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
+import { withImpact } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
 
 const spec: Spec = {
   duration: 17,
-  contacts: beats(1.2, 1.2, 14), // ~1.2s gaps (48f)
+  // floaty bounces: mostly soft, easing up only at the big-float peaks (t≈4,12).
+  contacts: withImpact(beats(1.2, 1.2, 14), keyframes(
+    [{ t: 0, v: 0.15 }, { t: 4, v: 0.45 }, { t: 8, v: 0.15 }, { t: 12, v: 0.45 }, { t: 16, v: 0.15 }],
+    "smooth",
+  )), // ~1.2s gaps (48f)
   axes: {
     air: keyframes(
       [{ t: 0, v: 0.6 }, { t: 4, v: 0.9 }, { t: 8, v: 0.6 }, { t: 12, v: 0.9 }, { t: 16, v: 0.6 }],

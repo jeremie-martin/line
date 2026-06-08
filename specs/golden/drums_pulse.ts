@@ -20,7 +20,7 @@ const spec = drumsSpec({
   grain: triangle(0.32, 0.60, 10),
   air: keyframes([{ t: 0, v: 0.50, ease: "smooth" }, { t: 15, v: 0.70, ease: "smooth" }, { t: 30, v: 0.50 }]),
   speed: constant(0.60),
-});
+}, triangle(0.2, 0.9, 10)); // impact pulses in phase with the grain triangle: a hard accent at each peak, soft in the troughs
 spec.preroll = 5;
 spec.jitter = 0; // continuous curve carries the variation; no per-gap jitter
 export default spec;

@@ -20,7 +20,7 @@ const spec = drumsSpec({
   air: (t) => 0.62 + 0.16 * Math.sin((2 * Math.PI * t) / 10),
   speed: ramp(0, 0.50, 30, 0.78, "easeIn"),
   grain: ramp(0, 0.40, 30, 0.60),
-});
+}, (t) => 0.5 + 0.35 * Math.sin((2 * Math.PI * t) / 10)); // impact rides the tide: a slow long swell of harder/softer landings tracking the air sine
 spec.preroll = 5;
 spec.jitter = 0; // continuous curve carries the variation; no per-gap jitter
 export default spec;

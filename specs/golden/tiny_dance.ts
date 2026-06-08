@@ -11,7 +11,8 @@ import { keyframes } from "../../scripts/v0/core/curves.ts";
 
 const spec: Spec = {
   duration: 3,
-  contacts: [{ t: 0.55 }, { t: 1.15 }, { t: 1.85 }, { t: 2.55 }],
+  // per-beat impact: a little dance — soft, lift, soft, accent on the last.
+  contacts: [{ t: 0.55, impact: 0.2 }, { t: 1.15, impact: 0.5 }, { t: 1.85, impact: 0.3 }, { t: 2.55, impact: 0.85 }],
   axes: {
     air:           keyframes([{ t: 0, v: 0.45 }, { t: 1.5, v: 0.55 }], "hold"),
     speed:         keyframes([{ t: 0, v: 0.50 }, { t: 1.5, v: 0.55 }], "hold"),

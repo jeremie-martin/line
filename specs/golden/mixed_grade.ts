@@ -9,16 +9,22 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
+import { withImpact } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
 
 const spec: Spec = {
   duration: 16,
-  contacts: [
-    ...beats(0.8, 0.5, 8), // dense intro: 0.8 .. 4.3 (20f beats)
-    ...beats(5.5, 1.2, 9), // sparse body: 5.5 .. 15.1 (48f gaps)
-  ],
+  // impact tracks the grade: soft uniform landings on the flat dense intro,
+  // then ramping harder through the sparse climbing body.
+  contacts: withImpact(
+    [
+      ...beats(0.8, 0.5, 8), // dense intro: 0.8 .. 4.3 (20f beats)
+      ...beats(5.5, 1.2, 9), // sparse body: 5.5 .. 15.1 (48f gaps)
+    ],
+    (t) => (t < 5 ? 0.25 : 0.4 + 0.45 * ((t - 5.5) / 9.6)),
+  ),
   axes: {
     air: constant(0.5),
     speed: constant(0.6),

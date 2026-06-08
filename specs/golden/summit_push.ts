@@ -9,13 +9,15 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
+import { withImpact } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
 
 const spec: Spec = {
   duration: 14,
-  contacts: beats(1.1, 1.1, 12), // ~1.1s gaps (44f) — non-dense
+  // impact ramps with the climb, building to a hard slam at the summit.
+  contacts: withImpact(beats(1.1, 1.1, 12), (t) => 0.3 + 0.65 * (t / 13)), // ~1.1s gaps (44f) — non-dense
   axes: {
     air: constant(0.5),
     speed: keyframes([{ t: 0, v: 0.7 }, { t: 13, v: 0.9 }], "smooth"),

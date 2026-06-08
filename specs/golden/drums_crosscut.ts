@@ -18,7 +18,7 @@ const spec = drumsSpec({
     { t: 0, v: 0.35 }, { t: 7.5, v: 0.62 }, { t: 15, v: 0.35 },
     { t: 22.5, v: 0.62 }, { t: 30, v: 0.35 },
   ]),
-});
+}, (_t, i) => (i % 2 === 0 ? 0.8 : 0.25)); // impact crosscuts beat-to-beat: hard / soft / hard / soft
 spec.preroll = 5;
 spec.jitter = 0; // continuous curve carries the variation; no per-gap jitter
 export default spec;

@@ -19,7 +19,7 @@ const spec = drumsSpec({
   air: triangle(0.50, 0.78, 12),
   speed: ramp(0, 0.50, 30, 0.78),
   grain: constant(0.45),
-});
+}, (_t, i) => (i % 2 === 0 ? 0.75 : 0.3)); // impact zigzags beat-to-beat: alternating hard / soft landings
 spec.preroll = 5;
 spec.jitter = 0; // continuous curve carries the variation; no per-gap jitter
 export default spec;

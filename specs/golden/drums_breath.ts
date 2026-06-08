@@ -18,7 +18,7 @@ const spec = drumsSpec({
   air: (t) => 0.62 + 0.14 * Math.sin(w * t),
   speed: (t) => 0.62 - 0.12 * Math.sin(w * t),
   grain: constant(0.45),
-});
+}, (t) => 0.45 - 0.30 * Math.sin(w * t)); // impact breathes opposite to air: harder when grounded (inhale), softer when lofted (exhale)
 spec.preroll = 5;
 spec.jitter = 0; // continuous curve carries the variation; no per-gap jitter
 export default spec;

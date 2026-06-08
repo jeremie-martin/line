@@ -23,7 +23,7 @@ import {
   recordArcPlacementPreclearReject,
 } from "../arc_placement.ts";
 import {
-  TARGET_AXES,
+  AXES,
   type AxisValues,
   type Arc, type TrackLine, type Gap,
   FPS,
@@ -46,6 +46,7 @@ import { measureGapAxes } from "./measure.ts";
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
 const RELEASE_STATE_SPEED_WEIGHT = 0.126;
+const LOCAL_IMPACT_COST_WEIGHT = 0.5;
 
 type WindowDetection = Detection & { frameOffset?: number };
 
@@ -663,16 +664,17 @@ export function countOffBeatLandings(
 // is the verbatim equivalent of the former inline `measureAxes`.
 
 export function axisCost(target: AxisValues, achieved: AxisValues): number {
-  // Equal-axis L2 cost. The suite scores axes equally; keeping the local
-  // optimizer equal-weighted avoids region-specific ranking bias while
-  // preserving a smooth gradient for nearby candidate choices.
+  // Equal-target L2 cost over every resolved scalar that was actually measured.
+  // `impact` is not curve-authored and still draws no sampling RNG, but once it
+  // is present on a beat the local candidate sort should see the same error the
+  // scorer sees.
   let cost = 0;
-  for (const key of TARGET_AXES) {
+  for (const key of AXES) {
     const t = target[key];
     const a = achieved[key];
     if (t !== undefined && a !== undefined) {
       const d = t - a;
-      cost += d * d;
+      cost += (key === "impact" ? LOCAL_IMPACT_COST_WEIGHT : 1) * d * d;
     }
   }
   return cost;

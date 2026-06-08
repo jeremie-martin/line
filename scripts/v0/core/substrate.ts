@@ -17,7 +17,7 @@ import {
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
   AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
-  authoredSpeedToPx, speedPxToAuthored, elevationCeiling,
+  authoredSpeedToPx, speedPxToAuthored, elevationCeiling, impactCeiling,
 } from "../types.ts";
 import { measureGapAxes } from "./measure.ts";
 
@@ -118,6 +118,18 @@ export function offBeatLandingEvents(det: Detection, contactFrames: number[]): D
   return det.events.filter((e) =>
     e.type === "landing" && !contactFrames.some((cf) => Math.abs(cf - e.frame) <= 1)
   );
+}
+
+/**
+ * The `landing` event that registers a contact at `targetFrame`: the first (in
+ * event order) within `tol` frames. This is the single definition of "the landing
+ * for this beat" — `buildDriftReport`'s contact match and `measureImpact` share it
+ * so the ±1 rule lives in one place. (The candidate gate in core/candidate.ts uses
+ * a related but distinct check — *any* such landing that also fired an owned line —
+ * and stays separate to avoid a measure↔candidate import cycle.)
+ */
+export function findLandingNearFrame(det: Detection, targetFrame: number, tol = 1): DetEvent | undefined {
+  return det.events.find((e) => e.type === "landing" && Math.abs(e.frame - targetFrame) <= tol);
 }
 
 export function addMissedContactRetryOwners(
@@ -388,6 +400,9 @@ export function validateSpec(spec: Spec): void {
     if (c.t < 0 || c.t > spec.duration) {
       throw new Error(`Contact.t (${c.t}) out of [0, ${spec.duration}]`);
     }
+    if (c.impact !== undefined && (!Number.isFinite(c.impact) || c.impact < 0 || c.impact > 1)) {
+      throw new Error(`Contact.impact (${c.impact}) at t=${c.t} out of [0, 1]`);
+    }
   }
   validateAxisCurves(spec);
   validateStartSpec(spec.start);
@@ -486,9 +501,7 @@ export function buildDriftReport(
 ): DriftReport {
   const contacts: ContactReport[] = spec.contacts.map((c) => {
     const target = secToFrame(c.t);
-    const matched = det.events.find(
-      (e) => e.type === "landing" && Math.abs(e.frame - target) <= 1,
-    );
+    const matched = findLandingNearFrame(det, target, 1);
     if (matched) {
       return { t_target: c.t, t_actual: matched.frame / FPS, frame_error: matched.frame - target, status: "hit" };
     }
@@ -525,6 +538,14 @@ export function buildDriftReport(
         const v0 = velocityAt(det, g.startFrame);
         const speed = v0 !== undefined ? Math.hypot(v0.x, v0.y) : 0;
         axes[name].ceiling = elevationCeiling(speed, g.endFrame - g.startFrame);
+      }
+      if (name === "impact") {
+        // Speed entering the landing bounds the catchable normal impact (you can't
+        // kill more normal velocity than you carry, and beyond a point the hit
+        // bounces). Use the speed at the contact frame as the entering speed.
+        const vEnd = velocityAt(det, g.endFrame);
+        const speed = vEnd !== undefined ? Math.hypot(vEnd.x, vEnd.y) : 0;
+        axes[name].ceiling = impactCeiling(speed);
       }
       if (name === "speed") {
         const targetRaw = authoredSpeedToPx(t);

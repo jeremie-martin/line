@@ -55,6 +55,27 @@ export type StartState = {
 export type Contact = {
   /** Seconds, must be in [0, duration]. */
   t: number;
+  /**
+   * Optional per-beat landing intensity, absolute [0, 1] — the authoring surface
+   * for *how hard* this landing should be. Defined as normalized **normal impact
+   * speed**: the rider's velocity component perpendicular to the surface it lands
+   * on, at contact (= the speed the surface kills / redirects; physically the
+   * impulse), divided by `CALIB.IMPACT_CAP`. 0 = a smooth tangent graze, 1 = the
+   * hardest catchable slam.
+   *
+   * Authored on the beat (NOT an axis): impact is an adjective on a discrete
+   * landing event, where the axes (air/speed/elevation/amplitude) are continuous
+   * fields over the span *between* beats. Internally it is resolved into the
+   * terminating gap's target bag so it reuses the per-gap axis measurement/report
+   * plumbing — a deliberate implementation detail (each contact gap ends in
+   * exactly one beat, so per-gap scalar ≡ per-beat value) that may change.
+   *
+   * v1 status: MEASURED + REPORTED only (target/achieved/error/ceiling in the
+   * drift report) — it does NOT yet fold into the contract score, and the
+   * compiler does not yet steer toward it. Steering (catch-line angle vs. the
+   * incoming velocity) and scoring arrive together in v2.
+   */
+  impact?: number;
 };
 
 /**
@@ -85,8 +106,17 @@ export type Curve = (t: number) => number | undefined;
  *                       landing chord (jump arc height / sagitta), normalized by
  *                       `CALIB.AMPLITUDE_CAP`, [0, 1]. Orthogonal to `air`:
  *                       `air` is how *long* aloft, `amplitude` is how *high*.
+ *   - `impact`        — landing intensity at a beat: the normal impact speed (the
+ *                       velocity component perpendicular to the landing surface,
+ *                       i.e. the speed the surface kills), normalized by
+ *                       `CALIB.IMPACT_CAP`, [0, 1]. NOT authored as a curve — it
+ *                       is a per-beat qualifier (`Contact.impact`) resolved into
+ *                       the terminating gap so it can reuse this per-gap plumbing.
+ *                       Measured + reported in v1; not yet scored or steered (see
+ *                       `Contact.impact`). In AXES (measured/reported) but kept out
+ *                       of `TARGET_AXES` — the same posture `grain` has.
  */
-export const AXES = ["air", "speed", "grain", "elevation", "amplitude"] as const;
+export const AXES = ["air", "speed", "grain", "elevation", "amplitude", "impact"] as const;
 export type AxisName = (typeof AXES)[number];
 
 /**
@@ -98,6 +128,18 @@ export const TARGET_AXES = ["air", "speed", "elevation", "amplitude"] as const s
 export type TargetAxisName = (typeof TARGET_AXES)[number];
 const TARGET_AXIS_SET: ReadonlySet<AxisName> = new Set<AxisName>(TARGET_AXES);
 
+/**
+ * Axes that are MEASURED and surfaced in the drift report but EXCLUDED from the
+ * scored `axis_quality` — currently `impact`, which is authored + reported in v1
+ * but not yet steerable, so a probe shouldn't lose contract score for an intensity
+ * it can't hit (see `Contact.impact`). `scoreDriftReport` filters these out of the
+ * `axis_error_*` aggregation. Promoting impact to the scored set in v2 is just
+ * removing it from here — the report-only boundary lives in one place, not as a
+ * string literal in the scorer.
+ */
+export const REPORT_ONLY_AXES = ["impact"] as const satisfies readonly AxisName[];
+export const REPORT_ONLY_AXIS_SET: ReadonlySet<string> = new Set<string>(REPORT_ONLY_AXES);
+
 /** Upper bound for each normalized authored target/sample value. */
 export const AXIS_VALUE_MAX = {
   air: 0.99,
@@ -105,6 +147,7 @@ export const AXIS_VALUE_MAX = {
   grain: 1,
   elevation: 1,
   amplitude: 1,
+  impact: 1,
 } as const satisfies Record<AxisName, number>;
 
 /** Axes whose achieved value can be measured over an arbitrary frame range. */
@@ -682,9 +725,48 @@ export function elevationCeiling(speedPx: number, frames: number): number {
   return netDyToElevation(dyAchievable, speedPx, frames);
 }
 
+/**
+ * Landing-impact model (absolute, speed-bounded). Impact is the rider's *normal
+ * impact speed* — the velocity component perpendicular to the surface it lands on,
+ * the speed the surface kills (physically ∝ the impulse). It is measured from the
+ * INCOMING velocity (not the velocity change: lr-core's collision is a soft spring
+ * that bleeds the normal component over several frames, so any Δv-at-contact reads
+ * gravity, not the landing). Normalized by `CALIB.IMPACT_CAP` → [0, 1].
+ *
+ * The achievable impact is bounded ABOVE by speed: you cannot kill more normal
+ * velocity than you carry, and beyond a point a hard hit reclassifies as a bounce
+ * (detector `K_BOUNCE_LANDING` regime) and fails the contact. `impactCeiling`
+ * reports that honest per-beat bound so a target above it reads as physics, not an
+ * optimizer miss. Both constants are PROVISIONAL — calibrate against a dedicated
+ * hard-landing probe (`specs/probe_impact.ts`) the way `AMPLITUDE_CAP`/grain were.
+ */
+export const IMPACT = {
+  /** Fraction of entering speed that is the maximum *catchable* normal impact:
+   *  beyond this the landing bounces and fails the contact. Provisional. */
+  CATCHABLE_NORMAL_FRACTION: 0.6,
+} as const;
+
+/**
+ * Maximum catchable normalized impact [0,1] at the given entering speed (px/frame).
+ * Report-only; never scored. `target > impactCeiling(speed)` ⇒ the shortfall is
+ * physics (too slow to slam, or the hit would bounce), not a compiler miss.
+ * Provisional model — calibrate against `probe_impact`.
+ */
+export function impactCeiling(speedPx: number): number {
+  const catchablePx = IMPACT.CATCHABLE_NORMAL_FRACTION * Math.max(0, speedPx);
+  return Math.max(0, Math.min(1, catchablePx / CALIB.IMPACT_CAP));
+}
+
 export const CALIB = {
   /** Divisor for `grain` axis. units. */
   LINE_LENGTH_CAP: 49,
+  /** Divisor for `impact` axis: normal impact speed (px/frame) that maps to a
+   *  normalized impact of 1.0. Provisional — calibrate against the achieved
+   *  envelope on `specs/probe_impact.ts`, the same way `AMPLITUDE_CAP` was set.
+   *  Empirically: smooth glides land at ~0 px/frame normal speed; big soaring
+   *  landings at high speed reach ~5 px/frame; beyond the catchable bound the
+   *  landing becomes a bounce and fails the contact. */
+  IMPACT_CAP: 5,
   /** Divisor for `amplitude` axis: peak upward chord-relative sagitta (px) that
    *  maps to a normalized amplitude of 1.0. Provisional — calibrate against the
    *  achieved envelope on a soaring-arc probe spec, the same way grain's cap was

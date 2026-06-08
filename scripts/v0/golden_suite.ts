@@ -225,6 +225,7 @@ export function applyVariant(base: Spec, variant: VariantName): Spec {
     const shifted: Spec = {
       ...spec,
       contacts: spec.contacts.map((contact) => ({
+        ...contact,
         t: Number((contact.t + 0.025).toFixed(3)),
       })),
     };
@@ -248,6 +249,7 @@ export function applyVariant(base: Spec, variant: VariantName): Spec {
       ...spec,
       duration: Number((spec.duration * factor).toFixed(3)),
       contacts: spec.contacts.map((contact) => ({
+        ...contact,
         t: Number((contact.t * factor).toFixed(3)),
       })),
       ...(spec.axes ? { axes: stretchedAxes } : {}),

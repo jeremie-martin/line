@@ -580,6 +580,29 @@ function compileHandoffInternal(
     for (const gap of gaps) {
       gap.targets = sampleGapTargets(gapAxisTargets[gap.index], spec.jitter ?? CALIB.SIGMA, masterRng);
     }
+    // Resolve the per-beat `impact` qualifier into the terminating gap's targets.
+    // impact is authored on the Contact (not a curve), so it bypasses effectiveAxes/
+    // sampleGapTargets entirely and is written here, AFTER all sampleGapTargets RNG
+    // draws — so it consumes NO rng and the candidate geometry stays byte-identical.
+    // It's NOT in TARGET_AXES (v1), so axisCost/search ignore it; it rides the
+    // per-gap report plumbing (buildDriftReport reads gapAxisTargets[idx]) to surface
+    // target/achieved/error/ceiling, report-only until steering lands (v2).
+    // validateSpec (above) already guaranteed any authored impact is in [0,1], so
+    // no re-clamp here. Last-write-wins if two contacts round to the same frame
+    // (sub-frame-spaced beats); harmless for the report-only v1 read.
+    const impactByFrame = new Map<number, number>();
+    for (const c of spec.contacts) {
+      if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);
+    }
+    if (impactByFrame.size > 0) {
+      for (const gap of gaps) {
+        if (!gap.endsWithContact) continue;
+        const impact = impactByFrame.get(gap.endFrame);
+        if (impact === undefined) continue;
+        gap.targets.impact = impact;
+        gapAxisTargets[gap.index].impact = impact;
+      }
+    }
 
     const ctx: SpecContext = { allContactFrames, durationFrames };
     setForwardEvalContext(spec, gapAxisTargets);

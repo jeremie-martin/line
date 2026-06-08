@@ -25,7 +25,8 @@ import {
 } from "../types.ts";
 import { netDyToElevation } from "../types.ts";
 import {
-  airborneAt, meanSpeedPxOverRange, measurementLastFrame, median, velocityAt,
+  airborneAt, contactLineIdsAt, findLandingNearFrame, meanSpeedPxOverRange,
+  measurementLastFrame, median, velocityAt,
 } from "./substrate.ts";
 
 /** Everything a per-gap reduction may need. Each reduction uses the subset it cares about. */
@@ -127,6 +128,66 @@ const measureAmplitude: AxisReduction = ({ det, gap, rangeEndFrame }) => {
   return Math.min(1, peak / CALIB.AMPLITUDE_CAP);
 };
 
+/**
+ * Landing intensity at the gap's terminating beat: the **normal impact speed** —
+ * the magnitude of the rider's velocity component perpendicular to the surface it
+ * lands on, at contact (= the speed the surface kills/redirects; physically the
+ * impulse) — normalized by `CALIB.IMPACT_CAP`. See `Contact.impact` and the
+ * `IMPACT` block in types.ts for the semantics.
+ *
+ * GATED on `gap.targets.impact`: impact is authored per-beat and report-only in v1,
+ * so it's worth measuring ONLY where a beat actually requested it. This keeps the
+ * reduction zero-cost on every impact-free spec (the common case) — unlike the
+ * cheap span-mean axes, this one scans events + line geometry per candidate, so it
+ * would otherwise be pure waste in the search hot path.
+ *
+ * Measured from the INCOMING velocity, not the velocity change: lr-core's collision
+ * is a soft spring that bleeds the normal component over several frames, so a
+ * Δv-at-contact reads gravity, not the landing. We take the velocity one frame
+ * BEFORE the landing (the speed the surface is about to kill), and the surface
+ * tangent from the PLACED catch line (exact and in-window, vs. a fragile post-
+ * contact velocity-settle direction):
+ *   1. find the landing event for this beat (`findLandingNearFrame`, the shared ±1
+ *      rule `buildDriftReport`'s contact match also uses);
+ *   2. intersect that frame's `contactLineIds` with this gap's placed lines to
+ *      identify the landing surface, and average their unit tangents (robust to a
+ *      multi-segment catch — the candidate gate guarantees ≥1 owned line fired);
+ *   3. project the pre-impact velocity onto the surface normal.
+ * Any missing piece (no target, no landing, no usable fired-line geometry, no
+ * velocity) ⇒ `undefined`, the same "not defined for this gap" convention every
+ * reduction uses. Velocity-only, allocation-light.
+ */
+const measureImpact: AxisReduction = ({ det, gap, gapLines }) => {
+  if (gap.targets.impact === undefined || gapLines.length === 0) return undefined;
+
+  const landing = findLandingNearFrame(det, gap.endFrame);
+  if (landing === undefined) return undefined;
+
+  // Surface tangent from the placed catch line(s) the sled fired at the landing.
+  const owned = new Set(gapLines.map((l) => l.id));
+  const firedOwned = new Set(contactLineIdsAt(det, landing.frame).filter((id) => owned.has(id)));
+  let tx = 0, ty = 0;
+  for (const line of gapLines) {
+    if (!firedOwned.has(line.id)) continue;
+    const dx = line.x2 - line.x1, dy = line.y2 - line.y1;
+    const len = Math.hypot(dx, dy);
+    if (len > 1e-9) { tx += dx / len; ty += dy / len; }
+  }
+  const tlen = Math.hypot(tx, ty);
+  if (tlen <= 1e-9) return undefined; // no usable fired-line geometry — don't guess
+  tx /= tlen; ty /= tlen;
+
+  // Pre-impact velocity (frame before the landing); fall back to the landing frame
+  // only if that's out of range.
+  const vIn = velocityAt(det, landing.frame - 1) ?? velocityAt(det, landing.frame);
+  if (vIn === undefined) return undefined;
+
+  // Component of vIn perpendicular to the surface tangent = |v × t̂| = the speed
+  // the surface kills. n̂ = (-t̂.y, t̂.x); |v · n̂| = |t̂.x·v.y − t̂.y·v.x|.
+  const normalPx = Math.abs(tx * vIn.y - ty * vIn.x);
+  return Math.min(1, normalPx / CALIB.IMPACT_CAP);
+};
+
 /** The reduction for each axis. Add a new axis = add one entry. */
 export const AXIS_MEASURE: Record<AxisName, AxisReduction> = {
   air: measureAir,
@@ -134,6 +195,7 @@ export const AXIS_MEASURE: Record<AxisName, AxisReduction> = {
   grain: measureGrain,
   elevation: measureElevation,
   amplitude: measureAmplitude,
+  impact: measureImpact,
 };
 
 /**

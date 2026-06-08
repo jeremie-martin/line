@@ -55,6 +55,48 @@ Set **`jitter: 0`** when the curves carry the variation (the curve specs do).
   plunge and blows speed up (axis error). **Cannot be paired with `elevation`**
   (both write the launch angle).
 
+## Per-beat: `impact` (landing intensity)
+
+`impact` is NOT an axis — it's a qualifier on a *beat*, authored on the `Contact`
+(`{ t, impact? }`), absolute [0,1]. It is the **normal impact speed**: the rider's
+velocity component perpendicular to the surface it lands on, the speed the surface
+kills (physically the impulse), normalized by `CALIB.IMPACT_CAP`. 0 = a smooth
+tangent graze, 1 = the hardest catchable slam. It is *absolute* (so you can author
+an all-soft or all-hard track) and *speed-bounded* — a slow rider can't land hard,
+and beyond the catchable bound a hit bounces; the per-gap `ceiling` in the report
+(`impactCeiling`) is the honest "hardest possible here", so `target > ceiling` is
+physics, not a compiler miss.
+
+**v1 status: report-only.** impact appears in the drift report (target/achieved/
+error/ceiling) and the compiler does not yet steer toward it (steering = the
+catch-line angle vs. the incoming velocity), so it does NOT change the contract
+score yet. Use it to *measure* landing character now; authored targets become
+steered + scored in v2.
+
+Author it with the helpers in `core/beats.ts` (co-author timing + impact in one
+file, no external JSON, no duplicated timing):
+
+```ts
+import { beats, withImpact } from "../core/beats.ts";
+
+// Fine per-beat control — each landing hand-tuned:
+const contacts = beats([
+  { t: 0.75, impact: 0.1 },   // soft
+  { t: 1.25, impact: 0.1 },
+  { t: 1.75, impact: 0.9 },   // the one hard hit
+  { t: 2.25 },                // no target → untargeted, like a plain { t }
+]);
+
+// Or decorate loaded onsets BY RULE (timing stays single-sourced):
+const contacts = withImpact(
+  raw.onsets.map((o) => ({ t: o.t })),
+  (t) => (t < 38 ? 0.15 : t < 58 ? 0.6 : 0.3),   // soft verse, hard chorus, ease-out
+);
+```
+
+Calibrate `CALIB.IMPACT_CAP` against `specs/probe_impact.ts` (the achieved-envelope
+workflow used for `amplitude`/`grain`); inspect with `scripts/v0/study_landing_intensity.ts`.
+
 ## Key levers / lessons
 
 - **Contact density is the main interestingness lever.** A uniform grid rides as

@@ -6,7 +6,7 @@ Procedurally generate Line Rider tracks synchronized to music.
 
 - **Beat sync.** The rider's visible ground contacts align with musical beats within ±1 frame (±25 ms at 40 fps). Sync is the central artistic property — getting it wrong wrecks the entire purpose.
 - **Visual variety.** Tracks are interesting to watch — varied geometry, varied motion. Not 60 copies of the same primitive back-to-back. Repeated identical shapes are visually boring even when sync is perfect.
-- **Creative control.** The user (or eventually a music-analysis script) expresses artistic intent at a meaningful authoring level — not by hand-placing lines, not by tuning fitness functions. The vocabulary should match how a human thinks about music-driven motion.
+- **Creative control.** The user (or eventually a music-analysis script) expresses artistic intent at a meaningful authoring level — not by hand-placing lines, not by tuning fitness functions. The vocabulary should match how a human thinks about music-driven motion. Two kinds of intent: **axes** are continuous fields over the ride *between* beats (`air`, `speed`, `elevation`, `amplitude`); **beat qualifiers** are properties *of* a landing — currently `impact` (landing intensity = the normal impact speed the surface kills, absolute [0,1], authored per-beat on the `Contact`). Impact is measured + reported today; compiler steering toward an authored impact is the next step.
 - **Procedural.** The system produces many tracks from many specs; tracks should differ even when specs are similar, because the goal is to generate lots of cool videos, not a single perfect one.
 
 ## Substrate available

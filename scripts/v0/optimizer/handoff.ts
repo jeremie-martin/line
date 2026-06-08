@@ -186,6 +186,7 @@ type StartOption = {
 type StartSeed = {
   start: NonNullable<Spec["start"]>;
   startLines: TrackLine[];
+  supportDelayFrames?: number;
 };
 
 type HandoffTelemetry = {
@@ -389,6 +390,13 @@ const START_SUPPORT_LOW_AIR_MAX = 0.35;
 const START_SUPPORT_RELEASE_MARGIN_FRAMES = K_BOUNCE_LANDING + 2;
 const START_SUPPORT_MIN_RUNUP_FRAMES = K_BOUNCE_LANDING + 3;
 const START_SUPPORT_LINE_Y = 5;
+const START_SUPPORT_LOW_AIR_X_DELAY_FRAMES = [0, 1, 2] as const;
+const START_SUPPORT_X_DELAY_AIR_MAX = 0.40;
+const START_SUPPORT_X_DELAY_FIRST_GAP_START_FRAMES = 20;
+const START_SUPPORT_X_DELAY_FIRST_GAP_SPAN_FRAMES = 10;
+const START_SUPPORT_X_DELAY_BUDGET_START_FRAMES = 50_000;
+const START_SUPPORT_X_DELAY_BUDGET_SPAN_FRAMES = 50_000;
+const START_SUPPORT_DELAY_ROBUST_BRANCH = 2;
 const START_SUPPORT_LINE_BACKTRACK_PX = 80;
 const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
@@ -3132,7 +3140,7 @@ function buildStartOptions(
     Math.floor(START_BALLISTIC_SCORING_POOL * ballisticStartBudgetPressure(targetBudget)),
   );
   const baseStartPool = Math.max(0, START_SCORING_POOL - 1 - ballisticStartPool);
-  const supportStarts = startupSupportStartSeeds(firstContactAxes, firstGap);
+  const supportStarts = startupSupportStartSeeds(firstContactAxes, firstGap, targetBudget);
   const [first, ...rest] = [
     startSeed(defaultSpecStart),
     ...orderedBaseStarts.slice(0, baseStartPool).map((start) => startSeed(start)),
@@ -3180,7 +3188,7 @@ function buildStartOptions(
         originalRank,
         // Forward score is higher=better; negate so lower=better matches the proxy's ordering.
         score: startCfg !== null
-          ? -startForwardScore(root, gaps, ctx, seed, startCfg)
+          ? -startSeedForwardScore(candidate, root, gaps, ctx, seed, startCfg, targetBudget)
           : startFeasibilityCost(root, candidate.start, axes, gaps, ctx, seed),
       };
     })
@@ -3204,16 +3212,19 @@ function buildStartOptions(
 function startSeed(
   start: NonNullable<Spec["start"]>,
   startLines: TrackLine[] = [],
+  meta: Pick<StartSeed, "supportDelayFrames"> = {},
 ): StartSeed {
   return {
     start,
     startLines: cloneTrackLines(startLines),
+    ...meta,
   };
 }
 
 function startupSupportStartSeeds(
   firstContactAxes: AxisValues | null,
   firstGap: Gap | null,
+  targetBudget: number,
 ): StartSeed[] {
   if (firstGap === null || firstContactAxes === null) return [];
   const air = firstContactAxes.air;
@@ -3231,7 +3242,8 @@ function startupSupportStartSeeds(
   const speeds = uniqueRounded(offsets.map((offset) => targetSpeed + offset))
     .filter((speed) => speed > 0 && speed <= START_DEFAULTS.VELOCITY_SANITY_CAP);
 
-  return speeds.map((vx) => {
+  const xDelayFrames = startupSupportXDelayFrames(air, firstGap.endFrame, targetBudget);
+  return speeds.flatMap((vx) => xDelayFrames.map((delayFrames) => {
     const x2 = round3(Math.max(20, vx * releaseFrame));
     const line = makeSolidLine(
       1,
@@ -3240,8 +3252,101 @@ function startupSupportStartSeeds(
       x2,
       START_SUPPORT_LINE_Y,
     );
-    return startSeed({ vx: round3(vx), vy: 0 }, [line]);
-  });
+    const x = round3(-vx * delayFrames);
+    return startSeed(
+      { ...(x === 0 ? {} : { x }), vx: round3(vx), vy: 0 },
+      [line],
+      { supportDelayFrames: delayFrames },
+    );
+  }));
+}
+
+function startupSupportXDelayFrames(
+  air: number,
+  firstGapEndFrame: number,
+  targetBudget: number,
+): readonly number[] {
+  if (air > START_SUPPORT_X_DELAY_AIR_MAX) return [0];
+  const airPressure = air <= START_SUPPORT_LOW_AIR_MAX
+    ? 1
+    : smoothstep(
+      (START_SUPPORT_X_DELAY_AIR_MAX - air) /
+        (START_SUPPORT_X_DELAY_AIR_MAX - START_SUPPORT_LOW_AIR_MAX),
+    );
+  const durationPressure = smoothstep(
+    (firstGapEndFrame - START_SUPPORT_X_DELAY_FIRST_GAP_START_FRAMES) /
+      START_SUPPORT_X_DELAY_FIRST_GAP_SPAN_FRAMES,
+  );
+  const budgetPressure = startupSupportXDelayBudgetPressure(targetBudget);
+  const pressure = airPressure * durationPressure * budgetPressure;
+  const maxDelay = clampIntLocal(
+    (START_SUPPORT_LOW_AIR_X_DELAY_FRAMES.length - 1) * pressure,
+    0,
+    START_SUPPORT_LOW_AIR_X_DELAY_FRAMES.length - 1,
+  );
+  return START_SUPPORT_LOW_AIR_X_DELAY_FRAMES.slice(0, maxDelay + 1);
+}
+
+function startupSupportXDelayBudgetPressure(targetBudget: number): number {
+  return smoothstep(
+    (Math.max(0, targetBudget) - START_SUPPORT_X_DELAY_BUDGET_START_FRAMES) /
+      START_SUPPORT_X_DELAY_BUDGET_SPAN_FRAMES,
+  );
+}
+
+function startSeedForwardScore(
+  seed: StartSeed,
+  root: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  searchSeed: number,
+  cfg: ForwardEvalConfig,
+  targetBudget: number,
+): number {
+  const baseScore = startForwardScore(root, gaps, ctx, searchSeed, cfg);
+  if (
+    (seed.supportDelayFrames ?? 0) <= 0 ||
+    cfg.variant !== "greedy" ||
+    cfg.depth !== 2 ||
+    cfg.branch !== 1
+  ) {
+    return baseScore;
+  }
+  const pressure = startupSupportXDelayBudgetPressure(targetBudget);
+  if (pressure <= 0) return baseScore;
+  const robustScore = startSupportDelayRobustScore(
+    root,
+    gaps,
+    ctx,
+    searchSeed,
+    START_SUPPORT_DELAY_ROBUST_BRANCH,
+  );
+  return baseScore * (1 - pressure) + robustScore * pressure;
+}
+
+function startSupportDelayRobustScore(
+  root: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  branch: number,
+): number {
+  const at = advanceToNextContact(root, gaps);
+  if (at === null) return forwardNodeScore(root, gaps, ctx);
+  const candidates = getCandidatesSorted(at, gaps, ctx, seed, branch);
+  if (candidates.length === 0) return forwardNodeScore(root, gaps, ctx);
+  let sum = 0;
+  for (const candidate of candidates) {
+    sum += forwardRolloutScore(
+      extendNodeCached(at, candidate),
+      gaps,
+      ctx,
+      seed,
+      1,
+      1,
+    );
+  }
+  return sum / candidates.length;
 }
 
 function makeStartRoot(

@@ -3557,3 +3557,442 @@ only changes that print `VERDICT: ACCEPT`.
   spec-name branch.
 - Status: kept; accepted by canonical decision gate. New baseline for
   subsequent attempts is `start-support-runup-min-01`.
+
+## probe-start-support-elevation-slope-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: high-air first gaps with an explicit elevation target may need a
+  supported run-in that releases with upward slope, not only the accepted flat
+  support line. Let the start evaluator choose a new elevation-shaped support
+  primitive rather than biasing existing start ranks.
+- Code changes made: temporarily added sloped startup support line variants in
+  `scripts/v0/optimizer/handoff.ts` when first-gap `elevation` was above a
+  smooth threshold. Flat support kept the accepted `K_BOUNCE_LANDING + 3`
+  minimum run-up; sloped support could enter at the existing release-margin
+  floor so borderline climb openings such as `skyline_push` could be evaluated.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=skyline_push,soar_settle,glide_stairs,switchback_pop,syncopated_lift,canyon_steps,rolling_drop,swoop_dive,climb_terrace,mixed_grade,summit_push,rolling_hills,terrace_sprint,dense_echo_climb,ridge_pulse,valley_bounce,float_bounds,pop_train,leap_cadence,opening_burst,drums_pendulum --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-elevation-slope-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `21` spec intersection; headline `656.3 -> 655.5`, `Delta=-0.8`,
+  95% CI `[-4.4, 1.4]`, `P(Delta<=0)=65.5%`. Per-budget deltas were
+  `50k -1.0`, `100k -1.1`, `200k -0.7`, and `300k -0.7`.
+- Notable regressions at `300k`: `rolling_drop` seed `8` `-70.97`, seed `6`
+  `-69.21`, seed `4` `-56.94`, seed `5` `-55.84`, seed `2` `-48.09`, seed
+  `11` `-40.27`, and `glide_stairs` seed `11` `-14.01`.
+- Notable improvements at `300k`: `glide_stairs` seed `0` `+58.86`,
+  `rolling_drop` seed `9` `+29.65`, and several `switchback_pop` seeds gained
+  around `+11` to `+23`.
+- Diagnostics: the new primitive did not move `skyline_push`, which kept its
+  no-support high-air start. Where sloped support was selected, it churned
+  medium-air elevation rows and caused large `rolling_drop` regressions. The
+  accepted flat support appears to be the safer start primitive; climb should
+  likely be handled in per-gap launch/continuation quality, not startup slope.
+- Status: reverted; no canonical run and no commit.
+
+## probe-start-best-lookahead-ramp-02
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: initial-condition selection may be too brittle because the default
+  start evaluator is a single greedy rollout. Use the same represented start
+  candidates, but smoothly ramp the default start scorer from greedy `2`-contact
+  lookahead at scarce budget to best-of-two `2`-contact lookahead by `100k`, so
+  mature budgets can choose starts whose first prefix has a better reachable
+  branch without changing geometry or the scorer.
+- Code changes made: temporarily added a budget-aware default start scorer in
+  `scripts/v0/optimizer/handoff.ts`, preserving explicit `LR_START_EVAL`
+  overrides and keeping `50k` byte-identical. A first implementation
+  accidentally evaluated both greedy and best paths at full pressure and was
+  superseded by `probe-start-best-lookahead-ramp-02`, which ran only the
+  best-of-two path at `100k+`.
+- Focused golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,skyline_push,switchback_pop,syncopated_lift,canyon_steps,terrace_sprint,rhythm_ladder,valley_bounce,float_bounds,leap_cadence,pop_train,rolling_drop,opening_burst,dense_echo_climb --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-best-lookahead-ramp-02`
+- Focused decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `619.6 -> 623.8`, `Delta=+4.2`, 95% CI `[-0.9, 18.2]`,
+  `P(Delta<=0)=16.8%`. Per-budget deltas were `50k +0.0`, `100k +19.1`,
+  `200k +1.4`, and `300k +1.7`; validity stayed unchanged.
+- Canonical golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/start-best-lookahead-ramp-01`
+- Canonical decide result: `VERDICT: INCONCLUSIVE`; headline
+  `687.9 -> 689.3`, `Delta=+1.5`, 95% CI `[-1.0, 7.4]`,
+  `P(Delta<=0)=26.1%`. Per-budget deltas were `50k +0.0`, `100k +6.1`,
+  `200k +0.4`, and `300k +0.8`; validity stayed `96% -> 96%` at `50k`
+  and `100% -> 100%` for `100k+`.
+- Notable improvements: canonical weighted gains on `rhythm_ladder +9.47`,
+  `solo_run +8.02`, `rolling_drop +5.85`, `opening_burst +3.18`,
+  `dense_sprint +3.13`, and `drums_pendulum +2.32`. Largest `300k` row wins
+  included `rhythm_ladder` seed `8` `+135.10`, `solo_run` seed `4` `+87.40`,
+  `rolling_drop` seed `1` `+69.12`, `rolling_drop` seed `9` `+68.02`, and
+  `opening_burst` seed `1` `+57.71`.
+- Notable regressions: canonical weighted losses on `drums_crescendo -3.99`,
+  `soar_settle -2.30`, `leap_cadence -1.80`, `mini_burst -1.74`,
+  `pop_train -1.60`, and `big_air_ramp -1.48`. The largest `100k` loss was
+  `drums_crescendo` seed `3` `-398.8`; high-budget losses were smaller but
+  still broad enough to keep the canonical decision inconclusive.
+- Diagnostics: this is a real initial-condition signal and validates the user's
+  point that the beginning can be treated differently: robust start lookahead
+  changes selected start basins and can rescue rows. The problem is that a broad
+  best-of-two default also churns already-good starts, especially around `100k`.
+  A future version would need a more local eligibility signal than budget alone
+  before this can be promoted.
+- Status: reverted after canonical decide; no commit.
+
+## probe-start-best-nonvertical-ramp-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: the broad best-of-two start scorer was net positive on first gaps
+  governed by air/speed and net negative on first gaps already targeting
+  elevation or amplitude. Reuse the same mature start-ranker idea, but gate it
+  off when the first contact has a vertical-drama axis, matching the earlier
+  accepted ballistic-start lesson.
+- Code changes made: temporarily restored the budget-ramped best-of-two start
+  scorer in `scripts/v0/optimizer/handoff.ts`, preserving explicit
+  `LR_START_EVAL` overrides and keeping `50k` byte-identical, but only applying
+  the mature scorer when the resolved first-contact axes had no `elevation` or
+  `amplitude` target.
+- Focused golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_signature,drums_pendulum,drums_crescendo,dense_sprint,syncopated_switchback,opening_burst,grain_staircase,rhythm_ladder,cold_start,mini_burst,tiny_dance,solo_run,verse_chorus,drums_swell,drums_crosscut,drums_tide,drums_dropout,drums_breath,drums_pulse,drums_zigzag --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-best-nonvertical-ramp-01`
+- Focused decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `704.6 -> 707.7`, `Delta=+3.2`, 95% CI `[-1.5, 14.7]`,
+  `P(Delta<=0)=21.7%`. Per-budget deltas were `50k +0.0`, `100k +15.1`,
+  `200k +0.8`, and `300k +1.3`.
+- Canonical golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/start-best-nonvertical-ramp-01`
+- Canonical decide result: `VERDICT: INCONCLUSIVE`; headline
+  `687.9 -> 689.4`, `Delta=+1.5`, 95% CI `[-0.8, 7.5]`,
+  `P(Delta<=0)=22.3%`. Per-budget deltas were `50k +0.0`, `100k +7.3`,
+  `200k +0.4`, and `300k +0.6`; validity stayed unchanged.
+- Notable improvements/regressions: the point estimate improved slightly over
+  the broad version by removing some vertical-target losses, but the effect
+  remained driven by noisy `100k` start-basin flips. Non-vertical wins such as
+  `rhythm_ladder`, `solo_run`, `opening_burst`, and `dense_sprint` remained,
+  while non-vertical drum losses, especially `drums_crescendo`, kept the
+  cluster decision inconclusive.
+- Diagnostics: the vertical gate is directionally sensible, but the start-ranker
+  lever is still too broad. It changes the root basin, not just the first arc,
+  so one-row rescues come with paired losses. Future beginning work should
+  probably add or validate a specific start primitive rather than changing the
+  global start scoring metric.
+- Status: reverted after canonical decide; no commit.
+
+## probe-quality28-current-lowair-slice-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: the current accepted baseline may have enough completion/repair
+  headroom to revisit wider quality candidate sampling specifically around the
+  low-air and vertical rows that still dominate the worst scores.
+- Code changes made: none; used the existing environment override
+  `LR_QUALITY_NCAND=28`.
+- Golden command: `LR_ENGINE=wasm LR_QUALITY_NCAND=28 npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,dense_sprint,drums_signature,drums_swell,drums_tide,drums_breath,drums_crosscut,drums_dropout,grain_staircase,opening_burst,solo_run,mini_burst,skyline_push,terrace_sprint,canyon_steps,switchback_pop,syncopated_lift,rolling_drop --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-quality28-current-lowair-slice-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `673.4 -> 675.0`, `Delta=+1.6`, 95% CI `[-1.3, 4.2]`,
+  `P(Delta<=0)=12.9%`. Per-budget deltas were `100k -0.4`, `200k +1.7`,
+  and `300k +2.1`; validity was unchanged.
+- Notable improvements: weighted wins on `grain_staircase +6.91`,
+  `canyon_steps +6.77`, `drums_swell +6.01`, `terrace_sprint +5.84`,
+  `opening_burst +4.94`, `dense_sprint +3.90`, `drums_dropout +3.52`,
+  `skyline_push +3.09`, `switchback_pop +2.49`, and
+  `syncopated_lift +2.28`.
+- Notable regressions: weighted losses on `drums_tide -5.17`,
+  `rhythm_ladder -4.48`, `drums_crescendo -4.23`, `solo_run -3.61`,
+  `drums_pendulum -0.82`, and `mini_burst -0.74`.
+- Diagnostics: wider quality sampling still has high-budget upside, but the
+  signal is not concentrated in low-air rows; it actually loses the main
+  `drums_pendulum`/`drums_crescendo` targets. The mechanism remains a broad
+  throughput/quality tradeoff rather than a clean low-air fix.
+- Status: not kept; environment-only diagnostic, no code change and no commit.
+
+## probe-start-support-lowair-margin-02
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: the accepted startup support release margin enforces a roughly
+  seven-frame airborne tail before the first contact. For very low first-gap
+  air targets, especially `drums_pendulum`, letting support release about one
+  frame later may reduce the systematic first-gap air overshoot without
+  changing ordinary per-gap placement.
+- Code changes made: temporarily changed `scripts/v0/optimizer/handoff.ts` so
+  startup support used a smooth low-air release margin from
+  `K_BOUNCE_LANDING + 2` toward `K_BOUNCE_LANDING + 1`. A first run
+  `probe-start-support-lowair-margin-01` failed before simulation due to a
+  missing local interpolation helper (`ReferenceError: lerp is not defined`);
+  no decision was taken from that broken archive.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed after replacing the helper with explicit arithmetic.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,dense_sprint,syncopated_switchback,valley_bounce,rolling_drop,glide_stairs,solo_run,skyline_push,syncopated_lift,terrace_sprint,canyon_steps --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-lowair-margin-02`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `600.8 -> 597.9`, `Delta=-2.9`, 95% CI `[-29.5, 18.3]`,
+  `P(Delta<=0)=62.4%`. Per-budget deltas were `50k +32.4`,
+  `100k -28.3`, `200k -2.4`, and `300k -0.6`; validity moved
+  `96% -> 90%` at `50k` and `100% -> 99%` at `100k`.
+- Notable improvements: the intended target moved on some rows, including
+  `drums_pendulum` seed `11` at `300k` `+57.7`, seed `3` `+39.5`, seed `1`
+  `+31.0`, and `drums_crescendo` seed `5` `+69.2`.
+- Notable regressions: comparable low-air rows moved the other way, including
+  `drums_pendulum` seeds `10/9/6` at `300k` `-67.6`/`-52.8`/`-50.8` and
+  `drums_crescendo` seeds `3/7/11` `-47.0`/`-40.1`/`-38.4`.
+- Diagnostics: tightening the release margin exposes a real first-gap basin,
+  but the mature-budget row flips cancel out. The detector/persistence boundary
+  is too sharp for this to be a robust global startup primitive.
+- Status: reverted after indicative decide; no canonical run and no commit.
+
+## probe-start-support-lowair-margin-fade-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: the tighter low-air support release is useful only as a scarce
+  budget completion shortcut. Fade the one-frame tighter margin out smoothly
+  from `50k` to `100k` so mature budgets remain byte-identical to the accepted
+  baseline.
+- Code changes made: temporarily passed the compile budget into
+  `startupSupportStartSeeds(...)` and multiplied the low-air release-margin
+  pressure by a smooth low-budget pressure that is full at `50k` and zero by
+  `100k`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,dense_sprint,syncopated_switchback,valley_bounce,rolling_drop,glide_stairs,solo_run,skyline_push,syncopated_lift,terrace_sprint,canyon_steps --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-lowair-margin-fade-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `600.8 -> 603.3`, `Delta=+2.5`, 95% CI `[-2.3, 8.9]`,
+  `P(Delta<=0)=27.0%`. Per-budget deltas were `50k +32.4` and exact
+  `0.0` at `100k`, `200k`, and `300k` on the focused intersection.
+  Validity still moved `96% -> 90%` at `50k`.
+- Diagnostics: the fade successfully isolates the behavior to scarce budgets,
+  but the canonical weight of `50k` is small and the focused decision is not
+  strong. Since it also lowers low-budget validity, this is not worth a
+  canonical run.
+- Status: reverted after indicative decide; no canonical run and no commit.
+
+## probe-start-support-speed-fade-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: startup support uses three release-speed offsets only for low-air
+  first gaps, while medium-air support has exactly one speed. Continue the same
+  represented support-speed family smoothly into medium air, collapsing back to
+  one speed by high air, so the start evaluator can choose a better prefix
+  state without changing per-gap geometry or scoring.
+- Code changes made: temporarily replaced the hard low-air offset gate in
+  `startupSupportStartSeeds(...)` with `startupSupportSpeedOffsets(air)`, using
+  a smooth pressure from `air <= 0.35` to zero over `0.27` authored-air units.
+  At low air this preserved the existing `[-0.75, 0, 1.25]` offsets; at high
+  air the offsets collapsed to duplicate `0` and were deduplicated.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,syncopated_lift,switchback_pop,terrace_sprint,canyon_steps,valley_bounce,rolling_drop,glide_stairs,dense_echo_climb,ridge_pulse,skyline_push,float_bounds,leap_cadence,big_air_ramp,pop_train,mini_burst,grain_staircase,swoop_dive --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-speed-fade-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `647.0 -> 647.5`, `Delta=+0.5`, 95% CI `[-1.5, 2.4]`,
+  `P(Delta<=0)=29.5%`. Per-budget deltas were `50k -1.1`,
+  `100k +1.6`, `200k +0.2`, and `300k +0.6`; validity moved
+  `96% -> 95%` at `50k` and stayed `100% -> 100%` at higher budgets.
+- Diagnostics: this is a coherent prefix-representation signal, but too small
+  and too broad to promote. It confirms medium-air support speed alternatives
+  can move selected basins without the severe churn of start-ranker changes,
+  but the effect would dilute heavily on the full canonical board.
+- Status: reverted after indicative decide; no canonical run and no commit.
+
+## probe-opening-startup-extra-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: the beginning should be treated as a small prefix-planning region,
+  not only as initial velocity/support-line selection. Reuse the existing
+  `startup_catch` geometry family as an extra first-contact candidate stream so
+  the opening can choose a materially different catch primitive even when the
+  normal first-contact pool is non-empty.
+- Code changes made: temporarily added an opening-only startup candidate stream
+  in `scripts/v0/optimizer/handoff.ts`. The candidates were generated only at
+  the first contact node, added as `source="startup"`, scored through the
+  normal preview/forward-eval path, and budget-scaled smoothly.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,dense_sprint,syncopated_switchback,valley_bounce,rolling_drop,glide_stairs,solo_run,skyline_push,syncopated_lift,terrace_sprint,canyon_steps,switchback_pop,dense_echo_climb,ridge_pulse,float_bounds,leap_cadence,pop_train,opening_burst,grain_staircase,drums_signature,drums_swell,drums_tide,drums_breath,drums_crosscut,drums_dropout --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-opening-startup-extra-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `652.8 -> 652.4`, `Delta=-0.4`, 95% CI `[-4.8, 3.2]`,
+  `P(Delta<=0)=59.8%`. Per-budget deltas were `50k +7.3`,
+  `100k -2.3`, `200k -0.7`, and `300k -0.9`; validity moved
+  `96% -> 95%` at `50k` and was unchanged at higher budgets.
+- Diagnostics: startup-source selections were rare, but the extra first-contact
+  sampling still changed branch order and budget allocation. It improved some
+  rows (`rhythm_ladder`, `solo_run`, `drums_crosscut`) but regressed
+  `drums_signature`, `drums_crescendo`, `dense_sprint`, and `grain_staircase`.
+  This confirms the opening-prefix idea can move basins, but competing inside
+  the first-contact candidate ranker is too broad and too expensive.
+- Status: refined by `probe-opening-startup-weakpool-01`, then reverted; no
+  canonical run and no commit.
+
+## probe-opening-startup-weakpool-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: the broad opening startup stream was spending work on already-good
+  first-contact pools. Gate it with a smooth pressure from the normal pool's
+  best local cost so startup candidates only compete when the ordinary opening
+  catch is visibly weak.
+- Code changes made: temporarily multiplied the opening startup candidate count
+  by `smoothstep((bestPoolCost - 0.06) / 0.12)`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_signature,drums_crescendo,dense_sprint,grain_staircase,drums_pendulum,rhythm_ladder,solo_run,drums_crosscut,drums_tide,opening_burst,skyline_push,switchback_pop,syncopated_lift,terrace_sprint,canyon_steps --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-opening-startup-weakpool-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `626.4 -> 626.4`, `Delta=-0.0`, 95% CI `[-0.6, 0.5]`,
+  `P(Delta<=0)=66.3%`. Per-budget deltas were `50k -0.4`,
+  `100k +0.1`, `200k -0.1`, and `300k -0.0`; validity moved
+  `96% -> 90%` at `50k` and `100% -> 99%` at `100k`.
+- Diagnostics: the weak-pool gate eliminated most high-budget churn, but also
+  collapsed the upside. Startup selections remained sparse (`14` selected
+  startup entries across the focused run), and low-budget validity got worse.
+  The mechanism is not worth a canonical run. Next beginning work should use
+  initial-state/support-prefix representation directly rather than adding more
+  first-contact candidate competition.
+- Status: reverted after indicative decide; no canonical run and no commit.
+
+## probe-start-support-y-variants-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: the accepted flat startup support line may still be too rigid:
+  keeping the run-up/release logic but adding a few flat height variants could
+  let the start evaluator choose a better first-beat release state without the
+  instability of the rejected sloped support.
+- Code changes made: temporarily changed `startupSupportStartSeeds(...)` in
+  `scripts/v0/optimizer/handoff.ts` to emit support-line `y` variants
+  `[5, 1, 9]` for every support speed.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,cold_start,tiny_dance,mini_burst,solo_run,leap_cadence,float_bounds,pop_train,skyline_push,terrace_sprint,canyon_steps,valley_bounce,switchback_pop,syncopated_lift,rolling_drop,glide_stairs,dense_echo_climb,opening_burst,drums_signature,drums_tide --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-y-variants-01`
+- Decide result: indicative `VERDICT: REJECT`; headline
+  `658.6 -> 653.3`, `Delta=-5.4`, 95% CI `[-15.6, -0.2]`,
+  `P(Delta<=0)=98.4%`. Per-budget deltas were `50k -12.2`,
+  `100k -19.0`, `200k -1.8`, and `300k -2.0`; validity moved
+  `96% -> 92%` at `50k` and `100% -> 99%` at `100k`.
+- Notable regressions: weighted losses on `solo_run -27.72`,
+  `rolling_drop -18.40`, `drums_crescendo -13.04`, and
+  `rhythm_ladder -9.15`. Largest `300k` row losses were `rolling_drop`
+  seed `4` `-125.66`, `solo_run` seed `0` `-105.63`,
+  `rolling_drop` seed `10` `-73.67`, and `rolling_drop` seed `1` `-38.89`.
+- Notable improvements: too small to promote; the largest `300k` win was
+  `solo_run` seed `5` `+34.44`, with most other wins near zero.
+- Diagnostics: changing support height destabilizes otherwise workable support
+  starts and does not address the residual low-air drum problem. The accepted
+  support primitive appears sensitive to its vertical placement; further startup
+  work should change represented release planning or start selection, not add
+  parallel support heights.
+- Status: reverted after indicative reject; no canonical run and no commit.
+
+## probe-start-support-x-delay-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: the accepted startup support line releases too early for some
+  low-air first gaps. Because the opening is under full compiler control, add
+  alternate support starts whose rider begins one or two velocity-frames behind
+  the line's normal origin, effectively delaying the first release without
+  changing the support endpoint or downstream arc placement.
+- Code changes made: temporarily passed `targetBudget` into
+  `startupSupportStartSeeds(...)` and emitted `x`-delayed support starts for
+  `air <= 0.35`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,cold_start,dense_echo_climb,drums_signature,dense_sprint,opening_burst,solo_run,mini_burst,tiny_dance,grain_staircase,drums_tide,drums_swell,drums_dropout,drums_breath,valley_bounce,rolling_drop,terrace_sprint --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-x-delay-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `677.9 -> 670.9`, `Delta=-7.0`, 95% CI `[-27.6, 5.4]`,
+  `P(Delta<=0)=78.5%`. Per-budget deltas were `50k -48.1`,
+  `100k -25.8`, `200k +0.5`, and `300k +1.0`; validity moved
+  `96% -> 90%` at `50k` and `100% -> 98%` at `100k`.
+- Notable improvements/regressions: `cold_start` and `rhythm_ladder` improved,
+  but `drums_pendulum` and `drums_crescendo` lost badly at scarce budgets.
+- Status: refined by the duration/budget-gated variants below; broad form not
+  kept.
+
+## probe-start-support-x-delay-gated-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: the delayed support primitive is useful only when the first gap
+  has enough run-up room; very short drum openings should stay on the accepted
+  no-delay support start.
+- Code changes made: temporarily gated delayed support starts by a smooth
+  first-gap duration pressure, keeping the no-delay support start always
+  available.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,cold_start,dense_echo_climb,drums_signature,dense_sprint,opening_burst,solo_run,mini_burst,tiny_dance,grain_staircase,drums_tide,drums_swell,drums_dropout,drums_breath,valley_bounce,rolling_drop,terrace_sprint --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-x-delay-gated-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `677.9 -> 678.9`, `Delta=+1.0`, 95% CI `[-0.6, 3.9]`,
+  `P(Delta<=0)=21.0%`. Per-budget deltas were `50k +1.7`,
+  `100k +1.0`, `200k +0.9`, and `300k +1.0`.
+- Diagnostics: this removed the drum damage and exposed a real positive
+  startup signal, but the low-budget behavior was still noisier than necessary
+  and not promotable.
+- Status: refined by budget fade; no canonical run and no commit.
+
+## probe-start-support-x-delay-fade-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: delayed support starts are a mature-budget quality option, not a
+  scarce-budget completion option. Fade them in smoothly from `50k` to `100k`
+  so `50k` remains byte-identical.
+- Code changes made: multiplied delayed-support eligibility by smooth budget
+  pressure while preserving the duration gate.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,cold_start,dense_echo_climb,drums_signature,dense_sprint,opening_burst,solo_run,mini_burst,tiny_dance,grain_staircase,drums_tide,drums_swell,drums_dropout,drums_breath,valley_bounce,rolling_drop,terrace_sprint --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-x-delay-fade-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `677.9 -> 678.8`, `Delta=+0.9`, 95% CI `[-0.7, 3.6]`,
+  `P(Delta<=0)=23.0%`. Per-budget deltas were `50k +0.0`,
+  `100k +1.0`, `200k +0.9`, and `300k +1.0`.
+- Diagnostics: the fade fixed the scarce-budget damage, but affected only
+  `cold_start` and `rhythm_ladder` on the canonical grid, so the effect was too
+  small to promote.
+- Status: refined by extending the smooth air window; no commit.
+
+## probe-start-support-x-delay-air040-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: the same delayed-support primitive should apply smoothly to
+  medium-low air openings, not only `air <= 0.35`; include first gaps up to
+  `air = 0.40` and start the duration ramp slightly earlier so
+  `dense_echo_climb` can participate while short drum openings remain unchanged.
+- Code changes made: broadened delayed-support air pressure to fade from
+  `air = 0.35` to `0.40`, and used first-gap duration pressure from frame `20`
+  over a `10`-frame span.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,cold_start,dense_echo_climb,drums_signature,dense_sprint,opening_burst,solo_run,mini_burst,tiny_dance,grain_staircase,drums_tide,drums_swell,drums_dropout,drums_breath,valley_bounce,rolling_drop,terrace_sprint,canyon_steps,ridge_pulse,rolling_hills --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-x-delay-air040-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `680.4 -> 681.5`, `Delta=+1.1`, 95% CI `[-0.5, 3.6]`,
+  `P(Delta<=0)=13.3%`. Per-budget deltas were `50k +0.0`,
+  `100k +0.8`, `200k +1.1`, and `300k +1.4`.
+- Notable improvements/regressions: only `cold_start`, `rhythm_ladder`, and
+  `dense_echo_climb` changed; weighted spec means were `+12.21`, `+5.64`, and
+  `+6.59`, respectively. Seed-level losses inside those specs kept the result
+  just short of a focused accept.
+- Diagnostics: delayed support is a clean representation win, but selection is
+  brittle when the start ranker judges delayed variants by a single greedy
+  prefix branch.
+- Status: refined by support-delay-specific robust start scoring.
+
+## probe-start-support-x-delay-robust-01
+
+- Baseline used: `start-support-runup-min-01` at commit `db7b6b3`.
+- Hypothesis: delayed support starts should be judged by prefix robustness, not
+  only by the single greedy two-contact start rollout. Keep the represented
+  delayed support primitive, but for delayed support starts only, blend the
+  mature-budget start score toward the average of the top two first-contact
+  branches, each continued one more contact. This should preserve the beginning
+  control benefit while rejecting delayed starts whose first contact has only
+  one brittle branch.
+- Code changes made: kept the smooth delayed support eligibility from
+  `probe-start-support-x-delay-air040-01`; added `supportDelayFrames` metadata
+  to startup support seeds; factored the delayed-support budget pressure; and
+  routed delayed support starts through `startSeedForwardScore(...)`, which
+  blends the default greedy score with `startSupportDelayRobustScore(...)` under
+  the same smooth budget pressure. Normal starts and no-delay support starts
+  keep the existing scorer.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Quick focused command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=cold_start,rhythm_ladder,dense_echo_climb --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-x-delay-robust-quick-01`
+- Quick focused decide: indicative `VERDICT: ACCEPT`; headline
+  `685.4 -> 696.7`, `Delta=+11.3`, 95% CI `[-0.4, 28.8]`,
+  `P(Delta<=0)=2.9%`.
+- Broader focused command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,drums_crescendo,rhythm_ladder,cold_start,dense_echo_climb,drums_signature,dense_sprint,opening_burst,solo_run,mini_burst,tiny_dance,grain_staircase,drums_tide,drums_swell,drums_dropout,drums_breath,valley_bounce,rolling_drop,terrace_sprint,canyon_steps,ridge_pulse,rolling_hills --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-x-delay-robust-01`
+- Broader focused decide: indicative `VERDICT: ACCEPT`; headline
+  `680.4 -> 681.9`, `Delta=+1.5`, 95% CI `[-0.1, 4.9]`,
+  `P(Delta<=0)=7.8%`. Per-budget deltas were `50k +0.0`,
+  `100k +1.2`, `200k +1.7`, and `300k +1.8`.
+- Canonical golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/start-support-x-delay-robust-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline
+  `687.9 -> 688.7`, `Delta=+0.8`, 95% CI `[-0.0, 2.9]`,
+  `P(Delta<=0)=7.6%`. Per-budget deltas were `50k +0.0`,
+  `100k +0.7`, `200k +0.9`, and `300k +1.0`; validity stayed
+  `96% -> 96%` at `50k` and `100% -> 100%` for `100k+`.
+- Notable improvements: canonical weighted spec means improved
+  `rhythm_ladder +15.25`, `cold_start +11.98`, and
+  `dense_echo_climb +6.03`; all other canonical specs were byte-identical by
+  score. Largest weighted row wins were `rhythm_ladder` seed `8` `+126.11`,
+  `cold_start` seed `2` `+69.76`, `rhythm_ladder` seed `11` `+68.64`, and
+  `rhythm_ladder` seed `10` `+60.06`.
+- Notable regressions: remaining losses were limited to the same affected
+  startup rows, led by `rhythm_ladder` seed `2` `-55.58`,
+  `rhythm_ladder` seed `9` `-30.48`, `cold_start` seed `6` `-19.34`, and
+  `cold_start` seed `9` `-18.93`.
+- Diagnostics: the user pushback about the beginning was correct: giving the
+  compiler a better represented initial release, then ranking it with a
+  startup-specific robustness signal, produces a canonical improvement without
+  touching ordinary arc placement or the scorer. The remaining losses suggest
+  future beginning work should improve delayed-support branch evaluation rather
+  than broaden eligibility.
+- Status: kept; canonical accepted. Commit this and use
+  `start-support-x-delay-robust-01` as the next baseline.

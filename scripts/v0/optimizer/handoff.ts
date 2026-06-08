@@ -56,6 +56,7 @@ import {
   type HandoffEvaluationPhaseCounter,
   type Gap,
   type HandoffCandidateSourceName,
+  type TrackLine,
 } from "../types.ts";
 import {
   axisLookaheadEndFrame,
@@ -85,6 +86,7 @@ import {
   setCompileBudgetFrames,
   snapshotArcPlacementStats,
 } from "../arc_placement.ts";
+import { makeSolidLine } from "../arc.ts";
 import {
   getCandidateProbe,
   getCandidateSamples,
@@ -123,6 +125,7 @@ export type CompileHandoffOptions = {
 export type HandoffNode = {
   search: SearchNode;
   startState: ResolvedStart;
+  startLines: TrackLine[];
   startRank: number;
   /** Candidate-sampling seed for this prefix's downstream search lane. */
   searchSeed: number;
@@ -176,7 +179,13 @@ type StartOption = {
   rank: number;
   start: NonNullable<Spec["start"]>;
   state: ResolvedStart;
+  startLines: TrackLine[];
   root: SearchNode;
+};
+
+type StartSeed = {
+  start: NonNullable<Spec["start"]>;
+  startLines: TrackLine[];
 };
 
 type HandoffTelemetry = {
@@ -376,6 +385,10 @@ const START_SPEED_ANCHOR_OFFSETS_PX_PER_FRAME = [-2.5, -0.75, 0, 1.25, 2.5] as c
 const START_BALLISTIC_SCORING_POOL = 4;
 const START_BALLISTIC_BUDGET_START_FRAMES = 50_000;
 const START_BALLISTIC_BUDGET_SPAN_FRAMES = 50_000;
+const START_SUPPORT_LOW_AIR_MAX = 0.35;
+const START_SUPPORT_RELEASE_MARGIN_FRAMES = K_BOUNCE_LANDING + 2;
+const START_SUPPORT_LINE_Y = 5;
+const START_SUPPORT_LINE_BACKTRACK_PX = 80;
 const DEAD_END_PENALTY = 40;
 const SURVIVOR_SCARCITY_PENALTY = 4;
 /** The one-contact preview already pays for a future candidate. Reuse its local
@@ -569,6 +582,7 @@ function compileHandoffInternal(
       ? {
         search: startOptions[0].root,
         startState: startOptions[0].state,
+        startLines: startOptions[0].startLines,
         startRank: startOptions[0].rank,
         searchSeed,
         startExpanded: startOptions.length <= 1,
@@ -862,6 +876,7 @@ function compileHandoffInternal(
 
       if (
         polishEnabled &&
+        node.startLines.length === 0 &&
         isTerminalNode(node.search, gaps) &&
         node.search.prefixFits.some((fit) => fit !== null)
       ) {
@@ -879,6 +894,7 @@ function compileHandoffInternal(
               prefixEngine: variant.engine,
             },
             startState: node.startState,
+            startLines: node.startLines,
             startRank: node.startRank,
             searchSeed: node.searchSeed,
             startExpanded: node.startExpanded,
@@ -1049,6 +1065,7 @@ function compileHandoffInternal(
           const prefixNode: HandoffNode = {
             search: prefix,
             startState: incumbent.startState,
+            startLines: incumbent.startLines,
             startRank: incumbent.startRank,
             searchSeed: restartSeed,
             startExpanded: true,
@@ -1167,10 +1184,14 @@ function cloneHandoffNodeForBranch(
   overrides: Partial<Pick<HandoffNode, "searchSeed">> = {},
 ): HandoffNode {
   const startState = cloneResolvedStart(node.startState);
+  const startLines = cloneTrackLines(node.startLines);
   const prefixFits = node.search.prefixFits.map((fit) =>
     fit === null ? null : cloneGapFit(fit)
   );
   let prefixEngine = makeBaseEngine(startState);
+  if (startLines.length > 0) {
+    prefixEngine = prefixEngine.addLine(startLines.map((line) => engineLineFromTrackLine(line)));
+  }
   for (const fit of prefixFits) {
     if (fit === null) continue;
     prefixEngine = prefixEngine.addLine(fit.lines.map((line) => engineLineFromTrackLine(line)));
@@ -1186,6 +1207,7 @@ function cloneHandoffNodeForBranch(
       _childrenCache: undefined,
     },
     startState,
+    startLines,
     startRank: node.startRank,
     searchSeed: overrides.searchSeed ?? node.searchSeed,
     startExpanded: node.startExpanded,
@@ -1193,6 +1215,10 @@ function cloneHandoffNodeForBranch(
     rankTrace: cloneRankTrace(node.rankTrace),
     skippedContacts: node.skippedContacts,
   };
+}
+
+function cloneTrackLines(lines: TrackLine[]): TrackLine[] {
+  return lines.map((line) => ({ ...line }));
 }
 
 function cloneResolvedStart(start: ResolvedStart): ResolvedStart {
@@ -1632,6 +1658,7 @@ function expandNode(
     return startOptions.map((option) => ({
       search: option.root,
       startState: option.state,
+      startLines: option.startLines,
       startRank: option.rank,
       searchSeed: node.searchSeed,
       startExpanded: true,
@@ -1645,6 +1672,7 @@ function expandNode(
     return [{
       search: extendNodeCached(node.search, null),
       startState: node.startState,
+      startLines: node.startLines,
       startRank: node.startRank,
       searchSeed: node.searchSeed,
       startExpanded: node.startExpanded,
@@ -1718,6 +1746,7 @@ function expandNode(
     return [{
       search: extendNodeCached(node.search, null),
       startState: node.startState,
+      startLines: node.startLines,
       startRank: node.startRank,
       searchSeed: node.searchSeed,
       startExpanded: node.startExpanded,
@@ -1730,6 +1759,7 @@ function expandNode(
   return options.map((option) => ({
     search: option.child,
     startState: node.startState,
+    startLines: node.startLines,
     startRank: node.startRank,
     searchSeed: node.searchSeed,
     startExpanded: node.startExpanded,
@@ -2247,6 +2277,7 @@ function completeNearTail(
   return {
     search: completed.search,
     startState: node.startState,
+    startLines: node.startLines,
     startRank: node.startRank,
     searchSeed: node.searchSeed,
     startExpanded: node.startExpanded,
@@ -3066,7 +3097,8 @@ function buildStartOptions(
       rank: 0,
       start: defaultSpecStart,
       state: defaultStart,
-      root: makeRootNode(makeBaseEngine(defaultStart), gaps.length),
+      startLines: [],
+      root: makeStartRoot(defaultStart, [], gaps.length),
     }];
   }
 
@@ -3099,13 +3131,15 @@ function buildStartOptions(
     Math.floor(START_BALLISTIC_SCORING_POOL * ballisticStartBudgetPressure(targetBudget)),
   );
   const baseStartPool = Math.max(0, START_SCORING_POOL - 1 - ballisticStartPool);
+  const supportStarts = startupSupportStartSeeds(firstContactAxes, firstGap);
   const [first, ...rest] = [
-    defaultSpecStart,
-    ...orderedBaseStarts.slice(0, baseStartPool),
-    ...orderedBallisticStarts.slice(0, ballisticStartPool),
+    startSeed(defaultSpecStart),
+    ...orderedBaseStarts.slice(0, baseStartPool).map((start) => startSeed(start)),
+    ...orderedBallisticStarts.slice(0, ballisticStartPool).map((start) => startSeed(start)),
+    ...supportStarts,
   ]
-    .filter((start) => {
-      const key = startKey(start);
+    .filter((seed) => {
+      const key = startSeedKey(seed);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -3117,13 +3151,14 @@ function buildStartOptions(
   ];
 
   if (!hasStartFeasibilityLookahead(gaps)) {
-    return heuristicPool.slice(0, START_OPTION_LIMIT).map((start, rank) => {
-      const state = resolveStartState({ ...searchSpec, start });
+    return heuristicPool.slice(0, START_OPTION_LIMIT).map((candidate, rank) => {
+      const state = resolveStartState({ ...searchSpec, start: candidate.start });
       return {
         rank,
-        start,
+        start: candidate.start,
         state,
-        root: makeRootNode(makeBaseEngine(state), gaps.length),
+        startLines: cloneTrackLines(candidate.startLines),
+        root: makeStartRoot(state, candidate.startLines, gaps.length),
       };
     });
   }
@@ -3133,34 +3168,92 @@ function buildStartOptions(
   // choice on a forward-dependent chain, yet it was the one decision still on the old proxy.
   const startCfg = startEvalConfig();
   const ordered = heuristicPool
-    .map((start, originalRank) => {
-      const state = resolveStartState({ ...searchSpec, start });
-      const root = makeRootNode(makeBaseEngine(state), gaps.length);
+    .map((candidate, originalRank) => {
+      const state = resolveStartState({ ...searchSpec, start: candidate.start });
+      const root = makeStartRoot(state, candidate.startLines, gaps.length);
       return {
-        start,
+        start: candidate.start,
+        startLines: cloneTrackLines(candidate.startLines),
         state,
         root,
         originalRank,
         // Forward score is higher=better; negate so lower=better matches the proxy's ordering.
         score: startCfg !== null
           ? -startForwardScore(root, gaps, ctx, seed, startCfg)
-          : startFeasibilityCost(root, start, axes, gaps, ctx, seed),
+          : startFeasibilityCost(root, candidate.start, axes, gaps, ctx, seed),
       };
     })
     .sort((a, b) =>
       a.score - b.score ||
       startHeuristicCost(a.start, axes) - startHeuristicCost(b.start, axes) ||
       a.originalRank - b.originalRank ||
-      startKey(a.start).localeCompare(startKey(b.start))
+      startSeedKey(a).localeCompare(startSeedKey(b))
     )
     .slice(0, START_OPTION_LIMIT);
 
-  return ordered.map(({ start, state, root }, rank) => ({
+  return ordered.map(({ start, startLines, state, root }, rank) => ({
     rank,
     start,
     state,
+    startLines,
     root,
   }));
+}
+
+function startSeed(
+  start: NonNullable<Spec["start"]>,
+  startLines: TrackLine[] = [],
+): StartSeed {
+  return {
+    start,
+    startLines: cloneTrackLines(startLines),
+  };
+}
+
+function startupSupportStartSeeds(
+  firstContactAxes: AxisValues | null,
+  firstGap: Gap | null,
+): StartSeed[] {
+  if (firstGap === null || firstContactAxes === null) return [];
+  const air = firstContactAxes.air;
+  if (air === undefined || air > START_SUPPORT_LOW_AIR_MAX) return [];
+  if (firstGap.endFrame <= START_SUPPORT_RELEASE_MARGIN_FRAMES + K_BOUNCE_LANDING) return [];
+
+  const releaseFrame = Math.max(1, firstGap.endFrame - START_SUPPORT_RELEASE_MARGIN_FRAMES);
+  const targetSpeed = startTargetSpeedPx(firstContactAxes);
+  const speeds = uniqueRounded([
+    targetSpeed - 0.75,
+    targetSpeed,
+    targetSpeed + 1.25,
+  ])
+    .filter((speed) => speed > 0 && speed <= START_DEFAULTS.VELOCITY_SANITY_CAP);
+
+  return speeds.map((vx) => {
+    const x2 = round3(Math.max(20, vx * releaseFrame));
+    const line = makeSolidLine(
+      1,
+      -START_SUPPORT_LINE_BACKTRACK_PX,
+      START_SUPPORT_LINE_Y,
+      x2,
+      START_SUPPORT_LINE_Y,
+    );
+    return startSeed({ vx: round3(vx), vy: 0 }, [line]);
+  });
+}
+
+function makeStartRoot(
+  state: ResolvedStart,
+  startLines: TrackLine[],
+  gapCount: number,
+): SearchNode {
+  let engine = makeBaseEngine(state);
+  if (startLines.length > 0) {
+    engine = engine.addLine(startLines.map((line) => engineLineFromTrackLine(line)));
+  }
+  return {
+    ...makeRootNode(engine, gapCount),
+    prefixNextLineId: 1 + startLines.length,
+  };
 }
 
 export function hasStartFeasibilityLookahead(gaps: Gap[]): boolean {
@@ -3371,6 +3464,24 @@ function startKey(start: NonNullable<Spec["start"]>): string {
     `${start.vx.toFixed(3)},${start.vy.toFixed(3)}`;
 }
 
+function startSeedKey(seed: { start: NonNullable<Spec["start"]>; startLines: TrackLine[] }): string {
+  return `${startKey(seed.start)}|${seed.startLines.map(startLineKey).join(";")}`;
+}
+
+function startLineKey(line: TrackLine): string {
+  return [
+    line.id,
+    line.type,
+    line.x1.toFixed(3),
+    line.y1.toFixed(3),
+    line.x2.toFixed(3),
+    line.y2.toFixed(3),
+    line.flipped ? 1 : 0,
+    line.leftExtended ? 1 : 0,
+    line.rightExtended ? 1 : 0,
+  ].join(",");
+}
+
 function evaluateNode(
   node: HandoffNode,
   spec: Spec,
@@ -3447,7 +3558,7 @@ function buildNodeOutput(
   budgetExhausted: boolean,
 ): CompileOutput {
   const fits = paddedFits(node, gaps.length);
-  const allLines = [];
+  const allLines = [...node.startLines];
   for (const fit of fits) if (fit !== null) allLines.push(...fit.lines);
   const startVelocity = node.startState.velocity;
   const startSpeed = Math.hypot(startVelocity.x, startVelocity.y);
@@ -3474,6 +3585,7 @@ function buildNodeOutput(
       budget_exhausted: budgetExhausted,
       handoff_skips: node.skippedContacts,
       handoff_start_rank: node.startRank,
+      handoff_start_lines: node.startLines.length,
       handoff_start_speed: round3(startSpeed),
       handoff_start_angle_deg: round3(startAngleDeg),
       handoff_search_seed: node.searchSeed,

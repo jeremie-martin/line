@@ -900,6 +900,7 @@ function compactStats(stats: CompileStats | null): object | null {
       stats.handoff_tail_completion_improvements_by_remaining_contacts,
     handoff_start_options: stats.handoff_start_options,
     handoff_start_rank: stats.handoff_start_rank,
+    handoff_start_lines: stats.handoff_start_lines,
     handoff_start_speed: stats.handoff_start_speed,
     handoff_start_angle_deg: stats.handoff_start_angle_deg,
     handoff_start_ranks_seen: stats.handoff_start_ranks_seen,

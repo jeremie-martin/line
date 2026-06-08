@@ -2891,3 +2891,426 @@ only changes that print `VERDICT: ACCEPT`.
   worsened first-gap elevation/amplitude.
 - Status: kept; accepted by canonical decision gate. New baseline for subsequent
   attempts is `start-ballistic-air-speed-ramp-01`.
+
+## probe-vertical-curve-residual-01
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: high-budget vertical specs underachieve elevation/amplitude because
+  the contact-centered post-contact curvature span is faded out by mature
+  budgets. Reintroduce a small residual curvature only for `elevation`/
+  `amplitude` targets, scaled by available arc-length room, to add vertical shape
+  diversity without globally amplifying launches.
+- Code changes made: temporarily restored up to `28%` of the faded
+  post-contact curve-bias span for vertical-target gaps, ramping in from `75k`
+  to `150k` frames.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,big_air_ramp,pop_train,soar_settle,leap_cadence,float_bounds,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,dense_echo_climb,rolling_drop,skyline_push,syncopated_lift --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-vertical-curve-residual-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `100k`/`200k`/`300k` intersection; headline `618.0 -> 615.6`,
+  `Delta=-2.3`, 95% CI `[-7.8, 1.8]`, `P(Delta<=0)=83.6%`. Per-budget deltas
+  were `100k -5.7`, `200k -1.6`, and `300k -1.7`; validity stayed
+  `100% -> 100%` at all measured budgets.
+- Notable improvements: `terrace_sprint` seed `10` improved by `+88.0` at
+  `300k`, `float_bounds` seed `2` by `+46.5`, `swoop_dive` seed `4` by
+  `+46.2`, and `climb_terrace` seed `8` by `+22.7`.
+- Notable regressions: `soar_settle` took broad losses, including seeds `3`
+  (`-60.9`), `6` (`-60.5`), `9` (`-55.3`), and `7` (`-53.7`) at `300k`.
+  `swoop_dive` seed `10` also lost `-46.4`.
+- Diagnostics: work deltas were essentially neutral, so this was not a budget
+  starvation effect. The added curvature changes selection basins and helps a
+  few underpowered vertical rows, but it dilutes already-good vertical ride-outs
+  and is especially bad at `100k`.
+- Status: reverted after indicative decide; no canonical run and no commit.
+
+## probe-vertical-start-kinematic-03
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: vertical first gaps need a different initial-condition primitive
+  than the accepted air/speed first-contact velocity correction. Add a few
+  compiler-owned start velocities for first gaps targeting `elevation` or
+  `amplitude`, with `vy` chosen from the same first-gap kinematic band used by
+  the vertical axis model, and ramp the candidates in smoothly after scarce
+  budgets.
+- Code changes made: temporarily added up to four vertical first-contact start
+  candidates, ramping from `75k` to `150k`, while preserving the accepted
+  air/speed ballistic starts for non-vertical first gaps.
+- Golden commands:
+  - Broken implementation runs: `probe-vertical-start-kinematic-01` and `-02`
+    both failed before simulation (`elevationToLaunchVy` import, then missing
+    local `lerp` helper); no decision was taken from them.
+  - Smoke after fixes: `LR_ENGINE=wasm npm run golden -- --jobs=1 --specs=climb_terrace --seed=0 --budgets=100000 --archive-dir=generated/golden-runs/probe-vertical-start-kinematic-smoke-03`
+  - Probe: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,big_air_ramp,pop_train,soar_settle,leap_cadence,float_bounds,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,dense_echo_climb,rolling_drop,skyline_push,syncopated_lift --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-vertical-start-kinematic-03`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `100k`/`200k`/`300k` intersection; headline `618.0 -> 617.2`,
+  `Delta=-0.7`, 95% CI `[-6.2, 3.6]`, `P(Delta<=0)=60.2%`. Per-budget deltas
+  were `100k -4.8`, `200k -0.5`, and `300k +0.5`; validity stayed
+  `100% -> 100%`.
+- Notable improvements: weighted spec wins on `terrace_sprint +10.35`,
+  `big_air_ramp +8.87`, `mixed_grade +8.86`, and `rolling_drop +6.75`.
+  Largest row wins at `300k` included `terrace_sprint` seed `10` (`+95.7`),
+  `swoop_dive` seed `1` (`+34.3`), and `rolling_drop` seed `6` (`+30.1`).
+- Notable regressions: weighted losses on `soar_settle -37.14`,
+  `leap_cadence -14.99`, `pop_train -7.78`, and `swoop_dive -4.52`.
+  Largest `300k` row losses included `soar_settle` seed `3` (`-49.7`),
+  `soar_settle` seed `11` (`-41.7`), and `swoop_dive` seed `8` (`-30.1`).
+- Diagnostics: this was a real beginning mechanism and selected different start
+  basins, but the effect was not robust. The tiny `300k` gain does not pay for
+  the `100k` loss, and high-air vertical openings are especially fragile when
+  their start is re-kinematicized.
+- Status: reverted after indicative decide; no canonical run and no commit.
+
+## probe-quality-ncand28-current-01
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: the accepted ballistic start baseline may make the old broader
+  quality-candidate signal worth revisiting. Retest `LR_QUALITY_NCAND=28` as an
+  environment-only probe before converting it into source behavior.
+- Code changes made: none; used `LR_QUALITY_NCAND=28`.
+- Golden command: `LR_ENGINE=wasm LR_QUALITY_NCAND=28 npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-quality-ncand28-current-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `645.7 -> 646.7`, `Delta=+1.0`,
+  95% CI `[-1.5, 3.5]`, `P(Delta<=0)=20.5%`. Per-budget deltas were
+  `200k +0.4` and `300k +1.4`; validity stayed `100% -> 100%`.
+- Notable improvements: `swoop_dive` seed `5` improved `+61.7` at `300k`,
+  `float_bounds` seed `2` `+54.6`, `solo_run` seed `11` `+54.0`, and
+  `drums_pendulum` seed `4` `+52.3`.
+- Notable regressions: `drums_signature` seed `5` lost `-63.9`,
+  `drums_signature` seed `6` `-56.1`, `swoop_dive` seed `10` `-48.8`,
+  `drums_breath` seed `8` `-43.9`, and `drums_tide` seed `1` `-43.7`.
+- Diagnostics: extra quality breadth was directionally positive but noisy, with
+  high duplicate-full pressure (`300k` unique full rate `83.5%`) and broad
+  row-level volatility. Treated as a signal for a narrower adaptive source
+  attempt, not as a direct source change.
+- Status: not kept directly; no canonical run and no commit.
+
+## probe-weak-quality-breadth-current-01
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: keep the measured quality breadth sweet spot at `24`, but add up
+  to four deterministic extra candidates only after a passing incumbent exists
+  and its `axis_quality` is weak, ramped smoothly by budget and terminal
+  feedback. This should capture part of the `LR_QUALITY_NCAND=28` upside without
+  globally taxing already-good rows.
+- Code changes made: temporarily added an adaptive `qualitySampleCount` wrapper
+  in `scripts/v0/optimizer/handoff.ts`, threaded `bestKey` into quality and
+  near-tail sampling, and preserved the `LR_QUALITY_NCAND` override as an escape
+  hatch.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-weak-quality-breadth-current-01`
+- Decide result: indicative `VERDICT: REJECT` on the paired
+  `200k`/`300k` intersection; headline `645.7 -> 645.5`, `Delta=-0.2`, 95% CI
+  `[-0.6, 0.0]`, `P(Delta<=0)=97.4%`. Per-budget deltas were `200k -0.3` and
+  `300k -0.2`; validity stayed `100% -> 100%`.
+- Notable improvements: small `300k` row wins on `drums_pendulum` seed `6`
+  (`+3.6`), `leap_cadence` seed `9` (`+2.8`), `skyline_push` seed `6`
+  (`+2.1`), and `switchback_pop` seed `3` (`+2.0`).
+- Notable regressions: larger `300k` losses on `swoop_dive` seed `8`
+  (`-28.6`), `leap_cadence` seed `2` (`-26.6`), `summit_push` seed `2`
+  (`-7.4`), and `leap_cadence` seed `3` (`-7.0`).
+- Diagnostics: the change increased full terminal feedback (`300k` full/row
+  `25.5`, unique full/row `20.1`) but duplicate fulls rose and the extra work
+  did not convert into quality. The stable selected starts in the worst
+  regressions show the damage was later placement/ranking volatility, not a
+  better beginning mechanism.
+- Status: reverted after indicative reject; no canonical run and no commit.
+
+## probe-start-repair-smoke-02
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: first-gap/root work still has merit if represented as a separate
+  beginning lane rather than a local first-arc tweak. After the main search has
+  a complete incumbent, run a bounded alternate-start repair from non-incumbent
+  start roots when the incumbent's first contact owns a large share of axis SSE,
+  and accept only through the existing full-score register.
+- Code changes made: temporarily added a smooth first-gap-SSE/budget gated
+  alternate-start repair pass in `scripts/v0/optimizer/handoff.ts`, with up to
+  two deterministic non-incumbent start-root restarts before normal suffix
+  repair.
+- Golden commands:
+  - Broken smoke: `LR_ENGINE=wasm LR_REPAIR_LOG=1 npm run golden -- --jobs=1 --specs=tiny_dance,cold_start,big_air_ramp --seed=0 --budgets=300000 --archive-dir=generated/golden-runs/probe-start-repair-smoke-01` failed before simulation due to a missing local interpolation helper; no decision was taken from it.
+  - Fixed smoke: `LR_ENGINE=wasm LR_REPAIR_LOG=1 npm run golden -- --jobs=1 --specs=tiny_dance,cold_start,big_air_ramp --seed=0 --budgets=300000 --archive-dir=generated/golden-runs/probe-start-repair-smoke-02`
+- Decide result: indicative `VERDICT: REJECT` on the paired
+  `tiny_dance,cold_start,big_air_ramp` seed `0` at `300k`; headline
+  `559.8 -> 557.6`, `Delta=-2.2`, 95% CI `[-7.0, 0.0]`,
+  `P(Delta<=0)=100.0%`. Validity stayed `100% -> 100%`.
+- Notable behavior: the new start lane did fire and could improve the live
+  incumbent locally (`cold_start` alternate rank `1` accepted at `+3.25`
+  internal full-score, `big_air_ramp` rank `1` accepted at `+61.19`), but the
+  spend displaced normal suffix repair and final paired scores were lower.
+- Diagnostics: root/first-start work is real, but spending a reserved slice
+  before the proven repair pass is the wrong budget shape. A separate physical
+  supported-start sweep also found no quiet support configuration under strict
+  event criteria and hit a wasm `RuntimeError: unreachable` on a broader support
+  geometry sweep, reinforcing that arbitrary initial support can violate engine
+  stability or detector semantics unless represented with much more care.
+- Status: reverted after indicative reject; no canonical run and no commit.
+
+## start-gap-blend-current-01
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: retest the strongest prior beginning mechanism on the current
+  ballistic-start baseline. Shape start candidates from a smooth blend of the
+  raw `t=0` axes toward the first-contact gap-averaged axes only when the first
+  gap has meaningful axis distance. This changes the represented start state
+  without adding physical pre-support or reserving repair budget.
+- Code changes made: temporarily imported `TARGET_AXES` in
+  `scripts/v0/optimizer/handoff.ts`, added smooth distance constants, routed
+  `buildStartOptions` through `startSelectionAxes(firstAxes(rawSpec),
+  firstContactAxes)`, and added the blend helper. The import smoke passed.
+- Focused golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,tiny_dance,big_air_ramp,cold_start,drums_crescendo,rhythm_ladder,drums_signature,drums_swell,drums_tide,opening_burst,canyon_steps,terrace_sprint,skyline_push,syncopated_lift,rolling_hills,soar_settle,leap_cadence,float_bounds,dense_echo_climb,swoop_dive --budgets=50000,100000,300000 --archive-dir=generated/golden-runs/probe-start-gap-blend-current-01`
+- Focused decide result: indicative, non-promotable `VERDICT: ACCEPT` on the
+  focused slice; headline `593.2 -> 594.4`, `Delta=+1.2`, 95% CI
+  `[-0.1, 3.6]`, `P(Delta<=0)=7.4%`. Per-budget deltas were `50k -0.1`,
+  `100k +1.6`, and `300k +1.3`; validity moved `97% -> 96%` at `50k` and
+  stayed `100% -> 100%` at larger budgets.
+- Canonical golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/start-gap-blend-current-01`
+- Canonical decide result: `VERDICT: INCONCLUSIVE`; headline `630.4 -> 630.7`,
+  `Delta=+0.3`, 95% CI `[-1.0, 1.9]`, `P(Delta<=0)=32.9%`. Per-budget deltas
+  were `50k +0.8`, `100k +0.6`, `200k +0.5`, and `300k +0.1`; validity stayed
+  unchanged at `97%` for `50k` and `100%` for the larger budgets.
+- Notable improvements at `300k`: `swoop_dive` seed `3` `+68.64`,
+  `drums_breath` seed `4` `+58.44`, `drums_tide` seed `5` `+53.93`,
+  `swoop_dive` seed `11` `+43.16`, `drums_tide` seed `4` `+42.32`,
+  `float_bounds` seed `2` `+39.26`, `drums_tide` seed `6` `+38.78`, and
+  `swoop_dive` seed `1` `+35.31`.
+- Notable regressions at `300k`: `drums_tide` seed `2` `-41.59`,
+  `drums_breath` seed `10` `-40.11`, `drums_breath` seed `6` `-36.79`,
+  `swoop_dive` seed `10` `-34.66`, `pop_train` seed `6` `-31.31`,
+  `pop_train` seed `7` `-27.38`, `drums_breath` seed `9` `-26.31`, and
+  `pop_train` seed `3` `-25.13`.
+- Diagnostics: this remains the strongest beginning signal seen recently:
+  budget-neutral, validity-preserving, and directionally positive on every
+  canonical budget. It was not promoted because the canonical effect was too
+  small and noisy, with `300k` nearly flat and large seed-level variance from
+  tiny start shifts.
+- Status: reverted after canonical inconclusive; no commit.
+
+## probe-first-contact-pool-current-01
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: the first committed contact is still prefiltered by local
+  first-gap candidate cost before the true forward evaluator can rank it. Since
+  first-gap air can be structurally misleading, score a larger first-contact
+  pool as budget matures while leaving start states and candidate generation
+  unchanged.
+- Code changes made: temporarily added a smooth budget ramp in
+  `scripts/v0/optimizer/handoff.ts` so nodes with no committed contact scored
+  a larger pool, growing from the default `8` toward the sampled candidate
+  prefix after `50k` over a `100k` span, with deterministic fractional
+  activation.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,tiny_dance,big_air_ramp,cold_start,drums_crescendo,rhythm_ladder,drums_signature,drums_swell,drums_tide,opening_burst,canyon_steps,terrace_sprint,skyline_push,syncopated_lift,rolling_hills,soar_settle,leap_cadence,float_bounds,dense_echo_climb,swoop_dive --budgets=50000,100000,300000 --archive-dir=generated/golden-runs/probe-first-contact-pool-current-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`; paired
+  headline `593.2 -> 592.7`, `Delta=-0.4`, 95% CI `[-1.9, 0.6]`,
+  `P(Delta<=0)=76.5%`. Per-budget deltas were `50k +0.0`, `100k -0.1`, and
+  `300k -0.6`. Validity moved `97% -> 96%` at `50k` and stayed
+  `100% -> 100%` at larger budgets.
+- Notable improvements at `300k`: `drums_tide` seed `6` `+27.86`,
+  `rhythm_ladder` seed `3` `+20.87`, `drums_tide` seed `3` `+18.91`,
+  `float_bounds` seed `10` `+12.24`, `tiny_dance` seed `5` `+8.52`, and
+  `tiny_dance` seed `8` `+7.82`.
+- Notable regressions at `300k`: `opening_burst` seed `11` `-87.02`,
+  `canyon_steps` seed `7` `-42.61`, `canyon_steps` seed `11` `-37.68`,
+  `rhythm_ladder` seed `8` `-16.34`, `opening_burst` seed `8` `-12.65`, and
+  `rolling_hills` seed `4` `-11.58`.
+- Diagnostics: first-arc prefiltering is a real lever, but the broad pool
+  expansion let the forward evaluator select locally cost-worse first arcs that
+  destabilized fragile continuations. The change preserved high-budget
+  validity, improved some first-gap/short-row cases, and kept total work nearly
+  neutral, but it reduced `300k` score on the focused slice and was not worth a
+  canonical run.
+- Status: reverted after indicative negative result; no commit.
+
+## probe-leftover-start-repair-02
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: short/opening-heavy rows such as `tiny_dance` exhaust normal
+  weakest-gap suffix repair long before the frame budget. Spend only the
+  otherwise-unused tail after normal repair on full root-level restarts from
+  represented start options, with fresh deterministic search seeds, so the
+  compiler can reconsider initial conditions and the first arc without
+  displacing productive main/repair work.
+- Code changes made: temporarily added a post-repair `runLeftoverStartPhase`
+  in `scripts/v0/optimizer/handoff.ts`. The first version skipped the incumbent
+  start root; the second version included every start option, including the
+  incumbent root with a fresh seed. Both accepted results only through the
+  existing monotonic register.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden commands:
+  - `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=tiny_dance,drums_pendulum,big_air_ramp,terrace_sprint,skyline_push,syncopated_lift,switchback_pop,valley_bounce,canyon_steps,rhythm_ladder,cold_start,dense_echo_climb,swoop_dive,rolling_drop,float_bounds,mini_burst,summit_push,leap_cadence,glide_stairs,pop_train --budgets=100000,300000 --archive-dir=generated/golden-runs/probe-leftover-start-repair-01`
+  - `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=tiny_dance,drums_pendulum,big_air_ramp,terrace_sprint,skyline_push,syncopated_lift,switchback_pop,valley_bounce,canyon_steps,rhythm_ladder,cold_start,dense_echo_climb,swoop_dive,rolling_drop,float_bounds,mini_burst,summit_push,leap_cadence,glide_stairs,pop_train --budgets=100000,300000 --archive-dir=generated/golden-runs/probe-leftover-start-repair-02`
+  - `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=tiny_dance,drums_pendulum,big_air_ramp,terrace_sprint,skyline_push,syncopated_lift,switchback_pop,valley_bounce,canyon_steps,rhythm_ladder,cold_start,dense_echo_climb,swoop_dive,rolling_drop,float_bounds,mini_burst,summit_push,leap_cadence,glide_stairs,pop_train --budgets=200000 --archive-dir=generated/golden-runs/probe-leftover-start-repair-02-200k`
+- Decide results:
+  - Incumbent-skip version: indicative `VERDICT: INCONCLUSIVE` on the paired
+    `100k`/`300k` slice; headline `591.4 -> 591.5`, `Delta=+0.0`, 95% CI
+    `[0.0, 0.2]`, `P(Delta<=0)=42.9%`. Per-budget deltas were `100k +0.0`
+    and `300k +0.1`.
+  - Incumbent-included version: indicative `VERDICT: INCONCLUSIVE` on the same
+    slice; headline `591.4 -> 591.5`, `Delta=+0.1`, 95% CI `[0.0, 0.4]`,
+    `P(Delta<=0)=14.1%`. Per-budget deltas were `100k +0.0` and `300k +0.1`.
+  - `200k` check: indicative `VERDICT: INCONCLUSIVE`; headline
+    `590.2 -> 590.2`, `Delta=+0.0`, 95% CI `[0.0, 0.0]`,
+    `P(Delta<=0)=58.1%`.
+- Notable improvements: the incumbent-included version improved `tiny_dance`
+  seed `8` at `300k` by `+16.28`, `mini_burst` seed `9` at `100k` by
+  `+3.36`, `leap_cadence` seed `0` at `100k` by `+2.79`, and `tiny_dance`
+  seed `0` at `300k` by `+1.64`. It drove `tiny_dance` `300k` runs from
+  roughly `80k-110k` sim frames to about `300k`, confirming the leftover tail
+  was being used.
+- Notable regressions: no paired score regressions were observed on the probed
+  slice; the effect was simply too sparse to matter.
+- Diagnostics: leftover-only root repair is safe as a concept, but not strong
+  enough. It mainly helps rare `tiny_dance` seeds and leaves `200k` flat, so a
+  canonical run would almost certainly be diluted. Future beginning work needs
+  a better root/prefix objective, not just more full-root restarts after repair
+  exhaustion.
+- Status: reverted after indicative checks; no canonical run and no commit.
+
+## probe-amplitude-feasible-targets-01
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: final report diagnostics show short-gap amplitude targets that
+  exceed the ballistic sagitta available in the gap. The scorer must keep the
+  authored target, but the compiler's local sampled `gap.targets` might do
+  better if candidate generation/ranking stops chasing physically impossible
+  amplitude and preserves air/speed/elevation instead.
+- Code changes made: temporarily capped only the compiler-local sampled
+  `gap.targets.amplitude` by `g * frames^2 / (8 * CALIB.AMPLITUDE_CAP)`, leaving
+  `gapAxisTargets` and final report/scoring targets unchanged.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=switchback_pop,syncopated_lift,big_air_ramp,terrace_sprint,skyline_push,valley_bounce,canyon_steps,leap_cadence,float_bounds,summit_push,rolling_drop,dense_echo_climb,climb_terrace,swoop_dive,rolling_hills,mixed_grade,pop_train,soar_settle,tiny_dance,drums_pendulum --budgets=100000,300000 --archive-dir=generated/golden-runs/probe-amplitude-feasible-targets-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE` on the paired
+  `100k`/`300k` slice; headline `601.6 -> 600.9`, `Delta=-0.7`, 95% CI
+  `[-2.4, 0.7]`, `P(Delta<=0)=84.5%`. Per-budget deltas were `100k -1.1`
+  and `300k -0.6`; validity stayed `100% -> 100%`.
+- Notable improvements at `300k`: `terrace_sprint` seed `10` `+52.6`,
+  `canyon_steps` seed `3` `+24.6`, `skyline_push` seed `9` `+22.3`,
+  `skyline_push` seed `3` `+20.0`, `terrace_sprint` seed `7` `+17.7`,
+  and `canyon_steps` seed `8` `+13.7`.
+- Notable regressions at `300k`: `terrace_sprint` seed `1` `-70.1`,
+  `switchback_pop` seed `7` `-31.8`, `skyline_push` seed `6` `-30.3`,
+  `switchback_pop` seed `4` `-24.3`, `skyline_push` seed `7` `-22.3`,
+  and `switchback_pop` seed `6` `-20.7`. At `100k`, spec-level losses on
+  `switchback_pop`, `syncopated_lift`, `valley_bounce`, and `terrace_sprint`
+  dominated the small canyon/skyline wins.
+- Diagnostics: the physical observation is real, but capping impossible
+  amplitude is too blunt. It changes selection basins and helps some rows whose
+  local amplitude pressure was damaging, but it badly hurts the very short
+  amplitude specs it was meant to stabilize. Future amplitude work needs a
+  better representation or scorer-facing feasibility model, not a local target
+  clamp.
+- Status: reverted after indicative negative result; no canonical run and no
+  commit.
+
+## probe-amplitude-feasible-targets-ramp-01
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: the blunt amplitude feasibility cap helped some `22-28` frame
+  canyon/skyline rows but hurt `20` frame switchback/syncopated rows where the
+  cap was too severe. Keep the same scorer-preserving local target idea, but
+  fade the cap in smoothly from `0` at `20` frames to full pressure at `28`
+  frames.
+- Code changes made: temporarily replaced the hard local amplitude cap with
+  `amplitude = lerp(target, cap, smoothstep((frames - 20) / 8))` when the cap
+  was below the sampled target. Final `gapAxisTargets` and report/scorer
+  targets remained unchanged.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=switchback_pop,syncopated_lift,big_air_ramp,terrace_sprint,skyline_push,valley_bounce,canyon_steps,leap_cadence,float_bounds,summit_push,rolling_drop,dense_echo_climb,climb_terrace,swoop_dive,rolling_hills,mixed_grade,pop_train,soar_settle,tiny_dance,drums_pendulum --budgets=100000,300000 --archive-dir=generated/golden-runs/probe-amplitude-feasible-targets-ramp-01`
+- Decide result: indicative `VERDICT: INCONCLUSIVE` on the paired
+  `100k`/`300k` slice; headline `601.6 -> 601.0`, `Delta=-0.7`, 95% CI
+  `[-2.3, 0.3]`, `P(Delta<=0)=90.2%`. Per-budget deltas were `100k -0.9`
+  and `300k -0.6`; validity stayed `100% -> 100%`.
+- Diagnostics: removing the full cap from the `20` frame cases avoided some of
+  the blunt version's worst switchback churn, but the remaining capped `22-28`
+  frame cases still did not convert broadly enough. This confirms that local
+  amplitude target feasibility is not a good lever on the current compiler.
+- Status: reverted after indicative negative result; no canonical run and no
+  commit.
+
+## probe-terminal-polish-ramp-01
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: the existing clone-and-test terminal polish helpers may recover
+  air/speed contact errors at mature budgets if enabled with a smooth
+  deterministic budget ramp instead of the current opt-in-only default.
+- Code changes made: temporarily changed `scripts/v0/optimizer/handoff.ts` so
+  terminal polish is sampled by a smooth pressure ramp from `150k` to `300k`
+  frames, with deterministic node-level hashing. Explicit `polish: true/false`
+  still overrode the default.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,tiny_dance,drums_crescendo,drums_signature,drums_swell,drums_tide,drums_breath,drums_crosscut,drums_dropout,drums_zigzag,opening_burst,cold_start,mini_burst,dense_sprint,solo_run,big_air_ramp,terrace_sprint,skyline_push,syncopated_lift,canyon_steps --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-terminal-polish-ramp-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` slice; headline `638.3 -> 637.8`, `Delta=-0.5`, 95% CI
+  `[-2.1, 0.0]`, `P(Delta<=0)=79.0%`. Per-budget deltas were `200k -0.3` and
+  `300k -0.6`; validity stayed `100% -> 100%`.
+- Notable behavior: terminal polish changed many `300k` rows, but some
+  big-air/skyline rows overspent badly, with several `300k` runs in the
+  `380k-530k` simulated-frame range. That makes the negative score result worse:
+  the extra work was not merely unhelpful, it was also not budget-disciplined.
+- Diagnostics: this confirms the disabled polish path is not a free source of
+  high-budget quality. Its helpers can perturb terminal tracks, but the cost is
+  irregular and the row-level score effect is negative on this slice.
+- Status: reverted after indicative negative result; no canonical run and no
+  commit.
+
+## probe-start-eval-avg-current-01
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: instead of treating the initial condition as a single best greedy
+  future, rank starts by average shallow future quality so the beginning prefers
+  a wider reachable corridor.
+- Code changes made: none; used existing `LR_START_EVAL=avg` override.
+- Golden command: `LR_ENGINE=wasm LR_START_EVAL=avg npm run golden -- --jobs=32 --specs=drums_pendulum,tiny_dance,big_air_ramp,cold_start,drums_crescendo,rhythm_ladder,drums_signature,drums_swell,drums_tide,opening_burst,canyon_steps,terrace_sprint,skyline_push,syncopated_lift,rolling_hills,soar_settle,leap_cadence,float_bounds,dense_echo_climb,swoop_dive --budgets=50000,100000,300000 --archive-dir=generated/golden-runs/probe-start-eval-avg-current-01`
+- Decide result: indicative `VERDICT: REJECT` on the paired
+  `50k`/`100k`/`300k` slice; headline `593.2 -> 578.0`, `Delta=-15.2`, 95% CI
+  `[-41.6, 1.8]`, `P(Delta<=0)=94.2%`. Per-budget deltas were `50k -63.4`,
+  `100k -35.9`, and `300k -0.3`; validity moved `97% -> 94%` at `50k`,
+  `100% -> 99%` at `100k`, and stayed `100% -> 100%` at `300k`.
+- Diagnostics: averaging shallow alternatives is not the right notion of
+  beginning robustness. It delays or weakens scarce-budget completion and loses
+  the greedy start scorer's ability to quickly find a complete basin.
+- Status: not kept; environment-only probe, no source change and no commit.
+
+## start-support-low-air-01
+
+- Baseline used: `start-ballistic-air-speed-ramp-01` at commit `98b21cc`.
+- Hypothesis: low-air first gaps are structurally impossible when the first
+  physical contact is also the first required beat. Add a compiler-owned
+  startup support option for low-air first gaps: the rider starts on a short
+  emitted support line, releases before the first beat, and still must land on
+  normal first-gap candidate geometry for the contact to be credited.
+- Code changes made: added `startLines` to handoff start/root nodes, cloned and
+  emitted those lines in outputs, advanced root line ids after startup geometry,
+  and added low-air startup support start seeds gated by first-gap `air <= 0.35`
+  and enough frames to release before the first landing. The optional polish path
+  is skipped for support-start nodes because polish rebuilds do not yet carry
+  root support geometry. Added `handoff_start_lines` diagnostic stats.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Diagnostic smoke: `LR_ENGINE=wasm npm run golden -- --details --jobs=1 --specs=drums_pendulum --seed=3 --budgets=300000 --archive-dir=generated/golden-runs/probe-start-support-smoke-01`
+  improved `drums_pendulum` seed `3` at `300k` from `440.04` to `525.04`.
+  First-gap air error dropped from `+0.802` (`achieved 0.95` vs target `0.15`)
+  to `+0.183` (`achieved 0.33`), and the selected start used one support line.
+- Focused golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,tiny_dance,big_air_ramp,cold_start,drums_crescendo,rhythm_ladder,drums_signature,drums_swell,drums_tide,opening_burst,canyon_steps,terrace_sprint,skyline_push,syncopated_lift,rolling_hills,soar_settle,leap_cadence,float_bounds,dense_echo_climb,swoop_dive --budgets=50000,100000,300000 --archive-dir=generated/golden-runs/probe-start-support-01`
+- Focused decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `593.2 -> 605.9`, `Delta=+12.8`, 95% CI `[-8.1, 40.8]`,
+  `P(Delta<=0)=13.5%`. The effect was concentrated at `300k` (`+18.6`, CI
+  `[2.1, 45.1]`, `P(Delta<=0)=1%`).
+- Canonical golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/start-support-low-air-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `630.4 -> 638.1`,
+  `Delta=+7.7`, 95% CI `[-2.0, 21.7]`, `P(Delta<=0)=8.5%`. Per-budget deltas
+  were `50k -0.1`, `100k +1.0`, `200k +9.9`, and `300k +9.7`; validity stayed
+  `97% -> 97%` at `50k` and `100% -> 100%` for `100k+`.
+- Notable improvements at `300k`: `cold_start` seeds `11` (`+285.87`), `2`
+  (`+275.89`), `8` (`+270.39`), `10` (`+265.01`), `5` (`+261.46`), `0`
+  (`+257.80`), `4` (`+256.66`), and `6` (`+246.38`). `drums_pendulum` also
+  gained broadly, including seed `3` (`+84.99`) and several `+30` to `+50`
+  improvements.
+- Notable regressions at `300k`: `drums_crescendo` seed `10` `-35.96`,
+  `drums_pendulum` seed `11` `-27.51`, `drums_crescendo` seed `5` `-20.10`,
+  `rhythm_ladder` seed `3` `-13.11`, and `drums_pendulum` seed `7` `-10.14`.
+- Diagnostics: this is the first kept beginning change that uses actual
+  compiler-owned pre-beat geometry instead of only changing start velocity or
+  first-contact ranking. Work stayed budget-disciplined (`300k` common-row
+  average sim frames slightly lower than baseline), terminal feedback diversity
+  stayed essentially flat, and the gains come from making low-air first gaps
+  physically representable.
+- Status: kept; accepted by canonical decision gate. New baseline for subsequent
+  attempts is `start-support-low-air-01`.

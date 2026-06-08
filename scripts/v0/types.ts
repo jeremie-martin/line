@@ -384,6 +384,8 @@ export type CompileStats = {
    *  and the selected rank for the returned best prefix. */
   handoff_start_options?: number;
   handoff_start_rank?: number;
+  /** Number of compiler-owned startup lines emitted before the first gap. */
+  handoff_start_lines?: number;
   /** Selected start-state velocity in polar form. This is report-only
    *  instrumentation for start-policy probes; it is not used by scoring. */
   handoff_start_speed?: number;

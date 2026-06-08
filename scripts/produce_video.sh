@@ -6,7 +6,14 @@
 #   scripts/produce_video.sh \
 #     --spec=scripts/v0/specs/believer_curves.ts \
 #     --name=believer_curves \
-#     --budget=2000000 [--seed=0] [--audio=beats/audio.mp3]
+#     --budget=2000000 [--seed=0] [--audio=beats/audio.mp3] \
+#     [--res=1080p|720p|480p] [--zoom=action|speed|N] [--hq]
+#
+#   --res    output size; 480p is a fast preview for iteration (default 1080p)
+#   --zoom   camera: action = auto-frame (zoom out for big air, in for flat),
+#            speed = zoom by forward pace, N = static zoom. Append :IN,OUT,SMOOTH
+#            to tune, e.g. --zoom=action:2.6,1.9,25 (default: static 3)
+#   --hq     high-quality ride render (QP 22 vs 28)
 #
 # Defaults target the Believer curve spec, so a bare `scripts/produce_video.sh`
 # reproduces the showcase end to end. Starts the Playwright mirror on :8765 if
@@ -18,6 +25,9 @@ NAME="believer_curves"
 BUDGET=2000000
 SEED=0
 AUDIO="beats/audio.mp3"
+RES="1080p"   # 1080p | 720p | 480p — 480p is a fast preview for iteration
+ZOOM=""       # empty = static default; "speed" = camera zooms with rider speed; or a number
+HQ=""         # set to 1 for a high-quality ride render (QP 22 vs 28)
 
 for a in "$@"; do
   case "$a" in
@@ -26,9 +36,23 @@ for a in "$@"; do
     --budget=*) BUDGET="${a#*=}" ;;
     --seed=*)   SEED="${a#*=}" ;;
     --audio=*)  AUDIO="${a#*=}" ;;
+    --res=*)    RES="${a#*=}" ;;
+    --zoom=*)   ZOOM="${a#*=}" ;;
+    --hq)       HQ=1 ;;
     *) echo "unknown arg: $a" >&2; exit 1 ;;
   esac
 done
+ZOOM_FLAG=""; [ -n "$ZOOM" ] && ZOOM_FLAG="--zoom=$ZOOM"
+HQ_FLAG="";   [ -n "$HQ" ] && HQ_FLAG="--hq"
+
+# Map --res to the ride-render flag (inspect.ts only does 720p/1080p) and the
+# Remotion output scale (composition is 1920×1080). 480p ⇒ fast preview.
+case "$RES" in
+  1080p) RIDE_FLAG="--1080p"; REMOTION_SCALE=1 ;;
+  720p)  RIDE_FLAG="";        REMOTION_SCALE=0.667 ;;
+  480p)  RIDE_FLAG="";        REMOTION_SCALE=0.444 ;;
+  *) echo "unknown --res=$RES (expected 1080p|720p|480p)" >&2; exit 1 ;;
+esac
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -51,8 +75,8 @@ if ! curl -sf -o /dev/null "$MIRROR_URL"; then
   for _ in $(seq 1 20); do curl -sf -o /dev/null "$MIRROR_URL" && break; sleep 0.5; done
 fi
 
-echo "==> 2/5  render ride → $SHK/video.mp4"
-npx tsx scripts/inspect.ts --track="$GEN.track.json" --name="$NAME" --render --1080p
+echo "==> 2/5  render ride → $SHK/video.mp4  (res=$RES${ZOOM:+, zoom=$ZOOM}${HQ:+, hq})"
+npx tsx scripts/inspect.ts --track="$GEN.track.json" --name="$NAME" --render $RIDE_FLAG $ZOOM_FLAG $HQ_FLAG
 
 echo "==> 3/5  mux audio → $SHK/video_with_audio.mp4"
 cp "$AUDIO" "$SHK/audio.mp3"
@@ -67,8 +91,9 @@ npx tsx scripts/make_overlay_data.ts \
 cp "$SHK/video_with_audio.mp4" "remotion/public/source.mp4"
 
 DUR="$(python3 -c "import json;print(json.load(open('remotion/public/$NAME.overlay.json'))['durationS'])")"
-echo "==> 5/5  annotated render → remotion/out/${NAME}_annotated.mp4 (dur=${DUR}s)"
+echo "==> 5/5  annotated render → remotion/out/${NAME}_annotated.mp4 (dur=${DUR}s, scale=$REMOTION_SCALE)"
 ( cd remotion && npx remotion render src/index.ts CurveOverlay "out/${NAME}_annotated.mp4" \
+    --scale="$REMOTION_SCALE" \
     --props="{\"dataFile\":\"$NAME.overlay.json\",\"videoFile\":\"source.mp4\",\"durationS\":$DUR}" )
 
 echo ""

@@ -21,6 +21,19 @@ export type ExportOptions = {
   origin?: string;
   /** Linear playback zoom (UI level = log2). */
   zoom?: number;
+  /** Optional per-frame zoom (indexed by simulator frame). When provided, it is
+   *  installed as `window.getAutoZoom(frame)`, which the app's playback-camera
+   *  selector honors per frame — overriding the static `zoom`. Used as the
+   *  fallback when `zoomKeyframes` can't go through the native zoomer. Out-of-range
+   *  indices clamp to the ends. */
+  autoZoom?: number[];
+  /** Preferred path: `[frameIndex, log2Zoom]` keyframes fed to the app's native
+   *  `window.createZoomer(keyframes, smoothing)` — log2 interpolation + cosine
+   *  smoothing, the engine's own camera tooling. Falls back to `autoZoom` if
+   *  `window.createZoomer` is unavailable. */
+  zoomKeyframes?: [number, number][];
+  /** Smoothing window (frames) passed to `createZoomer`. */
+  zoomSmoothing?: number;
   /** Video resolution. */
   resolution?: "720p" | "1080p";
   /** High quality (QP=22 vs 28). */
@@ -83,10 +96,25 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
 
     log("[node] launching exportVideo in page...");
     const blobUrl = await page.evaluate(
-      async ({ track, zoom, resolution, hq }) => {
+      async ({ track, zoom, resolution, hq, autoZoom, zoomKeyframes, zoomSmoothing }) => {
         // deno-lint-ignore no-explicit-any
-        const lr = (window as any).__lr;
+        const w = window as any;
+        const lr = w.__lr;
         if (!lr) throw new Error("window.__lr not installed");
+        // Install the per-frame zoom the app's playback camera reads
+        // (getPlaybackZoom → window.getAutoZoom(index)). Prefer the engine's own
+        // createZoomer (log2 interpolation + cosine smoothing); fall back to a
+        // dense lookup; clear when nothing is supplied.
+        if (zoomKeyframes && zoomKeyframes.length && typeof w.createZoomer === "function") {
+          w.getAutoZoom = w.createZoomer(zoomKeyframes, zoomSmoothing ?? 20);
+          console.log(`[__lr] zoom: createZoomer (${zoomKeyframes.length} keyframes, smoothing ${zoomSmoothing ?? 20})`);
+        } else if (autoZoom && autoZoom.length) {
+          const n = autoZoom.length;
+          w.getAutoZoom = (i: number) => autoZoom[i < 0 ? 0 : i >= n ? n - 1 : (i | 0)];
+          console.log(`[__lr] zoom: dense getAutoZoom (createZoomer ${w.createZoomer ? "unused" : "unavailable"})`);
+        } else {
+          delete w.getAutoZoom;
+        }
         return await lr.exportVideo({ track, zoom, resolution, hq, filename: "lr-render.mp4" });
       },
       {
@@ -94,6 +122,9 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
         zoom: opts.zoom,
         resolution: opts.resolution ?? "720p",
         hq: !!opts.hq,
+        autoZoom: opts.autoZoom ?? null,
+        zoomKeyframes: opts.zoomKeyframes ?? null,
+        zoomSmoothing: opts.zoomSmoothing ?? null,
       },
     );
     log(`[node] page-side render complete (blob: ${String(blobUrl).slice(0, 60)}...)`);

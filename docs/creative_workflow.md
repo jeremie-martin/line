@@ -1,151 +1,110 @@
-# Creative workflow — from a song to an expressive Line Rider track
+# Creative workflow — from a song to an expressive Line Rider video
 
-A worked example of turning a piece of music into a hand-shaped, music-synced
-track with the **handoff** compiler. The running example is the first 56s of
-*Believer* (`beats/audio.mp3`), producing `scripts/v0/specs/drums_0_56s_creative.ts`
-→ `generated/believer_v3.track.json` → `shakedown/believer_v3/`.
+Turn a song into a hand-shaped, music-synced track + annotated video. The
+compiler only ever *hits the detected beats*; everything expressive lives in the
+**spec** (continuous per-axis curves) you write, informed by the music.
 
-The pipeline has five stages. The compiler only ever *hits the detected beats*;
-everything expressive lives in the **spec** you write, informed by the music.
+Worked examples (all on this pipeline):
+- `scripts/v0/specs/believer_curves.ts` — Believer 56s, air/speed/grain.
+- `scripts/v0/specs/shelter_curves.ts` — Shelter 65s, air/speed/**elevation**.
+- `scripts/v0/specs/shelter_amp.ts` — Shelter 81s, air/speed/**amplitude**.
 
-```
-1. clean beat grid   2. understand the music   3. design a spec   4. compile+iterate   5. render
-   (beats/*.json)        (madmom analysis)         (axis arc)        (handoff)            (mp4+audio)
-```
-
-## 1. A clean beat grid (the contacts)
-
-The compiler's contacts should be *catchable*. The handoff compiler nails ~98%
-of contacts at **≥0.4s spacing** but **stalls on sub-0.4s clusters** (see
-`docs/optimizer/12_handoff_prefix_search.md` and the experiments below), so the
-raw detection (with its dense ~0.12s ornament clusters) is not directly usable.
-
-For *Believer* the main drum is a steady **125 BPM** pulse (period 60/125 =
-0.48s). `beats/drums_0_56s.json` is the cleaned grid: the on-grid main beat
-extracted from `beats/drums_0_56s_60_125.json` by a greedy "chain to the next
-beat ~0.48s away, pick the onset closest to the grid" pass — which drops the
-off-grid cluster ornaments and **adds nothing** where the drums genuinely drop
-out (e.g. the 53–55s thinning). Result: 113 clean contacts, 0–30s identical to
-the reference `drums_0_30s_60_125.json`.
-
-## 2. Understand the music — madmom as a listening aid
-
-Use `scripts/analyze_music.py` (madmom; install recipe in its docstring). It is
-**not** generating beats — it tells you how the song is built so you can shape
-the spec:
+## One-shot pipeline
 
 ```
-/tmp/mm310/bin/python scripts/analyze_music.py --audio beats/audio.mp3 --duration 56
+scripts/produce_video.sh --spec=<spec.ts> --name=<name> \
+  --budget=300000 --audio=beats/<song>.mp3 \
+  [--res=1080p|720p|480p] [--zoom=action|speed|N] [--hq]
 ```
 
-Three readouts, three design inputs:
+Runs all five stages → `remotion/out/<name>_annotated.mp4`, auto-managing the
+mirror. `--budget=300000` iterates fast; `--res=480p` is a quick preview. The
+five stages, if you want to run them by hand:
 
-| madmom processor | what it answers | how it feeds the spec |
-|---|---|---|
-| `RNNBeatProcessor`→`DBNBeatTrackingProcessor` | tempo & drift | confirmed 125.0 BPM, dead steady → validates the 0.48s grid |
-| `RNNDownBeatProcessor`→`DBNDownBeatTrackingProcessor` | meter & phrasing | 4/4, 30 bars, **4-bar phrase boundaries** `0.02 / 7.7 / 15.4 / 23.1 / 30.7 / 38.4 / 46.1 / 53.8s` → use as section `t0/t1` so changes land on phrase lines |
-| `RNNOnsetProcessor` (onset-activation, bucketed) | energy contour | low intro (0–8s) → build (8–16s) → verse (16–31s) → pre-chorus dip (31–38s) → **chorus peak (38–52s)** → wind-down (52–56s) → drives the air/speed/grain arc |
+1. **Clean beat grid** → `beats/<song>.json` (contacts the compiler must hit).
+2. **Understand the music** → `scripts/analyze_music.py` (madmom; tempo, meter,
+   4-bar phrase lines, energy contour). A *listening aid*, not a beat generator.
+   Install recipe in its docstring; run via the `/tmp/mm310` py3.10 venv.
+3. **Design the spec** (axes below).
+4. **Compile + iterate** → `scripts/v0/run.ts --spec=… --compiler=handoff
+   --budget=N`; read the per-gap `achieved/target` in the report and tune.
+5. **Render** → `scripts/inspect.ts` (drives the mirror), then mux audio and the
+   Remotion overlay. `produce_video.sh` does 3–5 for you.
 
-## 3. Design the spec — map structure to axes
+## The axes (`scripts/v0/types.ts`)
 
-Sections are soft style blocks; each can set any of the axes (see
-`scripts/v0/types.ts`):
+Author each as a continuous curve of track time (`core/curves.ts`:
+`constant`/`ramp`/`keyframes` with `hold`/`linear`/`smooth`/`easeIn`/`easeOut`).
+A curve is sampled ~once per gap (~0.4–0.6s), so author at gap granularity.
+Set **`jitter: 0`** when the curves carry the variation (the curve specs do).
 
-- **`air`** — airborne fraction. The most expressive, most controllable axis.
-- **`speed`** — authored pace in `[0, 1]`, mapped to `5.4..12.6 px/frame`.
-  Achieved speed may report outside `[0, 1]` when the raw velocity is outside
-  that calibrated range.
-- **`grain`** — median line length (long swooping lines vs short choppy ones).
-- **`elevation`** — altitude trend over each gap, on a **relative climb-effort**
-  scale: `0.5` = level, `→1` = climb as steeply as the *current speed* safely
-  allows, `→0` = plunge hard. The value is resolved per-gap against the
-  vertical-velocity *band* the speed supports (see `types.ts` `ELEVATION` /
-  `elevationBand`), so you set elevation and **mostly don't manage speed** — `1.0`
-  always means "the steepest climb this moment can buy". Tracks its target across
-  the whole `[0.05, 0.95]` range *in isolation* (probe_elevation_pure) with full
-  survival. **The scale is not symmetric around 0.5, by physics:** `0.5` (level)
-  is *not* "do nothing" — the rider is always falling between beats, so net-zero
-  altitude takes an active upward launch; "release and let gravity work" (free
-  fall) sits around `~0.33`, not `0.5`. Climb (`0.5→1`) fights gravity and is
-  speed-capped, so it spans only a small altitude range, while plunge (`0.5→0`)
-  has gravity helping and spans a much larger one — `0.5→~0.33` eases off into a
-  fall, and `~0.33→0` is an active dive *steeper* than free fall. The band
-  normalizes each side to a half so authoring *feels* uniform; the physical
-  magnitudes differ (down is the free direction). The physics bites in two more
-  honest ways: (1) if you *pin* speed
-  low, the climb side caps (you can't climb hard at constant modest speed —
-  `probe_elevation` tops out ~`0.46` at speed `0.5`); (2) if the rider is
-  genuinely too slow to even reach level, max effort reads *below* `0.5` — the
-  axis telling you "feed me speed". For big sustained climbs, **bank speed first
-  and let it fall during the climb** (`probe_climb_banked` reaches ~`0.62`–`0.66`
-  that way). Note: elevation deliberately does *not* control the jumpy-vs-smooth
-  character of the ride (concave hops vs convex glides) — that is left free for a
-  possible future axis.
+- **`air`** [0,0.99] — airborne fraction. Most controllable. Measured envelope
+  ~**0.45–0.78**: resists going fully grounded or fully airy. Design inside it.
+- **`speed`** [0,1] → 5.4–12.6 px/frame. **Overshoots late** (gravity); keep
+  targets modest or nudge them up toward the achieved overshoot.
+- **`grain`** [0,1] — median line length (choppy ↔ swooping). Tracks tightly.
+- **`elevation`** [0,1] — altitude *trend* vs the speed-supported vy band: 0.5
+  level, →1 climb, →0 plunge. Speed-coupled: **bank speed BEFORE a climb and let
+  it decay DURING it** (don't co-demand high speed/air at a climb gap — they fight
+  it). Honest per-gap `ceiling` in the report (~0.65 at chorus speed); author a
+  climb as a *pulse* where speed is mid-fall, not a sustained max.
+- **`amplitude`** [0,1] — pop height of the airborne arc (≈ `g·N²/8`). A *moment*
+  axis: only large on **long gaps** (~12px @0.6s, ~50px @1.2s, ~113px @1.8s), so
+  drive it where the grid is sparse. Author moderate (~0.6) — maxing it makes arcs
+  plunge and blows speed up (axis error). **Cannot be paired with `elevation`**
+  (both write the launch angle).
 
-(A former `contact_style` axis — slide-along-the-line ratio — was removed: its
-bounce-or-ride physics made it bimodal, so it was not a usable continuous lever.)
+## Key levers / lessons
 
-Put the section boundaries on the madmom phrase lines, then choose axis targets
-to match the energy contour: grounded/restrained intro, airy flowing verse, a
-high-air chorus peak, etc.
+- **Contact density is the main interestingness lever.** A uniform grid rides as
+  a flat glide; a **variable-density grid** (tight 0.6s in the groove, sparse
+  1.2–1.8s where you want jumps/long slides) maps the music's breathing and gives
+  the sparse sections real drama. Put boundaries on madmom phrase lines.
+- The **contract score ≠ fun to watch.** It only checks beats-hit + axis-match.
+  Use the shape analyzer (below) and your eyes for "interesting."
+- Tight sync ⇄ small arcs ⇄ flat: the compiler lands gently on dense beats, so
+  big air comes from *sparser contacts*, not from fighting the per-gap cap.
 
-## 4. Compile with handoff, then iterate on what it *achieves*
+## Track-shape (interestingness) analyzer
 
 ```
-npx tsx scripts/v0/run.ts --spec=scripts/v0/specs/drums_0_56s_creative.ts \
-  --compiler=handoff --out=generated/believer_v3
+/tmp/mm310/bin/python scripts/analyze_track_shape.py <name> [--json out.json]
 ```
 
-The DriftReport's per-section `achieved/target` is the feedback loop. **The
-achievable envelope is narrower than you'd guess** — three lessons from this
-example (v1→v3):
+Reads `shakedown/<name>/detection.json` (the rider trajectory) and reports a
+descriptive profile — pop above the takeoff→landing chord, vertical relief,
+airborne/slide runs, speed variety — and a static track-map PNG, plus soft
+"flat" flags. The companion to the numeric score for judging the *ride*.
 
-- **Air tracks the target well** within ~**0.62–0.80**. It resists going truly
-  grounded (a 0.50 target lands ~0.66) *and* truly airborne (0.85 → ~0.78).
-  Design the air arc inside that band — it still reads clearly.
-- **Speed overshoots and gets *worse* the higher you aim.** The rider
-  accumulates speed under gravity; by the late chorus raw velocity can exceed
-  the authored 1.0 mapping no matter the target. Raising speed targets (v2)
-  made it *faster* and dropped the score. Keep speed targets modest and let the
-  natural climb carry the energy.
-- **Grain undershoots** in the big sections (0.70 target → ~0.57). Aim a touch
-  high if you want long lines.
+## Camera / speed-aware zoom
 
-Scores this produced (all 111/113 contacts hit, full ride, 0 off-beat):
-`v1` (over-ambitious air/speed) **69.86** → `v2` (air good, speed too high)
-**63.26** → `v3` (good air arc + modest speed) **79.63**. Tune, recompile, read
-the achieved column, repeat.
+The native playback camera follows the rider at a **fixed** zoom by default
+(there's no built-in auto-zoom; the fit-to-scene method is a stub). `inspect.ts`
+adds per-frame zoom via the engine's own `window.createZoomer(keyframes,
+smoothing)` hook (log2 interpolation + cosine smoothing; dense fallback):
 
-> Budget note: handoff can be **budget-saturated** on these specs. When the
-> golden budget curve shows identical hashes across later checkpoints, more
-> compute is not the lever; spec design is.
+- `--zoom=action` (recommended) — **auto-frame the action**: zoom OUT on big
+  jumps/drops (large local vertical extent), IN on flat — *independent of speed*.
+- `--zoom=speed` — zoom by forward pace (vx). Looks odd on fast-but-flat stretches.
+- `--zoom=N` — static.
 
-## 5. Render to mp4 with audio
+Tune with `:IN,OUT,SMOOTH` (linear zoom; larger = more zoomed in), e.g.
+`--zoom=action:2.6,1.9,25`. For reference the app's default zoom is `2`.
 
-Serve the mirror and dashboard, then render (drives the mirror via Playwright):
+## Annotated overlay (`remotion/`)
 
-```
-python3 -m http.server 8765 --bind 127.0.0.1 --directory mirror   # terminal 1
-npx tsx scripts/serve.ts                                          # terminal 2 (dashboard :8767)
-npx tsx scripts/inspect.ts --track=generated/believer_v3.track.json --name=believer_v3 --render
-```
+`CurveOverlay.tsx` draws each targeted axis's target curve + per-gap measured
+dots + error, a sweeping playhead, and a phase band, synced to the ride. It plots
+**only the axes the spec targets**, and reads per-song title/phases from the
+spec's exported `overlayMeta`. Data is baked by `scripts/make_overlay_data.ts`.
 
-The render is silent video. For audio, prefer a muxed file; the dashboard plays
-`shakedown/<run>/video_with_audio.mp4` when present and falls back to
-`video.mp4` plus separately synced `audio.mp3` only for older runs:
+## Manual render / preview
 
 ```
-cp beats/audio.mp3 shakedown/believer_v3/audio.mp3
-ffmpeg -y -i shakedown/believer_v3/video.mp4 -i shakedown/believer_v3/audio.mp3 \
-  -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -shortest \
-  shakedown/believer_v3/video_with_audio.mp4
+python3 -m http.server 8765 --bind 127.0.0.1 --directory mirror   # mirror
+npx tsx scripts/serve.ts                                          # dashboard :8767
+npx tsx scripts/inspect.ts --track=<t>.track.json --name=<n> --render [--1080p --hq] [--zoom=action]
 ```
 
-Open `http://127.0.0.1:8767/dashboard/?run=believer_v3` and play.
-
-## TL;DR
-
-The detected drum grid is the rhythm; **the spec is the choreography**. madmom
-tells you the song's tempo, phrasing, and energy; you translate that into an air
-arc (your main lever), a modest speed shape, and grain; handoff hits the beats;
-you iterate against the achieved axes; then render with audio.
+Dashboard: `http://127.0.0.1:8767/dashboard/?run=<name>` (and `?report=` for the
+per-gap achieved-vs-target view).

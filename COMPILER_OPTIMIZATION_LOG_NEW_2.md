@@ -409,3 +409,461 @@ only changes that print `VERDICT: ACCEPT`.
   `elevation 0.0990 -> 0.0989`, `amplitude 0.1382 -> 0.1381`.
 - Status: kept and committed; accepted by canonical decision gate. New baseline
   archive: `generated/golden-runs/tail-window-extra-04`.
+
+## tail-window-extra-05
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: after opening remaining-10 suffixes at `200k`/`300k`, try one
+  more smooth high-budget tail-window increment to let remaining-11 suffixes
+  compete at ample budgets. This should reveal whether the tail-completion
+  window still has useful headroom or has reached a plateau.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `TAIL_COMPLETION_BUDGET_WINDOW_EXTRA` from `4` to `5`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/tail-window-extra-05`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `617.7 -> 617.7`,
+  `Delta=+0.0`, 95% CI `[-0.1, 0.1]`, `P(Delta<=0)=35.1%`. Per-budget
+  deltas: `50k +0.0`, `100k +0.0`, `200k -0.0`, `300k +0.0`.
+- Notable improvements: weighted wins on `solo_run +0.42`,
+  `dense_echo_climb +0.22`, `dense_sprint +0.21`, `big_air_ramp +0.19`,
+  and `drums_breath +0.15`. Largest row wins included `drums_breath`
+  seed 1 at `200k` `+6.1`, `big_air_ramp` seed 2 at `300k` `+5.6`,
+  `dense_sprint` seed 2 at `300k` `+5.0`, and `solo_run` seed 9 at
+  `300k` `+4.5`.
+- Notable regressions: weighted losses on `drums_crescendo -0.33`,
+  `drums_pendulum -0.32`, `drums_swell -0.24`, and `climb_terrace -0.09`.
+  Largest row losses included `drums_pendulum` seed 1 at `200k` `-10.5`,
+  `drums_crescendo` seed 3 at `300k` `-9.1`, and `drums_swell` seed 5 at
+  `300k` `-6.6`.
+- Diagnostics: remaining-11 completions did activate, but mostly replaced the
+  accepted remaining-10 work rather than increasing score. At `200k`,
+  `rem10` improvements fell `1019 -> 485` and `rem11` rose `0 -> 534`;
+  total tail improvements were nearly flat `1749 -> 1752`. At `300k`,
+  `rem10` fell `763 -> 36` and `rem11` rose `0 -> 724`, while total tail
+  improvements fell `2129 -> 2123`. The mechanism plateaued.
+- Status: reverted; no accepted improvement.
+
+## elevation-rideout-shortening-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: high-elevation target gaps still systematically undershoot.
+  Because the accepted elevation launch steering changes post angle but not
+  ride-out length, smoothly shorten post-contact ride-out for high elevation
+  targets with air support so more of the gap is airborne climb.
+- Code changes made: in `scripts/v0/arc_placement.ts`, temporarily added a
+  high-elevation ride-out shortening blend after air-targeted post-length
+  sizing. The blend was gated by targeted elevation, supported by air target,
+  spanned by the existing launch blend, and capped at `0.45` toward the
+  28-pixel post-length floor.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/elevation-rideout-shortening-01`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `617.7 -> 617.3`,
+  `Delta=-0.4`, 95% CI `[-2.3, 0.9]`, `P(Delta<=0)=65.4%`. Per-budget
+  deltas: `50k -0.4`, `100k -0.9`, `200k -0.1`, `300k -0.4`.
+- Notable improvements: weighted wins on `rolling_drop +9.57`,
+  `valley_bounce +2.40`, `climb_terrace +1.60`, `swoop_dive +1.45`, and
+  `switchback_pop +0.87`. Largest `300k` row wins included `rolling_drop`
+  seed 5 `+32.7`, `valley_bounce` seed 1 `+29.1`, `skyline_push` seed 8
+  `+27.2`, and `terrace_sprint` seed 5 `+24.7`.
+- Notable regressions: weighted losses on `skyline_push -17.96`,
+  `canyon_steps -5.30`, `ridge_pulse -1.60`, `mixed_grade -1.23`, and
+  `glide_stairs -0.97`. Largest `300k` row losses included `skyline_push`
+  seed 5 `-107.3`, `skyline_push` seed 2 `-68.5`, `canyon_steps` seed 1
+  `-39.2`, and `skyline_push` seed 10 `-38.8`.
+- Diagnostics: timing stayed valid but the shortened ride-out destabilized axis
+  fit in key rows. In `skyline_push` seed 5 at `300k`, mean speed error rose
+  `0.059 -> 0.131`, amplitude `0.160 -> 0.180`, and elevation
+  `0.207 -> 0.219`; the largest gap losses included speed collapse on gaps 5-6
+  and elevation collapse on gap 7. In `canyon_steps` seed 1, speed error rose
+  `0.049 -> 0.084`, air `0.079 -> 0.101`, and elevation `0.084 -> 0.105`.
+  Compile effort was not the bottleneck: at `300k`, unique full evaluations
+  rose `9639 -> 9668`, duplicate full evaluations fell `3383 -> 3351`, but
+  tail completion improvements fell `2129 -> 2063`.
+- Status: reverted; no accepted improvement.
+
+## low-air-rideout-cap-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: low-air target gaps are capped by the fixed post-contact ride-out
+  safety factor (`0.55` of the next-contact span), making targets like
+  `air=0.15` structurally unreachable after the first contact. Raise that cap
+  smoothly only for explicit low-air targets so the search can choose longer
+  grounded ride-outs where they score.
+- Code changes made: in `scripts/v0/arc_placement.ts`, temporarily added a
+  low-air cap pressure (`air <= 0.45`, span `0.30`) and increased the air
+  target's safe ride-out cap by up to `+0.25` of the next-contact span.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/low-air-rideout-cap-01`
+- Decide result: `VERDICT: REJECT`; headline `617.7 -> 586.9`,
+  `Delta=-30.8`, 95% CI `[-83.8, 0.7]`, `P(Delta<=0)=95.6%`. Per-budget
+  deltas: `50k -79.6`, `100k -89.4`, `200k -18.4`, `300k -11.3`. Validity
+  also regressed: `50k 466/480 -> 452/480`, `100k 480/480 -> 468/480`,
+  `200k 480/480 -> 478/480`, `300k 480/480 -> 479/480`.
+- Notable improvements: weighted wins on `drums_signature +9.68`,
+  `opening_burst +6.72`, `solo_run +6.40`, `valley_bounce +3.73`,
+  `drums_dropout +3.62`, and `terrace_sprint +3.48`. Largest `300k` row wins
+  included `solo_run` seed 7 `+77.7`, `solo_run` seed 3 `+59.9`,
+  `valley_bounce` seed 4 `+49.5`, and `drums_signature` seed 11 `+47.5`.
+- Notable regressions: weighted losses on `drums_pendulum -286.98`,
+  `drums_crescendo -84.87`, `rhythm_ladder -22.58`, `canyon_steps -5.42`,
+  and `dense_sprint -4.90`. Largest `300k` row losses included
+  `drums_pendulum` seed 8 `-444.1` (invalid), seed 4 `-181.1`, seed 11
+  `-176.3`, seed 9 `-116.9`, and seed 5 `-100.1`.
+- Diagnostics: the longer ride-out occasionally reduced early low-air error,
+  but it traded that for speed creep and stalls. In `drums_pendulum` seed 4 at
+  `300k`, low-air gaps 1-3 improved air error (`0.250 -> 0.150`,
+  `0.350 -> 0.200`, `0.550 -> 0.250`), but achieved speed jumped from roughly
+  `0.93-0.96` to `0.98-1.15` and later low-air gaps regressed. Seed 8 stalled
+  at frame `519`. Aggregate compile stats showed more sampling but fewer viable
+  candidates and less full feedback: at `300k`, sampled candidates rose
+  `2949782 -> 3015360`, viable candidates fell `1641874 -> 1627134`, unique
+  full evaluations fell `9639 -> 9397`, and tail improvements fell
+  `2129 -> 2032`.
+- Status: reverted; no accepted improvement.
+
+## contract-breadth-fade-early-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: `100k` already has full validity, but the protective contract
+  breadth reduction is still fully active whenever the projection fires. Start
+  the smooth fade earlier so the `100k` first-complete basin can keep more
+  candidate breadth, while `50k` remains protected and `200k+` remain fully
+  faded as before.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `CONTRACT_BREADTH_FADE_START_FRAMES` from `100_000` to `75_000`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/contract-breadth-fade-early-01`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `617.7 -> 617.7`,
+  `Delta=+0.0`, 95% CI `[-0.1, 0.1]`, `P(Delta<=0)=48.8%`. Per-budget
+  deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k +0.0`.
+- Notable improvements: weighted wins were limited to `solo_run +0.455` and
+  `drums_crescendo +0.008`, all from `100k`. Largest `100k` row wins included
+  `drums_crescendo` seed 4 `+39.4`, `solo_run` seed 2 `+35.9`,
+  `drums_pendulum` seed 4 `+34.6`, and `solo_run` seed 0 `+30.1`.
+- Notable regressions: weighted losses were `drums_pendulum -0.182` and
+  `rhythm_ladder -0.069`. Largest `100k` row losses included
+  `drums_pendulum` seed 1 `-44.6`, `drums_crescendo` seed 8 `-35.0`,
+  `solo_run` seed 3 `-22.0`, and `drums_crescendo` seed 11 `-18.3`.
+- Diagnostics: only `100k` moved. Candidate sampling rose slightly
+  (`958882 -> 959766`), viable candidates rose (`549087 -> 549636`), unique
+  full evaluations rose (`3711 -> 3736`), and tail attempts fell
+  (`3661 -> 3613`), but tail improvements also fell slightly
+  (`1191 -> 1187`). The change redistributed a handful of first-complete
+  basins without a score signal.
+- Status: reverted; no accepted improvement.
+
+## repair-first-gap-discount-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: gap 0 is the top raw axis-SSE repair target in most high-budget
+  rows, but it has no preceding generated ride-out to rebuild. Discount the
+  first gap in repair ranking so suffix restarts spend more budget on downstream
+  gaps where changing the incoming arc should have more leverage.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily added
+  `REPAIR_FIRST_GAP_SSE_WEIGHT = 0.15` and multiplied only gap-0 raw SSE by
+  that weight inside `pickFeasibleWeakGap`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/repair-first-gap-discount-01`
+- Decide result: `VERDICT: REJECT`; headline `617.7 -> 614.1`,
+  `Delta=-3.5`, 95% CI `[-5.5, -1.8]`, `P(Delta<=0)=100.0%`. Per-budget
+  deltas: `50k +0.0`, `100k -2.6`, `200k -4.3`, `300k -4.0`.
+- Notable improvements: weighted wins on `drums_breath +2.59`,
+  `drums_dropout +1.30`, `drums_pendulum +1.12`, `switchback_pop +0.66`,
+  and `solo_run +0.53`. Largest `300k` row wins included `solo_run` seed 7
+  `+37.1`, `drums_breath` seed 4 `+37.1`, `drums_breath` seed 0 `+34.2`,
+  and `valley_bounce` seed 4 `+32.7`.
+- Notable regressions: weighted losses on `drums_pulse -12.91`,
+  `drums_swell -12.34`, `drums_signature -12.26`, `mixed_grade -11.03`,
+  `swoop_dive -10.22`, `drums_zigzag -10.17`, and `drums_tide -9.14`.
+  Largest `300k` row losses included `drums_swell` seed 0 `-79.3`,
+  `rhythm_ladder` seed 11 `-63.4`, `swoop_dive` seed 6 `-55.4`,
+  `drums_crescendo` seed 3 `-53.4`, and `drums_zigzag` seed 10 `-51.6`.
+- Diagnostics: the discount increased repair churn but reduced quality. At
+  `300k`, full evaluations rose `13022 -> 14035`, unique full evaluations rose
+  `9639 -> 10244`, tail improvements rose `2129 -> 2216`, repair restarts rose
+  `5466 -> 5900`, and repair accepts rose `1647 -> 1745`, yet the score fell
+  sharply. Gap 0's large raw error is noisy but still a useful repair ranking
+  signal; discounting it made repair accept worse downstream tradeoffs.
+- Status: reverted; no accepted improvement.
+
+## passing-full-score-register-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: the leaf register ranks passing leaves by lexicographic
+  `axis_quality` first, while the canonical score also includes smooth on-beat
+  drift quality. Ranking passing leaves by `full_score` first might preserve
+  hard-contract validity while better matching the decision signal.
+- Code changes made: in `scripts/v0/optimizer/register.ts`, temporarily changed
+  the passing-leaf comparator to prefer `full_score` before `axis_quality` and
+  drift tiebreaks.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/passing-full-score-register-01`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `617.7 -> 617.7`,
+  `Delta=+0.0`, 95% CI `[0.0, 0.0]`, `P(Delta<=0)=100.0%`. Per-budget
+  deltas were exactly `+0.0` at `50k`, `100k`, `200k`, and `300k`.
+- Notable improvements/regressions: none in the canonical aggregate; the
+  comparator change did not alter the reported score or validity at any budget.
+- Diagnostics: all pass-rate diagnostics were unchanged (`97%` at `50k`,
+  `100%` at `100k+`). The no-op outcome indicates that either the register
+  rarely sees passing candidates with conflicting full-score and axis-quality
+  order, or those differences do not survive to canonical checkpoints.
+- Status: reverted; no accepted improvement.
+
+## elevation-target-steer-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: high-elevation target gaps still undershoot, but the rejected
+  ride-out-shortening attempt destabilized speed. Keep ride-out length
+  unchanged and instead smoothly steer only high elevation targets slightly
+  upward inside the existing launch-angle blend.
+- Code changes made: in `scripts/v0/arc_placement.ts`, temporarily added
+  `HIGH_ELEVATION_STEER_START = 0.54`, `SPAN = 0.18`, and `EXTRA = 0.16`,
+  then lerped the elevation launch target toward `1.0` by that smooth pressure
+  before calling `elevationToLaunchVy`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/elevation-target-steer-01`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `617.7 -> 617.7`,
+  `Delta=+0.0`, 95% CI `[-0.8, 0.8]`, `P(Delta<=0)=46.4%`. Per-budget
+  deltas: `50k -0.0`, `100k -0.2`, `200k +0.2`, `300k -0.0`. Validity was
+  unchanged at all budgets.
+- Notable improvements: weighted wins on `rolling_hills +2.84`,
+  `switchback_pop +2.10`, `climb_terrace +1.69`, `mixed_grade +1.24`,
+  `glide_stairs +0.84`, and `syncopated_lift +0.81`. Largest `300k` row wins
+  included `terrace_sprint` seed 5 `+33.6`, `skyline_push` seed 8 `+29.5`,
+  `valley_bounce` seed 1 `+28.2`, and `skyline_push` seed 2 `+23.6`.
+- Notable regressions: weighted losses on `skyline_push -4.02`,
+  `ridge_pulse -2.35`, `rolling_drop -1.51`, `summit_push -1.31`, and
+  `terrace_sprint -0.76`. Largest `300k` row losses included `skyline_push`
+  seed 3 `-30.3`, `rolling_drop` seed 4 `-30.1`, `skyline_push` seed 1
+  `-25.9`, `terrace_sprint` seed 7 `-24.8`, and `rolling_drop` seed 3
+  `-23.0`.
+- Diagnostics: axis aggregates barely moved. At `300k`, elevation MAE improved
+  only `0.0981 -> 0.0980` and speed MAE improved `0.0582 -> 0.0581`, while
+  amplitude MAE regressed `0.1369 -> 0.1373` and air MAE regressed
+  `0.0780 -> 0.0781`. The launch-only pressure is directionally plausible but
+  too noisy at this strength.
+- Status: reverted; no accepted improvement.
+
+## amplitude-pressure-lowmid-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: baseline amplitude errors show low/mid target buckets mostly
+  undershoot. Lower the amplitude launch pressure start smoothly, but widen the
+  span so high-amplitude behavior remains close to the accepted curve.
+- Code changes made: in `scripts/v0/arc_placement.ts`, temporarily replaced
+  `smoothstep((amp - 0.30) / 0.45)` with constants equivalent to
+  `smoothstep((amp - 0.24) / 0.51)`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/amplitude-pressure-lowmid-01`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `617.7 -> 617.2`,
+  `Delta=-0.4`, 95% CI `[-2.9, 1.7]`, `P(Delta<=0)=62.6%`. Per-budget
+  deltas: `50k +0.2`, `100k -1.0`, `200k -0.3`, `300k -0.4`. Validity was
+  unchanged at all budgets.
+- Notable improvements: weighted wins on `valley_bounce +8.38`,
+  `rolling_drop +2.93`, `glide_stairs +2.84`, `switchback_pop +2.78`,
+  `syncopated_lift +2.61`, and `soar_settle +1.79`. Largest `300k` row wins
+  included `soar_settle` seed 5 `+69.6`, seed 9 `+66.5`, `float_bounds`
+  seed 9 `+59.9`, and `skyline_push` seed 11 `+44.9`.
+- Notable regressions: weighted losses on `canyon_steps -13.17`,
+  `float_bounds -11.30`, `terrace_sprint -5.03`, `skyline_push -2.71`,
+  and `big_air_ramp -2.30`. Largest `300k` row losses included
+  `terrace_sprint` seed 10 `-109.9`, `rolling_drop` seed 10 `-90.4`,
+  `float_bounds` seed 11 `-56.4`, `skyline_push` seed 0 `-50.0`, and
+  `pop_train` seed 4 `-47.6`.
+- Diagnostics: amplitude RMSE improved slightly (`300k` `0.1754 -> 0.1752`
+  and `100k` `0.1814 -> 0.1809`), but amplitude MAE did not improve and the
+  extra launch pressure worsened elevation (`300k` MAE `0.0981 -> 0.0992`,
+  RMSE `0.1216 -> 0.1239`). Broad low/mid amplitude pressure moves useful
+  basins but is not stable enough globally.
+- Status: reverted; no accepted improvement.
+
+## quality-ncand-20-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: the expanded amplitude/elevation golden board may be over-spending
+  quality-phase breadth at `24` candidates per gap. A smaller smooth default
+  breadth should free budget for more terminal feedback while retaining enough
+  geometry diversity for the true-score ranker.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `HANDOFF_QUALITY_N_CAND` from `24` to `20`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/quality-ncand-20-01`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `617.7 -> 616.9`,
+  `Delta=-0.7`, 95% CI `[-2.7, 1.1]`, `P(Delta<=0)=78.4%`. Per-budget
+  deltas: `50k -0.7`, `100k -0.4`, `200k -1.1`, `300k -0.6`. Validity was
+  unchanged at all budgets.
+- Notable improvements: weighted wins on `rolling_drop +5.36`,
+  `rhythm_ladder +4.84`, `solo_run +4.80`, `soar_settle +4.41`,
+  `big_air_ramp +4.15`, and `valley_bounce +3.88`. Largest `300k` row wins
+  included `solo_run` seed 7 `+96.5`, `drums_crescendo` seed 0 `+66.5`,
+  `soar_settle` seed 5 `+60.4`, and `syncopated_switchback` seed 10 `+46.9`.
+- Notable regressions: weighted losses on `drums_tide -10.36`,
+  `opening_burst -10.23`, `drums_swell -8.56`, `float_bounds -6.81`,
+  `drums_crescendo -5.70`, and `drums_zigzag -5.01`. Largest `300k` row
+  losses included `drums_crescendo` seed 10 `-81.1`, `drums_tide` seed 1
+  `-62.6`, `drums_crescendo` seed 7 `-58.0`, and `opening_burst` seed 2
+  `-55.3`.
+- Diagnostics: the lower breadth did free terminal feedback but converted it
+  poorly. At `300k`, samples fell `2949782 -> 2763405`, unique full evaluations
+  rose `9639 -> 10511`, and tail attempts rose `8773 -> 9975`, but tail
+  improvements fell `2129 -> 2105` and repair accepts fell `1647 -> 1619`.
+  The change helped several hard amplitude/elevation rows, but the reduced
+  candidate diversity damaged high-scoring drum/opening basins enough to lose
+  the canonical comparison.
+- Status: reverted; no accepted improvement.
+
+## quality-ncand-28-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: the filtered hard-slice probes showed that nearby quality breadth
+  still affects amplitude/elevation-heavy rows. Try a small step above the
+  accepted `24` default, below the known rejected `32`, to expose more geometry
+  diversity to the true-score ranker without the full over-spend.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily changed
+  `HANDOFF_QUALITY_N_CAND` from `24` to `28`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/quality-ncand-28-01`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `617.7 -> 618.6`,
+  `Delta=+1.0`, 95% CI `[-0.8, 2.7]`, `P(Delta<=0)=14.1%`. Per-budget
+  deltas: `50k -0.2`, `100k +0.4`, `200k +1.3`, `300k +1.2`. Validity was
+  unchanged at all budgets.
+- Notable improvements: weighted wins on `drums_crescendo +8.46`,
+  `drums_pendulum +7.40`, `syncopated_switchback +6.48`,
+  `grain_staircase +6.09`, `leap_cadence +5.64`, and `dense_sprint +5.59`.
+  Largest `300k` row wins included `drums_crescendo` seed 0 `+60.9`,
+  `drums_pendulum` seed 4 `+52.3`, `dense_sprint` seed 10 `+50.2`, and
+  `syncopated_switchback` seed 10 `+44.8`.
+- Notable regressions: weighted losses on `drums_signature -6.78`,
+  `solo_run -5.10`, `soar_settle -4.81`, `drums_swell -4.57`,
+  `pop_train -4.54`, and `drums_tide -4.45`. Largest `300k` row losses
+  included `skyline_push` seed 10 `-65.6`, `soar_settle` seed 11 `-58.5`,
+  `drums_signature` seed 5 `-54.7`, and `rhythm_ladder` seed 11 `-53.0`.
+- Diagnostics: flat extra breadth shifted useful weak-row basins but reduced
+  terminal feedback. At `300k`, samples rose `2949782 -> 3081263`, viable
+  candidates rose `1641874 -> 1700218`, but unique full evaluations fell
+  `9639 -> 8403`, tail improvements fell `2129 -> 2069`, and repair accepts
+  fell `1647 -> 1575`. The positive but inconclusive signal suggests extra
+  breadth should be concentrated on mature weak incumbents rather than applied
+  globally.
+- Status: reverted; no accepted improvement.
+
+## quality-weak-breadth-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: flat `28` quality candidates had a positive but inconclusive
+  signal because it helped weak rows while globally starving terminal feedback.
+  Keep the accepted `24` default, but add up to four deterministic extra
+  quality samples only for mature searches with a passing incumbent whose
+  `axis_quality` is below a smooth weak-row threshold.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily added a
+  `qualitySampleCount` ramp using incumbent `axis_quality`, budget maturity,
+  unique full-evaluation pressure, and a node-stable hash; threaded the same
+  count through main quality expansion and near-tail completion.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/quality-weak-breadth-01`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `617.7 -> 617.7`,
+  `Delta=-0.0`, 95% CI `[-0.1, 0.0]`, `P(Delta<=0)=53.5%`. Per-budget
+  deltas: `50k +0.0`, `100k -0.0`, `200k +0.0`, `300k -0.0`. Validity was
+  unchanged at all budgets.
+- Notable improvements: tiny weighted wins on `big_air_ramp +0.25`,
+  `skyline_push +0.16`, `drums_pendulum +0.07`, and `terrace_sprint +0.06`.
+  Largest `300k` row wins were `big_air_ramp` seed 2 `+5.6`, `skyline_push`
+  seed 11 `+4.1`, and `drums_pendulum` seed 6 `+2.5`.
+- Notable regressions: weighted losses on `pop_train -0.68`,
+  `canyon_steps -0.12`, `leap_cadence -0.06`, `tiny_dance -0.02`, and
+  `syncopated_lift -0.02`. Largest `300k` row loss was `pop_train` seed 5
+  `-17.7`.
+- Diagnostics: the gate was too narrow/late to materially change the search. At
+  `300k`, samples rose only `2949782 -> 2951525`, viable candidates barely moved
+  `1641874 -> 1641911`, unique full evaluations slipped `9639 -> 9625`, and
+  tail improvements slipped `2129 -> 2126`. This captured neither the useful
+  diversity from flat `28` nor enough extra terminal feedback to matter.
+- Status: reverted; no accepted improvement.
+
+## low-air-rideout-cap-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: the worst 300k rows show low-air targets, especially
+  `drums_pendulum`, consistently over-achieving air. The contact-centered
+  generator caps air-targeted ride-out at `55%` of the time to the next contact;
+  smoothly raising that cap only for low air might let dense low-air rows stay
+  grounded longer without touching high-air behavior.
+- Code changes made: in `scripts/v0/arc_placement.ts`, temporarily raised the
+  air-targeted post-length safe cap by up to `+0.18` using a smooth pressure from
+  `air=0.45` to `air=0.15`.
+- Golden command: `GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4,5 LR_ENGINE=wasm npm run golden -- --jobs=12 --specs=drums_pendulum,tiny_dance,pop_train,big_air_ramp,canyon_steps,syncopated_lift,skyline_push --budgets=100000,300000 --archive-dir=generated/golden-runs/probe-low-air-rideout-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`; paired
+  slice headline `539.5 -> 488.5`, `Delta=-51.1`, 95% CI `[-113.9, 1.0]`,
+  `P(Delta<=0)=88.4%`. Per-budget deltas: `100k -188.8`, `300k -5.2`.
+  Validity fell on the slice at `100k` from `100% -> 93%`.
+- Notable improvements: none large enough to justify canonical spend.
+- Notable regressions: `drums_pendulum` worsened sharply on the live slice
+  (`seed 0` around `483 -> 439`, `seed 4` around `477 -> 370` at `300k`), and
+  first-complete validity degraded at `100k`.
+- Diagnostics: the low-air failure is not just a too-short ride-out cap. Longer
+  low-air post lines crowd dense continuations and damage the race to a complete
+  track before the scorer can exploit the lower-air geometry.
+- Status: reverted after probe; no canonical run and no accepted improvement.
+
+## mature-avg-fwd-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: full `LR_FWD_EVAL=avg:2:6` and `best:2:3` probes showed high-budget
+  gains on amplitude/elevation-heavy rows but severe `100k` starvation. Keep the
+  accepted default `greedy:2` at low budgets and smoothly switch a deterministic
+  fraction of mature nodes to `avg:2:6`, reaching full `avg` near `300k`.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, temporarily added a
+  mature forward-eval config helper using smooth budget pressure from `150k` to
+  `300k` and a node-stable hash to select `avg:2:6` for the default ranker only.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-fwd-01`
+- Decide result: `VERDICT: INCONCLUSIVE`; headline `617.7 -> 616.6`,
+  `Delta=-1.0`, 95% CI `[-6.1, 4.1]`, `P(Delta<=0)=66.0%`. Per-budget
+  deltas: `50k +0.0`, `100k +0.0`, `200k -1.7`, `300k -1.1`. Validity was
+  unchanged at all budgets.
+- Notable improvements: weighted wins on `pop_train +30.33`,
+  `leap_cadence +27.61`, `float_bounds +21.22`, `big_air_ramp +19.53`,
+  `glide_stairs +19.07`, `soar_settle +18.91`, and `rolling_hills +18.12`.
+  Largest `300k` row wins included `solo_run` seed 3 `+112.4`, `soar_settle`
+  seed 5 `+106.8`, `leap_cadence` seed 3 `+97.3`, and `float_bounds` seed 9
+  `+73.2`.
+- Notable regressions: weighted losses on `drums_tide -37.13`,
+  `drums_pulse -29.55`, `swoop_dive -26.38`, `drums_crosscut -24.59`,
+  `drums_dropout -21.19`, and `drums_zigzag -16.66`. Largest `300k` losses
+  included `drums_breath` seed 1 `-149.3`, `verse_chorus` seed 7 `-147.5`,
+  `drums_signature` seed 1 `-144.8`, and `drums_crosscut` seed 10 `-138.3`.
+- Diagnostics: broad `avg` moved the axis errors in the right direction for the
+  new axes (`300k` amplitude MAE `0.1369 -> 0.1217`, air MAE `0.0780 -> 0.0719`,
+  elevation MAE `0.0981 -> 0.0976`) but worsened speed MAE
+  `0.0582 -> 0.0690` and starved search conversion. At `300k`, sampled
+  candidates rose `2949782 -> 3064004`, but viable candidates fell
+  `1641874 -> 1561035`, unique full evaluations fell `9639 -> 8703`, tail
+  successes fell `8657 -> 6555`, and tail improvements fell `2129 -> 1673`.
+  The signal is useful only for amplitude/elevation rows, not as a global ranker.
+- Status: broad version not kept; superseded by a follow-up axis-gated attempt.
+
+## mature-avg-vertical-01
+
+- Baseline used: `tail-window-extra-04` at commit `78309a3`.
+- Hypothesis: the broad mature `avg:2:6` ranker improved air/amplitude/elevation
+  axes but regressed drum-only rows by starving terminal feedback. Gate the same
+  smooth mature ranker blend to gaps whose resolved targets include `amplitude`
+  or `elevation`, so air/speed-only rows keep the accepted `greedy:2` path.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, kept the mature
+  budget pressure from `150k` to `300k`, but added an axis gate so the default
+  ranker switches a deterministic fraction of nodes to `avg:2:6` only when the
+  current gap targets amplitude or elevation. Explicit `LR_FWD_EVAL` overrides
+  still bypass this default-only policy.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/mature-avg-vertical-01`
+- Decide result: `VERDICT: ACCEPT`; headline `617.7 -> 621.2`,
+  `Delta=+3.5`, 95% CI `[0.1, 7.1]`, `P(Delta<=0)=2.2%`. Per-budget deltas:
+  `50k +0.0`, `100k +0.0`, `200k +1.0`, `300k +7.0`. Validity was unchanged
+  at all budgets.
+- Notable improvements: weighted wins on `pop_train +30.33`,
+  `leap_cadence +27.61`, `float_bounds +21.22`, `big_air_ramp +19.53`,
+  `glide_stairs +19.07`, `soar_settle +18.91`, `rolling_hills +18.12`, and
+  `rolling_drop +12.89`. Largest `300k` row wins included `soar_settle` seed 5
+  `+106.8`, `leap_cadence` seed 3 `+97.3`, `leap_cadence` seed 8 `+92.9`,
+  `float_bounds` seed 9 `+73.2`, and `pop_train` seed 5 `+59.3`.
+- Notable regressions: weighted losses on `swoop_dive -26.38`,
+  `dense_echo_climb -9.12`, `ridge_pulse -6.89`, `canyon_steps -4.60`,
+  `terrace_sprint -3.33`, and `summit_push -2.64`. Largest `300k` losses
+  included `swoop_dive` seed 4 `-81.0`, `swoop_dive` seed 10 `-65.6`,
+  `canyon_steps` seed 1 `-61.8`, `dense_echo_climb` seed 0 `-54.9`, and
+  `ridge_pulse` seed 7 `-38.9`.
+- Diagnostics: the axis gate preserved air/speed-only drum rows (`drums_*`
+  weighted deltas mostly `0.00`) while retaining the new-axis improvements. At
+  `300k`, amplitude MAE improved `0.1369 -> 0.1217`, air MAE improved
+  `0.0780 -> 0.0755`, elevation MAE nudged `0.0981 -> 0.0976`, and speed MAE
+  only slightly regressed `0.0582 -> 0.0590`. Search conversion still costs
+  budget on vertical rows (`300k` unique full evaluations `9639 -> 8866`, tail
+  improvements `2129 -> 1857`), but the targeted quality gain outweighs it.
+- Status: kept and committed; new baseline for subsequent attempts.

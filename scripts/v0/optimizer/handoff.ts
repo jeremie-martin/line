@@ -408,6 +408,11 @@ const HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_FRAMES = Math.round(FPS * 0.72);
 const HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_WIDTH = Math.round(FPS * 0.40);
 const HANDOFF_RELEASE_VERTICAL_SAFE_FAST_PX = 8;
 const HANDOFF_RELEASE_VERTICAL_SAFE_TIGHT_PX = 5;
+// Mature vertical-axis gaps benefit from the robust avg forward ranker, but using
+// it globally starves dense drum/search feedback. Fade it in only for those gaps.
+const MATURE_AVG_FWD_EVAL_START_FRAMES = 150_000;
+const MATURE_AVG_FWD_EVAL_SPAN_FRAMES = 150_000;
+const MATURE_AVG_FWD_EVAL_BRANCH = 6;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 /** Speculative tail completion turns deep prefixes into full-duration register
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because
@@ -2567,7 +2572,13 @@ function scoreCandidateForHandoff(
   // leads (charged forward rollout), replacing the local axis-L2 proxy below the gate.
   const fwdCfg = fwdEvalCfg; // resolved once per compile in setForwardEvalContext
   if (fwdCfg !== null && targetBudget >= fwdEvalMin) {
-    const value = forwardArcValue(child, gaps, ctx, seed, fwdCfg);
+    const value = forwardArcValue(
+      child,
+      gaps,
+      ctx,
+      seed,
+      matureForwardEvalConfig(fwdCfg, node, gaps, targetBudget),
+    );
     recordCandidateReleaseCoverage(telemetry, candidate);
     return {
       candidate, child, rank, source, sourceAxis,
@@ -2720,6 +2731,7 @@ let fwdEvalGapAxisTargets: AxisValues[] = [];
 // per-candidate ranker reads these cached fields, not process.env, in the hot path.
 let fwdEvalCfg: ForwardEvalConfig | null = null;
 let fwdEvalMin = 0;
+let fwdEvalDefaultConfig = true;
 export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]): void {
   fwdEvalSpec = spec;
   fwdEvalGapAxisTargets = gapAxisTargets;
@@ -2809,6 +2821,7 @@ function parseForwardSpec(raw: string): ForwardEvalConfig | null {
 
 function forwardEvalConfig(): ForwardEvalConfig | null {
   const env = readEnv("LR_FWD_EVAL");
+  fwdEvalDefaultConfig = env === undefined || env === "";
   if (env === "0" || env === "off") return null;
   const cfg = parseForwardSpec(env === undefined || env === "" ? "greedy:2" : env);
   // Rollout frames are CHARGED honestly by default; LR_FWD_EVAL_CHARGE=0 refunds them (the
@@ -2913,6 +2926,46 @@ function forwardArcValue(
   } finally {
     if (!charge) refundSimFramesTo(saved);
   }
+}
+
+function matureForwardEvalConfig(
+  base: ForwardEvalConfig,
+  node: SearchNode,
+  gaps: Gap[],
+  targetBudget: number,
+): ForwardEvalConfig {
+  if (
+    !fwdEvalDefaultConfig ||
+    base.variant !== "greedy" ||
+    base.depth !== 2 ||
+    base.branch !== 1 ||
+    !targetsVerticalDramaAxis(gaps[node.gapIndex]?.targets)
+  ) {
+    return base;
+  }
+  const pressure = smoothstep(
+    (targetBudget - MATURE_AVG_FWD_EVAL_START_FRAMES) /
+      MATURE_AVG_FWD_EVAL_SPAN_FRAMES,
+  );
+  if (pressure <= 0 || unitHash(matureForwardEvalSeed(node)) >= pressure) return base;
+  return {
+    variant: "avg",
+    depth: 2,
+    branch: MATURE_AVG_FWD_EVAL_BRANCH,
+    charge: base.charge,
+  };
+}
+
+function targetsVerticalDramaAxis(targets: AxisValues | undefined): boolean {
+  return targets?.amplitude !== undefined || targets?.elevation !== undefined;
+}
+
+function matureForwardEvalSeed(node: SearchNode): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
+    0x632be59b
+  ) | 0;
 }
 
 function previewFutureContacts(

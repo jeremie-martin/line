@@ -13,7 +13,7 @@
 > - **Engine:** use `LR_ENGINE=wasm` for compiler, benchmark, verification, and
 >   performance commands that run physics. Pure analyzers such as `npm run decide`
 >   do not need it.
-> - **Jobs:** use `--jobs=6` for golden runs.
+> - **Jobs:** use `--jobs=32` for golden runs.
 > - **Promotion gate:** a **canonical-tier** `VERDICT: ACCEPT` — a standard one-sided
 >   significance test at α=0.05 on the paired bootstrap (`P(Δ≤0) < 0.05`). There is no
 >   separate absolute-`Δ` floor — significance is the bar, and it self-widens at 12 seeds.
@@ -63,7 +63,7 @@ deliberate ruler/scope change.
 
 Use normal full canonical runs for this campaign. A canonical run is the full
 20-spec × 12-seed × `{25,50,100,150,200}k` budget grid, launched with
-`LR_ENGINE=wasm` and `--jobs=6`, with no spec, seed, or budget overrides.
+`LR_ENGINE=wasm` and `--jobs=32`, with no spec, seed, or budget overrides.
 
 Give every baseline and candidate a clear archive label so attempts stay identifiable
 in `generated/golden-runs/` and in the dashboard. The label is the archive directory
@@ -74,12 +74,12 @@ only by comparing canonical `golden.json` archives with `npm run decide`.**
 ```bash
 # Current baseline of record, only when a fresh baseline is needed.
 LR_ENGINE=wasm npm run golden -- \
-  --jobs=6 \
+  --jobs=32 \
   --archive-dir=generated/golden-runs/<baseline-label>
 
 # Candidate attempt: the normal full canonical run for a mechanism.
 LR_ENGINE=wasm npm run golden -- \
-  --jobs=6 \
+  --jobs=32 \
   --archive-dir=generated/golden-runs/<attempt-label>
 
 # Decision against the current baseline of record.

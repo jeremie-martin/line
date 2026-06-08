@@ -583,13 +583,13 @@ function compileHandoffInternal(
     // Resolve the per-beat `impact` qualifier into the terminating gap's targets.
     // impact is authored on the Contact (not a curve), so it bypasses effectiveAxes/
     // sampleGapTargets entirely and is written here, AFTER all sampleGapTargets RNG
-    // draws — so it consumes NO rng and the candidate geometry stays byte-identical.
-    // It's NOT in TARGET_AXES (v1), so axisCost/search ignore it; it rides the
-    // per-gap report plumbing (buildDriftReport reads gapAxisTargets[idx]) to surface
-    // target/achieved/error/ceiling, report-only until steering lands (v2).
-    // validateSpec (above) already guaranteed any authored impact is in [0,1], so
-    // no re-clamp here. Last-write-wins if two contacts round to the same frame
-    // (sub-frame-spaced beats); harmless for the report-only v1 read.
+    // draws — so it consumes NO rng and the candidate GEOMETRY stays byte-identical.
+    // It's NOT in TARGET_AXES, so axisCost/candidate-ranking ignore it; it rides the
+    // per-gap report plumbing (buildDriftReport reads gapAxisTargets[idx]) and is now
+    // SCORED via the register's true score (the optimizer doesn't yet steer it).
+    // validateSpec (above) already guaranteed any authored impact is in [0,1], so no
+    // re-clamp here. Sub-frame-spaced beats that round to the same frame collide
+    // (last write wins) — degenerate authoring; the gap timeline coalesces them too.
     const impactByFrame = new Map<number, number>();
     for (const c of spec.contacts) {
       if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);

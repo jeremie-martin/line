@@ -3996,3 +3996,74 @@ only changes that print `VERDICT: ACCEPT`.
   than broaden eligibility.
 - Status: kept; canonical accepted. Commit this and use
   `start-support-x-delay-robust-01` as the next baseline.
+
+## probe-start-support-x-delay-air048-01
+
+- Baseline used: `start-support-x-delay-robust-01` at commit `15adf5a`.
+- Hypothesis: after adding robust delayed-support start scoring, the smooth
+  delayed-support air window can extend from `0.40` to `0.48`, reaching nearby
+  medium-low first gaps such as `ridge_pulse` and `terrace_sprint`, while
+  leaving short exact-`0.45` drum/verse/tiny openings effectively unchanged.
+- Code changes made: temporarily changed only
+  `START_SUPPORT_X_DELAY_AIR_MAX` from `0.40` to `0.48`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=cold_start,rhythm_ladder,dense_echo_climb,terrace_sprint,ridge_pulse,rolling_hills,canyon_steps,syncopated_lift,tiny_dance,verse_chorus,drums_signature,drums_swell --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-x-delay-air048-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `704.2 -> 703.8`, `Delta=-0.4`, 95% CI `[-2.5, 1.0]`,
+  `P(Delta<=0)=72.4%`. Per-budget deltas were `50k +0.0`,
+  `100k -0.6`, `200k -0.6`, and `300k -0.3`; validity moved
+  `96% -> 99%` at `50k` and stayed `100% -> 100%` at higher budgets.
+- Notable improvements/regressions: `ridge_pulse` gained `+1.51`, but
+  `terrace_sprint` lost `-5.85`, led by seed losses of `-29.13`, `-29.12`,
+  and `-21.90`.
+- Diagnostics: a plain wider air cap is too blunt. The newly reached
+  medium-low openings do not share the same delayed-support preference.
+- Status: reverted; no canonical run and no commit.
+
+## probe-start-support-x-delay-medium-window-01
+
+- Baseline used: `start-support-x-delay-robust-01` at commit `15adf5a`.
+- Hypothesis: keep the accepted low-air window byte-identical, but add a
+  separate medium-air delayed-support window only when the first gap is longer
+  than the losing `terrace_sprint` opening. This should preserve `ridge_pulse`
+  upside while avoiding the short medium-air loss.
+- Code changes made: temporarily restored the low-air `0.40` cap, then added a
+  second smooth pressure for `0.40 < air <= 0.52` multiplied by a first-gap
+  duration ramp starting at frame `26` over `4` frames. The final pressure was
+  the max of the accepted low-air pressure and this medium-air pressure.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=cold_start,rhythm_ladder,dense_echo_climb,ridge_pulse,canyon_steps,rolling_hills,terrace_sprint,syncopated_lift,tiny_dance,verse_chorus,drums_signature,drums_swell --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-x-delay-medium-window-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `704.2 -> 703.5`, `Delta=-0.7`, 95% CI `[-3.0, 0.8]`,
+  `P(Delta<=0)=78.8%`. Per-budget deltas were `50k +0.0`,
+  `100k -0.3`, `200k -1.1`, and `300k -0.7`; validity moved
+  `96% -> 99%` at `50k` and stayed `100% -> 100%` at higher budgets.
+- Notable improvements/regressions: `ridge_pulse` again gained `+1.51`, but
+  `rolling_hills` lost `-10.51`. Largest rolling-hills losses were seed `1`
+  `-42.29`, seed `9` `-27.09`, seed `11` `-17.83`, and seed `0` `-14.06`.
+- Diagnostics: medium-air delayed startup support is not a generic easy
+  extension of the accepted low-air mechanism. It can rescue `ridge_pulse`, but
+  it creates larger losses on neighboring elevation/amplitude openings. Future
+  startup work should improve branch evaluation or introduce a different
+  opening primitive, not simply broaden delayed support eligibility.
+- Status: reverted; no canonical run and no commit.
+
+## probe-start-support-delay-branch3-quick-01
+
+- Baseline used: `start-support-x-delay-robust-01` at commit `15adf5a`.
+- Hypothesis: the accepted delayed-support robust scorer averages the top two
+  first-contact branches. Averaging the top three may reject brittle delayed
+  starts more reliably while keeping the same narrow eligibility window.
+- Code changes made: temporarily changed
+  `START_SUPPORT_DELAY_ROBUST_BRANCH` from `2` to `3`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=cold_start,rhythm_ladder,dense_echo_climb --budgets=50000,100000,200000,300000 --archive-dir=generated/golden-runs/probe-start-support-delay-branch3-quick-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE`;
+  headline `696.7 -> 697.3`, `Delta=+0.6`, 95% CI `[-4.8, 6.4]`,
+  `P(Delta<=0)=39.7%`. Per-budget deltas were `50k +0.0`,
+  `100k +0.0`, `200k +0.4`, and `300k +0.9`; validity moved
+  `96% -> 97%` at `50k`.
+- Diagnostics: the point estimate is positive but tiny and noisy even on the
+  three affected specs. The extra branch adds start-eval work without a clean
+  selection improvement.
+- Status: reverted after quick indicative decide; no broader run, no canonical
+  run, and no commit.

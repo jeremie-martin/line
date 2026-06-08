@@ -159,6 +159,15 @@ describe("impact is scored (v2)", () => {
       expect(a.ceiling).toBeDefined();
     }
   }, 120_000);
+
+  test("an impact-authoring spec compiles deterministically", () => {
+    // impact is resolved after sampleGapTargets (no RNG draw); two compiles of the
+    // same (spec, seed, budget) must still be byte-identical.
+    const a = compileHandoff(withImp, 0, { budget: 40_000 });
+    const b = compileHandoff(withImp, 0, { budget: 40_000 });
+    expect(JSON.stringify(b.track)).toBe(JSON.stringify(a.track));
+    expect(b.stats.sim_frames).toBe(a.stats.sim_frames);
+  }, 120_000);
 });
 
 describe("beat authoring helpers", () => {

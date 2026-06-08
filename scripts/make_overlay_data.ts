@@ -21,7 +21,7 @@ import { AXES, FPS, CALIB, secToFrame, type Spec, type DriftReport } from "./v0/
 import { scoreDriftReport } from "./v0/score.ts";
 import { LineRiderEngine, createLineFromJson } from "./lib/_lr_engine.ts";
 import { extractRawTrajectory, detect } from "./lib/detector.ts";
-import { contactLineIdsAt, velocityAt, findLandingNearFrame } from "./v0/core/substrate.ts";
+import { normalImpactPxAtLanding } from "./v0/core/substrate.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string, def?: string): string => {
@@ -66,15 +66,8 @@ function impactByFrame(): Map<number, number> {
   const det = detect(extractRawTrajectory(eng, track.duration));
   for (const e of det.events) {
     if (e.type !== "landing") continue;
-    let tx = 0, ty = 0;
-    for (const id of contactLineIdsAt(det, e.frame)) {
-      const ln = lineById.get(id); if (!ln) continue;
-      const dx = ln.x2 - ln.x1, dy = ln.y2 - ln.y1, l = Math.hypot(dx, dy);
-      if (l > 1e-9) { tx += dx / l; ty += dy / l; }
-    }
-    const tl = Math.hypot(tx, ty); if (tl <= 1e-9) continue; tx /= tl; ty /= tl;
-    const v = velocityAt(det, e.frame - 1) ?? velocityAt(det, e.frame); if (!v) continue;
-    out.set(e.frame, Math.min(1, Math.abs(tx * v.y - ty * v.x) / CALIB.IMPACT_CAP));
+    const px = normalImpactPxAtLanding(det, e.frame, (id) => lineById.get(id));
+    if (px !== undefined) out.set(e.frame, Math.min(1, px / CALIB.IMPACT_CAP));
   }
   return out;
 }

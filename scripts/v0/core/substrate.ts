@@ -132,6 +132,45 @@ export function findLandingNearFrame(det: Detection, targetFrame: number, tol = 
   return det.events.find((e) => e.type === "landing" && Math.abs(e.frame - targetFrame) <= tol);
 }
 
+/**
+ * Normal impact speed (px/frame, UNNORMALIZED) of a landing: the magnitude of the
+ * rider's PRE-impact velocity component perpendicular to the catch surface it fired
+ * against. This is the one definition of landing intensity (callers divide by
+ * `CALIB.IMPACT_CAP` to normalize); shared by the scored reduction (`measureImpact`,
+ * core/measure.ts), the detection-event annotation (scripts/inspect.ts), and the
+ * overlay read-out (scripts/make_overlay_data.ts) so the math lives in ONE place.
+ *
+ * `lineFor(id)` resolves a fired line id to its endpoints — the per-gap scored
+ * reduction passes a resolver that returns ONLY this gap's owned lines (so a
+ * stray foreign line firing at the same frame is ignored); the full-track
+ * read-outs pass a resolver over all track lines. The surface tangent is the
+ * average of the fired lines' unit tangents (robust to a multi-segment catch).
+ * Returns `undefined` when there's no usable fired-line geometry or no velocity.
+ */
+export function normalImpactPxAtLanding(
+  det: Detection,
+  landingFrame: number,
+  lineFor: (id: number) => { x1: number; y1: number; x2: number; y2: number } | undefined,
+): number | undefined {
+  let tx = 0, ty = 0;
+  for (const id of contactLineIdsAt(det, landingFrame)) {
+    const ln = lineFor(id);
+    if (ln === undefined) continue;
+    const dx = ln.x2 - ln.x1, dy = ln.y2 - ln.y1, len = Math.hypot(dx, dy);
+    if (len > 1e-9) { tx += dx / len; ty += dy / len; }
+  }
+  const tl = Math.hypot(tx, ty);
+  if (tl <= 1e-9) return undefined;
+  tx /= tl; ty /= tl;
+  // Pre-impact velocity (frame before the landing); fall back to the landing frame
+  // only if that's out of range. lr-core's collision smears the velocity *change*
+  // over several frames, so we read the incoming velocity, not a Δv.
+  const vIn = velocityAt(det, landingFrame - 1) ?? velocityAt(det, landingFrame);
+  if (vIn === undefined) return undefined;
+  // |v ⊥ t̂| = |t̂.x·v.y − t̂.y·v.x| — the speed the surface kills.
+  return Math.abs(tx * vIn.y - ty * vIn.x);
+}
+
 export function addMissedContactRetryOwners(
   owners: Set<number>,
   det: Detection,

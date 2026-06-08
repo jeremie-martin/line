@@ -70,10 +70,12 @@ export type Contact = {
    * plumbing — a deliberate implementation detail (each contact gap ends in
    * exactly one beat, so per-gap scalar ≡ per-beat value) that may change.
    *
-   * v1 status: MEASURED + REPORTED only (target/achieved/error/ceiling in the
-   * drift report) — it does NOT yet fold into the contract score, and the
-   * compiler does not yet steer toward it. Steering (catch-line angle vs. the
-   * incoming velocity) and scoring arrive together in v2.
+   * Status: SCORED (folds into the contract `axis_quality`), but the compiler does
+   * not yet STEER toward it — so an authored impact target currently lowers the
+   * score by however far the unsteered landing misses it (the v2 baseline the
+   * optimizer is built to recover). Measured by `normalImpactPxAtLanding`
+   * (substrate.ts); reported with target/achieved/error/ceiling. Steering
+   * (catch-line angle vs. the incoming velocity) is the next step.
    */
   impact?: number;
 };
@@ -112,9 +114,9 @@ export type Curve = (t: number) => number | undefined;
  *                       `CALIB.IMPACT_CAP`, [0, 1]. NOT authored as a curve — it
  *                       is a per-beat qualifier (`Contact.impact`) resolved into
  *                       the terminating gap so it can reuse this per-gap plumbing.
- *                       Measured + reported in v1; not yet scored or steered (see
- *                       `Contact.impact`). In AXES (measured/reported) but kept out
- *                       of `TARGET_AXES` — the same posture `grain` has.
+ *                       SCORED but not yet steered (see `Contact.impact`). In AXES
+ *                       and scored, but kept out of `TARGET_AXES` — it draws no
+ *                       sampling RNG and isn't curve-authored (a per-beat qualifier).
  */
 export const AXES = ["air", "speed", "grain", "elevation", "amplitude", "impact"] as const;
 export type AxisName = (typeof AXES)[number];

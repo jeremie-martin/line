@@ -210,11 +210,10 @@ export function scoreDriftReport(
   const missing_quality = Math.exp(-missing / MISSING_CONTACT_TOLERANCE);
   const sync_quality = drift_quality * missing_quality;
 
-  // Report-only axes (currently `impact`) appear in axisDetails / the drift report
-  // but are EXCLUDED from axis_quality — they're measured + reported but not yet
-  // steerable, so a probe shouldn't lose contract score for error it can't fix. The
-  // boundary is declared once in `REPORT_ONLY_AXES` (types.ts); v2 steering promotes
-  // an axis simply by removing it from that set.
+  // Report-only axes are surfaced in the drift report but EXCLUDED from axis_quality.
+  // The set (`REPORT_ONLY_AXES`, types.ts) is currently EMPTY — `impact` was promoted
+  // to a scored axis in v2 — so this filter is a no-op today; it stays as the single
+  // declared boundary for any future measured-but-unscored axis.
   const axes = axisDetails(report).filter((a) => !REPORT_ONLY_AXIS_SET.has(a.axis));
   const axis_count = axes.length;
   const axis_error_total = axes.reduce((sum, a) => sum + Math.abs(a.error), 0);

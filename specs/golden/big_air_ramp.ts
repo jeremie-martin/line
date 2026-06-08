@@ -1,11 +1,11 @@
 /**
- * big_air_ramp — AMPLITUDE build over long ~1.3s gaps, where a tall airborne
- * arc (pop ≈ g·N²/8) can actually form. High air keeps the rider aloft; the
- * amplitude ramp grows the height of each pop from a low hop to a big soar.
- * Speed steady; no grain. The headline amplitude-room spec.
+ * big_air_ramp — AMPLITUDE build over long ~1.3s gaps. Air and amplitude rise
+ * TOGETHER: for one ballistic arc the pop height is set by airborne time, so a
+ * tall pop requires high air. Co-varying them keeps the target satisfiable —
+ * the rider goes from small low hops to big high soars. Speed steady; no grain.
  *
- *   amplitude  0.2 → 0.9  (smooth build, small hop → big soar)
- *   air        0.7 (high — long aloft)
+ *   air        0.5 → 0.9   (longer aloft as it builds)
+ *   amplitude  0.25 → 0.80 (= the air-supported pop ceiling at 52f gaps)
  *   speed      0.6 (flat)
  */
 import type { Spec } from "../../scripts/v0/types.ts";
@@ -18,9 +18,9 @@ const spec: Spec = {
   duration: 18,
   contacts: beats(1.3, 1.3, 13), // ~1.3s gaps (52f) — room for big pops
   axes: {
-    air: constant(0.7),
+    air: keyframes([{ t: 0, v: 0.5 }, { t: 17, v: 0.9 }], "smooth"),
     speed: constant(0.6),
-    amplitude: keyframes([{ t: 0, v: 0.2 }, { t: 17, v: 0.9 }], "smooth"),
+    amplitude: keyframes([{ t: 0, v: 0.25 }, { t: 17, v: 0.80 }], "smooth"),
   },
   jitter: 0,
   preroll: 5,

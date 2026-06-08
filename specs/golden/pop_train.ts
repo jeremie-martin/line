@@ -1,10 +1,11 @@
 /**
- * pop_train — AMPLITUDE pulses big↔small on a triangle wave over ~1.1s gaps,
- * a rhythmic series of taller and shorter pops. High air, steady speed, no
- * grain. Tests amplitude tracking of a continuous (raw-lambda) curve.
+ * pop_train — AMPLITUDE pulses big↔small on a triangle wave over ~1.1s gaps, a
+ * rhythmic series of taller and shorter pops. Air pulses in phase (pop height is
+ * set by airborne time for one arc), steady speed, no grain. Tests amplitude
+ * tracking of a continuous (raw-lambda) curve.
  *
- *   amplitude  0.3 ▲▼ 0.8  (triangle, 8s period)
- *   air        0.65 (high)
+ *   air        0.6 ▲▼ 0.9  (triangle, 8s period)
+ *   amplitude  0.25 ▲▼ 0.57 (= air-supported pop ceiling at 44f gaps)
  *   speed      0.55 (flat)
  */
 import type { Spec } from "../../scripts/v0/types.ts";
@@ -23,9 +24,9 @@ const spec: Spec = {
   duration: 16,
   contacts: beats(1.1, 1.1, 14), // ~1.1s gaps (44f)
   axes: {
-    air: constant(0.65),
+    air: triangle(0.6, 0.9, 8),
     speed: constant(0.55),
-    amplitude: triangle(0.3, 0.8, 8),
+    amplitude: triangle(0.25, 0.57, 8),
   },
   jitter: 0,
   preroll: 5,

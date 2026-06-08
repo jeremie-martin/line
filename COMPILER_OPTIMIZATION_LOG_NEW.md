@@ -22,8 +22,13 @@ npm run decide -- generated/golden-runs/<attempt-label>/golden.json generated/go
 - Validity + wall-clock are diagnostic; the score is the decision signal.
 
 ## Baselines of record
-- **`cand-repair100` — HEADLINE 582.8** (CURRENT, attempt 3 accepted). Repair gate 150k→100k.
-  Per-budget 276 / 429 / 609 / 617 / 621.
+- **`baseline-amp2` — HEADLINE 601.2** (CURRENT). Amplitude specs redesigned so air
+  co-varies with amplitude (satisfiable targets); fingerprint `ca224281e685`. Per-budget
+  282 / 440 / 628 / 637 / 641. This is a BOARD re-baseline (specs changed), not a paired
+  compiler delta — the +18 reflects the now-satisfiable amplitude specs. All committed
+  compiler wins (arc-length room-gate, breadth 24, repair gate 100k) carry forward.
+- `cand-repair100` — HEADLINE 582.8 (prior compiler baseline on the 2437d832b61e board).
+  Repair gate 150k→100k. Per-budget 276 / 429 / 609 / 617 / 621.
 - `cand-ncand24` — HEADLINE 582.3 (attempt 2). Quality breadth 16→24. 276 / 429 / 606 / 617 / 621.
 - `cand-arclen-room` — HEADLINE 580.42 (attempt 1). Room-gated arc-length opening.
   Per-budget 276 / 431 / 604 / 614 / 619.
@@ -127,8 +132,14 @@ ceiling on low-air (long ride-out) catches. Both are open for the campaign.
 - **Elevation is speed-bound.** Climb ceiling ≈0.65 (summit_push asks 0.75, climb_terrace
   0.70 — above ceiling), and achieved (~0.49) sits below the ceiling because climbing
   spends speed and these specs also demand high speed — a real Pareto trade.
-- **User decision (2026-06-07):** leave the specs as-is (treat as fixed hard cases),
-  keep the focus on the arc-length lever. So these specs cap the headline by design.
+- **Amplitude fix (2026-06-07, baseline-amp2):** the 5 amplitude specs were redesigned so
+  air CO-VARIES with amplitude (target amplitude = the air-supported pop ceiling at each
+  gap length), making the targets simultaneously satisfiable. Per-spec @200k jump:
+  soar_settle 493→634, float_bounds 414→563, pop_train 529→628, leap_cadence 490→581,
+  big_air_ramp 462→492. Board headline 582.8→601.2. Amplitude is now a working axis
+  (the rider must consolidate into one clean arc of the targeted height to hit it).
+- **Elevation:** still speed-bound (climb ceiling ≈0.65; summit_push/climb_terrace targets
+  slightly above it). Left as a genuine Pareto trade for now.
 
 ## Structural ceiling note (honest)
 The 10 new specs average ~510 @200k vs ~620–760 for the dense originals, and several

@@ -1,11 +1,12 @@
 /**
  * soar_settle — MIXED cadence AMPLITUDE: big soaring pops on a sparse front
- * (1.3s gaps) that settle into smaller hops on a denser back (0.7s beats), as
- * both amplitude and air decline. Tests that amplitude scales down gracefully
- * as the gaps shorten (pop is gap-bound). Speed steady; no grain.
+ * (1.3s gaps) that settle into tiny hops on a denser back (0.7s beats). Air and
+ * amplitude decline together as the gaps shorten — a tall pop needs both airborne
+ * time AND a long gap, so the dense back can only carry small hops. Speed steady;
+ * no grain.
  *
- *   [sparse 1.3–9.1s, 1.3s gaps]  amplitude high, air high  — big soars
- *   [dense  9.8–15.4s, 0.7s beats] amplitude low, air lower  — settle to hops
+ *   [sparse 1.3–9.1s, 1.3s gaps]  air 0.85, amplitude 0.71  — big soars
+ *   [dense  9.8–15.4s, 0.7s beats] air → 0.45, amplitude → 0.06 — tiny hops
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
@@ -20,10 +21,10 @@ const spec: Spec = {
     ...beats(9.8, 0.7, 9), // denser settle back: 9.8 .. 15.4 (28f beats)
   ],
   axes: {
-    air: keyframes([{ t: 0, v: 0.75 }, { t: 16, v: 0.45 }], "smooth"),
+    air: keyframes([{ t: 0, v: 0.85 }, { t: 9, v: 0.6 }, { t: 16, v: 0.45 }], "smooth"),
     speed: constant(0.6),
     amplitude: keyframes(
-      [{ t: 0, v: 0.85 }, { t: 9, v: 0.55 }, { t: 16, v: 0.25 }],
+      [{ t: 0, v: 0.71 }, { t: 9, v: 0.30 }, { t: 16, v: 0.06 }],
       "smooth",
     ),
   },

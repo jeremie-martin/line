@@ -281,3 +281,14 @@ same normalized normal-impact scale the scorer reports.
 - Canonical decide result: `VERDICT: INCONCLUSIVE`; headline `487.8 -> 488.1`, `Delta=+0.3`, 95% CI `[-4.4, 4.9]`, `P(Delta<=0)=34.7%`. Per-budget deltas: `50k +0.0`, `100k +0.3`, `200k +0.8`, `300k +0.0`.
 - Diagnostics: the stronger floor improved the focused `200k` point estimate but collapsed the canonical `100k` gain. The mechanism is too suite-sensitive to keep without an accepted canonical verdict.
 - Status: reverted after canonical inconclusive; no behavior commit.
+
+## impact-prelength-lowair-shrink-slice-01
+
+- Baseline used: `impact-angle-sparse-extra-01` behavior at commit `5d01965`.
+- Hypothesis: low-air high-impact catches may under-hit because long pre-contact approach segments soften the contact tangent before the accepted angle bias. Shrink only `preLength` for low-air high-impact targets so the catch geometry is more local, without changing the post-contact ride-out.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_LOW_AIR_PRE_LENGTH_SHRINK = 0.16` in `scripts/v0/arc_placement.ts` and multiplied the existing `preLength` by a high-impact and low-air pressure.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-prelength-lowair-shrink-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a slightly negative point estimate; 20-spec intersection headline `467.4 -> 467.1`, `Delta=-0.3`, 95% CI `[-6.8, 6.2]`, `P(Delta<=0)=50.7%`. Per-budget deltas: `50k -26.9`, `100k +11.0`, `200k +0.2`, `300k +0.0`; validity improved at `50k` (`97% -> 98%`) and stayed `100%` elsewhere.
+- Diagnostics: shortening low-air high-impact approaches created the same `100k` upside pattern seen in other low-air geometry probes, but it again made scarce-budget quality much worse. The effect is not robust enough for canonical testing.
+- Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.

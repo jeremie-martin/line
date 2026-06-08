@@ -16,16 +16,25 @@
  * Contacts = clean on-grid 125BPM main beat (beats/drums_0_56s.json) — ≥0.4s
  * spacing, which is the handoff compiler's sweet spot (104/106 on the bare spec).
  */
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import type { Spec, Contact } from "../types.ts";
+import type { Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
+import { beats } from "../core/beats.ts";
 
-const raw = JSON.parse(
-  readFileSync(resolve("beats/drums_0_56s.json"), "utf8"),
-) as { range_s: [number, number]; onsets: { t: number }[] };
-
-const contacts: Contact[] = raw.onsets.map((o) => ({ t: o.t }));
+// Clean on-grid 125 BPM main beat inlined from the former beats/drums_0_56s.json.
+const beatTimes = [
+  0.02, 0.5, 0.97, 1.45, 1.93, 2.41, 2.89, 3.37, 3.85, 4.33, 4.81, 5.29,
+  5.77, 6.25, 6.73, 7.21, 7.69, 8.18, 8.65, 9.13, 9.61, 10.1, 10.58, 11.06,
+  11.53, 12.01, 12.5, 12.98, 13.45, 13.94, 14.42, 14.9, 15.36, 15.86, 16.34,
+  16.938, 17.29, 17.78, 18.14, 18.74, 19.21, 19.7, 20.18, 20.66, 21.13,
+  21.62, 21.98, 22.58, 23.04, 23.54, 24.02, 24.49, 24.97, 25.45, 25.93,
+  26.41, 26.89, 27.36, 27.86, 28.34, 28.81, 29.17, 29.78, 30.26, 30.74,
+  31.22, 31.69, 32.18, 32.65, 33.13, 33.62, 34.1, 34.57, 35.06, 35.53,
+  36.02, 36.49, 36.98, 37.34, 37.94, 38.42, 38.9, 39.37, 39.85, 40.33,
+  40.82, 41.28, 41.77, 42.25, 42.74, 43.21, 43.57, 44.05, 44.65, 45.13,
+  45.61, 46.1, 46.58, 47.06, 47.53, 48.01, 48.5, 48.97, 49.45, 49.94, 50.3,
+  50.9, 51.38, 51.85, 52.33, 52.82, 54.72, 55.7,
+];
+const contacts = beats(beatTimes.map((t) => ({ t })));
 
 // Phrase-aligned axis arc (4-bar phrase boundaries). Ported from the original
 // 6 hold-sections; `hold` keyframes reproduce the step blocks exactly. v3: air
@@ -33,7 +42,7 @@ const contacts: Contact[] = raw.onsets.map((o) => ({ t: o.t }));
 // (raw speed overshoots the authored 1.0 mapping late regardless), so axis error
 // stays low.
 const spec: Spec = {
-  duration: raw.range_s[1],
+  duration: 56,
   contacts,
   axes: {
     air: keyframes([

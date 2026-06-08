@@ -24,21 +24,26 @@
  *
  * Axes: air, speed, amplitude. jitter 0.
  */
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import type { Spec, Contact } from "../types.ts";
+import type { Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
+import { beats } from "../core/beats.ts";
 
-const raw = JSON.parse(
-  readFileSync(resolve("beats/shelter_amp81.json"), "utf8"),
-) as { range_s: [number, number]; onsets: { t: number }[] };
-
-// A few phrase-hit rests create true showpiece jumps. They are still on the
-// 100 BPM grid; we deliberately skip the contact so amplitude has room to read.
-const showpieceRests = new Set([43.53, 50.73, 69.93]);
-const contacts: Contact[] = raw.onsets
-  .filter((o) => !showpieceRests.has(Number(o.t.toFixed(2))))
-  .map((o) => ({ t: o.t }));
+// Onsets inlined from the former beats/shelter_amp81.json (100 BPM grid), with the
+// three phrase-hit showpiece rests (43.53, 50.73, 69.93) already removed so
+// amplitude has room to read a true jump there.
+const beatTimes = [
+  0.33, 1.53, 2.73, 3.93, 5.13, 6.33, 7.53, 8.73, 9.93, 10.53, 11.13, 11.73,
+  12.33, 12.93, 13.53, 14.13, 14.73, 15.33, 15.93, 16.53, 17.13, 17.73,
+  18.33, 18.93, 19.53, 20.13, 20.73, 21.33, 21.93, 22.53, 23.13, 23.73,
+  24.33, 24.93, 25.53, 26.13, 26.73, 27.33, 27.93, 28.53, 29.13, 29.73,
+  30.33, 30.93, 31.53, 32.13, 32.73, 33.33, 33.93, 34.53, 35.13, 35.73,
+  36.33, 36.93, 37.53, 38.13, 38.73, 39.93, 41.13, 42.33, 44.73, 45.93,
+  47.13, 48.33, 49.53, 51.93, 53.13, 54.33, 55.53, 56.73, 57.93, 58.53,
+  59.13, 59.73, 60.33, 60.93, 61.53, 62.13, 62.73, 63.33, 63.93, 64.53,
+  65.13, 65.73, 66.33, 66.93, 67.53, 68.73, 71.13, 72.33, 74.13, 75.93,
+  77.13, 78.33, 79.53, 80.73,
+];
+const contacts = beats(beatTimes.map((t) => ({ t })));
 
 export const overlayMeta = {
   title: "SHELTER",
@@ -54,7 +59,7 @@ export const overlayMeta = {
 };
 
 const spec: Spec = {
-  duration: raw.range_s[1],
+  duration: 81,
   contacts,
   jitter: 0,
   axes: {

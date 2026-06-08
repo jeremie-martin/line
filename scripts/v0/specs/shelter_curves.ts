@@ -29,16 +29,30 @@
  * compiler arcs); drama inside dense sections needs the deeper compiler work
  * (working `amplitude`, longer arcs). 93/93 hit; ~669 @300k.
  */
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import type { Spec, Contact } from "../types.ts";
+import type { Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
+import { beats } from "../core/beats.ts";
 
-const raw = JSON.parse(
-  readFileSync(resolve("beats/shelter_65s.json"), "utf8"),
-) as { range_s: [number, number]; onsets: { t: number }[] };
-
-const contacts: Contact[] = raw.onsets.map((o) => ({ t: o.t }));
+// Beats inlined from the former beats/shelter_65s.json (madmom onsets, 100 BPM) so
+// the timing lives WITH the spec — and is now co-authorable with per-beat landing
+// `impact` (swap a bare time for `{ t, impact }`, or decorate by rule with
+// `withImpact(contacts, …)`). Variable-density grid: sparse ~1.2s in the intro &
+// breakdown, tight 0.6s through the groove and chorus.
+const beatTimes = [
+  0.33, 1.53, 2.73, 3.93, 5.13, 6.33, 7.53, 8.73,
+  9.93, 10.53, 11.13, 11.73, 12.33, 12.93, 13.53, 14.13,
+  14.73, 15.33, 15.93, 16.53, 17.13, 17.73, 18.33, 18.93,
+  19.53, 20.13, 20.73, 21.33, 21.93, 22.53, 23.13, 23.73,
+  24.33, 24.93, 25.53, 26.13, 26.73, 27.33, 27.93, 28.53,
+  29.13, 29.73, 30.33, 30.93, 31.53, 32.13, 32.73, 33.33,
+  33.93, 34.53, 35.13, 35.73, 36.33, 36.93, 37.53, 38.13,
+  38.73, 39.33, 39.93, 40.53, 41.13, 41.73, 42.33, 42.93,
+  43.53, 44.13, 44.73, 45.33, 45.93, 46.53, 47.13, 47.73,
+  48.33, 48.93, 49.53, 50.13, 50.73, 51.33, 51.93, 52.53,
+  53.13, 53.73, 54.33, 54.93, 55.53, 56.13, 56.73, 57.33,
+  57.93, 59.73, 61.53, 63.33, 65.13,
+];
+const contacts = beats(beatTimes.map((t) => ({ t })));
 
 /** Overlay metadata (title/artist/tempo + soft energy phases) for make_overlay_data.ts. */
 export const overlayMeta = {
@@ -55,7 +69,7 @@ export const overlayMeta = {
 };
 
 const spec: Spec = {
-  duration: raw.range_s[1],
+  duration: 65.5,
   contacts,
   jitter: 0,
   axes: {

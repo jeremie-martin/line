@@ -1339,6 +1339,279 @@ only changes that print `VERDICT: ACCEPT`.
 - Status: kept; accepted by canonical decision gate. New baseline for
   subsequent attempts is `mature-avg-branch1-current-01`.
 
+## probe-quality-ncand28-branch1-current-01
+
+- Baseline used: `mature-avg-branch1-current-01` at commit `dc91502`.
+- Hypothesis: the accepted `branch=1` mature-ranker change freed high-budget
+  terminal/repair capacity. Re-test the previously directionally positive wider
+  quality candidate pool to see whether `28` quality candidates can now improve
+  selected arc quality without starving completion too much.
+- Code changes made: none; probed the existing override `LR_QUALITY_NCAND=28`.
+- Golden command: `LR_ENGINE=wasm LR_QUALITY_NCAND=28 npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-quality-ncand28-branch1-current-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `644.3 -> 645.0`,
+  `Delta=+0.7`, 95% CI `[-1.6, 3.1]`, `P(Delta<=0)=26.8%`. Per-budget
+  deltas were `200k +0.3` and `300k +1.0`; validity was unchanged.
+- Notable improvements: strongest `300k` spec wins were `drums_pendulum +12.8`,
+  `syncopated_switchback +12.5`, `drums_crescendo +11.4`, `drums_pulse +8.9`,
+  `ridge_pulse +8.2`, and `float_bounds +7.0`. Largest row wins included
+  `swoop_dive` seed `5` (`+61.7`), `drums_crescendo` seed `0` (`+60.9`),
+  `float_bounds` seed `2` (`+54.6`), `drums_pendulum` seed `4` (`+52.3`), and
+  `dense_sprint` seed `10` (`+50.2`).
+- Notable regressions: largest `300k` spec losses were `swoop_dive -10.6`,
+  `drums_signature -8.8`, `drums_swell -7.8`, `soar_settle -6.6`, and
+  `solo_run -5.8`. Largest row losses were `drums_signature` seed `5`
+  (`-54.7`), `rhythm_ladder` seed `11` (`-53.0`), `drums_swell` seed `0`
+  (`-50.6`), `swoop_dive` seed `10` (`-48.8`), and `solo_run` seed `4`
+  (`-48.1`).
+- Diagnostics: the mechanism again traded terminal quantity for selected quality.
+  At `300k`, candidates sampled rose `3033956 -> 3163526`, but full evaluations
+  fell `12586 -> 10701`, unique full evaluations fell `9416 -> 8529`, and tail
+  improvements fell `2174 -> 2153`. Axis MAE improved air
+  `0.0750 -> 0.0737` and amplitude `0.1214 -> 0.1198`, but speed regressed
+  `0.0552 -> 0.0556` and elevation regressed `0.0964 -> 0.0972`.
+- Status: not kept; no code change and not strong enough to promote to a
+  canonical run.
+
+## probe-quality-ncand26-branch1-current-01
+
+- Baseline used: `mature-avg-branch1-current-01` at commit `dc91502`.
+- Hypothesis: if `28` candidates over-spends but still has quality upside, a
+  smaller midpoint at `26` may preserve the useful breadth with less terminal
+  starvation.
+- Code changes made: none; probed the existing override `LR_QUALITY_NCAND=26`.
+- Golden command: `LR_ENGINE=wasm LR_QUALITY_NCAND=26 npm run golden -- --jobs=32 --budgets=200000,300000 --archive-dir=generated/golden-runs/probe-quality-ncand26-branch1-current-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `200k`/`300k` intersection; headline `644.3 -> 644.4`,
+  `Delta=+0.1`, 95% CI `[-2.1, 2.2]`, `P(Delta<=0)=46.8%`. Per-budget
+  deltas were `200k -0.2` and `300k +0.3`; validity was unchanged.
+- Notable improvements: strongest `300k` spec wins were `solo_run +14.0`,
+  `drums_dropout +11.2`, `valley_bounce +9.2`, `drums_zigzag +6.2`, and
+  `mixed_grade +5.4`. Largest row wins included `solo_run` seed `3` (`+91.3`),
+  `drums_crescendo` seed `0` (`+56.9`), `solo_run` seed `5` (`+55.5`),
+  `drums_zigzag` seed `4` (`+45.8`), and `drums_crosscut` seed `1` (`+44.3`).
+- Notable regressions: largest `300k` spec losses were `swoop_dive -12.0`,
+  `drums_signature -11.9`, `soar_settle -8.8`, `drums_breath -5.7`, and
+  `grain_staircase -5.1`. Largest row losses were `rhythm_ladder` seed `11`
+  (`-60.7`), `drums_breath` seed `8` (`-56.6`), `drums_signature` seed `5`
+  (`-54.7`), `drums_tide` seed `1` (`-50.4`), and `drums_crescendo` seed `3`
+  (`-44.0`).
+- Diagnostics: `26` reduced the starvation relative to `28` but also washed out
+  most of the quality signal. At `300k`, candidates sampled rose
+  `3033956 -> 3093745`, full evaluations fell `12586 -> 11497`, unique full
+  evaluations fell `9416 -> 8889`, and tail improvements rose only
+  `2174 -> 2186`. Axis MAE moved slightly: air `0.0750 -> 0.0747`, speed
+  `0.0552 -> 0.0547`, elevation `0.0964 -> 0.0969`, and amplitude
+  `0.1214 -> 0.1213`.
+- Status: not kept; no code change.
+
+## probe-start-avg6-300k-01
+
+- Baseline used: `mature-avg-branch1-current-01` at commit `dc91502`.
+- Hypothesis: the default start evaluator uses a two-contact greedy rollout,
+  which can over-trust one brittle first arc. Try an average over six
+  next-contact alternatives so the initial state is chosen for robust local
+  continuation rather than one best path.
+- Code changes made: none; probed the existing override
+  `LR_START_EVAL=avg:2:6`.
+- Golden command: `LR_ENGINE=wasm LR_START_EVAL=avg:2:6 npm run golden -- --jobs=32 --budgets=300000 --archive-dir=generated/golden-runs/probe-start-avg6-300k-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `300k` intersection; headline `646.9 -> 645.7`, `Delta=-1.1`,
+  95% CI `[-4.7, 2.1]`, `P(Delta<=0)=75.4%`. Validity was unchanged.
+- Notable improvements: strongest `300k` wins were `rolling_hills +12.0`,
+  `drums_pendulum +11.5`, `float_bounds +7.6`, `rolling_drop +6.4`,
+  `terrace_sprint +6.2`, `verse_chorus +6.0`,
+  `syncopated_switchback +5.7`, and `rhythm_ladder +5.2`.
+- Notable regressions: largest `300k` losses were `soar_settle -25.0`,
+  `tiny_dance -10.6`, `dense_sprint -10.4`, `opening_burst -9.6`,
+  `drums_signature -9.5`, `drums_swell -6.5`, `swoop_dive -6.2`, and
+  `drums_zigzag -5.3`. Large row losses included `soar_settle` seed `8`
+  (`-170.0`), `drums_signature` seed `0` (`-101.3`), `cold_start` seed `4`
+  (`-84.2`), and `tiny_dance` seed `3` (`-83.2`).
+- Diagnostics: the robust start average fixed some hard rows but moved too many
+  specs onto weaker initial basins. Axis MAE at `300k` regressed slightly on
+  air `0.0750 -> 0.0752`, elevation `0.0964 -> 0.0967`, and amplitude
+  `0.1214 -> 0.1224`; speed was flat at `0.0552`.
+- Status: not kept; env-only probe, no canonical run and no commit.
+
+## probe-start-greedy1-300k-01
+
+- Baseline used: `mature-avg-branch1-current-01` at commit `dc91502`.
+- Hypothesis: the two-contact start rollout may be overfitting downstream
+  chain effects and spending too much startup evaluation. Try a cheaper
+  one-contact greedy start evaluator that emphasizes the first controlled catch.
+- Code changes made: none; probed the existing override
+  `LR_START_EVAL=greedy:1`.
+- Golden command: `LR_ENGINE=wasm LR_START_EVAL=greedy:1 npm run golden -- --jobs=32 --budgets=300000 --archive-dir=generated/golden-runs/probe-start-greedy1-300k-01`
+- Decide result: indicative, non-promotable `VERDICT: REJECT` on the paired
+  `300k` intersection; headline `646.9 -> 643.4`, `Delta=-3.4`, 95% CI
+  `[-8.2, 0.5]`, `P(Delta<=0)=95.6%`. Validity was unchanged.
+- Notable regressions: the weak-start failure was visible before the decision
+  gate: the worst rows at `300k` were `tiny_dance` seed `3` (`424.86`),
+  `drums_pendulum` seed `1` (`446.19`), `tiny_dance` seed `4` (`448.03`),
+  `tiny_dance` seed `9` (`450.97`), and `tiny_dance` seed `6` (`451.24`).
+- Diagnostics: a one-contact start score is too myopic for dense forward-
+  dependent chains. It strongly hurt the already-hard low-air startup cases
+  instead of solving their first-gap air overshoot, so the next mechanism should
+  preserve the accepted `greedy:2` start evaluator.
+- Status: not kept; env-only probe, no canonical run and no commit.
+
+## probe-mature-avg-extreme-air-01
+
+- Baseline used: `mature-avg-branch1-current-01` at commit `dc91502`.
+- Hypothesis: the accepted mature average ranker is currently gated to
+  amplitude/elevation targets, leaving air-only rows like `drums_pendulum` on
+  the brittle greedy forward ranker. Add a smooth target pressure for extreme
+  air targets (`low` and `high`) so air-only rows get the robust ranker without
+  reopening the broad global `avg` failure mode.
+- Code changes made: temporarily replaced the boolean mature forward-eval axis
+  gate in `scripts/v0/optimizer/handoff.ts` with a target-pressure helper:
+  amplitude/elevation stayed at full pressure, while air-only targets received
+  smooth pressure below `0.35` and above `0.65`. The existing smooth budget
+  ramp and node-stable hash were unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-mature-avg-extreme-air-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `100k`/`200k`/`300k` intersection; headline `641.1 -> 640.0`,
+  `Delta=-1.1`, 95% CI `[-3.4, 0.8]`, `P(Delta<=0)=86.3%`. Per-budget
+  deltas were `100k -1.1`, `200k -0.9`, and `300k -1.2`; validity was
+  unchanged at all shared budgets.
+- Notable improvements: the intended target did move in places. At `300k`,
+  row wins included `dense_sprint` seed `2` (`+79.6`), `dense_sprint` seed
+  `11` (`+65.5`), `drums_crescendo` seed `6` (`+55.2`), `drums_dropout` seed
+  `0` (`+51.7`), and several `drums_pendulum` seeds, including seed `6`
+  (`+97.6`) and seed `0` (`+40.5`) in the analyzer's curve view.
+- Notable regressions: larger drum-chain losses dominated: `drums_crosscut`
+  seed `11` (`-78.7`), `drums_breath` seed `7` (`-75.9`), `drums_tide`
+  seed `1` (`-69.7`), `drums_crosscut` seed `7` (`-66.8`), and
+  `drums_crosscut` seed `5` (`-65.2`).
+- Diagnostics: the added pressure raised high-budget work slightly but did not
+  convert to quality. At `300k`, sampled candidates rose about `+60` per row,
+  viable candidates fell about `-28` per row, full evaluations rose
+  `12586 -> 12975`, unique full evaluations rose `9416 -> 9635`, but tail
+  improvements slipped `2174 -> 2167`. The failure is ranking churn on dense
+  drum chains, not insufficient terminal feedback.
+- Status: reverted after probe; no canonical run and no commit.
+
+## probe-mature-reuse-w070-01
+
+- Baseline used: `mature-avg-branch1-current-01` at commit `dc91502`.
+- Hypothesis: the accepted branch-count reduction freed budget and increased
+  reuse success. A slightly higher mature reuse probability may give dense
+  steady-state rows more cheap, validated catch options without broadening the
+  expensive fresh candidate pool.
+- Code changes made: temporarily changed
+  `HANDOFF_REUSE_MATURE_EXTRA_WEIGHT` in
+  `scripts/v0/optimizer/handoff.ts` from `0.35` to `0.70`. The existing smooth
+  budget pressure, full-evaluation feedback pressure, and node-stable hash were
+  unchanged.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-mature-reuse-w070-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `100k`/`200k`/`300k` intersection; headline `641.1 -> 641.0`,
+  `Delta=-0.0`, 95% CI `[-0.1, 0.0]`, `P(Delta<=0)=89.8%`. Per-budget
+  deltas were `100k +0.0`, `200k -0.0`, and `300k -0.1`; validity was
+  unchanged.
+- Notable improvements: small `300k` row wins on `ridge_pulse` seed `8`
+  (`+4.62`), `opening_burst` seed `8` (`+3.55`), `switchback_pop` seed `8`
+  (`+1.13`), and `dense_echo_climb` seed `6` (`+0.92`).
+- Notable regressions: small but broader `300k` losses on `summit_push` seed
+  `11` (`-9.43`), `mixed_grade` seed `3` (`-8.96`), `leap_cadence` seed `3`
+  (`-6.97`), and `dense_sprint` seed `0` (`-3.79`).
+- Diagnostics: the higher pressure barely changed work and did not improve
+  conversion. At `300k`, full evaluations were unchanged at `12536`, unique
+  full evaluations slipped `9416 -> 9388`, reuse successes rose only
+  `54842 -> 55496`, tail attempts fell `9000 -> 8985`, and tail improvements
+  slipped `2174 -> 2169`.
+- Status: reverted after probe; no canonical run and no commit.
+
+## probe-shallow-tail-feedback12-01
+
+- Baseline used: `mature-avg-branch1-current-01` at commit `dc91502`.
+- Hypothesis: after branch `1`, shallow tail completion may keep spending on
+  remaining-1/2 suffixes after enough full tracks already exist. Lower the
+  smooth full-feedback scale from `24` to `12` so feedback throttles shallow
+  tail work sooner while preserving high-remaining tail completion.
+- Code changes made: temporarily changed
+  `QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE` in
+  `scripts/v0/optimizer/handoff.ts` from `24` to `12`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-shallow-tail-feedback12-01`
+- Decide result: indicative, non-promotable `VERDICT: INCONCLUSIVE` on the
+  paired `100k`/`200k`/`300k` intersection; headline `641.1 -> 641.1`,
+  `Delta=+0.0`, 95% CI `[-0.0, 0.0]`, `P(Delta<=0)=11.9%`. Per-budget
+  deltas were `100k -0.0`, `200k -0.0`, and `300k +0.0`; validity was
+  unchanged.
+- Notable improvements/regressions: effects were sub-point and row-local, with
+  the strongest signal at `300k` where `P(Delta<=0)=2%`. The change did not
+  create broad spec movement, which is expected because it only touches shallow
+  suffixes after terminal feedback exists.
+- Diagnostics: at `300k`, tail attempts fell `9000 -> 8692`, remaining-1
+  attempts fell `1179 -> 985`, remaining-2 attempts fell `755 -> 626`, full
+  evaluations rose `12586 -> 12662`, unique full evaluations rose
+  `9416 -> 9714`, duplicate full evaluations fell `3170 -> 2948`, and tail
+  improvements stayed nearly flat (`2174 -> 2168`).
+- Status: not kept directly; tuned to a stronger smooth feedback scale before
+  canonical promotion.
+
+## probe-shallow-tail-feedback6-01
+
+- Baseline used: `mature-avg-branch1-current-01` at commit `dc91502`.
+- Hypothesis: the `12` probe showed that shallow-tail feedback moves work in
+  the intended direction but is barely large enough. Lower the same smooth scale
+  to `6` so shallow suffix throttling activates earlier once a row already has
+  terminal feedback.
+- Code changes made: temporarily changed
+  `QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE` in
+  `scripts/v0/optimizer/handoff.ts` from `24` to `6`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --budgets=100000,200000,300000 --archive-dir=generated/golden-runs/probe-shallow-tail-feedback6-01`
+- Decide result: indicative, non-promotable `VERDICT: ACCEPT` on the paired
+  `100k`/`200k`/`300k` intersection; headline `641.1 -> 641.1`,
+  `Delta=+0.0`, 95% CI `[-0.0, 0.1]`, `P(Delta<=0)=6.0%`. Per-budget
+  deltas were `100k +0.1`, `200k +0.0`, and `300k +0.0`; validity was
+  unchanged.
+- Notable improvements/regressions: the probe was intentionally small and
+  smooth, with no large spec-specific swing. The positive signal was enough to
+  justify a full canonical run, not enough to treat the probe itself as
+  promotable.
+- Diagnostics: compared with `12`, scale `6` applied the same mechanism more
+  consistently across `100k`/`200k`/`300k`, reducing duplicate shallow-tail
+  work while preserving the useful deeper tail depths.
+- Status: promoted to canonical attempt `shallow-tail-feedback6-01`.
+
+## shallow-tail-feedback6-01
+
+- Baseline used: `mature-avg-branch1-current-01` at commit `dc91502`.
+- Hypothesis: make the positive shallow-tail feedback probe the default and let
+  the full canonical grid decide whether the work shift remains beneficial when
+  `50k` is included.
+- Code changes made: in `scripts/v0/optimizer/handoff.ts`, changed
+  `QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE` from `24` to `6`.
+- Golden command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/shallow-tail-feedback6-01`
+- Decide result: canonical `VERDICT: ACCEPT`; headline `628.5 -> 628.5`,
+  `Delta=+0.0`, 95% CI `[-0.0, 0.1]`, `P(Delta<=0)=6.0%`. Per-budget deltas:
+  `50k +0.0`, `100k +0.1`, `200k +0.0`, `300k +0.0`. Validity was unchanged
+  at all budgets (`50k 97% -> 97%`; `100k`, `200k`, and `300k` stayed
+  `100% -> 100%`).
+- Notable improvements: largest `300k` row wins were `rolling_hills` seed `0`
+  (`+5.25`), `syncopated_switchback` seed `7` (`+3.52`),
+  `grain_staircase` seed `2` (`+2.01`), `summit_push` seed `0` (`+1.98`),
+  and `big_air_ramp` seed `4` (`+1.56`). Top `300k` spec means were
+  `rolling_hills +0.43`, `syncopated_switchback +0.29`,
+  `grain_staircase +0.17`, `summit_push +0.17`, and `big_air_ramp +0.13`.
+- Notable regressions: largest `300k` row losses were `mixed_grade` seed `11`
+  (`-2.28`), `drums_pendulum` seed `6` (`-1.12`), `canyon_steps` seed `3`
+  (`-0.78`), and `tiny_dance` seed `3` (`-0.31`). Top `300k` spec mean losses
+  were small: `mixed_grade -0.19`, `drums_pendulum -0.09`, and
+  `tiny_dance -0.03`.
+- Diagnostics: at `300k`, the accepted default reduced shallow tail attempts
+  and improved terminal uniqueness. Tail bests/attempts changed
+  `2174/9000 -> 2143/8389`; remaining-1 attempts fell `1179 -> 827` and
+  remaining-2 attempts fell `755 -> 485`. Full evaluations rose
+  `12586 -> 12691`, unique full evaluations rose `9416 -> 9957`, duplicate
+  full evaluations fell `3170 -> 2734`, and unique full rate improved
+  `74.8% -> 78.5%`. Candidate work changed only slightly at the suite level,
+  and selected starts were unchanged.
+- Status: kept; accepted by canonical decision gate. New baseline for
+  subsequent attempts is `shallow-tail-feedback6-01`.
+
 ## probe-weak-quality-ncand-extra-01
 
 - Baseline used: `mature-avg-full200-01` at commit `4757f8d`.

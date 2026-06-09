@@ -682,7 +682,7 @@ function compileHandoffInternal(
     // the weakest gap of the complete incumbent (see runRepairPhase). `bestCompleteNode` is
     // the live incumbent HandoffNode (updated on every register improvement) so repair can
     // replay its fits to reconstruct any prefix node for free (extendNodeCached memoizes).
-    const repair = repairConfig();
+    const repair = repairConfig(targetBudget);
     const repairEnabled = repair !== null && targetBudget >= repair.minBudget && startOptions.length > 0;
     let bestCompleteNode: HandoffNode | null = null;
     let firstCompletionFrame = -1;
@@ -2824,7 +2824,19 @@ type RepairConfig = {
   maxUpstream: number;
   log: boolean;
 };
-function repairConfig(): RepairConfig | null {
+const REPAIR_MAIN_MARGIN_MATURE = 1.1;
+const REPAIR_MAIN_MARGIN_RAMP_START_FRAMES = 100_000;
+const REPAIR_MAIN_MARGIN_RAMP_SPAN_FRAMES = 100_000;
+
+function defaultRepairMainMargin(targetBudget: number): number {
+  const pressure = smoothstep(
+    (targetBudget - REPAIR_MAIN_MARGIN_RAMP_START_FRAMES) /
+      REPAIR_MAIN_MARGIN_RAMP_SPAN_FRAMES,
+  );
+  return 1 + (REPAIR_MAIN_MARGIN_MATURE - 1) * pressure;
+}
+
+function repairConfig(targetBudget: number): RepairConfig | null {
   const raw = readEnv("LR_REPAIR");
   if (raw === "0" || raw === "off") return null;
   const num = (name: string, def: number, lo: number, hi: number): number => {
@@ -2843,7 +2855,9 @@ function repairConfig(): RepairConfig | null {
     // completion is still the binding constraint, so the gate stays.
     minBudget: num("LR_REPAIR_MIN_BUDGET", 100_000, 0, 100_000_000),
     // Completion-triggered split: run the main search to firstCompletion*mainMargin, then repair.
-    mainMargin: flt("LR_REPAIR_MAIN_MARGIN", 1.0, 1.0, 10.0),
+    // Default eases from 1.0 at the 100k repair gate to 1.1 by 200k; low budgets
+    // stay byte-identical while mature budgets keep a little more main-search context before repair.
+    mainMargin: flt("LR_REPAIR_MAIN_MARGIN", defaultRepairMainMargin(targetBudget), 1.0, 10.0),
     // Feasibility margin: require (measured cost-to-end × feasMargin) ≤ remaining budget, and size each
     // restart's ceiling to cost × feasMargin. TIGHT (1.1 = 10% headroom) is best: the worst/highest-value
     // gaps are usually EARLY (expensive), so a loose margin (1.5) banished repairs to the cheap tail and

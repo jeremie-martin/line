@@ -1063,3 +1063,15 @@ same normalized normal-impact scale the scorer reports.
 - Raw canonical scores: headline `512.66`, with budget scores `50k 359.81`, `100k 490.38`, `200k 527.62`, `300k 535.60`.
 - Diagnostics: the stronger mature pressure keeps early budgets unchanged and adds another accepted mature-budget lift. The confidence is weaker than the first span change but still passes canonical decide; `0.20` becomes the current endpoint until a bracket shows over-tightening.
 - Status: kept and committed; new canonical baseline is `impact-lip-airspan20-mature-01`.
+
+## impact-lip-airspan15-mature-slice-01
+
+- Baseline used: `impact-lip-airspan20-mature-01` behavior at commit `a62b965`.
+- Hypothesis: the accepted `0.20` mature dense-lip air-pressure span still leaves the largest `air ~= 0.50..0.65` dense hard-impact bucket under target. Tighten the same mature-only span to `0.15` to bracket whether the useful pressure endpoint is still lower.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_SPAN` from `0.20` to `0.15` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lip-airspan15-mature-slice-01`
+- Raw focused scores: headline `492.08`, with budget scores `50k 392.42`, `100k 472.45`, `200k 500.57`, `300k 509.58`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `492.0 -> 492.1`, `Delta=+0.1`, 95% CI `[-2.2, 2.4]`, `P(Delta<=0)=46.9%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.1`, `300k +0.2`; validity unchanged.
+- Diagnostics: the extra tightening adds churn without aggregate lift. The useful mature air-span endpoint is `0.20` for now; further narrowing is saturated/noisy.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

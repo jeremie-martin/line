@@ -580,6 +580,12 @@ export type Gap = {
   endsWithContact: boolean;
   /** Per-axis targets sampled for this gap. */
   targets: AxisValues;
+  /** Bounded impact target of the NEXT contact (the beat this gap's launch
+   *  flies toward), resolved by the compiler alongside `targets.impact`.
+   *  Lets generation plan the ARRIVAL into a hard beat (launch steeper so the
+   *  crossing angle carries the redirection budget). Undefined when the next
+   *  beat has no authored impact. */
+  nextImpact?: number;
 };
 
 // ─────────── Conventions ───────────

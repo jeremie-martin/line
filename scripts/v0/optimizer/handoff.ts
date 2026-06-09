@@ -627,6 +627,17 @@ function compileHandoffInternal(
         gap.targets.impact = bounded;
         gapAxisTargets[gap.index].impact = bounded;
       }
+      // Second pass: give each gap the BOUNDED impact target of the beat its
+      // launch flies toward (the immediately following contact gap), so
+      // generation can plan the ARRIVAL — launch steeper into a hard beat.
+      // Pure lookahead copy: no RNG, no target changes.
+      for (let i = 0; i + 1 < gaps.length; i++) {
+        if (!gaps[i].endsWithContact) continue;
+        const next = gaps[i + 1];
+        if (next.endsWithContact && next.targets.impact !== undefined) {
+          gaps[i].nextImpact = next.targets.impact;
+        }
+      }
     }
 
     const ctx: SpecContext = { allContactFrames, durationFrames };

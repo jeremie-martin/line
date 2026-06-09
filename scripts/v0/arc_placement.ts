@@ -108,6 +108,11 @@ const IMPACT_CURVE_FRONTLOAD = 0.8;
 // early-bend variant of this idea washed and regressed 50k; lanes are the
 // selection-protected retry). RNG-neutral: rolls are always drawn, lanes only
 // override the built lines; deterministic per attempt (low-discrepancy salts).
+// Impact-ARRIVAL launch ramp (LR_IMPACT_ARRIVAL): pressure on the BOUNDED next-beat
+// ask. Bounded dense asks sit at 0.35-0.55 ⇒ pressure 0.1-0.6 there, 1.0 at 0.7+.
+const IMPACT_ARRIVAL_TARGET_START = 0.30;
+const IMPACT_ARRIVAL_TARGET_SPAN = 0.40;
+
 const IMPACT_TEMPLATE_MIN_PRESSURE = 0.35;
 const IMPACT_TEMPLATE_LANE_MOD = 3;
 const IMPACT_TEMPLATE_MIN_ATTEMPT = 8;
@@ -987,6 +992,39 @@ function sampleContactCenteredLines(
     );
     // Shorten the grounded ride-out so the airborne arc fills more of the gap.
     postLength = lerp(postLength, 28, blend);
+  }
+
+  // Impact-ARRIVAL launch (LR_IMPACT_ARRIVAL=1, experiment). The feasibility
+  // bound says a hard beat needs a steep arrival: the crossing angle is capped
+  // by the vertical velocity built falling INTO it (vy_in ≤ g·N/2). Today the
+  // launch toward a hard beat is shaped by speed/elevation/amplitude but never
+  // by the NEXT beat's impact ask — so the rider often arrives flat and the
+  // catch has nothing to redirect. Blend the launch toward the symmetric pop
+  // arc (vy0 = −g·N/2 ⇒ arrival vy = +g·N/2, the bound's assumed maximum),
+  // spanned across the attempt batch and cost-ranked like every other launch
+  // lever. Same formula as the amplitude arc — they agree when both fire.
+  if (
+    PROCESS_ENV?.LR_IMPACT_ARRIVAL === "1"
+    && gap.nextImpact !== undefined && nextGapFrames !== null
+  ) {
+    // Scarce-budget only: the pop arrivals add COMPLETABLE shapes at 50k
+    // (slice: +50.5) but dilute converged high-budget quality (−8..−36) —
+    // the same profile as the post-curve span. Fade full ≤50k → off ≥100k.
+    const budgetFade = 1 - smoothstep((currentCompileBudgetFrames - 50_000) / 50_000);
+    const arrivalPressure = budgetFade
+      * smoothstep((gap.nextImpact - IMPACT_ARRIVAL_TARGET_START) / IMPACT_ARRIVAL_TARGET_SPAN);
+    if (arrivalPressure > 0) {
+      const vyArc = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * nextGapFrames;
+      const vxArc = Math.max(1, targetState.velocity.x);
+      const arcLaunchDeg = (Math.atan2(vyArc, vxArc) * 180) / Math.PI;
+      const blend = clamp(ccSpanBlends(attempt).launch, 0, 1) * arrivalPressure;
+      postAngleDeg = clamp(
+        lerp(postAngleDeg, arcLaunchDeg, blend),
+        ELEVATION_POST_ANGLE_MIN, ELEVATION_POST_ANGLE_MAX,
+      );
+      // Shorten the grounded ride-out so the flight has the gap to build vy.
+      postLength = lerp(postLength, 28, blend * 0.6);
+    }
   }
 
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);

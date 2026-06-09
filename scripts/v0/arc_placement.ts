@@ -86,7 +86,10 @@ const CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES = 75_000;
 // (raises tangentDelta), FRONT-LOADS the contact→post rotation into the window (negative
 // curveBias), and overrides the high-budget curvature fade for impact beats. RNG-neutral
 // (curvature uses the deterministic low-discrepancy roll, not the rng() stream).
-const IMPACT_CURVE_TARGET_START = 0.45;
+// Ramp retuned for the envelope ruler (2026-06-09): scored targets on previously
+// conflicted beats now sit at 0.45-0.65 (was ~0.85), where the old 0.45-start ramp
+// delivered ~zero pressure. Start 0.25 puts ~0.7 pressure at a 0.5 ask.
+const IMPACT_CURVE_TARGET_START = 0.25;
 const IMPACT_CURVE_TARGET_SPAN = 0.40;
 const IMPACT_CURVE_SPEED_START_PX = 6;
 const IMPACT_CURVE_SPEED_SPAN_PX = 4;

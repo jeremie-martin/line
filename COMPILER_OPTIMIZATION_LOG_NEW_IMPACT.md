@@ -821,3 +821,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `478.3 -> 477.7`, `Delta=-0.6`, 95% CI `[-3.0, 1.9]`, `P(Delta<=0)=69.9%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.1`, `300k -0.5`; validity stayed `100%`.
 - Diagnostics: the `8px` midpoint was worse than both `6px` and `10px` on the focused slice, confirming that simply extending the bevel is not a stable residual lever.
 - Status: reverted after focused negative signal; no full preview, no canonical run, and no behavior commit.
+
+## impact-bevel6x25-slice-01
+
+- Baseline used: `impact-bevel6x2-01` behavior at commit `6dfa80c`.
+- Hypothesis: keep the accepted `6px` bevel length but make its local angle slightly steeper (`2.5x` the lip shift instead of `2x`) so hard-impact rows get a stronger immediate normal without lengthening the fired surface.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT` from `2` to `2.5` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-bevel6x25-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `478.3 -> 473.8`, `Delta=-4.5`, 95% CI `[-21.2, 1.3]`, `P(Delta<=0)=84.0%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -12.5`, `300k -1.5`; validity stayed `100%`.
+- Diagnostics: steepening the bevel is too aggressive. It preserves validity but damages mature quality, especially `200k`, so the accepted `2x` bevel angle remains the useful endpoint.
+- Status: reverted after focused negative signal; no full preview, no canonical run, and no behavior commit.

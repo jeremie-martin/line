@@ -988,3 +988,15 @@ same normalized normal-impact scale the scorer reports.
 - Raw canonical scores: headline `508.32`, with budget scores `50k 359.81`, `100k 490.38`, `200k 522.18`, `300k 529.80`.
 - Diagnostics: the tighter high-air gate keeps the earlier bevel-only mechanism but avoids the low/mid high-air band that made the broad probe noisy. It is a clean mature-budget lift, byte-identical at `50k/100k`, with unchanged validity.
 - Status: kept and committed; new canonical baseline is `impact-high82-bevel6-01`.
+
+## impact-lip-room56-mature-slice-01
+
+- Baseline used: `impact-high82-bevel6-01` behavior at commit `9c6696c`.
+- Hypothesis: after the high82 bevel, remaining hard-impact residuals concentrate in `26..36` frame next-contact gaps where the accepted dense lip room pressure is already fading. Extend only the dense lip's mature room falloff from sparse `46f` to `56f`, leaving `50k/100k` and the accepted high82 bevel gate unchanged.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_SPARSE_FRAMES = 56` in `scripts/v0/arc_placement.ts`; `contactCenteredImpactLipShiftDeg(...)` lerped the dense pressure from the accepted `26..46f` falloff to `26..56f` over the `150k..200k` mature ramp.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lip-room56-mature-slice-01`
+- Raw focused scores: headline `488.89`, with budget scores `50k 392.42`, `100k 472.45`, `200k 496.51`, `300k 505.37`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `488.6 -> 488.9`, `Delta=+0.3`, 95% CI `[-1.7, 2.4]`, `P(Delta<=0)=34.6%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.6`, `300k +0.3`; validity unchanged.
+- Diagnostics: extending the mature room falloff did move the intended mature budgets slightly, but the effect is far smaller than the accepted high82 bevel and too row-mixed for a canonical run.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

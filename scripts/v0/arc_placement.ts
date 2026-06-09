@@ -64,6 +64,7 @@ const CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG = 3;
 // dense gaps only take the extra bias once mature budgets can absorb it.
 const CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG = 1;
 const CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG = 1;
+const CONTACT_CENTERED_IMPACT_DENSE_LIP_SHIFT_DEG = 14;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
@@ -940,9 +941,11 @@ function sampleContactCenteredLines(
   const preLines = buildPreContactLines(
     lineIdStart, contactPoint, preAngleDeg, contactAngleDeg, preLength, preSegments,
   );
+  const firstPostAngleDeg = contactAngleDeg -
+    contactCenteredImpactLipShiftDeg(targets, air, nextGapFrames);
   const postLines = buildPostContactLines(
     lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
-    postLength, postSegments, postCurveBias,
+    postLength, postSegments, postCurveBias, firstPostAngleDeg,
   );
   return [...preLines, ...postLines];
 }
@@ -956,6 +959,23 @@ function contactCenteredImpactAngleShiftDeg(nextGapFrames: number | null): numbe
   return CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG +
     CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG * room +
     CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG * denseMature;
+}
+
+function contactCenteredImpactLipShiftDeg(
+  targets: AxisValues,
+  air: number,
+  nextGapFrames: number | null,
+): number {
+  if (targets.impact === undefined || nextGapFrames === null) return 0;
+  const highImpact = smoothstep((targets.impact - 0.75) / 0.15);
+  const airPressure = smoothstep((0.65 - air) / 0.35);
+  const dense = 1 - smoothstep(
+    (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
+      (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
+  );
+  const mature = smoothstep((currentCompileBudgetFrames - 150_000) / 50_000);
+  return CONTACT_CENTERED_IMPACT_DENSE_LIP_SHIFT_DEG *
+    highImpact * airPressure * dense * mature;
 }
 
 function guideContactCenteredRolls(
@@ -1114,6 +1134,7 @@ function buildPostContactLines(
   length: number,
   segments: number,
   curveBias = 0,
+  firstSegmentAngleDeg = startAngleDeg,
 ): TrackLine[] {
   const segLen = length / segments;
   let x = contactPoint.x;
@@ -1122,7 +1143,8 @@ function buildPostContactLines(
   for (let i = 0; i < segments; i++) {
     const t = segments === 1 ? 1 : i / (segments - 1);
     const ft = curveBias === 0 ? t : applyArcCurveBias(t, curveBias);
-    const a = (lerp(startAngleDeg, endAngleDeg, ft) * Math.PI) / 180;
+    const angleDeg = i === 0 ? firstSegmentAngleDeg : lerp(startAngleDeg, endAngleDeg, ft);
+    const a = (angleDeg * Math.PI) / 180;
     const x2 = x + Math.cos(a) * segLen;
     const y2 = y + Math.sin(a) * segLen;
     lines[i] = makeSolidLine(lineIdStart + i, x, y, x2, y2);

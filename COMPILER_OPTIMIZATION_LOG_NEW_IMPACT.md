@@ -633,3 +633,61 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `472.4 -> 472.4`, `Delta=-0.0`, 95% CI `[-0.9, 1.0]`, `P(Delta<=0)=59.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.1`, `300k -0.2`; validity stayed `100%` at all budgets on the focused intersection.
 - Diagnostics: the lowered floor did not cause the validity collapse seen in exact impact-angle steering, but it also did not improve the aggregate. The worst `drums_pendulum` rows remained the bottom 300k cases and the small `200k` lift was given back at `300k`, so the current `-14deg` floor is not the main accepted-path limit.
 - Status: reverted after focused neutral/negative signal; no canonical run and no behavior commit.
+
+## impact-lowair-dense-lip12-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: dense low-air hard-impact rows have enough incoming speed but the post-contact ride-out tangent stays too parallel to the incoming velocity. Shift only the first post-contact segment into a small "lip" for mature low-air/dense/high-impact gaps, preserving the rest of the ride-out and leaving `50k/100k` unchanged.
+- Code changes made: temporarily added a `12deg` first-post-segment shift in `scripts/v0/arc_placement.ts`, gated by high-impact pressure, low-air pressure `smoothstep((0.45 - air) / 0.30)`, dense next-contact spacing, and the `150k..200k` mature budget ramp.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-dense-lip12-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `472.4 -> 473.5`, `Delta=+1.1`, 95% CI `[-0.9, 3.5]`, `P(Delta<=0)=16.1%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.6`, `300k +1.2`; validity stayed `100%`.
+- Full-spec preview command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=big_air_ramp,canyon_steps,climb_terrace,cold_start,dense_echo_climb,dense_sprint,drums_breath,drums_crescendo,drums_crosscut,drums_dropout,drums_pendulum,drums_pulse,drums_signature,drums_swell,drums_tide,drums_zigzag,float_bounds,glide_stairs,grain_staircase,leap_cadence,mini_burst,mixed_grade,opening_burst,pop_train,rhythm_ladder,ridge_pulse,rolling_drop,rolling_hills,skyline_push,soar_settle,solo_run,summit_push,switchback_pop,swoop_dive,syncopated_lift,syncopated_switchback,terrace_sprint,tiny_dance,valley_bounce,verse_chorus --archive-dir=generated/golden-runs/impact-lowair-dense-lip12-fullslice-01`
+- Full-spec preview decide result: indicative `VERDICT: INCONCLUSIVE`; 40-spec scope headline `492.1 -> 492.7`, `Delta=+0.6`, 95% CI `[-0.4, 2.0]`, `P(Delta<=0)=13.5%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.0`, `300k +0.6`; validity unchanged.
+- Diagnostics: the first-segment lip is active and directionally positive, but low-air-only gating leaves the aggregate effect below the promotion bar.
+- Status: bracketed upward; no canonical run and no behavior commit.
+
+## impact-lowair-dense-lip16-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: if `12deg` is directionally positive but too weak, a stronger `16deg` low-air dense lip may expose more hard-impact candidates without destabilizing high-air specs.
+- Code changes made: temporarily changed the low-air dense first-post-segment lip endpoint from `12deg` to `16deg`.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-dense-lip16-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `472.4 -> 473.5`, `Delta=+1.0`, 95% CI `[-1.1, 3.7]`, `P(Delta<=0)=19.1%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.8`, `300k +1.0`; validity stayed `100%`.
+- Diagnostics: stronger than `12deg` at `200k` but weaker at `300k` and noisier overall. `16deg` is past the low-air-only sweet spot.
+- Status: reverted/bracketed down; no canonical run and no behavior commit.
+
+## impact-lowair-dense-lip14-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: a midpoint `14deg` low-air dense lip may keep the useful `200k` lift from `16deg` while preserving the stronger `300k` behavior from `12deg`.
+- Code changes made: temporarily changed the low-air dense first-post-segment lip endpoint to `14deg`, with the same high-impact, low-air, dense-spacing, and mature-budget gates.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-dense-lip14-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `472.4 -> 473.8`, `Delta=+1.3`, 95% CI `[-0.7, 3.9]`, `P(Delta<=0)=11.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +2.3`, `300k +1.4`; validity stayed `100%`.
+- Full-spec preview command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=big_air_ramp,canyon_steps,climb_terrace,cold_start,dense_echo_climb,dense_sprint,drums_breath,drums_crescendo,drums_crosscut,drums_dropout,drums_pendulum,drums_pulse,drums_signature,drums_swell,drums_tide,drums_zigzag,float_bounds,glide_stairs,grain_staircase,leap_cadence,mini_burst,mixed_grade,opening_burst,pop_train,rhythm_ladder,ridge_pulse,rolling_drop,rolling_hills,skyline_push,soar_settle,solo_run,summit_push,switchback_pop,swoop_dive,syncopated_lift,syncopated_switchback,terrace_sprint,tiny_dance,valley_bounce,verse_chorus --archive-dir=generated/golden-runs/impact-lowair-dense-lip14-fullslice-01`
+- Full-spec preview decide result: indicative `VERDICT: INCONCLUSIVE`; 40-spec scope headline `492.1 -> 492.8`, `Delta=+0.7`, 95% CI `[-0.4, 2.1]`, `P(Delta<=0)=11.5%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.2`, `300k +0.7`; validity unchanged.
+- Diagnostics: `14deg` is the best low-air-only endpoint, but the full-scope signal is still just short of the accept bar. Expanding air coverage while excluding high-air opening rows is the next useful gate to test.
+- Status: superseded by the mid-air gated `14deg` variant; no canonical run for this low-air-only version.
+
+## impact-dense-lip14-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: removing the low-air gate might let the `14deg` lip address all dense hard-impact residuals, including mid/high-air dense rows.
+- Code changes made: temporarily removed the air-pressure multiplier from the mature dense high-impact first-post-segment lip.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-dense-lip14-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `472.4 -> 477.5`, `Delta=+5.1`, 95% CI `[-19.0, 22.4]`, `P(Delta<=0)=29.0%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +5.6`, `300k +7.3`; validity stayed `100%`.
+- Diagnostics: the broad lip caused huge variance. It improved many dense drum rows but collapsed `opening_burst` quality while remaining valid; worst `300k` rows became `opening_burst` seeds (`242.74`, `255.78`, `258.35`, `264.61`, `265.61`). Row diagnostics showed the high-air opening targets (`air` around `0.82`) fired the broad lip, raised the first impact, then destroyed carry speed on later rows.
+- Status: rejected after focused diagnostics; no full preview, no canonical run, and no behavior commit.
+
+## impact-midair-dense-lip14-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: the low-air-only lip was safe but too narrow, while the ungated dense lip was too broad. Use a mid-air gate `smoothstep((0.65 - air) / 0.35)` so the `14deg` lip reaches low/mid-air dense hard-impact rows but stays inactive for high-air opening-burst targets around `0.82`.
+- Code changes made: added `CONTACT_CENTERED_IMPACT_DENSE_LIP_SHIFT_DEG = 14` in `scripts/v0/arc_placement.ts`; `sampleContactCenteredLines(...)` now computes a first post-contact segment angle shifted by `contactCenteredImpactLipShiftDeg(...)`, gated by high-impact pressure, the mid-air pressure, dense next-contact spacing, and a `150k..200k` mature budget ramp. `buildPostContactLines(...)` accepts an optional first-segment angle so the lip only changes the contact segment and preserves the remaining ride-out curve.
+- Focused probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-midair-dense-lip14-slice-01`
+- Focused decide result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `472.4 -> 476.0`, `Delta=+3.6`, 95% CI `[0.2, 7.3]`, `P(Delta<=0)=2.1%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +4.6`, `300k +4.8`; validity stayed `100%`.
+- Full-spec preview command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=big_air_ramp,canyon_steps,climb_terrace,cold_start,dense_echo_climb,dense_sprint,drums_breath,drums_crescendo,drums_crosscut,drums_dropout,drums_pendulum,drums_pulse,drums_signature,drums_swell,drums_tide,drums_zigzag,float_bounds,glide_stairs,grain_staircase,leap_cadence,mini_burst,mixed_grade,opening_burst,pop_train,rhythm_ladder,ridge_pulse,rolling_drop,rolling_hills,skyline_push,soar_settle,solo_run,summit_push,switchback_pop,swoop_dive,syncopated_lift,syncopated_switchback,terrace_sprint,tiny_dance,valley_bounce,verse_chorus --archive-dir=generated/golden-runs/impact-midair-dense-lip14-fullslice-01`
+- Full-spec preview decide result: indicative `VERDICT: ACCEPT`; 40-spec scope headline `492.1 -> 496.4`, `Delta=+4.3`, 95% CI `[1.8, 7.1]`, `P(Delta<=0)=0.0%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +5.5`, `300k +5.8`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-midair-dense-lip14-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `492.1 -> 496.4`, `Delta=+4.3`, 95% CI `[1.8, 7.1]`, `P(Delta<=0)=0.0%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +5.5`, `300k +5.8`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Diagnostics: the mid-air gate preserved the broad probe's mature dense upside while avoiding the high-air opening-burst speed collapse. The improvement is a mature-budget geometry gain, not a validity or budget-allocation trade.
+- Status: kept and committed; new canonical baseline is `impact-midair-dense-lip14-01`.

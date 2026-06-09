@@ -1035,3 +1035,17 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `488.6 -> 489.4`, `Delta=+0.8`, 95% CI `[-0.6, 3.7]`, `P(Delta<=0)=21.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.9`, `300k +1.2`; validity unchanged.
 - Diagnostics: lowering the start is direction-positive but no stronger than the rejected `8deg` endpoint bracket, and it reintroduces extra row churn below the accepted high82 gate. Keep the accepted `0.80` start.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-lip-airspan25-mature-01
+
+- Baseline used: `impact-high82-bevel6-01` behavior at commit `9c6696c`.
+- Hypothesis: the accepted dense lip air cutoff was broadened to `0.75` at mature budgets, but its `0.35` pressure span still leaves the large `air ~= 0.50..0.65`, dense, hard-impact bucket only partially active. Narrow only the mature dense-lip air-pressure span from `0.35` to `0.25`, preserving `50k/100k` behavior and keeping the accepted high82 bevel unchanged.
+- Code changes made: added `CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_SPAN = 0.25` and a `contactCenteredImpactLipAirSpan()` helper in `scripts/v0/arc_placement.ts`; `contactCenteredImpactLipShiftDeg(...)` now lerps the air-pressure span from the accepted `0.35` to `0.25` over the existing `150k..200k` mature ramp. Candidate counts, RNG draws, lip angle, bevel length, air cutoff, and high82 bevel behavior are otherwise unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Focused probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lip-airspan25-mature-slice-01`
+- Focused decide result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `488.6 -> 490.2`, `Delta=+1.6`, 95% CI `[-0.8, 4.2]`, `P(Delta<=0)=9.4%`, effect `1.24`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.9`, `300k +2.2`; validity unchanged.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-lip-airspan25-mature-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `508.3 -> 511.3`, `Delta=+3.0`, 95% CI `[0.8, 5.6]`, `P(Delta<=0)=0.3%`, effect `2.43`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +3.8`, `300k +4.0`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Raw canonical scores: headline `511.33`, with budget scores `50k 359.81`, `100k 490.38`, `200k 526.01`, `300k 533.78`.
+- Diagnostics: this keeps the accepted early-budget path byte-identical while making the mature dense lip more assertive in the mid-air hard-impact bucket that dominated the residuals. The canonical lift is larger than the high82 bevel and cleanly concentrated at `200k/300k`.
+- Status: kept and committed; new canonical baseline is `impact-lip-airspan25-mature-01`.

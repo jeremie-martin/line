@@ -498,3 +498,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `470.6 -> 470.6`, `Delta=+0.0`, 95% CI `[-0.0, 0.1]`, `P(Delta<=0)=21.1%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.0`, `300k +0.1`.
 - Diagnostics: the extra endpoint is essentially neutral. It changes some rows but does not produce a useful point estimate beyond the accepted `1.1` ramp, so the mature repair split is already near the local plateau.
 - Status: reverted after focused neutral signal; no canonical run and no behavior commit.
+
+## impact-repair-weight15-ramp-slice-01
+
+- Baseline used: `impact-repair-main11-ramp-01` behavior at commit `5e69472`.
+- Hypothesis: the accepted repair main-margin ramp reduces the number of suffix restarts, so weighting impact errors higher when choosing repair anchors might concentrate the remaining repair budget on the dominant residual without changing geometry or scoring.
+- Code changes made: temporarily added `REPAIR_IMPACT_WEAK_GAP_WEIGHT = 1.5` inside `pickFeasibleWeakGap(...)`, multiplying only `impact` error when ranking repair anchors.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-repair-weight15-ramp-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `470.6 -> 471.0`, `Delta=+0.4`, 95% CI `[-1.0, 1.9]`, `P(Delta<=0)=27.0%`. Per-budget deltas: `50k +0.0`, `100k +1.0`, `200k +0.8`, `300k +0.1`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: this remains a small noisy positive, consistent with the earlier pre-ramp canonical inconclusive result. It is not strong enough to spend a canonical run or change the default repair anchor ranking.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

@@ -1421,3 +1421,241 @@ same normalized normal-impact scale the scorer reports.
 - Raw canonical scores: headline `420.49`, with budget scores `50k 305.57`, `100k 412.52`, `200k 430.47`, `300k 435.66`; validity `1902/1920`.
 - Diagnostics: after the metric migration, contact-angle steering is still useful, but only when retargeted to windowed velocity redirection and kept mature/small. First-post redirection can move hard-impact residuals, but it disrupts the subsequent ride-out too much. Ranking-only impact pressure is insufficient because the pool lacks enough good high-redirection candidates.
 - Status: kept and committed; new canonical baseline is `impact-redir-contact4-01`.
+
+## impact-redir-contact5-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the accepted `4deg` redirection contact-angle correction may still be conservative. Test a minimal endpoint increase to `5deg` while leaving the same speed/target/budget gates and no new candidate family.
+- Code changes made: temporarily changed `CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG` from `4` to `5` in `scripts/v0/arc_placement.ts`. Scorer, specs, seed set, budget grid, and candidate counts were unchanged.
+- Probe archive: `generated/golden-runs/impact-redir-contact5-slice-01/golden.json`
+- Focused decide result vs accepted contact4 focused archive: indicative `VERDICT: INCONCLUSIVE`; headline `397.8 -> 398.3`, `Delta=+0.5`, 95% CI `[-2.1, 3.1]`, `P(Delta<=0)=35.2%`, effect `0.37`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.9`, `300k +0.5`; validity unchanged.
+- Diagnostics: endpoint `5deg` barely moved pooled impact residuals and mainly caused row churn. Largest wins and losses were large enough to show the parameter is active, but not consistently beneficial. Treat the accepted `4deg` endpoint as the current stable point.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-fundamentals-study-01
+
+- Purpose: stop tuning single landing-frame tangent constants and empirically characterize the new impact metric as a short post-landing episode. Added `scripts/v0/study_redir_fundamentals.ts`, which reads detailed golden archives, replays checkpoint tracks through production simulation/detection, joins authored impact beats to landing frames, and measures episode features around `IMPACT_WINDOW = 6`.
+- Study command: `LR_ENGINE=wasm npx tsx scripts/v0/study_redir_fundamentals.ts generated/golden-runs/impact-redir-baseline-slice-details-01/golden.json generated/golden-runs/impact-redir-contact4-slice-01/golden.json generated/golden-runs/impact-redir-firstpost18-slice-01/golden.json generated/golden-runs/impact-redir-contact5-slice-01/golden.json`
+- Accepted contact4 slice at `300k`: `7536` impact episodes, mean target `0.563`, mean achieved `0.242`, p90 achieved `0.478`. Very-hard targets remain far under-targeted: target band `[.75,1]` averaged achieved `0.291` against target `0.817`, residual `0.526`.
+- Strongest correlates of achieved redirection impact under contact4: `turnNetDeg` rho `0.981`, gravity-corrected `dv` rho `0.977`, redirection rate rho `0.916`, normal CoM decel rho `0.904`, windowed normal speed rho `0.888`, deformation delta rho `0.865`, point normal impact rho `0.800`, tangent-predicted redirection rho `0.800`, first tangent delta rho `0.754`.
+- High vs low achieved impact is mostly episode-level path bending: top 10% achieved mean speed `12.08` vs `9.35`, CoM turn `27.58deg` vs `1.65deg`, first tangent delta `13.73deg` vs `2.03deg`, tangent change over the window `16.80deg` vs `3.07deg`, and initial contact run `6.73` vs `5.59` frames.
+- Paired contact4 minus redir baseline over `7501` common episodes: mean achieved-impact delta was only `+0.001` even though score improved canonically. Large per-episode gains were explained by CoM turn delta (rho `0.949`), then slowdown/speed/point-normal/tangent-delta changes. This confirms the accepted win was mostly better row/basin selection plus localized episode improvements, not a broad residual lift.
+- Paired firstpost18 minus redir baseline: mean achieved impact improved more (`+0.009`) and first tangent delta increased strongly (`+2.187deg`), but contact frames dropped (`-0.366`) and tangent change dropped (`-0.869deg`). This explains why first-post steering improved some hard-impact residuals yet hurt ride-out stability and was not promotable.
+- Implication: with the new metric, the compiler should reason about the rider's velocity bend over the first post-contact frames, not just the contact-frame tangent. Better follow-ups are likely continuous, speed-aware spans in early ride-out curvature/tangent-change/contact persistence, plus candidate-pool enrichment for high-redirection shapes. Ranking-only pressure and single hard constants are unlikely to be enough.
+- Status: analysis-only; no compiler behavior promoted by this study entry.
+
+## impact-redir-curvefadeoff-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: since the redirection metric rewards post-contact path bending, the existing post-contact curve diversity that normally fades out by mature budgets might now be useful if kept active.
+- Code changes made: none; ran with `LR_CURVE_FADE_OFF=1`.
+- Probe command: `LR_ENGINE=wasm LR_CURVE_FADE_OFF=1 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-curvefadeoff-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; headline `397.8 -> 396.4`, `Delta=-1.4`, 95% CI `[-9.2, 5.5]`, `P(Delta<=0)=66.3%`. Per-budget deltas: `50k +0.0`, `100k -11.6`, `200k +1.1`, `300k +0.1`; validity regressed at `100k` (`100% -> 99%`).
+- Diagnostics: broad mature curve diversity is still mostly dilution. It slightly helps `200k/300k` point estimates but destroys too much `100k` quality.
+- Status: env-only inconclusive/negative; no behavior commit.
+
+## impact-redir-postcurve35-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: a narrow impact-gated early ride-out bend might increase within-window redirection without the large first-segment jump that made firstpost probes volatile. Use smooth speed/target/missing-impact/budget gates and leave `50k/100k` unchanged.
+- Code changes made: temporarily added `contactCenteredRedirPostCurveBias(...)` in `scripts/v0/arc_placement.ts`, applying up to `-0.35` curve bias for hard high-speed impact targets from `150k..200k`, scaled by predicted missing redirection and `ccSpanBlends(attempt).launch`.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-postcurve35-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; headline `397.8 -> 397.6`, `Delta=-0.2`, 95% CI `[-2.7, 2.4]`, `P(Delta<=0)=55.2%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.4`, `300k -0.6`; validity unchanged.
+- Diagnostics: the narrower early-bend curve successfully preserved early budgets but only caused row churn at mature budgets. The sign did not create a reliable impact/score gain.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-postcurve35pos-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the negative early-bend sign may be wrong for the current post-angle geometry. Flip only the sign, keeping the same mature hard-impact gates, to test whether delayed/positive curve bias is the useful orientation.
+- Code changes made: same temporary `contactCenteredRedirPostCurveBias(...)` as `postcurve35`, but returning `+0.35` max bias instead of `-0.35`.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-postcurve35pos-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE`; headline `397.8 -> 398.0`, `Delta=+0.2`, 95% CI `[-1.9, 2.4]`, `P(Delta<=0)=41.9%`, effect `0.20`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.2`, `300k +0.4`; validity unchanged.
+- Diagnostics: positive curve bias is slightly better than negative, but the effect is far too small and noisy. This family is not worth canonical promotion; the next mechanism should change candidate-pool coverage more directly than a scalar curve-bias nudge.
+- Status: reverted after focused inconclusive/tiny signal; no canonical run and no behavior commit.
+
+## impact-redir-rideout55-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: high-redirection landings need contact persistence through more of the six-frame impact window. Add a mature, hard-impact, speed-gated ride-out length floor so some existing candidates stay grounded long enough to bend the CoM path, especially after amplitude logic shortens post length.
+- Code changes made: temporarily added `contactCenteredRedirRideoutLength(...)` in `scripts/v0/arc_placement.ts`, applying an attempt-spanned floor of `speed * 5.5` frames, clamped by room to the next contact, with target gate `0.70..0.90`, speed gate `7..11 px/frame`, budget gate `150k..200k`, and max blend `0.75`.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-rideout55-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; headline `397.8 -> 397.3`, `Delta=-0.5`, 95% CI `[-1.8, 1.0]`, `P(Delta<=0)=75.7%`, effect `-0.65`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.9`, `300k -0.4`; validity unchanged.
+- Diagnostics: preserving early budgets worked, but forced/spanned contact persistence at this point in the generator is net negative. The likely issue is collateral air/amplitude/future-state disruption rather than landing survival.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-redir-axisq2-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: prior scalar ride-out and curve nudges did not create enough high-redirection shapes. Add a tiny quality-phase `axisq`/`impact` side stream for mature, hard, high-speed impact landings: up to two ordinary contact-centered samples from a far attempt offset, with smooth target/speed/budget gates.
+- Code changes made: temporarily added cached redirection-impact quality candidates in `scripts/v0/optimizer/handoff.ts`, scoring them as source `axisq` / axis `impact`. Scorer, specs, seed set, metric, budget grid, and normal candidate pool ordering were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-axisq2-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; headline `397.8 -> 397.5`, `Delta=-0.3`, 95% CI `[-1.3, 0.5]`, `P(Delta<=0)=75.6%`, effect `-0.66`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.6`, `300k -0.3`; validity unchanged.
+- Diagnostics: broad extra samples again behave like search dilution. They preserved early budgets by construction but slightly worsened mature selection, so candidate-pool enrichment needs more geometry-specific information than just extra normal attempts at high target/speed.
+- Status: reverted after focused negative/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-contact5-hardband-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the accepted continuous `4deg` redirection contact-angle correction may be helping hard targets while adding collateral to mid-impact landings. Concentrate the ramp on harder targets (`0.65..0.90`) and allow `5deg` at the top end, keeping candidate counts and RNG draws unchanged.
+- Code changes made: temporarily changed `CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG` from `4` to `5`, `TARGET_START` from `0.55` to `0.65`, and `TARGET_SPAN` from `0.35` to `0.25` in `scripts/v0/arc_placement.ts`.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-contact5-hardband-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; headline `397.8 -> 397.4`, `Delta=-0.4`, 95% CI `[-3.4, 2.2]`, `P(Delta<=0)=62.2%`, effect `-0.32`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.2`, `300k -1.1`; validity unchanged.
+- Diagnostics: shifting authority from mid/hard into the very-hard end lost more `300k` quality than it gained at `200k`. The accepted `0.55..0.90` ramp is better balanced than this hard-band retarget.
+- Status: reverted after focused negative/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-postangle3-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the new impact metric measures the first six post-contact frames, so a small smooth post-angle bend may help more directly than further contact-angle changes while preserving the contact tangent. Add up to `3deg` of endpoint bend only for mature, high-speed, hard-impact landings whose contact-angle prediction still under-hits and whose existing contact-to-post bend is small.
+- Code changes made: temporarily added `contactCenteredRedirPostAngleShiftDeg(...)` in `scripts/v0/arc_placement.ts`, applied after air/elevation/amplitude shaping and before post-line construction. Candidate counts, RNG draws, scorer, specs, seed set, metric, and budget grid were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-postangle3-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE`; headline `397.8 -> 397.8`, `Delta=-0.0`, 95% CI `[-1.9, 1.7]`, `P(Delta<=0)=49.7%`, effect `-0.02`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.2`, `300k -0.1`; validity unchanged.
+- Diagnostics: the mechanism is active but purely neutral at this endpoint. It slightly helps `200k` and slightly hurts `300k`, which is not promotable.
+- Status: reverted after focused neutral/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-postangle2-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the `3deg` post-angle endpoint may have too much row churn; reduce the same smooth post-contact bend to `2deg` while keeping all gates unchanged.
+- Code changes made: same temporary post-angle shift as `postangle3`, but with `CONTACT_CENTERED_REDIR_POST_ANGLE_SHIFT_MAX_DEG = 2`.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-postangle2-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE`; headline `397.8 -> 397.8`, `Delta=+0.0`, 95% CI `[-2.0, 2.0]`, `P(Delta<=0)=48.5%`, effect `0.03`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.2`, `300k -0.0`; validity unchanged.
+- Diagnostics: lowering the endpoint removed most of the `300k` loss but also left only a negligible `200k` point-estimate gain. This post-angle family is close to neutral rather than a useful score lever.
+- Status: reverted after focused neutral/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-speedfloor108-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: achieved redirection impact correlates strongly with incoming speed, and many hard focused-slice impact targets are authored at only moderate speed (`0.45..0.60`, roughly `8.6..9.8 px/frame`). Add a mature, hard-impact, geometry-only speed-carry floor toward `10.8 px/frame`, capped at `+1.1 px/frame`, so contact-centered placement keeps more redirection capacity without changing authored score targets.
+- Code changes made: temporarily added `contactCenteredRedirGeometrySpeedPx(...)` in `scripts/v0/arc_placement.ts`, used by both `sampleContactCenteredLines(...)` and `guideContactCenteredRolls(...)`. The helper gated on target impact `0.70..0.90` and budget `150k..225k`; candidate counts, RNG draws, scorer, specs, seed set, metric, and budget grid were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-speedfloor108-slice-01`
+- Focused decide result: indicative `VERDICT: REJECT`; headline `397.8 -> 392.0`, `Delta=-5.8`, 95% CI `[-11.8, -2.1]`, `P(Delta<=0)=100.0%`, effect `-2.38`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -7.9`, `300k -7.4`; validity unchanged.
+- Diagnostics: speed-carry is the wrong lever at this point in geometry. It preserves validity but disrupts mature score/basin selection, likely by fighting authored speed and downstream air/elevation/amplitude placement. Future speed-related work should be selection/ranking-aware or conditioned on observed overslow residuals, not a blanket geometry floor.
+- Status: reverted after focused reject; no canonical run and no behavior commit.
+
+## impact-redir-repairimpact175-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the accepted redirection win was mostly basin/row selection, not broad residual lift. Instead of changing geometry, bias repair's weakest-gap picker toward impact residuals at mature budgets so suffix rebuilds are spent on high-value under-hit redirection beats.
+- Code changes made: temporarily weighted only the `impact` axis inside `pickFeasibleWeakGap(...)` in `scripts/v0/optimizer/handoff.ts`, ramping from `1.0x` to `1.75x` over `150k..200k`. This left `50k/100k` byte-equivalent and changed no scorer, specs, seed set, metric, budget grid, candidate count, or geometry.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-repairimpact175-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; headline `397.8 -> 397.7`, `Delta=-0.1`, 95% CI `[-1.3, 0.9]`, `P(Delta<=0)=56.9%`, effect `-0.20`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.4`, `300k -0.5`; validity unchanged.
+- Diagnostics: impact-weighted repair is active but not useful as a default. It can move some `200k` rows, but by `300k` the weighting steers repair away from better all-axis rebuild opportunities. Do not promote without a smarter under-hit/affordability condition.
+- Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.
+
+## impact-redir-bevel3-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the first-post and ride-out nudges may be too disruptive because they alter the main post-contact path. Instead, add a short local bevel branch only for mature, high-speed, hard-impact landings whose redirection predictor still under-hits, preserving the main ride-out.
+- Code changes made: temporarily added `contactCenteredRedirBevelShiftDeg(...)` in `scripts/v0/arc_placement.ts`, with a max `3deg` bevel shift gated by target impact `0.70..0.90`, speed `7..11 px/frame`, budget `150k..225k`, missing predicted redirection, and `ccSpanBlends(attempt).launch`. Candidate counts, scorer, specs, seed set, metric, and budget grid were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-bevel3-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; headline `397.8 -> 396.6`, `Delta=-1.2`, 95% CI `[-4.1, 0.9]`, `P(Delta<=0)=86.2%`, effect `-0.99`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.8`, `300k -1.5`; validity unchanged.
+- Diagnostics: a short local bevel is still mostly harmful under the windowed redirection metric. It avoids early-budget collateral by construction, but mature rows lose score, suggesting the local bevel perturbs contact stability/path choice more than it creates useful six-frame CoM turn.
+- Status: reverted after focused negative/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-contact5-slowfade-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the previous `5deg` endpoint near-miss helped low/mid incoming speeds but hurt high-speed landings. Add only one extra degree below the high-speed region, fading it out smoothly from `10.4..11.6 px/frame`, while preserving the accepted `4deg` correction as the floor.
+- Code changes made: temporarily added `CONTACT_CENTERED_REDIR_CONTACT_LOW_MID_SPEED_EXTRA_DEG = 1` plus a smooth high-speed fade inside `contactCenteredRedirContactAngleShiftDeg(...)` in `scripts/v0/arc_placement.ts`. Scorer, specs, seed set, metric, budget grid, candidate counts, and RNG draws were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-contact5-slowfade-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE`; headline `397.8 -> 398.0`, `Delta=+0.3`, 95% CI `[-2.0, 2.5]`, `P(Delta<=0)=41.7%`, effect `0.21`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.7`, `300k +0.1`; validity unchanged.
+- Diagnostics: extra endpoint authority below `11 px/frame` still improved achieved impact in low-speed episode buckets (`dAch +0.042` for baseline speed `<9`), but high-speed rows still showed negative churn (`dAch -0.031` for `>=11`). The score signal is positive but weaker than the earlier full `5deg` endpoint and not worth canonical promotion.
+- Status: replaced by the `contact45` endpoint probe, then reverted; no canonical run and no behavior commit.
+
+## impact-redir-contact45-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: a midpoint endpoint may keep part of the full `5deg` upside with less row churn. Test `4.5deg` as the single redirection contact-angle correction cap with all accepted gates unchanged.
+- Code changes made: temporarily changed `CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG` from `4` to `4.5` in `scripts/v0/arc_placement.ts`. Scorer, specs, seed set, metric, budget grid, candidate counts, and RNG draws were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-contact45-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with slight negative point estimate; headline `397.8 -> 397.6`, `Delta=-0.2`, 95% CI `[-4.3, 2.5]`, `P(Delta<=0)=49.2%`, effect `-0.12`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.2`, `300k -1.2`; validity unchanged.
+- Diagnostics: the midpoint endpoint preserves the same `200k` upside pattern but worsens `300k`, including a large `opening_burst seed=2` outlier. Endpoint-only retuning is not robust enough beyond the accepted `4deg` value.
+- Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.
+
+## impact-redir-contact5-hardlowspeed-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the only clear achieved-impact gain from endpoint increases is on low incoming speeds, and the large residual cases are hard impact targets. Add one extra degree beyond the accepted `4deg` only under a combined continuous gate: target impact `0.72..0.87` and speed fading out over `9.4..10.6 px/frame`.
+- Code changes made: temporarily added hard-target/low-speed extra cap terms inside `contactCenteredRedirContactAngleShiftDeg(...)` in `scripts/v0/arc_placement.ts`. Scorer, specs, seed set, metric, budget grid, candidate counts, and RNG draws were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-contact5-hardlowspeed-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE`; headline `397.8 -> 397.9`, `Delta=+0.1`, 95% CI `[-1.6, 1.6]`, `P(Delta<=0)=45.1%`, effect `0.09`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.1`, `300k +0.1`; validity unchanged.
+- Diagnostics: the combined gate successfully avoided the larger `300k` regression but also removed nearly all upside. This confirms that the contact-angle endpoint family has been squeezed to noise around the accepted `4deg` correction.
+- Status: reverted after focused neutral/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-normalbias08-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: achieved redirection correlates with point-normal impulse and deformation, so a tiny mature hard-impact contact-point offset along the placement normal may increase the six-frame CoM bend without changing post-angle or candidate counts. First tested `-0.8px` because screen-positive normal direction was ambiguous.
+- Code changes made: temporarily added `contactCenteredRedirNormalBiasPx(...)` in `scripts/v0/arc_placement.ts`, adding up to `-0.8px` to `normalJitter` under target, speed, budget, missing-redirection, and attempt-launch gates. Scorer, specs, seed set, metric, budget grid, candidate counts, and RNG draws were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-normalbias08-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; headline `397.8 -> 397.1`, `Delta=-0.7`, 95% CI `[-3.1, 1.5]`, `P(Delta<=0)=74.5%`, effect `-0.65`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.3`, `300k -0.8`; validity unchanged.
+- Diagnostics: the negative normal direction is wrong or destabilizing. It preserves validity but reduces mature quality.
+- Status: sign-flipped and retested; no canonical run and no behavior commit.
+
+## impact-redir-normalbiasp08-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: flip the contact-point normal offset to `+0.8px` with the same gates, testing the opposite physical side of the catch point.
+- Code changes made: same temporary `contactCenteredRedirNormalBiasPx(...)` as `normalbias08`, but with `CONTACT_CENTERED_REDIR_NORMAL_BIAS_PX = 0.8`.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-normalbiasp08-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with positive point estimate; headline `397.8 -> 398.2`, `Delta=+0.4`, 95% CI `[-2.0, 2.8]`, `P(Delta<=0)=38.0%`, effect `0.31`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.8`, `300k +0.3`; validity unchanged.
+- Diagnostics: `+0.8px` is the first contact-point lever with positive score signal, but the impact episode study showed it is mostly basin movement: achieved-impact delta mean was flat, low-speed episodes gained (`dAch +0.041` for baseline speed `<9`), and high-speed episodes lost (`dAch -0.033` for `>=11`). The focused signal is too weak for canonical promotion.
+- Status: retuned with a high-speed fade, then reverted; no canonical run and no behavior commit.
+
+## impact-redir-normalbiasp08-speedfade-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: keep the positive `+0.8px` contact-point offset but fade it out above the speed band where the study showed losses, preserving the low/mid-speed gains while avoiding high-speed churn.
+- Code changes made: temporarily changed the normal-bias speed gate into a band-pass: ramp from `7..9.4 px/frame`, fade from `10.4..11.6 px/frame`. Other gates and the `+0.8px` offset were unchanged.
+- Import/checks: an initial import caught an extra `);`, which was fixed; after that `git diff --check` passed and `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-normalbiasp08-speedfade-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; headline `397.8 -> 397.5`, `Delta=-0.3`, 95% CI `[-2.2, 1.6]`, `P(Delta<=0)=63.3%`, effect `-0.33`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.2`, `300k -0.8`; validity unchanged.
+- Diagnostics: the high-speed fade removed too much useful basin movement and worsened `300k`. Like the endpoint family, speed-restricting the weak-positive signal collapses it to noise or negative.
+- Status: reverted after focused negative/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-localcost100-contact4-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the earlier mature local impact-cost probe ran before the accepted contact4 geometry. With contact4 in place, more high-redirection candidates might exist in the local sorted pool, so raising mature impact sort pressure from `0.75x` to `1.0x` could select better post-contact redirection without changing geometry.
+- Code changes made: temporarily changed `LOCAL_IMPACT_COST_MATURE_EXTRA` from `0.25` to `0.5` in `scripts/v0/core/candidate.ts`. This leaves `50k/100k` unchanged and only changes mature local candidate sorting; scorer, specs, seed set, metric, budget grid, candidate counts, RNG draws, and geometry were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "Promise.all([import('./scripts/v0/core/candidate.ts'), import('./scripts/v0/optimizer/handoff.ts'), import('./scripts/v0/arc_placement.ts')]).then(() => console.log('localcost100 imports ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-localcost100-contact4-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE`; headline `397.8 -> 398.2`, `Delta=+0.4`, 95% CI `[-0.7, 1.8]`, `P(Delta<=0)=24.4%`, effect `0.68`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.6`, `300k +0.5`; validity unchanged at every budget.
+- Diagnostics: the probe is active but still mostly row/basin selection. Paired episode study showed mean achieved impact flat (`dAch -0.000`), low-speed landings improved (`dAch +0.017` for baseline speed `<9`), mid-speed improved slightly (`+0.005`), and high-speed landings lost (`-0.018`). Large wins and losses were both explained by CoM turn/tangent-change swaps, so broad extra local impact weight is not a robust promotion candidate.
+- Status: reverted after weak focused positive/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-localcost-lowmid-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: the broad `localcost100` probe helped low/mid incoming speeds but hurt high-speed landings. Keep the accepted mature impact cost, then add the extra `+0.25x` pressure only for candidates whose measured gap speed fades out over `10.4..11.6 px/frame`.
+- Code changes made: temporarily added `LOCAL_IMPACT_COST_LOW_MID_SPEED_EXTRA = 0.25` in `scripts/v0/core/candidate.ts`, gated by achieved speed (`achieved.speed ?? target.speed`) mapped with `authoredSpeedToPx(...)`. This changed local candidate sorting only; scorer, specs, seed set, metric, budget grid, candidate counts, RNG draws, and geometry were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "Promise.all([import('./scripts/v0/core/candidate.ts'), import('./scripts/v0/optimizer/handoff.ts'), import('./scripts/v0/arc_placement.ts')]).then(() => console.log('localcost lowmid imports ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-localcost-lowmid-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE`; headline `397.8 -> 398.1`, `Delta=+0.3`, 95% CI `[-0.7, 1.4]`, `P(Delta<=0)=26.9%`, effect `0.60`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.7`, `300k +0.2`; validity unchanged.
+- Diagnostics: speed-aware gating reduced the paired-delta spread but did not solve the failure mode. Mean achieved impact improved only `+0.001`; low-speed episodes gained (`dAch +0.012` for baseline speed `<9`), mid-speed gained (`+0.006`), and high-speed still lost (`-0.013`). The `300k` score signal weakened relative to broad localcost, so this is not worth canonical promotion.
+- Status: reverted after weak focused positive/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-redir-impactpool10-slice-01
+
+- Baseline used: accepted `impact-redir-contact4-01` behavior at commit `f2ecc15`.
+- Hypothesis: ranking-only pressure may be limited because the forward-eval pool does not include enough high-redirection shapes. Widen only hard impact-targeted mature contact gaps from pool `8` toward `10`, using the already sampled 32 quality candidates, instead of globally widening the pool.
+- Code changes made: temporarily added `handoffCandidatePoolForGap(...)` in `scripts/v0/optimizer/handoff.ts`. It added up to `+2` pool entries for gaps with impact target ramping from `0.65..0.85`, active over mature budgets `150k..225k`. This changed forward-ranked pool coverage only; scorer, specs, seed set, metric, budget grid, sampled candidate count, RNG draws, and geometry were unchanged.
+- Import/checks: `git diff --check` passed; `LR_ENGINE=wasm npx tsx -e "Promise.all([import('./scripts/v0/optimizer/handoff.ts'), import('./scripts/v0/core/candidate.ts'), import('./scripts/v0/arc_placement.ts')]).then(() => console.log('impact pool imports ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-redir-impactpool10-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; headline `397.8 -> 397.2`, `Delta=-0.6`, 95% CI `[-1.8, 0.6]`, `P(Delta<=0)=82.7%`, effect `-0.92`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.5`, `300k -0.9`; validity unchanged.
+- Diagnostics: even localized pool widening dilutes/starves mature search more than it helps. The change moved many rows, confirming the mechanism is active, but both mature budgets lost score. Future candidate coverage needs better candidate generation or a more selective rescue path, not a wider default forward-eval pool.
+- Status: reverted after focused negative/inconclusive signal; no canonical run and no behavior commit.

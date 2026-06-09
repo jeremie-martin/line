@@ -1099,3 +1099,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `492.0 -> 491.7`, `Delta=-0.3`, 95% CI `[-2.7, 2.2]`, `P(Delta<=0)=62.7%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.0`, `300k -0.7`; validity unchanged.
 - Diagnostics: the mid-air bevel adds the intended mature-only surface option but does not improve aggregate quality. Combined with the air77 lip result, this suggests the `.72..75` residual is not solved by more local hard-catch geometry.
 - Status: reverted after focused negative/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-local-cost-mature075-current-slice-01
+
+- Baseline used: `impact-lip-airspan20-mature-01` behavior at commit `a62b965`.
+- Hypothesis: after the accepted lip/bevel/span geometry, the pool may contain better hard-impact mature candidates than the local sort promotes. Re-test the mature-only local impact cost ramp (`0.5 -> 0.75` over `150k..200k`) on the current baseline, preserving `50k/100k` behavior and adding no samples.
+- Code changes made: temporarily exported a compile-budget mature pressure helper from `scripts/v0/arc_placement.ts` and used it in `scripts/v0/core/candidate.ts` to add `0.25 * maturePressure` to the local `impact` axis cost weight.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "Promise.all([import('./scripts/v0/arc_placement.ts'), import('./scripts/v0/core/candidate.ts')]).then(() => console.log('imports ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-local-cost-mature075-current-slice-01`
+- Raw focused scores: headline `492.89`, with budget scores `50k 392.42`, `100k 472.45`, `200k 501.34`, `300k 510.81`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `492.0 -> 492.9`, `Delta=+0.9`, 95% CI `[-1.5, 3.9]`, `P(Delta<=0)=26.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.9`, `300k +1.4`; validity unchanged.
+- Diagnostics: the current stronger geometry keeps the mature local-cost pressure direction-positive, but the effect is still too small and noisy to promote. Mature selection pressure is not enough by itself to clear the remaining low-air/impact residual.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

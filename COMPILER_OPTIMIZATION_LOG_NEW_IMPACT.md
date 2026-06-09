@@ -1206,3 +1206,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `494.6 -> 494.7`, `Delta=+0.1`, 95% CI `[-0.3, 0.5]`, `P(Delta<=0)=30.6%`, effect `0.39`. Per-budget deltas: `50k +0.0`, `100k +0.5`, `200k +0.0`, `300k +0.0`; validity unchanged.
 - Diagnostics: the earlier high-air bevel timing isolates a tiny `100k` point-estimate lift, but the effect is too small to promote and has no mature-budget value. Keep the accepted `150k..200k` high-air bevel ramp.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-air-overshoot24-slice-01
+
+- Baseline used: `impact-high78-bevel8-localcost075-01` behavior at commit `8446817`.
+- Hypothesis: accepted reports show very low-air targets still overshoot air while hard impact under-hits. Increase the existing handoff asymmetric air overshoot penalty from `16` to `24` so already-generated candidates with achieved air above target lose more ranking pressure, without changing geometry, candidate counts, scorer, specs, or budget grid.
+- Code changes made: temporarily changed `HANDOFF_AXIS_OVERSHOOT_WEIGHTS.air` from `16` to `24` in `scripts/v0/optimizer/handoff.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-air-overshoot24-slice-01`
+- Raw focused scores: headline `494.36`, with budget scores `50k 389.48`, `100k 472.45`, `200k 503.71`, `300k 512.91`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `494.6 -> 494.4`, `Delta=-0.2`, 95% CI `[-0.6, 0.1]`, `P(Delta<=0)=90.7%`, effect `-1.23`. Per-budget deltas: `50k -2.9`, `100k +0.0`, `200k +0.0`, `300k +0.0`; validity unchanged.
+- Diagnostics: the stronger air overshoot penalty did not affect mature selected outputs and only hurt scarce-budget ranking. Keep the accepted `air: 16` handoff overshoot weight.
+- Status: reverted after focused reject; no canonical run and no behavior commit.

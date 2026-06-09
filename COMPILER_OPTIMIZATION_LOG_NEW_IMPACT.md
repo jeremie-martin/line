@@ -962,3 +962,15 @@ same normalized normal-impact scale the scorer reports.
 - Raw canonical scores: headline `508.02`, with budget scores `50k 359.81`, `100k 490.38`, `200k 522.12`, `300k 529.21`.
 - Diagnostics: bevel-only high-air shaping is direction-positive and preserves validity/early budgets, but canonical `P(Delta<=0)=10.1%` missed the accept threshold. Treat as a live lead for a tighter gate or larger-seed follow-up, but do not promote this source behavior.
 - Status: reverted after canonical inconclusive; no behavior commit.
+
+## impact-angle-dense-lowbudget-extra-slice-01
+
+- Baseline used: `impact-midair-lip-air75-mature-01` behavior at commit `30ab8b8`.
+- Hypothesis: the old 50k-only extra impact-angle probe predated the accepted sparse-room angle extra. Retest a safer current-baseline version that adds the extra `1deg` only on dense gaps at scarce budget, fading from full at `50k` to zero by `100k`, so sparse gaps stay at the accepted `4deg` instead of jumping to `5deg`.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_DENSE_LOW_BUDGET_EXTRA_SHIFT_DEG = 1` in `scripts/v0/arc_placement.ts` and included `(1 - room) * (1 - smoothstep((budget - 50k) / 50k))` in `contactCenteredImpactAngleShiftDeg(...)`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=solo_run,drums_crescendo,drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,verse_chorus,drums_swell,drums_tide,cold_start,big_air_ramp,pop_train,leap_cadence,skyline_push --archive-dir=generated/golden-runs/impact-angle-dense-lowbudget-extra-slice-01`
+- Raw focused scores: headline `460.43`, with budget scores `50k 282.54` valid `228/240`, `100k 441.91` valid `239/240`, `200k 477.99` valid `240/240`, `300k 484.55` valid `240/240`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `459.8 -> 460.4`, `Delta=+0.6`, 95% CI `[-2.8, 4.4]`, `P(Delta<=0)=34.5%`. Per-budget deltas: `50k +7.9`, `100k +0.0`, `200k +0.0`, `300k +0.0`; focused `50k` validity regressed from `97%` to `95%`.
+- Diagnostics: dense-only gating removed the previous `100k` regression, but the 50k quality gain is too noisy and comes with a worse pass rate on the focused invalid-heavy slice. This is not worth a canonical run.
+- Status: reverted after focused inconclusive/validity-negative signal; no canonical run and no behavior commit.

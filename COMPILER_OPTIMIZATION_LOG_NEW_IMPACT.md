@@ -1718,3 +1718,10 @@ same normalized normal-impact scale the scorer reports.
 - Authored impact keeps its ABSOLUTE musical meaning; scored = min(authored, bound); bound only lowers.
 - Fingerprint 4af34575a3f7 → **eede9661bba6**; verify:optimizer re-baselined; tests 247/248 (pre-existing only).
 - New canonical reference: **570.25** (validity 480/480, excl-impact 639.2; archive `impact-ballistic-bound-canon-01`). Ruler trajectory (NOT score-comparable across fingerprints, design trajectory only): 444.8 raw asks → 514.3 empirical envelope → 570.3 derived bound. Full↔excl-impact gap narrowed 107 → 69 pts: asks are now near-reachable; remaining capability work has coherent gradient everywhere.
+
+## impact-curve-mag14 + nudge-start30  (both INCONCLUSIVE at the bound ruler — cheap steering knobs exhausted)
+
+- Baseline: `impact-ballistic-bound-canon-01` (570.25). Anatomy at this ruler: impact sq-error 1765→500 after the bound; dominant residual = the [0.35,0.55) bounded-dense band (6,636 gaps, achieved 0.241 vs asks ~0.45, 44% of sq-error); soft band [0,0.35) = 20%. Perfect-impact counterfactual at this ruler = 680.8 (50k drag: even perfect impact leaves 50k at 461).
+- `IMPACT_CURVE_FLATTEN_DEG` 10→14 + `IMPACT_CURVE_FRONTLOAD` 0.8→0.9 (magnitude, aimed at the 44% band): slice INCONCLUSIVE Δ−1.0 (P=49%). The "magnitude washes" pattern holds even with coherent asks. REVERTED.
+- `CONTACT_CENTERED_REDIR_CONTACT_TARGET_START` 0.55→0.30 (mirror of the accepted curve-ramp retune, for the ±4° contact-angle nudge): slice INCONCLUSIVE Δ−0.5 (P=63%). Consistent with the nudge's known impotence (paired-delta achieved +0.001 historically). REVERTED.
+- Conclusion: at the bound ruler the constant-level steering knobs are exhausted. Remaining arms to ~700: (1) a real generation/selection advance on the bounded-dense band (templates already inconclusive — would need a new idea, e.g. arrival-steepness planning across gaps), (2) the 50k completion root cause (budget-aware arc-placement study, the "main 579-breaker" — user previously flagged big upside), (3) soft-band overshoot (20% of impact error), (4) trade recovery. No behavior commits from this entry.

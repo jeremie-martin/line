@@ -865,3 +865,16 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `478.3 -> 480.0`, `Delta=+1.7`, 95% CI `[-0.0, 9.2]`, `P(Delta<=0)=38.7%`. Per-budget deltas: `50k +0.0`, `100k +11.2`, `200k +0.0`, `300k +0.0`; validity stayed `100%`.
 - Diagnostics: the stronger endpoint barely improved the point estimate over `1.5x` and remained far from acceptance. The selection knob is useful information for future budget-specific work but not worth carrying as a non-mature headline micro-optimization.
 - Status: reverted after focused inconclusive signal; no full preview, no canonical run, and no behavior commit.
+
+## impact-lip-bevel-early125-01
+
+- Baseline used: `impact-bevel6x2-01` behavior at commit `6dfa80c`.
+- Hypothesis: the accepted dense lip/bevel is zero through `100k` and full only by `200k`, leaving a clean budget hole. Start the same accepted lip/bevel ramp at `75k` and finish by `125k`, so the mechanism is half-active at `100k`, unchanged at `50k`, and unchanged at mature budgets.
+- Code changes made: in `scripts/v0/arc_placement.ts`, changed the `contactCenteredImpactLipShiftDeg(...)` mature pressure from `smoothstep((budget - 150k) / 50k)` to `smoothstep((budget - 75k) / 50k)`. The lip/bevel activation gates, angle, length, and mature endpoint are otherwise unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Focused probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lip-bevel-early125-slice-01`
+- Focused decide result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `478.3 -> 481.1`, `Delta=+2.8`, 95% CI `[0.4, 10.4]`, `P(Delta<=0)=0.1%`. Per-budget deltas: `50k +0.0`, `100k +18.1`, `200k +0.0`, `300k +0.0`; validity stayed `100%`.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-lip-bevel-early125-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `498.2 -> 500.0`, `Delta=+1.9`, 95% CI `[0.5, 6.1]`, `P(Delta<=0)=0.0%`. Per-budget deltas: `50k +0.0`, `100k +12.1`, `200k +0.0`, `300k +0.0`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Diagnostics: this is a clean budget-timing gain, not a new mature geometry gain. It promotes the already accepted dense lip/bevel earlier enough to help `100k`, while leaving `50k` and mature aggregate scores unchanged.
+- Status: kept and committed; new canonical baseline is `impact-lip-bevel-early125-01`.

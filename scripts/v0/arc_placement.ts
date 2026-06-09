@@ -981,7 +981,7 @@ function contactCenteredImpactLipShiftDeg(
     (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
       (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
   );
-  const mature = smoothstep((currentCompileBudgetFrames - 150_000) / 50_000);
+  const mature = smoothstep((currentCompileBudgetFrames - 75_000) / 50_000);
   return CONTACT_CENTERED_IMPACT_DENSE_LIP_SHIFT_DEG *
     highImpact * airPressure * dense * mature;
 }

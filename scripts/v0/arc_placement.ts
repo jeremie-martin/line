@@ -178,6 +178,8 @@ const ARC_LEN_SPAN_SALT = 9;
  *  at/above SPARSE frames (full HI). Smooth, deterministic, no spec-name branch. */
 const ARC_LEN_ROOM_DENSE_FRAMES = 26;
 const ARC_LEN_ROOM_SPARSE_FRAMES = 46;
+const ARC_LEN_ROOM_SMOOTH_BUDGET_START_FRAMES = 50_000;
+const ARC_LEN_ROOM_SMOOTH_BUDGET_SPAN_FRAMES = 50_000;
 
 /** Per-compile frame budget, set once at compileHandoff entry (each compile is a
  *  single independent budget, run in its own worker / sequentially), read by the
@@ -876,11 +878,19 @@ function sampleContactCenteredLines(
     : clamp(targetState.speed * nextGapFrames * (0.52 + 0.16 * (1 - air)), 36, 180);
   const arcLenRoom = nextGapFrames === null
     ? 1
-    : clamp(
-      (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
-        (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
-      0, 1,
-    );
+    : (() => {
+      const linearRoom = clamp(
+        (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
+          (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
+        0, 1,
+      );
+      const smoothRoom = smoothstep(linearRoom);
+      const smoothBudgetPressure = smoothstep(
+        (currentCompileBudgetFrames - ARC_LEN_ROOM_SMOOTH_BUDGET_START_FRAMES) /
+          ARC_LEN_ROOM_SMOOTH_BUDGET_SPAN_FRAMES,
+      );
+      return lerp(linearRoom, smoothRoom, smoothBudgetPressure);
+    })();
   // Both ends fade to the neutral 1.0 as room→0, so dense gaps (the original
   // suite) stay byte-identical and only gaps with room get the wider pool.
   const arcLenLo = 1 + (ARC_LEN_SPAN_LO - 1) * arcLenRoom;

@@ -701,3 +701,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `476.0 -> 475.0`, `Delta=-1.0`, 95% CI `[-3.9, 1.2]`, `P(Delta<=0)=77.1%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.7`, `300k -1.7`; validity stayed `100%`.
 - Diagnostics: extra low-air lip span worsened the exact residual it targeted: visible `drums_pendulum` 300k scores dropped on several seeds, while high-air opening rows stayed stable. The accepted fixed lip is already near the useful contact-angle boundary; more first-segment angle is not the next lever.
 - Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-lowair-room-safe-cap63-slice-01
+
+- Baseline used: `impact-midair-dense-lip14-01` behavior at commit `888da8a`.
+- Hypothesis: the remaining high-impact low-air mid/sparse rows overshoot air badly while speed stays near target, and the current air-targeted ride-out length is capped at `55%` of the next-contact span. Raise only roomier low-air/high-impact mature gaps toward a `63%` safe cap, avoiding the earlier dense/mid-budget safe-cap failure.
+- Code changes made: temporarily added `LOW_AIR_HIGH_IMPACT_ROOM_SAFE_CAP_EXTRA = 0.08` in `scripts/v0/arc_placement.ts`; replaced the fixed `0.55` safe-cap fraction with `0.55 + 0.08 * highImpact * lowAir * lowAirRoom * mature`, where `lowAirRoom` fades in after `24` frames and fades out after `70` frames, and `mature` ramps from `150k..200k`.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-room-safe-cap63-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a neutral point estimate; 20-spec intersection headline `476.0 -> 476.0`, `Delta=+0.0`, 95% CI `[-1.0, 1.1]`, `P(Delta<=0)=51.2%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.3`, `300k -0.2`; validity stayed `100%`.
+- Diagnostics: the cap change traded seed-level `drums_pendulum` wins and losses without improving the aggregate; one worst row dropped to `276.89`, while some other seeds recovered. The air overshoot is real, but simply extending ride-out capacity is too volatile.
+- Status: reverted after focused neutral signal; no canonical run and no behavior commit.

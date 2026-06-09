@@ -62,6 +62,7 @@ import {
   axisLookaheadEndFrame,
   detectWindow,
   releaseSpeedPenalty,
+  setCandidateCompileBudgetFrames,
   tryCandidate,
   translateTrackLines,
   tryCandidateLines,
@@ -537,6 +538,7 @@ function compileHandoffInternal(
   const targetBudget = validateBudget(opts.budget);
   // Budget-aware geometry reads this (per-compile constant) for the curvature fade.
   setCompileBudgetFrames(targetBudget);
+  setCandidateCompileBudgetFrames(targetBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
   if (!Number.isInteger(maxNodes) || maxNodes < 1) {
     throw new Error(`compileHandoff: maxNodes must be a positive integer, got ${maxNodes}`);

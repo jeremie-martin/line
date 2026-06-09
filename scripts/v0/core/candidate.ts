@@ -47,6 +47,14 @@ const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
 const RELEASE_STATE_SPEED_WEIGHT = 0.126;
 const LOCAL_IMPACT_COST_WEIGHT = 0.5;
+const LOCAL_IMPACT_COST_MATURE_EXTRA = 0.25;
+const LOCAL_IMPACT_COST_MATURE_START_FRAMES = 150_000;
+const LOCAL_IMPACT_COST_MATURE_SPAN_FRAMES = 50_000;
+
+let currentCandidateCompileBudgetFrames = 0;
+export function setCandidateCompileBudgetFrames(frames: number): void {
+  currentCandidateCompileBudgetFrames = Math.max(0, frames | 0);
+}
 
 type WindowDetection = Detection & { frameOffset?: number };
 
@@ -674,8 +682,21 @@ export function axisCost(target: AxisValues, achieved: AxisValues): number {
     const a = achieved[key];
     if (t !== undefined && a !== undefined) {
       const d = t - a;
-      cost += (key === "impact" ? LOCAL_IMPACT_COST_WEIGHT : 1) * d * d;
+      cost += (key === "impact" ? localImpactCostWeight() : 1) * d * d;
     }
   }
   return cost;
+}
+
+function localImpactCostWeight(): number {
+  const mature = smoothstepLocal(
+    (currentCandidateCompileBudgetFrames - LOCAL_IMPACT_COST_MATURE_START_FRAMES) /
+      LOCAL_IMPACT_COST_MATURE_SPAN_FRAMES,
+  );
+  return LOCAL_IMPACT_COST_WEIGHT + LOCAL_IMPACT_COST_MATURE_EXTRA * mature;
+}
+
+function smoothstepLocal(t: number): number {
+  const x = clamp(t, 0, 1);
+  return x * x * (3 - 2 * x);
 }

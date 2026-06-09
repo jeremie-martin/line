@@ -43,6 +43,10 @@ Probe trail:
 - `impact-repair-anchor-slice-01`: focused Delta -0.4, inconclusive; impact-weighted repair anchor caused bad row swaps.
 - `impact-postturn-worst10-slice-01`: focused Delta -8.1, REJECT. Ungated post-turn raised tangentChange but regressed the large .35-.55 target band.
 - `impact-postturn-highgate-worst10-slice-01`: focused Delta +4.8, indicative ACCEPT. Target gate preserved high-band gains while removing mid-band damage; canonical accepted.
+- `impact-postturn-stronger/start055/contact-start045`: focused inconclusive/negative; accepted high gate is near the local optimum.
+- `impact-arrival-floor15-canon-01`: canonical Delta -1.2, P(Delta<=0)=85.5%, INCONCLUSIVE negative; mature arrival residual reverted.
+- Low-budget tail probes (`tailwin18`, `tailbranch3`, `tail-ncand5`, `desperate-tail21`) all regressed the 50k failure slice; accepted tail settings kept.
+- Selection/search probes: `LR_IMPACT_LOCAL_W=1`, `LR_QUALITY_NCAND=48/24`, `HANDOFF_REUSE_K=2`, and repair main-margin 1.0/1.2 did not produce promotable signal. Portfolio oracle showed full-lane headroom but equal-slice 300k was negative.
 - `contract-branch-cap2-canon-01`: 50k +5.6 but canonical Delta +0.4, P(Delta<=0)=42.2%, inconclusive; cap needed a warmup.
 - `contract-branch-cap2-warmup12-canon-01`: 50k +38.1 but canonical Delta +2.9, P(Delta<=0)=12.5%, inconclusive; tail window still left the gate just short.
 - `contract-branch-cap2-tailwin17-clean-canon-01`: canonical accepted. Window 17 kept the 50k rescue and removed the main `drums_pendulum` seed 10 regression; window 20 was too broad and regressed 50k validity.

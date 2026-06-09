@@ -579,3 +579,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `472.4 -> 472.5`, `Delta=+0.1`, 95% CI `[-0.3, 0.7]`, `P(Delta<=0)=41.9%`. Per-budget deltas: `50k +0.0`, `100k +0.1`, `200k +0.1`, `300k +0.1`.
 - Diagnostics: more reuse breadth remains a tiny positive at best, but it is nowhere near the accept bar. The cost/benefit is not competitive with the accepted geometry changes.
 - Status: reverted after focused weak-positive signal; no canonical run and no behavior commit.
+
+## impact-angle-sparse-mature-extra05-ramp-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: sparse high-impact gaps still under-hit impact, so add a further `0.5deg` impact angle shift only for sparse-room gaps at mature budgets while preserving the accepted dense mature curve and `50k/100k` behavior.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_SPARSE_MATURE_EXTRA_SHIFT_DEG = 0.5` in `scripts/v0/arc_placement.ts` and blended it by `room * smoothstep((budget - 150k) / 50k)` inside `contactCenteredImpactAngleShiftDeg(...)`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-angle-sparse-mature-extra05-ramp-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `472.4 -> 471.3`, `Delta=-1.1`, 95% CI `[-3.7, 0.9]`, `P(Delta<=0)=83.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.2`, `300k -1.5`.
+- Diagnostics: unlike the dense mature extra, adding more sparse mature angle over-rotates the successful sparse path. Sparse high-impact under-hit is not improved by pushing the same angle mechanism further.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.

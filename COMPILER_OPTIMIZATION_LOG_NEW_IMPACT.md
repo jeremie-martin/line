@@ -731,3 +731,25 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `476.0 -> 476.7`, `Delta=+0.6`, 95% CI `[-4.6, 4.7]`, `P(Delta<=0)=33.9%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.0`, `300k +0.8`; validity stayed `100%`.
 - Diagnostics: `2deg` was not cleaner than `3deg`; the point estimate stayed weak-positive but CI widened and several opening/drum seeds still regressed. The high-air dense residual needs a different mechanism than first-segment lip angle.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-local-cost-mature075-slice-01
+
+- Baseline used: `impact-midair-dense-lip14-01` behavior at commit `888da8a`.
+- Hypothesis: after the accepted lip geometry, the candidate pool contains better hard-impact shapes, but local selection still weights impact error at `0.5`. Raise the local impact cost weight only at mature budgets from `0.5` to `0.75` so `50k/100k` stay byte-identical while `200k/300k` prefer lower impact error.
+- Code changes made: temporarily exported `compileBudgetMaturePressure(...)` from `scripts/v0/arc_placement.ts`; imported it in `scripts/v0/core/candidate.ts`; changed `axisCost(...)` to use `0.5 + 0.25 * maturePressure` for impact.
+- Focused probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-local-cost-mature075-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `476.0 -> 477.1`, `Delta=+1.1`, 95% CI `[-1.0, 3.2]`, `P(Delta<=0)=15.7%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.1`, `300k +1.6`; validity stayed `100%`.
+- Full-spec preview command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=big_air_ramp,canyon_steps,climb_terrace,cold_start,dense_echo_climb,dense_sprint,drums_breath,drums_crescendo,drums_crosscut,drums_dropout,drums_pendulum,drums_pulse,drums_signature,drums_swell,drums_tide,drums_zigzag,float_bounds,glide_stairs,grain_staircase,leap_cadence,mini_burst,mixed_grade,opening_burst,pop_train,rhythm_ladder,ridge_pulse,rolling_drop,rolling_hills,skyline_push,soar_settle,solo_run,summit_push,switchback_pop,swoop_dive,syncopated_lift,syncopated_switchback,terrace_sprint,tiny_dance,valley_bounce,verse_chorus --archive-dir=generated/golden-runs/impact-local-cost-mature075-fullslice-01`
+- Full-spec preview decide result: indicative `VERDICT: INCONCLUSIVE`; 40-spec scope headline `496.4 -> 497.2`, `Delta=+0.8`, 95% CI `[-0.7, 2.2]`, `P(Delta<=0)=14.9%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.0`, `300k +0.9`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Diagnostics: mature impact selection pressure is consistently direction-positive but not accepted. It improves the mature budgets without validity movement, but the effect is too small and row-mixed for canonical promotion.
+- Status: bracketed upward to `1.0`, then reverted; no canonical run and no behavior commit.
+
+## impact-local-cost-mature100-slice-01
+
+- Baseline used: `impact-midair-dense-lip14-01` behavior at commit `888da8a`.
+- Hypothesis: if the mature `0.75` endpoint is direction-positive but too weak, ramping impact cost to `1.0` may produce a clearer mature-budget selection gain.
+- Code changes made: temporarily changed the mature extra impact cost weight from `0.25` to `0.5`, so local impact cost reached `1.0` by `200k`.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-local-cost-mature100-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `476.0 -> 477.0`, `Delta=+1.0`, 95% CI `[-1.3, 3.4]`, `P(Delta<=0)=20.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.2`, `300k +1.4`; validity stayed `100%`.
+- Diagnostics: the stronger endpoint was slightly weaker/noisier than `0.75` on the focused slice, indicating over-selection. The `0.75` ramp is the better endpoint but still below the promotion threshold.
+- Status: reverted after focused weaker signal; no canonical run and no behavior commit.

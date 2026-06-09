@@ -535,3 +535,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a neutral point estimate; 20-spec intersection headline `472.4 -> 472.4`, `Delta=-0.0`, 95% CI `[-3.2, 3.1]`, `P(Delta<=0)=51.3%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.5`, `300k -0.4`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
 - Diagnostics: the extra half degree is past the local useful point. It slightly lifts `200k` but gives that back at `300k`, so the accepted `1deg` mature dense angle bias is the better endpoint.
 - Status: reverted after focused neutral/negative signal; no canonical run and no behavior commit.
+
+## impact-start-angle-mature-bias3-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: the worst low-air high-impact errors often occur on the first contact, where the start-angle generator still targets only air. Shift high-impact start angles by up to `3deg` after `150k`, reaching full strength by `200k`, to mirror the accepted contact-angle bias while leaving `50k/100k` unchanged.
+- Code changes made: temporarily threaded `targetBudget` through start-option generation in `scripts/v0/optimizer/handoff.ts` and subtracted a high-impact, mature-budget angle shift inside `targetStartAngle(...)`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-start-angle-mature-bias3-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with an exactly neutral result; 20-spec intersection headline `472.4 -> 472.4`, `Delta=+0.0`, 95% CI `[0.0, 0.0]`, `P(Delta<=0)=100.0%`. Per-budget deltas were `+0.0` at every budget.
+- Diagnostics: the new start candidates did not alter the selected outputs on the focused slice. The first-contact failure mode is not reachable by a small mature-only shift of the existing start-angle lattice.
+- Status: reverted after focused no-op signal; no canonical run and no behavior commit.

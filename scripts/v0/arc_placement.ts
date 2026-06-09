@@ -61,8 +61,9 @@ const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
 const CONTACT_CENTERED_GUIDED_POINT_SPREAD = 0.08;
 const CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG = 3;
 // Sparse gaps have enough room to absorb a slightly harder high-impact catch;
-// dense gaps keep the accepted 3deg bias to avoid reintroducing cadence failures.
+// dense gaps only take the extra bias once mature budgets can absorb it.
 const CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG = 1;
+const CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG = 1;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
@@ -951,8 +952,10 @@ function contactCenteredImpactAngleShiftDeg(nextGapFrames: number | null): numbe
     (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
       (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
   );
+  const denseMature = (1 - room) * smoothstep((currentCompileBudgetFrames - 150_000) / 50_000);
   return CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG +
-    CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG * room;
+    CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG * room +
+    CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG * denseMature;
 }
 
 function guideContactCenteredRolls(

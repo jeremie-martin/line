@@ -1332,3 +1332,56 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `521.7 -> 521.5`, `Delta=-0.3`, 95% CI `[-9.6, 8.2]`, `P(Delta<=0)=48.2%`, effect `-0.01`. Per-budget deltas: `50k -38.0`, `100k +1.3`, `200k +3.1`, `300k +3.2`; validity was unchanged at `100k+`.
 - Diagnostics: the tangent-center idea is active and directionally improves mature budgets, but applying the stronger shift at all budgets hurts the scarce-budget curve enough that the focused headline is not promotable. A smooth mature-only extra shift is the cleaner follow-up.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-tangent-mature-extra2-slice-01
+
+- Baseline used: `impact-moderate-lip20-01` behavior at commit `f6d33c4`, plus log-only commits through `acd3ab4`.
+- Hypothesis: preserve the useful mature-budget part of `impact-tangent-shift5` while avoiding the `50k` damage by adding the extra `2deg` contact tangent shift only through a mature `75k..125k` budget ramp.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_MATURE_EXTRA_ANGLE_SHIFT_DEG = 2` inside `contactCenteredImpactAngleShiftDeg(...)`, added to the existing contact-centered impact tangent shift. Candidate counts, scorer, specs, seed set, and budget grid were unchanged.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-tangent-mature-extra2-slice-01`
+- Raw focused scores: headline `524.08`, with budget scores `50k 392.42`, `100k 499.79`, `200k 536.29`, `300k 545.98`; validity was `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `521.7 -> 524.1`, `Delta=+2.3`, 95% CI `[-3.0, 8.1]`, `P(Delta<=0)=20.0%`, effect `0.84`. Per-budget deltas: `50k +0.0`, `100k -0.6`, `200k +3.1`, `300k +3.2`.
+- Residual diagnostics at focused `300k`: impact improved (`signed -0.1236 -> -0.1213`, MAE `0.1487 -> 0.1470`, RMS `0.2001 -> 0.1968`), speed improved slightly, amplitude improved slightly, air worsened slightly, and elevation was effectively neutral.
+- Status: not promoted; follow-up delayed the ramp so `100k` stayed unchanged.
+
+## impact-tangent-mature-extra2-late125-01
+
+- Baseline used: `impact-moderate-lip20-01` behavior at commit `f6d33c4`, plus log-only commits through `acd3ab4`.
+- Hypothesis: the `+2deg` mature tangent center shift has a real `200k/300k` signal, but the `75k..125k` ramp touches `100k`. Move the ramp to `125k..175k` so `50k/100k` remain byte-equivalent and only mature budgets get the extra tangent angle.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_MATURE_EXTRA_ANGLE_SHIFT_DEG = 2`, `START_FRAMES = 125_000`, `SPAN_FRAMES = 50_000` to `contactCenteredImpactAngleShiftDeg(...)`.
+- Focused probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-tangent-mature-extra2-late125-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `521.7 -> 524.2`, `Delta=+2.4`, 95% CI `[-2.7, 8.1]`, `P(Delta<=0)=18.4%`, effect `0.88`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +3.1`, `300k +3.2`.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-tangent-mature-extra2-late125-01`
+- Canonical decide result: `VERDICT: INCONCLUSIVE`; headline `533.0 -> 534.2`, `Delta=+1.2`, 95% CI `[-2.0, 4.5]`, `P(Delta<=0)=23.3%`, effect `0.72`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.8`, `300k +1.4`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Diagnostics: this is the cleanest tangent-center signal: it preserves early budgets and improves mature point estimates, but the canonical bootstrap does not accept it. Focused per-spec mature wins were led by `drums_crosscut`, `soar_settle`, `swoop_dive`, and `drums_signature`; losses were led by `rhythm_ladder`, `drums_pendulum`, `skyline_push`, `dense_sprint`, and `syncopated_switchback`. Residuals show a small real impact improvement, especially hard-impact buckets, but row-level basin variance is too high.
+- Status: reverted after canonical inconclusive; no behavior commit.
+
+## impact-tangent-mature-extra1-late125-slice-01
+
+- Baseline used: `impact-moderate-lip20-01` behavior at commit `f6d33c4`, plus log-only commits through `acd3ab4`.
+- Hypothesis: a subtler `+1deg` late tangent center shift might keep the residual benefit from `+2deg` while reducing row-level basin flips.
+- Code changes made: temporarily changed the late mature extra tangent shift endpoint to `1deg` with the same `125k..175k` ramp.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-tangent-mature-extra1-late125-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; 20-spec intersection headline `521.7 -> 520.2`, `Delta=-1.5`, 95% CI `[-9.2, 5.3]`, `P(Delta<=0)=65.9%`, effect `-0.42`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.3`, `300k -2.4`.
+- Diagnostics: the tangent response is not monotonic. `+1deg` underperforms the baseline and is weaker than `+2deg` on impact/speed residuals.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-tangent-mature-extra25-late125-slice-01
+
+- Baseline used: `impact-moderate-lip20-01` behavior at commit `f6d33c4`, plus log-only commits through `acd3ab4`.
+- Hypothesis: if the `+2deg` mature tangent shift was still conservative, a `+2.5deg` endpoint might continue the same mature-budget lift while leaving `50k/100k` unchanged.
+- Code changes made: temporarily changed the late mature extra tangent shift endpoint to `2.5deg` with the same `125k..175k` ramp.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-tangent-mature-extra25-late125-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with negative point estimate; 20-spec intersection headline `521.7 -> 520.9`, `Delta=-0.8`, 95% CI `[-7.2, 4.9]`, `P(Delta<=0)=58.6%`, effect `-0.25`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.6`, `300k -0.7`.
+- Diagnostics: `+2.5deg` is past the useful tangent-center point. The best current endpoint is `+2deg`, but that endpoint did not pass canonical decide.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-tangent-extra2-midspread16-slice-01
+
+- Baseline used: `impact-moderate-lip20-01` behavior at commit `f6d33c4`, plus log-only commits through `acd3ab4`.
+- Hypothesis: stack the clean `+2deg` late mature tangent center with the older `100k`-band contact-angle spread idea, so the candidate has mature point-estimate gains while possibly recovering the mid-budget axis quality. This still modifies the existing guided `contactAngleRoll` only; it adds no candidate family.
+- Code changes made: temporarily kept the `+2deg` `125k..175k` mature tangent center and added a `0.16` impact-gated `contactAngleRoll` spread extra active around `75k..200k`, using a `0.5..1.0` room multiplier.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-tangent-extra2-midspread16-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `521.7 -> 523.7`, `Delta=+1.9`, 95% CI `[-3.2, 7.6]`, `P(Delta<=0)=23.8%`, effect `0.71`. Per-budget deltas: `50k +0.0`, `100k -3.2`, `200k +3.1`, `300k +3.2`.
+- Diagnostics: under the current moderate-lip baseline, the spread stack no longer gives the old `100k` benefit; it regresses `100k` while simply preserving the mature +2 tangent signal. Do not stack guided tangent spread with the current geometry.
+- Status: reverted after focused inconclusive/negative budget tradeoff; no canonical run and no behavior commit.

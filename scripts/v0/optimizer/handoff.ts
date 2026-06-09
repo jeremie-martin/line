@@ -591,9 +591,19 @@ function compileHandoffInternal(
     // validateSpec (above) already guaranteed any authored impact is in [0,1], so no
     // re-clamp here. Sub-frame-spaced beats that round to the same frame collide
     // (last write wins) — degenerate authoring; the gap timeline coalesces them too.
+    // LR_IMPACT_OFF=1: drop all authored impact targets. Because every impact effect
+    // (drift-report axis → scorer, candidate axisCost, geometry steers) is gated on
+    // gap.targets.impact being set, leaving it unresolved disables impact end-to-end —
+    // scoring, optimization, AND generation — from this one site, with ZERO change to the
+    // evaluator ruler (so the golden headline becomes the pure non-impact ceiling and the
+    // fingerprint is untouched). Diagnostic for A/B'ing the other axes (e.g. under a new
+    // landing definition); default OFF ⇒ byte-identical.
+    const impactOff = readEnv("LR_IMPACT_OFF") === "1";
     const impactByFrame = new Map<number, number>();
-    for (const c of spec.contacts) {
-      if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);
+    if (!impactOff) {
+      for (const c of spec.contacts) {
+        if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);
+      }
     }
     if (impactByFrame.size > 0) {
       for (const gap of gaps) {

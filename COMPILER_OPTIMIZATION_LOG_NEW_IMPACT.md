@@ -601,3 +601,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `472.4 -> 471.9`, `Delta=-0.5`, 95% CI `[-1.8, 0.6]`, `P(Delta<=0)=81.6%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.3`, `300k -1.3`.
 - Diagnostics: targeted extra breadth is still dilution. It slightly helps `200k` but spends/redirects enough 300k search to create more regressions, matching the broader `36/40` quality breadth failures.
 - Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-fwd-greedy3-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: remaining dense high-impact failures may need one more contact of true-score context than the default charged `greedy:2` forward ranker provides.
+- Code changes made: none; ran with `LR_FWD_EVAL=greedy:3`.
+- Probe command: `LR_ENGINE=wasm LR_FWD_EVAL=greedy:3 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-fwd-greedy3-slice-01`
+- Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `472.4 -> 449.6`, `Delta=-22.8`, 95% CI `[-40.6, -6.3]`, `P(Delta<=0)=99.7%`. Per-budget deltas: `50k +0.0`, `100k -22.5`, `200k -24.1`, `300k -25.9`.
+- Diagnostics: the third charged rollout is far too expensive. It preserves validity but removes enough search budget that quality collapses across non-50k budgets.
+- Status: env-only rejected; no canonical run and no behavior commit.

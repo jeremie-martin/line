@@ -140,7 +140,7 @@ export const EXPLORATORY_BUDGETS = [
  * spec edit is visible. A DELIBERATE ruler change updates this constant in the
  * same commit. Soft tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "4af34575a3f7"; // 2026-06-09: scored impact target = min(authored, physics-compatibility envelope) (was 0387d55f7e81)
+export const EVALUATOR_FINGERPRINT = "eede9661bba6"; // 2026-06-09: impact feasibility bound DERIVED (ballistics: speed + prev/next beat spacing + catchability; was 4af34575a3f7 empirical envelope)
 
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. Each budget is now an

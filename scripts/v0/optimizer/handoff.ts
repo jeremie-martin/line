@@ -28,7 +28,7 @@ import {
   buildTrackJson,
   effectiveAxes,
   engineLineFromTrackLine,
-  impactCompatibilityEnvelope,
+  impactFeasibilityBound,
   makeBaseEngine,
   resolveStartState,
   sampleGapTargets,
@@ -612,19 +612,20 @@ function compileHandoffInternal(
         if (!gap.endsWithContact) continue;
         const impact = impactByFrame.get(gap.endFrame);
         if (impact === undefined) continue;
-        // Scored target = min(authored, physics-compatibility envelope). The
-        // envelope (fingerprinted, substrate.ts) caps impact by what the beat's
-        // co-authored character physically permits; buildDriftReport applies the
-        // same cap, so search and scorer chase one coherent target.
+        // Scored target = min(authored, derived feasibility bound). The bound
+        // (fingerprinted, substrate.ts — ballistics around the beat) caps impact
+        // by what physics permits; buildDriftReport applies the same cap, so
+        // search and scorer chase one coherent target.
         const nextContact = allContactFrames.find((f) => f > gap.endFrame);
-        const gapSeconds = nextContact === undefined ? 1.5 : (nextContact - gap.endFrame) / FPS;
+        const nextGapSeconds = nextContact === undefined ? 1.5 : (nextContact - gap.endFrame) / FPS;
+        const prevGapSeconds = (gap.endFrame - gap.startFrame) / FPS;
         const t = gapAxisTargets[gap.index];
-        const enveloped = Math.min(
+        const bounded = Math.min(
           impact,
-          impactCompatibilityEnvelope(t.air, t.amplitude, t.speed, gapSeconds),
+          impactFeasibilityBound(t.speed, prevGapSeconds, nextGapSeconds),
         );
-        gap.targets.impact = enveloped;
-        gapAxisTargets[gap.index].impact = enveloped;
+        gap.targets.impact = bounded;
+        gapAxisTargets[gap.index].impact = bounded;
       }
     }
 

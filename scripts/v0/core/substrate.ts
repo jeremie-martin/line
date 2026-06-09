@@ -16,7 +16,8 @@ import {
   type FrameSpanAxisName,
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
-  AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, IMPACT_WINDOW, START_DEFAULTS, PREROLL, secToFrame,
+  AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, IMPACT, IMPACT_WINDOW, START_DEFAULTS, PREROLL,
+  secToFrame,
   authoredSpeedToPx, speedPxToAuthored, elevationCeiling, impactCeiling,
 } from "../types.ts";
 import { measureGapAxes } from "./measure.ts";
@@ -439,38 +440,46 @@ export function axesAtFrame(frame: number, spec: Spec): AxisValues {
   return axes;
 }
 
+/** Gravity used by the impact feasibility bound (matches the generation-side
+ *  launch model, LAUNCH_GRAVITY_PX_PER_FRAME2 in arc_placement.ts). */
+const IMPACT_BOUND_GRAVITY_PX_PER_FRAME2 = 0.175;
+
 /**
- * Physics-compatibility envelope for the SCORED per-beat impact target (part of
- * the evaluator ruler — this function is inside the fingerprinted source slice).
+ * DERIVED per-beat feasibility bound on the SCORED impact target (part of the
+ * evaluator ruler — this function is inside the fingerprinted source slice).
  *
- * A hard landing is a velocity REDIRECTION, i.e. a vertical event: it needs
- * speed to redirect and somewhere for the redirected motion to go (air room,
- * a pop, or an open gap to the next beat). A beat authored
- * high-impact + grounded + flat + dense is physically self-contradictory, and
- * canonical-archive data shows the compiler correctly refuses that trade
- * (achieved 0.245 on dense+grounded high-target beats vs 0.628 where
- * amplitude ≥ 0.4 — every steering probe that chased the contradiction washed).
- * The scored target is therefore min(authored, envelope): authored impact keeps
- * its musical intent, the ruler asks for the hardest PHYSICAL version of it.
- * Caps are a stretch ABOVE the demonstrated p95 frontier (room cap 0.45-0.95 vs
- * frontier 0.42-0.68; speed cap 0.35-0.85 vs 0.30-0.59), so targets stay
- * challenging — they just stop being impossible.
+ * Impact is a velocity redirection: redir = v·sin(turn). The turn a catch can
+ * deliver is bounded by pure ballistics around the beat:
+ *   - arrival crossing angle: falling for at most the previous beat gap gives
+ *     vy_in ≤ g·N_prev/2, so θ_in ≤ atan(g·N_prev/2 ÷ v);
+ *   - exit allowance: the redirected motion must fit before the next beat,
+ *     vy_out ≤ g·N_next/2, so θ_out ≤ atan(g·N_next/2 ÷ v);
+ *   - catchability: total turn ≤ asin(CATCHABLE_REDIR_FRACTION) — beyond it the
+ *     hit ejects (the impactCeiling bound).
+ * bound = v·sin(min(θ_in+θ_out, asin(0.9))) / REDIR_CAP. In the small-angle
+ * (dense-beat) regime this reduces to ≈ g·(N_prev+N_next)/2 / REDIR_CAP — the
+ * total vertical-velocity budget around the beat — which is why dense grooves
+ * physically cap near 0.45-0.5 regardless of speed. Validated against the
+ * canonical-archive frontier: p95 achieved tracks this bound within a few
+ * percent across density × speed strata (dense/fast bound 0.474 vs p95 0.480;
+ * mixed 0.67 vs 0.66; sparse 0.85 vs 0.72 — stretch where the search has room).
+ *
+ * The scored target is min(authored, bound): authored impact keeps its absolute
+ * musical meaning ("how hard the music wants this hit"); the ruler grades the
+ * compiler on the hardest PHYSICAL version of that ask. The bound only ever
+ * lowers targets — soft asks are untouched.
  */
-export function impactCompatibilityEnvelope(
-  airTarget: number | undefined,
-  amplitudeTarget: number | undefined,
+export function impactFeasibilityBound(
   speedTarget: number | undefined,
-  gapToNextContactSeconds: number,
+  prevGapSeconds: number,
+  nextGapSeconds: number,
 ): number {
-  const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
-  const roomCandidates = [clamp01((gapToNextContactSeconds - 0.45) / 0.9)];
-  if (amplitudeTarget !== undefined) roomCandidates.push(clamp01(amplitudeTarget));
-  if (airTarget !== undefined) roomCandidates.push(clamp01((airTarget - 0.45) / 0.4));
-  const verticalRoom = Math.max(...roomCandidates);
-  const roomCap = 0.45 + 0.5 * verticalRoom;
-  const speed = speedTarget === undefined ? 0.55 : speedTarget;
-  const speedCap = 0.35 + 0.5 * clamp01((speed - 0.40) / 0.30);
-  return Math.max(0.2, Math.min(roomCap, speedCap));
+  const v = Math.max(1, authoredSpeedToPx(speedTarget === undefined ? 0.55 : speedTarget));
+  const g = IMPACT_BOUND_GRAVITY_PX_PER_FRAME2;
+  const thetaIn = Math.atan2(g * Math.max(0, prevGapSeconds) * FPS / 2, v);
+  const thetaOut = Math.atan2(g * Math.max(0, nextGapSeconds) * FPS / 2, v);
+  const maxTurn = Math.min(thetaIn + thetaOut, Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION));
+  return Math.max(0, Math.min(1, (v * Math.sin(maxTurn)) / CALIB.REDIR_CAP));
 }
 
 // ─────────── Cross-gap target sampling ───────────
@@ -649,15 +658,13 @@ export function buildDriftReport(
       const a = achievedAll[name];
       if (a === undefined) continue;
       if (name === "impact") {
-        // Scored impact target = min(authored, physics-compatibility envelope).
+        // Scored impact target = min(authored, derived feasibility bound).
         // Applied HERE (fingerprinted ruler authority) as well as at the
         // compiler's target resolution, so the two cannot drift apart.
         const nextContact = contactFrames.find((f) => f > g.endFrame);
-        const gapSeconds = nextContact === undefined ? 1.5 : (nextContact - g.endFrame) / FPS;
-        t = Math.min(
-          t,
-          impactCompatibilityEnvelope(targets.air, targets.amplitude, targets.speed, gapSeconds),
-        );
+        const nextGapSeconds = nextContact === undefined ? 1.5 : (nextContact - g.endFrame) / FPS;
+        const prevGapSeconds = (g.endFrame - g.startFrame) / FPS;
+        t = Math.min(t, impactFeasibilityBound(targets.speed, prevGapSeconds, nextGapSeconds));
       }
       axes[name] = { target: t, achieved: a, error: Math.abs(t - a) };
       if (name === "elevation") {

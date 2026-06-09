@@ -76,6 +76,22 @@ const CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX = 6;
 const CONTACT_CENTERED_REDIR_CONTACT_SPEED_SPAN_PX = 4;
 const CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES = 125_000;
 const CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES = 75_000;
+// Impact-driven post-contact CURVATURE (default ON; LR_IMPACT_CURVE=0 reverts). The redir metric rewards
+// the catch surface ROTATING the CoM velocity through the ~6-frame window
+// (empirically: achieved impact ≈ turnNetDeg ρ0.98, driven by tangentChangeDeg +
+// tangentDeltaDeg; catchability is NOT the limiter up to ~36° turn). The shipped ±4°
+// contact-angle nudge moves the contact INSTANT, not the through-window rotation, so it
+// leaves achieved impact flat. This third modulation (alongside elevation/amplitude)
+// instead drives the SUSTAINED curvature: it flattens the contact angle into a scoop
+// (raises tangentDelta), FRONT-LOADS the contact→post rotation into the window (negative
+// curveBias), and overrides the high-budget curvature fade for impact beats. RNG-neutral
+// (curvature uses the deterministic low-discrepancy roll, not the rng() stream).
+const IMPACT_CURVE_TARGET_START = 0.45;
+const IMPACT_CURVE_TARGET_SPAN = 0.40;
+const IMPACT_CURVE_SPEED_START_PX = 6;
+const IMPACT_CURVE_SPEED_SPAN_PX = 4;
+const IMPACT_CURVE_FLATTEN_DEG = 10;
+const IMPACT_CURVE_FRONTLOAD = 0.8;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
@@ -799,6 +815,18 @@ function sampleContactCenteredLines(
       65,
     );
   }
+  // Impact-driven curvature modulation (LR_IMPACT_CURVE). Flatten the contact angle into
+  // a scoop so the descending entry meets a surface angled across its path (raises
+  // tangentDelta); the front-loaded curvature below then sustains the rotation through
+  // the redir window. Gated by flag + impact pressure ⇒ flag-off byte-identical.
+  const impactCurveP = PROCESS_ENV?.LR_IMPACT_CURVE === "0"
+    ? 0
+    : impactCurvePressure(targetState, targets.impact);
+  if (impactCurveP > 0) {
+    contactAngleDeg = clamp(
+      contactAngleDeg - impactCurveP * IMPACT_CURVE_FLATTEN_DEG, -14, 65,
+    );
+  }
   const preLength = clamp(
     (6 + guidedRolls.preLengthRoll * 28)
       * (1 - 0.45 * clearancePressure)
@@ -945,13 +973,22 @@ function sampleContactCenteredLines(
 
   // LR_CURVE_FADE_OFF=1 keeps curvature at FULL span across all budgets (experiment:
   // does this diversity now pay at high budget once the forward-eval ranker can sort it?).
-  const curveFade = PROCESS_ENV?.LR_CURVE_FADE_OFF === "1" ? 1 : 1 - smoothstep(
+  const curveFadeBase = PROCESS_ENV?.LR_CURVE_FADE_OFF === "1" ? 1 : 1 - smoothstep(
     (currentCompileBudgetFrames - CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES) /
       CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES,
   );
-  const postCurveBias = curveFade <= 0 ? 0
+  // Impact beats keep full curvature authority at every budget (the through-window
+  // rotation IS the redirection; the budget fade would suppress it exactly where impact
+  // steering matters most). Non-impact beats are untouched.
+  const curveFade = Math.max(curveFadeBase, impactCurveP > 0 ? 1 : 0);
+  let postCurveBias = curveFade <= 0 ? 0
     : (lowDiscrepancyRoll(attempt, 8) - 0.5) * 2 *
       CONTACT_CENTERED_POST_CURVE_BIAS_SPAN * curveFade;
+  if (impactCurveP > 0) {
+    // Front-load (negative bias) concentrates the contact→post rotation into the early
+    // segments the rider hugs during the redir window, scaled by impact pressure.
+    postCurveBias = lerp(postCurveBias, -IMPACT_CURVE_FRONTLOAD, impactCurveP);
+  }
 
   // Impact lip/bevel steering REMOVED for the redir-impact migration (see the
   // contact-angle note above). buildImpactBevelLines still runs with a 0 shift
@@ -1013,6 +1050,26 @@ function contactCenteredRedirContactAngleShiftDeg(
   const shiftDeg = clamp(rawMissingDelta, 0, CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG)
     * mature * speedPressure * targetPressure * clamp(ccSpanBlends(attempt).launch, 0, 1);
   return -shiftDeg;
+}
+
+/** Pressure [0,1] for the impact-driven curvature modulation: ramps with the
+ *  ceiling-saturated impact target and gates on having enough incoming speed for a
+ *  redirection to read as impact (redir = speed·sin(turn)). No budget gate — unlike the
+ *  contact-angle nudge this is meant to work at every budget, and it explicitly overrides
+ *  the high-budget curvature fade. Returns 0 when no impact is authored. */
+function impactCurvePressure(
+  targetState: ImpactFrameTargetState,
+  targetImpact: number | undefined,
+): number {
+  if (targetImpact === undefined) return 0;
+  const target = Math.min(targetImpact, impactCeiling(targetState.speed));
+  const targetPressure = smoothstep(
+    (target - IMPACT_CURVE_TARGET_START) / IMPACT_CURVE_TARGET_SPAN,
+  );
+  const speedPressure = smoothstep(
+    (targetState.speed - IMPACT_CURVE_SPEED_START_PX) / IMPACT_CURVE_SPEED_SPAN_PX,
+  );
+  return clamp(targetPressure * speedPressure, 0, 1);
 }
 
 function predictedRedirImpactAtAngleDelta(speedPx: number, deltaDeg: number): number {

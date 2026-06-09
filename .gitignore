@@ -38,3 +38,4 @@ scripts/v0/_probe*.ts
 
 # git worktrees (full repo copies — keep out of git + test/file scans)
 .matrix-worktrees/
+scripts/__pycache__/

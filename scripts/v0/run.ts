@@ -16,6 +16,7 @@
 
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve, basename } from "node:path";
+import { K_BOUNCE_LANDING } from "../lib/detector.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { AXES, FPS, type Spec } from "./types.ts";
 import { axisDetails, scoreDriftReport } from "./score.ts";
@@ -69,8 +70,36 @@ if (!spec) {
   process.exit(1);
 }
 
+// Felt-jolt beat alignment (production default). The slam the viewer feels — the
+// peak per-frame velocity redirection — trails first contact by a systematic
+// ~2-3 frames (~50-75ms; measured p50 +3 over 7,501 episodes, see
+// docs/impact_generation_and_landing_notes.md § "Empirical verdict"). Shifting
+// every contact earlier puts the slam, not the touch, on the musical beat.
+// A/B-validated on shelter_amp (2026-06-09). LR_JOLT_OFFSET_MS overrides; 0
+// disables. This is an authoring-layer transform on THIS production CLI only:
+// the golden suite, verify:optimizer, and tests call compileHandoff directly
+// and stay offset-free by construction.
+const JOLT_OFFSET_DEFAULT_MS = 50;
+const rawJoltMs = process.env.LR_JOLT_OFFSET_MS;
+const joltOffsetMs = rawJoltMs === undefined || rawJoltMs === ""
+  ? JOLT_OFFSET_DEFAULT_MS
+  : Number(rawJoltMs);
+if (!Number.isFinite(joltOffsetMs) || joltOffsetMs < 0) {
+  console.error(`invalid LR_JOLT_OFFSET_MS=${rawJoltMs} (expected ms >= 0)`);
+  process.exit(1);
+}
+// Clamp to the earliest catchable contact (the detector's landing floor).
+const contactFloorS = K_BOUNCE_LANDING / FPS;
+const compiledSpec: Spec = joltOffsetMs === 0 ? spec : {
+  ...spec,
+  contacts: spec.contacts.map((c) => ({ ...c, t: Math.max(contactFloorS, c.t - joltOffsetMs / 1000) })),
+};
+if (joltOffsetMs !== 0) {
+  console.log(`jolt offset: contacts shifted ${joltOffsetMs}ms early (felt slam on the beat; LR_JOLT_OFFSET_MS=0 to disable)`);
+}
+
 const t0 = Date.now();
-const { track, report } = COMPILERS[compiler](spec, seed, { budget: budgetUnits });
+const { track, report } = COMPILERS[compiler](compiledSpec, seed, { budget: budgetUnits });
 const elapsedMs = Date.now() - t0;
 
 mkdirSync(dirname(resolve(`${outPrefix}.track.json`)), { recursive: true });

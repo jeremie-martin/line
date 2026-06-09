@@ -220,6 +220,23 @@ a feel experiment. The landing-redefinition budget is better spent on the
 generation lever (redirecting-catch sampling targeting `tangentChangeDeg`) and the
 ejection-saturation prerequisite.
 
+### Outcome (2026-06-09, same day)
+
+- **The felt-lag offset SHIPPED.** A/B videos of `shelter_amp` at 2M/seed 5
+  (baseline vs all contacts −3 frames; both 96/96 hit, scores 716.7 vs 717.6 —
+  pure feel comparison) — the user preferred the offset version. Production
+  default is now **50ms** (2 frames @40fps), applied in `scripts/v0/run.ts` (the
+  production compile CLI used by `produce_video.sh`), override via
+  `LR_JOLT_OFFSET_MS` (0 disables). The golden suite, `verify:optimizer`, and
+  tests call `compileHandoff` directly and are offset-free by construction —
+  benchmarks measure the compiler, the offset is an authoring-layer transform.
+- **Window-widening (B/C) is GIVEN UP for now** (user decision): the measured
+  prize doesn't justify the work; making it pay would require window-aware
+  sampling (the sampler aiming across the window as a DOF), which is a lot of
+  machinery for a small, uncertain return. If ever revisited, start from the
+  "window-aware sampling" framing, not "accept today's near-misses" — and re-run
+  `study_landing_window.ts` to re-price it.
+
 ### Recommended sequencing
 
 1. **(free, today)** Run the empirical study on the steered (`contact4`) archive too,

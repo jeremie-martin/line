@@ -948,3 +948,17 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `487.0 -> 482.7`, `Delta=-4.3`, 95% CI `[-11.4, 2.0]`, `P(Delta<=0)=90.4%`. Per-budget deltas: `50k -27.3`, `100k -3.3`, `200k -2.0`, `300k -2.3`; validity regressed at `50k` (`100% -> 98%`) and stayed `100%` elsewhere.
 - Diagnostics: lane 1 produced broad candidate-stream churn but was globally worse than the public-seed lane. A fixed alternate lane is not a useful default; any portfolio benefit would need an actual budget-honest selector rather than replacing lane 0.
 - Status: reverted after focused reject; no canonical run and no behavior commit.
+
+## impact-highair-bevel6-01
+
+- Baseline used: `impact-midair-lip-air75-mature-01` behavior at commit `30ab8b8`.
+- Hypothesis: previous high-air lip probes rotated the ride-out and caused carry-speed volatility. Add a mature-only high-air bevel line instead, so hard/dense targets in the `air ~= 0.75..0.82` band get a sharper immediate contact surface while `firstPostAngleDeg` remains tied only to the accepted lip shift.
+- Code changes made: temporarily added high-air bevel band constants and `contactCenteredImpactHighAirBevelShiftDeg(...)`; `impactBevelShiftDeg` used `max(accepted lip shift, high-air bevel shift)` for the bevel line, while post-contact lip shift stayed unchanged. Endpoint bracketed from `3deg` to `6deg`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- `3deg` focused result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `487.0 -> 487.1`, `Delta=+0.1`, 95% CI `[-1.2, 1.6]`, `P(Delta<=0)=41.3%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k +0.2`; validity stayed `100%`.
+- `6deg` focused result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `487.0 -> 488.3`, `Delta=+1.3`, 95% CI `[-0.7, 4.0]`, `P(Delta<=0)=12.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.7`, `300k +1.7`; validity stayed `100%`.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-highair-bevel6-01`
+- Canonical decide result: `VERDICT: INCONCLUSIVE`; headline `507.1 -> 508.0`, `Delta=+0.9`, 95% CI `[-0.4, 2.5]`, `P(Delta<=0)=10.1%`, effect `1.17`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.2`, `300k +1.1`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Raw canonical scores: headline `508.02`, with budget scores `50k 359.81`, `100k 490.38`, `200k 522.12`, `300k 529.21`.
+- Diagnostics: bevel-only high-air shaping is direction-positive and preserves validity/early budgets, but canonical `P(Delta<=0)=10.1%` missed the accept threshold. Treat as a live lead for a tighter gate or larger-seed follow-up, but do not promote this source behavior.
+- Status: reverted after canonical inconclusive; no behavior commit.

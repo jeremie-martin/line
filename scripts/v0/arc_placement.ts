@@ -60,34 +60,12 @@ const CONTACT_CENTERED_POINT_JITTER = 4;
 const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
 const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
 const CONTACT_CENTERED_GUIDED_POINT_SPREAD = 0.08;
-const CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG = 3;
-const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_MAX_DEG = 3;
-const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_GAIN = 1.0;
-const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPEED_START_PX = 7;
-const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPEED_SPAN_PX = 4;
-const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_START_FRAMES = 125_000;
-const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPAN_FRAMES = 50_000;
-// Sparse gaps have enough room to absorb a slightly harder high-impact catch;
-// dense gaps only take the extra bias once mature budgets can absorb it.
-const CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG = 1;
-const CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG = 1;
-const CONTACT_CENTERED_IMPACT_DENSE_LIP_SHIFT_DEG = 14;
-const CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_MAX = 0.72;
-const CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_EXTRA = 0.03;
-const CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_START_FRAMES = 150_000;
-const CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_SPAN_FRAMES = 50_000;
-const CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_SPAN = 0.35;
-const CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_SPAN = 0.20;
-const CONTACT_CENTERED_IMPACT_MODERATE_LIP_SHIFT_DEG = 20;
-const CONTACT_CENTERED_IMPACT_MODERATE_LIP_IMPACT_START = 0.68;
-const CONTACT_CENTERED_IMPACT_MODERATE_LIP_IMPACT_SPAN = 0.08;
-const CONTACT_CENTERED_IMPACT_MODERATE_LIP_IMPACT_FADE_START = 0.78;
-const CONTACT_CENTERED_IMPACT_MODERATE_LIP_IMPACT_FADE_SPAN = 0.04;
-const CONTACT_CENTERED_IMPACT_MODERATE_LIP_AIR_MAX = 0.84;
-const CONTACT_CENTERED_IMPACT_MODERATE_LIP_AIR_SPAN = 0.25;
-const CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_SHIFT_DEG = 8;
-const CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_START = 0.78;
-const CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_SPAN = 0.04;
+// The old one-frame impact contact-angle / lip / dense-mature steering constants
+// were removed when impact became the windowed redirection metric (the analytic
+// one-frame steering was neutralized — see the call sites below). Recover from git
+// (commit d3e4973^) if a redir-aware steering follow-up wants them as a starting
+// point. The three BEVEL constants below remain live (used by buildImpactBevelLines
+// and the entry-bevel angle, which run with a 0 shift today).
 const CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX = 6;
 const CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT = 2;
 const CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT = 2;
@@ -800,23 +778,14 @@ function sampleContactCenteredLines(
       + (guidedRolls.contactAngleRoll - 0.5) * 12,
     -12, 65,
   );
-  if (targets.impact !== undefined) {
-    const highImpactPressure = smoothstep((targets.impact - 0.55) / 0.35);
-    const span = clamp(ccSpanBlends(attempt).launch, 0, 1);
-    const shiftDeg = contactCenteredImpactAngleShiftDeg(nextGapFrames);
-    contactAngleDeg = clamp(
-      contactAngleDeg - shiftDeg * highImpactPressure * span,
-      -14,
-      65,
-    );
-    contactAngleDeg = clamp(
-      contactAngleDeg + contactCenteredPredictiveImpactAngleShiftDeg(
-        targetState.velocity, targetState.speed, contactAngleDeg, targets.impact, span,
-      ),
-      -14,
-      65,
-    );
-  }
+  // Impact contact-angle / lip / bevel steering REMOVED for the redir-impact
+  // migration (2026-06-09): the old analytic shift biased toward the one-frame
+  // normal-closing metric, the wrong quantity for the windowed velocity-redirection
+  // impact now scored. Candidate-cost ranking (which scores redir) drives impact
+  // instead. The deleted helpers/constants are recoverable from git (commit
+  // d3e4973^) if a deferred redir-aware steering follow-up wants them as a starting
+  // point — note they used the IMPACT_CAP (÷5) scale and must be ported to REDIR_CAP.
+  // RNG-neutral: this steering drew no RNG.
   const preLength = clamp(
     (6 + guidedRolls.preLengthRoll * 28)
       * (1 - 0.45 * clearancePressure)
@@ -971,20 +940,17 @@ function sampleContactCenteredLines(
     : (lowDiscrepancyRoll(attempt, 8) - 0.5) * 2 *
       CONTACT_CENTERED_POST_CURVE_BIAS_SPAN * curveFade;
 
-  const impactLipShiftDeg = Math.max(
-    contactCenteredImpactLipShiftDeg(targets, air, nextGapFrames),
-    contactCenteredModerateImpactLipShiftDeg(targets, air, nextGapFrames),
-  );
+  // Impact lip/bevel steering REMOVED for the redir-impact migration (see the
+  // contact-angle note above). buildImpactBevelLines still runs with a 0 shift
+  // (no bevel line); recover the deleted lip/bevel helpers from git (d3e4973^).
+  const impactLipShiftDeg = 0;
   const entryBevelAngleDeg = contactAngleDeg -
     impactLipShiftDeg * CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT;
   const preLines = buildPreContactLines(
     lineIdStart, contactPoint, preAngleDeg, contactAngleDeg, preLength, preSegments,
     entryBevelAngleDeg,
   );
-  const impactBevelShiftDeg = Math.max(
-    impactLipShiftDeg,
-    contactCenteredImpactHighAirBevelShiftDeg(targets, air, nextGapFrames),
-  );
+  const impactBevelShiftDeg = 0; // NEUTRALIZED (redir-impact migration; see note above)
   const impactBevelLines = buildImpactBevelLines(
     lineIdStart + preLines.length,
     contactPoint,
@@ -997,148 +963,6 @@ function sampleContactCenteredLines(
     postLength, postSegments, postCurveBias, firstPostAngleDeg,
   );
   return [...preLines, ...impactBevelLines, ...postLines];
-}
-
-function contactCenteredImpactAngleShiftDeg(nextGapFrames: number | null): number {
-  const room = nextGapFrames === null ? 1 : smoothstep(
-    (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
-      (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
-  );
-  const denseMature = (1 - room) * smoothstep((currentCompileBudgetFrames - 150_000) / 50_000);
-  return CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG +
-    CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG * room +
-    CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG * denseMature;
-}
-
-function contactCenteredPredictiveImpactAngleShiftDeg(
-  velocity: { x: number; y: number },
-  speedPx: number,
-  contactAngleDeg: number,
-  targetImpact: number,
-  span: number,
-): number {
-  const mature = smoothstep(
-    (currentCompileBudgetFrames - CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_START_FRAMES) /
-      CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPAN_FRAMES,
-  );
-  const speedPressure = smoothstep(
-    (speedPx - CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPEED_START_PX) /
-      CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPEED_SPAN_PX,
-  );
-  if (mature <= 0 || speedPressure <= 0 || span <= 0) return 0;
-
-  const predictedImpact = predictedImpactAtContactAngle(velocity, contactAngleDeg);
-  const target = Math.min(targetImpact, impactCeiling(speedPx));
-  const missingImpact = target - predictedImpact;
-  if (missingImpact <= 0) return 0;
-
-  const rawNeededDeg =
-    (missingImpact * CALIB.IMPACT_CAP / Math.max(1, speedPx)) * (180 / Math.PI);
-  const shiftDeg = clamp(
-    rawNeededDeg * CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_GAIN,
-    0,
-    CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_MAX_DEG,
-  );
-  return -shiftDeg * speedPressure * mature * span;
-}
-
-function predictedImpactAtContactAngle(
-  velocity: { x: number; y: number },
-  contactAngleDeg: number,
-): number {
-  const angleRad = (contactAngleDeg * Math.PI) / 180;
-  const tangentX = Math.cos(angleRad);
-  const tangentY = Math.sin(angleRad);
-  return clamp(Math.abs(tangentX * velocity.y - tangentY * velocity.x) / CALIB.IMPACT_CAP, 0, 1);
-}
-
-function contactCenteredImpactLipShiftDeg(
-  targets: AxisValues,
-  air: number,
-  nextGapFrames: number | null,
-): number {
-  if (targets.impact === undefined || nextGapFrames === null) return 0;
-  const highImpact = smoothstep((targets.impact - 0.75) / 0.15);
-  const airMax = contactCenteredImpactLipAirMax();
-  const airSpan = contactCenteredImpactLipAirSpan();
-  const airPressure = smoothstep(
-    (airMax - air) /
-      airSpan,
-  );
-  const dense = 1 - smoothstep(
-    (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
-      (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
-  );
-  const mature = smoothstep((currentCompileBudgetFrames - 75_000) / 50_000);
-  return CONTACT_CENTERED_IMPACT_DENSE_LIP_SHIFT_DEG *
-    highImpact * airPressure * dense * mature;
-}
-
-function contactCenteredImpactLipAirMax(): number {
-  const mature = smoothstep(
-    (currentCompileBudgetFrames - CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_START_FRAMES) /
-      CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_SPAN_FRAMES,
-  );
-  return CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_MAX +
-    CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_EXTRA * mature;
-}
-
-function contactCenteredImpactLipAirSpan(): number {
-  const mature = smoothstep(
-    (currentCompileBudgetFrames - CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_START_FRAMES) /
-      CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_SPAN_FRAMES,
-  );
-  return lerp(
-    CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_SPAN,
-    CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_SPAN,
-    mature,
-  );
-}
-
-function contactCenteredModerateImpactLipShiftDeg(
-  targets: AxisValues,
-  air: number,
-  nextGapFrames: number | null,
-): number {
-  if (targets.impact === undefined || nextGapFrames === null) return 0;
-  const impactPressure = smoothstep(
-    (targets.impact - CONTACT_CENTERED_IMPACT_MODERATE_LIP_IMPACT_START) /
-      CONTACT_CENTERED_IMPACT_MODERATE_LIP_IMPACT_SPAN,
-  ) * (1 - smoothstep(
-    (targets.impact - CONTACT_CENTERED_IMPACT_MODERATE_LIP_IMPACT_FADE_START) /
-      CONTACT_CENTERED_IMPACT_MODERATE_LIP_IMPACT_FADE_SPAN,
-  ));
-  const airPressure = smoothstep(
-    (CONTACT_CENTERED_IMPACT_MODERATE_LIP_AIR_MAX - air) /
-      CONTACT_CENTERED_IMPACT_MODERATE_LIP_AIR_SPAN,
-  );
-  const dense = 1 - smoothstep(
-    (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
-      (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
-  );
-  const mature = smoothstep((currentCompileBudgetFrames - 75_000) / 50_000);
-  return CONTACT_CENTERED_IMPACT_MODERATE_LIP_SHIFT_DEG *
-    impactPressure * airPressure * dense * mature;
-}
-
-function contactCenteredImpactHighAirBevelShiftDeg(
-  targets: AxisValues,
-  air: number,
-  nextGapFrames: number | null,
-): number {
-  if (targets.impact === undefined || nextGapFrames === null) return 0;
-  const highImpact = smoothstep((targets.impact - 0.75) / 0.15);
-  const dense = 1 - smoothstep(
-    (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
-      (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
-  );
-  const airPressure = smoothstep(
-    (air - CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_START) /
-      CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_SPAN,
-  );
-  const mature = smoothstep((currentCompileBudgetFrames - 150_000) / 50_000);
-  return CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_SHIFT_DEG *
-    highImpact * airPressure * dense * mature;
 }
 
 function guideContactCenteredRolls(

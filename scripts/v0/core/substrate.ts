@@ -16,7 +16,7 @@ import {
   type FrameSpanAxisName,
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
-  AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, START_DEFAULTS, PREROLL, secToFrame,
+  AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, IMPACT_WINDOW, START_DEFAULTS, PREROLL, secToFrame,
   authoredSpeedToPx, speedPxToAuthored, elevationCeiling, impactCeiling,
 } from "../types.ts";
 import { measureGapAxes } from "./measure.ts";
@@ -133,12 +133,13 @@ export function findLandingNearFrame(det: Detection, targetFrame: number, tol = 
 }
 
 /**
- * Normal impact speed (px/frame, UNNORMALIZED) of a landing: the magnitude of the
- * rider's PRE-impact velocity component perpendicular to the catch surface it fired
- * against. This is the one definition of landing intensity (callers divide by
- * `CALIB.IMPACT_CAP` to normalize); shared by the scored reduction (`measureImpact`,
- * core/measure.ts), the detection-event annotation (scripts/inspect.ts), and the
- * overlay read-out (scripts/make_overlay_data.ts) so the math lives in ONE place.
+ * LEGACY one-frame "normal impact speed" (px/frame, UNNORMALIZED): the magnitude of
+ * the rider's PRE-impact velocity component perpendicular to the catch surface it
+ * fired against, ÷ `CALIB.IMPACT_CAP`. This was the OLD impact metric; it is NO
+ * LONGER the scored definition — landing intensity is now the velocity REDIRECTION
+ * (`redirImpactPxAtLanding`, used by `measureImpact`/`buildDriftReport`/`inspect`).
+ * Kept only as the comparison "point" baseline in the study harnesses
+ * (`study_support.ts pointImpactPx`) and the study overlay's reference lane.
  *
  * `lineFor(id)` resolves a fired line id to its endpoints — the per-gap scored
  * reduction passes a resolver that returns ONLY this gap's owned lines (so a
@@ -169,6 +170,47 @@ export function normalImpactPxAtLanding(
   if (vIn === undefined) return undefined;
   // |v ⊥ t̂| = |t̂.x·v.y − t̂.y·v.x| — the speed the surface kills.
   return Math.abs(tx * vIn.y - ty * vIn.x);
+}
+
+/**
+ * Redirection impact (px/frame, UNNORMALIZED) of a landing: the peak magnitude of
+ * the rider's CoM velocity component PERPENDICULAR to its incoming heading, over the
+ * `window`-frame episode after the landing. This is "how hard the catch bends the
+ * rider's path" ("claquage") — the felt landing intensity (callers divide by
+ * `CALIB.REDIR_CAP` to normalize). It is the SINGLE production definition of impact,
+ * shared by the scored reduction (`measureImpact`, core/measure.ts), the report
+ * (`buildDriftReport`), the dashboard annotation (scripts/inspect.ts), and — by
+ * delegation — the study harnesses' `redirPx` (scripts/v0/study_support.ts).
+ *
+ * CoM-velocity-only: unlike `normalImpactPxAtLanding` it needs NO catch-line tangent
+ * or owned-line geometry, which makes it immune to sled rotation / limb whip (those
+ * look violent but aren't felt) and cheap on the per-candidate hot path. The incoming
+ * heading is the velocity one frame before the landing (the frame the rider arrives);
+ * the perpendicular component grows as the surface turns the path. Uses the
+ * offset-aware accessors so it is correct under `detectWindow`. Returns `undefined`
+ * when there's no usable incoming velocity; `0` when the rider is essentially
+ * stationary (no heading to redirect off of).
+ */
+export function redirImpactPxAtLanding(
+  det: Detection,
+  landingFrame: number,
+  window: number = IMPACT_WINDOW,
+): number | undefined {
+  const v0 = velocityAt(det, landingFrame - 1) ?? velocityAt(det, landingFrame);
+  if (v0 === undefined) return undefined;
+  const speed = Math.hypot(v0.x, v0.y);
+  if (speed <= 1e-9) return 0;
+  const hx = v0.x / speed, hy = v0.y / speed;
+  const end = Math.min(measurementLastFrame(det), landingFrame + Math.max(0, window));
+  let peak = 0;
+  for (let f = landingFrame; f <= end; f++) {
+    const v = velocityAt(det, f);
+    if (v === undefined) continue;
+    // |v ⊥ ĥ| = |ĥ.x·v.y − ĥ.y·v.x| — lateral speed acquired off the incoming heading.
+    const perp = Math.abs(hx * v.y - hy * v.x);
+    if (perp > peak) peak = perp;
+  }
+  return peak;
 }
 
 export function addMissedContactRetryOwners(
@@ -579,9 +621,9 @@ export function buildDriftReport(
         axes[name].ceiling = elevationCeiling(speed, g.endFrame - g.startFrame);
       }
       if (name === "impact") {
-        // Speed entering the landing bounds the catchable normal impact (you can't
-        // kill more normal velocity than you carry, and beyond a point the hit
-        // bounces). Use the speed at the contact frame as the entering speed.
+        // Speed entering the landing bounds the catchable redirection (you can't
+        // acquire more perpendicular velocity than you carry, and beyond the
+        // catchable ceiling the hit ejects). Use the speed at the contact frame.
         const vEnd = velocityAt(det, g.endFrame);
         const speed = vEnd !== undefined ? Math.hypot(vEnd.x, vEnd.y) : 0;
         axes[name].ceiling = impactCeiling(speed);

@@ -1,14 +1,13 @@
 /**
- * Landing `impact` lever — measurement, the report-only / no-op contract, and the
- * beat authoring helpers.
+ * Landing `impact` lever — measurement, scoring, and the beat authoring helpers.
  *
- *  - measureImpact computes the normal impact speed (|v_in ⊥ catch-line|) / IMPACT_CAP,
- *    from the PRE-impact velocity and the PLACED line geometry, in both the full
- *    `detect` and the offset `detectWindow` measurement layouts, with graceful
- *    fallbacks.
- *  - impact is REPORT-ONLY in v1: an authored target appears in the drift report
- *    (target/achieved/error/ceiling) but does NOT change the contract score or the
- *    produced track (no RNG draw, not in TARGET_AXES) — the no-op/determinism contract.
+ *  - measureImpact computes the velocity REDIRECTION (peak ⊥ component of the CoM
+ *    velocity change over the IMPACT_WINDOW-frame episode after the landing) /
+ *    REDIR_CAP, from the CoM velocity only (NO catch-line geometry), in both the
+ *    full `detect` and the offset `detectWindow` measurement layouts.
+ *  - impact is SCORED: an authored target folds into the contract `axis_quality`
+ *    (target/achieved/error/ceiling in the drift report), draws no RNG, stays out of
+ *    TARGET_AXES, and compiles deterministically.
  *  - `beats` / `withImpact` co-author timing + per-beat impact.
  */
 import { describe, expect, test } from "vitest";
@@ -18,7 +17,7 @@ import { constant } from "../scripts/v0/core/curves.ts";
 import { scoreDriftReport } from "../scripts/v0/score.ts";
 import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 import {
-  CALIB, impactCeiling, type Gap, type Spec, type TrackLine,
+  CALIB, IMPACT_WINDOW, impactCeiling, type Gap, type Spec, type TrackLine,
 } from "../scripts/v0/types.ts";
 import type { Detection } from "../scripts/lib/detector.ts";
 
@@ -51,82 +50,87 @@ function line(id: number, x1: number, y1: number, x2: number, y2: number): Track
 
 const measureImpact = AXIS_MEASURE.impact;
 
-describe("measureImpact (normal impact speed reduction)", () => {
+describe("measureImpact (velocity redirection reduction)", () => {
   // targets.impact set: measureImpact is gated to gaps whose beat authored impact.
   const gap: Gap = { index: 0, startFrame: 0, endFrame: 10, endsWithContact: true, targets: { impact: 0.5 } };
+  // Build a det whose CoM velocity at absolute frame f is vfn(f), landing at `lf`.
+  const detFor = (lf: number, n: number, vfn: (f: number) => { x: number; y: number }, off = 0) =>
+    makeDet({
+      landingFrame: lf,
+      velocity: Array.from({ length: n }, (_, i) => vfn(i + off)),
+      contactLineIds: arrAt(n, lf - off, [1]),
+      frameOffset: off,
+    });
+  // gapLines are intentionally varied/empty: redir is CoM-only and ignores them.
+  const call = (det: Detection, g: Gap = gap, gapLines: TrackLine[] = []) =>
+    measureImpact({ det, gap: g, gapLines, rangeEndFrame: g.endFrame });
 
-  test("horizontal catch line ⇒ impact = |vy_in| / IMPACT_CAP", () => {
-    // velocity[9] (pre-impact) descends at (8, 4); horizontal line ⇒ normal = |vy| = 4.
-    const velocity = Array.from({ length: 12 }, () => ({ x: 8, y: 4 }));
-    const det = makeDet({ landingFrame: 10, velocity, contactLineIds: arrAt(12, 10, [1]) });
-    const v = measureImpact({ det, gap, gapLines: [line(1, 0, 0, 100, 0)], rangeEndFrame: 10 });
-    expect(v).toBeCloseTo(4 / CALIB.IMPACT_CAP, 5); // 0.8
+  test("straight glide (no heading change) ⇒ redir ≈ 0", () => {
+    const det = detFor(10, 20, () => ({ x: 9, y: 4 })); // constant velocity → no ⊥ change
+    expect(call(det)).toBeCloseTo(0, 6);
   });
 
-  test("45° catch line discounts the along-slope component", () => {
-    const velocity = Array.from({ length: 12 }, () => ({ x: 8, y: 4 }));
-    const det = makeDet({ landingFrame: 10, velocity, contactLineIds: arrAt(12, 10, [1]) });
-    // tangent (1,1)/√2 ⇒ |tx*vy − ty*vx| = (4−8)/√2 = 2.828.
-    const v = measureImpact({ det, gap, gapLines: [line(1, 0, 0, 100, 100)], rangeEndFrame: 10 });
-    expect(v).toBeCloseTo(Math.abs(4 - 8) / Math.SQRT2 / CALIB.IMPACT_CAP, 5);
+  test("pure redirection ⇒ peak ⊥ velocity / REDIR_CAP", () => {
+    // incoming heading (10,0); the ⊥ (=y) component peaks at 6 inside the window.
+    const det = detFor(10, 20, (f) => ({ x: 10, y: f < 10 ? 0 : f === 12 ? 6 : 3 }));
+    expect(call(det)).toBeCloseTo(6 / CALIB.REDIR_CAP, 5);
   });
 
-  test("uses the PRE-impact frame (landingFrame−1), not the landing frame", () => {
-    const velocity = Array.from({ length: 12 }, (_, i) => (i === 9 ? { x: 8, y: 4 } : { x: 8, y: 0 }));
-    const det = makeDet({ landingFrame: 10, velocity, contactLineIds: arrAt(12, 10, [1]) });
-    const v = measureImpact({ det, gap, gapLines: [line(1, 0, 0, 100, 0)], rangeEndFrame: 10 });
-    expect(v).toBeCloseTo(4 / CALIB.IMPACT_CAP, 5); // reads frame 9 (=4 ⇒ 0.8), not frame 10 (=0)
+  test("peak over the window, not the endpoint", () => {
+    // ⊥ spikes to 6 at lf+2 then decays to 1 — the metric returns the spike.
+    const det = detFor(10, 20, (f) => ({ x: 10, y: f <= 9 ? 0 : f === 12 ? 6 : 1 }));
+    expect(call(det)).toBeCloseTo(6 / CALIB.REDIR_CAP, 5);
+  });
+
+  test("geometry-independent: ignores catch-line tangent / owned lines (CoM-only)", () => {
+    const det = detFor(10, 20, (f) => ({ x: 10, y: f <= 9 ? 0 : 5 }));
+    const horiz = call(det, gap, [line(1, 0, 0, 100, 0)]);
+    const slant = call(det, gap, [line(1, 0, 0, 100, 100)]);
+    const none = call(det, gap, []); // no owned line ⇒ STILL a value now (redir ignores lines)
+    expect(horiz).toBeCloseTo(5 / CALIB.REDIR_CAP, 5);
+    expect(slant).toBeCloseTo(horiz!, 9);
+    expect(none).toBeCloseTo(horiz!, 9);
+  });
+
+  test("heading reference is the PRE-landing frame (lf−1)", () => {
+    // incoming (lf−1) = (0,10); subsequent (4,10): ⊥ to (0,1) heading = |vx| = 4.
+    const det = detFor(10, 20, (f) => (f <= 9 ? { x: 0, y: 10 } : { x: 4, y: 10 }));
+    expect(call(det)).toBeCloseTo(4 / CALIB.REDIR_CAP, 5);
   });
 
   test("works under the detectWindow frame offset", () => {
     // frameOffset 100: landing at absolute frame 110, arrays indexed from 0.
-    const velocity = Array.from({ length: 12 }, () => ({ x: 8, y: 4 }));
-    const det = makeDet({ landingFrame: 110, velocity, contactLineIds: arrAt(12, 10, [1]), frameOffset: 100 });
-    const g: Gap = { ...gap, endFrame: 110 };
-    const v = measureImpact({ det, gap: g, gapLines: [line(1, 0, 0, 100, 0)], rangeEndFrame: 110 });
-    expect(v).toBeCloseTo(4 / CALIB.IMPACT_CAP, 5);
+    const det = detFor(110, 20, (f) => ({ x: 10, y: f < 110 ? 0 : f === 112 ? 6 : 2 }), 100);
+    expect(call(det, { ...gap, endFrame: 110 })).toBeCloseTo(6 / CALIB.REDIR_CAP, 5);
   });
 
-  test("undefined when the landing fired no owned line (don't guess geometry)", () => {
-    const velocity = Array.from({ length: 12 }, () => ({ x: 8, y: 4 }));
-    // contactLineIds names a foreign line (99) not in gapLines ⇒ no owned tangent.
-    // The candidate gate guarantees an owned line fired in real compiles, so this
-    // only happens off-path; we return undefined rather than guess gapLines[0].
-    const det = makeDet({ landingFrame: 10, velocity, contactLineIds: arrAt(12, 10, [99]) });
-    expect(measureImpact({ det, gap, gapLines: [line(1, 0, 0, 100, 0)], rangeEndFrame: 10 })).toBeUndefined();
+  test("window truncates at the detection end (no crash)", () => {
+    // landing near the last frame: only frames 11,12 are available after it.
+    const det = detFor(10, 13, (f) => ({ x: 10, y: f <= 9 ? 0 : 3 }));
+    expect(call(det)).toBeCloseTo(3 / CALIB.REDIR_CAP, 5);
+  });
+
+  test("gated: undefined when the beat did not author impact", () => {
+    const det = detFor(10, 20, () => ({ x: 9, y: 4 }));
+    expect(call(det, { ...gap, targets: {} })).toBeUndefined();
   });
 
   test("undefined when no landing event is near the contact", () => {
-    const velocity = Array.from({ length: 12 }, () => ({ x: 8, y: 4 }));
-    const det = makeDet({ landingFrame: 30, velocity, contactLineIds: arrAt(12, 30, [1]) });
-    expect(measureImpact({ det, gap, gapLines: [line(1, 0, 0, 100, 0)], rangeEndFrame: 10 })).toBeUndefined();
+    const det = detFor(30, 40, () => ({ x: 9, y: 4 })); // landing 30, gap.endFrame 10
+    expect(call(det)).toBeUndefined();
   });
 
-  test("gated: undefined when the beat did not author impact (gap.targets.impact unset)", () => {
-    const velocity = Array.from({ length: 12 }, () => ({ x: 8, y: 4 }));
-    const det = makeDet({ landingFrame: 10, velocity, contactLineIds: arrAt(12, 10, [1]) });
-    const untargeted: Gap = { ...gap, targets: {} };
-    expect(measureImpact({ det, gap: untargeted, gapLines: [line(1, 0, 0, 100, 0)], rangeEndFrame: 10 })).toBeUndefined();
-  });
-
-  test("undefined when the gap placed no lines", () => {
-    const velocity = Array.from({ length: 12 }, () => ({ x: 8, y: 4 }));
-    const det = makeDet({ landingFrame: 10, velocity, contactLineIds: arrAt(12, 10, [1]) });
-    expect(measureImpact({ det, gap, gapLines: [], rangeEndFrame: 10 })).toBeUndefined();
-  });
-
-  test("saturates at 1.0 for a slam beyond IMPACT_CAP", () => {
-    const velocity = Array.from({ length: 12 }, () => ({ x: 1, y: 20 }));
-    const det = makeDet({ landingFrame: 10, velocity, contactLineIds: arrAt(12, 10, [1]) });
-    expect(measureImpact({ det, gap, gapLines: [line(1, 0, 0, 100, 0)], rangeEndFrame: 10 })).toBe(1);
+  test("saturates at 1.0 beyond REDIR_CAP", () => {
+    const det = detFor(10, 20, (f) => ({ x: 1, y: f <= 9 ? 0 : 20 })); // ⊥ 20 ≫ 8.5
+    expect(call(det)).toBe(1);
   });
 });
 
-describe("impactCeiling", () => {
-  test("scales with speed and clamps to [0,1]", () => {
+describe("impactCeiling (redirection bound)", () => {
+  test("scales with speed (CATCHABLE_REDIR_FRACTION) and clamps to [0,1]", () => {
     expect(impactCeiling(0)).toBe(0);
-    expect(impactCeiling(5)).toBeCloseTo(0.6, 5); // 0.6*5 / 5
-    expect(impactCeiling(100)).toBe(1);
+    expect(impactCeiling(5)).toBeCloseTo((0.9 * 5) / CALIB.REDIR_CAP, 5); // 4.5/8.5 ≈ 0.529
+    expect(impactCeiling(100)).toBe(1); // 0.9*100 capped at REDIR_CAP ⇒ 1
   });
 });
 

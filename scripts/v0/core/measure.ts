@@ -21,11 +21,12 @@ import {
   type Gap,
   type TrackLine,
   CALIB,
+  IMPACT_WINDOW,
   speedPxToAuthored,
 } from "../types.ts";
 import { netDyToElevation } from "../types.ts";
 import {
-  airborneAt, findLandingNearFrame, meanSpeedPxOverRange, normalImpactPxAtLanding,
+  airborneAt, findLandingNearFrame, meanSpeedPxOverRange, redirImpactPxAtLanding,
   measurementLastFrame, median, velocityAt,
 } from "./substrate.ts";
 
@@ -129,27 +130,26 @@ const measureAmplitude: AxisReduction = ({ det, gap, rangeEndFrame }) => {
 };
 
 /**
- * Landing intensity at the gap's terminating beat: the **normal impact speed**
- * (`substrate.ts normalImpactPxAtLanding` — the rider's pre-impact velocity ⊥ the
- * fired catch surface), normalized by `CALIB.IMPACT_CAP`. See `Contact.impact` and
- * the `IMPACT` block in types.ts for the semantics and the v2 scoring status.
+ * Landing intensity at the gap's terminating beat: the rider's **velocity
+ * REDIRECTION** (`substrate.ts redirImpactPxAtLanding` — the peak perpendicular
+ * component of the CoM velocity change over the `IMPACT_WINDOW`-frame episode after
+ * contact, "how hard the catch bends the path" / "claquage"), normalized by
+ * `CALIB.REDIR_CAP`. See `Contact.impact` and the `IMPACT` block in types.ts.
  *
  * GATED on `gap.targets.impact`: impact is authored per-beat, so it's worth
- * measuring ONLY where a beat actually requested it — this keeps the reduction
- * zero-cost on every impact-free gap (the shared helper scans events + line
- * geometry, vs. the cheap span-mean axes, so it'd otherwise be hot-path waste).
- * Only this gap's OWN lines count as the surface. `undefined` when not targeted /
- * no landing / no usable geometry — the "not defined here" convention.
+ * measuring ONLY where a beat requested it (the cheap span-mean axes don't scan
+ * events, so it'd otherwise be hot-path waste — though redir is CoM-velocity-only
+ * and cheap). The metric is CoM-only: it needs NO catch-line geometry (this makes it
+ * immune to sled rotation / limb whip, which look violent but aren't felt), so
+ * `gapLines` is unused here. `undefined` when not targeted / no landing event near
+ * the beat — the "not defined here" convention.
  */
-const measureImpact: AxisReduction = ({ det, gap, gapLines }) => {
-  if (gap.targets.impact === undefined || gapLines.length === 0) return undefined;
+const measureImpact: AxisReduction = ({ det, gap }) => {
+  if (gap.targets.impact === undefined) return undefined;
   const landing = findLandingNearFrame(det, gap.endFrame);
   if (landing === undefined) return undefined;
-  // Only THIS gap's own catch lines count as the landing surface (a stray foreign
-  // line firing at the same frame is ignored). Shared math in substrate.ts.
-  const ownedById = new Map(gapLines.map((l) => [l.id, l]));
-  const px = normalImpactPxAtLanding(det, landing.frame, (id) => ownedById.get(id));
-  return px === undefined ? undefined : Math.min(1, px / CALIB.IMPACT_CAP);
+  const px = redirImpactPxAtLanding(det, landing.frame, IMPACT_WINDOW);
+  return px === undefined ? undefined : Math.min(1, px / CALIB.REDIR_CAP);
 };
 
 /** The reduction for each axis. Add a new axis = add one entry. */

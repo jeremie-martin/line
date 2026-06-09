@@ -58,20 +58,26 @@ Set **`jitter: 0`** when the curves carry the variation (the curve specs do).
 ## Per-beat: `impact` (landing intensity)
 
 `impact` is NOT an axis — it's a qualifier on a *beat*, authored on the `Contact`
-(`{ t, impact? }`), absolute [0,1]. It is the **normal impact speed**: the rider's
-velocity component perpendicular to the surface it lands on, the speed the surface
-kills (physically the impulse), normalized by `CALIB.IMPACT_CAP`. 0 = a smooth
-tangent graze, 1 = the hardest catchable slam. It is *absolute* (so you can author
-an all-soft or all-hard track) and *speed-bounded* — a slow rider can't land hard,
-and beyond the catchable bound a hit bounces; the per-gap `ceiling` in the report
-(`impactCeiling`) is the honest "hardest possible here", so `target > ceiling` is
-physics, not a compiler miss.
+(`{ t, impact? }`), absolute [0,1]. It is the rider's **velocity REDIRECTION** ("how
+hard the rider slams into the arc" — *claquage*): the peak perpendicular component of
+the centre-of-mass velocity change over the ~6-frame episode after contact, normalized
+by `CALIB.REDIR_CAP`. 0 = a smooth tangent glide that doesn't bend the path, 1 = the
+hardest catchable slam (the path is sharply redirected at speed). It is *absolute* (so
+you can author an all-soft or all-hard track) and *speed-bounded* — a slow rider can't
+redirect hard, and beyond the catchable bound the catch ejects; the per-gap `ceiling`
+in the report (`impactCeiling`) is the honest "hardest possible here", so
+`target > ceiling` is physics, not a compiler miss.
 
-**v1 status: report-only.** impact appears in the drift report (target/achieved/
-error/ceiling) and the compiler does not yet steer toward it (steering = the
-catch-line angle vs. the incoming velocity), so it does NOT change the contract
-score yet. Use it to *measure* landing character now; authored targets become
-steered + scored in v2.
+Why redirection (not the old one-frame "normal closing speed"): a felt impact is the
+surface *redirecting* the path; decelerating *along* the path (a glide slowing on a
+curved arc) is not felt as a hit, and redirection is CoM-only so it's immune to sled
+rotation / limb whip (which look violent but aren't felt). See
+`docs/impact_problem_statement.md`.
+
+**Status: SCORED.** impact folds into the contract `axis_quality` (target/achieved/
+error/ceiling in the drift report). The compiler hits it via candidate-cost ranking;
+explicit redir-aware *steering* is a deferred follow-up (the old one-frame steering was
+neutralized in the metric swap).
 
 Author it with the helpers in `core/beats.ts` (co-author timing + impact in one
 file, no external JSON, no duplicated timing):
@@ -94,8 +100,11 @@ const contacts = withImpact(
 );
 ```
 
-Calibrate `CALIB.IMPACT_CAP` against `specs/probe_impact.ts` (the achieved-envelope
-workflow used for `amplitude`/`grain`); inspect with `scripts/v0/study_landing_intensity.ts`.
+Calibrate `CALIB.REDIR_CAP` against `specs/probe_impact.ts` / `study_impact_calibrate.ts`
+(the achieved-envelope workflow used for `amplitude`/`grain`); pass
+`--track=<labeled.track.json>` when you want the Shelter label percentile block.
+Inspect the candidate definitions with the `ImpactStudyOverlay` Remotion composition
+and the `scripts/v0/study_impact_*.ts` harnesses.
 
 ## Key levers / lessons
 

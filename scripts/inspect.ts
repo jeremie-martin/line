@@ -23,8 +23,8 @@ import {
   DEFAULT_PARAMS,
 } from "./lib/detector.ts";
 import { exportVideo, MirrorUnreachableError } from "./lib/export.ts";
-import { CALIB } from "./v0/types.ts";
-import { normalImpactPxAtLanding } from "./v0/core/substrate.ts";
+import { CALIB, IMPACT_WINDOW } from "./v0/types.ts";
+import { redirImpactPxAtLanding } from "./v0/core/substrate.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | null => {
@@ -203,22 +203,20 @@ const det = detect(raw);
 console.timeEnd("detect");
 
 // Attach MEASURED landing impact to each landing event so the dashboard can show
-// per-beat intensity. Uses the shared normalImpactPxAtLanding (same definition as
-// the scored core/measure.ts measureImpact), normalized by CALIB.IMPACT_CAP →
-// [0,1]. Ungated full-track read: resolve fired ids against ALL track lines.
+// per-beat intensity. Uses the shared redirImpactPxAtLanding (same definition as the
+// scored core/measure.ts measureImpact) — velocity REDIRECTION over the impact
+// window, normalized by CALIB.REDIR_CAP → [0,1]. CoM-only: no line resolver needed.
 {
-  const lineById = new Map<number, { id: number; x1: number; y1: number; x2: number; y2: number }>();
-  for (const ln of trackJson.lines ?? []) lineById.set(ln.id, ln);
   let n = 0, sum = 0;
   for (const e of det.events) {
     if (e.type !== "landing") continue;
-    const px = normalImpactPxAtLanding(det, e.frame, (id) => lineById.get(id));
+    const px = redirImpactPxAtLanding(det, e.frame, IMPACT_WINDOW);
     if (px === undefined) continue;
-    const impact = Math.min(1, px / CALIB.IMPACT_CAP);
+    const impact = Math.min(1, px / CALIB.REDIR_CAP);
     (e as { impact?: number }).impact = Math.round(impact * 1000) / 1000;
     n++; sum += impact;
   }
-  if (n > 0) console.log(`impact: ${n} landings, mean ${(sum / n).toFixed(3)} (normal speed / ${CALIB.IMPACT_CAP}px·f⁻¹)`);
+  if (n > 0) console.log(`impact: ${n} landings, mean ${(sum / n).toFixed(3)} (redirection / ${CALIB.REDIR_CAP}px·f⁻¹)`);
 }
 
 const byType = det.events.reduce<Record<string, number>>((acc, e) => {

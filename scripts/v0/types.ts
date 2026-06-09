@@ -56,24 +56,29 @@ export type Contact = {
   /** Seconds, must be in [0, duration]. */
   t: number;
   /**
-   * Optional per-beat landing intensity, absolute [0, 1] — the authoring surface
-   * for *how hard* this landing should be. Defined as normalized **normal impact
-   * speed**: the rider's velocity component perpendicular to the surface it lands
-   * on, at contact (= the speed the surface kills / redirects; physically the
-   * impulse), divided by `CALIB.IMPACT_CAP`. 0 = a smooth tangent graze, 1 = the
-   * hardest catchable slam.
+   * Optional per-beat landing intensity ("how hard the rider slams into the arc" —
+   * "claquage"), absolute [0, 1]. Defined as the rider's **velocity REDIRECTION**:
+   * the peak magnitude of the perpendicular component of the centre-of-mass velocity
+   * change over the `IMPACT_WINDOW`-frame (~0.15s) episode after contact, divided by
+   * `CALIB.REDIR_CAP`. 0 = a smooth tangent glide that doesn't bend the rider's path,
+   * 1 = the hardest catchable slam (the path is sharply redirected at speed).
    *
-   * Authored on the beat (NOT an axis): impact is an adjective on a discrete
-   * landing event, where the axes (air/speed/elevation/amplitude) are continuous
-   * fields over the span *between* beats. Internally it is resolved into the
-   * terminating gap's target bag so it reuses the per-gap axis measurement/report
-   * plumbing — a deliberate implementation detail (each contact gap ends in
-   * exactly one beat, so per-gap scalar ≡ per-beat value) that may change.
+   * Why redirection and not "normal closing speed": a felt impact is the surface
+   * *redirecting* the rider's path; decelerating *along* the path (a glide slowing
+   * on a curved arc) is not felt as a hit. Redirection is CoM-velocity-only, so it is
+   * immune to sled rotation / limb whip (which look violent but aren't felt). See
+   * `docs/impact_problem_statement.md`.
    *
-   * Status: SCORED (folds into the contract `axis_quality`) and partially steered
-   * by the compiler via local candidate cost plus a small high-impact contact-angle
-   * bias that grows slightly when the next contact leaves room. Measured by
-   * `normalImpactPxAtLanding` (substrate.ts); reported with target/achieved/error/ceiling.
+   * Authored on the beat (NOT an axis): impact is an adjective on a discrete landing
+   * event, where the axes (air/speed/elevation/amplitude) are continuous fields over
+   * the span *between* beats. Internally it is resolved into the terminating gap's
+   * target bag so it reuses the per-gap axis measurement/report plumbing (each contact
+   * gap ends in exactly one beat, so per-gap scalar ≡ per-beat value).
+   *
+   * Status: SCORED (folds into the contract `axis_quality`). Measured by
+   * `redirImpactPxAtLanding` (substrate.ts); reported with target/achieved/error/
+   * ceiling. Optimizer steering toward redir is a deferred follow-up — for now the
+   * compiler hits it via candidate-cost ranking, not an analytic angle bias.
    */
   impact?: number;
 };
@@ -106,16 +111,15 @@ export type Curve = (t: number) => number | undefined;
  *                       landing chord (jump arc height / sagitta), normalized by
  *                       `CALIB.AMPLITUDE_CAP`, [0, 1]. Orthogonal to `air`:
  *                       `air` is how *long* aloft, `amplitude` is how *high*.
- *   - `impact`        — landing intensity at a beat: the normal impact speed (the
- *                       velocity component perpendicular to the landing surface,
- *                       i.e. the speed the surface kills), normalized by
- *                       `CALIB.IMPACT_CAP`, [0, 1]. NOT authored as a curve — it
- *                       is a per-beat qualifier (`Contact.impact`) resolved into
- *                       the terminating gap so it can reuse this per-gap plumbing.
- *                       SCORED and partially steered (see `Contact.impact`). In
- *                       AXES and scored, but kept out of `TARGET_AXES` — it draws
- *                       no sampling RNG and isn't curve-authored (a per-beat
- *                       qualifier).
+ *   - `impact`        — landing intensity at a beat: the rider's velocity
+ *                       REDIRECTION — peak perpendicular component of the CoM
+ *                       velocity change over the `IMPACT_WINDOW`-frame episode after
+ *                       contact, normalized by `CALIB.REDIR_CAP`, [0, 1]. NOT
+ *                       authored as a curve — it is a per-beat qualifier
+ *                       (`Contact.impact`) resolved into the terminating gap so it
+ *                       can reuse this per-gap plumbing. SCORED. In AXES and scored,
+ *                       but kept out of `TARGET_AXES` — it draws no sampling RNG and
+ *                       isn't curve-authored (a per-beat qualifier).
  */
 export const AXES = ["air", "speed", "grain", "elevation", "amplitude", "impact"] as const;
 export type AxisName = (typeof AXES)[number];
@@ -730,46 +734,61 @@ export function elevationCeiling(speedPx: number, frames: number): number {
 }
 
 /**
- * Landing-impact model (absolute, speed-bounded). Impact is the rider's *normal
- * impact speed* — the velocity component perpendicular to the surface it lands on,
- * the speed the surface kills (physically ∝ the impulse). It is measured from the
- * INCOMING velocity (not the velocity change: lr-core's collision is a soft spring
- * that bleeds the normal component over several frames, so any Δv-at-contact reads
- * gravity, not the landing). Normalized by `CALIB.IMPACT_CAP` → [0, 1].
+ * Landing-impact model (absolute, speed-bounded). Impact is the rider's **velocity
+ * REDIRECTION** — the peak perpendicular component of the centre-of-mass velocity
+ * change over the `IMPACT_WINDOW`-frame episode after contact (the lateral speed the
+ * catch imparts as it bends the path). Normalized by `CALIB.REDIR_CAP` → [0, 1]. See
+ * `redirImpactPxAtLanding` (substrate.ts) and `docs/impact_problem_statement.md`.
  *
- * The achievable impact is bounded ABOVE by speed: you cannot kill more normal
- * velocity than you carry, and beyond a point a hard hit reclassifies as a bounce
- * (detector `K_BOUNCE_LANDING` regime) and fails the contact. `impactCeiling`
- * reports that honest per-beat bound so a target above it reads as physics, not an
- * optimizer miss. Both constants are PROVISIONAL — calibrate against a dedicated
- * hard-landing probe (`specs/probe_impact.ts`) the way `AMPLITUDE_CAP`/grain were.
+ * The achievable impact is bounded ABOVE by speed: the perpendicular velocity you can
+ * acquire can't exceed the speed you carry, and beyond the catchable ceiling a hard
+ * hit ejects (the catch fails). `impactCeiling` reports that honest per-beat bound so
+ * a target above it reads as physics, not an optimizer miss. PROVISIONAL — recalibrate
+ * against `study_impact_calibrate.ts` / `specs/probe_impact.ts`.
  */
 export const IMPACT = {
-  /** Fraction of entering speed that is the maximum *catchable* normal impact:
-   *  beyond this the landing bounces and fails the contact. Provisional. */
+  /** Fraction of entering speed that is the maximum *catchable* velocity redirection:
+   *  beyond this the landing ejects and fails the contact. Provisional — a hard catch
+   *  can flip most of the speed perpendicular, so this is higher than the old
+   *  normal-closing fraction. */
+  CATCHABLE_REDIR_FRACTION: 0.9,
+  /** [LEGACY — NOT SCORED] catchable fraction for the OLD one-frame normal-closing
+   *  metric. Kept only for `calibrate_impact.ts` (the point-baseline study tool).
+   *  The scored impact uses CATCHABLE_REDIR_FRACTION above — don't tune this one. */
   CATCHABLE_NORMAL_FRACTION: 0.6,
 } as const;
 
+/** Window (frames, ~0.15s at FPS=40) over which the redirection impact is measured.
+ *  The felt redirection episode; label-validated (study_impact_labels.ts: the felt
+ *  match peaks at W≈6). Canonical home; study_support re-exports it. */
+export const IMPACT_WINDOW = 6;
+
 /**
  * Maximum catchable normalized impact [0,1] at the given entering speed (px/frame).
- * Report-only; never scored. `target > impactCeiling(speed)` ⇒ the shortfall is
- * physics (too slow to slam, or the hit would bounce), not a compiler miss.
- * Provisional model — calibrate against `probe_impact`.
+ * `target > impactCeiling(speed)` ⇒ the shortfall is physics (too slow to redirect,
+ * or the hit would eject), not a compiler miss. Provisional model — recalibrate
+ * against `study_impact_calibrate.ts` / `probe_impact`.
  */
 export function impactCeiling(speedPx: number): number {
-  const catchablePx = IMPACT.CATCHABLE_NORMAL_FRACTION * Math.max(0, speedPx);
-  return Math.max(0, Math.min(1, catchablePx / CALIB.IMPACT_CAP));
+  const catchablePx = Math.min(IMPACT.CATCHABLE_REDIR_FRACTION * Math.max(0, speedPx), CALIB.REDIR_CAP);
+  return Math.max(0, Math.min(1, catchablePx / CALIB.REDIR_CAP));
 }
 
 export const CALIB = {
   /** Divisor for `grain` axis. units. */
   LINE_LENGTH_CAP: 49,
-  /** Divisor for `impact` axis: normal impact speed (px/frame) that maps to a
-   *  normalized impact of 1.0. Provisional — calibrate against the achieved
-   *  envelope on `specs/probe_impact.ts`, the same way `AMPLITUDE_CAP` was set.
-   *  Empirically: smooth glides land at ~0 px/frame normal speed; big soaring
-   *  landings at high speed reach ~5 px/frame; beyond the catchable bound the
-   *  landing becomes a bounce and fails the contact. */
+  /** Divisor for the SCORED `impact` axis = velocity redirection (px/frame ⊥ the
+   *  incoming heading) that maps to a normalized impact of 1.0. Calibrated
+   *  2026-06-09 (study_impact_calibrate.ts, 351 landings / 16 golden tracks): the
+   *  redir envelope tops out ~8.2–8.7 px/frame at the hardest catchable landing
+   *  (beyond → ejection), so 8.5 is the natural absolute ceiling. Felt labels map
+   *  soft→0.20, a-bit-less→0.36, pretty-strong→0.70, very-strong→0.84, hardest→~1.0.
+   *  Provisional — re-tune via study_impact_calibrate.ts. */
+  REDIR_CAP: 8.5,
+  /** [LEGACY — NOT SCORED] Divisor for the OLD one-frame normal-closing impact
+   *  ("point"). The scored impact is REDIR_CAP above (redirection) — don't tune this
+   *  one for scoring. Kept because the `study_*` harnesses and `make_overlay_data`
+   *  still normalize the point baseline by it for side-by-side comparison. */
   IMPACT_CAP: 5,
   /** Divisor for `amplitude` axis: peak upward chord-relative sagitta (px) that
    *  maps to a normalized amplitude of 1.0. Provisional — calibrate against the

@@ -24,7 +24,13 @@ type Bundle = {
   score: number; axisRms: number;
   contactsHit: number; contactsTotal: number; offBeat: number; reachedEnd: boolean;
   axes: AxisData[];
-  contacts: { t: number; landed: boolean; impact: number | null }[];
+  contacts: {
+    t: number; landed: boolean; impact: number | null;
+    impactWindow?: number | null; impactRedir?: number | null; impactJolt?: number | null;
+    impactWhip?: number | null; impactComDecel?: number | null;
+    impactDeform?: number | null; impactRot?: number | null;
+    impactTurn?: number | null; impactDv?: number | null;
+  }[];
   phases: Phase[];
 };
 
@@ -117,9 +123,10 @@ const AxisChart: React.FC<{
   );
 };
 
-// ── beat-impact row: one bar per beat; height + soft→hard color = MEASURED
-//    landing intensity (normal impact speed). Bars light up as the playhead
-//    crosses each beat, with a brief glow on the hit. ────────────────────────
+// ── beat-impact row (creative default): one bar per beat = the PRODUCTION impact
+//    (`impactRedir` = velocity redirection), height + soft→hard colour = intensity.
+//    Bars light up as the playhead crosses each beat. The detailed multi-candidate
+//    comparison lives in the separate `ImpactStudyOverlay` composition. ──────────
 const IMPACT_RAMP = ["#38d6c8", "#f0b429", "#ff5a4f"]; // soft → medium → hard
 const ImpactRow: React.FC<{
   contacts: Bundle["contacts"]; w: number; h: number; t: number; tx: (t: number) => number;
@@ -130,11 +137,12 @@ const ImpactRow: React.FC<{
       <text x={12} y={h / 2 + 4} fontFamily={FONT} fontSize={12} fill="#8b93a7" letterSpacing={1}>IMPACT</text>
       <line x1={CHART_PAD_L} y1={h - 0.5} x2={w - CHART_PAD_R} y2={h - 0.5} stroke="rgba(255,255,255,0.10)" />
       {contacts.map((c, i) => {
-        if (c.impact == null) return null;
+        const v = c.impactRedir ?? c.impact; // production metric (redir); fall back for old JSON
+        if (v == null) return null;
         const x = tx(c.t);
         const passed = c.t <= t;
-        const bh = 3 + c.impact * barMax;
-        const col = interpolateColors(c.impact, [0, 0.5, 1], IMPACT_RAMP);
+        const bh = 3 + v * barMax;
+        const col = interpolateColors(v, [0, 0.5, 1], IMPACT_RAMP);
         const glow = passed ? interpolate(t - c.t, [0, 0.16], [1, 0], { extrapolateRight: "clamp" }) : 0;
         return (
           <g key={i}>
@@ -147,23 +155,120 @@ const ImpactRow: React.FC<{
   );
 };
 
-export const CurveOverlay: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
-  const t = frame / fps;
+// ── BIG impact panel (top-center): the LOCKED metric `redir` (perpendicular CoM
+//    velocity redirection over ~6f) is the hero IMPACT lane — tall bars, soft→hard
+//    color, the absolute [0,1] value printed per landing, and a large live readout
+//    of the beat the playhead is on. A faint POINT lane (the old one-frame metric)
+//    sits below for reference. See docs/impact_problem_statement.md. ─────────────
+const IMPACT_HERO = "impactRedir"; // the locked metric
+const heroColor = (v: number) => interpolateColors(Math.min(1, v), [0, 0.5, 1], ["#38d6c8", "#f0b429", "#ff4d4d"]);
+const BigImpactPanel: React.FC<{ contacts: Bundle["contacts"]; width: number; t: number; durationS: number; enter: number }>
+= ({ contacts, width, t, durationS, enter }) => {
+  const w = Math.round(width * 0.92);          // more space, per the design
+  const left = Math.round((width - w) / 2);
+  const top = 100;
+  const padL = 150, padR = 64, headerH = 40, heroH = 150, refH = 34, gap = 10;
+  const h = headerH + heroH + gap + refH + 14;
+  const x0 = padL, x1 = w - padR;
+  const tx = (tt: number) => x0 + (Math.min(tt, durationS) / durationS) * (x1 - x0);
+  const beats = contacts.filter((c) => (c as Record<string, number | null>)[IMPACT_HERO] != null);
+  // The landing the playhead is on/just past — for the big live readout.
+  const current = [...beats].filter((c) => c.t <= t + 1e-6).sort((a, b) => b.t - a.t)[0];
+  const curV = current ? ((current as Record<string, number | null>)[IMPACT_HERO] as number) : null;
+  const spacingPx = beats.length > 1 ? (x1 - x0) / beats.length : 30;
+  const showNums = spacingPx >= 9; // print per-landing value when there's room
 
+  const heroBase = headerH + heroH;
+  const refY0 = heroBase + gap, refBase = refY0 + refH;
+  return (
+    <div style={{
+      position: "absolute", left, top, width: w, opacity: enter,
+      transform: `translateY(${interpolate(enter, [0, 1], [-40, 0])}px)`,
+      background: "rgba(9,11,16,0.93)", border: BORDER, borderRadius: 14,
+    }}>
+      <svg width={w} height={h} style={{ display: "block" }}>
+        <text x={padL} y={26} fontFamily={FONT} fontSize={17} fontWeight={700} fill="#e6eaf2" letterSpacing={2}>LANDING IMPACT</text>
+        <text x={padL + 175} y={26} fontFamily={FONT} fontSize={12} fill="#7c8499">redirection · 0–1 absolute</text>
+        {/* big live readout of the current landing's value */}
+        {curV != null && (
+          <text x={x1} y={28} textAnchor="end" fontFamily={FONT} fontSize={26} fontWeight={700} fill={heroColor(curV)}>{curV.toFixed(2)}</text>
+        )}
+
+        {/* hero lane: redir */}
+        <text x={16} y={headerH + heroH / 2 - 4} fontFamily={FONT} fontSize={15} fontWeight={700} fill="#cdd4e0" letterSpacing={1}>IMPACT</text>
+        {[0.25, 0.5, 0.75, 1].map((g) => (
+          <line key={g} x1={padL} y1={heroBase - g * (heroH - 14)} x2={x1} y2={heroBase - g * (heroH - 14)} stroke="rgba(255,255,255,0.05)" />
+        ))}
+        <line x1={padL} y1={heroBase} x2={x1} y2={heroBase} stroke="rgba(255,255,255,0.15)" />
+        {beats.map((c, i) => {
+          const v = (c as Record<string, number | null>)[IMPACT_HERO] as number;
+          const x = tx(c.t), passed = c.t <= t, bh = 2 + v * (heroH - 14);
+          const col = heroColor(v);
+          const glow = passed ? interpolate(t - c.t, [0, 0.2], [1, 0], { extrapolateRight: "clamp" }) : 0;
+          return (
+            <g key={i} opacity={passed ? 1 : 0.22}>
+              <rect x={x - 2.5} y={heroBase - bh} width={5} height={bh} rx={2} fill={col} />
+              {glow > 0.02 && <circle cx={x} cy={heroBase - bh} r={7} fill={col} opacity={glow} />}
+              {showNums && (
+                <text x={x} y={heroBase - bh - 5} textAnchor="start" transform={`rotate(-90 ${x} ${heroBase - bh - 5})`}
+                  fontFamily={FONT} fontSize={9} fill={passed ? "#aeb6c7" : "#586074"}>{v.toFixed(2)}</text>
+              )}
+            </g>
+          );
+        })}
+
+        {/* reference lane: point (old one-frame metric), faint */}
+        <text x={16} y={refY0 + refH / 2 + 4} fontFamily={FONT} fontSize={11} fill="#6b7488">point (old)</text>
+        <line x1={padL} y1={refBase} x2={x1} y2={refBase} stroke="rgba(255,255,255,0.08)" />
+        {beats.map((c, i) => {
+          const v = c.impact; if (v == null) return null;
+          const x = tx(c.t), passed = c.t <= t, bh = 1 + v * (refH - 6);
+          return <rect key={i} x={x - 1.5} y={refBase - bh} width={3} height={bh} rx={1} fill="#f0b429" opacity={passed ? 0.5 : 0.12} />;
+        })}
+
+        <line x1={tx(t)} y1={headerH} x2={tx(t)} y2={refBase + 2} stroke="#fff" strokeWidth={1.4} opacity={0.85} />
+      </svg>
+    </div>
+  );
+};
+
+// Shared overlay-input props + data fetch (both compositions read the same bundle
+// from the pipeline). `label` is the delayRender tag (distinct per composition).
+const overlayInputs = () => {
   const props = getInputProps() as { dataFile?: string; videoFile?: string };
-  const dataFile = props.dataFile ?? "believer_curves.overlay.json";
-  const videoFile = props.videoFile ?? "source.mp4";
-
+  return { dataFile: props.dataFile ?? "believer_curves.overlay.json", videoFile: props.videoFile ?? "source.mp4" };
+};
+function useBundle(dataFile: string, label: string): Bundle | null {
   const [data, setData] = useState<Bundle | null>(null);
-  const [handle] = useState(() => delayRender("overlay-data"));
+  const [handle] = useState(() => delayRender(label));
   useEffect(() => {
     fetch(staticFile(dataFile))
       .then((r) => r.json())
       .then((j: Bundle) => { setData(j); continueRender(handle); })
       .catch(() => continueRender(handle));
   }, [handle, dataFile]);
+  return data;
+}
+// Top-left title pill (song title + artist + a right-hand label).
+const TitlePill: React.FC<{ title: string; artist: string; right: string }> = ({ title, artist, right }) => (
+  <div style={{
+    position: "absolute", top: 40, left: 40, display: "flex", alignItems: "center", gap: 14,
+    background: PILL, border: BORDER, borderRadius: 12, padding: "11px 22px", fontFamily: FONT,
+  }}>
+    <span style={{ fontSize: 26, fontWeight: 700, color: "#fff", letterSpacing: 2 }}>{title}</span>
+    <span style={{ fontSize: 20, color: "#8b93a7", letterSpacing: 1 }}>{artist}</span>
+    <span style={{ width: 1, height: 22, background: "rgba(255,255,255,0.18)" }} />
+    <span style={{ fontSize: 20, color: "#aeb6c7", letterSpacing: 1 }}>{right}</span>
+  </div>
+);
+
+export const CurveOverlay: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps, width } = useVideoConfig();
+  const t = frame / fps;
+
+  const { dataFile, videoFile } = overlayInputs();
+  const data = useBundle(dataFile, "overlay-data");
 
   if (!data) return <AbsoluteFill style={{ backgroundColor: "#000" }} />;
 
@@ -193,16 +298,7 @@ export const CurveOverlay: React.FC = () => {
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
       <OffthreadVideo src={staticFile(videoFile)} />
 
-      {/* top-left: title */}
-      <div style={{
-        position: "absolute", top: M, left: M, display: "flex", alignItems: "center", gap: 14,
-        background: PILL, border: BORDER, borderRadius: 12, padding: "11px 22px", fontFamily: FONT,
-      }}>
-        <span style={{ fontSize: 26, fontWeight: 700, color: "#fff", letterSpacing: 2 }}>{data.title}</span>
-        <span style={{ fontSize: 20, color: "#8b93a7", letterSpacing: 1 }}>{data.artist}</span>
-        <span style={{ width: 1, height: 22, background: "rgba(255,255,255,0.18)" }} />
-        <span style={{ fontSize: 20, color: "#aeb6c7", letterSpacing: 1 }}>{data.tempo}</span>
-      </div>
+      <TitlePill title={data.title} artist={data.artist} right={data.tempo} />
 
       {/* bottom panel: stacked target-vs-measured charts + contacts + phases */}
       <div style={{
@@ -218,7 +314,7 @@ export const CurveOverlay: React.FC = () => {
           <span>target <span style={{ color: "#fff" }}>━</span></span>
           <span>measured <span style={{ color: "#fff" }}>●</span></span>
           <span>error <span style={{ color: "#ff6b6b" }}>┃</span><span style={{ color: "#5ad1ff" }}>┃</span></span>
-          <span>impact <span style={{ color: "#38d6c8" }}>▁</span><span style={{ color: "#f0b429" }}>▄</span><span style={{ color: "#ff5a4f" }}>█</span></span>
+          <span>impact <span style={{ color: "#38d6c8" }}>▁</span><span style={{ color: "#f0b429" }}>▄</span><span style={{ color: "#ff5a4f" }}>█</span> redirection</span>
         </div>
 
         {data.axes.map((a) => (
@@ -258,6 +354,28 @@ export const CurveOverlay: React.FC = () => {
         width: 2, height: contentH, transform: `translateY(${panelY}px)`,
         background: "rgba(255,255,255,0.9)", boxShadow: "0 0 6px rgba(255,255,255,0.8)", opacity: enter,
       }} />
+    </AbsoluteFill>
+  );
+};
+
+// ── ImpactStudyOverlay: the IMPACT STUDY mode (separate Remotion composition). The
+//    big top-center panel comparing the impact-metric candidates per landing (redir
+//    hero with the per-landing value + a faint point reference). Same input props as
+//    CurveOverlay (dataFile, videoFile, durationS). Use this to inspect/validate the
+//    landing-intensity metric; CurveOverlay stays the creative annotated overlay. ──
+export const ImpactStudyOverlay: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps, width } = useVideoConfig();
+  const t = frame / fps;
+  const { dataFile, videoFile } = overlayInputs();
+  const data = useBundle(dataFile, "impact-study-data");
+  if (!data) return <AbsoluteFill style={{ backgroundColor: "#000" }} />;
+  const enter = spring({ frame, fps, config: { damping: 20, mass: 0.7 } });
+  return (
+    <AbsoluteFill style={{ backgroundColor: "#000" }}>
+      <OffthreadVideo src={staticFile(videoFile)} />
+      <TitlePill title={data.title} artist={data.artist} right="impact study" />
+      <BigImpactPanel contacts={data.contacts} width={width} t={t} durationS={data.durationS} enter={enter} />
     </AbsoluteFill>
   );
 };

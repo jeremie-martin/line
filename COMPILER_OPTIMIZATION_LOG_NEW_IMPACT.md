@@ -1087,3 +1087,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `492.0 -> 491.6`, `Delta=-0.4`, 95% CI `[-2.9, 2.3]`, `P(Delta<=0)=61.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.2`, `300k -0.6`; validity unchanged.
 - Diagnostics: even a smaller current-baseline cutoff extension reintroduces churn without a mature-budget lift. Keep the mature cutoff at `0.75`; the high-air/mid-high residual needs a different mechanism than extending the first-segment lip gate.
 - Status: reverted after focused negative/inconclusive signal; no canonical run and no behavior commit.
+
+## impact-mid75-bevel4-slice-01
+
+- Baseline used: `impact-lip-airspan20-mature-01` behavior at commit `a62b965`.
+- Hypothesis: the target `air=0.72..0.75` dense hard-impact residual might need bevel-only shaping rather than more first-segment lip rotation. Add a mature-only `4deg` mid-air bevel band that is active around `air=0.72..0.77` and fades before the accepted high82 bevel region, while keeping post-contact ride-out tied to the accepted lip.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_MID_AIR_BEVEL_*` constants and `contactCenteredImpactMidAirBevelShiftDeg(...)` in `scripts/v0/arc_placement.ts`; `impactBevelShiftDeg` used the max of accepted lip, temporary mid-air bevel, and accepted high82 bevel shifts.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-mid75-bevel4-slice-01`
+- Raw focused scores: headline `491.68`, with budget scores `50k 392.42`, `100k 472.45`, `200k 500.49`, `300k 508.76`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `492.0 -> 491.7`, `Delta=-0.3`, 95% CI `[-2.7, 2.2]`, `P(Delta<=0)=62.7%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.0`, `300k -0.7`; validity unchanged.
+- Diagnostics: the mid-air bevel adds the intended mature-only surface option but does not improve aggregate quality. Combined with the air77 lip result, this suggests the `.72..75` residual is not solved by more local hard-catch geometry.
+- Status: reverted after focused negative/inconclusive signal; no canonical run and no behavior commit.

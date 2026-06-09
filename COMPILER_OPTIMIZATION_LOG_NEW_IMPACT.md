@@ -1111,3 +1111,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `492.0 -> 492.9`, `Delta=+0.9`, 95% CI `[-1.5, 3.9]`, `P(Delta<=0)=26.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.9`, `300k +1.4`; validity unchanged.
 - Diagnostics: the current stronger geometry keeps the mature local-cost pressure direction-positive, but the effect is still too small and noisy to promote. Mature selection pressure is not enough by itself to clear the remaining low-air/impact residual.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-lowair-release-grounded-slice-01
+
+- Baseline used: `impact-lip-airspan20-mature-01` behavior at commit `a62b965`.
+- Hypothesis: the worst low-air/high-impact rows need grounded continuity after the catch, not just a harder local surface. Add a mature quality-phase ranking penalty for candidates that have fewer than six grounded frames immediately after a low-air/high-impact tight-cadence landing, using existing release-grounded telemetry.
+- Code changes made: temporarily added a `releaseGroundedSetupPenalty(...)` in `scripts/v0/optimizer/handoff.ts`, gated by current gap `air <= 0.35`, `impact >= 0.75`, next-contact cadence, and a `150k..200k` budget ramp. Candidate counts, geometry, scorer, specs, and early budgets were unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-release-grounded-slice-01`
+- Raw focused scores: headline `491.99`, with budget scores `50k 392.42`, `100k 472.45`, `200k 500.49`, `300k 509.43`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with exact neutral scoring; 20-spec intersection headline `492.0 -> 492.0`, `Delta=+0.0`, 95% CI `[0.0, 0.0]`, `P(Delta<=0)=100.0%`. Per-budget deltas were `+0.0` at every budget; validity unchanged.
+- Diagnostics: the release-grounded penalty did not alter selected scored outputs on the focused slice. The low-air continuity problem is not reachable through this release telemetry term at the tested strength/gate.
+- Status: reverted after focused no-op signal; no canonical run and no behavior commit.

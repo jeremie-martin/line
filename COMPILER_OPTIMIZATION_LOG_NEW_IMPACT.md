@@ -937,3 +937,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `487.0 -> 486.0`, `Delta=-1.0`, 95% CI `[-4.0, 1.7]`, `P(Delta<=0)=75.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.0`, `300k -2.1`; validity stayed `100%`.
 - Diagnostics: the extra high-air reach does not pay after the accepted `0.75` mature endpoint. It keeps early budgets byte-identical but erodes mature quality, with raw focused `300k` dropping from `502.68` to `500.62`.
 - Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.
+
+## impact-search-lane1-slice-01
+
+- Baseline used: `impact-midair-lip-air75-mature-01` behavior at commit `30ab8b8`.
+- Hypothesis: a single alternate deterministic search lane might provide a budget-honest improvement if the public seed's default candidate stream is unlucky on impact-heavy rows. Use the portfolio oracle's lane-1 seed transform as the default internal `searchSeed`, leaving public golden seeds and target jitter unchanged.
+- Code changes made: temporarily added `DEFAULT_SEARCH_LANE = 1` in `scripts/v0/optimizer/handoff.ts` and used a deterministic lane transform when `opts.searchSeed` was not explicitly provided.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-search-lane1-slice-01`
+- Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `487.0 -> 482.7`, `Delta=-4.3`, 95% CI `[-11.4, 2.0]`, `P(Delta<=0)=90.4%`. Per-budget deltas: `50k -27.3`, `100k -3.3`, `200k -2.0`, `300k -2.3`; validity regressed at `50k` (`100% -> 98%`) and stayed `100%` elsewhere.
+- Diagnostics: lane 1 produced broad candidate-stream churn but was globally worse than the public-seed lane. A fixed alternate lane is not a useful default; any portfolio benefit would need an actual budget-honest selector rather than replacing lane 0.
+- Status: reverted after focused reject; no canonical run and no behavior commit.

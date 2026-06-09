@@ -878,3 +878,14 @@ same normalized normal-impact scale the scorer reports.
 - Canonical decide result: `VERDICT: ACCEPT`; headline `498.2 -> 500.0`, `Delta=+1.9`, 95% CI `[0.5, 6.1]`, `P(Delta<=0)=0.0%`. Per-budget deltas: `50k +0.0`, `100k +12.1`, `200k +0.0`, `300k +0.0`; validity unchanged (`50k 97%`, `100k+ 100%`).
 - Diagnostics: this is a clean budget-timing gain, not a new mature geometry gain. It promotes the already accepted dense lip/bevel earlier enough to help `100k`, while leaving `50k` and mature aggregate scores unchanged.
 - Status: kept and committed; new canonical baseline is `impact-lip-bevel-early125-01`.
+
+## impact-lip-bevel-early100-slice-01
+
+- Baseline used: `impact-lip-bevel-early125-01` behavior at commit `8448668`.
+- Hypothesis: if the accepted early dense lip/bevel ramp helps while half-active at `100k`, making it full-active at `100k` might add another small budget-timing gain while preserving `50k` and mature endpoints.
+- Code changes made: temporarily changed the `contactCenteredImpactLipShiftDeg(...)` maturity pressure from `smoothstep((budget - 75k) / 50k)` to `smoothstep((budget - 50k) / 50k)`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lip-bevel-early100-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `481.1 -> 481.3`, `Delta=+0.2`, 95% CI `[-0.3, 0.6]`, `P(Delta<=0)=25.9%`. Per-budget deltas: `50k +0.0`, `100k +1.0`, `200k +0.0`, `300k +0.0`; validity stayed `100%`.
+- Diagnostics: the endpoint change only added about one point at `100k` on the focused slice after the accepted half-active ramp had already captured the useful gain. The effect is direction-positive but too small to justify a canonical run.
+- Status: reverted after focused inconclusive signal; no full preview, no canonical run, and no behavior commit.

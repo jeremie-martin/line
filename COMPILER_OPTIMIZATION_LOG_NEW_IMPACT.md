@@ -1296,3 +1296,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `521.7 -> 522.3`, `Delta=+0.6`, 95% CI `[-1.5, 3.6]`, `P(Delta<=0)=34.4%`, effect `0.46`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.9`, `300k +0.7`; validity improved at `50k` and was unchanged elsewhere.
 - Diagnostics: the approach-surface idea is active but too small/noisy on the focused slice. It lifts some high-air hard-contact rows, especially parts of `opening_burst`, but does not move the aggregate enough to justify a canonical run.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-local-undershoot2-slice-01
+
+- Baseline used: `impact-moderate-lip20-01` behavior at commit `f6d33c4`, plus log-only commits `5c7545a` and `21de0bb`.
+- Hypothesis: after the geometry gains, some hard-impact candidates may exist but fail to enter the forward-eval pool because local candidate cost weights impact symmetrically and lightly. Add a one-sided, mature, high-target impact undershoot extra cost so candidates below hard impact targets are sorted earlier, without rewarding impact overshoot or changing the scorer.
+- Code changes made: temporarily added `LOCAL_IMPACT_UNDERSHOOT_EXTRA_WEIGHT = 2.0` in `scripts/v0/core/candidate.ts`, gated by impact target pressure from `0.65..0.85` and a `75k..125k` mature ramp. The extra applied only when achieved impact was below target; candidate counts, RNG draws, scorer, specs, seed set, and budget grid were unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "Promise.all([import('./scripts/v0/core/candidate.ts'), import('./scripts/v0/arc_placement.ts'), import('./scripts/v0/optimizer/handoff.ts')]).then(() => console.log('impact undershoot imports ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-local-undershoot2-slice-01`
+- Raw focused scores: headline `520.74`, with budget scores `50k 392.42`, `100k 498.97`, `200k 533.23`, `300k 541.06`; validity improved at `50k` (`239/240 -> 240/240`) and stayed `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `521.7 -> 520.7`, `Delta=-1.0`, 95% CI `[-4.0, 1.6]`, `P(Delta<=0)=75.7%`, effect `-0.70`. Per-budget deltas: `50k +0.0`, `100k -1.4`, `200k +0.1`, `300k -1.7`; validity improved at `50k` and was unchanged elsewhere.
+- Diagnostics: the ranking term is active but too blunt. It improves some dropout/crosscut rows but moves pendulum/signature/dense rows into weaker basins, so hard-impact undershoot should not be added as a broad local sort pressure at this strength.
+- Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.

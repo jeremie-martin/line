@@ -171,6 +171,55 @@ D. **Catchability-as-acceptance (orthogonal reframe).** Define a "landing" for
    (`contactFrames ≥ τ`) rather than "first-contact at frame X" — decouples the rhythm
    constraint from the physical-catch constraint. Mostly subsumed by B/C.
 
+### Empirical verdict on the ladder (2026-06-09, post-curve-modulation)
+
+Measured before building anything, via two read-only probes:
+
+- **Landing-window prize** (`study_landing_window.ts` + the flag-gated probe in
+  `core/candidate.ts`): for every survival-passing candidate geometry, the minimal
+  lockstep half-width W∈[1,5] that would admit it (landing on owned line within ±W
+  AND zero off-beat at tolerance W; W=1 ≡ today's gates). 219,179 geometries, all
+  40 golden specs × seeds 0-2 @ 100k.
+- **Felt-moment localization** (`study_redir_fundamentals.ts` peakOffset/
+  ratePeakOffset): 7,501 landing episodes from the detailed baseline archive.
+
+**Findings:**
+
+1. **Window-widening (B/C) prize is small and impact-POOR.** ±1→±5 grows the pool
+   only +13.6%, and the admitted material has HALF the achieved impact (mean 0.229
+   at W=1 vs ~0.12 in every W≥2 tier; on high-target beats 0.283 vs ~0.13). The
+   near-window rejects are slow late glides (speed 9.4-9.7 vs 10.4; offsets skew
+   +2..+5, 93%). Per-gap: ~16% of impact-targeted gaps would gain a slightly better
+   impact option (mean closeness gain 0.06); only ~5% of high-target gaps.
+2. **Zero rescues.** No beat in the whole suite has an empty ±1 pool that a wider
+   window would fill — the search never fails a beat for timing reasons. The
+   "rejected arcs are usable material" intuition is falsified *for the current
+   sampler's proposal distribution*: the binding constraint is what the sampler
+   proposes, not what the window accepts. (Caveat: a window-aware sampler that
+   deliberately aims off-beat could in principle exploit width better — but the
+   physics says late-landing arcs arrive slower, so the ceiling is lower there.)
+3. **The cumulative redirection peak saturates at the window edge** (+6 in 74% of
+   all episodes, 92% of high-achieved ones) — there is no interior "most-impactful
+   frame" to align to; the catch is an extended ~150ms+ episode whose redirection
+   is still growing when the measurement window ends. Two consequences:
+   - Ladder A in its original form ("align beat to argmax redir") is ill-posed.
+   - The scored metric likely UNDERCOUNTS sustained turns (window truncation). A
+     longer `IMPACT_WINDOW` is a v3 metric question (fingerprint bump + REDIR_CAP
+     recalibration) — flagged, not urgent.
+4. **The felt jolt (peak per-frame redirection RATE) trails first contact by a
+   systematic ~3 frames / 75ms** (p50 +3, mean 3.5, only 7% at +1; stable across
+   target bands). If beats should coincide with the felt slam, the compiler
+   currently places the slam ~75ms late. The cheap experiment is a constant −3
+   frame alignment offset (land at beat−3 so the jolt hits the beat) — an
+   authoring/feel call that golden scores cannot adjudicate (the score measures
+   first-contact alignment by definition); it needs human eyes/ears on real tracks.
+
+**Verdict: B and C are demoted** (small, impact-poor prize; real contract risk).
+**A is reframed** from "peak alignment" to "constant felt-lag offset" and parked as
+a feel experiment. The landing-redefinition budget is better spent on the
+generation lever (redirecting-catch sampling targeting `tangentChangeDeg`) and the
+ejection-saturation prerequisite.
+
 ### Recommended sequencing
 
 1. **(free, today)** Run the empirical study on the steered (`contact4`) archive too,

@@ -26,6 +26,7 @@ import {
   AXES,
   type AxisValues,
   type Arc, type TrackLine, type Gap,
+  CALIB,
   FPS,
   hasExactlyTargetAxes,
   type CandidateSampleMode,
@@ -38,6 +39,7 @@ import {
   engineLineFromTrackLine,
   contactLineIdsAt,
   airborneAt,
+  redirImpactPxAtLanding,
   speedAt,
   velocityAt,
 } from "./substrate.ts";
@@ -54,6 +56,102 @@ const LOCAL_IMPACT_COST_MATURE_SPAN_FRAMES = 50_000;
 let currentCandidateCompileBudgetFrames = 0;
 export function setCandidateCompileBudgetFrames(frames: number): void {
   currentCandidateCompileBudgetFrames = Math.max(0, frames | 0);
+}
+
+// ─────────── Landing-window probe (study-only, off by default) ───────────
+// Read-only diagnostic for the landing-redefinition project: for every candidate
+// that passes the survival gate, compute the minimal acceptance half-width
+// W ∈ [1, LANDING_PROBE_MAX_W] at which the candidate would be admitted if BOTH
+// timing rules widened in lockstep (a landing on an owned line within ±W of the
+// beat AND zero off-beat landings at tolerance W). W=1 reproduces today's hard
+// gates exactly. Enabled only by study scripts via `enableLandingWindowProbe`;
+// when disabled (always, in production) the hot path pays one null check.
+
+export const LANDING_PROBE_MAX_W = 5;
+const LANDING_PROBE_RECORD_CAP = 1_000_000;
+
+export type LandingWindowProbeRecord = {
+  gapIndex: number;
+  endFrame: number;
+  /** Authored per-beat impact target of this gap, if any. */
+  targetImpact?: number;
+  /** Minimal lockstep half-width that admits the candidate; null if none ≤ MAX_W. */
+  acceptedAtW: number | null;
+  /** Signed landing offset (landingFrame − endFrame) at that W; null if rejected. */
+  offset: number | null;
+  /** Achieved redirection impact (normalized by REDIR_CAP) at that landing. */
+  impactAchieved: number | null;
+  /** Incoming speed (px/frame) one frame before that landing. */
+  incomingSpeed: number | null;
+};
+
+let landingProbeRecords: LandingWindowProbeRecord[] | null = null;
+let landingProbeDropped = 0;
+
+export function enableLandingWindowProbe(): void {
+  landingProbeRecords = [];
+  landingProbeDropped = 0;
+}
+
+export function disableLandingWindowProbe(): void {
+  landingProbeRecords = null;
+  landingProbeDropped = 0;
+}
+
+/** Drain accumulated records (caller owns the array); probe stays enabled. */
+export function drainLandingWindowProbe(): { records: LandingWindowProbeRecord[]; dropped: number } {
+  const records = landingProbeRecords ?? [];
+  const dropped = landingProbeDropped;
+  if (landingProbeRecords !== null) landingProbeRecords = [];
+  landingProbeDropped = 0;
+  return { records, dropped };
+}
+
+function probeLandingWindow(
+  det: Detection,
+  gap: Gap,
+  lines: TrackLine[],
+  allContactFrames: number[],
+  axisMeasureEnd: number,
+): void {
+  if (landingProbeRecords === null) return;
+  if (landingProbeRecords.length >= LANDING_PROBE_RECORD_CAP) {
+    landingProbeDropped++;
+    return;
+  }
+  const owned = new Set(lines.map((l) => l.id));
+  let acceptedAtW: number | null = null;
+  let chosen: DetEvent | null = null;
+  for (let w = 1; w <= LANDING_PROBE_MAX_W; w++) {
+    let best: DetEvent | null = null;
+    for (const e of det.events) {
+      if (e.type !== "landing") continue;
+      const d = Math.abs(e.frame - gap.endFrame);
+      if (d > w) continue;
+      if (!intersectsLineIds(e, det, owned)) continue;
+      if (best === null || d < Math.abs(best.frame - gap.endFrame)) best = e;
+    }
+    if (best === null) continue;
+    if (countOffBeatLandings(det.events, gap.startFrame, axisMeasureEnd, allContactFrames, w) > 0) {
+      continue;
+    }
+    acceptedAtW = w;
+    chosen = best;
+    break;
+  }
+  const impactPx = chosen === null ? undefined : redirImpactPxAtLanding(det, chosen.frame);
+  const incomingSpeed = chosen === null
+    ? undefined
+    : (speedAt(det, chosen.frame - 1) ?? speedAt(det, chosen.frame));
+  landingProbeRecords.push({
+    gapIndex: gap.index,
+    endFrame: gap.endFrame,
+    ...(gap.targets.impact === undefined ? {} : { targetImpact: gap.targets.impact }),
+    acceptedAtW,
+    offset: chosen === null ? null : chosen.frame - gap.endFrame,
+    impactAchieved: impactPx === undefined ? null : impactPx / CALIB.REDIR_CAP,
+    incomingSpeed: incomingSpeed ?? null,
+  });
 }
 
 type WindowDetection = Detection & { frameOffset?: number };
@@ -472,6 +570,7 @@ function evaluateCandidateLines(
   let best = evaluateGapFit(
     baseEngine, gap, lines, axisMeasureEnd, allContactFrames,
     searchTargets, useWindowDetection, scoreReleaseState,
+    /* landingProbeEligible */ true,
   );
   if (best.fit === null) return best;
 
@@ -519,6 +618,9 @@ function evaluateGapFit(
   searchTargets: AxisValues,
   useWindowDetection: boolean,
   scoreReleaseState: boolean,
+  /** True only for the per-candidate BASE evaluation (not ride-out re-evals);
+   *  gates the landing-window probe so each candidate is recorded once. */
+  landingProbeEligible = false,
 ): {
   fit: Pick<
     GapFit,
@@ -550,6 +652,13 @@ function evaluateGapFit(
   const minSurvival = Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd);
   if (det.terminus.frame < minSurvival && det.terminus.reason !== "endOfSpec") {
     return { fit: null, failure: "survival" };
+  }
+
+  // Study-only probe (no-op unless a study script enabled it): record what a
+  // widened acceptance window would have admitted. Pure observation — gates
+  // below run unchanged.
+  if (landingProbeEligible && landingProbeRecords !== null) {
+    probeLandingWindow(det, gap, lines, allContactFrames, axisMeasureEnd);
   }
 
   // Hard gate 2: a landing event near gap.endFrame ±1.
@@ -655,12 +764,13 @@ function intersectsLineIds(
 export function countOffBeatLandings(
   events: DetEvent[], startFrame: number, endFrame: number,
   contactFrames: number[],
+  tol = 1,
 ): number {
   let n = 0;
   for (const e of events) {
     if (e.type !== "landing") continue;
     if (e.frame < startFrame || e.frame > endFrame) continue;
-    const nearAnyContact = contactFrames.some((cf) => Math.abs(cf - e.frame) <= 1);
+    const nearAnyContact = contactFrames.some((cf) => Math.abs(cf - e.frame) <= tol);
     if (!nearAnyContact) n++;
   }
   return n;

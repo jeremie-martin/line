@@ -76,6 +76,11 @@ const CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX = 6;
 const CONTACT_CENTERED_REDIR_CONTACT_SPEED_SPAN_PX = 4;
 const CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES = 125_000;
 const CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES = 75_000;
+const CONTACT_CENTERED_REDIR_ENTRY_SHIFT_MAX_DEG = 10;
+const CONTACT_CENTERED_REDIR_ENTRY_TARGET_START = 0.30;
+const CONTACT_CENTERED_REDIR_ENTRY_TARGET_SPAN = 0.25;
+const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES = 125_000;
+const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES = 50_000;
 // Impact-driven post-contact CURVATURE (default ON; LR_IMPACT_CURVE=0 reverts). The redir metric rewards
 // the catch surface ROTATING the CoM velocity through the ~6-frame window
 // (empirically: achieved impact ≈ turnNetDeg ρ0.98, driven by tangentChangeDeg +
@@ -994,7 +999,7 @@ function sampleContactCenteredLines(
     postLength = lerp(postLength, 28, blend);
   }
 
-  // Impact-ARRIVAL launch (LR_IMPACT_ARRIVAL=1, experiment). The feasibility
+  // Impact-ARRIVAL launch (default ON; LR_IMPACT_ARRIVAL=0 reverts). The feasibility
   // bound says a hard beat needs a steep arrival: the crossing angle is capped
   // by the vertical velocity built falling INTO it (vy_in ≤ g·N/2). Today the
   // launch toward a hard beat is shaped by speed/elevation/amplitude but never
@@ -1004,7 +1009,7 @@ function sampleContactCenteredLines(
   // spanned across the attempt batch and cost-ranked like every other launch
   // lever. Same formula as the amplitude arc — they agree when both fire.
   if (
-    PROCESS_ENV?.LR_IMPACT_ARRIVAL === "1"
+    PROCESS_ENV?.LR_IMPACT_ARRIVAL !== "0"
     && gap.nextImpact !== undefined && nextGapFrames !== null
   ) {
     // Scarce-budget only: the pop arrivals add COMPLETABLE shapes at 50k
@@ -1061,12 +1066,26 @@ function sampleContactCenteredLines(
     postCurveBias = lerp(postCurveBias, -IMPACT_CURVE_FRONTLOAD, impactCurveP);
   }
 
-  // Impact lip/bevel steering REMOVED for the redir-impact migration (see the
-  // contact-angle note above). buildImpactBevelLines still runs with a 0 shift
-  // (no bevel line); recover the deleted lip/bevel helpers from git (d3e4973^).
+  // Keep the old lip/bevel path neutral under the redir-impact metric. A separate
+  // redir-aware entry adjustment below only changes the final approach segment: if
+  // first contact happens on that segment, the fired surface now participates in the
+  // same velocity-redirection contract as the post-contact curvature.
   const impactLipShiftDeg = 0;
-  const entryBevelAngleDeg = contactAngleDeg -
-    impactLipShiftDeg * CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT;
+  const entryRedirShiftDeg = contactCenteredRedirEntryAngleShiftDeg(
+    targetState,
+    targets.impact,
+    contactAngleDeg,
+    gapFrames,
+    nextGapFrames,
+    attempt,
+  );
+  const entryBevelAngleDeg = clamp(
+    contactAngleDeg -
+      impactLipShiftDeg * CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT -
+      entryRedirShiftDeg,
+    -30,
+    65,
+  );
   const preLines = buildPreContactLines(
     lineIdStart, contactPoint, preAngleDeg, contactAngleDeg, preLength, preSegments,
     entryBevelAngleDeg,
@@ -1170,6 +1189,55 @@ function contactCenteredRedirContactAngleShiftDeg(
   const shiftDeg = clamp(rawMissingDelta, 0, CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG)
     * mature * speedPressure * targetPressure * clamp(ccSpanBlends(attempt).launch, 0, 1);
   return -shiftDeg;
+}
+
+function contactCenteredRedirEntryAngleShiftDeg(
+  targetState: ImpactFrameTargetState,
+  targetImpact: number | undefined,
+  contactAngleDeg: number,
+  gapFrames: number,
+  nextGapFrames: number | null,
+  attempt: number,
+): number {
+  if (targetImpact === undefined) return 0;
+  const mature = smoothstep(
+    (currentCompileBudgetFrames - CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES) /
+      CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES,
+  );
+  const speedPressure = smoothstep(
+    (targetState.speed - CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX) /
+      CONTACT_CENTERED_REDIR_CONTACT_SPEED_SPAN_PX,
+  );
+  if (mature <= 0 || speedPressure <= 0) return 0;
+
+  const spacingFrames = Math.min(
+    Math.max(1, gapFrames),
+    nextGapFrames === null ? ARC_LEN_ROOM_SPARSE_FRAMES : Math.max(1, nextGapFrames),
+  );
+  const densePressure = 1 - smoothstep(
+    (spacingFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
+      (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
+  );
+  if (densePressure <= 0) return 0;
+
+  const target = Math.min(targetImpact, impactCeiling(targetState.speed));
+  const targetPressure = smoothstep(
+    (target - CONTACT_CENTERED_REDIR_ENTRY_TARGET_START) /
+      CONTACT_CENTERED_REDIR_ENTRY_TARGET_SPAN,
+  );
+  if (targetPressure <= 0) return 0;
+
+  const deltaDeg = normalizeAngleDeg(contactAngleDeg - targetState.angleDeg);
+  const currentPredicted = predictedRedirImpactAtAngleDelta(targetState.speed, deltaDeg);
+  const missingImpact = target - currentPredicted;
+  if (missingImpact <= 0) return 0;
+
+  const targetPerp = clamp(target * CALIB.REDIR_CAP / Math.max(1, targetState.speed), 0, 0.95);
+  const neededDeltaDeg = (Math.asin(targetPerp) * 180) / Math.PI;
+  const rawMissingDelta = Math.max(0, neededDeltaDeg - Math.abs(deltaDeg));
+  return clamp(rawMissingDelta, 0, CONTACT_CENTERED_REDIR_ENTRY_SHIFT_MAX_DEG) *
+    mature * speedPressure * densePressure * targetPressure *
+    clamp(ccSpanBlends(attempt).launch, 0, 1);
 }
 
 /** Pressure [0,1] for the impact-driven curvature modulation: ramps with the

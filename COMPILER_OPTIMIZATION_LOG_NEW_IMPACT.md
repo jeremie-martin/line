@@ -832,3 +832,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `478.3 -> 473.8`, `Delta=-4.5`, 95% CI `[-21.2, 1.3]`, `P(Delta<=0)=84.0%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -12.5`, `300k -1.5`; validity stayed `100%`.
 - Diagnostics: steepening the bevel is too aggressive. It preserves validity but damages mature quality, especially `200k`, so the accepted `2x` bevel angle remains the useful endpoint.
 - Status: reverted after focused negative signal; no full preview, no canonical run, and no behavior commit.
+
+## impact-lowair-hard-aircost15-slice-01
+
+- Baseline used: `impact-bevel6x2-01` behavior at commit `6dfa80c`.
+- Hypothesis: `drums_pendulum` low-air hard-impact gaps still show large air overshoot before the beat. Give local candidate cost extra `air` weight only when `air <= 0.25` and `impact >= 0.75`, so the existing pool prefers more grounded hard-impact candidates without changing geometry.
+- Code changes made: temporarily added `LOCAL_LOW_AIR_HIGH_IMPACT_AIR_COST_WEIGHT = 1.5` in `scripts/v0/core/candidate.ts` and routed `axisCost(...)` through a helper that applied the extra weight only to `air` under the low-air/high-impact gate. The accepted `impact` local cost stayed at `0.5`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/core/candidate.ts').then(() => console.log('candidate import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-hard-aircost15-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `478.3 -> 479.3`, `Delta=+1.0`, 95% CI `[-2.4, 7.4]`, `P(Delta<=0)=39.5%`. Per-budget deltas: `50k -9.0`, `100k +11.0`, `200k +0.0`, `300k -0.1`; validity moved `50k 100% -> 99%` and stayed `100%` otherwise.
+- Diagnostics: selection pressure on low-air hard-impact candidates is a noisy budget tradeoff, not a mature residual fix. It helps `100k`, but only by hurting `50k`, and leaves the targeted mature `drums_pendulum` rows essentially unchanged.
+- Status: reverted after focused inconclusive signal; no full preview, no canonical run, and no behavior commit.

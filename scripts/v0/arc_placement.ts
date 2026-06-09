@@ -24,6 +24,7 @@ import {
   type TrackLine,
   authoredSpeedToPx,
   elevationToLaunchVy,
+  impactCeiling,
 } from "./types.ts";
 
 const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
@@ -60,6 +61,12 @@ const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
 const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
 const CONTACT_CENTERED_GUIDED_POINT_SPREAD = 0.08;
 const CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG = 3;
+const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_MAX_DEG = 3;
+const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_GAIN = 1.0;
+const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPEED_START_PX = 7;
+const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPEED_SPAN_PX = 4;
+const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_START_FRAMES = 125_000;
+const CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPAN_FRAMES = 50_000;
 // Sparse gaps have enough room to absorb a slightly harder high-impact catch;
 // dense gaps only take the extra bias once mature budgets can absorb it.
 const CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG = 1;
@@ -802,6 +809,13 @@ function sampleContactCenteredLines(
       -14,
       65,
     );
+    contactAngleDeg = clamp(
+      contactAngleDeg + contactCenteredPredictiveImpactAngleShiftDeg(
+        targetState.velocity, targetState.speed, contactAngleDeg, targets.impact, span,
+      ),
+      -14,
+      65,
+    );
   }
   const preLength = clamp(
     (6 + guidedRolls.preLengthRoll * 28)
@@ -994,6 +1008,48 @@ function contactCenteredImpactAngleShiftDeg(nextGapFrames: number | null): numbe
   return CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG +
     CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG * room +
     CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG * denseMature;
+}
+
+function contactCenteredPredictiveImpactAngleShiftDeg(
+  velocity: { x: number; y: number },
+  speedPx: number,
+  contactAngleDeg: number,
+  targetImpact: number,
+  span: number,
+): number {
+  const mature = smoothstep(
+    (currentCompileBudgetFrames - CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_START_FRAMES) /
+      CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPAN_FRAMES,
+  );
+  const speedPressure = smoothstep(
+    (speedPx - CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPEED_START_PX) /
+      CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_SPEED_SPAN_PX,
+  );
+  if (mature <= 0 || speedPressure <= 0 || span <= 0) return 0;
+
+  const predictedImpact = predictedImpactAtContactAngle(velocity, contactAngleDeg);
+  const target = Math.min(targetImpact, impactCeiling(speedPx));
+  const missingImpact = target - predictedImpact;
+  if (missingImpact <= 0) return 0;
+
+  const rawNeededDeg =
+    (missingImpact * CALIB.IMPACT_CAP / Math.max(1, speedPx)) * (180 / Math.PI);
+  const shiftDeg = clamp(
+    rawNeededDeg * CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_GAIN,
+    0,
+    CONTACT_CENTERED_IMPACT_PREDICTIVE_SHIFT_MAX_DEG,
+  );
+  return -shiftDeg * speedPressure * mature * span;
+}
+
+function predictedImpactAtContactAngle(
+  velocity: { x: number; y: number },
+  contactAngleDeg: number,
+): number {
+  const angleRad = (contactAngleDeg * Math.PI) / 180;
+  const tangentX = Math.cos(angleRad);
+  const tangentY = Math.sin(angleRad);
+  return clamp(Math.abs(tangentX * velocity.y - tangentY * velocity.x) / CALIB.IMPACT_CAP, 0, 1);
 }
 
 function contactCenteredImpactLipShiftDeg(

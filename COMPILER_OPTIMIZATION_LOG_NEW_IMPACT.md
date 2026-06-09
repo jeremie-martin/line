@@ -622,3 +622,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `472.4 -> 470.9`, `Delta=-1.6`, 95% CI `[-4.5, 0.2]`, `P(Delta<=0)=95.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.5`, `300k -2.4`.
 - Diagnostics: forcing more grounded ride-out in the low-air dense hard-impact corner hurts mature quality. The ranker already balances the air/impact tradeoff better than this local length pressure.
 - Status: reverted after focused reject; no canonical run and no behavior commit.
+
+## impact-lowair-dense-angle-floor-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: archived worst-row diagnostics showed many low-air/dense/high-impact landings had enough incoming speed but nearly parallel incoming velocity and fired tangent, with several selected contacts pinned at the current `-14deg` final tangent floor. Instead of exact target-angle steering, lower only the contact-centered negative angle floor for mature low-air dense hard-impact gaps so the accepted impact shift can express a slightly harder catch.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_LOW_AIR_DENSE_BASE_MIN_EXTRA_DEG = 6` and `CONTACT_CENTERED_IMPACT_LOW_AIR_DENSE_FINAL_MIN_EXTRA_DEG = 8` in `scripts/v0/arc_placement.ts`; the base contact-angle clamp and final impact clamp were lowered by high-impact pressure, low-air pressure, dense next-contact pressure, and the existing `150k..200k` mature budget ramp. `50k/100k` were intended to stay byte-equivalent.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-dense-angle-floor-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `472.4 -> 472.4`, `Delta=-0.0`, 95% CI `[-0.9, 1.0]`, `P(Delta<=0)=59.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.1`, `300k -0.2`; validity stayed `100%` at all budgets on the focused intersection.
+- Diagnostics: the lowered floor did not cause the validity collapse seen in exact impact-angle steering, but it also did not improve the aggregate. The worst `drums_pendulum` rows remained the bottom 300k cases and the small `200k` lift was given back at `300k`, so the current `-14deg` floor is not the main accepted-path limit.
+- Status: reverted after focused neutral/negative signal; no canonical run and no behavior commit.

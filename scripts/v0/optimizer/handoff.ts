@@ -1364,9 +1364,10 @@ function popNextFrontierNode(
 function farBackFrontierPulseInterval(key: LeafKey | null): number | null {
   if (key?.contract_passed !== true) return null;
   const width = QUALITY_FAR_BACK_ZERO_AXIS_QUALITY - QUALITY_FAR_BACK_FULL_AXIS_QUALITY;
-  const weakness = width <= 0
+  const linearWeakness = width <= 0
     ? 0
     : clamp01((QUALITY_FAR_BACK_ZERO_AXIS_QUALITY - key.axis_quality) / width);
+  const weakness = smoothstep(linearWeakness);
   if (weakness <= 0) return null;
   return Math.max(
     1,

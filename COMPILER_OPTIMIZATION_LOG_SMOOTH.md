@@ -96,3 +96,251 @@ first post-rebase baseline.
 - Per-budget deltas: `50k +0.0`, `100k +0.9`, `200k +0.9`, `300k +1.2`;
   validity unchanged (`1898/1920`, `300k 480/480`).
 - Status: accepted; this archive becomes the next official comparison baseline.
+
+## high-air-length-pressure-smooth-01
+
+- Mechanism: high-air length-blend pressure for air-targeted grounded ride-out.
+- Continuous replacement: linear clamped high-air pressure became `smoothstep`
+  over the same `0.68..0.92` air band.
+- Run: `generated/golden-runs/high-air-length-pressure-smooth-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: REJECT`; headline `515.2 -> 513.4`, delta `-1.9`,
+  CI `[-4.9, 0.7]`.
+- Per-budget deltas: `50k -21.5`, `100k -0.9`, `200k +0.1`, `300k -0.3`;
+  50k validity dropped `96% -> 95%`.
+- Status: rejected and reverted; smoothing this pressure under-serves scarce
+  high-air ride-out length.
+
+## sustained-carry-pressure-smooth-01
+
+- Mechanism: sustained contact-carry pressure for very short next gaps and low air.
+- Continuous replacement: linear clamped next-gap and air-fade pressures became
+  `smoothstep` over the same bands.
+- Run: `generated/golden-runs/sustained-carry-pressure-smooth-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 514.0`, delta `-1.3`,
+  CI `[-6.1, 0.8]`.
+- Per-budget deltas: `50k -4.2`, `100k -6.3`, `200k +0.1`, `300k +0.0`;
+  100k validity dropped `100% -> 99%`.
+- Status: rejected; trying budget-gated smooth carry that preserves 50k/100k
+  linear behavior and only smooths 200k+.
+
+## sustained-carry-pressure-budget-smooth-02
+
+- Mechanism: same sustained contact-carry pressure.
+- Continuous replacement: blend old linear pressure to smooth pressure by compile
+  budget; 50k/100k stay linear, 200k+ use smooth pressure.
+- Run: `generated/golden-runs/sustained-carry-pressure-budget-smooth-02`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 515.3`, delta `+0.0`,
+  CI `[-0.2, 0.3]`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.1`, `300k +0.0`;
+  validity unchanged.
+- Status: rejected and reverted; high-budget-only effect is too small to keep.
+
+## dense-contact-pressure-smooth-01
+
+- Mechanism: dense next-contact pressure in the active contact-centered generator.
+- Continuous replacement: linear clamped dense pressure over the same next-gap band
+  became `smoothstep`.
+- Run: `generated/golden-runs/dense-contact-pressure-smooth-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 514.9`, delta `-0.4`,
+  CI `[-7.1, 8.1]`.
+- Per-budget deltas: `50k -17.4`, `100k +12.0`, `200k -0.9`, `300k -1.3`;
+  validity dropped `1898/1920 -> 1896/1920`.
+- Status: rejected; trying a budget window because the only useful signal is at
+  100k.
+
+## dense-contact-pressure-budget-window-02
+
+- Mechanism: same dense next-contact pressure.
+- Continuous replacement: blend linear dense pressure to smooth dense pressure by
+  compile budget; 50k and 200k+ remain linear, 100k gets the smooth pressure.
+- Run: `generated/golden-runs/dense-contact-pressure-budget-window-02`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 517.1`, delta `+1.8`,
+  CI `[-0.5, 7.8]`, `P(delta<=0)=31.4%`.
+- Per-budget deltas: `50k +0.0`, `100k +12.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged.
+- Status: rejected; positive but not accepted, with effect isolated to one budget.
+
+## dense-contact-pressure-budget-window-boost-03
+
+- Mechanism: same dense next-contact pressure.
+- Continuous replacement: same 100k-only budget window, but with a `1.25x` blend
+  gain to test whether the 100k signal could be strengthened.
+- Run: `generated/golden-runs/dense-contact-pressure-budget-window-boost-03`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 514.1`, delta `-1.2`,
+  CI `[-9.6, 6.1]`.
+- Per-budget deltas: `50k +0.0`, `100k -7.7`, `200k +0.0`, `300k +0.0`;
+  100k validity dropped `100% -> 99%`.
+- Status: rejected and reverted; dense-contact smoothing is too unstable to keep.
+
+## deadline-pressure-smooth-01
+
+- Mechanism: short-current-gap deadline pressure in the active contact-centered
+  generator.
+- Continuous replacement: linear clamped deadline pressure over the same `18..8`
+  frame band became `smoothstep`.
+- Run: `generated/golden-runs/deadline-pressure-smooth-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 515.3`, delta `+0.0`,
+  CI `[-1.2, 1.3]`.
+- Per-budget deltas: `50k +0.1`, `100k +0.1`, `200k +0.0`, `300k -0.0`;
+  validity unchanged.
+- Status: rejected and reverted; effect is too small to keep or tune.
+
+## speed-carry-pressure-smooth-01
+
+- Mechanism: speed-carry pressure rise/fade in the active contact-centered
+  generator.
+- Continuous replacement: linear clamped target-speed carry rise and high-speed
+  fade became `smoothstep` over the same speed bands.
+- Run: `generated/golden-runs/speed-carry-pressure-smooth-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 514.6`, delta `-0.7`,
+  CI `[-6.5, 5.4]`.
+- Per-budget deltas: `50k -21.0`, `100k +4.9`, `200k +0.5`, `300k +0.1`;
+  50k validity dropped `96% -> 95%`.
+- Status: rejected; trying budget-gated variant to preserve 50k behavior.
+
+## speed-carry-pressure-budget-smooth-02
+
+- Mechanism: same speed-carry pressure.
+- Continuous replacement: blend linear carry pressure to smooth carry pressure by
+  compile budget; 50k stays linear, 100k+ gets smooth carry.
+- Run: `generated/golden-runs/speed-carry-pressure-budget-smooth-02`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 516.2`, delta `+0.9`,
+  CI `[-4.3, 7.1]`, `P(delta<=0)=37.3%`.
+- Per-budget deltas: `50k +0.0`, `100k +4.9`, `200k +0.5`, `300k +0.1`;
+  validity unchanged.
+- Status: rejected and reverted; positive but far below accept confidence.
+
+## fwd-eval-rank-budget-blend-01
+
+- Mechanism: handoff candidate ranker transition from local cost to true forward
+  score.
+- Continuous replacement: replaced the abrupt forward-eval ranker switch with a
+  budget `smoothstep` blend from local score to forward score.
+- Run: `generated/golden-runs/fwd-eval-rank-budget-blend-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: REJECT`; headline `515.2 -> 508.2`, delta `-7.0`,
+  CI `[-9.0, -5.3]`.
+- Per-budget deltas: `50k +0.0`, `100k -45.5`, `200k +0.0`, `300k +0.0`;
+  validity unchanged.
+- Status: rejected and reverted; the partial local/forward blend destroys the
+  100k ranker, so the existing hard switch stays.
+
+## speed-error-pressure-smooth-01
+
+- Mechanism: contact-centered speed-error pressure for braking/acceleration bias.
+- Continuous replacement: linear clamped brake and acceleration pressures became
+  `smoothstep` over the same speed-error band.
+- Run: `generated/golden-runs/speed-error-pressure-smooth-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: REJECT`; headline `515.2 -> 506.3`, delta `-9.0`,
+  CI `[-17.5, -1.9]`.
+- Per-budget deltas: `50k +3.6`, `100k -15.5`, `200k -8.6`, `300k -9.2`;
+  100k validity dropped `100% -> 99%`.
+- Status: rejected and reverted; smoothing speed-error pressure broadly weakens
+  mid/high-budget contact placement.
+
+## cc-span-blend-smoothstep-01
+
+- Mechanism: contact-centered launch/length attempt-span grid.
+- Continuous replacement: eased each diagonal/anti-diagonal blend coordinate with
+  `smoothstep`, preserving endpoints and the same 16-point grid topology.
+- Run: `generated/golden-runs/cc-span-blend-smoothstep-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 515.1`, delta `-0.1`,
+  CI `[-4.8, 5.4]`.
+- Per-budget deltas: `50k -9.5`, `100k +4.4`, `200k -0.2`, `300k -0.0`;
+  50k validity dropped `96% -> 95%`.
+- Status: rejected and reverted; eased span positions do not improve the weighted
+  curve and hurt scarce-budget completion.
+
+## start-support-offset-pressure-01
+
+- Mechanism: startup support start-speed offsets for low-air first contacts.
+- Continuous replacement: replaced the abrupt low-air offset set switch with a
+  smooth pressure that fades side speed offsets to the center speed across the
+  existing low-air transition band.
+- Run: `generated/golden-runs/start-support-offset-pressure-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 515.3`, delta `+0.0`,
+  CI `[-0.3, 0.5]`.
+- Per-budget deltas: `50k +0.1`, `100k -0.1`, `200k +0.1`, `300k +0.0`;
+  validity unchanged.
+- Status: rejected and reverted; effect is too small and seed-hungry to keep.
+
+## impact-template-pressure-lanes-01
+
+- Mechanism: impact redirect-catch template lane admission.
+- Continuous replacement: made template lanes default-on only through smooth
+  impact-pressure, budget, and attempt ramps; deterministic lane density replaced
+  the hard pressure/attempt/modulo gate, with 50k/100k protected by budget pressure.
+- Run: `generated/golden-runs/impact-template-pressure-lanes-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 516.5`, delta `+1.2`,
+  CI `[-0.7, 3.1]`, `P(delta<=0)=10.0%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +2.0`, `300k +1.3`;
+  validity unchanged.
+- Status: not kept; strong positive miss, tried a denser lane formulation.
+
+## impact-template-pressure-lanes-density-02
+
+- Mechanism: same impact template lane admission.
+- Continuous replacement: increased maximum smooth lane density from roughly one
+  third to one half of eligible mature pressured attempts.
+- Run: `generated/golden-runs/impact-template-pressure-lanes-density-02`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 516.1`, delta `+0.8`,
+  CI `[-1.2, 2.8]`, `P(delta<=0)=19.9%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.3`, `300k +0.9`;
+  validity unchanged.
+- Status: not kept; more lanes weakened the signal, tried a tighter impact ramp.
+
+## impact-template-pressure-targeted-03
+
+- Mechanism: same impact template lane admission.
+- Continuous replacement: restored one-third maximum lane density and narrowed the
+  smooth impact-pressure ramp so marginal impact beats receive fewer lanes.
+- Run: `generated/golden-runs/impact-template-pressure-targeted-03`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 516.4`, delta `+1.2`,
+  CI `[-0.7, 3.1]`, `P(delta<=0)=10.4%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.9`, `300k +1.3`;
+  validity unchanged.
+- Status: rejected and reverted after three canonical attempts; the mechanism is
+  promising but does not meet the accept gate at canonical seed count.
+
+## terminal-polish-budget-ramp-01
+
+- Mechanism: terminal clone-and-test polish admission in handoff search.
+- Continuous replacement: default polish admission changed from hard off to a
+  budget-ramped smooth deterministic density, off below 150k and reaching full
+  density by 300k.
+- Run: `generated/golden-runs/terminal-polish-budget-ramp-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: INCONCLUSIVE`; headline `515.2 -> 515.2`, delta `-0.0`,
+  CI `[-0.1, 0.0]`, `P(delta<=0)=76.4%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k -0.0`;
+  validity unchanged.
+- Status: rejected and reverted; the extra terminal polish work is effectively
+  neutral and slightly negative at canonical precision.
+
+## quality-far-back-weakness-smooth-01
+
+- Mechanism: far-back quality repair pulse interval after a passing output exists.
+- Continuous replacement: eased incumbent axis-weakness pressure with `smoothstep`
+  before mapping it to the existing `16..128` frontier pulse interval.
+- Run: `generated/golden-runs/quality-far-back-weakness-smooth-01`.
+- Decide against accepted baseline `arc-len-room-smoothstep-budget-02`:
+  `VERDICT: ACCEPT`; headline `515.2 -> 515.4`, delta `+0.1`,
+  CI `[-0.0, 0.3]`, `P(delta<=0)=3.3%`.
+- Per-budget deltas: `50k -0.0`, `100k -0.0`, `200k +0.1`, `300k +0.2`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: accepted; this archive becomes the next official comparison baseline.

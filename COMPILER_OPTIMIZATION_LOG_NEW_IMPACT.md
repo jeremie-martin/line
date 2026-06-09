@@ -889,3 +889,16 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `481.1 -> 481.3`, `Delta=+0.2`, 95% CI `[-0.3, 0.6]`, `P(Delta<=0)=25.9%`. Per-budget deltas: `50k +0.0`, `100k +1.0`, `200k +0.0`, `300k +0.0`; validity stayed `100%`.
 - Diagnostics: the endpoint change only added about one point at `100k` on the focused slice after the accepted half-active ramp had already captured the useful gain. The effect is direction-positive but too small to justify a canonical run.
 - Status: reverted after focused inconclusive signal; no full preview, no canonical run, and no behavior commit.
+
+## impact-midair-lip-air72-01
+
+- Baseline used: `impact-lip-bevel-early125-01` behavior at commit `8448668`.
+- Hypothesis: the accepted dense lip/bevel air gate (`smoothstep((0.65 - air) / 0.35)`) leaves hard `air ~= 0.60` landings almost untouched even though report diagnostics show near-zero achieved impact on those rows. Raise only the gate's air cutoff to `0.72`, keeping the same span and high-impact/dense/budget gates, so mid-air hard hits get a meaningful local surface shift while high-air opening rows around `0.82` remain inactive.
+- Code changes made: added `CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_MAX = 0.72` and `CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_SPAN = 0.35` in `scripts/v0/arc_placement.ts`; `contactCenteredImpactLipShiftDeg(...)` now computes air pressure from those constants. Candidate counts, RNG draws, lip angle, bevel length, and budget ramp are otherwise unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Focused probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-midair-lip-air72-slice-01`
+- Focused decide result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `481.1 -> 484.6`, `Delta=+3.5`, 95% CI `[0.5, 7.2]`, `P(Delta<=0)=1.1%`. Per-budget deltas: `50k +0.0`, `100k +2.6`, `200k +3.9`, `300k +4.1`; validity stayed `100%`.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-midair-lip-air72-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `500.0 -> 505.1`, `Delta=+5.0`, 95% CI `[2.4, 8.1]`, `P(Delta<=0)=0.0%`. Per-budget deltas: `50k +0.0`, `100k +2.7`, `200k +5.8`, `300k +6.1`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Diagnostics: broadening to `0.72` captured the mid-air hard-impact residual without reproducing the earlier high-air broad-lip collapse. The gain is a clean quality lift at every non-50k budget and keeps `50k` byte-equivalent.
+- Status: kept and committed; new canonical baseline is `impact-midair-lip-air72-01`.

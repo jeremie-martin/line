@@ -65,6 +65,8 @@ const CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG = 3;
 const CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG = 1;
 const CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG = 1;
 const CONTACT_CENTERED_IMPACT_DENSE_LIP_SHIFT_DEG = 14;
+const CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_MAX = 0.72;
+const CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_SPAN = 0.35;
 const CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX = 6;
 const CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT = 2;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
@@ -976,7 +978,10 @@ function contactCenteredImpactLipShiftDeg(
 ): number {
   if (targets.impact === undefined || nextGapFrames === null) return 0;
   const highImpact = smoothstep((targets.impact - 0.75) / 0.15);
-  const airPressure = smoothstep((0.65 - air) / 0.35);
+  const airPressure = smoothstep(
+    (CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_MAX - air) /
+      CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_SPAN,
+  );
   const dense = 1 - smoothstep(
     (nextGapFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
       (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),

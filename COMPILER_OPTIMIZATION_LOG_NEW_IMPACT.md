@@ -1000,3 +1000,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `488.6 -> 488.9`, `Delta=+0.3`, 95% CI `[-1.7, 2.4]`, `P(Delta<=0)=34.6%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.6`, `300k +0.3`; validity unchanged.
 - Diagnostics: extending the mature room falloff did move the intended mature budgets slightly, but the effect is far smaller than the accepted high82 bevel and too row-mixed for a canonical run.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-repair-min50-slice-01
+
+- Baseline used: `impact-high82-bevel6-01` behavior at commit `9c6696c`.
+- Hypothesis: some 50k invalid rows might have a complete-but-weak incumbent early enough for suffix repair to help. Lower `LR_REPAIR_MIN_BUDGET` from the default `100k` to `50k` as an env-gated probe before considering any source default change.
+- Code changes made: none; ran with `LR_REPAIR_MIN_BUDGET=50000`.
+- Probe command: `LR_ENGINE=wasm LR_REPAIR_MIN_BUDGET=50000 npm run golden -- --jobs=32 --specs=solo_run,drums_crescendo,drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,verse_chorus,drums_swell,drums_tide,cold_start,big_air_ramp,pop_train,leap_cadence,skyline_push --archive-dir=generated/golden-runs/impact-repair-min50-slice-01`
+- Raw focused scores: headline `461.76`, with budget scores `50k 272.05` valid `227/240`, `100k 441.91` valid `239/240`, `200k 480.27` valid `240/240`, `300k 487.66` valid `240/240`.
+- Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `462.0 -> 461.8`, `Delta=-0.2`, 95% CI `[-0.5, 0.0]`, `P(Delta<=0)=96.0%`. Per-budget deltas: `50k -2.5`, `100k +0.0`, `200k +0.0`, `300k +0.0`; focused `50k` validity regressed from `97%` to `95%`.
+- Diagnostics: the existing source comment is correct for impact-era behavior too: carving repair budget at `50k` steals from scarce completion and worsens the exact invalid-heavy slice. Keep the repair gate at `100k`.
+- Status: rejected after focused signal; no source change and no canonical run.

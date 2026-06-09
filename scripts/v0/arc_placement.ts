@@ -69,6 +69,13 @@ const CONTACT_CENTERED_GUIDED_POINT_SPREAD = 0.08;
 const CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX = 6;
 const CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT = 2;
 const CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT = 2;
+const CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG = 4;
+const CONTACT_CENTERED_REDIR_CONTACT_TARGET_START = 0.55;
+const CONTACT_CENTERED_REDIR_CONTACT_TARGET_SPAN = 0.35;
+const CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX = 6;
+const CONTACT_CENTERED_REDIR_CONTACT_SPEED_SPAN_PX = 4;
+const CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES = 125_000;
+const CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES = 75_000;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
@@ -778,14 +785,20 @@ function sampleContactCenteredLines(
       + (guidedRolls.contactAngleRoll - 0.5) * 12,
     -12, 65,
   );
-  // Impact contact-angle / lip / bevel steering REMOVED for the redir-impact
-  // migration (2026-06-09): the old analytic shift biased toward the one-frame
-  // normal-closing metric, the wrong quantity for the windowed velocity-redirection
-  // impact now scored. Candidate-cost ranking (which scores redir) drives impact
-  // instead. The deleted helpers/constants are recoverable from git (commit
-  // d3e4973^) if a deferred redir-aware steering follow-up wants them as a starting
-  // point — note they used the IMPACT_CAP (÷5) scale and must be ported to REDIR_CAP.
-  // RNG-neutral: this steering drew no RNG.
+  // Keep lip/bevel steering neutral under the redir-impact metric; the subtle
+  // contact-angle bias below uses the new windowed redirection scale directly.
+  if (targets.impact !== undefined) {
+    contactAngleDeg = clamp(
+      contactAngleDeg + contactCenteredRedirContactAngleShiftDeg(
+        targetState,
+        targets.impact,
+        contactAngleDeg,
+        attempt,
+      ),
+      -14,
+      65,
+    );
+  }
   const preLength = clamp(
     (6 + guidedRolls.preLengthRoll * 28)
       * (1 - 0.45 * clearancePressure)
@@ -963,6 +976,55 @@ function sampleContactCenteredLines(
     postLength, postSegments, postCurveBias, firstPostAngleDeg,
   );
   return [...preLines, ...impactBevelLines, ...postLines];
+}
+
+function contactCenteredRedirContactAngleShiftDeg(
+  targetState: ImpactFrameTargetState,
+  targetImpact: number | undefined,
+  contactAngleDeg: number,
+  attempt: number,
+): number {
+  if (targetImpact === undefined) return 0;
+  const mature = smoothstep(
+    (currentCompileBudgetFrames - CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES) /
+      CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES,
+  );
+  const speedPressure = smoothstep(
+    (targetState.speed - CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX) /
+      CONTACT_CENTERED_REDIR_CONTACT_SPEED_SPAN_PX,
+  );
+  if (mature <= 0 || speedPressure <= 0) return 0;
+
+  const target = Math.min(targetImpact, impactCeiling(targetState.speed));
+  const targetPressure = smoothstep(
+    (target - CONTACT_CENTERED_REDIR_CONTACT_TARGET_START) /
+      CONTACT_CENTERED_REDIR_CONTACT_TARGET_SPAN,
+  );
+  if (targetPressure <= 0) return 0;
+
+  const deltaDeg = normalizeAngleDeg(contactAngleDeg - targetState.angleDeg);
+  const currentPredicted = predictedRedirImpactAtAngleDelta(targetState.speed, deltaDeg);
+  const missingImpact = target - currentPredicted;
+  if (missingImpact <= 0) return 0;
+
+  const targetPerp = clamp(target * CALIB.REDIR_CAP / Math.max(1, targetState.speed), 0, 0.95);
+  const neededDeltaDeg = (Math.asin(targetPerp) * 180) / Math.PI;
+  const rawMissingDelta = Math.max(0, neededDeltaDeg - Math.abs(deltaDeg));
+  const shiftDeg = clamp(rawMissingDelta, 0, CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG)
+    * mature * speedPressure * targetPressure * clamp(ccSpanBlends(attempt).launch, 0, 1);
+  return -shiftDeg;
+}
+
+function predictedRedirImpactAtAngleDelta(speedPx: number, deltaDeg: number): number {
+  const deltaRad = (deltaDeg * Math.PI) / 180;
+  return clamp(Math.abs(Math.sin(deltaRad)) * Math.max(0, speedPx) / CALIB.REDIR_CAP, 0, 1);
+}
+
+function normalizeAngleDeg(deg: number): number {
+  let out = deg % 360;
+  if (out > 180) out -= 360;
+  if (out < -180) out += 360;
+  return out;
 }
 
 function guideContactCenteredRolls(

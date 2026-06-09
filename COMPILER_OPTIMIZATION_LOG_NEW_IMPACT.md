@@ -775,3 +775,13 @@ same normalized normal-impact scale the scorer reports.
 - Full-spec preview decide result: indicative `VERDICT: INCONCLUSIVE`; 40-spec scope headline `496.4 -> 496.7`, `Delta=+0.3`, 95% CI `[-0.8, 1.4]`, `P(Delta<=0)=31.6%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.3`, `300k +0.4`; validity unchanged (`50k 97%`, `100k+ 100%`).
 - Diagnostics: the narrowed stream is direction-positive on the focused slice but too small and diluted on full scope. Extra hard-impact samples may be a useful ingredient, but this form does not clear the decision threshold and consumes mature search budget.
 - Status: reverted after full-scope inconclusive signal; no canonical run and no behavior commit.
+
+## impact-analytic-angle10-slice-01
+
+- Baseline used: `impact-midair-dense-lip14-01` behavior at commit `888da8a`.
+- Hypothesis: fixed high-impact angle shifts are crude; compute the contact tangent that would produce the requested normal-impact component from the incoming velocity, then blend a capped `10deg` mature-budget move toward the nearest analytic solution across the attempt span.
+- Code changes made: temporarily added an analytic impact-angle helper in `scripts/v0/arc_placement.ts`, gated by high-impact pressure and a `150k..200k` mature ramp. It capped desired normal speed at `0.56 * enteringSpeed`, picked the closest tangent solution, and blended up to `10deg`.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-analytic-angle10-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a large negative point estimate; 20-spec intersection headline `476.0 -> 465.0`, `Delta=-11.1`, 95% CI `[-55.4, 8.3]`, `P(Delta<=0)=70.2%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -19.8`, `300k -10.8`; validity fell at `200k` (`100% -> 99%`) and stayed nominally `100%` at `300k`.
+- Diagnostics: the analytic target was too aggressive for the current line family. It improved some high-pop sparse rows but damaged dense chains, pushed `drums_pendulum` scores lower, degraded opening rows, and made `drums_signature` seed `5` invalid at mature budget. Direct normal-impact targeting needs a more constrained geometry shape than rotating the whole contact tangent.
+- Status: reverted after focused negative signal; no full preview, no canonical run, and no behavior commit.

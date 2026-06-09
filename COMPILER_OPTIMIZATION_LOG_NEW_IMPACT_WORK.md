@@ -30,6 +30,14 @@ Accepted 2026-06-10:
 - Code shape: `LR_IMPACT_POST_TURN=0` reverts the new sampler. At mature budgets only, high bounded impact targets (0.60/0.20 ramp) add a spanned upward post-contact turn sized from the missing ceiling-aware redirection angle, leaving normal candidates in the pool.
 - Anatomy: total 300k impact squared-error 494.9 -> 486.5; high target band [0.75,1] mean achieved 0.571 -> 0.606 and mean |err| 0.240 -> 0.204. Low/mid bands stayed effectively flat.
 
+Accepted 2026-06-10:
+- Candidate: budget-shaped quality candidate breadth.
+- Archive: `generated/golden-runs/quality29-slow-mature-gate-canon-01/golden.json`
+- Canonical decide vs `impact-postturn-highgate-canon-01`: baseline 577.9 -> candidate 578.6, Delta +0.7, 95% CI [-0.2, 1.6], P(Delta<=0)=6.3%, effect=1.54, VERDICT: ACCEPT.
+- Per-budget deltas: 50k +1.3, 100k +0.0, 200k +0.4, 300k +1.1.
+- Validity unchanged: 50k 98%, 100k/200k/300k 100%.
+- Code shape: quality-phase candidate count still defaults to 32 at mid budget and honors `LR_QUALITY_NCAND`; without the env override it leans toward 29 at scarce and mature budgets, giving canonical counts 50k=29, 100k=32, 200k=31, 300k=29.
+
 Probe trail:
 - `impact-entry-redir-dense-slice-01`: focused Delta +0.7, inconclusive. Helped mainly target-impact .55-.75 at 200k/300k.
 - `impact-entry-redir-dense-v2-slice-01`: focused Delta +0.2, inconclusive. Broader/stronger pressure hurt the important .35-.55 band.
@@ -45,7 +53,16 @@ Probe trail:
 - `impact-postturn-highgate-worst10-slice-01`: focused Delta +4.8, indicative ACCEPT. Target gate preserved high-band gains while removing mid-band damage; canonical accepted.
 - `impact-postturn-stronger/start055/contact-start045`: focused inconclusive/negative; accepted high gate is near the local optimum.
 - `impact-arrival-floor15-canon-01`: canonical Delta -1.2, P(Delta<=0)=85.5%, INCONCLUSIVE negative; mature arrival residual reverted.
+- `impact-frontload105-worst20-slice-01`: raising the existing impact curvature front-load globally to 1.05 gave 300k +2.4 on the hard slice but damaged 50k (-30.0) and was net negative; not kept.
+- `impact-frontload-mature105-worst20-slice-01`: mature-only extra front-load preserved 50k and kept the 300k slice signal (+2.4), but focused Delta was only +1.1 with P(Delta<=0)=24.1%.
+- `impact-frontload-mature120-worst20-slice-01`: stronger mature front-load diluted the signal (focused Delta +0.8, P(Delta<=0)=28.1%); too much trajectory churn.
+- `impact-frontload-mature105-canon-01`: canonical Delta +0.1, CI [-2.2, 2.2], P(Delta<=0)=47.4%, INCONCLUSIVE; wins on terrace/drum/soar rows were canceled by rhythm_ladder, float_bounds, drums_tide, tiny_dance, and other broad losses. Source reverted.
 - Low-budget tail probes (`tailwin18`, `tailbranch3`, `tail-ncand5`, `desperate-tail21`) all regressed the 50k failure slice; accepted tail settings kept.
+- `probe-repair-min50-fail10-slice-01`: enabling repair at 50k via `LR_REPAIR_MIN_BUDGET=50000` did not rescue the known zero rows; focused 50k/100k Delta -0.5, P(Delta<=0)=93.7%, validity 98% -> 92% at 50k. Rejected.
+- `probe-contract-warmup10-fail10-slice-01`: starting the scarce 2-wide contract cap at gap 10 instead of 12 did not improve the failure slice; focused 50k/100k Delta -0.0, P(Delta<=0)=57.3%, and 50k validity regressed on the paired intersection. Reverted.
+- `quality28/30/31-current-canon-01`: scalar quality-breadth sweeps stayed positive but inconclusive; `quality30` was Delta +0.5, P(Delta<=0)=16.3%, while `quality31` weakened to Delta +0.1.
+- `quality29-current-canon-01`: best scalar sweep, Delta +0.6, P(Delta<=0)=12.3%, with 50k +1.3 and 300k +1.1 but a small 100k loss. Pushed into a budget gate instead of accepting the global constant.
+- `quality29-budget-gate-canon-01`: 29 at 50k/200k/300k and 32 at 100k improved to Delta +0.7, P(Delta<=0)=10.3%; slowing the mature ramp so 200k uses 31 crossed ACCEPT.
 - Selection/search probes: `LR_IMPACT_LOCAL_W=1`, `LR_QUALITY_NCAND=48/24`, `HANDOFF_REUSE_K=2`, and repair main-margin 1.0/1.2 did not produce promotable signal. Portfolio oracle showed full-lane headroom but equal-slice 300k was negative.
 - `contract-branch-cap2-canon-01`: 50k +5.6 but canonical Delta +0.4, P(Delta<=0)=42.2%, inconclusive; cap needed a warmup.
 - `contract-branch-cap2-warmup12-canon-01`: 50k +38.1 but canonical Delta +2.9, P(Delta<=0)=12.5%, inconclusive; tail window still left the gate just short.

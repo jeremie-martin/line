@@ -334,6 +334,11 @@ const HANDOFF_CONTRACT_N_CAND = 14;
 // the deterministic batch, and the true-score forward ranker can use the extra pool.
 // LR_QUALITY_NCAND overrides.
 const HANDOFF_QUALITY_N_CAND = 32;
+const HANDOFF_QUALITY_LEAN_N_CAND = 29;
+const HANDOFF_QUALITY_SCARCE_LEAN_START_FRAMES = 50_000;
+const HANDOFF_QUALITY_SCARCE_LEAN_SPAN_FRAMES = 50_000;
+const HANDOFF_QUALITY_MATURE_LEAN_START_FRAMES = 150_000;
+const HANDOFF_QUALITY_MATURE_LEAN_SPAN_FRAMES = 100_000;
 /** Floor for the budget-scaled contract sample count: even the leanest low-budget
  *  race samples at least this many candidates per contact gap, so greedy completion
  *  keeps enough breadth to route around dead ends (3 was the value that flipped deep
@@ -1756,7 +1761,7 @@ function expandNode(
 
   let options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
     nCand: qualitySearch
-      ? handoffSampleCount(true, sparseContractSearch)
+      ? handoffSampleCount(true, sparseContractSearch, targetBudget)
       : budgetAwareContractSampleCount(
         targetBudget,
         gaps.length - node.search.gapIndex,
@@ -2423,7 +2428,7 @@ function completeNearTailSuffix(
     const gap = gaps[search.gapIndex];
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
       nCand: qualitySearch
-        ? handoffSampleCount(true, sparseContractSearch)
+        ? handoffSampleCount(true, sparseContractSearch, targetBudget)
         : budgetAwareContractSampleCount(
           targetBudget,
           gaps.length - search.gapIndex,
@@ -2484,6 +2489,7 @@ function pickFeasibleWeakGap(
 export function handoffSampleCount(
   qualitySearch: boolean,
   sparseContractSearch = false,
+  targetBudget?: number,
 ): number {
   if (qualitySearch) {
     // LR_QUALITY_NCAND=<n> overrides the quality-phase candidate breadth (experiment:
@@ -2491,9 +2497,30 @@ export function handoffSampleCount(
     const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
       .process?.env?.LR_QUALITY_NCAND;
     const n = raw ? Number.parseInt(raw, 10) : 0;
-    return Number.isFinite(n) && n > 0 ? Math.min(64, n) : HANDOFF_QUALITY_N_CAND;
+    if (Number.isFinite(n) && n > 0) return Math.min(64, n);
+    return budgetAwareQualitySampleCount(targetBudget);
   }
   return sparseContractSearch ? HANDOFF_SPARSE_CONTRACT_N_CAND : HANDOFF_CONTRACT_N_CAND;
+}
+
+function budgetAwareQualitySampleCount(targetBudget: number | undefined): number {
+  if (typeof targetBudget !== "number" || !Number.isFinite(targetBudget)) {
+    return HANDOFF_QUALITY_N_CAND;
+  }
+  const scarceLean = 1 - smoothstep(
+    (targetBudget - HANDOFF_QUALITY_SCARCE_LEAN_START_FRAMES) /
+      HANDOFF_QUALITY_SCARCE_LEAN_SPAN_FRAMES,
+  );
+  const matureLean = smoothstep(
+    (targetBudget - HANDOFF_QUALITY_MATURE_LEAN_START_FRAMES) /
+      HANDOFF_QUALITY_MATURE_LEAN_SPAN_FRAMES,
+  );
+  const lean = Math.max(scarceLean, matureLean);
+  return clampIntLocal(
+    HANDOFF_QUALITY_N_CAND - (HANDOFF_QUALITY_N_CAND - HANDOFF_QUALITY_LEAN_N_CAND) * lean,
+    HANDOFF_QUALITY_LEAN_N_CAND,
+    HANDOFF_QUALITY_N_CAND,
+  );
 }
 
 /** Budget-aware candidate count for the pre-validity (contract) race to a first

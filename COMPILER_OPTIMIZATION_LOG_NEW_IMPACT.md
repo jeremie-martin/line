@@ -1138,3 +1138,14 @@ same normalized normal-impact scale the scorer reports.
 - Raw canonical scores: headline `514.85`, with budget scores `50k 359.81`, `100k 490.38`, `200k 530.62`, `300k 538.33`.
 - Diagnostics: the accepted lift is entirely mature-budget quality, not validity. The `0.80` gate bracket was too weak; adding the adjacent high-air band made the combined mechanism promotable without changing low budgets. Worst `300k` rows remain `drums_pendulum`, so the next residual still needs a larger low-air/high-impact search or trajectory lever.
 - Status: kept and committed; new canonical baseline is `impact-high78-bevel8-localcost075-01`.
+
+## impact-high78-bevel10-localcost075-slice-01
+
+- Baseline used: `impact-high78-bevel8-localcost075-01` behavior at commit `8446817`.
+- Hypothesis: after the `8deg` high78 bevel endpoint accepted canonically, a `10deg` endpoint might continue the same mature high-air hard-impact lift without changing the accepted gate, local cost ramp, or early budgets.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_SHIFT_DEG` from `8` to `10` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "Promise.all([import('./scripts/v0/arc_placement.ts'), import('./scripts/v0/core/candidate.ts'), import('./scripts/v0/optimizer/handoff.ts')]).then(() => console.log('bevel10 imports ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-high78-bevel10-localcost075-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `494.6 -> 494.8`, `Delta=+0.2`, 95% CI `[-2.6, 2.8]`, `P(Delta<=0)=38.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.6`, `300k +0.1`; validity unchanged.
+- Diagnostics: the stronger endpoint adds churn without meaningful aggregate lift. The accepted `8deg` endpoint remains the current high78 bevel setting.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

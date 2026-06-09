@@ -799,3 +799,25 @@ same normalized normal-impact scale the scorer reports.
 - Canonical decide result: `VERDICT: ACCEPT`; headline `496.4 -> 498.2`, `Delta=+1.7`, 95% CI `[0.1, 3.6]`, `P(Delta<=0)=2.0%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +2.5`, `300k +2.1`; validity unchanged (`50k 97%`, `100k+ 100%`).
 - Diagnostics: the bevel is a clean mature-budget geometry gain: it leaves early budgets byte-identical, keeps validity unchanged, and concentrates the lift at `200k/300k`. Worst canonical `300k` rows remain `drums_pendulum`, so the next impact work should target low-air pendulum residuals without adding more first-segment angle.
 - Status: kept and committed; new canonical baseline is `impact-bevel6x2-01`.
+
+## impact-bevel10x2-slice-01
+
+- Baseline used: `impact-bevel6x2-01` behavior at commit `6dfa80c`.
+- Hypothesis: extending the accepted mature dense impact bevel from `6px` to `10px` might give the local hard-catch surface enough length to reduce the remaining low-air hard-impact under-hit, while preserving the same activation gate and angle multiplier.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX` from `6` to `10` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-bevel10x2-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `478.3 -> 479.8`, `Delta=+1.5`, 95% CI `[-1.2, 5.1]`, `P(Delta<=0)=16.6%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +2.7`, `300k +1.4`; validity stayed `100%`.
+- Diagnostics: the longer bevel is direction-positive but too noisy. It helps some mature dense rows but increases seed-level volatility in `drums_pendulum`; not enough signal to justify a full preview or canonical run.
+- Status: bracketed down to `8px`, then reverted; no behavior commit.
+
+## impact-bevel8x2-slice-01
+
+- Baseline used: `impact-bevel6x2-01` behavior at commit `6dfa80c`.
+- Hypothesis: if `10px` was direction-positive but too volatile, `8px` might keep the mature-budget lift with less pendulum variance.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX` from `6` to `8` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-bevel8x2-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `478.3 -> 477.7`, `Delta=-0.6`, 95% CI `[-3.0, 1.9]`, `P(Delta<=0)=69.9%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.1`, `300k -0.5`; validity stayed `100%`.
+- Diagnostics: the `8px` midpoint was worse than both `6px` and `10px` on the focused slice, confirming that simply extending the bevel is not a stable residual lever.
+- Status: reverted after focused negative signal; no full preview, no canonical run, and no behavior commit.

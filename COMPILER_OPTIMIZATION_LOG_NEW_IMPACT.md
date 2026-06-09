@@ -590,3 +590,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `472.4 -> 471.3`, `Delta=-1.1`, 95% CI `[-3.7, 0.9]`, `P(Delta<=0)=83.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.2`, `300k -1.5`.
 - Diagnostics: unlike the dense mature extra, adding more sparse mature angle over-rotates the successful sparse path. Sparse high-impact under-hit is not improved by pushing the same angle mechanism further.
 - Status: reverted after focused negative signal; no canonical run and no behavior commit.
+
+## impact-quality-dense-hi-extra4-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: residual high-impact error is concentrated in dense next-contact gaps (`<=26` frames). Instead of raising global quality breadth again, add four extra quality candidates only for mature dense high-impact gaps (`impact >= 0.75`) so the ranker can see more hard-catch variants where the residual is largest.
+- Code changes made: temporarily added a `denseHighImpactQualitySampleCount(...)` helper in `scripts/v0/optimizer/handoff.ts`, increasing `normalCandidates` by up to `4` after a `150k..200k` budget ramp when the next contact gap is dense.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-quality-dense-hi-extra4-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `472.4 -> 471.9`, `Delta=-0.5`, 95% CI `[-1.8, 0.6]`, `P(Delta<=0)=81.6%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.3`, `300k -1.3`.
+- Diagnostics: targeted extra breadth is still dilution. It slightly helps `200k` but spends/redirects enough 300k search to create more regressions, matching the broader `36/40` quality breadth failures.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.

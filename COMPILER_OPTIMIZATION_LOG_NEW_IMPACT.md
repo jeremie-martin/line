@@ -1011,3 +1011,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `462.0 -> 461.8`, `Delta=-0.2`, 95% CI `[-0.5, 0.0]`, `P(Delta<=0)=96.0%`. Per-budget deltas: `50k -2.5`, `100k +0.0`, `200k +0.0`, `300k +0.0`; focused `50k` validity regressed from `97%` to `95%`.
 - Diagnostics: the existing source comment is correct for impact-era behavior too: carving repair budget at `50k` steals from scarce completion and worsens the exact invalid-heavy slice. Keep the repair gate at `100k`.
 - Status: rejected after focused signal; no source change and no canonical run.
+
+## impact-high82-bevel8-slice-01
+
+- Baseline used: `impact-high82-bevel6-01` behavior at commit `9c6696c`.
+- Hypothesis: the accepted high82 bevel endpoint may still be conservative in the very-high-air dense hard-impact rows. Increase only `CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_SHIFT_DEG` from `6` to `8`, leaving the accepted `air=0.80..0.84` gate, mature budget ramp, dense gap gate, and post-contact ride-out unchanged.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_SHIFT_DEG` from `6` to `8` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-high82-bevel8-slice-01`
+- Raw focused scores: headline `489.51`, with budget scores `50k 392.42`, `100k 472.45`, `200k 497.38`, `300k 506.13`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `488.6 -> 489.5`, `Delta=+0.9`, 95% CI `[-0.8, 3.9]`, `P(Delta<=0)=21.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.4`, `300k +1.1`; validity unchanged.
+- Diagnostics: the larger endpoint is direction-positive but less decisive than the accepted `6deg` bracket and shows enough row churn that a canonical run is not justified. Keep the accepted endpoint at `6deg`.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

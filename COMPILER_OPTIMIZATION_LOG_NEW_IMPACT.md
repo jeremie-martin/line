@@ -902,3 +902,14 @@ same normalized normal-impact scale the scorer reports.
 - Canonical decide result: `VERDICT: ACCEPT`; headline `500.0 -> 505.1`, `Delta=+5.0`, 95% CI `[2.4, 8.1]`, `P(Delta<=0)=0.0%`. Per-budget deltas: `50k +0.0`, `100k +2.7`, `200k +5.8`, `300k +6.1`; validity unchanged (`50k 97%`, `100k+ 100%`).
 - Diagnostics: broadening to `0.72` captured the mid-air hard-impact residual without reproducing the earlier high-air broad-lip collapse. The gain is a clean quality lift at every non-50k budget and keeps `50k` byte-equivalent.
 - Status: kept and committed; new canonical baseline is `impact-midair-lip-air72-01`.
+
+## impact-midair-lip-air75-slice-01
+
+- Baseline used: `impact-midair-lip-air72-01` behavior at commit `4580a08`.
+- Hypothesis: if the accepted `0.72` air cutoff safely broadened the dense lip into mid-air hard-impact rows, a `0.75` cutoff might add more mature-budget lift while still excluding high-air opening targets near `0.82`.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_MAX` from `0.72` to `0.75` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-midair-lip-air75-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `484.6 -> 485.3`, `Delta=+0.7`, 95% CI `[-6.6, 5.0]`, `P(Delta<=0)=29.5%`. Per-budget deltas: `50k +0.0`, `100k -10.7`, `200k +3.1`, `300k +3.0`; validity was reported unchanged by `decide`.
+- Diagnostics: `0.75` does add mature-budget point-estimate lift, but it reintroduces a noisy mid-budget tradeoff and one raw `100k` invalid on the focused archive. The accepted `0.72` endpoint is the cleaner gate.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

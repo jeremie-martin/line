@@ -926,3 +926,14 @@ same normalized normal-impact scale the scorer reports.
 - Canonical decide result: `VERDICT: ACCEPT`; headline `505.1 -> 507.1`, `Delta=+2.1`, 95% CI `[0.4, 4.0]`, `P(Delta<=0)=0.7%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +2.9`, `300k +2.6`; validity unchanged (`50k 97%`, `100k+ 100%`).
 - Diagnostics: the budgeted cutoff keeps the flat `0.75` mature lift while removing the noisy `100k` regression from the ungated bracket. Raw canonical HEADLINE is `507.13`, with budget scores `50k 359.81`, `100k 490.38`, `200k 520.94`, `300k 528.07`.
 - Status: kept and committed; new canonical baseline is `impact-midair-lip-air75-mature-01`.
+
+## impact-midair-lip-air78-mature-slice-01
+
+- Baseline used: `impact-midair-lip-air75-mature-01` behavior at commit `30ab8b8`.
+- Hypothesis: hard-impact residuals still include a sizable `air=0.75..0.78` band, while the known opening-burst danger rows mostly sit above `0.78`. Increase only the mature extra cutoff from `0.03` to `0.06`, so `50k/100k` stay on the accepted `0.72` behavior and mature budgets reach `0.78`.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_EXTRA` from `0.03` to `0.06`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-midair-lip-air78-mature-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `487.0 -> 486.0`, `Delta=-1.0`, 95% CI `[-4.0, 1.7]`, `P(Delta<=0)=75.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.0`, `300k -2.1`; validity stayed `100%`.
+- Diagnostics: the extra high-air reach does not pay after the accepted `0.75` mature endpoint. It keeps early budgets byte-identical but erodes mature quality, with raw focused `300k` dropping from `502.68` to `500.62`.
+- Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.

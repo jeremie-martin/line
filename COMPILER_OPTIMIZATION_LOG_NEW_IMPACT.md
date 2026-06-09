@@ -753,3 +753,25 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `476.0 -> 477.0`, `Delta=+1.0`, 95% CI `[-1.3, 3.4]`, `P(Delta<=0)=20.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.2`, `300k +1.4`; validity stayed `100%`.
 - Diagnostics: the stronger endpoint was slightly weaker/noisier than `0.75` on the focused slice, indicating over-selection. The `0.75` ramp is the better endpoint but still below the promotion threshold.
 - Status: reverted after focused weaker signal; no canonical run and no behavior commit.
+
+## impact-axisq-hard-01-slice-01
+
+- Baseline used: `impact-midair-dense-lip14-01` behavior at commit `888da8a`.
+- Hypothesis: local pools sometimes contain better hard-impact catches, but the normal cost-sorted prefix and forward rollout still walk away from them. Add a mature-budget `axisq` impact stream that samples a few extra contact-centered candidates with geometry impact raised to `0.95` and low-air geometry target halved, then let the existing true-score handoff ranker accept or reject them.
+- Code changes made: temporarily added an `axisq` impact candidate stream in `scripts/v0/optimizer/handoff.ts`, with up to four extra normal-mode samples per high-impact mature quality-search gap, source-tagged as `axisq/impact`.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-axisq-hard-01-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `476.0 -> 475.7`, `Delta=-0.4`, 95% CI `[-2.4, 1.7]`, `P(Delta<=0)=66.0%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.7`, `300k -1.3`; validity stayed `100%`.
+- Diagnostics: the broad stream helped `200k` slightly but regressed `300k`, consistent with extra hard/low-air candidates pulling the mature search into worse suffixes. The low-air geometry override was too intrusive.
+- Status: narrowed to a smaller/no-air-override variant; no canonical run and no behavior commit.
+
+## impact-axisq-hard-02-slice-01
+
+- Baseline used: `impact-midair-dense-lip14-01` behavior at commit `888da8a`.
+- Hypothesis: keep only hard-impact diversity by reducing the extra stream to at most two candidates and removing the low-air geometry override, so the ranker sees a few harder catches without changing air intent.
+- Code changes made: temporarily changed the impact `axisq` stream to `HANDOFF_IMPACT_AXISQ_MAX_K = 2` and left geometry targets unchanged except for `impact: max(target, 0.95)`.
+- Focused probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-axisq-hard-02-slice-01`
+- Focused decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `476.0 -> 477.0`, `Delta=+0.9`, 95% CI `[-0.6, 2.8]`, `P(Delta<=0)=12.1%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.1`, `300k +1.3`; validity stayed `100%`.
+- Full-spec preview command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_signature,drums_pendulum,drums_crescendo,dense_sprint,syncopated_switchback,opening_burst,grain_staircase,rhythm_ladder,cold_start,mini_burst,tiny_dance,solo_run,verse_chorus,drums_swell,drums_crosscut,drums_tide,drums_dropout,drums_breath,drums_pulse,drums_zigzag,climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,big_air_ramp,pop_train,soar_settle,leap_cadence,float_bounds,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,dense_echo_climb,rolling_drop,skyline_push,syncopated_lift --archive-dir=generated/golden-runs/impact-axisq-hard-02-fullslice-01`
+- Full-spec preview decide result: indicative `VERDICT: INCONCLUSIVE`; 40-spec scope headline `496.4 -> 496.7`, `Delta=+0.3`, 95% CI `[-0.8, 1.4]`, `P(Delta<=0)=31.6%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.3`, `300k +0.4`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Diagnostics: the narrowed stream is direction-positive on the focused slice but too small and diluted on full scope. Extra hard-impact samples may be a useful ingredient, but this form does not clear the decision threshold and consumes mature search budget.
+- Status: reverted after full-scope inconclusive signal; no canonical run and no behavior commit.

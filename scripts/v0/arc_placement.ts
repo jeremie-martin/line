@@ -92,6 +92,35 @@ const IMPACT_CURVE_SPEED_START_PX = 6;
 const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 const IMPACT_CURVE_FLATTEN_DEG = 10;
 const IMPACT_CURVE_FRONTLOAD = 0.8;
+// Impact redirect-catch TEMPLATE LANES (LR_IMPACT_TEMPLATE=1, default OFF). The curve
+// modulation above can only REDISTRIBUTE the existing contact→launch rotation, so
+// flat-launch beats (launch ≈ contact angle) have nothing to front-load — exactly the
+// beats stuck at achieved ~0.35 vs targets ~0.85 (canonical anatomy: high band mean
+// err 0.48, only 1% ceiling-infeasible — the pool simply lacks 25-40° sustained turns).
+// On pressured beats, every IMPACT_TEMPLATE_LANE_MOD-th attempt replaces the post
+// profile with a purpose-built VALLEY: scoop down by the ceiling-aware needed turn
+// over the ~6-frame redir window, then return to the normal launch angle (downstream
+// energy/elevation/amplitude launch preserved). POOL INJECTION, not forcing — normal
+// candidates remain, cost ranking adopts templates only where they win (the forced
+// early-bend variant of this idea washed and regressed 50k; lanes are the
+// selection-protected retry). RNG-neutral: rolls are always drawn, lanes only
+// override the built lines; deterministic per attempt (low-discrepancy salts).
+const IMPACT_TEMPLATE_MIN_PRESSURE = 0.35;
+const IMPACT_TEMPLATE_LANE_MOD = 3;
+const IMPACT_TEMPLATE_MIN_ATTEMPT = 8;
+const IMPACT_TEMPLATE_MAX_TURN_DEG = 40;
+const IMPACT_TEMPLATE_TURN_SPAN_SALT = 9;
+const IMPACT_TEMPLATE_SCOOP_SEG_PX = 10;
+const IMPACT_TEMPLATE_END_ANGLE_MIN_DEG = -35;
+
+// Study-only marker: was the LAST geometry produced by sampleContactCenteredLines an
+// impact template lane? Read by the landing-window probe (core/candidate.ts) to
+// attribute pool/selection stats per lane. One module-level assignment per sample —
+// no behavioral effect.
+let lastGeometryWasImpactTemplate = false;
+export function wasLastGeometryImpactTemplate(): boolean {
+  return lastGeometryWasImpactTemplate;
+}
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
@@ -334,6 +363,7 @@ export function sampleArcPlacementGeometry(
   allContactFrames: readonly number[] = [],
 ): ArcPlacementGeometry {
   recordArcPlacementSample(mode);
+  lastGeometryWasImpactTemplate = false;
   if (mode === "normal" && contactCenteredNormalEnabled()) {
     return {
       kind: "lines",
@@ -1008,6 +1038,55 @@ function sampleContactCenteredLines(
     impactBevelShiftDeg,
   );
   const firstPostAngleDeg = contactAngleDeg - impactLipShiftDeg;
+
+  // Impact redirect-catch template lane (see the const block). Replaces only the
+  // post profile with a two-phase valley sized from the ceiling-aware needed turn.
+  // Late attempts only (≥ MIN_ATTEMPT): the guided prefix keeps its normal samples;
+  // lanes displace the wide random tail of the batch.
+  lastGeometryWasImpactTemplate = false;
+  if (
+    PROCESS_ENV?.LR_IMPACT_TEMPLATE === "1"
+    && impactCurveP >= IMPACT_TEMPLATE_MIN_PRESSURE
+    && attempt >= IMPACT_TEMPLATE_MIN_ATTEMPT
+    && ((attempt % IMPACT_TEMPLATE_LANE_MOD) + IMPACT_TEMPLATE_LANE_MOD) % IMPACT_TEMPLATE_LANE_MOD
+      === IMPACT_TEMPLATE_LANE_MOD - 1
+    && targets.impact !== undefined
+  ) {
+    // SLAM-HOP: a single concave scoop from the contact angle down to a ballistic
+    // hop launch sized to land the NEXT beat (vy ≈ −g·N/2, lane-spanned 0.7-1.2x),
+    // then the surface STOPS — the rider launches from the valley bottom. Physics
+    // forces this shape: a big redirection cannot exit at a descending launch
+    // without a convex crest (the rider flies off it early with an unplanned
+    // trajectory — the documented early-bend failure; the two-phase return variant
+    // of this lane reproduced it: templates won local cost on 88% of pressured
+    // beats yet forward-eval rejected every one). The hop exit is the redirection
+    // AND the next-beat delivery in one arc, so the rollout stays coherent.
+    if (nextGapFrames !== null && nextGapFrames > 4) {
+      const speed = Math.max(1, targetState.speed);
+      const hopScale = 0.7 + 0.5 * lowDiscrepancyRoll(attempt, IMPACT_TEMPLATE_TURN_SPAN_SALT);
+      const vyHop = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * nextGapFrames * hopScale;
+      const hopAngleDeg = Math.max(
+        (Math.atan2(vyHop, speed) * 180) / Math.PI,
+        IMPACT_TEMPLATE_END_ANGLE_MIN_DEG,
+      );
+      const turnDeg = Math.min(contactAngleDeg - hopAngleDeg, IMPACT_TEMPLATE_MAX_TURN_DEG);
+      const scoopEndAngleDeg = contactAngleDeg - turnDeg;
+      if (turnDeg >= 8) {
+        lastGeometryWasImpactTemplate = true;
+        // The scoop spans the ~6-frame redir contact run at arrival speed.
+        const scoopLength = clamp(speed * 5, 24, 110);
+        const scoopSegs = clampInt(
+          Math.round(scoopLength / IMPACT_TEMPLATE_SCOOP_SEG_PX), 3, 12,
+        );
+        const scoopLines = buildPostContactLines(
+          lineIdStart + preLines.length + impactBevelLines.length,
+          contactPoint, contactAngleDeg, scoopEndAngleDeg, scoopLength, scoopSegs,
+        );
+        return [...preLines, ...impactBevelLines, ...scoopLines];
+      }
+    }
+  }
+
   const postLines = buildPostContactLines(
     lineIdStart + preLines.length + impactBevelLines.length, contactPoint, contactAngleDeg, postAngleDeg,
     postLength, postSegments, postCurveBias, firstPostAngleDeg,

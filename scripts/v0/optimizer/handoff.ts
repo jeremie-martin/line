@@ -59,6 +59,7 @@ import {
   type TrackLine,
 } from "../types.ts";
 import {
+  attachHandoffScoreToProbe,
   axisLookaheadEndFrame,
   detectWindow,
   releaseSpeedPenalty,
@@ -2658,6 +2659,7 @@ function scoreCandidateForHandoff(
       matureForwardEvalConfig(fwdCfg, node, gaps, targetBudget),
     );
     recordCandidateReleaseCoverage(telemetry, candidate);
+    attachHandoffScoreToProbe(candidate.lines, -value); // study probe; no-op when off
     return {
       candidate, child, rank, source, sourceAxis,
       previewContacts: 0, previewSurvivors: 0,
@@ -2697,6 +2699,8 @@ function scoreCandidateForHandoff(
     ? candidateReleaseSetupPenalty(candidate, gaps, node.gapIndex, telemetry, targetBudget)
     : 0;
   recordCandidateReleaseCoverage(telemetry, candidate);
+  const localScore = candidate.cost + scarcity + previewCost + statePenalty + overshoot + releasePenalty;
+  attachHandoffScoreToProbe(candidate.lines, localScore); // study probe; no-op when off
   return {
     candidate,
     child,
@@ -2705,7 +2709,7 @@ function scoreCandidateForHandoff(
     sourceAxis,
     previewContacts: preview.landed,
     previewSurvivors: preview.survivors,
-    score: candidate.cost + scarcity + previewCost + statePenalty + overshoot + releasePenalty,
+    score: localScore,
   };
 }
 

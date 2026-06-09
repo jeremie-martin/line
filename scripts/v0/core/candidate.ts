@@ -21,6 +21,7 @@ import {
   recordArcPlacementDirectFailure,
   recordArcPlacementDirectLanding,
   recordArcPlacementPreclearReject,
+  wasLastGeometryImpactTemplate,
 } from "../arc_placement.ts";
 import {
   AXES,
@@ -83,7 +84,25 @@ export type LandingWindowProbeRecord = {
   impactAchieved: number | null;
   /** Incoming speed (px/frame) one frame before that landing. */
   incomingSpeed: number | null;
+  /** True if the geometry came from an impact template lane (LR_IMPACT_TEMPLATE). */
+  isTemplate: boolean;
+  /** Final axisCost of the candidate; null if it failed a hard gate. */
+  cost: number | null;
+  /** Handoff ranking score (lower = better; −forwardArcValue at ≥75k, else the
+   *  composite local score). Attached by scoreCandidateForHandoff when probing. */
+  handoffScore?: number;
 };
+
+/** lines-array → probe record, so the handoff ranker can attach its score to the
+ *  record for the same candidate (object identity survives evaluateGapFit→Candidate). */
+const landingProbeByLines = new WeakMap<object, LandingWindowProbeRecord>();
+
+/** Study hook for optimizer/handoff.ts — no-op when the probe is disabled. */
+export function attachHandoffScoreToProbe(lines: object, score: number): void {
+  if (landingProbeRecords === null) return;
+  const rec = landingProbeByLines.get(lines);
+  if (rec !== undefined && rec.handoffScore === undefined) rec.handoffScore = score;
+}
 
 let landingProbeRecords: LandingWindowProbeRecord[] | null = null;
 let landingProbeDropped = 0;
@@ -113,11 +132,11 @@ function probeLandingWindow(
   lines: TrackLine[],
   allContactFrames: number[],
   axisMeasureEnd: number,
-): void {
-  if (landingProbeRecords === null) return;
+): LandingWindowProbeRecord | null {
+  if (landingProbeRecords === null) return null;
   if (landingProbeRecords.length >= LANDING_PROBE_RECORD_CAP) {
     landingProbeDropped++;
-    return;
+    return null;
   }
   const owned = new Set(lines.map((l) => l.id));
   let acceptedAtW: number | null = null;
@@ -143,7 +162,7 @@ function probeLandingWindow(
   const incomingSpeed = chosen === null
     ? undefined
     : (speedAt(det, chosen.frame - 1) ?? speedAt(det, chosen.frame));
-  landingProbeRecords.push({
+  const record: LandingWindowProbeRecord = {
     gapIndex: gap.index,
     endFrame: gap.endFrame,
     ...(gap.targets.impact === undefined ? {} : { targetImpact: gap.targets.impact }),
@@ -151,7 +170,12 @@ function probeLandingWindow(
     offset: chosen === null ? null : chosen.frame - gap.endFrame,
     impactAchieved: impactPx === undefined ? null : impactPx / CALIB.REDIR_CAP,
     incomingSpeed: incomingSpeed ?? null,
-  });
+    isTemplate: wasLastGeometryImpactTemplate(),
+    cost: null,
+  };
+  landingProbeRecords.push(record);
+  landingProbeByLines.set(lines, record);
+  return record;
 }
 
 type WindowDetection = Detection & { frameOffset?: number };
@@ -656,10 +680,10 @@ function evaluateGapFit(
 
   // Study-only probe (no-op unless a study script enabled it): record what a
   // widened acceptance window would have admitted. Pure observation — gates
-  // below run unchanged.
-  if (landingProbeEligible && landingProbeRecords !== null) {
-    probeLandingWindow(det, gap, lines, allContactFrames, axisMeasureEnd);
-  }
+  // below run unchanged. The returned record gets the final cost attached below.
+  const probeRecord = landingProbeEligible && landingProbeRecords !== null
+    ? probeLandingWindow(det, gap, lines, allContactFrames, axisMeasureEnd)
+    : null;
 
   // Hard gate 2: a landing event near gap.endFrame ±1.
   const owned = new Set(lines.map((l) => l.id));
@@ -684,6 +708,7 @@ function evaluateGapFit(
   const releaseAirborne = airborneAt(det, releaseFrame);
   const cost = axisCost(searchTargets, achieved)
     + (scoreReleaseState ? releaseSpeedPenalty(releaseSpeed, searchTargets.speed) : 0);
+  if (probeRecord !== null) probeRecord.cost = cost;
   return {
     fit: {
       lines,
@@ -798,7 +823,19 @@ export function axisCost(target: AxisValues, achieved: AxisValues): number {
   return cost;
 }
 
+// Experiment override for the local impact cost weight (LR_IMPACT_LOCAL_W=<float>,
+// flat — replaces the base+maturity ramp). Read once at import: env is constant per
+// run and axisCost is the per-candidate hot path.
+const LOCAL_IMPACT_COST_WEIGHT_OVERRIDE = (() => {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_IMPACT_LOCAL_W;
+  if (raw === undefined || raw === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+})();
+
 function localImpactCostWeight(): number {
+  if (LOCAL_IMPACT_COST_WEIGHT_OVERRIDE !== null) return LOCAL_IMPACT_COST_WEIGHT_OVERRIDE;
   const mature = smoothstepLocal(
     (currentCandidateCompileBudgetFrames - LOCAL_IMPACT_COST_MATURE_START_FRAMES) /
       LOCAL_IMPACT_COST_MATURE_SPAN_FRAMES,

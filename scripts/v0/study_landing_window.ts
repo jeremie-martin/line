@@ -69,6 +69,18 @@ type GapAgg = {
   poolAtW: number[]; // candidate count with acceptedAtW ≤ k
 };
 
+/** Per-gap candidate detail for gaps that saw ≥1 template-lane record
+ *  (selection analysis: do viable templates lose the cost ranking, and by how much?). */
+type CandDetail = {
+  isTemplate: boolean;
+  impact: number | null;
+  cost: number | null;
+  w: number | null;
+  handoff: number | undefined;
+};
+const templateGapDetail = new Map<GapKey, CandDetail[]>();
+const gapsWithTemplates = new Set<GapKey>();
+
 const tierCounts = new Array(LANDING_PROBE_MAX_W + 1).fill(0); // [1..5] = minimal-W tier sizes
 let rejectedCount = 0; // survival-passing but not admitted even at MAX_W
 let recordTotal = 0;
@@ -83,6 +95,17 @@ let viableTotal = 0;
 
 function accumulate(specName: string, seed: number, records: LandingWindowProbeRecord[]): void {
   for (const r of records) {
+    const gkey: GapKey = `${specName}/${seed}/${r.gapIndex}`;
+    let detail = templateGapDetail.get(gkey);
+    if (detail === undefined) {
+      detail = [];
+      templateGapDetail.set(gkey, detail);
+    }
+    detail.push({
+      isTemplate: r.isTemplate, impact: r.impactAchieved, cost: r.cost,
+      w: r.acceptedAtW, handoff: r.handoffScore,
+    });
+    if (r.isTemplate) gapsWithTemplates.add(gkey);
     recordTotal++;
     if (r.acceptedAtW === null) {
       rejectedCount++;
@@ -210,6 +233,54 @@ for (const k of [2, 3, LANDING_PROBE_MAX_W]) {
     `(${(100 * improved.length / Math.max(1, highGaps.length)).toFixed(1)}%)  ` +
     `mean gain ${fmt(mean(gains))}  p90 ${fmt(pct(gains, 0.9))}`,
   );
+}
+
+// Template-lane selection analysis (only meaningful with LR_IMPACT_TEMPLATE=1).
+if (gapsWithTemplates.size > 0) {
+  console.log(`\n  Template-lane selection analysis (${gapsWithTemplates.size} gaps saw template candidates)`);
+  let tN = 0, tViable = 0, tImp: number[] = [], nImp: number[] = [];
+  let beatsBestIsTemplate = 0, beatsTemplateWinsCost = 0, beatsCompared = 0;
+  const costDeltas: number[] = [];
+  for (const gkey of gapsWithTemplates) {
+    const det = templateGapDetail.get(gkey) ?? [];
+    const viable = det.filter((c) => c.w === 1 && c.cost !== null && c.impact !== null);
+    const vt = viable.filter((c) => c.isTemplate);
+    const vn = viable.filter((c) => !c.isTemplate);
+    for (const c of det) if (c.isTemplate) { tN++; if (c.w === 1 && c.cost !== null) tViable++; }
+    tImp.push(...vt.map((c) => c.impact as number));
+    nImp.push(...vn.map((c) => c.impact as number));
+    if (vt.length === 0 || vn.length === 0) continue;
+    beatsCompared++;
+    const bestImpact = [...viable].sort((a, b) => (b.impact as number) - (a.impact as number))[0];
+    const minCost = [...viable].sort((a, b) => (a.cost as number) - (b.cost as number))[0];
+    if (bestImpact.isTemplate) beatsBestIsTemplate++;
+    if (minCost.isTemplate) beatsTemplateWinsCost++;
+    const bestTemplate = [...vt].sort((a, b) => (b.impact as number) - (a.impact as number))[0];
+    costDeltas.push((bestTemplate.cost as number) - (minCost.cost as number));
+  }
+  console.log(`    template records ${tN}  gate-pass(W=1, costed) ${tViable} (${(100 * tViable / Math.max(1, tN)).toFixed(1)}%)`);
+  console.log(`    viable impact: templates mean ${fmt(mean(tImp))} p90 ${fmt(pct(tImp, 0.9))} (n=${tImp.length})  vs normals mean ${fmt(mean(nImp))} p90 ${fmt(pct(nImp, 0.9))} (n=${nImp.length})`);
+  console.log(`    gaps with both viable: ${beatsCompared}  best-impact-is-template ${beatsBestIsTemplate} (${(100 * beatsBestIsTemplate / Math.max(1, beatsCompared)).toFixed(0)}%)  template-wins-cost ${beatsTemplateWinsCost} (${(100 * beatsTemplateWinsCost / Math.max(1, beatsCompared)).toFixed(0)}%)`);
+  console.log(`    cost(best-impact template) − cost(min-cost candidate): mean ${fmt(mean(costDeltas))}  p50 ${fmt(pct(costDeltas, 0.5))}  p90 ${fmt(pct(costDeltas, 0.9))}`);
+
+  // Handoff-ranker view (forward-eval at ≥75k): does the RANKER demote templates
+  // that win raw cost, and by how much?
+  let hN = 0, hTemplateWins = 0;
+  const handoffDeltas: number[] = [];
+  for (const gkey of gapsWithTemplates) {
+    const det = templateGapDetail.get(gkey) ?? [];
+    const ranked = det.filter((c) => c.handoff !== undefined && c.impact !== null);
+    const rt = ranked.filter((c) => c.isTemplate);
+    const rn = ranked.filter((c) => !c.isTemplate);
+    if (rt.length === 0 || rn.length === 0) continue;
+    hN++;
+    const minAll = Math.min(...ranked.map((c) => c.handoff as number));
+    const minT = Math.min(...rt.map((c) => c.handoff as number));
+    if (minT <= minAll + 1e-12) hTemplateWins++;
+    handoffDeltas.push(minT - minAll);
+  }
+  console.log(`    handoff-ranked gaps with both: ${hN}  template-wins-ranker ${hTemplateWins} (${(100 * hTemplateWins / Math.max(1, hN)).toFixed(0)}%)`);
+  console.log(`    handoffScore(best template) − handoffScore(best overall): mean ${fmt(mean(handoffDeltas))}  p50 ${fmt(pct(handoffDeltas, 0.5))}  p90 ${fmt(pct(handoffDeltas, 0.9))}`);
 }
 
 // Gaps where today's pool is EMPTY but a widened pool exists — the search

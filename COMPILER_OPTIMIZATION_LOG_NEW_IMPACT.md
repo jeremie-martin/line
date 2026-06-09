@@ -1170,3 +1170,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `494.6 -> 494.4`, `Delta=-0.2`, 95% CI `[-1.5, 1.0]`, `P(Delta<=0)=60.6%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.1`, `300k -0.3`; validity unchanged.
 - Diagnostics: broader upstream repair did not expose the full-lane pendulum headroom and slightly hurt mature aggregate quality. The default upstream walk stays at `4`.
 - Status: env-only inconclusive/negative; no source change and no canonical run.
+
+## impact-next-lowair-release-grounded-slice-01
+
+- Baseline used: `impact-high78-bevel8-localcost075-01` behavior at commit `8446817`.
+- Hypothesis: the previous release-grounded probe was current-gap gated and did not alter selections. Reframe the same continuity idea causally: penalize candidates with fewer than eight grounded frames after the current catch only when the next contact asks for both low air and high impact, using mature/full-feedback pressure so early budgets and unrelated rows stay untouched.
+- Code changes made: temporarily added a `releaseGroundedSetupPenalty(...)` in `scripts/v0/optimizer/handoff.ts`, gated by next-gap low-air pressure, next-gap high-impact pressure (`impact` from `0.75..0.90`), an eight-frame grounded target, and the existing `150k` mature/full-feedback fades. Candidate counts, geometry, scorer, specs, and budget grid were unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-next-lowair-release-grounded-slice-01`
+- Raw focused scores: headline `494.59`, with budget scores `50k 392.42`, `100k 472.45`, `200k 503.71`, `300k 512.91`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with exact neutral scoring; 20-spec intersection headline `494.6 -> 494.6`, `Delta=+0.0`, 95% CI `[0.0, 0.0]`, `P(Delta<=0)=100.0%`. Per-budget deltas were `+0.0` at every budget; validity unchanged.
+- Diagnostics: even the next-gap low-air/high-impact gate with a higher grounded-frame target did not alter selected scored outputs on the focused slice. This release telemetry path appears selection-inert at the tested deterministic strength/gate, so the remaining impact residual likely needs a non-release-grounded lever.
+- Status: reverted after focused no-op signal; no canonical run and no behavior commit.

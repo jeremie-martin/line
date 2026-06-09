@@ -546,3 +546,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with an exactly neutral result; 20-spec intersection headline `472.4 -> 472.4`, `Delta=+0.0`, 95% CI `[0.0, 0.0]`, `P(Delta<=0)=100.0%`. Per-budget deltas were `+0.0` at every budget.
 - Diagnostics: the new start candidates did not alter the selected outputs on the focused slice. The first-contact failure mode is not reachable by a small mature-only shift of the existing start-angle lattice.
 - Status: reverted after focused no-op signal; no canonical run and no behavior commit.
+
+## impact-release-vertical-w065-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: low-air high-impact gaps still overshoot air and speed while under-hitting impact. Increase the existing quality-phase release-vertical setup penalty from `0.045` to `0.065` so candidates entering upcoming low-air or tight-cadence contacts prefer less vertical excess.
+- Code changes made: temporarily changed `HANDOFF_RELEASE_VERTICAL_WEIGHT` from `0.045` to `0.065` in `scripts/v0/optimizer/handoff.ts`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-release-vertical-w065-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with an exactly neutral result; 20-spec intersection headline `472.4 -> 472.4`, `Delta=+0.0`, 95% CI `[0.0, 0.0]`, `P(Delta<=0)=100.0%`. Per-budget deltas were `+0.0` at every budget.
+- Diagnostics: the stronger setup penalty did not alter the selected outputs on the focused slice. This penalty is not currently on the active decision boundary for the remaining impact failures.
+- Status: reverted after focused no-op signal; no canonical run and no behavior commit.

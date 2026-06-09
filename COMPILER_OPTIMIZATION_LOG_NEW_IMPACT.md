@@ -1023,3 +1023,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `488.6 -> 489.5`, `Delta=+0.9`, 95% CI `[-0.8, 3.9]`, `P(Delta<=0)=21.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.4`, `300k +1.1`; validity unchanged.
 - Diagnostics: the larger endpoint is direction-positive but less decisive than the accepted `6deg` bracket and shows enough row churn that a canonical run is not justified. Keep the accepted endpoint at `6deg`.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-high78-bevel6-slice-01
+
+- Baseline used: `impact-high82-bevel6-01` behavior at commit `9c6696c`.
+- Hypothesis: the accepted `air=0.80..0.84` high82 bevel misses much of the worst hard-impact residual bucket at target `air=0.78..0.82`. Start the same mature-only bevel gate at `0.78` while keeping the `0.04` span and `6deg` endpoint, so it reaches full strength by `0.82` without changing the accepted post-contact ride-out.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_START` from `0.80` to `0.78` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-high78-bevel6-slice-01`
+- Raw focused scores: headline `489.41`, with budget scores `50k 392.42`, `100k 472.45`, `200k 496.87`, `300k 506.25`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `488.6 -> 489.4`, `Delta=+0.8`, 95% CI `[-0.6, 3.7]`, `P(Delta<=0)=21.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.9`, `300k +1.2`; validity unchanged.
+- Diagnostics: lowering the start is direction-positive but no stronger than the rejected `8deg` endpoint bracket, and it reintroduces extra row churn below the accepted high82 gate. Keep the accepted `0.80` start.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

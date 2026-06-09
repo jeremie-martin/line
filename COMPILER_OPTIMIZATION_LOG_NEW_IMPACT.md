@@ -1233,3 +1233,15 @@ same normalized normal-impact scale the scorer reports.
 - Raw canonical scores: headline `519.15`, with budget scores `50k 359.81`, `100k 494.55`, `200k 535.48`, `300k 543.01`.
 - Diagnostics: this is a mature/medium-budget geometry gain, not a validity change. It fixes a distinct surface-selection failure mode from the previous post-contact lip/bevel work: the actual fired landing surface is now allowed to be hard when the landing happens on the approach line.
 - Status: kept and committed; new canonical baseline is `impact-entry-bevel20-01`.
+
+## impact-fwd-nextlowair-grounded32-slice-01
+
+- Baseline used: `impact-entry-bevel20-01` behavior at commit `8adeaa1`.
+- Hypothesis: the earlier release-grounded penalties were selection-inert because the `100k+` forward-eval path returns before local release penalties are applied. Apply the same causal setup idea inside forward-eval ranking: when the next contact asks for low air and high impact, penalize candidates whose current catch has fewer than ten grounded release frames, with smooth target and budget pressure.
+- Code changes made: temporarily added `forwardEvalReleaseSetupPenalty(...)` in `scripts/v0/optimizer/handoff.ts`; the fwd-eval score became `-value + setupPenalty`. The penalty was gated by next-gap low-air pressure, next-gap high-impact pressure (`impact` from `0.75..0.90`), a `10` frame grounded target, a `150k` budget scale, and a score-point weight of `32`. Candidate counts, geometry, RNG draws, scorer, specs, seed set, and budget grid were unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-fwd-nextlowair-grounded32-slice-01`
+- Raw focused scores: headline `494.13`, with budget scores `50k 392.42`, `100k 471.89`, `200k 502.78`, `300k 512.72`; validity improved at `50k` (`239/240 -> 240/240`) and stayed `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `498.3 -> 494.1`, `Delta=-4.2`, 95% CI `[-10.7, 0.3]`, `P(Delta<=0)=96.0%`, effect `-1.43`. Per-budget deltas: `50k +0.0`, `100k -4.5`, `200k -5.2`, `300k -4.0`; validity improved at `50k` and was unchanged elsewhere.
+- Diagnostics: making the forward ranker prefer longer grounded release into low-air/high-impact beats hurts the focused aggregate and worsens several `drums_pendulum` rows. The causal setup term is active, but it steers away from better true-score continuations; do not repeat this grounded-release direction without new geometry evidence.
+- Status: reverted after focused reject; no canonical run and no behavior commit.

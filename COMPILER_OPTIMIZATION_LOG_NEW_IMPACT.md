@@ -974,3 +974,17 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `459.8 -> 460.4`, `Delta=+0.6`, 95% CI `[-2.8, 4.4]`, `P(Delta<=0)=34.5%`. Per-budget deltas: `50k +7.9`, `100k +0.0`, `200k +0.0`, `300k +0.0`; focused `50k` validity regressed from `97%` to `95%`.
 - Diagnostics: dense-only gating removed the previous `100k` regression, but the 50k quality gain is too noisy and comes with a worse pass rate on the focused invalid-heavy slice. This is not worth a canonical run.
 - Status: reverted after focused inconclusive/validity-negative signal; no canonical run and no behavior commit.
+
+## impact-high82-bevel6-01
+
+- Baseline used: `impact-midair-lip-air75-mature-01` behavior at commit `30ab8b8`.
+- Hypothesis: the broad high-air bevel probe was direction-positive but touched the noisy `.75..78` band. Add a tighter mature-only bevel line that starts after `air=0.80`, preserving the accepted ride-out (`firstPostAngleDeg` still uses only the dense lip shift) and affecting only very high-air dense hard-impact rows.
+- Code changes made: added `CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_*` constants and `contactCenteredImpactHighAirBevelShiftDeg(...)` in `scripts/v0/arc_placement.ts`; `impactBevelShiftDeg` now uses `max(accepted lip shift, high82 bevel shift)` for the bevel line while post-contact lip shift remains unchanged. Endpoint bracketed from `4deg` to `6deg`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed for both brackets.
+- `4deg` focused result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `487.0 -> 487.9`, `Delta=+0.9`, 95% CI `[-1.0, 3.3]`, `P(Delta<=0)=13.2%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.2`, `300k +1.1`; validity stayed `100%`.
+- `6deg` focused result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `487.0 -> 488.6`, `Delta=+1.6`, 95% CI `[0.0, 4.4]`, `P(Delta<=0)=2.3%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.7`, `300k +2.4`; validity stayed `100%`.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-high82-bevel6-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `507.1 -> 508.3`, `Delta=+1.2`, 95% CI `[0.1, 2.8]`, `P(Delta<=0)=1.0%`, effect `1.67`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.2`, `300k +1.7`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Raw canonical scores: headline `508.32`, with budget scores `50k 359.81`, `100k 490.38`, `200k 522.18`, `300k 529.80`.
+- Diagnostics: the tighter high-air gate keeps the earlier bevel-only mechanism but avoids the low/mid high-air band that made the broad probe noisy. It is a clean mature-budget lift, byte-identical at `50k/100k`, with unchanged validity.
+- Status: kept and committed; new canonical baseline is `impact-high82-bevel6-01`.

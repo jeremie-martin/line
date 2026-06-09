@@ -65,6 +65,8 @@ const CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG = 3;
 const CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG = 1;
 const CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG = 1;
 const CONTACT_CENTERED_IMPACT_DENSE_LIP_SHIFT_DEG = 14;
+const CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX = 6;
+const CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT = 2;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
@@ -941,13 +943,19 @@ function sampleContactCenteredLines(
   const preLines = buildPreContactLines(
     lineIdStart, contactPoint, preAngleDeg, contactAngleDeg, preLength, preSegments,
   );
-  const firstPostAngleDeg = contactAngleDeg -
-    contactCenteredImpactLipShiftDeg(targets, air, nextGapFrames);
+  const impactLipShiftDeg = contactCenteredImpactLipShiftDeg(targets, air, nextGapFrames);
+  const impactBevelLines = buildImpactBevelLines(
+    lineIdStart + preLines.length,
+    contactPoint,
+    contactAngleDeg,
+    impactLipShiftDeg,
+  );
+  const firstPostAngleDeg = contactAngleDeg - impactLipShiftDeg;
   const postLines = buildPostContactLines(
-    lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
+    lineIdStart + preLines.length + impactBevelLines.length, contactPoint, contactAngleDeg, postAngleDeg,
     postLength, postSegments, postCurveBias, firstPostAngleDeg,
   );
-  return [...preLines, ...postLines];
+  return [...preLines, ...impactBevelLines, ...postLines];
 }
 
 function contactCenteredImpactAngleShiftDeg(nextGapFrames: number | null): number {
@@ -1152,6 +1160,26 @@ function buildPostContactLines(
     y = y2;
   }
   return lines;
+}
+
+function buildImpactBevelLines(
+  lineIdStart: number,
+  contactPoint: { x: number; y: number },
+  contactAngleDeg: number,
+  lipShiftDeg: number,
+): TrackLine[] {
+  if (lipShiftDeg <= 1e-6) return [];
+  const angleDeg = contactAngleDeg - lipShiftDeg * CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT;
+  const angleRad = (angleDeg * Math.PI) / 180;
+  return [
+    makeSolidLine(
+      lineIdStart,
+      contactPoint.x,
+      contactPoint.y,
+      contactPoint.x + Math.cos(angleRad) * CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX,
+      contactPoint.y + Math.sin(angleRad) * CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX,
+    ),
+  ];
 }
 
 export function hasPreTargetSledProximity(

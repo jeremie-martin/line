@@ -524,3 +524,14 @@ same normalized normal-impact scale the scorer reports.
 - Canonical decide result: `VERDICT: ACCEPT`; headline `490.7 -> 492.1`, `Delta=+1.4`, 95% CI `[-0.6, 3.4]`, `P(Delta<=0)=8.3%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.8`, `300k +1.7`; validity unchanged (`50k 97%`, `100k+ 100%`).
 - Diagnostics: the focused and full-spec signals agree that the extra dense mature angle helps only where intended. It preserves all scarce-budget scores and pass rates while lifting both mature budgets, so the new baseline isolates a geometry gain rather than a budget-allocation trade.
 - Status: kept and committed; new canonical baseline is `impact-angle-dense-mature-extra-ramp-01`.
+
+## impact-angle-dense-mature-extra15-ramp-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: since the accepted dense mature extra degree improved low-air high-impact achievement but left the bucket far under target, a `1.5deg` endpoint might continue the same mature-budget gain without touching `50k/100k`.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG` from `1` to `1.5` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-angle-dense-mature-extra15-ramp-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a neutral point estimate; 20-spec intersection headline `472.4 -> 472.4`, `Delta=-0.0`, 95% CI `[-3.2, 3.1]`, `P(Delta<=0)=51.3%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.5`, `300k -0.4`; validity improved at `50k` (`97% -> 100%`) and stayed `100%` elsewhere.
+- Diagnostics: the extra half degree is past the local useful point. It slightly lifts `200k` but gives that back at `300k`, so the accepted `1deg` mature dense angle bias is the better endpoint.
+- Status: reverted after focused neutral/negative signal; no canonical run and no behavior commit.

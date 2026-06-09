@@ -1320,3 +1320,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `521.7 -> 520.9`, `Delta=-0.9`, 95% CI `[-3.7, 0.3]`, `P(Delta<=0)=81.4%`, effect `-0.78`. Per-budget deltas: `50k +0.0`, `100k +0.2`, `200k -1.4`, `300k -1.0`; validity improved at `50k` and was unchanged elsewhere.
 - Diagnostics: the delay gate is active and changes `drums_pendulum` starts, but it is seed-unstable: some pendulum seeds improve while others move into weaker low-air/impact basins. The aggregate is not promotable.
 - Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.
+
+## impact-tangent-shift5-slice-01
+
+- Baseline used: `impact-moderate-lip20-01` behavior at commit `f6d33c4`, plus log-only commits through `62fe857`.
+- Hypothesis: the existing contact-centered impact tangent bias may still be too smooth/parallel to the incoming rider velocity. Increase the existing generated contact tangent shift directly, making the current catch face slightly more up-right/less aligned on impact beats, without adding a new candidate family.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_ANGLE_SHIFT_DEG` from `3` to `5` in `scripts/v0/arc_placement.ts`. This modifies the existing `contactAngleDeg` shift under authored impact pressure; candidate counts, RNG draws, scorer, specs, seed set, and budget grid were unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-tangent-shift5-slice-01`
+- Raw focused scores: headline `521.45`, with budget scores `50k 354.46`, `100k 501.67`, `200k 536.29`, `300k 545.98`; validity was `234/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `521.7 -> 521.5`, `Delta=-0.3`, 95% CI `[-9.6, 8.2]`, `P(Delta<=0)=48.2%`, effect `-0.01`. Per-budget deltas: `50k -38.0`, `100k +1.3`, `200k +3.1`, `300k +3.2`; validity was unchanged at `100k+`.
+- Diagnostics: the tangent-center idea is active and directionally improves mature budgets, but applying the stronger shift at all budgets hurts the scarce-budget curve enough that the focused headline is not promotable. A smooth mature-only extra shift is the cleaner follow-up.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

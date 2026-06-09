@@ -487,3 +487,14 @@ same normalized normal-impact scale the scorer reports.
 - Canonical decide result: `VERDICT: ACCEPT`; headline `489.8 -> 490.7`, `Delta=+1.0`, 95% CI `[-0.5, 2.5]`, `P(Delta<=0)=9.5%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.7`, `300k +0.9`; validity unchanged (`50k 97%`, `100k+ 100%`).
 - Diagnostics: the ramp isolates the mature-budget improvement from the low-budget churn seen in the flat margin probe. It raises the canonical baseline by spending a little more main-search budget before repair at mature budgets, without changing the scarce-budget completion path.
 - Status: kept and committed; new canonical baseline is `impact-repair-main11-ramp-01`.
+
+## impact-repair-main115-ramp-slice-01
+
+- Baseline used: `impact-repair-main11-ramp-01` behavior at commit `5e69472`.
+- Hypothesis: the accepted `1.1` mature repair main-margin ramp may still be conservative. Raising only the ramp endpoint to `1.15` keeps `50k/100k` byte-identical while giving mature budgets slightly more main-search context before repair.
+- Code changes made: temporarily changed `REPAIR_MAIN_MARGIN_MATURE` from `1.1` to `1.15` in `scripts/v0/optimizer/handoff.ts`.
+- Import smoke: `npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-repair-main115-ramp-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `470.6 -> 470.6`, `Delta=+0.0`, 95% CI `[-0.0, 0.1]`, `P(Delta<=0)=21.1%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.0`, `300k +0.1`.
+- Diagnostics: the extra endpoint is essentially neutral. It changes some rows but does not produce a useful point estimate beyond the accepted `1.1` ramp, so the mature repair split is already near the local plateau.
+- Status: reverted after focused neutral signal; no canonical run and no behavior commit.

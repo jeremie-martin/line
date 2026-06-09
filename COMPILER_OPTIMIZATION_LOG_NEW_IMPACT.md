@@ -1149,3 +1149,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `494.6 -> 494.8`, `Delta=+0.2`, 95% CI `[-2.6, 2.8]`, `P(Delta<=0)=38.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.6`, `300k +0.1`; validity unchanged.
 - Diagnostics: the stronger endpoint adds churn without meaningful aggregate lift. The accepted `8deg` endpoint remains the current high78 bevel setting.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-high78-bevel8-localcost100-slice-01
+
+- Baseline used: `impact-high78-bevel8-localcost075-01` behavior at commit `8446817`.
+- Hypothesis: after the combined high78 bevel plus local impact-cost ramp accepted, increasing the mature local impact-cost endpoint from `0.75` to `1.0` might promote more hard-impact candidates without additional geometry.
+- Code changes made: temporarily changed `LOCAL_IMPACT_COST_MATURE_EXTRA` from `0.25` to `0.5` in `scripts/v0/core/candidate.ts`, so mature local impact cost reached `1.0`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "Promise.all([import('./scripts/v0/arc_placement.ts'), import('./scripts/v0/core/candidate.ts'), import('./scripts/v0/optimizer/handoff.ts')]).then(() => console.log('localcost100 imports ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-high78-bevel8-localcost100-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `494.6 -> 494.9`, `Delta=+0.3`, 95% CI `[-1.6, 2.3]`, `P(Delta<=0)=39.1%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.7`, `300k +0.1`; validity unchanged.
+- Diagnostics: the stronger local selection endpoint creates broad row churn with almost no mature headline gain. Keep the accepted `0.75` endpoint.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

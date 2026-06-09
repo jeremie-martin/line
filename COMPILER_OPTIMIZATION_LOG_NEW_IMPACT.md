@@ -843,3 +843,25 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `478.3 -> 479.3`, `Delta=+1.0`, 95% CI `[-2.4, 7.4]`, `P(Delta<=0)=39.5%`. Per-budget deltas: `50k -9.0`, `100k +11.0`, `200k +0.0`, `300k -0.1`; validity moved `50k 100% -> 99%` and stayed `100%` otherwise.
 - Diagnostics: selection pressure on low-air hard-impact candidates is a noisy budget tradeoff, not a mature residual fix. It helps `100k`, but only by hurting `50k`, and leaves the targeted mature `drums_pendulum` rows essentially unchanged.
 - Status: reverted after focused inconclusive signal; no full preview, no canonical run, and no behavior commit.
+
+## impact-lowair-hard-aircost15-100k-slice-01
+
+- Baseline used: `impact-bevel6x2-01` behavior at commit `6dfa80c`.
+- Hypothesis: the ungated `1.5x` low-air/high-impact air-cost probe showed a real `100k` lift but hurt `50k`. Apply the same extra air weight through a triangular budget window that is zero at `50k`, full at `100k`, and zero again by `200k`, so scarce and mature budgets stay unchanged.
+- Code changes made: temporarily added a candidate-side compile-budget setter in `scripts/v0/core/candidate.ts`, wired it from `compileHandoffInternal(...)`, and applied `LOCAL_LOW_AIR_HIGH_IMPACT_AIR_COST_EXTRA = 0.5` only through `hundredKPressure()`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "Promise.all([import('./scripts/v0/core/candidate.ts'), import('./scripts/v0/optimizer/handoff.ts')]).then(() => console.log('budgeted air cost imports ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-hard-aircost15-100k-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `478.3 -> 480.0`, `Delta=+1.7`, 95% CI `[-0.0, 9.2]`, `P(Delta<=0)=44.1%`. Per-budget deltas: `50k +0.0`, `100k +11.0`, `200k +0.0`, `300k +0.0`; validity stayed `100%`.
+- Diagnostics: the budget window cleanly isolated the `100k` gain and removed the `50k` damage, but it still did not meet the decision bar and does nothing for the mature impact residual.
+- Status: bracketed upward to `2.0x`, then reverted; no full preview, no canonical run, and no behavior commit.
+
+## impact-lowair-hard-aircost20-100k-slice-01
+
+- Baseline used: `impact-bevel6x2-01` behavior at commit `6dfa80c`.
+- Hypothesis: if the budget-windowed `1.5x` air cost was clean but too weak, raising the active `100k` weight to `2.0x` might make the isolated `100k` signal promotable.
+- Code changes made: temporarily changed `LOCAL_LOW_AIR_HIGH_IMPACT_AIR_COST_EXTRA` from `0.5` to `1.0` in the 100k-windowed helper, making the active low-air/high-impact air cost `2.0x` at `100k`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "Promise.all([import('./scripts/v0/core/candidate.ts'), import('./scripts/v0/optimizer/handoff.ts')]).then(() => console.log('budgeted air cost imports ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-hard-aircost20-100k-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `478.3 -> 480.0`, `Delta=+1.7`, 95% CI `[-0.0, 9.2]`, `P(Delta<=0)=38.7%`. Per-budget deltas: `50k +0.0`, `100k +11.2`, `200k +0.0`, `300k +0.0`; validity stayed `100%`.
+- Diagnostics: the stronger endpoint barely improved the point estimate over `1.5x` and remained far from acceptance. The selection knob is useful information for future budget-specific work but not worth carrying as a non-mature headline micro-optimization.
+- Status: reverted after focused inconclusive signal; no full preview, no canonical run, and no behavior commit.

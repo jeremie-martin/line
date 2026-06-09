@@ -1272,3 +1272,15 @@ same normalized normal-impact scale the scorer reports.
 - Raw canonical scores: headline `533.00`, with budget scores `50k 359.81`, `100k 508.97`, `200k 550.30`, `300k 558.34`.
 - Diagnostics: this promotes the boundary case left by the accepted dense lip gate. It is a mature geometry gain that leaves `50k` unchanged, lifts the dense hard-impact specs broadly, and preserves the accepted high-impact lip/entry-bevel path by using a max-composition rather than retuning the existing gate.
 - Status: kept and committed; new canonical baseline is `impact-moderate-lip20-01`.
+
+## impact-moderate-lip30-slice-01
+
+- Baseline used: `impact-moderate-lip20-01` behavior at commit `f6d33c4`.
+- Hypothesis: after the `20deg` moderate-impact lip accepted canonically, increasing only that endpoint to `30deg` might continue the same boundary-case hard-impact lift while leaving the smooth gate, mature timing, scorer, specs, seed set, and budget grid unchanged.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_MODERATE_LIP_SHIFT_DEG` from `20` to `30` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-moderate-lip30-slice-01`
+- Raw focused scores: headline `508.63`, with budget scores `50k 392.42`, `100k 503.40`, `200k 515.14`, `300k 525.40`; validity improved at `50k` (`239/240 -> 240/240`) and stayed `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `521.7 -> 508.6`, `Delta=-13.1`, 95% CI `[-30.9, 0.3]`, `P(Delta<=0)=97.1%`, effect `-1.61`. Per-budget deltas: `50k +0.0`, `100k +3.0`, `200k -18.0`, `300k -17.4`; validity improved at `50k` and was unchanged elsewhere.
+- Diagnostics: the stronger endpoint over-rotates the geometry. It gives a small `100k` point estimate lift but causes large mature regressions, especially in `drums_zigzag`, `drums_dropout`, and dense hard-impact rows. Keep the accepted `20deg` moderate lip endpoint.
+- Status: reverted after focused reject; no canonical run and no behavior commit.

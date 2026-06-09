@@ -1075,3 +1075,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `492.0 -> 492.1`, `Delta=+0.1`, 95% CI `[-2.2, 2.4]`, `P(Delta<=0)=46.9%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.1`, `300k +0.2`; validity unchanged.
 - Diagnostics: the extra tightening adds churn without aggregate lift. The useful mature air-span endpoint is `0.20` for now; further narrowing is saturated/noisy.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-lip-air77-span20-mature-slice-01
+
+- Baseline used: `impact-lip-airspan20-mature-01` behavior at commit `a62b965`.
+- Hypothesis: after the accepted span20 change, the next largest dense hard-impact residual is target `air=0.72..0.75`, which the accepted mature cutoff at `0.75` barely activates. Raise only the mature cutoff extra from `0.03` to `0.05` so the mature lip reaches `air=0.77`, while keeping `50k/100k`, span20, and high82 bevel behavior unchanged.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_EXTRA` from `0.03` to `0.05` in `scripts/v0/arc_placement.ts`.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lip-air77-span20-mature-slice-01`
+- Raw focused scores: headline `491.63`, with budget scores `50k 392.42`, `100k 472.45`, `200k 500.27`, `300k 508.81`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `492.0 -> 491.6`, `Delta=-0.4`, 95% CI `[-2.9, 2.3]`, `P(Delta<=0)=61.8%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.2`, `300k -0.6`; validity unchanged.
+- Diagnostics: even a smaller current-baseline cutoff extension reintroduces churn without a mature-budget lift. Keep the mature cutoff at `0.75`; the high-air/mid-high residual needs a different mechanism than extending the first-segment lip gate.
+- Status: reverted after focused negative/inconclusive signal; no canonical run and no behavior commit.

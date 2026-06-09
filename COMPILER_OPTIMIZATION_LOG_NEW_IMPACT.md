@@ -691,3 +691,13 @@ same normalized normal-impact scale the scorer reports.
 - Canonical decide result: `VERDICT: ACCEPT`; headline `492.1 -> 496.4`, `Delta=+4.3`, 95% CI `[1.8, 7.1]`, `P(Delta<=0)=0.0%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +5.5`, `300k +5.8`; validity unchanged (`50k 97%`, `100k+ 100%`).
 - Diagnostics: the mid-air gate preserved the broad probe's mature dense upside while avoiding the high-air opening-burst speed collapse. The improvement is a mature-budget geometry gain, not a validity or budget-allocation trade.
 - Status: kept and committed; new canonical baseline is `impact-midair-dense-lip14-01`.
+
+## impact-lowair-room-lip-span4-slice-01
+
+- Baseline used: `impact-midair-dense-lip14-01` behavior at commit `888da8a`.
+- Hypothesis: after the accepted mid-air dense lip, the remaining `drums_pendulum` residual is high-impact low-air mid/sparse spacing: impact under-hit around `0.39-0.47`, air overshoot around `0.38-0.40`, and average impact ceiling near `0.98`. Preserve the accepted fixed `14deg` lip but add a small attempt-spanned low-air-only extra so the ranker can see a few harder catch variants without forcing every candidate.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_LOW_AIR_LIP_SPAN_DEG = 4`, passed `attempt` into `contactCenteredImpactLipShiftDeg(...)`, and added up to `4deg * lowAir * lowAirRoom * ccSpanBlends(attempt).launch` on top of the accepted dense lip. The extra was high-impact, low-air, mature-budget gated and faded after sparse-room spacing.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-room-lip-span4-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `476.0 -> 475.0`, `Delta=-1.0`, 95% CI `[-3.9, 1.2]`, `P(Delta<=0)=77.1%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.7`, `300k -1.7`; validity stayed `100%`.
+- Diagnostics: extra low-air lip span worsened the exact residual it targeted: visible `drums_pendulum` 300k scores dropped on several seeds, while high-air opening rows stayed stable. The accepted fixed lip is already near the useful contact-angle boundary; more first-segment angle is not the next lever.
+- Status: reverted after focused negative signal; no canonical run and no behavior commit.

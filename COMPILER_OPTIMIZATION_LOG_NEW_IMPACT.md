@@ -1049,3 +1049,17 @@ same normalized normal-impact scale the scorer reports.
 - Raw canonical scores: headline `511.33`, with budget scores `50k 359.81`, `100k 490.38`, `200k 526.01`, `300k 533.78`.
 - Diagnostics: this keeps the accepted early-budget path byte-identical while making the mature dense lip more assertive in the mid-air hard-impact bucket that dominated the residuals. The canonical lift is larger than the high82 bevel and cleanly concentrated at `200k/300k`.
 - Status: kept and committed; new canonical baseline is `impact-lip-airspan25-mature-01`.
+
+## impact-lip-airspan20-mature-01
+
+- Baseline used: `impact-lip-airspan25-mature-01` behavior at commit `94d1919`.
+- Hypothesis: the accepted mature air-span narrowing helped the largest `air ~= 0.50..0.65` dense hard-impact bucket but left it materially under target. Narrow the same mature-only dense lip air-pressure span one more step, from `0.25` to `0.20`, preserving the accepted cutoff, high82 bevel, and byte-identical `50k/100k` behavior.
+- Code changes made: changed `CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_SPAN` from `0.25` to `0.20` in `scripts/v0/arc_placement.ts`. The helper, budget ramp, candidate counts, RNG draws, lip angle, bevel length, and high82 bevel are otherwise unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Focused probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lip-airspan20-mature-slice-01`
+- Focused decide result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `490.2 -> 492.0`, `Delta=+1.8`, 95% CI `[-0.7, 4.8]`, `P(Delta<=0)=8.0%`, effect `1.31`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +2.6`, `300k +2.2`; validity unchanged.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-lip-airspan20-mature-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `511.3 -> 512.7`, `Delta=+1.3`, 95% CI `[-0.5, 3.3]`, `P(Delta<=0)=7.3%`, effect `1.39`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.6`, `300k +1.8`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Raw canonical scores: headline `512.66`, with budget scores `50k 359.81`, `100k 490.38`, `200k 527.62`, `300k 535.60`.
+- Diagnostics: the stronger mature pressure keeps early budgets unchanged and adds another accepted mature-budget lift. The confidence is weaker than the first span change but still passes canonical decide; `0.20` becomes the current endpoint until a bracket shows over-tightening.
+- Status: kept and committed; new canonical baseline is `impact-lip-airspan20-mature-01`.

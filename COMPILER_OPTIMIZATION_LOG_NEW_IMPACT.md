@@ -711,3 +711,23 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a neutral point estimate; 20-spec intersection headline `476.0 -> 476.0`, `Delta=+0.0`, 95% CI `[-1.0, 1.1]`, `P(Delta<=0)=51.2%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.3`, `300k -0.2`; validity stayed `100%`.
 - Diagnostics: the cap change traded seed-level `drums_pendulum` wins and losses without improving the aggregate; one worst row dropped to `276.89`, while some other seeds recovered. The air overshoot is real, but simply extending ride-out capacity is too volatile.
 - Status: reverted after focused neutral signal; no canonical run and no behavior commit.
+
+## impact-highair-dense-lip3-slice-01
+
+- Baseline used: `impact-midair-dense-lip14-01` behavior at commit `888da8a`.
+- Hypothesis: the broad ungated `14deg` dense lip collapsed high-air opening rows, but high-impact/high-air dense rows remain a large residual across `opening_burst`, `dense_sprint`, and `rhythm_ladder`. Add only a small `3deg` high-air dense lip after the mature budget ramp to improve impact without destroying carry speed.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_HIGH_AIR_DENSE_LIP_SHIFT_DEG = 3` in `scripts/v0/arc_placement.ts`; added `3deg * smoothstep((air - 0.65) / 0.20)` to the accepted dense lip helper, still gated by high-impact pressure, dense spacing, and the `150k..200k` mature ramp.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-highair-dense-lip3-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `476.0 -> 476.7`, `Delta=+0.6`, 95% CI `[-3.9, 4.4]`, `P(Delta<=0)=32.3%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.2`, `300k +0.6`; validity stayed `100%`.
+- Diagnostics: the small high-air lip avoided the catastrophic broad-lip collapse but remained too volatile. It lifted some dense/high-air rows and added high-end pop-train wins, while pushing `opening_burst` seed `5` into the worst rows at `300k`.
+- Status: bracketed down to `2deg`; no full preview, no canonical run, and no behavior commit.
+
+## impact-highair-dense-lip2-slice-01
+
+- Baseline used: `impact-midair-dense-lip14-01` behavior at commit `888da8a`.
+- Hypothesis: reducing the high-air dense lip from `3deg` to `2deg` may keep the small mature-budget point-estimate gain while reducing opening-burst volatility.
+- Code changes made: temporarily changed `CONTACT_CENTERED_IMPACT_HIGH_AIR_DENSE_LIP_SHIFT_DEG` from `3` to `2`.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-highair-dense-lip2-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `476.0 -> 476.7`, `Delta=+0.6`, 95% CI `[-4.6, 4.7]`, `P(Delta<=0)=33.9%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +1.0`, `300k +0.8`; validity stayed `100%`.
+- Diagnostics: `2deg` was not cleaner than `3deg`; the point estimate stayed weak-positive but CI widened and several opening/drum seeds still regressed. The high-air dense residual needs a different mechanism than first-segment lip angle.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

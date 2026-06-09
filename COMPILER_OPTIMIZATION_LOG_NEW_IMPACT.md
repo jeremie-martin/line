@@ -1284,3 +1284,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `521.7 -> 508.6`, `Delta=-13.1`, 95% CI `[-30.9, 0.3]`, `P(Delta<=0)=97.1%`, effect `-1.61`. Per-budget deltas: `50k +0.0`, `100k +3.0`, `200k -18.0`, `300k -17.4`; validity improved at `50k` and was unchanged elsewhere.
 - Diagnostics: the stronger endpoint over-rotates the geometry. It gives a small `100k` point estimate lift but causes large mature regressions, especially in `drums_zigzag`, `drums_dropout`, and dense hard-impact rows. Keep the accepted `20deg` moderate lip endpoint.
 - Status: reverted after focused reject; no canonical run and no behavior commit.
+
+## impact-highair-entry-bevel16-slice-01
+
+- Baseline used: `impact-moderate-lip20-01` behavior at commit `f6d33c4`, plus log-only commit `5c7545a`.
+- Hypothesis: the accepted entry bevel follows the low/moderate-air lip gate, while the existing high-air hard-impact bevel only affects the post-contact bevel. Apply that existing high-air hard-impact gate to the final pre-contact approach segment with a `2x` multiplier, so high-air hard contacts can land on a harder approach surface without retuning the lip gate or high-air bevel endpoint.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_HIGH_AIR_ENTRY_BEVEL_SHIFT_MULT = 2` in `scripts/v0/arc_placement.ts`; `sampleContactCenteredLines(...)` used the maximum of the accepted lip entry bevel and `2 * contactCenteredImpactHighAirBevelShiftDeg(...)` for the final pre-contact segment angle. Candidate counts, RNG draws, scorer, specs, seed set, and budget grid were unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-highair-entry-bevel16-slice-01`
+- Raw focused scores: headline `522.33`, with budget scores `50k 392.42`, `100k 500.41`, `200k 534.09`, `300k 543.45`; validity improved at `50k` (`239/240 -> 240/240`) and stayed `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `521.7 -> 522.3`, `Delta=+0.6`, 95% CI `[-1.5, 3.6]`, `P(Delta<=0)=34.4%`, effect `0.46`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.9`, `300k +0.7`; validity improved at `50k` and was unchanged elsewhere.
+- Diagnostics: the approach-surface idea is active but too small/noisy on the focused slice. It lifts some high-air hard-contact rows, especially parts of `opening_burst`, but does not move the aggregate enough to justify a canonical run.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

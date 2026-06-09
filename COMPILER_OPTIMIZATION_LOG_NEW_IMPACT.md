@@ -1308,3 +1308,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `521.7 -> 520.7`, `Delta=-1.0`, 95% CI `[-4.0, 1.6]`, `P(Delta<=0)=75.7%`, effect `-0.70`. Per-budget deltas: `50k +0.0`, `100k -1.4`, `200k +0.1`, `300k -1.7`; validity improved at `50k` and was unchanged elsewhere.
 - Diagnostics: the ranking term is active but too blunt. It improves some dropout/crosscut rows but moves pendulum/signature/dense rows into weaker basins, so hard-impact undershoot should not be added as a broad local sort pressure at this strength.
 - Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.
+
+## impact-lowair-start-delay14-slice-01
+
+- Baseline used: `impact-moderate-lip20-01` behavior at commit `f6d33c4`, plus log-only commits through `22d43cf`.
+- Hypothesis: remaining `drums_pendulum` failures include a very-low-air first contact where the selected start sometimes achieves almost full air before the first beat. The existing startup support delay gate has zero duration pressure at a 20-frame first gap, so let the smooth support-delay ramp begin earlier and span wider to expose delayed low-air support starts at this cadence.
+- Code changes made: temporarily changed `START_SUPPORT_X_DELAY_FIRST_GAP_START_FRAMES` from `20` to `14` and `START_SUPPORT_X_DELAY_FIRST_GAP_SPAN_FRAMES` from `10` to `12` in `scripts/v0/optimizer/handoff.ts`. Candidate scoring, scorer, specs, seed set, and budget grid were unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/optimizer/handoff.ts').then(() => console.log('handoff import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-start-delay14-slice-01`
+- Raw focused scores: headline `520.86`, with budget scores `50k 392.42`, `100k 500.60`, `200k 531.75`, `300k 541.77`; validity improved at `50k` (`239/240 -> 240/240`) and stayed `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `521.7 -> 520.9`, `Delta=-0.9`, 95% CI `[-3.7, 0.3]`, `P(Delta<=0)=81.4%`, effect `-0.78`. Per-budget deltas: `50k +0.0`, `100k +0.2`, `200k -1.4`, `300k -1.0`; validity improved at `50k` and was unchanged elsewhere.
+- Diagnostics: the delay gate is active and changes `drums_pendulum` starts, but it is seed-unstable: some pendulum seeds improve while others move into weaker low-air/impact basins. The aggregate is not promotable.
+- Status: reverted after focused inconclusive/negative signal; no canonical run and no behavior commit.

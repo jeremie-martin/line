@@ -312,6 +312,10 @@ const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
 const MAX_NODES_FLOOR = 50_000;
 const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
+const CONTRACT_BRANCHING_MIN = 2;
+const CONTRACT_BRANCHING_FADE_START_FRAMES = 50_000;
+const CONTRACT_BRANCHING_FADE_SPAN_FRAMES = 50_000;
+const CONTRACT_BRANCHING_WARMUP_GAPS = 12;
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
  *  pool is mostly wasted per-node work that starves bounded-budget exploration.
@@ -448,7 +452,7 @@ const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 8;
 const TAIL_COMPLETION_BUDGET_WINDOW_EXTRA = 4;
 const TAIL_COMPLETION_BUDGET_SCALE_FRAMES = 150_000;
-const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_WINDOW_EXTRA = 14;
+const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_WINDOW_EXTRA = 17;
 const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_SCALE_FRAMES = 75_000;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
 const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_EXTRA_BRANCHES = 1;
@@ -1824,7 +1828,8 @@ function expandNode(
     }];
   }
 
-  return options.map((option) => ({
+  const branchLimit = contractBranchingLimit(node.search, qualitySearch, targetBudget, bestKey);
+  return options.slice(0, branchLimit).map((option) => ({
     search: option.child,
     startState: node.startState,
     startLines: node.startLines,
@@ -1835,6 +1840,26 @@ function expandNode(
     rankTrace: appendOptionTrace(node.rankTrace, option),
     skippedContacts: node.skippedContacts + (option.candidate === null ? 1 : 0),
   }));
+}
+
+function contractBranchingLimit(
+  node: SearchNode,
+  qualitySearch: boolean,
+  targetBudget: number,
+  bestKey: LeafKey | null,
+): number {
+  if (qualitySearch || bestKey?.contract_passed === true) return HANDOFF_BRANCHING;
+  if (node.gapIndex < CONTRACT_BRANCHING_WARMUP_GAPS) return HANDOFF_BRANCHING;
+  const scarcityPressure = 1 - smoothstep(
+    (targetBudget - CONTRACT_BRANCHING_FADE_START_FRAMES) /
+      CONTRACT_BRANCHING_FADE_SPAN_FRAMES,
+  );
+  if (scarcityPressure <= 0) return HANDOFF_BRANCHING;
+  return clampIntLocal(
+    HANDOFF_BRANCHING - (HANDOFF_BRANCHING - CONTRACT_BRANCHING_MIN) * scarcityPressure,
+    CONTRACT_BRANCHING_MIN,
+    HANDOFF_BRANCHING,
+  );
 }
 
 function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap, ctx: SpecContext): boolean {

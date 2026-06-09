@@ -13,6 +13,14 @@ Accepted 2026-06-09:
 - Validity: 50k 95% -> 96%; mature budgets unchanged at 100%.
 - Code shape: `LR_IMPACT_ARRIVAL=0` now reverts the scarce-budget arrival ramp; entry redirection adjusts only the final approach segment on dense, mature, missing-impact rows with cap 10 deg and target pressure 0.30/0.25.
 
+Accepted 2026-06-10:
+- Candidate: scarce-budget contract branch cap plus low-budget tail window 17.
+- Archive: `generated/golden-runs/contract-branch-cap2-tailwin17-clean-canon-01/golden.json`
+- Canonical decide vs `impact-arrival-entry-combo-canon-01`: baseline 572.5 -> candidate 575.4, Delta +2.9, 95% CI [-0.3, 8.3], P(Delta<=0)=10.0%, effect=1.14, VERDICT: ACCEPT.
+- Per-budget deltas: 50k +37.2, 100k +0.0, 200k +0.1, 300k +0.0.
+- Validity: 50k 96% -> 98%; 100k/200k/300k unchanged at 100%.
+- Code shape: before any passing output exists, 50k contract search branches 2-wide after gap 12, fading back to 3-wide by 100k; contract tail completion gets a 17-contact low-budget window so deep prefixes can finish instead of scoring zero.
+
 Probe trail:
 - `impact-entry-redir-dense-slice-01`: focused Delta +0.7, inconclusive. Helped mainly target-impact .55-.75 at 200k/300k.
 - `impact-entry-redir-dense-v2-slice-01`: focused Delta +0.2, inconclusive. Broader/stronger pressure hurt the important .35-.55 band.
@@ -21,3 +29,9 @@ Probe trail:
 - `impact-entry-redir-highband-slice-01`: focused Delta +0.4, inconclusive. Over-narrow target gate reduced useful lift.
 - `impact-entry-redir-cap12-slice-01`: focused Delta -0.0, inconclusive. Overdriving the entry cap regressed 300k.
 - `impact-arrival-entry-combo-slice-01`: focused Delta +2.4, inconclusive but strong enough to justify canonical; canonical accepted.
+- `impact-template-current-slice-01`: focused Delta -1.6, inconclusive; template lane not useful here.
+- `impact-axisq-overpressure/contact-centered/residual-gate`: all inconclusive; contact-centered fixed landing rate but not score.
+- `impact-repair-anchor-slice-01`: focused Delta -0.4, inconclusive; impact-weighted repair anchor caused bad row swaps.
+- `contract-branch-cap2-canon-01`: 50k +5.6 but canonical Delta +0.4, P(Delta<=0)=42.2%, inconclusive; cap needed a warmup.
+- `contract-branch-cap2-warmup12-canon-01`: 50k +38.1 but canonical Delta +2.9, P(Delta<=0)=12.5%, inconclusive; tail window still left the gate just short.
+- `contract-branch-cap2-tailwin17-clean-canon-01`: canonical accepted. Window 17 kept the 50k rescue and removed the main `drums_pendulum` seed 10 regression; window 20 was too broad and regressed 50k validity.

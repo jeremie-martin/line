@@ -913,3 +913,16 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `484.6 -> 485.3`, `Delta=+0.7`, 95% CI `[-6.6, 5.0]`, `P(Delta<=0)=29.5%`. Per-budget deltas: `50k +0.0`, `100k -10.7`, `200k +3.1`, `300k +3.0`; validity was reported unchanged by `decide`.
 - Diagnostics: `0.75` does add mature-budget point-estimate lift, but it reintroduces a noisy mid-budget tradeoff and one raw `100k` invalid on the focused archive. The accepted `0.72` endpoint is the cleaner gate.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-midair-lip-air75-mature-01
+
+- Baseline used: `impact-midair-lip-air72-01` behavior at commit `4580a08`.
+- Hypothesis: flat `0.75` cutoff added mature-budget gains but hurt `100k`; ramp only the extra `0.03` cutoff from `150k..200k` so `50k/100k` keep the accepted `0.72` behavior and `200k/300k` get the mature lift.
+- Code changes made: added mature extra air cutoff constants and a `contactCenteredImpactLipAirMax()` helper; `contactCenteredImpactLipShiftDeg(...)` now uses the budget-ramped air cutoff. Candidate counts, RNG draws, lip angle, bevel length, and the existing lip maturity ramp are otherwise unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Focused probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-midair-lip-air75-mature-slice-01`
+- Focused decide result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `484.6 -> 487.0`, `Delta=+2.4`, 95% CI `[0.0, 5.3]`, `P(Delta<=0)=2.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +3.1`, `300k +3.0`; validity stayed `100%`.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-midair-lip-air75-mature-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `505.1 -> 507.1`, `Delta=+2.1`, 95% CI `[0.4, 4.0]`, `P(Delta<=0)=0.7%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +2.9`, `300k +2.6`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Diagnostics: the budgeted cutoff keeps the flat `0.75` mature lift while removing the noisy `100k` regression from the ungated bracket. Raw canonical HEADLINE is `507.13`, with budget scores `50k 359.81`, `100k 490.38`, `200k 520.94`, `300k 528.07`.
+- Status: kept and committed; new canonical baseline is `impact-midair-lip-air75-mature-01`.

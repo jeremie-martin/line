@@ -66,6 +66,9 @@ const CONTACT_CENTERED_IMPACT_SPARSE_EXTRA_SHIFT_DEG = 1;
 const CONTACT_CENTERED_IMPACT_DENSE_MATURE_EXTRA_SHIFT_DEG = 1;
 const CONTACT_CENTERED_IMPACT_DENSE_LIP_SHIFT_DEG = 14;
 const CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_MAX = 0.72;
+const CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_EXTRA = 0.03;
+const CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_START_FRAMES = 150_000;
+const CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_SPAN_FRAMES = 50_000;
 const CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_SPAN = 0.35;
 const CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX = 6;
 const CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT = 2;
@@ -978,8 +981,9 @@ function contactCenteredImpactLipShiftDeg(
 ): number {
   if (targets.impact === undefined || nextGapFrames === null) return 0;
   const highImpact = smoothstep((targets.impact - 0.75) / 0.15);
+  const airMax = contactCenteredImpactLipAirMax();
   const airPressure = smoothstep(
-    (CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_MAX - air) /
+    (airMax - air) /
       CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_SPAN,
   );
   const dense = 1 - smoothstep(
@@ -989,6 +993,15 @@ function contactCenteredImpactLipShiftDeg(
   const mature = smoothstep((currentCompileBudgetFrames - 75_000) / 50_000);
   return CONTACT_CENTERED_IMPACT_DENSE_LIP_SHIFT_DEG *
     highImpact * airPressure * dense * mature;
+}
+
+function contactCenteredImpactLipAirMax(): number {
+  const mature = smoothstep(
+    (currentCompileBudgetFrames - CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_START_FRAMES) /
+      CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_SPAN_FRAMES,
+  );
+  return CONTACT_CENTERED_IMPACT_DENSE_LIP_AIR_MAX +
+    CONTACT_CENTERED_IMPACT_DENSE_LIP_MATURE_AIR_EXTRA * mature;
 }
 
 function guideContactCenteredRolls(

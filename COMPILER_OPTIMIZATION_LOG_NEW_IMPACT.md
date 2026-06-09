@@ -1218,3 +1218,18 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `494.6 -> 494.4`, `Delta=-0.2`, 95% CI `[-0.6, 0.1]`, `P(Delta<=0)=90.7%`, effect `-1.23`. Per-budget deltas: `50k -2.9`, `100k +0.0`, `200k +0.0`, `300k +0.0`; validity unchanged.
 - Diagnostics: the stronger air overshoot penalty did not affect mature selected outputs and only hurt scarce-budget ranking. Keep the accepted `air: 16` handoff overshoot weight.
 - Status: reverted after focused reject; no canonical run and no behavior commit.
+
+## impact-entry-bevel20-01
+
+- Baseline used: `impact-high78-bevel8-localcost075-01` behavior at commit `8446817`.
+- Hypothesis: worst accepted reports showed low-air/high-impact contacts often landed on the final pre-contact approach line, whose tangent was nearly parallel to the incoming velocity; the accepted post-contact lip/bevel could not help when that pre-contact line was the fired impact surface. Reuse the accepted mature dense lip gate to angle only the final pre-contact segment, preserving the post-contact ride-out and candidate count while making the measured landing surface harder.
+- Code changes made: added `CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT = 2` in `scripts/v0/arc_placement.ts`; `sampleContactCenteredLines(...)` now computes `impactLipShiftDeg` before pre-line construction and passes `contactAngleDeg - 2 * impactLipShiftDeg` as the final pre-contact segment angle. `buildPreContactLines(...)` accepts an optional final segment angle, defaulting to the old end angle, so callers outside the gated contact-centered impact path remain unchanged.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('entry bevel2 import ok'))"` passed.
+- Bracket probe: `impact-entry-bevel15-slice-01` used the same mechanism with `CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT = 1.5`. Focused decide was indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `494.6 -> 496.6`, `Delta=+2.0`, 95% CI `[-1.6, 5.9]`, `P(Delta<=0)=13.9%`. Per-budget deltas: `50k +0.0`, `100k +1.6`, `200k +3.0`, `300k +1.8`; validity unchanged.
+- Focused probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-entry-bevel20-slice-01`
+- Focused decide result: indicative `VERDICT: ACCEPT`; 20-spec intersection headline `494.6 -> 498.3`, `Delta=+3.7`, 95% CI `[-0.6, 9.2]`, `P(Delta<=0)=5.7%`, effect `1.45`. Per-budget deltas: `50k +0.0`, `100k +4.0`, `200k +4.2`, `300k +3.9`; validity unchanged.
+- Canonical command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/impact-entry-bevel20-01`
+- Canonical decide result: `VERDICT: ACCEPT`; headline `514.8 -> 519.1`, `Delta=+4.3`, 95% CI `[1.0, 8.4]`, `P(Delta<=0)=0.5%`, effect `2.27`. Per-budget deltas: `50k +0.0`, `100k +4.2`, `200k +4.9`, `300k +4.7`; validity unchanged (`50k 97%`, `100k+ 100%`).
+- Raw canonical scores: headline `519.15`, with budget scores `50k 359.81`, `100k 494.55`, `200k 535.48`, `300k 543.01`.
+- Diagnostics: this is a mature/medium-budget geometry gain, not a validity change. It fixes a distinct surface-selection failure mode from the previous post-contact lip/bevel work: the actual fired landing surface is now allowed to be hard when the landing happens on the approach line.
+- Status: kept and committed; new canonical baseline is `impact-entry-bevel20-01`.

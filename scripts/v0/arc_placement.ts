@@ -76,6 +76,7 @@ const CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_START = 0.78;
 const CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_SPAN = 0.04;
 const CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX = 6;
 const CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT = 2;
+const CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT = 2;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
@@ -949,10 +950,13 @@ function sampleContactCenteredLines(
     : (lowDiscrepancyRoll(attempt, 8) - 0.5) * 2 *
       CONTACT_CENTERED_POST_CURVE_BIAS_SPAN * curveFade;
 
+  const impactLipShiftDeg = contactCenteredImpactLipShiftDeg(targets, air, nextGapFrames);
+  const entryBevelAngleDeg = contactAngleDeg -
+    impactLipShiftDeg * CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT;
   const preLines = buildPreContactLines(
     lineIdStart, contactPoint, preAngleDeg, contactAngleDeg, preLength, preSegments,
+    entryBevelAngleDeg,
   );
-  const impactLipShiftDeg = contactCenteredImpactLipShiftDeg(targets, air, nextGapFrames);
   const impactBevelShiftDeg = Math.max(
     impactLipShiftDeg,
     contactCenteredImpactHighAirBevelShiftDeg(targets, air, nextGapFrames),
@@ -1162,6 +1166,7 @@ function buildPreContactLines(
   endAngleDeg: number,
   length: number,
   segments: number,
+  finalSegmentAngleDeg = endAngleDeg,
 ): TrackLine[] {
   if (segments <= 0 || length <= 0) return [];
   const segLen = length / segments;
@@ -1171,7 +1176,8 @@ function buildPreContactLines(
   let totalY = 0;
   for (let i = 0; i < segments; i++) {
     const t = segments === 1 ? 1 : i / (segments - 1);
-    const a = (lerp(startAngleDeg, endAngleDeg, t) * Math.PI) / 180;
+    const angleDeg = i === segments - 1 ? finalSegmentAngleDeg : lerp(startAngleDeg, endAngleDeg, t);
+    const a = (angleDeg * Math.PI) / 180;
     const dx = Math.cos(a) * segLen;
     const dy = Math.sin(a) * segLen;
     dxs[i] = dx;

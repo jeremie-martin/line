@@ -100,6 +100,19 @@ const IMPACT_CURVE_SPEED_START_PX = 6;
 const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 const IMPACT_CURVE_FLATTEN_DEG = 10;
 const IMPACT_CURVE_FRONTLOAD = 0.8;
+// Mature-budget impact POST-TURN sampler (default ON; LR_IMPACT_POST_TURN=0 reverts).
+// The curve modulation can only front-load whatever contact→post rotation already
+// exists. Remaining mature misses show contact runs are long enough but
+// tangentChangeDeg is near zero, so add a normal candidate-family variant that
+// widens the post-contact angle by the ceiling-aware missing redirection angle.
+// Spanned by attempt and mature-budget gated: selection can keep normal launches,
+// while 50k completion remains protected.
+const IMPACT_POST_TURN_BUDGET_START_FRAMES = 100_000;
+const IMPACT_POST_TURN_BUDGET_SPAN_FRAMES = 100_000;
+const IMPACT_POST_TURN_MAX_EXTRA_DEG = 28;
+const IMPACT_POST_TURN_MIN_MISSING_DEG = 2;
+const IMPACT_POST_TURN_TARGET_START = 0.60;
+const IMPACT_POST_TURN_TARGET_SPAN = 0.20;
 // Impact redirect-catch TEMPLATE LANES (LR_IMPACT_TEMPLATE=1, default OFF). The curve
 // modulation above can only REDISTRIBUTE the existing contact→launch rotation, so
 // flat-launch beats (launch ≈ contact angle) have nothing to front-load — exactly the
@@ -1032,6 +1045,24 @@ function sampleContactCenteredLines(
     }
   }
 
+  if (PROCESS_ENV?.LR_IMPACT_POST_TURN !== "0" && impactCurveP > 0) {
+    const extraTurnDeg = impactPostTurnExtraDeg(
+      targetState,
+      targets.impact,
+      contactAngleDeg,
+      postAngleDeg,
+      impactCurveP,
+      attempt,
+    );
+    if (extraTurnDeg > 0) {
+      postAngleDeg = clamp(
+        postAngleDeg - extraTurnDeg,
+        ELEVATION_POST_ANGLE_MIN,
+        ELEVATION_POST_ANGLE_MAX,
+      );
+    }
+  }
+
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
   const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
 
@@ -1263,6 +1294,46 @@ function impactCurvePressure(
 function predictedRedirImpactAtAngleDelta(speedPx: number, deltaDeg: number): number {
   const deltaRad = (deltaDeg * Math.PI) / 180;
   return clamp(Math.abs(Math.sin(deltaRad)) * Math.max(0, speedPx) / CALIB.REDIR_CAP, 0, 1);
+}
+
+function axisDeltaDeg(aDeg: number, bDeg: number): number {
+  const d = Math.abs(normalizeAngleDeg(aDeg - bDeg));
+  return d > 90 ? 180 - d : d;
+}
+
+function impactPostTurnExtraDeg(
+  targetState: ImpactFrameTargetState,
+  targetImpact: number | undefined,
+  contactAngleDeg: number,
+  postAngleDeg: number,
+  impactCurveP: number,
+  attempt: number,
+): number {
+  if (targetImpact === undefined) return 0;
+  const mature = smoothstep(
+    (currentCompileBudgetFrames - IMPACT_POST_TURN_BUDGET_START_FRAMES) /
+      IMPACT_POST_TURN_BUDGET_SPAN_FRAMES,
+  );
+  if (mature <= 0) return 0;
+
+  const target = Math.min(targetImpact, impactCeiling(targetState.speed));
+  const targetPressure = smoothstep(
+    (target - IMPACT_POST_TURN_TARGET_START) / IMPACT_POST_TURN_TARGET_SPAN,
+  );
+  if (targetPressure <= 0) return 0;
+  const targetPerp = clamp(target * CALIB.REDIR_CAP / Math.max(1, targetState.speed), 0, 0.95);
+  const neededDeltaDeg = (Math.asin(targetPerp) * 180) / Math.PI;
+  const currentDeltaDeg = Math.max(
+    axisDeltaDeg(contactAngleDeg, targetState.angleDeg),
+    axisDeltaDeg(postAngleDeg, targetState.angleDeg),
+  );
+  const missingDeltaDeg = neededDeltaDeg - currentDeltaDeg;
+  if (missingDeltaDeg <= IMPACT_POST_TURN_MIN_MISSING_DEG) return 0;
+
+  const span = clamp(ccSpanBlends(attempt).launch, 0, 1);
+  const sampleStrength = 0.25 + 0.75 * span;
+  const pressure = mature * targetPressure * Math.sqrt(clamp(impactCurveP, 0, 1));
+  return clamp(missingDeltaDeg * sampleStrength * pressure, 0, IMPACT_POST_TURN_MAX_EXTRA_DEG);
 }
 
 function normalizeAngleDeg(deg: number): number {

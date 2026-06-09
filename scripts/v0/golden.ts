@@ -37,10 +37,11 @@ const WORKER_MEM_CAP_MB = 3072;
 const DEFAULT_JOBS = Math.max(1, Math.min(6, availableParallelism() - 1));
 
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { FPS, type CompileStats, type DriftReport, type Spec } from "./types.ts";
+import { FPS, REPORT_ONLY_AXIS_SET, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
   parseBudgetList,
   weightedBudgetScore,
+  type BudgetWeight,
   type CurvePoint,
 } from "./metric.ts";
 import {
@@ -660,6 +661,45 @@ function groupScores(rows: ScoredCheckpoint[], keyOf: (row: ScoredCheckpoint) =>
   }));
 }
 
+// ── Indicative "without impact" headline ────────────────────────────────────
+// The shipped score is 1000·axis_quality·drift·missing·off_beat·survival, and only
+// axis_quality depends on the impact axis, so the same row score with axis_quality
+// recomputed WITHOUT impact's error terms cancels every other factor. This is a pure
+// diagnostic readout (the real score/optimization/fingerprint are untouched): it shows
+// the other-axis quality of the SAME tracks, so a drop in the full headline can be read
+// as impact's own axis error vs. degradation of the other axes.
+function axisQualityWithoutImpact(row: ScoredCheckpoint): number {
+  const errs = row.axes
+    .filter((a) => !REPORT_ONLY_AXIS_SET.has(a.axis) && a.axis !== "impact")
+    .map((a) => a.error);
+  if (errs.length === 0) return 1;
+  const rms = Math.sqrt(errs.reduce((sum, e) => sum + e * e, 0) / errs.length);
+  return Math.exp(-rms / AXIS_QUALITY_TOLERANCE);
+}
+
+function scoreWithoutImpact(row: ScoredCheckpoint): number {
+  if (row.axis_quality <= 1e-9) return row.score;
+  return row.score * (axisQualityWithoutImpact(row) / row.axis_quality);
+}
+
+function suiteScoreWithoutImpact(rows: ScoredCheckpoint[]): number {
+  const groups = new Map<string, number[]>();
+  for (const row of rows) {
+    const arr = groups.get(row.name) ?? [];
+    arr.push(scoreWithoutImpact(row));
+    groups.set(row.name, arr);
+  }
+  return shiftedGeometricMean([...groups.values()].map((seedScores) => shiftedGeometricMean(seedScores)));
+}
+
+function withoutImpactCurve(rows: ScoredRunRow[], budgets: number[]): CurvePoint[] {
+  return budgets.map((b) => ({ budget: b, score: suiteScoreWithoutImpact(rowsForBudget(rows, b)) }));
+}
+
+function withoutImpactHeadline(rows: ScoredRunRow[], budgets: number[], weightByBudget: BudgetWeight[]): number {
+  return weightedBudgetScore(withoutImpactCurve(rows, budgets), weightByBudget);
+}
+
 function suiteScore(rows: ScoredCheckpoint[], keyOf: (row: ScoredCheckpoint) => string): number {
   return shiftedGeometricMean(groupScores(rows, keyOf).map((group) => group.score));
 }
@@ -1198,6 +1238,7 @@ async function runMain(): Promise<void> {
     score: headlineSummaries.find((s) => s.budget === b)?.score ?? 0,
   }));
   const headlineScoreValue = weightedBudgetScore(headlinePoints, weightByBudget);
+  const headlineWithoutImpact = withoutImpactHeadline(scored, budgets, weightByBudget);
 
   let variantRows: ScoredRunRow[] = [];
   let variantSummaries: BudgetSummary[] = [];
@@ -1241,6 +1282,9 @@ async function runMain(): Promise<void> {
       tier,
       n_seeds: seeds.length,
       score: round(headlineScoreValue),
+      // Indicative: the same tracks scored with the impact axis removed from
+      // axis_quality (other-axis quality only). Does NOT gate any decision.
+      score_without_impact: round(headlineWithoutImpact),
       weight_by_budget: weightByBudget.map((w) => ({ budget: w.budget, weight: round(w.weight, 6) })),
       budgets: [...budgets],
       // Per-budget validity is a diagnostic; it does not gate the decision.
@@ -1288,6 +1332,9 @@ async function runMain(): Promise<void> {
       console.log(
         `  HEADLINE ${round(headlineScoreValue)} · weighted-avg over budgets=${budgets.map(fmtBudget).join(",")} ` +
           `(weights∝budget) · tier=${tier} · validity@${fmtBudget(bmax.budget)}=${bmax.passed}/${bmax.total}`,
+      );
+      console.log(
+        `  HEADLINE ${round(headlineWithoutImpact)} excl. impact · indicative (other-axis quality of the same tracks; does not gate)`,
       );
     }
     if (includeVariants) {

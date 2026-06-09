@@ -611,3 +611,14 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `472.4 -> 449.6`, `Delta=-22.8`, 95% CI `[-40.6, -6.3]`, `P(Delta<=0)=99.7%`. Per-budget deltas: `50k +0.0`, `100k -22.5`, `200k -24.1`, `300k -25.9`.
 - Diagnostics: the third charged rollout is far too expensive. It preserves validity but removes enough search budget that quality collapses across non-50k budgets.
 - Status: env-only rejected; no canonical run and no behavior commit.
+
+## impact-lowair-dense-length-extra-slice-01
+
+- Baseline used: `impact-angle-dense-mature-extra-ramp-01` behavior at commit `845a08a`.
+- Hypothesis: low-air dense high-impact gaps still overshoot air while under-hitting impact. Increase the contact-centered air-targeted grounded ride-out length blend only for mature low-air/dense/high-impact gaps to reduce air overshoot without touching sparse or low-budget behavior.
+- Code changes made: temporarily added `LOW_AIR_HIGH_IMPACT_DENSE_LENGTH_BLEND_EXTRA = 0.20` in `scripts/v0/arc_placement.ts` and added it to the post-length blend strength when `impact >= 0.75`, `air <= 0.45`, next-contact spacing is dense, and the `150k..200k` budget ramp is active.
+- Import smoke: `npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('arc placement import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-lowair-dense-length-extra-slice-01`
+- Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `472.4 -> 470.9`, `Delta=-1.6`, 95% CI `[-4.5, 0.2]`, `P(Delta<=0)=95.4%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.5`, `300k -2.4`.
+- Diagnostics: forcing more grounded ride-out in the low-air dense hard-impact corner hurts mature quality. The ranker already balances the air/impact tradeoff better than this local length pressure.
+- Status: reverted after focused reject; no canonical run and no behavior commit.

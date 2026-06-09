@@ -1194,3 +1194,15 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: REJECT`; 20-spec intersection headline `494.6 -> 485.7`, `Delta=-8.9`, 95% CI `[-14.1, -3.9]`, `P(Delta<=0)=99.9%`, effect `-3.40`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -10.7`, `300k -12.1`; validity unchanged.
 - Diagnostics: simply over-targeting speed for hard-impact geometry destroys mature quality even though speed/impact residuals are one-sided. The energy-launch speed target is too coupled to continuation quality; do not repeat this direction without a much narrower gate or a selection mechanism that proves the faster candidates help locally and survive downstream.
 - Status: reverted after focused reject; no canonical run and no behavior commit.
+
+## impact-high78-bevel8-early125-localcost075-slice-01
+
+- Baseline used: `impact-high78-bevel8-localcost075-01` behavior at commit `8446817`.
+- Hypothesis: the accepted high78 high-air bevel is still zero through `100k` and full only at `200k+`, unlike the older dense lip/bevel ramp that accepted an earlier `75k..125k` timing. Move only the high-air bevel ramp to `75k..125k`, leaving `50k`, mature endpoints, the air gate, bevel endpoint, local impact cost, scorer, specs, and budget grid unchanged.
+- Code changes made: temporarily added `CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_START_FRAMES = 75_000` and `CONTACT_CENTERED_IMPACT_HIGH_AIR_BEVEL_SPAN_FRAMES = 50_000` in `scripts/v0/arc_placement.ts`; `contactCenteredImpactHighAirBevelShiftDeg(...)` used those constants instead of the accepted inline `150k..200k` ramp.
+- Import smoke: `LR_ENGINE=wasm npx tsx -e "import('./scripts/v0/arc_placement.ts').then(() => console.log('highair bevel timing import ok'))"` passed.
+- Probe command: `LR_ENGINE=wasm npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-high78-bevel8-early125-localcost075-slice-01`
+- Raw focused scores: headline `494.67`, with budget scores `50k 392.42`, `100k 472.99`, `200k 503.71`, `300k 512.91`; validity stayed `239/240` at `50k` and `240/240` for `100k+`.
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `494.6 -> 494.7`, `Delta=+0.1`, 95% CI `[-0.3, 0.5]`, `P(Delta<=0)=30.6%`, effect `0.39`. Per-budget deltas: `50k +0.0`, `100k +0.5`, `200k +0.0`, `300k +0.0`; validity unchanged.
+- Diagnostics: the earlier high-air bevel timing isolates a tiny `100k` point-estimate lift, but the effect is too small to promote and has no mature-budget value. Keep the accepted `150k..200k` high-air bevel ramp.
+- Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.

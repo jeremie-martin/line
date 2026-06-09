@@ -1160,3 +1160,13 @@ same normalized normal-impact scale the scorer reports.
 - Probe decide result: indicative `VERDICT: INCONCLUSIVE`; 20-spec intersection headline `494.6 -> 494.9`, `Delta=+0.3`, 95% CI `[-1.6, 2.3]`, `P(Delta<=0)=39.1%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.7`, `300k +0.1`; validity unchanged.
 - Diagnostics: the stronger local selection endpoint creates broad row churn with almost no mature headline gain. Keep the accepted `0.75` endpoint.
 - Status: reverted after focused inconclusive signal; no canonical run and no behavior commit.
+
+## impact-repair-upstream8-current-slice-01
+
+- Baseline used: `impact-high78-bevel8-localcost075-01` behavior at commit `8446817`.
+- Hypothesis: remaining `drums_pendulum` failures have known alternate search-lane headroom, and the default repair upstream walk of `4` gaps may not restart early enough to escape the first-complete basin. As an env-only probe, raise `LR_REPAIR_MAX_UPSTREAM` to `8` to let suffix repair walk farther upstream when a weak gap reconverges.
+- Code changes made: none; ran with `LR_REPAIR_MAX_UPSTREAM=8`.
+- Probe command: `LR_ENGINE=wasm LR_REPAIR_MAX_UPSTREAM=8 npm run golden -- --jobs=32 --specs=drums_pendulum,syncopated_switchback,rhythm_ladder,drums_signature,dense_sprint,drums_dropout,drums_crosscut,opening_burst,drums_pulse,drums_zigzag,big_air_ramp,pop_train,soar_settle,leap_cadence,climb_terrace,swoop_dive,rolling_hills,glide_stairs,dense_echo_climb,skyline_push --archive-dir=generated/golden-runs/impact-repair-upstream8-current-slice-01`
+- Probe decide result: indicative `VERDICT: INCONCLUSIVE` with a negative point estimate; 20-spec intersection headline `494.6 -> 494.4`, `Delta=-0.2`, 95% CI `[-1.5, 1.0]`, `P(Delta<=0)=60.6%`. Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.1`, `300k -0.3`; validity unchanged.
+- Diagnostics: broader upstream repair did not expose the full-lane pendulum headroom and slightly hurt mature aggregate quality. The default upstream walk stays at `4`.
+- Status: env-only inconclusive/negative; no source change and no canonical run.

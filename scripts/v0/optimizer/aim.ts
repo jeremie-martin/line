@@ -128,6 +128,30 @@ export function aimEnumEnabled(): boolean {
     .process?.env?.LR_AIM_ENUM !== "0";
 }
 
+/** A/B knobs for the queued R2 follow-ups (2026-06-10). All default to the
+ *  promoted aim-enum-r2-03 behavior — unset flags are bit-identical.
+ *  Experiment-only: the winning settings get hardcoded and these flags
+ *  deleted after the decide verdicts (no permanent backward-compat). */
+function enumDeferEnabled(): boolean {
+  // LR_ENUM_DEFER=0: drop the elevation climb-defer (enum runs everywhere;
+  // legacy lane becomes unreachable outside LR_AIM_ENUM=0).
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_ENUM_DEFER !== "0";
+}
+function enumSigmoidEnabled(): boolean {
+  // LR_ENUM_SIGMOID=1: smooth-veto reshape of the catchability factor —
+  // saturate the acceptable plateau (0.8 ≈ 0.9), fall hard below ~0.5.
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_ENUM_SIGMOID === "1";
+}
+function enumTopK(): number {
+  // LR_ENUM_TOP_K∈{1,2,3}: proposals per pool (default ENUM_TOP_K).
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_ENUM_TOP_K;
+  const v = raw === undefined ? NaN : Number(raw);
+  return Number.isFinite(v) && v >= 1 ? Math.floor(v) : ENUM_TOP_K;
+}
+
 /** Scoop lane in branch=1 rollout pools (LR_AIM_SCOOP_ROLLOUT=1).
  *  VERDICT (2026-06-10): rollout visibility for the scoop was falsified
  *  three ways — fresh eval per pool rebuild (v4-01, −3.8), per-node cached
@@ -778,6 +802,20 @@ const ENUM_SPEED_SCALE_PXF = 0.75;
  *  upward arrivals the catchability surface mis-scores (R1 validation);
  *  drops are readiness-aligned. */
 const ENUM_ELEV_CLIMB_DEFER = 0.65;
+/** Sigmoid reshape (LR_ENUM_SIGMOID=1): center/width chosen from the R0
+ *  surface geometry — committed arrivals sit at p50 0.85, the bad regimes
+ *  (shallow-slow 0.2, upward 0.39) sit below 0.5. σ(0.9)−σ(0.8) ≈ 0.05
+ *  where raw differs 0.10: indifference across the plateau, hard falloff
+ *  below the center — a smooth veto, not a proportional tax. */
+const ENUM_SIG_CENTER = 0.55;
+const ENUM_SIG_WIDTH = 0.10;
+
+/** The readiness factor as it enters the objective: clamp-floored raw
+ *  surface by default; sigmoid-reshaped under the A/B flag. */
+function shapeReadiness(r: number): number {
+  const v = enumSigmoidEnabled() ? 1 / (1 + Math.exp(-(r - ENUM_SIG_CENTER) / ENUM_SIG_WIDTH)) : r;
+  return Math.max(ENUM_R_MIN, v);
+}
 
 /** R2 enumerative proposer: one knob (exit pitch — the validated tail-only
  *  family), two fitted models (arrival speed + CoM angle at the NEXT beat,
@@ -812,7 +850,7 @@ export function makeEnumAimedCandidates(
     return [];
   }
   const elevAsk = nextGap.targets.elevation;
-  if (elevAsk !== undefined && elevAsk > ENUM_ELEV_CLIMB_DEFER) {
+  if (enumDeferEnabled() && elevAsk !== undefined && elevAsk > ENUM_ELEV_CLIMB_DEFER) {
     aimTotals.enum_elev_defer++;
     const legacy = makeAimedCandidate(engine, gap, gaps, ctx, base, lineIdStart);
     return legacy === null ? [] : [legacy];
@@ -855,7 +893,7 @@ export function makeEnumAimedCandidates(
   const objective = (d: number): number => {
     const s = speedModel(d);
     const a = angleModel(d);
-    const r = Math.max(ENUM_R_MIN, readinessCatch(s, a));
+    const r = shapeReadiness(readinessCatch(s, a));
     const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(s - speedTarget) / ENUM_SPEED_SCALE_PXF);
     const feas = !wantImpact ? 1 : Math.min(
       1,
@@ -875,7 +913,7 @@ export function makeEnumAimedCandidates(
   scoredDeltas.sort((a, b) => b.val - a.val);
   const chosen: { d: number; val: number }[] = [];
   for (const cand of scoredDeltas) {
-    if (chosen.length >= ENUM_TOP_K) break;
+    if (chosen.length >= enumTopK()) break;
     if (chosen.every((c) => Math.abs(c.d - cand.d) >= ENUM_MIN_SEP_DEG)) chosen.push(cand);
   }
   if (chosen.length === 0) {
@@ -905,8 +943,8 @@ export function makeEnumAimedCandidates(
     if (achieved !== null && achieved.comAngleDeg !== null) {
       aimTotals.enumAchieved++;
       aimTotals.enumReadinessErrSum += Math.abs(
-        Math.max(ENUM_R_MIN, readinessCatch(speedModel(d), angleModel(d))) -
-          Math.max(ENUM_R_MIN, readinessCatch(achieved.speed, achieved.comAngleDeg)),
+        shapeReadiness(readinessCatch(speedModel(d), angleModel(d))) -
+          shapeReadiness(readinessCatch(achieved.speed, achieved.comAngleDeg)),
       );
     }
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };

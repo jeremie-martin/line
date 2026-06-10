@@ -1274,3 +1274,18 @@ first post-rebase baseline.
   `300k 480/480`).
 - Status: rejected and reverted; this near-boundary dense-spacing cap pressure
   is canonical byte-stable on the current baseline.
+
+## startup-support-speed-offset-pressure-01
+
+- Mechanism: startup support low-air speed-offset branch.
+- Continuous replacement: preserved the old side offsets at `air <= 0.35` and
+  the center-only seed at `air >= 0.40`, with deterministic side-offset
+  admission through the narrow transition band.
+- Run: `generated/golden-runs/startup-support-speed-offset-pressure-01`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `583.0 -> 583.0`, delta `+0.0`,
+  CI `[0.0, 0.1]`, `P(delta<=0)=38.4%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.1`, `200k +0.0`,
+  `300k +0.0`; validity unchanged (`1908/1920`, `300k 480/480`).
+- Status: rejected and reverted; the effect is positive but below the canonical
+  accept gate, so the accepted baseline remains `contract-branch-warmup-pressure-03`.

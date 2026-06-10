@@ -13,12 +13,24 @@
  * This studies the local model-construction problem only. It does not change
  * production search/ranking.
  *
- * Fast iteration command, run once with --probe-design=cross5 and once with
- * --probe-design=grid9; optimize both:
+ * Transition 1, fast loop. Run once with --probe-design=cross5 and once with
+ * --probe-design=grid9:
  *
  *   npm run study:joint-arc -- \
  *     --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 \
  *     --probe-design=grid9 --eval-design=random --eval-samples=80 --details=0
+ *
+ * Transition 2, acceptance loop. Run both probe designs again on the broader
+ * suite, with all confidently paired gaps and 1000 held-out random samples:
+ *
+ *   npm run study:joint-arc -- \
+ *     --specs=dense_echo_climb,cold_start,climb_terrace,rolling_drop,verse_chorus,drums_dropout \
+ *     --seeds=0,1 --budget=300000 --max-gaps=0 \
+ *     --probe-design=grid9 --eval-design=random --eval-samples=1000 --details=0
+ *
+ * Optimize: acceptance_loss = max(primary_loss_cross5, primary_loss_grid9).
+ * Target <0.01, aspirational <0.005. Gate coverage and fit coverage gaps are
+ * hard diagnostics; do not hide failures to improve the scalar.
  *
  * Full form:
  *
@@ -85,14 +97,24 @@ const outPath = argValue("out");
 if (argv.includes("--help") || argv.includes("-h")) {
   console.log(`Joint arc local-regression study
 
-Fast iteration, run both probe designs:
+Transition 1, fast loop; run both probe designs:
   npm run study:joint-arc -- --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 --probe-design=cross5 --eval-design=random --eval-samples=80 --details=0
   npm run study:joint-arc -- --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 --probe-design=grid9  --eval-design=random --eval-samples=80 --details=0
 
-Primary target:
+Transition 2, acceptance loop; run both probe designs:
+  npm run study:joint-arc -- --specs=dense_echo_climb,cold_start,climb_terrace,rolling_drop,verse_chorus,drums_dropout --seeds=0,1 --budget=300000 --max-gaps=0 --probe-design=cross5 --eval-design=random --eval-samples=1000 --details=0
+  npm run study:joint-arc -- --specs=dense_echo_climb,cold_start,climb_terrace,rolling_drop,verse_chorus,drums_dropout --seeds=0,1 --budget=300000 --max-gaps=0 --probe-design=grid9  --eval-design=random --eval-samples=1000 --details=0
+
+Single acceptance target:
+  acceptance_loss = max(primary_loss_cross5, primary_loss_grid9)
   primary_loss = weighted held-out eval nMAE over current errors/cost and next rider state,
-  plus missing-priority-output coverage penalty. Lower is better; gate coverage and fit
-  coverage gaps are hard diagnostics, not successes to hide.`);
+  plus missing-priority-output coverage penalty. Lower is better.
+  Aim for acceptance_loss < 0.01; aspirational < 0.005.
+
+Notes:
+  --max-gaps limits gaps per compiled track; 0 means all confidently paired gaps.
+  Gate coverage and fit coverage gaps are hard diagnostics, not successes to hide.
+  Commit validated improvements that lower acceptance_loss without those regressions.`);
   process.exit(0);
 }
 

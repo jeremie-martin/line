@@ -312,18 +312,27 @@ loss`) — the open prize.
    true joint surfaces. Production should move beyond next speed/angle only
    when this shows a stable accuracy/economics win.
 
-   Fast iteration command: run it twice, changing only
-   `--probe-design=cross5` vs `--probe-design=grid9`:
-   `npm run study:joint-arc -- --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 --probe-design=grid9 --eval-design=random --eval-samples=80 --details=0`.
-   Optimize the reported `primary_loss` (weighted held-out eval nMAE over
-   current errors/cost and next rider state, plus missing-output coverage
-   penalty); gate coverage and fit-coverage gaps are hard diagnostics.
-
    Working prompt for the next model iteration: improve the local
    knob-response model by editing `optimizer/arc_model.ts` for feature/model
-   shape and `study_joint_arc_model.ts` for probe/output/report logic; run
-   both `cross5` and `grid9`, optimize `primary_loss` on both, and reject
-   changes that hide worse gate coverage or fit-coverage gaps.
+   shape and `study_joint_arc_model.ts` for probe/output/report logic.
+
+   Transition 1, fast loop: run both commands and iterate quickly:
+   `npm run study:joint-arc -- --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 --probe-design=cross5 --eval-design=random --eval-samples=80 --details=0`
+   and the same command with `--probe-design=grid9`.
+
+   Transition 2, acceptance loop: run both commands on the broader suite:
+   `npm run study:joint-arc -- --specs=dense_echo_climb,cold_start,climb_terrace,rolling_drop,verse_chorus,drums_dropout --seeds=0,1 --budget=300000 --max-gaps=0 --probe-design=cross5 --eval-design=random --eval-samples=1000 --details=0`
+   and the same command with `--probe-design=grid9`.
+
+   Optimize one scalar:
+   `acceptance_loss = max(primary_loss_cross5, primary_loss_grid9)`.
+   `primary_loss` is weighted held-out eval nMAE over current errors/cost
+   and next rider state plus missing-output coverage penalty. Aim for
+   `acceptance_loss < 0.01`; aspirational target `< 0.005`. `--max-gaps`
+   limits gaps per compiled track; `0` means all confidently paired gaps.
+   Commit only validated improvements that lower the acceptance loss without
+   hiding worse gate coverage or fit-coverage gaps; include the two
+   `primary_loss` values in the commit message or notes.
 
 ## 8. Reproducibility
 

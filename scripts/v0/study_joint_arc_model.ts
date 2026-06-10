@@ -170,6 +170,8 @@ type MetricRow = {
   max: number;
   nmae: number;
   np90: number;
+  localNmae: number;
+  localNp90: number;
 };
 type LossRow = {
   model: string;
@@ -635,7 +637,7 @@ function unwrapAround(value: number, ref: number): number {
   return ref + normalizeAngleDeg(value - ref);
 }
 
-type ErrorSample = { signed: number; abs: number; normalizedAbs: number };
+type ErrorSample = { signed: number; abs: number; localNormalizedAbs: number };
 type FitCoverage = {
   groupsWithOutput: number;
   groupsWithProbeRows: number;
@@ -644,13 +646,26 @@ type FitCoverage = {
 };
 const errorSamples = new Map<string, ErrorSample[]>();
 const fitCoverage = new Map<string, FitCoverage>();
+const outputActualSamples = new Map<string, number[]>();
 
 function addError(model: string, split: Split, output: string, signed: number, range: number): void {
   const key = `${model}\0${split}\0${output}`;
   const xs = errorSamples.get(key) ?? [];
   const abs = Math.abs(signed);
-  xs.push({ signed, abs, normalizedAbs: range > 1e-9 ? abs / range : 0 });
+  xs.push({ signed, abs, localNormalizedAbs: range > 1e-9 ? abs / range : 0 });
   errorSamples.set(key, xs);
+}
+
+function addOutputActual(split: Split, output: string, value: number): void {
+  const key = `${split}\0${output}`;
+  const xs = outputActualSamples.get(key) ?? [];
+  xs.push(value);
+  outputActualSamples.set(key, xs);
+}
+
+function outputRange(split: Split, output: string): number {
+  const values = outputActualSamples.get(`${split}\0${output}`) ?? [];
+  return values.length === 0 ? 0 : Math.max(...values) - Math.min(...values);
 }
 
 function coverageFor(model: string, output: string): FitCoverage {
@@ -681,6 +696,9 @@ for (const groupRows of groups.values()) {
     const ref = baseline?.outputs[output] ?? finiteRows[0].outputs[output];
     const values = finiteRows.map((r) => angle ? unwrapAround(r.outputs[output], ref) : r.outputs[output]);
     const range = Math.max(...values) - Math.min(...values);
+    for (const row of finiteRows) {
+      addOutputActual(row.split, output, angle ? unwrapAround(row.outputs[output], ref) : row.outputs[output]);
+    }
 
     const probeRows = groupRows
       .filter((r) => r.split === "probe" && Number.isFinite(r.outputs[output]))
@@ -729,7 +747,8 @@ function metricRows(): MetricRow[] {
     const [model, split, output] = key.split("\0") as [string, Split, string];
     const signed = xs.map((x) => x.signed);
     const abs = xs.map((x) => x.abs);
-    const nabs = xs.map((x) => x.normalizedAbs);
+    const localNabs = xs.map((x) => x.localNormalizedAbs);
+    const range = outputRange(split, output);
     metrics.push({
       model,
       split,
@@ -742,8 +761,10 @@ function metricRows(): MetricRow[] {
       p90: pctl(abs, 0.9),
       p99: pctl(abs, 0.99),
       max: Math.max(...abs),
-      nmae: mean(nabs),
-      np90: pctl(nabs, 0.9),
+      nmae: range > 1e-9 ? mean(abs) / range : 0,
+      np90: range > 1e-9 ? pctl(abs, 0.9) / range : 0,
+      localNmae: mean(localNabs),
+      localNp90: pctl(localNabs, 0.9),
     });
   }
   return metrics.sort((a, b) =>
@@ -917,18 +938,19 @@ console.log(`rows=${rows.length} sims=${sims} groups=${groups.size}`);
 console.log(`skipped: pairing=${skippedPairing} no_targets=${skippedNoTargets} no_next=${skippedNoNext}`);
 console.log("\nGate coverage");
 for (const line of gateSummary(rows)) console.log(line);
-console.log("\nModel error (held-out eval rows are the main read; nMAE/nP90 are normalized by that gap/output's knob-response range)");
+console.log("\nModel error (held-out eval rows are the main read; nMAE/nP90 are normalized by held-out output range, local_nMAE/local_nP90 by each gap/output's knob-response range)");
 printLoss(losses, lossModelName);
 printModelComparison(metrics);
 printFitCoverageGaps();
 if (showDetails) {
-  console.log("output                              split model                  n      MAE     RMSE      p50      p90      p99      nMAE    nP90");
+  console.log("output                              split model                  n      MAE     RMSE      p50      p90      p99      nMAE    nP90 local_nMAE local_nP90");
   for (const m of metrics) {
     if (m.split !== "eval") continue;
     console.log(
       `${m.output.padEnd(35)} ${m.split.padEnd(5)} ${m.model.padEnd(18)} ${String(m.n).padStart(6)}` +
         ` ${fmt(m.mae).padStart(8)} ${fmt(m.rmse).padStart(8)} ${fmt(m.p50).padStart(8)}` +
-        ` ${fmt(m.p90).padStart(8)} ${fmt(m.p99).padStart(8)} ${fmt(m.nmae).padStart(8)} ${fmt(m.np90).padStart(8)}`,
+        ` ${fmt(m.p90).padStart(8)} ${fmt(m.p99).padStart(8)} ${fmt(m.nmae).padStart(8)} ${fmt(m.np90).padStart(8)}` +
+        ` ${fmt(m.localNmae).padStart(10)} ${fmt(m.localNp90).padStart(10)}`,
     );
   }
 } else {

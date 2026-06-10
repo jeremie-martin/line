@@ -539,9 +539,10 @@
       spec into a rideable Line Rider track by extending one contact gap at a time,
       building a physics-validated candidate pool for each beat, and returning
       the best track seen before the simulated-physics budget runs out. Arc
-      placement is now state-aware: local probe models predict where a knob
-      change sends the rider at the next beat, and only the best predicted
-      variants are added to the pool.
+      placement is now state-aware: local probe models predict what a knob
+      change does to the next rider state, and the target architecture also
+      models current-gap axis consequences before adding only the best
+      variants to the pool.
     </p>
   </div>
   <aside class="hero-card">
@@ -889,10 +890,12 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
         <div class="step-title">Fit small local models</div>
         <div class="step-body">
           Each probe ride yields the whole rider-state vector at the next beat:
-          speed, CoM velocity angle, position, and sled pose. The generic shape
-          is a joint model over arc knobs; today's shipped instance fits speed
-          and CoM angle with per-knob quadratics, then additively composes them
-          when lazy rotation is active.
+          position, velocity, speed, CoM velocity angle, sled pose, and pose
+          rate. A richer probe can also measure current-gap axes, current impact
+          when defined, and local cost. The generic shape is a joint output-vector
+          model over arc knobs; today's shipped instance fits only next speed and
+          CoM angle with per-knob quadratics, then additively composes them when
+          lazy rotation is active.
         </div>
       </div>
       <div class="flow-row">
@@ -924,7 +927,7 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
   + rotate_model(dr) - base_state     <span style="color:#5d564a"># only when rotate is recruited</span>
 
 proposal_score(dp, dr) =
-  max(r_min, readiness(speed_hat, angle_hat))
+  max(r_min, readiness(predicted_state))
   &times; speed_target_fit(speed_hat)
   &times; impact_feasibility(speed_hat, angle_hat, impact_ask)
 
@@ -932,13 +935,13 @@ committed_score =
   exact gates + exact measured axes + search ranking</div>
 
     <div class="note" style="margin-top:16px">
-      The generic idea is broader than the current code: learn a cheap joint
-      predictor that can score many edits before paying for simulation, then
-      emit the top-k proposals into exact validation. The current instance uses
-      k=2, predicts next-beat speed and CoM angle, and composes per-knob fits
-      additively; current-gap axis values are still measured exactly after a
-      proposal is emitted. Future work can add richer outputs, richer probes,
-      or new knobs without changing the proposer-versus-judge boundary.
+      The generic idea is broader than the current code: learn a cheap predictor
+      that can score many edits before paying for simulation, then emit the top-k
+      proposals into exact validation. The current instance uses k=2, predicts
+      next-beat speed and CoM angle, and composes per-knob fits additively. The
+      read-only joint-model harness now evaluates richer local regressions that
+      predict current-gap targeted axes/errors/cost/impact plus the full next
+      rider state; production still measures emitted proposals exactly.
     </div>
   </section>
 
@@ -1208,7 +1211,7 @@ branch ranking =
       </div>
       <div class="panel">
         <h3>Model growth path</h3>
-        <p>The current inner model composes exit pitch with lazily recruited whole-arc rotation. Future knobs or outputs should extend that model shape instead of adding trigger lanes.</p>
+        <p>The current inner model additively composes exit pitch with lazily recruited whole-arc rotation. The joint-model harness is the workbench for testing richer output vectors and true interaction surfaces before production changes.</p>
       </div>
       <div class="panel">
         <h3>Selection is a later gate</h3>

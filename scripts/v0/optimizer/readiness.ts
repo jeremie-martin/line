@@ -23,12 +23,15 @@
  * pose/rotation steering (e.g. upside-down at the right beat) is a future
  * aesthetic target, roadmap §R3. Future components (impact-feasibility,
  * speed-compatibility), richer fits, or learned models replace the table
- * behind the same function shape.
+ * behind the same state-shaped function boundary.
  *
- * Telemetry-only today (R1): recorded per committed gap at output build
- * (compile_stats.readiness_*), consumed by NO decision. R2 (enumerative
- * proposer) is where it starts steering proposals.
+ * Production now uses this as a proposer signal. The scalar table still
+ * reads only speed and CoM angle; the wrapper below accepts the broader
+ * predicted rider-arrival state so pose, angular rate, position, or other
+ * components can become readiness inputs without changing call sites.
  */
+
+import type { RiderArrivalState } from "./arc_model.ts";
 
 /** Grid knots. Rows = arrival CoM velocity angle (deg, +down); columns =
  *  arrival speed (px/frame). Values = smoothed tier-B catch rate. */
@@ -69,4 +72,15 @@ export function readinessCatch(speedPxPerFrame: number, comAngleDeg: number): nu
   const bot = RATE_GRID[ai + 1][si] * (1 - st) + RATE_GRID[ai + 1][si + 1] * st;
   const r = top * (1 - at) + bot * at;
   return Math.min(1, Math.max(0, r));
+}
+
+export type ReadinessArrivalState =
+  & Pick<RiderArrivalState, "speed" | "comAngleDeg">
+  & Partial<RiderArrivalState>;
+
+/** Catchability readiness from the full predicted rider-arrival state. Current
+ *  production consumes speed and CoM velocity angle only; the state-shaped API
+ *  is the boundary for richer readiness components. */
+export function readinessCatchState(state: ReadinessArrivalState): number {
+  return state.comAngleDeg === null ? 0 : readinessCatch(state.speed, state.comAngleDeg);
 }

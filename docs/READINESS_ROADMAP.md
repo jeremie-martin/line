@@ -1,9 +1,9 @@
 # Readiness — roadmap
 
 2026-06-10 · branch arc-rewrite · canonical baseline `scoop-off-price-01`
-(600.91; R2 promoted → defer removed → joint multi-knob current instance
-promoted → scoop + legacy lanes deleted: ONE proposer remains, per the design
-commitment). Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer:
+(600.91; R2 promoted → defer removed → additive multi-knob production
+instance promoted → scoop + legacy lanes deleted: ONE proposer remains, per
+the design commitment). Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer:
 concept, invariants, instance choices — this roadmap is its phase 2);
 `IMPACT_PAIR_PLANNING.md` (the impact diagnosis). This is a ROADMAP: rungs
 are falsifiable and most later content is contingent on earlier outcomes —
@@ -75,9 +75,12 @@ Decisions made in discussion:
 
 ## 1. Definitions
 
-- **Arrival state** s = (speed, CoM velocity angle, sled pose[, more later —
-  e.g. pose angular velocity if wrapping ever binds]). All free reads from
-  one probe ride (`ProbeOutcome`) or the gap probe (`CandidateProbe`).
+- **Arrival state** s = the rider state at a frame: position, velocity
+  (`vx`, `vy`, speed, CoM velocity angle), sled pose / internal rotation,
+  and pose angular rate when readable. All frame-state reads come from one
+  probe ride (`ProbeOutcome`) or the gap probe (`CandidateProbe`). The
+  current catchability component consumes only speed and CoM angle, through
+  the state-shaped `readinessCatchState` wrapper.
 - **Ground truth** y = realized next-gap outcome, measured exactly by the
   pipeline that already exists: landing gates (survival, ±1f window,
   off-beat), achieved impact vs ask (conversion), next-gap axis errors.
@@ -249,7 +252,7 @@ readiness — with quality = speed-fit × impact-feasibility in this instance.
 
 - **More readiness components**: impact-feasibility, speed-compatibility —
   the dive-scoop trigger fully absorbed here.
-- **Joint multi-knob model — DONE, current implementation promoted
+- **Current multi-knob production model — DONE, additive instance promoted
   (2026-06-10)**: the architecture is the joint/top-k model shape; the
   shipped special case composes per-knob quadratics over (pitch, rotate)
   additively rather than using a single learned combined surface.
@@ -264,6 +267,13 @@ readiness — with quality = speed-fit × impact-feasibility in this instance.
   (`aim-joint-r3-02` = 600.94). Lesson for every future knob: predicted
   objective is not the whole economics — gate risk and displacement of
   proven proposals must be priced into the recruit rule.
+- **True joint output-vector local model — STUDY HARNESS ADDED**:
+  `study_joint_arc_model.ts` fits local regressions from probe knob vectors
+  to current-gap targeted axes/errors/cost/impact plus next rider state
+  (`x/y/vx/vy/speed/comAngle/pose/pose-rate`), then evaluates on held-out
+  simulated knob rows. It is the evidence path for deciding whether `cross5`
+  additive probes are enough, whether a `grid9`/`grid15` joint design pays,
+  and which outputs are stable enough for production.
 - **Pose steering**: aim pose itself (V0: ~40° authority via exit pitch;
   wrapping caveat — unwrap by sweep continuity, track angular velocity).
   REFRAMED after R0 (Jérémie): pose parked as a CATCHABILITY signal does
@@ -274,9 +284,11 @@ readiness — with quality = speed-fit × impact-feasibility in this instance.
   not readiness. Sensor and actuator both exist; R0 even showed pose is
   cheap to vary without losing catchability up to ~90° — which makes
   intentional pose flair LOW-RISK whenever we want it.
-- **Richer per-variation prediction**: predicted axis VALUES (V2: viable;
-  needs a rich probe = full evaluation per probe point — expensive,
-  architected for in `ProbeOutcome`).
+- **Richer per-variation prediction**: predicted current-gap axis VALUES,
+  errors, cost, and current impact when defined, plus next arrival state.
+  V2 showed axis values are viable for pitch; the new joint harness tests
+  whether the full output vector is accurate and economical enough to steer
+  production.
 
 ### R4 — Search integration (the dangerous rungs; each separately gated)
 

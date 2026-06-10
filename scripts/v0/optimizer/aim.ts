@@ -63,7 +63,8 @@ import { axisLookaheadEndFrame, tryCandidateLines } from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
 import { authoredSpeedToPx, CALIB, type TrackLine } from "../types.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
-import { readinessCatch } from "./readiness.ts";
+import { pitchExitLines, rotateArcLines } from "./arc_model.ts";
+import { readinessCatchState } from "./readiness.ts";
 import type { Gap } from "../types.ts";
 
 // ───────────────────────────── 1 · Flags ─────────────────────────────
@@ -209,59 +210,12 @@ const AIM_MIN_DELTA_DEG = 0.25;
 /** Lazy whole-arc-rotation probe span (deg, V0-validated range). */
 const AIM_ROT_PROBE_DEG = 3;
 
-/** Rotate the last ~third of the candidate's segments about that suffix's
- *  first point (chain-continuity preserving; positive = exit pitched down,
- *  screen +y). The safe tail-only knob (current-instance choice): it never
- *  touches the catch at the arc's head — gap k's own landing frame and speed
- *  shift by exactly 0.00 under it (V1). */
-function pitchExit(lines: TrackLine[], deg: number): TrackLine[] {
-  const m = Math.max(1, Math.ceil(lines.length / 3));
-  const head = lines.slice(0, lines.length - m);
-  const tail = lines.slice(lines.length - m);
-  const pivot = { x: tail[0].x1, y: tail[0].y1 };
-  const rad = (deg * Math.PI) / 180;
-  const c = Math.cos(rad);
-  const s = Math.sin(rad);
-  return [
-    ...head,
-    ...tail.map((l) => {
-      const dx1 = l.x1 - pivot.x;
-      const dy1 = l.y1 - pivot.y;
-      const dx2 = l.x2 - pivot.x;
-      const dy2 = l.y2 - pivot.y;
-      return {
-        ...l,
-        x1: pivot.x + dx1 * c - dy1 * s,
-        y1: pivot.y + dx1 * s + dy1 * c,
-        x2: pivot.x + dx2 * c - dy2 * s,
-        y2: pivot.y + dx2 * s + dy2 * c,
-      };
-    }),
-  ];
-}
+/** Safe tail-only knob: it never touches the catch at the arc's head — gap k's
+ *  own landing frame and speed shift by exactly 0.00 under it (V1). */
+const pitchExit = pitchExitLines;
 
-/** Rotate the whole candidate about its entry point (the catch head). Unlike
- *  pitchExit this DOES move the late surface the rider lands on, so it can
- *  shift the landing frame — therefore it is recruited lazily and margin-gated. */
-function rotateArc(lines: TrackLine[], deg: number): TrackLine[] {
-  const pivot = { x: lines[0].x1, y: lines[0].y1 };
-  const rad = (deg * Math.PI) / 180;
-  const c = Math.cos(rad);
-  const s = Math.sin(rad);
-  return lines.map((l) => {
-    const dx1 = l.x1 - pivot.x;
-    const dy1 = l.y1 - pivot.y;
-    const dx2 = l.x2 - pivot.x;
-    const dy2 = l.y2 - pivot.y;
-    return {
-      ...l,
-      x1: pivot.x + dx1 * c - dy1 * s,
-      y1: pivot.y + dx1 * s + dy1 * c,
-      x2: pivot.x + dx2 * c - dy2 * s,
-      y2: pivot.y + dx2 * s + dy2 * c,
-    };
-  });
-}
+/** Whole-arc knob: moves the landing surface, so it has higher gate risk. */
+const rotateArc = rotateArcLines;
 
 // ───────────────────────────── 4 · Probes ────────────────────────────
 
@@ -320,10 +274,6 @@ function probeRide(
 }
 
 // ────────────────────────── 5 · Local models ─────────────────────────
-
-/** A controllable arc modification: chain-continuity-preserving line edit,
- *  parameterized by one scalar (deg). Current knobs: pitchExit, rotateArc. */
-type KnobTransform = (lines: TrackLine[], deg: number) => TrackLine[];
 
 /** Exact quadratic through (−P, lo), (0, mid), (+P, hi). Three points are
  *  the measured accuracy knee for CoM state (V0 probe-count ladder) — an
@@ -490,7 +440,7 @@ export function makeEnumAimedCandidates(
   const objective = (dp: number, dr: number): number => {
     const s = predSpeed(dp, dr);
     const a = predAngle(dp, dr);
-    const r = Math.max(ENUM_R_MIN, readinessCatch(s, a));
+    const r = Math.max(ENUM_R_MIN, readinessCatchState({ speed: s, comAngleDeg: a }));
     const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(s - speedTarget) / ENUM_SPEED_SCALE_PXF);
     const feas = !wantImpact ? 1 : Math.min(
       1,
@@ -592,8 +542,8 @@ export function makeEnumAimedCandidates(
     if (achieved !== null && achieved.comAngleDeg !== null) {
       aimTotals.enumAchieved++;
       aimTotals.enumReadinessErrSum += Math.abs(
-        Math.max(ENUM_R_MIN, readinessCatch(predSpeed(dp, dr), predAngle(dp, dr))) -
-          Math.max(ENUM_R_MIN, readinessCatch(achieved.speed, achieved.comAngleDeg)),
+        Math.max(ENUM_R_MIN, readinessCatchState({ speed: predSpeed(dp, dr), comAngleDeg: predAngle(dp, dr) })) -
+          Math.max(ENUM_R_MIN, readinessCatchState({ speed: achieved.speed, comAngleDeg: achieved.comAngleDeg })),
       );
     }
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };

@@ -36,6 +36,21 @@ export const PERSISTENCE_RATIO = 0.5;
 export const SLED_POINT_ORDER = ["PEG", "TAIL", "NOSE", "STRING"] as const;
 export const SLED_POINT_NAMES = new Set<string>(SLED_POINT_ORDER);
 
+/** Sled pose ("internal rotation"): TAIL→NOSE angle in degrees (+down,
+ *  screen +y), read from an already-fetched rider. Pure property read —
+ *  zero metered frames when the rider's frame is already simulated. Null
+ *  when TAIL/NOSE are unreadable or coincident. */
+// deno-lint-ignore no-explicit-any
+export function sledPoseDegFromRider(rider: any): number | null {
+  const tail = rider.get?.("TAIL")?.pos;
+  const nose = rider.get?.("NOSE")?.pos;
+  if (!tail || !nose) return null;
+  const dx = nose.x - tail.x;
+  const dy = nose.y - tail.y;
+  if (!Number.isFinite(dx) || !Number.isFinite(dy) || (dx === 0 && dy === 0)) return null;
+  return (Math.atan2(dy, dx) * 180) / Math.PI;
+}
+
 // ────────── Types ──────────
 
 export type Vec2 = { x: number; y: number };

@@ -1,19 +1,27 @@
 /**
  * The aiming layer — probe, fit, propose (docs/ARC_STATE_CONTROL.md).
  *
- * Turns arc placement from sample-and-hope into aim: perturb a candidate
- * slightly, probe the simulated response of the rider's next-gap state, fit a
- * local model, and solve the perturbation that hits what the next gap wants.
- * The file is organized as the layers of that idea:
+ * Turns arc placement from sample-and-hope into aim. The concept: a LOCAL
+ * PREDICTIVE MODEL whose inputs are the current state plus controllable arc
+ * modifications (knobs), whose outputs are predicted quantities of interest
+ * (rider state, sled pose, in principle score components), fitted per gap,
+ * per arc, at compile time from a few probe rides — then inverted to propose
+ * aimed candidates, which the unchanged search measures and ranks. What is
+ * implemented here is one deliberately simple instance of that concept; the
+ * structure is meant to make richer instances (more outputs, more knobs,
+ * several aimed candidates, multi-target solves, learned priors) additive
+ * rather than rewrites. The file is organized as the layers of the idea:
  *
  *   1. flags            — per-call env reads (tests pin them dynamically)
  *   2. telemetry        — lane funnels + live prediction-accuracy stats
- *   3. knob transforms  — chain-continuity-preserving line edits
- *   4. probes           — forked metered rides reading state at a frame
- *   5. local models     — exact 3-point quadratics, scan-solved
- *   6. lanes            — proposal builders emitting ≤1 extra candidate each
+ *   3. knob transforms  — chain-continuity-preserving line edits (inputs)
+ *   4. probes           — one forked metered ride = the full ProbeOutcome
+ *                         vector at a frame (outputs)
+ *   5. local models     — per (knob, frame, quantity) quadratic fits,
+ *                         scan-solved (fitKnobQuantity)
+ *   6. lanes            — proposal builders feeding the candidate pool
  *
- * Invariants (each bought with a measured failure — verdicts inline + doc):
+ * INVARIANTS (architecture rules, each bought with a measured failure):
  *
  *   I1 PROPOSER, NEVER JUDGE. Predictions only choose what to propose; every
  *      proposal is simulated exactly (tryCandidateLines: survival, landing
@@ -24,17 +32,22 @@
  *      sampleAttempt and live outside sampleOrder, so the attempt-prefix
  *      property of the candidate cache stays intact.
  *   I3 BUDGET HONESTY. Probe frames are metered (getRiderMetered).
- *   I4 TAIL-ONLY KNOBS. Never move the catch surface of a selected arc: ±2°
- *      of whole-arc rotation breaks the committed on-beat landing at 79% of
- *      gaps (V2 coupling law; rot-fallback verdict below).
- *   I5 NO CHARGED-ROLLOUT MULTIPLICATION. A lane must not add per-rollout
- *      eval cost (v4-01 −3.8; scoop-rollout −9.0; attempt-0 −29.5).
+ *   I4 NO HIDDEN CHARGED-ROLLOUT COST. A lane must not silently multiply the
+ *      evals billed inside forward-eval rollouts (v4-01 −3.8; scoop-rollout
+ *      −9.0; attempt-0 −29.5). This is NOT "don't simulate more".
+ *   I5 DON'T COLLAPSE POOL DIVERSITY. Aiming refines sampled families; the
+ *      rest of the pool still competes.
  *
- * Models are LOCAL — per gap, per arc, fitted from probes at compile time.
- * Local linearity is near-perfect while global curvature is real (V0).
+ * CURRENT-INSTANCE CHOICES (defaults, not rules — revisitable with evidence):
+ * tail-only knob for production aiming (whole-arc rotation moves the catch
+ * surface; what failed was using it as a BLIND fallback behind an
+ * already-evaluated catch — verdict below); 3 probes per fit (the measured
+ * accuracy knee; one ride reads ALL outputs, so probe count scales with
+ * model order, never with output count); one extra candidate per lane (cost
+ * control); single-target solving (the validated increment).
  */
 
-import { getRiderMetered } from "../../lib/detector.ts";
+import { getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
 import {
   axisLookaheadEndFrame,
   releaseStateFrame,
@@ -87,8 +100,8 @@ function aimDeltaMaxDeg(): number {
  *  VERDICT (2026-06-10): engaged 19k times, best speed miss (0.47) — but
  *  gate_fail 1.2%→10.9% (rotating the arc moves the CATCH surface → on-beat
  *  landing breaks, the V2 coupling law) and Δheadline −2.2. Whole-arc
- *  rotation is the wrong fallback knob for a committed catch; default OFF
- *  (invariant I4 exists because of this verdict). */
+ *  rotation is the wrong BLIND fallback behind an already-evaluated catch;
+ *  default OFF (the tail-only current-instance choice comes from this). */
 function aimRotFallbackEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_ROT_FALLBACK === "1";
@@ -205,9 +218,9 @@ const AIM_ROT_MAX_DEG = 4;
 
 /** Rotate the last ~third of the candidate's segments about that suffix's
  *  first point (chain-continuity preserving; positive = exit pitched down,
- *  screen +y). The safe tail-only knob (invariant I4): it never touches the
- *  catch at the arc's head — gap k's own landing frame and speed shift by
- *  exactly 0.00 under it (V1). */
+ *  screen +y). The safe tail-only knob (current-instance choice): it never
+ *  touches the catch at the arc's head — gap k's own landing frame and speed
+ *  shift by exactly 0.00 under it (V1). */
 function pitchExit(lines: TrackLine[], deg: number): TrackLine[] {
   const m = Math.max(1, Math.ceil(lines.length / 3));
   const head = lines.slice(0, lines.length - m);
@@ -259,62 +272,102 @@ function rotateArc(lines: TrackLine[], deg: number): TrackLine[] {
 
 // ───────────────────────────── 4 · Probes ────────────────────────────
 
-/** Ride the perturbed candidate on a forked engine and read the rider's CoM
- *  velocity state at `frame`. Returns null when the probe ride breaks the
+/** The output vector of one probe ride: the full rider state readable at one
+ *  frame. One ride yields ALL quantities at once — probe count scales with
+ *  model order per knob, never with the number of predicted outputs. Future
+ *  quantities (e.g. measured axis values via a full candidate evaluation per
+ *  probe — expensive, see V2 study) extend this type; consumers fit per
+ *  quantity via `fitKnobQuantity` unchanged. */
+export type ProbeOutcome = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  /** CoM speed (px/f). */
+  speed: number;
+  /** CoM VELOCITY direction (deg, +down) — where the mass is GOING.
+   *  Null at zero speed. */
+  comAngleDeg: number | null;
+  /** Sled pose / "internal rotation" (TAIL→NOSE, deg, +down) — where the
+   *  rider is POINTING. A different quantity from comAngleDeg. Null when
+   *  unreadable. Free to read (same frame); consumed by no decision yet. */
+  sledPoseDeg: number | null;
+};
+
+/** Ride the perturbed candidate on a forked engine and read the full
+ *  ProbeOutcome at `frame`. Returns null when the probe ride breaks the
  *  sled / ejects the rider (don't fit through a crash) or speed is not
- *  finite; `angleDeg` (deg, +down) is null at zero speed. Frames are metered
- *  via getRiderMetered (invariant I3). */
-function probeRideState(
+ *  finite. Frames are metered via getRiderMetered (invariant I3); the pose
+ *  read is a same-frame property read costing zero metered frames. */
+function probeRide(
   // deno-lint-ignore no-explicit-any
   engine: any,
   lines: TrackLine[],
   frame: number,
-): { speed: number; angleDeg: number | null } | null {
+): ProbeOutcome | null {
   const fork = engine.addLine(lines.map((l) => engineLineFromTrackLine(l)));
   const rider = getRiderMetered(fork, frame);
   try {
     if (rider.get?.("SLED_INTACT")?.isBinded?.() === false) return null;
     if (rider.get?.("RIDER_MOUNTED")?.isBinded?.() === false) return null;
   } catch { /* treat as intact */ }
+  const pos = rider.position ?? { x: NaN, y: NaN };
   const v = rider.velocity ?? { x: 0, y: 0 };
   const speed = Math.hypot(v.x, v.y);
   if (!Number.isFinite(speed)) return null;
-  return { speed, angleDeg: speed > 0 ? (Math.atan2(v.y, v.x) * 180) / Math.PI : null };
-}
-
-/** Speed (px/f) at the release frame riding the perturbed candidate. */
-function probeReleaseSpeed(
-  // deno-lint-ignore no-explicit-any
-  engine: any,
-  lines: TrackLine[],
-  releaseFrame: number,
-): number | null {
-  const state = probeRideState(engine, lines, releaseFrame);
-  return state === null ? null : state.speed;
-}
-
-/** CoM velocity angle (deg, +down) at `frame` riding the perturbed
- *  candidate. Used by the angle-aim mode, probed at the NEXT beat's frame
- *  (the arrival the scoop will receive). */
-function probeArrivalAngle(
-  // deno-lint-ignore no-explicit-any
-  engine: any,
-  lines: TrackLine[],
-  frame: number,
-): number | null {
-  const state = probeRideState(engine, lines, frame);
-  return state === null ? null : state.angleDeg;
+  return {
+    x: pos.x,
+    y: pos.y,
+    vx: v.x,
+    vy: v.y,
+    speed,
+    comAngleDeg: speed > 0 ? (Math.atan2(v.y, v.x) * 180) / Math.PI : null,
+    sledPoseDeg: sledPoseDegFromRider(rider),
+  };
 }
 
 // ────────────────────────── 5 · Local models ─────────────────────────
 
-/** Exact quadratic through (−P, lo), (0, mid), (+P, hi). Three probes are
- *  the accuracy knee for CoM state (V0 probe-count ladder); the base
- *  candidate's own measurement is the free δ=0 point. */
+/** A controllable arc modification: chain-continuity-preserving line edit,
+ *  parameterized by one scalar (deg). Current knobs: pitchExit, rotateArc. */
+type KnobTransform = (lines: TrackLine[], deg: number) => TrackLine[];
+
+/** Exact quadratic through (−P, lo), (0, mid), (+P, hi). Three points are
+ *  the measured accuracy knee for CoM state (V0 probe-count ladder) — an
+ *  empirical setting, not a rule; the base candidate's own measurement is
+ *  the free δ=0 point where one exists. */
 function quadModel(lo: number, mid: number, hi: number, P: number): (d: number) => number {
   return (d: number): number =>
     (lo * d * (d - P)) / (2 * P * P) - (mid * (d + P) * (d - P)) / (P * P) +
     (hi * (d + P) * d) / (2 * P * P);
+}
+
+/** Fit one scalar quantity along one knob at one frame — the honest unit of
+ *  the local model is per (knob, frame, quantity): outputs live at different
+ *  frames (release vs next beat) and δ=0 sources differ per lane, so there
+ *  is deliberately no vector-valued predict(δ). Probes δ=−P then δ=+P; the
+ *  +P probe is SKIPPED when −P fails (crash or unreadable quantity), which
+ *  preserves the metered-frame schedule exactly. `mid` is the caller's δ=0
+ *  value (the speed lane's is the candidate's own free releaseSpeed; the
+ *  angle lane probes it). `lo`/`hi` carry full outcomes, so a second
+ *  quantity along the same knob/frame fits with ZERO extra probes. */
+function fitKnobQuantity(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  lines: TrackLine[],
+  knob: KnobTransform,
+  frame: number,
+  P: number,
+  quantity: (o: ProbeOutcome) => number | null,
+  mid: number,
+): { model: (d: number) => number; lo: ProbeOutcome; hi: ProbeOutcome } | null {
+  const lo = probeRide(engine, knob(lines, -P), frame);
+  const loQ = lo === null ? null : quantity(lo);
+  if (loQ === null) return null;
+  const hi = probeRide(engine, knob(lines, P), frame);
+  const hiQ = hi === null ? null : quantity(hi);
+  if (hiQ === null) return null;
+  return { model: quadModel(loQ, mid, hiQ, P), lo, hi };
 }
 
 /** Scan-solve model(δ)=target over ±deltaMax; returns the argmin (clamps at
@@ -405,15 +458,15 @@ export function makeAimedCandidate(
   }
 
   const releaseFrame = releaseStateFrame(gap, ctx.allContactFrames);
-  const P = AIM_PROBE_DELTA_DEG;
-  const lo = probeReleaseSpeed(engine, pitchExit(base.lines, -P), releaseFrame);
-  const hi = lo === null ? null : probeReleaseSpeed(engine, pitchExit(base.lines, P), releaseFrame);
-  if (lo === null || hi === null) {
+  const speedFit = fitKnobQuantity(
+    engine, base.lines, pitchExit, releaseFrame, AIM_PROBE_DELTA_DEG, (o) => o.speed, mid,
+  );
+  if (speedFit === null) {
     aimTotals.probe_crash++;
     return null;
   }
 
-  const model = quadModel(lo, mid, hi, P);
+  const model = speedFit.model;
   const deltaMax = aimDeltaMaxDeg();
   const bestDelta = solveDelta(model, targetPx, Math.abs(mid - targetPx), deltaMax);
   if (Math.abs(bestDelta) < AIM_MIN_DELTA_DEG) {
@@ -430,11 +483,13 @@ export function makeAimedCandidate(
   let rotDelta = 0;
   let predicted = model(bestDelta);
   if (clamped && aimRotFallbackEnabled()) {
-    const R = AIM_ROT_PROBE_DEG;
-    const rlo = probeReleaseSpeed(engine, rotateArc(base.lines, -R), releaseFrame);
-    const rhi = rlo === null ? null : probeReleaseSpeed(engine, rotateArc(base.lines, R), releaseFrame);
-    if (rlo !== null && rhi !== null) {
-      const rotModel = quadModel(rlo, mid, rhi, R);
+    // A crashed rot probe silently skips the fallback (no probe_crash count —
+    // the pitch solve above still emits).
+    const rotFit = fitKnobQuantity(
+      engine, base.lines, rotateArc, releaseFrame, AIM_ROT_PROBE_DEG, (o) => o.speed, mid,
+    );
+    if (rotFit !== null) {
+      const rotModel = rotFit.model;
       const residTarget = targetPx - predicted;
       const bestRot = solveDelta(rotModel, mid + residTarget, Math.abs(residTarget), AIM_ROT_MAX_DEG);
       if (Math.abs(bestRot) >= AIM_MIN_DELTA_DEG) {
@@ -494,7 +549,8 @@ function makeAngleAimedCandidate(
     Math.max(AIM_ANGLE_TARGET_MIN_DEG, needTurnDeg + AIM_ANGLE_RELIEF_DEG),
   );
   const F = nextGap.endFrame;
-  const baseAngle = probeArrivalAngle(engine, base.lines, F);
+  // Crash and zero-speed both read as null (can't aim a direction without one).
+  const baseAngle = probeRide(engine, base.lines, F)?.comAngleDeg ?? null;
   if (baseAngle === null) {
     aimTotals.probe_crash++;
     return null;
@@ -503,14 +559,14 @@ function makeAngleAimedCandidate(
     aimTotals.on_target++;
     return null;
   }
-  const P = AIM_PROBE_DELTA_DEG;
-  const lo = probeArrivalAngle(engine, pitchExit(base.lines, -P), F);
-  const hi = lo === null ? null : probeArrivalAngle(engine, pitchExit(base.lines, P), F);
-  if (lo === null || hi === null) {
+  const angleFit = fitKnobQuantity(
+    engine, base.lines, pitchExit, F, AIM_PROBE_DELTA_DEG, (o) => o.comAngleDeg, baseAngle,
+  );
+  if (angleFit === null) {
     aimTotals.probe_crash++;
     return null;
   }
-  const model = quadModel(lo, baseAngle, hi, P);
+  const model = angleFit.model;
   const deltaMax = aimDeltaMaxDeg();
   const bestDelta = solveDelta(model, targetDeg, Math.abs(baseAngle - targetDeg), deltaMax);
   if (Math.abs(bestDelta) < AIM_MIN_DELTA_DEG) {
@@ -533,7 +589,7 @@ function makeAngleAimedCandidate(
     return null;
   }
   aimTotals.emitted++;
-  const achievedAngle = probeArrivalAngle(engine, aimedLines, F);
+  const achievedAngle = probeRide(engine, aimedLines, F)?.comAngleDeg ?? null;
   if (achievedAngle !== null) {
     aimTotals.angleEmitted++;
     aimTotals.anglePredErrSum += Math.abs(model(bestDelta) - achievedAngle);

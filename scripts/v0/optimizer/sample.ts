@@ -31,7 +31,7 @@ import {
   type ImpactFrameTargetState,
   type PreTargetSledTrace,
 } from "../arc_placement.ts";
-import { getRiderMetered } from "../../lib/detector.ts";
+import { getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
@@ -62,6 +62,13 @@ export type CandidateProbe = {
   refY: number;
   targetState: ImpactFrameTargetState;
   preTargetSledTrace: () => PreTargetSledTrace;
+  /** Sled pose / "internal rotation" (TAIL→NOSE, deg, +down) at gap.endFrame
+   *  — where the rider is POINTING, distinct from targetState.angleDeg (CoM
+   *  velocity direction, where the mass is GOING). Lazy + memoized like
+   *  preTargetSledTrace; zero metered frames (endFrame is already simulated
+   *  by this probe's construction). An available model output — consumed by
+   *  no decision yet. */
+  sledPoseDeg: () => number | null;
 };
 
 let candidateSampleCount = 0;
@@ -99,11 +106,18 @@ export function getCandidateProbe(engine: any, gap: Gap, ctx: SpecContext): Cand
   const refY = rider.position.y;
   const targetState = readTargetStateFromRider(rider, refX, refY);
   let preTargetTrace: PreTargetSledTrace | undefined;
+  let sledPose: number | null | undefined;
   const probe: CandidateProbe = {
     refX,
     refY,
     targetState,
     preTargetSledTrace: () => preTargetTrace ??= readPreTargetSledTrace(engine, gap),
+    // Re-fetches the rider at the already-simulated endFrame (zero metered
+    // frames) rather than capturing the rider handle in this closure.
+    sledPoseDeg: () =>
+      sledPose !== undefined
+        ? sledPose
+        : (sledPose = sledPoseDegFromRider(getRiderMetered(engine, gap.endFrame))),
   };
   byGap.set(key, probe);
   return probe;

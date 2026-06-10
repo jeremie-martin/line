@@ -78,6 +78,7 @@ import {
   type SearchNode,
 } from "./node.ts";
 import { resetAimStats, snapshotAimStats } from "./aim.ts";
+import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
 import {
@@ -798,6 +799,7 @@ function compileHandoffInternal(
           gaps,
           evaluation.outputDurationFrames,
           false,
+          evaluation.readinessPerGap,
         ),
         evaluation.key,
       );
@@ -1015,6 +1017,7 @@ function compileHandoffInternal(
               gaps,
               evaluation.outputDurationFrames,
               false,
+              evaluation.readinessPerGap,
             ),
             evaluation.key,
           );
@@ -3896,7 +3899,13 @@ function evaluateNode(
   allContactFrames: number[],
   durationFrames: number,
   gapAxisTargets: AxisValues[],
-): { report: DriftReport; key: LeafKey; outputDurationFrames: number; fullDuration: boolean } {
+): {
+  report: DriftReport;
+  key: LeafKey;
+  outputDurationFrames: number;
+  fullDuration: boolean;
+  readinessPerGap: (number | null)[];
+} {
   const fullDuration = isTerminalNode(node.search, gaps);
   const partialHorizonFrame = fullDuration
     ? durationFrames
@@ -3905,15 +3914,33 @@ function evaluateNode(
     ? durationFrames + 20
     : partialOutputDurationFrames(partialHorizonFrame, durationFrames);
   const det = detectWindow(node.search.prefixEngine, 0, outputDurationFrames);
+  const fits = paddedFits(node, gaps.length);
   const rawReport = buildDriftReport(
-    det, spec, gaps, allContactFrames, durationFrames, [], paddedFits(node, gaps.length), gapAxisTargets,
+    det, spec, gaps, allContactFrames, durationFrames, [], fits, gapAxisTargets,
   );
   const report = fullDuration ? rawReport : asPartialReport(rawReport, partialHorizonFrame);
+  // Readiness v0 telemetry (optimizer/readiness.ts, roadmap R1): the
+  // REALIZED arrival into each committed contact gap, scored by the
+  // empirical catchability surface. Pure reads on the detection's velocity
+  // array (already charged as part of this evaluation) — the shared prefix
+  // engine must NOT be touched here, even read-only: frame-cache effects
+  // perturb later metered charges in the continuing search.
+  // deno-lint-ignore no-explicit-any
+  const velocity = (det as any).measurements?.velocity as { x: number; y: number }[] | undefined;
+  const readinessPerGap: (number | null)[] = gaps.map((gap, k) => {
+    if (fits[k] === null || !gap.endsWithContact) return null;
+    const v = velocity?.[gap.endFrame];
+    if (v === undefined) return null;
+    const speed = Math.hypot(v.x, v.y);
+    if (!Number.isFinite(speed) || speed <= 0) return null;
+    return round3(readinessCatch(speed, (Math.atan2(v.y, v.x) * 180) / Math.PI));
+  });
   return {
     report,
     key: leafKeyForReport(report, durationFrames),
     outputDurationFrames,
     fullDuration,
+    readinessPerGap,
   };
 }
 
@@ -3963,10 +3990,14 @@ function buildNodeOutput(
   gaps: Gap[],
   outputDurationFrames: number,
   budgetExhausted: boolean,
+  /** Realized-arrival readiness per gap, computed in evaluateNode from the
+   *  evaluation's own detection (readiness v0 telemetry). */
+  readinessPerGap: (number | null)[] = [],
 ): CompileOutput {
   const fits = paddedFits(node, gaps.length);
   const allLines = [...node.startLines];
   for (const fit of fits) if (fit !== null) allLines.push(...fit.lines);
+  const readinessVals = readinessPerGap.filter((r): r is number => r !== null);
   const startVelocity = node.startState.velocity;
   const startSpeed = Math.hypot(startVelocity.x, startVelocity.y);
   const startAngleDeg = (Math.atan2(startVelocity.y, startVelocity.x) * 180) / Math.PI;
@@ -4011,6 +4042,14 @@ function buildNodeOutput(
       // lane (selection-level win rate; `aim.emitted` is the pool-level rate).
       handoff_aimed_selected: fits.filter((fit) => fit !== null && fit.aimed === true).length,
       handoff_scoop_selected: fits.filter((fit) => fit !== null && fit.scooped === true).length,
+      // Readiness v0 (roadmap R1, telemetry only): realized-arrival
+      // catchability per committed gap; per-gap array joins with
+      // report.gaps outcomes by index in the lab.
+      readiness_per_gap: readinessPerGap,
+      readiness_mean: readinessVals.length > 0
+        ? round3(readinessVals.reduce((a, b) => a + b, 0) / readinessVals.length)
+        : null,
+      readiness_min: readinessVals.length > 0 ? Math.min(...readinessVals) : null,
       handoff_selected_axis_quality_by_axis: axisQualitySourceCounts,
       handoff_selected_candidate_pool_count: sourceCounts.pool,
       handoff_selected_candidate_reuse_count: sourceCounts.reuse,

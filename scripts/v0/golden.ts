@@ -903,6 +903,10 @@ function compactStats(stats: CompileStats | null): object | null {
     aim: stats.aim,
     handoff_aimed_selected: stats.handoff_aimed_selected,
     handoff_scoop_selected: stats.handoff_scoop_selected,
+    // Readiness v0 (optimizer/readiness.ts): realized-arrival catchability.
+    readiness_per_gap: stats.readiness_per_gap,
+    readiness_mean: stats.readiness_mean,
+    readiness_min: stats.readiness_min,
     sim_frames: stats.sim_frames,
     budget_exhausted: stats.budget_exhausted,
     leaves_considered: stats.leaves_considered,

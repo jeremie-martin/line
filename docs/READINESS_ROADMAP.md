@@ -160,6 +160,33 @@ surface instead.**
 - Falsified if: live correlation contradicts R0 (then the study sampled the
   wrong distribution — fix R0 first).
 
+**DONE — VALIDATION PASS (2026-06-10, `optimizer/readiness.ts` +
+per-gap telemetry in evaluateNode/buildNodeOutput; archive
+`readiness-v0-telemetry-01`, exact parity 597.41; 14,412 committed gaps
+@300k):**
+
+- Committed arrivals concentrate high (readiness p50 0.85, p10 0.68) — the
+  search already implicitly selects catchable arrivals via its gates.
+- **Low committed readiness predicts worse realized impact conversion,
+  monotonically**: |impact err| 0.21 below r=0.5 → 0.115 above 0.85
+  (Pearson −0.35). The R0 surface shows up live, on the axis that carries
+  the open 55-point prize. Speed/air/amplitude errors mildly better at high
+  r; survival is 100% everywhere (selection bias, as expected — gates
+  already filter it).
+- **Caveat that shapes R2 — readiness must become target-aware**:
+  |elevation err| correlates POSITIVELY with readiness (+0.20). Elevation
+  gaps legitimately want upward arrivals, which the catchability surface
+  scores low. A single unconditioned r would fight climb gaps; R2's
+  proposer objective must condition readiness on the next gap's asks
+  (e.g. soften/replace the component on elevation-ask gaps) or use it only
+  where its ground truth applies (impact/speed-ask gaps first).
+- Implementation note (a trap, twice): output-time telemetry must NOT
+  touch the shared prefix engines — neither metered reads (charges perturb
+  the continuing multi-budget walk) nor "read-only" raw reads (wasm
+  frame-cache effects shift later metered charges). Readiness is computed
+  from the evaluation's own detection velocity array (pure, already
+  charged) in evaluateNode and threaded to buildNodeOutput.
+
 ### R2 — Enumerative proposer (flag-gated; the headline rung)
 
 - New proposer: for a base candidate, enumerate per-knob delta sweeps
@@ -190,7 +217,14 @@ surface instead.**
   catches the tail). Enables true joint enumeration.
 - **Pose steering**: aim pose itself (V0: ~40° authority via exit pitch;
   wrapping caveat — unwrap by sweep continuity, track angular velocity).
-  Only if R0 shows pose matters AND R2 shows arrivals are pose-limited.
+  REFRAMED after R0 (Jérémie): pose parked as a CATCHABILITY signal does
+  not mean pose is uninteresting — upside-down/rotating riders look great
+  and are sometimes exactly what the track should do at the right musical
+  moment. Pose steering's future justification is AESTHETIC (an
+  axis-like rotation/flair target, cf. the elevation/amplitude precedent),
+  not readiness. Sensor and actuator both exist; R0 even showed pose is
+  cheap to vary without losing catchability up to ~90° — which makes
+  intentional pose flair LOW-RISK whenever we want it.
 - **Richer per-variation prediction**: predicted axis VALUES (V2: viable;
   needs a rich probe = full evaluation per probe point — expensive,
   architected for in `ProbeOutcome`).

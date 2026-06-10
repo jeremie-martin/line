@@ -530,6 +530,13 @@ export type CompileStats = {
   handoff_aimed_selected?: number;
   /** Committed fits that are arrival-conditioned scoops (V4 lane). */
   handoff_scoop_selected?: number;
+  /** Readiness v0 (optimizer/readiness.ts, READINESS_ROADMAP R1, telemetry
+   *  only): realized-arrival catchability per committed contact gap (null
+   *  for non-contact/uncommitted), joinable with report gap outcomes by
+   *  index; plus mean/min summaries. Consumed by no decision. */
+  readiness_per_gap?: (number | null)[];
+  readiness_mean?: number | null;
+  readiness_min?: number | null;
 
   /** Target-state placement counters. Non-scoring diagnostics. */
   arc_placement?: {

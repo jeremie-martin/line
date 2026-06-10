@@ -1047,3 +1047,31 @@ first post-rebase baseline.
   validity unchanged (`1903/1920`, `300k 480/480`).
 - Status: rejected and reverted after three variants; the boundary is genuinely
   active, but canonical confidence is too low to keep.
+
+## submin-repair-pressure-01
+
+- Mechanism: repair admission below the hard `repair.minBudget` gate.
+- Continuous replacement: enabled repair below `100k` by deterministic smooth
+  pressure from `25k` to `100k`, preserving full repair at and above `100k`.
+- Run: `generated/golden-runs/submin-repair-pressure-01`.
+- Decide against accepted baseline `arc-rewrite-baseline-01`:
+  `VERDICT: INCONCLUSIVE`; headline `580.8 -> 580.8`, delta `-0.0`,
+  CI `[-0.1, 0.1]`, `P(delta<=0)=57.6%`.
+- Per-budget deltas: `50k -0.2`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1903/1920`, `300k 480/480`).
+- Status: not kept; sub-min repair admission was effectively flat and slightly
+  negative at 50k.
+
+## submin-repair-pressure-02
+
+- Mechanism: same repair admission below the hard `repair.minBudget` gate.
+- Continuous replacement: same deterministic smooth pressure, with the ramp
+  starting at `0` so 50k gets 50% repair admission.
+- Run: `generated/golden-runs/submin-repair-pressure-02`.
+- Decide against accepted baseline `arc-rewrite-baseline-01`:
+  `VERDICT: INCONCLUSIVE`; headline `580.8 -> 580.7`, delta `-0.1`,
+  CI `[-0.3, 0.0]`, `P(delta<=0)=88.6%`.
+- Per-budget deltas: `50k -1.1`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1903/1920`, `300k 480/480`).
+- Status: rejected and reverted after two variants; repair appears to spend
+  scarce 50k budget without improving validity or quality.

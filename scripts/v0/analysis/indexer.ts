@@ -16,6 +16,7 @@ import { join, resolve } from "node:path";
 import { AXES } from "../types.ts";
 import { EVALUATOR_FINGERPRINT } from "../golden_suite.ts";
 import { setMeta } from "./db.ts";
+import { extractTrackArcs } from "./geometry.ts";
 
 export const DEFAULT_ROOT = resolve(import.meta.dirname, "../../../generated/golden-runs");
 export const OLD_ROOTS = [1, 2, 3, 4].map((n) =>
@@ -103,6 +104,9 @@ export function indexRoots(db: DatabaseSync, opts: IndexOptions = {}): IndexStat
 function deleteRun(db: DatabaseSync, runId: number): void {
   db.prepare(
     "DELETE FROM gaps WHERE checkpoint_id IN (SELECT checkpoint_id FROM checkpoints WHERE run_id = ?)",
+  ).run(runId);
+  db.prepare(
+    "DELETE FROM arcs WHERE checkpoint_id IN (SELECT checkpoint_id FROM checkpoints WHERE run_id = ?)",
   ).run(runId);
   db.prepare("DELETE FROM checkpoints WHERE run_id = ?").run(runId);
   db.prepare("DELETE FROM spec_scores WHERE run_id = ?").run(runId);
@@ -216,8 +220,16 @@ function indexRun(db: DatabaseSync, ctx: RunContext): void {
       run_id, spec, variant, seed, budget, status, score, contract_passed,
       contacts, hits, drift, missing, axis_quality, axis_loss, axis_error_rms,
       elapsed_ms, track_hash, track_path, report_path, has_report,
-      terminus_frame, terminus_reason, n_off_beat, n_gaps, compile_stats_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      terminus_frame, terminus_reason, n_off_beat, n_gaps,
+      n_arcs, arc_pairing_confident, compile_stats_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  const arcStmt = db.prepare(`
+    INSERT INTO arcs (
+      checkpoint_id, arc_index, contact_index, is_start, n_segments,
+      x_start, y_start, x_end, y_end, path_len, chord_len, straightness,
+      entry_angle_deg, exit_angle_deg, turn_deg, descent
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const gapCols = AXES.flatMap((a) => [`${a}_target`, `${a}_achieved`, `${a}_error`]);
   const gapStmt = db.prepare(`
@@ -247,22 +259,47 @@ function indexRun(db: DatabaseSync, ctx: RunContext): void {
         }
       }
 
+      let track: any = null;
+      const trackPath = cp.track_path ?? null;
+      if (trackPath !== null) {
+        try {
+          track = JSON.parse(readFileSync(trackPath, "utf8"));
+        } catch (err) {
+          ctx.issue(ctx.name, trackPath, "track", err);
+        }
+      }
+      const trackArcs = track !== null
+        ? extractTrackArcs(track, report?.contacts?.length ?? cp.contacts ?? 0)
+        : null;
+
       const cpInfo = cpStmt.run(
         runId, row.name, row.variant ?? "base", row.seed ?? 0, cp.budget,
         cp.status ?? null, cp.score ?? null,
         cp.contract_passed === true ? 1 : cp.contract_passed === false ? 0 : null,
         cp.contacts ?? null, cp.hits ?? null, cp.drift ?? null, cp.missing ?? null,
         cp.axis_quality ?? null, cp.axis_loss ?? null, cp.axis_error_rms ?? null,
-        cp.elapsed_ms ?? null, cp.track_hash ?? null, cp.track_path ?? null, reportPath,
+        cp.elapsed_ms ?? null, cp.track_hash ?? null, trackPath, reportPath,
         report !== null ? 1 : 0,
         report?.terminus?.frame ?? null, report?.terminus?.reason ?? null,
         report !== null ? (report.off_beat_landings?.length ?? 0) : null,
         report !== null ? (report.gaps?.length ?? 0) : null,
+        trackArcs !== null ? trackArcs.arcs.length : null,
+        trackArcs !== null ? trackArcs.pairing_confident : null,
         cp.compile_stats !== undefined ? JSON.stringify(cp.compile_stats) : null,
       );
-      if (report === null) continue;
-
       const checkpointId = Number(cpInfo.lastInsertRowid);
+
+      if (trackArcs !== null) {
+        for (const arc of trackArcs.arcs) {
+          arcStmt.run(
+            checkpointId, arc.arc_index, arc.contact_index, arc.is_start,
+            arc.n_segments, arc.x_start, arc.y_start, arc.x_end, arc.y_end,
+            arc.path_len, arc.chord_len, arc.straightness,
+            arc.entry_angle_deg, arc.exit_angle_deg, arc.turn_deg, arc.drop,
+          );
+        }
+      }
+      if (report === null) continue;
       for (const gap of report.gaps ?? []) {
         const values: (number | null)[] = [
           checkpointId,

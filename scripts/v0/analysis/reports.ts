@@ -9,7 +9,6 @@
  */
 
 import type { DatabaseSync } from "node:sqlite";
-import { readFileSync } from "node:fs";
 import { AXES } from "../types.ts";
 import { AXIS_QUALITY_TOLERANCE, shiftedGeometricMean } from "../score.ts";
 import { suiteFromGroups, weightedBudgetScore } from "../metric.ts";
@@ -378,106 +377,103 @@ export function reportSpeedImpact(db: DatabaseSync, opts: ReportOptions): void {
   console.log(`\ncorr(raw speed, impact_achieved) = ${f3(corrFromSums(sums))} over ${sums.n} gaps`);
 }
 
-// ── geometry (PoC: on-demand track.json join, no geometry indexing) ─────────
+// ── geometry (indexed arcs tier: per-gap arc features vs any axis) ──────────
 
-type TrackFeatures = {
-  n_lines: number;
-  total_len: number;
-  mean_seg_len: number;
-  mean_abs_angle_deg: number;
-  steep_frac: number;
-};
-
-function trackFeatures(path: string): TrackFeatures | null {
-  let track: any;
-  try {
-    track = JSON.parse(readFileSync(path, "utf8"));
-  } catch {
-    return null;
-  }
-  const lines = track.lines ?? [];
-  if (lines.length === 0) return null;
-  let totalLen = 0;
-  let angleSum = 0;
-  let steep = 0;
-  for (const l of lines) {
-    const dx = l.x2 - l.x1;
-    const dy = l.y2 - l.y1;
-    totalLen += Math.hypot(dx, dy);
-    const angle = Math.abs(Math.atan2(Math.abs(dy), Math.abs(dx))) * (180 / Math.PI);
-    angleSum += angle;
-    if (angle > 30) steep++;
-  }
-  return {
-    n_lines: lines.length,
-    total_len: totalLen,
-    mean_seg_len: totalLen / lines.length,
-    mean_abs_angle_deg: angleSum / lines.length,
-    steep_frac: steep / lines.length,
-  };
-}
-
-function pearson(xs: number[], ys: number[]): number {
-  const n = xs.length;
-  if (n < 3) return NaN;
-  let sx = 0, sy = 0, sxy = 0, sxx = 0, syy = 0;
-  for (let i = 0; i < n; i++) {
-    sx += xs[i]; sy += ys[i]; sxy += xs[i] * ys[i]; sxx += xs[i] * xs[i]; syy += ys[i] * ys[i];
-  }
-  return corrFromSums({ n, sx, sy, sxy, sxx, syy });
-}
+/** Shared filter: arcs paired to gaps, confident pairings only, one run. */
+const ARC_GAP_JOIN = `
+    FROM arcs a
+    JOIN checkpoints c ON c.checkpoint_id = a.checkpoint_id
+    JOIN gaps g ON g.checkpoint_id = a.checkpoint_id AND g.gap_index = a.contact_index
+    WHERE c.run_id = ? AND c.arc_pairing_confident = 1 AND a.contact_index IS NOT NULL
+`;
 
 export function reportGeometry(db: DatabaseSync, opts: ReportOptions): void {
   const run = resolveRun(db, opts);
-  const budgets = JSON.parse(run.budgets_json ?? "[]") as number[];
-  const topBudget = budgets.length > 0 ? Math.max(...budgets) : null;
+  const axis = requireAxis(opts);
   const specClause = opts.spec !== undefined ? "AND c.spec = ?" : "";
-  const params: (string | number)[] = [run.run_id];
-  if (topBudget !== null) params.push(topBudget);
-  if (opts.spec !== undefined) params.push(opts.spec);
-  const checkpoints = db.prepare(`
-    SELECT c.checkpoint_id, c.spec, c.seed, c.track_path,
-      AVG(g.impact_achieved) AS avg_impact_achieved,
-      AVG(g.impact_error) AS avg_impact_error,
-      COUNT(g.impact_error) AS n_impact_gaps
-    FROM checkpoints c
-    JOIN gaps g ON g.checkpoint_id = c.checkpoint_id
-    WHERE c.run_id = ? ${topBudget !== null ? "AND c.budget = ?" : ""} ${specClause}
-      AND c.track_path IS NOT NULL AND g.impact_error IS NOT NULL
-    GROUP BY c.checkpoint_id
-  `).all(...params) as any[];
-
+  const params: (string | number)[] = opts.spec !== undefined ? [run.run_id, opts.spec] : [run.run_id];
   console.log(
-    `run: ${run.name} · budget ${topBudget ?? "all"}${opts.spec !== undefined ? ` · spec ${opts.spec}` : ""}\n` +
-      `on-demand track.json geometry vs per-checkpoint impact (PoC for full geometry analysis)`,
+    `run: ${run.name} · axis: ${axis}${opts.spec !== undefined ? ` · spec ${opts.spec}` : ""}\n` +
+      `per-gap arc geometry vs ${axis}, confident arc↔gap pairings only`,
   );
+  const features = [
+    "a.entry_angle_deg", "a.exit_angle_deg", "a.turn_deg", "a.straightness",
+    "a.n_segments", "a.path_len", "a.descent",
+  ];
+  const rows: Record<string, unknown>[] = [];
+  for (const feature of features) {
+    const sums = db.prepare(`
+      SELECT COUNT(*) AS n, AVG(x) AS mean_x,
+        SUM(x) AS sx, SUM(y) AS sy, SUM(x*y) AS sxy, SUM(x*x) AS sxx, SUM(y*y) AS syy,
+        SUM(ys) AS _sy2, SUM(x*ys) AS sxys, SUM(ys*ys) AS syys
+      FROM (
+        SELECT ${feature} AS x, g.${axis}_achieved AS y, g.${axis}_achieved - g.${axis}_target AS ys
+        ${ARC_GAP_JOIN} ${specClause}
+          AND ${feature} IS NOT NULL AND g.${axis}_achieved IS NOT NULL AND g.${axis}_target IS NOT NULL
+      )
+    `).get(...params) as any;
+    if (sums === undefined || sums.n < 3) continue;
+    rows.push({
+      feature: feature.slice(2),
+      n: sums.n,
+      mean: sums.mean_x,
+      [`corr_${axis}_achieved`]: corrFromSums(sums),
+      [`corr_${axis}_bias`]: corrFromSums({
+        n: sums.n, sx: sums.sx, sy: sums._sy2, sxy: sums.sxys, sxx: sums.sxx, syy: sums.syys,
+      }),
+    });
+  }
+  printRows(rows, opts.json ?? false);
+}
 
-  const featureNames = ["n_lines", "total_len", "mean_seg_len", "mean_abs_angle_deg", "steep_frac"] as const;
-  const feats: TrackFeatures[] = [];
-  const achieved: number[] = [];
-  const errors: number[] = [];
-  let missingTracks = 0;
-  for (const cp of checkpoints) {
-    const ft = trackFeatures(cp.track_path);
-    if (ft === null) {
-      missingTracks++;
-      continue;
-    }
-    feats.push(ft);
-    achieved.push(cp.avg_impact_achieved);
-    errors.push(cp.avg_impact_error);
-  }
-  console.log(`checkpoints with impact gaps: ${checkpoints.length} · tracks loaded: ${feats.length} · unreadable: ${missingTracks}`);
-  if (feats.length < 3) {
-    console.log("(not enough data — try without --spec)");
-    return;
-  }
-  const rows = featureNames.map((name) => ({
-    feature: name,
-    mean: feats.reduce((s, x) => s + x[name], 0) / feats.length,
-    corr_vs_impact_achieved: pearson(feats.map((x) => x[name]), achieved),
-    corr_vs_impact_error: pearson(feats.map((x) => x[name]), errors),
-  }));
+// ── arc-angle (landing tangent / arc shape vs impact outcome, binned) ───────
+
+export function reportArcAngle(db: DatabaseSync, opts: ReportOptions): void {
+  const run = resolveRun(db, opts);
+  const axis = requireAxis(opts);
+  console.log(
+    `run: ${run.name} · ${axis} outcome by landing-tangent angle (entry_angle_deg,\n` +
+      `positive = rider lands on a descending slope; 5° bins, confident pairings only)`,
+  );
+  const rows = db.prepare(`
+    SELECT
+      CAST(ROUND(a.entry_angle_deg / 5.0) * 5 AS INTEGER) AS entry_angle_bin,
+      COUNT(*) AS n,
+      AVG(a.turn_deg) AS avg_turn,
+      AVG(a.straightness) AS avg_straightness,
+      AVG(g.${axis}_target) AS avg_target,
+      AVG(g.${axis}_achieved) AS avg_achieved,
+      AVG(g.${axis}_achieved - g.${axis}_target) AS bias,
+      AVG(g.${axis}_error) AS avg_error
+    ${ARC_GAP_JOIN}
+      AND a.entry_angle_deg IS NOT NULL AND g.${axis}_target IS NOT NULL
+    GROUP BY entry_angle_bin
+    HAVING n >= 20
+    ORDER BY entry_angle_bin
+  `).all(run.run_id) as Record<string, unknown>[];
+  printRows(rows, opts.json ?? false);
+}
+
+// ── compile-stats (catalog of the metadata blob, queryable via json_extract) ─
+
+export function reportCompileStats(db: DatabaseSync, opts: ReportOptions): void {
+  const run = resolveRun(db, opts);
+  console.log(
+    `run: ${run.name} · scalar compile_stats keys (coverage + distribution)\n` +
+      `query any key ad hoc: SELECT json_extract(compile_stats_json, '$.<key>') FROM checkpoints`,
+  );
+  const rows = db.prepare(`
+    SELECT j.key,
+      COUNT(*) AS n,
+      AVG(j.value) AS mean,
+      MIN(j.value) AS min,
+      MAX(j.value) AS max
+    FROM checkpoints c, json_each(c.compile_stats_json) j
+    WHERE c.run_id = ? AND c.compile_stats_json IS NOT NULL
+      AND j.type IN ('integer', 'real')
+    GROUP BY j.key
+    ORDER BY j.key
+  `).all(run.run_id) as Record<string, unknown>[];
   printRows(rows, opts.json ?? false);
 }
 
@@ -489,4 +485,6 @@ export const REPORTS: Record<string, (db: DatabaseSync, opts: ReportOptions) => 
   position: reportPosition,
   "speed-impact": reportSpeedImpact,
   geometry: reportGeometry,
+  "arc-angle": reportArcAngle,
+  "compile-stats": reportCompileStats,
 };

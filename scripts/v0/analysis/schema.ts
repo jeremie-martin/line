@@ -7,7 +7,12 @@
  *   spec_scores    run × budget × spec score (loss-attribution backbone)
  *   checkpoints    run × spec × variant × seed × budget (the dedup key)
  *   gaps           per-gap axis measurements (wide: one column set per axis)
+ *   arcs           per-arc track geometry (chains of connected line segments),
+ *                  paired to gaps via contact_index when the pairing is clean
  *   ingest_issues  every skipped/corrupt file — ingest never crashes
+ *
+ * checkpoints.compile_stats_json is a raw JSON blob, queryable with SQLite
+ * JSON1: json_extract(compile_stats_json, '$.handoff_brake_successes').
  *
  * Versioning: SCHEMA_VERSION mismatch ⇒ drop + full rebuild (rebuild < 2 min,
  * so there is deliberately no migration framework).
@@ -15,7 +20,7 @@
 
 import { AXES } from "../types.ts";
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 const axisColumns = AXES.flatMap((axis) => [
   `${axis}_target REAL`,
@@ -101,6 +106,8 @@ CREATE TABLE IF NOT EXISTS checkpoints (
   terminus_reason TEXT,
   n_off_beat INTEGER,
   n_gaps INTEGER,
+  n_arcs INTEGER,
+  arc_pairing_confident INTEGER,
   compile_stats_json TEXT,
   UNIQUE (run_id, spec, variant, seed, budget)
 );
@@ -117,6 +124,31 @@ CREATE TABLE IF NOT EXISTS gaps (
   PRIMARY KEY (checkpoint_id, gap_index)
 ) WITHOUT ROWID;
 
+CREATE TABLE IF NOT EXISTS arcs (
+  checkpoint_id INTEGER NOT NULL REFERENCES checkpoints(checkpoint_id),
+  arc_index INTEGER NOT NULL,
+  -- gap/contact this arc catches (= gaps.gap_index); NULL when unpaired.
+  -- Trust checkpoints.arc_pairing_confident before leaning on it.
+  contact_index INTEGER,
+  is_start INTEGER NOT NULL DEFAULT 0,
+  n_segments INTEGER NOT NULL,
+  x_start REAL, y_start REAL, x_end REAL, y_end REAL,
+  path_len REAL,
+  chord_len REAL,
+  -- chord/path: 1 = perfectly straight, lower = more curved
+  straightness REAL,
+  -- segment tangents in degrees; positive = descending (LR screen +y is down).
+  -- entry_angle_deg is the slope the rider lands on (landing tangent).
+  entry_angle_deg REAL,
+  exit_angle_deg REAL,
+  -- total signed turn along the arc (sum of direction deltas between
+  -- consecutive segments); positive = steepening downward, negative =
+  -- flattening out (a scoop that redirects descent into forward speed).
+  turn_deg REAL,
+  descent REAL,
+  PRIMARY KEY (checkpoint_id, arc_index)
+) WITHOUT ROWID;
+
 CREATE TABLE IF NOT EXISTS ingest_issues (
   issue_id INTEGER PRIMARY KEY,
   run_name TEXT,
@@ -127,6 +159,7 @@ CREATE TABLE IF NOT EXISTS ingest_issues (
 );
 
 CREATE INDEX IF NOT EXISTS idx_checkpoints_run ON checkpoints(run_id);
+CREATE INDEX IF NOT EXISTS idx_arcs_checkpoint ON arcs(checkpoint_id);
 CREATE INDEX IF NOT EXISTS idx_checkpoints_spec_budget ON checkpoints(spec, budget);
 CREATE INDEX IF NOT EXISTS idx_spec_scores_run_budget ON spec_scores(run_id, budget);
 `;

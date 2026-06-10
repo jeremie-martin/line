@@ -82,6 +82,8 @@ const budget = Number(argValue("budget") ?? "300000");
 const probeDesignName = argValue("probe-design") ?? "grid9";
 const evalDesignName = argValue("eval-design") ?? "grid";
 const evalSamples = Number(argValue("eval-samples") ?? "200");
+const probePitchSpanOverride = argValue("probe-pitch-span") === undefined ? undefined : Number(argValue("probe-pitch-span"));
+const probeRotateSpanOverride = argValue("probe-rotate-span") === undefined ? undefined : Number(argValue("probe-rotate-span"));
 const maxGapsPerTrack = Number(argValue("max-gaps") ?? "0") || Infinity;
 const showDetails = argValue("details") !== "0";
 const lossModelName = argValue("loss-model") ?? "best";
@@ -115,6 +117,12 @@ for (const s of specNames) {
 }
 if (!Number.isFinite(budget) || budget <= 0) throw new Error(`invalid --budget=${budget}`);
 if (!Number.isFinite(evalSamples) || evalSamples < 0) throw new Error(`invalid --eval-samples=${evalSamples}`);
+if (probePitchSpanOverride !== undefined && (!Number.isFinite(probePitchSpanOverride) || probePitchSpanOverride <= 0)) {
+  throw new Error(`invalid --probe-pitch-span=${probePitchSpanOverride}`);
+}
+if (probeRotateSpanOverride !== undefined && (!Number.isFinite(probeRotateSpanOverride) || probeRotateSpanOverride <= 0)) {
+  throw new Error(`invalid --probe-rotate-span=${probeRotateSpanOverride}`);
+}
 
 setCandidateCompileBudgetFrames(budget);
 
@@ -177,16 +185,22 @@ const MODEL_SPECS = [
 
 function probeDesign(name: string): ArcKnobs[] {
   switch (name) {
-    case "cross5":
+    case "cross5": {
+      const pitchSpan = probePitchSpanOverride ?? 8.5;
+      const rotateSpan = probeRotateSpanOverride ?? 2.5;
       return [
         { pitchDeg: 0, rotateDeg: 0 },
-        { pitchDeg: -10, rotateDeg: 0 },
-        { pitchDeg: 10, rotateDeg: 0 },
-        { pitchDeg: 0, rotateDeg: -3 },
-        { pitchDeg: 0, rotateDeg: 3 },
+        { pitchDeg: -pitchSpan, rotateDeg: 0 },
+        { pitchDeg: pitchSpan, rotateDeg: 0 },
+        { pitchDeg: 0, rotateDeg: -rotateSpan },
+        { pitchDeg: 0, rotateDeg: rotateSpan },
       ];
-    case "grid9":
-      return grid([-10, 0, 10], [-3, 0, 3]);
+    }
+    case "grid9": {
+      const pitchSpan = probePitchSpanOverride ?? 9;
+      const rotateSpan = probeRotateSpanOverride ?? 3;
+      return grid([-pitchSpan, 0, pitchSpan], [-rotateSpan, 0, rotateSpan]);
+    }
     case "grid15":
       return grid([-6, -3, 0, 3, 6], [-3, 0, 3]);
     default:
@@ -847,6 +861,7 @@ if (outPath !== undefined) {
       seeds,
       budget,
       probeDesign: probeDesignName,
+      probeKnobs,
       evalDesign: evalDesignName,
       evalSamples,
       details: showDetails,

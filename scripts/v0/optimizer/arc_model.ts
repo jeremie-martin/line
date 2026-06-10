@@ -25,6 +25,10 @@ export type LinearModel = {
   coefficients: number[];
 };
 
+export type KnobSurfaceModel = {
+  samples: Array<{ knobs: ArcKnobs; value: number }>;
+};
+
 export function rotateLinesAbout(
   lines: TrackLine[],
   pivot: { x: number; y: number },
@@ -89,6 +93,105 @@ export function predictLinearModel(model: LinearModel, features: readonly number
   let y = 0;
   for (let i = 0; i < model.coefficients.length; i++) y += model.coefficients[i] * features[i];
   return y;
+}
+
+export function fitKnobSurfaceModel(rows: Array<{ knobs: ArcKnobs; value: number }>, minRows: number): KnobSurfaceModel | null {
+  if (rows.length < minRows) return null;
+  const samples = rows
+    .filter((row) => Number.isFinite(row.value))
+    .map((row) => ({ knobs: { ...row.knobs }, value: row.value }));
+  return samples.length >= minRows ? { samples } : null;
+}
+
+export function predictKnobSurfaceModel(model: KnobSurfaceModel, knobs: ArcKnobs): number {
+  const exact = surfaceValueAt(model.samples, knobs.pitchDeg, knobs.rotateDeg);
+  if (exact !== null) return exact;
+
+  const pitches = sortedUnique(model.samples.map((sample) => sample.knobs.pitchDeg));
+  const rotates = sortedUnique(model.samples.map((sample) => sample.knobs.rotateDeg));
+  if (pitches.length >= 2 && rotates.length >= 2) {
+    const [p0, p1] = bounds(pitches, knobs.pitchDeg);
+    const [r0, r1] = bounds(rotates, knobs.rotateDeg);
+    const v00 = surfaceValueAt(model.samples, p0, r0);
+    const v01 = surfaceValueAt(model.samples, p0, r1);
+    const v10 = surfaceValueAt(model.samples, p1, r0);
+    const v11 = surfaceValueAt(model.samples, p1, r1);
+    if (v00 !== null && v01 !== null && v10 !== null && v11 !== null) {
+      const pt = p1 === p0 ? 0 : (knobs.pitchDeg - p0) / (p1 - p0);
+      const rt = r1 === r0 ? 0 : (knobs.rotateDeg - r0) / (r1 - r0);
+      const lo = v00 * (1 - rt) + v01 * rt;
+      const hi = v10 * (1 - rt) + v11 * rt;
+      return lo * (1 - pt) + hi * pt;
+    }
+  }
+
+  const center = surfaceValueAt(model.samples, 0, 0);
+  const pitch = interpolateAxis(model.samples, "pitch", knobs.pitchDeg);
+  const rotate = interpolateAxis(model.samples, "rotate", knobs.rotateDeg);
+  if (center !== null && pitch !== null && rotate !== null) return pitch + rotate - center;
+  return nearestSurfaceValue(model.samples, knobs);
+}
+
+function sortedUnique(xs: number[]): number[] {
+  return [...new Set(xs.map((x) => x.toFixed(6)))].map(Number).sort((a, b) => a - b);
+}
+
+function bounds(xs: number[], x: number): [number, number] {
+  let lo = xs[0];
+  let hi = xs[xs.length - 1];
+  for (const v of xs) {
+    if (v <= x) lo = v;
+    if (v >= x) {
+      hi = v;
+      break;
+    }
+  }
+  return [lo, hi];
+}
+
+function surfaceValueAt(samples: Array<{ knobs: ArcKnobs; value: number }>, pitchDeg: number, rotateDeg: number): number | null {
+  const sample = samples.find((s) =>
+    s.knobs.pitchDeg.toFixed(6) === pitchDeg.toFixed(6) &&
+    s.knobs.rotateDeg.toFixed(6) === rotateDeg.toFixed(6)
+  );
+  return sample?.value ?? null;
+}
+
+function interpolateAxis(
+  samples: Array<{ knobs: ArcKnobs; value: number }>,
+  axis: "pitch" | "rotate",
+  value: number,
+): number | null {
+  const axisSamples = samples
+    .filter((sample) => axis === "pitch" ? sample.knobs.rotateDeg === 0 : sample.knobs.pitchDeg === 0)
+    .map((sample) => ({ x: axis === "pitch" ? sample.knobs.pitchDeg : sample.knobs.rotateDeg, value: sample.value }))
+    .sort((a, b) => a.x - b.x);
+  if (axisSamples.length === 0) return null;
+  if (value <= axisSamples[0].x) return axisSamples[0].value;
+  for (let i = 1; i < axisSamples.length; i++) {
+    const a = axisSamples[i - 1];
+    const b = axisSamples[i];
+    if (value <= b.x) {
+      const t = (value - a.x) / (b.x - a.x);
+      return a.value * (1 - t) + b.value * t;
+    }
+  }
+  return axisSamples[axisSamples.length - 1].value;
+}
+
+function nearestSurfaceValue(samples: Array<{ knobs: ArcKnobs; value: number }>, knobs: ArcKnobs): number {
+  let best = samples[0];
+  let bestD = Infinity;
+  for (const sample of samples) {
+    const dp = sample.knobs.pitchDeg - knobs.pitchDeg;
+    const dr = sample.knobs.rotateDeg - knobs.rotateDeg;
+    const d = dp * dp + dr * dr;
+    if (d < bestD) {
+      best = sample;
+      bestD = d;
+    }
+  }
+  return best.value;
 }
 
 export function fitLinearLeastSquares(

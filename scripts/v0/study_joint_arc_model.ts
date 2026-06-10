@@ -63,8 +63,10 @@ import {
 import {
   additiveQuadraticFeatures,
   applyArcKnobs,
+  fitKnobSurfaceModel,
   fitLinearLeastSquares,
   jointQuadraticFeatures,
+  predictKnobSurfaceModel,
   predictLinearModel,
   type ArcKnobs,
   type RiderArrivalState,
@@ -177,11 +179,41 @@ type LossRow = {
   outputs: number;
 };
 
-const MODEL_SPECS = [
-  { name: "linear", features: (k: ArcKnobs): number[] => [1, k.pitchDeg, k.rotateDeg] },
-  { name: "additive_quadratic", features: additiveQuadraticFeatures },
-  { name: "joint_quadratic", features: jointQuadraticFeatures },
-] as const;
+type FittedStudyModel = {
+  predict(knobs: ArcKnobs): number;
+};
+type StudyModelSpec = {
+  name: string;
+  fit(rows: Array<{ knobs: ArcKnobs; value: number }>): FittedStudyModel | null;
+};
+
+function linearStudyModel(name: string, features: (k: ArcKnobs) => number[]): StudyModelSpec {
+  return {
+    name,
+    fit(rows) {
+      const model = fitLinearLeastSquares(rows.map((row) => ({ features: features(row.knobs), value: row.value })));
+      return model === null ? null : {
+        predict: (knobs) => predictLinearModel(model, features(knobs)),
+      };
+    },
+  };
+}
+
+const surfaceMinRows = probeDesignName === "grid9" ? 6 : 5;
+const MODEL_SPECS: StudyModelSpec[] = [
+  linearStudyModel("linear", (k) => [1, k.pitchDeg, k.rotateDeg]),
+  linearStudyModel("additive_quadratic", additiveQuadraticFeatures),
+  linearStudyModel("joint_quadratic", jointQuadraticFeatures),
+  {
+    name: "surface",
+    fit(rows) {
+      const model = fitKnobSurfaceModel(rows, surfaceMinRows);
+      return model === null ? null : {
+        predict: (knobs) => predictKnobSurfaceModel(model, knobs),
+      };
+    },
+  },
+];
 
 function probeDesign(name: string): ArcKnobs[] {
   switch (name) {
@@ -612,9 +644,7 @@ for (const groupRows of groups.values()) {
       const cov = coverageFor(modelSpec.name, output);
       cov.groupsWithOutput++;
       cov.groupsWithProbeRows++;
-      const fit = fitLinearLeastSquares(
-        probeRows.map((r) => ({ features: modelSpec.features(r.knobs), value: r.value })),
-      );
+      const fit = modelSpec.fit(probeRows);
       if (fit === null) continue;
       cov.groupsFitted++;
       cov.evalRowsCovered += evalRowsForOutput;
@@ -622,7 +652,7 @@ for (const groupRows of groups.values()) {
         const actualRaw = row.outputs[output];
         if (!Number.isFinite(actualRaw)) continue;
         const actual = angle ? unwrapAround(actualRaw, ref) : actualRaw;
-        const pred = predictLinearModel(fit, modelSpec.features({ pitchDeg: row.pitchDeg, rotateDeg: row.rotateDeg }));
+        const pred = fit.predict({ pitchDeg: row.pitchDeg, rotateDeg: row.rotateDeg });
         const signed = angle ? normalizeAngleDeg(pred - actual) : pred - actual;
         addError(modelSpec.name, row.split, output, signed, range);
       }

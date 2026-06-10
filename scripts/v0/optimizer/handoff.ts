@@ -378,6 +378,9 @@ const HANDOFF_REUSE_MATURE_EXTRA_WEIGHT = 0.35;
 const HANDOFF_REUSE_MATURE_BUDGET_SCALE_FRAMES = 150_000;
 const HANDOFF_REUSE_MATURE_FULL_FEEDBACK_SCALE = 48;
 const HANDOFF_PREVIEW_HORIZON = 1;
+const QUALITY_FUTURE_PREVIEW_MAX_PRESSURE = 0.25;
+const QUALITY_FUTURE_PREVIEW_BUDGET_SCALE_FRAMES = 150_000;
+const QUALITY_FUTURE_PREVIEW_FULL_FEEDBACK_SCALE = 12;
 const START_OPTION_LIMIT = 10;
 const START_SCORING_POOL = 16;
 const START_FIRST_K = 8;
@@ -1759,6 +1762,9 @@ function expandNode(
     axisQualitySearch: qualitySearch,
     releaseSetup: qualitySearch,
     previewCostWeight: PREVIEW_COST_WEIGHT,
+    previewScorePressure: qualitySearch
+      ? qualityFuturePreviewPressure(targetBudget, telemetry)
+      : undefined,
     targetBudget,
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap, ctx)) {
@@ -1772,6 +1778,9 @@ function expandNode(
       axisQualitySearch: qualitySearch,
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      previewScorePressure: qualitySearch
+        ? qualityFuturePreviewPressure(targetBudget, telemetry)
+        : undefined,
       targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1790,6 +1799,9 @@ function expandNode(
       axisQualitySearch: qualitySearch,
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      previewScorePressure: qualitySearch
+        ? qualityFuturePreviewPressure(targetBudget, telemetry)
+        : undefined,
       targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1800,6 +1812,10 @@ function expandNode(
       preview: handoffUsesFuturePreview(qualitySearch),
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      previewScorePressure: qualitySearch
+        ? qualityFuturePreviewPressure(targetBudget, telemetry)
+        : undefined,
+      targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -1901,13 +1917,16 @@ function startupDeadEndOptions(
   config: {
     preview?: boolean;
     previewCostWeight?: number;
+    previewScorePressure?: number;
     releaseSetup?: boolean;
+    targetBudget?: number;
   } = {},
 ): RankedOption[] {
   const candidates = startupDeadEndCandidates(node, gaps, ctx, seed, telemetry);
   if (candidates.length === 0) return [];
   const preview = config.preview ?? true;
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
+  const previewScorePressure = config.previewScorePressure ?? (preview ? 1 : 0);
   const scored = candidates.map((candidate, rank) =>
     scoreCandidateForHandoff(
       node,
@@ -1920,7 +1939,9 @@ function startupDeadEndOptions(
       telemetry,
       preview,
       previewCostWeight,
+      previewScorePressure,
       config.releaseSetup ?? false,
+      config.targetBudget ?? 0,
     )
   );
   scored.sort((a, b) =>
@@ -1986,6 +2007,7 @@ function rankedOptions(
     expandedBrakeSearch?: boolean;
     axisQualitySearch?: boolean;
     previewCostWeight?: number;
+    previewScorePressure?: number;
     releaseSetup?: boolean;
     targetBudget?: number;
   } = {},
@@ -2004,9 +2026,11 @@ function rankedOptions(
   const pool = sorted.slice(0, poolSize);
   const preview = config.preview ?? true;
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
+  const previewScorePressure = config.previewScorePressure ?? (preview ? 1 : 0);
   const scored = pool.map((candidate, rank) =>
     scoreCandidateForHandoff(
       node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
+      previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
     )
@@ -2031,6 +2055,7 @@ function rankedOptions(
   reuse.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(
       node, candidate, poolSize + j, "reuse", gaps, ctx, seed, telemetry, preview, previewCostWeight,
+      previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
     ))
@@ -2060,6 +2085,7 @@ function rankedOptions(
       telemetry,
       preview,
       previewCostWeight,
+      previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
     ))
@@ -2070,6 +2096,15 @@ function rankedOptions(
     a.rank - b.rank
   );
   return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+function qualityFuturePreviewPressure(
+  targetBudget: number,
+  telemetry: HandoffTelemetry,
+): number {
+  return QUALITY_FUTURE_PREVIEW_MAX_PRESSURE *
+    maturityPressure(targetBudget, QUALITY_FUTURE_PREVIEW_BUDGET_SCALE_FRAMES) *
+    fullFeedbackPressure(telemetry, QUALITY_FUTURE_PREVIEW_FULL_FEEDBACK_SCALE);
 }
 
 function lowAirTargetPressure(target: number, scale: number): number {
@@ -2684,6 +2719,7 @@ function scoreCandidateForHandoff(
   telemetry: HandoffTelemetry,
   usePreview = true,
   previewCostWeight = PREVIEW_COST_WEIGHT,
+  previewScorePressure = usePreview ? 1 : 0,
   releaseSetup = false,
   targetBudget = 0,
   sourceAxis?: AxisName,
@@ -2708,7 +2744,8 @@ function scoreCandidateForHandoff(
       score: -value,
     };
   }
-  const preview = usePreview
+  const usePreviewScore = previewScorePressure > 0;
+  const preview = (usePreview || usePreviewScore)
     ? previewFutureContacts(child, gaps, ctx, seed, telemetry)
     : {
       horizon: 0,
@@ -2741,7 +2778,8 @@ function scoreCandidateForHandoff(
     ? candidateReleaseSetupPenalty(candidate, gaps, node.gapIndex, telemetry, targetBudget)
     : 0;
   recordCandidateReleaseCoverage(telemetry, candidate);
-  const localScore = candidate.cost + scarcity + previewCost + statePenalty + overshoot + releasePenalty;
+  const previewScore = (scarcity + previewCost) * previewScorePressure;
+  const localScore = candidate.cost + previewScore + statePenalty + overshoot + releasePenalty;
   attachHandoffScoreToProbe(candidate.lines, localScore); // study probe; no-op when off
   return {
     candidate,

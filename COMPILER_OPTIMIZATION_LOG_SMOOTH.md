@@ -648,3 +648,283 @@ first post-rebase baseline.
 - Per-budget deltas: `50k +0.0`, `100k +1.3`, `200k +1.6`, `300k +1.4`;
   validity unchanged (`1898/1920`, `300k 480/480`).
 - Status: accepted; this archive becomes the next official comparison baseline.
+
+## repair-extra-upstream-pressure-01
+
+- Mechanism: repair upstream blame boundary.
+- Continuous replacement: allowed one extra upstream repair anchor beyond
+  `LR_REPAIR_MAX_UPSTREAM` only through deterministic smooth pressure from repair
+  budget maturity and remaining-frame headroom.
+- Run: `generated/golden-runs/repair-extra-upstream-pressure-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 516.8`, delta `-0.1`,
+  CI `[-0.4, 0.1]`, `P(delta<=0)=88.3%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.0`, `300k -0.3`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: rejected and reverted; the extra upstream anchor adds slight high-budget
+  drag without any canonical gain.
+
+## start-overshoot-speed-pressure-01
+
+- Mechanism: start feasibility high-speed overshoot scoring boundary.
+- Continuous replacement: faded start-lookahead overshoot scoring in below the
+  existing high-speed cutoff while preserving full scoring at and above the old
+  cutoff.
+- Run: `generated/golden-runs/start-overshoot-speed-pressure-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 517.0`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: rejected and reverted; canonical start choices are unchanged by the
+  softened boundary on this baseline.
+
+## release-vertical-union-pressure-01
+
+- Mechanism: release-setup vertical pressure combination.
+- Continuous replacement: combined low-air and tight-cadence release-setup
+  pressures as a smooth union instead of taking the harder `max` boundary.
+- Run: `generated/golden-runs/release-vertical-union-pressure-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 517.0`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: rejected and reverted; canonical selected tracks are unchanged by the
+  pressure-combination smoothing.
+
+## preclear-proximity-pressure-01
+
+- Mechanism: arc-placement pre-target sled proximity rejection.
+- Continuous replacement: kept deep pre-target overlaps rejected, but replaced
+  the fixed `2.5px` cutoff with deterministic smooth rejection pressure across a
+  `1.5px..3.5px` near-boundary band.
+- Run: `generated/golden-runs/preclear-proximity-pressure-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 516.7`, delta `-0.3`,
+  CI `[-3.9, 3.5]`, `P(delta<=0)=58.8%`.
+- Per-budget deltas: `50k +4.6`, `100k -0.7`, `200k -0.6`, `300k -0.7`;
+  validity improved one row overall (`1898/1920 -> 1899/1920`).
+- Status: not kept; broad soft admission helps scarce completion but drags
+  mature quality, so tried fading the softness out by 100k.
+
+## preclear-proximity-pressure-02
+
+- Mechanism: same pre-target sled proximity rejection.
+- Continuous replacement: applied the smooth near-boundary preclear pressure only
+  under scarce-budget pressure, fully collapsing back to the old `2.5px` cutoff by
+  100k.
+- Run: `generated/golden-runs/preclear-proximity-pressure-02`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 517.3`, delta `+0.4`,
+  CI `[-3.0, 4.1]`, `P(delta<=0)=41.8%`.
+- Per-budget deltas: `50k +4.6`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity improved one row overall (`1898/1920 -> 1899/1920`).
+- Status: rejected and reverted; the only positive signal is isolated to 50k and
+  is too underpowered to pass the canonical accept gate.
+
+## far-back-pulse-pressure-01
+
+- Mechanism: far-back quality repair pulse cadence.
+- Continuous replacement: replaced the rounded integer modulo interval with a
+  deterministic per-selection pulse pressure using the same expected min/max
+  cadence rates from smooth axis-quality weakness.
+- Run: `generated/golden-runs/far-back-pulse-pressure-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 516.8`, delta `-0.1`,
+  CI `[-0.5, 0.3]`, `P(delta<=0)=74.2%`.
+- Per-budget deltas: `50k -1.6`, `100k +0.2`, `200k +0.1`, `300k -0.1`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: not kept; pressure cadence helps mid budgets slightly but hurts scarce
+  and mature budgets, so tried steadier low-discrepancy pulse placement.
+
+## far-back-pulse-pressure-02
+
+- Mechanism: same far-back quality repair pulse cadence.
+- Continuous replacement: kept the same smooth pulse pressure, but used a
+  low-discrepancy per-selection roll to avoid hash clustering in short runs.
+- Run: `generated/golden-runs/far-back-pulse-pressure-02`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: REJECT`; headline `517.0 -> 516.5`, delta `-0.5`,
+  CI `[-1.0, -0.1]`, `P(delta<=0)=98.5%`.
+- Per-budget deltas: `50k -2.2`, `100k -0.3`, `200k -0.3`, `300k -0.3`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: rejected and reverted; the accepted periodic far-back cadence is better
+  than smooth pressure placement on canonical.
+
+## start-low-speed-penalty-pressure-01
+
+- Mechanism: start heuristic low-speed penalty.
+- Continuous replacement: replaced the binary high-target/low-speed start
+  penalty with smooth target-speed and speed-ratio pressures over the same
+  heuristic cost.
+- Run: `generated/golden-runs/start-low-speed-penalty-pressure-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 517.0`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: rejected and reverted; canonical start ordering is unchanged by this
+  smoothed penalty boundary.
+
+## start-angle-shoulder-pressure-01
+
+- Mechanism: start angle target clamp.
+- Continuous replacement: replaced the hard `[-12, 24]` start-angle clamp with
+  smooth six-degree shoulders near both caps while preserving the same far-out
+  limits.
+- Run: `generated/golden-runs/start-angle-shoulder-pressure-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 516.5`, delta `-0.4`,
+  CI `[-1.5, 0.1]`, `P(delta<=0)=91.5%`.
+- Per-budget deltas: `50k +0.0`, `100k -0.5`, `200k -0.5`, `300k -0.4`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: rejected and reverted; the hard capped start-angle anchors are better
+  on canonical than softened near-cap shoulders.
+
+## target-segment-count-pressure-01
+
+- Mechanism: target-state arc/contact segment-count quantization.
+- Continuous replacement: replaced `Math.round(length / segmentLength)` with
+  deterministic smooth fractional admission of the extra segment, using
+  low-discrepancy attempt rolls.
+- Run: `generated/golden-runs/target-segment-count-pressure-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 516.4`, delta `-0.5`,
+  CI `[-2.2, 1.0]`, `P(delta<=0)=79.2%`.
+- Per-budget deltas: `50k -4.5`, `100k -0.4`, `200k -0.3`, `300k -0.1`;
+  validity lost one row overall (`1898/1920 -> 1897/1920`).
+- Status: not kept; broad segment-count smoothing damages scarce-budget
+  validity/score, so tried preserving old rounding until mature budget.
+
+## target-segment-count-pressure-02
+
+- Mechanism: same target-state segment-count quantization.
+- Continuous replacement: kept old rounding through 200k and faded smooth
+  fractional extra-segment admission in by 300k.
+- Run: `generated/golden-runs/target-segment-count-pressure-02`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 516.9`, delta `-0.0`,
+  CI `[-0.3, 0.2]`, `P(delta<=0)=61.7%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k -0.1`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: rejected and reverted; even mature-only segment-count smoothing has no
+  reliable positive signal.
+
+## sparse-contract-pressure-01
+
+- Mechanism: sparse-contract breadth cutoff from median contact cadence.
+- Continuous replacement: replaced the hard median-gap sparse switch with a
+  centered smooth pressure that deterministically mixes 13/14 contract samples
+  near the cutoff.
+- Run: `generated/golden-runs/sparse-contract-pressure-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 517.1`, delta `+0.1`,
+  CI `[-0.3, 0.8]`, `P(delta<=0)=29.7%`.
+- Per-budget deltas: `50k +0.1`, `100k +0.3`, `200k +0.1`, `300k +0.1`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: not kept; positive but below accept confidence, so tried one-sided
+  ramps to isolate which side of the cutoff helped.
+
+## sparse-contract-pressure-02
+
+- Mechanism: same sparse-contract breadth cutoff.
+- Continuous replacement: kept old normal breadth below the cutoff and smoothed
+  only the ramp into sparse breadth above the cutoff.
+- Run: `generated/golden-runs/sparse-contract-pressure-02`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 516.8`, delta `-0.2`,
+  CI `[-0.7, 0.3]`, `P(delta<=0)=81.4%`.
+- Per-budget deltas: `50k +0.4`, `100k -0.1`, `200k -0.2`, `300k -0.3`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: not kept; above-cutoff smoothing helps scarce budget but drags the
+  higher-weight mature budgets.
+
+## sparse-contract-pressure-03
+
+- Mechanism: same sparse-contract breadth cutoff.
+- Continuous replacement: kept old sparse breadth at and above the cutoff and
+  smoothed only the lower-side approach into sparse breadth.
+- Run: `generated/golden-runs/sparse-contract-pressure-03`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 517.1`, delta `+0.1`,
+  CI `[-1.9, 1.8]`, `P(delta<=0)=36.8%`.
+- Per-budget deltas: `50k +0.1`, `100k +0.5`, `200k +0.0`, `300k +0.1`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: rejected and reverted after three variants; centered smoothing is the
+  best shape but not reliable enough to accept.
+
+## start-support-release-fraction-01
+
+- Mechanism: startup support release-line geometry.
+- Continuous replacement: replaced the rounded target airborne frame used for
+  support release placement with the fractional `firstGap.endFrame * air` value,
+  smoothing the support-line endpoint instead of stepping it by whole frames.
+- Run: `generated/golden-runs/start-support-release-fraction-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 517.9`, delta `+1.0`,
+  CI `[-0.9, 3.9]`, `P(delta<=0)=19.7%`.
+- Per-budget deltas: `50k -4.4`, `100k +6.7`, `200k +0.4`, `300k +0.3`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: not kept; positive mean was driven by 100k but 50k regressed, so
+  tried preserving 50k rounded behavior with a budget fade.
+
+## start-support-release-fraction-budget-02
+
+- Mechanism: same startup support release-line geometry.
+- Continuous replacement: kept rounded release placement at 50k and faded to
+  fractional release placement by 100k+, preserving scarce-budget behavior.
+- Run: `generated/golden-runs/start-support-release-fraction-budget-02`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 518.3`, delta `+1.3`,
+  CI `[-0.8, 5.6]`, `P(delta<=0)=18.9%`.
+- Per-budget deltas: `50k +0.0`, `100k +6.7`, `200k +0.4`, `300k +0.3`;
+  validity improved one row overall (`1898/1920 -> 1899/1920`), `300k` stayed
+  `480/480`.
+- Status: not kept; strongest variant but still below accept confidence, so
+  tried isolating the smooth value to line geometry while keeping the old
+  integer release frame for admission.
+
+## start-support-release-line-fraction-03
+
+- Mechanism: same startup support release-line geometry.
+- Continuous replacement: kept the old rounded release frame for runup/admission
+  and used the budget-faded fractional release only for the support-line endpoint.
+- Run: `generated/golden-runs/start-support-release-line-fraction-03`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 518.3`, delta `+1.3`,
+  CI `[-0.8, 5.6]`, `P(delta<=0)=18.9%`.
+- Per-budget deltas: `50k +0.0`, `100k +6.7`, `200k +0.4`, `300k +0.3`;
+  validity improved one row overall (`1898/1920 -> 1899/1920`), `300k` stayed
+  `480/480`.
+- Status: rejected and reverted after three variants; the 100k gain is real but
+  too underpowered for canonical acceptance at 12 seeds.
+
+## quality-tail-throttle-boundary-01
+
+- Mechanism: quality near-tail shallow-throttle contact cutoff.
+- Continuous replacement: kept full shallow-tail throttle for one or two
+  remaining contacts, and admitted a fractional deterministic throttle at the
+  next integer boundary (`remaining == 3`).
+- Run: `generated/golden-runs/quality-tail-throttle-boundary-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `517.0 -> 517.0`, delta `+0.0`,
+  CI `[-0.0, 0.1]`, `P(delta<=0)=30.6%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: rejected and reverted; the boundary throttle is active but produces
+  only negligible canonical movement, so no follow-up variant was tried.
+
+## quality-preview-pressure-01
+
+- Mechanism: quality-phase future-preview ranking gate.
+- Continuous replacement: kept contract preview unchanged, but replaced the hard
+  quality-preview disable with a small smooth preview-score pressure from compile
+  budget and accumulated full-search feedback.
+- Run: `generated/golden-runs/quality-preview-pressure-01`.
+- Decide against accepted baseline `vertical-fwd-avg-pressure-02`:
+  `VERDICT: ACCEPT`; headline `517.0 -> 517.1`, delta `+0.1`,
+  CI `[-0.0, 0.3]`, `P(delta<=0)=6.3%`.
+- Per-budget deltas: `50k +1.4`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: accepted; this archive becomes the next official comparison baseline.

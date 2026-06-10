@@ -13,11 +13,21 @@
  * This studies the local model-construction problem only. It does not change
  * production search/ranking.
  *
- *   LR_ENGINE=wasm node --expose-gc --no-warnings=ExperimentalWarning --import tsx \
- *     scripts/v0/study_joint_arc_model.ts \
+ * Fast iteration command, run once with --probe-design=cross5 and once with
+ * --probe-design=grid9; optimize both:
+ *
+ *   npm run study:joint-arc -- \
+ *     --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 \
+ *     --probe-design=grid9 --eval-design=random --eval-samples=80 --details=0
+ *
+ * Full form:
+ *
+ *   npm run study:joint-arc -- \
  *     [--specs=a,b] [--seeds=0,1] [--budget=300000] \
  *     [--probe-design=grid9|cross5|grid15] [--eval-design=grid|random] \
- *     [--eval-samples=200] [--max-gaps=N] [--details=0] [--out=path.jsonl]
+ *     [--eval-samples=200] [--max-gaps=N] [--details=0] \
+ *     [--loss-model=best|linear|additive_quadratic|joint_quadratic] \
+ *     [--out=path.jsonl]
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -69,7 +79,22 @@ const evalDesignName = argValue("eval-design") ?? "grid";
 const evalSamples = Number(argValue("eval-samples") ?? "200");
 const maxGapsPerTrack = Number(argValue("max-gaps") ?? "0") || Infinity;
 const showDetails = argValue("details") !== "0";
+const lossModelName = argValue("loss-model") ?? "best";
 const outPath = argValue("out");
+
+if (argv.includes("--help") || argv.includes("-h")) {
+  console.log(`Joint arc local-regression study
+
+Fast iteration, run both probe designs:
+  npm run study:joint-arc -- --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 --probe-design=cross5 --eval-design=random --eval-samples=80 --details=0
+  npm run study:joint-arc -- --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 --probe-design=grid9  --eval-design=random --eval-samples=80 --details=0
+
+Primary target:
+  primary_loss = weighted held-out eval nMAE over current errors/cost and next rider state,
+  plus missing-priority-output coverage penalty. Lower is better; gate coverage and fit
+  coverage gaps are hard diagnostics, not successes to hide.`);
+  process.exit(0);
+}
 
 for (const s of specNames) {
   if (!(GOLDEN_SPECS as readonly string[]).includes(s)) {
@@ -123,6 +148,14 @@ type MetricRow = {
   max: number;
   nmae: number;
   np90: number;
+};
+type LossRow = {
+  model: string;
+  rawNmae: number;
+  coverage: number;
+  missingPenalty: number;
+  primaryLoss: number;
+  outputs: number;
 };
 
 const MODEL_SPECS = [
@@ -610,6 +643,72 @@ function metricRows(): MetricRow[] {
   );
 }
 
+function priorityWeight(output: string): number {
+  if (output === "current.cost") return 2;
+  if (output.startsWith("current.error.")) return output === "current.error.impact" ? 2 : 1;
+  if (output.startsWith("next.")) return 1;
+  if (output === "current.releaseSpeedPx" || output === "current.releaseVy") return 0.5;
+  return 0;
+}
+
+function lossRows(metrics: MetricRow[]): LossRow[] {
+  const evalMetrics = metrics.filter((m) => m.split === "eval" && m.n > 0 && priorityWeight(m.output) > 0);
+  const priorityOutputs = new Set(evalMetrics.map((m) => m.output));
+  const totalWeight = [...priorityOutputs].reduce((sum, output) => sum + priorityWeight(output), 0);
+  const byModel = new Map<string, MetricRow[]>();
+  for (const m of evalMetrics) {
+    const xs = byModel.get(m.model) ?? [];
+    xs.push(m);
+    byModel.set(m.model, xs);
+  }
+  const rows: LossRow[] = [];
+  for (const [model, xs] of byModel) {
+    let weighted = 0;
+    let weight = 0;
+    for (const m of xs) {
+      const w = priorityWeight(m.output);
+      weighted += w * m.nmae;
+      weight += w;
+    }
+    const coverage = totalWeight > 0 ? weight / totalWeight : 0;
+    const rawNmae = weight > 0 ? weighted / weight : Infinity;
+    const missingPenalty = 1 - coverage;
+    rows.push({
+      model,
+      rawNmae,
+      coverage,
+      missingPenalty,
+      primaryLoss: rawNmae + missingPenalty,
+      outputs: xs.length,
+    });
+  }
+  return rows.sort((a, b) => a.primaryLoss - b.primaryLoss || a.model.localeCompare(b.model));
+}
+
+function selectLoss(losses: LossRow[], requested: string): LossRow | null {
+  if (requested === "best") return losses[0] ?? null;
+  return losses.find((row) => row.model === requested) ?? null;
+}
+
+function printLoss(losses: LossRow[], requested: string): void {
+  const selected = selectLoss(losses, requested);
+  console.log("\nPrimary loss target (lower is better)");
+  console.log("model                  primary_loss  raw_nMAE  coverage  missing_penalty outputs");
+  for (const row of losses) {
+    const mark = selected !== null && row.model === selected.model ? "*" : " ";
+    console.log(
+      `${mark} ${row.model.padEnd(20)} ${fmt(row.primaryLoss).padStart(12)}` +
+        ` ${fmt(row.rawNmae).padStart(9)} ${(100 * row.coverage).toFixed(1).padStart(8)}%` +
+        ` ${fmt(row.missingPenalty).padStart(16)} ${String(row.outputs).padStart(7)}`,
+    );
+  }
+  if (selected === null) {
+    console.log(`requested --loss-model=${requested} has no fitted eval metrics`);
+  } else {
+    console.log(`selected primary_loss=${fmt(selected.primaryLoss)} model=${selected.model} (--loss-model=${requested})`);
+  }
+}
+
 function printModelComparison(metrics: MetricRow[]): void {
   const evalMetrics = metrics.filter((m) => m.split === "eval" && m.n > 0);
   const byOutput = new Map<string, MetricRow[]>();
@@ -702,6 +801,7 @@ function fmt(x: number): string {
 }
 
 const metrics = metricRows();
+const losses = lossRows(metrics);
 
 console.log(`\n=== joint arc local-regression study ===`);
 console.log(`specs=${specNames.join(",")} seeds=${seeds.join(",")} budget=${budget}`);
@@ -711,6 +811,7 @@ console.log(`skipped: pairing=${skippedPairing} no_targets=${skippedNoTargets} n
 console.log("\nGate coverage");
 for (const line of gateSummary(rows)) console.log(line);
 console.log("\nModel error (held-out eval rows are the main read; nMAE/nP90 are normalized by that gap/output's knob-response range)");
+printLoss(losses, lossModelName);
 printModelComparison(metrics);
 printFitCoverageGaps();
 if (showDetails) {
@@ -739,10 +840,12 @@ if (outPath !== undefined) {
       evalDesign: evalDesignName,
       evalSamples,
       details: showDetails,
+      lossModel: lossModelName,
       maxGapsPerTrack: Number.isFinite(maxGapsPerTrack) ? maxGapsPerTrack : null,
     }),
     ...rows.map((row) => JSON.stringify({ kind: "sample", ...row })),
     ...metrics.map((metric) => JSON.stringify({ kind: "metric", ...metric })),
+    ...losses.map((loss) => JSON.stringify({ kind: "loss", ...loss })),
   ];
   writeFileSync(outPath, `${lines.join("\n")}\n`);
   console.log(`\nwrote ${outPath}`);

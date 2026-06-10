@@ -312,6 +312,13 @@ loss`) — the open prize.
    true joint surfaces. Production should move beyond next speed/angle only
    when this shows a stable accuracy/economics win.
 
+   Fast iteration command: run it twice, changing only
+   `--probe-design=cross5` vs `--probe-design=grid9`:
+   `npm run study:joint-arc -- --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 --probe-design=grid9 --eval-design=random --eval-samples=80 --details=0`.
+   Optimize the reported `primary_loss` (weighted held-out eval nMAE over
+   current errors/cost and next rider state, plus missing-output coverage
+   penalty); gate coverage and fit-coverage gaps are hard diagnostics.
+
 ## 8. Reproducibility
 
 Studies (read-only): `scripts/v0/study_arc_sensitivity.ts`,

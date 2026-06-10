@@ -1354,3 +1354,17 @@ first post-rebase baseline.
   `200k -0.1`, `300k -0.2`; validity unchanged.
 - Status: rejected and reverted; smoothing the missing-angle boundary is active
   but mildly negative on mature budgets and does not pass the accept gate.
+
+## startup-rescue-extra-fractional-01
+
+- Mechanism: startup dead-end rescue extra candidate and pool counts.
+- Continuous replacement: replaced rounded startup-pressure extra counts with
+  deterministic fractional admission for the marginal count.
+- Run: `generated/golden-runs/startup-rescue-extra-fractional-01`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `583.0 -> 583.0`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas all `+0.0`; validity unchanged (`1908/1920`,
+  `300k 480/480`).
+- Status: rejected and reverted; row-level churn collapsed to an exact canonical
+  aggregate no-op, so the startup rescue count quantization is not worth keeping.

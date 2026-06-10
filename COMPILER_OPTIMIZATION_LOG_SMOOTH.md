@@ -1005,3 +1005,45 @@ first post-rebase baseline.
   `200k 593.2`, `300k 598.8`; validity `1903/1920`, `300k 480/480`.
 - Status: new official comparison baseline for post-arc-rewrite attempts
   (`evaluator_fingerprint eede9661bba6`).
+
+## start-support-speed-offset-pressure-01
+
+- Mechanism: startup support low-air speed-offset boundary.
+- Continuous replacement: replaced the hard `air <= 0.35` switch from three
+  support speeds to one speed with a smooth offset-magnitude fade over air span
+  `0.10`.
+- Run: `generated/golden-runs/start-support-speed-offset-pressure-01`.
+- Decide against accepted baseline `arc-rewrite-baseline-01`:
+  `VERDICT: INCONCLUSIVE`; headline `580.8 -> 580.9`, delta `+0.2`,
+  CI `[-0.5, 1.1]`, `P(delta<=0)=37.8%`.
+- Per-budget deltas: `50k +0.3`, `100k +0.3`, `200k +0.1`, `300k +0.1`;
+  validity unchanged (`1903/1920`, `300k 480/480`).
+- Status: not kept; positive but weak, so tried a wider fade span.
+
+## start-support-speed-offset-pressure-02
+
+- Mechanism: same startup support speed-offset boundary.
+- Continuous replacement: same smooth offset-magnitude fade, with air span
+  widened to `0.20`.
+- Run: `generated/golden-runs/start-support-speed-offset-pressure-02`.
+- Decide against accepted baseline `arc-rewrite-baseline-01`:
+  `VERDICT: INCONCLUSIVE`; headline `580.8 -> 581.6`, delta `+0.8`,
+  CI `[-0.8, 3.0]`, `P(delta<=0)=17.6%`.
+- Per-budget deltas: `50k +6.5`, `100k -0.5`, `200k +0.4`, `300k +0.6`;
+  validity improved one row overall (`1903/1920 -> 1904/1920`), `300k 480/480`.
+- Status: not kept; strongest positive miss, but wider fade hurt some
+  start-sensitive rows and remained below accept confidence.
+
+## start-support-speed-offset-pressure-03
+
+- Mechanism: same startup support speed-offset boundary.
+- Continuous replacement: same smooth offset-magnitude fade, with intermediate
+  air span `0.15`.
+- Run: `generated/golden-runs/start-support-speed-offset-pressure-03`.
+- Decide against accepted baseline `arc-rewrite-baseline-01`:
+  `VERDICT: INCONCLUSIVE`; headline `580.8 -> 581.1`, delta `+0.3`,
+  CI `[-0.8, 1.5]`, `P(delta<=0)=30.1%`.
+- Per-budget deltas: `50k +0.7`, `100k -0.0`, `200k +0.5`, `300k +0.2`;
+  validity unchanged (`1903/1920`, `300k 480/480`).
+- Status: rejected and reverted after three variants; the boundary is genuinely
+  active, but canonical confidence is too low to keep.

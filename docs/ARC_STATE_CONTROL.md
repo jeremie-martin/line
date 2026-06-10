@@ -145,6 +145,20 @@ Ladder — each rung falsifiable before the next:
   with PRODUCTION measurement: achieved-vs-aimed error, landing-window ±1f
   compliance, off-beat, and gap k's own axis drift. This converts "the map is
   smooth" into "aiming hits gated quantities".
+  **DONE — PASS** (`scripts/v0/study_aim_replay.ts`, 298 gaps × 3 tasks @300k,
+  `generated/analysis/aim_replay_300k.{jsonl,txt}`):
+  | task | model err p50/p90 | survival | gates (landing ±1f ∧ off-beat) | authority-clamped |
+  |---|---|---|---|---|
+  | steep (angle → max(base+4°, 12°)) | 0.43° / 1.67° | 100% | 100% | 5% |
+  | speed +0.5 px/f | 0.01 / 0.08 px/f | 100% | 99% | 31% |
+  | speed −0.5 px/f | 0.02 / 0.06 px/f | 100% | 100% | 1% |
+  Gap-k side-effects are ZERO (|landing frame shift| and |landing speed Δ|
+  p90 = 0.00): exit pitch rotates the arc's tail, the catch is at its head.
+  **On impact-ask gaps (next target ≥0.3): 90% reach a ≥12° arrival with both
+  gates held** — the §5 precondition is manufacturable in practice, not just
+  in state space. Asymmetry note: speeding UP is authority-limited (31%
+  clamped — pitching the exit mostly trades angle), slowing down is nearly
+  free; aiming for more speed needs a different/added knob.
 - **V2 — score-smoothness study**: same sweep, but record gap k's achieved
   axis values (air/speed/elevation/amplitude/impact) and local cost per
   variant. Are SCORES probe-predictable too? (Model achieved values, not

@@ -1090,3 +1090,32 @@ first post-rebase baseline.
   validity unchanged (`1903/1920`, `300k 480/480`).
 - Status: rejected and reverted after one variant; canonical output was
   byte-stable, so this hard branch is not active on the current baseline.
+
+## dead-end-rescue-gap-pressure-01
+
+- Mechanism: dead-end rescue gap-duration cutoff.
+- Continuous replacement: replaced the hard `gapFrames >= 16` rescue gate with
+  a smooth candidate-count and pool-size ramp from `12` to `16` frames, keeping
+  full rescue behavior at `16+` frames.
+- Run: `generated/golden-runs/dead-end-rescue-gap-pressure-01`.
+- Decide against accepted baseline `arc-rewrite-baseline-01`:
+  `VERDICT: INCONCLUSIVE`; headline `580.8 -> 580.8`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=43.8%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1903/1920`, `300k 480/480`).
+- Status: not kept; slightly positive but far too small to accept, so tried a
+  wider bridge.
+
+## dead-end-rescue-gap-pressure-02
+
+- Mechanism: same dead-end rescue gap-duration cutoff.
+- Continuous replacement: same smooth candidate-count and pool-size ramp, widened
+  to start at `8` frames and reach full rescue at `16` frames.
+- Run: `generated/golden-runs/dead-end-rescue-gap-pressure-02`.
+- Decide against accepted baseline `arc-rewrite-baseline-01`:
+  `VERDICT: INCONCLUSIVE`; headline `580.8 -> 580.0`, delta `-0.8`,
+  CI `[-3.7, 1.0]`, `P(delta<=0)=68.7%`.
+- Per-budget deltas: `50k -10.8`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity regressed overall (`1903/1920 -> 1901/1920`), with `300k 480/480`.
+- Status: rejected and reverted after two variants; the narrow bridge was too
+  weak to keep and the wider bridge spent scarce 50k budget badly.

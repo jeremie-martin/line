@@ -259,9 +259,19 @@ Ladder — each rung falsifiable before the next:
   visibility is NOT worth its current price; real-pools-only is the
   accepted form (`LR_AIM_SCOOP_ROLLOUT=1` re-tests it; only with cheaper
   evals). Honest residual: impact |err| moved 0.1468→0.1430 (bias −0.1375→
-  −0.1331) — the 55-60-point impact prize is still mostly unclaimed; the
-  funnel A/C shares and (if scoops under-deliver) sled pose at landing are
-  the next instruments.
+  −0.1331) — the 55-60-point impact prize is still mostly unclaimed.
+  **Post-V4 funnel** (477 impact gaps @300k, `funnel_after_v4.txt`):
+  A_not_generated 56%→35% (the scoop lane fixed generation — §5 prediction
+  1 confirmed), C_ranking_loses 32%→54% (deep candidates now exist but
+  still lose forward-eval; C-gap bias improved −0.20→−0.13), D_works flat
+  at 8%. The bottleneck moved from generation to RANKING — almost certainly
+  the §4 rollout-visibility problem (branch=1 rollouts score k−1 dives
+  through flat continuations because the scoop lane is excluded from
+  rollout pools for cost). Next problem, well-posed: CHEAP rollout
+  visibility for the scoop (cache or approximate the scoop continuation
+  instead of full per-rollout evals — v4-01 proved full evals are
+  unaffordable, −3.8). If that lands and scoops still under-deliver, the
+  next instrument is sled pose at landing (sensor+actuator exist, §6).
 
 Why not start at dive-scoop directly: V1/V3 validate exactly the operation
 the study measured (perturb a committed/selected arc, hit a next-gap state),

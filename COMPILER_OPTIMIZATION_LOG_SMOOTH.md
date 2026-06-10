@@ -1420,3 +1420,17 @@ first post-rebase baseline.
   `300k -1.2`; validity unchanged (`1908/1920`, `300k 480/480`).
 - Status: rejected and reverted; softening the spec-mean boundary under-shoots
   mature high-impact templates, so the old sharp eligibility remains better.
+
+## impact-template-soft-turn-cap-01
+
+- Mechanism: impact-template maximum scoop turn cap.
+- Continuous replacement: kept turns below the old `22deg` cap unchanged, then
+  added a smooth diminishing `+6deg` tail above the cap.
+- Run: `generated/golden-runs/impact-template-soft-turn-cap-01`.
+- Decide against accepted baseline `impact-template-turn-pressure-02`:
+  `VERDICT: REJECT`; headline `583.8 -> 583.0`, delta `-0.8`,
+  CI `[-1.6, -0.1]`, `P(delta<=0)=98.9%`.
+- Per-budget deltas: `50k +0.0`, `100k -0.7`, `200k -1.4`,
+  `300k -0.5`; validity unchanged (`1908/1920`, `300k 480/480`).
+- Status: rejected and reverted; the accepted template lane wants the old hard
+  upper cap, and extra turn over-rotates mature impact rows.

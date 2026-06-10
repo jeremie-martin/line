@@ -187,6 +187,23 @@ Ladder — each rung falsifiable before the next:
   flag: for each surviving candidate family at gap k−1 (or the top few),
   probe-fit exit pitch and emit one aimed variant targeting what gap k wants.
   Smallest possible production surface; judged by canonical + decide.
+  **DESIGN DECIDED — target = arrival SPEED into gap k+1, aimed at k+1's
+  speed target.** Why this and not impact/all-axes: (a) one knob aims one
+  scalar — multi-axis needs multiple knobs, defer; (b) aiming steep-for-
+  impact alone re-enters the closed loop (steep arrival without a matched
+  scoop = the failed arrival-unfade experiment; V2 proved arrival+catch must
+  ship as a pair — that pair is V4); (c) speed is targeted on EVERY gap
+  (statistical power), pays through any re-fitted catch (no pool
+  prerequisite), is our most accurate aim (V1: 0.01–0.08 px/f), and is the
+  lab's designated impact lever (landing speed predicts impact achieved);
+  (d) it closes the loop on the EXISTING energy launch shaper — smallest
+  honest change. Mechanics: for the top admitted candidate(s) at gap k,
+  2 extra probes → fit → solve exit pitch δ for the arrival speed k+1 wants
+  → emit ONE aimed variant through the unchanged evaluation path. No rng()
+  draws (determinism contract); probes metered; LR_AIM_LAUNCH=1 default-off,
+  byte-identical off; judged canonical + decide. Falsifiable: speed-axis
+  error drops suite-wide; headline up or neutral; neutral-but-accurate still
+  validates the mechanism V4 builds on.
 - **V4 — dive-scoop on the aimer**: aim the k−1 exit to manufacture the steep
   arrival, size the scoop at k from the (now reliable) arrival vector
   (IMPACT_PAIR_PLANNING §5). The aimer turns §5's precondition from

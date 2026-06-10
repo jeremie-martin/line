@@ -1334,3 +1334,23 @@ first post-rebase baseline.
   `300k 480/480`).
 - Status: rejected and reverted; the release-vertical hinge is canonical
   byte-stable on the current baseline.
+
+## impact-post-turn-missing-pressure-01b..02
+
+- Mechanism: impact post-turn missing-angle cutoff.
+- Variant 01b (`generated/golden-runs/impact-post-turn-missing-pressure-01b`):
+  replaced the old `2deg` missing-angle cutoff with a smooth pressure ramp that
+  reached full authority only after an additional `6deg` span. Decide against
+  accepted baseline `contract-branch-warmup-pressure-03`: `VERDICT:
+  INCONCLUSIVE`; headline `583.0 -> 582.7`, delta `-0.3`, CI `[-0.9, 0.3]`,
+  `P(delta<=0)=81.0%`; per-budget deltas `50k +0.0`, `100k +0.0`,
+  `200k -0.3`, `300k -0.3`; validity unchanged (`1908/1920`,
+  `300k 480/480`).
+- Variant 02 (`generated/golden-runs/impact-post-turn-missing-pressure-02`):
+  preserved full old authority above the `2deg` cutoff and only added smooth
+  partial authority below it. Decide: `VERDICT: INCONCLUSIVE`; headline
+  `583.0 -> 582.9`, delta `-0.1`, CI `[-0.6, 0.2]`,
+  `P(delta<=0)=74.9%`; per-budget deltas `50k +0.0`, `100k +0.0`,
+  `200k -0.1`, `300k -0.2`; validity unchanged.
+- Status: rejected and reverted; smoothing the missing-angle boundary is active
+  but mildly negative on mature budgets and does not pass the accept gate.

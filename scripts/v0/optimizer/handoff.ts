@@ -77,6 +77,7 @@ import {
   makeRootNode,
   type SearchNode,
 } from "./node.ts";
+import { resetAimStats, snapshotAimStats } from "./aim.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
 import {
@@ -569,6 +570,7 @@ function compileHandoffInternal(
   resetSimFrames();
   resetCandidateSamples();
   resetArcPlacementStats();
+  resetAimStats();
 
   {
     validateSpec(userSpec);
@@ -828,6 +830,7 @@ function compileHandoffInternal(
         );
       }
       const arcStats = snapshotArcPlacementStats();
+      const aimStats = snapshotAimStats();
       return {
         ...best,
         budget,
@@ -894,6 +897,10 @@ function compileHandoffInternal(
           ...snapshotCandidateReleaseCoverage(telemetry),
           ...snapshotCandidatePreviewCoverage(telemetry),
           ...(arcStats ? { arc_placement: arcStats } : {}),
+          // Aimed-launch lane funnel + prediction accuracy (optimizer/aim.ts).
+          // Absent when the lane never ran (LR_AIM_LAUNCH=0) — ablation
+          // archives stay byte-identical to pre-lane ones.
+          ...(aimStats !== null ? { aim: aimStats } : {}),
           // Repair characterization (only present when the repair post-pass ran → baseline
           // golden.json unchanged, no snapshot churn). Aggregates are always cheap; the full
           // per-restart records (up to maxAttempts each) are heavy archive bloat, so they ride
@@ -1327,6 +1334,7 @@ function cloneGapFit(fit: GapFit): GapFit {
     achieved: { ...fit.achieved },
     cost: fit.cost,
     ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
+    ...(fit.aimed === undefined ? {} : { aimed: fit.aimed }),
     ...(fit.releaseVelocityY === undefined ? {} : { releaseVelocityY: fit.releaseVelocityY }),
     ...(fit.releaseGroundedFrames === undefined
       ? {}
@@ -3998,6 +4006,9 @@ function buildNodeOutput(
       handoff_selected_candidate_nonzero_ranks:
         candidateRanks.filter((rank) => rank > 0).length,
       handoff_selected_candidate_by_source: { ...sourceCounts },
+      // How many committed fits in THIS output came from the aimed-launch
+      // lane (selection-level win rate; `aim.emitted` is the pool-level rate).
+      handoff_aimed_selected: fits.filter((fit) => fit !== null && fit.aimed === true).length,
       handoff_selected_axis_quality_by_axis: axisQualitySourceCounts,
       handoff_selected_candidate_pool_count: sourceCounts.pool,
       handoff_selected_candidate_reuse_count: sourceCounts.reuse,

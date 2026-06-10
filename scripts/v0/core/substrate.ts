@@ -40,6 +40,9 @@ export type GapFit = {
   /** Rider speed at the post-catch release probe frame, in raw px/frame.
    *  Used by compiler rankers to set up the next contact's speed target. */
   releaseSpeed?: number;
+  /** True when this fit was produced by the aimed-launch lane
+   *  (optimizer/aim.ts). Telemetry only — never read by ranking. */
+  aimed?: boolean;
   /** Rider vertical velocity at the post-catch release probe frame, in raw px/frame.
    *  Used by quality search to avoid launchy exits before tight/low-air contacts. */
   releaseVelocityY?: number;

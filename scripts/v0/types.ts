@@ -488,6 +488,24 @@ export type CompileStats = {
    *  a missed contact. */
   handoff_deferred_skips?: number;
 
+  /** Aimed-launch lane funnel + prediction accuracy (optimizer/aim.ts).
+   *  Non-scoring diagnostics; absent when the lane never ran. */
+  aim?: {
+    considered: number;
+    no_target: number;
+    no_release: number;
+    probe_crash: number;
+    on_target: number;
+    clamped: number;
+    gate_fail: number;
+    emitted: number;
+    pred_abs_err_mean: number;
+    base_target_miss_mean: number;
+    aimed_target_miss_mean: number;
+  };
+  /** Committed fits in this output produced by the aimed-launch lane. */
+  handoff_aimed_selected?: number;
+
   /** Target-state placement counters. Non-scoring diagnostics. */
   arc_placement?: {
     mode: ArcPlacementMode;

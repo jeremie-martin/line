@@ -899,6 +899,9 @@ function compactStats(stats: CompileStats | null): object | null {
   return {
     candidates_sampled: stats.candidates_sampled,
     candidates_viable: stats.candidates_viable,
+    // Aimed-launch lane funnel + prediction accuracy (optimizer/aim.ts).
+    aim: stats.aim,
+    handoff_aimed_selected: stats.handoff_aimed_selected,
     sim_frames: stats.sim_frames,
     budget_exhausted: stats.budget_exhausted,
     leaves_considered: stats.leaves_considered,

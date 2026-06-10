@@ -37,6 +37,60 @@ export function aimLaunchEnabled(): boolean {
     .process?.env?.LR_AIM_LAUNCH !== "0";
 }
 
+/** Lane telemetry (compile_stats.aim — lab-queryable via json_extract).
+ *  Funnel: considered → (no_target | no_release | probe_crash | on_target) →
+ *  solved → (gate_fail | emitted). Accuracy: |model-predicted − actually
+ *  simulated| release speed of emitted variants, plus the target miss before
+ *  (base) and after (aimed) — the lane's measured value-add per emission. */
+export type AimStats = {
+  considered: number;
+  no_target: number;
+  no_release: number;
+  probe_crash: number;
+  on_target: number;
+  clamped: number;
+  gate_fail: number;
+  emitted: number;
+  /** Mean |predicted(δ*) − fit.releaseSpeed| over emitted (px/f). */
+  pred_abs_err_mean: number;
+  /** Mean |releaseSpeed − target| before/after aiming, over emitted (px/f). */
+  base_target_miss_mean: number;
+  aimed_target_miss_mean: number;
+};
+
+const aimTotals = {
+  considered: 0, no_target: 0, no_release: 0, probe_crash: 0,
+  on_target: 0, clamped: 0, gate_fail: 0, emitted: 0,
+  predAbsErrSum: 0, baseMissSum: 0, aimedMissSum: 0,
+};
+
+export function resetAimStats(): void {
+  for (const key of Object.keys(aimTotals) as (keyof typeof aimTotals)[]) {
+    aimTotals[key] = 0;
+  }
+}
+
+/** Snapshot for compile stats; null when the lane never ran (flag off /
+ *  no pools) so ablation archives carry no aim key at all. */
+export function snapshotAimStats(): AimStats | null {
+  if (aimTotals.considered === 0) return null;
+  const round3 = (x: number): number => Math.round(x * 1000) / 1000;
+  const per = (sum: number): number => (aimTotals.emitted > 0 ? round3(sum / aimTotals.emitted) : 0);
+  return {
+    considered: aimTotals.considered,
+    no_target: aimTotals.no_target,
+    no_release: aimTotals.no_release,
+    probe_crash: aimTotals.probe_crash,
+    on_target: aimTotals.on_target,
+    clamped: aimTotals.clamped,
+    gate_fail: aimTotals.gate_fail,
+    emitted: aimTotals.emitted,
+    pred_abs_err_mean: per(aimTotals.predAbsErrSum),
+    base_target_miss_mean: per(aimTotals.baseMissSum),
+    aimed_target_miss_mean: per(aimTotals.aimedMissSum),
+  };
+}
+
 /** Probe offsets for the quadratic fit (deg); the base candidate is δ=0. */
 const AIM_PROBE_DELTA_DEG = 6;
 /** Solve range (deg) — the span validated by the sensitivity studies. */
@@ -116,17 +170,26 @@ export function makeAimedCandidate(
   base: Candidate,
   lineIdStart: number,
 ): Candidate | null {
+  aimTotals.considered++;
   const mid = base.releaseSpeed;
-  if (mid === undefined) return null;
+  if (mid === undefined) {
+    aimTotals.no_release++;
+    return null;
+  }
   const targetPx = nextGapSpeedTargetPx(gap, gaps);
-  if (targetPx === null) return null;
+  if (targetPx === null) {
+    aimTotals.no_target++;
+    return null;
+  }
 
   const releaseFrame = releaseStateFrame(gap, ctx.allContactFrames);
   const P = AIM_PROBE_DELTA_DEG;
   const lo = probeReleaseSpeed(engine, pitchExit(base.lines, -P), releaseFrame);
-  if (lo === null) return null;
-  const hi = probeReleaseSpeed(engine, pitchExit(base.lines, P), releaseFrame);
-  if (hi === null) return null;
+  const hi = lo === null ? null : probeReleaseSpeed(engine, pitchExit(base.lines, P), releaseFrame);
+  if (lo === null || hi === null) {
+    aimTotals.probe_crash++;
+    return null;
+  }
 
   // Quadratic through (−P, lo), (0, mid), (+P, hi); solve δ* by scan so the
   // mild curvature and unreachable targets (clamp to span edge) are handled
@@ -143,7 +206,11 @@ export function makeAimedCandidate(
       bestDelta = d;
     }
   }
-  if (Math.abs(bestDelta) < AIM_MIN_DELTA_DEG) return null;
+  if (Math.abs(bestDelta) < AIM_MIN_DELTA_DEG) {
+    aimTotals.on_target++;
+    return null;
+  }
+  if (Math.abs(bestDelta) > AIM_DELTA_MAX_DEG - 0.11) aimTotals.clamped++;
 
   const aimedLines = pitchExit(base.lines, bestDelta)
     .map((l, i) => ({ ...l, id: lineIdStart + i }));
@@ -153,8 +220,18 @@ export function makeAimedCandidate(
     axisLookaheadEndFrame(gap, ctx.allContactFrames), gap.targets, true,
     "normal", probe.preTargetSledTrace,
   ) as Candidate | null;
-  if (fit === null) return null;
+  if (fit === null) {
+    aimTotals.gate_fail++;
+    return null;
+  }
+  aimTotals.emitted++;
+  if (fit.releaseSpeed !== undefined) {
+    aimTotals.predAbsErrSum += Math.abs(model(bestDelta) - fit.releaseSpeed);
+    aimTotals.baseMissSum += Math.abs(mid - targetPx);
+    aimTotals.aimedMissSum += Math.abs(fit.releaseSpeed - targetPx);
+  }
   fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+  fit.aimed = true;
   // Deliberately NO sampleAttempt: the aimed candidate is not part of the
   // deterministic attempt prefix (samplePrefix must exclude it when a smaller
   // nCand re-reads the cache — the smaller pool's best may differ).

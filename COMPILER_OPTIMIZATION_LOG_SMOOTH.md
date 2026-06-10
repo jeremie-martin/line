@@ -1289,3 +1289,17 @@ first post-rebase baseline.
   `300k +0.0`; validity unchanged (`1908/1920`, `300k 480/480`).
 - Status: rejected and reverted; the effect is positive but below the canonical
   accept gate, so the accepted baseline remains `contract-branch-warmup-pressure-03`.
+
+## startup-support-speed-offset-pressure-02
+
+- Mechanism: startup support low-air speed-offset branch.
+- Continuous replacement: widened the deterministic side-offset fade to
+  `air=0.50` while preserving full old side offsets at `air <= 0.35`.
+- Run: `generated/golden-runs/startup-support-speed-offset-pressure-02`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `583.0 -> 583.0`, delta `-0.0`,
+  CI `[-0.1, 0.1]`, `P(delta<=0)=70.0%`.
+- Per-budget deltas: `50k +0.1`, `100k -0.0`, `200k -0.1`,
+  `300k -0.0`; validity unchanged (`1908/1920`, `300k 480/480`).
+- Status: rejected and reverted; widening the side-offset transition gives back
+  the narrow variant's small gain and slightly harms mature budgets.

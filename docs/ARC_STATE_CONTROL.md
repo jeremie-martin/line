@@ -164,6 +164,25 @@ Ladder — each rung falsifiable before the next:
   variant. Are SCORES probe-predictable too? (Model achieved values, not
   gated cost — gates are step functions by construction.) If yes, aiming can
   target score directly, which generalizes far beyond impact.
+  **DONE** (`scripts/v0/study_score_smoothness.ts`, 306 gaps @300k, production
+  `measureGapAxes`/`axisCost`/`axisLookaheadEndFrame`;
+  `generated/analysis/score_smoothness_300k.{jsonl,txt}`). Three results:
+  1. *Within-gap axes are smooth and probe-predictable* where the knob has
+     authority (speed/elevation/amplitude: secant err ≤1% of range; 3-probe
+     held-out ≤0.001 axis units p50). Gap k's own impact has range exactly
+     0.000 — exit pitch never touches the catch head. Score-aiming is viable.
+  2. *Cross-gap span axes* (k+1's air/speed/elevation/amplitude measured with
+     the committed catch in place) are larger-ranged and still usable
+     (err/range 1–6%, monotonic 40–90%) — noisier than state, as expected.
+  3. **Arrival and catch are a tightly coupled pair**: perturbing arc k's
+     exit by just ±2° makes the COMMITTED catch at k+1 lose its on-beat
+     landing (±1 frame) at 79% of gaps; 98% at ±10°. So next-gap impact
+     cannot be scored against a stale catch — an aimer at k−1 with a frozen
+     k catch is useless for impact. Integration MUST live at generation
+     time, where gap k+1's catch is re-fit to the aimed arrival (which the
+     architecture already does: candidates re-condition on the probe).
+     This validates the ladder ordering: V3 integrates the aimer where
+     catches are still fluid, and V4 pairs aim+scoop explicitly.
 - **V3 — first integration**: ONE aimed-attempt lane behind a default-off env
   flag: for each surviving candidate family at gap k−1 (or the top few),
   probe-fit exit pitch and emit one aimed variant targeting what gap k wants.

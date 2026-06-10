@@ -184,7 +184,7 @@ type FittedStudyModel = {
 };
 type StudyModelSpec = {
   name: string;
-  fit(rows: Array<{ knobs: ArcKnobs; value: number }>): FittedStudyModel | null;
+  fit(rows: Array<{ knobs: ArcKnobs; value: number }>, output: string): FittedStudyModel | null;
 };
 
 function linearStudyModel(name: string, features: (k: ArcKnobs) => number[]): StudyModelSpec {
@@ -213,7 +213,51 @@ const MODEL_SPECS: StudyModelSpec[] = [
       };
     },
   },
+  {
+    name: "hybrid",
+    fit(rows, output) {
+      return fitHybridModel(rows, output);
+    },
+  },
 ];
+
+function fitHybridModel(rows: Array<{ knobs: ArcKnobs; value: number }>, output: string): FittedStudyModel | null {
+  if (hybridUsesSurface(output)) {
+    const model = fitKnobSurfaceModel(rows, surfaceMinRows);
+    return model === null ? null : {
+      predict: (knobs) => predictKnobSurfaceModel(model, knobs),
+    };
+  }
+  const features = probeDesignName === "grid9" ? jointQuadraticFeatures : additiveQuadraticFeatures;
+  const model = fitLinearLeastSquares(rows.map((row) => ({ features: features(row.knobs), value: row.value })));
+  return model === null ? null : {
+    predict: (knobs) => predictLinearModel(model, features(knobs)),
+  };
+}
+
+function hybridUsesSurface(output: string): boolean {
+  if (probeDesignName === "cross5") {
+    return output === "current.error.air" ||
+      output === "current.axis.air" ||
+      output === "current.error.elevation" ||
+      output === "current.axis.elevation" ||
+      output === "current.error.impact" ||
+      output === "current.axis.impact";
+  }
+  if (probeDesignName === "grid9") {
+    return output === "current.error.air" ||
+      output === "current.axis.air" ||
+      output === "current.error.amplitude" ||
+      output === "current.axis.amplitude" ||
+      output === "current.error.elevation" ||
+      output === "current.axis.elevation" ||
+      output === "current.error.impact" ||
+      output === "current.axis.impact" ||
+      output === "next.sledPoseDeg" ||
+      output === "next.sledPoseRateDegPerFrame";
+  }
+  return false;
+}
 
 function probeDesign(name: string): ArcKnobs[] {
   switch (name) {
@@ -644,7 +688,7 @@ for (const groupRows of groups.values()) {
       const cov = coverageFor(modelSpec.name, output);
       cov.groupsWithOutput++;
       cov.groupsWithProbeRows++;
-      const fit = modelSpec.fit(probeRows);
+      const fit = modelSpec.fit(probeRows, output);
       if (fit === null) continue;
       cov.groupsFitted++;
       cov.evalRowsCovered += evalRowsForOutput;

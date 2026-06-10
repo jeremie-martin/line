@@ -4,6 +4,13 @@
 ~57 headline points (`npm run lab -- report loss`). This is the working document
 for the structural impact effort. Every claim lists its reproduction.
 
+> **STATUS (2026-06-10, later the same day):** §5 was implemented — as the
+> aiming-layer dive-scoop pair, not an attempt-0 lane (attempt-0 replacement
+> was tried and REJECTED, −29.5) — and promoted default-on (Δ+5.4). The
+> canonical, current statement of the design, evidence and open problems is
+> now `docs/ARC_STATE_CONTROL.md`; this document remains as the diagnosis
+> (§1–§4) that motivated it.
+
 ## 1. The question
 
 Achieved impact undershoots its target everywhere (bias ≈ −0.15, worse at high

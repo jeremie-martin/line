@@ -1,326 +1,229 @@
-# Arc → next-state control: sensitivity & predictability study
+# Arc-state control — the aiming layer
 
-2026-06-10 · branch arc-rewrite · companion to `IMPACT_PAIR_PLANNING.md`.
-Question (Jérémie): instead of sampling arcs and hoping search finds one whose
-simulated next-gap arrival fits, can we make small controlled modifications to
-an arc, learn the local response of the next-gap state (CoM angle, speed, and
-"internal rotation" = sled pose), and AIM?
+2026-06-10 · branch arc-rewrite · canonical baseline `prefix-cache-lanes-01`
+(597.41, HEAD e926f1a). Companion: `IMPACT_PAIR_PLANNING.md` (the impact
+diagnosis this campaign answered). Code: `scripts/v0/optimizer/aim.ts` (lanes,
+probes, models), `optimizer/node.ts` (pool wiring), `arc_placement.ts`
+(`buildArrivalScoopLines`).
 
-## Method (reproducible)
+The idea (Jérémie): instead of sampling arcs and hoping search finds one whose
+simulated next-gap arrival fits, make small controlled modifications to an
+arc, learn the local response of the next-gap rider state (CoM angle, speed,
+sled pose), and AIM. This document is the canonical statement of the
+architecture that idea produced, the evidence behind each design rule, and the
+open problems. History lives in §7 and the git log; raw study artifacts in §8.
+
+## 1. Architecture
+
+Two prediction layers sit on one measurement substrate:
 
 ```
-LR_ENGINE=wasm node --expose-gc --no-warnings=ExperimentalWarning --import tsx \
-  scripts/v0/study_arc_sensitivity.ts --budget=300000 \
-  --out=generated/analysis/arc_sensitivity_300k.jsonl
+knobs ──(probe-fit local models)──▶ arrival STATE ──(production evaluator)──▶ axes/score
+  │                                      │
+  │ exit pitch δ (tail-only)             │ speed, CoM angle at next beat
+  ▼                                      ▼
+proposal lanes ──────────▶ exact simulation (tryCandidateLines) ──▶ ranking
+  ≤1 extra candidate each      survival · landing ±1f · off-beat      local cost +
+                               · axis measurement · cost              forward-eval
 ```
 
-For every gap k of 12 compiled tracks (6 specs × 2 seeds, 300k): truncate the
-track to arcs ≤ k (exactly what generation sees when k is chosen), apply a
-perturbation sweep to arc k, re-simulate, and read the FULL rider state at gap
-k+1's frame — CoM position/velocity/angle/speed, sled pose angle (TAIL→NOSE
-vector via `getSledPointPositionsMetered`), and SLED_INTACT / RIDER_MOUNTED
-validity flags. 306 gaps, 6,970 simulations, ~3 s of sim per track (compiles
-dominate). Perturbation families, all chain-continuity preserving:
+- **Probes** — forked, metered engine rides reading CoM state at a chosen
+  frame (`probeRideState`). Crash ⇒ null; never fit through a crash.
+- **Local models** — exact quadratics through 3 probe points (the base arc is
+  the free δ=0 point), scan-solved over the validated ±10° span. Fitted per
+  gap, per arc, at compile time. Never global: local linearity is
+  near-perfect while global curvature is real (§4).
+- **Lanes** — proposal builders adding at most one extra candidate to a pool:
+  speed-aimed launch, angle-aimed launch (impact-ask gaps), and the
+  arrival-conditioned scoop. Wired in `node.ts getCandidatesSorted`; lane
+  extras are re-applied on prefix-cache hits (fix e926f1a).
+- **Selection is untouched** — aimed candidates compete on measured cost and
+  forward-eval like any sample; nothing downstream knows they were aimed
+  (the `aimed`/`scooped` fit flags are telemetry only).
 
-| family | knob | sweep |
-|---|---|---|
-| `exit_pitch` | rotate last ⅓ of segments about their joint | ±10° |
-| `arc_rotate` | rotate whole arc about entry point | ±4° |
-| `arc_extend` | lengthen/shorten final segment along itself | −40..+60 px |
+### Invariants (each bought with a measured failure)
 
-Note: sled pose IS readable from the engine (PEG/TAIL/NOSE/STRING points per
-frame + crash flags) even though `targetState` doesn't carry it today.
+1. **Proposer, never judge.** Predictions only choose what to propose; every
+   proposal is simulated exactly; ranking and commits consume only
+   measurements. A wrong prediction costs one wasted candidate evaluation,
+   never a wrong track.
+2. **Determinism.** Lanes consume zero rng draws; lane candidates carry no
+   `sampleAttempt` and live outside `sampleOrder`, preserving the
+   attempt-prefix property of the candidate cache.
+3. **Budget honesty.** Probe frames are metered (`getRiderMetered`).
+4. **Tail-only knobs.** Never move the catch surface of a selected arc: ±2°
+   of whole-arc rotation breaks the committed on-beat landing at 79% of gaps
+   (the coupling law, §4; rot-fallback verdict, §6).
+5. **No charged-rollout multiplication.** A lane must not add per-rollout
+   eval cost (three falsifications, §6).
+6. **Aim within families, don't collapse diversity.** Aiming refines a
+   sampled arc; the pool's other families still compete ("aim many, rank as
+   before").
 
-## Results
+### Offline vs online
 
-**1. The map is locally linear almost everywhere.** Secant test (predict each
-sweep point from its two neighbors — exactly the "10°→100, 20°→140 ⇒ 15°→~120"
-interpolation idea), per-gap median error / controllable range, `exit_pitch`:
+Offline (studies, `scripts/v0/study_*.ts`): establish smoothness, authority,
+model accuracy, coupling — on committed tracks, read-only, falsifiable before
+any compiler change. Online (lanes): only the operations the studies
+validated, with live accuracy telemetry (`compile_stats.aim`,
+lab-queryable) so model error is priced continuously, not assumed.
 
-| outcome | p50 | p90 | p99 | gaps with ratio > 0.2 |
-|---|---|---|---|---|
-| CoM arrival angle | 0.006 | 0.017 | 0.032 | 0.0% |
-| sled pose angle | 0.031 | 0.097 | 0.185 | 1.0% |
-
-Monotonicity 100% (CoM) / 70% (pose); sweep survival 100% at p10, full ±10°
-sweep survives at 97.4% of gaps. The system is chaotic in the large but
-SMOOTH in the small: within ±10° of a committed arc there are essentially no
-cliffs for CoM state.
-
-**2. Aiming works with ~3 probes; the curve is mildly nonlinear globally.**
-Fit one line through (δmin, 0, δmax) and predict every interior point:
-
-| outcome | p50 abs err | p90 | p99 |
-|---|---|---|---|
-| CoM arrival angle (°) | 0.81 | 2.39 | 4.57 |
-| speed (px/f) | 0.14 | 0.25 | 0.41 |
-| sled pose (°) | 8.6 | 34 | 103 |
-
-So: CoM angle/speed → one global linear model from 2–3 probes aims within
-~1°/0.15 px/f; one local refinement (re-probe near the predicted δ, where the
-secant error is ~0.1°) is Newton-step cheap. Sled pose → locally smooth but
-globally curved/wrapping: aim by local stepping, not one straight line.
-
-**3. Control authority is real and the most productive knob is exit pitch.**
-Median per-gap range over the sweep (exit_pitch): 17° of CoM arrival angle,
-1.4 px/f of speed, 40° of sled pose, 56 px of arrival height. Sensitivities
-≈ 0.9° arrival / ° pitch, ≈ 1.0° pose / ° pitch. `arc_rotate` is similar per
-degree but mostly moves arrival height; `arc_extend` is the weakest and the
-noisiest for pose.
-
-**4. Steep arrivals — the dive-scoop precondition — are almost always
-creatable.** Baseline CoM arrival angle p50 = 14.2° (64% of gaps ≥12°
-already); within the ±10° exit-pitch sweep, **95.1% of gaps can reach ≥12°**,
-median reachable max 21.9°, median authority gained +7.5° — at ~100% survival.
-
-**5. Probe-count ladder** (exit_pitch; held-out abs error p50/p90 across the
-±10° span; "1 probe" = baseline + population-median slope as prior):
-
-| outcome | 1 probe+prior | 2 (endpoints, lin) | 3 (quad) | 5 (cubic) |
-|---|---|---|---|---|
-| CoM arrival angle (°) | 0.70 / 2.68 | 0.81 / 2.37 | 0.31 / 1.34 | 0.20 / 0.96 |
-| speed (px/f) | 0.11 / 0.39 | 0.14 / 0.25 | 0.02 / 0.07 | 0.01 / 0.06 |
-| sled pose (°) | 7.8 / 41.6 | 8.6 / 34.7 | 3.9 / 19.8 | 2.8 / 16.5 |
-| arrival height (px) | 4.9 / 17.8 | 2.8 / 8.9 | 1.2 / 4.4 | 0.6 / 3.1 |
-
-Three probes (quadratic) is the knee for CoM state; returns diminish after.
-Notably, ONE probe plus a global prior already aims arrival angle to ~0.7°
-p50 — the population slope (~0.9°/°) generalizes across gaps; per-gap probes
-mostly buy tail safety.
-
-**6. Pose wrapping (the full-rotation caveat).** If the rider spins fast,
-angle interpolation breaks across ±180° wraps. Diagnostic on this dataset:
-adjacent sweep steps (2° apart) move pose by 4.3° p50 / 18.6° p90; only 0.1%
-of steps jump >90°, and 3/306 gaps (1.0%) show a suspected wrap. At the
-current operating point the rider is not in a fast-spin regime at gap frames,
-so wrapping is a tail effect — but any pose-aiming must (a) unwrap by sweep
-continuity (fine δ steps), (b) record pose angular velocity (pose at F−1 and
-F) to detect spin, and (c) interpolate rotation count separately when |ω| is
-high. CoM velocity angle wraps only if the rider loops — not observed.
-
-## Implications
-
-- Generation can move from sample-and-hope to **aim**: 2–3 extra simulations
-  per gap (cheap — far less than the dozens of candidate evals already spent)
-  buy a local model `next_state(δ)` good to ~1° arrival angle, invertible in
-  closed form. This composes with, and de-risks, the arrival-conditioned
-  scoop lane (IMPACT_PAIR_PLANNING §5): the steep-arrival precondition can be
-  *manufactured* at 95% of gaps, not just exploited where it happens.
-- "Internal rotation" is measurable, controllable (~40° authority), and
-  locally predictable — modeling it no longer requires guessing; if pose at
-  catch predicts conversion residue (open question in §6), we now have both
-  the sensor and the actuator.
-- The right model is LOCAL (per gap, per arc, fitted from probes at compile
-  time), not a global learned model: local linearity is near-perfect while
-  global curvature is real.
-
-## Caveats
-
-- "Survival" here = rider intact at gap k+1's frame on the truncated prefix;
-  the production gates (landing window ±1 frame, off-beat, downstream
-  completion) are stricter. Authority that survives physics may still lose
-  score elsewhere — aiming must target the gated quantities.
-- Outcomes are read at the next gap's beat frame (pre-catch state), matching
-  `readTargetStateFromRider` semantics.
-- Perturbing a COMMITTED arc k changes gap k's own achieved axes (the sweep
-  doesn't re-score gap k). Any production use must aim within the slack of
-  gap k's own targets or re-rank gap k's candidates with the model in hand.
-
-**7. Knob additivity (multi-knob aiming feasibility).**
-`scripts/v0/study_knob_additivity.ts` (218 gaps × 4 pitch±6°/rotate±3°
-combos @300k): does f(δp, δr) ≈ f(δp,0) + f(0,δr) − f(0,0)? Median: yes —
-interaction residual ≈ 9–11% of the joint effect (speed 0.035 px/f, angle
-0.41°). Tail: NO — at p90 the residual rivals the joint effect (ratio
-0.85–1.17). Verdict for the 2-knob/2-target aimer: a joint linear solve is
-fine as a PROPOSER (median accuracy ample, |interaction| p90 in absolute
-terms — 0.155 px/f, 2.3° — is below typical aim tolerances), but its
-prediction must never be trusted uncommitted: the mandatory production
-evaluation of the aimed variant (already how the lane works) makes tail
-mis-aims harmless, and the telemetry's pred_abs_err will price them. Expect
-a lower hit rate than the single-knob lane; consider one Newton re-probe at
-the solved point if telemetry shows it pays.
-
-**8. Authority experiments (rung 1) — speed-aiming is saturated.**
-`LR_AIM_SPAN=14`: clamp 27%→17%, miss 0.57→0.54, Δheadline +0.3
-INCONCLUSIVE. `LR_AIM_ROT_FALLBACK=1`: fallback engaged 19k×, best miss
-(0.47), but gate_fail 1.2%→10.9% — whole-arc rotation moves the catch
-surface and breaks the on-beat landing (the §coupling law, again) —
-Δheadline −2.2. Conclusion: the residual speed miss past the default V3
-lane converts to ~no score; the clamp was the mechanism's bottleneck, not
-the score's. Two durable lessons: (a) saturate-then-stop — telemetry
-showing a mechanism limit does NOT imply score upside behind it; (b) a
-fallback knob must never move the catch surface (tail-only knobs are the
-safe family). Effort redirects to the impact prize (arrival-angle target,
-dive-scoop pair).
-
-## Prediction inventory — what is modeled, what is measured, and where each is used
-
-The invariant that makes all of this safe: **predictions only ever choose what
-to PROPOSE; every proposal is then simulated exactly; ranking and commits only
-ever consume measurements.** A wrong prediction costs one wasted candidate
-evaluation, never a wrong track.
+## 2. Prediction inventory
 
 PREDICTED (local models, fitted from probes at compile time):
 
-| # | quantity | model | probes | solved for | used by | accuracy (live telemetry) |
+| # | quantity | model | probes | solved for | used by | accuracy (live) |
 |---|---|---|---|---|---|---|
-| 1 | release speed (px/f) vs exit pitch δ | quadratic | 2 (±6°) + base's own releaseSpeed (free) | δ hitting NEXT gap's speed target | V3 aimed-launch lane (default-on) | `aim.pred_abs_err_mean` ≈ 0.03 px/f |
-| 2 | CoM arrival angle at next beat vs exit pitch δ | quadratic | 3 (base, ±6°) at the next beat's frame | δ hitting steep-arrival target = asin(ask·REDIR_CAP/speed)+4°, clamp 12–28° | V4 angle-aim mode on impact-ask gaps (default-on) | `aim.angle_pred_abs_err_mean` |
-| 3 | ballistic hop: vy = −g·N/2 reaches the next beat N frames out | closed-form physics | 0 | scoop exit angle | `buildArrivalScoopLines` (V4 scoop, default-on) + the older template lane | implicit in scoop gate/selection rates |
-| 4 | release speed vs whole-arc rotation (fallback) | quadratic | 2 (±3°) | residual after pitch clamps | PARKED — failed (−2.2, moves the catch) | `aim.rot_fallback` |
-| 5 | joint 2-knob additive model (pitch+rotate) | sum of single-knob models | k+1 | 2 simultaneous state targets | NOT in production — certified median-accurate, tail unreliable (study_knob_additivity) | — |
+| 1 | release speed vs exit pitch δ | quadratic | 2 (±6°) + base free | δ hitting NEXT gap's speed target | speed-aimed lane (on) | `aim.pred_abs_err_mean` ≈ 0.03 px/f |
+| 2 | CoM arrival angle at next beat vs δ | quadratic | 3 at next beat's frame | δ hitting steep target = asin(ask·REDIR_CAP/speed)+4°, clamp 12–28° | angle-aim mode (on) | `aim.angle_pred_abs_err_mean` |
+| 3 | ballistic hop vy = −g·N/2 over N frames | closed form | 0 | scoop exit angle | `buildArrivalScoopLines` (on) | implicit in scoop rates |
+| 4 | release speed vs whole-arc rotation | quadratic | 2 (±3°) | residual after pitch clamps | PARKED (−2.2, moves catch) | `aim.rot_fallback` |
+| 5 | joint 2-knob additive (pitch+rotate) | sum of single-knob | k+1 | two state targets | NOT in production (median-accurate, tail unreliable) | — |
 
-MEASURED EXACTLY (simulation, no model error):
+MEASURED EXACTLY (simulation, no model error): every candidate's axis vector,
+gates and cost (`tryCandidateLines`/`measureGapAxes`); the arrival state at
+each gap from the committed prefix (`getCandidateProbe`, cached); forward-eval
+ranking; everything the scorer sees.
 
-- every candidate's full axis vector, gates (survival, landing ±1f, off-beat)
-  and cost — `tryCandidateLines`/`measureGapAxes` on the real engine;
-- the arrival state at each gap (position/velocity/speed/angle) from the
-  committed prefix — `getCandidateProbe`, cached per (engine, gap);
-- forward-eval ranking — true partial-track score of a charged rollout;
-- everything the scorer sees.
+NOT modeled, deliberately: **impact from knobs directly** — it is the
+redirection at the NEXT gap's not-yet-chosen catch; arrival and catch are a
+coupled pair (§4), so impact cannot be scored against a stale catch. The
+other span axes of gap k+1 (air/speed/elevation/amplitude over beat k→k+1)
+ARE determined by arc k's exit + ballistics and are probe-predictable without
+the next catch (V2 cross-gap rows: err/range 1–6%) — direct axis-VALUE aiming
+is an open option, not yet a needed one. **Sled pose** — sensor and actuator
+both validated (§4), waiting for evidence it is the residual bottleneck.
+**Any global/learned model** — fit per gap, per arc, from probes.
 
-NOT modeled (deliberately, with one correction): IMPACT from knobs directly —
-it is the redirection at the NEXT gap's not-yet-chosen catch (V2's stale-catch
-result). The other span axes of gap k+1 (air/speed/elevation/amplitude over
-beat k→k+1) are mostly determined by arc k's exit + ballistic flight and ARE
-predictable without the next catch — V2's cross-gap rows measured exactly this
-(err/range 1–6%). Aiming directly at those axis VALUES (instead of state
-proxies) is therefore an open option, just not yet a needed one;
-sled pose (sensor + actuator validated, §6 — waiting for evidence it's the
-residual bottleneck); any global/learned model (local linearity is
-near-perfect, global curvature is real — fit per gap, per arc, at compile
-time, from probes).
+Graduation rule for #5: multi-target prediction enters production only when
+telemetry shows single-target proposals winning their own target but losing
+selection on collateral axes. Until then one scalar per proposal + exact
+evaluation has captured the value (+6.0, +5.4) at zero collateral cost.
 
-When does multi-target prediction graduate from #5 to production? When the
-live telemetry shows single-target proposals winning their own target but
-LOSING selection on collateral axes. Until then, one scalar per proposal +
-exact evaluation has captured the value (+6.0, +5.4) at zero collateral cost.
+## 3. Production lanes (all default-on; flags are ablations)
 
-## Validation & integration roadmap (the method)
+| lane | flag | what it does | promoted result |
+|---|---|---|---|
+| speed-aimed launch | `LR_AIM_LAUNCH=0` | aim pool's best at next gap's speed target via exit pitch | 586.53→592.57, Δ+6.0, CI [1.4, 11.2], positive every budget |
+| angle-aim mode | `LR_AIM_IMPACT=0` | on impact-ask (≥0.3) gaps, the launch targets a STEEP arrival instead | shipped with scoop (below) |
+| arrival-conditioned scoop | `LR_AIM_IMPACT=0` | deterministic catch built from the ACTUAL arrival vector; turn sized to a next-beat hop, 8–40°; one eval per node, memoized (`_scoopCache`) | together: 592.57→597.92, Δ+5.4, P(Δ≤0)=3.6%; 50k +43; impact \|err\| 0.1468→0.1430 |
 
-Principles. The aimer must be a PROPOSER, never a judge: a pure function
-(prefix engine, arc lines, knob, target) → adjusted lines, whose output flows
-through the existing gates + local cost + forward-eval like any other
-candidate. No score path trusts the model. Aiming refines WITHIN an arc
-family; it must not collapse pool diversity — aim each sampled family, let
-ranking choose among aimed candidates ("aim many, rank as before"). Probes
-are metered physics frames (honest budget accounting, getRiderMetered).
+The angle-aim + scoop pair must ship together: a steep arrival without its
+matched catch is the failed arrival-unfade experiment; a deep scoop without a
+steep arrival does not convert to redirection (funnel evidence,
+`IMPACT_PAIR_PLANNING.md` §3).
 
-Ladder — each rung falsifiable before the next:
+Telemetry: `compile_stats.aim` (funnels considered→emitted for both lanes +
+prediction accuracy + base-vs-aimed target miss), `handoff_aimed_selected`,
+`handoff_scoop_selected` (selection-level win rates). Whitelisted in
+`golden.ts compactStats` — archives keep it; the lab queries it via
+`json_extract`.
 
-- **V0 (this doc)**: open-loop feasibility on state space. DONE.
-- **V1 — aim-replay study** (offline, zero compiler change): closed the loop?
-  On committed tracks, pick concrete targets (next-gap speed target; arrival
-  angle ≥12° on impact gaps), solve with the 3-probe model, apply, and verify
-  with PRODUCTION measurement: achieved-vs-aimed error, landing-window ±1f
-  compliance, off-beat, and gap k's own axis drift. This converts "the map is
-  smooth" into "aiming hits gated quantities".
-  **DONE — PASS** (`scripts/v0/study_aim_replay.ts`, 298 gaps × 3 tasks @300k,
-  `generated/analysis/aim_replay_300k.{jsonl,txt}`):
-  | task | model err p50/p90 | survival | gates (landing ±1f ∧ off-beat) | authority-clamped |
-  |---|---|---|---|---|
-  | steep (angle → max(base+4°, 12°)) | 0.43° / 1.67° | 100% | 100% | 5% |
-  | speed +0.5 px/f | 0.01 / 0.08 px/f | 100% | 99% | 31% |
-  | speed −0.5 px/f | 0.02 / 0.06 px/f | 100% | 100% | 1% |
-  Gap-k side-effects are ZERO (|landing frame shift| and |landing speed Δ|
-  p90 = 0.00): exit pitch rotates the arc's tail, the catch is at its head.
-  **On impact-ask gaps (next target ≥0.3): 90% reach a ≥12° arrival with both
-  gates held** — the §5 precondition is manufacturable in practice, not just
-  in state space. Asymmetry note: speeding UP is authority-limited (31%
-  clamped — pitching the exit mostly trades angle), slowing down is nearly
-  free; aiming for more speed needs a different/added knob.
-- **V2 — score-smoothness study**: same sweep, but record gap k's achieved
-  axis values (air/speed/elevation/amplitude/impact) and local cost per
-  variant. Are SCORES probe-predictable too? (Model achieved values, not
-  gated cost — gates are step functions by construction.) If yes, aiming can
-  target score directly, which generalizes far beyond impact.
-  **DONE** (`scripts/v0/study_score_smoothness.ts`, 306 gaps @300k, production
-  `measureGapAxes`/`axisCost`/`axisLookaheadEndFrame`;
-  `generated/analysis/score_smoothness_300k.{jsonl,txt}`). Three results:
-  1. *Within-gap axes are smooth and probe-predictable* where the knob has
-     authority (speed/elevation/amplitude: secant err ≤1% of range; 3-probe
-     held-out ≤0.001 axis units p50). Gap k's own impact has range exactly
-     0.000 — exit pitch never touches the catch head. Score-aiming is viable.
-  2. *Cross-gap span axes* (k+1's air/speed/elevation/amplitude measured with
-     the committed catch in place) are larger-ranged and still usable
-     (err/range 1–6%, monotonic 40–90%) — noisier than state, as expected.
-  3. **Arrival and catch are a tightly coupled pair**: perturbing arc k's
-     exit by just ±2° makes the COMMITTED catch at k+1 lose its on-beat
-     landing (±1 frame) at 79% of gaps; 98% at ±10°. So next-gap impact
-     cannot be scored against a stale catch — an aimer at k−1 with a frozen
-     k catch is useless for impact. Integration MUST live at generation
-     time, where gap k+1's catch is re-fit to the aimed arrival (which the
-     architecture already does: candidates re-condition on the probe).
-     This validates the ladder ordering: V3 integrates the aimer where
-     catches are still fluid, and V4 pairs aim+scoop explicitly.
-- **V3 — first integration**: ONE aimed-attempt lane behind a default-off env
-  flag: for each surviving candidate family at gap k−1 (or the top few),
-  probe-fit exit pitch and emit one aimed variant targeting what gap k wants.
-  Smallest possible production surface; judged by canonical + decide.
-  **DESIGN DECIDED — target = arrival SPEED into gap k+1, aimed at k+1's
-  speed target.** Why this and not impact/all-axes: (a) one knob aims one
-  scalar — multi-axis needs multiple knobs, defer; (b) aiming steep-for-
-  impact alone re-enters the closed loop (steep arrival without a matched
-  scoop = the failed arrival-unfade experiment; V2 proved arrival+catch must
-  ship as a pair — that pair is V4); (c) speed is targeted on EVERY gap
-  (statistical power), pays through any re-fitted catch (no pool
-  prerequisite), is our most accurate aim (V1: 0.01–0.08 px/f), and is the
-  lab's designated impact lever (landing speed predicts impact achieved);
-  (d) it closes the loop on the EXISTING energy launch shaper — smallest
-  honest change. Mechanics: for the top admitted candidate(s) at gap k,
-  2 extra probes → fit → solve exit pitch δ for the arrival speed k+1 wants
-  → emit ONE aimed variant through the unchanged evaluation path. No rng()
-  draws (determinism contract); probes metered; LR_AIM_LAUNCH=1 default-off,
-  byte-identical off; judged canonical + decide. Falsifiable: speed-axis
-  error drops suite-wide; headline up or neutral; neutral-but-accurate still
-  validates the mechanism V4 builds on.
-  **DONE — ACCEPT, PROMOTED DEFAULT-ON** (`optimizer/aim.ts`, lane wired in
-  `node.ts getCandidatesSorted`; `LR_AIM_LAUNCH=0` = ablation):
-  586.53 → 592.57, **Δ+6.0, 95% CI [1.4, 11.2], P(Δ≤0)=0.9%, ACCEPT** —
-  positive at every budget (100k +5.7, 200k +4.6, 300k +4.4, all CI>0;
-  50k +22.1 noisy), validity 50k 97%→98%, held 100% elsewhere. Excl-impact
-  headline rose 648.1→653.1 while the impact gap stayed ~61 — the win came
-  from the non-impact axes (speed conditioning), exactly as predicted.
-  Implementation notes: aimed candidate lives OUTSIDE `sampleOrder` (attempt
-  prefix property untouched; no `sampleAttempt`, so cache-shrink reads
-  exclude it); lane gated `nCand > 1` so branch=1 rollout pools never pay
-  probe cost (the branch-widening lesson); the base candidate's own
-  `releaseSpeed` is the free δ=0 probe point; flag-off parity verified
-  (586.53 reproduced), 248/248 tests, verify:optimizer re-baselined.
-- **V4 — dive-scoop on the aimer**: aim the k−1 exit to manufacture the steep
-  arrival, size the scoop at k from the (now reliable) arrival vector
-  (IMPACT_PAIR_PLANNING §5). The aimer turns §5's precondition from
-  "exploited where it happens" (64% of gaps) into "manufactured" (95%).
-  **DONE — ACCEPT, PROMOTED DEFAULT-ON** (commit f8dbff0, `LR_AIM_IMPACT=0`
-  ablation): 592.57 → 597.92, Δ+5.4, P(Δ≤0)=3.6%, positive at every budget
-  (50k +43 — the scoop rescues starved pools), validity 98→99% at 50k.
-  Mechanics: angle-aim mode (steep-arrival target at the NEXT beat's frame,
-  sized from the ask) + `buildArrivalScoopLines` (entry from the actual
-  arrival, turn to a next-beat hop, 8–40° — past the template's 22° cap).
-  Iteration lesson (v4-01, −3.8): the scoop lane in EVERY rollout pool adds
-  679k charged evals and starves the search (nodes −18%) — rollout
-  visibility is NOT worth its current price; real-pools-only is the
-  accepted form (`LR_AIM_SCOOP_ROLLOUT=1` re-tests it; only with cheaper
-  evals). Honest residual: impact |err| moved 0.1468→0.1430 (bias −0.1375→
-  −0.1331) — the 55-60-point impact prize is still mostly unclaimed.
-  **Post-V4 funnel** (477 impact gaps @300k, `funnel_after_v4.txt`):
-  A_not_generated 56%→35% (the scoop lane fixed generation — §5 prediction
-  1 confirmed), C_ranking_loses 32%→54% (deep candidates now exist but
-  still lose forward-eval; C-gap bias improved −0.20→−0.13), D_works flat
-  at 8%. The bottleneck moved from generation to RANKING — almost certainly
-  the §4 rollout-visibility problem (branch=1 rollouts score k−1 dives
-  through flat continuations because the scoop lane is excluded from
-  rollout pools for cost). Next problem, well-posed: CHEAP rollout
-  visibility for the scoop (cache or approximate the scoop continuation
-  instead of full per-rollout evals — v4-01 proved full evals are
-  unaffordable, −3.8). If that lands and scoops still under-deliver, the
-  next instrument is sled pose at landing (sensor+actuator exist, §6).
+## 4. Validated facts (the evidence the design rests on)
 
-Why not start at dive-scoop directly: V1/V3 validate exactly the operation
-the study measured (perturb a committed/selected arc, hit a next-gap state),
-one mechanism at a time; the scoop adds a second coupled mechanism and
-should land on a validated aimer.
+From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knob families @300k),
+V1 (`study_aim_replay.ts`, closed-loop, production gates), V2
+(`study_score_smoothness.ts`, production axis measurement), and
+`study_knob_additivity.ts`:
 
-Raw per-variant rows: `generated/analysis/arc_sensitivity_300k.jsonl`
-(spec/seed/gap/family/delta → full outcome). Summary tables:
-`generated/analysis/arc_sensitivity_300k.txt`.
+- **Locally linear map.** Within ±10° of a committed arc the arc→next-state
+  map has essentially no cliffs (secant err p50 0.6% of range for CoM state);
+  monotone; ±10° sweeps survive at 97%+ of gaps. Chaotic in the large,
+  smooth in the small.
+- **3 probes are the knee.** Quadratic fit: arrival angle 0.31°/1.34°
+  (p50/p90 held-out), speed 0.02/0.07 px/f. One probe + population prior
+  already aims to ~0.7° — per-gap probes mostly buy tail safety.
+- **Closed loop verified with production gates** (V1): aim-and-apply hits
+  speed to 0.01–0.08 px/f and steep-arrival to 0.43°/1.67° at ~100%
+  survival + landing/off-beat compliance; gap k's own landing shifts by
+  exactly 0.00 under exit pitch (tail-only knob is truly free).
+- **Authority.** Exit pitch: ~17° of arrival angle, 1.4 px/f of speed, ~40°
+  of sled pose (median per-gap range); steep arrivals (≥12°) reachable at
+  95% of gaps. Speeding UP is authority-limited (31% clamped); slowing down
+  nearly free.
+- **The coupling law** (the central structural fact): perturbing arc k's exit
+  by ±2° makes the COMMITTED catch at k+1 lose its on-beat landing at 79% of
+  gaps (98% at ±10°). Arrival and catch are a pair; aiming must live where
+  catches are still fluid (generation), and arrival-changing knobs must never
+  be applied behind a frozen catch.
+- **Scores are probe-predictable too** (V2): within-gap axes where the knob
+  has authority, secant err ≤1% of range; cross-gap span axes err/range
+  1–6%. Gap k's own impact range under exit pitch is exactly 0.000.
+- **Additivity** (2-knob): median interaction residual 9–11% of the joint
+  effect — fine for a proposer; p90 ~1× — never trust uncommitted.
+- **Pose wrapping caveat.** Sled pose is readable (TAIL→NOSE vector),
+  locally smooth, but globally curved/wrapping (1% of gaps show a suspected
+  ±180° wrap; pose-aiming must unwrap by sweep continuity and track angular
+  velocity). CoM velocity angle wraps only if the rider loops — not observed.
+
+## 5. Score ledger (campaign)
+
+| change | headline | archive |
+|---|---|---|
+| campaign baseline | 586.53 | aim-launch-on-01 baseline |
+| V3 speed-aimed launch | 592.57 | aim-launch-on-01 |
+| V4 dive-scoop pair | 597.92 | aim-impact-v4-02 |
+| per-node scoop cache | 597.96 | aim-scoopcache-default-01 |
+| prefix-cache lane fix | **597.41 (current)** | prefix-cache-lanes-01 |
+
+Suite: 40 specs × 12 seeds, budget-weighted 50k–300k; α=0.10 via
+`npm run decide`. Impact still costs ~55 headline points
+(`npm run lab -- report loss`) — the open prize.
+
+## 6. Falsified & parked (don't re-run without new conditions)
+
+- **Whole-arc rotation as fallback** (`LR_AIM_ROT_FALLBACK=1`): best speed
+  miss, but gate_fail 1.2%→10.9% and Δ−2.2 — it moves the catch surface
+  (coupling law). Tail-only knobs are the safe family.
+- **Wider solve span** (`LR_AIM_SPAN=14`): clamp 27%→17%, Δ+0.3
+  INCONCLUSIVE. Speed-aiming is SATURATED: the clamp was the mechanism's
+  bottleneck, not the score's. Lesson: saturate-then-stop — a mechanism
+  limit in telemetry does not imply score upside behind it.
+- **Rollout visibility for the scoop, falsified three ways**: fresh eval per
+  rollout pool (v4-01, −3.8), per-node cached eval in rollout pools
+  (`LR_AIM_SCOOP_ROLLOUT=1`, −9.0 — rollout nodes are distinct prefixes, the
+  cache cannot amortize), attempt-0 replacement (`LR_AIM_SCOOP_ATTEMPT0=1`,
+  −29.5 — attempt 0 is the guided best sample, replacing it starves
+  everything). CLOSED. Any future visibility idea must add ~zero charged
+  evals AND not displace guided samples.
+- **Blanket steep arrivals** (`LR_IMPACT_ARRIVAL_FADE=0`, pre-campaign):
+  steep without a matched catch dilutes — superseded by the paired V4 design.
+- **Joint 2-knob aimer**: certified median-accurate, tail-unreliable; parked
+  behind the graduation rule in §2.
+
+## 7. Open problems (in rough order of leverage)
+
+1. **Selection (the C-share).** Post-V4 funnel (477 impact gaps @300k,
+   `generated/analysis/funnel_after_v4.txt`): A_not_generated 56%→35% (the
+   scoop fixed generation), C_ranking_loses 32%→54%, D_works flat 8%. Deep
+   candidates now exist and still lose forward-eval — and rollout visibility
+   is NOT the answer (§6). Next instrument: compare emitted-scoop local cost
+   and forward-eval rank percentiles vs the winners on impact gaps
+   (`scoop_emitted` 28k vs `handoff_scoop_selected` ~416 at 300k) — is the
+   scoop losing on collateral axes (graduation trigger for the joint aimer),
+   on local cost weighting, or genuinely worse?
+2. **Sled pose at landing.** If scoops still under-deliver after the
+   selection question: record pose (TAIL→NOSE) at landing, check it predicts
+   conversion residue. Sensor + actuator validated; mind the wrap caveat.
+3. **Direct axis-value aiming** for span axes (V2 says viable without the
+   next catch). Becomes interesting if state proxies are shown to be the
+   accuracy bottleneck.
+
+## 8. Reproducibility
+
+Studies (read-only diagnostics): `scripts/v0/study_arc_sensitivity.ts`,
+`study_aim_replay.ts`, `study_score_smoothness.ts`,
+`study_knob_additivity.ts`, `study_impact_funnel.ts`. Artifacts under
+`generated/analysis/` (`arc_sensitivity_300k.*`, `aim_replay_300k.*`,
+`score_smoothness_300k.*`, `funnel_after_v4.txt`). Typical invocation:
+
+```
+LR_ENGINE=wasm node --expose-gc --no-warnings=ExperimentalWarning --import tsx \
+  scripts/v0/study_arc_sensitivity.ts --budget=300000 --out=generated/analysis/...
+```
+
+Decision workflow: `LR_ENGINE=wasm npm run golden -- --jobs=32
+--archive-dir=generated/golden-runs/<name>`, then `npm run decide --
+<candidate>/golden.json <baseline>/golden.json` (candidate first). After any
+behavior or stats-key change: `LR_ENGINE=wasm npm run verify:optimizer --
+--update` + full test suite.

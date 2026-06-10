@@ -430,3 +430,221 @@ first post-rebase baseline.
 - Per-budget deltas: `50k +0.1`, `100k +0.0`, `200k +0.2`, `300k +0.4`;
   validity unchanged (`1898/1920`, `300k 480/480`).
 - Status: accepted; this archive becomes the next official comparison baseline.
+
+## tail-quality-branch-pressure-01
+
+- Mechanism: quality near-tail completion branch breadth.
+- Continuous replacement: kept the existing two fallback branches by default and
+  admitted one extra quality tail-completion branch through a smooth high-budget
+  deterministic density, off below 150k and full by 300k.
+- Run: `generated/golden-runs/tail-quality-branch-pressure-01`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 515.6`, delta `-0.0`,
+  CI `[-0.2, 0.1]`, `P(delta<=0)=67.2%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.0`, `300k -0.0`;
+  validity unchanged.
+- Status: rejected and reverted; extra quality tail branching adds cost without a
+  measurable canonical gain after the accepted window-boundary smoothing.
+
+## contract-reuse-scarcity-pressure-01
+
+- Mechanism: contract-phase catch reuse candidate breadth.
+- Continuous replacement: kept the existing one reuse candidate by default and
+  admitted one extra contract reuse candidate through a smooth low-budget
+  scarcity pressure, strongest at 50k and fading out by 200k.
+- Run: `generated/golden-runs/contract-reuse-scarcity-pressure-01`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 515.3`, delta `-0.3`,
+  CI `[-2.4, 2.1]`, `P(delta<=0)=64.2%`.
+- Per-budget deltas: `50k -5.1`, `100k +0.5`, `200k +0.0`, `300k +0.0`;
+  validity dropped one row overall (`1898/1920 -> 1897/1920`).
+- Status: rejected and reverted; extra low-budget contract reuse can steal scarce
+  completion budget even though it gives a small 100k lift.
+
+## dense-spacing-cap-pressure-01
+
+- Mechanism: contact-centered dense-spacing post-length cap in arc placement.
+- Continuous replacement: replaced the hard grain/next-contact cap predicate with
+  a smooth pressure that blends from no cap to the dense-spacing cap near the
+  existing `grain >= 0.50` and `nextGapFrames <= 14` thresholds.
+- Run: `generated/golden-runs/dense-spacing-cap-pressure-01`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 515.6`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas all `+0.0`; validity unchanged.
+- Status: rejected and reverted; canonical rows do not exercise the marginal
+  dense-spacing cap boundary.
+
+## contract-breadth-fractional-count-01
+
+- Mechanism: budget-aware contract candidate count rounding.
+- Continuous replacement: kept the existing projected breadth reduction, but
+  replaced hard integer rounding with deterministic fractional admission per
+  search node.
+- Run: `generated/golden-runs/contract-breadth-fractional-count-01`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 516.0`, delta `+0.4`,
+  CI `[-2.4, 5.0]`, `P(delta<=0)=49.1%`.
+- Per-budget deltas: `50k -8.5`, `100k +6.5`, `200k +0.0`, `300k +0.0`;
+  validity dropped `1898/1920 -> 1897/1920`.
+- Status: not kept; promising 100k lift but it harms scarce-budget completion,
+  so tried a 50k-protected ramp.
+
+## contract-breadth-fractional-count-02
+
+- Mechanism: same budget-aware contract candidate count rounding.
+- Continuous replacement: preserved old rounded counts at 50k and ramped
+  fractional-count smoothing from 75k to 125k.
+- Run: `generated/golden-runs/contract-breadth-fractional-count-02`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: REJECT`; headline `515.6 -> 487.5`, delta `-28.2`,
+  CI `[-55.8, -9.4]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas: `50k -127.0`, `100k -71.8`, `200k -13.5`, `300k -6.9`;
+  validity dropped `1898/1920 -> 1846/1920`, including one 300k error row.
+- Status: rejected and reverted; fractionalizing the contract breadth count is
+  too unstable because small count perturbations redirect the DFS basin.
+
+## preview-scarcity-prior-01
+
+- Mechanism: local handoff preview survivor-scarcity scoring.
+- Continuous replacement: preserved the zero-survivor penalty exactly but added a
+  small deterministic prior to the survivor denominator, smoothing the jump from
+  zero survivors to one survivor in the preview ranker.
+- Run: `generated/golden-runs/preview-scarcity-prior-01`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 515.6`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas all `+0.0`; validity unchanged.
+- Status: rejected and reverted; canonical rows either did not alter selected
+  plans or the ranker adjustment was too small to cross any selected boundary.
+
+## rescue-startup-fractional-count-01
+
+- Mechanism: dead-end rescue startup-weighted candidate count and rescue pool.
+- Continuous replacement: replaced hard rounded startup rescue extras with
+  deterministic fractional admission per rescue node for both candidate count and
+  pool size.
+- Run: `generated/golden-runs/rescue-startup-fractional-count-01`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 515.9`, delta `+0.3`,
+  CI `[-0.0, 1.7]`, `P(delta<=0)=58.8%`.
+- Per-budget deltas: `50k +4.2`, `100k -0.0`, `200k +0.0`, `300k +0.0`;
+  validity improved one row overall (`1898/1920 -> 1899/1920`).
+- Status: not kept; the lift came from a very small number of 50k rescue-path
+  rows, with a small 100k regression, so tried a scarce-budget-only variant.
+
+## rescue-startup-fractional-count-02
+
+- Mechanism: same dead-end rescue startup-weighted count/pool.
+- Continuous replacement: kept fractional rescue admission at 50k but faded back
+  to the original rounded counts by 100k, preserving 100k+ behavior.
+- Run: `generated/golden-runs/rescue-startup-fractional-count-02`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 515.9`, delta `+0.3`,
+  CI `[-0.0, 1.7]`, `P(delta<=0)=58.8%`.
+- Per-budget deltas: `50k +4.2`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity improved one row overall (`1898/1920 -> 1899/1920`).
+- Status: rejected and reverted; promising scarce-budget near-miss, but the
+  effect is concentrated in too few rows to pass the canonical accept gate.
+
+## brake-high-overspeed-smooth-count-01
+
+- Mechanism: brake-catch high-overspeed extra probe count.
+- Continuous replacement: kept the existing brake offer rules but smoothed the
+  hard jump from base count to high-overspeed count with deterministic fractional
+  admission around the `1.15x` speed-ratio boundary.
+- Run: `generated/golden-runs/brake-high-overspeed-smooth-count-01`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 516.0`, delta `+0.4`,
+  CI `[-0.1, 1.6]`, `P(delta<=0)=19.8%`.
+- Per-budget deltas: `50k +4.3`, `100k +0.4`, `200k -0.1`, `300k -0.0`;
+  validity improved one row overall (`1898/1920 -> 1899/1920`).
+- Status: not kept; positive but slight 200k drag, so tried a low-budget fade.
+
+## brake-high-overspeed-smooth-count-02
+
+- Mechanism: same high-overspeed extra probe count.
+- Continuous replacement: kept the fractional count smoothing at low budgets and
+  faded back to the original hard count by 200k.
+- Run: `generated/golden-runs/brake-high-overspeed-smooth-count-02`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 516.0`, delta `+0.4`,
+  CI `[-0.0, 1.9]`, `P(delta<=0)=14.4%`.
+- Per-budget deltas: `50k +4.3`, `100k +0.4`, `200k +0.0`, `300k +0.0`;
+  validity improved one row overall (`1898/1920 -> 1899/1920`).
+- Status: not kept; best brake-count near-miss, but still not an ACCEPT, so tried
+  one broader offer-gate smoothing.
+
+## brake-high-overspeed-smooth-count-03
+
+- Mechanism: brake high-overspeed offer/count boundary for higher target speeds.
+- Continuous replacement: smoothed the higher-target offer gate below `1.15x` and
+  the extra count above it, with the same low-budget fade back to baseline by 200k.
+- Run: `generated/golden-runs/brake-high-overspeed-smooth-count-03`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 515.0`, delta `-0.6`,
+  CI `[-3.1, 0.1]`, `P(delta<=0)=66.4%`.
+- Per-budget deltas: `50k -8.7`, `100k +0.3`, `200k +0.0`, `300k +0.0`;
+  validity dropped `1898/1920 -> 1896/1920`.
+- Status: rejected and reverted; smoothing the high-target offer gate admits too
+  much scarce-budget brake work. The safer count-only low-budget variant remains a
+  near-miss but not canonical-accepted.
+
+## quality-pool-extra-pressure-01
+
+- Mechanism: quality-phase normal candidate pool boundary.
+- Continuous replacement: kept contract search unchanged, but after a valid
+  completion admitted one extra normal candidate into the quality scored pool
+  through a smooth budget/full-feedback deterministic density.
+- Run: `generated/golden-runs/quality-pool-extra-pressure-01`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 515.6`, delta `-0.0`,
+  CI `[-0.2, 0.0]`, `P(delta<=0)=84.8%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -0.0`, `300k -0.1`;
+  validity unchanged (`1898/1920 -> 1898/1920`).
+- Status: rejected and reverted; the extra quality pool candidate adds slight
+  high-budget drag without a measurable canonical gain.
+
+## short-rescue-boundary-pressure-01
+
+- Mechanism: short-deadline rescue activation boundary.
+- Continuous replacement: kept the existing full rescue activation for gaps under
+  12 frames, but added a small deterministic pressure for 12-13 frame gaps only
+  when ordinary candidates and the first rescue stream were empty.
+- Run: `generated/golden-runs/short-rescue-boundary-pressure-01`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 513.3`, delta `-2.3`,
+  CI `[-9.9, 2.0]`, `P(delta<=0)=87.7%`.
+- Per-budget deltas: `50k -4.4`, `100k -12.8`, `200k -0.0`, `300k -0.0`;
+  validity dropped `1898/1920 -> 1895/1920`.
+- Status: rejected and reverted; extending short-deadline rescue beyond the hard
+  cutoff destabilizes scarce and mid-budget rows.
+
+## vertical-fwd-avg-pressure-01
+
+- Mechanism: mature forward-eval average-rollout admission for vertical-axis gaps.
+- Continuous replacement: replaced the binary amplitude/elevation-axis gate with
+  smooth target-strength pressure from authored amplitude and elevation distance
+  from flat, multiplied by the existing budget ramp.
+- Run: `generated/golden-runs/vertical-fwd-avg-pressure-01`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.6 -> 515.9`, delta `+0.3`,
+  CI `[-1.6, 2.3]`, `P(delta<=0)=36.2%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.1`, `200k +0.5`, `300k +0.3`;
+  validity unchanged.
+- Status: not kept; sparse vertical specs lost while tight combined vertical
+  specs gained, so tried preserving full averaging on sparse cadences.
+
+## vertical-fwd-avg-pressure-02
+
+- Mechanism: same mature forward-eval average-rollout admission.
+- Continuous replacement: kept sparse vertical gaps at the old full average-rollout
+  pressure, but smoothly applied target-strength pressure as next-contact cadence
+  becomes dense (`20..40` frames), preserving the existing budget ramp.
+- Run: `generated/golden-runs/vertical-fwd-avg-pressure-02`.
+- Decide against accepted baseline `tail-window-boundary-pressure-01`:
+  `VERDICT: ACCEPT`; headline `515.6 -> 517.0`, delta `+1.3`,
+  CI `[0.2, 3.0]`, `P(delta<=0)=0.9%`.
+- Per-budget deltas: `50k +0.0`, `100k +1.3`, `200k +1.6`, `300k +1.4`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: accepted; this archive becomes the next official comparison baseline.

@@ -441,6 +441,12 @@ const HANDOFF_RELEASE_VERTICAL_SAFE_TIGHT_PX = 5;
 const MATURE_AVG_FWD_EVAL_START_FRAMES = 35_000;
 const MATURE_AVG_FWD_EVAL_SPAN_FRAMES = 65_000;
 const MATURE_AVG_FWD_EVAL_BRANCH = 1;
+const MATURE_AVG_FWD_EVAL_AMPLITUDE_START = 0.18;
+const MATURE_AVG_FWD_EVAL_AMPLITUDE_SPAN = 0.42;
+const MATURE_AVG_FWD_EVAL_ELEVATION_CENTER = 0.50;
+const MATURE_AVG_FWD_EVAL_ELEVATION_SPAN = 0.24;
+const MATURE_AVG_FWD_EVAL_DENSE_FRAMES = 20;
+const MATURE_AVG_FWD_EVAL_SPARSE_FRAMES = 40;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 /** Speculative tail completion turns deep prefixes into full-duration register
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because
@@ -3070,15 +3076,17 @@ function matureForwardEvalConfig(
     !fwdEvalDefaultConfig ||
     base.variant !== "greedy" ||
     base.depth !== 2 ||
-    base.branch !== 1 ||
-    !targetsVerticalDramaAxis(gaps[node.gapIndex]?.targets)
+    base.branch !== 1
   ) {
     return base;
   }
-  const pressure = smoothstep(
+  const verticalPressure = verticalDramaForwardEvalPressure(node, gaps);
+  if (verticalPressure <= 0) return base;
+  const budgetPressure = smoothstep(
     (targetBudget - MATURE_AVG_FWD_EVAL_START_FRAMES) /
       MATURE_AVG_FWD_EVAL_SPAN_FRAMES,
   );
+  const pressure = budgetPressure * verticalPressure;
   if (pressure <= 0 || unitHash(matureForwardEvalSeed(node)) >= pressure) return base;
   return {
     variant: "avg",
@@ -3090,6 +3098,34 @@ function matureForwardEvalConfig(
 
 function targetsVerticalDramaAxis(targets: AxisValues | undefined): boolean {
   return targets?.amplitude !== undefined || targets?.elevation !== undefined;
+}
+
+function verticalDramaForwardEvalPressure(node: SearchNode, gaps: Gap[]): number {
+  const targets = gaps[node.gapIndex]?.targets;
+  if (targets === undefined) return 0;
+  if (!targetsVerticalDramaAxis(targets)) return 0;
+  const amplitudePressure = targets.amplitude === undefined
+    ? 0
+    : smoothstep(
+      (targets.amplitude - MATURE_AVG_FWD_EVAL_AMPLITUDE_START) /
+        MATURE_AVG_FWD_EVAL_AMPLITUDE_SPAN,
+    );
+  const elevationPressure = targets.elevation === undefined
+    ? 0
+    : smoothstep(
+      Math.abs(targets.elevation - MATURE_AVG_FWD_EVAL_ELEVATION_CENTER) /
+        MATURE_AVG_FWD_EVAL_ELEVATION_SPAN,
+    );
+  const targetPressure = Math.max(amplitudePressure, elevationPressure);
+  const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex + 1);
+  if (nextGapIndex < 0) return 1;
+  const currentGap = gaps[node.gapIndex];
+  const nextGap = gaps[nextGapIndex];
+  const cadencePressure = 1 - smoothstep(
+    (nextGap.endFrame - currentGap.endFrame - MATURE_AVG_FWD_EVAL_DENSE_FRAMES) /
+      (MATURE_AVG_FWD_EVAL_SPARSE_FRAMES - MATURE_AVG_FWD_EVAL_DENSE_FRAMES),
+  );
+  return 1 + (targetPressure - 1) * cadencePressure;
 }
 
 function matureForwardEvalSeed(node: SearchNode): number {

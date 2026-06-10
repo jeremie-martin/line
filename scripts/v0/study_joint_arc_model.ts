@@ -63,6 +63,7 @@ import {
 import {
   additiveQuadraticFeatures,
   applyArcKnobs,
+  biquadraticFeatures,
   fitKnobSurfaceModel,
   fitLinearLeastSquares,
   jointQuadraticFeatures,
@@ -228,11 +229,19 @@ function fitHybridModel(rows: Array<{ knobs: ArcKnobs; value: number }>, output:
       predict: (knobs) => predictKnobSurfaceModel(model, knobs),
     };
   }
-  const features = probeDesignName === "grid9" ? jointQuadraticFeatures : additiveQuadraticFeatures;
+  const features = hybridUsesBiquadratic(output) ? biquadraticFeatures :
+    probeDesignName === "grid9" ? jointQuadraticFeatures : additiveQuadraticFeatures;
   const model = fitLinearLeastSquares(rows.map((row) => ({ features: features(row.knobs), value: row.value })));
   return model === null ? null : {
     predict: (knobs) => predictLinearModel(model, features(knobs)),
   };
+}
+
+function hybridUsesBiquadratic(output: string): boolean {
+  return probeDesignName === "grid9" &&
+    output.startsWith("next.") &&
+    output !== "next.sledPoseDeg" &&
+    output !== "next.sledPoseRateDegPerFrame";
 }
 
 function hybridUsesSurface(output: string): boolean {

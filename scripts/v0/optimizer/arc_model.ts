@@ -89,6 +89,12 @@ export function jointQuadraticFeatures(knobs: ArcKnobs): number[] {
   return [1, p, r, p * p, p * r, r * r];
 }
 
+export function biquadraticFeatures(knobs: ArcKnobs): number[] {
+  const p = knobs.pitchDeg / 9;
+  const r = knobs.rotateDeg / 3;
+  return [1, p, r, p * p, p * r, r * r, p * p * r, p * r * r, p * p * r * r];
+}
+
 export function predictLinearModel(model: LinearModel, features: readonly number[]): number {
   let y = 0;
   for (let i = 0; i < model.coefficients.length; i++) y += model.coefficients[i] * features[i];

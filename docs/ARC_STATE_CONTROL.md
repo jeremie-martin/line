@@ -153,6 +153,44 @@ fallback knob must never move the catch surface (tail-only knobs are the
 safe family). Effort redirects to the impact prize (arrival-angle target,
 dive-scoop pair).
 
+## Prediction inventory — what is modeled, what is measured, and where each is used
+
+The invariant that makes all of this safe: **predictions only ever choose what
+to PROPOSE; every proposal is then simulated exactly; ranking and commits only
+ever consume measurements.** A wrong prediction costs one wasted candidate
+evaluation, never a wrong track.
+
+PREDICTED (local models, fitted from probes at compile time):
+
+| # | quantity | model | probes | solved for | used by | accuracy (live telemetry) |
+|---|---|---|---|---|---|---|
+| 1 | release speed (px/f) vs exit pitch δ | quadratic | 2 (±6°) + base's own releaseSpeed (free) | δ hitting NEXT gap's speed target | V3 aimed-launch lane (default-on) | `aim.pred_abs_err_mean` ≈ 0.03 px/f |
+| 2 | CoM arrival angle at next beat vs exit pitch δ | quadratic | 3 (base, ±6°) at the next beat's frame | δ hitting steep-arrival target = asin(ask·REDIR_CAP/speed)+4°, clamp 12–28° | V4 angle-aim mode on impact-ask gaps (default-on) | `aim.angle_pred_abs_err_mean` |
+| 3 | ballistic hop: vy = −g·N/2 reaches the next beat N frames out | closed-form physics | 0 | scoop exit angle | `buildArrivalScoopLines` (V4 scoop, default-on) + the older template lane | implicit in scoop gate/selection rates |
+| 4 | release speed vs whole-arc rotation (fallback) | quadratic | 2 (±3°) | residual after pitch clamps | PARKED — failed (−2.2, moves the catch) | `aim.rot_fallback` |
+| 5 | joint 2-knob additive model (pitch+rotate) | sum of single-knob models | k+1 | 2 simultaneous state targets | NOT in production — certified median-accurate, tail unreliable (study_knob_additivity) | — |
+
+MEASURED EXACTLY (simulation, no model error):
+
+- every candidate's full axis vector, gates (survival, landing ±1f, off-beat)
+  and cost — `tryCandidateLines`/`measureGapAxes` on the real engine;
+- the arrival state at each gap (position/velocity/speed/angle) from the
+  committed prefix — `getCandidateProbe`, cached per (engine, gap);
+- forward-eval ranking — true partial-track score of a charged rollout;
+- everything the scorer sees.
+
+NOT modeled (deliberately): axis values from knobs directly (axes are span
+statistics of the NEXT gap's not-yet-chosen catch — V2's stale-catch result);
+sled pose (sensor + actuator validated, §6 — waiting for evidence it's the
+residual bottleneck); any global/learned model (local linearity is
+near-perfect, global curvature is real — fit per gap, per arc, at compile
+time, from probes).
+
+When does multi-target prediction graduate from #5 to production? When the
+live telemetry shows single-target proposals winning their own target but
+LOSING selection on collateral axes. Until then, one scalar per proposal +
+exact evaluation has captured the value (+6.0, +5.4) at zero collateral cost.
+
 ## Validation & integration roadmap (the method)
 
 Principles. The aimer must be a PROPOSER, never a judge: a pure function

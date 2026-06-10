@@ -207,6 +207,33 @@ per-gap telemetry in evaluateNode/buildNodeOutput; archive
 - Falsified if: no headline gain at any budget with accurate predictions
   (telemetry separates model error from selection rejection).
 
+**DONE — ACCEPT, PROMOTED DEFAULT-ON (2026-06-10, commit debb766):
+597.41 → 600.71, Δ+3.3, P(Δ≤0)=7.3%, positive at every budget (100k +3.3 /
+200k +3.2 / 300k +3.0); excl-impact 654.1 → 658.4; commits +45% vs legacy
+(3,541 vs 2,446); readiness model error 0.007 — essentially exact.
+Archive `aim-enum-r2-03` is the new canonical baseline.**
+
+Iteration history (each falsifiable, each archived):
+- v1 (−0.2): target-awareness used `targets.elevation !== undefined` —
+  compiler-resolved targets exist on ~every gap (0.5 = neutral center), so
+  86% of gaps deferred to legacy and the lane never ran. Lesson: a
+  funnel-telemetry read before interpreting any verdict.
+- v2 (+0.3 parity): objective = catchability × speed-fit only. The surface
+  barely differentiates 15° from 25° arrivals (0.91 vs 0.92), so nothing
+  pushed the steep arrivals impact conversion needs — emissions healthy
+  (14.5k), predictions exact (err 0.006), commits +31%, score flat.
+- v3 (ACCEPT): added the closed-form impact-feasibility factor
+  clamp(speed·sin(angle)/(ask·REDIR_CAP), 0, 1) — R3's component brought
+  forward. V4's hand-clamped steep-arrival target dissolves into a smooth
+  physics prior the enumeration optimizes against.
+
+Subsumption confirmed: the V3 speed solve and V4 angle formula are
+retired from the default path (legacy lane = `LR_AIM_ENUM=0` ablation);
+the scoop lane is orthogonal and unchanged. The objective that won is
+exactly the roadmap's shape: predicted quality × clamped, target-aware
+readiness — with quality = speed-fit × impact-feasibility in this
+instance.
+
 ### R3 — Evidence-gated extensions (order by what R0–R2 telemetry says)
 
 - **More readiness components**: impact-feasibility, speed-compatibility —

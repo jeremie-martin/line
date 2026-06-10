@@ -1,7 +1,7 @@
 # Arc-state control — the aiming layer
 
-2026-06-10 · branch arc-rewrite · canonical baseline `prefix-cache-lanes-01`
-(597.41). Companion: `IMPACT_PAIR_PLANNING.md` (the impact diagnosis this
+2026-06-10 · branch arc-rewrite · canonical baseline `aim-enum-r2-03`
+(600.71). Companion: `IMPACT_PAIR_PLANNING.md` (the impact diagnosis this
 work answered). Code: `scripts/v0/optimizer/aim.ts` (probes, models, lanes),
 `optimizer/node.ts` (pool wiring), `arc_placement.ts`
 (`buildArrivalScoopLines`).
@@ -153,13 +153,14 @@ determined by arc k's exit + ballistics and are probe-predictable without it.
 
 | lane | flag | what it does | promoted result |
 |---|---|---|---|
-| speed-aimed launch | `LR_AIM_LAUNCH=0` | aim pool's best at next gap's speed target via exit pitch | 586.53→592.57, Δ+6.0, CI [1.4, 11.2] |
-| angle-aim mode | `LR_AIM_IMPACT=0` | on impact-ask (≥0.3) gaps the launch targets a STEEP arrival instead | shipped with scoop |
-| arrival-conditioned scoop | `LR_AIM_IMPACT=0` | deterministic catch built from the ACTUAL arrival vector; turn sized to a next-beat hop, 8–40°; one eval per node, memoized (`_scoopCache`) | together: 592.57→597.92, Δ+5.4; 50k +43; impact \|err\| 0.1468→0.1430 |
+| **enumerative proposer** (R2, the default launch lane) | `LR_AIM_ENUM=0` | fit speed+angle next-beat models from 3 shared probes; sweep the pitch span inside the models; objective = readiness × speed-fit × impact-feasibility; top-2 into the pool; defers to legacy on demanding-climb (>0.65) next gaps | 597.41→600.71, Δ+3.3, P(Δ≤0)=7.3%, positive every budget |
+| legacy speed-aim / angle-aim (V3/V4) | runs only under `LR_AIM_ENUM=0` (+ `LR_AIM_LAUNCH=0` ablates) | hand-tuned triggers the enum lane subsumed: speed solve; steep-arrival formula on impact-ask gaps | historically 586.53→592.57 (Δ+6.0) and (with scoop) →597.92 |
+| arrival-conditioned scoop | `LR_AIM_IMPACT=0` | deterministic catch built from the ACTUAL arrival vector; turn sized to a next-beat hop, 8–40°; one eval per node, memoized (`_scoopCache`) | with angle-aim: 592.57→597.92, Δ+5.4; 50k +43 |
 
-Angle-aim + scoop ship together: a steep arrival without its matched catch
-is the failed arrival-unfade experiment; a deep scoop without a steep
-arrival does not convert to redirection (`IMPACT_PAIR_PLANNING.md` §3).
+Angle-aim + scoop shipped together originally (a steep arrival without its
+matched catch is the failed arrival-unfade experiment); under the enum lane
+the steepness push comes from the impact-feasibility factor and the scoop
+remains the matched catch (`IMPACT_PAIR_PLANNING.md` §3).
 
 Telemetry (`compile_stats.aim`, archived, lab-queryable via `json_extract`):
 per-lane funnels (considered→emitted), prediction accuracy, base-vs-aimed
@@ -209,7 +210,8 @@ From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knobs @300k), V1
 | V3 speed-aimed launch | 592.57 | aim-launch-on-01 |
 | V4 dive-scoop pair | 597.92 | aim-impact-v4-02 |
 | per-node scoop cache | 597.96 | aim-scoopcache-default-01 |
-| prefix-cache lane fix | **597.41 (current)** | prefix-cache-lanes-01 |
+| prefix-cache lane fix | 597.41 | prefix-cache-lanes-01 |
+| R2 enumerative proposer | **600.71 (current)** | aim-enum-r2-03 |
 
 Suite: 40 specs × 12 seeds, budgets 50k–300k weighted; α=0.10 via `npm run
 decide`. Impact still costs ~55 headline points (`npm run lab -- report

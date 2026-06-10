@@ -73,6 +73,31 @@ creatable.** Baseline CoM arrival angle p50 = 14.2° (64% of gaps ≥12°
 already); within the ±10° exit-pitch sweep, **95.1% of gaps can reach ≥12°**,
 median reachable max 21.9°, median authority gained +7.5° — at ~100% survival.
 
+**5. Probe-count ladder** (exit_pitch; held-out abs error p50/p90 across the
+±10° span; "1 probe" = baseline + population-median slope as prior):
+
+| outcome | 1 probe+prior | 2 (endpoints, lin) | 3 (quad) | 5 (cubic) |
+|---|---|---|---|---|
+| CoM arrival angle (°) | 0.70 / 2.68 | 0.81 / 2.37 | 0.31 / 1.34 | 0.20 / 0.96 |
+| speed (px/f) | 0.11 / 0.39 | 0.14 / 0.25 | 0.02 / 0.07 | 0.01 / 0.06 |
+| sled pose (°) | 7.8 / 41.6 | 8.6 / 34.7 | 3.9 / 19.8 | 2.8 / 16.5 |
+| arrival height (px) | 4.9 / 17.8 | 2.8 / 8.9 | 1.2 / 4.4 | 0.6 / 3.1 |
+
+Three probes (quadratic) is the knee for CoM state; returns diminish after.
+Notably, ONE probe plus a global prior already aims arrival angle to ~0.7°
+p50 — the population slope (~0.9°/°) generalizes across gaps; per-gap probes
+mostly buy tail safety.
+
+**6. Pose wrapping (the full-rotation caveat).** If the rider spins fast,
+angle interpolation breaks across ±180° wraps. Diagnostic on this dataset:
+adjacent sweep steps (2° apart) move pose by 4.3° p50 / 18.6° p90; only 0.1%
+of steps jump >90°, and 3/306 gaps (1.0%) show a suspected wrap. At the
+current operating point the rider is not in a fast-spin regime at gap frames,
+so wrapping is a tail effect — but any pose-aiming must (a) unwrap by sweep
+continuity (fine δ steps), (b) record pose angular velocity (pose at F−1 and
+F) to detect spin, and (c) interpolate rotation count separately when |ω| is
+high. CoM velocity angle wraps only if the rider loops — not observed.
+
 ## Implications
 
 - Generation can move from sample-and-hope to **aim**: 2–3 extra simulations
@@ -100,6 +125,44 @@ median reachable max 21.9°, median authority gained +7.5° — at ~100% surviva
 - Perturbing a COMMITTED arc k changes gap k's own achieved axes (the sweep
   doesn't re-score gap k). Any production use must aim within the slack of
   gap k's own targets or re-rank gap k's candidates with the model in hand.
+
+## Validation & integration roadmap (the method)
+
+Principles. The aimer must be a PROPOSER, never a judge: a pure function
+(prefix engine, arc lines, knob, target) → adjusted lines, whose output flows
+through the existing gates + local cost + forward-eval like any other
+candidate. No score path trusts the model. Aiming refines WITHIN an arc
+family; it must not collapse pool diversity — aim each sampled family, let
+ranking choose among aimed candidates ("aim many, rank as before"). Probes
+are metered physics frames (honest budget accounting, getRiderMetered).
+
+Ladder — each rung falsifiable before the next:
+
+- **V0 (this doc)**: open-loop feasibility on state space. DONE.
+- **V1 — aim-replay study** (offline, zero compiler change): closed the loop?
+  On committed tracks, pick concrete targets (next-gap speed target; arrival
+  angle ≥12° on impact gaps), solve with the 3-probe model, apply, and verify
+  with PRODUCTION measurement: achieved-vs-aimed error, landing-window ±1f
+  compliance, off-beat, and gap k's own axis drift. This converts "the map is
+  smooth" into "aiming hits gated quantities".
+- **V2 — score-smoothness study**: same sweep, but record gap k's achieved
+  axis values (air/speed/elevation/amplitude/impact) and local cost per
+  variant. Are SCORES probe-predictable too? (Model achieved values, not
+  gated cost — gates are step functions by construction.) If yes, aiming can
+  target score directly, which generalizes far beyond impact.
+- **V3 — first integration**: ONE aimed-attempt lane behind a default-off env
+  flag: for each surviving candidate family at gap k−1 (or the top few),
+  probe-fit exit pitch and emit one aimed variant targeting what gap k wants.
+  Smallest possible production surface; judged by canonical + decide.
+- **V4 — dive-scoop on the aimer**: aim the k−1 exit to manufacture the steep
+  arrival, size the scoop at k from the (now reliable) arrival vector
+  (IMPACT_PAIR_PLANNING §5). The aimer turns §5's precondition from
+  "exploited where it happens" (64% of gaps) into "manufactured" (95%).
+
+Why not start at dive-scoop directly: V1/V3 validate exactly the operation
+the study measured (perturb a committed/selected arc, hit a next-gap state),
+one mechanism at a time; the scoop adds a second coupled mechanism and
+should land on a validated aimer.
 
 Raw per-variant rows: `generated/analysis/arc_sensitivity_300k.jsonl`
 (spec/seed/gap/family/delta → full outcome). Summary tables:

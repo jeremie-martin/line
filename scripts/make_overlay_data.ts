@@ -45,6 +45,7 @@ const track = JSON.parse(readFileSync(resolve(trackPath), "utf8")) as {
 };
 
 const durationS = track.duration / FPS;
+const r3 = (x: number) => Math.round(x * 1000) / 1000;
 
 // Per-beat MEASURED landing-impact candidates for the overlay, ALL computed through
 // the canonical definitions in scripts/v0/study_support.ts (one window, one set of
@@ -92,6 +93,22 @@ function beatImpact(tSec: number): BeatImpact | undefined {
   return impactFrames.get(f) ?? impactFrames.get(f - 1) ?? impactFrames.get(f + 1);
 }
 
+type ImpactScore = { target: number; achieved: number; error: number };
+const impactScoresByFrame = new Map<number, ImpactScore>();
+for (const g of report.gaps) {
+  const impact = g.axes.impact;
+  if (impact === undefined) continue;
+  impactScoresByFrame.set(secToFrame(g.t_end), {
+    target: r3(impact.target),
+    achieved: r3(impact.achieved),
+    error: r3(impact.error),
+  });
+}
+function impactScore(tSec: number): ImpactScore | undefined {
+  const f = secToFrame(tSec);
+  return impactScoresByFrame.get(f) ?? impactScoresByFrame.get(f - 1) ?? impactScoresByFrame.get(f + 1);
+}
+
 // Per-song overlay metadata (title/artist/tempo + soft energy phases). Specs may
 // `export const overlayMeta = {...}`; otherwise fall back to a neutral default.
 type OverlayMeta = {
@@ -113,7 +130,6 @@ const AXIS_META: Record<string, { label: string; color: string }> = {
 // Dense sample of each authored target curve (the smooth line). 0.05s ≈ 1131 pts
 // over 56.5s — plenty to read the shape, trivially small JSON once rounded.
 const SAMPLE_DT = 0.05;
-const r3 = (x: number) => Math.round(x * 1000) / 1000;
 
 const axesOut = AXES.filter((a) => spec.axes[a]).map((axis) => {
   const curve = spec.axes[axis]!;
@@ -135,9 +151,13 @@ const axesOut = AXES.filter((a) => spec.axes[a]).map((axis) => {
 // Contacts with landed status, for the tick row (lit = landed).
 const contacts = report.contacts.map((c) => {
   const imp = beatImpact(c.t_target);
+  const score = impactScore(c.t_target);
   return {
     t: r3(c.t_target),
     landed: c.status !== "missing",
+    impactTarget: score === undefined ? null : score.target,
+    impactAchieved: score === undefined ? null : score.achieved,
+    impactError: score === undefined ? null : score.error,
     // Measured landing intensity [0,1], three candidate definitions; null if the
     // beat didn't land. Report-only read-outs — see docs/impact_problem_statement.md.
     //   impact       = current one-frame point metric (the solid bar)

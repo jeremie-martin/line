@@ -13,7 +13,7 @@
 #   --zoom   camera: action = auto-frame (zoom out for big air, in for flat),
 #            speed = zoom by forward pace, N = static zoom. Append :IN,OUT,SMOOTH
 #            to tune, e.g. --zoom=action:2.6,1.9,25 (default: static 3)
-#   --hq     high-quality ride render (QP 22 vs 28)
+#   --hq     high-quality ride render + Remotion encode (QP 22, PNG frames, CRF 12)
 #
 # Defaults target the Believer curve spec, so a bare `scripts/produce_video.sh`
 # reproduces the showcase end to end. Starts the Playwright mirror on :8765 if
@@ -27,7 +27,7 @@ SEED=0
 AUDIO="beats/audio.mp3"
 RES="1080p"   # 1080p | 720p | 480p — 480p is a fast preview for iteration
 ZOOM=""       # empty = static default; "speed" = camera zooms with rider speed; or a number
-HQ=""         # set to 1 for a high-quality ride render (QP 22 vs 28)
+HQ=""         # set to 1 for a high-quality ride render + Remotion encode
 
 for a in "$@"; do
   case "$a" in
@@ -44,6 +44,8 @@ for a in "$@"; do
 done
 ZOOM_FLAG=""; [ -n "$ZOOM" ] && ZOOM_FLAG="--zoom=$ZOOM"
 HQ_FLAG="";   [ -n "$HQ" ] && HQ_FLAG="--hq"
+REMOTION_HQ_FLAGS=()
+[ -n "$HQ" ] && REMOTION_HQ_FLAGS=(--image-format=png --crf=12 --audio-bitrate=320K)
 
 # Map --res to the ride-render flag (inspect.ts only does 720p/1080p) and the
 # Remotion output scale (composition is 1920×1080). 480p ⇒ fast preview.
@@ -94,6 +96,7 @@ DUR="$(python3 -c "import json;print(json.load(open('remotion/public/$NAME.overl
 echo "==> 5/5  annotated render → remotion/out/${NAME}_annotated.mp4 (dur=${DUR}s, scale=$REMOTION_SCALE)"
 ( cd remotion && npx remotion render src/index.ts CurveOverlay "out/${NAME}_annotated.mp4" \
     --scale="$REMOTION_SCALE" \
+    "${REMOTION_HQ_FLAGS[@]}" \
     --props="{\"dataFile\":\"$NAME.overlay.json\",\"videoFile\":\"source.mp4\",\"durationS\":$DUR}" )
 
 echo ""

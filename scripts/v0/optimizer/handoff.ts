@@ -388,6 +388,9 @@ const HANDOFF_REUSE_MATURE_EXTRA_WEIGHT = 0.35;
 const HANDOFF_REUSE_MATURE_BUDGET_SCALE_FRAMES = 150_000;
 const HANDOFF_REUSE_MATURE_FULL_FEEDBACK_SCALE = 48;
 const HANDOFF_PREVIEW_HORIZON = 1;
+const QUALITY_FUTURE_PREVIEW_MAX_PRESSURE = 1.0;
+const QUALITY_FUTURE_PREVIEW_BUDGET_SCALE_FRAMES = 150_000;
+const QUALITY_FUTURE_PREVIEW_FULL_FEEDBACK_SCALE = 12;
 const START_OPTION_LIMIT = 10;
 const START_SCORING_POOL = 16;
 const START_FIRST_K = 8;
@@ -451,6 +454,13 @@ const HANDOFF_RELEASE_VERTICAL_SAFE_TIGHT_PX = 5;
 const MATURE_AVG_FWD_EVAL_START_FRAMES = 35_000;
 const MATURE_AVG_FWD_EVAL_SPAN_FRAMES = 65_000;
 const MATURE_AVG_FWD_EVAL_BRANCH = 1;
+const MATURE_AVG_FWD_EVAL_AMPLITUDE_START = 0.18;
+const MATURE_AVG_FWD_EVAL_AMPLITUDE_SPAN = 0.42;
+const MATURE_AVG_FWD_EVAL_ELEVATION_CENTER = 0.50;
+const MATURE_AVG_FWD_EVAL_ELEVATION_SPAN = 0.24;
+const MATURE_AVG_FWD_EVAL_DENSE_FRAMES = 20;
+const MATURE_AVG_FWD_EVAL_SPARSE_FRAMES = 40;
+const SUBMIN_FORWARD_EVAL_START_FRAMES = 20_000;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 /** Speculative tail completion turns deep prefixes into full-duration register
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because
@@ -1389,9 +1399,10 @@ function popNextFrontierNode(
 function farBackFrontierPulseInterval(key: LeafKey | null): number | null {
   if (key?.contract_passed !== true) return null;
   const width = QUALITY_FAR_BACK_ZERO_AXIS_QUALITY - QUALITY_FAR_BACK_FULL_AXIS_QUALITY;
-  const weakness = width <= 0
+  const linearWeakness = width <= 0
     ? 0
     : clamp01((QUALITY_FAR_BACK_ZERO_AXIS_QUALITY - key.axis_quality) / width);
+  const weakness = smoothstep(linearWeakness);
   if (weakness <= 0) return null;
   return Math.max(
     1,
@@ -1777,6 +1788,9 @@ function expandNode(
     axisQualitySearch: qualitySearch,
     releaseSetup: qualitySearch,
     previewCostWeight: PREVIEW_COST_WEIGHT,
+    previewScorePressure: qualitySearch
+      ? qualityFuturePreviewPressure(targetBudget, telemetry)
+      : undefined,
     targetBudget,
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap, ctx)) {
@@ -1790,6 +1804,9 @@ function expandNode(
       axisQualitySearch: qualitySearch,
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      previewScorePressure: qualitySearch
+        ? qualityFuturePreviewPressure(targetBudget, telemetry)
+        : undefined,
       targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1808,6 +1825,9 @@ function expandNode(
       axisQualitySearch: qualitySearch,
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      previewScorePressure: qualitySearch
+        ? qualityFuturePreviewPressure(targetBudget, telemetry)
+        : undefined,
       targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1818,6 +1838,10 @@ function expandNode(
       preview: handoffUsesFuturePreview(qualitySearch),
       releaseSetup: qualitySearch,
       previewCostWeight: PREVIEW_COST_WEIGHT,
+      previewScorePressure: qualitySearch
+        ? qualityFuturePreviewPressure(targetBudget, telemetry)
+        : undefined,
+      targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
   }
@@ -1940,13 +1964,16 @@ function startupDeadEndOptions(
   config: {
     preview?: boolean;
     previewCostWeight?: number;
+    previewScorePressure?: number;
     releaseSetup?: boolean;
+    targetBudget?: number;
   } = {},
 ): RankedOption[] {
   const candidates = startupDeadEndCandidates(node, gaps, ctx, seed, telemetry);
   if (candidates.length === 0) return [];
   const preview = config.preview ?? true;
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
+  const previewScorePressure = config.previewScorePressure ?? (preview ? 1 : 0);
   const scored = candidates.map((candidate, rank) =>
     scoreCandidateForHandoff(
       node,
@@ -1959,7 +1986,9 @@ function startupDeadEndOptions(
       telemetry,
       preview,
       previewCostWeight,
+      previewScorePressure,
       config.releaseSetup ?? false,
+      config.targetBudget ?? 0,
     )
   );
   scored.sort((a, b) =>
@@ -2025,6 +2054,7 @@ function rankedOptions(
     expandedBrakeSearch?: boolean;
     axisQualitySearch?: boolean;
     previewCostWeight?: number;
+    previewScorePressure?: number;
     releaseSetup?: boolean;
     targetBudget?: number;
   } = {},
@@ -2043,9 +2073,11 @@ function rankedOptions(
   const pool = sorted.slice(0, poolSize);
   const preview = config.preview ?? true;
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
+  const previewScorePressure = config.previewScorePressure ?? (preview ? 1 : 0);
   const scored = pool.map((candidate, rank) =>
     scoreCandidateForHandoff(
       node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
+      previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
     )
@@ -2070,6 +2102,7 @@ function rankedOptions(
   reuse.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(
       node, candidate, poolSize + j, "reuse", gaps, ctx, seed, telemetry, preview, previewCostWeight,
+      previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
     ))
@@ -2099,6 +2132,7 @@ function rankedOptions(
       telemetry,
       preview,
       previewCostWeight,
+      previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
     ))
@@ -2109,6 +2143,15 @@ function rankedOptions(
     a.rank - b.rank
   );
   return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+function qualityFuturePreviewPressure(
+  targetBudget: number,
+  telemetry: HandoffTelemetry,
+): number {
+  return QUALITY_FUTURE_PREVIEW_MAX_PRESSURE *
+    maturityPressure(targetBudget, QUALITY_FUTURE_PREVIEW_BUDGET_SCALE_FRAMES) *
+    fullFeedbackPressure(telemetry, QUALITY_FUTURE_PREVIEW_FULL_FEEDBACK_SCALE);
 }
 
 function lowAirTargetPressure(target: number, scale: number): number {
@@ -2608,7 +2651,21 @@ export function shouldAttemptNearTailCompletion(
   ) {
     return false;
   }
-  return remaining <= tailCompletionContactWindow(targetBudget, qualitySearch);
+  return shouldAttemptTailCompletionWindow(node.search, remaining, targetBudget, qualitySearch);
+}
+
+function shouldAttemptTailCompletionWindow(
+  node: SearchNode,
+  remainingContacts: number,
+  targetBudget: number,
+  qualitySearch: boolean,
+): boolean {
+  const window = tailCompletionContactWindow(targetBudget, qualitySearch);
+  const fullContacts = Math.floor(window);
+  if (remainingContacts <= fullContacts) return true;
+  if (remainingContacts > fullContacts + 1) return false;
+  const boundaryPressure = smoothstep(window - fullContacts);
+  return unitHash(tailCompletionWindowSeed(node, remainingContacts)) < boundaryPressure;
 }
 
 function shouldKeepShallowQualityTailCompletion(
@@ -2648,6 +2705,15 @@ function shallowQualityTailThrottleSeed(node: SearchNode, remainingContacts: num
     Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
     Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
     Math.imul(remainingContacts + 1, 0x27d4eb2d)
+  ) | 0;
+}
+
+function tailCompletionWindowSeed(node: SearchNode, remainingContacts: number): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
+    Math.imul(remainingContacts + 1, 0x165667b1) ^
+    0x68bc21eb
   ) | 0;
 }
 
@@ -2722,6 +2788,7 @@ function scoreCandidateForHandoff(
   telemetry: HandoffTelemetry,
   usePreview = true,
   previewCostWeight = PREVIEW_COST_WEIGHT,
+  previewScorePressure = usePreview ? 1 : 0,
   releaseSetup = false,
   targetBudget = 0,
   sourceAxis?: AxisName,
@@ -2730,7 +2797,7 @@ function scoreCandidateForHandoff(
   // Forward-eval ranking (DEFAULT ≥75k): rank purely by the true metric score of where this arc
   // leads (charged forward rollout), replacing the local axis-L2 proxy below the gate.
   const fwdCfg = fwdEvalCfg; // resolved once per compile in setForwardEvalContext
-  if (fwdCfg !== null && targetBudget >= fwdEvalMin) {
+  if (fwdCfg !== null && usesForwardEvalAtBudget(node, targetBudget)) {
     const value = forwardArcValue(
       child,
       gaps,
@@ -2746,7 +2813,8 @@ function scoreCandidateForHandoff(
       score: -value,
     };
   }
-  const preview = usePreview
+  const usePreviewScore = previewScorePressure > 0;
+  const preview = (usePreview || usePreviewScore)
     ? previewFutureContacts(child, gaps, ctx, seed, telemetry)
     : {
       horizon: 0,
@@ -2779,7 +2847,8 @@ function scoreCandidateForHandoff(
     ? candidateReleaseSetupPenalty(candidate, gaps, node.gapIndex, telemetry, targetBudget)
     : 0;
   recordCandidateReleaseCoverage(telemetry, candidate);
-  const localScore = candidate.cost + scarcity + previewCost + statePenalty + overshoot + releasePenalty;
+  const previewScore = (scarcity + previewCost) * previewScorePressure;
+  const localScore = candidate.cost + previewScore + statePenalty + overshoot + releasePenalty;
   attachHandoffScoreToProbe(candidate.lines, localScore); // study probe; no-op when off
   return {
     candidate,
@@ -3104,6 +3173,28 @@ function forwardArcValue(
   }
 }
 
+function usesForwardEvalAtBudget(node: SearchNode, targetBudget: number): boolean {
+  if (targetBudget >= fwdEvalMin) return true;
+  const pressure = subminForwardEvalPressure(targetBudget);
+  return pressure > 0 && unitHash(subminForwardEvalSeed(node)) < pressure;
+}
+
+function subminForwardEvalPressure(targetBudget: number): number {
+  if (fwdEvalMin <= SUBMIN_FORWARD_EVAL_START_FRAMES) return 0;
+  return smoothstep(
+    (Math.max(0, targetBudget) - SUBMIN_FORWARD_EVAL_START_FRAMES) /
+      (fwdEvalMin - SUBMIN_FORWARD_EVAL_START_FRAMES),
+  );
+}
+
+function subminForwardEvalSeed(node: SearchNode): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
+    0x2f6e2b1d
+  ) | 0;
+}
+
 function matureForwardEvalConfig(
   base: ForwardEvalConfig,
   node: SearchNode,
@@ -3114,15 +3205,17 @@ function matureForwardEvalConfig(
     !fwdEvalDefaultConfig ||
     base.variant !== "greedy" ||
     base.depth !== 2 ||
-    base.branch !== 1 ||
-    !targetsVerticalDramaAxis(gaps[node.gapIndex]?.targets)
+    base.branch !== 1
   ) {
     return base;
   }
-  const pressure = smoothstep(
+  const verticalPressure = verticalDramaForwardEvalPressure(node, gaps);
+  if (verticalPressure <= 0) return base;
+  const budgetPressure = smoothstep(
     (targetBudget - MATURE_AVG_FWD_EVAL_START_FRAMES) /
       MATURE_AVG_FWD_EVAL_SPAN_FRAMES,
   );
+  const pressure = budgetPressure * verticalPressure;
   if (pressure <= 0 || unitHash(matureForwardEvalSeed(node)) >= pressure) return base;
   return {
     variant: "avg",
@@ -3134,6 +3227,34 @@ function matureForwardEvalConfig(
 
 function targetsVerticalDramaAxis(targets: AxisValues | undefined): boolean {
   return targets?.amplitude !== undefined || targets?.elevation !== undefined;
+}
+
+function verticalDramaForwardEvalPressure(node: SearchNode, gaps: Gap[]): number {
+  const targets = gaps[node.gapIndex]?.targets;
+  if (targets === undefined) return 0;
+  if (!targetsVerticalDramaAxis(targets)) return 0;
+  const amplitudePressure = targets.amplitude === undefined
+    ? 0
+    : smoothstep(
+      (targets.amplitude - MATURE_AVG_FWD_EVAL_AMPLITUDE_START) /
+        MATURE_AVG_FWD_EVAL_AMPLITUDE_SPAN,
+    );
+  const elevationPressure = targets.elevation === undefined
+    ? 0
+    : smoothstep(
+      Math.abs(targets.elevation - MATURE_AVG_FWD_EVAL_ELEVATION_CENTER) /
+        MATURE_AVG_FWD_EVAL_ELEVATION_SPAN,
+    );
+  const targetPressure = Math.max(amplitudePressure, elevationPressure);
+  const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex + 1);
+  if (nextGapIndex < 0) return 1;
+  const currentGap = gaps[node.gapIndex];
+  const nextGap = gaps[nextGapIndex];
+  const cadencePressure = 1 - smoothstep(
+    (nextGap.endFrame - currentGap.endFrame - MATURE_AVG_FWD_EVAL_DENSE_FRAMES) /
+      (MATURE_AVG_FWD_EVAL_SPARSE_FRAMES - MATURE_AVG_FWD_EVAL_DENSE_FRAMES),
+  );
+  return 1 + (targetPressure - 1) * cadencePressure;
 }
 
 function matureForwardEvalSeed(node: SearchNode): number {

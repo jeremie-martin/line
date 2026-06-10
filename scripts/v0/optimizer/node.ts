@@ -25,6 +25,7 @@ import {
   aimLaunchEnabled,
   makeAimedCandidate,
   makeScoopCandidate,
+  recordLanePoolRank,
   scoopRolloutEnabled,
 } from "./aim.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
@@ -186,7 +187,19 @@ function sortWithLaneExtras(
     );
     if (aimed !== null) laneExtras.push(aimed);
   }
-  if (laneExtras.length > 0) sorted = sortCandidatesByCost([...sampleOrder, ...laneExtras]);
+  if (laneExtras.length > 0) {
+    sorted = sortCandidatesByCost([...sampleOrder, ...laneExtras]);
+    // Selection-rank telemetry: where each lane extra landed in the sorted
+    // pool (reference-identity lookup; pure read after the sort completes,
+    // so it cannot perturb candidate order). Recorded once per pool build.
+    for (const extra of laneExtras) {
+      recordLanePoolRank(
+        extra.scooped === true ? "scoop" : "aimed",
+        sorted.indexOf(extra),
+        sorted.length,
+      );
+    }
+  }
   return sorted;
 }
 

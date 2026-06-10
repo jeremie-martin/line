@@ -153,6 +153,22 @@ export type AimStats = {
   scoop_no_geometry: number;
   scoop_gate_fail: number;
   scoop_emitted: number;
+  /** Selection-rank telemetry: where a lane extra landed in the cost-sorted
+   *  pool it was emitted into (rank 0 = pool best), recorded once per pool
+   *  BUILD (node.ts sortWithLaneExtras). Counts/sums only — the lab derives
+   *  means. The instrument for "are aimed/scoop candidates winning selection
+   *  → should budget shift from sampling toward aiming?";
+   *  handoff_aimed_selected/_scoop_selected remain the commit-level answer. */
+  aimed_pool_entries: number;
+  aimed_rank0: number;
+  aimed_top3: number;
+  aimed_rank_sum: number;
+  aimed_pool_size_sum: number;
+  scoop_pool_entries: number;
+  scoop_rank0: number;
+  scoop_top3: number;
+  scoop_rank_sum: number;
+  scoop_pool_size_sum: number;
 };
 
 const aimTotals = {
@@ -164,7 +180,36 @@ const aimTotals = {
   anglePredErrSum: 0, angleBaseMissSum: 0, angleAimedMissSum: 0, angleEmitted: 0,
   scoop_considered: 0, scoop_shallow: 0, scoop_no_geometry: 0,
   scoop_gate_fail: 0, scoop_emitted: 0,
+  // Selection-rank telemetry (recordLanePoolRank).
+  aimed_pool_entries: 0, aimed_rank0: 0, aimed_top3: 0,
+  aimed_rank_sum: 0, aimed_pool_size_sum: 0,
+  scoop_pool_entries: 0, scoop_rank0: 0, scoop_top3: 0,
+  scoop_rank_sum: 0, scoop_pool_size_sum: 0,
 };
+
+/** Record where a lane extra ranked in the cost-sorted pool it entered, and
+ *  that pool's size. Called by node.ts once per pool build (cache hits do
+ *  not re-record; one lane candidate can therefore be ranked in several
+ *  rebuilt pools — same semantics as the funnel counters). */
+export function recordLanePoolRank(
+  kind: "aimed" | "scoop",
+  rank: number,
+  poolSize: number,
+): void {
+  if (kind === "aimed") {
+    aimTotals.aimed_pool_entries++;
+    if (rank === 0) aimTotals.aimed_rank0++;
+    if (rank < 3) aimTotals.aimed_top3++;
+    aimTotals.aimed_rank_sum += rank;
+    aimTotals.aimed_pool_size_sum += poolSize;
+  } else {
+    aimTotals.scoop_pool_entries++;
+    if (rank === 0) aimTotals.scoop_rank0++;
+    if (rank < 3) aimTotals.scoop_top3++;
+    aimTotals.scoop_rank_sum += rank;
+    aimTotals.scoop_pool_size_sum += poolSize;
+  }
+}
 
 export function resetAimStats(): void {
   for (const key of Object.keys(aimTotals) as (keyof typeof aimTotals)[]) {
@@ -203,6 +248,16 @@ export function snapshotAimStats(): AimStats | null {
     scoop_no_geometry: aimTotals.scoop_no_geometry,
     scoop_gate_fail: aimTotals.scoop_gate_fail,
     scoop_emitted: aimTotals.scoop_emitted,
+    aimed_pool_entries: aimTotals.aimed_pool_entries,
+    aimed_rank0: aimTotals.aimed_rank0,
+    aimed_top3: aimTotals.aimed_top3,
+    aimed_rank_sum: aimTotals.aimed_rank_sum,
+    aimed_pool_size_sum: aimTotals.aimed_pool_size_sum,
+    scoop_pool_entries: aimTotals.scoop_pool_entries,
+    scoop_rank0: aimTotals.scoop_rank0,
+    scoop_top3: aimTotals.scoop_top3,
+    scoop_rank_sum: aimTotals.scoop_rank_sum,
+    scoop_pool_size_sum: aimTotals.scoop_pool_size_sum,
   };
 }
 

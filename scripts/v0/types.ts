@@ -512,6 +512,19 @@ export type CompileStats = {
     scoop_no_geometry: number;
     scoop_gate_fail: number;
     scoop_emitted: number;
+    /** Selection-rank telemetry: lane extras' position in the cost-sorted
+     *  pool they entered, per pool build. rank0 = pool best; top3 = rank<3.
+     *  Counts/sums (the lab derives means). */
+    aimed_pool_entries: number;
+    aimed_rank0: number;
+    aimed_top3: number;
+    aimed_rank_sum: number;
+    aimed_pool_size_sum: number;
+    scoop_pool_entries: number;
+    scoop_rank0: number;
+    scoop_top3: number;
+    scoop_rank_sum: number;
+    scoop_pool_size_sum: number;
   };
   /** Committed fits in this output produced by the aimed-launch lane. */
   handoff_aimed_selected?: number;

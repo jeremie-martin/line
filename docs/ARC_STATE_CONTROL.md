@@ -319,6 +319,12 @@ loss`) — the open prize.
    current errors/cost and next rider state, plus missing-output coverage
    penalty); gate coverage and fit-coverage gaps are hard diagnostics.
 
+   Working prompt for the next model iteration: improve the local
+   knob-response model by editing `optimizer/arc_model.ts` for feature/model
+   shape and `study_joint_arc_model.ts` for probe/output/report logic; run
+   both `cross5` and `grid9`, optimize `primary_loss` on both, and reject
+   changes that hide worse gate coverage or fit-coverage gaps.
+
 ## 8. Reproducibility
 
 Studies (read-only): `scripts/v0/study_arc_sensitivity.ts`,

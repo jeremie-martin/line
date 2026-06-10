@@ -21,6 +21,7 @@ import {
   readTargetStateFromRider,
 } from "../arc_placement.ts";
 import { solveOneGap, solveOneGapAttemptRange } from "./solver.ts";
+import { aimLaunchEnabled, makeAimedCandidate } from "./aim.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
 
@@ -130,7 +131,19 @@ export function getCandidatesSorted(
     : solveOneGap(
       node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
     );
-  const sorted = sortCandidatesByCost(sampleOrder);
+  let sorted = sortCandidatesByCost(sampleOrder);
+  // V3 aimed-attempt lane (LR_AIM_LAUNCH=1, default off — see optimizer/aim.ts):
+  // one aimed variant of the pool's best, competing on cost like any candidate.
+  // `sampleOrder` stays the pure attempt prefix (prefix property untouched);
+  // the aimed candidate lives only in the sorted pool of the nCand that built
+  // it. nCand > 1 keeps the lane out of forward-eval rollout pools (branch=1):
+  // multiplying CHARGED rollout work is the documented branch-widening failure.
+  if (aimLaunchEnabled() && nCand > 1 && sorted.length > 0) {
+    const aimed = makeAimedCandidate(
+      node.prefixEngine, gap, gaps, ctx, sorted[0], node.prefixNextLineId,
+    );
+    if (aimed !== null) sorted = sortCandidatesByCost([...sampleOrder, aimed]);
+  }
   node._candidatesCache = { seed, nCand, sampleOrder, candidates: sorted };
   return sorted;
 }

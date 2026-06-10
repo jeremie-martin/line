@@ -334,6 +334,10 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     // (root-0 deferred visits before the first requeue) with budget still spent.
     const prevStartEval = process.env.LR_START_EVAL;
     process.env.LR_START_EVAL = "off";
+    // Same reasoning for the aimed-launch lane (optimizer/aim.ts, default on):
+    // its metered probe frames shift this scenario's budget arithmetic.
+    const prevAimLaunch = process.env.LR_AIM_LAUNCH;
+    process.env.LR_AIM_LAUNCH = "0";
     try {
       const budget = 20_000;
       const result = checkpoint(compileHandoff(spec, 0, {
@@ -357,6 +361,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     } finally {
       if (prevStartEval === undefined) delete process.env.LR_START_EVAL;
       else process.env.LR_START_EVAL = prevStartEval;
+      if (prevAimLaunch === undefined) delete process.env.LR_AIM_LAUNCH;
+      else process.env.LR_AIM_LAUNCH = prevAimLaunch;
     }
   }, 60_000);
 

@@ -204,6 +204,19 @@ Ladder — each rung falsifiable before the next:
   byte-identical off; judged canonical + decide. Falsifiable: speed-axis
   error drops suite-wide; headline up or neutral; neutral-but-accurate still
   validates the mechanism V4 builds on.
+  **DONE — ACCEPT, PROMOTED DEFAULT-ON** (`optimizer/aim.ts`, lane wired in
+  `node.ts getCandidatesSorted`; `LR_AIM_LAUNCH=0` = ablation):
+  586.53 → 592.57, **Δ+6.0, 95% CI [1.4, 11.2], P(Δ≤0)=0.9%, ACCEPT** —
+  positive at every budget (100k +5.7, 200k +4.6, 300k +4.4, all CI>0;
+  50k +22.1 noisy), validity 50k 97%→98%, held 100% elsewhere. Excl-impact
+  headline rose 648.1→653.1 while the impact gap stayed ~61 — the win came
+  from the non-impact axes (speed conditioning), exactly as predicted.
+  Implementation notes: aimed candidate lives OUTSIDE `sampleOrder` (attempt
+  prefix property untouched; no `sampleAttempt`, so cache-shrink reads
+  exclude it); lane gated `nCand > 1` so branch=1 rollout pools never pay
+  probe cost (the branch-widening lesson); the base candidate's own
+  `releaseSpeed` is the free δ=0 probe point; flag-off parity verified
+  (586.53 reproduced), 248/248 tests, verify:optimizer re-baselined.
 - **V4 — dive-scoop on the aimer**: aim the k−1 exit to manufacture the steep
   arrival, size the scoop at k from the (now reliable) arrival vector
   (IMPACT_PAIR_PLANNING §5). The aimer turns §5's precondition from

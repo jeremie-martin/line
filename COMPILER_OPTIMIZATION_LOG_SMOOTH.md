@@ -1434,3 +1434,18 @@ first post-rebase baseline.
   `300k -0.5`; validity unchanged (`1908/1920`, `300k 480/480`).
 - Status: rejected and reverted; the accepted template lane wants the old hard
   upper cap, and extra turn over-rotates mature impact rows.
+
+## handoff-overshoot-soft-hinge-01
+
+- Mechanism: handoff target overshoot penalty for speed and air axes.
+- Continuous replacement: replaced the hard `value > target` overshoot hinge
+  with a softplus-style excess around zero using conservative axis widths.
+- Run: `generated/golden-runs/handoff-overshoot-soft-hinge-01`.
+- Decide against accepted baseline `impact-template-turn-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `583.8 -> 584.2`, delta `+0.5`,
+  CI `[-1.9, 3.8]`, `P(delta<=0)=41.4%`.
+- Per-budget deltas: `50k +6.1`, `100k +0.0`, `200k +0.0`,
+  `300k +0.0`; validity `1908/1920 -> 1909/1920`, `300k 480/480`
+  unchanged.
+- Status: rejected and reverted; all signal came from noisy 50k validity/score
+  movement and the canonical accept gate did not clear.

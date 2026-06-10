@@ -1184,6 +1184,27 @@ function sampleContactCenteredLines(
   // Late attempts only (≥ MIN_ATTEMPT): the guided prefix keeps its normal samples;
   // lanes displace the wide random tail of the batch.
   lastGeometryWasImpactTemplate = false;
+  // V4.1 attempt-0 arrival-scoop replacement (LR_AIM_SCOOP_ATTEMPT0=1,
+  // default off). On impact-ask gaps with a steep ACTUAL arrival, attempt 0's
+  // geometry becomes the arrival-conditioned scoop — the zero-eval-cost form
+  // of rollout visibility (nCand=1 rollout pools sample only attempt 0).
+  // Placed AFTER all sampling rolls are consumed — rng draw count unchanged.
+  // VERDICT (2026-06-10): 568.5 vs 597.96, REJECT −29.5 — attempt 0 is the
+  // GUIDED best sample; displacing it wholesale destroys pool quality. Third
+  // and final falsification of pool-level rollout visibility (v4-01 −3.8
+  // add-with-evals; scooproll-01 −9.0 add-with-cache; this −29.5 replace).
+  // The accepted V4 form (scoop in real pools only) stands; the C-share
+  // problem needs a selection-side or scoop-quality answer, not visibility.
+  if (
+    PROCESS_ENV?.LR_AIM_SCOOP_ATTEMPT0 === "1"
+    && attempt === 0
+    && targets.impact !== undefined && targets.impact >= 0.3
+    && targetState.angleDeg >= 12
+    && nextGapFrames !== null
+  ) {
+    const scoop = buildArrivalScoopLines(lineIdStart, targetState, nextGapFrames);
+    if (scoop !== null) return scoop;
+  }
   const impactTemplateBudgetP = impactTemplateBudgetPressure();
   if (
     PROCESS_ENV?.LR_IMPACT_TEMPLATE !== "0"

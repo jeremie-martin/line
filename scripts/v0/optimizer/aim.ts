@@ -510,24 +510,23 @@ function makeAngleAimedCandidate(
  *  cached gap probe — so callers include it in EVERY pool, nCand=1 rollouts
  *  included: that is what lets greedy:2 score a k−1 dive through a catch
  *  that converts it (the §4 closed loop opens here). */
+/** Rollout pools (nCand=1) excluded by default: the v4-01 run included them
+ *  with a fresh eval per pool rebuild and starved the search (nodes −18%,
+ *  100k-300k all significantly negative). LR_AIM_SCOOP_ROLLOUT=1 re-includes
+ *  them — affordable only with the per-node scoop cache (node.ts). */
+export function scoopRolloutEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_SCOOP_ROLLOUT === "1";
+}
+
 export function makeScoopCandidate(
   // deno-lint-ignore no-explicit-any
   engine: any,
   gap: Gap,
   ctx: SpecContext,
   lineIdStart: number,
-  nCand: number,
 ): Candidate | null {
   if (!aimImpactEnabled()) return null;
-  // Rollout pools (nCand=1) excluded by default: the v4-01 run included them
-  // and the lane's charged evals starved the search (nodes −18%, sampled −15%,
-  // 100k-300k all significantly negative). LR_AIM_SCOOP_ROLLOUT=1 re-includes
-  // (the §5 rollout-visibility hypothesis — re-test only with cheaper evals).
-  if (
-    nCand <= 1 &&
-    (globalThis as { process?: { env?: Record<string, string | undefined> } })
-      .process?.env?.LR_AIM_SCOOP_ROLLOUT !== "1"
-  ) return null;
   if ((gap.targets.impact ?? 0) < AIM_IMPACT_MIN_ASK) return null;
   aimTotals.scoop_considered++;
   const probe = getCandidateProbe(engine, gap, ctx);

@@ -21,7 +21,12 @@ import {
   readTargetStateFromRider,
 } from "../arc_placement.ts";
 import { solveOneGap, solveOneGapAttemptRange } from "./solver.ts";
-import { aimLaunchEnabled, makeAimedCandidate, makeScoopCandidate } from "./aim.ts";
+import {
+  aimLaunchEnabled,
+  makeAimedCandidate,
+  makeScoopCandidate,
+  scoopRolloutEnabled,
+} from "./aim.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
 
@@ -58,6 +63,12 @@ export type SearchNode = {
    *  the same sampled candidate. This lets lookahead and later expansion share
    *  any candidate cache acquired by the child, without changing candidate order. */
   _childrenCache?: { byCandidate: WeakMap<Candidate, SearchNode>; nullChild: SearchNode | null };
+  /** Memoized arrival-conditioned scoop (optimizer/aim.ts). The scoop depends
+   *  only on (prefixEngine, gap) — NOT on nCand — so one evaluation serves
+   *  every pool rebuild of this node (rollout nCand=1 and real expansion
+   *  thrash the single-slot _candidatesCache; the scoop must not re-pay).
+   *  `undefined` = not computed yet; `null` = computed, no viable scoop. */
+  _scoopCache?: Candidate | null;
 };
 
 /** Construct the root node for a compile. */
@@ -137,11 +148,19 @@ export function getCandidatesSorted(
   // untouched); lane candidates live only in the sorted pool of the nCand
   // that built them.
   const laneExtras: Candidate[] = [];
-  // V4 scoop lane (LR_AIM_IMPACT=1, default off): probe-free, so it joins
-  // EVERY pool including nCand=1 rollout pools — that visibility is what lets
-  // greedy:2 score a k−1 dive through a converting catch (the closed loop).
-  const scoop = makeScoopCandidate(node.prefixEngine, gap, ctx, node.prefixNextLineId, nCand);
-  if (scoop !== null) laneExtras.push(scoop);
+  // V4 scoop lane (LR_AIM_IMPACT, default on): one candidate built from the
+  // actual arrival. Cached per node (nCand-independent) so rollout pools and
+  // real expansion share ONE evaluation — that cache is what makes rollout
+  // visibility (LR_AIM_SCOOP_ROLLOUT=1) affordable; without it the lane paid
+  // a fresh eval per pool rebuild and starved the search (v4-01, −3.8).
+  if (nCand > 1 || scoopRolloutEnabled()) {
+    const scoop = node._scoopCache !== undefined
+      ? node._scoopCache
+      : (node._scoopCache = makeScoopCandidate(
+        node.prefixEngine, gap, ctx, node.prefixNextLineId,
+      ));
+    if (scoop !== null) laneExtras.push(scoop);
+  }
   // V3 aimed-launch lane (default on; LR_AIM_LAUNCH=0 ablation): one aimed
   // variant of the pool's best. nCand > 1 keeps its PROBES out of forward-eval
   // rollout pools (branch=1): multiplying CHARGED rollout work is the

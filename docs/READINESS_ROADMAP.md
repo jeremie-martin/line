@@ -110,13 +110,49 @@ conversion, beyond what speed + CoM angle already predict?**
   speed-compatibility remain) and pose steering is parked with a verdict —
   the roadmap survives.
 
+**VERDICT (2026-06-10, `study_catchability.ts`, 2,871 arrivals × 8
+production re-fits @300k — `generated/analysis/catchability_300k.{jsonl,txt}`):
+pose component PARKED; the study delivered the (speed, angle) readiness
+surface instead.**
+
+- Tier-B catch rate is FLAT across |pose − comAngle| from 0° to 90°
+  (79–82%); only >90° misalignment degrades it (62%) — and that regime is
+  4.2% of arrivals, still majority-catchable. OLS ΔR² for pose terms over
+  speed+angle: +0.019 (0.333 → 0.353). Stratified pooled Δ: +5%,
+  incoherent across strata. Impact conversion equally flat (0.31–0.36
+  until >90°: 0.28). Jérémie's directional intuition (backwards pose hurts)
+  is CONFIRMED but the magnitude and incidence are too small to carry a
+  readiness component at the current operating point. No fast-spin/wrap
+  regime observed (pose rate p50 1.0°/frame, 0% >45°/f).
+- Why so robust: the production sampler builds the catch FROM the CoM
+  arrival; engine contact dynamics tolerate large pose offsets. Pose is
+  emergently self-correcting at catch — the filter generation already has
+  (gates) suffices.
+- **The constructive result — the empirical catchability surface
+  r(speed, comAngle), the thing R1 needed**: catch rate spans 20% → 95%
+  across the surface, far more structure than pose carried:
+  steep+fast arrivals are dramatically more catchable (angle 20–30° ×
+  speed 10–12: 92–95%) than shallow/slow (angle 0–5° × speed 6–8: 20%)
+  or upward (angle<0: 39%). Monotone in both inputs up to ~30°.
+  This vindicates the V3/V4 design post-hoc (speed- and steep-aiming both
+  push toward the high-catchability corner) and gives R1 its readiness
+  curve from measured data, not intuition.
+- Tier-A footnote: the fixed committed catch passes only ~14–16% under
+  perturbed arrivals — the coupling law measured a third way; re-fit
+  (tier B) is the correct ground truth, as designed.
+- Caveats: drums_dropout/s1 contributed only 12 gaps (481 engine crashes
+  on its perturbed geometry — guarded, logged); pose conclusions hold at
+  the CURRENT operating point (no fast-spin regime) and would need
+  re-examination if track style ever enters one.
+
 ### R1 — Readiness model v0 (code; no behavior change)
 
 - Implement r as a small, swappable module in the §ARC_STATE_CONTROL §1
-  sense (inputs → output + the data that justified it), shaped by R0.
-  Current instance = catchability only; the module boundary must make
-  adding components (R3) and replacing internals (empirical table, learned
-  model — anything) additive.
+  sense (inputs → output + the data that justified it), shaped by R0:
+  **r(speed, comAngle) from the measured catchability surface** (R0
+  verdict: 20%→95% structure; no pose component — parked). The module
+  boundary must make adding components (R3) and replacing internals
+  (empirical table, learned model — anything) additive.
 - Wire as telemetry only: record r(arrival) for committed fits
   (compile_stats; fingerprint-safe, verify re-baseline). This gives live
   validation BEFORE r influences anything: does low committed-r correlate

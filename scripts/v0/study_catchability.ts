@@ -250,6 +250,7 @@ type Row = {
 
 const rows: Row[] = [];
 let sims = 0;
+let engineCrashes = 0;
 const yieldMaybe = async (): Promise<void> => {
   if (sims % 10 === 0) {
     (globalThis as { gc?: () => void }).gc?.();
@@ -330,13 +331,32 @@ for (const specName of specNames) {
           : perturbArcRotate(arcK, point.delta);
         const prefixLines = [...before, ...perturbed];
 
-        const engine = buildEngine(track, prefixLines);
-        const arrival = readArrival(engine, frameNext);
+        // Perturbed geometry can panic the wasm engine on paths production
+        // never feeds it — any engine interaction here may throw; record and
+        // skip the point, never die.
+        let engine: LineRiderEngine;
+        let arrival: Arrival;
+        try {
+          engine = buildEngine(track, prefixLines);
+          arrival = readArrival(engine, frameNext);
+        } catch {
+          engineCrashes++;
+          continue;
+        }
         sims++;
         await yieldMaybe();
         if (!arrival.ok) continue; // no arrival — nothing to catch
 
-        const fixed = measureFixedCatch(track, prefixLines, arcNext, pseudoGapNext, lookEnd);
+        // Perturbed geometry can hit engine code paths production never feeds
+        // it (wasm panics deep in window extraction) — a crashed outcome
+        // measurement is recorded and skipped, never fatal.
+        let fixed: { gate: boolean; impact: number | null };
+        try {
+          fixed = measureFixedCatch(track, prefixLines, arcNext, pseudoGapNext, lookEnd);
+        } catch {
+          engineCrashes++;
+          continue;
+        }
         sims++;
         await yieldMaybe();
 
@@ -348,7 +368,13 @@ for (const specName of specNames) {
           (Math.imul(seed + 1, 2654435761) ^ Math.imul(k + 1, 40503) ^
             Math.imul(famId * 64 + (point.delta + 32), 2246822519)) | 0,
         );
-        const cands = solveOneGap(engine, pseudoGapNext, rng, K_REFITS, ctx, maxLineId + 1000);
+        let cands: ReturnType<typeof solveOneGap>;
+        try {
+          cands = solveOneGap(engine, pseudoGapNext, rng, K_REFITS, ctx, maxLineId + 1000);
+        } catch {
+          engineCrashes++;
+          continue;
+        }
         sims += K_REFITS;
         await yieldMaybe();
         let bestImpact: number | null = null;
@@ -383,7 +409,8 @@ for (const specName of specNames) {
       if (producedAny) gapsDone++;
     }
     console.error(
-      `  ${specName}/s${seed}: ${gapsDone} gaps, ${rows.length} rows, ${sims} sims, ${((Date.now() - t0) / 1000).toFixed(1)}s`,
+      `  ${specName}/s${seed}: ${gapsDone} gaps, ${rows.length} rows, ${sims} sims, ` +
+        `${engineCrashes} engine crashes, ${((Date.now() - t0) / 1000).toFixed(1)}s`,
     );
   }
 }

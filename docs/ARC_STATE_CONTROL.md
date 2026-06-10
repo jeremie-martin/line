@@ -235,6 +235,14 @@ loss`) — the open prize.
 
 ## 7. Open problems (rough leverage order)
 
+0. **The readiness program** — `READINESS_ROADMAP.md` (phase 2 of this
+   document): a model predicting whether the arrival state (speed, CoM
+   angle, POSE) sets the next gap up for success, used inside an
+   enumerative proposer (sweep knob deltas inside the fitted models — free
+   — propose the top few). Subsumes the V3/V4 lane triggers as special
+   cases and adds the pose dimension generation is currently blind to.
+   First rung: the catchability ground-truth study (R0).
+
 1. **Selection (the C-share) + the budget-shift question.** Post-V4 funnel:
    A_not_generated 56%→35%, C_ranking_loses 32%→54%, D_works 8%. Deep
    candidates exist and lose forward-eval — and rollout visibility is not

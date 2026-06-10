@@ -1,7 +1,7 @@
 # Readiness — roadmap
 
-2026-06-10 · branch arc-rewrite · canonical baseline `prefix-cache-lanes-01`
-(597.41). Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer:
+2026-06-10 · branch arc-rewrite · canonical baseline `aim-enum-r2-03`
+(600.71; R2 promoted). Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer:
 concept, invariants, instance choices — this roadmap is its phase 2);
 `IMPACT_PAIR_PLANNING.md` (the impact diagnosis). This is a ROADMAP: rungs
 are falsifiable and most later content is contingent on earlier outcomes —
@@ -214,10 +214,15 @@ per-gap telemetry in evaluateNode/buildNodeOutput; archive
 Archive `aim-enum-r2-03` is the new canonical baseline.**
 
 Iteration history (each falsifiable, each archived):
-- v1 (−0.2): target-awareness used `targets.elevation !== undefined` —
-  compiler-resolved targets exist on ~every gap (0.5 = neutral center), so
-  86% of gaps deferred to legacy and the lane never ran. Lesson: a
-  funnel-telemetry read before interpreting any verdict.
+- v1 (−0.2): target-awareness used `targets.elevation !== undefined` — too
+  broad, but NOT because of any default: undefined axes are genuinely
+  ignored end to end (`effectiveAxes`/`sampleGapTargets` emit only authored
+  axes; `axisCost` sums only axes with both target and measurement; the
+  scorer sees only authored axes). This golden suite simply AUTHORS
+  elevation on many specs, including hold-level asks (~0.5, p50 of authored
+  elevation targets = 0.53) — so `defined` deferred on "stay level" gaps
+  where the enum objective is perfectly safe. Lesson: a funnel-telemetry
+  read before interpreting any verdict; and `defined` ≠ `demanding`.
 - v2 (+0.3 parity): objective = catchability × speed-fit only. The surface
   barely differentiates 15° from 25° arrivals (0.91 vs 0.92), so nothing
   pushed the steep arrivals impact conversion needs — emissions healthy
@@ -291,6 +296,9 @@ instance.
 | speed in catchability inputs | compare in R0 (cheap), PoC may stay (pose, comAngle) | R0 |
 | k (proposals per gap) | 1–3 | R2 |
 | per-knob enumeration grid | ~hundreds/knob, deterministic sweep | R2 (any dense grid works — model is smooth) |
+| readiness sharpening (Jérémie) | sigmoid-like saturation so 0.8 vs 0.9 barely differ and the factor acts as a smooth veto, not a proportional tax | quick A/B vs the promoted v3 |
+| k proposals (1 vs 2 vs 3) | 2 (constant ENUM_TOP_K) | k-sweep A/B |
+| climb-defer threshold / legacy removal | defer at elevation >0.65 (nearly dead in this suite: 12% defer, max authored ask ≈0.65); legacy lane retained as ablation only — DELETE after a soak period (no backward-compat by default, per Jérémie) | A/B removing the defer entirely |
 
 ## 5. What would falsify the whole program
 

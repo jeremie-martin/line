@@ -1075,3 +1075,18 @@ first post-rebase baseline.
   validity unchanged (`1903/1920`, `300k 480/480`).
 - Status: rejected and reverted after two variants; repair appears to spend
   scarce 50k budget without improving validity or quality.
+
+## start-low-speed-penalty-pressure-01
+
+- Mechanism: start heuristic low-speed penalty.
+- Continuous replacement: replaced the binary `targetSpeed >= 6` and
+  `speed < 45% target` penalty with smooth target-speed and speed-ratio
+  pressures in the same start-ordering heuristic.
+- Run: `generated/golden-runs/start-low-speed-penalty-pressure-01`.
+- Decide against accepted baseline `arc-rewrite-baseline-01`:
+  `VERDICT: INCONCLUSIVE`; headline `580.8 -> 580.8`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1903/1920`, `300k 480/480`).
+- Status: rejected and reverted after one variant; canonical output was
+  byte-stable, so this hard branch is not active on the current baseline.

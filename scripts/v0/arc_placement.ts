@@ -70,6 +70,11 @@ const CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX = 6;
 const CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT = 2;
 const CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT = 2;
 const CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG = 4;
+// NOTE (2026-06-10): widening these target ramps to the envelope-ruler ask
+// distribution (0.25/0.40, matching IMPACT_CURVE) was TESTED and REGRESSED
+// (canonical 578.15 vs 580.83) with zero movement in selected geometry — the
+// angle-shift mechanisms are marginal (ablations: ±2); the curvature modulation
+// below is the carrier (+53). Don't re-widen without new evidence.
 const CONTACT_CENTERED_REDIR_CONTACT_TARGET_START = 0.55;
 const CONTACT_CENTERED_REDIR_CONTACT_TARGET_SPAN = 0.35;
 const CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX = 6;
@@ -98,8 +103,20 @@ const IMPACT_CURVE_TARGET_START = 0.25;
 const IMPACT_CURVE_TARGET_SPAN = 0.40;
 const IMPACT_CURVE_SPEED_START_PX = 6;
 const IMPACT_CURVE_SPEED_SPAN_PX = 4;
-const IMPACT_CURVE_FLATTEN_DEG = 10;
-const IMPACT_CURVE_FRONTLOAD = 0.8;
+// Ablation (2026-06-10): this curvature modulation is THE impact carrier (+53
+// headline; the angle-shift mechanisms are ±2). Sweeping its authority found
+// flatten 12° / frontload 1.2 (canonical 585.56 vs 580.83 at the old 10/0.8,
+// decide ACCEPT Δ+4.7 P=4.2%, positive at every budget, 50k validity 96→98%).
+// The response surface peaks there: flatten 18 → 579, frontload 1.4 → 581.
+// Env knobs kept as sweep handles; defaults ARE the promoted values.
+const IMPACT_CURVE_FLATTEN_DEG = Number(
+  (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_IMPACT_CURVE_FLATTEN ?? "12",
+);
+const IMPACT_CURVE_FRONTLOAD = Number(
+  (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_IMPACT_CURVE_FRONTLOAD ?? "1.2",
+);
 // Mature-budget impact POST-TURN sampler (default ON; LR_IMPACT_POST_TURN=0 reverts).
 // The curve modulation can only front-load whatever contact→post rotation already
 // exists. Remaining mature misses show contact runs are long enough but

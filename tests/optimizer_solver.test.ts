@@ -159,6 +159,47 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
     }
   });
 
+  test("node prefix cache reapplies lane extras when answering smaller pools", () => {
+    const oldAimLaunch = process.env.LR_AIM_LAUNCH;
+    process.env.LR_AIM_LAUNCH = "0";
+    try {
+      const seed = 23;
+      const sampled = { cost: 2, arc: "sampled", lines: [], achieved: {}, sampleAttempt: 0 } as never;
+      const outsidePrefix = {
+        cost: 0.5,
+        arc: "outside-prefix",
+        lines: [],
+        achieved: {},
+        sampleAttempt: 8,
+      } as never;
+      const scoop = { cost: 1, arc: "scoop", lines: [], achieved: {}, scooped: true } as never;
+      const node = makeRootNode({}, 1);
+      node._candidatesCache = {
+        seed,
+        nCand: 16,
+        sampleOrder: [sampled, outsidePrefix],
+        candidates: [outsidePrefix, sampled],
+      };
+      node._scoopCache = scoop;
+
+      const prefix = getCandidatesSorted(
+        node,
+        [{ endsWithContact: true } as never],
+        { allContactFrames: [], durationFrames: 0 },
+        seed,
+        4,
+      );
+
+      expect(prefix).toEqual([scoop, sampled]);
+    } finally {
+      if (oldAimLaunch === undefined) {
+        delete process.env.LR_AIM_LAUNCH;
+      } else {
+        process.env.LR_AIM_LAUNCH = oldAimLaunch;
+      }
+    }
+  });
+
   test("node candidate cache is isolated by search seed", async () => {
     const { engine, gap, ctx } = await setupAtGap0("syncopated_switchback", 0);
     const cachedNode = makeRootNode(engine, 1);

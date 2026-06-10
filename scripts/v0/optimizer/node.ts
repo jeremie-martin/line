@@ -130,7 +130,9 @@ export function getCandidatesSorted(
   const perGapRng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
   const cached = node._candidatesCache;
   if (cached !== null && cached.seed === seed && cached.nCand > nCand) {
-    return sortCandidatesByCost(samplePrefix(cached.sampleOrder, nCand));
+    return sortWithLaneExtras(
+      node, gaps, ctx, gap, nCand, samplePrefix(cached.sampleOrder, nCand),
+    );
   }
   const sampleOrder = cached !== null && cached.seed === seed && cached.nCand < nCand
     ? [
@@ -142,6 +144,19 @@ export function getCandidatesSorted(
     : solveOneGap(
       node.prefixEngine, gap, perGapRng, nCand, ctx, node.prefixNextLineId,
     );
+  const sorted = sortWithLaneExtras(node, gaps, ctx, gap, nCand, sampleOrder);
+  node._candidatesCache = { seed, nCand, sampleOrder, candidates: sorted };
+  return sorted;
+}
+
+function sortWithLaneExtras(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  gap: Gap,
+  nCand: number,
+  sampleOrder: Candidate[],
+): Candidate[] {
   let sorted = sortCandidatesByCost(sampleOrder);
   // Aim lanes (see optimizer/aim.ts): extra candidates competing on cost like
   // any other. `sampleOrder` stays the pure attempt prefix (prefix property
@@ -172,7 +187,6 @@ export function getCandidatesSorted(
     if (aimed !== null) laneExtras.push(aimed);
   }
   if (laneExtras.length > 0) sorted = sortCandidatesByCost([...sampleOrder, ...laneExtras]);
-  node._candidatesCache = { seed, nCand, sampleOrder, candidates: sorted };
   return sorted;
 }
 

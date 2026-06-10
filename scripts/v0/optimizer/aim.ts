@@ -128,26 +128,6 @@ export function aimEnumEnabled(): boolean {
     .process?.env?.LR_AIM_ENUM !== "0";
 }
 
-/** R3 joint multi-knob inner model (LR_AIM_JOINT=1, experiment flag —
- *  default OFF, bit-identical incl. stats): the enum lane's inner model
- *  becomes the ADDITIVE composition of per-knob quadratics over
- *  (exit pitch, whole-arc rotate) and the sweep goes 2-D. Grounds:
- *  additivity certified proposer-grade (study_knob_additivity, median
- *  interaction ~10%); scout (study_joint_enum, 289 target gaps @300k):
- *  rotate engaged at 97% of joint argmaxes, ACHIEVED objective gain p50
- *  +0.035 / mean +0.062, positive 204/276, gains 3× larger where pitch
- *  clamps; additive error at argmax 0.041 px/f / 0.63° p50; rotated-winner
- *  break rate 1.8% (gates price it).
- *  v1 (eager, always-on, ±4° extrapolated, no margin): REJECT Δ−7.9 —
- *  rotation displaced 92% of pitch proposals, 37% gate-fail (the on-beat
- *  landing gate, far stricter than sled survival), aimed commits −34%.
- *  v2: lazy recruit at pitch exhaustion only, probed span, ≥15% margin,
- *  one rotated slot that never displaces the top pitch proposal. */
-export function aimJointEnabled(): boolean {
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_JOINT === "1";
-}
-
 /** Scoop lane in branch=1 rollout pools (LR_AIM_SCOOP_ROLLOUT=1).
  *  VERDICT (2026-06-10): rollout visibility for the scoop was falsified
  *  three ways — fresh eval per pool rebuild (v4-01, −3.8), per-node cached
@@ -223,9 +203,9 @@ export type AimStats = {
   enum_readiness_err_mean?: number;
   /** Mean predicted readiness gain over δ=0, over emitted. */
   enum_readiness_gain_mean?: number;
-  /** R3 joint-model split (LR_AIM_JOINT; present only when the flag is on):
-   *  rotate-probe failures (lane falls back to pitch-only), and how rotated
-   *  (dr≠0) proposals fare at the production gates vs emitted. */
+  /** R3 joint-model split: rotate recruit rate, rotate-probe failures
+   *  (lane falls back to pitch-only), and how rotated (dr≠0) proposals
+   *  fare at the production gates vs emitted. */
   enum_rot_probe_crash?: number;
   enum_rot_recruited?: number;
   enum_rot_emitted?: number;
@@ -345,16 +325,10 @@ export function snapshotAimStats(): AimStats | null {
           ? round3(aimTotals.enumReadinessErrSum / aimTotals.enumAchieved) : 0,
         enum_readiness_gain_mean: aimTotals.enum_emitted > 0
           ? round3(aimTotals.enumReadinessGainSum / aimTotals.enum_emitted) : 0,
-        // Joint-model split only under the experiment flag — keeps the
-        // default snapshot byte-identical.
-        ...(aimJointEnabled()
-          ? {
-            enum_rot_probe_crash: aimTotals.enum_rot_probe_crash,
-            enum_rot_recruited: aimTotals.enum_rot_recruited,
-            enum_rot_emitted: aimTotals.enum_rot_emitted,
-            enum_rot_gate_fail: aimTotals.enum_rot_gate_fail,
-          }
-          : {}),
+        enum_rot_probe_crash: aimTotals.enum_rot_probe_crash,
+        enum_rot_recruited: aimTotals.enum_rot_recruited,
+        enum_rot_emitted: aimTotals.enum_rot_emitted,
+        enum_rot_gate_fail: aimTotals.enum_rot_gate_fail,
       }
       : {}),
   };
@@ -819,7 +793,16 @@ const ENUM_MIN_SEP_DEG = 1.5;
 const ENUM_R_MIN = 0.1;
 /** Speed-target fit scale (px/f): exp(−|predicted − target|/scale). */
 const ENUM_SPEED_SCALE_PXF = 0.75;
-/** Joint-model rotate axis (LR_AIM_JOINT). Sweep stays INSIDE the probed
+/** Joint-model rotate axis (R3, default-on — PROMOTED 2026-06-10: v2
+ *  Δ+0.4 vs 600.57, positive at mature budgets, and it IS the agreed
+ *  architecture: the inner model takes multiple knobs. Grounds:
+ *  additivity certified proposer-grade (study_knob_additivity ~10%
+ *  median interaction); scout study_joint_enum (289 gaps @300k):
+ *  achieved objective gain p50 +0.035, 3× larger where pitch clamps;
+ *  v1 eager/always-on/±4°-extrapolated/no-margin REJECT Δ−7.9 — rotated
+ *  proposals displaced 92% of pitch proposals and failed the on-beat
+ *  landing gate 37% of the time, commits −34%).
+ *  Sweep stays INSIDE the probed
  *  span (±3° — v1 extrapolated to ±4° and its argmaxes chased the edge).
  *  Recruit only when the pitch sweep is exhausted: boundary-clamped, or
  *  best pitch gain below NOGAIN (scout: gains are 3× larger at the pitch
@@ -902,10 +885,10 @@ export function makeEnumAimedCandidates(
   const speedModel = quadModel(lo.speed, baseOut.speed, hi.speed, P);
   const angleModel = quadModel(lo.comAngleDeg, baseOut.comAngleDeg, hi.comAngleDeg, P);
 
-  // R3 joint inner model (LR_AIM_JOINT): the rotate knob's models are
-  // recruited LAZILY further down, only where the pitch sweep is exhausted.
-  // The joint prediction is the ADDITIVE composition of per-knob quadratics
-  // (certified proposer-grade — see aimJointEnabled).
+  // R3 joint inner model: the rotate knob's models are recruited LAZILY
+  // further down, only where the pitch sweep is exhausted. The joint
+  // prediction is the ADDITIVE composition of per-knob quadratics
+  // (certified proposer-grade — see ENUM_ROT_SPAN_DEG notes).
   let rotSpeedModel: ((d: number) => number) | null = null;
   let rotAngleModel: ((d: number) => number) | null = null;
   // Impact-feasibility component (roadmap R3, brought forward after enum
@@ -958,7 +941,7 @@ export function makeEnumAimedCandidates(
   // margin, and emit at most ONE rotated proposal in its own slot — the
   // top pitch proposal is never displaced.
   let rotInjected: { dp: number; dr: number; val: number } | null = null;
-  if (aimJointEnabled()) {
+  {
     const pitchBest = scoredDeltas.length > 0 ? scoredDeltas[0] : null;
     const pitchBestVal = pitchBest === null ? obj0 : pitchBest.val;
     const pitchExhausted = pitchBest === null ||

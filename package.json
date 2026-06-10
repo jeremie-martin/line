@@ -19,6 +19,7 @@
     "test:watch": "vitest",
     "goal": "tsx scripts/v0/golden.ts",
     "golden": "tsx scripts/v0/golden.ts",
+    "lab": "node --no-warnings=ExperimentalWarning --import tsx scripts/v0/analysis/lab.ts",
     "decide": "tsx scripts/v0/analyze_golden_curve.ts decide",
     "bench": "tsx scripts/v0/bench/sim_bench.ts",
     "bench:prof": "node --cpu-prof --cpu-prof-dir=generated/prof --cpu-prof-name=sim.cpuprofile --import tsx scripts/v0/bench/sim_bench.ts",

@@ -253,13 +253,12 @@ function hybridUsesSurface(output: string): boolean {
       output === "current.error.elevation" ||
       output === "current.axis.elevation" ||
       output === "current.error.impact" ||
-      output === "current.axis.impact";
+      output === "current.axis.impact" ||
+      output === "next.sledPoseRateDegPerFrame";
   }
   if (probeDesignName === "grid9") {
     return output === "current.error.air" ||
       output === "current.axis.air" ||
-      output === "current.error.amplitude" ||
-      output === "current.axis.amplitude" ||
       output === "current.error.elevation" ||
       output === "current.axis.elevation" ||
       output === "current.error.impact" ||

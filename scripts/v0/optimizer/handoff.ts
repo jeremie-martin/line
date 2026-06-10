@@ -450,6 +450,7 @@ const MATURE_AVG_FWD_EVAL_ELEVATION_CENTER = 0.50;
 const MATURE_AVG_FWD_EVAL_ELEVATION_SPAN = 0.24;
 const MATURE_AVG_FWD_EVAL_DENSE_FRAMES = 20;
 const MATURE_AVG_FWD_EVAL_SPARSE_FRAMES = 40;
+const SUBMIN_FORWARD_EVAL_START_FRAMES = 20_000;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 /** Speculative tail completion turns deep prefixes into full-duration register
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because
@@ -2728,7 +2729,7 @@ function scoreCandidateForHandoff(
   // Forward-eval ranking (DEFAULT ≥75k): rank purely by the true metric score of where this arc
   // leads (charged forward rollout), replacing the local axis-L2 proxy below the gate.
   const fwdCfg = fwdEvalCfg; // resolved once per compile in setForwardEvalContext
-  if (fwdCfg !== null && targetBudget >= fwdEvalMin) {
+  if (fwdCfg !== null && usesForwardEvalAtBudget(node, targetBudget)) {
     const value = forwardArcValue(
       child,
       gaps,
@@ -3102,6 +3103,28 @@ function forwardArcValue(
   } finally {
     if (!charge) refundSimFramesTo(saved);
   }
+}
+
+function usesForwardEvalAtBudget(node: SearchNode, targetBudget: number): boolean {
+  if (targetBudget >= fwdEvalMin) return true;
+  const pressure = subminForwardEvalPressure(targetBudget);
+  return pressure > 0 && unitHash(subminForwardEvalSeed(node)) < pressure;
+}
+
+function subminForwardEvalPressure(targetBudget: number): number {
+  if (fwdEvalMin <= SUBMIN_FORWARD_EVAL_START_FRAMES) return 0;
+  return smoothstep(
+    (Math.max(0, targetBudget) - SUBMIN_FORWARD_EVAL_START_FRAMES) /
+      (fwdEvalMin - SUBMIN_FORWARD_EVAL_START_FRAMES),
+  );
+}
+
+function subminForwardEvalSeed(node: SearchNode): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
+    0x2f6e2b1d
+  ) | 0;
 }
 
 function matureForwardEvalConfig(

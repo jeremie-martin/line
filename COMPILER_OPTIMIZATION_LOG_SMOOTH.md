@@ -955,3 +955,44 @@ first post-rebase baseline.
 - Per-budget deltas: `50k +1.5`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
   validity unchanged (`1898/1920`, `300k 480/480`).
 - Status: accepted; this archive becomes the next official comparison baseline.
+
+## submin-fwd-eval-pressure-01
+
+- Mechanism: forward-eval ranking budget admission below the default 75k gate.
+- Continuous replacement: preserved the old full forward-eval ranker at and above
+  `fwdEvalMin`, but admitted deterministic smooth sub-min forward-eval ranking
+  from `40k` to `75k` based on budget pressure and node hash.
+- Run: `generated/golden-runs/submin-fwd-eval-pressure-01`.
+- Decide against accepted baseline `quality-preview-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `517.2 -> 517.3`, delta `+0.1`,
+  CI `[-3.2, 3.2]`, `P(delta<=0)=43.8%`.
+- Per-budget deltas: `50k +1.1`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity changed from `1898/1920` to `1896/1920`, with `300k 480/480`.
+- Status: not kept; positive but very weak, so tried stronger 50k admission.
+
+## submin-fwd-eval-pressure-02
+
+- Mechanism: same sub-min forward-eval ranking admission.
+- Continuous replacement: same deterministic pressure shape, but started the
+  sub-min ramp at `30k` instead of `40k`.
+- Run: `generated/golden-runs/submin-fwd-eval-pressure-02`.
+- Decide against accepted baseline `quality-preview-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `517.2 -> 518.1`, delta `+0.9`,
+  CI `[-3.1, 4.3]`, `P(delta<=0)=27.9%`.
+- Per-budget deltas: `50k +11.4`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity changed from `1898/1920` to `1896/1920`, with `300k 480/480`.
+- Status: not kept; stronger scarce-budget signal but still below accept
+  confidence, so tried one final stronger pressure variant.
+
+## submin-fwd-eval-pressure-03
+
+- Mechanism: same sub-min forward-eval ranking admission.
+- Continuous replacement: same deterministic pressure shape, with the sub-min
+  ramp starting at `20k` to give 50k enough forward-eval admission to matter.
+- Run: `generated/golden-runs/submin-fwd-eval-pressure-03`.
+- Decide against accepted baseline `quality-preview-pressure-03`:
+  `VERDICT: ACCEPT`; headline `517.2 -> 520.4`, delta `+3.2`,
+  CI `[-1.0, 7.0]`, `P(delta<=0)=5.7%`.
+- Per-budget deltas: `50k +41.6`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity improved from `1898/1920` to `1901/1920`, with `300k 480/480`.
+- Status: accepted; this archive becomes the next official comparison baseline.

@@ -179,8 +179,13 @@ MEASURED EXACTLY (simulation, no model error):
 - forward-eval ranking — true partial-track score of a charged rollout;
 - everything the scorer sees.
 
-NOT modeled (deliberately): axis values from knobs directly (axes are span
-statistics of the NEXT gap's not-yet-chosen catch — V2's stale-catch result);
+NOT modeled (deliberately, with one correction): IMPACT from knobs directly —
+it is the redirection at the NEXT gap's not-yet-chosen catch (V2's stale-catch
+result). The other span axes of gap k+1 (air/speed/elevation/amplitude over
+beat k→k+1) are mostly determined by arc k's exit + ballistic flight and ARE
+predictable without the next catch — V2's cross-gap rows measured exactly this
+(err/range 1–6%). Aiming directly at those axis VALUES (instead of state
+proxies) is therefore an open option, just not yet a needed one;
 sled pose (sensor + actuator validated, §6 — waiting for evidence it's the
 residual bottleneck); any global/learned model (local linearity is
 near-perfect, global curvature is real — fit per gap, per arc, at compile

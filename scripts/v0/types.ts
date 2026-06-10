@@ -538,6 +538,7 @@ export type CompileStats = {
     /** R3 joint-model split (LR_AIM_JOINT; present only when the flag is
      *  on): rotate-probe failures and rotated-proposal gate outcomes. */
     enum_rot_probe_crash?: number;
+    enum_rot_recruited?: number;
     enum_rot_emitted?: number;
     enum_rot_gate_fail?: number;
   };

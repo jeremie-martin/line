@@ -137,8 +137,12 @@ export function aimEnumEnabled(): boolean {
  *  rotate engaged at 97% of joint argmaxes, ACHIEVED objective gain p50
  *  +0.035 / mean +0.062, positive 204/276, gains 3× larger where pitch
  *  clamps; additive error at argmax 0.041 px/f / 0.63° p50; rotated-winner
- *  break rate 1.8% (gates price it). Cost: 2 extra probes per gap (5 vs 3,
- *  base shared). */
+ *  break rate 1.8% (gates price it).
+ *  v1 (eager, always-on, ±4° extrapolated, no margin): REJECT Δ−7.9 —
+ *  rotation displaced 92% of pitch proposals, 37% gate-fail (the on-beat
+ *  landing gate, far stricter than sled survival), aimed commits −34%.
+ *  v2: lazy recruit at pitch exhaustion only, probed span, ≥15% margin,
+ *  one rotated slot that never displaces the top pitch proposal. */
 export function aimJointEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_JOINT === "1";
@@ -223,6 +227,7 @@ export type AimStats = {
    *  rotate-probe failures (lane falls back to pitch-only), and how rotated
    *  (dr≠0) proposals fare at the production gates vs emitted. */
   enum_rot_probe_crash?: number;
+  enum_rot_recruited?: number;
   enum_rot_emitted?: number;
   enum_rot_gate_fail?: number;
 };
@@ -245,7 +250,8 @@ const aimTotals = {
   enum_considered: 0, enum_no_target: 0,
   enum_probe_crash: 0, enum_on_target: 0, enum_gate_fail: 0, enum_emitted: 0,
   enumReadinessErrSum: 0, enumReadinessGainSum: 0, enumAchieved: 0,
-  enum_rot_probe_crash: 0, enum_rot_emitted: 0, enum_rot_gate_fail: 0,
+  enum_rot_probe_crash: 0, enum_rot_recruited: 0, enum_rot_emitted: 0,
+  enum_rot_gate_fail: 0,
 };
 
 /** Record where a lane extra ranked in the cost-sorted pool it entered, and
@@ -344,6 +350,7 @@ export function snapshotAimStats(): AimStats | null {
         ...(aimJointEnabled()
           ? {
             enum_rot_probe_crash: aimTotals.enum_rot_probe_crash,
+            enum_rot_recruited: aimTotals.enum_rot_recruited,
             enum_rot_emitted: aimTotals.enum_rot_emitted,
             enum_rot_gate_fail: aimTotals.enum_rot_gate_fail,
           }
@@ -812,12 +819,18 @@ const ENUM_MIN_SEP_DEG = 1.5;
 const ENUM_R_MIN = 0.1;
 /** Speed-target fit scale (px/f): exp(−|predicted − target|/scale). */
 const ENUM_SPEED_SCALE_PXF = 0.75;
-/** Joint-model rotate axis (LR_AIM_JOINT): sweep span ±4° (probes at ±3°,
- *  same ~1.6× extrapolation ratio as pitch ±6→±10), step 0.5°, and a
- *  rotate-axis separation gauge for "distinct arc shapes". */
-const ENUM_ROT_SPAN_DEG = 4;
+/** Joint-model rotate axis (LR_AIM_JOINT). Sweep stays INSIDE the probed
+ *  span (±3° — v1 extrapolated to ±4° and its argmaxes chased the edge).
+ *  Recruit only when the pitch sweep is exhausted: boundary-clamped, or
+ *  best pitch gain below NOGAIN (scout: gains are 3× larger at the pitch
+ *  boundary; v1's always-on rotation displaced pitch proposals and burned
+ *  evals on a 37% gate-fail rate). MARGIN: a rotated proposal must beat
+ *  the best pitch proposal by ≥15% predicted objective to pay its higher
+ *  gate risk. */
+const ENUM_ROT_SPAN_DEG = 3;
 const ENUM_ROT_STEP_DEG = 0.5;
-const ENUM_ROT_MIN_SEP_DEG = 1.0;
+const ENUM_ROT_MARGIN = 1.15;
+const ENUM_ROT_RECRUIT_NOGAIN = 1.05;
 // FALSIFIED SHAPES (2026-06-10, both vs aim-enum-r2-03 = 600.71):
 //  · elevation climb-defer to the legacy lane: removal = exact parity
 //    (Δ−0.1, CI [−0.6, 0.2]) — the speed-fit and impact-feasibility terms
@@ -889,23 +902,12 @@ export function makeEnumAimedCandidates(
   const speedModel = quadModel(lo.speed, baseOut.speed, hi.speed, P);
   const angleModel = quadModel(lo.comAngleDeg, baseOut.comAngleDeg, hi.comAngleDeg, P);
 
-  // R3 joint inner model (LR_AIM_JOINT): two more probes fit the rotate
-  // knob; the joint prediction is the ADDITIVE composition (certified
-  // proposer-grade — see aimJointEnabled). Probe failure falls back to the
-  // pitch-only model rather than killing the lane.
+  // R3 joint inner model (LR_AIM_JOINT): the rotate knob's models are
+  // recruited LAZILY further down, only where the pitch sweep is exhausted.
+  // The joint prediction is the ADDITIVE composition of per-knob quadratics
+  // (certified proposer-grade — see aimJointEnabled).
   let rotSpeedModel: ((d: number) => number) | null = null;
   let rotAngleModel: ((d: number) => number) | null = null;
-  if (aimJointEnabled()) {
-    const RP = AIM_ROT_PROBE_DEG;
-    const rLo = probeRide(engine, rotateArc(base.lines, -RP), F);
-    const rHi = rLo === null ? null : probeRide(engine, rotateArc(base.lines, RP), F);
-    if (rLo === null || rLo.comAngleDeg === null || rHi === null || rHi.comAngleDeg === null) {
-      aimTotals.enum_rot_probe_crash++;
-    } else {
-      rotSpeedModel = quadModel(rLo.speed, baseOut.speed, rHi.speed, RP);
-      rotAngleModel = quadModel(rLo.comAngleDeg, baseOut.comAngleDeg, rHi.comAngleDeg, RP);
-    }
-  }
   // Impact-feasibility component (roadmap R3, brought forward after enum
   // v2 parity: catchability alone barely differentiates 15° from 25°
   // arrivals, so nothing pushed the steep arrivals conversion needs).
@@ -937,26 +939,63 @@ export function makeEnumAimedCandidates(
   const deltaMax = aimDeltaMaxDeg();
   const obj0 = objective(0, 0);
   const scoredDeltas: { dp: number; dr: number; val: number }[] = [];
-  const rotDeltas: number[] = [0];
-  if (rotSpeedModel !== null) {
-    for (let dr = -ENUM_ROT_SPAN_DEG; dr <= ENUM_ROT_SPAN_DEG + 1e-9; dr += ENUM_ROT_STEP_DEG) {
-      if (Math.abs(dr) >= ENUM_ROT_STEP_DEG / 2) rotDeltas.push(dr);
-    }
-  }
-  for (const dr of rotDeltas) {
-    for (let dp = -deltaMax; dp <= deltaMax + 1e-9; dp += ENUM_STEP_DEG) {
-      if (Math.abs(dp) < AIM_MIN_DELTA_DEG && dr === 0) continue;
-      const val = objective(dp, dr);
-      if (val > obj0 + 1e-4) scoredDeltas.push({ dp, dr, val });
-    }
+  for (let dp = -deltaMax; dp <= deltaMax + 1e-9; dp += ENUM_STEP_DEG) {
+    if (Math.abs(dp) < AIM_MIN_DELTA_DEG) continue;
+    const val = objective(dp, 0);
+    if (val > obj0 + 1e-4) scoredDeltas.push({ dp, dr: 0, val });
   }
   scoredDeltas.sort((a, b) => b.val - a.val);
+
+  // R3 v2: recruit the rotate knob LAZILY, only where pitch is exhausted.
+  // v1 (eager, always-on, span ±4 extrapolated, no margin) was REJECTED
+  // Δ−7.9: rotated proposals displaced 92% of pitch proposals and failed
+  // the production gates 37% of the time (rotateArc moves the landing
+  // surface; the scout's 1.8% "break" rate measured sled survival, not the
+  // on-beat-landing gate), and aimed commits dropped 34%. What stands from
+  // the scout: gains concentrate 3× where pitch clamps. So: recruit only
+  // when the pitch sweep is boundary-clamped or empty-handed, sweep within
+  // the PROBED rotate span (no extrapolation), demand a clear predicted
+  // margin, and emit at most ONE rotated proposal in its own slot — the
+  // top pitch proposal is never displaced.
+  let rotInjected: { dp: number; dr: number; val: number } | null = null;
+  if (aimJointEnabled()) {
+    const pitchBest = scoredDeltas.length > 0 ? scoredDeltas[0] : null;
+    const pitchBestVal = pitchBest === null ? obj0 : pitchBest.val;
+    const pitchExhausted = pitchBest === null ||
+      Math.abs(pitchBest.dp) >= deltaMax - ENUM_STEP_DEG / 2 ||
+      pitchBestVal < obj0 * ENUM_ROT_RECRUIT_NOGAIN;
+    if (pitchExhausted) {
+      aimTotals.enum_rot_recruited++;
+      const RP = AIM_ROT_PROBE_DEG;
+      const rLo = probeRide(engine, rotateArc(base.lines, -RP), F);
+      const rHi = rLo === null ? null : probeRide(engine, rotateArc(base.lines, RP), F);
+      if (rLo === null || rLo.comAngleDeg === null || rHi === null || rHi.comAngleDeg === null) {
+        aimTotals.enum_rot_probe_crash++;
+      } else {
+        rotSpeedModel = quadModel(rLo.speed, baseOut.speed, rHi.speed, RP);
+        rotAngleModel = quadModel(rLo.comAngleDeg, baseOut.comAngleDeg, rHi.comAngleDeg, RP);
+        let best: { dp: number; dr: number; val: number } | null = null;
+        for (let dr = -ENUM_ROT_SPAN_DEG; dr <= ENUM_ROT_SPAN_DEG + 1e-9; dr += ENUM_ROT_STEP_DEG) {
+          if (Math.abs(dr) < ENUM_ROT_STEP_DEG / 2) continue;
+          for (let dp = -deltaMax; dp <= deltaMax + 1e-9; dp += ENUM_STEP_DEG) {
+            const val = objective(dp, dr);
+            if (best === null || val > best.val) best = { dp, dr, val };
+          }
+        }
+        if (best !== null && best.val > Math.max(obj0 + 1e-4, pitchBestVal * ENUM_ROT_MARGIN)) {
+          rotInjected = best;
+        }
+      }
+    }
+  }
+
   const chosen: { dp: number; dr: number; val: number }[] = [];
+  if (rotInjected !== null) chosen.push(rotInjected);
   for (const cand of scoredDeltas) {
     if (chosen.length >= ENUM_TOP_K) break;
-    const distinct = chosen.every((c) =>
-      Math.abs(c.dp - cand.dp) >= ENUM_MIN_SEP_DEG || Math.abs(c.dr - cand.dr) >= ENUM_ROT_MIN_SEP_DEG
-    );
+    // Rotated slot never blocks a pitch proposal (different arc family);
+    // among pitch proposals the R2 separation rule applies unchanged.
+    const distinct = chosen.every((c) => c.dr !== 0 || Math.abs(c.dp - cand.dp) >= ENUM_MIN_SEP_DEG);
     if (distinct) chosen.push(cand);
   }
   if (chosen.length === 0) {

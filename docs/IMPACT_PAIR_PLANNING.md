@@ -105,7 +105,9 @@ gaps; (2) impact bias shrinks at high asks; (3) arrival unfade flips positive;
   arrival-conditioned scoops still under-deliver, the next instrument is
   recording sled angle (PEG/TAIL vector) at landing in the probe/landings tier
   and checking it predicts conversion residue. Don't model pose until the
-  CoM-level design is measured.
+  CoM-level design is measured. UPDATE: `ARC_STATE_CONTROL.md` shows pose is
+  readable, has ~40° of authority from exit pitch, and is locally predictable
+  — sensor and actuator both exist when this question reopens.
 - Whether IMPACT_TEMPLATE/POST_TURN should be folded into the new lane or
   retired (each is ±2 today).
 - Two-gap JOINT optimization (sliding window) — only if attempt-0 pairing

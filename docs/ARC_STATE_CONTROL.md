@@ -1,7 +1,7 @@
 # Arc-state control — the aiming layer
 
-2026-06-10 · branch arc-rewrite · canonical baseline `aim-enum-r2-03`
-(600.71). Companion: `IMPACT_PAIR_PLANNING.md` (the impact diagnosis this
+2026-06-10 · branch arc-rewrite · canonical baseline `enum-defer-off-01`
+(600.57). Companion: `IMPACT_PAIR_PLANNING.md` (the impact diagnosis this
 work answered). Code: `scripts/v0/optimizer/aim.ts` (probes, models, lanes),
 `optimizer/node.ts` (pool wiring), `arc_placement.ts`
 (`buildArrivalScoopLines`).
@@ -153,8 +153,8 @@ determined by arc k's exit + ballistics and are probe-predictable without it.
 
 | lane | flag | what it does | promoted result |
 |---|---|---|---|
-| **enumerative proposer** (R2, the default launch lane) | `LR_AIM_ENUM=0` | fit speed+angle next-beat models from 3 shared probes; sweep the pitch span inside the models; objective = readiness × speed-fit × impact-feasibility; top-2 into the pool; defers to legacy on demanding-climb (>0.65) next gaps | 597.41→600.71, Δ+3.3, P(Δ≤0)=7.3%, positive every budget |
-| legacy speed-aim / angle-aim (V3/V4) | runs only under `LR_AIM_ENUM=0` (+ `LR_AIM_LAUNCH=0` ablates) | hand-tuned triggers the enum lane subsumed: speed solve; steep-arrival formula on impact-ask gaps | historically 586.53→592.57 (Δ+6.0) and (with scoop) →597.92 |
+| **enumerative proposer** (R2, the default launch lane) | `LR_AIM_ENUM=0` | fit speed+angle next-beat models from 3 shared probes; sweep the pitch span inside the models; objective = readiness × speed-fit × impact-feasibility; top-2 into the pool (k=2 = measured knee: k=1 −1.1, k=3 −4.5 REJECT) | 597.41→600.71, Δ+3.3, P(Δ≤0)=7.3%, positive every budget; climb-defer later removed at exact parity (Δ−0.1 → 600.57) |
+| legacy speed-aim / angle-aim (V3/V4) | runs only under `LR_AIM_ENUM=0` (+ `LR_AIM_LAUNCH=0` ablates); slated for DELETION after soak | hand-tuned triggers the enum lane subsumed: speed solve; steep-arrival formula on impact-ask gaps | historically 586.53→592.57 (Δ+6.0) and (with scoop) →597.92 |
 | arrival-conditioned scoop | `LR_AIM_IMPACT=0` | deterministic catch built from the ACTUAL arrival vector; turn sized to a next-beat hop, 8–40°; one eval per node, memoized (`_scoopCache`) | with angle-aim: 592.57→597.92, Δ+5.4; 50k +43 |
 
 Angle-aim + scoop shipped together originally (a steep arrival without its
@@ -211,7 +211,8 @@ From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knobs @300k), V1
 | V4 dive-scoop pair | 597.92 | aim-impact-v4-02 |
 | per-node scoop cache | 597.96 | aim-scoopcache-default-01 |
 | prefix-cache lane fix | 597.41 | prefix-cache-lanes-01 |
-| R2 enumerative proposer | **600.71 (current)** | aim-enum-r2-03 |
+| R2 enumerative proposer | 600.71 | aim-enum-r2-03 |
+| climb-defer removed (parity, simplification) | **600.57 (current)** | enum-defer-off-01 |
 
 Suite: 40 specs × 12 seeds, budgets 50k–300k weighted; α=0.10 via `npm run
 decide`. Impact still costs ~55 headline points (`npm run lab -- report
@@ -234,6 +235,15 @@ loss`) — the open prize.
   samples.
 - **Blanket steep arrivals** (`LR_IMPACT_ARRIVAL_FADE=0`): steep without a
   matched catch dilutes — superseded by the paired V4 design.
+- **Sigmoid-reshaped readiness** (`enum-sigmoid-01`, σ((r−0.55)/0.10)):
+  REJECT Δ−2.0, negative every budget. The "smooth veto" intuition double-
+  counts: the raw surface already vetoes its low end (0.2–0.4) and the
+  high-plateau gradient is the signal that pushes steep fast arrivals.
+  Don't flatten a fitted surface that ranking depends on.
+- **k≠2 proposals** (`enum-k1-01` Δ−1.1, mature budgets −2.1…−2.7;
+  `enum-k3-01` Δ−4.5 REJECT, 50k −43.8): the second proposal pays its eval
+  cost, the third starves small budgets. k=2 is the knee at current eval
+  prices — revisit only if eval cost or pool pricing changes.
 
 ## 7. Open problems (rough leverage order)
 

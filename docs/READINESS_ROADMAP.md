@@ -1,7 +1,7 @@
 # Readiness — roadmap
 
-2026-06-10 · branch arc-rewrite · canonical baseline `aim-enum-r2-03`
-(600.71; R2 promoted). Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer:
+2026-06-10 · branch arc-rewrite · canonical baseline `enum-defer-off-01`
+(600.57; R2 promoted, climb-defer removed at parity). Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer:
 concept, invariants, instance choices — this roadmap is its phase 2);
 `IMPACT_PAIR_PLANNING.md` (the impact diagnosis). This is a ROADMAP: rungs
 are falsifiable and most later content is contingent on earlier outcomes —
@@ -296,9 +296,9 @@ instance.
 | speed in catchability inputs | compare in R0 (cheap), PoC may stay (pose, comAngle) | R0 |
 | k (proposals per gap) | 1–3 | R2 |
 | per-knob enumeration grid | ~hundreds/knob, deterministic sweep | R2 (any dense grid works — model is smooth) |
-| readiness sharpening (Jérémie) | sigmoid-like saturation so 0.8 vs 0.9 barely differ and the factor acts as a smooth veto, not a proportional tax | quick A/B vs the promoted v3 |
-| k proposals (1 vs 2 vs 3) | 2 (constant ENUM_TOP_K) | k-sweep A/B |
-| climb-defer threshold / legacy removal | defer at elevation >0.65 (nearly dead in this suite: 12% defer, max authored ask ≈0.65); legacy lane retained as ablation only — DELETE after a soak period (no backward-compat by default, per Jérémie) | A/B removing the defer entirely |
+| readiness sharpening (Jérémie) | **FALSIFIED** (2026-06-10, `enum-sigmoid-01`): σ((r−0.55)/0.10) REJECT Δ−2.0, CI [−6.1, 0.6], negative every budget. Flattening the plateau discards the surface's high-end gradient — the signal that pushes steep fast arrivals (the v2→v3 lesson). The raw surface already vetoes at the low end (0.2–0.4) and its top-end slope is informative, not a tax. | quick A/B vs the promoted v3 — DONE |
+| k proposals (1 vs 2 vs 3) | **k=2 is the measured knee** (2026-06-10): k=1 Δ−1.1 (`enum-k1-01`; −2.1…−2.7 at every mature budget, P(Δ≤0) to 96% — the second proposal pays); k=3 Δ−4.5 REJECT (`enum-k3-01`; third proposal starves small budgets: 50k −43.8, validity dip). Stays a constant. | k-sweep A/B — DONE |
+| climb-defer threshold / legacy removal | **defer REMOVED at exact parity** (2026-06-10, `enum-defer-off-01`: Δ−0.1, CI [−0.6, 0.2]) — speed-fit + impact-feasibility already cover demanding climbs; the R1 elevation caveat needed no special handling. New canonical baseline `enum-defer-off-01` = 600.57. Legacy lane now reachable only via `LR_AIM_ENUM=0` (ablation) — DELETE flag + lane after a soak period (no backward-compat, per Jérémie). | A/B removing the defer entirely — DONE |
 
 ## 5. What would falsify the whole program
 

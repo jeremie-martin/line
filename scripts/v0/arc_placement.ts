@@ -152,6 +152,7 @@ const IMPACT_TEMPLATE_MIN_PRESSURE = 0.35;
 const IMPACT_TEMPLATE_LANE_MOD = 3;
 const IMPACT_TEMPLATE_MIN_ATTEMPT = 8;
 const IMPACT_TEMPLATE_MAX_TURN_DEG = 22;
+const IMPACT_TEMPLATE_FULL_TURN_DEG = 8;
 const IMPACT_TEMPLATE_TURN_SPAN_SALT = 9;
 const IMPACT_TEMPLATE_BUDGET_SALT = 13;
 const IMPACT_TEMPLATE_SCOOP_SEG_PX = 10;
@@ -1207,8 +1208,12 @@ function sampleContactCenteredLines(
         IMPACT_TEMPLATE_END_ANGLE_MIN_DEG,
       );
       const turnDeg = Math.min(contactAngleDeg - hopAngleDeg, IMPACT_TEMPLATE_MAX_TURN_DEG);
-      const scoopEndAngleDeg = contactAngleDeg - turnDeg;
-      if (turnDeg >= 8) {
+      const turnPressure = smoothstep(turnDeg / IMPACT_TEMPLATE_FULL_TURN_DEG);
+      const effectiveTurnDeg = turnDeg >= IMPACT_TEMPLATE_FULL_TURN_DEG
+        ? turnDeg
+        : turnDeg * Math.sqrt(turnPressure);
+      const scoopEndAngleDeg = contactAngleDeg - effectiveTurnDeg;
+      if (effectiveTurnDeg > 0) {
         lastGeometryWasImpactTemplate = true;
         const scoopLength = clamp(speed * impactTemplateScoopFrames(), 28, 120);
         const scoopSegs = clampInt(

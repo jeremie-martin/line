@@ -1383,3 +1383,25 @@ first post-rebase baseline.
   `300k +0.0`; validity unchanged (`1908/1920`, `300k 480/480`).
 - Status: rejected and reverted; the only measurable signal is a tiny 50k
   regression, so no wider state-penalty smoothing variant is worth trying.
+
+## impact-template-turn-pressure-01..02
+
+- Mechanism: impact-template minimum turn gate.
+- Continuous replacement: preserved full old template authority above the old
+  `8deg` minimum turn, but allowed below-threshold lanes to degrade smoothly by
+  scaling the scoop turn with turn pressure.
+- Variant 01 (`generated/golden-runs/impact-template-turn-pressure-01`): used
+  `turn * smoothstep(turn / 8)`. Decide against accepted baseline
+  `contract-branch-warmup-pressure-03`: `VERDICT: INCONCLUSIVE`; headline
+  `583.0 -> 583.5`, delta `+0.5`, CI `[-0.3, 1.3]`,
+  `P(delta<=0)=12.4%`; per-budget deltas `50k +0.0`, `100k +0.6`,
+  `200k +0.5`, `300k +0.5`; validity unchanged (`1908/1920`,
+  `300k 480/480`).
+- Variant 02 (`generated/golden-runs/impact-template-turn-pressure-02`): used
+  `turn * sqrt(smoothstep(turn / 8))`, giving near-threshold scoops more
+  authority while still preserving old full behavior above `8deg`. Decide:
+  `VERDICT: ACCEPT`; headline `583.0 -> 583.8`, delta `+0.8`,
+  CI `[-0.0, 1.7]`, `P(delta<=0)=2.6%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.2`, `200k +1.1`,
+  `300k +0.9`; validity unchanged.
+- Status: accepted; this archive becomes the next official comparison baseline.

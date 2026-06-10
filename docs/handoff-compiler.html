@@ -380,6 +380,9 @@
   .axis.air b { color: var(--air); }
   .axis.grain b { color: var(--grain); }
   .axis.contact b { color: var(--contact); }
+  .axis.elevation b { color: var(--good); }
+  .axis.amplitude b { color: var(--accent); }
+  .axis.impact b { color: var(--bad); }
 
   .score-list {
     display: grid;
@@ -534,14 +537,17 @@
     <p class="lede">
       The current v0 compiler is a deterministic prefix search. It turns a musical
       spec into a rideable Line Rider track by extending one contact gap at a time,
-      scoring every partial output, and returning the best track seen before the
-      simulated-physics budget runs out.
+      building a physics-validated candidate pool for each beat, and returning
+      the best track seen before the simulated-physics budget runs out. Arc
+      placement is now state-aware: local probe models predict where a knob
+      change sends the rider at the next beat, and only the best predicted
+      variants are added to the pool.
     </p>
   </div>
   <aside class="hero-card">
-    <div class="label"><!--BASELINE:budget_label-->25k-200k curve<!--/BASELINE--></div>
-    <div class="score"><span><!--BASELINE:headline_score-->552.48<!--/BASELINE--></span> / 1000</div>
-    <div class="note"><!--BASELINE:valid_note-->240 valid rows out of 240 at 200000.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
+    <div class="label"><!--BASELINE:budget_label-->50k-300k curve<!--/BASELINE--></div>
+    <div class="score"><span><!--BASELINE:headline_score-->600.91<!--/BASELINE--></span> / 1000</div>
+    <div class="note"><!--BASELINE:valid_note-->Canonical archive <code>scoop-off-price-01</code>, weighted 50k-300k headline.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
   </aside>
 </section>
 
@@ -555,9 +561,11 @@
         <h2>The compiler in one page</h2>
         <p class="sub">
           Handoff compiles from authored intent to physics-validated geometry.
-          The policy is fixed and deterministic for a given spec and seed; the
-          budget only decides how much of that deterministic search sequence is
-          explored.
+          The policy is deterministic for a given spec, seed, and budget; the
+          budget decides how much of that deterministic search sequence is
+          explored. Candidate pools contain ordinary samples plus model-proposed
+          arc variants; every candidate that can be committed has still been
+          simulated and measured by lr-core.
         </p>
       </div>
     </div>
@@ -579,9 +587,9 @@
         <div class="desc">A node is a partial track at a gap boundary, not a whole regenerated track.</div>
       </div>
       <div class="metric">
-        <div class="value">best-so-far</div>
-        <div class="name">return value</div>
-        <div class="desc">Every complete or partial output is ranked by the same report comparator.</div>
+        <div class="value">one aim</div>
+        <div class="name">arc proposer</div>
+        <div class="desc">Knob deltas are scored inside local models; top variants then face exact validation.</div>
       </div>
     </div>
   </section>
@@ -605,7 +613,7 @@
         <div class="step-title">Read the spec</div>
         <div class="step-body">
           Validate the spec, convert contact times to frames, split the timeline
-          into gaps, and samples each gap's axis targets (from the curves) with the seeded RNG.
+          into gaps, and sample each gap's axis targets from the authored curves with the seeded RNG.
         </div>
       </div>
       <div class="flow-row">
@@ -628,10 +636,11 @@
       </div>
       <div class="flow-row">
         <div class="step-no">4</div>
-        <div class="step-title">Validate physics</div>
+        <div class="step-title">Propose and validate physics</div>
         <div class="step-body">
-          Candidate catches are not guessed into the output. Each survivor is
-          placed into the lr-core engine and measured through detector reports.
+          Sampled catches and aimed variants enter the same pool. The aimed
+          variants are chosen by a model-only readiness objective, but each one
+          is placed into lr-core and measured before the search can select it.
         </div>
       </div>
       <div class="flow-row">
@@ -648,7 +657,10 @@
     <div class="axis-strip" aria-label="Compiler style axes">
       <div class="axis speed"><b>speed</b><span>Authored pace mapped to raw px/frame.</span></div>
       <div class="axis air"><b>air</b><span>How airborne or grounded the ride should be.</span></div>
-      <div class="axis grain"><b>grain</b><span>How large and coarse the generated catch geometry feels.</span></div>
+      <div class="axis elevation"><b>elevation</b><span>Relative climb or plunge over the gap.</span></div>
+      <div class="axis amplitude"><b>amplitude</b><span>How high the airborne bow rises above its chord.</span></div>
+      <div class="axis impact"><b>impact</b><span>Per-beat redirection intensity at contact.</span></div>
+      <div class="axis grain"><b>grain</b><span>Measured texture; no longer an authored target axis.</span></div>
     </div>
   </section>
 
@@ -683,9 +695,9 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
           target <em>feel</em> for the ride between them. The compiler draws track
           so the rider lands on every beat and the ride between beats matches the
           target. The hard part: it is one continuous ride, so every catch you
-          draw changes the state the rider carries into the next beat. Nothing is
-          independent &mdash; a locally perfect catch that leaves a bad exit state
-          can make the next beat impossible.
+          draw changes the speed and direction the rider carries into the next
+          beat. Nothing is independent &mdash; a locally perfect catch that leaves a
+          bad arrival state can make the next beat weak or impossible.
         </p>
       </div>
     </div>
@@ -723,24 +735,29 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
       <text x="320" y="144" font-family="serif" font-size="13" fill="#5d564a">one gap</text>
       <!-- feel chips above one beat -->
       <g font-family="monospace" font-size="10">
-        <rect x="380" y="24" width="58" height="18" fill="#faf4e6" stroke="#3d3a78"/><text x="388" y="37" fill="#3d3a78">speed</text>
-        <rect x="442" y="24" width="44" height="18" fill="#faf4e6" stroke="#8a9a78"/><text x="450" y="37" fill="#6f7d5e">air</text>
-        <rect x="490" y="24" width="52" height="18" fill="#faf4e6" stroke="#b58326"/><text x="498" y="37" fill="#8a6516">grain</text>
-        <line x1="461" y1="42" x2="461" y2="158" stroke="#cdbfa3" stroke-width="1" stroke-dasharray="2 3"/>
-        <text x="380" y="60" font-family="serif" font-size="12" fill="#5d564a">the target "feel" sampled for this gap</text>
+        <rect x="350" y="20" width="58" height="18" fill="#faf4e6" stroke="#3d3a78"/><text x="358" y="33" fill="#3d3a78">speed</text>
+        <rect x="412" y="20" width="42" height="18" fill="#faf4e6" stroke="#8a9a78"/><text x="421" y="33" fill="#6f7d5e">air</text>
+        <rect x="458" y="20" width="76" height="18" fill="#faf4e6" stroke="#3d6b3a"/><text x="466" y="33" fill="#3d6b3a">elevation</text>
+        <rect x="538" y="20" width="78" height="18" fill="#faf4e6" stroke="#9b3a2a"/><text x="546" y="33" fill="#9b3a2a">amplitude</text>
+        <rect x="620" y="20" width="58" height="18" fill="#faf4e6" stroke="#9b3a2a"/><text x="628" y="33" fill="#9b3a2a">impact</text>
+        <line x1="514" y1="38" x2="514" y2="158" stroke="#cdbfa3" stroke-width="1" stroke-dasharray="2 3"/>
+        <text x="350" y="56" font-family="serif" font-size="12" fill="#5d564a">the target feel sampled for this gap and beat</text>
       </g>
     </svg>
 
     <div class="axis-strip">
       <div class="axis speed"><b>speed</b><span>mean pace over the gap. Set by where the track sends the rider vertically &mdash; downhill gains speed, climbing sheds it.</span></div>
       <div class="axis air"><b>air</b><span>fraction of the gap the rider is off the ground. High = lofted hops; low = glued, riding along the track.</span></div>
-      <div class="axis grain"><b>grain</b><span>texture of the catch &mdash; the median length of the lines that make it. Short lines feel busy; long lines feel smooth.</span></div>
+      <div class="axis elevation"><b>elevation</b><span>net climb or plunge, normalized to what the current speed can realistically support.</span></div>
+      <div class="axis amplitude"><b>amplitude</b><span>height of the trajectory bow between takeoff and landing; separate from how long the rider is airborne.</span></div>
+      <div class="axis impact"><b>impact</b><span>per-beat landing intensity: how much the catch redirects the center-of-mass velocity.</span></div>
+      <div class="axis grain"><b>grain</b><span>legacy measured texture, retained for reports but not authored as an active target.</span></div>
     </div>
     <p class="sub" style="margin-top:12px">
       Score for a finished, valid track is essentially <code>1000 &middot; exp(-error / tolerance)</code>,
-      where the error is how far the achieved speed/air/grain land from their targets, pooled over every gap.
-      So once a track lands all its beats cleanly, <strong>all that is left is precision</strong>: how close the
-      feel comes to the target, gap by gap.
+      where the error is how far the achieved authored axes and contact impacts land from their targets,
+      pooled over the track. So once a track lands all its beats cleanly,
+      <strong>all that is left is precision</strong>: how close the feel comes to the target, gap by gap.
     </p>
   </section>
 
@@ -786,66 +803,142 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
     <div class="section-head">
       <div class="eyebrow">One catch</div>
       <div>
-        <h2>How a single landing is built</h2>
+        <h2>How arc-state aiming works</h2>
         <p class="sub">
-          A candidate is not a line picked from the canvas. The compiler predicts
-          where the rider will be at the beat, samples an arc <em>shape</em>,
-          slides the whole arc so one chosen point on it sits exactly under the
-          rider at the beat frame, then asks the real physics engine whether it
-          truly lands on time and survives. Only survivors get measured.
+          The compiler still begins with ordinary sampled catches. The aiming
+          layer then takes the best measured catch in that pool, treats small arc
+          edits as knobs, learns a local response model from a few metered probe
+          rides, scores many virtual edits cheaply, and sends only the best
+          proposals back through exact physics validation.
         </p>
       </div>
     </div>
 
+    <svg viewBox="0 0 920 230" role="img" aria-label="Arc-state aiming pipeline: sample, probe, model, sweep, exact validation, rank"
+         style="display:block;width:100%;height:auto;border:1px solid #cdbfa3;border-radius:4px;background:#faf4e6;margin-bottom:16px">
+      <defs>
+        <marker id="arrowAim" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#928873"></path>
+        </marker>
+      </defs>
+      <g font-family="monospace" font-size="11" fill="#1f1a14">
+        <rect x="28" y="42" width="128" height="64" fill="#faf4e6" stroke="#cdbfa3"></rect>
+        <text x="46" y="66">sample</text><text x="46" y="84">candidate pool</text>
+
+        <rect x="194" y="42" width="128" height="64" fill="#faf4e6" stroke="#cdbfa3"></rect>
+        <text x="212" y="66">choose lowest</text><text x="212" y="84">measured cost</text>
+
+        <rect x="360" y="24" width="148" height="100" fill="#faf4e6" stroke="#1e5a6e" stroke-width="1.5"></rect>
+        <text x="382" y="50">probe knobs</text>
+        <text x="382" y="70">pitch: base, +/-6</text>
+        <text x="382" y="88">rotate: +/-3</text>
+        <text x="382" y="106">only when needed</text>
+
+        <rect x="546" y="42" width="132" height="64" fill="#faf4e6" stroke="#cdbfa3"></rect>
+        <text x="566" y="66">fit local</text><text x="566" y="84">prediction</text>
+
+        <rect x="716" y="24" width="160" height="100" fill="#faf4e6" stroke="#9b3a2a" stroke-width="1.5"></rect>
+        <text x="736" y="50">virtual sweep</text>
+        <text x="736" y="70">score many edits</text>
+        <text x="736" y="88">emit top-k</text>
+        <text x="736" y="106">then exact sim</text>
+
+        <path d="M156 74 H194" stroke="#928873" marker-end="url(#arrowAim)"></path>
+        <path d="M322 74 H360" stroke="#928873" marker-end="url(#arrowAim)"></path>
+        <path d="M508 74 H546" stroke="#928873" marker-end="url(#arrowAim)"></path>
+        <path d="M678 74 H716" stroke="#928873" marker-end="url(#arrowAim)"></path>
+
+        <path d="M796 126 V168 H92 V110" fill="none" stroke="#928873" stroke-dasharray="4 4" marker-end="url(#arrowAim)"></path>
+        <text x="300" y="188" fill="#5d564a">validated proposals re-enter the same measured candidate pool</text>
+      </g>
+    </svg>
+
     <div class="flow">
       <div class="flow-row">
         <div class="step-no">1</div>
-        <div class="step-title">Predict the rider</div>
+        <div class="step-title">Build a real pool first</div>
         <div class="step-body">
-          Run the prefix forward to the beat frame <em>without</em> any new track.
-          Record the rider's velocity and pick the lowest point of the sled as the
-          spot the catch must meet.
+          Normal sampling proposes catch geometry from the current prefix state:
+          length, segment count, contact point, angles, curvature, and any sampler
+          templates. Each sampled catch is pre-cleared, simulated, gate-checked,
+          and measured before it can enter the sorted pool.
         </div>
       </div>
       <div class="flow-row">
         <div class="step-no">2</div>
-        <div class="step-title">Sample an arc shape</div>
+        <div class="step-title">Pick one base catch</div>
         <div class="step-body">
-          Pick length, segment count, entry and exit angles, and curvature. Grain
-          steers segment count; air steers how grounded the ride-in and ride-out
-          are; speed steers whether the exit climbs (sheds speed) or dives (gains
-          it). At this point the arc is still abstract geometry anchored at the
-          origin.
+          The current proposer aims the lowest-cost sampled survivor, not every
+          sample. That keeps probe work bounded and preserves pool diversity:
+          ordinary samples, reuse, brake/support streams, and templates still
+          compete against the aimed proposals.
         </div>
       </div>
       <div class="flow-row">
         <div class="step-no">3</div>
-        <div class="step-title">Anchor it at the impact point</div>
+        <div class="step-title">Probe knob responses</div>
         <div class="step-body">
-          Choose a point along the arc to be the contact, then translate the whole
-          arc so that point lands under the predicted sled at the beat frame.
-          Moving the impact point changes the catch's shape, clearance, and which
-          parts could collide with the rider before the beat.
+          Exit pitch is always probed from three shared rides: base, -6 degrees,
+          and +6 degrees. Whole-arc rotation is a second knob, but it is recruited
+          lazily: only when the pitch sweep is exhausted or nearly flat, and only
+          inside its probed +/-3 degree span.
         </div>
       </div>
       <div class="flow-row">
         <div class="step-no">4</div>
-        <div class="step-title">Pre-clear, then validate with physics</div>
+        <div class="step-title">Fit small local models</div>
         <div class="step-body">
-          Reject candidates whose lines would hit the rider <em>before</em> the
-          beat. Then add the lines to lr-core and read the detector: the fit is
-          kept only if the rider survives, an owned landing fires within
-          &plusmn;1 frame of the beat, and no stray landing happens first. Survivors
-          are then measured for speed, air, and grain.
+          Each probe ride yields the whole rider-state vector at the next beat:
+          speed, CoM velocity angle, position, and sled pose. The generic shape
+          is a joint model over arc knobs; today's shipped instance fits speed
+          and CoM angle with per-knob quadratics, then additively composes them
+          when lazy rotation is active.
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="step-no">5</div>
+        <div class="step-title">Sweep virtual edits</div>
+        <div class="step-body">
+          The code scans many pitch deltas at 0.25 degree resolution, and scans
+          pitch x rotation when rotation was recruited. Those virtual edits are
+          cheap model evaluations, not simulations. The current objective is
+          readiness times speed-target fit times impact-feasibility.
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="step-no">6</div>
+        <div class="step-title">Emit, then measure</div>
+        <div class="step-body">
+          In the current implementation, at most two proposals are emitted. A
+          rotated proposal must beat the best pitch proposal by at least 15%
+          predicted objective and gets one non-displacing slot. Every emitted
+          proposal is then tried through
+          <code>tryCandidateLines</code>; ranking and commits consume only those
+          exact measured results.
         </div>
       </div>
     </div>
 
-    <div class="note warn" style="margin-top:16px">
-      The impact point is a single shipped heuristic, not a geometric law. It is
-      one of the reasons the generator can only make a limited family of catch
-      shapes &mdash; a real lever (see <em>the frontier today</em>) is a smarter,
-      per-gap choice of shape and impact rather than translating one family.
+    <div class="formula" style="margin-top:16px">predicted_arrival(dp, dr) =
+  pitch_model(dp)
+  + rotate_model(dr) - base_state     <span style="color:#5d564a"># only when rotate is recruited</span>
+
+proposal_score(dp, dr) =
+  max(r_min, readiness(speed_hat, angle_hat))
+  &times; speed_target_fit(speed_hat)
+  &times; impact_feasibility(speed_hat, angle_hat, impact_ask)
+
+committed_score =
+  exact gates + exact measured axes + search ranking</div>
+
+    <div class="note" style="margin-top:16px">
+      The generic idea is broader than the current code: learn a cheap joint
+      predictor that can score many edits before paying for simulation, then
+      emit the top-k proposals into exact validation. The current instance uses
+      k=2, predicts next-beat speed and CoM angle, and composes per-knob fits
+      additively; current-gap axis values are still measured exactly after a
+      proposal is emitted. Future work can add richer outputs, richer probes,
+      or new knobs without changing the proposer-versus-judge boundary.
     </div>
   </section>
 
@@ -954,44 +1047,49 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
       <div>
         <h2>Which three catches survive</h2>
         <p class="sub">
-          For each gap the compiler samples a pool of candidates, scores them, and
-          branches on the best three. Lower score is better. Four of the five
-          terms are about <em>this</em> beat or the immediate exit state; only one
-          looks forward, and only by a single beat.
+          For each gap the compiler builds a candidate pool, then branches on the
+          best measured candidates. There are two separate scoring moments: a
+          model-only objective that decides which aimed variants are worth
+          simulating, and the search ranker that decides among already validated
+          candidates.
         </p>
       </div>
     </div>
 
-    <div class="formula">score =
-  candidate.cost          <span style="color:#5d564a"># local fit: how close speed / air / grain land this gap</span>
-  + future scarcity       <span style="color:#5d564a"># peek ONE beat ahead: does it still have catches? (dead end = heavy penalty)</span>
-  + preview cost          <span style="color:#5d564a"># how cheap the best next catch looked, one beat ahead</span>
-  + exit-state penalty    <span style="color:#5d564a"># punish leaving the rider too steep / too vertical</span>
-  + overshoot penalty     <span style="color:#5d564a"># punish speed/air that lands OVER target (anti-creep)</span></div>
+    <div class="formula">candidate pool =
+  sampled catches
+  + aimed proposals            <span style="color:#5d564a"># at most 2 model-selected edits, exact-validated</span>
+  + sampler templates          <span style="color:#5d564a"># impact-shaped geometry inside the normal sample stream</span>
+  + reuse / brake / startup / axis-quality streams
+                               <span style="color:#5d564a"># deterministic extras, all exact-validated</span>
+
+branch ranking =
+  true-score forward eval      <span style="color:#5d564a"># mature budgets: charged rollout, rank by metric value reached</span>
+  or local measured score      <span style="color:#5d564a"># local cost + preview scarcity + state/overshoot penalties</span></div>
 
     <div class="grid-3" style="margin-top:16px">
       <div class="panel">
-        <h3>Local fit</h3>
-        <p>The squared distance from this gap's speed, air, and grain targets, weighted equally. This is the bulk of the signal.</p>
-        <div class="tags"><span class="tag">pool 8</span><span class="tag">branch 3</span></div>
+        <h3>Proposer score</h3>
+        <p>The enum lane scores a dense grid of virtual deltas without simulating them. That score only decides which variants enter the pool; it never commits a track.</p>
+        <div class="tags"><span class="tag">model-only</span><span class="tag">top-k, k=2 now</span></div>
       </div>
       <div class="panel">
-        <h3>One-beat preview</h3>
-        <p>Tentatively commit the catch, look one beat ahead, and check how many viable catches survive there and how cheap the best one is. A dead end is heavily penalized; few survivors a little. <strong>This is the only forward-looking term.</strong></p>
-        <div class="tags"><span class="tag">horizon 1</span></div>
+        <h3>Exact candidate rank</h3>
+        <p>Once a candidate is in the pool, ranking uses measured results: gate pass, achieved axes, exit state, and charged forward evaluation where enabled. Prediction error is telemetry, not authority.</p>
+        <div class="tags"><span class="tag">measured</span><span class="tag">charged</span></div>
       </div>
       <div class="panel">
-        <h3>Exit state &amp; overshoot</h3>
-        <p>Penalize an exit that is too vertical or too steep, and penalize speed/air that overshoots target (catches are net-downhill, so the rider tends to creep faster over time). Selection-only &mdash; it never changes the geometry, only which candidate wins.</p>
+        <h3>Selection boundary</h3>
+        <p>Readiness shapes generation, not the judge. A bad readiness prediction can waste one candidate evaluation, but it cannot bypass physics gates or outrank a measured better option by itself.</p>
       </div>
     </div>
 
     <div class="note" style="margin-top:16px">
-      The single-beat horizon is exactly the spot where ranking is blind to the
-      long run: a catch that looks great now and one beat ahead can still steer
-      the rider into a state that quietly degrades quality three beats later.
-      Widening this horizon into a real multi-gap objective is the most promising
-      open direction.
+      This separation is deliberate. The readiness objective is allowed to be
+      aggressive because it is only a proposer; search still chooses from exact
+      measurements. Moving readiness into the judge, or reducing the random
+      sampler because aimed candidates are winning, is a later separately gated
+      question.
     </div>
   </section>
 
@@ -1001,25 +1099,29 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
       <div>
         <h2>Options that lose gracefully</h2>
         <p class="sub">
-          Besides the normal pool, the compiler offers a few special catches.
-          They are all fully physics-validated and simply lose the ranking when
-          they do not help &mdash; so they can only ever add a better option,
-          never remove a good one.
+          Besides normal random samples, the compiler offers a few deterministic
+          ways to enrich the pool. They all go through the same gates and measured
+          ranking. The key distinction: sampler templates are geometry families;
+          the enumerative proposer is the only aiming mechanism.
         </p>
       </div>
     </div>
-    <div class="grid-3">
+    <div class="grid-4">
       <div class="panel">
-        <h3>Catch reuse</h3>
-        <p>On a steady rhythm, a recent catch translated to the current sled frame can land again &mdash; a cheap way to keep a periodic ride consistent.</p>
+        <h3>Enumerative proposer</h3>
+        <p>The production aimer scores virtual pitch and lazy-rotation edits, emits at most two proposals, and never bypasses exact validation. The old speed, angle, rotate-fallback, and climb-defer triggers are deleted.</p>
       </div>
       <div class="panel">
-        <h3>Brake catches</h3>
-        <p>When the rider is running over target speed, uphill-entry catches that bleed speed are offered. On specs that are not creeping they simply lose.</p>
+        <h3>Impact templates</h3>
+        <p>Impact-pressure gaps can add shaped catch geometry inside the sampler: impact curvature, post-turn shaping, arrival pressure, and the SLAM-HOP template. These are geometry families, not second aim lanes.</p>
       </div>
       <div class="panel">
-        <h3>Air-support stream</h3>
-        <p>For low-air (glued) gaps, a longer, shallower catch is offered to keep the rider riding rather than hopping. Validated through the same gates.</p>
+        <h3>Pool extras</h3>
+        <p>Recent-catch reuse, uphill brake catches, startup catches, and axis-quality streams can add candidates. Each is deterministic, memoized where useful, and discarded unless the measured ranker wants it.</p>
+      </div>
+      <div class="panel">
+        <h3>Repair and tails</h3>
+        <p>Tail completion can greedily finish promising near-complete prefixes. Mature-budget repair restarts from weak gaps with fresh deterministic seeds. Polish is an optional clone-test mode, not part of the default path.</p>
       </div>
     </div>
   </section>
@@ -1053,10 +1155,10 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
       </div>
     </div>
     <p class="sub" style="margin-top:14px">
-      Two speculative finishers also run: <b>tail completion</b> greedily finishes
-      a near-complete clean prefix early, and <b>polish</b> clone-tests small
-      tweaks of a finished track &mdash; both only ever adopted on a strict
-      register improvement.
+      Tail completion can greedily finish a near-complete clean prefix early.
+      At mature budgets, default repair may restart the real search from a weak
+      committed gap with a fresh deterministic seed; the register adopts only
+      strict improvements. Polish is available as an optional clone-test mode.
     </p>
   </section>
 
@@ -1076,7 +1178,7 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
     <div class="grid-2">
       <div class="panel">
         <h3>More budget = more tree</h3>
-        <p>A bigger budget simply walks more of the same deterministic tree: more candidates per gap early on, more branches explored, more of the frontier revisited. The policy is fixed; the budget is just how far it gets to look.</p>
+        <p>A bigger budget walks farther through the deterministic tree and enables mature-budget work such as richer quality pools and repair. It changes how much work is affordable, not the truth criterion: physics validation still decides what can be committed.</p>
       </div>
       <div class="panel">
         <h3>Independent per budget</h3>
@@ -1091,27 +1193,26 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
       <div>
         <h2>Where extra budget stops converting</h2>
         <p class="sub">
-          Past a moderate budget the score plateaus, and the reason is specific
-          and measured: the wall is candidate <strong>generation</strong>, not the
-          search. More candidates, more start options, wider branching, and more
-          search diversity were each tried at high budget and were all neutral
-          &mdash; the search is already finding the best catches the current
-          generator can make, and those are not good enough.
+          The current frontier is not "try more random arcs" and it is not
+          reviving old special-case lanes. The compiler has one aiming mechanism:
+          the enumerative proposer. New capability belongs in the inner model,
+          readiness/objective terms, or sampler templates, then exact validation
+          and measured ranking decide whether it survives.
         </p>
       </div>
     </div>
     <div class="grid-3">
       <div class="panel">
-        <h3>Air is the limiting axis</h3>
-        <p>Across specs, the dominant error is the air axis &mdash; the rider carries too much air on glued targets, and the generator cannot produce lower-air catches that still land on-beat. Halving the air error alone would move the headline most of the way to its target.</p>
+        <h3>One proposer remains</h3>
+        <p>The promoted proposer fits next-beat speed and angle from shared probe rides, enumerates knob deltas in the model, and optimizes readiness times target fit. The current canonical weighted headline is <code>scoop-off-price-01</code> at 600.91.</p>
       </div>
       <div class="panel">
-        <h3>Ranking sees one beat</h3>
-        <p>The only forward-looking term is the one-beat preview, so ranking is mostly local. A deeper, multi-gap objective &mdash; "does this catch lead toward a state compatible with the rest of the track?" &mdash; is an open lever, and a naturally budget-aware one.</p>
+        <h3>Model growth path</h3>
+        <p>The current inner model composes exit pitch with lazily recruited whole-arc rotation. Future knobs or outputs should extend that model shape instead of adding trigger lanes.</p>
       </div>
       <div class="panel">
-        <h3>So: generation, then ranking</h3>
-        <p>A deeper lookahead only helps if the candidate pool <em>contains</em> better catches to choose among. The two levers compound: richer catch generation (especially for air), and a forward-looking objective to choose among the richer pool.</p>
+        <h3>Selection is a later gate</h3>
+        <p>Readiness remains a proposer signal. Shrinking the random sampler or adding readiness to ranking waits for commit and pool-rank telemetry; prior attempts to replace guided samples or widen rollout visibility were negative.</p>
       </div>
     </div>
   </section>
@@ -1166,7 +1267,7 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
     <div class="grid-3">
       <div class="panel">
         <h3>Charged work</h3>
-        <p>Detector extractions, candidate validation, future previews, polish probes, and metered rider-state reads all contribute when they advance simulation.</p>
+        <p>Detector extractions, candidate validation, future previews, repair/polish probes, and metered rider-state reads all contribute when they advance simulation.</p>
       </div>
       <div class="panel">
         <h3>Uncharged work</h3>
@@ -1174,7 +1275,7 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
       </div>
       <div class="panel">
         <h3>Policy boundary</h3>
-        <p>Budget is a stop condition. Candidate counts, preview depth, scoring weights, and start search policy are fixed constants.</p>
+        <p>Budget is the work unit. Breadth, forward evaluation, and repair have deterministic budget/maturity gates, but candidate truth is always exact simulation and measured reports.</p>
       </div>
     </div>
   </section>
@@ -1187,7 +1288,9 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
         <p class="sub">
           The default benchmark scores the compiler across a grid of simulated
           physics budgets, so optimizations are judged by the shape of the curve
-          rather than a single 50k point.
+          rather than a single 50k point. The headline card uses the canonical
+          weighted curve score; the table below shows the embedded per-budget
+          row snapshot.
         </p>
       </div>
     </div>
@@ -1196,36 +1299,55 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
 npm run golden -- --jobs=4 --compiler=handoff
 
 <!--BASELINE:score_block-->
- 25000  score   11.61  valid 95/240  changed  0  improved  0  plateau  0  regress  0
- 50000  score  508.86  valid 235/240  changed 234  improved 222  plateau  6  regress 12
-100000  score  576.56  valid 239/240  changed 211  improved 171  plateau 29  regress 40
-150000  score  589.87  valid 240/240  changed 123  improved 114  plateau 117  regress  9
-200000  score  590.93  valid 240/240  changed 81  improved 78  plateau 159  regress  3<!--/BASELINE--></pre>
+ 50000  score  519.01  valid 475/480  changed  0  improved  0  plateau  0  regress  0
+100000  score  595.43  valid 480/480  changed 480  improved 449  plateau  0  regress 31
+200000  score  607.03  valid 480/480  changed 480  improved 346  plateau  0  regress 134
+300000  score  611.87  valid 480/480  changed 431  improved 290  plateau 49  regress 141<!--/BASELINE--></pre>
 
     <div class="panel" style="margin-top:16px">
       <h3>Spec scores at the largest budget</h3>
       <div class="score-list" aria-label="Spec scores at largest curve budget">
         <!--BASELINE:spec_rows-->
-        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:67.1%"></span></div><span class="num">670.71</span></div>
-        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:65.8%"></span></div><span class="num">658.06</span></div>
-        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:63.6%"></span></div><span class="num">636.22</span></div>
-        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:63.5%"></span></div><span class="num">635.48</span></div>
-        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:63.4%"></span></div><span class="num">633.72</span></div>
-        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:63.0%"></span></div><span class="num">629.51</span></div>
-        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:62.0%"></span></div><span class="num">619.69</span></div>
-        <div class="score-row"><span>drums_swell</span><div class="bar"><span style="width:61.7%"></span></div><span class="num">617.32</span></div>
-        <div class="score-row"><span>drums_breath</span><div class="bar"><span style="width:60.8%"></span></div><span class="num">607.73</span></div>
-        <div class="score-row"><span>opening_burst</span><div class="bar"><span style="width:60.1%"></span></div><span class="num">601.19</span></div>
-        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:60.1%"></span></div><span class="num">601.15</span></div>
-        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:59.9%"></span></div><span class="num">598.94</span></div>
-        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:59.0%"></span></div><span class="num">589.92</span></div>
-        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:57.3%"></span></div><span class="num">573.09</span></div>
-        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:55.9%"></span></div><span class="num">558.75</span></div>
-        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:54.7%"></span></div><span class="num">546.56</span></div>
-        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:54.5%"></span></div><span class="num">544.75</span></div>
-        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:54.0%"></span></div><span class="num">539.99</span></div>
-        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:53.2%"></span></div><span class="num">532.07</span></div>
-        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:46.6%"></span></div><span class="num">465.59</span></div>
+        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:72.6%"></span></div><span class="num">726.46</span></div>
+        <div class="score-row"><span>float_bounds</span><div class="bar"><span style="width:71.7%"></span></div><span class="num">717.34</span></div>
+        <div class="score-row"><span>pop_train</span><div class="bar"><span style="width:71.0%"></span></div><span class="num">709.81</span></div>
+        <div class="score-row"><span>big_air_ramp</span><div class="bar"><span style="width:69.0%"></span></div><span class="num">690.24</span></div>
+        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:68.2%"></span></div><span class="num">682.46</span></div>
+        <div class="score-row"><span>leap_cadence</span><div class="bar"><span style="width:68.1%"></span></div><span class="num">681.14</span></div>
+        <div class="score-row"><span>glide_stairs</span><div class="bar"><span style="width:66.1%"></span></div><span class="num">660.81</span></div>
+        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:65.8%"></span></div><span class="num">658.31</span></div>
+        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:65.7%"></span></div><span class="num">657.07</span></div>
+        <div class="score-row"><span>soar_settle</span><div class="bar"><span style="width:65.0%"></span></div><span class="num">650.28</span></div>
+        <div class="score-row"><span>mixed_grade</span><div class="bar"><span style="width:64.9%"></span></div><span class="num">649.36</span></div>
+        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:64.7%"></span></div><span class="num">647.21</span></div>
+        <div class="score-row"><span>opening_burst</span><div class="bar"><span style="width:64.6%"></span></div><span class="num">646.28</span></div>
+        <div class="score-row"><span>drums_breath</span><div class="bar"><span style="width:64.4%"></span></div><span class="num">644.40</span></div>
+        <div class="score-row"><span>valley_bounce</span><div class="bar"><span style="width:64.1%"></span></div><span class="num">640.89</span></div>
+        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:63.9%"></span></div><span class="num">639.29</span></div>
+        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:62.4%"></span></div><span class="num">624.31</span></div>
+        <div class="score-row"><span>drums_swell</span><div class="bar"><span style="width:62.4%"></span></div><span class="num">623.84</span></div>
+        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:62.0%"></span></div><span class="num">619.97</span></div>
+        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:62.0%"></span></div><span class="num">619.64</span></div>
+        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:61.9%"></span></div><span class="num">619.17</span></div>
+        <div class="score-row"><span>canyon_steps</span><div class="bar"><span style="width:61.3%"></span></div><span class="num">612.79</span></div>
+        <div class="score-row"><span>ridge_pulse</span><div class="bar"><span style="width:60.5%"></span></div><span class="num">604.57</span></div>
+        <div class="score-row"><span>swoop_dive</span><div class="bar"><span style="width:60.1%"></span></div><span class="num">600.96</span></div>
+        <div class="score-row"><span>rolling_hills</span><div class="bar"><span style="width:59.5%"></span></div><span class="num">595.25</span></div>
+        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:59.4%"></span></div><span class="num">594.44</span></div>
+        <div class="score-row"><span>switchback_pop</span><div class="bar"><span style="width:58.9%"></span></div><span class="num">588.84</span></div>
+        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:57.9%"></span></div><span class="num">579.14</span></div>
+        <div class="score-row"><span>syncopated_lift</span><div class="bar"><span style="width:57.7%"></span></div><span class="num">577.49</span></div>
+        <div class="score-row"><span>climb_terrace</span><div class="bar"><span style="width:57.6%"></span></div><span class="num">575.56</span></div>
+        <div class="score-row"><span>summit_push</span><div class="bar"><span style="width:57.3%"></span></div><span class="num">572.65</span></div>
+        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:56.9%"></span></div><span class="num">569.13</span></div>
+        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:56.9%"></span></div><span class="num">568.89</span></div>
+        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:54.7%"></span></div><span class="num">546.57</span></div>
+        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:54.6%"></span></div><span class="num">546.42</span></div>
+        <div class="score-row"><span>rolling_drop</span><div class="bar"><span style="width:54.3%"></span></div><span class="num">542.94</span></div>
+        <div class="score-row"><span>skyline_push</span><div class="bar"><span style="width:54.1%"></span></div><span class="num">541.30</span></div>
+        <div class="score-row"><span>terrace_sprint</span><div class="bar"><span style="width:53.8%"></span></div><span class="num">538.01</span></div>
+        <div class="score-row"><span>dense_echo_climb</span><div class="bar"><span style="width:53.2%"></span></div><span class="num">532.22</span></div>
+        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:48.0%"></span></div><span class="num">479.77</span></div>
         <!--/BASELINE-->
       </div>
     </div>
@@ -1411,7 +1533,7 @@ setTab(location.hash.replace("#", "") || "compiler", false);
 // comparable, so the series restarts here.
 // Replace the point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
 const campaignData = [
-  /*BASELINE:campaign*/["25k-200k curve", 552.48]/*/BASELINE*/
+  /*BASELINE:campaign*/["50k-300k curve", 600.91]/*/BASELINE*/
 ];
 
 function drawCampaignChart() {

@@ -9,13 +9,14 @@ proposer), `optimizer/readiness.ts` (the readiness metric),
 **There is ONE aiming mechanism** — the enumerative proposer: knob deltas →
 inner model predicts the rider's end state at the next beat → readiness
 metric on that predicted state → multiplied with target-fit terms → top-k
-proposals through exact production evaluation. Every hand-tuned predecessor
-(V3 speed-aim, V4 angle-aim, the arrival-conditioned scoop lane, the rotate
-fallback, the climb defer) was subsumed by it and deleted once its ablation
-priced at ~zero. This unification is a design commitment (Jérémie,
-2026-06-10): trigger-based special-case lanes do not come back; new
-capability goes into the inner model, the readiness metric, the objective,
-or the sampler's template family.
+proposals through exact production evaluation. The current implementation is
+the special case k=2. Every hand-tuned predecessor (V3 speed-aim, V4
+angle-aim, the arrival-conditioned scoop lane, the rotate fallback, the
+climb defer) was subsumed by it and deleted once its ablation priced at
+~zero. This unification is a design commitment (Jérémie, 2026-06-10):
+trigger-based special-case lanes do not come back; new capability goes into
+the inner model, the readiness metric, the objective, or the sampler's
+template family.
 
 The idea (Jérémie): when placing an arc we would ideally CONTROL the rider's
 state — speed, trajectory direction, internal rotation — because the
@@ -79,12 +80,16 @@ Properties the concept requires (and the current instance has):
   at no extra cost. Probe count therefore scales with the model order per
   KNOB, never with the number of outputs — predicting n quantities does not
   need n+1 probes.
-- **Per (knob, frame, quantity) fits, additively composed across knobs**:
-  outputs live at different frames and δ=0 points differ, so the model is a
-  set of scalar fits sharing rides — not a monolithic predictor. The joint
-  multi-knob prediction is the additive sum of per-knob fits (certified
-  proposer-grade: ~10% median interaction; re-verified AT the sweep argmax,
-  0.041 px/f / 0.63° p50 — `study_joint_enum`).
+- **Joint model interface; current per-knob implementation**: the
+  architecture is a multi-input model over controllable arc knobs and
+  predicted outputs. Today's production instance realizes that interface as
+  per (knob, frame, quantity) scalar fits sharing rides, then additively
+  composes pitch and rotation when the second knob is recruited. That is a
+  current special case, not a ceiling: a learned combined surface or richer
+  joint model can replace it behind the same proposer boundary. The additive
+  instance is certified proposer-grade (~10% median interaction;
+  re-verified AT the sweep argmax, 0.041 px/f / 0.63° p50 —
+  `study_joint_enum`).
 - **Error is priced, live.** Every emitted proposal records
   |predicted − simulated| (`compile_stats.aim.*err*`), so model quality is
   continuously measured in production, never assumed.
@@ -116,7 +121,7 @@ Properties the concept requires (and the current instance has):
 |---|---|---|
 | two knobs: exit pitch everywhere + whole-arc rotation recruited lazily | rotation moves the catch surface (37% gate-fail when proposed freely — R3 v1 REJECT Δ−7.9), so it engages only at pitch exhaustion, within its probed span, behind a ≥15% predicted margin, in one non-displacing slot (R3 v2, promoted) | a third knob (e.g. arc depth/length) certified additive; or a model that predicts gate survival so rotation can compete everywhere |
 | 3 probes per knob fit (quadratic) | the measured accuracy knee (V0 ladder: 2-probe linear ~3× worse, 5-probe cubic marginal) | telemetry showing model error is the binding constraint |
-| top-2 proposals | the measured knee (k=1 −1.1: the 2nd pays; k=3 −4.5: the 3rd starves small budgets) | eval-cost or pool-pricing changes |
+| top-k proposals, currently k=2 | the measured knee (k=1 −1.1: the 2nd pays; k=3 −4.5: the 3rd starves small budgets) | eval-cost or pool-pricing changes |
 | readiness over (speed, comAngle) only | pose parked by R0 (flat to 90°, 4.2% incidence beyond) | new components validated against realized outcomes (R1 pattern) |
 | quadratic model, scan sweep | exact through 3 points; 0.25° grid below model error | a quantity whose response is not locally smooth (only pose wrapping qualifies so far) |
 
@@ -144,7 +149,7 @@ width, etc.) is orthogonal and stays swappable. Two coupling points matter:
 |---|---|---|---|---|---|---|
 | 1 | exit pitch δp | (speed, CoM angle) at the next beat | quadratic per quantity | 3 (shared: base, ±6°) | the proposer's objective sweep | ON · readiness err mean ~0.012 live |
 | 2 | whole-arc rotation δr | (speed, CoM angle) at the next beat | quadratic per quantity | 2 more (±3°; base shared) — paid LAZILY at pitch exhaustion | extends the sweep to 2-D where pitch clamps | ON (R3 v2) · additive composition with #1 |
-| 3 | (δp, δr) jointly | (speed, CoM angle) | additive sum of #1+#2 | shared | joint argmax under the objective | CERTIFIED ~10% median interaction; 0.041 px/f / 0.63° p50 at the argmax (`study_joint_enum`) |
+| 3 | joint/composed (δp, δr) | (speed, CoM angle) | current special case: additive sum of #1+#2; generic interface allows a combined model | shared | joint argmax under the objective | CERTIFIED ~10% median interaction; 0.041 px/f / 0.63° p50 at the argmax (`study_joint_enum`) |
 | — | any knob | sled pose (internal rotation) | — | free (same rides) | — | SENSOR PLUMBED (`ProbeOutcome.sledPoseDeg`, `CandidateProbe.sledPoseDeg()`); V0: ~40° authority, locally smooth, globally wrapping — model when evidence demands (§7) |
 | — | exit pitch | current-gap + span axis VALUES | — | needs full evaluation per probe (expensive) | — | VIABLE per V2 (secant err ≤1% of range within gap, 1–6% cross-gap); architected for (a richer probe extends `ProbeOutcome`), not wired — current-gap axes are measured exactly instead (every proposal is fully evaluated) |
 
@@ -163,15 +168,16 @@ determined by arc k's exit + ballistics and are probe-predictable without it.
 **The enumerative proposer** (`makeEnumAimedCandidates`): fit speed+angle
 next-beat models from 3 shared pitch probes; recruit the rotate knob lazily
 (2 more probes) when the pitch sweep is boundary-clamped or empty-handed;
-sweep the knob space inside the (additively composed) models; objective =
-readiness × speed-fit × impact-feasibility; top-2 into the pool (k=2 =
-measured knee), with at most one rotated proposal that must clear a ≥15%
-predicted margin and never displaces the top pitch proposal.
+sweep the knob space inside the current additively composed models;
+objective = readiness × speed-fit × impact-feasibility; top-k into the pool
+(current k=2 measured knee), with at most one rotated proposal that must
+clear a ≥15% predicted margin and never displaces the top pitch proposal.
 
 Subsumption record (each predecessor deleted when its ablation priced ~0):
 V3 speed-aim + V4 angle-aim triggers (ACCEPT Δ+3.3 → 600.71) · elevation
-climb-defer (parity Δ−0.1 → 600.57) · joint rotate knob promoted (Δ+0.4 →
-600.94) · arrival-conditioned scoop lane (parity Δ−0.0 → 600.91; its
+climb-defer (parity Δ−0.1 → 600.57) · joint two-knob current instance
+promoted as lazy additive rotation (Δ+0.4 → 600.94) · arrival-conditioned
+scoop lane (parity Δ−0.0 → 600.91; its
 deep-catch geometry can return as a SAMPLER template if the impact axis
 wants it back — `arc_placement.ts` SLAM-HOP is the surviving instance of
 that family).
@@ -208,7 +214,7 @@ From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knobs @300k), V1
 - **Axis values are probe-predictable too** (V2): within-gap secant err ≤1%
   of range where the knob has authority; cross-gap span axes 1–6%. Gap k's
   own impact range under exit pitch is exactly 0.000.
-- **Additivity**: 2-knob interactions ~10% of joint effect at median (fine
+- **Additivity**: 2-knob interactions ~10% of the combined effect at median (fine
   for a proposer), ~1× at p90 (never trust uncommitted).
 - **Pose wrapping caveat**: pose is locally smooth but globally wrapping
   (1% of gaps show suspected ±180° wraps); pose models must unwrap by sweep
@@ -226,7 +232,7 @@ From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knobs @300k), V1
 | prefix-cache lane fix | 597.41 | prefix-cache-lanes-01 |
 | R2 enumerative proposer | 600.71 | aim-enum-r2-03 |
 | climb-defer removed (parity, simplification) | 600.57 | enum-defer-off-01 |
-| R3 joint multi-knob inner model (v2) | 600.94 | aim-joint-r3-02 |
+| R3 joint multi-knob inner model (current lazy-additive v2) | 600.94 | aim-joint-r3-02 |
 | scoop + legacy lanes deleted (parity, unification) | **600.91 (current)** | scoop-off-price-01 |
 
 Suite: 40 specs × 12 seeds, budgets 50k–300k weighted; α=0.10 via `npm run
@@ -259,7 +265,7 @@ loss`) — the open prize.
   `enum-k3-01` Δ−4.5 REJECT, 50k −43.8): the second proposal pays its eval
   cost, the third starves small budgets. k=2 is the knee at current eval
   prices — revisit only if eval cost or pool pricing changes.
-- **Eager always-on rotation in the joint sweep** (`aim-joint-r3-01`):
+- **Eager always-on rotation in the two-knob sweep** (`aim-joint-r3-01`):
   REJECT Δ−7.9. Rotation's predicted-objective wins displaced 92% of pitch
   proposals and failed the on-beat-landing gate 37% of the time (~98k
   wasted evals); commits −34%. The model was accurate — the economics were

@@ -15,9 +15,11 @@
  * There is ONE lane: the enumerative proposer (makeEnumAimedCandidates) —
  * knob deltas → per-knob quadratic arrival models (additively composed) →
  * readiness × target-fit objective swept in-model → top-k proposals through
- * exact production evaluation. Its hand-tuned predecessors (V3 speed-aim,
- * V4 angle-aim + arrival-conditioned scoop, rotate fallback, climb defer)
- * were each subsumed and deleted once their ablation priced at ~zero.
+ * exact production evaluation. This file implements the current special
+ * case: k=2, per-knob quadratic fits, and lazy additive rotation. Its
+ * hand-tuned predecessors (V3 speed-aim, V4 angle-aim +
+ * arrival-conditioned scoop, rotate fallback, climb defer) were each
+ * subsumed and deleted once their ablation priced at ~zero.
  * The file is organized as the layers of the idea:
  *
  *   1. flags            — per-call env reads (tests pin them dynamically)
@@ -51,8 +53,9 @@
  * risk and must clear a margin); 3 probes per knob fit (the measured
  * accuracy knee; one ride reads ALL outputs, so probe count scales with
  * model order, never with output count); additive per-knob composition
- * (certified ~10% median interaction); top-2 proposals (the measured knee);
- * readiness over (speed, comAngle) only (pose parked by R0).
+ * (the current instance of the joint model interface; certified ~10%
+ * median interaction); top-k proposals with current k=2 (the measured
+ * knee); readiness over (speed, comAngle) only (pose parked by R0).
  */
 
 import { getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
@@ -85,7 +88,8 @@ function aimDeltaMaxDeg(): number {
  *  shared probes, enumerate the knob space inside the models (free), score
  *  each variation as readiness(predicted arrival) × speed-target fit ×
  *  impact-feasibility, propose the top-k through the unchanged production
- *  evaluation. Subsumed and replaced every hand-tuned predecessor:
+ *  evaluation. Current production k=2. Subsumed and replaced every
+ *  hand-tuned predecessor:
  *  V3 speed-aim + V4 angle-aim triggers (ACCEPT Δ+3.3 → 600.71), the
  *  elevation climb-defer (removed at parity Δ−0.1 → 600.57), and the V4
  *  arrival-conditioned scoop lane (ablation priced at Δ−0.0 under this
@@ -115,7 +119,7 @@ export type AimStats = {
   enum_readiness_err_mean: number;
   /** Mean predicted readiness gain over δ=0, over emitted. */
   enum_readiness_gain_mean: number;
-  /** R3 joint-model split: rotate recruit rate, rotate-probe failures
+  /** Lazy additive rotate-knob split: rotate recruit rate, rotate-probe failures
    *  (lane falls back to pitch-only), and how rotated (dr≠0) proposals
    *  fare at the production gates vs emitted. */
   enum_rot_probe_crash: number;
@@ -202,7 +206,7 @@ export function snapshotAimStats(): AimStats | null {
 const AIM_PROBE_DELTA_DEG = 6;
 /** Below this |δ*| the aimed variant would duplicate the base candidate. */
 const AIM_MIN_DELTA_DEG = 0.25;
-/** Rotate-fallback probe/solve spans (deg, V0-validated range). */
+/** Lazy whole-arc-rotation probe span (deg, V0-validated range). */
 const AIM_ROT_PROBE_DEG = 3;
 
 /** Rotate the last ~third of the candidate's segments about that suffix's
@@ -238,7 +242,7 @@ function pitchExit(lines: TrackLine[], deg: number): TrackLine[] {
 
 /** Rotate the whole candidate about its entry point (the catch head). Unlike
  *  pitchExit this DOES move the late surface the rider lands on, so it can
- *  shift the landing frame — kept only for the parked rotate fallback. */
+ *  shift the landing frame — therefore it is recruited lazily and margin-gated. */
 function rotateArc(lines: TrackLine[], deg: number): TrackLine[] {
   const pivot = { x: lines[0].x1, y: lines[0].y1 };
   const rad = (deg * Math.PI) / 180;
@@ -354,7 +358,7 @@ function nextContactGap(gap: Gap, gaps: Gap[]): Gap | null {
 // ──────────────── R2 · Enumerative proposer (LR_AIM_ENUM) ────────────────
 
 /** Proposals per pool (the "1000 variations" live inside the model; only
- *  the top-k are simulated). k=2 is the measured knee (2026-06-10 sweep vs
+ *  the top 2 are simulated). k=2 is the measured knee (2026-06-10 sweep vs
  *  600.71: k=1 Δ−1.1 with −2.1…−2.7 at every mature budget — the second
  *  proposal pays; k=3 Δ−4.5 REJECT — the third starves small budgets,
  *  50k −43.8, validity dip). */
@@ -369,9 +373,10 @@ const ENUM_MIN_SEP_DEG = 1.5;
 const ENUM_R_MIN = 0.1;
 /** Speed-target fit scale (px/f): exp(−|predicted − target|/scale). */
 const ENUM_SPEED_SCALE_PXF = 0.75;
-/** Joint-model rotate axis (R3, default-on — PROMOTED 2026-06-10: v2
+/** Joint multi-knob axis, current lazy-additive implementation (R3,
+ *  default-on — PROMOTED 2026-06-10: v2
  *  Δ+0.4 vs 600.57, positive at mature budgets, and it IS the agreed
- *  architecture: the inner model takes multiple knobs. Grounds:
+ *  architecture: the inner model can compose multiple per-knob fits. Grounds:
  *  additivity certified proposer-grade (study_knob_additivity ~10%
  *  median interaction); scout study_joint_enum (289 gaps @300k):
  *  achieved objective gain p50 +0.035, 3× larger where pitch clamps;
@@ -409,9 +414,9 @@ const ENUM_ROT_RECRUIT_NOGAIN = 1.05;
  *                      × impact-feasibility(speed, angle)
  *
  *  enumerated inside the models (free), top-k improving deltas proposed
- *  through the unchanged production evaluation. Exit pitch sweeps
- *  everywhere; whole-arc rotation is recruited lazily at pitch exhaustion
- *  (see ENUM_ROT_* notes).
+ *  through the unchanged production evaluation (current k=2). Exit pitch
+ *  sweeps everywhere; whole-arc rotation is recruited lazily at pitch
+ *  exhaustion (see ENUM_ROT_* notes).
  *
  *  The R1 caveat (catchability mis-scores the upward arrivals climbing
  *  wants) needed NO special handling in the end: an elevation climb-defer
@@ -460,7 +465,7 @@ export function makeEnumAimedCandidates(
   const speedModel = quadModel(lo.speed, baseOut.speed, hi.speed, P);
   const angleModel = quadModel(lo.comAngleDeg, baseOut.comAngleDeg, hi.comAngleDeg, P);
 
-  // R3 joint inner model: the rotate knob's models are recruited LAZILY
+  // R3 additive two-knob inner model: the rotate knob's models are recruited LAZILY
   // further down, only where the pitch sweep is exhausted. The joint
   // prediction is the ADDITIVE composition of per-knob quadratics
   // (certified proposer-grade — see ENUM_ROT_SPAN_DEG notes).

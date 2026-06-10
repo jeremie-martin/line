@@ -248,6 +248,20 @@ Ladder — each rung falsifiable before the next:
   arrival, size the scoop at k from the (now reliable) arrival vector
   (IMPACT_PAIR_PLANNING §5). The aimer turns §5's precondition from
   "exploited where it happens" (64% of gaps) into "manufactured" (95%).
+  **DONE — ACCEPT, PROMOTED DEFAULT-ON** (commit f8dbff0, `LR_AIM_IMPACT=0`
+  ablation): 592.57 → 597.92, Δ+5.4, P(Δ≤0)=3.6%, positive at every budget
+  (50k +43 — the scoop rescues starved pools), validity 98→99% at 50k.
+  Mechanics: angle-aim mode (steep-arrival target at the NEXT beat's frame,
+  sized from the ask) + `buildArrivalScoopLines` (entry from the actual
+  arrival, turn to a next-beat hop, 8–40° — past the template's 22° cap).
+  Iteration lesson (v4-01, −3.8): the scoop lane in EVERY rollout pool adds
+  679k charged evals and starves the search (nodes −18%) — rollout
+  visibility is NOT worth its current price; real-pools-only is the
+  accepted form (`LR_AIM_SCOOP_ROLLOUT=1` re-tests it; only with cheaper
+  evals). Honest residual: impact |err| moved 0.1468→0.1430 (bias −0.1375→
+  −0.1331) — the 55-60-point impact prize is still mostly unclaimed; the
+  funnel A/C shares and (if scoops under-deliver) sled pose at landing are
+  the next instruments.
 
 Why not start at dive-scoop directly: V1/V3 validate exactly the operation
 the study measured (perturb a committed/selected arc, hit a next-gap state),

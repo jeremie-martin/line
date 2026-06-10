@@ -161,7 +161,9 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
 
   test("node prefix cache reapplies lane extras when answering smaller pools", () => {
     const oldAimLaunch = process.env.LR_AIM_LAUNCH;
+    const oldAimEnum = process.env.LR_AIM_ENUM;
     process.env.LR_AIM_LAUNCH = "0";
+    process.env.LR_AIM_ENUM = "0";
     try {
       const seed = 23;
       const sampled = { cost: 2, arc: "sampled", lines: [], achieved: {}, sampleAttempt: 0 } as never;
@@ -196,6 +198,11 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
         delete process.env.LR_AIM_LAUNCH;
       } else {
         process.env.LR_AIM_LAUNCH = oldAimLaunch;
+      }
+      if (oldAimEnum === undefined) {
+        delete process.env.LR_AIM_ENUM;
+      } else {
+        process.env.LR_AIM_ENUM = oldAimEnum;
       }
     }
   });

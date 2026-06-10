@@ -57,6 +57,7 @@ import { engineLineFromTrackLine } from "../core/substrate.ts";
 import { authoredSpeedToPx, CALIB, type TrackLine } from "../types.ts";
 import { buildArrivalScoopLines } from "../arc_placement.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
+import { readinessCatch } from "./readiness.ts";
 import type { Gap } from "../types.ts";
 
 // ───────────────────────────── 1 · Flags ─────────────────────────────
@@ -105,6 +106,26 @@ function aimDeltaMaxDeg(): number {
 function aimRotFallbackEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_ROT_FALLBACK === "1";
+}
+
+/** R2 enumerative proposer (docs/READINESS_ROADMAP.md). Replaces the
+ *  launch lane's hand-tuned triggers (V3 speed solve, V4 steep-arrival
+ *  formula) with: fit BOTH next-beat arrival models (speed, CoM angle)
+ *  from the same 3 probes, enumerate the whole pitch span inside the
+ *  models (free), score each delta as readiness(predicted arrival) ×
+ *  speed-target fit × impact-feasibility, propose the top-k through the
+ *  unchanged production evaluation. Target-aware: defers to the legacy
+ *  lane on demanding-climb next gaps (R1 validation: climbs want upward
+ *  arrivals the catchability surface scores low).
+ *  Default ON (PROMOTED 2026-06-10: ACCEPT Δ+3.3 vs 597.41 → 600.71,
+ *  P(Δ≤0)=7.3%, positive every budget; commits +45% vs legacy; iteration
+ *  history: v1 wrong elevation test (lane never ran, −0.2), v2 catchability
+ *  + speed-fit only (parity +0.3 — nothing pushed steep arrivals), v3
+ *  added the closed-form impact-feasibility factor → ACCEPT).
+ *  LR_AIM_ENUM=0 disables (ablation → legacy V3/V4 lane). */
+export function aimEnumEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_ENUM !== "0";
 }
 
 /** Scoop lane in branch=1 rollout pools (LR_AIM_SCOOP_ROLLOUT=1).
@@ -169,6 +190,20 @@ export type AimStats = {
   scoop_top3: number;
   scoop_rank_sum: number;
   scoop_pool_size_sum: number;
+  /** R2 enumerative-proposer funnel + readiness accuracy (LR_AIM_ENUM).
+   *  Optional: present only when the lane ran, so legacy-mode snapshots
+   *  stay byte-identical. */
+  enum_considered?: number;
+  enum_no_target?: number;
+  enum_elev_defer?: number;
+  enum_probe_crash?: number;
+  enum_on_target?: number;
+  enum_gate_fail?: number;
+  enum_emitted?: number;
+  /** Mean |predicted − achieved| arrival readiness over emitted. */
+  enum_readiness_err_mean?: number;
+  /** Mean predicted readiness gain over δ=0, over emitted. */
+  enum_readiness_gain_mean?: number;
 };
 
 const aimTotals = {
@@ -185,6 +220,10 @@ const aimTotals = {
   aimed_rank_sum: 0, aimed_pool_size_sum: 0,
   scoop_pool_entries: 0, scoop_rank0: 0, scoop_top3: 0,
   scoop_rank_sum: 0, scoop_pool_size_sum: 0,
+  // R2 enumerative-proposer funnel (LR_AIM_ENUM).
+  enum_considered: 0, enum_no_target: 0, enum_elev_defer: 0,
+  enum_probe_crash: 0, enum_on_target: 0, enum_gate_fail: 0, enum_emitted: 0,
+  enumReadinessErrSum: 0, enumReadinessGainSum: 0, enumAchieved: 0,
 };
 
 /** Record where a lane extra ranked in the cost-sorted pool it entered, and
@@ -258,6 +297,21 @@ export function snapshotAimStats(): AimStats | null {
     scoop_top3: aimTotals.scoop_top3,
     scoop_rank_sum: aimTotals.scoop_rank_sum,
     scoop_pool_size_sum: aimTotals.scoop_pool_size_sum,
+    ...(aimTotals.enum_considered > 0
+      ? {
+        enum_considered: aimTotals.enum_considered,
+        enum_no_target: aimTotals.enum_no_target,
+        enum_elev_defer: aimTotals.enum_elev_defer,
+        enum_probe_crash: aimTotals.enum_probe_crash,
+        enum_on_target: aimTotals.enum_on_target,
+        enum_gate_fail: aimTotals.enum_gate_fail,
+        enum_emitted: aimTotals.enum_emitted,
+        enum_readiness_err_mean: aimTotals.enumAchieved > 0
+          ? round3(aimTotals.enumReadinessErrSum / aimTotals.enumAchieved) : 0,
+        enum_readiness_gain_mean: aimTotals.enum_emitted > 0
+          ? round3(aimTotals.enumReadinessGainSum / aimTotals.enum_emitted) : 0,
+      }
+      : {}),
   };
 }
 
@@ -700,4 +754,164 @@ export function makeScoopCandidate(
   fit.aimed = true;
   fit.scooped = true;
   return fit;
+}
+
+// ──────────────── R2 · Enumerative proposer (LR_AIM_ENUM) ────────────────
+
+/** Proposals per pool (the "1000 variations" live inside the model; only
+ *  the top-k are simulated). */
+const ENUM_TOP_K = 2;
+/** Enumeration step (deg) — far below model error; effectively continuous. */
+const ENUM_STEP_DEG = 0.25;
+/** Minimum spacing between proposed deltas (keep the k proposals distinct
+ *  arc shapes, not near-duplicates). */
+const ENUM_MIN_SEP_DEG = 1.5;
+/** Readiness clamp floor (roadmap: a wrong readiness model must not be
+ *  able to veto everything). */
+const ENUM_R_MIN = 0.1;
+/** Speed-target fit scale (px/f): exp(−|predicted − target|/scale). */
+const ENUM_SPEED_SCALE_PXF = 0.75;
+/** Defer to the legacy lane only on DEMANDING CLIMB asks. Elevation ≈ 0.5
+ *  is the neutral center (cf. MATURE_AVG_FWD_EVAL_ELEVATION_CENTER):
+ *  compiler-resolved targets exist on nearly every gap, so `defined` is the
+ *  wrong test (first enum run: 86% deferred, lane never ran). Climbs want
+ *  upward arrivals the catchability surface mis-scores (R1 validation);
+ *  drops are readiness-aligned. */
+const ENUM_ELEV_CLIMB_DEFER = 0.65;
+
+/** R2 enumerative proposer: one knob (exit pitch — the validated tail-only
+ *  family), two fitted models (arrival speed + CoM angle at the NEXT beat,
+ *  from the same 3 probes), one objective:
+ *
+ *    objective(δ) = clamp(readiness(speed(δ), angle(δ)), R_MIN, 1)
+ *                 × exp(−|speed(δ) − nextSpeedTarget| / scale)
+ *
+ *  enumerated over the whole solve span (free — model evaluations), top-k
+ *  improving deltas proposed through the unchanged production evaluation.
+ *  The hand-tuned V3/V4 launch triggers (speed solve; steep-arrival target
+ *  formula) dissolve into the readiness surface's own gradient — the
+ *  subsumption claim this lane exists to test (ablation matrix vs
+ *  LR_AIM_LAUNCH). The scoop lane is orthogonal and unaffected.
+ *
+ *  Target-aware (R1 validation): on elevation-ask next gaps the
+ *  catchability surface mis-scores the upward arrivals climbing wants —
+ *  defer to the legacy lane there. */
+export function makeEnumAimedCandidates(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  gaps: Gap[],
+  ctx: SpecContext,
+  base: Candidate,
+  lineIdStart: number,
+): Candidate[] {
+  aimTotals.enum_considered++;
+  const nextGap = nextContactGap(gap, gaps);
+  if (nextGap === null) {
+    aimTotals.enum_no_target++;
+    return [];
+  }
+  const elevAsk = nextGap.targets.elevation;
+  if (elevAsk !== undefined && elevAsk > ENUM_ELEV_CLIMB_DEFER) {
+    aimTotals.enum_elev_defer++;
+    const legacy = makeAimedCandidate(engine, gap, gaps, ctx, base, lineIdStart);
+    return legacy === null ? [] : [legacy];
+  }
+  const speedTarget = nextGapSpeedTargetPx(gap, gaps);
+  if (speedTarget === null && nextGap.targets.impact === undefined) {
+    aimTotals.enum_no_target++;
+    return [];
+  }
+
+  const F = nextGap.endFrame;
+  const baseOut = probeRide(engine, base.lines, F);
+  if (baseOut === null || baseOut.comAngleDeg === null) {
+    aimTotals.enum_probe_crash++;
+    return [];
+  }
+  const P = AIM_PROBE_DELTA_DEG;
+  const lo = probeRide(engine, pitchExit(base.lines, -P), F);
+  if (lo === null || lo.comAngleDeg === null) {
+    aimTotals.enum_probe_crash++;
+    return [];
+  }
+  const hi = probeRide(engine, pitchExit(base.lines, P), F);
+  if (hi === null || hi.comAngleDeg === null) {
+    aimTotals.enum_probe_crash++;
+    return [];
+  }
+  // Both arrival models from the SAME three rides (one ride = the full
+  // outcome vector; adding a quantity costs zero probes).
+  const speedModel = quadModel(lo.speed, baseOut.speed, hi.speed, P);
+  const angleModel = quadModel(lo.comAngleDeg, baseOut.comAngleDeg, hi.comAngleDeg, P);
+  // Impact-feasibility component (roadmap R3, brought forward after enum
+  // v2 parity: catchability alone barely differentiates 15° from 25°
+  // arrivals, so nothing pushed the steep arrivals conversion needs).
+  // Closed form: achievable ask ≈ speed·sin(angle)/REDIR_CAP — the same
+  // physics as V4's needed-turn formula, as a smooth factor instead of a
+  // hand-clamped target.
+  const impactAsk = nextGap.targets.impact;
+  const wantImpact = impactAsk !== undefined && impactAsk >= AIM_IMPACT_MIN_ASK;
+  const objective = (d: number): number => {
+    const s = speedModel(d);
+    const a = angleModel(d);
+    const r = Math.max(ENUM_R_MIN, readinessCatch(s, a));
+    const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(s - speedTarget) / ENUM_SPEED_SCALE_PXF);
+    const feas = !wantImpact ? 1 : Math.min(
+      1,
+      Math.max(0, (s * Math.sin((Math.max(0, a) * Math.PI) / 180)) / ((impactAsk as number) * CALIB.REDIR_CAP)),
+    );
+    return r * fit * feas;
+  };
+
+  const deltaMax = aimDeltaMaxDeg();
+  const obj0 = objective(0);
+  const scoredDeltas: { d: number; val: number }[] = [];
+  for (let d = -deltaMax; d <= deltaMax + 1e-9; d += ENUM_STEP_DEG) {
+    if (Math.abs(d) < AIM_MIN_DELTA_DEG) continue;
+    const val = objective(d);
+    if (val > obj0 + 1e-4) scoredDeltas.push({ d, val });
+  }
+  scoredDeltas.sort((a, b) => b.val - a.val);
+  const chosen: { d: number; val: number }[] = [];
+  for (const cand of scoredDeltas) {
+    if (chosen.length >= ENUM_TOP_K) break;
+    if (chosen.every((c) => Math.abs(c.d - cand.d) >= ENUM_MIN_SEP_DEG)) chosen.push(cand);
+  }
+  if (chosen.length === 0) {
+    aimTotals.enum_on_target++;
+    return [];
+  }
+
+  const probe = getCandidateProbe(engine, gap, ctx);
+  const out: Candidate[] = [];
+  for (const { d, val } of chosen) {
+    // All pool candidates are alternatives — they share the same line-ID
+    // range (exactly like sampler attempts); only the committed one's ids
+    // reach the track.
+    const aimedLines = pitchExit(base.lines, d).map((l, i) => ({ ...l, id: lineIdStart + i }));
+    const fit = tryCandidateLines(
+      engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,
+      axisLookaheadEndFrame(gap, ctx.allContactFrames), gap.targets, true,
+      "normal", probe.preTargetSledTrace,
+    ) as Candidate | null;
+    if (fit === null) {
+      aimTotals.enum_gate_fail++;
+      continue;
+    }
+    aimTotals.enum_emitted++;
+    aimTotals.enumReadinessGainSum += val - obj0;
+    const achieved = probeRide(engine, aimedLines, F);
+    if (achieved !== null && achieved.comAngleDeg !== null) {
+      aimTotals.enumAchieved++;
+      aimTotals.enumReadinessErrSum += Math.abs(
+        Math.max(ENUM_R_MIN, readinessCatch(speedModel(d), angleModel(d))) -
+          Math.max(ENUM_R_MIN, readinessCatch(achieved.speed, achieved.comAngleDeg)),
+      );
+    }
+    fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+    fit.aimed = true;
+    out.push(fit);
+  }
+  return out;
 }

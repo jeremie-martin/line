@@ -22,8 +22,10 @@ import {
 } from "../arc_placement.ts";
 import { solveOneGap, solveOneGapAttemptRange } from "./solver.ts";
 import {
+  aimEnumEnabled,
   aimLaunchEnabled,
   makeAimedCandidate,
+  makeEnumAimedCandidates,
   makeScoopCandidate,
   recordLanePoolRank,
   scoopRolloutEnabled,
@@ -177,15 +179,24 @@ function sortWithLaneExtras(
       ));
     if (scoop !== null) laneExtras.push(scoop);
   }
-  // V3 aimed-launch lane (default on; LR_AIM_LAUNCH=0 ablation): one aimed
-  // variant of the pool's best. nCand > 1 keeps its PROBES out of forward-eval
-  // rollout pools (branch=1): multiplying CHARGED rollout work is the
-  // documented branch-widening failure.
-  if (aimLaunchEnabled() && nCand > 1 && sorted.length > 0) {
-    const aimed = makeAimedCandidate(
-      node.prefixEngine, gap, gaps, ctx, sorted[0], node.prefixNextLineId,
-    );
-    if (aimed !== null) laneExtras.push(aimed);
+  // Launch lane (nCand > 1 keeps its PROBES out of forward-eval rollout
+  // pools (branch=1): multiplying CHARGED rollout work is the documented
+  // branch-widening failure):
+  // - LR_AIM_ENUM=1 (R2 experiment): enumerative proposer — readiness ×
+  //   speed-fit objective swept inside the fitted models, top-k proposed.
+  // - default: V3/V4 aimed lane (LR_AIM_LAUNCH=0 ablation) — one aimed
+  //   variant of the pool's best.
+  if (nCand > 1 && sorted.length > 0) {
+    if (aimEnumEnabled()) {
+      laneExtras.push(...makeEnumAimedCandidates(
+        node.prefixEngine, gap, gaps, ctx, sorted[0], node.prefixNextLineId,
+      ));
+    } else if (aimLaunchEnabled()) {
+      const aimed = makeAimedCandidate(
+        node.prefixEngine, gap, gaps, ctx, sorted[0], node.prefixNextLineId,
+      );
+      if (aimed !== null) laneExtras.push(aimed);
+    }
   }
   if (laneExtras.length > 0) {
     sorted = sortCandidatesByCost([...sampleOrder, ...laneExtras]);

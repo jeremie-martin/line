@@ -340,6 +340,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     process.env.LR_AIM_LAUNCH = "0";
     const prevAimImpact = process.env.LR_AIM_IMPACT;
     process.env.LR_AIM_IMPACT = "0";
+    const prevAimEnum = process.env.LR_AIM_ENUM;
+    process.env.LR_AIM_ENUM = "0";
     try {
       const budget = 20_000;
       const result = checkpoint(compileHandoff(spec, 0, {
@@ -367,6 +369,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       else process.env.LR_AIM_LAUNCH = prevAimLaunch;
       if (prevAimImpact === undefined) delete process.env.LR_AIM_IMPACT;
       else process.env.LR_AIM_IMPACT = prevAimImpact;
+      if (prevAimEnum === undefined) delete process.env.LR_AIM_ENUM;
+      else process.env.LR_AIM_ENUM = prevAimEnum;
     }
   }, 60_000);
 

@@ -525,6 +525,17 @@ export type CompileStats = {
     scoop_top3: number;
     scoop_rank_sum: number;
     scoop_pool_size_sum: number;
+    /** R2 enumerative-proposer funnel + readiness accuracy (LR_AIM_ENUM;
+     *  present only when the lane ran). */
+    enum_considered?: number;
+    enum_no_target?: number;
+    enum_elev_defer?: number;
+    enum_probe_crash?: number;
+    enum_on_target?: number;
+    enum_gate_fail?: number;
+    enum_emitted?: number;
+    enum_readiness_err_mean?: number;
+    enum_readiness_gain_mean?: number;
   };
   /** Committed fits in this output produced by the aimed-launch lane. */
   handoff_aimed_selected?: number;

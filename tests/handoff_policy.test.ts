@@ -85,7 +85,7 @@ describe("handoff policy boundaries", () => {
   test("sample schedule widens after contract success", () => {
     expect(handoffSampleCount(false)).toBe(14);
     expect(handoffSampleCount(false, true)).toBe(13);
-    expect(handoffSampleCount(true)).toBe(24);
+    expect(handoffSampleCount(true)).toBe(32);
   });
 
   test("sparse contract search is based on median contact cadence", () => {

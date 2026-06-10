@@ -114,42 +114,18 @@ function aimRotFallbackEnabled(): boolean {
  *  from the same 3 probes, enumerate the whole pitch span inside the
  *  models (free), score each delta as readiness(predicted arrival) ×
  *  speed-target fit × impact-feasibility, propose the top-k through the
- *  unchanged production evaluation. Target-aware: defers to the legacy
- *  lane on demanding-climb next gaps (R1 validation: climbs want upward
- *  arrivals the catchability surface scores low).
+ *  unchanged production evaluation.
  *  Default ON (PROMOTED 2026-06-10: ACCEPT Δ+3.3 vs 597.41 → 600.71,
  *  P(Δ≤0)=7.3%, positive every budget; commits +45% vs legacy; iteration
  *  history: v1 wrong elevation test (lane never ran, −0.2), v2 catchability
  *  + speed-fit only (parity +0.3 — nothing pushed steep arrivals), v3
- *  added the closed-form impact-feasibility factor → ACCEPT).
- *  LR_AIM_ENUM=0 disables (ablation → legacy V3/V4 lane). */
+ *  added the closed-form impact-feasibility factor → ACCEPT; the elevation
+ *  climb-defer to legacy was later removed at exact parity, Δ−0.1).
+ *  LR_AIM_ENUM=0 disables (ablation → legacy V3/V4 lane; ablation flag and
+ *  legacy lane are slated for deletion after the soak period). */
 export function aimEnumEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_ENUM !== "0";
-}
-
-/** A/B knobs for the queued R2 follow-ups (2026-06-10). All default to the
- *  promoted aim-enum-r2-03 behavior — unset flags are bit-identical.
- *  Experiment-only: the winning settings get hardcoded and these flags
- *  deleted after the decide verdicts (no permanent backward-compat). */
-function enumDeferEnabled(): boolean {
-  // LR_ENUM_DEFER=0: drop the elevation climb-defer (enum runs everywhere;
-  // legacy lane becomes unreachable outside LR_AIM_ENUM=0).
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_ENUM_DEFER !== "0";
-}
-function enumSigmoidEnabled(): boolean {
-  // LR_ENUM_SIGMOID=1: smooth-veto reshape of the catchability factor —
-  // saturate the acceptable plateau (0.8 ≈ 0.9), fall hard below ~0.5.
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_ENUM_SIGMOID === "1";
-}
-function enumTopK(): number {
-  // LR_ENUM_TOP_K∈{1,2,3}: proposals per pool (default ENUM_TOP_K).
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_ENUM_TOP_K;
-  const v = raw === undefined ? NaN : Number(raw);
-  return Number.isFinite(v) && v >= 1 ? Math.floor(v) : ENUM_TOP_K;
 }
 
 /** Scoop lane in branch=1 rollout pools (LR_AIM_SCOOP_ROLLOUT=1).
@@ -219,7 +195,6 @@ export type AimStats = {
    *  stay byte-identical. */
   enum_considered?: number;
   enum_no_target?: number;
-  enum_elev_defer?: number;
   enum_probe_crash?: number;
   enum_on_target?: number;
   enum_gate_fail?: number;
@@ -245,7 +220,7 @@ const aimTotals = {
   scoop_pool_entries: 0, scoop_rank0: 0, scoop_top3: 0,
   scoop_rank_sum: 0, scoop_pool_size_sum: 0,
   // R2 enumerative-proposer funnel (LR_AIM_ENUM).
-  enum_considered: 0, enum_no_target: 0, enum_elev_defer: 0,
+  enum_considered: 0, enum_no_target: 0,
   enum_probe_crash: 0, enum_on_target: 0, enum_gate_fail: 0, enum_emitted: 0,
   enumReadinessErrSum: 0, enumReadinessGainSum: 0, enumAchieved: 0,
 };
@@ -325,7 +300,6 @@ export function snapshotAimStats(): AimStats | null {
       ? {
         enum_considered: aimTotals.enum_considered,
         enum_no_target: aimTotals.enum_no_target,
-        enum_elev_defer: aimTotals.enum_elev_defer,
         enum_probe_crash: aimTotals.enum_probe_crash,
         enum_on_target: aimTotals.enum_on_target,
         enum_gate_fail: aimTotals.enum_gate_fail,
@@ -783,7 +757,10 @@ export function makeScoopCandidate(
 // ──────────────── R2 · Enumerative proposer (LR_AIM_ENUM) ────────────────
 
 /** Proposals per pool (the "1000 variations" live inside the model; only
- *  the top-k are simulated). */
+ *  the top-k are simulated). k=2 is the measured knee (2026-06-10 sweep vs
+ *  600.71: k=1 Δ−1.1 with −2.1…−2.7 at every mature budget — the second
+ *  proposal pays; k=3 Δ−4.5 REJECT — the third starves small budgets,
+ *  50k −43.8, validity dip). */
 const ENUM_TOP_K = 2;
 /** Enumeration step (deg) — far below model error; effectively continuous. */
 const ENUM_STEP_DEG = 0.25;
@@ -795,27 +772,15 @@ const ENUM_MIN_SEP_DEG = 1.5;
 const ENUM_R_MIN = 0.1;
 /** Speed-target fit scale (px/f): exp(−|predicted − target|/scale). */
 const ENUM_SPEED_SCALE_PXF = 0.75;
-/** Defer to the legacy lane only on DEMANDING CLIMB asks. Elevation ≈ 0.5
- *  is the neutral center (cf. MATURE_AVG_FWD_EVAL_ELEVATION_CENTER):
- *  compiler-resolved targets exist on nearly every gap, so `defined` is the
- *  wrong test (first enum run: 86% deferred, lane never ran). Climbs want
- *  upward arrivals the catchability surface mis-scores (R1 validation);
- *  drops are readiness-aligned. */
-const ENUM_ELEV_CLIMB_DEFER = 0.65;
-/** Sigmoid reshape (LR_ENUM_SIGMOID=1): center/width chosen from the R0
- *  surface geometry — committed arrivals sit at p50 0.85, the bad regimes
- *  (shallow-slow 0.2, upward 0.39) sit below 0.5. σ(0.9)−σ(0.8) ≈ 0.05
- *  where raw differs 0.10: indifference across the plateau, hard falloff
- *  below the center — a smooth veto, not a proportional tax. */
-const ENUM_SIG_CENTER = 0.55;
-const ENUM_SIG_WIDTH = 0.10;
-
-/** The readiness factor as it enters the objective: clamp-floored raw
- *  surface by default; sigmoid-reshaped under the A/B flag. */
-function shapeReadiness(r: number): number {
-  const v = enumSigmoidEnabled() ? 1 / (1 + Math.exp(-(r - ENUM_SIG_CENTER) / ENUM_SIG_WIDTH)) : r;
-  return Math.max(ENUM_R_MIN, v);
-}
+// FALSIFIED SHAPES (2026-06-10, both vs aim-enum-r2-03 = 600.71):
+//  · elevation climb-defer to the legacy lane: removal = exact parity
+//    (Δ−0.1, CI [−0.6, 0.2]) — the speed-fit and impact-feasibility terms
+//    already steer demanding climbs; the defer was dead weight (deleted).
+//  · sigmoid-reshaped readiness (σ((r−0.55)/0.10), the "smooth veto"):
+//    REJECT Δ−2.0, negative every budget. Flattening the plateau discards
+//    the surface's high-end gradient — the very signal that pushes steep
+//    fast arrivals (v2→v3 lesson). The raw surface IS the right shape:
+//    veto at the low end (0.2–0.4), informative slope at the top.
 
 /** R2 enumerative proposer: one knob (exit pitch — the validated tail-only
  *  family), two fitted models (arrival speed + CoM angle at the NEXT beat,
@@ -831,9 +796,10 @@ function shapeReadiness(r: number): number {
  *  subsumption claim this lane exists to test (ablation matrix vs
  *  LR_AIM_LAUNCH). The scoop lane is orthogonal and unaffected.
  *
- *  Target-aware (R1 validation): on elevation-ask next gaps the
- *  catchability surface mis-scores the upward arrivals climbing wants —
- *  defer to the legacy lane there. */
+ *  The R1 caveat (catchability mis-scores the upward arrivals climbing
+ *  wants) needed NO special handling in the end: an elevation climb-defer
+ *  to the legacy lane was removed at exact parity — the speed-fit and
+ *  impact-feasibility factors already cover demanding climbs. */
 export function makeEnumAimedCandidates(
   // deno-lint-ignore no-explicit-any
   engine: any,
@@ -848,12 +814,6 @@ export function makeEnumAimedCandidates(
   if (nextGap === null) {
     aimTotals.enum_no_target++;
     return [];
-  }
-  const elevAsk = nextGap.targets.elevation;
-  if (enumDeferEnabled() && elevAsk !== undefined && elevAsk > ENUM_ELEV_CLIMB_DEFER) {
-    aimTotals.enum_elev_defer++;
-    const legacy = makeAimedCandidate(engine, gap, gaps, ctx, base, lineIdStart);
-    return legacy === null ? [] : [legacy];
   }
   const speedTarget = nextGapSpeedTargetPx(gap, gaps);
   if (speedTarget === null && nextGap.targets.impact === undefined) {
@@ -893,7 +853,7 @@ export function makeEnumAimedCandidates(
   const objective = (d: number): number => {
     const s = speedModel(d);
     const a = angleModel(d);
-    const r = shapeReadiness(readinessCatch(s, a));
+    const r = Math.max(ENUM_R_MIN, readinessCatch(s, a));
     const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(s - speedTarget) / ENUM_SPEED_SCALE_PXF);
     const feas = !wantImpact ? 1 : Math.min(
       1,
@@ -913,7 +873,7 @@ export function makeEnumAimedCandidates(
   scoredDeltas.sort((a, b) => b.val - a.val);
   const chosen: { d: number; val: number }[] = [];
   for (const cand of scoredDeltas) {
-    if (chosen.length >= enumTopK()) break;
+    if (chosen.length >= ENUM_TOP_K) break;
     if (chosen.every((c) => Math.abs(c.d - cand.d) >= ENUM_MIN_SEP_DEG)) chosen.push(cand);
   }
   if (chosen.length === 0) {
@@ -943,8 +903,8 @@ export function makeEnumAimedCandidates(
     if (achieved !== null && achieved.comAngleDeg !== null) {
       aimTotals.enumAchieved++;
       aimTotals.enumReadinessErrSum += Math.abs(
-        shapeReadiness(readinessCatch(speedModel(d), angleModel(d))) -
-          shapeReadiness(readinessCatch(achieved.speed, achieved.comAngleDeg)),
+        Math.max(ENUM_R_MIN, readinessCatch(speedModel(d), angleModel(d))) -
+          Math.max(ENUM_R_MIN, readinessCatch(achieved.speed, achieved.comAngleDeg)),
       );
     }
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };

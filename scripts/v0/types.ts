@@ -529,7 +529,6 @@ export type CompileStats = {
      *  present only when the lane ran). */
     enum_considered?: number;
     enum_no_target?: number;
-    enum_elev_defer?: number;
     enum_probe_crash?: number;
     enum_on_target?: number;
     enum_gate_fail?: number;

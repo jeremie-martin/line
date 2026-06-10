@@ -1,7 +1,9 @@
 # Readiness — roadmap
 
-2026-06-10 · branch arc-rewrite · canonical baseline `enum-defer-off-01`
-(600.57; R2 promoted, climb-defer removed at parity). Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer:
+2026-06-10 · branch arc-rewrite · canonical baseline `scoop-off-price-01`
+(600.91; R2 promoted → defer removed → R3 joint multi-knob promoted →
+scoop + legacy lanes deleted: ONE proposer remains, per the design
+commitment). Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer:
 concept, invariants, instance choices — this roadmap is its phase 2);
 `IMPACT_PAIR_PLANNING.md` (the impact diagnosis). This is a ROADMAP: rungs
 are falsifiable and most later content is contingent on earlier outcomes —
@@ -243,10 +245,18 @@ instance.
 
 - **More readiness components**: impact-feasibility, speed-compatibility —
   the dive-scoop trigger fully absorbed here.
-- **Joint multi-knob model**: one model over (pitch, rotate[, …]) — the
-  additivity study certifies the simple sum as proposer-grade at median
-  (~10% interaction, p90 ~1×: never trust uncommitted — production eval
-  catches the tail). Enables true joint enumeration.
+- **Joint multi-knob model — DONE, PROMOTED (2026-06-10)**: additive
+  composition of per-knob quadratics over (pitch, rotate), 2-D sweep.
+  Scout (`study_joint_enum`, 289 gaps): achieved objective gain p50 +0.035,
+  3× larger where pitch clamps; additivity at the argmax 0.041 px/f /
+  0.63°. v1 (eager, always-on, ±4° extrapolated) REJECT Δ−7.9 — rotation
+  displaced 92% of pitch proposals, 37% on-beat-landing gate-fail, commits
+  −34%; the model was right, the economics wrong. v2 (lazy recruit at
+  pitch exhaustion, probed span ±3°, ≥15% margin, one non-displacing slot)
+  Δ+0.4, positive at mature budgets → promoted as the architecture
+  (`aim-joint-r3-02` = 600.94). Lesson for every future knob: predicted
+  objective is not the whole economics — gate risk and displacement of
+  proven proposals must be priced into the recruit rule.
 - **Pose steering**: aim pose itself (V0: ~40° authority via exit pitch;
   wrapping caveat — unwrap by sweep continuity, track angular velocity).
   REFRAMED after R0 (Jérémie): pose parked as a CATCHABILITY signal does

@@ -1,10 +1,21 @@
 # Arc-state control — the aiming layer
 
-2026-06-10 · branch arc-rewrite · canonical baseline `enum-defer-off-01`
-(600.57). Companion: `IMPACT_PAIR_PLANNING.md` (the impact diagnosis this
-work answered). Code: `scripts/v0/optimizer/aim.ts` (probes, models, lanes),
-`optimizer/node.ts` (pool wiring), `arc_placement.ts`
-(`buildArrivalScoopLines`).
+2026-06-10 · branch arc-rewrite · canonical baseline `scoop-off-price-01`
+(600.91). Companion: `IMPACT_PAIR_PLANNING.md` (the impact diagnosis this
+work answered). Code: `scripts/v0/optimizer/aim.ts` (probes, models, the
+proposer), `optimizer/readiness.ts` (the readiness metric),
+`optimizer/node.ts` (pool wiring).
+
+**There is ONE aiming mechanism** — the enumerative proposer: knob deltas →
+inner model predicts the rider's end state at the next beat → readiness
+metric on that predicted state → multiplied with target-fit terms → top-k
+proposals through exact production evaluation. Every hand-tuned predecessor
+(V3 speed-aim, V4 angle-aim, the arrival-conditioned scoop lane, the rotate
+fallback, the climb defer) was subsumed by it and deleted once its ablation
+priced at ~zero. This unification is a design commitment (Jérémie,
+2026-06-10): trigger-based special-case lanes do not come back; new
+capability goes into the inner model, the readiness metric, the objective,
+or the sampler's template family.
 
 The idea (Jérémie): when placing an arc we would ideally CONTROL the rider's
 state — speed, trajectory direction, internal rotation — because the
@@ -68,15 +79,17 @@ Properties the concept requires (and the current instance has):
   at no extra cost. Probe count therefore scales with the model order per
   KNOB, never with the number of outputs — predicting n quantities does not
   need n+1 probes.
-- **Per (knob, frame, quantity) fits** (`fitKnobQuantity`): outputs live at
-  different frames (release frame vs next beat) and δ=0 points differ
-  (sometimes a free existing measurement, sometimes a paid probe), so the
-  model is a set of scalar fits sharing rides — not a monolithic predictor.
+- **Per (knob, frame, quantity) fits, additively composed across knobs**:
+  outputs live at different frames and δ=0 points differ, so the model is a
+  set of scalar fits sharing rides — not a monolithic predictor. The joint
+  multi-knob prediction is the additive sum of per-knob fits (certified
+  proposer-grade: ~10% median interaction; re-verified AT the sweep argmax,
+  0.041 px/f / 0.63° p50 — `study_joint_enum`).
 - **Error is priced, live.** Every emitted proposal records
   |predicted − simulated| (`compile_stats.aim.*err*`), so model quality is
   continuously measured in production, never assumed.
 - **Swappable.** Nothing downstream knows a candidate was aimed (the
-  `aimed`/`scooped` flags are telemetry). Model order, probe count, knob
+  `aimed` flag is telemetry). Model order, probe count, knob
   set, output set, number of aimed candidates, single- vs multi-target
   solving — all are instance parameters. A learned prior, online updates,
   or a richer probe (e.g. full per-probe axis measurement) extend the same
@@ -101,26 +114,24 @@ Properties the concept requires (and the current instance has):
 
 | choice | why now | what would change it |
 |---|---|---|
-| tail-only knob (exit pitch) in production | safe-first: whole-arc rotation moves the catch surface, and as a BLIND fallback behind an already-evaluated catch it broke landings (−2.2, §6) | a knob that disturbs the current gap is usable if its disturbance is re-gated/priced — which the mandatory production evaluation already does; needs a lane design that re-fits the disturbed catch |
-| 3 probes per fit (quadratic) | the measured accuracy knee (V0 ladder: 2-probe linear ~3× worse, 5-probe cubic marginal) | telemetry showing model error is the binding constraint |
-| ≤1 extra candidate per lane | cost control for the first increments | evidence aimed candidates dominate selection (see the pool-rank instrument, §7) — then aim more of the pool |
-| single-target solving | one knob aims one scalar; the validated increment | telemetry showing proposals win their target but lose selection on collateral axes — then the joint 2-knob solve (already certified proposer-grade, §4) graduates. A heuristic, not a gate. |
-| quadratic model, scan solve | exact through 3 points; 0.1° resolution below model error | a quantity whose response is not locally smooth (only pose wrapping qualifies so far) |
+| two knobs: exit pitch everywhere + whole-arc rotation recruited lazily | rotation moves the catch surface (37% gate-fail when proposed freely — R3 v1 REJECT Δ−7.9), so it engages only at pitch exhaustion, within its probed span, behind a ≥15% predicted margin, in one non-displacing slot (R3 v2, promoted) | a third knob (e.g. arc depth/length) certified additive; or a model that predicts gate survival so rotation can compete everywhere |
+| 3 probes per knob fit (quadratic) | the measured accuracy knee (V0 ladder: 2-probe linear ~3× worse, 5-probe cubic marginal) | telemetry showing model error is the binding constraint |
+| top-2 proposals | the measured knee (k=1 −1.1: the 2nd pays; k=3 −4.5: the 3rd starves small budgets) | eval-cost or pool-pricing changes |
+| readiness over (speed, comAngle) only | pose parked by R0 (flat to 90°, 4.2% incidence beyond) | new components validated against realized outcomes (R1 pattern) |
+| quadratic model, scan sweep | exact through 3 points; 0.25° grid below model error | a quantity whose response is not locally smooth (only pose wrapping qualifies so far) |
 
 ### Relationship to the search
 
-Lanes run during POOL CONSTRUCTION (`node.ts sortWithLaneExtras`), before
-ranking: the aimed/scoop candidates enter the same cost-sorted pool as the
-samples and flow through the same local-cost pre-ranking, forward-eval
-re-ranking, DFS and repair. The evaluation strategy of the search (greedy
-depth, branch width, etc.) is orthogonal and stays swappable. Two coupling
-points matter:
+The proposer runs during POOL CONSTRUCTION (`node.ts sortWithLaneExtras`),
+before ranking: proposals enter the same cost-sorted pool as the samples
+and flow through the same local-cost pre-ranking, forward-eval re-ranking,
+DFS and repair. The evaluation strategy of the search (greedy depth, branch
+width, etc.) is orthogonal and stays swappable. Two coupling points matter:
 
-- **Lookahead sees lanes through pool membership.** branch=1 rollout pools
-  currently exclude the probe-paying aimed lane (cost) and include the
-  scoop only via its per-node cache; making lane work visible *inside*
-  rollouts at current eval prices was falsified three ways (§6) — the
-  constraint is price, not principle.
+- **Lookahead sees the proposer through pool membership.** branch=1 rollout
+  pools exclude the probe-paying proposer (cost); making lane work visible
+  *inside* rollouts at current eval prices was falsified three ways (§6) —
+  the constraint is price, not principle.
 - **The coupling law constrains knob placement.** Perturbing an arrival
   invalidates any already-evaluated catch behind it in the same prefix
   (±2° breaks the committed on-beat landing at 79% of gaps). So aiming
@@ -129,15 +140,13 @@ points matter:
 
 ## 2. Prediction inventory — models as inputs → outputs
 
-| # | inputs (knob) | outputs predicted | model | probes | inverted for | status · accuracy |
+| # | inputs (knob) | outputs predicted | model | probes | used for | status · accuracy |
 |---|---|---|---|---|---|---|
-| 1 | exit pitch δ | release speed (px/f) at release frame | quadratic | 2 (δ=0 free: candidate's own releaseSpeed) | δ hitting NEXT gap's speed target | ON (V3) · `aim.pred_abs_err_mean` ≈ 0.03 px/f |
-| 2 | exit pitch δ | CoM velocity angle (deg) at next beat | quadratic | 3 | δ hitting steep-arrival target = asin(ask·REDIR_CAP/speed)+4°, clamp 12–28° | ON (V4) · `aim.angle_pred_abs_err_mean` |
-| 3 | scoop exit angle | hop apex reaching next beat (vy = −g·N/2) | closed-form ballistics | 0 | scoop exit geometry | ON (V4 scoop) |
-| 4 | whole-arc rotation δ | release speed | quadratic | 2 | residual after pitch clamps | PARKED (−2.2 as blind fallback, §6) |
-| 5 | (pitch, rotate) jointly | (speed, angle) | additive sum of single-knob fits | shared | two simultaneous targets | CERTIFIED proposer-grade, median 10% interaction, p90 tail ~1× — not in production (§1 heuristic) |
+| 1 | exit pitch δp | (speed, CoM angle) at the next beat | quadratic per quantity | 3 (shared: base, ±6°) | the proposer's objective sweep | ON · readiness err mean ~0.012 live |
+| 2 | whole-arc rotation δr | (speed, CoM angle) at the next beat | quadratic per quantity | 2 more (±3°; base shared) — paid LAZILY at pitch exhaustion | extends the sweep to 2-D where pitch clamps | ON (R3 v2) · additive composition with #1 |
+| 3 | (δp, δr) jointly | (speed, CoM angle) | additive sum of #1+#2 | shared | joint argmax under the objective | CERTIFIED ~10% median interaction; 0.041 px/f / 0.63° p50 at the argmax (`study_joint_enum`) |
 | — | any knob | sled pose (internal rotation) | — | free (same rides) | — | SENSOR PLUMBED (`ProbeOutcome.sledPoseDeg`, `CandidateProbe.sledPoseDeg()`); V0: ~40° authority, locally smooth, globally wrapping — model when evidence demands (§7) |
-| — | exit pitch | current-gap + span axis VALUES | — | needs full evaluation per probe (expensive) | — | VIABLE per V2 (secant err ≤1% of range within gap, 1–6% cross-gap); architected for (a richer probe extends `ProbeOutcome`), not wired |
+| — | exit pitch | current-gap + span axis VALUES | — | needs full evaluation per probe (expensive) | — | VIABLE per V2 (secant err ≤1% of range within gap, 1–6% cross-gap); architected for (a richer probe extends `ProbeOutcome`), not wired — current-gap axes are measured exactly instead (every proposal is fully evaluated) |
 
 MEASURED EXACTLY (simulation, never modeled): every candidate's axis vector,
 gates and cost (`tryCandidateLines`); the arrival state at each gap from the
@@ -149,26 +158,30 @@ is the redirection at the next gap's not-yet-chosen catch, and arrival+catch
 are a coupled pair (coupling law). The other span axes of gap k+1 are
 determined by arc k's exit + ballistics and are probe-predictable without it.
 
-## 3. Production lanes (all default-on; flags are ablations)
+## 3. The production lane (default-on; `LR_AIM_ENUM=0` ablates)
 
-| lane | flag | what it does | promoted result |
-|---|---|---|---|
-| **enumerative proposer** (R2, the default launch lane) | `LR_AIM_ENUM=0` | fit speed+angle next-beat models from 3 shared probes; sweep the pitch span inside the models; objective = readiness × speed-fit × impact-feasibility; top-2 into the pool (k=2 = measured knee: k=1 −1.1, k=3 −4.5 REJECT) | 597.41→600.71, Δ+3.3, P(Δ≤0)=7.3%, positive every budget; climb-defer later removed at exact parity (Δ−0.1 → 600.57) |
-| legacy speed-aim / angle-aim (V3/V4) | runs only under `LR_AIM_ENUM=0` (+ `LR_AIM_LAUNCH=0` ablates); slated for DELETION after soak | hand-tuned triggers the enum lane subsumed: speed solve; steep-arrival formula on impact-ask gaps | historically 586.53→592.57 (Δ+6.0) and (with scoop) →597.92 |
-| arrival-conditioned scoop | `LR_AIM_IMPACT=0` | deterministic catch built from the ACTUAL arrival vector; turn sized to a next-beat hop, 8–40°; one eval per node, memoized (`_scoopCache`) | with angle-aim: 592.57→597.92, Δ+5.4; 50k +43 |
+**The enumerative proposer** (`makeEnumAimedCandidates`): fit speed+angle
+next-beat models from 3 shared pitch probes; recruit the rotate knob lazily
+(2 more probes) when the pitch sweep is boundary-clamped or empty-handed;
+sweep the knob space inside the (additively composed) models; objective =
+readiness × speed-fit × impact-feasibility; top-2 into the pool (k=2 =
+measured knee), with at most one rotated proposal that must clear a ≥15%
+predicted margin and never displaces the top pitch proposal.
 
-Angle-aim + scoop shipped together originally (a steep arrival without its
-matched catch is the failed arrival-unfade experiment); under the enum lane
-the steepness push comes from the impact-feasibility factor and the scoop
-remains the matched catch (`IMPACT_PAIR_PLANNING.md` §3).
+Subsumption record (each predecessor deleted when its ablation priced ~0):
+V3 speed-aim + V4 angle-aim triggers (ACCEPT Δ+3.3 → 600.71) · elevation
+climb-defer (parity Δ−0.1 → 600.57) · joint rotate knob promoted (Δ+0.4 →
+600.94) · arrival-conditioned scoop lane (parity Δ−0.0 → 600.91; its
+deep-catch geometry can return as a SAMPLER template if the impact axis
+wants it back — `arc_placement.ts` SLAM-HOP is the surviving instance of
+that family).
 
 Telemetry (`compile_stats.aim`, archived, lab-queryable via `json_extract`):
-per-lane funnels (considered→emitted), prediction accuracy, base-vs-aimed
-target miss, and the **pool-rank instrument** (`aimed_*`/`scoop_*`:
-`pool_entries`, `rank0`, `top3`, `rank_sum`, `pool_size_sum`) — where lane
-candidates land in their cost-sorted pools, feeding the budget-shift
-question (§7). Commit-level: `handoff_aimed_selected`,
-`handoff_scoop_selected`.
+proposer funnel (considered→emitted), readiness prediction accuracy, the
+rotate split (`enum_rot_*`), and the **pool-rank instrument** (`aimed_*`:
+`pool_entries`, `rank0`, `top3`, `rank_sum`, `pool_size_sum`) — where
+proposals land in their cost-sorted pools, feeding the budget-shift
+question (§7). Commit-level: `handoff_aimed_selected`.
 
 ## 4. Validated facts (snapshot, as of 2026-06-10)
 
@@ -212,7 +225,9 @@ From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knobs @300k), V1
 | per-node scoop cache | 597.96 | aim-scoopcache-default-01 |
 | prefix-cache lane fix | 597.41 | prefix-cache-lanes-01 |
 | R2 enumerative proposer | 600.71 | aim-enum-r2-03 |
-| climb-defer removed (parity, simplification) | **600.57 (current)** | enum-defer-off-01 |
+| climb-defer removed (parity, simplification) | 600.57 | enum-defer-off-01 |
+| R3 joint multi-knob inner model (v2) | 600.94 | aim-joint-r3-02 |
+| scoop + legacy lanes deleted (parity, unification) | **600.91 (current)** | scoop-off-price-01 |
 
 Suite: 40 specs × 12 seeds, budgets 50k–300k weighted; α=0.10 via `npm run
 decide`. Impact still costs ~55 headline points (`npm run lab -- report
@@ -244,30 +259,34 @@ loss`) — the open prize.
   `enum-k3-01` Δ−4.5 REJECT, 50k −43.8): the second proposal pays its eval
   cost, the third starves small budgets. k=2 is the knee at current eval
   prices — revisit only if eval cost or pool pricing changes.
+- **Eager always-on rotation in the joint sweep** (`aim-joint-r3-01`):
+  REJECT Δ−7.9. Rotation's predicted-objective wins displaced 92% of pitch
+  proposals and failed the on-beat-landing gate 37% of the time (~98k
+  wasted evals); commits −34%. The model was accurate — the economics were
+  wrong. Lazy recruit + probed span + margin + non-displacing slot (v2) is
+  the surviving form.
+- **The scoop and legacy lanes as separate machinery**: not falsified —
+  SUBSUMED. Their ablations under the promoted proposer priced at ~0
+  (scoop Δ−0.0; legacy unreachable), and the design commitment (§ header)
+  retires trigger-based lanes permanently. Any future catch-shaping value
+  belongs in the sampler's template family or the readiness/objective side.
 
 ## 7. Open problems (rough leverage order)
 
-0. **The readiness program** — `READINESS_ROADMAP.md` (phase 2 of this
-   document): a model predicting whether the arrival state (speed, CoM
-   angle, POSE) sets the next gap up for success, used inside an
-   enumerative proposer (sweep knob deltas inside the fitted models — free
-   — propose the top few). Subsumes the V3/V4 lane triggers as special
-   cases and adds the pose dimension generation is currently blind to.
-   First rung: the catchability ground-truth study (R0).
-
-1. **Selection (the C-share) + the budget-shift question.** Post-V4 funnel:
-   A_not_generated 56%→35%, C_ranking_loses 32%→54%, D_works 8%. Deep
-   candidates exist and lose forward-eval — and rollout visibility is not
-   the answer (§6). The new pool-rank instrument (§3) now measures where
-   aimed/scoop candidates land in their pools: if they dominate (high
-   rank0/top3 share), budget should shift from sampling toward aiming
-   (fewer samples, more aimed variants); if scoops rank poorly, the
-   question becomes collateral-axes cost (the §1 multi-target trigger) vs
-   genuine geometry quality.
-2. **Sled pose at landing.** Sensor plumbed and free; if scoops
-   under-deliver after the selection question, record pose at landing and
-   test whether it predicts conversion residue (the catchability hypothesis:
-   right CoM arrival, wrong internal rotation → crash or weak conversion).
+0. **The readiness program R3+/R4** — `READINESS_ROADMAP.md`: richer
+   readiness components validated against realized outcomes (the R1
+   pattern); pose flair as an aesthetic steering target (low-risk per R0);
+   the impact prize (~55 pts) via the objective/readiness side now that
+   the scoop is gone.
+1. **Selection (the C-share) + the budget-shift question.** Deep candidates
+   exist and lose forward-eval — and rollout visibility is not the answer
+   (§6). The pool-rank instrument (§3) measures where proposals land in
+   their pools; commits via `handoff_aimed_selected`. If proposals dominate
+   commits, budget should shift from sampling toward the proposer (fewer
+   samples, more proposals) — R4, gated by the attempt-0 scar.
+2. **Sled pose at landing.** Sensor plumbed and free; record pose at
+   landing and test whether it predicts conversion residue if impact
+   conversion stalls.
 3. **Direct axis-value aiming** for current-gap and span axes (V2: viable).
    Needs a rich probe (full evaluation per probe point) — architected for;
    becomes interesting if state proxies prove to be the accuracy
@@ -277,7 +296,8 @@ loss`) — the open prize.
 
 Studies (read-only): `scripts/v0/study_arc_sensitivity.ts`,
 `study_aim_replay.ts`, `study_score_smoothness.ts`,
-`study_knob_additivity.ts`, `study_impact_funnel.ts`; artifacts under
+`study_knob_additivity.ts`, `study_impact_funnel.ts`,
+`study_catchability.ts`, `study_joint_enum.ts`; artifacts under
 `generated/analysis/`. Decision workflow: `LR_ENGINE=wasm npm run golden --
 --jobs=32 --archive-dir=generated/golden-runs/<name>`, then `npm run decide
 -- <candidate>/golden.json <baseline>/golden.json` (candidate first). After

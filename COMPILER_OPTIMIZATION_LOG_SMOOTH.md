@@ -1405,3 +1405,18 @@ first post-rebase baseline.
 - Per-budget deltas: `50k +0.0`, `100k +0.2`, `200k +1.1`,
   `300k +0.9`; validity unchanged.
 - Status: accepted; this archive becomes the next official comparison baseline.
+
+## impact-template-scoop-mean-pressure-01
+
+- Mechanism: impact-template scoop-duration spec-mean impact gate.
+- Continuous replacement: replaced the hard `meanImpact >= 0.55` eligibility for
+  mature-budget scoop shortening with a smooth `0.45..0.65` spec-mean pressure
+  multiplied by the existing budget pressure.
+- Run: `generated/golden-runs/impact-template-scoop-mean-pressure-01`.
+- Decide against accepted baseline `impact-template-turn-pressure-02`:
+  `VERDICT: REJECT`; headline `583.8 -> 582.7`, delta `-1.1`,
+  CI `[-2.6, 0.2]`, `P(delta<=0)=94.8%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k -1.7`,
+  `300k -1.2`; validity unchanged (`1908/1920`, `300k 480/480`).
+- Status: rejected and reverted; softening the spec-mean boundary under-shoots
+  mature high-impact templates, so the old sharp eligibility remains better.

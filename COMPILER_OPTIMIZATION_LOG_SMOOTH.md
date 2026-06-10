@@ -1368,3 +1368,18 @@ first post-rebase baseline.
   `300k 480/480`).
 - Status: rejected and reverted; row-level churn collapsed to an exact canonical
   aggregate no-op, so the startup rescue count quantization is not worth keeping.
+
+## handoff-state-soft-hinge-01
+
+- Mechanism: handoff candidate state penalty for high vertical velocity and
+  steep trajectory angle.
+- Continuous replacement: replaced hard `max(0, excess)` hinges with smooth
+  softplus-style excess around the old `8 px/frame` and `70deg` thresholds.
+- Run: `generated/golden-runs/handoff-state-soft-hinge-01`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `583.0 -> 583.0`, delta `-0.0`,
+  CI `[-0.0, 0.0]`, `P(delta<=0)=75.3%`.
+- Per-budget deltas: `50k -0.0`, `100k +0.0`, `200k +0.0`,
+  `300k +0.0`; validity unchanged (`1908/1920`, `300k 480/480`).
+- Status: rejected and reverted; the only measurable signal is a tiny 50k
+  regression, so no wider state-penalty smoothing variant is worth trying.

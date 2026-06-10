@@ -1303,3 +1303,20 @@ first post-rebase baseline.
   `300k -0.0`; validity unchanged (`1908/1920`, `300k 480/480`).
 - Status: rejected and reverted; widening the side-offset transition gives back
   the narrow variant's small gain and slightly harms mature budgets.
+
+## ballistic-start-pool-pressure-01
+
+- Mechanism: startup ballistic-start scoring pool budget floor.
+- Continuous replacement: moved ballistic-start admission earlier and replaced
+  the hard floored pool count with deterministic fractional admission for the
+  marginal slot.
+- Run: `generated/golden-runs/ballistic-start-pool-pressure-01`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `583.0 -> 582.6`, delta `-0.4`,
+  CI `[-3.1, 2.0]`, `P(delta<=0)=56.4%`.
+- Per-budget deltas: `50k -5.4`, `100k +0.0`, `200k +0.0`,
+  `300k +0.0`; validity regressed (`1908/1920 -> 1907/1920`,
+  `300k 480/480`).
+- Status: rejected and reverted; early ballistic starts consume scarce 50k
+  startup slots without improving mature budgets, so no wider variant is worth
+  carrying forward.

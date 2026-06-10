@@ -126,6 +126,20 @@ high. CoM velocity angle wraps only if the rider loops — not observed.
   doesn't re-score gap k). Any production use must aim within the slack of
   gap k's own targets or re-rank gap k's candidates with the model in hand.
 
+**7. Knob additivity (multi-knob aiming feasibility).**
+`scripts/v0/study_knob_additivity.ts` (218 gaps × 4 pitch±6°/rotate±3°
+combos @300k): does f(δp, δr) ≈ f(δp,0) + f(0,δr) − f(0,0)? Median: yes —
+interaction residual ≈ 9–11% of the joint effect (speed 0.035 px/f, angle
+0.41°). Tail: NO — at p90 the residual rivals the joint effect (ratio
+0.85–1.17). Verdict for the 2-knob/2-target aimer: a joint linear solve is
+fine as a PROPOSER (median accuracy ample, |interaction| p90 in absolute
+terms — 0.155 px/f, 2.3° — is below typical aim tolerances), but its
+prediction must never be trusted uncommitted: the mandatory production
+evaluation of the aimed variant (already how the lane works) makes tail
+mis-aims harmless, and the telemetry's pred_abs_err will price them. Expect
+a lower hit rate than the single-knob lane; consider one Newton re-probe at
+the solved point if telemetry shows it pays.
+
 ## Validation & integration roadmap (the method)
 
 Principles. The aimer must be a PROPOSER, never a judge: a pure function

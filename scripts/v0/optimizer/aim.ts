@@ -128,6 +128,22 @@ export function aimEnumEnabled(): boolean {
     .process?.env?.LR_AIM_ENUM !== "0";
 }
 
+/** R3 joint multi-knob inner model (LR_AIM_JOINT=1, experiment flag —
+ *  default OFF, bit-identical incl. stats): the enum lane's inner model
+ *  becomes the ADDITIVE composition of per-knob quadratics over
+ *  (exit pitch, whole-arc rotate) and the sweep goes 2-D. Grounds:
+ *  additivity certified proposer-grade (study_knob_additivity, median
+ *  interaction ~10%); scout (study_joint_enum, 289 target gaps @300k):
+ *  rotate engaged at 97% of joint argmaxes, ACHIEVED objective gain p50
+ *  +0.035 / mean +0.062, positive 204/276, gains 3× larger where pitch
+ *  clamps; additive error at argmax 0.041 px/f / 0.63° p50; rotated-winner
+ *  break rate 1.8% (gates price it). Cost: 2 extra probes per gap (5 vs 3,
+ *  base shared). */
+export function aimJointEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_JOINT === "1";
+}
+
 /** Scoop lane in branch=1 rollout pools (LR_AIM_SCOOP_ROLLOUT=1).
  *  VERDICT (2026-06-10): rollout visibility for the scoop was falsified
  *  three ways — fresh eval per pool rebuild (v4-01, −3.8), per-node cached
@@ -203,6 +219,12 @@ export type AimStats = {
   enum_readiness_err_mean?: number;
   /** Mean predicted readiness gain over δ=0, over emitted. */
   enum_readiness_gain_mean?: number;
+  /** R3 joint-model split (LR_AIM_JOINT; present only when the flag is on):
+   *  rotate-probe failures (lane falls back to pitch-only), and how rotated
+   *  (dr≠0) proposals fare at the production gates vs emitted. */
+  enum_rot_probe_crash?: number;
+  enum_rot_emitted?: number;
+  enum_rot_gate_fail?: number;
 };
 
 const aimTotals = {
@@ -223,6 +245,7 @@ const aimTotals = {
   enum_considered: 0, enum_no_target: 0,
   enum_probe_crash: 0, enum_on_target: 0, enum_gate_fail: 0, enum_emitted: 0,
   enumReadinessErrSum: 0, enumReadinessGainSum: 0, enumAchieved: 0,
+  enum_rot_probe_crash: 0, enum_rot_emitted: 0, enum_rot_gate_fail: 0,
 };
 
 /** Record where a lane extra ranked in the cost-sorted pool it entered, and
@@ -258,7 +281,15 @@ export function resetAimStats(): void {
 /** Snapshot for compile stats; null when the lane never ran (flag off /
  *  no pools) so ablation archives carry no aim key at all. */
 export function snapshotAimStats(): AimStats | null {
-  if (aimTotals.considered === 0) return null;
+  // Null only when NO lane ran at all. Gating on the legacy counter alone
+  // (the original quirk) silently dropped the whole aim block — incl. the
+  // enum funnel and the pool-rank instrument — from any compile where the
+  // legacy lane never fired (most of them once enum was promoted, ALL of
+  // them once the climb-defer was removed).
+  if (
+    aimTotals.considered === 0 && aimTotals.scoop_considered === 0 &&
+    aimTotals.enum_considered === 0
+  ) return null;
   const round3 = (x: number): number => Math.round(x * 1000) / 1000;
   const per = (sum: number): number => (aimTotals.emitted > 0 ? round3(sum / aimTotals.emitted) : 0);
   return {
@@ -308,6 +339,15 @@ export function snapshotAimStats(): AimStats | null {
           ? round3(aimTotals.enumReadinessErrSum / aimTotals.enumAchieved) : 0,
         enum_readiness_gain_mean: aimTotals.enum_emitted > 0
           ? round3(aimTotals.enumReadinessGainSum / aimTotals.enum_emitted) : 0,
+        // Joint-model split only under the experiment flag — keeps the
+        // default snapshot byte-identical.
+        ...(aimJointEnabled()
+          ? {
+            enum_rot_probe_crash: aimTotals.enum_rot_probe_crash,
+            enum_rot_emitted: aimTotals.enum_rot_emitted,
+            enum_rot_gate_fail: aimTotals.enum_rot_gate_fail,
+          }
+          : {}),
       }
       : {}),
   };
@@ -772,6 +812,12 @@ const ENUM_MIN_SEP_DEG = 1.5;
 const ENUM_R_MIN = 0.1;
 /** Speed-target fit scale (px/f): exp(−|predicted − target|/scale). */
 const ENUM_SPEED_SCALE_PXF = 0.75;
+/** Joint-model rotate axis (LR_AIM_JOINT): sweep span ±4° (probes at ±3°,
+ *  same ~1.6× extrapolation ratio as pitch ±6→±10), step 0.5°, and a
+ *  rotate-axis separation gauge for "distinct arc shapes". */
+const ENUM_ROT_SPAN_DEG = 4;
+const ENUM_ROT_STEP_DEG = 0.5;
+const ENUM_ROT_MIN_SEP_DEG = 1.0;
 // FALSIFIED SHAPES (2026-06-10, both vs aim-enum-r2-03 = 600.71):
 //  · elevation climb-defer to the legacy lane: removal = exact parity
 //    (Δ−0.1, CI [−0.6, 0.2]) — the speed-fit and impact-feasibility terms
@@ -842,6 +888,24 @@ export function makeEnumAimedCandidates(
   // outcome vector; adding a quantity costs zero probes).
   const speedModel = quadModel(lo.speed, baseOut.speed, hi.speed, P);
   const angleModel = quadModel(lo.comAngleDeg, baseOut.comAngleDeg, hi.comAngleDeg, P);
+
+  // R3 joint inner model (LR_AIM_JOINT): two more probes fit the rotate
+  // knob; the joint prediction is the ADDITIVE composition (certified
+  // proposer-grade — see aimJointEnabled). Probe failure falls back to the
+  // pitch-only model rather than killing the lane.
+  let rotSpeedModel: ((d: number) => number) | null = null;
+  let rotAngleModel: ((d: number) => number) | null = null;
+  if (aimJointEnabled()) {
+    const RP = AIM_ROT_PROBE_DEG;
+    const rLo = probeRide(engine, rotateArc(base.lines, -RP), F);
+    const rHi = rLo === null ? null : probeRide(engine, rotateArc(base.lines, RP), F);
+    if (rLo === null || rLo.comAngleDeg === null || rHi === null || rHi.comAngleDeg === null) {
+      aimTotals.enum_rot_probe_crash++;
+    } else {
+      rotSpeedModel = quadModel(rLo.speed, baseOut.speed, rHi.speed, RP);
+      rotAngleModel = quadModel(rLo.comAngleDeg, baseOut.comAngleDeg, rHi.comAngleDeg, RP);
+    }
+  }
   // Impact-feasibility component (roadmap R3, brought forward after enum
   // v2 parity: catchability alone barely differentiates 15° from 25°
   // arrivals, so nothing pushed the steep arrivals conversion needs).
@@ -850,9 +914,17 @@ export function makeEnumAimedCandidates(
   // hand-clamped target.
   const impactAsk = nextGap.targets.impact;
   const wantImpact = impactAsk !== undefined && impactAsk >= AIM_IMPACT_MIN_ASK;
-  const objective = (d: number): number => {
-    const s = speedModel(d);
-    const a = angleModel(d);
+  // Predicted arrival state at (dp, dr). The dr=0 / no-rot-model branch
+  // keeps the pitch-only floating-point path bit-identical to R2.
+  const predSpeed = (dp: number, dr: number): number =>
+    rotSpeedModel === null || dr === 0 ? speedModel(dp) : speedModel(dp) + rotSpeedModel(dr) - baseOut.speed;
+  const predAngle = (dp: number, dr: number): number =>
+    rotAngleModel === null || dr === 0
+      ? angleModel(dp)
+      : angleModel(dp) + rotAngleModel(dr) - (baseOut.comAngleDeg as number);
+  const objective = (dp: number, dr: number): number => {
+    const s = predSpeed(dp, dr);
+    const a = predAngle(dp, dr);
     const r = Math.max(ENUM_R_MIN, readinessCatch(s, a));
     const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(s - speedTarget) / ENUM_SPEED_SCALE_PXF);
     const feas = !wantImpact ? 1 : Math.min(
@@ -863,18 +935,29 @@ export function makeEnumAimedCandidates(
   };
 
   const deltaMax = aimDeltaMaxDeg();
-  const obj0 = objective(0);
-  const scoredDeltas: { d: number; val: number }[] = [];
-  for (let d = -deltaMax; d <= deltaMax + 1e-9; d += ENUM_STEP_DEG) {
-    if (Math.abs(d) < AIM_MIN_DELTA_DEG) continue;
-    const val = objective(d);
-    if (val > obj0 + 1e-4) scoredDeltas.push({ d, val });
+  const obj0 = objective(0, 0);
+  const scoredDeltas: { dp: number; dr: number; val: number }[] = [];
+  const rotDeltas: number[] = [0];
+  if (rotSpeedModel !== null) {
+    for (let dr = -ENUM_ROT_SPAN_DEG; dr <= ENUM_ROT_SPAN_DEG + 1e-9; dr += ENUM_ROT_STEP_DEG) {
+      if (Math.abs(dr) >= ENUM_ROT_STEP_DEG / 2) rotDeltas.push(dr);
+    }
+  }
+  for (const dr of rotDeltas) {
+    for (let dp = -deltaMax; dp <= deltaMax + 1e-9; dp += ENUM_STEP_DEG) {
+      if (Math.abs(dp) < AIM_MIN_DELTA_DEG && dr === 0) continue;
+      const val = objective(dp, dr);
+      if (val > obj0 + 1e-4) scoredDeltas.push({ dp, dr, val });
+    }
   }
   scoredDeltas.sort((a, b) => b.val - a.val);
-  const chosen: { d: number; val: number }[] = [];
+  const chosen: { dp: number; dr: number; val: number }[] = [];
   for (const cand of scoredDeltas) {
     if (chosen.length >= ENUM_TOP_K) break;
-    if (chosen.every((c) => Math.abs(c.d - cand.d) >= ENUM_MIN_SEP_DEG)) chosen.push(cand);
+    const distinct = chosen.every((c) =>
+      Math.abs(c.dp - cand.dp) >= ENUM_MIN_SEP_DEG || Math.abs(c.dr - cand.dr) >= ENUM_ROT_MIN_SEP_DEG
+    );
+    if (distinct) chosen.push(cand);
   }
   if (chosen.length === 0) {
     aimTotals.enum_on_target++;
@@ -883,11 +966,13 @@ export function makeEnumAimedCandidates(
 
   const probe = getCandidateProbe(engine, gap, ctx);
   const out: Candidate[] = [];
-  for (const { d, val } of chosen) {
+  for (const { dp, dr, val } of chosen) {
     // All pool candidates are alternatives — they share the same line-ID
     // range (exactly like sampler attempts); only the committed one's ids
-    // reach the track.
-    const aimedLines = pitchExit(base.lines, d).map((l, i) => ({ ...l, id: lineIdStart + i }));
+    // reach the track. Rotate FIRST then pitch — the composition order the
+    // additivity study certified.
+    const aimedLines = pitchExit(dr !== 0 ? rotateArc(base.lines, dr) : base.lines, dp)
+      .map((l, i) => ({ ...l, id: lineIdStart + i }));
     const fit = tryCandidateLines(
       engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,
       axisLookaheadEndFrame(gap, ctx.allContactFrames), gap.targets, true,
@@ -895,15 +980,17 @@ export function makeEnumAimedCandidates(
     ) as Candidate | null;
     if (fit === null) {
       aimTotals.enum_gate_fail++;
+      if (dr !== 0) aimTotals.enum_rot_gate_fail++;
       continue;
     }
     aimTotals.enum_emitted++;
+    if (dr !== 0) aimTotals.enum_rot_emitted++;
     aimTotals.enumReadinessGainSum += val - obj0;
     const achieved = probeRide(engine, aimedLines, F);
     if (achieved !== null && achieved.comAngleDeg !== null) {
       aimTotals.enumAchieved++;
       aimTotals.enumReadinessErrSum += Math.abs(
-        Math.max(ENUM_R_MIN, readinessCatch(speedModel(d), angleModel(d))) -
+        Math.max(ENUM_R_MIN, readinessCatch(predSpeed(dp, dr), predAngle(dp, dr))) -
           Math.max(ENUM_R_MIN, readinessCatch(achieved.speed, achieved.comAngleDeg)),
       );
     }

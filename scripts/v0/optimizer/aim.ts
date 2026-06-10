@@ -49,6 +49,8 @@ export type AimStats = {
   probe_crash: number;
   on_target: number;
   clamped: number;
+  /** Clamped solves where the rotate fallback engaged (LR_AIM_ROT_FALLBACK). */
+  rot_fallback: number;
   gate_fail: number;
   emitted: number;
   /** Mean |predicted(δ*) − fit.releaseSpeed| over emitted (px/f). */
@@ -60,7 +62,7 @@ export type AimStats = {
 
 const aimTotals = {
   considered: 0, no_target: 0, no_release: 0, probe_crash: 0,
-  on_target: 0, clamped: 0, gate_fail: 0, emitted: 0,
+  on_target: 0, clamped: 0, rot_fallback: 0, gate_fail: 0, emitted: 0,
   predAbsErrSum: 0, baseMissSum: 0, aimedMissSum: 0,
 };
 
@@ -83,6 +85,7 @@ export function snapshotAimStats(): AimStats | null {
     probe_crash: aimTotals.probe_crash,
     on_target: aimTotals.on_target,
     clamped: aimTotals.clamped,
+    rot_fallback: aimTotals.rot_fallback,
     gate_fail: aimTotals.gate_fail,
     emitted: aimTotals.emitted,
     pred_abs_err_mean: per(aimTotals.predAbsErrSum),
@@ -93,10 +96,36 @@ export function snapshotAimStats(): AimStats | null {
 
 /** Probe offsets for the quadratic fit (deg); the base candidate is δ=0. */
 const AIM_PROBE_DELTA_DEG = 6;
-/** Solve range (deg) — the span validated by the sensitivity studies. */
-const AIM_DELTA_MAX_DEG = 10;
+/** Solve range (deg). ±10 is the span validated by the sensitivity studies;
+ *  LR_AIM_SPAN widens it (authority experiment — the quadratic extrapolates
+ *  beyond the ±6 probe span, the verification eval prices the model error).
+ *  VERDICT (2026-06-10, span=14 vs default): clamp 27%→17%, miss 0.57→0.54,
+ *  Δheadline +0.3 INCONCLUSIVE — extra speed authority converts to ~no score.
+ *  Speed-aiming is saturated at the default span; don't widen without a new
+ *  target (angle/impact). */
+function aimDeltaMaxDeg(): number {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_SPAN;
+  const n = raw === undefined || raw === "" ? NaN : Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : 10;
+}
 /** Below this |δ*| the aimed variant would duplicate the base candidate. */
 const AIM_MIN_DELTA_DEG = 0.25;
+/** Rotate-fallback knob (LR_AIM_ROT_FALLBACK=1, authority experiment): when
+ *  the pitch solve clamps, recruit whole-arc rotation for the residual.
+ *  Probe span ±ROT_PROBE, solve span ±ROT_MAX (V0-validated range). Effects
+ *  compose additively at the median (study_knob_additivity); the tail is
+ *  caught by the mandatory production evaluation.
+ *  VERDICT (2026-06-10): engaged 19k times, best speed miss (0.47) — but
+ *  gate_fail 1.2%→10.9% (rotating the arc moves the CATCH surface → on-beat
+ *  landing breaks, the V2 coupling law) and Δheadline −2.2. Whole-arc
+ *  rotation is the wrong fallback knob for a committed catch; default OFF. */
+const AIM_ROT_PROBE_DEG = 3;
+const AIM_ROT_MAX_DEG = 4;
+function aimRotFallbackEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_ROT_FALLBACK === "1";
+}
 
 /** Rotate the last ~third of the candidate's segments about that suffix's
  *  first point (chain-continuity preserving; positive = exit pitched down,
@@ -125,6 +154,29 @@ function pitchExit(lines: TrackLine[], deg: number): TrackLine[] {
       };
     }),
   ];
+}
+
+/** Rotate the whole candidate about its entry point (the catch head). Unlike
+ *  pitchExit this DOES move the late surface the rider lands on, so it can
+ *  shift the landing frame — the production evaluation re-gates it. */
+function rotateArc(lines: TrackLine[], deg: number): TrackLine[] {
+  const pivot = { x: lines[0].x1, y: lines[0].y1 };
+  const rad = (deg * Math.PI) / 180;
+  const c = Math.cos(rad);
+  const s = Math.sin(rad);
+  return lines.map((l) => {
+    const dx1 = l.x1 - pivot.x;
+    const dy1 = l.y1 - pivot.y;
+    const dx2 = l.x2 - pivot.x;
+    const dy2 = l.y2 - pivot.y;
+    return {
+      ...l,
+      x1: pivot.x + dx1 * c - dy1 * s,
+      y1: pivot.y + dx1 * s + dy1 * c,
+      x2: pivot.x + dx2 * c - dy2 * s,
+      y2: pivot.y + dx2 * s + dy2 * c,
+    };
+  });
 }
 
 /** Speed (px/f) at the release frame riding the perturbed candidate, or null
@@ -197,9 +249,10 @@ export function makeAimedCandidate(
   const model = (d: number): number =>
     (lo * d * (d - P)) / (2 * P * P) - (mid * (d + P) * (d - P)) / (P * P) +
     (hi * (d + P) * d) / (2 * P * P);
+  const deltaMax = aimDeltaMaxDeg();
   let bestDelta = 0;
   let bestErr = Math.abs(mid - targetPx);
-  for (let d = -AIM_DELTA_MAX_DEG; d <= AIM_DELTA_MAX_DEG + 1e-9; d += 0.1) {
+  for (let d = -deltaMax; d <= deltaMax + 1e-9; d += 0.1) {
     const err = Math.abs(model(d) - targetPx);
     if (err < bestErr - 1e-12) {
       bestErr = err;
@@ -210,9 +263,41 @@ export function makeAimedCandidate(
     aimTotals.on_target++;
     return null;
   }
-  if (Math.abs(bestDelta) > AIM_DELTA_MAX_DEG - 0.11) aimTotals.clamped++;
+  const clamped = Math.abs(bestDelta) > deltaMax - 0.11;
+  if (clamped) aimTotals.clamped++;
 
-  const aimedLines = pitchExit(base.lines, bestDelta)
+  // Rotate fallback: pitch ran out of throw — solve the residual with the
+  // whole-arc rotation knob, composed additively (the production evaluation
+  // below re-gates the joint geometry, catching the additivity tail).
+  let rotDelta = 0;
+  let predicted = model(bestDelta);
+  if (clamped && aimRotFallbackEnabled()) {
+    const R = AIM_ROT_PROBE_DEG;
+    const rlo = probeReleaseSpeed(engine, rotateArc(base.lines, -R), releaseFrame);
+    const rhi = rlo === null ? null : probeReleaseSpeed(engine, rotateArc(base.lines, R), releaseFrame);
+    if (rlo !== null && rhi !== null) {
+      const rotModel = (d: number): number =>
+        (rlo * d * (d - R)) / (2 * R * R) - (mid * (d + R) * (d - R)) / (R * R) +
+        (rhi * (d + R) * d) / (2 * R * R);
+      const residTarget = targetPx - predicted;
+      let bestRot = 0;
+      let bestRotErr = Math.abs(residTarget);
+      for (let d = -AIM_ROT_MAX_DEG; d <= AIM_ROT_MAX_DEG + 1e-9; d += 0.1) {
+        const err = Math.abs(rotModel(d) - mid - residTarget);
+        if (err < bestRotErr - 1e-12) {
+          bestRotErr = err;
+          bestRot = d;
+        }
+      }
+      if (Math.abs(bestRot) >= AIM_MIN_DELTA_DEG) {
+        rotDelta = bestRot;
+        predicted += rotModel(bestRot) - mid;
+        aimTotals.rot_fallback++;
+      }
+    }
+  }
+
+  const aimedLines = pitchExit(rotDelta !== 0 ? rotateArc(base.lines, rotDelta) : base.lines, bestDelta)
     .map((l, i) => ({ ...l, id: lineIdStart + i }));
   const probe = getCandidateProbe(engine, gap, ctx);
   const fit = tryCandidateLines(
@@ -226,7 +311,7 @@ export function makeAimedCandidate(
   }
   aimTotals.emitted++;
   if (fit.releaseSpeed !== undefined) {
-    aimTotals.predAbsErrSum += Math.abs(model(bestDelta) - fit.releaseSpeed);
+    aimTotals.predAbsErrSum += Math.abs(predicted - fit.releaseSpeed);
     aimTotals.baseMissSum += Math.abs(mid - targetPx);
     aimTotals.aimedMissSum += Math.abs(fit.releaseSpeed - targetPx);
   }

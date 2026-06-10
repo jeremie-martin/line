@@ -497,6 +497,7 @@ export type CompileStats = {
     probe_crash: number;
     on_target: number;
     clamped: number;
+    rot_fallback: number;
     gate_fail: number;
     emitted: number;
     pred_abs_err_mean: number;

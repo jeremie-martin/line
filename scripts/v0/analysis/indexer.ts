@@ -108,6 +108,12 @@ function deleteRun(db: DatabaseSync, runId: number): void {
   db.prepare(
     "DELETE FROM arcs WHERE checkpoint_id IN (SELECT checkpoint_id FROM checkpoints WHERE run_id = ?)",
   ).run(runId);
+  db.prepare(
+    "DELETE FROM landings WHERE checkpoint_id IN (SELECT checkpoint_id FROM checkpoints WHERE run_id = ?)",
+  ).run(runId);
+  db.prepare(
+    "DELETE FROM simulated WHERE checkpoint_id IN (SELECT checkpoint_id FROM checkpoints WHERE run_id = ?)",
+  ).run(runId);
   db.prepare("DELETE FROM checkpoints WHERE run_id = ?").run(runId);
   db.prepare("DELETE FROM spec_scores WHERE run_id = ?").run(runId);
   db.prepare("DELETE FROM budget_scores WHERE run_id = ?").run(runId);

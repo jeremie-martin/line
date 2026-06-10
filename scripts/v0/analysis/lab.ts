@@ -14,11 +14,11 @@
 
 import { openLab, getMeta } from "./db.ts";
 import { indexRoots } from "./indexer.ts";
-import { REPORTS, printRows, type ReportOptions } from "./reports.ts";
+import { REPORTS, printRows, resolveRun, type ReportOptions } from "./reports.ts";
 
 type Args = { positional: string[]; flags: Map<string, string | true> };
 
-const VALUE_FLAGS = new Set(["axis", "run", "spec", "sort", "roots"]);
+const VALUE_FLAGS = new Set(["axis", "run", "spec", "sort", "roots", "budget"]);
 
 function parseArgs(argv: string[]): Args {
   const positional: string[] = [];
@@ -46,6 +46,7 @@ function usage(): never {
     [
       "usage: npm run lab -- <command>",
       "  index   [--full] [--include-old] [--roots a,b]   build/refresh the dataset",
+      "  simulate [--run NAME] [--budget N] [--force]     re-simulate a run's tracks → landings tier",
       "  runs    [--sort headline|name|date] [--json]     one line per indexed run",
       '  sql     "SELECT ..." [--json]                    ad-hoc read-only SQL',
       `  report  <${Object.keys(REPORTS).join("|")}>`,
@@ -76,6 +77,28 @@ if (command === "index") {
       `scanned ${stats.scanned}, ingested ${stats.ingested}, skipped ${stats.skipped}, ` +
       `pruned ${stats.pruned}, reports ok ${stats.reports_ok}, ` +
       `reports skipped ${stats.reports_skipped}, issues ${stats.issues}`,
+  );
+} else if (command === "simulate") {
+  const { simulateRun } = await import("./simulate.ts");
+  const db = openLab();
+  const run = resolveRun(db, {
+    run: typeof flags.get("run") === "string" ? String(flags.get("run")) : undefined,
+    allFingerprints: flags.has("all-fingerprints"),
+  });
+  console.log(`simulating ${run.name}`);
+  const t0 = Date.now();
+  const budgetFlag = flags.get("budget");
+  const stats = await simulateRun(db, {
+    runId: run.run_id,
+    budget: typeof budgetFlag === "string" ? Number(budgetFlag) : undefined,
+    force: flags.has("force"),
+    log: (msg) => console.log(msg),
+  });
+  db.close();
+  console.log(
+    `simulate done in ${((Date.now() - t0) / 1000).toFixed(1)}s — ` +
+      `${stats.simulated} simulated (${stats.landings} landings), ` +
+      `${stats.skipped} already done, ${stats.failed} failed of ${stats.checkpoints}`,
   );
 } else if (command === "runs") {
   const db = openLab({ readonly: true });

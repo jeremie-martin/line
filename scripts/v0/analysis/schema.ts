@@ -149,6 +149,37 @@ CREATE TABLE IF NOT EXISTS arcs (
   PRIMARY KEY (checkpoint_id, arc_index)
 ) WITHOUT ROWID;
 
+-- Landing dynamics from on-demand re-simulation (\`lab simulate\`), one row per
+-- detector landing event. Additive tier: populated per run, not at index time.
+CREATE TABLE IF NOT EXISTS landings (
+  checkpoint_id INTEGER NOT NULL REFERENCES checkpoints(checkpoint_id),
+  landing_index INTEGER NOT NULL,
+  frame INTEGER NOT NULL,
+  t_sec REAL NOT NULL,
+  -- gap whose contact this landing realizes (frame within ±2 of gaps.t_end);
+  -- NULL for off-beat/unmatched landings.
+  contact_index INTEGER,
+  air_frames INTEGER,
+  speed_in_px REAL,
+  vx_in REAL,
+  vy_in REAL,
+  speed_out_px REAL,
+  -- speed_out − speed_in over the impact window: the landing's speed cost
+  dspeed_px REAL,
+  -- velocity redirection over the impact window (the impact axis, px/frame
+  -- and normalized by REDIR_CAP)
+  redir_px REAL,
+  redir_norm REAL,
+  PRIMARY KEY (checkpoint_id, landing_index)
+) WITHOUT ROWID;
+
+-- Checkpoints already re-simulated (so empty results aren't redone).
+CREATE TABLE IF NOT EXISTS simulated (
+  checkpoint_id INTEGER PRIMARY KEY REFERENCES checkpoints(checkpoint_id),
+  at TEXT NOT NULL,
+  n_landings INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS ingest_issues (
   issue_id INTEGER PRIMARY KEY,
   run_name TEXT,

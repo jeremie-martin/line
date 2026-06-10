@@ -180,13 +180,13 @@ function probeDesign(name: string): ArcKnobs[] {
     case "cross5":
       return [
         { pitchDeg: 0, rotateDeg: 0 },
-        { pitchDeg: -6, rotateDeg: 0 },
-        { pitchDeg: 6, rotateDeg: 0 },
+        { pitchDeg: -10, rotateDeg: 0 },
+        { pitchDeg: 10, rotateDeg: 0 },
         { pitchDeg: 0, rotateDeg: -3 },
         { pitchDeg: 0, rotateDeg: 3 },
       ];
     case "grid9":
-      return grid([-6, 0, 6], [-3, 0, 3]);
+      return grid([-10, 0, 10], [-3, 0, 3]);
     case "grid15":
       return grid([-6, -3, 0, 3, 6], [-3, 0, 3]);
     default:
@@ -658,7 +658,6 @@ function priorityWeight(output: string): number {
   if (output === "current.cost") return 2;
   if (output.startsWith("current.error.")) return output === "current.error.impact" ? 2 : 1;
   if (output.startsWith("next.")) return 1;
-  if (output === "current.releaseSpeedPx" || output === "current.releaseVy") return 0.5;
   return 0;
 }
 

@@ -996,3 +996,12 @@ first post-rebase baseline.
 - Per-budget deltas: `50k +41.6`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
   validity improved from `1898/1920` to `1901/1920`, with `300k 480/480`.
 - Status: accepted; this archive becomes the next official comparison baseline.
+
+## arc-rewrite-baseline-01
+
+- Baseline refresh after rebasing `work-new-smooth` onto `origin/arc-rewrite`.
+- Run: `generated/golden-runs/arc-rewrite-baseline-01`.
+- Result: headline `580.8`; per-budget scores `50k 425.2`, `100k 580.0`,
+  `200k 593.2`, `300k 598.8`; validity `1903/1920`, `300k 480/480`.
+- Status: new official comparison baseline for post-arc-rewrite attempts
+  (`evaluator_fingerprint eede9661bba6`).

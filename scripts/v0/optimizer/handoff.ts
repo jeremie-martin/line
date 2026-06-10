@@ -2541,7 +2541,21 @@ export function shouldAttemptNearTailCompletion(
   ) {
     return false;
   }
-  return remaining <= tailCompletionContactWindow(targetBudget, qualitySearch);
+  return shouldAttemptTailCompletionWindow(node.search, remaining, targetBudget, qualitySearch);
+}
+
+function shouldAttemptTailCompletionWindow(
+  node: SearchNode,
+  remainingContacts: number,
+  targetBudget: number,
+  qualitySearch: boolean,
+): boolean {
+  const window = tailCompletionContactWindow(targetBudget, qualitySearch);
+  const fullContacts = Math.floor(window);
+  if (remainingContacts <= fullContacts) return true;
+  if (remainingContacts > fullContacts + 1) return false;
+  const boundaryPressure = smoothstep(window - fullContacts);
+  return unitHash(tailCompletionWindowSeed(node, remainingContacts)) < boundaryPressure;
 }
 
 function shouldKeepShallowQualityTailCompletion(
@@ -2581,6 +2595,15 @@ function shallowQualityTailThrottleSeed(node: SearchNode, remainingContacts: num
     Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
     Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
     Math.imul(remainingContacts + 1, 0x27d4eb2d)
+  ) | 0;
+}
+
+function tailCompletionWindowSeed(node: SearchNode, remainingContacts: number): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
+    Math.imul(remainingContacts + 1, 0x165667b1) ^
+    0x68bc21eb
   ) | 0;
 }
 

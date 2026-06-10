@@ -344,3 +344,89 @@ first post-rebase baseline.
 - Per-budget deltas: `50k -0.0`, `100k -0.0`, `200k +0.1`, `300k +0.2`;
   validity unchanged (`1898/1920`, `300k 480/480`).
 - Status: accepted; this archive becomes the next official comparison baseline.
+
+## short-deadline-rescue-fade-01
+
+- Mechanism: short-deadline rescue candidate count for required contact gaps.
+- Continuous replacement: preserved full rescue below the existing 12-frame cutoff
+  but replaced the hard cliff with a smooth fade-out through 16 frames.
+- Run: `generated/golden-runs/short-deadline-rescue-fade-01`.
+- Decide against accepted baseline `quality-far-back-weakness-smooth-01`:
+  `VERDICT: REJECT`; headline `515.4 -> 498.9`, delta `-16.5`,
+  CI `[-42.2, 0.0]`.
+- Per-budget deltas: `50k -33.0`, `100k -49.8`, `200k -20.1`, `300k -0.2`;
+  validity dropped `1898/1920 -> 1879/1920`.
+- Status: rejected and reverted; widening the near-deadline rescue band burns
+  scarce-budget completion and should stay as a hard narrow rescue.
+
+## far-back-lag-pressure-01
+
+- Mechanism: far-back quality frontier lag eligibility.
+- Continuous replacement: replaced hard `lag >= 3` admission with smooth
+  deterministic lag pressure, keeping lag-3+ fully eligible and admitting lag-2
+  at partial density.
+- Run: `generated/golden-runs/far-back-lag-pressure-01`.
+- Decide against accepted baseline `quality-far-back-weakness-smooth-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.4 -> 515.4`, delta `+0.0`,
+  CI `[0.0, 0.0]`.
+- Per-budget deltas all `+0.0`; validity unchanged.
+- Status: rejected and reverted; canonical rows never used the newly admitted
+  lag-2 pulses.
+
+## brake-extra-pressure-01
+
+- Mechanism: brake-catch extra candidate count at high overspeed.
+- Continuous replacement: replaced the abrupt base/high brake count step with
+  deterministic smooth overspeed density for the one extra brake probe.
+- Run: `generated/golden-runs/brake-extra-pressure-01`.
+- Decide against accepted baseline `quality-far-back-weakness-smooth-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.4 -> 516.8`, delta `+1.4`,
+  CI `[-1.0, 6.2]`, `P(delta<=0)=21.6%`.
+- Per-budget deltas: `50k +4.1`, `100k +7.3`, `200k +0.1`, `300k -0.2`;
+  validity improved `1898/1920 -> 1900/1920`.
+- Status: not kept; strong low-budget signal but high-budget drag, tried a
+  low-budget fade.
+
+## brake-extra-low-budget-pressure-02
+
+- Mechanism: same brake extra candidate count.
+- Continuous replacement: multiplied the smooth extra-probe density by a budget
+  fade, full through 100k and off by 200k.
+- Run: `generated/golden-runs/brake-extra-low-budget-pressure-02`.
+- Decide against accepted baseline `quality-far-back-weakness-smooth-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.4 -> 516.6`, delta `+1.3`,
+  CI `[-0.8, 5.9]`, `P(delta<=0)=20.3%`.
+- Per-budget deltas: `50k +4.1`, `100k +7.3`, `200k -0.2`, `300k -0.3`;
+  validity improved `1898/1920 -> 1900/1920`.
+- Status: not kept; fade accidentally removed the original high-overspeed extra
+  at high budgets, tried baseline-preserving formulation.
+
+## brake-extra-low-budget-pressure-03
+
+- Mechanism: same brake extra candidate count.
+- Continuous replacement: preserved the original high-overspeed extra probe at
+  every budget, and only admitted sub-threshold extra probes through smooth
+  low-budget overspeed pressure.
+- Run: `generated/golden-runs/brake-extra-low-budget-pressure-03`.
+- Decide against accepted baseline `quality-far-back-weakness-smooth-01`:
+  `VERDICT: INCONCLUSIVE`; headline `515.4 -> 516.8`, delta `+1.4`,
+  CI `[-0.6, 6.1]`, `P(delta<=0)=12.3%`.
+- Per-budget deltas: `50k +4.1`, `100k +7.3`, `200k +0.0`, `300k +0.0`;
+  validity improved `1898/1920 -> 1900/1920`.
+- Status: rejected and reverted after three attempts; this is a promising
+  canonical near-miss but not an ACCEPT at current seed count.
+
+## tail-window-boundary-pressure-01
+
+- Mechanism: near-tail completion contact-window admission.
+- Continuous replacement: kept all contact counts below the existing
+  `tailCompletionContactWindow` fully admitted, but replaced the hard integer
+  boundary with deterministic smooth fractional admission for the next remaining
+  contact count.
+- Run: `generated/golden-runs/tail-window-boundary-pressure-01`.
+- Decide against accepted baseline `quality-far-back-weakness-smooth-01`:
+  `VERDICT: ACCEPT`; headline `515.4 -> 515.6`, delta `+0.3`,
+  CI `[-0.1, 0.7]`, `P(delta<=0)=6.2%`.
+- Per-budget deltas: `50k +0.1`, `100k +0.0`, `200k +0.2`, `300k +0.4`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: accepted; this archive becomes the next official comparison baseline.

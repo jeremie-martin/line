@@ -168,8 +168,11 @@ type MetricRow = {
   p90: number;
   p99: number;
   max: number;
+  normScale: number;
   nmae: number;
   np90: number;
+  rangeNmae: number;
+  rangeNp90: number;
   localNmae: number;
   localNp90: number;
 };
@@ -667,6 +670,16 @@ function outputRange(split: Split, output: string): number {
   return values.length === 0 ? 0 : Math.max(...values) - Math.min(...values);
 }
 
+function outputScaleFloor(output: string): number {
+  if (output === "current.cost") return 3;
+  if (output.startsWith("current.error.")) return 3;
+  if (output === "next.x" || output === "next.y") return 1000;
+  if (output === "next.vx" || output === "next.vy" || output === "next.speed") return 20;
+  if (output === "next.comAngleDeg" || output === "next.sledPoseDeg") return 360;
+  if (output === "next.sledPoseRateDegPerFrame") return 60;
+  return 0;
+}
+
 function coverageFor(model: string, output: string): FitCoverage {
   const key = `${model}\0${output}`;
   let cov = fitCoverage.get(key);
@@ -748,6 +761,7 @@ function metricRows(): MetricRow[] {
     const abs = xs.map((x) => x.abs);
     const localNabs = xs.map((x) => x.localNormalizedAbs);
     const range = outputRange(split, output);
+    const normScale = Math.max(range, outputScaleFloor(output));
     metrics.push({
       model,
       split,
@@ -760,8 +774,11 @@ function metricRows(): MetricRow[] {
       p90: pctl(abs, 0.9),
       p99: pctl(abs, 0.99),
       max: Math.max(...abs),
-      nmae: range > 1e-9 ? mean(abs) / range : 0,
-      np90: range > 1e-9 ? pctl(abs, 0.9) / range : 0,
+      normScale,
+      nmae: normScale > 1e-9 ? mean(abs) / normScale : 0,
+      np90: normScale > 1e-9 ? pctl(abs, 0.9) / normScale : 0,
+      rangeNmae: range > 1e-9 ? mean(abs) / range : 0,
+      rangeNp90: range > 1e-9 ? pctl(abs, 0.9) / range : 0,
       localNmae: mean(localNabs),
       localNp90: pctl(localNabs, 0.9),
     });
@@ -937,18 +954,20 @@ console.log(`rows=${rows.length} sims=${sims} groups=${groups.size}`);
 console.log(`skipped: pairing=${skippedPairing} no_targets=${skippedNoTargets} no_next=${skippedNoNext}`);
 console.log("\nGate coverage");
 for (const line of gateSummary(rows)) console.log(line);
-console.log("\nModel error (held-out eval rows are the main read; nMAE/nP90 are normalized by held-out output range, local_nMAE/local_nP90 by each gap/output's knob-response range)");
+console.log("\nModel error (held-out eval rows are the main read; nMAE/nP90 use max(held-out output range, output scale floor); range_nMAE/range_nP90 and local_nMAE/local_nP90 remain diagnostics)");
 printLoss(losses, lossModelName);
 printModelComparison(metrics);
 printFitCoverageGaps();
 if (showDetails) {
-  console.log("output                              split model                  n      MAE     RMSE      p50      p90      p99      nMAE    nP90 local_nMAE local_nP90");
+  console.log("output                              split model                  n      MAE     RMSE      p50      p90      p99    scale      nMAE    nP90 range_nMAE range_nP90 local_nMAE local_nP90");
   for (const m of metrics) {
     if (m.split !== "eval") continue;
     console.log(
       `${m.output.padEnd(35)} ${m.split.padEnd(5)} ${m.model.padEnd(18)} ${String(m.n).padStart(6)}` +
         ` ${fmt(m.mae).padStart(8)} ${fmt(m.rmse).padStart(8)} ${fmt(m.p50).padStart(8)}` +
-        ` ${fmt(m.p90).padStart(8)} ${fmt(m.p99).padStart(8)} ${fmt(m.nmae).padStart(8)} ${fmt(m.np90).padStart(8)}` +
+        ` ${fmt(m.p90).padStart(8)} ${fmt(m.p99).padStart(8)} ${fmt(m.normScale).padStart(8)}` +
+        ` ${fmt(m.nmae).padStart(8)} ${fmt(m.np90).padStart(8)}` +
+        ` ${fmt(m.rangeNmae).padStart(10)} ${fmt(m.rangeNp90).padStart(10)}` +
         ` ${fmt(m.localNmae).padStart(10)} ${fmt(m.localNp90).padStart(10)}`,
     );
   }

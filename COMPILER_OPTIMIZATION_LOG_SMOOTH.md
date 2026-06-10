@@ -1320,3 +1320,17 @@ first post-rebase baseline.
 - Status: rejected and reverted; early ballistic starts consume scarce 50k
   startup slots without improving mature budgets, so no wider variant is worth
   carrying forward.
+
+## release-vertical-soft-hinge-01
+
+- Mechanism: release-setup vertical safe-velocity hinge.
+- Continuous replacement: replaced the hard `max(0, abs(vy)-safe)` excess with
+  a small quadratic soft hinge around the safe velocity.
+- Run: `generated/golden-runs/release-vertical-soft-hinge-01`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `583.0 -> 583.0`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas all `+0.0`; validity unchanged (`1908/1920`,
+  `300k 480/480`).
+- Status: rejected and reverted; the release-vertical hinge is canonical
+  byte-stable on the current baseline.

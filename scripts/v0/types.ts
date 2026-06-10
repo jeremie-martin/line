@@ -488,31 +488,24 @@ export type CompileStats = {
    *  a missed contact. */
   handoff_deferred_skips?: number;
 
-  /** Aimed-launch lane funnel + prediction accuracy (optimizer/aim.ts).
+  /** Enumerative-proposer funnel + prediction accuracy (optimizer/aim.ts).
    *  Non-scoring diagnostics; absent when the lane never ran. */
   aim?: {
-    considered: number;
-    no_target: number;
-    no_release: number;
-    probe_crash: number;
-    on_target: number;
-    clamped: number;
-    rot_fallback: number;
-    gate_fail: number;
-    emitted: number;
-    pred_abs_err_mean: number;
-    base_target_miss_mean: number;
-    aimed_target_miss_mean: number;
-    angle_aims: number;
-    angle_pred_abs_err_mean: number;
-    angle_base_miss_mean: number;
-    angle_aimed_miss_mean: number;
-    scoop_considered: number;
-    scoop_shallow: number;
-    scoop_no_geometry: number;
-    scoop_gate_fail: number;
-    scoop_emitted: number;
-    /** Selection-rank telemetry: lane extras' position in the cost-sorted
+    enum_considered: number;
+    enum_no_target: number;
+    enum_probe_crash: number;
+    enum_on_target: number;
+    enum_gate_fail: number;
+    enum_emitted: number;
+    enum_readiness_err_mean: number;
+    enum_readiness_gain_mean: number;
+    /** R3 joint-model split: rotate recruit rate, rotate-probe failures
+     *  and rotated-proposal gate outcomes. */
+    enum_rot_probe_crash: number;
+    enum_rot_recruited: number;
+    enum_rot_emitted: number;
+    enum_rot_gate_fail: number;
+    /** Selection-rank telemetry: proposals' position in the cost-sorted
      *  pool they entered, per pool build. rank0 = pool best; top3 = rank<3.
      *  Counts/sums (the lab derives means). */
     aimed_pool_entries: number;
@@ -520,32 +513,9 @@ export type CompileStats = {
     aimed_top3: number;
     aimed_rank_sum: number;
     aimed_pool_size_sum: number;
-    scoop_pool_entries: number;
-    scoop_rank0: number;
-    scoop_top3: number;
-    scoop_rank_sum: number;
-    scoop_pool_size_sum: number;
-    /** R2 enumerative-proposer funnel + readiness accuracy (LR_AIM_ENUM;
-     *  present only when the lane ran). */
-    enum_considered?: number;
-    enum_no_target?: number;
-    enum_probe_crash?: number;
-    enum_on_target?: number;
-    enum_gate_fail?: number;
-    enum_emitted?: number;
-    enum_readiness_err_mean?: number;
-    enum_readiness_gain_mean?: number;
-    /** R3 joint-model split: rotate recruit rate, rotate-probe failures
-     *  and rotated-proposal gate outcomes. */
-    enum_rot_probe_crash?: number;
-    enum_rot_recruited?: number;
-    enum_rot_emitted?: number;
-    enum_rot_gate_fail?: number;
   };
-  /** Committed fits in this output produced by the aimed-launch lane. */
+  /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;
-  /** Committed fits that are arrival-conditioned scoops (V4 lane). */
-  handoff_scoop_selected?: number;
   /** Readiness v0 (optimizer/readiness.ts, READINESS_ROADMAP R1, telemetry
    *  only): realized-arrival catchability per committed contact gap (null
    *  for non-contact/uncommitted), joinable with report gap outcomes by

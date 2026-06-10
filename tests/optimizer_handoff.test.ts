@@ -334,12 +334,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     // (root-0 deferred visits before the first requeue) with budget still spent.
     const prevStartEval = process.env.LR_START_EVAL;
     process.env.LR_START_EVAL = "off";
-    // Same reasoning for the aimed-launch lane (optimizer/aim.ts, default on):
-    // its metered probe frames shift this scenario's budget arithmetic.
-    const prevAimLaunch = process.env.LR_AIM_LAUNCH;
-    process.env.LR_AIM_LAUNCH = "0";
-    const prevAimImpact = process.env.LR_AIM_IMPACT;
-    process.env.LR_AIM_IMPACT = "0";
+    // Same reasoning for the enumerative proposer (optimizer/aim.ts, default
+    // on): its metered probe frames shift this scenario's budget arithmetic.
     const prevAimEnum = process.env.LR_AIM_ENUM;
     process.env.LR_AIM_ENUM = "0";
     try {
@@ -365,10 +361,6 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     } finally {
       if (prevStartEval === undefined) delete process.env.LR_START_EVAL;
       else process.env.LR_START_EVAL = prevStartEval;
-      if (prevAimLaunch === undefined) delete process.env.LR_AIM_LAUNCH;
-      else process.env.LR_AIM_LAUNCH = prevAimLaunch;
-      if (prevAimImpact === undefined) delete process.env.LR_AIM_IMPACT;
-      else process.env.LR_AIM_IMPACT = prevAimImpact;
       if (prevAimEnum === undefined) delete process.env.LR_AIM_ENUM;
       else process.env.LR_AIM_ENUM = prevAimEnum;
     }

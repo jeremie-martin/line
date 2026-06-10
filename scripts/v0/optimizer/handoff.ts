@@ -899,9 +899,9 @@ function compileHandoffInternal(
           ...snapshotCandidateReleaseCoverage(telemetry),
           ...snapshotCandidatePreviewCoverage(telemetry),
           ...(arcStats ? { arc_placement: arcStats } : {}),
-          // Aimed-launch lane funnel + prediction accuracy (optimizer/aim.ts).
-          // Absent when the lane never ran (LR_AIM_LAUNCH=0) — ablation
-          // archives stay byte-identical to pre-lane ones.
+          // Enumerative-proposer funnel + prediction accuracy
+          // (optimizer/aim.ts). Absent when the lane never ran
+          // (LR_AIM_ENUM=0) — ablation archives stay byte-identical.
           ...(aimStats !== null ? { aim: aimStats } : {}),
           // Repair characterization (only present when the repair post-pass ran → baseline
           // golden.json unchanged, no snapshot churn). Aggregates are always cheap; the full
@@ -1338,7 +1338,6 @@ function cloneGapFit(fit: GapFit): GapFit {
     cost: fit.cost,
     ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
     ...(fit.aimed === undefined ? {} : { aimed: fit.aimed }),
-    ...(fit.scooped === undefined ? {} : { scooped: fit.scooped }),
     ...(fit.releaseVelocityY === undefined ? {} : { releaseVelocityY: fit.releaseVelocityY }),
     ...(fit.releaseGroundedFrames === undefined
       ? {}
@@ -4038,10 +4037,9 @@ function buildNodeOutput(
       handoff_selected_candidate_nonzero_ranks:
         candidateRanks.filter((rank) => rank > 0).length,
       handoff_selected_candidate_by_source: { ...sourceCounts },
-      // How many committed fits in THIS output came from the aimed-launch
-      // lane (selection-level win rate; `aim.emitted` is the pool-level rate).
+      // How many committed fits in THIS output came from the proposer
+      // (selection-level win rate; `aim.enum_emitted` is the pool-level rate).
       handoff_aimed_selected: fits.filter((fit) => fit !== null && fit.aimed === true).length,
-      handoff_scoop_selected: fits.filter((fit) => fit !== null && fit.scooped === true).length,
       // Readiness v0 (roadmap R1, telemetry only): realized-arrival
       // catchability per committed gap; per-gap array joins with
       // report.gaps outcomes by index in the lab.

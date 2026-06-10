@@ -899,10 +899,9 @@ function compactStats(stats: CompileStats | null): object | null {
   return {
     candidates_sampled: stats.candidates_sampled,
     candidates_viable: stats.candidates_viable,
-    // Aimed-launch lane funnel + prediction accuracy (optimizer/aim.ts).
+    // Enumerative-proposer funnel + prediction accuracy (optimizer/aim.ts).
     aim: stats.aim,
     handoff_aimed_selected: stats.handoff_aimed_selected,
-    handoff_scoop_selected: stats.handoff_scoop_selected,
     // Readiness v0 (optimizer/readiness.ts): realized-arrival catchability.
     readiness_per_gap: stats.readiness_per_gap,
     readiness_mean: stats.readiness_mean,

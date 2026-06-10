@@ -159,10 +159,8 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
     }
   });
 
-  test("node prefix cache reapplies lane extras when answering smaller pools", () => {
-    const oldAimLaunch = process.env.LR_AIM_LAUNCH;
+  test("node prefix cache answers smaller pools with the attempt prefix", () => {
     const oldAimEnum = process.env.LR_AIM_ENUM;
-    process.env.LR_AIM_LAUNCH = "0";
     process.env.LR_AIM_ENUM = "0";
     try {
       const seed = 23;
@@ -174,7 +172,6 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
         achieved: {},
         sampleAttempt: 8,
       } as never;
-      const scoop = { cost: 1, arc: "scoop", lines: [], achieved: {}, scooped: true } as never;
       const node = makeRootNode({}, 1);
       node._candidatesCache = {
         seed,
@@ -182,7 +179,6 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
         sampleOrder: [sampled, outsidePrefix],
         candidates: [outsidePrefix, sampled],
       };
-      node._scoopCache = scoop;
 
       const prefix = getCandidatesSorted(
         node,
@@ -192,13 +188,8 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
         4,
       );
 
-      expect(prefix).toEqual([scoop, sampled]);
+      expect(prefix).toEqual([sampled]);
     } finally {
-      if (oldAimLaunch === undefined) {
-        delete process.env.LR_AIM_LAUNCH;
-      } else {
-        process.env.LR_AIM_LAUNCH = oldAimLaunch;
-      }
       if (oldAimEnum === undefined) {
         delete process.env.LR_AIM_ENUM;
       } else {

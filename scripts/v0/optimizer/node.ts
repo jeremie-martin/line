@@ -21,15 +21,7 @@ import {
   readTargetStateFromRider,
 } from "../arc_placement.ts";
 import { solveOneGap, solveOneGapAttemptRange } from "./solver.ts";
-import {
-  aimEnumEnabled,
-  aimLaunchEnabled,
-  makeAimedCandidate,
-  makeEnumAimedCandidates,
-  makeScoopCandidate,
-  recordLanePoolRank,
-  scoopRolloutEnabled,
-} from "./aim.ts";
+import { aimEnumEnabled, makeEnumAimedCandidates, recordLanePoolRank } from "./aim.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
 
@@ -66,12 +58,6 @@ export type SearchNode = {
    *  the same sampled candidate. This lets lookahead and later expansion share
    *  any candidate cache acquired by the child, without changing candidate order. */
   _childrenCache?: { byCandidate: WeakMap<Candidate, SearchNode>; nullChild: SearchNode | null };
-  /** Memoized arrival-conditioned scoop (optimizer/aim.ts). The scoop depends
-   *  only on (prefixEngine, gap) — NOT on nCand — so one evaluation serves
-   *  every pool rebuild of this node (rollout nCand=1 and real expansion
-   *  thrash the single-slot _candidatesCache; the scoop must not re-pay).
-   *  `undefined` = not computed yet; `null` = computed, no viable scoop. */
-  _scoopCache?: Candidate | null;
 };
 
 /** Construct the root node for a compile. */
@@ -161,42 +147,18 @@ function sortWithLaneExtras(
   sampleOrder: Candidate[],
 ): Candidate[] {
   let sorted = sortCandidatesByCost(sampleOrder);
-  // Aim lanes (see optimizer/aim.ts): extra candidates competing on cost like
-  // any other. `sampleOrder` stays the pure attempt prefix (prefix property
-  // untouched); lane candidates live only in the sorted pool of the nCand
-  // that built them.
-  const laneExtras: Candidate[] = [];
-  // V4 scoop lane (LR_AIM_IMPACT, default on): one candidate built from the
-  // actual arrival. Cached per node (nCand-independent) so rollout pools and
-  // real expansion share ONE evaluation — that cache is what makes rollout
-  // visibility (LR_AIM_SCOOP_ROLLOUT=1) affordable; without it the lane paid
-  // a fresh eval per pool rebuild and starved the search (v4-01, −3.8).
-  if (nCand > 1 || scoopRolloutEnabled()) {
-    const scoop = node._scoopCache !== undefined
-      ? node._scoopCache
-      : (node._scoopCache = makeScoopCandidate(
-        node.prefixEngine, gap, ctx, node.prefixNextLineId,
-      ));
-    if (scoop !== null) laneExtras.push(scoop);
-  }
-  // Launch lane (nCand > 1 keeps its PROBES out of forward-eval rollout
+  // The enumerative proposer (the ONE aiming lane — optimizer/aim.ts):
+  // model-proposed candidates competing on cost like any other.
+  // `sampleOrder` stays the pure attempt prefix (prefix property untouched);
+  // lane candidates live only in the sorted pool of the nCand that built
+  // them. nCand > 1 keeps the lane's PROBES out of forward-eval rollout
   // pools (branch=1): multiplying CHARGED rollout work is the documented
-  // branch-widening failure):
-  // - LR_AIM_ENUM=1 (R2 experiment): enumerative proposer — readiness ×
-  //   speed-fit objective swept inside the fitted models, top-k proposed.
-  // - default: V3/V4 aimed lane (LR_AIM_LAUNCH=0 ablation) — one aimed
-  //   variant of the pool's best.
-  if (nCand > 1 && sorted.length > 0) {
-    if (aimEnumEnabled()) {
-      laneExtras.push(...makeEnumAimedCandidates(
-        node.prefixEngine, gap, gaps, ctx, sorted[0], node.prefixNextLineId,
-      ));
-    } else if (aimLaunchEnabled()) {
-      const aimed = makeAimedCandidate(
-        node.prefixEngine, gap, gaps, ctx, sorted[0], node.prefixNextLineId,
-      );
-      if (aimed !== null) laneExtras.push(aimed);
-    }
+  // branch-widening failure.
+  const laneExtras: Candidate[] = [];
+  if (nCand > 1 && sorted.length > 0 && aimEnumEnabled()) {
+    laneExtras.push(...makeEnumAimedCandidates(
+      node.prefixEngine, gap, gaps, ctx, sorted[0], node.prefixNextLineId,
+    ));
   }
   if (laneExtras.length > 0) {
     sorted = sortCandidatesByCost([...sampleOrder, ...laneExtras]);
@@ -204,11 +166,7 @@ function sortWithLaneExtras(
     // pool (reference-identity lookup; pure read after the sort completes,
     // so it cannot perturb candidate order). Recorded once per pool build.
     for (const extra of laneExtras) {
-      recordLanePoolRank(
-        extra.scooped === true ? "scoop" : "aimed",
-        sorted.indexOf(extra),
-        sorted.length,
-      );
+      recordLanePoolRank("aimed", sorted.indexOf(extra), sorted.length);
     }
   }
   return sorted;

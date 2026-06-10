@@ -140,6 +140,19 @@ mis-aims harmless, and the telemetry's pred_abs_err will price them. Expect
 a lower hit rate than the single-knob lane; consider one Newton re-probe at
 the solved point if telemetry shows it pays.
 
+**8. Authority experiments (rung 1) — speed-aiming is saturated.**
+`LR_AIM_SPAN=14`: clamp 27%→17%, miss 0.57→0.54, Δheadline +0.3
+INCONCLUSIVE. `LR_AIM_ROT_FALLBACK=1`: fallback engaged 19k×, best miss
+(0.47), but gate_fail 1.2%→10.9% — whole-arc rotation moves the catch
+surface and breaks the on-beat landing (the §coupling law, again) —
+Δheadline −2.2. Conclusion: the residual speed miss past the default V3
+lane converts to ~no score; the clamp was the mechanism's bottleneck, not
+the score's. Two durable lessons: (a) saturate-then-stop — telemetry
+showing a mechanism limit does NOT imply score upside behind it; (b) a
+fallback knob must never move the catch surface (tail-only knobs are the
+safe family). Effort redirects to the impact prize (arrival-angle target,
+dive-scoop pair).
+
 ## Validation & integration roadmap (the method)
 
 Principles. The aimer must be a PROPOSER, never a judge: a pure function

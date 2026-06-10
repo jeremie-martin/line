@@ -1449,3 +1449,21 @@ first post-rebase baseline.
   unchanged.
 - Status: rejected and reverted; all signal came from noisy 50k validity/score
   movement and the canonical accept gate did not clear.
+
+## impact-template-entry-descent-01
+
+- Mechanism: impact-template lane approach geometry, chosen from lab findings
+  that high-target misses are flat/shallow and deep scoops reduce impact bias.
+- Continuous replacement: added a smooth target-pressure entry descent bias
+  inside template lanes, rebuilding pre/contact/scoop angles together so the
+  selectable lane approached high-impact beats steeper.
+- Run: `generated/golden-runs/impact-template-entry-descent-01`.
+- Decide against accepted baseline `impact-template-turn-pressure-02`:
+  `VERDICT: INCONCLUSIVE`; headline `583.8 -> 583.6`, delta `-0.2`,
+  CI `[-1.3, 0.9]`, `P(delta<=0)=65.1%`.
+- Per-budget deltas: `50k +0.0`, `100k +1.3`, `200k -0.9`,
+  `300k -0.3`; validity unchanged (`1908/1920`, `300k 480/480`).
+- Status: rejected and reverted; entry steepening helped scarce mature-onset
+  budget but diluted 200k/300k selection, so the next lab-guided attempt should
+  avoid moving the pre-contact approach and instead shape only the post-scoop
+  or restrict the effect to lower budgets.

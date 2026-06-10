@@ -1240,6 +1240,57 @@ function sampleContactCenteredLines(
   return [...preLines, ...impactBevelLines, ...postLines];
 }
 
+// ─────────── Arrival-conditioned scoop (V4 lane, optimizer/aim.ts) ───────────
+// The catch built FROM the actual arrival vector (docs/IMPACT_PAIR_PLANNING §5,
+// docs/ARC_STATE_CONTROL roadmap): entry tangent aligned just under the incoming
+// velocity (steep entry is what converts turn into redirection — lab finding),
+// one concave scoop to a ballistic hop launch sized for the next beat, then the
+// surface STOPS (the documented early-bend failure forbids convex crests).
+// Differences vs the SLAM-HOP template lane above: turn comes from the ARRIVAL
+// (uncapped to 40°, template caps 22°), entry comes from the arrival vector
+// (not the sampled contact angle), and the caller places it in every pool
+// (template hides in late attempts where branch=1 rollouts never look).
+// Deterministic — consumes NO rng (safe for the determinism contract).
+
+const ARRIVAL_SCOOP_ENTRY_RELIEF_DEG = 4;
+const ARRIVAL_SCOOP_MIN_TURN_DEG = 8;
+const ARRIVAL_SCOOP_MAX_TURN_DEG = 40;
+const ARRIVAL_SCOOP_HOP_SCALE = 0.85;
+const ARRIVAL_SCOOP_FRAMES = 6; // ≈ IMPACT_WINDOW: sustain the bend across the measured episode
+
+export function buildArrivalScoopLines(
+  lineIdStart: number,
+  targetState: ImpactFrameTargetState,
+  nextGapFrames: number | null,
+): TrackLine[] | null {
+  const speed = Math.max(1, targetState.speed);
+  const arrivalDeg = targetState.angleDeg;
+  // Entry tangent slightly under the flight line: clearance grows upstream
+  // (no premature contact) and the catch registers as a landing, not a slam.
+  const contactAngleDeg = clamp(arrivalDeg - ARRIVAL_SCOOP_ENTRY_RELIEF_DEG, 0, 60);
+  if (nextGapFrames === null || nextGapFrames <= 4) return null;
+  const vyHop = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * nextGapFrames * ARRIVAL_SCOOP_HOP_SCALE;
+  const hopAngleDeg = Math.max(
+    (Math.atan2(vyHop, speed) * 180) / Math.PI,
+    IMPACT_TEMPLATE_END_ANGLE_MIN_DEG,
+  );
+  const turnDeg = contactAngleDeg - hopAngleDeg;
+  if (turnDeg < ARRIVAL_SCOOP_MIN_TURN_DEG || turnDeg > ARRIVAL_SCOOP_MAX_TURN_DEG) return null;
+
+  const contactPoint = { x: targetState.sledX, y: targetState.sledY };
+  const preLength = clamp(speed * 1.2, 12, 60);
+  const preLines = buildPreContactLines(
+    lineIdStart, contactPoint, contactAngleDeg, contactAngleDeg, preLength, 2,
+  );
+  const scoopLength = clamp(speed * ARRIVAL_SCOOP_FRAMES, 28, 160);
+  const scoopSegs = clampInt(Math.round(scoopLength / IMPACT_TEMPLATE_SCOOP_SEG_PX), 3, 16);
+  const scoopLines = buildPostContactLines(
+    lineIdStart + preLines.length, contactPoint, contactAngleDeg,
+    contactAngleDeg - turnDeg, scoopLength, scoopSegs,
+  );
+  return [...preLines, ...scoopLines];
+}
+
 function impactTemplateBudgetPressure(): number {
   return smoothstep(
     (currentCompileBudgetFrames - IMPACT_TEMPLATE_BUDGET_START_FRAMES) /

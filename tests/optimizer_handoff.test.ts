@@ -338,6 +338,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     // its metered probe frames shift this scenario's budget arithmetic.
     const prevAimLaunch = process.env.LR_AIM_LAUNCH;
     process.env.LR_AIM_LAUNCH = "0";
+    const prevAimImpact = process.env.LR_AIM_IMPACT;
+    process.env.LR_AIM_IMPACT = "0";
     try {
       const budget = 20_000;
       const result = checkpoint(compileHandoff(spec, 0, {
@@ -363,6 +365,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       else process.env.LR_START_EVAL = prevStartEval;
       if (prevAimLaunch === undefined) delete process.env.LR_AIM_LAUNCH;
       else process.env.LR_AIM_LAUNCH = prevAimLaunch;
+      if (prevAimImpact === undefined) delete process.env.LR_AIM_IMPACT;
+      else process.env.LR_AIM_IMPACT = prevAimImpact;
     }
   }, 60_000);
 

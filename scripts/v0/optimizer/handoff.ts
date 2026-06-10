@@ -1335,6 +1335,7 @@ function cloneGapFit(fit: GapFit): GapFit {
     cost: fit.cost,
     ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
     ...(fit.aimed === undefined ? {} : { aimed: fit.aimed }),
+    ...(fit.scooped === undefined ? {} : { scooped: fit.scooped }),
     ...(fit.releaseVelocityY === undefined ? {} : { releaseVelocityY: fit.releaseVelocityY }),
     ...(fit.releaseGroundedFrames === undefined
       ? {}
@@ -4009,6 +4010,7 @@ function buildNodeOutput(
       // How many committed fits in THIS output came from the aimed-launch
       // lane (selection-level win rate; `aim.emitted` is the pool-level rate).
       handoff_aimed_selected: fits.filter((fit) => fit !== null && fit.aimed === true).length,
+      handoff_scoop_selected: fits.filter((fit) => fit !== null && fit.scooped === true).length,
       handoff_selected_axis_quality_by_axis: axisQualitySourceCounts,
       handoff_selected_candidate_pool_count: sourceCounts.pool,
       handoff_selected_candidate_reuse_count: sourceCounts.reuse,

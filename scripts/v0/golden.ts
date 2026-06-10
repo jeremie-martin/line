@@ -902,6 +902,7 @@ function compactStats(stats: CompileStats | null): object | null {
     // Aimed-launch lane funnel + prediction accuracy (optimizer/aim.ts).
     aim: stats.aim,
     handoff_aimed_selected: stats.handoff_aimed_selected,
+    handoff_scoop_selected: stats.handoff_scoop_selected,
     sim_frames: stats.sim_frames,
     budget_exhausted: stats.budget_exhausted,
     leaves_considered: stats.leaves_considered,

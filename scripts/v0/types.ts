@@ -503,9 +503,20 @@ export type CompileStats = {
     pred_abs_err_mean: number;
     base_target_miss_mean: number;
     aimed_target_miss_mean: number;
+    angle_aims: number;
+    angle_pred_abs_err_mean: number;
+    angle_base_miss_mean: number;
+    angle_aimed_miss_mean: number;
+    scoop_considered: number;
+    scoop_shallow: number;
+    scoop_no_geometry: number;
+    scoop_gate_fail: number;
+    scoop_emitted: number;
   };
   /** Committed fits in this output produced by the aimed-launch lane. */
   handoff_aimed_selected?: number;
+  /** Committed fits that are arrival-conditioned scoops (V4 lane). */
+  handoff_scoop_selected?: number;
 
   /** Target-state placement counters. Non-scoring diagnostics. */
   arc_placement?: {

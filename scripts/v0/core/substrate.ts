@@ -43,6 +43,9 @@ export type GapFit = {
   /** True when this fit was produced by the aimed-launch lane
    *  (optimizer/aim.ts). Telemetry only — never read by ranking. */
   aimed?: boolean;
+  /** True when this fit is an arrival-conditioned scoop (V4 lane).
+   *  Telemetry only — never read by ranking. */
+  scooped?: boolean;
   /** Rider vertical velocity at the post-catch release probe frame, in raw px/frame.
    *  Used by quality search to avoid launchy exits before tight/low-air contacts. */
   releaseVelocityY?: number;

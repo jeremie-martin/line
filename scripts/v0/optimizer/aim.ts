@@ -25,7 +25,8 @@ import {
   tryCandidateLines,
 } from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
-import { authoredSpeedToPx, type TrackLine } from "../types.ts";
+import { authoredSpeedToPx, CALIB, type TrackLine } from "../types.ts";
+import { buildArrivalScoopLines } from "../arc_placement.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import type { Gap } from "../types.ts";
 
@@ -58,12 +59,28 @@ export type AimStats = {
   /** Mean |releaseSpeed − target| before/after aiming, over emitted (px/f). */
   base_target_miss_mean: number;
   aimed_target_miss_mean: number;
+  /** V4 angle-aim mode (LR_AIM_IMPACT): counts + accuracy in DEGREES. */
+  angle_aims: number;
+  angle_pred_abs_err_mean: number;
+  angle_base_miss_mean: number;
+  angle_aimed_miss_mean: number;
+  /** V4 scoop lane funnel. */
+  scoop_considered: number;
+  scoop_shallow: number;
+  scoop_no_geometry: number;
+  scoop_gate_fail: number;
+  scoop_emitted: number;
 };
 
 const aimTotals = {
   considered: 0, no_target: 0, no_release: 0, probe_crash: 0,
   on_target: 0, clamped: 0, rot_fallback: 0, gate_fail: 0, emitted: 0,
   predAbsErrSum: 0, baseMissSum: 0, aimedMissSum: 0,
+  // V4 angle-aim mode (deg units) + scoop lane funnel.
+  angle_aims: 0,
+  anglePredErrSum: 0, angleBaseMissSum: 0, angleAimedMissSum: 0, angleEmitted: 0,
+  scoop_considered: 0, scoop_shallow: 0, scoop_no_geometry: 0,
+  scoop_gate_fail: 0, scoop_emitted: 0,
 };
 
 export function resetAimStats(): void {
@@ -91,6 +108,18 @@ export function snapshotAimStats(): AimStats | null {
     pred_abs_err_mean: per(aimTotals.predAbsErrSum),
     base_target_miss_mean: per(aimTotals.baseMissSum),
     aimed_target_miss_mean: per(aimTotals.aimedMissSum),
+    angle_aims: aimTotals.angle_aims,
+    angle_pred_abs_err_mean: aimTotals.angleEmitted > 0
+      ? round3(aimTotals.anglePredErrSum / aimTotals.angleEmitted) : 0,
+    angle_base_miss_mean: aimTotals.angleEmitted > 0
+      ? round3(aimTotals.angleBaseMissSum / aimTotals.angleEmitted) : 0,
+    angle_aimed_miss_mean: aimTotals.angleEmitted > 0
+      ? round3(aimTotals.angleAimedMissSum / aimTotals.angleEmitted) : 0,
+    scoop_considered: aimTotals.scoop_considered,
+    scoop_shallow: aimTotals.scoop_shallow,
+    scoop_no_geometry: aimTotals.scoop_no_geometry,
+    scoop_gate_fail: aimTotals.scoop_gate_fail,
+    scoop_emitted: aimTotals.scoop_emitted,
   };
 }
 
@@ -126,6 +155,27 @@ function aimRotFallbackEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_ROT_FALLBACK === "1";
 }
+/** V4 dive-scoop pair (LR_AIM_IMPACT=1, default off — experiment): on gaps
+ *  whose NEXT beat has an impact ask, (a) the aim lane targets arrival ANGLE
+ *  (steep) instead of release speed, and (b) a deterministic scoop candidate
+ *  built from the ACTUAL arrival vector joins every pool — including nCand=1
+ *  rollout pools, so greedy:2 finally scores dives through a converting
+ *  catch (the closed loop of IMPACT_PAIR_PLANNING §4). The two MUST ship
+ *  together: a steep arrival without its matched catch is the failed
+ *  arrival-unfade experiment (V2 coupling law).
+ *  PROMOTED default-ON 2026-06-10: ACCEPT Δ+5.4 vs 592.57 (597.92, positive
+ *  every budget, P(Δ≤0)=3.6%); impact |err| 0.1468→0.1430, other axes flat.
+ *  v4-01 (scoop in rollout pools) was −3.8: charged lane evals starved the
+ *  search — see makeScoopCandidate. LR_AIM_IMPACT=0 = ablation. */
+export function aimImpactEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_IMPACT !== "0";
+}
+const AIM_IMPACT_MIN_ASK = 0.3;
+const AIM_IMPACT_MIN_ARRIVAL_DEG = 12;
+const AIM_ANGLE_TARGET_MIN_DEG = 12;
+const AIM_ANGLE_TARGET_MAX_DEG = 28;
+const AIM_ANGLE_RELIEF_DEG = 4; // scoop entry relief — aim the arrival above it
 
 /** Rotate the last ~third of the candidate's segments about that suffix's
  *  first point (chain-continuity preserving; positive = exit pitched down,
@@ -202,17 +252,67 @@ function probeReleaseSpeed(
 /** The speed target the launch should serve: the NEXT contact gap's authored
  *  speed target (the arrival this launch conditions), in px/f. */
 function nextGapSpeedTargetPx(gap: Gap, gaps: Gap[]): number | null {
+  const g = nextContactGap(gap, gaps);
+  return g === null || g.targets.speed === undefined ? null : authoredSpeedToPx(g.targets.speed);
+}
+
+function nextContactGap(gap: Gap, gaps: Gap[]): Gap | null {
   for (let i = gap.index + 1; i < gaps.length; i++) {
-    const g = gaps[i];
-    if (!g.endsWithContact) continue;
-    return g.targets.speed === undefined ? null : authoredSpeedToPx(g.targets.speed);
+    if (gaps[i].endsWithContact) return gaps[i];
   }
   return null;
+}
+
+/** CoM velocity angle (deg, +down) at `frame` riding the perturbed candidate,
+ *  or null on crash. Used by the V4 angle-aim mode, probed at the NEXT beat's
+ *  frame (the arrival the scoop will receive). */
+function probeArrivalAngle(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  lines: TrackLine[],
+  frame: number,
+): number | null {
+  const fork = engine.addLine(lines.map((l) => engineLineFromTrackLine(l)));
+  const rider = getRiderMetered(fork, frame);
+  try {
+    if (rider.get?.("SLED_INTACT")?.isBinded?.() === false) return null;
+    if (rider.get?.("RIDER_MOUNTED")?.isBinded?.() === false) return null;
+  } catch { /* treat as intact */ }
+  const v = rider.velocity ?? { x: 0, y: 0 };
+  const speed = Math.hypot(v.x, v.y);
+  if (!Number.isFinite(speed) || speed <= 0) return null;
+  return (Math.atan2(v.y, v.x) * 180) / Math.PI;
 }
 
 /** Build the aimed variant of `base`, or null when: no next speed target, the
  *  base has no releaseSpeed, a probe crashes, the base is already on target,
  *  or the aimed lines fail the production gates. */
+/** Exact quadratic through (−P, lo), (0, mid), (+P, hi). */
+function quadModel(lo: number, mid: number, hi: number, P: number): (d: number) => number {
+  return (d: number): number =>
+    (lo * d * (d - P)) / (2 * P * P) - (mid * (d + P) * (d - P)) / (P * P) +
+    (hi * (d + P) * d) / (2 * P * P);
+}
+
+/** Scan-solve model(δ)=target over ±max; returns the argmin (clamps at edges). */
+function solveDelta(
+  model: (d: number) => number,
+  target: number,
+  startErr: number,
+  deltaMax: number,
+): number {
+  let best = 0;
+  let bestErr = startErr;
+  for (let d = -deltaMax; d <= deltaMax + 1e-9; d += 0.1) {
+    const err = Math.abs(model(d) - target);
+    if (err < bestErr - 1e-12) {
+      bestErr = err;
+      best = d;
+    }
+  }
+  return best;
+}
+
 export function makeAimedCandidate(
   // deno-lint-ignore no-explicit-any
   engine: any,
@@ -223,6 +323,15 @@ export function makeAimedCandidate(
   lineIdStart: number,
 ): Candidate | null {
   aimTotals.considered++;
+  // V4 target switch: when the NEXT beat asks for impact, the launch's job is
+  // a STEEP arrival (the scoop lane's precondition), not a matched speed.
+  if (aimImpactEnabled()) {
+    const nextGap = nextContactGap(gap, gaps);
+    const ask = nextGap?.targets.impact;
+    if (nextGap !== null && ask !== undefined && ask >= AIM_IMPACT_MIN_ASK) {
+      return makeAngleAimedCandidate(engine, gap, nextGap, ask, ctx, base, lineIdStart);
+    }
+  }
   const mid = base.releaseSpeed;
   if (mid === undefined) {
     aimTotals.no_release++;
@@ -320,5 +429,134 @@ export function makeAimedCandidate(
   // Deliberately NO sampleAttempt: the aimed candidate is not part of the
   // deterministic attempt prefix (samplePrefix must exclude it when a smaller
   // nCand re-reads the cache — the smaller pool's best may differ).
+  return fit;
+}
+
+/** V4 angle-aim mode: solve exit pitch for a steep CoM arrival angle at the
+ *  next beat's frame, sized from the impact ask:
+ *  needed turn = asin(ask·REDIR_CAP/speed), aimed above the scoop's entry
+ *  relief. Probes at the NEXT beat (the arrival the scoop receives). */
+function makeAngleAimedCandidate(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  nextGap: Gap,
+  ask: number,
+  ctx: SpecContext,
+  base: Candidate,
+  lineIdStart: number,
+): Candidate | null {
+  const speedRef = Math.max(1, base.releaseSpeed ?? 10);
+  const needTurnDeg =
+    (Math.asin(Math.min(0.95, (ask * CALIB.REDIR_CAP) / speedRef)) * 180) / Math.PI;
+  const targetDeg = Math.min(
+    AIM_ANGLE_TARGET_MAX_DEG,
+    Math.max(AIM_ANGLE_TARGET_MIN_DEG, needTurnDeg + AIM_ANGLE_RELIEF_DEG),
+  );
+  const F = nextGap.endFrame;
+  const baseAngle = probeArrivalAngle(engine, base.lines, F);
+  if (baseAngle === null) {
+    aimTotals.probe_crash++;
+    return null;
+  }
+  if (baseAngle >= targetDeg - 0.5) {
+    aimTotals.on_target++;
+    return null;
+  }
+  const P = AIM_PROBE_DELTA_DEG;
+  const lo = probeArrivalAngle(engine, pitchExit(base.lines, -P), F);
+  const hi = lo === null ? null : probeArrivalAngle(engine, pitchExit(base.lines, P), F);
+  if (lo === null || hi === null) {
+    aimTotals.probe_crash++;
+    return null;
+  }
+  const model = quadModel(lo, baseAngle, hi, P);
+  const deltaMax = aimDeltaMaxDeg();
+  const bestDelta = solveDelta(model, targetDeg, Math.abs(baseAngle - targetDeg), deltaMax);
+  if (Math.abs(bestDelta) < AIM_MIN_DELTA_DEG) {
+    aimTotals.on_target++;
+    return null;
+  }
+  if (Math.abs(bestDelta) > deltaMax - 0.11) aimTotals.clamped++;
+  aimTotals.angle_aims++;
+
+  const aimedLines = pitchExit(base.lines, bestDelta)
+    .map((l, i) => ({ ...l, id: lineIdStart + i }));
+  const probe = getCandidateProbe(engine, gap, ctx);
+  const fit = tryCandidateLines(
+    engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,
+    axisLookaheadEndFrame(gap, ctx.allContactFrames), gap.targets, true,
+    "normal", probe.preTargetSledTrace,
+  ) as Candidate | null;
+  if (fit === null) {
+    aimTotals.gate_fail++;
+    return null;
+  }
+  aimTotals.emitted++;
+  const achievedAngle = probeArrivalAngle(engine, aimedLines, F);
+  if (achievedAngle !== null) {
+    aimTotals.angleEmitted++;
+    aimTotals.anglePredErrSum += Math.abs(model(bestDelta) - achievedAngle);
+    aimTotals.angleBaseMissSum += Math.abs(baseAngle - targetDeg);
+    aimTotals.angleAimedMissSum += Math.abs(achievedAngle - targetDeg);
+  }
+  fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+  fit.aimed = true;
+  return fit;
+}
+
+/** V4 scoop lane: a deterministic catch built from the ACTUAL arrival vector
+ *  (buildArrivalScoopLines). Cheap — no probes, the arrival comes from the
+ *  cached gap probe — so callers include it in EVERY pool, nCand=1 rollouts
+ *  included: that is what lets greedy:2 score a k−1 dive through a catch
+ *  that converts it (the §4 closed loop opens here). */
+export function makeScoopCandidate(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  ctx: SpecContext,
+  lineIdStart: number,
+  nCand: number,
+): Candidate | null {
+  if (!aimImpactEnabled()) return null;
+  // Rollout pools (nCand=1) excluded by default: the v4-01 run included them
+  // and the lane's charged evals starved the search (nodes −18%, sampled −15%,
+  // 100k-300k all significantly negative). LR_AIM_SCOOP_ROLLOUT=1 re-includes
+  // (the §5 rollout-visibility hypothesis — re-test only with cheaper evals).
+  if (
+    nCand <= 1 &&
+    (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.LR_AIM_SCOOP_ROLLOUT !== "1"
+  ) return null;
+  if ((gap.targets.impact ?? 0) < AIM_IMPACT_MIN_ASK) return null;
+  aimTotals.scoop_considered++;
+  const probe = getCandidateProbe(engine, gap, ctx);
+  if (probe.targetState.angleDeg < AIM_IMPACT_MIN_ARRIVAL_DEG) {
+    aimTotals.scoop_shallow++;
+    return null;
+  }
+  const nextContact = ctx.allContactFrames.find((f) => f > gap.endFrame);
+  const lines = buildArrivalScoopLines(
+    lineIdStart,
+    probe.targetState,
+    nextContact === undefined ? null : nextContact - gap.endFrame,
+  );
+  if (lines === null) {
+    aimTotals.scoop_no_geometry++;
+    return null;
+  }
+  const fit = tryCandidateLines(
+    engine, gap, lines, lineIdStart, ctx.allContactFrames,
+    axisLookaheadEndFrame(gap, ctx.allContactFrames), gap.targets, true,
+    "normal", probe.preTargetSledTrace,
+  ) as Candidate | null;
+  if (fit === null) {
+    aimTotals.scoop_gate_fail++;
+    return null;
+  }
+  aimTotals.scoop_emitted++;
+  fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+  fit.aimed = true;
+  fit.scooped = true;
   return fit;
 }

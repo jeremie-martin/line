@@ -87,6 +87,7 @@ import {
 import {
   resetArcPlacementStats,
   setCompileBudgetFrames,
+  setImpactTemplateSpecMeanImpact,
   snapshotArcPlacementStats,
 } from "../arc_placement.ts";
 import { makeSolidLine } from "../arc.ts";
@@ -610,6 +611,9 @@ function compileHandoffInternal(
     // fingerprint is untouched). Diagnostic for A/B'ing the other axes (e.g. under a new
     // landing definition); default OFF ⇒ byte-identical.
     const impactOff = readEnv("LR_IMPACT_OFF") === "1";
+    setImpactTemplateSpecMeanImpact(
+      impactOff ? 0 : meanAuthoredImpactAfterFirstFeasibleContact(spec.contacts),
+    );
     const impactByFrame = new Map<number, number>();
     if (!impactOff) {
       for (const c of spec.contacts) {
@@ -3663,6 +3667,15 @@ function firstAxes(spec: Spec): AxisValues {
   // both the curve form (each curve at t=0) and the legacy section form (the
   // section covering t=0), so this stays form-agnostic across the migration.
   return axesAtFrame(0, spec);
+}
+
+function meanAuthoredImpactAfterFirstFeasibleContact(contacts: Spec["contacts"]): number {
+  const impacts = contacts
+    .slice(1)
+    .map((contact) => contact.impact)
+    .filter((impact): impact is number => impact !== undefined);
+  if (impacts.length === 0) return 0;
+  return impacts.reduce((sum, impact) => sum + impact, 0) / impacts.length;
 }
 
 function uniqueRounded(xs: number[]): number[] {

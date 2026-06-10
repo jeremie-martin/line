@@ -94,3 +94,13 @@ Probe trail:
 - `contract-branch-cap2-canon-01`: 50k +5.6 but canonical Delta +0.4, P(Delta<=0)=42.2%, inconclusive; cap needed a warmup.
 - `contract-branch-cap2-warmup12-canon-01`: 50k +38.1 but canonical Delta +2.9, P(Delta<=0)=12.5%, inconclusive; tail window still left the gate just short.
 - `contract-branch-cap2-tailwin17-clean-canon-01`: canonical accepted. Window 17 kept the 50k rescue and removed the main `drums_pendulum` seed 10 regression; window 20 was too broad and regressed 50k validity.
+- Continued template/impact probes after `template-maxturn22-canon-01` did not promote:
+  `impactq-probe-01/02` added an impact axis-quality stream but selected too rarely and was net negative on the focused intersection;
+  `template-minp08` had a focused ACCEPT-like signal but full canonical was Delta -0.3, P(Delta<=0)=61.8%;
+  `template-minp15`, `template-baseonly-vertical15`, `qncand32`, mature n30/n31, and min-attempt-5 all washed or regressed on mixed slices;
+  template selection nudges were rejected (`selectbonus` focused Delta -3.5, P=97.2%; `selectpenalty` focused Delta -1.8, P=87.7%);
+  gentler 20/21-degree caps were neutral-negative on the same 12-spec slice, so the accepted 22-degree cap remains the local optimum.
+- `LR_IMPACT_LOCAL_W=0.25/0.5` and first-contact impact-biased ballistic starts were also rejected on the 12-spec slice; lower local weight either damaged 50k validity or stayed neutral-negative, and impact-biased starts had small mature lift but 50k damage.
+- Shorter mature impact-template scoops:
+  fixed `speed*5` was positive but canonical INCONCLUSIVE (`template-scoop5-canon-01`: Delta +0.6, P(Delta<=0)=18.3%); shorter `4.75/4.0`, pressure-gated shortening, and `5.25` were weaker on focused slices; mature 24-degree turn extension regressed canonical to Delta +0.4, P=25.4%.
+- `template-scoop-meanimpact55-canon-01`: canonical accepted. For specs whose feasible post-first authored impact mean is >=0.55, mature budgets ramp template scoop duration from 6 frames at <=100k to 5 frames by 200k; lower-impact specs keep the accepted 6-frame scoop. Canonical Delta +0.6, P(Delta<=0)=4.8%; 50k/100k unchanged, 200k +0.8, 300k +0.8.

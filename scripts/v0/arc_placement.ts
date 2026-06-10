@@ -138,6 +138,11 @@ const IMPACT_TEMPLATE_MAX_TURN_DEG = 22;
 const IMPACT_TEMPLATE_TURN_SPAN_SALT = 9;
 const IMPACT_TEMPLATE_BUDGET_SALT = 13;
 const IMPACT_TEMPLATE_SCOOP_SEG_PX = 10;
+const IMPACT_TEMPLATE_SCOOP_BASE_FRAMES = 6;
+const IMPACT_TEMPLATE_SCOOP_SHORT_FRAMES = 5;
+const IMPACT_TEMPLATE_SCOOP_BUDGET_START_FRAMES = 100_000;
+const IMPACT_TEMPLATE_SCOOP_BUDGET_SPAN_FRAMES = 100_000;
+const IMPACT_TEMPLATE_SCOOP_MIN_SPEC_MEAN_IMPACT = 0.55;
 const IMPACT_TEMPLATE_END_ANGLE_MIN_DEG = -28;
 const IMPACT_TEMPLATE_BUDGET_START_FRAMES = 50_000;
 const IMPACT_TEMPLATE_BUDGET_SPAN_FRAMES = 50_000;
@@ -213,6 +218,13 @@ const ARC_LEN_ROOM_SPARSE_FRAMES = 46;
 let currentCompileBudgetFrames = 0;
 export function setCompileBudgetFrames(frames: number): void {
   currentCompileBudgetFrames = Math.max(0, frames | 0);
+}
+
+let currentImpactTemplateSpecMeanImpact = 0;
+export function setImpactTemplateSpecMeanImpact(meanImpact: number): void {
+  currentImpactTemplateSpecMeanImpact = Number.isFinite(meanImpact)
+    ? clamp(meanImpact, 0, 1)
+    : 0;
 }
 
 type ProcessEnv = Record<string, string | undefined>;
@@ -1171,8 +1183,7 @@ function sampleContactCenteredLines(
       const scoopEndAngleDeg = contactAngleDeg - turnDeg;
       if (turnDeg >= 8) {
         lastGeometryWasImpactTemplate = true;
-        // The scoop spans the ~6-frame redir contact run at arrival speed.
-        const scoopLength = clamp(speed * 6, 28, 120);
+        const scoopLength = clamp(speed * impactTemplateScoopFrames(), 28, 120);
         const scoopSegs = clampInt(
           Math.round(scoopLength / IMPACT_TEMPLATE_SCOOP_SEG_PX), 3, 12,
         );
@@ -1196,6 +1207,20 @@ function impactTemplateBudgetPressure(): number {
   return smoothstep(
     (currentCompileBudgetFrames - IMPACT_TEMPLATE_BUDGET_START_FRAMES) /
       IMPACT_TEMPLATE_BUDGET_SPAN_FRAMES,
+  );
+}
+
+function impactTemplateScoopFrames(): number {
+  if (currentImpactTemplateSpecMeanImpact < IMPACT_TEMPLATE_SCOOP_MIN_SPEC_MEAN_IMPACT) {
+    return IMPACT_TEMPLATE_SCOOP_BASE_FRAMES;
+  }
+  return lerp(
+    IMPACT_TEMPLATE_SCOOP_BASE_FRAMES,
+    IMPACT_TEMPLATE_SCOOP_SHORT_FRAMES,
+    smoothstep(
+      (currentCompileBudgetFrames - IMPACT_TEMPLATE_SCOOP_BUDGET_START_FRAMES) /
+        IMPACT_TEMPLATE_SCOOP_BUDGET_SPAN_FRAMES,
+    ),
   );
 }
 

@@ -316,11 +316,7 @@ loss`) — the open prize.
    knob-response model by editing `optimizer/arc_model.ts` for feature/model
    shape and `study_joint_arc_model.ts` for probe/output/report logic.
 
-   Transition 1, fast loop: run both commands and iterate quickly:
-   `npm run study:joint-arc -- --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 --probe-design=cross5 --eval-design=random --eval-samples=80 --details=0`
-   and the same command with `--probe-design=grid9`.
-
-   Transition 2, acceptance loop: run both commands on the broader suite:
+   Run both commands on the broader suite:
    `npm run study:joint-arc -- --specs=dense_echo_climb,cold_start,climb_terrace,rolling_drop,verse_chorus,drums_dropout --seeds=0,1 --budget=300000 --max-gaps=0 --probe-design=cross5 --eval-design=random --eval-samples=1000 --details=0`
    and the same command with `--probe-design=grid9`.
 

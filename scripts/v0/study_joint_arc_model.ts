@@ -13,15 +13,8 @@
  * This studies the local model-construction problem only. It does not change
  * production search/ranking.
  *
- * Transition 1, fast loop. Run once with --probe-design=cross5 and once with
- * --probe-design=grid9:
- *
- *   npm run study:joint-arc -- \
- *     --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 \
- *     --probe-design=grid9 --eval-design=random --eval-samples=80 --details=0
- *
- * Transition 2, acceptance loop. Run both probe designs again on the broader
- * suite, with all confidently paired gaps and 1000 held-out random samples:
+ * Run both probe designs on the broader suite, with all confidently paired
+ * gaps and 1000 held-out random samples:
  *
  *   npm run study:joint-arc -- \
  *     --specs=dense_echo_climb,cold_start,climb_terrace,rolling_drop,verse_chorus,drums_dropout \
@@ -97,11 +90,7 @@ const outPath = argValue("out");
 if (argv.includes("--help") || argv.includes("-h")) {
   console.log(`Joint arc local-regression study
 
-Transition 1, fast loop; run both probe designs:
-  npm run study:joint-arc -- --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 --probe-design=cross5 --eval-design=random --eval-samples=80 --details=0
-  npm run study:joint-arc -- --specs=tiny_dance,cold_start --seeds=0 --budget=50000 --max-gaps=4 --probe-design=grid9  --eval-design=random --eval-samples=80 --details=0
-
-Transition 2, acceptance loop; run both probe designs:
+Run both probe designs:
   npm run study:joint-arc -- --specs=dense_echo_climb,cold_start,climb_terrace,rolling_drop,verse_chorus,drums_dropout --seeds=0,1 --budget=300000 --max-gaps=0 --probe-design=cross5 --eval-design=random --eval-samples=1000 --details=0
   npm run study:joint-arc -- --specs=dense_echo_climb,cold_start,climb_terrace,rolling_drop,verse_chorus,drums_dropout --seeds=0,1 --budget=300000 --max-gaps=0 --probe-design=grid9  --eval-design=random --eval-samples=1000 --details=0
 

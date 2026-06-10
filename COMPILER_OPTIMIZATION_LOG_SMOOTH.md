@@ -928,3 +928,30 @@ first post-rebase baseline.
 - Per-budget deltas: `50k +1.4`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
   validity unchanged (`1898/1920`, `300k 480/480`).
 - Status: accepted; this archive becomes the next official comparison baseline.
+
+## quality-preview-pressure-02
+
+- Mechanism: same quality-phase future-preview ranking gate.
+- Continuous replacement: same budget/full-feedback pressure shape, but raised
+  max quality-preview score pressure from `0.25` to `0.50`.
+- Run: `generated/golden-runs/quality-preview-pressure-02`.
+- Decide against accepted baseline `quality-preview-pressure-01`:
+  `VERDICT: INCONCLUSIVE`; headline `517.1 -> 517.1`, delta `+0.0`,
+  CI `[-0.0, 0.1]`, `P(delta<=0)=14.0%`.
+- Per-budget deltas: `50k +0.5`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: not kept; positive 50k signal but still below accept confidence, so
+  tried full pressure authority while retaining the same smooth ramps.
+
+## quality-preview-pressure-03
+
+- Mechanism: same quality-phase future-preview ranking gate.
+- Continuous replacement: same budget/full-feedback pressure shape, with max
+  quality-preview score pressure raised to `1.0`.
+- Run: `generated/golden-runs/quality-preview-pressure-03`.
+- Decide against accepted baseline `quality-preview-pressure-01`:
+  `VERDICT: ACCEPT`; headline `517.1 -> 517.2`, delta `+0.1`,
+  CI `[-0.0, 0.3]`, `P(delta<=0)=2.6%`.
+- Per-budget deltas: `50k +1.5`, `100k +0.0`, `200k +0.0`, `300k +0.0`;
+  validity unchanged (`1898/1920`, `300k 480/480`).
+- Status: accepted; this archive becomes the next official comparison baseline.

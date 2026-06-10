@@ -1882,17 +1882,25 @@ function contractBranchingLimit(
   bestKey: LeafKey | null,
 ): number {
   if (qualitySearch || bestKey?.contract_passed === true) return HANDOFF_BRANCHING;
-  if (node.gapIndex < CONTRACT_BRANCHING_WARMUP_GAPS) return HANDOFF_BRANCHING;
   const scarcityPressure = 1 - smoothstep(
     (targetBudget - CONTRACT_BRANCHING_FADE_START_FRAMES) /
       CONTRACT_BRANCHING_FADE_SPAN_FRAMES,
   );
   if (scarcityPressure <= 0) return HANDOFF_BRANCHING;
-  return clampIntLocal(
-    HANDOFF_BRANCHING - (HANDOFF_BRANCHING - CONTRACT_BRANCHING_MIN) * scarcityPressure,
-    CONTRACT_BRANCHING_MIN,
-    HANDOFF_BRANCHING,
+  const depthPressure = smoothstep(
+    (node.gapIndex - CONTRACT_BRANCHING_WARMUP_GAPS) / 8,
   );
+  const thirdBranchPressure = 1 - 0.75 * scarcityPressure * depthPressure;
+  return CONTRACT_BRANCHING_MIN +
+    (unitHash(contractBranchingSeed(node)) < thirdBranchPressure ? 1 : 0);
+}
+
+function contractBranchingSeed(node: SearchNode): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
+    0x4f1bbcdc
+  ) | 0;
 }
 
 function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap, ctx: SpecContext): boolean {

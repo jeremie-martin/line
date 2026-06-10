@@ -1119,3 +1119,93 @@ first post-rebase baseline.
   validity regressed overall (`1903/1920 -> 1901/1920`), with `300k 480/480`.
 - Status: rejected and reverted after two variants; the narrow bridge was too
   weak to keep and the wider bridge spent scarce 50k budget badly.
+
+## start-support-xdelay-fractional-01
+
+- Mechanism: startup support x-delay count boundary.
+- Continuous replacement: kept the existing smooth air/duration/budget pressure,
+  but replaced rounded delay-count selection with deterministic fractional
+  admission of the next delay.
+- Run: `generated/golden-runs/start-support-xdelay-fractional-01`.
+- Baseline rerun: `generated/golden-runs/arc-rewrite-baseline-rerun-01`
+  because logged `arc-rewrite-baseline-01` archive was missing locally.
+- Decide: `VERDICT: INCONCLUSIVE`; headline `580.8 -> 580.9`, delta `+0.1`,
+  CI `[0.0, 0.3]`, `P(delta<=0)=38.5%`.
+- Per-budget deltas: `50k +0.0`, `100k +0.0`, `200k +0.1`, `300k +0.1`;
+  validity unchanged (`1903/1920`, `300k 480/480`).
+- Status: rejected and reverted; smoothing this boundary is active but too small
+  and high-budget-only to meet the canonical accept gate.
+
+## rescue-startup-fractional-count-postarc-01
+
+- Mechanism: dead-end rescue startup-weighted candidate count and rescue pool.
+- Continuous replacement: kept the existing startup pressure but replaced rounded
+  extra candidate/pool counts with deterministic fractional admission.
+- Run: `generated/golden-runs/rescue-startup-fractional-count-postarc-01`.
+- Decide against baseline rerun `arc-rewrite-baseline-rerun-01`:
+  `VERDICT: INCONCLUSIVE`; headline `580.8 -> 580.8`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=58.5%`.
+- Per-budget deltas all `+0.0`; validity unchanged (`1903/1920`,
+  `300k 480/480`).
+- Status: rejected and reverted; canonical rows are effectively unchanged by
+  fractionalizing this post-arc rescue count.
+
+## contract-branch-warmup-pressure-01..03
+
+- Mechanism: contract-failed handoff branching limit.
+- Continuous replacement: replaced the hard warmup/rounded scarcity clamp with a
+  smooth depth pressure and deterministic fractional admission of the third
+  handoff branch.
+- Baseline rerun: `generated/golden-runs/arc-rewrite-baseline-rerun-01`
+  because logged `arc-rewrite-baseline-01` archive was missing locally.
+- Variant 01 (`generated/golden-runs/contract-branch-warmup-pressure-01`):
+  depth pressure started before the old warmup boundary. Decide:
+  `VERDICT: INCONCLUSIVE`; headline `580.8 -> 581.7`, delta `+0.9`,
+  CI `[-0.0, 3.6]`, `P(delta<=0)=25.9%`; per-budget deltas
+  `50k +11.4`, `100k +0.0`, `200k +0.0`, `300k +0.0`; validity improved
+  (`1903/1920 -> 1905/1920`, `300k 480/480`).
+- Variant 02 (`generated/golden-runs/contract-branch-warmup-pressure-02`):
+  preserved the old full-branch warmup through gap `12`, then ramped depth
+  pressure over later gaps. Decide: `VERDICT: INCONCLUSIVE`; headline
+  `580.8 -> 581.7`, delta `+0.9`, CI `[-0.0, 3.2]`,
+  `P(delta<=0)=24.8%`; per-budget deltas `50k +11.4`, `100k +0.0`,
+  `200k +0.0`, `300k +0.0`; validity again improved to `1905/1920`.
+- Variant 03 (`generated/golden-runs/contract-branch-warmup-pressure-03`):
+  kept the same depth ramp but left a `25%` deep-prefix third-branch floor at
+  scarce budgets. Decide: `VERDICT: ACCEPT`; headline `580.8 -> 583.0`,
+  delta `+2.2`, CI `[-0.1, 5.7]`, `P(delta<=0)=9.3%`; per-budget deltas
+  `50k +28.5`, `100k +0.0`, `200k +0.0`, `300k +0.0`; validity improved
+  (`1903/1920 -> 1908/1920`, `300k 480/480`).
+- Status: variant 03 kept as the new working baseline.
+
+## contract-sample-count-fractional-01
+
+- Mechanism: budget-aware contract candidate count integerization.
+- Continuous replacement: kept the existing projected-budget and fade pressures,
+  but replaced rounded candidate-count boundaries with deterministic fractional
+  admission from the current search node.
+- Run: `generated/golden-runs/contract-sample-count-fractional-01`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `583.0 -> 582.6`, delta `-0.4`,
+  CI `[-3.9, 3.6]`, `P(delta<=0)=59.4%`.
+- Per-budget deltas: `50k -5.2`, `100k -0.0`, `200k +0.0`,
+  `300k +0.0`; validity regressed slightly (`1908/1920 -> 1907/1920`,
+  `300k 480/480`).
+- Status: rejected and reverted; the old rounded cap is noisy but better for
+  the scarce-budget validity/score tradeoff after the branch-warmup accept.
+
+## brake-high-overspeed-fractional-01
+
+- Mechanism: brake-candidate high-overspeed count threshold.
+- Continuous replacement: left the existing target-speed eligibility gates alone,
+  but replaced the `1.15x` overspeed jump from base brake probes to one extra
+  probe with a short smooth ratio band and deterministic per-node admission.
+- Run: `generated/golden-runs/brake-high-overspeed-fractional-01`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `583.0 -> 581.7`, delta `-1.3`,
+  CI `[-5.1, 0.9]`, `P(delta<=0)=78.0%`.
+- Per-budget deltas: `50k -17.6`, `100k +0.2`, `200k -0.0`,
+  `300k +0.1`; validity regressed (`1908/1920 -> 1905/1920`,
+  `300k 480/480`).
+- Status: rejected and reverted; adding/removing the extra brake probe around
+  the threshold spends scarce budget badly despite tiny high-budget gains.

@@ -2971,11 +2971,27 @@ let fwdEvalGapAxisTargets: AxisValues[] = [];
 let fwdEvalCfg: ForwardEvalConfig | null = null;
 let fwdEvalMin = 0;
 let fwdEvalDefaultConfig = true;
+// Experiment (default OFF — TESTED, FAILS): widen the rollout branch at
+// impact-targeted gaps. Funnel study (study_impact_funnel.ts): dive-scoop pairs
+// are representable and sampled but undiscoverable — greedy:2 extends each k−1
+// candidate through ONLY the locally-top candidate at k, so a steep arrival is
+// never scored through the scoop that would convert it.
+// VERDICT (2026-06-10, canonical): branch=3 → 551.89, branch=5 → 328.08 vs
+// 586.53 baseline. Charged branch^depth rollouts on ~40% of gaps starve the
+// search (same failure shape as best:2:3 −12.4). Pair discovery must come from
+// generation putting the converting scoop at the TOP of the pool from steep
+// arrival states (docs/IMPACT_PAIR_PLANNING.md), not from search breadth.
+let fwdEvalImpactBranch = 1;
+const FWD_EVAL_IMPACT_BRANCH_MIN_TARGET = 0.35;
 export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]): void {
   fwdEvalSpec = spec;
   fwdEvalGapAxisTargets = gapAxisTargets;
   fwdEvalCfg = forwardEvalConfig();
   fwdEvalMin = forwardEvalMinBudget();
+  const rawImpactBranch = Number(readEnv("LR_FWD_EVAL_IMPACT_BRANCH") ?? "1");
+  fwdEvalImpactBranch = Number.isInteger(rawImpactBranch) && rawImpactBranch >= 1
+    ? rawImpactBranch
+    : 1;
 }
 
 function readEnv(name: string): string | undefined {
@@ -3140,7 +3156,11 @@ function forwardRolloutScore(
   if (depthLeft <= 0 || isTerminalNode(search, gaps)) return forwardNodeScore(search, gaps, ctx);
   const at = advanceToNextContact(search, gaps);
   if (at === null) return forwardNodeScore(search, gaps, ctx);
-  const cands = getCandidatesSorted(at, gaps, ctx, seed, branch);
+  const atImpact = gaps[at.gapIndex]?.targets.impact ?? 0;
+  const atBranch = fwdEvalImpactBranch > 1 && atImpact >= FWD_EVAL_IMPACT_BRANCH_MIN_TARGET
+    ? Math.max(branch, fwdEvalImpactBranch)
+    : branch;
+  const cands = getCandidatesSorted(at, gaps, ctx, seed, atBranch);
   if (cands.length === 0) return forwardNodeScore(search, gaps, ctx);
   let best = -Infinity;
   for (const c of cands) {

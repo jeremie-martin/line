@@ -1245,3 +1245,32 @@ first post-rebase baseline.
   `300k 480/480`).
 - Status: rejected and reverted; extending rescue beyond the old cutoff burns
   scarce budget and harms dense/drum completion.
+
+## start-overshoot-pressure-01
+
+- Mechanism: high-speed start overshoot scoring gate.
+- Continuous replacement: ramped the start-lookahead overshoot penalty from zero
+  to full strength over the `1 px/frame` below the old high-speed threshold.
+- Run: `generated/golden-runs/start-overshoot-pressure-01`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `583.0 -> 583.0`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas all `+0.0`; validity unchanged (`1908/1920`,
+  `300k 480/480`).
+- Status: rejected and reverted; canonical start rows are byte-stable, so this
+  boundary is not active on the current baseline.
+
+## dense-spacing-cap-pressure-01
+
+- Mechanism: arc placement dense-spacing post-length cap.
+- Continuous replacement: kept the old full cap at `grain >= 0.50` and
+  `nextGapFrames <= 14`, but blended the cap in smoothly across nearby grain
+  and contact-spacing boundaries.
+- Run: `generated/golden-runs/dense-spacing-cap-pressure-01`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: INCONCLUSIVE`; headline `583.0 -> 583.0`, delta `+0.0`,
+  CI `[0.0, 0.0]`, `P(delta<=0)=100.0%`.
+- Per-budget deltas all `+0.0`; validity unchanged (`1908/1920`,
+  `300k 480/480`).
+- Status: rejected and reverted; this near-boundary dense-spacing cap pressure
+  is canonical byte-stable on the current baseline.

@@ -1209,3 +1209,39 @@ first post-rebase baseline.
   `300k 480/480`).
 - Status: rejected and reverted; adding/removing the extra brake probe around
   the threshold spends scarce budget badly despite tiny high-budget gains.
+
+## impact-template-vertical-compat-pressure-01..02
+
+- Mechanism: impact-template amp-only vertical spacing gate.
+- Continuous replacement: replaced the hard sparse current/next-gap threshold
+  with smooth compatibility pressure near the old spacing boundary.
+- Variant 01 (`generated/golden-runs/impact-template-vertical-compat-pressure-01`):
+  used compatibility pressure as deterministic lane admission. Decide against
+  `contract-branch-warmup-pressure-03`: `VERDICT: INCONCLUSIVE`; headline
+  `583.0 -> 583.0`, delta `+0.0`, CI `[-0.7, 0.6]`,
+  `P(delta<=0)=47.7%`; per-budget deltas `50k +0.0`, `100k -0.1`,
+  `200k +0.1`, `300k -0.0`; validity unchanged (`1908/1920`,
+  `300k 480/480`).
+- Variant 02 (`generated/golden-runs/impact-template-vertical-compat-pressure-02`):
+  used compatibility pressure to scale template turn strength instead of random
+  full-strength admission. Decide: `VERDICT: INCONCLUSIVE`; headline
+  `583.0 -> 582.8`, delta `-0.2`, CI `[-0.9, 0.3]`,
+  `P(delta<=0)=71.3%`; per-budget deltas `50k +0.0`, `100k -0.4`,
+  `200k -0.2`, `300k -0.1`; validity unchanged.
+- Status: rejected and reverted; near-edge amp-only template lanes are active
+  but do not improve the canonical weighted curve.
+
+## short-deadline-rescue-fade-01
+
+- Mechanism: short-deadline dead-end rescue gap cutoff.
+- Continuous replacement: kept the old full rescue through the `12`-frame cutoff
+  and faded rescue sample count smoothly to zero over the next `8` frames.
+- Run: `generated/golden-runs/short-deadline-rescue-fade-01`.
+- Decide against accepted baseline `contract-branch-warmup-pressure-03`:
+  `VERDICT: REJECT`; headline `583.0 -> 563.8`, delta `-19.1`,
+  CI `[-41.3, -2.0]`, `P(delta<=0)=99.9%`.
+- Per-budget deltas: `50k -85.8`, `100k -80.0`, `200k -0.3`,
+  `300k -0.3`; validity regressed (`1908/1920 -> 1881/1920`,
+  `300k 480/480`).
+- Status: rejected and reverted; extending rescue beyond the old cutoff burns
+  scarce budget and harms dense/drum completion.

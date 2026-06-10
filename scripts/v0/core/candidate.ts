@@ -76,6 +76,14 @@ export type LandingWindowProbeRecord = {
   endFrame: number;
   /** Authored per-beat impact target of this gap, if any. */
   targetImpact?: number;
+  /** Candidate-arc geometry (from its lines, independent of simulation):
+   *  entry tangent angle (deg, positive = descending) and total signed turn
+   *  (deg, negative = scooping/flattening). Funnel-study fields. */
+  entryAngleDeg: number | null;
+  turnDeg: number | null;
+  /** Set when the candidate died at the survival gate (rider didn't live to
+   *  endFrame + margin) — such records carry geometry but no landing data. */
+  failure?: "survival";
   /** Minimal lockstep half-width that admits the candidate; null if none ≤ MAX_W. */
   acceptedAtW: number | null;
   /** Signed landing offset (landingFrame − endFrame) at that W; null if rejected. */
@@ -126,6 +134,52 @@ export function drainLandingWindowProbe(): { records: LandingWindowProbeRecord[]
   return { records, dropped };
 }
 
+/** Entry tangent + total signed turn of a candidate's line chain (degrees;
+ *  positive entry = descending, negative turn = scoop). Probe-only — never on
+ *  the production hot path. */
+function probeArcAngles(lines: TrackLine[]): { entryAngleDeg: number | null; turnDeg: number | null } {
+  let entry: number | null = null;
+  let prev: number | null = null;
+  let turn = 0;
+  for (const l of lines) {
+    const dx = l.x2 - l.x1;
+    const dy = l.y2 - l.y1;
+    if (dx === 0 && dy === 0) continue;
+    const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    if (entry === null) entry = angle;
+    if (prev !== null) {
+      let d = (angle - prev) % 360;
+      if (d > 180) d -= 360;
+      if (d <= -180) d += 360;
+      turn += d;
+    }
+    prev = angle;
+  }
+  return { entryAngleDeg: entry, turnDeg: entry === null ? null : turn };
+}
+
+/** Record a survival-gate death (probe only): geometry is known, landing data is not. */
+function probeSurvivalFailure(gap: Gap, lines: TrackLine[]): void {
+  if (landingProbeRecords === null) return;
+  if (landingProbeRecords.length >= LANDING_PROBE_RECORD_CAP) {
+    landingProbeDropped++;
+    return;
+  }
+  landingProbeRecords.push({
+    gapIndex: gap.index,
+    endFrame: gap.endFrame,
+    ...(gap.targets.impact === undefined ? {} : { targetImpact: gap.targets.impact }),
+    ...probeArcAngles(lines),
+    failure: "survival",
+    acceptedAtW: null,
+    offset: null,
+    impactAchieved: null,
+    incomingSpeed: null,
+    isTemplate: wasLastGeometryImpactTemplate(),
+    cost: null,
+  });
+}
+
 function probeLandingWindow(
   det: Detection,
   gap: Gap,
@@ -166,6 +220,7 @@ function probeLandingWindow(
     gapIndex: gap.index,
     endFrame: gap.endFrame,
     ...(gap.targets.impact === undefined ? {} : { targetImpact: gap.targets.impact }),
+    ...probeArcAngles(lines),
     acceptedAtW,
     offset: chosen === null ? null : chosen.frame - gap.endFrame,
     impactAchieved: impactPx === undefined ? null : impactPx / CALIB.REDIR_CAP,
@@ -675,6 +730,7 @@ function evaluateGapFit(
   const SURVIVAL_MARGIN = 16;
   const minSurvival = Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd);
   if (det.terminus.frame < minSurvival && det.terminus.reason !== "endOfSpec") {
+    if (landingProbeEligible && landingProbeRecords !== null) probeSurvivalFailure(gap, lines);
     return { fit: null, failure: "survival" };
   }
 

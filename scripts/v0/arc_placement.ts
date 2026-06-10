@@ -1072,7 +1072,12 @@ function sampleContactCenteredLines(
     // Scarce-budget only: the pop arrivals add COMPLETABLE shapes at 50k
     // (slice: +50.5) but dilute converged high-budget quality (−8..−36) —
     // the same profile as the post-curve span. Fade full ≤50k → off ≥100k.
-    const budgetFade = 1 - smoothstep((currentCompileBudgetFrames - 50_000) / 50_000);
+    // LR_IMPACT_ARRIVAL_FADE=0 keeps full arrival authority at every budget
+    // (funnel-study experiment: deep scoops fail to convert turn into measured
+    // redirection — is the faded-out steep arrival the missing converter?).
+    const budgetFade = PROCESS_ENV?.LR_IMPACT_ARRIVAL_FADE === "0"
+      ? 1
+      : 1 - smoothstep((currentCompileBudgetFrames - 50_000) / 50_000);
     const arrivalPressure = budgetFade
       * smoothstep((gap.nextImpact - IMPACT_ARRIVAL_TARGET_START) / IMPACT_ARRIVAL_TARGET_SPAN);
     if (arrivalPressure > 0) {

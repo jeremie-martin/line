@@ -37,6 +37,15 @@ export function propagateBallisticArrivalState(
   state: RiderArrivalState,
   dtFrames: number,
 ): RiderArrivalState {
+  // Pure readout gravity, deliberately. A per-frame "effective gravity"
+  // correction (+0.0084, from committed-track airborne stretches) was tried
+  // and FALSIFIED on probe trajectories: the signed vy error vs full-sim
+  // truth is CONSTANT across dt buckets (−0.021/−0.035/−0.025 for dt
+  // <10/10-20/20-40), not linear in dt — the deviation is a launch-read
+  // transient, corrected at the read (arc_probe.ts LAUNCH_VY_OFFSET_PX),
+  // not an acceleration. The committed-track study's per-run mean dvy−g
+  // telescopes to (vy(b)−vy(a))/(b−a), so a decaying post-launch transient
+  // masquerades there as a per-frame bias.
   const dt = Math.max(0, Math.round(dtFrames));
   const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
   const x = state.x + state.vx * dt;

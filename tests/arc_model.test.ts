@@ -262,6 +262,9 @@ describe("arc_model joint response helpers", () => {
     const state = predictedArrivalState(outputs);
     expect(state).not.toBeNull();
     expect(state!.x).toBeCloseTo(109);
+    // Next-arrival propagation uses PURE readout gravity: the launch-read
+    // transient is corrected at the read (arc_probe LAUNCH_VY_OFFSET_PX),
+    // never as an acceleration (falsified — see propagateBallisticArrivalState).
     expect(state!.y).toBeCloseTo(50 + 3 + 0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * 3 * 4);
     expect(state!.vy).toBeCloseTo(1 + ELEVATION.GRAVITY_PX_PER_FRAME2 * 3);
     expect(state!.sledPoseDeg).toBeCloseTo(26);

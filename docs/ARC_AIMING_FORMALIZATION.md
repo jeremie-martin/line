@@ -209,6 +209,44 @@ yet represented in the latent state
 The study harness may attach full-simulation truth for evaluation; production
 short probes never simulate to the next landing in either response mode.
 
+## Exit-State Readout and Calibrated Free Fall
+
+The launch state the ballistic completion starts from is a READOUT, not the
+ideal physical state. Measured on real free-flight stretches
+(study_exit_readout.ts): the engine's `rider.velocity` oscillates frame to
+frame with internal constraint dynamics (rms ~0.02 px/f per increment), and
+the launch read after a catch systematically UNDERESTIMATES vy by a roughly
+constant amount (a post-impact transient of the constrained body). Two
+corrections, both validated out-of-sample on disjoint specs (together −10%
+|dv| / −17% angle vs the raw single read):
+
+- the short probe's launch velocity is a gravity-corrected average of up to
+  4 consecutive airborne velocity reads (arc_probe.ts `readLaunchState`;
+  engine states combined — no position differencing; zero extra charged
+  frames, the averaged frames are already simulated);
+- a constant launch-vy offset (`LAUNCH_VY_OFFSET_PX = +0.0345`, fitted on
+  22.7k probe rows / 6 specs, +0.043 on the disjoint validation set, flat
+  across dt buckets).
+
+A cautionary negative result, kept on purpose: an "effective gravity"
+correction (+0.0084 px/f² per frame, measured on committed-track airborne
+stretches) was implemented first and FALSIFIED on probe trajectories — the
+signed vy error there is constant in dt, not linear, so the deviation is a
+launch-read transient, not an acceleration. The committed-track study's
+per-run mean of `dvy − g` telescopes to an endpoint difference, which makes
+a decaying transient masquerade as a per-frame bias. Next-arrival
+propagation therefore uses PURE readout gravity; the span-axis completion in
+measure.ts is untouched (fingerprinted evaluator surface; bias contribution
+≤0.001 axis units).
+
+Open question for later (deliberately not pursued yet): the readout we treat
+as "the rider state" is one particular aggregate of a multi-point body. The
+most USEFUL launch quantity is whichever best predicts next-catch readiness —
+not necessarily the truest center of mass. Candidates when this is revisited:
+a mass-weighted CoM over all body points, rotation-state-corrected velocity
+(the residual free-fall deviation is rotation-dependent, and pose rate is
+already a latent), or directly learning the readiness-relevant projection.
+
 ## Gates, Identifiability, and Degraded Sweeps
 
 Probe rows carry hard-gate outcomes (survival, on-beat landing within ±1

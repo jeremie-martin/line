@@ -15,7 +15,7 @@ import {
   contactLineIdsAt,
   engineLineFromTrackLine,
 } from "../core/substrate.ts";
-import { IMPACT_WINDOW, type Gap, type TrackLine } from "../types.ts";
+import { ELEVATION, IMPACT_WINDOW, type Gap, type TrackLine } from "../types.ts";
 import {
   applyArcKnobs,
   arcResponseOutputs,
@@ -133,7 +133,7 @@ function observeJointArcLines(
   const suffixFrame = mode === "full"
     ? null
     : firstAirborneExitFrameAtOrAfter(fork, det, lines, shortProbeMinExitFrame(gap), horizon);
-  const suffixState = suffixFrame === null ? null : readArrivalState(fork, suffixFrame);
+  const suffixState = suffixFrame === null ? null : readLaunchState(fork, det, suffixFrame, horizon);
   const cleanAirborneSuffix = suffixFrame === null ? null : cleanAirborneRange(det, suffixFrame, horizon);
   const nextStateOk = mode === "full"
     ? det.terminus.frame >= nextFrame || det.terminus.reason === "endOfSpec"
@@ -290,6 +290,59 @@ function cleanAirborneRange(det: ReturnType<typeof detectWindow>, startFrame: nu
     if (airborneAt(det, frame) !== true) return false;
   }
   return true;
+}
+
+/** Frames averaged by the gravity-corrected launch-velocity estimator. */
+const LAUNCH_READ_FRAMES = 4;
+
+/** Constant correction to the launch vy read (px/f). The velocity readout
+ *  at the first airborne frames after a catch UNDERESTIMATES vy by a
+ *  roughly constant amount (post-impact transient of the constrained body):
+ *  signed prediction error vs full-sim truth is flat across dt buckets, so
+ *  this is a read offset, not an acceleration. Fitted on 22.7k probe rows
+ *  across 6 golden specs (smoothed read: +0.0345; raw read: +0.0265) and
+ *  validated out-of-sample — see the calibration note in
+ *  docs/ARC_AIMING_FORMALIZATION.md and study_latent_decomposition.ts. */
+const LAUNCH_VY_OFFSET_PX = 0.0345;
+
+/** The short probe's launch state: `readArrivalState` at the suffix frame,
+ *  with the velocity replaced by a gravity-corrected average of up to
+ *  LAUNCH_READ_FRAMES consecutive airborne velocity reads. The single-frame
+ *  velocity readout oscillates with internal constraint dynamics (rms ~0.02
+ *  px/f per frame increment in free flight — study_exit_readout.ts), and the
+ *  ballistic completion amplifies that launch error over dt frames; averaging
+ *  engine states (each compensated by g·k) removes most of it. The averaged
+ *  frames are already simulated on the fork (≤ horizon), so this charges no
+ *  extra physics frames. Falls back to the plain single read when later
+ *  frames are not airborne or unreadable. */
+// deno-lint-ignore no-explicit-any
+function readLaunchState(engine: any, det: ReturnType<typeof detectWindow>, frame: number, horizon: number): RiderArrivalState | null {
+  const base = readArrivalState(engine, frame);
+  if (base === null) return base;
+  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
+  let sx = base.vx;
+  let sy = base.vy;
+  let n = 1;
+  for (let k = 1; k < LAUNCH_READ_FRAMES; k++) {
+    const f = frame + k;
+    if (f > horizon || airborneAt(det, f) !== true) break;
+    const rider = getRiderMetered(engine, f);
+    const v = rider?.velocity;
+    if (v === undefined || !Number.isFinite(v.x) || !Number.isFinite(v.y)) break;
+    sx += v.x;
+    sy += v.y - g * k;
+    n++;
+  }
+  const vx = sx / n;
+  const vy = sy / n + LAUNCH_VY_OFFSET_PX;
+  const speed = Math.hypot(vx, vy);
+  return {
+    ...base,
+    vx,
+    vy,
+    speed,
+    comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
+  };
 }
 
 // deno-lint-ignore no-explicit-any

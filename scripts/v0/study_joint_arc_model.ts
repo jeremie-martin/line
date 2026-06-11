@@ -29,29 +29,18 @@
  *
  *   npm run study:joint-arc -- \
  *     [--specs=a,b] [--seeds=0,1] [--budget=300000] \
- *     [--probe-design=grid9|cross5|grid15] [--eval-design=grid|random] \
+ *     [--probe-design=grid9|cross5] [--eval-design=grid|random] \
  *     [--eval-samples=200] [--max-gaps=N] [--details=0] \
- *     [--loss-model=best|linear|additive_quadratic|joint_quadratic] \
+ *     [--loss-model=best|linear|additive_quadratic|joint_quadratic|surface|hybrid] \
  *     [--out=path.jsonl]
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import {
-  detect,
-  extractRawTrajectory,
-  getRiderMetered,
-  sledPoseDegFromRider,
-} from "../lib/detector.ts";
-import {
-  axisCost,
   axisLookaheadEndFrame,
-  countOffBeatLandings,
-  releaseStateFrame,
   setCandidateCompileBudgetFrames,
 } from "./core/candidate.ts";
-import { measureGapAxes } from "./core/measure.ts";
-import { contactLineIdsAt, speedAt, velocityAt } from "./core/substrate.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import {
   AXES,
@@ -61,17 +50,20 @@ import {
   type TrackLine,
 } from "./types.ts";
 import {
-  additiveQuadraticFeatures,
-  applyArcKnobs,
-  biquadraticFeatures,
-  fitKnobSurfaceModel,
-  fitLinearLeastSquares,
-  jointQuadraticFeatures,
-  predictKnobSurfaceModel,
-  predictLinearModel,
+  ARC_RESPONSE_MODEL_NAMES,
+  arcKnobGrid,
+  arcKnobKey,
+  arcProbeDesign,
+  dedupeArcKnobs,
+  fitArcResponseOutputModel,
+  isArcAngleOutput,
+  normalizeAngleDeg,
+  parseArcProbeDesignName,
+  unwrapAngleAround,
   type ArcKnobs,
-  type RiderArrivalState,
+  type ArcResponseModelName,
 } from "./optimizer/arc_model.ts";
+import { evaluateJointArcKnobs } from "./optimizer/arc_probe.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 
 const argv = process.argv.slice(2);
@@ -82,7 +74,7 @@ const DEFAULT_SPECS = "dense_echo_climb,cold_start,climb_terrace,rolling_drop,ve
 const specNames = (argValue("specs") ?? DEFAULT_SPECS).split(",").filter(Boolean) as GoldenSpecName[];
 const seeds = (argValue("seeds") ?? "0,1").split(",").filter(Boolean).map(Number);
 const budget = Number(argValue("budget") ?? "300000");
-const probeDesignName = argValue("probe-design") ?? "grid9";
+const probeDesignName = parseArcProbeDesignName(argValue("probe-design") ?? "grid9");
 const evalDesignName = argValue("eval-design") ?? "grid";
 const evalSamples = Number(argValue("eval-samples") ?? "200");
 const probePitchSpanOverride = argValue("probe-pitch-span") === undefined ? undefined : Number(argValue("probe-pitch-span"));
@@ -189,119 +181,20 @@ type FittedStudyModel = {
   predict(knobs: ArcKnobs): number;
 };
 type StudyModelSpec = {
-  name: string;
+  name: ArcResponseModelName;
   fit(rows: Array<{ knobs: ArcKnobs; value: number }>, output: string): FittedStudyModel | null;
 };
 
-function linearStudyModel(name: string, features: (k: ArcKnobs) => number[]): StudyModelSpec {
-  return {
-    name,
-    fit(rows) {
-      const model = fitLinearLeastSquares(rows.map((row) => ({ features: features(row.knobs), value: row.value })));
-      return model === null ? null : {
-        predict: (knobs) => predictLinearModel(model, features(knobs)),
-      };
-    },
-  };
-}
-
-const surfaceMinRows = probeDesignName === "grid9" ? 6 : 5;
-const MODEL_SPECS: StudyModelSpec[] = [
-  linearStudyModel("linear", (k) => [1, k.pitchDeg, k.rotateDeg]),
-  linearStudyModel("additive_quadratic", additiveQuadraticFeatures),
-  linearStudyModel("joint_quadratic", jointQuadraticFeatures),
-  {
-    name: "surface",
-    fit(rows) {
-      const model = fitKnobSurfaceModel(rows, surfaceMinRows);
-      return model === null ? null : {
-        predict: (knobs) => predictKnobSurfaceModel(model, knobs),
-      };
-    },
-  },
-  {
-    name: "hybrid",
-    fit(rows, output) {
-      return fitHybridModel(rows, output);
-    },
-  },
-];
-
-function fitHybridModel(rows: Array<{ knobs: ArcKnobs; value: number }>, output: string): FittedStudyModel | null {
-  if (hybridUsesSurface(output)) {
-    const model = fitKnobSurfaceModel(rows, surfaceMinRows);
-    return model === null ? null : {
-      predict: (knobs) => predictKnobSurfaceModel(model, knobs),
-    };
-  }
-  const features = hybridUsesBiquadratic(output) ? biquadraticFeatures :
-    probeDesignName === "grid9" ? jointQuadraticFeatures : additiveQuadraticFeatures;
-  const model = fitLinearLeastSquares(rows.map((row) => ({ features: features(row.knobs), value: row.value })));
-  return model === null ? null : {
-    predict: (knobs) => predictLinearModel(model, features(knobs)),
-  };
-}
-
-function hybridUsesBiquadratic(output: string): boolean {
-  return probeDesignName === "grid9" &&
-    output.startsWith("next.") &&
-    output !== "next.sledPoseDeg" &&
-    output !== "next.sledPoseRateDegPerFrame";
-}
-
-function hybridUsesSurface(output: string): boolean {
-  if (probeDesignName === "cross5") {
-    return output === "current.error.air" ||
-      output === "current.axis.air" ||
-      output === "current.error.elevation" ||
-      output === "current.axis.elevation" ||
-      output === "current.error.impact" ||
-      output === "current.axis.impact" ||
-      output === "next.sledPoseRateDegPerFrame";
-  }
-  if (probeDesignName === "grid9") {
-    return output === "current.error.air" ||
-      output === "current.axis.air" ||
-      output === "current.error.elevation" ||
-      output === "current.axis.elevation" ||
-      output === "current.error.impact" ||
-      output === "current.axis.impact" ||
-      output === "next.sledPoseDeg" ||
-      output === "next.sledPoseRateDegPerFrame";
-  }
-  return false;
-}
-
-function probeDesign(name: string): ArcKnobs[] {
-  switch (name) {
-    case "cross5": {
-      const pitchSpan = probePitchSpanOverride ?? 8.5;
-      const rotateSpan = probeRotateSpanOverride ?? 2.5;
-      return [
-        { pitchDeg: 0, rotateDeg: 0 },
-        { pitchDeg: -pitchSpan, rotateDeg: 0 },
-        { pitchDeg: pitchSpan, rotateDeg: 0 },
-        { pitchDeg: 0, rotateDeg: -rotateSpan },
-        { pitchDeg: 0, rotateDeg: rotateSpan },
-      ];
-    }
-    case "grid9": {
-      const pitchSpan = probePitchSpanOverride ?? 9;
-      const rotateSpan = probeRotateSpanOverride ?? 3;
-      return grid([-pitchSpan, 0, pitchSpan], [-rotateSpan, 0, rotateSpan]);
-    }
-    case "grid15":
-      return grid([-6, -3, 0, 3, 6], [-3, 0, 3]);
-    default:
-      throw new Error(`unknown --probe-design=${name}`);
-  }
-}
+const MODEL_SPECS: StudyModelSpec[] = ARC_RESPONSE_MODEL_NAMES.map((name) => ({
+  name,
+  fit: (rows, output) => fitArcResponseOutputModel(name, rows, output, probeDesignName),
+}));
 
 function evalDesign(name: string, groupKey: string, probeKeys: Set<string>): ArcKnobs[] {
   let out: ArcKnobs[];
   switch (name) {
     case "grid":
-      out = grid([-10, -8, -6, -4, -2, -1, 0, 1, 2, 4, 6, 8, 10], [-3, -2, -1, 0, 1, 2, 3]);
+      out = arcKnobGrid([-10, -8, -6, -4, -2, -1, 0, 1, 2, 4, 6, 8, 10], [-3, -2, -1, 0, 1, 2, 3]);
       break;
     case "random":
       out = randomKnobs(groupKey, Math.max(0, evalSamples), 10, 3);
@@ -309,35 +202,7 @@ function evalDesign(name: string, groupKey: string, probeKeys: Set<string>): Arc
     default:
       throw new Error(`unknown --eval-design=${name}`);
   }
-  return dedupeKnobs(out).filter((k) => !probeKeys.has(knobKey(k)));
-}
-
-function grid(pitches: number[], rotates: number[]): ArcKnobs[] {
-  const out: ArcKnobs[] = [];
-  for (const pitchDeg of pitches) {
-    for (const rotateDeg of rotates) out.push({ pitchDeg, rotateDeg });
-  }
-  return out;
-}
-
-function dedupeKnobs(knobs: ArcKnobs[]): ArcKnobs[] {
-  const seen = new Set<string>();
-  const out: ArcKnobs[] = [];
-  for (const k of knobs) {
-    const key = knobKey(k);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(k);
-  }
-  return out;
-}
-
-function knobKey(k: ArcKnobs): string {
-  return `${roundKey(k.pitchDeg)},${roundKey(k.rotateDeg)}`;
-}
-
-function roundKey(n: number): string {
-  return n.toFixed(6);
+  return dedupeArcKnobs(out).filter((k) => !probeKeys.has(arcKnobKey(k)));
 }
 
 function randomKnobs(key: string, count: number, pitchSpan: number, rotateSpan: number): ArcKnobs[] {
@@ -407,58 +272,6 @@ function mkEngine(track: TrackJson, lines: TrackLine[]): any {
   return engine;
 }
 
-function riderUsable(rider: any): boolean {
-  try {
-    if (rider.get?.("SLED_INTACT")?.isBinded?.() === false) return false;
-    if (rider.get?.("RIDER_MOUNTED")?.isBinded?.() === false) return false;
-  } catch {
-    // Treat unreadable flags as usable; this matches the existing probes.
-  }
-  return true;
-}
-
-function readArrivalState(engine: any, frame: number): RiderArrivalState | null {
-  const rider = getRiderMetered(engine, frame);
-  if (!riderUsable(rider)) return null;
-  const pos = rider.position ?? { x: NaN, y: NaN };
-  const v = rider.velocity ?? { x: NaN, y: NaN };
-  if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y) || !Number.isFinite(v.x) || !Number.isFinite(v.y)) {
-    return null;
-  }
-  const speed = Math.hypot(v.x, v.y);
-  const pose = sledPoseDegFromRider(rider);
-  let poseRate: number | null = null;
-  if (frame > 0 && pose !== null) {
-    const prevPose = sledPoseDegFromRider(getRiderMetered(engine, frame - 1));
-    if (prevPose !== null) poseRate = normalizeAngleDeg(pose - prevPose);
-  }
-  return {
-    x: pos.x,
-    y: pos.y,
-    vx: v.x,
-    vy: v.y,
-    speed,
-    comAngleDeg: speed > 0 ? Math.atan2(v.y, v.x) * 180 / Math.PI : null,
-    sledPoseDeg: pose,
-    sledPoseRateDegPerFrame: poseRate,
-  };
-}
-
-function addFinite(outputs: Record<string, number>, key: string, value: number | null | undefined): void {
-  if (value !== null && value !== undefined && Number.isFinite(value)) outputs[key] = value;
-}
-
-function stateOutputs(outputs: Record<string, number>, state: RiderArrivalState): void {
-  addFinite(outputs, "next.x", state.x);
-  addFinite(outputs, "next.y", state.y);
-  addFinite(outputs, "next.vx", state.vx);
-  addFinite(outputs, "next.vy", state.vy);
-  addFinite(outputs, "next.speed", state.speed);
-  addFinite(outputs, "next.comAngleDeg", state.comAngleDeg);
-  addFinite(outputs, "next.sledPoseDeg", state.sledPoseDeg);
-  addFinite(outputs, "next.sledPoseRateDegPerFrame", state.sledPoseRateDegPerFrame);
-}
-
 function evaluateKnobs(
   track: TrackJson,
   before: TrackLine[],
@@ -472,44 +285,8 @@ function evaluateKnobs(
   seed: number,
   knobs: ArcKnobs,
 ): SampleRow {
-  const modified = applyArcKnobs(arc, knobs);
-  const engine = mkEngine(track, [...before, ...modified]);
-  const horizon = Math.max(gap.endFrame + 20, axisMeasureEnd + 20, nextFrame + 2);
-  const det = detect(extractRawTrajectory(engine, horizon));
-
-  const minSurvival = Math.max(gap.endFrame + 16, axisMeasureEnd);
-  const survivedCurrent = det.terminus.frame >= minSurvival || det.terminus.reason === "endOfSpec";
-  const owned = new Set(modified.map((l) => l.id));
-  const landingOk = det.events.some((e) =>
-    e.type === "landing" &&
-    Math.abs(e.frame - gap.endFrame) <= 1 &&
-    contactLineIdsAt(det, e.frame).some((id) => owned.has(id))
-  );
-  const offBeatLandings = countOffBeatLandings(det.events, gap.startFrame, axisMeasureEnd, contactFrames);
-  const currentOk = survivedCurrent && landingOk && offBeatLandings === 0;
-  const nextStateOk = det.terminus.frame >= nextFrame || det.terminus.reason === "endOfSpec";
-
-  const outputs: Record<string, number> = {};
-  if (currentOk) {
-    const achieved = measureGapAxes(det, gap, modified, axisMeasureEnd);
-    addFinite(outputs, "current.cost", axisCost(gap.targets, achieved));
-    for (const axis of AXES) {
-      const target = gap.targets[axis];
-      const actual = achieved[axis];
-      if (target === undefined || actual === undefined) continue;
-      addFinite(outputs, `current.axis.${axis}`, actual);
-      addFinite(outputs, `current.error.${axis}`, actual - target);
-    }
-
-    const releaseFrame = releaseStateFrame(gap, contactFrames);
-    addFinite(outputs, "current.releaseSpeedPx", speedAt(det, releaseFrame));
-    addFinite(outputs, "current.releaseVy", velocityAt(det, releaseFrame)?.y);
-  }
-
-  if (nextStateOk) {
-    const state = readArrivalState(engine, nextFrame);
-    if (state !== null) stateOutputs(outputs, state);
-  }
+  const engine = mkEngine(track, before);
+  const probe = evaluateJointArcKnobs(engine, arc, knobs, gap, contactFrames, axisMeasureEnd, nextFrame);
 
   return {
     spec,
@@ -518,21 +295,16 @@ function evaluateKnobs(
     split,
     pitchDeg: knobs.pitchDeg,
     rotateDeg: knobs.rotateDeg,
-    gate: {
-      currentOk,
-      survivedCurrent,
-      landingOk,
-      offBeatLandings,
-      nextStateOk,
-      terminusFrame: det.terminus.frame,
-      terminusReason: det.terminus.reason,
-    },
-    outputs,
+    gate: probe.gate,
+    outputs: probe.outputs,
   };
 }
 
-const probeKnobs = dedupeKnobs(probeDesign(probeDesignName));
-const probeKeys = new Set(probeKnobs.map(knobKey));
+const probeKnobs = arcProbeDesign(probeDesignName, {
+  pitchSpan: probePitchSpanOverride,
+  rotateSpan: probeRotateSpanOverride,
+});
+const probeKeys = new Set(probeKnobs.map(arcKnobKey));
 const rows: SampleRow[] = [];
 let sims = 0;
 let skippedPairing = 0;
@@ -625,20 +397,6 @@ function outputKeys(rows: SampleRow[]): string[] {
   return [...keys].sort();
 }
 
-function isAngleOutput(key: string): boolean {
-  return key === "next.comAngleDeg" || key === "next.sledPoseDeg";
-}
-
-function normalizeAngleDeg(x: number): number {
-  let y = ((x + 180) % 360 + 360) % 360 - 180;
-  if (y === -180) y = 180;
-  return y;
-}
-
-function unwrapAround(value: number, ref: number): number {
-  return ref + normalizeAngleDeg(value - ref);
-}
-
 type ErrorSample = { signed: number; abs: number; localNormalizedAbs: number };
 type FitCoverage = {
   groupsWithOutput: number;
@@ -702,21 +460,21 @@ for (const groupRows of groups.values()) {
   const keys = outputKeys(groupRows);
   const baseline = groupRows.find((r) => r.pitchDeg === 0 && r.rotateDeg === 0);
   for (const output of keys) {
-    const angle = isAngleOutput(output);
+    const angle = isArcAngleOutput(output);
     const finiteRows = groupRows.filter((r) => Number.isFinite(r.outputs[output]));
     if (finiteRows.length === 0) continue;
     const ref = baseline?.outputs[output] ?? finiteRows[0].outputs[output];
-    const values = finiteRows.map((r) => angle ? unwrapAround(r.outputs[output], ref) : r.outputs[output]);
+    const values = finiteRows.map((r) => angle ? unwrapAngleAround(r.outputs[output], ref) : r.outputs[output]);
     const range = Math.max(...values) - Math.min(...values);
     for (const row of finiteRows) {
-      addOutputActual(row.split, output, angle ? unwrapAround(row.outputs[output], ref) : row.outputs[output]);
+      addOutputActual(row.split, output, angle ? unwrapAngleAround(row.outputs[output], ref) : row.outputs[output]);
     }
 
     const probeRows = groupRows
       .filter((r) => r.split === "probe" && Number.isFinite(r.outputs[output]))
       .map((r) => ({
         knobs: { pitchDeg: r.pitchDeg, rotateDeg: r.rotateDeg },
-        value: angle ? unwrapAround(r.outputs[output], ref) : r.outputs[output],
+        value: angle ? unwrapAngleAround(r.outputs[output], ref) : r.outputs[output],
       }));
     if (probeRows.length === 0) continue;
     const evalRowsForOutput = groupRows
@@ -734,7 +492,7 @@ for (const groupRows of groups.values()) {
       for (const row of groupRows) {
         const actualRaw = row.outputs[output];
         if (!Number.isFinite(actualRaw)) continue;
-        const actual = angle ? unwrapAround(actualRaw, ref) : actualRaw;
+        const actual = angle ? unwrapAngleAround(actualRaw, ref) : actualRaw;
         const pred = fit.predict({ pitchDeg: row.pitchDeg, rotateDeg: row.rotateDeg });
         const signed = angle ? normalizeAngleDeg(pred - actual) : pred - actual;
         addError(modelSpec.name, row.split, output, signed, range);

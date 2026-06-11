@@ -13,10 +13,9 @@
  * rather than rewrites.
  *
  * There is ONE lane: the enumerative proposer (makeEnumAimedCandidates) —
- * knob deltas → per-knob quadratic arrival models (additively composed) →
- * readiness × target-fit objective swept in-model → top-k proposals through
- * exact production evaluation. This file implements the current special
- * case: k=2, per-knob quadratic fits, and lazy additive rotation. Its
+ * joint knob deltas → local response model over current axes/cost and next
+ * rider state → readiness × target-fit objective swept in-model → top-k
+ * proposals through exact production evaluation. Its
  * hand-tuned predecessors (V3 speed-aim, V4 angle-aim +
  * arrival-conditioned scoop, rotate fallback, climb defer) were each
  * subsumed and deleted once their ablation priced at ~zero.
@@ -25,9 +24,9 @@
  *   1. flags            — per-call env reads (tests pin them dynamically)
  *   2. telemetry        — proposer funnel + live prediction-accuracy stats
  *   3. knob transforms  — chain-continuity-preserving line edits (inputs)
- *   4. probes           — one forked metered ride = the full ProbeOutcome
- *                         vector at a frame (outputs)
- *   5. local models     — per (knob, frame, quantity) quadratic fits
+ *   4. probes           — one forked metered ride = current-axis outputs
+ *                         plus next-arrival rider state
+ *   5. local models     — per-output joint pitch/rotate response fits
  *   6. the lane         — the enumerative proposer
  *
  * INVARIANTS (architecture rules, each bought with a measured failure):
@@ -48,22 +47,35 @@
  *      rest of the pool still competes.
  *
  * CURRENT-INSTANCE CHOICES (defaults, not rules — revisitable with evidence):
- * two knobs (exit pitch everywhere + whole-arc rotation recruited lazily at
- * pitch exhaustion — rotation moves the catch surface, so it pays a gate
- * risk and must clear a margin); 3 probes per knob fit (the measured
- * accuracy knee; one ride reads ALL outputs, so probe count scales with
- * model order, never with output count); additive per-knob composition
- * (the current instance of the joint model interface; certified ~10%
- * median interaction); top-k proposals with current k=2 (the measured
- * knee); readiness over (speed, comAngle) only (pose parked by R0).
+ * two knobs (exit pitch + whole-arc rotation); default 5-probe cross design
+ * with optional 9-probe grid (`LR_AIM_JOINT_PROBE_DESIGN=grid9`); a shared
+ * hybrid joint response model also used by the study harness; top-k proposals
+ * with current k=2 (the measured knee); readiness consumes the full predicted
+ * arrival-state boundary, though the current surface still reads speed and
+ * CoM angle only (pose parked by R0).
  */
 
 import { getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
-import { axisLookaheadEndFrame, tryCandidateLines } from "../core/candidate.ts";
+import { axisCost, axisLookaheadEndFrame, tryCandidateLines } from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
 import { authoredSpeedToPx, CALIB, type TrackLine } from "../types.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
-import { pitchExitLines, rotateArcLines } from "./arc_model.ts";
+import {
+  applyArcKnobs,
+  arcKnobSpan,
+  arcProbeDesign,
+  fitJointArcResponseModel,
+  parseArcProbeDesignName,
+  predictedArrivalState,
+  predictedCurrentAxes,
+  predictJointArcOutputs,
+  pitchExitLines,
+  rotateArcLines,
+  type ArcKnobs,
+  type ArcProbeDesignName,
+  type RiderArrivalState,
+} from "./arc_model.ts";
+import { evaluateJointArcKnobs } from "./arc_probe.ts";
 import { readinessCatchState } from "./readiness.ts";
 import type { Gap } from "../types.ts";
 
@@ -100,6 +112,17 @@ function aimDeltaMaxDeg(): number {
 export function aimEnumEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_ENUM !== "0";
+}
+
+function aimJointEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_JOINT !== "0";
+}
+
+function aimJointProbeDesign(): ArcProbeDesignName {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_JOINT_PROBE_DESIGN ?? "cross5";
+  return parseArcProbeDesignName(raw);
 }
 
 // ─────────────────────────── 2 · Telemetry ───────────────────────────
@@ -323,8 +346,13 @@ const ENUM_MIN_SEP_DEG = 1.5;
 const ENUM_R_MIN = 0.1;
 /** Speed-target fit scale (px/f): exp(−|predicted − target|/scale). */
 const ENUM_SPEED_SCALE_PXF = 0.75;
-/** Joint multi-knob axis, current lazy-additive implementation (R3,
- *  default-on — PROMOTED 2026-06-10: v2
+/** Current-gap predicted cost scale. The final candidate still gets exact
+ *  production cost; this only avoids spending proposal slots on predicted
+ *  current-axis regressions. */
+const ENUM_CURRENT_COST_SCALE = 0.35;
+/** Legacy lazy-additive rotation path (`LR_AIM_JOINT=0`) constants. The default
+ *  path now scores a real joint pitch/rotate grid inside the selected probe span.
+ *  Historical context for the legacy path: R3 v2
  *  Δ+0.4 vs 600.57, positive at mature budgets, and it IS the agreed
  *  architecture: the inner model can compose multiple per-knob fits. Grounds:
  *  additivity certified proposer-grade (study_knob_additivity ~10%
@@ -355,18 +383,18 @@ const ENUM_ROT_RECRUIT_NOGAIN = 1.05;
 //    fast arrivals (v2→v3 lesson). The raw surface IS the right shape:
 //    veto at the low end (0.2–0.4), informative slope at the top.
 
-/** The enumerative proposer. Per-knob arrival models (speed + CoM angle at
- *  the NEXT beat) fitted from shared probe rides, additively composed; one
- *  objective over the knob space:
+/** The enumerative proposer. Default path: shared joint response model fitted
+ *  from `cross5`/`grid9` probe rides, predicting current-gap axes/cost and
+ *  full next-arrival rider state; one objective over the knob space:
  *
- *    objective(δp, δr) = clamp(readiness(speed, angle), R_MIN, 1)
- *                      × exp(−|speed − nextSpeedTarget| / scale)
- *                      × impact-feasibility(speed, angle)
+ *    objective(δp, δr) = clamp(readiness(predictedNextState), R_MIN, 1)
+ *                      × exp(−|predictedSpeed − nextSpeedTarget| / scale)
+ *                      × next-impact-feasibility(predictedNextState)
+ *                      × current-axis-cost-fit(predictedCurrentAxes)
  *
  *  enumerated inside the models (free), top-k improving deltas proposed
- *  through the unchanged production evaluation (current k=2). Exit pitch
- *  sweeps everywhere; whole-arc rotation is recruited lazily at pitch
- *  exhaustion (see ENUM_ROT_* notes).
+ *  through the unchanged production evaluation (current k=2). The old
+ *  per-knob additive proposer remains available with `LR_AIM_JOINT=0`.
  *
  *  The R1 caveat (catchability mis-scores the upward arrivals climbing
  *  wants) needed NO special handling in the end: an elevation climb-defer
@@ -391,6 +419,9 @@ export function makeEnumAimedCandidates(
   if (speedTarget === null && nextGap.targets.impact === undefined) {
     aimTotals.enum_no_target++;
     return [];
+  }
+  if (aimJointEnabled()) {
+    return makeJointAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, speedTarget);
   }
 
   const F = nextGap.endFrame;
@@ -551,4 +582,139 @@ export function makeEnumAimedCandidates(
     out.push(fit);
   }
   return out;
+}
+
+function makeJointAimedCandidates(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  nextGap: Gap,
+  ctx: SpecContext,
+  base: Candidate,
+  lineIdStart: number,
+  speedTarget: number | null,
+): Candidate[] {
+  const probeDesignName = aimJointProbeDesign();
+  const probeKnobs = arcProbeDesign(probeDesignName);
+  const span = arcKnobSpan(probeKnobs);
+  const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
+  const nextFrame = nextGap.endFrame;
+  const probeRows = probeKnobs.map((knobs) =>
+    evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
+  );
+  const model = fitJointArcResponseModel(probeRows, probeDesignName);
+
+  const baseKnobs = { pitchDeg: 0, rotateDeg: 0 };
+  const baseScore = scoreJointKnobs(model, baseKnobs, gap, nextGap, speedTarget, base.cost);
+  if (baseScore === null) {
+    aimTotals.enum_probe_crash++;
+    return [];
+  }
+
+  if (span.rotateDeg > 0) aimTotals.enum_rot_recruited++;
+  const pitchSpan = Math.min(aimDeltaMaxDeg(), span.pitchDeg);
+  const rotateSpan = span.rotateDeg;
+  const scored: JointScoredKnobs[] = [];
+  for (let pitchDeg = -pitchSpan; pitchDeg <= pitchSpan + 1e-9; pitchDeg += ENUM_STEP_DEG) {
+    for (let rotateDeg = -rotateSpan; rotateDeg <= rotateSpan + 1e-9; rotateDeg += ENUM_ROT_STEP_DEG) {
+      if (Math.abs(pitchDeg) < AIM_MIN_DELTA_DEG && Math.abs(rotateDeg) < ENUM_ROT_STEP_DEG / 2) continue;
+      const score = scoreJointKnobs(model, { pitchDeg, rotateDeg }, gap, nextGap, speedTarget, base.cost);
+      if (score !== null && score.val > baseScore.val + 1e-4) scored.push(score);
+    }
+  }
+  scored.sort((a, b) =>
+    b.val - a.val ||
+    a.currentCost - b.currentCost ||
+    Math.abs(a.knobs.rotateDeg) - Math.abs(b.knobs.rotateDeg) ||
+    Math.abs(a.knobs.pitchDeg) - Math.abs(b.knobs.pitchDeg)
+  );
+
+  const chosen: JointScoredKnobs[] = [];
+  for (const cand of scored) {
+    if (chosen.length >= ENUM_TOP_K) break;
+    if (chosen.every((prev) => distinctJointKnobs(prev.knobs, cand.knobs))) chosen.push(cand);
+  }
+  if (chosen.length === 0) {
+    aimTotals.enum_on_target++;
+    return [];
+  }
+
+  const probe = getCandidateProbe(engine, gap, ctx);
+  const out: Candidate[] = [];
+  for (const cand of chosen) {
+    const aimedLines = applyArcKnobs(base.lines, cand.knobs)
+      .map((l, i) => ({ ...l, id: lineIdStart + i }));
+    const fit = tryCandidateLines(
+      engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,
+      axisMeasureEnd, gap.targets, true,
+      "normal", probe.preTargetSledTrace,
+    ) as Candidate | null;
+    if (fit === null) {
+      aimTotals.enum_gate_fail++;
+      if (cand.knobs.rotateDeg !== 0) aimTotals.enum_rot_gate_fail++;
+      continue;
+    }
+    aimTotals.enum_emitted++;
+    if (cand.knobs.rotateDeg !== 0) aimTotals.enum_rot_emitted++;
+    aimTotals.enumReadinessGainSum += cand.val - baseScore.val;
+    const achieved = probeRide(engine, aimedLines, nextFrame);
+    if (achieved !== null && achieved.comAngleDeg !== null) {
+      aimTotals.enumAchieved++;
+      aimTotals.enumReadinessErrSum += Math.abs(
+        Math.max(ENUM_R_MIN, readinessCatchState(cand.state)) -
+          Math.max(ENUM_R_MIN, readinessCatchState(achieved)),
+      );
+    }
+    fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+    fit.aimed = true;
+    out.push(fit);
+  }
+  return out;
+}
+
+type JointScoredKnobs = {
+  knobs: ArcKnobs;
+  val: number;
+  state: RiderArrivalState;
+  currentCost: number;
+};
+
+function scoreJointKnobs(
+  model: ReturnType<typeof fitJointArcResponseModel>,
+  knobs: ArcKnobs,
+  gap: Gap,
+  nextGap: Gap,
+  speedTarget: number | null,
+  baseCost: number,
+): JointScoredKnobs | null {
+  const outputs = predictJointArcOutputs(model, knobs);
+  const state = predictedArrivalState(outputs);
+  if (state === null || state.comAngleDeg === null) return null;
+  const readiness = Math.max(ENUM_R_MIN, readinessCatchState(state));
+  const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(state.speed - speedTarget) / ENUM_SPEED_SCALE_PXF);
+  const feas = impactFeasibility(state, nextGap);
+  const currentCost = predictedCurrentCost(outputs, gap);
+  const currentFit = Math.exp(-Math.max(0, currentCost - baseCost) / ENUM_CURRENT_COST_SCALE);
+  return { knobs, val: readiness * fit * feas * currentFit, state, currentCost };
+}
+
+function predictedCurrentCost(outputs: Record<string, number>, gap: Gap): number {
+  const direct = outputs["current.cost"];
+  if (Number.isFinite(direct)) return direct;
+  return axisCost(gap.targets, predictedCurrentAxes(outputs));
+}
+
+function impactFeasibility(state: Pick<RiderArrivalState, "speed" | "comAngleDeg">, nextGap: Gap): number {
+  const impactAsk = nextGap.targets.impact;
+  if (impactAsk === undefined || impactAsk < AIM_IMPACT_MIN_ASK || state.comAngleDeg === null) return 1;
+  return Math.min(
+    1,
+    Math.max(0, (state.speed * Math.sin((Math.max(0, state.comAngleDeg) * Math.PI) / 180)) / (impactAsk * CALIB.REDIR_CAP)),
+  );
+}
+
+function distinctJointKnobs(a: ArcKnobs, b: ArcKnobs): boolean {
+  const dp = Math.abs(a.pitchDeg - b.pitchDeg) / ENUM_MIN_SEP_DEG;
+  const dr = Math.abs(a.rotateDeg - b.rotateDeg) / ENUM_ROT_STEP_DEG;
+  return dp * dp + dr * dr >= 1;
 }

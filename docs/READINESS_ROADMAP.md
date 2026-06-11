@@ -1,10 +1,13 @@
 # Readiness — roadmap
 
-2026-06-10 · branch arc-rewrite · canonical baseline `scoop-off-price-01`
-(600.91; R2 promoted → defer removed → additive multi-knob production
-instance promoted → scoop + legacy lanes deleted: ONE proposer remains, per
-the design commitment). Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer:
-concept, invariants, instance choices — this roadmap is its phase 2);
+2026-06-11 · branch arc-rewrite · accepted canonical baseline
+`scoop-off-price-01` (600.91; R2 promoted → defer removed → additive
+multi-knob production instance promoted → scoop + legacy lanes deleted: ONE
+proposer remains, per the design commitment). The current working tree also
+contains the true joint output-vector model, hooked into the real compiler but
+rejected by canonical decide (`joint-model-real-compiler-01`, 592.41).
+Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer: concept,
+invariants, instance choices — this roadmap is its phase 2);
 `IMPACT_PAIR_PLANNING.md` (the impact diagnosis). This is a ROADMAP: rungs
 are falsifiable and most later content is contingent on earlier outcomes —
 it is written to survive any of those outcomes, not to predict them.
@@ -15,7 +18,7 @@ The idea (Jérémie): introduce **readiness** — a model predicting whether the
 rider's arrival state (speed, CoM velocity angle, **sled pose / internal
 rotation**) sets the NEXT gap up for success — and use it, together with the
 existing local predictive models, inside an **enumerative proposer**:
-generate many cheap knob variations *inside the model* (predictions are
+generate many cheap knob variations _inside the model_ (predictions are
 ~free — quadratic evaluations), score each as predicted current-gap quality
 × readiness, and propose only the top few into the candidate pool, where the
 unchanged search measures and ranks them.
@@ -24,7 +27,7 @@ Why this is the right generalization: the two shipped aimers are special
 cases of it, hand-built. Speed-aiming (V3) maximizes the speed-compatibility
 component of readiness; the dive-scoop pair (V4) maximizes the
 impact-feasibility component when the next beat asks for impact. Readiness
-subsumes their *triggers* (the hand-coded if-statements deciding what to aim
+subsumes their _triggers_ (the hand-coded if-statements deciding what to aim
 for) and adds the component nothing has today: **pose**. Generation
 currently conditions the catch surface on where the mass is GOING
 (`contactAngleDeg` ≈ arrival velocity angle ± sampled jitter) and is blind
@@ -54,15 +57,16 @@ Decisions made in discussion:
   with the arrival velocity direction (intuition: pose roughly tangent to
   the velocity / surface; head pointing down at contact ⇒ uncatchable).
   Exact shape comes from R0 data, not intuition.
-- **Joint model shape, current per-knob implementation.** The generic
-  proposer is a multi-input model over arc knobs. Today's production
-  implementation is the current special case: exit pitch and whole-arc
-  rotation each have their own probe-fit model; rotation is recruited lazily;
-  and the two responses are additively composed only where pitch is
-  exhausted. That keeps the same swappable joint/top-k interface without
-  pretending we already have a learned combined knob surface.
+- **Joint model shape, two implementation states.** The generic proposer is a
+  multi-input model over arc knobs. The accepted baseline is the special case:
+  exit pitch and whole-arc rotation each have their own probe-fit model;
+  rotation is recruited lazily; and the two responses are additively composed
+  only where pitch is exhausted. The current working tree has the true joint
+  output-vector implementation behind the same swappable joint/top-k boundary,
+  but its first canonical result was negative. The interface is right; the
+  production economics are not yet good enough.
 - **Proposer side first.** Readiness shapes WHICH candidates are proposed
-  and ranks them *inside the proposer* (model-only, no simulation); every
+  and ranks them _inside the proposer_ (model-only, no simulation); every
   proposed candidate still passes the exact production evaluation; the
   search's judge (local cost + forward-eval) is untouched. Ranking/judge
   integration is a late, separately gated rung (§R4) — we have a scar there
@@ -222,6 +226,7 @@ Archive `aim-enum-r2-03` became the transition baseline; it was later
 superseded by the unified `scoop-off-price-01` baseline (600.91).**
 
 Iteration history (each falsifiable, each archived):
+
 - v1 (−0.2): target-awareness used `targets.elevation !== undefined` — too
   broad, but NOT because of any default: undefined axes are genuinely
   ignored end to end (`effectiveAxes`/`sampleGapTargets` emit only authored
@@ -252,28 +257,36 @@ readiness — with quality = speed-fit × impact-feasibility in this instance.
 
 - **More readiness components**: impact-feasibility, speed-compatibility —
   the dive-scoop trigger fully absorbed here.
-- **Current multi-knob production model — DONE, additive instance promoted
+- **Accepted multi-knob production model — DONE, additive instance promoted
   (2026-06-10)**: the architecture is the joint/top-k model shape; the
-  shipped special case composes per-knob quadratics over (pitch, rotate)
-  additively rather than using a single learned combined surface.
+  accepted baseline composes per-knob quadratics over (pitch, rotate)
+  additively rather than using a single combined output-vector surface.
   Scout (`study_joint_enum`, 289 gaps): achieved objective gain p50 +0.035,
   3× larger where pitch clamps; additivity at the argmax 0.041 px/f /
   0.63°. v1 (eager, always-on, ±4° extrapolated) REJECT Δ−7.9 — rotation
   displaced 92% of pitch proposals, 37% on-beat-landing gate-fail, commits
   −34%; the model was right, the economics wrong. v2 (lazy recruit at
   pitch exhaustion, probed span ±3°, ≥15% margin, one non-displacing slot)
-  Δ+0.4, positive at mature budgets → promoted as the current instance of
-  the architecture
-  (`aim-joint-r3-02` = 600.94). Lesson for every future knob: predicted
-  objective is not the whole economics — gate risk and displacement of
-  proven proposals must be priced into the recruit rule.
-- **True joint output-vector local model — STUDY HARNESS ADDED**:
-  `study_joint_arc_model.ts` fits local regressions from probe knob vectors
-  to current-gap targeted axes/errors/cost/impact plus next rider state
-  (`x/y/vx/vy/speed/comAngle/pose/pose-rate`), then evaluates on held-out
-  simulated knob rows. It is the evidence path for deciding whether `cross5`
-  additive probes are enough, whether a `grid9`/`grid15` joint design pays,
-  and which outputs are stable enough for production.
+  Δ+0.4, positive at mature budgets → promoted into the accepted baseline
+  lineage (`aim-joint-r3-02` = 600.94, later simplified to
+  `scoop-off-price-01` = 600.91).
+- **True joint output-vector production model — TRIED, REJECTED
+  (2026-06-11)**: the shared implementation now exists in
+  `arc_model.ts`/`arc_probe.ts` and is called by `aim.ts`. It fits local
+  regressions from probe knob vectors to current-gap targeted axes/errors/
+  cost/impact plus next rider state (`x/y/vx/vy/speed/comAngle/pose/
+pose-rate`), sweeps pitch+rotation jointly, then sends only the top two
+  knob pairs through exact production evaluation. Canonical result:
+  `scoop-off-price-01` 600.91 → `joint-model-real-compiler-01` 592.41,
+  verdict REJECT. Lesson for every richer model: prediction scope is not
+  value by itself. The model must beat the accepted baseline after probe
+  cost, gate failures, candidate displacement, and budget starvation are
+  included.
+- **True joint output-vector study harness — ACTIVE WORKBENCH**:
+  `study_joint_arc_model.ts` still evaluates model error on held-out simulated
+  knob rows. It should be used before another production attempt, but its
+  result is necessary rather than sufficient; any promoted design must also
+  win the real compiler golden/decide gate.
 - **Pose steering**: aim pose itself (V0: ~40° authority via exit pitch;
   wrapping caveat — unwrap by sweep continuity, track angular velocity).
   REFRAMED after R0 (Jérémie): pose parked as a CATCHABILITY signal does
@@ -286,9 +299,9 @@ readiness — with quality = speed-fit × impact-feasibility in this instance.
   intentional pose flair LOW-RISK whenever we want it.
 - **Richer per-variation prediction**: predicted current-gap axis VALUES,
   errors, cost, and current impact when defined, plus next arrival state.
-  V2 showed axis values are viable for pitch; the new joint harness tests
-  whether the full output vector is accurate and economical enough to steer
-  production.
+  V2 showed axis values are viable for pitch; the joint compiler run showed
+  that viability is not enough. The next rung needs a better economic rule,
+  not just a wider output vector.
 
 ### R4 — Search integration (the dangerous rungs; each separately gated)
 
@@ -317,17 +330,17 @@ readiness — with quality = speed-fit × impact-feasibility in this instance.
 
 ## 4. Open choices (deliberately undecided)
 
-| choice | working position | decided by |
-|---|---|---|
-| r falloff shape | smooth plateau + fast smooth decay | R0 data |
-| clamp floor r_min | TBD (e.g. 0.1) | R2 sweep |
-| multiplicative vs additive | multiplicative-clamped | revisit only if R2 shows veto pathologies |
-| speed in catchability inputs | compare in R0 (cheap), PoC may stay (pose, comAngle) | R0 |
-| k (proposals per gap) | top-k interface; **current k=2 decided** (`enum-k1-01`/`enum-k3-01`) | DONE |
-| per-knob enumeration grid | ~hundreds/knob, deterministic sweep | R2 (any dense grid works — model is smooth) |
-| readiness sharpening (Jérémie) | **FALSIFIED** (2026-06-10, `enum-sigmoid-01`): σ((r−0.55)/0.10) REJECT Δ−2.0, CI [−6.1, 0.6], negative every budget. Flattening the plateau discards the surface's high-end gradient — the signal that pushes steep fast arrivals (the v2→v3 lesson). The raw surface already vetoes at the low end (0.2–0.4) and its top-end slope is informative, not a tax. | quick A/B vs the promoted v3 — DONE |
-| k proposals (1 vs 2 vs 3) | **k=2 is the measured knee** (2026-06-10): k=1 Δ−1.1 (`enum-k1-01`; −2.1…−2.7 at every mature budget, P(Δ≤0) to 96% — the second proposal pays); k=3 Δ−4.5 REJECT (`enum-k3-01`; third proposal starves small budgets: 50k −43.8, validity dip). Stays a constant. | k-sweep A/B — DONE |
-| climb-defer threshold / legacy removal | **DONE**: defer removed at exact parity (2026-06-10, `enum-defer-off-01`: Δ−0.1, CI [−0.6, 0.2]); speed-fit + impact-feasibility already cover demanding climbs. The later `scoop-off-price-01` cleanup deleted the remaining scoop/legacy lane machinery, leaving one proposer. `LR_AIM_ENUM=0` only disables that proposer for ablation. | A/B removing the defer and deleting legacy lanes — DONE |
+| choice                                 | working position                                                                                                                                                                                                                                                                                                                                               | decided by                                              |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| r falloff shape                        | smooth plateau + fast smooth decay                                                                                                                                                                                                                                                                                                                             | R0 data                                                 |
+| clamp floor r_min                      | TBD (e.g. 0.1)                                                                                                                                                                                                                                                                                                                                                 | R2 sweep                                                |
+| multiplicative vs additive             | multiplicative-clamped                                                                                                                                                                                                                                                                                                                                         | revisit only if R2 shows veto pathologies               |
+| speed in catchability inputs           | compare in R0 (cheap), PoC may stay (pose, comAngle)                                                                                                                                                                                                                                                                                                           | R0                                                      |
+| k (proposals per gap)                  | top-k interface; **current k=2 decided** (`enum-k1-01`/`enum-k3-01`)                                                                                                                                                                                                                                                                                           | DONE                                                    |
+| per-knob enumeration grid              | ~hundreds/knob, deterministic sweep                                                                                                                                                                                                                                                                                                                            | R2 (any dense grid works — model is smooth)             |
+| readiness sharpening (Jérémie)         | **FALSIFIED** (2026-06-10, `enum-sigmoid-01`): σ((r−0.55)/0.10) REJECT Δ−2.0, CI [−6.1, 0.6], negative every budget. Flattening the plateau discards the surface's high-end gradient — the signal that pushes steep fast arrivals (the v2→v3 lesson). The raw surface already vetoes at the low end (0.2–0.4) and its top-end slope is informative, not a tax. | quick A/B vs the promoted v3 — DONE                     |
+| k proposals (1 vs 2 vs 3)              | **k=2 is the measured knee** (2026-06-10): k=1 Δ−1.1 (`enum-k1-01`; −2.1…−2.7 at every mature budget, P(Δ≤0) to 96% — the second proposal pays); k=3 Δ−4.5 REJECT (`enum-k3-01`; third proposal starves small budgets: 50k −43.8, validity dip). Stays a constant.                                                                                             | k-sweep A/B — DONE                                      |
+| climb-defer threshold / legacy removal | **DONE**: defer removed at exact parity (2026-06-10, `enum-defer-off-01`: Δ−0.1, CI [−0.6, 0.2]); speed-fit + impact-feasibility already cover demanding climbs. The later `scoop-off-price-01` cleanup deleted the remaining scoop/legacy lane machinery, leaving one proposer. `LR_AIM_ENUM=0` only disables that proposer for ablation.                     | A/B removing the defer and deleting legacy lanes — DONE |
 
 ## 5. What would falsify the whole program
 

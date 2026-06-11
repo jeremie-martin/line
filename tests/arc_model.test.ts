@@ -3,9 +3,15 @@ import type { TrackLine } from "../scripts/v0/types.ts";
 import {
   additiveQuadraticFeatures,
   applyArcKnobs,
+  arcProbeDesign,
+  arcResponseOutputs,
   fitLinearLeastSquares,
+  fitJointArcResponseModel,
   jointQuadraticFeatures,
   pitchExitLines,
+  predictedArrivalState,
+  predictedCurrentAxes,
+  predictJointArcOutputs,
   predictLinearModel,
   rotateArcLines,
 } from "../scripts/v0/optimizer/arc_model.ts";
@@ -88,6 +94,65 @@ describe("arc_model local regression helpers", () => {
     const knobs = { pitchDeg: 2, rotateDeg: 1 };
     const predicted = predictLinearModel(model!, additiveQuadraticFeatures(knobs));
     expect(Math.abs(predicted - value(knobs.pitchDeg, knobs.rotateDeg))).toBeGreaterThan(0.1);
+  });
+});
+
+describe("arc_model joint response helpers", () => {
+  test("probe designs are restricted to five-probe cross and nine-probe grid", () => {
+    expect(arcProbeDesign("cross5")).toHaveLength(5);
+    expect(arcProbeDesign("grid9")).toHaveLength(9);
+    expect(arcProbeDesign("cross5").map((k) => [k.pitchDeg, k.rotateDeg])).toEqual([
+      [0, 0],
+      [-8.5, 0],
+      [8.5, 0],
+      [0, -2.5],
+      [0, 2.5],
+    ]);
+  });
+
+  test("response outputs include all achieved axes but only targeted errors", () => {
+    const outputs = arcResponseOutputs(
+      { air: 0.5, impact: 0.8 },
+      { air: 0.6, speed: 0.7, impact: 0.75 },
+      0.02,
+      null,
+    );
+    expect(outputs["current.cost"]).toBeCloseTo(0.02);
+    expect(outputs["current.axis.speed"]).toBeCloseTo(0.7);
+    expect(outputs["current.error.air"]).toBeCloseTo(0.1);
+    expect(outputs["current.error.impact"]).toBeCloseTo(-0.05);
+    expect(outputs["current.error.speed"]).toBeUndefined();
+  });
+
+  test("joint response model predicts current axes and next rider state from shared outputs", () => {
+    const rows = arcProbeDesign("cross5").map((knobs) => {
+      const p = knobs.pitchDeg;
+      const r = knobs.rotateDeg;
+      return {
+        knobs,
+        outputs: {
+          "current.cost": 0.1 + 0.01 * p - 0.02 * r,
+          "current.axis.air": 0.5 + 0.01 * p,
+          "current.error.air": 0.05 + 0.01 * p,
+          "next.x": 100 + p + r,
+          "next.y": 200 + 2 * p - r,
+          "next.vx": 9 + 0.1 * p,
+          "next.vy": 1 + 0.2 * r,
+          "next.speed": 9.1 + 0.1 * p + 0.2 * r,
+          "next.comAngleDeg": 10 + p + r,
+          "next.sledPoseDeg": 30 + p,
+          "next.sledPoseRateDegPerFrame": 0.5 + 0.1 * r,
+        },
+      };
+    });
+    const model = fitJointArcResponseModel(rows, "cross5");
+    const outputs = predictJointArcOutputs(model, { pitchDeg: 0, rotateDeg: 0 });
+    expect(predictedCurrentAxes(outputs).air).toBeCloseTo(0.5);
+    const state = predictedArrivalState(outputs);
+    expect(state).not.toBeNull();
+    expect(state!.x).toBeCloseTo(100);
+    expect(state!.speed).toBeCloseTo(9.1);
+    expect(state!.comAngleDeg).toBeCloseTo(10);
   });
 });
 

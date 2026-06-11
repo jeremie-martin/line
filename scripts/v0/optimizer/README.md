@@ -25,6 +25,10 @@ output in a strict best-so-far register.
 sample.ts       sample one candidate catch from a prefix state
 solver.ts       sample a fixed candidate pool for one gap
 node.ts         prefix-search state and deterministic expansion helpers
+aim.ts          enumerative aiming proposer; model proposes, exact sim judges
+arc_model.ts    shared pitch/rotation knob transforms and response models
+arc_probe.ts    shared real-engine joint probe evaluator
+readiness.ts    catchability/readiness surface used by the proposer
 handoff.ts      compileHandoff public entry point
 register.ts     strict best-so-far comparator
 polish.ts       clone-and-test polish variants
@@ -35,6 +39,12 @@ types.ts        checkpoint and compile-output types
 `node.ts`, `sample.ts`, and `solver.ts` are intentionally generic because future
 compiler variants should be able to reuse the same candidate and prefix-state
 building blocks.
+
+The aiming lane is documented in
+[`docs/ARC_STATE_CONTROL.md`](../../../docs/ARC_STATE_CONTROL.md). Its core
+contract is that probe rides can fit local models and propose extra candidates,
+but every candidate that enters the sorted pool has still passed the normal
+engine/detector validation path.
 
 ## Benchmark
 

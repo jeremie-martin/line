@@ -28,7 +28,7 @@
  * acceptance.
  */
 
-import { type ContactReport, type DriftReport, REPORT_ONLY_AXIS_SET } from "./types.ts";
+import { AXES, type AxisValues, type ContactReport, type DriftReport, REPORT_ONLY_AXIS_SET } from "./types.ts";
 
 /**
  * Mean normalized axis error at which a valid run keeps e^-1 ≈ 37% of its
@@ -56,6 +56,17 @@ export type AxisDetail = {
   target: number;
   achieved: number;
   error: number;
+};
+
+export type AxisQualitySummary = {
+  axis_count: number;
+  axis_error_total: number;
+  axis_error_mean: number;
+  axis_error_max: number;
+  axis_error_rms: number;
+  axis_loss: number;
+  axis_quality: number;
+  axis_score: number;
 };
 
 export type WorstContact = {
@@ -133,6 +144,42 @@ export function axisDetails(report: DriftReport): AxisDetail[] {
     }
   }
   return out;
+}
+
+export function axisQualityFromErrors(errors: readonly number[]): AxisQualitySummary {
+  const finiteErrors = errors.filter((e) => Number.isFinite(e));
+  const axis_count = finiteErrors.length;
+  const axis_error_total = finiteErrors.reduce((sum, e) => sum + Math.abs(e), 0);
+  const axis_error_mean = axis_count > 0 ? axis_error_total / axis_count : 0;
+  const axis_error_max = finiteErrors.reduce((max, e) => Math.max(max, Math.abs(e)), 0);
+  const axis_error_rms = axis_count > 0
+    ? Math.sqrt(finiteErrors.reduce((sum, e) => sum + e * e, 0) / axis_count)
+    : 0;
+  const axis_loss = axis_count > 0 ? axis_error_rms / AXIS_QUALITY_TOLERANCE : 0;
+  const axis_quality = Math.exp(-axis_loss);
+  return {
+    axis_count,
+    axis_error_total,
+    axis_error_mean,
+    axis_error_max,
+    axis_error_rms,
+    axis_loss,
+    axis_quality,
+    axis_score: axis_quality,
+  };
+}
+
+export function axisQualityForTargets(targets: AxisValues, achieved: AxisValues): AxisQualitySummary {
+  const errors: number[] = [];
+  for (const axis of AXES) {
+    if (REPORT_ONLY_AXIS_SET.has(axis)) continue;
+    const target = targets[axis];
+    const value = achieved[axis];
+    if (target !== undefined && value !== undefined && Number.isFinite(target) && Number.isFinite(value)) {
+      errors.push(value - target);
+    }
+  }
+  return axisQualityFromErrors(errors);
 }
 
 export function worstContacts(report: DriftReport, limit = 3): WorstContact[] {
@@ -215,15 +262,7 @@ export function scoreDriftReport(
   // to a scored axis in v2 — so this filter is a no-op today; it stays as the single
   // declared boundary for any future measured-but-unscored axis.
   const axes = axisDetails(report).filter((a) => !REPORT_ONLY_AXIS_SET.has(a.axis));
-  const axis_count = axes.length;
-  const axis_error_total = axes.reduce((sum, a) => sum + Math.abs(a.error), 0);
-  const axis_error_mean = axis_count > 0 ? axis_error_total / axis_count : 0;
-  const axis_error_max = axes.reduce((max, a) => Math.max(max, Math.abs(a.error)), 0);
-  const axis_error_rms = axis_count > 0
-    ? Math.sqrt(axes.reduce((sum, a) => sum + a.error * a.error, 0) / axis_count)
-    : 0;
-  const axis_loss = axis_count > 0 ? axis_error_rms / AXIS_QUALITY_TOLERANCE : 0;
-  const axis_quality = Math.exp(-axis_loss);
+  const axisQuality = axisQualityFromErrors(axes.map((a) => a.error));
 
   const off_beat_landings = report.off_beat_landings.length;
   const off_beat_quality = Math.exp(-off_beat_landings / OFF_BEAT_TOLERANCE);
@@ -246,7 +285,7 @@ export function scoreDriftReport(
 
   const contract_passed = hard_failures.length === 0;
   const score = 1000
-    * axis_quality
+    * axisQuality.axis_quality
     * drift_quality
     * missing_quality
     * off_beat_quality
@@ -270,14 +309,7 @@ export function scoreDriftReport(
     off_beat_quality,
     died,
     survival_quality,
-    axis_count,
-    axis_error_total,
-    axis_error_mean,
-    axis_error_max,
-    axis_error_rms,
-    axis_loss,
-    axis_quality,
-    axis_score: axis_quality,
+    ...axisQuality,
   };
 }
 

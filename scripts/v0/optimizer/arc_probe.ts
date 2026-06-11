@@ -7,6 +7,7 @@ import {
 import {
   measureGapAxes,
   measureGapAxesWithBallisticSuffix,
+  summarizeBallisticAxisPrefix,
   type BallisticAxisSuffix,
 } from "../core/measure.ts";
 import {
@@ -139,6 +140,23 @@ function observeJointArcLines(
     : suffixState !== null && suffixFrame !== null && suffixFrame <= nextFrame;
 
   const outputs: Record<string, number> = {};
+  const latentOutputs: Record<string, number> = {};
+  if (mode === "short" && suffixFrame !== null && suffixState !== null) {
+    addLatentSuffixOutputs(latentOutputs, suffixFrame, suffixState);
+    const summary = summarizeBallisticAxisPrefix(det, gap, Math.min(suffixFrame, axisMeasureEnd));
+    if (summary !== null) {
+      const prefixFrames = Math.max(0, summary.prefixEndFrame - summary.startFrame + 1);
+      addFinite(latentOutputs, "latent.prefix.airFrames", summary.airFrames);
+      if (prefixFrames > 0) addFinite(latentOutputs, "latent.prefix.airFraction", summary.airFrames / prefixFrames);
+      addFinite(latentOutputs, "latent.prefix.speedSumPx", summary.speedSumPx);
+      addFinite(latentOutputs, "latent.prefix.speedFrames", summary.speedFrames);
+      if (summary.speedFrames > 0) {
+        addFinite(latentOutputs, "latent.prefix.speedMeanPx", summary.speedSumPx / summary.speedFrames);
+      }
+      addFinite(latentOutputs, "latent.prefix.dy", summary.dy);
+      addFinite(latentOutputs, "latent.prefix.v0SpeedPx", summary.v0SpeedPx);
+    }
+  }
   if (currentOk) {
     const suffix = mode === "full" || suffixState === null || suffixFrame === null
       ? null
@@ -165,6 +183,7 @@ function observeJointArcLines(
   return {
     knobs,
     outputs,
+    ...(Object.keys(latentOutputs).length === 0 ? {} : { latentOutputs }),
     mode,
     horizonFrame: horizon,
     suffixFrame,
@@ -203,6 +222,16 @@ function shortProbeMinExitFrame(gap: Gap): number {
 
 function ballisticAxisSuffix(frame: number, state: RiderArrivalState): BallisticAxisSuffix {
   return { frame, vx: state.vx, vy: state.vy };
+}
+
+function addLatentSuffixOutputs(outputs: Record<string, number>, frame: number, state: RiderArrivalState): void {
+  addFinite(outputs, "latent.suffix.frame", frame);
+  addFinite(outputs, "latent.suffix.x", state.x);
+  addFinite(outputs, "latent.suffix.y", state.y);
+  addFinite(outputs, "latent.suffix.vx", state.vx);
+  addFinite(outputs, "latent.suffix.vy", state.vy);
+  addFinite(outputs, "latent.suffix.sledPoseDeg", state.sledPoseDeg);
+  addFinite(outputs, "latent.suffix.sledPoseRateDegPerFrame", state.sledPoseRateDegPerFrame);
 }
 
 function firstAirborneExitFrameAtOrAfter(

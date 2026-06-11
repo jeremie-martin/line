@@ -13,8 +13,8 @@
  * rather than rewrites.
  *
  * There is ONE lane: the enumerative proposer (makeEnumAimedCandidates) —
- * joint knob deltas → local response model over current axes/cost and next
- * rider state → readiness × target-fit objective swept in-model → top-k
+ * joint knob deltas → local response model over current axes and next rider
+ * state → current axis-quality × readiness objective swept in-model → top-k
  * proposals through exact production evaluation. Its
  * hand-tuned predecessors (V3 speed-aim, V4 angle-aim +
  * arrival-conditioned scoop, rotate fallback, climb defer) were each
@@ -56,9 +56,10 @@
  */
 
 import { getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
-import { axisCost, axisLookaheadEndFrame, tryCandidateLines } from "../core/candidate.ts";
+import { axisLookaheadEndFrame, tryCandidateLines } from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
 import { authoredSpeedToPx, CALIB, type TrackLine } from "../types.ts";
+import { axisQualityForTargets } from "../score.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import {
   applyArcKnobs,
@@ -66,6 +67,7 @@ import {
   arcProbeDesign,
   fitJointArcResponseModel,
   parseArcProbeDesignName,
+  parseJointArcResponseMode,
   predictedArrivalState,
   predictedCurrentAxes,
   predictJointArcOutputs,
@@ -73,6 +75,7 @@ import {
   rotateArcLines,
   type ArcKnobs,
   type ArcProbeDesignName,
+  type JointArcResponseMode,
   type RiderArrivalState,
 } from "./arc_model.ts";
 import { evaluateJointArcKnobs, type JointArcProbeObservation } from "./arc_probe.ts";
@@ -123,6 +126,12 @@ function aimJointProbeDesign(): ArcProbeDesignName {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_JOINT_PROBE_DESIGN ?? "cross5";
   return parseArcProbeDesignName(raw);
+}
+
+function aimJointResponseMode(): JointArcResponseMode {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_JOINT_RESPONSE ?? "outputs";
+  return parseJointArcResponseMode(raw);
 }
 
 // ─────────────────────────── 2 · Telemetry ───────────────────────────
@@ -391,10 +400,6 @@ const ENUM_MIN_SEP_DEG = 1.5;
 const ENUM_R_MIN = 0.1;
 /** Speed-target fit scale (px/f): exp(−|predicted − target|/scale). */
 const ENUM_SPEED_SCALE_PXF = 0.75;
-/** Current-gap predicted cost scale. The final candidate still gets exact
- *  production cost; this only avoids spending proposal slots on predicted
- *  current-axis regressions. */
-const ENUM_CURRENT_COST_SCALE = 0.35;
 /** Legacy lazy-additive rotation path (`LR_AIM_JOINT=0`) constants. The default
  *  path now scores a real joint pitch/rotate grid inside the selected probe span.
  *  Historical context for the legacy path: R3 v2
@@ -429,13 +434,13 @@ const ENUM_ROT_RECRUIT_NOGAIN = 1.05;
 //    veto at the low end (0.2–0.4), informative slope at the top.
 
 /** The enumerative proposer. Default path: shared joint response model fitted
- *  from `cross5`/`grid9` probe rides, predicting current-gap axes/cost and
- *  full next-arrival rider state; one objective over the knob space:
+ *  from `cross5`/`grid9` probe rides, predicting current-gap axes and full
+ *  next-arrival rider state; one objective over the knob space:
  *
- *    objective(δp, δr) = clamp(readiness(predictedNextState), R_MIN, 1)
+ *    objective(δp, δr) = current-axis-quality(predictedCurrentAxes, targets)
+ *                      × clamp(readiness(predictedNextState), R_MIN, 1)
  *                      × exp(−|predictedSpeed − nextSpeedTarget| / scale)
  *                      × next-impact-feasibility(predictedNextState)
- *                      × current-axis-cost-fit(predictedCurrentAxes)
  *
  *  enumerated inside the models (free), top-k improving deltas proposed
  *  through the unchanged production evaluation (current k=2). The old
@@ -648,10 +653,13 @@ function makeJointAimedCandidates(
     evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
   );
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
-  const model = fitJointArcResponseModel(probeRows, probeDesignName);
+  const model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
+    responseMode: aimJointResponseMode(),
+    context: { gap, axisMeasureEnd, nextFrame },
+  });
 
   const baseKnobs = { pitchDeg: 0, rotateDeg: 0 };
-  const baseScore = scoreJointKnobs(model, baseKnobs, gap, nextGap, speedTarget, base.cost);
+  const baseScore = scoreJointKnobs(model, baseKnobs, gap, nextGap, speedTarget);
   if (baseScore === null) {
     aimTotals.enum_probe_crash++;
     return [];
@@ -664,13 +672,13 @@ function makeJointAimedCandidates(
   for (let pitchDeg = -pitchSpan; pitchDeg <= pitchSpan + 1e-9; pitchDeg += ENUM_STEP_DEG) {
     for (let rotateDeg = -rotateSpan; rotateDeg <= rotateSpan + 1e-9; rotateDeg += ENUM_ROT_STEP_DEG) {
       if (Math.abs(pitchDeg) < AIM_MIN_DELTA_DEG && Math.abs(rotateDeg) < ENUM_ROT_STEP_DEG / 2) continue;
-      const score = scoreJointKnobs(model, { pitchDeg, rotateDeg }, gap, nextGap, speedTarget, base.cost);
+      const score = scoreJointKnobs(model, { pitchDeg, rotateDeg }, gap, nextGap, speedTarget);
       if (score !== null && score.val > baseScore.val + 1e-4) scored.push(score);
     }
   }
   scored.sort((a, b) =>
     b.val - a.val ||
-    a.currentCost - b.currentCost ||
+    b.currentQuality - a.currentQuality ||
     Math.abs(a.knobs.rotateDeg) - Math.abs(b.knobs.rotateDeg) ||
     Math.abs(a.knobs.pitchDeg) - Math.abs(b.knobs.pitchDeg)
   );
@@ -722,7 +730,7 @@ type JointScoredKnobs = {
   knobs: ArcKnobs;
   val: number;
   state: RiderArrivalState;
-  currentCost: number;
+  currentQuality: number;
 };
 
 function scoreJointKnobs(
@@ -731,7 +739,6 @@ function scoreJointKnobs(
   gap: Gap,
   nextGap: Gap,
   speedTarget: number | null,
-  baseCost: number,
 ): JointScoredKnobs | null {
   const outputs = predictJointArcOutputs(model, knobs);
   const state = predictedArrivalState(outputs);
@@ -739,15 +746,12 @@ function scoreJointKnobs(
   const readiness = Math.max(ENUM_R_MIN, readinessCatchState(state));
   const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(state.speed - speedTarget) / ENUM_SPEED_SCALE_PXF);
   const feas = impactFeasibility(state, nextGap);
-  const currentCost = predictedCurrentCost(outputs, gap);
-  const currentFit = Math.exp(-Math.max(0, currentCost - baseCost) / ENUM_CURRENT_COST_SCALE);
-  return { knobs, val: readiness * fit * feas * currentFit, state, currentCost };
+  const currentQuality = predictedCurrentQuality(outputs, gap);
+  return { knobs, val: currentQuality * readiness * fit * feas, state, currentQuality };
 }
 
-function predictedCurrentCost(outputs: Record<string, number>, gap: Gap): number {
-  const direct = outputs["current.cost"];
-  if (Number.isFinite(direct)) return direct;
-  return axisCost(gap.targets, predictedCurrentAxes(outputs));
+function predictedCurrentQuality(outputs: Record<string, number>, gap: Gap): number {
+  return axisQualityForTargets(gap.targets, predictedCurrentAxes(outputs)).axis_quality;
 }
 
 function impactFeasibility(state: Pick<RiderArrivalState, "speed" | "comAngleDeg">, nextGap: Gap): number {

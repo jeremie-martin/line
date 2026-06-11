@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { TrackLine } from "../scripts/v0/types.ts";
+import { ELEVATION, type TrackLine } from "../scripts/v0/types.ts";
 import {
   additiveQuadraticFeatures,
   applyArcKnobs,
@@ -153,6 +153,62 @@ describe("arc_model joint response helpers", () => {
     expect(state!.x).toBeCloseTo(100);
     expect(state!.speed).toBeCloseTo(9.1);
     expect(state!.comAngleDeg).toBeCloseTo(10);
+  });
+
+  test("latent joint response predicts suffix state and reduces it to final outputs", () => {
+    const rows = arcProbeDesign("cross5").map((knobs) => {
+      const p = knobs.pitchDeg;
+      const r = knobs.rotateDeg;
+      return {
+        knobs,
+        outputs: {
+          "current.cost": 0.2,
+          "current.axis.air": 0,
+          "current.axis.amplitude": 0.42,
+          "current.error.amplitude": 0.02,
+        },
+        latentOutputs: {
+          "latent.suffix.frame": 10,
+          "latent.suffix.x": 100 + p + r,
+          "latent.suffix.y": 50 + 2 * p - r,
+          "latent.suffix.vx": 3 + 0.01 * p,
+          "latent.suffix.vy": 1 + 0.02 * r,
+          "latent.suffix.sledPoseDeg": 20 + p,
+          "latent.suffix.sledPoseRateDegPerFrame": 2,
+          "latent.prefix.airFrames": 5,
+          "latent.prefix.speedSumPx": 55,
+          "latent.prefix.speedFrames": 11,
+          "latent.prefix.dy": 4,
+          "latent.prefix.v0SpeedPx": 5,
+        },
+      };
+    });
+    const model = fitJointArcResponseModel(rows, "cross5", "additive_quadratic", {
+      responseMode: "latent",
+      context: {
+        gap: {
+          index: 0,
+          startFrame: 0,
+          endFrame: 8,
+          endsWithContact: true,
+          targets: { air: 0.5, amplitude: 0.4 },
+        },
+        axisMeasureEnd: 12,
+        nextFrame: 13,
+      },
+    });
+    const outputs = predictJointArcOutputs(model, { pitchDeg: 0, rotateDeg: 0 });
+    expect(outputs["current.axis.air"]).toBeCloseTo(7 / 13);
+    expect(outputs["current.error.air"]).toBeCloseTo(7 / 13 - 0.5);
+    expect(outputs["current.axis.amplitude"]).toBeCloseTo(0.42);
+    expect(outputs["current.releaseSpeedPx"]).toBeCloseTo(Math.hypot(3, 1));
+
+    const state = predictedArrivalState(outputs);
+    expect(state).not.toBeNull();
+    expect(state!.x).toBeCloseTo(109);
+    expect(state!.y).toBeCloseTo(50 + 3 + 0.5 * ELEVATION.GRAVITY_PX_PER_FRAME2 * 3 * 4);
+    expect(state!.vy).toBeCloseTo(1 + ELEVATION.GRAVITY_PX_PER_FRAME2 * 3);
+    expect(state!.sledPoseDeg).toBeCloseTo(26);
   });
 });
 

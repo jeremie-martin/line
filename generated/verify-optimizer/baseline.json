@@ -1,0 +1,25 @@
+{
+  "budget": 40000,
+  "cases": {
+    "tiny_dance|seed0": {
+      "hash": "095930d21a3017e8",
+      "lines": 23,
+      "sim_frames": 40265
+    },
+    "syncopated_switchback|seed1": {
+      "hash": "bef44e056ee0a9ed",
+      "lines": 112,
+      "sim_frames": 40872
+    },
+    "drums_signature|seed2": {
+      "hash": "28cb6bb795ff937a",
+      "lines": 263,
+      "sim_frames": 44938
+    },
+    "mini_burst|seed0": {
+      "hash": "c51c092cd8dc9561",
+      "lines": 34,
+      "sim_frames": 40218
+    }
+  }
+}

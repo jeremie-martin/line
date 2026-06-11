@@ -1,4 +1,16 @@
-import { AXES, ELEVATION, type AxisValues, type TrackLine } from "../types.ts";
+import {
+  AXES,
+  ELEVATION,
+  type AxisValues,
+  type Gap,
+  type TrackLine,
+} from "../types.ts";
+import {
+  completeBallisticSpanAxesFromSummary,
+  type BallisticAxisPrefixSummary,
+  type BallisticAxisSuffix,
+} from "../core/measure.ts";
+import { axisCost } from "../core/candidate.ts";
 
 export type ArcKnobs = {
   /** Rotate the last third of the arc about the suffix joint, in degrees. */
@@ -25,7 +37,7 @@ export function propagateBallisticArrivalState(
   state: RiderArrivalState,
   dtFrames: number,
 ): RiderArrivalState {
-  const dt = Math.max(0, Math.trunc(dtFrames));
+  const dt = Math.max(0, Math.round(dtFrames));
   const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
   const x = state.x + state.vx * dt;
   // lr-core's Verlet step applies gravity before the next frame's velocity read.
@@ -71,6 +83,19 @@ export type ArcResponseModelName =
   | "surface"
   | "hybrid";
 
+export type JointArcResponseMode = "outputs" | "latent";
+
+export type JointArcResponseContext = {
+  gap: Gap;
+  axisMeasureEnd: number;
+  nextFrame: number;
+};
+
+export type JointArcResponseFitOptions = {
+  responseMode?: JointArcResponseMode;
+  context?: JointArcResponseContext;
+};
+
 export type FittedArcOutputModel = {
   predict(knobs: ArcKnobs): number;
 };
@@ -78,10 +103,18 @@ export type FittedArcOutputModel = {
 export type JointArcProbeRow = {
   knobs: ArcKnobs;
   outputs: Record<string, number>;
+  latentOutputs?: Record<string, number>;
 };
 
 export type JointArcResponseModel = {
+  responseMode: JointArcResponseMode;
+  context?: JointArcResponseContext;
   outputModels: Map<string, {
+    angle: boolean;
+    ref: number;
+    model: FittedArcOutputModel;
+  }>;
+  latentModels: Map<string, {
     angle: boolean;
     ref: number;
     model: FittedArcOutputModel;
@@ -168,6 +201,11 @@ export function arcProbeDesign(name: ArcProbeDesignName, options: ArcProbeDesign
 export function parseArcProbeDesignName(name: string): ArcProbeDesignName {
   if (name === "cross5" || name === "grid9") return name;
   throw new Error(`unknown arc probe design "${name}" (expected cross5 or grid9)`);
+}
+
+export function parseJointArcResponseMode(name: string): JointArcResponseMode {
+  if (name === "outputs" || name === "latent") return name;
+  throw new Error(`unknown joint arc response mode "${name}" (expected outputs or latent)`);
 }
 
 export function arcProbeDesignMinRows(name: ArcProbeDesignName): number {
@@ -311,40 +349,177 @@ export function fitJointArcResponseModel(
   rows: readonly JointArcProbeRow[],
   probeDesignName: ArcProbeDesignName,
   modelName: ArcResponseModelName = "hybrid",
+  options: JointArcResponseFitOptions = {},
 ): JointArcResponseModel {
-  const outputModels: JointArcResponseModel["outputModels"] = new Map();
-  const keys = jointArcOutputKeys(rows);
+  const responseMode = options.responseMode ?? "outputs";
+  if (responseMode === "latent" && options.context === undefined) {
+    throw new Error("latent joint arc response mode requires a fit context");
+  }
+  const outputModels = fitJointValueModels(rows, jointArcOutputKeys(rows, "outputs"), "outputs", probeDesignName, modelName);
+  const latentModels = responseMode === "latent"
+    ? fitJointValueModels(rows, jointArcOutputKeys(rows, "latentOutputs"), "latentOutputs", probeDesignName, modelName)
+    : new Map();
+  return { responseMode, context: options.context, outputModels, latentModels };
+}
+
+type JointArcValueSource = "outputs" | "latentOutputs";
+
+function fitJointValueModels(
+  rows: readonly JointArcProbeRow[],
+  keys: readonly string[],
+  source: JointArcValueSource,
+  probeDesignName: ArcProbeDesignName,
+  modelName: ArcResponseModelName,
+): JointArcResponseModel["outputModels"] {
+  const models: JointArcResponseModel["outputModels"] = new Map();
   const baseline = rows.find((r) => r.knobs.pitchDeg === 0 && r.knobs.rotateDeg === 0);
   for (const output of keys) {
     const angle = isArcAngleOutput(output);
-    const finiteRows = rows.filter((r) => Number.isFinite(r.outputs[output]));
+    const finiteRows = rows.filter((r) => Number.isFinite(valueFromRow(r, source, output)));
     if (finiteRows.length === 0) continue;
-    const ref = baseline?.outputs[output] ?? finiteRows[0].outputs[output];
-    const fitRows = finiteRows.map((r) => ({
-      knobs: r.knobs,
-      value: angle ? unwrapAngleAround(r.outputs[output], ref) : r.outputs[output],
-    }));
+    const baselineValue = baseline === undefined ? undefined : valueFromRow(baseline, source, output);
+    const fallbackRef = valueFromRow(finiteRows[0], source, output);
+    const ref = typeof baselineValue === "number" && Number.isFinite(baselineValue) ? baselineValue : fallbackRef;
+    const fitRows = finiteRows.map((r) => {
+      const value = valueFromRow(r, source, output);
+      return {
+        knobs: r.knobs,
+        value: angle ? unwrapAngleAround(value, ref) : value,
+      };
+    });
     const model = fitArcResponseOutputModel(modelName, fitRows, output, probeDesignName);
-    if (model !== null) outputModels.set(output, { angle, ref, model });
+    if (model !== null) models.set(output, { angle, ref, model });
   }
-  return { outputModels };
+  return models;
 }
 
-function jointArcOutputKeys(rows: readonly JointArcProbeRow[]): string[] {
+function valueFromRow(row: JointArcProbeRow, source: JointArcValueSource, key: string): number {
+  const values = source === "outputs" ? row.outputs : row.latentOutputs;
+  return values?.[key] ?? NaN;
+}
+
+function jointArcOutputKeys(rows: readonly JointArcProbeRow[], source: JointArcValueSource): string[] {
   const keys = new Set<string>();
   for (const row of rows) {
-    for (const key of Object.keys(row.outputs)) keys.add(key);
+    const values = source === "outputs" ? row.outputs : row.latentOutputs;
+    for (const key of Object.keys(values ?? {})) keys.add(key);
   }
   return [...keys].sort();
 }
 
 export function predictJointArcOutputs(model: JointArcResponseModel, knobs: ArcKnobs): Record<string, number> {
-  const outputs: Record<string, number> = {};
-  for (const [output, fitted] of model.outputModels) {
-    const pred = fitted.model.predict(knobs);
-    outputs[output] = fitted.angle ? unwrapAngleAround(pred, fitted.ref) : pred;
+  const outputs = predictFittedValues(model.outputModels, knobs);
+  if (model.responseMode === "latent") {
+    Object.assign(outputs, reduceLatentJointArcOutputs(predictFittedValues(model.latentModels, knobs), model.context));
+    const computedCost = model.context === undefined ? null : currentCostFromPredictedAxes(outputs, model.context.gap);
+    if (computedCost !== null) outputs["current.cost"] = computedCost;
   }
   return outputs;
+}
+
+function predictFittedValues(
+  models: JointArcResponseModel["outputModels"],
+  knobs: ArcKnobs,
+): Record<string, number> {
+  const values: Record<string, number> = {};
+  for (const [output, fitted] of models) {
+    const pred = fitted.model.predict(knobs);
+    values[output] = fitted.angle ? unwrapAngleAround(pred, fitted.ref) : pred;
+  }
+  return values;
+}
+
+function reduceLatentJointArcOutputs(
+  latent: Record<string, number>,
+  context: JointArcResponseContext | undefined,
+): Record<string, number> {
+  const outputs: Record<string, number> = {};
+  if (context === undefined) return outputs;
+
+  const suffixFrame = latent["latent.suffix.frame"];
+  const suffixState = suffixStateFromLatent(latent);
+  if (suffixState === null || !Number.isFinite(suffixFrame)) return outputs;
+
+  addFinite(outputs, "current.releaseSpeedPx", suffixState.speed);
+  addFinite(outputs, "current.releaseVy", suffixState.vy);
+
+  const prefix = prefixSummaryFromLatent(latent, context.gap.startFrame, suffixFrame, context.axisMeasureEnd);
+  if (prefix !== null) {
+    const suffix: BallisticAxisSuffix = { frame: suffixFrame, vx: suffixState.vx, vy: suffixState.vy };
+    const axes = completeBallisticSpanAxesFromSummary(prefix, context.axisMeasureEnd, suffix);
+    Object.assign(outputs, axisResponseOutputs(context.gap.targets, axes));
+  }
+
+  const nextState = propagateBallisticArrivalState(suffixState, context.nextFrame - suffixFrame);
+  Object.assign(outputs, stateOutputs(nextState));
+  return outputs;
+}
+
+function currentCostFromPredictedAxes(outputs: Record<string, number>, gap: Gap): number | null {
+  const axes = predictedCurrentAxes(outputs);
+  for (const axis of AXES) {
+    if (gap.targets[axis] !== undefined && axes[axis] !== undefined) return axisCost(gap.targets, axes);
+  }
+  return null;
+}
+
+function suffixStateFromLatent(latent: Record<string, number>): RiderArrivalState | null {
+  const x = latent["latent.suffix.x"];
+  const y = latent["latent.suffix.y"];
+  const vx = latent["latent.suffix.vx"];
+  const vy = latent["latent.suffix.vy"];
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(vx) || !Number.isFinite(vy)) return null;
+  const speed = Math.hypot(vx, vy);
+  if (!Number.isFinite(speed)) return null;
+  return {
+    x,
+    y,
+    vx,
+    vy,
+    speed,
+    comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
+    sledPoseDeg: Number.isFinite(latent["latent.suffix.sledPoseDeg"]) ? latent["latent.suffix.sledPoseDeg"] : null,
+    sledPoseRateDegPerFrame: Number.isFinite(latent["latent.suffix.sledPoseRateDegPerFrame"])
+      ? latent["latent.suffix.sledPoseRateDegPerFrame"]
+      : null,
+  };
+}
+
+function prefixSummaryFromLatent(
+  latent: Record<string, number>,
+  startFrame: number,
+  suffixFrame: number,
+  rangeEndFrame: number,
+): BallisticAxisPrefixSummary | null {
+  const prefixEndFrame = Math.max(startFrame, Math.min(rangeEndFrame, Math.round(suffixFrame)));
+  const prefixFrames = Math.max(0, prefixEndFrame - startFrame + 1);
+  const airFraction = latent["latent.prefix.airFraction"];
+  const airFrames = Number.isFinite(airFraction)
+    ? Math.max(0, Math.min(1, airFraction)) * prefixFrames
+    : latent["latent.prefix.airFrames"];
+  const speedMeanPx = latent["latent.prefix.speedMeanPx"];
+  const speedFrames = Number.isFinite(speedMeanPx) ? prefixFrames : latent["latent.prefix.speedFrames"];
+  const speedSumPx = Number.isFinite(speedMeanPx)
+    ? speedMeanPx * speedFrames
+    : latent["latent.prefix.speedSumPx"];
+  const dy = latent["latent.prefix.dy"];
+  const v0SpeedPx = latent["latent.prefix.v0SpeedPx"];
+  if (
+    !Number.isFinite(airFrames) ||
+    !Number.isFinite(speedSumPx) ||
+    !Number.isFinite(speedFrames) ||
+    !Number.isFinite(dy) ||
+    !Number.isFinite(v0SpeedPx)
+  ) return null;
+  return {
+    startFrame,
+    prefixEndFrame,
+    airFrames,
+    speedSumPx,
+    speedFrames,
+    dy,
+    v0SpeedPx,
+  };
 }
 
 export function stateOutputs(state: RiderArrivalState): Record<string, number> {
@@ -368,6 +543,16 @@ export function arcResponseOutputs(
 ): Record<string, number> {
   const outputs: Record<string, number> = {};
   addFinite(outputs, "current.cost", cost);
+  Object.assign(outputs, axisResponseOutputs(targets, achieved));
+  if (nextState !== null) Object.assign(outputs, stateOutputs(nextState));
+  return outputs;
+}
+
+function axisResponseOutputs(
+  targets: AxisValues,
+  achieved: AxisValues,
+): Record<string, number> {
+  const outputs: Record<string, number> = {};
   for (const axis of AXES) {
     const actual = achieved[axis];
     if (actual === undefined) continue;
@@ -375,7 +560,6 @@ export function arcResponseOutputs(
     const target = targets[axis];
     if (target !== undefined) addFinite(outputs, `current.error.${axis}`, actual - target);
   }
-  if (nextState !== null) Object.assign(outputs, stateOutputs(nextState));
   return outputs;
 }
 
@@ -409,7 +593,7 @@ export function predictedArrivalState(outputs: Record<string, number>): RiderArr
 }
 
 export function isArcAngleOutput(key: string): boolean {
-  return key === "next.comAngleDeg" || key === "next.sledPoseDeg";
+  return key.endsWith(".comAngleDeg") || key.endsWith(".sledPoseDeg");
 }
 
 export function normalizeAngleDeg(x: number): number {

@@ -31,6 +31,7 @@
  *     [--specs=a,b] [--seeds=0,1] [--budget=300000] \
  *     [--probe-design=grid9|cross5] [--eval-design=grid|random] \
  *     [--eval-samples=200] [--max-gaps=N] [--details=0] \
+ *     [--response-mode=outputs|latent] \
  *     [--loss-model=best|linear|additive_quadratic|joint_quadratic|surface|hybrid] \
  *     [--out=path.jsonl]
  */
@@ -55,13 +56,16 @@ import {
   arcKnobKey,
   arcProbeDesign,
   dedupeArcKnobs,
-  fitArcResponseOutputModel,
+  fitJointArcResponseModel,
   isArcAngleOutput,
   normalizeAngleDeg,
   parseArcProbeDesignName,
+  parseJointArcResponseMode,
+  predictJointArcOutputs,
   unwrapAngleAround,
   type ArcKnobs,
-  type ArcResponseModelName,
+  type JointArcProbeRow,
+  type JointArcResponseContext,
 } from "./optimizer/arc_model.ts";
 import { evaluateJointArcKnobs } from "./optimizer/arc_probe.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
@@ -82,6 +86,7 @@ const probeRotateSpanOverride = argValue("probe-rotate-span") === undefined ? un
 const maxGapsPerTrack = Number(argValue("max-gaps") ?? "0") || Infinity;
 const showDetails = argValue("details") !== "0";
 const lossModelName = argValue("loss-model") ?? "best";
+const responseMode = parseJointArcResponseMode(argValue("response-mode") ?? "outputs");
 const outPath = argValue("out");
 
 if (argv.includes("--help") || argv.includes("-h")) {
@@ -100,6 +105,8 @@ Single acceptance target:
 Notes:
   --max-gaps limits gaps per compiled track; 0 means all confidently paired gaps.
   Gate coverage and fit coverage gaps are hard diagnostics, not successes to hide.
+  --response-mode=latent fits suffix-state/prefix-summary latents, then reconstructs
+  the final output vector through the same reducer production uses.
   Commit validated improvements that lower acceptance_loss without those regressions.`);
   process.exit(0);
 }
@@ -147,11 +154,13 @@ type SampleRow = {
   rotateDeg: number;
   gate: Gate;
   outputs: Record<string, number>;
+  latentOutputs?: Record<string, number>;
   truthOutputs?: Record<string, number>;
   truthGate?: Gate;
   horizonFrame: number;
   suffixFrame: number | null;
   cleanAirborneSuffix: boolean | null;
+  modelContext: JointArcResponseContext;
 };
 type MetricRow = {
   model: string;
@@ -182,18 +191,7 @@ type LossRow = {
   outputs: number;
 };
 
-type FittedStudyModel = {
-  predict(knobs: ArcKnobs): number;
-};
-type StudyModelSpec = {
-  name: ArcResponseModelName;
-  fit(rows: Array<{ knobs: ArcKnobs; value: number }>, output: string): FittedStudyModel | null;
-};
-
-const MODEL_SPECS: StudyModelSpec[] = ARC_RESPONSE_MODEL_NAMES.map((name) => ({
-  name,
-  fit: (rows, output) => fitArcResponseOutputModel(name, rows, output, probeDesignName),
-}));
+const MODEL_SPECS = ARC_RESPONSE_MODEL_NAMES;
 
 function evalDesign(name: string, groupKey: string, probeKeys: Set<string>): ArcKnobs[] {
   let out: ArcKnobs[];
@@ -311,6 +309,7 @@ function evaluateKnobs(
     rotateDeg: knobs.rotateDeg,
     gate: probe.gate,
     outputs: probe.outputs,
+    ...(probe.latentOutputs === undefined ? {} : { latentOutputs: probe.latentOutputs }),
     ...(probe.truth === undefined ? {} : {
       truthOutputs: probe.truth.outputs,
       truthGate: probe.truth.gate,
@@ -318,6 +317,7 @@ function evaluateKnobs(
     horizonFrame: probe.horizonFrame,
     suffixFrame: probe.suffixFrame,
     cleanAirborneSuffix: probe.cleanAirborneSuffix,
+    modelContext: { gap, axisMeasureEnd, nextFrame },
   };
 }
 
@@ -491,6 +491,7 @@ for (const row of rows) {
 for (const groupRows of groups.values()) {
   const keys = outputKeys(groupRows);
   const baseline = groupRows.find((r) => r.pitchDeg === 0 && r.rotateDeg === 0);
+  const outputStats = new Map<string, { ref: number; range: number }>();
   for (const output of keys) {
     const angle = isArcAngleOutput(output);
     const finiteRows = groupRows.filter((r) => Number.isFinite(actualOutput(r, output)));
@@ -507,34 +508,48 @@ for (const groupRows of groups.values()) {
       const actual = actualOutput(row, output);
       addOutputActual(row.split, output, angle ? unwrapAngleAround(actual, ref) : actual);
     }
+    outputStats.set(output, { ref, range });
+  }
 
-    const probeRows = groupRows
-      .filter((r) => r.split === "probe" && Number.isFinite(r.outputs[output]))
-      .map((r) => ({
-        knobs: { pitchDeg: r.pitchDeg, rotateDeg: r.rotateDeg },
-        value: angle ? unwrapAngleAround(r.outputs[output], ref) : r.outputs[output],
-      }));
-    if (probeRows.length === 0) continue;
-    const evalRowsForOutput = groupRows
-      .filter((r) => r.split === "eval" && Number.isFinite(actualOutput(r, output)))
-      .length;
+  const probeRows = groupRows
+    .filter((r) => r.split === "probe")
+    .map((r): JointArcProbeRow => ({
+      knobs: { pitchDeg: r.pitchDeg, rotateDeg: r.rotateDeg },
+      outputs: r.outputs,
+      ...(r.latentOutputs === undefined ? {} : { latentOutputs: r.latentOutputs }),
+    }));
+  if (probeRows.length === 0) continue;
+  const context = groupRows[0].modelContext;
 
-    for (const modelSpec of MODEL_SPECS) {
-      const cov = coverageFor(modelSpec.name, output);
+  for (const modelName of MODEL_SPECS) {
+    const model = fitJointArcResponseModel(probeRows, probeDesignName, modelName, { responseMode, context });
+    const predictions = new Map<SampleRow, Record<string, number>>();
+    for (const row of groupRows) {
+      predictions.set(row, predictJointArcOutputs(model, { pitchDeg: row.pitchDeg, rotateDeg: row.rotateDeg }));
+    }
+
+    for (const output of keys) {
+      const stats = outputStats.get(output);
+      if (stats === undefined) continue;
+      const cov = coverageFor(modelName, output);
       cov.groupsWithOutput++;
       cov.groupsWithProbeRows++;
-      const fit = modelSpec.fit(probeRows, output);
-      if (fit === null) continue;
-      cov.groupsFitted++;
-      cov.evalRowsCovered += evalRowsForOutput;
+      let coveredEvalRows = 0;
+      let fitted = false;
+      const angle = isArcAngleOutput(output);
       for (const row of groupRows) {
         const actualRaw = actualOutput(row, output);
         if (!Number.isFinite(actualRaw)) continue;
-        const actual = angle ? unwrapAngleAround(actualRaw, ref) : actualRaw;
-        const pred = fit.predict({ pitchDeg: row.pitchDeg, rotateDeg: row.rotateDeg });
+        const pred = predictions.get(row)?.[output];
+        if (typeof pred !== "number" || !Number.isFinite(pred)) continue;
+        fitted = true;
+        if (row.split === "eval") coveredEvalRows++;
+        const actual = angle ? unwrapAngleAround(actualRaw, stats.ref) : actualRaw;
         const signed = angle ? normalizeAngleDeg(pred - actual) : pred - actual;
-        addError(modelSpec.name, row.split, output, signed, range);
+        addError(modelName, row.split, output, signed, stats.range);
       }
+      if (fitted) cov.groupsFitted++;
+      cov.evalRowsCovered += coveredEvalRows;
     }
   }
 }
@@ -880,7 +895,10 @@ const losses = lossRows(metrics);
 
 console.log(`\n=== joint arc local-regression study ===`);
 console.log(`specs=${specNames.join(",")} seeds=${seeds.join(",")} budget=${budget}`);
-console.log(`probe=${probeDesignName} (${probeKnobs.length} rows/gap) eval=${evalDesignName}${evalDesignName === "random" ? `(${evalSamples})` : ""}`);
+console.log(
+  `probe=${probeDesignName} (${probeKnobs.length} rows/gap)` +
+    ` response=${responseMode} eval=${evalDesignName}${evalDesignName === "random" ? `(${evalSamples})` : ""}`,
+);
 console.log(`rows=${rows.length} sims=${sims} groups=${groups.size}`);
 console.log(`skipped: pairing=${skippedPairing} no_targets=${skippedNoTargets} no_next=${skippedNoNext}`);
 console.log("\nGate coverage");
@@ -918,6 +936,7 @@ if (outPath !== undefined) {
       budget,
       probeDesign: probeDesignName,
       probeKnobs,
+      responseMode,
       evalDesign: evalDesignName,
       evalSamples,
       details: showDetails,

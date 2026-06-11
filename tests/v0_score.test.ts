@@ -4,6 +4,7 @@ import {
   MISSING_CONTACT_TOLERANCE,
   OFF_BEAT_TOLERANCE,
   SYNC_TOLERANCE,
+  axisQualityForTargets,
   runtimeMultiplier,
   scoreDriftReport,
   scoreTimedDriftReport,
@@ -60,6 +61,20 @@ describe("v0 scoreDriftReport — smooth quality factors", () => {
     expect(score.axis_error_rms).toBeCloseTo(expectedRms);
     expect(score.axis_loss).toBeCloseTo(expectedRms / AXIS_QUALITY_TOLERANCE);
     expect(score.axis_quality).toBeCloseTo(Math.exp(-expectedRms / AXIS_QUALITY_TOLERANCE));
+  });
+
+  test("axisQualityForTargets applies the scorer axis-quality formula to predicted axes", () => {
+    const q = axisQualityForTargets(
+      { air: 0.5, speed: 0.7, impact: 0.8 },
+      { air: 0.25, impact: 0.4 },
+    );
+
+    // `speed` has no prediction, so only air and impact participate.
+    const expectedRms = Math.sqrt((0.25 * 0.25 + 0.4 * 0.4) / 2);
+    expect(q.axis_count).toBe(2);
+    expect(q.axis_error_total).toBeCloseTo(0.65);
+    expect(q.axis_error_rms).toBeCloseTo(expectedRms);
+    expect(q.axis_quality).toBeCloseTo(Math.exp(-expectedRms / AXIS_QUALITY_TOLERANCE));
   });
 
   test("L2 aggregator penalizes one bad section more than L1 mean would", () => {

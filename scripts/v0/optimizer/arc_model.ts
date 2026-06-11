@@ -478,7 +478,10 @@ function predictFittedValues(
   return values;
 }
 
-function reduceLatentJointArcOutputs(
+/** The fast-physics reducer: latent suffix state + prefix summaries → final
+ * output vector. Exported so studies can decompose latent-mode error into
+ * fit error vs reducer error by applying it to MEASURED latents directly. */
+export function reduceLatentJointArcOutputs(
   latent: Record<string, number>,
   context: JointArcResponseContext | undefined,
 ): Record<string, number> {

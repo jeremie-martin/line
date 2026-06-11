@@ -55,7 +55,7 @@
  * CoM angle only (pose parked by R0).
  */
 
-import { getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
+import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
 import { axisLookaheadEndFrame, tryCandidateLines } from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
 import { authoredSpeedToPx, AXES, CALIB, type TrackLine } from "../types.ts";
@@ -186,6 +186,11 @@ export type AimStats = {
    *  upstream cause of every degradation counter below. */
   joint_probe_current_ok: number;
   joint_probe_next_state_ok: number;
+  /** Physics frames actually CHARGED by joint probe rides (newly simulated
+   *  on the fork, getPhysicsFrameCount delta around the probe batch). The
+   *  honest probe cost: divide by joint_probe_rows for per-row cost, or by
+   *  compile sim_frames for the budget share spent probing. */
+  joint_probe_frames_charged: number;
   /** Output models the hybrid identifiability ladder fitted BELOW their
    *  first-choice functional form (too few gate-clean rows). The model still
    *  exists — the ladder floor is linear — but with less curvature. */
@@ -215,6 +220,7 @@ const aimTotals = {
   jointProbeHorizonSum: 0, jointProbeSuffixSum: 0, jointProbeSuffixRows: 0,
   jointProbeFullHorizonSum: 0, jointProbeSavedFramesSum: 0,
   joint_probe_current_ok: 0, joint_probe_next_state_ok: 0,
+  joint_probe_frames_charged: 0,
   // Fit/objective degradation telemetry (recordJointModelCoverage).
   joint_fit_degraded_outputs: 0,
   enum_current_axes_targeted: 0, enum_current_axes_modeled: 0,
@@ -336,6 +342,7 @@ export function snapshotAimStats(): AimStats | null {
       ? round3(aimTotals.jointProbeSavedFramesSum / aimTotals.joint_probe_rows) : 0,
     joint_probe_current_ok: aimTotals.joint_probe_current_ok,
     joint_probe_next_state_ok: aimTotals.joint_probe_next_state_ok,
+    joint_probe_frames_charged: aimTotals.joint_probe_frames_charged,
     joint_fit_degraded_outputs: aimTotals.joint_fit_degraded_outputs,
     enum_current_axes_targeted: aimTotals.enum_current_axes_targeted,
     enum_current_axes_modeled: aimTotals.enum_current_axes_modeled,
@@ -714,9 +721,11 @@ function makeJointAimedCandidates(
   const span = arcKnobSpan(probeKnobs);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const nextFrame = nextGap.endFrame;
+  const framesBeforeProbes = getPhysicsFrameCount();
   const probeRows = probeKnobs.map((knobs) =>
     evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
   );
+  aimTotals.joint_probe_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBeforeProbes);
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
   const model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
     responseMode: aimJointResponseMode(),

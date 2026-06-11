@@ -119,6 +119,19 @@ suffix plus prefix summaries needed for current-gap span axes — and the same
 reducer runs at prediction time on the fitted latents to derive the
 next-arrival state and reducer-derived current-gap axes.
 
+Measured decomposition (study_latent_decomposition.ts over a
+study_joint_arc_model dump; 153 golden gaps, both designs, 2026-06-11): the
+reducer applied to MEASURED latents is near-exact (current axes ≤0.001,
+next-state ≤0.6 px / 0.34°), so latent-mode error is dominated by the
+knobs→latent fit layer — the same difficulty the direct fit faces. Net per
+output: `elevation` is a ~5× latent win (reconstructing from fitted net-dy
+beats fitting the normalized final directly); `next.x/y` is a latent loss
+(~+30% MAE — two fitted quantities compound through vx·dt; position is not
+an objective input); everything else is parity. Probe cost is identical by
+construction and small: ~25 charged frames per probe row (the engine fork
+shares the prefix; `aim.joint_probe_frames_charged` meters it), ~4% of a
+100k compile, with ≤0.5% of budget left in further early-stopping.
+
 The latent path has one structural robustness advantage: latents are
 trajectory measurements, defined for every probe row whose airborne suffix
 exists, including rows that fail the current-gap hard gates. Direct

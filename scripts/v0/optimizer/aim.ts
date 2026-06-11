@@ -67,7 +67,6 @@ import {
   arcProbeDesign,
   fitJointArcResponseModel,
   parseArcProbeDesignName,
-  parseJointArcResponseMode,
   predictedArrivalState,
   predictedCurrentAxes,
   predictJointArcOutputs,
@@ -76,7 +75,6 @@ import {
   type ArcKnobs,
   type ArcProbeDesignName,
   type JointArcResponseModel,
-  type JointArcResponseMode,
   type RiderArrivalState,
 } from "./arc_model.ts";
 import { evaluateJointArcKnobs, type JointArcProbeObservation } from "./arc_probe.ts";
@@ -129,12 +127,6 @@ function aimJointProbeDesign(): ArcProbeDesignName {
   return parseArcProbeDesignName(raw);
 }
 
-function aimJointResponseMode(): JointArcResponseMode {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_JOINT_RESPONSE ?? "outputs";
-  return parseJointArcResponseMode(raw);
-}
-
 // ─────────────────────────── 2 · Telemetry ───────────────────────────
 
 /** Lane telemetry (compile_stats.aim — lab-queryable via json_extract).
@@ -146,6 +138,8 @@ export type AimStats = {
   enum_considered: number;
   enum_no_target: number;
   enum_probe_crash: number;
+  enum_model_unscoreable: number;
+  enum_next_before_exit: number;
   enum_on_target: number;
   enum_gate_fail: number;
   enum_emitted: number;
@@ -181,6 +175,9 @@ export type AimStats = {
   joint_probe_suffix_mean: number;
   joint_probe_full_horizon_mean: number;
   joint_probe_saved_frames_mean: number;
+  joint_probe_suffix_after_current_mean: number;
+  joint_probe_suffix_after_next: number;
+  joint_probe_launch_read_frames_mean: number;
   /** Per-row hard-gate outcomes over short probe rows. Gate-failed rows carry
    *  no current-gap outputs, which thins the per-output fit data — the
    *  upstream cause of every degradation counter below. */
@@ -209,6 +206,7 @@ export type AimStats = {
 const aimTotals = {
   enum_considered: 0, enum_no_target: 0,
   enum_probe_crash: 0, enum_on_target: 0, enum_gate_fail: 0, enum_emitted: 0,
+  enum_model_unscoreable: 0, enum_next_before_exit: 0,
   enumReadinessErrSum: 0, enumReadinessGainSum: 0, enumAchieved: 0,
   enum_rot_probe_crash: 0, enum_rot_recruited: 0, enum_rot_emitted: 0,
   enum_rot_gate_fail: 0,
@@ -219,6 +217,8 @@ const aimTotals = {
   joint_probe_rows: 0, joint_probe_clean_suffix: 0,
   jointProbeHorizonSum: 0, jointProbeSuffixSum: 0, jointProbeSuffixRows: 0,
   jointProbeFullHorizonSum: 0, jointProbeSavedFramesSum: 0,
+  jointProbeSuffixAfterCurrentSum: 0, jointProbeSuffixAfterNext: 0,
+  jointProbeLaunchReadFramesSum: 0, jointProbeLaunchReadFrameRows: 0,
   joint_probe_current_ok: 0, joint_probe_next_state_ok: 0,
   joint_probe_frames_charged: 0,
   // Fit/objective degradation telemetry (recordJointModelCoverage).
@@ -262,6 +262,12 @@ function recordJointProbeRows(
     if (row.suffixFrame !== null) {
       aimTotals.jointProbeSuffixRows++;
       aimTotals.jointProbeSuffixSum += row.suffixFrame;
+      aimTotals.jointProbeSuffixAfterCurrentSum += row.suffixFrame - gap.endFrame;
+      if (row.suffixFrame > nextFrame) aimTotals.jointProbeSuffixAfterNext++;
+    }
+    if (row.launchReadFrames !== null) {
+      aimTotals.jointProbeLaunchReadFrameRows++;
+      aimTotals.jointProbeLaunchReadFramesSum += row.launchReadFrames;
     }
   }
 }
@@ -314,6 +320,8 @@ export function snapshotAimStats(): AimStats | null {
     enum_considered: aimTotals.enum_considered,
     enum_no_target: aimTotals.enum_no_target,
     enum_probe_crash: aimTotals.enum_probe_crash,
+    enum_model_unscoreable: aimTotals.enum_model_unscoreable,
+    enum_next_before_exit: aimTotals.enum_next_before_exit,
     enum_on_target: aimTotals.enum_on_target,
     enum_gate_fail: aimTotals.enum_gate_fail,
     enum_emitted: aimTotals.enum_emitted,
@@ -340,6 +348,11 @@ export function snapshotAimStats(): AimStats | null {
       ? round3(aimTotals.jointProbeFullHorizonSum / aimTotals.joint_probe_rows) : 0,
     joint_probe_saved_frames_mean: aimTotals.joint_probe_rows > 0
       ? round3(aimTotals.jointProbeSavedFramesSum / aimTotals.joint_probe_rows) : 0,
+    joint_probe_suffix_after_current_mean: aimTotals.jointProbeSuffixRows > 0
+      ? round3(aimTotals.jointProbeSuffixAfterCurrentSum / aimTotals.jointProbeSuffixRows) : 0,
+    joint_probe_suffix_after_next: aimTotals.jointProbeSuffixAfterNext,
+    joint_probe_launch_read_frames_mean: aimTotals.jointProbeLaunchReadFrameRows > 0
+      ? round3(aimTotals.jointProbeLaunchReadFramesSum / aimTotals.jointProbeLaunchReadFrameRows) : 0,
     joint_probe_current_ok: aimTotals.joint_probe_current_ok,
     joint_probe_next_state_ok: aimTotals.joint_probe_next_state_ok,
     joint_probe_frames_charged: aimTotals.joint_probe_frames_charged,
@@ -505,9 +518,9 @@ const ENUM_ROT_RECRUIT_NOGAIN = 1.05;
 //    fast arrivals (v2→v3 lesson). The raw surface IS the right shape:
 //    veto at the low end (0.2–0.4), informative slope at the top.
 
-/** The enumerative proposer. Default path: shared joint response model fitted
- *  from `cross5`/`grid9` probe rides, predicting current-gap axes and full
- *  next-arrival rider state; one objective over the knob space:
+/** The enumerative proposer. Shared joint response model fitted from
+ *  `cross5`/`grid9` probe rides, predicting current-gap axes, exit state, and
+ *  eligible next-arrival rider state; one objective over the knob space:
  *
  *    objective(δp, δr) = current-axis-quality(predictedCurrentAxes, targets)
  *                      × clamp(readiness(predictedNextState), R_MIN, 1)
@@ -728,15 +741,18 @@ function makeJointAimedCandidates(
   aimTotals.joint_probe_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBeforeProbes);
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
   const model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
-    responseMode: aimJointResponseMode(),
     context: { gap, axisMeasureEnd, nextFrame },
   });
 
   const baseKnobs = { pitchDeg: 0, rotateDeg: 0 };
   recordJointModelCoverage(model, predictJointArcOutputs(model, baseKnobs), gap);
   const baseScore = scoreJointKnobs(model, baseKnobs, gap, nextGap, speedTarget);
-  if (baseScore === null) {
-    aimTotals.enum_probe_crash++;
+  if (baseScore === "next_before_exit") {
+    aimTotals.enum_next_before_exit++;
+    return [];
+  }
+  if (baseScore === "model_unscoreable") {
+    aimTotals.enum_model_unscoreable++;
     return [];
   }
 
@@ -748,7 +764,7 @@ function makeJointAimedCandidates(
     for (let rotateDeg = -rotateSpan; rotateDeg <= rotateSpan + 1e-9; rotateDeg += ENUM_ROT_STEP_DEG) {
       if (Math.abs(pitchDeg) < AIM_MIN_DELTA_DEG && Math.abs(rotateDeg) < ENUM_ROT_STEP_DEG / 2) continue;
       const score = scoreJointKnobs(model, { pitchDeg, rotateDeg }, gap, nextGap, speedTarget);
-      if (score !== null && score.val > baseScore.val + 1e-4) scored.push(score);
+      if (typeof score !== "string" && score.val > baseScore.val + 1e-4) scored.push(score);
     }
   }
   scored.sort((a, b) =>
@@ -808,16 +824,20 @@ type JointScoredKnobs = {
   currentQuality: number;
 };
 
+type JointScoreResult = JointScoredKnobs | "next_before_exit" | "model_unscoreable";
+
 function scoreJointKnobs(
   model: ReturnType<typeof fitJointArcResponseModel>,
   knobs: ArcKnobs,
   gap: Gap,
   nextGap: Gap,
   speedTarget: number | null,
-): JointScoredKnobs | null {
+): JointScoreResult {
   const outputs = predictJointArcOutputs(model, knobs);
+  const exitFrame = outputs["exit.frame"];
+  if (Number.isFinite(exitFrame) && exitFrame > nextGap.endFrame) return "next_before_exit";
   const state = predictedArrivalState(outputs);
-  if (state === null || state.comAngleDeg === null) return null;
+  if (state === null || state.comAngleDeg === null) return "model_unscoreable";
   const readiness = Math.max(ENUM_R_MIN, readinessCatchState(state));
   const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(state.speed - speedTarget) / ENUM_SPEED_SCALE_PXF);
   const feas = impactFeasibility(state, nextGap);

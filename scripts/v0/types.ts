@@ -491,10 +491,12 @@ export type CompileStats = {
   /** Enumerative-proposer funnel + prediction accuracy (optimizer/aim.ts).
    *  Non-scoring diagnostics; absent when the lane never ran. */
   aim?: {
-    enum_considered: number;
-    enum_no_target: number;
-    enum_probe_crash: number;
-    enum_on_target: number;
+	    enum_considered: number;
+	    enum_no_target: number;
+	    enum_probe_crash: number;
+	    enum_model_unscoreable: number;
+	    enum_next_before_exit: number;
+	    enum_on_target: number;
     enum_gate_fail: number;
     enum_emitted: number;
     enum_readiness_err_mean: number;
@@ -519,10 +521,20 @@ export type CompileStats = {
     joint_probe_rows: number;
     joint_probe_clean_suffix: number;
     joint_probe_horizon_mean: number;
-    joint_probe_suffix_mean: number;
-    joint_probe_full_horizon_mean: number;
-    joint_probe_saved_frames_mean: number;
-  };
+	    joint_probe_suffix_mean: number;
+	    joint_probe_full_horizon_mean: number;
+	    joint_probe_saved_frames_mean: number;
+	    joint_probe_suffix_after_current_mean: number;
+	    joint_probe_suffix_after_next: number;
+	    joint_probe_launch_read_frames_mean: number;
+	    joint_probe_current_ok: number;
+	    joint_probe_next_state_ok: number;
+	    joint_probe_frames_charged: number;
+	    joint_fit_degraded_outputs: number;
+	    enum_current_axes_targeted: number;
+	    enum_current_axes_modeled: number;
+	    enum_current_term_missing: number;
+	  };
   /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;
   /** Readiness v0 (optimizer/readiness.ts, READINESS_ROADMAP R1, telemetry

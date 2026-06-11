@@ -31,7 +31,6 @@
  *     [--specs=a,b] [--seeds=0,1] [--budget=300000] \
  *     [--probe-design=grid9|cross5] [--eval-design=grid|random] \
  *     [--eval-samples=200] [--max-gaps=N] [--details=0] \
- *     [--response-mode=outputs|latent] \
  *     [--loss-model=best|linear|additive_quadratic|joint_quadratic|surface|hybrid] \
  *     [--out=path.jsonl]
  */
@@ -60,7 +59,6 @@ import {
   isArcAngleOutput,
   normalizeAngleDeg,
   parseArcProbeDesignName,
-  parseJointArcResponseMode,
   predictJointArcOutputs,
   unwrapAngleAround,
   type ArcKnobs,
@@ -86,7 +84,6 @@ const probeRotateSpanOverride = argValue("probe-rotate-span") === undefined ? un
 const maxGapsPerTrack = Number(argValue("max-gaps") ?? "0") || Infinity;
 const showDetails = argValue("details") !== "0";
 const lossModelName = argValue("loss-model") ?? "best";
-const responseMode = parseJointArcResponseMode(argValue("response-mode") ?? "outputs");
 const outPath = argValue("out");
 
 if (argv.includes("--help") || argv.includes("-h")) {
@@ -105,8 +102,8 @@ Single acceptance target:
 Notes:
   --max-gaps limits gaps per compiled track; 0 means all confidently paired gaps.
   Gate coverage and fit coverage gaps are hard diagnostics, not successes to hide.
-  --response-mode=latent fits suffix-state/prefix-summary latents, then reconstructs
-  the final output vector through the same reducer production uses.
+  The response model is canonical: suffix-state/prefix-summary latents are fit
+  and reduced through the same final-output reducer production uses.
   Commit validated improvements that lower acceptance_loss without those regressions.`);
   process.exit(0);
 }
@@ -522,7 +519,7 @@ for (const groupRows of groups.values()) {
   const context = groupRows[0].modelContext;
 
   for (const modelName of MODEL_SPECS) {
-    const model = fitJointArcResponseModel(probeRows, probeDesignName, modelName, { responseMode, context });
+    const model = fitJointArcResponseModel(probeRows, probeDesignName, modelName, { context });
     const predictions = new Map<SampleRow, Record<string, number>>();
     for (const row of groupRows) {
       predictions.set(row, predictJointArcOutputs(model, { pitchDeg: row.pitchDeg, rotateDeg: row.rotateDeg }));
@@ -897,7 +894,7 @@ console.log(`\n=== joint arc local-regression study ===`);
 console.log(`specs=${specNames.join(",")} seeds=${seeds.join(",")} budget=${budget}`);
 console.log(
   `probe=${probeDesignName} (${probeKnobs.length} rows/gap)` +
-    ` response=${responseMode} eval=${evalDesignName}${evalDesignName === "random" ? `(${evalSamples})` : ""}`,
+    ` eval=${evalDesignName}${evalDesignName === "random" ? `(${evalSamples})` : ""}`,
 );
 console.log(`rows=${rows.length} sims=${sims} groups=${groups.size}`);
 console.log(`skipped: pairing=${skippedPairing} no_targets=${skippedNoTargets} no_next=${skippedNoNext}`);
@@ -936,7 +933,6 @@ if (outPath !== undefined) {
       budget,
       probeDesign: probeDesignName,
       probeKnobs,
-      responseMode,
       evalDesign: evalDesignName,
       evalSamples,
       details: showDetails,

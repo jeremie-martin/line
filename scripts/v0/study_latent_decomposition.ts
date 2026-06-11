@@ -2,22 +2,20 @@
  * Latent-response error decomposition (read-only; consumes a JSONL dump from
  * study_joint_arc_model.ts --out).
  *
- * Question (docs/ARC_AIMING_FORMALIZATION.md, "Response Target"): is fitting
- * `knobs -> exit latents` and reducing afterward better or worse than fitting
- * the reducer-completed final outputs directly — and WHERE does each lose?
- * Both paths share the same short probe; the difference is only where the
- * fast-physics reducer sits relative to the fit.
+ * Question (docs/ARC_AIMING_FORMALIZATION.md, "Response Target"): where does
+ * the canonical `knobs -> exit latents -> final outputs` path lose accuracy?
+ * This decomposes model fit error from reducer/summarization error.
  *
  * For each held-out eval row with full-sim truth, four pipelines:
  *
- *   direct        : fit(finals)            -> prediction        (outputs mode)
- *   latent_total  : reduce(fit(latents))   -> prediction        (latent mode)
+ *   canonical     : reduce(fit(latents))   -> prediction
+ *   direct_full   : fit(full-sim finals)    -> prediction        (historical control)
  *   reduce_truth  : reduce(MEASURED latents)                    (reducer alone)
  *   latent_fit    : fit(latents) vs measured latents            (fit layer alone)
  *
  * Error identity per output:
- *   latent_total - truth = [reduce(L_pred) - reduce(L_meas)]   (fit error, amplified)
- *                        + [reduce(L_meas) - truth]            (reducer/summarization error)
+ *   canonical - truth = [reduce(L_pred) - reduce(L_meas)]      (fit error, amplified)
+ *                     + [reduce(L_meas) - truth]               (reducer/summarization error)
  *
  * Buckets: clean vs dirty airborne suffix, gate-clean vs gate-failed rows,
  * and pitch at/inside the probe boundary — the circumstances where the two
@@ -71,8 +69,7 @@ const rows = lines.filter((l): l is SampleRow => l.kind === "sample");
 const PITCH_SPANS: Record<ArcProbeDesignName, number> = { cross5: 8.5, grid9: 9 };
 const pitchSpan = PITCH_SPANS[probeDesign];
 
-/** Outputs the reducer can derive (plus their error twins); everything else is
- *  direct-fallback in latent mode and identical between pipelines. */
+/** Outputs the reducer can derive (plus their error twins). */
 const REDUCED_OUTPUTS = [
   "current.axis.air",
   "current.axis.speed",
@@ -101,7 +98,7 @@ const LATENT_KEYS = [
   "latent.prefix.v0SpeedPx",
 ] as const;
 
-type Pipeline = "direct" | "direct_full" | "latent_total" | "reduce_truth" | "fit_amplified";
+type Pipeline = "canonical" | "direct_full" | "reduce_truth" | "fit_amplified";
 type Bucket = "all" | "clean" | "dirty" | "gate_ok" | "gate_fail" | "pitch_boundary" | "pitch_inner";
 const samples = new Map<string, number[]>();
 
@@ -156,9 +153,8 @@ for (const groupRows of groups.values()) {
       outputs: r.truthOutputs as Record<string, number>,
     }));
   const context = groupRows[0].modelContext;
-  const direct = fitJointArcResponseModel(probeRows, probeDesign, "hybrid", { responseMode: "outputs" });
-  const directFull = fitJointArcResponseModel(fullProbeRows, probeDesign, "hybrid", { responseMode: "outputs" });
-  const latent = fitJointArcResponseModel(probeRows, probeDesign, "hybrid", { responseMode: "latent", context });
+  const canonical = fitJointArcResponseModel(probeRows, probeDesign, "hybrid", { context });
+  const directFull = fitJointArcResponseModel(fullProbeRows, probeDesign, "hybrid", { context });
   groupsUsed++;
 
   for (const row of groupRows) {
@@ -166,9 +162,8 @@ for (const groupRows of groups.values()) {
     evalRows++;
     const knobs: ArcKnobs = { pitchDeg: row.pitchDeg, rotateDeg: row.rotateDeg };
     const buckets = bucketsOf(row);
-    const directPred = predictJointArcOutputs(direct, knobs);
+    const canonicalPred = predictJointArcOutputs(canonical, knobs);
     const directFullPred = predictJointArcOutputs(directFull, knobs);
-    const latentPred = predictJointArcOutputs(latent, knobs);
     const reduceTruth = row.latentOutputs === undefined
       ? {}
       : reduceLatentJointArcOutputs(row.latentOutputs, context);
@@ -176,15 +171,13 @@ for (const groupRows of groups.values()) {
     for (const output of REDUCED_OUTPUTS) {
       const truth = row.truthOutputs[output];
       for (const bucket of buckets) {
-        const eDirect = absErr(output, directPred[output], truth);
-        if (eDirect !== null) add("direct", bucket, output, eDirect);
+        const eCanonical = absErr(output, canonicalPred[output], truth);
+        if (eCanonical !== null) add("canonical", bucket, output, eCanonical);
         const eDirectFull = absErr(output, directFullPred[output], truth);
         if (eDirectFull !== null) add("direct_full", bucket, output, eDirectFull);
-        const eTotal = absErr(output, latentPred[output], truth);
-        if (eTotal !== null) add("latent_total", bucket, output, eTotal);
         const eReduce = absErr(output, reduceTruth[output], truth);
         if (eReduce !== null) add("reduce_truth", bucket, output, eReduce);
-        const eAmp = absErr(output, latentPred[output], reduceTruth[output]);
+        const eAmp = absErr(output, canonicalPred[output], reduceTruth[output]);
         if (eAmp !== null) add("fit_amplified", bucket, output, eAmp);
       }
     }
@@ -195,7 +188,7 @@ for (const groupRows of groups.values()) {
       for (const key of LATENT_KEYS) {
         const meas = row.latentOutputs[key];
         if (!Number.isFinite(meas)) continue;
-        const fitted = latent.latentModels.get(key);
+        const fitted = canonical.latentModels.get(key);
         if (fitted === undefined) continue;
         // absErr wraps angle differences, so no unwrap needed for magnitude.
         const e = absErr(key, fitted.model.predict(knobs), meas);
@@ -226,21 +219,20 @@ console.log(`=== latent decomposition · ${path}`);
 console.log(`probe=${probeDesign} groups=${groupsUsed} eval_truth_rows=${evalRows}\n`);
 
 console.log("MAE vs full-sim truth per pipeline (all eval rows)");
-console.log("output                          direct  direct_full  latent_total  reduce_truth  fit_amplified");
+console.log("output                       canonical  direct_full  reduce_truth  fit_amplified");
 for (const output of REDUCED_OUTPUTS) {
   console.log(
-    `${output.padEnd(30)} ${cell("direct", "all", output).padStart(7)}` +
+    `${output.padEnd(30)} ${cell("canonical", "all", output).padStart(9)}` +
       ` ${cell("direct_full", "all", output).padStart(11)}` +
-      ` ${cell("latent_total", "all", output).padStart(12)}` +
       ` ${cell("reduce_truth", "all", output).padStart(12)}` +
       ` ${cell("fit_amplified", "all", output).padStart(13)}`,
   );
 }
 
-console.log("\nWhere the pipelines differ — MAE vs truth by bucket (direct | latent_total)");
+console.log("\nWhere the pipelines differ — MAE vs truth by bucket (canonical | reduce_truth)");
 console.log("output                          clean         dirty         gate_ok       gate_fail     pitch_inner   pitch_boundary");
 for (const output of REDUCED_OUTPUTS) {
-  const pair = (b: Bucket): string => `${cell("direct", b, output)}|${cell("latent_total", b, output)}`;
+  const pair = (b: Bucket): string => `${cell("canonical", b, output)}|${cell("reduce_truth", b, output)}`;
   console.log(
     `${output.padEnd(30)} ${pair("clean").padStart(13)} ${pair("dirty").padStart(13)}` +
       ` ${pair("gate_ok").padStart(13)} ${pair("gate_fail").padStart(13)}` +

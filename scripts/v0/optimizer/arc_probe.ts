@@ -20,7 +20,6 @@ import {
   applyArcKnobs,
   arcResponseOutputs,
   normalizeAngleDeg,
-  propagateBallisticArrivalState,
   stateOutputs,
   type ArcKnobs,
   type JointArcProbeRow,
@@ -54,6 +53,8 @@ export type JointArcProbeObservation = JointArcProbeRow & {
    *  contact inside the same short-probe chunk; the row is still emitted, and
    *  harness diagnostics report clean-only vs all-row error separately. */
   cleanAirborneSuffix: boolean | null;
+  /** Number of airborne velocity reads averaged into the launch/exit state. */
+  launchReadFrames: number | null;
 };
 
 export type JointArcProbeOptions = {
@@ -119,7 +120,7 @@ function observeJointArcLines(
 
   const minSurvival = mode === "full"
     ? Math.max(gap.endFrame + 16, axisMeasureEnd)
-    : Math.max(gap.endFrame + 16, Math.min(horizon, axisMeasureEnd));
+    : Math.min(horizon, axisMeasureEnd);
   const survivedCurrent = det.terminus.frame >= minSurvival || det.terminus.reason === "endOfSpec";
   const owned = new Set(lines.map((line) => line.id));
   const landingOk = det.events.some((e) =>
@@ -132,8 +133,9 @@ function observeJointArcLines(
   const currentOk = survivedCurrent && landingOk && offBeatLandings === 0;
   const suffixFrame = mode === "full"
     ? null
-    : firstAirborneExitFrameAtOrAfter(fork, det, lines, shortProbeMinExitFrame(gap), horizon);
-  const suffixState = suffixFrame === null ? null : readLaunchState(fork, det, suffixFrame, horizon);
+    : firstAirborneExitFrameAtOrAfter(fork, det, lines, gap.endFrame, horizon);
+  const suffixRead = suffixFrame === null ? null : readLaunchState(fork, det, suffixFrame, horizon);
+  const suffixState = suffixRead?.state ?? null;
   const cleanAirborneSuffix = suffixFrame === null ? null : cleanAirborneRange(det, suffixFrame, horizon);
   const nextStateOk = mode === "full"
     ? det.terminus.frame >= nextFrame || det.terminus.reason === "endOfSpec"
@@ -171,12 +173,8 @@ function observeJointArcLines(
     }
   }
 
-  if (nextStateOk) {
-    const state = mode === "full"
-      ? readArrivalState(fork, nextFrame)
-      : suffixState === null || suffixFrame === null
-      ? null
-      : propagateBallisticArrivalState(suffixState, nextFrame - suffixFrame);
+  if (nextStateOk && mode === "full") {
+    const state = readArrivalState(fork, nextFrame);
     if (state !== null) Object.assign(outputs, stateOutputs(state));
   }
 
@@ -188,6 +186,7 @@ function observeJointArcLines(
     horizonFrame: horizon,
     suffixFrame,
     cleanAirborneSuffix,
+    launchReadFrames: suffixRead?.readFrames ?? null,
     gate: {
       currentOk,
       survivedCurrent,
@@ -206,18 +205,15 @@ function fullProbeHorizon(gap: Gap, axisMeasureEnd: number, nextFrame: number): 
 
 // deno-lint-ignore no-explicit-any
 function shortProbeHorizon(engine: any, lines: TrackLine[], gap: Gap, nextFrame: number): number {
-  const minExit = shortProbeMinExitFrame(gap);
-  const cap = Math.max(minExit, nextFrame - 1);
-  for (let horizon = minExit; horizon < cap; horizon = Math.min(cap, horizon + 8)) {
+  const minExit = gap.endFrame;
+  const axisSafeCap = gap.endFrame + Math.max(20, IMPACT_WINDOW + 2);
+  const cap = Math.max(axisSafeCap, nextFrame + 2);
+  for (let horizon = minExit; horizon < cap; horizon = Math.min(cap, horizon + 4)) {
     const det = detectWindow(engine, gap.startFrame, horizon);
     if (det.terminus.frame < horizon && det.terminus.reason !== "endOfSpec") return horizon;
     if (firstAirborneExitFrameAtOrAfter(engine, det, lines, minExit, horizon) !== null) return horizon;
   }
   return cap;
-}
-
-function shortProbeMinExitFrame(gap: Gap): number {
-  return gap.endFrame + Math.max(16, IMPACT_WINDOW);
 }
 
 function ballisticAxisSuffix(frame: number, state: RiderArrivalState): BallisticAxisSuffix {
@@ -316,7 +312,12 @@ const LAUNCH_VY_OFFSET_PX = 0.0345;
  *  extra physics frames. Falls back to the plain single read when later
  *  frames are not airborne or unreadable. */
 // deno-lint-ignore no-explicit-any
-function readLaunchState(engine: any, det: ReturnType<typeof detectWindow>, frame: number, horizon: number): RiderArrivalState | null {
+function readLaunchState(
+  engine: any,
+  det: ReturnType<typeof detectWindow>,
+  frame: number,
+  horizon: number,
+): { state: RiderArrivalState; readFrames: number } | null {
   const base = readArrivalState(engine, frame);
   if (base === null) return base;
   const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
@@ -337,11 +338,14 @@ function readLaunchState(engine: any, det: ReturnType<typeof detectWindow>, fram
   const vy = sy / n + LAUNCH_VY_OFFSET_PX;
   const speed = Math.hypot(vx, vy);
   return {
-    ...base,
-    vx,
-    vy,
-    speed,
-    comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
+    state: {
+      ...base,
+      vx,
+      vy,
+      speed,
+      comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
+    },
+    readFrames: n,
   };
 }
 

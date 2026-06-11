@@ -31,6 +31,18 @@ function line(id: number, x1: number, y1: number, x2: number, y2: number): Track
   };
 }
 
+const TEST_RESPONSE_CONTEXT = {
+  gap: {
+    index: 0,
+    startFrame: 0,
+    endFrame: 8,
+    endsWithContact: true,
+    targets: {},
+  },
+  axisMeasureEnd: 12,
+  nextFrame: 13,
+};
+
 describe("arc_model knob transforms", () => {
   const lines = [
     line(1, 0, 0, 10, 0),
@@ -145,7 +157,7 @@ describe("arc_model joint response helpers", () => {
         },
       };
     });
-    const model = fitJointArcResponseModel(rows, "cross5");
+    const model = fitJointArcResponseModel(rows, "cross5", "hybrid", { context: TEST_RESPONSE_CONTEXT });
     const outputs = predictJointArcOutputs(model, { pitchDeg: 0, rotateDeg: 0 });
     expect(predictedCurrentAxes(outputs).air).toBeCloseTo(0.5);
     const state = predictedArrivalState(outputs);
@@ -180,7 +192,7 @@ describe("arc_model joint response helpers", () => {
         },
       };
     });
-    const model = fitJointArcResponseModel(rows, "cross5");
+    const model = fitJointArcResponseModel(rows, "cross5", "hybrid", { context: TEST_RESPONSE_CONTEXT });
     const outputs = predictJointArcOutputs(model, { pitchDeg: 2, rotateDeg: 0 });
     // The generating functions are linear, so the linear-floor fit over the
     // four gate-clean rows recovers them exactly.
@@ -204,7 +216,7 @@ describe("arc_model joint response helpers", () => {
         "next.speed": 9.1 + 0.1 * knobs.pitchDeg,
       },
     }));
-    const model = fitJointArcResponseModel(rows, "cross5");
+    const model = fitJointArcResponseModel(rows, "cross5", "hybrid", { context: TEST_RESPONSE_CONTEXT });
     expect(model.outputModels.get("current.axis.air")?.model.form).toBe("surface");
     expect(model.outputModels.get("current.axis.air")?.model.degraded).toBe(false);
     expect(model.outputModels.get("current.axis.speed")?.model.form).toBe("additive_quadratic");
@@ -240,7 +252,6 @@ describe("arc_model joint response helpers", () => {
       };
     });
     const model = fitJointArcResponseModel(rows, "cross5", "additive_quadratic", {
-      responseMode: "latent",
       context: {
         gap: {
           index: 0,

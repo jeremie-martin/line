@@ -164,10 +164,10 @@ Current implementation:
 
 - accepted historical baseline: per-knob/additive response over a smaller output
   set;
-- default path: joint knob model with direct final outputs;
-- opt-in latent path: joint knob model with suffix/prefix response, enabled by
-  `LR_AIM_JOINT_RESPONSE=latent`;
-- study harness switch: `--response-mode=outputs|latent`.
+- canonical path: joint knob model fits direct auxiliary outputs plus
+  suffix/prefix latents, then reconstructs reducer-owned outputs through the
+  shared ballistic reducer;
+- no response-mode switch remains in production or the study harness.
 
 ## Short-Probe and Latent Scope
 
@@ -179,7 +179,7 @@ airborne past the arc-end plane. The observation row can contain:
   speed, and raw count/sum audit fields;
 - direct final outputs for axes and diagnostics available from the probe.
 
-In latent mode, the reducer derives:
+In the canonical path, the reducer derives:
 
 - current `air`;
 - current `speed`;
@@ -189,7 +189,7 @@ In latent mode, the reducer derives:
 - diagnostic `current.cost` from the final predicted axis vector when targeted
   axes are present.
 
-Some outputs still need direct fallback predictions:
+Some outputs still need direct auxiliary predictions:
 
 - `amplitude`: depends on the trajectory envelope across the gap, not suffix
   state alone;
@@ -197,17 +197,17 @@ Some outputs still need direct fallback predictions:
   post-exit free flight;
 - `grain`: is geometry-only.
 
-So the current latent path is not `knobs -> one hidden state -> every output`.
+So the current canonical path is not `knobs -> one hidden state -> every output`.
 It is:
 
 ```text
 knobs -> suffix state + prefix summaries -> reducer-derived outputs
-plus direct fallback outputs for quantities whose sufficient statistics are not
+plus direct auxiliary outputs for quantities whose sufficient statistics are not
 yet represented in the latent state
 ```
 
 The study harness may attach full-simulation truth for evaluation; production
-short probes never simulate to the next landing in either response mode.
+short probes never simulate to the next landing.
 
 ## Exit-State Readout and Calibrated Free Fall
 

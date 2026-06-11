@@ -13,10 +13,10 @@ comparison because the evaluator fingerprint changed when the measurement
 module gained the suffix-aware reducer. The follow-up exit-plane suffix rule
 (`joint-short-probe-exitplane-01`) scored 593.18 raw. Treat both as real
 instrumentation and non-promotions until a same-fingerprint re-baseline says
-otherwise. The default response model still fits `knobs -> final output
-vector`; an opt-in latent response path (`LR_AIM_JOINT_RESPONSE=latent`) now
-fits suffix state plus prefix summaries, then reconstructs final outputs through
-the shared ballistic reducer. Companion: `IMPACT_PAIR_PLANNING.md` (the impact diagnosis this work
+otherwise. The current response model has one canonical contract: fit short
+probe rows into direct auxiliary outputs plus suffix-state/prefix latents, then
+reconstruct reducer-owned current axes and next-arrival outputs through the
+shared ballistic reducer. Companion: `IMPACT_PAIR_PLANNING.md` (the impact diagnosis this work
 answered). Code: `scripts/v0/optimizer/aim.ts` (the
 proposer), `optimizer/arc_model.ts` (shared knob/model helpers),
 `optimizer/arc_probe.ts` (shared real-engine probe evaluator),
@@ -118,17 +118,16 @@ Properties the concept requires (and both realized instances have):
   including `impact` when targeted. Probe count therefore scales with
   model order and knob-space design, not with the number of outputs or the
   next-gap distance.
-- **Two response modes share the same probe and reducer.** Default production
-  mode (`LR_AIM_JOINT_RESPONSE=outputs`) fits the final output vector directly
-  from knob rows. The latent mode (`latent`) fits `latent.suffix.*` plus
-  `latent.prefix.*` summaries, then uses the same reducer as
-  `measureGapAxesWithBallisticSuffix` to write final `current.axis.*`/
-  `current.error.*` and `next.*` outputs. In the current latent mode,
-  `air`/`speed`/`elevation` and next state are reducer-derived. The proposer
-  computes current-gap score from the final predicted axis vector; `current.cost`
-  is recomputed from that vector only as compatibility/diagnostic data when
-  targeted axes are present. `amplitude`, `impact`, and `grain` remain direct
-  fallback outputs because amplitude depends on the prefix envelope, impact is
+- **One canonical response path owns probe reduction.** The model fits
+  `latent.suffix.*` plus `latent.prefix.*` summaries and reduces them with the
+  same ballistic logic as `measureGapAxesWithBallisticSuffix` to write final
+  `current.axis.*`/`current.error.*`, `exit.*`, and eligible `next.*` outputs.
+  `next.*` is emitted only when the predicted suffix/exit frame is not after
+  the next beat. The proposer computes current-gap score from the final
+  predicted axis vector; `current.cost` is recomputed from that vector only as
+  compatibility/diagnostic data when targeted axes are present. `amplitude`,
+  `impact`, and `grain` remain direct
+  auxiliary outputs because amplitude depends on the prefix envelope, impact is
   the current landing episode, and grain is geometry.
 - **Joint model interface; two concrete instances**: the architecture is a
   multi-input model over controllable arc knobs and predicted outputs. The
@@ -245,7 +244,7 @@ build_candidate_pool(prefix_engine, current_gap):
     #   latent.suffix.* and latent.prefix.* when a short suffix is available
     probe_rows.append(row)
 
-  model = fitJointArcResponseModel(probe_rows, responseMode=LR_AIM_JOINT_RESPONSE)
+  model = fitJointArcResponseModel(probe_rows, context)
 
   base_score = score_model_prediction(model, pitch=0, rotate=0)
   scored_knobs = []
@@ -351,27 +350,23 @@ clean-suffix error separately so this approximation is visible. The model does
 not guess the catch impact, and it never lets a suffix prediction enter the
 committed track without exact `tryCandidateLines` evaluation.
 
-### Response modes
+### Canonical response contract
 
 `fitJointArcResponseModel` has one public prediction contract: return the final
-output vector consumed by the proposer and the study harness. Internally it now
-has two modes:
+output vector consumed by the proposer and the study harness. Internally it
+always fits suffix state (`latent.suffix.frame/x/y/vx/vy/pose/rate`) and
+normalized prefix summaries (`latent.prefix.airFraction`,
+`latent.prefix.speedMeanPx`, `latent.prefix.dy`, `latent.prefix.v0SpeedPx`;
+raw count/sum fields are also emitted for audit). Prediction reconstructs a
+`BallisticAxisPrefixSummary`, calls the same pure reducer used by
+`measureGapAxesWithBallisticSuffix`, and exposes the modeled exit state as
+`exit.*`. If the predicted exit/suffix frame is after the next beat, `next.*`
+is intentionally absent and aiming records `enum_next_before_exit` instead of
+treating the model as a probe crash.
 
-- `outputs` (default): fit each final output key directly from knob rows. This
-  is the behavior used by the current optimizer baseline and remains
-  bit-identical under `npm run verify:optimizer`.
-- `latent`: fit suffix state (`latent.suffix.frame/x/y/vx/vy/pose/rate`) and
-  normalized prefix summaries (`latent.prefix.airFraction`,
-  `latent.prefix.speedMeanPx`, `latent.prefix.dy`, `latent.prefix.v0SpeedPx`;
-  raw count/sum fields are also emitted for audit/fallback). Prediction first
-  reconstructs a `BallisticAxisPrefixSummary`, then calls the same pure reducer
-  used by `measureGapAxesWithBallisticSuffix`. This is opt-in for production via
-  `LR_AIM_JOINT_RESPONSE=latent` and selected in the harness with
-  `--response-mode=latent`.
-
-The important caveat is scope. Latent mode is not yet a pure
+The important caveat is scope. The canonical path is not yet a pure
 `knobs -> full hidden state -> all outputs` architecture: it intentionally
-direct-fits `amplitude`, `impact`, and `grain` as fallback outputs. It then
+direct-fits `amplitude`, `impact`, and `grain` as auxiliary outputs. It then
 computes current-gap score from the final predicted axis vector with the normal
 scorer's axis-quality formula. `current.cost` may also be recomputed from that
 vector for diagnostics/search compatibility, but it is not the model objective.
@@ -388,8 +383,8 @@ enough.
 | 1   | exit pitch δp                             | (speed, CoM angle) at the next beat                                                              | quadratic per quantity                                                     | 3 (shared: base, ±6°)                                       | accepted-baseline proposer sweep                                          | ACCEPTED BASELINE · readiness err mean ~0.012 live                                                                                                        |
 | 2   | whole-arc rotation δr                     | (speed, CoM angle) at the next beat                                                              | quadratic per quantity                                                     | 2 more (±3°; base shared) — paid lazily at pitch exhaustion | accepted-baseline 2-D sweep where pitch clamps                            | ACCEPTED BASELINE (R3 v2) · additive composition with #1                                                                                                  |
 | 3   | accepted-baseline composed (δp, δr)       | (speed, CoM angle)                                                                               | additive sum of #1+#2; no pitch×rotation interaction term                  | shared                                                      | 2-D objective sweep where rotation is recruited                           | CERTIFIED proposer-grade; 0.041 px/f / 0.63° p50 at the argmax (`study_joint_enum`)                                                                       |
-| 4   | current working-tree joint model (δp, δr) | current-gap axes/errors/impact when defined + diagnostic cost + next x/y/vx/vy/speed/CoM angle/pose/pose-rate | shared hybrid response model; default direct outputs, opt-in latent reducer | default five-point cross; optional 3×3 grid; short probe + ballistic suffix | production proposer in this branch: model sweep scored as current axis-quality × next readiness → top 2 exact evaluations | HOOKED INTO REAL COMPILER · full-next-state rejected 592.41; short-probe 593.60; exit-plane suffix 593.18; latent opt-in is mechanically working but not promoted |
-| 5   | joint local-regression study (δp, δr)     | same output vector as #4, plus full-sim truth diagnostics                                        | same `fitJointArcResponseModel` as production, selected by `--response-mode` | five-point cross or 3×3 grid; eval grid/random              | workbench for the production model                                        | READ-ONLY (`study_joint_arc_model.ts`): fit on short probe rows, evaluate on held-out full-sim truth rows                                                  |
+| 4   | current working-tree joint model (δp, δr) | current-gap axes/errors/impact when defined + diagnostic cost + exit state + eligible next x/y/vx/vy/speed/CoM angle/pose/pose-rate | shared hybrid response model with canonical suffix reducer | default five-point cross; optional 3×3 grid; short probe + ballistic suffix | production proposer in this branch: model sweep scored as current axis-quality × next readiness → top 2 exact evaluations | HOOKED INTO REAL COMPILER · full-next-state rejected 592.41; short-probe 593.60; exit-plane suffix 593.18; canonical suffix implementation awaits same-fingerprint promotion |
+| 5   | joint local-regression study (δp, δr)     | same output vector as #4, plus full-sim truth diagnostics                                        | same canonical `fitJointArcResponseModel` as production                    | five-point cross or 3×3 grid; eval grid/random              | workbench for the production model                                        | READ-ONLY (`study_joint_arc_model.ts`): fit on short probe rows, evaluate on held-out full-sim truth rows                                                  |
 | —   | any knob                                  | sled pose (internal rotation)                                                                    | state output, not readiness input today                                    | free (same rides)                                           | future readiness or aesthetic/rotation steering                           | SENSOR PLUMBED (`ProbeOutcome.sledPoseDeg`, `CandidateProbe.sledPoseDeg()`); V0: ~40° authority, locally smooth, globally wrapping — unwrap by continuity |
 | —   | any knob                                  | current-gap axis VALUES and current impact when defined                                          | measured from prefix frames plus ballistic suffix where needed              | same short probe                                            | current-gap quality prediction                                            | ACTIVE in the joint output-vector model; direct short-vs-full truth errors printed by the harness                                                         |
 
@@ -484,14 +479,12 @@ From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knobs @300k), V1
   short-vs-full truth errors of current speed MAE 0.001 axis units, elevation
   0.001, amplitude 0.004, impact 0.000, next-speed 0.048 px/f,
   next-CoM-angle 0.374 deg, and next-pose 2.957 deg.
-- **Latent response mode is mechanically aligned, not promoted.** On that same
-  broad harness slice, `--response-mode=latent --loss-model=hybrid` matched the
-  direct-output path at `primary_loss=0.004` with 100% priority-output coverage.
-  Its selected-model MAE was current air 0.009, speed 0.001, elevation 0.002,
-  amplitude 0.011, impact 0.009, current cost 0.014, next-speed 0.062 px/f,
-  next-CoM-angle 0.684 deg, and next-pose 9.525 deg. Default production
-  verification remains bit-identical; `LR_AIM_JOINT_RESPONSE=latent` runs
-  through verifier cases but intentionally diverges from baseline hashes.
+- **The canonical suffix response is mechanically aligned, not yet promoted by
+  a same-fingerprint baseline.** On the earlier broad harness slice, the suffix
+  reducer path matched the previous direct-output path at `primary_loss=0.004` with 100%
+  priority-output coverage. Its selected-model MAE was current air 0.009, speed
+  0.001, elevation 0.002, amplitude 0.011, impact 0.009, current cost 0.014,
+  next-speed 0.062 px/f, next-CoM-angle 0.684 deg, and next-pose 9.525 deg.
 - **Additivity**: 2-knob interactions ~10% of the combined effect at median (fine
   for a proposer), ~1× at p90 (never trust uncommitted).
 - **Pose wrapping caveat**: pose is locally smooth but globally wrapping
@@ -615,8 +608,8 @@ acceptance.
    Run both commands on the broader suite:
    `npm run study:joint-arc -- --specs=dense_echo_climb,cold_start,climb_terrace,rolling_drop,verse_chorus,drums_dropout --seeds=0,1 --budget=300000 --max-gaps=0 --probe-design=cross5 --eval-design=random --eval-samples=1000 --details=0`
    and the same command with `--probe-design=grid9`.
-   Add `--response-mode=latent` to evaluate the suffix-state/prefix-summary
-   architecture; omit it for the default direct-output response.
+   The study uses the same canonical suffix-state/prefix-summary architecture
+   as production.
 
    Optimize one scalar:
    `acceptance_loss = max(primary_loss_cross5, primary_loss_grid9)`.

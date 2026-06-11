@@ -101,7 +101,7 @@ const LATENT_KEYS = [
   "latent.prefix.v0SpeedPx",
 ] as const;
 
-type Pipeline = "direct" | "latent_total" | "reduce_truth" | "fit_amplified";
+type Pipeline = "direct" | "direct_full" | "latent_total" | "reduce_truth" | "fit_amplified";
 type Bucket = "all" | "clean" | "dirty" | "gate_ok" | "gate_fail" | "pitch_boundary" | "pitch_inner";
 const samples = new Map<string, number[]>();
 
@@ -144,8 +144,20 @@ for (const groupRows of groups.values()) {
       ...(r.latentOutputs === undefined ? {} : { latentOutputs: r.latentOutputs }),
     }));
   if (probeRows.length === 0) continue;
+  // The historical control: the pre-short-probe direct mode, trained on FULLY
+  // SIMULATED finals (each probe ride to past the next beat) instead of the
+  // converted finals. Probe rows carry their full-sim truth in the dump, so
+  // this costs no new simulation. Rows whose full ride produced no truth
+  // outputs drop out, exactly as their gate-failed measurements would have.
+  const fullProbeRows: JointArcProbeRow[] = groupRows
+    .filter((r) => r.split === "probe" && r.truthOutputs !== undefined)
+    .map((r) => ({
+      knobs: { pitchDeg: r.pitchDeg, rotateDeg: r.rotateDeg },
+      outputs: r.truthOutputs as Record<string, number>,
+    }));
   const context = groupRows[0].modelContext;
   const direct = fitJointArcResponseModel(probeRows, probeDesign, "hybrid", { responseMode: "outputs" });
+  const directFull = fitJointArcResponseModel(fullProbeRows, probeDesign, "hybrid", { responseMode: "outputs" });
   const latent = fitJointArcResponseModel(probeRows, probeDesign, "hybrid", { responseMode: "latent", context });
   groupsUsed++;
 
@@ -155,6 +167,7 @@ for (const groupRows of groups.values()) {
     const knobs: ArcKnobs = { pitchDeg: row.pitchDeg, rotateDeg: row.rotateDeg };
     const buckets = bucketsOf(row);
     const directPred = predictJointArcOutputs(direct, knobs);
+    const directFullPred = predictJointArcOutputs(directFull, knobs);
     const latentPred = predictJointArcOutputs(latent, knobs);
     const reduceTruth = row.latentOutputs === undefined
       ? {}
@@ -165,6 +178,8 @@ for (const groupRows of groups.values()) {
       for (const bucket of buckets) {
         const eDirect = absErr(output, directPred[output], truth);
         if (eDirect !== null) add("direct", bucket, output, eDirect);
+        const eDirectFull = absErr(output, directFullPred[output], truth);
+        if (eDirectFull !== null) add("direct_full", bucket, output, eDirectFull);
         const eTotal = absErr(output, latentPred[output], truth);
         if (eTotal !== null) add("latent_total", bucket, output, eTotal);
         const eReduce = absErr(output, reduceTruth[output], truth);
@@ -211,10 +226,11 @@ console.log(`=== latent decomposition · ${path}`);
 console.log(`probe=${probeDesign} groups=${groupsUsed} eval_truth_rows=${evalRows}\n`);
 
 console.log("MAE vs full-sim truth per pipeline (all eval rows)");
-console.log("output                          direct  latent_total  reduce_truth  fit_amplified");
+console.log("output                          direct  direct_full  latent_total  reduce_truth  fit_amplified");
 for (const output of REDUCED_OUTPUTS) {
   console.log(
     `${output.padEnd(30)} ${cell("direct", "all", output).padStart(7)}` +
+      ` ${cell("direct_full", "all", output).padStart(11)}` +
       ` ${cell("latent_total", "all", output).padStart(12)}` +
       ` ${cell("reduce_truth", "all", output).padStart(12)}` +
       ` ${cell("fit_amplified", "all", output).padStart(13)}`,

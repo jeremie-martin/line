@@ -57,6 +57,14 @@ export type GapFit = {
    *  translate this catch's geometry to a different gap's entry state for
    *  catch-reuse on periodic specs (the geometry is sled-relative). */
   ref?: { x: number; y: number };
+  /** FREE-CAPTURE (LR_RANK_QUALITY pool sort): the rider's arrival state at
+   *  the NEXT contact frame, read off the SAME detection the candidate
+   *  evaluation already ran — present ONLY when `axisMeasureEnd` reached the
+   *  next contact (long air-target gaps; see `axisLookaheadEndFrame`). A pure
+   *  read of state already computed: zero extra frames, zero RNG, no effect on
+   *  any decision when the sort is off. Lets the quality ranker skip the
+   *  charged arrival ride for these candidates. */
+  arrivalAtNextContact?: { frame: number; speed: number; comAngleDeg: number | null };
 };
 
 type WindowDetection = Detection & { frameOffset?: number };

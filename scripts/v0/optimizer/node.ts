@@ -21,7 +21,14 @@ import {
   readTargetStateFromRider,
 } from "../arc_placement.ts";
 import { solveOneGap, solveOneGapAttemptRange } from "./solver.ts";
-import { aimEnumEnabled, makeEnumAimedCandidates, recordLanePoolRank } from "./aim.ts";
+import {
+  aimEnumEnabled,
+  makeEnumAimedCandidates,
+  rankQualityEnabled,
+  recordLanePoolRank,
+  recordRankQualityPool,
+  sortCandidatesByQuality,
+} from "./aim.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
 import type { Gap } from "./types.ts";
 
@@ -147,6 +154,19 @@ function sortWithLaneExtras(
   sampleOrder: Candidate[],
 ): Candidate[] {
   let sorted = sortCandidatesByCost(sampleOrder);
+  // QUALITY-OBJECTIVE POOL SORT (LR_RANK_QUALITY, default on): rank the pool by
+  // the rich aim objective (achieved-axis-quality × readiness × speed-fit ×
+  // impact-feasibility) before the lane runs, so the lane refines the
+  // quality-best base, not the cost-best one (the aim lane still runs on
+  // `sorted[0]` of this ordering). Handoff branch selection stays forward-eval.
+  const rankQuality = rankQualityEnabled();
+  const costOrder = sorted;
+  if (rankQuality && sorted.length > 0) {
+    // record=false: telemetry is recorded once per pool build on the FINAL
+    // ordering — by the merged re-sort below when lane extras exist, else by
+    // the explicit recordRankQualityPool call.
+    sorted = sortCandidatesByQuality(node.prefixEngine, gap, gaps, sorted, false);
+  }
   // The enumerative proposer (the ONE aiming lane — optimizer/aim.ts):
   // model-proposed candidates competing on cost like any other.
   // `sampleOrder` stays the pure attempt prefix (prefix property untouched);
@@ -161,13 +181,22 @@ function sortWithLaneExtras(
     ));
   }
   if (laneExtras.length > 0) {
-    sorted = sortCandidatesByCost([...sampleOrder, ...laneExtras]);
+    // Re-sort the full pool (sampled + lane extras). With the quality sort on
+    // the judge is the quality objective; with it off, cost, bit-identically.
+    sorted = rankQuality
+      ? sortCandidatesByQuality(
+        node.prefixEngine, gap, gaps, sortCandidatesByCost([...sampleOrder, ...laneExtras]), true,
+      )
+      : sortCandidatesByCost([...sampleOrder, ...laneExtras]);
     // Selection-rank telemetry: where each lane extra landed in the sorted
     // pool (reference-identity lookup; pure read after the sort completes,
     // so it cannot perturb candidate order). Recorded once per pool build.
     for (const extra of laneExtras) {
       recordLanePoolRank("aimed", sorted.indexOf(extra), sorted.length);
     }
+  } else if (rankQuality && costOrder.length > 0) {
+    // No merged re-sort happened: the pre-lane ordering is final — record it.
+    recordRankQualityPool(costOrder, sorted);
   }
   return sorted;
 }

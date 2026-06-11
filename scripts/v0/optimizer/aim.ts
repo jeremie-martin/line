@@ -56,7 +56,11 @@
  */
 
 import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
-import { axisLookaheadEndFrame, tryCandidateLines } from "../core/candidate.ts";
+import {
+  axisLookaheadEndFrame,
+  RANK_QUALITY_MODE,
+  tryCandidateLines,
+} from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
 import { authoredSpeedToPx, AXES, CALIB, type TrackLine } from "../types.ts";
 import { axisQualityForTargets } from "../score.ts";
@@ -125,6 +129,23 @@ function aimJointProbeDesign(): ArcProbeDesignName {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_JOINT_PROBE_DESIGN ?? "cross5";
   return parseArcProbeDesignName(raw);
+}
+
+/** Quality-objective pool ranking (LR_RANK_QUALITY): make the rich aim objective
+ *  — current-axis-quality × readiness × speed-fit × impact-feasibility, computed
+ *  from each candidate's ACHIEVED axes and its arrival state at the next contact
+ *  — the JUDGE of the per-gap pool sort (node.ts), so the aim lane refines the
+ *  quality-best base instead of the cost-best one. Two modes:
+ *    "pool" (DEFAULT / any value other than "off"): the per-gap pool sort ranks
+ *            by the objective; handoff branch selection stays the unchanged
+ *            forward-eval / cost+preview judge.
+ *    "off"  (LR_RANK_QUALITY=off): escape hatch — bit-identical to the
+ *            pre-ranking path; the ranking helpers below are never called and no
+ *            arrival ride is taken.
+ *  The env parse lives in core/candidate.ts (single owner, shared with the
+ *  free-capture gate there). */
+export function rankQualityEnabled(): boolean {
+  return RANK_QUALITY_MODE !== "off";
 }
 
 // ─────────────────────────── 2 · Telemetry ───────────────────────────
@@ -201,6 +222,24 @@ export type AimStats = {
   enum_current_axes_targeted: number;
   enum_current_axes_modeled: number;
   enum_current_term_missing: number;
+  /** Quality-objective pool ranking (LR_RANK_QUALITY; absent when off). NOTE: the
+   *  `rank_readiness_*` field names are HISTORICAL (the flag was once called
+   *  LR_RANK_READINESS) — kept unchanged so existing lab archives stay queryable.
+   *  Pool builds where the cost-rank and quality-rank top-3 sets differ, and
+   *  where the top-1 differs; physics frames charged by per-candidate
+   *  arrival-state rides; candidates with a defined objective vs total scored
+   *  (fallback rate = (scored − defined) / scored). free/charged split the
+   *  arrival capture: `free` = read off the candidate's own measurement
+   *  detection (zero frames), `charged` = a bounded top-M memoized probeRide. */
+  rank_readiness_pools: number;
+  rank_readiness_top3_disagree: number;
+  rank_readiness_top1_disagree: number;
+  rank_readiness_arrival_frames_charged: number;
+  rank_readiness_candidates_scored: number;
+  rank_readiness_objective_defined: number;
+  rank_readiness_capture_free: number;
+  rank_readiness_capture_charged: number;
+  rank_readiness_capture_skipped: number;
 };
 
 const aimTotals = {
@@ -225,6 +264,13 @@ const aimTotals = {
   joint_fit_degraded_outputs: 0,
   enum_current_axes_targeted: 0, enum_current_axes_modeled: 0,
   enum_current_term_missing: 0,
+  // Quality-objective pool ranking (recordRankQualityPool / candidateRankObjective).
+  // Field names are historical (was LR_RANK_READINESS); kept for lab archives.
+  rank_readiness_pools: 0, rank_readiness_top3_disagree: 0,
+  rank_readiness_top1_disagree: 0, rank_readiness_arrival_frames_charged: 0,
+  rank_readiness_candidates_scored: 0, rank_readiness_objective_defined: 0,
+  rank_readiness_capture_free: 0, rank_readiness_capture_charged: 0,
+  rank_readiness_capture_skipped: 0,
 };
 
 /** Record where a lane proposal ranked in the cost-sorted pool it entered,
@@ -360,6 +406,15 @@ export function snapshotAimStats(): AimStats | null {
     enum_current_axes_targeted: aimTotals.enum_current_axes_targeted,
     enum_current_axes_modeled: aimTotals.enum_current_axes_modeled,
     enum_current_term_missing: aimTotals.enum_current_term_missing,
+    rank_readiness_pools: aimTotals.rank_readiness_pools,
+    rank_readiness_top3_disagree: aimTotals.rank_readiness_top3_disagree,
+    rank_readiness_top1_disagree: aimTotals.rank_readiness_top1_disagree,
+    rank_readiness_arrival_frames_charged: aimTotals.rank_readiness_arrival_frames_charged,
+    rank_readiness_candidates_scored: aimTotals.rank_readiness_candidates_scored,
+    rank_readiness_objective_defined: aimTotals.rank_readiness_objective_defined,
+    rank_readiness_capture_free: aimTotals.rank_readiness_capture_free,
+    rank_readiness_capture_charged: aimTotals.rank_readiness_capture_charged,
+    rank_readiness_capture_skipped: aimTotals.rank_readiness_capture_skipped,
   };
 }
 
@@ -839,10 +894,16 @@ function scoreJointKnobs(
   const state = predictedArrivalState(outputs);
   if (state === null || state.comAngleDeg === null) return "model_unscoreable";
   const readiness = Math.max(ENUM_R_MIN, readinessCatchState(state));
-  const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(state.speed - speedTarget) / ENUM_SPEED_SCALE_PXF);
+  const fit = speedFitFactor(state.speed, speedTarget);
   const feas = impactFeasibility(state, nextGap);
   const currentQuality = predictedCurrentQuality(outputs, gap);
   return { knobs, val: currentQuality * readiness * fit * feas, state, currentQuality };
+}
+
+/** Speed-target fit factor exp(−|s − target|/scale); 1 when the next gap has no
+ *  speed target. Single source for the objective's speed term (lane + rank). */
+function speedFitFactor(speed: number, speedTarget: number | null): number {
+  return speedTarget === null ? 1 : Math.exp(-Math.abs(speed - speedTarget) / ENUM_SPEED_SCALE_PXF);
 }
 
 function predictedCurrentQuality(outputs: Record<string, number>, gap: Gap): number {
@@ -862,4 +923,165 @@ function distinctJointKnobs(a: ArcKnobs, b: ArcKnobs): boolean {
   const dp = Math.abs(a.pitchDeg - b.pitchDeg) / ENUM_MIN_SEP_DEG;
   const dr = Math.abs(a.rotateDeg - b.rotateDeg) / ENUM_ROT_STEP_DEG;
   return dp * dp + dr * dr >= 1;
+}
+
+// ─────────── 7 · Quality-objective pool sort (LR_RANK_QUALITY) ───────────
+//
+// Same objective the aim lane optimizes, but evaluated on each candidate's
+// ACHIEVED axes and its arrival state at the next contact — used to RANK the
+// per-gap candidate pool (node.ts) instead of cost. Handoff branch selection
+// stays forward-eval. All dead code unless rankQualityEnabled().
+//
+// Cost control (vs an unbounded ride-every-candidate judge, 148.4M frames):
+//   • MEMOIZE per candidate (objectiveCache) — object identity survives pool
+//     rebuilds and branch scoring, so no candidate is ever ridden twice.
+//   • FREE CAPTURE — for long air-target gaps the candidate's own measurement
+//     ride already reached the next contact; its arrival state rides on
+//     candidate.arrivalAtNextContact (core/candidate.ts), so the objective is
+//     computed with ZERO charged frames.
+//   • BOUNDED CHARGED — candidates without a free capture cost a probeRide;
+//     ride only the top-M cost-sorted of those (M = RANK_CHARGE_TOP_M). The
+//     rest get a null objective and stay in cost order below the scored ones.
+
+/** Cap on charged arrival rides PER POOL BUILD: only the first M cost-sorted
+ *  candidates lacking a free capture pay a probeRide. Because memoized
+ *  candidates consume no budget, rebuilds of the same gap's pool (larger nCand,
+ *  lane-extra merges) advance the charge frontier cumulatively — across builds
+ *  more than M candidates may end up charged. The pool's nominal size is 8, so
+ *  M = 8 charges roughly one ride per surviving pool slot per build while
+ *  leaving the long tail at cost order. */
+const RANK_CHARGE_TOP_M = 8;
+
+/** Per-candidate objective memo (object identity, scoped to live candidates).
+ *  null = computed-and-undefined (no forward target / crashed); a number = the
+ *  objective. Absent key = not yet computed. */
+const objectiveCache = new WeakMap<Candidate, number | null>();
+
+/** A candidate's rank objective: current-axis-quality × readiness × speed-fit ×
+ *  impact-feasibility, or null (the next gap has no speed/impact target —
+ *  mirrors the lane's enum_no_target bail; the arrival state is unavailable; or
+ *  the arrival ride crashed). The arrival state is read FREE off the
+ *  candidate's own measurement detection when present; otherwise, when
+ *  `mayCharge`, a memoized charged probeRide to the next contact (frames
+ *  metered). `mayCharge=false` and no free capture → null (bounded-charge tail).
+ *  Memoized so no candidate is ridden twice. */
+function candidateRankObjective(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  candidate: Candidate,
+  gap: Gap,
+  gaps: Gap[],
+  mayCharge: boolean,
+): number | null {
+  const cached = objectiveCache.get(candidate);
+  if (cached !== undefined) return cached;
+  const nextGap = nextContactGap(gap, gaps);
+  if (nextGap === null) return memoObjective(candidate, null);
+  const speedTarget = nextGapSpeedTargetPx(gap, gaps);
+  if (speedTarget === null && nextGap.targets.impact === undefined) return memoObjective(candidate, null);
+
+  // FREE CAPTURE: arrival state already read off the candidate's measurement
+  // detection at the next contact frame (no charged frames).
+  let arrival: { speed: number; comAngleDeg: number | null } | null = null;
+  const free = candidate.arrivalAtNextContact;
+  if (free !== undefined && free.frame === nextGap.endFrame) {
+    arrival = free;
+    aimTotals.rank_readiness_capture_free++;
+  } else if (mayCharge) {
+    const framesBefore = getPhysicsFrameCount();
+    arrival = probeRide(engine, candidate.lines, nextGap.endFrame);
+    aimTotals.rank_readiness_arrival_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBefore);
+    aimTotals.rank_readiness_capture_charged++;
+  } else {
+    // Bounded-charge tail: not eligible for a charged ride, no free capture.
+    // NOT memoized — a later pool build may rank this candidate high enough to
+    // afford the charge; caching the skip would freeze it at null forever.
+    aimTotals.rank_readiness_capture_skipped++;
+    return null;
+  }
+  if (arrival === null || arrival.comAngleDeg === null) return memoObjective(candidate, null);
+  const currentQuality = axisQualityForTargets(gap.targets, candidate.achieved).axis_quality;
+  const readiness = Math.max(ENUM_R_MIN, readinessCatchState(arrival));
+  const fit = speedFitFactor(arrival.speed, speedTarget);
+  const feas = impactFeasibility(arrival, nextGap);
+  return memoObjective(candidate, currentQuality * readiness * fit * feas);
+}
+
+function memoObjective(candidate: Candidate, value: number | null): number | null {
+  objectiveCache.set(candidate, value);
+  return value;
+}
+
+/** Sort a candidate pool by the quality objective DESCENDING; ties (and
+ *  undefined-objective candidates relative to each other) break by cost
+ *  ascending then sample order (stable). When ANY candidate has a defined
+ *  objective the gap genuinely carries a forward target, so defined-objective
+ *  candidates rank ABOVE undefined ones; when none do, the whole pool falls back
+ *  to the cost order. Free captures are scored for every candidate; charged
+ *  rides are bounded to the top-M cost-sorted that lack one. Pool/disagreement
+ *  telemetry is recorded only when `record` is set: a pool build may sort twice
+ *  (pre-lane, then merged with lane extras) and the counters must reflect the
+ *  FINAL ordering once per build — when the merged re-sort never happens, the
+ *  caller records the pre-lane ordering itself via `recordRankQualityPool`. */
+export function sortCandidatesByQuality(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  gaps: Gap[],
+  costSorted: Candidate[],
+  record: boolean,
+): Candidate[] {
+  if (costSorted.length === 0) return costSorted;
+  const objectives = new Map<Candidate, number>();
+  let anyDefined = false;
+  // The charge budget is spent on the lowest-cost candidates first (costSorted
+  // order). Free captures and already-memoized candidates cost nothing, so they
+  // never consume budget; only a fresh charged probeRide does.
+  let chargeBudget = RANK_CHARGE_TOP_M;
+  for (const cand of costSorted) {
+    const chargedBefore = aimTotals.rank_readiness_capture_charged;
+    const obj = candidateRankObjective(engine, cand, gap, gaps, chargeBudget > 0);
+    if (aimTotals.rank_readiness_capture_charged > chargedBefore) chargeBudget--;
+    if (obj !== null) {
+      objectives.set(cand, obj);
+      anyDefined = true;
+    }
+  }
+  if (!anyDefined) {
+    if (record) recordRankQualityPool(costSorted, costSorted);
+    return costSorted;
+  }
+  // `costSorted` is already cost-then-sample-order; a stable sort therefore
+  // breaks objective ties by cost then sample order for free.
+  const ranked = [...costSorted].sort((a, b) => {
+    const oa = objectives.get(a);
+    const ob = objectives.get(b);
+    if (oa !== undefined && ob !== undefined) return ob - oa;
+    if (oa !== undefined) return -1; // defined ranks above undefined
+    if (ob !== undefined) return 1;
+    return 0; // both undefined: keep cost/sample order
+  });
+  if (record) recordRankQualityPool(costSorted, ranked);
+  return ranked;
+}
+
+/** Once-per-pool-build telemetry over the FINAL ordering: pool count, top-3 /
+ *  top-1 disagreement vs the cost order, and scored/defined tallies for the
+ *  fallback rate. Defined-ness is read off the objective memo (a cached number;
+ *  charge-skipped candidates are absent and count as undefined). Pure reads —
+ *  cannot perturb either ordering or charge frames. */
+export function recordRankQualityPool(costSorted: Candidate[], ranked: Candidate[]): void {
+  aimTotals.rank_readiness_pools++;
+  aimTotals.rank_readiness_candidates_scored += costSorted.length;
+  for (const cand of costSorted) {
+    if (typeof objectiveCache.get(cand) === "number") aimTotals.rank_readiness_objective_defined++;
+  }
+  if (costSorted[0] !== ranked[0]) aimTotals.rank_readiness_top1_disagree++;
+  const k = Math.min(3, costSorted.length);
+  const costTop = new Set(costSorted.slice(0, k));
+  let same = true;
+  for (let i = 0; i < k; i++) {
+    if (!costTop.has(ranked[i])) { same = false; break; }
+  }
+  if (!same) aimTotals.rank_readiness_top3_disagree++;
 }

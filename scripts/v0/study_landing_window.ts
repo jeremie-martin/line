@@ -235,7 +235,7 @@ for (const k of [2, 3, LANDING_PROBE_MAX_W]) {
   );
 }
 
-// Template-lane selection analysis (only meaningful with LR_IMPACT_TEMPLATE=1).
+// Template-lane selection analysis.
 if (gapsWithTemplates.size > 0) {
   console.log(`\n  Template-lane selection analysis (${gapsWithTemplates.size} gaps saw template candidates)`);
   let tN = 0, tViable = 0, tImp: number[] = [], nImp: number[] = [];

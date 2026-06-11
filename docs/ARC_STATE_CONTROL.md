@@ -368,7 +368,7 @@ it beats the accepted baseline under `decide`.
   (−29.5 — attempt 0 is the guided best sample). CLOSED at current eval
   prices; any revival must add ~zero charged evals AND not displace guided
   samples.
-- **Blanket steep arrivals** (`LR_IMPACT_ARRIVAL_FADE=0`): steep without a
+- **Blanket steep arrivals** (former arrival-fade override): steep without a
   matched catch dilutes — superseded by the paired V4 design.
 - **Sigmoid-reshaped readiness** (`enum-sigmoid-01`, σ((r−0.55)/0.10)):
   REJECT Δ−2.0, negative every budget. The "smooth veto" intuition double-

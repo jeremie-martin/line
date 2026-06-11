@@ -739,14 +739,14 @@ function compileHandoffInternal(
     const consideredSearchNodes = new WeakSet<SearchNode>();
     let captured: CompileCheckpoint | null = null;
 
-    // Track-repair: off by default, budget-gated. Completion-triggered (R2): the main
+    // Track-repair: always available, budget-gated. Completion-triggered (R2): the main
     // search runs only until the first complete track (frame count `firstCompletionFrame`),
     // then a post-pass spends the REST of the budget restarting the real frontier-DFS from
     // the weakest gap of the complete incumbent (see runRepairPhase). `bestCompleteNode` is
     // the live incumbent HandoffNode (updated on every register improvement) so repair can
     // replay its fits to reconstruct any prefix node for free (extendNodeCached memoizes).
     const repair = repairConfig(targetBudget);
-    const repairEnabled = repair !== null && targetBudget >= repair.minBudget && startOptions.length > 0;
+    const repairEnabled = targetBudget >= repair.minBudget && startOptions.length > 0;
     let bestCompleteNode: HandoffNode | null = null;
     let firstCompletionFrame = -1;
     // Instrumentation scaffold (observe-only; never read by the search → byte-identical when off):
@@ -3011,7 +3011,7 @@ function readEnv(name: string): string | undefined {
 }
 
 /** Track-repair config (worst-gap suffix rebuild, see TRACK_REPAIR_EXPERIMENTS.md).
- *  ON by default; LR_REPAIR=0|off disables. Completion-triggered: the main search runs to the
+ *  Completion-triggered: the main search runs to the
  *  first complete track, then the rest of the budget is spent restarting the real frontier-DFS
  *  (fresh seed) from the weakest AFFORDABLE gap of the incumbent, rebuilding the suffix to a
  *  complete track accepted iff it beats the incumbent. Honest (sims charged), gated to high budget
@@ -3036,9 +3036,7 @@ function defaultRepairMainMargin(targetBudget: number): number {
   return 1 + (REPAIR_MAIN_MARGIN_MATURE - 1) * pressure;
 }
 
-function repairConfig(targetBudget: number): RepairConfig | null {
-  const raw = readEnv("LR_REPAIR");
-  if (raw === "0" || raw === "off") return null;
+function repairConfig(targetBudget: number): RepairConfig {
   const num = (name: string, def: number, lo: number, hi: number): number => {
     const n = Number.parseInt(readEnv(name) ?? "", 10);
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;

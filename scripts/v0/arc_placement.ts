@@ -45,7 +45,8 @@ const SEGMENT_COLLISION_RISK_STRIDE = 7;
 // the grounded ride-out length is sized to hit the air target, and both are SPANNED
 // across the per-gap attempt batch (the cost-sorted handoff keeps the best valid
 // catch) — that span is the generation diversity the search lacked.
-// DEFAULT family; LR_NORMAL_FAMILY=target_state opts out to the old generator for A/B.
+// DEFAULT family. The old target_state A/B gate was removed after this family
+// became the accepted production normal stream.
 //
 // SPEED_AXIS pressure/carry breakpoints are inlined here as locals because the
 // SPEED_AXIS object lives inside the fingerprint-hashed types.ts slice and must not
@@ -86,7 +87,7 @@ const CONTACT_CENTERED_REDIR_ENTRY_TARGET_START = 0.30;
 const CONTACT_CENTERED_REDIR_ENTRY_TARGET_SPAN = 0.25;
 const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES = 125_000;
 const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES = 50_000;
-// Impact-driven post-contact CURVATURE (default ON; LR_IMPACT_CURVE=0 reverts). The redir metric rewards
+// Impact-driven post-contact CURVATURE. The redir metric rewards
 // the catch surface ROTATING the CoM velocity through the ~6-frame window
 // (empirically: achieved impact ≈ turnNetDeg ρ0.98, driven by tangentChangeDeg +
 // tangentDeltaDeg; catchability is NOT the limiter up to ~36° turn). The shipped ±4°
@@ -108,16 +109,9 @@ const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // flatten 12° / frontload 1.2 (canonical 585.56 vs 580.83 at the old 10/0.8,
 // decide ACCEPT Δ+4.7 P=4.2%, positive at every budget, 50k validity 96→98%).
 // The response surface peaks there: flatten 18 → 579, frontload 1.4 → 581.
-// Env knobs kept as sweep handles; defaults ARE the promoted values.
-const IMPACT_CURVE_FLATTEN_DEG = Number(
-  (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_IMPACT_CURVE_FLATTEN ?? "12",
-);
-const IMPACT_CURVE_FRONTLOAD = Number(
-  (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_IMPACT_CURVE_FRONTLOAD ?? "1.2",
-);
-// Mature-budget impact POST-TURN sampler (default ON; LR_IMPACT_POST_TURN=0 reverts).
+const IMPACT_CURVE_FLATTEN_DEG = 12;
+const IMPACT_CURVE_FRONTLOAD = 1.2;
+// Mature-budget impact POST-TURN sampler.
 // The curve modulation can only front-load whatever contact→post rotation already
 // exists. Remaining mature misses show contact runs are long enough but
 // tangentChangeDeg is near zero, so add a normal candidate-family variant that
@@ -130,7 +124,7 @@ const IMPACT_POST_TURN_MAX_EXTRA_DEG = 28;
 const IMPACT_POST_TURN_MIN_MISSING_DEG = 2;
 const IMPACT_POST_TURN_TARGET_START = 0.60;
 const IMPACT_POST_TURN_TARGET_SPAN = 0.20;
-// Impact redirect-catch TEMPLATE LANES (default ON; LR_IMPACT_TEMPLATE=0 reverts). The curve
+// Impact redirect-catch TEMPLATE LANES. The curve
 // modulation above can only REDISTRIBUTE the existing contact→launch rotation, so
 // flat-launch beats (launch ≈ contact angle) have nothing to front-load — exactly the
 // beats stuck at achieved ~0.35 vs targets ~0.85 (canonical anatomy: high band mean
@@ -143,8 +137,8 @@ const IMPACT_POST_TURN_TARGET_SPAN = 0.20;
 // early-bend variant of this idea washed and regressed 50k; lanes are the
 // selection-protected retry). RNG-neutral: rolls are always drawn, lanes only
 // override the built lines; deterministic per attempt (low-discrepancy salts).
-// Impact-ARRIVAL launch ramp (LR_IMPACT_ARRIVAL): pressure on the BOUNDED next-beat
-// ask. Bounded dense asks sit at 0.35-0.55 ⇒ pressure 0.1-0.6 there, 1.0 at 0.7+.
+// Impact-ARRIVAL launch ramp: pressure on the BOUNDED next-beat ask. Bounded
+// dense asks sit at 0.35-0.55 ⇒ pressure 0.1-0.6 there, 1.0 at 0.7+.
 const IMPACT_ARRIVAL_TARGET_START = 0.30;
 const IMPACT_ARRIVAL_TARGET_SPAN = 0.40;
 
@@ -247,23 +241,11 @@ export function setImpactTemplateSpecMeanImpact(meanImpact: number): void {
     : 0;
 }
 
-type ProcessEnv = Record<string, string | undefined>;
-const PROCESS_ENV = (globalThis as { process?: { env?: ProcessEnv } }).process?.env;
-let normalFamilyRaw: string | undefined;
-let normalFamilyValue = true;
-let normalFamilyValid = false;
-
 /** The NORMAL candidate stream uses the ported work-new contact-centered family
- *  (energy launch + air-length + 2D span) by DEFAULT — it scores canonical HEADLINE
- *  552 vs the target_state generator's 454 (decide ACCEPT, Δ+97.8). Opt back to the
- *  old generator for A/B with LR_NORMAL_FAMILY=target_state. */
+ *  (energy launch + air-length + 2D span). It replaced the old target_state
+ *  generator after a canonical ACCEPT (552 vs 454, Δ+97.8). */
 export function contactCenteredNormalEnabled(): boolean {
-  const raw = PROCESS_ENV?.LR_NORMAL_FAMILY;
-  if (normalFamilyValid && raw === normalFamilyRaw) return normalFamilyValue;
-  normalFamilyRaw = raw;
-  normalFamilyValid = true;
-  normalFamilyValue = raw !== "target_state" && raw !== "0" && raw !== "off";
-  return normalFamilyValue;
+  return true;
 }
 
 type SegmentCollisionRiskLines = number[];
@@ -907,13 +889,11 @@ function sampleContactCenteredLines(
       65,
     );
   }
-  // Impact-driven curvature modulation (LR_IMPACT_CURVE). Flatten the contact angle into
+  // Impact-driven curvature modulation. Flatten the contact angle into
   // a scoop so the descending entry meets a surface angled across its path (raises
   // tangentDelta); the front-loaded curvature below then sustains the rotation through
-  // the redir window. Gated by flag + impact pressure ⇒ flag-off byte-identical.
-  const impactCurveP = PROCESS_ENV?.LR_IMPACT_CURVE === "0"
-    ? 0
-    : impactCurvePressure(targetState, targets.impact);
+  // the redir window.
+  const impactCurveP = impactCurvePressure(targetState, targets.impact);
   if (impactCurveP > 0) {
     contactAngleDeg = clamp(
       contactAngleDeg - impactCurveP * IMPACT_CURVE_FLATTEN_DEG, -14, 65,
@@ -1056,7 +1036,7 @@ function sampleContactCenteredLines(
     postLength = lerp(postLength, 28, blend);
   }
 
-  // Impact-ARRIVAL launch (default ON; LR_IMPACT_ARRIVAL=0 reverts). The feasibility
+  // Impact-ARRIVAL launch. The feasibility
   // bound says a hard beat needs a steep arrival: the crossing angle is capped
   // by the vertical velocity built falling INTO it (vy_in ≤ g·N/2). Today the
   // launch toward a hard beat is shaped by speed/elevation/amplitude but never
@@ -1065,19 +1045,11 @@ function sampleContactCenteredLines(
   // arc (vy0 = −g·N/2 ⇒ arrival vy = +g·N/2, the bound's assumed maximum),
   // spanned across the attempt batch and cost-ranked like every other launch
   // lever. Same formula as the amplitude arc — they agree when both fire.
-  if (
-    PROCESS_ENV?.LR_IMPACT_ARRIVAL !== "0"
-    && gap.nextImpact !== undefined && nextGapFrames !== null
-  ) {
+  if (gap.nextImpact !== undefined && nextGapFrames !== null) {
     // Scarce-budget only: the pop arrivals add COMPLETABLE shapes at 50k
     // (slice: +50.5) but dilute converged high-budget quality (−8..−36) —
     // the same profile as the post-curve span. Fade full ≤50k → off ≥100k.
-    // LR_IMPACT_ARRIVAL_FADE=0 keeps full arrival authority at every budget
-    // (funnel-study experiment: deep scoops fail to convert turn into measured
-    // redirection — is the faded-out steep arrival the missing converter?).
-    const budgetFade = PROCESS_ENV?.LR_IMPACT_ARRIVAL_FADE === "0"
-      ? 1
-      : 1 - smoothstep((currentCompileBudgetFrames - 50_000) / 50_000);
+    const budgetFade = 1 - smoothstep((currentCompileBudgetFrames - 50_000) / 50_000);
     const arrivalPressure = budgetFade
       * smoothstep((gap.nextImpact - IMPACT_ARRIVAL_TARGET_START) / IMPACT_ARRIVAL_TARGET_SPAN);
     if (arrivalPressure > 0) {
@@ -1094,7 +1066,7 @@ function sampleContactCenteredLines(
     }
   }
 
-  if (PROCESS_ENV?.LR_IMPACT_POST_TURN !== "0" && impactCurveP > 0) {
+  if (impactCurveP > 0) {
     const extraTurnDeg = impactPostTurnExtraDeg(
       targetState,
       targets.impact,
@@ -1127,9 +1099,7 @@ function sampleContactCenteredLines(
     y: targetState.sledY + tangentY * tangentJitter + normalY * normalJitter,
   };
 
-  // LR_CURVE_FADE_OFF=1 keeps curvature at FULL span across all budgets (experiment:
-  // does this diversity now pay at high budget once the forward-eval ranker can sort it?).
-  const curveFadeBase = PROCESS_ENV?.LR_CURVE_FADE_OFF === "1" ? 1 : 1 - smoothstep(
+  const curveFadeBase = 1 - smoothstep(
     (currentCompileBudgetFrames - CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES) /
       CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES,
   );
@@ -1186,8 +1156,7 @@ function sampleContactCenteredLines(
   lastGeometryWasImpactTemplate = false;
   const impactTemplateBudgetP = impactTemplateBudgetPressure();
   if (
-    PROCESS_ENV?.LR_IMPACT_TEMPLATE !== "0"
-    && lowDiscrepancyRoll(attempt, IMPACT_TEMPLATE_BUDGET_SALT) < impactTemplateBudgetP
+    lowDiscrepancyRoll(attempt, IMPACT_TEMPLATE_BUDGET_SALT) < impactTemplateBudgetP
     && impactTemplateVerticalCompatible(targets, gapFrames, nextGapFrames)
     && impactCurveP >= IMPACT_TEMPLATE_MIN_PRESSURE
     && attempt >= IMPACT_TEMPLATE_MIN_ATTEMPT

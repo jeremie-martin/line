@@ -64,7 +64,7 @@ State across gaps (verified in code, see file refs):
      barely above the flat picks (~0.23). **Turn without steep arrival does
      not convert to redirection.** (Lab landings: high redir needs vy_in 4-6.)
    - 4% gates (86-100% admission to 90° — exonerated). 8% works (bias −0.07).
-6. **Arrival unfade probe** (`LR_IMPACT_ARRIVAL_FADE=0`): 580.57 — blanket
+6. **Arrival unfade probe** (former arrival-fade override): 580.57 — blanket
    steep arrivals without matching catches dilute high budget.
 7. **Branch-widening probe** (`LR_FWD_EVAL_IMPACT_BRANCH=3|5`, default off):
    551.89 / 328.08 — charged branch^depth rollouts starve the search. Pair
@@ -99,8 +99,9 @@ impact ask.** Concretely, in `sampleContactCenteredLines`:
 - placed in EARLY attempts (low attempt indices), not the late lane — so
   `branch=1` rollouts see it, which is what makes k−1 dives start WINNING
   forward-eval, which is what re-justifies arrival shaping;
-- then re-test `LR_IMPACT_ARRIVAL_FADE=0` (item 6 should flip sign once the
-  catch exists) and re-run the funnel study (A and C shares should both drop).
+- then re-test an explicit full-arrival-authority source/study variant (item 6
+  should flip sign once the catch exists) and re-run the funnel study (A and C
+  shares should both drop).
 
 Falsifiable predictions, in order: (1) funnel D-share rises on steep-arrival
 gaps; (2) impact bias shrinks at high asks; (3) arrival unfade flips positive;

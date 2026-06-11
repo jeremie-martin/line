@@ -92,7 +92,7 @@ export type LandingWindowProbeRecord = {
   impactAchieved: number | null;
   /** Incoming speed (px/frame) one frame before that landing. */
   incomingSpeed: number | null;
-  /** True if the geometry came from an impact template lane (LR_IMPACT_TEMPLATE). */
+  /** True if the geometry came from an impact template lane. */
   isTemplate: boolean;
   /** Final axisCost of the candidate; null if it failed a hard gate. */
   cost: number | null;

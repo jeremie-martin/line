@@ -114,20 +114,19 @@ deliberate trade). With bounded asks the full↔excl-impact gap narrowed from
 
 ## Generation (how the compiler hits it)
 
-- **Curve modulation** (default ON, `LR_IMPACT_CURVE=0` reverts,
-  `arc_placement.ts`): on pressured impact beats, flatten the contact angle
-  into a scoop and front-load the contact→launch rotation into the redir
-  window. The one repeatedly-validated lever (canonical +24.3 at introduction;
-  +20.3 again when its ramp was re-aimed at the bounded ask band).
+- **Curve modulation** (`arc_placement.ts`): on pressured impact beats,
+  flatten the contact angle into a scoop and front-load the contact→launch
+  rotation into the redir window. The one repeatedly-validated lever
+  (canonical +24.3 at introduction; +20.3 again when its ramp was re-aimed at
+  the bounded ask band).
   Empirical basis: achieved impact ≈ net CoM turn (ρ 0.98), driven by
   *sustained* surface rotation through the window, not the contact instant.
 - **Selection**: impact participates in local candidate cost
   (weight 0.5 + 0.25 mature; higher re-tested neutral) and fully in the true
   scorer that forward-eval ranks by.
-- **Parked**: slam-hop template lanes (`LR_IMPACT_TEMPLATE=1`, default OFF) —
-  purpose-built scoop candidates; they achieve 0.55+ in-pool but the
-  true-score rollout shows existing machinery serves bounded asks equally
-  well. Kept as the seed if a future ask band exceeds what modulation reaches.
+- **Template lanes**: purpose-built slam-hop scoop candidates remain in the
+  production geometry mix under their built-in budget/pressure gates. They are
+  selection-protected pool injections, not forced replacements.
 
 ## Alignment invariant (every layer asks for the same thing)
 

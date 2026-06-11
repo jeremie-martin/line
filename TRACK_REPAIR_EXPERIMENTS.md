@@ -240,8 +240,9 @@ both gates, so the only change there is the engine).
 - **Forward-eval ranker:** default = `greedy:2`, CHARGED honestly, gated ≥75k (`forwardEvalConfig`/
   `forwardEvalMinBudget`/`forwardArcValue`). `LR_FWD_EVAL=off` reverts to the local proxy; `LR_FWD_EVAL_CHARGE=0`
   refunds (the ceiling experiment).
-- **Repair:** default ON, upstream=3 (honest +1.1 vs 0), feasMargin 1.1, gate 150k, maxAttempts 64. `LR_REPAIR=0`
-  disables. Sub-knobs remain env-overridable for tuning.
+- **Repair:** default ON and no longer has a kill switch. Sub-knobs remain
+  env-overridable for tuning: min budget, main margin, feasibility margin,
+  max attempts, max upstream walk, and repair logging.
 - **Removed dead/rejected knobs:** `LR_FREE_PREVIEW` (superseded by forward-eval), `LR_REPAIR_VALUE_DENSITY`
   (rejected), `LR_REPAIR_NO_FEAS` (study done — feasibility-on won).
 - **Net default:** 569.7 → **592.0** honest full canonical (25k/50k byte-identical; 100k +16 fwd-eval; 150k/200k
@@ -252,5 +253,5 @@ both gates, so the only change there is the engine).
   adaptive restart placement by remaining budget, unifying the compiler's budget-aware mechanisms with repair.
 - Compose repair with geometry diversity (LR_QUALITY_NCAND=24) — untested, cheap rider.
 - Inventory of REMAINING tunables (kept, env-overridable): LR_REPAIR_{FEAS_MARGIN,MIN_BUDGET,MAIN_MARGIN,
-  MAX_ATTEMPTS,MAX_UPSTREAM,LOG}, LR_FWD_EVAL[_CHARGE,_MIN_BUDGET], LR_QUALITY_NCAND, LR_CURVE_FADE_OFF,
-  LR_NORMAL_FAMILY, LR_BUDGET_AWARE_CONTRACT, LR_ENGINE.
+  MAX_ATTEMPTS,MAX_UPSTREAM,LOG}, LR_FWD_EVAL[_CHARGE,_MIN_BUDGET], LR_QUALITY_NCAND,
+  LR_BUDGET_AWARE_CONTRACT, LR_ENGINE.

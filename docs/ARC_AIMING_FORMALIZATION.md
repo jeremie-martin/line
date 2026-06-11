@@ -33,6 +33,12 @@ The top-k model output is only a spending decision: which extra geometries shoul
 be evaluated exactly. The final pool is still sorted and searched from measured
 candidate data.
 
+Probe designs: production defaults to the 5-row cross (`cross5`; pitch and
+rotation probed separately around the base), with a 9-row grid opt-in
+(`LR_AIM_JOINT_PROBE_DESIGN=grid9`). The study harness defaults to `grid9` —
+when comparing study output against production behavior, pin the design
+explicitly.
+
 ## Objective
 
 For each knob setting, the model predicts:
@@ -65,7 +71,9 @@ next_gap_readiness =
   * impact_feasibility(predicted next rider state, next impact target)
 ```
 
-Pose is measured and modeled, but it is not yet a readiness input.
+Pose is measured and modeled, but it is not yet a readiness input. The
+catchability factor is clamped below at `R_MIN = 0.1`, so a wrong
+catchability surface can rank variants down but never veto everything.
 
 The joint aiming objective is:
 
@@ -85,26 +93,42 @@ There are two independent design axes.
 
 ### Response Target
 
-Direct-output response:
+Both response targets share the SAME short probe (see the next section) and
+identical probe cost. The choice is only where the fast physics reducer sits
+relative to the fit.
+
+Direct-output response (reduce-then-fit):
 
 ```text
 knobs -> final output vector
 ```
 
-The probe produces final quantities of interest, and the model fits those
-quantities directly.
+Each probe row's final quantities are computed first — the reducer completes
+the row's span axes and next-arrival state from the observed suffix — and the
+model fits those final quantities directly.
 
-Latent response:
+Latent response (fit-then-reduce):
 
 ```text
 knobs -> latent suffix state + prefix summaries
 latent state + prefix summaries + fast physics reducer -> final output vector
 ```
 
-The probe stops near arc exit instead of simulating to the next landing. The
-model predicts the rider state at the airborne suffix plus prefix summaries
-needed for current-gap span axes. Fast ballistic equations then derive the
+The model fits the latent quantities instead — the rider state at the airborne
+suffix plus prefix summaries needed for current-gap span axes — and the same
+reducer runs at prediction time on the fitted latents to derive the
 next-arrival state and reducer-derived current-gap axes.
+
+The latent path has one structural robustness advantage: latents are
+trajectory measurements, defined for every probe row whose airborne suffix
+exists, including rows that fail the current-gap hard gates. Direct
+current-gap outputs exist only for gate-passing rows. So under gate-failed
+probe rows, the latent path keeps fitting its reducer-derived current axes
+from full-rank data while the direct path loses rows (see "Gates,
+Identifiability, and Degraded Sweeps" below). The corresponding caveat: latent
+fits deliberately include gate-failed rows, whose reduced axes assume a
+gate-clean ride; a wrong prediction there still costs only one wasted exact
+evaluation, never a wrong track.
 
 ### Knob Interaction
 
@@ -169,6 +193,36 @@ plus direct fallback outputs for quantities whose sufficient statistics are not
 yet represented in the latent state
 ```
 
-The study harness may attach full-simulation truth for evaluation, but
-production short probes do not need to simulate to the next landing in latent
-mode.
+The study harness may attach full-simulation truth for evaluation; production
+short probes never simulate to the next landing in either response mode.
+
+## Gates, Identifiability, and Degraded Sweeps
+
+Probe rows carry hard-gate outcomes (survival, on-beat landing within ±1
+frame, no off-beat landings). Current-gap final outputs are only defined for
+rows that pass these gates — the gate marks where the measured axes describe
+an acceptable ride. Latent outputs are defined whenever the airborne suffix
+exists, and next-arrival outputs whenever the suffix reaches the next frame.
+
+Each per-output fit uses the richest functional form the gate-filtered rows
+can identify: the design's first-choice form (surface / biquadratic /
+quadratic, as historically validated per output), falling down a fixed ladder
+to a linear floor at 3 rows. The floor guarantees by construction that a
+single gate-failed probe row cannot erase an output model. Without it, the
+zero-slack 5-row cross design lost every current-axis model whenever one row
+failed a gate — and because axis quality over an empty error set defaults
+to 1, the sweep objective silently degraded to readiness × speed-fit ×
+impact-feasibility (measured on the golden suite: 41% of gaps for cross5,
+~5% for grid9, whose 9 rows have slack).
+
+When even the linear floor cannot fit (fewer than 3 usable rows), the sweep
+runs without the missing outputs. Degradation is always recorded, never
+silent (`compile_stats.aim`):
+
+- `joint_probe_current_ok` / `joint_probe_next_state_ok`: per-row hard-gate
+  pass counts over short probe rows — the upstream cause;
+- `joint_fit_degraded_outputs`: output models fitted below their first-choice
+  form;
+- `enum_current_axes_targeted` / `enum_current_axes_modeled` /
+  `enum_current_term_missing`: per-sweep targeted-axis model coverage, and
+  the count of sweeps whose objective lost the current-gap term entirely.

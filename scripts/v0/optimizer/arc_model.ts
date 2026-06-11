@@ -96,8 +96,22 @@ export type JointArcResponseFitOptions = {
   context?: JointArcResponseContext;
 };
 
+/** Functional forms a per-output fit can take, richest to simplest. */
+export type ArcResponseFitForm =
+  | "surface"
+  | "biquadratic"
+  | "joint_quadratic"
+  | "additive_quadratic"
+  | "linear";
+
 export type FittedArcOutputModel = {
   predict(knobs: ArcKnobs): number;
+  /** The functional form actually fitted. */
+  form: ArcResponseFitForm;
+  /** True when the hybrid identifiability ladder fitted below its first-choice
+   *  form because gate-filtered rows could not identify it (aim.ts telemetry
+   *  `joint_fit_degraded_outputs` aggregates this). */
+  degraded: boolean;
 };
 
 export type JointArcProbeRow = {
@@ -250,6 +264,10 @@ function roundKnobKey(n: number): string {
   return n.toFixed(6);
 }
 
+export function linearArcFeatures(knobs: ArcKnobs): number[] {
+  return [1, knobs.pitchDeg, knobs.rotateDeg];
+}
+
 export function additiveQuadraticFeatures(knobs: ArcKnobs): number[] {
   const p = knobs.pitchDeg;
   const r = knobs.rotateDeg;
@@ -276,15 +294,17 @@ export function fitArcResponseOutputModel(
 ): FittedArcOutputModel | null {
   switch (modelName) {
     case "linear":
-      return fitLinearArcOutput(rows, (k) => [1, k.pitchDeg, k.rotateDeg]);
+      return fitLinearArcOutput(rows, linearArcFeatures, "linear");
     case "additive_quadratic":
-      return fitLinearArcOutput(rows, additiveQuadraticFeatures);
+      return fitLinearArcOutput(rows, additiveQuadraticFeatures, "additive_quadratic");
     case "joint_quadratic":
-      return fitLinearArcOutput(rows, jointQuadraticFeatures);
+      return fitLinearArcOutput(rows, jointQuadraticFeatures, "joint_quadratic");
     case "surface": {
       const model = fitKnobSurfaceModel(rows, arcProbeDesignMinRows(probeDesignName));
       return model === null ? null : {
         predict: (knobs) => predictKnobSurfaceModel(model, knobs),
+        form: "surface",
+        degraded: false,
       };
     }
     case "hybrid":
@@ -295,27 +315,56 @@ export function fitArcResponseOutputModel(
 function fitLinearArcOutput(
   rows: Array<{ knobs: ArcKnobs; value: number }>,
   features: (knobs: ArcKnobs) => number[],
+  form: ArcResponseFitForm,
 ): FittedArcOutputModel | null {
   const model = fitLinearLeastSquares(rows.map((row) => ({ features: features(row.knobs), value: row.value })));
   return model === null ? null : {
     predict: (knobs) => predictLinearModel(model, features(knobs)),
+    form,
+    degraded: false,
   };
 }
 
+/** The production per-output fit: the richest functional form the rows can
+ * IDENTIFY. The first entry tried is the historically validated first-choice
+ * form for this output/design; when gate-failed probe rows leave too few
+ * finite rows for it (each fitter returns null below its row requirement),
+ * the fit falls down the ladder instead of disappearing. The linear floor
+ * (3 rows) makes the old failure mode — one gate-failed probe row silently
+ * deleting an output model, and with it the current-gap term of the sweep
+ * objective (empty axis-quality defaults to 1) — impossible by construction.
+ * Fully gate-clean pools take the first-choice branch and stay bit-identical
+ * to the pre-ladder behavior. Any below-first-choice fit is flagged
+ * `degraded` and surfaces in compile stats (`aim.joint_fit_degraded_outputs`). */
 function fitHybridArcOutput(
   rows: Array<{ knobs: ArcKnobs; value: number }>,
   output: string,
   probeDesignName: ArcProbeDesignName,
 ): FittedArcOutputModel | null {
-  if (hybridUsesSurface(output, probeDesignName)) {
+  const ladder: Array<[ArcResponseFitForm, (knobs: ArcKnobs) => number[]]> = [];
+  const wantsSurface = hybridUsesSurface(output, probeDesignName);
+  if (wantsSurface) {
     const model = fitKnobSurfaceModel(rows, arcProbeDesignMinRows(probeDesignName));
-    return model === null ? null : {
-      predict: (knobs) => predictKnobSurfaceModel(model, knobs),
-    };
+    if (model !== null) {
+      return {
+        predict: (knobs) => predictKnobSurfaceModel(model, knobs),
+        form: "surface",
+        degraded: false,
+      };
+    }
+  } else if (hybridUsesBiquadratic(output, probeDesignName)) {
+    ladder.push(["biquadratic", biquadraticFeatures]);
   }
-  const features = hybridUsesBiquadratic(output, probeDesignName) ? biquadraticFeatures :
-    probeDesignName === "grid9" ? jointQuadraticFeatures : additiveQuadraticFeatures;
-  return fitLinearArcOutput(rows, features);
+  if (probeDesignName === "grid9") ladder.push(["joint_quadratic", jointQuadraticFeatures]);
+  ladder.push(["additive_quadratic", additiveQuadraticFeatures]);
+  ladder.push(["linear", linearArcFeatures]);
+  let firstChoice = !wantsSurface;
+  for (const [form, features] of ladder) {
+    const fitted = fitLinearArcOutput(rows, features, form);
+    if (fitted !== null) return firstChoice ? fitted : { ...fitted, degraded: true };
+    firstChoice = false;
+  }
+  return null;
 }
 
 function hybridUsesBiquadratic(output: string, probeDesignName: ArcProbeDesignName): boolean {

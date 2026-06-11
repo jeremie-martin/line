@@ -58,7 +58,7 @@
 import { getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
 import { axisLookaheadEndFrame, tryCandidateLines } from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
-import { authoredSpeedToPx, CALIB, type TrackLine } from "../types.ts";
+import { authoredSpeedToPx, AXES, CALIB, type TrackLine } from "../types.ts";
 import { axisQualityForTargets } from "../score.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import {
@@ -75,6 +75,7 @@ import {
   rotateArcLines,
   type ArcKnobs,
   type ArcProbeDesignName,
+  type JointArcResponseModel,
   type JointArcResponseMode,
   type RiderArrivalState,
 } from "./arc_model.ts";
@@ -180,6 +181,24 @@ export type AimStats = {
   joint_probe_suffix_mean: number;
   joint_probe_full_horizon_mean: number;
   joint_probe_saved_frames_mean: number;
+  /** Per-row hard-gate outcomes over short probe rows. Gate-failed rows carry
+   *  no current-gap outputs, which thins the per-output fit data — the
+   *  upstream cause of every degradation counter below. */
+  joint_probe_current_ok: number;
+  joint_probe_next_state_ok: number;
+  /** Output models the hybrid identifiability ladder fitted BELOW their
+   *  first-choice functional form (too few gate-clean rows). The model still
+   *  exists — the ladder floor is linear — but with less curvature. */
+  joint_fit_degraded_outputs: number;
+  /** Per-sweep current-gap term coverage: of the gap's targeted axes, how
+   *  many had a model prediction at the base knobs (sums), and how many
+   *  sweeps had NONE — i.e. the objective degraded to
+   *  readiness × speed-fit × impact-feasibility with axis quality pinned
+   *  at its empty-default 1. Before the identifiability ladder this
+   *  degradation was silent; it must stay observable. */
+  enum_current_axes_targeted: number;
+  enum_current_axes_modeled: number;
+  enum_current_term_missing: number;
 };
 
 const aimTotals = {
@@ -195,6 +214,11 @@ const aimTotals = {
   joint_probe_rows: 0, joint_probe_clean_suffix: 0,
   jointProbeHorizonSum: 0, jointProbeSuffixSum: 0, jointProbeSuffixRows: 0,
   jointProbeFullHorizonSum: 0, jointProbeSavedFramesSum: 0,
+  joint_probe_current_ok: 0, joint_probe_next_state_ok: 0,
+  // Fit/objective degradation telemetry (recordJointModelCoverage).
+  joint_fit_degraded_outputs: 0,
+  enum_current_axes_targeted: 0, enum_current_axes_modeled: 0,
+  enum_current_term_missing: 0,
 };
 
 /** Record where a lane proposal ranked in the cost-sorted pool it entered,
@@ -223,6 +247,8 @@ function recordJointProbeRows(
   for (const row of rows) {
     if (row.mode !== "short") continue;
     aimTotals.joint_probe_rows++;
+    if (row.gate.currentOk) aimTotals.joint_probe_current_ok++;
+    if (row.gate.nextStateOk) aimTotals.joint_probe_next_state_ok++;
     if (row.cleanAirborneSuffix === true) aimTotals.joint_probe_clean_suffix++;
     aimTotals.jointProbeHorizonSum += row.horizonFrame;
     aimTotals.jointProbeFullHorizonSum += fullHorizon;
@@ -232,6 +258,39 @@ function recordJointProbeRows(
       aimTotals.jointProbeSuffixSum += row.suffixFrame;
     }
   }
+}
+
+/** Record, once per joint sweep, how much of the objective's current-gap term
+ *  the fitted model actually covers at the base knobs, plus how many output
+ *  models the identifiability ladder fitted below first choice. A sweep whose
+ *  targeted axes have NO model prediction ranks on
+ *  readiness × speed-fit × impact-feasibility alone (axis quality defaults
+ *  to 1 on an empty error set — score.ts axisQualityFromErrors); that is a
+ *  legitimate degraded mode, but it must never again be invisible. */
+function recordJointModelCoverage(
+  model: JointArcResponseModel,
+  baseOutputs: Record<string, number>,
+  gap: Gap,
+): void {
+  const axes = predictedCurrentAxes(baseOutputs);
+  let targeted = 0;
+  let modeled = 0;
+  for (const axis of AXES) {
+    if (gap.targets[axis] === undefined) continue;
+    targeted++;
+    if (axes[axis] !== undefined) modeled++;
+  }
+  aimTotals.enum_current_axes_targeted += targeted;
+  aimTotals.enum_current_axes_modeled += modeled;
+  if (targeted > 0 && modeled === 0) aimTotals.enum_current_term_missing++;
+  let degraded = 0;
+  for (const fitted of model.outputModels.values()) {
+    if (fitted.model.degraded) degraded++;
+  }
+  for (const fitted of model.latentModels.values()) {
+    if (fitted.model.degraded) degraded++;
+  }
+  aimTotals.joint_fit_degraded_outputs += degraded;
 }
 
 export function resetAimStats(): void {
@@ -275,6 +334,12 @@ export function snapshotAimStats(): AimStats | null {
       ? round3(aimTotals.jointProbeFullHorizonSum / aimTotals.joint_probe_rows) : 0,
     joint_probe_saved_frames_mean: aimTotals.joint_probe_rows > 0
       ? round3(aimTotals.jointProbeSavedFramesSum / aimTotals.joint_probe_rows) : 0,
+    joint_probe_current_ok: aimTotals.joint_probe_current_ok,
+    joint_probe_next_state_ok: aimTotals.joint_probe_next_state_ok,
+    joint_fit_degraded_outputs: aimTotals.joint_fit_degraded_outputs,
+    enum_current_axes_targeted: aimTotals.enum_current_axes_targeted,
+    enum_current_axes_modeled: aimTotals.enum_current_axes_modeled,
+    enum_current_term_missing: aimTotals.enum_current_term_missing,
   };
 }
 
@@ -659,6 +724,7 @@ function makeJointAimedCandidates(
   });
 
   const baseKnobs = { pitchDeg: 0, rotateDeg: 0 };
+  recordJointModelCoverage(model, predictJointArcOutputs(model, baseKnobs), gap);
   const baseScore = scoreJointKnobs(model, baseKnobs, gap, nextGap, speedTarget);
   if (baseScore === null) {
     aimTotals.enum_probe_crash++;

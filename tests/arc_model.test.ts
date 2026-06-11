@@ -155,6 +155,62 @@ describe("arc_model joint response helpers", () => {
     expect(state!.comAngleDeg).toBeCloseTo(10);
   });
 
+  test("hybrid identifiability ladder keeps current-axis models when a probe row fails the gates", () => {
+    // One non-base probe row fails the hard gates: it carries next.* outputs
+    // but NO current.* outputs (arc_probe only emits those when currentOk).
+    // The first-choice forms (surface / additive quadratic) need all 5 cross5
+    // rows, so before the ladder every current.* model vanished and the sweep
+    // objective silently lost its current-gap term.
+    const failed = { pitchDeg: 8.5, rotateDeg: 0 };
+    const rows = arcProbeDesign("cross5").map((knobs) => {
+      const p = knobs.pitchDeg;
+      const r = knobs.rotateDeg;
+      const gateFailed = knobs.pitchDeg === failed.pitchDeg && knobs.rotateDeg === failed.rotateDeg;
+      return {
+        knobs,
+        outputs: {
+          ...(gateFailed ? {} : {
+            "current.cost": 0.1 + 0.01 * p - 0.02 * r,
+            "current.axis.air": 0.5 + 0.01 * p,
+            "current.axis.speed": 0.7 - 0.005 * p,
+            "current.error.air": 0.05 + 0.01 * p,
+          }),
+          "next.speed": 9.1 + 0.1 * p + 0.2 * r,
+          "next.comAngleDeg": 10 + p + r,
+        },
+      };
+    });
+    const model = fitJointArcResponseModel(rows, "cross5");
+    const outputs = predictJointArcOutputs(model, { pitchDeg: 2, rotateDeg: 0 });
+    // The generating functions are linear, so the linear-floor fit over the
+    // four gate-clean rows recovers them exactly.
+    expect(outputs["current.axis.air"]).toBeCloseTo(0.5 + 0.01 * 2, 6);
+    expect(outputs["current.axis.speed"]).toBeCloseTo(0.7 - 0.005 * 2, 6);
+    expect(outputs["current.cost"]).toBeCloseTo(0.1 + 0.01 * 2, 6);
+    // Degradation is explicit, never silent: current.* fell to the linear
+    // floor; next.* had all five rows and kept its first-choice form.
+    expect(model.outputModels.get("current.axis.air")?.model.degraded).toBe(true);
+    expect(model.outputModels.get("current.axis.air")?.model.form).toBe("linear");
+    expect(model.outputModels.get("next.speed")?.model.degraded).toBe(false);
+    expect(model.outputModels.get("next.speed")?.model.form).toBe("additive_quadratic");
+  });
+
+  test("hybrid fits are unchanged (first choice, not degraded) when every probe row passes", () => {
+    const rows = arcProbeDesign("cross5").map((knobs) => ({
+      knobs,
+      outputs: {
+        "current.axis.air": 0.5 + 0.01 * knobs.pitchDeg,
+        "current.axis.speed": 0.7 - 0.005 * knobs.pitchDeg,
+        "next.speed": 9.1 + 0.1 * knobs.pitchDeg,
+      },
+    }));
+    const model = fitJointArcResponseModel(rows, "cross5");
+    expect(model.outputModels.get("current.axis.air")?.model.form).toBe("surface");
+    expect(model.outputModels.get("current.axis.air")?.model.degraded).toBe(false);
+    expect(model.outputModels.get("current.axis.speed")?.model.form).toBe("additive_quadratic");
+    expect(model.outputModels.get("current.axis.speed")?.model.degraded).toBe(false);
+  });
+
   test("latent joint response predicts suffix state and reduces it to final outputs", () => {
     const rows = arcProbeDesign("cross5").map((knobs) => {
       const p = knobs.pitchDeg;

@@ -513,6 +513,15 @@ export type CompileStats = {
     aimed_top3: number;
     aimed_rank_sum: number;
     aimed_pool_size_sum: number;
+    /** Joint short-probe telemetry: stop/suffix/full-horizon frame means and
+     *  estimated saved frames per probe row. A "clean suffix" is one whose
+     *  observed suffixFrame..horizonFrame window stays fully airborne. */
+    joint_probe_rows: number;
+    joint_probe_clean_suffix: number;
+    joint_probe_horizon_mean: number;
+    joint_probe_suffix_mean: number;
+    joint_probe_full_horizon_mean: number;
+    joint_probe_saved_frames_mean: number;
   };
   /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;

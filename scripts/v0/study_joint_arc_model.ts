@@ -147,6 +147,11 @@ type SampleRow = {
   rotateDeg: number;
   gate: Gate;
   outputs: Record<string, number>;
+  truthOutputs?: Record<string, number>;
+  truthGate?: Gate;
+  horizonFrame: number;
+  suffixFrame: number | null;
+  cleanAirborneSuffix: boolean | null;
 };
 type MetricRow = {
   model: string;
@@ -286,7 +291,16 @@ function evaluateKnobs(
   knobs: ArcKnobs,
 ): SampleRow {
   const engine = mkEngine(track, before);
-  const probe = evaluateJointArcKnobs(engine, arc, knobs, gap, contactFrames, axisMeasureEnd, nextFrame);
+  const probe = evaluateJointArcKnobs(
+    engine,
+    arc,
+    knobs,
+    gap,
+    contactFrames,
+    axisMeasureEnd,
+    nextFrame,
+    { includeTruth: true },
+  );
 
   return {
     spec,
@@ -297,6 +311,13 @@ function evaluateKnobs(
     rotateDeg: knobs.rotateDeg,
     gate: probe.gate,
     outputs: probe.outputs,
+    ...(probe.truth === undefined ? {} : {
+      truthOutputs: probe.truth.outputs,
+      truthGate: probe.truth.gate,
+    }),
+    horizonFrame: probe.horizonFrame,
+    suffixFrame: probe.suffixFrame,
+    cleanAirborneSuffix: probe.cleanAirborneSuffix,
   };
 }
 
@@ -393,8 +414,19 @@ function groupKey(row: SampleRow): string {
 
 function outputKeys(rows: SampleRow[]): string[] {
   const keys = new Set<string>();
-  for (const row of rows) for (const key of Object.keys(row.outputs)) keys.add(key);
+  for (const row of rows) {
+    for (const key of Object.keys(row.outputs)) keys.add(key);
+    for (const key of Object.keys(row.truthOutputs ?? {})) keys.add(key);
+  }
   return [...keys].sort();
+}
+
+function actualOutputs(row: SampleRow): Record<string, number> {
+  return row.split === "eval" ? row.truthOutputs ?? row.outputs : row.outputs;
+}
+
+function actualOutput(row: SampleRow, output: string): number {
+  return actualOutputs(row)[output];
 }
 
 type ErrorSample = { signed: number; abs: number; localNormalizedAbs: number };
@@ -461,13 +493,19 @@ for (const groupRows of groups.values()) {
   const baseline = groupRows.find((r) => r.pitchDeg === 0 && r.rotateDeg === 0);
   for (const output of keys) {
     const angle = isArcAngleOutput(output);
-    const finiteRows = groupRows.filter((r) => Number.isFinite(r.outputs[output]));
+    const finiteRows = groupRows.filter((r) => Number.isFinite(actualOutput(r, output)));
     if (finiteRows.length === 0) continue;
-    const ref = baseline?.outputs[output] ?? finiteRows[0].outputs[output];
-    const values = finiteRows.map((r) => angle ? unwrapAngleAround(r.outputs[output], ref) : r.outputs[output]);
+    const ref = baseline === undefined || !Number.isFinite(actualOutput(baseline, output))
+      ? actualOutput(finiteRows[0], output)
+      : actualOutput(baseline, output);
+    const values = finiteRows.map((r) => {
+      const actual = actualOutput(r, output);
+      return angle ? unwrapAngleAround(actual, ref) : actual;
+    });
     const range = Math.max(...values) - Math.min(...values);
     for (const row of finiteRows) {
-      addOutputActual(row.split, output, angle ? unwrapAngleAround(row.outputs[output], ref) : row.outputs[output]);
+      const actual = actualOutput(row, output);
+      addOutputActual(row.split, output, angle ? unwrapAngleAround(actual, ref) : actual);
     }
 
     const probeRows = groupRows
@@ -478,7 +516,7 @@ for (const groupRows of groups.values()) {
       }));
     if (probeRows.length === 0) continue;
     const evalRowsForOutput = groupRows
-      .filter((r) => r.split === "eval" && Number.isFinite(r.outputs[output]))
+      .filter((r) => r.split === "eval" && Number.isFinite(actualOutput(r, output)))
       .length;
 
     for (const modelSpec of MODEL_SPECS) {
@@ -490,7 +528,7 @@ for (const groupRows of groups.values()) {
       cov.groupsFitted++;
       cov.evalRowsCovered += evalRowsForOutput;
       for (const row of groupRows) {
-        const actualRaw = row.outputs[output];
+        const actualRaw = actualOutput(row, output);
         if (!Number.isFinite(actualRaw)) continue;
         const actual = angle ? unwrapAngleAround(actualRaw, ref) : actualRaw;
         const pred = fit.predict({ pitchDeg: row.pitchDeg, rotateDeg: row.rotateDeg });
@@ -611,6 +649,141 @@ function printLoss(losses: LossRow[], requested: string): void {
   }
 }
 
+const NEXT_STATE_SUMMARY_OUTPUTS = [
+  "next.x",
+  "next.y",
+  "next.vx",
+  "next.vy",
+  "next.speed",
+  "next.comAngleDeg",
+  "next.sledPoseDeg",
+  "next.sledPoseRateDegPerFrame",
+] as const;
+
+function outputUnit(output: string): string {
+  if (output === "next.x" || output === "next.y") return "px";
+  if (output === "next.vx" || output === "next.vy") return "px/f";
+  if (output === "next.speed") return "px/f";
+  if (output === "next.comAngleDeg" || output === "next.sledPoseDeg") return "deg";
+  if (output === "next.sledPoseRateDegPerFrame") return "deg/f";
+  if (output.startsWith("current.axis.")) return "axis units";
+  if (output.startsWith("current.error.")) return "axis units";
+  if (output === "current.cost") return "cost";
+  return "";
+}
+
+function selectedSummaryOutputs(metrics: MetricRow[], model: string): string[] {
+  const available = new Set(
+    metrics
+      .filter((m) => m.split === "eval" && m.model === model)
+      .map((m) => m.output),
+  );
+  return summaryOutputsForAvailable(available);
+}
+
+function summaryOutputsForAvailable(available: ReadonlySet<string>): string[] {
+  const currentAxes = AXES.map((axis) => `current.axis.${axis}`);
+  const currentErrors = AXES
+    .map((axis) => `current.error.${axis}`)
+    .filter((output) => available.has(output));
+  return [
+    ...currentAxes,
+    ...currentErrors,
+    "current.cost",
+    ...NEXT_STATE_SUMMARY_OUTPUTS,
+  ];
+}
+
+function printSelectedOutputSummary(metrics: MetricRow[], losses: LossRow[], requested: string): void {
+  const selected = selectLoss(losses, requested);
+  if (selected === null) return;
+
+  console.log("\nSelected model output summary (held-out eval)");
+  console.log("output group                           MAE        p90        unit");
+  for (const output of selectedSummaryOutputs(metrics, selected.model)) {
+    const metric = metrics.find((m) => m.split === "eval" && m.model === selected.model && m.output === output);
+    console.log(
+      `${output.padEnd(35)} ${fmt(metric?.mae ?? NaN).padStart(8)}` +
+        ` ${fmt(metric?.p90 ?? NaN).padStart(10)}       ${outputUnit(output)}`,
+    );
+  }
+}
+
+type TruthBucket = "all" | "clean_suffix";
+type TruthMetricRow = {
+  bucket: TruthBucket;
+  output: string;
+  n: number;
+  mae: number;
+  p90: number;
+};
+
+function shortTruthMetricRows(sampleRows: SampleRow[]): TruthMetricRow[] {
+  const samples = new Map<string, number[]>();
+  const add = (bucket: TruthBucket, output: string, abs: number): void => {
+    const key = `${bucket}\0${output}`;
+    const xs = samples.get(key) ?? [];
+    xs.push(abs);
+    samples.set(key, xs);
+  };
+
+  for (const row of sampleRows) {
+    if (row.split !== "eval" || row.truthOutputs === undefined) continue;
+    const available = new Set([...Object.keys(row.outputs), ...Object.keys(row.truthOutputs)]);
+    for (const output of summaryOutputsForAvailable(available)) {
+      const pred = row.outputs[output];
+      const actual = row.truthOutputs[output];
+      if (!Number.isFinite(pred) || !Number.isFinite(actual)) continue;
+      const signed = isArcAngleOutput(output) ? normalizeAngleDeg(pred - actual) : pred - actual;
+      const abs = Math.abs(signed);
+      add("all", output, abs);
+      if (row.cleanAirborneSuffix === true) add("clean_suffix", output, abs);
+    }
+  }
+
+  return [...samples.entries()]
+    .map(([key, abs]) => {
+      const [bucket, output] = key.split("\0") as [TruthBucket, string];
+      return {
+        bucket,
+        output,
+        n: abs.length,
+        mae: mean(abs),
+        p90: pctl(abs, 0.9),
+      };
+    })
+    .sort((a, b) =>
+      a.output.localeCompare(b.output) || a.bucket.localeCompare(b.bucket)
+    );
+}
+
+function printShortTruthSummary(sampleRows: SampleRow[]): void {
+  const evalRows = sampleRows.filter((row) => row.split === "eval" && row.truthOutputs !== undefined);
+  const cleanRows = evalRows.filter((row) => row.cleanAirborneSuffix === true);
+  const horizonFrames = evalRows.map((row) => row.horizonFrame);
+  const suffixFrames = evalRows
+    .map((row) => row.suffixFrame)
+    .filter((frame): frame is number => frame !== null);
+  const metrics = shortTruthMetricRows(sampleRows);
+  console.log("\nShort-probe output vs full-sim truth (held-out eval)");
+  console.log(
+    `eval truth rows=${evalRows.length} clean_suffix=${cleanRows.length}` +
+      ` mean_horizon=${fmt(mean(horizonFrames))}f mean_suffix=${fmt(mean(suffixFrames))}f`,
+  );
+  console.log("output group                        all MAE    all p90  clean MAE  clean p90  unit");
+  const available = new Set(metrics.map((m) => m.output));
+  for (const output of summaryOutputsForAvailable(available)) {
+    const all = metrics.find((m) => m.bucket === "all" && m.output === output);
+    const clean = metrics.find((m) => m.bucket === "clean_suffix" && m.output === output);
+    console.log(
+      `${output.padEnd(35)} ${fmt(all?.mae ?? NaN).padStart(7)}` +
+        ` ${fmt(all?.p90 ?? NaN).padStart(10)}` +
+        ` ${fmt(clean?.mae ?? NaN).padStart(10)}` +
+        ` ${fmt(clean?.p90 ?? NaN).padStart(10)}  ${outputUnit(output)}`,
+    );
+  }
+}
+
 function printModelComparison(metrics: MetricRow[]): void {
   const evalMetrics = metrics.filter((m) => m.split === "eval" && m.n > 0);
   const byOutput = new Map<string, MetricRow[]>();
@@ -714,6 +887,8 @@ console.log("\nGate coverage");
 for (const line of gateSummary(rows)) console.log(line);
 console.log("\nModel error (held-out eval rows are the main read; nMAE/nP90 use max(held-out output range, output scale floor); range_nMAE/range_nP90 and local_nMAE/local_nP90 remain diagnostics)");
 printLoss(losses, lossModelName);
+printSelectedOutputSummary(metrics, losses, lossModelName);
+printShortTruthSummary(rows);
 printModelComparison(metrics);
 printFitCoverageGaps();
 if (showDetails) {

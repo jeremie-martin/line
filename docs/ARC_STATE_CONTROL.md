@@ -2,10 +2,19 @@
 
 2026-06-11 · branch arc-rewrite · accepted canonical baseline
 `scoop-off-price-01` (600.91). The working tree now contains the true joint
-probe/model/proposer path described below; its first canonical run
-(`joint-model-real-compiler-01`) was a real compiler integration but a score
-regression (592.41, verdict REJECT). Companion: `IMPACT_PAIR_PLANNING.md` (the
-impact diagnosis this work answered). Code: `scripts/v0/optimizer/aim.ts` (the
+probe/model/proposer path described below. Its first full-next-state canonical
+run (`joint-model-real-compiler-01`) was a real compiler integration but a
+score regression (592.41, verdict REJECT). The current implementation keeps the
+same joint output-vector interface but changes probe economics: probes simulate
+only through the current catch/exit, then complete span axes and next-arrival
+state with a ballistic suffix. Its first canonical archive
+(`joint-short-probe-01`) scored 593.60 raw; `decide` refused the formal paired
+comparison because the evaluator fingerprint changed when the measurement
+module gained the suffix-aware reducer. The follow-up exit-plane suffix rule
+(`joint-short-probe-exitplane-01`) scored 593.18 raw. Treat both as real
+instrumentation and non-promotions until a same-fingerprint re-baseline says
+otherwise. Companion: `IMPACT_PAIR_PLANNING.md` (the impact diagnosis this work
+answered). Code: `scripts/v0/optimizer/aim.ts` (the
 proposer), `optimizer/arc_model.ts` (shared knob/model helpers),
 `optimizer/arc_probe.ts` (shared real-engine probe evaluator),
 `optimizer/readiness.ts` (the readiness metric), `optimizer/node.ts` (pool
@@ -19,7 +28,7 @@ with current-gap quality terms → top-k proposals through exact production
 evaluation. The accepted baseline instance used per-knob quadratic fits and
 lazy additive pitch+rotation composition. The current working-tree instance
 uses the same proposer boundary but fits a shared joint response model from
-five or nine real probe rides and predicts current-gap axes/cost plus the
+five or nine short real probe rides and predicts current-gap axes/cost plus the
 full next-arrival rider state. Every hand-tuned predecessor (V3 speed-aim,
 V4 angle-aim, the arrival-conditioned scoop lane, the rotate fallback, the
 climb defer) was subsumed by the proposer boundary and deleted once its
@@ -86,13 +95,18 @@ arc modifications                                            · rider state (x/y
 
 Properties the concept requires (and both realized instances have):
 
-- **One probe ride = the full measurable output vector.** A probe is a
-  metered ride of a perturbed candidate on a forked engine. Frame-state
-  quantities (position, velocity, speed, CoM angle, pose, pose rate) are
-  read from the same ride at no extra cost; a rich current-gap probe can
-  also run the existing axis reducers once and get every defined axis and
-  impact target together. Probe count therefore scales with the model order
-  and knob-space design, not with the number of outputs.
+- **One probe ride = the full predicted output vector.** A production probe is
+  a metered ride of a perturbed candidate on a forked engine, but it no longer
+  has to simulate all the way to the next gap. It simulates through the current
+  landing/impact window and until the rider is observed airborne after crossing
+  the arc-end plane, then uses that state as the suffix state. Current span axes
+  (`air`, `speed`, `elevation`, `amplitude`) are reconstructed from measured
+  prefix frames plus a contact-free ballistic suffix; `grain` is geometry-only;
+  current `impact` is measured from the simulated landing window. The same
+  suffix state is propagated to the next gap to predict
+  `x/y/vx/vy/speed/CoM angle/pose/pose rate`. Probe count therefore scales with
+  model order and knob-space design, not with the number of outputs or the
+  next-gap distance.
 - **Joint model interface; two concrete instances**: the architecture is a
   multi-input model over controllable arc knobs and predicted outputs. The
   accepted baseline instance realizes that interface as per-knob scalar fits
@@ -103,9 +117,11 @@ Properties the concept requires (and both realized instances have):
   but only exact simulation may rank or commit them.
 - **Error is priced.** Every emitted production proposal records readiness
   prediction error (`compile_stats.aim.*err*`). Richer model construction is
-  evaluated offline by `study_joint_arc_model.ts`: fit on probe rows, then
-  predict held-out simulated knob rows and report standard regression error
-  per output.
+  evaluated offline by `study_joint_arc_model.ts`: fit on the same short-probe
+  rows production uses, attach full-sim truth only for held-out eval rows, and
+  report standard regression error per output. The harness also prints direct
+  short-probe-output vs full-sim-truth MAE/p90 for the current axes, impact/cost,
+  and next-arrival state.
 - **Swappable.** Nothing downstream knows a candidate was aimed (the
   `aimed` flag is telemetry). Model order, probe count, knob
   set, output set, number of aimed candidates, single- vs multi-target
@@ -197,6 +213,7 @@ build_candidate_pool(prefix_engine, current_gap):
     row = evaluateJointArcKnobs(prefix_engine, probed_lines, current_gap)
 
     # row may include:
+    #   mode=short, horizonFrame, suffixFrame, cleanAirborneSuffix
     #   current.cost
     #   current.axis.air/speed/grain/elevation/amplitude/impact where measured
     #   current.error.<axis> only for axes targeted by current_gap
@@ -241,6 +258,71 @@ Therefore the model is never the judge. It can only decide which two extra
 geometries are worth paying to evaluate. The final sorted pool contains only
 exactly simulated candidates.
 
+### Short-probe observation
+
+`evaluateJointArcKnobs` / `evaluateJointArcLines` is the shared source of
+truth used by production and by `study_joint_arc_model.ts`. Production uses
+`mode="short"` by default. The harness uses the same short row, and only adds
+`includeTruth` full simulation beside it for scoring diagnostics.
+
+Short mode is:
+
+```text
+full_horizon = max(gap.endFrame + 20, axisMeasureEnd + 20, nextFrame + 2)
+min_exit     = gap.endFrame + max(16, IMPACT_WINDOW)
+cap          = max(min_exit, nextFrame - 1)
+
+for horizon in min_exit, min_exit+8, ... cap:
+  det = detectWindow(prefix_engine + probed_lines, gap.startFrame, horizon)
+
+  if probe crashed before horizon:
+    stop at horizon
+
+  if rider is airborne and past the arc-end plane at any frame >= min_exit:
+    stop at horizon
+
+arc_exit_plane =
+  endpoint = last point of the last arc segment
+  direction = normalized vector from the first arc point to endpoint
+  # left-to-right reduces to rider.x > endpoint.x; other directions use dot
+
+suffix_frame =
+  first frame in [min_exit, horizon] where rider is airborne and
+  dot(rider.position - endpoint, direction) > 0
+suffix_state = read rider state at suffix_frame
+cleanAirborneSuffix =
+  true  if every observed frame suffix_frame..horizon is airborne
+  false if suffix_frame exists but later contact appears before horizon
+  null  if no suffix_frame exists
+
+current impact:
+  measured directly from simulated current-landing frames
+
+current span axes:
+  prefix frames come from the detector
+  air/speed/elevation/amplitude after suffix_frame use contact-free ballistic
+  propagation from suffix velocity until axisMeasureEnd; dirty suffix rows still
+  emit this modeled output, but are separated in harness diagnostics
+  grain remains geometry-only
+
+next rider state:
+  ballistic propagation from suffix_state to nextFrame
+  including x/y/vx/vy/speed/CoM angle and sled pose if pose rate is available
+
+telemetry:
+  horizonFrame, suffixFrame, cleanAirborneSuffix
+  plus compile_stats.aim aggregate rows/clean/horizon/full-horizon/saved frames
+```
+
+This is deliberately conservative about authority: it still simulates the
+current landing and enough post-catch frames to observe an airborne suffix. A
+"dirty" suffix is not a failed probe; it means the stop chunk found an airborne
+frame but also observed later contact before the chunk ended. Production still
+uses the modeled ballistic row, while the harness prints all-row and
+clean-suffix error separately so this approximation is visible. The model does
+not guess the catch impact, and it never lets a suffix prediction enter the
+committed track without exact `tryCandidateLines` evaluation.
+
 ## 2. Prediction inventory — models as inputs → outputs
 
 | #   | inputs (knob)                             | outputs predicted                                                                                | model                                                                      | probes                                                      | used for                                                                  | status · accuracy                                                                                                                                         |
@@ -248,10 +330,10 @@ exactly simulated candidates.
 | 1   | exit pitch δp                             | (speed, CoM angle) at the next beat                                                              | quadratic per quantity                                                     | 3 (shared: base, ±6°)                                       | accepted-baseline proposer sweep                                          | ACCEPTED BASELINE · readiness err mean ~0.012 live                                                                                                        |
 | 2   | whole-arc rotation δr                     | (speed, CoM angle) at the next beat                                                              | quadratic per quantity                                                     | 2 more (±3°; base shared) — paid lazily at pitch exhaustion | accepted-baseline 2-D sweep where pitch clamps                            | ACCEPTED BASELINE (R3 v2) · additive composition with #1                                                                                                  |
 | 3   | accepted-baseline composed (δp, δr)       | (speed, CoM angle)                                                                               | additive sum of #1+#2; no pitch×rotation interaction term                  | shared                                                      | 2-D objective sweep where rotation is recruited                           | CERTIFIED proposer-grade; 0.041 px/f / 0.63° p50 at the argmax (`study_joint_enum`)                                                                       |
-| 4   | current working-tree joint model (δp, δr) | current-gap axes/errors/cost/impact when defined + next x/y/vx/vy/speed/CoM angle/pose/pose-rate | shared hybrid per-output response model                                    | default five-point cross; optional 3×3 grid                 | production proposer in this branch: model sweep → top 2 exact evaluations | HOOKED INTO REAL COMPILER · canonical REJECT 592.41 vs 600.91                                                                                             |
-| 5   | joint local-regression study (δp, δr)     | same output vector as #4, plus held-out diagnostics                                              | configurable linear/additive quadratic/joint quadratic/surface/hybrid fits | five-point cross or 3×3 grid; eval grid/random              | workbench for the production model                                        | READ-ONLY (`study_joint_arc_model.ts`): fit on probe rows, evaluate on held-out simulated knob rows                                                       |
+| 4   | current working-tree joint model (δp, δr) | current-gap axes/errors/cost/impact when defined + next x/y/vx/vy/speed/CoM angle/pose/pose-rate | shared hybrid per-output response model                                    | default five-point cross; optional 3×3 grid; short probe + ballistic suffix | production proposer in this branch: model sweep → top 2 exact evaluations | HOOKED INTO REAL COMPILER · full-next-state rejected 592.41; short-probe 593.60; exit-plane suffix 593.18; not promoted                                  |
+| 5   | joint local-regression study (δp, δr)     | same output vector as #4, plus full-sim truth diagnostics                                        | configurable linear/additive quadratic/joint quadratic/surface/hybrid fits | five-point cross or 3×3 grid; eval grid/random              | workbench for the production model                                        | READ-ONLY (`study_joint_arc_model.ts`): fit on short probe rows, evaluate on held-out full-sim truth rows                                                  |
 | —   | any knob                                  | sled pose (internal rotation)                                                                    | state output, not readiness input today                                    | free (same rides)                                           | future readiness or aesthetic/rotation steering                           | SENSOR PLUMBED (`ProbeOutcome.sledPoseDeg`, `CandidateProbe.sledPoseDeg()`); V0: ~40° authority, locally smooth, globally wrapping — unwrap by continuity |
-| —   | any knob                                  | current-gap axis VALUES and current impact when defined                                          | measured per probe by the existing axis reducers                           | requires full rich probe simulation                         | future current-gap quality prediction                                     | VIABLE per V2 for pitch; now included in `study_joint_arc_model.ts` for model-construction evaluation                                                     |
+| —   | any knob                                  | current-gap axis VALUES and current impact when defined                                          | measured from prefix frames plus ballistic suffix where needed              | same short probe                                            | current-gap quality prediction                                            | ACTIVE in the joint output-vector model; direct short-vs-full truth errors printed by the harness                                                         |
 
 MEASURED EXACTLY (simulation, never modeled): every candidate's axis vector,
 gates and cost (`tryCandidateLines`); the arrival state at each gap from the
@@ -276,14 +358,19 @@ It has two realized inner-model instances:
   with two additional probes only when pitch is exhausted; sweep the additive
   model; objective = readiness × speed-fit × impact-feasibility; top-k into
   the pool, current k=2.
-- **Current working tree (`joint-model-real-compiler-01`)**: evaluate the
-  shared joint probe design around the best sampled candidate; fit a per-output
-  response model for current axes/cost plus full next-arrival rider state;
-  sweep the 2-D knob grid inside the probed span; score =
+- **Current working tree (`joint-short-probe-01` family)**: evaluate the
+  shared short joint probe design around the best sampled candidate; fit a
+  per-output response model for current axes/cost plus full next-arrival rider
+  state; sweep the 2-D knob grid inside the probed span; score =
   readiness × speed-fit × next-impact-feasibility × current-cost-fit; simulate
   the top two distinct knob pairs through `tryCandidateLines`; add only exact
-  passing candidates to the pool. This is hooked into the real compiler, but
-  the first canonical verdict rejected it (592.41 vs 600.91).
+  passing candidates to the pool. The probe/model/proposer path is hooked into
+  the real compiler; the previous full-next-state observation variant was
+  rejected (592.41 vs 600.91), the first short-probe variant scored 593.60 raw
+  in `joint-short-probe-01`, and the exit-plane suffix rule scored 593.18 raw
+  in `joint-short-probe-exitplane-01`. Because the evaluator fingerprint
+  changed, these are not formal `decide` verdicts; because they are still below
+  600.91 raw, they are not promotions.
 
 Subsumption record (each predecessor deleted when its ablation priced ~0):
 V3 speed-aim + V4 angle-aim triggers (ACCEPT Δ+3.3 → 600.71) · elevation
@@ -299,9 +386,14 @@ proposer funnel (considered→emitted), readiness prediction accuracy, the
 rotate split (`enum_rot_*`), and the **pool-rank instrument** (`aimed_*`:
 `pool_entries`, `rank0`, `top3`, `rank_sum`, `pool_size_sum`) — where
 proposals land in their cost-sorted pools, feeding the budget-shift
-question (§7). Commit-level: `handoff_aimed_selected`.
+question (§7). The short-probe path also reports `joint_probe_rows`,
+`joint_probe_clean_suffix`, `joint_probe_horizon_mean`,
+`joint_probe_suffix_mean`, `joint_probe_full_horizon_mean`, and
+`joint_probe_saved_frames_mean`, so canonical archives show where probes
+stopped and the estimated per-row frame savings. Commit-level:
+`handoff_aimed_selected`.
 
-## 4. Validated facts (snapshot, as of 2026-06-10)
+## 4. Validated facts (snapshot, as of 2026-06-11)
 
 From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knobs @300k), V1
 (`study_aim_replay.ts`, closed-loop with production gates), V2
@@ -326,6 +418,12 @@ From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knobs @300k), V1
 - **Axis values are probe-predictable too** (V2): within-gap secant err ≤1%
   of range where the knob has authority; cross-gap span axes 1–6%. Gap k's
   own impact range under exit pitch is exactly 0.000.
+- **Short probes now price their own approximation error.**
+  `study_joint_arc_model.ts` fits on the same short rows production uses and
+  compares held-out short outputs against full-sim truth. A broad smoke on
+  `cold_start` reported current-axis MAE around 0.001-0.012 axis units,
+  current-cost MAE 0.001, next-speed MAE 0.038 px/f, next-CoM-angle MAE
+  0.622 deg, and next-pose MAE 3.704 deg.
 - **Additivity**: 2-knob interactions ~10% of the combined effect at median (fine
   for a proposer), ~1× at p90 (never trust uncommitted).
 - **Pose wrapping caveat**: pose is locally smooth but globally wrapping
@@ -347,11 +445,16 @@ From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knobs @300k), V1
 | R3 joint multi-knob inner model (accepted lazy-additive v2) | 600.94                         | aim-joint-r3-02              |
 | scoop + legacy lanes deleted (parity, unification)          | **600.91 (accepted baseline)** | scoop-off-price-01           |
 | true joint output-vector model in real compiler             | 592.41 (REJECT)                | joint-model-real-compiler-01 |
+| short-probe joint output-vector model                       | 593.60 raw; no formal verdict  | joint-short-probe-01         |
+| exit-plane short-probe suffix                               | 593.18 raw; no formal verdict  | joint-short-probe-exitplane-01 |
 
 Suite: 40 specs × 12 seeds, budgets 50k–300k weighted; α=0.10 via `npm run
 decide`. Impact still costs ~55 headline points (`npm run lab -- report
 loss`) — the open prize. A real compiler integration is not a promotion until
-it beats the accepted baseline under `decide`.
+it beats the accepted baseline under `decide`. The short-probe archives changed
+the evaluator fingerprint, so `decide` correctly refused to compare them to
+`scoop-off-price-01`; the raw headlines are still useful for triage but not for
+acceptance.
 
 ## 6. Falsified & parked (don't re-run without new conditions)
 
@@ -393,6 +496,18 @@ it beats the accepted baseline under `decide`.
   "more predicted outputs" as automatically useful; it must either emit better
   candidates, spend fewer probes/evals, or avoid displacing the accepted
   baseline's cheap wins.
+- **Short-probe joint lane, first archive** (`joint-short-probe-01`): the
+  probe economics improved, but not enough. At the 300k checkpoint the archive
+  recorded 314,500 joint probe rows, 97.28% clean airborne suffixes, mean short
+  horizon 553.01f, former full horizon 573.61f, and 20.60 saved frames per
+  probe row. Raw headline was 593.60, so the richer lane still has an economic
+  problem even after avoiding most next-gap simulation.
+- **Exit-plane suffix rule** (`joint-short-probe-exitplane-01`): requiring the
+  airborne suffix to be past the arc-end plane was sound geometrically, but did
+  not improve canonical economics. Raw headline moved 593.60 → 593.18; at 300k
+  clean suffixes moved 97.275% → 97.218%, mean horizon 553.01f → 554.08f, and
+  saved frames 20.60 → 20.41. It remains useful as a clearer definition of
+  "outside the arc", not as a measured score win.
 - **The scoop and legacy lanes as separate machinery**: not falsified —
   SUBSUMED. Their ablations under the promoted proposer priced at ~0
   (scoop Δ−0.0; legacy unreachable), and the design commitment (§ header)
@@ -417,11 +532,12 @@ it beats the accepted baseline under `decide`.
    conversion stalls.
 3. **Make the richer local model earn its eval cost.**
    `study_joint_arc_model.ts` remains the workbench for held-out model error,
-   but `joint-model-real-compiler-01` proved that low prediction loss is not
-   enough. The next model iteration must report both model accuracy and
-   production economics: probe cost, gate-fail rate, emitted candidate count,
-   pool rank, commit rate, and budget-by-budget score. Production should move
-   beyond the accepted additive baseline only when that whole package wins.
+   but `joint-model-real-compiler-01` and `joint-short-probe-01` proved that
+   low prediction loss and cheaper observation are not enough by themselves.
+   The next model iteration must report both model accuracy and production
+   economics: probe cost, gate-fail rate, emitted candidate count, pool rank,
+   commit rate, and budget-by-budget score. Production should move beyond the
+   accepted additive baseline only when that whole package wins.
 
    Working prompt for the next model iteration: improve the local
    knob-response model and its proposal economics by editing

@@ -75,7 +75,7 @@ import {
   type ArcProbeDesignName,
   type RiderArrivalState,
 } from "./arc_model.ts";
-import { evaluateJointArcKnobs } from "./arc_probe.ts";
+import { evaluateJointArcKnobs, type JointArcProbeObservation } from "./arc_probe.ts";
 import { readinessCatchState } from "./readiness.ts";
 import type { Gap } from "../types.ts";
 
@@ -161,6 +161,16 @@ export type AimStats = {
   aimed_top3: number;
   aimed_rank_sum: number;
   aimed_pool_size_sum: number;
+  /** Joint short-probe telemetry. Means are frame numbers/counts over probe
+   *  rows; estimated saved frames are relative to the former full next-gap
+   *  observation horizon. A clean suffix stays airborne from suffixFrame
+   *  through horizonFrame; dirty rows are still modeled and audited. */
+  joint_probe_rows: number;
+  joint_probe_clean_suffix: number;
+  joint_probe_horizon_mean: number;
+  joint_probe_suffix_mean: number;
+  joint_probe_full_horizon_mean: number;
+  joint_probe_saved_frames_mean: number;
 };
 
 const aimTotals = {
@@ -172,6 +182,10 @@ const aimTotals = {
   // Selection-rank telemetry (recordLanePoolRank).
   aimed_pool_entries: 0, aimed_rank0: 0, aimed_top3: 0,
   aimed_rank_sum: 0, aimed_pool_size_sum: 0,
+  // Joint short-probe telemetry.
+  joint_probe_rows: 0, joint_probe_clean_suffix: 0,
+  jointProbeHorizonSum: 0, jointProbeSuffixSum: 0, jointProbeSuffixRows: 0,
+  jointProbeFullHorizonSum: 0, jointProbeSavedFramesSum: 0,
 };
 
 /** Record where a lane proposal ranked in the cost-sorted pool it entered,
@@ -188,6 +202,27 @@ export function recordLanePoolRank(
   if (rank < 3) aimTotals.aimed_top3++;
   aimTotals.aimed_rank_sum += rank;
   aimTotals.aimed_pool_size_sum += poolSize;
+}
+
+function recordJointProbeRows(
+  rows: readonly JointArcProbeObservation[],
+  gap: Gap,
+  axisMeasureEnd: number,
+  nextFrame: number,
+): void {
+  const fullHorizon = Math.max(gap.endFrame + 20, axisMeasureEnd + 20, nextFrame + 2);
+  for (const row of rows) {
+    if (row.mode !== "short") continue;
+    aimTotals.joint_probe_rows++;
+    if (row.cleanAirborneSuffix === true) aimTotals.joint_probe_clean_suffix++;
+    aimTotals.jointProbeHorizonSum += row.horizonFrame;
+    aimTotals.jointProbeFullHorizonSum += fullHorizon;
+    aimTotals.jointProbeSavedFramesSum += Math.max(0, fullHorizon - row.horizonFrame);
+    if (row.suffixFrame !== null) {
+      aimTotals.jointProbeSuffixRows++;
+      aimTotals.jointProbeSuffixSum += row.suffixFrame;
+    }
+  }
 }
 
 export function resetAimStats(): void {
@@ -221,6 +256,16 @@ export function snapshotAimStats(): AimStats | null {
     aimed_top3: aimTotals.aimed_top3,
     aimed_rank_sum: aimTotals.aimed_rank_sum,
     aimed_pool_size_sum: aimTotals.aimed_pool_size_sum,
+    joint_probe_rows: aimTotals.joint_probe_rows,
+    joint_probe_clean_suffix: aimTotals.joint_probe_clean_suffix,
+    joint_probe_horizon_mean: aimTotals.joint_probe_rows > 0
+      ? round3(aimTotals.jointProbeHorizonSum / aimTotals.joint_probe_rows) : 0,
+    joint_probe_suffix_mean: aimTotals.jointProbeSuffixRows > 0
+      ? round3(aimTotals.jointProbeSuffixSum / aimTotals.jointProbeSuffixRows) : 0,
+    joint_probe_full_horizon_mean: aimTotals.joint_probe_rows > 0
+      ? round3(aimTotals.jointProbeFullHorizonSum / aimTotals.joint_probe_rows) : 0,
+    joint_probe_saved_frames_mean: aimTotals.joint_probe_rows > 0
+      ? round3(aimTotals.jointProbeSavedFramesSum / aimTotals.joint_probe_rows) : 0,
   };
 }
 
@@ -602,6 +647,7 @@ function makeJointAimedCandidates(
   const probeRows = probeKnobs.map((knobs) =>
     evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
   );
+  recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
   const model = fitJointArcResponseModel(probeRows, probeDesignName);
 
   const baseKnobs = { pitchDeg: 0, rotateDeg: 0 };

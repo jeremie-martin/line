@@ -1,4 +1,4 @@
-import { AXES, type AxisValues, type TrackLine } from "../types.ts";
+import { AXES, ELEVATION, type AxisValues, type TrackLine } from "../types.ts";
 
 export type ArcKnobs = {
   /** Rotate the last third of the arc about the suffix joint, in degrees. */
@@ -20,6 +20,34 @@ export type RiderArrivalState = {
   /** Frame-to-frame sled-pose angular velocity in degrees/frame. */
   sledPoseRateDegPerFrame: number | null;
 };
+
+export function propagateBallisticArrivalState(
+  state: RiderArrivalState,
+  dtFrames: number,
+): RiderArrivalState {
+  const dt = Math.max(0, Math.trunc(dtFrames));
+  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
+  const x = state.x + state.vx * dt;
+  // lr-core's Verlet step applies gravity before the next frame's velocity read.
+  const y = state.y + state.vy * dt + 0.5 * g * dt * (dt + 1);
+  const vx = state.vx;
+  const vy = state.vy + g * dt;
+  const speed = Math.hypot(vx, vy);
+  const comAngleDeg = speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null;
+  const sledPoseDeg = state.sledPoseDeg !== null && state.sledPoseRateDegPerFrame !== null
+    ? normalizeAngleDeg(state.sledPoseDeg + state.sledPoseRateDegPerFrame * dt)
+    : state.sledPoseDeg;
+  return {
+    x,
+    y,
+    vx,
+    vy,
+    speed,
+    comAngleDeg,
+    sledPoseDeg,
+    sledPoseRateDegPerFrame: state.sledPoseRateDegPerFrame,
+  };
+}
 
 export type LinearModel = {
   coefficients: number[];

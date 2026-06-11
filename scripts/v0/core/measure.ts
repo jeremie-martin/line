@@ -21,6 +21,7 @@ import {
   type Gap,
   type TrackLine,
   CALIB,
+  ELEVATION,
   IMPACT_WINDOW,
   speedPxToAuthored,
 } from "../types.ts";
@@ -177,4 +178,151 @@ export function measureGapAxes(
     if (v !== undefined) out[name] = v;
   }
   return out;
+}
+
+export type BallisticAxisSuffix = {
+  frame: number;
+  vx: number;
+  vy: number;
+};
+
+/**
+ * Measure the same axis vector as `measureGapAxes`, but allow the requested
+ * range to extend past the simulated detector window. Frames through
+ * `suffix.frame` are measured from lr-core; later frames are completed by the
+ * contact-free ballistic model from the suffix velocity. The caller owns the
+ * "is this actually free flight?" audit (`cleanAirborneSuffix` in arc_probe);
+ * dirty rows deliberately still produce the modeled output so the harness can
+ * measure all-row vs clean-only error.
+ */
+export function measureGapAxesWithBallisticSuffix(
+  det: Detection,
+  gap: Gap,
+  gapLines: TrackLine[],
+  rangeEndFrame: number,
+  suffix: BallisticAxisSuffix | null,
+): AxisValues {
+  const last = measurementLastFrame(det);
+  if (suffix === null || rangeEndFrame <= last) {
+    return measureGapAxes(det, gap, gapLines, rangeEndFrame);
+  }
+
+  const prefixEnd = Math.min(last, suffix.frame);
+  const out = measureGapAxes(det, gap, gapLines, prefixEnd);
+  const air = measureAirWithSuffix(det, gap.startFrame, rangeEndFrame, prefixEnd);
+  const speed = measureSpeedWithSuffix(det, gap.startFrame, rangeEndFrame, prefixEnd, suffix);
+  const elevation = measureElevationWithSuffix(det, gap.startFrame, rangeEndFrame, prefixEnd, suffix);
+  const amplitude = measureAmplitudeWithSuffix(det, gap.startFrame, rangeEndFrame, prefixEnd, suffix);
+  if (air !== undefined) out.air = air;
+  if (speed !== undefined) out.speed = speed;
+  if (elevation !== undefined) out.elevation = elevation;
+  if (amplitude !== undefined) out.amplitude = amplitude;
+  return out;
+}
+
+function measureAirWithSuffix(
+  det: Detection,
+  startFrame: number,
+  rangeEndFrame: number,
+  prefixEnd: number,
+): number | undefined {
+  let airFrames = 0, total = 0;
+  for (let f = startFrame; f <= prefixEnd; f++) {
+    if (airborneAt(det, f)) airFrames++;
+    total++;
+  }
+  if (rangeEndFrame > prefixEnd) {
+    airFrames += rangeEndFrame - prefixEnd;
+    total += rangeEndFrame - prefixEnd;
+  }
+  return total > 0 ? airFrames / total : undefined;
+}
+
+function measureSpeedWithSuffix(
+  det: Detection,
+  startFrame: number,
+  rangeEndFrame: number,
+  prefixEnd: number,
+  suffix: BallisticAxisSuffix,
+): number | undefined {
+  let sum = 0, n = 0;
+  for (let f = startFrame; f <= prefixEnd; f++) {
+    const speed = Math.hypot(...velocityTuple(det, f));
+    if (Number.isFinite(speed)) {
+      sum += speed;
+      n++;
+    }
+  }
+  for (let f = prefixEnd + 1; f <= rangeEndFrame; f++) {
+    sum += ballisticSpeedAt(suffix, f);
+    n++;
+  }
+  return n > 0 ? speedPxToAuthored(sum / n) : undefined;
+}
+
+function measureElevationWithSuffix(
+  det: Detection,
+  startFrame: number,
+  rangeEndFrame: number,
+  prefixEnd: number,
+  suffix: BallisticAxisSuffix,
+): number | undefined {
+  if (rangeEndFrame <= startFrame) return undefined;
+  const v0 = velocityAt(det, startFrame);
+  if (v0 === undefined) return undefined;
+  const speed = Math.hypot(v0.x, v0.y);
+  const dy = integratedDyWithSuffix(det, startFrame, rangeEndFrame, prefixEnd, suffix);
+  return dy === null ? undefined : netDyToElevation(dy, speed, rangeEndFrame - startFrame);
+}
+
+function measureAmplitudeWithSuffix(
+  det: Detection,
+  startFrame: number,
+  rangeEndFrame: number,
+  prefixEnd: number,
+  suffix: BallisticAxisSuffix,
+): number | undefined {
+  const span = rangeEndFrame - startFrame;
+  if (span <= 0) return undefined;
+  const total = integratedDyWithSuffix(det, startFrame, rangeEndFrame, prefixEnd, suffix);
+  if (total === null) return undefined;
+  let dy = 0, peak = 0;
+  for (let f = startFrame + 1; f <= rangeEndFrame; f++) {
+    const vy = f <= prefixEnd ? velocityAt(det, f)?.y : ballisticVyAt(suffix, f);
+    if (vy === undefined) return undefined;
+    dy += vy;
+    const chord = ((f - startFrame) / span) * total;
+    const above = chord - dy;
+    if (above > peak) peak = above;
+  }
+  return Math.min(1, peak / CALIB.AMPLITUDE_CAP);
+}
+
+function integratedDyWithSuffix(
+  det: Detection,
+  startFrame: number,
+  rangeEndFrame: number,
+  prefixEnd: number,
+  suffix: BallisticAxisSuffix,
+): number | null {
+  let dy = 0;
+  for (let f = startFrame + 1; f <= rangeEndFrame; f++) {
+    const vy = f <= prefixEnd ? velocityAt(det, f)?.y : ballisticVyAt(suffix, f);
+    if (vy === undefined) return null;
+    dy += vy;
+  }
+  return dy;
+}
+
+function velocityTuple(det: Detection, frame: number): [number, number] {
+  const v = velocityAt(det, frame);
+  return v === undefined ? [NaN, NaN] : [v.x, v.y];
+}
+
+function ballisticVyAt(suffix: BallisticAxisSuffix, frame: number): number {
+  return suffix.vy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, frame - suffix.frame);
+}
+
+function ballisticSpeedAt(suffix: BallisticAxisSuffix, frame: number): number {
+  return Math.hypot(suffix.vx, ballisticVyAt(suffix, frame));
 }

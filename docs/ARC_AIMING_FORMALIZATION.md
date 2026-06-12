@@ -235,6 +235,59 @@ Current implementation:
   shared ballistic reducer;
 - no response-mode switch remains in production or the study harness.
 
+### Knob-model campaign (2026-06-12)
+
+Six A/B arms vs baseline 611.7 (`LR_AIM_JOINT_PROBE_DESIGN` × `LR_AIM_MODEL_SPACE` ×
+`LR_AIM_PROBE_MODE`). Δ is paired-bootstrap headline; model err is mean
+`enum_readiness_err_mean`; probe frames is total charged.
+
+| arm | Δ | model err | probe frames | verdict |
+|---|---|---|---|---|
+| latent × cross5 (baseline) | — | 0.0649 | 27.1M | — |
+| latent × pitch3 | −0.8 | 0.0487 | 16.8M | INCONCLUSIVE |
+| direct × cross5 | +0.6 | 0.0592 | 27.2M | INCONCLUSIVE (tightest CI [−2.9, 5.3]) |
+| direct × pitch3 | −0.6 | 0.0481 | 16.8M | INCONCLUSIVE |
+| fullsim × cross5 | −3.9 | 0.0286 | 68.1M | REJECT (P(Δ≤0)=96.5%, neg every budget) |
+| fullsim × pitch3 | −1.2 | 0.0140 | 45.5M | INCONCLUSIVE |
+
+Aim-off ablation (`LR_AIM_ENUM=0`): **REJECT Δ−7.8** CI[−14.2, −0.5]
+(−9.8 / −7.0 / −7.2 at 100k/200k/300k, P≥99%). Funnel: aimed proposals land at
+mean pool rank 2.5, 22% at rank 0, and ~60% of committed selections
+(`handoff_aimed_selected`).
+
+Truth study (`study_prediction_truth.ts`): error is **reduction-dominated, not
+fit-dominated** — next.speed 0.079 px/f total vs 0.070 reduction floor; comAngle
+0.85° vs 0.63° floor. Worst output is sled pose (~16°, reduction-limited).
+latent ≈ direct everywhere except next.x (0.89 vs 1.60 px).
+
+Conclusions:
+
+- The lane is worth ~8 pts but is **saturated w.r.t. its prediction brain**:
+  4× better model accuracy (fullsim) buys no score, so accuracy is not the
+  binding constraint today.
+- Full simulation **loses despite 4× accuracy** — empirical proof of the
+  minimal-simulation rule: the extra physics frames cost more completion than
+  the sharper aim returns.
+- Future leverage lives in **proposal reach** (spans / knobs / bases), the
+  **aim ↔ forward-eval interface**, and the **pose / reduction floor** (after
+  which model accuracy may start to matter again).
+
+Repro (each archive a full `npm run golden` curve):
+
+```text
+# arms — vary the flags, archive, then decide vs baseline
+LR_ENGINE=wasm LR_AIM_JOINT_PROBE_DESIGN=pitch3 npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/pitch3-canon-01
+LR_ENGINE=wasm LR_AIM_MODEL_SPACE=direct      npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/direct-cross5-canon-01
+LR_ENGINE=wasm LR_AIM_MODEL_SPACE=direct LR_AIM_JOINT_PROBE_DESIGN=pitch3 npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/direct-pitch3-canon-01
+LR_ENGINE=wasm LR_AIM_PROBE_MODE=full         npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/fullsim-cross5-canon-01
+LR_ENGINE=wasm LR_AIM_PROBE_MODE=full LR_AIM_JOINT_PROBE_DESIGN=pitch3 npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/fullsim-pitch3-canon-01
+LR_ENGINE=wasm LR_AIM_ENUM=0                  npm run golden -- --jobs=32 --json --archive-dir=generated/golden-runs/aim-off-canon-01
+# decide each against baseline-shorthorizon-61175-20260612
+npm run decide -- <cand>/golden.json <base>/golden.json
+# truth study
+LR_ENGINE=wasm npx tsx scripts/v0/study_prediction_truth.ts
+```
+
 ## Short-Probe and Latent Scope
 
 Short probes simulate the current landing/catch and continue until the rider is

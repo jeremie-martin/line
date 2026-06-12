@@ -1,11 +1,12 @@
 # Readiness — roadmap
 
-2026-06-11 · branch arc-rewrite · accepted canonical baseline
-`scoop-off-price-01` (600.91; R2 promoted → defer removed → additive
-multi-knob production instance promoted → scoop + legacy lanes deleted: ONE
-proposer remains, per the design commitment). The current working tree also
-contains the true joint output-vector model, hooked into the real compiler but
-rejected by canonical decide (`joint-model-real-compiler-01`, 592.41).
+2026-06-12 · branch arc-rewrite · current implementation. The production
+objective is centralized in `scripts/v0/optimizer/objective.ts`:
+`current_gap_quality * next_gap_readiness`. `next_gap_readiness` is one
+composite scalar; today it decomposes into catchability, next speed fit, and
+next impact feasibility. The true joint output-vector model is the production
+aiming path, emits up to two proposals per refined base, and exact validation
+remains mandatory.
 Prerequisite reading: `ARC_STATE_CONTROL.md` (the aiming layer: concept,
 invariants, instance choices — this roadmap is its phase 2);
 `IMPACT_PAIR_PLANNING.md` (the impact diagnosis). This is a ROADMAP: rungs
@@ -18,10 +19,9 @@ The idea (Jérémie): introduce **readiness** — a model predicting whether the
 rider's arrival state (speed, CoM velocity angle, **sled pose / internal
 rotation**) sets the NEXT gap up for success — and use it, together with the
 existing local predictive models, inside an **enumerative proposer**:
-generate many cheap knob variations _inside the model_ (predictions are
-~free — quadratic evaluations), score each as predicted current-gap quality
-× readiness, and propose only the top few into the candidate pool, where the
-unchanged search measures and ranks them.
+generate many cheap knob variations _inside the model_, score each as predicted
+current-gap quality × readiness, and propose only the top few into the candidate
+pool. Exact simulation still gates every proposal before search can use it.
 
 Why this is the right generalization: the two shipped aimers are special
 cases of it, hand-built. Speed-aiming (V3) maximizes the speed-compatibility
@@ -60,19 +60,19 @@ Decisions made in discussion:
 - **Joint model shape, two implementation states.** The generic proposer is a
   multi-input model over arc knobs. The accepted baseline is the special case:
   exit pitch and whole-arc rotation each have their own probe-fit model;
-  rotation is recruited lazily; and the two responses are additively composed
+  rotation is recruited on demand; and the two responses are additively composed
   only where pitch is exhausted. The current working tree has the true joint
-  output-vector implementation behind the same swappable joint/top-k boundary,
-  but its first canonical result was negative. The interface is right; the
-  production economics are not yet good enough.
-- **Proposer side first.** Readiness shapes WHICH candidates are proposed
-  and ranks them _inside the proposer_ (model-only, no simulation); every
-  proposed candidate still passes the exact production evaluation; the
-  search's judge (local cost + forward-eval) is untouched. Ranking/judge
-  integration is a late, separately gated rung (§R4) — we have a scar there
-  (impact local-cost pressure traded 1:1).
+  output-vector implementation behind the same swappable joint/top-k boundary.
+- **Shared objective, separate evidence quality.** The same objective ranks
+  model predictions and exact candidate pools. What changes between those sites
+  is the evidence: model predictions for the proposer, exact achieved axes plus
+  free/ballistic arrival state for candidate ranking. Handoff branch selection
+  stays outside this objective and uses either the measured handoff score or
+  mature forward evaluation. A prediction can choose which extra geometry to
+  simulate, but it cannot bypass the exact gates.
 - **Top-k proposals.** The thousand variations exist only inside the model;
-  the current measured knee is k=2 winners simulated and joined to the pool.
+  the current defaults refine up to three bases at mature budgets and simulate
+  the top two emitted variants per base.
   Replacing or shrinking the random sampler is NOT assumed — it is a late,
   evidence-gated rung (§R4) with a known scar (attempt-0 replacement:
   −29.5).
@@ -88,13 +88,22 @@ Decisions made in discussion:
 - **Ground truth** y = realized next-gap outcome, measured exactly by the
   pipeline that already exists: landing gates (survival, ±1f window,
   off-beat), achieved impact vs ask (conversion), next-gap axis errors.
-- **Readiness model** r(s, next-gap targets) → [0,1], smooth. v0 component:
-  catchability r_catch(pose − f(comAngle)). Later components (R3):
-  impact-feasibility (physics prior exists: needed turn =
-  asin(ask·REDIR_CAP/speed); lab landings: high redirection needs vy_in
-  ≈ 4–6), target-speed compatibility.
-- **Proposer objective** (R2): maximize predict(current-gap quality) ×
-  clamp(r, r_min, 1) over enumerated knob deltas.
+- **Readiness model** r(s, next-gap targets) → [0,1], smooth. The current
+  production readiness is composite:
+
+  ```text
+  next_gap_readiness =
+    max(r_min, catchability(speed, comAngle))
+    * speed_fit(speed, next speed target)
+    * impact_feasibility(speed, comAngle, next impact target)
+  ```
+
+  Speed fit and impact feasibility are `1` when the next gap does not ask for
+  that quantity. Pose is measured and modeled but not currently a readiness
+  input.
+- **Production objective**: maximize `current_gap_quality *
+  next_gap_readiness`. Current-gap quality is `axisQualityForTargets` over the
+  current gap's targeted axes, including current `impact` when targeted.
 
 ## 2. Rungs (each falsifiable before the next)
 
@@ -201,10 +210,13 @@ per-gap telemetry in evaluateNode/buildNodeOutput; archive
 ### R2 — Enumerative proposer (flag-gated; the headline rung)
 
 - New proposer: for a base candidate, enumerate per-knob delta sweeps
-  inside the fitted models (~hundreds per knob, model-only), predict
-  current-gap quality proxies + arrival state per delta, score = predicted
-  quality × clamp(r, r_min, 1), propose the top-k variants through the
-  unchanged production evaluation into the pool. Current production k=2.
+  inside the fitted model (~hundreds of virtual knob pairs, model-only),
+  predict current-gap axes + arrival state per delta, score = predicted
+  current quality × composite next-gap readiness, propose the top two emitted
+  variants per refined base through the unchanged production evaluation into the
+  pool. The expensive proposer remains target-gated to next gaps with speed or
+  impact asks; catchability-only readiness is used for scoring/ranking where it
+  is already available, not as a blanket probe-spending trigger.
 - Subsumption test: ablation matrix vs the V3/V4 lanes (enumerative on/off
   × lanes on/off). Expected: enumerative ≥ lanes; if so the lane triggers
   retire INTO the proposer (geometry like `buildArrivalScoopLines` stays —
@@ -250,8 +262,9 @@ V3 speed solve, V4 angle formula, climb defer, and arrival-conditioned scoop
 machinery were deleted once their ablations priced at ~zero under the promoted
 proposer. `LR_AIM_ENUM=0` is now only an ablation that disables the enumerative
 proposer; it does not resurrect legacy triggers. The objective that won is
-exactly the roadmap's shape: predicted quality × clamped, target-aware
-readiness — with quality = speed-fit × impact-feasibility in this instance.
+the roadmap's shape: predicted current quality × clamped, target-aware
+readiness. Today readiness is the composite scalar whose subcomponents are
+catchability, speed fit, and impact feasibility.
 
 ### R3 — Evidence-gated extensions (order by what R0–R2 telemetry says)
 
@@ -265,7 +278,7 @@ readiness — with quality = speed-fit × impact-feasibility in this instance.
   3× larger where pitch clamps; additivity at the argmax 0.041 px/f /
   0.63°. v1 (eager, always-on, ±4° extrapolated) REJECT Δ−7.9 — rotation
   displaced 92% of pitch proposals, 37% on-beat-landing gate-fail, commits
-  −34%; the model was right, the economics wrong. v2 (lazy recruit at
+  −34%; the model was right, the economics wrong. v2 (on-demand recruit at
   pitch exhaustion, probed span ±3°, ≥15% margin, one non-displacing slot)
   Δ+0.4, positive at mature budgets → promoted into the accepted baseline
   lineage (`aim-joint-r3-02` = 600.94, later simplified to
@@ -310,8 +323,13 @@ pose-rate`), sweeps pitch+rotation jointly, then sends only the top two
   −29.5 (the sampler's guided attempts are load-bearing); diversity
   invariant. Approach: reduce nCand gradually under decide, never replace.
 - **Readiness in ranking / forward-eval**: the judge change. Scar: local
-  impact-weight pressure traded 1:1. Only with strong R2 telemetry showing
-  good proposals losing selection for readiness-shaped reasons.
+  impact-weight pressure traded 1:1. Current implementation uses the shared
+  objective for pool sorting only. Forward-eval branch selection remains the
+  true simulated partial-track score, and non-forward handoff branch selection
+  remains the older measured handoff score. Applying terminal frontier readiness
+  inside forward-eval scoring was rejected on 2026-06-12: it caused the focused
+  `solo_run` validity cliff, while removing only that multiplier restored the
+  six-spec 300k row-average to parity with `stack-predict-topk3-01`.
 
 ## 3. Architecture requirements (hold at every rung)
 
@@ -333,13 +351,13 @@ pose-rate`), sweeps pitch+rotation jointly, then sends only the top two
 | choice                                 | working position                                                                                                                                                                                                                                                                                                                                               | decided by                                              |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | r falloff shape                        | smooth plateau + fast smooth decay                                                                                                                                                                                                                                                                                                                             | R0 data                                                 |
-| clamp floor r_min                      | TBD (e.g. 0.1)                                                                                                                                                                                                                                                                                                                                                 | R2 sweep                                                |
+| clamp floor r_min                      | current production `0.1` on catchability before speed/impact factors                                                                                                                                                                                                                                                                                           | revisit only if objective veto pathologies appear       |
 | multiplicative vs additive             | multiplicative-clamped                                                                                                                                                                                                                                                                                                                                         | revisit only if R2 shows veto pathologies               |
 | speed in catchability inputs           | compare in R0 (cheap), PoC may stay (pose, comAngle)                                                                                                                                                                                                                                                                                                           | R0                                                      |
-| k (proposals per gap)                  | top-k interface; **current k=2 decided** (`enum-k1-01`/`enum-k3-01`)                                                                                                                                                                                                                                                                                           | DONE                                                    |
+| refined bases / emitted proposals      | top-k interface; **current defaults: three refined bases at mature budgets, two emitted proposals per base**                                                                                                                                                                                                                                                   | DONE                                                    |
 | per-knob enumeration grid              | ~hundreds/knob, deterministic sweep                                                                                                                                                                                                                                                                                                                            | R2 (any dense grid works — model is smooth)             |
 | readiness sharpening (Jérémie)         | **FALSIFIED** (2026-06-10, `enum-sigmoid-01`): σ((r−0.55)/0.10) REJECT Δ−2.0, CI [−6.1, 0.6], negative every budget. Flattening the plateau discards the surface's high-end gradient — the signal that pushes steep fast arrivals (the v2→v3 lesson). The raw surface already vetoes at the low end (0.2–0.4) and its top-end slope is informative, not a tax. | quick A/B vs the promoted v3 — DONE                     |
-| k proposals (1 vs 2 vs 3)              | **k=2 is the measured knee** (2026-06-10): k=1 Δ−1.1 (`enum-k1-01`; −2.1…−2.7 at every mature budget, P(Δ≤0) to 96% — the second proposal pays); k=3 Δ−4.5 REJECT (`enum-k3-01`; third proposal starves small budgets: 50k −43.8, validity dip). Stays a constant.                                                                                             | k-sweep A/B — DONE                                      |
+| emitted proposals (1 vs 2 vs 3)        | k=2 is the current measured knee for emitted proposals per refined base; k=3 spends a third proposal before low-budget compiles have enough room for it.                                                                                                                                                                                                        | revisit with current objective if budget economics move |
 | climb-defer threshold / legacy removal | **DONE**: defer removed at exact parity (2026-06-10, `enum-defer-off-01`: Δ−0.1, CI [−0.6, 0.2]); speed-fit + impact-feasibility already cover demanding climbs. The later `scoop-off-price-01` cleanup deleted the remaining scoop/legacy lane machinery, leaving one proposer. `LR_AIM_ENUM=0` only disables that proposer for ablation.                     | A/B removing the defer and deleting legacy lanes — DONE |
 
 ## 5. What would falsify the whole program

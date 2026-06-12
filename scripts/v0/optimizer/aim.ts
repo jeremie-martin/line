@@ -49,8 +49,8 @@
  * CURRENT-INSTANCE CHOICES (defaults, not rules — revisitable with evidence):
  * two knobs (exit pitch + whole-arc rotation); default 5-probe cross design
  * with optional 9-probe grid (`LR_AIM_JOINT_PROBE_DESIGN=grid9`); a shared
- * hybrid joint response model also used by the study harness; top-k proposals
- * with current k=2 (the measured knee); readiness consumes the full predicted
+ * hybrid joint response model also used by the study harness; top-2 emitted
+ * proposals per refined base; readiness consumes the full predicted
  * arrival-state boundary, though the current surface still reads speed and
  * CoM angle only (pose parked by R0).
  */
@@ -64,8 +64,7 @@ import {
   tryCandidateLines,
 } from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
-import { authoredSpeedToPx, AXES, CALIB, type TrackLine } from "../types.ts";
-import { axisQualityForTargets } from "../score.ts";
+import { AXES, type TrackLine } from "../types.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import {
   applyArcKnobs,
@@ -74,18 +73,20 @@ import {
   fitJointArcResponseModel,
   parseArcProbeDesignName,
   predictedArrivalState,
-  propagateBallisticArrivalState,
   predictedCurrentAxes,
   predictJointArcOutputs,
-  pitchExitLines,
-  rotateArcLines,
   type ArcKnobs,
   type ArcProbeDesignName,
   type JointArcResponseModel,
   type RiderArrivalState,
 } from "./arc_model.ts";
 import { evaluateJointArcKnobs, type JointArcProbeObservation } from "./arc_probe.ts";
-import { readinessCatchState } from "./readiness.ts";
+import {
+  nextContactGap,
+  predictArrivalAtNextContact,
+  scoreGapObjective,
+  scoreNextGapReadiness,
+} from "./objective.ts";
 import type { Gap } from "../types.ts";
 
 // ───────────────────────────── 1 · Flags ─────────────────────────────
@@ -109,8 +110,8 @@ function aimDeltaMaxDeg(): number {
  *  Fit per-knob arrival models (speed, CoM angle at the next beat) from
  *  shared probes, enumerate the knob space inside the models (free), score
  *  each variation as readiness(predicted arrival) × speed-target fit ×
- *  impact-feasibility, propose the top-k through the unchanged production
- *  evaluation. Current production k=2. Subsumed and replaced every
+ *  impact-feasibility, propose the top-2 through the unchanged production
+ *  evaluation. Subsumed and replaced every
  *  hand-tuned predecessor:
  *  V3 speed-aim + V4 angle-aim triggers (ACCEPT Δ+3.3 → 600.71), the
  *  elevation climb-defer (removed at parity Δ−0.1 → 600.57), and the V4
@@ -121,11 +122,6 @@ function aimDeltaMaxDeg(): number {
 export function aimEnumEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_ENUM !== "0";
-}
-
-function aimJointEnabled(): boolean {
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_JOINT !== "0";
 }
 
 function aimJointProbeDesign(): ArcProbeDesignName {
@@ -192,14 +188,14 @@ export function recordLaneBaseSkip(): void {
   aimTotals.enum_lane_base_skips++;
 }
 
-/** Quality-objective pool ranking (LR_RANK_QUALITY): make the rich aim objective
- *  — current-axis-quality × readiness × speed-fit × impact-feasibility, computed
- *  from each candidate's ACHIEVED axes and its arrival state at the next contact
- *  — the JUDGE of the per-gap pool sort (node.ts), so the aim lane refines the
+/** Quality-objective pool ranking (LR_RANK_QUALITY): make the shared objective
+ *  — current-axis-quality × composite next-gap readiness, computed from each
+ *  candidate's ACHIEVED axes and its arrival state at the next contact — the
+ *  JUDGE of the per-gap pool sort (node.ts), so the aim lane refines the
  *  quality-best base instead of the cost-best one. Two modes:
  *    "pool" (DEFAULT / any value other than "off"): the per-gap pool sort ranks
- *            by the objective; handoff branch selection stays the unchanged
- *            forward-eval / cost+preview judge.
+ *            by the objective; handoff branch selection still uses mature
+ *            forward eval or the measured handoff score.
  *    "off"  (LR_RANK_QUALITY=off): escape hatch — bit-identical to the
  *            pre-ranking path; the ranking helpers below are never called and no
  *            arrival ride is taken.
@@ -364,7 +360,7 @@ const aimTotals = {
   joint_fit_degraded_outputs: 0,
   enum_current_axes_targeted: 0, enum_current_axes_modeled: 0,
   enum_current_term_missing: 0,
-  // Quality-objective pool ranking (recordRankQualityPool / candidateRankObjective).
+  // Quality-objective pool ranking (recordRankQualityPool / candidateQualityObjective).
   // Field names are historical (was LR_RANK_READINESS); kept for lab archives.
   rank_readiness_pools: 0, rank_readiness_top3_disagree: 0,
   rank_readiness_top1_disagree: 0, rank_readiness_arrival_frames_charged: 0,
@@ -426,9 +422,9 @@ function recordJointProbeRows(
 /** Record, once per joint sweep, how much of the objective's current-gap term
  *  the fitted model actually covers at the base knobs, plus how many output
  *  models the identifiability ladder fitted below first choice. A sweep whose
- *  targeted axes have NO model prediction ranks on
- *  readiness × speed-fit × impact-feasibility alone (axis quality defaults
- *  to 1 on an empty error set — score.ts axisQualityFromErrors); that is a
+ *  targeted axes have NO model prediction ranks on composite next-gap
+ *  readiness alone (axis quality defaults to 1 on an empty error set —
+ *  score.ts axisQualityFromErrors); that is a
  *  legitimate degraded mode, but it must never again be invisible. */
 function recordJointModelCoverage(
   model: JointArcResponseModel,
@@ -532,21 +528,8 @@ export function snapshotAimStats(): AimStats | null {
   };
 }
 
-// ──────────────────────── 3 · Knob transforms ────────────────────────
-
-/** Probe offsets for the quadratic fit (deg); the base candidate is δ=0. */
-const AIM_PROBE_DELTA_DEG = 6;
 /** Below this |δ*| the aimed variant would duplicate the base candidate. */
 const AIM_MIN_DELTA_DEG = 0.25;
-/** Deferred whole-arc-rotation probe span (deg, V0-validated range). */
-const AIM_ROT_PROBE_DEG = 3;
-
-/** Safe tail-only knob: it never touches the catch at the arc's head — gap k's
- *  own landing frame and speed shift by exactly 0.00 under it (V1). */
-const pitchExit = pitchExitLines;
-
-/** Whole-arc knob: moves the landing surface, so it has higher gate risk. */
-const rotateArc = rotateArcLines;
 
 // ───────────────────────────── 4 · Probes ────────────────────────────
 
@@ -604,79 +587,22 @@ function probeRide(
   };
 }
 
-// ────────────────────────── 5 · Local models ─────────────────────────
-
-/** Exact quadratic through (−P, lo), (0, mid), (+P, hi). Three points are
- *  the measured accuracy knee for CoM state (V0 probe-count ladder) — an
- *  empirical setting, not a rule; the base candidate's own measurement is
- *  the free δ=0 point where one exists. */
-function quadModel(lo: number, mid: number, hi: number, P: number): (d: number) => number {
-  return (d: number): number =>
-    (lo * d * (d - P)) / (2 * P * P) - (mid * (d + P) * (d - P)) / (P * P) +
-    (hi * (d + P) * d) / (2 * P * P);
-}
-
 // ───────────────────────────── 6 · Lanes ─────────────────────────────
-
-/** Impact ask below which the impact-feasibility factor stays out of the
- *  objective (asks this small convert without steering). */
-const AIM_IMPACT_MIN_ASK = 0.3;
-
-/** The speed target the launch should serve: the NEXT contact gap's authored
- *  speed target (the arrival this launch conditions), in px/f. */
-function nextGapSpeedTargetPx(gap: Gap, gaps: Gap[]): number | null {
-  const g = nextContactGap(gap, gaps);
-  return g === null || g.targets.speed === undefined ? null : authoredSpeedToPx(g.targets.speed);
-}
-
-function nextContactGap(gap: Gap, gaps: Gap[]): Gap | null {
-  for (let i = gap.index + 1; i < gaps.length; i++) {
-    if (gaps[i].endsWithContact) return gaps[i];
-  }
-  return null;
-}
 
 // ──────────────── R2 · Enumerative proposer (LR_AIM_ENUM) ────────────────
 
-/** Proposals per pool (the "1000 variations" live inside the model; only
- *  the top 2 are simulated). k=2 is the measured knee (2026-06-10 sweep vs
- *  600.71: k=1 Δ−1.1 with −2.1…−2.7 at every mature budget — the second
- *  proposal pays; k=3 Δ−4.5 REJECT — the third starves small budgets,
- *  50k −43.8, validity dip). */
+/** Emitted proposals per refined base (the "1000 variations" live inside the
+ *  model; only the top 2 are simulated). k=2 is the measured knee under the
+ *  current budget economics: k=3 spends the third proposal before low-budget
+ *  compiles have enough room for it. */
 const ENUM_TOP_K = 2;
 /** Enumeration step (deg) — far below model error; effectively continuous. */
 const ENUM_STEP_DEG = 0.25;
 /** Minimum spacing between proposed deltas (keep the k proposals distinct
  *  arc shapes, not near-duplicates). */
 const ENUM_MIN_SEP_DEG = 1.5;
-/** Readiness clamp floor (roadmap: a wrong readiness model must not be
- *  able to veto everything). */
-const ENUM_R_MIN = 0.1;
-/** Speed-target fit scale (px/f): exp(−|predicted − target|/scale). */
-const ENUM_SPEED_SCALE_PXF = 0.75;
-/** Legacy deferred-additive rotation path (`LR_AIM_JOINT=0`) constants. The default
- *  path now scores a real joint pitch/rotate grid inside the selected probe span.
- *  Historical context for the legacy path: R3 v2
- *  Δ+0.4 vs 600.57, positive at mature budgets, and it IS the agreed
- *  architecture: the inner model can compose multiple per-knob fits. Grounds:
- *  additivity certified proposer-grade (study_knob_additivity ~10%
- *  median interaction); scout study_joint_enum (289 gaps @300k):
- *  achieved objective gain p50 +0.035, 3× larger where pitch clamps;
- *  v1 eager/always-on/±4°-extrapolated/no-margin REJECT Δ−7.9 — rotated
- *  proposals displaced 92% of pitch proposals and failed the on-beat
- *  landing gate 37% of the time, commits −34%).
- *  Sweep stays INSIDE the probed
- *  span (±3° — v1 extrapolated to ±4° and its argmaxes chased the edge).
- *  Recruit only when the pitch sweep is exhausted: boundary-clamped, or
- *  best pitch gain below NOGAIN (scout: gains are 3× larger at the pitch
- *  boundary; v1's always-on rotation displaced pitch proposals and burned
- *  evals on a 37% gate-fail rate). MARGIN: a rotated proposal must beat
- *  the best pitch proposal by ≥15% predicted objective to pay its higher
- *  gate risk. */
-const ENUM_ROT_SPAN_DEG = 3;
+/** Rotation enumeration step (deg). */
 const ENUM_ROT_STEP_DEG = 0.5;
-const ENUM_ROT_MARGIN = 1.15;
-const ENUM_ROT_RECRUIT_NOGAIN = 1.05;
 // FALSIFIED SHAPES (2026-06-10, both vs aim-enum-r2-03 = 600.71):
 //  · elevation climb-defer to the legacy lane: removal = exact parity
 //    (Δ−0.1, CI [−0.6, 0.2]) — the speed-fit and impact-feasibility terms
@@ -692,18 +618,10 @@ const ENUM_ROT_RECRUIT_NOGAIN = 1.05;
  *  eligible next-arrival rider state; one objective over the knob space:
  *
  *    objective(δp, δr) = current-axis-quality(predictedCurrentAxes, targets)
- *                      × clamp(readiness(predictedNextState), R_MIN, 1)
- *                      × exp(−|predictedSpeed − nextSpeedTarget| / scale)
- *                      × next-impact-feasibility(predictedNextState)
+ *                      × next-gap-readiness(predictedNextState, next targets)
  *
- *  enumerated inside the models (free), top-k improving deltas proposed
- *  through the unchanged production evaluation (current k=2). The old
- *  per-knob additive proposer remains available with `LR_AIM_JOINT=0`.
- *
- *  The R1 caveat (catchability mis-scores the upward arrivals climbing
- *  wants) needed NO special handling in the end: an elevation climb-defer
- *  was removed at exact parity — the speed-fit and impact-feasibility
- *  factors already cover demanding climbs. */
+ *  The readiness term is owned by optimizer/objective.ts and decomposes into
+ *  catchability × speed-fit × impact-feasibility. */
 export function makeEnumAimedCandidates(
   // deno-lint-ignore no-explicit-any
   engine: any,
@@ -720,173 +638,11 @@ export function makeEnumAimedCandidates(
     aimTotals.enum_no_target++;
     return [];
   }
-  const speedTarget = nextGapSpeedTargetPx(gap, gaps);
-  if (speedTarget === null && nextGap.targets.impact === undefined) {
+  if (nextGap.targets.speed === undefined && nextGap.targets.impact === undefined) {
     aimTotals.enum_no_target++;
     return [];
   }
-  if (aimJointEnabled()) {
-    return makeJointAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, speedTarget);
-  }
-
-  const F = nextGap.endFrame;
-  const baseOut = probeRide(engine, base.lines, F);
-  if (baseOut === null || baseOut.comAngleDeg === null) {
-    aimTotals.enum_probe_crash++;
-    return [];
-  }
-  const P = AIM_PROBE_DELTA_DEG;
-  const lo = probeRide(engine, pitchExit(base.lines, -P), F);
-  if (lo === null || lo.comAngleDeg === null) {
-    aimTotals.enum_probe_crash++;
-    return [];
-  }
-  const hi = probeRide(engine, pitchExit(base.lines, P), F);
-  if (hi === null || hi.comAngleDeg === null) {
-    aimTotals.enum_probe_crash++;
-    return [];
-  }
-  // Both arrival models from the SAME three rides (one ride = the full
-  // outcome vector; adding a quantity costs zero probes).
-  const speedModel = quadModel(lo.speed, baseOut.speed, hi.speed, P);
-  const angleModel = quadModel(lo.comAngleDeg, baseOut.comAngleDeg, hi.comAngleDeg, P);
-
-  // R3 additive two-knob inner model: the rotate knob's models are recruited
-  // only where the pitch sweep is exhausted. The joint
-  // prediction is the ADDITIVE composition of per-knob quadratics
-  // (certified proposer-grade — see ENUM_ROT_SPAN_DEG notes).
-  let rotSpeedModel: ((d: number) => number) | null = null;
-  let rotAngleModel: ((d: number) => number) | null = null;
-  // Impact-feasibility component (roadmap R3, brought forward after enum
-  // v2 parity: catchability alone barely differentiates 15° from 25°
-  // arrivals, so nothing pushed the steep arrivals conversion needs).
-  // Closed form: achievable ask ≈ speed·sin(angle)/REDIR_CAP — the same
-  // physics as V4's needed-turn formula, as a smooth factor instead of a
-  // hand-clamped target.
-  const impactAsk = nextGap.targets.impact;
-  const wantImpact = impactAsk !== undefined && impactAsk >= AIM_IMPACT_MIN_ASK;
-  // Predicted arrival state at (dp, dr). The dr=0 / no-rot-model branch
-  // keeps the pitch-only floating-point path bit-identical to R2.
-  const predSpeed = (dp: number, dr: number): number =>
-    rotSpeedModel === null || dr === 0 ? speedModel(dp) : speedModel(dp) + rotSpeedModel(dr) - baseOut.speed;
-  const predAngle = (dp: number, dr: number): number =>
-    rotAngleModel === null || dr === 0
-      ? angleModel(dp)
-      : angleModel(dp) + rotAngleModel(dr) - (baseOut.comAngleDeg as number);
-  const objective = (dp: number, dr: number): number => {
-    const s = predSpeed(dp, dr);
-    const a = predAngle(dp, dr);
-    const r = Math.max(ENUM_R_MIN, readinessCatchState({ speed: s, comAngleDeg: a }));
-    const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(s - speedTarget) / ENUM_SPEED_SCALE_PXF);
-    const feas = !wantImpact ? 1 : Math.min(
-      1,
-      Math.max(0, (s * Math.sin((Math.max(0, a) * Math.PI) / 180)) / ((impactAsk as number) * CALIB.REDIR_CAP)),
-    );
-    return r * fit * feas;
-  };
-
-  const deltaMax = aimDeltaMaxDeg();
-  const obj0 = objective(0, 0);
-  const scoredDeltas: { dp: number; dr: number; val: number }[] = [];
-  for (let dp = -deltaMax; dp <= deltaMax + 1e-9; dp += ENUM_STEP_DEG) {
-    if (Math.abs(dp) < AIM_MIN_DELTA_DEG) continue;
-    const val = objective(dp, 0);
-    if (val > obj0 + 1e-4) scoredDeltas.push({ dp, dr: 0, val });
-  }
-  scoredDeltas.sort((a, b) => b.val - a.val);
-
-  // R3 v2: recruit the rotate knob LAZILY, only where pitch is exhausted.
-  // v1 (eager, always-on, span ±4 extrapolated, no margin) was REJECTED
-  // Δ−7.9: rotated proposals displaced 92% of pitch proposals and failed
-  // the production gates 37% of the time (rotateArc moves the landing
-  // surface; the scout's 1.8% "break" rate measured sled survival, not the
-  // on-beat-landing gate), and aimed commits dropped 34%. What stands from
-  // the scout: gains concentrate 3× where pitch clamps. So: recruit only
-  // when the pitch sweep is boundary-clamped or empty-handed, sweep within
-  // the PROBED rotate span (no extrapolation), demand a clear predicted
-  // margin, and emit at most ONE rotated proposal in its own slot — the
-  // top pitch proposal is never displaced.
-  let rotInjected: { dp: number; dr: number; val: number } | null = null;
-  {
-    const pitchBest = scoredDeltas.length > 0 ? scoredDeltas[0] : null;
-    const pitchBestVal = pitchBest === null ? obj0 : pitchBest.val;
-    const pitchExhausted = pitchBest === null ||
-      Math.abs(pitchBest.dp) >= deltaMax - ENUM_STEP_DEG / 2 ||
-      pitchBestVal < obj0 * ENUM_ROT_RECRUIT_NOGAIN;
-    if (pitchExhausted) {
-      aimTotals.enum_rot_recruited++;
-      const RP = AIM_ROT_PROBE_DEG;
-      const rLo = probeRide(engine, rotateArc(base.lines, -RP), F);
-      const rHi = rLo === null ? null : probeRide(engine, rotateArc(base.lines, RP), F);
-      if (rLo === null || rLo.comAngleDeg === null || rHi === null || rHi.comAngleDeg === null) {
-        aimTotals.enum_rot_probe_crash++;
-      } else {
-        rotSpeedModel = quadModel(rLo.speed, baseOut.speed, rHi.speed, RP);
-        rotAngleModel = quadModel(rLo.comAngleDeg, baseOut.comAngleDeg, rHi.comAngleDeg, RP);
-        let best: { dp: number; dr: number; val: number } | null = null;
-        for (let dr = -ENUM_ROT_SPAN_DEG; dr <= ENUM_ROT_SPAN_DEG + 1e-9; dr += ENUM_ROT_STEP_DEG) {
-          if (Math.abs(dr) < ENUM_ROT_STEP_DEG / 2) continue;
-          for (let dp = -deltaMax; dp <= deltaMax + 1e-9; dp += ENUM_STEP_DEG) {
-            const val = objective(dp, dr);
-            if (best === null || val > best.val) best = { dp, dr, val };
-          }
-        }
-        if (best !== null && best.val > Math.max(obj0 + 1e-4, pitchBestVal * ENUM_ROT_MARGIN)) {
-          rotInjected = best;
-        }
-      }
-    }
-  }
-
-  const chosen: { dp: number; dr: number; val: number }[] = [];
-  if (rotInjected !== null) chosen.push(rotInjected);
-  for (const cand of scoredDeltas) {
-    if (chosen.length >= ENUM_TOP_K) break;
-    // Rotated slot never blocks a pitch proposal (different arc family);
-    // among pitch proposals the R2 separation rule applies unchanged.
-    const distinct = chosen.every((c) => c.dr !== 0 || Math.abs(c.dp - cand.dp) >= ENUM_MIN_SEP_DEG);
-    if (distinct) chosen.push(cand);
-  }
-  if (chosen.length === 0) {
-    aimTotals.enum_on_target++;
-    return [];
-  }
-
-  const probe = getCandidateProbe(engine, gap, ctx);
-  const out: Candidate[] = [];
-  for (const { dp, dr, val } of chosen) {
-    // All pool candidates are alternatives — they share the same line-ID
-    // range (exactly like sampler attempts); only the committed one's ids
-    // reach the track. Rotate FIRST then pitch — the composition order the
-    // additivity study certified.
-    const aimedLines = pitchExit(dr !== 0 ? rotateArc(base.lines, dr) : base.lines, dp)
-      .map((l, i) => ({ ...l, id: lineIdStart + i }));
-    const fit = tryCandidateLines(
-      engine, gap, aimedLines, lineIdStart, ctx.allContactFrames,
-      axisLookaheadEndFrame(gap, ctx.allContactFrames), gap.targets, true,
-      "normal", probe.preTargetSledTrace,
-    ) as Candidate | null;
-    if (fit === null) {
-      aimTotals.enum_gate_fail++;
-      if (dr !== 0) aimTotals.enum_rot_gate_fail++;
-      continue;
-    }
-    aimTotals.enum_emitted++;
-    if (dr !== 0) aimTotals.enum_rot_emitted++;
-    aimTotals.enumReadinessGainSum += val - obj0;
-    const achieved = probeRide(engine, aimedLines, F);
-    if (achieved !== null && achieved.comAngleDeg !== null) {
-      aimTotals.enumAchieved++;
-      aimTotals.enumReadinessErrSum += Math.abs(
-        Math.max(ENUM_R_MIN, readinessCatchState({ speed: predSpeed(dp, dr), comAngleDeg: predAngle(dp, dr) })) -
-          Math.max(ENUM_R_MIN, readinessCatchState({ speed: achieved.speed, comAngleDeg: achieved.comAngleDeg })),
-      );
-    }
-    fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
-    fit.aimed = true;
-    out.push(fit);
-  }
-  return out;
+  return makeJointAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart);
 }
 
 function makeJointAimedCandidates(
@@ -897,7 +653,6 @@ function makeJointAimedCandidates(
   ctx: SpecContext,
   base: Candidate,
   lineIdStart: number,
-  speedTarget: number | null,
 ): Candidate[] {
   const probeDesignName = aimJointProbeDesign();
   const probeKnobs = arcProbeDesign(probeDesignName);
@@ -916,7 +671,7 @@ function makeJointAimedCandidates(
 
   const baseKnobs = { pitchDeg: 0, rotateDeg: 0 };
   recordJointModelCoverage(model, predictJointArcOutputs(model, baseKnobs), gap);
-  const baseScore = scoreJointKnobs(model, baseKnobs, gap, nextGap, speedTarget);
+  const baseScore = scoreJointKnobs(model, baseKnobs, gap, nextGap);
   if (baseScore === "next_before_exit") {
     aimTotals.enum_next_before_exit++;
     return [];
@@ -933,7 +688,7 @@ function makeJointAimedCandidates(
   for (let pitchDeg = -pitchSpan; pitchDeg <= pitchSpan + 1e-9; pitchDeg += ENUM_STEP_DEG) {
     for (let rotateDeg = -rotateSpan; rotateDeg <= rotateSpan + 1e-9; rotateDeg += ENUM_ROT_STEP_DEG) {
       if (Math.abs(pitchDeg) < AIM_MIN_DELTA_DEG && Math.abs(rotateDeg) < ENUM_ROT_STEP_DEG / 2) continue;
-      const score = scoreJointKnobs(model, { pitchDeg, rotateDeg }, gap, nextGap, speedTarget);
+      const score = scoreJointKnobs(model, { pitchDeg, rotateDeg }, gap, nextGap);
       if (typeof score !== "string" && score.val > baseScore.val + 1e-4) scored.push(score);
     }
   }
@@ -973,12 +728,11 @@ function makeJointAimedCandidates(
     if (cand.knobs.rotateDeg !== 0) aimTotals.enum_rot_emitted++;
     aimTotals.enumReadinessGainSum += cand.val - baseScore.val;
     const achieved = probeRide(engine, aimedLines, nextFrame);
-    if (achieved !== null && achieved.comAngleDeg !== null) {
+    const predictedReadiness = scoreNextGapReadiness(cand.state, nextGap);
+    const achievedReadiness = achieved === null ? null : scoreNextGapReadiness(achieved, nextGap);
+    if (predictedReadiness !== null && achievedReadiness !== null) {
       aimTotals.enumAchieved++;
-      aimTotals.enumReadinessErrSum += Math.abs(
-        Math.max(ENUM_R_MIN, readinessCatchState(cand.state)) -
-          Math.max(ENUM_R_MIN, readinessCatchState(achieved)),
-      );
+      aimTotals.enumReadinessErrSum += Math.abs(predictedReadiness.readiness - achievedReadiness.readiness);
     }
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
     fit.aimed = true;
@@ -1001,37 +755,15 @@ function scoreJointKnobs(
   knobs: ArcKnobs,
   gap: Gap,
   nextGap: Gap,
-  speedTarget: number | null,
 ): JointScoreResult {
   const outputs = predictJointArcOutputs(model, knobs);
   const exitFrame = outputs["exit.frame"];
   if (Number.isFinite(exitFrame) && exitFrame > nextGap.endFrame) return "next_before_exit";
   const state = predictedArrivalState(outputs);
-  if (state === null || state.comAngleDeg === null) return "model_unscoreable";
-  const readiness = Math.max(ENUM_R_MIN, readinessCatchState(state));
-  const fit = speedFitFactor(state.speed, speedTarget);
-  const feas = impactFeasibility(state, nextGap);
-  const currentQuality = predictedCurrentQuality(outputs, gap);
-  return { knobs, val: currentQuality * readiness * fit * feas, state, currentQuality };
-}
-
-/** Speed-target fit factor exp(−|s − target|/scale); 1 when the next gap has no
- *  speed target. Single source for the objective's speed term (lane + rank). */
-function speedFitFactor(speed: number, speedTarget: number | null): number {
-  return speedTarget === null ? 1 : Math.exp(-Math.abs(speed - speedTarget) / ENUM_SPEED_SCALE_PXF);
-}
-
-function predictedCurrentQuality(outputs: Record<string, number>, gap: Gap): number {
-  return axisQualityForTargets(gap.targets, predictedCurrentAxes(outputs)).axis_quality;
-}
-
-function impactFeasibility(state: Pick<RiderArrivalState, "speed" | "comAngleDeg">, nextGap: Gap): number {
-  const impactAsk = nextGap.targets.impact;
-  if (impactAsk === undefined || impactAsk < AIM_IMPACT_MIN_ASK || state.comAngleDeg === null) return 1;
-  return Math.min(
-    1,
-    Math.max(0, (state.speed * Math.sin((Math.max(0, state.comAngleDeg) * Math.PI) / 180)) / (impactAsk * CALIB.REDIR_CAP)),
-  );
+  if (state === null) return "model_unscoreable";
+  const objective = scoreGapObjective(gap, predictedCurrentAxes(outputs), state, nextGap);
+  if (objective === null) return "model_unscoreable";
+  return { knobs, val: objective.value, state, currentQuality: objective.currentQuality };
 }
 
 function distinctJointKnobs(a: ArcKnobs, b: ArcKnobs): boolean {
@@ -1068,19 +800,18 @@ function distinctJointKnobs(a: ArcKnobs, b: ArcKnobs): boolean {
 const RANK_CHARGE_TOP_M = 8;
 
 /** Per-candidate objective memo (object identity, scoped to live candidates).
- *  null = computed-and-undefined (no forward target / crashed); a number = the
+ *  null = computed-and-undefined (no next contact / unreadable arrival / crashed); a number = the
  *  objective. Absent key = not yet computed. */
 const objectiveCache = new WeakMap<Candidate, number | null>();
 
-/** A candidate's rank objective: current-axis-quality × readiness × speed-fit ×
- *  impact-feasibility, or null (the next gap has no speed/impact target —
- *  mirrors the lane's enum_no_target bail; the arrival state is unavailable; or
- *  the arrival ride crashed). The arrival state is read FREE off the
+/** A candidate's rank objective: current-axis-quality × next-gap-readiness, or
+ *  null (there is no next contact, the arrival state is unavailable, or the
+ *  arrival ride crashed). The arrival state is read FREE off the
  *  candidate's own measurement detection when present; otherwise, when
  *  `mayCharge`, a memoized charged probeRide to the next contact (frames
  *  metered). `mayCharge=false` and no free capture → null (bounded-charge tail).
  *  Memoized so no candidate is ridden twice. */
-function candidateRankObjective(
+export function candidateQualityObjective(
   // deno-lint-ignore no-explicit-any
   engine: any,
   candidate: Candidate,
@@ -1092,8 +823,6 @@ function candidateRankObjective(
   if (cached !== undefined) return cached;
   const nextGap = nextContactGap(gap, gaps);
   if (nextGap === null) return memoObjective(candidate, null);
-  const speedTarget = nextGapSpeedTargetPx(gap, gaps);
-  if (speedTarget === null && nextGap.targets.impact === undefined) return memoObjective(candidate, null);
 
   // FREE CAPTURE: arrival state already read off the candidate's measurement
   // detection at the next contact frame (no charged frames).
@@ -1158,12 +887,9 @@ function candidateRankObjective(
     aimTotals.rank_readiness_capture_skipped++;
     return null;
   }
-  if (arrival === null || arrival.comAngleDeg === null) return memoObjective(candidate, null);
-  const currentQuality = axisQualityForTargets(gap.targets, candidate.achieved).axis_quality;
-  const readiness = Math.max(ENUM_R_MIN, readinessCatchState(arrival));
-  const fit = speedFitFactor(arrival.speed, speedTarget);
-  const feas = impactFeasibility(arrival, nextGap);
-  return memoObjective(candidate, currentQuality * readiness * fit * feas);
+  if (arrival === null) return memoObjective(candidate, null);
+  const objective = scoreGapObjective(gap, candidate.achieved, arrival, nextGap);
+  return memoObjective(candidate, objective === null ? null : objective.value);
 }
 
 /** Whether the ballistic-prediction branch should claim a no-free-capture
@@ -1178,45 +904,6 @@ function candidateRankObjective(
 function predictedArrivalApplies(candidate: Candidate): boolean {
   if (!RANK_PREDICT_ARRIVAL_HYBRID) return true;
   return candidate.releaseArrivalState?.airborne === true;
-}
-
-/** Ballistic prediction of the rider's arrival state at `nextEndFrame`,
- *  propagating the candidate's captured release/exit state (core/candidate.ts
- *  releaseArrivalState — full position + smoothed launch velocity) with
- *  `propagateBallisticArrivalState` (arc_model.ts; the same pure-readout-gravity
- *  Verlet propagation the short probe's suffix completion uses). Returns null
- *  (caller bails to a null objective) when the release state is missing, the
- *  rider is not airborne at the release frame (not in free flight → the launch
- *  read is not a clean ballistic velocity), or the propagation horizon is
- *  non-positive. Zero charged frames. */
-function predictArrivalAtNextContact(
-  candidate: Candidate,
-  nextEndFrame: number,
-): { speed: number; comAngleDeg: number | null } | null {
-  const rel = candidate.releaseArrivalState;
-  if (rel === undefined) return null;
-  // Ballistic validity: the rider must be in free flight at the release frame
-  // (so the launch velocity is a clean free-flight read). The grounded-frame
-  // count between the catch and the release is NOT a disqualifier — the catch
-  // contact itself is grounded; it is the airborne-at-release flag that gates
-  // free flight. A ground touch BETWEEN release and the next contact would break
-  // the ballistic propagation; that error shows up in the validation stats
-  // (pred_err on free captures) rather than being pre-filtered here.
-  if (!rel.airborne) return null;
-  const dt = nextEndFrame - rel.frame;
-  if (dt <= 0) return null;
-  const launch: RiderArrivalState = {
-    x: rel.x,
-    y: rel.y,
-    vx: rel.vx,
-    vy: rel.vy,
-    speed: Math.hypot(rel.vx, rel.vy),
-    comAngleDeg: null,
-    sledPoseDeg: rel.sledPoseDeg,
-    sledPoseRateDegPerFrame: rel.sledPoseRateDegPerFrame,
-  };
-  const arrived = propagateBallisticArrivalState(launch, dt);
-  return { speed: arrived.speed, comAngleDeg: arrived.comAngleDeg };
 }
 
 /** Signed smallest difference between two CoM heading angles (deg), in
@@ -1237,7 +924,7 @@ function memoObjective(candidate: Candidate, value: number | null): number | nul
 /** Sort a candidate pool by the quality objective DESCENDING; ties (and
  *  undefined-objective candidates relative to each other) break by cost
  *  ascending then sample order (stable). When ANY candidate has a defined
- *  objective the gap genuinely carries a forward target, so defined-objective
+ *  objective the gap has a readable next-contact frontier, so defined-objective
  *  candidates rank ABOVE undefined ones; when none do, the whole pool falls back
  *  to the cost order. Free captures are scored for every candidate; charged
  *  rides are bounded to the top-M cost-sorted that lack one. Pool/disagreement
@@ -1262,7 +949,7 @@ export function sortCandidatesByQuality(
   let chargeBudget = RANK_CHARGE_TOP_M;
   for (const cand of costSorted) {
     const chargedBefore = aimTotals.rank_readiness_capture_charged;
-    const obj = candidateRankObjective(engine, cand, gap, gaps, chargeBudget > 0);
+    const obj = candidateQualityObjective(engine, cand, gap, gaps, chargeBudget > 0);
     if (aimTotals.rank_readiness_capture_charged > chargedBefore) chargeBudget--;
     if (obj !== null) {
       objectives.set(cand, obj);

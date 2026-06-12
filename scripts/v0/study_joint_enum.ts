@@ -6,7 +6,7 @@
  * inner model over (pitch, rotate). Additivity is already CERTIFIED
  * proposer-grade (study_knob_additivity: median interaction ~10%, p90 ~1×),
  * so the open questions are ECONOMIC, and that is what this scout measures
- * under the PRODUCTION objective (readiness × speed-fit × impact-feasibility):
+ * under the PRODUCTION next-gap readiness objective:
  *
  *   1. Headroom — at what fraction of gaps does the joint argmax beat the
  *      pitch-only argmax, and by how much (predicted AND achieved)?
@@ -26,9 +26,9 @@
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { getRiderMetered } from "../lib/detector.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { readinessCatch } from "./optimizer/readiness.ts";
+import { scoreNextGapReadiness } from "./optimizer/objective.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
-import { authoredSpeedToPx, CALIB, FPS } from "./types.ts";
+import { FPS, type AxisValues, type Gap } from "./types.ts";
 
 const argv = process.argv.slice(2);
 const argValue = (name: string): string | undefined =>
@@ -133,21 +133,11 @@ function quadModel(lo: number, mid: number, hi: number, P: number): (d: number) 
     (hi * (d + P) * d) / (2 * P * P);
 }
 
-// ── production objective replica (aim.ts makeEnumAimedCandidates) ──
+// ── production readiness objective (optimizer/objective.ts) ──
 
-const R_MIN = 0.1;
-const SPEED_SCALE_PXF = 0.75;
-const IMPACT_MIN_ASK = 0.3;
-function makeObjective(speedTarget: number | null, impactAsk: number | undefined) {
-  const wantImpact = impactAsk !== undefined && impactAsk >= IMPACT_MIN_ASK;
+function makeObjective(nextGap: Gap) {
   return (s: number, a: number): number => {
-    const r = Math.max(R_MIN, readinessCatch(s, a));
-    const fit = speedTarget === null ? 1 : Math.exp(-Math.abs(s - speedTarget) / SPEED_SCALE_PXF);
-    const feas = !wantImpact ? 1 : Math.min(
-      1,
-      Math.max(0, (s * Math.sin((Math.max(0, a) * Math.PI) / 180)) / ((impactAsk as number) * CALIB.REDIR_CAP)),
-    );
-    return r * fit * feas;
+    return scoreNextGapReadiness({ speed: s, comAngleDeg: a }, nextGap)?.readiness ?? 0;
   };
 }
 
@@ -207,12 +197,13 @@ for (const specName of specNames) {
       const frameNext = frameOfGap.get(k + 1);
       const targetsNext = targetsOfGap.get(k + 1);
       if (frameNext === undefined || targetsNext === undefined) continue;
-      const speedTarget = targetsNext.speed !== undefined ? authoredSpeedToPx(targetsNext.speed) : null;
-      const impactAsk = targetsNext.impact;
-      if (speedTarget === null && (impactAsk === undefined || impactAsk < IMPACT_MIN_ASK)) {
-        gapsNoTarget++;
-        continue;
-      }
+      const nextGap: Gap = {
+        index: k + 1,
+        startFrame: 0,
+        endFrame: frameNext,
+        endsWithContact: true,
+        targets: targetsNext as AxisValues,
+      };
       const arcK = groups[offset + k];
       const before = groups.slice(0, offset + k).flat();
       const sim = (p: number, r: number): Out | null =>
@@ -233,7 +224,7 @@ for (const specName of specNames) {
       const raM = quadModel(rLo.angle, base.angle, rHi.angle, ROT_PROBE);
       const predS = (dp: number, dr: number): number => psM(dp) + rsM(dr) - base.speed;
       const predA = (dp: number, dr: number): number => paM(dp) + raM(dr) - base.angle;
-      const objective = makeObjective(speedTarget, impactAsk);
+      const objective = makeObjective(nextGap);
       const obj = (dp: number, dr: number): number => objective(predS(dp, dr), predA(dp, dr));
 
       const obj0 = obj(0, 0);

@@ -8,13 +8,25 @@ start-state rank, next line id, and skipped-contact count.
 
 ## Search Shape
 
-Expansion is one gap at a time. During contract search, each contact gap's
-engine-validated arc fits are ranked by:
+Expansion is one gap at a time. Each contact gap first builds an
+engine-validated candidate pool. The pool is sorted by the shared objective from
+`optimizer/objective.ts`:
 
-1. local axis cost;
-2. first future-contact feasibility, including survivor count;
-3. a handoff-state penalty for extreme vertical/angle states;
-4. speed/air overshoot penalties where appropriate.
+```text
+current_gap_quality * next_gap_readiness
+```
+
+`current_gap_quality` is the scorer's axis-quality value over the current gap's
+measured achieved axes. `next_gap_readiness` is one composite scalar; today it
+is catchability × next speed fit × next impact feasibility.
+
+When mature forward evaluation is active, branch selection ranks by the true
+metric value reached by the charged rollout. It does not multiply that partial
+score by frontier readiness; that judge change was tested and rejected because
+it over-steered dense prefixes before full feasibility was established. Below
+the forward-eval gate, non-forward handoff branch selection uses the measured
+handoff score: candidate local cost plus future-contact preview scarcity/cost,
+state, overshoot, and release-setup penalties.
 
 If that cheap normal batch finds no viable catch for a required contact, handoff
 may spend a larger deterministic rescue batch at true local dead-ends. Two
@@ -40,24 +52,9 @@ duplicate physics work. If a larger prefix is already cached, smaller-K lookahea
 requests are answered by filtering the stored sample attempts, so the smaller
 deterministic prefix is still exact.
 
-The preview is engine-in-loop and charged in simulated frames. It is also a pure
-policy function of `(spec, seed, prefix)`. Each compile runs at one scalar budget (an
-independent full run; the budget is the stop condition). Today's policy does not yet
-read the budget — making it budget-aware is the next project (see `compiler_goals.md`).
-Future-contact previews use the same extendable per-node candidate
-cache as expansion, and expansion carries the previewed child node forward, so
-the previewed first future-contact sample can be reused when that branch is
-later expanded. The preview's first future local cost is a small ranking signal
-for smooth axes, reusing work the probe already performed.
-
-After the register has a full contract-passing incumbent, normal quality search
-stops doing future-contact previews. At that point the contract is already
-protected by the incumbent, and focused probes showed that the preview rollouts
-spent late budget on speculative one-contact checks instead of evaluating more
-whole-track alternatives. Quality-phase candidate ranking still uses local axis
-cost, handoff-state penalties, overshoot penalties, reuse candidates, and brake
-candidates; the saved preview work is spent on expanding and scoring actual
-branches.
+The future-contact preview ranker is engine-in-loop and charged in simulated
+frames. Candidate generation keeps the exact-prefix cache discipline above; no
+partial lazy candidate pool is cached as if it were a full sample prefix.
 
 Near-tail completion is an exception to future previewing inside candidate
 ranking: the suffix completion itself is already rolling the future forward. It

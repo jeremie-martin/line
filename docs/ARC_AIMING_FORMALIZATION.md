@@ -3,10 +3,22 @@
 Purpose: improve arc placement by adding a local aiming proposer on top of the
 ordinary sampled-candidate compiler.
 
-The aiming model is a proposer, not a judge. It predicts which small arc
+The aiming model is a proposer, not a physics judge. It predicts which small arc
 modifications are worth paying to evaluate, but every emitted aimed variant still
 passes through the normal engine simulation, gates, axis measurement, and search
 ranking before it can enter a committed track.
+
+The production objective has one source of truth:
+`scripts/v0/optimizer/objective.ts`. It is always:
+
+```text
+gap_objective = current_gap_quality * next_gap_readiness
+```
+
+`current_gap_quality` is the scorer's axis-quality value for the current gap,
+including `impact` when the current gap asks for impact. `next_gap_readiness`
+is one scalar. Its current implementation is the product of three components:
+catchability, next speed fit, and next impact feasibility.
 
 ## Compiler Flow
 
@@ -15,13 +27,15 @@ The production flow is:
 ```text
 sample ordinary arcs
 exactly evaluate sampled arcs
-choose the best sampled arc in the local pool as the base
+rank the exact pool by the shared objective
+choose the best exact pool arc as the aim base
 probe small controlled modifications around that base
 fit a local response model
 scan knob space inside the model
-rank predicted variants by current-gap score * next-gap readiness
-exactly evaluate the top 2 distinct aimed variants
+rank predicted variants by current-gap quality * next-gap readiness
+exactly evaluate the top 2 distinct aimed variants per refined base
 return a pool containing only exactly simulated candidates
+rank/search those candidates from measured data
 ```
 
 Current controllable knobs:
@@ -30,8 +44,16 @@ Current controllable knobs:
 - `rotateDeg`: rotate the whole arc.
 
 The top-k model output is only a spending decision: which extra geometries should
-be evaluated exactly. The final pool is still sorted and searched from measured
-candidate data.
+be evaluated exactly. Production refines up to three distinct pool bases at
+mature budgets (`LR_AIM_TOPK_BASES=3`), and emits up to two aimed variants per
+base. Once a candidate exists in the pool, the same objective is computed from
+measured current axes and a measured or ballistic next-arrival state.
+Predictions do not bypass the exact candidate gates.
+
+The expensive aim proposer is still target-gated: it only runs when the next
+contact has a speed ask or an impact ask. Catchability-only next gaps remain
+scoreable by the shared objective for pool ordering, but they do not currently
+pay joint-probe cost.
 
 Probe designs: production defaults to the 5-row cross (`cross5`; pitch and
 rotation probed separately around the base), with a 9-row grid opt-in
@@ -61,8 +83,8 @@ Only axes with both a target and a prediction participate. `impact` participates
 when the current gap has an impact target. Undefined axes, including the
 currently disabled `grain` target, naturally drop out.
 
-The next-gap term answers whether the predicted arrival state is set up for the
-next catch:
+The next-gap readiness term answers whether the predicted arrival state is set
+up for the next catch:
 
 ```text
 next_gap_readiness =
@@ -71,11 +93,15 @@ next_gap_readiness =
   * impact_feasibility(predicted next rider state, next impact target)
 ```
 
-Pose is measured and modeled, but it is not yet a readiness input. The
-catchability factor is clamped below at `R_MIN = 0.1`, so a wrong
-catchability surface can rank variants down but never veto everything.
+This whole product is called readiness in the current code and docs. The
+subcomponents are kept visible for diagnostics and future replacement, but the
+ranking API consumes the composite scalar. Pose is measured and modeled, but it
+is not yet a readiness input. The catchability factor is clamped below at
+`R_MIN = 0.1`, so a wrong catchability surface can rank variants down but never
+veto everything. If the next gap has no speed ask or no meaningful impact ask,
+that missing component contributes `1`, so readiness still scores catchability.
 
-The joint aiming objective is:
+The shared gap objective is:
 
 ```text
 objective(knobs) =
@@ -83,9 +109,24 @@ objective(knobs) =
   * next_gap_readiness(predicted next state, next targets)
 ```
 
-`current.cost` is not the model objective. It remains useful because the normal
-search still uses exact measured `candidate.cost` after simulation, and because
-some diagnostics compare predicted cost against full-simulation truth.
+`current.cost` is not the model objective. It remains useful for diagnostics and
+legacy compatibility, but the production quality ranking uses
+`current_gap_quality * next_gap_readiness`.
+
+The same objective is used in two production ranking places:
+
+- model-only aiming sweep, with predicted current axes and predicted arrival;
+- candidate-pool sorting, with exact achieved axes and a free or ballistic
+  next-arrival state.
+
+Non-forward handoff branch selection intentionally remains the older measured
+handoff score: candidate local cost plus future-contact preview scarcity/cost,
+state, overshoot, and release-setup penalties. Mature forward-eval branch
+selection remains the true simulated partial-track score. Multiplying that
+partial score by terminal frontier readiness was empirically rejected on
+2026-06-12 (`debug-forward-readiness-off-slice-01` restored the focused slice to
+parity with `stack-predict-topk3-01`), so readiness is not currently a
+forward-eval judge term.
 
 ## Modeling Choices
 
@@ -262,8 +303,8 @@ to a linear floor at 3 rows. The floor guarantees by construction that a
 single gate-failed probe row cannot erase an output model. Without it, the
 zero-slack 5-row cross design lost every current-axis model whenever one row
 failed a gate — and because axis quality over an empty error set defaults
-to 1, the sweep objective silently degraded to readiness × speed-fit ×
-impact-feasibility (measured on the golden suite: 41% of gaps for cross5,
+to 1, the sweep objective silently degraded to next-gap readiness only
+(measured on the golden suite: 41% of gaps for cross5,
 ~5% for grid9, whose 9 rows have slack).
 
 When even the linear floor cannot fit (fewer than 3 usable rows), the sweep

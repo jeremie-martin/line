@@ -639,9 +639,10 @@
         <div class="step-no">4</div>
         <div class="step-title">Propose and validate physics</div>
         <div class="step-body">
-          Sampled catches and aimed variants enter the same pool. The aimed
-          variants are chosen by a model-only readiness objective, but each one
-          is placed into lr-core and measured before the search can select it.
+          Sampled catches and aimed variants enter the same pool. Aimed
+          variants are chosen by a model-only current-quality times readiness
+          objective, but each one is placed into lr-core and measured before the
+          search can select it.
         </div>
       </div>
       <div class="flow-row">
@@ -879,10 +880,9 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
         <div class="step-no">3</div>
         <div class="step-title">Probe knob responses</div>
         <div class="step-body">
-          Exit pitch is always probed from three shared rides: base, -6 degrees,
-          and +6 degrees. Whole-arc rotation is a second knob, but it is recruited
-          lazily: only when the pitch sweep is exhausted or nearly flat, and only
-          inside its probed +/-3 degree span.
+          Exit pitch and whole-arc rotation are probed together with the shared
+          joint design. Production defaults to a five-row cross and can opt into
+          a nine-row grid; both feed the same local response model.
         </div>
       </div>
       <div class="flow-row">
@@ -893,55 +893,50 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
           position, velocity, speed, CoM velocity angle, sled pose, and pose
           rate. A richer probe can also measure current-gap axes, current impact
           when defined, and local cost. The generic shape is a joint output-vector
-          model over arc knobs; today's shipped instance fits only next speed and
-          CoM angle with per-knob quadratics, then additively composes them when
-          lazy rotation is active.
+          model over arc knobs; today's shipped instance fits a shared response
+          model for current axes plus the next-arrival state, then scores edits
+          with the shared current-quality times readiness objective.
         </div>
       </div>
       <div class="flow-row">
         <div class="step-no">5</div>
         <div class="step-title">Sweep virtual edits</div>
         <div class="step-body">
-          The code scans many pitch deltas at 0.25 degree resolution, and scans
-          pitch x rotation when rotation was recruited. Those virtual edits are
-          cheap model evaluations, not simulations. The current objective is
-          readiness times speed-target fit times impact-feasibility.
+          The code scans pitch x rotation knob pairs inside the probed span.
+          Those virtual edits are cheap model evaluations, not simulations. The
+          current objective is current-gap quality times composite next-gap
+          readiness.
         </div>
       </div>
       <div class="flow-row">
         <div class="step-no">6</div>
         <div class="step-title">Emit, then measure</div>
         <div class="step-body">
-          In the current implementation, at most two proposals are emitted. A
-          rotated proposal must beat the best pitch proposal by at least 15%
-          predicted objective and gets one non-displacing slot. Every emitted
-          proposal is then tried through
+          In the current implementation, at most three proposals are emitted.
+          Every emitted proposal is then tried through
           <code>tryCandidateLines</code>; ranking and commits consume only those
           exact measured results.
         </div>
       </div>
     </div>
 
-    <div class="formula" style="margin-top:16px">predicted_arrival(dp, dr) =
-  pitch_model(dp)
-  + rotate_model(dr) - base_state     <span style="color:#5d564a"># only when rotate is recruited</span>
+    <div class="formula" style="margin-top:16px">predicted_outputs(pitchDeg, rotateDeg) =
+  joint_response_model(pitchDeg, rotateDeg)
 
-proposal_score(dp, dr) =
-  max(r_min, readiness(predicted_state))
-  &times; speed_target_fit(speed_hat)
-  &times; impact_feasibility(speed_hat, angle_hat, impact_ask)
+proposal_score(pitchDeg, rotateDeg) =
+  current_axis_quality(predicted_current_axes)
+  &times; next_gap_readiness(predicted_next_state)
 
 committed_score =
-  exact gates + exact measured axes + search ranking</div>
+  exact gates + exact measured axes + handoff score / forward eval</div>
 
     <div class="note" style="margin-top:16px">
       The generic idea is broader than the current code: learn a cheap predictor
       that can score many edits before paying for simulation, then emit the top-k
-      proposals into exact validation. The current instance uses k=2, predicts
-      next-beat speed and CoM angle, and composes per-knob fits additively. The
-      read-only joint-model harness now evaluates richer local regressions that
-      predict current-gap targeted axes/errors/cost/impact plus the full next
-      rider state; production still measures emitted proposals exactly.
+      proposals into exact validation. The current instance emits the top two
+      variants per refined base, predicts current-gap axes plus the next-arrival
+      state with a shared joint response model, and production still measures
+      emitted proposals exactly.
     </div>
   </section>
 
@@ -1061,38 +1056,37 @@ committed_score =
 
     <div class="formula">candidate pool =
   sampled catches
-  + aimed proposals            <span style="color:#5d564a"># at most 2 model-selected edits, exact-validated</span>
+  + aimed proposals            <span style="color:#5d564a"># at most 3 model-selected edits, exact-validated</span>
   + sampler templates          <span style="color:#5d564a"># impact-shaped geometry inside the normal sample stream</span>
   + reuse / brake / startup / axis-quality streams
                                <span style="color:#5d564a"># deterministic extras, all exact-validated</span>
 
 branch ranking =
   true-score forward eval      <span style="color:#5d564a"># mature budgets: charged rollout, rank by metric value reached</span>
-  or local measured score      <span style="color:#5d564a"># local cost + preview scarcity + state/overshoot penalties</span></div>
+  or measured handoff score    <span style="color:#5d564a"># local cost + preview scarcity + state/overshoot penalties</span></div>
 
     <div class="grid-3" style="margin-top:16px">
       <div class="panel">
         <h3>Proposer score</h3>
         <p>The enum lane scores a dense grid of virtual deltas without simulating them. That score only decides which variants enter the pool; it never commits a track.</p>
-        <div class="tags"><span class="tag">model-only</span><span class="tag">top-k, k=2 now</span></div>
+        <div class="tags"><span class="tag">model-only</span><span class="tag">top-2 per base</span></div>
       </div>
       <div class="panel">
         <h3>Exact candidate rank</h3>
-        <p>Once a candidate is in the pool, ranking uses measured results: gate pass, achieved axes, exit state, and charged forward evaluation where enabled. Prediction error is telemetry, not authority.</p>
+        <p>Once a candidate is in the pool, ranking uses measured results: gate pass, achieved axes, exit state, the handoff score, and charged forward evaluation where enabled. Prediction error is telemetry, not authority.</p>
         <div class="tags"><span class="tag">measured</span><span class="tag">charged</span></div>
       </div>
       <div class="panel">
         <h3>Selection boundary</h3>
-        <p>Readiness shapes generation, not the judge. A bad readiness prediction can waste one candidate evaluation, but it cannot bypass physics gates or outrank a measured better option by itself.</p>
+        <p>Readiness is part of pool ordering after exact validation. A bad model prediction can waste one candidate evaluation, but it cannot bypass physics gates or outrank exact measured data by itself.</p>
       </div>
     </div>
 
     <div class="note" style="margin-top:16px">
-      This separation is deliberate. The readiness objective is allowed to be
-      aggressive because it is only a proposer; search still chooses from exact
-      measurements. Moving readiness into the judge, or reducing the random
-      sampler because aimed candidates are winning, is a later separately gated
-      question.
+      This separation is deliberate. The model objective may be aggressive
+      because predictions only choose proposals; search still chooses from exact
+      measurements. The measured handoff score is the current non-forward branch
+      judge, while mature forward-eval ranks by charged rollout value.
     </div>
   </section>
 
@@ -1112,7 +1106,7 @@ branch ranking =
     <div class="grid-4">
       <div class="panel">
         <h3>Enumerative proposer</h3>
-        <p>The production aimer scores virtual pitch and lazy-rotation edits, emits at most two proposals, and never bypasses exact validation. The old speed, angle, rotate-fallback, and climb-defer triggers are deleted.</p>
+        <p>The production aimer scores virtual pitch and rotation edits, emits at most three proposals, and never bypasses exact validation. The old speed, angle, rotate-fallback, and climb-defer triggers are deleted.</p>
       </div>
       <div class="panel">
         <h3>Impact templates</h3>
@@ -1207,15 +1201,15 @@ branch ranking =
     <div class="grid-3">
       <div class="panel">
         <h3>One proposer remains</h3>
-        <p>The promoted proposer fits next-beat speed and angle from shared probe rides, enumerates knob deltas in the model, and optimizes readiness times target fit. The current canonical weighted headline is <code>scoop-off-price-01</code> at 600.91.</p>
+        <p>The promoted proposer fits a joint local response from shared probe rides, enumerates knob pairs in the model, and optimizes current quality times composite readiness.</p>
       </div>
       <div class="panel">
         <h3>Model growth path</h3>
-        <p>The current inner model additively composes exit pitch with lazily recruited whole-arc rotation. The joint-model harness is the workbench for testing richer output vectors and true interaction surfaces before production changes.</p>
+        <p>The current inner model is a shared joint pitch/rotation response surface. The joint-model harness remains the workbench for testing richer output vectors and interaction surfaces before production changes.</p>
       </div>
       <div class="panel">
         <h3>Selection is a later gate</h3>
-        <p>Readiness remains a proposer signal. Shrinking the random sampler or adding readiness to ranking waits for commit and pool-rank telemetry; prior attempts to replace guided samples or widen rollout visibility were negative.</p>
+        <p>Readiness is now part of shared pool ordering. Shrinking the random sampler or making readiness the branch judge still waits for commit and pool-rank telemetry; prior attempts to replace guided samples or widen rollout visibility were negative.</p>
       </div>
     </div>
   </section>

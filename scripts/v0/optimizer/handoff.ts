@@ -77,7 +77,12 @@ import {
   makeRootNode,
   type SearchNode,
 } from "./node.ts";
-import { resetAimStats, setAimCompileBudgetFrames, snapshotAimStats } from "./aim.ts";
+import {
+  resetAimStats,
+  setAimCompileBudgetFrames,
+  snapshotAimStats,
+} from "./aim.ts";
+import { frontierReadinessFromFit } from "./objective.ts";
 import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
@@ -285,6 +290,7 @@ type NodeEvaluation = {
   key: LeafKey;
   outputDurationFrames: number;
   fullDuration: boolean;
+  readinessPerGap: (number | null)[];
 };
 
 type ConsiderResult = {
@@ -1345,6 +1351,12 @@ function cloneGapFit(fit: GapFit): GapFit {
       : { releaseGroundedFrames: fit.releaseGroundedFrames }),
     ...(fit.releaseAirborne === undefined ? {} : { releaseAirborne: fit.releaseAirborne }),
     ...(fit.ref === undefined ? {} : { ref: { ...fit.ref } }),
+    ...(fit.arrivalAtNextContact === undefined
+      ? {}
+      : { arrivalAtNextContact: { ...fit.arrivalAtNextContact } }),
+    ...(fit.releaseArrivalState === undefined
+      ? {}
+      : { releaseArrivalState: { ...fit.releaseArrivalState } }),
   };
 }
 
@@ -2854,13 +2866,6 @@ function scoreCandidateForHandoff(
     ? 0
     : preview.firstCost * previewCostWeight;
   const statePenalty = handoffStatePenalty(child.prefixEngine, gaps[node.gapIndex]);
-  // Asymmetric speed-overshoot penalty (selection-only, handoff-only — does NOT
-  // change candidate geometry). The rider creeps faster
-  // than target over long runs (catches are net-downhill) and eventually stalls;
-  // candidate.cost penalizes speed error symmetrically (1 of 3 axes), too weakly
-  // to arrest creep. This extra term prefers, among the pool, catches whose
-  // achieved speed does NOT overshoot the target — bleeding the creep using
-  // catches that already exist (no new geometry). Only penalizes OVERshoot.
   const gap = gaps[node.gapIndex];
   const overshoot = candidateOvershootPenalty(candidate, gap);
   const releasePenalty = releaseSetup
@@ -3147,6 +3152,21 @@ function forwardNodeScore(search: SearchNode, gaps: Gap[], ctx: SpecContext): nu
   );
   const report = fullDuration ? rawReport : asPartialReport(rawReport, horizonFrame);
   return leafKeyForReport(report, ctx.durationFrames).full_score;
+}
+
+export function forwardTerminalReadiness(search: SearchNode, gaps: Gap[]): number {
+  // Diagnostic helper for frontier-readiness studies. Production forward eval
+  // intentionally does not multiply partial-track scores by this value.
+  const nextGapIndex = nextContactGapIndex(gaps, search.gapIndex);
+  if (nextGapIndex < 0) return 1;
+  const nextGap = gaps[nextGapIndex];
+  for (let i = Math.min(nextGapIndex, search.prefixFits.length) - 1; i >= 0; i--) {
+    if (!gaps[i]?.endsWithContact) continue;
+    const fit = search.prefixFits[i];
+    if (fit === null || fit === undefined) continue;
+    return frontierReadinessFromFit(fit, nextGap)?.readiness ?? 1;
+  }
+  return 1;
 }
 
 /** Advance past non-contact gaps to the next contact node, or null at terminus. */

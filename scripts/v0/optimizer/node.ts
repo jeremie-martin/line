@@ -160,10 +160,10 @@ function sortWithLaneExtras(
 ): Candidate[] {
   let sorted = sortCandidatesByCost(sampleOrder);
   // QUALITY-OBJECTIVE POOL SORT (LR_RANK_QUALITY, default on): rank the pool by
-  // the rich aim objective (achieved-axis-quality × readiness × speed-fit ×
-  // impact-feasibility) before the lane runs, so the lane refines the
+  // the shared objective (achieved-axis-quality × composite next-gap readiness)
+  // before the lane runs, so the lane refines the
   // quality-best base, not the cost-best one (the aim lane still runs on
-  // `sorted[0]` of this ordering). Handoff branch selection stays forward-eval.
+  // `sorted[0]` of this ordering).
   const rankQuality = rankQualityEnabled();
   const costOrder = sorted;
   if (rankQuality && sorted.length > 0) {

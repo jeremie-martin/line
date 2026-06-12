@@ -1,0 +1,205 @@
+import { describe, expect, test } from "vitest";
+import { axisQualityForTargets } from "../scripts/v0/score.ts";
+import {
+  CALIB,
+  authoredSpeedToPx,
+  type AxisValues,
+  type Gap,
+  type TrackLine,
+} from "../scripts/v0/types.ts";
+import type { GapFit, ResolvedStart } from "../scripts/v0/core/substrate.ts";
+import {
+  OBJECTIVE_READINESS_MIN,
+  frontierReadinessFromFit,
+  scoreCurrentGapQuality,
+  scoreGapObjective,
+  scoreNextGapReadiness,
+} from "../scripts/v0/optimizer/objective.ts";
+import { readinessCatch } from "../scripts/v0/optimizer/readiness.ts";
+import { sortCandidatesByQuality } from "../scripts/v0/optimizer/aim.ts";
+import { forwardTerminalReadiness, snapshotHandoffNode, type HandoffNode } from "../scripts/v0/optimizer/handoff.ts";
+import type { Candidate } from "../scripts/v0/optimizer/sample.ts";
+import type { SearchNode } from "../scripts/v0/optimizer/node.ts";
+import type { LeafKey } from "../scripts/v0/optimizer/register.ts";
+
+function gap(index: number, startFrame: number, endFrame: number, targets: AxisValues = {}): Gap {
+  return { index, startFrame, endFrame, endsWithContact: true, targets };
+}
+
+function line(id = 1): TrackLine {
+  return {
+    id,
+    type: 0,
+    x1: 0,
+    y1: 0,
+    x2: 10,
+    y2: 0,
+    flipped: false,
+    leftExtended: false,
+    rightExtended: false,
+  };
+}
+
+function candidate(
+  cost: number,
+  achieved: AxisValues,
+  arrivalAtNextContact?: Candidate["arrivalAtNextContact"],
+): Candidate {
+  return {
+    arc: null,
+    geometry: "lines",
+    lines: [line()],
+    achieved,
+    cost,
+    ...(arrivalAtNextContact === undefined ? {} : { arrivalAtNextContact }),
+  };
+}
+
+describe("unified objective quality score", () => {
+  test("current gap quality reuses the scorer axis-quality definition, including impact", () => {
+    const g = gap(0, 0, 20, { air: 0.5, impact: 0.8 });
+    const achieved = { air: 0.4, impact: 0.7 };
+    expect(scoreCurrentGapQuality(g, achieved)).toBeCloseTo(
+      axisQualityForTargets(g.targets, achieved).axis_quality,
+      12,
+    );
+  });
+
+  test("next-gap readiness is catchability times speed fit times impact feasibility", () => {
+    const next = gap(1, 20, 40, { speed: 0.5, impact: 0.8 });
+    const arrival = { speed: 10, comAngleDeg: 30 };
+    const scored = scoreNextGapReadiness(arrival, next);
+    expect(scored).not.toBeNull();
+
+    const catchability = Math.max(OBJECTIVE_READINESS_MIN, readinessCatch(arrival.speed, arrival.comAngleDeg));
+    const speedFit = Math.exp(-Math.abs(arrival.speed - authoredSpeedToPx(0.5)) / 0.75);
+    const impactFeasibility = Math.min(
+      1,
+      Math.max(0, (arrival.speed * Math.sin((arrival.comAngleDeg * Math.PI) / 180)) / (0.8 * CALIB.REDIR_CAP)),
+    );
+    expect(scored!.catchability).toBeCloseTo(catchability, 12);
+    expect(scored!.speedFit).toBeCloseTo(speedFit, 12);
+    expect(scored!.impactFeasibility).toBeCloseTo(impactFeasibility, 12);
+    expect(scored!.readiness).toBeCloseTo(catchability * speedFit * impactFeasibility, 12);
+  });
+
+  test("readiness still scores catchability when the next gap has no speed or impact ask", () => {
+    const next = gap(1, 20, 40, {});
+    const scored = scoreNextGapReadiness({ speed: 9, comAngleDeg: 15 }, next);
+    expect(scored).not.toBeNull();
+    expect(scored!.speedFit).toBe(1);
+    expect(scored!.impactFeasibility).toBe(1);
+    expect(scored!.readiness).toBeCloseTo(Math.max(OBJECTIVE_READINESS_MIN, readinessCatch(9, 15)), 12);
+  });
+
+  test("gap objective is current quality times composite readiness", () => {
+    const current = gap(0, 0, 20, { air: 0.5, impact: 0.8 });
+    const next = gap(1, 20, 40, { speed: 0.5 });
+    const achieved = { air: 0.45, impact: 0.75 };
+    const arrival = { speed: 9.5, comAngleDeg: 12 };
+    const scored = scoreGapObjective(current, achieved, arrival, next);
+    expect(scored).not.toBeNull();
+    expect(scored!.value).toBeCloseTo(scored!.currentQuality * scored!.readiness, 12);
+  });
+
+  test("candidate pool ranking uses the same objective even for catchability-only next gaps", () => {
+    const current = gap(0, 0, 20, { air: 0.5 });
+    const next = gap(1, 20, 40, {});
+    const cheapBad = candidate(0.01, { air: 0.5 }, { frame: 40, speed: 7, comAngleDeg: -5 });
+    const costlyGood = candidate(10, { air: 0.5 }, { frame: 40, speed: 9, comAngleDeg: 15 });
+
+    const ranked = sortCandidatesByQuality({}, current, [current, next], [cheapBad, costlyGood], false);
+    expect(ranked[0]).toBe(costlyGood);
+    expect(ranked[1]).toBe(cheapBad);
+  });
+});
+
+describe("diagnostic frontier readiness", () => {
+  test("terminal readiness reads the last committed fit's frontier readiness", () => {
+    const current = gap(0, 0, 20, { air: 0.5 });
+    const next = gap(1, 20, 40, {});
+    const fit = candidate(0, { air: 0.5 }, { frame: 40, speed: 9, comAngleDeg: 15 });
+    const node: SearchNode = {
+      gapIndex: 1,
+      prefixFits: [fit],
+      prefixEngine: null,
+      prefixNextLineId: 2,
+      cumulativeCost: 0,
+      _candidatesCache: null,
+    };
+
+    expect(forwardTerminalReadiness(node, [current, next])).toBeCloseTo(
+      frontierReadinessFromFit(fit, next)!.readiness,
+      12,
+    );
+  });
+
+  test("terminal readiness is neutral when the frontier state is unavailable", () => {
+    const current = gap(0, 0, 20, { air: 0.5 });
+    const next = gap(1, 20, 40, {});
+    const fit = candidate(0, { air: 0.5 });
+    const node: SearchNode = {
+      gapIndex: 1,
+      prefixFits: [fit],
+      prefixEngine: null,
+      prefixNextLineId: 2,
+      cumulativeCost: 0,
+      _candidatesCache: null,
+    };
+
+    expect(forwardTerminalReadiness(node, [current, next])).toBe(1);
+  });
+
+  test("handoff snapshots preserve objective-relevant arrival fields", () => {
+    const startState: ResolvedStart = {
+      position: { x: 0, y: 0 },
+      velocity: { x: 0.4, y: 0 },
+    };
+    const fit: GapFit = {
+      ...candidate(0, { air: 0.5 }, { frame: 40, speed: 9, comAngleDeg: 15 }),
+      releaseArrivalState: {
+        frame: 28,
+        x: 1,
+        y: 2,
+        vx: 3,
+        vy: 4,
+        sledPoseDeg: null,
+        sledPoseRateDegPerFrame: null,
+        grounded: 1,
+        airborne: true,
+      },
+    };
+    const node: HandoffNode = {
+      search: {
+        gapIndex: 1,
+        prefixFits: [fit],
+        prefixEngine: null,
+        prefixNextLineId: 2,
+        cumulativeCost: 0,
+        _candidatesCache: null,
+      },
+      startState,
+      startLines: [],
+      startRank: 0,
+      searchSeed: 0,
+      startExpanded: true,
+      deferExpansion: false,
+      rankTrace: [],
+      skippedContacts: 0,
+    };
+    const key: LeafKey = { contract_passed: false, axis_quality: 0, full_score: 0 };
+    const event = {
+      phase: "main" as const,
+      simFrames: 0,
+      fullDuration: false,
+      outputDurationFrames: 1,
+      improved: false,
+      improvementCount: 0,
+      consideredCount: 0,
+    };
+
+    const cloned = snapshotHandoffNode(node, key, event).node.search.prefixFits[0]!;
+    expect(cloned.arrivalAtNextContact).toEqual(fit.arrivalAtNextContact);
+    expect(cloned.releaseArrivalState).toEqual(fit.releaseArrivalState);
+  });
+});

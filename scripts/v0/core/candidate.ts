@@ -52,12 +52,12 @@ const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
 
 /** Single parse of LR_RANK_QUALITY (the quality-objective pool-sort mode
- *  switch). Owned here in core so the free-capture gate below and the ranker
- *  (optimizer/aim.ts) cannot desync — a new mode must be added in exactly one
- *  place. DEFAULT is "pool" (the shipped quality-objective pool sort);
+ *  switch). Owned here in core so the free-capture gate below and the pool
+ *  ranker (optimizer/aim.ts) cannot desync — a new mode must be added in
+ *  exactly one place. DEFAULT is "pool" (the shipped quality-objective pool sort);
  *  LR_RANK_QUALITY=off is the escape hatch — any other/unset value → "pool".
- *  Read once at import (env is constant per run; this gates the per-candidate
- *  hot path). */
+ *  Read once at import (env is constant per run; this gates pool-time free
+ *  capture/prediction fields, not every possible objective consumer). */
 export type RankQualityMode = "off" | "pool";
 export const RANK_QUALITY_MODE: RankQualityMode = (() => {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
@@ -69,7 +69,7 @@ export const RANK_QUALITY_MODE: RankQualityMode = (() => {
 /** FREE-CAPTURE gate (pool mode). When set, `evaluateGapFit` reads the rider's
  *  arrival state at `axisMeasureEnd` off the detection it already computed and
  *  stows it on the fit (see GapFit `arrivalAtNextContact`). OFF → the read is
- *  skipped and the field is never set, so the flag-off path is bit-identical. */
+ *  skipped and the field is never set. */
 const CAPTURE_ARRIVAL_AT_NEXT_CONTACT = RANK_QUALITY_MODE !== "off";
 
 /** PREDICTED-ARRIVAL gate (LR_RANK_PREDICT_ARRIVAL). When on AND

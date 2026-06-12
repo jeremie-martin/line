@@ -4,9 +4,10 @@ The active v0 compiler is `compileHandoff` in `handoff.ts`.
 
 The compiler searches partial track prefixes at gap boundaries. Each node carries
 the committed gap fits, the current engine prefix, and the next line id. The
-search expands one gap at a time, ranks catch candidates by local fit plus a
-fixed future-contact feasibility preview, and keeps the best complete-or-partial
-output in a strict best-so-far register.
+search expands one gap at a time, sorts candidate pools with the shared
+`current_gap_quality * next_gap_readiness` objective, uses the measured handoff
+score or mature forward-eval for branch selection, and keeps the best
+complete-or-partial output in a strict best-so-far register.
 
 ## Contract
 
@@ -26,9 +27,10 @@ sample.ts       sample one candidate catch from a prefix state
 solver.ts       sample a fixed candidate pool for one gap
 node.ts         prefix-search state and deterministic expansion helpers
 aim.ts          enumerative aiming proposer; model proposes, exact sim judges
+objective.ts    shared current-quality x readiness objective
 arc_model.ts    shared pitch/rotation knob transforms and response models
 arc_probe.ts    shared real-engine joint probe evaluator
-readiness.ts    catchability/readiness surface used by the proposer
+readiness.ts    catchability surface used by composite next-gap readiness
 handoff.ts      compileHandoff public entry point
 register.ts     strict best-so-far comparator
 polish.ts       clone-and-test polish variants

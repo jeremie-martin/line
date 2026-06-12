@@ -15,6 +15,8 @@ import {
   contactLineIdsAt,
   engineLineFromTrackLine,
 } from "../core/substrate.ts";
+import { gravityCorrectedLaunchAverage } from "../core/launch_read.ts";
+import { firstAirborneExitFrame } from "../core/exit_read.ts";
 import { ELEVATION, IMPACT_WINDOW, type Gap, type TrackLine } from "../types.ts";
 import {
   applyArcKnobs,
@@ -238,47 +240,17 @@ function firstAirborneExitFrameAtOrAfter(
   startFrame: number,
   endFrame: number,
 ): number | null {
-  const exit = arcExitPlane(lines);
-  for (let frame = startFrame; frame <= endFrame; frame++) {
-    if (airborneAt(det, frame) === true && riderPastArcExit(engine, frame, exit)) return frame;
-  }
-  return null;
-}
-
-type ArcExitPlane = {
-  end: { x: number; y: number };
-  dir: { x: number; y: number };
-};
-
-function arcExitPlane(lines: readonly TrackLine[]): ArcExitPlane | null {
-  if (lines.length === 0) return null;
-  const first = lines[0];
-  const last = lines[lines.length - 1];
-  const start = { x: first.x1, y: first.y1 };
-  const end = { x: last.x2, y: last.y2 };
-  const chord = normalizeVec(end.x - start.x, end.y - start.y);
-  if (chord !== null) return { end, dir: chord };
-  const tail = normalizeVec(last.x2 - last.x1, last.y2 - last.y1);
-  return tail === null ? null : { end, dir: tail };
-}
-
-function riderPastArcExit(
-  // deno-lint-ignore no-explicit-any
-  engine: any,
-  frame: number,
-  exit: ArcExitPlane | null,
-): boolean {
-  if (exit === null) return true;
-  const rider = getRiderMetered(engine, frame);
-  const pos = rider?.position;
-  if (pos === undefined || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return false;
-  const along = (pos.x - exit.end.x) * exit.dir.x + (pos.y - exit.end.y) * exit.dir.y;
-  return along > 0;
-}
-
-function normalizeVec(x: number, y: number): { x: number; y: number } | null {
-  const length = Math.hypot(x, y);
-  return length <= 1e-9 ? null : { x: x / length, y: y / length };
+  // Delegates to the shared geometric exit detector (core/exit_read.ts). The
+  // engine call site reads the rider POSITION from the metered engine; airborne
+  // from the detection. Position is only read when airborne === true (the
+  // shared scanner short-circuits exactly as the former inlined loop did).
+  return firstAirborneExitFrame(
+    lines,
+    startFrame,
+    endFrame,
+    (frame) => airborneAt(det, frame),
+    (frame) => getRiderMetered(engine, frame)?.position,
+  );
 }
 
 function cleanAirborneRange(det: ReturnType<typeof detectWindow>, startFrame: number, endFrame: number): boolean {
@@ -287,19 +259,6 @@ function cleanAirborneRange(det: ReturnType<typeof detectWindow>, startFrame: nu
   }
   return true;
 }
-
-/** Frames averaged by the gravity-corrected launch-velocity estimator. */
-const LAUNCH_READ_FRAMES = 4;
-
-/** Constant correction to the launch vy read (px/f). The velocity readout
- *  at the first airborne frames after a catch UNDERESTIMATES vy by a
- *  roughly constant amount (post-impact transient of the constrained body):
- *  signed prediction error vs full-sim truth is flat across dt buckets, so
- *  this is a read offset, not an acceleration. Fitted on 22.7k probe rows
- *  across 6 golden specs (smoothed read: +0.0345; raw read: +0.0265) and
- *  validated out-of-sample — see the calibration note in
- *  docs/ARC_AIMING_FORMALIZATION.md and study_latent_decomposition.ts. */
-const LAUNCH_VY_OFFSET_PX = 0.0345;
 
 /** The short probe's launch state: `readArrivalState` at the suffix frame,
  *  with the velocity replaced by a gravity-corrected average of up to
@@ -321,21 +280,15 @@ function readLaunchState(
   const base = readArrivalState(engine, frame);
   if (base === null) return base;
   const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
-  let sx = base.vx;
-  let sy = base.vy;
-  let n = 1;
-  for (let k = 1; k < LAUNCH_READ_FRAMES; k++) {
-    const f = frame + k;
-    if (f > horizon || airborneAt(det, f) !== true) break;
-    const rider = getRiderMetered(engine, f);
-    const v = rider?.velocity;
-    if (v === undefined || !Number.isFinite(v.x) || !Number.isFinite(v.y)) break;
-    sx += v.x;
-    sy += v.y - g * k;
-    n++;
-  }
-  const vx = sx / n;
-  const vy = sy / n + LAUNCH_VY_OFFSET_PX;
+  const { vx, vy, n } = gravityCorrectedLaunchAverage(
+    { x: base.vx, y: base.vy },
+    g,
+    (k) => {
+      const f = frame + k;
+      return f <= horizon && airborneAt(det, f) === true;
+    },
+    (k) => getRiderMetered(engine, frame + k)?.velocity,
+  );
   const speed = Math.hypot(vx, vy);
   return {
     state: {

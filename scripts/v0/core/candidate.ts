@@ -59,12 +59,12 @@ const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
 
 /** Single parse of LR_RANK_QUALITY (the quality-objective pool-sort mode
- *  switch). Owned here in core so the free-capture gate below and the pool
+ *  switch). Owned here in core so the predict-arrival capture below and the pool
  *  ranker (optimizer/aim.ts) cannot desync — a new mode must be added in
  *  exactly one place. DEFAULT is "pool" (the shipped quality-objective pool sort);
  *  LR_RANK_QUALITY=off is the escape hatch — any other/unset value → "pool".
- *  Read once at import (env is constant per run; this gates pool-time free
- *  capture/prediction fields, not every possible objective consumer). */
+ *  Read once at import (env is constant per run; this gates pool-time predicted-
+ *  arrival fields, not every possible objective consumer). */
 export type RankQualityMode = "off" | "pool";
 export const RANK_QUALITY_MODE: RankQualityMode = (() => {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
@@ -72,12 +72,6 @@ export const RANK_QUALITY_MODE: RankQualityMode = (() => {
   if (raw === "off") return "off";
   return "pool";
 })();
-
-/** FREE-CAPTURE gate (pool mode). When set, `evaluateGapFit` reads the rider's
- *  arrival state at `axisMeasureEnd` off the detection it already computed and
- *  stows it on the fit (see GapFit `arrivalAtNextContact`). OFF → the read is
- *  skipped and the field is never set. */
-const CAPTURE_ARRIVAL_AT_NEXT_CONTACT = RANK_QUALITY_MODE !== "off";
 
 /** PREDICTED-ARRIVAL capture (pool mode). When the quality sort is active,
  *  `evaluateGapFit` captures the rider's full launch/exit state (position +
@@ -814,9 +808,6 @@ function evaluateCandidateLines(
         ? {}
         : { releaseGroundedFrames: best.fit.releaseGroundedFrames }),
       ...(best.fit.releaseAirborne === undefined ? {} : { releaseAirborne: best.fit.releaseAirborne }),
-      ...(best.fit.arrivalAtNextContact === undefined
-        ? {}
-        : { arrivalAtNextContact: best.fit.arrivalAtNextContact }),
       ...(best.fit.releaseArrivalState === undefined
         ? {}
         : { releaseArrivalState: best.fit.releaseArrivalState }),
@@ -947,7 +938,6 @@ function evaluateGapFit(
     | "releaseVelocityY"
     | "releaseGroundedFrames"
     | "releaseAirborne"
-    | "arrivalAtNextContact"
     | "releaseArrivalState"
   >;
   failure: null;
@@ -1042,14 +1032,6 @@ function evaluateGapFit(
   const cost = axisCost(searchTargets, achieved)
     + (scoreReleaseState ? releaseSpeedPenalty(releaseSpeed, searchTargets.speed) : 0);
   if (probeRecord !== null) probeRecord.cost = cost;
-  // FREE-CAPTURE (LR_RANK_QUALITY): when the lookahead measurement reached the
-  // next contact (axisMeasureEnd > gap.endFrame ⟺ axisLookaheadEndFrame returned
-  // that contact), the rider's arrival state there is already in `det`. Read it
-  // off — a pure read of state already computed; no extra frames, no RNG. Gated
-  // so the flag-off path never even allocates the field.
-  const arrivalAtNextContact = CAPTURE_ARRIVAL_AT_NEXT_CONTACT && axisMeasureEnd > gap.endFrame
-    ? arrivalStateAt(det, axisMeasureEnd)
-    : undefined;
   // PREDICTED-ARRIVAL: full launch/exit state for the ranker to propagate
   // ballistically to the next contact instead of charging a probe ride, read off
   // the SAME detection (zero extra frames). Gated on pool mode so the
@@ -1078,29 +1060,9 @@ function evaluateGapFit(
       ...(releaseVelocity === undefined ? {} : { releaseVelocityY: releaseVelocity.y }),
       releaseGroundedFrames,
       ...(releaseAirborne === undefined ? {} : { releaseAirborne }),
-      ...(arrivalAtNextContact === undefined ? {} : { arrivalAtNextContact }),
       ...(releaseArrivalState === undefined ? {} : { releaseArrivalState }),
     },
     failure: null,
-  };
-}
-
-/** Rider arrival state {speed, comAngleDeg} at `frame`, read off an existing
- *  detection (the candidate's own measurement ride). comAngleDeg is the CoM
- *  velocity heading in degrees (+down), null when stationary; mirrors
- *  aim.ts probeRide. Returns undefined when the frame is past the detection. */
-function arrivalStateAt(
-  det: Detection,
-  frame: number,
-): { frame: number; speed: number; comAngleDeg: number | null } | undefined {
-  const v = velocityAt(det, frame);
-  if (v === undefined) return undefined;
-  const speed = Math.hypot(v.x, v.y);
-  if (!Number.isFinite(speed)) return undefined;
-  return {
-    frame,
-    speed,
-    comAngleDeg: speed > 0 ? (Math.atan2(v.y, v.x) * 180) / Math.PI : null,
   };
 }
 

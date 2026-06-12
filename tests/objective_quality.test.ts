@@ -11,6 +11,7 @@ import type { GapFit, ResolvedStart } from "../scripts/v0/core/substrate.ts";
 import {
   OBJECTIVE_READINESS_MIN,
   frontierReadinessFromFit,
+  predictArrivalAtNextContact,
   scoreCurrentGapQuality,
   scoreGapObjective,
   scoreNextGapReadiness,
@@ -40,10 +41,30 @@ function line(id = 1): TrackLine {
   };
 }
 
+/** An airborne release state at `frame` with launch velocity (vx, vy); the
+ *  objective propagates it ballistically to the next contact. */
+function releaseState(
+  frame: number,
+  vx: number,
+  vy: number,
+): GapFit["releaseArrivalState"] {
+  return {
+    frame,
+    x: 0,
+    y: 0,
+    vx,
+    vy,
+    sledPoseDeg: null,
+    sledPoseRateDegPerFrame: null,
+    grounded: 1,
+    airborne: true,
+  };
+}
+
 function candidate(
   cost: number,
   achieved: AxisValues,
-  arrivalAtNextContact?: Candidate["arrivalAtNextContact"],
+  releaseArrivalState?: GapFit["releaseArrivalState"],
 ): Candidate {
   return {
     arc: null,
@@ -51,7 +72,7 @@ function candidate(
     lines: [line()],
     achieved,
     cost,
-    ...(arrivalAtNextContact === undefined ? {} : { arrivalAtNextContact }),
+    ...(releaseArrivalState === undefined ? {} : { releaseArrivalState }),
   };
 }
 
@@ -102,11 +123,29 @@ describe("unified objective quality score", () => {
     expect(scored!.value).toBeCloseTo(scored!.currentQuality * scored!.readiness, 12);
   });
 
-  test("candidate pool ranking uses the same objective even for catchability-only next gaps", () => {
+  test("candidate pool ranking uses the predicted-arrival objective over cost", () => {
+    // `next` is catchability-only (empty targets). Both candidates release at
+    // frame 20 and propagate ballistically 20 frames to the next contact; the
+    // launch velocity drives the predicted-arrival readiness. The "good" launch
+    // arrives more catchable and must rank first despite costing far more.
     const current = gap(0, 0, 20, { air: 0.5 });
     const next = gap(1, 20, 40, {});
-    const cheapBad = candidate(0.01, { air: 0.5 }, { frame: 40, speed: 7, comAngleDeg: -5 });
-    const costlyGood = candidate(10, { air: 0.5 }, { frame: 40, speed: 9, comAngleDeg: 15 });
+    const cheapBad = candidate(0.01, { air: 0.5 }, releaseState(20, 4, -4));
+    const costlyGood = candidate(10, { air: 0.5 }, releaseState(20, 8, 0));
+
+    const goodObj = scoreGapObjective(
+      current,
+      { air: 0.5 },
+      predictArrivalAtNextContact(costlyGood, next.endFrame)!,
+      next,
+    )!.value;
+    const badObj = scoreGapObjective(
+      current,
+      { air: 0.5 },
+      predictArrivalAtNextContact(cheapBad, next.endFrame)!,
+      next,
+    )!.value;
+    expect(goodObj).toBeGreaterThan(badObj);
 
     const ranked = sortCandidatesByQuality({}, current, [current, next], [cheapBad, costlyGood], false);
     expect(ranked[0]).toBe(costlyGood);
@@ -118,7 +157,7 @@ describe("diagnostic frontier readiness", () => {
   test("terminal readiness reads the last committed fit's frontier readiness", () => {
     const current = gap(0, 0, 20, { air: 0.5 });
     const next = gap(1, 20, 40, {});
-    const fit = candidate(0, { air: 0.5 }, { frame: 40, speed: 9, comAngleDeg: 15 });
+    const fit = candidate(0, { air: 0.5 }, releaseState(20, 8, 0));
     const node: SearchNode = {
       gapIndex: 1,
       prefixFits: [fit],
@@ -156,7 +195,7 @@ describe("diagnostic frontier readiness", () => {
       velocity: { x: 0.4, y: 0 },
     };
     const fit: GapFit = {
-      ...candidate(0, { air: 0.5 }, { frame: 40, speed: 9, comAngleDeg: 15 }),
+      ...candidate(0, { air: 0.5 }),
       releaseArrivalState: {
         frame: 28,
         x: 1,
@@ -199,7 +238,6 @@ describe("diagnostic frontier readiness", () => {
     };
 
     const cloned = snapshotHandoffNode(node, key, event).node.search.prefixFits[0]!;
-    expect(cloned.arrivalAtNextContact).toEqual(fit.arrivalAtNextContact);
     expect(cloned.releaseArrivalState).toEqual(fit.releaseArrivalState);
   });
 });

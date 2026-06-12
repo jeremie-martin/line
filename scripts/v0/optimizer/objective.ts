@@ -93,8 +93,6 @@ export function arrivalStateFromFit(
   fit: GapFit,
   nextEndFrame: number,
 ): ObjectiveArrivalState | null {
-  const free = fit.arrivalAtNextContact;
-  if (free !== undefined && free.frame === nextEndFrame) return free;
   return predictArrivalAtNextContact(fit, nextEndFrame);
 }
 

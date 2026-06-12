@@ -1366,9 +1366,6 @@ function cloneGapFit(fit: GapFit): GapFit {
       : { releaseGroundedFrames: fit.releaseGroundedFrames }),
     ...(fit.releaseAirborne === undefined ? {} : { releaseAirborne: fit.releaseAirborne }),
     ...(fit.ref === undefined ? {} : { ref: { ...fit.ref } }),
-    ...(fit.arrivalAtNextContact === undefined
-      ? {}
-      : { arrivalAtNextContact: { ...fit.arrivalAtNextContact } }),
     ...(fit.releaseArrivalState === undefined
       ? {}
       : { releaseArrivalState: { ...fit.releaseArrivalState } }),

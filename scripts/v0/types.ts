@@ -535,6 +535,15 @@ export type CompileStats = {
 	    enum_current_axes_modeled: number;
 	    enum_current_term_missing: number;
 	  };
+  /** Geometric-exit release-read funnel (core/candidate.ts). Non-scoring
+   *  diagnostics; absent under LR_RANK_QUALITY=off (no read taken). */
+  release_exit?: {
+    release_exit_used: number;
+    release_exit_fallback_no_exit: number;
+    release_exit_fallback_next_contact: number;
+    release_exit_fallback_unreadable: number;
+    release_exit_airborne: number;
+  };
   /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;
   /** Readiness v0 (optimizer/readiness.ts, READINESS_ROADMAP R1, telemetry

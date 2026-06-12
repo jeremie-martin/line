@@ -59,7 +59,6 @@ import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../
 import {
   axisLookaheadEndFrame,
   RANK_PREDICT_ARRIVAL,
-  RANK_PREDICT_ARRIVAL_HYBRID,
   RANK_QUALITY_MODE,
   tryCandidateLines,
 } from "../core/candidate.ts";
@@ -291,49 +290,48 @@ export type AimStats = {
    *  `rank_readiness_*` field names are HISTORICAL (the flag was once called
    *  LR_RANK_READINESS) — kept unchanged so existing lab archives stay queryable.
    *  Pool builds where the cost-rank and quality-rank top-3 sets differ, and
-   *  where the top-1 differs; physics frames charged by per-candidate
-   *  arrival-state rides; candidates with a defined objective vs total scored
-   *  (fallback rate = (scored − defined) / scored). free/charged split the
-   *  arrival capture: `free` = read off the candidate's own measurement
-   *  detection (zero frames), `charged` = a bounded top-M memoized probeRide. */
+   *  where the top-1 differs; candidates with a defined objective vs total scored
+   *  (fallback rate = (scored − defined) / scored). `capture_free` counts arrivals
+   *  read off the candidate's own measurement detection (zero frames); the rest
+   *  are served by ballistic prediction (rank_quality_pred_used). The objective
+   *  NEVER charges a physics frame, so `*_charged` / `*_skipped` are RETAINED at
+   *  a constant 0 for archive-query stability (the bounded-charge tail was removed
+   *  with the predict-only promotion). */
   rank_readiness_pools: number;
   rank_readiness_top3_disagree: number;
   rank_readiness_top1_disagree: number;
+  /** Always 0 — no per-candidate arrival ride is ever charged. Retained for
+   *  archive-query stability. */
   rank_readiness_arrival_frames_charged: number;
   rank_readiness_candidates_scored: number;
   rank_readiness_objective_defined: number;
   rank_readiness_capture_free: number;
+  /** Always 0 — the bounded charged-ride path was removed (predict-only). Retained
+   *  for archive-query stability. */
   rank_readiness_capture_charged: number;
+  /** Always 0 — the bounded-charge tail was removed (predict-only). Retained for
+   *  archive-query stability. */
   rank_readiness_capture_skipped: number;
-  /** PREDICTED-ARRIVAL (LR_RANK_PREDICT_ARRIVAL). Ground-truth prediction error
-   *  accumulated on every candidate that HAS a free capture: the ballistic
-   *  prediction is computed alongside the exact free read and the absolute
-   *  errors summed (`_speed_sum` in px/f, `_angle_sum` in deg, over `_n`
-   *  validated candidates) — a zero-cost honest readout of how good the
-   *  prediction would be if it replaced the free read. `_bail` counts candidates
-   *  where prediction was attempted (no free capture, or validation) but could
-   *  not produce a state (missing release state, grounded/non-airborne flight,
-   *  or a comAngle-less result). */
+  /** Ground-truth prediction error accumulated on every candidate that HAS a free
+   *  capture: the ballistic prediction is computed alongside the exact free read
+   *  and the absolute errors summed (`_speed_sum` in px/f, `_angle_sum` in deg,
+   *  over `_n` validated candidates) — a zero-cost honest readout of how good the
+   *  prediction is. `_bail` counts candidates where prediction was attempted (no
+   *  free capture, or validation) but could not produce a state (missing release
+   *  state, grounded/non-airborne flight, or a comAngle-less result). */
   rank_quality_pred_err_speed_sum: number;
   rank_quality_pred_err_angle_sum: number;
   rank_quality_pred_err_n: number;
   /** Prediction bails on the PREDICT path (no free capture, predict couldn't
-   *  produce a state → null objective). */
+   *  produce a state → null objective → cost order). */
   rank_quality_pred_bail: number;
   /** Prediction bails on the VALIDATION path (a free capture existed but the
    *  parallel prediction couldn't produce a comparable state — excluded from the
    *  error means, counted here). */
   rank_quality_pred_val_bail: number;
-  /** Candidates ranked via a ballistic PREDICTION (no free capture, predict
-   *  flag on): the prediction-only objective path that replaces the charged
-   *  ride. */
+  /** Candidates ranked via a ballistic PREDICTION (no free capture): the
+   *  prediction-only objective path. */
   rank_quality_pred_used: number;
-  /** HYBRID (LR_RANK_PREDICT_ARRIVAL=hybrid): no-free-capture candidates routed to
-   *  the bounded charged probeRide BECAUSE they were not airborne at release (so
-   *  ballistic prediction could not serve them). The support-population recovery
-   *  the hybrid arm adds; 0 under "1" and predict-off. Charged-vs-predicted split:
-   *  predicted = rank_quality_pred_used, charged-fallback = this counter. */
-  rank_quality_hybrid_charged: number;
 };
 
 const aimTotals = {
@@ -367,11 +365,10 @@ const aimTotals = {
   rank_readiness_candidates_scored: 0, rank_readiness_objective_defined: 0,
   rank_readiness_capture_free: 0, rank_readiness_capture_charged: 0,
   rank_readiness_capture_skipped: 0,
-  // Predicted-arrival validation + usage (LR_RANK_PREDICT_ARRIVAL).
+  // Predicted-arrival validation + usage.
   rank_quality_pred_err_speed_sum: 0, rank_quality_pred_err_angle_sum: 0,
   rank_quality_pred_err_n: 0, rank_quality_pred_bail: 0,
   rank_quality_pred_val_bail: 0, rank_quality_pred_used: 0,
-  rank_quality_hybrid_charged: 0,
 };
 
 /** Record where a lane proposal ranked in the cost-sorted pool it entered,
@@ -524,7 +521,6 @@ export function snapshotAimStats(): AimStats | null {
     rank_quality_pred_bail: aimTotals.rank_quality_pred_bail,
     rank_quality_pred_val_bail: aimTotals.rank_quality_pred_val_bail,
     rank_quality_pred_used: aimTotals.rank_quality_pred_used,
-    rank_quality_hybrid_charged: aimTotals.rank_quality_hybrid_charged,
   };
 }
 
@@ -779,45 +775,37 @@ function distinctJointKnobs(a: ArcKnobs, b: ArcKnobs): boolean {
 // per-gap candidate pool (node.ts) instead of cost. Handoff branch selection
 // stays forward-eval. All dead code unless rankQualityEnabled().
 //
-// Cost control (vs an unbounded ride-every-candidate judge, 148.4M frames):
+// Cost control (vs an unbounded ride-every-candidate judge, 148.4M frames) —
+// the objective NEVER charges a physics frame:
 //   • MEMOIZE per candidate (objectiveCache) — object identity survives pool
-//     rebuilds and branch scoring, so no candidate is ever ridden twice.
+//     rebuilds and branch scoring, so no candidate is ever scored twice.
 //   • FREE CAPTURE — for long air-target gaps the candidate's own measurement
 //     ride already reached the next contact; its arrival state rides on
 //     candidate.arrivalAtNextContact (core/candidate.ts), so the objective is
-//     computed with ZERO charged frames.
-//   • BOUNDED CHARGED — candidates without a free capture cost a probeRide;
-//     ride only the top-M cost-sorted of those (M = RANK_CHARGE_TOP_M). The
-//     rest get a null objective and stay in cost order below the scored ones.
-
-/** Cap on charged arrival rides PER POOL BUILD: only the first M cost-sorted
- *  candidates lacking a free capture pay a probeRide. Because memoized
- *  candidates consume no budget, rebuilds of the same gap's pool (larger nCand,
- *  lane-extra merges) advance the charge frontier cumulatively — across builds
- *  more than M candidates may end up charged. The pool's nominal size is 8, so
- *  M = 8 charges roughly one ride per surviving pool slot per build while
- *  leaving the long tail at cost order. */
-const RANK_CHARGE_TOP_M = 8;
+//     computed with ZERO frames.
+//   • PREDICTED ARRIVAL — candidates without a free capture propagate their
+//     captured release state ballistically to the next contact (also zero
+//     frames). Prediction-impossible → null objective → cost order.
 
 /** Per-candidate objective memo (object identity, scoped to live candidates).
- *  null = computed-and-undefined (no next contact / unreadable arrival / crashed); a number = the
- *  objective. Absent key = not yet computed. */
+ *  null = computed-and-undefined (no next contact / unreadable arrival / prediction
+ *  impossible); a number = the objective. Absent key = not yet computed. */
 const objectiveCache = new WeakMap<Candidate, number | null>();
 
 /** A candidate's rank objective: current-axis-quality × next-gap-readiness, or
- *  null (there is no next contact, the arrival state is unavailable, or the
- *  arrival ride crashed). The arrival state is read FREE off the
- *  candidate's own measurement detection when present; otherwise, when
- *  `mayCharge`, a memoized charged probeRide to the next contact (frames
- *  metered). `mayCharge=false` and no free capture → null (bounded-charge tail).
- *  Memoized so no candidate is ridden twice. */
+ *  null (there is no next contact, the arrival state is unavailable, or
+ *  prediction is impossible). The arrival state is read FREE off the candidate's
+ *  own measurement detection when present; otherwise the candidate's release state
+ *  is propagated ballistically to the next contact (predict-only — no charged ride
+ *  is ever taken). Prediction-impossible (missing release state, comAngle-less
+ *  propagation) → null objective (cost order). Memoized so no candidate is scored
+ *  twice. */
 export function candidateQualityObjective(
   // deno-lint-ignore no-explicit-any
-  engine: any,
+  _engine: any,
   candidate: Candidate,
   gap: Gap,
   gaps: Gap[],
-  mayCharge: boolean,
 ): number | null {
   const cached = objectiveCache.get(candidate);
   if (cached !== undefined) return cached;
@@ -831,35 +819,25 @@ export function candidateQualityObjective(
   if (free !== undefined && free.frame === nextGap.endFrame) {
     arrival = free;
     aimTotals.rank_readiness_capture_free++;
-    // BUILT-IN VALIDATION (LR_RANK_PREDICT_ARRIVAL): a free capture is the exact
-    // arrival; predict it TOO and record the ballistic-prediction error. Zero
-    // cost, runs on every clean free capture — ground-truth accuracy of the
-    // prediction that would otherwise replace the charged ride.
-    if (RANK_PREDICT_ARRIVAL) {
-      const pred = predictArrivalAtNextContact(candidate, nextGap.endFrame);
-      if (pred === null || pred.comAngleDeg === null || free.comAngleDeg === null) {
-        aimTotals.rank_quality_pred_val_bail++;
-      } else {
-        aimTotals.rank_quality_pred_err_speed_sum += Math.abs(pred.speed - free.speed);
-        aimTotals.rank_quality_pred_err_angle_sum += Math.abs(
-          smallestAngleDiffDeg(pred.comAngleDeg, free.comAngleDeg),
-        );
-        aimTotals.rank_quality_pred_err_n++;
-      }
+    // BUILT-IN VALIDATION: a free capture is the exact arrival; predict it TOO and
+    // record the ballistic-prediction error. Zero cost, runs on every clean free
+    // capture — ground-truth accuracy of the prediction that replaces the read
+    // when no free capture exists.
+    const pred = predictArrivalAtNextContact(candidate, nextGap.endFrame);
+    if (pred === null || pred.comAngleDeg === null || free.comAngleDeg === null) {
+      aimTotals.rank_quality_pred_val_bail++;
+    } else {
+      aimTotals.rank_quality_pred_err_speed_sum += Math.abs(pred.speed - free.speed);
+      aimTotals.rank_quality_pred_err_angle_sum += Math.abs(
+        smallestAngleDiffDeg(pred.comAngleDeg, free.comAngleDeg),
+      );
+      aimTotals.rank_quality_pred_err_n++;
     }
-  } else if (RANK_PREDICT_ARRIVAL && predictedArrivalApplies(candidate)) {
-    // PREDICTED ARRIVAL: no free capture, rider airborne at release → propagate the
-    // candidate's release state ballistically to the next contact. No charged ride,
-    // no top-M bound, no skip. Prediction-impossible AFTER the airborne check
-    // (missing release state, comAngle-less propagation result) → null objective, as
-    // the charged path's crash did.
-    //
-    // HYBRID note (LR_RANK_PREDICT_ARRIVAL=hybrid): `predictedArrivalApplies` is the
-    // sole gate that routes a NON-airborne-at-release candidate to the charged
-    // fallback below INSTEAD of here. Under "1" that gate is always true here (the
-    // predict-only path took every no-free candidate and bailed the non-airborne
-    // ones to null), so =1 stays byte-identical; under "hybrid" the non-airborne
-    // candidates skip this branch and fall to the `mayCharge` / skip arms.
+  } else {
+    // PREDICTED ARRIVAL: no free capture → propagate the candidate's release state
+    // ballistically to the next contact. No charged ride. Prediction-impossible
+    // (missing release state, non-airborne release, comAngle-less propagation
+    // result) → null objective (cost order).
     const pred = predictArrivalAtNextContact(candidate, nextGap.endFrame);
     if (pred === null || pred.comAngleDeg === null) {
       aimTotals.rank_quality_pred_bail++;
@@ -867,43 +845,10 @@ export function candidateQualityObjective(
     }
     arrival = pred;
     aimTotals.rank_quality_pred_used++;
-  } else if (mayCharge) {
-    // CHARGED FALLBACK (bounded, memoized, top-M). Reachable in two regimes:
-    //  · LR_RANK_QUALITY=pool, predict OFF — the original quality-rank charged ride.
-    //  · LR_RANK_PREDICT_ARRIVAL=hybrid — for NON-airborne-at-release candidates that
-    //    ballistic prediction can't reach. DEAD under LR_RANK_PREDICT_ARRIVAL=1 (the
-    //    predict branch above takes every no-free candidate when the flag is "1").
-    const framesBefore = getPhysicsFrameCount();
-    arrival = probeRide(engine, candidate.lines, nextGap.endFrame);
-    aimTotals.rank_readiness_arrival_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBefore);
-    aimTotals.rank_readiness_capture_charged++;
-    // Hybrid split: this charged ride is a non-airborne-at-release fallback that the
-    // predict branch declined (the support-population recovery). 0 under "1"/off.
-    if (RANK_PREDICT_ARRIVAL_HYBRID) aimTotals.rank_quality_hybrid_charged++;
-  } else {
-    // Bounded-charge tail: not eligible for a charged ride, no free capture.
-    // NOT memoized — a later pool build may rank this candidate high enough to
-    // afford the charge; caching the skip would freeze it at null forever.
-    aimTotals.rank_readiness_capture_skipped++;
-    return null;
   }
   if (arrival === null) return memoObjective(candidate, null);
   const objective = scoreGapObjective(gap, candidate.achieved, arrival, nextGap);
   return memoObjective(candidate, objective === null ? null : objective.value);
-}
-
-/** Whether the ballistic-prediction branch should claim a no-free-capture
- *  candidate (vs routing it to the charged fallback). Under "1" (predict-only)
- *  this is ALWAYS true: the predict branch took every no-free candidate and bailed
- *  the prediction-impossible ones to null — so returning true here for every
- *  candidate keeps =1 byte-identical. Under "hybrid" it is true only when the rider
- *  is airborne at the release frame (the lone case prediction can serve); every
- *  non-airborne-at-release candidate falls through to the bounded charged ride.
- *  (Predict still owns missing-release-state / comAngle-less bails inside the
- *  branch — those stay null in both modes, matching the old charged crash.) */
-function predictedArrivalApplies(candidate: Candidate): boolean {
-  if (!RANK_PREDICT_ARRIVAL_HYBRID) return true;
-  return candidate.releaseArrivalState?.airborne === true;
 }
 
 /** Signed smallest difference between two CoM heading angles (deg), in
@@ -943,14 +888,8 @@ export function sortCandidatesByQuality(
   if (costSorted.length === 0) return costSorted;
   const objectives = new Map<Candidate, number>();
   let anyDefined = false;
-  // The charge budget is spent on the lowest-cost candidates first (costSorted
-  // order). Free captures and already-memoized candidates cost nothing, so they
-  // never consume budget; only a fresh charged probeRide does.
-  let chargeBudget = RANK_CHARGE_TOP_M;
   for (const cand of costSorted) {
-    const chargedBefore = aimTotals.rank_readiness_capture_charged;
-    const obj = candidateQualityObjective(engine, cand, gap, gaps, chargeBudget > 0);
-    if (aimTotals.rank_readiness_capture_charged > chargedBefore) chargeBudget--;
+    const obj = candidateQualityObjective(engine, cand, gap, gaps);
     if (obj !== null) {
       objectives.set(cand, obj);
       anyDefined = true;
@@ -977,8 +916,8 @@ export function sortCandidatesByQuality(
 /** Once-per-pool-build telemetry over the FINAL ordering: pool count, top-3 /
  *  top-1 disagreement vs the cost order, and scored/defined tallies for the
  *  fallback rate. Defined-ness is read off the objective memo (a cached number;
- *  charge-skipped candidates are absent and count as undefined). Pure reads —
- *  cannot perturb either ordering or charge frames. */
+ *  prediction-impossible candidates memo null and count as undefined). Pure
+ *  reads — cannot perturb the ordering. */
 export function recordRankQualityPool(costSorted: Candidate[], ranked: Candidate[]): void {
   aimTotals.rank_readiness_pools++;
   aimTotals.rank_readiness_candidates_scored += costSorted.length;

@@ -64,7 +64,9 @@ import {
   axisLookaheadEndFrame,
   detectWindow,
   releaseSpeedPenalty,
+  resetReleaseExitStats,
   setCandidateCompileBudgetFrames,
+  snapshotReleaseExitStats,
   tryCandidate,
   translateTrackLines,
   tryCandidateLines,
@@ -579,6 +581,7 @@ function compileHandoffInternal(
   resetCandidateSamples();
   resetArcPlacementStats();
   resetAimStats();
+  resetReleaseExitStats();
 
   {
     validateSpec(userSpec);
@@ -840,6 +843,7 @@ function compileHandoffInternal(
       }
       const arcStats = snapshotArcPlacementStats();
       const aimStats = snapshotAimStats();
+      const releaseExitStats = snapshotReleaseExitStats();
       return {
         ...best,
         budget,
@@ -910,6 +914,10 @@ function compileHandoffInternal(
           // (optimizer/aim.ts). Absent when the lane never ran
           // (LR_AIM_ENUM=0) — ablation archives stay byte-identical.
           ...(aimStats !== null ? { aim: aimStats } : {}),
+          // Geometric-exit release-read funnel (core/candidate.ts): the
+          // fallback-rate monitor. Absent under LR_RANK_QUALITY=off (no read
+          // taken) → escape-hatch archives stay byte-identical.
+          ...(releaseExitStats !== null ? { release_exit: releaseExitStats } : {}),
           // Repair characterization (only present when the repair post-pass ran → baseline
           // golden.json unchanged, no snapshot churn). Aggregates are always cheap; the full
           // per-restart records (up to maxAttempts each) are heavy archive bloat, so they ride

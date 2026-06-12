@@ -47,6 +47,8 @@ import {
   positionAt,
 } from "./substrate.ts";
 import { measureGapAxes } from "./measure.ts";
+import { gravityCorrectedLaunchAverage } from "./launch_read.ts";
+import { firstAirborneExitFrame } from "./exit_read.ts";
 
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
@@ -72,41 +74,68 @@ export const RANK_QUALITY_MODE: RankQualityMode = (() => {
  *  skipped and the field is never set. */
 const CAPTURE_ARRIVAL_AT_NEXT_CONTACT = RANK_QUALITY_MODE !== "off";
 
-/** PREDICTED-ARRIVAL gate (LR_RANK_PREDICT_ARRIVAL). When on AND
- *  the quality sort is active, `evaluateGapFit` also captures the rider's full
- *  launch/exit state at the release probe frame (position + smoothed launch
- *  velocity) off the detection it already computed, so the ranker can propagate
- *  it ballistically to the next contact instead of charging a probe ride.
- *  DEFAULT is predict-only; LR_RANK_PREDICT_ARRIVAL=off or 0 disables the field,
- *  and =hybrid keeps prediction for airborne releases while falling back to the
- *  charged probeRide for non-airborne releases. */
-const RANK_PREDICT_ARRIVAL_MODE: "off" | "predict" | "hybrid" = (() => {
-  if (RANK_QUALITY_MODE === "off") return "off";
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_RANK_PREDICT_ARRIVAL;
-  if (raw === "off" || raw === "0") return "off";
-  if (raw === "hybrid") return "hybrid";
-  return "predict";
-})();
-export const RANK_PREDICT_ARRIVAL: boolean = RANK_PREDICT_ARRIVAL_MODE !== "off";
-/** HYBRID gate (LR_RANK_PREDICT_ARRIVAL=hybrid). Only changes the ranker's
- *  treatment of candidates with NO free capture and NOT airborne at release: under
- *  "predict" (=1) ballistic prediction bails on them → null objective → cost tail;
- *  under "hybrid" they fall back to the bounded, memoized, top-M charged probeRide
- *  (the path that scored the support population before predict-only orphaned it).
- *  Airborne-at-release candidates take the ballistic prediction in BOTH modes, so
- *  =1 stays byte-identical (this flag is read only inside the non-airborne branch
- *  that =1 never reached productively). */
-export const RANK_PREDICT_ARRIVAL_HYBRID: boolean = RANK_PREDICT_ARRIVAL_MODE === "hybrid";
+/** PREDICTED-ARRIVAL capture (pool mode). When the quality sort is active,
+ *  `evaluateGapFit` captures the rider's full launch/exit state (position +
+ *  smoothed launch velocity) off the detection it already computed, so the ranker
+ *  can propagate it ballistically to the next contact instead of charging a probe
+ *  ride. Collapsed into the pool-mode gate (RANK_QUALITY_MODE !== "off"):
+ *  prediction is unconditional under pool mode, and LR_RANK_QUALITY=off — which
+ *  keeps every capture field and the exit read fully gated — is the single escape
+ *  hatch. */
+export const RANK_PREDICT_ARRIVAL: boolean = RANK_QUALITY_MODE !== "off";
 
-/** Launch-read calibration, mirrored from optimizer/arc_probe.ts (the canonical
- *  owner — the short-probe launch fix, commit f23ef60). arc_probe.ts imports
- *  from this module (axisCost), so it cannot export these back without a cycle;
- *  kept in sync by hand. LAUNCH_READ_FRAMES = gravity-corrected airborne reads
- *  averaged; LAUNCH_VY_OFFSET_PX = constant post-impact-transient vy correction
- *  (+0.0345, smoothed read). */
-const LAUNCH_READ_FRAMES = 4;
-const LAUNCH_VY_OFFSET_PX = 0.0345;
+/** GEOMETRIC EXIT RELEASE READ (pool mode). `evaluateGapFit` reads the ballistic
+ *  release/launch state (`releaseArrivalState`) at the GEOMETRIC ARC-EXIT frame —
+ *  the first frame at/after gap.endFrame where the rider is airborne AND past the
+ *  arc-end plane (core/exit_read.ts) — instead of the fixed catch+8 release frame.
+ *  This is the unconditional capture behavior under pool mode. The cost-term fields
+ *  (releaseSpeed, releaseVelocityY, releaseGroundedFrames, releaseAirborne,
+ *  releaseSpeedPenalty) stay on catch+8 — only the predicted-arrival ranker state
+ *  moves. The geometric exit lands at +9..16 frames for the majority of passes,
+ *  where catch+8 reads a still-non-airborne rider and starves the ballistic ranker
+ *  (predictArrivalAtNextContact bails on non-airborne releases). Falls back to the
+ *  catch+8 read when no exit is found, the exit would ride into the next contact
+ *  (no ballistic flight), or the exit-frame state is unreadable — all load-bearing
+ *  (short rides legitimately never exit, e.g. ~25% no_exit on tiny_dance; those
+ *  candidates must keep the catch+8 capture, not be discarded). */
+const RELEASE_EXIT_READ: boolean = RANK_PREDICT_ARRIVAL;
+
+/** Telemetry for the geometric-exit release read. Module-level counters in the
+ *  established candidate-side style; snapshot/reset are wired through
+ *  optimizer/handoff.ts into the per-budget compile stats so the `release_exit_*`
+ *  names stay greppable in golden output (the fallback-rate monitor). All zero
+ *  under LR_RANK_QUALITY=off. */
+const releaseExitTotals = {
+  /** Candidates where the exit read replaced the catch+8 release frame. */
+  release_exit_used: 0,
+  /** Fallback: no geometric exit frame found within the detection horizon. */
+  release_exit_fallback_no_exit: 0,
+  /** Fallback: exit frame > nextContact−2 (rider rides into the next contact,
+   *  no ballistic flight) — keep the catch+8 read. */
+  release_exit_fallback_next_contact: 0,
+  /** Fallback: exit-frame launch state unreadable → catch+8 read. */
+  release_exit_fallback_unreadable: 0,
+  /** Of the exit-read releases that were USED, how many are airborne (should be
+   *  all, by construction — the exit predicate requires airborne). */
+  release_exit_airborne: 0,
+};
+export type ReleaseExitStats = typeof releaseExitTotals;
+
+export function resetReleaseExitStats(): void {
+  releaseExitTotals.release_exit_used = 0;
+  releaseExitTotals.release_exit_fallback_no_exit = 0;
+  releaseExitTotals.release_exit_fallback_next_contact = 0;
+  releaseExitTotals.release_exit_fallback_unreadable = 0;
+  releaseExitTotals.release_exit_airborne = 0;
+}
+
+export function snapshotReleaseExitStats(): ReleaseExitStats | null {
+  const anyActivity = releaseExitTotals.release_exit_used > 0 ||
+    releaseExitTotals.release_exit_fallback_no_exit > 0 ||
+    releaseExitTotals.release_exit_fallback_next_contact > 0 ||
+    releaseExitTotals.release_exit_fallback_unreadable > 0;
+  return anyActivity ? { ...releaseExitTotals } : null;
+}
 
 const RELEASE_STATE_SPEED_WEIGHT = 0.126;
 const LOCAL_IMPACT_COST_WEIGHT = 0.5;
@@ -851,13 +880,25 @@ function evaluateGapFit(
   const arrivalAtNextContact = CAPTURE_ARRIVAL_AT_NEXT_CONTACT && axisMeasureEnd > gap.endFrame
     ? arrivalStateAt(det, axisMeasureEnd)
     : undefined;
-  // PREDICTED-ARRIVAL: full launch/exit state at the release frame, read off the
-  // SAME detection (zero extra frames). Lets the ranker propagate ballistically
-  // to the next contact instead of charging a probe ride. Gated so flag-off
-  // never allocates the field.
-  const releaseArrivalState = RANK_PREDICT_ARRIVAL
+  // PREDICTED-ARRIVAL: full launch/exit state for the ranker to propagate
+  // ballistically to the next contact instead of charging a probe ride, read off
+  // the SAME detection (zero extra frames). Gated on pool mode so the
+  // LR_RANK_QUALITY=off path never allocates the field. The catch+8 read is the
+  // load-bearing FALLBACK; the geometric arc-exit read below is the default.
+  let releaseArrivalState = RANK_PREDICT_ARRIVAL
     ? releaseArrivalStateAt(det, gap.endFrame, releaseFrame, releaseGroundedFrames, releaseAirborne)
     : undefined;
+  // GEOMETRIC EXIT READ (pool mode): re-read the BALLISTIC release state at the
+  // geometric arc-exit frame instead of catch+8, so the predict-arrival ranker
+  // sees an airborne launch. Cost-term fields above are untouched. The exit frame
+  // is read off the SAME detection (positions/airborne already computed) — zero
+  // extra physics frames. Falls back to the catch+8 read above when there is no
+  // exit, the exit rides into the next contact, or the exit state is unreadable.
+  if (RELEASE_EXIT_READ) {
+    releaseArrivalState = releaseExitArrivalState(
+      det, gap, lines, horizon, allContactFrames,
+    ) ?? releaseArrivalState;
+  }
   return {
     fit: {
       lines,
@@ -918,22 +959,17 @@ function releaseArrivalStateAt(
   if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y) || !Number.isFinite(v0.x) || !Number.isFinite(v0.y)) {
     return undefined;
   }
-  // Gravity-corrected average of consecutive airborne velocity reads.
+  // Gravity-corrected average of consecutive airborne velocity reads
+  // (shared estimator — core/launch_read.ts). This call site differs from
+  // optimizer/arc_probe.ts only in the velocity source (detection arrays vs
+  // metered engine) and in having no fork-horizon bound.
   const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
-  let sx = v0.x;
-  let sy = v0.y;
-  let n = 1;
-  for (let k = 1; k < LAUNCH_READ_FRAMES; k++) {
-    const f = releaseFrame + k;
-    if (airborneAt(det, f) !== true) break;
-    const v = velocityAt(det, f);
-    if (v === undefined || !Number.isFinite(v.x) || !Number.isFinite(v.y)) break;
-    sx += v.x;
-    sy += v.y - g * k;
-    n++;
-  }
-  const vx = sx / n;
-  const vy = sy / n + LAUNCH_VY_OFFSET_PX;
+  const { vx, vy } = gravityCorrectedLaunchAverage(
+    v0,
+    g,
+    (k) => airborneAt(det, releaseFrame + k) === true,
+    (k) => velocityAt(det, releaseFrame + k),
+  );
   return {
     frame: releaseFrame,
     x: pos.x,
@@ -945,6 +981,56 @@ function releaseArrivalStateAt(
     grounded,
     airborne: airborne === true,
   };
+}
+
+/** Geometric-exit release-read helper (pool mode). Reads the ballistic
+ *  launch/exit state at the GEOMETRIC arc-exit frame — the first frame in
+ *  [gap.endFrame, horizon] where the rider is airborne AND past the arc-end
+ *  plane (shared detector, core/exit_read.ts) — off the already-computed
+ *  detection. Returns the exit-frame release state (with `airborne: true` and
+ *  `grounded: 0` set consistently with that airborne-by-construction read) when
+ *  a valid ballistic exit exists, or null to signal "fall back to the catch+8
+ *  read" (no exit found, exit rides into the next contact, or unreadable). Every
+ *  return path bumps a `release_exit_*` counter. Does NOT touch the cost-term
+ *  release fields — only the predicted-arrival ranker state. */
+function releaseExitArrivalState(
+  det: Detection,
+  gap: Gap,
+  lines: readonly TrackLine[],
+  horizon: number,
+  allContactFrames: number[],
+): GapFit["releaseArrivalState"] | null {
+  const exitFrame = firstAirborneExitFrame(
+    lines,
+    gap.endFrame,
+    horizon,
+    (frame) => airborneAt(det, frame),
+    (frame) => positionAt(det, frame),
+  );
+  if (exitFrame === null) {
+    releaseExitTotals.release_exit_fallback_no_exit++;
+    return null;
+  }
+  // No ballistic flight if the rider would ride into the next contact: mirror
+  // releaseStateFrame's nextContact−2 latest-before-next bound.
+  const nextContact = allContactFrames.find((frame) => frame > gap.endFrame);
+  if (nextContact !== undefined && exitFrame > nextContact - 2) {
+    releaseExitTotals.release_exit_fallback_next_contact++;
+    return null;
+  }
+  // Ballistic launch state ONLY at the exit frame. grounded=0 / airborne=true are
+  // consistent with the airborne-by-construction exit read, so
+  // predictedArrivalApplies / the predict branch in optimizer/aim.ts and
+  // predictArrivalAtNextContact (objective.ts, propagating from rel.frame) behave
+  // correctly with the later, shorter-dt launch.
+  const state = releaseArrivalStateAt(det, gap.endFrame, exitFrame, 0, true);
+  if (state === undefined) {
+    releaseExitTotals.release_exit_fallback_unreadable++;
+    return null;
+  }
+  releaseExitTotals.release_exit_used++;
+  if (state.airborne) releaseExitTotals.release_exit_airborne++;
+  return state;
 }
 
 function groundedFramesInRange(det: Detection, startFrame: number, endFrame: number): number {

@@ -134,19 +134,18 @@ function aimJointProbeDesign(): ArcProbeDesignName {
   return parseArcProbeDesignName(raw);
 }
 
-/** EXPERIMENT (LR_AIM_TOPK_BASES, int ≥1, default 1): how many of the
- *  quality-sorted pool's leading candidates the aim lane refines. K=1 (default)
- *  runs the lane on `sorted[0]` only — byte-identical to the committed default.
- *  K>1 runs it on the first K distinct candidates, accumulating each base's lane
- *  extras into the pool, so the search refines more than just the quality-best
- *  base (now that the quality sort no longer overrules the lane on cost). Parsed
- *  once at import (env is constant per run; gates a per-pool-build hot path).
- *  Invalid/absent/<1 → 1. */
+/** EXPERIMENT (LR_AIM_TOPK_BASES, int >=1, default 3): how many of the
+ *  quality-sorted pool's leading candidates the aim lane refines once the
+ *  compile is above the maturity threshold. K=1 runs the lane on `sorted[0]`
+ *  only. K>1 runs it on the first K distinct candidates, accumulating each
+ *  base's lane extras into the pool, so the search refines more than just the
+ *  quality-best base. Parsed once at import (env is constant per run; gates a
+ *  per-pool-build hot path). Invalid/absent/<1 -> 3. */
 export const AIM_TOPK_BASES: number = (() => {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_TOPK_BASES;
   const n = raw === undefined || raw === "" ? NaN : Number(raw);
-  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 3;
 })();
 
 /** Maturity gate for K>1 (LR_AIM_TOPK_BASES). The extra bases find good variants
@@ -193,45 +192,6 @@ export function recordLaneBaseSkip(): void {
   aimTotals.enum_lane_base_skips++;
 }
 
-// ──────────────── 1b · Lazy pool (LR_LAZY_POOL) ────────────────
-//
-// REVOKES the old "every sampled candidate is exactly simulated before ranking"
-// invariant. When on, the per-gap pool path (node.ts getCandidatesSorted) samples
-// all nCand geometries (RNG-identical to eager), PREDICTS a ride-free rank score
-// for each, and exactly evaluates only the predicted-best until a quota of
-// survivors is met. Step 1 (study_lazy_budget.ts) measured pool-eval rides at
-// 56-60% of all charged frames, so spending them only on the predicted-best is
-// the lever. Default OFF → byte-identical. Committed arcs are still ALWAYS exactly
-// evaluated; only the per-gap RANKING pool is built lazily.
-
-/** Exact-evaluation quota: ride the predicted-best geometries until this many
- *  SURVIVE the gates (gate-failures don't count — keep going down the predicted
- *  order). v1 = max(HANDOFF_BRANCHING+1, 4) = 4: handoff branch selection keeps
- *  the top HANDOFF_BRANCHING (3) of the pool after a forward-eval re-score, so 4
- *  survivors give the re-score one alternative beyond the branch width while the
- *  eager pool (poolSize 8) is deliberately under-filled — that under-fill IS the
- *  saving. Smaller than poolSize so nCand=8/14 builds actually skip rides; a full
- *  poolSize quota would ride nearly everything and save nothing. A constant, not
- *  budget-derived (keeps the lazy path a pure function of seed/gap/prefix). */
-export const LAZY_POOL_EXACT_QUOTA = 4;
-
-/** LR_LAZY_POOL gate. Read per pool build (cold path; lets tests pin it). */
-export function lazyPoolEnabled(): boolean {
-  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_LAZY_POOL === "1";
-}
-
-/** WIDE arm width multiplier (LR_LAZY_POOL_WIDE, int ≥1, default 1). The lazy
- *  path samples this × nCand geometries and predicts over all of them, while the
- *  exact-ride quota stays fixed — "prediction lets us see more diversity for the
- *  same ride budget". 1 = the base lazy arm (no widening). Invalid/absent → 1. */
-export function lazyPoolWidthMultiplier(): number {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_LAZY_POOL_WIDE;
-  const n = raw === undefined || raw === "" ? NaN : Number(raw);
-  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
-}
-
 /** Quality-objective pool ranking (LR_RANK_QUALITY): make the rich aim objective
  *  — current-axis-quality × readiness × speed-fit × impact-feasibility, computed
  *  from each candidate's ACHIEVED axes and its arrival state at the next contact
@@ -269,7 +229,7 @@ export type AimStats = {
   enum_readiness_err_mean: number;
   /** Mean predicted readiness gain over δ=0, over emitted. */
   enum_readiness_gain_mean: number;
-  /** Lazy additive rotate-knob split: rotate recruit rate, rotate-probe failures
+  /** Deferred additive rotate-knob split: rotate recruit rate, rotate-probe failures
    *  (lane falls back to pitch-only), and how rotated (dr≠0) proposals
    *  fare at the production gates vs emitted. */
   enum_rot_probe_crash: number;
@@ -378,33 +338,6 @@ export type AimStats = {
    *  the hybrid arm adds; 0 under "1" and predict-off. Charged-vs-predicted split:
    *  predicted = rank_quality_pred_used, charged-fallback = this counter. */
   rank_quality_hybrid_charged: number;
-  /** LAZY POOL (LR_LAZY_POOL, node.ts). Pool builds that took the lazy path
-   *  (nCand > the exact quota → sample-all, predict-rank, ride-to-quota). */
-  lazy_pool_builds: number;
-  /** Geometries SAMPLED across lazy builds (the funnel width) and geometries
-   *  actually RIDDEN (exactly evaluated). sampled − ridden = rides SAVED. */
-  lazy_pool_sampled: number;
-  lazy_pool_ridden: number;
-  /** Physics frames charged by lazy-path rides; and an estimate of frames the
-   *  eager path WOULD have charged for the skipped geometries
-   *  (skipped × mean-ridden-frames-per-geometry, accumulated per build). */
-  lazy_pool_ride_frames: number;
-  lazy_pool_est_saved_frames: number;
-  /** Rides that survived the gates vs gate-failed (don't count toward quota). */
-  lazy_pool_survived: number;
-  lazy_pool_gate_fail: number;
-  /** Builds whose quota could not be filled (rode every sampled geometry and
-   *  still found < Q survivors). */
-  lazy_pool_quota_exhausted: number;
-  /** Geometries that were unrankable by prediction (no forward target / no exit
-   *  estimate) — ridden in sample order after the predicted-rankable ones. */
-  lazy_pool_unranked: number;
-  /** RANK QUALITY: among lazy builds where the predicted-best geometry WAS
-   *  ridden, how often it survived the gates, and how often it stayed the
-   *  pool-best after exact quality sort (prediction-vs-truth rank fidelity). */
-  lazy_pool_pred_best_ridden: number;
-  lazy_pool_pred_best_survived: number;
-  lazy_pool_pred_best_stayed_best: number;
 };
 
 const aimTotals = {
@@ -443,12 +376,6 @@ const aimTotals = {
   rank_quality_pred_err_n: 0, rank_quality_pred_bail: 0,
   rank_quality_pred_val_bail: 0, rank_quality_pred_used: 0,
   rank_quality_hybrid_charged: 0,
-  // Lazy pool (LR_LAZY_POOL).
-  lazy_pool_builds: 0, lazy_pool_sampled: 0, lazy_pool_ridden: 0,
-  lazy_pool_ride_frames: 0, lazy_pool_est_saved_frames: 0,
-  lazy_pool_survived: 0, lazy_pool_gate_fail: 0, lazy_pool_quota_exhausted: 0,
-  lazy_pool_unranked: 0, lazy_pool_pred_best_ridden: 0,
-  lazy_pool_pred_best_survived: 0, lazy_pool_pred_best_stayed_best: 0,
 };
 
 /** Record where a lane proposal ranked in the cost-sorted pool it entered,
@@ -602,49 +529,7 @@ export function snapshotAimStats(): AimStats | null {
     rank_quality_pred_val_bail: aimTotals.rank_quality_pred_val_bail,
     rank_quality_pred_used: aimTotals.rank_quality_pred_used,
     rank_quality_hybrid_charged: aimTotals.rank_quality_hybrid_charged,
-    lazy_pool_builds: aimTotals.lazy_pool_builds,
-    lazy_pool_sampled: aimTotals.lazy_pool_sampled,
-    lazy_pool_ridden: aimTotals.lazy_pool_ridden,
-    lazy_pool_ride_frames: aimTotals.lazy_pool_ride_frames,
-    lazy_pool_est_saved_frames: aimTotals.lazy_pool_est_saved_frames,
-    lazy_pool_survived: aimTotals.lazy_pool_survived,
-    lazy_pool_gate_fail: aimTotals.lazy_pool_gate_fail,
-    lazy_pool_quota_exhausted: aimTotals.lazy_pool_quota_exhausted,
-    lazy_pool_unranked: aimTotals.lazy_pool_unranked,
-    lazy_pool_pred_best_ridden: aimTotals.lazy_pool_pred_best_ridden,
-    lazy_pool_pred_best_survived: aimTotals.lazy_pool_pred_best_survived,
-    lazy_pool_pred_best_stayed_best: aimTotals.lazy_pool_pred_best_stayed_best,
   };
-}
-
-/** LAZY POOL telemetry recorder (LR_LAZY_POOL). One call per lazy pool build
- *  with the build's funnel + prediction-fidelity counts. Dead when the flag is
- *  off (node.ts only calls it on the lazy path). */
-export function recordLazyPoolBuild(stats: {
-  sampled: number;
-  ridden: number;
-  rideFrames: number;
-  estSavedFrames: number;
-  survived: number;
-  gateFail: number;
-  quotaExhausted: boolean;
-  unranked: number;
-  predBestRidden: boolean;
-  predBestSurvived: boolean;
-  predBestStayedBest: boolean;
-}): void {
-  aimTotals.lazy_pool_builds++;
-  aimTotals.lazy_pool_sampled += stats.sampled;
-  aimTotals.lazy_pool_ridden += stats.ridden;
-  aimTotals.lazy_pool_ride_frames += stats.rideFrames;
-  aimTotals.lazy_pool_est_saved_frames += stats.estSavedFrames;
-  aimTotals.lazy_pool_survived += stats.survived;
-  aimTotals.lazy_pool_gate_fail += stats.gateFail;
-  if (stats.quotaExhausted) aimTotals.lazy_pool_quota_exhausted++;
-  aimTotals.lazy_pool_unranked += stats.unranked;
-  if (stats.predBestRidden) aimTotals.lazy_pool_pred_best_ridden++;
-  if (stats.predBestSurvived) aimTotals.lazy_pool_pred_best_survived++;
-  if (stats.predBestStayedBest) aimTotals.lazy_pool_pred_best_stayed_best++;
 }
 
 // ──────────────────────── 3 · Knob transforms ────────────────────────
@@ -653,7 +538,7 @@ export function recordLazyPoolBuild(stats: {
 const AIM_PROBE_DELTA_DEG = 6;
 /** Below this |δ*| the aimed variant would duplicate the base candidate. */
 const AIM_MIN_DELTA_DEG = 0.25;
-/** Lazy whole-arc-rotation probe span (deg, V0-validated range). */
+/** Deferred whole-arc-rotation probe span (deg, V0-validated range). */
 const AIM_ROT_PROBE_DEG = 3;
 
 /** Safe tail-only knob: it never touches the catch at the arc's head — gap k's
@@ -769,7 +654,7 @@ const ENUM_MIN_SEP_DEG = 1.5;
 const ENUM_R_MIN = 0.1;
 /** Speed-target fit scale (px/f): exp(−|predicted − target|/scale). */
 const ENUM_SPEED_SCALE_PXF = 0.75;
-/** Legacy lazy-additive rotation path (`LR_AIM_JOINT=0`) constants. The default
+/** Legacy deferred-additive rotation path (`LR_AIM_JOINT=0`) constants. The default
  *  path now scores a real joint pitch/rotate grid inside the selected probe span.
  *  Historical context for the legacy path: R3 v2
  *  Δ+0.4 vs 600.57, positive at mature budgets, and it IS the agreed
@@ -866,8 +751,8 @@ export function makeEnumAimedCandidates(
   const speedModel = quadModel(lo.speed, baseOut.speed, hi.speed, P);
   const angleModel = quadModel(lo.comAngleDeg, baseOut.comAngleDeg, hi.comAngleDeg, P);
 
-  // R3 additive two-knob inner model: the rotate knob's models are recruited LAZILY
-  // further down, only where the pitch sweep is exhausted. The joint
+  // R3 additive two-knob inner model: the rotate knob's models are recruited
+  // only where the pitch sweep is exhausted. The joint
   // prediction is the ADDITIVE composition of per-knob quadratics
   // (certified proposer-grade — see ENUM_ROT_SPAN_DEG notes).
   let rotSpeedModel: ((d: number) => number) | null = null;
@@ -1347,106 +1232,6 @@ function smallestAngleDiffDeg(a: number, b: number): number {
 function memoObjective(candidate: Candidate, value: number | null): number | null {
   objectiveCache.set(candidate, value);
   return value;
-}
-
-// ───────────── 7b · Lazy-pool prediction (LR_LAZY_POOL, node.ts) ─────────────
-//
-// Rank a SAMPLED-BUT-NOT-RIDDEN geometry for the lazy pool (node.ts), so the
-// exact-evaluation rides can be spent only on the predicted-best Q candidates.
-// Zero physics frames, zero RNG: the prediction is a pure function of the free
-// per-gap probe (incoming state at the catch) and the geometry's last-segment
-// exit estimate, propagated ballistically to the next contact.
-//
-// Heuristic (v1): the rider launches off the END of the geometry's last line,
-// along that segment's tangent, at the incoming speed minus a redirection loss
-// (the lab's −0.15 px/f per 0.1 of redirection, where redirection is the turn
-// the catch imposes between the incoming CoM heading and the exit tangent). The
-// achieved current-axis quality is unknown before the ride, so currentQuality is
-// OMITTED from the predicted objective (a pure ride-free rank cannot observe the
-// achieved axes); the readiness × speed-fit × impact-feasibility product is the
-// orderable signal. Returns null when the next gap carries no speed/impact target
-// (mirrors the charged path's null objective) or the geometry has no usable exit.
-
-/** Lab-measured speed cost of redirection: ~0.15 px/f lost per 0.1 of the
- *  redirection fraction the catch imposes (lab-analysis-foundation: "impact
- *  costs speed −0.15px/f per 0.1 redir"). Used ONLY by the ride-free lazy-pool
- *  predictor to rank geometries before evaluation. */
-const LAZY_REDIR_SPEED_COST_PXF_PER_UNIT = 1.5;
-
-export type LazyPoolProbe = {
-  /** Incoming CoM speed at the catch frame (px/f), free off the per-gap probe. */
-  speed: number;
-  /** Incoming CoM heading at the catch frame (deg, +down), free off the probe. */
-  angleDeg: number;
-};
-
-/** The free incoming state the lazy predictor needs, read off the per-gap probe
- *  (zero frames — the probe's targetState is already computed for sampling). */
-export function lazyPoolProbe(
-  // deno-lint-ignore no-explicit-any
-  engine: any,
-  gap: Gap,
-  ctx: SpecContext,
-): LazyPoolProbe {
-  const { targetState } = getCandidateProbe(engine, gap, ctx);
-  return { speed: targetState.speed, angleDeg: targetState.angleDeg };
-}
-
-/** Predicted lazy-pool rank score (higher = better) for a sampled geometry,
- *  WITHOUT riding it. null = unrankable (no forward target, or no usable exit
- *  estimate); the caller orders unrankable geometries after rankable ones and
- *  rides them last. Zero physics frames, zero RNG. */
-export function predictLazyPoolScore(
-  probe: LazyPoolProbe,
-  gap: Gap,
-  gaps: Gap[],
-  lines: readonly TrackLine[],
-): number | null {
-  const nextGap = nextContactGap(gap, gaps);
-  if (nextGap === null) return null;
-  const speedTarget = nextGapSpeedTargetPx(gap, gaps);
-  if (speedTarget === null && nextGap.targets.impact === undefined) return null;
-  const exit = exitEstimateFromLines(lines);
-  if (exit === null) return null;
-  // Redirection fraction: how hard the catch turns the incoming heading toward
-  // the exit tangent, normalized by the engine's redirection cap (same scale the
-  // impact axis uses). Speed bleeds with redirection (lab cost), clamped ≥0.
-  const redirDeg = Math.abs(smallestAngleDiffDeg(exit.tangentDeg, probe.angleDeg));
-  const redirFrac = Math.min(1, (redirDeg / 180) / Math.max(1e-6, CALIB.REDIR_CAP));
-  const exitSpeed = Math.max(0, probe.speed - LAZY_REDIR_SPEED_COST_PXF_PER_UNIT * redirFrac);
-  const vx = exitSpeed * Math.cos((exit.tangentDeg * Math.PI) / 180);
-  const vy = exitSpeed * Math.sin((exit.tangentDeg * Math.PI) / 180);
-  const launch: RiderArrivalState = {
-    x: exit.x, y: exit.y, vx, vy, speed: exitSpeed,
-    comAngleDeg: exit.tangentDeg, sledPoseDeg: null, sledPoseRateDegPerFrame: null,
-  };
-  const dt = nextGap.endFrame - gap.endFrame;
-  const arrived = dt > 0 ? propagateBallisticArrivalState(launch, dt) : launch;
-  if (arrived.comAngleDeg === null) return null;
-  const readiness = Math.max(ENUM_R_MIN, readinessCatchState(arrived));
-  const fit = speedFitFactor(arrived.speed, speedTarget);
-  const feas = impactFeasibility(arrived, nextGap);
-  // currentQuality omitted (achieved axes unobservable before the ride).
-  return readiness * fit * feas;
-}
-
-/** Exit point + tangent estimate from a geometry's polyline: the END of the last
- *  line, and the last non-degenerate segment's direction (the rider launches
- *  roughly along the final segment it rides off). null when no line has a
- *  non-degenerate direction. */
-function exitEstimateFromLines(
-  lines: readonly TrackLine[],
-): { x: number; y: number; tangentDeg: number } | null {
-  if (lines.length === 0) return null;
-  const last = lines[lines.length - 1];
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const dx = lines[i].x2 - lines[i].x1;
-    const dy = lines[i].y2 - lines[i].y1;
-    if (dx * dx + dy * dy > 1e-12) {
-      return { x: last.x2, y: last.y2, tangentDeg: (Math.atan2(dy, dx) * 180) / Math.PI };
-    }
-  }
-  return null;
 }
 
 /** Sort a candidate pool by the quality objective DESCENDING; ties (and

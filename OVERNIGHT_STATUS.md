@@ -7,24 +7,23 @@ full numbers live in the agent reports and `generated/golden-runs/`.
 ## ☀️ MORNING SUMMARY (read this first)
 
 **Headline: the combined stack ACCEPTS — 602.8 → 607.8 (Δ +5.0, P(Δ≤0)=5.5%,
-validity clean).** `stack-predict-topk3-01` = LR_RANK_PREDICT_ARRIVAL=1 +
-LR_AIM_TOPK_BASES=3 (maturity-gated). The two individually-inconclusive positives
-compose exactly as designed: below 150k the gate makes it byte-identical to
+validity clean).** `stack-predict-topk3-01` used predict-only arrival ranking +
+`LR_AIM_TOPK_BASES=3` (maturity-gated). This is now the intended default stack:
+predict-only arrival ranking is default-on, and the top-K base count defaults to
+3 above the maturity gate. Below 150k the gate makes it byte-identical to
 predict-only (50k +41.6, validity 97→99%); above, top-K adds +1.9/+2.3.
 Day's cumulative: **593.0 → 607.8 (+14.8)**.
 
-**Recommendation:** promote the stack as one commit (both flags default-on, keeping
-escape hatches), after the small pre-commit cleanups: review NITs (mark the charged
-path dead under predict-only; note the duplicated launch-read constants; consider a
-cross-check test), and decide predict-only vs hybrid (see ledger — predict-only has
-the better headline and a measured-benign bias; hybrid is semantically cleaner,
-+1.1 only). Awaiting your call — nothing committed overnight.
+**Promotion decision:** promote predict-only arrival ranking and maturity-gated
+top-K=3 as defaults, keeping explicit escape hatches (`LR_RANK_PREDICT_ARRIVAL=off`
+or `0`, `LR_AIM_TOPK_BASES=1`). Hybrid remains a measured alternative, not the
+default.
 
-**Also resolved tonight:** lazy pool evaluation REJECTED with a precise diagnosis
-(predictor blind to gate survival; mechanism sound and kept dormant — pool rides
-are 56–60% of all frames, so the prize remains); one benchmark-pollution incident
-caught, root-caused, and fixed with a snapshot-isolation protocol; predict-only
-confirmed at 25 seeds (+3.8, P=90%); support-catch bias measured and attributed.
+**Also resolved tonight:** the geometry-only pool-skipping evaluation experiment was
+REJECTED because its predictor was blind to gate survival. After review, that
+code path was removed rather than kept dormant. Pool rides are still a major cost
+center, but the next optimization should shorten/replace unnecessary exact
+horizon work, not revive the rejected geometry-only pool skipper.
 
 ## Committed today
 
@@ -42,7 +41,7 @@ confirmed at 25 seeds (+3.8, P=90%); support-catch bias measured and attributed.
 | Top-K lane bases, flat K=3 | LR_AIM_TOPK_BASES / aim-topk3-01 | done | REJECT −28.2 (50k starvation; 300k +2.5 ⇒ cost problem, not quality) |
 | Top-K maturity-gated | (same) / aim-topk3-mature-01 | done | **+1.6 INCONCLUSIVE (P(Δ>0)=85%)** — surgical: bit-identical to baseline below 150k target budget, bit-identical to ungated K=3 above (so 200k +1.5 / 300k +2.5 fully retained, zero low-budget damage). Needs ~45 seeds to resolve statistically. Uncommitted. |
 | Predicted arrival for pool ranking | LR_RANK_PREDICT_ARRIVAL / rankr-predict-01 | done | **+3.5 INCONCLUSIVE (P(Δ>0)=87%)**, 50k +41.6 & validity 97→99%; charged arrival frames 25.5M → **0**; prediction error vs ground truth: 0.216 px/f speed, 1.78° angle (262k pairs). Coverage dropped (84→57% defined) yet headline rose — fidelity at top of pool beats tail coverage. Uncommitted. |
-| Lazy pool evaluation (I1 revoked) | LR_LAZY_POOL / lazy-pool-01 | done | **REJECT −28.9** (uniform across budgets) — but the diagnosis is the prize: (1) budget breakdown CONFIRMS pool rides = 56–60% of all frames (Jérémie's intuition exactly); (2) the lazy mechanism (sample/ride split, rank-order quota, deterministic cache) is sound — 66–80% of rides skipped, validity unchanged, byte-identical off; (3) the falsified piece is the geometry-only predictor: blind to gate survival (24–58% of its picks die at gates), unrankable on 0–46% of pools, agrees with the best survivor only ~15%. Next arm needs gate-survival-aware prediction (cheap reachability/clearance check) before lazy ranking can beat ride-everything. Mechanism kept, dormant. |
+| Geometry-only pool-skipping evaluation (I1 revoked) | removed experiment | done, **removed** | **REJECT −28.9** (uniform across budgets). Diagnosis: pool rides are expensive, but the geometry-only predictor was blind to gate survival (24–58% of its picks died at gates), unrankable on 0–46% of pools, and agreed with the best survivor only ~15%. After review this path was removed from the codebase instead of kept dormant. |
 | Seed power runs (0–24, both arms) | rankr-pool-ext25-01 + rankr-predict-ext25-02 | done (clean rerun from snapshot) | predict-only at 25 seeds: **+3.8, P(Δ>0)=90%**, still INCONCLUSIVE — effect concentrated at 50k (+53.7, P=94%), 100k–300k ≈ 0. Consistent with the 12-seed +3.5. Not chasing more seeds: the hybrid run is the sharper arbiter and supersedes predict-only either way. (First predict arm was edit-poisoned and deleted — see incident.) |
 | Adversarial review of predict+topk diffs | (read-only, frozen patch) | done | 1 BUG (TS `Pick` omission — **fixed by Fable**, runtime-harmless), 1 real RISK: predict result is CONFOUNDED — support/non-air catches can never get predicted objectives (not airborne at release; free captures are air-target-only) and sink to cost tail; validation telemetry only covers the unaffected air population. Launch-read mirror, ballistic math, determinism, flag-off purity: all verified clean. A is promotable after the bug fix; B needs the bias measured first. A+B combined config untested. |
 | Combined stack (predict + gated topk3) | both flags / stack-predict-topk3-01 | done | **ACCEPT +5.0 → 607.8** (P(Δ≤0)=5.5%); 50k +41.6 (= predict-only, bit-identical below the gate), 200k +1.9, 300k +2.3; validity 97→99 / 100 / 100 / 100. The promotion candidate. |
@@ -56,10 +55,11 @@ confirmed at 25 seeds (+3.8, P=90%); support-catch bias measured and attributed.
    predictions may RANK everything; exact simulation is owed only to candidates
    actually CHOSEN (expanded branches / committed arcs), walked in rank order with
    fallback when the real gates fail. Tracks are still never built from predictions.
-3. **The big target: lazy pool evaluation.** Today every sampled arc is fully
-   simulated (pool 20–48 × ~20+ frames per node) just to be ranked. Plan: predict
-   the quality objective for all sampled arcs without riding them; exact-evaluate
-   only in rank order until the needed few valid candidates exist.
+3. **The big target: exact horizon reduction.** Today many sampled arcs are still
+   simulated past the current catch/release horizon, especially when
+   `axisLookaheadEndFrame` reaches the next contact. The intended direction is:
+   exact-ride only far enough to validate the current arc and read a clean release
+   state, then use the same ballistic arrival objective for ranking/proposing.
 4. Parked for later, per Jérémie: raising golden max budget past 300k; K=2 retry
    once the lane is structurally cheap.
 
@@ -68,7 +68,8 @@ confirmed at 25 seeds (+3.8, P=90%); support-catch bias measured and attributed.
 - **Quality objective with depth.** V1 proved one-contact lookahead can't replace
   forward-eval as branch judge; the unexplored synthesis is the objective COMPOSED
   over multi-gap rollouts (or as forward-eval's per-step score) — the real
-  "one prediction function" unification. Big; natural after lazy eval.
+  "one prediction function" unification. Big; natural after the exact-horizon and
+  ballistic-ranking cleanup.
 - **Forward-eval-rank instrumentation** (original step 1): we measured cost-rank vs
   quality-rank disagreement (13%), never quality-rank vs forward-eval-rank nor
   correlation with final score. Cheap telemetry add if we ever question the branch judge.
@@ -106,12 +107,11 @@ confirmed at 25 seeds (+3.8, P=90%); support-catch bias measured and attributed.
 
 1. Wait for the two in-flight results; verify both (decide re-run, identity checks).
 2. Record maturity-gate result as data point. If predict-arrival is ≥ parity AND
-   prediction error is small → it becomes the foundation; launch the **lazy pool
-   evaluation** experiment (with a budget-breakdown study first: where do compile
-   frames actually go — pool eval vs lane probes vs forward-eval). If prediction
-   error is large → diagnose before building on it.
-3. If lazy eval lands in time: canonical A/B vs 602.8, full review, leave uncommitted
-   with a promotion recommendation for the morning.
+   prediction error is small, it becomes the foundation for shortening exact
+   candidate evaluation horizons and unifying the rank/proposer objective. If
+   prediction error is large, diagnose before building on it.
+3. Historical note: the geometry-only pool-skipping arm was run, rejected, and
+   removed after review.
 
 ## Results as they land
 

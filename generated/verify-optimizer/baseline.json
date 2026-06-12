@@ -2,22 +2,22 @@
   "budget": 40000,
   "cases": {
     "tiny_dance|seed0": {
-      "hash": "43ff39869e5b54f4",
+      "hash": "3da7a1209964b9f8",
       "lines": 23,
       "sim_frames": 41647
     },
     "syncopated_switchback|seed1": {
-      "hash": "436e7999978f9259",
-      "lines": 117,
-      "sim_frames": 40583
+      "hash": "89928d7154cfe67c",
+      "lines": 107,
+      "sim_frames": 41256
     },
     "drums_signature|seed2": {
-      "hash": "c369055a83ee1086",
-      "lines": 269,
-      "sim_frames": 48918
+      "hash": "33adbbb9b13d376f",
+      "lines": 279,
+      "sim_frames": 52669
     },
     "mini_burst|seed0": {
-      "hash": "0002ce093b8fe152",
+      "hash": "33d955a691be21e5",
       "lines": 34,
       "sim_frames": 40535
     }

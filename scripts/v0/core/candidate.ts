@@ -72,23 +72,21 @@ export const RANK_QUALITY_MODE: RankQualityMode = (() => {
  *  skipped and the field is never set, so the flag-off path is bit-identical. */
 const CAPTURE_ARRIVAL_AT_NEXT_CONTACT = RANK_QUALITY_MODE !== "off";
 
-/** PREDICTED-ARRIVAL gate (LR_RANK_PREDICT_ARRIVAL ∈ {"1","hybrid"}). When on AND
+/** PREDICTED-ARRIVAL gate (LR_RANK_PREDICT_ARRIVAL). When on AND
  *  the quality sort is active, `evaluateGapFit` also captures the rider's full
  *  launch/exit state at the release probe frame (position + smoothed launch
  *  velocity) off the detection it already computed, so the ranker can propagate
- *  it ballistically to the next contact instead of charging a probe ride. OFF →
- *  the field is never set, so the flag-off path stays bit-identical. BOTH "1" and
- *  "hybrid" enable this machinery (same field capture, same validation read); the
- *  two modes differ ONLY in the ranker's handling of NON-airborne-at-release
- *  candidates (see RANK_PREDICT_ARRIVAL_HYBRID below): "1" leaves them unscored,
- *  "hybrid" falls back to the charged probeRide for them. */
+ *  it ballistically to the next contact instead of charging a probe ride.
+ *  DEFAULT is predict-only; LR_RANK_PREDICT_ARRIVAL=off or 0 disables the field,
+ *  and =hybrid keeps prediction for airborne releases while falling back to the
+ *  charged probeRide for non-airborne releases. */
 const RANK_PREDICT_ARRIVAL_MODE: "off" | "predict" | "hybrid" = (() => {
   if (RANK_QUALITY_MODE === "off") return "off";
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_RANK_PREDICT_ARRIVAL;
-  if (raw === "1") return "predict";
+  if (raw === "off" || raw === "0") return "off";
   if (raw === "hybrid") return "hybrid";
-  return "off";
+  return "predict";
 })();
 export const RANK_PREDICT_ARRIVAL: boolean = RANK_PREDICT_ARRIVAL_MODE !== "off";
 /** HYBRID gate (LR_RANK_PREDICT_ARRIVAL=hybrid). Only changes the ranker's

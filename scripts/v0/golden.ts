@@ -184,10 +184,24 @@ type BudgetSummary = {
   spec_scores: GroupScore[];
 };
 
-function arg(name: string): string | null {
+/** Reads a value flag from argv in either `--name=value` (attached) or
+ *  `--name value` (space) form. The space form takes the next argv element, but
+ *  only when it is a value and not the start of another flag — so a bare boolean
+ *  `--name` never swallows a following `--other`. Pure for unit testing. */
+export function parseArgValue(argv: readonly string[], name: string): string | null {
   const prefix = `--${name}=`;
-  const found = process.argv.slice(2).find((a) => a.startsWith(prefix));
-  return found ? found.slice(prefix.length) : null;
+  const attached = argv.find((a) => a.startsWith(prefix));
+  if (attached) return attached.slice(prefix.length);
+  const flag = `--${name}`;
+  const idx = argv.indexOf(flag);
+  if (idx >= 0 && idx + 1 < argv.length && !argv[idx + 1].startsWith("--")) {
+    return argv[idx + 1];
+  }
+  return null;
+}
+
+function arg(name: string): string | null {
+  return parseArgValue(process.argv.slice(2), name);
 }
 
 function has(name: string): boolean {
@@ -1354,9 +1368,17 @@ async function runMain(): Promise<void> {
   }
 }
 
+/** True when this module is the process entry point (the CLI), false when it is
+ *  imported (e.g. by a unit test). Guards the auto-run so importing the pure
+ *  helpers doesn't kick off the suite. */
+function isCliEntry(): boolean {
+  const entry = process.argv[1];
+  return entry !== undefined && fileURLToPath(import.meta.url) === resolve(entry);
+}
+
 if (!isMainThread) {
   await runWorker();
-} else {
+} else if (isCliEntry()) {
   await runMain().catch((error) => {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;

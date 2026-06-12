@@ -300,7 +300,7 @@ Fast focused loop (optimize mean score at `100k`):
 
 ```bash
 env LR_ARC_PLACEMENT=continuous GOLDEN_SEEDS_OVERRIDE=0,1,2 \
-  npx tsx scripts/v0/golden.ts --details \
+  npm run golden -- --details \
   --specs=solo_run,dense_sprint,tiny_dance \
   --budgets=50000,60000,70000,80000,90000,100000 \
   --jobs=32 \
@@ -311,7 +311,7 @@ Normal diagnostic (optimize mean score at `150k`):
 
 ```bash
 env LR_ARC_PLACEMENT=continuous GOLDEN_SEEDS_OVERRIDE=0,1,2 \
-  npx tsx scripts/v0/golden.ts --details \
+  npm run golden -- --details \
   --specs=solo_run,dense_sprint,tiny_dance,drums_pendulum,drums_crescendo,rhythm_ladder,syncopated_switchback,drums_tide,drums_dropout \
   --budgets=50000,60000,70000,80000,90000,100000,110000,120000,130000,140000,150000 \
   --jobs=32 \

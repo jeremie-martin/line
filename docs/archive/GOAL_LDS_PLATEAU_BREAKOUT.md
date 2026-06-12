@@ -34,7 +34,7 @@ simple enough to reason about.
 Use this 10-spec workbench for fast plateau iteration:
 
 ```bash
-npx tsx scripts/v0/golden.ts --compiler=handoff --jobs=32 \
+npm run golden -- --compiler=handoff --jobs=32 \
   --specs=drums_pendulum,drums_crescendo,grain_staircase,rhythm_ladder,syncopated_switchback,drums_signature,dense_sprint,opening_burst,drums_tide,drums_dropout \
   --budgets=35000,40000,45000,50000,55000,60000,65000,70000,75000,80000,85000,90000,95000,100000,105000,110000,115000,120000,125000,130000,135000,140000,145000,150000 \
   --details --json

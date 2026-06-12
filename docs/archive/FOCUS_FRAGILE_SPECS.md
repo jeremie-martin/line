@@ -82,7 +82,7 @@ regress materially. Run the headline diagnostic on its own seeds (NOT 200–219)
 
 ```
 LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 \
-  npx tsx scripts/v0/golden.ts --json --details \
+  npm run golden -- --json --details \
   --specs=solo_run,dense_sprint,tiny_dance,drums_pendulum,drums_crescendo,rhythm_ladder,syncopated_switchback,drums_tide,drums_dropout \
   --budgets=50000,...,150000 --jobs=6 --archive-dir=generated/focus-runs/guard
 ```

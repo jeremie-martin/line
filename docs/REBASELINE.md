@@ -7,7 +7,7 @@ numbers from the golden JSON. Do not transcribe scores by hand.
 
 ```bash
 # Full canonical run = 12 seeds × budgets {50,100,200,300}k (each an independent run).
-LR_ENGINE=wasm npx tsx scripts/v0/golden.ts --jobs=6 --archive-dir=generated/golden-runs/rebaseline
+LR_ENGINE=wasm npm run golden -- --jobs 32 --archive-dir=generated/golden-runs/rebaseline
 ```
 
 The JSON contains the `headline` block (`kind`, `tier`, `score`, `weight_by_budget`,

@@ -50,6 +50,108 @@ const RATE_GRID: readonly (readonly number[])[] = [
   [0.794, 0.794, 0.792, 0.783, 0.777, 0.768, 0.75],
 ];
 
+export type CatchabilityTelemetryBin = {
+  lo: number;
+  hi: number;
+  count: number;
+  fraction: number;
+};
+
+export type CatchabilityTelemetrySnapshot = {
+  enabled: boolean;
+  binWidth: number;
+  count: number;
+  mean: number | null;
+  sd: number | null;
+  min: number | null;
+  max: number | null;
+  belowZero: number;
+  aboveOne: number;
+  bins: CatchabilityTelemetryBin[];
+};
+
+const DEFAULT_TELEMETRY_BIN_WIDTH = 0.05;
+
+let catchabilityTelemetryEnabled =
+  (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_CATCHABILITY_TELEMETRY === "1";
+let telemetryBinWidth = DEFAULT_TELEMETRY_BIN_WIDTH;
+let telemetryBins = new Array(Math.ceil(1 / telemetryBinWidth)).fill(0) as number[];
+let telemetryCount = 0;
+let telemetrySum = 0;
+let telemetrySumSq = 0;
+let telemetryMin = Infinity;
+let telemetryMax = -Infinity;
+let telemetryBelowZero = 0;
+let telemetryAboveOne = 0;
+
+export function setCatchabilityTelemetryEnabled(enabled: boolean): void {
+  catchabilityTelemetryEnabled = enabled;
+}
+
+export function resetCatchabilityTelemetry(binWidth = DEFAULT_TELEMETRY_BIN_WIDTH): void {
+  if (!Number.isFinite(binWidth) || binWidth <= 0 || binWidth > 1) {
+    throw new Error(`resetCatchabilityTelemetry: invalid bin width ${binWidth}`);
+  }
+  telemetryBinWidth = binWidth;
+  telemetryBins = new Array(Math.ceil(1 / telemetryBinWidth)).fill(0) as number[];
+  telemetryCount = 0;
+  telemetrySum = 0;
+  telemetrySumSq = 0;
+  telemetryMin = Infinity;
+  telemetryMax = -Infinity;
+  telemetryBelowZero = 0;
+  telemetryAboveOne = 0;
+}
+
+export function snapshotCatchabilityTelemetry(): CatchabilityTelemetrySnapshot {
+  const bins = telemetryBins.map((count, i) => {
+    const lo = i * telemetryBinWidth;
+    const hi = Math.min(1, (i + 1) * telemetryBinWidth);
+    return {
+      lo,
+      hi,
+      count,
+      fraction: telemetryCount > 0 ? count / telemetryCount : 0,
+    };
+  });
+  const mean = telemetryCount > 0 ? telemetrySum / telemetryCount : null;
+  const variance = telemetryCount > 0 && mean !== null
+    ? Math.max(0, telemetrySumSq / telemetryCount - mean * mean)
+    : null;
+  return {
+    enabled: catchabilityTelemetryEnabled,
+    binWidth: telemetryBinWidth,
+    count: telemetryCount,
+    mean,
+    sd: variance === null ? null : Math.sqrt(variance),
+    min: telemetryCount > 0 ? telemetryMin : null,
+    max: telemetryCount > 0 ? telemetryMax : null,
+    belowZero: telemetryBelowZero,
+    aboveOne: telemetryAboveOne,
+    bins,
+  };
+}
+
+function recordCatchabilityTelemetry(value: number): void {
+  if (!catchabilityTelemetryEnabled) return;
+  telemetryCount++;
+  telemetrySum += value;
+  telemetrySumSq += value * value;
+  telemetryMin = Math.min(telemetryMin, value);
+  telemetryMax = Math.max(telemetryMax, value);
+  if (value < 0) {
+    telemetryBelowZero++;
+    return;
+  }
+  if (value > 1) {
+    telemetryAboveOne++;
+    return;
+  }
+  const i = Math.min(telemetryBins.length - 1, Math.floor(value / telemetryBinWidth));
+  telemetryBins[i]++;
+}
+
 /** Locate `x` in ascending `knots`: returns [index, t] with t ∈ [0,1] the
  *  fraction toward the next knot; clamps outside the range. */
 function locate(knots: readonly number[], x: number): [number, number] {
@@ -65,13 +167,18 @@ function locate(knots: readonly number[], x: number): [number, number] {
  *  whole (speed, angle) plane (bilinear inside the knot range, clamped to
  *  the edge values outside). */
 export function readinessCatch(speedPxPerFrame: number, comAngleDeg: number): number {
-  if (!Number.isFinite(speedPxPerFrame) || !Number.isFinite(comAngleDeg)) return 0;
+  if (!Number.isFinite(speedPxPerFrame) || !Number.isFinite(comAngleDeg)) {
+    recordCatchabilityTelemetry(0);
+    return 0;
+  }
   const [ai, at] = locate(ANGLE_KNOTS, comAngleDeg);
   const [si, st] = locate(SPEED_KNOTS, speedPxPerFrame);
   const top = RATE_GRID[ai][si] * (1 - st) + RATE_GRID[ai][si + 1] * st;
   const bot = RATE_GRID[ai + 1][si] * (1 - st) + RATE_GRID[ai + 1][si + 1] * st;
   const r = top * (1 - at) + bot * at;
-  return Math.min(1, Math.max(0, r));
+  const clamped = Math.min(1, Math.max(0, r));
+  recordCatchabilityTelemetry(clamped);
+  return clamped;
 }
 
 export type ReadinessArrivalState =

@@ -119,6 +119,31 @@ The same objective is used in two production ranking places:
 - candidate-pool sorting, with exact achieved axes and a free or ballistic
   next-arrival state.
 
+### Objective Calibration
+
+Future work should distinguish two related but different problems:
+
+- **Component calibration**: whether a component's numeric value means what its
+  name says. For example, catchability should be checked against empirical catch
+  success with reliability curves / Brier or log loss; speed fit and impact
+  feasibility should likewise be checked against their realized next-gap
+  outcomes.
+- **Utility shaping**: how much a calibrated component should influence search.
+  In the multiplicative objective, power transforms are the clean first family:
+  `component^gamma`. In log-objective space this is just a coefficient
+  `gamma * log(component)`, so `gamma` is an interpretable search weight rather
+  than an ad hoc squashing function.
+
+This is broader than catchability. The candidate objective is a product of
+current quality, catchability, speed fit, and impact feasibility; any one of
+those terms may need separate calibration and a separate search-weight exponent.
+The first safe study is offline, not a behavior change: log each scoreable
+candidate-pool row with `currentQuality`, raw component values, cost/source
+rank, selected rank, and later realized gap outcomes, then replay alternative
+`gamma` vectors and monotone calibrators (identity, power, sigmoid/logit
+temperature, isotonic) against rank flips and outcome proxies before spending a
+golden A/B.
+
 Non-forward handoff branch selection intentionally remains the older measured
 handoff score: candidate local cost plus future-contact preview scarcity/cost,
 state, overshoot, and release-setup penalties. Mature forward-eval branch

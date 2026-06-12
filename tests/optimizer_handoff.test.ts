@@ -330,8 +330,10 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     // start-eval off (default greedy:2 reorders starts and spends up-front budget, perturbing
     // this delicately-tuned scenario). At 20k fwd-eval (gate 75k) and repair (gate 150k) are
     // already off. The contact-centered NORMAL family emits longer ride-outs, so 12k exhausts
-    // within the first start root before any deferral; 20k re-exercises the deferred-root path
-    // (root-0 deferred visits before the first requeue) with budget still spent.
+    // within the first start root before any deferral; 16k re-exercises the deferred-root path
+    // (root-0 deferred visits before the first requeue) with budget still spent. (Was 20k
+    // before the short-horizon gap fit; cheaper evals let 20k complete without exhaustion —
+    // the scenario passes for budgets 10k-18k under the new frame economics.)
     const prevStartEval = process.env.LR_START_EVAL;
     process.env.LR_START_EVAL = "off";
     // Same reasoning for the enumerative proposer (optimizer/aim.ts, default
@@ -339,7 +341,7 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const prevAimEnum = process.env.LR_AIM_ENUM;
     process.env.LR_AIM_ENUM = "0";
     try {
-      const budget = 20_000;
+      const budget = 16_000;
       const result = checkpoint(compileHandoff(spec, 0, {
         budget,
         maxNodes: 12,

@@ -86,3 +86,36 @@ export function firstAirborneExitFrame(
   }
   return null;
 }
+
+/**
+ * Single source of truth for the SHORT-HORIZON detection window growth loop
+ * (the minimal-simulation principle: the engine simulates only inside arcs;
+ * after a clean airborne arc exit everything is ballistic). Grows the detection
+ * window in 4-frame chunks from `minExit` up to `cap`, stopping as soon as
+ * either the rider terminated before the chunk horizon (a ride-out / death the
+ * caller must see in full) or a clean airborne arc-exit was found in the chunk.
+ *
+ * Parametrized over a single `probe(horizon)` callback so both call sites
+ * (optimizer/arc_probe.ts on the metered ENGINE, core/candidate.ts on the
+ * DETECTION arrays) share the exact chunk schedule and stop condition; the
+ * caller's `probe` re-detects to `horizon` and reports whether the rider
+ * terminated before it and/or a clean exit was found. The float-free chunk
+ * arithmetic (start at `minExit`, step `min(cap, horizon + 4)`, while
+ * `horizon < cap`) lives here so the window growth cannot fork.
+ *
+ * Returns the chosen stop horizon (≤ `cap`). `cap` is returned when neither
+ * stop condition fires within the window.
+ */
+export type ShortHorizonProbe = { terminatedEarly: boolean; exitFound: boolean };
+
+export function growShortHorizon(
+  minExit: number,
+  cap: number,
+  probe: (horizon: number) => ShortHorizonProbe,
+): number {
+  for (let horizon = minExit; horizon < cap; horizon = Math.min(cap, horizon + 4)) {
+    const { terminatedEarly, exitFound } = probe(horizon);
+    if (terminatedEarly || exitFound) return horizon;
+  }
+  return cap;
+}

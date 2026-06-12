@@ -64,8 +64,10 @@ import {
   axisLookaheadEndFrame,
   detectWindow,
   releaseSpeedPenalty,
+  resetGapfitShortStats,
   resetReleaseExitStats,
   setCandidateCompileBudgetFrames,
+  snapshotGapfitShortStats,
   snapshotReleaseExitStats,
   tryCandidate,
   translateTrackLines,
@@ -582,6 +584,7 @@ function compileHandoffInternal(
   resetArcPlacementStats();
   resetAimStats();
   resetReleaseExitStats();
+  resetGapfitShortStats();
 
   {
     validateSpec(userSpec);
@@ -844,6 +847,7 @@ function compileHandoffInternal(
       const arcStats = snapshotArcPlacementStats();
       const aimStats = snapshotAimStats();
       const releaseExitStats = snapshotReleaseExitStats();
+      const gapfitShortStats = snapshotGapfitShortStats();
       return {
         ...best,
         budget,
@@ -918,6 +922,9 @@ function compileHandoffInternal(
           // fallback-rate monitor. Absent under LR_RANK_QUALITY=off (no read
           // taken) → escape-hatch archives stay byte-identical.
           ...(releaseExitStats !== null ? { release_exit: releaseExitStats } : {}),
+          // Short-horizon gap-fit funnel (core/candidate.ts): truncated vs full
+          // evals + frames saved.
+          ...(gapfitShortStats !== null ? { gapfit_short: gapfitShortStats } : {}),
           // Repair characterization (only present when the repair post-pass ran → baseline
           // golden.json unchanged, no snapshot churn). Aggregates are always cheap; the full
           // per-restart records (up to maxAttempts each) are heavy archive bloat, so they ride

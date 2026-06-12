@@ -544,6 +544,13 @@ export type CompileStats = {
     release_exit_fallback_unreadable: number;
     release_exit_airborne: number;
   };
+  /** Short-horizon gap-fit funnel (core/candidate.ts). Non-scoring
+   *  diagnostics: truncated vs full-horizon evals and frames saved. */
+  gapfit_short?: {
+    gapfit_truncated: number;
+    gapfit_full: number;
+    gapfit_frames_saved: number;
+  };
   /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;
   /** Readiness v0 (optimizer/readiness.ts, READINESS_ROADMAP R1, telemetry

@@ -30,6 +30,7 @@ import {
   CALIB,
   ELEVATION,
   FPS,
+  IMPACT_WINDOW,
   hasExactlyTargetAxes,
   type CandidateSampleMode,
   speedPxToAuthored,
@@ -46,9 +47,13 @@ import {
   velocityAt,
   positionAt,
 } from "./substrate.ts";
-import { measureGapAxes } from "./measure.ts";
+import {
+  measureGapAxes,
+  measureGapAxesWithBallisticSuffix,
+  type BallisticAxisSuffix,
+} from "./measure.ts";
 import { gravityCorrectedLaunchAverage } from "./launch_read.ts";
-import { firstAirborneExitFrame } from "./exit_read.ts";
+import { firstAirborneExitFrame, growShortHorizon } from "./exit_read.ts";
 
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
@@ -135,6 +140,34 @@ export function snapshotReleaseExitStats(): ReleaseExitStats | null {
     releaseExitTotals.release_exit_fallback_next_contact > 0 ||
     releaseExitTotals.release_exit_fallback_unreadable > 0;
   return anyActivity ? { ...releaseExitTotals } : null;
+}
+
+/** Telemetry for the short-horizon gap fit. Counts truncated vs full-horizon
+ *  candidate evaluations and the frames saved (full-horizon-would-have-been −
+ *  actual stop), in the established candidate-side style. Snapshot/reset are
+ *  wired through optimizer/handoff.ts into the per-budget compile stats.
+ *  NOTE: compactStats may strip these from archives — measure live. */
+const gapfitShortTotals = {
+  /** Candidate evals that truncated at a clean geometric exit (short horizon). */
+  gapfit_truncated: 0,
+  /** Candidate evals that fell through to the full horizon (no clean exit in cap,
+   *  or the short horizon was already ≥ the full horizon — no saving possible). */
+  gapfit_full: 0,
+  /** Σ (full horizon − truncated horizon) over truncated evals: detection frames
+   *  saved vs riding the engine to the former next-gap horizon. */
+  gapfit_frames_saved: 0,
+};
+export type GapfitShortStats = typeof gapfitShortTotals;
+
+export function resetGapfitShortStats(): void {
+  gapfitShortTotals.gapfit_truncated = 0;
+  gapfitShortTotals.gapfit_full = 0;
+  gapfitShortTotals.gapfit_frames_saved = 0;
+}
+
+export function snapshotGapfitShortStats(): GapfitShortStats | null {
+  const anyActivity = gapfitShortTotals.gapfit_truncated > 0 || gapfitShortTotals.gapfit_full > 0;
+  return anyActivity ? { ...gapfitShortTotals } : null;
 }
 
 const RELEASE_STATE_SPEED_WEIGHT = 0.126;
@@ -792,6 +825,105 @@ function evaluateCandidateLines(
   };
 }
 
+/**
+ * Short-horizon detection for a candidate gap fit (the minimal-simulation
+ * principle): grow the detection window in 4-frame chunks (shared schedule,
+ * core/exit_read.ts `growShortHorizon`) until a CLEAN airborne geometric arc
+ * exit (shared detector, core/exit_read.ts `firstAirborneExitFrame`) is found,
+ * then read the smoothed launch state at the exit frame (shared estimator,
+ * core/launch_read.ts) for the ballistic axis-suffix completion.
+ *
+ * Mirrors optimizer/arc_probe.ts short mode exactly, except this reads off the
+ * DETECTION arrays (positionAt/airborneAt/velocityAt) where arc_probe reads the
+ * metered engine. Returns null — meaning "use the full horizon, byte-identical
+ * to the former behavior" — when:
+ *   - the growth loop stopped on an early termination (a ride-out / death the
+ *     caller must see in full), or hit the cap with no exit;
+ *   - the exit frame would ride into the next contact (no ballistic flight);
+ *   - the exit-frame launch state is unreadable;
+ *   - the truncated horizon is not below the full horizon (no frames to save).
+ */
+function computeShortGapFitDetection(
+  redetect: (horizon: number) => Detection,
+  lines: readonly TrackLine[],
+  gap: Gap,
+  axisMeasureEnd: number,
+  fullHorizon: number,
+): { det: Detection; stopHorizon: number; suffix: BallisticAxisSuffix } | null {
+  const minExit = gap.endFrame;
+  // Cap covers the survival margin (endFrame+16), the catch+8 launch read
+  // (endFrame+8+LAUNCH_READ_FRAMES), the impact axis window, and the lookahead
+  // boundary — mirrors arc_probe.ts axisSafeCap (= endFrame+max(20,IMPACT_WINDOW+2))
+  // with axisMeasureEnd+2 standing in for nextFrame+2.
+  const axisSafeCap = gap.endFrame + Math.max(20, IMPACT_WINDOW + 2);
+  const cap = Math.min(fullHorizon, Math.max(axisSafeCap, axisMeasureEnd + 2));
+  // Survival floor the truncated prefix MUST cover before a clean exit may
+  // truncate: endFrame+SURVIVAL_MARGIN — the catch/tail-contact window where ALL
+  // survival deaths occur (gate-diagnostic study: 100% riderEjected at catch ±2
+  // or tail +3..16, ZERO clean-airborne-past-exit deaths). Deliberately NOT
+  // raised to axisMeasureEnd: for lookahead gaps that would force the prefix to
+  // ride to the next contact and forfeit the truncation's entire saving; past
+  // this floor, a clean airborne exit certifies survival to the next contact.
+  const survivalFloor = Math.min(cap, gap.endFrame + 16);
+  let exitStop: { det: Detection; horizon: number } | null = null;
+  const stopHorizon = growShortHorizon(minExit, cap, (horizon) => {
+    const det = redetect(horizon);
+    const terminatedEarly = det.terminus.frame < horizon && det.terminus.reason !== "endOfSpec";
+    const exitFound = !terminatedEarly && horizon >= survivalFloor &&
+      firstAirborneExitFrame(
+        lines, minExit, horizon,
+        (frame) => airborneAt(det, frame),
+        (frame) => positionAt(det, frame),
+      ) !== null;
+    if (exitFound) exitStop = { det, horizon };
+    return { terminatedEarly, exitFound };
+  });
+  // Only a CLEAN-EXIT stop truncates. Cap/early-termination ⇒ fall back to full.
+  if (exitStop === null || exitStop.horizon !== stopHorizon || stopHorizon >= fullHorizon) return null;
+  const { det, horizon } = exitStop;
+
+  const exitFrame = firstAirborneExitFrame(
+    lines, minExit, horizon,
+    (frame) => airborneAt(det, frame),
+    (frame) => positionAt(det, frame),
+  );
+  if (exitFrame === null) return null;
+  // No ballistic flight if the exit would ride into the next contact (mirror the
+  // releaseStateFrame / releaseExitArrivalState nextContact−2 bound).
+  const nextContact = allContactFramesFor(gap, axisMeasureEnd);
+  if (nextContact !== null && exitFrame > nextContact - 2) return null;
+
+  const suffix = ballisticSuffixAtExit(det, exitFrame);
+  if (suffix === null) return null;
+  return { det, stopHorizon: horizon, suffix };
+}
+
+/** The next-contact frame the truncation must not ride into: `axisMeasureEnd`
+ *  when it is a lookahead boundary (the next contact, > gap.endFrame), else null
+ *  (no later contact in view this gap). */
+function allContactFramesFor(gap: Gap, axisMeasureEnd: number): number | null {
+  return axisMeasureEnd > gap.endFrame ? axisMeasureEnd : null;
+}
+
+/** Smoothed ballistic launch state at the geometric exit frame, read off the
+ *  detection (shared estimator, core/launch_read.ts) — the suffix velocity the
+ *  axis completion propagates ballistically. Null when the exit-frame
+ *  position/velocity is unreadable. */
+function ballisticSuffixAtExit(det: Detection, exitFrame: number): BallisticAxisSuffix | null {
+  const pos = positionAt(det, exitFrame);
+  const v0 = velocityAt(det, exitFrame);
+  if (pos === undefined || v0 === undefined) return null;
+  if (!Number.isFinite(v0.x) || !Number.isFinite(v0.y)) return null;
+  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
+  const { vx, vy } = gravityCorrectedLaunchAverage(
+    v0,
+    g,
+    (k) => airborneAt(det, exitFrame + k) === true,
+    (k) => velocityAt(det, exitFrame + k),
+  );
+  return { frame: exitFrame, vx, vy };
+}
+
 function evaluateGapFit(
   // deno-lint-ignore no-explicit-any
   baseEngine: any,
@@ -825,17 +957,49 @@ function evaluateGapFit(
 } {
   // deno-lint-ignore no-explicit-any
   const eng: any = baseEngine.addLine(lines.map((line) => engineLineFromTrackLine(line)));
-  const horizon = Math.max(gap.endFrame + 20, axisMeasureEnd + 20);
-  const det = useWindowDetection
-    ? detectWindow(eng, gap.startFrame, horizon)
-    : detect(extractRawTrajectory(eng, horizon));
+  const fullHorizon = Math.max(gap.endFrame + 20, axisMeasureEnd + 20);
+  const redetect = (h: number): Detection =>
+    useWindowDetection ? detectWindow(eng, gap.startFrame, h) : detect(extractRawTrajectory(eng, h));
+
+  // SHORT-HORIZON GAP FIT (the minimal-simulation principle — same conversion the
+  // probe ride does in optimizer/arc_probe.ts short mode, via the shared
+  // core/exit_read.ts helpers). Grow the detection window in 4-frame chunks until
+  // a clean airborne arc exit is found, then complete the axis measurement
+  // ballistically from the exit-frame launch state — instead of riding the engine
+  // through the next gap to `axisMeasureEnd`. Falls back to the full horizon when
+  // no clean exit is found within the cap (ride-outs / tail-riders), which is
+  // byte-identical to the former behavior.
+  const short = computeShortGapFitDetection(redetect, lines, gap, axisMeasureEnd, fullHorizon);
+  const truncated = short !== null;
+  const horizon = truncated ? short.stopHorizon : fullHorizon;
+  const det = truncated ? short.det : redetect(fullHorizon);
+  // Ballistic suffix for the axis measurement past the truncated detection;
+  // null in the full-horizon path (measureGapAxesWithBallisticSuffix degrades to
+  // measureGapAxes when rangeEndFrame ≤ the detection's last frame). The off-beat
+  // / survival measurement boundary clamps to the truncated horizon.
+  const ballisticSuffix = truncated ? short.suffix : null;
+  const measureEnd = truncated ? Math.min(axisMeasureEnd, horizon) : axisMeasureEnd;
+  if (truncated) {
+    gapfitShortTotals.gapfit_truncated++;
+    gapfitShortTotals.gapfit_frames_saved += Math.max(0, fullHorizon - horizon);
+  } else {
+    gapfitShortTotals.gapfit_full++;
+  }
 
   // Hard gate 1: rider survived to gap.endFrame + SURVIVAL_MARGIN.
   // Surviving exactly the landing frame isn't enough — many randomly-sampled
   // catch geometries eject the rider on the next frame. Require the rider to
-  // remain alive long enough to plausibly bridge into the next gap.
+  // remain alive long enough to plausibly bridge into the next gap. Under
+  // truncation the prefix always covers endFrame+SURVIVAL_MARGIN — the window
+  // holding 100% of observed survival deaths (computeShortGapFitDetection
+  // survivalFloor) — and the gate clamps to the truncated horizon: for lookahead
+  // gaps the prefix stops at the clean exit instead of the next contact, and the
+  // exit certifies the rest (gate-diagnostic study: ZERO clean-airborne-past-exit
+  // deaths).
   const SURVIVAL_MARGIN = 16;
-  const minSurvival = Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd);
+  const minSurvival = truncated
+    ? Math.min(horizon, Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd))
+    : Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd);
   if (det.terminus.frame < minSurvival && det.terminus.reason !== "endOfSpec") {
     if (landingProbeEligible && landingProbeRecords !== null) probeSurvivalFailure(gap, lines);
     return { fit: null, failure: "survival" };
@@ -858,12 +1022,18 @@ function evaluateGapFit(
   if (!landingNearTarget) return { fit: null, failure: "landing" };
 
   // Hard gate 3: no off-beat landings before the next measurement boundary.
+  // Under truncation the boundary clamps to the truncated horizon (off-beat fires
+  // on 0.1% of evals, own-arc double-touches within +16, captured by the prefix).
   const offBeat = countOffBeatLandings(
-    det.events, gap.startFrame, axisMeasureEnd, allContactFrames,
+    det.events, gap.startFrame, measureEnd, allContactFrames,
   );
   if (offBeat > 0) return { fit: null, failure: "offbeat" };
 
-  const achieved = measureGapAxes(det, gap, lines, axisMeasureEnd);
+  // Axis measurement: engine prefix + ballistic suffix when truncated (the
+  // shared measure.ts completion), the verbatim full-detection read otherwise.
+  const achieved = ballisticSuffix === null
+    ? measureGapAxes(det, gap, lines, axisMeasureEnd)
+    : measureGapAxesWithBallisticSuffix(det, gap, lines, axisMeasureEnd, ballisticSuffix);
   const releaseFrame = releaseStateFrame(gap, allContactFrames);
   const releaseSpeed = speedAt(det, releaseFrame);
   const releaseVelocity = velocityAt(det, releaseFrame);

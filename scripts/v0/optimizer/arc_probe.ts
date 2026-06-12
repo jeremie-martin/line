@@ -16,7 +16,7 @@ import {
   engineLineFromTrackLine,
 } from "../core/substrate.ts";
 import { gravityCorrectedLaunchAverage } from "../core/launch_read.ts";
-import { firstAirborneExitFrame } from "../core/exit_read.ts";
+import { firstAirborneExitFrame, growShortHorizon } from "../core/exit_read.ts";
 import { ELEVATION, IMPACT_WINDOW, type Gap, type TrackLine } from "../types.ts";
 import {
   applyArcKnobs,
@@ -210,12 +210,13 @@ function shortProbeHorizon(engine: any, lines: TrackLine[], gap: Gap, nextFrame:
   const minExit = gap.endFrame;
   const axisSafeCap = gap.endFrame + Math.max(20, IMPACT_WINDOW + 2);
   const cap = Math.max(axisSafeCap, nextFrame + 2);
-  for (let horizon = minExit; horizon < cap; horizon = Math.min(cap, horizon + 4)) {
+  return growShortHorizon(minExit, cap, (horizon) => {
     const det = detectWindow(engine, gap.startFrame, horizon);
-    if (det.terminus.frame < horizon && det.terminus.reason !== "endOfSpec") return horizon;
-    if (firstAirborneExitFrameAtOrAfter(engine, det, lines, minExit, horizon) !== null) return horizon;
-  }
-  return cap;
+    return {
+      terminatedEarly: det.terminus.frame < horizon && det.terminus.reason !== "endOfSpec",
+      exitFound: firstAirborneExitFrameAtOrAfter(engine, det, lines, minExit, horizon) !== null,
+    };
+  });
 }
 
 function ballisticAxisSuffix(frame: number, state: RiderArrivalState): BallisticAxisSuffix {

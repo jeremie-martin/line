@@ -28,6 +28,7 @@ import {
   type AxisValues,
   type Arc, type TrackLine, type Gap,
   CALIB,
+  ELEVATION,
   FPS,
   hasExactlyTargetAxes,
   type CandidateSampleMode,
@@ -43,6 +44,7 @@ import {
   redirImpactPxAtLanding,
   speedAt,
   velocityAt,
+  positionAt,
 } from "./substrate.ts";
 import { measureGapAxes } from "./measure.ts";
 
@@ -69,6 +71,45 @@ export const RANK_QUALITY_MODE: RankQualityMode = (() => {
  *  stows it on the fit (see GapFit `arrivalAtNextContact`). OFF → the read is
  *  skipped and the field is never set, so the flag-off path is bit-identical. */
 const CAPTURE_ARRIVAL_AT_NEXT_CONTACT = RANK_QUALITY_MODE !== "off";
+
+/** PREDICTED-ARRIVAL gate (LR_RANK_PREDICT_ARRIVAL ∈ {"1","hybrid"}). When on AND
+ *  the quality sort is active, `evaluateGapFit` also captures the rider's full
+ *  launch/exit state at the release probe frame (position + smoothed launch
+ *  velocity) off the detection it already computed, so the ranker can propagate
+ *  it ballistically to the next contact instead of charging a probe ride. OFF →
+ *  the field is never set, so the flag-off path stays bit-identical. BOTH "1" and
+ *  "hybrid" enable this machinery (same field capture, same validation read); the
+ *  two modes differ ONLY in the ranker's handling of NON-airborne-at-release
+ *  candidates (see RANK_PREDICT_ARRIVAL_HYBRID below): "1" leaves them unscored,
+ *  "hybrid" falls back to the charged probeRide for them. */
+const RANK_PREDICT_ARRIVAL_MODE: "off" | "predict" | "hybrid" = (() => {
+  if (RANK_QUALITY_MODE === "off") return "off";
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_RANK_PREDICT_ARRIVAL;
+  if (raw === "1") return "predict";
+  if (raw === "hybrid") return "hybrid";
+  return "off";
+})();
+export const RANK_PREDICT_ARRIVAL: boolean = RANK_PREDICT_ARRIVAL_MODE !== "off";
+/** HYBRID gate (LR_RANK_PREDICT_ARRIVAL=hybrid). Only changes the ranker's
+ *  treatment of candidates with NO free capture and NOT airborne at release: under
+ *  "predict" (=1) ballistic prediction bails on them → null objective → cost tail;
+ *  under "hybrid" they fall back to the bounded, memoized, top-M charged probeRide
+ *  (the path that scored the support population before predict-only orphaned it).
+ *  Airborne-at-release candidates take the ballistic prediction in BOTH modes, so
+ *  =1 stays byte-identical (this flag is read only inside the non-airborne branch
+ *  that =1 never reached productively). */
+export const RANK_PREDICT_ARRIVAL_HYBRID: boolean = RANK_PREDICT_ARRIVAL_MODE === "hybrid";
+
+/** Launch-read calibration, mirrored from optimizer/arc_probe.ts (the canonical
+ *  owner — the short-probe launch fix, commit f23ef60). arc_probe.ts imports
+ *  from this module (axisCost), so it cannot export these back without a cycle;
+ *  kept in sync by hand. LAUNCH_READ_FRAMES = gravity-corrected airborne reads
+ *  averaged; LAUNCH_VY_OFFSET_PX = constant post-impact-transient vy correction
+ *  (+0.0345, smoothed read). */
+const LAUNCH_READ_FRAMES = 4;
+const LAUNCH_VY_OFFSET_PX = 0.0345;
+
 const RELEASE_STATE_SPEED_WEIGHT = 0.126;
 const LOCAL_IMPACT_COST_WEIGHT = 0.5;
 const LOCAL_IMPACT_COST_MATURE_EXTRA = 0.25;
@@ -313,6 +354,11 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
   const velocity: { x: number; y: number }[] = [];
   const contactLineIds: number[][] = [];
   const airborne: boolean[] = [];
+  // PREDICTED-ARRIVAL (LR_RANK_PREDICT_ARRIVAL): the ranker propagates the
+  // release state ballistically and needs position. The window detector
+  // otherwise drops position to save memory on the hot path; populate it ONLY
+  // when the flag is on so flag-off allocation is unchanged.
+  const position: { x: number; y: number }[] = [];
   const events: DetEvent[] = [];
 
   let stallRun = 0;
@@ -341,6 +387,7 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
     const sp = Math.hypot(vx, vy);
     speed.push(sp);
     velocity.push({ x: vx, y: vy });
+    if (RANK_PREDICT_ARRIVAL) position.push({ x: data[base + WINDOW_PX], y: data[base + WINDOW_PY] });
     contactLineIds.push(contactLineIdsAtIndex(i));
     const isAir = sledMaskAt(i) === 0;
     airborne.push(isAir);
@@ -399,7 +446,7 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
 
   return {
     measurements: {
-      position: [],
+      position,
       velocity,
       speed,
       sledContacts: [],
@@ -424,6 +471,9 @@ function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
   const contactLineIds: number[][] = [];
   const airborne: boolean[] = [];
   const events: DetEvent[] = [];
+  // PREDICTED-ARRIVAL: see detectCandidateWindowBuffer — position is populated
+  // only when LR_RANK_PREDICT_ARRIVAL is on.
+  const position: { x: number; y: number }[] = [];
 
   let stallRun = 0;
   let airborneRun = 0;
@@ -435,6 +485,7 @@ function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
     const sp = Math.hypot(fr.velocity.x, fr.velocity.y);
     speed.push(sp);
     velocity.push({ x: fr.velocity.x, y: fr.velocity.y });
+    if (RANK_PREDICT_ARRIVAL) position.push({ x: fr.position.x, y: fr.position.y });
     contactLineIds.push(fr.contactLineIds);
     const isAir = fr.sledContacts.length === 0;
     airborne.push(isAir);
@@ -493,7 +544,7 @@ function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
 
   return {
     measurements: {
-      position: [],
+      position,
       velocity,
       speed,
       sledContacts: [],
@@ -706,6 +757,9 @@ function evaluateCandidateLines(
       ...(best.fit.arrivalAtNextContact === undefined
         ? {}
         : { arrivalAtNextContact: best.fit.arrivalAtNextContact }),
+      ...(best.fit.releaseArrivalState === undefined
+        ? {}
+        : { releaseArrivalState: best.fit.releaseArrivalState }),
     },
     failure: null,
   };
@@ -735,6 +789,7 @@ function evaluateGapFit(
     | "releaseGroundedFrames"
     | "releaseAirborne"
     | "arrivalAtNextContact"
+    | "releaseArrivalState"
   >;
   failure: null;
 } | {
@@ -798,6 +853,13 @@ function evaluateGapFit(
   const arrivalAtNextContact = CAPTURE_ARRIVAL_AT_NEXT_CONTACT && axisMeasureEnd > gap.endFrame
     ? arrivalStateAt(det, axisMeasureEnd)
     : undefined;
+  // PREDICTED-ARRIVAL: full launch/exit state at the release frame, read off the
+  // SAME detection (zero extra frames). Lets the ranker propagate ballistically
+  // to the next contact instead of charging a probe ride. Gated so flag-off
+  // never allocates the field.
+  const releaseArrivalState = RANK_PREDICT_ARRIVAL
+    ? releaseArrivalStateAt(det, gap.endFrame, releaseFrame, releaseGroundedFrames, releaseAirborne)
+    : undefined;
   return {
     fit: {
       lines,
@@ -808,6 +870,7 @@ function evaluateGapFit(
       releaseGroundedFrames,
       ...(releaseAirborne === undefined ? {} : { releaseAirborne }),
       ...(arrivalAtNextContact === undefined ? {} : { arrivalAtNextContact }),
+      ...(releaseArrivalState === undefined ? {} : { releaseArrivalState }),
     },
     failure: null,
   };
@@ -829,6 +892,60 @@ function arrivalStateAt(
     frame,
     speed,
     comAngleDeg: speed > 0 ? (Math.atan2(v.y, v.x) * 180) / Math.PI : null,
+  };
+}
+
+/** Full launch/exit state at `releaseFrame`, read off an existing detection for
+ *  ballistic propagation by the quality ranker (LR_RANK_PREDICT_ARRIVAL). The
+ *  velocity is the gravity-corrected average of up to LAUNCH_READ_FRAMES
+ *  consecutive AIRBORNE frames starting at `releaseFrame` plus the constant
+ *  LAUNCH_VY_OFFSET_PX — the same smoothed launch read the short probe uses
+ *  (arc_probe.ts readLaunchState, commit f23ef60), computed here from the
+ *  detection's per-frame velocity/airborne arrays instead of re-metering the
+ *  engine (zero extra frames). `pose` is not carried in detection measurements
+ *  and the rank objective does not consume it, so it is left null. Returns
+ *  undefined when the release-frame position/velocity is unreadable. `grounded`
+ *  / `airborne` are passed through so the ranker can reject non-ballistic
+ *  (ground-touching) post-catch segments. */
+function releaseArrivalStateAt(
+  det: Detection,
+  catchFrame: number,
+  releaseFrame: number,
+  grounded: number,
+  airborne: boolean | undefined,
+): GapFit["releaseArrivalState"] | undefined {
+  const pos = positionAt(det, releaseFrame);
+  const v0 = velocityAt(det, releaseFrame);
+  if (pos === undefined || v0 === undefined) return undefined;
+  if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y) || !Number.isFinite(v0.x) || !Number.isFinite(v0.y)) {
+    return undefined;
+  }
+  // Gravity-corrected average of consecutive airborne velocity reads.
+  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
+  let sx = v0.x;
+  let sy = v0.y;
+  let n = 1;
+  for (let k = 1; k < LAUNCH_READ_FRAMES; k++) {
+    const f = releaseFrame + k;
+    if (airborneAt(det, f) !== true) break;
+    const v = velocityAt(det, f);
+    if (v === undefined || !Number.isFinite(v.x) || !Number.isFinite(v.y)) break;
+    sx += v.x;
+    sy += v.y - g * k;
+    n++;
+  }
+  const vx = sx / n;
+  const vy = sy / n + LAUNCH_VY_OFFSET_PX;
+  return {
+    frame: releaseFrame,
+    x: pos.x,
+    y: pos.y,
+    vx,
+    vy,
+    sledPoseDeg: null,
+    sledPoseRateDegPerFrame: null,
+    grounded,
+    airborne: airborne === true,
   };
 }
 

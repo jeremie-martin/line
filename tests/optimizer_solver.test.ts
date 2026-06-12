@@ -12,6 +12,7 @@
 import { describe, test, expect } from "vitest";
 import { solveOneGap, pickLowestCost } from "../scripts/v0/optimizer/solver.ts";
 import { getCandidatesSorted, makeRootNode } from "../scripts/v0/optimizer/node.ts";
+import { LAZY_POOL_EXACT_QUOTA } from "../scripts/v0/optimizer/aim.ts";
 import type { SpecContext } from "../scripts/v0/optimizer/sample.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import { CALIB, secToFrame } from "../scripts/v0/types.ts";
@@ -156,6 +157,41 @@ describe("optimizer/solver.ts — Step 2 K-candidate solver", () => {
     expect(prefix.length).toBe(fresh.length);
     for (let i = 0; i < fresh.length; i++) {
       expect(candKey(prefix[i])).toBe(candKey(fresh[i]));
+    }
+  });
+
+  test("lazy pool does not poison later exact-prefix cache requests", async () => {
+    const oldLazyPool = process.env.LR_LAZY_POOL;
+    const oldLazyWide = process.env.LR_LAZY_POOL_WIDE;
+    try {
+      process.env.LR_LAZY_POOL = "1";
+      delete process.env.LR_LAZY_POOL_WIDE;
+
+      const { engine, gap, ctx } = await setupAtGap0("syncopated_switchback", 0);
+      const seed = 29;
+      const node = makeRootNode(engine, 1);
+      getCandidatesSorted(node, [gap], ctx, seed, LAZY_POOL_EXACT_QUOTA + 12);
+      expect(node._candidatesCache).toBeNull();
+
+      const exactAfterLazy = getCandidatesSorted(node, [gap], ctx, seed, LAZY_POOL_EXACT_QUOTA);
+      const freshNode = makeRootNode(engine, 1);
+      const freshExact = getCandidatesSorted(freshNode, [gap], ctx, seed, LAZY_POOL_EXACT_QUOTA);
+
+      expect(exactAfterLazy.length).toBe(freshExact.length);
+      for (let i = 0; i < freshExact.length; i++) {
+        expect(candKey(exactAfterLazy[i])).toBe(candKey(freshExact[i]));
+      }
+    } finally {
+      if (oldLazyPool === undefined) {
+        delete process.env.LR_LAZY_POOL;
+      } else {
+        process.env.LR_LAZY_POOL = oldLazyPool;
+      }
+      if (oldLazyWide === undefined) {
+        delete process.env.LR_LAZY_POOL_WIDE;
+      } else {
+        process.env.LR_LAZY_POOL_WIDE = oldLazyWide;
+      }
     }
   });
 

@@ -25,13 +25,14 @@ import {
   tryCandidateGeometry,
 } from "../core/candidate.ts";
 import {
+  type ArcPlacementGeometry,
   readPreTargetSledTrace,
   readTargetStateFromRider,
   sampleArcPlacementGeometry,
   type ImpactFrameTargetState,
   type PreTargetSledTrace,
 } from "../arc_placement.ts";
-import { getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
+import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
@@ -73,14 +74,26 @@ export type CandidateProbe = {
 
 let candidateSampleCount = 0;
 let viableCandidateCount = 0;
+/** Physics frames charged INSIDE pool-candidate evaluation rides
+ *  (`sampleOneCandidate` → `tryCandidateGeometry`). This isolates the
+ *  dominant per-node cost — the exact-evaluation rides through each sampled
+ *  geometry — from aim-lane probes and forward-eval rollouts, which charge
+ *  frames elsewhere. Pure telemetry; resby compile entry; used by the budget
+ *  breakdown (Step 1) and the lazy-pool frames-saved accounting. */
+let poolEvalFrames = 0;
 
 export function resetCandidateSamples(): void {
   candidateSampleCount = 0;
   viableCandidateCount = 0;
+  poolEvalFrames = 0;
 }
 
 export function getCandidateSamples(): number {
   return candidateSampleCount;
+}
+
+export function getPoolEvalFrames(): number {
+  return poolEvalFrames;
 }
 
 export function getViableCandidates(): number {
@@ -154,10 +167,42 @@ export function sampleOneCandidate(
    *  still use `gap.targets`; this only shapes the sampled line fragment. */
   geometryTargets: AxisValues = gap.targets,
 ): Candidate | null {
+  const sampled = sampleOneGeometry(engine, gap, rng, ctx, lineIdStart, attempt, mode, geometryTargets);
+  return rideOneGeometry(engine, gap, ctx, lineIdStart, attempt, mode, sampled);
+}
+
+/** A sampled-but-not-yet-ridden geometry: the RNG-derived line fragment plus the
+ *  free per-gap probe and axis horizon. Carries everything the lazy pool path
+ *  (LR_LAZY_POOL, node.ts) needs to PREDICT a rank score without riding, and
+ *  everything `rideOneGeometry` needs to later evaluate it exactly. The split is
+ *  exact: `sampleOneGeometry` consumes the same RNG draws `sampleOneCandidate`
+ *  did and does NO riding; `rideOneGeometry` does the ride and charges the same
+ *  frames. Composed back-to-back they reproduce `sampleOneCandidate` byte-for-byte. */
+export type SampledGeometry = {
+  geometry: ArcPlacementGeometry;
+  probe: CandidateProbe;
+  axisMeasureEnd: number;
+};
+
+/** RNG-only half of `sampleOneCandidate`: draw the candidate geometry and the
+ *  free per-gap probe; ride NOTHING (zero physics frames). The geometry sample is
+ *  a pure function of (engine, gap, rng-state, ctx, lineIdStart, attempt, mode),
+ *  so the lazy pool can sample all attempts up front in the eager RNG order and
+ *  ride a chosen subset later, while staying RNG-identical to eager sampling. */
+export function sampleOneGeometry(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  rng: () => number,
+  ctx: SpecContext,
+  lineIdStart: number,
+  attempt = 0,
+  mode: CandidateSampleMode = "normal",
+  geometryTargets: AxisValues = gap.targets,
+): SampledGeometry {
   candidateSampleCount++;
   const probe = getCandidateProbe(engine, gap, ctx);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
-
   // Pass the real attempt index: on steep-catch gaps the geometry sampler
   // interleaves template catches with normal random samples. For non-steep gaps
   // the attempt arg is unused and the RNG drives diversity.
@@ -165,13 +210,32 @@ export function sampleOneCandidate(
     rng, probe.refX, probe.refY, geometryTargets, probe.targetState, attempt, gap, lineIdStart, mode,
     ctx.allContactFrames,
   );
+  return { geometry, probe, axisMeasureEnd };
+}
 
+/** Ride half of `sampleOneCandidate`: evaluate an already-sampled geometry
+ *  exactly (the charged ride — survival gate, landing window, off-beat check,
+ *  axis measurement) and return the surviving Candidate or null. Charges the same
+ *  frames `sampleOneCandidate` did and stamps the same `ref`/`sampleAttempt`. */
+export function rideOneGeometry(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  ctx: SpecContext,
+  lineIdStart: number,
+  attempt: number,
+  mode: CandidateSampleMode,
+  sampled: SampledGeometry,
+): Candidate | null {
+  const { geometry, probe, axisMeasureEnd } = sampled;
   // The atomic sample uses the gap's own targets directly (multi-gap residual
   // targeting is a higher-level concern).
+  const framesBeforeRide = getPhysicsFrameCount();
   const fit = tryCandidateGeometry(
     engine, gap, geometry, lineIdStart, ctx.allContactFrames,
     axisMeasureEnd, gap.targets, true, mode, probe.preTargetSledTrace,
   ) as Candidate | null;
+  poolEvalFrames += Math.max(0, getPhysicsFrameCount() - framesBeforeRide);
 
   // Record the sled reference used to place this catch, so a later gap with a
   // similar entry state can translate this geometry and reuse it (catch-reuse
@@ -182,6 +246,5 @@ export function sampleOneCandidate(
     fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
     fit.sampleAttempt = attempt;
   }
-
   return fit;
 }

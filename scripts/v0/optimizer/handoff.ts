@@ -77,7 +77,7 @@ import {
   makeRootNode,
   type SearchNode,
 } from "./node.ts";
-import { resetAimStats, snapshotAimStats } from "./aim.ts";
+import { resetAimStats, setAimCompileBudgetFrames, snapshotAimStats } from "./aim.ts";
 import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
@@ -563,6 +563,7 @@ function compileHandoffInternal(
   // Budget-aware geometry reads this (per-compile constant) for the curvature fade.
   setCompileBudgetFrames(targetBudget);
   setCandidateCompileBudgetFrames(targetBudget);
+  setAimCompileBudgetFrames(targetBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
   if (!Number.isInteger(maxNodes) || maxNodes < 1) {
     throw new Error(`compileHandoff: maxNodes must be a positive integer, got ${maxNodes}`);

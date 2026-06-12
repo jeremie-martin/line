@@ -65,6 +65,29 @@ export type GapFit = {
    *  any decision when the sort is off. Lets the quality ranker skip the
    *  charged arrival ride for these candidates. */
   arrivalAtNextContact?: { frame: number; speed: number; comAngleDeg: number | null };
+  /** PREDICTED-ARRIVAL (LR_RANK_PREDICT_ARRIVAL pool sort): the rider's full
+   *  launch/exit state at the post-catch release probe frame, read off the SAME
+   *  detection the candidate evaluation already ran (zero extra frames, zero
+   *  RNG). Carries position+velocity (smoothed launch read, arc_probe.ts launch
+   *  fix) so the quality ranker can propagate it BALLISTICALLY to the next
+   *  contact instead of charging a probe ride. `frame` is the release frame the
+   *  state was read at; `airborne` is whether the rider is in free flight at the
+   *  release frame (the ranker's ballistic-validity gate); `grounded` is the
+   *  grounded-frame count between catch and release (diagnostic — the catch
+   *  contact itself is grounded, so this is normally ≥1 even for clean launches).
+   *  Present ONLY when the predict flag is on; never set otherwise (flag-off path
+   *  is bit-identical). */
+  releaseArrivalState?: {
+    frame: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    sledPoseDeg: number | null;
+    sledPoseRateDegPerFrame: number | null;
+    grounded: number;
+    airborne: boolean;
+  };
 };
 
 type WindowDetection = Detection & { frameOffset?: number };
@@ -124,6 +147,11 @@ export function meanSpeedPxOverRange(det: Detection, f0: number, f1: number): nu
 export function velocityAt(det: Detection, frame: number): { x: number; y: number } | undefined {
   const index = measurementIndex(det, frame);
   return index >= 0 ? det.measurements.velocity[index] : undefined;
+}
+
+export function positionAt(det: Detection, frame: number): { x: number; y: number } | undefined {
+  const index = measurementIndex(det, frame);
+  return index >= 0 ? det.measurements.position[index] : undefined;
 }
 
 export function offBeatLandingEvents(det: Detection, contactFrames: number[]): DetEvent[] {

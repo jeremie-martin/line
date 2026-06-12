@@ -58,6 +58,8 @@
 import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
 import {
   axisLookaheadEndFrame,
+  RANK_PREDICT_ARRIVAL,
+  RANK_PREDICT_ARRIVAL_HYBRID,
   RANK_QUALITY_MODE,
   tryCandidateLines,
 } from "../core/candidate.ts";
@@ -72,6 +74,7 @@ import {
   fitJointArcResponseModel,
   parseArcProbeDesignName,
   predictedArrivalState,
+  propagateBallisticArrivalState,
   predictedCurrentAxes,
   predictJointArcOutputs,
   pitchExitLines,
@@ -129,6 +132,104 @@ function aimJointProbeDesign(): ArcProbeDesignName {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_JOINT_PROBE_DESIGN ?? "cross5";
   return parseArcProbeDesignName(raw);
+}
+
+/** EXPERIMENT (LR_AIM_TOPK_BASES, int ≥1, default 1): how many of the
+ *  quality-sorted pool's leading candidates the aim lane refines. K=1 (default)
+ *  runs the lane on `sorted[0]` only — byte-identical to the committed default.
+ *  K>1 runs it on the first K distinct candidates, accumulating each base's lane
+ *  extras into the pool, so the search refines more than just the quality-best
+ *  base (now that the quality sort no longer overrules the lane on cost). Parsed
+ *  once at import (env is constant per run; gates a per-pool-build hot path).
+ *  Invalid/absent/<1 → 1. */
+export const AIM_TOPK_BASES: number = (() => {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_TOPK_BASES;
+  const n = raw === undefined || raw === "" ? NaN : Number(raw);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
+})();
+
+/** Maturity gate for K>1 (LR_AIM_TOPK_BASES). The extra bases find good variants
+ *  but cost ~2.5× more probe frames per pool build; at small budgets that probe
+ *  cost starves the compile (validity collapses, the per-budget curve goes deeply
+ *  negative at 50k/100k and only turns positive at 200k/300k). So gate K>1 on the
+ *  compile TARGET budget — the same per-compile-constant maturity signal the
+ *  forward-eval gate (usesForwardEvalAtBudget) and the impact-cost ramp
+ *  (LOCAL_IMPACT_COST_MATURE_*) use. Target budget is fixed for the whole compile,
+ *  so K_effective never changes mid-node and the per-node _candidatesCache (which
+ *  may rebuild a node at a larger nCand) stays deterministic — exactly why
+ *  consumed-frame signals are unusable here.
+ *
+ *  Each golden checkpoint is an INDEPENDENT full compile at its own target budget
+ *  (golden.ts: "Each budget is an INDEPENDENT full run"), NOT a snapshot of one
+ *  300k compile — so this gate makes the 50k/100k compiles run fully at K=1
+ *  (byte-identical to the K=1 default) while the 200k/300k compiles run fully at
+ *  K>1 and collect the late-budget gain.
+ *
+ *  Threshold 150k: the per-budget curve has 100k still net-negative (−9.1) and
+ *  200k net-positive (+1.5). A threshold in (100k, 200k] keeps the 50k/100k
+ *  compiles at K=1 and lets the 200k/300k compiles at K>1. 150k matches the
+ *  established LOCAL_IMPACT_COST_MATURE_START_FRAMES so the two maturity gates
+ *  share one frontier. */
+const AIM_TOPK_MATURE_BUDGET_FRAMES = 150_000;
+
+let aimCompileBudgetFrames = 0;
+/** Set the compile target budget for the K>1 maturity gate. Called once per
+ *  compile at compileHandoff entry, alongside the other budget setters. */
+export function setAimCompileBudgetFrames(frames: number): void {
+  aimCompileBudgetFrames = Math.max(0, frames | 0);
+}
+
+/** Effective lane-base count for the current compile: K below the maturity
+ *  threshold collapses to 1 (byte-identical to the K=1 default), the configured
+ *  AIM_TOPK_BASES at or above it. */
+export function aimTopKBasesEffective(): number {
+  return aimCompileBudgetFrames >= AIM_TOPK_MATURE_BUDGET_FRAMES ? AIM_TOPK_BASES : 1;
+}
+
+/** Telemetry: a requested top-K base was skipped (duplicate of an
+ *  already-refined base, or the pool was shorter than K). */
+export function recordLaneBaseSkip(): void {
+  aimTotals.enum_lane_base_skips++;
+}
+
+// ──────────────── 1b · Lazy pool (LR_LAZY_POOL) ────────────────
+//
+// REVOKES the old "every sampled candidate is exactly simulated before ranking"
+// invariant. When on, the per-gap pool path (node.ts getCandidatesSorted) samples
+// all nCand geometries (RNG-identical to eager), PREDICTS a ride-free rank score
+// for each, and exactly evaluates only the predicted-best until a quota of
+// survivors is met. Step 1 (study_lazy_budget.ts) measured pool-eval rides at
+// 56-60% of all charged frames, so spending them only on the predicted-best is
+// the lever. Default OFF → byte-identical. Committed arcs are still ALWAYS exactly
+// evaluated; only the per-gap RANKING pool is built lazily.
+
+/** Exact-evaluation quota: ride the predicted-best geometries until this many
+ *  SURVIVE the gates (gate-failures don't count — keep going down the predicted
+ *  order). v1 = max(HANDOFF_BRANCHING+1, 4) = 4: handoff branch selection keeps
+ *  the top HANDOFF_BRANCHING (3) of the pool after a forward-eval re-score, so 4
+ *  survivors give the re-score one alternative beyond the branch width while the
+ *  eager pool (poolSize 8) is deliberately under-filled — that under-fill IS the
+ *  saving. Smaller than poolSize so nCand=8/14 builds actually skip rides; a full
+ *  poolSize quota would ride nearly everything and save nothing. A constant, not
+ *  budget-derived (keeps the lazy path a pure function of seed/gap/prefix). */
+export const LAZY_POOL_EXACT_QUOTA = 4;
+
+/** LR_LAZY_POOL gate. Read per pool build (cold path; lets tests pin it). */
+export function lazyPoolEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_LAZY_POOL === "1";
+}
+
+/** WIDE arm width multiplier (LR_LAZY_POOL_WIDE, int ≥1, default 1). The lazy
+ *  path samples this × nCand geometries and predicts over all of them, while the
+ *  exact-ride quota stays fixed — "prediction lets us see more diversity for the
+ *  same ride budget". 1 = the base lazy arm (no widening). Invalid/absent → 1. */
+export function lazyPoolWidthMultiplier(): number {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_LAZY_POOL_WIDE;
+  const n = raw === undefined || raw === "" ? NaN : Number(raw);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
 }
 
 /** Quality-objective pool ranking (LR_RANK_QUALITY): make the rich aim objective
@@ -209,6 +310,14 @@ export type AimStats = {
    *  honest probe cost: divide by joint_probe_rows for per-row cost, or by
    *  compile sim_frames for the budget share spent probing. */
   joint_probe_frames_charged: number;
+  /** EXPERIMENT (LR_AIM_TOPK_BASES): how many distinct pool bases the aim lane
+   *  was actually run on, summed over all pool builds (K=1 → one per build that
+   *  ran the lane). Per-base probe cost = joint_probe_frames_charged /
+   *  enum_lane_bases. `enum_lane_base_skips` counts duplicate/short-pool bases
+   *  skipped (a requested base already refined this build, or the pool ran out),
+   *  so requested−skipped = enum_lane_bases over those builds. */
+  enum_lane_bases: number;
+  enum_lane_base_skips: number;
   /** Output models the hybrid identifiability ladder fitted BELOW their
    *  first-choice functional form (too few gate-clean rows). The model still
    *  exists — the ladder floor is linear — but with less curvature. */
@@ -240,6 +349,62 @@ export type AimStats = {
   rank_readiness_capture_free: number;
   rank_readiness_capture_charged: number;
   rank_readiness_capture_skipped: number;
+  /** PREDICTED-ARRIVAL (LR_RANK_PREDICT_ARRIVAL). Ground-truth prediction error
+   *  accumulated on every candidate that HAS a free capture: the ballistic
+   *  prediction is computed alongside the exact free read and the absolute
+   *  errors summed (`_speed_sum` in px/f, `_angle_sum` in deg, over `_n`
+   *  validated candidates) — a zero-cost honest readout of how good the
+   *  prediction would be if it replaced the free read. `_bail` counts candidates
+   *  where prediction was attempted (no free capture, or validation) but could
+   *  not produce a state (missing release state, grounded/non-airborne flight,
+   *  or a comAngle-less result). */
+  rank_quality_pred_err_speed_sum: number;
+  rank_quality_pred_err_angle_sum: number;
+  rank_quality_pred_err_n: number;
+  /** Prediction bails on the PREDICT path (no free capture, predict couldn't
+   *  produce a state → null objective). */
+  rank_quality_pred_bail: number;
+  /** Prediction bails on the VALIDATION path (a free capture existed but the
+   *  parallel prediction couldn't produce a comparable state — excluded from the
+   *  error means, counted here). */
+  rank_quality_pred_val_bail: number;
+  /** Candidates ranked via a ballistic PREDICTION (no free capture, predict
+   *  flag on): the prediction-only objective path that replaces the charged
+   *  ride. */
+  rank_quality_pred_used: number;
+  /** HYBRID (LR_RANK_PREDICT_ARRIVAL=hybrid): no-free-capture candidates routed to
+   *  the bounded charged probeRide BECAUSE they were not airborne at release (so
+   *  ballistic prediction could not serve them). The support-population recovery
+   *  the hybrid arm adds; 0 under "1" and predict-off. Charged-vs-predicted split:
+   *  predicted = rank_quality_pred_used, charged-fallback = this counter. */
+  rank_quality_hybrid_charged: number;
+  /** LAZY POOL (LR_LAZY_POOL, node.ts). Pool builds that took the lazy path
+   *  (nCand > the exact quota → sample-all, predict-rank, ride-to-quota). */
+  lazy_pool_builds: number;
+  /** Geometries SAMPLED across lazy builds (the funnel width) and geometries
+   *  actually RIDDEN (exactly evaluated). sampled − ridden = rides SAVED. */
+  lazy_pool_sampled: number;
+  lazy_pool_ridden: number;
+  /** Physics frames charged by lazy-path rides; and an estimate of frames the
+   *  eager path WOULD have charged for the skipped geometries
+   *  (skipped × mean-ridden-frames-per-geometry, accumulated per build). */
+  lazy_pool_ride_frames: number;
+  lazy_pool_est_saved_frames: number;
+  /** Rides that survived the gates vs gate-failed (don't count toward quota). */
+  lazy_pool_survived: number;
+  lazy_pool_gate_fail: number;
+  /** Builds whose quota could not be filled (rode every sampled geometry and
+   *  still found < Q survivors). */
+  lazy_pool_quota_exhausted: number;
+  /** Geometries that were unrankable by prediction (no forward target / no exit
+   *  estimate) — ridden in sample order after the predicted-rankable ones. */
+  lazy_pool_unranked: number;
+  /** RANK QUALITY: among lazy builds where the predicted-best geometry WAS
+   *  ridden, how often it survived the gates, and how often it stayed the
+   *  pool-best after exact quality sort (prediction-vs-truth rank fidelity). */
+  lazy_pool_pred_best_ridden: number;
+  lazy_pool_pred_best_survived: number;
+  lazy_pool_pred_best_stayed_best: number;
 };
 
 const aimTotals = {
@@ -260,6 +425,8 @@ const aimTotals = {
   jointProbeLaunchReadFramesSum: 0, jointProbeLaunchReadFrameRows: 0,
   joint_probe_current_ok: 0, joint_probe_next_state_ok: 0,
   joint_probe_frames_charged: 0,
+  // Top-K base refinement (LR_AIM_TOPK_BASES).
+  enum_lane_bases: 0, enum_lane_base_skips: 0,
   // Fit/objective degradation telemetry (recordJointModelCoverage).
   joint_fit_degraded_outputs: 0,
   enum_current_axes_targeted: 0, enum_current_axes_modeled: 0,
@@ -271,6 +438,17 @@ const aimTotals = {
   rank_readiness_candidates_scored: 0, rank_readiness_objective_defined: 0,
   rank_readiness_capture_free: 0, rank_readiness_capture_charged: 0,
   rank_readiness_capture_skipped: 0,
+  // Predicted-arrival validation + usage (LR_RANK_PREDICT_ARRIVAL).
+  rank_quality_pred_err_speed_sum: 0, rank_quality_pred_err_angle_sum: 0,
+  rank_quality_pred_err_n: 0, rank_quality_pred_bail: 0,
+  rank_quality_pred_val_bail: 0, rank_quality_pred_used: 0,
+  rank_quality_hybrid_charged: 0,
+  // Lazy pool (LR_LAZY_POOL).
+  lazy_pool_builds: 0, lazy_pool_sampled: 0, lazy_pool_ridden: 0,
+  lazy_pool_ride_frames: 0, lazy_pool_est_saved_frames: 0,
+  lazy_pool_survived: 0, lazy_pool_gate_fail: 0, lazy_pool_quota_exhausted: 0,
+  lazy_pool_unranked: 0, lazy_pool_pred_best_ridden: 0,
+  lazy_pool_pred_best_survived: 0, lazy_pool_pred_best_stayed_best: 0,
 };
 
 /** Record where a lane proposal ranked in the cost-sorted pool it entered,
@@ -402,6 +580,8 @@ export function snapshotAimStats(): AimStats | null {
     joint_probe_current_ok: aimTotals.joint_probe_current_ok,
     joint_probe_next_state_ok: aimTotals.joint_probe_next_state_ok,
     joint_probe_frames_charged: aimTotals.joint_probe_frames_charged,
+    enum_lane_bases: aimTotals.enum_lane_bases,
+    enum_lane_base_skips: aimTotals.enum_lane_base_skips,
     joint_fit_degraded_outputs: aimTotals.joint_fit_degraded_outputs,
     enum_current_axes_targeted: aimTotals.enum_current_axes_targeted,
     enum_current_axes_modeled: aimTotals.enum_current_axes_modeled,
@@ -415,7 +595,56 @@ export function snapshotAimStats(): AimStats | null {
     rank_readiness_capture_free: aimTotals.rank_readiness_capture_free,
     rank_readiness_capture_charged: aimTotals.rank_readiness_capture_charged,
     rank_readiness_capture_skipped: aimTotals.rank_readiness_capture_skipped,
+    rank_quality_pred_err_speed_sum: aimTotals.rank_quality_pred_err_speed_sum,
+    rank_quality_pred_err_angle_sum: aimTotals.rank_quality_pred_err_angle_sum,
+    rank_quality_pred_err_n: aimTotals.rank_quality_pred_err_n,
+    rank_quality_pred_bail: aimTotals.rank_quality_pred_bail,
+    rank_quality_pred_val_bail: aimTotals.rank_quality_pred_val_bail,
+    rank_quality_pred_used: aimTotals.rank_quality_pred_used,
+    rank_quality_hybrid_charged: aimTotals.rank_quality_hybrid_charged,
+    lazy_pool_builds: aimTotals.lazy_pool_builds,
+    lazy_pool_sampled: aimTotals.lazy_pool_sampled,
+    lazy_pool_ridden: aimTotals.lazy_pool_ridden,
+    lazy_pool_ride_frames: aimTotals.lazy_pool_ride_frames,
+    lazy_pool_est_saved_frames: aimTotals.lazy_pool_est_saved_frames,
+    lazy_pool_survived: aimTotals.lazy_pool_survived,
+    lazy_pool_gate_fail: aimTotals.lazy_pool_gate_fail,
+    lazy_pool_quota_exhausted: aimTotals.lazy_pool_quota_exhausted,
+    lazy_pool_unranked: aimTotals.lazy_pool_unranked,
+    lazy_pool_pred_best_ridden: aimTotals.lazy_pool_pred_best_ridden,
+    lazy_pool_pred_best_survived: aimTotals.lazy_pool_pred_best_survived,
+    lazy_pool_pred_best_stayed_best: aimTotals.lazy_pool_pred_best_stayed_best,
   };
+}
+
+/** LAZY POOL telemetry recorder (LR_LAZY_POOL). One call per lazy pool build
+ *  with the build's funnel + prediction-fidelity counts. Dead when the flag is
+ *  off (node.ts only calls it on the lazy path). */
+export function recordLazyPoolBuild(stats: {
+  sampled: number;
+  ridden: number;
+  rideFrames: number;
+  estSavedFrames: number;
+  survived: number;
+  gateFail: number;
+  quotaExhausted: boolean;
+  unranked: number;
+  predBestRidden: boolean;
+  predBestSurvived: boolean;
+  predBestStayedBest: boolean;
+}): void {
+  aimTotals.lazy_pool_builds++;
+  aimTotals.lazy_pool_sampled += stats.sampled;
+  aimTotals.lazy_pool_ridden += stats.ridden;
+  aimTotals.lazy_pool_ride_frames += stats.rideFrames;
+  aimTotals.lazy_pool_est_saved_frames += stats.estSavedFrames;
+  aimTotals.lazy_pool_survived += stats.survived;
+  aimTotals.lazy_pool_gate_fail += stats.gateFail;
+  if (stats.quotaExhausted) aimTotals.lazy_pool_quota_exhausted++;
+  aimTotals.lazy_pool_unranked += stats.unranked;
+  if (stats.predBestRidden) aimTotals.lazy_pool_pred_best_ridden++;
+  if (stats.predBestSurvived) aimTotals.lazy_pool_pred_best_survived++;
+  if (stats.predBestStayedBest) aimTotals.lazy_pool_pred_best_stayed_best++;
 }
 
 // ──────────────────────── 3 · Knob transforms ────────────────────────
@@ -600,6 +829,7 @@ export function makeEnumAimedCandidates(
   lineIdStart: number,
 ): Candidate[] {
   aimTotals.enum_considered++;
+  aimTotals.enum_lane_bases++; // one base actually refined (LR_AIM_TOPK_BASES)
   const nextGap = nextContactGap(gap, gaps);
   if (nextGap === null) {
     aimTotals.enum_no_target++;
@@ -987,11 +1217,55 @@ function candidateRankObjective(
   if (free !== undefined && free.frame === nextGap.endFrame) {
     arrival = free;
     aimTotals.rank_readiness_capture_free++;
+    // BUILT-IN VALIDATION (LR_RANK_PREDICT_ARRIVAL): a free capture is the exact
+    // arrival; predict it TOO and record the ballistic-prediction error. Zero
+    // cost, runs on every clean free capture — ground-truth accuracy of the
+    // prediction that would otherwise replace the charged ride.
+    if (RANK_PREDICT_ARRIVAL) {
+      const pred = predictArrivalAtNextContact(candidate, nextGap.endFrame);
+      if (pred === null || pred.comAngleDeg === null || free.comAngleDeg === null) {
+        aimTotals.rank_quality_pred_val_bail++;
+      } else {
+        aimTotals.rank_quality_pred_err_speed_sum += Math.abs(pred.speed - free.speed);
+        aimTotals.rank_quality_pred_err_angle_sum += Math.abs(
+          smallestAngleDiffDeg(pred.comAngleDeg, free.comAngleDeg),
+        );
+        aimTotals.rank_quality_pred_err_n++;
+      }
+    }
+  } else if (RANK_PREDICT_ARRIVAL && predictedArrivalApplies(candidate)) {
+    // PREDICTED ARRIVAL: no free capture, rider airborne at release → propagate the
+    // candidate's release state ballistically to the next contact. No charged ride,
+    // no top-M bound, no skip. Prediction-impossible AFTER the airborne check
+    // (missing release state, comAngle-less propagation result) → null objective, as
+    // the charged path's crash did.
+    //
+    // HYBRID note (LR_RANK_PREDICT_ARRIVAL=hybrid): `predictedArrivalApplies` is the
+    // sole gate that routes a NON-airborne-at-release candidate to the charged
+    // fallback below INSTEAD of here. Under "1" that gate is always true here (the
+    // predict-only path took every no-free candidate and bailed the non-airborne
+    // ones to null), so =1 stays byte-identical; under "hybrid" the non-airborne
+    // candidates skip this branch and fall to the `mayCharge` / skip arms.
+    const pred = predictArrivalAtNextContact(candidate, nextGap.endFrame);
+    if (pred === null || pred.comAngleDeg === null) {
+      aimTotals.rank_quality_pred_bail++;
+      return memoObjective(candidate, null);
+    }
+    arrival = pred;
+    aimTotals.rank_quality_pred_used++;
   } else if (mayCharge) {
+    // CHARGED FALLBACK (bounded, memoized, top-M). Reachable in two regimes:
+    //  · LR_RANK_QUALITY=pool, predict OFF — the original quality-rank charged ride.
+    //  · LR_RANK_PREDICT_ARRIVAL=hybrid — for NON-airborne-at-release candidates that
+    //    ballistic prediction can't reach. DEAD under LR_RANK_PREDICT_ARRIVAL=1 (the
+    //    predict branch above takes every no-free candidate when the flag is "1").
     const framesBefore = getPhysicsFrameCount();
     arrival = probeRide(engine, candidate.lines, nextGap.endFrame);
     aimTotals.rank_readiness_arrival_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBefore);
     aimTotals.rank_readiness_capture_charged++;
+    // Hybrid split: this charged ride is a non-airborne-at-release fallback that the
+    // predict branch declined (the support-population recovery). 0 under "1"/off.
+    if (RANK_PREDICT_ARRIVAL_HYBRID) aimTotals.rank_quality_hybrid_charged++;
   } else {
     // Bounded-charge tail: not eligible for a charged ride, no free capture.
     // NOT memoized — a later pool build may rank this candidate high enough to
@@ -1007,9 +1281,172 @@ function candidateRankObjective(
   return memoObjective(candidate, currentQuality * readiness * fit * feas);
 }
 
+/** Whether the ballistic-prediction branch should claim a no-free-capture
+ *  candidate (vs routing it to the charged fallback). Under "1" (predict-only)
+ *  this is ALWAYS true: the predict branch took every no-free candidate and bailed
+ *  the prediction-impossible ones to null — so returning true here for every
+ *  candidate keeps =1 byte-identical. Under "hybrid" it is true only when the rider
+ *  is airborne at the release frame (the lone case prediction can serve); every
+ *  non-airborne-at-release candidate falls through to the bounded charged ride.
+ *  (Predict still owns missing-release-state / comAngle-less bails inside the
+ *  branch — those stay null in both modes, matching the old charged crash.) */
+function predictedArrivalApplies(candidate: Candidate): boolean {
+  if (!RANK_PREDICT_ARRIVAL_HYBRID) return true;
+  return candidate.releaseArrivalState?.airborne === true;
+}
+
+/** Ballistic prediction of the rider's arrival state at `nextEndFrame`,
+ *  propagating the candidate's captured release/exit state (core/candidate.ts
+ *  releaseArrivalState — full position + smoothed launch velocity) with
+ *  `propagateBallisticArrivalState` (arc_model.ts; the same pure-readout-gravity
+ *  Verlet propagation the short probe's suffix completion uses). Returns null
+ *  (caller bails to a null objective) when the release state is missing, the
+ *  rider is not airborne at the release frame (not in free flight → the launch
+ *  read is not a clean ballistic velocity), or the propagation horizon is
+ *  non-positive. Zero charged frames. */
+function predictArrivalAtNextContact(
+  candidate: Candidate,
+  nextEndFrame: number,
+): { speed: number; comAngleDeg: number | null } | null {
+  const rel = candidate.releaseArrivalState;
+  if (rel === undefined) return null;
+  // Ballistic validity: the rider must be in free flight at the release frame
+  // (so the launch velocity is a clean free-flight read). The grounded-frame
+  // count between the catch and the release is NOT a disqualifier — the catch
+  // contact itself is grounded; it is the airborne-at-release flag that gates
+  // free flight. A ground touch BETWEEN release and the next contact would break
+  // the ballistic propagation; that error shows up in the validation stats
+  // (pred_err on free captures) rather than being pre-filtered here.
+  if (!rel.airborne) return null;
+  const dt = nextEndFrame - rel.frame;
+  if (dt <= 0) return null;
+  const launch: RiderArrivalState = {
+    x: rel.x,
+    y: rel.y,
+    vx: rel.vx,
+    vy: rel.vy,
+    speed: Math.hypot(rel.vx, rel.vy),
+    comAngleDeg: null,
+    sledPoseDeg: rel.sledPoseDeg,
+    sledPoseRateDegPerFrame: rel.sledPoseRateDegPerFrame,
+  };
+  const arrived = propagateBallisticArrivalState(launch, dt);
+  return { speed: arrived.speed, comAngleDeg: arrived.comAngleDeg };
+}
+
+/** Signed smallest difference between two CoM heading angles (deg), in
+ *  (−180, 180]. comAngle is atan2-based so a raw subtraction can wrap; this
+ *  gives the true angular error for the validation accumulator. */
+function smallestAngleDiffDeg(a: number, b: number): number {
+  let d = (a - b) % 360;
+  if (d > 180) d -= 360;
+  if (d < -180) d += 360;
+  return d;
+}
+
 function memoObjective(candidate: Candidate, value: number | null): number | null {
   objectiveCache.set(candidate, value);
   return value;
+}
+
+// ───────────── 7b · Lazy-pool prediction (LR_LAZY_POOL, node.ts) ─────────────
+//
+// Rank a SAMPLED-BUT-NOT-RIDDEN geometry for the lazy pool (node.ts), so the
+// exact-evaluation rides can be spent only on the predicted-best Q candidates.
+// Zero physics frames, zero RNG: the prediction is a pure function of the free
+// per-gap probe (incoming state at the catch) and the geometry's last-segment
+// exit estimate, propagated ballistically to the next contact.
+//
+// Heuristic (v1): the rider launches off the END of the geometry's last line,
+// along that segment's tangent, at the incoming speed minus a redirection loss
+// (the lab's −0.15 px/f per 0.1 of redirection, where redirection is the turn
+// the catch imposes between the incoming CoM heading and the exit tangent). The
+// achieved current-axis quality is unknown before the ride, so currentQuality is
+// OMITTED from the predicted objective (a pure ride-free rank cannot observe the
+// achieved axes); the readiness × speed-fit × impact-feasibility product is the
+// orderable signal. Returns null when the next gap carries no speed/impact target
+// (mirrors the charged path's null objective) or the geometry has no usable exit.
+
+/** Lab-measured speed cost of redirection: ~0.15 px/f lost per 0.1 of the
+ *  redirection fraction the catch imposes (lab-analysis-foundation: "impact
+ *  costs speed −0.15px/f per 0.1 redir"). Used ONLY by the ride-free lazy-pool
+ *  predictor to rank geometries before evaluation. */
+const LAZY_REDIR_SPEED_COST_PXF_PER_UNIT = 1.5;
+
+export type LazyPoolProbe = {
+  /** Incoming CoM speed at the catch frame (px/f), free off the per-gap probe. */
+  speed: number;
+  /** Incoming CoM heading at the catch frame (deg, +down), free off the probe. */
+  angleDeg: number;
+};
+
+/** The free incoming state the lazy predictor needs, read off the per-gap probe
+ *  (zero frames — the probe's targetState is already computed for sampling). */
+export function lazyPoolProbe(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  ctx: SpecContext,
+): LazyPoolProbe {
+  const { targetState } = getCandidateProbe(engine, gap, ctx);
+  return { speed: targetState.speed, angleDeg: targetState.angleDeg };
+}
+
+/** Predicted lazy-pool rank score (higher = better) for a sampled geometry,
+ *  WITHOUT riding it. null = unrankable (no forward target, or no usable exit
+ *  estimate); the caller orders unrankable geometries after rankable ones and
+ *  rides them last. Zero physics frames, zero RNG. */
+export function predictLazyPoolScore(
+  probe: LazyPoolProbe,
+  gap: Gap,
+  gaps: Gap[],
+  lines: readonly TrackLine[],
+): number | null {
+  const nextGap = nextContactGap(gap, gaps);
+  if (nextGap === null) return null;
+  const speedTarget = nextGapSpeedTargetPx(gap, gaps);
+  if (speedTarget === null && nextGap.targets.impact === undefined) return null;
+  const exit = exitEstimateFromLines(lines);
+  if (exit === null) return null;
+  // Redirection fraction: how hard the catch turns the incoming heading toward
+  // the exit tangent, normalized by the engine's redirection cap (same scale the
+  // impact axis uses). Speed bleeds with redirection (lab cost), clamped ≥0.
+  const redirDeg = Math.abs(smallestAngleDiffDeg(exit.tangentDeg, probe.angleDeg));
+  const redirFrac = Math.min(1, (redirDeg / 180) / Math.max(1e-6, CALIB.REDIR_CAP));
+  const exitSpeed = Math.max(0, probe.speed - LAZY_REDIR_SPEED_COST_PXF_PER_UNIT * redirFrac);
+  const vx = exitSpeed * Math.cos((exit.tangentDeg * Math.PI) / 180);
+  const vy = exitSpeed * Math.sin((exit.tangentDeg * Math.PI) / 180);
+  const launch: RiderArrivalState = {
+    x: exit.x, y: exit.y, vx, vy, speed: exitSpeed,
+    comAngleDeg: exit.tangentDeg, sledPoseDeg: null, sledPoseRateDegPerFrame: null,
+  };
+  const dt = nextGap.endFrame - gap.endFrame;
+  const arrived = dt > 0 ? propagateBallisticArrivalState(launch, dt) : launch;
+  if (arrived.comAngleDeg === null) return null;
+  const readiness = Math.max(ENUM_R_MIN, readinessCatchState(arrived));
+  const fit = speedFitFactor(arrived.speed, speedTarget);
+  const feas = impactFeasibility(arrived, nextGap);
+  // currentQuality omitted (achieved axes unobservable before the ride).
+  return readiness * fit * feas;
+}
+
+/** Exit point + tangent estimate from a geometry's polyline: the END of the last
+ *  line, and the last non-degenerate segment's direction (the rider launches
+ *  roughly along the final segment it rides off). null when no line has a
+ *  non-degenerate direction. */
+function exitEstimateFromLines(
+  lines: readonly TrackLine[],
+): { x: number; y: number; tangentDeg: number } | null {
+  if (lines.length === 0) return null;
+  const last = lines[lines.length - 1];
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const dx = lines[i].x2 - lines[i].x1;
+    const dy = lines[i].y2 - lines[i].y1;
+    if (dx * dx + dy * dy > 1e-12) {
+      return { x: last.x2, y: last.y2, tangentDeg: (Math.atan2(dy, dx) * 180) / Math.PI };
+    }
+  }
+  return null;
 }
 
 /** Sort a candidate pool by the quality objective DESCENDING; ties (and

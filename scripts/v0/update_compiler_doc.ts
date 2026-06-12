@@ -11,7 +11,7 @@
  *     | npx tsx scripts/v0/update_compiler_doc.ts -
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 
 type SpecScore = { name: string; score: number; passed: number; total: number };
 type BudgetScore = {
@@ -28,10 +28,18 @@ type BudgetScore = {
 type GoldenCurve = {
   headline: {
     kind: string;
+    tier?: string;
     score: number;
   };
   budgets: number[];
   evaluator_fingerprint: string;
+  source?: {
+    commit?: string;
+    dirty?: boolean;
+  };
+  archive?: {
+    dir?: string;
+  };
   budget_scores: BudgetScore[];
 };
 
@@ -71,9 +79,12 @@ function fillScriptBaseline(html: string, key: string, body: string): string {
   return html.slice(0, i + open.length) + body + html.slice(j);
 }
 
+function formatBudget(n: number): string {
+  return n % 1000 === 0 ? `${n / 1000}k` : String(n);
+}
+
 function budgetLabel(budgets: number[]): string {
-  const fmt = (n: number) => n % 1000 === 0 ? `${n / 1000}k` : String(n);
-  return `${fmt(budgets[0])}-${fmt(budgets[budgets.length - 1])} curve`;
+  return `${formatBudget(budgets[0])}-${formatBudget(budgets[budgets.length - 1])} curve`;
 }
 
 function scoreBlock(scores: BudgetScore[]): string {
@@ -99,6 +110,26 @@ function specRows(specs: SpecScore[]): string {
   return "\n" + lines.join("\n") + "\n        ";
 }
 
+function archiveLabel(d: GoldenCurve): string {
+  const dir = d.archive?.dir;
+  if (dir !== undefined && dir.length > 0) return basename(dir);
+  return "golden.json";
+}
+
+function sourceLabel(d: GoldenCurve): string {
+  const commit = d.source?.commit;
+  if (commit === undefined || commit.length === 0) return "";
+  return ` source <code>${commit.slice(0, 12)}${d.source?.dirty ? "-dirty" : ""}</code>,`;
+}
+
+function validityNote(d: GoldenCurve, last: BudgetScore): string {
+  const tier = d.headline.tier ?? "golden";
+  const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+  return `${tierName} archive <code>${archiveLabel(d)}</code>,${sourceLabel(d)} ` +
+    `fp <code>${d.evaluator_fingerprint}</code>; ` +
+    `${last.passed}/${last.total} valid at ${formatBudget(last.budget)}.`;
+}
+
 function main(): void {
   const arg = process.argv[2];
   if (!arg) {
@@ -114,7 +145,7 @@ function main(): void {
   html = fillComment(
     html,
     "valid_note",
-    `${last.passed} valid rows out of ${last.total} at ${last.budget}.`,
+    validityNote(d, last),
   );
   html = fillComment(html, "score_block", scoreBlock(d.budget_scores));
   html = fillComment(html, "spec_rows", specRows(last.spec_scores));

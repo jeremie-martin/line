@@ -537,18 +537,18 @@
     <p class="lede">
       The current v0 compiler is a deterministic prefix search. It turns a musical
       spec into a rideable Line Rider track by extending one contact gap at a time,
-      building a physics-validated candidate pool for each beat, and returning
-      the best track seen before the simulated-physics budget runs out. Arc
-      placement is now state-aware: local probe models predict what a knob
-      change does to the next rider state, and the target architecture also
-      models current-gap axis consequences before adding only the best
-      variants to the pool.
+      building a physics-validated candidate pool for each beat, and returning the
+      best output seen before the simulated-physics budget is spent. The requested
+      budget is now a real policy input: contract breadth, quality breadth,
+      forward evaluation, multi-base aiming, tail completion, and repair all use
+      deterministic budget gates while every committed candidate still comes from
+      exact lr-core validation.
     </p>
   </div>
   <aside class="hero-card">
     <div class="label"><!--BASELINE:budget_label-->50k-300k curve<!--/BASELINE--></div>
-    <div class="score"><span><!--BASELINE:headline_score-->600.91<!--/BASELINE--></span> / 1000</div>
-    <div class="note"><!--BASELINE:valid_note-->Canonical archive <code>scoop-off-price-01</code>, weighted 50k-300k headline.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
+    <div class="score"><span><!--BASELINE:headline_score-->606.04<!--/BASELINE--></span> / 1000</div>
+    <div class="note"><!--BASELINE:valid_note-->Canonical archive <code>rebaseline-docs-20260612</code>, source <code>21b38f941dd2-dirty</code>, fp <code>1df7e3a417bc</code>; 480/480 valid at 300k.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
   </aside>
 </section>
 
@@ -562,11 +562,12 @@
         <h2>The compiler in one page</h2>
         <p class="sub">
           Handoff compiles from authored intent to physics-validated geometry.
-          The policy is deterministic for a given spec, seed, and budget; the
-          budget decides how much of that deterministic search sequence is
-          explored. Candidate pools contain ordinary samples plus model-proposed
-          arc variants; every candidate that can be committed has still been
-          simulated and measured by lr-core.
+          The policy is deterministic for a given spec, seed, and budget. Each
+          budget is an independent full run, and the target budget controls how
+          much work the search can spend on breadth, ranking, aiming, tail
+          completion, and repair. Candidate pools contain ordinary samples plus
+          model-proposed arc variants; every candidate that can be committed has
+          still been simulated and measured by lr-core.
         </p>
       </div>
     </div>
@@ -588,9 +589,9 @@
         <div class="desc">A node is a partial track at a gap boundary, not a whole regenerated track.</div>
       </div>
       <div class="metric">
-        <div class="value">one aim</div>
+        <div class="value">one lane</div>
         <div class="name">arc proposer</div>
-        <div class="desc">Knob deltas are scored inside local models; top variants then face exact validation.</div>
+        <div class="desc">Pitch/rotation edits are scored inside local models; top variants then face exact validation.</div>
       </div>
     </div>
   </section>
@@ -614,7 +615,9 @@
         <div class="step-title">Read the spec</div>
         <div class="step-body">
           Validate the spec, convert contact times to frames, split the timeline
-          into gaps, and sample each gap's axis targets from the authored curves with the seeded RNG.
+          into gaps, drop physically uncatchable pre-floor contacts, sample each
+          gap's axis targets with the seeded RNG, and resolve per-beat impact into
+          the terminating gap target.
         </div>
       </div>
       <div class="flow-row">
@@ -623,7 +626,8 @@
         <div class="step-body">
           Resolve the default or manual start. If preroll gives permission and
           no manual start is set, rank up to ten deterministic initial velocity
-          options with a small opening feasibility probe.
+          options with charged forward start evaluation. Higher target budgets
+          can also admit ballistic and support-line starts for difficult openings.
         </div>
       </div>
       <div class="flow-row">
@@ -632,7 +636,8 @@
         <div class="step-body">
           Pop a prefix from the frontier, evaluate it, then extend the next
           contact gap with the top-ranked candidate catches. Skip-free prefixes
-          are always explored before fallback prefixes.
+          are explored before fallback prefixes, and scarce budgets can narrow
+          contract breadth so the run reaches a complete track sooner.
         </div>
       </div>
       <div class="flow-row">
@@ -641,8 +646,9 @@
         <div class="step-body">
           Sampled catches and aimed variants enter the same pool. Aimed
           variants are chosen by a model-only current-quality times readiness
-          objective, but each one is placed into lr-core and measured before the
-          search can select it.
+          objective. The pool itself is quality-objective sorted by default, but
+          every aimed or sampled candidate is placed into lr-core and measured
+          before the search can select it.
         </div>
       </div>
       <div class="flow-row">
@@ -672,8 +678,8 @@
       <div>
         <h2>Run the budget curve</h2>
         <p class="sub">
-          Golden runs one deterministic compiler pass per row and reports
-          checkpoints across the configured sim-frame budgets.
+          Golden runs one independent compiler pass per spec, seed, and budget,
+          then aggregates the resulting budget curve.
         </p>
       </div>
     </div>
@@ -808,9 +814,9 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
         <h2>How arc-state aiming works</h2>
         <p class="sub">
           The compiler still begins with ordinary sampled catches. The aiming
-          layer then takes the best measured catch in that pool, treats small arc
-          edits as knobs, learns a local response model from a few metered probe
-          rides, scores many virtual edits cheaply, and sends only the best
+          layer refines the leading quality-sorted pool candidates, treats small
+          arc edits as knobs, learns a local response model from a few metered
+          probe rides, scores many virtual edits cheaply, and sends only the best
           proposals back through exact physics validation.
         </p>
       </div>
@@ -870,10 +876,10 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
         <div class="step-no">2</div>
         <div class="step-title">Pick one base catch</div>
         <div class="step-body">
-          The current proposer aims the lowest-cost sampled survivor, not every
-          sample. That keeps probe work bounded and preserves pool diversity:
-          ordinary samples, reuse, brake/support streams, and templates still
-          compete against the aimed proposals.
+          The proposer refines the first quality-ranked base at low budgets. At
+          mature target budgets it can refine up to three leading bases, keeping
+          probe work bounded while ordinary samples, reuse, brake/startup streams,
+          and templates still compete against aimed proposals.
         </div>
       </div>
       <div class="flow-row">
@@ -912,8 +918,8 @@ npx tsx scripts/v0/run.ts --spec=specs/golden/tiny_dance.ts --compiler=handoff -
         <div class="step-no">6</div>
         <div class="step-title">Emit, then measure</div>
         <div class="step-body">
-          In the current implementation, at most three proposals are emitted.
-          Every emitted proposal is then tried through
+          In the current implementation, the lane emits at most two proposals per
+          refined base. Every emitted proposal is then tried through
           <code>tryCandidateLines</code>; ranking and commits consume only those
           exact measured results.
         </div>
@@ -934,9 +940,10 @@ committed_score =
       The generic idea is broader than the current code: learn a cheap predictor
       that can score many edits before paying for simulation, then emit the top-k
       proposals into exact validation. The current instance emits the top two
-      variants per refined base, predicts current-gap axes plus the next-arrival
-      state with a shared joint response model, and production still measures
-      emitted proposals exactly.
+      variants per refined base, may refine up to three bases above the maturity
+      gate, predicts current-gap axes plus the next-arrival state with a shared
+      joint response model, and production still measures emitted proposals
+      exactly.
     </div>
   </section>
 
@@ -946,10 +953,11 @@ committed_score =
       <div>
         <h2>Every beat forks the track</h2>
         <p class="sub">
-          At each beat the ranker keeps the best three catches, so a node spawns
-          (at most) three children. Partial tracks therefore form a tree: depth is
-          the beat index, branches are alternative catches. The tree is
-          astronomically large; the budget decides how much of it gets walked.
+          At each beat the ranker keeps at most three catches; scarce contract
+          budgets can temporarily narrow that branching. Partial tracks therefore
+          form a tree: depth is the beat index, branches are alternative catches.
+          The tree is astronomically large, and each target budget chooses a
+          deterministic route through it.
         </p>
       </div>
     </div>
@@ -988,7 +996,7 @@ committed_score =
         <text x="464" y="285">beat 2</text><text x="644" y="285">beat 3</text>
         <text x="800" y="285">...</text>
       </g>
-      <text x="320" y="58" font-family="serif" font-size="12" fill="#928873">three best catches per beat</text>
+      <text x="320" y="58" font-family="serif" font-size="12" fill="#928873">top measured catches per beat</text>
     </svg>
   </section>
 
@@ -1001,9 +1009,9 @@ committed_score =
           The walk is depth-first: children are pushed best-first and the most
           recent is always popped, so it dives down the most promising catch to
           reach a complete track quickly. A separate <em>best-so-far register</em>
-          watches every prefix that goes by and remembers the single best
-          <strong>complete</strong> track seen anywhere &mdash; so the answer is
-          not the greedy path, it is the global best the walk happened to touch.
+          watches every offered output and remembers the best comparator key seen
+          so far. The answer is not the greedy path; it is the best complete or
+          honest partial output the walk touched under that budget.
         </p>
       </div>
     </div>
@@ -1024,8 +1032,8 @@ committed_score =
           When a dive dead-ends or finishes, the stack naturally backs up to the
           next sibling. Periodically the walk also reaches <em>far back</em> to an
           old, shallow node it skipped past &mdash; so one strong-looking early
-          catch can never monopolize the whole budget and starve better early
-          choices.
+          catch is less likely to monopolize the quality phase and starve better
+          early choices.
         </p>
       </div>
     </div>
@@ -1046,9 +1054,10 @@ committed_score =
         <h2>Which three catches survive</h2>
         <p class="sub">
           For each gap the compiler builds a candidate pool, then branches on the
-          best measured candidates. There are two separate scoring moments: a
+          best measured candidates. There are three separate scoring moments: a
           model-only objective that decides which aimed variants are worth
-          simulating, and the search ranker that decides among already validated
+          simulating, a zero-extra-sim quality objective that sorts the measured
+          pool, and the search ranker that decides among already validated
           candidates.
         </p>
       </div>
@@ -1056,10 +1065,14 @@ committed_score =
 
     <div class="formula">candidate pool =
   sampled catches
-  + aimed proposals            <span style="color:#5d564a"># at most 3 model-selected edits, exact-validated</span>
+  + aimed proposals            <span style="color:#5d564a"># top 2 per refined base, exact-validated</span>
   + sampler templates          <span style="color:#5d564a"># impact-shaped geometry inside the normal sample stream</span>
-  + reuse / brake / startup / axis-quality streams
+  + reuse / brake / startup streams
                                <span style="color:#5d564a"># deterministic extras, all exact-validated</span>
+
+pool ordering =
+  current quality x next readiness
+                               <span style="color:#5d564a"># measured axes + free/predicted arrival state</span>
 
 branch ranking =
   true-score forward eval      <span style="color:#5d564a"># mature budgets: charged rollout, rank by metric value reached</span>
@@ -1072,21 +1085,22 @@ branch ranking =
         <div class="tags"><span class="tag">model-only</span><span class="tag">top-2 per base</span></div>
       </div>
       <div class="panel">
-        <h3>Exact candidate rank</h3>
-        <p>Once a candidate is in the pool, ranking uses measured results: gate pass, achieved axes, exit state, the handoff score, and charged forward evaluation where enabled. Prediction error is telemetry, not authority.</p>
-        <div class="tags"><span class="tag">measured</span><span class="tag">charged</span></div>
+        <h3>Pool sort</h3>
+        <p>The default pool order uses achieved current-gap axes and the next-arrival state. If the next state was captured by the candidate ride it is free; otherwise the ranker uses ballistic prediction without charging another ride.</p>
+        <div class="tags"><span class="tag">measured axes</span><span class="tag">predict-only</span></div>
       </div>
       <div class="panel">
-        <h3>Selection boundary</h3>
-        <p>Readiness is part of pool ordering after exact validation. A bad model prediction can waste one candidate evaluation, but it cannot bypass physics gates or outrank exact measured data by itself.</p>
+        <h3>Branch rank</h3>
+        <p>Once a candidate is in the pool, branch ranking uses measured handoff score below the forward-eval gate and charged true-score rollout at mature budgets. Prediction error is telemetry, not authority.</p>
       </div>
     </div>
 
     <div class="note" style="margin-top:16px">
       This separation is deliberate. The model objective may be aggressive
       because predictions only choose proposals; search still chooses from exact
-      measurements. The measured handoff score is the current non-forward branch
-      judge, while mature forward-eval ranks by charged rollout value.
+      measurements. Pool sorting may use predicted arrival state, but candidate
+      truth still comes from gate checks and measured axes. Mature forward-eval
+      ranks by charged rollout value.
     </div>
   </section>
 
@@ -1098,15 +1112,15 @@ branch ranking =
         <p class="sub">
           Besides normal random samples, the compiler offers a few deterministic
           ways to enrich the pool. They all go through the same gates and measured
-          ranking. The key distinction: sampler templates are geometry families;
-          the enumerative proposer is the only aiming mechanism.
+          ranking. Sampler templates are geometry families; the enumerative
+          proposer is the only aiming mechanism.
         </p>
       </div>
     </div>
     <div class="grid-4">
       <div class="panel">
         <h3>Enumerative proposer</h3>
-        <p>The production aimer scores virtual pitch and rotation edits, emits at most three proposals, and never bypasses exact validation. The old speed, angle, rotate-fallback, and climb-defer triggers are deleted.</p>
+        <p>The production aimer scores virtual pitch and rotation edits, emits at most two proposals per refined base, and never bypasses exact validation. The old speed, angle, rotate-fallback, scoop, and climb-defer triggers are deleted.</p>
       </div>
       <div class="panel">
         <h3>Impact templates</h3>
@@ -1114,7 +1128,7 @@ branch ranking =
       </div>
       <div class="panel">
         <h3>Pool extras</h3>
-        <p>Recent-catch reuse, uphill brake catches, startup catches, and axis-quality streams can add candidates. Each is deterministic, memoized where useful, and discarded unless the measured ranker wants it.</p>
+        <p>Recent-catch reuse, uphill brake catches, and startup catches can add candidates. Each is deterministic, memoized where useful, and discarded unless the measured ranker wants it.</p>
       </div>
       <div class="panel">
         <h3>Repair and tails</h3>
@@ -1138,7 +1152,7 @@ branch ranking =
       <div class="flow-row">
         <div class="step-no">1</div>
         <div class="step-title">Rescue</div>
-        <div class="step-body">At a true dead end, sample many more candidates than usual &mdash; and for very tight (sub-0.3s) beats, sample more still &mdash; before giving up on the beat.</div>
+        <div class="step-body">At a true dead end, sample many more candidates than usual. Moderate-speed overshoot states get a brake-oriented rescue, very tight (sub-0.3s) beats can trigger a larger short-deadline batch, and early dead ends can try startup catches.</div>
       </div>
       <div class="flow-row">
         <div class="step-no">2</div>
@@ -1166,20 +1180,21 @@ branch ranking =
         <h2>The clock is rider-frames, not wall-time</h2>
         <p class="sub">
           Work is metered in <em>simulated rider frames</em>: every candidate trial
-          costs the frames lr-core actually steps. The walk runs until the budget
-          is spent, then returns the register's best. Wall-clock is never scored,
-          so a faster machine cannot buy a better track.
+          costs the frames lr-core actually steps. The target budget is fixed for
+          one compile and gates optional work; the run returns the register's best
+          when the budget is spent or the frontier is exhausted. Wall-clock is
+          never scored, so a faster machine cannot buy a better track.
         </p>
       </div>
     </div>
     <div class="grid-2">
       <div class="panel">
-        <h3>More budget = more tree</h3>
-        <p>A bigger budget walks farther through the deterministic tree and enables mature-budget work such as richer quality pools and repair. It changes how much work is affordable, not the truth criterion: physics validation still decides what can be committed.</p>
+        <h3>Budget gates effort</h3>
+        <p>A bigger budget enables more expensive deterministic policy, including wider quality sampling, multi-base aiming, forward evaluation, larger tail windows, and repair. Physics validation still decides what can be committed.</p>
       </div>
       <div class="panel">
         <h3>Independent per budget</h3>
-        <p>Each budget on the curve is a full run from scratch &mdash; there is no shared "anytime" checkpoint curve. The same (spec, seed, budget) always produces a byte-identical track.</p>
+        <p>Each budget on the curve is a full run from scratch &mdash; there is no shared "anytime" checkpoint curve. The same (spec, seed, budget) produces a byte-identical track for a given compiler build; cross-budget monotonicity is diagnostic, not a contract.</p>
       </div>
     </div>
   </section>
@@ -1190,26 +1205,27 @@ branch ranking =
       <div>
         <h2>Where extra budget stops converting</h2>
         <p class="sub">
-          The current frontier is not "try more random arcs" and it is not
-          reviving old special-case lanes. The compiler has one aiming mechanism:
-          the enumerative proposer. New capability belongs in the inner model,
-          readiness/objective terms, or sampler templates, then exact validation
-          and measured ranking decide whether it survives.
+          The current frontier is budget allocation and ranking, not a return to
+          hand-tuned aim lanes. The compiler has one aiming mechanism: the
+          enumerative proposer. New capability belongs in the inner model,
+          readiness/objective terms, sampler templates, or deterministic budget
+          gates, then exact validation and measured ranking decide whether it
+          survives.
         </p>
       </div>
     </div>
     <div class="grid-3">
       <div class="panel">
         <h3>One proposer remains</h3>
-        <p>The promoted proposer fits a joint local response from shared probe rides, enumerates knob pairs in the model, and optimizes current quality times composite readiness.</p>
+        <p>The promoted proposer fits a joint local response from shared short probe rides, enumerates knob pairs in the model, and optimizes current quality times composite readiness.</p>
       </div>
       <div class="panel">
-        <h3>Model growth path</h3>
-        <p>The current inner model is a shared joint pitch/rotation response surface. The joint-model harness remains the workbench for testing richer output vectors and interaction surfaces before production changes.</p>
+        <h3>Budget growth path</h3>
+        <p>Mature compiles can spend on multi-base aiming, charged forward-eval rollouts, tail completion, and weak-gap repair. Low budgets keep leaner contract search so they can finish.</p>
       </div>
       <div class="panel">
         <h3>Selection is a later gate</h3>
-        <p>Readiness is now part of shared pool ordering. Shrinking the random sampler or making readiness the branch judge still waits for commit and pool-rank telemetry; prior attempts to replace guided samples or widen rollout visibility were negative.</p>
+        <p>Readiness is now part of shared pool ordering. The branch judge is still measured handoff score or charged rollout value; prior attempts to widen rollout visibility at impact gaps were negative.</p>
       </div>
     </div>
   </section>
@@ -1224,7 +1240,9 @@ branch ranking =
         <p class="sub">
           Every prefix output, complete or partial, is offered to one strict
           register. Strict improvement only means equal-quality ties keep the
-          first-seen output, which keeps larger budgets stable.
+          first-seen output inside that run. Because each budget is a separate
+          compile and may take different budget-gated policy, cross-budget
+          monotonicity is reported as a diagnostic rather than guaranteed.
         </p>
       </div>
     </div>
@@ -1272,7 +1290,7 @@ branch ranking =
       </div>
       <div class="panel">
         <h3>Policy boundary</h3>
-        <p>Budget is the work unit. Breadth, forward evaluation, and repair have deterministic budget/maturity gates, but candidate truth is always exact simulation and measured reports.</p>
+        <p>Budget is both the work unit and an effort-allocation input. Candidate truth remains exact simulation and measured reports.</p>
       </div>
     </div>
   </section>
@@ -1296,55 +1314,55 @@ branch ranking =
 npm run golden -- --jobs=4 --compiler=handoff
 
 <!--BASELINE:score_block-->
- 50000  score  519.01  valid 475/480  changed  0  improved  0  plateau  0  regress  0
-100000  score  595.43  valid 480/480  changed 480  improved 449  plateau  0  regress 31
-200000  score  607.03  valid 480/480  changed 480  improved 346  plateau  0  regress 134
-300000  score  611.87  valid 480/480  changed 431  improved 290  plateau 49  regress 141<!--/BASELINE--></pre>
+ 50000  score  482.51  valid 468/480  changed  0  improved  0  plateau  0  regress  0
+100000  score  602.75  valid 480/480  changed 480  improved 442  plateau  0  regress 38
+200000  score  616.19  valid 480/480  changed 480  improved 341  plateau  0  regress 139
+300000  score  620.95  valid 480/480  changed 438  improved 324  plateau 42  regress 114<!--/BASELINE--></pre>
 
     <div class="panel" style="margin-top:16px">
       <h3>Spec scores at the largest budget</h3>
       <div class="score-list" aria-label="Spec scores at largest curve budget">
         <!--BASELINE:spec_rows-->
-        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:72.6%"></span></div><span class="num">726.46</span></div>
-        <div class="score-row"><span>float_bounds</span><div class="bar"><span style="width:71.7%"></span></div><span class="num">717.34</span></div>
-        <div class="score-row"><span>pop_train</span><div class="bar"><span style="width:71.0%"></span></div><span class="num">709.81</span></div>
-        <div class="score-row"><span>big_air_ramp</span><div class="bar"><span style="width:69.0%"></span></div><span class="num">690.24</span></div>
-        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:68.2%"></span></div><span class="num">682.46</span></div>
-        <div class="score-row"><span>leap_cadence</span><div class="bar"><span style="width:68.1%"></span></div><span class="num">681.14</span></div>
-        <div class="score-row"><span>glide_stairs</span><div class="bar"><span style="width:66.1%"></span></div><span class="num">660.81</span></div>
-        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:65.8%"></span></div><span class="num">658.31</span></div>
-        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:65.7%"></span></div><span class="num">657.07</span></div>
-        <div class="score-row"><span>soar_settle</span><div class="bar"><span style="width:65.0%"></span></div><span class="num">650.28</span></div>
-        <div class="score-row"><span>mixed_grade</span><div class="bar"><span style="width:64.9%"></span></div><span class="num">649.36</span></div>
-        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:64.7%"></span></div><span class="num">647.21</span></div>
-        <div class="score-row"><span>opening_burst</span><div class="bar"><span style="width:64.6%"></span></div><span class="num">646.28</span></div>
-        <div class="score-row"><span>drums_breath</span><div class="bar"><span style="width:64.4%"></span></div><span class="num">644.40</span></div>
-        <div class="score-row"><span>valley_bounce</span><div class="bar"><span style="width:64.1%"></span></div><span class="num">640.89</span></div>
-        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:63.9%"></span></div><span class="num">639.29</span></div>
-        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:62.4%"></span></div><span class="num">624.31</span></div>
-        <div class="score-row"><span>drums_swell</span><div class="bar"><span style="width:62.4%"></span></div><span class="num">623.84</span></div>
-        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:62.0%"></span></div><span class="num">619.97</span></div>
-        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:62.0%"></span></div><span class="num">619.64</span></div>
-        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:61.9%"></span></div><span class="num">619.17</span></div>
-        <div class="score-row"><span>canyon_steps</span><div class="bar"><span style="width:61.3%"></span></div><span class="num">612.79</span></div>
-        <div class="score-row"><span>ridge_pulse</span><div class="bar"><span style="width:60.5%"></span></div><span class="num">604.57</span></div>
-        <div class="score-row"><span>swoop_dive</span><div class="bar"><span style="width:60.1%"></span></div><span class="num">600.96</span></div>
-        <div class="score-row"><span>rolling_hills</span><div class="bar"><span style="width:59.5%"></span></div><span class="num">595.25</span></div>
-        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:59.4%"></span></div><span class="num">594.44</span></div>
-        <div class="score-row"><span>switchback_pop</span><div class="bar"><span style="width:58.9%"></span></div><span class="num">588.84</span></div>
-        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:57.9%"></span></div><span class="num">579.14</span></div>
-        <div class="score-row"><span>syncopated_lift</span><div class="bar"><span style="width:57.7%"></span></div><span class="num">577.49</span></div>
-        <div class="score-row"><span>climb_terrace</span><div class="bar"><span style="width:57.6%"></span></div><span class="num">575.56</span></div>
-        <div class="score-row"><span>summit_push</span><div class="bar"><span style="width:57.3%"></span></div><span class="num">572.65</span></div>
-        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:56.9%"></span></div><span class="num">569.13</span></div>
-        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:56.9%"></span></div><span class="num">568.89</span></div>
-        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:54.7%"></span></div><span class="num">546.57</span></div>
-        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:54.6%"></span></div><span class="num">546.42</span></div>
-        <div class="score-row"><span>rolling_drop</span><div class="bar"><span style="width:54.3%"></span></div><span class="num">542.94</span></div>
-        <div class="score-row"><span>skyline_push</span><div class="bar"><span style="width:54.1%"></span></div><span class="num">541.30</span></div>
-        <div class="score-row"><span>terrace_sprint</span><div class="bar"><span style="width:53.8%"></span></div><span class="num">538.01</span></div>
-        <div class="score-row"><span>dense_echo_climb</span><div class="bar"><span style="width:53.2%"></span></div><span class="num">532.22</span></div>
-        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:48.0%"></span></div><span class="num">479.77</span></div>
+        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:73.6%"></span></div><span class="num">736.06</span></div>
+        <div class="score-row"><span>float_bounds</span><div class="bar"><span style="width:73.0%"></span></div><span class="num">730.04</span></div>
+        <div class="score-row"><span>pop_train</span><div class="bar"><span style="width:71.0%"></span></div><span class="num">709.77</span></div>
+        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:70.4%"></span></div><span class="num">703.57</span></div>
+        <div class="score-row"><span>big_air_ramp</span><div class="bar"><span style="width:68.5%"></span></div><span class="num">684.71</span></div>
+        <div class="score-row"><span>leap_cadence</span><div class="bar"><span style="width:66.7%"></span></div><span class="num">667.18</span></div>
+        <div class="score-row"><span>soar_settle</span><div class="bar"><span style="width:66.6%"></span></div><span class="num">665.92</span></div>
+        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:65.9%"></span></div><span class="num">658.82</span></div>
+        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:65.7%"></span></div><span class="num">657.01</span></div>
+        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:65.6%"></span></div><span class="num">656.25</span></div>
+        <div class="score-row"><span>glide_stairs</span><div class="bar"><span style="width:65.6%"></span></div><span class="num">655.82</span></div>
+        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:65.5%"></span></div><span class="num">654.68</span></div>
+        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:65.4%"></span></div><span class="num">654.44</span></div>
+        <div class="score-row"><span>valley_bounce</span><div class="bar"><span style="width:65.1%"></span></div><span class="num">651.28</span></div>
+        <div class="score-row"><span>drums_breath</span><div class="bar"><span style="width:64.8%"></span></div><span class="num">648.45</span></div>
+        <div class="score-row"><span>opening_burst</span><div class="bar"><span style="width:64.4%"></span></div><span class="num">644.21</span></div>
+        <div class="score-row"><span>mixed_grade</span><div class="bar"><span style="width:64.3%"></span></div><span class="num">643.15</span></div>
+        <div class="score-row"><span>drums_swell</span><div class="bar"><span style="width:63.8%"></span></div><span class="num">638.17</span></div>
+        <div class="score-row"><span>ridge_pulse</span><div class="bar"><span style="width:63.5%"></span></div><span class="num">634.86</span></div>
+        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:62.9%"></span></div><span class="num">629.49</span></div>
+        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:62.7%"></span></div><span class="num">627.46</span></div>
+        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:62.6%"></span></div><span class="num">626.10</span></div>
+        <div class="score-row"><span>rolling_hills</span><div class="bar"><span style="width:61.3%"></span></div><span class="num">612.96</span></div>
+        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:61.0%"></span></div><span class="num">610.38</span></div>
+        <div class="score-row"><span>canyon_steps</span><div class="bar"><span style="width:60.3%"></span></div><span class="num">603.34</span></div>
+        <div class="score-row"><span>swoop_dive</span><div class="bar"><span style="width:60.3%"></span></div><span class="num">602.78</span></div>
+        <div class="score-row"><span>switchback_pop</span><div class="bar"><span style="width:59.9%"></span></div><span class="num">599.16</span></div>
+        <div class="score-row"><span>climb_terrace</span><div class="bar"><span style="width:59.1%"></span></div><span class="num">591.09</span></div>
+        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:59.1%"></span></div><span class="num">590.76</span></div>
+        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:58.6%"></span></div><span class="num">586.46</span></div>
+        <div class="score-row"><span>syncopated_lift</span><div class="bar"><span style="width:57.8%"></span></div><span class="num">577.84</span></div>
+        <div class="score-row"><span>summit_push</span><div class="bar"><span style="width:57.6%"></span></div><span class="num">576.37</span></div>
+        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:57.5%"></span></div><span class="num">575.16</span></div>
+        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:57.4%"></span></div><span class="num">573.73</span></div>
+        <div class="score-row"><span>rolling_drop</span><div class="bar"><span style="width:56.4%"></span></div><span class="num">563.85</span></div>
+        <div class="score-row"><span>dense_echo_climb</span><div class="bar"><span style="width:56.2%"></span></div><span class="num">562.27</span></div>
+        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:55.8%"></span></div><span class="num">558.07</span></div>
+        <div class="score-row"><span>skyline_push</span><div class="bar"><span style="width:55.2%"></span></div><span class="num">552.23</span></div>
+        <div class="score-row"><span>terrace_sprint</span><div class="bar"><span style="width:53.6%"></span></div><span class="num">536.22</span></div>
+        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:48.0%"></span></div><span class="num">480.34</span></div>
         <!--/BASELINE-->
       </div>
     </div>
@@ -1467,7 +1485,7 @@ npx vitest run tests/v0_determinism.test.ts</pre>
       <div class="eyebrow">Lessons</div>
       <div>
         <h2>What this history says about future work</h2>
-        <p class="sub">The next useful compiler improvements should either reach complete prefixes sooner or improve axis quality without making the budget a policy input.</p>
+        <p class="sub">The next useful compiler improvements should either reach complete prefixes sooner, spend budget more deliberately, or improve axis quality without bypassing exact physics validation.</p>
       </div>
     </div>
 
@@ -1479,6 +1497,7 @@ npx vitest run tests/v0_determinism.test.ts</pre>
           <li>Reuse of known-good catch geometry after validation.</li>
           <li>One-time start-state exploration.</li>
           <li>Density-aware allocation of optional work.</li>
+          <li>Target-budget gates for expensive quality work.</li>
           <li>Cheaper feasibility previews.</li>
         </ul>
       </div>
@@ -1487,8 +1506,8 @@ npx vitest run tests/v0_determinism.test.ts</pre>
         <ul>
           <li>Broad per-gap candidate escalation.</li>
           <li>Geometry changes tied directly to target axes.</li>
-          <li>Late repair passes that steal budget from prefix search.</li>
-          <li>Any mechanism whose behavior changes when the remaining budget changes.</li>
+          <li>Late repair passes that starve first completion.</li>
+          <li>Policies that react to consumed frames instead of the compile's fixed target budget.</li>
         </ul>
       </div>
     </div>
@@ -1530,7 +1549,7 @@ setTab(location.hash.replace("#", "") || "compiler", false);
 // comparable, so the series restarts here.
 // Replace the point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
 const campaignData = [
-  /*BASELINE:campaign*/["50k-300k curve", 600.91]/*/BASELINE*/
+  /*BASELINE:campaign*/["50k-300k curve", 606.04]/*/BASELINE*/
 ];
 
 function drawCampaignChart() {

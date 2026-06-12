@@ -159,7 +159,8 @@ LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst --seed=0 --bud
 
 The budget curve separates search-bound rows, budget-bound rows, and early
 plateaus. The next useful work is to move improvements earlier on the curve and
-raise the plateau without making budget a policy input.
+raise the plateau while keeping budget gates deterministic and target-budget
+based.
 
 Promising areas:
 

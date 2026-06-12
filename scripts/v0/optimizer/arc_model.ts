@@ -78,7 +78,7 @@ export type KnobSurfaceModel = {
   samples: Array<{ knobs: ArcKnobs; value: number }>;
 };
 
-export type ArcProbeDesignName = "cross5" | "grid9";
+export type ArcProbeDesignName = "cross5" | "grid9" | "pitch3";
 
 export type ArcProbeDesignOptions = {
   pitchSpan?: number;
@@ -108,7 +108,9 @@ export type ArcResponseFitForm =
   | "biquadratic"
   | "joint_quadratic"
   | "additive_quadratic"
-  | "linear";
+  | "linear"
+  | "pitch_quadratic"
+  | "pitch_linear";
 
 export type FittedArcOutputModel = {
   predict(knobs: ArcKnobs): number;
@@ -214,16 +216,34 @@ export function arcProbeDesign(name: ArcProbeDesignName, options: ArcProbeDesign
       const rotateSpan = options.rotateSpan ?? 3;
       return arcKnobGrid([-pitchSpan, 0, pitchSpan], [-rotateSpan, 0, rotateSpan]);
     }
+    case "pitch3": {
+      // Pitch-only 3-probe design: rotate axis is never perturbed, so its span
+      // is 0 and the proposer's rotate loop self-collapses (aim.ts). The three
+      // pitch rows exactly identify a pitch-only quadratic (see pitchQuadraticFeatures).
+      const pitchSpan = options.pitchSpan ?? 8.5;
+      return dedupeArcKnobs([
+        { pitchDeg: 0, rotateDeg: 0 },
+        { pitchDeg: -pitchSpan, rotateDeg: 0 },
+        { pitchDeg: pitchSpan, rotateDeg: 0 },
+      ]);
+    }
   }
 }
 
 export function parseArcProbeDesignName(name: string): ArcProbeDesignName {
-  if (name === "cross5" || name === "grid9") return name;
-  throw new Error(`unknown arc probe design "${name}" (expected cross5 or grid9)`);
+  if (name === "cross5" || name === "grid9" || name === "pitch3") return name;
+  throw new Error(`unknown arc probe design "${name}" (expected cross5, grid9 or pitch3)`);
 }
 
 export function arcProbeDesignMinRows(name: ArcProbeDesignName): number {
-  return name === "grid9" ? 6 : 5;
+  switch (name) {
+    case "grid9":
+      return 6;
+    case "pitch3":
+      return 3;
+    case "cross5":
+      return 5;
+  }
 }
 
 export function arcKnobGrid(pitches: readonly number[], rotates: readonly number[]): ArcKnobs[] {
@@ -272,6 +292,20 @@ export function additiveQuadraticFeatures(knobs: ArcKnobs): number[] {
   const p = knobs.pitchDeg;
   const r = knobs.rotateDeg;
   return [1, p, r, p * p, r * r];
+}
+
+/** Pitch-only quadratic: 3 features → 3 pitch3 rows give an EXACT fit. Rotate
+ *  is ignored on purpose (the pitch3 design never perturbs it and the sweep
+ *  never proposes it), so predictions at rotateDeg≠0 simply read the pitch curve. */
+export function pitchQuadraticFeatures(knobs: ArcKnobs): number[] {
+  const p = knobs.pitchDeg;
+  return [1, p, p * p];
+}
+
+/** Pitch-only linear: the 2-row floor for pitch3 — when one probe row gate-fails
+ *  and leaves only 2 finite rows, the quadratic (3 features) can't be identified. */
+export function pitchLinearFeatures(knobs: ArcKnobs): number[] {
+  return [1, knobs.pitchDeg];
 }
 
 export function jointQuadraticFeatures(knobs: ArcKnobs): number[] {
@@ -341,6 +375,29 @@ function fitHybridArcOutput(
   output: string,
   probeDesignName: ArcProbeDesignName,
 ): FittedArcOutputModel | null {
+  // pitch3 has only a pitch axis and 3 rows. The cross5/grid9 forms degenerate
+  // here: additiveQuadraticFeatures is dim 5 (>3 rows → fitter returns null) and
+  // linearArcFeatures carries an all-zero rotateDeg column (identified only via
+  // the 1e-9 ridge — not relied on). The richer forms also buy nothing: under
+  // short-mode production the reducer OWNS the current-axis outputs (clearReducer-
+  // OwnedOutputs), and the pitch curve is the only live axis, so a single simple
+  // pitch-only ladder applied uniformly to ALL outputs (latent and direct) is the
+  // right, robust choice. No surface form under pitch3 (a pitch-only interpolator
+  // adds nothing the 3-point quadratic doesn't already capture exactly).
+  if (probeDesignName === "pitch3") {
+    const ladder: Array<[ArcResponseFitForm, (knobs: ArcKnobs) => number[]]> = [
+      ["pitch_quadratic", pitchQuadraticFeatures], // 3 rows = exact
+      ["pitch_linear", pitchLinearFeatures], // 2-row floor (one row gate-failed)
+    ];
+    let firstChoice = true;
+    for (const [form, features] of ladder) {
+      const fitted = fitLinearArcOutput(rows, features, form);
+      if (fitted !== null) return firstChoice ? fitted : { ...fitted, degraded: true };
+      firstChoice = false;
+    }
+    return null;
+  }
+
   const ladder: Array<[ArcResponseFitForm, (knobs: ArcKnobs) => number[]]> = [];
   const wantsSurface = hybridUsesSurface(output, probeDesignName);
   if (wantsSurface) {
@@ -517,15 +574,7 @@ export function reduceLatentJointArcOutputs(
 
   addFinite(outputs, "current.releaseSpeedPx", suffixState.speed);
   addFinite(outputs, "current.releaseVy", suffixState.vy);
-  addFinite(outputs, "exit.frame", suffixFrame);
-  addFinite(outputs, "exit.x", suffixState.x);
-  addFinite(outputs, "exit.y", suffixState.y);
-  addFinite(outputs, "exit.vx", suffixState.vx);
-  addFinite(outputs, "exit.vy", suffixState.vy);
-  addFinite(outputs, "exit.speed", suffixState.speed);
-  addFinite(outputs, "exit.comAngleDeg", suffixState.comAngleDeg);
-  addFinite(outputs, "exit.sledPoseDeg", suffixState.sledPoseDeg);
-  addFinite(outputs, "exit.sledPoseRateDegPerFrame", suffixState.sledPoseRateDegPerFrame);
+  Object.assign(outputs, exitStateOutputs(suffixState, suffixFrame));
 
   const prefix = prefixSummaryFromLatent(latent, context.gap.startFrame, suffixFrame, context.axisMeasureEnd);
   if (prefix !== null) {
@@ -606,6 +655,24 @@ function prefixSummaryFromLatent(
     dy,
     v0SpeedPx,
   };
+}
+
+/** The 9-key `exit.*` block at the suffix/exit frame: the suffix launch state
+ *  written under the reducer's `exit.*` keys. Single source for both the latent
+ *  reducer (reduceLatentJointArcOutputs) and direct-mode probe rows (arc_probe.ts)
+ *  so the key set and values stay identical across model spaces. */
+export function exitStateOutputs(state: RiderArrivalState, frame: number): Record<string, number> {
+  const outputs: Record<string, number> = {};
+  addFinite(outputs, "exit.frame", frame);
+  addFinite(outputs, "exit.x", state.x);
+  addFinite(outputs, "exit.y", state.y);
+  addFinite(outputs, "exit.vx", state.vx);
+  addFinite(outputs, "exit.vy", state.vy);
+  addFinite(outputs, "exit.speed", state.speed);
+  addFinite(outputs, "exit.comAngleDeg", state.comAngleDeg);
+  addFinite(outputs, "exit.sledPoseDeg", state.sledPoseDeg);
+  addFinite(outputs, "exit.sledPoseRateDegPerFrame", state.sledPoseRateDegPerFrame);
+  return outputs;
 }
 
 export function stateOutputs(state: RiderArrivalState): Record<string, number> {

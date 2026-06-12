@@ -66,7 +66,7 @@ const config = lines.find((l) => l.kind === "config");
 const probeDesign: ArcProbeDesignName = config?.probeDesign ?? "cross5";
 const rows = lines.filter((l): l is SampleRow => l.kind === "sample");
 
-const PITCH_SPANS: Record<ArcProbeDesignName, number> = { cross5: 8.5, grid9: 9 };
+const PITCH_SPANS: Record<ArcProbeDesignName, number> = { cross5: 8.5, grid9: 9, pitch3: 8.5 };
 const pitchSpan = PITCH_SPANS[probeDesign];
 
 /** Outputs the reducer can derive (plus their error twins). */

@@ -21,7 +21,9 @@ import { ELEVATION, IMPACT_WINDOW, type Gap, type TrackLine } from "../types.ts"
 import {
   applyArcKnobs,
   arcResponseOutputs,
+  exitStateOutputs,
   normalizeAngleDeg,
+  propagateBallisticArrivalState,
   stateOutputs,
   type ArcKnobs,
   type JointArcProbeRow,
@@ -62,6 +64,14 @@ export type JointArcProbeObservation = JointArcProbeRow & {
 export type JointArcProbeOptions = {
   mode?: JointArcProbeMode;
   includeTruth?: boolean;
+  /** Direct model-space (LR_AIM_MODEL_SPACE=direct, short mode only): also emit
+   *  the ballistic reduction of each measured row INTO the row's `outputs` —
+   *  exit.* (the suffix launch state) and next.* (its ballistic arrival at the
+   *  next contact). The fit then runs knobs → these reduced outputs directly
+   *  (fit(reduce(row))), no latent models. Default false so the latent path and
+   *  all telemetry stay bit-identical. Irrelevant under full mode (full rows
+   *  already read exit/next directly and carry no latents). */
+  directOutputs?: boolean;
 };
 
 export type JointArcProbeResult = JointArcProbeObservation & {
@@ -97,9 +107,10 @@ export function evaluateJointArcLines(
 ): JointArcProbeResult {
   const fork = engine.addLine(lines.map((line) => engineLineFromTrackLine(line)));
   const mode = options.mode ?? "short";
-  const observed = observeJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, mode);
+  const directOutputs = options.directOutputs ?? false;
+  const observed = observeJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, mode, directOutputs);
   const truth = options.includeTruth && mode !== "full"
-    ? observeJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, "full")
+    ? observeJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, "full", false)
     : undefined;
   return { ...observed, lines, ...(truth === undefined ? {} : { truth }) };
 }
@@ -114,6 +125,7 @@ function observeJointArcLines(
   axisMeasureEnd: number,
   nextFrame: number,
   mode: JointArcProbeMode,
+  directOutputs: boolean,
 ): JointArcProbeObservation {
   const horizon = mode === "full"
     ? fullProbeHorizon(gap, axisMeasureEnd, nextFrame)
@@ -147,6 +159,21 @@ function observeJointArcLines(
   const latentOutputs: Record<string, number> = {};
   if (mode === "short" && suffixFrame !== null && suffixState !== null) {
     addLatentSuffixOutputs(latentOutputs, suffixFrame, suffixState);
+    if (directOutputs) {
+      // Direct model-space: write the SAME ballistic reduction the latent
+      // reducer (reduceLatentJointArcOutputs) produces, but per MEASURED row,
+      // into `outputs` — so the fit runs knobs → reduced outputs directly. ONE
+      // source of truth: exit.* mirrors stateOutputs naming at the exit/suffix
+      // frame; next.* reuses the same propagate+stateOutputs helpers under the
+      // reducer's identical suffixFrame <= nextFrame condition.
+      Object.assign(outputs, exitStateOutputs(suffixState, suffixFrame));
+      addFinite(outputs, "current.releaseSpeedPx", suffixState.speed);
+      addFinite(outputs, "current.releaseVy", suffixState.vy);
+      if (suffixFrame <= nextFrame) {
+        const nextState = propagateBallisticArrivalState(suffixState, nextFrame - suffixFrame);
+        Object.assign(outputs, stateOutputs(nextState));
+      }
+    }
     const summary = summarizeBallisticAxisPrefix(det, gap, Math.min(suffixFrame, axisMeasureEnd));
     if (summary !== null) {
       const prefixFrames = Math.max(0, summary.prefixEndFrame - summary.startFrame + 1);

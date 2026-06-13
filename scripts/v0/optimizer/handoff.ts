@@ -86,7 +86,7 @@ import {
   setAimCompileBudgetFrames,
   snapshotAimStats,
 } from "./aim.ts";
-import { frontierReadinessFromFit, nextContactGapFromIndex } from "./objective.ts";
+import { frontierReadinessFromFit, nextContactGapFromIndex, predictArrivalAtNextContact } from "./objective.ts";
 import { axisErrorsForTargets, axisQualityForTargets, axisQualityFromErrors, MISSING_CONTACT_TOLERANCE, scoreDriftReport } from "../score.ts";
 import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
@@ -3086,6 +3086,19 @@ let lastShadowObjective = 0;
 // RankedOption so recordFwdEvalShadowAgreement can attribute each disagreement to a factor. Gated:
 // default shadow is byte-identical.
 const shadowFactorsEnabled = readEnv("LR_SHADOW_FACTORS") === "1";
+// Leaf frontier-readiness tilt strength λ (lookahead campaign). The objective leaf is multiplied by
+// (1−λ + λ·leafFrontierReadiness): λ=0 (DEFAULT) recovers the pristine scorer leaf. It is a sweep
+// knob for the campaign harness (LR_LEAF_RDY_LAMBDA), NOT a production feature — production default
+// stays λ=0 until a configuration earns it. The readiness it tilts by is the LEAF-SPECIFIC term
+// below (distinct from the shared objective.ts readiness used by pool ranking/aim).
+const leafReadinessLambda = (() => {
+  const n = Number.parseFloat(readEnv("LR_LEAF_RDY_LAMBDA") ?? "");
+  return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0;
+})();
+// Which leaf-specific readiness component to tilt by (LR_LEAF_RDY_KIND, default "speed"):
+//   speed = exp(−|Δspeed|/scale) vs next-gap target;  catch = the validated catchability surface
+//   alone (readinessCatch);  speed_catch = speed × catch. Component-at-a-time metric probe.
+const leafReadinessKind = (readEnv("LR_LEAF_RDY_KIND") ?? "speed").toLowerCase();
 let lastFullLeafFactors: LeafFactors | null = null;
 let lastShortLeafFactors: LeafFactors | null = null;
 let lastShadowFullFactors: LeafFactors | null = null;
@@ -3788,6 +3801,13 @@ export function objectiveLeafValue(
       drift: 1, off_beat: 1, missing: missingFactor, survival,
     };
   }
+  // Leaf frontier-readiness tilt (lookahead campaign, λ=0 default = no-op). Hold the STRUCTURE
+  // fixed (the bounded whole-branch tilt) and vary the METRIC: tilt by the LEAF-SPECIFIC readiness
+  // (leafFrontierReadiness — v1 speed-only) so we can attribute the earlier composite REJECT to the
+  // metric vs the structure. Bounded: value *= (1−λ + λ·readiness) cannot zero survival/missing.
+  if (leafReadinessLambda > 0) {
+    value *= (1 - leafReadinessLambda) + leafReadinessLambda * leafFrontierReadiness(leaf, gaps);
+  }
   return value;
 }
 
@@ -3813,6 +3833,66 @@ export function forwardTerminalReadiness(search: SearchNode, gaps: Gap[]): numbe
     return frontierReadinessFromFit(fit, nextGap)?.readiness ?? 1;
   }
   return 1;
+}
+
+// LEAF-SPECIFIC frontier readiness (lookahead campaign) — DISTINCT from the shared
+// objective.ts scoreNextGapReadiness (catchability × speedFit × impactFeasibility) used by pool
+// ranking and aim. We build the leaf's own term up one component at a time to learn which
+// information actually predicts leaf success, and to interrogate it independently (e.g. the user's
+// doubt about the speed term) WITHOUT perturbing the shared readiness everything else relies on.
+//
+//   v1 = SPEED-ONLY: closeness of the predicted frontier arrival speed to the next gap's target
+//   speed, exp(−|Δspeed| / scale). Same functional form and scale as the shared speedFit for v1, so
+//   the only difference from the composite is that catchability and impactFeasibility are DROPPED —
+//   a clean isolation of the speed component. Reuses only shared PRIMITIVES (the ballistic state
+//   predictor predictArrivalAtNextContact, the authoredSpeedToPx unit conversion), never the shared
+//   readiness metric. Returns 1 (tilt no-op) at a terminal frontier, a target-less next gap, or when
+//   the arrival state can't be predicted.
+const LEAF_RDY_SPEED_SCALE_PXF = 0.75;  // matches OBJECTIVE_SPEED_SCALE_PXF; tunable leaf-local
+const LEAF_RDY_IMPACT_MIN_ASK = 0.3;    // mirrors OBJECTIVE_IMPACT_MIN_ASK; below this, no impact ask
+function leafFrontierReadiness(leaf: SearchNode, gaps: Gap[]): number {
+  const nextGapIndex = nextContactGapIndex(gaps, leaf.gapIndex);
+  if (nextGapIndex < 0) return 1;
+  const nextGap = gaps[nextGapIndex];
+  for (let i = Math.min(nextGapIndex, leaf.prefixFits.length) - 1; i >= 0; i--) {
+    if (!gaps[i]?.endsWithContact) continue;
+    const fit = leaf.prefixFits[i];
+    if (fit === null || fit === undefined) continue;
+    const arrival = predictArrivalAtNextContact(fit, nextGap.endFrame);
+    if (arrival === null) return 1;
+    return leafReadinessFromArrival(arrival, nextGap);
+  }
+  return 1;
+}
+
+// Per-kind leaf readiness from a predicted arrival state + the next gap (LR_LEAF_RDY_KIND). Each
+// component no-ops (1) when ITS OWN input is absent, so a kind tilts only where its signal exists
+// (a missing speed target must not silently zero out the catch/impact kinds).
+function leafReadinessFromArrival(
+  arrival: { speed: number; comAngleDeg: number | null },
+  nextGap: Gap,
+): number {
+  const speedTarget = nextGap.targets.speed;
+  const speedReadiness = speedTarget === undefined
+    ? 1
+    : Math.exp(-Math.abs(arrival.speed - authoredSpeedToPx(speedTarget)) / LEAF_RDY_SPEED_SCALE_PXF);
+  const catchReadiness = arrival.comAngleDeg === null
+    ? 1
+    : readinessCatch(arrival.speed, arrival.comAngleDeg);
+  const impactAsk = nextGap.targets.impact;
+  const impactReadiness =
+    (impactAsk === undefined || impactAsk < LEAF_RDY_IMPACT_MIN_ASK || arrival.comAngleDeg === null)
+      ? 1
+      : Math.min(1, Math.max(0,
+        (arrival.speed * Math.sin((Math.max(0, arrival.comAngleDeg) * Math.PI) / 180)) /
+          (impactAsk * CALIB.REDIR_CAP)));
+  switch (leafReadinessKind) {
+    case "catch": return catchReadiness;
+    case "impact": return impactReadiness;
+    case "speed_catch": return speedReadiness * catchReadiness;
+    case "catch_impact": return catchReadiness * impactReadiness;
+    default: return speedReadiness; // "speed" (v1)
+  }
 }
 
 /** Advance past non-contact gaps to the next contact node, or null at terminus. */

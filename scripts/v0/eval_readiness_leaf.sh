@@ -11,12 +11,13 @@
 # factor — so its value can only be judged empirically, which is what this harness does.
 #
 # MODE: frozen-snapshot (identical arms). The baseline freezes the current code (the
-# pristine no-readiness objective leaf) on its first build; the candidate is whatever
-# the working tree currently does. Workflow: build the baseline ONCE, then edit the
-# leaf and rerun — the frozen baseline is the no-readiness reference, the candidate is
-# the readiness leaf, and `decide` measures the difference. The readiness draft is
-# gated by LR_LEAF_READINESS (default ON during the experiment) so it applies on the
-# default path the candidate runs; set it to 0 to recover the pristine leaf.
+# pristine no-readiness objective leaf, λ=0) on its first build; the candidate is the
+# current working tree. Sweep the leaf readiness strength per run via the env knob
+# LR_LEAF_RDY_LAMBDA (default 0 = pristine), e.g.
+#     LR_LEAF_RDY_LAMBDA=0.2 ./scripts/v0/eval_readiness_leaf.sh run
+# The frozen baseline is the λ=0 reference; each candidate run tilts the leaf by the
+# leaf-specific readiness at strength λ, and `decide` measures the difference. λ is a
+# campaign sweep knob, not a production feature — production default stays λ=0.
 #
 # -------------------------------------------------------------------------------
 # (original template header follows)

@@ -294,6 +294,33 @@ the valuable top-level contribution. Leader remains **best:1:5 + noaim (rollout-
 
 ---
 
+## 10. greedy:1 alone ≈ best:1:5+noaim — the lever is DEPTH, not width (simplification)
+
+**Definition.** greedy:1 WITH aim (the production default's only change: depth 2→1), 3-budget board,
+vs greedy:2. The apples-to-apples number that was missing from §7–8.
+
+**Result (headlines, baseline greedy:2 = 589.2):**
+
+```
+  greedy:2 (baseline)     589.2   —       (582.4 / 590.5 / 595.3)
+  greedy:1 (with aim)     591.6   +2.4    (579.9 / 592.7 / 599.7)   CI[-2.0,+6.5]
+  best:1:5 + noaim        591.9   +2.7    (581.2 / 592.3 / 600.2)   CI[-2.4,+7.7]
+  greedy:1 (aim off all)  590.0   +0.8
+```
+
+**Finding (corrects §8's framing).** greedy:1 alone is +2.4 — STATISTICALLY IDENTICAL to
+best:1:5+noaim (+2.7); CIs overlap almost entirely, the 0.3 gap is noise. So the headline lever is
+rollout DEPTH (greedy:1 vs greedy:2), not wide branching. The best:N + aim-suppression machinery was
+needed only to stop best:N from tanking, and even un-tanked it merely MATCHES plain greedy:1 — width
+adds nothing measurable. The "wide-branching breakthrough" (§8) was really "go shallow." greedy:1 with
+aim (+2.4) > aim-off (+0.8), so keep the aim (consistent with §9).
+
+**Verdict.** The simplest possible change — `LR_FWD_EVAL=greedy:1`, one parameter, no new code/flags —
+captures the whole gain (+2.4, all at high budget: +4.4 @500k). It is the candidate to firm up
+(more seeds) and consider promoting, NOT the complex best:1:5+noaim. Still probe-tier (CI crosses 0).
+
+---
+
 ## Open questions (no conclusions yet)
 
 - Catch-only helps air/rhythmic specs but hurts a few dense ones (drums_pendulum). Why — unstudied.

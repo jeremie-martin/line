@@ -169,7 +169,11 @@ export function axisQualityFromErrors(errors: readonly number[]): AxisQualitySum
   };
 }
 
-export function axisQualityForTargets(targets: AxisValues, achieved: AxisValues): AxisQualitySummary {
+/** Per-axis errors (achieved − target) for the scored axes, in AXES order, skipping
+ *  report-only axes. The raw inputs to axisQualityFromErrors — exposed so callers can
+ *  pool errors across multiple gaps and take ONE combined RMS (what the true scorer does
+ *  over a whole report), rather than multiplying per-gap qualities. */
+export function axisErrorsForTargets(targets: AxisValues, achieved: AxisValues): number[] {
   const errors: number[] = [];
   for (const axis of AXES) {
     if (REPORT_ONLY_AXIS_SET.has(axis)) continue;
@@ -179,7 +183,11 @@ export function axisQualityForTargets(targets: AxisValues, achieved: AxisValues)
       errors.push(value - target);
     }
   }
-  return axisQualityFromErrors(errors);
+  return errors;
+}
+
+export function axisQualityForTargets(targets: AxisValues, achieved: AxisValues): AxisQualitySummary {
+  return axisQualityFromErrors(axisErrorsForTargets(targets, achieved));
 }
 
 export function worstContacts(report: DriftReport, limit = 3): WorstContact[] {

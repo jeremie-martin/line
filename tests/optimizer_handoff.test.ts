@@ -10,7 +10,7 @@ import {
   snapshotHandoffNode,
   type HandoffNodeSnapshot,
 } from "../scripts/v0/optimizer/handoff.ts";
-import { axisQualityForTargets } from "../scripts/v0/score.ts";
+import { axisErrorsForTargets, axisQualityForTargets, axisQualityFromErrors } from "../scripts/v0/score.ts";
 import type { SearchNode } from "../scripts/v0/optimizer/node.ts";
 import type { GapFit } from "../scripts/v0/core/substrate.ts";
 import type { AxisValues, Gap } from "../scripts/v0/types.ts";
@@ -471,9 +471,11 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
 });
 
 describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objective)", () => {
-  // Minimal Gap/GapFit/SearchNode fixtures. objectiveLeafValue reads only gap.endsWithContact,
-  // gap.endFrame, gap.targets and leaf.gapIndex / leaf.prefixFits[i].achieved — and for the
-  // readiness factor, fit.releaseArrivalState (absent here ⇒ readiness 1).
+  // Minimal Gap/GapFit/SearchNode fixtures. New contract — objectiveLeafValue reconstructs the
+  // true scorer from committed data:
+  //   value = 1000 × axisQualityFromErrors(ALL committed-prefix errors)   // one COMBINED RMS
+  //                × survival(lastContactEndFrame/totalFrames) × exp(-min(20, remainingContacts))
+  // No readiness, no drift/off_beat (structurally 1 on gate-passed contacts); missedContacts ignored.
   const contactGap = (index: number, targets: AxisValues): Gap => ({
     index,
     startFrame: index * 30,
@@ -506,55 +508,88 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     return targets;
   };
 
-  test("value = 1000 × q1 × q2 over the rolled contact gaps (no readiness, missed=0)", () => {
+  const DUR = 1200;
+  // Reference implementation of the new contract, for cross-checking objectiveLeafValue.
+  const expected = (gaps: Gap[], fits: (GapFit | null)[], dur = DUR): number => {
+    const targets = gaps.map((g) => g.targets);
+    const errors: number[] = [];
+    let missingFitCount = 0;
+    for (let i = 0; i < fits.length; i++) {
+      if (!gaps[i]?.endsWithContact) continue;
+      const fit = fits[i];
+      if (fit == null) {
+        missingFitCount += 1;
+        continue;
+      }
+      for (const e of axisErrorsForTargets(targets[i], fit.achieved)) errors.push(e);
+    }
+    let v = 1000 * axisQualityFromErrors(errors).axis_quality;
+    if (missingFitCount > 0) v *= Math.exp(-missingFitCount);
+    let horizon = 0;
+    for (let i = Math.min(fits.length, gaps.length) - 1; i >= 0; i--) {
+      if (gaps[i].endsWithContact) {
+        horizon = gaps[i].endFrame;
+        break;
+      }
+    }
+    const survival = dur > 0 ? Math.min(1, Math.max(0, horizon / dur)) : 0;
+    const remaining = gaps.slice(fits.length).filter((g) => g.endsWithContact).length;
+    v *= survival * Math.exp(-Math.min(20, remaining) / 1.0);
+    return v;
+  };
+
+  test("axis is ONE combined RMS over the whole committed prefix, NOT a per-gap product", () => {
     const t0: AxisValues = { speed: 1.0 };
     const t1: AxisValues = { speed: 1.0 };
     const gaps = [contactGap(0, t0), contactGap(1, t1)];
     installTargets(gaps);
-    const f0 = fitWith({ speed: 1.0 });
-    const f1 = fitWith({ speed: 0.9 });
+    const f0 = fitWith({ speed: 1.0 }); // error 0
+    const f1 = fitWith({ speed: 0.7 }); // error -0.3
     const leaf = leafOf([f0, f1]);
-    const q1 = axisQualityForTargets(t0, f0.achieved).axis_quality;
-    const q2 = axisQualityForTargets(t1, f1.achieved).axis_quality;
-    expect(objectiveLeafValue(leaf, 0, gaps, 0)).toBeCloseTo(1000 * q1 * q2, 9);
+    const combined = axisQualityFromErrors([
+      ...axisErrorsForTargets(t0, f0.achieved),
+      ...axisErrorsForTargets(t1, f1.achieved),
+    ]).axis_quality;
+    const product = axisQualityForTargets(t0, f0.achieved).axis_quality *
+      axisQualityForTargets(t1, f1.achieved).axis_quality;
+    expect(combined).not.toBeCloseTo(product, 4); // the fold genuinely differs
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(expected(gaps, [f0, f1]), 9);
   });
 
-  test("missed=1 multiplies by e^-1; missed=2 by e^-2", () => {
+  test("survival_quality = last committed contact endFrame / totalFrames", () => {
+    const t0: AxisValues = { speed: 1.0 };
+    const gaps = [contactGap(0, t0)]; // endFrame 30
+    installTargets(gaps);
+    const f0 = fitWith({ speed: 1.0 }); // perfect ⇒ axis_quality 1
+    const leaf = leafOf([f0]);
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(1000 * (30 / DUR), 9);
+    // halve the duration ⇒ survival doubles
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR / 2)).toBeCloseTo(1000 * (30 / (DUR / 2)), 9);
+  });
+
+  test("missedContacts argument is IGNORED (subsumed by depth-based survival/missing)", () => {
     const t0: AxisValues = { speed: 1.0 };
     const gaps = [contactGap(0, t0)];
     installTargets(gaps);
     const f0 = fitWith({ speed: 1.0 });
     const leaf = leafOf([f0]);
-    const base = objectiveLeafValue(leaf, 0, gaps, 0);
-    expect(objectiveLeafValue(leaf, 0, gaps, 1)).toBeCloseTo(base * Math.exp(-1), 9);
-    expect(objectiveLeafValue(leaf, 0, gaps, 2)).toBeCloseTo(base * Math.exp(-2), 9);
+    const base = objectiveLeafValue(leaf, 0, gaps, 0, DUR);
+    expect(objectiveLeafValue(leaf, 0, gaps, 5, DUR)).toBeCloseTo(base, 9);
   });
 
-  test("terminal chain (no next contact past leaf) ⇒ readiness factor 1", () => {
-    // leaf.gapIndex === gaps.length ⇒ nextContactGapFromIndex returns null ⇒ readiness 1.
-    const t0: AxisValues = { speed: 1.0 };
-    const gaps = [contactGap(0, t0)];
+  test("missing_quality = exp(-min(20, remaining contact gaps past the leaf))", () => {
+    const t: AxisValues = { speed: 1.0 };
+    const gaps = [contactGap(0, t), contactGap(1, t), contactGap(2, t)];
     installTargets(gaps);
     const f0 = fitWith({ speed: 1.0 });
-    const leaf = leafOf([f0]);
-    const q1 = axisQualityForTargets(t0, f0.achieved).axis_quality;
-    expect(objectiveLeafValue(leaf, 0, gaps, 0)).toBeCloseTo(1000 * q1, 9);
+    const leaf = leafOf([f0]); // gapIndex 1 ⇒ contacts 1,2 remain ⇒ futureMissing 2
+    const axis = axisQualityForTargets(t, f0.achieved).axis_quality;
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR))
+      .toBeCloseTo(1000 * axis * (30 / DUR) * Math.exp(-2), 9);
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(expected(gaps, [f0]), 9);
   });
 
-  test("no releaseArrivalState ⇒ readiness 1 even with a next contact gap", () => {
-    const t0: AxisValues = { speed: 1.0 };
-    const t1: AxisValues = { speed: 1.0 };
-    // leaf at gapIndex 1 (committed gap 0), gap 1 is the NEXT contact ⇒ readiness would apply,
-    // but f0 has no releaseArrivalState ⇒ frontierReadinessFromFit returns null ⇒ ?? 1.
-    const gaps = [contactGap(0, t0), contactGap(1, t1)];
-    installTargets(gaps);
-    const f0 = fitWith({ speed: 1.0 });
-    const leaf = leafOf([f0]);
-    const q1 = axisQualityForTargets(t0, f0.achieved).axis_quality;
-    expect(objectiveLeafValue(leaf, 0, gaps, 0)).toBeCloseTo(1000 * q1, 9);
-  });
-
-  test("non-contact gaps in the rolled span are skipped", () => {
+  test("non-contact gaps in the prefix are skipped", () => {
     const t0: AxisValues = { speed: 1.0 };
     const t2: AxisValues = { speed: 1.0 };
     const gaps = [contactGap(0, t0), nonContactGap(1), contactGap(2, t2)];
@@ -562,22 +597,28 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     const f0 = fitWith({ speed: 1.0 });
     const f2 = fitWith({ speed: 0.8 });
     const leaf = leafOf([f0, null, f2]);
-    const q0 = axisQualityForTargets(t0, f0.achieved).axis_quality;
-    const q2 = axisQualityForTargets(t2, f2.achieved).axis_quality;
-    // The middle non-contact gap (null fit) contributes nothing — NOT the e^-1 null-fit penalty.
-    expect(objectiveLeafValue(leaf, 0, gaps, 0)).toBeCloseTo(1000 * q0 * q2, 9);
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(expected(gaps, [f0, null, f2]), 9);
   });
 
-  test("contact gap with a null fit applies the defensive e^-1 factor", () => {
+  test("a CONTACT gap with a null fit applies the defensive e^-1 factor", () => {
     const t0: AxisValues = { speed: 1.0 };
     const t1: AxisValues = { speed: 1.0 };
     const gaps = [contactGap(0, t0), contactGap(1, t1)];
     installTargets(gaps);
     const f0 = fitWith({ speed: 1.0 });
-    const leaf = leafOf([f0, null]);
-    const q0 = axisQualityForTargets(t0, f0.achieved).axis_quality;
-    // gap 1 is a contact with no committed catch ⇒ ×e^-1. (leaf.gapIndex=2 ⇒ no next contact.)
-    expect(objectiveLeafValue(leaf, 0, gaps, 0)).toBeCloseTo(1000 * q0 * Math.exp(-1), 9);
+    const leaf = leafOf([f0, null]); // gap 1 is a contact with no committed catch ⇒ ×e^-1
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(expected(gaps, [f0, null]), 9);
+  });
+
+  test("rootGapIndex is ignored — axis spans the whole prefix either way", () => {
+    const t: AxisValues = { speed: 1.0 };
+    const gaps = [contactGap(0, t), contactGap(1, t)];
+    installTargets(gaps);
+    const f0 = fitWith({ speed: 0.5 });
+    const f1 = fitWith({ speed: 1.0 });
+    const leaf = leafOf([f0, f1]);
+    expect(objectiveLeafValue(leaf, 1, gaps, 0, DUR))
+      .toBeCloseTo(objectiveLeafValue(leaf, 0, gaps, 0, DUR), 9);
   });
 
   test("flag default is inert: env-unset ≡ LR_FWD_EVAL_LEAF=full at 100k", async () => {

@@ -87,7 +87,7 @@ import {
   snapshotAimStats,
 } from "./aim.ts";
 import { frontierReadinessFromFit, nextContactGapFromIndex } from "./objective.ts";
-import { axisQualityForTargets, MISSING_CONTACT_TOLERANCE } from "../score.ts";
+import { axisErrorsForTargets, axisQualityForTargets, axisQualityFromErrors, MISSING_CONTACT_TOLERANCE } from "../score.ts";
 import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
@@ -3050,23 +3050,6 @@ let fwdEvalDefaultConfig = true;
 // arrival states (docs/IMPACT_PAIR_PLANNING.md), not from search breadth.
 let fwdEvalImpactBranch = 1;
 const FWD_EVAL_IMPACT_BRANCH_MIN_TARGET = 0.35;
-// Readiness-application policy (LR_FWD_EVAL_LEAF_READINESS) for objectiveLeafValue's
-// frontier-readiness factor. Resolved once per compile in setForwardEvalContext.
-//   "off"           — drop the readiness factor entirely (pure rolled-gap quality ×
-//                     missed-penalty — the full scorer's information class).
-//   "always"        — apply readiness at every leaf (legacy behavior).
-//   "selective"     — apply readiness only when the gap it judges (the next contact gap
-//                     past the leaf) is NOT impact-targeted (impact < 0.35, the hybrid
-//                     threshold). This is the NEW DEFAULT in objective-leaf mode: it keeps
-//                     the completion signal on rhythm specs while not fighting the full
-//                     scorer on impact gaps where extreme arrivals are intended.
-//   "selective-vert"— "selective" PLUS exempt vertical-drama gaps (amplitude/elevation
-//                     targeted) from the readiness factor.
-// Legacy env values map: "0"→off, "1"→always. Default (env unset) → selective.
-type LeafReadinessPolicy = "off" | "always" | "selective" | "selective-vert";
-let fwdEvalLeafReadinessPolicy: LeafReadinessPolicy = "selective";
-// Hybrid impact fallback for objective-leaf mode (default on). See setForwardEvalContext.
-let fwdEvalLeafHybridImpact = true;
 
 // ── Shadow-leaf capture (LR_FWD_EVAL_LEAF=shadow, measure-only) ──
 // When shadow mode runs, the rollout ranks by the FULL leaf (byte-identical) but ALSO
@@ -3414,62 +3397,11 @@ export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]):
   fwdEvalImpactBranch = Number.isInteger(rawImpactBranch) && rawImpactBranch >= 1
     ? rawImpactBranch
     : 1;
-  fwdEvalLeafReadinessPolicy = parseLeafReadinessPolicy(readEnv("LR_FWD_EVAL_LEAF_READINESS"));
-  // Hybrid impact fallback (LR_FWD_EVAL_LEAF_HYBRID, default ON): in objective-leaf mode, use
-  // the FULL leaf for candidates whose OWN gap is impact-targeted (≥0.35). The shadow study
-  // showed impact gaps carry 76–92% of the objective's misranking cost (the gate-time achieved
-  // impact axis flatters a candidate the full re-detection rates low), while non-impact gaps
-  // agree cheaply — so this recovers the residual while keeping the frame savings on the rest.
-  fwdEvalLeafHybridImpact = readEnv("LR_FWD_EVAL_LEAF_HYBRID") !== "0";
 }
 
 function readEnv(name: string): string | undefined {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.[name];
-}
-
-/** Parse LR_FWD_EVAL_LEAF_READINESS into a policy. Default (unset) = "selective".
- *  Legacy "0"→off, "1"→always; literal "off"/"always"/"selective"/"selective-vert" honored;
- *  any unrecognized value falls back to the default selective policy. */
-function parseLeafReadinessPolicy(raw: string | undefined): LeafReadinessPolicy {
-  switch (raw) {
-    case undefined:
-      return "selective";
-    case "0":
-    case "off":
-      return "off";
-    case "1":
-    case "always":
-      return "always";
-    case "selective":
-      return "selective";
-    case "selective-vert":
-      return "selective-vert";
-    default:
-      return "selective";
-  }
-}
-
-/** Whether the readiness factor should be applied for a leaf whose judged next contact gap
- *  is `nextGap`, under the active policy. Uses the TRUE targets (fwdEvalGapAxisTargets),
- *  matching objectiveLeafValue's own-gap quality scorer and the hybrid impact threshold. */
-function leafReadinessAppliesToGap(nextGap: Gap): boolean {
-  switch (fwdEvalLeafReadinessPolicy) {
-    case "off":
-      return false;
-    case "always":
-      return true;
-    case "selective":
-    case "selective-vert": {
-      const t = fwdEvalGapAxisTargets[nextGap.index];
-      const impact = t?.impact ?? 0;
-      if (impact >= FWD_EVAL_IMPACT_BRANCH_MIN_TARGET) return false;
-      if (fwdEvalLeafReadinessPolicy === "selective-vert" && targetsVerticalDramaAxis(t)) {
-        return false;
-      }
-      return true;
-    }
-  }
 }
 
 /** Track-repair config (worst-gap suffix rebuild, see TRACK_REPAIR_EXPERIMENTS.md).
@@ -3679,60 +3611,68 @@ function recordFwdLeafDeadCheck(report: DriftReport, search: SearchNode, gaps: G
   else if (reason === "leftWorld") fwdEvalTotals.fwd_leaf_dead_uncovered_leftworld++;
 }
 
-/** Objective-leaf scorer (LR_FWD_EVAL_LEAF=objective): score a rollout LEAF with ZERO
- *  engine frames, from data the rollout already committed. Replaces forwardNodeScore's
- *  full re-detection.
+/** Objective-leaf scorer (LR_FWD_EVAL_LEAF=objective): score a rollout LEAF with ZERO engine
+ *  frames, reconstructing the true scorer (score.ts:287) from data the rollout already committed.
+ *  Replaces forwardNodeScore's full re-detection.
  *
  *    value = 1000
- *          × ∏(rolled contact gap i) axisQualityForTargets(fwdEvalGapAxisTargets[i], fit.achieved).axis_quality
- *          × (frontierReadinessFromFit(deepest fit, next gap past leaf)?.readiness ?? 1)
- *          × exp(−missedContacts / MISSING_CONTACT_TOLERANCE)
+ *          × axisQualityFromErrors(ALL committed-prefix per-axis errors)   // one COMBINED RMS
+ *          × survival_quality   (= deepest committed contact frame / totalFrames)
+ *          × exp(−futureMissing / MISSING_CONTACT_TOLERANCE)               // missing_quality
  *
- *  Rolled span = contact gaps in [rootGapIndex, leaf.gapIndex). rootGapIndex = child.gapIndex−1
- *  (the candidate's own gap — the factor that always differs across one pool; prefix factors are
- *  identical across a pool and cancel in ranking, so scoring only the rolled span is rank-faithful).
  *  Uses the TRUE targets (fwdEvalGapAxisTargets), matching forwardNodeScore's scorer — NOT the
- *  jitter-sampled gap.targets. Non-contact gaps skipped; contact gap with a null fit → ×e⁻¹
- *  (defensive — pool candidates are gate-passed so this is not normally hit); terminal chain (no
- *  next contact) or no airborne release state → readiness 1. The readiness factor is gated by
- *  LR_FWD_EVAL_LEAF_READINESS (default "selective"): "off" drops it entirely (pure rolled-gap
- *  quality × missed-penalty — the full scorer's information class); "always" applies it at every
- *  leaf; "selective" applies it only when the judged next contact gap is NOT impact-targeted
- *  (impact < 0.35); "selective-vert" additionally exempts vertical-drama (amplitude/elevation)
- *  gaps. The ×1000 scale keeps the value-gap
- *  telemetry buckets bounded; never cross-compare value-gap stats between leaf modes. */
+ *  jitter-sampled gap.targets. The axis RMS spans the WHOLE committed prefix [0, leaf.gapIndex):
+ *  RMS is non-linear, so the prefix does NOT cancel across a pool, and folding it in is what lets
+ *  an over-sped prefix be abandoned (accumulated error → low quality for every continuation).
+ *  drift_quality / off_beat_quality are STRUCTURALLY 1 for the gate-passed committed contacts
+ *  (every catch within ±1 frame, no off-beat — substrate.ts:659-671) and cannot be recomputed
+ *  without re-detection, so they are omitted. No readiness, no hybrid. */
 export function objectiveLeafValue(
   leaf: SearchNode,
   rootGapIndex: number,
   gaps: Gap[],
   missedContacts: number,
+  durationFrames: number,
 ): number {
-  let value = 1000;
-  let lastFit: GapFit | null = null;
-  for (let i = Math.max(0, rootGapIndex); i < leaf.gapIndex; i++) {
+  // FAITHFUL reconstruction of the true scorer (score.ts:287) from the rollout's OWN committed
+  // data, zero re-detection. The full scorer is axis × drift × missing × off_beat × survival; of
+  // those, drift and off_beat are STRUCTURALLY 1 for the committed contacts this leaf scores — the
+  // candidate gates require every catch within ±1 frame ("hit", never "drift") and reject off-beat
+  // landings (substrate.ts:659-671), and neither can be recomputed without re-detection. So the
+  // faithful short leaf is axis (combined RMS) × survival × missing — the only factors that vary
+  // from 1. No readiness, no hybrid: those are not part of the true scorer.
+  //
+  // The axis RMS spans the WHOLE committed prefix [0, leaf.gapIndex), NOT just the rolled span: the
+  // full leaf folds all committed gaps ≤ horizon into ONE RMS, and because RMS is non-linear the
+  // prefix does NOT cancel across a pool (it would for a product) — including it is what lets the
+  // score ABANDON an over-sped prefix (accumulated error → low quality for every continuation).
+  void rootGapIndex; // kept for signature stability; axis now spans the whole prefix
+  const errors: number[] = [];
+  let missingFitCount = 0;
+  for (let i = 0; i < leaf.gapIndex; i++) {
     if (!gaps[i]?.endsWithContact) continue; // non-contact gap: no committed catch
     const fit = leaf.prefixFits[i] ?? null;
     if (fit === null) {
-      value *= Math.exp(-1); // defensive: a contact gap that never committed a catch
+      missingFitCount += 1; // defensive: a contact gap that never committed a catch
       continue;
     }
-    value *= axisQualityForTargets(fwdEvalGapAxisTargets[i], fit.achieved).axis_quality;
-    lastFit = fit;
+    for (const e of axisErrorsForTargets(fwdEvalGapAxisTargets[i], fit.achieved)) errors.push(e);
   }
-  if (lastFit !== null && fwdEvalLeafReadinessPolicy !== "off") {
-    const nextGap = nextContactGapFromIndex(gaps, leaf.gapIndex);
-    // Apply the readiness factor only when the policy admits the gap it judges: "always"
-    // for every gap, "selective" for non-impact gaps, "selective-vert" for non-impact AND
-    // non-vertical-drama gaps. On impact/vertical gaps where extreme arrivals are intended,
-    // the full scorer rules and readiness would otherwise fight it.
-    if (nextGap !== null && leafReadinessAppliesToGap(nextGap)) {
-      value *= frontierReadinessFromFit(lastFit, nextGap)?.readiness ?? 1;
-    }
-    // else: terminal chain, or a gap excluded by the policy → readiness 1 (no-op).
-  }
-  // LR_FWD_EVAL_LEAF_READINESS=off: readiness factor skipped (pure current-gap quality ×
-  // missed-penalty), matching the full scorer's information class for the ablation test.
-  value *= Math.exp(-Math.max(0, missedContacts) / MISSING_CONTACT_TOLERANCE);
+  // axis_quality = exp(-rms(ALL committed-prefix errors) / AXIS_QUALITY_TOLERANCE) — the scorer's
+  // own single-RMS fold, reproduced from the per-gap fits.
+  let value = 1000 * axisQualityFromErrors(errors).axis_quality;
+  if (missingFitCount > 0) value *= Math.exp(-missingFitCount);
+  // survival_quality (= deepest committed contact frame / total, score.ts:276) × missing_quality
+  // (future contacts past that horizon, capped at the partial window) — the full leaf's terms read
+  // straight off the rollout's committed depth. A shallower (dead-end) rollout → lower horizon →
+  // lower survival + more future-missing, subsuming the old rollout `missedContacts` penalty.
+  void missedContacts;
+  const horizonFrame = processedHorizonFrame(leaf, gaps);
+  const survival = durationFrames > 0 ? clamp01(horizonFrame / durationFrames) : 0;
+  const futureMissing = Math.min(
+    PARTIAL_FUTURE_CONTACT_WINDOW, remainingContactGaps(gaps, leaf.gapIndex),
+  );
+  value *= survival * Math.exp(-futureMissing / MISSING_CONTACT_TOLERANCE);
   return value;
 }
 
@@ -3782,9 +3722,9 @@ function forwardRolloutScore(
   // argmax-by-full-value branch can carry the matching objective value out (set below).
   let lastLeafObjective = 0;
   const leafValue = (node: SearchNode, missed: number): number => {
-    if (leafObjective) return objectiveLeafValue(node, rootGapIndex, gaps, missed);
+    if (leafObjective) return objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames);
     if (shadowCapture !== null) {
-      lastLeafObjective = objectiveLeafValue(node, rootGapIndex, gaps, missed);
+      lastLeafObjective = objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames);
     }
     return forwardNodeScore(node, gaps, ctx);
   };
@@ -3845,11 +3785,11 @@ function forwardAvgNextScore(
   let bestFull = -Infinity;
   let objAtBest = 0;
   const leafValue = (node: SearchNode, missed: number): number => {
-    if (leafObjective) return objectiveLeafValue(node, rootGapIndex, gaps, missed);
+    if (leafObjective) return objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames);
     const full = forwardNodeScore(node, gaps, ctx);
     if (shadowCapture !== null && full > bestFull) {
       bestFull = full;
-      objAtBest = objectiveLeafValue(node, rootGapIndex, gaps, missed);
+      objAtBest = objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames);
     }
     return full;
   };
@@ -3892,16 +3832,12 @@ function forwardArcValue(
   const saved = getSimFrames();
   // try/finally so a throw mid-rollout (e.g. a future frame limit) can't leak frames.
   const charge = cfg.charge;
-  // Objective leaf scores the rolled span [child.gapIndex−1, leaf.gapIndex): the candidate's
-  // own gap (the always-differing factor) through the rollout terminus. The prefix before it is
-  // identical across one pool and cancels in ranking, so it is excluded.
+  // rootGapIndex (the candidate's own gap) is retained for the leaf signature; the objective leaf's
+  // axis RMS now spans the WHOLE committed prefix (see objectiveLeafValue), so nothing is excluded.
   const rootGapIndex = child.gapIndex - 1;
-  // Hybrid impact fallback: in objective-leaf mode, score impact-targeted own-gaps with the FULL
-  // leaf (the shadow study's misranking cost lives almost entirely on impact gaps). The own gap is
-  // rootGapIndex; uses the TRUE impact target (fwdEvalGapAxisTargets), matching the scorer.
-  const ownGapImpact = fwdEvalGapAxisTargets[rootGapIndex]?.impact ?? 0;
-  const leafObjective = cfg.leaf === "objective" &&
-    !(fwdEvalLeafHybridImpact && ownGapImpact >= FWD_EVAL_IMPACT_BRANCH_MIN_TARGET);
+  // Pure objective leaf: NO hybrid-impact fallback. The short leaf is a faithful scorer
+  // reconstruction in its own right (axis × survival × missing); it never defers to the full leaf.
+  const leafObjective = cfg.leaf === "objective";
   // Shadow mode: rank by the FULL leaf (leafObjective stays false) but install a capture so the
   // rollout also computes the objective value of the full-argmax leaf. lastShadowObjective carries
   // it to scoreCandidateForHandoff → the RankedOption, for the agreement recorder.

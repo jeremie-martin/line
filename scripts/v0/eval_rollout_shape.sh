@@ -81,18 +81,25 @@ BUDGETS="${BUDGETS:-150000,300000}"                        # two budgets = fast 
 SEEDS="${SEEDS:-0,1,2,3,4,5,6,7}"                          # 8 seeds
 JOBS="${JOBS:-48}"                                         # parallelism only — NOT in the fingerprint
 
-# --- env shared by BOTH arms. LR_FWD_EVAL is NOT here — it's the A/B variable below.
-#     LR_LEAF_RDY_LAMBDA=0 keeps the leaf pristine (readiness off) for this experiment.
-COMMON_ENV=( LR_ENGINE=wasm LR_LEAF_RDY_LAMBDA=0 )
+# --- env shared by BOTH arms. The A/B knobs (rollout shape + leaf readiness) live on
+#     the arms below, so the candidate can carry a rollout shape AND a readiness tilt.
+COMMON_ENV=( LR_ENGINE=wasm )
 
-# --- A/B on the rollout shape. BASELINE = greedy:2 (default); CANDIDATE = $CAND_FWD.
+# --- A/B. BASELINE = production default (greedy:2, pristine leaf λ=0). CANDIDATE = a
+#     rollout shape ($CAND_FWD) optionally + a leaf readiness tilt ($CAND_RDY_KIND @ λ=$CAND_RDY_LAMBDA).
+#       CAND_FWD=best:1:2                                   # rollout shape only
+#       CAND_FWD=greedy:1 CAND_RDY_KIND=catch CAND_RDY_LAMBDA=0.1   # shape + readiness
 CAND_FWD="${CAND_FWD:-greedy:1}"
-BASELINE_ENV=( LR_FWD_EVAL=greedy:2 )       # the current default rollout
-CANDIDATE_ENV=( LR_FWD_EVAL="$CAND_FWD" )   # the variant under test (set via CAND_FWD)
+CAND_RDY_KIND="${CAND_RDY_KIND:-}"          # empty = no readiness knob (pristine leaf)
+CAND_RDY_LAMBDA="${CAND_RDY_LAMBDA:-0}"
+BASELINE_ENV=( LR_FWD_EVAL=greedy:2 LR_LEAF_RDY_LAMBDA=0 )            # production default
+CANDIDATE_ENV=( LR_FWD_EVAL="$CAND_FWD" LR_LEAF_RDY_LAMBDA="$CAND_RDY_LAMBDA" )
+[[ -n "$CAND_RDY_KIND" ]] && CANDIDATE_ENV+=( LR_LEAF_RDY_KIND="$CAND_RDY_KIND" )
 
 # Human label shown in the summary. Cosmetic only.
+_rdy_label=""; [[ "$CAND_RDY_LAMBDA" != "0" ]] && _rdy_label="+${CAND_RDY_KIND:-catch}@${CAND_RDY_LAMBDA}"
 BASELINE_LABEL="${BASELINE_LABEL:-greedy:2}"
-CANDIDATE_LABEL="${CANDIDATE_LABEL:-$CAND_FWD}"
+CANDIDATE_LABEL="${CANDIDATE_LABEL:-${CAND_FWD}${_rdy_label}}"
 
 # ============================================================================
 # PLUMBING — you should not need to touch anything past here.

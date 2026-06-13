@@ -178,6 +178,34 @@ seen twice; cause unstudied.
 
 ---
 
+## 6. best:1:2 and greedy:1 × catch readiness — one spec blocks the headline
+
+**Definition.** vs greedy:2 / pristine leaf. best:1:2 (depth 1, branch 2, MAX leaf); greedy:1 +
+catch readiness at λ ∈ {0.1, 0.2}. `eval_rollout_shape.sh` (candidate now carries shape + readiness).
+
+**Result:**
+
+```
+  best:1:2            -20.9  REJECT   (vs best:1:3 -122 — halving fan-out helps; charged cost still drags)
+  greedy:1+catch@0.1   -1.2  TIE      CI[-10.6,+6.6]
+  greedy:1+catch@0.2  -14.3  REJECT   (λ too strong)
+```
+
+Per-spec, greedy:1+catch@0.1 — nearly everything POSITIVE: big_air +7.7/+16.8, skyline +12.6/+10.4,
+leap +12.7@300k, summit +6.5/+4.2, dense_sprint +4.2/+2.7, canyon +6.1@300k. Held to parity almost
+entirely by **drums_pendulum −24.3/−32.1**, plus small cold_start −8/−4.6, syncopated −5.8/−4.0.
+
+Sharpest fact: greedy:1 ALONE is +6.5/−2.8 on drums_pendulum; adding catch readiness tanks it to
+−24/−32. So catch readiness is **actively wrong on drums_pendulum specifically**, while it helps
+nearly everywhere else (incl. the other dense specs, now ~neutral/positive).
+
+**Verdict.** `best` doesn't pay even at branch 2 (charged cost). greedy:1+catch ties greedy:2;
+catch readiness does not add to greedy:1 on net (greedy:1 alone +0.3 → +catch −1.2). The diffuse
+air-up/dense-down has collapsed to **one blocker: catch readiness misfiring on drums_pendulum.**
+Everything else already wins. Open: why drums_pendulum.
+
+---
+
 ## Open questions (no conclusions yet)
 
 - Catch-only helps air/rhythmic specs but hurts a few dense ones (drums_pendulum). Why — unstudied.

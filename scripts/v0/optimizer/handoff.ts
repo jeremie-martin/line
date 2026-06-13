@@ -87,7 +87,7 @@ import {
   snapshotAimStats,
 } from "./aim.ts";
 import { frontierReadinessFromFit, nextContactGapFromIndex } from "./objective.ts";
-import { axisErrorsForTargets, axisQualityForTargets, axisQualityFromErrors, MISSING_CONTACT_TOLERANCE } from "../score.ts";
+import { axisErrorsForTargets, axisQualityForTargets, axisQualityFromErrors, MISSING_CONTACT_TOLERANCE, scoreDriftReport } from "../score.ts";
 import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
@@ -192,6 +192,9 @@ type RankedOption = {
   /** Shadow-mode only (LR_FWD_EVAL_LEAF=shadow): objective leaf value of the full-argmax
    *  rollout leaf for this candidate. undefined outside shadow mode. */
   shadowObjective?: number;
+  /** Shadow + LR_SHADOW_FACTORS=1: the full/short factor breakdown of that same leaf. */
+  shadowFull?: LeafFactors | null;
+  shadowShort?: LeafFactors | null;
 };
 
 type StartOption = {
@@ -2876,7 +2879,14 @@ function scoreCandidateForHandoff(
       score: -value,
       // Shadow mode stamps the objective leaf value captured by forwardArcValue. The fwdCfg
       // leaf is "shadow" only on this path → undefined for full/objective (byte-identical).
-      ...(fwdCfg.leaf === "shadow" ? { shadowObjective: lastShadowObjective } : {}),
+      ...(fwdCfg.leaf === "shadow"
+        ? {
+          shadowObjective: lastShadowObjective,
+          ...(shadowFactorsEnabled
+            ? { shadowFull: lastShadowFullFactors, shadowShort: lastShadowShortFactors }
+            : {}),
+        }
+        : {}),
     };
   }
   const usePreviewScore = previewScorePressure > 0;
@@ -3057,12 +3067,28 @@ const FWD_EVAL_IMPACT_BRANCH_MIN_TARGET = 0.35;
 // objective value of the full-selected leaf out of the rollout recursion (set whenever a
 // rollout updates its full-value best). One holder per forwardArcValue call; null when shadow
 // is inactive so the full/objective paths stay untouched.
-type ShadowCapture = { fullBest: number; objAtBest: number };
+type LeafFactors = { axis: number; drift: number; off_beat: number; missing: number; survival: number };
+type ShadowCapture = {
+  fullBest: number;
+  objAtBest: number;
+  fullFactors: LeafFactors | null;
+  shortFactors: LeafFactors | null;
+};
 let shadowCapture: ShadowCapture | null = null;
 // Objective leaf value of the full-argmax leaf from the most recent shadow forwardArcValue call;
 // read by scoreCandidateForHandoff to stamp the RankedOption. Only meaningful immediately after a
 // shadow forwardArcValue (single-threaded synchronous rollout).
 let lastShadowObjective = 0;
+// Per-factor attribution (LR_SHADOW_FACTORS=1, shadow mode only). forwardNodeScore and
+// objectiveLeafValue stash the full/short factor breakdown of the leaf they just scored;
+// captureShadow copies the pair for the full-argmax leaf; scoreCandidateForHandoff stamps it on the
+// RankedOption so recordFwdEvalShadowAgreement can attribute each disagreement to a factor. Gated:
+// default shadow is byte-identical.
+const shadowFactorsEnabled = readEnv("LR_SHADOW_FACTORS") === "1";
+let lastFullLeafFactors: LeafFactors | null = null;
+let lastShortLeafFactors: LeafFactors | null = null;
+let lastShadowFullFactors: LeafFactors | null = null;
+let lastShadowShortFactors: LeafFactors | null = null;
 
 // ── Forward-eval cost + agreement instrument (MEASURE-ONLY) ──
 // Accumulates per compile, reset alongside the other lane stats. Two families:
@@ -3145,6 +3171,24 @@ const fwdEvalTotals = {
   // the leaf-axes-flatter-the-candidate signature. Counted overall + on vertical/impact gaps.
   shadow_disagree_objwinner_quality_high: 0,
   shadow_disagree_objwinner_quality_sum: 0,
+  // Per-factor attribution on disagreements (LR_SHADOW_FACTORS=1). fw = full winner (the right pick),
+  // ow = obj winner (short's pick) — both FULL-measured; ows = short's view of its own pick. The gap
+  // fw−ow per factor is the true value the short pick sacrifices; ows−ow is where the short leaf
+  // over-credits its pick. Means = sum / shadow_fx_n.
+  shadow_fx_n: 0,
+  shadow_fx_fw_axis: 0,
+  shadow_fx_fw_drift: 0,
+  shadow_fx_fw_offb: 0,
+  shadow_fx_fw_miss: 0,
+  shadow_fx_fw_surv: 0,
+  shadow_fx_ow_axis: 0,
+  shadow_fx_ow_drift: 0,
+  shadow_fx_ow_offb: 0,
+  shadow_fx_ow_miss: 0,
+  shadow_fx_ow_surv: 0,
+  shadow_fx_ows_axis: 0,
+  shadow_fx_ows_miss: 0,
+  shadow_fx_ows_surv: 0,
 };
 
 function resetFwdEvalStats(): void {
@@ -3205,6 +3249,20 @@ export type FwdEvalStats = {
   shadow_other_real_cost_sum: number;
   shadow_disagree_objwinner_quality_high: number;
   shadow_disagree_objwinner_quality_sum: number;
+  shadow_fx_n: number;
+  shadow_fx_fw_axis: number;
+  shadow_fx_fw_drift: number;
+  shadow_fx_fw_offb: number;
+  shadow_fx_fw_miss: number;
+  shadow_fx_fw_surv: number;
+  shadow_fx_ow_axis: number;
+  shadow_fx_ow_drift: number;
+  shadow_fx_ow_offb: number;
+  shadow_fx_ow_miss: number;
+  shadow_fx_ow_surv: number;
+  shadow_fx_ows_axis: number;
+  shadow_fx_ows_miss: number;
+  shadow_fx_ows_surv: number;
 };
 
 /** Snapshot for compile stats; null when forward-eval never ran (gate off / sub-gate
@@ -3385,6 +3443,31 @@ function recordFwdEvalShadowAgreement(
     const q = axisQualityForTargets(trueTargets, achieved).axis_quality;
     fwdEvalTotals.shadow_disagree_objwinner_quality_sum += q;
     if (q >= 0.85) fwdEvalTotals.shadow_disagree_objwinner_quality_high++;
+  }
+  // Per-factor attribution (LR_SHADOW_FACTORS=1): on this disagreement, fw = full winner's leaf
+  // factors (the right pick), ow = obj winner's leaf factors (short's pick) — both FULL-measured —
+  // and ows = the short leaf's OWN view of its pick. fw−ow per factor is the true value the short
+  // pick sacrifices; ows−ow is where the short leaf over-credits it.
+  if (shadowFactorsEnabled && objWinner.shadowFull && fullWinner.shadowFull) {
+    const ow = objWinner.shadowFull;
+    const fw = fullWinner.shadowFull;
+    const ows = objWinner.shadowShort;
+    fwdEvalTotals.shadow_fx_n++;
+    fwdEvalTotals.shadow_fx_fw_axis += fw.axis;
+    fwdEvalTotals.shadow_fx_fw_drift += fw.drift;
+    fwdEvalTotals.shadow_fx_fw_offb += fw.off_beat;
+    fwdEvalTotals.shadow_fx_fw_miss += fw.missing;
+    fwdEvalTotals.shadow_fx_fw_surv += fw.survival;
+    fwdEvalTotals.shadow_fx_ow_axis += ow.axis;
+    fwdEvalTotals.shadow_fx_ow_drift += ow.drift;
+    fwdEvalTotals.shadow_fx_ow_offb += ow.off_beat;
+    fwdEvalTotals.shadow_fx_ow_miss += ow.missing;
+    fwdEvalTotals.shadow_fx_ow_surv += ow.survival;
+    if (ows) {
+      fwdEvalTotals.shadow_fx_ows_axis += ows.axis;
+      fwdEvalTotals.shadow_fx_ows_miss += ows.missing;
+      fwdEvalTotals.shadow_fx_ows_surv += ows.survival;
+    }
   }
 }
 
@@ -3568,6 +3651,13 @@ function forwardNodeScore(search: SearchNode, gaps: Gap[], ctx: SpecContext): nu
   );
   const report = fullDuration ? rawReport : asPartialReport(rawReport, horizonFrame);
   recordFwdLeafDeadCheck(report, search, gaps);
+  if (shadowFactorsEnabled) {
+    const s = scoreDriftReport(report, { totalFrames: ctx.durationFrames });
+    lastFullLeafFactors = {
+      axis: s.axis_quality, drift: s.drift_quality, off_beat: s.off_beat_quality,
+      missing: s.missing_quality, survival: s.survival_quality,
+    };
+  }
   return leafKeyForReport(report, ctx.durationFrames).full_score;
 }
 
@@ -3672,7 +3762,14 @@ export function objectiveLeafValue(
   const futureMissing = Math.min(
     PARTIAL_FUTURE_CONTACT_WINDOW, remainingContactGaps(gaps, leaf.gapIndex),
   );
-  value *= survival * Math.exp(-futureMissing / MISSING_CONTACT_TOLERANCE);
+  const missingFactor = Math.exp(-futureMissing / MISSING_CONTACT_TOLERANCE);
+  value *= survival * missingFactor;
+  if (shadowFactorsEnabled) {
+    lastShortLeafFactors = {
+      axis: axisQualityFromErrors(errors).axis_quality,
+      drift: 1, off_beat: 1, missing: missingFactor, survival,
+    };
+  }
   return value;
 }
 
@@ -3734,6 +3831,10 @@ function forwardRolloutScore(
     if (shadowCapture !== null && full > shadowCapture.fullBest) {
       shadowCapture.fullBest = full;
       shadowCapture.objAtBest = lastLeafObjective;
+      if (shadowFactorsEnabled) {
+        shadowCapture.fullFactors = lastFullLeafFactors;
+        shadowCapture.shortFactors = lastShortLeafFactors;
+      }
     }
   };
   if (depthLeft <= 0 || isTerminalNode(search, gaps)) {
@@ -3842,7 +3943,7 @@ function forwardArcValue(
   // rollout also computes the objective value of the full-argmax leaf. lastShadowObjective carries
   // it to scoreCandidateForHandoff → the RankedOption, for the agreement recorder.
   const shadow = cfg.leaf === "shadow";
-  if (shadow) shadowCapture = { fullBest: -Infinity, objAtBest: 0 };
+  if (shadow) shadowCapture = { fullBest: -Infinity, objAtBest: 0, fullFactors: null, shortFactors: null };
   try {
     return cfg.variant === "avg"
       ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch, leafObjective, rootGapIndex)
@@ -3853,6 +3954,10 @@ function forwardArcValue(
   } finally {
     if (shadow) {
       lastShadowObjective = shadowCapture?.objAtBest ?? 0;
+      if (shadowFactorsEnabled) {
+        lastShadowFullFactors = shadowCapture?.fullFactors ?? null;
+        lastShadowShortFactors = shadowCapture?.shortFactors ?? null;
+      }
       shadowCapture = null;
     }
     // Cost instrument (measure-only): count the rollout's sim-frames even when charged

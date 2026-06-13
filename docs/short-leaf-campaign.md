@@ -76,6 +76,14 @@ Each isolates one layer of the short-vs-full question. Run any with
   predicted vy/y to the engine truth frame by frame (dt=0 error is 0 by construction).
   Characterizes the ballistic model's own error over a flight.
 
+- **`eval_rollout_ranking.sh`** — rollout-INTERNAL ranking telemetry. Runs the compiler
+  in shadow mode (ranks by the full leaf, byte-identical, while also computing the short
+  leaf value + per-factor breakdown of every pool candidate's rollout leaf — handoff.ts
+  `LR_SHADOW_FACTORS=1`, gated). Reports per pool: top-1 short-vs-full agreement, the
+  "real cost" of disagreements, and on each disagreement the full-measured factor
+  breakdown of the full winner vs the short winner. Catches the mis-ranking in the
+  rejected branches, not the committed path.
+
 ## The mechanism
 
 `docs/forward-eval-map.html` is the verified logic map of the whole pipeline — pool

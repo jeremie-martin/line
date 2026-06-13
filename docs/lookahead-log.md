@@ -149,6 +149,18 @@ empirically UNREACHABLE for this spec suite at ANY budget — bounded by impact+
 specs plus diminishing budget returns. The north star is infeasible as framed; reaching it would need
 a different spec suite or a scorer change (impact/air weighting or targets), not a compiler change.
 
+### H1. Asymmetric speedFit (readiness reshape, NOT ablation) — ACCEPT +4.0 → NEW BASELINE 626.2
+**Hypothesis.** `speedFit` compares the catch-INSTANT arrival speed to the next gap's MEAN-of-flight
+speed target; the catch instant overestimates the flight mean, so a symmetric `exp(-|Δ|/scale)`
+over-penalizes the (apparent) overshoot. (This is the long-standing §Open-questions item.)
+**Change** (objective.ts `speedFitFactor`, production default, no flag): penalty `= d>0 ? d*0.5 : -d`
+— too-fast half-penalized, too-slow unchanged.
+**Result.** headline **622.2 → 626.2, Δ=+4.0** CI[1.2, 6.8] P(Δ≤0)=0.4%; per-budget all positive
+(100k +2.2 / 200k +4.9 / 300k +4.1); pass-rate 100%→100% every budget.
+**Verdict. ACCEPT** — committed + promoted to baseline. First accepted change; overturns the prior
+"no compiler win exists" assessment — that rested on only ever ABLATING readiness components (all
+positive when dropped) and never RESHAPING one. The shape, not the presence, had headroom.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

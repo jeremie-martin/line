@@ -128,9 +128,13 @@ export function predictArrivalAtNextContact(
 
 function speedFitFactor(speed: number, nextGap: Gap): number {
   const target = nextGap.targets.speed;
-  return target === undefined
-    ? 1
-    : Math.exp(-Math.abs(speed - authoredSpeedToPx(target)) / OBJECTIVE_SPEED_SCALE_PXF);
+  if (target === undefined) return 1;
+  // Asymmetric: too-fast is half-penalized. The arrival speed is the catch INSTANT, which
+  // overestimates the next gap's MEAN-of-flight speed target, so a symmetric |Δ| over-penalizes
+  // the (apparent) overshoot; excess speed can also be bled. Too-slow keeps full penalty.
+  const d = speed - authoredSpeedToPx(target);
+  const penalty = d > 0 ? d * 0.5 : -d;
+  return Math.exp(-penalty / OBJECTIVE_SPEED_SCALE_PXF);
 }
 
 function impactFeasibilityFactor(

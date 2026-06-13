@@ -22,7 +22,7 @@ cd "$(git rev-parse --show-toplevel)"
 SPECS="drums_crescendo,solo_run,big_air_ramp"
 BUDGETS="100000,200000,300000"
 SEEDS="0,1,2,3,4,5,6,7,8,9,10,11"   # 12 seeds
-JOBS=32
+JOBS=36
 
 OUTROOT="generated/short-leaf-eval"
 BASELINE_DIR="$OUTROOT/baseline-full"
@@ -79,26 +79,39 @@ echo "------------------------------------------------------------"
 python3 - "$CAND_JSON" "$BASELINE_JSON" <<'PY'
 import json, sys
 cand = json.load(open(sys.argv[1])); base = json.load(open(sys.argv[2]))
-def perspec(d):
-    o = {}
+budgets = sorted({cp["budget"] for r in cand.get("rows", []) for cp in r.get("checkpoints", [])})
+specs   = sorted({r.get("name") for r in cand.get("rows", [])})
+def cells(d):
+    # (spec,budget) -> [sum_score, pass, total]
+    agg = {}
     for r in d.get("rows", []):
+        sp = r.get("name")
         for cp in r.get("checkpoints", []):
-            if isinstance(cp.get("score"), (int, float)):
-                o.setdefault(r.get("name"), []).append(cp["score"])
-    return {k: sum(v) / len(v) for k, v in o.items()}
-def valid(d):
-    n = p = 0
-    for r in d.get("rows", []):
-        for cp in r.get("checkpoints", []):
-            n += 1; p += 1 if cp.get("contract_passed") else 0
-    return f"{p}/{n}"
-cs, bs = perspec(cand), perspec(base)
+            k = (sp, cp.get("budget")); a = agg.setdefault(k, [0.0, 0, 0])
+            if isinstance(cp.get("score"), (int, float)): a[0] += cp["score"]
+            a[1] += 1 if cp.get("contract_passed") else 0; a[2] += 1
+    return agg
+cc, bc = cells(cand), cells(base)
+def m(a, k): v = a.get(k); return (v[0] / v[2]) if v and v[2] else 0.0
+def fb(b): return f"{b//1000}k" if b % 1000 == 0 else str(b)
 ch = cand.get("headline", {}).get("score"); bh = base.get("headline", {}).get("score")
 if isinstance(ch, (int, float)) and isinstance(bh, (int, float)):
-    print(f"  HEADLINE   short {ch:7.2f}   full {bh:7.2f}   delta {ch-bh:+.2f}")
-print(f"  validity   short {valid(cand):>9}   full {valid(base):>9}")
-print(f"  {'spec':20s} {'short':>8} {'full':>8} {'delta':>8}")
-for sp in sorted(bs):
-    print(f"  {sp:20s} {cs.get(sp,0):8.1f} {bs.get(sp,0):8.1f} {cs.get(sp,0)-bs.get(sp,0):+8.1f}")
+    print(f"  HEADLINE (budget-weighted)   short {ch:7.2f}   full {bh:7.2f}   Δ {ch-bh:+.2f}")
+print()
+print("  per-budget (mean over specs):")
+print(f"    {'budget':>6} {'short':>8} {'full':>8} {'Δ':>8}")
+for b in budgets:
+    cs = sum(m(cc, (sp, b)) for sp in specs) / len(specs)
+    bs = sum(m(bc, (sp, b)) for sp in specs) / len(specs)
+    print(f"    {fb(b):>6} {cs:8.1f} {bs:8.1f} {cs-bs:+8.1f}")
+print()
+print("  per-track × budget   (valid = short,full pass-rate):")
+print(f"    {'spec':16s} {'budget':>6} {'short':>8} {'full':>8} {'Δ':>8}   valid")
+for sp in specs:
+    for b in budgets:
+        c, f = cc.get((sp, b)), bc.get((sp, b))
+        cm, fm = m(cc, (sp, b)), m(bc, (sp, b))
+        cv = f"{c[1]}/{c[2]}" if c else "-"; fv = f"{f[1]}/{f[2]}" if f else "-"
+        print(f"    {sp:16s} {fb(b):>6} {cm:8.1f} {fm:8.1f} {cm-fm:+8.1f}   {cv},{fv}")
 PY
 echo "============================================================"

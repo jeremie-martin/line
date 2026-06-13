@@ -21,6 +21,15 @@ The probe-board greedy:1 win (§10) was at 500k / 11 specs; test it on the canon
 **609.3, Δ −5.0**, negative every budget (50k −3.4 / 100k −8.3 / 200k −4.4 / 300k −3.5). greedy:2's
 depth is better at canonical budgets (biggest gap @100k). Reverted.
 
+### C2. Impact funnel (study, read-only) — impact is GENERATION-bound, not a lookahead lever
+`study_impact_funnel.ts` (6 impact specs × 3 seeds @200k, 477 impact gaps): A_not_generated **53%**
+(needed turn 26.7°, selected 6.3°), B_gates 3%, C_ranking_loses **36%**, D_works 7%. In the C bucket
+the deepest *admitted* scoop reaches only impact 0.27 vs 0.36 target (still undershoots) and is
+correctly ranked near-bottom (0.69 pct) — flat-entry deep scoops cost speed, so the ranker is right
+to skip them. ⇒ the 58-pt impact lever needs DEEPER / STEEP-ENTRY scoop geometry that is never
+generated (template turn cap); the lookahead ranker is near-optimal on what it's handed. The path to
+700 runs through candidate GENERATION (arc template), which is outside the forward-eval lookahead.
+
 ---
 
 ## PROBE PHASE (11 specs × {150k,300k,500k} × 8 seeds, eval_*.sh) — superseded by the canonical phase

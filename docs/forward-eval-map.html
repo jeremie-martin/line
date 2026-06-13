@@ -165,33 +165,34 @@ leafValue(node, missed):
     if not gaps[i].endsWithContact: continue   # not just
     fit = leaf.prefixFits[i]                   # the rolled span
     if fit == null: missingFit++; continue
-    errors += axisErrorsForTargets(            # raw per-axis
-                trueTargets[i], fit.achieved)  # errors
+    a = fit.achievedAtEnd ?? fit.achieved      # GAP-window axes
+    errors += axisErrorsForTargets(trueTargets[i], a)  # scorer's window
   value = 1000 × axisQualityFromErrors(errors).axis_quality
           # ONE combined RMS over the whole prefix — the
           # full leaf's own fold (RMS is non-linear ⇒ the
           # prefix does NOT cancel: lets the score ABANDON
           # an over-sped prefix). NO readiness, NO hybrid.
   if missingFit > 0: value *= e^(-missingFit)
-  horizon  = processedHorizonFrame(leaf)   # last committed
-  survival = clamp01(horizon / durationFrames)   # contact frame
+  horizon  = processedHorizonFrame(leaf)         # last committed contact
+  survival = isTerminalNode(leaf) ? 1            # reachedEnd ⇒ 1
+             : clamp01(horizon / durationFrames) # else depth proxy
   futureMissing = min(20, remainingContactGaps(leaf.gapIndex))
   value *= survival × e^(-futureMissing / MISSING_CONTACT_TOLERANCE)
   return value</pre>
-<p class="mut">Uses the committed fit's <code>achieved</code> axes (ballistic, measured during candidate generation). Zero engine frames. The axis RMS spans the <b>whole committed prefix</b> [0, leaf.gapIndex) — same fold as the full leaf — and <code>survival</code> × <code>missing</code> read straight off the rollout's committed depth. Readiness and hybrid machinery were <b>deleted</b> (commit <code>bf49062</code>): the leaf is exactly <code>axis × survival × missing</code>.</p>
+<p class="mut">Scores each committed fit's <code>achievedAtEnd</code> axes — the gap window <code>[start, endFrame]</code>, the SAME window the true scorer measures (pure engine, computed once at fit time; falls back to the lookahead <code>achieved</code> only when the windows coincide). Zero engine frames at leaf time. The axis RMS spans the <b>whole committed prefix</b> [0, leaf.gapIndex) — same fold as the full leaf; <code>survival</code> (terminal ⇒ 1, else depth proxy) × <code>missing</code> read off the rollout's committed depth. Readiness/hybrid machinery <b>deleted</b> (<code>bf49062</code>): the leaf is exactly <code>axis × survival × missing</code>.</p>
 </div>
 </div>
 
 <h3>What each leaf actually multiplies — vs the true scorer's five factors</h3>
 <table>
 <tr><th>true-scorer factor <span class="ref">score.ts:245</span></th><th class="full">FULL leaf (measures)</th><th class="short">SHORT leaf (reconstructs)</th></tr>
-<tr><td><b>axis_quality</b><br><span class="mut">exp(−rms(axis errors)/0.25)</span></td><td class="full">single <b>combined RMS</b> over ALL axes of ALL composed contacts</td><td class="short">single <b>combined RMS</b> over all committed-prefix fits — <b>same fold</b>; inputs are the ballistic <code>achieved</code></td></tr>
+<tr><td><b>axis_quality</b><br><span class="mut">exp(−rms(axis errors)/0.25)</span></td><td class="full">single <b>combined RMS</b> over ALL axes of ALL composed contacts</td><td class="short">single <b>combined RMS</b> over all committed-prefix fits — <b>same fold</b>; inputs are <code>achievedAtEnd</code> (the gap window <code>[start, endFrame]</code>, the scorer's own window) ⇒ <b>exact</b>, residual 0</td></tr>
 <tr><td><b>drift_quality</b><br><span class="mut">landed but outside ±1 frame</span></td><td class="full">from the re-detected landings</td><td class="short">= <b>1</b> (catch gate requires ±1 per gap, so committed contacts are "hit")</td></tr>
 <tr><td><b>missing_quality</b><br><span class="mut">exp(−missing/1.0)</span></td><td class="full">future contacts past horizon, capped 20</td><td class="short">exp(−futureMissing/1.0), futureMissing = remaining contact gaps — <b>same structure</b></td></tr>
 <tr><td><b>off_beat_quality</b><br><span class="mut">exp(−off_beat/1.0)</span></td><td class="full">landings off the beat grid</td><td class="short">= <b>1</b> (off-beat gate rejects them per gap)</td></tr>
-<tr><td><b>survival_quality</b><br><span class="mut">terminus.frame / total</span></td><td class="full">terminus/total; 1 on endOfSpec (rides out the tail)</td><td class="short">clamp01(lastContact/total) — committed depth proxy</td></tr>
+<tr><td><b>survival_quality</b><br><span class="mut">terminus.frame / total</span></td><td class="full">terminus/total; 1 on endOfSpec (rides out the tail)</td><td class="short"><b>terminal: 1</b> (reproduces reachedEnd); partial: clamp01(lastContact/total) = the full leaf's clamped survival</td></tr>
 </table>
-<div class="callout"><b>The SHORT leaf reconstructs all five factors</b> from the rollout's committed fits, zero engine frames: axis as the same combined-RMS fold, <code>drift</code>/<code>off_beat</code> as 1 (gate-enforced per gap), <code>missing</code> from the committed depth, <code>survival</code> from the deepest committed contact. The two that are not bit-identical to the full leaf's measurement are <code>axis</code> (its inputs are the ballistic <code>achieved</code>, not the composed re-detection) and <code>survival</code> (the depth proxy equals the full leaf on partial leaves but does not credit the post-last-contact ride-out on terminal leaves). The <code>eval_*</code> scripts in §9 quantify both.</div>
+<div class="callout"><b>The SHORT leaf now reproduces all five factors EXACTLY</b>, at zero engine frames: <code>axis</code> over the gap window (<code>achievedAtEnd</code> = the scorer's own window, residual 0 — commit <code>01d7af8</code>), <code>drift</code>/<code>off_beat</code> = 1 (gate-enforced per gap), <code>missing</code> from committed depth (same structure), <code>survival</code> = 1 on terminal leaves (reachedEnd) / the clamped proxy on partials (which matches the full leaf — commit <code>589e801</code>). It is a faithful reconstruction of the true scorer, ~21% cheaper per rollout — and is now the <b>default</b>.</div>
 
 <h2>6 · The true scorer <span class="ref">score.ts:237</span></h2>
 <pre>full_score = 1000
@@ -213,14 +214,14 @@ leafValue(node, missed):
 <table>
 <tr><th>env</th><th>meaning</th></tr>
 <tr><td class="kv">LR_FWD_EVAL</td><td>variant:depth — default <code>greedy:2</code>; also <code>best:N</code>, <code>avg:N</code></td></tr>
-<tr><td class="kv">LR_FWD_EVAL_LEAF</td><td><code>full</code> (default) | <code>objective</code> (the short leaf) | <code>shadow</code> (rank by full, record objective). The readiness/hybrid sub-knobs were deleted — the objective leaf is now exactly <code>axis × survival × missing</code>.</td></tr>
+<tr><td class="kv">LR_FWD_EVAL_LEAF</td><td><code>objective</code> (<b>DEFAULT</b> — the short leaf) | <code>full</code> | <code>shadow</code> (rank by full, record objective). The readiness/hybrid sub-knobs were deleted — the objective leaf is exactly <code>axis × survival × missing</code>.</td></tr>
 <tr><td class="kv">LR_FWD_EVAL_MIN_BUDGET</td><td>gate (75k); below it, a smoothstep stochastic ramp decides per node</td></tr>
 <tr><td class="kv">LR_FWD_EVAL_CHARGE</td><td><code>0</code> refunds rollout frames (budget-refunded ceiling experiment)</td></tr>
 <tr><td class="kv">LR_RANK_QUALITY / LR_AIM_TOPK_BASES</td><td>pool quality re-sort (default on) / aim-lane bases (default 3)</td></tr>
 </table>
 
 <h2>9 · Status &amp; the evidence scripts</h2>
-<p>The catastrophic collapse (objective leaf → drums_crescendo 0/10) is <b>solved and committed</b> (<code>bf49062</code>): the combined-RMS-over-the-whole-prefix × survival × missing reconstruction brought drums_crescendo and solo_run to <b>parity</b> with the full leaf at ~21% fewer rollout frames. The short leaf remains <b>flag-gated</b> (<code>LR_FWD_EVAL_LEAF</code> defaults to <code>full</code>); the open residual is <b>big_air_ramp</b>, where the short leaf still trails the full leaf. The goal is to close that gap <i>through the short leaf</i> — see <code>docs/short-leaf-campaign.md</code> for the problem statement and goal.</p>
+<p>The catastrophic collapse (objective leaf → drums_crescendo 0/10) is <b>solved and committed</b> (<code>bf49062</code>): the combined-RMS-over-the-whole-prefix × survival × missing reconstruction brought drums_crescendo and solo_run to <b>parity</b> with the full leaf at ~21% fewer rollout frames. The lone residual — <b>big_air_ramp</b> — was then closed by scoring the axis over the <b>gap window</b> the scorer uses, not the lookahead window (<code>01d7af8</code>), and terminal survival now reproduces <code>reachedEnd = 1</code> (<code>589e801</code>). The objective leaf is now an <b>exact reconstruction</b> of the true scorer and ~21% cheaper per rollout, so across all 40 golden specs it <b>beats the full leaf by +1.72</b> (decide ACCEPT, zero regressions, big_air +2.4) — and is now the <b>default</b>. See <code>docs/short-leaf-campaign.md</code> for the goal and the evidence scripts below.</p>
 <p class="mut">The empirical evidence is in a suite of standalone scripts (all under <code>scripts/v0/</code>); each isolates one layer of the short-vs-full question. Run any with <code>LR_ENGINE=wasm npx tsx scripts/v0/&lt;name&gt;</code>:</p>
 <ul>
 <li><code>eval_short_leaf.sh</code> — the headline: short-leaf golden vs a one-time full-leaf baseline + <code>decide</code>, with per-track×budget and per-axis/factor summaries. <b>This is the target metric.</b></li>

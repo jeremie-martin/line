@@ -81,3 +81,38 @@ their rollouts can commit different near-equivalent arcs), and it sits inside th
 decision point, so there is no remaining faithful lever inside the leaf; further headline motion
 would require changing the search itself, which is out of scope. Campaign objective (short leaf
 matches the full leaf) reached.
+
+---
+
+## 2. All-specs verification + DEFAULT FLIP — ACCEPT (+1.72)
+
+Re-ran on **ALL 40 golden specs** (× 12 seeds × 3 budgets), not just the 3-spec focus board:
+short **619.31** vs full **617.59**, **Δ +1.72**, decide **ACCEPT** (CI [1.1, 2.4], P(Δ≤0)=0%,
+100% validity). Worst cell tiny_dance −0.7 / dense_sprint −0.2 (noise); **zero specs regressing
+>1pt**; big_air_ramp **+2.4**; best drums_tide +3.7 / opening_burst +3.5 / pop_train +3.0 (the
+other air spec that had trailed). The focus-board −0.01 (entry 1) was a hard 3-spec subset;
+suite-wide the short leaf's ~21%-cheaper rollout buys more search per budget and wins.
+
+Audit (loose-end check): `measureGapAxes` is the single axis fn (no parallel impl); `achievedAtEnd`
+is carried through every GapFit construct/clone site (evaluateGapFit / evaluateCandidateLines /
+cloneGapFit / cloneFits — all candidate paths route through evaluateGapFit); residual exactly 0
+(eval_leaf_window col D); full-leaf byte-identical. **Made the short leaf the default** —
+`forwardEvalLeaf()` returns `"objective"`; `"full"`/`"shadow"` are explicit escape hatches;
+start-eval still forces `"full"`. Committed `dcfcf03` (eval all-specs) + `989a5b5` (default flip);
+suite 299/299.
+
+## 3. Terminal survival reproduces reachedEnd = 1 — faithfulness, byte-identical
+
+The leaf scored survival = lastContact/duration for every leaf, but the true scorer gives 1.0 on
+reachedEnd (endOfSpec). A terminal leaf reaches endOfSpec — verified: full-leaf survival = 1.0 on
+every complete node across specs (drums included) — so the proxy under-scored terminal rollouts by
+the ride-out tail (~0.06). Gated on `isTerminalNode` (the full leaf's own `fullDuration` predicate)
+→ survival 1; partial leaves keep the proxy. **Verified BYTE-IDENTICAL** across all 40 specs × 12
+seeds × 3 budgets (0/1440 cells differ): terminal survival is a constant among terminal candidates,
+so it cancels in the ranking argmax. Score-neutral, but it closes the leaf's last reconstruction
+gap (all five factors now exact) and makes the per-factor telemetry honest, at zero risk. Committed
+`589e801`; suite 300/300.
+
+**Campaign complete.** The objective leaf is an exact, ~21%-cheaper reconstruction of the true
+scorer, beats it **+1.72** suite-wide (ACCEPT, zero regressions), and is the default. A canonical
+run remains the formal promotion gate.

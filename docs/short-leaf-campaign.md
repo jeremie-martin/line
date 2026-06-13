@@ -30,15 +30,20 @@ telemetry scripts below — exists only to gather empirical evidence about where
 short and full leaves diverge. **They are tooling, not the target.** The target is the
 short leaf reaching parity on the headline script.
 
-## Current status
+## Current status — DONE
 
-The catastrophic collapse (the objective leaf drove `drums_crescendo` to 0/10 valid)
-is solved and committed (`bf49062`): with the reconstruction at
-`axis × survival × missing`, `drums_crescendo` and `solo_run` reach parity with the
-full leaf at ~21% fewer rollout frames. The short leaf is still flag-gated
-(`LR_FWD_EVAL_LEAF` defaults to `full`). The open residual is **`big_air_ramp`**, where
-the short leaf still trails the full leaf — closing that, through the short leaf, is the
-remaining work.
+The catastrophic collapse (objective leaf → `drums_crescendo` 0/10) was solved by the
+combined-RMS-over-the-prefix × survival × missing reconstruction (`bf49062`); the lone
+remaining residual — `big_air_ramp` — was closed by scoring the leaf's axis over the
+**gap window** the true scorer uses, not the lookahead window (`01d7af8`); and the
+terminal survival factor now reproduces the scorer's `reachedEnd = 1` (`589e801`). The
+objective leaf is now an **exact reconstruction of the true scorer's five factors**,
+and is ~21% cheaper per rollout — so at a fixed budget it searches more and scores
+*better*: across all 40 golden specs × 12 seeds × 3 budgets it is **+1.72 over the full
+leaf** (decide ACCEPT, P(Δ≤0)=0%, 100% validity, zero specs regressing, `big_air_ramp`
++2.4). **The short leaf is now the default** (`forwardEvalLeaf()` returns `"objective"`;
+`"full"`/`"shadow"` are explicit escape hatches). A canonical run remains the formal
+promotion gate.
 
 ## The measurement of record
 

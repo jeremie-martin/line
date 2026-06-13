@@ -57,11 +57,31 @@ cost-reducing pool (C6 −4.6); impact (C2) is generation-bound. greedy:2 / firs
 short-leaf is a tight GLOBAL cost-quality optimum.
 
 **But it's the right answer only ON AVERAGE.** Difficulty characterization (offline on the baseline):
-budget/gap spans ~20× (tiny_dance 75k/gap @300k → solo_run 3.9k/gap), and the search gets 7–23
-nodes/gap on budget-rich specs vs ~2.5 on dense ones. Budget-rich specs have SLACK that could fund a
-wider rollout (best:N — which won at 500k on the probe board), while budget-poor specs are starved
-into bare greedy. ⇒ next lever: **difficulty-aware config** — best:N where budget/gap is high, greedy:2
-where low. Probe: `eval_difficulty.sh` (rich→poor board); flag `LR_FWD_EVAL_BPG` (budget/gap threshold).
+budget/gap spans ~20× (tiny_dance 75k/gap @300k → solo_run 3.9k/gap), search nodes/gap 7–23 (rich) vs
+~2.5 (dense). Budget-rich specs have SLACK. → difficulty-aware config experiment (below).
+
+### D1. Difficulty-aware WIDTH (best:N where budget/gap high) — WASH on the canonical
+`LR_FWD_EVAL_BPG` (budget/gap threshold → best:DEPTH:N), aim-suppressed. Probe (5 specs, 3 seeds)
+suggested +5.7, but the FULL canonical (40 × 12):
+
+```
+  best:1:5 @15k   621.77  Δ −0.4   (width helps leap +4.0/big_air +3.3/canyon +3.0, but depth-1
+                                    hurts float_bounds −19.6/summit −9.1; canyon's probe +30 = noise)
+  best:2:2 @20k   621.71  Δ −0.5   (keep depth-2 + width; cost offsets the width gain)
+```
+
+Both INCONCLUSIVE/wash. ⇒ the marginal value of WIDTH ≈ the default allocation's, even in budget-rich
+situations. Width is not where the slack pays. Reverted the flag. `eval_difficulty.sh` kept.
+
+### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
+A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
+aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),
+budget is CONSERVED (opportunity cost), and the curves are DIFFICULTY-dependent. Optimum = spend each
+marginal unit where its marginal value is highest until they EQUALIZE across levers — difficulty tells
+you which curve you're on. D1 is one measured point (width's marginal value ≈ default's). NOT
+decisive: the work is measuring each lever's curve × difficulty (studies), then allocating to equalize
+marginal value. Levers already mapped at the global operating point: depth peaks at 2 (C1/C3), pool at
+8 (C6), width ≈ default (D1). UNEXPLORED & promising: the RETRY/repair budget share.
 
 ---
 

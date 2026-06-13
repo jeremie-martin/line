@@ -299,13 +299,14 @@ the valuable top-level contribution. Leader remains **best:1:5 + noaim (rollout-
 **Definition.** greedy:1 WITH aim (the production default's only change: depth 2→1), 3-budget board,
 vs greedy:2. The apples-to-apples number that was missing from §7–8.
 
-**Result (headlines, baseline greedy:2 = 589.2):**
+**Result (headlines per budget, baseline greedy:2 = 589.2; absolute candidate score per budget):**
 
 ```
-  greedy:2 (baseline)     589.2   —       (582.4 / 590.5 / 595.3)
-  greedy:1 (with aim)     591.6   +2.4    (579.9 / 592.7 / 599.7)   CI[-2.0,+6.5]
-  best:1:5 + noaim        591.9   +2.7    (581.2 / 592.3 / 600.2)   CI[-2.4,+7.7]
-  greedy:1 (aim off all)  590.0   +0.8
+  config                  headline  vs g:2     150k     300k     500k
+  greedy:2 (baseline)     589.2     —          582.4    590.5    595.3
+  greedy:1 (with aim)     591.6     +2.4       579.9    592.7    599.7    CI[-2.0,+6.5]
+  best:1:5 + noaim        591.9     +2.7       581.2    592.3    600.2    CI[-2.4,+7.7]
+  greedy:1 (aim off all)  590.0     +0.8       579.1    592.0    599.1
 ```
 
 **Finding (corrects §8's framing).** greedy:1 alone is +2.4 — STATISTICALLY IDENTICAL to
@@ -315,9 +316,17 @@ needed only to stop best:N from tanking, and even un-tanked it merely MATCHES pl
 adds nothing measurable. The "wide-branching breakthrough" (§8) was really "go shallow." greedy:1 with
 aim (+2.4) > aim-off (+0.8), so keep the aim (consistent with §9).
 
+**BUDGET CROSSOVER (~300k).** Every shallow variant follows the same per-budget profile: BEHIND
+greedy:2 at 150k (579–581 vs 582.4 — depth-2's deeper lookahead wins when budget is tight), ~tied at
+300k (592.0–592.7 vs 590.5), then clearly AHEAD at 500k (599.1–600.2 vs 595.3) with the gap widening.
+So the +2.4 headline is a HIGH-BUDGET effect; a flat greedy:1 genuinely COSTS at low budget. This is
+the key open question for promotion: flat greedy:1 vs budget-adaptive depth (greedy:2 below ~300k,
+greedy:1 above). The canonical golden runs lower budgets too, so a flat switch could lose there.
+
 **Verdict.** The simplest possible change — `LR_FWD_EVAL=greedy:1`, one parameter, no new code/flags —
-captures the whole gain (+2.4, all at high budget: +4.4 @500k). It is the candidate to firm up
-(more seeds) and consider promoting, NOT the complex best:1:5+noaim. Still probe-tier (CI crosses 0).
+captures the whole high-budget gain (+4.4 @500k). It is the candidate to firm up (more seeds + a
+budget crossover sweep), NOT the complex best:1:5+noaim. Still probe-tier (CI crosses 0). Promotion
+hinges on the budget profile — likely budget-adaptive depth, not a flat switch.
 
 ---
 

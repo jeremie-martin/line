@@ -145,6 +145,39 @@ the weaker speed/impact terms).
 
 ---
 
+## 5. Rollout SHAPE (depth/width) — greedy:1 parity+cheaper; wider REJECT
+
+**Definition.** A/B on `LR_FWD_EVAL` only, leaf pristine (λ=0, readiness off);
+`eval_rollout_shape.sh`. Baseline greedy:2 (decision arc + 2 rolled, single first-viable
+chain). Candidates: greedy:1 (decision + 1 rolled); best:1:3 (depth 1, 3 quality-ranked
+candidates at the rolled gap, MAX leaf); avg:3 (depth 1, MEAN over top-3). (greedy:2
+baseline reproduces 585.28 — consistency check vs the readiness baseline.)
+
+**Result (vs greedy:2):**
+
+```
+  greedy:1   +0.3   CI[-5.4,+5.3]  INCONCLUSIVE (tie) — and cheaper (1 rolled gap)
+  best:1:3  -122.2  REJECT
+  avg:3     -140.6  REJECT
+```
+
+Per-spec, greedy:1: air specs prefer shallow (big_air +6.1/+15.9, leap +1.5/+11.2, skyline
++5.6/+5.3, summit +4.4/+5.1); a few dense prefer deep (syncopated −15.2, canyon −12.1,
+rhythm −10.2). Net wash. best:1:3 is budget-starved at low budget: drums_pendulum −474.8
+@150k but +1.6 @300k; dense_sprint −60.8 @150k → −14.9 @300k (air specs +; charged 3× fan-out
+of rolled-arc sims starves dense specs at 150k).
+
+**Verdict.** greedy:1 = parity (cheaper); best/avg = REJECT. "Wide doesn't pay charged" holds
+even with the cheap leaf, because the binding charged cost is the rollout ARC-SIMULATIONS, not
+the leaf — the short leaf made the leaf cheap, not width affordable. The deep 2nd gap adds
+nothing on net (greedy:1 tie).
+
+**Cross-experiment note (factual):** air-heavy specs benefit from BOTH shallower rollouts (§5)
+and frontier catchability (§3); dense specs resist both. A consistent state-dependent split,
+seen twice; cause unstudied.
+
+---
+
 ## Open questions (no conclusions yet)
 
 - Catch-only helps air/rhythmic specs but hurts a few dense ones (drums_pendulum). Why — unstudied.

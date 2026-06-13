@@ -139,6 +139,16 @@ tunable lever — lookahead, aim, readiness, budget, generation cap, or generati
 at these budgets. The only remaining moves are non-tunable real-world decisions: change the scorer's
 impact weighting/targets, change the redirection physics (REDIR_CAP), or accept 622 as the ceiling.
 
+### G3. Full canonical @1M = 637.33 — 700 is INFEASIBLE for this suite at any budget (measured)
+Ran the full canonical (40×12) at a single 1M budget to settle the 5-spec (+5) vs repair-note (706)
+conflict. Result: **1M headline 637.33** (mean 639.7), excl-impact 693.68. Budget→headline curve:
+100k 612 / 200k 624 / 300k 629 / **1M 637** — diminishing, +8 for 3.3× budget. The repair note's
+"706 @1M" was STALE (different baseline). Lowest specs @1M still physics-pinned: drums_pendulum 492
+(air), terrace 556, dense_echo/skyline 574. **Even excl-impact @1M = 693.68 < 700.** ⇒ 700 is
+empirically UNREACHABLE for this spec suite at ANY budget — bounded by impact+air physics on the low
+specs plus diminishing budget returns. The north star is infeasible as framed; reaching it would need
+a different spec suite or a scorer change (impact/air weighting or targets), not a compiler change.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

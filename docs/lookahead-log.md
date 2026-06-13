@@ -46,11 +46,22 @@ Rolled gaps sample 3 quality-ranked candidates (rollout aim suppressed) and roll
 vs 1 first-viable. Result (vs 622.16): **618.14, Δ −4.0**; negative every budget (100k 601.8 −10.5 /
 200k 618.2 −6.1 / 300k 623.6 −5.7), worst at 100k. The extra sampling cost dominated. Reverted.
 
-**ASSESSMENT (cost-quality optimum).** Depth-down (C1 −5.0), depth-up (C3 −3.0), and cost-adding
-downstream quality (C5 −4.0) all REJECT; impact (C2) is generation-bound. greedy:2 / first-viable /
-short-leaf is a tight cost-quality optimum — added rollout cost is punished, reduced quality is
-punished, and the 57-pt impact gap to 700 is in candidate GENERATION (arc scoop geometry), outside
-the forward-eval lookahead.
+### C6. Forward-eval pool 8→5 — REJECT
+Cost-reducing: forward-eval the top-5 decision candidates instead of 8 (winner mean q-rank 2.6).
+Result (vs 622.16): **617.52, Δ −4.6** — quality loss (good rank 6–8 candidates dropped) outweighs
+the cost saving. pool=8 is tuned-optimal. Reverted.
+
+**ASSESSMENT (cost-quality optimum is GLOBAL — pivot to difficulty-relative).** All four global cost
+levers REJECT: depth-down (C1 −5.0), depth-up (C3 −3.0), cost-adding downstream quality (C5 −4.0),
+cost-reducing pool (C6 −4.6); impact (C2) is generation-bound. greedy:2 / first-viable / pool-8 /
+short-leaf is a tight GLOBAL cost-quality optimum.
+
+**But it's the right answer only ON AVERAGE.** Difficulty characterization (offline on the baseline):
+budget/gap spans ~20× (tiny_dance 75k/gap @300k → solo_run 3.9k/gap), and the search gets 7–23
+nodes/gap on budget-rich specs vs ~2.5 on dense ones. Budget-rich specs have SLACK that could fund a
+wider rollout (best:N — which won at 500k on the probe board), while budget-poor specs are starved
+into bare greedy. ⇒ next lever: **difficulty-aware config** — best:N where budget/gap is high, greedy:2
+where low. Probe: `eval_difficulty.sh` (rich→poor board); flag `LR_FWD_EVAL_BPG` (budget/gap threshold).
 
 ---
 

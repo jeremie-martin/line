@@ -19,10 +19,11 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 # ---------------- fixed evaluation config ----------------
-SPECS="drums_crescendo,solo_run,big_air_ramp"
+# SPECS empty => run ALL golden specs (no --specs override); set it to a comma list to focus.
+SPECS="${SPECS:-}"
 BUDGETS="100000,200000,300000"
 SEEDS="0,1,2,3,4,5,6,7,8,9,10,11"   # 12 seeds
-JOBS=8
+JOBS="${JOBS:-48}"
 
 OUTROOT="generated/short-leaf-eval"
 BASELINE_DIR="$OUTROOT/baseline-full"
@@ -36,14 +37,16 @@ mkdir -p "$OUTROOT"
 # golden.json (what `decide` reads) is written regardless of stdout.
 run_golden () {
   local leaf="$1" dir="$2"
+  local specflag=()
+  [[ -n "$SPECS" ]] && specflag=(--specs="$SPECS")   # omit => golden runs ALL golden specs
   LR_ENGINE=wasm LR_FWD_EVAL=greedy:2 LR_FWD_EVAL_LEAF="$leaf" GOLDEN_SEEDS_OVERRIDE="$SEEDS" \
     npx tsx scripts/v0/golden.ts \
-      --specs="$SPECS" --budgets="$BUDGETS" --jobs="$JOBS" --archive-dir="$dir" \
+      "${specflag[@]}" --budgets="$BUDGETS" --jobs="$JOBS" --archive-dir="$dir" \
       > "$dir.log" 2>&1
 }
 
 echo "=== short-leaf eval ==="
-echo "specs=$SPECS"
+echo "specs=${SPECS:-ALL golden specs}"
 echo "budgets=$BUDGETS  seeds=12(0-11)  jobs=$JOBS  greedy:2"
 echo
 

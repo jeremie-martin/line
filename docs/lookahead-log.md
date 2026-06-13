@@ -1,10 +1,29 @@
 # Forward-eval lookahead — attempt log
 
-Terse. One entry per attempt: hypothesis · change · result (headline Δ + any
-collapse) · verdict. Numbers from `eval_readiness_leaf.sh` (11 specs × {150k,300k}
-× 8 seeds) vs the frozen no-readiness baseline. Probe tier; a canonical run promotes.
+Terse. One entry per attempt: hypothesis · change · result (headline Δ + per-budget) · verdict.
 
-Baseline (frozen default leaf, no readiness): **headline 585.3** (150k 579.8 / 300k 588.0).
+---
+
+## CANONICAL PHASE (full golden suite, modify-production workflow) — see docs/lookahead-prompt.md
+
+Measure: full canonical `npm run golden` (40 specs × 12 seeds × 50k/100k/200k/300k), `decide` vs the
+committed baseline. Modify production directly; keep only wins. North star: headline 700.
+
+**Baseline (HEAD 97c7248): headline 614.29** — per-budget 50k 564.4 / 100k 612.3 / 200k 624.3 / 300k
+629.3. Excl-impact headline 672.5 ⇒ **impact ≈ −58, the dominant drag.** Weakest spec drums_pendulum
+470 (air-axis 0.21). Systemic weakest axis = impact (mean |err| 0.149; dominant in most low specs);
+funnel study (memory): ~56% of impact gaps never generate a deep-enough scoop (template caps turn
+~22°), ~32% admitted but correctly ranked-bottom ⇒ impact is largely GENERATION-bound, not ranking.
+
+### C1. Default rollout depth 2→1 (flat greedy:1) — REJECT
+The probe-board greedy:1 win (§10) was at 500k / 11 specs; test it on the canonical. Change:
+`matureForwardEvalConfig` defaults non-upgraded path to depth 1 (mature-avg preserved). Result:
+**609.3, Δ −5.0**, negative every budget (50k −3.4 / 100k −8.3 / 200k −4.4 / 300k −3.5). greedy:2's
+depth is better at canonical budgets (biggest gap @100k). Reverted.
+
+---
+
+## PROBE PHASE (11 specs × {150k,300k,500k} × 8 seeds, eval_*.sh) — superseded by the canonical phase
 
 ---
 

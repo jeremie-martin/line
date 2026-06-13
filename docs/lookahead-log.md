@@ -30,6 +30,12 @@ to skip them. ⇒ the 58-pt impact lever needs DEEPER / STEEP-ENTRY scoop geomet
 generated (template turn cap); the lookahead ranker is near-optimal on what it's handed. The path to
 700 runs through candidate GENERATION (arc template), which is outside the forward-eval lookahead.
 
+### C3. Default rollout depth 2→3 (greedy:3) — REJECT
+Depth helps (greedy:2≫greedy:1, C1); test more depth. Result: **611.29, Δ −3.0**; craters 50k
+(518.8 vs 564.4, −45, 7 invalid) — depth-3 rollouts starve the cost-sensitive low budgets. Depth
+curve peaks at greedy:2 (g1 −5.0 / **g2 optimum** / g3 −3.0). Reverted. Lesson: added rollout cost
+is punished hardest at low budgets ⇒ cost-REDUCING levers, not cost-adding.
+
 ---
 
 ## PROBE PHASE (11 specs × {150k,300k,500k} × 8 seeds, eval_*.sh) — superseded by the canonical phase

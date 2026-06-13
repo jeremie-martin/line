@@ -269,6 +269,31 @@ candidate. Next: width sweep (best:1:3/4/6 +noaim) to pin the sweet spot + more 
 
 ---
 
+## 9. Removing the aim ENTIRELY (top-level too) — don't; only the rollout aim is dead weight
+
+**Definition.** `LR_AIM_ENUM=0` on the candidate (aim lane off everywhere — top-level pool AND
+rollout), vs greedy:2 / aim-on baseline. best:1:5, greedy:1; budgets 150k/300k/500k.
+
+**Result (per-budget Δ; reference: best:1:5+noaim rollout-only = +2.7):**
+
+```
+                          150k    300k    500k    headline
+  best:1:5 aim-OFF-all    -4.9    -0.7    +3.3     -0.6
+  greedy:1 aim-OFF-all    -3.2    +1.5    +3.8     +0.8
+```
+
+**Findings.** Removing the TOP-LEVEL aim too costs best:1:5 ~3.3 headline (+2.7 rollout-only →
+−0.6 all-off): the top-level aim lane genuinely proposes good decision-gap candidates, worth
++3.8 @150k but only +1.6 @500k (wide branching compensates as budget grows). Only the ROLLOUT
+aim probes are dead weight. greedy:1 barely notices (its rollout is branch=1, never ran
+rollout-aim). Both climb monotonically with budget — wide-shallow advantage still growing at 500k.
+
+**Verdict.** Keep the aim at the decision gap, drop it inside the rollout — i.e. the
+rollout-context suppression (best:1:5+noaim) is the right design; removing it globally throws away
+the valuable top-level contribution. Leader remains **best:1:5 + noaim (rollout-only)**.
+
+---
+
 ## Open questions (no conclusions yet)
 
 - Catch-only helps air/rhythmic specs but hurts a few dense ones (drums_pendulum). Why — unstudied.

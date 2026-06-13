@@ -621,19 +621,20 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
       .toBeCloseTo(objectiveLeafValue(leaf, 0, gaps, 0, DUR), 9);
   });
 
-  test("flag default is inert: env-unset ≡ LR_FWD_EVAL_LEAF=full at 100k", async () => {
+  test("flag default is the short leaf: env-unset ≡ LR_FWD_EVAL_LEAF=objective at 100k", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const budget = 100_000;
     const prev = process.env.LR_FWD_EVAL_LEAF;
     delete process.env.LR_FWD_EVAL_LEAF;
     const unset = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
-    process.env.LR_FWD_EVAL_LEAF = "full";
-    const full = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    process.env.LR_FWD_EVAL_LEAF = "objective";
+    const objective = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
     if (prev === undefined) delete process.env.LR_FWD_EVAL_LEAF;
     else process.env.LR_FWD_EVAL_LEAF = prev;
-    expect(hashTrack(full.track)).toBe(hashTrack(unset.track));
-    expect(full.stats.sim_frames).toBe(unset.stats.sim_frames);
-    expect(full.stats.fwd_eval).toEqual(unset.stats.fwd_eval);
+    // The default is now the objective (short) leaf, so env-unset is byte-identical to it.
+    expect(hashTrack(objective.track)).toBe(hashTrack(unset.track));
+    expect(objective.stats.sim_frames).toBe(unset.stats.sim_frames);
+    expect(objective.stats.fwd_eval).toEqual(unset.stats.fwd_eval);
   }, 120_000);
 
   test("shadow leaf ranks identically to full: byte-identical track + sim_frames at 100k", async () => {
@@ -668,7 +669,7 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     const prev = process.env.LR_FWD_EVAL_LEAF;
     const prevHybrid = process.env.LR_FWD_EVAL_LEAF_HYBRID;
 
-    delete process.env.LR_FWD_EVAL_LEAF;
+    process.env.LR_FWD_EVAL_LEAF = "full"; // explicit: the default is now the objective leaf
     const fullRun = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
 
     process.env.LR_FWD_EVAL_LEAF = "objective";

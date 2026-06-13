@@ -3583,9 +3583,12 @@ function parseForwardSpec(raw: string): ForwardEvalConfig | null {
  *  upgrade stay untouched (an objective-leaf greedy:2 is still the "default config"). */
 function forwardEvalLeaf(): ForwardEvalLeaf {
   const env = readEnv("LR_FWD_EVAL_LEAF");
-  if (env === "objective") return "objective";
+  // DEFAULT: the short (objective) leaf — faithful scorer reconstruction (gap-window axis ×
+  // survival × missing), ~21% cheaper per rollout, and ACCEPT vs the full leaf on the all-specs
+  // board (+1.72, 40 specs × 12 seeds, P(Δ≤0)=0%). "full" is the explicit escape hatch.
+  if (env === "full") return "full";
   if (env === "shadow") return "shadow";
-  return "full";
+  return "objective";
 }
 
 function forwardEvalConfig(): ForwardEvalConfig | null {

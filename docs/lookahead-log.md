@@ -206,6 +206,69 @@ Everything else already wins. Open: why drums_pendulum.
 
 ---
 
+## 7. best:1:N at 3 budgets (incl. 500k) — recovers with budget to a ~−5 plateau
+
+**Definition.** vs greedy:2 / pristine leaf, budgets 150k/300k/**500k**. best:1:5, best:1:8 (λ=0),
+best:1:8 + catch@0.1. Confirmed: best:1:N (N>1) builds the rolled-level pool the SAME way as the
+top-level pool — quality-ranked (sortCandidatesByQuality) AND aim-lane-refined (node.ts:173/183).
+Branch caps at 8 (handoff.ts:3587), so "best of 14" = best:1:8. (greedy:2 3-budget baseline = 589.2.)
+
+**Result (per-budget Δ, mean over specs):**
+
+```
+                   150k     300k    500k
+  best:1:5        -116.7    -5.6    -4.8
+  best:1:8        -107.6    -5.1    -4.7
+  best:1:8+catch  -108.8   -13.7    -6.5
+```
+
+**Findings.** (1) best:N is budget-STARVED at 150k (−108) but recovers sharply with budget (−5 by
+300k) — "wide needs budget to afford" confirmed directionally. (2) It PLATEAUS at ~−5 (300k→500k
+flat), just UNDER parity — a flat residual that looks like fixed COST overhead (aim probes +
+branching), not a quality deficit; the branching's value ≈ greedy:2's depth value, but best:N can't
+shed the overhead. (3) catch readiness does NOT help even with 8 branches (−6.5 vs −4.7 @500k) —
+likely because the 8 branches are already pool-ranked using that same readiness, so the leaf multiply
+double-counts. (4) Per-spec @500k mixed/noisy (big_air +8.9, drums_pendulum +5.1 now positive;
+syncopated −22.9, rhythm −13.9 negative) — no clean pattern.
+
+**Verdict.** Wide-shallow asymptotes to ~parity−5, cost-bound, not a win. Motivates the aim-disable
+test: drop the rollout's charged aim probes (keep the quality-rank) and see if best:N sheds the ~−5.
+
+---
+
+## 8. Disabling the rollout AIM PROBES unlocks wide-shallow — best:1:5+noaim broadly POSITIVE
+
+**Definition.** `LR_ROLLOUT_AIM=0` drops the aim-lane probes INSIDE the rollout (keeps the
+quality-rank) — node.ts `setRolloutContext` + gate, set around the rollout in `forwardArcValue`;
+default (unset) byte-identical, so the frozen baseline stays valid. best:1:8+noaim, best:1:5+noaim
+vs greedy:2, budgets 150k/300k/500k.
+
+**Result (per-budget Δ):**
+
+```
+                   150k     300k    500k    headline
+  best:1:8 (aim)  -107.6    -5.1    -4.7     -67.2
+  best:1:8+noaim    -2.0    -1.9    -0.1      -1.3   (tie)
+  best:1:5+noaim    -1.1    +1.8    +4.9      +2.7
+```
+
+**Findings.** (1) The aim PROBES were the ENTIRE wide-rollout overhead: best:1:8 −67 → −1.3 headline;
+@150k −107.6 → −2.0. The long-standing "best/avg/wide doesn't pay charged" verdict was the rollout
+aim-probe cost (the "branch-widening failure"), NOT the branching. (2) **best:1:5+noaim is net-positive,
+growing with budget** (+1.8 @300k, +4.9 @500k); @500k **9/11 specs positive** — big_air +17.3,
+drums_pendulum +10.4 (the persistent villain everywhere else!), leap +8.1, canyon +5.6, syncopated
++4.7, rhythm +4.3, skyline +3.3 — only dense_sprint −3.3, summit −0.5. BROAD, not air-vs-dense. (3)
+best:1:5 > best:1:8 ⇒ ~5 branches is the sweet spot, diminishing past it.
+
+**Caveat.** Headline +2.7 is PROMISING, not yet significant (CI [−2.4, +7.7], P(Δ≤0)=14%, probe
+tier); +4.9 @500k is the strongest point. Needs more seeds / a canonical run to confirm.
+
+**Verdict.** First broad net-positive of the campaign. Shallow-but-wide (5 quality-ranked branches,
+1-deep, max, no aim tax) beats deep-but-narrow greedy:2 at high budget. Promising new-default
+candidate. Next: width sweep (best:1:3/4/6 +noaim) to pin the sweet spot + more seeds to confirm.
+
+---
+
 ## Open questions (no conclusions yet)
 
 - Catch-only helps air/rhythmic specs but hurts a few dense ones (drums_pendulum). Why — unstudied.

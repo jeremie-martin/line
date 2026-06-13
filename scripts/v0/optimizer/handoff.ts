@@ -79,6 +79,7 @@ import {
   extendNodeCached,
   isLeafNode,
   makeRootNode,
+  setRolloutContext,
   type SearchNode,
 } from "./node.ts";
 import {
@@ -4042,6 +4043,9 @@ function forwardArcValue(
   // it to scoreCandidateForHandoff → the RankedOption, for the agreement recorder.
   const shadow = cfg.leaf === "shadow";
   if (shadow) shadowCapture = { fullBest: -Infinity, objAtBest: 0, fullFactors: null, shortFactors: null };
+  // Mark the rollout so the rolled-level pool can drop its aim probes (LR_ROLLOUT_AIM=0) — isolates
+  // wide-branching value from aim-probe cost. The top-level pool (built before this) is unaffected.
+  setRolloutContext(true);
   try {
     return cfg.variant === "avg"
       ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch, leafObjective, rootGapIndex)
@@ -4050,6 +4054,7 @@ function forwardArcValue(
         leafObjective, rootGapIndex,
       );
   } finally {
+    setRolloutContext(false);
     if (shadow) {
       lastShadowObjective = shadowCapture?.objAtBest ?? 0;
       if (shadowFactorsEnabled) {

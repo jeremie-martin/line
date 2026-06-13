@@ -40,6 +40,19 @@ import type { Gap } from "./types.ts";
 /** Default per-node candidate count. See file header. */
 export const N_CAND = 32;
 
+// Rollout aim-suppression (lookahead campaign). best:1:N rebuilds the rolled-level pool the same
+// way as the top-level pool — INCLUDING the charged aim-lane probes ("the documented branch-widening
+// failure", see below). This flag lets a rollout drop ONLY the aim probes (keeping the quality-rank)
+// to isolate the value of wide branching from the cost of its probes. Set by the forward-eval rollout
+// (setRolloutContext); the env knob LR_ROLLOUT_AIM=0 turns the suppression on.
+let inRolloutContext = false;
+const rolloutAimEnabled =
+  (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_ROLLOUT_AIM !== "0";
+export function setRolloutContext(active: boolean): void {
+  inRolloutContext = active;
+}
+
 /** A node in the prefix-search tree. `prefixFits.length === gapIndex`.
  *  A terminal node has `gapIndex === gaps.length`. */
 export type SearchNode = {
@@ -180,7 +193,7 @@ function sortWithLaneExtras(
   // pools (branch=1): multiplying CHARGED rollout work is the documented
   // branch-widening failure.
   const laneExtras: Candidate[] = [];
-  if (nCand > 1 && sorted.length > 0 && aimEnumEnabled()) {
+  if (nCand > 1 && sorted.length > 0 && aimEnumEnabled() && !(inRolloutContext && !rolloutAimEnabled)) {
     // EXPERIMENT (LR_AIM_TOPK_BASES, default 3): refine the first K candidates of
     // the quality-sorted pool, not just `sorted[0]`. Each base is passed exactly
     // as `sorted[0]` is today (same engine/gap/lineId), and its extras accumulate

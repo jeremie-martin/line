@@ -92,14 +92,17 @@ COMMON_ENV=( LR_ENGINE=wasm )
 CAND_FWD="${CAND_FWD:-greedy:1}"
 CAND_RDY_KIND="${CAND_RDY_KIND:-}"          # empty = no readiness knob (pristine leaf)
 CAND_RDY_LAMBDA="${CAND_RDY_LAMBDA:-0}"
+CAND_ROLLOUT_AIM="${CAND_ROLLOUT_AIM:-}"    # set to 0 to drop the rollout's aim probes (best:N)
 BASELINE_ENV=( LR_FWD_EVAL=greedy:2 LR_LEAF_RDY_LAMBDA=0 )            # production default
 CANDIDATE_ENV=( LR_FWD_EVAL="$CAND_FWD" LR_LEAF_RDY_LAMBDA="$CAND_RDY_LAMBDA" )
 [[ -n "$CAND_RDY_KIND" ]] && CANDIDATE_ENV+=( LR_LEAF_RDY_KIND="$CAND_RDY_KIND" )
+[[ -n "$CAND_ROLLOUT_AIM" ]] && CANDIDATE_ENV+=( LR_ROLLOUT_AIM="$CAND_ROLLOUT_AIM" )
 
 # Human label shown in the summary. Cosmetic only.
 _rdy_label=""; [[ "$CAND_RDY_LAMBDA" != "0" ]] && _rdy_label="+${CAND_RDY_KIND:-catch}@${CAND_RDY_LAMBDA}"
+_aim_label=""; [[ "$CAND_ROLLOUT_AIM" == "0" ]] && _aim_label="+noaim"
 BASELINE_LABEL="${BASELINE_LABEL:-greedy:2}"
-CANDIDATE_LABEL="${CANDIDATE_LABEL:-${CAND_FWD}${_rdy_label}}"
+CANDIDATE_LABEL="${CANDIDATE_LABEL:-${CAND_FWD}${_rdy_label}${_aim_label}}"
 
 # ============================================================================
 # PLUMBING — you should not need to touch anything past here.

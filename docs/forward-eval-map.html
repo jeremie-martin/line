@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forward-Eval / Rollout — Logic Map (full vs short leaf)</title>
+<style>
+  :root{--bg:#0e1116;--panel:#161b22;--ink:#d6deeb;--mut:#8b98ad;--acc:#6cb6ff;--full:#7ee787;--short:#ffa657;--warn:#f0883e;--bad:#ff7b72;--line:#30363d}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 120px}
+  h1{font-size:26px;margin:0 0 4px} h2{font-size:20px;margin:34px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  h3{font-size:16px;margin:22px 0 6px;color:var(--acc)}
+  p{margin:8px 0} .mut{color:var(--mut)} code{background:#22272e;border-radius:4px;padding:1px 5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+  .ref{color:var(--mut);font-size:12px;font-family:ui-monospace,monospace}
+  pre{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:8px;padding:14px 16px;overflow:auto;font-family:ui-monospace,monospace;font-size:13px;line-height:1.5}
+  pre.full{border-left-color:var(--full)} pre.short{border-left-color:var(--short)}
+  .flow{display:flex;flex-direction:column;gap:0;margin:14px 0}
+  .node{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+  .node b{color:var(--acc)} .arrow{align-self:center;color:var(--mut);font-size:20px;line-height:1}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#1b2230;color:var(--acc)} td.full{color:var(--full)} td.short{color:var(--short)} td.no{color:var(--bad)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.cols{grid-template-columns:1fr}}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;font-weight:600}
+  .tag.full{background:#12361c;color:var(--full)} .tag.short{background:#3a2410;color:var(--short)}
+  .callout{background:#1b1300;border:1px solid #5a3d00;border-left:3px solid var(--warn);border-radius:8px;padding:10px 14px;margin:12px 0}
+  .callout.bad{background:#2a0f0f;border-color:#5a1e1e;border-left-color:var(--bad)}
+  ul{margin:6px 0 6px 0;padding-left:22px} li{margin:3px 0}
+  .kv{font-family:ui-monospace,monospace;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Forward-Eval / Rollout — Logic Map</h1>
+<p class="mut">How the handoff compiler ranks candidate arcs at each gap, with the <span class="tag full">FULL leaf</span> and <span class="tag short">SHORT (objective) leaf</span> spelled out side by side. File:line anchors throughout (all in <code>scripts/v0/optimizer/handoff.ts</code> unless noted). This is the artifact to verify against the code.</p>
+
+<h2>0 · Where this sits</h2>
+<p>The compiler builds a track <b>gap by gap</b> with a stack-based, best-child-first DFS (<code>runFrontier</code>, ~1095). At each node it must pick which candidate arc(s) to expand. <b>Forward-eval is the ranker</b> for that choice: above a budget gate it scores each candidate by the <i>true forward value of where the arc leads</i> — a charged greedy:2 rollout — instead of a local proxy. The rollout's terminus is scored by a <b>leaf scorer</b>, which is the FULL re-detection (default) or the SHORT objective value (the experiment).</p>
+
+<h2>1 · The pipeline (one DFS node → its children)</h2>
+<div class="flow">
+  <div class="node"><b>① Pool generation</b> — <code>getCandidatesSorted</code> <span class="ref">node.ts:97 → sortWithLaneExtras:153</span><br>sample <code>nCand</code> arcs that catch the contact → cost-sort → <b>quality-objective re-sort</b> → aim-lane refines top-K bases → merge.</div>
+  <div class="arrow">↓</div>
+  <div class="node"><b>② Rank each candidate</b> — <code>rankedOptions</code> :2098 calls <code>scoreCandidateForHandoff</code> :2843 per pool member.<br>Budget gate (<code>usesForwardEvalAtBudget</code> :3930): <b>≥75k → score = −forwardArcValue</b> (the rollout); else local proxy.</div>
+  <div class="arrow">↓</div>
+  <div class="node"><b>③ Forward rollout</b> — <code>forwardArcValue</code> :3889 → <code>forwardRolloutScore</code> :3774 (greedy/best) or <code>forwardAvgNextScore</code> :3839 (avg). greedy:2 = extend candidate → place <b>up to two</b> more contacts → score the leaf.</div>
+  <div class="arrow">↓</div>
+  <div class="node"><b>④ Leaf scorer</b> — <span class="tag full">FULL</span> <code>forwardNodeScore</code> :3621 (re-detect + true scorer) &nbsp;|&nbsp; <span class="tag short">SHORT</span> <code>objectiveLeafValue</code> :3704 (per-gap factors, zero engine).</div>
+  <div class="arrow">↓</div>
+  <div class="node"><b>⑤ Pool → children</b> — add reuse + brake extras, <code>sort(score↑, cost↑, rank↑)</code>, take top <code>HANDOFF_BRANCHING</code> :2208. Children pushed to the DFS stack, best-child-first.</div>
+</div>
+
+<h2>2 · Stage ① — Pool generation <span class="ref">node.ts:97</span></h2>
+<pre>getCandidatesSorted(node, gaps, ctx, seed, nCand):
+  gap = gaps[node.gapIndex]
+  if not gap.endsWithContact: return []          # non-contact gap → no catch to place
+  rng = makeRng(hash(seed, node.gapIndex))        # per-gap RNG; independent of budget
+  samples = solveOneGap(node.prefixEngine, gap, rng, nCand, ...)   # nCand arcs that LAND the contact
+                                                   # (gate-passed: catch within ±1 frame, on the gap's lines, alive)
+  sorted = sortCandidatesByCost(samples)           # (a) cost order = aggregate axis-L2 error
+  if LR_RANK_QUALITY (default ON):
+      sorted = sortCandidatesByQuality(...)         # (b) re-sort by the QUALITY OBJECTIVE:
+                                                    #     axisQuality(achieved) × scoreNextGapReadiness   (objective.ts:60)
+  if nCand > 1 and aim-lane enabled:
+      laneExtras = enumerativeProposer(top-K bases) # (c) LR_AIM_TOPK_BASES=3: model-proposed arcs,
+      sorted = merge_and_requalify(sorted, laneExtras)#     compete on cost/quality like any sample
+  return sorted</pre>
+<div class="callout"><b>Critical for the rollout:</b> the rollout interior calls this with <code>nCand = branch = 1</code> (greedy). With <code>nCand = 1</code> the quality re-sort is a no-op (one item) and the <b>aim lane never runs</b> (<code>nCand &gt; 1</code> guard, node.ts:183). So inside a rollout, each downstream contact is the <b>first viable sample</b> — no ranking, no aiming. The pool at the <i>top</i> level (step ②) uses a <b>budget-aware</b> <code>nCand</code> (<code>budgetAwareContractSampleCount</code>/<code>handoffSampleCount</code>, bounded by <code>HANDOFF_CONTRACT_N_CAND</code>=14) and is quality-sorted before forward-eval re-ranks it. The aim-lane K (<code>LR_AIM_TOPK_BASES</code>=3) itself collapses to 1 below a maturity budget (<code>aim.ts:231</code>).</div>
+
+<h2>3 · Stage ② — Candidate ranking <span class="ref">:2098 / :2843</span></h2>
+<pre>rankedOptions(node, ...):
+  pool   = getCandidatesSorted(node, nCand=budgetAware ≤ HANDOFF_CONTRACT_N_CAND=14)[0:poolSize]  # quality-top pool
+  scored = [ scoreCandidateForHandoff(c, "pool") for c in pool ]
+  scored += [ scoreCandidateForHandoff(c, "reuse") ]   # catch-reuse extras (periodic-rhythm translate)
+  scored += [ scoreCandidateForHandoff(c, "brake") ]   # uphill brake-catch extras (shed speed)
+  scored.sort( by score↑, then candidate.cost↑, then rank↑ )
+  return scored[0 : HANDOFF_BRANCHING]                  # these become the DFS children
+
+scoreCandidateForHandoff(node, candidate, ..., targetBudget):
+  child = extendNodeCached(node, candidate)              # commit the arc onto the prefix engine
+  if fwdEvalCfg != null AND usesForwardEvalAtBudget(node, targetBudget):   # :3930
+      #  targetBudget ≥ LR_FWD_EVAL_MIN_BUDGET (75k) → always;  below → stochastic ramp
+      value = forwardArcValue(child, ..., matureForwardEvalConfig(fwdEvalCfg, node, gaps, targetBudget))
+      return { score: -value }            # higher rollout value ⇒ more-negative score ⇒ sorts first
+  else:                                    # LOCAL PROXY (below the gate, :2893)
+      preview  = previewFutureContacts(child, ...)             # K=1 survivor preview
+      scarcity = (firstSurvivors==0) ? DEAD_END_PENALTY(40) : SURVIVOR_SCARCITY(4)/firstSurvivors
+      score    = cost + (scarcity + previewCost·0.25)·previewScorePressure
+                      + handoffStatePenalty + overshootPenalty + releaseSetupPenalty</pre>
+<p class="mut">Note: <code>score</code> is minimized. The forward path returns <code>−value</code> so the highest-rollout-value arc sorts first. The proxy path returns a positive cost-like score. <b>Within one compile every pool member uses the same branch</b> (budget gate is per-node, not per-candidate), so forward-eval scores never mix with proxy scores inside one pool — except that reuse/brake extras at the same node also pass through the same gate.</p>
+
+<h2>4 · Stage ③ — The forward rollout <span class="ref">:3889 / :3774</span></h2>
+<pre>forwardArcValue(child, ..., cfg):                       # cfg = {variant, depth, branch, charge, leaf}
+  saved = simFrames()
+  rootGapIndex = child.gapIndex - 1                       # the candidate's OWN gap (the always-differing factor)
+  ownGapImpact = trueTargets[rootGapIndex].impact
+  leafObjective = (cfg.leaf == "objective")
+                  AND NOT (hybridImpact AND ownGapImpact ≥ 0.35)   # hybrid: impact gaps use FULL leaf
+  value = (cfg.variant=="avg") ? forwardAvgNextScore(child, ..., cfg.branch, leafObjective, rootGapIndex)
+                               : forwardRolloutScore(child, depth=cfg.depth, branch=(best?cfg.branch:1), ...)
+  charge (simFrames()-saved) to the budget    # honest; refunded iff LR_FWD_EVAL_CHARGE=0
+  return value
+
+forwardRolloutScore(search, depthLeft, branch, leafObjective, rootGapIndex):   # greedy: branch=1, depth=2
+  if depthLeft ≤ 0 or terminal(search):  return leafValue(search, missed=0)
+  at = advanceToNextContact(search)                       # walk to the next contact gap
+  if at == null:                          return leafValue(search, 0)
+  atBranch = (impactBranch>1 and gaps[at].impact≥0.35) ? max(branch,impactBranch) : branch  # LR_FWD_EVAL_IMPACT_BRANCH, default 1=off
+  cands = getCandidatesSorted(at, nCand=atBranch)          # branch=1 ⇒ first viable sample (no aim, no rank)
+  if cands is empty:                                       # DEAD-END: cannot place the next contact
+      missed = min(PARTIAL_FUTURE_CONTACT_WINDOW=20, remainingContactGaps(at))
+      return leafValue(search, missed)                     # mirror the full leaf's missing penalty
+  best = -inf
+  for c in cands:                                          # branch=1 ⇒ exactly one
+      best = max(best, forwardRolloutScore(extend(at,c), depthLeft-1, branch, ...))
+  return best
+
+leafValue(node, missed):
+  if leafObjective:  return objectiveLeafValue(node, rootGapIndex, gaps, missed)   # ④-SHORT
+  else:              return forwardNodeScore(node, gaps, ctx)                       # ④-FULL
+                     # (shadow: ranks by FULL but also records objectiveLeafValue for telemetry)</pre>
+<p class="mut">Variants (<code>LR_FWD_EVAL</code>, default <code>greedy:2</code>): <b>greedy</b> = single deepest rollout (branch 1); <b>best</b> = max over <code>branch</code> next-contact alternatives; <b>avg</b> = mean over top-<code>m</code>, 1 deep. <code>matureForwardEvalConfig</code> (:3952) may upgrade to <b>avg:1</b> (depth 2, branch 1 — <code>MATURE_AVG_FWD_EVAL_BRANCH=1</code>, :472) on amplitude/elevation gaps at high budget. <b>Start-selection</b> runs a SEPARATE charged greedy:2 over the initial-condition candidates (<code>startForwardScore</code> :3604), always FULL leaf — historically +32.5 headline, so it is its own consequential ranking, not a footnote.</p>
+
+<h2>5 · Stage ④ — The leaf scorers (the heart of it)</h2>
+<div class="cols">
+<div>
+<h3><span class="tag full">FULL</span> forwardNodeScore <span class="ref">:3621</span></h3>
+<pre class="full">forwardNodeScore(search, gaps, ctx):        # :3621
+  if isTerminalNode(search):                # FULL-track leaf
+     horizon = durationFrames; outDur = dur+20
+     report  = rawReport       # NO asPartialReport
+  else:                                     # PARTIAL leaf (usual rollout case)
+     horizon = processedHorizonFrame(search)   # :4664
+             = endFrame of LAST committed contact gap
+     outDur  = min(durationFrames, horizon + 20)
+             # ride out ONLY ~20 frames past last contact
+     report  = asPartialReport(raw, horizon)    # :4678
+  det = detectWindow(search.prefixEngine, 0, outDur)
+        # RE-DETECT whole composed track from frame 0
+        # (prefix frames CACHED in the fork — only new
+        #  frames re-simulate)
+  raw = buildDriftReport(det, ...)            # substrate.ts:650
+  return scoreDriftReport(report).full_score  # the TRUE scorer (5 factors)</pre>
+<pre class="full">asPartialReport(report, horizon):            # :4678
+  reached = contacts t_target ≤ horizon
+            (keep detected status hit/drift/missing)
+  future  = contacts t_target > horizon,
+            first 20, ALL marked "missing"
+  gaps & off_beat_landings ALSO filtered to ≤ horizon
+    ⇒ axis_quality's combined-RMS spans ONLY gaps
+      ending ≤ horizon  (bears on §9 axis lever)
+  terminus.frame = min(actual, horizon)
+  endOfSpec → remapped to "rideStalled"</pre>
+</div>
+<div>
+<h3><span class="tag short">SHORT</span> objectiveLeafValue <span class="ref">:3704</span></h3>
+<pre class="short">objectiveLeafValue(leaf, rootGapIndex, gaps, missed):
+  value = 1000
+  for i in [rootGapIndex, leaf.gapIndex):     # ROLLED span
+    if not gaps[i].endsWithContact: continue
+    fit = leaf.prefixFits[i]
+    if fit == null: value *= e^-1; continue   # defensive
+    value *= axisQuality(trueTargets[i],
+                         fit.achieved)         # PER-GAP, PRODUCT
+    lastFit = fit
+  if readiness policy ≠ off and lastFit:
+    nextGap = nextContactGap(leaf.gapIndex)
+    if policy admits nextGap:
+      value *= frontierReadinessFromFit(
+                 lastFit, nextGap).readiness   # 1-gap ahead
+  value *= e^(-missed / MISSING_CONTACT_TOLERANCE)
+          # missed = 0 at a clean leaf; > 0 only on dead-end
+  return value</pre>
+<p class="mut">Uses the committed fit's <code>achieved</code> axes (ballistic, measured during candidate generation). Zero engine frames. Scores only the <b>rolled span</b> [own gap … leaf); the identical prefix cancels in ranking. <b>Footnote:</b> the readiness factor reads <code>fit.releaseArrivalState</code>, populated only when <code>LR_RANK_QUALITY≠off</code> (on by default) — with it off, readiness silently becomes a no-op.</p>
+</div>
+</div>
+
+<h3>What each leaf actually multiplies — vs the true scorer's five factors</h3>
+<table>
+<tr><th>true-scorer factor <span class="ref">score.ts:287</span></th><th class="full">FULL leaf</th><th class="short">SHORT leaf</th></tr>
+<tr><td><b>axis_quality</b><br><span class="mut">exp(−rms(axis errors)/0.25)</span></td><td class="full">single <b>combined RMS</b> over ALL axes of ALL composed contacts</td><td class="short"><b>product</b> of per-gap axis_quality (each a per-gap RMS)</td></tr>
+<tr><td><b>drift_quality</b><br><span class="mut">landed but outside ±1 frame</span></td><td class="full">yes — from the re-detected landings</td><td class="no">ABSENT</td></tr>
+<tr><td><b>missing_quality</b><br><span class="mut">exp(−missing/1.0)</span></td><td class="full">future contacts past horizon, capped 20 (≈constant at a fixed depth)</td><td class="short">only the rollout <b>dead-end</b> count (=0 at a clean leaf)</td></tr>
+<tr><td><b>off_beat_quality</b><br><span class="mut">exp(−off_beat/1.0)</span></td><td class="full">yes — landings off the beat grid</td><td class="no">ABSENT</td></tr>
+<tr><td><b>survival_quality</b><br><span class="mut">terminus.frame / total</span></td><td class="full">yes — = horizon/total for a clean leaf; lower if the rider dies in the ride-out</td><td class="no">ABSENT</td></tr>
+</table>
+<div class="callout"><b>This table is the crux of the campaign.</b> The SHORT leaf reproduces only <b>2 of 5</b> factors (axis, a weaker missing) and aggregates axis as a <i>product of per-gap</i> values rather than the scorer's <i>single combined RMS</i>. <code>drift</code>, <code>off_beat</code>, <code>survival</code> are absent. Empirically on the focus specs <code>drift</code>/<code>off_beat</code> are clean (=1), so the operative gaps are the <b>axis aggregation</b> and the <b>missing/survival</b> structure.</div>
+
+<h2>6 · The true scorer <span class="ref">score.ts:237</span></h2>
+<pre>full_score = 1000
+  × axis_quality      # exp(-rms(all axis errors over all landed contacts) / AXIS_QUALITY_TOLERANCE=0.25)
+  × drift_quality     # exp(-rms(landed_excess beyond ±1 frame)         / SYNC_TOLERANCE)
+  × missing_quality   # exp(-missing_count                              / MISSING_CONTACT_TOLERANCE=1.0)
+  × off_beat_quality  # exp(-off_beat_landings                          / OFF_BEAT_TOLERANCE=1.0)
+  × survival_quality  # reachedEnd ? 1 : clamp01(terminus.frame / total_frames)
+# contract_passed = (drift==0 and missing==0 and off_beat==0 and not died)</pre>
+
+<h2>7 · Pool → children → DFS <span class="ref">:2203 / ~1095</span></h2>
+<ul>
+<li><b>Sort key:</b> <code>score↑, candidate.cost↑, rank↑</code>. The leaf score's ONLY job is (a) which top-<code>HANDOFF_BRANCHING</code> children survive, and (b) their explore order.</li>
+<li><b>Frontier:</b> two LIFO stacks (passStack / fallbackStack). <code>enqueueChild</code> (:1477) routes by <code>skippedContacts</code>; no score thresholding. <code>runFrontier</code> pops, expands, pushes children (best last → popped first) → depth-first, best-child-first. A "far-back pulse" occasionally pops an older branch by gap-lag (not score).</li>
+<li><b>Completion / acceptance</b> uses the REAL scorer on the finished track, not the leaf score.</li>
+</ul>
+
+<h2>8 · Config knobs</h2>
+<table>
+<tr><th>env</th><th>meaning</th></tr>
+<tr><td class="kv">LR_FWD_EVAL</td><td>variant:depth — default <code>greedy:2</code>; also <code>best:N</code>, <code>avg:N</code></td></tr>
+<tr><td class="kv">LR_FWD_EVAL_LEAF</td><td><code>full</code> (default) | <code>objective</code> | <code>shadow</code> (rank by full, record objective)</td></tr>
+<tr><td class="kv">LR_FWD_EVAL_LEAF_READINESS</td><td>objective-leaf readiness factor: <code>selective</code> (default) | <code>off</code> | <code>always</code> | <code>selective-vert</code></td></tr>
+<tr><td class="kv">LR_FWD_EVAL_LEAF_HYBRID</td><td>default on — impact-targeted own-gaps (≥0.35) use the FULL leaf even in objective mode</td></tr>
+<tr><td class="kv">LR_FWD_EVAL_MIN_BUDGET</td><td>gate (75k); below it, a smoothstep stochastic ramp decides per node</td></tr>
+<tr><td class="kv">LR_FWD_EVAL_CHARGE</td><td><code>0</code> refunds rollout frames (budget-refunded ceiling experiment)</td></tr>
+<tr><td class="kv">LR_RANK_QUALITY / LR_AIM_TOPK_BASES</td><td>pool quality re-sort (default on) / aim-lane bases (default 3)</td></tr>
+</table>
+
+<h2>9 · Established findings &amp; live divergences</h2>
+<ul>
+<li><b>It's the ranking logic, not budget</b> (verified): <code>objective</code> and <code>objective + full-cost</code> (full re-detection charged but objective used to rank) collapse <i>identically</i> on drums_crescendo; only switching the ranking <i>function</i> to FULL avoids it. More budget makes the collapse worse, not better.</li>
+<li><b>The SHORT leaf's achieved axes are faithful</b> — the gate-time <code>fit.achieved</code> speed matches the full re-detection at every gap (H-bug falsified). It is NOT a measurement bug.</li>
+<li><b>The FULL leaf barely looks ahead</b> — horizon = last contact + 20 frames. It does not "see" a stall 3–4 contacts out; at a fixed rollout depth, <code>survival</code> and <code>missing</code> are ≈constant across pool candidates, so they do not discriminate <i>at the decision</i>.</li>
+<li><b>Falsified cheap-reproduction routes:</b> (1) multi-hop ballistic suffix — physically invalid (catches reset velocity); (2) deeper rollout — does not help, costs more; (3) bolting <code>survival=horizon/total</code> onto the SHORT leaf — HARMFUL (depth reward = over-acceleration incentive; broke a healthy spec).</li>
+<li><b>Open lever:</b> the <b>axis aggregation</b> (FULL combined-RMS vs SHORT per-gap product) — the only untested structural difference; the regression when survival was added in isolation points here.</li>
+<li><b>Cost reality:</b> the FULL leaf is only ~45% more per rollout call (≈67 vs ≈47 frames; much re-detection is cache-free). The budget motivation for replacing it is thinner than assumed.</li>
+</ul>
+
+<p class="mut" style="margin-top:30px">Anchors are to <code>scripts/v0/optimizer/handoff.ts</code> at HEAD <code>e01a085</code> unless a file is named. Verify every claim against the code; flag any logic — especially micro-logic in ranking, the budget gate, the rollout dead-end handling, the leaf factor sets, and the pool/aim-lane interaction — that is wrong, imprecise, or missing.</p>
+
+</div>
+</body>
+</html>

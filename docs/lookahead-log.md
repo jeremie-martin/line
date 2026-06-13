@@ -84,6 +84,40 @@ diminishing ⇒ **the path from 622 to ~700 is candidate GENERATION (arc scoop/f
 the forward-eval lookahead.** Repair tuning note also documents 706 at 1M — but that needs the
 generation headroom too; at the canonical budgets the system is near its config+axis ceiling.
 
+### D3. The AIM and the READINESS are huge (ablations) — the readiness is the lever, and it WORKS
+Two canonical ablations vs baseline 622.16:
+```
+  aim OFF (LR_AIM_ENUM=0)            614.38  Δ −7.8   REJECT  (the enumerative proposer is worth +7.8)
+  readiness OFF (objective=cQ only) 584.92  Δ −37.2  REJECT  (the next-gap readiness term is worth +37)
+```
+The 5-spec probe board had said "aim ≈ neutral" — WRONG, small-board artifact. On the full canonical
+the aim is +7.8 and the readiness (in the pool quality sort + aim proposer) is **+37** — one of the
+most valuable components in the system. Reconciles the probe campaign: "readiness doesn't pay" was the
+LEAF use; in per-gap RANKING it's enormous. Aim funnel facts: aimed candidate is pool rank-0 ~27% /
+top-3 66%; ~18% of proposals fail the placement gate; model error ~0.1; sweep is pitch ±10° / top-2.
+⇒ next: does a better-DEFINED readiness pay beyond +37 (component isolation: catchability/speedFit/
+impactFeasibility; speedFit flagged as a poor proxy)? `LR_OBJECTIVE_READINESS` switch added (default on).
+
+### D4. Readiness component isolation — all three contribute (it's well-built, not broken)
+Drop each factor from the readiness product (vs 622.16): impactFeasibility −9.2 (biggest), speedFit
+−4.9, catchability −1.3. All positive ⇒ no weak component to fix; the speedFit "poor proxy" critique
+was the LEAF use, not ranking. The +37 is multiplicative (components co-operate).
+
+### D5. Aim emit top-2 → top-4 — REJECT
+`LR_AIM_TOPK_EMIT=4`: 618.75, Δ −3.4 — more proposals cost more sims than they win; aim tuned at
+top-2. (Header notes: `LR_AIM_SPAN=14` already +0.3 INCONCLUSIVE — span saturated; the V4 deep-scoop
+lane was deleted at −0.0 ablation, "can return if impact wants it.")
+
+### FINAL ASSESSMENT — the forward-eval lookahead + aim + readiness are at a tight, confirmed optimum
+Exhaustively tested on the canonical (622.16), every change REJECT or wash: config (C1 greedy:1 −5.0,
+C3 greedy:3 −3.0, C5 downstream-quality −4.0, C6 pool-5 −4.6), difficulty-aware width (D1), aim top-k
+(D5). Ablations prove the components are valuable AND tuned: aim +7.8 (D3), readiness +37 (D3) with
+all three sub-terms positive (D4). Budget scaling is flat (D2: +5 for 3× budget). **No accepted change
+moves the headline.** The cap is the low specs' IMPACT + AIR axis quality, which is GENERATION-bound
+(C2 funnel; the deleted V4 deep-scoop lane was neutral — the ranker correctly skips flat-entry deep
+scoops). **Path to ~700 = candidate generation (steep-entry deep-scoop geometry for impact), outside
+the forward-eval lookahead.** The lookahead campaign is complete with a clean, evidence-backed verdict.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

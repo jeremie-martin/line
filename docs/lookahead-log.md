@@ -118,6 +118,15 @@ moves the headline.** The cap is the low specs' IMPACT + AIR axis quality, which
 scoops). **Path to ~700 = candidate generation (steep-entry deep-scoop geometry for impact), outside
 the forward-eval lookahead.** The lookahead campaign is complete with a clean, evidence-backed verdict.
 
+### G1. Generation probe — impact scoop turn cap 22°→27° — INCONCLUSIVE (impact error unchanged)
+First step outside the lookahead, into the arc template (`arc_placement.ts IMPACT_TEMPLATE_MAX_TURN_DEG`).
+Funnel C2 said deep impact asks need ~27° but were clamped to 22°. Raised the cap to 27°. Result:
+621.88, Δ −0.3 INCONCLUSIVE; **mean|impact err| 0.1424→0.1429 (unchanged)**. The deeper scoops enter
+the pool but don't reduce impact or move the headline — the ranker correctly skips them (flat-entry deep
+scoops cost speed, C2/V4). So the cap was never the binding constraint; the binding constraint is the
+STEEP-ENTRY deep-scoop geometry (lab: "steep entry + deep scoop gets impact AND speed"), a harder
+template change the V4 lane already priced at neutral. Reverted.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

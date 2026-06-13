@@ -10,8 +10,9 @@ Measure: full canonical `npm run golden` (40 specs × 12 seeds × **100k/200k/30
 2026-06-13, completion-knee noise / lowest weight / not optimized for), `decide` vs the committed
 baseline. Modify production directly; keep only wins. North star: headline 700.
 
-**Baseline re-established over the 3-budget grid: see latest entry.** (Historical 4-budget baseline,
-HEAD 97c7248, was 614.29; C1–C3 below were measured on the OLD 4-budget grid and are kept as-is.)
+**BASELINE (HEAD b36f98c, 3-budget grid): headline 622.16** — 100k 612.3 / 200k 624.3 / 300k 629.3;
+excl-impact 679.1 (impact ≈ −57, still the dominant gap to 700). (Historical 4-budget baseline, HEAD
+97c7248, was 614.29; C1–C3 below were measured on the OLD 4-budget grid and are kept as-is.)
 
 Old 4-budget baseline detail — per-budget 50k 564.4 / 100k 612.3 / 200k 624.3 / 300k
 629.3. Excl-impact headline 672.5 ⇒ **impact ≈ −58, the dominant drag.** Weakest spec drums_pendulum
@@ -39,6 +40,17 @@ Depth helps (greedy:2≫greedy:1, C1); test more depth. Result: **611.29, Δ −
 (518.8 vs 564.4, −45, 7 invalid) — depth-3 rollouts starve the cost-sensitive low budgets. Depth
 curve peaks at greedy:2 (g1 −5.0 / **g2 optimum** / g3 −3.0). Reverted. Lesson: added rollout cost
 is punished hardest at low budgets ⇒ cost-REDUCING levers, not cost-adding.
+
+### C5. Greedy downstream = quality-best-of-3 instead of first-viable — REJECT
+Rolled gaps sample 3 quality-ranked candidates (rollout aim suppressed) and roll the quality-best,
+vs 1 first-viable. Result (vs 622.16): **618.14, Δ −4.0**; negative every budget (100k 601.8 −10.5 /
+200k 618.2 −6.1 / 300k 623.6 −5.7), worst at 100k. The extra sampling cost dominated. Reverted.
+
+**ASSESSMENT (cost-quality optimum).** Depth-down (C1 −5.0), depth-up (C3 −3.0), and cost-adding
+downstream quality (C5 −4.0) all REJECT; impact (C2) is generation-bound. greedy:2 / first-viable /
+short-leaf is a tight cost-quality optimum — added rollout cost is punished, reduced quality is
+punished, and the 57-pt impact gap to 700 is in candidate GENERATION (arc scoop geometry), outside
+the forward-eval lookahead.
 
 ---
 

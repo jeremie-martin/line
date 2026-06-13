@@ -3768,7 +3768,15 @@ export function objectiveLeafValue(
   // lower survival + more future-missing, subsuming the old rollout `missedContacts` penalty.
   void missedContacts;
   const horizonFrame = processedHorizonFrame(leaf, gaps);
-  const survival = durationFrames > 0 ? clamp01(horizonFrame / durationFrames) : 0;
+  // The true scorer gives survival_quality = 1 when the track reaches endOfSpec (reachedEnd,
+  // score.ts:281). A TERMINAL leaf (all contacts placed) reaches endOfSpec — verified empirically
+  // (full-leaf survival = 1.0 on every complete node across specs) — so reproduce that 1 instead of
+  // the lastContact/duration proxy, which omits the post-last-contact ride-out tail and so
+  // under-scores terminal rollouts by that fraction. PARTIAL leaves keep the proxy: it matches the
+  // full leaf's horizon-clamped survival (asPartialReport's terminus = min(actual, horizon)).
+  const survival = isTerminalNode(leaf, gaps)
+    ? 1
+    : (durationFrames > 0 ? clamp01(horizonFrame / durationFrames) : 0);
   const futureMissing = Math.min(
     PARTIAL_FUTURE_CONTACT_WINDOW, remainingContactGaps(gaps, leaf.gapIndex),
   );

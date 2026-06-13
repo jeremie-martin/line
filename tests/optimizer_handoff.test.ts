@@ -532,7 +532,11 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
         break;
       }
     }
-    const survival = dur > 0 ? Math.min(1, Math.max(0, horizon / dur)) : 0;
+    // Terminal leaf (no contact gap remains at/after fits.length) ⇒ reachedEnd ⇒ survival 1;
+    // partial leaf keeps the lastContact/duration proxy (matches the full leaf's clamped survival).
+    const isTerminal = fits.length >= gaps.length ||
+      !gaps.slice(fits.length).some((g) => g.endsWithContact);
+    const survival = isTerminal ? 1 : (dur > 0 ? Math.min(1, Math.max(0, horizon / dur)) : 0);
     const remaining = gaps.slice(fits.length).filter((g) => g.endsWithContact).length;
     v *= survival * Math.exp(-Math.min(20, remaining) / 1.0);
     return v;
@@ -556,15 +560,29 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(expected(gaps, [f0, f1]), 9);
   });
 
-  test("survival_quality = last committed contact endFrame / totalFrames", () => {
+  test("survival_quality (PARTIAL leaf) = last committed contact endFrame / totalFrames", () => {
     const t0: AxisValues = { speed: 1.0 };
-    const gaps = [contactGap(0, t0)]; // endFrame 30
+    const t1: AxisValues = { speed: 1.0 };
+    const gaps = [contactGap(0, t0), contactGap(1, t1)]; // 2 contacts ⇒ a 1-fit leaf is PARTIAL
+    installTargets(gaps);
+    const f0 = fitWith({ speed: 1.0 }); // perfect ⇒ axis_quality 1
+    const leaf = leafOf([f0]); // 1 of 2 committed ⇒ gap 1 still ahead ⇒ partial
+    // axis 1 × survival(30/DUR) × missing exp(-1) (one remaining contact)
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(1000 * (30 / DUR) * Math.exp(-1), 9);
+    // halve the duration ⇒ survival doubles
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR / 2)).toBeCloseTo(1000 * (30 / (DUR / 2)) * Math.exp(-1), 9);
+  });
+
+  test("survival_quality (TERMINAL leaf) reproduces the scorer's reachedEnd = 1", () => {
+    const t0: AxisValues = { speed: 1.0 };
+    const gaps = [contactGap(0, t0)]; // single contact ⇒ a leaf covering it is terminal (reachedEnd)
     installTargets(gaps);
     const f0 = fitWith({ speed: 1.0 }); // perfect ⇒ axis_quality 1
     const leaf = leafOf([f0]);
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(1000 * (30 / DUR), 9);
-    // halve the duration ⇒ survival doubles
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR / 2)).toBeCloseTo(1000 * (30 / (DUR / 2)), 9);
+    // Terminal ⇒ survival 1 (NOT 30/DUR); no remaining contacts ⇒ missing 1 ⇒ value 1000.
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(1000, 9);
+    // Duration no longer scales a terminal leaf's survival.
+    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR / 2)).toBeCloseTo(1000, 9);
   });
 
   test("missedContacts argument is IGNORED (subsumed by depth-based survival/missing)", () => {

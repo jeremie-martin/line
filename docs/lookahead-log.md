@@ -73,6 +73,17 @@ suggested +5.7, but the FULL canonical (40 × 12):
 Both INCONCLUSIVE/wash. ⇒ the marginal value of WIDTH ≈ the default allocation's, even in budget-rich
 situations. Width is not where the slack pays. Reverted the flag. `eval_difficulty.sh` kept.
 
+### D2. Budget-scaling curve (300k→600k→1M) — the ceiling is GENERATION, not budget (DECISIVE)
+5 specs × 2 seeds at 300k/600k/1M. Mean 654.7 → 655.8 → 659.7 (**+5.0 for 3× budget** — steep
+diminishing returns). Shape: easy specs already AT ~700 and flat (big_air 702→701.6, tiny_dance
+698→698); low specs plateau BELOW 700 and barely move (solo_run 635→642, drums_tide 662→668,
+dense_sprint noisy). The low specs are AXIS-bound (impact+air), not budget-bound — more frames don't
+fix them. ⇒ the headline is capped by the low specs' axis quality, which is GENERATION-bound (C2
+funnel: template can't make deep-enough scoops). Lookahead at optimum + repair tuned + budget
+diminishing ⇒ **the path from 622 to ~700 is candidate GENERATION (arc scoop/flight geometry), not
+the forward-eval lookahead.** Repair tuning note also documents 706 at 1M — but that needs the
+generation headroom too; at the canonical budgets the system is near its config+axis ceiling.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

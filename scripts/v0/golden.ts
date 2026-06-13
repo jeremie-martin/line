@@ -875,42 +875,89 @@ async function runRows(
       contexts.set(key, specContext(spec, budgets, jobs));
     }
   }
-  const tasks = seeds.flatMap((seed) => cases.map((testCase) => ({ seed, testCase })));
+  // Parallelize at the COMPILE level: one task per (seed, spec, budget) so the worker pool stays
+  // full with no per-(spec,seed) tail. Each per-budget compile is independent (the old per-row
+  // worker just looped these), so the per-budget results are regrouped into one row per (seed,
+  // spec) below and the scored output is identical to the per-row model (clean rows byte-identical).
+  const tasks = seeds.flatMap((seed) =>
+    cases.flatMap((testCase) => budgets.map((budget) => ({ seed, testCase, budget }))),
+  );
   let done = 0;
   const header =
-    `${label}: ${tasks.length} compile${tasks.length === 1 ? "" : "s"}, ` +
-    `${budgets.length} checkpoint${budgets.length === 1 ? "" : "s"}, ` +
+    `${label}: ${tasks.length} compile${tasks.length === 1 ? "" : "s"} ` +
+    `(${seeds.length} seeds × ${cases.length} specs × ${budgets.length} budgets), ` +
     `${Math.min(jobs, tasks.length)} parallel`;
   if (!jsonOnly) {
     console.log(header);
   } else {
-    // stdout must stay pure JSON under --json; emit a liveness heartbeat to stderr so
-    // long background runs show progress instead of nothing until completion.
+    // stdout must stay pure JSON under --json; heartbeat to stderr.
     process.stderr.write(`${header}\n`);
   }
-  const scored = await runPool(tasks, jobs, async ({ seed, testCase }) => {
+  const perBudget = await runPool(tasks, jobs, async ({ seed, testCase, budget }) => {
     const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
     const result = await runWithTimeout(
-      testCase,
-      seed,
-      ctx.worker_timeout_ms,
-      budgets,
-      compiler,
-      checkpointDir,
+      testCase, seed, ctx.worker_timeout_ms, [budget], compiler, checkpointDir,
     );
-    const row = scoreRunResult(result, seed, budgets, ctx);
     done++;
-    if (!jsonOnly) {
-      process.stdout.write(`  [${String(done).padStart(2)}/${tasks.length}] `);
-      printRunRow(row, details);
-    } else {
-      process.stderr.write(`\r  [${String(done).padStart(2)}/${tasks.length}] compiled`);
-    }
-    return row;
+    const tag = `  [${String(done).padStart(3)}/${tasks.length}] compiled`;
+    if (!jsonOnly) process.stdout.write(`${tag}\n`);
+    else process.stderr.write(`\r${tag}`);
+    return { seed, testCase, budget, result };
   });
   if (!jsonOnly) console.log("");
   else process.stderr.write("\n");
+
+  // Regroup per-budget results into one row per (seed, spec), in stable seed→spec order
+  // (matching the old task ordering, so golden.json row order is unchanged).
+  const rowKey = (seed: number, c: SuiteCase): string => `${seed} ${c.specName}/${c.variant}`;
+  const groups = new Map<
+    string,
+    { seed: number; testCase: SuiteCase; parts: { budget: number; result: RunResult }[] }
+  >();
+  for (const seed of seeds) {
+    for (const testCase of cases) groups.set(rowKey(seed, testCase), { seed, testCase, parts: [] });
+  }
+  for (const pb of perBudget) {
+    groups.get(rowKey(pb.seed, pb.testCase))!.parts.push({ budget: pb.budget, result: pb.result });
+  }
+  const scored: ScoredRunRow[] = [];
+  for (const { seed, testCase, parts } of groups.values()) {
+    const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
+    const row = scoreRunResult(mergeBudgetResults(testCase, parts), seed, budgets, ctx);
+    if (!jsonOnly) printRunRow(row, details);
+    scored.push(row);
+  }
   return scored;
+}
+
+/** Merge per-budget RunResults (one compile each) into a single WorkerOk for one (seed, spec) row,
+ *  so scoreRunResult reassembles it exactly as the per-row model did. A per-budget error/timeout
+ *  becomes a per-budget failure — the other budgets, compiled in their own workers, survive
+ *  (strictly more robust than the old whole-row failure). Clean rows are byte-identical. */
+function mergeBudgetResults(
+  testCase: SuiteCase,
+  parts: { budget: number; result: RunResult }[],
+): RunResult {
+  let elapsed = 0;
+  const checkpoints: WorkerCheckpoint[] = [];
+  const budgetFailures: BudgetFailure[] = [];
+  for (const { budget, result } of parts) {
+    elapsed += result.elapsed_ms;
+    if (result.kind === "ok") {
+      checkpoints.push(...result.checkpoints);
+      budgetFailures.push(...result.budgetFailures);
+    } else {
+      budgetFailures.push({ budget, elapsed_ms: result.elapsed_ms, message: result.message });
+    }
+  }
+  return {
+    kind: "ok",
+    specName: testCase.specName,
+    variant: testCase.variant,
+    elapsed_ms: elapsed,
+    checkpoints,
+    budgetFailures,
+  };
 }
 
 function compactStats(stats: CompileStats | null): object | null {

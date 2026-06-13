@@ -22,7 +22,7 @@ cd "$(git rev-parse --show-toplevel)"
 SPECS="drums_crescendo,solo_run,big_air_ramp"
 BUDGETS="100000,200000,300000"
 SEEDS="0,1,2,3,4,5,6,7,8,9,10,11"   # 12 seeds
-JOBS=36
+JOBS=8
 
 OUTROOT="generated/short-leaf-eval"
 BASELINE_DIR="$OUTROOT/baseline-full"

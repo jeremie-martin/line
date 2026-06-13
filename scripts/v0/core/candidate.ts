@@ -801,6 +801,7 @@ function evaluateCandidateLines(
       geometry,
       lines: best.fit.lines,
       achieved: best.fit.achieved,
+      ...(best.fit.achievedAtEnd === undefined ? {} : { achievedAtEnd: best.fit.achievedAtEnd }),
       cost: best.fit.cost,
       ...(best.fit.releaseSpeed === undefined ? {} : { releaseSpeed: best.fit.releaseSpeed }),
       ...(best.fit.releaseVelocityY === undefined ? {} : { releaseVelocityY: best.fit.releaseVelocityY }),
@@ -933,6 +934,7 @@ function evaluateGapFit(
     GapFit,
     | "lines"
     | "achieved"
+    | "achievedAtEnd"
     | "cost"
     | "releaseSpeed"
     | "releaseVelocityY"
@@ -1024,6 +1026,16 @@ function evaluateGapFit(
   const achieved = ballisticSuffix === null
     ? measureGapAxes(det, gap, lines, axisMeasureEnd)
     : measureGapAxesWithBallisticSuffix(det, gap, lines, axisMeasureEnd, ballisticSuffix);
+  // GAP-WINDOW achieved (the true scorer's window): when the lookahead window
+  // extends past gap.endFrame (air/lookahead gaps), `achieved` above is measured
+  // over the wrong window to reproduce the scorer, so also read the [start, endFrame]
+  // axes — PURE ENGINE off the SAME det (gap.endFrame is inside the prefix the survival
+  // floor already guarantees; zero ballistic, zero extra frames). For non-lookahead,
+  // non-truncated gaps the two windows coincide, so `achieved` already IS the gap-window
+  // value and we leave achievedAtEnd undefined (the objective leaf falls back to achieved).
+  const achievedAtEnd = (axisMeasureEnd === gap.endFrame && ballisticSuffix === null)
+    ? undefined
+    : measureGapAxes(det, gap, lines, gap.endFrame);
   const releaseFrame = releaseStateFrame(gap, allContactFrames);
   const releaseSpeed = speedAt(det, releaseFrame);
   const releaseVelocity = velocityAt(det, releaseFrame);
@@ -1055,6 +1067,7 @@ function evaluateGapFit(
     fit: {
       lines,
       achieved,
+      ...(achievedAtEnd === undefined ? {} : { achievedAtEnd }),
       cost,
       releaseSpeed,
       ...(releaseVelocity === undefined ? {} : { releaseVelocityY: releaseVelocity.y }),

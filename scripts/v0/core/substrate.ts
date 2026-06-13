@@ -33,8 +33,21 @@ export type GapFit = {
   /** Source geometry family for diagnostics/reuse. Evaluation always uses `lines`. */
   geometry: "arc" | "lines";
   lines: TrackLine[];
-  /** Achieved axis values for this gap (for the DriftReport). */
+  /** Achieved axis values measured over the LOOKAHEAD window
+   *  [gap.start, axisLookaheadEndFrame] — for air gaps this runs through the NEXT
+   *  contact (core/candidate.ts axisLookaheadEndFrame), so the local feasibility
+   *  ranker (axisCost) can prefer a catch that "keeps riding". This is the single
+   *  ballistic measurement (engine through the arc, ballistic suffix past the exit). */
   achieved: AxisValues;
+  /** Achieved axis values measured over the GAP window [gap.start, gap.endFrame] —
+   *  the SAME window the true scorer uses (buildDriftReport `measureGapAxes(det, g,
+   *  …, g.endFrame)`). For non-air gaps the lookahead window IS the gap window, so
+   *  this equals `achieved` and is left undefined (read `achievedAtEnd ?? achieved`).
+   *  Present only for air/lookahead gaps where the two windows differ. PURE ENGINE
+   *  (gap.endFrame is inside the already-simulated prefix — zero ballistic, zero
+   *  extra frames); it lets the objective leaf reproduce the true scorer's axis
+   *  factor for committed gaps instead of scoring the wrong (lookahead) window. */
+  achievedAtEnd?: AxisValues;
   /** Aggregate axis cost (lower = better fit). */
   cost: number;
   /** Rider speed at the post-catch release probe frame, in raw px/frame.

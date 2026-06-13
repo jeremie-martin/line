@@ -76,6 +76,14 @@ Each isolates one layer of the short-vs-full question. Run any with
   predicted vy/y to the engine truth frame by frame (dt=0 error is 0 by construction).
   Characterizes the ballistic model's own error over a flight.
 
+- **`eval_leaf_window.ts`** — is the objective leaf scoring the WRONG WINDOW? On one
+  committed track, pools the per-axis errors of all committed contact gaps three ways and
+  reports the resulting combined-RMS axis_quality (the leaf's axis factor): (A) `fit.achieved`
+  (the lookahead window, ballistic — what the leaf read before the window fix), (B) engine over
+  the lookahead window (isolates ballistic error), (C) engine over `[gap.start, gap.endFrame]`
+  (the window the true scorer actually uses, `buildDriftReport`). A≈B but both diverging from C
+  proves the divergence is the WINDOW, not the ballistic — which is what it showed on big_air.
+
 - **`eval_rollout_ranking.sh`** — rollout-INTERNAL ranking telemetry. Runs the compiler
   in shadow mode (ranks by the full leaf, byte-identical, while also computing the short
   leaf value + per-factor breakdown of every pool candidate's rollout leaf — handoff.ts

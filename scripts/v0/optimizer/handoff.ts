@@ -1370,6 +1370,7 @@ function cloneGapFit(fit: GapFit): GapFit {
     geometry: fit.geometry,
     lines: fit.lines.map((line) => ({ ...line })),
     achieved: { ...fit.achieved },
+    ...(fit.achievedAtEnd === undefined ? {} : { achievedAtEnd: { ...fit.achievedAtEnd } }),
     cost: fit.cost,
     ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
     ...(fit.aimed === undefined ? {} : { aimed: fit.aimed }),
@@ -3746,7 +3747,13 @@ export function objectiveLeafValue(
       missingFitCount += 1; // defensive: a contact gap that never committed a catch
       continue;
     }
-    for (const e of axisErrorsForTargets(fwdEvalGapAxisTargets[i], fit.achieved)) errors.push(e);
+    // Reproduce the TRUE scorer's axis factor: it measures each gap over [start, endFrame]
+    // (buildDriftReport), so read the GAP-WINDOW achieved (`achievedAtEnd`) — not the LOOKAHEAD
+    // `achieved` the local ranker uses (which for air gaps spans through the next contact and is
+    // the wrong window to reproduce the scorer). achievedAtEnd is undefined when the two windows
+    // coincide (non-air gaps), so fall back to `achieved` then.
+    const achieved = fit.achievedAtEnd ?? fit.achieved;
+    for (const e of axisErrorsForTargets(fwdEvalGapAxisTargets[i], achieved)) errors.push(e);
   }
   // axis_quality = exp(-rms(ALL committed-prefix errors) / AXIS_QUALITY_TOLERANCE) — the scorer's
   // own single-RMS fold, reproduced from the per-gap fits.

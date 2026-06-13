@@ -46,6 +46,7 @@ export function cloneFits(fits: (GapFit | null)[]): (GapFit | null)[] {
           geometry: fit.geometry,
           lines: fit.lines.map((l) => ({ ...l })),
           achieved: { ...fit.achieved },
+          ...(fit.achievedAtEnd === undefined ? {} : { achievedAtEnd: { ...fit.achievedAtEnd } }),
           cost: fit.cost,
           ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
           ...(fit.releaseVelocityY === undefined ? {} : { releaseVelocityY: fit.releaseVelocityY }),

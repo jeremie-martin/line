@@ -88,8 +88,10 @@ export const GOLDEN_SEEDS = [
  * The 200k cap was historical; WASM made higher budgets affordable, so the ruler
  * now reaches 300k. NOTE: changing this redefines what a "canonical run" is, but
  * does NOT affect EVALUATOR_FINGERPRINT (which hashes the per-run ruler, not the
- * budget grid) — so a grid change still requires a fresh, like-with-like baseline. */
-export const DEFAULT_BUDGETS: readonly number[] = [50_000, 100_000, 200_000, 300_000];
+ * budget grid) — so a grid change still requires a fresh, like-with-like baseline.
+ * 50k dropped 2026-06-13 (completion-knee noise, lowest weight, not a budget we
+ * optimize for) — the canonical now estimates over 100k/200k/300k. */
+export const DEFAULT_BUDGETS: readonly number[] = [100_000, 200_000, 300_000];
 
 /** Fast-probe grid: a cheap, lower-power PREVIEW of the canonical decision in the
  * same score space — a strict subset of the canonical budgets (the endpoints), so

@@ -6,10 +6,14 @@ Terse. One entry per attempt: hypothesis · change · result (headline Δ + per-
 
 ## CANONICAL PHASE (full golden suite, modify-production workflow) — see docs/lookahead-prompt.md
 
-Measure: full canonical `npm run golden` (40 specs × 12 seeds × 50k/100k/200k/300k), `decide` vs the
-committed baseline. Modify production directly; keep only wins. North star: headline 700.
+Measure: full canonical `npm run golden` (40 specs × 12 seeds × **100k/200k/300k** — 50k dropped
+2026-06-13, completion-knee noise / lowest weight / not optimized for), `decide` vs the committed
+baseline. Modify production directly; keep only wins. North star: headline 700.
 
-**Baseline (HEAD 97c7248): headline 614.29** — per-budget 50k 564.4 / 100k 612.3 / 200k 624.3 / 300k
+**Baseline re-established over the 3-budget grid: see latest entry.** (Historical 4-budget baseline,
+HEAD 97c7248, was 614.29; C1–C3 below were measured on the OLD 4-budget grid and are kept as-is.)
+
+Old 4-budget baseline detail — per-budget 50k 564.4 / 100k 612.3 / 200k 624.3 / 300k
 629.3. Excl-impact headline 672.5 ⇒ **impact ≈ −58, the dominant drag.** Weakest spec drums_pendulum
 470 (air-axis 0.21). Systemic weakest axis = impact (mean |err| 0.149; dominant in most low specs);
 funnel study (memory): ~56% of impact gaps never generate a deep-enough scoop (template caps turn

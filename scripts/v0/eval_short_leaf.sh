@@ -115,3 +115,43 @@ for sp in specs:
         print(f"    {sp:16s} {fb(b):>6} {cm:8.1f} {fm:8.1f} {cm-fm:+8.1f}   {cv},{fv}")
 PY
 echo "============================================================"
+
+# Per-axis & factor diagnostics, read from the per-checkpoint report.json files (true-scorer on
+# the OUTPUT tracks). CAVEAT: short and full ran DIFFERENT searches, so this shows where the output
+# TRACKS differ, not per-arc scorer error — see eval_arc_apples.ts for the apples-to-apples test.
+echo
+echo "=== per-axis & factor diagnostics (true-scorer; NOT apples-to-apples — different searches) ==="
+python3 - "$CAND_JSON" "$BASELINE_JSON" <<'PY'
+import json, sys, os
+from collections import defaultdict
+def gather(path):
+    g = json.load(open(path)); out = {}
+    for r in g.get("rows", []):
+        d = out.setdefault(r.get("name"), dict(drift=0, off_beat=0, missing=0, deaths=0,
+            axis=defaultdict(lambda: [0.0, 0])))
+        for cp in r.get("checkpoints", []):
+            d["drift"] += cp.get("drift", 0); d["missing"] += cp.get("missing", 0)
+            for hf in cp.get("hard_failures", []):
+                if hf.startswith("offBeat:"): d["off_beat"] += int(hf.split(":")[1])
+                if hf.startswith("died:"):    d["deaths"] += 1
+            rp = cp.get("report_path")
+            if rp and os.path.exists(rp):
+                for gap in json.load(open(rp)).get("gaps", []):
+                    for ax, v in (gap.get("axes") or {}).items():
+                        e = v.get("error")
+                        if isinstance(e, (int, float)): d["axis"][ax][0] += abs(e); d["axis"][ax][1] += 1
+    return out
+cand, base = gather(sys.argv[1]), gather(sys.argv[2])
+for sp in sorted(base):
+    c, b = cand.get(sp, {}), base.get(sp, {})
+    print(f"  {sp}")
+    print(f"    factors short/full :  drift {c.get('drift',0)}/{b.get('drift',0)}"
+          f"   off_beat {c.get('off_beat',0)}/{b.get('off_beat',0)}"
+          f"   missing {c.get('missing',0)}/{b.get('missing',0)}"
+          f"   deaths {c.get('deaths',0)}/{b.get('deaths',0)}")
+    ca, ba = c.get("axis", {}), b.get("axis", {})
+    def mae(a, ax): v = a.get(ax); return (v[0] / v[1]) if v and v[1] else 0.0
+    cells = "  ".join(f"{ax} {mae(ca,ax)-mae(ba,ax):+.3f}" for ax in sorted(set(ca) | set(ba)))
+    print(f"    mean|err| short−full:  {cells}")
+PY
+echo "============================================================"

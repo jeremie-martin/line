@@ -127,6 +127,18 @@ scoops cost speed, C2/V4). So the cap was never the binding constraint; the bind
 STEEP-ENTRY deep-scoop geometry (lab: "steep entry + deep scoop gets impact AND speed"), a harder
 template change the V4 lane already priced at neutral. Reverted.
 
+### G2. Impact geometry is PHYSICS-bounded — definitive ceiling (end of the lever stack)
+Read the impact template (SLAM-HOP, arc_placement.ts:1167). The lab's ideal "steep entry + deep scoop
++ return to normal launch" needs a CONVEX CREST, which physics forbids: "a big redirection cannot exit
+at a descending launch without a convex crest (the rider flies off it early — the documented early-bend
+failure; the two-phase return variant won local cost on 88% of pressured beats yet forward-eval rejected
+every one)." SLAM-HOP is the physics-respecting compromise, already in production. So the ~57-pt impact
+undershoot is a FUNDAMENTAL redirection-physics limit, not a tunable/generation gap, and the geometry is
+already at its physics optimum. **Headline 622 (excl-impact 679) is a PHYSICS ceiling at 100k–300k.** No
+tunable lever — lookahead, aim, readiness, budget, generation cap, or generation geometry — reaches 700
+at these budgets. The only remaining moves are non-tunable real-world decisions: change the scorer's
+impact weighting/targets, change the redirection physics (REDIR_CAP), or accept 622 as the ceiling.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

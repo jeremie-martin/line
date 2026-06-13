@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { parseArgValue } from "../scripts/v0/golden.ts";
+import { defaultJobsForParallelism, parseArgValue } from "../scripts/v0/golden.ts";
 
 describe("golden runner flag parsing", () => {
   test("reads the attached --name=value form", () => {
@@ -31,5 +31,13 @@ describe("golden runner flag parsing", () => {
 
   test("space form at the end of argv with no value returns null", () => {
     expect(parseArgValue(["--json", "--jobs"], "jobs")).toBeNull();
+  });
+
+  test("default job count uses half the available processors", () => {
+    expect(defaultJobsForParallelism(1)).toBe(1);
+    expect(defaultJobsForParallelism(2)).toBe(1);
+    expect(defaultJobsForParallelism(3)).toBe(1);
+    expect(defaultJobsForParallelism(4)).toBe(2);
+    expect(defaultJobsForParallelism(32)).toBe(16);
   });
 });

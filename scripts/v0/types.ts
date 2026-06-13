@@ -557,6 +557,49 @@ export type CompileStats = {
     gapfit_full: number;
     gapfit_frames_saved: number;
   };
+  /** Forward-eval cost + agreement instrument (optimizer/handoff.ts,
+   *  MEASURE-ONLY). cost: rollout sim-frames charged + call/pool counts;
+   *  agreement (over POOL-SOURCE candidates only): does the true charged
+   *  forward rollout (winner = max value) agree with the quality-objective
+   *  rank, and about aimed candidates. Sums to be divided by counts at
+   *  aggregation. Absent when forward-eval never ran (gate off). */
+  fwd_eval?: {
+    fwd_eval_frames_charged: number;
+    fwd_eval_calls: number;
+    start_eval_frames_charged: number;
+    /** Rollout dead-ends (both leaf modes): recursion hit a zero-candidate node. */
+    fwd_rollout_no_candidate: number;
+    /** Dead-rider proof (full-leaf path only). reports = all full-leaf detections;
+     *  dead_uncovered = those whose terminus is a non-endOfSpec death past the last
+     *  committed contact (the uncovered span the objective leaf's missed-penalty would
+     *  otherwise have to cover). Read from a default-mode run; expect ≈0. */
+    fwd_leaf_reports: number;
+    fwd_leaf_dead_uncovered: number;
+    fwd_pools: number;
+    fwd_top1_agree: number;
+    fwd_rank_of_quality_top1_sum: number;
+    fwd_quality_rank_of_winner_sum: number;
+    fwd_disagree_value_gap_sum: number;
+    fwd_disagree_count: number;
+    fwd_winner_aimed: number;
+    fwd_pools_with_aimed: number;
+    fwd_aimed_best_rank_sum: number;
+    /** Forward winner's quality-rank, bucketed [0,1,2,3,4,5,6-8,9+] (8 cells). */
+    fwd_winner_quality_rank_hist: number[];
+    /** Quality-#1's forward-rank, same buckets (8 cells). */
+    fwd_quality_top1_fwd_rank_hist: number[];
+    /** Disagreement characterization (top-1 disagree only, except agree-impact pair). */
+    fwd_disagree_impact_targeted: number;
+    fwd_disagree_not_impact_targeted: number;
+    fwd_agree_impact_targeted: number;
+    fwd_agree_not_impact_targeted: number;
+    fwd_disagree_winner_aimed_q1_not: number;
+    fwd_disagree_q1_aimed_winner_not: number;
+    /** Disagreement value-gap, bucketed [0-2,2-5,5-10,10-20,20-50,50+] (6 cells). */
+    fwd_disagree_value_gap_hist: number[];
+    fwd_disagree_winner_costlier: number;
+    fwd_disagree_winner_cheaper: number;
+  };
   /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;
   /** Readiness v0 (optimizer/readiness.ts, READINESS_ROADMAP R1, telemetry

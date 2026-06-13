@@ -15,6 +15,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { createReadStream, existsSync, readdirSync, statSync, openSync, readSync, closeSync } from "node:fs";
 import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { networkInterfaces } from "node:os";
 import { basename, extname, normalize, relative, resolve, sep } from "node:path";
 
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
@@ -49,6 +50,13 @@ function json(res: ServerResponse, body: unknown, status = 200): void {
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Content-Length", String(Buffer.byteLength(text)));
   res.end(text);
+}
+
+function redirect(res: ServerResponse, location: string): void {
+  res.statusCode = 308;
+  res.setHeader("Location", location);
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.end(`redirecting to ${location}\n`);
 }
 
 /** Read `source.commit` from the top of a golden.json without loading the whole
@@ -446,6 +454,10 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     return json(res, { job: snapshotJob(job) });
   }
 
+  if (url.pathname === "/") {
+    return redirect(res, `/dashboard/${url.search}`);
+  }
+
   serveStatic(req, res, ROOT);
 }
 
@@ -465,6 +477,10 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, root: string): v
   try {
     stat = statSync(target);
     if (stat.isDirectory()) {
+      if (!url.pathname.endsWith("/")) {
+        redirect(res, `${url.pathname}/${url.search}`);
+        return;
+      }
       target = resolve(target, "index.html");
       stat = statSync(target);
     }
@@ -525,7 +541,21 @@ const server = createServer((req, res) => {
   });
 });
 
+function accessHosts(host: string): string[] {
+  if (host !== "0.0.0.0" && host !== "::") return [host];
+
+  const hosts = new Set<string>(["127.0.0.1"]);
+  for (const entries of Object.values(networkInterfaces())) {
+    for (const entry of entries ?? []) {
+      if (entry.family === "IPv4" && !entry.internal) hosts.add(entry.address);
+    }
+  }
+  return [...hosts];
+}
+
 server.listen(PORT, HOST, () => {
-  console.log(`serving ${ROOT}  →  http://${HOST}:${PORT}/`);
-  console.log(`Dashboard: http://${HOST}:${PORT}/dashboard/`);
+  console.log(`serving ${ROOT} on ${HOST}:${PORT}`);
+  for (const host of accessHosts(HOST)) {
+    console.log(`Dashboard: http://${host}:${PORT}/dashboard/`);
+  }
 });

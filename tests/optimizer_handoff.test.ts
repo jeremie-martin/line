@@ -5,9 +5,16 @@ import {
   compileBudgetCurve,
   compileHandoff,
   compileHandoffFromSnapshot,
+  objectiveLeafValue,
+  setForwardEvalContext,
   snapshotHandoffNode,
   type HandoffNodeSnapshot,
 } from "../scripts/v0/optimizer/handoff.ts";
+import { axisQualityForTargets } from "../scripts/v0/score.ts";
+import type { SearchNode } from "../scripts/v0/optimizer/node.ts";
+import type { GapFit } from "../scripts/v0/core/substrate.ts";
+import type { AxisValues, Gap } from "../scripts/v0/types.ts";
+import type { Spec } from "../scripts/v0/optimizer/types.ts";
 import { loadGoldenSpec } from "../scripts/v0/golden_suite.ts";
 import {
   AXES,
@@ -285,6 +292,56 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.handoff_preview_survivors).toBe(b.stats.handoff_preview_survivors);
   }, 60_000);
 
+  test("forward-eval cost+agreement instrument is populated and self-consistent at gate budget", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    // Default fwd-eval gate is 75k; at 100k the pool is scored by the true forward rollout.
+    const budget = 100_000;
+    const a = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    const b = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    const fe = a.stats.fwd_eval;
+    expect(fe).toBeDefined();
+    expect(a.stats.fwd_eval).toEqual(b.stats.fwd_eval); // deterministic, measure-only
+    if (fe === undefined) return;
+    // Cost counters are non-negative; a charged rollout was performed.
+    expect(fe.fwd_eval_calls).toBeGreaterThan(0);
+    expect(fe.fwd_eval_frames_charged).toBeGreaterThan(0);
+    expect(fe.start_eval_frames_charged).toBeGreaterThanOrEqual(0);
+    expect(fe.fwd_eval_frames_charged).toBeLessThanOrEqual(a.stats.sim_frames ?? Infinity);
+    // Agreement counters: agreements are a subset of pools; disagreements are the complement.
+    expect(fe.fwd_pools).toBeGreaterThan(0);
+    expect(fe.fwd_top1_agree).toBeLessThanOrEqual(fe.fwd_pools);
+    expect(fe.fwd_top1_agree + fe.fwd_disagree_count).toBe(fe.fwd_pools);
+    // Aimed: winners/pools-with-aimed are subsets of all pools.
+    expect(fe.fwd_pools_with_aimed).toBeLessThanOrEqual(fe.fwd_pools);
+    expect(fe.fwd_winner_aimed).toBeLessThanOrEqual(fe.fwd_pools_with_aimed);
+    // Value gap on disagreement is non-negative (forward winner has >= value than quality #1).
+    expect(fe.fwd_disagree_value_gap_sum).toBeGreaterThanOrEqual(0);
+    // Rank histograms: 8 cells each, summing to pools (one entry per pool).
+    expect(fe.fwd_winner_quality_rank_hist).toHaveLength(8);
+    expect(fe.fwd_quality_top1_fwd_rank_hist).toHaveLength(8);
+    expect(fe.fwd_winner_quality_rank_hist.reduce((s, n) => s + n, 0)).toBe(fe.fwd_pools);
+    expect(fe.fwd_quality_top1_fwd_rank_hist.reduce((s, n) => s + n, 0)).toBe(fe.fwd_pools);
+    // Impact-targeted split spans every pool (agree + disagree, impact-targeted or not).
+    expect(
+      fe.fwd_agree_impact_targeted + fe.fwd_agree_not_impact_targeted +
+        fe.fwd_disagree_impact_targeted + fe.fwd_disagree_not_impact_targeted,
+    ).toBe(fe.fwd_pools);
+    // Value-gap histogram: 6 cells summing to the disagreement count.
+    expect(fe.fwd_disagree_value_gap_hist).toHaveLength(6);
+    expect(fe.fwd_disagree_value_gap_hist.reduce((s, n) => s + n, 0)).toBe(fe.fwd_disagree_count);
+    // Cost-sign + aimed-asymmetry counters are subsets of disagreements.
+    expect(fe.fwd_disagree_winner_costlier + fe.fwd_disagree_winner_cheaper)
+      .toBeLessThanOrEqual(fe.fwd_disagree_count);
+    expect(fe.fwd_disagree_winner_aimed_q1_not).toBeLessThanOrEqual(fe.fwd_disagree_count);
+    expect(fe.fwd_disagree_q1_aimed_winner_not).toBeLessThanOrEqual(fe.fwd_disagree_count);
+    // New leaf-mode counters (default/full path): non-negative; dead-uncovered ⊆ all reports;
+    // full-leaf path produced at least one report and the dead-rider proof is rare (≈0).
+    expect(fe.fwd_rollout_no_candidate).toBeGreaterThanOrEqual(0);
+    expect(fe.fwd_leaf_reports).toBeGreaterThan(0);
+    expect(fe.fwd_leaf_dead_uncovered).toBeGreaterThanOrEqual(0);
+    expect(fe.fwd_leaf_dead_uncovered).toBeLessThanOrEqual(fe.fwd_leaf_reports);
+  }, 120_000);
+
   test("explicit default search seed preserves public compile behavior", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const budget = 20_000;
@@ -411,4 +468,195 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(result.stats.handoff_search_seed).toBe(123);
     expect(result.track.lines.length).toBeGreaterThanOrEqual(prefixLineCount);
   }, 60_000);
+});
+
+describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objective)", () => {
+  // Minimal Gap/GapFit/SearchNode fixtures. objectiveLeafValue reads only gap.endsWithContact,
+  // gap.endFrame, gap.targets and leaf.gapIndex / leaf.prefixFits[i].achieved — and for the
+  // readiness factor, fit.releaseArrivalState (absent here ⇒ readiness 1).
+  const contactGap = (index: number, targets: AxisValues): Gap => ({
+    index,
+    startFrame: index * 30,
+    endFrame: index * 30 + 30,
+    endsWithContact: true,
+    targets,
+  });
+  const nonContactGap = (index: number): Gap => ({
+    index,
+    startFrame: index * 30,
+    endFrame: index * 30 + 30,
+    endsWithContact: false,
+    targets: {},
+  });
+  const fitWith = (achieved: AxisValues): GapFit => ({
+    arc: null,
+    geometry: "lines",
+    lines: [],
+    achieved,
+    cost: 0,
+  });
+  const leafOf = (prefixFits: (GapFit | null)[]): SearchNode =>
+    ({ gapIndex: prefixFits.length, prefixFits } as unknown as SearchNode);
+  // objectiveLeafValue scores against the module-global TRUE targets (fwdEvalGapAxisTargets),
+  // NOT gap.targets. Install per-gap-index true targets so the unit fixtures are scored by the
+  // same ruler the production path uses.
+  const installTargets = (gaps: Gap[]): AxisValues[] => {
+    const targets = gaps.map((g) => g.targets);
+    setForwardEvalContext({} as unknown as Spec, targets);
+    return targets;
+  };
+
+  test("value = 1000 × q1 × q2 over the rolled contact gaps (no readiness, missed=0)", () => {
+    const t0: AxisValues = { speed: 1.0 };
+    const t1: AxisValues = { speed: 1.0 };
+    const gaps = [contactGap(0, t0), contactGap(1, t1)];
+    installTargets(gaps);
+    const f0 = fitWith({ speed: 1.0 });
+    const f1 = fitWith({ speed: 0.9 });
+    const leaf = leafOf([f0, f1]);
+    const q1 = axisQualityForTargets(t0, f0.achieved).axis_quality;
+    const q2 = axisQualityForTargets(t1, f1.achieved).axis_quality;
+    expect(objectiveLeafValue(leaf, 0, gaps, 0)).toBeCloseTo(1000 * q1 * q2, 9);
+  });
+
+  test("missed=1 multiplies by e^-1; missed=2 by e^-2", () => {
+    const t0: AxisValues = { speed: 1.0 };
+    const gaps = [contactGap(0, t0)];
+    installTargets(gaps);
+    const f0 = fitWith({ speed: 1.0 });
+    const leaf = leafOf([f0]);
+    const base = objectiveLeafValue(leaf, 0, gaps, 0);
+    expect(objectiveLeafValue(leaf, 0, gaps, 1)).toBeCloseTo(base * Math.exp(-1), 9);
+    expect(objectiveLeafValue(leaf, 0, gaps, 2)).toBeCloseTo(base * Math.exp(-2), 9);
+  });
+
+  test("terminal chain (no next contact past leaf) ⇒ readiness factor 1", () => {
+    // leaf.gapIndex === gaps.length ⇒ nextContactGapFromIndex returns null ⇒ readiness 1.
+    const t0: AxisValues = { speed: 1.0 };
+    const gaps = [contactGap(0, t0)];
+    installTargets(gaps);
+    const f0 = fitWith({ speed: 1.0 });
+    const leaf = leafOf([f0]);
+    const q1 = axisQualityForTargets(t0, f0.achieved).axis_quality;
+    expect(objectiveLeafValue(leaf, 0, gaps, 0)).toBeCloseTo(1000 * q1, 9);
+  });
+
+  test("no releaseArrivalState ⇒ readiness 1 even with a next contact gap", () => {
+    const t0: AxisValues = { speed: 1.0 };
+    const t1: AxisValues = { speed: 1.0 };
+    // leaf at gapIndex 1 (committed gap 0), gap 1 is the NEXT contact ⇒ readiness would apply,
+    // but f0 has no releaseArrivalState ⇒ frontierReadinessFromFit returns null ⇒ ?? 1.
+    const gaps = [contactGap(0, t0), contactGap(1, t1)];
+    installTargets(gaps);
+    const f0 = fitWith({ speed: 1.0 });
+    const leaf = leafOf([f0]);
+    const q1 = axisQualityForTargets(t0, f0.achieved).axis_quality;
+    expect(objectiveLeafValue(leaf, 0, gaps, 0)).toBeCloseTo(1000 * q1, 9);
+  });
+
+  test("non-contact gaps in the rolled span are skipped", () => {
+    const t0: AxisValues = { speed: 1.0 };
+    const t2: AxisValues = { speed: 1.0 };
+    const gaps = [contactGap(0, t0), nonContactGap(1), contactGap(2, t2)];
+    installTargets(gaps);
+    const f0 = fitWith({ speed: 1.0 });
+    const f2 = fitWith({ speed: 0.8 });
+    const leaf = leafOf([f0, null, f2]);
+    const q0 = axisQualityForTargets(t0, f0.achieved).axis_quality;
+    const q2 = axisQualityForTargets(t2, f2.achieved).axis_quality;
+    // The middle non-contact gap (null fit) contributes nothing — NOT the e^-1 null-fit penalty.
+    expect(objectiveLeafValue(leaf, 0, gaps, 0)).toBeCloseTo(1000 * q0 * q2, 9);
+  });
+
+  test("contact gap with a null fit applies the defensive e^-1 factor", () => {
+    const t0: AxisValues = { speed: 1.0 };
+    const t1: AxisValues = { speed: 1.0 };
+    const gaps = [contactGap(0, t0), contactGap(1, t1)];
+    installTargets(gaps);
+    const f0 = fitWith({ speed: 1.0 });
+    const leaf = leafOf([f0, null]);
+    const q0 = axisQualityForTargets(t0, f0.achieved).axis_quality;
+    // gap 1 is a contact with no committed catch ⇒ ×e^-1. (leaf.gapIndex=2 ⇒ no next contact.)
+    expect(objectiveLeafValue(leaf, 0, gaps, 0)).toBeCloseTo(1000 * q0 * Math.exp(-1), 9);
+  });
+
+  test("flag default is inert: env-unset ≡ LR_FWD_EVAL_LEAF=full at 100k", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const budget = 100_000;
+    const prev = process.env.LR_FWD_EVAL_LEAF;
+    delete process.env.LR_FWD_EVAL_LEAF;
+    const unset = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    process.env.LR_FWD_EVAL_LEAF = "full";
+    const full = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    if (prev === undefined) delete process.env.LR_FWD_EVAL_LEAF;
+    else process.env.LR_FWD_EVAL_LEAF = prev;
+    expect(hashTrack(full.track)).toBe(hashTrack(unset.track));
+    expect(full.stats.sim_frames).toBe(unset.stats.sim_frames);
+    expect(full.stats.fwd_eval).toEqual(unset.stats.fwd_eval);
+  }, 120_000);
+
+  test("shadow leaf ranks identically to full: byte-identical track + sim_frames at 100k", async () => {
+    const spec = await loadGoldenSpec("big_air_ramp", "base");
+    const budget = 100_000;
+    const prev = process.env.LR_FWD_EVAL_LEAF;
+    const prevRd = process.env.LR_FWD_EVAL_LEAF_READINESS;
+    process.env.LR_FWD_EVAL_LEAF = "full";
+    const full = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    process.env.LR_FWD_EVAL_LEAF = "shadow";
+    process.env.LR_FWD_EVAL_LEAF_READINESS = "0";
+    const shadow = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    if (prev === undefined) delete process.env.LR_FWD_EVAL_LEAF;
+    else process.env.LR_FWD_EVAL_LEAF = prev;
+    if (prevRd === undefined) delete process.env.LR_FWD_EVAL_LEAF_READINESS;
+    else process.env.LR_FWD_EVAL_LEAF_READINESS = prevRd;
+    // Shadow ranks by the full leaf, so the produced track is byte-identical to full mode and
+    // charges identical frames; it only ADDS measure-only objective-vs-full agreement telemetry.
+    expect(hashTrack(shadow.track)).toBe(hashTrack(full.track));
+    expect(shadow.stats.sim_frames).toBe(full.stats.sim_frames);
+    const fe = shadow.stats.fwd_eval;
+    expect(fe).toBeDefined();
+    if (fe === undefined) return;
+    // The shadow agreement instrument populated (pools seen ⇒ agreement recorded).
+    expect(fe.shadow_pools).toBeGreaterThan(0);
+    expect(fe.shadow_top1_agree + fe.shadow_disagree_count).toBe(fe.shadow_pools);
+  }, 120_000);
+
+  test("objective leaf is deterministic and collapses rollout frame cost vs full", async () => {
+    const spec = await loadGoldenSpec("tiny_dance", "base");
+    const budget = 100_000;
+    const prev = process.env.LR_FWD_EVAL_LEAF;
+    const prevHybrid = process.env.LR_FWD_EVAL_LEAF_HYBRID;
+
+    delete process.env.LR_FWD_EVAL_LEAF;
+    const fullRun = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+
+    process.env.LR_FWD_EVAL_LEAF = "objective";
+    // Disable the impact hybrid (default on) to assert the PURE objective frame-collapse property;
+    // the hybrid intentionally re-charges full-leaf frames on impact gaps (a quality fix, measured
+    // separately).
+    process.env.LR_FWD_EVAL_LEAF_HYBRID = "0";
+    const objA = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    const objB = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    if (prev === undefined) delete process.env.LR_FWD_EVAL_LEAF;
+    else process.env.LR_FWD_EVAL_LEAF = prev;
+    if (prevHybrid === undefined) delete process.env.LR_FWD_EVAL_LEAF_HYBRID;
+    else process.env.LR_FWD_EVAL_LEAF_HYBRID = prevHybrid;
+
+    // Deterministic across reruns.
+    expect(hashTrack(objA.track)).toBe(hashTrack(objB.track));
+    expect(objA.stats.sim_frames).toBe(objB.stats.sim_frames);
+
+    const feFull = fullRun.stats.fwd_eval;
+    const feObj = objA.stats.fwd_eval;
+    expect(feFull).toBeDefined();
+    expect(feObj).toBeDefined();
+    if (feFull === undefined || feObj === undefined) return;
+    // Objective rollout charges far fewer frames (zero-frame leaf): < 0.5× full-mode.
+    expect(feObj.fwd_eval_frames_charged).toBeLessThan(feFull.fwd_eval_frames_charged * 0.5);
+    // New counters exist; default(full) run's dead-uncovered proof is rare (≈0).
+    expect(feFull.fwd_leaf_reports).toBeGreaterThan(0);
+    expect(feFull.fwd_leaf_dead_uncovered).toBeLessThanOrEqual(feFull.fwd_leaf_reports);
+    // Objective run completes with a valid output.
+    expect(objA.track.lines.length).toBeGreaterThan(0);
+  }, 180_000);
 });

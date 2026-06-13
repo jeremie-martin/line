@@ -18,7 +18,25 @@ SPECS="${FOCUS_SPECS:-opening_burst,drums_breath,solo_run,cold_start,syncopated_
 # 100-102 separately as a generalization check (never tuned against directly).
 SEEDS="${FOCUS_SEEDS:-200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,100,101,102}"
 BUDGETS="${FOCUS_BUDGETS:-60000,65000,70000,75000,80000,85000,90000,95000,100000,105000,110000,115000,120000}"
-JOBS="${FOCUS_JOBS:-6}"
+
+default_jobs() {
+  local cpus
+  if command -v nproc >/dev/null 2>&1; then
+    cpus="$(nproc)"
+  elif command -v getconf >/dev/null 2>&1; then
+    cpus="$(getconf _NPROCESSORS_ONLN 2>/dev/null || printf '1')"
+  elif command -v sysctl >/dev/null 2>&1; then
+    cpus="$(sysctl -n hw.ncpu 2>/dev/null || printf '1')"
+  else
+    cpus=1
+  fi
+  [[ "$cpus" =~ ^[0-9]+$ ]] || cpus=1
+  local jobs=$(( cpus / 2 ))
+  (( jobs >= 1 )) || jobs=1
+  printf '%s\n' "$jobs"
+}
+
+JOBS="${FOCUS_JOBS:-$(default_jobs)}"
 OUT="generated/focus-runs/${LABEL}"
 
 LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE="$SEEDS" \

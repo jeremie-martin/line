@@ -20,7 +20,25 @@ FROM_COMMIT="${FROM_COMMIT:-646b0da}"
 BRANCH="${BRANCH:-reach-handoff-wyss}"
 BUDGETS="${BUDGETS:-25000,50000,100000,150000,200000}"   # canonical grid (each an independent run)
 SEEDS="${SEEDS:-$(seq -s, 10 1 19)}"                # seeds 10..19
-JOBS="${JOBS:-8}"
+
+default_jobs() {
+  local cpus
+  if command -v nproc >/dev/null 2>&1; then
+    cpus="$(nproc)"
+  elif command -v getconf >/dev/null 2>&1; then
+    cpus="$(getconf _NPROCESSORS_ONLN 2>/dev/null || printf '1')"
+  elif command -v sysctl >/dev/null 2>&1; then
+    cpus="$(sysctl -n hw.ncpu 2>/dev/null || printf '1')"
+  else
+    cpus=1
+  fi
+  [[ "$cpus" =~ ^[0-9]+$ ]] || cpus=1
+  local jobs=$(( cpus / 2 ))
+  (( jobs >= 1 )) || jobs=1
+  printf '%s\n' "$jobs"
+}
+
+JOBS="${JOBS:-$(default_jobs)}"
 SPECS="${SPECS:-}"                                  # empty = all 20 headline specs
 KEEP_CHECKPOINTS="${KEEP_CHECKPOINTS:-0}"
 SKIP_NN="${SKIP_NN:-}"                              # space-separated NN indices to skip (non-functional commits)

@@ -1,16 +1,17 @@
 /**
  * v0 golden budget-curve benchmark — single source of truth for compiler work.
  *
- *   LR_ENGINE=wasm npm run golden -- --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --json --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --json-full --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --details --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --seed=42 --jobs=6
- *   LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4 npm run golden -- --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --budgets=50000,300000 --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --archive-dir=generated/golden-runs/my-run --jobs=6
- *   LR_ENGINE=wasm npm run golden -- --variants --jobs=6
+ *   LR_ENGINE=wasm npm run golden
+ *   LR_ENGINE=wasm npm run golden -- --json
+ *   LR_ENGINE=wasm npm run golden -- --json-full
+ *   LR_ENGINE=wasm npm run golden -- --details
+ *   LR_ENGINE=wasm npm run golden -- --seed=42
+ *   LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4 npm run golden
+ *   LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst
+ *   LR_ENGINE=wasm npm run golden -- --budgets=50000,300000
+ *   LR_ENGINE=wasm npm run golden -- --archive-dir=generated/golden-runs/my-run
+ *   LR_ENGINE=wasm npm run golden -- --variants
+ *   LR_ENGINE=wasm npm run golden -- --jobs=6  # override default half-CPU pool
  *
  * Each budget is an INDEPENDENT full run (no anytime sharing): passing N budgets
  * runs N compiles per (spec, seed). The headline metric (see metric.ts) is the
@@ -34,7 +35,11 @@ import { execFileSync } from "node:child_process";
 const WORKER_MEM_CAP_MB = 3072;
 
 /** Default parallelism for the worker pool. Override: --jobs=N. */
-const DEFAULT_JOBS = Math.max(1, Math.min(6, availableParallelism() - 1));
+export function defaultJobsForParallelism(cpuCount: number): number {
+  return Math.max(1, Math.floor(cpuCount / 2));
+}
+
+const DEFAULT_JOBS = defaultJobsForParallelism(availableParallelism());
 
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { FPS, REPORT_ONLY_AXIS_SET, type CompileStats, type DriftReport, type Spec } from "./types.ts";
@@ -1016,6 +1021,8 @@ function compactStats(stats: CompileStats | null): object | null {
       stats.handoff_candidate_preview_first_survivors_max,
     arc_placement: stats.arc_placement,
     repair: stats.repair,
+    // Forward-eval cost + agreement instrument (optimizer/handoff.ts, measure-only).
+    fwd_eval: stats.fwd_eval,
   };
 }
 

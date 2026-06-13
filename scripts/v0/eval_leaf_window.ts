@@ -108,9 +108,10 @@ async function main(): Promise<void> {
   const composedDet = detectWindow(winNode.search.prefixEngine, 0, durationFrames + 20);
 
   // Pool errors three ways across all committed contact gaps.
-  const errA: number[] = []; // fit.achieved (lookahead, ballistic) — leaf NOW
+  const errA: number[] = []; // fit.achieved (lookahead, ballistic) — leaf BEFORE the fix
   const errB: number[] = []; // engine @ lookahead window
   const errC: number[] = []; // engine @ gap.endFrame — TRUE scorer
+  const errD: number[] = []; // fit.achievedAtEnd (what the leaf reads NOW)
   let nGaps = 0;
   console.log("============================================================");
   console.log("  eval_leaf_window — objective-leaf axis window vs true-scorer window");
@@ -132,6 +133,14 @@ async function main(): Promise<void> {
     errA.push(...axisErrorsForTargets(target, aAch));
     errB.push(...axisErrorsForTargets(target, bAch));
     errC.push(...axisErrorsForTargets(target, cAch));
+    // D) the STORED achievedAtEnd the objective leaf now reads (gap-fit det, fit time).
+    // Should equal C (composed engine@endFrame) if the gap-fit measurement is causally
+    // identical to the composed-track measurement — i.e. the fix is exact.
+    if (fit.achievedAtEnd !== undefined) {
+      errD.push(...axisErrorsForTargets(target, fit.achievedAtEnd));
+    } else {
+      errD.push(...axisErrorsForTargets(target, aAch)); // leaf falls back to achieved
+    }
     const cells = AXES.filter((ax) => target[ax] !== undefined && aAch[ax] !== undefined && cAch[ax] !== undefined)
       .map((ax) => `${ax.slice(0, 3)} ${Math.abs((aAch[ax] as number) - (cAch[ax] as number)).toFixed(3)}`);
     console.log(`  ${String(i).padStart(3)} ${`[${gap.startFrame}..${gap.endFrame}]`.padStart(13)} ${String(lookEnd).padStart(7)}   ${cells.join("  ")}`);
@@ -139,11 +148,14 @@ async function main(): Promise<void> {
   const qA = axisQualityFromErrors(errA);
   const qB = axisQualityFromErrors(errB);
   const qC = axisQualityFromErrors(errC);
+  const qD = axisQualityFromErrors(errD);
   console.log("");
   console.log(`  pooled over ${nGaps} committed contact gaps (combined RMS, the leaf's axis factor):`);
   console.log(`    A) fit.achieved     (lookahead, ballistic) : rms=${qA.axis_error_rms.toFixed(4)}  axis_quality=${qA.axis_quality.toFixed(4)}`);
   console.log(`    B) engine@lookahead (lookahead, engine)    : rms=${qB.axis_error_rms.toFixed(4)}  axis_quality=${qB.axis_quality.toFixed(4)}`);
   console.log(`    C) engine@endFrame  (gap window, TRUE)     : rms=${qC.axis_error_rms.toFixed(4)}  axis_quality=${qC.axis_quality.toFixed(4)}`);
+  console.log(`    D) fit.achievedAtEnd(what the leaf reads NOW): rms=${qD.axis_error_rms.toFixed(4)}  axis_quality=${qD.axis_quality.toFixed(4)}`);
+  console.log(`  D vs C (leaf-vs-scorer residual) Δquality = ${(qD.axis_quality - qC.axis_quality).toFixed(4)}  (≈0 ⇒ leaf now faithful)`);
   console.log("");
   console.log(`  A vs C (window+ballistic) Δquality = ${(qA.axis_quality - qC.axis_quality).toFixed(4)}`);
   console.log(`  B vs C (WINDOW only)      Δquality = ${(qB.axis_quality - qC.axis_quality).toFixed(4)}`);

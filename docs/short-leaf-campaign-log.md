@@ -68,4 +68,16 @@ decide: Δheadline -0.0, 95% CI [-5.1, 2.8], effect -0.01 → INCONCLUSIVE (stat
 worst cell big_air 200k −5.4, well within −10. No drums/solo regression. Headline is 0.01
 under the 634.37 bar — inside the decide CI (a tie), not a real shortfall. Clean minimal diff,
 one ballistic source of truth preserved, no per-spec carve-out, no engine frames past the arc
-exit.
+exit. Committed `01d7af8`. Verified full-leaf byte-identical (big_air seed3@200k = 667.25 both).
+
+**Post-fix audit — the axis lever is exhausted (exact).** `eval_leaf_window.ts` column D
+(the STORED `achievedAtEnd` the leaf now reads) vs C (composed engine@endFrame, the true
+scorer): **Δquality = 0.0000 across seeds 0/1/2** — the leaf's axis factor is now byte-faithful
+to the scorer for every committed gap (the gap-fit det measurement is causally identical to the
+composed-track measurement, as expected). So the residual big_air 200k −5.4 is NOT an axis-leaf
+error — it is irreducible search-PATH divergence (short and full are still different searches;
+their rollouts can commit different near-equivalent arcs), and it sits inside the decide CI
+[−5.1, 2.8]. The user's shadow study already cleared survival/missing/drift/off_beat at the
+decision point, so there is no remaining faithful lever inside the leaf; further headline motion
+would require changing the search itself, which is out of scope. Campaign objective (short leaf
+matches the full leaf) reached.

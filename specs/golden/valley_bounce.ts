@@ -4,7 +4,7 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
-import { withImpact } from "../../scripts/v0/core/beats.ts";
+import { withImpactLegacy } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
@@ -12,7 +12,7 @@ const beats = (t0: number, gap: number, n: number) =>
 const spec: Spec = {
   duration: 17,
   // soft through the valley dive, then hard slams as the rebound throws high pops.
-  contacts: withImpact(beats(1.1, 1.1, 15), keyframes(
+  contacts: withImpactLegacy(beats(1.1, 1.1, 15), keyframes(
     [{ t: 0, v: 0.4 }, { t: 6, v: 0.12 }, { t: 12, v: 0.95 }, { t: 17, v: 0.5 }],
     "smooth",
   )),

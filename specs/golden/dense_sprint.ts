@@ -12,7 +12,7 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
-import { withImpact } from "../../scripts/v0/core/beats.ts";
+import { withImpactLegacy } from "../../scripts/v0/core/beats.ts";
 
 const contactTimes = [
   0.75, 1.00, 1.25, 1.50, 1.75,
@@ -24,7 +24,7 @@ for (let t = 2.25; t < 20; t += 0.5) {
 const spec: Spec = {
   duration: 20,
   // impact: hard hot-start sprint (t<4), then a steady mid floor with a hard accent every 4th beat
-  contacts: withImpact(contactTimes.map((t) => ({ t })), (t, i) => (t < 4 ? 0.85 : i % 4 === 0 ? 0.8 : 0.45)),
+  contacts: withImpactLegacy(contactTimes.map((t) => ({ t })), (t, i) => (t < 4 ? 0.85 : i % 4 === 0 ? 0.8 : 0.45)),
   axes: {
     air:           keyframes([{ t: 0, v: 0.85 }, { t: 4, v: 0.35 }, { t: 10, v: 0.75 }], "hold"),
     speed:         keyframes([{ t: 0, v: 0.95 }, { t: 4, v: 0.55 }, { t: 10, v: 0.65 }], "hold"),

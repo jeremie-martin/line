@@ -19,6 +19,7 @@
  */
 
 import type { Contact } from "../types.ts";
+import { normImpact, CALIB } from "../types.ts";
 import { clamp } from "./substrate.ts";
 
 /** A per-beat impact: a constant, or a function of (time s, index, beat count).
@@ -59,4 +60,28 @@ export function withImpact(contacts: Contact[], rule: ImpactRule): Contact[] {
     }
     return { ...c, impact: clamp(raw, 0, 1) };
   });
+}
+
+/**
+ * Migrate an OLD-convention authored impact (the pre-redirArc scale, felt-"soft"≈0.2 under
+ * `redir/REDIR_CAP`) onto the new redirArc felt scale, by requesting the SAME physical redirArc
+ * the old value asked for: `a_new = normImpact(a_old · REDIR_CAP)`. This is the convention rescale,
+ * applied ONCE at authoring (no runtime remap). New specs author natively on the new scale.
+ */
+export const migrateImpact = (aOld: number): number => normImpact(aOld * CALIB.REDIR_CAP);
+
+/**
+ * `withImpact` for the pre-redirArc spec corpus: the rule outputs OLD-convention values which are
+ * migrated to the new felt scale at authoring time (`migrateImpact`). Existing golden specs use
+ * this so their on-disk numbers stay readable while the resolved targets are new-convention; new
+ * specs use `withImpact` directly (no migration). Keeps the bake on-disk, not a runtime remap.
+ */
+export function withImpactLegacy(contacts: Contact[], rule: ImpactRule): Contact[] {
+  const migrated: ImpactRule = typeof rule === "function"
+    ? (t, i, count) => {
+        const r = rule(t, i, count);
+        return r === undefined || !Number.isFinite(r) ? r : migrateImpact(r);
+      }
+    : migrateImpact(rule);
+  return withImpact(contacts, migrated);
 }

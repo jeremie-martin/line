@@ -15,14 +15,14 @@
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
-import { withImpact } from "../../scripts/v0/core/beats.ts";
+import { withImpactLegacy } from "../../scripts/v0/core/beats.ts";
 
 const raw: Contact[] = [];
 for (let t = 0.75; t < 12; t += 0.75) {
   raw.push({ t: Number(t.toFixed(3)) });
 }
 // impact warms up from a cold open: barely-there graze landings that ramp to firm by the end
-const contacts = withImpact(raw, (t) => 0.1 + 0.65 * (t / 12));
+const contacts = withImpactLegacy(raw, (t) => 0.1 + 0.65 * (t / 12));
 
 const spec: Spec = {
   duration: 12,

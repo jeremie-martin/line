@@ -11,6 +11,7 @@
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
+import { migrateImpact } from "../../scripts/v0/core/beats.ts";
 
 // accent the syncopated off-beats (the 0.35 and 0.95 offsets) hard; the on-beat
 // downbeat (offset 0) stays soft — a pushed, off-kilter switchback groove.
@@ -19,7 +20,7 @@ const contacts: Contact[] = [];
 for (let base = 0.75; base < 16; base += 2) {
   [0, 0.35, 0.95].forEach((off, i) => {
     const t = base + off;
-    if (t < 16) contacts.push({ t: Number(t.toFixed(3)), impact: phraseImpact[i] });
+    if (t < 16) contacts.push({ t: Number(t.toFixed(3)), impact: migrateImpact(phraseImpact[i]) });
   });
 }
 

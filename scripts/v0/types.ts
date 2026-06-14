@@ -913,15 +913,18 @@ export const IMPACT_WINDOW = 6;
  *  (LR_IMPACT_SOFT / LR_IMPACT_VSTRONG). Defaults = the shipped values. The user's felt
  *  labels (54 beats, docs/impact_problem_statement.md) put soft ≈ 2.8–2.9 and very-strong
  *  ≈ 6.5 px/frame; the shipped SOFT=2.0 sits below the felt soft and is under review. */
-function impactEnvNum(name: string, dflt: number): number {
+/** Parse a numeric env knob (`name`), falling back to `dflt` when unset, empty,
+ *  or non-finite. Shared single source of truth for env-tunable float knobs. */
+export function impactEnvNum(name: string, dflt: number): number {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.[name];
   if (raw === undefined || raw === "") return dflt;
   const n = Number(raw);
   return Number.isFinite(n) ? n : dflt;
 }
 export const REDIRARC = {
-  /** redirArc (px/frame) at a felt "soft" landing → impact 0. */
-  SOFT: impactEnvNum("LR_IMPACT_SOFT", 2.0),
+  /** redirArc (px/frame) at a felt "soft" landing → impact 0. Anchor A (LOCKED 2026-06-15):
+   *  2.8, from the user's 54 felt-labeled beats (felt-soft ≈ 2.8–2.9). Env-overridable for study. */
+  SOFT: impactEnvNum("LR_IMPACT_SOFT", 2.8),
   /** redirArc (px/frame) at a felt "very strong" landing → impact 1. */
   VERY_STRONG: impactEnvNum("LR_IMPACT_VSTRONG", 6.5),
 };
@@ -943,12 +946,11 @@ export function normImpact(redirArcPx: number): number {
 export function impactToRedirArcPx(impact: number): number {
   return REDIRARC.SOFT + Math.max(0, Math.min(1, impact)) * (REDIRARC.VERY_STRONG - REDIRARC.SOFT);
 }
-/** Rescale an impact value authored on the OLD convention (when the scored metric was
- *  `redir/REDIR_CAP`, where felt-"soft" ≈ 0.2) onto the NEW redirArc felt scale, by requesting
- *  the SAME physical redirArc px the old value asked for: `px = authored·REDIR_CAP → normImpact(px)`.
- *  Zeros sub-soft asks, preserves the high end, and keeps the compiler chasing the very catches
- *  it always did — just scored on the felt-honest [0,1]. Flag-gated (LR_IMPACT_RESCALE=1) while
- *  the spec corpus is still authored old-convention; default OFF ⇒ identity ⇒ byte-identical. */
+/** [SUPERSEDED 2026-06-15] The OLD→new convention rescale is now BAKED at authoring — golden specs
+ *  use `migrateImpact` / `withImpactLegacy` (core/beats.ts), so authored impact is already on the
+ *  new felt scale and there is no production runtime remap. This flag-gated form is kept only for
+ *  back-compat / the LR_IMPACT_RESCALE study switch; default OFF ⇒ identity, so already-migrated
+ *  (baked) values pass through unchanged. Remove once no caller references it. */
 const _impactRescaleOn = ((globalThis as { process?: { env?: Record<string, string | undefined> } })
   .process?.env?.["LR_IMPACT_RESCALE"]) === "1";
 export function rescaleAuthoredImpact(authored: number): number {

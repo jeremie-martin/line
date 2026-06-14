@@ -9,13 +9,14 @@
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
+import { migrateImpact } from "../../scripts/v0/core/beats.ts";
 
 // steady moderate run with a hard accent every 8th beat — a even groove
 // punctuated by occasional emphasis.
 const contacts: Contact[] = [];
 let i = 0;
 for (let t = 0.40; t < 25; t += 0.32) {
-  contacts.push({ t: Number(t.toFixed(3)), impact: i % 8 === 0 ? 0.85 : 0.4 });
+  contacts.push({ t: Number(t.toFixed(3)), impact: migrateImpact(i % 8 === 0 ? 0.85 : 0.4) });
   i++;
 }
 

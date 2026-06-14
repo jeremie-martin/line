@@ -11,7 +11,7 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
-import { withImpact } from "../../scripts/v0/core/beats.ts";
+import { withImpactLegacy } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
@@ -20,7 +20,7 @@ const spec: Spec = {
   duration: 16,
   // impact steps up with each terrace: gentle landings on the level rise,
   // firmer on the moderate climb, hardest on the steep top terrace.
-  contacts: withImpact(beats(1.0, 1.0, 15), (t) => (t < 5 ? 0.3 : t < 10 ? 0.55 : 0.8)), // ~1.0s gaps (40f) — non-dense
+  contacts: withImpactLegacy(beats(1.0, 1.0, 15), (t) => (t < 5 ? 0.3 : t < 10 ? 0.55 : 0.8)), // ~1.0s gaps (40f) — non-dense
   axes: {
     air: constant(0.5),
     speed: constant(0.6),

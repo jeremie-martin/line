@@ -5,11 +5,11 @@
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
-import { withImpact } from "../../scripts/v0/core/beats.ts";
+import { withImpactLegacy } from "../../scripts/v0/core/beats.ts";
 
 // accent the syncopated off-beats (the short-gap hits, odd indices) hard; the
 // on-beat long-gap lifts land moderate — a back-beat accent pattern.
-const contacts: Contact[] = withImpact(
+const contacts: Contact[] = withImpactLegacy(
   [
     0.7, 1.55, 2.05, 2.95, 3.45, 4.35, 4.85, 5.8, 6.3, 7.25,
     7.75, 8.7, 9.2, 10.15, 10.65, 11.6, 12.1, 13.05, 13.55, 14.5,

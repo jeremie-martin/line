@@ -4,7 +4,7 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
-import { withImpact } from "../../scripts/v0/core/beats.ts";
+import { withImpactLegacy } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
@@ -13,7 +13,7 @@ const spec: Spec = {
   duration: 18,
   // impact in stepped stairs: gentle glide-down landings soften, then a firmer
   // level tread, then accents stepping up with the climbing stairs.
-  contacts: withImpact(
+  contacts: withImpactLegacy(
     beats(0.95, 0.95, 18),
     (t) => (t < 4 ? 0.45 : t < 8 ? 0.3 : t < 12 ? 0.55 : t < 16 ? 0.7 : 0.82),
   ),

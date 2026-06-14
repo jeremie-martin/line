@@ -7,6 +7,7 @@
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
+import { migrateImpact } from "../../scripts/v0/core/beats.ts";
 
 // stepped rungs: each phrase climbs the ladder soft→hard, then drops to start
 // the next rung — a repeating stair-step of landing intensity.
@@ -15,7 +16,7 @@ const contacts: Contact[] = [];
 for (let base = 0.65; base < 18; base += 2.4) {
   [0.00, 0.30, 0.82, 1.38, 2.05].forEach((off, i) => {
     const t = base + off;
-    if (t < 18) contacts.push({ t: Number(t.toFixed(3)), impact: rungs[i] });
+    if (t < 18) contacts.push({ t: Number(t.toFixed(3)), impact: migrateImpact(rungs[i]) });
   });
 }
 

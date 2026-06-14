@@ -10,7 +10,7 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
-import { withImpact } from "../../scripts/v0/core/beats.ts";
+import { withImpactLegacy } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
@@ -18,7 +18,7 @@ const beats = (t0: number, gap: number, n: number) =>
 const spec: Spec = {
   duration: 16,
   // big soars land hard up front, then the dense back settles to soft grazes.
-  contacts: withImpact([
+  contacts: withImpactLegacy([
     ...beats(1.3, 1.3, 7), // sparse soaring front: 1.3 .. 9.1 (52f gaps)
     ...beats(9.8, 0.7, 9), // denser settle back: 9.8 .. 15.4 (28f beats)
   ], keyframes([{ t: 0, v: 0.9 }, { t: 9, v: 0.55 }, { t: 16, v: 0.1 }], "smooth")),

@@ -6,13 +6,14 @@
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
+import { migrateImpact } from "../../scripts/v0/core/beats.ts";
 
 // dynamics follow the song form: soft verses, hard choruses (alternating 3s
 // blocks) — landings get loud on the hook and back off in the verse.
 const contacts: Contact[] = [];
 for (let t = 0.55; t < 24; t += 0.78) {
   const isChorus = Math.floor(t / 3) % 2 === 1; // [3,6),[9,12),[15,18),[21,24)
-  contacts.push({ t: Number(t.toFixed(3)), impact: isChorus ? 0.85 : 0.3 });
+  contacts.push({ t: Number(t.toFixed(3)), impact: migrateImpact(isChorus ? 0.85 : 0.3) });
 }
 
 const spec: Spec = {

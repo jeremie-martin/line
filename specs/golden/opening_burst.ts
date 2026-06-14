@@ -11,7 +11,7 @@
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
-import { withImpact } from "../../scripts/v0/core/beats.ts";
+import { withImpactLegacy } from "../../scripts/v0/core/beats.ts";
 
 const raw: Contact[] = [];
 for (let t = 0.50; t <= 3.00 + 1e-6; t += 0.25) {
@@ -22,7 +22,7 @@ for (let t = 3.50; t < 14; t += 0.50) {
 }
 // hard, slamming opening burst that eases off into the quieter mid, then a
 // modest lift as air rises again past t≈8.
-const contacts: Contact[] = withImpact(raw, keyframes(
+const contacts: Contact[] = withImpactLegacy(raw, keyframes(
   [{ t: 0, v: 0.95 }, { t: 3, v: 0.85 }, { t: 4, v: 0.25 }, { t: 8, v: 0.3 }, { t: 12, v: 0.55 }],
   "smooth",
 ));

@@ -4,11 +4,11 @@
  */
 import type { Contact, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
-import { withImpact } from "../../scripts/v0/core/beats.ts";
+import { withImpactLegacy } from "../../scripts/v0/core/beats.ts";
 
 // pops accent the high-amplitude switchback windows (t≈4–8, t≈12+), restrained
 // elsewhere; alternating beat-to-beat to read as climb/drop switchbacks.
-const contacts: Contact[] = withImpact(
+const contacts: Contact[] = withImpactLegacy(
   [
     0.8, 1.3, 2.1, 2.6, 3.4, 4.4, 5.0, 5.9, 6.4, 7.3,
     8.4, 8.9, 9.8, 10.3, 11.2, 12.4, 12.9, 13.8, 14.6,

@@ -5,7 +5,7 @@
  */
 import type { Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
-import { withImpact } from "../../scripts/v0/core/beats.ts";
+import { withImpactLegacy } from "../../scripts/v0/core/beats.ts";
 
 const beats = (t0: number, gap: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({ t: Number((t0 + i * gap).toFixed(3)) }));
@@ -14,7 +14,7 @@ const spec: Spec = {
   duration: 14,
   // impact echoes beat-to-beat (alternating soft/firm) on a slowly climbing
   // base — small recurring pulses that intensify as the climb builds.
-  contacts: withImpact(
+  contacts: withImpactLegacy(
     beats(0.6, 0.5, 27),
     (t, i) => 0.28 + 0.22 * (t / 14) + (i % 2 === 0 ? 0.18 : 0),
   ),

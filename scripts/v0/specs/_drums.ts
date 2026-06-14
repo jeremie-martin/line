@@ -10,7 +10,7 @@
  */
 
 import type { AxisCurves, Spec } from "../types.ts";
-import { beats, withImpact, type ImpactRule } from "../core/beats.ts";
+import { beats, withImpactLegacy, type ImpactRule } from "../core/beats.ts";
 
 // Post-filter onsets inlined from the former beats/drums_0_30s_60_125.json.
 const beatTimes = [
@@ -26,7 +26,7 @@ const contacts = beats(beatTimes.map((t) => ({ t })));
 export function drumsSpec(axes: AxisCurves, impact?: ImpactRule): Spec {
   return {
     duration: 30,
-    contacts: impact === undefined ? contacts : withImpact(contacts, impact),
+    contacts: impact === undefined ? contacts : withImpactLegacy(contacts, impact),
     axes,
   };
 }

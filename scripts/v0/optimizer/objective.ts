@@ -21,7 +21,11 @@ export const OBJECTIVE_IMPACT_MIN_ASK = 0.3;
 
 export type ObjectiveArrivalState =
   & Pick<ReadinessArrivalState, "speed" | "comAngleDeg">
-  & Partial<ReadinessArrivalState>;
+  & Partial<ReadinessArrivalState>
+  // Mean speed over the predicted flight to the next contact (trapezoidal of launch+arrival).
+  // The authored speed target is a mean-of-flight; this is the apples-to-apples statistic for
+  // speedFit. Absent on call sites built from a single catch-instant state (they fall back).
+  & { meanSpeed?: number };
 
 export type NextGapReadinessScore = {
   readiness: number;
@@ -47,7 +51,7 @@ export function scoreNextGapReadiness(
     return null;
   }
   const catchability = Math.max(OBJECTIVE_READINESS_MIN, readinessCatchState(arrival));
-  const speedFit = speedFitFactor(arrival.speed, nextGap);
+  const speedFit = speedFitFactor(arrival.meanSpeed ?? arrival.speed, nextGap);
   const impactFeasibility = impactFeasibilityFactor(arrival, nextGap);
   return {
     readiness: catchability * speedFit * impactFeasibility,
@@ -123,15 +127,19 @@ export function predictArrivalAtNextContact(
     sledPoseRateDegPerFrame: rel.sledPoseRateDegPerFrame,
   };
   const arrived = propagateBallisticArrivalState(launch, dt);
-  return { speed: arrived.speed, comAngleDeg: arrived.comAngleDeg };
+  return {
+    speed: arrived.speed,
+    comAngleDeg: arrived.comAngleDeg,
+    meanSpeed: (launch.speed + arrived.speed) / 2,
+  };
 }
 
 function speedFitFactor(speed: number, nextGap: Gap): number {
   const target = nextGap.targets.speed;
   if (target === undefined) return 1;
-  // Asymmetric: too-fast is half-penalized. The arrival speed is the catch INSTANT, which
-  // overestimates the next gap's MEAN-of-flight speed target, so a symmetric |Δ| over-penalizes
-  // the (apparent) overshoot; excess speed can also be bled. Too-slow keeps full penalty.
+  // `speed` is the predicted MEAN-of-flight where available (the statistic the target authors),
+  // else the catch-instant fallback. Asymmetric: too-fast is half-penalized — any residual
+  // overshoot bias inflates the apparent fast side, and excess speed can be bled; too-slow full.
   const d = speed - authoredSpeedToPx(target);
   const penalty = d > 0 ? d * 0.5 : -d;
   return Math.exp(-penalty / OBJECTIVE_SPEED_SCALE_PXF);

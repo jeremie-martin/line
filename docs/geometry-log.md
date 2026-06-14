@@ -9,14 +9,14 @@ Terse audit trail for the geometry campaign (scope: `docs/geometry-campaign.md`;
   Write "rotate-span widen paid −1.2 on the board, gate-fails +18%" — not "it lost
   *because* the rider over-rotates." A measured cause is a fact and may be stated; an
   assumed one may not.
-- Numbers come from real runs only. Board numbers from `./scripts/v0/eval_geometry.sh`
-  (12 specs x {150k,300k} x 9 seeds, frozen baseline). The board is the probe tier; a
-  canonical golden run is the promotion gate — say which tier each number is.
+- Numbers come from real runs only — all from `./scripts/v0/eval_geometry.sh`
+  (12 specs x {150k,300k} x 9 seeds, frozen baseline). The board is the campaign's
+  decision instrument; there is no separate canonical gate.
 - Studies / telemetry / statistics get entries too: this campaign gathers empirical
   data, it does not try random changes until one sticks. A study entry records what was
   measured and the numbers, not a conclusion beyond them.
-- ACCEPT → commit + promote golden.json to baseline. REJECT → revert code, keep the log
-  entry + any scripts.
+- ACCEPT → commit, then `rebuild` the board baseline so it tracks the new HEAD. REJECT →
+  revert code, keep the log entry + any scripts.
 
 ---
 
@@ -33,6 +33,7 @@ BOARD HEADLINE (probe tier)   611.24    validity 216/216
 ```
 
 This is the board's frozen reference for every geometry edit; the script REUSES it
-until specs/budgets/seeds change. North star: board headline up, canonical run promotes.
+until specs/budgets/seeds change. North star: board headline up; the board is the
+decision instrument (no separate canonical gate).
 
 ---

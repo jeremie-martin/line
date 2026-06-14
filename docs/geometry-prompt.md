@@ -36,9 +36,10 @@ approaches welcome. **North star: headline ≥ 700**; every accepted change move
   resolved config; `rebuild` forces a fresh baseline for the current params (do this to
   advance the baseline after committing a win). The board is the decision instrument —
   no separate canonical gate.
-- Clean isolation: prefer an env flag (e.g. an existing `LR_*` knob) so both arms share
-  one tree; otherwise the default frozen-snapshot mode compares current code vs the
-  baseline's code. Numbers only from real runs.
+- How the A/B works: the frozen baseline IS the comparison. Modify the production
+  default and run — the board scores your current code against the baseline's snapshot.
+  No env flag, no A/B knob hiding the change: that is the entire point of the frozen
+  baseline (and what step 2 below requires). Numbers only from real runs.
 - Gotchas: workers import the tree per task, so never edit code mid-run; the board's
   JOBS is parallelism only (not in the fingerprint).
 

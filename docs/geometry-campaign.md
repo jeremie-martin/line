@@ -39,7 +39,8 @@ Traced from the code, not the narrative:
 - **Aim = a probe/fit/propose lane with two knobs.** `makeEnumAimedCandidates` →
   `makeJointAimedCandidates` (`aim.ts:681,704`). Knobs (`ArcKnobs`, `arc_model.ts:15`):
   `pitchDeg` rotates the last ~third of the arc about the suffix joint; `rotateDeg`
-  rotates the **whole** arc about its entry. It probes a few knob sets, fits a local
+  rotates the **whole** arc about its entry (makes it very fragile, we should try to
+  think of better knobs to replace it with). It probes a few knob sets, fits a local
   response model, then enumerates the knob space *inside the model for free* and emits
   the top-k by the readiness objective (`scoreJointKnobs` = current-axis-quality ×
   next-gap-readiness). `LR_AIM_ENUM=0` disables the lane.
@@ -87,7 +88,9 @@ Traced from the code, not the narrative:
 
 The frozen baseline is the current default geometry; each edit is one
 `./scripts/v0/eval_geometry.sh run` against it, then `decide` + the summary. The board
-is the campaign's fast measure of record (probe tier); **a canonical run promotes**.
+is the campaign's measure of record and the **sole decision instrument** — modify the
+production default, run, decide; no separate canonical gate. After committing a win,
+`rebuild` advances the frozen baseline to the new HEAD.
 
 ## Companion
 

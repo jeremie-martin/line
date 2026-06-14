@@ -10,8 +10,8 @@
 #
 # One command, a frozen baseline you never re-run by hand, a fixed
 # geometry-weighted board, then `decide` + a rich per-track/per-axis summary.
-# The board is the PROBE tier (fast proxy); a canonical golden run is the
-# formal promotion gate.
+# This board is the campaign's decision instrument: there is no separate canonical
+# gate — modify the production default, run, decide (see docs/geometry-prompt.md).
 #
 # The board: 12 specs (10 geometry-rich / air-impact-capped + 2 dense guards)
 # x {150k, 300k} x 9 seeds. See docs/geometry-campaign.md for why these specs.
@@ -45,12 +45,14 @@
 #
 # TWO MODES (same machinery — you pick by how you set the two arms below)
 # ----------------------------------------------------------------------
-#   * FROZEN-SNAPSHOT (this template's default): BASELINE_ENV == CANDIDATE_ENV.
-#     The baseline freezes the code as of its first build; the candidate is your
-#     current code. Answers "did my latest changes help?". This is the mode for
-#     "I promoted the short leaf and now I'm tweaking it further."
-#   * A/B ON A FLAG: BASELINE_ENV != CANDIDATE_ENV. The classic full-vs-short:
-#     the difference is the env, not the code. See the commented example below.
+#   * FROZEN-SNAPSHOT (the default, and the ONLY mode the geometry campaign uses):
+#     BASELINE_ENV == CANDIDATE_ENV (both empty). The baseline freezes the code as of
+#     its first build; the candidate is your current code. You A/B a CODE change by
+#     editing the production default and rerunning — the frozen baseline IS the A/B,
+#     so a change is never hidden behind an env flag. Answers "did my edit help?".
+#   * A/B ON A FLAG: BASELINE_ENV != CANDIDATE_ENV — only for comparing two
+#     env-SELECTABLE modes that already exist (e.g. an engine/leaf switch), never for
+#     testing a code change. The geometry campaign does not use this mode.
 #
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"

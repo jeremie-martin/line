@@ -237,41 +237,38 @@ function sortWithLaneExtras(
   return sorted;
 }
 
-// ── default-off pool-impact study telemetry (GEOM_POOL_TELEM=<path>) ──
-// On impact-targeted gaps, append one JSON line per pool build comparing the
-// scorer-impact of the local pool winner (sorted[0]) against the best impact
-// achievable anywhere in the pool, with the joint axis errors of each, so a
-// study can decide pool-limited vs selection-limited. Pure read after sort —
-// never perturbs candidate order. No-op unless the env var is set.
+// ── default-off pool-frontier study telemetry (GEOM_POOL_TELEM=<path>) ──
+// One JSON line per pool build: for every TARGETED axis, the target, the value the
+// SELECTED candidate (sorted[0]) achieved, the pool's BEST-achievable value (the
+// candidate closest to target on that axis), and the pool's full [min,max] range on
+// that axis. Lets a study decide, per axis, whether the pool can even REACH the target
+// (pool-limited) or has it but doesn't pick it (selection-limited). Pure read after the
+// sort — never perturbs candidate order. No-op unless the env var is set.
 let _poolTelemPath: string | null | undefined;
 function recordPoolImpactTelem(gap: Gap, sorted: Candidate[]): void {
   if (_poolTelemPath === undefined) _poolTelemPath = process.env.GEOM_POOL_TELEM ?? null;
   if (_poolTelemPath === null || sorted.length === 0) return;
-  const tImpact = gap.targets.impact;
-  if (tImpact === undefined) return;
-  const imp = (c: Candidate): number => {
-    const a = (c.achievedAtEnd ?? c.achieved).impact;
-    return typeof a === "number" ? a : 0;
+  const ach = (c: Candidate, k: string): number | undefined => {
+    const v = (c.achievedAtEnd ?? c.achieved) as Record<string, number | undefined>;
+    return typeof v[k] === "number" ? v[k] : undefined;
   };
-  let best = sorted[0];
-  for (const c of sorted) if (imp(c) > imp(best)) best = c;
-  const sel = sorted[0];
-  const axErr = (c: Candidate): Record<string, number> => {
-    const out: Record<string, number> = {};
-    const ach = c.achievedAtEnd ?? c.achieved;
-    for (const k of Object.keys(gap.targets)) {
-      const t = (gap.targets as Record<string, number | undefined>)[k];
-      const a = (ach as Record<string, number | undefined>)[k];
-      if (typeof t === "number" && typeof a === "number") out[k] = a - t;
+  const axes: Record<string, unknown> = {};
+  for (const k of Object.keys(gap.targets)) {
+    const t = (gap.targets as Record<string, number | undefined>)[k];
+    if (typeof t !== "number") continue;
+    const selV = ach(sorted[0], k);
+    let bestV: number | undefined;
+    let lo = Infinity, hi = -Infinity;
+    for (const c of sorted) {
+      const a = ach(c, k);
+      if (a === undefined) continue;
+      if (a < lo) lo = a;
+      if (a > hi) hi = a;
+      if (bestV === undefined || Math.abs(a - t) < Math.abs(bestV - t)) bestV = a;
     }
-    return out;
-  };
-  const line = JSON.stringify({
-    gi: gap.index, tImp: tImpact, poolN: sorted.length,
-    selImp: imp(sel), maxImp: imp(best),
-    selCost: sel.cost, maxCost: best.cost,
-    selErr: axErr(sel), maxErr: axErr(best),
-  });
+    axes[k] = { t, sel: selV, best: bestV, lo: lo === Infinity ? null : lo, hi: hi === -Infinity ? null : hi };
+  }
+  const line = JSON.stringify({ gi: gap.index, poolN: sorted.length, axes });
   try { appendFileSync(_poolTelemPath, line + "\n"); } catch { /* ignore */ }
 }
 

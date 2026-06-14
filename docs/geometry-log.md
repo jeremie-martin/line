@@ -152,6 +152,55 @@ slack — the readiness term is doing real downstream work; surfacing impact cat
 trades 150k completion for 300k quality and washes. Impact is bound by real multi-gap
 coupling, not a fixable selection bug.
 
+## 9. STUDY — drums_pendulum is POOL-limited (the generalized pool-frontier instrument)
+
+Setup (reframing credit: Jérémie — the 1M-budget invariance of drums_pendulum ≈465 is
+the signature of a GEOMETRY/pool limit, not a search/budget one; the campaign's target,
+not a wall). Generalized node.ts `recordPoolImpactTelem` → per gap, per targeted axis:
+target, SELECTED value, pool-BEST (closest to target), pool [min,max] RANGE. Ran
+drums_pendulum ×3 seeds @300k.
+
+Result (real pools, poolN≥8):
+- AIR  low gaps  target 0.16 · selected 0.47 · pool-BEST 0.45 · pool RANGE [0.45,0.51]
+- AIR  high gaps target 0.83 · selected 0.70 · pool-BEST 0.71 · pool RANGE [0.64,0.71]
+- SPEED          target 0.54 · pool RANGE [0.58,0.58]  (ZERO diversity — energy launch pins it)
+The pool's reachable air band is ~[0.45,0.71]; the targets span [0.15,0.83]. The
+generator literally cannot OFFER a grounded (low-air) or high-pop catch on these gaps —
+**pool-limited, not selection- or budget-limited.** That is why budget doesn't move it.
+
+## 10. STUDY — the achievable air range is bounded by the contact-landing mechanism
+
+drums gaps are ~19 frames. Two boundaries:
+- LOW-air FLOOR = minimum detectable bounce / N. A catch must register as a
+  bounce-landing (~5 frames aloft) ⇒ air ≥ ~5/19 ≈ 0.26. Target 0.15 is BELOW the floor.
+- HIGH-air CEILING (measured: achieved-air vs gap length N over all specs): for short
+  gaps achieved ≈ (N−6)/N (per-contact grounded OVERHEAD ~6 frames), for long gaps it
+  falls below (launch-height limited). At N=19 ⇒ ceiling ≈ 0.68–0.71. Target 0.85 is ABOVE it.
+So the achievable air range at 19-frame beat density is ≈[0.26,0.71]; the spec asks
+[0.15,0.85]. High-air gaps already sit AT the ceiling (achieved 0.71); low-air gaps have
+~0.17 of theoretical headroom (0.43→0.26) but it is gated by landing robustness (#11).
+
+## 11. REJECT ×2 — naive pool-widening on drums (both board-confirmed)
+
+- Gap-length-aware grounding cap (`safeCap`=1−minBounce/N, minBounce=6): a 6-seed study
+  showed drums_crescendo +14; the **9-seed board REVERSED it to −16.6** (Δheadline −1.8).
+  Deeper grounding → short bounces that trip landing gates (off-beat/drift) catastrophically
+  on unlucky seeds. The 0.45 pool floor is the RELIABLE-landing floor for straight-line
+  geometry, not an arbitrary cap. LESSON: drums specs are pathologically seed-variant
+  (±20+); few-seed studies are worthless there — board (9 seeds) only.
+- High-air launch steepening (mirror of the elevation fix; continuous ramp above air
+  0.60): board **Δheadline −2.9 REJECT**. Did NOT help drums (high-air is OVERHEAD-limited
+  at N=19, not launch-limited) and broadly hurt specs with no headroom (dense_sprint −15.6,
+  pop_train −9.3, big_air_ramp −8.0 — steeper launch overshot their already-on-target air
+  and bled next-gap speed). "Continuous/general" still disrupts specs that have no headroom.
+
+CONCLUSION (drums): genuinely pool/geometry-limited (Jérémie's reframing holds), but the
+achievable air range is tightly walled by the contact-landing mechanism. High-air is
+maxed; low-air's ~0.17 theoretical headroom is mostly blocked by landing robustness — the
+ROBUST reducible headroom is small with straight-line geometry. Cracking more would need a
+precise low-air landing construction (deterministic bounce timing) that lands reliably
+across seeds — a real, project-scale effort with modest expected payoff (~+3 headline).
+
 ## State after these runs
 
 Headline 612.9 (one accepted win: elevation ride-out shortening, #7). Studies show the

@@ -161,6 +161,22 @@ over-penalizes the (apparent) overshoot. (This is the long-standing §Open-quest
 "no compiler win exists" assessment — that rested on only ever ABLATING readiness components (all
 positive when dropped) and never RESHAPING one. The shape, not the presence, had headroom.
 
+### H2. speedFit asymmetry ratio 0.5→0.25 — INCONCLUSIVE (flat plateau, kept 0.5)
+**Change.** too-fast penalty factor 0.5→0.25 (more lenient on overshoot).
+**Result.** headline 626.2→626.5 Δ=+0.3 CI[-3.1,3.6] P(Δ≤0)=44%; per-budget +0.0/+0.5/+0.3.
+**Verdict. INCONCLUSIVE** — reverted to 0.5. The win (H1) was capturing the asymmetry AT ALL; the
+exact ratio in 0.25–0.5 is a flat plateau. No further gain from tuning the ratio.
+
+### H3. impactFeasibility = scorer's physics ceiling (drop the comAngle term) — REJECT −8.5
+**Hypothesis.** `impactFeasibility` uses `speed·sin(comAngle)` (existing downward velocity), but the
+scorer bounds impact by `impactCeiling(speed)=min(0.9·speed,REDIR_CAP)/REDIR_CAP` (speed-only,
+angle-independent). Make them consistent: feasibility = `impactCeiling(speed)/impactAsk`.
+**Result.** headline 626.2→617.7 **Δ=−8.5** CI[−11.7,−5.4] P(Δ≤0)=100%; per-budget −7.8/−8.3/−8.9.
+**Verdict. REJECT** — reverted. Strong informative negative: the `comAngle` term out-predicts the
+scorer's own speed-only ceiling, so impact delivery is GEOMETRY-bound (needs a steep diving entry to
+template the slam-hop), not just speed-bound. Corroborates the early-bend finding (G2). The downward
+momentum `speed·sin(comAngle)` is the right feasibility proxy; the speed ceiling is not.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

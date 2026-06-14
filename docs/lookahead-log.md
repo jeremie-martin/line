@@ -249,6 +249,18 @@ either). The gate-fails are net-positive cost, not waste. No cheap refinement (s
 builds; D5 showed more emits don't help). The aim's only remaining lever is local-MODEL ACCURACY
 (reduce rotation's model error) — a larger effort.
 
+### H10. Aim probe design cross5→grid9 (fit pitch×rotate interaction) — REJECT/INCONCLUSIVE −0.8 (aim is model-limited)
+**Hypothesis.** cross5 samples only the pitch/rotate axes (no corners) → can't fit the interaction →
+combined proposals mispredict → rotation gate-fails. grid9's corners fit the interaction → fewer fails.
+**Result.** 629.3→628.4 Δ=−0.8 CI[−3.0,1.3]; per-budget −1.0/−1.2/−0.5. Reverted.
+**Telemetry (FALSIFIES the hypothesis).** grid9 rotation gate-fail rate ROSE to 22.5% (from 17.9%),
+probe frames +66% (49.1M vs 29.5M), quality bases reached FELL (478k vs 516k). More probes did the
+OPPOSITE: the richer model extrapolates more aggressively (more gate-fails) AND the extra probe cost
+starves the quality search. **Decisive: the aim's rotation model error is INHERENT, not fixable by more
+probing.** The aim is probe-cost-bound and at its effective optimum (cross5, rotation, top-2 — H9/H10).
+Improving it would need a fundamentally different model (learned priors), not more probes. This closes
+the "why isn't the aim more effective" thread: it is as effective as the probe-and-fit approach allows.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

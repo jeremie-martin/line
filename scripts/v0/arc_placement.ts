@@ -9,6 +9,7 @@
  */
 
 import { appendSledPointPositionsRangeMetered, getRiderMetered } from "../lib/detector.ts";
+import { registerCompileReset } from "./core/compile_lifecycle.ts";
 import { makeSolidLine } from "./arc.ts";
 import {
   CALIB,
@@ -321,6 +322,7 @@ export function resetArcPlacementStats(): void {
     resetCounter(arcPlacementStats.by_sample_mode[mode], fresh.by_sample_mode[mode]);
   }
 }
+registerCompileReset(resetArcPlacementStats);
 
 export function snapshotArcPlacementStats(): ArcPlacementStats {
   return {
@@ -1720,17 +1722,14 @@ function incrementCounter(key: keyof ArcPlacementCounter, mode?: CandidateSample
   if (mode !== undefined) arcPlacementStats.by_sample_mode[mode][key]++;
 }
 
+// Field-agnostic so a counter added to ArcPlacementCounter + makeArcPlacementCounter
+// is reset automatically (no third edit site to forget — cf. resetAimStats). `fresh`
+// carries the all-zero source and the full key set; ArcPlacementCounter is a flat
+// numeric record.
 function resetCounter(target: ArcPlacementCounter, fresh: ArcPlacementCounter): void {
-  target.sampled = fresh.sampled;
-  target.preclear_rejected = fresh.preclear_rejected;
-  target.direct_attempted = fresh.direct_attempted;
-  target.direct_landed = fresh.direct_landed;
-  target.direct_failed = fresh.direct_failed;
-  target.direct_survival_failed = fresh.direct_survival_failed;
-  target.direct_landing_failed = fresh.direct_landing_failed;
-  target.direct_offbeat_failed = fresh.direct_offbeat_failed;
-  target.fallback_attempted = fresh.fallback_attempted;
-  target.fallback_landed = fresh.fallback_landed;
+  for (const key of Object.keys(fresh) as (keyof ArcPlacementCounter)[]) {
+    target[key] = fresh[key];
+  }
 }
 
 function clamp(x: number, lo: number, hi: number): number {

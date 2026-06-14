@@ -63,6 +63,7 @@ import {
   tryCandidateLines,
 } from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
+import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import { AXES, type TrackLine } from "../types.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import {
@@ -511,6 +512,7 @@ export function resetAimStats(): void {
     aimTotals[key] = 0;
   }
 }
+registerCompileReset(resetAimStats);
 
 /** Snapshot for compile stats; null when the lane never ran (flag off /
  *  no pools) so ablation archives carry no aim key at all. */

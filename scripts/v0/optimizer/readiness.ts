@@ -72,6 +72,16 @@ export type CatchabilityTelemetrySnapshot = {
 
 const DEFAULT_TELEMETRY_BIN_WIDTH = 0.05;
 
+// ── Catchability call telemetry (study-only; LR_CATCHABILITY_TELEMETRY=1) ──
+// DELIBERATELY process-scoped, NOT per-compile: study_catchability_histogram.ts
+// resets once at process start and aggregates every readinessCatch() call across
+// ALL compiles in the run into one histogram. It is therefore intentionally
+// EXCLUDED from the per-compile lifecycle registry (core/compile_lifecycle.ts) —
+// registering resetCatchabilityTelemetry there would wipe the cross-compile
+// aggregate the study depends on. This never affects compile OUTPUT: the readiness
+// value is computed before recordCatchabilityTelemetry and the recorder no-ops
+// unless the env flag is set (default off). The study tool owns its own reset; a
+// per-compile snapshot of this state is meaningless by design.
 let catchabilityTelemetryEnabled =
   (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_CATCHABILITY_TELEMETRY === "1";

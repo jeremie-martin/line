@@ -54,6 +54,7 @@ import {
 } from "./measure.ts";
 import { gravityCorrectedLaunchAverage } from "./launch_read.ts";
 import { firstAirborneExitFrame, growShortHorizon } from "./exit_read.ts";
+import { registerCompileReset } from "./compile_lifecycle.ts";
 
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
@@ -127,6 +128,7 @@ export function resetReleaseExitStats(): void {
   releaseExitTotals.release_exit_fallback_unreadable = 0;
   releaseExitTotals.release_exit_airborne = 0;
 }
+registerCompileReset(resetReleaseExitStats);
 
 export function snapshotReleaseExitStats(): ReleaseExitStats | null {
   const anyActivity = releaseExitTotals.release_exit_used > 0 ||
@@ -158,6 +160,7 @@ export function resetGapfitShortStats(): void {
   gapfitShortTotals.gapfit_full = 0;
   gapfitShortTotals.gapfit_frames_saved = 0;
 }
+registerCompileReset(resetGapfitShortStats);
 
 export function snapshotGapfitShortStats(): GapfitShortStats | null {
   const anyActivity = gapfitShortTotals.gapfit_truncated > 0 || gapfitShortTotals.gapfit_full > 0;

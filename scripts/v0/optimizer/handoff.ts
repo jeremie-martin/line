@@ -64,8 +64,6 @@ import {
   axisLookaheadEndFrame,
   detectWindow,
   releaseSpeedPenalty,
-  resetGapfitShortStats,
-  resetReleaseExitStats,
   setCandidateCompileBudgetFrames,
   snapshotGapfitShortStats,
   snapshotReleaseExitStats,
@@ -83,7 +81,6 @@ import {
   type SearchNode,
 } from "./node.ts";
 import {
-  resetAimStats,
   setAimCompileBudgetFrames,
   snapshotAimStats,
 } from "./aim.ts";
@@ -91,14 +88,14 @@ import { frontierReadinessFromFit, nextContactGapFromIndex, predictArrivalAtNext
 import { axisErrorsForTargets, axisQualityForTargets, axisQualityFromErrors, MISSING_CONTACT_TOLERANCE, scoreDriftReport } from "../score.ts";
 import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
+import { getEngineRebuildCount } from "../core/polish.ts";
+import { registerCompileReset, resetPerCompileState } from "../core/compile_lifecycle.ts";
 import { BestSoFarRegister, leafKeyForReport, type LeafKey } from "./register.ts";
 import {
   getSimFrames,
   refundSimFramesTo,
-  resetSimFrames,
 } from "./sim_frames.ts";
 import {
-  resetArcPlacementStats,
   setCompileBudgetFrames,
   setImpactTemplateSpecMeanImpact,
   snapshotArcPlacementStats,
@@ -108,7 +105,6 @@ import {
   getCandidateProbe,
   getCandidateSamples,
   getViableCandidates,
-  resetCandidateSamples,
   sampleOneCandidate,
 } from "./sample.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
@@ -587,13 +583,14 @@ function compileHandoffInternal(
     throw new Error(`compileHandoff: maxNodes must be a positive integer, got ${maxNodes}`);
   }
 
-  resetSimFrames();
-  resetCandidateSamples();
-  resetArcPlacementStats();
-  resetAimStats();
-  resetReleaseExitStats();
-  resetGapfitShortStats();
-  resetFwdEvalStats();
+  // Per-compile state lifecycle: clear every accumulator / cache / counter that
+  // registered with the registry (core/compile_lifecycle.ts) in one call — the stat
+  // lanes (sim/candidate/arc/aim/release-exit/gapfit-short), the fwd-eval + shadow-
+  // leaf holders, the engine-rebuild counter, and any module that joins the compile
+  // path later (e.g. reachability). Replaces a hand-maintained reset list that
+  // silently drifted whenever a global was added without its reset call. Process-
+  // scoped study aggregators (catchability telemetry) deliberately do NOT register.
+  resetPerCompileState();
 
   {
     validateSpec(userSpec);
@@ -3049,6 +3046,10 @@ let fwdEvalGapAxisTargets: AxisValues[] = [];
 // per-candidate ranker reads these cached fields, not process.env, in the hot path.
 let fwdEvalCfg: ForwardEvalConfig | null = null;
 let fwdEvalMin = 0;
+// Refreshed every compile: setForwardEvalContext() calls forwardEvalConfig(), which
+// re-derives this from LR_FWD_EVAL. Kept here (not in the reset block) because it is
+// a derived config flag set alongside fwdEvalCfg, not an accumulator — but it IS
+// per-compile, so forwardEvalConfig() must stay on the setForwardEvalContext path.
 let fwdEvalDefaultConfig = true;
 // Experiment (default OFF — TESTED, FAILS): widen the rollout branch at
 // impact-targeted gaps. Funnel study (study_impact_funnel.ts): dive-scoop pairs
@@ -3216,6 +3217,24 @@ function resetFwdEvalStats(): void {
     }
   }
 }
+registerCompileReset(resetFwdEvalStats);
+
+// Shadow-leaf telemetry holders (declared above) are written only when a shadow
+// rollout runs (LR_FWD_EVAL_LEAF=shadow) and read by scoreCandidateForHandoff to
+// stamp the RankedOption. Reset them to their module-load defaults each compile so
+// an option ranked before the first shadow rollout of a compile cannot stamp a
+// value left over from the previous compile in a long-lived worker. Measure-only
+// (shadow is non-default) — this keeps the shadow agreement telemetry per-compile
+// honest, never the production score.
+function resetShadowLeafState(): void {
+  shadowCapture = null;
+  lastShadowObjective = 0;
+  lastFullLeafFactors = null;
+  lastShortLeafFactors = null;
+  lastShadowFullFactors = null;
+  lastShadowShortFactors = null;
+}
+registerCompileReset(resetShadowLeafState);
 
 export type FwdEvalStats = {
   fwd_eval_frames_charged: number;
@@ -4873,7 +4892,7 @@ function buildNodeOutput(
     stats: {
       candidates_sampled: getCandidateSamples(),
       candidates_viable: getViableCandidates(),
-      engine_rebuilds: 0,
+      engine_rebuilds: getEngineRebuildCount(),
       gap_commits: fits.filter((fit) => fit !== null).length,
       gap_backtracks: 0,
       validation_retries: 0,

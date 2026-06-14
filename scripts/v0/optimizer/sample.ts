@@ -32,6 +32,7 @@ import {
   type PreTargetSledTrace,
 } from "../arc_placement.ts";
 import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
+import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
@@ -85,6 +86,7 @@ export function resetCandidateSamples(): void {
   viableCandidateCount = 0;
   poolEvalFrames = 0;
 }
+registerCompileReset(resetCandidateSamples);
 
 export function getCandidateSamples(): number {
   return candidateSampleCount;

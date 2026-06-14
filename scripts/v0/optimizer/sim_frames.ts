@@ -34,6 +34,9 @@
  * parallel compiles across workers are isolated.
  */
 
+import { resetFrameCount } from "../../lib/detector.ts";
+import { registerCompileReset } from "../core/compile_lifecycle.ts";
+
 export {
   PhysicsFrameLimitExceeded,
   getPhysicsFrameCount as getSimFrames,
@@ -41,3 +44,6 @@ export {
   resetFrameCount as resetSimFrames,
   setPhysicsFrameLimit as setSimFrameLimit,
 } from "../../lib/detector.ts";
+
+// Per-compile reset joins the lifecycle registry (cleared at compile entry).
+registerCompileReset(resetFrameCount);

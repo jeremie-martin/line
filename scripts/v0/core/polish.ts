@@ -41,6 +41,7 @@ import {
 import {
   makeAirPolishCandidates,
 } from "./candidate.ts";
+import { registerCompileReset } from "./compile_lifecycle.ts";
 
 const AIR_POLISH_PASSES = 3;
 const DENSE_AIR_POLISH_PASSES = 2;
@@ -1531,27 +1532,29 @@ function polishMedianGrainResidual(
     for (const { owner, fit } of entries) {
       for (const plan of grainResidualPlans(fit, neededMedianDelta)) {
         const originals = snapshotLines(plan.lines);
-        if (!applyLengthDelta(originals, plan.side, plan.extra)) {
-          restoreLines(originals);
-          continue;
-        }
+        // try/finally guarantees the mutated geometry is rolled back even if a
+        // detect / gate / axis-error call throws — otherwise the leak corrupts
+        // the live TrackLines the rest of the polish pass evaluates.
+        try {
+          if (!applyLengthDelta(originals, plan.side, plan.extra)) continue;
 
-        const det = detect(extractRawTrajectory(
-          rebuildEngine(fits, gaps.length),
-          durationFrames + 20,
-        ));
-        if (passesFinalHardGates(det, contactFrames)) {
-          const err = meanSectionAxisError(det, spec, gaps, fits);
-          if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
-            best = {
-              owner,
-              lines: snapshotLines(plan.lines),
-              err,
-            };
+          const det = detect(extractRawTrajectory(
+            rebuildEngine(fits, gaps.length),
+            durationFrames + 20,
+          ));
+          if (passesFinalHardGates(det, contactFrames)) {
+            const err = meanSectionAxisError(det, spec, gaps, fits);
+            if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
+              best = {
+                owner,
+                lines: snapshotLines(plan.lines),
+                err,
+              };
+            }
           }
+        } finally {
+          restoreLines(originals);
         }
-
-        restoreLines(originals);
       }
     }
   }
@@ -1593,12 +1596,15 @@ function grainResidualPlans(
   for (const side of ["end", "start"] as const) {
     const originals = snapshotLines(plateau);
     const unitExtra = direction;
-    if (!applyLengthDelta(originals, side, unitExtra)) {
+    // try/finally guarantees rollback even if medianLineLength throws between the
+    // probe mutation and the restore — the mutation must not leak into `plateau`.
+    let unitEffect = 0;
+    try {
+      if (!applyLengthDelta(originals, side, unitExtra)) continue;
+      unitEffect = medianLineLength(fit) - before;
+    } finally {
       restoreLines(originals);
-      continue;
     }
-    const unitEffect = medianLineLength(fit) - before;
-    restoreLines(originals);
     if (Math.abs(unitEffect) <= 1e-9 || Math.sign(unitEffect) !== direction) continue;
 
     const extra = neededMedianDelta / unitEffect;
@@ -1766,6 +1772,9 @@ export function getEngineRebuildCount(): number {
 export function resetEngineRebuildCount(): void {
   engineRebuildCount = 0;
 }
+// Per-compile reset joins the lifecycle registry; compileHandoffInternal folds
+// getEngineRebuildCount() into stats.engine_rebuilds at the end of each compile.
+registerCompileReset(resetEngineRebuildCount);
 
 /**
  * Reconstruct the engine state up to (but not including) gap index `upTo`,

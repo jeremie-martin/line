@@ -18,9 +18,16 @@
  * Determinism: a region is a pure function of `(seed, gapIndex)` and the gap
  * geometry — it never reads the budget or the live search prefix. It is built
  * from an isolated-origin local sim (a velocity slice of the catchable set), so
- * it is prefix-independent and memoised per `(seed, gapIndex)`. The memo MUST be
- * reset per compile (resetReachabilityCache) so it cannot leak across compiles.
- * Region sims are charged in sim-frames automatically via the detector.
+ * it is prefix-independent and memoised per `(seed, gapIndex)`. Within one
+ * compile the gaps are fixed, so `(seed, gapIndex)` identifies a region uniquely;
+ * the ONLY cross-compile hazard is the memo surviving into the next compile (a
+ * different spec reusing this spec's regions under a colliding key). The memo
+ * therefore MUST be reset per compile. This module is currently probe-only (not
+ * imported by the handoff compile path), so `resetReachabilityCache` is called
+ * directly by reach_probe.ts; it is ALSO registered with the per-compile
+ * lifecycle (core/compile_lifecycle.ts), so the day reachability is wired into
+ * the search its reset joins compileHandoffInternal automatically and the leak
+ * cannot silently reappear. Region sims are charged in sim-frames via the detector.
  */
 
 import { makeRng } from "../../lib/rng.ts";
@@ -41,6 +48,7 @@ import {
   type PreTargetSledTrace,
 } from "../arc_placement.ts";
 import { SPEED_AXIS, authoredSpeedToPx, type Gap } from "../types.ts";
+import { registerCompileReset } from "../core/compile_lifecycle.ts";
 
 /** Settle window after the contact frame at which we read the exit state, so a
  *  brief post-catch bounce has resolved (matches the candidate detector's
@@ -85,6 +93,7 @@ export function resetReachabilityCache(): void {
   regionCache = new Map();
   stats = { gaps_computed: 0, grid_probes: 0, samples_kept: 0 };
 }
+registerCompileReset(resetReachabilityCache);
 
 export function snapshotReachabilityStats(): ReachabilityStats {
   return { ...stats };

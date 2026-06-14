@@ -34,7 +34,7 @@ import {
 import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
-import { aimTargets, type SpecPlan } from "./planning.ts";
+import { aimTargets } from "./planning.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
@@ -57,9 +57,6 @@ export type SpecContext = {
   /** Per-compile, per-engine/gap probe cache. The engine objects are immutable
    *  prefix states, so a WeakMap keeps the cache scoped to live search nodes. */
   probeCache?: WeakMap<object, Map<string, CandidateProbe>>;
-  /** Up-front spec-structure plan (optimizer/planning.ts). Inspectable telemetry;
-   *  the per-gap aim it produces is read via `aimTargets(gap)`, not from here. */
-  specPlan?: SpecPlan;
 };
 
 export type CandidateProbe = {

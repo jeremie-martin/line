@@ -107,7 +107,7 @@ import {
   sampleOneCandidate,
 } from "./sample.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
-import { planSpec } from "./planning.ts";
+import { maybeReaimImpactGap } from "./planning.ts";
 import type {
   CompileCheckpoint,
   CompileOutput,
@@ -684,14 +684,7 @@ function compileHandoffInternal(
       }
     }
 
-    // Global planning pre-pass: analytic spec-structure read (no simulation). In the
-    // scaffold it only computes features (does not set gap.plannedTargets) ⇒ aimTargets
-    // falls back to gap.targets ⇒ byte-identical. See docs/planning-campaign.md.
-    const specPlan = planSpec(gaps);
-    if (readEnv("LR_PLAN_LOG") === "1") {
-      console.error(`[plan] gaps=${gaps.length} hiImpactRunGaps=${specPlan.hiImpactRunGaps}`);
-    }
-    const ctx: SpecContext = { allContactFrames, durationFrames, specPlan };
+    const ctx: SpecContext = { allContactFrames, durationFrames };
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContractSearch = usesSparseContractSearch(gaps);
     const startOptions = initialSnapshot === null
@@ -1162,6 +1155,16 @@ function compileHandoffInternal(
         const m = costToEnd[k];
         return m !== undefined && m >= 0 ? m : perGap * Math.max(1, gaps.length - k);
       };
+      // CLOSED LOOP (long-term planning, v1 — DEFAULT ON; escape hatch LR_PLAN_LOOP=0).
+      // Each repair iteration, if the gap being repaired (its weakest affordable gap) is itself
+      // an impact-UNDERSHOOT gap, aim ITS impact higher so the restart re-searches toward it;
+      // air/other-weak gaps are left to clean repair (targeting it to the weak gap avoids the
+      // budget competition that made a global re-aim net-neutral). The restart's accept/reject
+      // keeps the re-aim only where the TRUE score improves; the scorer/axisCost never read
+      // plannedTargets. Canonical ACCEPT Δheadline +1.1. See docs/planning-campaign.md.
+      const planLoop = readEnv("LR_PLAN_LOOP") !== "0";
+      const planLoopLog = readEnv("LR_PLAN_LOG") === "1";
+      let planLoopReaims = 0;
       const exhausted = new Set<number>();
       let attempts = 0;
       let restartCounter = 0;
@@ -1182,6 +1185,18 @@ function compileHandoffInternal(
           remaining / repair.feasMargin,
         );
         if (kWorst < 0) break;
+
+        // TARGETED closed-loop re-aim (see above): only when the gap we're about to repair is
+        // itself an impact-undershoot gap. Set on kWorst (the restart suffix includes it), cleared
+        // after this iteration's restarts so it never bleeds into a later clean restart.
+        let reaimedGap = -1;
+        if (planLoop) {
+          const rg = evaluateCached(incumbent).report.gaps.find((g) => g.gap_index === kWorst);
+          if (maybeReaimImpactGap(gaps[kWorst], rg?.axes?.impact?.achieved)) {
+            reaimedGap = kWorst;
+            planLoopReaims++;
+          }
+        }
 
         // R4 seed-perturbed restart: re-running the search from a gap with the SAME seed re-samples
         // the SAME seeded candidates → re-converges to the same incumbent (wasted). A FRESH derived
@@ -1250,9 +1265,13 @@ function compileHandoffInternal(
           }
           if (improved) { improvedAny = true; break; }
         }
+        if (reaimedGap >= 0) gaps[reaimedGap].plannedTargets = undefined; // reset re-aim for next iteration
         // Exhaust the gap only if no fresh-seed restart helped; a productive gap is re-picked
         // (with the next fresh seed) so budget concentrates where it pays.
         if (!improvedAny) exhausted.add(kWorst);
+      }
+      if (planLoop && planLoopLog) {
+        process.stderr.write(`[plan-loop] seed=${seed} budget=${targetBudget} targeted-reaims=${planLoopReaims}\n`);
       }
     };
 

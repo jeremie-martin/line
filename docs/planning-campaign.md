@@ -1,8 +1,35 @@
 # Planning campaign — global spec analysis → re-aim the local machinery
 
-**Status:** understanding-first (read pass in progress). Board =
-`scripts/v0/eval_planning.sh` (dense_sprint, drums_crescendo, drums_pendulum,
-solo_run × {150k,300k} × 9 seeds, frozen-baseline harness).
+**Status: v1 SHIPPED (2026-06-14).** The first working implementation — an outcome-gated,
+targeted impact re-aiming loop in the repair phase — is **canonical ACCEPT, Δheadline +1.1**
+(40 specs × 12 seeds: 629.3 → 630.4, P(Δ≤0)=3.3%, positive at every budget, no regressions)
+and is now the production default (escape hatch `LR_PLAN_LOOP=0`). This is *early* — a
+deliberately simple first cut with clear room to grow (see "Where v1 can grow"). Board for
+fast iteration = `scripts/v0/eval_planning.sh` (4-spec slice; supports `sweep`/`CAND_ENV`).
+
+## What shipped (v1)
+
+`optimizer/planning.ts`: `aimTargets(gap) = gap.plannedTargets ?? gap.targets` (the seam —
+generation + ranking read it; the scorer and scorer-mirroring cost never do), and
+`maybeReaimImpactGap`. In `handoff.ts`'s repair phase, each restart targets the weakest
+affordable gap; if that gap is an impact gap that **undershot**, its impact aim is bumped up
+(×1.2) so the fresh-seed re-search pursues a steeper catch — kept ONLY if the true score
+improves (repair's accept/reject). Because impact is *chronically* undershot, aiming higher
+pulls achieved toward the true target; because it's *targeted* to the weak gap, air-weak gaps
+keep clean repair; because it's *outcome-gated*, it can't regress. Knobs: `LR_PLAN_LOOP_BUMP`
+(0.2), `LR_PLAN_IMPACT_AIM_MIN` (0.3), `LR_PLAN_LOOP_DEADBAND` (0.03).
+
+## Where v1 can grow (it's early)
+
+- **Smarter correction than a fixed ×1.2 bump:** proportional to the measured undershoot, or
+  a learned step that closes the gap (the "model" idea).
+- **Re-aim beyond the single weakest gap:** the whole re-searched suffix, or a small window.
+- **Other systematically-biased axes:** the method pays where an axis chronically misses in
+  one direction AND the re-aim is true-score-gated. Impact qualifies; air does NOT (it's
+  unbiased — re-aiming prev-gap *speed* for it was causally falsified, see log). A *different*
+  upstream lever for air (launch vy/pose, not speed) is an untested hypothesis.
+- **Steer *conducive state*, not just the axis target** — the original richer vision; needs a
+  causal model of what actually moves the axis (the air study showed correlations mislead).
 
 ## Thesis
 
@@ -104,6 +131,72 @@ Frozen baseline = clean HEAD on the board (headline 571.33, all 9/9, evaluator f
 Δheadline +0.00, 95% CI [0.0,0.0], every per-track×budget cell +0.00, 9/9 — byte-identical,
 as designed. (Uncommitted.) A bias v0 (A or B below) sets `gap.plannedTargets` inside
 `planSpec` from the features.
+
+## Play log — does the scaffold carry signal? (2026-06-14)
+
+Dummy probes via env-gated knobs in `planning.ts` (all default-off ⇒ committed scaffold
+stays byte-identical), swept on the board with `eval_planning.sh sweep` (arm A = clean).
+
+- **Knob A — speed-before-impact** (`LR_PLAN_SPEED_BUMP`, raise speed aim on gaps preceding
+  a high-impact beat). Sweep {0.05,0.1,0.2} → Δheadline **−1.7 / −3.6 / −7.2** (monotonic,
+  P(Δ≤0) 84→99.8%). Localized correctly (solo_run untouched; loss concentrates on the most-
+  bumped high-impact spec drums_crescendo −21). Per-axis: **speed error ↑ ~1:1** (the
+  "accept worse locally" cost, paid in full); **impact error ↓ but ~10× smaller** (real,
+  right direction, far too small to cover the cost). Confirms speed is the wrong resource.
+- **Lever insight:** re-aiming an axis *away* from its target costs that axis's score ~1:1.
+  So a re-aim only wins if it goes *with* a systematic miss (reducing error) or unlocks a
+  larger downstream gain. **Impact is universally UNDER-shot → aiming it higher should
+  reduce error, not add it** (and may inject the never-sampled steep catches). → Step 1.
+- Scaffold verdict: works end-to-end (re-aim moves the tracks exactly where/how expected),
+  board is a sharp instrument (clean dose-response, tight CIs). Knobs B (`LR_PLAN_IMPACT_BUMP`,
+  multiplicative impact-aim-up) added for the proper work.
+
+## Proper-work plan (leveraging the scaffold)
+
+1. **impact-aim-UP, swept** — aim impact higher where asked; read whether impact error
+   actually drops and at what cost (air/speed/deaths). [Step 1 running: bump {0.1,0.2,0.4}]
+2. **selective + calibrated** — bias only where it pays (tune `LR_PLAN_IMPACT_AIM_MIN`,
+   magnitude); confirm net-positive.
+3. **adaptive / closed-loop** — measure each gap's *actual* undershoot after a first pass,
+   aim up proportionally, regenerate, keep only if the true score rises (rides accept/reject).
+4. **promote** — confirm a winner in frozen-snapshot mode, commit.
+
+## Step 1 result — impact-aim-UP (2026-06-14): the lever moves the binding axis
+
+Sweep `LR_PLAN_IMPACT_BUMP` {0.1,0.2,0.4} vs frozen clean baseline → Δheadline
+**−6.9 / −4.2 / −14.7** (0.2 best; CIs at 0.1–0.2 overlap 0, so net ≈ slightly-negative-noisy;
+0.4 clearly bad). The ROBUST part: **impact error reliably DROPS** (−0.006…−0.015 every spec)
+— first time the campaign has moved the binding axis; re-aiming *with* the systematic
+undershoot reduces it, as predicted. The DIRECTIONAL part (bump 0.2, per-track):
+- **drums_crescendo +7.8 / +0.5** (impact −0.008, air +0.004) — the high-impact spec WINS.
+- dense_sprint **−15.7 / −16.5** (impact −0.011, **air +0.021**) — the whole headline loss.
+- drums_pendulum −2.2/−3.1; solo_run ~0.
+
+So impact-up TRADES AIR for IMPACT, and the net depends on the per-gap balance. The loss is
+concentrated on the dense guard, where pushing impact wrecks air it needs.
+
+**Selectivity must be OUTCOME-based, not feature-based.** Tried to find an up-front gate to
+protect dense_sprint: its impact gaps look just like crescendo's on **air target** (median
+0.75 vs 0.67) and **gap duration** (bulk 20f for both). They are indistinguishable up front
+yet behave oppositely → no static spec feature separates the win from the loss. The only
+reliable separator is the *realized* air-degradation / true-score, which you only see after
+generating. ⇒ the indicated mechanism is the **outcome-gated closed loop** (Step 3), not
+more up-front gating (Step 2 is effectively ruled out for this tradeoff).
+
+## Study #1 (2026-06-14) — gate is impossible; the loop is the only selector
+
+Mined the bump=0.2 sweep archives vs the clean baseline, per gap (1854 bumped gap-instances):
+- **No up-front feature predicts the outcome.** Pearson r(Δ|air_err|) vs air_target/impact_target/
+  gap_dur = −0.13 / −0.02 / +0.02; r(Δ|total|) ≈ 0.00. No air-target/duration bin separates
+  net-improved from net-worse (43–64% everywhere). A static gate cannot select where the bump pays.
+- **No hard failures** (drift/off-beat/missing/deaths all 0/0). The board loss is pure axis-RMS
+  rebalancing, not breakage. On matched surviving gaps the bump is ~break-even (Δ|total| −0.008),
+  yet the board loses −16 on dense_sprint — a subtle whole-track RMS effect no per-gap feature exposes.
+
+⇒ **Build the closed loop.** It needs no per-gap prediction: re-aim → re-search → keep iff the true
+whole-track score rises. That keeps crescendo (↑) and rejects dense_sprint (↓) automatically — the
+only reliable selector, since Study #1 proves a static gate can't exist. Must be budget-neutral
+(ride repair's post-completion budget + its accept/reject), not an outer 2-pass.
 
 ## v0 candidates (pick one to build first — board referees)
 

@@ -8,11 +8,10 @@
 # biasing the local machinery to have it there. Starting clean — no inherited design.
 #   docs/global-planning.md  — a PRIOR crack at this space that was board-REJECTED.
 #                              Read only for what already failed, NOT as the plan.
+#   docs/planning-campaign.md — the live design + the aimTargets seam this board tests.
 #
 # One command, a frozen baseline you never re-run by hand, a fixed planning-focused
-# board, then `decide` + a rich per-track/per-axis summary. This board is the
-# campaign's decision instrument: there is no separate canonical gate — modify the
-# production default, run, decide.
+# board, then `decide` + a rich per-track/per-axis summary.
 #
 # The board: 4 specs. drums_pendulum, drums_crescendo, solo_run carry the strongest
 # impact/air "demand" signal; dense_sprint is a guard so a planning change can't
@@ -23,16 +22,26 @@
 #
 # HOW TO USE
 # ----------
-#   1.  Copy this file to a task-specific name, e.g.
-#           cp scripts/v0/eval_template.sh scripts/v0/eval_my_thing.sh
-#   2.  Edit ONLY the CONFIG block below (it's the only thing meant to change).
-#   3.  Run it:
-#           ./scripts/v0/eval_my_thing.sh           # build baseline if needed, run candidate, decide
-#           ./scripts/v0/eval_my_thing.sh rebuild   # force a fresh baseline for the current params, then run
-#           ./scripts/v0/eval_my_thing.sh info      # show resolved config + the frozen baseline's provenance, then stop
+#   ./scripts/v0/eval_planning.sh            # candidate (current code/env) vs frozen baseline, decide
+#   ./scripts/v0/eval_planning.sh rebuild    # force a fresh baseline for the current params, then run
+#   ./scripts/v0/eval_planning.sh info       # show resolved config + frozen baseline provenance, stop
+#   ./scripts/v0/eval_planning.sh sweep <pt1> [pt2 ...]
+#                                            # run each candidate-env point vs the SAME frozen baseline
 #
-#   Each copied script keeps its OWN baselines under generated/<script-name>/, so
-#   copies never collide.
+# INJECT ENV WITHOUT EDITING THIS FILE
+#   CAND_ENV="K=V K2=V2" ./eval_planning.sh   # extra env on the CANDIDATE arm only (NOT in fingerprint)
+#   BASE_ENV="K=V"       ./eval_planning.sh   # extra env on the BASELINE arm (IS in the fingerprint ⇒ new baseline)
+#
+# SWEEP (the planning play loop). The baseline arm A stays CLEAN (no bias) — so every
+# sweep point is "this bias setting vs the no-bias reference". Each <pt> is a single
+# arg of comma-separated KEY=VAL (commas, so one arg can carry several knobs):
+#   ./eval_planning.sh sweep LR_PLAN_SPEED_BUMP=0.1 LR_PLAN_SPEED_BUMP=0.2
+#   ./eval_planning.sh sweep "LR_PLAN_SPEED_BUMP=0.15,LR_PLAN_SPEED_LOOKBACK=3"
+# The frozen baseline is reused across all points (candidate env is NOT in the
+# fingerprint), so a sweep builds the baseline at most once.
+#
+# Each copied script keeps its OWN baselines under generated/<script-name>/, so
+# copies never collide.
 #
 # THE ONE IDEA: a fingerprinted, frozen baseline
 # ----------------------------------------------
@@ -40,9 +49,8 @@
 #   seeds, and the baseline arm's env) — NOT by the code. Consequences:
 #     * Change a param (seeds/specs/budgets/baseline env) -> hash changes -> the
 #       baseline auto-rebuilds for the new params.
-#     * Change only your CODE and rerun -> hash unchanged -> the baseline is
-#       REUSED. You are now comparing current code against a frozen reference.
-#       (This is the "same baseline forever on this machine" property.)
+#     * Change only your CODE (or the CANDIDATE env) and rerun -> hash unchanged -> the
+#       baseline is REUSED. You are now comparing current code/env against a frozen ref.
 #     * Each distinct param-set caches its own baseline-<hash>/, so flipping specs
 #       and back reuses the earlier one instead of rebuilding.
 #   `rebuild` force-rebuilds the baseline for the current params; deleting
@@ -50,14 +58,15 @@
 #
 # TWO MODES (same machinery — you pick by how you set the two arms below)
 # ----------------------------------------------------------------------
-#   * FROZEN-SNAPSHOT (the default, and the ONLY mode the planning campaign uses):
-#     BASELINE_ENV == CANDIDATE_ENV (both empty). The baseline freezes the code as of
-#     its first build; the candidate is your current code. You A/B a CODE change by
-#     editing the production default and rerunning — the frozen baseline IS the A/B,
-#     so a change is never hidden behind an env flag. Answers "did my edit help?".
-#   * A/B ON A FLAG: BASELINE_ENV != CANDIDATE_ENV — only for comparing two
-#     env-SELECTABLE modes that already exist (e.g. an engine/leaf switch), never for
-#     testing a code change. The planning campaign does not use this mode.
+#   * FROZEN-SNAPSHOT (default): BASELINE_ENV == CANDIDATE_ENV. The baseline freezes the
+#     code as of its first build; the candidate is your current code. A/B a CODE change
+#     by editing the production default and rerunning — the frozen baseline IS the A/B.
+#     Use this to PROMOTE: once a swept knob proves out, bake it in as the default and
+#     confirm here that the frozen (no-bias) baseline is beaten.
+#   * A/B-ON-A-FLAG (the play loop): CANDIDATE arm carries a tuning knob (e.g.
+#     LR_PLAN_SPEED_BUMP), BASELINE arm stays clean. This is for EXPLORING a default-off
+#     tuning parameter cheaply (one frozen baseline, many candidate points), NOT for
+#     hiding a shipped code change behind a flag. `sweep` and `CAND_ENV` drive this.
 #
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
@@ -79,17 +88,21 @@ JOBS="${JOBS:-48}"                                         # parallelism only �
 # --- env shared by BOTH arms (engine, forward-eval mode, ...) ---
 COMMON_ENV=( LR_ENGINE=wasm LR_FWD_EVAL=greedy:2 )
 
-# --- the two arms. FROZEN-SNAPSHOT default: identical arms => baseline freezes
-#     the code, candidate is current code. To do an A/B on a flag instead, make
-#     them differ, e.g.:
-#         BASELINE_ENV=( LR_FWD_EVAL_LEAF=full )
-#         CANDIDATE_ENV=( LR_FWD_EVAL_LEAF=objective )
-BASELINE_ENV=( )      # what you compare AGAINST  (empty => current defaults)
+# --- the two arms. FROZEN-SNAPSHOT default: identical arms => baseline freezes the
+#     code, candidate is current code. For the play loop, leave BASELINE_ENV clean and
+#     drive the candidate arm via `sweep` / CAND_ENV (below).
+BASELINE_ENV=( )      # what you compare AGAINST  (empty => current defaults / clean = no bias)
 CANDIDATE_ENV=( )     # what you are testing      (empty => current defaults)
 
 # Human label shown in the summary, e.g. "full vs short". Cosmetic only.
 BASELINE_LABEL="${BASELINE_LABEL:-baseline}"
 CANDIDATE_LABEL="${CANDIDATE_LABEL:-candidate}"
+
+# --- env injected from the environment WITHOUT editing this file (space-separated
+#     KEY=VAL). CAND_ENV -> candidate arm only (not in fingerprint). BASE_ENV ->
+#     baseline arm (IS in the fingerprint => builds a distinct frozen baseline). ---
+if [[ -n "${BASE_ENV:-}" ]]; then read -ra _BASE_EXTRA <<< "$BASE_ENV"; BASELINE_ENV+=( "${_BASE_EXTRA[@]}" ); fi
+if [[ -n "${CAND_ENV:-}" ]]; then read -ra _CAND_EXTRA <<< "$CAND_ENV"; CANDIDATE_ENV+=( "${_CAND_EXTRA[@]}" ); fi
 
 # ============================================================================
 # PLUMBING — you should not need to touch anything past here.
@@ -103,6 +116,7 @@ mkdir -p "$OUTROOT"
 # Fingerprint of the baseline-defining params. Sorted so reordering env vars does
 # NOT trigger a spurious rebuild. JOBS is excluded (parallelism never changes the
 # result). The CODE is excluded on purpose — that's what makes the baseline frozen.
+# CANDIDATE_ENV is excluded too — that's what lets a sweep reuse one baseline.
 baseline_fingerprint () {
   {
     printf 'specs=%s\n'   "$SPECS"
@@ -199,50 +213,19 @@ ensure_baseline () {  # build the baseline for the current fingerprint if absent
   fi
 }
 
-# ---------------- verb dispatch ----------------
-VERB="${1:-run}"
-
-print_config
-echo
-
-case "$VERB" in
-  info)
-    echo ">> baseline status:"
-    if [[ -f "$BASELINE_JSON" ]]; then echo "  EXISTS: $BASELINE_DIR"; show_meta "$BASELINE_META"
-    else echo "  MISSING — first run will build it."; fi
-    exit 0
-    ;;
-  rebuild)
-    echo ">> rebuild: removing baseline for fingerprint $HASH"
-    rm -rf "$BASELINE_DIR" "$BASELINE_DIR.log"
-    ;;
-  run) ;;
-  *) echo "usage: $0 [run|rebuild|info]"; exit 2 ;;
-esac
-
-# 1) baseline (built once per fingerprint, then frozen)
-ensure_baseline
-
-# 2) candidate — ALWAYS runs fresh against current code
-echo ">> candidate ($CANDIDATE_LABEL): running at $CAND_DIR ..."
-run_golden "$CAND_DIR" "${CANDIDATE_ENV[@]}"
-[[ -f "$CAND_JSON" ]] || { echo "ERROR: candidate produced no golden.json (see $CAND_DIR.log)"; exit 1; }
-write_meta "$CAND_DIR" candidate "${CANDIDATE_ENV[@]}"
-echo ">> candidate ($CANDIDATE_LABEL): done."
-echo
-
-# 3) decide: candidate vs baseline (may exit non-zero on REJECT — don't abort the summary)
-echo "=== decide: $CANDIDATE_LABEL (candidate) vs $BASELINE_LABEL (baseline) ==="
-npx tsx scripts/v0/analyze_golden_curve.ts decide "$CAND_JSON" "$BASELINE_JSON" || true
-echo
-
-# 4) summary: what was compared, headline + per-budget + per-track means
-echo "============================================================"
-echo "  baseline ($BASELINE_LABEL) : $BASELINE_DIR"
-echo "  candidate($CANDIDATE_LABEL): $CAND_DIR"
-echo "  logs                       : $BASELINE_DIR.log  |  $CAND_DIR.log"
-echo "------------------------------------------------------------"
-python3 - "$CAND_JSON" "$BASELINE_JSON" "$CANDIDATE_LABEL" "$BASELINE_LABEL" <<'PY'
+# decide + rich summary for one candidate archive vs the frozen baseline. Args:
+#   $1 candidate golden.json   $2 candidate dir   $3 candidate label
+report () {
+  local CJ="$1" CD="$2" CLABEL="$3"
+  echo "=== decide: $CLABEL (candidate) vs $BASELINE_LABEL (baseline) ==="
+  npx tsx scripts/v0/analyze_golden_curve.ts decide "$CJ" "$BASELINE_JSON" || true
+  echo
+  echo "============================================================"
+  echo "  baseline ($BASELINE_LABEL) : $BASELINE_DIR"
+  echo "  candidate($CLABEL): $CD"
+  echo "  logs                       : $BASELINE_DIR.log  |  $CD.log"
+  echo "------------------------------------------------------------"
+  python3 - "$CJ" "$BASELINE_JSON" "$CLABEL" "$BASELINE_LABEL" <<'PY'
 import json, sys
 cand = json.load(open(sys.argv[1])); base = json.load(open(sys.argv[2]))
 CL, BL = sys.argv[3][:8], sys.argv[4][:8]
@@ -280,15 +263,10 @@ for sp in specs:
         cv = f"{c[1]}/{c[2]}" if c else "-"; fv = f"{f[1]}/{f[2]}" if f else "-"
         print(f"    {sp:16s} {fb(b):>6} {cm:8.1f} {fm:8.1f} {cm-fm:+8.1f}   {cv},{fv}")
 PY
-echo "============================================================"
-
-# 5) OPTIONAL per-axis & factor diagnostics (true-scorer on the OUTPUT tracks).
-#    Delete this block if you don't want it. CAVEAT: candidate and baseline ran
-#    DIFFERENT searches, so this shows where the output TRACKS differ, not per-arc
-#    scorer error — see eval_arc_apples.ts for the apples-to-apples test.
-echo
-echo "=== per-axis & factor diagnostics (true-scorer; NOT apples-to-apples) ==="
-python3 - "$CAND_JSON" "$BASELINE_JSON" "$CANDIDATE_LABEL" "$BASELINE_LABEL" <<'PY'
+  echo "============================================================"
+  echo
+  echo "=== per-axis & factor diagnostics (true-scorer; NOT apples-to-apples) ==="
+  python3 - "$CJ" "$BASELINE_JSON" "$CLABEL" "$BASELINE_LABEL" <<'PY'
 import json, sys, os
 from collections import defaultdict
 CL, BL = sys.argv[3][:8], sys.argv[4][:8]
@@ -322,4 +300,61 @@ for sp in sorted(base):
     cells = "  ".join(f"{ax} {mae(ca,ax)-mae(ba,ax):+.3f}" for ax in sorted(set(ca) | set(ba)))
     print(f"    mean|err| {CL}-{BL}:  {cells}")
 PY
-echo "============================================================"
+  echo "============================================================"
+}
+
+# ---------------- verb dispatch ----------------
+VERB="${1:-run}"
+
+print_config
+echo
+
+case "$VERB" in
+  info)
+    echo ">> baseline status:"
+    if [[ -f "$BASELINE_JSON" ]]; then echo "  EXISTS: $BASELINE_DIR"; show_meta "$BASELINE_META"
+    else echo "  MISSING — first run will build it."; fi
+    exit 0
+    ;;
+  rebuild)
+    echo ">> rebuild: removing baseline for fingerprint $HASH"
+    rm -rf "$BASELINE_DIR" "$BASELINE_DIR.log"
+    ;;
+  run) ;;
+  sweep) ;;
+  *) echo "usage: $0 [run|rebuild|info|sweep <pt1> [pt2 ...]]"; exit 2 ;;
+esac
+
+# 1) baseline (built once per fingerprint, then frozen) — arm A, stays clean for the sweep.
+ensure_baseline
+
+# 2a) SWEEP: each remaining arg is a candidate-env point (comma-separated KEY=VAL),
+#     run vs the SAME frozen baseline.
+if [[ "$VERB" == "sweep" ]]; then
+  shift  # drop 'sweep'
+  [[ $# -ge 1 ]] || { echo "usage: $0 sweep <pt1> [pt2 ...]   (pt = comma-separated KEY=VAL)"; exit 2; }
+  pt_i=0
+  for pt in "$@"; do
+    pt_i=$((pt_i + 1))
+    IFS=',' read -ra pt_env <<< "$pt"
+    d="$OUTROOT/sweep-$STAMP-$pt_i"
+    echo
+    echo ">> sweep point $pt_i: candidate arm += [${pt_env[*]}]  ->  $d"
+    run_golden "$d" "${CANDIDATE_ENV[@]}" "${pt_env[@]}"
+    [[ -f "$d/golden.json" ]] || { echo "ERROR: sweep point $pt_i produced no golden.json (see $d.log)"; continue; }
+    write_meta "$d" candidate "${CANDIDATE_ENV[@]}" "${pt_env[@]}"
+    report "$d/golden.json" "$d" "$pt"
+  done
+  exit 0
+fi
+
+# 2b) candidate — ALWAYS runs fresh against current code/env
+echo ">> candidate ($CANDIDATE_LABEL): running at $CAND_DIR ..."
+run_golden "$CAND_DIR" "${CANDIDATE_ENV[@]}"
+[[ -f "$CAND_JSON" ]] || { echo "ERROR: candidate produced no golden.json (see $CAND_DIR.log)"; exit 1; }
+write_meta "$CAND_DIR" candidate "${CANDIDATE_ENV[@]}"
+echo ">> candidate ($CANDIDATE_LABEL): done."
+echo
+
+# 3) decide + summary
+report "$CAND_JSON" "$CAND_DIR" "$CANDIDATE_LABEL"

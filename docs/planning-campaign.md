@@ -26,8 +26,13 @@ keep clean repair; because it's *outcome-gated*, it can't regress. Knobs: `LR_PL
   scattered ~0). Canonical confirm of gain 1.5 vs fixed = **−0.7 (REJECT)** — worse at 200k/300k.
   Lesson: correction *size* is **low-leverage** and the fixed ×1.2 is already well-calibrated;
   over-aiming (toward impact 1.0) chases turns that aren't achievable and distorts other axes.
-- **Re-aim beyond the single weakest gap (the open lever):** the whole re-searched suffix, or a
-  small window — changes the *scope* of the correction (plausibly bigger than its size).
+- **~~Re-aim beyond the single weakest gap~~ (TRIED → REJECTED, 2026-06-14):** a window
+  `[kWorst, kWorst+scope)` of the re-searched suffix instead of just kWorst. 4-spec board:
+  scope 2/4 = flat (−0.2/−0.1), scope 8 = **−1.7** (over-intervention). No positive signal →
+  not worth a canonical. Reverted.
+- **⇒ Both correction dimensions are bounded:** *size* (proportional, canonical REJECT) and
+  *scope* (above) are low-leverage. v1 (single weakest gap, moderate fixed bump) is well-tuned
+  and near the ceiling of *this* approach; further gains need a NEW idea, not knob-tuning.
 - **Other systematically-biased axes:** the method pays where an axis chronically misses in
   one direction AND the re-aim is true-score-gated. Impact qualifies; air does NOT (it's
   unbiased — re-aiming prev-gap *speed* for it was causally falsified, see log). A *different*

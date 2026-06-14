@@ -3009,6 +3009,19 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
   return overshoot;
 }
 
+// ════════════════════════════════════════════════════════════════════════════════════════
+// FORWARD-EVAL SUBSYSTEM (~this point through buildStartOptions). Extraction candidate: this
+// ~1100-line forest (config/env parsing, rollout scorers, objective/shadow leaf scorers, and
+// the measure-only agreement instrument below) is a near-self-contained unit that touches the
+// DFS core at only two call sites (scoreCandidateForHandoff, the telemetry hook in expandNode).
+// A physical move to forward_eval.ts is DEFERRED, not rejected: the blocker is the module-level
+// context (fwdEvalSpec/fwdEvalGapAxisTargets/fwdEvalCfg/fwdEvalMin) plus the shadow carry-out
+// scalars, which are a per-compile protocol shared with EXTERNAL importers (eval_arc_apples.ts,
+// eval_leaf_factors.ts, eval_leaf_window.ts call setForwardEvalContext then read objectiveLeafValue)
+// and have no test coverage of their own. Extracting cleanly first requires promoting that state to
+// an explicit context object threaded through the scorers — a behavior-preserving but wide change
+// that should land in its own commit with a full board/benchmark run, not bundled with fixes.
+// ════════════════════════════════════════════════════════════════════════════════════════
 // ── True-score forward arc evaluation (DEFAULT ranker ≥75k; also start selection & repair) ──
 // Rank each candidate arc by the TRUE metric score (scoreDriftReport via leafKeyForReport) of
 // where it LEADS over a short forward lookahead, instead of the local axis-L2 proxy. Rollouts are
@@ -3051,18 +3064,15 @@ let fwdEvalMin = 0;
 // a derived config flag set alongside fwdEvalCfg, not an accumulator — but it IS
 // per-compile, so forwardEvalConfig() must stay on the setForwardEvalContext path.
 let fwdEvalDefaultConfig = true;
-// Experiment (default OFF — TESTED, FAILS): widen the rollout branch at
-// impact-targeted gaps. Funnel study (study_impact_funnel.ts): dive-scoop pairs
-// are representable and sampled but undiscoverable — greedy:2 extends each k−1
-// candidate through ONLY the locally-top candidate at k, so a steep arrival is
-// never scored through the scoop that would convert it.
+// REJECTED experiment (removed 2026-06-14): widening the rollout branch at
+// impact-targeted gaps (LR_FWD_EVAL_IMPACT_BRANCH) to discover dive-scoop pairs.
 // VERDICT (2026-06-10, canonical): branch=3 → 551.89, branch=5 → 328.08 vs
 // 586.53 baseline. Charged branch^depth rollouts on ~40% of gaps starve the
 // search (same failure shape as best:2:3 −12.4). Pair discovery must come from
 // generation putting the converting scoop at the TOP of the pool from steep
-// arrival states (docs/IMPACT_PAIR_PLANNING.md), not from search breadth.
-let fwdEvalImpactBranch = 1;
-const FWD_EVAL_IMPACT_BRANCH_MIN_TARGET = 0.35;
+// arrival states (docs/IMPACT_PAIR_PLANNING.md), not from search breadth. Kept
+// at default (branch=1) it was a no-op; the global + parse + hot-path lookup are
+// gone — re-derive from this note if the experiment is ever revisited.
 
 // ── Shadow-leaf capture (LR_FWD_EVAL_LEAF=shadow, measure-only) ──
 // When shadow mode runs, the rollout ranks by the FULL leaf (byte-identical) but ALSO
@@ -3236,68 +3246,9 @@ function resetShadowLeafState(): void {
 }
 registerCompileReset(resetShadowLeafState);
 
-export type FwdEvalStats = {
-  fwd_eval_frames_charged: number;
-  fwd_eval_calls: number;
-  start_eval_frames_charged: number;
-  fwd_rollout_no_candidate: number;
-  fwd_leaf_reports: number;
-  fwd_leaf_dead_uncovered: number;
-  fwd_leaf_dead_uncovered_ejected: number;
-  fwd_leaf_dead_uncovered_sledbroken: number;
-  fwd_leaf_dead_uncovered_leftworld: number;
-  fwd_leaf_alive_uncovered: number;
-  fwd_pools: number;
-  fwd_top1_agree: number;
-  fwd_rank_of_quality_top1_sum: number;
-  fwd_quality_rank_of_winner_sum: number;
-  fwd_disagree_value_gap_sum: number;
-  fwd_disagree_count: number;
-  fwd_winner_aimed: number;
-  fwd_pools_with_aimed: number;
-  fwd_aimed_best_rank_sum: number;
-  fwd_winner_quality_rank_hist: number[];
-  fwd_quality_top1_fwd_rank_hist: number[];
-  fwd_disagree_impact_targeted: number;
-  fwd_disagree_not_impact_targeted: number;
-  fwd_agree_impact_targeted: number;
-  fwd_agree_not_impact_targeted: number;
-  fwd_disagree_winner_aimed_q1_not: number;
-  fwd_disagree_q1_aimed_winner_not: number;
-  fwd_disagree_value_gap_hist: number[];
-  fwd_disagree_winner_costlier: number;
-  fwd_disagree_winner_cheaper: number;
-  shadow_pools: number;
-  shadow_top1_agree: number;
-  shadow_disagree_count: number;
-  shadow_real_cost_sum: number;
-  shadow_real_cost_hist: number[];
-  shadow_impact_pools: number;
-  shadow_impact_disagree: number;
-  shadow_impact_real_cost_sum: number;
-  shadow_vert_pools: number;
-  shadow_vert_disagree: number;
-  shadow_vert_real_cost_sum: number;
-  shadow_other_pools: number;
-  shadow_other_disagree: number;
-  shadow_other_real_cost_sum: number;
-  shadow_disagree_objwinner_quality_high: number;
-  shadow_disagree_objwinner_quality_sum: number;
-  shadow_fx_n: number;
-  shadow_fx_fw_axis: number;
-  shadow_fx_fw_drift: number;
-  shadow_fx_fw_offb: number;
-  shadow_fx_fw_miss: number;
-  shadow_fx_fw_surv: number;
-  shadow_fx_ow_axis: number;
-  shadow_fx_ow_drift: number;
-  shadow_fx_ow_offb: number;
-  shadow_fx_ow_miss: number;
-  shadow_fx_ow_surv: number;
-  shadow_fx_ows_axis: number;
-  shadow_fx_ows_miss: number;
-  shadow_fx_ows_surv: number;
-};
+// Derived from fwdEvalTotals so the two never drift: adding a counter above automatically
+// extends the public stats shape. (Previously a hand-maintained ~60-field mirror.)
+export type FwdEvalStats = typeof fwdEvalTotals;
 
 /** Snapshot for compile stats; null when forward-eval never ran (gate off / sub-gate
  *  budget never sampled it) so ablation archives carry no fwd_eval key at all. */
@@ -3510,10 +3461,17 @@ export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]):
   fwdEvalGapAxisTargets = gapAxisTargets;
   fwdEvalCfg = forwardEvalConfig();
   fwdEvalMin = forwardEvalMinBudget();
-  const rawImpactBranch = Number(readEnv("LR_FWD_EVAL_IMPACT_BRANCH") ?? "1");
-  fwdEvalImpactBranch = Number.isInteger(rawImpactBranch) && rawImpactBranch >= 1
-    ? rawImpactBranch
-    : 1;
+}
+
+/** Warn (once-per-call, stderr) when a forward-eval env spec was set to a non-empty value
+ *  that parseForwardSpec could not understand. Without this, a typo (e.g. "gready:2") silently
+ *  reverts to the local proxy ranker / disables start-eval with no feedback, contaminating
+ *  ablations. Pure diagnostic — does not change behavior. */
+function warnUnparsedSpec(varName: string, raw: string): void {
+  const log = (globalThis as { console?: { warn?: (msg: string) => void } }).console?.warn;
+  if (log) {
+    log(`[handoff] ${varName}="${raw}" is not a recognized <greedy|best|avg>[:depth[:branch]] spec — ignored (forward-eval for this knob is OFF).`);
+  }
 }
 
 function readEnv(name: string): string | undefined {
@@ -3629,6 +3587,9 @@ function forwardEvalConfig(): ForwardEvalConfig | null {
   fwdEvalDefaultConfig = env === undefined || env === "";
   if (env === "0" || env === "off") return null;
   const cfg = parseForwardSpec(env === undefined || env === "" ? "greedy:2" : env);
+  // A non-empty env that failed to parse is a typo, not an intentional disable — warn so the
+  // silent fallback to the local proxy ranker is visible (env is non-empty/non-off here).
+  if (cfg === null && env !== undefined && env !== "") warnUnparsedSpec("LR_FWD_EVAL", env);
   // Rollout frames are CHARGED honestly by default; LR_FWD_EVAL_CHARGE=0 refunds them (the
   // budget-refunded ceiling experiment). Resolved once here, not re-read per candidate.
   return cfg === null
@@ -3640,7 +3601,16 @@ function forwardEvalConfig(): ForwardEvalConfig | null {
  *  instead of the local axis-L2 proxy. DEFAULT greedy:2 — the start is the most consequential
  *  choice on a forward-dependent chain (inherited by the whole track), so the honest forward tool
  *  pays here at EVERY budget (+32.5 headline, lifts validity). LR_START_EVAL=off reverts to the
- *  proxy; greedy:2 is the sweet spot (best/avg/greedy:3 don't pay charged). Always charged. */
+ *  proxy; greedy:2 is the sweet spot (best/avg/greedy:3 don't pay charged). Always charged.
+ *
+ *  MINIMAL-SIMULATION RULE — SANCTIONED EXCEPTION (deliberate, not an oversight): this is a
+ *  ranking step that runs FULL engine re-detection (forwardNodeScore, leaf="full") rather than
+ *  ballistic propagation, and it is ON by default at EVERY budget (NO forwardEvalMinBudget gate,
+ *  unlike the per-candidate ranker). The measured +32.5 win across budgets is why it is the
+ *  default despite the cost; the full-leaf and the always-on, ungated breadth are intentional.
+ *  Cost is bounded by the heuristic start pool (~START_SCORING_POOL + support seeds), each
+ *  full-rolled BEFORE the slice to START_OPTION_LIMIT. If start ranking is ever made ballistic,
+ *  drop this exception note. */
 function startEvalConfig(): ForwardEvalConfig | null {
   const env = readEnv("LR_START_EVAL");
   if (env === "0" || env === "off") return null;
@@ -3649,6 +3619,7 @@ function startEvalConfig(): ForwardEvalConfig | null {
   // experiment, so its rollouts stay full-detection regardless of LR_FWD_EVAL_LEAF.
   // parseForwardSpec already returns leaf:"full"; spelled out here for the invariant.
   const cfg = parseForwardSpec(env === undefined || env === "" ? "greedy:2" : env);
+  if (cfg === null && env !== undefined && env !== "") warnUnparsedSpec("LR_START_EVAL", env);
   return cfg === null ? null : { ...cfg, leaf: "full" };
 }
 
@@ -3966,11 +3937,7 @@ function forwardRolloutScore(
     captureShadow(v);
     return v;
   }
-  const atImpact = gaps[at.gapIndex]?.targets.impact ?? 0;
-  const atBranch = fwdEvalImpactBranch > 1 && atImpact >= FWD_EVAL_IMPACT_BRANCH_MIN_TARGET
-    ? Math.max(branch, fwdEvalImpactBranch)
-    : branch;
-  const cands = getCandidatesSorted(at, gaps, ctx, seed, atBranch);
+  const cands = getCandidatesSorted(at, gaps, ctx, seed, branch);
   if (cands.length === 0) {
     fwdEvalTotals.fwd_rollout_no_candidate++;
     // Dead-end: the rollout could not place any further contact. Mirror the full leaf scorer's

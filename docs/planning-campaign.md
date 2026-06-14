@@ -21,9 +21,13 @@ keep clean repair; because it's *outcome-gated*, it can't regress. Knobs: `LR_PL
 
 ## Where v1 can grow (it's early)
 
-- **Smarter correction than a fixed ×1.2 bump:** proportional to the measured undershoot, or
-  a learned step that closes the gap (the "model" idea).
-- **Re-aim beyond the single weakest gap:** the whole re-searched suffix, or a small window.
+- **~~Proportional correction~~ (TRIED → REJECTED, 2026-06-14):** `aim = ask + gain·undershoot`
+  instead of the fixed ×1.2. 4-spec board hinted gain 1.5 (+0.75, but within noise; 2.0/3.0
+  scattered ~0). Canonical confirm of gain 1.5 vs fixed = **−0.7 (REJECT)** — worse at 200k/300k.
+  Lesson: correction *size* is **low-leverage** and the fixed ×1.2 is already well-calibrated;
+  over-aiming (toward impact 1.0) chases turns that aren't achievable and distorts other axes.
+- **Re-aim beyond the single weakest gap (the open lever):** the whole re-searched suffix, or a
+  small window — changes the *scope* of the correction (plausibly bigger than its size).
 - **Other systematically-biased axes:** the method pays where an axis chronically misses in
   one direction AND the re-aim is true-score-gated. Impact qualifies; air does NOT (it's
   unbiased — re-aiming prev-gap *speed* for it was causally falsified, see log). A *different*

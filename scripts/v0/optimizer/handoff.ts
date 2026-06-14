@@ -107,6 +107,7 @@ import {
   sampleOneCandidate,
 } from "./sample.ts";
 import type { Candidate, SpecContext } from "./sample.ts";
+import { planSpec } from "./planning.ts";
 import type {
   CompileCheckpoint,
   CompileOutput,
@@ -683,7 +684,14 @@ function compileHandoffInternal(
       }
     }
 
-    const ctx: SpecContext = { allContactFrames, durationFrames };
+    // Global planning pre-pass: analytic spec-structure read (no simulation). In the
+    // scaffold it only computes features (does not set gap.plannedTargets) ⇒ aimTargets
+    // falls back to gap.targets ⇒ byte-identical. See docs/planning-campaign.md.
+    const specPlan = planSpec(gaps);
+    if (readEnv("LR_PLAN_LOG") === "1") {
+      console.error(`[plan] gaps=${gaps.length} hiImpactRunGaps=${specPlan.hiImpactRunGaps}`);
+    }
+    const ctx: SpecContext = { allContactFrames, durationFrames, specPlan };
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContractSearch = usesSparseContractSearch(gaps);
     const startOptions = initialSnapshot === null

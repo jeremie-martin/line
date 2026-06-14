@@ -34,6 +34,7 @@ import {
 import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
+import { aimTargets, type SpecPlan } from "./planning.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
@@ -56,6 +57,9 @@ export type SpecContext = {
   /** Per-compile, per-engine/gap probe cache. The engine objects are immutable
    *  prefix states, so a WeakMap keeps the cache scoped to live search nodes. */
   probeCache?: WeakMap<object, Map<string, CandidateProbe>>;
+  /** Up-front spec-structure plan (optimizer/planning.ts). Inspectable telemetry;
+   *  the per-gap aim it produces is read via `aimTargets(gap)`, not from here. */
+  specPlan?: SpecPlan;
 };
 
 export type CandidateProbe = {
@@ -164,8 +168,10 @@ export function sampleOneCandidate(
    *  K-prefix remains normal and deterministic. */
   mode: CandidateSampleMode = "normal",
   /** Optional geometry-only target override. Candidate scoring and hard gates
-   *  still use `gap.targets`; this only shapes the sampled line fragment. */
-  geometryTargets: AxisValues = gap.targets,
+   *  still use `gap.targets`; this only shapes the sampled line fragment. Defaults
+   *  to the planned aim (`aimTargets` = gap.targets unless the planning pre-pass
+   *  re-aimed this gap), so generation pursues the plan while cost/gates use truth. */
+  geometryTargets: AxisValues = aimTargets(gap),
 ): Candidate | null {
   candidateSampleCount++;
   const probe = getCandidateProbe(engine, gap, ctx);

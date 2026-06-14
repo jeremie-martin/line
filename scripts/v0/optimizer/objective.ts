@@ -6,6 +6,7 @@ import {
   type Gap,
 } from "../types.ts";
 import type { GapFit } from "../core/substrate.ts";
+import { aimTargets } from "./planning.ts";
 import {
   propagateBallisticArrivalState,
   type RiderArrivalState,
@@ -40,7 +41,7 @@ export type GapObjectiveScore = NextGapReadinessScore & {
 };
 
 export function scoreCurrentGapQuality(gap: Gap, achieved: AxisValues): number {
-  return axisQualityForTargets(gap.targets, achieved).axis_quality;
+  return axisQualityForTargets(aimTargets(gap), achieved).axis_quality;
 }
 
 export function scoreNextGapReadiness(
@@ -135,7 +136,7 @@ export function predictArrivalAtNextContact(
 }
 
 function speedFitFactor(speed: number, nextGap: Gap): number {
-  const target = nextGap.targets.speed;
+  const target = aimTargets(nextGap).speed;
   if (target === undefined) return 1;
   // `speed` is the predicted MEAN-of-flight where available (the statistic the target authors),
   // else the catch-instant fallback. Asymmetric: too-fast is half-penalized — any residual
@@ -159,7 +160,7 @@ function impactFeasibilityFactor(
   // OBJECTIVE_IMPACT_MIN_ASK are treated as no-constraint (returns 1). This is an
   // intentional divergence from the scorer's additive equal-weight impact axis — it
   // gates readiness, it does not reproduce the impact score.
-  const impactAsk = nextGap.targets.impact;
+  const impactAsk = aimTargets(nextGap).impact;
   if (impactAsk === undefined || impactAsk < OBJECTIVE_IMPACT_MIN_ASK || state.comAngleDeg === null) return 1;
   return Math.min(
     1,

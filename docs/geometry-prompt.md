@@ -23,25 +23,24 @@ Aim affects geometry too (where/how-fast the shot lands) but lives in a narrow s
 region — whole-arc rotation trips landing/survival gates easily (already instrumented as
 `enum_rot_gate_fail`). Treat that sensitivity as a constraint, not a free lever.
 
-**Goal.** Push the golden headline **up** by improving the geometry — anything in scope:
+**Goal.** Push the board headline **up** by improving the geometry — anything in scope:
 how candidate arcs are sampled (breadth, the `ARC_LEN_SPAN_*` length lever, curvature,
 entry/exit angle), how arc shape adapts to the incoming rider state (speed/angle), the
 aim knobs and their proposer, and how proposals are kept inside the safe region. New
 approaches welcome. **North star: headline ≥ 700**; every accepted change moves it up.
 
-**Measure with the geometry board, promote on the canonical run.**
-- Board (fast probe tier): `./scripts/v0/eval_geometry.sh` — 12 specs x {150k,300k} x
-  9 seeds against a frozen baseline it builds once and reuses; prints `decide` +
+**Measure with the geometry board — the sole driver for this work.**
+- `./scripts/v0/eval_geometry.sh` (fast probe tier): 12 specs x {150k,300k} x 9 seeds
+  against a frozen baseline it builds once and reuses; prints `decide` +
   per-track/per-budget/per-axis deltas. `./scripts/v0/eval_geometry.sh info` shows the
-  resolved config. The board is the iteration measure; **a canonical run is the
-  promotion gate**, never the board alone.
-- Canonical (promotion): from a clean committed HEAD,
-  `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/cand`, then
-  `npx tsx scripts/v0/analyze_golden_curve.ts decide generated/cand/golden.json
-  generated/baseline/golden.json` (candidate first). On accept that golden.json
-  becomes the new baseline.
-- Gotchas: `--jobs=32` (equals form — a space silently runs jobs=6); workers import the
-  tree per task, so never edit code mid-run; numbers only from real runs.
+  resolved config; `rebuild` forces a fresh baseline for the current params (do this to
+  advance the baseline after committing a win). The board is the decision instrument —
+  no separate canonical gate.
+- Clean isolation: prefer an env flag (e.g. an existing `LR_*` knob) so both arms share
+  one tree; otherwise the default frozen-snapshot mode compares current code vs the
+  baseline's code. Numbers only from real runs.
+- Gotchas: workers import the tree per task, so never edit code mid-run; the board's
+  JOBS is parallelism only (not in the fingerprint).
 
 **Workflow — empirical first, then modify production directly; keep only wins.**
 1. **Hypothesis from evidence, not vibes.** Before changing a default, gather the data:
@@ -50,10 +49,10 @@ approaches welcome. **North star: headline ≥ 700**; every accepted change move
    data shows, then what you'll change. Part of this campaign is measurement — statistics,
    telemetry, small studies — not just A/Bs.
 2. Smallest change to the **production default** — no flag, no A/B knob hiding it.
-3. Run the board; on a promising board result, run canonical + `decide` vs baseline.
-4. ACCEPT (headline up, no real regression) → commit + promote its golden.json to
-   baseline. REJECT → revert the code (keep the log entry + any scripts), baseline
-   unchanged.
+3. Run the board; read `decide` + the per-cell deltas vs the frozen baseline.
+4. ACCEPT (headline up, no real regression) → commit, then `rebuild` the board baseline
+   so it tracks the new HEAD. REJECT → revert the code (keep the log entry + any
+   scripts), baseline unchanged.
 5. Terse, objective log entry: setup · what I did · result (headline Δ + per-budget/cell)
    · verdict. **Facts only — never explain a result by a presumed mechanism we have not
    measured.** "X paid +N" — not "X paid because the rider Y."

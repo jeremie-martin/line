@@ -45,10 +45,7 @@
  *   [--designs=cross5,pitch3] [--max-gaps=0]
  */
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
-import {
-  axisLookaheadEndFrame,
-  setCandidateCompileBudgetFrames,
-} from "./core/candidate.ts";
+import { axisLookaheadEndFrame } from "./core/candidate.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { AXES, FPS, type AxisValues, type Gap, type TrackLine } from "./types.ts";
 import {
@@ -90,7 +87,6 @@ for (const s of specNames) {
   }
 }
 if (!Number.isFinite(budget) || budget <= 0) throw new Error(`invalid --budget=${budget}`);
-setCandidateCompileBudgetFrames(budget);
 
 type TrackJson = {
   startPosition?: { x: number; y: number };

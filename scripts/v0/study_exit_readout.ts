@@ -33,7 +33,7 @@
  */
 import { loadGoldenSpec, GOLDEN_SPECS, type GoldenSpecName } from "./golden_suite.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { detectWindow, setCandidateCompileBudgetFrames } from "./core/candidate.ts";
+import { detectWindow } from "./core/candidate.ts";
 import { airborneAt } from "./core/substrate.ts";
 import { getRiderMetered } from "../lib/detector.ts";
 import { ELEVATION, type TrackLine } from "./types.ts";
@@ -57,7 +57,6 @@ for (const s of specNames) {
     process.exit(1);
   }
 }
-setCandidateCompileBudgetFrames(budget);
 
 const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
 const mean = (xs: number[]): number => xs.reduce((s, x) => s + x, 0) / xs.length;

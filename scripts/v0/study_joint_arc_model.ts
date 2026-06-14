@@ -37,10 +37,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
-import {
-  axisLookaheadEndFrame,
-  setCandidateCompileBudgetFrames,
-} from "./core/candidate.ts";
+import { axisLookaheadEndFrame } from "./core/candidate.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import {
   AXES,
@@ -122,8 +119,6 @@ if (probePitchSpanOverride !== undefined && (!Number.isFinite(probePitchSpanOver
 if (probeRotateSpanOverride !== undefined && (!Number.isFinite(probeRotateSpanOverride) || probeRotateSpanOverride <= 0)) {
   throw new Error(`invalid --probe-rotate-span=${probeRotateSpanOverride}`);
 }
-
-setCandidateCompileBudgetFrames(budget);
 
 type TrackJson = {
   duration?: number;

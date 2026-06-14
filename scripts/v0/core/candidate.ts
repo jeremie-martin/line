@@ -37,7 +37,6 @@ import {
 } from "../types.ts";
 import {
   type GapFit,
-  clamp,
   median,
   engineLineFromTrackLine,
   contactLineIdsAt,
@@ -88,9 +87,9 @@ export const RANK_PREDICT_ARRIVAL: boolean = RANK_QUALITY_MODE !== "off";
  *  release/launch state (`releaseArrivalState`) at the GEOMETRIC ARC-EXIT frame —
  *  the first frame at/after gap.endFrame where the rider is airborne AND past the
  *  arc-end plane (core/exit_read.ts) — instead of the fixed catch+8 release frame.
- *  This is the unconditional capture behavior under pool mode. The cost-term fields
- *  (releaseSpeed, releaseVelocityY, releaseGroundedFrames, releaseAirborne,
- *  releaseSpeedPenalty) stay on catch+8 — only the predicted-arrival ranker state
+ *  This is the unconditional capture behavior under pool mode. The release-state
+ *  fields (releaseSpeed, releaseVelocityY, releaseGroundedFrames, releaseAirborne)
+ *  stay read at the catch+8 release frame — only the predicted-arrival ranker state
  *  moves. The geometric exit lands at +9..16 frames for the majority of passes,
  *  where catch+8 reads a still-non-airborne rider and starves the ballistic ranker
  *  (predictArrivalAtNextContact bails on non-airborne releases). Falls back to the
@@ -167,16 +166,31 @@ export function snapshotGapfitShortStats(): GapfitShortStats | null {
   return anyActivity ? { ...gapfitShortTotals } : null;
 }
 
+/** Weight of the release-speed SETUP term (`releaseSpeedPenalty`). Applied by the
+ *  handoff ranker (`candidateReleaseSetupPenalty`) against the NEXT contact gap's
+ *  speed target — a forward-looking signal preferring catches whose launch speed
+ *  sets up the following span. It is deliberately NOT charged against the current
+ *  gap's cost: axisCost already scores current-gap speed once (matching the scorer),
+ *  and re-charging it there was board-confirmed redundant (parity → removed). */
 const RELEASE_STATE_SPEED_WEIGHT = 0.126;
-const LOCAL_IMPACT_COST_WEIGHT = 0.5;
-const LOCAL_IMPACT_COST_MATURE_EXTRA = 0.25;
-const LOCAL_IMPACT_COST_MATURE_START_FRAMES = 150_000;
-const LOCAL_IMPACT_COST_MATURE_SPAN_FRAMES = 50_000;
-
-let currentCandidateCompileBudgetFrames = 0;
-export function setCandidateCompileBudgetFrames(frames: number): void {
-  currentCandidateCompileBudgetFrames = Math.max(0, frames | 0);
-}
+/** Local candidate-cost weight of the `impact` axis (`axisCost`), a flat 0.5 —
+ *  deliberately BELOW the scorer's equal weighting (every scored axis effectively
+ *  weight 1): full impact weight regressed mature budgets (COMPILER_OPTIMIZATION_LOG_NEW_IMPACT.md:
+ *  "full impact weight had a slightly lower focused headline (382.2) and a 100k
+ *  -16.3 point-estimate regression"), so the cheap candidate prefix must not
+ *  over-prioritize impact over air/speed/elevation/amplitude. A former 0.5->0.75
+ *  budget ramp (commit 8446817) was REMOVED: a canonical A/B (40 specs × 12 seeds,
+ *  100k/200k/300k) showed it no longer pays — dead-flat parity, validity unchanged —
+ *  its original suite-wide win having eroded as the baseline moved. Removing it also
+ *  de-couples candidate cost from per-compile budget state. LR_IMPACT_LOCAL_W
+ *  overrides the weight for studies. */
+const LOCAL_IMPACT_COST_WEIGHT = (() => {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_IMPACT_LOCAL_W;
+  if (raw === undefined || raw === "") return 0.5;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 0.5;
+})();
 
 // ─────────── Landing-window probe (study-only, off by default) ───────────
 // Read-only diagnostic for the landing-redefinition project: for every candidate
@@ -774,10 +788,9 @@ function evaluateCandidateLines(
   searchTargets: AxisValues,
   useWindowDetection: boolean,
 ): CandidateLinesEvaluation {
-  const scoreReleaseState = geometry === "lines";
   let best = evaluateGapFit(
     baseEngine, gap, lines, axisMeasureEnd, allContactFrames,
-    searchTargets, useWindowDetection, scoreReleaseState,
+    searchTargets, useWindowDetection,
     /* landingProbeEligible */ true,
   );
   if (best.fit === null) return best;
@@ -789,7 +802,7 @@ function evaluateCandidateLines(
         const extendedLines = [...lines, rideOut];
         const extended = evaluateGapFit(
           baseEngine, gap, extendedLines, axisMeasureEnd, allContactFrames,
-          searchTargets, useWindowDetection, scoreReleaseState,
+          searchTargets, useWindowDetection,
         );
         if (extended.fit !== null && extended.fit.cost + 1e-6 < best.fit.cost) {
           best = extended;
@@ -928,7 +941,6 @@ function evaluateGapFit(
   allContactFrames: number[],
   searchTargets: AxisValues,
   useWindowDetection: boolean,
-  scoreReleaseState: boolean,
   /** True only for the per-candidate BASE evaluation (not ride-out re-evals);
    *  gates the landing-window probe so each candidate is recorded once. */
   landingProbeEligible = false,
@@ -1044,8 +1056,13 @@ function evaluateGapFit(
   const releaseVelocity = velocityAt(det, releaseFrame);
   const releaseGroundedFrames = groundedFramesInRange(det, gap.endFrame, releaseFrame);
   const releaseAirborne = airborneAt(det, releaseFrame);
-  const cost = axisCost(searchTargets, achieved)
-    + (scoreReleaseState ? releaseSpeedPenalty(releaseSpeed, searchTargets.speed) : 0);
+  // Local candidate cost == the scorer's per-gap axis error (axisCost), so the pool
+  // sort mirrors the scorer for the CURRENT gap (modulo the intentional impact
+  // down-weight). Forward-looking release-speed setup — against the NEXT gap's speed
+  // target — is added separately by the handoff ranker (candidateReleaseSetupPenalty),
+  // not re-charged here: one current-gap cost term + one next-gap setup term, instead
+  // of double-charging current-gap speed (board-confirmed redundant: parity, removed).
+  const cost = axisCost(searchTargets, achieved);
   if (probeRecord !== null) probeRecord.cost = cost;
   // PREDICTED-ARRIVAL: full launch/exit state for the ranker to propagate
   // ballistically to the next contact instead of charging a probe ride, read off
@@ -1198,6 +1215,12 @@ export function releaseStateFrame(gap: Gap, allContactFrames: number[]): number 
   return Math.min(preferred, latestBeforeNext);
 }
 
+/** Penalty on the launch speed at the release frame (catch+8, `releaseStateFrame`)
+ *  against a speed target. Used by the handoff ranker's forward-looking setup term
+ *  (`candidateReleaseSetupPenalty`) with the NEXT gap's speed target, to prefer
+ *  catches whose launch speed sets up the following span. Uses the release-INSTANT
+ *  speed (a launch-readiness proxy), distinct from the window-MEAN `speed` axis that
+ *  axisCost already scores for the current gap. */
 export function releaseSpeedPenalty(
   releaseSpeedPxPerFrame: number | undefined,
   targetSpeed: number | undefined,
@@ -1266,42 +1289,20 @@ export function countOffBeatLandings(
 
 export function axisCost(target: AxisValues, achieved: AxisValues): number {
   // Equal-target L2 cost over every resolved scalar that was actually measured.
-  // `impact` is not curve-authored and still draws no sampling RNG, but once it
-  // is present on a beat the local candidate sort should see the same error the
-  // scorer sees.
+  // All axes are weighted 1 to mirror the scorer's equal pooling, EXCEPT `impact`,
+  // which is deliberately down-weighted (LOCAL_IMPACT_COST_WEIGHT, flat 0.5) so the
+  // cheap candidate prefix does not over-prioritize the newly-scored impact axis
+  // over air/speed/elevation/amplitude — a known, intentional divergence from the
+  // scorer's equal weighting. impact draws no sampling RNG, so its presence in the
+  // sort never perturbs candidate generation.
   let cost = 0;
   for (const key of AXES) {
     const t = target[key];
     const a = achieved[key];
     if (t !== undefined && a !== undefined) {
       const d = t - a;
-      cost += (key === "impact" ? localImpactCostWeight() : 1) * d * d;
+      cost += (key === "impact" ? LOCAL_IMPACT_COST_WEIGHT : 1) * d * d;
     }
   }
   return cost;
-}
-
-// Experiment override for the local impact cost weight (LR_IMPACT_LOCAL_W=<float>,
-// flat — replaces the base+maturity ramp). Read once at import: env is constant per
-// run and axisCost is the per-candidate hot path.
-const LOCAL_IMPACT_COST_WEIGHT_OVERRIDE = (() => {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_IMPACT_LOCAL_W;
-  if (raw === undefined || raw === "") return null;
-  const n = Number(raw);
-  return Number.isFinite(n) && n >= 0 ? n : null;
-})();
-
-function localImpactCostWeight(): number {
-  if (LOCAL_IMPACT_COST_WEIGHT_OVERRIDE !== null) return LOCAL_IMPACT_COST_WEIGHT_OVERRIDE;
-  const mature = smoothstepLocal(
-    (currentCandidateCompileBudgetFrames - LOCAL_IMPACT_COST_MATURE_START_FRAMES) /
-      LOCAL_IMPACT_COST_MATURE_SPAN_FRAMES,
-  );
-  return LOCAL_IMPACT_COST_WEIGHT + LOCAL_IMPACT_COST_MATURE_EXTRA * mature;
-}
-
-function smoothstepLocal(t: number): number {
-  const x = clamp(t, 0, 1);
-  return x * x * (3 - 2 * x);
 }

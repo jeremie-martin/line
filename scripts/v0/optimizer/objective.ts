@@ -140,6 +140,10 @@ function speedFitFactor(speed: number, nextGap: Gap): number {
   // `speed` is the predicted MEAN-of-flight where available (the statistic the target authors),
   // else the catch-instant fallback. Asymmetric: too-fast is half-penalized — any residual
   // overshoot bias inflates the apparent fast side, and excess speed can be bled; too-slow full.
+  // NOTE: this is the forward-looking READINESS speed fit, NOT a reproduction of the scorer's
+  // speed axis. It is intentionally asymmetric and on a tighter scale (OBJECTIVE_SPEED_SCALE_PXF)
+  // than the scorer's symmetric AXIS_QUALITY_TOLERANCE — it ranks a candidate's fitness to FLY
+  // INTO the next gap, not its scored speed error. The two surfaces are meant to differ.
   const d = speed - authoredSpeedToPx(target);
   const penalty = d > 0 ? d * 0.5 : -d;
   return Math.exp(-penalty / OBJECTIVE_SPEED_SCALE_PXF);
@@ -149,6 +153,12 @@ function impactFeasibilityFactor(
   state: Pick<ObjectiveArrivalState, "speed" | "comAngleDeg">,
   nextGap: Gap,
 ): number {
+  // FEASIBILITY, not scored error: "can this arrival state deliver the next beat's
+  // impact ask?", clamped to [0,1]. So OVER-delivering impact is free here (the scorer
+  // penalizes overshoot separately and symmetrically), and asks below
+  // OBJECTIVE_IMPACT_MIN_ASK are treated as no-constraint (returns 1). This is an
+  // intentional divergence from the scorer's additive equal-weight impact axis — it
+  // gates readiness, it does not reproduce the impact score.
   const impactAsk = nextGap.targets.impact;
   if (impactAsk === undefined || impactAsk < OBJECTIVE_IMPACT_MIN_ASK || state.comAngleDeg === null) return 1;
   return Math.min(

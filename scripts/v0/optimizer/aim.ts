@@ -200,8 +200,7 @@ export const AIM_TOPK_BASES: number = (() => {
  *  cost starves the compile (validity collapses, the per-budget curve goes deeply
  *  negative at 50k/100k and only turns positive at 200k/300k). So gate K>1 on the
  *  compile TARGET budget — the same per-compile-constant maturity signal the
- *  forward-eval gate (usesForwardEvalAtBudget) and the impact-cost ramp
- *  (LOCAL_IMPACT_COST_MATURE_*) use. Target budget is fixed for the whole compile,
+ *  forward-eval gate (usesForwardEvalAtBudget) uses. Target budget is fixed for the whole compile,
  *  so K_effective never changes mid-node and the per-node _candidatesCache (which
  *  may rebuild a node at a larger nCand) stays deterministic — exactly why
  *  consumed-frame signals are unusable here.
@@ -214,9 +213,9 @@ export const AIM_TOPK_BASES: number = (() => {
  *
  *  Threshold 150k: the per-budget curve has 100k still net-negative (−9.1) and
  *  200k net-positive (+1.5). A threshold in (100k, 200k] keeps the 50k/100k
- *  compiles at K=1 and lets the 200k/300k compiles at K>1. 150k matches the
- *  established LOCAL_IMPACT_COST_MATURE_START_FRAMES so the two maturity gates
- *  share one frontier. */
+ *  compiles at K=1 and lets the 200k/300k compiles at K>1. 150k is the same
+ *  maturity frontier the forward-eval gate uses, so the budget-coupled gates
+ *  share one threshold. */
 const AIM_TOPK_MATURE_BUDGET_FRAMES = 150_000;
 
 let aimCompileBudgetFrames = 0;

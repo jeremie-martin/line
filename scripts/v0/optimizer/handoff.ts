@@ -64,7 +64,6 @@ import {
   axisLookaheadEndFrame,
   detectWindow,
   releaseSpeedPenalty,
-  setCandidateCompileBudgetFrames,
   snapshotGapfitShortStats,
   snapshotReleaseExitStats,
   tryCandidate,
@@ -576,7 +575,6 @@ function compileHandoffInternal(
   const targetBudget = validateBudget(opts.budget);
   // Budget-aware geometry reads this (per-compile constant) for the curvature fade.
   setCompileBudgetFrames(targetBudget);
-  setCandidateCompileBudgetFrames(targetBudget);
   setAimCompileBudgetFrames(targetBudget);
   const maxNodes = opts.maxNodes ?? Math.max(MAX_NODES_FLOOR, targetBudget);
   if (!Number.isInteger(maxNodes) || maxNodes < 1) {

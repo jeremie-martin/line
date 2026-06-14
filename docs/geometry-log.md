@@ -132,3 +132,31 @@ airborne time the shortening would steal.
 Verdict: ACCEPT. Headline 611.6 → 612.9. Committed; baseline rebuilt to new HEAD.
 (Also landed: default-off pool-impact telemetry node.ts `recordPoolImpactTelem`,
 GEOM_POOL_TELEM=<path>, used by studies 2 above — no-op in production.)
+
+## 8. STUDY+REJECT — soften the impact-gap readiness multiplier (selection slack test)
+
+Setup: the pool quality sort ranks `currentQuality(scorer)×readiness`; the forward-eval
+rolls out the top-8 of that order. Hypothesis from study 2: high-impact catches are
+buried below rank 8 by the readiness multiplier. Test: on impact-targeted gaps replace
+the multiplier with `readiness^soft` (soft<1 surfaces high-currentQuality/impact
+catches). Aim.ts `candidateQualityObjective`, study env LR_IMPACT_READY_SOFT.
+- run.ts study (6 specs ×3 seeds @300k): the slack IS real — soft=0.5 moved
+  big_air_ramp +12, dense_sprint +7, drums_pendulum +12, BUT solo_run −17,
+  swoop_dive −12. Net +2 with high variance.
+- board (soft=0.5, full 12×9): **Δheadline −0.6** (150k +0.8, 300k −1.6). Helps at
+  scarce budget (big_air_ramp +10@150k, drums_pendulum +5, skyline +4) but regresses
+  converged 300k (pop_train −11.7, drums_crescendo −6, summit −3). The 2× weight on
+  300k makes it net-negative.
+Verdict: REJECT, reverted. CONCLUSION: the impact undershoot is mostly NOT pre-sort
+slack — the readiness term is doing real downstream work; surfacing impact catches
+trades 150k completion for 300k quality and washes. Impact is bound by real multi-gap
+coupling, not a fixable selection bug.
+
+## State after these runs
+
+Headline 612.9 (one accepted win: elevation ride-out shortening, #7). Studies show the
+geometry-capped specs sit near a multi-axis Pareto frontier: impact (study 2/8), air
+(#5 air-bias REJECT; grounded-cap washes), and elevation (climb bleeds speed, ceiling
+~0.65) all trade against neighbours rather than add. air OVERSHOOT correlates NEGATIVELY
+with impact (−0.36) yet forcing air down still regresses — the overshoot is part of the
+optimum. Remaining clean levers look localized (per-spec axis biases), not headline-sized.

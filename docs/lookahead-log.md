@@ -234,6 +234,21 @@ aim local-model ACCURACY (the ~18% gate-fail / 0.1 model error — "why isn't th
 or a catchability REFIT. 700 stays physics/scorer-bound (G3 ceiling ~637@1M pre-H-series); the headline
 now demonstrably MOVES, but not by compiler tuning to 700.
 
+### H9. Aim rotation lane — pitch-only ablation (rotation = 99.5% of gate-fails) — REJECT −3.4 (rotation PAYS)
+**Evidence (baseline aim telemetry, 1440 checkpoints).** enum_gate_fail 148239, of which enum_rot_gate_fail
+147555 = **99.5%**. Rates: rotation proposals gate-fail **17.9%** at build (wasted arc-solve+ride) vs
+pitch-only **1.7%** — 10× more failure-prone. Aim is otherwise well-placed: mean pool rank ~2.55/27, 20%
+rank-0, 55% top-3, positive objective gain.
+**Test.** zero the rotation sweep (`rotateSpan = 0`) → pitch-only proposals.
+**Result.** 629.3→625.9 **Δ=−3.4** CI[−5.7,−0.9] P(Δ≤0)=99%; per-budget **+0.0 / −4.0 / −4.1**.
+**Verdict. REJECT** — reverted, rotation kept. Answers "why isn't the aim more effective": NOT because
+rotation is dead weight. Despite 18% gate-fail, rotation is worth **+3.4** (up from the historical +0.4 —
+the H1/H4 objective now ranks rotation proposals better). Budget-dependent: rotation pays only at ample
+budget (flat at 100k, where its builds cost ≈ its value — but freeing them gave +0.0, so not starving
+either). The gate-fails are net-positive cost, not waste. No cheap refinement (salvaging emit slots = MORE
+builds; D5 showed more emits don't help). The aim's only remaining lever is local-MODEL ACCURACY
+(reduce rotation's model error) — a larger effort.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

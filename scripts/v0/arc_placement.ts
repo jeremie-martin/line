@@ -61,6 +61,15 @@ const CC_CARRY_START_PX = authoredSpeedToPx(0.55);
 const CC_CARRY_SPAN_PX = authoredSpeedToPx(0.95) - authoredSpeedToPx(0.55);
 const CC_CARRY_FADE_START_PX = authoredSpeedToPx(0.78);
 const CC_CARRY_FADE_SPAN_PX = authoredSpeedToPx(0.90) - authoredSpeedToPx(0.78);
+// Env knob helper — for re-tuning the impact CARRIER (curvature modulation) to the new redirArc
+// metric + anchor calibration without a recompile. Defaults = the shipped (old-metric-tuned)
+// values, so unset ⇒ byte-identical.
+const impactEnvNum = (name: string, dflt: number): number => {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.[name];
+  if (raw == null || raw === "") return dflt;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : dflt;
+};
 const CONTACT_CENTERED_POINT_JITTER = 4;
 const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
 const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
@@ -104,8 +113,8 @@ const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES = 50_000;
 // Ramp retuned for the envelope ruler (2026-06-09): scored targets on previously
 // conflicted beats now sit at 0.45-0.65 (was ~0.85), where the old 0.45-start ramp
 // delivered ~zero pressure. Start 0.25 puts ~0.7 pressure at a 0.5 ask.
-const IMPACT_CURVE_TARGET_START = 0.25;
-const IMPACT_CURVE_TARGET_SPAN = 0.40;
+const IMPACT_CURVE_TARGET_START = impactEnvNum("LR_IMPACT_CURVE_START", 0.25);
+const IMPACT_CURVE_TARGET_SPAN = impactEnvNum("LR_IMPACT_CURVE_SPAN", 0.40);
 const IMPACT_CURVE_SPEED_START_PX = 6;
 const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // Ablation (2026-06-10): this curvature modulation is THE impact carrier (+53
@@ -113,8 +122,8 @@ const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // flatten 12° / frontload 1.2 (canonical 585.56 vs 580.83 at the old 10/0.8,
 // decide ACCEPT Δ+4.7 P=4.2%, positive at every budget, 50k validity 96→98%).
 // The response surface peaks there: flatten 18 → 579, frontload 1.4 → 581.
-const IMPACT_CURVE_FLATTEN_DEG = 12;
-const IMPACT_CURVE_FRONTLOAD = 1.2;
+const IMPACT_CURVE_FLATTEN_DEG = impactEnvNum("LR_IMPACT_FLATTEN", 12);
+const IMPACT_CURVE_FRONTLOAD = impactEnvNum("LR_IMPACT_FRONTLOAD", 1.2);
 // Mature-budget impact POST-TURN sampler.
 // The curve modulation can only front-load whatever contact→post rotation already
 // exists. Remaining mature misses show contact runs are long enough but
@@ -237,6 +246,13 @@ const ARC_LEN_ROOM_SMOOTH_BUDGET_SPAN_FRAMES = 50_000;
  *  single independent budget, run in its own worker / sequentially), read by the
  *  budget-aware geometry. A per-compile constant, so determinism stays per
  *  (spec, seed, budget) and the per-node candidate cache remains valid. */
+// Ablation flag: LR_IMPACT_GEOM_OFF=1 disables ACTIVE impact-geometry steering (the redir
+// contact/entry/post-turn angle shifts, the scoop curve-pressure and everything that cascades
+// off it — flatten, curve-fade override, front-load, slam-template lane — and the next-beat
+// arrival ramp) while keeping impact SCORED and cost-ranked. Measures whether the impact-
+// geometry machinery earns its keep. Default off ⇒ byte-identical.
+const IMPACT_GEOM_OFF =
+  (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.LR_IMPACT_GEOM_OFF === "1";
 let currentCompileBudgetFrames = 0;
 export function setCompileBudgetFrames(frames: number): void {
   currentCompileBudgetFrames = Math.max(0, frames | 0);
@@ -1070,7 +1086,7 @@ function sampleContactCenteredLines(
   // arc (vy0 = −g·N/2 ⇒ arrival vy = +g·N/2, the bound's assumed maximum),
   // spanned across the attempt batch and cost-ranked like every other launch
   // lever. Same formula as the amplitude arc — they agree when both fire.
-  if (gap.nextImpact !== undefined && nextGapFrames !== null) {
+  if (!IMPACT_GEOM_OFF && gap.nextImpact !== undefined && nextGapFrames !== null) {
     // Scarce-budget only: the pop arrivals add COMPLETABLE shapes at 50k
     // (slice: +50.5) but dilute converged high-budget quality (−8..−36) —
     // the same profile as the post-curve span. Fade full ≤50k → off ≥100k.
@@ -1277,6 +1293,7 @@ function contactCenteredRedirContactAngleShiftDeg(
   attempt: number,
 ): number {
   if (targetImpact === undefined) return 0;
+  if (IMPACT_GEOM_OFF) return 0; // ablation
   const mature = smoothstep(
     (currentCompileBudgetFrames - CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES) /
       CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES,
@@ -1315,6 +1332,7 @@ function contactCenteredRedirEntryAngleShiftDeg(
   attempt: number,
 ): number {
   if (targetImpact === undefined) return 0;
+  if (IMPACT_GEOM_OFF) return 0; // ablation
   const mature = smoothstep(
     (currentCompileBudgetFrames - CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES) /
       CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES,
@@ -1364,6 +1382,7 @@ function impactCurvePressure(
   targetImpact: number | undefined,
 ): number {
   if (targetImpact === undefined) return 0;
+  if (IMPACT_GEOM_OFF) return 0; // ablation: kills the scoop carrier + its whole cascade
   const target = Math.min(targetImpact, impactCeiling(targetState.speed));
   const targetPressure = smoothstep(
     (target - IMPACT_CURVE_TARGET_START) / IMPACT_CURVE_TARGET_SPAN,

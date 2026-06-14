@@ -909,12 +909,22 @@ export const IMPACT_WINDOW = 6;
  * very strong ≈ 6.5 px/frame. Gentler-than-soft clamps to 0; harder-than-very-strong to 1.
  * Provisional end anchors (thin soft/very-strong label data) — structure is fixed.
  */
+/** Calibration anchors are env-tunable so they can be A/B'd without a recompile
+ *  (LR_IMPACT_SOFT / LR_IMPACT_VSTRONG). Defaults = the shipped values. The user's felt
+ *  labels (54 beats, docs/impact_problem_statement.md) put soft ≈ 2.8–2.9 and very-strong
+ *  ≈ 6.5 px/frame; the shipped SOFT=2.0 sits below the felt soft and is under review. */
+function impactEnvNum(name: string, dflt: number): number {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.[name];
+  if (raw === undefined || raw === "") return dflt;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : dflt;
+}
 export const REDIRARC = {
   /** redirArc (px/frame) at a felt "soft" landing → impact 0. */
-  SOFT: 2.0,
+  SOFT: impactEnvNum("LR_IMPACT_SOFT", 2.0),
   /** redirArc (px/frame) at a felt "very strong" landing → impact 1. */
-  VERY_STRONG: 6.5,
-} as const;
+  VERY_STRONG: impactEnvNum("LR_IMPACT_VSTRONG", 6.5),
+};
 /** redirArc px/frame → felt impact [0,1] (the SCORED normalization). */
 export function normImpact(redirArcPx: number): number {
   return Math.max(0, Math.min(1, (redirArcPx - REDIRARC.SOFT) / (REDIRARC.VERY_STRONG - REDIRARC.SOFT)));
@@ -923,6 +933,18 @@ export function normImpact(redirArcPx: number): number {
  *  generation lever / readiness to convert a normalized ask into a target turn. */
 export function impactToRedirArcPx(impact: number): number {
   return REDIRARC.SOFT + Math.max(0, Math.min(1, impact)) * (REDIRARC.VERY_STRONG - REDIRARC.SOFT);
+}
+/** Rescale an impact value authored on the OLD convention (when the scored metric was
+ *  `redir/REDIR_CAP`, where felt-"soft" ≈ 0.2) onto the NEW redirArc felt scale, by requesting
+ *  the SAME physical redirArc px the old value asked for: `px = authored·REDIR_CAP → normImpact(px)`.
+ *  Zeros sub-soft asks, preserves the high end, and keeps the compiler chasing the very catches
+ *  it always did — just scored on the felt-honest [0,1]. Flag-gated (LR_IMPACT_RESCALE=1) while
+ *  the spec corpus is still authored old-convention; default OFF ⇒ identity ⇒ byte-identical. */
+const _impactRescaleOn = ((globalThis as { process?: { env?: Record<string, string | undefined> } })
+  .process?.env?.["LR_IMPACT_RESCALE"]) === "1";
+export function rescaleAuthoredImpact(authored: number): number {
+  if (!_impactRescaleOn) return authored;
+  return normImpact(authored * CALIB.REDIR_CAP);
 }
 
 /** Wrap an angle (radians) to (−π, π]. Canonical home (the scored impact's net-heading-change

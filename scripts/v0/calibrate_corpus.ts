@@ -19,7 +19,7 @@ import { existsSync, mkdirSync, writeFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { type Spec, type Curve } from "./types.ts";
+import { type Spec, type Curve, secToFrame, REDIRARC } from "./types.ts";
 import * as SS from "./study_support.ts";
 
 const argv = process.argv.slice(2);
@@ -28,6 +28,10 @@ const COUNT = Number(arg("count") ?? "200");
 const PCT = Number(arg("perturb") ?? "5") / 100;
 const BUDGET = Number(arg("budget") ?? "20000");
 const SEED_VARY = argv.includes("--seed-vary");
+// Variant-index offset so several instances can run as parallel SHARDS over distinct variants
+// (each shard: --count=<total/N> --seed-base=<shard*count>), then merge the JSONs. Lets us use
+// the whole machine for a 1000-run sweep at a decent budget instead of one sequential process.
+const SEED_BASE = Number(arg("seed-base") ?? "0");
 const OUT = resolve(arg("out") ?? "generated/impact-study/corpus_percentiles.json");
 
 // deterministic RNG (reproducible runs) — Math.random/Date avoided on purpose.
@@ -78,11 +82,22 @@ function perturb(spec: Spec, rng: () => number): Spec {
   return { ...spec, axes, contacts };
 }
 
-const specs = allSpecFiles();
-const perSpec = Math.max(1, Math.round(COUNT / specs.length));
-console.log(`calibrate_corpus — ${specs.length} specs × ${perSpec} variants ≈ ${specs.length * perSpec} (perturb ±${PCT * 100}%, budget ${BUDGET}, seed-vary ${SEED_VARY})\n`);
+const allSpecs = allSpecFiles();
+const perSpec = Math.max(1, Math.round(COUNT / allSpecs.length)); // computed on the FULL corpus
+// SPEC-SHARD: `--spec-mod=k/N` runs only specs where (index % N === k). Run N instances in
+// parallel (one per core) → the whole corpus at a decent budget, then merge the JSONs. perSpec
+// stays based on the full corpus so total variants ≈ COUNT regardless of N.
+const [SHARD_K, SHARD_N] = (arg("spec-mod") ?? "0/1").split("/").map(Number);
+const specs = allSpecs.filter((_, idx) => ((idx % SHARD_N) + SHARD_N) % SHARD_N === SHARD_K);
+console.log(`calibrate_corpus — shard ${SHARD_K}/${SHARD_N}: ${specs.length}/${allSpecs.length} specs × ${perSpec} variants (perturb ±${PCT * 100}%, budget ${BUDGET}, seed-vary ${SEED_VARY})\n`);
 
 const vals: Record<string, number[]> = Object.fromEntries(METRICS.map((m) => [m.key, []]));
+// RESPONSE CURVE: achieved redirArc bucketed by the AUTHORED impact of the beat the landing
+// hit — the thing we actually need to calibrate (does authoring grade impact? reach per level?).
+// 10 bins [0,0.1)…[0.9,1.0]; a landing is matched to the nearest authored beat (±4 frames).
+const NBINS = 10;
+const respBins: number[][] = Array.from({ length: NBINS }, () => []);
+const binOf = (authored: number) => Math.min(NBINS - 1, Math.max(0, Math.floor(authored * NBINS)));
 let okVariants = 0, failVariants = 0, totalLandings = 0;
 for (const { name, path } of specs) {
   let base: Spec;
@@ -90,9 +105,14 @@ for (const { name, path } of specs) {
   catch (e) { console.log(`  ${name.padEnd(24)} SPEC LOAD FAILED — skip`); continue; }
   let specOk = 0, specLand = 0;
   for (let i = 0; i < perSpec; i++) {
-    const rng = mulberry32(hashStr(name) ^ (i * 0x9e3779b1));
+    const vi = SEED_BASE + i;
+    const rng = mulberry32(hashStr(name) ^ (vi * 0x9e3779b1));
     try {
-      const { track } = compileHandoff(perturb(base, rng), SEED_VARY ? i : 0, { budget: BUDGET });
+      const pspec = perturb(base, rng);
+      const { track } = compileHandoff(pspec, SEED_VARY ? vi : 0, { budget: BUDGET });
+      // authored impact by contact frame (post-perturb) — to attribute each landing to its ask.
+      const impByFrame = new Map<number, number>();
+      for (const c of pspec.contacts) if (c.impact != null) impByFrame.set(secToFrame(c.t), c.impact);
       const sim = SS.simulateTrack(track);
       let n = 0;
       for (const e of sim.det.events) {
@@ -100,6 +120,10 @@ for (const { name, path } of specs) {
         if (SS.pointImpactPx(sim, e.frame) === undefined) continue;
         for (const m of METRICS) vals[m.key].push(m.fn(sim, e.frame));
         n++;
+        // response: attribute this landing's redirArc to the authored impact it was asked for.
+        let bestF = -1, bestD = 5;
+        for (const f of impByFrame.keys()) { const d = Math.abs(f - e.frame); if (d < bestD) { bestD = d; bestF = f; } }
+        if (bestF >= 0) { const ra = SS.redirArcPx(sim, e.frame); if (Number.isFinite(ra)) respBins[binOf(impByFrame.get(bestF)!)].push(ra); }
       }
       okVariants++; specOk++; specLand += n; totalLandings += n;
     } catch { failVariants++; }
@@ -121,6 +145,31 @@ for (const m of METRICS) {
     capP95: Math.round(P(s, 0.95) * 1000) / 1000, capP99: Math.round(P(s, 0.99) * 1000) / 1000,
   };
 }
+// ── RESPONSE CURVE: achieved redirArc by AUTHORED impact level (the calibration evidence) ──
+// Anchor previews: how each authored level's MEDIAN achieved redirArc would normalize under a
+// few candidate (SOFT,VERY_STRONG) sets, so we can read off discrimination/dead-zone/saturation.
+const ANCHORS: [string, number, number][] = [
+  [`shipped ${REDIRARC.SOFT}/${REDIRARC.VERY_STRONG}`, REDIRARC.SOFT, REDIRARC.VERY_STRONG],
+  ["2.8/5.5", 2.8, 5.5], ["2.5/5.5", 2.5, 5.5], ["2.5/6.0", 2.5, 6.0],
+];
+const norm = (px: number, s: number, v: number) => Math.max(0, Math.min(1, (px - s) / (v - s)));
+const respOut: Record<string, unknown> = {};
+console.log(`\n=== RESPONSE: achieved redirArc by AUTHORED impact level (${respBins.reduce((a, b) => a + b.length, 0)} attributed landings) ===`);
+console.log(`  authored      n   redirArc(px) p10  p25  p50  p75  p90   |  normImpact(p50) under  ${ANCHORS.map((a) => a[0]).join("  ")}`);
+for (let b = 0; b < NBINS; b++) {
+  const xs = [...respBins[b]].sort((a, b) => a - b);
+  const lo = (b / NBINS).toFixed(1), hi = ((b + 1) / NBINS).toFixed(1);
+  if (!xs.length) { console.log(`  ${lo}-${hi}      0   (none)`); continue; }
+  const p50 = P(xs, 0.5);
+  const cells = ANCHORS.map(([, s, v]) => norm(p50, s, v).toFixed(2)).join("    ");
+  console.log(`  ${lo}-${hi}  ${String(xs.length).padStart(5)}   ${P(xs, 0.1).toFixed(2).padStart(5)}${P(xs, 0.25).toFixed(2).padStart(6)}${p50.toFixed(2).padStart(6)}${P(xs, 0.75).toFixed(2).padStart(6)}${P(xs, 0.9).toFixed(2).padStart(6)}   |     ${cells}`);
+  respOut[`${lo}-${hi}`] = { n: xs.length, p10: +P(xs, 0.1).toFixed(2), p25: +P(xs, 0.25).toFixed(2), p50: +p50.toFixed(2), p75: +P(xs, 0.75).toFixed(2), p90: +P(xs, 0.9).toFixed(2), max: +xs[xs.length - 1].toFixed(2) };
+}
+console.log(`  (monotone rising p50 ⇒ authoring grades; where p50 stops rising = the reach ceiling.\n   A good anchor set keeps the per-level normImpact spread across [~0.1,~0.9] with little dead-0/sat-1.)`);
+
 mkdirSync(resolve(OUT, ".."), { recursive: true });
-writeFileSync(OUT, JSON.stringify({ source: "calibrate_corpus", count: COUNT, perturb: PCT, budget: BUDGET, seedVary: SEED_VARY, window: SS.IMPACT_WINDOW, okVariants, failVariants, totalLandings, metrics: out }, null, 2) + "\n");
+writeFileSync(OUT, JSON.stringify({ source: "calibrate_corpus", count: COUNT, perturb: PCT, budget: BUDGET, seedVary: SEED_VARY, window: SS.IMPACT_WINDOW, okVariants, failVariants, totalLandings,
+  redirArcRaw: [...vals.redirArc].map((x) => Math.round(x * 1000) / 1000),   // for cross-shard merge
+  responseRaw: respBins.map((b) => b.map((x) => Math.round(x * 1000) / 1000)), // per-authored-bin raw redirArc, for merge
+  metrics: out, responseByAuthored: respOut }, null, 2) + "\n");
 console.log(`\nwrote ${OUT}`);

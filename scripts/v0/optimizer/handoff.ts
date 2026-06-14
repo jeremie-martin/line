@@ -40,6 +40,7 @@ import {
   AXIS_VALUE_MAX,
   CALIB,
   impactToRedirArcPx,
+  rescaleAuthoredImpact,
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
   HANDOFF_EVALUATION_PHASES,
@@ -649,7 +650,10 @@ function compileHandoffInternal(
     const impactByFrame = new Map<number, number>();
     if (!impactOff) {
       for (const c of spec.contacts) {
-        if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);
+        // rescaleAuthoredImpact: identity unless LR_IMPACT_RESCALE=1 (re-express OLD-convention
+        // authored impact on the new felt scale). Applied at the single source so the rescaled
+        // value flows to gap.targets + gapAxisTargets (scorer), generation, and feasibility alike.
+        if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), rescaleAuthoredImpact(c.impact));
       }
     }
     if (impactByFrame.size > 0) {
@@ -1156,14 +1160,15 @@ function compileHandoffInternal(
         const m = costToEnd[k];
         return m !== undefined && m >= 0 ? m : perGap * Math.max(1, gaps.length - k);
       };
-      // CLOSED LOOP (long-term planning, v1 — DEFAULT ON; escape hatch LR_PLAN_LOOP=0).
-      // Each repair iteration, if the gap being repaired (its weakest affordable gap) is itself
-      // an impact-UNDERSHOOT gap, aim ITS impact higher so the restart re-searches toward it;
-      // air/other-weak gaps are left to clean repair (targeting it to the weak gap avoids the
-      // budget competition that made a global re-aim net-neutral). The restart's accept/reject
-      // keeps the re-aim only where the TRUE score improves; the scorer/axisCost never read
-      // plannedTargets. Canonical ACCEPT Δheadline +1.1. See docs/planning-campaign.md.
-      const planLoop = readEnv("LR_PLAN_LOOP") !== "0";
+      // CLOSED LOOP (long-term planning, v1) — DISABLED BY DEFAULT as of 2026-06-14, ahead of the
+      // redirArc impact-metric redefinition. Rationale: the loop's win was marginal (+1.1 on the OLD
+      // ruler, inconclusive at higher budgets) and it re-aims IMPACT targets — exactly the axis the
+      // new metric reshapes — so leaving it on would confound any study of the new ruler. With the
+      // loop off, plannedTargets is never set ⇒ aimTargets() ≡ gap.targets ⇒ byte-identical to the
+      // no-planning compiler. Opt back in with LR_PLAN_LOOP=1. See docs/planning-campaign.md.
+      // (When on: each repair iteration, if the weakest affordable gap is an impact-UNDERSHOOT gap,
+      // aim ITS impact higher so the restart re-searches toward it; accept/reject on the TRUE score.)
+      const planLoop = readEnv("LR_PLAN_LOOP") === "1";
       const planLoopLog = readEnv("LR_PLAN_LOG") === "1";
       let planLoopReaims = 0;
       const exhausted = new Set<number>();

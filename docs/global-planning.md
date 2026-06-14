@@ -116,6 +116,26 @@ levers washed. The impact prize lives elsewhere: the catch's **redirection autho
 (how hard it can bend the path before the rider leaves the surface) — a pure geometry
 problem, not a planning one.
 
+## Board verdict (2026-06-14) — the paradigm does NOT move the target axes
+
+Built the full minimal plan (handoff.ts pre-pass: per-gap climb speed-demand + bounded
+backward build-rate ramp → `gap.plannedSpeedPx`; arc_placement energy-launch aims for
+`max(target, plannedSpeedPx)`; types.ts Gap field). Board-tested (climb bonus 2 px/f):
+
+- **Δheadline −0.9 (REJECT).** Wildly seed-variant: skyline_push +16 single-seed →
+  **−12.1/−12.9 on the 9-seed board**; drums_crescendo −23.9; solo_run +14.2.
+- **The elevation axis never moved** (single-seed by-axis: 0.13→0.13, 0.20→0.21). Carrying
+  speed did NOT make the rider climb more. The score changes were side-effects on other
+  axes (amplitude/impact), mixed in sign across specs.
+
+Combined with the earlier validation, this is the empirical conclusion: **neither impact
+nor elevation is actually speed-limited in this compiler.** Impact is turn/geometry-limited
+(the catch can't bend the path far enough before the rider leaves the surface); elevation
+is survival/band-limited (the steepest *surviving* climb, not the steepest *affordable*
+one). Carrying speed only perturbs the multi-axis balance — it doesn't unlock the target.
+The planning paradigm is conceptually sound and the mechanism is real, but it attacks a
+constraint that isn't binding. Reverted. (Instrument + design note kept for the record.)
+
 ## Measurement
 
 Same board (`eval_geometry.sh`), 12 specs × {150k,300k} × 9 seeds, frozen baseline. The

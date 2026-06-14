@@ -23,11 +23,12 @@ import {
   CALIB,
   ELEVATION,
   IMPACT_WINDOW,
+  normImpact,
   speedPxToAuthored,
 } from "../types.ts";
 import { netDyToElevation } from "../types.ts";
 import {
-  airborneAt, findLandingNearFrame, meanSpeedPxOverRange, redirImpactPxAtLanding,
+  airborneAt, findLandingNearFrame, meanSpeedPxOverRange, redirArcPxAtLanding,
   measurementLastFrame, median, velocityAt,
 } from "./substrate.ts";
 
@@ -131,11 +132,11 @@ const measureAmplitude: AxisReduction = ({ det, gap, rangeEndFrame }) => {
 };
 
 /**
- * Landing intensity at the gap's terminating beat: the rider's **velocity
- * REDIRECTION** (`substrate.ts redirImpactPxAtLanding` — the peak perpendicular
- * component of the CoM velocity change over the `IMPACT_WINDOW`-frame episode after
- * contact, "how hard the catch bends the path" / "claquage"), normalized by
- * `CALIB.REDIR_CAP`. See `Contact.impact` and the `IMPACT` block in types.ts.
+ * Landing intensity at the gap's terminating beat: the rider's **velocity REDIRECTION
+ * ARC** (`substrate.ts redirArcPxAtLanding` — `redirArc = v·Δθ`, incoming CoM speed ×
+ * net heading change over the `IMPACT_WINDOW`-frame episode, "how hard the catch bends
+ * the path" / "claquage"), mapped to felt [0,1] by `normImpact` (0 = soft, 1 = very
+ * strong). See `Contact.impact` and the `REDIRARC`/`IMPACT` blocks in types.ts.
  *
  * GATED on `gap.targets.impact`: impact is authored per-beat, so it's worth
  * measuring ONLY where a beat requested it (the cheap span-mean axes don't scan
@@ -149,8 +150,8 @@ const measureImpact: AxisReduction = ({ det, gap }) => {
   if (gap.targets.impact === undefined) return undefined;
   const landing = findLandingNearFrame(det, gap.endFrame);
   if (landing === undefined) return undefined;
-  const px = redirImpactPxAtLanding(det, landing.frame, IMPACT_WINDOW);
-  return px === undefined ? undefined : Math.min(1, px / CALIB.REDIR_CAP);
+  const px = redirArcPxAtLanding(det, landing.frame, IMPACT_WINDOW);
+  return px === undefined ? undefined : normImpact(px);
 };
 
 /** The reduction for each axis. Add a new axis = add one entry. */

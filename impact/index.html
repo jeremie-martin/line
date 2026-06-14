@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Impact Study</title>
+<style>
+  :root { --bg:#0a0c11; --panel:#11141b; --line:rgba(255,255,255,.10); --dim:#7c8499; --txt:#e6eaf2; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; }
+  header { display:flex; align-items:center; gap:16px; padding:12px 18px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  header h1 { font-size:15px; letter-spacing:2px; margin:0; font-weight:700; }
+  header .stat { color:var(--dim); }
+  header .stat b { color:var(--txt); }
+  header .sep { width:1px; height:20px; background:var(--line); }
+  button { font:inherit; color:var(--txt); background:#1b1f29; border:1px solid var(--line); border-radius:7px; padding:5px 10px; cursor:pointer; }
+  button:hover { background:#232836; }
+  button.on { background:#2b6cff; border-color:#2b6cff; }
+  #lanes { width:100%; display:block; }
+  #focus { display:grid; grid-template-columns: 680px 1fr 300px; gap:18px; padding:14px 18px; border-top:1px solid var(--line); align-items:start; }
+  #focus h2 { font-size:13px; letter-spacing:1px; margin:0 0 8px; color:var(--dim); font-weight:700; }
+  #clipwrap { position:relative; border-radius:10px; overflow:hidden; }
+  #clipwrap.boom { box-shadow:0 0 0 4px #ff4d4d inset; }
+  video { width:100%; display:block; background:#000; }
+  #boom { position:absolute; top:10px; left:12px; padding:4px 11px; border-radius:6px; background:#ff4d4d;
+          color:#fff; font-weight:700; letter-spacing:2px; font-size:13px; opacity:0; pointer-events:none; }
+  #clipwrap.boom #boom { opacity:1; }
+  #clipbar { position:relative; height:18px; background:#171b24; border-radius:4px; margin-top:10px; cursor:pointer; }
+  #clipbar .ctick { position:absolute; top:5px; width:2px; height:8px; background:#7c8499; }
+  #clipbar .itick { position:absolute; top:-3px; width:3px; height:24px; background:#ff4d4d; border-radius:1px; }
+  #clipbar .ilabel { position:absolute; top:-16px; transform:translateX(-50%); font-size:9px; color:#ff8080; letter-spacing:1px; }
+  #clipbar .cph { position:absolute; top:0; width:2px; height:100%; background:#fff; }
+  #clipbar.hide { display:none; }
+  .meta { color:var(--dim); margin:10px 0 0; }
+  .meta b { color:var(--txt); }
+  .hint { color:var(--dim); font-size:11px; margin-top:6px; }
+  .mbar { display:grid; grid-template-columns:64px 1fr 44px; align-items:center; gap:8px; margin:3px 0; }
+  .mbar .lab { color:var(--dim); font-size:11px; }
+  .mbar .lab.com { color:#cdd4e0; font-weight:700; }
+  .mbar .track { height:13px; background:#171b24; border-radius:3px; overflow:hidden; }
+  .mbar .fill { height:100%; border-radius:3px; }
+  .mbar .val { text-align:right; font-size:11px; }
+  .anno label { display:block; color:var(--dim); margin:10px 0 4px; font-size:11px; letter-spacing:1px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { padding:4px 9px; border-radius:14px; font-size:11px; }
+  textarea { width:100%; min-height:60px; resize:vertical; background:#171b24; color:var(--txt); border:1px solid var(--line); border-radius:7px; padding:7px; font:inherit; }
+  .save { color:var(--dim); font-size:11px; margin-top:6px; min-height:14px; }
+  .nav { display:flex; gap:8px; align-items:center; }
+  .err { padding:30px; color:#ff8080; }
+</style>
+</head>
+<body>
+<header>
+  <h1>IMPACT STUDY</h1>
+  <span class="stat" id="trackName">—</span>
+  <span class="stat"><b id="nBeats">0</b> landings</span>
+  <span class="stat"><b id="nAnno">0</b> labeled</span>
+  <span class="sep"></span>
+  <span class="nav">
+    <button id="modeClip" class="on">clip</button>
+    <button id="modeCont">continuous</button>
+  </span>
+  <span class="sep"></span>
+  <span class="nav">
+    <button id="prev">◂ prev</button>
+    <button id="next">next ▸</button>
+    <button id="nextUnlabeled">next unlabeled</button>
+    <button id="nextDiverge">next divergent</button>
+    <button id="toggleDiverge">highlight divergence</button>
+  </span>
+</header>
+<svg id="lanes"></svg>
+<div id="focus" style="display:none">
+  <div>
+    <h2 id="clipTitle">CLIP</h2>
+    <div id="clipwrap"><video id="clip" loop controls playsinline></video><div id="boom">● BOOM</div></div>
+    <div id="clipbar"></div>
+    <div class="meta" id="beatMeta"></div>
+    <div class="hint" id="clipHint">red tick = this impact · grey ticks = other contacts in the clip</div>
+  </div>
+  <div>
+    <h2>WHAT EACH METRIC SAYS</h2>
+    <div id="metricBars"></div>
+  </div>
+  <div class="anno">
+    <h2>YOUR FEEL</h2>
+    <label>INTENSITY</label>
+    <div class="chips" id="ordinalChips"></div>
+    <label>TAGS</label>
+    <div class="chips" id="tagChips"></div>
+    <label>NOTE (free text · relative calls welcome, e.g. "harder than #13")</label>
+    <textarea id="note" placeholder="how did this land feel?"></textarea>
+    <div class="save" id="saveState"></div>
+  </div>
+</div>
+<div class="err" id="err" style="display:none"></div>
+
+<script>
+const ORDINALS = [["soft","soft"],["soft_medium","soft–med"],["medium","medium"],["medium_strong","med–strong"],["strong","strong"],["strong_very_strong","strong–v.str"],["very_strong","very strong"]];
+const TAGS = ["smooth","snappy","slam","rotation-only","slowdown","nothing-felt","ejected"];
+const RAMP = [[56,214,200],[240,180,41],[255,77,77]];
+function rampColor(v){ v=Math.max(0,Math.min(1,v)); const seg=v<.5?0:1, f=v<.5?v/.5:(v-.5)/.5;
+  const a=RAMP[seg], b=RAMP[seg+1]; return `rgb(${a.map((x,i)=>Math.round(x+(b[i]-x)*f)).join(",")})`; }
+const NS="http://www.w3.org/2000/svg";
+function add(p,tag,attrs,text){ const el=document.createElementNS(NS,tag);
+  for(const k in attrs) el.setAttribute(k,attrs[k]); if(text!=null) el.textContent=text; p.appendChild(el); return el; }
+
+const qs = new URLSearchParams(location.search);
+const dataUrl = qs.get("data");
+let B=null, COM=[], sel=0, divergeOn=false, saveTimer=null, mode="clip";
+let LANE=null;            // { tx, x0, x1, H, bw, ph }  cached lane geometry + playhead element
+const clip = () => document.getElementById("clip");
+
+async function boot(){
+  if(!dataUrl){ return fail("add ?data=/generated/impact-study/<name>.bundle.json to the URL"); }
+  try { B = await (await fetch(dataUrl)).json(); } catch(e){ return fail("could not load bundle: "+e); }
+  COM = B.metrics.filter(m=>m.group==="com").map(m=>m.key);
+  try { const r = await (await fetch("/api/impact-labels?name="+encodeURIComponent(B.name))).json();
+        B.beats.forEach(bt=> bt.anno = r.labels?.[String(bt.frame)] ?? null); } catch(e){ B.beats.forEach(bt=>bt.anno=null); }
+  document.getElementById("trackName").textContent = B.name;
+  document.getElementById("nBeats").textContent = B.beats.length;
+  for(const bt of B.beats) bt.diverge = stdev(COM.map(k=>bt.values[k]));
+  buildChips(); drawLanes(); refreshCounts();
+  // video event wiring (shared by both modes)
+  clip().addEventListener("timeupdate", onTimeupdate);
+  clip().addEventListener("loadedmetadata", renderClipbar);
+  requestAnimationFrame(loop);
+  select(0,{seek:true});
+  window.addEventListener("resize", drawLanes);
+}
+function fail(msg){ document.getElementById("err").style.display="block"; document.getElementById("err").textContent=msg; }
+function stdev(xs){ const m=xs.reduce((a,b)=>a+b,0)/xs.length; return Math.sqrt(xs.reduce((a,b)=>a+(b-m)**2,0)/xs.length); }
+function isLabeled(bt){ const a=bt.anno; return !!a && (a.ordinal || (a.tags&&a.tags.length) || (a.note&&a.note.trim())); }
+function refreshCounts(){ document.getElementById("nAnno").textContent = B.beats.length ? B.beats.filter(isLabeled).length : 0; }
+
+// ── stacked metric lanes ────────────────────────────────────────────────────
+function drawLanes(){
+  const svg = document.getElementById("lanes");
+  const W = svg.clientWidth || window.innerWidth, gutter=92, laneH=24, gap=6, padY=10;
+  const x0=gutter, x1=W-16, H = padY*2 + B.metrics.length*(laneH+gap);
+  svg.setAttribute("width",W); svg.setAttribute("height",H); svg.innerHTML="";
+  const tx = t => x0 + (t/B.durationS)*(x1-x0);
+  const bw = Math.max(2, Math.min(7,(x1-x0)/B.beats.length*0.7));
+  B.metrics.forEach((m,j)=>{
+    const base = padY + j*(laneH+gap) + laneH;
+    add(svg,"text",{x:8,y:base-laneH/2+2,fill:m.group==="com"?"#cdd4e0":"#8b93a7","font-size":11,"font-weight":m.group==="com"?700:400},m.label);
+    add(svg,"line",{x1:x0,y1:base,x2:x1,y2:base,stroke:"rgba(255,255,255,.10)"});
+    B.beats.forEach((bt,i)=>{
+      const v=bt.values[m.key], h=2+Math.min(1,v)*(laneH-2), x=tx(bt.t);
+      add(svg,"rect",{x:x-bw/2,y:base-h,width:bw,height:h,rx:1.5,fill:rampColor(v),opacity:i===sel?1:.82});
+    });
+  });
+  B.beats.forEach((bt,i)=>{
+    const x=tx(bt.t);
+    if(divergeOn && bt.diverge>0.18) add(svg,"rect",{x:x-bw/2-1,y:padY,width:bw+2,height:H-padY*2,fill:"#2b6cff",opacity:.10});
+    const hit=add(svg,"rect",{x:x-Math.max(4,bw),y:0,width:Math.max(8,bw*2),height:H,fill:"transparent",style:"cursor:pointer"});
+    hit.addEventListener("click",()=>select(i,{seek:true}));
+  });
+  const sphase = add(svg,"line",{x1:0,y1:0,x2:0,y2:H,stroke:"#2b6cff","stroke-width":1.2,opacity:.55}); // live playhead (continuous)
+  const ph = add(svg,"line",{x1:tx(B.beats[sel].t),y1:0,x2:tx(B.beats[sel].t),y2:H,stroke:"#fff","stroke-width":1.3,opacity:.85});
+  LANE = { tx, x0, x1, H, bw, ph, live:sphase };
+  updateLive();
+}
+function updateLive(){ // blue line = current video time in continuous mode
+  if(!LANE) return;
+  if(mode==="continuous"){ const x=LANE.tx(clip().currentTime||0); LANE.live.setAttribute("x1",x); LANE.live.setAttribute("x2",x); LANE.live.setAttribute("opacity",.55); }
+  else LANE.live.setAttribute("opacity",0);
+}
+
+// ── focus panel ──────────────────────────────────────────────────────────────
+function select(i,opts={}){
+  sel = (i+B.beats.length)%B.beats.length; const bt=B.beats[sel];
+  document.getElementById("focus").style.display="grid";
+  const v=clip();
+  if(mode==="clip"){ if(!v.src.endsWith(bt.clip)){ v.src=bt.clip; } v.play().catch(()=>{}); }
+  else if(opts.seek){ v.currentTime=Math.max(0,bt.clipStart); v.play().catch(()=>{}); }
+  document.getElementById("beatMeta").innerHTML =
+    `beat <b>#${bt.i}</b> · t=<b>${bt.t.toFixed(2)}s</b>` + (bt.phase?` · ${bt.phase}`:"") +
+    (bt.target!=null?` · target <b>${bt.target.toFixed(2)}</b>/ach ${bt.achieved?.toFixed(2)}`:"") +
+    ` · divergence ${bt.diverge.toFixed(2)}`;
+  const mb=document.getElementById("metricBars"); mb.innerHTML="";
+  for(const m of B.metrics){ const val=bt.values[m.key];
+    const row=document.createElement("div"); row.className="mbar";
+    row.innerHTML=`<div class="lab ${m.group}" title="${m.sub}">${m.label}</div>`+
+      `<div class="track"><div class="fill" style="width:${Math.min(1,val)*100}%;background:${rampColor(val)}"></div></div>`+
+      `<div class="val">${val.toFixed(2)}</div>`;
+    mb.appendChild(row);
+  }
+  renderAnno(); renderClipbar();
+  if(LANE){ const x=LANE.tx(bt.t); LANE.ph.setAttribute("x1",x); LANE.ph.setAttribute("x2",x); }
+  // refresh selection opacity cheaply by redrawing lanes (bars only) when not animating fast
+  drawLanesBars();
+}
+function drawLanesBars(){ // lightweight: just re-tint selection without full rebuild
+  drawLanes();
+}
+
+// clip scrubber: red tick = this impact, grey ticks = other contacts within the clip window
+function renderClipbar(){
+  const bar=document.getElementById("clipbar"); const v=clip();
+  if(mode==="continuous"){ bar.classList.add("hide"); return; } bar.classList.remove("hide");
+  const bt=B.beats[sel]; const dur=(v.duration && isFinite(v.duration))?v.duration:(B.pre+B.post);
+  const start=bt.clipStart, end=start+dur;
+  bar.innerHTML="";
+  for(const o of B.beats){ if(o.t<start-1e-3 || o.t>end+1e-3) continue;
+    const pct=((o.t-start)/dur)*100;
+    if(o.i===bt.i){ add2(bar,"itick",pct); const lab=document.createElement("div"); lab.className="ilabel"; lab.style.left=pct+"%"; lab.textContent="IMPACT"; bar.appendChild(lab); }
+    else add2(bar,"ctick",pct);
+  }
+  const ph=document.createElement("div"); ph.className="cph"; ph.id="cph"; ph.style.left="0%"; bar.appendChild(ph);
+}
+function add2(bar,cls,pct){ const d=document.createElement("div"); d.className=cls; d.style.left=pct+"%"; bar.appendChild(d); }
+document.getElementById("clipbar").addEventListener("click",e=>{ if(mode!=="clip")return;
+  const bt=B.beats[sel], v=clip(); const r=e.currentTarget.getBoundingClientRect();
+  const dur=(v.duration&&isFinite(v.duration))?v.duration:(B.pre+B.post);
+  v.currentTime=Math.max(0,Math.min(dur,((e.clientX-r.left)/r.width)*dur)); });
+
+// boom flash + playheads, driven by playback
+function onTimeupdate(){
+  const v=clip(), bt=B.beats[sel];
+  let impactTime, dist;
+  if(mode==="clip"){ impactTime = bt.t - bt.clipStart; dist=Math.abs(v.currentTime-impactTime);
+    const dur=(v.duration&&isFinite(v.duration))?v.duration:(B.pre+B.post);
+    const cph=document.getElementById("cph"); if(cph) cph.style.left=(v.currentTime/dur*100)+"%";
+  } else { // continuous: nearest beat in time
+    let best=1e9; for(const o of B.beats){ const dd=Math.abs(v.currentTime-o.t); if(dd<best)best=dd; } dist=best;
+  }
+  document.getElementById("clipwrap").classList.toggle("boom", dist<0.08);
+}
+function loop(){
+  if(mode==="continuous"){
+    updateLive();
+    if(!clip().paused){ // auto-follow the impact being passed (don't steal focus while typing)
+      const ct=clip().currentTime; let cur=-1; for(let i=0;i<B.beats.length;i++){ if(B.beats[i].t<=ct+0.02) cur=i; else break; }
+      if(cur>=0 && cur!==sel && document.activeElement!==document.getElementById("note")) select(cur,{seek:false});
+    }
+  }
+  requestAnimationFrame(loop);
+}
+
+function buildChips(){
+  const oc=document.getElementById("ordinalChips"); oc.innerHTML="";
+  ORDINALS.forEach(([k,lab])=>{ const b=document.createElement("button"); b.className="chip"; b.textContent=lab; b.dataset.ord=k;
+    b.onclick=()=>{ const a=anno(); a.ordinal = a.ordinal===k?null:k; save(); renderAnno(); }; oc.appendChild(b); });
+  const tc=document.getElementById("tagChips"); tc.innerHTML="";
+  TAGS.forEach(t=>{ const b=document.createElement("button"); b.className="chip"; b.textContent=t; b.dataset.tag=t;
+    b.onclick=()=>{ const a=anno(); a.tags=a.tags||[]; const k=a.tags.indexOf(t); k>=0?a.tags.splice(k,1):a.tags.push(t); save(); renderAnno(); }; tc.appendChild(b); });
+  document.getElementById("note").addEventListener("input",e=>{ anno().note=e.target.value; save(); refreshCounts(); });
+}
+function anno(){ const bt=B.beats[sel]; if(!bt.anno) bt.anno={ordinal:null,tags:[],note:""}; return bt.anno; }
+function renderAnno(){
+  const a=B.beats[sel].anno||{ordinal:null,tags:[],note:""};
+  document.querySelectorAll("#ordinalChips .chip").forEach(c=>c.classList.toggle("on",a.ordinal===c.dataset.ord));
+  document.querySelectorAll("#tagChips .chip").forEach(c=>c.classList.toggle("on",(a.tags||[]).includes(c.dataset.tag)));
+  document.getElementById("note").value = a.note||"";
+  refreshCounts();
+}
+function save(){
+  const bt=B.beats[sel], a=bt.anno;
+  const empty = !a || (!a.ordinal && (!a.tags||!a.tags.length) && (!a.note||!a.note.trim()));
+  const ss=document.getElementById("saveState"); ss.textContent="saving…";
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try{ await fetch("/api/impact-labels",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({name:B.name,frame:bt.frame,annotation:empty?null:a})});
+      ss.textContent="saved ✓ "+new Date().toLocaleTimeString(); refreshCounts();
+    }catch(e){ ss.textContent="save FAILED: "+e; }
+  },400);
+}
+
+function setMode(m){
+  mode=m;
+  document.getElementById("modeClip").classList.toggle("on",m==="clip");
+  document.getElementById("modeCont").classList.toggle("on",m==="continuous");
+  document.getElementById("clipTitle").textContent = m==="clip" ? "CLIP" : "FULL RIDE";
+  document.getElementById("clipHint").textContent = m==="clip"
+    ? "red tick = this impact · grey ticks = other contacts in the clip"
+    : "playing the whole ride · the blue line tracks position · impacts auto-select as they pass · click a lane to seek";
+  const v=clip();
+  if(m==="continuous"){ v.loop=false; v.src=B.video; v.currentTime=Math.max(0,B.beats[sel].clipStart); }
+  else { v.loop=true; v.src=B.beats[sel].clip; }
+  v.play().catch(()=>{});
+  renderClipbar(); updateLive();
+}
+document.getElementById("modeClip").onclick=()=>setMode("clip");
+document.getElementById("modeCont").onclick=()=>setMode("continuous");
+document.getElementById("prev").onclick=()=>select(sel-1,{seek:true});
+document.getElementById("next").onclick=()=>select(sel+1,{seek:true});
+document.getElementById("nextUnlabeled").onclick=()=>{ for(let k=1;k<=B.beats.length;k++){ const i=(sel+k)%B.beats.length; if(!isLabeled(B.beats[i])) return select(i,{seek:true}); } };
+document.getElementById("nextDiverge").onclick=()=>{ const order=B.beats.map((b,i)=>i).sort((a,b)=>B.beats[b].diverge-B.beats[a].diverge); const cur=order.indexOf(sel); select(order[(cur+1)%order.length],{seek:true}); };
+document.getElementById("toggleDiverge").onclick=(e)=>{ divergeOn=!divergeOn; e.target.classList.toggle("on",divergeOn); drawLanes(); };
+window.addEventListener("keydown",e=>{ if(e.target.tagName==="TEXTAREA")return;
+  if(e.key==="ArrowLeft")select(sel-1,{seek:true}); if(e.key==="ArrowRight")select(sel+1,{seek:true});
+  if(e.key===" "){ e.preventDefault(); const v=clip(); v.paused?v.play():v.pause(); } });
+boot();
+</script>
+</body>
+</html>

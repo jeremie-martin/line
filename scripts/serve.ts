@@ -12,11 +12,11 @@
  *   HOST=0.0.0.0 npx tsx scripts/serve.ts         # bind to all interfaces (LAN access)
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { createReadStream, existsSync, readdirSync, statSync, openSync, readSync, closeSync } from "node:fs";
+import { createReadStream, existsSync, readdirSync, statSync, openSync, readSync, closeSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { networkInterfaces } from "node:os";
-import { basename, extname, normalize, relative, resolve, sep } from "node:path";
+import { basename, dirname, extname, normalize, relative, resolve, sep } from "node:path";
 
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
 const HOST = process.env.HOST ?? "127.0.0.1";
@@ -237,6 +237,25 @@ function valueAsBool(body: Record<string, unknown>, key: string, fallback = fals
   return typeof value === "boolean" ? value : fallback;
 }
 
+function impactLabelsPath(name: string): string {
+  return resolve(ROOT, "generated", "impact-study", `${name}.labels.json`);
+}
+function readImpactLabels(name: string): Record<string, unknown> {
+  const file = impactLabelsPath(name);
+  if (!existsSync(file)) return {};
+  try {
+    const parsed = JSON.parse(readFileSync(file, "utf8"));
+    return parsed && typeof parsed.labels === "object" ? parsed.labels : {};
+  } catch {
+    return {};
+  }
+}
+function writeImpactLabels(name: string, labels: Record<string, unknown>): void {
+  const file = impactLabelsPath(name);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, JSON.stringify({ name, updatedAt: new Date().toISOString(), labels }, null, 2) + "\n");
+}
+
 function compactTimestamp(): string {
   return new Date().toISOString().replace(/\D/g, "").slice(0, 14);
 }
@@ -452,6 +471,39 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     const job = jobs.get(jobMatch[1]);
     if (!job) return json(res, { error: "job not found" }, 404);
     return json(res, { job: snapshotJob(job) });
+  }
+
+  // ── impact-study felt-label annotations (per-track JSON the dashboard writes
+  //    and study_impact_labels.ts --labels reads). Keyed by landing frame. ──────
+  if (url.pathname === "/api/impact-labels") {
+    if (req.method === "GET") {
+      const name = cleanRunName(url.searchParams.get("name") ?? "");
+      if (!name) return json(res, { error: "missing name" }, 400);
+      return json(res, { name, labels: readImpactLabels(name) });
+    }
+    if (req.method === "POST") {
+      try {
+        const body = await readJsonBody(req);
+        if (!body || typeof body !== "object" || Array.isArray(body)) return json(res, { error: "expected JSON object" }, 400);
+        const b = body as Record<string, unknown>;
+        const name = cleanRunName(valueAsString(b, "name") ?? "");
+        if (!name) return json(res, { error: "missing name" }, 400);
+        const frame = Math.trunc(valueAsNumber(b, "frame", NaN));
+        if (!Number.isSafeInteger(frame)) return json(res, { error: "frame must be an integer" }, 400);
+        const labels = readImpactLabels(name);
+        const annotation = b.annotation;
+        if (annotation == null || (typeof annotation === "object" && Object.keys(annotation as object).length === 0)) {
+          delete labels[String(frame)];
+        } else {
+          labels[String(frame)] = annotation;
+        }
+        writeImpactLabels(name, labels);
+        return json(res, { ok: true, name, count: Object.keys(labels).length });
+      } catch (e) {
+        return json(res, { error: String(e) }, 400);
+      }
+    }
+    return json(res, { error: "method not allowed" }, 405);
   }
 
   if (url.pathname === "/") {

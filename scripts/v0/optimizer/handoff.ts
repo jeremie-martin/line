@@ -39,6 +39,7 @@ import {
   AXES,
   AXIS_VALUE_MAX,
   CALIB,
+  impactToRedirArcPx,
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
   HANDOFF_EVALUATION_PHASES,
@@ -3900,8 +3901,8 @@ function leafReadinessFromArrival(
     (impactAsk === undefined || impactAsk < LEAF_RDY_IMPACT_MIN_ASK || arrival.comAngleDeg === null)
       ? 1
       : Math.min(1, Math.max(0,
-        (arrival.speed * Math.sin((Math.max(0, arrival.comAngleDeg) * Math.PI) / 180)) /
-          (impactAsk * CALIB.REDIR_CAP)));
+        (arrival.speed * ((Math.max(0, arrival.comAngleDeg) * Math.PI) / 180)) /
+          impactToRedirArcPx(impactAsk)));
   switch (leafReadinessKind) {
     case "catch": return catchReadiness;
     case "impact": return impactReadiness;

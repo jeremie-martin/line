@@ -1,10 +1,10 @@
 /**
  * Landing `impact` lever — measurement, scoring, and the beat authoring helpers.
  *
- *  - measureImpact computes the velocity REDIRECTION (peak ⊥ component of the CoM
- *    velocity change over the IMPACT_WINDOW-frame episode after the landing) /
- *    REDIR_CAP, from the CoM velocity only (NO catch-line geometry), in both the
- *    full `detect` and the offset `detectWindow` measurement layouts.
+ *  - measureImpact computes the velocity REDIRECTION ARC `redirArc = v·Δθ` (incoming CoM
+ *    speed × NET heading change at the window end, over IMPACT_WINDOW frames), CoM-only
+ *    (NO catch-line geometry), mapped to felt [0,1] by `normImpact` (0 = soft @2.0 px/f,
+ *    1 = very strong @6.5 px/f) — in both the full `detect` and offset `detectWindow`.
  *  - impact is SCORED: an authored target folds into the contract `axis_quality`
  *    (target/achieved/error/ceiling in the drift report), draws no RNG, stays out of
  *    TARGET_AXES, and compiles deterministically.
@@ -17,9 +17,15 @@ import { constant } from "../scripts/v0/core/curves.ts";
 import { scoreDriftReport } from "../scripts/v0/score.ts";
 import { compileHandoff } from "../scripts/v0/optimizer/handoff.ts";
 import {
-  CALIB, IMPACT_WINDOW, impactCeiling, type Gap, type Spec, type TrackLine,
+  REDIRARC, IMPACT, IMPACT_WINDOW, impactCeiling, type Gap, type Spec, type TrackLine,
 } from "../scripts/v0/types.ts";
 import type { Detection } from "../scripts/lib/detector.ts";
+
+/** Independent reference normalization (mirrors types.normImpact) — redirArc px → felt [0,1]. */
+const norm = (px: number) =>
+  Math.max(0, Math.min(1, (px - REDIRARC.SOFT) / (REDIRARC.VERY_STRONG - REDIRARC.SOFT)));
+/** Unit-speed velocity at heading `θ` (rad) and magnitude `s`. */
+const vel = (theta: number, s: number) => ({ x: s * Math.cos(theta), y: s * Math.sin(theta) });
 
 // ── synthetic Detection just rich enough for measureImpact ──
 function makeDet(opts: {
@@ -50,7 +56,7 @@ function line(id: number, x1: number, y1: number, x2: number, y2: number): Track
 
 const measureImpact = AXIS_MEASURE.impact;
 
-describe("measureImpact (velocity redirection reduction)", () => {
+describe("measureImpact (redirArc = v·Δθ reduction)", () => {
   // targets.impact set: measureImpact is gated to gaps whose beat authored impact.
   const gap: Gap = { index: 0, startFrame: 0, endFrame: 10, endsWithContact: true, targets: { impact: 0.5 } };
   // Build a det whose CoM velocity at absolute frame f is vfn(f), landing at `lf`.
@@ -61,53 +67,55 @@ describe("measureImpact (velocity redirection reduction)", () => {
       contactLineIds: arrAt(n, lf - off, [1]),
       frameOffset: off,
     });
-  // gapLines are intentionally varied/empty: redir is CoM-only and ignores them.
+  // gapLines are intentionally varied/empty: redirArc is CoM-only and ignores them.
   const call = (det: Detection, g: Gap = gap, gapLines: TrackLine[] = []) =>
     measureImpact({ det, gap: g, gapLines, rangeEndFrame: g.endFrame });
 
-  test("straight glide (no heading change) ⇒ redir ≈ 0", () => {
-    const det = detFor(10, 20, () => ({ x: 9, y: 4 })); // constant velocity → no ⊥ change
+  test("straight glide (no heading change) ⇒ redirArc = 0 ⇒ impact 0", () => {
+    const det = detFor(10, 20, () => ({ x: 9, y: 4 })); // constant velocity → no turn
     expect(call(det)).toBeCloseTo(0, 6);
   });
 
-  test("pure redirection ⇒ peak ⊥ velocity / REDIR_CAP", () => {
-    // incoming heading (10,0); the ⊥ (=y) component peaks at 6 inside the window.
-    const det = detFor(10, 20, (f) => ({ x: 10, y: f < 10 ? 0 : f === 12 ? 6 : 3 }));
-    expect(call(det)).toBeCloseTo(6 / CALIB.REDIR_CAP, 5);
+  test("net redirection ⇒ |v_in|·Δθ, felt-normalized", () => {
+    // incoming (3,0) speed 3; window-end heading turns to π/2 → redirArc = 3·(π/2).
+    const det = detFor(10, 20, (f) => (f <= 9 ? { x: 3, y: 0 } : { x: 0, y: 3 }));
+    expect(call(det)).toBeCloseTo(norm(3 * (Math.PI / 2)), 5);
   });
 
-  test("peak over the window, not the endpoint", () => {
-    // ⊥ spikes to 6 at lf+2 then decays to 1 — the metric returns the spike.
-    const det = detFor(10, 20, (f) => ({ x: 10, y: f <= 9 ? 0 : f === 12 ? 6 : 1 }));
-    expect(call(det)).toBeCloseTo(6 / CALIB.REDIR_CAP, 5);
+  test("NET turn at the window end, not the in-window peak", () => {
+    // heading spikes to 1.0 rad mid-window then settles to 0.5 rad by the end:
+    // redirArc must reflect the 0.5-rad endpoint (= |v_in|·0.5), NOT the 1.0 peak.
+    const det = detFor(10, 20, (f) => (f <= 9 ? { x: 10, y: 0 } : f <= 13 ? vel(1.0, 10) : vel(0.5, 10)));
+    expect(call(det)).toBeCloseTo(norm(10 * 0.5), 5);
+    expect(call(det)).toBeLessThan(norm(10 * 1.0)); // not the peak
   });
 
   test("geometry-independent: ignores catch-line tangent / owned lines (CoM-only)", () => {
-    const det = detFor(10, 20, (f) => ({ x: 10, y: f <= 9 ? 0 : 5 }));
+    const det = detFor(10, 20, (f) => (f <= 9 ? { x: 10, y: 0 } : vel(0.5, 10)));
     const horiz = call(det, gap, [line(1, 0, 0, 100, 0)]);
     const slant = call(det, gap, [line(1, 0, 0, 100, 100)]);
-    const none = call(det, gap, []); // no owned line ⇒ STILL a value now (redir ignores lines)
-    expect(horiz).toBeCloseTo(5 / CALIB.REDIR_CAP, 5);
+    const none = call(det, gap, []); // no owned line ⇒ STILL a value (redirArc ignores lines)
+    expect(horiz).toBeCloseTo(norm(10 * 0.5), 5);
     expect(slant).toBeCloseTo(horiz!, 9);
     expect(none).toBeCloseTo(horiz!, 9);
   });
 
   test("heading reference is the PRE-landing frame (lf−1)", () => {
-    // incoming (lf−1) = (0,10); subsequent (4,10): ⊥ to (0,1) heading = |vx| = 4.
-    const det = detFor(10, 20, (f) => (f <= 9 ? { x: 0, y: 10 } : { x: 4, y: 10 }));
-    expect(call(det)).toBeCloseTo(4 / CALIB.REDIR_CAP, 5);
+    // incoming (lf−1) = (0,3) [heading π/2]; post = (3,0) [heading 0] → Δθ = π/2.
+    // If it wrongly used lf as the reference (also (3,0)), Δθ would be 0.
+    const det = detFor(10, 20, (f) => (f <= 9 ? { x: 0, y: 3 } : { x: 3, y: 0 }));
+    expect(call(det)).toBeCloseTo(norm(3 * (Math.PI / 2)), 5);
   });
 
   test("works under the detectWindow frame offset", () => {
-    // frameOffset 100: landing at absolute frame 110, arrays indexed from 0.
-    const det = detFor(110, 20, (f) => ({ x: 10, y: f < 110 ? 0 : f === 112 ? 6 : 2 }), 100);
-    expect(call(det, { ...gap, endFrame: 110 })).toBeCloseTo(6 / CALIB.REDIR_CAP, 5);
+    const det = detFor(110, 20, (f) => (f < 110 ? { x: 3, y: 0 } : { x: 0, y: 3 }), 100);
+    expect(call(det, { ...gap, endFrame: 110 })).toBeCloseTo(norm(3 * (Math.PI / 2)), 5);
   });
 
   test("window truncates at the detection end (no crash)", () => {
-    // landing near the last frame: only frames 11,12 are available after it.
-    const det = detFor(10, 13, (f) => ({ x: 10, y: f <= 9 ? 0 : 3 }));
-    expect(call(det)).toBeCloseTo(3 / CALIB.REDIR_CAP, 5);
+    // landing near the last frame: only frames 11,12 available; Δθ read at frame 12.
+    const det = detFor(10, 13, (f) => (f <= 9 ? { x: 3, y: 0 } : { x: 0, y: 3 }));
+    expect(call(det)).toBeCloseTo(norm(3 * (Math.PI / 2)), 5);
   });
 
   test("gated: undefined when the beat did not author impact", () => {
@@ -120,17 +128,25 @@ describe("measureImpact (velocity redirection reduction)", () => {
     expect(call(det)).toBeUndefined();
   });
 
-  test("saturates at 1.0 beyond REDIR_CAP", () => {
-    const det = detFor(10, 20, (f) => ({ x: 1, y: f <= 9 ? 0 : 20 })); // ⊥ 20 ≫ 8.5
+  test("clamps below soft (gentler than 2.0 px/f redirArc) to 0", () => {
+    // speed 3, tiny end turn 0.2 rad → redirArc 0.6 px/f < SOFT(2.0) ⇒ 0.
+    const det = detFor(10, 20, (f) => (f <= 9 ? { x: 3, y: 0 } : vel(0.2, 3)));
+    expect(call(det)).toBe(0);
+  });
+
+  test("saturates at 1.0 above very-strong (≥6.5 px/f redirArc)", () => {
+    // speed 10, π/2 turn → redirArc 10·1.571 ≈ 15.7 ≫ 6.5 ⇒ 1.
+    const det = detFor(10, 20, (f) => (f <= 9 ? { x: 10, y: 0 } : { x: 0, y: 10 }));
     expect(call(det)).toBe(1);
   });
 });
 
-describe("impactCeiling (redirection bound)", () => {
+describe("impactCeiling (redirArc bound)", () => {
   test("scales with speed (CATCHABLE_REDIR_FRACTION) and clamps to [0,1]", () => {
-    expect(impactCeiling(0)).toBe(0);
-    expect(impactCeiling(5)).toBeCloseTo((0.9 * 5) / CALIB.REDIR_CAP, 5); // 4.5/8.5 ≈ 0.529
-    expect(impactCeiling(100)).toBe(1); // 0.9*100 capped at REDIR_CAP ⇒ 1
+    const maxTurn = Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION); // ≈ 1.12 rad
+    expect(impactCeiling(0)).toBe(0); // 0 redirArc < soft ⇒ 0
+    expect(impactCeiling(5)).toBeCloseTo(norm(5 * maxTurn), 5); // ≈ 0.80
+    expect(impactCeiling(100)).toBe(1); // 100·1.12 ≫ very-strong ⇒ 1
   });
 });
 

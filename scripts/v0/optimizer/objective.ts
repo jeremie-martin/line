@@ -1,7 +1,7 @@
 import { axisQualityForTargets } from "../score.ts";
 import {
   authoredSpeedToPx,
-  CALIB,
+  impactToRedirArcPx,
   type AxisValues,
   type Gap,
 } from "../types.ts";
@@ -166,8 +166,8 @@ function impactFeasibilityFactor(
     1,
     Math.max(
       0,
-      (state.speed * Math.sin((Math.max(0, state.comAngleDeg) * Math.PI) / 180)) /
-        (impactAsk * CALIB.REDIR_CAP),
+      (state.speed * ((Math.max(0, state.comAngleDeg) * Math.PI) / 180)) /
+        impactToRedirArcPx(impactAsk),
     ),
   );
 }

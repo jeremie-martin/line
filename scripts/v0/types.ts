@@ -57,17 +57,20 @@ export type Contact = {
   t: number;
   /**
    * Optional per-beat landing intensity ("how hard the rider slams into the arc" —
-   * "claquage"), absolute [0, 1]. Defined as the rider's **velocity REDIRECTION**:
-   * the peak magnitude of the perpendicular component of the centre-of-mass velocity
-   * change over the `IMPACT_WINDOW`-frame (~0.15s) episode after contact, divided by
-   * `CALIB.REDIR_CAP`. 0 = a smooth tangent glide that doesn't bend the rider's path,
-   * 1 = the hardest catchable slam (the path is sharply redirected at speed).
+   * "claquage"), absolute [0, 1] on a FELT scale: **0 = soft, 1 = very strong**.
+   * Defined as the rider's **velocity REDIRECTION ARC** `redirArc = v·Δθ` (incoming
+   * CoM speed × net heading change over the `IMPACT_WINDOW`-frame (~0.15s) episode after
+   * contact), mapped to [0,1] by `normImpact` (the felt scale: redirArc ≈ 2.0 px/frame →
+   * soft → 0; ≈ 6.5 px/frame → very strong → 1; gentler clamps to 0, harder to 1).
+   * Anchored to the user's felt labels (LOCKED 2026-06-14, docs/impact_problem_statement.md).
    *
-   * Why redirection and not "normal closing speed": a felt impact is the surface
-   * *redirecting* the rider's path; decelerating *along* the path (a glide slowing
-   * on a curved arc) is not felt as a hit. Redirection is CoM-velocity-only, so it is
-   * immune to sled rotation / limb whip (which look violent but aren't felt). See
-   * `docs/impact_problem_statement.md`.
+   * Why the redirection arc (not perpendicular `redir = v·sinΔθ`, nor normal closing,
+   * nor body force): the felt hit is the surface *redirecting* the rider's path at speed;
+   * `v·Δθ` keeps the speed weighting with no sin-compression of the biggest slams, beats
+   * `redir`/`turn` and generalizes across tracks (incl. flat-drop slams), and stays
+   * CoM-velocity-only so it's immune to sled rotation / limb whip (which look violent but
+   * aren't felt). Decelerating *along* the path (a glide slowing on a curved arc) builds
+   * no Δθ → reads ~0. See `docs/impact_problem_statement.md`.
    *
    * Authored on the beat (NOT an axis): impact is an adjective on a discrete landing
    * event, where the axes (air/speed/elevation/amplitude) are continuous fields over
@@ -76,9 +79,9 @@ export type Contact = {
    * gap ends in exactly one beat, so per-gap scalar ≡ per-beat value).
    *
    * Status: SCORED (folds into the contract `axis_quality`). Measured by
-   * `redirImpactPxAtLanding` (substrate.ts); reported with target/achieved/error/
-   * ceiling. Optimizer steering toward redir is a deferred follow-up — for now the
-   * compiler hits it via candidate-cost ranking, not an analytic angle bias.
+   * `redirArcPxAtLanding` (substrate.ts) → `normImpact`; reported with target/achieved/
+   * error/ceiling. The compiler steers toward it via the arc-placement redir lever
+   * (target → needed CoM turn = impactToRedirArcPx(target)/speed) and candidate ranking.
    */
   impact?: number;
 };
@@ -112,9 +115,9 @@ export type Curve = (t: number) => number | undefined;
  *                       `CALIB.AMPLITUDE_CAP`, [0, 1]. Orthogonal to `air`:
  *                       `air` is how *long* aloft, `amplitude` is how *high*.
  *   - `impact`        — landing intensity at a beat: the rider's velocity
- *                       REDIRECTION — peak perpendicular component of the CoM
- *                       velocity change over the `IMPACT_WINDOW`-frame episode after
- *                       contact, normalized by `CALIB.REDIR_CAP`, [0, 1]. NOT
+ *                       REDIRECTION ARC `redirArc = v·Δθ` over the `IMPACT_WINDOW`-frame
+ *                       episode after contact, felt-normalized via `normImpact` [0, 1]
+ *                       (0 = soft, 1 = very strong). NOT
  *                       authored as a curve — it is a per-beat qualifier
  *                       (`Contact.impact`) resolved into the terminating gap so it
  *                       can reuse this per-gap plumbing. SCORED. In AXES and scored,
@@ -870,22 +873,22 @@ export function elevationCeiling(speedPx: number, frames: number): number {
 
 /**
  * Landing-impact model (absolute, speed-bounded). Impact is the rider's **velocity
- * REDIRECTION** — the peak perpendicular component of the centre-of-mass velocity
- * change over the `IMPACT_WINDOW`-frame episode after contact (the lateral speed the
- * catch imparts as it bends the path). Normalized by `CALIB.REDIR_CAP` → [0, 1]. See
- * `redirImpactPxAtLanding` (substrate.ts) and `docs/impact_problem_statement.md`.
+ * REDIRECTION ARC** `redirArc = v·Δθ` — incoming CoM speed × net heading change over the
+ * `IMPACT_WINDOW`-frame episode after contact (how hard the catch bends the path), mapped
+ * to felt [0,1] by `normImpact` (`REDIRARC.SOFT`/`VERY_STRONG`). See `redirArcPxAtLanding`
+ * (substrate.ts) and `docs/impact_problem_statement.md`.
  *
- * The achievable impact is bounded ABOVE by speed: the perpendicular velocity you can
- * acquire can't exceed the speed you carry, and beyond the catchable ceiling a hard
- * hit ejects (the catch fails). `impactCeiling` reports that honest per-beat bound so
+ * The achievable impact is bounded ABOVE by speed: the turn a catch can deliver is
+ * capped, and beyond the catchable ceiling a hard hit ejects (the catch fails).
+ * `impactCeiling` reports that honest per-beat bound so
  * a target above it reads as physics, not an optimizer miss. PROVISIONAL — recalibrate
  * against `study_impact_calibrate.ts` / `specs/probe_impact.ts`.
  */
 export const IMPACT = {
-  /** Fraction of entering speed that is the maximum *catchable* velocity redirection:
-   *  beyond this the landing ejects and fails the contact. Provisional — a hard catch
-   *  can flip most of the speed perpendicular, so this is higher than the old
-   *  normal-closing fraction. */
+  /** Catchability cap, consumed as `asin(CATCHABLE_REDIR_FRACTION)` = the maximum
+   *  *catchable* CoM turn angle (≈64° at 0.9): beyond this the landing ejects and fails
+   *  the contact. Used by `impactCeiling`/`impactFeasibilityBound` (and the arc-placement
+   *  redir lever's turn clamp) under the redirArc = v·Δθ metric. Provisional. */
   CATCHABLE_REDIR_FRACTION: 0.9,
   /** [LEGACY — NOT SCORED] catchable fraction for the OLD one-frame normal-closing
    *  metric. Kept only for `calibrate_impact.ts` (the point-baseline study tool).
@@ -899,26 +902,51 @@ export const IMPACT = {
 export const IMPACT_WINDOW = 6;
 
 /**
+ * Felt impact scale (LOCKED 2026-06-14, user decision): impact = velocity-redirection ARC
+ * `redirArc = v·Δθ` (incoming CoM speed px/frame × net heading change over IMPACT_WINDOW,
+ * radians), mapped affine to [0,1] so 0 = a "soft" landing and 1 = "very strong". Anchors
+ * from the user's felt labels (docs/impact_problem_statement.md): soft ≈ 2.0 px/frame,
+ * very strong ≈ 6.5 px/frame. Gentler-than-soft clamps to 0; harder-than-very-strong to 1.
+ * Provisional end anchors (thin soft/very-strong label data) — structure is fixed.
+ */
+export const REDIRARC = {
+  /** redirArc (px/frame) at a felt "soft" landing → impact 0. */
+  SOFT: 2.0,
+  /** redirArc (px/frame) at a felt "very strong" landing → impact 1. */
+  VERY_STRONG: 6.5,
+} as const;
+/** redirArc px/frame → felt impact [0,1] (the SCORED normalization). */
+export function normImpact(redirArcPx: number): number {
+  return Math.max(0, Math.min(1, (redirArcPx - REDIRARC.SOFT) / (REDIRARC.VERY_STRONG - REDIRARC.SOFT)));
+}
+/** Inverse: the redirArc (px/frame) an authored impact [0,1] is asking for. Used by the
+ *  generation lever / readiness to convert a normalized ask into a target turn. */
+export function impactToRedirArcPx(impact: number): number {
+  return REDIRARC.SOFT + Math.max(0, Math.min(1, impact)) * (REDIRARC.VERY_STRONG - REDIRARC.SOFT);
+}
+
+/** Wrap an angle (radians) to (−π, π]. Canonical home (the scored impact's net-heading-change
+ *  and the study harnesses' turnNetDeg share this one definition). */
+export const wrapPi = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
+
+/**
  * Maximum catchable normalized impact [0,1] at the given entering speed (px/frame).
- * `target > impactCeiling(speed)` ⇒ the shortfall is physics (too slow to redirect,
- * or the hit would eject), not a compiler miss. Provisional model — recalibrate
- * against `study_impact_calibrate.ts` / `probe_impact`.
+ * `target > impactCeiling(speed)` ⇒ the shortfall is physics (too slow to redirect at all,
+ * or the hit would eject), not a compiler miss. Max catchable redirArc = entering speed ×
+ * the largest catchable turn (asin of the catchable redirection fraction).
  */
 export function impactCeiling(speedPx: number): number {
-  const catchablePx = Math.min(IMPACT.CATCHABLE_REDIR_FRACTION * Math.max(0, speedPx), CALIB.REDIR_CAP);
-  return Math.max(0, Math.min(1, catchablePx / CALIB.REDIR_CAP));
+  const maxTurn = Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION); // ≈ 1.12 rad (64°)
+  return normImpact(Math.max(0, speedPx) * maxTurn);
 }
 
 export const CALIB = {
   /** Divisor for `grain` axis. units. */
   LINE_LENGTH_CAP: 49,
-  /** Divisor for the SCORED `impact` axis = velocity redirection (px/frame ⊥ the
-   *  incoming heading) that maps to a normalized impact of 1.0. Calibrated
-   *  2026-06-09 (study_impact_calibrate.ts, 351 landings / 16 golden tracks): the
-   *  redir envelope tops out ~8.2–8.7 px/frame at the hardest catchable landing
-   *  (beyond → ejection), so 8.5 is the natural absolute ceiling. Felt labels map
-   *  soft→0.20, a-bit-less→0.36, pretty-strong→0.70, very-strong→0.84, hardest→~1.0.
-   *  Provisional — re-tune via study_impact_calibrate.ts. */
+  /** [LEGACY — NOT SCORED as of 2026-06-14] Cap for the OLD perpendicular `redir`
+   *  metric (v·sin Δθ). The scored impact is now `redirArc = v·Δθ` on the felt scale
+   *  `REDIRARC.SOFT`/`VERY_STRONG` via `normImpact` (see above). Kept only for the
+   *  dashboard's REDIR comparison lane and the `study_*` harnesses' `redirPx`. */
   REDIR_CAP: 8.5,
   /** [LEGACY — NOT SCORED] Divisor for the OLD one-frame normal-closing impact
    *  ("point"). The scored impact is REDIR_CAP above (redirection) — don't tune this

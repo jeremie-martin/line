@@ -32,6 +32,7 @@ import {
   FPS,
   IMPACT_WINDOW,
   hasExactlyTargetAxes,
+  normImpact,
   type CandidateSampleMode,
   speedPxToAuthored,
 } from "../types.ts";
@@ -41,7 +42,7 @@ import {
   engineLineFromTrackLine,
   contactLineIdsAt,
   airborneAt,
-  redirImpactPxAtLanding,
+  redirArcPxAtLanding,
   speedAt,
   velocityAt,
   positionAt,
@@ -221,7 +222,7 @@ export type LandingWindowProbeRecord = {
   acceptedAtW: number | null;
   /** Signed landing offset (landingFrame − endFrame) at that W; null if rejected. */
   offset: number | null;
-  /** Achieved redirection impact (normalized by REDIR_CAP) at that landing. */
+  /** Achieved impact (redirArc = v·Δθ → normImpact, felt [0,1]) at that landing. */
   impactAchieved: number | null;
   /** Incoming speed (px/frame) one frame before that landing. */
   incomingSpeed: number | null;
@@ -345,7 +346,7 @@ function probeLandingWindow(
     chosen = best;
     break;
   }
-  const impactPx = chosen === null ? undefined : redirImpactPxAtLanding(det, chosen.frame);
+  const impactPx = chosen === null ? undefined : redirArcPxAtLanding(det, chosen.frame);
   const incomingSpeed = chosen === null
     ? undefined
     : (speedAt(det, chosen.frame - 1) ?? speedAt(det, chosen.frame));
@@ -356,7 +357,7 @@ function probeLandingWindow(
     ...probeArcAngles(lines),
     acceptedAtW,
     offset: chosen === null ? null : chosen.frame - gap.endFrame,
-    impactAchieved: impactPx === undefined ? null : impactPx / CALIB.REDIR_CAP,
+    impactAchieved: impactPx === undefined ? null : normImpact(impactPx),
     incomingSpeed: incomingSpeed ?? null,
     isTemplate: wasLastGeometryImpactTemplate(),
     cost: null,

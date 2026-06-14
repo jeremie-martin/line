@@ -15,8 +15,8 @@ import type { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
 import { LineRiderEngine, createLineFromJson } from "../../lib/_lr_engine.ts";
 import { extractRawTrajectory, detect } from "../../lib/detector.ts";
-import { redirImpactPxAtLanding } from "../core/substrate.ts";
-import { CALIB, FPS, IMPACT_WINDOW } from "../types.ts";
+import { redirArcPxAtLanding } from "../core/substrate.ts";
+import { FPS, IMPACT_WINDOW, normImpact } from "../types.ts";
 
 export type SimulateOptions = {
   runId: number;
@@ -102,7 +102,7 @@ export async function simulateRun(db: DatabaseSync, opts: SimulateOptions): Prom
       insertStmt.run(
         row.checkpoint_id, i, l.frame, l.frame / FPS, contactIndex, l.air_frames,
         l.speed_in_px, l.vx_in, l.vy_in, l.speed_out_px, l.dspeed_px,
-        l.redir_px, l.redir_px !== null ? l.redir_px / CALIB.REDIR_CAP : null,
+        l.redir_px, l.redir_px !== null ? normImpact(l.redir_px) : null,
       );
     });
     markStmt.run(row.checkpoint_id, now, landings.length);
@@ -158,7 +158,7 @@ function landingDynamics(trackPath: string): LandingRow[] {
     const vOut = velocity[Math.min(event.frame + IMPACT_WINDOW, lastFrame)];
     const speedIn = vIn !== undefined ? Math.hypot(vIn.x, vIn.y) : null;
     const speedOut = vOut !== undefined ? Math.hypot(vOut.x, vOut.y) : null;
-    const redir = redirImpactPxAtLanding(det, event.frame);
+    const redir = redirArcPxAtLanding(det, event.frame);
     out.push({
       frame: event.frame,
       air_frames: event.airborneFrom !== undefined ? event.frame - event.airborneFrom : null,

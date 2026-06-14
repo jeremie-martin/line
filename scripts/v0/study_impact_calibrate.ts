@@ -42,7 +42,7 @@ async function loadSpec(name: string): Promise<Spec> {
   return (await import(pathToFileURL(p).href)).default as Spec;
 }
 
-type Rec = { spec: string; t: number; redir: number; point: number };
+type Rec = { spec: string; t: number; redir: number; point: number; snap: number };
 const recs: Rec[] = [];
 for (const name of SPECS) {
   const spec = await loadSpec(name);
@@ -52,7 +52,7 @@ for (const name of SPECS) {
   for (const e of sim.det.events) {
     if (e.type !== "landing" || e.frame < 3 || e.frame > sim.last - 2) continue;
     const pt = SS.pointImpactPx(sim, e.frame); if (pt === undefined) continue;
-    recs.push({ spec: name, t: e.frame / 40, redir: SS.redirPx(sim, e.frame, W), point: pt });
+    recs.push({ spec: name, t: e.frame / 40, redir: SS.redirPx(sim, e.frame, W), point: pt, snap: SS.snapPx(sim, e.frame, W) });
     n++;
   }
   console.log(`  ${name.padEnd(22)} ${n} landings`);
@@ -60,10 +60,12 @@ for (const name of SPECS) {
 
 const redir = recs.map((r) => r.redir).sort((a, b) => a - b);
 const point = recs.map((r) => r.point).sort((a, b) => a - b);
+const snap = recs.map((r) => r.snap).sort((a, b) => a - b);
 const P = (xs: number[], p: number) => xs[Math.min(xs.length - 1, Math.floor(p * xs.length))];
 console.log(`\n=== redir envelope across ${recs.length} landings / ${SPECS.length} golden tracks (W=${W}, px/frame) ===`);
 console.log(`  redir  p50 ${P(redir, .5).toFixed(2)}  p75 ${P(redir, .75).toFixed(2)}  p90 ${P(redir, .9).toFixed(2)}  p95 ${P(redir, .95).toFixed(2)}  p99 ${P(redir, .99).toFixed(2)}  max ${redir[redir.length - 1].toFixed(2)}`);
 console.log(`  point  p50 ${P(point, .5).toFixed(2)}  p75 ${P(point, .75).toFixed(2)}  p90 ${P(point, .9).toFixed(2)}  p95 ${P(point, .95).toFixed(2)}  p99 ${P(point, .99).toFixed(2)}  max ${point[point.length - 1].toFixed(2)}  (current IMPACT_CAP=${SS.IMPACT_CAP})`);
+console.log(`  snap   p50 ${P(snap, .5).toFixed(2)}  p75 ${P(snap, .75).toFixed(2)}  p90 ${P(snap, .9).toFixed(2)}  p95 ${P(snap, .95).toFixed(2)}  p99 ${P(snap, .99).toFixed(2)}  max ${snap[snap.length - 1].toFixed(2)}  (px/frame²; current CAPS.snap=${SS.CAPS.snap})`);
 
 const pctOf = (v: number) => 100 * redir.filter((x) => x <= v).length / redir.length;
 if (labelTrackArg !== undefined) {
@@ -86,7 +88,11 @@ if (labelTrackArg !== undefined) {
 console.log(`\n=== candidate caps (value mapped to 1.0) and resulting distribution ===`);
 for (const cap of [P(redir, .95), P(redir, .99), Math.ceil(redir[redir.length - 1])]) {
   const sat = 100 * redir.filter((x) => x >= cap).length / redir.length;
-  console.log(`  cap ${cap.toFixed(1).padStart(5)}  → median lands at ${(P(redir, .5) / cap).toFixed(2)},  ${sat.toFixed(1)}% of landings peg at ≥1.0`);
+  console.log(`  redir cap ${cap.toFixed(1).padStart(5)}  → median lands at ${(P(redir, .5) / cap).toFixed(2)},  ${sat.toFixed(1)}% of landings peg at ≥1.0`);
+}
+for (const cap of [P(snap, .95), P(snap, .99), Math.ceil(snap[snap.length - 1] * 10) / 10]) {
+  const sat = 100 * snap.filter((x) => x >= cap).length / snap.length;
+  console.log(`  snap  cap ${cap.toFixed(1).padStart(5)}  → median lands at ${(P(snap, .5) / cap).toFixed(2)},  ${sat.toFixed(1)}% of landings peg at ≥1.0`);
 }
 console.log(`\n  (a good cap puts the felt "very strong" beats near 1.0 and spreads the rest across [0,1];`);
 console.log(`   p95–p99 of the corpus is the usual sweet spot — pick so ~1-5% peg.)`);

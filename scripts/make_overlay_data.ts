@@ -54,11 +54,13 @@ const r3 = (x: number) => Math.round(x * 1000) / 1000;
 //   point   pre-impact CoM normal closing speed (the shipped scorer's definition)
 //   redir   perpendicular (redirection) component of the CoM velocity change — the
 //           converged felt-impact candidate; rotation-immune, excludes slowdown
+//   snap    peak PER-FRAME ⊥ velocity change = the redirection FORCE/suddenness — how
+//           VIOLENTLY the path is bent (vs redir's how MUCH); the smooth-vs-snappy axis
 //   turn    net CoM heading change; dv = total gravity-corrected |Δv| (impulse)
 //   jolt/whip/deform/rot = body-motion candidates kept as REJECTED/diagnostic
 //           (rotation-confounded — they flag rotation-settles the rider doesn't feel)
 //   window  the rejected decayed windowed normal-speed proposal
-type BeatImpact = { point: number; window: number; redir: number; jolt: number; whip: number; comDecel: number; deform: number; rot: number; turn: number; dv: number };
+type BeatImpact = { point: number; window: number; redir: number; snap: number; jolt: number; whip: number; comDecel: number; deform: number; rot: number; turn: number; dv: number };
 function impactByFrame(): Map<number, BeatImpact> {
   const out = new Map<number, BeatImpact>();
   if (!track.lines?.length) return out;
@@ -75,6 +77,7 @@ function impactByFrame(): Map<number, BeatImpact> {
       point: SS.norm01(px, SS.IMPACT_CAP),
       window: SS.norm01(SS.windowedNormalPx(sim, f), SS.IMPACT_CAP),
       redir: SS.norm01(SS.redirPx(sim, f), SS.REDIR_CAP), // LOCKED impact metric, absolute scale
+      snap: SS.norm01(SS.snapPx(sim, f), SS.CAPS.snap),   // force/suddenness candidate (under review)
       turn: SS.norm01(SS.turnNetDeg(sim, f), SS.CAPS.turnDeg),
       dv: SS.norm01(vc.dvGrav, SS.IMPACT_CAP),
       jolt: SS.norm01(bj.jolt, SS.CAPS.jolt),
@@ -166,6 +169,7 @@ const contacts = report.contacts.map((c) => {
     impact: imp === undefined ? null : r3(imp.point),
     impactWindow: imp === undefined ? null : r3(imp.window),
     impactRedir: imp === undefined ? null : r3(imp.redir),
+    impactSnap: imp === undefined ? null : r3(imp.snap),
     impactJolt: imp === undefined ? null : r3(imp.jolt),
     impactWhip: imp === undefined ? null : r3(imp.whip),
     impactComDecel: imp === undefined ? null : r3(imp.comDecel),

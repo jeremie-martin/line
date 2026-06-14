@@ -10,12 +10,16 @@ Last validated 2026-06-09 (fingerprint `eede9661bba6`, canonical reference
 `Contact.impact ∈ [0, 1]` is the **desired felt hardness of that landing**, on
 one absolute scale shared by every beat of every spec:
 
-| authored | means | felt-label anchor (validated) |
+| authored | means | redirArc (px/frame) |
 |---|---|---|
-| 0.0–0.2 | light touch, tangent glide | "soft" ≈ 0.20 |
-| ~0.5 | a decent, noticeable hit | "a bit less strong" ≈ 0.36 |
-| ~0.7–0.85 | a strong slam | "pretty strong" 0.70 · "very strong" 0.84 |
-| 1.0 | the hardest landing **possible** | hardest catchable ≈ 1.0 |
+| 0.0 | soft (gentlest real landing) | ≈ 2.0 |
+| ~0.45 | medium / a decent hit | ≈ 4.0 |
+| ~0.7 | a strong slam | ≈ 5.2 |
+| 1.0 | very strong | ≈ 6.5 (harder clamps to 1) |
+
+(Felt-anchored, LOCKED 2026-06-14. The soft→medium low end is intentionally coarse —
+`redirArc` can't separate soft from medium, both ~2–3 px/frame — so meaningful authoring
+resolution lives from ~medium-strong up. End anchors are provisional, thin label data.)
 
 The author needs no physics knowledge. The word *possible* is load-bearing:
 1.0 asks for the hardest *physical* version of the hit at that beat (see
@@ -28,43 +32,51 @@ beat, which we rejected).
 Authoring helpers: `beats([{t, impact?}])`, `withImpact(contacts, rule)`
 (`scripts/v0/core/beats.ts`).
 
-## Definition (what impact IS)
+## Definition (what impact IS) — UPDATED 2026-06-14: `redirArc`
 
-Impact = **velocity redirection**: the peak magnitude of the perpendicular
-component of the rider's centre-of-mass velocity change over the
-`IMPACT_WINDOW = 6` frame (~0.15 s) episode after the landing, normalized by
-`CALIB.REDIR_CAP = 8.5` px/frame.
+Impact = **velocity-redirection ARC**: `redirArc = v·Δθ`, the incoming CoM speed
+(`v`, px/frame) times the net heading change (`Δθ`, radians) of the CoM velocity
+over the `IMPACT_WINDOW = 6` frame (~0.15 s) episode after the landing, mapped to
+a **felt [0,1]** by `normImpact` — `0 = soft` (`redirArc ≈ REDIRARC.SOFT = 2.0`
+px/frame), `1 = very strong` (`redirArc ≈ REDIRARC.VERY_STRONG = 6.5`); gentler
+clamps to 0, harder to 1.
 
-Why this definition (each alternative was built, measured, and rejected —
-history in the `landing-impact-lever` memory and
-`COMPILER_OPTIMIZATION_LOG_NEW_IMPACT.md`):
+Why this definition — `redirArc` replaced the perpendicular `redir = v·sinΔθ`
+(label-driven, 4 tracks + an independent agent + a flat-slam generalization track;
+full history in `docs/impact_problem_statement.md`):
 
 - **CoM-velocity-only** ⇒ immune to sled rotation and limb whip, which look
-  violent but are not felt (the user-labeled soft beat at shelter t=48.33
-  ranks #1 under jolt/deformation metrics and 61/96 under redirection).
-- **Perpendicular component only** ⇒ a slowdown along the path is not an
-  impact (labeled beat t=49.55); a head-on slam IS a redirection
-  (vertical→horizontal), so it is captured.
+  violent but are not felt.
+- **Redirection arc, not perpendicular** ⇒ `v·Δθ` keeps `redir`'s speed weighting
+  but removes its `sin` *compression* of the biggest slams (`sin` can't tell a 60°
+  bend from a 120° one). It beat `redir`/`turn` on the felt labels (mean Spearman
+  0.81 vs 0.79/0.77) and — decisively — generalized to flat-drop slams where
+  `turn` (speed-blind) fell. Force/onset/concentration metrics overfit one track
+  and were rejected.
 - **Windowed (~6 frames), not instantaneous** ⇒ the engine's soft collision
-  smears the hit over frames; felt labels match best at W≈6 (Spearman 0.83–0.91
-  vs ordinal felt labels; the 1-frame metric scores 0.31).
-- **Speed-weighted** (redir = v·sin(turn)) ⇒ the same path bend at speed hits
-  harder.
+  smears the hit over frames; felt labels match best at W≈6.
+- **Felt-anchored scale** ⇒ 0 = soft, 1 = very strong, matching how specs author
+  (full [0.1,1.0] range, median 0.5) and how the user labels.
 
-Production source: `redirImpactPxAtLanding` (`scripts/v0/core/substrate.ts`) —
-the single definition shared by the scorer, the report, the dashboard, and the
-study harnesses.
+Production source: `redirArcPxAtLanding` (`scripts/v0/core/substrate.ts`) +
+`normImpact` (`types.ts`) — the single definition shared by the scorer, the report,
+the dashboard, and the study harnesses. (`redirImpactPxAtLanding` = the old `redir`,
+kept only for the dashboard's comparison lane.)
 
 ## Measurement & calibration
 
 - Measured per landing (`measureImpact`, `core/measure.ts`), gated on the beat
   having an authored impact (impact-free specs pay zero cost).
 - A landing is matched to its beat within ±1 frame (`findLandingNearFrame`).
-- `REDIR_CAP = 8.5` comes from the achievable-envelope sweep (351 landings,
-  16 varied tracks: p95 5.26, p99 6.50, max catchable ≈ 8.2–8.7 px/f — beyond
-  that the rider ejects). So measured 1.0 ≈ the hardest catchable slam.
-- Validated against the user's ordinal felt labels (8 labeled beats,
-  `study_impact_labels.ts`); the table above is that mapping.
+- The scale `REDIRARC.SOFT = 2.0` / `VERY_STRONG = 6.5` (px/frame) is felt-anchored
+  to the user's labels (soft ≈ 2.0, very strong ≈ 6.5; `normImpact`/`impactToRedirArcPx`
+  in types.ts). The achievable-envelope distribution (calibrate_corpus.ts: 11,607
+  landings / ~400 perturbed variants; redirArc p50 1.44, p95 4.47, p99 6.63) confirms
+  very-strong ≈ the top-1% landing, and gives a stable scale (p99 6.63, within 5% across
+  very different corpora).
+- Validated against the user's felt labels across 4 tracks (impact_lab_v2, climb_terrace,
+  rolling_drop, the flat-slam staircase; `study_impact_labels.ts` / the `/impact/`
+  dashboard). End anchors (soft/very-strong) are thin-data provisional.
 - Known open edge: a beyond-catchable hit ejects the rider and reads as a
   failed contact rather than impact 1.0 (ejection saturation — flagged, only
   relevant if steering ever pushes past the catchable bound).

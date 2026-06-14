@@ -633,3 +633,245 @@ explicit go. More felt labels on a second track would harden W/cap beyond Shelte
 - Exploratory probe: `scripts/v0/study_impact_window.ts`.
 - Related probes: `scripts/v0/study_landing_intensity.ts`,
   `scripts/v0/study_impact_signals.ts`, `scripts/v0/calibrate_impact.ts`.
+
+## Reopened 2026-06-14: REDIR's validation doesn't reproduce + a SNAP (force) candidate
+
+The user reopened the definition after watching the impact videos and remaining
+unconvinced — the felt axis they keep naming ("smooth vs violent / snappy / will the
+ski *slam*") is **suddenness**, which `redir` collapses. `redir` is a *magnitude* (peak
+⊥ velocity acquired = HOW MUCH the path bent); it is blind to *rate* (HOW SUDDENLY). In
+mechanics that rate is the felt force, F = Δp/Δt. Two landings with equal `redir` — one a
+smooth 6-frame scoop, one a 1-frame snap — score identically yet feel opposite.
+
+**Finding (treat the LOCK as provisional): `redir`'s headline validation does not
+reproduce.** Re-running `study_impact_labels.ts` against the canonical Jun-9 Shelter
+track (both re-sim and the saved `detection.json` — identical, so no engine drift; the
+arc-rewrite changed track *generation*, not playback of a fixed track) gives, on the 8
+felt labels: **`redir` ρ = 0.31, `turn` 0.48, `snap` 0.38, `point` −0.36** — nowhere near
+the contract's claimed `redir`/`turn` 0.83. On these labels `redir` actually ranks the
+"a bit less" beats (49.53, 51.93) above the "very strong" 72.33. The 0.83 could not be
+reproduced; whether it came from a different track/window/label set is unresolved (the
+"audit the 0.83" thread was deferred in favour of collecting fresh labels). Either way the
+ground truth is n=8 *and* the headline is non-reproducible, so the LOCK is weaker than the
+contract states.
+
+**New candidate — `snap` (`study_support.ts snapPx`):** peak PER-FRAME ⊥ velocity change
+over the window (px/frame²) = the redirection FORCE/suddenness. Touchdown-INCLUSIVE (the
+incoming-heading frame has ⊥ velocity 0 by construction, so the slam *at* contact counts)
+— unlike the older inline `redirRate` in `study_impact_labels.ts`, which started at `k>lf`
+and saw only post-contact settling. Display cap `CAPS.snap = 2.0` px/frame² from the
+golden envelope (`study_impact_calibrate.ts`: p95 ≈ 1.9, max ≈ 2.14); provisional, harden
+on the 351-landing sweep if promoted. On the 8 labels `snap == redirRate` (the peak rate
+landed post-contact every time — engine smear), and it diverges from `redir` on exactly
+the contested beats (72.33 "very strong": redir 0.60 but **snap 0.90**, closer to felt;
+48.33 "soft": snap 0.66 > redir 0.50, worse). Mixed at n=8 — needs fresh labels.
+
+**Tooling added (all analysis-only; production scorer/fingerprint untouched):**
+- `study_support.ts`: `snapPx`, `CAPS.snap`, and `simFromDetection(track, det)` — validate
+  against the EXACT watched trajectory instead of re-simulating, so labels survive engine
+  changes.
+- `study_impact_labels.ts --detect=<detection.json>`: validates against the saved video
+  trajectory; adds `snap` alongside `redirRate`.
+- `study_impact_calibrate.ts`: now reports the `snap` envelope + candidate caps.
+- Review video: `make_overlay_data.ts` emits `impactSnap`; `CurveOverlay.tsx`
+  `BigImpactPanel` is now a two-lane **REDIR-over-SNAP** comparison (shared axis + colour
+  ramp so big-but-smooth vs small-but-snappy divergence pops). Built over the Jun-9 Shelter
+  ride at `remotion/out/shelter_impact_review.mp4` (data
+  `remotion/public/shelter_impact_review.overlay.json`).
+
+**Status: PENDING fresh felt labels.** The decision (keep `redir`, switch to `snap`, or
+make impact a two-axis magnitude+force quantity) is gated on the user labelling more beats
+— especially the divergence beats where one lane is tall and the other short. Do not edit
+the contract / scorer until those labels exist.
+
+### The impact-study dashboard (2026-06-14) — the feedback-driven loop
+
+A video is the wrong instrument for per-impact judgment (numbers unreadable, two metrics
+hard to compare while watching, scrubbing painful). So the workflow is now a dashboard at
+`/impact/`, built on the realistic premise that **the user's qualitative/relative feedback
+is the ground truth and the metric is the unknown fit to it** (the clean-physics-that-
+happens-to-match dream was tried many times and always diverged somewhere). Pieces:
+
+- `scripts/v0/build_impact_study.ts` — per track, emits a bundle (`generated/impact-study/
+  <name>.bundle.json`) with every landing's full candidate vector (point/redir/snap/turn/
+  dv/decel/jolt/whip/deform/rot/window) via the canonical `study_support.ts` defs, a short
+  looping mini-CLIP cut from the ride video per landing (one-click felt judgment, no
+  scrubbing), and a markdown reference INDEX so impacts are easy to cite (#/t) anywhere.
+  Re-simulates (engine present → body metrics); for a fixed track this is bit-identical to
+  the watched detection. Body metrics degrade to 0 under `simFromDetection` (no engine).
+- `impact/index.html` — stacked metric lanes (one row per metric, shared time axis, colour
+  ramp) so divergence is visible at a glance; click a beat → its clip + every-metric bar
+  group + annotation (INTENSITY ordinal · TAGS smooth/snappy/slam/rotation-only/slowdown/
+  nothing-felt/ejected · free-text note). Autosaves to the server. "next divergent" /
+  "next unlabeled" / "highlight divergence" to find the beats worth labelling. Two view
+  modes: CLIP (the per-landing mini-clip, with a "● BOOM" flash + a scrubber whose red tick
+  marks THIS impact and grey ticks mark other contacts in the window — so a multi-contact
+  clip is unambiguous) and CONTINUOUS (the full ride, a live blue playhead on the lanes,
+  impacts auto-select as they pass, click a lane to seek; space toggles play/pause).
+- `scripts/serve.ts` — `GET/POST /api/impact-labels` persist annotations to
+  `generated/impact-study/<name>.labels.json` (keyed by landing frame).
+- `study_impact_labels.ts --labels=<name>` — ranks every candidate metric (Spearman vs the
+  felt ordinal) and prints a TAG CONTRAST (mean over slam/snappy beats minus
+  smooth/slowdown/rotation beats; want > 0) against the dashboard annotations.
+
+Loop: label in the dashboard → `--labels` ranks the metrics → propose a new definition →
+rebuild/re-rank → repeat until one locks onto the felt judgment.
+
+#### Feedback round 1 — n=19 labels on Shelter (2026-06-14)
+
+First real pass. The user labelled 19 Shelter landings (free-text/tags/ordinal, interpreted
+onto a 1–5 felt scale). Spearman vs felt, against the 8-Shelter-label result the LOCK
+rested on (where redir scored 0.31 and "couldn't reproduce" — see above), this is far more
+discriminating:
+
+```
+REDIR·on  0.849   redir, landing-weighted (decay exp(-dt/τ), τ=4)   ← new lead
+DECEL     0.843   peak CoM deceleration INTO the surface (a FORCE)  ← tied lead
+WINDOW    0.785   SNAP 0.774   JOLT 0.773   REDIR 0.773 (LOCKED)
+DECEL·on  0.739   TURN 0.753   DV 0.709   DEFORM 0.692   POINT 0.610   ROT 0.446
+```
+
+Findings:
+- **The locked `redir` (0.773) is middling, not best** — two candidates clear it by ~0.08.
+- **A FORCE metric (`comDecel`, deceleration into the surface) leads** alongside a
+  **landing-weighted redirection** — matching the user's "boom/slam" language and their
+  "even a multi-frame metric should weight the moment of landing."
+- **Onset-weighting must be GENTLE.** Aggressive decay (τ≲2) or a first-1–2-frame
+  "onset-snap" *tanks* the correlation (τ=1 → 0.24; snapOnset K=1 → −0.27), because real
+  hard landings also smear late under the soft engine collision. τ=4 is the sweet spot, and
+  it helps `redir` (0.773→0.849) but *hurts* `comDecel` (0.843→0.739) — decel is already
+  landing-centred.
+- **`point` (instantaneous) confirmed weak (0.610)** — e.g. beat 2894, felt strong "because
+  of the next few frames," reads 0.21 on point.
+- **Irreducible pair: 2894 (felt strong) vs 2845 (felt smooth)** have near-identical CoM ⊥
+  profiles (both energy-late); *no* magnitude metric separates them (all rank smooth ≥
+  strong). The user's own model: 2845 felt smooth because it arrived on a near-perfect
+  tangent and its energy came at the very end (arc curvature, not the landing). Only
+  heading/rotation-flavoured metrics weakly separate the pair — in tension with the
+  rotation-confound that sank jolt/deform on the soft 48.3 beat. Treated as a known limit /
+  possible label noise (the user was unsure on 2894), not chased.
+
+Caveat — **provisional, single track, n=19:** τ=4 and the REDIR·on↔DECEL tie are fit on one
+Shelter run; the REDIR·on vs DECEL gap (0.006) is noise. Two felt labels also *flipped*
+versus the Jun-9 set (48.3 soft→strong, 71.1 hard→smooth) — plausibly multi-contact clip
+mis-attribution before the BOOM marker existed. Need a second labelled track to pin τ and
+break the REDIR·on/DECEL tie before any LOCK change. New candidates `redirDecayPx`,
+`comDecelDecayPx` (`study_support.ts`) and dashboard lanes REDIR·on / DECEL·on added.
+
+#### Corpus calibration + the sync reframe (2026-06-14)
+
+Board pruned to six live contenders (REDIR, REDIR·on, SNAP, TURN, DECEL=`comDecel`,
+DECEL·on=`comDecelDecay`); point/dv/jolt/whip/deform/rot/window removed per user.
+
+**Percentile mapping (`study_impact_corpus.ts`, pure stats, no labels).** Compiled a
+24-spec corpus (golden range + all believer/shelter, probe/diagnostic excluded), 753
+landings, measured all six metrics at every landing → `corpus_percentiles.json`. The
+hand-picked caps were badly inconsistent (REDIR·on's p95 landing mapped to 0.15 under the
+8.5 cap — why everything "looked low"). Replaced them with a **corpus-percentile scale**:
+each lane value = fraction of corpus landings ≤ this raw value (median = 0.5, p95 = 0.95),
+one apples-to-apples [0,1] across metrics, no cap. `build_impact_study.ts` uses it when the
+json is present. Finding: the felt-labeled Shelter beats all sit in the **top ~40%** of
+corpus hardness — the user's "smooth" is a *quality* (near-tangent arrival), not a low
+magnitude; no pure-magnitude metric fully separates it.
+
+**τ sweep (felt Spearman, n=19):** for `comDecel`, onset-weighting strictly *hurts* — raw
+DECEL is the best single metric at felt magnitude (0.90); decay only drags it down
+(physically, the boom peaks ~+2f, so decaying toward frame 0 clips it). For redir a gentle
+τ≈5 helps slightly (0.86).
+
+**The reframe that decides it (user):** the project objective is **beat-synchronised
+impact**, not raw felt magnitude. A landing whose boom arrives several frames late is
+on-beat at first contact but *feels* off-beat, so it should count less. Onset-weighting
+credits energy delivered *at* the landing moment and discounts late energy → it reads as
+more synchronised with the music. So **`DECEL·on` (onset-weighted decel, τ=4, multi-frame
+but landing-weighted) is the chosen lead** — raw DECEL wins "how hard," DECEL·on wins "how
+hard AND on the beat," and the latter is what the project wants. Keep it multi-frame (the
+boom isn't one frame) but front-loaded to the beat.
+
+**Validation in progress:** a second dashboard on a different song (`believer_impact_2m`,
+49 landings, same percentile scale) is built and awaiting felt labels to confirm DECEL·on
+generalises before promoting it into the scorer (Phase 2: wire metric+percentile into the
+measure, golden re-baseline).
+
+#### The robustness reversal — DECEL·on overfit shelter; `redirArc` is the principled lead (2026-06-14)
+
+Believer's labels came back bunched (medium↔strong) → non-discriminating (~0.28 for every
+metric). So instead of more same-y tracks, we picked the next track by **metric divergence**
+(`study_impact_divergence.ts`): the track where the leads most disagree is the most
+discriminative to label. **`rolling_drop` was a massive outlier** (rankDiv 0.63 vs #2's
+0.28; REDIR·on↔DECEL 0.72 — they rank its landings almost oppositely). Rendered + labelled
+it (16 beats, wide range).
+
+**Result: DECEL/DECEL·on were a shelter overfit.** On rolling_drop, `comDecel` *collapses*
+(felt ρ 0.36, vs 0.84 on shelter) while the simple `turn` (0.73) and `redir` (0.67) hold.
+Pooled mean-per-track ρ: **turn 0.60 > redir 0.57 > redirDec/ens 0.53 > comDecel 0.49 >
+decelDec 0.41.** The simplest metrics are the most *robust*; the force/onset/ensemble family
+degrades off shelter. (Believer excluded as non-discriminating.) We were one step from
+locking DECEL·on into the scorer — the divergent track caught it.
+
+**Independent agent (Opus, from first principles) converged on the same thing and produced
+the new lead.** Its metric **`redirArc = v·Δθ`** (incoming CoM speed × net heading change in
+rad over W=6; `study_support.ts redirArcPx`) sits between `turn` (Δθ, no speed) and `redir`
+(v·sin Δθ, whose sin *compresses* the biggest slams): speed-weighted with no compression,
+CoM-only (rotation-immune), heading-anchored (no surface-faceting artifact → generalises
+where comDecel overfit), tangent-aware (clean arrival → Δθ≈0). Felt ρ: shelter 0.851,
+rolling 0.626, **pooled 0.701** — strictly beats the locked `redir` (0.675), ties `turn`
+(0.702), and *collapses nowhere*. The agent also independently built a concentration +
+on-beat-timing force metric (the DECEL·on/concentration intuition) and **confirmed it
+overfits** (shelter 0.90 / rolling 0.44; concentration anti-correlates with felt on rolling,
+timing centroid zero signal). Two independent analyses now agree: **on these tracks felt
+intensity is dominated by speed-weighted redirection *magnitude*; force/onset/concentration
+feel compelling but do not generalise.**
+
+**VERDICT (2026-06-14): `redirArc = v·Δθ` is the metric.** Adjudicated on four label sets
+(shelter/believer dropped as non-discriminating / session-inconsistent): impact_lab_v2
+(bespoke divergence-max track), climb_terrace, rolling_drop, and a hand-built flat-slam
+`staircase` (generalization test). Mean Spearman vs felt: **redirArc 0.808 > redir 0.788 >
+turn 0.773** > ens 0.682 > … > comDecel 0.590 > decelDec 0.443. redirArc is the most
+*consistent* (0.69–0.89, never collapses). The **staircase broke the redirArc/turn tie**:
+on flat slams, intensity scales with the vertical speed gained in the drop, so `turn`
+(speed-blind) falls to 0.69 while `redirArc` holds 0.87 — the speed-weighting that merely
+tied turn on arc-catches is decisive on flat slams. `redirArc` beats the locked `redir`
+(no sin-compression of big slams) and `turn` (no speed-blindness) each where their flaw
+shows. Force/onset/concentration family retired (overfit; twice confirmed).
+The flat-slam `staircase` (`scripts/v0/gen_staircase.ts`) also surfaced a physics finding:
+perfectly-flat dead-horizontal slams eject the rigid sled at ~vy 4 (vs ~8.5 for curved
+catches) and destabilize within ~4 hits on frictionless flat; a slight (~4°) downslope
+restores stability and the full soft→very-strong range. Pending: Phase 2 (wire redirArc +
+its corpus cap into `core/measure.ts`/`substrate.ts`, golden re-baseline, fingerprint).
+
+**Authoring scale LOCKED (2026-06-14, user decision): `0 = soft, 1 = very strong`.**
+`impact = clamp01((redirArc − F)/(V − F))` with `F ≈ 2.8` px/f (felt "soft" → 0) and
+`V ≈ 6.5` px/f (felt "very strong" → 1), where `redirArc = v·Δθ`. Anchors from the user's
+own annotations (54 directly-leveled beats across impact_lab_v2/climb_terrace/rolling_drop/
+staircase): felt→redirArc medians soft 2.9 · medium 2.9 · med-strong 4.1 · strong 5.1 ·
+strong-vs 6.0 · very-strong 6.5 → impact 0 / ~0 / 0.35 / 0.62 / 0.86 / 1.0. Two documented
+consequences: (a) the **gentle end is coarse** — redirArc cannot separate soft from medium
+(both ~2.9 px/f), so authoring resolution lives from med-strong (~0.35) up; (b) existing
+specs (authored on the older soft≈0.2/medium≈0.5 convention; specs span [0.10,1.00], median
+0.51 across 44 specs / 1481 values) read **harder** under `0=soft` and will be rescaled
+later (user-accepted). `F`/`V` are from thin end-data (soft n=2, very-strong n=1) — exact
+values firm up with more labels; the structure is fixed. This becomes the production
+normalization in Phase 2.
+
+**Current state.** `redirArc` promoted to first-class (source + calibrator + dashboard lane).
+Calibration is now done by **`scripts/v0/calibrate_corpus.ts`** — the clean tool: it takes
+every working repo spec and generates ~400 perturbed variants on the fly (each axis curve
+scaled ±5%, each impact target jittered ±5%, varied seed; parameterised `--count/--perturb/
+--budget/--seed-vary`, deterministic seeded RNG, auto-skips failures), compiling them for a
+large diverse sample. Latest run: **11,607 landings / 399 variants** → `corpus_percentiles.json`
+(redirArc capP99 6.63 — within 5% of the 56-spec value, confirming the scale is sample-stable).
+Dashboards normalise on a **p99 absolute scale** (1.0 = top-1% hardest landing; fixes the
+earlier "too-high" bunching). (`study_impact_corpus.ts` is the simpler unperturbed precursor.) Seven impact-study dashboards live (shelter, believer,
+rolling_drop, climb_terrace, float_bounds, syncopated_switchback, and the bespoke
+divergence-maximising `impact_lab_v2`), all with 8 candidate lanes. **Open decision:
+`redirArc` vs `turn`** — within noise on current data; gated on the new tracks' felt labels.
+Then lock + Phase 2 (wire into the scorer, golden re-baseline). Do NOT chase the
+force/concentration family — twice shown to overfit.
+
+Build + serve:
+```bash
+LR_ENGINE=wasm npx tsx scripts/v0/build_impact_study.ts --name=<n> --track=<t>.track.json \
+  --video=shakedown/<n>/video_with_audio.mp4 [--report=<r>.report.json --spec=<spec>.ts]
+npx tsx scripts/serve.ts   # → http://127.0.0.1:8767/impact/?data=/generated/impact-study/<n>.bundle.json
+```

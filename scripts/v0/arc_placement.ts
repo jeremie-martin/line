@@ -15,6 +15,7 @@ import {
   CALIB,
   CANDIDATE_SAMPLE_MODES,
   FPS,
+  IMPACT,
   type Arc,
   type ArcPlacementCounter,
   type ArcPlacementMode,
@@ -26,6 +27,8 @@ import {
   authoredSpeedToPx,
   elevationToLaunchVy,
   impactCeiling,
+  impactToRedirArcPx,
+  normImpact,
 } from "./types.ts";
 
 const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
@@ -1296,8 +1299,7 @@ function contactCenteredRedirContactAngleShiftDeg(
   const missingImpact = target - currentPredicted;
   if (missingImpact <= 0) return 0;
 
-  const targetPerp = clamp(target * CALIB.REDIR_CAP / Math.max(1, targetState.speed), 0, 0.95);
-  const neededDeltaDeg = (Math.asin(targetPerp) * 180) / Math.PI;
+  const neededDeltaDeg = neededTurnDegForImpact(target, targetState.speed);
   const rawMissingDelta = Math.max(0, neededDeltaDeg - Math.abs(deltaDeg));
   const shiftDeg = clamp(rawMissingDelta, 0, CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG)
     * mature * speedPressure * targetPressure * clamp(ccSpanBlends(attempt).launch, 0, 1);
@@ -1345,8 +1347,7 @@ function contactCenteredRedirEntryAngleShiftDeg(
   const missingImpact = target - currentPredicted;
   if (missingImpact <= 0) return 0;
 
-  const targetPerp = clamp(target * CALIB.REDIR_CAP / Math.max(1, targetState.speed), 0, 0.95);
-  const neededDeltaDeg = (Math.asin(targetPerp) * 180) / Math.PI;
+  const neededDeltaDeg = neededTurnDegForImpact(target, targetState.speed);
   const rawMissingDelta = Math.max(0, neededDeltaDeg - Math.abs(deltaDeg));
   return clamp(rawMissingDelta, 0, CONTACT_CENTERED_REDIR_ENTRY_SHIFT_MAX_DEG) *
     mature * speedPressure * densePressure * targetPressure *
@@ -1375,7 +1376,20 @@ function impactCurvePressure(
 
 function predictedRedirImpactAtAngleDelta(speedPx: number, deltaDeg: number): number {
   const deltaRad = (deltaDeg * Math.PI) / 180;
-  return clamp(Math.abs(Math.sin(deltaRad)) * Math.max(0, speedPx) / CALIB.REDIR_CAP, 0, 1);
+  return normImpact(Math.abs(deltaRad) * Math.max(0, speedPx)); // redirArc = v·Δθ → felt [0,1]
+}
+
+/** Inverse of the redirArc metric: the CoM turn (degrees) a landing must deliver to achieve
+ *  `target` impact at `speed` — Δθ = (target redirArc px)/speed, clamped to the catchable
+ *  turn (`asin(CATCHABLE_REDIR_FRACTION)`, same ceiling impactCeiling uses). Single source
+ *  for the three redir levers (contact-shift, entry-shift, post-turn). */
+function neededTurnDegForImpact(target: number, speedPx: number): number {
+  const turnRad = clamp(
+    impactToRedirArcPx(target) / Math.max(1, speedPx),
+    0,
+    Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
+  );
+  return (turnRad * 180) / Math.PI;
 }
 
 function axisDeltaDeg(aDeg: number, bDeg: number): number {
@@ -1403,8 +1417,7 @@ function impactPostTurnExtraDeg(
     (target - IMPACT_POST_TURN_TARGET_START) / IMPACT_POST_TURN_TARGET_SPAN,
   );
   if (targetPressure <= 0) return 0;
-  const targetPerp = clamp(target * CALIB.REDIR_CAP / Math.max(1, targetState.speed), 0, 0.95);
-  const neededDeltaDeg = (Math.asin(targetPerp) * 180) / Math.PI;
+  const neededDeltaDeg = neededTurnDegForImpact(target, targetState.speed);
   const currentDeltaDeg = Math.max(
     axisDeltaDeg(contactAngleDeg, targetState.angleDeg),
     axisDeltaDeg(postAngleDeg, targetState.angleDeg),

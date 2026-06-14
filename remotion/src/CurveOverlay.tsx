@@ -27,7 +27,7 @@ type Bundle = {
   contacts: {
     t: number; landed: boolean; impact: number | null;
     impactTarget?: number | null; impactAchieved?: number | null; impactError?: number | null;
-    impactWindow?: number | null; impactRedir?: number | null; impactJolt?: number | null;
+    impactWindow?: number | null; impactRedir?: number | null; impactSnap?: number | null; impactJolt?: number | null;
     impactWhip?: number | null; impactComDecel?: number | null;
     impactDeform?: number | null; impactRot?: number | null;
     impactTurn?: number | null; impactDv?: number | null;
@@ -164,33 +164,39 @@ const ImpactRow: React.FC<{
   );
 };
 
-// ── BIG impact panel (top-center): colored bars = measured `redir` impact
-//    (perpendicular CoM velocity redirection), white caps = authored target. ───
-const IMPACT_HERO = "impactRedir"; // the locked metric
+// ── BIG impact panel (top-center): two stacked lanes for the metric REVIEW —
+//    REDIR (the locked "how MUCH redirected" magnitude) over SNAP (the candidate
+//    "how SUDDENLY / force" suddenness). Same time axis + same colour ramp so the
+//    divergence beats — tall REDIR + short SNAP = big-but-smooth; the reverse =
+//    small-but-snappy — pop out for felt labelling. White ticks = authored target
+//    (REDIR lane only). See docs/impact_problem_statement.md. ───────────────────
 const impactMetric = (c: Bundle["contacts"][number], key: string): number | null => {
   const value = c[key as keyof typeof c];
   return typeof value === "number" ? value : null;
 };
 const heroColor = (v: number) => interpolateColors(Math.min(1, v), [0, 0.5, 1], ["#38d6c8", "#f0b429", "#ff4d4d"]);
+const IMPACT_LANES = [
+  { key: "impactRedir", name: "REDIR", sub: "how MUCH redirected · locked metric", target: true },
+  { key: "impactSnap", name: "SNAP", sub: "how SUDDENLY · force candidate", target: false },
+] as const;
 const BigImpactPanel: React.FC<{ contacts: Bundle["contacts"]; width: number; t: number; durationS: number; enter: number }>
 = ({ contacts, width, t, durationS, enter }) => {
   const w = Math.round(width * 0.92);          // more space, per the design
   const left = Math.round((width - w) / 2);
   const top = 40;
-  const padL = 150, padR = 64, headerH = 40, heroH = 150;
-  const h = headerH + heroH + 14;
+  const padL = 150, padR = 64, headerH = 40, laneH = 120, laneGap = 26;
+  const h = headerH + IMPACT_LANES.length * laneH + (IMPACT_LANES.length - 1) * laneGap + 14;
   const x0 = padL, x1 = w - padR;
   const tx = (tt: number) => x0 + (Math.min(tt, durationS) / durationS) * (x1 - x0);
   const beats = contacts.filter((c) =>
-    impactMetric(c, IMPACT_HERO) != null || c.impactTarget != null
+    IMPACT_LANES.some((l) => impactMetric(c, l.key) != null) || c.impactTarget != null
   );
   // The landing the playhead is on/just past — for the big live readout.
   const current = [...beats].filter((c) => c.t <= t + 1e-6).sort((a, b) => b.t - a.t)[0];
-  const curV = current ? impactMetric(current, IMPACT_HERO) : null;
   const spacingPx = beats.length > 1 ? (x1 - x0) / beats.length : 30;
   const showNums = spacingPx >= 9; // print per-landing value when there's room
 
-  const heroBase = headerH + heroH;
+  const laneBase = (j: number) => headerH + (j + 1) * laneH + j * laneGap;
   return (
     <div style={{
       position: "absolute", left, top, width: w, opacity: enter,
@@ -198,49 +204,57 @@ const BigImpactPanel: React.FC<{ contacts: Bundle["contacts"]; width: number; t:
       background: "rgba(9,11,16,0.93)", border: BORDER, borderRadius: 14,
     }}>
       <svg width={w} height={h} style={{ display: "block" }}>
-        <text x={padL} y={26} fontFamily={FONT} fontSize={17} fontWeight={700} fill="#e6eaf2" letterSpacing={2}>LANDING IMPACT</text>
-        <text x={padL + 175} y={26} fontFamily={FONT} fontSize={12} fill="#7c8499">measured redirection · white ticks = target</text>
-        {/* big live readout of the current landing's value */}
-        {curV != null && (
-          <text x={x1} y={28} textAnchor="end" fontFamily={FONT} fontSize={26} fontWeight={700} fill={heroColor(curV)}>
-            {curV.toFixed(2)}
-            {current?.impactTarget != null && <tspan fill="#f4f7ff" fontSize={16}> / {current.impactTarget.toFixed(2)}</tspan>}
+        <text x={padL} y={26} fontFamily={FONT} fontSize={17} fontWeight={700} fill="#e6eaf2" letterSpacing={2}>LANDING IMPACT — METRIC REVIEW</text>
+        <text x={padL + 330} y={26} fontFamily={FONT} fontSize={12} fill="#7c8499">REDIR vs SNAP · white ticks = target</text>
+        {/* live readout: both candidates for the current landing */}
+        {current && (
+          <text x={x1} y={28} textAnchor="end" fontFamily={FONT} fontSize={20} fontWeight={700}>
+            {IMPACT_LANES.map((l, j) => {
+              const v = impactMetric(current, l.key);
+              return v == null ? null : (
+                <tspan key={l.key} fill={heroColor(v)}>{j > 0 ? "  " : ""}{l.name[0]}:{v.toFixed(2)}</tspan>
+              );
+            })}
           </text>
         )}
 
-        {/* hero lane: redir */}
-        <text x={16} y={headerH + heroH / 2 - 4} fontFamily={FONT} fontSize={15} fontWeight={700} fill="#cdd4e0" letterSpacing={1}>IMPACT</text>
-        {[0.25, 0.5, 0.75, 1].map((g) => (
-          <line key={g} x1={padL} y1={heroBase - g * (heroH - 14)} x2={x1} y2={heroBase - g * (heroH - 14)} stroke="rgba(255,255,255,0.05)" />
-        ))}
-        <line x1={padL} y1={heroBase} x2={x1} y2={heroBase} stroke="rgba(255,255,255,0.15)" />
-        {beats.map((c, i) => {
-          const v = impactMetric(c, IMPACT_HERO);
-          if (v == null) return null;
-          const x = tx(c.t), passed = c.t <= t, bh = 2 + v * (heroH - 14);
-          const target = c.impactTarget;
-          const th = target == null ? null : 2 + target * (heroH - 14);
-          const col = heroColor(v);
-          const glow = passed ? interpolate(t - c.t, [0, 0.2], [1, 0], { extrapolateRight: "clamp" }) : 0;
+        {IMPACT_LANES.map((lane, j) => {
+          const base = laneBase(j);
           return (
-            <g key={i} opacity={passed ? 1 : 0.22}>
-              {th != null && (
-                <line
-                  x1={x - 7} y1={heroBase - th} x2={x + 7} y2={heroBase - th}
-                  stroke="#f4f7ff" strokeWidth={1.8} opacity={passed ? 0.82 : 0.5}
-                />
-              )}
-              <rect x={x - 2.5} y={heroBase - bh} width={5} height={bh} rx={2} fill={col} />
-              {glow > 0.02 && <circle cx={x} cy={heroBase - bh} r={7} fill={col} opacity={glow} />}
-              {showNums && (
-                <text x={x} y={heroBase - bh - 5} textAnchor="start" transform={`rotate(-90 ${x} ${heroBase - bh - 5})`}
-                  fontFamily={FONT} fontSize={9} fill={passed ? "#aeb6c7" : "#586074"}>{v.toFixed(2)}</text>
-              )}
+            <g key={lane.key}>
+              <text x={16} y={base - laneH / 2 - 4} fontFamily={FONT} fontSize={15} fontWeight={700} fill="#cdd4e0" letterSpacing={1}>{lane.name}</text>
+              <text x={16} y={base - laneH / 2 + 12} fontFamily={FONT} fontSize={9} fill="#7c8499">{lane.sub}</text>
+              {[0.25, 0.5, 0.75, 1].map((g) => (
+                <line key={g} x1={padL} y1={base - g * (laneH - 14)} x2={x1} y2={base - g * (laneH - 14)} stroke="rgba(255,255,255,0.05)" />
+              ))}
+              <line x1={padL} y1={base} x2={x1} y2={base} stroke="rgba(255,255,255,0.15)" />
+              {beats.map((c, i) => {
+                const v = impactMetric(c, lane.key);
+                if (v == null) return null;
+                const x = tx(c.t), passed = c.t <= t, bh = 2 + Math.min(1, v) * (laneH - 14);
+                const target = lane.target ? c.impactTarget : null;
+                const th = target == null ? null : 2 + target * (laneH - 14);
+                const col = heroColor(v);
+                const glow = passed ? interpolate(t - c.t, [0, 0.2], [1, 0], { extrapolateRight: "clamp" }) : 0;
+                return (
+                  <g key={i} opacity={passed ? 1 : 0.22}>
+                    {th != null && (
+                      <line x1={x - 7} y1={base - th} x2={x + 7} y2={base - th} stroke="#f4f7ff" strokeWidth={1.8} opacity={passed ? 0.82 : 0.5} />
+                    )}
+                    <rect x={x - 2.5} y={base - bh} width={5} height={bh} rx={2} fill={col} />
+                    {glow > 0.02 && <circle cx={x} cy={base - bh} r={7} fill={col} opacity={glow} />}
+                    {showNums && (
+                      <text x={x} y={base - bh - 5} textAnchor="start" transform={`rotate(-90 ${x} ${base - bh - 5})`}
+                        fontFamily={FONT} fontSize={9} fill={passed ? "#aeb6c7" : "#586074"}>{v.toFixed(2)}</text>
+                    )}
+                  </g>
+                );
+              })}
             </g>
           );
         })}
 
-        <line x1={tx(t)} y1={headerH} x2={tx(t)} y2={heroBase + 2} stroke="#fff" strokeWidth={1.4} opacity={0.85} />
+        <line x1={tx(t)} y1={headerH} x2={tx(t)} y2={laneBase(IMPACT_LANES.length - 1) + 2} stroke="#fff" strokeWidth={1.4} opacity={0.85} />
       </svg>
     </div>
   );

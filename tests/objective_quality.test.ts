@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { axisQualityForTargets } from "../scripts/v0/score.ts";
 import {
-  CALIB,
+  impactToRedirArcPx,
   authoredSpeedToPx,
   type AxisValues,
   type Gap,
@@ -10,6 +10,7 @@ import {
 import type { GapFit, ResolvedStart } from "../scripts/v0/core/substrate.ts";
 import {
   OBJECTIVE_READINESS_MIN,
+  OBJECTIVE_SPEED_SCALE_PXF,
   frontierReadinessFromFit,
   predictArrivalAtNextContact,
   scoreCurrentGapQuality,
@@ -93,10 +94,12 @@ describe("unified objective quality score", () => {
     expect(scored).not.toBeNull();
 
     const catchability = Math.max(OBJECTIVE_READINESS_MIN, readinessCatch(arrival.speed, arrival.comAngleDeg));
-    const speedFit = Math.exp(-Math.abs(arrival.speed - authoredSpeedToPx(0.5)) / 0.75);
+    // speedFit is asymmetric: overshoot (too fast) is half-penalized, too-slow full.
+    const dSpeed = arrival.speed - authoredSpeedToPx(0.5);
+    const speedFit = Math.exp(-(dSpeed > 0 ? dSpeed * 0.5 : -dSpeed) / OBJECTIVE_SPEED_SCALE_PXF);
     const impactFeasibility = Math.min(
       1,
-      Math.max(0, (arrival.speed * Math.sin((arrival.comAngleDeg * Math.PI) / 180)) / (0.8 * CALIB.REDIR_CAP)),
+      Math.max(0, (arrival.speed * ((arrival.comAngleDeg * Math.PI) / 180)) / impactToRedirArcPx(0.8)),
     );
     expect(scored!.catchability).toBeCloseTo(catchability, 12);
     expect(scored!.speedFit).toBeCloseTo(speedFit, 12);

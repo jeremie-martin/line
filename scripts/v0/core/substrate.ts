@@ -18,7 +18,7 @@ import {
   type ContactReport, type GapAxisReport,
   AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, IMPACT, IMPACT_WINDOW, START_DEFAULTS, PREROLL,
   secToFrame,
-  authoredSpeedToPx, speedPxToAuthored, elevationCeiling, impactCeiling,
+  authoredSpeedToPx, speedPxToAuthored, elevationCeiling, impactCeiling, normImpact, wrapPi,
 } from "../types.ts";
 import { measureGapAxes } from "./measure.ts";
 
@@ -218,23 +218,11 @@ export function normalImpactPxAtLanding(
 }
 
 /**
- * Redirection impact (px/frame, UNNORMALIZED) of a landing: the peak magnitude of
- * the rider's CoM velocity component PERPENDICULAR to its incoming heading, over the
- * `window`-frame episode after the landing. This is "how hard the catch bends the
- * rider's path" ("claquage") — the felt landing intensity (callers divide by
- * `CALIB.REDIR_CAP` to normalize). It is the SINGLE production definition of impact,
- * shared by the scored reduction (`measureImpact`, core/measure.ts), the report
- * (`buildDriftReport`), the dashboard annotation (scripts/inspect.ts), and — by
- * delegation — the study harnesses' `redirPx` (scripts/v0/study_support.ts).
- *
- * CoM-velocity-only: unlike `normalImpactPxAtLanding` it needs NO catch-line tangent
- * or owned-line geometry, which makes it immune to sled rotation / limb whip (those
- * look violent but aren't felt) and cheap on the per-candidate hot path. The incoming
- * heading is the velocity one frame before the landing (the frame the rider arrives);
- * the perpendicular component grows as the surface turns the path. Uses the
- * offset-aware accessors so it is correct under `detectWindow`. Returns `undefined`
- * when there's no usable incoming velocity; `0` when the rider is essentially
- * stationary (no heading to redirect off of).
+ * [LEGACY / ANALYSIS — not the scored metric] `redir` (px/frame, UNNORMALIZED): the peak
+ * magnitude of the rider's CoM velocity component PERPENDICULAR to its incoming heading
+ * over the `window`-frame episode (= peak v·sin(turn)). Superseded as the SCORED impact by
+ * `redirArcPxAtLanding` below (2026-06-14); kept for the dashboard's REDIR comparison lane
+ * and study harnesses' `redirPx`. CoM-velocity-only (immune to sled rotation / limb whip).
  */
 export function redirImpactPxAtLanding(
   det: Detection,
@@ -256,6 +244,41 @@ export function redirImpactPxAtLanding(
     if (perp > peak) peak = perp;
   }
   return peak;
+}
+
+/**
+ * Redirection ARC `redirArc = v·Δθ` (px/frame, UNNORMALIZED) — the SCORED production
+ * definition of impact (LOCKED 2026-06-14). `v` = incoming CoM speed; `Δθ` = net heading
+ * change of the CoM velocity over the `window`-frame (~0.15s) episode after the landing.
+ * It is the arc the velocity vector sweeps as the surface bends the path — speed-weighted
+ * ("at speed hits harder") with no sin-compression of the biggest slams (which is why it
+ * beats `redir` and generalizes where the force metric overfit; see
+ * docs/impact_problem_statement.md). Callers normalize via `normImpact` (types.ts).
+ *
+ * CoM-velocity-only (immune to sled rotation / limb whip), needs no catch-line geometry,
+ * cheap on the hot path. The incoming heading is the velocity one frame before the landing;
+ * `Δθ` is the net (last in-window frame) wrapped angle from it. Shared by the scored
+ * reduction (`measureImpact`), the report, the dashboard, and — by delegation — the study
+ * harnesses' `redirArcPx`. `undefined` when no incoming velocity; `0` when ~stationary.
+ */
+export function redirArcPxAtLanding(
+  det: Detection,
+  landingFrame: number,
+  window: number = IMPACT_WINDOW,
+): number | undefined {
+  const v0 = velocityAt(det, landingFrame - 1) ?? velocityAt(det, landingFrame);
+  if (v0 === undefined) return undefined;
+  const speed = Math.hypot(v0.x, v0.y);
+  if (speed <= 1e-9) return 0;
+  const aIn = Math.atan2(v0.y, v0.x);
+  const end = Math.min(measurementLastFrame(det), landingFrame + Math.max(0, window));
+  let turn = 0;
+  for (let f = landingFrame; f <= end; f++) {
+    const v = velocityAt(det, f);
+    if (v === undefined) continue;
+    turn = Math.abs(wrapPi(Math.atan2(v.y, v.x) - aIn)); // net heading change at the last valid in-window frame
+  }
+  return speed * turn;
 }
 
 export function addMissedContactRetryOwners(
@@ -492,7 +515,7 @@ const IMPACT_BOUND_GRAVITY_PX_PER_FRAME2 = 0.175;
  * DERIVED per-beat feasibility bound on the SCORED impact target (part of the
  * evaluator ruler — this function is inside the fingerprinted source slice).
  *
- * Impact is a velocity redirection: redir = v·sin(turn). The turn a catch can
+ * Impact is the redirection arc: redirArc = v·Δθ. The turn a catch can
  * deliver is bounded by pure ballistics around the beat:
  *   - arrival crossing angle: falling for at most the previous beat gap gives
  *     vy_in ≤ g·N_prev/2, so θ_in ≤ atan(g·N_prev/2 ÷ v);
@@ -500,8 +523,8 @@ const IMPACT_BOUND_GRAVITY_PX_PER_FRAME2 = 0.175;
  *     vy_out ≤ g·N_next/2, so θ_out ≤ atan(g·N_next/2 ÷ v);
  *   - catchability: total turn ≤ asin(CATCHABLE_REDIR_FRACTION) — beyond it the
  *     hit ejects (the impactCeiling bound).
- * bound = v·sin(min(θ_in+θ_out, asin(0.9))) / REDIR_CAP. In the small-angle
- * (dense-beat) regime this reduces to ≈ g·(N_prev+N_next)/2 / REDIR_CAP — the
+ * bound = normImpact(v·min(θ_in+θ_out, asin(0.9))). In the small-angle
+ * (dense-beat) regime the redirArc reduces to ≈ g·(N_prev+N_next)/2 — the
  * total vertical-velocity budget around the beat — which is why dense grooves
  * physically cap near 0.45-0.5 regardless of speed. Validated against the
  * canonical-archive frontier: p95 achieved tracks this bound within a few
@@ -523,7 +546,7 @@ export function impactFeasibilityBound(
   const thetaIn = Math.atan2(g * Math.max(0, prevGapSeconds) * FPS / 2, v);
   const thetaOut = Math.atan2(g * Math.max(0, nextGapSeconds) * FPS / 2, v);
   const maxTurn = Math.min(thetaIn + thetaOut, Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION));
-  return Math.max(0, Math.min(1, (v * Math.sin(maxTurn)) / CALIB.REDIR_CAP));
+  return normImpact(v * maxTurn); // redirArc = v·Δθ, felt-anchored normalization
 }
 
 // ─────────── Cross-gap target sampling ───────────

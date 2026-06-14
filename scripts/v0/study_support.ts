@@ -18,11 +18,11 @@
  */
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { extractRawTrajectory, detect, type Detection } from "../lib/detector.ts";
-import { normalImpactPxAtLanding, redirImpactPxAtLanding, contactLineIdsAt, velocityAt } from "./core/substrate.ts";
-import { CALIB, IMPACT_WINDOW as IMPACT_WINDOW_CANON, type TrackLine } from "./types.ts";
+import { normalImpactPxAtLanding, redirImpactPxAtLanding, redirArcPxAtLanding, contactLineIdsAt, velocityAt } from "./core/substrate.ts";
+import { CALIB, IMPACT_WINDOW as IMPACT_WINDOW_CANON, wrapPi, type TrackLine } from "./types.ts";
 
 const hyp = Math.hypot;
-export const wrapPi = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+export { wrapPi }; // canonical home is types.ts; re-exported so SS.wrapPi consumers still resolve
 
 // ── rider topology — single source (engine-rs/src/lib.rs ITER + BASE) ────────
 export const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;
@@ -53,6 +53,9 @@ export const IMPACT_CAP = CALIB.IMPACT_CAP; // OLD point-metric cap (px/frame) =
 export const REDIR_CAP = CALIB.REDIR_CAP;   // = 8.5; the scored redir impact cap (see CALIB)
 export const CAPS = {
   jolt: 6, whip: 6, comDecel: 3, deform: 0.9, rotDeg: 12, turnDeg: 35,
+  snap: 2.0, // px/frame²; display cap for the (rejected) SNAP study lane — calibrated to the
+  //          golden snap envelope (p95≈1.9, max≈2.14). NOTE: unrelated to REDIRARC.SOFT (also
+  //          2.0 but px/frame, the scored soft anchor) — coincidental, do not unify.
 } as const;
 export const norm01 = (x: number, cap: number) => Math.min(1, Math.max(0, x / cap));
 
@@ -64,6 +67,15 @@ export type Sim = {
   cids: Detection["measurements"]["contactLineIds"];
   last: number;
 };
+/** Build a Sim around a SAVED detection (the exact trajectory the user watched and
+ *  labeled) instead of re-simulating — so felt labels stay matched to the physics that
+ *  produced the video, even after the engine/aim code changes. `track` supplies line
+ *  geometry for the point/surface metrics; pass the track the detection was rendered from. */
+export function simFromDetection(track: any, det: Detection): Sim {
+  const lineById = new Map<number, TrackLine>();
+  for (const ln of track.lines ?? []) lineById.set(ln.id, ln);
+  return { track, eng: null, det, lineById, vel: det.measurements.velocity, cids: det.measurements.contactLineIds, last: det.terminus.frame };
+}
 export function simulateTrack(track: any): Sim {
   let eng: any = new LineRiderEngine().setStart(
     { x: track.startPosition?.x ?? 0, y: track.startPosition?.y ?? 0 },
@@ -97,7 +109,9 @@ export function pointImpactPx(sim: Sim, lf: number): number | undefined {
 
 // ── rider-point access ───────────────────────────────────────────────────────
 export function pointPos(sim: Sim, nm: PointName, f: number): [number, number] | null {
-  const p = sim.eng.getRider?.(f)?.get?.(nm)?.pos; return p ? [p.x, p.y] : null;
+  // Body-point metrics need the live engine; a detection-only Sim (simFromDetection)
+  // has none, so they degrade to null (→ 0) rather than crashing.
+  const p = sim.eng?.getRider?.(f)?.get?.(nm)?.pos; return p ? [p.x, p.y] : null;
 }
 /** Per-frame acceleration of a rider point = 2nd difference of position (px/frame²). */
 export function pointAccel(sim: Sim, nm: PointName, f: number): [number, number] | null {
@@ -180,11 +194,60 @@ function incoming(sim: Sim, lf: number) { return velocityAt(sim.det, lf - 1) ?? 
 export function redirPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
   return redirImpactPxAtLanding(sim.det, lf, W) ?? 0;
 }
+/** snap — peak PER-FRAME ⊥ velocity change over the window (px/frame²). Where `redir`
+ *  measures HOW MUCH the path was bent (the redirection magnitude), `snap` measures how
+ *  SUDDENLY it was bent (the redirection FORCE = Δp/Δt at fixed dt). A smooth scoop and a
+ *  sharp slam can share a `redir` yet differ wildly in `snap`: that is the felt
+ *  "smooth vs violent / snappy" axis `redir` collapses by taking only the peak magnitude.
+ *  Touchdown-INCLUSIVE: the incoming heading frame has ⊥ velocity 0 by construction, so
+ *  the first contact frame's redirection (the slam ON contact) counts — unlike the older
+ *  inline `redirRate` in study_impact_labels.ts, which started at k>lf and thus saw only
+ *  the post-contact settling rate, not the contact itself. */
+export function snapPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
+  const v0 = incoming(sim, lf); if (!v0) return 0;
+  const s = hyp(v0.x, v0.y); if (s <= 1e-9) return 0;
+  const hx = v0.x / s, hy = v0.y / s;
+  let prevPerp = 0, m = 0; // ⊥ component of the incoming heading itself is exactly 0
+  for (let k = lf; k <= Math.min(sim.last, lf + W); k++) {
+    const v = sim.vel[k]; if (!v) continue;
+    const perp = Math.abs(hx * v.y - hy * v.x);
+    m = Math.max(m, Math.abs(perp - prevPerp));
+    prevPerp = perp;
+  }
+  return m;
+}
+/** Onset-weighted redir: peak ⊥ redirection decayed by exp(-dt/tau) from the contact
+ *  frame. Front-loads the landing moment (the user's "even a multi-frame metric should
+ *  weight the moment of landing"). The felt labels want a GENTLE tau≈4 — aggressive decay
+ *  (tau≲2) tanks the correlation because real hard landings also smear late under the soft
+ *  engine collision. px/frame. */
+export function redirDecayPx(sim: Sim, lf: number, W = IMPACT_WINDOW, tau = 4): number {
+  const v0 = incoming(sim, lf); if (!v0) return 0;
+  const s = hyp(v0.x, v0.y); if (s <= 1e-9) return 0;
+  const hx = v0.x / s, hy = v0.y / s; let m = 0;
+  for (let k = lf; k <= Math.min(sim.last, lf + W); k++) {
+    const v = sim.vel[k]; if (!v) continue;
+    m = Math.max(m, Math.abs(hx * v.y - hy * v.x) * Math.exp(-(k - lf) / tau));
+  }
+  return m;
+}
 /** Net CoM heading change (deg) at the final valid in-window frame. */
 export function turnNetDeg(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
   const v0 = incoming(sim, lf); if (!v0) return 0; const aIn = Math.atan2(v0.y, v0.x); let out = 0;
   for (let k = lf; k <= Math.min(sim.last, lf + W); k++) { const v = sim.vel[k]; if (v) out = Math.abs(wrapPi(Math.atan2(v.y, v.x) - aIn)) * 180 / Math.PI; }
   return out;
+}
+/** redirArc — speed-weighted redirection ARC LENGTH = v·Δθ (Δθ = net CoM heading change in
+ *  radians over the window). Linearizes the redirection impulse ∫v dθ. Sits between `turn`
+ *  (Δθ, no speed) and `redir` (v·sin Δθ, whose sin COMPRESSES the biggest bends): keeps the
+ *  speed weighting with no compression. CoM-only (rotation-immune), heading-anchored (no
+ *  surface-faceting artifact → generalizes where comDecel overfit), tangent-aware (a clean
+ *  tangent arrival builds Δθ≈0 → reads ~0). px/frame. Independent-agent recommendation
+ *  (2026-06-14); strictly dominates `redir` and ties `turn` on the felt labels. DELEGATES
+ *  to the SCORED production definition `redirArcPxAtLanding` (core/substrate.ts) so the
+ *  dashboard/studies and the scorer share one source. */
+export function redirArcPx(sim: Sim, lf: number, W = IMPACT_WINDOW): number {
+  return redirArcPxAtLanding(sim.det, lf, W) ?? 0;
 }
 /** Velocity-change decomposition over the window, gravity-corrected. `perp`=redir,
  *  `par`=peak along-heading slowdown, `dvTotal`=peak PER-FRAME |Δv| (not hyp of
@@ -215,6 +278,17 @@ export function comDecelNormalPx(sim: Sim, lf: number, W = IMPACT_WINDOW): numbe
   if (!n) return 0;
   let m = 0;
   for (let k = lf; k <= Math.min(sim.last, lf + W); k++) { const a = comAccel(sim, k); if (a) m = Math.max(m, Math.abs(a[0] * n[0] + a[1] * n[1])); }
+  return m;
+}
+
+/** Onset-weighted comDecel: peak deceleration INTO the surface, decayed exp(-dt/tau) from
+ *  contact (gentle tau≈4, like redirDecay). A FORCE reading front-loaded to the landing. */
+export function comDecelDecayPx(sim: Sim, lf: number, W = IMPACT_WINDOW, tau = 4): number {
+  let n: [number, number] | null = null;
+  for (let k = lf; k <= Math.min(sim.last, lf + W) && !n; k++) n = surfaceNormalAt(sim, k);
+  if (!n) return 0;
+  let m = 0;
+  for (let k = lf; k <= Math.min(sim.last, lf + W); k++) { const a = comAccel(sim, k); if (a) m = Math.max(m, Math.abs(a[0] * n[0] + a[1] * n[1]) * Math.exp(-(k - lf) / tau)); }
   return m;
 }
 

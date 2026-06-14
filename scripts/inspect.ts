@@ -23,8 +23,8 @@ import {
   DEFAULT_PARAMS,
 } from "./lib/detector.ts";
 import { exportVideo, MirrorUnreachableError } from "./lib/export.ts";
-import { CALIB, IMPACT_WINDOW } from "./v0/types.ts";
-import { redirImpactPxAtLanding } from "./v0/core/substrate.ts";
+import { IMPACT_WINDOW, normImpact } from "./v0/types.ts";
+import { redirArcPxAtLanding } from "./v0/core/substrate.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | null => {
@@ -203,20 +203,20 @@ const det = detect(raw);
 console.timeEnd("detect");
 
 // Attach MEASURED landing impact to each landing event so the dashboard can show
-// per-beat intensity. Uses the shared redirImpactPxAtLanding (same definition as the
-// scored core/measure.ts measureImpact) — velocity REDIRECTION over the impact
-// window, normalized by CALIB.REDIR_CAP → [0,1]. CoM-only: no line resolver needed.
+// per-beat intensity. Uses the shared redirArcPxAtLanding (same definition as the
+// scored core/measure.ts measureImpact) — redirArc = v·Δθ over the impact window,
+// mapped to felt [0,1] by normImpact (0=soft, 1=very strong). CoM-only: no resolver.
 {
   let n = 0, sum = 0;
   for (const e of det.events) {
     if (e.type !== "landing") continue;
-    const px = redirImpactPxAtLanding(det, e.frame, IMPACT_WINDOW);
+    const px = redirArcPxAtLanding(det, e.frame, IMPACT_WINDOW);
     if (px === undefined) continue;
-    const impact = Math.min(1, px / CALIB.REDIR_CAP);
+    const impact = normImpact(px);
     (e as { impact?: number }).impact = Math.round(impact * 1000) / 1000;
     n++; sum += impact;
   }
-  if (n > 0) console.log(`impact: ${n} landings, mean ${(sum / n).toFixed(3)} (redirection / ${CALIB.REDIR_CAP}px·f⁻¹)`);
+  if (n > 0) console.log(`impact: ${n} landings, mean ${(sum / n).toFixed(3)} (redirArc v·Δθ, felt-normalized)`);
 }
 
 const byType = det.events.reduce<Record<string, number>>((acc, e) => {

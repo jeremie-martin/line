@@ -10,6 +10,7 @@
  * budget only decides how far into the deterministic node sequence we get.
  */
 
+import { appendFileSync } from "node:fs";
 import { makeRng } from "../../lib/rng.ts";
 import { getRiderMetered } from "../../lib/detector.ts";
 import {
@@ -232,7 +233,46 @@ function sortWithLaneExtras(
     // No merged re-sort happened: the pre-lane ordering is final — record it.
     recordRankQualityPool(costOrder, sorted);
   }
+  recordPoolImpactTelem(gap, sorted);
   return sorted;
+}
+
+// ── default-off pool-impact study telemetry (GEOM_POOL_TELEM=<path>) ──
+// On impact-targeted gaps, append one JSON line per pool build comparing the
+// scorer-impact of the local pool winner (sorted[0]) against the best impact
+// achievable anywhere in the pool, with the joint axis errors of each, so a
+// study can decide pool-limited vs selection-limited. Pure read after sort —
+// never perturbs candidate order. No-op unless the env var is set.
+let _poolTelemPath: string | null | undefined;
+function recordPoolImpactTelem(gap: Gap, sorted: Candidate[]): void {
+  if (_poolTelemPath === undefined) _poolTelemPath = process.env.GEOM_POOL_TELEM ?? null;
+  if (_poolTelemPath === null || sorted.length === 0) return;
+  const tImpact = gap.targets.impact;
+  if (tImpact === undefined) return;
+  const imp = (c: Candidate): number => {
+    const a = (c.achievedAtEnd ?? c.achieved).impact;
+    return typeof a === "number" ? a : 0;
+  };
+  let best = sorted[0];
+  for (const c of sorted) if (imp(c) > imp(best)) best = c;
+  const sel = sorted[0];
+  const axErr = (c: Candidate): Record<string, number> => {
+    const out: Record<string, number> = {};
+    const ach = c.achievedAtEnd ?? c.achieved;
+    for (const k of Object.keys(gap.targets)) {
+      const t = (gap.targets as Record<string, number | undefined>)[k];
+      const a = (ach as Record<string, number | undefined>)[k];
+      if (typeof t === "number" && typeof a === "number") out[k] = a - t;
+    }
+    return out;
+  };
+  const line = JSON.stringify({
+    gi: gap.index, tImp: tImpact, poolN: sorted.length,
+    selImp: imp(sel), maxImp: imp(best),
+    selCost: sel.cost, maxCost: best.cost,
+    selErr: axErr(sel), maxErr: axErr(best),
+  });
+  try { appendFileSync(_poolTelemPath, line + "\n"); } catch { /* ignore */ }
 }
 
 function samplePrefix(sampleOrder: Candidate[], nCand: number): Candidate[] {

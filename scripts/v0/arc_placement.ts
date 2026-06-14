@@ -195,6 +195,10 @@ const CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES = 50_000;
  *  post-angle range past its speed/air defaults so a real climb is reachable. */
 const ELEVATION_POST_ANGLE_MIN = -62;
 const ELEVATION_POST_ANGLE_MAX = 70;
+/** Strength of the elevation ride-out shortening (climb arcs): 1 = shorten fully to
+ *  the airborne minimum at the steepest climb ask, 0 = off. The grounded ride-out
+ *  otherwise eats a climb gap, leaving the rider net-descending on an up ask. */
+const ELEVATION_RIDEOUT_SHORTEN = 1.0;
 
 /** Arc-length degree of freedom — the campaign lever for arc placement. The
  *  ride-out length sets how long an arc the rider rides before going airborne.
@@ -1013,6 +1017,22 @@ function sampleContactCenteredLines(
     );
     const blendStrength = 0.6 + HIGH_AIR_LENGTH_BLEND_EXTRA * highAirPressure;
     postLength = clamp(lerp(sampledPostLength, targetLen, blend * blendStrength), 28, 360);
+  }
+
+  // Elevation ride-out shortening. A steep launch ANGLE alone does not climb if the
+  // grounded ride-out eats the gap (the rider rides flat then launches with no
+  // airborne time left — measured: achieved elevation ≈0.43 net-DESCENT vs ≈0.55
+  // climb ask). For an upward ask (elevation > 0.5) shorten the ride-out so the climb
+  // arc has the gap to express — the lever amplitude already uses. Spanned by the
+  // attempt blend, scaled by how much climb is asked; cost/survival rank the rest.
+  // Deferred when a meaningful amplitude pop is ALSO asked (≥ the amplitude block's
+  // own 0.30 pressure threshold): that ask needs the airborne time the shortening
+  // would steal (board: shortening regressed skyline_push −11 there, +10 terrace).
+  if (targets.elevation !== undefined && targets.elevation > 0.5 && nextGapFrames !== null
+      && (targets.amplitude === undefined || targets.amplitude < 0.30)) {
+    const climbP = clamp((targets.elevation - 0.5) / 0.5, 0, 1);
+    const blend = clamp(ccSpanBlends(attempt).launch, 0, 1);
+    postLength = lerp(postLength, 28, blend * climbP * ELEVATION_RIDEOUT_SHORTEN);
   }
 
   // Amplitude-targeted ballistic arc. Gated on the axis being targeted so specs

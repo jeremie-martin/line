@@ -217,6 +217,23 @@ metric. The leaf is a FAITHFUL TERMINAL scorer of the true score; a forward-look
 the true score). Readiness belongs in the POOL PRE-SELECTION (where it's +37 and where H1/H4 paid),
 NOT leaf scoring. Answers "leaf? readiness in the leaf?" from the goal prompt: NO, decisively.
 
+### H8. speedFit scale 0.75→0.6 (sharper, exploiting the unbiased mean) — INCONCLUSIVE (flat, kept 0.75)
+**Result.** 629.3→628.9 Δ=−0.3 CI[−2.8,1.9]; per-budget −0.6/−0.3/−0.2. Reverted.
+**speedFit fully characterized:** the gains are the STRUCTURAL fixes (H1 asymmetry, H4 flight-mean =
++6.4 gated); all three shape PARAMETERS are at their optimum — ratio (H2 flat), symmetric vs asymmetric
+(H6 −1.1), scale (H8 flat). The model-shape lever on the speed axis is exhausted.
+
+### H-SERIES STATUS (2026-06-14) — readiness model-shape: 622.16 → 629.3 (+6.4 gated, +0.7 kept)
+Committed wins: H1 +4.0, H4 +2.4 (both gated, speed-axis prediction-bias fixes); H5 +0.7 (aim sweep
+alignment, inconclusive-kept consistency). Rejects mapped the boundaries: H3 (impact is geometry-bound),
+H6 (asymmetry is real), H7 (readiness does NOT belong in the leaf), H2/H8 (shape params tuned).
+The productive vein was MODEL SHAPE (what the ablation phase structurally couldn't see); it is now
+extracted on the speed axis. catchability = empirical table (refit, not reshape, is its only lever).
+impactFeasibility = geometry-bound heuristic, validated. Remaining untapped levers are bigger efforts:
+aim local-model ACCURACY (the ~18% gate-fail / 0.1 model error — "why isn't the aim more effective"),
+or a catchability REFIT. 700 stays physics/scorer-bound (G3 ceiling ~637@1M pre-H-series); the headline
+now demonstrably MOVES, but not by compiler tuning to 700.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

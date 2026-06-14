@@ -33,12 +33,25 @@ keep clean repair; because it's *outcome-gated*, it can't regress. Knobs: `LR_PL
 - **⇒ Both correction dimensions are bounded:** *size* (proportional, canonical REJECT) and
   *scope* (above) are low-leverage. v1 (single weakest gap, moderate fixed bump) is well-tuned
   and near the ceiling of *this* approach; further gains need a NEW idea, not knob-tuning.
-- **Other systematically-biased axes:** the method pays where an axis chronically misses in
-  one direction AND the re-aim is true-score-gated. Impact qualifies; air does NOT (it's
-  unbiased — re-aiming prev-gap *speed* for it was causally falsified, see log). A *different*
-  upstream lever for air (launch vy/pose, not speed) is an untested hypothesis.
-- **Steer *conducive state*, not just the axis target** — the original richer vision; needs a
-  causal model of what actually moves the axis (the air study showed correlations mislead).
+- **~~Other systematically-biased axes: elevation~~ (TRIED → FLAT, 2026-06-14):** an idea-panel
+  found elevation is a 2nd biased axis (−0.088, 81% undershoot, not ceiling-bound; bias-fix
+  *ceiling* +4–6) that our 4-spec board can't even see (doesn't author elevation). Generalized
+  the loop to re-aim undershooting climbs; geometry-board A/B (12 specs) = **Δ −0.05 (flat)**,
+  per-spec mixed (climb_terrace +0.5, terrace_sprint +1.4, summit_push −2.1). **Lesson — the
+  loop needs the axis to be biased AND *cheaply* correctable (low cross-axis collateral):**
+  steepening a catch barely hurts other axes (impact pays), but pushing a *climb* trades against
+  the amplitude/impact co-asked on the same beat (low specs are elevation+amplitude+impact
+  *stacks*), so accept/reject rejects the bad trades → ~0. Reverted. The +4–6 was an idealized
+  bias-fix ceiling; the collateral makes almost none of it reachable via re-aim.
+- **Still-open panel ideas (untried):** (a) CROSS-GAP ENTRY GEOMETRY — revive the dead
+  `nextImpact` steep-diving-entry lever (faded off at 100k+), selective + outcome-gated, to make
+  the steep impact catch *reachable* (A-funnel is only ~7.6° turn short; entry set by the prev
+  arc's exit). Higher ceiling, riskier. (b) the air-via-vy/pose lever (not speed). (c) the
+  *conducive-state model* — needs causal grounding (correlations misled on air).
+- **Frame challenge (panel):** REPAIR is 61% of budget, ~72% of restarts wasted, mis-allocated
+  (funds already-good specs, restarts from cheap *late* gaps while worst gaps are *early*).
+  Budget-neutral triage/reallocation could be a large lever — but a different (search-efficiency)
+  campaign, not aim/planning.
 
 ## Thesis
 

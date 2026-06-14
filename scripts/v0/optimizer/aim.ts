@@ -831,7 +831,14 @@ function scoreJointKnobs(
   if (Number.isFinite(exitFrame) && exitFrame > nextGap.endFrame) return "next_before_exit";
   const state = predictedArrivalState(outputs);
   if (state === null) return "model_unscoreable";
-  const objective = scoreGapObjective(gap, predictedCurrentAxes(outputs), state, nextGap);
+  // Align the sweep's speed-fit with the pool sort (objective.ts H4): score against the predicted
+  // MEAN-of-flight speed (trapezoidal of exit + next), the statistic the speed target authors,
+  // not the catch-instant arrival. Falls back to catch-instant when the exit speed is unavailable.
+  const exitSpeed = outputs["exit.speed"];
+  const arrival = Number.isFinite(exitSpeed) && Number.isFinite(state.speed)
+    ? { ...state, meanSpeed: (exitSpeed + state.speed) / 2 }
+    : state;
+  const objective = scoreGapObjective(gap, predictedCurrentAxes(outputs), arrival, nextGap);
   if (objective === null) return "model_unscoreable";
   return { knobs, val: objective.value, state, currentQuality: objective.currentQuality };
 }

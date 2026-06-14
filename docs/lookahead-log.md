@@ -206,6 +206,17 @@ concentrates at higher budget; 100k flat within noise), pass 100%.
 Total speed-axis gain from campaign start (622.16): +6.4. The mean fix is speed-specific — catchability
 and impactFeasibility are evaluated AT the catch instant, so catch-instant is already the right input.
 
+### H7. Readiness in the LEAF — composite metric + λ=0.1 tilt — REJECT −15.1 (settles the goal's central Q)
+**Hypothesis.** The probe rejected leaf-readiness, but only with the leaf-LOCAL metric (speed-only,
+catch-instant, symmetric) now known inferior (H1/H4/H6). Retest with the SHARED composite (the metric
+the pool sort uses, with the flight-mean asymmetric speedFit) and a bounded tilt λ=0.1.
+**Result.** headline 629.3→614.2 **Δ=−15.1** CI[−18.9,−11.3] P(Δ≤0)=100%; per-budget −17.1/−14.5/−14.8.
+**Verdict. REJECT** — reverted. DEFINITIVE: readiness does NOT belong in the leaf, even with the best
+metric. The leaf is a FAITHFUL TERMINAL scorer of the true score; a forward-looking tilt corrupts it
+(double-counts the lookahead the 2-contact rollout already performs and pulls the terminal value off
+the true score). Readiness belongs in the POOL PRE-SELECTION (where it's +37 and where H1/H4 paid),
+NOT leaf scoring. Answers "leaf? readiness in the leaf?" from the goal prompt: NO, decisively.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

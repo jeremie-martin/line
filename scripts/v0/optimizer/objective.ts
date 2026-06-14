@@ -2,6 +2,7 @@ import { axisQualityForTargets } from "../score.ts";
 import {
   authoredSpeedToPx,
   impactToRedirArcPx,
+  IMPACT,
   type AxisValues,
   type Gap,
 } from "../types.ts";
@@ -162,12 +163,19 @@ function impactFeasibilityFactor(
   // gates readiness, it does not reproduce the impact score.
   const impactAsk = aimTargets(nextGap).impact;
   if (impactAsk === undefined || impactAsk < OBJECTIVE_IMPACT_MIN_ASK || state.comAngleDeg === null) return 1;
+  // The deliverable heading-change is bounded by the catchability cap
+  // (asin(CATCHABLE_REDIR_FRACTION)) — the same ceiling impactCeiling /
+  // impactFeasibilityBound apply. comAngleDeg is the absolute arrival heading
+  // (atan2(vy,vx)) and can exceed that cap on steep dives; without the clamp a
+  // near-vertical arrival over-credits feasibility toward 1 for a turn no catch
+  // can absorb.
+  const maxTurnRad = Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION);
+  const deliverableTurnRad = Math.min(
+    (Math.max(0, state.comAngleDeg) * Math.PI) / 180,
+    maxTurnRad,
+  );
   return Math.min(
     1,
-    Math.max(
-      0,
-      (state.speed * ((Math.max(0, state.comAngleDeg) * Math.PI) / 180)) /
-        impactToRedirArcPx(impactAsk),
-    ),
+    Math.max(0, (state.speed * deliverableTurnRad) / impactToRedirArcPx(impactAsk)),
   );
 }

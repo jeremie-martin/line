@@ -925,6 +925,15 @@ export const REDIRARC = {
   /** redirArc (px/frame) at a felt "very strong" landing → impact 1. */
   VERY_STRONG: impactEnvNum("LR_IMPACT_VSTRONG", 6.5),
 };
+// Fail fast on a degenerate env-set anchor pair: a non-positive span makes
+// normImpact divide by zero (silently clamped to 0/1) or, when SOFT > VERY_STRONG,
+// inverts the scored impact axis — both silently corrupt the headline.
+if (!(REDIRARC.VERY_STRONG > REDIRARC.SOFT)) {
+  throw new Error(
+    `Invalid impact anchors: LR_IMPACT_VSTRONG (${REDIRARC.VERY_STRONG}) must be > ` +
+      `LR_IMPACT_SOFT (${REDIRARC.SOFT}); a non-positive span corrupts the scored impact axis.`,
+  );
+}
 /** redirArc px/frame → felt impact [0,1] (the SCORED normalization). */
 export function normImpact(redirArcPx: number): number {
   return Math.max(0, Math.min(1, (redirArcPx - REDIRARC.SOFT) / (REDIRARC.VERY_STRONG - REDIRARC.SOFT)));

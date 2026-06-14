@@ -41,6 +41,7 @@ import {
   CALIB,
   impactToRedirArcPx,
   rescaleAuthoredImpact,
+  IMPACT,
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
   HANDOFF_EVALUATION_PHASES,
@@ -3905,9 +3906,14 @@ function leafReadinessFromArrival(
   const impactReadiness =
     (impactAsk === undefined || impactAsk < LEAF_RDY_IMPACT_MIN_ASK || arrival.comAngleDeg === null)
       ? 1
+      // Mirror of objective.ts impactFeasibilityFactor: clamp the deliverable turn to the
+      // catchable cap (the sin→Δθ migration dropped the implicit saturation). Dormant by
+      // default (leaf λ=0 / KIND=speed), fixed for correctness so an enabled leaf path is honest.
       : Math.min(1, Math.max(0,
-        (arrival.speed * ((Math.max(0, arrival.comAngleDeg) * Math.PI) / 180)) /
-          impactToRedirArcPx(impactAsk)));
+        (arrival.speed * Math.min(
+          (Math.max(0, arrival.comAngleDeg) * Math.PI) / 180,
+          Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
+        )) / impactToRedirArcPx(impactAsk)));
   switch (leafReadinessKind) {
     case "catch": return catchReadiness;
     case "impact": return impactReadiness;

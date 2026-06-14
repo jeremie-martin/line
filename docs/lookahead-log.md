@@ -177,6 +177,17 @@ scorer's own speed-only ceiling, so impact delivery is GEOMETRY-bound (needs a s
 template the slam-hop), not just speed-bound. Corroborates the early-bend finding (G2). The downward
 momentum `speed·sin(comAngle)` is the right feasibility proxy; the speed ceiling is not.
 
+### H4. speedFit on predicted flight-MEAN, not catch-instant — ACCEPT +2.4 → NEW BASELINE 628.6
+**Hypothesis.** H1's asymmetric penalty was a PROXY for "catch-instant overestimates the mean". Fix it
+at the root: `predictArrivalAtNextContact` already holds both flight endpoints, so the trapezoidal mean
+`(launchSpeed+arrivalSpeed)/2` is the actual mean-of-flight the speed target authors. Feed the mean into
+the same asymmetric shape; catch-instant stays the fallback for single-state call sites (aim sweep).
+**Result.** headline 626.2→628.6 **Δ=+2.4** CI[0.1,4.8] P(Δ≤0)=2.3%; per-budget −0.3/+2.4/+3.3 (win
+concentrates at higher budget; 100k flat within noise), pass 100%.
+**Verdict. ACCEPT** — committed + promoted. STACKS on H1 (the real mean adds signal beyond the proxy).
+Total speed-axis gain from campaign start (622.16): +6.4. The mean fix is speed-specific — catchability
+and impactFeasibility are evaluated AT the catch instant, so catch-instant is already the right input.
+
 ### FRAMING — budget allocation is a marginal-value / opportunity-cost problem (the real program)
 A fixed budget can be spent on several levers (more candidates / wider rollout / deeper rollout / more
 aim probes / more retries). Each has a DIMINISHING-RETURNS curve (marginal score per marginal budget),

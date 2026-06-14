@@ -108,15 +108,33 @@ was the LEAF use, not ranking. The +37 is multiplicative (components co-operate)
 top-2. (Header notes: `LR_AIM_SPAN=14` already +0.3 INCONCLUSIVE — span saturated; the V4 deep-scoop
 lane was deleted at −0.0 ablation, "can return if impact wants it.")
 
-### FINAL ASSESSMENT — the forward-eval lookahead + aim + readiness are at a tight, confirmed optimum
+### FINAL ASSESSMENT [SUPERSEDED by the H-series — see below] — config/ablation optimum, but the readiness MODEL SHAPE had headroom
 Exhaustively tested on the canonical (622.16), every change REJECT or wash: config (C1 greedy:1 −5.0,
 C3 greedy:3 −3.0, C5 downstream-quality −4.0, C6 pool-5 −4.6), difficulty-aware width (D1), aim top-k
 (D5). Ablations prove the components are valuable AND tuned: aim +7.8 (D3), readiness +37 (D3) with
-all three sub-terms positive (D4). Budget scaling is flat (D2: +5 for 3× budget). **No accepted change
-moves the headline.** The cap is the low specs' IMPACT + AIR axis quality, which is GENERATION-bound
-(C2 funnel; the deleted V4 deep-scoop lane was neutral — the ranker correctly skips flat-entry deep
-scoops). **Path to ~700 = candidate generation (steep-entry deep-scoop geometry for impact), outside
-the forward-eval lookahead.** The lookahead campaign is complete with a clean, evidence-backed verdict.
+all three sub-terms positive (D4). Budget scaling is flat (D2: +5 for 3× budget).
+**CORRECTION (H-series).** "No accepted change moves the headline" was WRONG, and the error was
+methodological: every readiness experiment here ABLATED components (drop → measure), and dropping any
+was negative, so the readiness read as tuned. Ablation tests PRESENCE, never SHAPE. The composite's
+SHAPE had +6.4 of headroom (H1 asymmetric speedFit +4.0, H4 flight-mean speedFit +2.4). The config and
+budget verdicts stand; the "tight optimum" claim for the readiness model does not.
+
+### H-SERIES — readiness MODEL-SHAPE reshapes (the lever the ablation phase missed) → 622.16 → 629.3
+The objective's next-gap readiness predicts a BALLISTIC arrival and compares it to authored targets;
+the prediction had a structural bias the ablations couldn't see. Wins (committed, gated): H1 asymmetric
+speedFit (+4.0), H4 score the predicted flight-MEAN not catch-instant (+2.4). Consistency: H5 aim sweep
+aligned (+0.7 inconclusive, kept). Informative rejects: H2 ratio-tune flat; H3 impactFeasibility→physics
+ceiling −8.5 (the comAngle term is essential — impact is geometry-bound, corroborates G2); H6 symmetric-
+on-mean −1.1 (the asymmetry is real signal — overshoot is genuinely cheaper than undershoot, not just a
+bias proxy). Catchability is an empirical table (off-limits to hand-reshape). NEW BASELINE 629.3.
+
+### H6. Symmetric speedFit on the mean (is the asymmetry still needed post-H4?) — REJECT −1.1
+**Change.** with H4's flight-mean in place, drop the asymmetry: penalty = |Δ| (symmetric).
+**Result.** 629.3→628.1 Δ=−1.1 CI[−3.4,1.3] P(Δ≤0)=82%; per-budget +0.4/−0.9/−1.8.
+**Verdict. REJECT** — reverted. The asymmetry is NOT merely a catch-instant-bias proxy (the mean already
+removes that bias); it captures real signal — overshooting the target mean speed is genuinely cheaper
+than undershooting (excess speed bleeds off; too-slow can't make the geometry). H1 and H4 are
+independently justified.
 
 ### G1. Generation probe — impact scoop turn cap 22°→27° — INCONCLUSIVE (impact error unchanged)
 First step outside the lookahead, into the arc template (`arc_placement.ts IMPACT_TEMPLATE_MAX_TURN_DEG`).

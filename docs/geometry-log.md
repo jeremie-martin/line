@@ -201,6 +201,36 @@ ROBUST reducible headroom is small with straight-line geometry. Cracking more wo
 precise low-air landing construction (deterministic bounce timing) that lands reliably
 across seeds — a real, project-scale effort with modest expected payoff (~+3 headline).
 
+## 12. STUDY+REJECT — off-tangent "slam" landing (Jérémie's idea): a real lever, but on AIR not impact
+
+Setup: hypothesis (Jérémie) — land the rider OFF-tangent (flatten the landing segment
+below the arrival heading) so it hits the surface at an angle; the engine kills a big
+normal component ⇒ a large velocity REDIRECTION at the landing frame, which IS in the
+scored metric (`redirImpactPxAtLanding` = peak |v⊥incoming-heading| over the 6-frame
+window; the engine smears the collision over frames). Added `LR_IMPACT_SLAM` (flatten the
+entry bevel by N°×pressure). Confirmed the metric mechanism is real.
+
+Findings:
+- **Impact axis does NOT move** (drums |err| 0.16→0.15, flat) — the engine absorbs/smears
+  the slam's contribution; achieved impact stays. So the lever does not raise impact.
+- It DOES reduce the **airborne fraction** (the flatter landing keeps the rider grounded a
+  touch longer around the contact): drums_pendulum air 0.22→0.19. So it pays on LOW-air
+  asks (which overshoot air — drums' biggest error) and hurts air-WANTING gaps.
+- v1 (gated on impact pressure): board **Δ−3.1** — drums_pendulum +13.7/+3.8 BUT
+  soar_settle −17.7/−24.3, pop_train −6, dense −5 (air-wanting specs wrecked).
+- v2 (re-gated on LOW air, `(0.40−air)/0.25`): cleanly protected every air-wanting spec
+  (all byte-identical) and helped both dense guards (dense_sprint +0.8/+3.2, solo_run
+  +1.3/+0.8). BUT board **Δ−0.8**: drums REVERSED again — drums_crescendo −11.3/−5.2,
+  drums_pendulum −0.6/−2.1 — vs a 4-seed study that showed +11.9/+4.7. The recurring
+  drums seed-variance trap; the slam reduces drums air on lucky seeds and degrades other
+  axes on unlucky ones (9/9 valid throughout — it's axis quality, not deaths).
+Verdict: REJECT, reverted. The off-tangent landing is a GENUINE lever (credit: Jérémie)
+and a clean robustness win on the dense guards, but it routes through air, not impact, and
+the drums air prize stays walled — every robust attempt to cut drums' low-air overshoot
+(grounding cap #11, slam #12) helps on some seeds and degrades on others. Open: a gentler
+slam gated to moderate-low-air (dense/solo) while skipping drums-extreme-low could bank
+the guard gain, but the EV is small and drums-variance makes it hard to tune.
+
 ## State after these runs
 
 Headline 612.9 (one accepted win: elevation ride-out shortening, #7). Studies show the

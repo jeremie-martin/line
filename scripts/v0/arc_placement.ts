@@ -113,12 +113,17 @@ const IMPACT_CURVE_TARGET_SPAN = impactEnvNum("LR_IMPACT_CURVE_SPAN", 0.40);
 const IMPACT_CURVE_SPEED_START_PX = 6;
 const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // Ablation (2026-06-10): this curvature modulation is THE impact carrier (+53
-// headline; the angle-shift mechanisms are ±2). Sweeping its authority found
-// flatten 12° / frontload 1.2 (canonical 585.56 vs 580.83 at the old 10/0.8,
-// decide ACCEPT Δ+4.7 P=4.2%, positive at every budget, 50k validity 96→98%).
-// The response surface peaks there: flatten 18 → 579, frontload 1.4 → 581.
-const IMPACT_CURVE_FLATTEN_DEG = impactEnvNum("LR_IMPACT_FLATTEN", 12);
-const IMPACT_CURVE_FRONTLOAD = impactEnvNum("LR_IMPACT_FRONTLOAD", 1.2);
+// headline; the angle-shift mechanisms are ±2). On the OLD saturating v·sinΔθ metric the
+// surface peaked at flatten 12° / frontload 1.2 (flatten 18 → 579, frontload 1.4 → 581 —
+// deeper was WORSE, because sin saturated near 90° so extra scoop bought nothing).
+// RE-FIT 2026-06-15 for the LINEAR redirArc = v·Δθ metric (SOFT=0/VSTRONG=7.29): with no
+// angular saturation, deeper scoop now PAYS. eval_impact board (13 specs × 9 seeds, 150k/300k)
+// brackets BOTH knobs with overshoot on each side — flatten {0:−36.6, 12:base, 18:+2.4,
+// 24:−12.1}, frontload {1.2:+2.4, 1.6:+4.1, 2.0:+2.7} — so the peak moved up to flatten 18 /
+// frontload 1.6 (Δ+4.1 vs old 12/1.2, positive at both budgets, 100% validity; INDICATIVE
+// probe tier, canonical run to promote). Onset held at 0.25 (start 0.10 → −9.6, over-scoops).
+const IMPACT_CURVE_FLATTEN_DEG = impactEnvNum("LR_IMPACT_FLATTEN", 18);
+const IMPACT_CURVE_FRONTLOAD = impactEnvNum("LR_IMPACT_FRONTLOAD", 1.6);
 // Mature-budget impact POST-TURN sampler.
 // The curve modulation can only front-load whatever contact→post rotation already
 // exists. Remaining mature misses show contact runs are long enough but

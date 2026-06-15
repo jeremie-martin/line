@@ -75,11 +75,11 @@ The baseline of record is the **generated** [`docs/handoff-compiler.html`](hando
 (per-budget / per-spec table), regenerated from a canonical `golden.json` — never
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
-- Evaluator fingerprint: **`1df7e3a417bc`** (`scripts/v0/golden_suite.ts`).
+- Evaluator fingerprint: **`2a9954c8defb`** (`scripts/v0/golden_suite.ts`).
 - Current committed compiler: `compileHandoff` with target-budget-aware breadth,
   ranking, aiming, tail completion, and repair gates. Canonical baseline is the
-  12-seed population (budgets `{50,100,200,300}k`, weighted-average HEADLINE):
-  **HEADLINE 606.04**, validity 480/480 at 300k and 1908/1920 across the full curve.
+  12-seed population (budgets `{100,200,300}k`, weighted-average HEADLINE):
+  **HEADLINE 654.11**, validity 480/480 at 300k and 1439/1440 across the full curve.
   Always refresh the generated HTML and the quoted number from a fresh 12-seed
   rebaseline before relying on live figures.
 

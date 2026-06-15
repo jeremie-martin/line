@@ -598,6 +598,7 @@ export function validateSpec(spec: Spec): void {
   validateAxisCurves(spec);
   validateStartSpec(spec.start);
   validatePreroll(spec.preroll);
+  validateCameraSpec(spec.camera, spec.duration);
   if (spec.jitter !== undefined && (!Number.isFinite(spec.jitter) || spec.jitter < 0)) {
     throw new Error(`Spec.jitter must be ≥0 (got ${spec.jitter})`);
   }
@@ -648,6 +649,28 @@ export function validatePreroll(preroll: Spec["preroll"]): void {
   }
   if (preroll > PREROLL.MAX_S) {
     throw new Error(`Spec.preroll (${preroll}s) exceeds sanity cap ${PREROLL.MAX_S}s`);
+  }
+}
+
+function validateCameraSpec(camera: Spec["camera"], duration: number): void {
+  if (camera?.zoom === undefined) return;
+  const lane = camera.zoom;
+  if (!Array.isArray(lane.keyframes) || lane.keyframes.length === 0) {
+    throw new Error("Spec.camera.zoom.keyframes must contain at least one keyframe");
+  }
+  if (
+    lane.smoothingFrames !== undefined &&
+    (!Number.isInteger(lane.smoothingFrames) || lane.smoothingFrames < 0)
+  ) {
+    throw new Error(`Spec.camera.zoom.smoothingFrames must be an integer ≥0 (got ${lane.smoothingFrames})`);
+  }
+  for (const point of lane.keyframes) {
+    if (!Number.isFinite(point.t) || point.t < 0 || point.t > duration) {
+      throw new Error(`Spec.camera.zoom keyframe t (${point.t}) out of [0, ${duration}]`);
+    }
+    if (!Number.isFinite(point.zoom) || point.zoom <= 0) {
+      throw new Error(`Spec.camera.zoom keyframe zoom (${point.zoom}) at t=${point.t} must be > 0`);
+    }
   }
 }
 

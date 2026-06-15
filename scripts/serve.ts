@@ -18,6 +18,7 @@ import { randomUUID } from "node:crypto";
 import { networkInterfaces } from "node:os";
 import { basename, dirname, extname, normalize, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
+import { specZoomLaneToRenderPlan } from "./v0/core/camera.ts";
 import { AXES, FPS, type AxisName, type Spec, type SpecMusic } from "./v0/types.ts";
 
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
@@ -177,6 +178,31 @@ type SpecEdit = {
   title: string;
   createdAt: string;
   updatedAt: string;
+};
+
+type DashboardCameraZoom = {
+  points: [number, number][];
+  keyframes: {
+    id: string;
+    index: number;
+    t: number;
+    zoom: number;
+  }[];
+  renderKeyframes: {
+    i: number;
+    frame: number;
+    t: number;
+    zoom: number;
+    log2Zoom: number;
+  }[];
+  smoothingFrames: number;
+  min: number;
+  max: number;
+  count: number;
+};
+
+type DashboardCamera = {
+  zoom?: DashboardCameraZoom;
 };
 
 const jobs = new Map<string, DashboardJob>();
@@ -431,6 +457,61 @@ function sampleAxesAt(spec: Spec, t: number): Record<string, number> {
   return out;
 }
 
+function normalizeSpecCamera(spec: Spec, requestedSamples: number): DashboardCamera | null {
+  const lane = spec.camera?.zoom;
+  if (!lane) return null;
+
+  const plan = specZoomLaneToRenderPlan(lane, spec.duration);
+  if (!plan || plan.autoZoom.length === 0) return null;
+
+  const keyframes = lane.keyframes
+    .map((point, index) => ({
+      id: `camera.zoom:${index}`,
+      index,
+      t: round(point.t, 4),
+      zoom: round(point.zoom, 4),
+    }))
+    .filter((point) =>
+      Number.isFinite(point.t) &&
+      Number.isFinite(point.zoom) &&
+      point.t >= 0 &&
+      point.t <= spec.duration &&
+      point.zoom > 0
+    )
+    .sort((a, b) => a.t - b.t || a.index - b.index);
+
+  const count = Math.max(2, Math.min(Math.trunc(requestedSamples), plan.autoZoom.length));
+  const points: [number, number][] = [];
+  let min = Infinity;
+  let max = -Infinity;
+  for (let i = 0; i < count; i++) {
+    const t = count === 1 ? 0 : (spec.duration * i) / (count - 1);
+    const frame = Math.max(0, Math.min(plan.autoZoom.length - 1, Math.round(t * FPS)));
+    const zoom = round(plan.autoZoom[frame], 4);
+    points.push([round(t, 4), zoom]);
+    min = Math.min(min, zoom);
+    max = Math.max(max, zoom);
+  }
+
+  return {
+    zoom: {
+      points,
+      keyframes,
+      renderKeyframes: plan.zoomKeyframes.map(([frame, log2Zoom], i) => ({
+        i,
+        frame,
+        t: round(frame / FPS, 4),
+        zoom: round(2 ** log2Zoom, 4),
+        log2Zoom: round(log2Zoom, 4),
+      })),
+      smoothingFrames: plan.zoomSmoothing,
+      min: round(min, 4),
+      max: round(max, 4),
+      count: points.length,
+    },
+  };
+}
+
 async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<Record<string, unknown>> {
   const resolvedSpec = resolveListedSpec(rawSpec);
   if (!resolvedSpec) throw new Error(`unsupported spec path: ${rawSpec}`);
@@ -507,6 +588,8 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
     String(a.axis).localeCompare(String(b.axis)) ||
     (Number(a.index) - Number(b.index))
   );
+  const camera = normalizeSpecCamera(spec, sampleCount);
+  const zoom = camera?.zoom ?? null;
 
   const gaps = contacts.map((contact, i) => {
     const t0 = i === 0 ? 0 : contacts[i - 1].t;
@@ -546,6 +629,10 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
       gaps: gaps.length,
       activeAxes: Object.keys(axes),
       keyframes: keyframes.length,
+      zoomKeyframes: zoom?.keyframes.length ?? 0,
+      zoomMin: zoom?.min ?? null,
+      zoomMax: zoom?.max ?? null,
+      zoomSmoothingFrames: zoom?.smoothingFrames ?? null,
       impactTargets: impacts.length,
       minImpact: impacts.length ? Math.min(...impacts) : null,
       maxImpact: impacts.length ? Math.max(...impacts) : null,
@@ -557,6 +644,7 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
     gaps,
     axes,
     keyframes,
+    camera,
     overlayMeta: jsonClone(mod.overlayMeta),
     music: normalizeSpecMusic(spec.music),
   };

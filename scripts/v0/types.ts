@@ -24,6 +24,12 @@ export type Spec = {
    */
   axes: AxisCurves;
   /**
+   * Render-only camera intent. The compiler ignores this field; render CLIs turn
+   * it into Line Rider camera keyframes. This keeps camera timing tied to the
+   * authored musical spec instead of the realized trajectory.
+   */
+  camera?: SpecCamera;
+  /**
    * Optional rider initial state. Omitted => default (0,0)+v=(0.4,0).
    * Manual override only — use `preroll` instead if you want the compiler to
    * choose a §0-compatible initial state.
@@ -46,6 +52,28 @@ export type Spec = {
    * into the spec; a future per-axis form may follow.
    */
   jitter?: number;
+};
+
+export type SpecCamera = {
+  zoom?: SpecZoomLane;
+};
+
+export type SpecZoomLane = {
+  /**
+   * Explicit zoom keyframes. `zoom` uses the same linear playback scale as
+   * `scripts/inspect.ts --zoom=N`; the Line Rider bundle's native zoomer gets
+   * log2-converted keyframes at render time.
+   */
+  keyframes: SpecZoomKeyframe[];
+  /** Native createZoomer smoothing window in frames. Default 0. */
+  smoothingFrames?: number;
+};
+
+export type SpecZoomKeyframe = {
+  /** Seconds on the authored spec/music timeline. */
+  t: number;
+  /** Linear playback zoom, same unit as `--zoom=N`; must be > 0. */
+  zoom: number;
 };
 
 export type SpecMusic = {

@@ -12,6 +12,12 @@ The TIKI TIKI 48s pass is the first successful example of this newer workflow:
 `scripts/v0/specs/tiki_tiki_48s.ts`, driven by
 `beats/tiki_tiki_48s.rhythm.json`.
 
+The workflow is meant to be reusable, not song-specific. It should be a good
+starting point for old specs such as Believer too, but those should be treated
+as legacy tracks to rebuild from analysis evidence rather than as examples to
+copy. The analysis can expose plausible musical events for almost any track;
+the spec still needs human choices about hierarchy, density, camera, and motion.
+
 ## Core idea
 
 Do not treat a uniform beat grid as "the beats".
@@ -34,13 +40,16 @@ pretending to be a finished spec:
 - `timing.event_t` — a timing hint for audible contacts; primary rows use the
   detected primary beat, secondary rows use a local percussive attack when
   available.
+- `transients[]` — independent onset candidates between grid rows, with
+  percussive strength, local body, and phase inside the surrounding primary beat
+  interval.
 
 The spec author is expected to argue with this output. If it is incompatible
 with what you hear, fix the analysis or override it deliberately.
 
 ## Analysis
 
-Use the old Python analysis environment:
+Use the Python analysis environment:
 
 ```bash
 /tmp/mm310/bin/python scripts/analyze_rhythm.py \
@@ -72,6 +81,13 @@ beat/attack. The spec now keeps support contacts on `row.t`, but uses
 `timing.event_t` for audible contacts. That is a timing correction, not a global
 offset.
 
+The later TIKI pass added a transient layer. This found real audible events that
+were missing from the grid rows, including clean half-beat hits and anticipation
+hits shortly before primaries. The half-beat transients became useful contacts.
+The anticipation hits stayed analysis evidence, because landing on both the
+anticipation and the following primary made gaps around 200ms and produced a
+worse physical track.
+
 `scripts/analyze_music.py` is still useful for broad tempo/downbeat/energy
 checks, but `scripts/analyze_rhythm.py` is the better authoring input because it
 keeps metrical layer and event salience separate.
@@ -102,7 +118,8 @@ PY
 
 A spec can load the rhythm JSON and choose contact rows. The analyzer writes
 schema v2 rows: grid placement lives under `grid.*`, timing hints under
-`timing.*`, and musical evidence under `scores.*`.
+`timing.*`, musical evidence under `scores.*`, and extra onset evidence under
+`transients[]`.
 
 ```ts
 const rhythm = JSON.parse(
@@ -124,6 +141,12 @@ function contactTimeFor(row: RhythmRow): number {
   if (isQuietSupport(row)) return row.t;
   return row.timing?.event_t ?? row.grid.primary_t ?? row.t;
 }
+
+function selectedContactRows(): ContactRow[] {
+  const gridRows = selectedGridContactRows();
+  return [...gridRows, ...selectedTransientRows(gridRows)]
+    .sort((a, b) => a.t - b.t);
+}
 ```
 
 The important authoring rule: **support contacts are allowed**, but they should
@@ -144,16 +167,47 @@ return Math.min(0.78, 0.22 + 0.44 * row.scores.impact);
 hit every high-impact ask; the report's target/achieved values tell you whether
 the compiler found the requested slam.
 
+## Choose beats under a gap budget
+
+The analyzer may find more real musical events than the track can physically hit.
+A detected onset is evidence, not an obligation.
+
+The practical TIKI lesson: gaps below about 300ms are risky, and anticipation
+plus primary pairs around 200ms were too tight to read well. Promoting every
+detected event created more contacts but a worse track. Keep the right beats,
+not the most beats.
+
+A useful promotion order is:
+
+1. keep primary beats, drops, and phrase anchors;
+2. add clean subdivision contacts only when they leave enough room;
+3. add quiet support contacts for continuity when they stay visually small;
+4. leave too-close events in the analysis, or express them through impact,
+   speed, air, or camera instead of a separate landing.
+
+For current TIKI, the spec keeps primary/drop/grid contacts, adds at most one
+clean half-beat transient inside a primary interval when there is no existing
+secondary contact, and does not automatically promote late-interval anticipation
+transients. This was not hardcoded to the user's timestamps; those notes became
+a validation set for whether the analysis was seeing the same musical layer.
+
 ## Author axes
 
-The active curve axes are `air`, `speed`, and either `amplitude` or `elevation`.
-`impact` is per-contact, not a continuous curve. `grain` is legacy/report data
-and should not be treated as an active v0 target.
+The thin baseline for a new song should be contacts, per-contact `impact`,
+`speed`, and `air`. That is enough to test whether the rhythm interpretation is
+right before adding vertical tricks.
+
+`amplitude` and `elevation` are optional expressive layers. They are not required
+for a good first pass, and they should not hide bad beat choices. `impact` is
+per-contact, not a continuous curve. `grain` is legacy/report data and should
+not be treated as an active v0 target.
 
 Practical guidance:
 
 - `air` carries how floaty the rider feels.
 - `speed` is a resource; it often overshoots late through gravity.
+- In pure baseline mode, do not author `amplitude` or `elevation`; let rhythm,
+  speed, air, impact, and optionally camera zoom carry the piece.
 - `amplitude` needs sparse gaps to read. Dense 0.4s beats cannot produce big
   jumps. Put high amplitude on longer phrase gaps or drops, and expect tradeoffs
   with impact.
@@ -161,7 +215,9 @@ Practical guidance:
 - Set `jitter: 0` when your curves already carry variation.
 
 TIKI uses a dynamic amplitude function keyed to the selected contact row and
-gap length. Long gaps get big-pop asks; dense secondary hits stay small.
+gap length. Long gaps get big-pop asks; dense secondary hits stay small. A good
+next validation pass is a TIKI or Believer spec with no amplitude/elevation at
+all: pure beat selection, impact, speed, air, and zoom.
 
 ## Compile and inspect
 
@@ -186,9 +242,13 @@ Read the terminal summary first:
 For the TIKI rhythm-driven spec, the useful result was:
 
 ```text
-contacts 65/65 hit · 0 drift · 0 missing · 0 off-beat
+contacts 77/77 hit · 0 drift · 0 missing · 0 off-beat
 survival endOfSpec
 ```
+
+Keep timing offsets explicit. The default jolt offset should be zero; if a run
+uses `LR_JOLT_OFFSET_MS=25` or any other value, put it in the command and the
+output name so timing comparisons are not ambiguous.
 
 Then inspect without rendering:
 
@@ -267,8 +327,8 @@ The loop is:
 1. listen and annotate in the spec dashboard;
 2. check whether `analyze_rhythm.py` agrees in broad strokes;
 3. if it disagrees badly, improve the analysis or override intentionally;
-4. adjust contact selection and impact hierarchy;
-5. adjust `air`/`speed`/`amplitude` curves;
+4. choose contacts under a gap budget and set impact hierarchy;
+5. adjust `air`/`speed`, then add optional amplitude/elevation only if needed;
 6. compile;
 7. inspect report + shape analyzer + rendered video;
 8. repeat.
@@ -277,6 +337,8 @@ Useful failures:
 
 - A support row looks like a beat: the contact selection is too literal.
 - A true beat is missing: analysis or contact filtering is too conservative.
+- A real event creates a tiny gap: keep it as evidence, replace a neighboring
+  contact, or express it through impact/camera instead of adding a landing.
 - High amplitude on dense beats does nothing: create a longer gap or lower the
   amplitude ask.
 - High impact and high amplitude fight: decide which one the music needs more.

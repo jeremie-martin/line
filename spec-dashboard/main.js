@@ -108,7 +108,10 @@ function wireEvents() {
   refs.audio.addEventListener("timeupdate", updatePlaybackUi);
   refs.audio.addEventListener("play", updatePlaybackUi);
   refs.audio.addEventListener("pause", updatePlaybackUi);
-  refs.audio.addEventListener("ended", updatePlaybackUi);
+  refs.audio.addEventListener("ended", () => {
+    if (state.data && state.cursorT < state.data.spec.duration) state.simulatedPlaying = true;
+    updatePlaybackUi();
+  });
   refs.audio.addEventListener("error", () => {
     refs.musicMeta.textContent = "Audio failed to load";
     updatePlaybackUi();
@@ -293,14 +296,14 @@ async function loadAnalysis(music) {
   if (!music?.beatsUrl) return null;
   try {
     const raw = await fetch(music.beatsUrl, { cache: "no-cache" }).then(readJsonOk);
-    return normalizeAnalysis(raw, music.offset || 0);
+    return normalizeAnalysis(raw, musicOffset(music));
   } catch {
     return null;
   }
 }
 
 function normalizeAnalysis(raw, offset) {
-  const withOffset = (t) => round(Number(t) + offset, 4);
+  const withOffset = (t) => round(audioToSpecTime(Number(t), offset), 4);
   const beats = numericTimes(raw.beats ?? raw.beat_times).map(withOffset);
   const downbeats = numericTimes(raw.downbeats).map(withOffset);
   const onsetSource = raw.drum_onsets ?? raw.onsets_drums ?? raw.onsets_mix ?? raw.onsets ?? [];
@@ -687,10 +690,10 @@ function drawSpectrogram(svg, L, plotW, y, h) {
   const defs = add(svg, "defs", {});
   const clip = add(defs, "clipPath", { id: clipId });
   add(clip, "rect", { x: L, y, width: plotW, height: h });
-  const metaDuration = Number(spec.meta?.duration) || state.data.spec.duration;
-  const offset = Number(state.data.music?.offset) || 0;
-  const imageT0 = offset;
-  const imageT1 = offset + metaDuration;
+  const metaDuration = Number(spec.meta?.duration) || audioDurationForMusic(state.data.music) || state.data.spec.duration;
+  const offset = musicOffset(state.data.music);
+  const imageT0 = audioToSpecTime(0, offset);
+  const imageT1 = audioToSpecTime(metaDuration, offset);
   add(svg, "image", {
     href: imageUrl,
     x: state.timeline.rawXFor(imageT0),
@@ -1392,6 +1395,12 @@ function renderAgentContext() {
     at: {
       t: round(t, 3),
       time: formatTime(t),
+      music: state.data.music ? {
+        offset: musicOffset(state.data.music),
+        audioTime: hasAudio() ? round(refs.audio.currentTime, 3) : null,
+        specFromAudio: hasAudio() ? round(audioToSpecTime(refs.audio.currentTime, musicOffset(state.data.music)), 3) : null,
+        clock: state.simulatedPlaying ? "spec" : hasAudio() && !refs.audio.paused ? "audio" : "paused",
+      } : null,
       phase: currentPhase(t)?.name ?? null,
       contact: nearestContact(t)?.index ?? null,
       gap: currentGap(t)?.i ?? null,
@@ -1439,11 +1448,21 @@ function renderAgentContext() {
 
 function togglePlayback() {
   if (!state.data) return;
+  if (isPlaying()) {
+    pausePlayback();
+    return;
+  }
   if (hasAudio()) {
-    if (refs.audio.paused) refs.audio.play().catch((error) => toast(String(error)));
-    else refs.audio.pause();
+    const audioT = specToAudioTime(state.cursorT, musicOffset(state.data.music));
+    if (audioTimeInRange(audioT, state.data.music)) {
+      refs.audio.currentTime = audioT;
+      refs.audio.play().catch((error) => toast(String(error)));
+    } else {
+      state.simulatedPlaying = true;
+      updatePlaybackUi();
+    }
   } else {
-    state.simulatedPlaying = !state.simulatedPlaying;
+    state.simulatedPlaying = true;
     updatePlaybackUi();
   }
 }
@@ -1455,28 +1474,67 @@ function pausePlayback() {
 }
 
 function isPlaying() {
-  return hasAudio() ? !refs.audio.paused : state.simulatedPlaying;
+  return state.simulatedPlaying || (hasAudio() ? !refs.audio.paused : false);
 }
 
 function hasAudio() {
   return Boolean(state.data?.music?.audioUrl && refs.audio.src);
 }
 
+function musicOffset(music = state.data?.music) {
+  const offset = Number(music?.offset);
+  return Number.isFinite(offset) ? offset : 0;
+}
+
+function audioToSpecTime(audioTime, offset = musicOffset()) {
+  return audioTime + offset;
+}
+
+function specToAudioTime(specTimeValue, offset = musicOffset()) {
+  return specTimeValue - offset;
+}
+
+function audioDurationForMusic(music = state.data?.music) {
+  if (Number.isFinite(refs.audio.duration) && refs.audio.duration > 0) return refs.audio.duration;
+  const metaDuration = Number(music?.spectrogram?.meta?.duration);
+  return Number.isFinite(metaDuration) && metaDuration > 0 ? metaDuration : null;
+}
+
+function audioTimeInRange(audioTime, music = state.data?.music) {
+  if (!Number.isFinite(audioTime) || audioTime < 0) return false;
+  const duration = audioDurationForMusic(music);
+  return duration === null || audioTime <= duration;
+}
+
 function specTime() {
   if (!state.data) return 0;
   const duration = state.data.spec.duration;
-  if (hasAudio()) {
-    return clamp(refs.audio.currentTime + (Number(state.data.music?.offset) || 0), 0, duration);
+  if (hasAudio() && !refs.audio.paused && !refs.audio.ended) {
+    return clamp(audioToSpecTime(refs.audio.currentTime, musicOffset(state.data.music)), 0, duration);
   }
   return clamp(state.cursorT, 0, duration);
 }
 
 function seekTo(t, opts = { select: true }) {
   if (!state.data) return;
+  const wasPlaying = isPlaying();
   const next = clamp(t, 0, state.data.spec.duration);
   state.cursorT = next;
   if (hasAudio()) {
-    refs.audio.currentTime = Math.max(0, next - (Number(state.data.music?.offset) || 0));
+    const audioT = specToAudioTime(next, musicOffset(state.data.music));
+    if (audioTimeInRange(audioT, state.data.music)) {
+      state.simulatedPlaying = false;
+      refs.audio.currentTime = audioT;
+      if (wasPlaying && refs.audio.paused) refs.audio.play().catch((error) => toast(String(error)));
+    } else {
+      refs.audio.pause();
+      state.simulatedPlaying = wasPlaying;
+      refs.audio.currentTime = clamp(
+        audioT,
+        0,
+        audioDurationForMusic(state.data.music) || Number.POSITIVE_INFINITY,
+      );
+    }
   }
   if (opts.reveal !== false) revealTime(next);
   updatePlaybackUi();
@@ -1486,11 +1544,19 @@ function seekTo(t, opts = { select: true }) {
 function tick(now) {
   const dt = Math.max(0, (now - state.lastTickMs) / 1000);
   state.lastTickMs = now;
-  if (state.data && state.simulatedPlaying && !hasAudio()) {
+  if (state.data && state.simulatedPlaying) {
     state.cursorT += dt;
     if (state.cursorT >= state.data.spec.duration) {
       state.cursorT = state.data.spec.duration;
       state.simulatedPlaying = false;
+    }
+    if (state.simulatedPlaying && hasAudio()) {
+      const audioT = specToAudioTime(state.cursorT, musicOffset(state.data.music));
+      if (audioTimeInRange(audioT, state.data.music)) {
+        state.simulatedPlaying = false;
+        refs.audio.currentTime = audioT;
+        refs.audio.play().catch((error) => toast(String(error)));
+      }
     }
     updatePlaybackUi();
   } else if (state.data && hasAudio() && !refs.audio.paused) {

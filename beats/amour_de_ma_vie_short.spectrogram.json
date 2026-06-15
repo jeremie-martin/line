@@ -1,0 +1,15 @@
+{
+  "audio_file": "amour_de_ma_vie_short.mp3",
+  "duration": 44.5,
+  "sr": 22050,
+  "hop": 512,
+  "n_mels": 128,
+  "fmin": 30.0,
+  "fmax": 11025.0,
+  "db_floor": -70.0,
+  "db_top": 0.0,
+  "width": 1917,
+  "height": 128,
+  "image": "amour_de_ma_vie_short.spectrogram.png",
+  "colormap": "magma"
+}

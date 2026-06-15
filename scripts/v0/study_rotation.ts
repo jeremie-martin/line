@@ -16,6 +16,7 @@
 import { readFileSync } from "node:fs";
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { extractRawTrajectory, detect } from "../lib/detector.ts";
+import { computeRotationTrace } from "../lib/rotation.ts";
 import { FPS } from "./types.ts";
 
 const argv = process.argv.slice(2);
@@ -23,17 +24,6 @@ const trackPath = (argv.find((a) => a.startsWith("--track=")) ?? "--track=track.
 
 function ang(a: { x: number; y: number }, b: { x: number; y: number }): number {
   return (Math.atan2(a.y - b.y, a.x - b.x) * 180) / Math.PI; // direction b→a, degrees
-}
-function unwrap(prev: number, cur: number): number {
-  let d = cur - prev;
-  while (d > 180) d -= 360;
-  while (d < -180) d += 360;
-  return prev + d;
-}
-function runs(mask: boolean[]): [number, number][] {
-  const o: [number, number][] = []; let i = 0;
-  while (i < mask.length) { if (mask[i]) { let j = i; while (j < mask.length && mask[j]) j++; o.push([i, j - 1]); i = j; } else i++; }
-  return o;
 }
 
 const track = JSON.parse(readFileSync(trackPath, "utf8"));
@@ -57,28 +47,15 @@ for (let f = 0; f <= F; f++) {
   bodyAngRaw.push(sh && bt ? ang(sh, bt) : NaN);
   sledLen.push(nose && tail ? Math.hypot(nose.x - tail.x, nose.y - tail.y) : NaN);
 }
-// Unwrap sled angle into a continuous cumulative orientation.
-const sled: number[] = [sledAngRaw[0] || 0];
-for (let f = 1; f <= F; f++) sled.push(unwrap(sled[f - 1], sledAngRaw[f] || sled[f - 1]));
-
-// Per-frame angular velocity (deg/frame).
-const angVel: number[] = [0];
-for (let f = 1; f <= F; f++) angVel.push(sled[f] - sled[f - 1]);
-
-// Per airborne arc: net + absolute rotation, peak angular speed.
-const arcs = runs(air.slice(0, F + 1));
-let totalAbs = 0, maxArcNet = 0, flips = 0;
-const arcRows: { f: number; netDeg: number; absDeg: number; peak: number; len: number }[] = [];
-for (const [a, b] of arcs) {
-  if (b - a < 2) continue;
-  const net = sled[b] - sled[a];
-  let abs = 0, peak = 0;
-  for (let f = a + 1; f <= b; f++) { abs += Math.abs(angVel[f]); peak = Math.max(peak, Math.abs(angVel[f])); }
-  totalAbs += abs;
-  if (Math.abs(net) > Math.abs(maxArcNet)) maxArcNet = net;
-  if (Math.abs(net) > 180) flips++;
-  arcRows.push({ f: b, netDeg: net, absDeg: abs, peak, len: b - a + 1 });
-}
+// Reduce sled orientation to rotation features (shared with the trace emitter).
+const rot = computeRotationTrace(sledAngRaw, air.slice(0, F + 1));
+const sled = rot.cumulativeDeg;       // unwrapped cumulative orientation
+const angVel = rot.angVelDegPerFrame; // per-frame angular velocity (deg/frame)
+const totalAbs = rot.totalAbsRotationDeg;
+const flips = rot.flipCount;
+const arcRows = rot.arcs.map((a) => ({ f: a.endFrame, netDeg: a.netDeg, absDeg: a.absDeg, peak: a.peakDegPerFrame, len: a.lengthFrames }));
+let maxArcNet = 0;
+for (const a of rot.arcs) if (Math.abs(a.netDeg) > Math.abs(maxArcNet)) maxArcNet = a.netDeg;
 
 // Ground validation: sled angle should track velocity direction on the ground.
 let gdiff = 0, gn = 0;

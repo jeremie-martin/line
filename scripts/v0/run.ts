@@ -21,6 +21,7 @@ import { compileHandoff } from "./optimizer/handoff.ts";
 import { AXES, FPS, type Spec } from "./types.ts";
 import { axisDetails, scoreDriftReport } from "./score.ts";
 import { specCameraToSidecar } from "./core/camera.ts";
+import { extractTrace, TRACE_EMIT } from "./core/trace.ts";
 
 const COMPILERS = {
   handoff: compileHandoff,
@@ -113,6 +114,12 @@ if (cameraSidecar !== null) {
 } else if (existsSync(cameraPath)) {
   rmSync(cameraPath, { force: true });
 }
+// Opt-in observation layer (LR_EMIT_TRACE=1): per-frame trace + rotation/spin
+// features of the final track, for exploring aesthetic dimensions. Off by
+// default; never touches the score or the benchmark.
+if (TRACE_EMIT) {
+  writeFileSync(resolve(`${outPrefix}.trace.json`), JSON.stringify(extractTrace(track), null, 2));
+}
 
 // Console summary
 // Terminal summary: small and sync-first. Full per-gap detail lives in the
@@ -160,4 +167,5 @@ if (byAxis.length > 0) lines.push(`by axis (mean|err|):  ${byAxis.join("  ")}`);
 if (worstGaps.length > 0) lines.push("worst gaps (target→achieved):", ...worstGaps);
 lines.push(`full report → ${outPrefix}.report.json`);
 if (cameraSidecar !== null) lines.push(`camera → ${outPrefix}.camera.json`);
+if (TRACE_EMIT) lines.push(`trace → ${outPrefix}.trace.json`);
 console.log("\n" + lines.join("\n") + "\n");

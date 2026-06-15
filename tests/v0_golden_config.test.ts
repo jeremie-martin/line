@@ -167,9 +167,9 @@ describe("v0 golden configuration", () => {
     }
   });
 
-  test("canonical budget grid is {50,100,200,300}k; fast probe is a subset", () => {
-    expect([...DEFAULT_BUDGETS]).toEqual([50_000, 100_000, 200_000, 300_000]);
-    expect([...FAST_PROBE_BUDGETS]).toEqual([50_000, 300_000]);
+  test("canonical budget grid is {100,200,300}k; fast probe is a subset", () => {
+    expect([...DEFAULT_BUDGETS]).toEqual([100_000, 200_000, 300_000]);
+    expect([...FAST_PROBE_BUDGETS]).toEqual([100_000, 300_000]);
     // fast probe budgets are a strict subset of canonical, so `decide` can pair them.
     for (const b of FAST_PROBE_BUDGETS) expect(DEFAULT_BUDGETS).toContain(b);
   });

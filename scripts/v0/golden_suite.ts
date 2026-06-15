@@ -97,7 +97,7 @@ export const DEFAULT_BUDGETS: readonly number[] = [100_000, 200_000, 300_000];
  * same score space — a strict subset of the canonical budgets (the endpoints), so
  * `decide` can pair it against canonical on the shared budgets. Fewer seeds/budgets
  * costs statistical power (wider CI), not comparability. */
-export const FAST_PROBE_BUDGETS: readonly number[] = [50_000, 300_000];
+export const FAST_PROBE_BUDGETS: readonly number[] = [100_000, 300_000];
 
 /** Headline decision weights, keyed by budget and proportional to budget value
  * (higher-quality expensive runs matter more; lower budgets still count). Stored

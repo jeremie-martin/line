@@ -24,7 +24,8 @@
  */
 import type { Contact, Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
-import { beats } from "../core/beats.ts";
+import { withImpactLegacy } from "../core/beats.ts";
+import { SHELTER_81_MUSIC } from "./_music.ts";
 
 const ANCHOR = 0.33;
 const PERIOD = 0.6;
@@ -105,6 +106,8 @@ function sectionScale(t: number): number {
   return 0.28;
 }
 
+// Authored under the pre-redirArc impact convention; withImpactLegacy migrates
+// these values once to the current redirArc felt scale at spec load.
 function impactAt(t: number, energy: number): number {
   let v = sectionBase(t) + sectionScale(t) * energy;
   if (near(t, phraseHits)) v += 0.06;
@@ -135,10 +138,10 @@ addHits(contactIndices, [
   74.13, 75.93, 77.13, 78.33, 79.53, 80.13, 80.73,
 ]);
 
-const contacts: Contact[] = beats([...contactIndices].sort((a, b) => a - b).map((i) => {
+const contacts: Contact[] = withImpactLegacy([...contactIndices].sort((a, b) => a - b).map((i) => {
   const t = beatTime(i);
-  return { t, impact: impactAt(t, onsetEnergy[i] ?? 0.5) };
-}));
+  return { t };
+}), (t) => impactAt(t, onsetEnergy[beatIndex(t)] ?? 0.5));
 
 export const overlayMeta = {
   title: "SHELTER",
@@ -158,6 +161,7 @@ export const overlayMeta = {
 
 const spec: Spec = {
   duration: 81,
+  music: SHELTER_81_MUSIC,
   contacts,
   jitter: 0,
   axes: {

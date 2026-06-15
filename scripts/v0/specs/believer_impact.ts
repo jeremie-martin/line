@@ -22,6 +22,7 @@
 import type { Contact, Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
 import { beats } from "../core/beats.ts";
+import { BELIEVER_MUSIC } from "./_music.ts";
 
 // Clean on-grid 125 BPM main beat inlined from beats/drums_0_56s.json.
 const rawBeatTimes = [
@@ -130,6 +131,7 @@ export const overlayMeta = {
 
 const spec: Spec = {
   duration: 56,
+  music: BELIEVER_MUSIC,
   contacts,
   jitter: 0,
   axes: {

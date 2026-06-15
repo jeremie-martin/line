@@ -18,7 +18,7 @@
  * but author ramps/keyframes at gap granularity, not finer.
  */
 
-import { AXES, type AxisCurves, type Curve, type AxisValues } from "../types.ts";
+import { AXES, type AxisCurves, type Curve, type AxisValues, type CurveMeta } from "../types.ts";
 
 /**
  * Easing for a keyframe segment. A point's ease governs the segment FROM that
@@ -41,7 +41,10 @@ const EASE_FN: Record<Exclude<Ease, "hold">, (u: number) => number> = {
 
 /** Constant curve — the value `v` at every time. Reproduces a single section. */
 export function constant(v: number): Curve {
-  return () => v;
+  return withCurveMeta(() => v, {
+    kind: "constant",
+    points: [{ t: 0, v }],
+  });
 }
 
 /**
@@ -49,7 +52,11 @@ export function constant(v: number): Curve {
  * (before t0 → v0, after t1 → v1). A two-point `keyframes`.
  */
 export function ramp(t0: number, v0: number, t1: number, v1: number, ease: Ease = "linear"): Curve {
-  return keyframes([{ t: t0, v: v0, ease }, { t: t1, v: v1 }]);
+  return withCurveMeta(keyframes([{ t: t0, v: v0, ease }, { t: t1, v: v1 }]), {
+    kind: "ramp",
+    defaultEase: ease,
+    points: [{ t: t0, v: v0, ease }, { t: t1, v: v1 }],
+  });
 }
 
 /** A keyframe point: value `v` at time `t`, with the ease toward the next point. */
@@ -72,7 +79,7 @@ export function keyframes(points: Keyframe[], defaultEase: Ease = "linear"): Cur
   const pts = [...points].sort((a, b) => a.t - b.t);
   const first = pts[0];
   const last = pts[pts.length - 1];
-  return (t: number) => {
+  return withCurveMeta((t: number) => {
     if (t <= first.t) return first.v;
     if (t >= last.t) return last.v;
     // Find segment [a, b] with a.t <= t < b.t. Linear scan: keyframe lists are short.
@@ -84,5 +91,20 @@ export function keyframes(points: Keyframe[], defaultEase: Ease = "linear"): Cur
     if (ease === "hold") return a.v;
     const u = (t - a.t) / (b.t - a.t);
     return a.v + (b.v - a.v) * EASE_FN[ease](u);
-  };
+  }, {
+    kind: "keyframes",
+    defaultEase,
+    points: pts.map((p) => ({ ...p })),
+  });
+}
+
+function withCurveMeta(fn: (t: number) => number | undefined, meta: CurveMeta): Curve {
+  const curve = fn as Curve;
+  Object.defineProperty(curve, "meta", {
+    value: meta,
+    enumerable: false,
+    configurable: true,
+    writable: false,
+  });
+  return curve;
 }

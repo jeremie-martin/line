@@ -1,0 +1,10 @@
+{
+  "audio_file": "shelter_65s.mp3",
+  "duration": 65.5,
+  "width": 2620,
+  "height": 128,
+  "image": "shelter_65s.spectrogram.png",
+  "generator": "ffmpeg showspectrumpic",
+  "scale": "log",
+  "colormap": "magma"
+}

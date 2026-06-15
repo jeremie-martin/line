@@ -17,6 +17,8 @@ import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { networkInterfaces } from "node:os";
 import { basename, dirname, extname, normalize, relative, resolve, sep } from "node:path";
+import { pathToFileURL } from "node:url";
+import { AXES, FPS, type AxisName, type Spec, type SpecMusic } from "./v0/types.ts";
 
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
 const HOST = process.env.HOST ?? "127.0.0.1";
@@ -141,6 +143,42 @@ type SpecEntry = {
   group: string;
 };
 
+type ResolvedSpecEntry = {
+  entry: SpecEntry;
+  absPath: string;
+};
+
+type SpecNote = {
+  id: string;
+  t: number;
+  scope: "moment" | "contact" | "gap" | "range" | "keyframe";
+  index: number | null;
+  t0?: number | null;
+  t1?: number | null;
+  axis?: string | null;
+  title: string;
+  text: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+type SpecEdit = {
+  id: string;
+  target: "moment" | "contact" | "gap" | "range" | "keyframe";
+  t: number;
+  index: number | null;
+  t0?: number | null;
+  t1?: number | null;
+  axis?: string | null;
+  value?: number | null;
+  ease?: string | null;
+  impact?: number | null;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 const jobs = new Map<string, DashboardJob>();
 let mirrorServerReady: Promise<void> | null = null;
 
@@ -162,6 +200,15 @@ function listV0Specs(): SpecEntry[] {
     }
   }
   return specs.sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function resolveListedSpec(rawSpec: string): ResolvedSpecEntry | null {
+  const specAbs = normalize(resolve(ROOT, rawSpec));
+  for (const entry of listV0Specs()) {
+    const absPath = normalize(resolve(ROOT, entry.path));
+    if (absPath === specAbs) return { entry, absPath };
+  }
+  return null;
 }
 
 function toPosixPath(path: string): string {
@@ -260,6 +307,418 @@ function writeImpactLabels(name: string, labels: Record<string, unknown>): void 
   writeFileSync(file, JSON.stringify({ name, updatedAt: new Date().toISOString(), labels }, null, 2) + "\n");
 }
 
+function round(value: number, digits: number): number {
+  const scale = 10 ** digits;
+  return Math.round(value * scale) / scale;
+}
+
+function jsonClone(value: unknown): unknown {
+  if (value === undefined) return null;
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return null;
+  }
+}
+
+function valueAsOptionalNumber(body: Record<string, unknown>, key: string, fallback: number | null = null): number | null {
+  const value = body[key];
+  const n = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function resolveAssetRef(ref: string, baseDir = ROOT): { url: string; absPath: string | null } {
+  const trimmed = ref.trim();
+  if (/^(https?:)?\/\//.test(trimmed) || /^(data|blob):/.test(trimmed)) {
+    return { url: trimmed, absPath: null };
+  }
+  if (trimmed.startsWith("/")) {
+    const absPath = normalize(resolve(ROOT, "." + trimmed));
+    return isUnder(ROOT, absPath) ? { url: trimmed, absPath } : { url: trimmed, absPath: null };
+  }
+  const absPath = normalize(resolve(baseDir, trimmed));
+  if (!isUnder(ROOT, absPath)) return { url: trimmed, absPath: null };
+  return { url: workspaceUrl(absPath), absPath };
+}
+
+function normalizeCurveMeta(meta: unknown): Record<string, unknown> | null {
+  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return null;
+  const raw = meta as Record<string, unknown>;
+  const points = Array.isArray(raw.points)
+    ? raw.points
+        .map((point, index) => {
+          if (!point || typeof point !== "object" || Array.isArray(point)) return null;
+          const p = point as Record<string, unknown>;
+          const t = valueAsOptionalNumber(p, "t");
+          const v = valueAsOptionalNumber(p, "v");
+          if (t === null || v === null) return null;
+          return {
+            i: index,
+            t: round(t, 4),
+            v: round(v, 4),
+            ease: typeof p.ease === "string" ? p.ease : null,
+          };
+        })
+        .filter((point): point is { i: number; t: number; v: number; ease: string | null } => point !== null)
+    : [];
+  if (points.length === 0) return null;
+  return {
+    kind: typeof raw.kind === "string" ? raw.kind : "unknown",
+    defaultEase: typeof raw.defaultEase === "string" ? raw.defaultEase : null,
+    points,
+  };
+}
+
+function readJsonAsset(absPath: string | null): unknown {
+  if (!absPath || !existsSync(absPath)) return null;
+  try {
+    return JSON.parse(readFileSync(absPath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function normalizeSpecMusic(music: SpecMusic | undefined): Record<string, unknown> | null {
+  if (!music || typeof music.audio !== "string" || !music.audio.trim()) return null;
+
+  const audio = resolveAssetRef(music.audio);
+  const beats = music.beats ? resolveAssetRef(music.beats) : null;
+  const metaRef = music.spectrogram?.metadata ? resolveAssetRef(music.spectrogram.metadata) : null;
+  const spectrogramMeta = metaRef ? readJsonAsset(metaRef.absPath) : null;
+  const metaImage = spectrogramMeta && typeof spectrogramMeta === "object" && !Array.isArray(spectrogramMeta)
+    ? (spectrogramMeta as Record<string, unknown>).image
+    : null;
+  const image = music.spectrogram?.image
+    ? resolveAssetRef(music.spectrogram.image)
+    : typeof metaImage === "string" && metaRef?.absPath
+      ? resolveAssetRef(metaImage, dirname(metaRef.absPath))
+      : null;
+
+  return {
+    title: music.title ?? null,
+    artist: music.artist ?? null,
+    tempo: music.tempo ?? null,
+    offset: Number.isFinite(music.offset) ? music.offset : 0,
+    audio: music.audio,
+    audioUrl: audio.url,
+    beats: music.beats ?? null,
+    beatsUrl: beats?.url ?? null,
+    spectrogram: image || metaRef || spectrogramMeta
+      ? {
+          image: music.spectrogram?.image ?? null,
+          imageUrl: image?.url ?? null,
+          metadata: music.spectrogram?.metadata ?? null,
+          metadataUrl: metaRef?.url ?? null,
+          meta: spectrogramMeta,
+        }
+      : null,
+  };
+}
+
+function axisValue(spec: Spec, axis: AxisName, t: number): number | null {
+  const curve = spec.axes?.[axis];
+  if (typeof curve !== "function") return null;
+  const value = curve(t);
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function sampleAxesAt(spec: Spec, t: number): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const axis of AXES) {
+    const value = axisValue(spec, axis, t);
+    if (value !== null) out[axis] = round(value, 4);
+  }
+  return out;
+}
+
+async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<Record<string, unknown>> {
+  const resolvedSpec = resolveListedSpec(rawSpec);
+  if (!resolvedSpec) throw new Error(`unsupported spec path: ${rawSpec}`);
+
+  const stat = statSync(resolvedSpec.absPath);
+  const moduleUrl = `${pathToFileURL(resolvedSpec.absPath).href}?mtime=${Math.trunc(stat.mtimeMs)}`;
+  const mod = await import(moduleUrl) as Record<string, unknown>;
+  const spec = mod.default as Spec | undefined;
+  if (!spec || typeof spec.duration !== "number" || !Number.isFinite(spec.duration) || spec.duration <= 0) {
+    throw new Error(`spec ${resolvedSpec.entry.path} did not export a valid default Spec`);
+  }
+
+  const sampleCount = Math.max(80, Math.min(3000, Math.trunc(requestedSamples)));
+  const duration = spec.duration;
+  const contacts = (Array.isArray(spec.contacts) ? spec.contacts : [])
+    .map((contact, originalIndex) => ({
+      i: originalIndex,
+      t: round(contact.t, 4),
+      frame: Math.round(contact.t * FPS),
+      impact: typeof contact.impact === "number" && Number.isFinite(contact.impact)
+        ? round(contact.impact, 4)
+        : null,
+    }))
+    .filter((contact) => Number.isFinite(contact.t) && contact.t >= 0 && contact.t <= duration)
+    .sort((a, b) => a.t - b.t);
+
+  const axes: Record<string, unknown> = {};
+  const keyframes: Record<string, unknown>[] = [];
+  const axisRanges: Record<string, { min: number; max: number; count: number }> = {};
+  for (const axis of AXES) {
+    const curve = spec.axes?.[axis];
+    if (typeof curve !== "function") continue;
+    const meta = normalizeCurveMeta(curve.meta);
+    for (const point of Array.isArray(meta?.points) ? meta.points : []) {
+      const p = point as { i: number; t: number; v: number; ease: string | null };
+      keyframes.push({
+        id: `${axis}:${p.i}`,
+        axis,
+        index: p.i,
+        t: p.t,
+        v: p.v,
+        ease: p.ease ?? (typeof meta?.defaultEase === "string" ? meta.defaultEase : null),
+        kind: meta?.kind ?? "unknown",
+      });
+    }
+    const points: [number, number | null][] = [];
+    let min = Infinity;
+    let max = -Infinity;
+    let count = 0;
+    for (let i = 0; i < sampleCount; i++) {
+      const t = sampleCount === 1 ? 0 : (duration * i) / (sampleCount - 1);
+      const value = axisValue(spec, axis, t);
+      if (value === null) {
+        points.push([round(t, 4), null]);
+      } else {
+        const v = round(value, 4);
+        points.push([round(t, 4), v]);
+        min = Math.min(min, v);
+        max = Math.max(max, v);
+        count++;
+      }
+    }
+    axes[axis] = {
+      points,
+      min: count ? min : null,
+      max: count ? max : null,
+      count,
+      meta,
+    };
+    if (count) axisRanges[axis] = { min, max, count };
+  }
+  keyframes.sort((a, b) =>
+    (Number(a.t) - Number(b.t)) ||
+    String(a.axis).localeCompare(String(b.axis)) ||
+    (Number(a.index) - Number(b.index))
+  );
+
+  const gaps = contacts.map((contact, i) => {
+    const t0 = i === 0 ? 0 : contacts[i - 1].t;
+    const t1 = contact.t;
+    const mid = Math.max(0, Math.min(duration, (t0 + t1) / 2));
+    return {
+      i,
+      t0: round(t0, 4),
+      t1: round(t1, 4),
+      duration: round(Math.max(0, t1 - t0), 4),
+      contactIndex: contact.i,
+      contactT: contact.t,
+      impact: contact.impact,
+      targets: sampleAxesAt(spec, mid),
+    };
+  });
+
+  const impacts = contacts
+    .map((contact) => contact.impact)
+    .filter((impact): impact is number => typeof impact === "number");
+  const durations = gaps.map((gap) => gap.duration).filter((value) => Number.isFinite(value));
+
+  return {
+    spec: {
+      name: resolvedSpec.entry.name,
+      label: resolvedSpec.entry.label,
+      path: resolvedSpec.entry.path,
+      group: resolvedSpec.entry.group,
+      duration,
+      frameRate: FPS,
+      jitter: spec.jitter ?? null,
+      preroll: spec.preroll ?? null,
+      start: spec.start ?? null,
+    },
+    summary: {
+      contacts: contacts.length,
+      gaps: gaps.length,
+      activeAxes: Object.keys(axes),
+      keyframes: keyframes.length,
+      impactTargets: impacts.length,
+      minImpact: impacts.length ? Math.min(...impacts) : null,
+      maxImpact: impacts.length ? Math.max(...impacts) : null,
+      shortestGap: durations.length ? Math.min(...durations) : null,
+      longestGap: durations.length ? Math.max(...durations) : null,
+      axisRanges,
+    },
+    contacts,
+    gaps,
+    axes,
+    keyframes,
+    overlayMeta: jsonClone(mod.overlayMeta),
+    music: normalizeSpecMusic(spec.music),
+  };
+}
+
+function specNotesPath(specPath: string): string {
+  const name = cleanRunName(specPath.replace(/\.ts$/, "").replace(/[\\/]+/g, "__")) || "spec";
+  return resolve(ROOT, "generated", "spec-dashboard", `${name}.notes.json`);
+}
+
+function specEditsPath(specPath: string): string {
+  const name = cleanRunName(specPath.replace(/\.ts$/, "").replace(/[\\/]+/g, "__")) || "spec";
+  return resolve(ROOT, "generated", "spec-dashboard", `${name}.edits.json`);
+}
+
+function readSpecNotes(specPath: string): SpecNote[] {
+  const file = specNotesPath(specPath);
+  if (!existsSync(file)) return [];
+  try {
+    const parsed = JSON.parse(readFileSync(file, "utf8"));
+    return Array.isArray(parsed.notes) ? parsed.notes.filter(isSpecNote) : [];
+  } catch {
+    return [];
+  }
+}
+
+function isSpecNote(value: unknown): value is SpecNote {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const note = value as Record<string, unknown>;
+  return typeof note.id === "string" &&
+    typeof note.t === "number" &&
+    typeof note.text === "string" &&
+    Array.isArray(note.tags);
+}
+
+function writeSpecNotes(specPath: string, notes: SpecNote[]): void {
+  const file = specNotesPath(specPath);
+  mkdirSync(dirname(file), { recursive: true });
+  const body = {
+    specPath,
+    updatedAt: new Date().toISOString(),
+    notes: notes.slice().sort((a, b) => a.t - b.t || a.id.localeCompare(b.id)),
+  };
+  writeFileSync(file, JSON.stringify(body, null, 2) + "\n");
+}
+
+function readSpecEdits(specPath: string): SpecEdit[] {
+  const file = specEditsPath(specPath);
+  if (!existsSync(file)) return [];
+  try {
+    const parsed = JSON.parse(readFileSync(file, "utf8"));
+    return Array.isArray(parsed.edits) ? parsed.edits.filter(isSpecEdit) : [];
+  } catch {
+    return [];
+  }
+}
+
+function isSpecEdit(value: unknown): value is SpecEdit {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const edit = value as Record<string, unknown>;
+  return typeof edit.id === "string" &&
+    typeof edit.target === "string" &&
+    typeof edit.t === "number" &&
+    typeof edit.title === "string";
+}
+
+function writeSpecEdits(specPath: string, edits: SpecEdit[]): void {
+  const file = specEditsPath(specPath);
+  mkdirSync(dirname(file), { recursive: true });
+  const body = {
+    specPath,
+    updatedAt: new Date().toISOString(),
+    edits: edits.slice().sort((a, b) => a.t - b.t || a.id.localeCompare(b.id)),
+  };
+  writeFileSync(file, JSON.stringify(body, null, 2) + "\n");
+}
+
+function cleanTags(value: unknown, fallback: string[] = []): string[] {
+  if (!Array.isArray(value)) return fallback;
+  return value
+    .filter((tag): tag is string => typeof tag === "string")
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+    .slice(0, 16);
+}
+
+function cleanScope(value: unknown): SpecNote["scope"] {
+  return value === "contact" || value === "gap" || value === "range" || value === "keyframe" ? value : "moment";
+}
+
+function cleanEditTarget(value: unknown): SpecEdit["target"] {
+  return value === "contact" || value === "gap" || value === "range" || value === "keyframe" ? value : "moment";
+}
+
+function normalizeSpecNote(input: Record<string, unknown>, previous: SpecNote | undefined): SpecNote {
+  const now = new Date().toISOString();
+  const t = valueAsNumber(input, "t", previous?.t ?? 0);
+  const scope = cleanScope(input.scope ?? previous?.scope);
+  const rawIndex = input.index;
+  const index = typeof rawIndex === "number" && Number.isFinite(rawIndex)
+    ? Math.trunc(rawIndex)
+    : previous?.index ?? null;
+  const t0 = valueAsOptionalNumber(input, "t0", previous?.t0 ?? null);
+  const t1 = valueAsOptionalNumber(input, "t1", previous?.t1 ?? null);
+  const axis = (valueAsString(input, "axis") ?? previous?.axis ?? null)?.trim() || null;
+  const fallbackId = `${scope}:${index ?? Math.round(Math.max(0, t) * 1000)}`;
+  const id = (valueAsString(input, "id") ?? previous?.id ?? fallbackId)
+    .trim()
+    .replace(/[^A-Za-z0-9:._-]+/g, "_")
+    .slice(0, 120);
+  return {
+    id,
+    t: round(Math.max(0, t), 4),
+    scope,
+    index,
+    t0: t0 === null ? null : round(Math.max(0, t0), 4),
+    t1: t1 === null ? null : round(Math.max(0, t1), 4),
+    axis,
+    title: (valueAsString(input, "title") ?? previous?.title ?? scope).trim().slice(0, 160),
+    text: (valueAsString(input, "text") ?? previous?.text ?? "").slice(0, 20000),
+    tags: cleanTags(input.tags, previous?.tags ?? []),
+    createdAt: previous?.createdAt ?? now,
+    updatedAt: now,
+  };
+}
+
+function normalizeSpecEdit(input: Record<string, unknown>, previous: SpecEdit | undefined): SpecEdit {
+  const now = new Date().toISOString();
+  const target = cleanEditTarget(input.target ?? previous?.target);
+  const t = valueAsNumber(input, "t", previous?.t ?? 0);
+  const rawIndex = input.index;
+  const index = typeof rawIndex === "number" && Number.isFinite(rawIndex)
+    ? Math.trunc(rawIndex)
+    : previous?.index ?? null;
+  const t0 = valueAsOptionalNumber(input, "t0", previous?.t0 ?? null);
+  const t1 = valueAsOptionalNumber(input, "t1", previous?.t1 ?? null);
+  const value = valueAsOptionalNumber(input, "value", previous?.value ?? null);
+  const impact = valueAsOptionalNumber(input, "impact", previous?.impact ?? null);
+  const axis = (valueAsString(input, "axis") ?? previous?.axis ?? null)?.trim() || null;
+  const ease = (valueAsString(input, "ease") ?? previous?.ease ?? null)?.trim() || null;
+  const fallbackId = `edit:${target}:${axis ?? index ?? Math.round(Math.max(0, t) * 1000)}`;
+  const id = (valueAsString(input, "id") ?? previous?.id ?? fallbackId)
+    .trim()
+    .replace(/[^A-Za-z0-9:._-]+/g, "_")
+    .slice(0, 140);
+  return {
+    id,
+    target,
+    t: round(Math.max(0, t), 4),
+    index,
+    t0: t0 === null ? null : round(Math.max(0, t0), 4),
+    t1: t1 === null ? null : round(Math.max(0, t1), 4),
+    axis,
+    value: value === null ? null : round(Math.max(0, Math.min(1, value)), 4),
+    ease,
+    impact: impact === null ? null : round(Math.max(0, Math.min(1, impact)), 4),
+    title: (valueAsString(input, "title") ?? previous?.title ?? target).trim().slice(0, 160),
+    createdAt: previous?.createdAt ?? now,
+    updatedAt: now,
+  };
+}
+
 function compactTimestamp(): string {
   return new Date().toISOString().replace(/\D/g, "").slice(0, 14);
 }
@@ -292,12 +751,10 @@ function uniqueRunName(base: string): string {
 }
 
 function startGenerateJob(body: Record<string, unknown>): DashboardJob {
-  const specs = listV0Specs();
-  const allowed = new Map(specs.map((s) => [resolve(ROOT, s.path), s.path]));
   const rawSpec = valueAsString(body, "spec") ?? "";
-  const specAbs = normalize(resolve(ROOT, rawSpec));
-  const specPath = allowed.get(specAbs);
-  if (!specPath) throw new Error(`unsupported spec path: ${rawSpec}`);
+  const resolvedSpec = resolveListedSpec(rawSpec);
+  if (!resolvedSpec) throw new Error(`unsupported spec path: ${rawSpec}`);
+  const specPath = resolvedSpec.entry.path;
 
   const seed = Math.trunc(valueAsNumber(body, "seed", 0));
   const budget = Math.trunc(valueAsNumber(body, "budget", 200_000));
@@ -458,6 +915,103 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
   if (url.pathname === "/api/specs") {
     return json(res, { specs: listV0Specs() });
   }
+  if (url.pathname === "/api/spec-view") {
+    if (req.method !== "GET") return json(res, { error: "method not allowed" }, 405);
+    try {
+      const specPath = url.searchParams.get("spec") ?? "";
+      const samples = parseInt(url.searchParams.get("samples") ?? "1200", 10);
+      return json(res, await loadSpecView(specPath, Number.isFinite(samples) ? samples : 1200));
+    } catch (e) {
+      return json(res, { error: String(e) }, 400);
+    }
+  }
+  if (url.pathname === "/api/spec-notes") {
+    if (req.method === "GET") {
+      const resolvedSpec = resolveListedSpec(url.searchParams.get("spec") ?? "");
+      if (!resolvedSpec) return json(res, { error: "missing or unsupported spec" }, 400);
+      return json(res, { specPath: resolvedSpec.entry.path, notes: readSpecNotes(resolvedSpec.entry.path) });
+    }
+    if (req.method === "POST") {
+      try {
+        const body = await readJsonBody(req);
+        if (!body || typeof body !== "object" || Array.isArray(body)) return json(res, { error: "expected JSON object" }, 400);
+        const b = body as Record<string, unknown>;
+        const resolvedSpec = resolveListedSpec(valueAsString(b, "spec") ?? "");
+        if (!resolvedSpec) return json(res, { error: "missing or unsupported spec" }, 400);
+
+        const notes = readSpecNotes(resolvedSpec.entry.path);
+        const noteInput = b.note;
+        const deleteId = valueAsString(b, "id");
+        if (noteInput == null) {
+          if (!deleteId) return json(res, { error: "missing note or id" }, 400);
+          const next = notes.filter((note) => note.id !== deleteId);
+          writeSpecNotes(resolvedSpec.entry.path, next);
+          return json(res, { ok: true, specPath: resolvedSpec.entry.path, count: next.length });
+        }
+        if (typeof noteInput !== "object" || Array.isArray(noteInput)) {
+          return json(res, { error: "note must be an object" }, 400);
+        }
+
+        const input = noteInput as Record<string, unknown>;
+        const incomingId = valueAsString(input, "id");
+        const previous = incomingId ? notes.find((note) => note.id === incomingId) : undefined;
+        const note = normalizeSpecNote(input, previous);
+        const without = notes.filter((existing) => existing.id !== note.id);
+        const isEmpty = !note.text.trim() && note.tags.length === 0;
+        const next = isEmpty ? without : [...without, note];
+        writeSpecNotes(resolvedSpec.entry.path, next);
+        return json(res, { ok: true, specPath: resolvedSpec.entry.path, count: next.length, note: isEmpty ? null : note });
+      } catch (e) {
+        return json(res, { error: String(e) }, 400);
+      }
+    }
+    return json(res, { error: "method not allowed" }, 405);
+  }
+  if (url.pathname === "/api/spec-edits") {
+    if (req.method === "GET") {
+      const resolvedSpec = resolveListedSpec(url.searchParams.get("spec") ?? "");
+      if (!resolvedSpec) return json(res, { error: "missing or unsupported spec" }, 400);
+      return json(res, { specPath: resolvedSpec.entry.path, edits: readSpecEdits(resolvedSpec.entry.path) });
+    }
+    if (req.method === "POST") {
+      try {
+        const body = await readJsonBody(req);
+        if (!body || typeof body !== "object" || Array.isArray(body)) return json(res, { error: "expected JSON object" }, 400);
+        const b = body as Record<string, unknown>;
+        const resolvedSpec = resolveListedSpec(valueAsString(b, "spec") ?? "");
+        if (!resolvedSpec) return json(res, { error: "missing or unsupported spec" }, 400);
+
+        if (valueAsBool(b, "clear", false)) {
+          writeSpecEdits(resolvedSpec.entry.path, []);
+          return json(res, { ok: true, specPath: resolvedSpec.entry.path, count: 0, edits: [] });
+        }
+
+        const edits = readSpecEdits(resolvedSpec.entry.path);
+        const editInput = b.edit;
+        const deleteId = valueAsString(b, "id");
+        if (editInput == null) {
+          if (!deleteId) return json(res, { error: "missing edit or id" }, 400);
+          const next = edits.filter((edit) => edit.id !== deleteId);
+          writeSpecEdits(resolvedSpec.entry.path, next);
+          return json(res, { ok: true, specPath: resolvedSpec.entry.path, count: next.length, edits: next });
+        }
+        if (typeof editInput !== "object" || Array.isArray(editInput)) {
+          return json(res, { error: "edit must be an object" }, 400);
+        }
+
+        const input = editInput as Record<string, unknown>;
+        const incomingId = valueAsString(input, "id");
+        const previous = incomingId ? edits.find((edit) => edit.id === incomingId) : undefined;
+        const edit = normalizeSpecEdit(input, previous);
+        const next = [...edits.filter((existing) => existing.id !== edit.id), edit];
+        writeSpecEdits(resolvedSpec.entry.path, next);
+        return json(res, { ok: true, specPath: resolvedSpec.entry.path, count: next.length, edit, edits: next });
+      } catch (e) {
+        return json(res, { error: String(e) }, 400);
+      }
+    }
+    return json(res, { error: "method not allowed" }, 405);
+  }
   if (url.pathname === "/api/jobs/generate" && req.method === "POST") {
     try {
       const body = await readJsonBody(req);
@@ -613,5 +1167,6 @@ server.listen(PORT, HOST, () => {
   console.log(`serving ${ROOT} on ${HOST}:${PORT}`);
   for (const host of accessHosts(HOST)) {
     console.log(`Dashboard: http://${host}:${PORT}/dashboard/`);
+    console.log(`Spec dashboard: http://${host}:${PORT}/spec-dashboard/`);
   }
 });

@@ -19,6 +19,7 @@
 import type { Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
 import { beats } from "../core/beats.ts";
+import { BELIEVER_MUSIC } from "./_music.ts";
 
 // Clean on-grid 125 BPM main beat inlined from the former beats/drums_0_56s.json.
 const beatTimes = [
@@ -43,6 +44,7 @@ const contacts = beats(beatTimes.map((t) => ({ t })));
 // stays low.
 const spec: Spec = {
   duration: 56,
+  music: BELIEVER_MUSIC,
   contacts,
   axes: {
     air: keyframes([

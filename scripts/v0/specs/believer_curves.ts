@@ -45,6 +45,7 @@
 import type { Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
 import { beats } from "../core/beats.ts";
+import { BELIEVER_MUSIC } from "./_music.ts";
 
 // Clean on-grid 125 BPM main beat inlined from the former beats/drums_0_56s.json
 // (113 contacts at ≥~0.4s spacing — the handoff compiler's sweet spot).
@@ -80,6 +81,7 @@ export const overlayMeta = {
 
 const spec: Spec = {
   duration: 56,
+  music: BELIEVER_MUSIC,
   contacts,
   jitter: 0,
   axes: {

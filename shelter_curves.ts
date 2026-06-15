@@ -57,6 +57,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Spec, Contact } from "./scripts/v0/types.ts";
 import { keyframes } from "./scripts/v0/core/curves.ts";
+import { SHELTER_65_MUSIC } from "./scripts/v0/specs/_music.ts";
 
 const raw = JSON.parse(
   readFileSync(resolve("beats/shelter_65s.json"), "utf8"),
@@ -80,6 +81,7 @@ export const overlayMeta = {
 
 const spec: Spec = {
   duration: raw.range_s[1],
+  music: SHELTER_65_MUSIC,
   contacts,
   jitter: 0,
   axes: {

@@ -5,6 +5,7 @@
  */
 import type { Spec } from "../types.ts";
 import { beats } from "../core/beats.ts";
+import { BELIEVER_MUSIC } from "./_music.ts";
 
 // Post-filter onsets inlined from the former beats/drums_0_56s_60_125.json
 // (≥0.4s spacing enforced for t<28s, every onset kept after).
@@ -25,5 +26,5 @@ const beatTimes = [
 ];
 const contacts = beats(beatTimes.map((t) => ({ t })));
 
-const spec: Spec = { duration: 56, contacts, axes: {} };
+const spec: Spec = { duration: 56, music: BELIEVER_MUSIC, contacts, axes: {} };
 export default spec;

@@ -19,6 +19,7 @@
 
 import type { Spec } from "../types.ts";
 import { beats } from "../core/beats.ts";
+import { BELIEVER_MUSIC } from "./_music.ts";
 
 // Post-filter onsets inlined from the former beats/drums_0_56s_60_125.json (clean
 // ≥0.4s-spaced runway for t<5s, every onset kept after; spawn artifact dropped).
@@ -43,6 +44,7 @@ const contacts = beats(beatTimes.map((t) => ({ t })));
 
 const spec: Spec = {
   duration: 56,
+  music: BELIEVER_MUSIC,
   contacts,
   // No axis pressure — the compiler hits contacts with whatever geometry is
   // easiest (incremental step 1; see header).

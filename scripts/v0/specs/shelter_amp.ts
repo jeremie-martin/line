@@ -27,6 +27,7 @@
 import type { Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
 import { beats } from "../core/beats.ts";
+import { SHELTER_81_MUSIC } from "./_music.ts";
 
 // Onsets inlined from the former beats/shelter_amp81.json (100 BPM grid), with the
 // three phrase-hit showpiece rests (43.53, 50.73, 69.93) already removed so
@@ -60,6 +61,7 @@ export const overlayMeta = {
 
 const spec: Spec = {
   duration: 81,
+  music: SHELTER_81_MUSIC,
   contacts,
   jitter: 0,
   axes: {

@@ -32,6 +32,7 @@
 import type { Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
 import { beats } from "../core/beats.ts";
+import { SHELTER_65_MUSIC } from "./_music.ts";
 
 // Beats inlined from the former beats/shelter_65s.json (madmom onsets, 100 BPM) so
 // the timing lives WITH the spec — and is now co-authorable with per-beat landing
@@ -70,6 +71,7 @@ export const overlayMeta = {
 
 const spec: Spec = {
   duration: 65.5,
+  music: SHELTER_65_MUSIC,
   contacts,
   jitter: 0,
   axes: {

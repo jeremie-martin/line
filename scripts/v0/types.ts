@@ -9,6 +9,12 @@ import type { TrackLine } from "../lib/primitive.ts";
 export type Spec = {
   /** Track duration, seconds. */
   duration: number;
+  /**
+   * Optional music/audio assets associated with this spec. The compiler ignores
+   * this field; dashboards/renderers can use it to play the source track and
+   * overlay analysis assets against the authored contacts/axes.
+   */
+  music?: SpecMusic;
   /** Hard sync events. */
   contacts: Contact[];
   /**
@@ -40,6 +46,27 @@ export type Spec = {
    * into the spec; a future per-axis form may follow.
    */
   jitter?: number;
+};
+
+export type SpecMusic = {
+  /** Repo-relative path or URL for the source audio. */
+  audio: string;
+  title?: string;
+  artist?: string;
+  /** Human-readable tempo/meter label, e.g. "100 BPM · 4/4". */
+  tempo?: string;
+  /**
+   * Seconds added to audio time before comparing to spec time. Default 0.
+   * Positive values mean the dashboard reads the spec at `audio.currentTime + offset`.
+   */
+  offset?: number;
+  /** Optional beat/onset/downbeat analysis JSON, repo-relative path or URL. */
+  beats?: string;
+  /** Optional spectrogram assets, repo-relative paths or URLs. */
+  spectrogram?: {
+    image?: string;
+    metadata?: string;
+  };
 };
 
 /** Manual override for rider initial state. px / px·frame⁻¹. */
@@ -92,7 +119,13 @@ export type Contact = {
  * helpers in `core/curves.ts` (`constant`, `ramp`, `keyframes`); raw lambdas
  * are allowed too.
  */
-export type Curve = (t: number) => number | undefined;
+export type CurveKind = "constant" | "ramp" | "keyframes";
+export type CurveMeta = {
+  kind: CurveKind;
+  defaultEase?: string;
+  points: { t: number; v: number; ease?: string }[];
+};
+export type Curve = ((t: number) => number | undefined) & { meta?: CurveMeta };
 
 /**
  * The creative axes, in canonical order. Single source of iteration. New axes

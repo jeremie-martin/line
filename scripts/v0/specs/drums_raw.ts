@@ -6,6 +6,7 @@
  */
 import type { Spec } from "../types.ts";
 import { beats } from "../core/beats.ts";
+import { BELIEVER_MUSIC } from "./_music.ts";
 
 // Every detected onset (all 156, no filtering) inlined from the former
 // beats/drums_0_56s_60_125.json.
@@ -29,5 +30,5 @@ const beatTimes = [
 ];
 const contacts = beats(beatTimes.map((t) => ({ t })));
 
-const spec: Spec = { duration: 56, contacts, axes: {} };
+const spec: Spec = { duration: 56, music: BELIEVER_MUSIC, contacts, axes: {} };
 export default spec;

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>line - spec dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="brand-block">
+    <a href="/dashboard/" class="brand">line</a>
+    <div>
+      <h1>Specification Dashboard</h1>
+      <div class="subtitle" id="spec-subtitle">Loading specs</div>
+    </div>
+  </div>
+  <div class="header-controls">
+    <label class="field-label" for="spec-select">Spec</label>
+    <select id="spec-select"></select>
+    <button id="reload-spec" type="button">Reload</button>
+  </div>
+</header>
+
+<main class="workspace">
+  <section class="timeline-panel">
+    <div class="transport">
+      <audio id="audio" preload="metadata"></audio>
+      <button id="play" type="button">Play</button>
+      <button id="back" type="button">-5s</button>
+      <button id="forward" type="button">+5s</button>
+      <div class="transport-time">
+        <span id="time-now">0:00.00</span>
+        <span id="time-total">/ 0:00.00</span>
+      </div>
+      <input id="scrub" type="range" min="0" max="1" step="0.001" value="0" aria-label="scrub">
+      <div class="music-meta" id="music-meta">No audio linked</div>
+    </div>
+
+    <div class="overview-head">
+      <div>
+        <h2>Timeline</h2>
+        <div class="metric-row" id="summary-row"></div>
+      </div>
+      <div class="overview-actions">
+        <div class="zoom-controls">
+          <button id="zoom-out" type="button">Zoom out</button>
+          <button id="zoom-in" type="button">Zoom in</button>
+          <button id="zoom-selection" type="button">To range</button>
+          <button id="zoom-reset" type="button">Reset</button>
+          <span id="view-window">0:00.00-0:00.00</span>
+        </div>
+        <div class="snap-controls">
+          <label class="field-label" for="snap-mode">Snap</label>
+          <select id="snap-mode">
+            <option value="beat" selected>Beat</option>
+            <option value="contact">Contact</option>
+            <option value="keyframe">Keyframe</option>
+            <option value="off">Off</option>
+          </select>
+          <button id="snap-selection" type="button">Snap range</button>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="toggle-beats" checked> Beats</label>
+          <label><input type="checkbox" id="toggle-phases" checked> Phases</label>
+          <label><input type="checkbox" id="toggle-notes" checked> Notes</label>
+        </div>
+      </div>
+    </div>
+    <div class="timeline-wrap">
+      <svg id="timeline" role="img" aria-label="specification timeline"></svg>
+    </div>
+  </section>
+
+  <aside class="inspector">
+    <section class="readout">
+      <h2>Cursor</h2>
+      <div class="time-readout" id="cursor-time">0:00.00</div>
+      <div class="detail-grid" id="cursor-grid"></div>
+      <div class="axis-readouts" id="axis-readouts"></div>
+    </section>
+
+    <section class="editor">
+      <div class="section-title-row">
+        <h2>Editor</h2>
+        <span id="edit-state"></span>
+      </div>
+      <div class="note-anchor" id="editor-anchor">moment</div>
+      <div class="editor-grid">
+        <label>Time <input id="edit-time" type="number" min="0" step="0.01"></label>
+        <label>Axis <select id="edit-axis"></select></label>
+        <label>Value <input id="edit-value" type="number" min="0" max="1" step="0.01"></label>
+        <label>Ease <select id="edit-ease">
+          <option value="">-</option>
+          <option value="hold">hold</option>
+          <option value="linear">linear</option>
+          <option value="smooth">smooth</option>
+          <option value="easeIn">easeIn</option>
+          <option value="easeOut">easeOut</option>
+        </select></label>
+        <label>Impact <input id="edit-impact" type="number" min="0" max="1" step="0.01"></label>
+      </div>
+      <div class="save-row">
+        <button id="stage-edit" type="button">Stage</button>
+        <button id="clear-edits" type="button">Clear</button>
+      </div>
+      <ol id="edit-list" class="edit-list"></ol>
+    </section>
+
+    <section class="notes">
+      <div class="section-title-row">
+        <h2>Notes</h2>
+        <div class="scope-tabs" id="scope-tabs">
+          <button type="button" data-scope="moment" class="active">Moment</button>
+          <button type="button" data-scope="contact">Contact</button>
+          <button type="button" data-scope="gap">Gap</button>
+          <button type="button" data-scope="range">Range</button>
+          <button type="button" data-scope="keyframe">Keyframe</button>
+        </div>
+      </div>
+      <div class="note-anchor" id="note-anchor">moment</div>
+      <textarea id="note-text" placeholder="Feedback for this point"></textarea>
+      <div class="tag-row" id="tag-row"></div>
+      <div class="save-row">
+        <span id="save-state"></span>
+        <button id="delete-note" type="button">Delete</button>
+      </div>
+      <ol id="notes-list" class="notes-list"></ol>
+    </section>
+
+    <section class="agent-context">
+      <div class="section-title-row">
+        <h2>Agent Context</h2>
+        <button id="copy-context" type="button">Copy</button>
+      </div>
+      <pre id="agent-json">{}</pre>
+    </section>
+  </aside>
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>

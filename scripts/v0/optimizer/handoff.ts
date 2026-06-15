@@ -1169,6 +1169,11 @@ function compileHandoffInternal(
       // new metric reshapes — so leaving it on would confound any study of the new ruler. With the
       // loop off, plannedTargets is never set ⇒ aimTargets() ≡ gap.targets ⇒ byte-identical to the
       // no-planning compiler. Opt back in with LR_PLAN_LOOP=1. See docs/planning-campaign.md.
+      // RE-TESTED 2026-06-15 on the locked redirArc ruler (loop on, eval_impact 13-spec board; bump
+      // reshaped additive-in-redirArc and swept 0.35/0.7px plus the old ×1.2): still does NOT pay —
+      // Δ −0.7 to −1.7, best case parity as bump→0. It is now redundant with the re-fit curvature
+      // carrier (flatten 18/frontload 1.6 already pursues steeper scoops by default) and merely
+      // diverts repair-restart budget to worse nodes; the specs the carrier helped most are hurt most.
       // (When on: each repair iteration, if the weakest affordable gap is an impact-UNDERSHOOT gap,
       // aim ITS impact higher so the restart re-searches toward it; accept/reject on the TRUE score.)
       const planLoop = readEnv("LR_PLAN_LOOP") === "1";

@@ -81,13 +81,13 @@ if (!spec) {
 // disables. This is an authoring-layer transform on THIS production CLI only:
 // the golden suite, verify:optimizer, and tests call compileHandoff directly
 // and stay offset-free by construction.
-const JOLT_OFFSET_DEFAULT_MS = 0;
+const JOLT_OFFSET_DEFAULT_MS = -15;
 const rawJoltMs = process.env.LR_JOLT_OFFSET_MS;
 const joltOffsetMs = rawJoltMs === undefined || rawJoltMs === ""
   ? JOLT_OFFSET_DEFAULT_MS
   : Number(rawJoltMs);
-if (!Number.isFinite(joltOffsetMs) || joltOffsetMs < 0) {
-  console.error(`invalid LR_JOLT_OFFSET_MS=${rawJoltMs} (expected ms >= 0)`);
+if (!Number.isFinite(joltOffsetMs)) {
+  console.error(`invalid LR_JOLT_OFFSET_MS=${rawJoltMs} (expected a finite number of ms; positive shifts contacts earlier, negative later)`);
   process.exit(1);
 }
 // Clamp to the earliest catchable contact (the detector's landing floor).
@@ -97,7 +97,8 @@ const compiledSpec: Spec = joltOffsetMs === 0 ? spec : {
   contacts: spec.contacts.map((c) => ({ ...c, t: Math.max(contactFloorS, c.t - joltOffsetMs / 1000) })),
 };
 if (joltOffsetMs !== 0) {
-  console.log(`jolt offset: contacts shifted ${joltOffsetMs}ms early (felt slam on the beat; LR_JOLT_OFFSET_MS=0 to disable)`);
+  const dir = joltOffsetMs > 0 ? "earlier" : "later";
+  console.log(`jolt offset: contacts shifted ${Math.abs(joltOffsetMs)}ms ${dir} (LR_JOLT_OFFSET_MS=0 to disable)`);
 }
 
 const t0 = Date.now();

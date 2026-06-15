@@ -25,7 +25,7 @@ import { K_BOUNCE_LANDING } from "../lib/detector.ts";
 /** Felt-jolt authoring transform, mirroring run.ts (default -15ms; positive
  *  shifts contacts earlier, negative later). The benchmark path compiles
  *  offset-free, so we replicate run.ts's transform here to match the CLI. */
-const JOLT_DEFAULT_MS = -25;
+const JOLT_DEFAULT_MS = -15;
 function resolveJoltMs(): number {
   const raw = process.env.LR_JOLT_OFFSET_MS;
   const v = raw === undefined || raw === "" ? JOLT_DEFAULT_MS : Number(raw);

@@ -42,7 +42,7 @@ export function defaultJobsForParallelism(cpuCount: number): number {
 const DEFAULT_JOBS = defaultJobsForParallelism(availableParallelism());
 
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { FPS, REPORT_ONLY_AXIS_SET, type CompileStats, type DriftReport, type Spec } from "./types.ts";
+import { FPS, REDIRARC, REPORT_ONLY_AXIS_SET, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
   parseBudgetList,
   weightedBudgetScore,
@@ -258,6 +258,10 @@ function evaluatorFingerprint(): string {
   const h = createHash("sha256");
   const specDir = resolve("specs/golden");
   h.update(readFileSync(resolve("scripts/v0/score.ts")));
+  // Impact felt-anchors are part of the scored ruler but are env-tunable (LR_IMPACT_SOFT/VSTRONG) and
+  // NOT in any spec source, so the fingerprint was previously blind to them — two boards at different
+  // anchors would share a fingerprint and compare "clean" while measuring two rulers. Fold them in.
+  h.update(`\0impact-anchors\0${REDIRARC.SOFT}\0${REDIRARC.VERY_STRONG}`);
   h.update("\0speed-ruler\0");
   h.update(speedRulerFingerprintSource());
   h.update("\0effective-axes\0");

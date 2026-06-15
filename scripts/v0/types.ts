@@ -922,11 +922,16 @@ export function impactEnvNum(name: string, dflt: number): number {
   return Number.isFinite(n) ? n : dflt;
 }
 export const REDIRARC = {
-  /** redirArc (px/frame) at a felt "soft" landing → impact 0. Anchor A (LOCKED 2026-06-15):
-   *  2.8, from the user's 54 felt-labeled beats (felt-soft ≈ 2.8–2.9). Env-overridable for study. */
-  SOFT: impactEnvNum("LR_IMPACT_SOFT", 2.8),
-  /** redirArc (px/frame) at a felt "very strong" landing → impact 1. */
-  VERY_STRONG: impactEnvNum("LR_IMPACT_VSTRONG", 6.5),
+  /** redirArc (px/frame) at a felt "soft" landing → impact 0. SOFT = 0: the PHYSICAL floor — zero
+   *  redirection is zero impact. Derived 2026-06-15: the achievable-range fit wanted SOFT < 0
+   *  (unphysical), so it's floored at 0; a non-redirecting catch reads 0. Env-overridable for study. */
+  SOFT: impactEnvNum("LR_IMPACT_SOFT", 0),
+  /** redirArc (px/frame) at a felt "very strong" landing → impact 1. VSTRONG = 7.29: auto-fit on a
+   *  rich (authored, achieved-px) cloud (1767 landings, SOFT pinned 0, per-level-median least-squares),
+   *  in a flat valley [7.3, 8.5]; corroborated by the author's perceptual "very strong" (~7–8px) and the
+   *  achievable hard-hit ceiling. The compiler's `v·Δθ` IS the felt-impact measure (author-validated),
+   *  so the [0,1] map is a straight linear normalization of it. */
+  VERY_STRONG: impactEnvNum("LR_IMPACT_VSTRONG", 7.29),
 };
 // Fail fast on a degenerate env-set anchor pair: a non-positive span makes
 // normImpact divide by zero (silently clamped to 0/1) or, when SOFT > VERY_STRONG,
@@ -946,18 +951,16 @@ export function normImpact(redirArcPx: number): number {
 export function impactToRedirArcPx(impact: number): number {
   return REDIRARC.SOFT + Math.max(0, Math.min(1, impact)) * (REDIRARC.VERY_STRONG - REDIRARC.SOFT);
 }
-/** [SUPERSEDED 2026-06-15] The OLD→new convention rescale is now BAKED at authoring — golden specs
- *  use `migrateImpact` / `withImpactLegacy` (core/beats.ts), so authored impact is already on the
- *  new felt scale and there is no production runtime remap. This flag-gated form is kept only for
- *  back-compat / the LR_IMPACT_RESCALE study switch; default OFF ⇒ identity, so already-migrated
- *  (baked) values pass through unchanged. Remove once no caller references it. */
+/** SUPERSEDED — the convention rescale is now baked at authoring (golden specs use
+ *  `withImpactLegacy`/`migrateImpact`, beats.ts), so authored impact already sits on the new felt
+ *  scale and this is identity by default. Kept only as the `LR_IMPACT_RESCALE=1` study switch (and so
+ *  legacy callers still resolve); remove once all callers drop it. */
 const _impactRescaleOn = ((globalThis as { process?: { env?: Record<string, string | undefined> } })
   .process?.env?.["LR_IMPACT_RESCALE"]) === "1";
 export function rescaleAuthoredImpact(authored: number): number {
   if (!_impactRescaleOn) return authored;
   return normImpact(authored * CALIB.REDIR_CAP);
 }
-
 /** Wrap an angle (radians) to (−π, π]. Canonical home (the scored impact's net-heading-change
  *  and the study harnesses' turnNetDeg share this one definition). */
 export const wrapPi = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));

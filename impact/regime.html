@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Impact — regime comparison (authoring vs achieved)</title>
+<style>
+  :root { --bg:#11141a; --panel:#1a1f29; --ink:#e7ecf3; --mut:#8a93a6; --grid:#2a3140; --acc:#5fb3ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif; }
+  header { padding:18px 24px 6px; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  .sub { color:var(--mut); font-size:13px; max-width:980px; }
+  .wrap { display:flex; gap:20px; padding:14px 24px 32px; flex-wrap:wrap; }
+  .panel { background:var(--panel); border:1px solid var(--grid); border-radius:10px; padding:14px 16px 8px; }
+  .panel h2 { font-size:13px; margin:0 0 2px; font-weight:600; }
+  .panel .hint { color:var(--mut); font-size:12px; margin:0 0 8px; }
+  svg { display:block; }
+  .controls { padding:4px 24px 0; display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+  label.reg { display:inline-flex; gap:7px; align-items:center; cursor:pointer; font-size:13px;
+    background:var(--panel); border:1px solid var(--grid); padding:5px 10px; border-radius:20px; }
+  label.reg input { accent-color:currentColor; }
+  .sw { width:11px; height:11px; border-radius:3px; display:inline-block; }
+  .axis { stroke:var(--grid); stroke-width:1; }
+  .gridline { stroke:var(--grid); stroke-width:1; stroke-dasharray:2 4; opacity:.6; }
+  .ideal { stroke:var(--mut); stroke-width:1.4; stroke-dasharray:5 5; fill:none; }
+  .tick { fill:var(--mut); font-size:11px; }
+  .axlbl { fill:var(--mut); font-size:12px; }
+  .note { color:var(--mut); font-size:12px; padding:0 24px 28px; max-width:1000px; }
+  code { background:#0c0f14; padding:1px 5px; border-radius:4px; }
+  .err { color:#ff8d8d; padding:0 24px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Impact — regime comparison</h1>
+  <div class="sub">For each calibration regime (anchors <code>SOFT/VSTRONG</code> + soft-band lever
+  <code>LR_IMPACT_SOFT_MAX</code>), what an author actually gets. <b>Left:</b> the raw redirArc the
+  compiler delivers (px) — what's physically achievable. <b>Right:</b> that mapped through the regime's
+  own felt anchors into the scored impact [0,1] — should track the dashed <b>y=x</b> ideal: monotone,
+  on-diagonal, no dead floor, no saturated ceiling. Data = <code>calibrate_corpus</code> response over
+  the perturbed golden corpus.</div>
+</header>
+<div class="controls" id="controls"></div>
+<div class="err" id="err"></div>
+<div class="wrap">
+  <div class="panel">
+    <h2>What you get — delivered redirArc (px)</h2>
+    <p class="hint">x: authored impact · y: achieved redirArc p50 (band = p25–p75). Faint horizontal lines = each regime's SOFT/VSTRONG anchors.</p>
+    <svg id="raw" width="520" height="400"></svg>
+  </div>
+  <div class="panel">
+    <h2>What it scores — felt impact (normImpact)</h2>
+    <p class="hint">x: authored impact · y: scored impact under the regime's anchors. Dashed = ideal y=x.</p>
+    <svg id="felt" width="520" height="400"></svg>
+  </div>
+</div>
+<div class="note">Reading guide: a good regime's right-panel curve is <b>monotone and hugs the diagonal</b>
+across the whole range — every authored value lands distinct and near its felt meaning. A dead floor
+(flat at 0 on the left of the curve) means soft authoring is unreachable; a saturated/short ceiling
+(curve tops out well below 1 on the right) means strong authoring can't be expressed. The left panel
+shows whether that's a <i>geometry</i> limit (px curve itself flat/short) or a <i>calibration</i> one
+(px fine but anchors map it wrong).</div>
+<script>
+const PALETTE = ["#5fb3ff","#ffd166","#06d6a0","#ff8fab","#b39ddb","#f4a261"];
+const BINS = Array.from({length:10}, (_,i)=>({lo:i/10, hi:(i+1)/10, mid:(i+0.05)})).map(b=>({...b, key:`${b.lo.toFixed(1)}-${b.hi.toFixed(1)}`}));
+const PXMAX = 7, W=520, H=400, M={l:48,r:14,t:14,b:40};
+const IW = W-M.l-M.r, IH = H-M.t-M.b;
+const normImpact=(px,s,v)=> Math.max(0,Math.min(1,(px-s)/(v-s)));
+
+function sx(a){ return M.l + a*IW; }
+function syRaw(px){ return M.t + IH*(1 - px/PXMAX); }
+function syFelt(f){ return M.t + IH*(1 - f); }
+
+function frame(svg, yTicksRaw){
+  let s = `<line class="axis" x1="${M.l}" y1="${M.t}" x2="${M.l}" y2="${M.t+IH}"/>`;
+  s += `<line class="axis" x1="${M.l}" y1="${M.t+IH}" x2="${M.l+IW}" y2="${M.t+IH}"/>`;
+  for(let a=0;a<=1.0001;a+=0.2){ const x=sx(a);
+    s+=`<line class="gridline" x1="${x}" y1="${M.t}" x2="${x}" y2="${M.t+IH}"/>`;
+    s+=`<text class="tick" x="${x}" y="${M.t+IH+16}" text-anchor="middle">${a.toFixed(1)}</text>`; }
+  s+=`<text class="axlbl" x="${M.l+IW/2}" y="${H-6}" text-anchor="middle">authored impact</text>`;
+  for(const t of yTicksRaw.ticks){ const y=yTicksRaw.sy(t);
+    s+=`<line class="gridline" x1="${M.l}" y1="${y}" x2="${M.l+IW}" y2="${y}"/>`;
+    s+=`<text class="tick" x="${M.l-6}" y="${y+4}" text-anchor="end">${t}</text>`; }
+  s+=`<text class="axlbl" transform="translate(14,${M.t+IH/2}) rotate(-90)" text-anchor="middle">${yTicksRaw.label}</text>`;
+  return s;
+}
+function path(pts){ return pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' '); }
+
+let REGIMES=[], DATA={}, ON={};
+async function load(){
+  try{
+    REGIMES = await (await fetch('/generated/impact-study/regimes.json',{cache:'no-store'})).json();
+  }catch(e){ document.getElementById('err').textContent='Could not load regimes.json — run sweep_regimes.sh first.'; return; }
+  REGIMES.forEach((r,i)=>{ r.color=PALETTE[i%PALETTE.length]; ON[r.tag]=true; });
+  await Promise.all(REGIMES.map(async r=>{
+    try{ const j= await (await fetch('/generated/impact-study/'+r.file,{cache:'no-store'})).json();
+         DATA[r.tag]=j.responseByAuthored||{}; }
+    catch(e){ DATA[r.tag]=null; }
+  }));
+  const c=document.getElementById('controls');
+  c.innerHTML = REGIMES.map(r=>`<label class="reg" style="color:${r.color}">
+     <input type="checkbox" data-tag="${r.tag}" ${ON[r.tag]?'checked':''}>
+     <span class="sw" style="background:${r.color}"></span>
+     <span style="color:var(--ink)">${r.label||r.tag}${DATA[r.tag]?'':' (no data)'}</span></label>`).join('');
+  c.querySelectorAll('input').forEach(i=>i.onchange=e=>{ON[e.target.dataset.tag]=e.target.checked; draw();});
+  draw();
+}
+function draw(){
+  const rawTicks={ticks:[0,1,2,3,4,5,6,7], sy:syRaw, label:'redirArc p50 (px)'};
+  const feltTicks={ticks:[0,.2,.4,.6,.8,1].map(v=>v), sy:syFelt, label:'scored impact', fmt:v=>v.toFixed(1)};
+  let raw = frame(document.getElementById('raw'), rawTicks);
+  let felt = frame(document.getElementById('felt'),
+     {ticks:[0,0.2,0.4,0.6,0.8,1.0], sy:syFelt, label:'scored impact'});
+  // ideal diagonal on felt
+  felt += `<path class="ideal" d="${path([[sx(0),syFelt(0)],[sx(1),syFelt(1)]])}"/>`;
+  for(const r of REGIMES){
+    if(!ON[r.tag] || !DATA[r.tag]) continue;
+    const D=DATA[r.tag];
+    // anchor reference lines on raw panel
+    raw += `<line x1="${M.l}" y1="${syRaw(r.soft)}" x2="${M.l+IW}" y2="${syRaw(r.soft)}" stroke="${r.color}" stroke-width="1" opacity="0.18"/>`;
+    raw += `<line x1="${M.l}" y1="${syRaw(r.vstrong)}" x2="${M.l+IW}" y2="${syRaw(r.vstrong)}" stroke="${r.color}" stroke-width="1" opacity="0.18"/>`;
+    const p50=[], band=[], feltPts=[];
+    let top=[], bot=[];
+    for(const b of BINS){ const e=D[b.key]; if(!e||typeof e.p50!=='number')continue;
+      p50.push([sx(b.mid), syRaw(e.p50)]);
+      feltPts.push([sx(b.mid), syFelt(normImpact(e.p50,r.soft,r.vstrong))]);
+      if(typeof e.p25==='number'&&typeof e.p75==='number'){ top.push([sx(b.mid),syRaw(e.p75)]); bot.unshift([sx(b.mid),syRaw(e.p25)]); }
+    }
+    if(top.length) raw += `<path d="${path(top.concat(bot))} Z" fill="${r.color}" opacity="0.10"/>`;
+    if(p50.length) raw += `<path d="${path(p50)}" fill="none" stroke="${r.color}" stroke-width="2"/>`;
+    if(feltPts.length) felt += `<path d="${path(feltPts)}" fill="none" stroke="${r.color}" stroke-width="2.2"/>`;
+    for(const p of feltPts) felt += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6" fill="${r.color}"/>`;
+  }
+  document.getElementById('raw').innerHTML=raw;
+  document.getElementById('felt').innerHTML=felt;
+}
+load();
+</script>
+</body>
+</html>

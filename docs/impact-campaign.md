@@ -58,7 +58,33 @@ ablation_cmp, sweep_carrier, board_validate). Old-metric worktree: `/home/wyss/l
   so it's correct behavior, not a compiler miss — the *board* (achieved vs bounded target) is the clean
   reliability instrument, the corpus-by-authored conflates it.
 
+## Update 2026-06-15 — anchor A BAKED + soft-band root cause + the lever
+
+- **WS1 shipped:** anchor A (`SOFT 2.0→2.8`) + convention rescale **baked into the specs on disk**
+  (`migrateImpact`/`withImpactLegacy`, all 40 golden + drums; `EVALUATOR_FINGERPRINT d5a09f3b71e8`).
+  Byte-equiv validated. New standalone `impact_showcase` (committed) proves the metric is fully
+  expressive with no sacrifice when impact is authored ALIGNED with the up-axes — but gap & up-axis-ask
+  are collinear in it (needs de-correlated variants before it's trusted as a clean instrument).
+- **Dead end (logged):** alignment-aware carrier gate (drop carrier `START` ∝ co-asked up-axes). The
+  up-axis-ask signal can't separate "free" from "costly" firing — to fire on the mid band it must go
+  ~global → the −9.8 trade. Reverted.
+- **★ DECISIVE soft-band diagnosis** (corpus `responseByAuthored`, ~6500 landings + board p25/50/75):
+  achieved redirArc is **flat ~0.9px median across authored 0.1→0.4** (zero discrimination), and the
+  felt floor `SOFT=2.8` sits *above* that band's p90 (~2.4px) ⇒ the whole soft range reads ~0 by
+  construction. Two compounding causes: (a) GEOMETRY — all four impact levers gate off below target
+  0.30–0.60 (+ budget-gate 125k) so soft beats get no impact geometry; (b) CALIBRATION — `SOFT=2.8`
+  maps the entire authored scale above the deliverable baseline. The levers are already proportional
+  (`neededTurnDegForImpact`); the fix is gating + anchor, not a new mechanism.
+- **Fork resolved (Jérémie): re-derive anchors to the achievable range + gentle soft-band lever**,
+  judged by the monotone corpus response curve with a board excl_impact guardrail.
+- **The lever** (`LR_IMPACT_SOFT_MAX` deg, default 0 = byte-identical; `impactSoftRedirShiftDeg` in
+  arc_placement.ts): the proven proportional contact-angle redirect with NONE of the high-band gates,
+  small-capped. Smoke (corpus): `MAX=12` lifts soft-band delivered redirArc **monotone** — authored
+  0.1→0.5 goes 1.18→2.21→3.03→3.66px (base flat 0.75→0.89→0.88→2.31). Confirms geometry can grade the
+  soft band; anchors must come down to map it. **Anchor + lever sweep + board collateral: in flight.**
+
 ## Status
-1 calibration: anchor A validated (defaults not yet locked). 2 geometry: carrier `start=0.12/flatten=20`
-corpus-confirmed, board-validating. 3 thresholds: carrier `START` is the lever; angle-shifts stay.
-4 reliability: pending. 5 lock+bake: pending.
+1 calibration: anchor A BAKED + committed; **re-deriving anchors to achievable range (in flight).**
+2 geometry: carrier clean; **gentle soft-band lever (`LR_IMPACT_SOFT_MAX`) works — sweeping strength.**
+3 reliability: **soft band 0.1→0.4 was dead (p50≈0); lever makes delivered redirArc monotone — validating
+collateral + final anchor mapping.** 4 lock+re-bake: pending the validated anchor/lever combo.

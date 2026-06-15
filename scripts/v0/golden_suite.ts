@@ -142,7 +142,7 @@ export const EXPLORATORY_BUDGETS = [
  * spec edit is visible. A DELIBERATE ruler change updates this constant in the
  * same commit. Soft tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "d5a09f3b71e8"; // 2026-06-15: anchor A locked (felt SOFT 2.0→2.8) + convention rescale baked into specs; deliberate ruler change (was c3e831e683fb)
+export const EVALUATOR_FINGERPRINT = "67adbf0fac9e"; // 2026-06-15: impact calibration LOCKED — SOFT=0/VSTRONG=7.29 (auto-fit on rich corpus, physically floored), affine convention shift as default migration, anchors now folded into this fingerprint; deliberate ruler change (was d5a09f3b71e8)
 
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. Each budget is now an

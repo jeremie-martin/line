@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Impact calibration — author vs felt</title>
+<style>
+  :root{--bg:#0e1117;--panel:#161b24;--ink:#e7ecf3;--mut:#8a93a6;--grid:#283041;--acc:#5fb3ff;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif}
+  header{padding:12px 18px 6px;border-bottom:1px solid var(--grid)}
+  h1{font-size:16px;margin:0 0 2px}
+  .sub{color:var(--mut);font-size:12px;max-width:920px}
+  .wrap{display:grid;grid-template-columns:380px 1fr;gap:14px;padding:14px 18px 40px}
+  .panel{background:var(--panel);border:1px solid var(--grid);border-radius:10px;padding:12px}
+  .panel h2{font-size:12px;margin:0 0 8px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+  /* anchors */
+  .anchbar{display:flex;gap:18px;flex-wrap:wrap;align-items:center;padding:8px 18px}
+  .anchbar label{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--mut)}
+  .anchbar input[type=range]{width:150px;accent-color:var(--acc)}
+  .anchbar b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .pill{background:#0c0f14;border:1px solid var(--grid);border-radius:20px;padding:3px 9px;font-size:11px;color:var(--mut)}
+  /* video */
+  #player{width:100%;border-radius:8px;background:#000;aspect-ratio:16/9}
+  .pmeta{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;align-items:center}
+  .badge{font-variant-numeric:tabular-nums;border-radius:6px;padding:2px 7px;font-size:12px;background:#0c0f14;border:1px solid var(--grid)}
+  /* felt buttons */
+  .felt{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+  .felt button{cursor:pointer;border:1px solid var(--grid);background:#0c0f14;color:var(--ink);border-radius:6px;padding:4px 8px;font-size:12px}
+  .felt button.on{border-color:currentColor;font-weight:600}
+  .fdead{color:#6b7280}.fsoft{color:#7dd3fc}.fmed{color:#fcd34d}.fstrong{color:#fb923c}.fvs{color:#f87171}
+  /* list */
+  .list{max-height:62vh;overflow:auto;border:1px solid var(--grid);border-radius:8px}
+  table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+  th,td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap}
+  th{position:sticky;top:0;background:var(--panel);color:var(--mut);font-weight:500;cursor:pointer;font-size:11px}
+  td:first-child,th:first-child{text-align:left}
+  tr.sel td{background:#1d2738}
+  tr:hover td{background:#19212e;cursor:pointer}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%}
+  .derived{font-size:12px;line-height:1.7}
+  .derived b{color:var(--ink)}
+  button.apply{margin-top:8px;cursor:pointer;border:1px solid var(--acc);background:#11202e;color:var(--acc);border-radius:6px;padding:5px 10px;font-size:12px}
+  .err{color:#ff8d8d;padding:10px 18px}
+  svg{display:block}
+  .hint{color:var(--mut);font-size:11px;margin:2px 0 8px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:1100px){.wrap{grid-template-columns:1fr}.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Impact calibration — authored vs felt</h1>
+  <div class="sub">Watch each landing, judge how hard it <i>feels</i>, and the page derives the felt
+  anchors from your labels. The scatter is authored impact vs the <b>raw redirArc px</b> the compiler
+  actually delivered (the physical truth — the score only clamps it). Drag SOFT/VSTRONG to see the
+  scored mapping, or hit “apply derived” to set them from what you labelled.</div>
+</header>
+<div class="anchbar">
+  <span class="pill" id="loaded">loading…</span>
+  <label>SOFT <input id="soft" type="range" min="0" max="5" step="0.05" value="1.0"><b id="softv">1.00</b>px</label>
+  <label>VSTRONG <input id="vstrong" type="range" min="2" max="12" step="0.1" value="6.5"><b id="vstrongv">6.5</b>px</label>
+  <span class="pill" id="counts"></span>
+</div>
+<div class="err" id="err"></div>
+<div class="wrap">
+  <!-- left: focused clip + felt labelling of the selected landing -->
+  <div class="panel">
+    <h2>Selected landing</h2>
+    <video id="player" autoplay muted loop playsinline></video>
+    <div class="pmeta" id="pmeta"><span class="badge">click a point or row →</span></div>
+    <div class="felt" id="feltbtns"></div>
+    <h2 style="margin-top:14px">Landings</h2>
+    <div class="hint">sort: <span id="sortlab">px</span> — click a header. Colored dot = your felt label.</div>
+    <div class="list">
+      <table id="tbl"><thead><tr>
+        <th data-k="i">#</th><th data-k="t">t</th><th data-k="target">auth</th>
+        <th data-k="px">redirArc px</th><th data-k="score">score</th><th data-k="felt">felt</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+  <!-- right: the two mappings + derived anchors -->
+  <div class="panel">
+    <div class="row2">
+      <div>
+        <h2>What you get — authored vs delivered px</h2>
+        <div class="hint">y = raw redirArc px. Dashed lines = SOFT / VSTRONG. Point colour = felt label.</div>
+        <svg id="scatter" width="430" height="330"></svg>
+      </div>
+      <div>
+        <h2>What it scores — authored vs felt-score</h2>
+        <div class="hint">score = clamp01((px−SOFT)/(VSTRONG−SOFT)). Dashed = ideal y=x.</div>
+        <svg id="mapping" width="430" height="330"></svg>
+      </div>
+    </div>
+    <h2 style="margin-top:14px">Anchors derived from your felt labels</h2>
+    <div class="derived" id="derived">label some landings to derive anchors…</div>
+    <button class="apply" id="applyBtn">apply derived → sliders</button>
+  </div>
+</div>
+<script>
+const FELT=[{k:"dead",lab:"dead",cls:"fdead",c:"#6b7280"},{k:"soft",lab:"soft",cls:"fsoft",c:"#7dd3fc"},
+  {k:"medium",lab:"medium",cls:"fmed",c:"#fcd34d"},{k:"strong",lab:"strong",cls:"fstrong",c:"#fb923c"},
+  {k:"vs",lab:"very strong",cls:"fvs",c:"#f87171"}];
+const FC=Object.fromEntries(FELT.map(f=>[f.k,f.c]));
+const qs=new URLSearchParams(location.search);
+const dataUrl=qs.get("data");
+let B=null, ROWS=[], sel=0, sortK="px", sortDir=-1, LKEY="";
+const soft=()=>+document.getElementById("soft").value, vstrong=()=>+document.getElementById("vstrong").value;
+const clamp01=x=>Math.max(0,Math.min(1,x));
+const score=px=>clamp01((px-soft())/(vstrong()-soft()));
+const labels=()=>JSON.parse(localStorage.getItem(LKEY)||"{}");
+const setLabel=(i,k)=>{const L=labels();if(L[i]===k)delete L[i];else L[i]=k;localStorage.setItem(LKEY,JSON.stringify(L));};
+
+async function boot(){
+  if(!dataUrl){document.getElementById("err").textContent="add ?data=/generated/impact-study/<name>.bundle.json";return;}
+  try{ B=await (await fetch(dataUrl,{cache:"no-store"})).json(); }
+  catch(e){ document.getElementById("err").textContent="could not load bundle: "+e; return; }
+  LKEY="feltcal:"+B.name;
+  ROWS=B.beats.map(b=>({i:b.i,t:b.t,target:b.target,px:(b.raw&&b.raw.redirArc)||0,clip:b.clip}))
+              .filter(r=>typeof r.target==="number");
+  document.getElementById("loaded").textContent=`${B.name} · ${ROWS.length} landings`;
+  for(const el of ["soft","vstrong"]) document.getElementById(el).addEventListener("input",render);
+  document.querySelectorAll("#tbl th").forEach(th=>th.onclick=()=>{const k=th.dataset.k;sortDir=(sortK===k)?-sortDir:1;sortK=k;document.getElementById("sortlab").textContent=k;render();});
+  document.getElementById("applyBtn").onclick=applyDerived;
+  buildFeltBtns();
+  select(0);
+  render();
+}
+function buildFeltBtns(){
+  const d=document.getElementById("feltbtns");
+  d.innerHTML=FELT.map(f=>`<button class="${f.cls}" data-k="${f.k}">${f.lab}</button>`).join("")
+    +`<span class="badge" style="margin-left:6px;color:var(--mut)">←  how does THIS landing feel?</span>`;
+  d.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{setLabel(ROWS[sel].i,btn.dataset.k);render();});
+}
+function select(idx){
+  sel=idx; const r=ROWS[sel]; if(!r)return;
+  const v=document.getElementById("player"); v.src=r.clip; v.play().catch(()=>{});
+  render();
+}
+function pmeta(){
+  const r=ROWS[sel]; if(!r)return;
+  const L=labels(); const fk=L[r.i];
+  document.getElementById("pmeta").innerHTML=
+    `<span class="badge">#${r.i}</span><span class="badge">t ${r.t.toFixed(1)}s</span>`+
+    `<span class="badge">authored <b>${r.target.toFixed(2)}</b></span>`+
+    `<span class="badge">redirArc <b>${r.px.toFixed(2)}px</b></span>`+
+    `<span class="badge">score <b>${score(r.px).toFixed(2)}</b></span>`+
+    (fk?`<span class="badge" style="color:${FC[fk]}">felt: ${FELT.find(f=>f.k===fk).lab}</span>`:``);
+  document.querySelectorAll("#feltbtns button").forEach(b=>b.classList.toggle("on",b.dataset.k===fk));
+}
+// ---- scatter helpers ----
+const SW=430,SH=330,M={l:42,r:12,t:12,b:34}, IW=SW-M.l-M.r, IH=SH-M.t-M.b;
+const PXMAX=14;
+const sx=a=>M.l+a*IW;
+function axes(ymax,ylab,yticks){
+  let s=`<line x1="${M.l}" y1="${M.t}" x2="${M.l}" y2="${M.t+IH}" stroke="#283041"/>`+
+        `<line x1="${M.l}" y1="${M.t+IH}" x2="${M.l+IW}" y2="${M.t+IH}" stroke="#283041"/>`;
+  for(let a=0;a<=1.001;a+=0.2){const x=sx(a);s+=`<line x1="${x}" y1="${M.t}" x2="${x}" y2="${M.t+IH}" stroke="#283041" stroke-dasharray="2 4" opacity=".5"/><text x="${x}" y="${M.t+IH+15}" fill="#8a93a6" font-size="10" text-anchor="middle">${a.toFixed(1)}</text>`;}
+  for(const t of yticks){const y=M.t+IH*(1-t/ymax);s+=`<line x1="${M.l}" y1="${y}" x2="${M.l+IW}" y2="${y}" stroke="#283041" stroke-dasharray="2 4" opacity=".4"/><text x="${M.l-5}" y="${y+3}" fill="#8a93a6" font-size="10" text-anchor="end">${t}</text>`;}
+  s+=`<text x="${M.l+IW/2}" y="${SH-4}" fill="#8a93a6" font-size="11" text-anchor="middle">authored impact</text>`;
+  s+=`<text transform="translate(11,${M.t+IH/2}) rotate(-90)" fill="#8a93a6" font-size="11" text-anchor="middle">${ylab}</text>`;
+  return s;
+}
+function drawScatter(){
+  const L=labels(); const syPx=px=>M.t+IH*(1-Math.min(px,PXMAX)/PXMAX);
+  let s=axes(PXMAX,"redirArc px",[2,4,6,8,10,12]);
+  // anchor lines
+  s+=`<line x1="${M.l}" y1="${syPx(soft())}" x2="${M.l+IW}" y2="${syPx(soft())}" stroke="#5fb3ff" stroke-dasharray="4 3" opacity=".7"/><text x="${M.l+IW}" y="${syPx(soft())-3}" fill="#5fb3ff" font-size="10" text-anchor="end">SOFT</text>`;
+  s+=`<line x1="${M.l}" y1="${syPx(vstrong())}" x2="${M.l+IW}" y2="${syPx(vstrong())}" stroke="#f87171" stroke-dasharray="4 3" opacity=".7"/><text x="${M.l+IW}" y="${syPx(vstrong())-3}" fill="#f87171" font-size="10" text-anchor="end">VSTRONG</text>`;
+  ROWS.forEach((r,idx)=>{const c=L[r.i]?FC[L[r.i]]:"#5b6577";const rad=idx===sel?5:3.2;
+    s+=`<circle cx="${sx(r.target).toFixed(1)}" cy="${syPx(r.px).toFixed(1)}" r="${rad}" fill="${c}" ${idx===sel?'stroke="#fff" stroke-width="1.5"':''} data-idx="${idx}" style="cursor:pointer"/>`;});
+  const el=document.getElementById("scatter"); el.innerHTML=s;
+  el.querySelectorAll("circle[data-idx]").forEach(c=>c.onclick=()=>select(+c.dataset.idx));
+}
+function drawMapping(){
+  const syF=f=>M.t+IH*(1-f);
+  let s=axes(1,"felt-score",[0.2,0.4,0.6,0.8,1.0]);
+  s+=`<line x1="${sx(0)}" y1="${syF(0)}" x2="${sx(1)}" y2="${syF(1)}" stroke="#8a93a6" stroke-dasharray="5 5"/>`;
+  const L=labels();
+  ROWS.forEach((r,idx)=>{const c=L[r.i]?FC[L[r.i]]:"#5b6577";
+    s+=`<circle cx="${sx(r.target).toFixed(1)}" cy="${syF(score(r.px)).toFixed(1)}" r="${idx===sel?5:3.2}" fill="${c}" ${idx===sel?'stroke="#fff" stroke-width="1.5"':''}/>`;});
+  document.getElementById("mapping").innerHTML=s;
+}
+function drawTable(){
+  const L=labels();
+  const rows=[...ROWS.map((r,idx)=>({...r,idx,score:score(r.px),felt:L[r.i]||""}))];
+  const ord=["dead","soft","medium","strong","vs"];
+  rows.sort((a,b)=>{let x=a[sortK],y=b[sortK];if(sortK==="felt"){x=ord.indexOf(a.felt);y=ord.indexOf(b.felt);}return (x>y?1:x<y?-1:0)*sortDir;});
+  const tb=document.querySelector("#tbl tbody");
+  tb.innerHTML=rows.map(r=>`<tr data-idx="${r.idx}" class="${r.idx===sel?'sel':''}">
+    <td>${r.i}</td><td>${r.t.toFixed(1)}</td><td>${r.target.toFixed(2)}</td>
+    <td>${r.px.toFixed(2)}</td><td>${r.score.toFixed(2)}</td>
+    <td>${r.felt?`<span class="dot" style="background:${FC[r.felt]}"></span>`:'·'}</td></tr>`).join("");
+  tb.querySelectorAll("tr").forEach(tr=>tr.onclick=()=>select(+tr.dataset.idx));
+}
+function median(xs){if(!xs.length)return NaN;xs=[...xs].sort((a,b)=>a-b);return xs[Math.floor(xs.length/2)];}
+function drawDerived(){
+  const L=labels(); const by={};FELT.forEach(f=>by[f.k]=[]);
+  ROWS.forEach(r=>{if(L[r.i])by[L[r.i]].push(r.px);});
+  const n=k=>by[k].length, md=k=>median(by[k]);
+  const softPx=by.soft.length?md("soft"):(by.dead.length?Math.max(...by.dead):NaN);
+  const vsPx=by.vs.length?md("vs"):(by.strong.length?md("strong"):NaN);
+  let html=FELT.map(f=>`<span style="color:${f.c}">${f.lab}</span>: n=${n(f.k)}${n(f.k)?` · median ${md(f.k).toFixed(2)}px`:''}`).join("<br>");
+  html+=`<br><br><b>Suggested anchors</b> — SOFT≈${isFinite(softPx)?softPx.toFixed(2):'—'}px (felt-soft / top of dead), VSTRONG≈${isFinite(vsPx)?vsPx.toFixed(2):'—'}px (felt-very-strong).`;
+  document.getElementById("derived").innerHTML=html;
+  document.getElementById("applyBtn").dataset.soft=isFinite(softPx)?softPx:"";
+  document.getElementById("applyBtn").dataset.vstrong=isFinite(vsPx)?vsPx:"";
+}
+function applyDerived(){
+  const b=document.getElementById("applyBtn");
+  if(b.dataset.soft)document.getElementById("soft").value=(+b.dataset.soft).toFixed(2);
+  if(b.dataset.vstrong)document.getElementById("vstrong").value=(+b.dataset.vstrong).toFixed(1);
+  render();
+}
+function render(){
+  document.getElementById("softv").textContent=soft().toFixed(2);
+  document.getElementById("vstrongv").textContent=vstrong().toFixed(1);
+  const L=labels();const labn=Object.keys(L).length;
+  document.getElementById("counts").textContent=`${labn}/${ROWS.length} labelled`;
+  pmeta();drawScatter();drawMapping();drawTable();drawDerived();
+}
+boot();
+</script>
+</body>
+</html>

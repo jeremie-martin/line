@@ -8,8 +8,8 @@
  *
  * New-convention authoring: impact values are the NEW scale (no migrateImpact wrap).
  */
-import type { Contact, Spec } from "../../scripts/v0/types.ts";
-import { constant, keyframes } from "../../scripts/v0/core/curves.ts";
+import type { Contact, Spec } from "../types.ts";
+import { constant, keyframes } from "../core/curves.ts";
 
 const LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
 const PER = 4;

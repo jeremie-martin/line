@@ -3,8 +3,8 @@
  *
  *  - measureImpact computes the velocity REDIRECTION ARC `redirArc = v·Δθ` (incoming CoM
  *    speed × NET heading change at the window end, over IMPACT_WINDOW frames), CoM-only
- *    (NO catch-line geometry), mapped to felt [0,1] by `normImpact` (0 = soft @2.0 px/f,
- *    1 = very strong @6.5 px/f) — in both the full `detect` and offset `detectWindow`.
+ *    (NO catch-line geometry), mapped to felt [0,1] by `normImpact` (0 = SOFT @0 px/f — the
+ *    physical floor, no redirection; 1 = VSTRONG @7.29 px/f) — both full `detect` and offset.
  *  - impact is SCORED: an authored target folds into the contract `axis_quality`
  *    (target/achieved/error/ceiling in the drift report), draws no RNG, stays out of
  *    TARGET_AXES, and compiles deterministically.
@@ -128,14 +128,17 @@ describe("measureImpact (redirArc = v·Δθ reduction)", () => {
     expect(call(det)).toBeUndefined();
   });
 
-  test("clamps below soft (gentler than 2.0 px/f redirArc) to 0", () => {
-    // speed 3, tiny end turn 0.2 rad → redirArc 0.6 px/f < SOFT(2.0) ⇒ 0.
+  test("SOFT=0 floor: a small redirArc reads small & linear (no dead-zone)", () => {
+    // speed 3, tiny end turn 0.2 rad → redirArc 0.6 px/f → 0.6/VSTRONG(7.29) ≈ 0.08.
+    // SOFT=0 means a gentle redirect is a small REAL impact, not clamped to 0.
     const det = detFor(10, 20, (f) => (f <= 9 ? { x: 3, y: 0 } : vel(0.2, 3)));
-    expect(call(det)).toBe(0);
+    const v = call(det)!;
+    expect(v).toBeGreaterThan(0);
+    expect(v).toBeLessThan(0.15);
   });
 
-  test("saturates at 1.0 above very-strong (≥6.5 px/f redirArc)", () => {
-    // speed 10, π/2 turn → redirArc 10·1.571 ≈ 15.7 ≫ 6.5 ⇒ 1.
+  test("saturates at 1.0 above very-strong (≥7.29 px/f redirArc)", () => {
+    // speed 10, π/2 turn → redirArc 10·1.571 ≈ 15.7 ≫ 7.29 ⇒ 1.
     const det = detFor(10, 20, (f) => (f <= 9 ? { x: 10, y: 0 } : { x: 0, y: 10 }));
     expect(call(det)).toBe(1);
   });

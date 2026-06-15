@@ -27,6 +27,7 @@ import {
   authoredSpeedToPx,
   elevationToLaunchVy,
   impactCeiling,
+  impactEnvNum,
   impactToRedirArcPx,
   normImpact,
 } from "./types.ts";
@@ -61,15 +62,9 @@ const CC_CARRY_START_PX = authoredSpeedToPx(0.55);
 const CC_CARRY_SPAN_PX = authoredSpeedToPx(0.95) - authoredSpeedToPx(0.55);
 const CC_CARRY_FADE_START_PX = authoredSpeedToPx(0.78);
 const CC_CARRY_FADE_SPAN_PX = authoredSpeedToPx(0.90) - authoredSpeedToPx(0.78);
-// Env knob helper — for re-tuning the impact CARRIER (curvature modulation) to the new redirArc
+// Env knobs for re-tuning the impact CARRIER (curvature modulation) to the new redirArc
 // metric + anchor calibration without a recompile. Defaults = the shipped (old-metric-tuned)
-// values, so unset ⇒ byte-identical.
-const impactEnvNum = (name: string, dflt: number): number => {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.[name];
-  if (raw == null || raw === "") return dflt;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : dflt;
-};
+// values, so unset ⇒ byte-identical. Uses the shared types.ts `impactEnvNum`.
 const CONTACT_CENTERED_POINT_JITTER = 4;
 const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
 const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;

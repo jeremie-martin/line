@@ -246,7 +246,10 @@ function sortWithLaneExtras(
 // sort — never perturbs candidate order. No-op unless the env var is set.
 let _poolTelemPath: string | null | undefined;
 function recordPoolImpactTelem(gap: Gap, sorted: Candidate[]): void {
-  if (_poolTelemPath === undefined) _poolTelemPath = process.env.GEOM_POOL_TELEM ?? null;
+  if (_poolTelemPath === undefined) {
+    _poolTelemPath = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.GEOM_POOL_TELEM ?? null;
+  }
   if (_poolTelemPath === null || sorted.length === 0) return;
   const ach = (c: Candidate, k: string): number | undefined => {
     const v = (c.achievedAtEnd ?? c.achieved) as Record<string, number | undefined>;

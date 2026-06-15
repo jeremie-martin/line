@@ -19,17 +19,9 @@
 // (up-front speed/impact/air biases) were studied and REJECTED — removed; the campaign log
 // keeps the record.
 
-import { type AxisValues, type Gap } from "../types.ts";
+import { impactEnvNum as envNum, type AxisValues, type Gap } from "../types.ts";
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
-
-function envNum(name: string, dflt: number): number {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.[name];
-  if (raw === undefined || raw === "") return dflt;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : dflt;
-}
 
 /** The aim target a candidate's GEOMETRY and the ranking OBJECTIVE chase for this gap.
  *  Defaults to the literal spec target; the repair-phase loop (maybeReaimImpactGap) may

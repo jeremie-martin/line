@@ -31,6 +31,7 @@ import {
   ELEVATION,
   FPS,
   IMPACT_WINDOW,
+  impactEnvNum,
   hasExactlyTargetAxes,
   normImpact,
   type CandidateSampleMode,
@@ -185,13 +186,7 @@ const RELEASE_STATE_SPEED_WEIGHT = 0.126;
  *  its original suite-wide win having eroded as the baseline moved. Removing it also
  *  de-couples candidate cost from per-compile budget state. LR_IMPACT_LOCAL_W
  *  overrides the weight for studies. */
-const LOCAL_IMPACT_COST_WEIGHT = (() => {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_IMPACT_LOCAL_W;
-  if (raw === undefined || raw === "") return 0.5;
-  const n = Number(raw);
-  return Number.isFinite(n) && n >= 0 ? n : 0.5;
-})();
+const LOCAL_IMPACT_COST_WEIGHT = Math.max(0, impactEnvNum("LR_IMPACT_LOCAL_W", 0.5));
 
 // ─────────── Landing-window probe (study-only, off by default) ───────────
 // Read-only diagnostic for the landing-redefinition project: for every candidate
@@ -874,29 +869,25 @@ function computeShortGapFitDetection(
   // ride to the next contact and forfeit the truncation's entire saving; past
   // this floor, a clean airborne exit certifies survival to the next contact.
   const survivalFloor = Math.min(cap, gap.endFrame + 16);
-  let exitStop: { det: Detection; horizon: number } | null = null;
+  let exitStop: { det: Detection; horizon: number; exitFrame: number } | null = null;
   const stopHorizon = growShortHorizon(minExit, cap, (horizon) => {
     const det = redetect(horizon);
     const terminatedEarly = det.terminus.frame < horizon && det.terminus.reason !== "endOfSpec";
-    const exitFound = !terminatedEarly && horizon >= survivalFloor &&
-      firstAirborneExitFrame(
+    const exitFrame = (!terminatedEarly && horizon >= survivalFloor)
+      ? firstAirborneExitFrame(
         lines, minExit, horizon,
         (frame) => airborneAt(det, frame),
         (frame) => positionAt(det, frame),
-      ) !== null;
-    if (exitFound) exitStop = { det, horizon };
+      )
+      : null;
+    const exitFound = exitFrame !== null;
+    if (exitFound) exitStop = { det, horizon, exitFrame };
     return { terminatedEarly, exitFound };
   });
   // Only a CLEAN-EXIT stop truncates. Cap/early-termination ⇒ fall back to full.
   if (exitStop === null || exitStop.horizon !== stopHorizon || stopHorizon >= fullHorizon) return null;
-  const { det, horizon } = exitStop;
-
-  const exitFrame = firstAirborneExitFrame(
-    lines, minExit, horizon,
-    (frame) => airborneAt(det, frame),
-    (frame) => positionAt(det, frame),
-  );
-  if (exitFrame === null) return null;
+  // exitFrame was already located by the stopping probe — reuse it instead of re-scanning.
+  const { det, horizon, exitFrame } = exitStop;
   // No ballistic flight if the exit would ride into the next contact (mirror the
   // releaseStateFrame / releaseExitArrivalState nextContact−2 bound).
   const nextContact = allContactFramesFor(gap, axisMeasureEnd);

@@ -39,9 +39,6 @@ import {
   AXES,
   AXIS_VALUE_MAX,
   CALIB,
-  impactToRedirArcPx,
-  rescaleAuthoredImpact,
-  IMPACT,
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
   HANDOFF_EVALUATION_PHASES,
@@ -86,7 +83,12 @@ import {
   setAimCompileBudgetFrames,
   snapshotAimStats,
 } from "./aim.ts";
-import { frontierReadinessFromFit, nextContactGapFromIndex, predictArrivalAtNextContact } from "./objective.ts";
+import {
+  frontierReadinessFromFit,
+  impactFeasibility,
+  nextContactGapIndex,
+  predictArrivalAtNextContact,
+} from "./objective.ts";
 import { axisErrorsForTargets, axisQualityForTargets, axisQualityFromErrors, MISSING_CONTACT_TOLERANCE, scoreDriftReport } from "../score.ts";
 import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
@@ -651,10 +653,10 @@ function compileHandoffInternal(
     const impactByFrame = new Map<number, number>();
     if (!impactOff) {
       for (const c of spec.contacts) {
-        // rescaleAuthoredImpact: identity unless LR_IMPACT_RESCALE=1 (re-express OLD-convention
-        // authored impact on the new felt scale). Applied at the single source so the rescaled
-        // value flows to gap.targets + gapAxisTargets (scorer), generation, and feasibility alike.
-        if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), rescaleAuthoredImpact(c.impact));
+        // The convention rescale is now BAKED at authoring (golden specs use withImpactLegacy /
+        // migrateImpact, beats.ts) — authored impact already sits on the new felt scale here, no
+        // runtime remap. New specs author natively on the new scale.
+        if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);
       }
     }
     if (impactByFrame.size > 0) {
@@ -3906,14 +3908,9 @@ function leafReadinessFromArrival(
   const impactReadiness =
     (impactAsk === undefined || impactAsk < LEAF_RDY_IMPACT_MIN_ASK || arrival.comAngleDeg === null)
       ? 1
-      // Mirror of objective.ts impactFeasibilityFactor: clamp the deliverable turn to the
-      // catchable cap (the sin→Δθ migration dropped the implicit saturation). Dormant by
-      // default (leaf λ=0 / KIND=speed), fixed for correctness so an enabled leaf path is honest.
-      : Math.min(1, Math.max(0,
-        (arrival.speed * Math.min(
-          (Math.max(0, arrival.comAngleDeg) * Math.PI) / 180,
-          Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
-        )) / impactToRedirArcPx(impactAsk)));
+      // Shared single source of truth with the objective frontier (catchability
+      // clamp included) so the two readiness surfaces cannot drift.
+      : impactFeasibility(arrival.speed, arrival.comAngleDeg, impactAsk);
   switch (leafReadinessKind) {
     case "catch": return catchReadiness;
     case "impact": return impactReadiness;
@@ -4246,13 +4243,6 @@ function handoffStatePenalty(
   const verticalExcess = Math.max(0, Math.abs(v.y) - 8);
   const angleExcess = Math.max(0, angleDeg - 70) / 10;
   return HANDOFF_STATE_WEIGHT * (verticalExcess + angleExcess);
-}
-
-function nextContactGapIndex(gaps: Gap[], from: number): number {
-  for (let i = from; i < gaps.length; i++) {
-    if (gaps[i].endsWithContact) return i;
-  }
-  return -1;
 }
 
 function isTerminalNode(node: SearchNode, gaps: Gap[]): boolean {

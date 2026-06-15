@@ -245,7 +245,11 @@ function readImpactLabels(name: string): Record<string, unknown> {
   if (!existsSync(file)) return {};
   try {
     const parsed = JSON.parse(readFileSync(file, "utf8"));
-    return parsed && typeof parsed.labels === "object" ? parsed.labels : {};
+    // typeof null === "object" — guard the null and array cases so callers that
+    // index the result (labels[frame] = ...) never hit a TypeError on a null map.
+    return parsed && parsed.labels && typeof parsed.labels === "object" && !Array.isArray(parsed.labels)
+      ? parsed.labels
+      : {};
   } catch {
     return {};
   }

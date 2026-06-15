@@ -19,6 +19,7 @@ import { gravityCorrectedLaunchAverage } from "../core/launch_read.ts";
 import { firstAirborneExitFrame, growShortHorizon } from "../core/exit_read.ts";
 import { ELEVATION, IMPACT_WINDOW, type Gap, type TrackLine } from "../types.ts";
 import {
+  addFinite,
   applyArcKnobs,
   arcResponseOutputs,
   exitStateOutputs,
@@ -369,6 +370,3 @@ function riderUsable(rider: any): boolean {
   return true;
 }
 
-function addFinite(outputs: Record<string, number>, key: string, value: number | null | undefined): void {
-  if (value !== null && value !== undefined && Number.isFinite(value)) outputs[key] = value;
-}

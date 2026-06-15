@@ -759,7 +759,7 @@ export function unwrapAngleAround(value: number, ref: number): number {
   return ref + normalizeAngleDeg(value - ref);
 }
 
-function addFinite(outputs: Record<string, number>, key: string, value: number | null | undefined): void {
+export function addFinite(outputs: Record<string, number>, key: string, value: number | null | undefined): void {
   if (value !== null && value !== undefined && Number.isFinite(value)) outputs[key] = value;
 }
 

@@ -79,7 +79,7 @@ if (!spec) {
 // disables. This is an authoring-layer transform on THIS production CLI only:
 // the golden suite, verify:optimizer, and tests call compileHandoff directly
 // and stay offset-free by construction.
-const JOLT_OFFSET_DEFAULT_MS = 50;
+const JOLT_OFFSET_DEFAULT_MS = 0;
 const rawJoltMs = process.env.LR_JOLT_OFFSET_MS;
 const joltOffsetMs = rawJoltMs === undefined || rawJoltMs === ""
   ? JOLT_OFFSET_DEFAULT_MS

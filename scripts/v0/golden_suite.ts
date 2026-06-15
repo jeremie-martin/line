@@ -135,14 +135,15 @@ export const EXPLORATORY_BUDGETS = [
 /**
  * Committed fingerprint of the evaluator ruler — `score.ts`, the authored-speed
  * ruler/conversions, target-axis/report assembly, per-axis measurement
- * reductions, and every `specs/golden/*.ts` (first 12 hex of their delimited
- * sha256; see `golden.ts evaluatorFingerprint`). Compiler-only speed policy
- * constants are intentionally excluded. The harness prints the live fingerprint
- * each run and warns on drift, so an accidental scorer, speed-ruler, report, or
- * spec edit is visible. A DELIBERATE ruler change updates this constant in the
- * same commit. Soft tripwire, not a gate.
+ * reductions, impact anchors/migration, and every `specs/golden/*.ts` (first 12
+ * hex of their delimited sha256; see `golden.ts evaluatorFingerprint`).
+ * Compiler-only speed policy constants are intentionally excluded. The harness
+ * prints the live fingerprint each run and warns on drift, so an accidental
+ * scorer, speed-ruler, report, impact-migration, or spec edit is visible. A
+ * DELIBERATE ruler change updates this constant in the same commit. Soft
+ * tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "67adbf0fac9e"; // 2026-06-15: impact calibration LOCKED — SOFT=0/VSTRONG=7.29 (auto-fit on rich corpus, physically floored), affine convention shift as default migration, anchors now folded into this fingerprint; deliberate ruler change (was d5a09f3b71e8)
+export const EVALUATOR_FINGERPRINT = "2a9954c8defb"; // 2026-06-15: impact calibration LOCKED — SOFT=0/VSTRONG=7.29 (auto-fit on rich corpus, physically floored), affine convention shift as default migration, anchors and migration helper/config now folded into this fingerprint; deliberate ruler change (was 67adbf0fac9e)
 
 /**
  * Worker-timeout (hang-detection safety cap) for the compile. Each budget is now an

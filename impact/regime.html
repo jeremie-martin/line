@@ -63,7 +63,7 @@ shows whether that's a <i>geometry</i> limit (px curve itself flat/short) or a <
 (px fine but anchors map it wrong).</div>
 <script>
 const PALETTE = ["#5fb3ff","#ffd166","#06d6a0","#ff8fab","#b39ddb","#f4a261"];
-const BINS = Array.from({length:10}, (_,i)=>({lo:i/10, hi:(i+1)/10, mid:(i+0.05)})).map(b=>({...b, key:`${b.lo.toFixed(1)}-${b.hi.toFixed(1)}`}));
+const BINS = Array.from({length:10}, (_,i)=>({lo:i/10, hi:(i+1)/10, mid:(i+0.5)/10})).map(b=>({...b, key:`${b.lo.toFixed(1)}-${b.hi.toFixed(1)}`}));
 const PXMAX = 7, W=520, H=400, M={l:48,r:14,t:14,b:40};
 const IW = W-M.l-M.r, IH = H-M.t-M.b;
 const normImpact=(px,s,v)=> Math.max(0,Math.min(1,(px-s)/(v-s)));

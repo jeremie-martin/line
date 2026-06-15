@@ -38,6 +38,10 @@ export type ExportOptions = {
   resolution?: "720p" | "1080p";
   /** High quality (QP=22 vs 28). */
   hq?: boolean;
+  /** Encoder overrides forwarded to the app via `window.__lr.setEncoderSettings`,
+   *  e.g. `{ quantizationParameter: 17 }`. Lower QP = higher quality; this is
+   *  applied after `hq`, so it overrides hq's built-in QP. */
+  encoderSettings?: Record<string, number>;
   /** Run browser visibly (debugging). */
   headed?: boolean;
   /** Optional progress-line printer (defaults to console.log). */
@@ -96,7 +100,7 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
 
     log("[node] launching exportVideo in page...");
     const blobUrl = await page.evaluate(
-      async ({ track, zoom, resolution, hq, autoZoom, zoomKeyframes, zoomSmoothing }) => {
+      async ({ track, zoom, resolution, hq, encoderSettings, autoZoom, zoomKeyframes, zoomSmoothing }) => {
         // deno-lint-ignore no-explicit-any
         const w = window as any;
         const lr = w.__lr;
@@ -115,13 +119,14 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
         } else {
           delete w.getAutoZoom;
         }
-        return await lr.exportVideo({ track, zoom, resolution, hq, filename: "lr-render.mp4" });
+        return await lr.exportVideo({ track, zoom, resolution, hq, encoderSettings: encoderSettings ?? undefined, filename: "lr-render.mp4" });
       },
       {
         track: opts.trackJson,
         zoom: opts.zoom,
         resolution: opts.resolution ?? "720p",
         hq: !!opts.hq,
+        encoderSettings: opts.encoderSettings ?? null,
         autoZoom: opts.autoZoom ?? null,
         zoomKeyframes: opts.zoomKeyframes ?? null,
         zoomSmoothing: opts.zoomSmoothing ?? null,

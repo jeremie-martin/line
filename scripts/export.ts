@@ -32,6 +32,14 @@ const zoomMode: "static" | "spec" =
 const zoom = zoomMode === "static" && zoomArg !== null ? parseFloat(zoomArg) : 3;
 const resolution = has("1080p") ? "1080p" : "720p";
 const hq = has("hq");
+// Explicit encoder QP (lower = higher quality; x264 sane range ~14-28). Overrides
+// hq's built-in QP (22/28). e.g. --qp=17 for a crisp HQ render.
+const qpArg = arg("qp");
+const qp = qpArg !== null ? parseInt(qpArg, 10) : null;
+if (qp !== null && (!Number.isInteger(qp) || qp < 0 || qp > 51)) {
+  console.error(`--qp must be an integer in [0,51] (got: ${qpArg})`);
+  process.exit(1);
+}
 const outPath = resolve(arg("out") ?? "shakedown/out.mp4");
 const headed = has("headed");
 
@@ -90,7 +98,7 @@ if (zoomMode === "spec") {
 }
 console.log(
   `track=${trackPath} (${trackJson.lines?.length} lines, duration=${trackJson.duration})\n` +
-    `resolution=${resolution}${hq ? " HQ" : ""} zoom=${zoomMode === "spec" && zoomPlan ? "spec" : zoom}\n` +
+    `resolution=${resolution}${hq ? " HQ" : ""}${qp !== null ? ` QP=${qp}` : ""} zoom=${zoomMode === "spec" && zoomPlan ? "spec" : zoom}\n` +
     `origin=${origin}\nout=${outPath}`,
 );
 
@@ -105,6 +113,7 @@ try {
     zoomSmoothing: zoomPlan?.zoomSmoothing ?? 0,
     resolution,
     hq,
+    encoderSettings: qp !== null ? { quantizationParameter: qp } : undefined,
     headed,
   });
 } catch (e) {

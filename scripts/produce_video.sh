@@ -7,12 +7,13 @@
 #     --spec=scripts/v0/specs/believer_curves.ts \
 #     --name=believer_curves \
 #     --budget=2000000 [--seed=0] [--audio=beats/audio.mp3] \
-#     [--res=1080p|720p|480p] [--zoom=action|speed|N] [--hq]
+#     [--res=1080p|720p|480p] [--zoom=action|trajectory|speed|N] [--hq]
 #
 #   --res    output size; 480p is a fast preview for iteration (default 1080p)
-#   --zoom   camera: action = auto-frame (zoom out for big air, in for flat),
-#            speed = zoom by forward pace, N = static zoom. Append :IN,OUT,SMOOTH
-#            to tune, e.g. --zoom=action:2.6,1.9,25 (default: static 3)
+#   --zoom   camera: action/spec = authored Spec.camera.zoom, trajectory = old
+#            realized-path auto-frame, speed = zoom by forward pace, N = static.
+#            Append :IN,OUT,SMOOTH to trajectory/speed, e.g.
+#            --zoom=trajectory:2.6,1.9,25 (default: static 3)
 #   --hq     high-quality ride render + Remotion encode (QP 22, PNG frames, CRF 12)
 #
 # Defaults target the Believer curve spec, so a bare `scripts/produce_video.sh`
@@ -26,7 +27,7 @@ BUDGET=2000000
 SEED=0
 AUDIO="beats/audio.mp3"
 RES="1080p"   # 1080p | 720p | 480p — 480p is a fast preview for iteration
-ZOOM=""       # empty = static default; "speed" = camera zooms with rider speed; or a number
+ZOOM=""       # empty = static default; "action" = authored spec zoom; or a number
 HQ=""         # set to 1 for a high-quality ride render + Remotion encode
 
 for a in "$@"; do

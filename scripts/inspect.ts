@@ -23,8 +23,14 @@ import {
   DEFAULT_PARAMS,
 } from "./lib/detector.ts";
 import { exportVideo, MirrorUnreachableError } from "./lib/export.ts";
-import { IMPACT_WINDOW, normImpact } from "./v0/types.ts";
+import { IMPACT_WINDOW, normImpact, type Spec } from "./v0/types.ts";
 import { redirArcPxAtLanding } from "./v0/core/substrate.ts";
+import {
+  cameraSidecarToRenderPlan,
+  specZoomLaneToRenderPlan,
+  type CameraSidecar,
+  type RenderZoomPlan,
+} from "./v0/core/camera.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | null => {
@@ -48,23 +54,30 @@ const headed = has("headed");
 const resolution = has("1080p") ? "1080p" : "720p";
 const hq = has("hq");
 // Default zoom=3 (well-framed for typical generated tracks). Override with:
-//   --zoom=N        static zoom
-//   --zoom=action   auto-frame: zoom OUT when there is big vertical action
-//                   (jumps/drops), zoom IN when the path is flat — regardless of
-//                   speed. This is the "frame whatever is happening" camera.
-//   --zoom=speed    legacy: zoom by forward pace (fast ⇒ out). Looks odd on
-//                   fast-but-flat stretches; kept for comparison.
-// Tunable: append :IN,OUT,SMOOTH (e.g. --zoom=action:3.4,1.9,30):
+//   --zoom=N          static zoom
+//   --zoom=action     authored spec camera zoom (alias: --zoom=spec). Reads
+//                     --spec=<path.ts> or sibling <track>.camera.json.
+//   --zoom=trajectory legacy realized-path auto-frame: zoom OUT when there is
+//                     big vertical action, IN when flat.
+//   --zoom=speed      legacy: zoom by forward pace (fast ⇒ out). Looks odd on
+//                     fast-but-flat stretches; kept for comparison.
+// Tunable for trajectory/speed: append :IN,OUT,SMOOTH (e.g. --zoom=trajectory:3.4,1.9,30):
 //   IN     zoom when calm/flat (larger = more zoomed in)
 //   OUT    zoom when busy/big-air (smaller = more zoomed out)
 //   SMOOTH smoothing window in frames (larger = calmer camera)
 const zoomArg = arg("zoom");
-const zoomMode: "static" | "action" | "speed" =
-  zoomArg?.startsWith("action") ? "action" : zoomArg?.startsWith("speed") ? "speed" : "static";
+const zoomMode: "static" | "spec" | "trajectory" | "speed" =
+  zoomArg?.startsWith("action") || zoomArg?.startsWith("spec")
+    ? "spec"
+    : zoomArg?.startsWith("trajectory")
+      ? "trajectory"
+      : zoomArg?.startsWith("speed")
+        ? "speed"
+        : "static";
 const zoomCfg = zoomMode === "speed"
   ? { zoomIn: 3.2, zoomOut: 2.0, smoothFrames: 35 }
   : { zoomIn: 3.4, zoomOut: 1.9, smoothFrames: 30 };
-if (zoomMode !== "static" && zoomArg!.includes(":")) {
+if ((zoomMode === "trajectory" || zoomMode === "speed") && zoomArg!.includes(":")) {
   const [inS, outS, smS] = zoomArg!.slice(zoomArg!.indexOf(":") + 1).split(",");
   if (inS) zoomCfg.zoomIn = parseFloat(inS);
   if (outS) zoomCfg.zoomOut = parseFloat(outS);
@@ -118,6 +131,51 @@ function signalToAutoZoom(
     out[i] = out[i - 1] + Math.max(-maxSlewPerFrame, Math.min(maxSlewPerFrame, d));
   }
   return out;
+}
+
+function downsampleAutoZoom(autoZoom: number[], step = 8): [number, number][] {
+  const zoomKeyframes: [number, number][] = [];
+  for (let i = 0; i < autoZoom.length; i += step) {
+    zoomKeyframes.push([i, Math.log2(autoZoom[i])]);
+  }
+  const last = autoZoom.length - 1;
+  if (last >= 0 && zoomKeyframes[zoomKeyframes.length - 1]?.[0] !== last) {
+    zoomKeyframes.push([last, Math.log2(autoZoom[last])]);
+  }
+  return zoomKeyframes;
+}
+
+function zoomRange(autoZoom: number[]): string {
+  const sorted = [...autoZoom].sort((a, b) => a - b);
+  return `${sorted[0].toFixed(2)}-${sorted[sorted.length - 1].toFixed(2)}x`;
+}
+
+function siblingCameraPath(path: string): string {
+  const trackJson = path.replace(/\.track\.json$/i, ".camera.json");
+  if (trackJson !== path) return trackJson;
+  return path.replace(/\.json$/i, ".camera.json");
+}
+
+async function loadSpecZoomPlan(trackPath: string): Promise<{ plan: RenderZoomPlan | null; source: string | null }> {
+  const specPath = arg("spec");
+  if (specPath !== null) {
+    if (!existsSync(specPath)) throw new Error(`--spec path not found: ${specPath}`);
+    const mod = await import(resolve(specPath));
+    const spec: Spec | undefined = mod.default;
+    if (!spec) throw new Error(`spec module at ${specPath} did not default-export a Spec`);
+    return {
+      plan: specZoomLaneToRenderPlan(spec.camera?.zoom, spec.duration),
+      source: specPath,
+    };
+  }
+
+  const cameraPath = arg("camera") ?? siblingCameraPath(trackPath);
+  if (!existsSync(cameraPath)) return { plan: null, source: null };
+  const sidecar = JSON.parse(readFileSync(cameraPath, "utf8")) as CameraSidecar;
+  return {
+    plan: cameraSidecarToRenderPlan(sidecar),
+    source: cameraPath,
+  };
 }
 
 mkdirSync(outDir, { recursive: true });
@@ -289,28 +347,38 @@ if (skipRender) {
 } else {
   try {
     let autoZoom: number[] | undefined;
-    if (zoomMode === "action") {
+    let zoomKeyframes: [number, number][] | undefined;
+    let zoomSmoothing = 0;
+    if (zoomMode === "spec") {
+      const { plan, source } = await loadSpecZoomPlan(trackPath);
+      if (plan !== null) {
+        autoZoom = plan.autoZoom;
+        zoomKeyframes = plan.zoomKeyframes;
+        zoomSmoothing = plan.zoomSmoothing;
+        console.log(
+          `spec zoom: ${zoomRange(autoZoom)} from ${source ?? "spec"} ` +
+            `(${zoomKeyframes.length} keyframes, smoothing ${zoomSmoothing})`,
+        );
+      } else {
+        console.warn("WARN: --zoom=action/spec requested but no spec camera zoom was found; using static zoom=3.");
+      }
+    } else if (zoomMode === "trajectory") {
       const ys = (det.measurements.position as { x: number; y: number }[]).map((p) => p.y);
       autoZoom = signalToAutoZoom(localYExtent(ys, 50), zoomCfg); // ±50f ≈ ±1.25s
     } else if (zoomMode === "speed") {
       const vx = (det.measurements.velocity as { x: number; y: number }[]).map((v) => Math.abs(v.x));
       autoZoom = signalToAutoZoom(vx, zoomCfg);
     }
-    // Downsample to log2 keyframes for the engine's native createZoomer (the dense
-    // array is the fallback if createZoomer isn't present). Already smoothed above,
-    // so createZoomer just log2-interpolates (zoomSmoothing: 0).
-    let zoomKeyframes: [number, number][] | undefined;
-    if (autoZoom) {
-      const STEP = 8; // a keyframe every 8 frames (0.2s)
-      zoomKeyframes = [];
-      for (let i = 0; i < autoZoom.length; i += STEP) zoomKeyframes.push([i, Math.log2(autoZoom[i])]);
-      const last = autoZoom.length - 1;
-      if (zoomKeyframes[zoomKeyframes.length - 1]?.[0] !== last) zoomKeyframes.push([last, Math.log2(autoZoom[last])]);
-      const zs = [...autoZoom].sort((a, b) => a - b);
+    if (autoZoom && zoomKeyframes === undefined) {
+      // Downsample legacy generated zoom for the engine's native createZoomer.
+      // The dense array remains the fallback if createZoomer is not present.
+      zoomKeyframes = downsampleAutoZoom(autoZoom);
       console.log(
         `rendering video.mp4 via mirror at ${origin}... (${zoomMode}-zoom ` +
-          `${zs[0].toFixed(2)}–${zs[zs.length - 1].toFixed(2)}× via createZoomer)`,
+          `${zoomRange(autoZoom)} via createZoomer)`,
       );
+    } else if (autoZoom) {
+      console.log(`rendering video.mp4 via mirror at ${origin}... (${zoomMode}-zoom via createZoomer)`);
     } else {
       console.log(`rendering video.mp4 via mirror at ${origin}...`);
     }
@@ -321,7 +389,7 @@ if (skipRender) {
       zoom,
       autoZoom,
       zoomKeyframes,
-      zoomSmoothing: 0,
+      zoomSmoothing,
       resolution,
       hq,
       headed,

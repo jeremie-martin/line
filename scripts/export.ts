@@ -7,6 +7,13 @@
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { exportVideo, MirrorUnreachableError } from "./lib/export.ts";
+import {
+  cameraSidecarToRenderPlan,
+  specZoomLaneToRenderPlan,
+  type CameraSidecar,
+  type RenderZoomPlan,
+} from "./v0/core/camera.ts";
+import type { Spec } from "./v0/types.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | null => {
@@ -17,8 +24,12 @@ const has = (name: string) => argv.includes(`--${name}`);
 
 const origin = arg("origin") ?? "http://127.0.0.1:8765";
 const trackPath = arg("track");
-// Default zoom=3 (well-framed for typical generated tracks). Override with --zoom=N.
-const zoom = arg("zoom") !== null ? parseFloat(arg("zoom")!) : 3;
+const zoomArg = arg("zoom");
+const zoomMode: "static" | "spec" =
+  zoomArg?.startsWith("action") || zoomArg?.startsWith("spec") ? "spec" : "static";
+// Default zoom=3 (well-framed for typical generated tracks). Override with --zoom=N
+// or --zoom=action/--zoom=spec to read --spec=<path.ts> or <track>.camera.json.
+const zoom = zoomMode === "static" && zoomArg !== null ? parseFloat(zoomArg) : 3;
 const resolution = has("1080p") ? "1080p" : "720p";
 const hq = has("hq");
 const outPath = resolve(arg("out") ?? "shakedown/out.mp4");
@@ -33,15 +44,69 @@ if (zoom !== undefined && !Number.isFinite(zoom)) {
   process.exit(1);
 }
 
+function siblingCameraPath(path: string): string {
+  const trackJson = path.replace(/\.track\.json$/i, ".camera.json");
+  if (trackJson !== path) return trackJson;
+  return path.replace(/\.json$/i, ".camera.json");
+}
+
+async function loadSpecZoomPlan(trackPath: string): Promise<{ plan: RenderZoomPlan | null; source: string | null }> {
+  const specPath = arg("spec");
+  if (specPath !== null) {
+    if (!existsSync(specPath)) throw new Error(`--spec path not found: ${specPath}`);
+    const mod = await import(resolve(specPath));
+    const spec: Spec | undefined = mod.default;
+    if (!spec) throw new Error(`spec module at ${specPath} did not default-export a Spec`);
+    return {
+      plan: specZoomLaneToRenderPlan(spec.camera?.zoom, spec.duration),
+      source: specPath,
+    };
+  }
+
+  const cameraPath = arg("camera") ?? siblingCameraPath(trackPath);
+  if (!existsSync(cameraPath)) return { plan: null, source: null };
+  const sidecar = JSON.parse(readFileSync(cameraPath, "utf8")) as CameraSidecar;
+  return {
+    plan: cameraSidecarToRenderPlan(sidecar),
+    source: cameraPath,
+  };
+}
+
 const trackJson = JSON.parse(readFileSync(trackPath, "utf8"));
+let zoomPlan: RenderZoomPlan | null = null;
+if (zoomMode === "spec") {
+  try {
+    const loaded = await loadSpecZoomPlan(trackPath);
+    zoomPlan = loaded.plan;
+    if (zoomPlan !== null) {
+      console.log(`spec zoom=${loaded.source} (${zoomPlan.zoomKeyframes.length} keyframes, smoothing ${zoomPlan.zoomSmoothing})`);
+    } else {
+      console.warn("WARN: --zoom=action/spec requested but no spec camera zoom was found; using static zoom=3.");
+    }
+  } catch (e) {
+    console.error(`\nERROR: ${String(e)}`);
+    process.exit(1);
+  }
+}
 console.log(
   `track=${trackPath} (${trackJson.lines?.length} lines, duration=${trackJson.duration})\n` +
-    `resolution=${resolution}${hq ? " HQ" : ""} zoom=${zoom ?? "default"}\n` +
+    `resolution=${resolution}${hq ? " HQ" : ""} zoom=${zoomMode === "spec" && zoomPlan ? "spec" : zoom}\n` +
     `origin=${origin}\nout=${outPath}`,
 );
 
 try {
-  await exportVideo({ trackJson, outPath, origin, zoom, resolution, hq, headed });
+  await exportVideo({
+    trackJson,
+    outPath,
+    origin,
+    zoom,
+    autoZoom: zoomPlan?.autoZoom,
+    zoomKeyframes: zoomPlan?.zoomKeyframes,
+    zoomSmoothing: zoomPlan?.zoomSmoothing ?? 0,
+    resolution,
+    hq,
+    headed,
+  });
 } catch (e) {
   if (e instanceof MirrorUnreachableError) {
     console.error(`\nERROR: cannot reach ${origin}`);

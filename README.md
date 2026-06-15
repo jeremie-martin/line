@@ -77,7 +77,10 @@ with byte-range support, which `<video>` scrubbing requires. Python's
 
 `scripts/export.ts` flags:
 - `--track=PATH` (required) — Line Rider JSON track
-- `--zoom=N` (default 2; 3 is well-framed; UI's "zoom level N" = `2^N`)
+- `--zoom=N` (default 3; UI's "zoom level N" = `2^N`)
+- `--zoom=action` / `--zoom=spec` — use authored `Spec.camera.zoom` from
+  `--spec=PATH` or sibling `<track>.camera.json`
+- `--camera=PATH` — explicit camera sidecar for spec-driven zoom
 - `--1080p` (default 720p) and `--hq` (default off)
 - `--origin=URL` (default `http://127.0.0.1:8765`)
 - `--out=PATH` (default `shakedown/out.mp4`)
@@ -191,10 +194,10 @@ the engine. Today (v2153.0 bundle, lr-core@0.8.2): they match exactly.
 
 1. **Physical sync** — lines arranged so the sledder lands on a beat at frame T.
    The hard problem; the generator is the open work.
-2. **Camera sync** — `__lr.createZoomer(keyframes)` exists in the bundle (we
-   haven't wired it through the helper yet). Zoom/pan/time-remap triggers are
-   stored *in the JSON*, applied at render. Easy-impressive; could be a
-   first-cut deliverable.
+2. **Camera sync** — specs can author `camera.zoom` keyframes. The compiler
+   writes a `<out>.camera.json` sidecar, and the render path feeds those
+   keyframes into the bundle's native `createZoomer` hook. This is render-only
+   intent: it does not affect physics, scoring, or golden benchmarks.
 
 DoodleChaos-style videos mix both.
 

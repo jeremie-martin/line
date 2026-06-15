@@ -14,12 +14,13 @@
  *   <out>.report.json
  */
 
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
 import { dirname, resolve, basename } from "node:path";
 import { K_BOUNCE_LANDING } from "../lib/detector.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { AXES, FPS, type Spec } from "./types.ts";
 import { axisDetails, scoreDriftReport } from "./score.ts";
+import { specCameraToSidecar } from "./core/camera.ts";
 
 const COMPILERS = {
   handoff: compileHandoff,
@@ -105,6 +106,13 @@ const elapsedMs = Date.now() - t0;
 mkdirSync(dirname(resolve(`${outPrefix}.track.json`)), { recursive: true });
 writeFileSync(resolve(`${outPrefix}.track.json`), JSON.stringify(track, null, 2));
 writeFileSync(resolve(`${outPrefix}.report.json`), JSON.stringify(report, null, 2));
+const cameraSidecar = specCameraToSidecar(spec);
+const cameraPath = resolve(`${outPrefix}.camera.json`);
+if (cameraSidecar !== null) {
+  writeFileSync(cameraPath, JSON.stringify(cameraSidecar, null, 2));
+} else if (existsSync(cameraPath)) {
+  rmSync(cameraPath, { force: true });
+}
 
 // Console summary
 // Terminal summary: small and sync-first. Full per-gap detail lives in the
@@ -151,4 +159,5 @@ const lines = [
 if (byAxis.length > 0) lines.push(`by axis (mean|err|):  ${byAxis.join("  ")}`);
 if (worstGaps.length > 0) lines.push("worst gaps (target→achieved):", ...worstGaps);
 lines.push(`full report → ${outPrefix}.report.json`);
+if (cameraSidecar !== null) lines.push(`camera → ${outPrefix}.camera.json`);
 console.log("\n" + lines.join("\n") + "\n");

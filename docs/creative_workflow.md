@@ -1,163 +1,288 @@
-# Creative workflow — from a song to an expressive Line Rider video
+# Creative workflow — rhythm analysis to an expressive Line Rider spec
 
-Turn a song into a hand-shaped, music-synced track + annotated video. The
-compiler only ever *hits the detected beats*; everything expressive lives in the
-**spec** (continuous per-axis curves) you write, informed by the music.
+This is the current human-in-the-loop workflow for turning music into a Line
+Rider spec. It is not automatic spec generation. The useful split is:
 
-Worked examples (all on this pipeline):
-- `scripts/v0/specs/believer_curves.ts` — Believer 56s, air/speed/grain.
-- `scripts/v0/specs/shelter_curves.ts` — Shelter 65s, air/speed/**elevation**.
-- `scripts/v0/specs/shelter_amp.ts` — Shelter 81s, air/speed/**amplitude** +
-  phrase-hit rests.
+1. analyze the song into evidence layers;
+2. interpret those layers into musical contacts and support contacts;
+3. author curves/impacts as intent;
+4. compile, watch, annotate, and iterate.
 
-## One-shot pipeline
+The TIKI TIKI 48s pass is the first successful example of this newer workflow:
+`scripts/v0/specs/tiki_tiki_48s.ts`, driven by
+`beats/tiki_tiki_48s.rhythm.json`.
 
+## Core idea
+
+Do not treat a uniform beat grid as "the beats".
+
+A song often has multiple rhythmic layers: a slow primary beat, a faster pulse,
+bass/synth hits on subdivisions, drum fills, and genuine drops. The compiler
+needs contact times, but a viewer hears hierarchy. A bass-heavy subdivision can
+be real evidence without being a landing beat.
+
+The rhythm-analysis output should make this distinction explicit without
+pretending to be a finished spec:
+
+- `grid.*` — pulse placement, primary-beat match, and meter position.
+- `scores.event` — how much onset/bass evidence exists at this row.
+- `scores.body` — local loudness/body with a small lift credit.
+- `scores.contact` — numeric plausibility that this row can carry a musical
+  landing.
+- `scores.support` — usefulness for quiet continuity contacts.
+- `scores.impact` — suggested relative impact if the row becomes a contact.
+- `timing.event_t` — a timing hint for audible contacts; primary rows use the
+  detected primary beat, secondary rows use a local percussive attack when
+  available.
+
+The spec author is expected to argue with this output. If it is incompatible
+with what you hear, fix the analysis or override it deliberately.
+
+## Analysis
+
+Use the old Python analysis environment:
+
+```bash
+/tmp/mm310/bin/python scripts/analyze_rhythm.py \
+  --audio beats/tiki_tiki_48s.mp3 \
+  --out beats/tiki_tiki_48s.rhythm.json \
+  --window 6:13
 ```
-scripts/produce_video.sh --spec=<spec.ts> --name=<name> \
-  --budget=300000 --audio=beats/<song>.mp3 \
-  [--res=1080p|720p|480p] [--zoom=action|speed|N] [--hq]
+
+The console table is for quick listening checks:
+
+```text
+time    P pos  event body  jump  prom  contact support impact  perc bass rnn
+7.030   1   1   1.00 0.44  0.77  1.00     0.88    0.74   0.81  1.00 1.00 1.00
+7.465   0   2   0.54 0.18  0.65  0.32     0.26    0.54   0.33  0.61 0.93 0.28
+9.640   0   -   0.70 0.59  0.76  0.32     0.58    0.33   0.59  0.72 0.46 0.81
+10.510  1   1   1.00 1.00  0.68  1.00     1.00    0.65   1.00  1.00 1.00 1.00
+10.945  0   2   0.73 0.53  0.10  0.10     0.57    0.43   0.54  0.48 0.68 0.96
 ```
 
-Runs all five stages → `remotion/out/<name>_annotated.mp4`, auto-managing the
-mirror. `--budget=300000` iterates fast; `--res=480p` is a quick preview. The
-five stages, if you want to run them by hand:
+For TIKI, this fixed the earlier mistake: the 136/138 BPM pulse is real, but it
+is not the contact list. The first perceived beat region reads as `7.03`,
+`7.90`, `8.77`, a smaller `9.64`, then the hard-drop grid row at `10.51`
+with corrected event/contact timing at `10.43`. The old `10.91` contact is now
+support/subdivision evidence, not a beat.
 
-1. **Clean beat grid** → `beats/<song>.json` (contacts the compiler must hit).
-2. **Understand the music** → `scripts/analyze_music.py` (madmom; tempo, meter,
-   4-bar phrase lines, energy contour). A *listening aid*, not a beat generator.
-   Install recipe in its docstring; run via the `/tmp/mm310` py3.10 venv.
-3. **Design the spec** (axes below).
-4. **Compile + iterate** → `scripts/v0/run.ts --spec=… --compiler=handoff
-   --budget=N`; read the per-gap `achieved/target` in the report and tune.
-5. **Render** → `scripts/inspect.ts` (drives the mirror), then mux audio and the
-   Remotion overlay. `produce_video.sh` does 3–5 for you.
+The next timing lesson was equally important: the grid row time is not always
+the audible attack. TIKI's grid rows were often 70-90ms late versus the primary
+beat/attack. The spec now keeps support contacts on `row.t`, but uses
+`timing.event_t` for audible contacts. That is a timing correction, not a global
+offset.
 
-## The axes (`scripts/v0/types.ts`)
+`scripts/analyze_music.py` is still useful for broad tempo/downbeat/energy
+checks, but `scripts/analyze_rhythm.py` is the better authoring input because it
+keeps metrical layer and event salience separate.
 
-Author each as a continuous curve of track time (`core/curves.ts`:
-`constant`/`ramp`/`keyframes` with `hold`/`linear`/`smooth`/`easeIn`/`easeOut`).
-A curve is sampled ~once per gap (~0.4–0.6s), so author at gap granularity.
-Set **`jitter: 0`** when the curves carry the variation (the curve specs do).
+## Extract audio
 
-- **`air`** [0,0.99] — airborne fraction. Most controllable. Measured envelope
-  ~**0.45–0.78**: resists going fully grounded or fully airy. Design inside it.
-- **`speed`** [0,1] → 5.4–12.6 px/frame. **Overshoots late** (gravity); keep
-  targets modest or nudge them up toward the achieved overshoot.
-- **`grain`** [0,1] — median line length (choppy ↔ swooping). Tracks tightly.
-- **`elevation`** [0,1] — altitude *trend* vs the speed-supported vy band: 0.5
-  level, →1 climb, →0 plunge. Speed-coupled: **bank speed BEFORE a climb and let
-  it decay DURING it** (don't co-demand high speed/air at a climb gap — they fight
-  it). Honest per-gap `ceiling` in the report (~0.65 at chorus speed); author a
-  climb as a *pulse* where speed is mid-fall, not a sustained max.
-- **`amplitude`** [0,1] — pop height of the airborne arc (≈ `g·N²/8`). A *moment*
-  axis: only large on **long gaps** (~12px @0.6s, ~50px @1.2s, ~113px @1.8s), so
-  drive it where the grid is sparse. Author moderate (~0.6) — maxing it makes arcs
-  plunge and blows speed up (axis error). **Cannot be paired with `elevation`**
-  (both write the launch angle).
+For a fixed excerpt:
 
-## Per-beat: `impact` (landing intensity)
+```bash
+ffmpeg -y -i "TIKI TIKI (Slowed) [bEYiPCbHAtM].opus" \
+  -t 48 -vn -codec:a libmp3lame -q:a 2 beats/tiki_tiki_48s.mp3
+```
 
-`impact` is NOT an axis — it's a qualifier on a *beat*, authored on the `Contact`
-(`{ t, impact? }`), absolute [0,1]. It is the rider's **velocity REDIRECTION** ("how
-hard the rider slams into the arc" — *claquage*): the peak perpendicular component of
-the centre-of-mass velocity change over the ~6-frame episode after contact, normalized
-by `CALIB.REDIR_CAP`. 0 = a smooth tangent glide that doesn't bend the path, 1 = the
-hardest catchable slam (the path is sharply redirected at speed). It is *absolute* (so
-you can author an all-soft or all-hard track) and *speed-bounded* — a slow rider can't
-redirect hard, and beyond the catchable bound the catch ejects; the per-gap `ceiling`
-in the report (`impactCeiling`) is the honest "hardest possible here", so
-`target > ceiling` is physics, not a compiler miss.
+Optional spectrogram assets for dashboards:
 
-Why redirection (not the old one-frame "normal closing speed"): a felt impact is the
-surface *redirecting* the path; decelerating *along* the path (a glide slowing on a
-curved arc) is not felt as a hit, and redirection is CoM-only so it's immune to sled
-rotation / limb whip (which look violent but aren't felt). See
-`docs/impact_problem_statement.md`.
+```bash
+/tmp/mm310/bin/python - <<'PY'
+from pathlib import Path
+import importlib.util
+spec = importlib.util.spec_from_file_location("extract_spectrogram", "beats/extract_spectrogram.py")
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+mod.main(Path("beats/tiki_tiki_48s.mp3"), Path("beats/tiki_tiki_48s.spectrogram.png"), Path("beats/tiki_tiki_48s.spectrogram.json"))
+PY
+```
 
-**Status: SCORED.** impact folds into the contract `axis_quality` (target/achieved/
-error/ceiling in the drift report). The compiler hits it via candidate-cost ranking;
-explicit redir-aware *steering* is a deferred follow-up (the old one-frame steering was
-neutralized in the metric swap).
+## Build contacts
 
-Author it with the helpers in `core/beats.ts` (co-author timing + impact in one
-file, no external JSON, no duplicated timing):
+A spec can load the rhythm JSON and choose contact rows. The analyzer writes
+schema v2 rows: grid placement lives under `grid.*`, timing hints under
+`timing.*`, and musical evidence under `scores.*`.
 
 ```ts
-import { beats, withImpact } from "../core/beats.ts";
+const rhythm = JSON.parse(
+  readFileSync(resolve("beats/tiki_tiki_48s.rhythm.json"), "utf8"),
+) as RhythmAnalysis;
 
-// Fine per-beat control — each landing hand-tuned:
-const contacts = beats([
-  { t: 0.75, impact: 0.1 },   // soft
-  { t: 1.25, impact: 0.1 },
-  { t: 1.75, impact: 0.9 },   // the one hard hit
-  { t: 2.25 },                // no target → untargeted, like a plain { t }
-]);
+function keepAsContact(row: RhythmRow): boolean {
+  if (row.t < 0.75 || row.t > 48.0) return false;
+  if (row.t < 6.90) return row.grid.is_primary && row.scores.support >= 0.55;
+  if (!row.grid.is_primary) {
+    return row.scores.contact >= 0.79 &&
+      row.scores.event >= 0.88 &&
+      row.scores.body >= 0.60;
+  }
+  return row.scores.contact >= 0.55;
+}
 
-// Or decorate loaded onsets BY RULE (timing stays single-sourced):
-const contacts = withImpact(
-  raw.onsets.map((o) => ({ t: o.t })),
-  (t) => (t < 38 ? 0.15 : t < 58 ? 0.6 : 0.3),   // soft verse, hard chorus, ease-out
-);
+function contactTimeFor(row: RhythmRow): number {
+  if (isQuietSupport(row)) return row.t;
+  return row.timing?.event_t ?? row.grid.primary_t ?? row.t;
+}
 ```
 
-Calibrate `CALIB.REDIR_CAP` against `specs/probe_impact.ts` / `study_impact_calibrate.ts`
-(the achieved-envelope workflow used for `amplitude`/`grain`); pass
-`--track=<labeled.track.json>` when you want the Shelter label percentile block.
-Inspect the candidate definitions with the `ImpactStudyOverlay` Remotion composition
-and the `scripts/v0/study_impact_*.ts` harnesses.
+The important authoring rule: **support contacts are allowed**, but they should
+stay on the chosen grid and carry very low visual/impact weight. For TIKI, intro
+contacts before the first real beat are `impact: 0.02`; they exist for motion
+continuity, not because the music asks for hard landings.
 
-## Key levers / lessons
+Per-beat `impact` is authored on contacts:
 
-- **Contact density is the main interestingness lever.** A uniform grid rides as
-  a flat glide; a **variable-density grid** (tight 0.6s in the groove, sparse
-  1.2–1.8s where you want jumps/long slides) maps the music's breathing and gives
-  the sparse sections real drama. Put boundaries on madmom phrase lines.
-- The **contract score ≠ fun to watch.** It only checks beats-hit + axis-match.
-  Use the shape analyzer (below) and your eyes for "interesting."
-- Tight sync ⇄ small arcs ⇄ flat: the compiler lands gently on dense beats, so
-  big air comes from *sparser contacts*, not from fighting the per-gap cap.
-
-## Track-shape (interestingness) analyzer
-
-```
-/tmp/mm310/bin/python scripts/analyze_track_shape.py <name> [--json out.json]
+```ts
+if (row.t < 6.90) return 0.02; // quiet support
+if (row.scores.contact >= 0.96 && row.scores.body >= 0.80 && row.scores.lift >= 0.45) return 1.0;
+if (!row.grid.is_primary) return Math.min(0.76, 0.30 + 0.46 * row.scores.impact);
+return Math.min(0.78, 0.22 + 0.44 * row.scores.impact);
 ```
 
-Reads `shakedown/<name>/detection.json` (the rider trajectory) and reports a
-descriptive profile — pop above the takeoff→landing chord, air-arc path length,
-arc vertical span, vertical relief, airborne/slide runs, speed variety — and a
-static track-map PNG, plus soft "flat" flags. The companion to the numeric score
-for judging the *ride*.
+`impact` is felt landing intensity. It is scored. Dense beats may not be able to
+hit every high-impact ask; the report's target/achieved values tell you whether
+the compiler found the requested slam.
 
-## Camera / speed-aware zoom
+## Author axes
 
-The native playback camera follows the rider at a **fixed** zoom by default
-(there's no built-in auto-zoom; the fit-to-scene method is a stub). `inspect.ts`
-adds per-frame zoom via the engine's own `window.createZoomer(keyframes,
-smoothing)` hook (log2 interpolation + cosine smoothing; dense fallback):
+The active curve axes are `air`, `speed`, and either `amplitude` or `elevation`.
+`impact` is per-contact, not a continuous curve. `grain` is legacy/report data
+and should not be treated as an active v0 target.
 
-- `--zoom=action` (recommended) — **auto-frame the action**: zoom OUT on big
-  jumps/drops (large local vertical extent), IN on flat — *independent of speed*.
-- `--zoom=speed` — zoom by forward pace (vx). Looks odd on fast-but-flat stretches.
-- `--zoom=N` — static.
+Practical guidance:
 
-Tune with `:IN,OUT,SMOOTH` (linear zoom; larger = more zoomed in), e.g.
-`--zoom=action:2.6,1.9,25`. For reference the app's default zoom is `2`.
+- `air` carries how floaty the rider feels.
+- `speed` is a resource; it often overshoots late through gravity.
+- `amplitude` needs sparse gaps to read. Dense 0.4s beats cannot produce big
+  jumps. Put high amplitude on longer phrase gaps or drops, and expect tradeoffs
+  with impact.
+- Do not pair `amplitude` and `elevation`; both steer launch angle.
+- Set `jitter: 0` when your curves already carry variation.
 
-## Annotated overlay (`remotion/`)
+TIKI uses a dynamic amplitude function keyed to the selected contact row and
+gap length. Long gaps get big-pop asks; dense secondary hits stay small.
 
-`CurveOverlay.tsx` draws each targeted axis's target curve + per-gap measured
-dots + error, a sweeping playhead, and a phase band, synced to the ride. It plots
-**only the axes the spec targets**, and reads per-song title/phases from the
-spec's exported `overlayMeta`. Data is baked by `scripts/make_overlay_data.ts`.
+## Compile and inspect
 
-## Manual render / preview
+Compile:
 
+```bash
+npx tsx scripts/v0/run.ts \
+  --spec=scripts/v0/specs/tiki_tiki_48s.ts \
+  --compiler=handoff \
+  --budget=1000000 \
+  --seed=0 \
+  --out=generated/tiki_tiki_48s
 ```
-python3 -m http.server 8765 --bind 127.0.0.1 --directory mirror   # mirror
-npx tsx scripts/serve.ts                                          # dashboard :8767
-npx tsx scripts/inspect.ts --track=<t>.track.json --name=<n> --render [--1080p --hq] [--zoom=action]
+
+Read the terminal summary first:
+
+- contacts hit/drift/missing/off-beat;
+- survival reason;
+- score and `axis_rms`;
+- worst gaps.
+
+For the TIKI rhythm-driven spec, the useful result was:
+
+```text
+contacts 65/65 hit · 0 drift · 0 missing · 0 off-beat
+survival endOfSpec
 ```
 
-Dashboard: `http://127.0.0.1:8767/dashboard/?run=<name>` (and `?report=` for the
-per-gap achieved-vs-target view).
+Then inspect without rendering:
+
+```bash
+npx tsx scripts/inspect.ts \
+  --track=generated/tiki_tiki_48s.track.json \
+  --name=tiki_tiki_48s \
+  --no-render
+```
+
+Run the shape analyzer:
+
+```bash
+/tmp/mm310/bin/python scripts/analyze_track_shape.py \
+  tiki_tiki_48s \
+  --json generated/tiki_tiki_48s.shape.json
+```
+
+The score is not the whole story. For TIKI, a 300k compile scored slightly
+better numerically, but the 1M compile cleared the shape flags and had better
+pop/relief, so the 1M track was the better creative candidate.
+
+## Render
+
+Make sure the mirror and dashboard are available:
+
+```bash
+python3 -m http.server 8765 --bind 127.0.0.1 --directory mirror
+npx tsx scripts/serve.ts
+```
+
+Render with spec-authored action zoom. `--zoom=action` reads the camera lane
+from the spec or from the `<out>.camera.json` sidecar written by the compiler.
+The old realized-path auto-framing mode is still available as `--zoom=trajectory`
+for comparison.
+
+```bash
+npx tsx scripts/inspect.ts \
+  --track=generated/tiki_tiki_48s.track.json \
+  --name=tiki_tiki_48s \
+  --render \
+  --zoom=action
+```
+
+Mux the audio:
+
+```bash
+cp beats/tiki_tiki_48s.mp3 shakedown/tiki_tiki_48s/audio.mp3
+ffmpeg -y \
+  -i shakedown/tiki_tiki_48s/video.mp4 \
+  -i shakedown/tiki_tiki_48s/audio.mp3 \
+  -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -shortest \
+  shakedown/tiki_tiki_48s/video_with_audio.mp4
+```
+
+Overlay data:
+
+```bash
+npx tsx scripts/make_overlay_data.ts \
+  --spec=scripts/v0/specs/tiki_tiki_48s.ts \
+  --report=generated/tiki_tiki_48s.report.json \
+  --track=generated/tiki_tiki_48s.track.json \
+  --out=remotion/public/tiki_tiki_48s.overlay.json
+```
+
+Dashboard:
+
+```text
+http://127.0.0.1:8767/dashboard/?run=tiki_tiki_48s
+```
+
+## Iteration loop
+
+The loop is:
+
+1. listen and annotate in the spec dashboard;
+2. check whether `analyze_rhythm.py` agrees in broad strokes;
+3. if it disagrees badly, improve the analysis or override intentionally;
+4. adjust contact selection and impact hierarchy;
+5. adjust `air`/`speed`/`amplitude` curves;
+6. compile;
+7. inspect report + shape analyzer + rendered video;
+8. repeat.
+
+Useful failures:
+
+- A support row looks like a beat: the contact selection is too literal.
+- A true beat is missing: analysis or contact filtering is too conservative.
+- High amplitude on dense beats does nothing: create a longer gap or lower the
+  amplitude ask.
+- High impact and high amplitude fight: decide which one the music needs more.
+- The report score improves but the shape flags regress: watch the video and
+  prefer the version that reads better.
+
+The current workflow is still young, but it is already much better than the old
+"clean grid -> contacts" assumption. The analysis should make musical hierarchy
+visible; the spec should turn that hierarchy into motion.

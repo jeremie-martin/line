@@ -1,0 +1,5513 @@
+{
+  "schema": "line.rhythm_analysis.v2",
+  "audio_file": "beats/tiki_tiki_48s.mp3",
+  "duration": 48.0,
+  "score_definitions": {
+    "metrical": "how strongly this row belongs to the primary/pulse grid",
+    "event": "combined onset evidence from madmom, percussive onset, and bass onset",
+    "body": "local loudness/body with small credit for rising energy",
+    "lift": "positive local energy change",
+    "decay": "negative local energy change",
+    "prominence": "local relative strength among nearby pulse rows",
+    "contact": "numeric plausibility that this row can carry a musical landing",
+    "support": "numeric usefulness for quiet grid-aligned support/continuity",
+    "impact": "suggested relative impact only if the row is selected as a contact"
+  },
+  "tempo_layers": {
+    "primary": {
+      "source": "madmom.DBnBeatTrackingProcessor",
+      "bpm": 68.966,
+      "period_s": 0.87,
+      "count": 56
+    },
+    "pulse": {
+      "source": "primary_half_subdivision",
+      "bpm": 137.931,
+      "period_s": 0.435,
+      "count": 111
+    },
+    "librosa_percussive": {
+      "bpm": 135.999,
+      "count": 109
+    }
+  },
+  "primary_beats": [
+    0.07,
+    0.98,
+    1.8,
+    2.67,
+    3.53,
+    4.39,
+    5.27,
+    6.1,
+    6.97,
+    7.83,
+    8.7,
+    9.54,
+    10.43,
+    11.31,
+    12.18,
+    13.05,
+    13.91,
+    14.78,
+    15.66,
+    16.53,
+    17.39,
+    18.26,
+    19.13,
+    20.0,
+    20.87,
+    21.74,
+    22.61,
+    23.48,
+    24.35,
+    25.22,
+    26.09,
+    26.95,
+    27.83,
+    28.7,
+    29.57,
+    30.44,
+    31.31,
+    32.18,
+    33.05,
+    33.92,
+    34.78,
+    35.66,
+    36.53,
+    37.4,
+    38.26,
+    39.13,
+    40.01,
+    40.87,
+    41.74,
+    42.62,
+    43.51,
+    44.36,
+    45.24,
+    46.08,
+    46.99,
+    47.86
+  ],
+  "rnn_onsets": [
+    0.01,
+    0.08,
+    0.24,
+    0.37,
+    0.42,
+    0.89,
+    0.96,
+    1.24,
+    1.28,
+    1.8,
+    1.85,
+    1.94,
+    2.67,
+    2.72,
+    3.28,
+    3.53,
+    3.74,
+    3.81,
+    4.1,
+    4.14,
+    4.31,
+    4.37,
+    4.41,
+    4.55,
+    4.8,
+    4.85,
+    5.22,
+    5.28,
+    6.97,
+    7.04,
+    7.33,
+    7.38,
+    7.59,
+    7.83,
+    7.88,
+    8.2,
+    8.26,
+    8.7,
+    8.8,
+    9.06,
+    9.33,
+    9.55,
+    9.62,
+    9.92,
+    10.44,
+    10.54,
+    10.62,
+    10.87,
+    11.1,
+    11.31,
+    11.75,
+    12.17,
+    12.22,
+    12.62,
+    12.84,
+    13.04,
+    13.18,
+    13.22,
+    13.48,
+    13.66,
+    13.72,
+    13.78,
+    13.92,
+    14.02,
+    14.1,
+    14.35,
+    14.57,
+    14.78,
+    14.92,
+    15.22,
+    15.45,
+    15.65,
+    15.79,
+    16.01,
+    16.1,
+    16.26,
+    16.32,
+    16.52,
+    16.66,
+    16.89,
+    16.93,
+    17.09,
+    17.14,
+    17.39,
+    17.5,
+    17.58,
+    17.83,
+    18.05,
+    18.26,
+    18.35,
+    18.7,
+    19.13,
+    19.18,
+    19.25,
+    19.57,
+    19.8,
+    20.0,
+    20.24,
+    20.44,
+    20.67,
+    20.87,
+    20.99,
+    21.06,
+    21.31,
+    21.53,
+    21.74,
+    21.83,
+    22.18,
+    22.41,
+    22.6,
+    22.67,
+    22.73,
+    22.84,
+    22.96,
+    23.05,
+    23.27,
+    23.31,
+    23.48,
+    23.6,
+    23.84,
+    24.34,
+    24.38,
+    24.58,
+    24.79,
+    25.05,
+    25.21,
+    25.31,
+    25.45,
+    25.66,
+    25.88,
+    26.08,
+    26.14,
+    26.32,
+    26.43,
+    26.71,
+    26.75,
+    26.94,
+    27.01,
+    27.17,
+    27.31,
+    27.41,
+    27.71,
+    27.83,
+    27.93,
+    28.01,
+    28.28,
+    28.48,
+    28.7,
+    28.79,
+    28.91,
+    29.06,
+    29.14,
+    29.35,
+    29.57,
+    29.72,
+    29.78,
+    29.95,
+    30.01,
+    30.22,
+    30.26,
+    30.44,
+    30.54,
+    30.65,
+    30.8,
+    30.87,
+    31.09,
+    31.28,
+    31.41,
+    31.48,
+    31.75,
+    31.96,
+    32.18,
+    32.31,
+    32.39,
+    32.54,
+    32.61,
+    32.83,
+    33.05,
+    33.12,
+    33.18,
+    33.26,
+    33.3,
+    33.48,
+    33.7,
+    33.74,
+    33.91,
+    34.13,
+    34.28,
+    34.35,
+    34.48,
+    34.53,
+    34.6,
+    34.78,
+    34.89,
+    34.97,
+    35.22,
+    35.44,
+    35.66,
+    35.79,
+    35.87,
+    36.02,
+    36.09,
+    36.3,
+    36.52,
+    36.66,
+    36.74,
+    36.89,
+    36.96,
+    37.18,
+    37.39,
+    37.53,
+    37.61,
+    37.76,
+    37.83,
+    38.05,
+    38.27,
+    38.38,
+    38.45,
+    38.7,
+    38.91,
+    39.11,
+    39.15,
+    39.57,
+    39.67,
+    39.75,
+    39.8,
+    39.97,
+    40.01,
+    40.05,
+    40.24,
+    40.44,
+    40.54,
+    40.62,
+    40.73,
+    40.8,
+    40.87,
+    41.01,
+    41.06,
+    41.24,
+    41.32,
+    41.52,
+    41.65,
+    41.74,
+    42.04,
+    42.1,
+    42.21,
+    42.61,
+    42.7,
+    42.87,
+    42.96,
+    43.0,
+    43.12,
+    43.28,
+    43.51,
+    43.56,
+    43.95,
+    44.37,
+    44.42,
+    44.59,
+    44.83,
+    44.98,
+    45.22,
+    45.49,
+    45.7,
+    45.78,
+    46.04,
+    46.08,
+    46.47,
+    46.55,
+    46.88,
+    46.93,
+    47.0,
+    47.28,
+    47.43,
+    47.57,
+    47.87
+  ],
+  "beats": [
+    0.07,
+    0.98,
+    1.8,
+    2.67,
+    3.53,
+    4.39,
+    5.27,
+    6.1,
+    6.97,
+    7.83,
+    8.7,
+    9.54,
+    10.43,
+    11.31,
+    12.18,
+    13.05,
+    13.91,
+    14.78,
+    15.66,
+    16.53,
+    17.39,
+    18.26,
+    19.13,
+    20.0,
+    20.87,
+    21.74,
+    22.61,
+    23.48,
+    24.35,
+    25.22,
+    26.09,
+    26.95,
+    27.83,
+    28.7,
+    29.57,
+    30.44,
+    31.31,
+    32.18,
+    33.05,
+    33.92,
+    34.78,
+    35.66,
+    36.53,
+    37.4,
+    38.26,
+    39.13,
+    40.01,
+    40.87,
+    41.74,
+    42.62,
+    43.51,
+    44.36,
+    45.24,
+    46.08,
+    46.99,
+    47.86
+  ],
+  "onsets_mix": [
+    0.01,
+    0.08,
+    0.24,
+    0.37,
+    0.42,
+    0.89,
+    0.96,
+    1.24,
+    1.28,
+    1.8,
+    1.85,
+    1.94,
+    2.67,
+    2.72,
+    3.28,
+    3.53,
+    3.74,
+    3.81,
+    4.1,
+    4.14,
+    4.31,
+    4.37,
+    4.41,
+    4.55,
+    4.8,
+    4.85,
+    5.22,
+    5.28,
+    6.97,
+    7.04,
+    7.33,
+    7.38,
+    7.59,
+    7.83,
+    7.88,
+    8.2,
+    8.26,
+    8.7,
+    8.8,
+    9.06,
+    9.33,
+    9.55,
+    9.62,
+    9.92,
+    10.44,
+    10.54,
+    10.62,
+    10.87,
+    11.1,
+    11.31,
+    11.75,
+    12.17,
+    12.22,
+    12.62,
+    12.84,
+    13.04,
+    13.18,
+    13.22,
+    13.48,
+    13.66,
+    13.72,
+    13.78,
+    13.92,
+    14.02,
+    14.1,
+    14.35,
+    14.57,
+    14.78,
+    14.92,
+    15.22,
+    15.45,
+    15.65,
+    15.79,
+    16.01,
+    16.1,
+    16.26,
+    16.32,
+    16.52,
+    16.66,
+    16.89,
+    16.93,
+    17.09,
+    17.14,
+    17.39,
+    17.5,
+    17.58,
+    17.83,
+    18.05,
+    18.26,
+    18.35,
+    18.7,
+    19.13,
+    19.18,
+    19.25,
+    19.57,
+    19.8,
+    20.0,
+    20.24,
+    20.44,
+    20.67,
+    20.87,
+    20.99,
+    21.06,
+    21.31,
+    21.53,
+    21.74,
+    21.83,
+    22.18,
+    22.41,
+    22.6,
+    22.67,
+    22.73,
+    22.84,
+    22.96,
+    23.05,
+    23.27,
+    23.31,
+    23.48,
+    23.6,
+    23.84,
+    24.34,
+    24.38,
+    24.58,
+    24.79,
+    25.05,
+    25.21,
+    25.31,
+    25.45,
+    25.66,
+    25.88,
+    26.08,
+    26.14,
+    26.32,
+    26.43,
+    26.71,
+    26.75,
+    26.94,
+    27.01,
+    27.17,
+    27.31,
+    27.41,
+    27.71,
+    27.83,
+    27.93,
+    28.01,
+    28.28,
+    28.48,
+    28.7,
+    28.79,
+    28.91,
+    29.06,
+    29.14,
+    29.35,
+    29.57,
+    29.72,
+    29.78,
+    29.95,
+    30.01,
+    30.22,
+    30.26,
+    30.44,
+    30.54,
+    30.65,
+    30.8,
+    30.87,
+    31.09,
+    31.28,
+    31.41,
+    31.48,
+    31.75,
+    31.96,
+    32.18,
+    32.31,
+    32.39,
+    32.54,
+    32.61,
+    32.83,
+    33.05,
+    33.12,
+    33.18,
+    33.26,
+    33.3,
+    33.48,
+    33.7,
+    33.74,
+    33.91,
+    34.13,
+    34.28,
+    34.35,
+    34.48,
+    34.53,
+    34.6,
+    34.78,
+    34.89,
+    34.97,
+    35.22,
+    35.44,
+    35.66,
+    35.79,
+    35.87,
+    36.02,
+    36.09,
+    36.3,
+    36.52,
+    36.66,
+    36.74,
+    36.89,
+    36.96,
+    37.18,
+    37.39,
+    37.53,
+    37.61,
+    37.76,
+    37.83,
+    38.05,
+    38.27,
+    38.38,
+    38.45,
+    38.7,
+    38.91,
+    39.11,
+    39.15,
+    39.57,
+    39.67,
+    39.75,
+    39.8,
+    39.97,
+    40.01,
+    40.05,
+    40.24,
+    40.44,
+    40.54,
+    40.62,
+    40.73,
+    40.8,
+    40.87,
+    41.01,
+    41.06,
+    41.24,
+    41.32,
+    41.52,
+    41.65,
+    41.74,
+    42.04,
+    42.1,
+    42.21,
+    42.61,
+    42.7,
+    42.87,
+    42.96,
+    43.0,
+    43.12,
+    43.28,
+    43.51,
+    43.56,
+    43.95,
+    44.37,
+    44.42,
+    44.59,
+    44.83,
+    44.98,
+    45.22,
+    45.49,
+    45.7,
+    45.78,
+    46.04,
+    46.08,
+    46.47,
+    46.55,
+    46.88,
+    46.93,
+    47.0,
+    47.28,
+    47.43,
+    47.57,
+    47.87
+  ],
+  "grid": [
+    {
+      "t": 0.07,
+      "grid": {
+        "pulse_index": 0,
+        "is_primary": true,
+        "meter_pos": null,
+        "primary_index": 0,
+        "primary_t": 0.07,
+        "primary_distance": 0.0
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.333,
+        "bass": 0.542,
+        "rms": 0.236,
+        "energy_jump": -0.523
+      },
+      "nearest_rnn_onset": 0.08,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 0.07,
+        "event_t": 0.07,
+        "event_source": "primary",
+        "event_delta": 0.0,
+        "attack_t": 0.0145,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.661,
+        "body": 0.236,
+        "lift": 0.0,
+        "decay": 0.523,
+        "prominence": 0.191,
+        "contact": 0.26,
+        "support": 0.912,
+        "impact": 0.236
+      }
+    },
+    {
+      "t": 0.505,
+      "grid": {
+        "pulse_index": 1,
+        "is_primary": false,
+        "meter_pos": null,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.435
+      },
+      "evidence": {
+        "madmom_onset": 0.162,
+        "percussive": 0.305,
+        "bass": 0.604,
+        "rms": 0.152,
+        "energy_jump": 0.475
+      },
+      "nearest_rnn_onset": 0.42,
+      "nearest_rnn_onset_dist": 0.085,
+      "timing": {
+        "grid_t": 0.505,
+        "event_t": 0.3918,
+        "event_source": "attack",
+        "event_delta": -0.1132,
+        "attack_t": 0.3918,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.28,
+        "event": 0.314,
+        "body": 0.19,
+        "lift": 0.475,
+        "decay": 0.0,
+        "prominence": 0.0,
+        "contact": 0.178,
+        "support": 0.469,
+        "impact": 0.24
+      }
+    },
+    {
+      "t": 0.94,
+      "grid": {
+        "pulse_index": 2,
+        "is_primary": true,
+        "meter_pos": 2,
+        "primary_index": 1,
+        "primary_t": 0.98,
+        "primary_distance": 0.04
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.965,
+        "bass": 0.939,
+        "rms": 0.268,
+        "energy_jump": 0.538
+      },
+      "nearest_rnn_onset": 0.96,
+      "nearest_rnn_onset_dist": 0.02,
+      "timing": {
+        "grid_t": 0.94,
+        "event_t": 0.98,
+        "event_source": "primary",
+        "event_delta": 0.04,
+        "attack_t": 0.9578,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.974,
+        "body": 0.403,
+        "lift": 0.538,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 0.807,
+        "support": 0.758,
+        "impact": 0.763
+      }
+    },
+    {
+      "t": 1.375,
+      "grid": {
+        "pulse_index": 3,
+        "is_primary": false,
+        "meter_pos": null,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.395
+      },
+      "evidence": {
+        "madmom_onset": 0.259,
+        "percussive": 0.593,
+        "bass": 1.0,
+        "rms": 0.28,
+        "energy_jump": 0.423
+      },
+      "nearest_rnn_onset": 1.28,
+      "nearest_rnn_onset_dist": 0.095,
+      "timing": {
+        "grid_t": 1.375,
+        "event_t": 1.2539,
+        "event_source": "attack",
+        "event_delta": -0.1211,
+        "attack_t": 1.2539,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.28,
+        "event": 0.546,
+        "body": 0.386,
+        "lift": 0.423,
+        "decay": 0.0,
+        "prominence": 0.612,
+        "contact": 0.39,
+        "support": 0.396,
+        "impact": 0.479
+      }
+    },
+    {
+      "t": 1.81,
+      "grid": {
+        "pulse_index": 4,
+        "is_primary": true,
+        "meter_pos": null,
+        "primary_index": 2,
+        "primary_t": 1.8,
+        "primary_distance": 0.01
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.965,
+        "bass": 0.692,
+        "rms": 0.275,
+        "energy_jump": -0.116
+      },
+      "nearest_rnn_onset": 1.8,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 1.81,
+        "event_t": 1.8,
+        "event_source": "primary",
+        "event_delta": -0.01,
+        "attack_t": 1.8054,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.917,
+        "body": 0.275,
+        "lift": 0.0,
+        "decay": 0.116,
+        "prominence": 0.663,
+        "contact": 0.475,
+        "support": 0.854,
+        "impact": 0.49
+      }
+    },
+    {
+      "t": 2.245,
+      "grid": {
+        "pulse_index": 5,
+        "is_primary": false,
+        "meter_pos": null,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.425
+      },
+      "evidence": {
+        "madmom_onset": 0.518,
+        "percussive": 0.5,
+        "bass": 0.445,
+        "rms": 0.206,
+        "energy_jump": -0.407
+      },
+      "nearest_rnn_onset": 1.94,
+      "nearest_rnn_onset_dist": 0.305,
+      "timing": {
+        "grid_t": 2.245,
+        "event_t": 2.2639,
+        "event_source": "attack",
+        "event_delta": 0.0189,
+        "attack_t": 2.2639,
+        "attack_strength": 0.733
+      },
+      "scores": {
+        "metrical": 0.28,
+        "event": 0.495,
+        "body": 0.206,
+        "lift": 0.0,
+        "decay": 0.407,
+        "prominence": 0.098,
+        "contact": 0.16,
+        "support": 0.471,
+        "impact": 0.181
+      }
+    },
+    {
+      "t": 2.68,
+      "grid": {
+        "pulse_index": 6,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 3,
+        "primary_t": 2.67,
+        "primary_distance": 0.01
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.971,
+        "bass": 0.534,
+        "rms": 0.144,
+        "energy_jump": -0.181
+      },
+      "nearest_rnn_onset": 2.67,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 2.68,
+        "event_t": 2.67,
+        "event_source": "primary",
+        "event_delta": -0.01,
+        "attack_t": 2.6732,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.883,
+        "body": 0.144,
+        "lift": 0.0,
+        "decay": 0.181,
+        "prominence": 0.396,
+        "contact": 0.346,
+        "support": 0.899,
+        "impact": 0.344
+      }
+    },
+    {
+      "t": 3.115,
+      "grid": {
+        "pulse_index": 7,
+        "is_primary": false,
+        "meter_pos": null,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.415
+      },
+      "evidence": {
+        "madmom_onset": 0.48,
+        "percussive": 0.261,
+        "bass": 0.683,
+        "rms": 0.198,
+        "energy_jump": 0.009
+      },
+      "nearest_rnn_onset": 3.28,
+      "nearest_rnn_onset_dist": 0.165,
+      "timing": {
+        "grid_t": 3.115,
+        "event_t": 3.0592,
+        "event_source": "attack",
+        "event_delta": -0.0558,
+        "attack_t": 3.0592,
+        "attack_strength": 0.675
+      },
+      "scores": {
+        "metrical": 0.28,
+        "event": 0.45,
+        "body": 0.2,
+        "lift": 0.009,
+        "decay": 0.0,
+        "prominence": 0.117,
+        "contact": 0.203,
+        "support": 0.461,
+        "impact": 0.271
+      }
+    },
+    {
+      "t": 3.55,
+      "grid": {
+        "pulse_index": 8,
+        "is_primary": true,
+        "meter_pos": null,
+        "primary_index": 4,
+        "primary_t": 3.53,
+        "primary_distance": 0.02
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.968,
+        "bass": 0.588,
+        "rms": 0.186,
+        "energy_jump": 0.177
+      },
+      "nearest_rnn_onset": 3.53,
+      "nearest_rnn_onset_dist": 0.02,
+      "timing": {
+        "grid_t": 3.55,
+        "event_t": 3.53,
+        "event_source": "primary",
+        "event_delta": -0.02,
+        "attack_t": 3.5323,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.894,
+        "body": 0.23,
+        "lift": 0.177,
+        "decay": 0.0,
+        "prominence": 0.928,
+        "contact": 0.464,
+        "support": 0.861,
+        "impact": 0.527
+      }
+    },
+    {
+      "t": 3.985,
+      "grid": {
+        "pulse_index": 9,
+        "is_primary": false,
+        "meter_pos": null,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.405
+      },
+      "evidence": {
+        "madmom_onset": 0.153,
+        "percussive": 0.28,
+        "bass": 0.879,
+        "rms": 0.205,
+        "energy_jump": -0.338
+      },
+      "nearest_rnn_onset": 4.1,
+      "nearest_rnn_onset_dist": 0.115,
+      "timing": {
+        "grid_t": 3.985,
+        "event_t": 3.9358,
+        "event_source": "attack",
+        "event_delta": -0.0492,
+        "attack_t": 3.9358,
+        "attack_strength": 0.652
+      },
+      "scores": {
+        "metrical": 0.28,
+        "event": 0.364,
+        "body": 0.205,
+        "lift": 0.0,
+        "decay": 0.338,
+        "prominence": 0.52,
+        "contact": 0.141,
+        "support": 0.476,
+        "impact": 0.236
+      }
+    },
+    {
+      "t": 4.42,
+      "grid": {
+        "pulse_index": 10,
+        "is_primary": true,
+        "meter_pos": 4,
+        "primary_index": 5,
+        "primary_t": 4.39,
+        "primary_distance": 0.03
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.799,
+        "bass": 1.0,
+        "rms": 0.194,
+        "energy_jump": -0.449
+      },
+      "nearest_rnn_onset": 4.41,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 4.42,
+        "event_t": 4.39,
+        "event_source": "primary",
+        "event_delta": -0.03,
+        "attack_t": 4.3683,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.93,
+        "body": 0.194,
+        "lift": 0.0,
+        "decay": 0.449,
+        "prominence": 0.936,
+        "contact": 0.308,
+        "support": 0.904,
+        "impact": 0.362
+      }
+    },
+    {
+      "t": 4.855,
+      "grid": {
+        "pulse_index": 11,
+        "is_primary": false,
+        "meter_pos": null,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.415
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.653,
+        "bass": 0.541,
+        "rms": 0.117,
+        "energy_jump": -0.76
+      },
+      "nearest_rnn_onset": 4.85,
+      "nearest_rnn_onset_dist": 0.005,
+      "timing": {
+        "grid_t": 4.855,
+        "event_t": 4.8094,
+        "event_source": "attack",
+        "event_delta": -0.0456,
+        "attack_t": 4.8094,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.28,
+        "event": 0.773,
+        "body": 0.117,
+        "lift": 0.0,
+        "decay": 0.76,
+        "prominence": 0.526,
+        "contact": 0.132,
+        "support": 0.487,
+        "impact": 0.145
+      }
+    },
+    {
+      "t": 5.29,
+      "grid": {
+        "pulse_index": 12,
+        "is_primary": true,
+        "meter_pos": null,
+        "primary_index": 6,
+        "primary_t": 5.27,
+        "primary_distance": 0.02
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.415,
+        "bass": 0.669,
+        "rms": 0.083,
+        "energy_jump": -0.8
+      },
+      "nearest_rnn_onset": 5.28,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 5.29,
+        "event_t": 5.27,
+        "event_source": "primary",
+        "event_delta": -0.02,
+        "attack_t": 5.2274,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.719,
+        "body": 0.083,
+        "lift": 0.0,
+        "decay": 0.8,
+        "prominence": 0.312,
+        "contact": 0.161,
+        "support": 0.951,
+        "impact": 0.12
+      }
+    },
+    {
+      "t": 5.725,
+      "grid": {
+        "pulse_index": 13,
+        "is_primary": false,
+        "meter_pos": null,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.375
+      },
+      "evidence": {
+        "madmom_onset": 0.424,
+        "percussive": 0.199,
+        "bass": 0.493,
+        "rms": 0.056,
+        "energy_jump": -0.763
+      },
+      "nearest_rnn_onset": 5.28,
+      "nearest_rnn_onset_dist": 0.445,
+      "timing": {
+        "grid_t": 5.725,
+        "event_t": 5.6715,
+        "event_source": "attack",
+        "event_delta": -0.0535,
+        "attack_t": 5.6715,
+        "attack_strength": 0.867
+      },
+      "scores": {
+        "metrical": 0.28,
+        "event": 0.361,
+        "body": 0.056,
+        "lift": 0.0,
+        "decay": 0.763,
+        "prominence": 0.016,
+        "contact": 0.071,
+        "support": 0.509,
+        "impact": 0.032
+      }
+    },
+    {
+      "t": 6.16,
+      "grid": {
+        "pulse_index": 14,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 7,
+        "primary_t": 6.1,
+        "primary_distance": 0.06
+      },
+      "evidence": {
+        "madmom_onset": 0.252,
+        "percussive": 0.208,
+        "bass": 0.435,
+        "rms": 0.042,
+        "energy_jump": -0.043
+      },
+      "nearest_rnn_onset": 6.97,
+      "nearest_rnn_onset_dist": 0.81,
+      "timing": {
+        "grid_t": 6.16,
+        "event_t": 6.1,
+        "event_source": "primary",
+        "event_delta": -0.06,
+        "attack_t": 6.0778,
+        "attack_strength": 0.747
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.279,
+        "body": 0.042,
+        "lift": 0.0,
+        "decay": 0.043,
+        "prominence": 0.0,
+        "contact": 0.207,
+        "support": 0.944,
+        "impact": 0.216
+      }
+    },
+    {
+      "t": 6.595,
+      "grid": {
+        "pulse_index": 15,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.375
+      },
+      "evidence": {
+        "madmom_onset": 0.164,
+        "percussive": 0.24,
+        "bass": 0.674,
+        "rms": 0.045,
+        "energy_jump": 0.634
+      },
+      "nearest_rnn_onset": 6.97,
+      "nearest_rnn_onset_dist": 0.375,
+      "timing": {
+        "grid_t": 6.595,
+        "event_t": 6.6003,
+        "event_source": "attack",
+        "event_delta": 0.0053,
+        "attack_t": 6.6003,
+        "attack_strength": 0.721
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.308,
+        "body": 0.096,
+        "lift": 0.634,
+        "decay": 0.0,
+        "prominence": 0.042,
+        "contact": 0.176,
+        "support": 0.57,
+        "impact": 0.223
+      }
+    },
+    {
+      "t": 7.03,
+      "grid": {
+        "pulse_index": 16,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 8,
+        "primary_t": 6.97,
+        "primary_distance": 0.06
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.249,
+        "energy_jump": 0.765
+      },
+      "nearest_rnn_onset": 7.04,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 7.03,
+        "event_t": 6.97,
+        "event_source": "primary",
+        "event_delta": -0.06,
+        "attack_t": 6.9631,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 0.44,
+        "lift": 0.765,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 0.875,
+        "support": 0.737,
+        "impact": 0.808
+      }
+    },
+    {
+      "t": 7.465,
+      "grid": {
+        "pulse_index": 17,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.365
+      },
+      "evidence": {
+        "madmom_onset": 0.277,
+        "percussive": 0.607,
+        "bass": 0.93,
+        "rms": 0.131,
+        "energy_jump": 0.65
+      },
+      "nearest_rnn_onset": 7.38,
+      "nearest_rnn_onset_dist": 0.085,
+      "timing": {
+        "grid_t": 7.465,
+        "event_t": 7.3491,
+        "event_source": "attack",
+        "event_delta": -0.1159,
+        "attack_t": 7.3491,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.543,
+        "body": 0.183,
+        "lift": 0.65,
+        "decay": 0.0,
+        "prominence": 0.316,
+        "contact": 0.264,
+        "support": 0.539,
+        "impact": 0.327
+      }
+    },
+    {
+      "t": 7.9,
+      "grid": {
+        "pulse_index": 18,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 9,
+        "primary_t": 7.83,
+        "primary_distance": 0.07
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 0.913,
+        "rms": 0.294,
+        "energy_jump": 0.28
+      },
+      "nearest_rnn_onset": 7.88,
+      "nearest_rnn_onset_dist": 0.02,
+      "timing": {
+        "grid_t": 7.9,
+        "event_t": 7.83,
+        "event_source": "primary",
+        "event_delta": -0.07,
+        "attack_t": 7.8193,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.98,
+        "body": 0.364,
+        "lift": 0.28,
+        "decay": 0.0,
+        "prominence": 0.818,
+        "contact": 0.746,
+        "support": 0.777,
+        "impact": 0.697
+      }
+    },
+    {
+      "t": 8.335,
+      "grid": {
+        "pulse_index": 19,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.365
+      },
+      "evidence": {
+        "madmom_onset": 0.172,
+        "percussive": 0.31,
+        "bass": 0.822,
+        "rms": 0.135,
+        "energy_jump": 0.544
+      },
+      "nearest_rnn_onset": 8.26,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 8.335,
+        "event_t": 8.3505,
+        "event_source": "attack",
+        "event_delta": 0.0155,
+        "attack_t": 8.3505,
+        "attack_strength": 0.794
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.37,
+        "body": 0.179,
+        "lift": 0.544,
+        "decay": 0.0,
+        "prominence": 0.0,
+        "contact": 0.21,
+        "support": 0.553,
+        "impact": 0.255
+      }
+    },
+    {
+      "t": 8.77,
+      "grid": {
+        "pulse_index": 20,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 10,
+        "primary_t": 8.7,
+        "primary_distance": 0.07
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 0.432,
+        "rms": 0.265,
+        "energy_jump": 0.483
+      },
+      "nearest_rnn_onset": 8.8,
+      "nearest_rnn_onset_dist": 0.03,
+      "timing": {
+        "grid_t": 8.77,
+        "event_t": 8.7,
+        "event_source": "primary",
+        "event_delta": -0.07,
+        "attack_t": 8.7046,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.869,
+        "body": 0.386,
+        "lift": 0.483,
+        "decay": 0.0,
+        "prominence": 0.457,
+        "contact": 0.742,
+        "support": 0.776,
+        "impact": 0.652
+      }
+    },
+    {
+      "t": 9.205,
+      "grid": {
+        "pulse_index": 21,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.335
+      },
+      "evidence": {
+        "madmom_onset": 0.468,
+        "percussive": 0.387,
+        "bass": 0.964,
+        "rms": 0.234,
+        "energy_jump": 0.651
+      },
+      "nearest_rnn_onset": 9.33,
+      "nearest_rnn_onset_dist": 0.125,
+      "timing": {
+        "grid_t": 9.205,
+        "event_t": 9.1371,
+        "event_source": "attack",
+        "event_delta": -0.0679,
+        "attack_t": 9.1371,
+        "attack_strength": 0.87
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.554,
+        "body": 0.397,
+        "lift": 0.651,
+        "decay": 0.0,
+        "prominence": 0.158,
+        "contact": 0.442,
+        "support": 0.473,
+        "impact": 0.451
+      }
+    },
+    {
+      "t": 9.64,
+      "grid": {
+        "pulse_index": 22,
+        "is_primary": false,
+        "meter_pos": null,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.1
+      },
+      "evidence": {
+        "madmom_onset": 0.814,
+        "percussive": 0.717,
+        "bass": 0.464,
+        "rms": 0.396,
+        "energy_jump": 0.763
+      },
+      "nearest_rnn_onset": 9.62,
+      "nearest_rnn_onset_dist": 0.02,
+      "timing": {
+        "grid_t": 9.64,
+        "event_t": 9.6189,
+        "event_source": "attack",
+        "event_delta": -0.0211,
+        "attack_t": 9.6189,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.28,
+        "event": 0.7,
+        "body": 0.587,
+        "lift": 0.763,
+        "decay": 0.0,
+        "prominence": 0.323,
+        "contact": 0.579,
+        "support": 0.328,
+        "impact": 0.59
+      }
+    },
+    {
+      "t": 10.075,
+      "grid": {
+        "pulse_index": 23,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.374,
+        "percussive": 0.536,
+        "bass": 1.0,
+        "rms": 0.329,
+        "energy_jump": 0.795
+      },
+      "nearest_rnn_onset": 9.92,
+      "nearest_rnn_onset_dist": 0.155,
+      "timing": {
+        "grid_t": 10.075,
+        "event_t": 10.092,
+        "event_source": "attack",
+        "event_delta": 0.017,
+        "attack_t": 10.092,
+        "attack_strength": 0.896
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.575,
+        "body": 0.528,
+        "lift": 0.795,
+        "decay": 0.0,
+        "prominence": 0.131,
+        "contact": 0.541,
+        "support": 0.435,
+        "impact": 0.531
+      }
+    },
+    {
+      "t": 10.51,
+      "grid": {
+        "pulse_index": 24,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 12,
+        "primary_t": 10.43,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.977,
+        "energy_jump": 0.682
+      },
+      "nearest_rnn_onset": 10.54,
+      "nearest_rnn_onset_dist": 0.03,
+      "timing": {
+        "grid_t": 10.51,
+        "event_t": 10.43,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 10.4374,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.682,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 10.945,
+      "grid": {
+        "pulse_index": 25,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.365
+      },
+      "evidence": {
+        "madmom_onset": 0.962,
+        "percussive": 0.477,
+        "bass": 0.675,
+        "rms": 0.506,
+        "energy_jump": 0.101
+      },
+      "nearest_rnn_onset": 10.87,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 10.945,
+        "event_t": 10.8815,
+        "event_source": "attack",
+        "event_delta": -0.0635,
+        "attack_t": 10.8815,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.726,
+        "body": 0.531,
+        "lift": 0.101,
+        "decay": 0.0,
+        "prominence": 0.1,
+        "contact": 0.567,
+        "support": 0.428,
+        "impact": 0.542
+      }
+    },
+    {
+      "t": 11.38,
+      "grid": {
+        "pulse_index": 26,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 13,
+        "primary_t": 11.31,
+        "primary_distance": 0.07
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": -0.103
+      },
+      "nearest_rnn_onset": 11.31,
+      "nearest_rnn_onset_dist": 0.07,
+      "timing": {
+        "grid_t": 11.38,
+        "event_t": 11.31,
+        "event_source": "primary",
+        "event_delta": -0.07,
+        "attack_t": 11.3081,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.103,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 11.815,
+      "grid": {
+        "pulse_index": 27,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.365
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 0.964,
+        "rms": 0.607,
+        "energy_jump": -0.07
+      },
+      "nearest_rnn_onset": 11.75,
+      "nearest_rnn_onset_dist": 0.065,
+      "timing": {
+        "grid_t": 11.815,
+        "event_t": 11.7464,
+        "event_source": "attack",
+        "event_delta": -0.0686,
+        "attack_t": 11.7464,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.992,
+        "body": 0.607,
+        "lift": 0.0,
+        "decay": 0.07,
+        "prominence": 0.469,
+        "contact": 0.799,
+        "support": 0.363,
+        "impact": 0.734
+      }
+    },
+    {
+      "t": 12.25,
+      "grid": {
+        "pulse_index": 28,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 14,
+        "primary_t": 12.18,
+        "primary_distance": 0.07
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": 0.15
+      },
+      "nearest_rnn_onset": 12.22,
+      "nearest_rnn_onset_dist": 0.03,
+      "timing": {
+        "grid_t": 12.25,
+        "event_t": 12.18,
+        "event_source": "primary",
+        "event_delta": -0.07,
+        "attack_t": 12.176,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.15,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 12.685,
+      "grid": {
+        "pulse_index": 29,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.365
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 0.978,
+        "rms": 0.615,
+        "energy_jump": 0.216
+      },
+      "nearest_rnn_onset": 12.62,
+      "nearest_rnn_onset_dist": 0.065,
+      "timing": {
+        "grid_t": 12.685,
+        "event_t": 12.6171,
+        "event_source": "attack",
+        "event_delta": -0.0679,
+        "attack_t": 12.6171,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.995,
+        "body": 0.669,
+        "lift": 0.216,
+        "decay": 0.0,
+        "prominence": 0.559,
+        "contact": 0.83,
+        "support": 0.348,
+        "impact": 0.777
+      }
+    },
+    {
+      "t": 13.12,
+      "grid": {
+        "pulse_index": 30,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 15,
+        "primary_t": 13.05,
+        "primary_distance": 0.07
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.985,
+        "energy_jump": 0.157
+      },
+      "nearest_rnn_onset": 13.18,
+      "nearest_rnn_onset_dist": 0.06,
+      "timing": {
+        "grid_t": 13.12,
+        "event_t": 13.05,
+        "event_source": "primary",
+        "event_delta": -0.07,
+        "attack_t": 13.0467,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.157,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 13.555,
+      "grid": {
+        "pulse_index": 31,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.945,
+        "percussive": 1.0,
+        "bass": 0.6,
+        "rms": 0.712,
+        "energy_jump": 0.066
+      },
+      "nearest_rnn_onset": 13.48,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 13.555,
+        "event_t": 13.4821,
+        "event_source": "attack",
+        "event_delta": -0.0729,
+        "attack_t": 13.4821,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.885,
+        "body": 0.728,
+        "lift": 0.066,
+        "decay": 0.0,
+        "prominence": 0.252,
+        "contact": 0.79,
+        "support": 0.353,
+        "impact": 0.727
+      }
+    },
+    {
+      "t": 13.99,
+      "grid": {
+        "pulse_index": 32,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 16,
+        "primary_t": 13.91,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.512,
+        "bass": 1.0,
+        "rms": 0.994,
+        "energy_jump": -0.037
+      },
+      "nearest_rnn_onset": 14.02,
+      "nearest_rnn_onset_dist": 0.03,
+      "timing": {
+        "grid_t": 13.99,
+        "event_t": 13.91,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 13.9262,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.829,
+        "body": 0.994,
+        "lift": 0.0,
+        "decay": 0.037,
+        "prominence": 0.541,
+        "contact": 0.943,
+        "support": 0.665,
+        "impact": 0.908
+      }
+    },
+    {
+      "t": 14.425,
+      "grid": {
+        "pulse_index": 33,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.357,
+        "percussive": 0.413,
+        "bass": 0.501,
+        "rms": 0.495,
+        "energy_jump": -0.285
+      },
+      "nearest_rnn_onset": 14.35,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 14.425,
+        "event_t": 14.3557,
+        "event_source": "attack",
+        "event_delta": -0.0693,
+        "attack_t": 14.3557,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.41,
+        "body": 0.495,
+        "lift": 0.0,
+        "decay": 0.285,
+        "prominence": 0.0,
+        "contact": 0.386,
+        "support": 0.477,
+        "impact": 0.407
+      }
+    },
+    {
+      "t": 14.86,
+      "grid": {
+        "pulse_index": 34,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 17,
+        "primary_t": 14.78,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 0.803,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": -0.224
+      },
+      "nearest_rnn_onset": 14.92,
+      "nearest_rnn_onset_dist": 0.06,
+      "timing": {
+        "grid_t": 14.86,
+        "event_t": 14.78,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 14.7853,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.917,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.224,
+        "prominence": 0.729,
+        "contact": 0.984,
+        "support": 0.654,
+        "impact": 0.956
+      }
+    },
+    {
+      "t": 15.295,
+      "grid": {
+        "pulse_index": 35,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.365
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 0.969,
+        "rms": 0.584,
+        "energy_jump": -0.119
+      },
+      "nearest_rnn_onset": 15.22,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 15.295,
+        "event_t": 15.2236,
+        "event_source": "attack",
+        "event_delta": -0.0714,
+        "attack_t": 15.2236,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.993,
+        "body": 0.584,
+        "lift": 0.0,
+        "decay": 0.119,
+        "prominence": 0.427,
+        "contact": 0.791,
+        "support": 0.367,
+        "impact": 0.718
+      }
+    },
+    {
+      "t": 15.73,
+      "grid": {
+        "pulse_index": 36,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 18,
+        "primary_t": 15.66,
+        "primary_distance": 0.07
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": 0.16
+      },
+      "nearest_rnn_onset": 15.79,
+      "nearest_rnn_onset_dist": 0.06,
+      "timing": {
+        "grid_t": 15.73,
+        "event_t": 15.66,
+        "event_source": "primary",
+        "event_delta": -0.07,
+        "attack_t": 15.6561,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.16,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 16.165,
+      "grid": {
+        "pulse_index": 37,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.365
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.615,
+        "energy_jump": 0.401
+      },
+      "nearest_rnn_onset": 16.1,
+      "nearest_rnn_onset_dist": 0.065,
+      "timing": {
+        "grid_t": 16.165,
+        "event_t": 16.0682,
+        "event_source": "attack",
+        "event_delta": -0.0968,
+        "attack_t": 16.0682,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 1.0,
+        "body": 0.715,
+        "lift": 0.401,
+        "decay": 0.0,
+        "prominence": 0.648,
+        "contact": 0.857,
+        "support": 0.337,
+        "impact": 0.813
+      }
+    },
+    {
+      "t": 16.6,
+      "grid": {
+        "pulse_index": 38,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 19,
+        "primary_t": 16.53,
+        "primary_distance": 0.07
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.97,
+        "energy_jump": 0.342
+      },
+      "nearest_rnn_onset": 16.66,
+      "nearest_rnn_onset_dist": 0.06,
+      "timing": {
+        "grid_t": 16.6,
+        "event_t": 16.53,
+        "event_source": "primary",
+        "event_delta": -0.07,
+        "attack_t": 16.5094,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.342,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 17.035,
+      "grid": {
+        "pulse_index": 39,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.964,
+        "energy_jump": 0.204
+      },
+      "nearest_rnn_onset": 17.09,
+      "nearest_rnn_onset_dist": 0.055,
+      "timing": {
+        "grid_t": 17.035,
+        "event_t": 16.9273,
+        "event_source": "attack",
+        "event_delta": -0.1077,
+        "attack_t": 16.9273,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.204,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 0.925,
+        "support": 0.292,
+        "impact": 0.959
+      }
+    },
+    {
+      "t": 17.47,
+      "grid": {
+        "pulse_index": 40,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 20,
+        "primary_t": 17.39,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.979,
+        "energy_jump": -0.157
+      },
+      "nearest_rnn_onset": 17.5,
+      "nearest_rnn_onset_dist": 0.03,
+      "timing": {
+        "grid_t": 17.47,
+        "event_t": 17.39,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 17.3976,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 0.979,
+        "lift": 0.0,
+        "decay": 0.157,
+        "prominence": 0.74,
+        "contact": 1.0,
+        "support": 0.652,
+        "impact": 0.962
+      }
+    },
+    {
+      "t": 17.905,
+      "grid": {
+        "pulse_index": 41,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.103,
+        "percussive": 0.54,
+        "bass": 0.512,
+        "rms": 0.511,
+        "energy_jump": -0.375
+      },
+      "nearest_rnn_onset": 17.83,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 17.905,
+        "event_t": 17.8358,
+        "event_source": "attack",
+        "event_delta": -0.0692,
+        "attack_t": 17.8358,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.35,
+        "body": 0.511,
+        "lift": 0.0,
+        "decay": 0.375,
+        "prominence": 0.0,
+        "contact": 0.366,
+        "support": 0.48,
+        "impact": 0.399
+      }
+    },
+    {
+      "t": 18.34,
+      "grid": {
+        "pulse_index": 42,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 21,
+        "primary_t": 18.26,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": -0.253
+      },
+      "nearest_rnn_onset": 18.35,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 18.34,
+        "event_t": 18.26,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 18.248,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.253,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 18.775,
+      "grid": {
+        "pulse_index": 43,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.601,
+        "energy_jump": -0.048
+      },
+      "nearest_rnn_onset": 18.7,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 18.775,
+        "event_t": 18.7037,
+        "event_source": "attack",
+        "event_delta": -0.0713,
+        "attack_t": 18.7037,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 1.0,
+        "body": 0.601,
+        "lift": 0.0,
+        "decay": 0.048,
+        "prominence": 0.45,
+        "contact": 0.8,
+        "support": 0.363,
+        "impact": 0.731
+      }
+    },
+    {
+      "t": 19.21,
+      "grid": {
+        "pulse_index": 44,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 22,
+        "primary_t": 19.13,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": 0.129
+      },
+      "nearest_rnn_onset": 19.18,
+      "nearest_rnn_onset_dist": 0.03,
+      "timing": {
+        "grid_t": 19.21,
+        "event_t": 19.13,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 19.1332,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.129,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 19.645,
+      "grid": {
+        "pulse_index": 45,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.675,
+        "percussive": 1.0,
+        "bass": 0.916,
+        "rms": 0.608,
+        "energy_jump": 0.199
+      },
+      "nearest_rnn_onset": 19.57,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 19.645,
+        "event_t": 19.5483,
+        "event_source": "attack",
+        "event_delta": -0.0967,
+        "attack_t": 19.5483,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.844,
+        "body": 0.658,
+        "lift": 0.199,
+        "decay": 0.0,
+        "prominence": 0.369,
+        "contact": 0.66,
+        "support": 0.392,
+        "impact": 0.656
+      }
+    },
+    {
+      "t": 20.08,
+      "grid": {
+        "pulse_index": 46,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 23,
+        "primary_t": 20.0,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.973,
+        "energy_jump": 0.094
+      },
+      "nearest_rnn_onset": 20.0,
+      "nearest_rnn_onset_dist": 0.08,
+      "timing": {
+        "grid_t": 20.08,
+        "event_t": 20.0,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 20.004,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 0.996,
+        "lift": 0.094,
+        "decay": 0.0,
+        "prominence": 0.995,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 0.999
+      }
+    },
+    {
+      "t": 20.515,
+      "grid": {
+        "pulse_index": 47,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.985,
+        "bass": 0.629,
+        "rms": 0.684,
+        "energy_jump": 0.02
+      },
+      "nearest_rnn_onset": 20.44,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 20.515,
+        "event_t": 20.4278,
+        "event_source": "attack",
+        "event_delta": -0.0872,
+        "attack_t": 20.4278,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.909,
+        "body": 0.689,
+        "lift": 0.02,
+        "decay": 0.0,
+        "prominence": 0.38,
+        "contact": 0.787,
+        "support": 0.357,
+        "impact": 0.734
+      }
+    },
+    {
+      "t": 20.95,
+      "grid": {
+        "pulse_index": 48,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 24,
+        "primary_t": 20.87,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.56,
+        "bass": 1.0,
+        "rms": 0.971,
+        "energy_jump": -0.009
+      },
+      "nearest_rnn_onset": 20.99,
+      "nearest_rnn_onset_dist": 0.04,
+      "timing": {
+        "grid_t": 20.95,
+        "event_t": 20.87,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 20.8776,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.846,
+        "body": 0.971,
+        "lift": 0.0,
+        "decay": 0.009,
+        "prominence": 0.628,
+        "contact": 0.944,
+        "support": 0.667,
+        "impact": 0.915
+      }
+    },
+    {
+      "t": 21.385,
+      "grid": {
+        "pulse_index": 49,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.175,
+        "percussive": 0.374,
+        "bass": 0.507,
+        "rms": 0.457,
+        "energy_jump": -0.233
+      },
+      "nearest_rnn_onset": 21.31,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 21.385,
+        "event_t": 21.3159,
+        "event_source": "attack",
+        "event_delta": -0.0691,
+        "attack_t": 21.3159,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.321,
+        "body": 0.457,
+        "lift": 0.0,
+        "decay": 0.233,
+        "prominence": 0.0,
+        "contact": 0.327,
+        "support": 0.496,
+        "impact": 0.363
+      }
+    },
+    {
+      "t": 21.82,
+      "grid": {
+        "pulse_index": 50,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 25,
+        "primary_t": 21.74,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": -0.134
+      },
+      "nearest_rnn_onset": 21.83,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 21.82,
+        "event_t": 21.74,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 21.7426,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.134,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 22.255,
+      "grid": {
+        "pulse_index": 51,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.299,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.598,
+        "energy_jump": -0.026
+      },
+      "nearest_rnn_onset": 22.18,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 22.255,
+        "event_t": 22.1605,
+        "event_source": "attack",
+        "event_delta": -0.0945,
+        "attack_t": 22.1605,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.706,
+        "body": 0.598,
+        "lift": 0.0,
+        "decay": 0.026,
+        "prominence": 0.183,
+        "contact": 0.57,
+        "support": 0.421,
+        "impact": 0.569
+      }
+    },
+    {
+      "t": 22.69,
+      "grid": {
+        "pulse_index": 52,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 26,
+        "primary_t": 22.61,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": 0.214
+      },
+      "nearest_rnn_onset": 22.67,
+      "nearest_rnn_onset_dist": 0.02,
+      "timing": {
+        "grid_t": 22.69,
+        "event_t": 22.61,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 22.6046,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.214,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 23.125,
+      "grid": {
+        "pulse_index": 53,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.514,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.708,
+        "energy_jump": 0.18
+      },
+      "nearest_rnn_onset": 23.05,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 23.125,
+        "event_t": 23.0516,
+        "event_source": "attack",
+        "event_delta": -0.0734,
+        "attack_t": 23.0516,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.796,
+        "body": 0.753,
+        "lift": 0.18,
+        "decay": 0.0,
+        "prominence": 0.591,
+        "contact": 0.664,
+        "support": 0.382,
+        "impact": 0.708
+      }
+    },
+    {
+      "t": 23.56,
+      "grid": {
+        "pulse_index": 54,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 27,
+        "primary_t": 23.48,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 0.93,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.953,
+        "energy_jump": 0.006
+      },
+      "nearest_rnn_onset": 23.6,
+      "nearest_rnn_onset_dist": 0.04,
+      "timing": {
+        "grid_t": 23.56,
+        "event_t": 23.48,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 23.4841,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.971,
+        "body": 0.954,
+        "lift": 0.006,
+        "decay": 0.0,
+        "prominence": 0.917,
+        "contact": 0.995,
+        "support": 0.656,
+        "impact": 0.976
+      }
+    },
+    {
+      "t": 23.995,
+      "grid": {
+        "pulse_index": 55,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.435,
+        "percussive": 0.303,
+        "bass": 0.309,
+        "rms": 0.52,
+        "energy_jump": -0.046
+      },
+      "nearest_rnn_onset": 23.84,
+      "nearest_rnn_onset_dist": 0.155,
+      "timing": {
+        "grid_t": 23.995,
+        "event_t": 23.9601,
+        "event_source": "attack",
+        "event_delta": -0.0349,
+        "attack_t": 23.9601,
+        "attack_strength": 0.883
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.36,
+        "body": 0.52,
+        "lift": 0.0,
+        "decay": 0.046,
+        "prominence": 0.037,
+        "contact": 0.394,
+        "support": 0.473,
+        "impact": 0.434
+      }
+    },
+    {
+      "t": 24.43,
+      "grid": {
+        "pulse_index": 56,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 28,
+        "primary_t": 24.35,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.761,
+        "energy_jump": -0.189
+      },
+      "nearest_rnn_onset": 24.38,
+      "nearest_rnn_onset_dist": 0.05,
+      "timing": {
+        "grid_t": 24.43,
+        "event_t": 24.35,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 24.3432,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 0.761,
+        "lift": 0.0,
+        "decay": 0.189,
+        "prominence": 0.777,
+        "contact": 0.953,
+        "support": 0.686,
+        "impact": 0.893
+      }
+    },
+    {
+      "t": 24.865,
+      "grid": {
+        "pulse_index": 57,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.149,
+        "percussive": 0.428,
+        "bass": 0.362,
+        "rms": 0.439,
+        "energy_jump": -0.331
+      },
+      "nearest_rnn_onset": 24.79,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 24.865,
+        "event_t": 24.767,
+        "event_source": "attack",
+        "event_delta": -0.098,
+        "attack_t": 24.767,
+        "attack_strength": 0.891
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.296,
+        "body": 0.439,
+        "lift": 0.0,
+        "decay": 0.331,
+        "prominence": 0.057,
+        "contact": 0.292,
+        "support": 0.506,
+        "impact": 0.335
+      }
+    },
+    {
+      "t": 25.3,
+      "grid": {
+        "pulse_index": 58,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 29,
+        "primary_t": 25.22,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 0.794,
+        "rms": 0.523,
+        "energy_jump": -0.52
+      },
+      "nearest_rnn_onset": 25.31,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 25.3,
+        "event_t": 25.22,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 25.214,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.953,
+        "body": 0.523,
+        "lift": 0.0,
+        "decay": 0.52,
+        "prominence": 0.627,
+        "contact": 0.813,
+        "support": 0.744,
+        "impact": 0.727
+      }
+    },
+    {
+      "t": 25.735,
+      "grid": {
+        "pulse_index": 59,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.298,
+        "percussive": 0.297,
+        "bass": 0.671,
+        "rms": 0.335,
+        "energy_jump": -0.612
+      },
+      "nearest_rnn_onset": 25.66,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 25.735,
+        "event_t": 25.6261,
+        "event_source": "attack",
+        "event_delta": -0.1089,
+        "attack_t": 25.6261,
+        "attack_strength": 0.889
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.383,
+        "body": 0.335,
+        "lift": 0.0,
+        "decay": 0.612,
+        "prominence": 0.107,
+        "contact": 0.184,
+        "support": 0.544,
+        "impact": 0.198
+      }
+    },
+    {
+      "t": 26.17,
+      "grid": {
+        "pulse_index": 60,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 30,
+        "primary_t": 26.09,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.479,
+        "energy_jump": -0.653
+      },
+      "nearest_rnn_onset": 26.14,
+      "nearest_rnn_onset_dist": 0.03,
+      "timing": {
+        "grid_t": 26.17,
+        "event_t": 26.09,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 26.0818,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 0.479,
+        "lift": 0.0,
+        "decay": 0.653,
+        "prominence": 0.644,
+        "contact": 0.74,
+        "support": 0.767,
+        "impact": 0.657
+      }
+    },
+    {
+      "t": 26.605,
+      "grid": {
+        "pulse_index": 61,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.345
+      },
+      "evidence": {
+        "madmom_onset": 0.067,
+        "percussive": 0.36,
+        "bass": 0.333,
+        "rms": 0.193,
+        "energy_jump": -0.467
+      },
+      "nearest_rnn_onset": 26.71,
+      "nearest_rnn_onset_dist": 0.105,
+      "timing": {
+        "grid_t": 26.605,
+        "event_t": 26.5317,
+        "event_source": "attack",
+        "event_delta": -0.0733,
+        "attack_t": 26.5317,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.231,
+        "body": 0.193,
+        "lift": 0.0,
+        "decay": 0.467,
+        "prominence": 0.0,
+        "contact": 0.11,
+        "support": 0.576,
+        "impact": 0.128
+      }
+    },
+    {
+      "t": 27.04,
+      "grid": {
+        "pulse_index": 62,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 31,
+        "primary_t": 26.95,
+        "primary_distance": 0.09
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.746,
+        "bass": 1.0,
+        "rms": 0.222,
+        "energy_jump": 0.577
+      },
+      "nearest_rnn_onset": 27.01,
+      "nearest_rnn_onset_dist": 0.03,
+      "timing": {
+        "grid_t": 27.04,
+        "event_t": 26.95,
+        "event_source": "primary",
+        "event_delta": -0.09,
+        "attack_t": 26.9439,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.911,
+        "body": 0.366,
+        "lift": 0.577,
+        "decay": 0.0,
+        "prominence": 0.441,
+        "contact": 0.738,
+        "support": 0.779,
+        "impact": 0.644
+      }
+    },
+    {
+      "t": 27.475,
+      "grid": {
+        "pulse_index": 63,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.498,
+        "bass": 1.0,
+        "rms": 0.176,
+        "energy_jump": 0.851
+      },
+      "nearest_rnn_onset": 27.41,
+      "nearest_rnn_onset_dist": 0.065,
+      "timing": {
+        "grid_t": 27.475,
+        "event_t": 27.4199,
+        "event_source": "attack",
+        "event_delta": -0.0551,
+        "attack_t": 27.4199,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.824,
+        "body": 0.244,
+        "lift": 0.851,
+        "decay": 0.0,
+        "prominence": 0.31,
+        "contact": 0.397,
+        "support": 0.499,
+        "impact": 0.413
+      }
+    },
+    {
+      "t": 27.91,
+      "grid": {
+        "pulse_index": 64,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 32,
+        "primary_t": 27.83,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 0.972,
+        "percussive": 0.5,
+        "bass": 1.0,
+        "rms": 0.968,
+        "energy_jump": 0.748
+      },
+      "nearest_rnn_onset": 27.93,
+      "nearest_rnn_onset_dist": 0.02,
+      "timing": {
+        "grid_t": 27.91,
+        "event_t": 27.83,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 27.8378,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.813,
+        "body": 1.0,
+        "lift": 0.748,
+        "decay": 0.0,
+        "prominence": 0.691,
+        "contact": 0.983,
+        "support": 0.654,
+        "impact": 0.95
+      }
+    },
+    {
+      "t": 28.345,
+      "grid": {
+        "pulse_index": 65,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.569,
+        "bass": 0.487,
+        "rms": 0.496,
+        "energy_jump": 0.144
+      },
+      "nearest_rnn_onset": 28.28,
+      "nearest_rnn_onset_dist": 0.065,
+      "timing": {
+        "grid_t": 28.345,
+        "event_t": 28.2703,
+        "event_source": "attack",
+        "event_delta": -0.0747,
+        "attack_t": 28.2703,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.731,
+        "body": 0.532,
+        "lift": 0.144,
+        "decay": 0.0,
+        "prominence": 0.179,
+        "contact": 0.572,
+        "support": 0.427,
+        "impact": 0.555
+      }
+    },
+    {
+      "t": 28.78,
+      "grid": {
+        "pulse_index": 66,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 33,
+        "primary_t": 28.7,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 0.781,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": -0.089
+      },
+      "nearest_rnn_onset": 28.79,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 28.78,
+        "event_t": 28.7,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 28.6999,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.908,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.089,
+        "prominence": 0.959,
+        "contact": 0.98,
+        "support": 0.655,
+        "impact": 0.983
+      }
+    },
+    {
+      "t": 29.215,
+      "grid": {
+        "pulse_index": 67,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.371,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.615,
+        "energy_jump": -0.053
+      },
+      "nearest_rnn_onset": 29.14,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 29.215,
+        "event_t": 29.1352,
+        "event_source": "attack",
+        "event_delta": -0.0798,
+        "attack_t": 29.1352,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.736,
+        "body": 0.615,
+        "lift": 0.0,
+        "decay": 0.053,
+        "prominence": 0.06,
+        "contact": 0.588,
+        "support": 0.414,
+        "impact": 0.567
+      }
+    },
+    {
+      "t": 29.65,
+      "grid": {
+        "pulse_index": 68,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 34,
+        "primary_t": 29.57,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 0.96,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": 0.1
+      },
+      "nearest_rnn_onset": 29.72,
+      "nearest_rnn_onset_dist": 0.07,
+      "timing": {
+        "grid_t": 29.65,
+        "event_t": 29.57,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 29.5532,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.983,
+        "body": 1.0,
+        "lift": 0.1,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 30.085,
+      "grid": {
+        "pulse_index": 69,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.368,
+        "percussive": 1.0,
+        "bass": 0.958,
+        "rms": 0.624,
+        "energy_jump": 0.094
+      },
+      "nearest_rnn_onset": 30.01,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 30.085,
+        "event_t": 30.006,
+        "event_source": "attack",
+        "event_delta": -0.079,
+        "attack_t": 30.006,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.725,
+        "body": 0.647,
+        "lift": 0.094,
+        "decay": 0.0,
+        "prominence": 0.166,
+        "contact": 0.598,
+        "support": 0.409,
+        "impact": 0.593
+      }
+    },
+    {
+      "t": 30.52,
+      "grid": {
+        "pulse_index": 70,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 35,
+        "primary_t": 30.44,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 0.759,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.99,
+        "energy_jump": 0.092
+      },
+      "nearest_rnn_onset": 30.54,
+      "nearest_rnn_onset_dist": 0.02,
+      "timing": {
+        "grid_t": 30.52,
+        "event_t": 30.44,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 30.4385,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.899,
+        "body": 1.0,
+        "lift": 0.092,
+        "decay": 0.0,
+        "prominence": 0.87,
+        "contact": 0.981,
+        "support": 0.655,
+        "impact": 0.973
+      }
+    },
+    {
+      "t": 30.955,
+      "grid": {
+        "pulse_index": 71,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.364,
+        "percussive": 0.96,
+        "bass": 0.566,
+        "rms": 0.694,
+        "energy_jump": 0.042
+      },
+      "nearest_rnn_onset": 30.87,
+      "nearest_rnn_onset_dist": 0.085,
+      "timing": {
+        "grid_t": 30.955,
+        "event_t": 30.8738,
+        "event_source": "attack",
+        "event_delta": -0.0812,
+        "attack_t": 30.8738,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.619,
+        "body": 0.704,
+        "lift": 0.042,
+        "decay": 0.0,
+        "prominence": 0.13,
+        "contact": 0.565,
+        "support": 0.411,
+        "impact": 0.582
+      }
+    },
+    {
+      "t": 31.39,
+      "grid": {
+        "pulse_index": 72,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 36,
+        "primary_t": 31.31,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.478,
+        "bass": 1.0,
+        "rms": 0.966,
+        "energy_jump": 0.066
+      },
+      "nearest_rnn_onset": 31.41,
+      "nearest_rnn_onset_dist": 0.02,
+      "timing": {
+        "grid_t": 31.39,
+        "event_t": 31.31,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 31.3179,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.817,
+        "body": 0.982,
+        "lift": 0.066,
+        "decay": 0.0,
+        "prominence": 0.72,
+        "contact": 0.939,
+        "support": 0.667,
+        "impact": 0.926
+      }
+    },
+    {
+      "t": 31.825,
+      "grid": {
+        "pulse_index": 73,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.226,
+        "percussive": 0.667,
+        "bass": 0.567,
+        "rms": 0.507,
+        "energy_jump": -0.183
+      },
+      "nearest_rnn_onset": 31.75,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 31.825,
+        "event_t": 31.7504,
+        "event_source": "attack",
+        "event_delta": -0.0746,
+        "attack_t": 31.7504,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.459,
+        "body": 0.507,
+        "lift": 0.0,
+        "decay": 0.183,
+        "prominence": 0.0,
+        "contact": 0.422,
+        "support": 0.467,
+        "impact": 0.436
+      }
+    },
+    {
+      "t": 32.26,
+      "grid": {
+        "pulse_index": 74,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 37,
+        "primary_t": 32.18,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": -0.128
+      },
+      "nearest_rnn_onset": 32.31,
+      "nearest_rnn_onset_dist": 0.05,
+      "timing": {
+        "grid_t": 32.26,
+        "event_t": 32.18,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 32.1771,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.128,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 32.695,
+      "grid": {
+        "pulse_index": 75,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.43,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.611,
+        "energy_jump": -0.058
+      },
+      "nearest_rnn_onset": 32.61,
+      "nearest_rnn_onset_dist": 0.085,
+      "timing": {
+        "grid_t": 32.695,
+        "event_t": 32.6124,
+        "event_source": "attack",
+        "event_delta": -0.0826,
+        "attack_t": 32.6124,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.761,
+        "body": 0.611,
+        "lift": 0.0,
+        "decay": 0.058,
+        "prominence": 0.089,
+        "contact": 0.598,
+        "support": 0.412,
+        "impact": 0.575
+      }
+    },
+    {
+      "t": 33.13,
+      "grid": {
+        "pulse_index": 76,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 38,
+        "primary_t": 33.05,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 0.974,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": 0.128
+      },
+      "nearest_rnn_onset": 33.12,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 33.13,
+        "event_t": 33.05,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 33.042,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.989,
+        "body": 1.0,
+        "lift": 0.128,
+        "decay": 0.0,
+        "prominence": 0.98,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 0.997
+      }
+    },
+    {
+      "t": 33.565,
+      "grid": {
+        "pulse_index": 77,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.714,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.706,
+        "energy_jump": 0.236
+      },
+      "nearest_rnn_onset": 33.48,
+      "nearest_rnn_onset_dist": 0.085,
+      "timing": {
+        "grid_t": 33.565,
+        "event_t": 33.4832,
+        "event_source": "attack",
+        "event_delta": -0.0818,
+        "attack_t": 33.4832,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.88,
+        "body": 0.765,
+        "lift": 0.236,
+        "decay": 0.0,
+        "prominence": 0.551,
+        "contact": 0.808,
+        "support": 0.345,
+        "impact": 0.784
+      }
+    },
+    {
+      "t": 34.0,
+      "grid": {
+        "pulse_index": 78,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 39,
+        "primary_t": 33.92,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 0.42,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.97,
+        "energy_jump": 0.22
+      },
+      "nearest_rnn_onset": 33.91,
+      "nearest_rnn_onset_dist": 0.09,
+      "timing": {
+        "grid_t": 34.0,
+        "event_t": 33.92,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 33.9185,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.756,
+        "body": 1.0,
+        "lift": 0.22,
+        "decay": 0.0,
+        "prominence": 0.55,
+        "contact": 0.846,
+        "support": 0.689,
+        "impact": 0.857
+      }
+    },
+    {
+      "t": 34.435,
+      "grid": {
+        "pulse_index": 79,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.345
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.959,
+        "energy_jump": 0.086
+      },
+      "nearest_rnn_onset": 34.48,
+      "nearest_rnn_onset_dist": 0.045,
+      "timing": {
+        "grid_t": 34.435,
+        "event_t": 34.351,
+        "event_source": "attack",
+        "event_delta": -0.084,
+        "attack_t": 34.351,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 1.0,
+        "body": 0.98,
+        "lift": 0.086,
+        "decay": 0.0,
+        "prominence": 0.973,
+        "contact": 0.912,
+        "support": 0.297,
+        "impact": 0.944
+      }
+    },
+    {
+      "t": 34.87,
+      "grid": {
+        "pulse_index": 80,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 40,
+        "primary_t": 34.78,
+        "primary_distance": 0.09
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.987,
+        "energy_jump": -0.166
+      },
+      "nearest_rnn_onset": 34.89,
+      "nearest_rnn_onset_dist": 0.02,
+      "timing": {
+        "grid_t": 34.87,
+        "event_t": 34.78,
+        "event_source": "primary",
+        "event_delta": -0.09,
+        "attack_t": 34.7632,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 0.987,
+        "lift": 0.0,
+        "decay": 0.166,
+        "prominence": 0.976,
+        "contact": 1.0,
+        "support": 0.651,
+        "impact": 0.994
+      }
+    },
+    {
+      "t": 35.305,
+      "grid": {
+        "pulse_index": 81,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.234,
+        "percussive": 0.572,
+        "bass": 0.451,
+        "rms": 0.466,
+        "energy_jump": -0.33
+      },
+      "nearest_rnn_onset": 35.22,
+      "nearest_rnn_onset_dist": 0.085,
+      "timing": {
+        "grid_t": 35.305,
+        "event_t": 35.2276,
+        "event_source": "attack",
+        "event_delta": -0.0774,
+        "attack_t": 35.2276,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.402,
+        "body": 0.466,
+        "lift": 0.0,
+        "decay": 0.33,
+        "prominence": 0.0,
+        "contact": 0.356,
+        "support": 0.487,
+        "impact": 0.375
+      }
+    },
+    {
+      "t": 35.74,
+      "grid": {
+        "pulse_index": 82,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 41,
+        "primary_t": 35.66,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": -0.202
+      },
+      "nearest_rnn_onset": 35.79,
+      "nearest_rnn_onset_dist": 0.05,
+      "timing": {
+        "grid_t": 35.74,
+        "event_t": 35.66,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 35.6455,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.202,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 36.175,
+      "grid": {
+        "pulse_index": 83,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.394,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.607,
+        "energy_jump": -0.024
+      },
+      "nearest_rnn_onset": 36.09,
+      "nearest_rnn_onset_dist": 0.085,
+      "timing": {
+        "grid_t": 36.175,
+        "event_t": 36.0925,
+        "event_source": "attack",
+        "event_delta": -0.0825,
+        "attack_t": 36.0925,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.745,
+        "body": 0.607,
+        "lift": 0.0,
+        "decay": 0.024,
+        "prominence": 0.183,
+        "contact": 0.59,
+        "support": 0.415,
+        "impact": 0.582
+      }
+    },
+    {
+      "t": 36.61,
+      "grid": {
+        "pulse_index": 84,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 42,
+        "primary_t": 36.53,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": 0.118
+      },
+      "nearest_rnn_onset": 36.66,
+      "nearest_rnn_onset_dist": 0.05,
+      "timing": {
+        "grid_t": 36.61,
+        "event_t": 36.53,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 36.5221,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.118,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      }
+    },
+    {
+      "t": 37.045,
+      "grid": {
+        "pulse_index": 85,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.234,
+        "percussive": 1.0,
+        "bass": 0.869,
+        "rms": 0.638,
+        "energy_jump": 0.137
+      },
+      "nearest_rnn_onset": 36.96,
+      "nearest_rnn_onset_dist": 0.085,
+      "timing": {
+        "grid_t": 37.045,
+        "event_t": 36.9604,
+        "event_source": "attack",
+        "event_delta": -0.0846,
+        "attack_t": 36.9604,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.648,
+        "body": 0.672,
+        "lift": 0.137,
+        "decay": 0.0,
+        "prominence": 0.233,
+        "contact": 0.574,
+        "support": 0.412,
+        "impact": 0.594
+      }
+    },
+    {
+      "t": 37.48,
+      "grid": {
+        "pulse_index": 86,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 43,
+        "primary_t": 37.4,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 0.639,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.975,
+        "energy_jump": 0.021
+      },
+      "nearest_rnn_onset": 37.53,
+      "nearest_rnn_onset_dist": 0.05,
+      "timing": {
+        "grid_t": 37.48,
+        "event_t": 37.4,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 37.3696,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.848,
+        "body": 0.98,
+        "lift": 0.021,
+        "decay": 0.0,
+        "prominence": 0.785,
+        "contact": 0.949,
+        "support": 0.665,
+        "impact": 0.94
+      }
+    },
+    {
+      "t": 37.915,
+      "grid": {
+        "pulse_index": 87,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.345
+      },
+      "evidence": {
+        "madmom_onset": 0.17,
+        "percussive": 0.791,
+        "bass": 0.627,
+        "rms": 0.59,
+        "energy_jump": -0.115
+      },
+      "nearest_rnn_onset": 37.83,
+      "nearest_rnn_onset_dist": 0.085,
+      "timing": {
+        "grid_t": 37.915,
+        "event_t": 37.8311,
+        "event_source": "attack",
+        "event_delta": -0.0839,
+        "attack_t": 37.8311,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.492,
+        "body": 0.59,
+        "lift": 0.0,
+        "decay": 0.115,
+        "prominence": 0.05,
+        "contact": 0.474,
+        "support": 0.446,
+        "impact": 0.496
+      }
+    },
+    {
+      "t": 38.35,
+      "grid": {
+        "pulse_index": 88,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 44,
+        "primary_t": 38.26,
+        "primary_distance": 0.09
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.539,
+        "bass": 1.0,
+        "rms": 0.962,
+        "energy_jump": -0.42
+      },
+      "nearest_rnn_onset": 38.38,
+      "nearest_rnn_onset_dist": 0.03,
+      "timing": {
+        "grid_t": 38.35,
+        "event_t": 38.26,
+        "event_source": "primary",
+        "event_delta": -0.09,
+        "attack_t": 38.2723,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.839,
+        "body": 0.962,
+        "lift": 0.0,
+        "decay": 0.42,
+        "prominence": 0.757,
+        "contact": 0.938,
+        "support": 0.669,
+        "impact": 0.926
+      }
+    },
+    {
+      "t": 38.785,
+      "grid": {
+        "pulse_index": 89,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.345
+      },
+      "evidence": {
+        "madmom_onset": 0.469,
+        "percussive": 0.996,
+        "bass": 0.382,
+        "rms": 0.457,
+        "energy_jump": -0.243
+      },
+      "nearest_rnn_onset": 38.7,
+      "nearest_rnn_onset_dist": 0.085,
+      "timing": {
+        "grid_t": 38.785,
+        "event_t": 38.699,
+        "event_source": "attack",
+        "event_delta": -0.086,
+        "attack_t": 38.699,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.633,
+        "body": 0.457,
+        "lift": 0.0,
+        "decay": 0.243,
+        "prominence": 0.0,
+        "contact": 0.45,
+        "support": 0.465,
+        "impact": 0.43
+      }
+    },
+    {
+      "t": 39.22,
+      "grid": {
+        "pulse_index": 90,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 45,
+        "primary_t": 39.13,
+        "primary_distance": 0.09
+      },
+      "evidence": {
+        "madmom_onset": 0.563,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.488,
+        "energy_jump": -0.234
+      },
+      "nearest_rnn_onset": 39.15,
+      "nearest_rnn_onset_dist": 0.07,
+      "timing": {
+        "grid_t": 39.22,
+        "event_t": 39.13,
+        "event_source": "primary",
+        "event_delta": -0.09,
+        "attack_t": 39.1082,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.816,
+        "body": 0.488,
+        "lift": 0.0,
+        "decay": 0.234,
+        "prominence": 0.15,
+        "contact": 0.754,
+        "support": 0.763,
+        "impact": 0.629
+      }
+    },
+    {
+      "t": 39.655,
+      "grid": {
+        "pulse_index": 91,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 1.0,
+        "energy_jump": 0.249
+      },
+      "nearest_rnn_onset": 39.67,
+      "nearest_rnn_onset_dist": 0.015,
+      "timing": {
+        "grid_t": 39.655,
+        "event_t": 39.5436,
+        "event_source": "attack",
+        "event_delta": -0.1114,
+        "attack_t": 39.5436,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.249,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 0.927,
+        "support": 0.291,
+        "impact": 0.96
+      }
+    },
+    {
+      "t": 40.09,
+      "grid": {
+        "pulse_index": 92,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 46,
+        "primary_t": 40.01,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.992,
+        "bass": 0.499,
+        "rms": 0.42,
+        "energy_jump": 0.027
+      },
+      "nearest_rnn_onset": 40.05,
+      "nearest_rnn_onset_dist": 0.04,
+      "timing": {
+        "grid_t": 40.09,
+        "event_t": 40.01,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 39.9673,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.882,
+        "body": 0.427,
+        "lift": 0.027,
+        "decay": 0.0,
+        "prominence": 0.278,
+        "contact": 0.769,
+        "support": 0.765,
+        "impact": 0.653
+      }
+    },
+    {
+      "t": 40.525,
+      "grid": {
+        "pulse_index": 93,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.345
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.984,
+        "energy_jump": 0.008
+      },
+      "nearest_rnn_onset": 40.54,
+      "nearest_rnn_onset_dist": 0.015,
+      "timing": {
+        "grid_t": 40.525,
+        "event_t": 40.4405,
+        "event_source": "attack",
+        "event_delta": -0.0845,
+        "attack_t": 40.4405,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 1.0,
+        "body": 0.986,
+        "lift": 0.008,
+        "decay": 0.0,
+        "prominence": 0.997,
+        "contact": 0.909,
+        "support": 0.297,
+        "impact": 0.946
+      }
+    },
+    {
+      "t": 40.96,
+      "grid": {
+        "pulse_index": 94,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 47,
+        "primary_t": 40.87,
+        "primary_distance": 0.09
+      },
+      "evidence": {
+        "madmom_onset": 0.537,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.863,
+        "energy_jump": 0.068
+      },
+      "nearest_rnn_onset": 41.01,
+      "nearest_rnn_onset_dist": 0.05,
+      "timing": {
+        "grid_t": 40.96,
+        "event_t": 40.87,
+        "event_source": "primary",
+        "event_delta": -0.09,
+        "attack_t": 40.8439,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.806,
+        "body": 0.88,
+        "lift": 0.068,
+        "decay": 0.0,
+        "prominence": 0.608,
+        "contact": 0.905,
+        "support": 0.686,
+        "impact": 0.87
+      }
+    },
+    {
+      "t": 41.395,
+      "grid": {
+        "pulse_index": 95,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.345
+      },
+      "evidence": {
+        "madmom_onset": 0.999,
+        "percussive": 0.44,
+        "bass": 0.645,
+        "rms": 0.392,
+        "energy_jump": 0.12
+      },
+      "nearest_rnn_onset": 41.32,
+      "nearest_rnn_onset_dist": 0.075,
+      "timing": {
+        "grid_t": 41.395,
+        "event_t": 41.2851,
+        "event_source": "attack",
+        "event_delta": -0.1099,
+        "attack_t": 41.2851,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.722,
+        "body": 0.422,
+        "lift": 0.12,
+        "decay": 0.0,
+        "prominence": 0.049,
+        "contact": 0.503,
+        "support": 0.455,
+        "impact": 0.476
+      }
+    },
+    {
+      "t": 41.83,
+      "grid": {
+        "pulse_index": 96,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 48,
+        "primary_t": 41.74,
+        "primary_distance": 0.09
+      },
+      "evidence": {
+        "madmom_onset": 0.159,
+        "percussive": 1.0,
+        "bass": 1.0,
+        "rms": 0.739,
+        "energy_jump": 0.112
+      },
+      "nearest_rnn_onset": 41.74,
+      "nearest_rnn_onset_dist": 0.09,
+      "timing": {
+        "grid_t": 41.83,
+        "event_t": 41.74,
+        "event_source": "primary",
+        "event_delta": -0.09,
+        "attack_t": 41.7117,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.647,
+        "body": 0.767,
+        "lift": 0.112,
+        "decay": 0.0,
+        "prominence": 0.4,
+        "contact": 0.726,
+        "support": 0.742,
+        "impact": 0.72
+      }
+    },
+    {
+      "t": 42.265,
+      "grid": {
+        "pulse_index": 97,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 0.691,
+        "percussive": 0.306,
+        "bass": 0.803,
+        "rms": 0.457,
+        "energy_jump": -0.159
+      },
+      "nearest_rnn_onset": 42.21,
+      "nearest_rnn_onset_dist": 0.055,
+      "timing": {
+        "grid_t": 42.265,
+        "event_t": 42.211,
+        "event_source": "attack",
+        "event_delta": -0.054,
+        "attack_t": 42.211,
+        "attack_strength": 0.915
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.582,
+        "body": 0.457,
+        "lift": 0.0,
+        "decay": 0.159,
+        "prominence": 0.1,
+        "contact": 0.441,
+        "support": 0.467,
+        "impact": 0.444
+      }
+    },
+    {
+      "t": 42.7,
+      "grid": {
+        "pulse_index": 98,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 49,
+        "primary_t": 42.62,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 0.849,
+        "percussive": 0.839,
+        "bass": 0.547,
+        "rms": 0.443,
+        "energy_jump": -0.431
+      },
+      "nearest_rnn_onset": 42.7,
+      "nearest_rnn_onset_dist": 0.0,
+      "timing": {
+        "grid_t": 42.7,
+        "event_t": 42.62,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 42.5999,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.776,
+        "body": 0.443,
+        "lift": 0.0,
+        "decay": 0.431,
+        "prominence": 0.368,
+        "contact": 0.561,
+        "support": 0.815,
+        "impact": 0.517
+      }
+    },
+    {
+      "t": 43.135,
+      "grid": {
+        "pulse_index": 99,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.375
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.394,
+        "bass": 0.684,
+        "rms": 0.387,
+        "energy_jump": -0.586
+      },
+      "nearest_rnn_onset": 43.12,
+      "nearest_rnn_onset_dist": 0.015,
+      "timing": {
+        "grid_t": 43.135,
+        "event_t": 43.0556,
+        "event_source": "attack",
+        "event_delta": -0.0794,
+        "attack_t": 43.0556,
+        "attack_strength": 0.746
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.715,
+        "body": 0.387,
+        "lift": 0.0,
+        "decay": 0.586,
+        "prominence": 0.372,
+        "contact": 0.327,
+        "support": 0.502,
+        "impact": 0.342
+      }
+    },
+    {
+      "t": 43.57,
+      "grid": {
+        "pulse_index": 100,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 50,
+        "primary_t": 43.51,
+        "primary_distance": 0.06
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 0.492,
+        "rms": 0.314,
+        "energy_jump": -0.707
+      },
+      "nearest_rnn_onset": 43.56,
+      "nearest_rnn_onset_dist": 0.01,
+      "timing": {
+        "grid_t": 43.57,
+        "event_t": 43.51,
+        "event_source": "primary",
+        "event_delta": -0.06,
+        "attack_t": 43.5113,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.883,
+        "body": 0.314,
+        "lift": 0.0,
+        "decay": 0.707,
+        "prominence": 0.634,
+        "contact": 0.305,
+        "support": 0.892,
+        "impact": 0.309
+      }
+    },
+    {
+      "t": 44.005,
+      "grid": {
+        "pulse_index": 101,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.355
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.558,
+        "bass": 0.775,
+        "rms": 0.234,
+        "energy_jump": -0.725
+      },
+      "nearest_rnn_onset": 43.95,
+      "nearest_rnn_onset_dist": 0.055,
+      "timing": {
+        "grid_t": 44.005,
+        "event_t": 43.9089,
+        "event_source": "attack",
+        "event_delta": -0.0961,
+        "attack_t": 43.9089,
+        "attack_strength": 0.913
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.794,
+        "body": 0.234,
+        "lift": 0.0,
+        "decay": 0.725,
+        "prominence": 0.255,
+        "contact": 0.182,
+        "support": 0.554,
+        "impact": 0.169
+      }
+    },
+    {
+      "t": 44.44,
+      "grid": {
+        "pulse_index": 102,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 51,
+        "primary_t": 44.36,
+        "primary_distance": 0.08
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 1.0,
+        "bass": 0.698,
+        "rms": 0.173,
+        "energy_jump": -0.429
+      },
+      "nearest_rnn_onset": 44.42,
+      "nearest_rnn_onset_dist": 0.02,
+      "timing": {
+        "grid_t": 44.44,
+        "event_t": 44.36,
+        "event_source": "primary",
+        "event_delta": -0.08,
+        "attack_t": 44.3675,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.931,
+        "body": 0.173,
+        "lift": 0.0,
+        "decay": 0.429,
+        "prominence": 0.45,
+        "contact": 0.303,
+        "support": 0.907,
+        "impact": 0.294
+      }
+    },
+    {
+      "t": 44.875,
+      "grid": {
+        "pulse_index": 103,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.365
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.436,
+        "bass": 0.818,
+        "rms": 0.185,
+        "energy_jump": -0.193
+      },
+      "nearest_rnn_onset": 44.83,
+      "nearest_rnn_onset_dist": 0.045,
+      "timing": {
+        "grid_t": 44.875,
+        "event_t": 44.8232,
+        "event_source": "attack",
+        "event_delta": -0.0518,
+        "attack_t": 44.8232,
+        "attack_strength": 0.794
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.761,
+        "body": 0.185,
+        "lift": 0.0,
+        "decay": 0.193,
+        "prominence": 0.195,
+        "contact": 0.263,
+        "support": 0.539,
+        "impact": 0.28
+      }
+    },
+    {
+      "t": 45.31,
+      "grid": {
+        "pulse_index": 104,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 52,
+        "primary_t": 45.24,
+        "primary_distance": 0.07
+      },
+      "evidence": {
+        "madmom_onset": 0.94,
+        "percussive": 0.759,
+        "bass": 0.741,
+        "rms": 0.197,
+        "energy_jump": 0.002
+      },
+      "nearest_rnn_onset": 45.22,
+      "nearest_rnn_onset_dist": 0.09,
+      "timing": {
+        "grid_t": 45.31,
+        "event_t": 45.24,
+        "event_source": "primary",
+        "event_delta": -0.07,
+        "attack_t": 45.2151,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.831,
+        "body": 0.198,
+        "lift": 0.002,
+        "decay": 0.0,
+        "prominence": 0.553,
+        "contact": 0.41,
+        "support": 0.878,
+        "impact": 0.441
+      }
+    },
+    {
+      "t": 45.745,
+      "grid": {
+        "pulse_index": 105,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.335
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.44,
+        "bass": 1.0,
+        "rms": 0.186,
+        "energy_jump": -0.34
+      },
+      "nearest_rnn_onset": 45.78,
+      "nearest_rnn_onset_dist": 0.035,
+      "timing": {
+        "grid_t": 45.745,
+        "event_t": 45.781,
+        "event_source": "attack",
+        "event_delta": 0.036,
+        "attack_t": 45.781,
+        "attack_strength": 0.905
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.804,
+        "body": 0.186,
+        "lift": 0.0,
+        "decay": 0.34,
+        "prominence": 0.73,
+        "contact": 0.244,
+        "support": 0.543,
+        "impact": 0.316
+      }
+    },
+    {
+      "t": 46.18,
+      "grid": {
+        "pulse_index": 106,
+        "is_primary": false,
+        "meter_pos": null,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.1
+      },
+      "evidence": {
+        "madmom_onset": 0.322,
+        "percussive": 0.838,
+        "bass": 0.807,
+        "rms": 0.193,
+        "energy_jump": -0.477
+      },
+      "nearest_rnn_onset": 46.08,
+      "nearest_rnn_onset_dist": 0.1,
+      "timing": {
+        "grid_t": 46.18,
+        "event_t": 46.0626,
+        "event_source": "attack",
+        "event_delta": -0.1174,
+        "attack_t": 46.0626,
+        "attack_strength": 1.0
+      },
+      "scores": {
+        "metrical": 0.28,
+        "event": 0.614,
+        "body": 0.193,
+        "lift": 0.0,
+        "decay": 0.477,
+        "prominence": 0.541,
+        "contact": 0.169,
+        "support": 0.47,
+        "impact": 0.23
+      }
+    },
+    {
+      "t": 46.615,
+      "grid": {
+        "pulse_index": 107,
+        "is_primary": false,
+        "meter_pos": 4,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.375
+      },
+      "evidence": {
+        "madmom_onset": 0.595,
+        "percussive": 0.358,
+        "bass": 1.0,
+        "rms": 0.131,
+        "energy_jump": -0.593
+      },
+      "nearest_rnn_onset": 46.55,
+      "nearest_rnn_onset_dist": 0.065,
+      "timing": {
+        "grid_t": 46.615,
+        "event_t": 46.5473,
+        "event_source": "attack",
+        "event_delta": -0.0677,
+        "attack_t": 46.5473,
+        "attack_strength": 0.805
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.605,
+        "body": 0.131,
+        "lift": 0.0,
+        "decay": 0.593,
+        "prominence": 0.0,
+        "contact": 0.146,
+        "support": 0.573,
+        "impact": 0.114
+      }
+    },
+    {
+      "t": 47.05,
+      "grid": {
+        "pulse_index": 108,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 54,
+        "primary_t": 46.99,
+        "primary_distance": 0.06
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.355,
+        "bass": 0.73,
+        "rms": 0.14,
+        "energy_jump": -0.415
+      },
+      "nearest_rnn_onset": 47.0,
+      "nearest_rnn_onset_dist": 0.05,
+      "timing": {
+        "grid_t": 47.05,
+        "event_t": 46.99,
+        "event_source": "primary",
+        "event_delta": -0.06,
+        "attack_t": 46.9914,
+        "attack_strength": 0.846
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.712,
+        "body": 0.14,
+        "lift": 0.0,
+        "decay": 0.415,
+        "prominence": 0.229,
+        "contact": 0.252,
+        "support": 0.923,
+        "impact": 0.233
+      }
+    },
+    {
+      "t": 47.485,
+      "grid": {
+        "pulse_index": 109,
+        "is_primary": false,
+        "meter_pos": 2,
+        "primary_index": null,
+        "primary_t": null,
+        "primary_distance": 0.375
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.464,
+        "bass": 1.0,
+        "rms": 0.126,
+        "energy_jump": -0.246
+      },
+      "nearest_rnn_onset": 47.43,
+      "nearest_rnn_onset_dist": 0.055,
+      "timing": {
+        "grid_t": 47.485,
+        "event_t": 47.4239,
+        "event_source": "attack",
+        "event_delta": -0.0611,
+        "attack_t": 47.4239,
+        "attack_strength": 0.876
+      },
+      "scores": {
+        "metrical": 0.42,
+        "event": 0.812,
+        "body": 0.126,
+        "lift": 0.0,
+        "decay": 0.246,
+        "prominence": 0.391,
+        "contact": 0.245,
+        "support": 0.549,
+        "impact": 0.274
+      }
+    },
+    {
+      "t": 47.92,
+      "grid": {
+        "pulse_index": 110,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 55,
+        "primary_t": 47.86,
+        "primary_distance": 0.06
+      },
+      "evidence": {
+        "madmom_onset": 1.0,
+        "percussive": 0.636,
+        "bass": 1.0,
+        "rms": 0.125,
+        "energy_jump": 0.262
+      },
+      "nearest_rnn_onset": 47.87,
+      "nearest_rnn_onset_dist": 0.05,
+      "timing": {
+        "grid_t": 47.92,
+        "event_t": 47.86,
+        "event_source": "primary",
+        "event_delta": -0.06,
+        "attack_t": 47.8273,
+        "attack_strength": 0.854
+      },
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.873,
+        "body": 0.146,
+        "lift": 0.262,
+        "decay": 0.0,
+        "prominence": 0.649,
+        "contact": 0.4,
+        "support": 0.886,
+        "impact": 0.436
+      }
+    }
+  ],
+  "strongest_events": [
+    {
+      "t": 10.51,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.682,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 24,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 12,
+        "primary_t": 10.43,
+        "primary_distance": 0.08
+      }
+    },
+    {
+      "t": 11.38,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.103,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 26,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 13,
+        "primary_t": 11.31,
+        "primary_distance": 0.07
+      }
+    },
+    {
+      "t": 12.25,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.15,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 28,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 14,
+        "primary_t": 12.18,
+        "primary_distance": 0.07
+      }
+    },
+    {
+      "t": 13.12,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.157,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 30,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 15,
+        "primary_t": 13.05,
+        "primary_distance": 0.07
+      }
+    },
+    {
+      "t": 15.73,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.16,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 36,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 18,
+        "primary_t": 15.66,
+        "primary_distance": 0.07
+      }
+    },
+    {
+      "t": 16.6,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.342,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 38,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 19,
+        "primary_t": 16.53,
+        "primary_distance": 0.07
+      }
+    },
+    {
+      "t": 17.47,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 0.979,
+        "lift": 0.0,
+        "decay": 0.157,
+        "prominence": 0.74,
+        "contact": 1.0,
+        "support": 0.652,
+        "impact": 0.962
+      },
+      "grid": {
+        "pulse_index": 40,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 20,
+        "primary_t": 17.39,
+        "primary_distance": 0.08
+      }
+    },
+    {
+      "t": 18.34,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.253,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 42,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 21,
+        "primary_t": 18.26,
+        "primary_distance": 0.08
+      }
+    },
+    {
+      "t": 19.21,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.129,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 44,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 22,
+        "primary_t": 19.13,
+        "primary_distance": 0.08
+      }
+    },
+    {
+      "t": 20.08,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 0.996,
+        "lift": 0.094,
+        "decay": 0.0,
+        "prominence": 0.995,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 0.999
+      },
+      "grid": {
+        "pulse_index": 46,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 23,
+        "primary_t": 20.0,
+        "primary_distance": 0.08
+      }
+    },
+    {
+      "t": 21.82,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.134,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 50,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 25,
+        "primary_t": 21.74,
+        "primary_distance": 0.08
+      }
+    },
+    {
+      "t": 22.69,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.214,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 52,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 26,
+        "primary_t": 22.61,
+        "primary_distance": 0.08
+      }
+    },
+    {
+      "t": 29.65,
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.983,
+        "body": 1.0,
+        "lift": 0.1,
+        "decay": 0.0,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 68,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 34,
+        "primary_t": 29.57,
+        "primary_distance": 0.08
+      }
+    },
+    {
+      "t": 32.26,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 1.0,
+        "lift": 0.0,
+        "decay": 0.128,
+        "prominence": 1.0,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 1.0
+      },
+      "grid": {
+        "pulse_index": 74,
+        "is_primary": true,
+        "meter_pos": 3,
+        "primary_index": 37,
+        "primary_t": 32.18,
+        "primary_distance": 0.08
+      }
+    },
+    {
+      "t": 33.13,
+      "scores": {
+        "metrical": 1.0,
+        "event": 0.989,
+        "body": 1.0,
+        "lift": 0.128,
+        "decay": 0.0,
+        "prominence": 0.98,
+        "contact": 1.0,
+        "support": 0.65,
+        "impact": 0.997
+      },
+      "grid": {
+        "pulse_index": 76,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 38,
+        "primary_t": 33.05,
+        "primary_distance": 0.08
+      }
+    },
+    {
+      "t": 34.87,
+      "scores": {
+        "metrical": 1.0,
+        "event": 1.0,
+        "body": 0.987,
+        "lift": 0.0,
+        "decay": 0.166,
+        "prominence": 0.976,
+        "contact": 1.0,
+        "support": 0.651,
+        "impact": 0.994
+      },
+      "grid": {
+        "pulse_index": 80,
+        "is_primary": true,
+        "meter_pos": 1,
+        "primary_index": 40,
+        "primary_t": 34.78,
+        "primary_distance": 0.09
+      }
+    }
+  ],
+  "energy": [
+    {
+      "t0": 0.0,
+      "t1": 2.0,
+      "rms": 0.15
+    },
+    {
+      "t0": 2.0,
+      "t1": 4.0,
+      "rms": 0.144
+    },
+    {
+      "t0": 4.0,
+      "t1": 6.0,
+      "rms": 0.089
+    },
+    {
+      "t0": 6.0,
+      "t1": 8.0,
+      "rms": 0.075
+    },
+    {
+      "t0": 8.0,
+      "t1": 10.0,
+      "rms": 0.154
+    },
+    {
+      "t0": 10.0,
+      "t1": 12.0,
+      "rms": 0.453
+    },
+    {
+      "t0": 12.0,
+      "t1": 14.0,
+      "rms": 0.512
+    },
+    {
+      "t0": 14.0,
+      "t1": 16.0,
+      "rms": 0.478
+    },
+    {
+      "t0": 16.0,
+      "t1": 18.0,
+      "rms": 0.555
+    },
+    {
+      "t0": 18.0,
+      "t1": 20.0,
+      "rms": 0.47
+    },
+    {
+      "t0": 20.0,
+      "t1": 22.0,
+      "rms": 0.54
+    },
+    {
+      "t0": 22.0,
+      "t1": 24.0,
+      "rms": 0.465
+    },
+    {
+      "t0": 24.0,
+      "t1": 26.0,
+      "rms": 0.422
+    },
+    {
+      "t0": 26.0,
+      "t1": 28.0,
+      "rms": 0.268
+    },
+    {
+      "t0": 28.0,
+      "t1": 30.0,
+      "rms": 0.485
+    },
+    {
+      "t0": 30.0,
+      "t1": 32.0,
+      "rms": 0.519
+    },
+    {
+      "t0": 32.0,
+      "t1": 34.0,
+      "rms": 0.507
+    },
+    {
+      "t0": 34.0,
+      "t1": 36.0,
+      "rms": 0.57
+    },
+    {
+      "t0": 36.0,
+      "t1": 38.0,
+      "rms": 0.49
+    },
+    {
+      "t0": 38.0,
+      "t1": 40.0,
+      "rms": 0.451
+    },
+    {
+      "t0": 40.0,
+      "t1": 42.0,
+      "rms": 0.427
+    },
+    {
+      "t0": 42.0,
+      "t1": 44.0,
+      "rms": 0.353
+    },
+    {
+      "t0": 44.0,
+      "t1": 46.0,
+      "rms": 0.147
+    },
+    {
+      "t0": 46.0,
+      "t1": 48.0,
+      "rms": 0.095
+    }
+  ]
+}

@@ -281,14 +281,29 @@ function useBundle(dataFile: string, label: string): Bundle | null {
 const TitlePill: React.FC<{ title: string; artist: string; right: string }> = ({ title, artist, right }) => (
   <div style={{
     position: "absolute", top: 40, left: 40, display: "flex", alignItems: "center", gap: 14,
-    background: PILL, border: BORDER, borderRadius: 12, padding: "11px 22px", fontFamily: FONT,
+    background: PILL, border: BORDER, borderRadius: 12, padding: "10px 20px", fontFamily: FONT,
   }}>
-    <span style={{ fontSize: 26, fontWeight: 700, color: "#fff", letterSpacing: 2 }}>{title}</span>
-    <span style={{ fontSize: 20, color: "#8b93a7", letterSpacing: 1 }}>{artist}</span>
-    <span style={{ width: 1, height: 22, background: "rgba(255,255,255,0.18)" }} />
-    <span style={{ fontSize: 20, color: "#aeb6c7", letterSpacing: 1 }}>{right}</span>
+    <span style={{ fontSize: 23, fontWeight: 700, color: "#fff", letterSpacing: 2 }}>{title}</span>
+    <span style={{ fontSize: 17, color: "#8b93a7", letterSpacing: 1 }}>{artist}</span>
+    <span style={{ width: 1, height: 20, background: "rgba(255,255,255,0.18)" }} />
+    <span style={{ fontSize: 17, color: "#aeb6c7", letterSpacing: 1 }}>{right}</span>
   </div>
 );
+
+// Top-left active-phase chip — the phase NAME lives here, clean and readable,
+// instead of being crammed into the bottom band (which is now a slim strip).
+const PhaseChip: React.FC<{ phase: Phase | null }> = ({ phase }) =>
+  phase ? (
+    <div style={{
+      position: "absolute", top: 88, left: 40, display: "flex", alignItems: "center", gap: 10,
+      background: PILL, border: BORDER, borderRadius: 10, padding: "7px 16px", fontFamily: FONT,
+    }}>
+      <span style={{ width: 11, height: 11, borderRadius: 3, background: phase.color }} />
+      <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", letterSpacing: 2, textTransform: "uppercase" }}>
+        {phase.name}
+      </span>
+    </div>
+  ) : null;
 
 const BottomCurvePanel: React.FC<{
   data: Bundle;
@@ -299,11 +314,11 @@ const BottomCurvePanel: React.FC<{
 }> = ({ data, width, t, enter, showImpactRow }) => {
   const dur = data.durationS;
   const M = 40; // single shared margin (title, panel sides, bottom gap)
-  // Compact panel: ~2.5× narrower than full width, anchored in the bottom-left.
-  const panelW = Math.round((width - 2 * M) / 2.5);
-  const chartH = 116; // ~10% shorter than the first cut
-  const phaseH = 44; // taller band so the section labels read clearly
-  const impactH = showImpactRow ? 40 : 0;
+  // Compact panel: ~2.7× narrower than full width, anchored in the bottom-left.
+  const panelW = Math.round((width - 2 * M) / 2.7);
+  const chartH = 96; // trimmed to keep the panel small and neat
+  const phaseH = 12; // slim phase timeline strip (names now live top-left)
+  const impactH = showImpactRow ? 36 : 0;
   const panelPadV = 12;
   const contentH = chartH * data.axes.length + impactH + phaseH + 10;
   const panelH = contentH + panelPadV * 2;
@@ -342,25 +357,16 @@ const BottomCurvePanel: React.FC<{
 
         {showImpactRow && <ImpactRow contacts={data.contacts} w={panelW} h={impactH} t={t} tx={(tt) => tx(tt) - M} />}
 
-        {/* phase band */}
+        {/* phase timeline strip — colored bands only; the active phase NAME is
+            shown cleanly in the top-left PhaseChip, not crammed in here. */}
         <svg width={panelW} height={phaseH} style={{ display: "block" }}>
           {data.phases.map((p) => {
             const x0 = tx(p.t0) - M;
             const x1 = tx(p.t1) - M;
             const active = p === activePhase;
-            // Keep the label inside the panel even for narrow edge segments.
-            const approxW = p.name.length * 20 * 0.6;
-            const cx = Math.max(approxW / 2 + 6, Math.min(panelW - approxW / 2 - 6, (x0 + x1) / 2));
             return (
-              <g key={p.name}>
-                <rect x={x0 + 1} y={6} width={Math.max(0, x1 - x0 - 2)} height={phaseH - 12} rx={4}
-                  fill={p.color} opacity={active ? 0.9 : 0.3} />
-                <text x={cx} y={phaseH / 2 + 7} textAnchor="middle" fontFamily={FONT}
-                  fontSize={20} fontWeight={active ? 700 : 600}
-                  fill={active ? "#0a0c12" : "rgba(255,255,255,0.82)"} letterSpacing={1.5}>
-                  {x1 - x0 > 50 ? p.name : ""}
-                </text>
-              </g>
+              <rect key={p.name} x={x0 + 1} y={2} width={Math.max(0, x1 - x0 - 2)} height={phaseH - 4} rx={3}
+                fill={p.color} opacity={active ? 0.95 : 0.28} />
             );
           })}
         </svg>
@@ -387,12 +393,14 @@ export const CurveOverlay: React.FC = () => {
   if (!data) return <AbsoluteFill style={{ backgroundColor: "#000" }} />;
 
   const enter = spring({ frame, fps, config: { damping: 20, mass: 0.7 } });
+  const activePhase = data.phases.find((p) => t >= p.t0 && t < p.t1) ?? data.phases[data.phases.length - 1] ?? null;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
       <OffthreadVideo src={staticFile(videoFile)} />
 
       <TitlePill title={data.title} artist={data.artist} right={data.tempo} />
+      <PhaseChip phase={activePhase} />
       <BottomCurvePanel data={data} width={width} t={t} enter={enter} showImpactRow={true} />
     </AbsoluteFill>
   );
@@ -408,9 +416,11 @@ export const ImpactStudyOverlay: React.FC = () => {
   const data = useBundle(dataFile, "impact-study-data");
   if (!data) return <AbsoluteFill style={{ backgroundColor: "#000" }} />;
   const enter = spring({ frame, fps, config: { damping: 20, mass: 0.7 } });
+  const activePhase = data.phases.find((p) => t >= p.t0 && t < p.t1) ?? data.phases[data.phases.length - 1] ?? null;
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
       <OffthreadVideo src={staticFile(videoFile)} />
+      <PhaseChip phase={activePhase} />
       <BigImpactPanel contacts={data.contacts} width={width} t={t} durationS={data.durationS} enter={enter} />
       <BottomCurvePanel data={data} width={width} t={t} enter={enter} showImpactRow={false} />
     </AbsoluteFill>

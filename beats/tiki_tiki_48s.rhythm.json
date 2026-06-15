@@ -703,6 +703,2878 @@
     47.57,
     47.87
   ],
+  "transients": [
+    {
+      "t": 0.0726,
+      "rnn_t": 0.08,
+      "percussive_strength": 0.824,
+      "body": 0.236,
+      "primary_interval": {
+        "index": 0,
+        "start_t": 0.07,
+        "end_t": 0.98,
+        "phase": 0.003
+      },
+      "nearest_grid_t": 0.07,
+      "nearest_grid_distance": 0.0026
+    },
+    {
+      "t": 0.2467,
+      "rnn_t": 0.24,
+      "percussive_strength": 0.502,
+      "body": 0.134,
+      "primary_interval": {
+        "index": 0,
+        "start_t": 0.07,
+        "end_t": 0.98,
+        "phase": 0.194
+      },
+      "nearest_grid_t": 0.07,
+      "nearest_grid_distance": 0.1767
+    },
+    {
+      "t": 0.3744,
+      "rnn_t": 0.37,
+      "percussive_strength": 2.679,
+      "body": 0.152,
+      "primary_interval": {
+        "index": 0,
+        "start_t": 0.07,
+        "end_t": 0.98,
+        "phase": 0.335
+      },
+      "nearest_grid_t": 0.505,
+      "nearest_grid_distance": 0.1306
+    },
+    {
+      "t": 0.9665,
+      "rnn_t": 0.96,
+      "percussive_strength": 1.311,
+      "body": 0.268,
+      "primary_interval": {
+        "index": 0,
+        "start_t": 0.07,
+        "end_t": 0.98,
+        "phase": 0.985
+      },
+      "nearest_grid_t": 0.94,
+      "nearest_grid_distance": 0.0265
+    },
+    {
+      "t": 1.2481,
+      "rnn_t": 1.24,
+      "percussive_strength": 1.865,
+      "body": 0.28,
+      "primary_interval": {
+        "index": 1,
+        "start_t": 0.98,
+        "end_t": 1.8,
+        "phase": 0.327
+      },
+      "nearest_grid_t": 1.375,
+      "nearest_grid_distance": 0.1269
+    },
+    {
+      "t": 1.8112,
+      "rnn_t": 1.8,
+      "percussive_strength": 1.387,
+      "body": 0.275,
+      "primary_interval": {
+        "index": 2,
+        "start_t": 1.8,
+        "end_t": 2.67,
+        "phase": 0.013
+      },
+      "nearest_grid_t": 1.81,
+      "nearest_grid_distance": 0.0012
+    },
+    {
+      "t": 1.9331,
+      "rnn_t": 1.94,
+      "percussive_strength": 0.735,
+      "body": 0.275,
+      "primary_interval": {
+        "index": 2,
+        "start_t": 1.8,
+        "end_t": 2.67,
+        "phase": 0.153
+      },
+      "nearest_grid_t": 1.81,
+      "nearest_grid_distance": 0.1231
+    },
+    {
+      "t": 2.6761,
+      "rnn_t": 2.67,
+      "percussive_strength": 1.916,
+      "body": 0.144,
+      "primary_interval": {
+        "index": 3,
+        "start_t": 2.67,
+        "end_t": 3.53,
+        "phase": 0.007
+      },
+      "nearest_grid_t": 2.68,
+      "nearest_grid_distance": 0.0039
+    },
+    {
+      "t": 3.2885,
+      "rnn_t": 3.28,
+      "percussive_strength": 1.071,
+      "body": 0.244,
+      "primary_interval": {
+        "index": 3,
+        "start_t": 2.67,
+        "end_t": 3.53,
+        "phase": 0.719
+      },
+      "nearest_grid_t": 3.115,
+      "nearest_grid_distance": 0.1735
+    },
+    {
+      "t": 3.5352,
+      "rnn_t": 3.53,
+      "percussive_strength": 1.824,
+      "body": 0.222,
+      "primary_interval": {
+        "index": 4,
+        "start_t": 3.53,
+        "end_t": 4.39,
+        "phase": 0.006
+      },
+      "nearest_grid_t": 3.55,
+      "nearest_grid_distance": 0.0148
+    },
+    {
+      "t": 3.811,
+      "rnn_t": 3.81,
+      "percussive_strength": 1.823,
+      "body": 0.205,
+      "primary_interval": {
+        "index": 4,
+        "start_t": 3.53,
+        "end_t": 4.39,
+        "phase": 0.327
+      },
+      "nearest_grid_t": 3.985,
+      "nearest_grid_distance": 0.174
+    },
+    {
+      "t": 4.1099,
+      "rnn_t": 4.1,
+      "percussive_strength": 2.018,
+      "body": 0.164,
+      "primary_interval": {
+        "index": 4,
+        "start_t": 3.53,
+        "end_t": 4.39,
+        "phase": 0.674
+      },
+      "nearest_grid_t": 3.985,
+      "nearest_grid_distance": 0.1249
+    },
+    {
+      "t": 4.3712,
+      "rnn_t": 4.37,
+      "percussive_strength": 2.033,
+      "body": 0.187,
+      "primary_interval": {
+        "index": 4,
+        "start_t": 3.53,
+        "end_t": 4.39,
+        "phase": 0.978
+      },
+      "nearest_grid_t": 4.42,
+      "nearest_grid_distance": 0.0488
+    },
+    {
+      "t": 4.5569,
+      "rnn_t": 4.55,
+      "percussive_strength": 0.864,
+      "body": 0.194,
+      "primary_interval": {
+        "index": 5,
+        "start_t": 4.39,
+        "end_t": 5.27,
+        "phase": 0.19
+      },
+      "nearest_grid_t": 4.42,
+      "nearest_grid_distance": 0.1369
+    },
+    {
+      "t": 4.8094,
+      "rnn_t": 4.8,
+      "percussive_strength": 1.519,
+      "body": 0.12,
+      "primary_interval": {
+        "index": 5,
+        "start_t": 4.39,
+        "end_t": 5.27,
+        "phase": 0.477
+      },
+      "nearest_grid_t": 4.855,
+      "nearest_grid_distance": 0.0456
+    },
+    {
+      "t": 5.2825,
+      "rnn_t": 5.28,
+      "percussive_strength": 1.124,
+      "body": 0.083,
+      "primary_interval": {
+        "index": 6,
+        "start_t": 5.27,
+        "end_t": 6.1,
+        "phase": 0.015
+      },
+      "nearest_grid_t": 5.29,
+      "nearest_grid_distance": 0.0075
+    },
+    {
+      "t": 6.9776,
+      "rnn_t": 6.97,
+      "percussive_strength": 2.053,
+      "body": 0.249,
+      "primary_interval": {
+        "index": 8,
+        "start_t": 6.97,
+        "end_t": 7.83,
+        "phase": 0.009
+      },
+      "nearest_grid_t": 7.03,
+      "nearest_grid_distance": 0.0524
+    },
+    {
+      "t": 7.3317,
+      "rnn_t": 7.33,
+      "percussive_strength": 1.885,
+      "body": 0.131,
+      "primary_interval": {
+        "index": 8,
+        "start_t": 6.97,
+        "end_t": 7.83,
+        "phase": 0.421
+      },
+      "nearest_grid_t": 7.465,
+      "nearest_grid_distance": 0.1333
+    },
+    {
+      "t": 7.5871,
+      "rnn_t": 7.59,
+      "percussive_strength": 0.679,
+      "body": 0.123,
+      "primary_interval": {
+        "index": 8,
+        "start_t": 6.97,
+        "end_t": 7.83,
+        "phase": 0.718
+      },
+      "nearest_grid_t": 7.465,
+      "nearest_grid_distance": 0.1221
+    },
+    {
+      "t": 7.8338,
+      "rnn_t": 7.83,
+      "percussive_strength": 2.807,
+      "body": 0.294,
+      "primary_interval": {
+        "index": 9,
+        "start_t": 7.83,
+        "end_t": 8.7,
+        "phase": 0.004
+      },
+      "nearest_grid_t": 7.9,
+      "nearest_grid_distance": 0.0662
+    },
+    {
+      "t": 8.1995,
+      "rnn_t": 8.2,
+      "percussive_strength": 1.837,
+      "body": 0.135,
+      "primary_interval": {
+        "index": 9,
+        "start_t": 7.83,
+        "end_t": 8.7,
+        "phase": 0.425
+      },
+      "nearest_grid_t": 8.335,
+      "nearest_grid_distance": 0.1355
+    },
+    {
+      "t": 8.7075,
+      "rnn_t": 8.7,
+      "percussive_strength": 2.371,
+      "body": 0.265,
+      "primary_interval": {
+        "index": 10,
+        "start_t": 8.7,
+        "end_t": 9.54,
+        "phase": 0.009
+      },
+      "nearest_grid_t": 8.77,
+      "nearest_grid_distance": 0.0625
+    },
+    {
+      "t": 8.7917,
+      "rnn_t": 8.8,
+      "percussive_strength": 0.715,
+      "body": 0.265,
+      "primary_interval": {
+        "index": 10,
+        "start_t": 8.7,
+        "end_t": 9.54,
+        "phase": 0.109
+      },
+      "nearest_grid_t": 8.77,
+      "nearest_grid_distance": 0.0217
+    },
+    {
+      "t": 9.0703,
+      "rnn_t": 9.06,
+      "percussive_strength": 1.814,
+      "body": 0.226,
+      "primary_interval": {
+        "index": 10,
+        "start_t": 8.7,
+        "end_t": 9.54,
+        "phase": 0.441
+      },
+      "nearest_grid_t": 9.205,
+      "nearest_grid_distance": 0.1347
+    },
+    {
+      "t": 9.3373,
+      "rnn_t": 9.33,
+      "percussive_strength": 0.773,
+      "body": 0.274,
+      "primary_interval": {
+        "index": 10,
+        "start_t": 8.7,
+        "end_t": 9.54,
+        "phase": 0.759
+      },
+      "nearest_grid_t": 9.205,
+      "nearest_grid_distance": 0.1323
+    },
+    {
+      "t": 9.6218,
+      "rnn_t": 9.62,
+      "percussive_strength": 1.275,
+      "body": 0.417,
+      "primary_interval": {
+        "index": 11,
+        "start_t": 9.54,
+        "end_t": 10.43,
+        "phase": 0.092
+      },
+      "nearest_grid_t": 9.64,
+      "nearest_grid_distance": 0.0182
+    },
+    {
+      "t": 9.9236,
+      "rnn_t": 9.92,
+      "percussive_strength": 2.346,
+      "body": 0.329,
+      "primary_interval": {
+        "index": 11,
+        "start_t": 9.54,
+        "end_t": 10.43,
+        "phase": 0.431
+      },
+      "nearest_grid_t": 10.075,
+      "nearest_grid_distance": 0.1514
+    },
+    {
+      "t": 10.4403,
+      "rnn_t": 10.44,
+      "percussive_strength": 4.626,
+      "body": 0.977,
+      "primary_interval": {
+        "index": 12,
+        "start_t": 10.43,
+        "end_t": 11.31,
+        "phase": 0.012
+      },
+      "nearest_grid_t": 10.51,
+      "nearest_grid_distance": 0.0697
+    },
+    {
+      "t": 10.5477,
+      "rnn_t": 10.54,
+      "percussive_strength": 1.738,
+      "body": 0.977,
+      "primary_interval": {
+        "index": 12,
+        "start_t": 10.43,
+        "end_t": 11.31,
+        "phase": 0.134
+      },
+      "nearest_grid_t": 10.51,
+      "nearest_grid_distance": 0.0377
+    },
+    {
+      "t": 10.8815,
+      "rnn_t": 10.87,
+      "percussive_strength": 1.003,
+      "body": 0.506,
+      "primary_interval": {
+        "index": 12,
+        "start_t": 10.43,
+        "end_t": 11.31,
+        "phase": 0.513
+      },
+      "nearest_grid_t": 10.945,
+      "nearest_grid_distance": 0.0635
+    },
+    {
+      "t": 11.102,
+      "rnn_t": 11.1,
+      "percussive_strength": 2.146,
+      "body": 0.627,
+      "primary_interval": {
+        "index": 12,
+        "start_t": 10.43,
+        "end_t": 11.31,
+        "phase": 0.764
+      },
+      "nearest_grid_t": 10.945,
+      "nearest_grid_distance": 0.157
+    },
+    {
+      "t": 11.3139,
+      "rnn_t": 11.31,
+      "percussive_strength": 2.631,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 13,
+        "start_t": 11.31,
+        "end_t": 12.18,
+        "phase": 0.005
+      },
+      "nearest_grid_t": 11.38,
+      "nearest_grid_distance": 0.0661
+    },
+    {
+      "t": 11.7522,
+      "rnn_t": 11.75,
+      "percussive_strength": 2.978,
+      "body": 0.607,
+      "primary_interval": {
+        "index": 13,
+        "start_t": 11.31,
+        "end_t": 12.18,
+        "phase": 0.508
+      },
+      "nearest_grid_t": 11.815,
+      "nearest_grid_distance": 0.0628
+    },
+    {
+      "t": 12.1789,
+      "rnn_t": 12.17,
+      "percussive_strength": 3.115,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 13,
+        "start_t": 11.31,
+        "end_t": 12.18,
+        "phase": 0.999
+      },
+      "nearest_grid_t": 12.25,
+      "nearest_grid_distance": 0.0711
+    },
+    {
+      "t": 12.62,
+      "rnn_t": 12.62,
+      "percussive_strength": 3.421,
+      "body": 0.615,
+      "primary_interval": {
+        "index": 14,
+        "start_t": 12.18,
+        "end_t": 13.05,
+        "phase": 0.506
+      },
+      "nearest_grid_t": 12.685,
+      "nearest_grid_distance": 0.065
+    },
+    {
+      "t": 12.8435,
+      "rnn_t": 12.84,
+      "percussive_strength": 1.828,
+      "body": 0.649,
+      "primary_interval": {
+        "index": 14,
+        "start_t": 12.18,
+        "end_t": 13.05,
+        "phase": 0.763
+      },
+      "nearest_grid_t": 12.685,
+      "nearest_grid_distance": 0.1585
+    },
+    {
+      "t": 13.0496,
+      "rnn_t": 13.04,
+      "percussive_strength": 3.079,
+      "body": 0.985,
+      "primary_interval": {
+        "index": 14,
+        "start_t": 12.18,
+        "end_t": 13.05,
+        "phase": 1.0
+      },
+      "nearest_grid_t": 13.12,
+      "nearest_grid_distance": 0.0704
+    },
+    {
+      "t": 13.157,
+      "rnn_t": 13.18,
+      "percussive_strength": 1.117,
+      "body": 0.985,
+      "primary_interval": {
+        "index": 15,
+        "start_t": 13.05,
+        "end_t": 13.91,
+        "phase": 0.124
+      },
+      "nearest_grid_t": 13.12,
+      "nearest_grid_distance": 0.037
+    },
+    {
+      "t": 13.485,
+      "rnn_t": 13.48,
+      "percussive_strength": 2.415,
+      "body": 0.712,
+      "primary_interval": {
+        "index": 15,
+        "start_t": 13.05,
+        "end_t": 13.91,
+        "phase": 0.506
+      },
+      "nearest_grid_t": 13.555,
+      "nearest_grid_distance": 0.07
+    },
+    {
+      "t": 13.7172,
+      "rnn_t": 13.72,
+      "percussive_strength": 1.248,
+      "body": 0.457,
+      "primary_interval": {
+        "index": 15,
+        "start_t": 13.05,
+        "end_t": 13.91,
+        "phase": 0.776
+      },
+      "nearest_grid_t": 13.555,
+      "nearest_grid_distance": 0.1622
+    },
+    {
+      "t": 13.9262,
+      "rnn_t": 13.92,
+      "percussive_strength": 1.178,
+      "body": 0.994,
+      "primary_interval": {
+        "index": 16,
+        "start_t": 13.91,
+        "end_t": 14.78,
+        "phase": 0.019
+      },
+      "nearest_grid_t": 13.99,
+      "nearest_grid_distance": 0.0638
+    },
+    {
+      "t": 14.0249,
+      "rnn_t": 14.02,
+      "percussive_strength": 1.412,
+      "body": 0.994,
+      "primary_interval": {
+        "index": 16,
+        "start_t": 13.91,
+        "end_t": 14.78,
+        "phase": 0.132
+      },
+      "nearest_grid_t": 13.99,
+      "nearest_grid_distance": 0.0349
+    },
+    {
+      "t": 14.3586,
+      "rnn_t": 14.35,
+      "percussive_strength": 1.241,
+      "body": 0.495,
+      "primary_interval": {
+        "index": 16,
+        "start_t": 13.91,
+        "end_t": 14.78,
+        "phase": 0.516
+      },
+      "nearest_grid_t": 14.425,
+      "nearest_grid_distance": 0.0664
+    },
+    {
+      "t": 14.5763,
+      "rnn_t": 14.57,
+      "percussive_strength": 2.818,
+      "body": 0.587,
+      "primary_interval": {
+        "index": 16,
+        "start_t": 13.91,
+        "end_t": 14.78,
+        "phase": 0.766
+      },
+      "nearest_grid_t": 14.425,
+      "nearest_grid_distance": 0.1513
+    },
+    {
+      "t": 14.7911,
+      "rnn_t": 14.78,
+      "percussive_strength": 2.807,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 17,
+        "start_t": 14.78,
+        "end_t": 15.66,
+        "phase": 0.013
+      },
+      "nearest_grid_t": 14.86,
+      "nearest_grid_distance": 0.0689
+    },
+    {
+      "t": 14.9101,
+      "rnn_t": 14.92,
+      "percussive_strength": 1.504,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 17,
+        "start_t": 14.78,
+        "end_t": 15.66,
+        "phase": 0.148
+      },
+      "nearest_grid_t": 14.86,
+      "nearest_grid_distance": 0.0501
+    },
+    {
+      "t": 15.2294,
+      "rnn_t": 15.22,
+      "percussive_strength": 3.093,
+      "body": 0.584,
+      "primary_interval": {
+        "index": 17,
+        "start_t": 14.78,
+        "end_t": 15.66,
+        "phase": 0.511
+      },
+      "nearest_grid_t": 15.295,
+      "nearest_grid_distance": 0.0656
+    },
+    {
+      "t": 15.4558,
+      "rnn_t": 15.45,
+      "percussive_strength": 0.816,
+      "body": 0.307,
+      "primary_interval": {
+        "index": 17,
+        "start_t": 14.78,
+        "end_t": 15.66,
+        "phase": 0.768
+      },
+      "nearest_grid_t": 15.295,
+      "nearest_grid_distance": 0.1608
+    },
+    {
+      "t": 15.659,
+      "rnn_t": 15.65,
+      "percussive_strength": 3.02,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 17,
+        "start_t": 14.78,
+        "end_t": 15.66,
+        "phase": 0.999
+      },
+      "nearest_grid_t": 15.73,
+      "nearest_grid_distance": 0.071
+    },
+    {
+      "t": 15.7954,
+      "rnn_t": 15.79,
+      "percussive_strength": 1.425,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 18,
+        "start_t": 15.66,
+        "end_t": 16.53,
+        "phase": 0.156
+      },
+      "nearest_grid_t": 15.73,
+      "nearest_grid_distance": 0.0654
+    },
+    {
+      "t": 16.0189,
+      "rnn_t": 16.01,
+      "percussive_strength": 1.85,
+      "body": 0.615,
+      "primary_interval": {
+        "index": 18,
+        "start_t": 15.66,
+        "end_t": 16.53,
+        "phase": 0.412
+      },
+      "nearest_grid_t": 16.165,
+      "nearest_grid_distance": 0.1461
+    },
+    {
+      "t": 16.1001,
+      "rnn_t": 16.1,
+      "percussive_strength": 2.139,
+      "body": 0.615,
+      "primary_interval": {
+        "index": 18,
+        "start_t": 15.66,
+        "end_t": 16.53,
+        "phase": 0.506
+      },
+      "nearest_grid_t": 16.165,
+      "nearest_grid_distance": 0.0649
+    },
+    {
+      "t": 16.3207,
+      "rnn_t": 16.32,
+      "percussive_strength": 1.611,
+      "body": 0.63,
+      "primary_interval": {
+        "index": 18,
+        "start_t": 15.66,
+        "end_t": 16.53,
+        "phase": 0.759
+      },
+      "nearest_grid_t": 16.165,
+      "nearest_grid_distance": 0.1557
+    },
+    {
+      "t": 16.5297,
+      "rnn_t": 16.52,
+      "percussive_strength": 3.057,
+      "body": 0.97,
+      "primary_interval": {
+        "index": 18,
+        "start_t": 15.66,
+        "end_t": 16.53,
+        "phase": 1.0
+      },
+      "nearest_grid_t": 16.6,
+      "nearest_grid_distance": 0.0703
+    },
+    {
+      "t": 16.6487,
+      "rnn_t": 16.66,
+      "percussive_strength": 1.499,
+      "body": 0.97,
+      "primary_interval": {
+        "index": 19,
+        "start_t": 16.53,
+        "end_t": 17.39,
+        "phase": 0.138
+      },
+      "nearest_grid_t": 16.6,
+      "nearest_grid_distance": 0.0487
+    },
+    {
+      "t": 16.9622,
+      "rnn_t": 16.93,
+      "percussive_strength": 2.11,
+      "body": 0.964,
+      "primary_interval": {
+        "index": 19,
+        "start_t": 16.53,
+        "end_t": 17.39,
+        "phase": 0.503
+      },
+      "nearest_grid_t": 17.035,
+      "nearest_grid_distance": 0.0728
+    },
+    {
+      "t": 17.0696,
+      "rnn_t": 17.09,
+      "percussive_strength": 1.404,
+      "body": 0.964,
+      "primary_interval": {
+        "index": 19,
+        "start_t": 16.53,
+        "end_t": 17.39,
+        "phase": 0.627
+      },
+      "nearest_grid_t": 17.035,
+      "nearest_grid_distance": 0.0346
+    },
+    {
+      "t": 17.4005,
+      "rnn_t": 17.39,
+      "percussive_strength": 2.863,
+      "body": 0.979,
+      "primary_interval": {
+        "index": 20,
+        "start_t": 17.39,
+        "end_t": 18.26,
+        "phase": 0.012
+      },
+      "nearest_grid_t": 17.47,
+      "nearest_grid_distance": 0.0695
+    },
+    {
+      "t": 17.5049,
+      "rnn_t": 17.5,
+      "percussive_strength": 1.44,
+      "body": 0.979,
+      "primary_interval": {
+        "index": 20,
+        "start_t": 17.39,
+        "end_t": 18.26,
+        "phase": 0.132
+      },
+      "nearest_grid_t": 17.47,
+      "nearest_grid_distance": 0.0349
+    },
+    {
+      "t": 17.8358,
+      "rnn_t": 17.83,
+      "percussive_strength": 1.325,
+      "body": 0.511,
+      "primary_interval": {
+        "index": 20,
+        "start_t": 17.39,
+        "end_t": 18.26,
+        "phase": 0.512
+      },
+      "nearest_grid_t": 17.905,
+      "nearest_grid_distance": 0.0692
+    },
+    {
+      "t": 18.0593,
+      "rnn_t": 18.05,
+      "percussive_strength": 2.068,
+      "body": 0.611,
+      "primary_interval": {
+        "index": 20,
+        "start_t": 17.39,
+        "end_t": 18.26,
+        "phase": 0.769
+      },
+      "nearest_grid_t": 17.905,
+      "nearest_grid_distance": 0.1543
+    },
+    {
+      "t": 18.2683,
+      "rnn_t": 18.26,
+      "percussive_strength": 2.395,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 21,
+        "start_t": 18.26,
+        "end_t": 19.13,
+        "phase": 0.01
+      },
+      "nearest_grid_t": 18.34,
+      "nearest_grid_distance": 0.0717
+    },
+    {
+      "t": 18.3583,
+      "rnn_t": 18.35,
+      "percussive_strength": 1.557,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 21,
+        "start_t": 18.26,
+        "end_t": 19.13,
+        "phase": 0.113
+      },
+      "nearest_grid_t": 18.34,
+      "nearest_grid_distance": 0.0183
+    },
+    {
+      "t": 18.7066,
+      "rnn_t": 18.7,
+      "percussive_strength": 2.649,
+      "body": 0.601,
+      "primary_interval": {
+        "index": 21,
+        "start_t": 18.26,
+        "end_t": 19.13,
+        "phase": 0.513
+      },
+      "nearest_grid_t": 18.775,
+      "nearest_grid_distance": 0.0684
+    },
+    {
+      "t": 19.1361,
+      "rnn_t": 19.13,
+      "percussive_strength": 2.851,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 22,
+        "start_t": 19.13,
+        "end_t": 20.0,
+        "phase": 0.007
+      },
+      "nearest_grid_t": 19.21,
+      "nearest_grid_distance": 0.0739
+    },
+    {
+      "t": 19.2435,
+      "rnn_t": 19.25,
+      "percussive_strength": 1.339,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 22,
+        "start_t": 19.13,
+        "end_t": 20.0,
+        "phase": 0.131
+      },
+      "nearest_grid_t": 19.21,
+      "nearest_grid_distance": 0.0335
+    },
+    {
+      "t": 19.5773,
+      "rnn_t": 19.57,
+      "percussive_strength": 3.044,
+      "body": 0.608,
+      "primary_interval": {
+        "index": 22,
+        "start_t": 19.13,
+        "end_t": 20.0,
+        "phase": 0.514
+      },
+      "nearest_grid_t": 19.645,
+      "nearest_grid_distance": 0.0677
+    },
+    {
+      "t": 19.8008,
+      "rnn_t": 19.8,
+      "percussive_strength": 1.746,
+      "body": 0.636,
+      "primary_interval": {
+        "index": 22,
+        "start_t": 19.13,
+        "end_t": 20.0,
+        "phase": 0.771
+      },
+      "nearest_grid_t": 19.645,
+      "nearest_grid_distance": 0.1558
+    },
+    {
+      "t": 20.0069,
+      "rnn_t": 20.0,
+      "percussive_strength": 3.282,
+      "body": 0.973,
+      "primary_interval": {
+        "index": 23,
+        "start_t": 20.0,
+        "end_t": 20.87,
+        "phase": 0.008
+      },
+      "nearest_grid_t": 20.08,
+      "nearest_grid_distance": 0.0731
+    },
+    {
+      "t": 20.2652,
+      "rnn_t": 20.24,
+      "percussive_strength": 0.691,
+      "body": 0.823,
+      "primary_interval": {
+        "index": 23,
+        "start_t": 20.0,
+        "end_t": 20.87,
+        "phase": 0.305
+      },
+      "nearest_grid_t": 20.08,
+      "nearest_grid_distance": 0.1852
+    },
+    {
+      "t": 20.4423,
+      "rnn_t": 20.44,
+      "percussive_strength": 2.334,
+      "body": 0.684,
+      "primary_interval": {
+        "index": 23,
+        "start_t": 20.0,
+        "end_t": 20.87,
+        "phase": 0.508
+      },
+      "nearest_grid_t": 20.515,
+      "nearest_grid_distance": 0.0727
+    },
+    {
+      "t": 20.6745,
+      "rnn_t": 20.67,
+      "percussive_strength": 1.044,
+      "body": 0.425,
+      "primary_interval": {
+        "index": 23,
+        "start_t": 20.0,
+        "end_t": 20.87,
+        "phase": 0.775
+      },
+      "nearest_grid_t": 20.515,
+      "nearest_grid_distance": 0.1595
+    },
+    {
+      "t": 20.8805,
+      "rnn_t": 20.87,
+      "percussive_strength": 1.179,
+      "body": 0.971,
+      "primary_interval": {
+        "index": 24,
+        "start_t": 20.87,
+        "end_t": 21.74,
+        "phase": 0.012
+      },
+      "nearest_grid_t": 20.95,
+      "nearest_grid_distance": 0.0695
+    },
+    {
+      "t": 20.9821,
+      "rnn_t": 20.99,
+      "percussive_strength": 1.716,
+      "body": 0.971,
+      "primary_interval": {
+        "index": 24,
+        "start_t": 20.87,
+        "end_t": 21.74,
+        "phase": 0.129
+      },
+      "nearest_grid_t": 20.95,
+      "nearest_grid_distance": 0.0321
+    },
+    {
+      "t": 21.3159,
+      "rnn_t": 21.31,
+      "percussive_strength": 1.229,
+      "body": 0.457,
+      "primary_interval": {
+        "index": 24,
+        "start_t": 20.87,
+        "end_t": 21.74,
+        "phase": 0.513
+      },
+      "nearest_grid_t": 21.385,
+      "nearest_grid_distance": 0.0691
+    },
+    {
+      "t": 21.5336,
+      "rnn_t": 21.53,
+      "percussive_strength": 2.681,
+      "body": 0.594,
+      "primary_interval": {
+        "index": 24,
+        "start_t": 20.87,
+        "end_t": 21.74,
+        "phase": 0.763
+      },
+      "nearest_grid_t": 21.385,
+      "nearest_grid_distance": 0.1486
+    },
+    {
+      "t": 21.7455,
+      "rnn_t": 21.74,
+      "percussive_strength": 3.337,
+      "body": 0.997,
+      "primary_interval": {
+        "index": 25,
+        "start_t": 21.74,
+        "end_t": 22.61,
+        "phase": 0.006
+      },
+      "nearest_grid_t": 21.82,
+      "nearest_grid_distance": 0.0745
+    },
+    {
+      "t": 21.8355,
+      "rnn_t": 21.83,
+      "percussive_strength": 1.368,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 25,
+        "start_t": 21.74,
+        "end_t": 22.61,
+        "phase": 0.11
+      },
+      "nearest_grid_t": 21.82,
+      "nearest_grid_distance": 0.0155
+    },
+    {
+      "t": 22.1867,
+      "rnn_t": 22.18,
+      "percussive_strength": 2.799,
+      "body": 0.598,
+      "primary_interval": {
+        "index": 25,
+        "start_t": 21.74,
+        "end_t": 22.61,
+        "phase": 0.513
+      },
+      "nearest_grid_t": 22.255,
+      "nearest_grid_distance": 0.0683
+    },
+    {
+      "t": 22.4044,
+      "rnn_t": 22.41,
+      "percussive_strength": 0.691,
+      "body": 0.28,
+      "primary_interval": {
+        "index": 25,
+        "start_t": 21.74,
+        "end_t": 22.61,
+        "phase": 0.764
+      },
+      "nearest_grid_t": 22.255,
+      "nearest_grid_distance": 0.1494
+    },
+    {
+      "t": 22.6075,
+      "rnn_t": 22.6,
+      "percussive_strength": 2.381,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 25,
+        "start_t": 21.74,
+        "end_t": 22.61,
+        "phase": 0.997
+      },
+      "nearest_grid_t": 22.69,
+      "nearest_grid_distance": 0.0825
+    },
+    {
+      "t": 22.7352,
+      "rnn_t": 22.73,
+      "percussive_strength": 1.378,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 26,
+        "start_t": 22.61,
+        "end_t": 23.48,
+        "phase": 0.144
+      },
+      "nearest_grid_t": 22.69,
+      "nearest_grid_distance": 0.0452
+    },
+    {
+      "t": 22.8484,
+      "rnn_t": 22.84,
+      "percussive_strength": 1.041,
+      "body": 0.863,
+      "primary_interval": {
+        "index": 26,
+        "start_t": 22.61,
+        "end_t": 23.48,
+        "phase": 0.274
+      },
+      "nearest_grid_t": 22.69,
+      "nearest_grid_distance": 0.1584
+    },
+    {
+      "t": 22.9674,
+      "rnn_t": 22.96,
+      "percussive_strength": 1.126,
+      "body": 0.708,
+      "primary_interval": {
+        "index": 26,
+        "start_t": 22.61,
+        "end_t": 23.48,
+        "phase": 0.411
+      },
+      "nearest_grid_t": 23.125,
+      "nearest_grid_distance": 0.1576
+    },
+    {
+      "t": 23.0545,
+      "rnn_t": 23.05,
+      "percussive_strength": 1.803,
+      "body": 0.708,
+      "primary_interval": {
+        "index": 26,
+        "start_t": 22.61,
+        "end_t": 23.48,
+        "phase": 0.511
+      },
+      "nearest_grid_t": 23.125,
+      "nearest_grid_distance": 0.0705
+    },
+    {
+      "t": 23.2809,
+      "rnn_t": 23.27,
+      "percussive_strength": 1.449,
+      "body": 0.608,
+      "primary_interval": {
+        "index": 26,
+        "start_t": 22.61,
+        "end_t": 23.48,
+        "phase": 0.771
+      },
+      "nearest_grid_t": 23.125,
+      "nearest_grid_distance": 0.1559
+    },
+    {
+      "t": 23.487,
+      "rnn_t": 23.48,
+      "percussive_strength": 2.758,
+      "body": 0.953,
+      "primary_interval": {
+        "index": 27,
+        "start_t": 23.48,
+        "end_t": 24.35,
+        "phase": 0.008
+      },
+      "nearest_grid_t": 23.56,
+      "nearest_grid_distance": 0.073
+    },
+    {
+      "t": 23.8469,
+      "rnn_t": 23.84,
+      "percussive_strength": 1.237,
+      "body": 0.489,
+      "primary_interval": {
+        "index": 27,
+        "start_t": 23.48,
+        "end_t": 24.35,
+        "phase": 0.422
+      },
+      "nearest_grid_t": 23.995,
+      "nearest_grid_distance": 0.1481
+    },
+    {
+      "t": 24.3461,
+      "rnn_t": 24.34,
+      "percussive_strength": 1.864,
+      "body": 0.663,
+      "primary_interval": {
+        "index": 27,
+        "start_t": 23.48,
+        "end_t": 24.35,
+        "phase": 0.996
+      },
+      "nearest_grid_t": 24.43,
+      "nearest_grid_distance": 0.0839
+    },
+    {
+      "t": 24.5841,
+      "rnn_t": 24.58,
+      "percussive_strength": 1.209,
+      "body": 0.761,
+      "primary_interval": {
+        "index": 28,
+        "start_t": 24.35,
+        "end_t": 25.22,
+        "phase": 0.269
+      },
+      "nearest_grid_t": 24.43,
+      "nearest_grid_distance": 0.1541
+    },
+    {
+      "t": 24.767,
+      "rnn_t": 24.79,
+      "percussive_strength": 0.891,
+      "body": 0.462,
+      "primary_interval": {
+        "index": 28,
+        "start_t": 24.35,
+        "end_t": 25.22,
+        "phase": 0.479
+      },
+      "nearest_grid_t": 24.865,
+      "nearest_grid_distance": 0.098
+    },
+    {
+      "t": 25.0195,
+      "rnn_t": 25.05,
+      "percussive_strength": 1.015,
+      "body": 0.432,
+      "primary_interval": {
+        "index": 28,
+        "start_t": 24.35,
+        "end_t": 25.22,
+        "phase": 0.77
+      },
+      "nearest_grid_t": 24.865,
+      "nearest_grid_distance": 0.1545
+    },
+    {
+      "t": 25.2256,
+      "rnn_t": 25.21,
+      "percussive_strength": 2.16,
+      "body": 0.523,
+      "primary_interval": {
+        "index": 29,
+        "start_t": 25.22,
+        "end_t": 26.09,
+        "phase": 0.006
+      },
+      "nearest_grid_t": 25.3,
+      "nearest_grid_distance": 0.0744
+    },
+    {
+      "t": 25.3185,
+      "rnn_t": 25.31,
+      "percussive_strength": 0.893,
+      "body": 0.523,
+      "primary_interval": {
+        "index": 29,
+        "start_t": 25.22,
+        "end_t": 26.09,
+        "phase": 0.113
+      },
+      "nearest_grid_t": 25.3,
+      "nearest_grid_distance": 0.0185
+    },
+    {
+      "t": 25.452,
+      "rnn_t": 25.45,
+      "percussive_strength": 1.235,
+      "body": 0.397,
+      "primary_interval": {
+        "index": 29,
+        "start_t": 25.22,
+        "end_t": 26.09,
+        "phase": 0.267
+      },
+      "nearest_grid_t": 25.3,
+      "nearest_grid_distance": 0.152
+    },
+    {
+      "t": 25.6261,
+      "rnn_t": 25.66,
+      "percussive_strength": 0.889,
+      "body": 0.357,
+      "primary_interval": {
+        "index": 29,
+        "start_t": 25.22,
+        "end_t": 26.09,
+        "phase": 0.467
+      },
+      "nearest_grid_t": 25.735,
+      "nearest_grid_distance": 0.1089
+    },
+    {
+      "t": 25.8873,
+      "rnn_t": 25.88,
+      "percussive_strength": 1.026,
+      "body": 0.302,
+      "primary_interval": {
+        "index": 29,
+        "start_t": 25.22,
+        "end_t": 26.09,
+        "phase": 0.767
+      },
+      "nearest_grid_t": 25.735,
+      "nearest_grid_distance": 0.1523
+    },
+    {
+      "t": 26.0847,
+      "rnn_t": 26.08,
+      "percussive_strength": 1.94,
+      "body": 0.479,
+      "primary_interval": {
+        "index": 29,
+        "start_t": 25.22,
+        "end_t": 26.09,
+        "phase": 0.994
+      },
+      "nearest_grid_t": 26.17,
+      "nearest_grid_distance": 0.0853
+    },
+    {
+      "t": 26.3227,
+      "rnn_t": 26.32,
+      "percussive_strength": 0.751,
+      "body": 0.247,
+      "primary_interval": {
+        "index": 30,
+        "start_t": 26.09,
+        "end_t": 26.95,
+        "phase": 0.271
+      },
+      "nearest_grid_t": 26.17,
+      "nearest_grid_distance": 0.1527
+    },
+    {
+      "t": 26.4185,
+      "rnn_t": 26.43,
+      "percussive_strength": 0.825,
+      "body": 0.206,
+      "primary_interval": {
+        "index": 30,
+        "start_t": 26.09,
+        "end_t": 26.95,
+        "phase": 0.382
+      },
+      "nearest_grid_t": 26.605,
+      "nearest_grid_distance": 0.1865
+    },
+    {
+      "t": 26.7175,
+      "rnn_t": 26.71,
+      "percussive_strength": 1.121,
+      "body": 0.174,
+      "primary_interval": {
+        "index": 30,
+        "start_t": 26.09,
+        "end_t": 26.95,
+        "phase": 0.73
+      },
+      "nearest_grid_t": 26.605,
+      "nearest_grid_distance": 0.1125
+    },
+    {
+      "t": 26.9468,
+      "rnn_t": 26.94,
+      "percussive_strength": 1.822,
+      "body": 0.218,
+      "primary_interval": {
+        "index": 30,
+        "start_t": 26.09,
+        "end_t": 26.95,
+        "phase": 0.996
+      },
+      "nearest_grid_t": 27.04,
+      "nearest_grid_distance": 0.0932
+    },
+    {
+      "t": 27.1761,
+      "rnn_t": 27.17,
+      "percussive_strength": 0.771,
+      "body": 0.222,
+      "primary_interval": {
+        "index": 31,
+        "start_t": 26.95,
+        "end_t": 27.83,
+        "phase": 0.257
+      },
+      "nearest_grid_t": 27.04,
+      "nearest_grid_distance": 0.1361
+    },
+    {
+      "t": 27.3096,
+      "rnn_t": 27.31,
+      "percussive_strength": 1.079,
+      "body": 0.201,
+      "primary_interval": {
+        "index": 31,
+        "start_t": 26.95,
+        "end_t": 27.83,
+        "phase": 0.409
+      },
+      "nearest_grid_t": 27.475,
+      "nearest_grid_distance": 0.1654
+    },
+    {
+      "t": 27.4228,
+      "rnn_t": 27.41,
+      "percussive_strength": 1.277,
+      "body": 0.176,
+      "primary_interval": {
+        "index": 31,
+        "start_t": 26.95,
+        "end_t": 27.83,
+        "phase": 0.537
+      },
+      "nearest_grid_t": 27.475,
+      "nearest_grid_distance": 0.0522
+    },
+    {
+      "t": 27.7159,
+      "rnn_t": 27.71,
+      "percussive_strength": 0.896,
+      "body": 0.576,
+      "primary_interval": {
+        "index": 31,
+        "start_t": 26.95,
+        "end_t": 27.83,
+        "phase": 0.87
+      },
+      "nearest_grid_t": 27.91,
+      "nearest_grid_distance": 0.1941
+    },
+    {
+      "t": 27.8378,
+      "rnn_t": 27.83,
+      "percussive_strength": 1.293,
+      "body": 0.968,
+      "primary_interval": {
+        "index": 32,
+        "start_t": 27.83,
+        "end_t": 28.7,
+        "phase": 0.009
+      },
+      "nearest_grid_t": 27.91,
+      "nearest_grid_distance": 0.0722
+    },
+    {
+      "t": 27.9394,
+      "rnn_t": 27.93,
+      "percussive_strength": 1.296,
+      "body": 0.968,
+      "primary_interval": {
+        "index": 32,
+        "start_t": 27.83,
+        "end_t": 28.7,
+        "phase": 0.126
+      },
+      "nearest_grid_t": 27.91,
+      "nearest_grid_distance": 0.0294
+    },
+    {
+      "t": 28.2703,
+      "rnn_t": 28.28,
+      "percussive_strength": 1.002,
+      "body": 0.496,
+      "primary_interval": {
+        "index": 32,
+        "start_t": 27.83,
+        "end_t": 28.7,
+        "phase": 0.506
+      },
+      "nearest_grid_t": 28.345,
+      "nearest_grid_distance": 0.0747
+    },
+    {
+      "t": 28.4938,
+      "rnn_t": 28.48,
+      "percussive_strength": 1.509,
+      "body": 0.615,
+      "primary_interval": {
+        "index": 32,
+        "start_t": 27.83,
+        "end_t": 28.7,
+        "phase": 0.763
+      },
+      "nearest_grid_t": 28.345,
+      "nearest_grid_distance": 0.1488
+    },
+    {
+      "t": 28.7057,
+      "rnn_t": 28.7,
+      "percussive_strength": 2.788,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 33,
+        "start_t": 28.7,
+        "end_t": 29.57,
+        "phase": 0.007
+      },
+      "nearest_grid_t": 28.78,
+      "nearest_grid_distance": 0.0743
+    },
+    {
+      "t": 28.7927,
+      "rnn_t": 28.79,
+      "percussive_strength": 1.391,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 33,
+        "start_t": 28.7,
+        "end_t": 29.57,
+        "phase": 0.107
+      },
+      "nearest_grid_t": 28.78,
+      "nearest_grid_distance": 0.0127
+    },
+    {
+      "t": 28.9205,
+      "rnn_t": 28.91,
+      "percussive_strength": 1.247,
+      "body": 0.937,
+      "primary_interval": {
+        "index": 33,
+        "start_t": 28.7,
+        "end_t": 29.57,
+        "phase": 0.253
+      },
+      "nearest_grid_t": 28.78,
+      "nearest_grid_distance": 0.1405
+    },
+    {
+      "t": 29.1439,
+      "rnn_t": 29.14,
+      "percussive_strength": 1.751,
+      "body": 0.615,
+      "primary_interval": {
+        "index": 33,
+        "start_t": 28.7,
+        "end_t": 29.57,
+        "phase": 0.51
+      },
+      "nearest_grid_t": 29.215,
+      "nearest_grid_distance": 0.0711
+    },
+    {
+      "t": 29.3558,
+      "rnn_t": 29.35,
+      "percussive_strength": 1.06,
+      "body": 0.367,
+      "primary_interval": {
+        "index": 33,
+        "start_t": 28.7,
+        "end_t": 29.57,
+        "phase": 0.754
+      },
+      "nearest_grid_t": 29.215,
+      "nearest_grid_distance": 0.1408
+    },
+    {
+      "t": 29.5735,
+      "rnn_t": 29.57,
+      "percussive_strength": 2.147,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 34,
+        "start_t": 29.57,
+        "end_t": 30.44,
+        "phase": 0.004
+      },
+      "nearest_grid_t": 29.65,
+      "nearest_grid_distance": 0.0765
+    },
+    {
+      "t": 29.6925,
+      "rnn_t": 29.72,
+      "percussive_strength": 1.233,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 34,
+        "start_t": 29.57,
+        "end_t": 30.44,
+        "phase": 0.141
+      },
+      "nearest_grid_t": 29.65,
+      "nearest_grid_distance": 0.0425
+    },
+    {
+      "t": 29.7883,
+      "rnn_t": 29.78,
+      "percussive_strength": 1.357,
+      "body": 0.942,
+      "primary_interval": {
+        "index": 34,
+        "start_t": 29.57,
+        "end_t": 30.44,
+        "phase": 0.251
+      },
+      "nearest_grid_t": 29.65,
+      "nearest_grid_distance": 0.1383
+    },
+    {
+      "t": 30.0089,
+      "rnn_t": 30.01,
+      "percussive_strength": 1.958,
+      "body": 0.624,
+      "primary_interval": {
+        "index": 34,
+        "start_t": 29.57,
+        "end_t": 30.44,
+        "phase": 0.504
+      },
+      "nearest_grid_t": 30.085,
+      "nearest_grid_distance": 0.0761
+    },
+    {
+      "t": 30.2237,
+      "rnn_t": 30.22,
+      "percussive_strength": 1.765,
+      "body": 0.626,
+      "primary_interval": {
+        "index": 34,
+        "start_t": 29.57,
+        "end_t": 30.44,
+        "phase": 0.751
+      },
+      "nearest_grid_t": 30.085,
+      "nearest_grid_distance": 0.1387
+    },
+    {
+      "t": 30.4414,
+      "rnn_t": 30.44,
+      "percussive_strength": 2.876,
+      "body": 0.99,
+      "primary_interval": {
+        "index": 35,
+        "start_t": 30.44,
+        "end_t": 31.31,
+        "phase": 0.002
+      },
+      "nearest_grid_t": 30.52,
+      "nearest_grid_distance": 0.0786
+    },
+    {
+      "t": 30.5459,
+      "rnn_t": 30.54,
+      "percussive_strength": 1.244,
+      "body": 0.99,
+      "primary_interval": {
+        "index": 35,
+        "start_t": 30.44,
+        "end_t": 31.31,
+        "phase": 0.122
+      },
+      "nearest_grid_t": 30.52,
+      "nearest_grid_distance": 0.0259
+    },
+    {
+      "t": 30.659,
+      "rnn_t": 30.65,
+      "percussive_strength": 1.142,
+      "body": 0.926,
+      "primary_interval": {
+        "index": 35,
+        "start_t": 30.44,
+        "end_t": 31.31,
+        "phase": 0.252
+      },
+      "nearest_grid_t": 30.52,
+      "nearest_grid_distance": 0.139
+    },
+    {
+      "t": 30.8767,
+      "rnn_t": 30.87,
+      "percussive_strength": 1.98,
+      "body": 0.694,
+      "primary_interval": {
+        "index": 35,
+        "start_t": 30.44,
+        "end_t": 31.31,
+        "phase": 0.502
+      },
+      "nearest_grid_t": 30.955,
+      "nearest_grid_distance": 0.0783
+    },
+    {
+      "t": 31.0973,
+      "rnn_t": 31.09,
+      "percussive_strength": 1.073,
+      "body": 0.393,
+      "primary_interval": {
+        "index": 35,
+        "start_t": 30.44,
+        "end_t": 31.31,
+        "phase": 0.756
+      },
+      "nearest_grid_t": 30.955,
+      "nearest_grid_distance": 0.1423
+    },
+    {
+      "t": 31.315,
+      "rnn_t": 31.28,
+      "percussive_strength": 0.972,
+      "body": 0.966,
+      "primary_interval": {
+        "index": 36,
+        "start_t": 31.31,
+        "end_t": 32.18,
+        "phase": 0.006
+      },
+      "nearest_grid_t": 31.39,
+      "nearest_grid_distance": 0.075
+    },
+    {
+      "t": 31.4166,
+      "rnn_t": 31.41,
+      "percussive_strength": 1.44,
+      "body": 0.966,
+      "primary_interval": {
+        "index": 36,
+        "start_t": 31.31,
+        "end_t": 32.18,
+        "phase": 0.123
+      },
+      "nearest_grid_t": 31.39,
+      "nearest_grid_distance": 0.0266
+    },
+    {
+      "t": 31.7504,
+      "rnn_t": 31.75,
+      "percussive_strength": 1.384,
+      "body": 0.511,
+      "primary_interval": {
+        "index": 36,
+        "start_t": 31.31,
+        "end_t": 32.18,
+        "phase": 0.506
+      },
+      "nearest_grid_t": 31.825,
+      "nearest_grid_distance": 0.0746
+    },
+    {
+      "t": 31.9565,
+      "rnn_t": 31.96,
+      "percussive_strength": 1.62,
+      "body": 0.595,
+      "primary_interval": {
+        "index": 36,
+        "start_t": 31.31,
+        "end_t": 32.18,
+        "phase": 0.743
+      },
+      "nearest_grid_t": 31.825,
+      "nearest_grid_distance": 0.1315
+    },
+    {
+      "t": 32.1829,
+      "rnn_t": 32.18,
+      "percussive_strength": 2.574,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 37,
+        "start_t": 32.18,
+        "end_t": 33.05,
+        "phase": 0.003
+      },
+      "nearest_grid_t": 32.26,
+      "nearest_grid_distance": 0.0771
+    },
+    {
+      "t": 32.3193,
+      "rnn_t": 32.31,
+      "percussive_strength": 1.146,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 37,
+        "start_t": 32.18,
+        "end_t": 33.05,
+        "phase": 0.16
+      },
+      "nearest_grid_t": 32.26,
+      "nearest_grid_distance": 0.0593
+    },
+    {
+      "t": 32.6182,
+      "rnn_t": 32.61,
+      "percussive_strength": 1.941,
+      "body": 0.611,
+      "primary_interval": {
+        "index": 37,
+        "start_t": 32.18,
+        "end_t": 33.05,
+        "phase": 0.504
+      },
+      "nearest_grid_t": 32.695,
+      "nearest_grid_distance": 0.0768
+    },
+    {
+      "t": 32.833,
+      "rnn_t": 32.83,
+      "percussive_strength": 1.508,
+      "body": 0.346,
+      "primary_interval": {
+        "index": 37,
+        "start_t": 32.18,
+        "end_t": 33.05,
+        "phase": 0.751
+      },
+      "nearest_grid_t": 32.695,
+      "nearest_grid_distance": 0.138
+    },
+    {
+      "t": 33.0536,
+      "rnn_t": 33.05,
+      "percussive_strength": 2.484,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 38,
+        "start_t": 33.05,
+        "end_t": 33.92,
+        "phase": 0.004
+      },
+      "nearest_grid_t": 33.13,
+      "nearest_grid_distance": 0.0764
+    },
+    {
+      "t": 33.1552,
+      "rnn_t": 33.12,
+      "percussive_strength": 1.385,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 38,
+        "start_t": 33.05,
+        "end_t": 33.92,
+        "phase": 0.121
+      },
+      "nearest_grid_t": 33.13,
+      "nearest_grid_distance": 0.0252
+    },
+    {
+      "t": 33.2684,
+      "rnn_t": 33.26,
+      "percussive_strength": 1.442,
+      "body": 0.921,
+      "primary_interval": {
+        "index": 38,
+        "start_t": 33.05,
+        "end_t": 33.92,
+        "phase": 0.251
+      },
+      "nearest_grid_t": 33.13,
+      "nearest_grid_distance": 0.1384
+    },
+    {
+      "t": 33.4861,
+      "rnn_t": 33.48,
+      "percussive_strength": 2.078,
+      "body": 0.706,
+      "primary_interval": {
+        "index": 38,
+        "start_t": 33.05,
+        "end_t": 33.92,
+        "phase": 0.501
+      },
+      "nearest_grid_t": 33.565,
+      "nearest_grid_distance": 0.0789
+    },
+    {
+      "t": 33.7009,
+      "rnn_t": 33.7,
+      "percussive_strength": 1.735,
+      "body": 0.624,
+      "primary_interval": {
+        "index": 38,
+        "start_t": 33.05,
+        "end_t": 33.92,
+        "phase": 0.748
+      },
+      "nearest_grid_t": 33.565,
+      "nearest_grid_distance": 0.1359
+    },
+    {
+      "t": 33.9215,
+      "rnn_t": 33.91,
+      "percussive_strength": 2.956,
+      "body": 0.97,
+      "primary_interval": {
+        "index": 39,
+        "start_t": 33.92,
+        "end_t": 34.78,
+        "phase": 0.002
+      },
+      "nearest_grid_t": 34.0,
+      "nearest_grid_distance": 0.0785
+    },
+    {
+      "t": 34.1362,
+      "rnn_t": 34.13,
+      "percussive_strength": 1.114,
+      "body": 0.897,
+      "primary_interval": {
+        "index": 39,
+        "start_t": 33.92,
+        "end_t": 34.78,
+        "phase": 0.251
+      },
+      "nearest_grid_t": 34.0,
+      "nearest_grid_distance": 0.1362
+    },
+    {
+      "t": 34.3568,
+      "rnn_t": 34.35,
+      "percussive_strength": 2.35,
+      "body": 0.959,
+      "primary_interval": {
+        "index": 39,
+        "start_t": 33.92,
+        "end_t": 34.78,
+        "phase": 0.508
+      },
+      "nearest_grid_t": 34.435,
+      "nearest_grid_distance": 0.0782
+    },
+    {
+      "t": 34.5281,
+      "rnn_t": 34.53,
+      "percussive_strength": 1.464,
+      "body": 0.933,
+      "primary_interval": {
+        "index": 39,
+        "start_t": 33.92,
+        "end_t": 34.78,
+        "phase": 0.707
+      },
+      "nearest_grid_t": 34.435,
+      "nearest_grid_distance": 0.0931
+    },
+    {
+      "t": 34.7893,
+      "rnn_t": 34.78,
+      "percussive_strength": 2.97,
+      "body": 0.987,
+      "primary_interval": {
+        "index": 40,
+        "start_t": 34.78,
+        "end_t": 35.66,
+        "phase": 0.011
+      },
+      "nearest_grid_t": 34.87,
+      "nearest_grid_distance": 0.0807
+    },
+    {
+      "t": 34.9634,
+      "rnn_t": 34.97,
+      "percussive_strength": 1.419,
+      "body": 0.987,
+      "primary_interval": {
+        "index": 40,
+        "start_t": 34.78,
+        "end_t": 35.66,
+        "phase": 0.208
+      },
+      "nearest_grid_t": 34.87,
+      "nearest_grid_distance": 0.0934
+    },
+    {
+      "t": 35.2305,
+      "rnn_t": 35.22,
+      "percussive_strength": 1.074,
+      "body": 0.466,
+      "primary_interval": {
+        "index": 40,
+        "start_t": 34.78,
+        "end_t": 35.66,
+        "phase": 0.512
+      },
+      "nearest_grid_t": 35.305,
+      "nearest_grid_distance": 0.0745
+    },
+    {
+      "t": 35.4511,
+      "rnn_t": 35.44,
+      "percussive_strength": 1.667,
+      "body": 0.61,
+      "primary_interval": {
+        "index": 40,
+        "start_t": 34.78,
+        "end_t": 35.66,
+        "phase": 0.763
+      },
+      "nearest_grid_t": 35.305,
+      "nearest_grid_distance": 0.1461
+    },
+    {
+      "t": 35.6629,
+      "rnn_t": 35.66,
+      "percussive_strength": 2.273,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 41,
+        "start_t": 35.66,
+        "end_t": 36.53,
+        "phase": 0.003
+      },
+      "nearest_grid_t": 35.74,
+      "nearest_grid_distance": 0.0771
+    },
+    {
+      "t": 35.779,
+      "rnn_t": 35.79,
+      "percussive_strength": 1.24,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 41,
+        "start_t": 35.66,
+        "end_t": 36.53,
+        "phase": 0.137
+      },
+      "nearest_grid_t": 35.74,
+      "nearest_grid_distance": 0.039
+    },
+    {
+      "t": 35.8777,
+      "rnn_t": 35.87,
+      "percussive_strength": 1.362,
+      "body": 0.952,
+      "primary_interval": {
+        "index": 41,
+        "start_t": 35.66,
+        "end_t": 36.53,
+        "phase": 0.25
+      },
+      "nearest_grid_t": 35.74,
+      "nearest_grid_distance": 0.1377
+    },
+    {
+      "t": 36.1012,
+      "rnn_t": 36.09,
+      "percussive_strength": 2.043,
+      "body": 0.607,
+      "primary_interval": {
+        "index": 41,
+        "start_t": 35.66,
+        "end_t": 36.53,
+        "phase": 0.507
+      },
+      "nearest_grid_t": 36.175,
+      "nearest_grid_distance": 0.0738
+    },
+    {
+      "t": 36.3102,
+      "rnn_t": 36.3,
+      "percussive_strength": 1.286,
+      "body": 0.353,
+      "primary_interval": {
+        "index": 41,
+        "start_t": 35.66,
+        "end_t": 36.53,
+        "phase": 0.747
+      },
+      "nearest_grid_t": 36.175,
+      "nearest_grid_distance": 0.1352
+    },
+    {
+      "t": 36.5279,
+      "rnn_t": 36.52,
+      "percussive_strength": 2.252,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 41,
+        "start_t": 35.66,
+        "end_t": 36.53,
+        "phase": 0.998
+      },
+      "nearest_grid_t": 36.61,
+      "nearest_grid_distance": 0.0821
+    },
+    {
+      "t": 36.6643,
+      "rnn_t": 36.66,
+      "percussive_strength": 1.268,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 42,
+        "start_t": 36.53,
+        "end_t": 37.4,
+        "phase": 0.154
+      },
+      "nearest_grid_t": 36.61,
+      "nearest_grid_distance": 0.0543
+    },
+    {
+      "t": 36.7456,
+      "rnn_t": 36.74,
+      "percussive_strength": 1.294,
+      "body": 0.918,
+      "primary_interval": {
+        "index": 42,
+        "start_t": 36.53,
+        "end_t": 37.4,
+        "phase": 0.248
+      },
+      "nearest_grid_t": 36.61,
+      "nearest_grid_distance": 0.1356
+    },
+    {
+      "t": 36.9691,
+      "rnn_t": 36.96,
+      "percussive_strength": 1.625,
+      "body": 0.638,
+      "primary_interval": {
+        "index": 42,
+        "start_t": 36.53,
+        "end_t": 37.4,
+        "phase": 0.505
+      },
+      "nearest_grid_t": 37.045,
+      "nearest_grid_distance": 0.0759
+    },
+    {
+      "t": 37.181,
+      "rnn_t": 37.18,
+      "percussive_strength": 1.704,
+      "body": 0.625,
+      "primary_interval": {
+        "index": 42,
+        "start_t": 36.53,
+        "end_t": 37.4,
+        "phase": 0.748
+      },
+      "nearest_grid_t": 37.045,
+      "nearest_grid_distance": 0.136
+    },
+    {
+      "t": 37.3986,
+      "rnn_t": 37.39,
+      "percussive_strength": 2.671,
+      "body": 0.975,
+      "primary_interval": {
+        "index": 42,
+        "start_t": 36.53,
+        "end_t": 37.4,
+        "phase": 0.998
+      },
+      "nearest_grid_t": 37.48,
+      "nearest_grid_distance": 0.0814
+    },
+    {
+      "t": 37.5031,
+      "rnn_t": 37.53,
+      "percussive_strength": 1.296,
+      "body": 0.975,
+      "primary_interval": {
+        "index": 43,
+        "start_t": 37.4,
+        "end_t": 38.26,
+        "phase": 0.12
+      },
+      "nearest_grid_t": 37.48,
+      "nearest_grid_distance": 0.0231
+    },
+    {
+      "t": 37.6134,
+      "rnn_t": 37.61,
+      "percussive_strength": 0.995,
+      "body": 0.887,
+      "primary_interval": {
+        "index": 43,
+        "start_t": 37.4,
+        "end_t": 38.26,
+        "phase": 0.248
+      },
+      "nearest_grid_t": 37.48,
+      "nearest_grid_distance": 0.1334
+    },
+    {
+      "t": 37.834,
+      "rnn_t": 37.83,
+      "percussive_strength": 1.578,
+      "body": 0.59,
+      "primary_interval": {
+        "index": 43,
+        "start_t": 37.4,
+        "end_t": 38.26,
+        "phase": 0.505
+      },
+      "nearest_grid_t": 37.915,
+      "nearest_grid_distance": 0.081
+    },
+    {
+      "t": 38.0488,
+      "rnn_t": 38.05,
+      "percussive_strength": 1.128,
+      "body": 0.461,
+      "primary_interval": {
+        "index": 43,
+        "start_t": 37.4,
+        "end_t": 38.26,
+        "phase": 0.754
+      },
+      "nearest_grid_t": 37.915,
+      "nearest_grid_distance": 0.1338
+    },
+    {
+      "t": 38.2723,
+      "rnn_t": 38.27,
+      "percussive_strength": 1.107,
+      "body": 0.962,
+      "primary_interval": {
+        "index": 44,
+        "start_t": 38.26,
+        "end_t": 39.13,
+        "phase": 0.014
+      },
+      "nearest_grid_t": 38.35,
+      "nearest_grid_distance": 0.0777
+    },
+    {
+      "t": 38.3739,
+      "rnn_t": 38.38,
+      "percussive_strength": 1.592,
+      "body": 0.962,
+      "primary_interval": {
+        "index": 44,
+        "start_t": 38.26,
+        "end_t": 39.13,
+        "phase": 0.131
+      },
+      "nearest_grid_t": 38.35,
+      "nearest_grid_distance": 0.0239
+    },
+    {
+      "t": 38.7077,
+      "rnn_t": 38.7,
+      "percussive_strength": 1.311,
+      "body": 0.457,
+      "primary_interval": {
+        "index": 44,
+        "start_t": 38.26,
+        "end_t": 39.13,
+        "phase": 0.515
+      },
+      "nearest_grid_t": 38.785,
+      "nearest_grid_distance": 0.0773
+    },
+    {
+      "t": 38.9195,
+      "rnn_t": 38.91,
+      "percussive_strength": 1.221,
+      "body": 0.404,
+      "primary_interval": {
+        "index": 44,
+        "start_t": 38.26,
+        "end_t": 39.13,
+        "phase": 0.758
+      },
+      "nearest_grid_t": 38.785,
+      "nearest_grid_distance": 0.1345
+    },
+    {
+      "t": 39.1401,
+      "rnn_t": 39.11,
+      "percussive_strength": 2.479,
+      "body": 0.488,
+      "primary_interval": {
+        "index": 45,
+        "start_t": 39.13,
+        "end_t": 40.01,
+        "phase": 0.012
+      },
+      "nearest_grid_t": 39.22,
+      "nearest_grid_distance": 0.0799
+    },
+    {
+      "t": 39.5726,
+      "rnn_t": 39.57,
+      "percussive_strength": 2.297,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 45,
+        "start_t": 39.13,
+        "end_t": 40.01,
+        "phase": 0.503
+      },
+      "nearest_grid_t": 39.655,
+      "nearest_grid_distance": 0.0824
+    },
+    {
+      "t": 39.6771,
+      "rnn_t": 39.67,
+      "percussive_strength": 1.534,
+      "body": 1.0,
+      "primary_interval": {
+        "index": 45,
+        "start_t": 39.13,
+        "end_t": 40.01,
+        "phase": 0.622
+      },
+      "nearest_grid_t": 39.655,
+      "nearest_grid_distance": 0.0221
+    },
+    {
+      "t": 39.7903,
+      "rnn_t": 39.8,
+      "percussive_strength": 0.674,
+      "body": 0.957,
+      "primary_interval": {
+        "index": 45,
+        "start_t": 39.13,
+        "end_t": 40.01,
+        "phase": 0.75
+      },
+      "nearest_grid_t": 39.655,
+      "nearest_grid_distance": 0.1353
+    },
+    {
+      "t": 40.0167,
+      "rnn_t": 40.01,
+      "percussive_strength": 1.409,
+      "body": 0.42,
+      "primary_interval": {
+        "index": 46,
+        "start_t": 40.01,
+        "end_t": 40.87,
+        "phase": 0.008
+      },
+      "nearest_grid_t": 40.09,
+      "nearest_grid_distance": 0.0733
+    },
+    {
+      "t": 40.2431,
+      "rnn_t": 40.24,
+      "percussive_strength": 1.356,
+      "body": 0.253,
+      "primary_interval": {
+        "index": 46,
+        "start_t": 40.01,
+        "end_t": 40.87,
+        "phase": 0.271
+      },
+      "nearest_grid_t": 40.09,
+      "nearest_grid_distance": 0.1531
+    },
+    {
+      "t": 40.4434,
+      "rnn_t": 40.44,
+      "percussive_strength": 2.56,
+      "body": 0.984,
+      "primary_interval": {
+        "index": 46,
+        "start_t": 40.01,
+        "end_t": 40.87,
+        "phase": 0.504
+      },
+      "nearest_grid_t": 40.525,
+      "nearest_grid_distance": 0.0816
+    },
+    {
+      "t": 40.5478,
+      "rnn_t": 40.54,
+      "percussive_strength": 1.122,
+      "body": 0.984,
+      "primary_interval": {
+        "index": 46,
+        "start_t": 40.01,
+        "end_t": 40.87,
+        "phase": 0.625
+      },
+      "nearest_grid_t": 40.525,
+      "nearest_grid_distance": 0.0228
+    },
+    {
+      "t": 40.6988,
+      "rnn_t": 40.73,
+      "percussive_strength": 0.71,
+      "body": 0.793,
+      "primary_interval": {
+        "index": 46,
+        "start_t": 40.01,
+        "end_t": 40.87,
+        "phase": 0.801
+      },
+      "nearest_grid_t": 40.525,
+      "nearest_grid_distance": 0.1738
+    },
+    {
+      "t": 40.8787,
+      "rnn_t": 40.87,
+      "percussive_strength": 2.261,
+      "body": 0.863,
+      "primary_interval": {
+        "index": 47,
+        "start_t": 40.87,
+        "end_t": 41.74,
+        "phase": 0.01
+      },
+      "nearest_grid_t": 40.96,
+      "nearest_grid_distance": 0.0813
+    },
+    {
+      "t": 40.9832,
+      "rnn_t": 41.01,
+      "percussive_strength": 1.072,
+      "body": 0.863,
+      "primary_interval": {
+        "index": 47,
+        "start_t": 40.87,
+        "end_t": 41.74,
+        "phase": 0.13
+      },
+      "nearest_grid_t": 40.96,
+      "nearest_grid_distance": 0.0232
+    },
+    {
+      "t": 41.2415,
+      "rnn_t": 41.24,
+      "percussive_strength": 1.331,
+      "body": 0.362,
+      "primary_interval": {
+        "index": 47,
+        "start_t": 40.87,
+        "end_t": 41.74,
+        "phase": 0.427
+      },
+      "nearest_grid_t": 41.395,
+      "nearest_grid_distance": 0.1535
+    },
+    {
+      "t": 41.526,
+      "rnn_t": 41.52,
+      "percussive_strength": 0.818,
+      "body": 0.42,
+      "primary_interval": {
+        "index": 47,
+        "start_t": 40.87,
+        "end_t": 41.74,
+        "phase": 0.754
+      },
+      "nearest_grid_t": 41.395,
+      "nearest_grid_distance": 0.131
+    },
+    {
+      "t": 41.6595,
+      "rnn_t": 41.65,
+      "percussive_strength": 1.074,
+      "body": 0.561,
+      "primary_interval": {
+        "index": 47,
+        "start_t": 40.87,
+        "end_t": 41.74,
+        "phase": 0.907
+      },
+      "nearest_grid_t": 41.83,
+      "nearest_grid_distance": 0.1705
+    },
+    {
+      "t": 41.7466,
+      "rnn_t": 41.74,
+      "percussive_strength": 1.993,
+      "body": 0.684,
+      "primary_interval": {
+        "index": 48,
+        "start_t": 41.74,
+        "end_t": 42.62,
+        "phase": 0.007
+      },
+      "nearest_grid_t": 41.83,
+      "nearest_grid_distance": 0.0834
+    },
+    {
+      "t": 42.0107,
+      "rnn_t": 42.04,
+      "percussive_strength": 0.813,
+      "body": 0.563,
+      "primary_interval": {
+        "index": 48,
+        "start_t": 41.74,
+        "end_t": 42.62,
+        "phase": 0.308
+      },
+      "nearest_grid_t": 41.83,
+      "nearest_grid_distance": 0.1807
+    },
+    {
+      "t": 42.1036,
+      "rnn_t": 42.1,
+      "percussive_strength": 1.592,
+      "body": 0.507,
+      "primary_interval": {
+        "index": 48,
+        "start_t": 41.74,
+        "end_t": 42.62,
+        "phase": 0.413
+      },
+      "nearest_grid_t": 42.265,
+      "nearest_grid_distance": 0.1614
+    },
+    {
+      "t": 42.211,
+      "rnn_t": 42.21,
+      "percussive_strength": 0.915,
+      "body": 0.457,
+      "primary_interval": {
+        "index": 48,
+        "start_t": 41.74,
+        "end_t": 42.62,
+        "phase": 0.535
+      },
+      "nearest_grid_t": 42.265,
+      "nearest_grid_distance": 0.054
+    },
+    {
+      "t": 42.6202,
+      "rnn_t": 42.61,
+      "percussive_strength": 1.544,
+      "body": 0.443,
+      "primary_interval": {
+        "index": 49,
+        "start_t": 42.62,
+        "end_t": 43.51,
+        "phase": 0.0
+      },
+      "nearest_grid_t": 42.7,
+      "nearest_grid_distance": 0.0798
+    },
+    {
+      "t": 42.8698,
+      "rnn_t": 42.87,
+      "percussive_strength": 0.745,
+      "body": 0.429,
+      "primary_interval": {
+        "index": 49,
+        "start_t": 42.62,
+        "end_t": 43.51,
+        "phase": 0.281
+      },
+      "nearest_grid_t": 42.7,
+      "nearest_grid_distance": 0.1698
+    },
+    {
+      "t": 42.9627,
+      "rnn_t": 42.96,
+      "percussive_strength": 1.487,
+      "body": 0.387,
+      "primary_interval": {
+        "index": 49,
+        "start_t": 42.62,
+        "end_t": 43.51,
+        "phase": 0.385
+      },
+      "nearest_grid_t": 43.135,
+      "nearest_grid_distance": 0.1723
+    },
+    {
+      "t": 43.1107,
+      "rnn_t": 43.12,
+      "percussive_strength": 0.717,
+      "body": 0.387,
+      "primary_interval": {
+        "index": 49,
+        "start_t": 42.62,
+        "end_t": 43.51,
+        "phase": 0.551
+      },
+      "nearest_grid_t": 43.135,
+      "nearest_grid_distance": 0.0243
+    },
+    {
+      "t": 43.2733,
+      "rnn_t": 43.28,
+      "percussive_strength": 0.769,
+      "body": 0.373,
+      "primary_interval": {
+        "index": 49,
+        "start_t": 42.62,
+        "end_t": 43.51,
+        "phase": 0.734
+      },
+      "nearest_grid_t": 43.135,
+      "nearest_grid_distance": 0.1383
+    },
+    {
+      "t": 43.52,
+      "rnn_t": 43.51,
+      "percussive_strength": 1.351,
+      "body": 0.314,
+      "primary_interval": {
+        "index": 50,
+        "start_t": 43.51,
+        "end_t": 44.36,
+        "phase": 0.012
+      },
+      "nearest_grid_t": 43.57,
+      "nearest_grid_distance": 0.05
+    },
+    {
+      "t": 43.938,
+      "rnn_t": 43.95,
+      "percussive_strength": 0.807,
+      "body": 0.239,
+      "primary_interval": {
+        "index": 50,
+        "start_t": 43.51,
+        "end_t": 44.36,
+        "phase": 0.503
+      },
+      "nearest_grid_t": 44.005,
+      "nearest_grid_distance": 0.067
+    },
+    {
+      "t": 44.3704,
+      "rnn_t": 44.37,
+      "percussive_strength": 1.717,
+      "body": 0.173,
+      "primary_interval": {
+        "index": 51,
+        "start_t": 44.36,
+        "end_t": 45.24,
+        "phase": 0.012
+      },
+      "nearest_grid_t": 44.44,
+      "nearest_grid_distance": 0.0696
+    },
+    {
+      "t": 44.5939,
+      "rnn_t": 44.59,
+      "percussive_strength": 0.744,
+      "body": 0.16,
+      "primary_interval": {
+        "index": 51,
+        "start_t": 44.36,
+        "end_t": 45.24,
+        "phase": 0.266
+      },
+      "nearest_grid_t": 44.44,
+      "nearest_grid_distance": 0.1539
+    },
+    {
+      "t": 44.8232,
+      "rnn_t": 44.83,
+      "percussive_strength": 0.794,
+      "body": 0.185,
+      "primary_interval": {
+        "index": 51,
+        "start_t": 44.36,
+        "end_t": 45.24,
+        "phase": 0.526
+      },
+      "nearest_grid_t": 44.875,
+      "nearest_grid_distance": 0.0518
+    },
+    {
+      "t": 44.9741,
+      "rnn_t": 44.98,
+      "percussive_strength": 1.008,
+      "body": 0.239,
+      "primary_interval": {
+        "index": 51,
+        "start_t": 44.36,
+        "end_t": 45.24,
+        "phase": 0.698
+      },
+      "nearest_grid_t": 44.875,
+      "nearest_grid_distance": 0.0991
+    },
+    {
+      "t": 45.218,
+      "rnn_t": 45.22,
+      "percussive_strength": 1.507,
+      "body": 0.2,
+      "primary_interval": {
+        "index": 51,
+        "start_t": 44.36,
+        "end_t": 45.24,
+        "phase": 0.975
+      },
+      "nearest_grid_t": 45.31,
+      "nearest_grid_distance": 0.092
+    },
+    {
+      "t": 45.4908,
+      "rnn_t": 45.49,
+      "percussive_strength": 1.537,
+      "body": 0.202,
+      "primary_interval": {
+        "index": 52,
+        "start_t": 45.24,
+        "end_t": 46.08,
+        "phase": 0.299
+      },
+      "nearest_grid_t": 45.31,
+      "nearest_grid_distance": 0.1808
+    },
+    {
+      "t": 45.6911,
+      "rnn_t": 45.7,
+      "percussive_strength": 0.902,
+      "body": 0.195,
+      "primary_interval": {
+        "index": 52,
+        "start_t": 45.24,
+        "end_t": 46.08,
+        "phase": 0.537
+      },
+      "nearest_grid_t": 45.745,
+      "nearest_grid_distance": 0.0539
+    },
+    {
+      "t": 45.7839,
+      "rnn_t": 45.78,
+      "percussive_strength": 1.331,
+      "body": 0.165,
+      "primary_interval": {
+        "index": 52,
+        "start_t": 45.24,
+        "end_t": 46.08,
+        "phase": 0.648
+      },
+      "nearest_grid_t": 45.745,
+      "nearest_grid_distance": 0.0389
+    },
+    {
+      "t": 46.0423,
+      "rnn_t": 46.04,
+      "percussive_strength": 1.712,
+      "body": 0.192,
+      "primary_interval": {
+        "index": 52,
+        "start_t": 45.24,
+        "end_t": 46.08,
+        "phase": 0.955
+      },
+      "nearest_grid_t": 46.18,
+      "nearest_grid_distance": 0.1377
+    },
+    {
+      "t": 46.4718,
+      "rnn_t": 46.47,
+      "percussive_strength": 1.602,
+      "body": 0.131,
+      "primary_interval": {
+        "index": 53,
+        "start_t": 46.08,
+        "end_t": 46.99,
+        "phase": 0.431
+      },
+      "nearest_grid_t": 46.615,
+      "nearest_grid_distance": 0.1432
+    },
+    {
+      "t": 46.8811,
+      "rnn_t": 46.88,
+      "percussive_strength": 1.839,
+      "body": 0.077,
+      "primary_interval": {
+        "index": 53,
+        "start_t": 46.08,
+        "end_t": 46.99,
+        "phase": 0.88
+      },
+      "nearest_grid_t": 47.05,
+      "nearest_grid_distance": 0.1689
+    },
+    {
+      "t": 46.9914,
+      "rnn_t": 47.0,
+      "percussive_strength": 0.846,
+      "body": 0.14,
+      "primary_interval": {
+        "index": 54,
+        "start_t": 46.99,
+        "end_t": 47.86,
+        "phase": 0.002
+      },
+      "nearest_grid_t": 47.05,
+      "nearest_grid_distance": 0.0586
+    },
+    {
+      "t": 47.2468,
+      "rnn_t": 47.28,
+      "percussive_strength": 0.768,
+      "body": 0.089,
+      "primary_interval": {
+        "index": 54,
+        "start_t": 46.99,
+        "end_t": 47.86,
+        "phase": 0.295
+      },
+      "nearest_grid_t": 47.05,
+      "nearest_grid_distance": 0.1968
+    },
+    {
+      "t": 47.4239,
+      "rnn_t": 47.43,
+      "percussive_strength": 0.876,
+      "body": 0.126,
+      "primary_interval": {
+        "index": 54,
+        "start_t": 46.99,
+        "end_t": 47.86,
+        "phase": 0.499
+      },
+      "nearest_grid_t": 47.485,
+      "nearest_grid_distance": 0.0611
+    },
+    {
+      "t": 47.5574,
+      "rnn_t": 47.57,
+      "percussive_strength": 0.695,
+      "body": 0.126,
+      "primary_interval": {
+        "index": 54,
+        "start_t": 46.99,
+        "end_t": 47.86,
+        "phase": 0.652
+      },
+      "nearest_grid_t": 47.485,
+      "nearest_grid_distance": 0.0724
+    }
+  ],
   "grid": [
     {
       "t": 0.07,

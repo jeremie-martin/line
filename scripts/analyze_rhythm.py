@@ -318,9 +318,13 @@ def analyze(audio_path: Path, duration_arg: float | None) -> dict[str, Any]:
     y_harm, y_perc = librosa.effects.hpss(y)
     perc_env_raw = librosa.onset.onset_strength(y=y_perc, sr=sr, hop_length=HOP)
     perc_env = normalize(perc_env_raw)
-    attack_env = normalize(
-        librosa.onset.onset_strength(y=y_perc, sr=sr, hop_length=ATTACK_HOP, n_fft=512)
-    )
+    attack_env_raw = librosa.onset.onset_strength(y=y_perc, sr=sr, hop_length=ATTACK_HOP, n_fft=512)
+    attack_scale = float(np.percentile(attack_env_raw, 95.0)) if len(attack_env_raw) else 0.0
+    if not math.isfinite(attack_scale) or attack_scale <= 1e-9:
+        attack_scale = float(np.max(attack_env_raw)) if len(attack_env_raw) else 1.0
+    if not math.isfinite(attack_scale) or attack_scale <= 1e-9:
+        attack_scale = 1.0
+    attack_env = normalize(attack_env_raw)
 
     n_mels = 128
     mel_freqs = librosa.mel_frequencies(n_mels=n_mels + 2, fmin=0, fmax=sr / 2)
@@ -465,6 +469,80 @@ def analyze(audio_path: Path, duration_arg: float | None) -> dict[str, Any]:
             "impact": round(impact_score(contact=contact, body=raw["body"], prominence=prominence, fall=raw["decay"]), 3),
         }
 
+    raw_transients: list[dict[str, Any]] = []
+    for rnn_t in rnn_onsets:
+        attack_t, attack_raw = local_peak_time(
+            attack_env_raw,
+            sr / ATTACK_HOP,
+            float(rnn_t),
+            lookback_s=0.035,
+            lookahead_s=0.035,
+        )
+        if attack_t is None:
+            continue
+
+        prev_i = int(np.searchsorted(primary_beats, attack_t, side="right")) - 1
+        if prev_i < 0 or prev_i + 1 >= len(primary_beats):
+            continue
+        prev_t = float(primary_beats[prev_i])
+        next_t = float(primary_beats[prev_i + 1])
+        period = next_t - prev_t
+        if period <= 0:
+            continue
+
+        phase = (attack_t - prev_t) / period
+        if phase < -0.05 or phase > 1.05:
+            continue
+
+        _grid_i, grid_t = nearest_index(pulse_grid, attack_t)
+        grid_dist = abs(grid_t - attack_t) if grid_t is not None else None
+        body = local_max(rms, 1.0 / (rms_hop / sr), attack_t, 0.10)
+        raw_transients.append({
+            "t": attack_t,
+            "rnn_t": float(rnn_t),
+            "percussive_strength": float(attack_raw / attack_scale),
+            "body": body,
+            "primary_interval": {
+                "index": prev_i,
+                "start_t": prev_t,
+                "end_t": next_t,
+                "phase": phase,
+            },
+            "nearest_grid_t": grid_t,
+            "nearest_grid_distance": grid_dist,
+        })
+
+    # RNN can emit clustered onsets for a single audible hit. Keep the strongest
+    # local percussive peak per tight cluster; the spec can still choose how to
+    # interpret the resulting transient layer.
+    transients: list[dict[str, Any]] = []
+    for tr in sorted(raw_transients, key=lambda item: item["t"]):
+        if transients and tr["t"] - transients[-1]["t"] < 0.080:
+            if tr["percussive_strength"] > transients[-1]["percussive_strength"]:
+                transients[-1] = tr
+            continue
+        transients.append(tr)
+
+    transients = [
+        {
+            "t": round(float(tr["t"]), 4),
+            "rnn_t": round(float(tr["rnn_t"]), 4),
+            "percussive_strength": round(float(tr["percussive_strength"]), 3),
+            "body": round(float(tr["body"]), 3),
+            "primary_interval": {
+                "index": int(tr["primary_interval"]["index"]),
+                "start_t": round(float(tr["primary_interval"]["start_t"]), 4),
+                "end_t": round(float(tr["primary_interval"]["end_t"]), 4),
+                "phase": round(float(tr["primary_interval"]["phase"]), 3),
+            },
+            "nearest_grid_t": round(float(tr["nearest_grid_t"]), 4) if tr["nearest_grid_t"] is not None else None,
+            "nearest_grid_distance": round(float(tr["nearest_grid_distance"]), 4)
+                if tr["nearest_grid_distance"] is not None else None,
+        }
+        for tr in transients
+        if tr["percussive_strength"] >= 0.45
+    ]
+
     strongest_events = [
         {
             "t": row["t"],
@@ -524,6 +602,7 @@ def analyze(audio_path: Path, duration_arg: float | None) -> dict[str, Any]:
         "rnn_onsets": [round(float(t), 4) for t in rnn_onsets],
         "beats": [round(float(t), 4) for t in primary_beats],
         "onsets_mix": [round(float(t), 4) for t in rnn_onsets],
+        "transients": transients,
         "grid": grid_rows,
         "strongest_events": strongest_events,
         "energy": energy,

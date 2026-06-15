@@ -55,12 +55,29 @@ type RhythmRow = {
   };
 };
 
+type RhythmTransient = {
+  t: number;
+  rnn_t: number;
+  percussive_strength: number;
+  body: number;
+  primary_interval: {
+    index: number;
+    start_t: number;
+    end_t: number;
+    phase: number;
+  };
+  nearest_grid_t: number | null;
+  nearest_grid_distance: number | null;
+};
+
 type RhythmAnalysis = {
   duration: number;
   tempo_layers: {
     primary?: { bpm?: number | null };
     pulse?: { bpm?: number | null };
   };
+  primary_beats: number[];
+  transients?: RhythmTransient[];
   grid: RhythmRow[];
 };
 
@@ -80,6 +97,15 @@ const SECONDARY_BODY_SCORE = 0.60;
 const PULSE_MATCH_S = 0.10;
 const FADE_SUPPORT_S = 42.60;
 const FADE_CONTACT_SCORE = 0.70;
+const TRANSIENT_START_S = 10.75;
+const TRANSIENT_END_S = 41.70;
+const TRANSIENT_DUPLICATE_S = 0.16;
+const TRANSIENT_HALF_STRENGTH = 1.55;
+const TRANSIENT_BODY_SCORE = 0.50;
+
+function clamp01(x: number): number {
+  return Math.max(0, Math.min(1, x));
+}
 
 function isFadeSupport(row: RhythmRow): boolean {
   return row.t >= FADE_SUPPORT_S &&
@@ -119,7 +145,7 @@ function keepAsContact(row: RhythmRow): boolean {
   return row.scores.contact >= (row.t >= FADE_SUPPORT_S ? FADE_CONTACT_SCORE : NORMAL_CONTACT_SCORE);
 }
 
-type ContactRow = { t: number; row: RhythmRow };
+type ContactRow = { t: number; row?: RhythmRow; transient?: RhythmTransient };
 
 function contactTimeFor(row: RhythmRow): number {
   if (isQuietSupport(row)) return Number(row.t.toFixed(3));
@@ -145,7 +171,7 @@ function contactTimeFor(row: RhythmRow): number {
   return Number(row.t.toFixed(3));
 }
 
-function selectedContactRows(): ContactRow[] {
+function selectedGridContactRows(): ContactRow[] {
   const out: ContactRow[] = [];
   let last = -Infinity;
 
@@ -159,6 +185,69 @@ function selectedContactRows(): ContactRow[] {
   }
 
   return out;
+}
+
+function primaryIntervalIndex(t: number): number | null {
+  for (let i = 0; i < rhythm.primary_beats.length - 1; i++) {
+    if (t >= rhythm.primary_beats[i] - 1e-6 && t < rhythm.primary_beats[i + 1] - 1e-6) {
+      return i;
+    }
+  }
+  return null;
+}
+
+function isHalfBeatTransient(tr: RhythmTransient): boolean {
+  const phase = tr.primary_interval.phase;
+  return phase >= 0.48 && phase <= 0.56;
+}
+
+function isAnticipationTransient(tr: RhythmTransient): boolean {
+  const phase = tr.primary_interval.phase;
+  return phase >= 0.72 && phase <= 0.80;
+}
+
+function isSelectableTransient(tr: RhythmTransient): boolean {
+  if (tr.t < TRANSIENT_START_S || tr.t >= TRANSIENT_END_S) return false;
+  if (tr.body < TRANSIENT_BODY_SCORE) return false;
+  return isHalfBeatTransient(tr) && tr.percussive_strength >= TRANSIENT_HALF_STRENGTH;
+}
+
+function selectedTransientRows(gridRows: ContactRow[]): ContactRow[] {
+  const occupiedIntervals = new Set<number>();
+  for (const event of gridRows) {
+    const row = event.row;
+    if (!row || row.grid.is_primary || isQuietSupport(row)) continue;
+    const interval = primaryIntervalIndex(event.t);
+    if (interval !== null) occupiedIntervals.add(interval);
+  }
+
+  const byInterval = new Map<number, RhythmTransient[]>();
+  for (const tr of rhythm.transients ?? []) {
+    if (!isSelectableTransient(tr)) continue;
+    if (occupiedIntervals.has(tr.primary_interval.index)) continue;
+    if (gridRows.some((event) => Math.abs(event.t - tr.t) < TRANSIENT_DUPLICATE_S)) continue;
+
+    const group = byInterval.get(tr.primary_interval.index) ?? [];
+    group.push(tr);
+    byInterval.set(tr.primary_interval.index, group);
+  }
+
+  const out: ContactRow[] = [];
+  for (const group of byInterval.values()) {
+    const picked = group
+      .filter(isHalfBeatTransient)
+      .sort((a, b) => b.percussive_strength - a.percussive_strength)[0];
+
+    if (picked) out.push({ t: Number(picked.t.toFixed(3)), transient: picked });
+  }
+
+  return out;
+}
+
+function selectedContactRows(): ContactRow[] {
+  const gridRows = selectedGridContactRows();
+  return [...gridRows, ...selectedTransientRows(gridRows)]
+    .sort((a, b) => a.t - b.t);
 }
 
 const contactRows = selectedContactRows();
@@ -181,8 +270,20 @@ function impactFor(row: RhythmRow): number {
   return 0.03;
 }
 
+function impactForTransient(tr: RhythmTransient): number {
+  const strength = clamp01((tr.percussive_strength - 1.45) / 1.65);
+  const phaseBonus = isHalfBeatTransient(tr) ? 0.04 : 0.0;
+  return Math.min(0.74, 0.44 + 0.22 * strength + 0.08 * tr.body + phaseBonus);
+}
+
+function impactForContact(event: ContactRow): number {
+  if (event.row) return impactFor(event.row);
+  if (event.transient) return impactForTransient(event.transient);
+  return 0.2;
+}
+
 const contacts: Contact[] = beats(
-  contactRows.map(({ t, row }) => ({ t, impact: impactFor(row) })),
+  contactRows.map((event) => ({ t: event.t, impact: impactForContact(event) })),
 );
 
 function contactIndexForTime(t: number): number {
@@ -204,6 +305,7 @@ const amplitude: Curve = (t) => {
   const gap = gapDurationAt(t);
   const row = end.row;
 
+  if (!row) return gap < 0.32 ? 0.06 : gap < 0.62 ? 0.12 : 0.34;
   if (isQuietSupport(row)) return end.t < INTRO_REAL_BEAT_S ? 0.03 : 0.06;
   if (gap < 0.62) return isHardDrop(row) ? 0.18 : 0.10;
   if (gap > 1.20) return 0.92;

@@ -80,25 +80,10 @@ const AxisChart: React.FC<{
     <svg width={w} height={h} style={{ display: "block" }}>
       {/* baseline grid */}
       <line x1={padL} y1={h - 0.5} x2={w - padR} y2={h - 0.5} stroke="rgba(255,255,255,0.10)" />
-      <line x1={padL} y1={y(0.5)} x2={w - padR} y2={y(0.5)} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 6" />
 
       {/* target area + line */}
       <path d={areaPath} fill={data.color} opacity={0.07} />
       <path d={targetPath} fill="none" stroke={data.color} strokeWidth={2.5} opacity={0.92} />
-
-      {/* error stems target→measured for revealed gaps */}
-      {revealed.map((m, i) => {
-        const e = Math.abs(m.error);
-        const op = interpolate(e, [0, 0.25], [0.08, 0.5], { extrapolateRight: "clamp" });
-        const under = m.achieved < m.target;
-        return (
-          <line
-            key={i}
-            x1={x(m.t)} y1={y(m.target)} x2={x(m.t)} y2={y(m.achieved)}
-            stroke={under ? "#ff6b6b" : "#5ad1ff"} strokeWidth={2} opacity={op}
-          />
-        );
-      })}
 
       {/* measured connecting line + dots (revealed) */}
       <path d={measuredLine} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth={1.5} />
@@ -117,7 +102,7 @@ const AxisChart: React.FC<{
       {cur && (
         <text x={12} y={48} fontFamily={FONT} fontSize={19} fill="#fff">
           {cur.achieved.toFixed(2)}
-          <tspan fill={data.color} fontSize={13}> / {cur.target.toFixed(2)}</tspan>
+          <tspan fill={data.color} fontSize={16}> / {cur.target.toFixed(2)}</tspan>
         </text>
       )}
     </svg>
@@ -129,13 +114,19 @@ const AxisChart: React.FC<{
 //    Bars light up as the playhead crosses each beat. The detailed multi-candidate
 //    comparison lives in the separate `ImpactStudyOverlay` composition. ──────────
 const IMPACT_RAMP = ["#38d6c8", "#f0b429", "#ff5a4f"]; // soft → medium → hard
+const IMPACT_LABEL_COLOR = "#ff6b5c"; // distinct from air (teal) / speed (amber)
+// Full-height impact lane: a peer of the AIR/SPEED charts (label + live readout
+// up top, target caps + colored bars rising from the baseline).
 const ImpactRow: React.FC<{
   contacts: Bundle["contacts"]; w: number; h: number; t: number; tx: (t: number) => number;
 }> = ({ contacts, w, h, t, tx }) => {
-  const barMax = h - 16;
+  const barMax = h - 30; // headroom for the label/readout and the glow caps
+  // current readout = most recent landed beat at/just before the playhead
+  const landed = contacts.filter((c) => c.t <= t && (c.impactRedir ?? c.impact) != null);
+  const cur = landed.length ? landed[landed.length - 1] : null;
+  const curV = cur ? cur.impactRedir ?? cur.impact : null;
   return (
     <svg width={w} height={h} style={{ display: "block" }}>
-      <text x={12} y={h / 2 + 4} fontFamily={FONT} fontSize={12} fill="#8b93a7" letterSpacing={1}>IMPACT</text>
       <line x1={CHART_PAD_L} y1={h - 0.5} x2={w - CHART_PAD_R} y2={h - 0.5} stroke="rgba(255,255,255,0.10)" />
       {contacts.map((c, i) => {
         const v = c.impactRedir ?? c.impact; // production metric (redir); fall back for old JSON
@@ -143,23 +134,36 @@ const ImpactRow: React.FC<{
         if (v == null && target == null) return null;
         const x = tx(c.t);
         const passed = c.t <= t;
-        const bh = v == null ? 0 : 3 + v * barMax;
-        const th = target == null ? null : 3 + target * barMax;
-        const col = v == null ? "#8b93a7" : interpolateColors(v, [0, 0.5, 1], IMPACT_RAMP);
+        const bh = v == null ? 0 : 3 + Math.min(1, v) * barMax;
+        const th = target == null ? null : 3 + Math.min(1, target) * barMax;
+        const col = v == null ? "#8b93a7" : interpolateColors(Math.min(1, v), [0, 0.5, 1], IMPACT_RAMP);
         const glow = passed ? interpolate(t - c.t, [0, 0.16], [1, 0], { extrapolateRight: "clamp" }) : 0;
         return (
           <g key={i}>
             {th != null && (
               <line
-                x1={x - 4.5} y1={h - 1 - th} x2={x + 4.5} y2={h - 1 - th}
-                stroke="#f4f7ff" strokeWidth={1.4} opacity={passed ? 0.72 : 0.26}
+                x1={x - 6} y1={h - 1 - th} x2={x + 6} y2={h - 1 - th}
+                stroke="#f4f7ff" strokeWidth={1.6} opacity={passed ? 0.72 : 0.26}
               />
             )}
-            {v != null && <rect x={x - 1.5} y={h - 1 - bh} width={3} height={bh} rx={1.5} fill={col} opacity={passed ? 0.95 : 0.16} />}
-            {v != null && glow > 0 && <circle cx={x} cy={h - 1 - bh} r={5} fill={col} opacity={glow * 0.9} />}
+            {v != null && <rect x={x - 2} y={h - 1 - bh} width={4} height={bh} rx={2} fill={col} opacity={passed ? 0.95 : 0.16} />}
+            {v != null && glow > 0 && <circle cx={x} cy={h - 1 - bh} r={6} fill={col} opacity={glow * 0.9} />}
           </g>
         );
       })}
+
+      {/* label + live readout (measured / target), mirroring AxisChart */}
+      <text x={12} y={24} fontFamily={FONT} fontSize={18} fontWeight={700} fill={IMPACT_LABEL_COLOR} letterSpacing={1}>
+        IMPACT
+      </text>
+      {cur && curV != null && (
+        <text x={12} y={48} fontFamily={FONT} fontSize={19} fill="#fff">
+          {curV.toFixed(2)}
+          {cur.impactTarget != null && (
+            <tspan fill={IMPACT_LABEL_COLOR} fontSize={16}> / {cur.impactTarget.toFixed(2)}</tspan>
+          )}
+        </text>
+      )}
     </svg>
   );
 };
@@ -316,11 +320,22 @@ const BottomCurvePanel: React.FC<{
   const M = 40; // single shared margin (title, panel sides, bottom gap)
   // Compact panel: ~2.7× narrower than full width, anchored in the bottom-left.
   const panelW = Math.round((width - 2 * M) / 2.7);
-  const chartH = 96; // trimmed to keep the panel small and neat
+
+  // Amplitude/elevation (launch-angle axes) are intentionally not plotted here —
+  // the panel shows AIR, SPEED and IMPACT, each an equal third.
+  const axes = data.axes.filter((a) => a.axis !== "amplitude" && a.axis !== "elevation");
+
   const phaseH = 12; // slim phase timeline strip (names now live top-left)
-  const impactH = showImpactRow ? 36 : 0;
   const panelPadV = 12;
-  const contentH = chartH * data.axes.length + impactH + phaseH + 10;
+  // Keep the panel basically the same height as the old 3-axis layout, but split
+  // the content into equal rows (each plotted axis + the impact lane) so AIR /
+  // SPEED / IMPACT each occupy a full third.
+  const TARGET_CONTENT_H = 346;
+  const rowCount = Math.max(1, axes.length + (showImpactRow ? 1 : 0));
+  const rowH = Math.round((TARGET_CONTENT_H - phaseH - 10) / rowCount);
+  const chartH = rowH;
+  const impactH = showImpactRow ? rowH : 0;
+  const contentH = chartH * axes.length + impactH + phaseH + 10;
   const panelH = contentH + panelPadV * 2;
   const panelTop = 1080 - panelH - M;
   const panelLeft = M;
@@ -340,18 +355,17 @@ const BottomCurvePanel: React.FC<{
       }}>
         {/* legend */}
         <div style={{
-          position: "absolute", top: 8, right: 12, fontFamily: FONT, fontSize: 11, color: "#8b93a7",
-          display: "flex", gap: 10, alignItems: "center",
+          position: "absolute", top: 8, right: 12, fontFamily: FONT, fontSize: 14, color: "#8b93a7",
+          display: "flex", gap: 12, alignItems: "center",
         }}>
           <span>target <span style={{ color: "#fff" }}>━</span></span>
           <span>measured <span style={{ color: "#fff" }}>●</span></span>
-          <span>error <span style={{ color: "#ff6b6b" }}>┃</span><span style={{ color: "#5ad1ff" }}>┃</span></span>
           {showImpactRow && (
             <span>impact <span style={{ color: "#f4f7ff" }}>━</span>/<span style={{ color: "#38d6c8" }}>▁</span><span style={{ color: "#f0b429" }}>▄</span><span style={{ color: "#ff5a4f" }}>█</span></span>
           )}
         </div>
 
-        {data.axes.map((a) => (
+        {axes.map((a) => (
           <AxisChart key={a.axis} data={a} w={panelW} h={chartH} durationS={dur} t={t} />
         ))}
 

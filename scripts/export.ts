@@ -30,7 +30,15 @@ const zoomMode: "static" | "spec" =
 // Default zoom=3 (well-framed for typical generated tracks). Override with --zoom=N
 // or --zoom=action/--zoom=spec to read --spec=<path.ts> or <track>.camera.json.
 const zoom = zoomMode === "static" && zoomArg !== null ? parseFloat(zoomArg) : 3;
-const resolution = has("1080p") ? "1080p" : "720p";
+// --res=720p|1080p|1440p|2160p (or legacy --1080p). 1440p/2160p render Line
+// Rider's vector art natively at higher size = genuinely sharper, not upscaled.
+const RES_CHOICES = ["720p", "1080p", "1440p", "2160p"] as const;
+const resArg = arg("res");
+if (resArg !== null && !(RES_CHOICES as readonly string[]).includes(resArg)) {
+  console.error(`--res must be one of ${RES_CHOICES.join("|")} (got: ${resArg})`);
+  process.exit(1);
+}
+const resolution = (resArg ?? (has("1080p") ? "1080p" : "720p")) as (typeof RES_CHOICES)[number];
 const hq = has("hq");
 // Explicit encoder QP (lower = higher quality; x264 sane range ~14-28). Overrides
 // hq's built-in QP (22/28). e.g. --qp=17 for a crisp HQ render.

@@ -34,8 +34,10 @@ export type ExportOptions = {
   zoomKeyframes?: [number, number][];
   /** Smoothing window (frames) passed to `createZoomer`. */
   zoomSmoothing?: number;
-  /** Video resolution. */
-  resolution?: "720p" | "1080p";
+  /** Video resolution. Preset strings or an explicit `{width,height}` (the mirror
+   *  exporter renders Line Rider's vector art natively at any size — 1440p/2160p
+   *  give genuinely sharper lines, not an upscale). */
+  resolution?: "720p" | "1080p" | "1440p" | "2160p" | { width: number; height: number };
   /** High quality (QP=22 vs 28). */
   hq?: boolean;
   /** Encoder overrides forwarded to the app via `window.__lr.setEncoderSettings`,
@@ -58,6 +60,16 @@ export class MirrorUnreachableError extends Error {
 export async function exportVideo(opts: ExportOptions): Promise<void> {
   const origin = opts.origin ?? "http://127.0.0.1:8765";
   const log = opts.log ?? ((m: string) => console.log(m));
+
+  // helper.js's exportVideo understands "720p"/"1080p" presets and an explicit
+  // {width,height} object (Custom preset). Map the higher presets to objects.
+  const RES_OBJ: Record<string, { width: number; height: number }> = {
+    "1440p": { width: 2560, height: 1440 },
+    "2160p": { width: 3840, height: 2160 },
+  };
+  const resInput = opts.resolution ?? "720p";
+  const resolutionArg =
+    typeof resInput === "string" && resInput in RES_OBJ ? RES_OBJ[resInput] : resInput;
 
   mkdirSync(dirname(opts.outPath), { recursive: true });
 
@@ -124,7 +136,7 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
       {
         track: opts.trackJson,
         zoom: opts.zoom,
-        resolution: opts.resolution ?? "720p",
+        resolution: resolutionArg,
         hq: !!opts.hq,
         encoderSettings: opts.encoderSettings ?? null,
         autoZoom: opts.autoZoom ?? null,

@@ -1135,7 +1135,7 @@ function compileHandoffInternal(
     // frontier-DFS from there with a feasibility-sized ceiling. The register accepts a rebuilt
     // track iff it beats the incumbent (complete-or-discard). Contained (its own budget, NOT a
     // shared-frontier enqueue — the distinction from the removed interleaved repair). Honest
-    // (sims charged), deterministic per (spec,seed,budget). See TRACK_REPAIR_EXPERIMENTS.md.
+    // (sims charged), deterministic per (spec,seed,budget). See docs/archive/TRACK_REPAIR_EXPERIMENTS.md.
     const runRepairPhase = (): void => {
       if (repair === null) return;
       // Coarse fallback cost model: avg frames per contact-gap of the full search.
@@ -2609,7 +2609,7 @@ function completeNearTailSuffix(
 /** Weakest AFFORDABLE contact gap to restart repair from. Weakness = Σ axis-error² (its
  *  share of the score's axis_error_rms; for a VALID track drift/missing are 0 by construction,
  *  so axis_quality is the only quality lever → axis-SSE is the faithful "most valuable to
- *  change" proxy — v1, a proxy for true upstream blame; see TRACK_REPAIR_EXPERIMENTS.md).
+ *  change" proxy — v1, a proxy for true upstream blame; see docs/archive/TRACK_REPAIR_EXPERIMENTS.md).
  *  FEASIBILITY: skip gaps whose estimated cost to re-complete (`perGap*(gaps-k)`) exceeds
  *  `budgetCap` — restarting from a gap we can't finish wastes the slice. Iterating worst-first
  *  and returning the first feasible one naturally falls back to later/cheaper gaps when budget
@@ -3518,7 +3518,7 @@ function readEnv(name: string): string | undefined {
     .process?.env?.[name];
 }
 
-/** Track-repair config (worst-gap suffix rebuild, see TRACK_REPAIR_EXPERIMENTS.md).
+/** Track-repair config (worst-gap suffix rebuild, see docs/archive/TRACK_REPAIR_EXPERIMENTS.md).
  *  Completion-triggered: the main search runs to the
  *  first complete track, then the rest of the budget is spent restarting the real frontier-DFS
  *  (fresh seed) from the weakest AFFORDABLE gap of the incumbent, rebuilding the suffix to a

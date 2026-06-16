@@ -18,11 +18,19 @@ historical record, not live guidance.
 | [`READINESS_ROADMAP.md`](READINESS_ROADMAP.md) | LIVE | Readiness design history and current composite readiness semantics. |
 | [`ARC_STATE_CONTROL.md`](ARC_STATE_CONTROL.md) | LIVE | Arc-state control, joint model shape, and proposer/search boundary. |
 
-## Live campaigns (root)
+## Live campaigns
+
+The standard campaign and the focused sub-campaigns. Each focused campaign is a triad —
+a `*-campaign.md` (scope), a `*-prompt.md` (working prompt), a `*-log.md` (attempt audit
+trail) — plus its `scripts/v0/eval_<name>.sh` board.
 
 | Doc | Tag | What |
 |---|---|---|
 | [`../GOAL_LDS_COMPILER_IMPROVEMENT.md`](../GOAL_LDS_COMPILER_IMPROVEMENT.md) | LIVE | The current standard campaign: raise HEADLINE (budget-value-weighted average) across the compiler. |
+| [`geometry-campaign.md`](geometry-campaign.md) | LIVE | Arc shape/placement/aim is the ceiling. Board `eval_geometry.sh`; companions `geometry-prompt.md`, `geometry-log.md`. |
+| [`lookahead-campaign.md`](lookahead-campaign.md) | LIVE | Forward-eval / rollout ranking. Companions `lookahead-prompt.md`, `lookahead-log.md`, `forward-eval-map.html`. |
+| [`planning-campaign.md`](planning-campaign.md) | LIVE | Long-horizon / global planning. Board `eval_planning.sh`; companion `global-planning.md`. |
+| [`impact-mission.md`](impact-mission.md) | LIVE | Impact metric + steering (the campaign that produced the current baseline). Board `eval_impact.sh`; companions `impact-campaign.md`, `IMPACT_PAIR_PLANNING.md`. |
 
 ## Reference
 
@@ -32,18 +40,26 @@ historical record, not live guidance.
 | [`../PROBLEM.md`](../PROBLEM.md) | REFERENCE | Problem statement and success criteria. |
 | [`metric_problem_statement.md`](metric_problem_statement.md) | REFERENCE | Statistical rationale behind the metric (noise floor, seed counts). |
 | [`creative_workflow.md`](creative_workflow.md) | REFERENCE | Worked song→track→video example. |
+| [`engine_speed_methodology.md`](engine_speed_methodology.md) | REFERENCE | Engine-perf method; cites the running `OPTIMIZATION_LOG.md` ledger. |
+| [`impact_contract.md`](impact_contract.md) | REFERENCE | Self-contained per-beat impact contract (the impact metric definition). |
+| [`impact_problem_statement.md`](impact_problem_statement.md) | REFERENCE | Impact semantics living doc. |
+| [`impact_generation_and_landing_notes.md`](impact_generation_and_landing_notes.md) | REFERENCE | Impact-as-generation analysis + landing-redefinition notes. |
 | [`../TOOLING_NOTES.md`](../TOOLING_NOTES.md) | REFERENCE | Living log of tooling/harness friction + resolutions. |
+
+Generated views (regenerated from runs, not hand-edited): `handoff-compiler.html` (the
+baseline-of-record table, via `scripts/v0/update_compiler_doc.ts`) and `forward-eval-map.html`.
 
 ## Component READMEs (co-located with code)
 
-[`../scripts/v0/optimizer/README.md`](../scripts/v0/optimizer/README.md) (optimizer
-building blocks) and [`../dashboard-v2/README.md`](../dashboard-v2/README.md) (dashboard
-app). Local to their directories; they defer to the canonical docs above for the
+[`../scripts/v0/optimizer/README.md`](../scripts/v0/optimizer/README.md) — optimizer
+building blocks. Local to its directory; defers to the canonical docs above for the
 metric/workflow.
 
 ## Archive (`docs/archive/` — historical, not live)
 
 `GOAL_LDS_ARC_PLACEMENT.md`, `FOCUS_FRAGILE_SPECS.md`, `PLATEAU_CAMPAIGN_LOG.md`,
 `GOAL_LDS_PLATEAU_BREAKOUT.md`, `GOAL_LDS_LOW_BUDGET.md`, `speed_policy_followups.md`,
-`arc_placement.md`, `TODO.md`. Kept for the "don't-retry" record and design rationale;
-their scores predate the 2026-06 anytime→budget-aware / weighted-average metric change.
+`arc_placement.md`, `TODO.md`, `short-leaf-campaign.md`, `short-leaf-campaign-log.md`,
+`SEARCH_ALGORITHM_ANALYSIS.md`, `FORWARD_EVAL_EXPERIMENTS.md`, `TRACK_REPAIR_EXPERIMENTS.md`.
+Kept for the "don't-retry" record and design rationale; their scores predate the current
+budget-aware / weighted-average metric (HEADLINE) and baseline.

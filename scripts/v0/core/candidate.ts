@@ -177,7 +177,7 @@ export function snapshotGapfitShortStats(): GapfitShortStats | null {
 const RELEASE_STATE_SPEED_WEIGHT = 0.126;
 /** Local candidate-cost weight of the `impact` axis (`axisCost`), a flat 0.5 —
  *  deliberately BELOW the scorer's equal weighting (every scored axis effectively
- *  weight 1): full impact weight regressed mature budgets (COMPILER_OPTIMIZATION_LOG_NEW_IMPACT.md:
+ *  weight 1): full impact weight regressed mature budgets (impact campaign log, git history:
  *  "full impact weight had a slightly lower focused headline (382.2) and a 100k
  *  -16.3 point-estimate regression"), so the cheap candidate prefix must not
  *  over-prioritize impact over air/speed/elevation/amplitude. A former 0.5->0.75

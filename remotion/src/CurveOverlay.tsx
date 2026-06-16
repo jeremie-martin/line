@@ -456,9 +456,9 @@ type VertVariant = {
 // Default is now spectrum-forward: no data panel, rider nudged up, big symmetric
 // edge-to-edge spectrum with balanced gap above (to rider) and below (to frame edge).
 const DEFAULT_VARIANT: VertVariant = {
-  riderShiftPct: 0.09, sideMarginPct: 0.03, bottomSafePct: 0.14, rowH: 190,
+  riderShiftPct: 0.15, sideMarginPct: 0.03, bottomSafePct: 0.14, rowH: 190,
   showPanel: false, panelMode: "clean",
-  showSpectrum: true, specSym: true, specCenterPct: 0.78, specMaxBarPct: 0.20, specFullWidth: true,
+  showSpectrum: true, specSym: true, specCenterPct: 0.73, specMaxBarPct: 0.17, specFullWidth: true,
 };
 
 // ── music spectrum (from scripts/make_spectrum.py) ────────────────────────────

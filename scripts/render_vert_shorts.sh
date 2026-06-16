@@ -29,6 +29,10 @@ GENDIR="generated/tiki_shorts"
 TOP_SCORE=30
 TOP_ROT=10
 ZOOM_MULT=1.8
+BEAT_PUNCH=1          # locked default: per-beat zoom punch on. --no-beat-punch to disable.
+BP_PCT=70            # punch the top (100-PCT)% of this spec's beats by impact
+JOBS=12              # parallel compiles in phase A
+RENDER_JOBS=1        # parallel render pipelines in phase B (raise for big batches)
 
 for a in "$@"; do case "$a" in
   --summary=*)   SUMMARY="${a#*=}" ;;
@@ -41,8 +45,15 @@ for a in "$@"; do case "$a" in
   --top-score=*) TOP_SCORE="${a#*=}" ;;
   --top-rot=*)   TOP_ROT="${a#*=}" ;;
   --zoom-mult=*) ZOOM_MULT="${a#*=}" ;;
+  --beat-punch-pct=*) BP_PCT="${a#*=}" ;;
+  --no-beat-punch) BEAT_PUNCH=0 ;;
+  --jobs=*)      JOBS="${a#*=}" ;;
+  --render-jobs=*) RENDER_JOBS="${a#*=}" ;;
   *) echo "unknown arg: $a" >&2; exit 1 ;;
 esac; done
+
+BP_ARGS=""
+[ "$BEAT_PUNCH" = "1" ] && BP_ARGS="--beat-punch --beat-punch-pct=$BP_PCT --zoom-ease=cubic"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
 mkdir -p "$COLLECT" "$GENDIR" remotion/public remotion/out
@@ -73,9 +84,9 @@ echo ""; echo "==> computing music spectrum once → $SPECT"
 python3 scripts/make_spectrum.py --audio="$AUDIO" --out="$SPECT" --fps=30 --bands=56 | tail -1
 SPECT_BASE="$(basename "$SPECT")"
 
-# ── phase A: parallel deterministic compiles (track + report) ────────────────
-echo ""; echo "==> phase A: compiling ${#SEL[@]} winners in parallel (budget=$BUDGET)"
-pids=()
+# ── phase A: deterministic compiles (track + report), capped at JOBS ──────────
+echo ""; echo "==> phase A: compiling ${#SEL[@]} winners (budget=$BUDGET, jobs=$JOBS)"
+running=0
 for line in "${SEL[@]}"; do
   IFS=$'\t' read -r rank seed name <<<"$line"
   if [ -s "$GENDIR/$name.track.json" ]; then echo "    cached r$rank seed $seed"; continue; fi
@@ -83,9 +94,10 @@ for line in "${SEL[@]}"; do
       --seed="$seed" --out="$GENDIR/$name" >"$GENDIR/$name.compile.log" 2>&1 \
       && echo "    compiled r$rank seed $seed" \
       || echo "    FAILED r$rank seed $seed (see $GENDIR/$name.compile.log)" ) &
-  pids+=($!)
+  running=$((running + 1))
+  if (( running >= JOBS )); then wait -n; running=$((running - 1)); fi
 done
-for p in "${pids[@]}"; do wait "$p"; done
+wait
 
 # ── mirror server for the ride render ────────────────────────────────────────
 MIRROR_URL="http://127.0.0.1:8765/index.html"; MIRROR_PID=""
@@ -97,32 +109,37 @@ if ! curl -sf -o /dev/null "$MIRROR_URL"; then
   for _ in $(seq 1 20); do curl -sf -o /dev/null "$MIRROR_URL" && break; sleep 0.5; done
 fi
 
-# ── phase B: sequential vertical render per winner ───────────────────────────
-echo ""; echo "==> phase B: rendering ${#SEL[@]} vertical Shorts (1080x1920, zoom-mult=$ZOOM_MULT)"
+# ── phase B: vertical render per winner, capped at RENDER_JOBS ────────────────
+# Per winner: ride render (spec camera, zoom-mult + optional beat-punch) → mux song →
+# overlay bundle → CurveOverlayVertical (defaults = the locked look). Files are
+# per-name so pipelines run independently in parallel; logs go to <name>.render.log.
+render_one () {
+  local rank="$1" seed="$2" name="$3" GEN="$GENDIR/$3" log="$GENDIR/$3.render.log"
+  if [ ! -s "$GEN.track.json" ]; then echo "     skip r$rank s$seed (no track)"; return; fi
+  if ( set -e
+    npx tsx scripts/export.ts --track="$GEN.track.json" --spec="$SPEC" --zoom=action \
+      --zoom-mult="$ZOOM_MULT" $BP_ARGS --res=1080x1920 --out="$GEN.vert.mp4" >"$log" 2>&1
+    ffmpeg -y -i "$GEN.vert.mp4" -i "$AUDIO" -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -shortest \
+      "remotion/public/${name}.source.mp4" >>"$log" 2>&1
+    npx tsx scripts/make_overlay_data.ts --spec="$SPEC" --report="$GEN.report.json" --track="$GEN.track.json" \
+      --out="remotion/public/${name}.overlay.json" >>"$log" 2>&1
+    local DUR; DUR="$(python3 -c "import json;print(json.load(open('remotion/public/${name}.overlay.json'))['durationS'])")"
+    ( cd remotion && npx remotion render src/index.ts CurveOverlayVertical "out/${name}.mp4" \
+        --props="{\"dataFile\":\"${name}.overlay.json\",\"videoFile\":\"${name}.source.mp4\",\"durationS\":$DUR,\"spectrumFile\":\"$SPECT_BASE\"}" >>"$log" 2>&1 )
+    cp "remotion/out/${name}.mp4" "$COLLECT/r${rank}_s${seed}.mp4"
+  ); then echo "     → r$rank s$seed  $COLLECT/r${rank}_s${seed}.mp4"
+  else echo "     FAILED r$rank s$seed (see $log)"; fi
+}
+
+echo ""; echo "==> phase B: rendering ${#SEL[@]} vertical Shorts (1080x1920, zoom-mult=$ZOOM_MULT, beat-punch=$BEAT_PUNCH pct=$BP_PCT, render-jobs=$RENDER_JOBS)"
+running=0
 for line in "${SEL[@]}"; do
   IFS=$'\t' read -r rank seed name <<<"$line"
-  GEN="$GENDIR/$name"
-  if [ ! -s "$GEN.track.json" ]; then echo "    skip r$rank seed $seed (no track)"; continue; fi
-  echo "  -- r$rank seed $seed ($name)"
-  if ( set -e
-    # 1. vertical ride render (spec camera, zoomed in for the tall frame)
-    npx tsx scripts/export.ts --track="$GEN.track.json" --spec="$SPEC" --zoom=action \
-      --zoom-mult="$ZOOM_MULT" --res=1080x1920 --out="$GEN.vert.mp4" >/dev/null
-    # 2. mux the song
-    ffmpeg -y -i "$GEN.vert.mp4" -i "$AUDIO" -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -shortest \
-      "remotion/public/${name}.source.mp4" >/dev/null 2>&1
-    # 3. overlay bundle (so the composition's data loads; phases/axes unused in spectrum mode)
-    npx tsx scripts/make_overlay_data.ts --spec="$SPEC" --report="$GEN.report.json" --track="$GEN.track.json" \
-      --out="remotion/public/${name}.overlay.json" >/dev/null
-    DUR="$(python3 -c "import json;print(json.load(open('remotion/public/${name}.overlay.json'))['durationS'])")"
-    # 4. vertical spectrum overlay render (CurveOverlayVertical defaults = locked look)
-    ( cd remotion && npx remotion render src/index.ts CurveOverlayVertical "out/${name}.mp4" \
-        --props="{\"dataFile\":\"${name}.overlay.json\",\"videoFile\":\"${name}.source.mp4\",\"durationS\":$DUR,\"spectrumFile\":\"$SPECT_BASE\"}" >/dev/null )
-    # 5. collect
-    cp "remotion/out/${name}.mp4" "$COLLECT/r${rank}_s${seed}.mp4"
-  ); then echo "     → $COLLECT/r${rank}_s${seed}.mp4"
-  else echo "     FAILED r$rank seed $seed (see logs)"; fi
+  render_one "$rank" "$seed" "$name" &
+  running=$((running + 1))
+  if (( running >= RENDER_JOBS )); then wait -n; running=$((running - 1)); fi
 done
+wait
 
 # ── manifest ─────────────────────────────────────────────────────────────────
 python3 - "$GENDIR/selection.json" "$COLLECT" <<'PY'

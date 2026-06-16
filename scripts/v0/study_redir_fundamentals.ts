@@ -15,7 +15,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { impactCeiling, secToFrame } from "./types.ts";
-import * as SS from "./study_support.ts";
+import * as SS from "./impact_support.ts";
 
 type AxisReport = {
   target?: number;

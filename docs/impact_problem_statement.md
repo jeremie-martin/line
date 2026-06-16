@@ -560,7 +560,7 @@ redir envelope p50 1.83 / p90 4.33 / p95 5.26 / p99 6.50 / max 8.23 px/frame. Th
 is the natural absolute ceiling. The felt labels map cleanly onto it: soft→0.20,
 a-bit-less→0.36, pretty-strong→0.70, very-strong→0.84, hardest→1.0 (only 63.93 sits high
 at 0.60 — the known gradual-redirection imperfection). `W=6` and `REDIR_CAP=8.5` live in
-`study_support.ts` as the single source (`point`'s cap stays `IMPACT_CAP=5`).
+`impact_support.ts` as the single source (`point`'s cap stays `IMPACT_CAP=5`).
 
 Remaining: promote into the compiler measure (`core/measure.ts measureImpact`, today the
 one-frame `point`) — a scoring-definition change requiring a golden re-baseline; gate on
@@ -585,7 +585,7 @@ explicit go. More felt labels on a second track would harden W/cap beyond Shelte
   (recalibrate `REDIR_CAP` against the golden envelope; `--track=<labeled.track.json>`
   optionally adds the Shelter label percentile block) and `study_impact_labels.ts
   --track=<labeled.track.json>` (validate the metric against felt-intensity labels).
-- **`scripts/v0/study_support.ts` — the SINGLE SOURCE** (now a production dependency of
+- **`scripts/v0/impact_support.ts` — the SINGLE SOURCE** (now a production dependency of
   `make_overlay_data.ts`) for rider topology, caps, the canonical `IMPACT_WINDOW`,
   load/simulate, geometry, point access, landing/rest detection, stats, and the windowed
   metric helpers. `redirPx` DELEGATES to the production `core/substrate.ts
@@ -655,7 +655,7 @@ reproduced; whether it came from a different track/window/label set is unresolve
 ground truth is n=8 *and* the headline is non-reproducible, so the LOCK is weaker than the
 contract states.
 
-**New candidate — `snap` (`study_support.ts snapPx`):** peak PER-FRAME ⊥ velocity change
+**New candidate — `snap` (`impact_support.ts snapPx`):** peak PER-FRAME ⊥ velocity change
 over the window (px/frame²) = the redirection FORCE/suddenness. Touchdown-INCLUSIVE (the
 incoming-heading frame has ⊥ velocity 0 by construction, so the slam *at* contact counts)
 — unlike the older inline `redirRate` in `study_impact_labels.ts`, which started at `k>lf`
@@ -667,7 +667,7 @@ the contested beats (72.33 "very strong": redir 0.60 but **snap 0.90**, closer t
 48.33 "soft": snap 0.66 > redir 0.50, worse). Mixed at n=8 — needs fresh labels.
 
 **Tooling added (all analysis-only; production scorer/fingerprint untouched):**
-- `study_support.ts`: `snapPx`, `CAPS.snap`, and `simFromDetection(track, det)` — validate
+- `impact_support.ts`: `snapPx`, `CAPS.snap`, and `simFromDetection(track, det)` — validate
   against the EXACT watched trajectory instead of re-simulating, so labels survive engine
   changes.
 - `study_impact_labels.ts --detect=<detection.json>`: validates against the saved video
@@ -694,7 +694,7 @@ happens-to-match dream was tried many times and always diverged somewhere). Piec
 
 - `scripts/v0/build_impact_study.ts` — per track, emits a bundle (`generated/impact-study/
   <name>.bundle.json`) with every landing's full candidate vector (point/redir/snap/turn/
-  dv/decel/jolt/whip/deform/rot/window) via the canonical `study_support.ts` defs, a short
+  dv/decel/jolt/whip/deform/rot/window) via the canonical `impact_support.ts` defs, a short
   looping mini-CLIP cut from the ride video per landing (one-click felt judgment, no
   scrubbing), and a markdown reference INDEX so impacts are easy to cite (#/t) anywhere.
   Re-simulates (engine present → body metrics); for a fixed track this is bit-identical to
@@ -756,7 +756,7 @@ Shelter run; the REDIR·on vs DECEL gap (0.006) is noise. Two felt labels also *
 versus the Jun-9 set (48.3 soft→strong, 71.1 hard→smooth) — plausibly multi-contact clip
 mis-attribution before the BOOM marker existed. Need a second labelled track to pin τ and
 break the REDIR·on/DECEL tie before any LOCK change. New candidates `redirDecayPx`,
-`comDecelDecayPx` (`study_support.ts`) and dashboard lanes REDIR·on / DECEL·on added.
+`comDecelDecayPx` (`impact_support.ts`) and dashboard lanes REDIR·on / DECEL·on added.
 
 #### Corpus calibration + the sync reframe (2026-06-14)
 
@@ -811,7 +811,7 @@ locking DECEL·on into the scorer — the divergent track caught it.
 
 **Independent agent (Opus, from first principles) converged on the same thing and produced
 the new lead.** Its metric **`redirArc = v·Δθ`** (incoming CoM speed × net heading change in
-rad over W=6; `study_support.ts redirArcPx`) sits between `turn` (Δθ, no speed) and `redir`
+rad over W=6; `impact_support.ts redirArcPx`) sits between `turn` (Δθ, no speed) and `redir`
 (v·sin Δθ, whose sin *compresses* the biggest slams): speed-weighted with no compression,
 CoM-only (rotation-immune), heading-anchored (no surface-faceting artifact → generalises
 where comDecel overfit), tangent-aware (clean arrival → Δθ≈0). Felt ρ: shelter 0.851,

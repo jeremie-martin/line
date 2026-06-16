@@ -19,7 +19,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { AXES, FPS, secToFrame, type Spec, type DriftReport } from "./v0/types.ts";
 import { scoreDriftReport } from "./v0/score.ts";
-import * as SS from "./v0/study_support.ts";
+import * as SS from "./v0/impact_support.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string, def?: string): string => {
@@ -48,7 +48,7 @@ const durationS = track.duration / FPS;
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 
 // Per-beat MEASURED landing-impact candidates for the overlay, ALL computed through
-// the canonical definitions in scripts/v0/study_support.ts (one window, one set of
+// the canonical definitions in scripts/v0/impact_support.ts (one window, one set of
 // caps, one rider topology) so the rendered video and the analysis harnesses can
 // never silently diverge. See docs/impact_problem_statement.md for what each means:
 //   point   pre-impact CoM normal closing speed (the shipped scorer's definition)

@@ -959,7 +959,7 @@ export const IMPACT = {
 
 /** Window (frames, ~0.15s at FPS=40) over which the redirection impact is measured.
  *  The felt redirection episode; label-validated (study_impact_labels.ts: the felt
- *  match peaks at W≈6). Canonical home; study_support re-exports it. */
+ *  match peaks at W≈6). Canonical home; impact_support re-exports it. */
 export const IMPACT_WINDOW = 6;
 
 /**

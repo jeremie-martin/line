@@ -12,7 +12,7 @@
  */
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import * as SS from "./study_support.ts";
+import * as SS from "./impact_support.ts";
 
 const VX = 9.5;                     // px/frame initial horizontal speed
 const SLOPE = 0.07;                 // gentle shelf downslope (~4°) — lets the sled TRACK the

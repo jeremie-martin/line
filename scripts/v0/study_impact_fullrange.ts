@@ -16,7 +16,7 @@
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { type Spec, type Contact, secToFrame, normImpact, REDIRARC } from "./types.ts";
 import { constant } from "./core/curves.ts";
-import * as SS from "./study_support.ts";
+import * as SS from "./impact_support.ts";
 
 const argv = process.argv.slice(2);
 const arg = (n: string, d: number) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? Number(a.slice(n.length + 3)) : d; };

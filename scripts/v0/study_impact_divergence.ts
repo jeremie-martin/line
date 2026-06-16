@@ -16,7 +16,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { type Spec } from "./types.ts";
-import * as SS from "./study_support.ts";
+import * as SS from "./impact_support.ts";
 
 const argv = process.argv.slice(2);
 const arg = (n: string) => argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);

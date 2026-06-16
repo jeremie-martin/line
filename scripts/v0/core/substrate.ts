@@ -184,7 +184,7 @@ export function findLandingNearFrame(det: Detection, targetFrame: number, tol = 
  * LONGER the scored definition — landing intensity is now the velocity REDIRECTION
  * (`redirImpactPxAtLanding`, used by `measureImpact`/`buildDriftReport`/`inspect`).
  * Kept only as the comparison "point" baseline in the study harnesses
- * (`study_support.ts pointImpactPx`) and the study overlay's reference lane.
+ * (`impact_support.ts pointImpactPx`) and the study overlay's reference lane.
  *
  * `lineFor(id)` resolves a fired line id to its endpoints — the per-gap scored
  * reduction passes a resolver that returns ONLY this gap's owned lines (so a

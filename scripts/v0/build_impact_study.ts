@@ -1,7 +1,7 @@
 /**
  * Build the per-track IMPACT STUDY bundle for the dashboard at `/impact/`:
  *   - every landing's full candidate-metric vector (point/redir/snap/turn/dv/jolt/…),
- *     computed through the canonical study_support.ts definitions (one window, one set
+ *     computed through the canonical impact_support.ts definitions (one window, one set
  *     of caps) so the dashboard and the scorer can never silently diverge;
  *   - a short looping mini-CLIP cut from the ride video around each landing, so a felt
  *     judgment needs one click, not scrubbing;
@@ -25,7 +25,7 @@ import { execFileSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
 import { pathToFileURL } from "node:url";
 import { FPS, secToFrame, type DriftReport } from "./types.ts";
-import * as SS from "./study_support.ts";
+import * as SS from "./impact_support.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | undefined => argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -57,7 +57,7 @@ mkdirSync(clipsDir, { recursive: true });
 type MetricDef = { key: string; label: string; group: "com" | "body"; cap: number; sub: string; fn: (sim: SS.Sim, f: number) => number };
 // Live contenders only — the rejected/outdated metrics (point, dv, jolt, whip, deform,
 // rot, window) were pruned 2026-06-14 per user feedback to keep the board clean. They
-// remain in study_support.ts if ever needed for a diagnostic.
+// remain in impact_support.ts if ever needed for a diagnostic.
 const METRICS: MetricDef[] = [
   { key: "redir",   label: "REDIR",   group: "com",  cap: SS.REDIR_CAP,     sub: "how MUCH redirected (locked metric)", fn: (s, f) => SS.redirPx(s, f) },
   { key: "redirArc",label: "REDIRarc",group: "com",  cap: SS.REDIR_CAP,     sub: "v·Δθ speed-weighted redirection (LEAD)", fn: (s, f) => SS.redirArcPx(s, f) },

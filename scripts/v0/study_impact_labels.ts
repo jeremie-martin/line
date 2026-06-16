@@ -16,7 +16,7 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import * as SS from "./study_support.ts";
+import * as SS from "./impact_support.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | undefined => {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Composition, getInputProps } from "remotion";
-import { CurveOverlay, ImpactStudyOverlay } from "./CurveOverlay";
+import { CurveOverlay, CurveOverlayVertical, ImpactStudyOverlay } from "./CurveOverlay";
 
 // Two overlay compositions, parameterized by input props from the pipeline
 // (scripts/produce_video.sh): dataFile, videoFile, durationS.
@@ -13,9 +13,11 @@ const FPS = 30;
 export const RemotionRoot: React.FC = () => {
   const { durationS = 56.55 } = getInputProps() as { durationS?: number };
   const common = { durationInFrames: Math.ceil(durationS * FPS), fps: FPS, width: 1920, height: 1080 } as const;
+  const vertical = { durationInFrames: Math.ceil(durationS * FPS), fps: FPS, width: 1080, height: 1920 } as const;
   return (
     <>
       <Composition id="CurveOverlay" component={CurveOverlay} {...common} />
+      <Composition id="CurveOverlayVertical" component={CurveOverlayVertical} {...vertical} />
       <Composition id="ImpactStudyOverlay" component={ImpactStudyOverlay} {...common} />
     </>
   );

@@ -32,13 +32,29 @@ const zoomMode: "static" | "spec" =
 const zoom = zoomMode === "static" && zoomArg !== null ? parseFloat(zoomArg) : 3;
 // --res=720p|1080p|1440p|2160p (or legacy --1080p). 1440p/2160p render Line
 // Rider's vector art natively at higher size = genuinely sharper, not upscaled.
+// --res also accepts an explicit WxH (e.g. 1080x1920 for vertical/Shorts): the
+// mirror exporter renders any custom canvas size natively (Custom preset).
 const RES_CHOICES = ["720p", "1080p", "1440p", "2160p"] as const;
 const resArg = arg("res");
-if (resArg !== null && !(RES_CHOICES as readonly string[]).includes(resArg)) {
-  console.error(`--res must be one of ${RES_CHOICES.join("|")} (got: ${resArg})`);
+const customRes = resArg !== null ? /^(\d+)x(\d+)$/.exec(resArg) : null;
+if (resArg !== null && !customRes && !(RES_CHOICES as readonly string[]).includes(resArg)) {
+  console.error(`--res must be one of ${RES_CHOICES.join("|")} or WxH (e.g. 1080x1920) (got: ${resArg})`);
   process.exit(1);
 }
-const resolution = (resArg ?? (has("1080p") ? "1080p" : "720p")) as (typeof RES_CHOICES)[number];
+const resolution: (typeof RES_CHOICES)[number] | { width: number; height: number } = customRes
+  ? { width: Number(customRes[1]), height: Number(customRes[2]) }
+  : (resArg ?? (has("1080p") ? "1080p" : "720p")) as (typeof RES_CHOICES)[number];
+const resLabel = typeof resolution === "string" ? resolution : `${resolution.width}x${resolution.height}`;
+// --zoom-mult=N scales the camera zoom by N (>1 = tighter / rider bigger). For
+// --zoom=action/spec it multiplies every keyframe of the authored plan, preserving
+// its zoom-in/out dynamics; otherwise it scales the static zoom. Useful for vertical
+// renders, where the 16:9-authored plan is too zoomed-out (rider tiny in a tall frame).
+const zoomMultArg = arg("zoom-mult");
+const zoomMult = zoomMultArg !== null ? parseFloat(zoomMultArg) : 1;
+if (!Number.isFinite(zoomMult) || zoomMult <= 0) {
+  console.error(`--zoom-mult must be a positive number (got: ${zoomMultArg})`);
+  process.exit(1);
+}
 const hq = has("hq");
 // Explicit encoder QP (lower = higher quality; x264 sane range ~14-28). Overrides
 // hq's built-in QP (22/28). e.g. --qp=17 for a crisp HQ render.
@@ -104,9 +120,21 @@ if (zoomMode === "spec") {
     process.exit(1);
   }
 }
+// Scale the camera by --zoom-mult: the log2 keyframes shift by log2(mult), the dense
+// fallback and the static zoom scale linearly.
+if (zoomMult !== 1 && zoomPlan) {
+  const dLog2 = Math.log2(zoomMult);
+  zoomPlan = {
+    ...zoomPlan,
+    zoomKeyframes: zoomPlan.zoomKeyframes.map(([f, l]) => [f, l + dLog2] as [number, number]),
+    autoZoom: zoomPlan.autoZoom?.map((z) => z * zoomMult),
+  };
+}
+const effectiveZoom = zoom * zoomMult;
 console.log(
   `track=${trackPath} (${trackJson.lines?.length} lines, duration=${trackJson.duration})\n` +
-    `resolution=${resolution}${hq ? " HQ" : ""}${qp !== null ? ` QP=${qp}` : ""} zoom=${zoomMode === "spec" && zoomPlan ? "spec" : zoom}\n` +
+    `resolution=${resLabel}${hq ? " HQ" : ""}${qp !== null ? ` QP=${qp}` : ""} ` +
+    `zoom=${zoomMode === "spec" && zoomPlan ? "spec" : effectiveZoom}${zoomMult !== 1 ? ` (mult ${zoomMult})` : ""}\n` +
     `origin=${origin}\nout=${outPath}`,
 );
 
@@ -115,7 +143,7 @@ try {
     trackJson,
     outPath,
     origin,
-    zoom,
+    zoom: effectiveZoom,
     autoZoom: zoomPlan?.autoZoom,
     zoomKeyframes: zoomPlan?.zoomKeyframes,
     zoomSmoothing: zoomPlan?.zoomSmoothing ?? 0,

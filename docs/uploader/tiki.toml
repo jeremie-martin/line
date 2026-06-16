@@ -1,0 +1,29 @@
+# Reference uploader pool config for the `tiki` project.
+# Copy this to the uploader repo as `projects/tiki.toml`.
+# Our bundles' upload.json carries values { seed:int, rep:int } — these templates use them.
+
+playlist = ""          # set a YouTube playlist ID, or leave "" for none
+privacy = "public"
+category_id = "1"      # Film & Animation
+cadence = "2h"         # min time between uploads for this project
+
+tags = ["line rider", "procedural generation", "satisfying", "music sync", "oddly satisfying"]
+
+[title]
+templates = [
+    "Line Rider synced to the beat",
+    "Procedural Line Rider — seed {seed}",
+    "This track was generated, not drawn (seed {seed})",
+]
+hashtags = ["linerider", "procedural", "satisfying", "musicsync"]
+hashtag_count = [1, 3]
+
+[description]
+templates = [
+    "Procedurally generated Line Rider, auto-synced to the music. Seed {seed}, take {rep}.",
+    "No hand-drawing — this track was compiled to hit the music. Seed {seed}.",
+]
+
+[[tags_when]]
+when = "rep == 0"
+add = ["first take"]

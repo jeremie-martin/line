@@ -106,9 +106,13 @@ function denseZoomEased(kf: readonly [number, number][], durationFrames: number)
 // frame (no accumulation) so clusters stay bounded.
 function applyBeatPunch(autoZoom: number[], contacts: Contact[]): number[] {
   const impacts = contacts.map((c) => c.impact ?? 0).filter((v) => v > 0).sort((a, b) => a - b);
-  const pctVal = impacts.length ? impacts[Math.min(impacts.length - 1, Math.floor((bpPct / 100) * impacts.length))] : 0;
+  if (impacts.length === 0) {
+    console.log("beat-punch: skipped (no positive authored impacts)");
+    return autoZoom;
+  }
+  const pctVal = impacts[Math.min(impacts.length - 1, Math.floor((bpPct / 100) * impacts.length))];
   const gate = Math.max(pctVal, bpThreshold);
-  const maxImp = impacts.length ? impacts[impacts.length - 1] : 1;
+  const maxImp = impacts[impacts.length - 1];
   const span = Math.max(1e-6, maxImp - gate);
 
   const punch = new Array<number>(autoZoom.length).fill(0); // peak zoom fraction per frame

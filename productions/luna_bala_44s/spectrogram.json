@@ -1,5 +1,5 @@
 {
-  "audio_file": "luna_bala_44s.mp3",
+  "audio_file": "audio.mp3",
   "duration": 44.0,
   "sr": 22050,
   "hop": 512,
@@ -10,6 +10,6 @@
   "db_top": 0.0,
   "width": 1895,
   "height": 128,
-  "image": "luna_bala_44s.spectrogram.png",
+  "image": "spectrogram.png",
   "colormap": "magma"
 }

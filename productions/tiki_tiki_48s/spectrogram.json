@@ -1,5 +1,5 @@
 {
-  "audio_file": "tiki_tiki_48s.mp3",
+  "audio_file": "audio.mp3",
   "duration": 48.0,
   "sr": 22050,
   "hop": 512,
@@ -10,6 +10,6 @@
   "db_top": 0.0,
   "width": 2068,
   "height": 128,
-  "image": "tiki_tiki_48s.spectrogram.png",
+  "image": "spectrogram.png",
   "colormap": "magma"
 }

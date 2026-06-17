@@ -21,8 +21,10 @@ in a section with no drums at all. The fix was not a smarter threshold inside
 the analyzer; it was to **surface the raw, corroborating evidence and let the
 author judge**.
 
-The worked example throughout is `scripts/v0/specs/luna_bala_44s.ts`, driven by
-`beats/luna_bala_44s.audio.json`.
+The worked example throughout is `productions/luna_bala_44s/spec.ts`, driven by its
+co-located `productions/luna_bala_44s/audio.json`. Each production song lives in its
+own self-contained `productions/<song>/` folder (spec + analysis + config + assets);
+§5 covers turning a finished spec into videos at scale.
 
 ---
 
@@ -54,12 +56,14 @@ it should not silently change when the analyzer is re-run.
 Extract a fixed excerpt, then describe it:
 
 ```bash
+mkdir -p productions/luna_bala_44s
+
 ffmpeg -y -i "LUNA BALA (Slowed) [dukNdSgaLtc].opus" \
-  -t 44 -vn -codec:a libmp3lame -q:a 2 beats/luna_bala_44s.mp3
+  -t 44 -vn -codec:a libmp3lame -q:a 2 productions/luna_bala_44s/audio.mp3
 
 /tmp/mm310/bin/python scripts/analyze_audio.py \
-  --audio beats/luna_bala_44s.mp3 \
-  --out beats/luna_bala_44s.audio.json \
+  --audio productions/luna_bala_44s/audio.mp3 \
+  --out productions/luna_bala_44s/audio.json \
   --window 0:10           # finer console tables for a region (optional)
 ```
 
@@ -71,9 +75,9 @@ from pathlib import Path
 import importlib.util
 spec = importlib.util.spec_from_file_location("extract_spectrogram", "beats/extract_spectrogram.py")
 mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
-mod.main(Path("beats/luna_bala_44s.mp3"),
-         Path("beats/luna_bala_44s.spectrogram.png"),
-         Path("beats/luna_bala_44s.spectrogram.json"))
+mod.main(Path("productions/luna_bala_44s/audio.mp3"),
+         Path("productions/luna_bala_44s/spectrogram.png"),
+         Path("productions/luna_bala_44s/spectrogram.json"))
 PY
 ```
 
@@ -127,13 +131,16 @@ beat grid is a hypothesis; the energy/onset layers are the evidence).
 A spec is a TypeScript module exporting a `Spec`. The authoring surface:
 
 ```ts
-import type { Contact, Curve, Spec } from "../types.ts";
-import { keyframes } from "../core/curves.ts";   // also: constant, ramp
-import { beats } from "../core/beats.ts";         // also: withImpact
+import type { Contact, Curve, Spec } from "../../scripts/v0/types.ts";
+import { keyframes } from "../../scripts/v0/core/curves.ts";   // also: constant, ramp
+import { beats } from "../../scripts/v0/core/beats.ts";         // also: withImpact
+
+// the spec reads its co-located analysis relative to its own file:
+//   const audio = JSON.parse(readFileSync(resolve(import.meta.dirname, "audio.json"), "utf8"));
 
 const spec: Spec = {
   duration: 44,
-  music: { audio, title, artist, tempo, beats: "...audio.json", spectrogram },
+  music: { audio, title, artist, tempo, beats: "productions/<song>/audio.json", spectrogram },
   contacts,                       // Contact[] = beats([{ t, impact }])
   jitter: 0,                      // curves carry the variation; no per-gap noise
   axes: { air, speed, amplitude },// each a Curve: keyframes([{ t, v, ease }]) or (t)=>number|undefined
@@ -220,7 +227,7 @@ Render with `--zoom=action` to use these.
 
 ```bash
 npx tsx scripts/v0/run.ts \
-  --spec=scripts/v0/specs/luna_bala_44s.ts \
+  --spec=productions/luna_bala_44s/spec.ts \
   --compiler=handoff --budget=1000000 --seed=0 \
   --out=generated/luna_bala_44s
 ```
@@ -290,3 +297,66 @@ Useful failures:
 - High impact and high amplitude fight → decide which the moment needs.
 - Report score improves but shape regresses → watch the video; prefer the version
   that reads better.
+
+---
+
+## 5. Produce videos at scale (`characterize` → `select.json` → `produce`)
+
+Once a spec rides well, you don't hand-pick seeds — you let the producer stream
+finished videos. Two commands over the song folder.
+
+**Characterize** — measure the seed distribution and get a starting config:
+
+```bash
+npm run characterize -- --song=productions/luna_bala_44s --seeds=0-99
+```
+
+Compiles the seed range, measures every metric (score, substantial stand-time %,
+rotations, flips, validity) and writes `characterization.json` (per-metric
+mean/median/percentiles + validity rate) plus a suggested `select.json` (never
+clobbers an edited one — writes `select.suggested.json` instead). Floors are read
+off the song's OWN distribution: the score floor is that song's **median** (a
+shared absolute is wrong — luna's ≈686 yields zero tiki bundles). Creative floors
+default to 0 = opt-in.
+
+**Edit `select.json`** — the floors a seed must clear to become a video:
+
+```jsonc
+{
+  "budget": 1000000,
+  "floors": {
+    "reachedEnd": true, "maxOffBeat": 0,   // validity — cuts garbage
+    "score": 686,                           // ≥ the song's median (above-average quality)
+    "standTimePctMin": 4,                   // creative gate: % of duration in substantial stands
+    "rotationsMin": 0                       // absolute min revolutions (0 = off)
+  },
+  "render": { "res": "1080x1920", "zoomMult": 1.8, "beatPunchPct": 70 }
+}
+```
+
+Floors CUT GARBAGE; they don't pick among good tracks. score and stand-time are
+roughly independent (`corr ≈ 0`), so don't stack two aggressive floors — a high
+stand floor AND an above-median score floor can leave ~nothing. Read
+`characterization.json` to choose: e.g. luna `stand≥4% & score≥686` ≈ 4% of seeds.
+
+**Produce** — the anytime, balanced, multi-song producer:
+
+```bash
+npm run produce                            # all songs, run until Ctrl-C
+npm run produce -- --per-song-target=10    # 10 bundles per song, then stop
+```
+
+- Each launch writes a fresh timestamped run dir
+  `generated/bundles/<YYMMDD-HHMMSS>/<song>/<song>-s<seed>/` (`video.mp4` +
+  `upload.json`, `project: "line"`) — a self-contained batch to copy to the
+  downstream processor. A bundle commits only after clearing every floor — no reprocessing.
+- **Balanced**: compile lanes always feed the song most behind on bundle count, so
+  output stays roughly equal across songs regardless of differing qualify rates.
+- **Anytime + resumable**: Ctrl-C any time — in-flight renders finish (atomic
+  commit), nothing half-written. A per-host cursor + skip-existing means one machine
+  never repeats a seed.
+- **Multi-machine**: give each machine a disjoint seed block with `--seed-base=N`
+  (or `--auto-seed-base`) so no video is ever generated twice.
+
+Compile (cheap, parallel worker_threads) and render (Playwright ride + Remotion
+overlay — the bottleneck) overlap continuously; generation never blocks on rendering.

@@ -1,7 +1,8 @@
 /**
  * "TIKI TIKI (Slowed)" - first 48s, authored from rhythm-analysis v2.
  *
- * Source slice: beats/tiki_tiki_48s.mp3, extracted from the root .opus.
+ * Co-located inputs: productions/tiki_tiki_48s/{audio.mp3, audio.json} (the
+ * rhythm-analysis blob). Read relative to this file (import.meta.dirname).
  *
  * Contact interpretation:
  *   - pre-6.9s: quiet same-grid support contacts only; visually small;
@@ -14,9 +15,9 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { Contact, Curve, Spec } from "../types.ts";
-import { keyframes } from "../core/curves.ts";
-import { beats } from "../core/beats.ts";
+import type { Contact, Curve, Spec } from "../../scripts/v0/types.ts";
+import { keyframes } from "../../scripts/v0/core/curves.ts";
+import { beats } from "../../scripts/v0/core/beats.ts";
 
 type RhythmRow = {
   t: number;
@@ -82,7 +83,7 @@ type RhythmAnalysis = {
 };
 
 const rhythm = JSON.parse(
-  readFileSync(resolve("beats/tiki_tiki_48s.rhythm.json"), "utf8"),
+  readFileSync(resolve(import.meta.dirname, "audio.json"), "utf8"),
 ) as RhythmAnalysis;
 
 const INTRO_REAL_BEAT_S = 6.90;
@@ -337,14 +338,14 @@ export const overlayMeta = {
 const spec: Spec = {
   duration: 48,
   music: {
-    audio: "beats/tiki_tiki_48s.mp3",
+    audio: "productions/tiki_tiki_48s/audio.mp3",
     title: "TIKI TIKI (Slowed)",
     artist: "Unknown",
     tempo: overlayMeta.tempo,
-    beats: "beats/tiki_tiki_48s.rhythm.json",
+    beats: "productions/tiki_tiki_48s/audio.json",
     spectrogram: {
-      image: "beats/tiki_tiki_48s.spectrogram.png",
-      metadata: "beats/tiki_tiki_48s.spectrogram.json",
+      image: "productions/tiki_tiki_48s/spectrogram.png",
+      metadata: "productions/tiki_tiki_48s/spectrogram.json",
     },
   },
   camera: {

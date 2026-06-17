@@ -55,7 +55,7 @@ type RhythmAnalysis = {
 };
 
 const rhythm = JSON.parse(
-  readFileSync(resolve("beats/tiki_tiki_48s.rhythm.json"), "utf8"),
+  readFileSync(resolve("productions/tiki_tiki_48s/audio.json"), "utf8"),
 ) as RhythmAnalysis;
 
 const INTRO_REAL_BEAT_S = 6.90;
@@ -199,14 +199,14 @@ export const overlayMeta = {
 const spec: Spec = {
   duration: 48,
   music: {
-    audio: "beats/tiki_tiki_48s.mp3",
+    audio: "productions/tiki_tiki_48s/audio.mp3",
     title: "TIKI TIKI (Slowed)",
     artist: "Unknown",
     tempo: overlayMeta.tempo,
-    beats: "beats/tiki_tiki_48s.rhythm.json",
+    beats: "productions/tiki_tiki_48s/audio.json",
     spectrogram: {
-      image: "beats/tiki_tiki_48s.spectrogram.png",
-      metadata: "beats/tiki_tiki_48s.spectrogram.json",
+      image: "productions/tiki_tiki_48s/spectrogram.png",
+      metadata: "productions/tiki_tiki_48s/spectrogram.json",
     },
   },
   camera: {

@@ -1,7 +1,8 @@
 /**
  * "LUNA BALA (Slowed)" — first 44s, hand-authored from analyze_audio.py.
  *
- * Source slice: beats/luna_bala_44s.mp3 → beats/luna_bala_44s.audio.json.
+ * Co-located inputs: productions/luna_bala_44s/{audio.mp3, audio.json} (the
+ * analyze_audio.py output). Read relative to this file (import.meta.dirname).
  *
  * Authoring stance (manual-first): the analyzer only DESCRIBES the audio. Every
  * musical choice is made here, by reading those measured layers. The split is:
@@ -27,9 +28,9 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { Contact, Curve, Spec } from "../types.ts";
-import { keyframes } from "../core/curves.ts";
-import { beats } from "../core/beats.ts";
+import type { Contact, Curve, Spec } from "../../scripts/v0/types.ts";
+import { keyframes } from "../../scripts/v0/core/curves.ts";
+import { beats } from "../../scripts/v0/core/beats.ts";
 
 type Frames = { times: number[]; onset_strength: number[]; percussive_rms: number[] };
 type BeatRow = { t: number; meter_pos: number | null; band_sub: number; onset_strength: number };
@@ -41,7 +42,7 @@ type AudioAnalysis = {
 };
 
 const audio = JSON.parse(
-  readFileSync(resolve("beats/luna_bala_44s.audio.json"), "utf8"),
+  readFileSync(resolve(import.meta.dirname, "audio.json"), "utf8"),
 ) as AudioAnalysis;
 
 const DURATION = 44;
@@ -172,14 +173,14 @@ export const overlayMeta = {
 const spec: Spec = {
   duration: DURATION,
   music: {
-    audio: "beats/luna_bala_44s.mp3",
+    audio: "productions/luna_bala_44s/audio.mp3",
     title: "LUNA BALA (Slowed)",
     artist: "Unknown",
     tempo: overlayMeta.tempo,
-    beats: "beats/luna_bala_44s.audio.json",
+    beats: "productions/luna_bala_44s/audio.json",
     spectrogram: {
-      image: "beats/luna_bala_44s.spectrogram.png",
-      metadata: "beats/luna_bala_44s.spectrogram.json",
+      image: "productions/luna_bala_44s/spectrogram.png",
+      metadata: "productions/luna_bala_44s/spectrogram.json",
     },
   },
   camera: {

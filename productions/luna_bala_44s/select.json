@@ -1,0 +1,15 @@
+{
+  "budget": 1000000,
+  "floors": {
+    "reachedEnd": true,
+    "maxOffBeat": 0,
+    "score": 686,
+    "standTimePctMin": 4,
+    "rotationsMin": 0
+  },
+  "render": {
+    "res": "1080x1920",
+    "zoomMult": 1.8,
+    "beatPunchPct": 70
+  }
+}

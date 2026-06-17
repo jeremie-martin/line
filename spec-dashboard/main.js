@@ -32,6 +32,7 @@ const refs = {
   zoomIn: document.getElementById("zoom-in"),
   zoomSelection: document.getElementById("zoom-selection"),
   zoomReset: document.getElementById("zoom-reset"),
+  followPlayhead: document.getElementById("follow-playhead"),
   viewWindow: document.getElementById("view-window"),
   snapMode: document.getElementById("snap-mode"),
   snapSelection: document.getElementById("snap-selection"),
@@ -50,13 +51,17 @@ const refs = {
   editImpact: document.getElementById("edit-impact"),
   stageEdit: document.getElementById("stage-edit"),
   clearEdits: document.getElementById("clear-edits"),
+  undoEdit: document.getElementById("undo-edit"),
+  redoEdit: document.getElementById("redo-edit"),
   editList: document.getElementById("edit-list"),
   scopeTabs: document.getElementById("scope-tabs"),
   noteAnchor: document.getElementById("note-anchor"),
+  notePath: document.getElementById("note-path"),
   noteText: document.getElementById("note-text"),
   tagRow: document.getElementById("tag-row"),
   saveState: document.getElementById("save-state"),
   deleteNote: document.getElementById("delete-note"),
+  clearNotes: document.getElementById("clear-notes"),
   notesList: document.getElementById("notes-list"),
   agentJson: document.getElementById("agent-json"),
   copyContext: document.getElementById("copy-context"),
@@ -67,7 +72,9 @@ const state = {
   specs: [],
   data: null,
   notes: [],
+  notesPath: null,
   edits: [],
+  history: null,
   analysis: null,
   timeline: null,
   cursorT: 0,
@@ -82,8 +89,11 @@ const state = {
   activeNoteId: null,
   activeTags: [],
   saveTimer: null,
+  pendingNoteSave: null,
   simulatedPlaying: false,
   lastTickMs: performance.now(),
+  followPlayhead: true,
+  followSuspended: false,
 };
 
 init().catch((error) => showFatal(error));
@@ -96,7 +106,12 @@ async function init() {
 
 function wireEvents() {
   refs.specSelect.addEventListener("change", () => loadSpec(refs.specSelect.value, true));
-  refs.reload.addEventListener("click", () => loadSpec(refs.specSelect.value, false));
+  refs.reload.addEventListener("click", () => loadSpec(refs.specSelect.value, false, {
+    cursorT: specTime(),
+    viewStart: state.viewStart,
+    viewEnd: state.viewEnd,
+    selectedScope: state.selectedScope,
+  }));
   refs.play.addEventListener("click", togglePlayback);
   refs.back.addEventListener("click", () => seekTo(specTime() - 5));
   refs.forward.addEventListener("click", () => seekTo(specTime() + 5));
@@ -116,10 +131,16 @@ function wireEvents() {
     refs.musicMeta.textContent = "Audio failed to load";
     updatePlaybackUi();
   });
-  refs.zoomOut.addEventListener("click", () => zoomAround(specTime(), 2));
-  refs.zoomIn.addEventListener("click", () => zoomAround(specTime(), 0.5));
+  refs.zoomOut.addEventListener("click", () => zoomAround(specTime(), 2, { manual: true }));
+  refs.zoomIn.addEventListener("click", () => zoomAround(specTime(), 0.5, { manual: true }));
   refs.zoomSelection.addEventListener("click", () => zoomToSelection());
   refs.zoomReset.addEventListener("click", () => resetZoom());
+  refs.followPlayhead.addEventListener("click", () => {
+    state.followPlayhead = !state.followPlayhead || state.followSuspended;
+    state.followSuspended = false;
+    updateViewUi();
+    if (state.followPlayhead) revealTime(specTime(), { manual: false });
+  });
   refs.snapMode.addEventListener("change", () => {
     state.snapMode = refs.snapMode.value;
   });
@@ -128,6 +149,7 @@ function wireEvents() {
   refs.timeline.addEventListener("pointermove", onTimelinePointerMove);
   refs.timeline.addEventListener("pointerup", onTimelinePointerUp);
   refs.timeline.addEventListener("pointercancel", cancelTimelineDrag);
+  refs.timeline.addEventListener("wheel", onTimelineWheel, { passive: false });
   refs.timeline.addEventListener("selectstart", (event) => event.preventDefault());
   refs.timeline.addEventListener("dragstart", (event) => event.preventDefault());
   refs.timeline.addEventListener("click", (event) => {
@@ -165,8 +187,21 @@ function wireEvents() {
     saveActiveNoteDebounced();
   });
   refs.deleteNote.addEventListener("click", () => deleteActiveNote());
-  refs.stageEdit.addEventListener("click", () => stageActiveEdit());
-  refs.clearEdits.addEventListener("click", () => clearStagedEdits());
+  refs.clearNotes.addEventListener("click", () => clearAllNotes());
+  refs.stageEdit.addEventListener("click", () => applyActiveEdit());
+  refs.clearEdits.addEventListener("click", () => loadSpec(refs.specSelect.value, false, {
+    cursorT: specTime(),
+    viewStart: state.viewStart,
+    viewEnd: state.viewEnd,
+    selectedScope: state.selectedScope,
+  }));
+  refs.undoEdit.addEventListener("click", () => applyHistoryAction("undo"));
+  refs.redoEdit.addEventListener("click", () => applyHistoryAction("redo"));
+  document.querySelector(".editor-grid")?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    applyActiveEdit();
+  });
   refs.editTime.addEventListener("change", () => {
     const snapped = snapTime(Number(refs.editTime.value));
     if (Number.isFinite(snapped)) refs.editTime.value = String(round(snapped, 3));
@@ -202,6 +237,15 @@ function wireEvents() {
     }
   });
   window.addEventListener("keydown", (event) => {
+    const key = event.key.toLowerCase();
+    if ((event.ctrlKey || event.metaKey) && (key === "z" || key === "y")) {
+      if (isEditableElement(document.activeElement)) return;
+      event.preventDefault();
+      if (key === "z" && event.shiftKey) applyHistoryAction("redo");
+      else if (key === "z") applyHistoryAction("undo");
+      else applyHistoryAction("redo");
+      return;
+    }
     const tag = document.activeElement?.tagName;
     if (tag === "TEXTAREA" || tag === "INPUT" || tag === "SELECT") return;
     if (event.key === " ") {
@@ -236,7 +280,7 @@ async function loadSpecList() {
   await loadSpec(first.path, !requested);
 }
 
-async function loadSpec(specPath, pushUrl) {
+async function loadSpec(specPath, pushUrl, restore = null) {
   await flushPendingNoteSave();
   pausePlayback();
   refs.subtitle.textContent = "Loading " + specPath;
@@ -244,7 +288,9 @@ async function loadSpec(specPath, pushUrl) {
   refs.timeline.innerHTML = "";
   state.data = null;
   state.notes = [];
+  state.notesPath = null;
   state.edits = [];
+  state.history = null;
   state.analysis = null;
   state.activeAnchor = null;
   state.activeNoteId = null;
@@ -254,18 +300,22 @@ async function loadSpec(specPath, pushUrl) {
   state.selection = null;
   state.pointerDrag = null;
   state.suppressNextClick = false;
+  if (restore?.selectedScope) state.selectedScope = restore.selectedScope;
 
-  const [view, notes, edits] = await Promise.all([
+  const [view, notes, edits, historyStatus] = await Promise.all([
     fetch(`/api/spec-view?spec=${encodeURIComponent(specPath)}&samples=1400`, { cache: "no-cache" }).then(readJsonOk),
     fetch(`/api/spec-notes?spec=${encodeURIComponent(specPath)}`, { cache: "no-cache" }).then(readJsonOk),
     fetch(`/api/spec-edits?spec=${encodeURIComponent(specPath)}`, { cache: "no-cache" }).then(readJsonOk),
+    fetch(`/api/spec-history?spec=${encodeURIComponent(specPath)}`, { cache: "no-cache" }).then(readJsonOk),
   ]);
   state.data = view;
   state.notes = notes.notes || [];
+  state.notesPath = notes.notesPath || null;
   state.edits = edits.edits || [];
-  state.cursorT = 0;
-  state.viewStart = 0;
-  state.viewEnd = view.spec.duration;
+  state.history = historyStatus.history || null;
+  state.cursorT = clamp(Number(restore?.cursorT ?? 0), 0, view.spec.duration);
+  state.viewStart = clamp(Number(restore?.viewStart ?? 0), 0, view.spec.duration);
+  state.viewEnd = clamp(Number(restore?.viewEnd ?? view.spec.duration), state.viewStart + 1e-6, view.spec.duration);
   state.analysis = await loadAnalysis(view.music);
 
   if (view.music?.audioUrl) {
@@ -279,11 +329,11 @@ async function loadSpec(specPath, pushUrl) {
   if (pushUrl) {
     const params = new URLSearchParams(location.search);
     params.set("spec", specPath);
-    history.replaceState(null, "", `${location.pathname}?${params.toString()}`);
+    window.history.replaceState(null, "", `${location.pathname}?${params.toString()}`);
   }
 
   renderAll();
-  seekTo(0);
+  seekTo(state.cursorT, { select: true, reveal: false, resumeFollow: false });
 }
 
 async function readJsonOk(res) {
@@ -335,6 +385,13 @@ function numericEvents(value) {
 
 function clearNativeSelection() {
   window.getSelection?.()?.removeAllRanges();
+}
+
+function isEditableElement(element) {
+  if (!element) return false;
+  if (element.isContentEditable) return true;
+  const tag = element.tagName;
+  return tag === "TEXTAREA" || tag === "INPUT" || tag === "SELECT";
 }
 
 function snapCandidates(mode = state.snapMode) {
@@ -400,11 +457,39 @@ function clearTransientSelection() {
 
 function onTimelinePointerDown(event) {
   if (!state.timeline || event.button !== 0) return;
+  refs.timeline.focus?.({ preventScroll: true });
+  const mark = event.target.closest?.("[data-mark-kind]");
+  if (mark) {
+    event.preventDefault();
+    clearNativeSelection();
+    const anchor = anchorForMarkElement(mark);
+    if (!anchor) return;
+    state.selectedScope = anchor.scope;
+    renderScopeTabs();
+    seekTo(anchor.t, { select: false, reveal: true });
+    setActiveAnchor(anchor);
+    const editable = Boolean(anchorEdit(anchor)?.editable);
+    state.pointerDrag = {
+      mode: "mark",
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      anchor,
+      editable,
+      laneY: Number(mark.dataset.laneY),
+      laneH: Number(mark.dataset.laneH),
+      moved: false,
+    };
+    refs.timeline.setPointerCapture?.(event.pointerId);
+    state.suppressNextClick = true;
+    return;
+  }
   event.preventDefault();
   clearNativeSelection();
   const rawT = state.timeline.tAtClient(event.clientX);
   const t = event.shiftKey ? rawT : snapTime(rawT);
   state.pointerDrag = {
+    mode: "range",
     pointerId: event.pointerId,
     clientX: event.clientX,
     startT: t,
@@ -420,6 +505,13 @@ function onTimelinePointerMove(event) {
   if (!drag || drag.pointerId !== event.pointerId) return;
   event.preventDefault();
   clearNativeSelection();
+  if (drag.mode === "mark") {
+    const distance = Math.hypot(event.clientX - drag.clientX, event.clientY - drag.clientY);
+    if (distance < 3 && !drag.moved) return;
+    drag.moved = true;
+    if (drag.editable) updateEditorFieldsFromMarkDrag(drag, event);
+    return;
+  }
   const distance = Math.abs(event.clientX - drag.clientX);
   if (distance < 4 && !drag.moved) return;
   drag.moved = true;
@@ -436,6 +528,19 @@ function onTimelinePointerUp(event) {
   state.pointerDrag = null;
   event.preventDefault();
   clearNativeSelection();
+  if (drag.mode === "mark") {
+    state.suppressNextClick = true;
+    setTimeout(() => {
+      state.suppressNextClick = false;
+    }, 0);
+    const edit = anchorEdit(drag.anchor);
+    if (!drag.editable) {
+      toast(edit?.readOnlyReason || "Selection is read-only");
+    } else if (drag.moved) {
+      applyActiveEdit();
+    }
+    return;
+  }
   if (!drag.moved) return;
 
   const rawT = state.timeline.tAtClient(event.clientX);
@@ -464,29 +569,112 @@ function cancelTimelineDrag(event) {
   }
 }
 
+function anchorForMarkElement(mark) {
+  const index = Number(mark.dataset.index);
+  if (!Number.isInteger(index)) return null;
+  if (mark.dataset.markKind === "axisKeyframe") {
+    const axis = mark.dataset.axis;
+    const point = (state.data?.keyframes || []).find((item) => item.axis === axis && item.index === index);
+    if (!point) return null;
+    return {
+      id: `keyframe:${point.axis}:${point.index}`,
+      t: point.t,
+      scope: "keyframe",
+      index: point.index,
+      axis: point.axis,
+      title: `keyframe ${point.axis} #${point.index} at ${formatTime(point.t)} - ${fmt(point.v)}${point.ease ? ` ${point.ease}` : ""}`,
+    };
+  }
+  if (mark.dataset.markKind === "zoomKeyframe") {
+    const point = cameraZoomKeyframes().find((item) => item.index === index);
+    if (!point) return null;
+    return {
+      id: `keyframe:zoom:${point.index}`,
+      t: point.t,
+      scope: "keyframe",
+      index: point.index,
+      axis: "zoom",
+      title: `keyframe zoom #${point.index} at ${formatTime(point.t)} - ${fmt(point.zoom)}`,
+    };
+  }
+  if (mark.dataset.markKind === "contactImpact") {
+    const contact = state.data?.contacts[index];
+    if (!contact) return null;
+    return {
+      id: `contact:${index}`,
+      t: contact.t,
+      scope: "contact",
+      index,
+      title: `contact #${index} at ${formatTime(contact.t)} - impact ${contact.impact === null ? "untargeted" : fmt(contact.impact)}`,
+    };
+  }
+  return null;
+}
+
+function anchorEdit(anchor) {
+  if (!anchor) return null;
+  if (anchor.scope === "keyframe") return keyframeByAnchor(anchor)?.edit || null;
+  if (anchor.scope === "contact" && typeof anchor.index === "number") return state.data?.contacts?.[anchor.index]?.edit || null;
+  return null;
+}
+
+function updateEditorFieldsFromMarkDrag(drag, event) {
+  const t = event.shiftKey ? state.timeline.tAtClient(event.clientX) : snapTime(state.timeline.tAtClient(event.clientX));
+  if (drag.anchor.scope === "keyframe") {
+    refs.editTime.value = String(round(t, 3));
+    const y = svgYAtClient(refs.timeline, event.clientY, state.timeline.height);
+    const u = clamp((drag.laneY + drag.laneH - 5 - y) / Math.max(1e-9, drag.laneH - 10), 0, 1);
+    if (drag.anchor.axis === "zoom") {
+      const range = cameraZoomRange();
+      refs.editValue.value = String(round(range.min + u * (range.max - range.min), 3));
+    } else {
+      refs.editValue.value = String(round(u, 3));
+    }
+  } else if (drag.anchor.scope === "contact") {
+    const y = svgYAtClient(refs.timeline, event.clientY, state.timeline.height);
+    const base = drag.laneY + drag.laneH - 8;
+    const value = clamp((base - y) / Math.max(1e-9, drag.laneH - 14), 0, 1);
+    refs.editImpact.value = String(round(value, 3));
+  }
+}
+
+function onTimelineWheel(event) {
+  if (!state.timeline || !state.data) return;
+  event.preventDefault();
+  const span = state.viewEnd - state.viewStart;
+  if (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+    const delta = ((event.deltaX || event.deltaY) / Math.max(1, refs.timeline.getBoundingClientRect().width)) * span;
+    setView(state.viewStart + delta, state.viewEnd + delta, { manual: true });
+    return;
+  }
+  const center = state.timeline.tAtClient(event.clientX);
+  const factor = Math.exp(event.deltaY * 0.002);
+  zoomAround(center, factor, { manual: true });
+}
+
 function resetZoom() {
   if (!state.data) return;
-  setView(0, state.data.spec.duration);
+  setView(0, state.data.spec.duration, { manual: true });
 }
 
 function zoomToSelection() {
   const range = normalizedRange(state.selection);
   if (!range) return;
   const pad = Math.max(0.25, (range.t1 - range.t0) * 0.08);
-  setView(range.t0 - pad, range.t1 + pad);
+  setView(range.t0 - pad, range.t1 + pad, { manual: true });
 }
 
-function zoomAround(center, factor) {
+function zoomAround(center, factor, opts = { manual: false }) {
   if (!state.data) return;
   const duration = state.data.spec.duration;
   const currentSpan = Math.max(0.001, state.viewEnd - state.viewStart || duration);
   const nextSpan = clamp(currentSpan * factor, Math.min(0.5, duration), duration);
   const anchor = clamp(center, 0, duration);
   const u = currentSpan > 0 ? clamp((anchor - state.viewStart) / currentSpan, 0.05, 0.95) : 0.5;
-  setView(anchor - nextSpan * u, anchor + nextSpan * (1 - u));
+  setView(anchor - nextSpan * u, anchor + nextSpan * (1 - u), opts);
 }
 
-function setView(t0, t1) {
+function setView(t0, t1, opts = { manual: false }) {
   if (!state.data) return;
   const duration = state.data.spec.duration;
   const minSpan = Math.min(0.5, duration);
@@ -507,15 +695,36 @@ function setView(t0, t1) {
   }
   state.viewStart = round(start, 4);
   state.viewEnd = round(end, 4);
+  if (opts.manual) suspendFollow();
   renderTimeline();
   updatePlaybackUi();
 }
 
-function revealTime(t) {
+function revealTime(t, opts = { manual: false }) {
   if (!state.data || (t >= state.viewStart && t <= state.viewEnd)) return;
   const duration = state.data.spec.duration;
   const span = Math.max(0.5, state.viewEnd - state.viewStart || duration);
-  setView(t - span * 0.35, t + span * 0.65);
+  setView(t - span * 0.35, t + span * 0.65, opts);
+}
+
+function followTime(t) {
+  if (!state.data || !state.followPlayhead || state.followSuspended) return;
+  const span = Math.max(0.5, state.viewEnd - state.viewStart || state.data.spec.duration);
+  if (span >= state.data.spec.duration - 1e-6) return;
+  const margin = span * 0.18;
+  if (t < state.viewStart + margin || t > state.viewEnd - margin) {
+    setView(t - span * 0.35, t + span * 0.65, { manual: false });
+  }
+}
+
+function suspendFollow() {
+  if (isPlaying()) state.followSuspended = true;
+  updateViewUi();
+}
+
+function resumeFollow() {
+  state.followSuspended = false;
+  updateViewUi();
 }
 
 function updateViewUi() {
@@ -524,6 +733,7 @@ function updateViewUi() {
   const hasRange = Boolean(normalizedRange(state.selection));
   refs.zoomSelection.disabled = !hasRange;
   refs.snapSelection.disabled = !hasRange;
+  refs.followPlayhead.classList.toggle("on", state.followPlayhead && !state.followSuspended);
 }
 
 function renderAll() {
@@ -534,6 +744,7 @@ function renderAll() {
   renderNotesList();
   renderEditAxisOptions();
   renderEditsList();
+  renderHistoryControls();
   renderInspector();
   renderEditor();
   selectAnchorAtCursor();
@@ -756,11 +967,13 @@ function drawContacts(svg, L, plotW, y, H) {
 function drawImpactLane(svg, L, plotW, y, h) {
   add(svg, "text", { x: 12, y: y + 18, class: "svg-label" }, "impact");
   add(svg, "line", { x1: L, y1: y + h - 8, x2: L + plotW, y2: y + h - 8, class: "svg-rule" });
-  for (const contact of state.data.contacts) {
+  for (const [index, contact] of state.data.contacts.entries()) {
     if (!timeVisible(contact.t)) continue;
     const x = state.timeline.xFor(contact.t);
     const v = contact.impact ?? 0;
     const barH = Math.max(contact.impact === null ? 4 : 6, v * (h - 14));
+    const active = state.activeNoteId === `contact:${index}`;
+    const editable = Boolean(contact.edit?.editable);
     add(svg, "line", {
       x1: x,
       y1: y + h - 8,
@@ -773,9 +986,14 @@ function drawImpactLane(svg, L, plotW, y, h) {
     add(svg, "circle", {
       cx: x,
       cy: y + h - 8 - barH,
-      r: contact.impact === null ? 2.2 : 2.8 + v * 2.8,
-      fill: contact.impact === null ? "#b8ab95" : impactColor(v),
+      r: active ? 6.2 : contact.impact === null ? 2.2 : 2.8 + v * 2.8,
+      fill: active ? "#a8442f" : contact.impact === null ? "#b8ab95" : impactColor(v),
+      class: `svg-editable-impact${editable ? "" : " svg-readonly"}`,
       opacity: 0.95,
+      "data-mark-kind": "contactImpact",
+      "data-index": index,
+      "data-lane-y": y,
+      "data-lane-h": h,
     });
   }
 }
@@ -885,8 +1103,13 @@ function drawAxisKeyframes(svg, axis, y, h, color) {
       cy,
       r: active ? 5.2 : 3.6,
       fill: active ? "#a8442f" : color,
-      class: "svg-keyframe",
+      class: `svg-keyframe${point.edit?.editable ? "" : " svg-readonly"}`,
       opacity: active ? 1 : 0.92,
+      "data-mark-kind": "axisKeyframe",
+      "data-axis": point.axis,
+      "data-index": point.index,
+      "data-lane-y": y,
+      "data-lane-h": h,
     });
   }
 }
@@ -902,8 +1125,13 @@ function drawZoomKeyframes(svg, y, h, color, range) {
       cy,
       r: active ? 5.2 : 3.8,
       fill: active ? "#a8442f" : color,
-      class: "svg-keyframe svg-camera-keyframe",
+      class: `svg-keyframe svg-camera-keyframe${point.edit?.editable ? "" : " svg-readonly"}`,
       opacity: active ? 1 : 0.92,
+      "data-mark-kind": "zoomKeyframe",
+      "data-axis": "zoom",
+      "data-index": point.index,
+      "data-lane-y": y,
+      "data-lane-h": h,
     });
   }
 }
@@ -1040,35 +1268,43 @@ function renderEditor() {
   const contact = anchor.scope === "contact" && typeof anchor.index === "number"
     ? state.data.contacts[anchor.index]
     : null;
+  const edit = keyframe?.edit || contact?.edit || null;
+  const editable = Boolean(edit?.editable);
+  const isKeyframe = Boolean(keyframe);
+  const isContact = Boolean(contact);
+  const isZoom = keyframe?.axis === "zoom";
+
   refs.editorAnchor.textContent = anchor.title;
   refs.editTime.value = String(round(anchor.t ?? specTime(), 3));
   refs.editAxis.value = anchor.axis || keyframe?.axis || refs.editAxis.value || state.data.summary.activeAxes[0] || "";
   refs.editValue.value = keyframe ? String(round(keyframe.v, 3)) : "";
-  refs.editEase.value = keyframe?.ease || "";
+  refs.editEase.value = keyframe?.sourceEase || "";
   refs.editImpact.value = contact?.impact === null || contact?.impact === undefined ? "" : String(round(contact.impact, 3));
+  if (isZoom) refs.editValue.removeAttribute("max");
+  else refs.editValue.setAttribute("max", "1");
 
-  const isKeyframe = anchor.scope === "keyframe";
-  const isContact = anchor.scope === "contact";
-  refs.editAxis.disabled = !isKeyframe;
-  refs.editValue.disabled = !isKeyframe;
-  refs.editEase.disabled = !isKeyframe;
-  refs.editImpact.disabled = !isContact;
-  refs.editTime.disabled = anchor.scope === "range" || anchor.scope === "gap";
-  refs.stageEdit.disabled = !(isKeyframe || isContact || anchor.scope === "range" || anchor.scope === "moment");
-  refs.editState.textContent = state.edits.length ? `${state.edits.length} staged` : "no draft";
+  refs.editAxis.disabled = true;
+  refs.editValue.disabled = !(isKeyframe && editable);
+  refs.editEase.disabled = !(isKeyframe && editable && !isZoom);
+  refs.editImpact.disabled = !(isContact && editable);
+  refs.editTime.disabled = !(isKeyframe && editable);
+  refs.stageEdit.disabled = !editable;
+  refs.editState.textContent = editable ? "editable" : (edit?.readOnlyReason || "select an editable keyframe or impact");
 }
 
 function renderEditsList() {
   refs.editList.innerHTML = "";
-  for (const edit of state.edits) {
-    const li = document.createElement("li");
-    const detailText = editDetail(edit);
-    li.innerHTML = `
-      <div class="edit-line"><span>${escapeHtml(formatTime(edit.t))}</span><span>${escapeHtml(edit.target)}</span></div>
-      <div class="note-text">${escapeHtml(detailText)}</div>`;
-    refs.editList.appendChild(li);
-  }
-  if (refs.editState) refs.editState.textContent = state.edits.length ? `${state.edits.length} staged` : "no draft";
+  refs.editList.hidden = true;
+}
+
+function renderHistoryControls() {
+  const history = state.history;
+  const undoLabel = history?.nextUndo?.label;
+  const redoLabel = history?.nextRedo?.label;
+  refs.undoEdit.disabled = !history?.canUndo;
+  refs.redoEdit.disabled = !history?.canRedo;
+  refs.undoEdit.title = undoLabel ? `Ctrl+Z - ${undoLabel}` : "Ctrl+Z";
+  refs.redoEdit.title = redoLabel ? `Ctrl+Shift+Z / Ctrl+Y - ${redoLabel}` : "Ctrl+Shift+Z / Ctrl+Y";
 }
 
 function editDetail(edit) {
@@ -1084,61 +1320,108 @@ function editDetail(edit) {
   return edit.title || edit.target;
 }
 
-async function stageActiveEdit() {
+async function applyActiveEdit() {
   if (!state.data || !state.activeAnchor) return;
-  const edit = buildActiveEdit();
+  const edit = buildApplyEdit();
   if (!edit) return;
-  upsertLocalEdit(edit);
-  renderEditsList();
-  renderAgentContext();
+  refs.editState.textContent = "applying";
+  refs.stageEdit.disabled = true;
+  const restore = {
+    cursorT: typeof edit.t === "number" ? edit.t : specTime(),
+    viewStart: state.viewStart,
+    viewEnd: state.viewEnd,
+    selectedScope: state.selectedScope,
+  };
   try {
-    const res = await fetch("/api/spec-edits", {
+    const res = await fetch("/api/spec-apply-edit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spec: state.data.spec.path, edit }),
+      body: JSON.stringify({ spec: state.data.spec.path, ...edit }),
     }).then(readJsonOk);
-    state.edits = res.edits || state.edits;
-    renderEditsList();
-    renderAgentContext();
-    toast("Staged edit");
+    state.history = res.history || state.history;
+    renderHistoryControls();
+    await loadSpec(state.data.spec.path, false, restore);
+    toast("Applied edit");
   } catch (error) {
+    renderEditor();
     toast(String(error));
   }
 }
 
-function buildActiveEdit() {
+async function applyHistoryAction(action) {
+  if (!state.data) return;
+  const specPath = state.data.spec.path;
+  const restore = {
+    cursorT: specTime(),
+    viewStart: state.viewStart,
+    viewEnd: state.viewEnd,
+    selectedScope: state.selectedScope,
+  };
+  refs.undoEdit.disabled = true;
+  refs.redoEdit.disabled = true;
+  try {
+    await flushPendingNoteSave();
+    const res = await fetch("/api/spec-history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ spec: specPath, action }),
+    }).then(readJsonOk);
+    state.history = res.history || state.history;
+    renderHistoryControls();
+    if (!res.entry) {
+      toast(action === "undo" ? "Nothing to undo" : "Nothing to redo");
+      return;
+    }
+    await loadSpec(specPath, false, restore);
+    toast(`${action === "undo" ? "Undid" : "Redid"} ${res.entry.label}`);
+  } catch (error) {
+    await refreshHistoryStatus();
+    toast(String(error));
+  }
+}
+
+async function refreshHistoryStatus() {
+  if (!state.data) return;
+  try {
+    const res = await fetch(`/api/spec-history?spec=${encodeURIComponent(state.data.spec.path)}`, { cache: "no-cache" }).then(readJsonOk);
+    state.history = res.history || null;
+  } catch {
+    state.history = null;
+  }
+  renderHistoryControls();
+}
+
+function buildApplyEdit() {
   const anchor = state.activeAnchor;
   if (!anchor) return null;
-  const target = anchor.scope;
-  const t = refs.editTime.disabled ? anchor.t : snapTime(Number(refs.editTime.value));
-  const edit = {
-    id: `edit:${anchor.id}`,
-    target,
-    t: round(t, 4),
-    index: anchor.index ?? null,
-    t0: anchor.t0 ?? null,
-    t1: anchor.t1 ?? null,
-    axis: anchor.axis ?? null,
-    title: anchor.title,
-  };
-  if (target === "keyframe") {
+  const keyframe = anchor.scope === "keyframe" ? keyframeByAnchor(anchor) : null;
+  const contact = anchor.scope === "contact" && typeof anchor.index === "number"
+    ? state.data.contacts[anchor.index]
+    : null;
+  const edit = keyframe?.edit || contact?.edit || null;
+  if (!edit?.editable) {
+    toast(edit?.readOnlyReason || "Selection is not editable");
+    return null;
+  }
+  if (edit.editKind === "axisKeyframe" || edit.editKind === "zoomKeyframe") {
     const value = Number(refs.editValue.value);
+    const t = snapTime(Number(refs.editTime.value));
     return {
-      ...edit,
-      axis: refs.editAxis.value || anchor.axis || null,
-      value: Number.isFinite(value) ? clamp(value, 0, 1) : null,
-      ease: refs.editEase.value || null,
+      id: edit.id,
+      editKind: edit.editKind,
+      t: Number.isFinite(t) ? round(t, 4) : anchor.t,
+      value: Number.isFinite(value) ? value : null,
+      ease: edit.editKind === "axisKeyframe" ? refs.editEase.value || null : null,
     };
   }
-  if (target === "contact") {
+  if (edit.editKind === "contactImpact") {
     const impact = Number(refs.editImpact.value);
     return {
-      ...edit,
+      id: edit.id,
+      editKind: edit.editKind,
       impact: Number.isFinite(impact) ? clamp(impact, 0, 1) : null,
     };
   }
-  if (target === "range") return edit;
-  if (target === "moment") return edit;
   return null;
 }
 
@@ -1269,28 +1552,48 @@ function renderTags() {
   }
 }
 
+function buildActiveNoteSnapshot() {
+  if (!state.data || !state.activeAnchor) return null;
+  return {
+    ...state.activeAnchor,
+    text: refs.noteText.value,
+    tags: [...state.activeTags],
+  };
+}
+
 function saveActiveNoteDebounced() {
+  const note = buildActiveNoteSnapshot();
+  if (!note) return;
   clearTimeout(state.saveTimer);
+  state.pendingNoteSave = note;
   refs.saveState.textContent = "saving";
-  state.saveTimer = setTimeout(() => saveActiveNote(), 450);
+  upsertLocalNote(note);
+  renderNotesList();
+  renderTimeline();
+  renderAgentContext();
+  state.saveTimer = setTimeout(() => saveNoteSnapshot(note), 450);
 }
 
 async function flushPendingNoteSave() {
-  if (!state.saveTimer) return;
+  if (!state.saveTimer && !state.pendingNoteSave) return;
+  const note = state.pendingNoteSave;
   clearTimeout(state.saveTimer);
   state.saveTimer = null;
-  await saveActiveNote();
+  state.pendingNoteSave = null;
+  if (note) await saveNoteSnapshot(note);
 }
 
 async function saveActiveNote() {
-  if (!state.data || !state.activeAnchor) return;
+  const note = buildActiveNoteSnapshot();
+  if (!note) return;
+  await saveNoteSnapshot(note);
+}
+
+async function saveNoteSnapshot(note) {
+  if (!state.data || !note) return;
   clearTimeout(state.saveTimer);
   state.saveTimer = null;
-  const note = {
-    ...state.activeAnchor,
-    text: refs.noteText.value,
-    tags: state.activeTags,
-  };
+  if (state.pendingNoteSave?.id === note.id) state.pendingNoteSave = null;
   upsertLocalNote(note);
   renderNotesList();
   renderTimeline();
@@ -1315,6 +1618,11 @@ async function saveActiveNote() {
 async function deleteActiveNote() {
   if (!state.data || !state.activeNoteId) return;
   const id = state.activeNoteId;
+  if (state.pendingNoteSave?.id === id) {
+    clearTimeout(state.saveTimer);
+    state.saveTimer = null;
+    state.pendingNoteSave = null;
+  }
   state.notes = state.notes.filter((note) => note.id !== id);
   refs.noteText.value = "";
   state.activeTags = [];
@@ -1323,14 +1631,45 @@ async function deleteActiveNote() {
   renderTimeline();
   renderAgentContext();
   try {
-    await fetch("/api/spec-notes", {
+    const res = await fetch("/api/spec-notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ spec: state.data.spec.path, id, note: null }),
     }).then(readJsonOk);
+    state.history = res.history || state.history;
+    renderHistoryControls();
     refs.saveState.textContent = "deleted";
   } catch (error) {
     refs.saveState.textContent = "delete failed";
+    toast(String(error));
+  }
+}
+
+async function clearAllNotes() {
+  if (!state.data) return;
+  if (!window.confirm(`Clear all notes for ${state.data.spec.label}?`)) return;
+  clearTimeout(state.saveTimer);
+  state.saveTimer = null;
+  state.pendingNoteSave = null;
+  state.notes = [];
+  refs.noteText.value = "";
+  state.activeTags = [];
+  renderTags();
+  renderNotesList();
+  renderTimeline();
+  renderAgentContext();
+  try {
+    const res = await fetch("/api/spec-notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ spec: state.data.spec.path, clear: true }),
+    }).then(readJsonOk);
+    state.notesPath = res.notesPath || state.notesPath;
+    state.history = res.history || state.history;
+    renderHistoryControls();
+    refs.saveState.textContent = "cleared";
+  } catch (error) {
+    refs.saveState.textContent = "clear failed";
     toast(String(error));
   }
 }
@@ -1359,6 +1698,7 @@ function upsertLocalNote(note) {
 }
 
 function renderNotesList() {
+  refs.notePath.textContent = state.notesPath || "";
   refs.notesList.innerHTML = "";
   for (const note of state.notes) {
     const li = document.createElement("li");
@@ -1536,7 +1876,8 @@ function seekTo(t, opts = { select: true }) {
       );
     }
   }
-  if (opts.reveal !== false) revealTime(next);
+  if (opts.resumeFollow !== false) resumeFollow();
+  if (opts.reveal !== false) revealTime(next, { manual: false });
   updatePlaybackUi();
   if (opts.select) selectAnchorAtCursor();
 }
@@ -1558,8 +1899,10 @@ function tick(now) {
         refs.audio.play().catch((error) => toast(String(error)));
       }
     }
+    followTime(state.cursorT);
     updatePlaybackUi();
   } else if (state.data && hasAudio() && !refs.audio.paused) {
+    followTime(specTime());
     updatePlaybackUi();
   }
   requestAnimationFrame(tick);
@@ -1625,6 +1968,16 @@ function nearestKeyframe(t) {
 }
 
 function keyframeByAnchor(anchor) {
+  if (anchor.axis === "zoom") {
+    const point = cameraZoomKeyframes().find((point) => point.index === anchor.index);
+    return point ? {
+      ...point,
+      axis: "zoom",
+      v: point.zoom,
+      ease: null,
+      sourceEase: null,
+    } : null;
+  }
   return (state.data?.keyframes || []).find((point) =>
     point.axis === anchor.axis && point.index === anchor.index
   ) || null;
@@ -1711,13 +2064,23 @@ function setHover(x) {
 }
 
 function svgXAtClient(svg, clientX, fallbackWidth) {
+  return svgPointAtClient(svg, clientX, svg.getBoundingClientRect().top, fallbackWidth, 1).x;
+}
+
+function svgYAtClient(svg, clientY, fallbackHeight) {
+  return svgPointAtClient(svg, svg.getBoundingClientRect().left, clientY, 1, fallbackHeight).y;
+}
+
+function svgPointAtClient(svg, clientX, clientY, fallbackWidth, fallbackHeight) {
   const ctm = svg.getScreenCTM?.();
   if (ctm) {
-    const rect = svg.getBoundingClientRect();
-    return new DOMPoint(clientX, rect.top).matrixTransform(ctm.inverse()).x;
+    return new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
   }
   const rect = svg.getBoundingClientRect();
-  return ((clientX - rect.left) / Math.max(1, rect.width)) * fallbackWidth;
+  return {
+    x: ((clientX - rect.left) / Math.max(1, rect.width)) * fallbackWidth,
+    y: ((clientY - rect.top) / Math.max(1, rect.height)) * fallbackHeight,
+  };
 }
 
 function add(parent, tag, attrs = {}, text = null) {

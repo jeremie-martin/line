@@ -69,6 +69,17 @@ button:hover {
   border-color: var(--teal);
 }
 
+button:disabled {
+  cursor: default;
+  color: #a99b84;
+  border-color: var(--line);
+  background: #f3ead8;
+}
+
+button:disabled:hover {
+  border-color: var(--line);
+}
+
 button.active,
 button.on {
   background: var(--ink);
@@ -309,6 +320,15 @@ h2 {
   cursor: crosshair;
 }
 
+#timeline:focus {
+  outline: none;
+}
+
+#timeline:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
 .inspector {
   display: grid;
   gap: 18px;
@@ -447,6 +467,13 @@ h2 {
   font-variant-numeric: tabular-nums;
 }
 
+.note-path {
+  margin-top: 4px;
+  color: var(--muted);
+  font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
 textarea {
   width: 100%;
   min-height: 118px;
@@ -463,6 +490,13 @@ textarea {
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 10px;
+}
+
+.button-row {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .tag-row button {
@@ -595,12 +629,14 @@ textarea {
 .svg-playhead {
   stroke: #1f1a14;
   stroke-width: 1.5;
+  pointer-events: none;
 }
 
 .svg-hover {
   stroke: var(--blue);
   stroke-width: 1;
   stroke-dasharray: 4 4;
+  pointer-events: none;
 }
 
 .svg-selection {
@@ -613,10 +649,20 @@ textarea {
 .svg-keyframe {
   stroke: #fffdfa;
   stroke-width: 1.4;
+  cursor: grab;
 }
 
 .svg-camera-keyframe {
   stroke-width: 1.6;
+}
+
+.svg-readonly {
+  stroke-dasharray: 3 2;
+  cursor: pointer;
+}
+
+.svg-editable-impact {
+  cursor: ns-resize;
 }
 
 .empty-state {

@@ -12,7 +12,7 @@
  *   HOST=0.0.0.0 npx tsx scripts/serve.ts         # bind to all interfaces (LAN access)
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { createReadStream, existsSync, readdirSync, statSync, openSync, readSync, closeSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { createReadStream, existsSync, readdirSync, statSync, openSync, readSync, closeSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { networkInterfaces } from "node:os";
@@ -20,6 +20,15 @@ import { basename, dirname, extname, normalize, relative, resolve, sep } from "n
 import { pathToFileURL } from "node:url";
 import { specZoomLaneToRenderPlan } from "./v0/core/camera.ts";
 import { AXES, FPS, type AxisName, type Spec, type SpecMusic } from "./v0/types.ts";
+import {
+  applySpecDashboardEdit,
+  editableMeta,
+  readSpecDashboardSourceIndex,
+  type ApplySpecDashboardEditInput,
+  type SpecDashboardEditMeta,
+  type SpecDashboardSourceEntry,
+  type SpecDashboardSourceIndex,
+} from "./spec_dashboard_source.ts";
 
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
 const HOST = process.env.HOST ?? "127.0.0.1";
@@ -29,6 +38,7 @@ const MIRROR_PORT = parseInt(process.env.MIRROR_PORT ?? "8765", 10);
 const MIRROR_HOST = process.env.MIRROR_HOST ?? "127.0.0.1";
 const MIRROR_ORIGIN = process.env.MIRROR_ORIGIN ?? `http://${MIRROR_HOST}:${MIRROR_PORT}`;
 const TSX_CLI = resolve(ROOT, "node_modules", "tsx", "dist", "cli.mjs");
+const SPEC_HISTORY_LIMIT = 80;
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -183,6 +193,26 @@ type SpecEdit = {
   updatedAt: string;
 };
 
+type FileSnapshot = {
+  path: string;
+  existed: boolean;
+  contents: string | null;
+};
+
+type SpecHistoryEntry = {
+  id: string;
+  specPath: string;
+  label: string;
+  createdAt: string;
+  before: FileSnapshot[];
+  after: FileSnapshot[];
+};
+
+type SpecHistoryState = {
+  undo: SpecHistoryEntry[];
+  redo: SpecHistoryEntry[];
+};
+
 type DashboardCameraZoom = {
   points: [number, number][];
   keyframes: {
@@ -190,6 +220,7 @@ type DashboardCameraZoom = {
     index: number;
     t: number;
     zoom: number;
+    edit: SpecDashboardEditMeta;
   }[];
   renderKeyframes: {
     i: number;
@@ -209,6 +240,7 @@ type DashboardCamera = {
 };
 
 const jobs = new Map<string, DashboardJob>();
+const specHistory = new Map<string, SpecHistoryState>();
 let mirrorServerReady: Promise<void> | null = null;
 
 function listV0Specs(): SpecEntry[] {
@@ -460,7 +492,28 @@ function sampleAxesAt(spec: Spec, t: number): Record<string, number> {
   return out;
 }
 
-function normalizeSpecCamera(spec: Spec, requestedSamples: number): DashboardCamera | null {
+function editMetaFor(entry: SpecDashboardSourceEntry | undefined, readOnlyReason: string): SpecDashboardEditMeta {
+  return editableMeta(entry, readOnlyReason);
+}
+
+function matchingEditMetaFor(
+  entry: SpecDashboardSourceEntry | undefined,
+  t: number,
+  value: number | null,
+  readOnlyReason: string,
+): SpecDashboardEditMeta {
+  if (
+    entry &&
+    typeof value === "number" &&
+    Math.abs(entry.t - t) < 0.0001 &&
+    Math.abs(entry.value - value) < 0.0001
+  ) {
+    return editMetaFor(entry, readOnlyReason);
+  }
+  return { editable: false, editKind: null, id: null, readOnlyReason };
+}
+
+function normalizeSpecCamera(spec: Spec, requestedSamples: number, sourceIndex: SpecDashboardSourceIndex): DashboardCamera | null {
   const lane = spec.camera?.zoom;
   if (!lane) return null;
 
@@ -473,6 +526,12 @@ function normalizeSpecCamera(spec: Spec, requestedSamples: number): DashboardCam
       index,
       t: round(point.t, 4),
       zoom: round(point.zoom, 4),
+      edit: matchingEditMetaFor(
+        sourceIndex.zoomKeyframes.get(index),
+        round(point.t, 4),
+        round(point.zoom, 4),
+        "Zoom keyframe is generated or not backed by a literal camera.zoom.keyframes entry",
+      ),
     }))
     .filter((point) =>
       Number.isFinite(point.t) &&
@@ -520,6 +579,7 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
   if (!resolvedSpec) throw new Error(`unsupported spec path: ${rawSpec}`);
 
   const stat = statSync(resolvedSpec.absPath);
+  const sourceIndex = readSpecDashboardSourceIndex(resolvedSpec.absPath);
   const moduleUrl = `${pathToFileURL(resolvedSpec.absPath).href}?mtime=${Math.trunc(stat.mtimeMs)}`;
   const mod = await import(moduleUrl) as Record<string, unknown>;
   const spec = mod.default as Spec | undefined;
@@ -537,6 +597,14 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
       impact: typeof contact.impact === "number" && Number.isFinite(contact.impact)
         ? round(contact.impact, 4)
         : null,
+      edit: matchingEditMetaFor(
+        sourceIndex.contactImpacts.get(originalIndex),
+        round(contact.t, 4),
+        typeof contact.impact === "number" && Number.isFinite(contact.impact) ? round(contact.impact, 4) : null,
+        typeof contact.impact === "number" && Number.isFinite(contact.impact)
+          ? "Impact is generated or computed in the spec source"
+          : "Contact has no literal impact target",
+      ),
     }))
     .filter((contact) => Number.isFinite(contact.t) && contact.t >= 0 && contact.t <= duration)
     .sort((a, b) => a.t - b.t);
@@ -557,7 +625,14 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
         t: p.t,
         v: p.v,
         ease: p.ease ?? (typeof meta?.defaultEase === "string" ? meta.defaultEase : null),
+        sourceEase: p.ease,
         kind: meta?.kind ?? "unknown",
+        edit: matchingEditMetaFor(
+          sourceIndex.axisKeyframes.get(`${axis}:${p.i}`),
+          p.t,
+          p.v,
+          "Axis keyframe is generated or not backed by a literal keyframes([...]) entry",
+        ),
       });
     }
     const points: [number, number | null][] = [];
@@ -591,7 +666,7 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
     String(a.axis).localeCompare(String(b.axis)) ||
     (Number(a.index) - Number(b.index))
   );
-  const camera = normalizeSpecCamera(spec, sampleCount);
+  const camera = normalizeSpecCamera(spec, sampleCount, sourceIndex);
   const zoom = camera?.zoom ?? null;
 
   const gaps = contacts.map((contact, i) => {
@@ -656,6 +731,10 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
 function specNotesPath(specPath: string): string {
   const name = cleanRunName(specPath.replace(/\.ts$/, "").replace(/[\\/]+/g, "__")) || "spec";
   return resolve(ROOT, "generated", "spec-dashboard", `${name}.notes.json`);
+}
+
+function specNotesRelPath(specPath: string): string {
+  return toPosixPath(relative(ROOT, specNotesPath(specPath)));
 }
 
 function specEditsPath(specPath: string): string {
@@ -723,6 +802,117 @@ function writeSpecEdits(specPath: string, edits: SpecEdit[]): void {
     edits: edits.slice().sort((a, b) => a.t - b.t || a.id.localeCompare(b.id)),
   };
   writeFileSync(file, JSON.stringify(body, null, 2) + "\n");
+}
+
+function historyForSpec(specPath: string): SpecHistoryState {
+  let history = specHistory.get(specPath);
+  if (!history) {
+    history = { undo: [], redo: [] };
+    specHistory.set(specPath, history);
+  }
+  return history;
+}
+
+function snapshotFile(file: string): FileSnapshot {
+  const path = normalize(resolve(file));
+  if (!existsSync(path)) return { path, existed: false, contents: null };
+  return { path, existed: true, contents: readFileSync(path, "utf8") };
+}
+
+function snapshotFiles(files: string[]): FileSnapshot[] {
+  return [...new Set(files.map((file) => normalize(resolve(file))))]
+    .sort((a, b) => a.localeCompare(b))
+    .map(snapshotFile);
+}
+
+function sameSnapshot(a: FileSnapshot, b: FileSnapshot): boolean {
+  return a.path === b.path && a.existed === b.existed && a.contents === b.contents;
+}
+
+function sameSnapshots(a: FileSnapshot[], b: FileSnapshot[]): boolean {
+  return a.length === b.length && a.every((snapshot, index) => sameSnapshot(snapshot, b[index]));
+}
+
+function pushSpecHistory(specPath: string, label: string, before: FileSnapshot[], after: FileSnapshot[]): void {
+  if (sameSnapshots(before, after)) return;
+  const history = historyForSpec(specPath);
+  history.undo.push({
+    id: randomUUID(),
+    specPath,
+    label,
+    createdAt: new Date().toISOString(),
+    before,
+    after,
+  });
+  if (history.undo.length > SPEC_HISTORY_LIMIT) history.undo.splice(0, history.undo.length - SPEC_HISTORY_LIMIT);
+  history.redo = [];
+}
+
+function specHistoryStatus(specPath: string) {
+  const history = historyForSpec(specPath);
+  const undo = history.undo.at(-1) ?? null;
+  const redo = history.redo.at(-1) ?? null;
+  return {
+    undoCount: history.undo.length,
+    redoCount: history.redo.length,
+    canUndo: Boolean(undo),
+    canRedo: Boolean(redo),
+    nextUndo: undo ? { id: undo.id, label: undo.label, createdAt: undo.createdAt } : null,
+    nextRedo: redo ? { id: redo.id, label: redo.label, createdAt: redo.createdAt } : null,
+  };
+}
+
+function restoreSnapshots(snapshots: FileSnapshot[]): void {
+  for (const snapshot of snapshots) {
+    if (!snapshot.existed) {
+      rmSync(snapshot.path, { force: true });
+      continue;
+    }
+    mkdirSync(dirname(snapshot.path), { recursive: true });
+    writeFileSync(snapshot.path, snapshot.contents ?? "");
+  }
+}
+
+function assertHistoryCurrent(entry: SpecHistoryEntry, expected: FileSnapshot[]): void {
+  const current = snapshotFiles(expected.map((snapshot) => snapshot.path));
+  if (!sameSnapshots(current, expected)) {
+    throw new Error("current file no longer matches dashboard history; reload before undo/redo");
+  }
+}
+
+function applySpecHistoryAction(specPath: string, action: "undo" | "redo") {
+  const history = historyForSpec(specPath);
+  if (action === "undo") {
+    const entry = history.undo.at(-1);
+    if (!entry) return { ok: true, action, entry: null, history: specHistoryStatus(specPath) };
+    assertHistoryCurrent(entry, entry.after);
+    restoreSnapshots(entry.before);
+    history.undo.pop();
+    history.redo.push(entry);
+    return { ok: true, action, entry: historyEntrySummary(entry), history: specHistoryStatus(specPath) };
+  }
+
+  const entry = history.redo.at(-1);
+  if (!entry) return { ok: true, action, entry: null, history: specHistoryStatus(specPath) };
+  assertHistoryCurrent(entry, entry.before);
+  restoreSnapshots(entry.after);
+  history.redo.pop();
+  history.undo.push(entry);
+  return { ok: true, action, entry: historyEntrySummary(entry), history: specHistoryStatus(specPath) };
+}
+
+function historyEntrySummary(entry: SpecHistoryEntry) {
+  return {
+    id: entry.id,
+    label: entry.label,
+    createdAt: entry.createdAt,
+  };
+}
+
+function editHistoryLabel(input: ApplySpecDashboardEditInput): string {
+  if (input.editKind === "contactImpact") return "Edit contact impact";
+  if (input.editKind === "zoomKeyframe") return "Edit zoom keyframe";
+  return "Edit axis keyframe";
 }
 
 function cleanTags(value: unknown, fallback: string[] = []): string[] {
@@ -1020,7 +1210,11 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     if (req.method === "GET") {
       const resolvedSpec = resolveListedSpec(url.searchParams.get("spec") ?? "");
       if (!resolvedSpec) return json(res, { error: "missing or unsupported spec" }, 400);
-      return json(res, { specPath: resolvedSpec.entry.path, notes: readSpecNotes(resolvedSpec.entry.path) });
+      return json(res, {
+        specPath: resolvedSpec.entry.path,
+        notesPath: specNotesRelPath(resolvedSpec.entry.path),
+        notes: readSpecNotes(resolvedSpec.entry.path),
+      });
     }
     if (req.method === "POST") {
       try {
@@ -1030,14 +1224,40 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
         const resolvedSpec = resolveListedSpec(valueAsString(b, "spec") ?? "");
         if (!resolvedSpec) return json(res, { error: "missing or unsupported spec" }, 400);
 
+        if (valueAsBool(b, "clear", false)) {
+          const notesFile = specNotesPath(resolvedSpec.entry.path);
+          const before = snapshotFiles([notesFile]);
+          writeSpecNotes(resolvedSpec.entry.path, []);
+          const after = snapshotFiles([notesFile]);
+          pushSpecHistory(resolvedSpec.entry.path, "Clear notes", before, after);
+          return json(res, {
+            ok: true,
+            specPath: resolvedSpec.entry.path,
+            notesPath: specNotesRelPath(resolvedSpec.entry.path),
+            count: 0,
+            notes: [],
+            history: specHistoryStatus(resolvedSpec.entry.path),
+          });
+        }
+
         const notes = readSpecNotes(resolvedSpec.entry.path);
         const noteInput = b.note;
         const deleteId = valueAsString(b, "id");
         if (noteInput == null) {
           if (!deleteId) return json(res, { error: "missing note or id" }, 400);
+          const notesFile = specNotesPath(resolvedSpec.entry.path);
+          const before = snapshotFiles([notesFile]);
           const next = notes.filter((note) => note.id !== deleteId);
           writeSpecNotes(resolvedSpec.entry.path, next);
-          return json(res, { ok: true, specPath: resolvedSpec.entry.path, count: next.length });
+          const after = snapshotFiles([notesFile]);
+          pushSpecHistory(resolvedSpec.entry.path, "Delete note", before, after);
+          return json(res, {
+            ok: true,
+            specPath: resolvedSpec.entry.path,
+            notesPath: specNotesRelPath(resolvedSpec.entry.path),
+            count: next.length,
+            history: specHistoryStatus(resolvedSpec.entry.path),
+          });
         }
         if (typeof noteInput !== "object" || Array.isArray(noteInput)) {
           return json(res, { error: "note must be an object" }, 400);
@@ -1051,9 +1271,77 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
         const isEmpty = !note.text.trim() && note.tags.length === 0;
         const next = isEmpty ? without : [...without, note];
         writeSpecNotes(resolvedSpec.entry.path, next);
-        return json(res, { ok: true, specPath: resolvedSpec.entry.path, count: next.length, note: isEmpty ? null : note });
+        return json(res, {
+          ok: true,
+          specPath: resolvedSpec.entry.path,
+          notesPath: specNotesRelPath(resolvedSpec.entry.path),
+          count: next.length,
+          note: isEmpty ? null : note,
+        });
       } catch (e) {
         return json(res, { error: String(e) }, 400);
+      }
+    }
+    return json(res, { error: "method not allowed" }, 405);
+  }
+  if (url.pathname === "/api/spec-apply-edit") {
+    if (req.method !== "POST") return json(res, { error: "method not allowed" }, 405);
+    try {
+      const body = await readJsonBody(req);
+      if (!body || typeof body !== "object" || Array.isArray(body)) return json(res, { error: "expected JSON object" }, 400);
+      const b = body as Record<string, unknown>;
+      const resolvedSpec = resolveListedSpec(valueAsString(b, "spec") ?? "");
+      if (!resolvedSpec) return json(res, { error: "missing or unsupported spec" }, 400);
+      const editKind = valueAsString(b, "editKind");
+      const id = valueAsString(b, "id");
+      if (editKind !== "axisKeyframe" && editKind !== "zoomKeyframe" && editKind !== "contactImpact") {
+        return json(res, { error: "unsupported edit kind" }, 400);
+      }
+      if (!id) return json(res, { error: "missing edit id" }, 400);
+
+      const input: ApplySpecDashboardEditInput = {
+        editKind,
+        id,
+        t: valueAsOptionalNumber(b, "t"),
+        value: valueAsOptionalNumber(b, "value"),
+        impact: valueAsOptionalNumber(b, "impact"),
+        ease: valueAsString(b, "ease"),
+      };
+      const before = snapshotFiles([resolvedSpec.absPath]);
+      const target = applySpecDashboardEdit(resolvedSpec.absPath, input);
+      const after = snapshotFiles([resolvedSpec.absPath]);
+      pushSpecHistory(resolvedSpec.entry.path, editHistoryLabel(input), before, after);
+      return json(res, {
+        ok: true,
+        specPath: resolvedSpec.entry.path,
+        target,
+        history: specHistoryStatus(resolvedSpec.entry.path),
+      });
+    } catch (e) {
+      return json(res, { error: String(e) }, 400);
+    }
+  }
+  if (url.pathname === "/api/spec-history") {
+    if (req.method === "GET") {
+      const resolvedSpec = resolveListedSpec(url.searchParams.get("spec") ?? "");
+      if (!resolvedSpec) return json(res, { error: "missing or unsupported spec" }, 400);
+      return json(res, {
+        specPath: resolvedSpec.entry.path,
+        history: specHistoryStatus(resolvedSpec.entry.path),
+      });
+    }
+    if (req.method === "POST") {
+      try {
+        const body = await readJsonBody(req);
+        if (!body || typeof body !== "object" || Array.isArray(body)) return json(res, { error: "expected JSON object" }, 400);
+        const b = body as Record<string, unknown>;
+        const resolvedSpec = resolveListedSpec(valueAsString(b, "spec") ?? "");
+        if (!resolvedSpec) return json(res, { error: "missing or unsupported spec" }, 400);
+        const action = valueAsString(b, "action");
+        if (action !== "undo" && action !== "redo") return json(res, { error: "unsupported history action" }, 400);
+        return json(res, applySpecHistoryAction(resolvedSpec.entry.path, action));
+      } catch (e) {
+        return json(res, { error: String(e) }, 409);
       }
     }
     return json(res, { error: "method not allowed" }, 405);

@@ -48,6 +48,7 @@
           <button id="zoom-in" type="button">Zoom in</button>
           <button id="zoom-selection" type="button">To range</button>
           <button id="zoom-reset" type="button">Reset</button>
+          <button id="follow-playhead" type="button" class="on">Follow</button>
           <span id="view-window">0:00.00-0:00.00</span>
         </div>
         <div class="snap-controls">
@@ -68,7 +69,7 @@
       </div>
     </div>
     <div class="timeline-wrap">
-      <svg id="timeline" role="img" aria-label="specification timeline"></svg>
+      <svg id="timeline" role="img" aria-label="specification timeline" tabindex="0"></svg>
     </div>
   </section>
 
@@ -78,33 +79,6 @@
       <div class="time-readout" id="cursor-time">0:00.00</div>
       <div class="detail-grid" id="cursor-grid"></div>
       <div class="axis-readouts" id="axis-readouts"></div>
-    </section>
-
-    <section class="editor">
-      <div class="section-title-row">
-        <h2>Editor</h2>
-        <span id="edit-state"></span>
-      </div>
-      <div class="note-anchor" id="editor-anchor">moment</div>
-      <div class="editor-grid">
-        <label>Time <input id="edit-time" type="number" min="0" step="0.01"></label>
-        <label>Axis <select id="edit-axis"></select></label>
-        <label>Value <input id="edit-value" type="number" min="0" max="1" step="0.01"></label>
-        <label>Ease <select id="edit-ease">
-          <option value="">-</option>
-          <option value="hold">hold</option>
-          <option value="linear">linear</option>
-          <option value="smooth">smooth</option>
-          <option value="easeIn">easeIn</option>
-          <option value="easeOut">easeOut</option>
-        </select></label>
-        <label>Impact <input id="edit-impact" type="number" min="0" max="1" step="0.01"></label>
-      </div>
-      <div class="save-row">
-        <button id="stage-edit" type="button">Stage</button>
-        <button id="clear-edits" type="button">Clear</button>
-      </div>
-      <ol id="edit-list" class="edit-list"></ol>
     </section>
 
     <section class="notes">
@@ -119,13 +93,50 @@
         </div>
       </div>
       <div class="note-anchor" id="note-anchor">moment</div>
+      <div class="note-path" id="note-path"></div>
       <textarea id="note-text" placeholder="Feedback for this point"></textarea>
       <div class="tag-row" id="tag-row"></div>
       <div class="save-row">
         <span id="save-state"></span>
-        <button id="delete-note" type="button">Delete</button>
+        <div class="button-row">
+          <button id="clear-notes" type="button">Clear notes</button>
+          <button id="delete-note" type="button">Delete</button>
+        </div>
       </div>
       <ol id="notes-list" class="notes-list"></ol>
+    </section>
+
+    <section class="editor">
+      <div class="section-title-row">
+        <h2>Editor</h2>
+        <span id="edit-state"></span>
+      </div>
+      <div class="note-anchor" id="editor-anchor">moment</div>
+      <div class="editor-grid">
+        <label>Time <input id="edit-time" type="number" min="0" step="0.01"></label>
+        <label>Axis <select id="edit-axis"></select></label>
+        <label>Value <input id="edit-value" type="number" min="0" step="0.01"></label>
+        <label>Ease <select id="edit-ease">
+          <option value="">-</option>
+          <option value="hold">hold</option>
+          <option value="linear">linear</option>
+          <option value="smooth">smooth</option>
+          <option value="easeIn">easeIn</option>
+          <option value="easeOut">easeOut</option>
+        </select></label>
+        <label>Impact <input id="edit-impact" type="number" min="0" max="1" step="0.01"></label>
+      </div>
+      <div class="save-row">
+        <div class="button-row">
+          <button id="stage-edit" type="button">Apply</button>
+          <button id="clear-edits" type="button">Reload</button>
+        </div>
+        <div class="button-row">
+          <button id="undo-edit" type="button" disabled title="Ctrl+Z">Undo</button>
+          <button id="redo-edit" type="button" disabled title="Ctrl+Shift+Z / Ctrl+Y">Redo</button>
+        </div>
+      </div>
+      <ol id="edit-list" class="edit-list"></ol>
     </section>
 
     <section class="agent-context">

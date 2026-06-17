@@ -105,6 +105,16 @@ describe("keyframes — mixed eases per segment, unsorted input", () => {
     expect(c(20)).toBe(0);
   });
 
+  test("preserves source indices in sorted metadata", () => {
+    const c = keyframes([
+      { t: 10, v: 1 },
+      { t: 0, v: 0 },
+      { t: 20, v: 0 },
+    ]);
+
+    expect(c.meta?.points.map((point) => point.sourceIndex)).toEqual([1, 0, 2]);
+  });
+
   test("throws on empty point list", () => {
     expect(() => keyframes([])).toThrow();
   });

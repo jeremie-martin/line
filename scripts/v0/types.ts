@@ -151,7 +151,7 @@ export type CurveKind = "constant" | "ramp" | "keyframes";
 export type CurveMeta = {
   kind: CurveKind;
   defaultEase?: string;
-  points: { t: number; v: number; ease?: string }[];
+  points: { t: number; v: number; ease?: string; sourceIndex?: number }[];
 };
 export type Curve = ((t: number) => number | undefined) & { meta?: CurveMeta };
 

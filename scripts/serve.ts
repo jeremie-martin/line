@@ -419,8 +419,9 @@ function normalizeCurveMeta(meta: unknown): Record<string, unknown> | null {
           const t = valueAsOptionalNumber(p, "t");
           const v = valueAsOptionalNumber(p, "v");
           if (t === null || v === null) return null;
+          const sourceIndex = valueAsOptionalNumber(p, "sourceIndex");
           return {
-            i: index,
+            i: Number.isSafeInteger(sourceIndex) ? sourceIndex : index,
             t: round(t, 4),
             v: round(v, 4),
             ease: typeof p.ease === "string" ? p.ease : null,

@@ -262,17 +262,21 @@ async function runWorker(): Promise<void> {
   }
 }
 
-async function runOne(input: WorkerInput): Promise<WorkerResult> {
+async function runOne(input: WorkerInput, options: { redirectStdoutToStderr?: boolean } = {}): Promise<WorkerResult> {
   const workerPath = fileURLToPath(import.meta.url);
   return await new Promise((resolveResult) => {
     const worker = new Worker(workerPath, {
       workerData: input,
       execArgv: process.execArgv,
+      stdout: options.redirectStdoutToStderr === true,
       resourceLimits: {
         maxOldGenerationSizeMb: 3072,
         maxYoungGenerationSizeMb: 128,
       },
     });
+    if (options.redirectStdoutToStderr === true) {
+      worker.stdout?.on("data", (chunk) => process.stderr.write(chunk));
+    }
     let settled = false;
     worker.on("message", (msg: WorkerResult) => {
       if (settled) return;
@@ -507,7 +511,7 @@ async function runMain(): Promise<void> {
 
   let done = 0;
   const results = await runPool(tasks, jobs, async (task) => {
-    const result = await runOne(task);
+    const result = await runOne(task, { redirectStdoutToStderr: jsonOnly });
     done++;
     if (!jsonOnly) process.stderr.write(`\r  compiled ${done}/${tasks.length}`);
     return result;

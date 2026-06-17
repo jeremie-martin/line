@@ -76,7 +76,9 @@ export function keyframes(points: Keyframe[], defaultEase: Ease = "linear"): Cur
   if (points.length === 0) {
     throw new Error("keyframes() requires at least one point");
   }
-  const pts = [...points].sort((a, b) => a.t - b.t);
+  const pts = points
+    .map((point, sourceIndex) => ({ ...point, sourceIndex }))
+    .sort((a, b) => a.t - b.t);
   const first = pts[0];
   const last = pts[pts.length - 1];
   return withCurveMeta((t: number) => {

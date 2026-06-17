@@ -16,7 +16,7 @@
 import { readFileSync } from "node:fs";
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { extractRawTrajectory, detect } from "../lib/detector.ts";
-import { computeRotationTrace } from "../lib/rotation.ts";
+import { computeRotationTrace, computeStands } from "../lib/rotation.ts";
 import { FPS } from "./types.ts";
 
 const argv = process.argv.slice(2);
@@ -89,3 +89,16 @@ const peaks = arcRows.map((r) => r.peak).sort((a, b) => a - b);
 console.log(`  per-arc |net rotation| median ${arcRows.length ? Math.abs(arcRows.map(r=>r.netDeg).sort((a,b)=>Math.abs(a)-Math.abs(b))[arcRows.length>>1]).toFixed(1) : "n/a"}°   peak ang.vel median ${peaks.length ? peaks[peaks.length>>1].toFixed(1) : "n/a"}°/f`);
 const top = [...arcRows].sort((a, b) => Math.abs(b.netDeg) - Math.abs(a.netDeg)).slice(0, 5);
 for (const r of top) console.log(`    arc@${(r.f / FPS).toFixed(1)}s  net ${r.netDeg.toFixed(0).padStart(5)}°  |travel| ${r.absDeg.toFixed(0).padStart(4)}°  peak ${r.peak.toFixed(1)}°/f  air ${r.len}f`);
+
+// Tail-/nose-stands: the sled held near-vertical (balanced on an end) while BOUNCING
+// — ≥2 landings in a row — without tumbling. The "bounce on the back of the sled"
+// behavior. Distinct from flips; harder to get than cheap air-rotation.
+const stands = computeStands(sledAngRaw.slice(0, F + 1), air.slice(0, F + 1));
+const standFrames = stands.reduce((s, e) => s + e.lengthFrames, 0);
+console.log(`  STANDS (locked within 20° of vertical on one end, ≥2 landings): ${stands.length}  ` +
+  `total ${(standFrames / FPS).toFixed(1)}s (${(100 * standFrames / Math.max(1, F)).toFixed(0)}% of ride)`);
+for (const e of [...stands].sort((a, b) => b.lengthFrames - a.lengthFrames).slice(0, 6)) {
+  console.log(`    stand@${(e.startFrame / FPS).toFixed(1)}s  ${(e.lengthFrames / FPS).toFixed(2)}s  ` +
+    `${e.side.padEnd(4)}  ${e.landings} landings  ${e.meanUprightDeg.toFixed(0)}° from flat  ` +
+    `${(e.inBandFraction * 100).toFixed(0)}% locked`);
+}

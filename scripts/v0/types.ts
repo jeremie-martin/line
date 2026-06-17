@@ -56,6 +56,42 @@ export type Spec = {
 
 export type SpecCamera = {
   zoom?: SpecZoomLane;
+  /**
+   * Per-beat camera "punch" (shake): the camera snaps in (or out) on strong
+   * landings, then eases back, reacting to each contact's authored `impact`.
+   * Render-only intent (the compiler ignores `camera`); render CLIs bake it into
+   * the per-frame zoom. Authoring it HERE — not as a CLI flag — keeps the camera
+   * shake part of the spec, so it's reproducible and per-song.
+   */
+  beatPunch?: SpecBeatPunch;
+};
+
+export type SpecBeatPunch = {
+  /**
+   * Absolute impact gate, [0,1]: every beat with `impact >= threshold` punches.
+   * When set, this is the gate (the clean "all beats above X shake" behavior).
+   * Mutually exclusive with `percentile`; `threshold` wins if both are given.
+   */
+  threshold?: number;
+  /**
+   * Relative gate: punch the top `(100 - percentile)%` of beats by impact. Used
+   * only when `threshold` is unset. Default 70 (punch the top 30%).
+   */
+  percentile?: number;
+  /** Peak zoom delta at the song's max impact. Default 0.13. */
+  amp?: number;
+  /**
+   * Strength of the weakest selected beat as a fraction of `amp` (1 = uniform;
+   * <1 = shake scales up with impact, from `floor·amp` at the gate to `amp` at
+   * the max). Default 0.5. The proportional-to-impact behavior.
+   */
+  floor?: number;
+  /** Exponential decay time constant after the hit, frames. Default 4. */
+  decay?: number;
+  /** Ramp-in before the hit, frames. Default 1. */
+  attack?: number;
+  /** Punch direction: "in" (zoom toward the rider) or "out". Default "in". */
+  dir?: "in" | "out";
 };
 
 export type SpecZoomLane = {

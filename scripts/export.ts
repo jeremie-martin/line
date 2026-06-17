@@ -13,7 +13,7 @@ import {
   type CameraSidecar,
   type RenderZoomPlan,
 } from "./v0/core/camera.ts";
-import { secToFrame, type Contact, type Spec } from "./v0/types.ts";
+import { secToFrame, type Contact, type Spec, type SpecBeatPunch } from "./v0/types.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | null => {
@@ -59,14 +59,46 @@ if (!Number.isFinite(zoomMult) || zoomMult <= 0) {
 // the camera snaps in (or out) on each strong landing, then eases back. Pure
 // generation-side: it's baked into the per-frame zoom the renderer reads, not
 // post-processing. Gated by impact threshold so weak beats don't twitch the camera.
-const beatPunch = has("beat-punch");
-const bpAmp = Number(arg("beat-punch-amp") ?? "0.13");        // peak zoom delta at the song's max impact
-const bpPct = Number(arg("beat-punch-pct") ?? "70");          // gate: punch beats at/above this percentile of THIS spec's impacts (top 100-P%)
-const bpThreshold = Number(arg("beat-punch-threshold") ?? "0"); // optional extra ABSOLUTE floor (0 = off, percentile drives)
-const bpFloor = Number(arg("beat-punch-floor") ?? "0.5");     // amplitude of the weakest selected beat, as a fraction of amp (1 = uniform)
-const bpDecay = Number(arg("beat-punch-decay") ?? "4");        // exp decay time constant, frames (snappy)
-const bpAttack = Number(arg("beat-punch-attack") ?? "2");      // ramp-in, frames
-const bpDir = (arg("beat-punch-dir") ?? "in") === "out" ? -1 : 1; // in = zoom toward rider
+// Beat-punch is authored in the SPEC (`spec.camera.beatPunch`) as the source of
+// truth; the CLI flags below only OVERRIDE individual fields for experimentation.
+// It's enabled when the spec authors it OR `--beat-punch` is passed. The resolved
+// config is built after the spec loads (resolveBeatPunch), since the spec carries
+// the per-field defaults.
+const cliBeatPunchFlag = has("beat-punch");
+const cliNum = (name: string): number | undefined => {
+  const v = arg(name);
+  return v === null ? undefined : Number(v);
+};
+const cliBP = {
+  amp: cliNum("beat-punch-amp"),
+  pct: cliNum("beat-punch-pct"),
+  threshold: cliNum("beat-punch-threshold"),
+  floor: cliNum("beat-punch-floor"),
+  decay: cliNum("beat-punch-decay"),
+  attack: cliNum("beat-punch-attack"),
+  dir: arg("beat-punch-dir") ?? undefined,
+};
+
+type ResolvedBeatPunch = {
+  amp: number; pct: number; threshold: number; floor: number;
+  decay: number; attack: number; dir: 1 | -1;
+};
+
+/** Merge spec.camera.beatPunch with CLI overrides → the active config, or null if
+ *  beat-punch isn't enabled (neither the spec nor --beat-punch asked for it). */
+function resolveBeatPunch(specBP: SpecBeatPunch | undefined): ResolvedBeatPunch | null {
+  if (!cliBeatPunchFlag && specBP === undefined) return null;
+  const dir = cliBP.dir ?? specBP?.dir ?? "in";
+  return {
+    amp: cliBP.amp ?? specBP?.amp ?? 0.13,
+    pct: cliBP.pct ?? specBP?.percentile ?? 70,
+    threshold: cliBP.threshold ?? specBP?.threshold ?? 0,
+    floor: cliBP.floor ?? specBP?.floor ?? 0.5,
+    decay: cliBP.decay ?? specBP?.decay ?? 4,
+    attack: cliBP.attack ?? specBP?.attack ?? 1,
+    dir: dir === "out" ? -1 : 1,
+  };
+}
 
 // Easing for the camera ramps (the in/out between zoom levels) and the punch attack.
 // Linear ramps look mechanical; quad/cubic/expo/cosine read much smoother. Used only
@@ -104,14 +136,17 @@ function denseZoomEased(kf: readonly [number, number][], durationFrames: number)
 // max impact) — so bunched impacts still get contrast and the biggest hit pops. An
 // optional absolute floor (bpThreshold) can raise the gate. Punches take the max per
 // frame (no accumulation) so clusters stay bounded.
-function applyBeatPunch(autoZoom: number[], contacts: Contact[]): number[] {
+function applyBeatPunch(autoZoom: number[], contacts: Contact[], bp: ResolvedBeatPunch): number[] {
   const impacts = contacts.map((c) => c.impact ?? 0).filter((v) => v > 0).sort((a, b) => a - b);
   if (impacts.length === 0) {
     console.log("beat-punch: skipped (no positive authored impacts)");
     return autoZoom;
   }
-  const pctVal = impacts[Math.min(impacts.length - 1, Math.floor((bpPct / 100) * impacts.length))];
-  const gate = Math.max(pctVal, bpThreshold);
+  // Gate: an absolute `threshold` (every beat at/above it punches) takes precedence;
+  // otherwise the top (100-pct)% by impact. Strength scales from `floor·amp` at the
+  // gate to `amp` at the song's max impact — i.e. proportional to impact.
+  const pctVal = impacts[Math.min(impacts.length - 1, Math.floor((bp.pct / 100) * impacts.length))];
+  const gate = bp.threshold > 0 ? bp.threshold : pctVal;
   const maxImp = impacts[impacts.length - 1];
   const span = Math.max(1e-6, maxImp - gate);
 
@@ -122,19 +157,20 @@ function applyBeatPunch(autoZoom: number[], contacts: Contact[]): number[] {
     if (imp < gate) continue;
     hits++;
     const norm = Math.max(0, Math.min(1, (imp - gate) / span));
-    const strength = bpAmp * (bpFloor + (1 - bpFloor) * norm);
+    const strength = bp.amp * (bp.floor + (1 - bp.floor) * norm);
     const f0 = secToFrame(c.t);
-    const lo = Math.max(0, f0 - Math.ceil(bpAttack));
-    const hi = Math.min(autoZoom.length - 1, f0 + Math.ceil(bpDecay * 5));
+    const lo = Math.max(0, f0 - Math.ceil(bp.attack));
+    const hi = Math.min(autoZoom.length - 1, f0 + Math.ceil(bp.decay * 5));
     for (let f = lo; f <= hi; f++) {
       const shape = f < f0
-        ? (bpAttack <= 0 ? 1 : zoomEase(Math.max(0, Math.min(1, (f - (f0 - bpAttack)) / bpAttack)))) // eased ramp into the hit
-        : Math.exp(-(f - f0) / bpDecay);                          // decay after
+        ? (bp.attack <= 0 ? 1 : zoomEase(Math.max(0, Math.min(1, (f - (f0 - bp.attack)) / bp.attack)))) // eased ramp into the hit
+        : Math.exp(-(f - f0) / bp.decay);                          // decay after
       punch[f] = Math.max(punch[f], strength * Math.max(0, shape));
     }
   }
-  console.log(`beat-punch: top ${(100 - bpPct).toFixed(0)}% (impact ≥ p${bpPct}=${gate.toFixed(2)}) → ${hits} beats, amp ${bpAmp} (floor ${bpFloor}), decay ${bpDecay}f, dir ${bpDir > 0 ? "in" : "out"}`);
-  return autoZoom.map((z, f) => z * (1 + bpDir * punch[f]));
+  const gateLabel = bp.threshold > 0 ? `impact ≥ ${bp.threshold.toFixed(2)}` : `top ${(100 - bp.pct).toFixed(0)}% (≥ p${bp.pct}=${gate.toFixed(2)})`;
+  console.log(`beat-punch: ${gateLabel} → ${hits} beats, amp ${bp.amp} (floor ${bp.floor}), decay ${bp.decay}f, dir ${bp.dir > 0 ? "in" : "out"}`);
+  return autoZoom.map((z, f) => z * (1 + bp.dir * punch[f]));
 }
 
 const hq = has("hq");
@@ -191,11 +227,13 @@ async function loadSpecZoomPlan(trackPath: string): Promise<{ plan: RenderZoomPl
 const trackJson = JSON.parse(readFileSync(trackPath, "utf8"));
 let zoomPlan: RenderZoomPlan | null = null;
 let specContacts: Contact[] = [];
+let specBeatPunch: SpecBeatPunch | undefined;
 if (zoomMode === "spec") {
   try {
     const loaded = await loadSpecZoomPlan(trackPath);
     zoomPlan = loaded.plan;
     specContacts = loaded.spec?.contacts ?? [];
+    specBeatPunch = loaded.spec?.camera?.beatPunch;
     if (zoomPlan !== null) {
       console.log(`spec zoom=${loaded.source} (${zoomPlan.zoomKeyframes.length} keyframes, smoothing ${zoomPlan.zoomSmoothing})`);
     } else {
@@ -220,14 +258,18 @@ if (zoomMult !== 1 && zoomPlan) {
 // erase it) and whenever a non-default --zoom-ease is requested. Rebuild the base
 // curve with the chosen easing, then overlay the impact punch. Clearing the keyframes
 // forces the renderer onto this dense array instead of createZoomer.
-const forceDense = beatPunch || arg("zoom-ease") !== null;
+const resolvedBeatPunch = resolveBeatPunch(specBeatPunch);
+if (resolvedBeatPunch && specBeatPunch !== undefined && !cliBeatPunchFlag) {
+  console.log("beat-punch: from spec.camera.beatPunch");
+}
+const forceDense = resolvedBeatPunch !== null || arg("zoom-ease") !== null;
 if (forceDense && zoomPlan) {
   const durF = zoomPlan.zoomKeyframes.at(-1)?.[0] ?? zoomPlan.autoZoom.length - 1;
   let dense = denseZoomEased(zoomPlan.zoomKeyframes, durF);
   console.log(`zoom-ease=${zoomEaseName} (dense path)`);
-  if (beatPunch) {
-    if (specContacts.length) dense = applyBeatPunch(dense, specContacts);
-    else console.warn("WARN: --beat-punch needs --zoom=action/spec with --spec=<path> (authored contacts); skipping punch.");
+  if (resolvedBeatPunch) {
+    if (specContacts.length) dense = applyBeatPunch(dense, specContacts, resolvedBeatPunch);
+    else console.warn("WARN: beat-punch needs --zoom=action/spec with --spec=<path> (authored contacts); skipping punch.");
   }
   zoomPlan = { ...zoomPlan, autoZoom: dense, zoomKeyframes: [] };
 }

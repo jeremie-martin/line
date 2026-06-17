@@ -86,6 +86,140 @@ export type RotationTrace = {
   arcs: RotationArc[];
 };
 
+/**
+ * A "stand": the sled stays LOCKED near vertical on ONE end — within `toleranceDeg`
+ * of −90° (nose-up ⇒ on the TAIL/"back") OR of +90° (nose-down ⇒ on the NOSE/"front")
+ * — for ≥`minInBandFraction` of a sustained span, while the rider BOUNCES on that end
+ * (≥`minLandings` air→ground touch-downs).
+ *
+ * The "locked on one side" requirement is what makes this NOT a flip. A tumbling
+ * sled SWEEPS through vertical (… → −90 → 0 → +90 → 180 → …), so it only sits within
+ * tolerance of a given vertical for a handful of frames per revolution, then leaves —
+ * far too short to form a stand, and it never stays on one side. A balancing rider,
+ * by contrast, holds the sled around (say) −90° and rocks within ±tolerance while
+ * tapping the ground. So checking "stays within ±tol of a SINGLE vertical" cleanly
+ * separates a tail/nose-stand from continuous rotation.
+ *
+ * Verticality is measured against WORLD HORIZONTAL (gravity), slope-independent.
+ * Angles are TAIL→NOSE degrees, +y down (see file header).
+ */
+export type Stand = {
+  startFrame: number;
+  endFrame: number;
+  lengthFrames: number;
+  /** Landings (air→ground touch-downs) while balanced on the end — the bounces.
+   *  A stand requires at least `minLandings` of these (default 2: two in a row). */
+  landings: number;
+  /** Which end the rider is balanced on. */
+  side: "tail" | "nose";
+  /** Mean angle of the sled from horizontal over the stand (deg, ≈90 when locked vertical). */
+  meanUprightDeg: number;
+  /** Fraction of frames actually within tolerance of vertical (≥ `minInBandFraction`). */
+  inBandFraction: number;
+  /** Fraction of frames airborne — a stand BOUNCES (≥ `minAirborneFraction`). */
+  airborneFraction: number;
+};
+
+export type StandOptions = {
+  /** Max deviation from a vertical (±90°) to count as "locked on that end". Default 20°
+   *  (so the sled angle stays in [−110,−70] for a tail-stand). Lower = stricter. */
+  toleranceDeg?: number;
+  /** Min landings (air→ground touch-downs) to qualify — it must bounce on the end,
+   *  not just tip once or slide. Default 2 (two landings in a row). */
+  minLandings?: number;
+  /** Min span length (frames). Default 12 (~0.3s @ 40fps). */
+  minFrames?: number;
+  /** Brief out-of-band frames (≤ this) bracketed by in-band are bridged, so a small
+   *  rock past tolerance doesn't split one stand. Default 3. */
+  bridgeFrames?: number;
+  /** Min fraction of the span within tolerance of vertical. Default 0.9. */
+  minInBandFraction?: number;
+  /** Min fraction of the span airborne — a stand BOUNCES, so this rejects a grounded
+   *  "slide on an end" (e.g. a steep slope ridden sled-perpendicular). Default 0.15.
+   *  Study (100 tracks): every genuine stand was ≥23% airborne, so this is a robustness
+   *  floor that doesn't drop real stands. */
+  minAirborneFraction?: number;
+};
+
+/** Sled angle (TAIL→NOSE, +y down) folded to its acute angle from horizontal, [0,90]. */
+export function uprightDegFromHorizontal(sledAngleDeg: number): number {
+  const w = Math.abs(wrapDeg(sledAngleDeg)); // [0,180]
+  return Math.min(w, 180 - w); // 0 = flat, 90 = vertical
+}
+
+/**
+ * Detect tail-/nose-stands from the per-frame sled angle + airborne mask. Pure and
+ * array-only. `sledAngleDeg[f]` is the raw TAIL→NOSE angle (NaN/holds tolerated →
+ * treated as out-of-band). A continuously rotating sled produces NO stands, because
+ * it never stays locked within tolerance of a single vertical.
+ */
+export function computeStands(
+  sledAngleDeg: ReadonlyArray<number>,
+  airborne: ReadonlyArray<boolean>,
+  opts: StandOptions = {},
+): Stand[] {
+  const tol = opts.toleranceDeg ?? 20;
+  const minLandings = opts.minLandings ?? 2;
+  const minFrames = opts.minFrames ?? 12;
+  const bridge = opts.bridgeFrames ?? 3;
+  const minFrac = opts.minInBandFraction ?? 0.9;
+  const minAirFrac = opts.minAirborneFraction ?? 0.15;
+  const n = Math.min(sledAngleDeg.length, airborne.length);
+
+  const out: Stand[] = [];
+  for (const { name, target } of [
+    { name: "tail" as const, target: -90 },
+    { name: "nose" as const, target: 90 },
+  ]) {
+    // In-band = sled angle within `tol` of THIS vertical (one side only).
+    const inBand: boolean[] = new Array(n);
+    for (let f = 0; f < n; f++) {
+      const a = sledAngleDeg[f];
+      inBand[f] = Number.isFinite(a) && Math.abs(wrapDeg(a - target)) <= tol;
+    }
+    // Morphological close: fill short out-of-band gaps bracketed by in-band frames,
+    // so a brief rock past tolerance mid-bounce doesn't fragment one stand.
+    const standing = inBand.slice();
+    for (let i = 0; i < n; ) {
+      if (standing[i]) { i++; continue; }
+      let j = i;
+      while (j < n && !inBand[j]) j++;
+      if (i > 0 && j < n && inBand[i - 1] && inBand[j] && j - i <= bridge) {
+        for (let g = i; g < j; g++) standing[g] = true;
+      }
+      i = j;
+    }
+    for (const [a, b] of runs(standing)) {
+      const len = b - a + 1;
+      if (len < minFrames) continue;
+      let landings = 0, inCount = 0, airCount = 0, sumUpright = 0;
+      let prevAir: boolean | null = null;
+      for (let g = a; g <= b; g++) {
+        const air = airborne[g];
+        if (air) airCount++;
+        if (prevAir === true && !air) landings++; // air → ground = a landing on the end
+        prevAir = air;
+        if (inBand[g]) inCount++;
+        sumUpright += uprightDegFromHorizontal(sledAngleDeg[g]);
+      }
+      const frac = inCount / len;
+      const airFrac = airCount / len;
+      // A stand BOUNCES: reject grounded "slide on an end" (e.g. a steep slope ridden
+      // sled-perpendicular) via the airborne-fraction floor.
+      if (frac < minFrac || landings < minLandings || airFrac < minAirFrac) continue;
+      out.push({
+        startFrame: a, endFrame: b, lengthFrames: len,
+        landings, side: name,
+        meanUprightDeg: sumUpright / len,
+        inBandFraction: frac,
+        airborneFraction: airFrac,
+      });
+    }
+  }
+  out.sort((x, y) => x.startFrame - y.startFrame);
+  return out;
+}
+
 /** Contiguous true-runs of a boolean mask, as [start, end] inclusive index pairs. */
 function runs(mask: ReadonlyArray<boolean>): Array<[number, number]> {
   const out: Array<[number, number]> = [];

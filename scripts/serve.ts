@@ -15,9 +15,9 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { createReadStream, existsSync, readdirSync, statSync, openSync, readSync, closeSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { networkInterfaces } from "node:os";
+import { availableParallelism, networkInterfaces } from "node:os";
 import { basename, dirname, extname, normalize, relative, resolve, sep } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { specZoomLaneToRenderPlan } from "./v0/core/camera.ts";
 import { AXES, FPS, type AxisName, type Spec, type SpecMusic } from "./v0/types.ts";
 import {
@@ -29,6 +29,12 @@ import {
   type SpecDashboardSourceEntry,
   type SpecDashboardSourceIndex,
 } from "./spec_dashboard_source.ts";
+import {
+  calibrationSelectionPath,
+  readCalibrationSelection,
+  type CalibrationSelection,
+  type SpecCalibration,
+} from "./v0/core/spec_modifiers.ts";
 
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
 const HOST = process.env.HOST ?? "127.0.0.1";
@@ -136,13 +142,13 @@ function listGoldenRuns() {
 
 type DashboardJob = {
   id: string;
-  kind: "generate";
+  kind: "generate" | "calibrate";
   status: "queued" | "running" | "succeeded" | "failed";
   createdAt: string;
   updatedAt: string;
   runName: string;
   specPath: string;
-  trackPath: string;
+  trackPath: string | null;
   reportPath: string;
   dashboardUrl: string;
   reportUrl: string;
@@ -476,6 +482,77 @@ function normalizeSpecMusic(music: SpecMusic | undefined): Record<string, unknow
   };
 }
 
+function isSpecCalibration(value: unknown): value is SpecCalibration {
+  return Boolean(value && typeof value === "object" && Array.isArray((value as SpecCalibration).candidates));
+}
+
+function normalizeCalibrationCandidate(candidate: unknown): Record<string, unknown> | null {
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return null;
+  const raw = candidate as Record<string, unknown>;
+  if (typeof raw.id !== "string" || typeof raw.label !== "string") return null;
+  return {
+    id: raw.id,
+    label: raw.label,
+    description: typeof raw.description === "string" ? raw.description : null,
+  };
+}
+
+function calibrationInfo(
+  mod: Record<string, unknown>,
+  specAbsPath: string,
+  specPath: string,
+): Record<string, unknown> {
+  const selectionPath = calibrationSelectionPath(specAbsPath);
+  const selection = readCalibrationSelection(selectionPath);
+  const calibration = isSpecCalibration(mod.calibration) ? mod.calibration : null;
+  const candidates = calibration === null
+    ? []
+    : calibration.candidates.map(normalizeCalibrationCandidate).filter((c): c is Record<string, unknown> => c !== null);
+  const latest = latestCalibrationReport(specPath);
+  return {
+    available: calibration !== null,
+    hasBaseSpec: mod.baseSpec !== undefined,
+    candidates,
+    objective: calibration?.objective ?? null,
+    selection,
+    selected: selection?.enabled ? selection.selected : "identity",
+    enabled: selection?.enabled === true,
+    selectionPath: workspaceUrl(selectionPath),
+    latestReport: latest,
+  };
+}
+
+function latestCalibrationReport(specPath: string): Record<string, unknown> | null {
+  const root = resolve(ROOT, "generated", "spec-calibration");
+  if (!existsSync(root)) return null;
+  let best: { path: string; mtimeMs: number; json: Record<string, unknown> } | null = null;
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const file = resolve(root, entry.name, "calibration.json");
+    if (!existsSync(file)) continue;
+    try {
+      const parsed = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+      const spec = parsed.spec;
+      const path = spec && typeof spec === "object" && !Array.isArray(spec)
+        ? (spec as Record<string, unknown>).path
+        : null;
+      if (path !== specPath) continue;
+      const stat = statSync(file);
+      if (best === null || stat.mtimeMs > best.mtimeMs) {
+        best = { path: file, mtimeMs: stat.mtimeMs, json: parsed };
+      }
+    } catch {
+      // Ignore malformed or partial reports while a job is still writing.
+    }
+  }
+  if (best === null) return null;
+  return {
+    path: workspaceUrl(best.path),
+    mtime_ms: best.mtimeMs,
+    report: best.json,
+  };
+}
+
 function axisValue(spec: Spec, axis: AxisName, t: number): number | null {
   const curve = spec.axes?.[axis];
   if (typeof curve !== "function") return null;
@@ -580,7 +657,9 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
 
   const stat = statSync(resolvedSpec.absPath);
   const sourceIndex = readSpecDashboardSourceIndex(resolvedSpec.absPath);
-  const moduleUrl = `${pathToFileURL(resolvedSpec.absPath).href}?mtime=${Math.trunc(stat.mtimeMs)}`;
+  const sidecarPath = calibrationSelectionPath(resolvedSpec.absPath);
+  const sidecarMtime = existsSync(sidecarPath) ? Math.trunc(statSync(sidecarPath).mtimeMs) : 0;
+  const moduleUrl = `${pathToFileURL(resolvedSpec.absPath).href}?mtime=${Math.trunc(stat.mtimeMs)}&cal=${sidecarMtime}`;
   const mod = await import(moduleUrl) as Record<string, unknown>;
   const spec = mod.default as Spec | undefined;
   if (!spec || typeof spec.duration !== "number" || !Number.isFinite(spec.duration) || spec.duration <= 0) {
@@ -723,6 +802,7 @@ async function loadSpecView(rawSpec: string, requestedSamples: number): Promise<
     axes,
     keyframes,
     camera,
+    calibration: calibrationInfo(mod, resolvedSpec.absPath, resolvedSpec.entry.path),
     overlayMeta: jsonClone(mod.overlayMeta),
     music: normalizeSpecMusic(spec.music),
   };
@@ -1012,18 +1092,20 @@ function cleanRunName(raw: string): string {
     .slice(0, 96);
 }
 
-function runNameInUse(name: string): boolean {
+export function runNameInUse(name: string): boolean {
   const outPrefix = resolve(ROOT, "generated", "dashboard", name);
+  const calibrationArchive = resolve(ROOT, "generated", "spec-calibration", name);
   const activeJob = [...jobs.values()].some((job) =>
     job.runName === name && (job.status === "queued" || job.status === "running")
   );
   return activeJob ||
     existsSync(resolve(ROOT, "shakedown", name)) ||
+    existsSync(calibrationArchive) ||
     existsSync(`${outPrefix}.track.json`) ||
     existsSync(`${outPrefix}.report.json`);
 }
 
-function uniqueRunName(base: string): string {
+export function uniqueRunName(base: string): string {
   let candidate = base;
   for (let i = 2; runNameInUse(candidate); i++) {
     candidate = `${base}_${i}`;
@@ -1083,6 +1165,58 @@ function startGenerateJob(body: Record<string, unknown>): DashboardJob {
   return job;
 }
 
+export function parseSeedList(raw: string | null): number[] {
+  const source = raw && raw.trim() ? raw : "0,1,2,3,4,5,6,7,8,9,10,11";
+  const parts = source.split(",");
+  if (parts.length === 0 || parts.some((part) => part.trim() === "")) {
+    throw new Error(`seeds must be a comma-separated list of integers, got ${source}`);
+  }
+  const seeds = parts.map((part) => Number(part.trim()));
+  if (seeds.length === 0 || seeds.some((seed) => !Number.isSafeInteger(seed))) {
+    throw new Error(`seeds must be a comma-separated list of integers, got ${source}`);
+  }
+  return [...new Set(seeds)].sort((a, b) => a - b);
+}
+
+function startCalibrationJob(body: Record<string, unknown>): DashboardJob {
+  const rawSpec = valueAsString(body, "spec") ?? "";
+  const resolvedSpec = resolveListedSpec(rawSpec);
+  if (!resolvedSpec) throw new Error(`unsupported spec path: ${rawSpec}`);
+  const specPath = resolvedSpec.entry.path;
+
+  const budget = Math.trunc(valueAsNumber(body, "budget", 300_000));
+  if (!Number.isSafeInteger(budget) || budget <= 0) throw new Error("budget must be a positive integer");
+  const seeds = parseSeedList(valueAsString(body, "seeds"));
+  const rawJobs = valueAsNumber(body, "jobs", Math.max(1, Math.floor(availableParallelism() / 2)));
+  const jobCount = Math.max(1, Math.trunc(rawJobs));
+
+  const specName = basename(specPath).replace(/\.ts$/, "");
+  const runName = uniqueRunName(cleanRunName(`calibrate_${specName}_${compactTimestamp()}`));
+  const archiveDir = resolve(ROOT, "generated", "spec-calibration", runName);
+  const reportPath = resolve(archiveDir, "calibration.json");
+  const dashboardUrl = `/spec-dashboard/?spec=${encodeURIComponent(specPath)}`;
+  const reportUrl = workspaceUrl(reportPath);
+
+  const now = new Date().toISOString();
+  const job: DashboardJob = {
+    id: randomUUID().slice(0, 8),
+    kind: "calibrate",
+    status: "queued",
+    createdAt: now,
+    updatedAt: now,
+    runName,
+    specPath,
+    trackPath: null,
+    reportPath: workspaceUrl(reportPath),
+    dashboardUrl,
+    reportUrl,
+    logs: [],
+  };
+  jobs.set(job.id, job);
+  void runCalibrationJob(job, { budget, seeds, jobs: jobCount, archiveDir });
+  return job;
+}
+
 async function runGenerateJob(
   job: DashboardJob,
   opts: { seed: number; budget: number; render: boolean; resolution: "720p" | "1080p"; hq: boolean; zoom: number },
@@ -1128,6 +1262,70 @@ async function runGenerateJob(
   } finally {
     job.updatedAt = new Date().toISOString();
   }
+}
+
+async function runCalibrationJob(
+  job: DashboardJob,
+  opts: { budget: number; seeds: number[]; jobs: number; archiveDir: string },
+): Promise<void> {
+  job.status = "running";
+  appendLog(job, `run=${job.runName}`);
+  appendLog(job, `spec=${job.specPath}`);
+  appendLog(job, `budget=${opts.budget}`);
+  appendLog(job, `seeds=${opts.seeds.join(",")}`);
+  try {
+    await runTsx(job, [
+      "scripts/v0/calibrate_spec.ts",
+      `--spec=${job.specPath}`,
+      `--budget=${opts.budget}`,
+      `--seeds=${opts.seeds.join(",")}`,
+      `--jobs=${opts.jobs}`,
+      `--out=${toPosixPath(relative(ROOT, opts.archiveDir))}`,
+    ]);
+    job.status = "succeeded";
+    appendLog(job, `done: ${job.reportUrl}`);
+  } catch (e) {
+    job.status = "failed";
+    job.error = String(e);
+    appendLog(job, `ERROR: ${String(e)}`);
+  } finally {
+    job.updatedAt = new Date().toISOString();
+  }
+}
+
+async function writeCalibrationSelection(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const rawSpec = valueAsString(body, "spec") ?? "";
+  const resolvedSpec = resolveListedSpec(rawSpec);
+  if (!resolvedSpec) throw new Error(`unsupported spec path: ${rawSpec}`);
+
+  const stat = statSync(resolvedSpec.absPath);
+  const mod = await import(`${pathToFileURL(resolvedSpec.absPath).href}?mtime=${Math.trunc(stat.mtimeMs)}`) as Record<string, unknown>;
+  if (!isSpecCalibration(mod.calibration)) {
+    throw new Error("spec does not export calibration candidates");
+  }
+  const selected = valueAsString(body, "selected") ?? "identity";
+  const ids = new Set(mod.calibration.candidates.map((candidate) => candidate.id));
+  ids.add("identity");
+  if (!ids.has(selected)) throw new Error(`unknown calibration candidate: ${selected}`);
+
+  const enabled = valueAsBool(body, "enabled", selected !== "identity");
+  const sourceReport = valueAsString(body, "sourceReport");
+  const selection: CalibrationSelection = {
+    version: 1,
+    enabled,
+    selected,
+    updatedAt: new Date().toISOString(),
+    ...(sourceReport ? { sourceReport } : {}),
+  };
+  const sidecarPath = calibrationSelectionPath(resolvedSpec.absPath);
+  mkdirSync(dirname(sidecarPath), { recursive: true });
+  writeFileSync(sidecarPath, JSON.stringify(selection, null, 2) + "\n");
+  return {
+    ok: true,
+    specPath: resolvedSpec.entry.path,
+    selection,
+    selectionPath: workspaceUrl(sidecarPath),
+  };
 }
 
 async function runTsx(job: DashboardJob, args: string[]): Promise<void> {
@@ -1391,6 +1589,40 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     }
     return json(res, { error: "method not allowed" }, 405);
   }
+  if (url.pathname === "/api/spec-calibration/latest") {
+    if (req.method !== "GET") return json(res, { error: "method not allowed" }, 405);
+    const resolvedSpec = resolveListedSpec(url.searchParams.get("spec") ?? "");
+    if (!resolvedSpec) return json(res, { error: "missing or unsupported spec" }, 400);
+    return json(res, {
+      specPath: resolvedSpec.entry.path,
+      latest: latestCalibrationReport(resolvedSpec.entry.path),
+    });
+  }
+  if (url.pathname === "/api/spec-calibration/jobs" && req.method === "POST") {
+    try {
+      const body = await readJsonBody(req);
+      if (!body || typeof body !== "object" || Array.isArray(body)) return json(res, { error: "expected JSON object" }, 400);
+      const job = startCalibrationJob(body as Record<string, unknown>);
+      return json(res, { job: snapshotJob(job) }, 202);
+    } catch (e) {
+      return json(res, { error: String(e) }, 400);
+    }
+  }
+  const calibrationJobMatch = /^\/api\/spec-calibration\/jobs\/([^/]+)$/.exec(url.pathname);
+  if (calibrationJobMatch) {
+    const job = jobs.get(calibrationJobMatch[1]);
+    if (!job || job.kind !== "calibrate") return json(res, { error: "job not found" }, 404);
+    return json(res, { job: snapshotJob(job) });
+  }
+  if (url.pathname === "/api/spec-calibration/selection" && req.method === "POST") {
+    try {
+      const body = await readJsonBody(req);
+      if (!body || typeof body !== "object" || Array.isArray(body)) return json(res, { error: "expected JSON object" }, 400);
+      return json(res, await writeCalibrationSelection(body as Record<string, unknown>));
+    } catch (e) {
+      return json(res, { error: String(e) }, 400);
+    }
+  }
   if (url.pathname === "/api/jobs/generate" && req.method === "POST") {
     try {
       const body = await readJsonBody(req);
@@ -1542,10 +1774,17 @@ function accessHosts(host: string): string[] {
   return [...hosts];
 }
 
-server.listen(PORT, HOST, () => {
-  console.log(`serving ${ROOT} on ${HOST}:${PORT}`);
-  for (const host of accessHosts(HOST)) {
-    console.log(`Dashboard: http://${host}:${PORT}/dashboard/`);
-    console.log(`Spec dashboard: http://${host}:${PORT}/spec-dashboard/`);
-  }
-});
+function isCliEntry(): boolean {
+  const entry = process.argv[1];
+  return entry !== undefined && fileURLToPath(import.meta.url) === resolve(entry);
+}
+
+if (isCliEntry()) {
+  server.listen(PORT, HOST, () => {
+    console.log(`serving ${ROOT} on ${HOST}:${PORT}`);
+    for (const host of accessHosts(HOST)) {
+      console.log(`Dashboard: http://${host}:${PORT}/dashboard/`);
+      console.log(`Spec dashboard: http://${host}:${PORT}/spec-dashboard/`);
+    }
+  });
+}

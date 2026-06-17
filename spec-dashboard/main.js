@@ -54,6 +54,16 @@ const refs = {
   undoEdit: document.getElementById("undo-edit"),
   redoEdit: document.getElementById("redo-edit"),
   editList: document.getElementById("edit-list"),
+  calibrationState: document.getElementById("calibration-state"),
+  calibrationSummary: document.getElementById("calibration-summary"),
+  calibrationBudget: document.getElementById("calibration-budget"),
+  calibrationSeeds: document.getElementById("calibration-seeds"),
+  calibrationCandidate: document.getElementById("calibration-candidate"),
+  calibrationRun: document.getElementById("calibration-run"),
+  calibrationApply: document.getElementById("calibration-apply"),
+  calibrationDisable: document.getElementById("calibration-disable"),
+  calibrationReport: document.getElementById("calibration-report"),
+  calibrationLogs: document.getElementById("calibration-logs"),
   scopeTabs: document.getElementById("scope-tabs"),
   noteAnchor: document.getElementById("note-anchor"),
   notePath: document.getElementById("note-path"),
@@ -90,6 +100,8 @@ const state = {
   activeTags: [],
   saveTimer: null,
   pendingNoteSave: null,
+  calibrationJob: null,
+  calibrationPoll: null,
   simulatedPlaying: false,
   lastTickMs: performance.now(),
   followPlayhead: true,
@@ -202,6 +214,9 @@ function wireEvents() {
     event.preventDefault();
     applyActiveEdit();
   });
+  refs.calibrationRun.addEventListener("click", () => runCalibration());
+  refs.calibrationApply.addEventListener("click", () => applyCalibrationSelection());
+  refs.calibrationDisable.addEventListener("click", () => disableCalibrationSelection());
   refs.editTime.addEventListener("change", () => {
     const snapped = snapTime(Number(refs.editTime.value));
     if (Number.isFinite(snapped)) refs.editTime.value = String(round(snapped, 3));
@@ -282,6 +297,7 @@ async function loadSpecList() {
 
 async function loadSpec(specPath, pushUrl, restore = null) {
   await flushPendingNoteSave();
+  stopCalibrationPolling();
   pausePlayback();
   refs.subtitle.textContent = "Loading " + specPath;
   refs.saveState.textContent = "";
@@ -295,6 +311,7 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   state.activeAnchor = null;
   state.activeNoteId = null;
   state.activeTags = [];
+  state.calibrationJob = null;
   state.viewStart = 0;
   state.viewEnd = 0;
   state.selection = null;
@@ -745,6 +762,7 @@ function renderAll() {
   renderEditAxisOptions();
   renderEditsList();
   renderHistoryControls();
+  renderCalibration();
   renderInspector();
   renderEditor();
   selectAnchorAtCursor();
@@ -1305,6 +1323,196 @@ function renderHistoryControls() {
   refs.redoEdit.disabled = !history?.canRedo;
   refs.undoEdit.title = undoLabel ? `Ctrl+Z - ${undoLabel}` : "Ctrl+Z";
   refs.redoEdit.title = redoLabel ? `Ctrl+Shift+Z / Ctrl+Y - ${redoLabel}` : "Ctrl+Shift+Z / Ctrl+Y";
+}
+
+function renderCalibration() {
+  const cal = state.data?.calibration;
+  const previousValue = refs.calibrationCandidate.value;
+  refs.calibrationCandidate.innerHTML = "";
+  refs.calibrationReport.innerHTML = "";
+  refs.calibrationLogs.textContent = state.calibrationJob?.logs?.join("\n") || "";
+
+  if (!cal?.available) {
+    refs.calibrationState.textContent = "not configured";
+    refs.calibrationSummary.textContent = "This spec has no calibration export.";
+    refs.calibrationRun.disabled = true;
+    refs.calibrationApply.disabled = true;
+    refs.calibrationDisable.disabled = true;
+    refs.calibrationCandidate.disabled = true;
+    return;
+  }
+
+  const latest = cal.latestReport?.report || null;
+  const ranked = Array.isArray(latest?.candidates) ? latest.candidates : [];
+  const candidates = candidateOptions(cal, ranked);
+  for (const candidate of candidates) {
+    const option = document.createElement("option");
+    option.value = candidate.id;
+    option.textContent = candidateText(candidate, ranked);
+    refs.calibrationCandidate.appendChild(option);
+  }
+  const activeSelected = cal.enabled && cal.selection?.selected ? cal.selection.selected : null;
+  const latestBest = latest?.best?.id || ranked[0]?.id || null;
+  const validIds = new Set(candidates.map((candidate) => candidate.id));
+  refs.calibrationCandidate.value = validIds.has(activeSelected) ? activeSelected
+    : validIds.has(latestBest) ? latestBest
+    : validIds.has(previousValue) ? previousValue
+    : "identity";
+
+  const job = state.calibrationJob;
+  const jobActive = job && (job.status === "queued" || job.status === "running");
+  refs.calibrationRun.disabled = Boolean(jobActive);
+  refs.calibrationApply.disabled = !refs.calibrationCandidate.value || Boolean(jobActive);
+  refs.calibrationDisable.disabled = Boolean(jobActive) || !cal.enabled;
+  refs.calibrationCandidate.disabled = Boolean(jobActive);
+  refs.calibrationState.textContent = jobActive ? job.status : cal.enabled ? `enabled: ${cal.selection?.selected}` : "identity";
+  refs.calibrationSummary.textContent = latest
+    ? `latest ${latest.best?.label || latest.best?.id || "candidate"} score ${fmt(latest.best?.score)} (${signed(latest.best?.delta || 0)})`
+    : "No calibration report yet.";
+  renderCalibrationReport(latest, cal.latestReport?.path || null);
+}
+
+function candidateOptions(cal, ranked) {
+  const map = new Map();
+  for (const candidate of cal.candidates || []) map.set(candidate.id, candidate);
+  for (const candidate of ranked || []) {
+    if (!map.has(candidate.id)) {
+      map.set(candidate.id, { id: candidate.id, label: candidate.label || candidate.id, description: candidate.description || null });
+    }
+  }
+  if (!map.has("identity")) map.set("identity", { id: "identity", label: "identity", description: "No modifier." });
+  return [...map.values()];
+}
+
+function candidateText(candidate, ranked) {
+  const summary = ranked.find((row) => row.id === candidate.id);
+  if (!summary) return candidate.label || candidate.id;
+  return `${summary.rank}. ${candidate.label || candidate.id}  ${fmt(summary.score)} (${signed(summary.delta)})`;
+}
+
+function renderCalibrationReport(report, path) {
+  if (!report) return;
+  const rows = (Array.isArray(report.candidates) ? report.candidates : []).slice(0, 6);
+  const tableRows = rows.map((row) => `
+    <tr>
+      <td>${escapeHtml(String(row.rank ?? ""))}</td>
+      <td>${escapeHtml(row.label || row.id)}</td>
+      <td>${fmt(row.score)}</td>
+      <td>${signed(row.delta || 0)}</td>
+      <td>${escapeHtml(`${row.passed ?? 0}/${row.total ?? 0}`)}</td>
+      <td>${fmt(row.speed_error_mean)}</td>
+      <td>${fmt(row.impact_error_mean)}</td>
+      <td>${fmt(row.distortion?.mean_abs_delta)}</td>
+    </tr>`).join("");
+  const best = rows[0];
+  const axisRows = (best?.axis_compare || []).map((axis) => `
+    <tr>
+      <td>${escapeHtml(axis.axis)}</td>
+      <td>${fmt(axis.mean_abs_error_before)}</td>
+      <td>${fmt(axis.mean_abs_error_after)}</td>
+      <td>${signed(axis.target_shift_mean || 0)}</td>
+      <td>${signed(axis.achieved_shift_mean || 0)}</td>
+    </tr>`).join("");
+  refs.calibrationReport.innerHTML = `
+    <table class="calibration-table">
+      <thead><tr><th>#</th><th>candidate</th><th>score</th><th>delta</th><th>pass</th><th>speed</th><th>impact</th><th>shift</th></tr></thead>
+      <tbody>${tableRows || `<tr><td colspan="8">No candidates.</td></tr>`}</tbody>
+    </table>
+    <table class="calibration-table calibration-axis-table">
+      <thead><tr><th>axis</th><th>err before</th><th>err after</th><th>target</th><th>achieved</th></tr></thead>
+      <tbody>${axisRows || `<tr><td colspan="5">No axis detail.</td></tr>`}</tbody>
+    </table>
+    ${path ? `<a class="calibration-link" href="${escapeHtml(path)}" target="_blank" rel="noreferrer">open report JSON</a>` : ""}`;
+}
+
+async function runCalibration() {
+  if (!state.data?.calibration?.available) return;
+  const budget = Math.trunc(Number(refs.calibrationBudget.value));
+  const seeds = refs.calibrationSeeds.value.trim();
+  try {
+    const res = await fetch("/api/spec-calibration/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ spec: state.data.spec.path, budget, seeds }),
+    }).then(readJsonOk);
+    state.calibrationJob = res.job;
+    toast("Calibration started");
+    renderCalibration();
+    pollCalibrationJob();
+  } catch (error) {
+    toast(String(error));
+  }
+}
+
+function pollCalibrationJob() {
+  stopCalibrationPolling();
+  if (!state.calibrationJob?.id) return;
+  const tick = async () => {
+    try {
+      const res = await fetch(`/api/spec-calibration/jobs/${encodeURIComponent(state.calibrationJob.id)}`, { cache: "no-cache" }).then(readJsonOk);
+      state.calibrationJob = res.job;
+      renderCalibration();
+      if (res.job.status === "queued" || res.job.status === "running") {
+        state.calibrationPoll = setTimeout(tick, 1500);
+      } else {
+        await refreshCalibrationLatest();
+        toast(res.job.status === "succeeded" ? "Calibration finished" : "Calibration failed");
+      }
+    } catch (error) {
+      refs.calibrationState.textContent = "poll failed";
+      refs.calibrationLogs.textContent += `\n${String(error)}`;
+    }
+  };
+  state.calibrationPoll = setTimeout(tick, 500);
+}
+
+function stopCalibrationPolling() {
+  if (state.calibrationPoll) clearTimeout(state.calibrationPoll);
+  state.calibrationPoll = null;
+}
+
+async function refreshCalibrationLatest() {
+  if (!state.data) return;
+  const latest = await fetch(`/api/spec-calibration/latest?spec=${encodeURIComponent(state.data.spec.path)}`, { cache: "no-cache" }).then(readJsonOk);
+  state.data.calibration.latestReport = latest.latest;
+  renderCalibration();
+}
+
+async function applyCalibrationSelection() {
+  if (!state.data?.calibration?.available) return;
+  const selected = refs.calibrationCandidate.value || "identity";
+  const latestPath = state.data.calibration.latestReport?.path || null;
+  try {
+    await fetch("/api/spec-calibration/selection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        spec: state.data.spec.path,
+        selected,
+        enabled: selected !== "identity",
+        sourceReport: latestPath,
+      }),
+    }).then(readJsonOk);
+    toast(selected === "identity" ? "Calibration set to identity" : "Calibration applied");
+    await loadSpec(state.data.spec.path, false);
+  } catch (error) {
+    toast(String(error));
+  }
+}
+
+async function disableCalibrationSelection() {
+  if (!state.data?.calibration?.available) return;
+  try {
+    await fetch("/api/spec-calibration/selection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ spec: state.data.spec.path, selected: state.data.calibration.selection?.selected || "identity", enabled: false }),
+    }).then(readJsonOk);
+    toast("Calibration disabled");
+    await loadSpec(state.data.spec.path, false);
+  } catch (error) {
+    toast(String(error));
+  }
 }
 
 function editDetail(edit) {

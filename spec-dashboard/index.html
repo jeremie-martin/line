@@ -139,6 +139,26 @@
       <ol id="edit-list" class="edit-list"></ol>
     </section>
 
+    <section class="calibration">
+      <div class="section-title-row">
+        <h2>Calibration</h2>
+        <span id="calibration-state"></span>
+      </div>
+      <div class="note-anchor" id="calibration-summary">No calibration loaded</div>
+      <div class="calibration-grid">
+        <label>Budget <input id="calibration-budget" type="number" min="1" step="10000" value="300000"></label>
+        <label>Seeds <input id="calibration-seeds" type="text" value="0,1,2,3,4,5,6,7,8,9,10,11"></label>
+        <label>Candidate <select id="calibration-candidate"></select></label>
+      </div>
+      <div class="save-row calibration-actions">
+        <button id="calibration-run" type="button">Run</button>
+        <button id="calibration-apply" type="button">Apply</button>
+        <button id="calibration-disable" type="button">Disable</button>
+      </div>
+      <div id="calibration-report" class="calibration-report"></div>
+      <pre id="calibration-logs" class="calibration-logs"></pre>
+    </section>
+
     <section class="agent-context">
       <div class="section-title-row">
         <h2>Agent Context</h2>

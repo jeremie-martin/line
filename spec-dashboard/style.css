@@ -412,6 +412,13 @@ h2 {
   margin-top: 12px;
 }
 
+.calibration-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 .editor-grid label {
   color: var(--muted);
   font-size: 11px;
@@ -422,7 +429,9 @@ h2 {
 }
 
 .editor-grid input,
-.editor-grid select {
+.editor-grid select,
+.calibration-grid input,
+.calibration-grid select {
   min-width: 0;
   width: 100%;
   height: 32px;
@@ -436,6 +445,69 @@ h2 {
 .editor-grid select:disabled {
   color: #a99b84;
   background: #f3ead8;
+}
+
+.calibration-grid label {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  display: grid;
+  gap: 3px;
+}
+
+.calibration-grid label:last-child {
+  grid-column: 1 / -1;
+}
+
+.calibration-actions {
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.calibration-report {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.calibration-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.calibration-table th,
+.calibration-table td {
+  border-top: 1px solid var(--line);
+  padding: 5px 4px;
+  text-align: right;
+}
+
+.calibration-table th:nth-child(2),
+.calibration-table td:nth-child(2),
+.calibration-axis-table th:first-child,
+.calibration-axis-table td:first-child {
+  text-align: left;
+}
+
+.calibration-link {
+  color: var(--blue);
+  font-size: 12px;
+}
+
+.calibration-logs {
+  max-height: 150px;
+  overflow: auto;
+  margin: 10px 0 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: #2a251f;
+  color: #f8edd5;
+  border-radius: 6px;
+  font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
 }
 
 #edit-state {

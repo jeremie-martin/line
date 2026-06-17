@@ -19,6 +19,15 @@
 import type { Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
 import { beats } from "../core/beats.ts";
+import {
+  applyCalibrationSelection,
+  axisExpand,
+  axisFloor,
+  axisShift,
+  composeCalibration,
+  defineCalibration,
+  identity,
+} from "../core/spec_modifiers.ts";
 import { BELIEVER_MUSIC } from "./_music.ts";
 
 // Clean on-grid 125 BPM main beat inlined from the former beats/drums_0_56s.json.
@@ -42,7 +51,7 @@ const contacts = beats(beatTimes.map((t) => ({ t })));
 // carries the expressive arc; speed kept modest where the rider naturally lands
 // (raw speed overshoots the authored 1.0 mapping late regardless), so axis error
 // stays low.
-const spec: Spec = {
+export const baseSpec: Spec = {
   duration: 56,
   music: BELIEVER_MUSIC,
   contacts,
@@ -66,4 +75,19 @@ const spec: Spec = {
   },
 };
 
-export default spec;
+export const calibration = defineCalibration({
+  candidates: [
+    identity(),
+    axisShift("speed", 0.03),
+    axisShift("speed", 0.06),
+    axisExpand("speed", 1.08),
+    axisFloor("air", 0.35),
+    composeCalibration("speed.shift.+0.03.air.floor.0.35", "speed +0.03 + air floor", [
+      axisShift("speed", 0.03),
+      axisFloor("air", 0.35),
+    ]),
+  ],
+  objective: { kind: "global-score" },
+});
+
+export default applyCalibrationSelection(baseSpec, calibration, import.meta.url);

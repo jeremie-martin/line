@@ -170,12 +170,34 @@ the compiler found the requested slam.
 ## Choose beats under a gap budget
 
 The analyzer may find more real musical events than the track can physically hit.
-A detected onset is evidence, not an obligation.
+A detected onset is evidence, not an obligation. The goal is not the maximum
+number of contacts, and it is not merely the easiest feasible contact list. The
+goal is the best musical compression of the song into landings, impacts, motion,
+and camera.
 
-The practical TIKI lesson: gaps below about 300ms are risky, and anticipation
-plus primary pairs around 200ms were too tight to read well. Promoting every
-detected event created more contacts but a worse track. Keep the right beats,
-not the most beats.
+Be explicit about density problems. If the important musical layer would require
+many contact gaps below about 400ms, call that out in the work notes or final
+summary instead of silently producing a weaker-looking spec. This is not a hard
+rule; occasional short gaps can work when they are musically essential and kept
+visually small. But repeated sub-400ms contacts leave little physical room for
+readable arcs, impact, or amplitude. Gaps below about 300ms are especially risky,
+and anticipation plus primary pairs around 200ms were too tight to read well in
+TIKI.
+
+When a real event is too close to another real event, do not simply erase the
+music to satisfy the compiler. Resolve the conflict musically:
+
+1. keep the event that carries the phrase, body hit, drop, or downbeat;
+2. replace a nearby weaker contact rather than appending another required
+   landing;
+3. express the omitted event through impact, speed, air, amplitude, camera, or
+   a low-impact support contact;
+4. preserve the listener's hierarchy, even if the exact event count changes.
+
+Promoting every detected event created more contacts but a worse track. Filtering
+too aggressively can create the opposite failure: a feasible spec that no longer
+sounds like the music. Keep the right beats, not the most beats, and document any
+important beats that were represented indirectly instead of as landings.
 
 A useful promotion order is:
 
@@ -327,7 +349,8 @@ The loop is:
 1. listen and annotate in the spec dashboard;
 2. check whether `analyze_rhythm.py` agrees in broad strokes;
 3. if it disagrees badly, improve the analysis or override intentionally;
-4. choose contacts under a gap budget and set impact hierarchy;
+4. choose contacts under a gap budget, set impact hierarchy, and note any dense
+   passages that forced indirect representation;
 5. adjust `air`/`speed`, then add optional amplitude/elevation only if needed;
 6. compile;
 7. inspect report + shape analyzer + rendered video;
@@ -339,6 +362,9 @@ Useful failures:
 - A true beat is missing: analysis or contact filtering is too conservative.
 - A real event creates a tiny gap: keep it as evidence, replace a neighboring
   contact, or express it through impact/camera instead of adding a landing.
+- The contact list is feasible but no longer sounds like the song: restore the
+  musical hierarchy, even if that means admitting the track needs indirect
+  representation in dense passages.
 - High amplitude on dense beats does nothing: create a longer gap or lower the
   amplitude ask.
 - High impact and high amplitude fight: decide which one the music needs more.

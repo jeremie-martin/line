@@ -1,0 +1,2719 @@
+{
+  "audio": "shelter_81s.mp3",
+  "duration": 81.0,
+  "madmom_beats": [
+    0.33,
+    0.94,
+    1.54,
+    2.14,
+    2.73,
+    3.34,
+    3.93,
+    4.53,
+    5.14,
+    5.74,
+    6.34,
+    6.94,
+    7.53,
+    8.13,
+    8.73,
+    9.33,
+    9.93,
+    10.53,
+    11.13,
+    11.73,
+    12.33,
+    12.93,
+    13.53,
+    14.13,
+    14.73,
+    15.33,
+    15.94,
+    16.53,
+    17.13,
+    17.73,
+    18.33,
+    18.93,
+    19.53,
+    20.13,
+    20.73,
+    21.33,
+    21.93,
+    22.53,
+    23.13,
+    23.73,
+    24.33,
+    24.93,
+    25.53,
+    26.13,
+    26.73,
+    27.33,
+    27.93,
+    28.53,
+    29.13,
+    29.73,
+    30.33,
+    30.93,
+    31.53,
+    32.13,
+    32.73,
+    33.33,
+    33.93,
+    34.53,
+    35.13,
+    35.73,
+    36.33,
+    36.93,
+    37.53,
+    38.12,
+    38.73,
+    39.33,
+    39.94,
+    40.54,
+    41.13,
+    41.73,
+    42.34,
+    42.93,
+    43.53,
+    44.13,
+    44.74,
+    45.33,
+    45.93,
+    46.53,
+    47.13,
+    47.73,
+    48.33,
+    48.93,
+    49.53,
+    50.13,
+    50.73,
+    51.33,
+    51.93,
+    52.53,
+    53.13,
+    53.73,
+    54.33,
+    54.93,
+    55.53,
+    56.13,
+    56.73,
+    57.33,
+    57.93,
+    58.54,
+    59.14,
+    59.74,
+    60.33,
+    60.93,
+    61.54,
+    62.14,
+    62.75,
+    63.33,
+    63.93,
+    64.53,
+    65.13,
+    65.75,
+    66.34,
+    66.93,
+    67.53,
+    68.13,
+    68.73,
+    69.33,
+    69.94,
+    70.53,
+    71.14,
+    71.73,
+    72.34,
+    72.92,
+    73.54,
+    74.11,
+    74.73,
+    75.33,
+    75.94,
+    76.53,
+    77.13,
+    77.73,
+    78.33,
+    78.93,
+    79.53,
+    80.13,
+    80.73
+  ],
+  "streams_snapped_counts": {
+    "rnn_drums": 257,
+    "stem_drums": 203,
+    "band_kick": 205,
+    "band_snare": 150,
+    "band_hat": 237,
+    "rnn_mix": 410,
+    "lib_drum": 314
+  },
+  "consensus_streams": [
+    "rnn_drums",
+    "stem_drums",
+    "band_kick",
+    "band_snare",
+    "band_hat"
+  ],
+  "min_votes": 3,
+  "n_consensus": 206,
+  "consensus": [
+    {
+      "t": 7.382,
+      "votes": 3,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 8.13,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums"
+      ]
+    },
+    {
+      "t": 8.58,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 9.18,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums"
+      ]
+    },
+    {
+      "t": 9.33,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 9.78,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 9.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 10.23,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 10.83,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 11.13,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 11.43,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 11.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 11.88,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 12.03,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 12.18,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "band_snare",
+        "rnn_drums"
+      ]
+    },
+    {
+      "t": 12.33,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 12.48,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 12.63,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 12.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 13.08,
+      "votes": 3,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 13.23,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 13.38,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 13.53,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 13.68,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 13.83,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 13.98,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 14.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 14.43,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 14.58,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 14.73,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 14.88,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 15.03,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 15.18,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums"
+      ]
+    },
+    {
+      "t": 15.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 15.482,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 15.635,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 15.94,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 16.087,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 16.235,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 16.382,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 16.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 16.68,
+      "votes": 4,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 17.13,
+      "votes": 3,
+      "sources": [
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 17.58,
+      "votes": 3,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 18.33,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 18.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 19.08,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 19.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 20.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 20.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 21.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 21.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 22.23,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 22.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 23.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 23.43,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 23.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 24.03,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 24.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 24.78,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 24.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 25.38,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 25.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 25.83,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 26.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 26.43,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 26.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 27.03,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 27.18,
+      "votes": 3,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 27.78,
+      "votes": 4,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 27.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 28.08,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 28.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 29.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 29.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 30.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 30.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 31.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 31.98,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 32.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 32.58,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 32.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 33.03,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "band_snare",
+        "rnn_drums"
+      ]
+    },
+    {
+      "t": 33.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 33.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 34.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 35.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 35.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 36.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 36.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 37.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 37.678,
+      "votes": 4,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 37.825,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 38.12,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 38.73,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 39.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 39.635,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 42.93,
+      "votes": 4,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 43.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 43.83,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 44.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 44.588,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 44.74,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 45.182,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 45.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 45.63,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 45.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 46.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 46.98,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 47.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 47.43,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 47.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 48.03,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 48.18,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 48.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 48.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 49.38,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 49.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 49.83,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 49.98,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 50.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 50.43,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 50.58,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 50.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 50.88,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 51.03,
+      "votes": 4,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 51.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 51.63,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 51.78,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 51.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 52.23,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 52.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 52.83,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 52.98,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 53.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 53.43,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 53.58,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 53.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 54.03,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 54.18,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 54.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 54.63,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 54.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 55.23,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 55.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 55.83,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 55.98,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 56.13,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 56.43,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 56.58,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 56.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 57.03,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 57.18,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 57.33,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 57.63,
+      "votes": 3,
+      "sources": [
+        "band_kick",
+        "band_snare",
+        "rnn_drums"
+      ]
+    },
+    {
+      "t": 57.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 65.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 67.53,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 67.68,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 67.83,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 67.98,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 68.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 68.28,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 68.43,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 68.58,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 68.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 68.88,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 69.03,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 69.18,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 69.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 69.482,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 69.635,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 69.788,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 69.94,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 70.088,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 70.235,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 70.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 70.682,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 70.835,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 70.988,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 71.14,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 71.288,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 71.583,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 71.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 71.883,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 72.035,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 72.188,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 72.34,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 72.485,
+      "votes": 4,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 75.94,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 76.235,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 76.382,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 76.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 76.68,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 76.83,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 77.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 77.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 78.33,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 78.78,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 78.93,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 79.53,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 79.83,
+      "votes": 3,
+      "sources": [
+        "band_kick",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 80.13,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 80.43,
+      "votes": 3,
+      "sources": [
+        "band_hat",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 80.58,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    },
+    {
+      "t": 80.73,
+      "votes": 5,
+      "sources": [
+        "band_hat",
+        "band_kick",
+        "band_snare",
+        "rnn_drums",
+        "stem_drums"
+      ]
+    }
+  ],
+  "mix": {
+    "librosa_period_ms": 603.72,
+    "n_drum_onsets": 318,
+    "n_bass_onsets": 62
+  },
+  "drum_onsets_mix": [
+    0.2089795918367347,
+    0.905578231292517,
+    1.0448979591836736,
+    1.3699773242630386,
+    1.4628571428571429,
+    2.066575963718821,
+    2.5541950113378684,
+    2.693514739229025,
+    3.320453514739229,
+    3.436553287981859,
+    3.7848526077097504,
+    4.829750566893424,
+    5.131609977324263,
+    5.712108843537415,
+    5.851428571428571,
+    6.176507936507937,
+    6.873106575963718,
+    7.198185941043084,
+    7.546485260770975,
+    7.732244897959184,
+    8.057324263038549,
+    8.150204081632653,
+    8.312743764172335,
+    8.661043083900227,
+    8.93968253968254,
+    9.334421768707482,
+    9.543401360544218,
+    9.93814058956916,
+    10.031020408163265,
+    10.379319727891156,
+    10.495419501133787,
+    10.634739229024943,
+    10.797278911564625,
+    10.983038548752834,
+    11.075918367346938,
+    11.215238095238096,
+    11.42421768707483,
+    11.586757369614512,
+    11.679637188208616,
+    11.818956916099774,
+    11.981496598639456,
+    12.120816326530612,
+    12.329795918367347,
+    12.422675736961452,
+    12.561995464852608,
+    12.770975056689343,
+    12.887074829931972,
+    13.02639455782313,
+    13.235374149659863,
+    13.374693877551021,
+    13.49079365079365,
+    13.630113378684808,
+    14.071292517006803,
+    14.303492063492063,
+    14.419591836734694,
+    14.535691609977324,
+    14.721451247165533,
+    14.97687074829932,
+    15.185850340136055,
+    15.27873015873016,
+    15.441269841269841,
+    15.789569160997733,
+    15.882448979591837,
+    16.021768707482995,
+    16.23074829931973,
+    16.486167800453515,
+    16.62548752834467,
+    16.788027210884355,
+    17.972244897959182,
+    18.52952380952381,
+    18.92426303854875,
+    19.086802721088436,
+    19.52798185941043,
+    19.620861678004534,
+    20.108480725623583,
+    20.66575963718821,
+    20.82829931972789,
+    21.269478458049885,
+    21.61777777777778,
+    21.91963718820862,
+    22.035736961451246,
+    22.105396825396827,
+    22.523356009070294,
+    22.6162358276644,
+    22.987755102040815,
+    23.08063492063492,
+    23.219954648526077,
+    23.661133786848072,
+    24.264852607709752,
+    24.427392290249433,
+    24.91501133786848,
+    25.007891156462584,
+    25.379410430839002,
+    25.472290249433108,
+    25.63482993197279,
+    26.076009070294784,
+    26.424308390022677,
+    26.726167800453513,
+    26.81904761904762,
+    27.329886621315193,
+    27.93360544217687,
+    28.003265306122447,
+    28.53732426303855,
+    29.141043083900225,
+    29.23392290249433,
+    29.72154195011338,
+    29.814421768707483,
+    30.278820861678003,
+    30.418140589569163,
+    30.928979591836736,
+    31.230839002267572,
+    31.509478458049887,
+    31.62557823129252,
+    32.113197278911564,
+    32.57759637188209,
+    32.69369614512472,
+    32.80979591836735,
+    33.29741496598639,
+    33.62249433106576,
+    33.8314739229025,
+    34.0172335600907,
+    34.481632653061226,
+    35.062131519274374,
+    35.22467120181406,
+    35.68907029478458,
+    36.014149659863946,
+    36.31600907029478,
+    36.40888888888889,
+    36.94294784580499,
+    37.52344671201814,
+    37.61632653061225,
+    38.196825396825396,
+    38.31292517006803,
+    38.31292517006803,
+    38.66122448979592,
+    38.730884353741494,
+    39.31138321995465,
+    39.59002267573696,
+    39.91510204081633,
+    40.49560090702948,
+    41.07609977324263,
+    41.28507936507936,
+    41.4940589569161,
+    42.00489795918367,
+    42.190657596371885,
+    42.32997732426304,
+    42.91047619047619,
+    43.073015873015876,
+    43.37487528344671,
+    43.46775510204082,
+    43.6302947845805,
+    43.74639455782313,
+    43.932154195011336,
+    44.07147392290249,
+    44.28045351473923,
+    44.419773242630384,
+    44.51265306122449,
+    44.67519274376417,
+    44.83773242630385,
+    45.00027210884354,
+    45.139591836734695,
+    45.27891156462585,
+    45.464671201814056,
+    45.60399092970521,
+    45.7665306122449,
+    45.88263038548753,
+    46.021950113378686,
+    46.16126984126984,
+    46.300589569161,
+    46.4863492063492,
+    46.672108843537416,
+    46.76498866213152,
+    46.90430839002268,
+    47.09006802721088,
+    47.22938775510204,
+    47.368707482993194,
+    47.57768707482993,
+    47.69378684807256,
+    47.9027664399093,
+    48.042086167800456,
+    48.15818594104309,
+    48.32072562358277,
+    48.41360544217687,
+    48.78512471655329,
+    48.901224489795915,
+    49.017324263038546,
+    49.179863945578234,
+    49.342403628117914,
+    49.48172335600907,
+    49.621043083900226,
+    49.783582766439906,
+    49.946122448979594,
+    50.1318820861678,
+    50.224761904761905,
+    50.387301587301586,
+    50.52662131519274,
+    50.6659410430839,
+    50.828480725623585,
+    51.037460317460315,
+    51.17678004535147,
+    51.26965986394558,
+    51.43219954648526,
+    51.61795918367347,
+    51.757278911564626,
+    51.919818594104306,
+    52.03591836734694,
+    52.19845804988662,
+    52.31455782312925,
+    52.47709750566894,
+    52.66285714285714,
+    52.77895691609977,
+    52.94149659863945,
+    53.08081632653061,
+    53.2433560090703,
+    53.4291156462585,
+    53.59165532879818,
+    53.68453514739229,
+    53.8702947845805,
+    53.98639455782313,
+    54.12571428571429,
+    54.28825396825397,
+    54.427573696145124,
+    54.56689342403628,
+    54.75265306122449,
+    54.91519274376417,
+    55.031292517006804,
+    55.17061224489796,
+    55.356371882086165,
+    55.472471655328796,
+    55.635011337868484,
+    55.82077097505669,
+    55.98331065759637,
+    56.122630385487525,
+    56.26195011337869,
+    56.42448979591837,
+    56.517369614512475,
+    56.679909297052156,
+    56.81922902494331,
+    57.00498866213152,
+    57.12108843537415,
+    57.283628117913835,
+    57.63192743764172,
+    57.74802721088435,
+    57.933786848072565,
+    58.792925170068024,
+    59.11800453514739,
+    60.18612244897959,
+    60.53442176870748,
+    60.766621315192744,
+    60.882721088435375,
+    61.207800453514736,
+    61.532879818594104,
+    62.09015873015873,
+    62.39201814058957,
+    62.67065759637188,
+    63.08861678004535,
+    63.41369614512472,
+    64.78367346938775,
+    64.92299319727891,
+    65.0855328798186,
+    65.57315192743764,
+    65.68925170068027,
+    66.03755102040816,
+    66.61804988662132,
+    66.73414965986395,
+    66.87346938775511,
+    67.221768707483,
+    67.5004081632653,
+    67.68616780045352,
+    67.9415873015873,
+    68.08090702947845,
+    68.24344671201814,
+    68.42920634920635,
+    68.68462585034014,
+    69.14902494331066,
+    69.26512471655329,
+    69.42766439909298,
+    69.56698412698412,
+    69.77596371882086,
+    69.86884353741496,
+    70.05460317460317,
+    70.17070294784581,
+    70.47256235827665,
+    70.63510204081632,
+    70.79764172335601,
+    70.93696145124717,
+    71.07628117913832,
+    71.5871201814059,
+    71.72643990929706,
+    71.81931972789116,
+    71.98185941043084,
+    72.28371882086168,
+    72.88743764172335,
+    73.16607709750566,
+    73.51437641723356,
+    74.37351473922902,
+    75.39519274376417,
+    75.90603174603174,
+    76.2311111111111,
+    76.34721088435374,
+    76.50975056689343,
+    76.6722902494331,
+    76.81160997732427,
+    77.020589569161,
+    77.22956916099773,
+    77.67074829931973,
+    77.81006802721089,
+    78.1815873015873,
+    78.27446712018141,
+    78.43700680272109,
+    78.85496598639456,
+    79.22648526077097,
+    79.52834467120181,
+    79.62122448979592,
+    80.08562358276644,
+    80.5732426303855,
+    80.66612244897959,
+    80.82866213151928
+  ],
+  "bass_onsets_mix": [
+    0.2089795918367347,
+    0.34829931972789113,
+    9.891700680272109,
+    13.003174603174603,
+    14.605351473922903,
+    19.06358276643991,
+    19.551201814058956,
+    21.339138321995463,
+    21.91963718820862,
+    23.754013605442175,
+    24.03265306122449,
+    24.288072562358277,
+    28.096145124716553,
+    28.69986394557823,
+    29.094603174603176,
+    30.34848072562358,
+    30.905759637188208,
+    31.509478458049887,
+    32.57759637188209,
+    33.34385487528345,
+    33.924353741496596,
+    35.085351473922906,
+    35.735510204081635,
+    36.33922902494331,
+    37.68598639455782,
+    38.684444444444445,
+    42.93369614512471,
+    43.51419501133787,
+    44.14113378684807,
+    44.28045351473923,
+    44.74485260770975,
+    46.4863492063492,
+    46.97396825396825,
+    47.13650793650794,
+    47.41514739229025,
+    47.71700680272109,
+    48.32072562358277,
+    48.901224489795915,
+    49.08698412698413,
+    50.1318820861678,
+    50.29442176870748,
+    51.33931972789116,
+    51.50185941043084,
+    51.94303854875283,
+    52.244897959183675,
+    52.523537414965986,
+    52.68607709750567,
+    53.057596371882084,
+    53.730975056689346,
+    53.893514739229026,
+    54.33469387755102,
+    54.91519274376417,
+    55.10095238095238,
+    55.51891156462585,
+    56.122630385487525,
+    56.28517006802721,
+    57.88734693877551,
+    74.62893424036281,
+    76.83482993197279,
+    77.13668934240363,
+    79.50512471655328,
+    80.73578231292517
+  ]
+}

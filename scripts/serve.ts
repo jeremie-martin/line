@@ -253,11 +253,30 @@ function listV0Specs(): SpecEntry[] {
   const groups = [
     { group: "v0", dir: resolve(ROOT, "scripts", "v0", "specs") },
     { group: "golden", dir: resolve(ROOT, "specs", "golden") },
+    { group: "production", dir: resolve(ROOT, "productions") },
   ];
 
   const specs: SpecEntry[] = [];
   for (const { group, dir } of groups) {
     if (!existsSync(dir)) continue;
+
+    if (group === "production") {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue;
+        const specName = entry.name;
+        const specAbs = resolve(dir, specName, "spec.ts");
+        if (!existsSync(specAbs)) continue;
+        const rel = toPosixPath(relative(ROOT, specAbs));
+        specs.push({
+          name: specName,
+          label: `${group}/${specName}`,
+          path: rel,
+          group,
+        });
+      }
+      continue;
+    }
+
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       if (!entry.isFile() || !entry.name.endsWith(".ts") || entry.name.startsWith("_")) continue;
       const abs = resolve(dir, entry.name);

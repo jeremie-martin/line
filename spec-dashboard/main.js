@@ -288,7 +288,8 @@ async function loadSpecList() {
   }
   const params = new URLSearchParams(location.search);
   const requested = params.get("spec");
-  const preferred = state.specs.find((spec) => spec.path === "scripts/v0/specs/drums_0_56s_creative.ts");
+  const preferred = state.specs.find((spec) => spec.group === "production")
+    || state.specs.find((spec) => spec.path === "scripts/v0/specs/drums_0_56s_creative.ts");
   const first = state.specs.find((spec) => spec.path === requested) || preferred || state.specs[0];
   if (!first) throw new Error("no specs found");
   refs.specSelect.value = first.path;

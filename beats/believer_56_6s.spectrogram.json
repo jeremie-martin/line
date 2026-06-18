@@ -1,0 +1,15 @@
+{
+  "audio_file": "believer_56_6s.mp3",
+  "duration": 56.6,
+  "sr": 22050,
+  "hop": 512,
+  "n_mels": 128,
+  "fmin": 30.0,
+  "fmax": 11025.0,
+  "db_floor": -70.0,
+  "db_top": 0.0,
+  "width": 2438,
+  "height": 128,
+  "image": "believer_56_6s.spectrogram.png",
+  "colormap": "magma"
+}

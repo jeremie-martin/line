@@ -1,0 +1,547 @@
+[
+  {
+    "t": 0.33,
+    "impact": 0.1,
+    "role": "intro"
+  },
+  {
+    "t": 1.54,
+    "impact": 0.1,
+    "role": "intro"
+  },
+  {
+    "t": 2.73,
+    "impact": 0.1,
+    "role": "intro"
+  },
+  {
+    "t": 3.93,
+    "impact": 0.1,
+    "role": "intro"
+  },
+  {
+    "t": 5.14,
+    "impact": 0.1,
+    "role": "intro"
+  },
+  {
+    "t": 6.34,
+    "impact": 0.1,
+    "role": "intro"
+  },
+  {
+    "t": 7.53,
+    "impact": 0.1,
+    "role": "intro"
+  },
+  {
+    "t": 8.73,
+    "impact": 0.1,
+    "role": "intro"
+  },
+  {
+    "t": 9.33,
+    "impact": 0.18,
+    "role": "intro-lift"
+  },
+  {
+    "t": 9.93,
+    "impact": 0.26,
+    "role": "groove"
+  },
+  {
+    "t": 10.53,
+    "impact": 0.2,
+    "role": "groove"
+  },
+  {
+    "t": 11.13,
+    "impact": 0.2,
+    "role": "groove"
+  },
+  {
+    "t": 11.73,
+    "impact": 0.2,
+    "role": "groove"
+  },
+  {
+    "t": 12.33,
+    "impact": 0.26,
+    "role": "groove"
+  },
+  {
+    "t": 12.93,
+    "impact": 0.2,
+    "role": "groove"
+  },
+  {
+    "t": 13.53,
+    "impact": 0.58,
+    "role": "groove"
+  },
+  {
+    "t": 14.13,
+    "impact": 0.2,
+    "role": "groove"
+  },
+  {
+    "t": 14.73,
+    "impact": 0.26,
+    "role": "groove"
+  },
+  {
+    "t": 15.33,
+    "impact": 0.2,
+    "role": "groove"
+  },
+  {
+    "t": 15.94,
+    "impact": 0.58,
+    "role": "groove"
+  },
+  {
+    "t": 16.53,
+    "impact": 0.58,
+    "role": "groove"
+  },
+  {
+    "t": 17.13,
+    "impact": 0.26,
+    "role": "groove"
+  },
+  {
+    "t": 17.73,
+    "impact": 0.2,
+    "role": "groove"
+  },
+  {
+    "t": 18.33,
+    "impact": 0.2,
+    "role": "groove"
+  },
+  {
+    "t": 18.93,
+    "impact": 0.58,
+    "role": "groove"
+  },
+  {
+    "t": 19.53,
+    "impact": 0.26,
+    "role": "verse"
+  },
+  {
+    "t": 20.13,
+    "impact": 0.2,
+    "role": "verse"
+  },
+  {
+    "t": 20.73,
+    "impact": 0.2,
+    "role": "verse"
+  },
+  {
+    "t": 21.33,
+    "impact": 0.2,
+    "role": "verse"
+  },
+  {
+    "t": 21.93,
+    "impact": 0.26,
+    "role": "verse"
+  },
+  {
+    "t": 22.53,
+    "impact": 0.2,
+    "role": "verse"
+  },
+  {
+    "t": 23.13,
+    "impact": 0.2,
+    "role": "verse"
+  },
+  {
+    "t": 23.73,
+    "impact": 0.2,
+    "role": "verse"
+  },
+  {
+    "t": 24.33,
+    "impact": 0.26,
+    "role": "verse"
+  },
+  {
+    "t": 24.93,
+    "impact": 0.48,
+    "role": "verse"
+  },
+  {
+    "t": 25.53,
+    "impact": 0.2,
+    "role": "verse"
+  },
+  {
+    "t": 26.13,
+    "impact": 0.2,
+    "role": "verse"
+  },
+  {
+    "t": 26.73,
+    "impact": 0.26,
+    "role": "verse"
+  },
+  {
+    "t": 27.33,
+    "impact": 0.2,
+    "role": "verse"
+  },
+  {
+    "t": 27.93,
+    "impact": 0.6,
+    "role": "verse-peak"
+  },
+  {
+    "t": 28.53,
+    "impact": 0.2,
+    "role": "verse"
+  },
+  {
+    "t": 29.13,
+    "impact": 0.26,
+    "role": "build"
+  },
+  {
+    "t": 29.73,
+    "impact": 0.21,
+    "role": "build"
+  },
+  {
+    "t": 30.33,
+    "impact": 0.23,
+    "role": "build"
+  },
+  {
+    "t": 30.93,
+    "impact": 0.24,
+    "role": "build"
+  },
+  {
+    "t": 31.53,
+    "impact": 0.31,
+    "role": "build"
+  },
+  {
+    "t": 32.13,
+    "impact": 0.27,
+    "role": "build"
+  },
+  {
+    "t": 32.73,
+    "impact": 0.52,
+    "role": "build"
+  },
+  {
+    "t": 33.33,
+    "impact": 0.29,
+    "role": "build"
+  },
+  {
+    "t": 33.93,
+    "impact": 0.37,
+    "role": "build"
+  },
+  {
+    "t": 34.53,
+    "impact": 0.32,
+    "role": "build"
+  },
+  {
+    "t": 35.13,
+    "impact": 0.33,
+    "role": "build"
+  },
+  {
+    "t": 35.73,
+    "impact": 0.35,
+    "role": "build"
+  },
+  {
+    "t": 36.33,
+    "impact": 0.42,
+    "role": "build"
+  },
+  {
+    "t": 36.93,
+    "impact": 0.37,
+    "role": "build"
+  },
+  {
+    "t": 37.53,
+    "impact": 0.39,
+    "role": "build"
+  },
+  {
+    "t": 38.12,
+    "impact": 0.4,
+    "role": "build"
+  },
+  {
+    "t": 38.73,
+    "impact": 0.4,
+    "role": "chorus1-hit"
+  },
+  {
+    "t": 39.33,
+    "impact": 0.34,
+    "role": "chorus1-hit"
+  },
+  {
+    "t": 41.13,
+    "impact": 0.16,
+    "role": "chorus1-float"
+  },
+  {
+    "t": 41.73,
+    "impact": 0.22,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 42.34,
+    "impact": 0.22,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 42.93,
+    "impact": 0.22,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 43.53,
+    "impact": 0.28,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 44.13,
+    "impact": 0.22,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 44.74,
+    "impact": 0.22,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 45.33,
+    "impact": 0.55,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 45.93,
+    "impact": 0.28,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 46.53,
+    "impact": 0.22,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 47.13,
+    "impact": 0.22,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 47.73,
+    "impact": 0.22,
+    "role": "chorus1-close"
+  },
+  {
+    "t": 48.33,
+    "impact": 0.62,
+    "role": "chorus2"
+  },
+  {
+    "t": 48.93,
+    "impact": 0.4,
+    "role": "chorus2"
+  },
+  {
+    "t": 49.53,
+    "impact": 0.62,
+    "role": "chorus2"
+  },
+  {
+    "t": 50.13,
+    "impact": 0.4,
+    "role": "chorus2"
+  },
+  {
+    "t": 50.73,
+    "impact": 0.62,
+    "role": "chorus2"
+  },
+  {
+    "t": 51.33,
+    "impact": 0.4,
+    "role": "chorus2"
+  },
+  {
+    "t": 51.93,
+    "impact": 0.62,
+    "role": "chorus2"
+  },
+  {
+    "t": 52.53,
+    "impact": 0.4,
+    "role": "chorus2"
+  },
+  {
+    "t": 53.13,
+    "impact": 0.46,
+    "role": "chorus2"
+  },
+  {
+    "t": 53.73,
+    "impact": 0.62,
+    "role": "chorus2"
+  },
+  {
+    "t": 54.33,
+    "impact": 0.62,
+    "role": "chorus2"
+  },
+  {
+    "t": 54.93,
+    "impact": 0.4,
+    "role": "chorus2"
+  },
+  {
+    "t": 55.53,
+    "impact": 0.46,
+    "role": "chorus2"
+  },
+  {
+    "t": 56.13,
+    "impact": 0.4,
+    "role": "chorus2"
+  },
+  {
+    "t": 56.73,
+    "impact": 0.62,
+    "role": "chorus2"
+  },
+  {
+    "t": 57.33,
+    "impact": 0.62,
+    "role": "chorus2"
+  },
+  {
+    "t": 57.93,
+    "impact": 0.12,
+    "role": "breakdn-float"
+  },
+  {
+    "t": 59.74,
+    "impact": 0.12,
+    "role": "breakdn-float"
+  },
+  {
+    "t": 61.54,
+    "impact": 0.12,
+    "role": "breakdn-float"
+  },
+  {
+    "t": 63.33,
+    "impact": 0.12,
+    "role": "breakdn-float"
+  },
+  {
+    "t": 65.13,
+    "impact": 0.12,
+    "role": "breakdn-float"
+  },
+  {
+    "t": 66.34,
+    "impact": 0.18,
+    "role": "breakdn-lift"
+  },
+  {
+    "t": 67.53,
+    "impact": 0.4,
+    "role": "drop2"
+  },
+  {
+    "t": 68.13,
+    "impact": 0.58,
+    "role": "drop2"
+  },
+  {
+    "t": 68.73,
+    "impact": 0.58,
+    "role": "drop2"
+  },
+  {
+    "t": 69.33,
+    "impact": 0.58,
+    "role": "drop2"
+  },
+  {
+    "t": 69.94,
+    "impact": 0.4,
+    "role": "drop2"
+  },
+  {
+    "t": 70.53,
+    "impact": 0.34,
+    "role": "drop2"
+  },
+  {
+    "t": 71.14,
+    "impact": 0.34,
+    "role": "drop2"
+  },
+  {
+    "t": 71.73,
+    "impact": 0.58,
+    "role": "drop2"
+  },
+  {
+    "t": 72.34,
+    "impact": 0.3,
+    "role": "drop2-tail"
+  },
+  {
+    "t": 74.11,
+    "impact": 0.16,
+    "role": "drop2-float"
+  },
+  {
+    "t": 75.94,
+    "impact": 0.2,
+    "role": "drop2-float"
+  },
+  {
+    "t": 76.53,
+    "impact": 0.55,
+    "role": "drop2-reentry"
+  },
+  {
+    "t": 77.13,
+    "impact": 0.22,
+    "role": "outro"
+  },
+  {
+    "t": 78.33,
+    "impact": 0.22,
+    "role": "outro"
+  },
+  {
+    "t": 79.53,
+    "impact": 0.22,
+    "role": "outro"
+  },
+  {
+    "t": 80.73,
+    "impact": 0.22,
+    "role": "outro"
+  }
+]

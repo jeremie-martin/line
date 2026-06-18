@@ -21,10 +21,15 @@ new/
 *.mp4
 *.mp3
 *.opus
+*.aac
 *.wav
 *.zip
 beats/adtof_repo/
 beats/stems/htdemucs/
+
+# Python bytecode caches
+__pycache__/
+*.pyc
 
 # Render overlay data + music spectrum are regenerated (make_overlay_data.ts / make_spectrum.py)
 remotion/public/*.overlay.json

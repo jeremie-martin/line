@@ -22,9 +22,11 @@ the analyzer; it was to **surface the raw, corroborating evidence and let the
 author judge**.
 
 The worked example throughout is `productions/luna_bala_44s/spec.ts`, driven by its
-co-located `productions/luna_bala_44s/audio.json`. Each production song lives in its
-own self-contained `productions/<song>/` folder (spec + analysis + config + assets);
-§5 covers turning a finished spec into videos at scale.
+co-located `productions/luna_bala_44s/audio.json`; `productions/amor_na_praia_46s/`
+is the second worked example, the one that taught loudness-driven impact, off-grid
+hits, and re-drops (§2/§3). Each production song lives in its own self-contained
+`productions/<song>/` folder (spec + analysis + config + assets); §5 covers turning
+a finished spec into videos at scale.
 
 ---
 
@@ -111,14 +113,35 @@ All layers are interpretation-neutral measurements. The JSON has:
   on `sub`=0.00; they are extrapolated and must not become hard landings.
 - **Where is the drop?** A sharp `segments` boundary where `sub`/`perc` jump
   (LUNA: 8.57s, `sub` 0.00→0.65). Confirm with a strong `onset_strength` there.
-- **The accent hierarchy** is `onset_strength` per beat: high on snares/claps and
-  the drop, low on held kicks. Drive `impact` from this.
-- **Syncopation** lives in `onsets[]` vs the grid. In LUNA's breakdown the felt
-  kicks (36.94 / 37.36 / 37.78s, high `percussive_ratio`) fall *off* the grid,
-  while the grid beat at 37.47 is a weak in-between that isn't actually hit.
-  Land on the onsets, drop the grid beat — exactly what the ear reports.
+- **How hard is each hit?** Read measured **loudness** — the drum transient
+  (`percussive_rms`), the kick (`band_sub`), and the overall level (`rms`) at the
+  beat. **Do not use `onset_strength` as the loudness.** It is an *attack/novelty*
+  envelope: it spikes on chord changes and new timbres, which in an even groove
+  land on the harmonic **downbeats** — beats that are frequently *no louder, even
+  quieter*, than the off-beats around them. It happens to track loudness when the
+  accents really are louder (LUNA's snares/claps/drop), and to *anti*-track it
+  when they aren't (AMOR's body: the chord-change downbeat at 33.30 sits among the
+  **quietest** beats, while the off-beat at 33.85 is louder). Measure the loudness
+  you actually mean and you are never fooled by which one a song happens to be.
+- **The grid is quantized — trust the onsets for *where*.** madmom snaps beats to
+  a constant pulse, so even a main, loud hit can be placed 0.2–0.3s off where it
+  is played. In AMOR the **loudest hit of the whole clip** (4.46s, `rms` at the
+  track max, `percussive_ratio` 0.94) was gridded to 4.70; the played hit at 7.34
+  was gridded to 7.46, with a weak *harmonic* blip at 7.50 that is **not** a beat.
+  In any percussive/fill/syncopated section, cross-check each grid beat against
+  `onsets[]` (high `percussive_ratio`) and the local energy peak, and land on the
+  onset. (LUNA's breakdown: the felt kicks 36.94 / 37.36 / 37.78 fall *off* the
+  grid; the grid's 37.47 is a weak in-between that isn't hit — land on the onsets.)
+- **Re-drops and re-entries.** A `segments` boundary where `rms`/`sub` briefly
+  *collapse and then resume* is a **break followed by a re-entry** — musically a
+  second drop, and it should hit like one. AMOR has a ~0.25s hole at 26.29–26.70
+  (rms 0.30, sub 0.04), then the groove slams back at 26.70 (the body's highest
+  `onset_strength`). Treat the re-entry as a pinned drop, and (see §3) float the
+  rider across the hole so it actually lands hard rather than limping out of it.
 - **The ending** often collapses: `rms`/`sub` fall to ~0 (LUNA: silence past
-  ~43.2s). Stop contacts there.
+  ~43.2s). Stop the musical contacts there — though a couple of *near-silent*
+  grid touches (impact ~0.05–0.1) on a soft tail (AMOR: 43.75, 44.30) ride the
+  fade out smoothly instead of stopping the wheels dead.
 
 Argue with the analysis. If a layer disagrees with what you hear, trust your
 ears and write down why — but first check you are reading the right layer (the
@@ -173,22 +196,64 @@ syncopation array that swaps three grid beats for the kicks actually heard.
 ### Impact (felt landing intensity, per beat)
 
 `impact ∈ [0,1]` is a per-beat qualifier on a felt scale (0 soft → 1 very
-strong; it is the velocity-redirection arc at the catch). Map it transparently
-from the measured **attack**: harder `onset_strength` ⇒ harder landing. A
-one-line rule plus a pin on the marquee drop is plenty:
+strong; it is the velocity-redirection arc at the catch).
+
+**Map it from measured loudness, not from `onset_strength`** (see §2 for *why* —
+onset is chord-change novelty, not loudness). "How hard is this landing" should
+track how hard the hit actually is: a composite of the drum transient, the kick,
+and the overall level, read at the beat. Pin the structural moments (the drop,
+any re-drop) by hand and let the rest fall out of the composite:
 
 ```ts
-if (isSupport) return 0.04;
-if (isDrop) return 1.0;
-return clamp(0.18 + 0.85 * onsetStrengthAt(t) + 0.10 * percussiveAt(t), 0.12, 1.0);
+// local peak around t, ±0.10s — wide enough to catch a hit a frame off the
+// onset time, narrow enough never to bleed into a neighbouring beat.
+const loud = 0.40 * peak("percussive_rms", t) + 0.35 * peak("band_sub", t) + 0.25 * peak("rms", t);
+
+if (isSupport) return 0.04;          // beatless touch
+if (isDrop || isReDrop) return 1.0;  // structural slam, pinned by hand
+return clamp(0.45 + 1.40 * (loud - 0.627), 0.42, 0.80);  // calibrate to THIS song's body range
 ```
+
+Calibrate the linear map to the song's **own** body range so the spread is real,
+not invented. An even groove *should* read fairly flat in impact — that is honest
+— with the dynamism carried by air/speed/camera, not by faking variation the
+audio doesn't have. AMOR's body spans loud ≈ 0.627–0.770; the slope above turns
+that into impact ≈ 0.45 (quiet chord-dip downbeats) … 0.65 (heavier off-beats),
+with the far-louder fill riding up to the 0.80 cap and the two drops pinned at 1.
+
+**The body's overall hardness is a creative dial — but a physically bounded one,
+and it trades against bounce.** Two honesty checks live here:
+
+- *The dense body has an impact ceiling.* At ~0.55s spacing the rider must launch
+  straight into the next beat, so the per-gap ceiling sits around ~0.5 (read it as
+  `target` in the report — it is `min(your ask, ceiling)`). Authoring *above* the
+  ceiling does not buy more achieved impact; it only inflates the impact-error term
+  and drops the score. So lift the body to hit harder, but know that on a wall-to-wall
+  groove "harder" tops out near the ceiling — to make a specific beat truly slam,
+  give it *room* (thin its neighbours, or float into it), don't just type a bigger number.
+- *Harder catches kill the bounce.* A hard landing redirects velocity into the
+  ground; that is the opposite of the airborne dynamism (rocking, nose/tail-stands)
+  that `air` buys. Raising AMOR's body to 0.55–0.80 zeroed its stands (7%→0%) and
+  cut rotations nearly in half; a balanced 0.45–0.65 kept ~3%. This is the
+  "impact vs air fight" made concrete — decide per song which the body wants, and
+  verify the consequence in `study_rotation.ts`, not just in the score.
 
 `impact` is **scored** but bounded by physics: dense (~0.5s) beats cap impact
 well below 1.0 because the rider must immediately launch into the next beat, and
 slow sections cap it too (a slow catch can't redirect hard). So a 1.0 ask on a
 dense climax bar is fine — the compiler clamps it to what is catchable and the
-report tells you the achieved value. Big slams need *room* (a longer entering
-gap) and *speed*.
+report tells you the achieved value.
+
+**Big slams need room, and room is a lever you author: float the rider into the
+drop.** A dense 0.55s entering gap clamps even a pinned 1.0 to a soft catch —
+AMOR's drop achieved only ~0.35 that way. *Removing* the support touches before
+it, so the rider floats ~1.4s into the drop, raised the catchable ceiling to 0.90
+and it landed at **0.79**; the same trick across the 26.29–26.70 hole rescued the
+re-drop from 0.11 to **0.69**. The cost is a long airborne arc — confirm it stays
+controlled (`study_rotation.ts`, §4) — but a clean float into a slam is the single
+most effective way to make a drop *feel* like one. (Beatless support touches exist
+precisely to *prevent* unwanted long floats elsewhere — here you drop them on
+purpose, exactly where you want the bow.)
 
 ### Axes (continuous fields between beats)
 
@@ -286,10 +351,41 @@ npx tsx scripts/inspect.ts --track=generated/luna_bala_44s.track.json \
 3. adjust contacts (selection + gap budget), then impact, then axes/camera;
 4. compile; read report + shape + rendered video; repeat.
 
+### Is it actually in sync? (working honestly)
+
+Your authored `impact`/`speed`/`air` are *asks*. The compiler reports what was
+*achieved*. Syncing honestly means checking the achieved truth against the music —
+not admiring your targets, and not chasing a bigger score number.
+
+- **Check the achieved impact hierarchy, not the authored one.** Open the report's
+  `gaps[].axes.impact.{target, achieved}` (`target` is the physics-clamped ceiling
+  for that gap; `achieved` is what the rider actually did). The marquee drop should
+  *achieve* the most, above any re-drop, above the loud-fill hits, above the body.
+  If a secondary beat out-slams the drop, the drop lacks room — float into it (§3).
+  AMOR ended at drop 0.79 > re-drop 0.63 ≈ burst 0.63 > body ~0.3–0.5: a true
+  hierarchy, verified in the report, not assumed from the spec.
+- **Every hit defensible, every beat accounted for.** For each hard landing you
+  should be able to point at the energy/onset peak that earns it; for each place
+  you hear a beat with no contact, you should find it in `onsets[]`. If you can't,
+  you trusted the grid. The dashboard notes file
+  (`generated/spec-dashboard/<spec>.notes.json`) is where you record these
+  disagreements with yourself, then resolve them one by one against the layers.
+- **Honest, not impressive.** Don't inflate impact to lift the score, or spread a
+  flat groove into fake dynamics, or keep a contact just because an onset exists
+  when it busts the gap budget. A spec is in sync when each landing is defensible
+  from the measurements *and* the achieved shape matches what you hear — not when
+  the number is big. When the analysis and your ear disagree, say which won and why.
+
 Useful failures:
 
 - A hard landing sits where you hear no beat → you trusted the beat grid instead
   of `band_sub`/`percussive_rms`. The beats there are extrapolated.
+- Impact feels wrong — every downbeat hard, steady off-beats soft, quiet beats
+  hammered → you drove it from `onset_strength` (chord-change novelty), not
+  loudness. Read `percussive_rms` + `band_sub` + `rms` at the beat instead (§2/§3).
+- A drop feels soft even pinned to 1.0 → it is caught from a dense gap; float the
+  rider across a beatless stretch into it (drop the support touches there) and
+  re-check `achieved` in the report.
 - A real beat is missing → it is off-grid; find it in `onsets[]`.
 - A "support" touch lands hard → its entering gap is too long; add a touch to
   shorten it.

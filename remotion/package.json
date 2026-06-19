@@ -2,9 +2,9 @@
   "name": "line-phase-overlay",
   "version": "1.0.0",
   "private": true,
-  "description": "One-off Remotion overlay: annotates the Believer track with its madmom-derived phase structure.",
+  "description": "Remotion overlays (CurveOverlay / CurveOverlayVertical / ImpactStudyOverlay) composited onto rendered Line Rider videos by the produce pipeline (scripts/produce/render.ts). Use `studio` to preview; production renders are driven programmatically by render.ts with input props.",
   "scripts": {
-    "render": "remotion render src/index.ts CurveOverlay out/believer_curves_annotated.mp4",
+    "render": "remotion render src/index.ts CurveOverlayVertical out/overlay.mp4",
     "studio": "remotion studio src/index.ts"
   },
   "dependencies": {

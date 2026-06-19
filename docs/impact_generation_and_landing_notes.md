@@ -226,8 +226,8 @@ ejection-saturation prerequisite.
   (baseline vs all contacts −3 frames; both 96/96 hit, scores 716.7 vs 717.6 —
   pure feel comparison) — the user preferred the offset version. Production
   default is now **0ms** (disabled), applied in `scripts/v0/run.ts` (the
-  production compile CLI used by `produce_video.sh`), override via
-  `LR_JOLT_OFFSET_MS` (0 disables). The golden suite, `verify:optimizer`, and
+  production compile CLI used by the produce pipeline, `scripts/produce/`),
+  override via `LR_JOLT_OFFSET_MS` (0 disables). The golden suite, `verify:optimizer`, and
   tests call `compileHandoff` directly and are offset-free by construction —
   benchmarks measure the compiler, the offset is an authoring-layer transform.
 - **Window-widening (B/C) is GIVEN UP for now** (user decision): the measured

@@ -2,12 +2,13 @@ import React from "react";
 import { Composition, getInputProps } from "remotion";
 import { CurveOverlay, CurveOverlayVertical, ImpactStudyOverlay } from "./CurveOverlay";
 
-// Two overlay compositions, parameterized by input props from the pipeline
-// (scripts/produce_video.sh): dataFile, videoFile, durationS.
-//   CurveOverlay       — the creative annotated overlay (axis charts + a small
-//                        per-beat impact row = the production redir metric).
-//   ImpactStudyOverlay — the impact-study mode: the big top-center panel comparing
-//                        the impact-metric candidates per landing.
+// Three overlay compositions, parameterized by input props from the produce
+// pipeline (scripts/produce/render.ts): dataFile, videoFile, durationS.
+//   CurveOverlay         — landscape creative annotated overlay (axis charts + a
+//                          small per-beat impact row = the production redir metric).
+//   CurveOverlayVertical — the 9:16 production overlay used by the produce pipeline.
+//   ImpactStudyOverlay   — the impact-study mode: the big top-center panel comparing
+//                          the impact-metric candidates per landing.
 const FPS = 30;
 
 export const RemotionRoot: React.FC = () => {

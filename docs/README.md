@@ -28,7 +28,7 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 |---|---|---|
 | [`../GOAL_LDS_COMPILER_IMPROVEMENT.md`](../GOAL_LDS_COMPILER_IMPROVEMENT.md) | LIVE | The current standard campaign: raise HEADLINE (budget-value-weighted average) across the compiler. |
 | [`geometry-campaign.md`](geometry-campaign.md) | LIVE | Arc shape/placement/aim is the ceiling. Board `eval_geometry.sh`; companions `geometry-prompt.md`, `geometry-log.md`. |
-| [`lookahead-campaign.md`](lookahead-campaign.md) | LIVE | Forward-eval / rollout ranking. Companions `lookahead-prompt.md`, `lookahead-log.md`, `forward-eval-map.html`. |
+| [`lookahead-campaign.md`](lookahead-campaign.md) | LIVE | Forward-eval / rollout ranking. Companions `lookahead-log.md`, `forward-eval-map.html`. |
 | [`planning-campaign.md`](planning-campaign.md) | LIVE | Long-horizon / global planning. Board `eval_planning.sh`; companion `global-planning.md`. |
 | [`impact-mission.md`](impact-mission.md) | LIVE | Impact metric + steering (the campaign that produced the current baseline). Board `eval_impact.sh`; companions `impact-campaign.md`, `IMPACT_PAIR_PLANNING.md`. |
 
@@ -39,15 +39,17 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`../README.md`](../README.md) | REFERENCE | Repo overview, quick start, architecture, engine choice. |
 | [`../PROBLEM.md`](../PROBLEM.md) | REFERENCE | Problem statement and success criteria. |
 | [`metric_problem_statement.md`](metric_problem_statement.md) | REFERENCE | Statistical rationale behind the metric (noise floor, seed counts). |
-| [`creative_workflow.md`](creative_workflow.md) | REFERENCE | Worked song→track→video example. |
+| [`creative_workflow.md`](creative_workflow.md) | REFERENCE | Worked song→track→video example, and the `productions/<song>/` pipeline: `analyze_audio.py` → `characterize` → `select.json` → `npm run produce` (`scripts/produce/`). |
 | [`engine_speed_methodology.md`](engine_speed_methodology.md) | REFERENCE | Engine-perf method; cites the running `OPTIMIZATION_LOG.md` ledger. |
 | [`impact_contract.md`](impact_contract.md) | REFERENCE | Self-contained per-beat impact contract (the impact metric definition). |
 | [`impact_problem_statement.md`](impact_problem_statement.md) | REFERENCE | Impact semantics living doc. |
 | [`impact_generation_and_landing_notes.md`](impact_generation_and_landing_notes.md) | REFERENCE | Impact-as-generation analysis + landing-redefinition notes. |
 | [`../TOOLING_NOTES.md`](../TOOLING_NOTES.md) | REFERENCE | Living log of tooling/harness friction + resolutions. |
 
-Generated views (regenerated from runs, not hand-edited): `handoff-compiler.html` (the
-baseline-of-record table, via `scripts/v0/update_compiler_doc.ts`) and `forward-eval-map.html`.
+HTML views: `handoff-compiler.html` is **generated** — its baseline-of-record regions are
+spliced in by `scripts/v0/update_compiler_doc.ts` (edit the data via the generator, the
+prose by hand). `forward-eval-map.html` is **hand-maintained** (no generator); re-verify its
+`scripts/v0/*.ts` file:line anchors when that code changes.
 
 ## Component READMEs (co-located with code)
 

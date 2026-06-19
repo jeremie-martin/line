@@ -33,12 +33,19 @@ for c in cons:
     # nearest beat
     bi = min(range(len(beats)), key=lambda i: abs(beats[i] - t))
     d_on = abs(beats[bi] - t)
-    mid = 0.5 * (beats[bi] + beats[bi + 1]) if bi + 1 < len(beats) else beats[bi] + 0.3
+    # nearest "&": the midpoint of the gap t actually falls in. offbeat_votes[gi]
+    # is the "&" between beat gi and gi+1, so a hit BEFORE its nearest beat belongs
+    # to the previous gap (bi-1..bi), not the one after bi.
+    gi = bi if t >= beats[bi] else bi - 1
+    if 0 <= gi < len(beats) - 1:
+        mid = 0.5 * (beats[gi] + beats[gi + 1])
+    else:
+        gi, mid = bi, beats[bi] + 0.3  # edge: no following beat, approximate "&"
     d_off = abs(mid - t)
     if d_on <= 0.15 and d_on <= d_off:
         onbeat_votes[bi] += c["votes"]
     elif d_off <= 0.15:
-        offbeat_votes[bi] += c["votes"]
+        offbeat_votes[gi] += c["votes"]
 
 max_on = max(onbeat_votes) or 1
 

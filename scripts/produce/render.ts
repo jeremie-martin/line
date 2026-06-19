@@ -17,7 +17,7 @@
  * runs it once at launch, not per bundle.
  */
 import { spawn } from "node:child_process";
-import { openSync, closeSync, existsSync, mkdirSync, rmSync, copyFileSync, writeFileSync, readFileSync } from "node:fs";
+import { openSync, closeSync, existsSync, mkdirSync, rmSync, copyFileSync, writeFileSync, readFileSync, renameSync } from "node:fs";
 import { resolve, join, dirname, basename } from "node:path";
 import type { RenderConfig } from "./config.ts";
 
@@ -91,6 +91,7 @@ export type RenderInput = {
   metrics: { score: number; rotations: number; standTimePct: number };
   render: RenderConfig;
   budget: number;
+  jolt: number;            // felt-jolt ms the track was compiled with — so beat-punch aligns to it
   outDir: string;           // this run's output dir, e.g. generated/bundles/<YYMMDD-HHMMSS>
   workDir: string;          // scratch dir for the ride intermediate + logs
   gitSha: string;
@@ -122,7 +123,7 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
 
   // 1. ride render (spec camera, zoom-mult + beat-punch); QP near-lossless intermediate.
   const bp = inp.render.beatPunchPct > 0
-    ? ["--beat-punch", `--beat-punch-pct=${inp.render.beatPunchPct}`, "--zoom-ease=cubic"]
+    ? ["--beat-punch", `--beat-punch-pct=${inp.render.beatPunchPct}`, "--zoom-ease=cubic", `--jolt-ms=${inp.jolt}`]
     : [];
   await run(TSX[0], [...TSX.slice(1), "scripts/export.ts",
     `--track=${inp.trackPath}`, `--spec=${inp.specPath}`, "--zoom=action",
@@ -166,7 +167,6 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
   };
   writeFileSync(join(tmp, "upload.json"), JSON.stringify(upload, null, 2));
   rmSync(final, { recursive: true, force: true });
-  const { renameSync } = await import("node:fs");
   renameSync(tmp, final);
 
   // 6. delete big intermediates unless asked to keep.

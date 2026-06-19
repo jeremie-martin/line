@@ -184,22 +184,26 @@ export function axisShift(axis: TargetAxisName, delta: number): CalibrationCandi
   };
 }
 
-export function axisExpand(axis: TargetAxisName, factor: number, center = 0.5): CalibrationCandidate {
+// Linear remap of an axis around `center` by `factor`: factor>1 expands (pushes
+// values away from center), factor<1 compresses (pulls toward it). The verb is
+// derived from the factor so the id/label can never disagree with the effect.
+function axisScale(axis: TargetAxisName, factor: number, center: number): CalibrationCandidate {
+  const verb = factor >= 1 ? "expand" : "compress";
+  const dir = factor >= 1 ? "away from" : "toward";
   return {
-    id: `${axis}.expand.${compactNumber(factor)}@${compactNumber(center)}`,
-    label: `${axis} expand ${compactNumber(factor)}x`,
-    description: `Remap ${axis} away from ${center}.`,
+    id: `${axis}.${verb}.${compactNumber(factor)}@${compactNumber(center)}`,
+    label: `${axis} ${verb} ${compactNumber(factor)}x`,
+    description: `Remap ${axis} ${dir} ${center}.`,
     apply: (spec) => mapAxis(spec, axis, (v) => center + (v - center) * factor),
   };
 }
 
+export function axisExpand(axis: TargetAxisName, factor: number, center = 0.5): CalibrationCandidate {
+  return axisScale(axis, factor, center);
+}
+
 export function axisCompress(axis: TargetAxisName, factor: number, center = 0.5): CalibrationCandidate {
-  return {
-    id: `${axis}.compress.${compactNumber(factor)}@${compactNumber(center)}`,
-    label: `${axis} compress ${compactNumber(factor)}x`,
-    description: `Remap ${axis} toward ${center}.`,
-    apply: (spec) => mapAxis(spec, axis, (v) => center + (v - center) * factor),
-  };
+  return axisScale(axis, factor, center);
 }
 
 export function axisFloor(axis: TargetAxisName, floor: number): CalibrationCandidate {

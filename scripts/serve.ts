@@ -617,10 +617,6 @@ function sampleAxesAt(spec: Spec, t: number): Record<string, number> {
   return out;
 }
 
-function editMetaFor(entry: SpecDashboardSourceEntry | undefined, readOnlyReason: string): SpecDashboardEditMeta {
-  return editableMeta(entry, readOnlyReason);
-}
-
 function matchingEditMetaFor(
   entry: SpecDashboardSourceEntry | undefined,
   t: number,
@@ -633,7 +629,7 @@ function matchingEditMetaFor(
     Math.abs(entry.t - t) < 0.0001 &&
     Math.abs(entry.value - value) < 0.0001
   ) {
-    return editMetaFor(entry, readOnlyReason);
+    return editableMeta(entry, readOnlyReason);
   }
   return { editable: false, editKind: null, id: null, readOnlyReason };
 }

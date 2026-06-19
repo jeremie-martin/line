@@ -14,6 +14,7 @@ import {
   type RenderZoomPlan,
 } from "./v0/core/camera.ts";
 import { secToFrame, type Contact, type Spec, type SpecBeatPunch } from "./v0/types.ts";
+import { applyJolt } from "./produce/seed.ts";
 
 const argv = process.argv.slice(2);
 const arg = (name: string): string | null => {
@@ -78,6 +79,11 @@ const cliBP = {
   attack: cliNum("beat-punch-attack"),
   dir: arg("beat-punch-dir") ?? undefined,
 };
+// --jolt-ms: the same felt-jolt authoring shift the producer compiles the track with
+// (seed.ts applyJolt). The track lands on the JOLTED contact times, so beat-punch must
+// read those same shifted times — otherwise every punch peak trails the felt slam by
+// the jolt amount. Default 0 (no shift) keeps the dashboard/run.ts paths byte-identical.
+const joltMs = cliNum("jolt-ms") ?? 0;
 
 type ResolvedBeatPunch = {
   amp: number; pct: number; threshold: number; floor: number;
@@ -232,7 +238,9 @@ if (zoomMode === "spec") {
   try {
     const loaded = await loadSpecZoomPlan(trackPath);
     zoomPlan = loaded.plan;
-    specContacts = loaded.spec?.contacts ?? [];
+    // Shift contacts by the same jolt the track was compiled with, so beat-punch
+    // peaks land on the jolted contacts (i.e. the felt slam) the ride actually hits.
+    specContacts = loaded.spec ? applyJolt(loaded.spec, joltMs).contacts : [];
     specBeatPunch = loaded.spec?.camera?.beatPunch;
     if (zoomPlan !== null) {
       console.log(`spec zoom=${loaded.source} (${zoomPlan.zoomKeyframes.length} keyframes, smoothing ${zoomPlan.zoomSmoothing})`);

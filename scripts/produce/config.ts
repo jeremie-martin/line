@@ -70,7 +70,7 @@ export function loadSelect(songDir: string): SelectConfig {
 
 export type MetricStats = {
   mean: number; sd: number; median: number;
-  p10: number; p25: number; p50: number; p75: number; p90: number;
+  p10: number; p25: number; p75: number; p90: number;
   min: number; max: number;
 };
 
@@ -85,13 +85,13 @@ function percentile(sorted: number[], p: number): number {
 
 export function stats(values: number[]): MetricStats {
   const n = values.length;
-  if (n === 0) return { mean: 0, sd: 0, median: 0, p10: 0, p25: 0, p50: 0, p75: 0, p90: 0, min: 0, max: 0 };
+  if (n === 0) return { mean: 0, sd: 0, median: 0, p10: 0, p25: 0, p75: 0, p90: 0, min: 0, max: 0 };
   const sorted = [...values].sort((a, b) => a - b);
   const mean = values.reduce((a, b) => a + b, 0) / n;
   const sd = Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / n);
   return {
     mean, sd, median: percentile(sorted, 50),
-    p10: percentile(sorted, 10), p25: percentile(sorted, 25), p50: percentile(sorted, 50),
+    p10: percentile(sorted, 10), p25: percentile(sorted, 25),
     p75: percentile(sorted, 75), p90: percentile(sorted, 90),
     min: sorted[0], max: sorted[n - 1],
   };

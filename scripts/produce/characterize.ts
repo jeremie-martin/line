@@ -28,11 +28,22 @@ const arg = (name: string): string | null => {
 };
 
 function parseSeeds(s: string): number[] {
-  if (s.includes(",")) return s.split(",").map(Number);
-  const [a, b] = s.split("-").map(Number);
-  const out: number[] = [];
-  for (let i = a; i <= (b ?? a); i++) out.push(i);
-  return out;
+  const fail = (): never => {
+    throw new Error(`--seeds must be a comma list or a low-high range of safe integers, got: ${s}`);
+  };
+  let out: number[];
+  if (s.includes(",")) {
+    out = s.split(",").map((p) => Number(p.trim()));
+  } else if (s.includes("-")) {
+    const [a, b] = s.split("-").map((p) => Number(p.trim()));
+    if (!Number.isSafeInteger(a) || !Number.isSafeInteger(b)) fail();
+    out = [];
+    for (let i = a; i <= b; i++) out.push(i);
+  } else {
+    out = [Number(s.trim())];
+  }
+  if (out.length === 0 || out.some((n) => !Number.isSafeInteger(n))) fail();
+  return [...new Set(out)].sort((x, y) => x - y);
 }
 
 function gitSha(): string {

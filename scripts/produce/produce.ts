@@ -203,7 +203,7 @@ async function renderLane(): Promise<void> {
       const dir = await renderBundle({
         specPath: song.cfg.spec, trackPath: item.trackPath, reportPath: item.reportPath,
         audioPath: song.cfg.audio, spectrumBase: song.spectrumBase, seed, song: song.name, project: PROJECT,
-        metrics: item.metrics, render: song.cfg.render, budget: song.cfg.budget, outDir: runDir,
+        metrics: item.metrics, render: song.cfg.render, budget: song.cfg.budget, jolt, outDir: runDir,
         workDir: scratchDir, gitSha, host,
       });
       song.committed++; song.attemptsSinceBundle = 0;

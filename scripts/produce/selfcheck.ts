@@ -51,7 +51,10 @@ expect(close(c.validityRate, 18 / 20), `validityRate excludes the 2 invalid (${c
 const f = suggestFloors(c);
 expect(f.reachedEnd === true && f.maxOffBeat === 0, "suggested keeps validity hard floors");
 expect(f.score === Math.round(c.metrics.score.median), `suggested score = median (${f.score})`);
-expect(close(f.standTimePctMin, Math.round(c.metrics.standTimePct.p25 * 100) / 100), `suggested stand-time = p25 (${f.standTimePctMin})`);
+// Creative gates (stand-time, rotation) default to 0 = opt-in (see suggestFloors doc):
+// a stand-heavy seed is never dropped for being mid-score by default.
+expect(f.standTimePctMin === 0, `suggested stand-time floor opt-in = 0 (${f.standTimePctMin})`);
+expect(f.rotationsMin === 0, `suggested rotation floor opt-in = 0 (${f.rotationsMin})`);
 
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILED`}`);
 process.exit(failures === 0 ? 0 : 1);

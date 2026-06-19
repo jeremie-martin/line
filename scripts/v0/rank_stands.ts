@@ -11,6 +11,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { extractTrace } from "./core/trace.ts";
 import { computeStands } from "../lib/rotation.ts";
+import { SUBSTANTIAL_MIN_DUR_S, SUBSTANTIAL_MIN_LANDINGS } from "../produce/measure.ts";
 import { FPS } from "./types.ts";
 
 const argv = process.argv.slice(2);
@@ -24,8 +25,8 @@ const sec = (f: number) => f / FPS;
 // so with the defaults this reduces to dur≥0.5 — but the AND keeps it correct if the
 // detector's landing floor ever changes.) Total substantial-stand time per track
 // answers "how much do we REALLY stay straight" (vs the single longest stand).
-const MIN_DUR_S = Number(arg("min-dur") ?? "0.7");
-const MIN_LAND = Number(arg("min-landings") ?? "2");
+const MIN_DUR_S = Number(arg("min-dur") ?? String(SUBSTANTIAL_MIN_DUR_S));
+const MIN_LAND = Number(arg("min-landings") ?? String(SUBSTANTIAL_MIN_LANDINGS));
 const substantial = (durS: number, landings: number) => durS >= MIN_DUR_S && landings >= MIN_LAND;
 
 const files = readdirSync(resolve(dir)).filter((f) => /^seed\d+\.track\.json$/.test(f));

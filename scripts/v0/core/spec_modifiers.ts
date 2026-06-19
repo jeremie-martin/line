@@ -11,6 +11,7 @@ import {
   type Spec,
   type TargetAxisName,
 } from "../types.ts";
+import { median } from "./substrate.ts";
 
 export type CalibrationSelection = {
   version: 1;
@@ -174,11 +175,11 @@ export function identity(): CalibrationCandidate {
 }
 
 export function axisShift(axis: TargetAxisName, delta: number): CalibrationCandidate {
-  const idDelta = signedId(delta);
+  const signed = signedLabel(delta);
   return {
-    id: `${axis}.shift.${idDelta}`,
-    label: `${axis} ${signedLabel(delta)}`,
-    description: `Shift ${axis} by ${signedLabel(delta)}.`,
+    id: `${axis}.shift.${signed}`,
+    label: `${axis} ${signed}`,
+    description: `Shift ${axis} by ${signed}.`,
     apply: (spec) => mapAxis(spec, axis, (v) => v + delta),
   };
 }
@@ -385,17 +386,11 @@ function stats(values: number[]): AxisStats {
   return {
     count: finite.length,
     min: sorted[0],
-    p50: percentile(sorted, 0.5),
+    p50: median(finite),
     max: sorted[sorted.length - 1],
     mean: mean(finite),
     mean_abs: mean(finite.map(Math.abs)),
   };
-}
-
-function percentile(sorted: number[], p: number): number {
-  if (sorted.length === 0) return NaN;
-  const index = Math.min(sorted.length - 1, Math.max(0, Math.round(p * (sorted.length - 1))));
-  return sorted[index];
 }
 
 function mean(values: number[]): number {
@@ -420,10 +415,6 @@ function compactNumber(value: number): string {
 
 function signedLabel(value: number): string {
   return `${value >= 0 ? "+" : ""}${compactNumber(value)}`;
-}
-
-function signedId(value: number): string {
-  return signedLabel(value).replace("+", "+").replace("-", "-");
 }
 
 function structuredCloneSafe<T>(value: T): T {

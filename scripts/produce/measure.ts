@@ -17,7 +17,8 @@ import type { Trace } from "../v0/core/trace.ts";
 type Report = Parameters<typeof scoreDriftReport>[0];
 
 // "Substantial" stand = real, sustained standing, not a one-gap blip. This is the
-// agreed production definition (mirrors rank_stands.ts): dur ≥ 0.7s AND ≥ 2 landings.
+// single agreed production definition (dur ≥ 0.7s AND ≥ 2 landings); rank_stands.ts
+// imports these as its defaults so the offline ranking and the live gate can't diverge.
 export const SUBSTANTIAL_MIN_DUR_S = 0.7;
 export const SUBSTANTIAL_MIN_LANDINGS = 2;
 
@@ -73,7 +74,8 @@ export type Floors = {
   maxOffBeat: number;
   /** Absolute score floor (suggested = the distribution's median). */
   score: number;
-  /** Minimum substantial stand-time as a % of duration (suggested = p25). */
+  /** Minimum substantial stand-time as a % of duration (suggested 0 = opt-in; dial up
+   *  per song by reading the distribution so a stand-heavy seed isn't dropped by default). */
   standTimePctMin: number;
   /** Minimum airborne revolutions (suggested 0 unless you want spinny tracks). */
   rotationsMin: number;

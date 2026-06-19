@@ -192,7 +192,7 @@ export function computeStands(
     for (const [a, b] of runs(standing)) {
       const len = b - a + 1;
       if (len < minFrames) continue;
-      let landings = 0, inCount = 0, airCount = 0, sumUpright = 0;
+      let landings = 0, inCount = 0, airCount = 0, sumUpright = 0, uprightCount = 0;
       let prevAir: boolean | null = null;
       for (let g = a; g <= b; g++) {
         const air = airborne[g];
@@ -200,7 +200,10 @@ export function computeStands(
         if (prevAir === true && !air) landings++; // air → ground = a landing on the end
         prevAir = air;
         if (inBand[g]) inCount++;
-        sumUpright += uprightDegFromHorizontal(sledAngleDeg[g]);
+        // Skip non-finite angles (NaN/null poses can be bridged into the run) so they
+        // don't poison the mean — average over the readable frames only.
+        const upright = uprightDegFromHorizontal(sledAngleDeg[g]);
+        if (Number.isFinite(upright)) { sumUpright += upright; uprightCount++; }
       }
       const frac = inCount / len;
       const airFrac = airCount / len;
@@ -210,7 +213,7 @@ export function computeStands(
       out.push({
         startFrame: a, endFrame: b, lengthFrames: len,
         landings, side: name,
-        meanUprightDeg: sumUpright / len,
+        meanUprightDeg: uprightCount > 0 ? sumUpright / uprightCount : 0,
         inBandFraction: frac,
         airborneFraction: airFrac,
       });

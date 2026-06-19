@@ -1927,8 +1927,18 @@ function renderNotesList() {
   }
 }
 
+let lastAgentContextMs = 0;
 function renderAgentContext() {
   if (!state.data) return;
+  // This pane is a pretty-printed JSON debug dump. renderInspector calls it every
+  // animation frame during playback; rebuilding the context and JSON.stringify-ing it
+  // 60×/sec pins a core on dense specs and nobody reads it mid-scrub. Throttle to ~7Hz
+  // while playing; paused/discrete updates always render immediately.
+  if (state.simulatedPlaying || (hasAudio() && !refs.audio.paused)) {
+    const now = performance.now();
+    if (now - lastAgentContextMs < 140) return;
+    lastAgentContextMs = now;
+  }
   const t = specTime();
   const keyframeHit = nearestKeyframe(t);
   const zoomValue = cameraZoomAt(t);

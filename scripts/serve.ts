@@ -249,12 +249,21 @@ const jobs = new Map<string, DashboardJob>();
 const specHistory = new Map<string, SpecHistoryState>();
 let mirrorServerReady: Promise<void> | null = null;
 
+const SPEC_GROUP_DIRS = [
+  { group: "v0", dir: resolve(ROOT, "scripts", "v0", "specs") },
+  { group: "golden", dir: resolve(ROOT, "specs", "golden") },
+  { group: "production", dir: resolve(ROOT, "productions") },
+];
+let specListCache: { key: string; specs: SpecEntry[] } | null = null;
+
 function listV0Specs(): SpecEntry[] {
-  const groups = [
-    { group: "v0", dir: resolve(ROOT, "scripts", "v0", "specs") },
-    { group: "golden", dir: resolve(ROOT, "specs", "golden") },
-    { group: "production", dir: resolve(ROOT, "productions") },
-  ];
+  // Cache keyed by the group dirs' mtimes (which change on add/remove of a spec or a
+  // production dir). Every spec API call resolves through here and the dashboard fires
+  // several per interaction; without the cache each one re-readdirs + existsSyncs the
+  // whole corpus. A cache hit costs 3 statSync instead.
+  const key = SPEC_GROUP_DIRS.map(({ dir }) => (existsSync(dir) ? Math.trunc(statSync(dir).mtimeMs) : 0)).join(":");
+  if (specListCache && specListCache.key === key) return specListCache.specs;
+  const groups = SPEC_GROUP_DIRS;
 
   const specs: SpecEntry[] = [];
   for (const { group, dir } of groups) {
@@ -285,7 +294,9 @@ function listV0Specs(): SpecEntry[] {
       specs.push({ name, label: `${group}/${name}`, path: rel, group });
     }
   }
-  return specs.sort((a, b) => a.label.localeCompare(b.label));
+  specs.sort((a, b) => a.label.localeCompare(b.label));
+  specListCache = { key, specs };
+  return specs;
 }
 
 function resolveListedSpec(rawSpec: string): ResolvedSpecEntry | null {

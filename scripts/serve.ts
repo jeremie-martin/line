@@ -257,16 +257,17 @@ const SPEC_GROUP_DIRS = [
 let specListCache: { key: string; specs: SpecEntry[] } | null = null;
 
 function listV0Specs(): SpecEntry[] {
-  // Cache keyed by the group dirs' mtimes (which change on add/remove of a spec or a
-  // production dir). Every spec API call resolves through here and the dashboard fires
-  // several per interaction; without the cache each one re-readdirs + existsSyncs the
-  // whole corpus. A cache hit costs 3 statSync instead.
-  const key = SPEC_GROUP_DIRS.map(({ dir }) => (existsSync(dir) ? Math.trunc(statSync(dir).mtimeMs) : 0)).join(":");
+  // Cache keyed by the corpus dirs' mtimes. Every spec API call resolves through here and
+  // the dashboard fires several per interaction; without the cache each one re-readdirs +
+  // existsSyncs the whole corpus. A cache hit costs a handful of statSync instead. The key
+  // folds in each production subdir's mtime too, because production specs live one level
+  // deeper (productions/<name>/spec.ts) and the parent dir's mtime does NOT change when a
+  // spec.ts is added/removed inside an already-existing subdir.
+  const key = specListCacheKey();
   if (specListCache && specListCache.key === key) return specListCache.specs;
-  const groups = SPEC_GROUP_DIRS;
 
   const specs: SpecEntry[] = [];
-  for (const { group, dir } of groups) {
+  for (const { group, dir } of SPEC_GROUP_DIRS) {
     if (!existsSync(dir)) continue;
 
     if (group === "production") {
@@ -297,6 +298,22 @@ function listV0Specs(): SpecEntry[] {
   specs.sort((a, b) => a.label.localeCompare(b.label));
   specListCache = { key, specs };
   return specs;
+}
+
+/** Freshness key for listV0Specs: each group dir's mtime, plus each production subdir's
+ *  mtime (nested spec.ts add/remove only bumps the subdir, not productions/). */
+function specListCacheKey(): string {
+  const parts: string[] = [];
+  for (const { group, dir } of SPEC_GROUP_DIRS) {
+    if (!existsSync(dir)) { parts.push("-"); continue; }
+    parts.push(String(Math.trunc(statSync(dir).mtimeMs)));
+    if (group === "production") {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        if (entry.isDirectory()) parts.push(`${entry.name}=${Math.trunc(statSync(resolve(dir, entry.name)).mtimeMs)}`);
+      }
+    }
+  }
+  return parts.join("|");
 }
 
 function resolveListedSpec(rawSpec: string): ResolvedSpecEntry | null {

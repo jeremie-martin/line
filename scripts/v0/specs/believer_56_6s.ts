@@ -20,6 +20,7 @@ import { resolve } from "node:path";
 import type { Contact, Curve, Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
 import { beats } from "../core/beats.ts";
+import { clamp } from "../core/substrate.ts";
 
 type RhythmRow = {
   t: number;
@@ -100,10 +101,6 @@ type ContactCandidate = {
   minGap: number;
   weight: number;
 };
-
-function clamp(x: number, lo: number, hi: number): number {
-  return Math.max(lo, Math.min(hi, x));
-}
 
 function nearAny(t: number, anchors: readonly number[], tolerance = 0.075): boolean {
   return anchors.some((anchor) => Math.abs(t - anchor) <= tolerance);

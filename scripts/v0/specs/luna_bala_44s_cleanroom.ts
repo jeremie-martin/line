@@ -41,8 +41,7 @@
 import type { Spec } from "../types.ts";
 import { keyframes } from "../core/curves.ts";
 import { beats } from "../core/beats.ts";
-
-const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
+import { clamp } from "../core/substrate.ts";
 
 const DROP_T = 8.58;
 

@@ -382,12 +382,17 @@ function stats(values: number[]): AxisStats {
   if (finite.length === 0) {
     return { count: 0, min: null, p50: null, max: null, mean: null, mean_abs: null };
   }
-  const sorted = [...finite].sort((a, b) => a - b);
+  // min/max in one pass; median() does its own sort, so don't pre-sort a second copy.
+  let min = finite[0], max = finite[0];
+  for (const v of finite) {
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
   return {
     count: finite.length,
-    min: sorted[0],
+    min,
     p50: median(finite),
-    max: sorted[sorted.length - 1],
+    max,
     mean: mean(finite),
     mean_abs: mean(finite.map(Math.abs)),
   };

@@ -745,7 +745,7 @@ function renderGoldenKpis(state, selected, focus, baseline) {
 
 const GOLDEN_AXIS_INK = "#928873";   // --ink-fade
 const GOLDEN_AXIS_GRID = "#ddd0b2";  // --rule-soft
-const GOLDEN_AXIS_FONT = "10px 'IBM Plex Mono', monospace";
+const GOLDEN_AXIS_FONT = "10px ui-monospace, Menlo, monospace"; // matches /shared/theme.css --mono
 
 // Interactive budget curve (uPlot): auto-fit y, drag-zoom to scope the score,
 // live legend, and a seed-spread band under the focus run.

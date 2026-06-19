@@ -54,6 +54,26 @@ describe("spec dashboard source edits", () => {
     expect(index.contactImpacts.has(2)).toBe(false);
   });
 
+  test("indexes contacts authored via beats([...]) — the production pattern", () => {
+    // The real corpus builds contacts as `const contacts = beats([ ...literals ])` and
+    // references it with the `{ contacts }` shorthand. Impacts that are numeric literals
+    // inside that array must stay dashboard-editable.
+    const beatsSpec = `
+const contacts = beats([
+  { t: 0.5, impact: 0.0 },
+  { t: 1.0, impact: 0.25 },
+  { t: 1.5, impact: computed(1.5) },
+]);
+const spec = { duration: 2, contacts, axes: {} };
+export default spec;
+`;
+    const index = buildSpecDashboardSourceIndex(beatsSpec);
+    expect(index.contactImpacts.get(0)?.id).toBe("contact:0");
+    expect(index.contactImpacts.get(1)?.id).toBe("contact:1");
+    // index 2 has a computed (non-literal) impact → still counted for alignment, but not editable
+    expect(index.contactImpacts.has(2)).toBe(false);
+  });
+
   test("applies literal keyframe, zoom, and impact edits", () => {
     const dir = mkdtempSync(join(tmpdir(), "spec-dashboard-source-"));
     const file = join(dir, "spec.ts");

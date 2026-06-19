@@ -8,9 +8,6 @@
 <script defer src="/shared/nav.js"></script>
 <style>
   :root{--bg:#0e1117;--panel:#161b24;--ink:#e7ecf3;--mut:#8a93a6;--grid:#283041;--acc:#5fb3ff;}
-  /* dark-friendly nav link colors (shared .lr-nav base is tuned for the light dashboards) */
-  .lr-nav a{color:var(--mut);}
-  .lr-nav a:hover{color:var(--ink);background:var(--panel);}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif}
   header{padding:12px 18px 6px;border-bottom:1px solid var(--grid)}
@@ -56,7 +53,7 @@
 <body>
 <header>
   <h1>Impact calibration — authored vs felt</h1>
-  <span data-lr-nav></span>
+  <span data-lr-nav="dark"></span>
   <div class="sub">Watch each landing, judge how hard it <i>feels</i>, and the page derives the felt
   anchors from your labels. The scatter is authored impact vs the <b>raw redirArc px</b> the compiler
   actually delivered (the physical truth — the score only clamps it). Drag SOFT/VSTRONG to see the

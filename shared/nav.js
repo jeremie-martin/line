@@ -11,7 +11,9 @@
   const here = location.pathname;
   for (const slot of document.querySelectorAll("[data-lr-nav]")) {
     const nav = document.createElement("nav");
-    nav.className = "lr-nav";
+    // `data-lr-nav="dark"` opts a dark-surfaced page into the dark nav variant
+    // (theme.css .lr-nav--dark) instead of each page re-pasting a color override.
+    nav.className = slot.getAttribute("data-lr-nav") === "dark" ? "lr-nav lr-nav--dark" : "lr-nav";
     nav.setAttribute("aria-label", "Dashboards");
     for (const { href, label, match } of LINKS) {
       const a = document.createElement("a");

@@ -4,29 +4,32 @@
  */
 
 :root {
-  --paper:       #f4ede1;
+  /* Visual tokens are unified in /shared/theme.css (warm paper + Inter).
+     dashboard's historical local names alias to the shared tokens so the rules
+     below render in the canonical palette + accent ramp without being rewritten.
+     --ink and --mono intentionally inherit the shared values; the few grays with
+     no canonical equivalent keep their (in-family) literal value. */
+  --paper:       var(--bg);
   --paper-warm:  #ede4d0;
-  --panel:       #faf4e6;
-  --panel-edge:  #e3d8bc;
-  --ink:         #1f1a14;
-  --ink-mid:     #5d564a;
+  --panel:       var(--surface);
+  --panel-edge:  var(--line);
+  --ink-mid:     var(--muted);
   --ink-fade:    #928873;
   --ink-ghost:   #b9ad95;
-  --rule:        #cdbfa3;
+  --rule:        var(--line);
   --rule-soft:   #ddd0b2;
-  --accent:      #9b3a2a;
-  --landing:     #9b3a2a;
-  --bounce:      #b58326;
-  --kick:        #1e5a6e;
+  --accent:      var(--rust);
+  --landing:     var(--rust);
+  --bounce:      var(--gold);
+  --kick:        var(--teal);
   --flythrough:  #928873;
-  --pos:         #3d3a78;
-  --air:         #8a9a78;
-  --slide:       #7a8a5a;
-  --good:        #3d6b3a;
-  --bad:         #9b3a2a;
+  --pos:         var(--violet);
+  --air:         var(--green);
+  --slide:       var(--green);
+  --good:        var(--green);
+  --bad:         var(--rust);
 
-  --serif: "Spectral", Georgia, "Iowan Old Style", serif;
-  --mono:  "IBM Plex Mono", "JetBrains Mono", "SF Mono", Menlo, monospace;
+  --serif: var(--sans);
 
   --sidebar-w: 420px;
   --header-h: 64px;

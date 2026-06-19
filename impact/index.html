@@ -4,8 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Impact Study</title>
+<link rel="stylesheet" href="/shared/theme.css">
+<script defer src="/shared/nav.js"></script>
 <style>
   :root { --bg:#0a0c11; --panel:#11141b; --line:rgba(255,255,255,.10); --dim:#7c8499; --txt:#e6eaf2; }
+  /* dark-friendly nav link colors (shared .lr-nav base is tuned for the light dashboards) */
+  .lr-nav a { color: var(--dim); }
+  .lr-nav a:hover { color: var(--txt); background: var(--panel); }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--txt); font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; }
   header { display:flex; align-items:center; gap:16px; padding:12px 18px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
@@ -52,6 +57,7 @@
 <body>
 <header>
   <h1>IMPACT STUDY</h1>
+  <span data-lr-nav></span>
   <span class="stat" id="trackName">—</span>
   <span class="stat"><b id="nBeats">0</b> landings</span>
   <span class="stat"><b id="nAnno">0</b> labeled</span>

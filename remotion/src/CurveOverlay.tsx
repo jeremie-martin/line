@@ -12,6 +12,7 @@ import {
   continueRender,
   getInputProps,
 } from "remotion";
+import { RideFX, TintLayer, VignetteLayer, FlashLayer, BottomFade, type FXConfig } from "./fx";
 
 // ── Data bundle (written by scripts/make_overlay_data.ts) ────────────────────
 type Pt = { t: number; v: number };
@@ -650,22 +651,31 @@ export const CurveOverlayVertical: React.FC = () => {
   const t = frame / fps;
 
   const { dataFile, videoFile } = overlayInputs();
-  const props = getInputProps() as Partial<VertVariant> & { spectrumFile?: string };
+  const props = getInputProps() as Partial<VertVariant> & { spectrumFile?: string; fx?: FXConfig };
   const variant: VertVariant = { ...DEFAULT_VARIANT, ...props };
+  const fx: FXConfig = props.fx ?? {};
   const data = useBundle(dataFile, "overlay-data-vertical");
   const spectrum = useSpectrum(props.spectrumFile ?? null, "spectrum-vertical");
   if (!data) return <AbsoluteFill style={{ backgroundColor: "#fff" }} />;
 
   const enter = spring({ frame, fps, config: { damping: 20, mass: 0.7 } });
   const shift = Math.round(height * variant.riderShiftPct);
+  const activePhase = activePhaseAt(data.phases, t);
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#fff" }}>
-      {/* ride shifted up; revealed area below is white (matches the ride background) */}
-      <AbsoluteFill style={{ transform: `translateY(${-shift}px)` }}>
-        <OffthreadVideo src={staticFile(videoFile)} />
-      </AbsoluteFill>
+      {/* ride shifted up; revealed area below is white (matches the ride background).
+          RideFX applies overscan + impact shake + chromatic aberration + grade
+          (all no-ops when the matching fx.* key is absent). */}
+      <RideFX videoFile={videoFile} shiftPx={shift} t={t} contacts={data.contacts} fx={fx} />
+      {/* melt the up-shifted video's bottom edge into white (kills the ~87% seam) */}
+      <BottomFade />
+      {/* look layers below the HUD so the data panel/spectrum stay crisp on top */}
+      <TintLayer fx={fx} phaseColor={activePhase?.color} enter={enter} />
+      <VignetteLayer fx={fx} t={t} contacts={data.contacts} enter={enter} />
       <BottomCurvePanelVertical data={data} width={width} height={height} t={t} enter={enter} variant={variant} spectrum={spectrum} />
+      {/* full-frame impact flash sits on top of everything for the punch */}
+      <FlashLayer fx={fx} t={t} contacts={data.contacts} />
     </AbsoluteFill>
   );
 };

@@ -10,6 +10,7 @@ import { exportVideo, MirrorUnreachableError } from "./lib/export.ts";
 import {
   cameraSidecarToRenderPlan,
   specZoomLaneToRenderPlan,
+  denseLinearZoomFromLog2Keyframes,
   type CameraSidecar,
   type RenderZoomPlan,
 } from "./v0/core/camera.ts";
@@ -120,22 +121,6 @@ const EASE: Record<string, (u: number) => number> = {
 const zoomEaseName = arg("zoom-ease") ?? "cubic";
 const zoomEase = EASE[zoomEaseName] ?? EASE.cubic;
 
-// Dense per-frame zoom from log2 keyframes, easing each segment's interpolation param
-// (vs the engine's linear denseLinearZoomFromLog2Keyframes).
-function denseZoomEased(kf: readonly [number, number][], durationFrames: number): number[] {
-  const n = Math.max(1, durationFrames + 1);
-  const out = new Array<number>(n);
-  let seg = 0;
-  for (let f = 0; f < n; f++) {
-    while (seg < kf.length - 2 && f > kf[seg + 1][0]) seg++;
-    const [f0, z0] = kf[seg];
-    const [f1, z1] = kf[Math.min(seg + 1, kf.length - 1)];
-    const u = f1 === f0 ? 0 : Math.max(0, Math.min(1, (f - f0) / (f1 - f0)));
-    out[f] = 2 ** (z0 + (z1 - z0) * zoomEase(u));
-  }
-  return out;
-}
-
 // Overlay a decaying zoom punch on a dense per-frame zoom array. Gating is RELATIVE:
 // only beats at/above the bpPct percentile of this spec's impacts punch, and each
 // punch's strength scales from `bpFloor·amp` (at the cutoff) to `amp` (at the song's
@@ -176,7 +161,9 @@ function applyBeatPunch(autoZoom: number[], contacts: Contact[], bp: ResolvedBea
   }
   const gateLabel = bp.threshold > 0 ? `impact ≥ ${bp.threshold.toFixed(2)}` : `top ${(100 - bp.pct).toFixed(0)}% (≥ p${bp.pct}=${gate.toFixed(2)})`;
   console.log(`beat-punch: ${gateLabel} → ${hits} beats, amp ${bp.amp} (floor ${bp.floor}), decay ${bp.decay}f, dir ${bp.dir > 0 ? "in" : "out"}`);
-  return autoZoom.map((z, f) => z * (1 + bp.dir * punch[f]));
+  // Clamp the multiplier to a small positive floor: a large `out` punch (amp > 1) would
+  // otherwise drive `1 + dir·punch` negative and invert/collapse the camera.
+  return autoZoom.map((z, f) => z * Math.max(0.05, 1 + bp.dir * punch[f]));
 }
 
 const hq = has("hq");
@@ -273,7 +260,7 @@ if (resolvedBeatPunch && specBeatPunch !== undefined && !cliBeatPunchFlag) {
 const forceDense = resolvedBeatPunch !== null || arg("zoom-ease") !== null;
 if (forceDense && zoomPlan) {
   const durF = zoomPlan.zoomKeyframes.at(-1)?.[0] ?? zoomPlan.autoZoom.length - 1;
-  let dense = denseZoomEased(zoomPlan.zoomKeyframes, durF);
+  let dense = denseLinearZoomFromLog2Keyframes(zoomPlan.zoomKeyframes, durF, zoomEase);
   console.log(`zoom-ease=${zoomEaseName} (dense path)`);
   if (resolvedBeatPunch) {
     if (specContacts.length) dense = applyBeatPunch(dense, specContacts, resolvedBeatPunch);

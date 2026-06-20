@@ -35,7 +35,7 @@ console.log("[4] renderBundle (ride → mux → overlay → remotion → bundle)
 try {
   const dir = await renderBundle({
     specPath: cfg.spec, trackPath, reportPath, audioPath: cfg.audio, spectrumBase,
-    seed, song: project, project: "line", metrics, render: cfg.render, budget: cfg.budget, outDir: inbox,
+    seed, song: project, project: "line", metrics, render: cfg.render, budget: cfg.budget, jolt: resolveJoltMs(), outDir: inbox,
     workDir: work, gitSha: "paritytest", host: hostname(), keepIntermediates: false,
   });
   console.log(`\nBUNDLE → ${dir}`);

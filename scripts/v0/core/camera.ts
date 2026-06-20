@@ -78,6 +78,7 @@ export function normalizeSpecZoomKeyframes(lane: SpecZoomLane, durationFrames: n
 export function denseLinearZoomFromLog2Keyframes(
   zoomKeyframes: readonly [number, number][],
   durationFrames: number,
+  ease: (u: number) => number = (u) => u,
 ): number[] {
   const n = Math.max(1, durationFrames + 1);
   const out = new Array<number>(n);
@@ -92,7 +93,7 @@ export function denseLinearZoomFromLog2Keyframes(
     const [f0, z0] = zoomKeyframes[segment];
     const [f1, z1] = zoomKeyframes[Math.min(segment + 1, zoomKeyframes.length - 1)];
     const u = f1 === f0 ? 0 : Math.max(0, Math.min(1, (frame - f0) / (f1 - f0)));
-    out[frame] = 2 ** (z0 + (z1 - z0) * u);
+    out[frame] = 2 ** (z0 + (z1 - z0) * ease(u));
   }
   return out;
 }

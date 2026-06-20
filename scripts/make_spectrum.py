@@ -43,7 +43,11 @@ freqs = np.fft.rfftfreq(N, 1.0 / a.sr)
 # than the FFT bin spacing (sr/N Hz), so some contain ZERO bins; those fall back to
 # interpolating the magnitude at the band's geometric-center freq (else they'd be
 # stuck at 0 — the "bars 2/3/6/10 always minimal" bug).
-edges = np.geomspace(a.fmin, a.fmax, a.bands + 1)
+# Clamp the top edge to Nyquist: bands above it would have empty bins AND a center
+# beyond freqs[-1], where np.interp clamps to the top bin — pinning high bars to a
+# constant instead of zero. Staying within the real spectrum avoids that artifact.
+fmax = min(a.fmax, float(freqs[-1]))
+edges = np.geomspace(a.fmin, fmax, a.bands + 1)
 centers = np.sqrt(edges[:-1] * edges[1:])
 bin_idx = [np.where((freqs >= edges[b]) & (freqs < edges[b + 1]))[0] for b in range(a.bands)]
 tilt = np.sqrt(np.maximum(freqs, 1.0))     # lift highs (pink-ish compensation)

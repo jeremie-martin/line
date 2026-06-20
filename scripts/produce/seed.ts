@@ -20,7 +20,7 @@ import { measure, type SeedMetrics } from "./measure.ts";
 // earlier puts the slam — not the touch — on the beat. LR_JOLT_OFFSET_MS
 // overrides; 0 disables. This is an authoring-layer transform; the golden suite
 // stays offset-free by calling compileHandoff directly.
-const JOLT_DEFAULT_MS = -15;
+export const JOLT_DEFAULT_MS = -15;
 
 export function resolveJoltMs(): number {
   const raw = process.env.LR_JOLT_OFFSET_MS;

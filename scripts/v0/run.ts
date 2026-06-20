@@ -16,7 +16,7 @@
 
 import { writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
 import { dirname, resolve, basename } from "node:path";
-import { K_BOUNCE_LANDING } from "../lib/detector.ts";
+import { applyJolt, JOLT_DEFAULT_MS } from "../produce/seed.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { AXES, FPS, type Spec } from "./types.ts";
 import { axisDetails, scoreDriftReport } from "./score.ts";
@@ -81,21 +81,18 @@ if (!spec) {
 // disables. This is an authoring-layer transform on THIS production CLI only:
 // the golden suite, verify:optimizer, and tests call compileHandoff directly
 // and stay offset-free by construction.
-const JOLT_OFFSET_DEFAULT_MS = -15;
 const rawJoltMs = process.env.LR_JOLT_OFFSET_MS;
 const joltOffsetMs = rawJoltMs === undefined || rawJoltMs === ""
-  ? JOLT_OFFSET_DEFAULT_MS
+  ? JOLT_DEFAULT_MS
   : Number(rawJoltMs);
 if (!Number.isFinite(joltOffsetMs)) {
   console.error(`invalid LR_JOLT_OFFSET_MS=${rawJoltMs} (expected a finite number of ms; positive shifts contacts earlier, negative later)`);
   process.exit(1);
 }
-// Clamp to the earliest catchable contact (the detector's landing floor).
-const contactFloorS = K_BOUNCE_LANDING / FPS;
-const compiledSpec: Spec = joltOffsetMs === 0 ? spec : {
-  ...spec,
-  contacts: spec.contacts.map((c) => ({ ...c, t: Math.max(contactFloorS, c.t - joltOffsetMs / 1000) })),
-};
+// Shift contacts so the felt slam (not the touch) lands on the beat; applyJolt
+// clamps to the detector's earliest catchable contact and is the shared transform
+// the produce pipeline uses, so the two can never drift.
+const compiledSpec: Spec = applyJolt(spec, joltOffsetMs);
 if (joltOffsetMs !== 0) {
   const dir = joltOffsetMs > 0 ? "earlier" : "later";
   console.log(`jolt offset: contacts shifted ${Math.abs(joltOffsetMs)}ms ${dir} (LR_JOLT_OFFSET_MS=0 to disable)`);

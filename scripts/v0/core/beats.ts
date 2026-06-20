@@ -83,7 +83,9 @@ export function withImpact(contacts: Contact[], rule: ImpactRule): Contact[] {
 const MIGRATE_AFFINE = ((globalThis as { process?: { env?: Record<string, string | undefined> } })
   .process?.env?.LR_IMPACT_MIGRATE) !== "legacy";
 const MIGRATE_SOFT_OLD = impactEnvNum("LR_IMPACT_MIGRATE_SOFT", 0.2);
-const MIGRATE_SPAN_OLD = impactEnvNum("LR_IMPACT_MIGRATE_SPAN", 0.8);
+// Guard against a degenerate study override (LR_IMPACT_MIGRATE_SPAN=0), which would
+// make the affine shift below divide by zero and emit NaN impacts into the ruler.
+const MIGRATE_SPAN_OLD = Math.max(1e-6, impactEnvNum("LR_IMPACT_MIGRATE_SPAN", 0.8));
 export const migrateImpact = (aOld: number): number =>
   MIGRATE_AFFINE
     ? clamp((aOld - MIGRATE_SOFT_OLD) / MIGRATE_SPAN_OLD, 0, 1)

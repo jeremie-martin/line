@@ -1512,13 +1512,18 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
         const without = notes.filter((existing) => existing.id !== note.id);
         const isEmpty = !note.text.trim() && note.tags.length === 0;
         const next = isEmpty ? without : [...without, note];
+        const notesFile = specNotesPath(resolvedSpec.entry.path);
+        const before = snapshotFiles([notesFile]);
         writeSpecNotes(resolvedSpec.entry.path, next);
+        const after = snapshotFiles([notesFile]);
+        pushSpecHistory(resolvedSpec.entry.path, previous ? "Edit note" : "Add note", before, after);
         return json(res, {
           ok: true,
           specPath: resolvedSpec.entry.path,
           notesPath: specNotesRelPath(resolvedSpec.entry.path),
           count: next.length,
           note: isEmpty ? null : note,
+          history: specHistoryStatus(resolvedSpec.entry.path),
         });
       } catch (e) {
         return json(res, { error: String(e) }, 400);

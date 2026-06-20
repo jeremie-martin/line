@@ -20,23 +20,15 @@ import { spawn } from "node:child_process";
 import { openSync, closeSync, existsSync, mkdirSync, rmSync, copyFileSync, writeFileSync, readFileSync, renameSync } from "node:fs";
 import { resolve, join, dirname, basename } from "node:path";
 import type { RenderConfig } from "./config.ts";
+import { LOCKED_FX } from "../fx_recipe.ts";
 
 const ROOT = resolve(import.meta.dirname, "..", "..");
 const MIRROR_URL = "http://127.0.0.1:8765/index.html";
 const RIDE_QP = 14;   // ride intermediate quality (near-lossless, fed to compositor)
 const FINAL_CRF = 16; // published overlay master quality
 const OUTPUT_FPS = 60; // overlay/output fps — the ride source.mp4 is 60fps, so this is 1:1 (no dup frames)
-
-// Locked production post-FX (chosen via scripts/fx_sweep.ts on luna_bala_44s):
-// subtle impact shake + strong chromatic aberration + subtle flash + faint
-// recentered vignette. The bottom-edge seam fix (BottomFade) is unconditional in
-// the composition. Effects are time-based, so identical at any fps.
-const LOCKED_FX = {
-  shake: { maxPx: 10, maxRotDeg: 0.4, overscan: 1.04, freq: 9, decayPerSec: 7, gain: 1.6, minImpact: 0.22, power: 1.5 },
-  chroma: { maxPx: 14, gain: 2.0, decayPerSec: 7, minImpact: 0.25, power: 1.4 },
-  flash: { color: "#ffffff", maxOpacity: 0.3, gain: 1.8, decayPerSec: 12, minImpact: 0.3, blend: "screen" },
-  vignette: { strength: 0.20, rx: 74, ry: 54, core: 68, cy: 36 },
-} as const;
+// LOCKED_FX (the production post-FX recipe) lives in scripts/fx_recipe.ts — shared
+// with the sweep tool so the shipped look can't drift from the validated one.
 
 /** Spawn a child, append combined stdout+stderr to logPath, resolve on exit 0. */
 function run(cmd: string, args: string[], logPath: string, cwd = ROOT): Promise<void> {

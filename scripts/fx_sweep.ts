@@ -16,6 +16,7 @@
 import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { LOCKED_FX } from "./fx_recipe.ts";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const REMOTION = join(ROOT, "remotion");
@@ -50,27 +51,21 @@ const CHROMA: Variant[] = [
   { label: "07_max_slam", note: "strong chroma + flash (everything)", fx: { shake: { ...MEDIUM_SHAKE }, chroma: { maxPx: 13, gain: 2.0, decayPerSec: 7, minImpact: 0.25, power: 1.4 }, flash: { color: "#ffffff", maxOpacity: 0.34, gain: 1.9, decayPerSec: 12, minImpact: 0.3, blend: "screen" } } },
 ];
 
-// The LOCKED look — chosen from the sweeps: subtle shake + strong chroma + subtle
-// flash + faint recentered vignette (01_faint). The bottom-edge seam is fixed in
-// the composition (BottomFade), not here. Sweeps that vary one dimension spread this
-// then override that one key.
-const LOCKED_IMPACT = {
-  shake: { maxPx: 10, maxRotDeg: 0.4, overscan: 1.04, freq: 9, decayPerSec: 7, gain: 1.6, minImpact: 0.22, power: 1.5 },
-  chroma: { maxPx: 14, gain: 2.0, decayPerSec: 7, minImpact: 0.25, power: 1.4 },
-  flash: { color: "#ffffff", maxOpacity: 0.3, gain: 1.8, decayPerSec: 12, minImpact: 0.3, blend: "screen" },
-  vignette: { strength: 0.20, rx: 74, ry: 54, core: 68, cy: 36 },
-} as const;
-const impact = () => JSON.parse(JSON.stringify(LOCKED_IMPACT)) as Record<string, unknown>;
+// The LOCKED look (shared with production via scripts/fx_recipe.ts): subtle shake +
+// strong chroma + subtle flash + faint recentered vignette. Sweeps that vary one
+// dimension spread this then override that one key. Deep-cloned per use so variants
+// can't mutate the shared recipe.
+const impact = () => JSON.parse(JSON.stringify(LOCKED_FX)) as Record<string, unknown>;
 
 // ── MOVE 3: kill the flat white — grade / vignette / tint (on the locked impact) ─
 const LOOK: Variant[] = [
   { label: "00_impact_only", note: "locked impact, flat white (reference)", fx: { ...impact() } },
-  { label: "01_vignette", note: "+ vignette only", fx: { ...impact(), vignette: { strength: 0.45, radius: 0.5 } } },
+  { label: "01_vignette", note: "+ vignette only", fx: { ...impact(), vignette: { strength: 0.45 } } },
   { label: "02_grade_punch", note: "+ contrast/saturation", fx: { ...impact(), grade: { contrast: 1.12, saturate: 1.18, brightness: 0.99 } } },
-  { label: "03_tint_warm", note: "+ warm multiply wash + vignette", fx: { ...impact(), tint: { color: "#f0c08a", blend: "multiply", opacity: 0.16 }, vignette: { strength: 0.4, radius: 0.5 } } },
-  { label: "04_tint_cool", note: "+ cool cinematic wash + vignette", fx: { ...impact(), tint: { color: "#5b7fb5", blend: "multiply", opacity: 0.18 }, vignette: { strength: 0.45, radius: 0.5 } } },
-  { label: "05_phase_tint", note: "+ tint tracks phase color + vignette", fx: { ...impact(), tint: { byPhase: true, blend: "multiply", opacity: 0.2 }, vignette: { strength: 0.4, radius: 0.5 } } },
-  { label: "06_full_look", note: "+ grade + phase tint + vignette (+pulse)", fx: { ...impact(), grade: { contrast: 1.1, saturate: 1.15, brightness: 0.99 }, tint: { byPhase: true, blend: "multiply", opacity: 0.16 }, vignette: { strength: 0.42, radius: 0.5, pulse: 0.18 } } },
+  { label: "03_tint_warm", note: "+ warm multiply wash + vignette", fx: { ...impact(), tint: { color: "#f0c08a", blend: "multiply", opacity: 0.16 }, vignette: { strength: 0.4 } } },
+  { label: "04_tint_cool", note: "+ cool cinematic wash + vignette", fx: { ...impact(), tint: { color: "#5b7fb5", blend: "multiply", opacity: 0.18 }, vignette: { strength: 0.45 } } },
+  { label: "05_phase_tint", note: "+ tint tracks phase color + vignette", fx: { ...impact(), tint: { byPhase: true, blend: "multiply", opacity: 0.2 }, vignette: { strength: 0.4 } } },
+  { label: "06_full_look", note: "+ grade + phase tint + vignette (+pulse)", fx: { ...impact(), grade: { contrast: 1.1, saturate: 1.15, brightness: 0.99 }, tint: { byPhase: true, blend: "multiply", opacity: 0.16 }, vignette: { strength: 0.42, pulse: 0.18 } } },
 ];
 
 // ── vignette refinement v2: faint/soft, RECENTERED on the rider (cy~36%) so the
@@ -102,7 +97,11 @@ async function main() {
   const durationS = Number(process.argv[6] ?? 44.5);
   const variants = MOVES[move];
   if (!variants) throw new Error(`unknown move "${move}" (have: ${Object.keys(MOVES).join(", ")})`);
+  if (!Number.isFinite(fps) || !Number.isFinite(durationS)) {
+    throw new Error(`fps and durationS must be numbers (got fps="${process.argv[5]}", durationS="${process.argv[6]}")`);
+  }
   const [s0, s1] = window.split("-").map(Number);
+  if (!Number.isFinite(s0) || !Number.isFinite(s1)) throw new Error(`window must be "start-end" in seconds (got "${window}")`);
   const frames = `${Math.round(s0 * fps)}-${Math.round(s1 * fps)}`;
 
   const outDir = join(REMOTION, "out", "sweeps", move);

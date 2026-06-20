@@ -10,8 +10,9 @@
  * uses (overlay.json `contacts`, magnitude = impactRedir ?? impact), via a simple
  * decaying "trauma" accumulator — so shake/chroma/flash land on the felt slams.
  *
- * Everything defaults OFF/identity: with no `fx` prop, the overlay renders exactly
- * as before.
+ * All `fx`-driven effects default OFF/identity: with no `fx` prop, RideFX/TintLayer/
+ * VignetteLayer/FlashLayer are no-ops. (BottomFade is a separate, always-on seam fix
+ * applied by the composition regardless of `fx`.)
  */
 import React from "react";
 import { AbsoluteFill, OffthreadVideo, staticFile } from "remotion";
@@ -177,8 +178,10 @@ export const TintLayer: React.FC<{ fx: FXConfig; phaseColor?: string; enter: num
 export const VignetteLayer: React.FC<{ fx: FXConfig; t: number; contacts: Contact[]; enter: number }> = ({ fx, t, contacts, enter }) => {
   if (!fx.vignette) return null;
   const cfg = { ...VIGNETTE_DEFAULT, ...fx.vignette };
-  // reuse the shake trauma shape (fixed params) for the pulse term
-  const pulse = cfg.pulse > 0 ? cfg.pulse * traumaAt(t, contacts, { decayPerSec: 6, gain: 1, minImpact: 0.45, power: 1.5 }) : 0;
+  // reuse the shake trauma shape (fixed params) for the pulse term. Gate/gain match
+  // the impact scale (~0.2–0.45) so the pulse actually fires; minImpact 0.45 here
+  // would exceed every real impact and make the pulse silently dead.
+  const pulse = cfg.pulse > 0 ? cfg.pulse * traumaAt(t, contacts, { decayPerSec: 6, gain: 1.8, minImpact: 0.22, power: 1.5 }) : 0;
   const strength = Math.min(1, cfg.strength + pulse);
   if (strength <= 0) return null;
   return (

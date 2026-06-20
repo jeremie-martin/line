@@ -19,8 +19,11 @@ const work = resolve("generated/produce/_paritycheck");
 const inbox = resolve("generated/_parity_inbox");
 mkdirSync(work, { recursive: true });
 
+// Resolve the jolt once so the compile (runSeed) and the render bundle below use
+// the identical offset — that parity is exactly what this harness exists to check.
+const jolt = resolveJoltMs();
 console.log(`[1] compile+measure ${cfg.spec} seed ${seed} @ ${cfg.budget}`);
-const { track, report, metrics } = await runSeed({ specPath: cfg.spec, seed, budget: cfg.budget, jolt: resolveJoltMs() });
+const { track, report, metrics } = await runSeed({ specPath: cfg.spec, seed, budget: cfg.budget, jolt });
 console.log(`    score ${metrics.score.toFixed(0)}  stand ${metrics.standTimePct.toFixed(1)}%  rot ${metrics.rotations.toFixed(1)}  end=${metrics.reachedEnd}`);
 const trackPath = join(work, `s${seed}.track.json`);
 const reportPath = join(work, `s${seed}.report.json`);
@@ -35,7 +38,7 @@ console.log("[4] renderBundle (ride → mux → overlay → remotion → bundle)
 try {
   const dir = await renderBundle({
     specPath: cfg.spec, trackPath, reportPath, audioPath: cfg.audio, spectrumBase,
-    seed, song: project, project: "line", metrics, render: cfg.render, budget: cfg.budget, jolt: resolveJoltMs(), outDir: inbox,
+    seed, song: project, project: "line", metrics, render: cfg.render, budget: cfg.budget, jolt, outDir: inbox,
     workDir: work, gitSha: "paritytest", host: hostname(), keepIntermediates: false,
   });
   console.log(`\nBUNDLE → ${dir}`);

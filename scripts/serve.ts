@@ -1516,7 +1516,10 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
         const before = snapshotFiles([notesFile]);
         writeSpecNotes(resolvedSpec.entry.path, next);
         const after = snapshotFiles([notesFile]);
-        pushSpecHistory(resolvedSpec.entry.path, previous ? "Edit note" : "Add note", before, after);
+        // An empty upsert of an existing note removes it (isEmpty → `without`), so label
+        // it a deletion; an empty brand-new note is a no-op pushSpecHistory drops outright.
+        const label = isEmpty ? "Delete note" : previous ? "Edit note" : "Add note";
+        pushSpecHistory(resolvedSpec.entry.path, label, before, after);
         return json(res, {
           ok: true,
           specPath: resolvedSpec.entry.path,

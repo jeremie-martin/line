@@ -28,6 +28,7 @@ import { redirArcPxAtLanding } from "./v0/core/substrate.ts";
 import {
   cameraSidecarToRenderPlan,
   specZoomLaneToRenderPlan,
+  siblingCameraPath,
   type CameraSidecar,
   type RenderZoomPlan,
 } from "./v0/core/camera.ts";
@@ -148,12 +149,6 @@ function downsampleAutoZoom(autoZoom: number[], step = 8): [number, number][] {
 function zoomRange(autoZoom: number[]): string {
   const sorted = [...autoZoom].sort((a, b) => a - b);
   return `${sorted[0].toFixed(2)}-${sorted[sorted.length - 1].toFixed(2)}x`;
-}
-
-function siblingCameraPath(path: string): string {
-  const trackJson = path.replace(/\.track\.json$/i, ".camera.json");
-  if (trackJson !== path) return trackJson;
-  return path.replace(/\.json$/i, ".camera.json");
 }
 
 async function loadSpecZoomPlan(trackPath: string): Promise<{ plan: RenderZoomPlan | null; source: string | null }> {

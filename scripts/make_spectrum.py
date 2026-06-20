@@ -12,7 +12,10 @@ No librosa — just numpy + ffmpeg.
 
 Output JSON: { "fps", "bands", "frames": [[b0..bN-1 in 0..1], ...] }.
 """
-import argparse, json, subprocess, sys
+import argparse
+import json
+import subprocess
+import sys
 import numpy as np
 
 ap = argparse.ArgumentParser()

@@ -42,6 +42,13 @@ export function cameraSidecarToRenderPlan(sidecar: CameraSidecar | null | undefi
   };
 }
 
+/** Sibling `.camera.json` sidecar path for a track file (`*.track.json` or `*.json`). */
+export function siblingCameraPath(path: string): string {
+  const trackJson = path.replace(/\.track\.json$/i, ".camera.json");
+  if (trackJson !== path) return trackJson;
+  return path.replace(/\.json$/i, ".camera.json");
+}
+
 export function specZoomLaneToRenderPlan(
   lane: SpecZoomLane | undefined,
   durationSeconds: number,

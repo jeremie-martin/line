@@ -11,6 +11,7 @@ import {
   cameraSidecarToRenderPlan,
   specZoomLaneToRenderPlan,
   denseLinearZoomFromLog2Keyframes,
+  siblingCameraPath,
   type CameraSidecar,
   type RenderZoomPlan,
 } from "./v0/core/camera.ts";
@@ -185,12 +186,6 @@ if (!trackPath || !existsSync(trackPath)) {
 if (zoom !== undefined && !Number.isFinite(zoom)) {
   console.error(`--zoom must be a number (got: ${arg("zoom")})`);
   process.exit(1);
-}
-
-function siblingCameraPath(path: string): string {
-  const trackJson = path.replace(/\.track\.json$/i, ".camera.json");
-  if (trackJson !== path) return trackJson;
-  return path.replace(/\.json$/i, ".camera.json");
 }
 
 async function loadSpecZoomPlan(trackPath: string): Promise<{ plan: RenderZoomPlan | null; source: string | null; spec: Spec | null }> {

@@ -35,6 +35,14 @@ type Bundle = {
   phases: Phase[];
 };
 
+// Phase covering time `t` (held at the last phase past the end); null if none.
+const activePhaseAt = (phases: Phase[], t: number): Phase | null =>
+  phases.find((p) => t >= p.t0 && t < p.t1) ?? phases[phases.length - 1] ?? null;
+
+// Axes shown in the curve panels — amplitude/elevation are control-only, never plotted.
+const plottedAxes = (axes: AxisData[]): AxisData[] =>
+  axes.filter((a) => a.axis !== "amplitude" && a.axis !== "elevation");
+
 const FONT = "ui-monospace, 'DejaVu Sans Mono', 'IBM Plex Mono', monospace";
 const PILL = "rgba(10,12,18,0.86)";
 const BORDER = "1px solid rgba(255,255,255,0.10)";
@@ -345,7 +353,7 @@ const BottomCurvePanel: React.FC<{
 
   // Amplitude/elevation (launch-angle axes) are intentionally not plotted here —
   // the panel shows AIR, SPEED and IMPACT, each an equal third.
-  const axes = data.axes.filter((a) => a.axis !== "amplitude" && a.axis !== "elevation");
+  const axes = plottedAxes(data.axes);
 
   const phaseH = 12; // slim phase timeline strip (names now live top-left)
   const panelPadV = 12;
@@ -366,7 +374,7 @@ const BottomCurvePanel: React.FC<{
   const plotX0 = panelLeft + CHART_PAD_L; // matches AxisChart padL within the panel
   const plotX1 = panelLeft + panelW - CHART_PAD_R;
   const tx = (tt: number) => plotX0 + (Math.min(tt, dur) / dur) * (plotX1 - plotX0);
-  const activePhase = data.phases.find((p) => t >= p.t0 && t < p.t1) ?? data.phases[data.phases.length - 1];
+  const activePhase = activePhaseAt(data.phases, t);
 
   return (
     <>
@@ -515,10 +523,10 @@ const SpectrumViz: React.FC<{
 // the legend inside it.
 const VerticalPanelCard: React.FC<{
   data: Bundle; panelW: number; t: number; S: ChartSizing;
-  rowH: number; phaseH: number; panelPadV: number; activePhase?: Phase;
+  rowH: number; phaseH: number; panelPadV: number; activePhase?: Phase | null;
 }> = ({ data, panelW, t, S, rowH, phaseH, panelPadV, activePhase }) => {
   const dur = data.durationS;
-  const axes = data.axes.filter((a) => a.axis !== "amplitude" && a.axis !== "elevation");
+  const axes = plottedAxes(data.axes);
   const plotX0 = S.padL, plotX1 = panelW - S.padR;
   const txL = (tt: number) => plotX0 + (Math.min(tt, dur) / dur) * (plotX1 - plotX0);
   return (
@@ -562,7 +570,7 @@ const VerticalDataPanel: React.FC<{
   const bottomSafe = Math.round(height * variant.bottomSafePct);
   const S = { ...DEFAULT_SIZING, ...VERTICAL_SIZING };
 
-  const axes = data.axes.filter((a) => a.axis !== "amplitude" && a.axis !== "elevation");
+  const axes = plottedAxes(data.axes);
   const phaseH = 22, panelPadV = 18;
   const rowH = variant.rowH;
   const contentH = rowH * (axes.length + 1) + phaseH + 12;
@@ -571,7 +579,7 @@ const VerticalDataPanel: React.FC<{
   const panelY = interpolate(enter, [0, 1], [60, 0]);
 
   const txGlobal = (tt: number) => panelLeft + S.padL + (Math.min(tt, dur) / dur) * (panelW - S.padL - S.padR);
-  const activePhase = data.phases.find((p) => t >= p.t0 && t < p.t1) ?? data.phases[data.phases.length - 1];
+  const activePhase = activePhaseAt(data.phases, t);
   const card = (
     <VerticalPanelCard data={data} panelW={panelW} t={t} S={S} rowH={rowH} phaseH={phaseH} panelPadV={panelPadV} activePhase={activePhase} />
   );
@@ -673,7 +681,7 @@ export const CurveOverlay: React.FC = () => {
   if (!data) return <AbsoluteFill style={{ backgroundColor: "#000" }} />;
 
   const enter = spring({ frame, fps, config: { damping: 20, mass: 0.7 } });
-  const activePhase = data.phases.find((p) => t >= p.t0 && t < p.t1) ?? data.phases[data.phases.length - 1] ?? null;
+  const activePhase = activePhaseAt(data.phases, t);
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
@@ -696,7 +704,7 @@ export const ImpactStudyOverlay: React.FC = () => {
   const data = useBundle(dataFile, "impact-study-data");
   if (!data) return <AbsoluteFill style={{ backgroundColor: "#000" }} />;
   const enter = spring({ frame, fps, config: { damping: 20, mass: 0.7 } });
-  const activePhase = data.phases.find((p) => t >= p.t0 && t < p.t1) ?? data.phases[data.phases.length - 1] ?? null;
+  const activePhase = activePhaseAt(data.phases, t);
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
       <OffthreadVideo src={staticFile(videoFile)} />

@@ -683,8 +683,8 @@
         </p>
       </div>
     </div>
-    <pre class="command">npm run golden -- --jobs=4
-npm run golden -- --jobs=4 --budgets=30000,50000,70000 --specs=tiny_dance --seed=0
+    <pre class="command">npm run golden -- --jobs=32
+npm run golden -- --jobs=32 --budgets=100000,300000 --specs=tiny_dance --seed=0
 
 # each run archives golden.json and checkpoint tracks/reports under generated/golden-runs/
 
@@ -1310,8 +1310,8 @@ branch ranking =
       </div>
     </div>
 
-    <pre class="command">npm run golden -- --jobs=4
-npm run golden -- --jobs=4 --compiler=handoff
+    <pre class="command">npm run golden -- --jobs=32
+npm run golden -- --jobs=32 --compiler=handoff
 
 <!--BASELINE:score_block-->
 100000  score  632.36  valid 479/480  changed  0  improved  0  plateau  0  regress  0

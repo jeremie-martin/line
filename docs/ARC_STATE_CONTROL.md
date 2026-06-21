@@ -522,7 +522,7 @@ From V0 (`study_arc_sensitivity.ts`, 306 gaps × 3 knobs @300k), V1
 | short-probe joint output-vector model                       | 593.60 raw; no formal verdict  | joint-short-probe-01         |
 | exit-plane short-probe suffix                               | 593.18 raw; no formal verdict  | joint-short-probe-exitplane-01 |
 
-Suite: 40 specs × 12 seeds, budgets 50k–300k weighted; α=0.10 via `npm run
+Suite: 40 specs × 12 seeds, budgets 100k/200k/300k weighted; α=0.10 via `npm run
 decide`. Impact still costs ~55 headline points (`npm run lab -- report
 loss`) — the open prize. A real compiler integration is not a promotion until
 it beats the accepted baseline under `decide`. The short-probe archives changed

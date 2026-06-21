@@ -6,7 +6,8 @@ numbers from the golden JSON. Do not transcribe scores by hand.
 ## 1. Run the curve and capture JSON
 
 ```bash
-# Full canonical run = 12 seeds × budgets {50,100,200,300}k (each an independent run).
+# Full canonical run = 40 specs × 12 seeds × budgets {100,200,300}k
+# (each budget is an independent run).
 LR_ENGINE=wasm npm run golden -- --jobs 32 --archive-dir=generated/golden-runs/rebaseline
 ```
 

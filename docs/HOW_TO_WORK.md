@@ -24,18 +24,18 @@ budgets runs N compiles per (spec, seed). Two tiers, cheap → authoritative:
    ```bash
    LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- \
      --specs=tiny_dance,opening_burst \
-     --budgets=50000,300000 \
-     --jobs=6
+     --budgets=100000,300000 \
+     --jobs=32
    ```
 
-2. **canonical** — headline specs × 12 seeds × budgets `{50,100,200,300}k`; the **only
+2. **canonical** — 40 headline specs × 12 seeds × budgets `{100,200,300}k`; the **only
    promotable basis**:
 
    ```bash
-   LR_ENGINE=wasm npm run golden -- --jobs=6
+   LR_ENGINE=wasm npm run golden -- --jobs=32
    ```
 
-- **Jobs:** use `--jobs=6` unless you deliberately need a different worker count.
+- **Jobs:** use `--jobs=32` unless you deliberately need a different worker count.
   Very high job counts can OOM (~1 GB/worker).
 - **Baseline reuse:** the baseline is produced **once and reused**. For each idea, run
   only the *candidate*, then `decide` it against the committed baseline — do **not**

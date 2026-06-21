@@ -23,21 +23,21 @@ const REMOTION = join(ROOT, "remotion");
 
 type Variant = { label: string; note: string; fx: Record<string, unknown> };
 
+// The locked shake winner (02_medium) — the shake-sweep entry and the chroma/look
+// variants both reference it so the "medium shake" base is defined exactly once.
+const MEDIUM_SHAKE = { maxPx: 18, maxRotDeg: 0.7, overscan: 1.05, freq: 11, decayPerSec: 6, gain: 1.8, minImpact: 0.22, power: 1.5 } as const;
+
 // ── MOVE 1: camera shake — translational + rotational, impact-driven ────────────
 const SHAKE: Variant[] = [
   { label: "00_baseline", note: "no fx (reference)", fx: {} },
   { label: "01_subtle", note: "small, quick settle", fx: { shake: { maxPx: 10, maxRotDeg: 0.4, overscan: 1.04, freq: 9, decayPerSec: 7, gain: 1.6, minImpact: 0.22, power: 1.5 } } },
-  { label: "02_medium", note: "balanced default", fx: { shake: { maxPx: 18, maxRotDeg: 0.7, overscan: 1.05, freq: 11, decayPerSec: 6, gain: 1.8, minImpact: 0.22, power: 1.5 } } },
+  { label: "02_medium", note: "balanced default", fx: { shake: { ...MEDIUM_SHAKE } } },
   { label: "03_strong", note: "big amplitude", fx: { shake: { maxPx: 30, maxRotDeg: 1.2, overscan: 1.07, freq: 12, decayPerSec: 5, gain: 2.0, minImpact: 0.22, power: 1.3 } } },
   { label: "04_punchy", note: "snappy, high-freq, quiet between", fx: { shake: { maxPx: 24, maxRotDeg: 0.9, overscan: 1.06, freq: 15, decayPerSec: 10, gain: 2.2, minImpact: 0.22, power: 2.0 } } },
   { label: "05_rumble", note: "low-freq slow roll", fx: { shake: { maxPx: 26, maxRotDeg: 0.7, overscan: 1.06, freq: 6, decayPerSec: 4, gain: 1.9, minImpact: 0.22, power: 1.4 } } },
   { label: "06_rotation", note: "tilt-led, little translate", fx: { shake: { maxPx: 12, maxRotDeg: 2.2, overscan: 1.06, freq: 10, decayPerSec: 6, gain: 1.9, minImpact: 0.22, power: 1.5 } } },
   { label: "07_translate_only", note: "no rotation", fx: { shake: { maxPx: 28, maxRotDeg: 0, overscan: 1.06, freq: 12, decayPerSec: 6, gain: 2.0, minImpact: 0.22, power: 1.5 } } },
 ];
-
-// The locked shake winner (02_medium) — chroma/look variants composite on top of it
-// so they're judged in the real production context.
-const MEDIUM_SHAKE = { maxPx: 18, maxRotDeg: 0.7, overscan: 1.05, freq: 11, decayPerSec: 6, gain: 1.8, minImpact: 0.22, power: 1.5 } as const;
 
 // ── MOVE 2: chromatic aberration / impact flash (all on the medium-shake base) ──
 const CHROMA: Variant[] = [

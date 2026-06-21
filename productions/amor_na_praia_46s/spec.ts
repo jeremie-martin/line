@@ -50,6 +50,7 @@ import { resolve } from "node:path";
 import type { Contact, Curve, Spec } from "../../scripts/v0/types.ts";
 import { keyframes } from "../../scripts/v0/core/curves.ts";
 import { beats } from "../../scripts/v0/core/beats.ts";
+import { clamp } from "../../scripts/v0/core/substrate.ts";
 
 type BeatRow = { t: number; meter_pos: number | null; percussive: number; band_sub: number; onset_strength: number };
 type AudioAnalysis = {
@@ -67,10 +68,6 @@ const DURATION = 46;
 const DROP_T = 9.10; // the main drop: sustained groove arrives (sub → 1.00)
 const REDROP_T = 26.70; // re-drop: groove re-enters after the 26.29–26.70 hole
 const LAST_BODY_T = 43.20; // last full beat before the master collapses to fade
-
-function clamp(x: number, lo: number, hi: number): number {
-  return Math.max(lo, Math.min(hi, x));
-}
 
 // Local peak of a measured layer around t (max within ±win s). win=0.10 is wide
 // enough to catch a hit whose energy peak sits a frame off the onset time, yet

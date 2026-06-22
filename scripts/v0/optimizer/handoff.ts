@@ -1302,6 +1302,14 @@ function compileHandoffInternal(
       runRepairPhase();
     }
 
+    // If repair exhausts its useful restart set before the frame budget is spent,
+    // resume the original frontier instead of snapshotting with live alternatives
+    // still queued. Repair keeps first claim on post-completion budget, but leftover
+    // frames should still buy normal search quality.
+    if (repairEnabled && captured === null && getSimFrames() < targetBudget) {
+      runFrontier(passStack, fallbackStack, () => getSimFrames() < targetBudget);
+    }
+
     // Frontier exhausted (or node cap hit) before the budget was reached: snapshot
     // the converged best, flagging whether the budget was actually exhausted.
     if (captured === null) {

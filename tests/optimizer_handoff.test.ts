@@ -296,8 +296,17 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     // Default fwd-eval gate is 75k; at 100k the pool is scored by the true forward rollout.
     const budget = 100_000;
-    const a = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
-    const b = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    const prevLeaf = process.env.LR_FWD_EVAL_LEAF;
+    let a!: ReturnType<typeof checkpoint>;
+    let b!: ReturnType<typeof checkpoint>;
+    try {
+      process.env.LR_FWD_EVAL_LEAF = "full";
+      a = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+      b = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
+    } finally {
+      if (prevLeaf === undefined) delete process.env.LR_FWD_EVAL_LEAF;
+      else process.env.LR_FWD_EVAL_LEAF = prevLeaf;
+    }
     const fe = a.stats.fwd_eval;
     expect(fe).toBeDefined();
     expect(a.stats.fwd_eval).toEqual(b.stats.fwd_eval); // deterministic, measure-only

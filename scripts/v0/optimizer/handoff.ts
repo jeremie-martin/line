@@ -3610,8 +3610,8 @@ function parseForwardSpec(raw: string): ForwardEvalConfig | null {
   const depth = d ? Math.max(1, Math.min(6, Number.parseInt(d, 10) || 2)) : 2;
   const defBranch = v === "avg" ? 6 : v === "best" ? 3 : 1;
   const branch = b ? Math.max(1, Math.min(8, Number.parseInt(b, 10) || defBranch)) : defBranch;
-  // leaf defaults to "full" (byte-identical); forwardEvalConfig overrides it from
-  // LR_FWD_EVAL_LEAF. startEvalConfig keeps the parsed "full" (start-eval out of scope).
+  // leaf defaults to "full" (byte-identical); forwardEvalConfig/startEvalConfig override it
+  // from LR_FWD_EVAL_LEAF.
   return { variant: v, depth, branch, charge: true, leaf: "full" };
 }
 
@@ -3656,18 +3656,15 @@ function forwardEvalConfig(): ForwardEvalConfig | null {
  *  unlike the per-candidate ranker). The measured wins across budgets are why it is the default
  *  despite the cost; the full-leaf and the always-on, ungated breadth are intentional.
  *  Cost is bounded by the heuristic start pool (~START_SCORING_POOL + support seeds), each
- *  full-rolled BEFORE the slice to START_OPTION_LIMIT. If start ranking is ever made ballistic,
- *  drop this exception note. */
+ *  rolled before the slice to START_OPTION_LIMIT. The rollout leaf follows LR_FWD_EVAL_LEAF:
+ *  the default objective leaf saves re-detection frames, while LR_FWD_EVAL_LEAF=full restores
+ *  the previous full-leaf ranking. If start ranking is ever made ballistic, drop this note. */
 function startEvalConfig(): ForwardEvalConfig | null {
   const env = readEnv("LR_START_EVAL");
   if (env === "0" || env === "off") return null;
-  // Start-eval keeps the FULL leaf scorer: start selection is the most consequential
-  // choice (inherited by the whole track) and is out of scope for the objective-leaf
-  // experiment, so its rollouts stay full-detection regardless of LR_FWD_EVAL_LEAF.
-  // parseForwardSpec already returns leaf:"full"; spelled out here for the invariant.
   const cfg = parseForwardSpec(env === undefined || env === "" ? "best:1:5" : env);
   if (cfg === null && env !== undefined && env !== "") warnUnparsedSpec("LR_START_EVAL", env);
-  return cfg === null ? null : { ...cfg, leaf: "full" };
+  return cfg === null ? null : { ...cfg, leaf: forwardEvalLeaf() };
 }
 
 /** True forward-rollout score of a start root (charged). Higher = better start. */
@@ -3678,10 +3675,14 @@ function startForwardScore(
   // separately from per-candidate forward eval (cost instrument, measure-only).
   const saved = getSimFrames();
   try {
-    // Start-eval always uses the FULL leaf (cfg.leaf is forced to "full" in startEvalConfig).
+    const leafObjective = cfg.leaf === "objective";
+    const rootGapIndex = root.gapIndex;
     return cfg.variant === "avg"
-      ? forwardAvgNextScore(root, gaps, ctx, seed, cfg.branch, false, 0)
-      : forwardRolloutScore(root, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1, false, 0);
+      ? forwardAvgNextScore(root, gaps, ctx, seed, cfg.branch, leafObjective, rootGapIndex)
+      : forwardRolloutScore(
+        root, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1,
+        leafObjective, rootGapIndex,
+      );
   } finally {
     fwdEvalTotals.start_eval_frames_charged += Math.max(0, getSimFrames() - saved);
   }

@@ -3595,6 +3595,10 @@ type RepairConfig = {
 const REPAIR_MAIN_MARGIN_MATURE = 1.1;
 const REPAIR_MAIN_MARGIN_RAMP_START_FRAMES = 100_000;
 const REPAIR_MAIN_MARGIN_RAMP_SPAN_FRAMES = 100_000;
+const REPAIR_FEAS_MARGIN_SCARCE = 1.05;
+const REPAIR_FEAS_MARGIN_MATURE = 1.0;
+const REPAIR_FEAS_MARGIN_RAMP_START_FRAMES = 100_000;
+const REPAIR_FEAS_MARGIN_RAMP_SPAN_FRAMES = 100_000;
 
 function defaultRepairMainMargin(targetBudget: number): number {
   const pressure = smoothstep(
@@ -3602,6 +3606,15 @@ function defaultRepairMainMargin(targetBudget: number): number {
       REPAIR_MAIN_MARGIN_RAMP_SPAN_FRAMES,
   );
   return 1 + (REPAIR_MAIN_MARGIN_MATURE - 1) * pressure;
+}
+
+function defaultRepairFeasMargin(targetBudget: number): number {
+  const pressure = smoothstep(
+    (targetBudget - REPAIR_FEAS_MARGIN_RAMP_START_FRAMES) /
+      REPAIR_FEAS_MARGIN_RAMP_SPAN_FRAMES,
+  );
+  return REPAIR_FEAS_MARGIN_SCARCE +
+    (REPAIR_FEAS_MARGIN_MATURE - REPAIR_FEAS_MARGIN_SCARCE) * pressure;
 }
 
 function repairConfig(targetBudget: number): RepairConfig {
@@ -3625,10 +3638,9 @@ function repairConfig(targetBudget: number): RepairConfig {
     // stay byte-identical while mature budgets keep a little more main-search context before repair.
     mainMargin: flt("LR_REPAIR_MAIN_MARGIN", defaultRepairMainMargin(targetBudget), 1.0, 10.0),
     // Feasibility margin: require (measured cost-to-end × feasMargin) ≤ remaining budget, and size each
-    // restart's ceiling to cost × feasMargin. Keep this tight: loose margins push repairs to cheap tails,
-    // while exact 1.0 admitted too many marginal restarts. Canonical 2026-06-23 accepted 1.05 as the
-    // better split: close to the measured ceiling, with a little headroom for genuinely viable repairs.
-    feasMargin: flt("LR_REPAIR_FEAS_MARGIN", 1.05, 1.0, 10.0),
+    // restart's ceiling to cost × feasMargin. Keep scarce budgets at the accepted 1.05 headroom, then
+    // fade toward the exact measured-cost ceiling as budget matures; explicit env overrides still win.
+    feasMargin: flt("LR_REPAIR_FEAS_MARGIN", defaultRepairFeasMargin(targetBudget), 1.0, 10.0),
     // Cap on repair restarts. High-budget binds on this (1M affords ~30-40 restarts); low/mid
     // budgets exhaust the budget first, so a high cap is a no-op there. 16 plateaued 1M at 698;
     // 64 → 706.6 (the cap, not the budget, was the 1M plateau).

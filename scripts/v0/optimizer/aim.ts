@@ -212,12 +212,11 @@ export const AIM_TOPK_BASES: number = (() => {
  *  (byte-identical to the K=1 default) while the 200k/300k compiles run fully at
  *  K>1 and collect the late-budget gain.
  *
- *  Threshold 150k: the per-budget curve has 100k still net-negative (−9.1) and
- *  200k net-positive (+1.5). A threshold in (100k, 200k] keeps the 50k/100k
- *  compiles at K=1 and lets the 200k/300k compiles at K>1. 150k is the same
- *  maturity frontier the forward-eval gate uses, so the budget-coupled gates
- *  share one threshold. */
-const AIM_TOPK_MATURE_BUDGET_FRAMES = 150_000;
+ *  Threshold 100k: after start max-width and tighter repair feasibility, the accepted
+ *  top-4 non-low-air aim lane pays even at the canonical scarce tier. Canonical
+ *  2026-06-23 accepted the 150k -> 100k gate move (+2.9 headline, entirely at 100k).
+ */
+const AIM_TOPK_MATURE_BUDGET_FRAMES = 100_000;
 const AIM_LOW_AIR_TOPK_MAX = 3;
 const AIM_LOW_AIR_TOPK_AIR_MAX = 0.30;
 

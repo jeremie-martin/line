@@ -363,6 +363,8 @@ const HANDOFF_QUALITY_MATURE_LEAN_START_FRAMES = 150_000;
 const HANDOFF_QUALITY_MATURE_LEAN_SPAN_FRAMES = 100_000;
 const HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE = 0.50;
 const HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE = 0.40;
+const HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS = 32;
+const HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND = 34;
 /** Floor for the budget-scaled contract sample count: even the leanest low-budget
  *  race samples at least this many candidates per contact gap, so greedy completion
  *  keeps enough breadth to route around dead ends (3 was the value that flipped deep
@@ -2677,7 +2679,10 @@ function qualityHandoffSampleCount(
 ): number {
   const base = handoffSampleCount(true, sparseContractSearch, targetBudget);
   if (qualityNCandOverride() !== null || base >= HANDOFF_QUALITY_N_CAND) return base;
-  return shouldRelaxMatureQualityLean(gaps, ctx) ? HANDOFF_QUALITY_N_CAND : base;
+  if (shouldRelaxMatureQualityLean(gaps, ctx)) return HANDOFF_QUALITY_N_CAND;
+  return shouldBoostShortNoAmpQualityBreadth(gaps, ctx)
+    ? HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND
+    : base;
 }
 
 function budgetAwareQualitySampleCount(targetBudget: number | undefined): number {
@@ -2703,6 +2708,17 @@ function budgetAwareQualitySampleCount(targetBudget: number | undefined): number
 function shouldRelaxMatureQualityLean(gaps: Gap[], ctx: SpecContext): boolean {
   return targetAxisRange(gaps, ctx, "air") >= HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE ||
     targetAxisRange(gaps, ctx, "speed") >= HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE;
+}
+
+function shouldBoostShortNoAmpQualityBreadth(gaps: Gap[], ctx: SpecContext): boolean {
+  return contactGapCount(gaps) <= HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS &&
+    targetAxisRange(gaps, ctx, "amplitude") <= 0;
+}
+
+function contactGapCount(gaps: Gap[]): number {
+  let contacts = 0;
+  for (const gap of gaps) if (gap.endsWithContact) contacts++;
+  return contacts;
 }
 
 function targetAxisRange(gaps: Gap[], ctx: SpecContext, axis: AxisName): number {

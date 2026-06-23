@@ -599,6 +599,28 @@ hinges on the budget profile — likely budget-adaptive depth, not a flat switch
 
 ---
 
+## 11. Canonical promotion: greedy:1 only at 300k — REJECT
+
+**Definition.** Production default change on the accepted top-4 aim baseline: keep `greedy:2` for
+100k/200k, but switch the non-vertical default forward-eval rollout to `greedy:1` when
+`targetBudget >= 300k`; preserve the existing vertical-drama `avg` override.
+
+**Result.** Full canonical 40 specs × 12 seeds × {100k,200k,300k}, vs
+`attempt-aim-top4-nonlowair-a01`:
+
+```
+  headline 657.19 -> 655.51  Δ -1.7  CI[-3.7,+0.3]  REJECT
+  100k +0.0, 200k +0.0, 300k -3.4
+```
+
+100k/200k were byte-identical as intended, so the loss is entirely the 300k shallow rollout. It saved
+~9.8M charged forward-eval frames and reached first completion ~2.8M frames earlier, but the recovered
+budget turned into noisier repair/aim churn and worse 300k quality. Conclusion: the probe-tier
+greedy:1 crossover did not promote on the current accepted compiler; fixed non-vertical `greedy:2`
+remains the production default.
+
+---
+
 ## Open questions (no conclusions yet)
 
 - Catch-only helps air/rhythmic specs but hurts a few dense ones (drums_pendulum). Why — unstudied.

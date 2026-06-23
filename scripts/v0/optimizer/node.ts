@@ -195,7 +195,7 @@ function sortWithLaneExtras(
   // branch-widening failure.
   const laneExtras: Candidate[] = [];
   if (nCand > 1 && sorted.length > 0 && aimEnumEnabled() && !(inRolloutContext && !rolloutAimEnabled)) {
-    // EXPERIMENT (LR_AIM_TOPK_BASES, default 3): refine the first K candidates of
+    // EXPERIMENT (LR_AIM_TOPK_BASES, default 4): refine the first K candidates of
     // the quality-sorted pool, not just `sorted[0]`. Each base is passed exactly
     // as `sorted[0]` is today (same engine/gap/lineId), and its extras accumulate
     // into the one pool. K=1 → a single iteration on sorted[0] (byte-identical).
@@ -204,9 +204,9 @@ function sortWithLaneExtras(
     // base — each candidate is a self-contained line set that competes in the
     // pool (only one wins per branch), so reusing the start id is safe; the merge
     // re-sort ranks all extras from all bases together.
-    // K is gated on compile maturity (aimTopKBasesEffective): below the budget
-    // threshold this is 1, so small-budget compiles stay byte-identical to K=1.
-    const kEff = aimTopKBasesEffective();
+    // K is gated on compile maturity and low-air targets (aimTopKBasesEffective):
+    // below the budget threshold this is 1; low-air mature gaps keep K=3.
+    const kEff = aimTopKBasesEffective(gap);
     const bases = Math.min(kEff, sorted.length);
     for (let b = 0; b < kEff; b++) {
       if (b >= bases) { recordLaneBaseSkip(); continue; }

@@ -181,18 +181,19 @@ function aimModelSpace(): AimModelSpace {
   return space;
 }
 
-/** EXPERIMENT (LR_AIM_TOPK_BASES, int >=1, default 3): how many of the
+/** EXPERIMENT (LR_AIM_TOPK_BASES, int >=1, default 4): how many of the
  *  quality-sorted pool's leading candidates the aim lane refines once the
  *  compile is above the maturity threshold. K=1 runs the lane on `sorted[0]`
  *  only. K>1 runs it on the first K distinct candidates, accumulating each
  *  base's lane extras into the pool, so the search refines more than just the
  *  quality-best base. Parsed once at import (env is constant per run; gates a
- *  per-pool-build hot path). Invalid/absent/<1 -> 3. */
+ *  per-pool-build hot path). Invalid/absent/<1 -> 4. Low-air gaps cap the
+ *  effective mature K at 3 below. */
 export const AIM_TOPK_BASES: number = (() => {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_TOPK_BASES;
   const n = raw === undefined || raw === "" ? NaN : Number(raw);
-  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 3;
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 4;
 })();
 
 /** Maturity gate for K>1 (LR_AIM_TOPK_BASES). The extra bases find good variants
@@ -217,6 +218,8 @@ export const AIM_TOPK_BASES: number = (() => {
  *  maturity frontier the forward-eval gate uses, so the budget-coupled gates
  *  share one threshold. */
 const AIM_TOPK_MATURE_BUDGET_FRAMES = 150_000;
+const AIM_LOW_AIR_TOPK_MAX = 3;
+const AIM_LOW_AIR_TOPK_AIR_MAX = 0.30;
 
 let aimCompileBudgetFrames = 0;
 /** Set the compile target budget for the K>1 maturity gate. Called once per
@@ -225,11 +228,16 @@ export function setAimCompileBudgetFrames(frames: number): void {
   aimCompileBudgetFrames = Math.max(0, frames | 0);
 }
 
-/** Effective lane-base count for the current compile: K below the maturity
- *  threshold collapses to 1 (byte-identical to the K=1 default), the configured
- *  AIM_TOPK_BASES at or above it. */
-export function aimTopKBasesEffective(): number {
-  return aimCompileBudgetFrames >= AIM_TOPK_MATURE_BUDGET_FRAMES ? AIM_TOPK_BASES : 1;
+/** Effective lane-base count for the current compile/gap: K below the maturity
+ *  threshold collapses to 1 (byte-identical to the K=1 default). Mature low-air
+ *  gaps keep the accepted top-3 behavior; other mature gaps use the configured
+ *  AIM_TOPK_BASES. */
+export function aimTopKBasesEffective(gap?: Gap): number {
+  if (aimCompileBudgetFrames < AIM_TOPK_MATURE_BUDGET_FRAMES) return 1;
+  if (gap?.targets.air !== undefined && gap.targets.air <= AIM_LOW_AIR_TOPK_AIR_MAX) {
+    return Math.min(AIM_TOPK_BASES, AIM_LOW_AIR_TOPK_MAX);
+  }
+  return AIM_TOPK_BASES;
 }
 
 /** Telemetry: a requested top-K base was skipped (duplicate of an

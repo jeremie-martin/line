@@ -3573,10 +3573,10 @@ function repairConfig(targetBudget: number): RepairConfig {
     // stay byte-identical while mature budgets keep a little more main-search context before repair.
     mainMargin: flt("LR_REPAIR_MAIN_MARGIN", defaultRepairMainMargin(targetBudget), 1.0, 10.0),
     // Feasibility margin: require (measured cost-to-end × feasMargin) ≤ remaining budget, and size each
-    // restart's ceiling to cost × feasMargin. TIGHT (1.1 = 10% headroom) is best: the worst/highest-value
-    // gaps are usually EARLY (expensive), so a loose margin (1.5) banished repairs to the cheap tail and
-    // cost score; 1.1 still skips genuinely-doomed restarts. (m1.1 592.0 > off 591.1 > m1.5 590.5, honest.)
-    feasMargin: flt("LR_REPAIR_FEAS_MARGIN", 1.1, 1.0, 10.0),
+    // restart's ceiling to cost × feasMargin. Keep this tight: loose margins push repairs to cheap tails,
+    // while exact 1.0 admitted too many marginal restarts. Canonical 2026-06-23 accepted 1.05 as the
+    // better split: close to the measured ceiling, with a little headroom for genuinely viable repairs.
+    feasMargin: flt("LR_REPAIR_FEAS_MARGIN", 1.05, 1.0, 10.0),
     // Cap on repair restarts. High-budget binds on this (1M affords ~30-40 restarts); low/mid
     // budgets exhaust the budget first, so a high cap is a no-op there. 16 plateaued 1M at 698;
     // 64 → 706.6 (the cap, not the budget, was the 1M plateau).

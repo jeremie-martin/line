@@ -621,6 +621,28 @@ remains the production default.
 
 ---
 
+## 12. Canonical promotion: best:1:5+noaim only at 300k — REJECT
+
+**Definition.** Production default change on the same accepted baseline: keep `greedy:2` for
+100k/200k, but switch the non-vertical default forward-eval rollout to `best:1:5` at 300k and
+suppress aim probes inside those widened rollouts. Preserve the existing vertical-drama `avg`
+override.
+
+**Result.** Full canonical 40 specs × 12 seeds × {100k,200k,300k}, vs
+`attempt-aim-top4-nonlowair-a01`:
+
+```
+  headline 657.19 -> 654.87  Δ -2.3  CI[-5.2,+0.3]  REJECT
+  100k +0.0, 200k +0.0, 300k -4.6
+```
+
+100k/200k were byte-identical. At 300k the width did more work and still lost: charged
+forward-eval frames rose ~10.7M, sampled candidates rose ~775k, and viable candidates rose ~534k,
+but drum/rhythm regressions dominated. Conclusion: the probe-tier best:1:5+noaim result does not
+promote on the current accepted compiler; high-budget max-width is not a production default.
+
+---
+
 ## Open questions (no conclusions yet)
 
 - Catch-only helps air/rhythmic specs but hurts a few dense ones (drums_pendulum). Why — unstudied.

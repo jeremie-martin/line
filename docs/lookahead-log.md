@@ -643,6 +643,35 @@ promote on the current accepted compiler; high-budget max-width is not a product
 
 ---
 
+## 13. Low-air impact template rideout — INCONCLUSIVE
+
+**Definition.** Production source trial on the accepted top-4 aim baseline: keep the existing
+impact-template lane count, but on very-low-air impact beats append a delayed grounded rideout after
+the redirection scoop instead of ending the template as a slam-hop. No extra candidate count; only the
+geometry occupying the already-scheduled low-air template slots changed.
+
+**Probe.** `drums_pendulum` only, 12 seeds × {100k,200k,300k}, moved strongly in the intended place:
+
+```
+  drums_pendulum 410.58/425.93/428.25 -> 424.79/433.26/436.54
+```
+
+**Canonical result.** Full 40 specs × 12 seeds × {100k,200k,300k}, archive
+`attempt-lowair-impact-rideout-after-top4at100-a01`, vs
+`attempt-aim-top4-at100-after-feasmargin105-a01`:
+
+```
+  headline 668.14 -> 668.28  Δ +0.1  CI[-1.0,+1.3]  P(Δ<=0)=41.5%  INCONCLUSIVE
+  100k +0.5, 200k -0.0, 300k +0.1; validity 100% at every budget
+```
+
+The intended target improved, but collateral offset it: `drums_pendulum` gained
++14.21/+7.33/+8.29 while `syncopated_switchback` lost +3.73/-12.42/-7.06 and
+`rhythm_ladder` lost -4.67 at 100k. Only 64/1440 rows changed (39 improvements, 25 regressions), so
+the mechanism is narrow but not selectable enough as-is. Source reverted; archive retained.
+
+---
+
 ## Open questions (no conclusions yet)
 
 - Catch-only helps air/rhythmic specs but hurts a few dense ones (drums_pendulum). Why — unstudied.

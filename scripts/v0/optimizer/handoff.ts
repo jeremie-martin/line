@@ -3645,16 +3645,16 @@ function forwardEvalConfig(): ForwardEvalConfig | null {
 }
 
 /** Start-selection eval: rank initial conditions by the TRUE forward score of where they lead,
- *  instead of the local axis-L2 proxy. DEFAULT greedy:2 — the start is the most consequential
- *  choice on a forward-dependent chain (inherited by the whole track), so the honest forward tool
- *  pays here at EVERY budget (+32.5 headline, lifts validity). LR_START_EVAL=off reverts to the
- *  proxy; greedy:2 is the sweet spot (best/avg/greedy:3 don't pay charged). Always charged.
+ *  instead of the local axis-L2 proxy. DEFAULT best:1:5 — the start is the most consequential
+ *  choice on a forward-dependent chain (inherited by the whole track), so using max-width over
+ *  the first contact pays here at every budget (+7.5 headline over greedy:2). LR_START_EVAL=off
+ *  reverts to the proxy; LR_START_EVAL=greedy:2 restores the previous default. Always charged.
  *
  *  MINIMAL-SIMULATION RULE — SANCTIONED EXCEPTION (deliberate, not an oversight): this is a
  *  ranking step that runs FULL engine re-detection (forwardNodeScore, leaf="full") rather than
  *  ballistic propagation, and it is ON by default at EVERY budget (NO forwardEvalMinBudget gate,
- *  unlike the per-candidate ranker). The measured +32.5 win across budgets is why it is the
- *  default despite the cost; the full-leaf and the always-on, ungated breadth are intentional.
+ *  unlike the per-candidate ranker). The measured wins across budgets are why it is the default
+ *  despite the cost; the full-leaf and the always-on, ungated breadth are intentional.
  *  Cost is bounded by the heuristic start pool (~START_SCORING_POOL + support seeds), each
  *  full-rolled BEFORE the slice to START_OPTION_LIMIT. If start ranking is ever made ballistic,
  *  drop this exception note. */
@@ -3665,7 +3665,7 @@ function startEvalConfig(): ForwardEvalConfig | null {
   // choice (inherited by the whole track) and is out of scope for the objective-leaf
   // experiment, so its rollouts stay full-detection regardless of LR_FWD_EVAL_LEAF.
   // parseForwardSpec already returns leaf:"full"; spelled out here for the invariant.
-  const cfg = parseForwardSpec(env === undefined || env === "" ? "greedy:2" : env);
+  const cfg = parseForwardSpec(env === undefined || env === "" ? "best:1:5" : env);
   if (cfg === null && env !== undefined && env !== "") warnUnparsedSpec("LR_START_EVAL", env);
   return cfg === null ? null : { ...cfg, leaf: "full" };
 }

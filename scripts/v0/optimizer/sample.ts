@@ -54,6 +54,8 @@ export type SpecContext = {
   allContactFrames: number[];
   /** Total frames in the spec. Used in survival checks downstream. */
   durationFrames: number;
+  /** Unjittered per-gap targets, when callers need stable authored target patterns. */
+  gapAxisTargets?: AxisValues[];
   /** Per-compile, per-engine/gap probe cache. The engine objects are immutable
    *  prefix states, so a WeakMap keeps the cache scoped to live search nodes. */
   probeCache?: WeakMap<object, Map<string, CandidateProbe>>;

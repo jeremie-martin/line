@@ -361,6 +361,8 @@ const HANDOFF_QUALITY_SCARCE_LEAN_START_FRAMES = 50_000;
 const HANDOFF_QUALITY_SCARCE_LEAN_SPAN_FRAMES = 50_000;
 const HANDOFF_QUALITY_MATURE_LEAN_START_FRAMES = 150_000;
 const HANDOFF_QUALITY_MATURE_LEAN_SPAN_FRAMES = 100_000;
+const HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE = 0.50;
+const HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE = 0.40;
 /** Floor for the budget-scaled contract sample count: even the leanest low-budget
  *  race samples at least this many candidates per contact gap, so greedy completion
  *  keeps enough breadth to route around dead ends (3 was the value that flipped deep
@@ -692,7 +694,7 @@ function compileHandoffInternal(
       }
     }
 
-    const ctx: SpecContext = { allContactFrames, durationFrames };
+    const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContractSearch = usesSparseContractSearch(gaps);
     const startOptions = initialSnapshot === null
@@ -1871,7 +1873,7 @@ function expandNode(
 
   let options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
     nCand: qualitySearch
-      ? handoffSampleCount(true, sparseContractSearch, targetBudget)
+      ? qualityHandoffSampleCount(gaps, ctx, sparseContractSearch, targetBudget)
       : budgetAwareContractSampleCount(
         targetBudget,
         gaps.length - node.search.gapIndex,
@@ -2587,7 +2589,7 @@ function completeNearTailSuffix(
     const gap = gaps[search.gapIndex];
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
       nCand: qualitySearch
-        ? handoffSampleCount(true, sparseContractSearch, targetBudget)
+        ? qualityHandoffSampleCount(gaps, ctx, sparseContractSearch, targetBudget)
         : budgetAwareContractSampleCount(
           targetBudget,
           gaps.length - search.gapIndex,
@@ -2653,13 +2655,29 @@ export function handoffSampleCount(
   if (qualitySearch) {
     // LR_QUALITY_NCAND=<n> overrides the quality-phase candidate breadth (experiment:
     // does more geometry diversity pay now that the forward-eval ranker can sort it?).
-    const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-      .process?.env?.LR_QUALITY_NCAND;
-    const n = raw ? Number.parseInt(raw, 10) : 0;
-    if (Number.isFinite(n) && n > 0) return Math.min(64, n);
+    const override = qualityNCandOverride();
+    if (override !== null) return override;
     return budgetAwareQualitySampleCount(targetBudget);
   }
   return sparseContractSearch ? HANDOFF_SPARSE_CONTRACT_N_CAND : HANDOFF_CONTRACT_N_CAND;
+}
+
+function qualityNCandOverride(): number | null {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_QUALITY_NCAND;
+  const n = raw ? Number.parseInt(raw, 10) : 0;
+  return Number.isFinite(n) && n > 0 ? Math.min(64, n) : null;
+}
+
+function qualityHandoffSampleCount(
+  gaps: Gap[],
+  ctx: SpecContext,
+  sparseContractSearch: boolean,
+  targetBudget: number | undefined,
+): number {
+  const base = handoffSampleCount(true, sparseContractSearch, targetBudget);
+  if (qualityNCandOverride() !== null || base >= HANDOFF_QUALITY_N_CAND) return base;
+  return shouldRelaxMatureQualityLean(gaps, ctx) ? HANDOFF_QUALITY_N_CAND : base;
 }
 
 function budgetAwareQualitySampleCount(targetBudget: number | undefined): number {
@@ -2680,6 +2698,24 @@ function budgetAwareQualitySampleCount(targetBudget: number | undefined): number
     HANDOFF_QUALITY_LEAN_N_CAND,
     HANDOFF_QUALITY_N_CAND,
   );
+}
+
+function shouldRelaxMatureQualityLean(gaps: Gap[], ctx: SpecContext): boolean {
+  return targetAxisRange(gaps, ctx, "air") >= HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE ||
+    targetAxisRange(gaps, ctx, "speed") >= HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE;
+}
+
+function targetAxisRange(gaps: Gap[], ctx: SpecContext, axis: AxisName): number {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const gap of gaps) {
+    if (!gap.endsWithContact) continue;
+    const target = (ctx.gapAxisTargets?.[gap.index] ?? gap.targets)[axis];
+    if (typeof target !== "number" || !Number.isFinite(target)) continue;
+    lo = Math.min(lo, target);
+    hi = Math.max(hi, target);
+  }
+  return hi >= lo ? hi - lo : 0;
 }
 
 /** Budget-aware candidate count for the pre-validity (contract) race to a first

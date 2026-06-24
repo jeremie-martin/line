@@ -365,6 +365,17 @@ const HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE = 0.50;
 const HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE = 0.40;
 const HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS = 32;
 const HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND = 34;
+const HANDOFF_QUALITY_SPARSE_AMP_BOOST_N_CAND = 34;
+const HANDOFF_QUALITY_SPARSE_AMP_RANGE_START = 0.15;
+const HANDOFF_QUALITY_SPARSE_AMP_RANGE_SPAN = 0.20;
+const HANDOFF_QUALITY_SPARSE_AMP_MEDIAN_START_FRAMES = Math.round(FPS * 0.75);
+const HANDOFF_QUALITY_SPARSE_AMP_MEDIAN_SPAN_FRAMES = Math.round(FPS * 0.40);
+const HANDOFF_QUALITY_SPARSE_AMP_IMPACT_START = 0.28;
+const HANDOFF_QUALITY_SPARSE_AMP_IMPACT_SPAN = 0.16;
+const HANDOFF_QUALITY_SPARSE_AMP_IMPACT_HIGH_START = 0.56;
+const HANDOFF_QUALITY_SPARSE_AMP_IMPACT_HIGH_SPAN = 0.16;
+const HANDOFF_QUALITY_SPARSE_AMP_SPEED_RANGE_START = 0.10;
+const HANDOFF_QUALITY_SPARSE_AMP_SPEED_RANGE_SPAN = 0.10;
 /** Floor for the budget-scaled contract sample count: even the leanest low-budget
  *  race samples at least this many candidates per contact gap, so greedy completion
  *  keeps enough breadth to route around dead ends (3 was the value that flipped deep
@@ -2680,9 +2691,10 @@ function qualityHandoffSampleCount(
   const base = handoffSampleCount(true, sparseContractSearch, targetBudget);
   if (qualityNCandOverride() !== null || base >= HANDOFF_QUALITY_N_CAND) return base;
   if (shouldRelaxMatureQualityLean(gaps, ctx)) return HANDOFF_QUALITY_N_CAND;
-  return shouldBoostShortNoAmpQualityBreadth(gaps, ctx)
+  const boosted = shouldBoostShortNoAmpQualityBreadth(gaps, ctx)
     ? HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND
     : base;
+  return smoothSparseAmplitudeQualityBreadth(gaps, ctx, boosted);
 }
 
 function budgetAwareQualitySampleCount(targetBudget: number | undefined): number {
@@ -2715,6 +2727,43 @@ function shouldBoostShortNoAmpQualityBreadth(gaps: Gap[], ctx: SpecContext): boo
     targetAxisRange(gaps, ctx, "amplitude") <= 0;
 }
 
+function smoothSparseAmplitudeQualityBreadth(
+  gaps: Gap[],
+  ctx: SpecContext,
+  base: number,
+): number {
+  if (base >= HANDOFF_QUALITY_SPARSE_AMP_BOOST_N_CAND) return base;
+  const medianGapFrames = medianContactGapFrames(gaps);
+  const meanImpact = targetAxisMean(gaps, ctx, "impact");
+  if (medianGapFrames === null || meanImpact === null) return base;
+  const amplitudePressure = smoothstep(
+    (targetAxisRange(gaps, ctx, "amplitude") - HANDOFF_QUALITY_SPARSE_AMP_RANGE_START) /
+      HANDOFF_QUALITY_SPARSE_AMP_RANGE_SPAN,
+  );
+  const sparsePressure = smoothstep(
+    (medianGapFrames - HANDOFF_QUALITY_SPARSE_AMP_MEDIAN_START_FRAMES) /
+      HANDOFF_QUALITY_SPARSE_AMP_MEDIAN_SPAN_FRAMES,
+  );
+  const impactPressure = smoothstep(
+    (meanImpact - HANDOFF_QUALITY_SPARSE_AMP_IMPACT_START) /
+      HANDOFF_QUALITY_SPARSE_AMP_IMPACT_SPAN,
+  ) * (1 - smoothstep(
+    (meanImpact - HANDOFF_QUALITY_SPARSE_AMP_IMPACT_HIGH_START) /
+      HANDOFF_QUALITY_SPARSE_AMP_IMPACT_HIGH_SPAN,
+  ));
+  const speedSteadiness = 1 - smoothstep(
+    (targetAxisRange(gaps, ctx, "speed") - HANDOFF_QUALITY_SPARSE_AMP_SPEED_RANGE_START) /
+      HANDOFF_QUALITY_SPARSE_AMP_SPEED_RANGE_SPAN,
+  );
+  const pressure = amplitudePressure * sparsePressure * impactPressure * speedSteadiness;
+  if (pressure <= 0) return base;
+  return clampIntLocal(
+    base + (HANDOFF_QUALITY_SPARSE_AMP_BOOST_N_CAND - base) * pressure,
+    base,
+    HANDOFF_QUALITY_SPARSE_AMP_BOOST_N_CAND,
+  );
+}
+
 function contactGapCount(gaps: Gap[]): number {
   let contacts = 0;
   for (const gap of gaps) if (gap.endsWithContact) contacts++;
@@ -2732,6 +2781,19 @@ function targetAxisRange(gaps: Gap[], ctx: SpecContext, axis: AxisName): number 
     hi = Math.max(hi, target);
   }
   return hi >= lo ? hi - lo : 0;
+}
+
+function targetAxisMean(gaps: Gap[], ctx: SpecContext, axis: AxisName): number | null {
+  let sum = 0;
+  let count = 0;
+  for (const gap of gaps) {
+    if (!gap.endsWithContact) continue;
+    const target = (ctx.gapAxisTargets?.[gap.index] ?? gap.targets)[axis];
+    if (typeof target !== "number" || !Number.isFinite(target)) continue;
+    sum += target;
+    count++;
+  }
+  return count > 0 ? sum / count : null;
 }
 
 /** Budget-aware candidate count for the pre-validity (contract) race to a first

@@ -1663,3 +1663,15 @@ Probe: `generated/golden-runs/probe-true-target-vertical-fwd-newgrid-a01/golden.
 Probe decision: `npm run decide -- generated/golden-runs/probe-true-target-vertical-fwd-newgrid-a01/golden.json generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline +0.4 on the 40-spec x 3-seed x full new-grid intersection, with 125k -0.9, 250k +0.4, 375k +0.8, and 500k +0.4. Validity stayed 480/480.
 
 Why it was stopped: the mechanism is clean and mildly positive above 125k, but the 3-seed signal was too weak for a canonical promotion run and moved the scarce tier negative by point estimate. `decide` estimated P(delta>0)=75% and suggested roughly 24 total seeds would be needed to resolve it. The temporary source change was reverted; this remains a plausible small follow-up only if later target-consistency work gives the vertical selector a stronger signal.
+
+## 2026-06-24 - REJECTED - true-target local candidate cost
+
+Mechanism: keep jittered/planned targets for candidate geometry, but compute the local `tryCandidateGeometry` candidate cost against the scorer's unjittered per-gap target bag (`ctx.gapAxisTargets`) when available. The intent was to continue the accepted target-consistency cleanup without adding compute, budget branches, or spec-specific behavior. Scorer, specs, fingerprint, seed set, budget grid, start selection, aim proposer, forward eval, repair, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed first (5 files, 77 tests).
+
+Candidate: `generated/golden-runs/attempt-true-target-local-cost-newgrid-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-true-target-local-cost-newgrid-a01`. The canonical run was valid 1920/1920 with raw HEADLINE 678.71 and `HEADLINE excl. impact` 693.87; per-budget point estimates were 125k 662.69, 250k 674.07, 375k 680.12, and 500k 683.97.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-true-target-local-cost-newgrid-a01/golden.json generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json` -> `VERDICT: INCONCLUSIVE`, delta headline +0.0, CI [-0.3, 0.3], P(delta<=0)=47.7%, effect 0.06. Per-budget deltas were 125k -0.1, 250k +0.1, 375k +0.0, and 500k -0.0, with unchanged diagnostic validity at 1920/1920 overall and 480/480 at every budget.
+
+Why it was not kept: the full canonical suite showed the local cost target switch was effectively neutral after the accepted objective alignment. That suggests the current remaining mismatch is not in the single-candidate cost ordering, or that geometry diversity from the jittered/planned target is doing most of the useful work while the accepted pool/objective leaf already supplies enough true-target pressure. The temporary source change was reverted; the accepted baseline remains `attempt-true-target-objective-newgrid-a01`.

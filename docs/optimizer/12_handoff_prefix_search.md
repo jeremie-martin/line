@@ -149,10 +149,10 @@ LR_ENGINE=wasm npm run golden -- --compiler=handoff --jobs=32
 
 The command reports the **HEADLINE** metric, per-budget scores, row checkpoint
 hashes, and compact checkpoint stats. Targeted probes use the same shape, on a
-subset of the canonical budgets (e.g. `--budgets=100000,300000`):
+subset of the canonical budgets (e.g. `--budgets=125000,500000`):
 
 ```bash
-LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst --seed=0 --budgets=100000,300000 --jobs=32
+LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst --seed=0 --budgets=125000,500000 --jobs=32
 ```
 
 ## Known Frontier

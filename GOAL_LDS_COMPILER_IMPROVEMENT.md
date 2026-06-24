@@ -9,7 +9,7 @@
 > - **Runs are independent per budget.** Passing N budgets means **N full runs from
 >   scratch** — there is no anytime/shared-checkpoint mode. The budget is an input.
 > - **Canonical decision:** 40 specs × 12 seeds `{0..11}` × budgets
->   `{100,200,300}k`, judged by `npm run decide`.
+>   `{125,250,375,500}k`, judged by `npm run decide`.
 > - **Engine:** use `LR_ENGINE=wasm` for compiler, benchmark, verification, and
 >   performance commands that run physics. Pure analyzers such as `npm run decide`
 >   do not need it.
@@ -62,7 +62,7 @@ deliberate ruler/scope change.
 ## Run Workflow
 
 Use normal full canonical runs for this campaign. A canonical run is the full
-40-spec × 12-seed × `{100,200,300}k` budget grid, launched with
+40-spec × 12-seed × `{125,250,375,500}k` budget grid, launched with
 `LR_ENGINE=wasm` and `--jobs=32`, with no spec, seed, or budget overrides.
 
 Give every baseline and candidate a clear archive label so attempts stay identifiable

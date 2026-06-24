@@ -24,12 +24,12 @@ budgets runs N compiles per (spec, seed). Two tiers, cheap → authoritative:
    ```bash
    LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- \
      --specs=tiny_dance,opening_burst \
-     --budgets=100000,300000 \
+     --budgets=125000,500000 \
      --jobs=32
    ```
 
-2. **canonical** — 40 headline specs × 12 seeds × budgets `{100,200,300}k`; the **only
-   promotable basis**:
+2. **canonical** — 40 headline specs × 12 seeds × budgets `{125,250,375,500}k`;
+   the **only promotable basis**:
 
    ```bash
    LR_ENGINE=wasm npm run golden -- --jobs=32
@@ -77,11 +77,10 @@ hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
 - Evaluator fingerprint: **`2a9954c8defb`** (`scripts/v0/golden_suite.ts`).
 - Current committed compiler: `compileHandoff` with target-budget-aware breadth,
-  ranking, aiming, tail completion, and repair gates. Canonical baseline is the
-  12-seed population (budgets `{100,200,300}k`, weighted-average HEADLINE):
-  **HEADLINE 654.11**, validity 480/480 at 300k and 1439/1440 across the full curve.
-  Always refresh the generated HTML and the quoted number from a fresh 12-seed
-  rebaseline before relying on live figures.
+  ranking, aiming, tail completion, and repair gates. The canonical budget grid is
+  now `{125,250,375,500}k`; the previous `{100,200,300}k` baseline is stale for
+  promotion decisions. Run a fresh 12-seed rebaseline and regenerate the HTML before
+  relying on live figures or accepting compiler-quality changes.
 
 ## Active campaigns
 

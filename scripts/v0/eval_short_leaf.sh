@@ -5,7 +5,7 @@
 #
 # Design (deliberately not parameterized — this IS the working version, no A/B knobs):
 #   * Exactly one evaluation config: drums_crescendo, solo_run, big_air_ramp
-#     × budgets 100k/200k/300k × 12 seeds (0-11) × 32 jobs × greedy:2.
+#     × budgets 125k/250k/375k/500k × 12 seeds (0-11) × 32 jobs × greedy:2.
 #   * The candidate is ALWAYS the short leaf (LR_FWD_EVAL_LEAF=objective). No alternative path.
 #   * The full leaf appears ONLY as a baseline, built EXACTLY ONCE and reused thereafter. On a
 #     fresh machine (or after the baseline is deleted) it self-rebuilds on the next run, so the
@@ -21,7 +21,7 @@ cd "$(git rev-parse --show-toplevel)"
 # ---------------- fixed evaluation config ----------------
 # SPECS empty => run ALL golden specs (no --specs override); set it to a comma list to focus.
 SPECS="${SPECS:-}"
-BUDGETS="100000,200000,300000"
+BUDGETS="125000,250000,375000,500000"
 SEEDS="0,1,2,3,4,5,6,7,8,9,10,11"   # 12 seeds
 JOBS="${JOBS:-48}"
 

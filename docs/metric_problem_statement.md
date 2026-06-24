@@ -12,7 +12,7 @@
 > search may **read the budget** (so this doc's "may not read its own budget" constraint
 > and its "out of scope: budget-aware search" bracket no longer hold). The HEADLINE is
 > now the **budget-value-weighted average** of the per-budget suite scores over
-> `{100,200,300}k` (not `α·ceiling + (1−α)·logAUC`), and validity is reported but
+> `{125,250,375,500}k` (not `α·ceiling + (1−α)·logAUC`), and validity is reported but
 > **does not gate**. The variance/noise analysis below remains the rationale for paired
 > comparison and the 12-seed population. Current truth: `compiler_goals.md`.
 

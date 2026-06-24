@@ -167,9 +167,9 @@ describe("v0 golden configuration", () => {
     }
   });
 
-  test("canonical budget grid is {100,200,300}k; fast probe is a subset", () => {
-    expect([...DEFAULT_BUDGETS]).toEqual([100_000, 200_000, 300_000]);
-    expect([...FAST_PROBE_BUDGETS]).toEqual([100_000, 300_000]);
+  test("canonical budget grid is {125,250,375,500}k; fast probe is a subset", () => {
+    expect([...DEFAULT_BUDGETS]).toEqual([125_000, 250_000, 375_000, 500_000]);
+    expect([...FAST_PROBE_BUDGETS]).toEqual([125_000, 500_000]);
     // fast probe budgets are a strict subset of canonical, so `decide` can pair them.
     for (const b of FAST_PROBE_BUDGETS) expect(DEFAULT_BUDGETS).toContain(b);
   });
@@ -193,7 +193,7 @@ describe("v0 golden configuration", () => {
   test("worker timeout budget is the SUM of the independent per-budget runs", () => {
     // Each budget is now an independent full run, so one worker's work for a
     // (spec, seed) is the SUM of the grid's budgets, not the max of one shared run.
-    const sum = DEFAULT_BUDGETS.reduce((s, b) => s + b, 0); // 650_000
+    const sum = DEFAULT_BUDGETS.reduce((s, b) => s + b, 0); // 1_250_000
     expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS)).toBe(sum);
     expect(compilerWorkerTimeoutBudget([50_000])).toBe(50_000);
     // more budgets -> at-least-as-large a timeout

@@ -85,19 +85,18 @@ export const GOLDEN_SEEDS = [
  * `optimizer/sim_frames.ts`). Each budget is an INDEPENDENT full run from scratch
  * (no anytime sharing) — passing N budgets means N runs. This grid is a fixed
  * ESTIMATOR for a wider budget distribution, not "the only budgets we care about".
- * The 200k cap was historical; WASM made higher budgets affordable, so the ruler
- * now reaches 300k. NOTE: changing this redefines what a "canonical run" is, but
- * does NOT affect EVALUATOR_FINGERPRINT (which hashes the per-run ruler, not the
- * budget grid) — so a grid change still requires a fresh, like-with-like baseline.
- * 50k dropped 2026-06-13 (completion-knee noise, lowest weight, not a budget we
- * optimize for) — the canonical now estimates over 100k/200k/300k. */
-export const DEFAULT_BUDGETS: readonly number[] = [100_000, 200_000, 300_000];
+ * The 100k/200k/300k grid was retired 2026-06-24 to reduce overfitting to the old
+ * score surface and to make high-budget payoff visible in the default decision.
+ * NOTE: changing this redefines what a "canonical run" is, but does NOT affect
+ * EVALUATOR_FINGERPRINT (which hashes the per-run ruler, not the budget grid) — so
+ * a grid change still requires a fresh, like-with-like baseline. */
+export const DEFAULT_BUDGETS: readonly number[] = [125_000, 250_000, 375_000, 500_000];
 
 /** Fast-probe grid: a cheap, lower-power PREVIEW of the canonical decision in the
  * same score space — a strict subset of the canonical budgets (the endpoints), so
  * `decide` can pair it against canonical on the shared budgets. Fewer seeds/budgets
  * costs statistical power (wider CI), not comparability. */
-export const FAST_PROBE_BUDGETS: readonly number[] = [100_000, 300_000];
+export const FAST_PROBE_BUDGETS: readonly number[] = [125_000, 500_000];
 
 /** Headline decision weights, keyed by budget and proportional to budget value
  * (higher-quality expensive runs matter more; lower budgets still count). Stored

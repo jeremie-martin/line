@@ -42,7 +42,7 @@ and may evolve independently of the per-run scorer.)
 - `tests/v0_determinism.test.ts` checks byte-identical output for representative
   specs at a fixed budget.
 - `LR_ENGINE=wasm npm run golden` runs the full suite (40 specs × 12 seeds {0..11},
-  budgets `{100,200,300}k`) and reports the **HEADLINE** metric (the budget-value-weighted
+  budgets `{125,250,375,500}k`) and reports the **HEADLINE** metric (the budget-value-weighted
   average of the per-budget suite scores) plus the per-budget curve. For the full run use
   `--jobs=32` unless you deliberately need a different worker count.
 - To decide a change is a real improvement, run

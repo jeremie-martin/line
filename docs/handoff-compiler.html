@@ -546,9 +546,9 @@
     </p>
   </div>
   <aside class="hero-card">
-    <div class="label"><!--BASELINE:budget_label-->100k-300k curve<!--/BASELINE--></div>
+    <div class="label"><!--BASELINE:budget_label-->old 100k-300k curve<!--/BASELINE--></div>
     <div class="score"><span><!--BASELINE:headline_score-->654.11<!--/BASELINE--></span> / 1000</div>
-    <div class="note"><!--BASELINE:valid_note-->Canonical archive <code>rebaseline-carrier</code>, source <code>ad5b82acbe50-dirty</code>, fp <code>2a9954c8defb</code>; 480/480 valid at 300k.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
+    <div class="note"><!--BASELINE:valid_note-->Stale pre-grid-change archive <code>rebaseline-carrier</code>, source <code>ad5b82acbe50-dirty</code>, fp <code>2a9954c8defb</code>; old grid was 100k/200k/300k. Rebaseline on 125k/250k/375k/500k before promotion work.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
   </aside>
 </section>
 
@@ -683,8 +683,8 @@
         </p>
       </div>
     </div>
-    <pre class="command">npm run golden -- --jobs=32
-npm run golden -- --jobs=32 --budgets=100000,300000 --specs=tiny_dance --seed=0
+<pre class="command">npm run golden -- --jobs=32
+npm run golden -- --jobs=32 --budgets=125000,500000 --specs=tiny_dance --seed=0
 
 # each run archives golden.json and checkpoint tracks/reports under generated/golden-runs/
 
@@ -1548,7 +1548,7 @@ setTab(location.hash.replace("#", "") || "compiler", false);
 // comparable, so the series restarts here.
 // Replace the point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
 const campaignData = [
-  /*BASELINE:campaign*/["100k-300k curve", 654.11]/*/BASELINE*/
+  /*BASELINE:campaign*/["old 100k-300k curve", 654.11]/*/BASELINE*/
 ];
 
 function drawCampaignChart() {

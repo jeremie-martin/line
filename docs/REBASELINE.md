@@ -35,10 +35,10 @@ npx tsx scripts/v0/analyze_golden_curve.ts decide CANDIDATE/golden.json BASELINE
 ## 2. Does the fingerprint change?
 
 `EVALUATOR_FINGERPRINT` in `scripts/v0/golden_suite.ts` is a sha256 of the
-ruler: `scripts/v0/score.ts`, the authored-speed ruler/conversions, axis
-measurement/report assembly, and every `specs/golden/*.ts`. The harness prints
-the live fingerprint on every run and warns when it differs from the committed
-constant.
+ruler: `scripts/v0/score.ts`, live impact anchors, impact migration config/source,
+the authored-speed ruler/conversions, axis measurement/report assembly, and every
+`specs/golden/*.ts`. The harness prints the live fingerprint on every run and warns
+when it differs from the committed constant.
 
 - Compiler-only changes leave the ruler unchanged. Do not touch the constant.
 - Changes to the scorer, speed ruler, axis measurement/report assembly, or any
@@ -56,7 +56,7 @@ Recompute without a full run using the same source slices as
 `scripts/v0/golden.ts`:
 
 ```bash
-node --input-type=module -e 'import{readFileSync,readdirSync}from"node:fs";import{resolve}from"node:path";import{createHash}from"node:crypto";const s=(p,a,b)=>{const x=readFileSync(resolve(p),"utf8"),i=x.indexOf(a);if(i<0)throw Error(a);if(b===undefined)return x.slice(i);const j=x.indexOf(b,i);if(j<0)throw Error(b);return x.slice(i,j)};const h=createHash("sha256");h.update(readFileSync(resolve("scripts/v0/score.ts")));h.update("\0speed-ruler\0");h.update(s("scripts/v0/types.ts","export const SPEED_RULER","export const SPEED_AXIS"));h.update("\0effective-axes\0");h.update(s("scripts/v0/core/substrate.ts","export function effectiveAxes","// ─────────── Cross-gap target sampling"));h.update("\0axis-measurement\0");h.update(s("scripts/v0/core/measure.ts","/** Airborne-frame fraction over [gap.start, rangeEndFrame]. */"));h.update("\0drift-report\0");h.update(s("scripts/v0/core/substrate.ts","export function buildDriftReport","export function measureAxisOverRange"));for(const f of readdirSync(resolve("specs/golden")).filter(n=>n.endsWith(".ts")).sort()){h.update("\0golden-spec\0");h.update(readFileSync(resolve("specs/golden",f)))}console.log(h.digest("hex").slice(0,12))'
+npx tsx -e 'import{readFileSync,readdirSync}from"node:fs";import{resolve}from"node:path";import{createHash}from"node:crypto";import{REDIRARC,impactEnvNum}from"./scripts/v0/types.ts";const z="\u0000";const s=(p:string,a:string,b?:string)=>{const x=readFileSync(resolve(p),"utf8"),i=x.indexOf(a);if(i<0)throw Error(a);if(b===undefined)return x.slice(i);const j=x.indexOf(b,i);if(j<0)throw Error(b);return x.slice(i,j)};const mode=process.env.LR_IMPACT_MIGRATE==="legacy"?"legacy":"affine";const mig=mode==="legacy"?mode:[mode,impactEnvNum("LR_IMPACT_MIGRATE_SOFT",0.2),impactEnvNum("LR_IMPACT_MIGRATE_SPAN",0.8)].join(z);const h=createHash("sha256");h.update(readFileSync(resolve("scripts/v0/score.ts")));h.update(`${z}impact-anchors${z}${REDIRARC.SOFT}${z}${REDIRARC.VERY_STRONG}`);h.update(`${z}impact-migration-config${z}${mig}`);h.update(`${z}impact-migration-source${z}`);h.update(s("scripts/v0/core/beats.ts","/**\n * Migrate an OLD-convention authored impact"));h.update(`${z}speed-ruler${z}`);h.update(s("scripts/v0/types.ts","export const SPEED_RULER","export const SPEED_AXIS"));h.update(`${z}effective-axes${z}`);h.update(s("scripts/v0/core/substrate.ts","export function effectiveAxes","// ─────────── Cross-gap target sampling"));h.update(`${z}axis-measurement${z}`);h.update(s("scripts/v0/core/measure.ts","/** Airborne-frame fraction over [gap.start, rangeEndFrame]. */"));h.update(`${z}drift-report${z}`);h.update(s("scripts/v0/core/substrate.ts","export function buildDriftReport","export function measureAxisOverRange"));for(const f of readdirSync(resolve("specs/golden")).filter(n=>n.endsWith(".ts")).sort()){h.update(`${z}golden-spec${z}`);h.update(readFileSync(resolve("specs/golden",f)))}console.log(h.digest("hex").slice(0,12))'
 ```
 
 ## 3. Files to update
@@ -82,7 +82,9 @@ default placement, fingerprint) so a reader sees the current number at a glance.
 
 ### c) `scripts/v0/golden_suite.ts`
 
-Only update `EVALUATOR_FINGERPRINT` if the ruler changed.
+Update `EVALUATOR_FINGERPRINT` when the live ruler hash changes. If the constant is
+stale relative to an already-recorded same-ruler baseline, refresh it as metadata
+hygiene and say explicitly that scorer/spec/ruler source did not change.
 
 ## 4. Verify and commit
 

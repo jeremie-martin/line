@@ -546,9 +546,9 @@
     </p>
   </div>
   <aside class="hero-card">
-    <div class="label"><!--BASELINE:budget_label-->old 100k-300k curve<!--/BASELINE--></div>
-    <div class="score"><span><!--BASELINE:headline_score-->654.11<!--/BASELINE--></span> / 1000</div>
-    <div class="note"><!--BASELINE:valid_note-->Stale pre-grid-change archive <code>rebaseline-carrier</code>, source <code>ad5b82acbe50-dirty</code>, fp <code>2a9954c8defb</code>; old grid was 100k/200k/300k. Rebaseline on 125k/250k/375k/500k before promotion work.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
+    <div class="label"><!--BASELINE:budget_label-->125k-500k curve<!--/BASELINE--></div>
+    <div class="score"><span><!--BASELINE:headline_score-->674.79<!--/BASELINE--></span> / 1000</div>
+    <div class="note"><!--BASELINE:valid_note-->Canonical archive <code>baseline-newgrid-125-500k-08ff0a2</code>, source <code>08ff0a21255a-dirty</code>, fp <code>de24a421f751</code>; 480/480 valid at 500k.<!--/BASELINE--> The compiler registry currently selects <code>handoff</code>.</div>
   </aside>
 </section>
 
@@ -1314,54 +1314,55 @@ branch ranking =
 npm run golden -- --jobs=32 --compiler=handoff
 
 <!--BASELINE:score_block-->
-100000  score  632.36  valid 479/480  changed  0  improved  0  plateau  0  regress  0
-200000  score  655.05  valid 480/480  changed 480  improved 386  plateau  0  regress 94
-300000  score  660.73  valid 480/480  changed 439  improved 320  plateau 41  regress 119<!--/BASELINE--></pre>
+125000  score  657.22  valid 480/480  changed  0  improved  0  plateau  0  regress  0
+250000  score  671.89  valid 480/480  changed 479  improved 372  plateau  1  regress 107
+375000  score  676.26  valid 480/480  changed 375  improved 278  plateau 105  regress 97
+500000  score  679.53  valid 480/480  changed 307  improved 236  plateau 173  regress 71<!--/BASELINE--></pre>
 
     <div class="panel" style="margin-top:16px">
       <h3>Spec scores at the largest budget</h3>
       <div class="score-list" aria-label="Spec scores at largest curve budget">
         <!--BASELINE:spec_rows-->
-        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:86.7%"></span></div><span class="num">867.07</span></div>
-        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:81.7%"></span></div><span class="num">816.81</span></div>
-        <div class="score-row"><span>mixed_grade</span><div class="bar"><span style="width:77.0%"></span></div><span class="num">770.47</span></div>
-        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:76.8%"></span></div><span class="num">767.86</span></div>
-        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:74.9%"></span></div><span class="num">749.42</span></div>
-        <div class="score-row"><span>big_air_ramp</span><div class="bar"><span style="width:74.1%"></span></div><span class="num">741.04</span></div>
-        <div class="score-row"><span>soar_settle</span><div class="bar"><span style="width:74.0%"></span></div><span class="num">740.12</span></div>
-        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:73.2%"></span></div><span class="num">731.97</span></div>
-        <div class="score-row"><span>glide_stairs</span><div class="bar"><span style="width:72.2%"></span></div><span class="num">722.14</span></div>
-        <div class="score-row"><span>pop_train</span><div class="bar"><span style="width:71.4%"></span></div><span class="num">714.46</span></div>
-        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:70.1%"></span></div><span class="num">701.06</span></div>
-        <div class="score-row"><span>climb_terrace</span><div class="bar"><span style="width:70.1%"></span></div><span class="num">700.53</span></div>
-        <div class="score-row"><span>summit_push</span><div class="bar"><span style="width:69.2%"></span></div><span class="num">692.14</span></div>
-        <div class="score-row"><span>valley_bounce</span><div class="bar"><span style="width:69.0%"></span></div><span class="num">690.23</span></div>
-        <div class="score-row"><span>swoop_dive</span><div class="bar"><span style="width:68.8%"></span></div><span class="num">688.39</span></div>
-        <div class="score-row"><span>drums_swell</span><div class="bar"><span style="width:68.4%"></span></div><span class="num">684.05</span></div>
-        <div class="score-row"><span>rolling_hills</span><div class="bar"><span style="width:67.7%"></span></div><span class="num">676.52</span></div>
-        <div class="score-row"><span>opening_burst</span><div class="bar"><span style="width:67.4%"></span></div><span class="num">674.14</span></div>
-        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:67.2%"></span></div><span class="num">671.82</span></div>
-        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:67.0%"></span></div><span class="num">669.65</span></div>
-        <div class="score-row"><span>leap_cadence</span><div class="bar"><span style="width:66.3%"></span></div><span class="num">663.12</span></div>
-        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:64.6%"></span></div><span class="num">646.26</span></div>
-        <div class="score-row"><span>ridge_pulse</span><div class="bar"><span style="width:64.4%"></span></div><span class="num">644.34</span></div>
-        <div class="score-row"><span>drums_breath</span><div class="bar"><span style="width:63.9%"></span></div><span class="num">638.90</span></div>
-        <div class="score-row"><span>switchback_pop</span><div class="bar"><span style="width:63.8%"></span></div><span class="num">637.63</span></div>
-        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:63.7%"></span></div><span class="num">637.07</span></div>
-        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:62.8%"></span></div><span class="num">628.15</span></div>
-        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:62.5%"></span></div><span class="num">625.13</span></div>
-        <div class="score-row"><span>syncopated_lift</span><div class="bar"><span style="width:62.3%"></span></div><span class="num">622.70</span></div>
-        <div class="score-row"><span>float_bounds</span><div class="bar"><span style="width:62.0%"></span></div><span class="num">620.24</span></div>
-        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:61.6%"></span></div><span class="num">615.88</span></div>
-        <div class="score-row"><span>canyon_steps</span><div class="bar"><span style="width:61.2%"></span></div><span class="num">611.86</span></div>
-        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:61.2%"></span></div><span class="num">611.67</span></div>
-        <div class="score-row"><span>dense_echo_climb</span><div class="bar"><span style="width:60.4%"></span></div><span class="num">603.83</span></div>
-        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:59.8%"></span></div><span class="num">598.02</span></div>
-        <div class="score-row"><span>rolling_drop</span><div class="bar"><span style="width:59.3%"></span></div><span class="num">593.03</span></div>
-        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:59.2%"></span></div><span class="num">592.46</span></div>
-        <div class="score-row"><span>terrace_sprint</span><div class="bar"><span style="width:58.8%"></span></div><span class="num">588.47</span></div>
-        <div class="score-row"><span>skyline_push</span><div class="bar"><span style="width:54.8%"></span></div><span class="num">548.34</span></div>
-        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:41.8%"></span></div><span class="num">418.09</span></div>
+        <div class="score-row"><span>tiny_dance</span><div class="bar"><span style="width:86.5%"></span></div><span class="num">865.20</span></div>
+        <div class="score-row"><span>mini_burst</span><div class="bar"><span style="width:82.2%"></span></div><span class="num">821.64</span></div>
+        <div class="score-row"><span>pop_train</span><div class="bar"><span style="width:80.2%"></span></div><span class="num">801.59</span></div>
+        <div class="score-row"><span>drums_crosscut</span><div class="bar"><span style="width:78.3%"></span></div><span class="num">782.93</span></div>
+        <div class="score-row"><span>drums_zigzag</span><div class="bar"><span style="width:78.3%"></span></div><span class="num">782.56</span></div>
+        <div class="score-row"><span>mixed_grade</span><div class="bar"><span style="width:77.6%"></span></div><span class="num">775.99</span></div>
+        <div class="score-row"><span>leap_cadence</span><div class="bar"><span style="width:77.0%"></span></div><span class="num">769.96</span></div>
+        <div class="score-row"><span>verse_chorus</span><div class="bar"><span style="width:75.5%"></span></div><span class="num">755.23</span></div>
+        <div class="score-row"><span>big_air_ramp</span><div class="bar"><span style="width:75.2%"></span></div><span class="num">752.30</span></div>
+        <div class="score-row"><span>soar_settle</span><div class="bar"><span style="width:75.0%"></span></div><span class="num">750.44</span></div>
+        <div class="score-row"><span>glide_stairs</span><div class="bar"><span style="width:72.7%"></span></div><span class="num">727.02</span></div>
+        <div class="score-row"><span>cold_start</span><div class="bar"><span style="width:72.2%"></span></div><span class="num">721.70</span></div>
+        <div class="score-row"><span>swoop_dive</span><div class="bar"><span style="width:70.4%"></span></div><span class="num">704.16</span></div>
+        <div class="score-row"><span>float_bounds</span><div class="bar"><span style="width:70.3%"></span></div><span class="num">703.28</span></div>
+        <div class="score-row"><span>climb_terrace</span><div class="bar"><span style="width:70.2%"></span></div><span class="num">701.55</span></div>
+        <div class="score-row"><span>valley_bounce</span><div class="bar"><span style="width:70.1%"></span></div><span class="num">700.52</span></div>
+        <div class="score-row"><span>summit_push</span><div class="bar"><span style="width:69.7%"></span></div><span class="num">697.00</span></div>
+        <div class="score-row"><span>opening_burst</span><div class="bar"><span style="width:69.3%"></span></div><span class="num">693.31</span></div>
+        <div class="score-row"><span>rolling_hills</span><div class="bar"><span style="width:69.2%"></span></div><span class="num">691.69</span></div>
+        <div class="score-row"><span>drums_swell</span><div class="bar"><span style="width:69.2%"></span></div><span class="num">691.63</span></div>
+        <div class="score-row"><span>drums_tide</span><div class="bar"><span style="width:68.6%"></span></div><span class="num">685.66</span></div>
+        <div class="score-row"><span>grain_staircase</span><div class="bar"><span style="width:67.9%"></span></div><span class="num">679.35</span></div>
+        <div class="score-row"><span>ridge_pulse</span><div class="bar"><span style="width:65.5%"></span></div><span class="num">654.78</span></div>
+        <div class="score-row"><span>drums_signature</span><div class="bar"><span style="width:65.3%"></span></div><span class="num">653.08</span></div>
+        <div class="score-row"><span>solo_run</span><div class="bar"><span style="width:65.1%"></span></div><span class="num">650.59</span></div>
+        <div class="score-row"><span>drums_breath</span><div class="bar"><span style="width:64.6%"></span></div><span class="num">645.62</span></div>
+        <div class="score-row"><span>drums_pulse</span><div class="bar"><span style="width:64.5%"></span></div><span class="num">645.31</span></div>
+        <div class="score-row"><span>syncopated_switchback</span><div class="bar"><span style="width:64.4%"></span></div><span class="num">643.96</span></div>
+        <div class="score-row"><span>switchback_pop</span><div class="bar"><span style="width:63.8%"></span></div><span class="num">637.95</span></div>
+        <div class="score-row"><span>syncopated_lift</span><div class="bar"><span style="width:63.4%"></span></div><span class="num">633.57</span></div>
+        <div class="score-row"><span>dense_sprint</span><div class="bar"><span style="width:63.0%"></span></div><span class="num">629.84</span></div>
+        <div class="score-row"><span>drums_crescendo</span><div class="bar"><span style="width:62.6%"></span></div><span class="num">626.25</span></div>
+        <div class="score-row"><span>rolling_drop</span><div class="bar"><span style="width:62.4%"></span></div><span class="num">624.34</span></div>
+        <div class="score-row"><span>dense_echo_climb</span><div class="bar"><span style="width:61.9%"></span></div><span class="num">619.08</span></div>
+        <div class="score-row"><span>drums_dropout</span><div class="bar"><span style="width:61.8%"></span></div><span class="num">618.25</span></div>
+        <div class="score-row"><span>rhythm_ladder</span><div class="bar"><span style="width:61.5%"></span></div><span class="num">615.11</span></div>
+        <div class="score-row"><span>canyon_steps</span><div class="bar"><span style="width:61.5%"></span></div><span class="num">614.73</span></div>
+        <div class="score-row"><span>terrace_sprint</span><div class="bar"><span style="width:59.4%"></span></div><span class="num">593.78</span></div>
+        <div class="score-row"><span>skyline_push</span><div class="bar"><span style="width:57.4%"></span></div><span class="num">573.88</span></div>
+        <div class="score-row"><span>drums_pendulum</span><div class="bar"><span style="width:43.3%"></span></div><span class="num">433.19</span></div>
         <!--/BASELINE-->
       </div>
     </div>
@@ -1548,7 +1549,7 @@ setTab(location.hash.replace("#", "") || "compiler", false);
 // comparable, so the series restarts here.
 // Replace the point per re-baseline via `scripts/v0/update_compiler_doc.ts`.
 const campaignData = [
-  /*BASELINE:campaign*/["old 100k-300k curve", 654.11]/*/BASELINE*/
+  /*BASELINE:campaign*/["125k-500k curve", 674.79]/*/BASELINE*/
 ];
 
 function drawCampaignChart() {

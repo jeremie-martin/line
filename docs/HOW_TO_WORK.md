@@ -75,12 +75,12 @@ The baseline of record is the **generated** [`docs/handoff-compiler.html`](hando
 (per-budget / per-spec table), regenerated from a canonical `golden.json` — never
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
-- Evaluator fingerprint: **`2a9954c8defb`** (`scripts/v0/golden_suite.ts`).
-- Current committed compiler: `compileHandoff` with target-budget-aware breadth,
-  ranking, aiming, tail completion, and repair gates. The canonical budget grid is
-  now `{125,250,375,500}k`; the previous `{100,200,300}k` baseline is stale for
-  promotion decisions. Run a fresh 12-seed rebaseline and regenerate the HTML before
-  relying on live figures or accepting compiler-quality changes.
+- Evaluator fingerprint: **`de24a421f751`** (`scripts/v0/golden_suite.ts`).
+- Current baseline: `generated/golden-runs/baseline-newgrid-125-500k-08ff0a2/golden.json`,
+  canonical HEADLINE **674.79** (`HEADLINE excl. impact` 688.59), valid 1920/1920.
+  Per-budget scores: 125k 657.22, 250k 671.89, 375k 676.26, 500k 679.53.
+  This is the first baseline of record for the `{125,250,375,500}k` grid; the
+  previous `{100,200,300}k` baseline is stale for promotion decisions.
 
 ## Active campaigns
 

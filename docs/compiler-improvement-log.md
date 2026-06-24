@@ -1,6 +1,6 @@
 # Compiler Improvement Log
 
-Active goal: raise canonical `compileHandoff` HEADLINE to at least 670 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
+Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
 ## 2026-06-22 - REJECT - quality ranker scorer-window axes
 
@@ -1421,3 +1421,15 @@ Candidate: `generated/golden-runs/attempt-aim-late-top5-shapecompat-after-sparse
 Decision: `npm run decide -- generated/golden-runs/attempt-aim-late-top5-shapecompat-after-sparse-amp-pressure-a01/golden.json generated/golden-runs/attempt-quality-sparse-amp-pressure-after-repair-ramp-a01/golden.json` -> `VERDICT: INCONCLUSIVE`, delta headline +0.1, CI [-0.6, 0.7], P(delta<=0)=40.5%, effect 0.18. Per-budget point estimates were 100k +0.0, 200k +0.0, and 300k +0.1, with unchanged diagnostic validity at 1440/1440 overall and 480/480 at every budget. Raw candidate HEADLINE was 669.48 and `HEADLINE excl. impact` was 684.23.
 
 Why it was not kept: the source was reverted after the canonical run because the campaign still requires `VERDICT: ACCEPT`. The compatibility terms isolated 100k and 200k as intended, but they over-filtered the stronger late top-5 signal: only 43 checkpoint scores moved at 300k, with 22 improvements, 21 regressions, and +55.82 raw row points. The remaining gains were `drums_pulse` (+29.08), `drums_dropout` (+24.91), `canyon_steps` (+17.98), `syncopated_lift` (+13.28), and `soar_settle` (+5.05), offset by `valley_bounce` (-22.87), `float_bounds` (-14.18), and `terrace_sprint` (-1.48). Largest row moves still showed the same basin instability the compatibility was meant to remove: `drums_dropout` seed 0 at 300k lost -114.81 while seeds 10, 7, and 4 gained +72.82, +52.11, and +46.71; `drums_pulse` seed 4 lost -49.62 while seeds 8, 9, and 5 gained +33.96, +32.58, and +30.19. Conclusion: authored-shape compatibility in this form is too blunt; it reduces the helpful `float_bounds`/late top-5 signal without eliminating the noisy `drums_dropout`/`drums_pulse` seed flips. Under the current accept-only gate it remains log-only.
+
+## 2026-06-24 - BASELINE RESET - canonical 125k/250k/375k/500k grid
+
+Reason: the canonical budget grid was deliberately changed from `{100,200,300}k` to `{125,250,375,500}k` in commit `08ff0a2` to reduce overfitting to the old three-point curve and expose higher-budget scaling. This is a scope reset, not a compiler candidate; no `decide` command was run and nothing was accepted or rejected.
+
+Baseline: `generated/golden-runs/baseline-newgrid-125-500k-08ff0a2/golden.json`, canonical, fingerprint `de24a421f751`, source commit `08ff0a21255a`, HEADLINE 674.79, `HEADLINE excl. impact` 688.59.
+
+Run: `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/baseline-newgrid-125-500k-08ff0a2`.
+
+Result: valid 1920/1920, invalid 0, timeout 0. Per-budget scores were 125k 657.22, 250k 671.89, 375k 676.26, and 500k 679.53. The new weighted headline uses budget weights 0.1/0.2/0.3/0.4, so this archive is the baseline of record for subsequent promotion decisions.
+
+Notes: the archive source metadata says `dirty:true` because unrelated pre-existing workspace artifacts were present (`generated/verify-optimizer/baseline.json` and untracked local files). Before the run, optimizer/source diffs were clean and the compiler source was exactly commit `08ff0a2`. The committed fingerprint sentinel and rebaseline docs were refreshed afterward to the already-live `de24a421f751` hash; scorer, specs, metric, seed set, budget grid, and compiler behavior were not changed by that metadata cleanup.

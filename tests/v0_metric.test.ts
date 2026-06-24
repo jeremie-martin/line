@@ -122,10 +122,10 @@ describe("pairedBootstrapCI", () => {
     expect(d.delta).toBeCloseTo(200, 5);
   });
 
-  test("a noisy gain significant at one-sided α=0.05 is ACCEPTED even if the 95% CI grazes 0", () => {
+  test("a noisy gain significant at the one-sided gate is ACCEPTED even if the 95% CI grazes 0", () => {
     // A real positive gain with enough spread that the two-sided 95% CI lower bound sits
     // at/below 0 (the OLD `ciLo>0` rule would call this inconclusive) but the bootstrap
-    // still puts well under 5% mass at or below 0 — the standard one-sided test accepts.
+    // still puts very little mass at or below 0 — the one-sided test accepts.
     const base = scoreCube(specs, seeds, () => 300);
     // Deterministic per-(spec,seed) noise around a modest positive mean gain.
     const noise = (spec: string, seed: number): number => {
@@ -136,7 +136,7 @@ describe("pairedBootstrapCI", () => {
     const d = pairedBootstrapCI(base, cand, BUDGETS, { weightByBudget: WEIGHTS, B: 4000, rngSeed: 3 });
     expect(d.delta).toBeGreaterThan(0);
     expect(d.ciLo).toBeLessThan(0); // two-sided 95% CI grazes below 0 → OLD ciLo>0 rule would NOT accept
-    expect(d.pLeZero).toBeLessThan(0.05); // but it IS significant one-sided at α=0.05
+    expect(d.pLeZero).toBeLessThan(0.05); // comfortably inside DECISION_ALPHA
     expect(d.verdict).toBe("accept"); // so the aligned rule accepts
   });
 

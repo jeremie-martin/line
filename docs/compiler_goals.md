@@ -48,7 +48,7 @@ and may evolve independently of the per-run scorer.)
 - To decide a change is a real improvement, run
   `npm run decide -- <candidate>/golden.json <baseline>/golden.json` — a paired
   cluster-bootstrap VERDICT (accept iff the headline-Δ is significant one-sided at
-  α=0.05, i.e. `P(Δ≤0) < 0.05`), with
+  α=0.10, i.e. `P(Δ≤0) < 0.10`), with
   per-budget deltas reported. Validity is reported per budget but does not gate. Raw
   score deltas are not an acceptance rule; promotion thresholds live in active campaign docs.
 

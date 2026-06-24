@@ -64,7 +64,7 @@ import {
 } from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
-import { AXES, type TrackLine } from "../types.ts";
+import { AXES, type AxisName, type TrackLine } from "../types.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import {
   applyArcKnobs,
@@ -189,9 +189,12 @@ function aimModelSpace(): AimModelSpace {
  *  quality-best base. Parsed once at import (env is constant per run; gates a
  *  per-pool-build hot path). Invalid/absent/<1 -> 4. Low-air gaps cap the
  *  effective mature K at 3 below. */
+const AIM_TOPK_BASES_RAW = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+  .process?.env?.LR_AIM_TOPK_BASES;
+const AIM_TOPK_BASES_EXPLICIT = AIM_TOPK_BASES_RAW !== undefined && AIM_TOPK_BASES_RAW !== "";
+
 export const AIM_TOPK_BASES: number = (() => {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_TOPK_BASES;
+  const raw = AIM_TOPK_BASES_RAW;
   const n = raw === undefined || raw === "" ? NaN : Number(raw);
   return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 4;
 })();
@@ -219,6 +222,17 @@ export const AIM_TOPK_BASES: number = (() => {
 const AIM_TOPK_MATURE_BUDGET_FRAMES = 100_000;
 const AIM_LOW_AIR_TOPK_MAX = 3;
 const AIM_LOW_AIR_TOPK_AIR_MAX = 0.30;
+const AIM_EXTRA_TOPK_BASES_DEFAULT = 5;
+const AIM_EXTRA_TOPK_BUDGET_START_FRAMES = 225_000;
+const AIM_EXTRA_TOPK_BUDGET_SPAN_FRAMES = 75_000;
+const AIM_EXTRA_TOPK_SPEED_RANGE_START = 0.10;
+const AIM_EXTRA_TOPK_SPEED_RANGE_SPAN = 0.10;
+const AIM_EXTRA_TOPK_AIR_MEAN_START = 0.35;
+const AIM_EXTRA_TOPK_AIR_MEAN_SPAN = 0.20;
+const AIM_EXTRA_TOPK_AIR_RANGE_START = 0.45;
+const AIM_EXTRA_TOPK_AIR_RANGE_SPAN = 0.25;
+const AIM_EXTRA_TOPK_CONTACT_START = 8;
+const AIM_EXTRA_TOPK_CONTACT_SPAN = 8;
 
 let aimCompileBudgetFrames = 0;
 /** Set the compile target budget for the K>1 maturity gate. Called once per
@@ -231,12 +245,122 @@ export function setAimCompileBudgetFrames(frames: number): void {
  *  threshold collapses to 1 (byte-identical to the K=1 default). Mature low-air
  *  gaps keep the accepted top-3 behavior; other mature gaps use the configured
  *  AIM_TOPK_BASES. */
-export function aimTopKBasesEffective(gap?: Gap): number {
+export function aimTopKBasesEffective(gap?: Gap, gaps?: readonly Gap[], ctx?: SpecContext): number {
   if (aimCompileBudgetFrames < AIM_TOPK_MATURE_BUDGET_FRAMES) return 1;
   if (gap?.targets.air !== undefined && gap.targets.air <= AIM_LOW_AIR_TOPK_AIR_MAX) {
     return Math.min(AIM_TOPK_BASES, AIM_LOW_AIR_TOPK_MAX);
   }
+  if (
+    !AIM_TOPK_BASES_EXPLICIT &&
+    AIM_TOPK_BASES < AIM_EXTRA_TOPK_BASES_DEFAULT &&
+    gap !== undefined &&
+    gaps !== undefined &&
+    ctx !== undefined &&
+    shouldUseDefaultExtraAimBase(gap, gaps, ctx)
+  ) {
+    return AIM_EXTRA_TOPK_BASES_DEFAULT;
+  }
   return AIM_TOPK_BASES;
+}
+
+function shouldUseDefaultExtraAimBase(gap: Gap, gaps: readonly Gap[], ctx: SpecContext): boolean {
+  const pressure = defaultExtraAimBasePressure(gap, gaps, ctx);
+  if (pressure <= 0) return false;
+  return unitHash(defaultExtraAimBaseSeed(gap)) < pressure;
+}
+
+function defaultExtraAimBasePressure(gap: Gap, gaps: readonly Gap[], ctx: SpecContext): number {
+  if (!gap.endsWithContact) return 0;
+  const gapAir = targetForGap(gap, ctx, "air");
+  if (gapAir !== null && gapAir <= AIM_LOW_AIR_TOPK_AIR_MAX) return 0;
+  const airMean = targetAxisMean(gaps, ctx, "air");
+  if (airMean === null) return 0;
+
+  const budgetPressure = smoothstep(
+    (aimCompileBudgetFrames - AIM_EXTRA_TOPK_BUDGET_START_FRAMES) /
+      AIM_EXTRA_TOPK_BUDGET_SPAN_FRAMES,
+  );
+  const speedSteadiness = 1 - smoothstep(
+    (targetAxisRange(gaps, ctx, "speed") - AIM_EXTRA_TOPK_SPEED_RANGE_START) /
+      AIM_EXTRA_TOPK_SPEED_RANGE_SPAN,
+  );
+  const airMeanPressure = smoothstep(
+    (airMean - AIM_EXTRA_TOPK_AIR_MEAN_START) / AIM_EXTRA_TOPK_AIR_MEAN_SPAN,
+  );
+  const airRangePressure = 1 - smoothstep(
+    (targetAxisRange(gaps, ctx, "air") - AIM_EXTRA_TOPK_AIR_RANGE_START) /
+      AIM_EXTRA_TOPK_AIR_RANGE_SPAN,
+  );
+  const contactPressure = smoothstep(
+    (contactGapCount(gaps) - AIM_EXTRA_TOPK_CONTACT_START) / AIM_EXTRA_TOPK_CONTACT_SPAN,
+  );
+  return clamp01(
+    budgetPressure * speedSteadiness * airMeanPressure * airRangePressure * contactPressure,
+  );
+}
+
+function defaultExtraAimBaseSeed(gap: Gap): number {
+  return (
+    Math.imul(gap.index + 1, 0x9e3779b1) ^
+    Math.imul(aimCompileBudgetFrames | 0, 0x85ebca6b) ^
+    0x61c88647
+  ) | 0;
+}
+
+function contactGapCount(gaps: readonly Gap[]): number {
+  let contacts = 0;
+  for (const gap of gaps) if (gap.endsWithContact) contacts++;
+  return contacts;
+}
+
+function targetAxisRange(gaps: readonly Gap[], ctx: SpecContext, axis: AxisName): number {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const gap of gaps) {
+    if (!gap.endsWithContact) continue;
+    const target = targetForGap(gap, ctx, axis);
+    if (target === null) continue;
+    lo = Math.min(lo, target);
+    hi = Math.max(hi, target);
+  }
+  return hi >= lo ? hi - lo : 0;
+}
+
+function targetAxisMean(gaps: readonly Gap[], ctx: SpecContext, axis: AxisName): number | null {
+  let sum = 0;
+  let count = 0;
+  for (const gap of gaps) {
+    if (!gap.endsWithContact) continue;
+    const target = targetForGap(gap, ctx, axis);
+    if (target === null) continue;
+    sum += target;
+    count++;
+  }
+  return count > 0 ? sum / count : null;
+}
+
+function targetForGap(gap: Gap, ctx: SpecContext, axis: AxisName): number | null {
+  const target = (ctx.gapAxisTargets?.[gap.index] ?? gap.targets)[axis];
+  return typeof target === "number" && Number.isFinite(target) ? target : null;
+}
+
+function unitHash(seed: number): number {
+  let x = seed | 0;
+  x ^= x >>> 16;
+  x = Math.imul(x, 0x7feb352d);
+  x ^= x >>> 15;
+  x = Math.imul(x, 0x846ca68b);
+  x ^= x >>> 16;
+  return (x >>> 0) / 0x100000000;
+}
+
+function clamp01(x: number): number {
+  return Math.max(0, Math.min(1, x));
+}
+
+function smoothstep(x: number): number {
+  const t = clamp01(x);
+  return t * t * (3 - 2 * t);
 }
 
 /** Telemetry: a requested top-K base was skipped (duplicate of an

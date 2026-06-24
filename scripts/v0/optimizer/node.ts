@@ -204,9 +204,10 @@ function sortWithLaneExtras(
     // base — each candidate is a self-contained line set that competes in the
     // pool (only one wins per branch), so reusing the start id is safe; the merge
     // re-sort ranks all extras from all bases together.
-    // K is gated on compile maturity and low-air targets (aimTopKBasesEffective):
-    // below the budget threshold this is 1; low-air mature gaps keep K=3.
-    const kEff = aimTopKBasesEffective(gap);
+    // K is gated on compile maturity, low-air targets, and default-only smooth
+    // authored-shape pressure (aimTopKBasesEffective): below the budget threshold
+    // this is 1; low-air mature gaps keep K=3.
+    const kEff = aimTopKBasesEffective(gap, gaps, ctx);
     const bases = Math.min(kEff, sorted.length);
     for (let b = 0; b < kEff; b++) {
       if (b >= bases) { recordLaneBaseSkip(); continue; }

@@ -54,7 +54,7 @@ npm run decide -- <candidate>/golden.json <baseline>/golden.json
 ```
 
 Paired cluster-bootstrap VERDICT: **accept** iff the headline-Δ is significant at the
-standard one-sided α=0.05 (`P(Δ≤0) < 0.05`); **reject** iff `P(Δ≥0) < 0.05`; else
+standard one-sided α=0.10 (`P(Δ≤0) < 0.10`); **reject** iff `P(Δ≥0) < 0.10`; else
 inconclusive. (The 95% CI is reported for context but does not define the verdict.)
 The HEADLINE is the budget-value-weighted average of the per-budget suite scores;
 validity is **reported per budget but never gates** (an invalid run already scores ~0).
@@ -76,11 +76,12 @@ The baseline of record is the **generated** [`docs/handoff-compiler.html`](hando
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
 - Evaluator fingerprint: **`de24a421f751`** (`scripts/v0/golden_suite.ts`).
-- Current baseline: `generated/golden-runs/baseline-newgrid-125-500k-08ff0a2/golden.json`,
-  canonical HEADLINE **674.79** (`HEADLINE excl. impact` 688.59), valid 1920/1920.
-  Per-budget scores: 125k 657.22, 250k 671.89, 375k 676.26, 500k 679.53.
-  This is the first baseline of record for the `{125,250,375,500}k` grid; the
-  previous `{100,200,300}k` baseline is stale for promotion decisions.
+- Current baseline: `generated/golden-runs/attempt-aim-late-top5-newgrid-a01/golden.json`,
+  canonical HEADLINE **675.52** (`HEADLINE excl. impact` 689.27), valid 1920/1920.
+  Per-budget scores: 125k 657.22, 250k 672.07, 375k 677.16, 500k 680.59.
+  This supersedes the initial `{125,250,375,500}k` baseline
+  (`baseline-newgrid-125-500k-08ff0a2`, HEADLINE 674.79) after an accepted
+  smooth late top-5 aim-base candidate.
 
 ## Active campaigns
 

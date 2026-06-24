@@ -1567,3 +1567,33 @@ Candidate: `generated/golden-runs/attempt-fwd-highbudget-shallow-newgrid-a01/gol
 Decision: `npm run decide -- generated/golden-runs/attempt-fwd-highbudget-shallow-newgrid-a01/golden.json generated/golden-runs/attempt-aim-late-top5-newgrid-a01/golden.json` -> `VERDICT: REJECT`, delta headline -2.0, CI [-4.0, -0.2], P(delta<=0)=98.4%, effect -2.10. Per-budget point estimates were 125k +0.0, 250k +0.0, 375k -1.6, and 500k -3.8, with unchanged diagnostic validity at 1920/1920 overall and 480/480 at every budget.
 
 Why it was not kept: the source was reverted after the canonical run because the smooth high-budget shallow rollout did exactly isolate the lower budgets, but it hurt the budgets it was supposed to help. The old `greedy:1` high-budget hint does not transfer to the accepted top5/new-grid baseline when used as a default mature forward-eval pressure. Future rollout-depth work should look for an observed local signal rather than applying shallow evaluation by budget alone.
+
+## 2026-06-24 - ABANDONED PROBE - impact axis-quality pool injection on new grid
+
+Mechanism: add at most one `axisq` option during quality search by selecting the already-generated candidate outside the scored pool that was closest to the current impact target. The offer used a continuous pressure from target budget, incumbent full-evaluation feedback, impact ask strength, selected-candidate undershoot, and available pool gain; the normal charged forward-eval ranker still judged the option. Scorer, specs, fingerprint, seed set, budget grid, start selection, aim generation, and repair stayed unchanged.
+
+Probe: `generated/golden-runs/probe-impact-axisq-newgrid-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --specs=drums_pendulum,drums_dropout,dense_echo_climb,skyline_push,terrace_sprint,rhythm_ladder,solo_run --budgets=125000,250000,500000 --jobs=16 --archive-dir=generated/golden-runs/probe-impact-axisq-newgrid-a01`. Focused tests passed before the probe with `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` (5 files, 77 tests).
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-impact-axisq-newgrid-a01/golden.json generated/golden-runs/attempt-aim-late-top5-newgrid-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline +0.2 on the 7-spec × 3-seed × `{125,250,500}k` intersection, with 125k +0.0, 250k -0.4, and 500k +0.5. Validity stayed 63/63.
+
+Why it was stopped: the final-output telemetry showed the mechanism was not really winning selection: across the probe, selected `axisq` candidates were 0/21 rows at 125k, 1/21 at 250k, and 0/21 at 500k, despite many offers. The tiny score movement was therefore mostly search-order and budget displacement, not a clear impact-selection fix. This matches earlier evidence that impact-looking candidates often lose for real downstream reasons. The source was reverted without a canonical run.
+
+## 2026-06-24 - ABANDONED PROBE - monotone late top5 aim hash
+
+Mechanism: keep the accepted late smooth fifth aim-base pressure exactly as-is, but remove target budget from the hash seed so activation becomes monotone with budget: increasing budget can only turn eligible gaps on, not reshuffle which gap indices pass. The pressure formula, authored-shape gates, low-air cap, explicit `LR_AIM_TOPK_BASES` override, scorer, specs, fingerprint, seed set, start selection, forward eval, and repair stayed unchanged.
+
+Probe: `generated/golden-runs/probe-aim-top5-monotone-newgrid-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-aim-top5-monotone-newgrid-a01`. Focused tests passed before the probe with `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` (5 files, 77 tests).
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-aim-top5-monotone-newgrid-a01/golden.json generated/golden-runs/attempt-aim-late-top5-newgrid-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0 on the 40-spec × 3-seed × full new-grid intersection, with 125k +0.0, 250k +0.8, 375k -0.3, and 500k -0.0. Validity stayed 480/480.
+
+Why it was stopped: the monotone hash is cleaner budget semantics, but it did not produce a measurable high-budget gain and slightly traded 375k against 250k on the three-seed scope. Under the accept-only promotion rule there is no reason to spend a full canonical run on a near-zero point estimate. The source was reverted.
+
+## 2026-06-24 - ABANDONED PROBE - mature pool-9 forward-eval candidate
+
+Mechanism: keep the public handoff candidate pool at 8 and add one ninth scored candidate only in quality search, with a smooth monotone pressure from 250k to 500k. Explicit rescue pool sizes and contract search were unchanged, and the existing charged forward-eval ranker remained the judge. Scorer, specs, fingerprint, seed set, start selection, aim, repair, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-mature-pool9-newgrid-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --specs=dense_sprint,terrace_sprint,verse_chorus,syncopated_switchback,drums_swell,rhythm_ladder,drums_dropout,rolling_hills,float_bounds,drums_tide,solo_run,skyline_push,dense_echo_climb,cold_start --budgets=125000,250000,375000,500000 --jobs=24 --archive-dir=generated/golden-runs/probe-mature-pool9-newgrid-a01`. Focused tests passed before the probe with `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` (5 files, 77 tests).
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-mature-pool9-newgrid-a01/golden.json generated/golden-runs/attempt-aim-late-top5-newgrid-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta headline -2.5 on the 14-spec × 3-seed × full new-grid intersection, with 125k +0.0, 250k +0.0, 375k -1.8, and 500k -4.9. Validity stayed 168/168.
+
+Why it was stopped: the smooth isolation worked, but the high-budget compute was harmful. Scoring the ninth top-level candidate displaced downstream repair/aim work and worsened the exact mature budgets it targeted. This reinforces the existing lookahead evidence: simply widening the decision evaluator is not the high-budget scaling lever on the accepted top5/new-grid baseline. The source was reverted.

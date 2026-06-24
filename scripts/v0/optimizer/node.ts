@@ -184,7 +184,7 @@ function sortWithLaneExtras(
     // record=false: telemetry is recorded once per pool build on the FINAL
     // ordering — by the merged re-sort below when lane extras exist, else by
     // the explicit recordRankQualityPool call.
-    sorted = sortCandidatesByQuality(node.prefixEngine, gap, gaps, sorted, false);
+    sorted = sortCandidatesByQuality(node.prefixEngine, gap, gaps, sorted, false, ctx);
   }
   // The enumerative proposer (the ONE aiming lane — optimizer/aim.ts):
   // model-proposed candidates competing on cost like any other.
@@ -221,7 +221,7 @@ function sortWithLaneExtras(
     // the judge is the quality objective; with it off, cost, bit-identically.
     sorted = rankQuality
       ? sortCandidatesByQuality(
-        node.prefixEngine, gap, gaps, sortCandidatesByCost([...sampleOrder, ...laneExtras]), true,
+        node.prefixEngine, gap, gaps, sortCandidatesByCost([...sampleOrder, ...laneExtras]), true, ctx,
       )
       : sortCandidatesByCost([...sampleOrder, ...laneExtras]);
     // Selection-rank telemetry: where each lane extra landed in the sorted

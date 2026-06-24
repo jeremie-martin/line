@@ -42,19 +42,30 @@ export type GapObjectiveScore = NextGapReadinessScore & {
 };
 
 export function scoreCurrentGapQuality(gap: Gap, achieved: AxisValues): number {
-  return axisQualityForTargets(aimTargets(gap), achieved).axis_quality;
+  return scoreCurrentTargetQuality(aimTargets(gap), achieved);
+}
+
+export function scoreCurrentTargetQuality(targets: AxisValues, achieved: AxisValues): number {
+  return axisQualityForTargets(targets, achieved).axis_quality;
 }
 
 export function scoreNextGapReadiness(
   arrival: ObjectiveArrivalState,
   nextGap: Gap,
 ): NextGapReadinessScore | null {
+  return scoreNextTargetReadiness(arrival, aimTargets(nextGap));
+}
+
+export function scoreNextTargetReadiness(
+  arrival: ObjectiveArrivalState,
+  nextTargets: AxisValues,
+): NextGapReadinessScore | null {
   if (!Number.isFinite(arrival.speed) || arrival.comAngleDeg === null || !Number.isFinite(arrival.comAngleDeg)) {
     return null;
   }
   const catchability = Math.max(OBJECTIVE_READINESS_MIN, readinessCatchState(arrival));
-  const speedFit = speedFitFactor(arrival.meanSpeed ?? arrival.speed, nextGap);
-  const impactFeasibility = impactFeasibilityFactor(arrival, nextGap);
+  const speedFit = speedFitFactor(arrival.meanSpeed ?? arrival.speed, nextTargets);
+  const impactFeasibility = impactFeasibilityFactor(arrival, nextTargets);
   return {
     readiness: catchability * speedFit * impactFeasibility,
     catchability,
@@ -69,9 +80,23 @@ export function scoreGapObjective(
   arrival: ObjectiveArrivalState,
   nextGap: Gap,
 ): GapObjectiveScore | null {
-  const readiness = scoreNextGapReadiness(arrival, nextGap);
+  return scoreGapObjectiveForTargets(
+    aimTargets(currentGap),
+    currentAxes,
+    arrival,
+    aimTargets(nextGap),
+  );
+}
+
+export function scoreGapObjectiveForTargets(
+  currentTargets: AxisValues,
+  currentAxes: AxisValues,
+  arrival: ObjectiveArrivalState,
+  nextTargets: AxisValues,
+): GapObjectiveScore | null {
+  const readiness = scoreNextTargetReadiness(arrival, nextTargets);
   if (readiness === null) return null;
-  const currentQuality = scoreCurrentGapQuality(currentGap, currentAxes);
+  const currentQuality = scoreCurrentTargetQuality(currentTargets, currentAxes);
   return {
     ...readiness,
     currentQuality,
@@ -136,8 +161,8 @@ export function predictArrivalAtNextContact(
   };
 }
 
-function speedFitFactor(speed: number, nextGap: Gap): number {
-  const target = aimTargets(nextGap).speed;
+function speedFitFactor(speed: number, nextTargets: AxisValues): number {
+  const target = nextTargets.speed;
   if (target === undefined) return 1;
   // `speed` is the predicted MEAN-of-flight where available (the statistic the target authors),
   // else the catch-instant fallback. Asymmetric: too-fast is half-penalized — any residual
@@ -153,7 +178,7 @@ function speedFitFactor(speed: number, nextGap: Gap): number {
 
 function impactFeasibilityFactor(
   state: Pick<ObjectiveArrivalState, "speed" | "comAngleDeg">,
-  nextGap: Gap,
+  nextTargets: AxisValues,
 ): number {
   // FEASIBILITY, not scored error: "can this arrival state deliver the next beat's
   // impact ask?", clamped to [0,1]. So OVER-delivering impact is free here (the scorer
@@ -161,7 +186,7 @@ function impactFeasibilityFactor(
   // OBJECTIVE_IMPACT_MIN_ASK are treated as no-constraint (returns 1). This is an
   // intentional divergence from the scorer's additive equal-weight impact axis — it
   // gates readiness, it does not reproduce the impact score.
-  const impactAsk = aimTargets(nextGap).impact;
+  const impactAsk = nextTargets.impact;
   if (impactAsk === undefined || impactAsk < OBJECTIVE_IMPACT_MIN_ASK || state.comAngleDeg === null) return 1;
   return impactFeasibility(state.speed, state.comAngleDeg, impactAsk);
 }

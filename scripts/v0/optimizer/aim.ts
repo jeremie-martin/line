@@ -88,7 +88,7 @@ import {
 import {
   nextContactGap,
   predictArrivalAtNextContact,
-  scoreGapObjective,
+  scoreGapObjectiveForTargets,
   scoreNextGapReadiness,
 } from "./objective.ts";
 import type { Gap } from "../types.ts";
@@ -873,7 +873,15 @@ function makeJointAimedCandidates(
 
   const baseKnobs = { pitchDeg: 0, rotateDeg: 0 };
   recordJointModelCoverage(model, predictJointArcOutputs(model, baseKnobs), gap);
-  const baseScore = scoreJointKnobs(model, baseKnobs, gap, nextGap);
+  const currentTargets = objectiveTargetsForGap(gap, ctx);
+  const nextTargets = objectiveTargetsForGap(nextGap, ctx);
+  const baseScore = scoreJointKnobs(
+    model,
+    baseKnobs,
+    currentTargets,
+    nextTargets,
+    nextGap.endFrame,
+  );
   if (baseScore === "next_before_exit") {
     aimTotals.enum_next_before_exit++;
     return [];
@@ -890,7 +898,13 @@ function makeJointAimedCandidates(
   for (let pitchDeg = -pitchSpan; pitchDeg <= pitchSpan + 1e-9; pitchDeg += ENUM_STEP_DEG) {
     for (let rotateDeg = -rotateSpan; rotateDeg <= rotateSpan + 1e-9; rotateDeg += ENUM_ROT_STEP_DEG) {
       if (Math.abs(pitchDeg) < AIM_MIN_DELTA_DEG && Math.abs(rotateDeg) < ENUM_ROT_STEP_DEG / 2) continue;
-      const score = scoreJointKnobs(model, { pitchDeg, rotateDeg }, gap, nextGap);
+      const score = scoreJointKnobs(
+        model,
+        { pitchDeg, rotateDeg },
+        currentTargets,
+        nextTargets,
+        nextGap.endFrame,
+      );
       if (typeof score !== "string" && score.val > baseScore.val + 1e-4) scored.push(score);
     }
   }
@@ -955,12 +969,13 @@ type JointScoreResult = JointScoredKnobs | "next_before_exit" | "model_unscoreab
 function scoreJointKnobs(
   model: ReturnType<typeof fitJointArcResponseModel>,
   knobs: ArcKnobs,
-  gap: Gap,
-  nextGap: Gap,
+  currentTargets: AxisValues,
+  nextTargets: AxisValues,
+  nextEndFrame: number,
 ): JointScoreResult {
   const outputs = predictJointArcOutputs(model, knobs);
   const exitFrame = outputs["exit.frame"];
-  if (Number.isFinite(exitFrame) && exitFrame > nextGap.endFrame) return "next_before_exit";
+  if (Number.isFinite(exitFrame) && exitFrame > nextEndFrame) return "next_before_exit";
   const state = predictedArrivalState(outputs);
   if (state === null) return "model_unscoreable";
   // Align the sweep's speed-fit with the pool sort (objective.ts H4): score against the predicted
@@ -970,7 +985,12 @@ function scoreJointKnobs(
   const arrival = Number.isFinite(exitSpeed) && Number.isFinite(state.speed)
     ? { ...state, meanSpeed: (exitSpeed + state.speed) / 2 }
     : state;
-  const objective = scoreGapObjective(gap, predictedCurrentAxes(outputs), arrival, nextGap);
+  const objective = scoreGapObjectiveForTargets(
+    currentTargets,
+    predictedCurrentAxes(outputs),
+    arrival,
+    nextTargets,
+  );
   if (objective === null) return "model_unscoreable";
   return { knobs, val: objective.value, state, currentQuality: objective.currentQuality };
 }
@@ -1014,6 +1034,7 @@ export function candidateQualityObjective(
   candidate: Candidate,
   gap: Gap,
   gaps: Gap[],
+  ctx?: SpecContext,
 ): number | null {
   const cached = objectiveCache.get(candidate);
   if (cached !== undefined) return cached;
@@ -1030,8 +1051,17 @@ export function candidateQualityObjective(
     return memoObjective(candidate, null);
   }
   aimTotals.rank_quality_pred_used++;
-  const objective = scoreGapObjective(gap, candidate.achieved, arrival, nextGap);
+  const objective = scoreGapObjectiveForTargets(
+    objectiveTargetsForGap(gap, ctx),
+    candidate.achieved,
+    arrival,
+    objectiveTargetsForGap(nextGap, ctx),
+  );
   return memoObjective(candidate, objective === null ? null : objective.value);
+}
+
+function objectiveTargetsForGap(gap: Gap, ctx?: SpecContext): AxisValues {
+  return ctx?.gapAxisTargets?.[gap.index] ?? gap.targets;
 }
 
 function memoObjective(candidate: Candidate, value: number | null): number | null {
@@ -1057,12 +1087,13 @@ export function sortCandidatesByQuality(
   gaps: Gap[],
   costSorted: Candidate[],
   record: boolean,
+  ctx?: SpecContext,
 ): Candidate[] {
   if (costSorted.length === 0) return costSorted;
   const objectives = new Map<Candidate, number>();
   let anyDefined = false;
   for (const cand of costSorted) {
-    const obj = candidateQualityObjective(engine, cand, gap, gaps);
+    const obj = candidateQualityObjective(engine, cand, gap, gaps, ctx);
     if (obj !== null) {
       objectives.set(cand, obj);
       anyDefined = true;

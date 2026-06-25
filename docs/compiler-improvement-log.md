@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-25 - REJECT - impact undershoot local-cost ramp
+
+Mechanism: keep the existing local `impact` candidate-cost weight at `0.5` for impact overshoot, but add a smooth compile-budget ramp for impact undershoot only. The temporary source change exported a per-compile budget setter to `core/candidate.ts`; `axisCost` used `0.5 + 0.5 * smoothstep(budget / (budget + 250k))` only when `target.impact > achieved.impact`. The intent was to address the measured systematic impact undershoot without repeating the rejected symmetric full-impact local-weight change. Geometry, repair, start policy, forward evaluation, scorer, specs, fingerprint, seeds, budget grid, and acceptance rule were otherwise unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed first (5 files, 77 tests).
+
+Baseline: `generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json`, canonical new grid, fingerprint `de24a421f751`, HEADLINE 678.70.
+
+Candidate: `generated/golden-runs/attempt-impact-undershoot-local-ramp-newgrid-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-impact-undershoot-local-ramp-newgrid-a01`. The canonical run was valid 1920/1920 with raw HEADLINE 678.77 and `HEADLINE excl. impact` 693.85; per-budget point estimates were 125k 662.78, 250k 673.97, 375k 680.06, and 500k 684.20.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-impact-undershoot-local-ramp-newgrid-a01/golden.json generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json` -> `VERDICT: INCONCLUSIVE`, Δheadline +0.1, CI [-0.2, 0.3], P(Δ<=0)=20.7%. Per-budget deltas were 125k +0.0, 250k -0.0, 375k -0.0, and 500k +0.2.
+
+Why it failed: this was cleaner than the template-admission attempt but still not accepted. Only 45 score cells moved, with 31 improvements and 14 regressions; weighted mean delta was +0.064. Gains were led by `tiny_dance` (+1.69 weighted), `drums_pendulum` (+1.16), `rhythm_ladder` (+0.67), and `solo_run` (+0.21), while the main loss was `dense_sprint` (-1.31). The 500k point estimate improved, but the confidence interval still crossed zero and `HEADLINE excl. impact` regressed slightly, so the accept-only rule required reverting the source.
+
 ## 2026-06-25 - REJECT - soft impact template admission
 
 Mechanism: keep the existing high-pressure impact template lane unchanged, but replace the hard `impactCurveP >= 0.35` eligibility edge with a smooth deterministic admission probability for mid-pressure impact beats. The added admission ramp started at `impactCurveP=0.15`, reached full eligibility at the existing `0.35` point, and was multiplied by a smooth compile-budget pressure from 100k to 250k frames. The intent was to let larger budgets spend more search on mid-impact scoop templates without creating a discrete special case for one canonical budget. Scorer, specs, fingerprint, seeds, budget grid, start policy, forward evaluation, repair behavior, and the existing full-pressure template lane were otherwise unchanged.

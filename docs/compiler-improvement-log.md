@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-25 - REJECT - soft impact template admission
+
+Mechanism: keep the existing high-pressure impact template lane unchanged, but replace the hard `impactCurveP >= 0.35` eligibility edge with a smooth deterministic admission probability for mid-pressure impact beats. The added admission ramp started at `impactCurveP=0.15`, reached full eligibility at the existing `0.35` point, and was multiplied by a smooth compile-budget pressure from 100k to 250k frames. The intent was to let larger budgets spend more search on mid-impact scoop templates without creating a discrete special case for one canonical budget. Scorer, specs, fingerprint, seeds, budget grid, start policy, forward evaluation, repair behavior, and the existing full-pressure template lane were otherwise unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed first (5 files, 77 tests).
+
+Baseline: `generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json`, canonical new grid, fingerprint `de24a421f751`, HEADLINE 678.70.
+
+Candidate: `generated/golden-runs/attempt-soft-impact-template-admission-newgrid-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-soft-impact-template-admission-newgrid-a01`. The canonical run was valid 1920/1920 with raw HEADLINE 678.77 and `HEADLINE excl. impact` 693.99; per-budget point estimates were 125k 662.01, 250k 674.53, 375k 679.93, and 500k 684.20.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-soft-impact-template-admission-newgrid-a01/golden.json generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json` -> `VERDICT: INCONCLUSIVE`, Δheadline +0.1, CI [-1.2, 1.7], P(Δ<=0)=48.7%. Per-budget deltas were 125k -0.7, 250k +0.6, 375k -0.2, and 500k +0.2.
+
+Why it failed: the mechanism was too noisy and not directionally reliable. It moved 466 score cells, with 228 improvements and 238 regressions; the weighted mean delta was only +0.08. Gains concentrated in `drums_swell` (+10.30 weighted), `drums_pulse` (+5.04), `big_air_ramp` (+2.14), `skyline_push` (+1.80), and `terrace_sprint` (+1.75), but they were offset by losses in `opening_burst` (-4.21), `drums_pendulum` (-2.90), `drums_tide` (-2.51), `drums_crescendo` (-2.35), `drums_breath` (-1.68), and `dense_sprint` (-1.66). The smooth budget ramp did avoid a hard canonical-budget branch, but it still perturbed 125k negatively and did not convert the added mid-impact template access into a statistically accepted headline gain. The temporary source change was reverted.
+
 ## 2026-06-25 - REJECT - weak-incumbent mature quality breadth
 
 Mechanism: keep the mature quality-search lean as the default, but smoothly relax it from the mature `29`-candidate count back toward the normal `32` candidates while the current passing incumbent had weak `axis_quality`. The pressure multiplied a continuous incumbent-quality term (`axis_quality` below roughly 0.66, full below 0.54) by the existing smooth budget-maturity curve; the 125k tier, hard high-variation relief, short/no-amplitude boost, sparse-amplitude boost, start policy, forward evaluation, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule were otherwise unchanged.

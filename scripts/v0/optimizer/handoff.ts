@@ -129,8 +129,8 @@ import type {
 export type CompileHandoffOptions = {
   /** Simulated-frame budget for this run. One scalar budget = one independent full
    *  run from scratch; pass multiple budgets by calling N times (see
-   *  `compileBudgetCurve`). The search policy is still budget-oblivious this step —
-   *  the budget is only the stop condition. */
+   *  `compileBudgetCurve`). The budget is the stop condition and also feeds the
+   *  explicit smooth spend-control policy. */
   budget: number;
   /** Optional hard node cap for diagnostic probes. Production leaves this unset and
    *  is bounded by the frame budget alone (a default runaway backstop applies). */
@@ -204,6 +204,32 @@ type RankedOption = {
   shadowShort?: LeafFactors | null;
 };
 
+export type HandoffPolicyVariant = "legacy" | "quality-v1";
+
+type HandoffPolicyMode = "contract" | "quality";
+
+type HandoffSearchPolicy = {
+  variant: HandoffPolicyVariant;
+  mode: HandoffPolicyMode;
+  qualitySearch: boolean;
+  nCand: number;
+  preview: boolean;
+  expandedBrakeSearch: boolean;
+  axisQualitySearch: boolean;
+  releaseSetup: boolean;
+  previewScorePressure?: number;
+  branchLimit: number;
+  reuseLimit: number;
+  tailBranching: number;
+};
+
+type NumericAccumulator = {
+  count: number;
+  sum: number;
+  min: number;
+  max: number;
+};
+
 type StartOption = {
   rank: number;
   start: NonNullable<Spec["start"]>;
@@ -239,6 +265,9 @@ type HandoffTelemetry = {
   tailCompletionAttemptsByRemainingContacts: Record<number, number>;
   tailCompletionSuccessesByRemainingContacts: Record<number, number>;
   tailCompletionImprovementsByRemainingContacts: Record<number, number>;
+  policyModeCounts: Record<HandoffPolicyMode, number>;
+  policyNCand: NumericAccumulator;
+  policyBranchLimit: NumericAccumulator;
   previews: number;
   previewContacts: number;
   previewSurvivors: number;
@@ -716,7 +745,7 @@ function compileHandoffInternal(
     const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
     const budgetSlack = round3(traversalBudgetSlack(targetBudget, spec));
-    const forceQualityMode = forceHandoffQualityMode();
+    const policyVariant = handoffPolicyVariant();
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContractSearch = usesSparseContractSearch(gaps);
     const startOptions = initialSnapshot === null
@@ -759,6 +788,9 @@ function compileHandoffInternal(
       tailCompletionAttemptsByRemainingContacts: {},
       tailCompletionSuccessesByRemainingContacts: {},
       tailCompletionImprovementsByRemainingContacts: {},
+      policyModeCounts: { contract: 0, quality: 0 },
+      policyNCand: emptyNumericAccumulator(),
+      policyBranchLimit: emptyNumericAccumulator(),
       previews: 0,
       previewContacts: 0,
       previewSurvivors: 0,
@@ -902,7 +934,11 @@ function compileHandoffInternal(
           traversal_budget_model: TRAVERSAL_BUDGET_MODEL_V1.name,
           predicted_first_completion_frames: predictedFirstCompletionFrames,
           budget_slack: budgetSlack,
-          handoff_force_quality_mode: forceQualityMode,
+          handoff_policy_variant: policyVariant,
+          handoff_force_quality_mode: policyVariant === "quality-v1",
+          handoff_policy_mode_counts: snapshotPolicyModeCounts(telemetry),
+          ...snapshotNumericPolicyStats("handoff_policy_candidate_count", telemetry.policyNCand),
+          ...snapshotNumericPolicyStats("handoff_policy_branch_limit", telemetry.policyBranchLimit),
           first_completion_frame: firstTerminalFrame >= 0 ? firstTerminalFrame : null,
           leaves_considered: register.consideredCount,
           improvements: register.improvementCount,
@@ -1020,15 +1056,26 @@ function compileHandoffInternal(
       // Only tracked when repair can consume it (>=150k); a no-op on the low-budget hot path.
       if (repairEnabled && !framesAtReach.has(node.search)) framesAtReach.set(node.search, getSimFrames());
       consider(node, "main");
-      const qualitySearch = forceQualityMode || register.getBestKey()?.contract_passed === true;
+      const resolvePolicy = (search: SearchNode): HandoffSearchPolicy =>
+        resolveHandoffSearchPolicy({
+          variant: policyVariant,
+          node: search,
+          gaps,
+          ctx,
+          telemetry,
+          sparseContractSearch,
+          targetBudget,
+          bestKey: register.getBestKey(),
+        });
+      const policy = resolvePolicy(node.search);
 
       const tailNode = completeNearTail(
         node,
         gaps,
         ctx,
         telemetry,
-        qualitySearch,
-        sparseContractSearch,
+        policy,
+        resolvePolicy,
         targetBudget,
       );
       if (tailNode !== null) {
@@ -1121,10 +1168,8 @@ function compileHandoffInternal(
         ctx,
         startOptions,
         telemetry,
-        qualitySearch,
-        sparseContractSearch,
+        policy,
         targetBudget,
-        register.getBestKey(),
       );
       telemetry.nodesExpanded++;
       return { kind: "expanded", children };
@@ -1869,10 +1914,8 @@ function expandNode(
   ctx: SpecContext,
   startOptions: StartOption[],
   telemetry: HandoffTelemetry,
-  qualitySearch: boolean,
-  sparseContractSearch: boolean,
+  policy: HandoffSearchPolicy,
   targetBudget: number,
-  bestKey: LeafKey | null,
 ): HandoffNode[] {
   if (isTerminalNode(node.search, gaps)) return [];
   if (!node.startExpanded) {
@@ -1903,23 +1946,16 @@ function expandNode(
     }];
   }
 
+  recordHandoffPolicyTelemetry(telemetry, policy);
   let options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
-    nCand: qualitySearch
-      ? qualityHandoffSampleCount(gaps, ctx, sparseContractSearch, targetBudget)
-      : budgetAwareContractSampleCount(
-        targetBudget,
-        gaps.length - node.search.gapIndex,
-        telemetry.deepestSeenGap + 1,
-        sparseContractSearch,
-      ),
-    preview: handoffUsesFuturePreview(qualitySearch),
-    expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
-    axisQualitySearch: qualitySearch,
-    releaseSetup: qualitySearch,
+    nCand: policy.nCand,
+    preview: policy.preview,
+    expandedBrakeSearch: policy.expandedBrakeSearch,
+    axisQualitySearch: policy.axisQualitySearch,
+    releaseSetup: policy.releaseSetup,
+    reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
-    previewScorePressure: qualitySearch
-      ? qualityFuturePreviewPressure(targetBudget, telemetry)
-      : undefined,
+    previewScorePressure: policy.previewScorePressure,
     targetBudget,
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap, ctx)) {
@@ -1928,14 +1964,13 @@ function expandNode(
     options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
       nCand: rescueNCand,
       poolSize: deadEndRescueCandidatePoolSize(gap, rescueNCand),
-      preview: handoffUsesFuturePreview(qualitySearch),
-      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
-      axisQualitySearch: qualitySearch,
-      releaseSetup: qualitySearch,
+      preview: policy.preview,
+      expandedBrakeSearch: policy.expandedBrakeSearch,
+      axisQualitySearch: policy.axisQualitySearch,
+      releaseSetup: policy.releaseSetup,
+      reuseLimit: policy.reuseLimit,
       previewCostWeight: PREVIEW_COST_WEIGHT,
-      previewScorePressure: qualitySearch
-        ? qualityFuturePreviewPressure(targetBudget, telemetry)
-        : undefined,
+      previewScorePressure: policy.previewScorePressure,
       targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1949,14 +1984,13 @@ function expandNode(
     options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
       nCand: HANDOFF_SHORT_RESCUE_N_CAND,
       poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
-      preview: handoffUsesFuturePreview(qualitySearch),
-      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
-      axisQualitySearch: qualitySearch,
-      releaseSetup: qualitySearch,
+      preview: policy.preview,
+      expandedBrakeSearch: policy.expandedBrakeSearch,
+      axisQualitySearch: policy.axisQualitySearch,
+      releaseSetup: policy.releaseSetup,
+      reuseLimit: policy.reuseLimit,
       previewCostWeight: PREVIEW_COST_WEIGHT,
-      previewScorePressure: qualitySearch
-        ? qualityFuturePreviewPressure(targetBudget, telemetry)
-        : undefined,
+      previewScorePressure: policy.previewScorePressure,
       targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1964,12 +1998,10 @@ function expandNode(
   if (options.length === 0 && shouldAttemptStartupDeadEndRescue(gap)) {
     telemetry.rescueAttempts++;
     options = startupDeadEndOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
-      preview: handoffUsesFuturePreview(qualitySearch),
-      releaseSetup: qualitySearch,
+      preview: policy.preview,
+      releaseSetup: policy.releaseSetup,
       previewCostWeight: PREVIEW_COST_WEIGHT,
-      previewScorePressure: qualitySearch
-        ? qualityFuturePreviewPressure(targetBudget, telemetry)
-        : undefined,
+      previewScorePressure: policy.previewScorePressure,
       targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -1990,8 +2022,7 @@ function expandNode(
     }];
   }
 
-  const branchLimit = contractBranchingLimit(node.search, qualitySearch, targetBudget, bestKey);
-  return options.slice(0, branchLimit).map((option) => ({
+  return options.slice(0, policy.branchLimit).map((option) => ({
     search: option.child,
     startState: node.startState,
     startLines: node.startLines,
@@ -2190,6 +2221,7 @@ function rankedOptions(
     preview?: boolean;
     expandedBrakeSearch?: boolean;
     axisQualitySearch?: boolean;
+    reuseLimit?: number;
     previewCostWeight?: number;
     previewScorePressure?: number;
     releaseSetup?: boolean;
@@ -2238,7 +2270,7 @@ function rankedOptions(
     gaps,
     ctx,
     telemetry,
-    reuseCandidateLimit(
+    config.reuseLimit ?? reuseCandidateLimit(
       node,
       config.axisQualitySearch ?? false,
       targetBudget,
@@ -2539,11 +2571,11 @@ function completeNearTail(
   gaps: Gap[],
   ctx: SpecContext,
   telemetry: HandoffTelemetry,
-  qualitySearch: boolean,
-  sparseContractSearch: boolean,
+  policy: HandoffSearchPolicy,
+  resolvePolicy: (search: SearchNode) => HandoffSearchPolicy,
   targetBudget: number,
 ): HandoffNode | null {
-  if (!shouldAttemptNearTailCompletion(node, gaps, targetBudget, qualitySearch, telemetry)) {
+  if (!shouldAttemptNearTailCompletion(node, gaps, targetBudget, policy.qualitySearch, telemetry)) {
     return null;
   }
   const remaining = remainingContactCount(node.search, gaps);
@@ -2557,8 +2589,7 @@ function completeNearTail(
     ctx,
     node.searchSeed,
     telemetry,
-    qualitySearch,
-    sparseContractSearch,
+    resolvePolicy,
     targetBudget,
   );
   if (completed === null) return null;
@@ -2590,8 +2621,7 @@ function completeNearTailSuffix(
   ctx: SpecContext,
   seed: number,
   telemetry: HandoffTelemetry,
-  qualitySearch: boolean,
-  sparseContractSearch: boolean,
+  resolvePolicy: (search: SearchNode) => HandoffSearchPolicy,
   targetBudget: number,
   /** Repair use: bound the rebuild so one attempt can't eat the whole slice.
    *  Defaults preserve the near-tail caller (unbounded — its window is tiny). */
@@ -2618,25 +2648,19 @@ function completeNearTailSuffix(
     if (isTerminalNode(search, gaps)) return { search, rankTrace };
 
     nodes++;
-    const gap = gaps[search.gapIndex];
+    const policy = resolvePolicy(search);
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
-      nCand: qualitySearch
-        ? qualityHandoffSampleCount(gaps, ctx, sparseContractSearch, targetBudget)
-        : budgetAwareContractSampleCount(
-          targetBudget,
-          gaps.length - search.gapIndex,
-          telemetry.deepestSeenGap + 1,
-          sparseContractSearch,
-        ),
+      nCand: policy.nCand,
       preview: false,
-      expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
-      axisQualitySearch: qualitySearch,
-      releaseSetup: qualitySearch,
+      expandedBrakeSearch: policy.expandedBrakeSearch,
+      axisQualitySearch: policy.axisQualitySearch,
+      releaseSetup: policy.releaseSetup,
+      reuseLimit: policy.reuseLimit,
       previewCostWeight: PREVIEW_COST_WEIGHT,
       targetBudget,
     })
       .filter((option) => option.candidate !== null)
-      .slice(0, tailCompletionBranching(search, targetBudget, qualitySearch));
+      .slice(0, policy.tailBranching);
     for (let i = options.length - 1; i >= 0; i--) {
       const option = options[i];
       stack.push({
@@ -2677,6 +2701,104 @@ function pickFeasibleWeakGap(
     if (cost <= 0 || cost <= budgetCap) return r.gap;
   }
   return -1;
+}
+
+export function handoffPolicyVariant(): HandoffPolicyVariant {
+  const raw = readEnv("LR_HANDOFF_POLICY")?.trim().toLowerCase();
+  if (raw === "legacy") return "legacy";
+  if (raw === "quality-v1" || raw === "quality") return "quality-v1";
+  if (raw !== undefined && raw !== "") {
+    throw new Error(`LR_HANDOFF_POLICY must be "legacy" or "quality-v1", got "${raw}"`);
+  }
+  if (forceHandoffQualityMode()) return "quality-v1";
+  return "quality-v1";
+}
+
+function resolveHandoffSearchPolicy({
+  variant,
+  node,
+  gaps,
+  ctx,
+  telemetry,
+  sparseContractSearch,
+  targetBudget,
+  bestKey,
+}: {
+  variant: HandoffPolicyVariant;
+  node: SearchNode;
+  gaps: Gap[];
+  ctx: SpecContext;
+  telemetry: HandoffTelemetry;
+  sparseContractSearch: boolean;
+  targetBudget: number;
+  bestKey: LeafKey | null;
+}): HandoffSearchPolicy {
+  const qualitySearch = variant === "quality-v1" || bestKey?.contract_passed === true;
+  const nCand = qualitySearch
+    ? qualityHandoffSampleCount(gaps, ctx, sparseContractSearch, targetBudget)
+    : budgetAwareContractSampleCount(
+      targetBudget,
+      gaps.length - node.gapIndex,
+      telemetry.deepestSeenGap + 1,
+      sparseContractSearch,
+    );
+  return {
+    variant,
+    mode: qualitySearch ? "quality" : "contract",
+    qualitySearch,
+    nCand,
+    preview: handoffUsesFuturePreview(qualitySearch),
+    expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
+    axisQualitySearch: qualitySearch,
+    releaseSetup: qualitySearch,
+    previewScorePressure: qualitySearch
+      ? qualityFuturePreviewPressure(targetBudget, telemetry)
+      : undefined,
+    branchLimit: contractBranchingLimit(node, qualitySearch, targetBudget, bestKey),
+    reuseLimit: reuseCandidateLimit(node, qualitySearch, targetBudget, telemetry),
+    tailBranching: tailCompletionBranching(node, targetBudget, qualitySearch),
+  };
+}
+
+function emptyNumericAccumulator(): NumericAccumulator {
+  return { count: 0, sum: 0, min: Infinity, max: -Infinity };
+}
+
+function recordNumeric(acc: NumericAccumulator, value: number): void {
+  acc.count++;
+  acc.sum += value;
+  acc.min = Math.min(acc.min, value);
+  acc.max = Math.max(acc.max, value);
+}
+
+function recordHandoffPolicyTelemetry(
+  telemetry: HandoffTelemetry,
+  policy: HandoffSearchPolicy,
+): void {
+  telemetry.policyModeCounts[policy.mode]++;
+  recordNumeric(telemetry.policyNCand, policy.nCand);
+  recordNumeric(telemetry.policyBranchLimit, policy.branchLimit);
+}
+
+function snapshotPolicyModeCounts(
+  telemetry: HandoffTelemetry,
+): Partial<Record<HandoffPolicyMode, number>> {
+  return Object.fromEntries(
+    (Object.entries(telemetry.policyModeCounts) as [HandoffPolicyMode, number][])
+      .filter(([, count]) => count > 0),
+  ) as Partial<Record<HandoffPolicyMode, number>>;
+}
+
+function snapshotNumericPolicyStats(
+  prefix: "handoff_policy_candidate_count" | "handoff_policy_branch_limit",
+  acc: NumericAccumulator,
+): Partial<CompileStats> {
+  if (acc.count === 0) return {};
+  return {
+    [`${prefix}_min`]: acc.min,
+    [`${prefix}_mean`]: round3(acc.sum / acc.count),
+    [`${prefix}_max`]: acc.max,
+  } as Partial<CompileStats>;
 }
 
 export function handoffSampleCount(

@@ -26,10 +26,9 @@ export type { CompileStats, DriftReport, Gap, Spec };
 
 /** A compute checkpoint in simulated rider frames.
  *
- * Budgets are plain positive frame counts. They are stop/checkpoint thresholds
- * only: the search policy must never read the current budget. A compile with
- * multiple budgets walks one deterministic search sequence and snapshots the
- * best-so-far register at each threshold.
+ * Budgets are plain positive frame counts. A scalar compile is bounded by this
+ * budget and may feed explicit smooth spend-control policy. A compile with
+ * multiple budgets returns one checkpoint per independent budget run.
  */
 export type CompileBudget = number;
 

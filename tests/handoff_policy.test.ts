@@ -4,6 +4,7 @@ import {
   handoffCandidatePool,
   handoffAxisOvershootPenalty,
   handoffSampleCount,
+  handoffPolicyVariant,
   handoffUsesFuturePreview,
   hasStartFeasibilityLookahead,
   shouldOfferBrakeCandidates,
@@ -77,6 +78,40 @@ function totalLineLength(lines: TrackLine[]): number {
 }
 
 describe("handoff policy boundaries", () => {
+  test("quality-v1 is the default handoff policy and legacy is an explicit override", () => {
+    const previousPolicy = process.env.LR_HANDOFF_POLICY;
+    const previousForce = process.env.LR_HANDOFF_FORCE_QUALITY;
+    try {
+      delete process.env.LR_HANDOFF_POLICY;
+      delete process.env.LR_HANDOFF_FORCE_QUALITY;
+      expect(handoffPolicyVariant()).toBe("quality-v1");
+
+      process.env.LR_HANDOFF_POLICY = "legacy";
+      expect(handoffPolicyVariant()).toBe("legacy");
+
+      process.env.LR_HANDOFF_POLICY = "quality-v1";
+      expect(handoffPolicyVariant()).toBe("quality-v1");
+
+      delete process.env.LR_HANDOFF_POLICY;
+      process.env.LR_HANDOFF_FORCE_QUALITY = "1";
+      expect(handoffPolicyVariant()).toBe("quality-v1");
+
+      process.env.LR_HANDOFF_POLICY = "unknown";
+      expect(() => handoffPolicyVariant()).toThrow(/LR_HANDOFF_POLICY/);
+    } finally {
+      if (previousPolicy === undefined) {
+        delete process.env.LR_HANDOFF_POLICY;
+      } else {
+        process.env.LR_HANDOFF_POLICY = previousPolicy;
+      }
+      if (previousForce === undefined) {
+        delete process.env.LR_HANDOFF_FORCE_QUALITY;
+      } else {
+        process.env.LR_HANDOFF_FORCE_QUALITY = previousForce;
+      }
+    }
+  });
+
   test("candidate pool has no contact-count regime cliff", () => {
     const formerCliffCounts = [29, 30, 31, 60, 61, 77];
     expect(formerCliffCounts.map(() => handoffCandidatePool())).toEqual([8, 8, 8, 8, 8, 8]);

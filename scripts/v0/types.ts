@@ -426,9 +426,23 @@ export type CompileStats = {
   /** Requested budget divided by `predicted_first_completion_frames`. This
    *  normalizes raw budgets across short/easy vs long/dense specs. */
   budget_slack?: number;
-  /** True when LR_HANDOFF_FORCE_QUALITY made contract and repair traversal use
-   *  quality-phase candidate generation from the start. Experimental only. */
+  /** Handoff traversal policy selected for this compile. `quality-v1` uses the
+   *  quality traversal policy from first completion through repair restarts;
+   *  `legacy` preserves the old contract-then-quality phase split. */
+  handoff_policy_variant?: "legacy" | "quality-v1";
+  /** Back-compat policy flag: true when the active handoff policy uses quality
+   *  traversal from the start. */
   handoff_force_quality_mode?: boolean;
+  /** Contact-node expansion counts by resolved policy mode. */
+  handoff_policy_mode_counts?: Partial<Record<"contract" | "quality", number>>;
+  /** Requested per-node policy candidate count over contact-node expansions. */
+  handoff_policy_candidate_count_min?: number;
+  handoff_policy_candidate_count_mean?: number;
+  handoff_policy_candidate_count_max?: number;
+  /** Resolved branch limit over contact-node expansions. */
+  handoff_policy_branch_limit_min?: number;
+  handoff_policy_branch_limit_mean?: number;
+  handoff_policy_branch_limit_max?: number;
   /** First terminal traversal considered by the search, regardless of whether
    *  it improved the best-so-far register. Null when the run never reached a
    *  complete traversal before stopping. */

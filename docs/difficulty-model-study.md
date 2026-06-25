@@ -243,6 +243,7 @@ plus the slack telemetry. The default mode studies quality-phase breadth:
 ```bash
 LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
   --budget=200000 \
+  --policy=quality-v1 \
   --specs=tiny_dance,cold_start,dense_echo_climb,skyline_push,drums_pendulum,solo_run \
   --seeds=0,1 \
   --quality-ncand=24,32,40 \
@@ -250,7 +251,9 @@ LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
 ```
 
 The output reports raw rows, summaries by the studied knob, summaries by knob
-plus slack band, and paired deltas against the relevant baseline. It also fits a
+plus slack band, and paired deltas against the relevant baseline. Each row
+records `handoff_policy_variant`; use `--policy=legacy` only for comparison
+studies against the old contract-then-quality phase split. It also fits a
 first-pass conditional spend model:
 
 ```text
@@ -259,9 +262,11 @@ first_completion_frame
      * multiplier(quality_ncand / baseline_quality_ncand - 1)
 ```
 
-For `quality_ncand`, this first-completion multiplier may be flat because the
-knob mainly applies after the contract phase has already produced a complete
-track. The same script also fits a paired candidate-sample response:
+Under `quality-v1`, `quality_ncand` is expected to affect first traversal
+directly because the quality policy is used from the first contact expansion.
+Under `legacy`, the first-completion multiplier may be flat because the knob
+mainly applies after the contract phase has already produced a complete track.
+The same script also fits a paired candidate-sample response:
 
 ```text
 candidates_sampled / baseline_candidates_sampled
@@ -280,15 +285,16 @@ contract-phase cap instead:
 ```bash
 LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
   --budget=200000 \
+  --policy=legacy \
   --specs=tiny_dance,dense_echo_climb,skyline_push,drums_pendulum \
   --seeds=0,1 \
   --contract-ncand=6,10,14,18,22 \
   --out=generated/studies/budget-spend-contract-ncand.json
 ```
 
-This mode sets `LR_CONTRACT_NCAND` and keeps `quality_ncand` fixed, so the fitted
-first-completion response is about traversal breadth rather than post-completion
-quality breadth.
+This mode sets `LR_CONTRACT_NCAND`, pins the old `legacy` split, and keeps
+`quality_ncand` fixed, so the fitted first-completion response is about legacy
+contract traversal breadth rather than post-completion quality breadth.
 
 To combine several one-budget study outputs, use:
 
@@ -318,10 +324,10 @@ effects dominate residual variance. Score response is also non-monotone: wider
 values such as `c=22` recover value on some rows, so this evidence supports
 continued characterization, not a production default change by itself.
 
-Treat `LR_QUALITY_NCAND=32` and `LR_CONTRACT_NCAND=14` in this script as the
-explicit baselines for the current quality and contract breadth surfaces. They
-are intentionally explicit study baselines: the point is to isolate one knob
-before any slack-based policy is installed.
+Treat `LR_QUALITY_NCAND=32`, `LR_CONTRACT_NCAND=14`, and `--policy=quality-v1`
+as the explicit baseline surface for new spend-response studies. Use
+`--policy=legacy` only when characterizing or debugging the old split. The point
+is to isolate one knob before any slack-based controller is installed.
 
 ## Next Study
 

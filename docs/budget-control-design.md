@@ -196,19 +196,37 @@ The current codebase has three pieces:
   exposes first-completion, suffix, and slack helpers.
 - `compile_stats` now records `predicted_first_completion_frames` and
   `budget_slack` for every handoff compile, plus top-level
-  `first_completion_frame` when the search reaches a complete traversal.
+  `first_completion_frame` when the search reaches a complete traversal. It
+  also records `handoff_policy_variant` and compact policy spend summaries so
+  golden archives identify which traversal policy produced each checkpoint.
 - `scripts/v0/study_budget_spend.ts` sweeps one explicit breadth knob at one
   budget and reports paired compute/score deltas plus simple first-completion
   and candidate-sample response models. `quality_ncand` is quality-phase breadth;
-  `contract_ncand` is the first-traversal/contract-phase breadth cap.
+  `contract_ncand` is the legacy first-traversal/contract-phase breadth cap.
 
-These are infrastructure and measurement steps. They do not install a
+The handoff compiler now has two explicit traversal variants:
+
+- `quality-v1` is the simplification candidate and default. It uses the quality
+  traversal policy from the first contact expansion through repair restarts.
+- `legacy` preserves the old contract-then-quality phase split for paired
+  studies and debugging. Select it with `LR_HANDOFF_POLICY=legacy`.
+
+The forced-quality canonical run that motivated this change was not a score
+promotion by itself, but it was a strong simplification signal: a large mode
+collapse was only `-0.8` headline versus the latest same-grid baseline, with
+one known low-budget failure (`solo_run`, seed `7`, `125k`, `16 missing`,
+`rideStalled@784`). Future cleanup should treat that row as a targeted
+low-budget validity guard, not as a reason to keep the whole legacy split.
+
+These are infrastructure and measurement steps. They do not yet install a
 slack-based production controller.
 
 ## Open Questions
 
 - Should `D(spec)` continue to be fitted from production telemetry, or should it
   move to a frozen reference policy?
+- Should `quality-v1` become the frozen reference policy after its low-budget
+  validity behavior is understood?
 - Which budget-aware ramps should be disabled or fixed in that reference policy?
 - Is candidate count the best first in-run spend-rate control, or should forward
   eval be characterized first?

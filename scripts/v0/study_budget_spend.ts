@@ -44,6 +44,7 @@ const DEFAULT_BASELINE_NCAND = 32;
 const DEFAULT_BASELINE_CONTRACT_NCAND = 14;
 
 type StudyKnob = "quality_ncand" | "contract_ncand";
+type StudyPolicy = "legacy" | "quality-v1";
 
 type KnobConfig = {
   name: StudyKnob;
@@ -57,6 +58,7 @@ type Row = {
   spec: string;
   seed: number;
   budget: number;
+  handoff_policy_variant: string | null;
   quality_ncand: number;
   contract_ncand: number | null;
   score: number;
@@ -163,6 +165,7 @@ type PairedResponseSample = {
 
 const argv = process.argv.slice(2);
 const budget = intArg("budget", DEFAULT_BUDGET);
+const studyPolicy = policyArg("policy", "quality-v1");
 const baselineNCand = intArg("baseline-ncand", DEFAULT_BASELINE_NCAND);
 const baselineContractNCand = intArg("baseline-contract-ncand", DEFAULT_BASELINE_CONTRACT_NCAND);
 const requestedContractNCands = positiveIntListArg("contract-ncand", []);
@@ -196,11 +199,13 @@ const knobConfig: KnobConfig = studyKnob === "quality_ncand"
 const seeds = intListArg("seeds", DEFAULT_SEEDS);
 const specNames = specListArg("specs", [...DEFAULT_SPECS]);
 const outPath = arg("out");
+const previousHandoffPolicy = process.env.LR_HANDOFF_POLICY;
 const previousQualityNCand = process.env.LR_QUALITY_NCAND;
 const previousContractNCand = process.env.LR_CONTRACT_NCAND;
 
 const rows: Row[] = [];
 try {
+  process.env.LR_HANDOFF_POLICY = studyPolicy;
   for (const specName of specNames) {
     const spec = await loadGoldenSpec(specName, "base");
     for (const seed of seeds) {
@@ -223,6 +228,7 @@ try {
             spec: specName,
             seed,
             budget,
+            handoff_policy_variant: stats.handoff_policy_variant ?? null,
             quality_ncand: qualityNCand,
             contract_ncand: contractNCand,
             score: round(score.score, 4),
@@ -245,6 +251,7 @@ try {
           });
           console.error(
             `budget-spend spec=${specName} seed=${seed} ` +
+              `policy=${stats.handoff_policy_variant ?? studyPolicy} ` +
               `q=${qualityNCand} c=${contractNCand ?? "default"} ` +
               `score=${score.score.toFixed(1)} sim=${stats.sim_frames} ` +
               `slack=${stats.budget_slack?.toFixed(2) ?? "na"}`,
@@ -255,6 +262,11 @@ try {
     }
   }
 } finally {
+  if (previousHandoffPolicy === undefined) {
+    delete process.env.LR_HANDOFF_POLICY;
+  } else {
+    process.env.LR_HANDOFF_POLICY = previousHandoffPolicy;
+  }
   if (previousQualityNCand === undefined) {
     delete process.env.LR_QUALITY_NCAND;
   } else {
@@ -284,6 +296,7 @@ const knobCandidateSampleModel = fitPairedKnobResponseModel(
 const output = {
   config: {
     budget,
+    policy: studyPolicy,
     specs: specNames,
     seeds,
     study_knob: studyKnob,
@@ -331,6 +344,13 @@ function intListArg(name: string, fallback: readonly number[]): number[] {
 
 function positiveIntListArg(name: string, fallback: readonly number[]): number[] {
   return intListArg(name, fallback).filter((x) => x > 0);
+}
+
+function policyArg(name: string, fallback: StudyPolicy): StudyPolicy {
+  const raw = arg(name);
+  if (raw === undefined || raw.trim() === "") return fallback;
+  if (raw === "legacy" || raw === "quality-v1") return raw;
+  throw new Error(`--${name} must be legacy or quality-v1, got ${raw}`);
 }
 
 function specListArg(name: string, fallback: readonly GoldenSpecName[]): GoldenSpecName[] {

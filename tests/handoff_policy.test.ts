@@ -88,6 +88,29 @@ describe("handoff policy boundaries", () => {
     expect(handoffSampleCount(true)).toBe(32);
   });
 
+  test("contract candidate override is phase-specific", () => {
+    const previousContract = process.env.LR_CONTRACT_NCAND;
+    const previousQuality = process.env.LR_QUALITY_NCAND;
+    try {
+      process.env.LR_CONTRACT_NCAND = "10";
+      process.env.LR_QUALITY_NCAND = "36";
+      expect(handoffSampleCount(false)).toBe(10);
+      expect(handoffSampleCount(false, true)).toBe(10);
+      expect(handoffSampleCount(true)).toBe(36);
+    } finally {
+      if (previousContract === undefined) {
+        delete process.env.LR_CONTRACT_NCAND;
+      } else {
+        process.env.LR_CONTRACT_NCAND = previousContract;
+      }
+      if (previousQuality === undefined) {
+        delete process.env.LR_QUALITY_NCAND;
+      } else {
+        process.env.LR_QUALITY_NCAND = previousQuality;
+      }
+    }
+  });
+
   test("sparse contract search is based on median contact cadence", () => {
     expect(usesSparseContractSearch([
       gap(0, 0, 20),

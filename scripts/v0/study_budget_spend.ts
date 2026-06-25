@@ -11,6 +11,15 @@
  *     --seeds=0,1 \
  *     --quality-ncand=24,32,40 \
  *     --out=generated/studies/budget-spend-qncand.json
+ *
+ * To study first-traversal breadth instead of quality-phase breadth:
+ *
+ *   LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
+ *     --budget=200000 \
+ *     --specs=tiny_dance,dense_echo_climb,skyline_push,drums_pendulum \
+ *     --seeds=0,1 \
+ *     --contract-ncand=8,11,14,17,20 \
+ *     --out=generated/studies/budget-spend-contract-ncand.json
  */
 
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -32,12 +41,24 @@ const DEFAULT_SEEDS = [0, 1];
 const DEFAULT_BUDGET = 200_000;
 const DEFAULT_QUALITY_NCAND = [24, 32, 40];
 const DEFAULT_BASELINE_NCAND = 32;
+const DEFAULT_BASELINE_CONTRACT_NCAND = 14;
+
+type StudyKnob = "quality_ncand" | "contract_ncand";
+
+type KnobConfig = {
+  name: StudyKnob;
+  values: number[];
+  baseline: number;
+  label: string;
+  valueOf: (row: Row) => number | null;
+};
 
 type Row = {
   spec: string;
   seed: number;
   budget: number;
   quality_ncand: number;
+  contract_ncand: number | null;
   score: number;
   contract_passed: boolean;
   axis_quality: number;
@@ -75,8 +96,9 @@ type Summary = {
 };
 
 type PairedDelta = {
-  quality_ncand: number;
-  baseline_quality_ncand: number;
+  knob: StudyKnob;
+  knob_value: number;
+  baseline_value: number;
   pairs: number;
   score_delta_mean: number;
   sim_frames_delta_mean: number;
@@ -85,18 +107,19 @@ type PairedDelta = {
   repair_frames_delta_mean: number;
 };
 
-type QualityNCandSpendModel = {
+type KnobSpendModel = {
+  knob: StudyKnob;
   target: "first_completion_frame / predicted_first_completion_frames";
-  feature: "quality_ncand / baseline_quality_ncand - 1";
-  baseline_quality_ncand: number;
+  feature: string;
+  baseline_value: number;
   n: number;
   intercept: number;
   slope: number;
   multiplier_mae: number;
   frame_mae: number;
   r2: number;
-  by_quality_ncand: {
-    quality_ncand: number;
+  by_value: {
+    value: number;
     n: number;
     multiplier_mean: number;
     multiplier_predicted: number;
@@ -104,17 +127,18 @@ type QualityNCandSpendModel = {
   }[];
 };
 
-type QualityNCandPairedResponseModel = {
+type KnobPairedResponseModel = {
+  knob: StudyKnob;
   target: string;
-  feature: "quality_ncand / baseline_quality_ncand - 1";
-  baseline_quality_ncand: number;
+  feature: string;
+  baseline_value: number;
   n: number;
   intercept: number;
   slope: number;
   mae: number;
   r2: number;
-  by_quality_ncand: {
-    quality_ncand: number;
+  by_value: {
+    value: number;
     n: number;
     response_mean: number;
     response_predicted: number;
@@ -132,65 +156,101 @@ type Delta = {
 
 type PairedResponseSample = {
   row: Row;
+  value: number;
   x: number;
   y: number;
 };
 
 const argv = process.argv.slice(2);
 const budget = intArg("budget", DEFAULT_BUDGET);
-const qualityNCands = ensureIncludes(
-  positiveIntListArg("quality-ncand", DEFAULT_QUALITY_NCAND),
-  intArg("baseline-ncand", DEFAULT_BASELINE_NCAND),
-).sort((a, b) => a - b);
 const baselineNCand = intArg("baseline-ncand", DEFAULT_BASELINE_NCAND);
+const baselineContractNCand = intArg("baseline-contract-ncand", DEFAULT_BASELINE_CONTRACT_NCAND);
+const requestedContractNCands = positiveIntListArg("contract-ncand", []);
+const studyKnob: StudyKnob = requestedContractNCands.length > 0 ? "contract_ncand" : "quality_ncand";
+const qualityNCands = (studyKnob === "quality_ncand"
+  ? ensureIncludes(positiveIntListArg("quality-ncand", DEFAULT_QUALITY_NCAND), baselineNCand)
+  : positiveIntListArg("quality-ncand", [baselineNCand])
+).sort((a, b) => a - b);
+if (studyKnob === "contract_ncand" && qualityNCands.length !== 1) {
+  throw new Error("--contract-ncand studies must keep --quality-ncand fixed to one value");
+}
+const contractNCands = (studyKnob === "contract_ncand"
+  ? ensureIncludes(requestedContractNCands, baselineContractNCand)
+  : [null]
+).sort((a, b) => (a ?? -1) - (b ?? -1));
+const knobConfig: KnobConfig = studyKnob === "quality_ncand"
+  ? {
+    name: "quality_ncand",
+    values: qualityNCands,
+    baseline: baselineNCand,
+    label: "q",
+    valueOf: (row) => row.quality_ncand,
+  }
+  : {
+    name: "contract_ncand",
+    values: contractNCands.filter((x): x is number => x !== null),
+    baseline: baselineContractNCand,
+    label: "c",
+    valueOf: (row) => row.contract_ncand,
+  };
 const seeds = intListArg("seeds", DEFAULT_SEEDS);
 const specNames = specListArg("specs", [...DEFAULT_SPECS]);
 const outPath = arg("out");
 const previousQualityNCand = process.env.LR_QUALITY_NCAND;
+const previousContractNCand = process.env.LR_CONTRACT_NCAND;
 
 const rows: Row[] = [];
 try {
   for (const specName of specNames) {
     const spec = await loadGoldenSpec(specName, "base");
     for (const seed of seeds) {
-      for (const qualityNCand of qualityNCands) {
-        process.env.LR_QUALITY_NCAND = String(qualityNCand);
-        const t0 = Date.now();
-        const checkpoint = compileHandoff(spec, seed, { budget });
-        const elapsedMs = Date.now() - t0;
-        const score = scoreDriftReport(checkpoint.report, {
-          totalFrames: secToFrame(spec.duration),
-        });
-        const stats = checkpoint.stats;
-        rows.push({
-          spec: specName,
-          seed,
-          budget,
-          quality_ncand: qualityNCand,
-          score: round(score.score, 4),
-          contract_passed: score.contract_passed,
-          axis_quality: round(score.axis_quality, 6),
-          sim_frames: stats.sim_frames,
-          budget_exhausted: stats.budget_exhausted,
-          predicted_first_completion_frames: stats.predicted_first_completion_frames ?? null,
-          budget_slack: stats.budget_slack ?? null,
-          first_completion_frame: stats.first_completion_frame ?? stats.repair?.first_completion_frame ?? null,
-          candidates_sampled: stats.candidates_sampled,
-          candidates_viable: stats.candidates_viable,
-          handoff_full_evaluations: stats.handoff_full_evaluations ?? 0,
-          handoff_unique_full_evaluations: stats.handoff_unique_full_evaluations ?? 0,
-          fwd_eval_frames_charged: stats.fwd_eval?.fwd_eval_frames_charged ?? 0,
-          fwd_eval_calls: stats.fwd_eval?.fwd_eval_calls ?? 0,
-          repair_frames_spent: stats.repair?.frames_spent ?? 0,
-          repair_restarts: stats.repair?.restarts ?? 0,
-          elapsed_ms: elapsedMs,
-        });
-        console.error(
-          `budget-spend spec=${specName} seed=${seed} q=${qualityNCand} ` +
-            `score=${score.score.toFixed(1)} sim=${stats.sim_frames} ` +
-            `slack=${stats.budget_slack?.toFixed(2) ?? "na"}`,
-        );
-        await new Promise((resolve) => setImmediate(resolve));
+      for (const contractNCand of contractNCands) {
+        for (const qualityNCand of qualityNCands) {
+          process.env.LR_QUALITY_NCAND = String(qualityNCand);
+          if (contractNCand === null) {
+            delete process.env.LR_CONTRACT_NCAND;
+          } else {
+            process.env.LR_CONTRACT_NCAND = String(contractNCand);
+          }
+          const t0 = Date.now();
+          const checkpoint = compileHandoff(spec, seed, { budget });
+          const elapsedMs = Date.now() - t0;
+          const score = scoreDriftReport(checkpoint.report, {
+            totalFrames: secToFrame(spec.duration),
+          });
+          const stats = checkpoint.stats;
+          rows.push({
+            spec: specName,
+            seed,
+            budget,
+            quality_ncand: qualityNCand,
+            contract_ncand: contractNCand,
+            score: round(score.score, 4),
+            contract_passed: score.contract_passed,
+            axis_quality: round(score.axis_quality, 6),
+            sim_frames: stats.sim_frames,
+            budget_exhausted: stats.budget_exhausted,
+            predicted_first_completion_frames: stats.predicted_first_completion_frames ?? null,
+            budget_slack: stats.budget_slack ?? null,
+            first_completion_frame: stats.first_completion_frame ?? stats.repair?.first_completion_frame ?? null,
+            candidates_sampled: stats.candidates_sampled,
+            candidates_viable: stats.candidates_viable,
+            handoff_full_evaluations: stats.handoff_full_evaluations ?? 0,
+            handoff_unique_full_evaluations: stats.handoff_unique_full_evaluations ?? 0,
+            fwd_eval_frames_charged: stats.fwd_eval?.fwd_eval_frames_charged ?? 0,
+            fwd_eval_calls: stats.fwd_eval?.fwd_eval_calls ?? 0,
+            repair_frames_spent: stats.repair?.frames_spent ?? 0,
+            repair_restarts: stats.repair?.restarts ?? 0,
+            elapsed_ms: elapsedMs,
+          });
+          console.error(
+            `budget-spend spec=${specName} seed=${seed} ` +
+              `q=${qualityNCand} c=${contractNCand ?? "default"} ` +
+              `score=${score.score.toFixed(1)} sim=${stats.sim_frames} ` +
+              `slack=${stats.budget_slack?.toFixed(2) ?? "na"}`,
+          );
+          await new Promise((resolve) => setImmediate(resolve));
+        }
       }
     }
   }
@@ -200,20 +260,25 @@ try {
   } else {
     process.env.LR_QUALITY_NCAND = previousQualityNCand;
   }
+  if (previousContractNCand === undefined) {
+    delete process.env.LR_CONTRACT_NCAND;
+  } else {
+    process.env.LR_CONTRACT_NCAND = previousContractNCand;
+  }
 }
 
-const byCandidate = summarizeGroups(
-  groupRows(rows, (row) => String(row.quality_ncand)),
+const byKnob = summarizeGroups(
+  groupRows(rows, (row) => String(knobConfig.valueOf(row))),
 );
-const byCandidateAndSlackBand = summarizeGroups(
-  groupRows(rows, (row) => `${row.quality_ncand}:${slackBand(row.budget_slack)}`),
+const byKnobAndSlackBand = summarizeGroups(
+  groupRows(rows, (row) => `${knobConfig.valueOf(row)}:${slackBand(row.budget_slack)}`),
 );
-const pairedVsBaseline = pairedDeltas(rows, baselineNCand);
-const qualityNCandSpendModel = fitQualityNCandSpendModel(rows, baselineNCand);
-const qualityNCandCandidateSampleModel = fitPairedQualityNCandResponseModel(
+const pairedVsBaseline = pairedDeltas(rows, knobConfig);
+const knobFirstCompletionModel = fitKnobSpendModel(rows, knobConfig);
+const knobCandidateSampleModel = fitPairedKnobResponseModel(
   rows,
-  baselineNCand,
-  "candidates_sampled / baseline_candidates_sampled",
+  knobConfig,
+  `candidates_sampled / baseline_${knobConfig.name}_candidates_sampled`,
   (row) => row.candidates_sampled,
 );
 const output = {
@@ -221,15 +286,20 @@ const output = {
     budget,
     specs: specNames,
     seeds,
+    study_knob: studyKnob,
+    knob_values: knobConfig.values,
+    baseline_value: knobConfig.baseline,
     quality_ncand: qualityNCands,
+    contract_ncand: contractNCands,
     baseline_quality_ncand: baselineNCand,
+    baseline_contract_ncand: baselineContractNCand,
   },
   rows,
-  summary_by_quality_ncand: byCandidate,
-  summary_by_quality_ncand_and_slack_band: byCandidateAndSlackBand,
+  summary_by_knob: byKnob,
+  summary_by_knob_and_slack_band: byKnobAndSlackBand,
   paired_vs_baseline: pairedVsBaseline,
-  quality_ncand_first_completion_model: qualityNCandSpendModel,
-  quality_ncand_candidate_sample_model: qualityNCandCandidateSampleModel,
+  first_completion_model: knobFirstCompletionModel,
+  candidate_sample_model: knobCandidateSampleModel,
 };
 
 if (outPath !== undefined) {
@@ -237,7 +307,7 @@ if (outPath !== undefined) {
   writeFileSync(outPath, `${JSON.stringify(output, null, 2)}\n`);
 }
 
-printSummary(byCandidate, pairedVsBaseline, qualityNCandSpendModel, qualityNCandCandidateSampleModel);
+printSummary(byKnob, pairedVsBaseline, knobFirstCompletionModel, knobCandidateSampleModel);
 if (outPath !== undefined) console.log(`wrote ${outPath}`);
 
 function arg(name: string): string | undefined {
@@ -313,19 +383,20 @@ function summarizeGroups(groups: Map<string, Row[]>): Summary[] {
   }));
 }
 
-function pairedDeltas(rows: readonly Row[], baselineNCandValue: number): PairedDelta[] {
+function pairedDeltas(rows: readonly Row[], knob: KnobConfig): PairedDelta[] {
   const byKey = new Map<string, Row>();
   for (const row of rows) {
-    byKey.set(rowKey(row, row.quality_ncand), row);
+    const value = knob.valueOf(row);
+    if (value !== null) byKey.set(rowKey(row, value), row);
   }
-  const candidates = [...new Set(rows.map((row) => row.quality_ncand))]
-    .filter((qualityNCand) => qualityNCand !== baselineNCandValue)
+  const candidates = [...new Set(rows.map((row) => knob.valueOf(row)).filter((x): x is number => x !== null))]
+    .filter((value) => value !== knob.baseline)
     .sort((a, b) => a - b);
-  return candidates.map((qualityNCand) => {
+  return candidates.map((value) => {
     const deltas = rows
-      .filter((row) => row.quality_ncand === qualityNCand)
+      .filter((row) => knob.valueOf(row) === value)
       .map((row) => {
-        const baseline = byKey.get(rowKey(row, baselineNCandValue));
+        const baseline = byKey.get(rowKey(row, knob.baseline));
         if (baseline === undefined) return null;
         return {
           score: row.score - baseline.score,
@@ -339,8 +410,9 @@ function pairedDeltas(rows: readonly Row[], baselineNCandValue: number): PairedD
       })
       .filter((delta): delta is Delta => delta !== null);
     return {
-      quality_ncand: qualityNCand,
-      baseline_quality_ncand: baselineNCandValue,
+      knob: knob.name,
+      knob_value: value,
+      baseline_value: knob.baseline,
       pairs: deltas.length,
       score_delta_mean: round(mean(deltas.map((delta) => delta.score)), 3),
       sim_frames_delta_mean: round(mean(deltas.map((delta) => delta.sim)), 1),
@@ -351,19 +423,21 @@ function pairedDeltas(rows: readonly Row[], baselineNCandValue: number): PairedD
   });
 }
 
-function fitQualityNCandSpendModel(
+function fitKnobSpendModel(
   rows: readonly Row[],
-  baselineNCandValue: number,
-): QualityNCandSpendModel | null {
+  knob: KnobConfig,
+): KnobSpendModel | null {
   const samples = rows
     .filter((row) =>
+      knob.valueOf(row) !== null &&
       row.first_completion_frame !== null &&
       row.predicted_first_completion_frames !== null &&
       row.predicted_first_completion_frames > 0
     )
     .map((row) => ({
       row,
-      x: row.quality_ncand / baselineNCandValue - 1,
+      value: knob.valueOf(row) as number,
+      x: (knob.valueOf(row) as number) / knob.baseline - 1,
       y: (row.first_completion_frame as number) / (row.predicted_first_completion_frames as number),
     }));
   if (samples.length < 2) return null;
@@ -384,10 +458,10 @@ function fitQualityNCandSpendModel(
   );
   const sst = samples.reduce((sum, sample) => sum + (sample.y - yMean) ** 2, 0);
   const sse = yErrors.reduce((sum, error) => sum + error ** 2, 0);
-  const byQualityNCand = [...groupRows(predictions, (sample) => String(sample.row.quality_ncand)).entries()]
+  const byValue = [...groupRows(predictions, (sample) => String(sample.value)).entries()]
     .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([qualityNCand, group]) => ({
-      quality_ncand: Number(qualityNCand),
+    .map(([value, group]) => ({
+      value: Number(value),
       n: group.length,
       multiplier_mean: round(mean(group.map((sample) => sample.y)), 4),
       multiplier_predicted: round(mean(group.map((sample) => sample.predMultiplier)), 4),
@@ -399,36 +473,43 @@ function fitQualityNCandSpendModel(
       )), 1),
     }));
   return {
+    knob: knob.name,
     target: "first_completion_frame / predicted_first_completion_frames",
-    feature: "quality_ncand / baseline_quality_ncand - 1",
-    baseline_quality_ncand: baselineNCandValue,
+    feature: `${knob.name} / baseline_${knob.name} - 1`,
+    baseline_value: knob.baseline,
     n: samples.length,
     intercept: round(intercept, 6),
     slope: round(slope, 6),
     multiplier_mae: round(mean(yErrors.map(Math.abs)), 4),
     frame_mae: round(mean(frameErrors.map(Math.abs)), 1),
     r2: round(1 - sse / Math.max(1e-12, sst), 4),
-    by_quality_ncand: byQualityNCand,
+    by_value: byValue,
   };
 }
 
-function fitPairedQualityNCandResponseModel(
+function fitPairedKnobResponseModel(
   rows: readonly Row[],
-  baselineNCandValue: number,
+  knob: KnobConfig,
   target: string,
   valueOf: (row: Row) => number,
-): QualityNCandPairedResponseModel | null {
+): KnobPairedResponseModel | null {
   const byKey = new Map<string, Row>();
-  for (const row of rows) byKey.set(rowKey(row, row.quality_ncand), row);
+  for (const row of rows) {
+    const value = knob.valueOf(row);
+    if (value !== null) byKey.set(rowKey(row, value), row);
+  }
   const samples = rows
     .map((row) => {
-      const baseline = byKey.get(rowKey(row, baselineNCandValue));
+      const knobValue = knob.valueOf(row);
+      if (knobValue === null) return null;
+      const baseline = byKey.get(rowKey(row, knob.baseline));
       const baselineValue = baseline === undefined ? NaN : valueOf(baseline);
       const value = valueOf(row);
       if (!(baselineValue > 0) || !Number.isFinite(value)) return null;
       return {
         row,
-        x: row.quality_ncand / baselineNCandValue - 1,
+        value: knobValue,
+        x: knobValue / knob.baseline - 1,
         y: value / baselineValue,
       };
     })
@@ -447,25 +528,26 @@ function fitPairedQualityNCandResponseModel(
   const errors = predictions.map((sample) => sample.y - sample.predicted);
   const sst = samples.reduce((sum, sample) => sum + (sample.y - yMean) ** 2, 0);
   const sse = errors.reduce((sum, error) => sum + error ** 2, 0);
-  const byQualityNCand = [...groupRows(predictions, (sample) => String(sample.row.quality_ncand)).entries()]
+  const byValue = [...groupRows(predictions, (sample) => String(sample.value)).entries()]
     .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([qualityNCand, group]) => ({
-      quality_ncand: Number(qualityNCand),
+    .map(([value, group]) => ({
+      value: Number(value),
       n: group.length,
       response_mean: round(mean(group.map((sample) => sample.y)), 4),
       response_predicted: round(mean(group.map((sample) => sample.predicted)), 4),
       mae: round(mean(group.map((sample) => Math.abs(sample.y - sample.predicted))), 4),
     }));
   return {
+    knob: knob.name,
     target,
-    feature: "quality_ncand / baseline_quality_ncand - 1",
-    baseline_quality_ncand: baselineNCandValue,
+    feature: `${knob.name} / baseline_${knob.name} - 1`,
+    baseline_value: knob.baseline,
     n: samples.length,
     intercept: round(intercept, 6),
     slope: round(slope, 6),
     mae: round(mean(errors.map(Math.abs)), 4),
     r2: round(1 - sse / Math.max(1e-12, sst), 4),
-    by_quality_ncand: byQualityNCand,
+    by_value: byValue,
   };
 }
 
@@ -503,17 +585,17 @@ function fmt(value: number | null, digits = 1): string {
 function printSummary(
   summaries: Summary[],
   deltas: PairedDelta[],
-  spendModel: QualityNCandSpendModel | null,
-  candidateSampleModel: QualityNCandPairedResponseModel | null,
+  spendModel: KnobSpendModel | null,
+  candidateSampleModel: KnobPairedResponseModel | null,
 ): void {
   console.log(
     `budget-spend: budget=${budget} specs=${specNames.length} seeds=${seeds.length} ` +
-      `quality_ncand=${qualityNCands.join(",")}`,
+      `${knobConfig.name}=${knobConfig.values.join(",")}`,
   );
-  console.log("by quality_ncand:");
+  console.log(`by ${knobConfig.name}:`);
   for (const summary of summaries) {
     console.log(
-      `  q=${summary.key.padStart(2)} n=${summary.n} valid=${summary.valid}/${summary.n} ` +
+      `  ${knobConfig.label}=${summary.key.padStart(2)} n=${summary.n} valid=${summary.valid}/${summary.n} ` +
         `score_geo=${fmt(summary.score_geomean, 1)} score_mean=${fmt(summary.score_mean, 1)} ` +
         `sim=${fmt(summary.sim_frames_mean, 0)} cand=${fmt(summary.candidates_sampled_mean, 0)} ` +
         `first=${fmt(summary.first_completion_mean, 0)} slack=${fmt(summary.budget_slack_mean, 2)} ` +
@@ -521,10 +603,10 @@ function printSummary(
     );
   }
   if (deltas.length > 0) {
-    console.log(`paired deltas vs q=${baselineNCand}:`);
+    console.log(`paired deltas vs ${knobConfig.label}=${knobConfig.baseline}:`);
     for (const delta of deltas) {
       console.log(
-        `  q=${delta.quality_ncand} pairs=${delta.pairs} ` +
+        `  ${knobConfig.label}=${delta.knob_value} pairs=${delta.pairs} ` +
           `dScore=${fmt(delta.score_delta_mean, 2)} ` +
           `dSim=${fmt(delta.sim_frames_delta_mean, 0)} ` +
           `dCand=${fmt(delta.candidates_sampled_delta_mean, 0)} ` +
@@ -534,32 +616,32 @@ function printSummary(
     }
   }
   if (spendModel !== null) {
-    console.log("quality_ncand first-completion multiplier model:");
+    console.log(`${spendModel.knob} first-completion multiplier model:`);
     console.log(
       `  multiplier = ${spendModel.intercept.toFixed(4)} ` +
-        `+ ${spendModel.slope.toFixed(4)} * (q/${baselineNCand} - 1)  ` +
+        `+ ${spendModel.slope.toFixed(4)} * (${knobConfig.label}/${spendModel.baseline_value} - 1)  ` +
         `n=${spendModel.n} r2=${spendModel.r2.toFixed(3)} ` +
         `mae=${fmt(spendModel.frame_mae, 0)}f`,
     );
-    for (const row of spendModel.by_quality_ncand) {
+    for (const row of spendModel.by_value) {
       console.log(
-        `  q=${row.quality_ncand} n=${row.n} ` +
+        `  ${knobConfig.label}=${row.value} n=${row.n} ` +
           `mult=${row.multiplier_mean.toFixed(3)} pred=${row.multiplier_predicted.toFixed(3)} ` +
           `mae=${fmt(row.frame_mae, 0)}f`,
       );
     }
   }
   if (candidateSampleModel !== null) {
-    console.log("quality_ncand candidate-sample response model:");
+    console.log(`${candidateSampleModel.knob} candidate-sample response model:`);
     console.log(
       `  sample_ratio = ${candidateSampleModel.intercept.toFixed(4)} ` +
-        `+ ${candidateSampleModel.slope.toFixed(4)} * (q/${baselineNCand} - 1)  ` +
+        `+ ${candidateSampleModel.slope.toFixed(4)} * (${knobConfig.label}/${candidateSampleModel.baseline_value} - 1)  ` +
         `n=${candidateSampleModel.n} r2=${candidateSampleModel.r2.toFixed(3)} ` +
         `mae=${candidateSampleModel.mae.toFixed(3)}`,
     );
-    for (const row of candidateSampleModel.by_quality_ncand) {
+    for (const row of candidateSampleModel.by_value) {
       console.log(
-        `  q=${row.quality_ncand} n=${row.n} ` +
+        `  ${knobConfig.label}=${row.value} n=${row.n} ` +
           `ratio=${row.response_mean.toFixed(3)} pred=${row.response_predicted.toFixed(3)} ` +
           `mae=${row.mae.toFixed(3)}`,
       );

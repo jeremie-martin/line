@@ -353,13 +353,14 @@ const CONTRACT_BRANCHING_WARMUP_GAPS = 12;
  *  These contract-phase values are the CAP: the pre-validity race scales the count
  *  DOWN toward CONTRACT_N_CAND_FLOOR when the frame budget is scarce (see
  *  `budgetAwareContractSampleCount`) so a small budget still reaches a complete
- *  track; an ample budget keeps the full cap. */
+ *  track; an ample budget keeps the full cap. LR_CONTRACT_NCAND overrides this
+ *  contract-phase cap for controlled traversal-breadth studies. */
 const HANDOFF_SPARSE_CONTRACT_N_CAND = 13;
 const HANDOFF_CONTRACT_N_CAND = 14;
 // Quality-phase breadth. The pre-impact board's 24-sample sweet spot shifted once
 // `Contact.impact` became scored: harder catch geometry is often present later in
 // the deterministic batch, and the true-score forward ranker can use the extra pool.
-// LR_QUALITY_NCAND overrides.
+// LR_QUALITY_NCAND overrides this quality-phase breadth for controlled studies.
 const HANDOFF_QUALITY_N_CAND = 32;
 const HANDOFF_QUALITY_LEAN_N_CAND = 29;
 const HANDOFF_QUALITY_SCARCE_LEAN_START_FRAMES = 50_000;
@@ -2687,12 +2688,21 @@ export function handoffSampleCount(
     if (override !== null) return override;
     return budgetAwareQualitySampleCount(targetBudget);
   }
+  const override = contractNCandOverride();
+  if (override !== null) return override;
   return sparseContractSearch ? HANDOFF_SPARSE_CONTRACT_N_CAND : HANDOFF_CONTRACT_N_CAND;
 }
 
 function qualityNCandOverride(): number | null {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_QUALITY_NCAND;
+  const n = raw ? Number.parseInt(raw, 10) : 0;
+  return Number.isFinite(n) && n > 0 ? Math.min(64, n) : null;
+}
+
+function contractNCandOverride(): number | null {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_CONTRACT_NCAND;
   const n = raw ? Number.parseInt(raw, 10) : 0;
   return Number.isFinite(n) && n > 0 ? Math.min(64, n) : null;
 }

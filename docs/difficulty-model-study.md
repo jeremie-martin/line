@@ -236,9 +236,9 @@ more expensive local candidate generation.
 ## Spend-Control Study
 
 The first spend-control characterization is `scripts/v0/study_budget_spend.ts`.
-It does not change production policy. It explicitly sweeps `LR_QUALITY_NCAND`
-inside one budget, scores each compile, and records actual compute counters plus
-the slack telemetry:
+It does not change production policy. It explicitly sweeps one candidate-breadth
+knob inside one budget, scores each compile, and records actual compute counters
+plus the slack telemetry. The default mode studies quality-phase breadth:
 
 ```bash
 LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
@@ -249,9 +249,9 @@ LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
   --out=generated/studies/budget-spend-qncand-200k.json
 ```
 
-The output reports raw rows, summaries by candidate count, summaries by candidate
-count plus slack band, and paired deltas against `--baseline-ncand` (default
-`32`). It also fits a first-pass conditional spend model:
+The output reports raw rows, summaries by the studied knob, summaries by knob
+plus slack band, and paired deltas against the relevant baseline. It also fits a
+first-pass conditional spend model:
 
 ```text
 first_completion_frame
@@ -274,10 +274,26 @@ This is the bridge from the normalized signal to actual spend control:
 budget_slack -> candidate-count knob -> measured sim frames / score / repair share
 ```
 
-Treat `LR_QUALITY_NCAND=32` in this script as the explicit baseline for the
-candidate-count control surface. It is intentionally not the exact same thing as
-the current production auto-lean behavior, because the study is isolating the
-knob before any slack-based policy is installed.
+To study the breadth that should affect first traversal directly, sweep the
+contract-phase cap instead:
+
+```bash
+LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
+  --budget=200000 \
+  --specs=tiny_dance,dense_echo_climb,skyline_push,drums_pendulum \
+  --seeds=0,1 \
+  --contract-ncand=6,10,14,18,22 \
+  --out=generated/studies/budget-spend-contract-ncand.json
+```
+
+This mode sets `LR_CONTRACT_NCAND` and keeps `quality_ncand` fixed, so the fitted
+first-completion response is about traversal breadth rather than post-completion
+quality breadth.
+
+Treat `LR_QUALITY_NCAND=32` and `LR_CONTRACT_NCAND=14` in this script as the
+explicit baselines for the current quality and contract breadth surfaces. They
+are intentionally explicit study baselines: the point is to isolate one knob
+before any slack-based policy is installed.
 
 ## Next Study
 

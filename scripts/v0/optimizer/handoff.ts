@@ -796,6 +796,7 @@ function compileHandoffInternal(
     const repair = repairConfig(targetBudget);
     const repairEnabled = targetBudget >= repair.minBudget && startOptions.length > 0;
     let bestCompleteNode: HandoffNode | null = null;
+    let firstTerminalFrame = -1;
     let firstCompletionFrame = -1;
     // Instrumentation scaffold (observe-only; never read by the search → byte-identical when off):
     // when each node was first processed (its "budget timestamp") and a structured record of every
@@ -853,7 +854,10 @@ function compileHandoffInternal(
       );
       recordImprovementTelemetry(telemetry, phase, improved);
       const terminal = isTerminalNode(node.search, gaps);
-      if (terminal) terminalConsiders++;
+      if (terminal) {
+        terminalConsiders++;
+        if (firstTerminalFrame < 0) firstTerminalFrame = getSimFrames();
+      }
       if (improved && terminal) {
         bestCompleteNode = node;
         if (firstCompletionFrame < 0) firstCompletionFrame = getSimFrames();
@@ -896,6 +900,7 @@ function compileHandoffInternal(
           traversal_budget_model: TRAVERSAL_BUDGET_MODEL_V1.name,
           predicted_first_completion_frames: predictedFirstCompletionFrames,
           budget_slack: budgetSlack,
+          first_completion_frame: firstTerminalFrame >= 0 ? firstTerminalFrame : null,
           leaves_considered: register.consideredCount,
           improvements: register.improvementCount,
           polish_variants_tried: polishTried,

@@ -195,9 +195,12 @@ The current codebase has three pieces:
 - `scripts/v0/optimizer/budget_model.ts` stores `TRAVERSAL_BUDGET_MODEL_V1` and
   exposes first-completion, suffix, and slack helpers.
 - `compile_stats` now records `predicted_first_completion_frames` and
-  `budget_slack` for every handoff compile.
+  `budget_slack` for every handoff compile, plus top-level
+  `first_completion_frame` when the search reaches a complete traversal.
 - `scripts/v0/study_budget_spend.ts` sweeps `LR_QUALITY_NCAND` at one budget and
-  reports paired compute/score deltas.
+  reports paired compute/score deltas plus a simple conditional
+  `quality_ncand` first-completion multiplier and paired candidate-sample
+  response model.
 
 These are infrastructure and measurement steps. They do not install a
 slack-based production controller.

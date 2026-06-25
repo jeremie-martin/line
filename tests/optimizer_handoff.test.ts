@@ -104,6 +104,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.predicted_first_completion_frames ?? 0).toBeGreaterThan(0);
     expect(a.stats.budget_slack ?? 0)
       .toBeCloseTo(budget / (a.stats.predicted_first_completion_frames ?? Infinity), 3);
+    expect(a.stats.first_completion_frame).toBe(b.stats.first_completion_frame);
+    expect(a.stats.first_completion_frame === null || (a.stats.first_completion_frame ?? 0) > 0).toBe(true);
     expect(a.stats.candidates_sampled).toBeGreaterThan(0);
     expect(a.stats.candidates_sampled).toBe(b.stats.candidates_sampled);
     expect(a.stats.candidates_viable).toBeGreaterThan(0);

@@ -426,6 +426,10 @@ export type CompileStats = {
   /** Requested budget divided by `predicted_first_completion_frames`. This
    *  normalizes raw budgets across short/easy vs long/dense specs. */
   budget_slack?: number;
+  /** First terminal traversal considered by the search, regardless of whether
+   *  it improved the best-so-far register. Null when the run never reached a
+   *  complete traversal before stopping. */
+  first_completion_frame?: number | null;
 
   // ─── Search diagnostics ───
   /** Outputs offered to the best-so-far register. */

@@ -2,8 +2,9 @@
  * Difficulty-model study for compileHandoff.
  *
  * Read-only by default: consumes an existing golden.json archive, joins it with
- * static spec features, and models the first full-track completion cost recorded
- * before repair (`compile_stats.repair.first_completion_frame`). This is meant to
+ * static spec features, and models the first terminal traversal cost recorded
+ * by the handoff search (`compile_stats.first_completion_frame`, with the older
+ * repair metric as an archive fallback). This is meant to
  * characterize budget slack as a smooth scalar:
  *
  *   slack = requestedBudget / predictedFirstCompletionFrames
@@ -51,6 +52,7 @@ type GoldenCheckpoint = {
   score: number;
   compile_stats?: {
     sim_frames?: number;
+    first_completion_frame?: number;
     search_nodes_expanded?: number;
     handoff_full_evaluations?: number;
     handoff_unique_full_evaluations?: number;
@@ -409,7 +411,7 @@ async function buildCanonicalRows(archive: GoldenArchive, targetBudget: number):
       .map((row) => checkpoint(row, targetBudget))
       .filter((cp): cp is GoldenCheckpoint => cp !== null);
     const firstCompletions = samples
-      .map((cp) => cp.compile_stats?.repair?.first_completion_frame)
+      .map((cp) => cp.compile_stats?.first_completion_frame ?? cp.compile_stats?.repair?.first_completion_frame)
       .filter((x): x is number => x !== undefined && Number.isFinite(x));
     if (firstCompletions.length === 0) continue;
     const scores = samples.map((cp) => cp.score).filter(Number.isFinite);
@@ -815,7 +817,7 @@ function summarizeBudgets(archive: GoldenArchive): unknown[] {
       .map((row) => checkpoint(row, b))
       .filter((cp): cp is GoldenCheckpoint => cp !== null);
     const first = checkpoints
-      .map((cp) => cp.compile_stats?.repair?.first_completion_frame)
+      .map((cp) => cp.compile_stats?.first_completion_frame ?? cp.compile_stats?.repair?.first_completion_frame)
       .filter((x): x is number => x !== undefined && Number.isFinite(x));
     return {
       budget: b,

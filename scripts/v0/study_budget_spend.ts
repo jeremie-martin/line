@@ -85,12 +85,55 @@ type PairedDelta = {
   repair_frames_delta_mean: number;
 };
 
+type QualityNCandSpendModel = {
+  target: "first_completion_frame / predicted_first_completion_frames";
+  feature: "quality_ncand / baseline_quality_ncand - 1";
+  baseline_quality_ncand: number;
+  n: number;
+  intercept: number;
+  slope: number;
+  multiplier_mae: number;
+  frame_mae: number;
+  r2: number;
+  by_quality_ncand: {
+    quality_ncand: number;
+    n: number;
+    multiplier_mean: number;
+    multiplier_predicted: number;
+    frame_mae: number;
+  }[];
+};
+
+type QualityNCandPairedResponseModel = {
+  target: string;
+  feature: "quality_ncand / baseline_quality_ncand - 1";
+  baseline_quality_ncand: number;
+  n: number;
+  intercept: number;
+  slope: number;
+  mae: number;
+  r2: number;
+  by_quality_ncand: {
+    quality_ncand: number;
+    n: number;
+    response_mean: number;
+    response_predicted: number;
+    mae: number;
+  }[];
+};
+
 type Delta = {
   score: number;
   sim: number;
   candidates: number;
   first: number | null;
   repair: number;
+};
+
+type PairedResponseSample = {
+  row: Row;
+  x: number;
+  y: number;
 };
 
 const argv = process.argv.slice(2);
@@ -131,7 +174,7 @@ try {
           budget_exhausted: stats.budget_exhausted,
           predicted_first_completion_frames: stats.predicted_first_completion_frames ?? null,
           budget_slack: stats.budget_slack ?? null,
-          first_completion_frame: stats.repair?.first_completion_frame ?? null,
+          first_completion_frame: stats.first_completion_frame ?? stats.repair?.first_completion_frame ?? null,
           candidates_sampled: stats.candidates_sampled,
           candidates_viable: stats.candidates_viable,
           handoff_full_evaluations: stats.handoff_full_evaluations ?? 0,
@@ -166,6 +209,13 @@ const byCandidateAndSlackBand = summarizeGroups(
   groupRows(rows, (row) => `${row.quality_ncand}:${slackBand(row.budget_slack)}`),
 );
 const pairedVsBaseline = pairedDeltas(rows, baselineNCand);
+const qualityNCandSpendModel = fitQualityNCandSpendModel(rows, baselineNCand);
+const qualityNCandCandidateSampleModel = fitPairedQualityNCandResponseModel(
+  rows,
+  baselineNCand,
+  "candidates_sampled / baseline_candidates_sampled",
+  (row) => row.candidates_sampled,
+);
 const output = {
   config: {
     budget,
@@ -178,6 +228,8 @@ const output = {
   summary_by_quality_ncand: byCandidate,
   summary_by_quality_ncand_and_slack_band: byCandidateAndSlackBand,
   paired_vs_baseline: pairedVsBaseline,
+  quality_ncand_first_completion_model: qualityNCandSpendModel,
+  quality_ncand_candidate_sample_model: qualityNCandCandidateSampleModel,
 };
 
 if (outPath !== undefined) {
@@ -185,7 +237,7 @@ if (outPath !== undefined) {
   writeFileSync(outPath, `${JSON.stringify(output, null, 2)}\n`);
 }
 
-printSummary(byCandidate, pairedVsBaseline);
+printSummary(byCandidate, pairedVsBaseline, qualityNCandSpendModel, qualityNCandCandidateSampleModel);
 if (outPath !== undefined) console.log(`wrote ${outPath}`);
 
 function arg(name: string): string | undefined {
@@ -299,6 +351,124 @@ function pairedDeltas(rows: readonly Row[], baselineNCandValue: number): PairedD
   });
 }
 
+function fitQualityNCandSpendModel(
+  rows: readonly Row[],
+  baselineNCandValue: number,
+): QualityNCandSpendModel | null {
+  const samples = rows
+    .filter((row) =>
+      row.first_completion_frame !== null &&
+      row.predicted_first_completion_frames !== null &&
+      row.predicted_first_completion_frames > 0
+    )
+    .map((row) => ({
+      row,
+      x: row.quality_ncand / baselineNCandValue - 1,
+      y: (row.first_completion_frame as number) / (row.predicted_first_completion_frames as number),
+    }));
+  if (samples.length < 2) return null;
+  const xMean = mean(samples.map((sample) => sample.x));
+  const yMean = mean(samples.map((sample) => sample.y));
+  const sxx = samples.reduce((sum, sample) => sum + (sample.x - xMean) ** 2, 0);
+  const sxy = samples.reduce((sum, sample) => sum + (sample.x - xMean) * (sample.y - yMean), 0);
+  const slope = sxx > 1e-12 ? sxy / sxx : 0;
+  const intercept = yMean - slope * xMean;
+  const predictions = samples.map((sample) => ({
+    ...sample,
+    predMultiplier: intercept + slope * sample.x,
+  }));
+  const yErrors = predictions.map((sample) => sample.y - sample.predMultiplier);
+  const frameErrors = predictions.map((sample) =>
+    (sample.row.first_completion_frame as number) -
+      sample.predMultiplier * (sample.row.predicted_first_completion_frames as number)
+  );
+  const sst = samples.reduce((sum, sample) => sum + (sample.y - yMean) ** 2, 0);
+  const sse = yErrors.reduce((sum, error) => sum + error ** 2, 0);
+  const byQualityNCand = [...groupRows(predictions, (sample) => String(sample.row.quality_ncand)).entries()]
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([qualityNCand, group]) => ({
+      quality_ncand: Number(qualityNCand),
+      n: group.length,
+      multiplier_mean: round(mean(group.map((sample) => sample.y)), 4),
+      multiplier_predicted: round(mean(group.map((sample) => sample.predMultiplier)), 4),
+      frame_mae: round(mean(group.map((sample) =>
+        Math.abs(
+          (sample.row.first_completion_frame as number) -
+            sample.predMultiplier * (sample.row.predicted_first_completion_frames as number),
+        )
+      )), 1),
+    }));
+  return {
+    target: "first_completion_frame / predicted_first_completion_frames",
+    feature: "quality_ncand / baseline_quality_ncand - 1",
+    baseline_quality_ncand: baselineNCandValue,
+    n: samples.length,
+    intercept: round(intercept, 6),
+    slope: round(slope, 6),
+    multiplier_mae: round(mean(yErrors.map(Math.abs)), 4),
+    frame_mae: round(mean(frameErrors.map(Math.abs)), 1),
+    r2: round(1 - sse / Math.max(1e-12, sst), 4),
+    by_quality_ncand: byQualityNCand,
+  };
+}
+
+function fitPairedQualityNCandResponseModel(
+  rows: readonly Row[],
+  baselineNCandValue: number,
+  target: string,
+  valueOf: (row: Row) => number,
+): QualityNCandPairedResponseModel | null {
+  const byKey = new Map<string, Row>();
+  for (const row of rows) byKey.set(rowKey(row, row.quality_ncand), row);
+  const samples = rows
+    .map((row) => {
+      const baseline = byKey.get(rowKey(row, baselineNCandValue));
+      const baselineValue = baseline === undefined ? NaN : valueOf(baseline);
+      const value = valueOf(row);
+      if (!(baselineValue > 0) || !Number.isFinite(value)) return null;
+      return {
+        row,
+        x: row.quality_ncand / baselineNCandValue - 1,
+        y: value / baselineValue,
+      };
+    })
+    .filter((sample): sample is PairedResponseSample => sample !== null);
+  if (samples.length < 2) return null;
+  const xMean = mean(samples.map((sample) => sample.x));
+  const yMean = mean(samples.map((sample) => sample.y));
+  const sxx = samples.reduce((sum, sample) => sum + (sample.x - xMean) ** 2, 0);
+  const sxy = samples.reduce((sum, sample) => sum + (sample.x - xMean) * (sample.y - yMean), 0);
+  const slope = sxx > 1e-12 ? sxy / sxx : 0;
+  const intercept = yMean - slope * xMean;
+  const predictions = samples.map((sample) => ({
+    ...sample,
+    predicted: intercept + slope * sample.x,
+  }));
+  const errors = predictions.map((sample) => sample.y - sample.predicted);
+  const sst = samples.reduce((sum, sample) => sum + (sample.y - yMean) ** 2, 0);
+  const sse = errors.reduce((sum, error) => sum + error ** 2, 0);
+  const byQualityNCand = [...groupRows(predictions, (sample) => String(sample.row.quality_ncand)).entries()]
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([qualityNCand, group]) => ({
+      quality_ncand: Number(qualityNCand),
+      n: group.length,
+      response_mean: round(mean(group.map((sample) => sample.y)), 4),
+      response_predicted: round(mean(group.map((sample) => sample.predicted)), 4),
+      mae: round(mean(group.map((sample) => Math.abs(sample.y - sample.predicted))), 4),
+    }));
+  return {
+    target,
+    feature: "quality_ncand / baseline_quality_ncand - 1",
+    baseline_quality_ncand: baselineNCandValue,
+    n: samples.length,
+    intercept: round(intercept, 6),
+    slope: round(slope, 6),
+    mae: round(mean(errors.map(Math.abs)), 4),
+    r2: round(1 - sse / Math.max(1e-12, sst), 4),
+    by_quality_ncand: byQualityNCand,
+  };
+}
+
 function rowKey(row: Pick<Row, "spec" | "seed">, qualityNCand: number): string {
   return `${row.spec}|${row.seed}|${qualityNCand}`;
 }
@@ -330,7 +500,12 @@ function fmt(value: number | null, digits = 1): string {
   return value === null || !Number.isFinite(value) ? "na" : value.toFixed(digits);
 }
 
-function printSummary(summaries: Summary[], deltas: PairedDelta[]): void {
+function printSummary(
+  summaries: Summary[],
+  deltas: PairedDelta[],
+  spendModel: QualityNCandSpendModel | null,
+  candidateSampleModel: QualityNCandPairedResponseModel | null,
+): void {
   console.log(
     `budget-spend: budget=${budget} specs=${specNames.length} seeds=${seeds.length} ` +
       `quality_ncand=${qualityNCands.join(",")}`,
@@ -355,6 +530,38 @@ function printSummary(summaries: Summary[], deltas: PairedDelta[]): void {
           `dCand=${fmt(delta.candidates_sampled_delta_mean, 0)} ` +
           `dFirst=${fmt(delta.first_completion_delta_mean, 0)} ` +
           `dRepair=${fmt(delta.repair_frames_delta_mean, 0)}`,
+      );
+    }
+  }
+  if (spendModel !== null) {
+    console.log("quality_ncand first-completion multiplier model:");
+    console.log(
+      `  multiplier = ${spendModel.intercept.toFixed(4)} ` +
+        `+ ${spendModel.slope.toFixed(4)} * (q/${baselineNCand} - 1)  ` +
+        `n=${spendModel.n} r2=${spendModel.r2.toFixed(3)} ` +
+        `mae=${fmt(spendModel.frame_mae, 0)}f`,
+    );
+    for (const row of spendModel.by_quality_ncand) {
+      console.log(
+        `  q=${row.quality_ncand} n=${row.n} ` +
+          `mult=${row.multiplier_mean.toFixed(3)} pred=${row.multiplier_predicted.toFixed(3)} ` +
+          `mae=${fmt(row.frame_mae, 0)}f`,
+      );
+    }
+  }
+  if (candidateSampleModel !== null) {
+    console.log("quality_ncand candidate-sample response model:");
+    console.log(
+      `  sample_ratio = ${candidateSampleModel.intercept.toFixed(4)} ` +
+        `+ ${candidateSampleModel.slope.toFixed(4)} * (q/${baselineNCand} - 1)  ` +
+        `n=${candidateSampleModel.n} r2=${candidateSampleModel.r2.toFixed(3)} ` +
+        `mae=${candidateSampleModel.mae.toFixed(3)}`,
+    );
+    for (const row of candidateSampleModel.by_quality_ncand) {
+      console.log(
+        `  q=${row.quality_ncand} n=${row.n} ` +
+          `ratio=${row.response_mean.toFixed(3)} pred=${row.response_predicted.toFixed(3)} ` +
+          `mae=${row.mae.toFixed(3)}`,
       );
     }
   }

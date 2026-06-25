@@ -22,8 +22,9 @@ The script is read-only. It joins the golden archive to static spec features
 and fits small linear models with leave-one-spec-out validation. It treats two
 questions separately:
 
-- **Traversal cost:** how many simulated frames it takes to reach the first
-  complete track before repair (`repair.first_completion_frame`).
+- **Traversal cost:** how many simulated frames it takes for handoff search to
+  first consider a terminal traversal (`first_completion_frame`, with
+  `repair.first_completion_frame` used only as an older-archive fallback).
 - **Quality hardness:** what full-run score the compiler reaches after spending
   the whole budget.
 
@@ -250,7 +251,24 @@ LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
 
 The output reports raw rows, summaries by candidate count, summaries by candidate
 count plus slack band, and paired deltas against `--baseline-ncand` (default
-`32`). This is the bridge from the normalized signal to actual spend control:
+`32`). It also fits a first-pass conditional spend model:
+
+```text
+first_completion_frame
+  ~= predicted_first_completion_frames
+     * multiplier(quality_ncand / baseline_quality_ncand - 1)
+```
+
+For `quality_ncand`, this first-completion multiplier may be flat because the
+knob mainly applies after the contract phase has already produced a complete
+track. The same script also fits a paired candidate-sample response:
+
+```text
+candidates_sampled / baseline_candidates_sampled
+  ~= f(quality_ncand / baseline_quality_ncand - 1)
+```
+
+This is the bridge from the normalized signal to actual spend control:
 
 ```text
 budget_slack -> candidate-count knob -> measured sim frames / score / repair share

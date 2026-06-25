@@ -66,12 +66,31 @@ type GoldenCheckpoint = {
       restarts?: number;
       accepts?: number;
       reconverged?: number;
+      records?: {
+        worst: number;
+        anchor: number;
+        up: number;
+        totalGaps: number;
+        framesAtAnchor: number;
+        framesBefore: number;
+        framesSpent: number;
+        estCost: number;
+        predictedFeasible: boolean;
+        completed: boolean;
+        beforeScore: number;
+        afterScore: number;
+        accepted: boolean;
+        inhSpeed: number | null;
+        inhVy: number | null;
+        inhGrounded: number | null;
+      }[];
     };
   };
 };
 
 type SpecFeatures = {
   name: string;
+  family: string;
   duration_seconds: number;
   duration_frames: number;
   contact_count: number;
@@ -122,6 +141,8 @@ type ModelFit = {
   intercept: number;
   train: Metrics;
   leave_one_spec_out: Metrics;
+  leave_one_family_out: Metrics;
+  family_holdouts: FamilyHoldout[];
 };
 
 type Metrics = {
@@ -131,6 +152,40 @@ type Metrics = {
   mape: number;
 };
 
+type FamilyHoldout = {
+  family: string;
+  n: number;
+  metrics: Metrics;
+};
+
+type BudgetTransfer = {
+  train_budget: number;
+  target: string;
+  features: string[];
+  tests: {
+    budget: number;
+    n: number;
+    metrics: Metrics;
+  }[];
+};
+
+type PairMetrics = Metrics & {
+  bias: number;
+  corr: number;
+};
+
+type RepairLogAnalysis = {
+  source: string;
+  records: number;
+  completed_records: number;
+  comparisons: Record<string, PairMetrics>;
+  by_spec: Record<string, {
+    n: number;
+    repair_est_cost: PairMetrics;
+    static_suffix_no_intercept: PairMetrics;
+  }>;
+};
+
 const DEFAULT_GOLDEN = "generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json";
 const DEFAULT_OUT = "generated/studies/difficulty-model-baseline.json";
 const PRESSURE_EXPS = range(0, 3, 0.05);
@@ -138,6 +193,7 @@ const PRESSURE_EXPS = range(0, 3, 0.05);
 const argv = process.argv.slice(2);
 const goldenPath = arg("golden") ?? DEFAULT_GOLDEN;
 const outPath = arg("out") ?? DEFAULT_OUT;
+const repairLogPath = arg("repair-log");
 const budget = intArg("budget", 250_000);
 const runSynthetic = has("synthetic");
 const syntheticBudget = intArg("synthetic-budget", 250_000);
@@ -232,6 +288,37 @@ function fmt(value: number, digits = 1): string {
   return Number.isFinite(value) ? value.toFixed(digits) : "na";
 }
 
+function specFamily(name: string): string {
+  if (name.startsWith("drums_")) return "drums";
+  if ([
+    "climb_terrace",
+    "swoop_dive",
+    "rolling_hills",
+    "summit_push",
+    "mixed_grade",
+  ].includes(name)) return "elevation";
+  if ([
+    "big_air_ramp",
+    "pop_train",
+    "soar_settle",
+    "leap_cadence",
+    "float_bounds",
+  ].includes(name)) return "amplitude";
+  if ([
+    "canyon_steps",
+    "ridge_pulse",
+    "valley_bounce",
+    "switchback_pop",
+    "terrace_sprint",
+    "glide_stairs",
+    "dense_echo_climb",
+    "rolling_drop",
+    "skyline_push",
+    "syncopated_lift",
+  ].includes(name)) return "combined";
+  return "legacy";
+}
+
 async function featuresForSpec(name: string, spec: Spec): Promise<SpecFeatures> {
   const durationFrames = secToFrame(spec.duration);
   const contactFrames = spec.contacts
@@ -273,6 +360,7 @@ async function featuresForSpec(name: string, spec: Spec): Promise<SpecFeatures> 
 
   return {
     name,
+    family: specFamily(name),
     duration_seconds: spec.duration,
     duration_frames: durationFrames,
     contact_count: contactFrames.length,
@@ -375,6 +463,7 @@ function fitModel(
     const train = rows.filter((row) => row !== heldOut);
     return fitOls(train, features, target).predict(heldOut);
   });
+  const familyHoldout = familyHoldoutMetrics(rows, features, target);
   return {
     name,
     target: target.name,
@@ -385,6 +474,8 @@ function fitModel(
     intercept: round(model.intercept, 6),
     train: metric(rows.map(target.get), predictions),
     leave_one_spec_out: metric(rows.map(target.get), looPredictions),
+    leave_one_family_out: familyHoldout.overall,
+    family_holdouts: familyHoldout.by_family,
   };
 }
 
@@ -466,6 +557,70 @@ function metric(actual: readonly number[], predicted: readonly number[]): Metric
   };
 }
 
+function correlation(xs: readonly number[], ys: readonly number[]): number {
+  if (xs.length !== ys.length || xs.length < 2) return 0;
+  const mx = mean(xs);
+  const my = mean(ys);
+  let sxx = 0;
+  let syy = 0;
+  let sxy = 0;
+  for (let i = 0; i < xs.length; i++) {
+    const x = xs[i] - mx;
+    const y = ys[i] - my;
+    sxx += x * x;
+    syy += y * y;
+    sxy += x * y;
+  }
+  const denom = Math.sqrt(sxx * syy);
+  return denom > 0 ? sxy / denom : 0;
+}
+
+function pairMetric(actual: readonly number[], predicted: readonly number[]): PairMetrics {
+  const base = metric(actual, predicted);
+  const errors = actual.map((y, index) => y - predicted[index]);
+  return {
+    ...base,
+    bias: round(mean(errors), 1),
+    corr: round(correlation(predicted, actual), 4),
+  };
+}
+
+function familyHoldoutMetrics(
+  rows: readonly SpecStudyRow[],
+  features: readonly string[],
+  target: ModelTarget,
+): { overall: Metrics; by_family: FamilyHoldout[] } {
+  const predictions: { family: string; actual: number; predicted: number }[] = [];
+  const families = [...new Set(rows.map((row) => row.family))].sort();
+  for (const family of families) {
+    const train = rows.filter((row) => row.family !== family);
+    const test = rows.filter((row) => row.family === family);
+    if (train.length <= features.length || test.length === 0) continue;
+    const model = fitOls(train, [...features], target);
+    for (const row of test) {
+      predictions.push({ family, actual: target.get(row), predicted: model.predict(row) });
+    }
+  }
+  const byFamily = families.map((family) => {
+    const familyPredictions = predictions.filter((prediction) => prediction.family === family);
+    return {
+      family,
+      n: familyPredictions.length,
+      metrics: metric(
+        familyPredictions.map((prediction) => prediction.actual),
+        familyPredictions.map((prediction) => prediction.predicted),
+      ),
+    };
+  }).filter((entry) => entry.n > 0);
+  return {
+    overall: metric(
+      predictions.map((prediction) => prediction.actual),
+      predictions.map((prediction) => prediction.predicted),
+    ),
+    by_family: byFamily,
+  };
+}
+
 function pressureFeature(exp: number): string {
   return `pressure:${expKey(exp)}`;
 }
@@ -498,6 +653,7 @@ function buildModels(rows: readonly SpecStudyRow[], target: ModelTarget): {
     fitModel("median gap only", rows, ["median_gap_frames"], target),
     fitModel("density only", rows, ["contact_density_per_second"], target),
     bestPressure,
+    fitModel("contacts + duration", rows, ["contact_count", "duration_frames"], target),
     fitModel("contacts + spacing", rows, ["contact_count", "inverse_gap_sum"], target),
     fitModel("contacts + axes", rows, ["contact_count", "active_axis_mean", "impact_mean"], target),
     fitModel("contacts + duration + axes", rows, [
@@ -520,6 +676,7 @@ function buildModels(rows: readonly SpecStudyRow[], target: ModelTarget): {
       predicted: round(predicted, 1),
       residual: round(actual - predicted, 1),
       contact_count: row.contact_count,
+      family: row.family,
       median_gap_frames: row.median_gap_frames,
       duration_frames: row.duration_frames,
       score_mean: round(row.score_mean, 1),
@@ -527,6 +684,125 @@ function buildModels(rows: readonly SpecStudyRow[], target: ModelTarget): {
     };
   }).sort((a, b) => Math.abs(b.residual) - Math.abs(a.residual));
   return { models: namedModels, best_pressure_model: bestPressure, residuals };
+}
+
+function modelByName(models: readonly ModelFit[], name: string): ModelFit {
+  const found = models.find((model) => model.name === name);
+  if (found === undefined) throw new Error(`missing model ${name}`);
+  return found;
+}
+
+function budgetTransferMetrics(
+  rowsByBudget: ReadonlyMap<number, SpecStudyRow[]>,
+  trainBudget: number,
+  features: string[],
+  target: ModelTarget,
+): BudgetTransfer {
+  const trainRows = rowsByBudget.get(trainBudget);
+  if (trainRows === undefined) throw new Error(`missing rows for train budget ${trainBudget}`);
+  const model = fitOls(trainRows, features, target);
+  return {
+    train_budget: trainBudget,
+    target: target.name,
+    features,
+    tests: [...rowsByBudget.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([b, rows]) => ({
+        budget: b,
+        n: rows.length,
+        metrics: metric(rows.map(target.get), rows.map((row) => model.predict(row))),
+      })),
+  };
+}
+
+async function analyzeRepairLog(
+  path: string,
+  model: ModelFit,
+): Promise<RepairLogAnalysis> {
+  const repairArchive = JSON.parse(readFileSync(path, "utf8")) as GoldenArchive;
+  const contactCoef = model.coefficients.contact_count ?? 0;
+  const durationCoef = model.coefficients.duration_frames ?? 0;
+  type Row = {
+    spec: string;
+    completed: boolean;
+    framesSpent: number;
+    estCost: number;
+    staticNoIntercept: number;
+    staticWithIntercept: number;
+  };
+  const rows: Row[] = [];
+  const specs = new Map<string, Spec>();
+
+  for (const row of repairArchive.rows) {
+    if (!specs.has(row.name)) {
+      specs.set(row.name, await loadGoldenSpec(row.name as GoldenSpecName, "base"));
+    }
+  }
+
+  for (const row of repairArchive.rows) {
+    const spec = specs.get(row.name);
+    if (spec === undefined) continue;
+    const durationFrames = secToFrame(spec.duration);
+    const contactFrames = spec.contacts
+      .map((contact) => secToFrame(contact.t))
+      .filter((frame) => frame >= K_BOUNCE_LANDING)
+      .sort((a, b) => a - b);
+    const gapStarts = [0, ...contactFrames];
+    for (const checkpoint of row.checkpoints) {
+      const records = checkpoint.compile_stats?.repair?.records ?? [];
+      for (const record of records) {
+        const anchor = record.anchor;
+        const remainingContacts = Math.max(0, contactFrames.length - anchor);
+        const startFrame = gapStarts[Math.min(anchor, gapStarts.length - 1)] ?? durationFrames;
+        const remainingDuration = Math.max(0, durationFrames - startFrame);
+        const staticNoIntercept = contactCoef * remainingContacts +
+          durationCoef * remainingDuration;
+        rows.push({
+          spec: row.name,
+          completed: record.completed,
+          framesSpent: record.framesSpent,
+          estCost: record.estCost,
+          staticNoIntercept,
+          staticWithIntercept: model.intercept + staticNoIntercept,
+        });
+      }
+    }
+  }
+
+  const completed = rows.filter((row) => row.completed && row.framesSpent > 0 && row.estCost > 0);
+  const compare = (
+    key: keyof Pick<Row, "estCost" | "staticNoIntercept" | "staticWithIntercept">,
+  ): PairMetrics => pairMetric(
+    completed.map((row) => row.framesSpent),
+    completed.map((row) => row[key]),
+  );
+  const bySpec: RepairLogAnalysis["by_spec"] = {};
+  for (const spec of [...new Set(completed.map((row) => row.spec))].sort()) {
+    const specRows = completed.filter((row) => row.spec === spec);
+    bySpec[spec] = {
+      n: specRows.length,
+      repair_est_cost: pairMetric(
+        specRows.map((row) => row.framesSpent),
+        specRows.map((row) => row.estCost),
+      ),
+      static_suffix_no_intercept: pairMetric(
+        specRows.map((row) => row.framesSpent),
+        specRows.map((row) => row.staticNoIntercept),
+      ),
+    };
+  }
+
+  return {
+    source: path,
+    records: rows.length,
+    completed_records: completed.length,
+    comparisons: {
+      repair_est_cost: compare("estCost"),
+      static_suffix_no_intercept: compare("staticNoIntercept"),
+      static_suffix_with_intercept: compare("staticWithIntercept"),
+    },
+    by_spec: bySpec,
+  };
 }
 
 function summarizeBudgets(archive: GoldenArchive): unknown[] {
@@ -688,10 +964,12 @@ async function runSyntheticGrid(): Promise<{
 
 function printModel(model: ModelFit): void {
   const loo = model.leave_one_spec_out;
+  const family = model.leave_one_family_out;
   const train = model.train;
   console.log(
     `${model.name.padEnd(30)} train R2 ${fmt(train.r2, 3)} MAE ${fmt(train.mae, 0)}  ` +
-    `LOO R2 ${fmt(loo.r2, 3)} MAE ${fmt(loo.mae, 0)}`,
+    `LOO R2 ${fmt(loo.r2, 3)} MAE ${fmt(loo.mae, 0)}  ` +
+    `family R2 ${fmt(family.r2, 3)} MAE ${fmt(family.mae, 0)}`,
   );
 }
 
@@ -717,6 +995,19 @@ const weightedScoreRows = canonicalRows.map((baseRow) => {
   return { ...baseRow, score_mean: weightedScore };
 });
 const weightedScoreModels = buildModels(weightedScoreRows, SCORE_TARGET);
+const traversalBudgetTransfer = budgetTransferMetrics(
+  scoreRowsByBudget,
+  budget,
+  ["contact_count", "duration_frames"],
+  FIRST_COMPLETION_TARGET,
+);
+const recommendedTraversalModel = modelByName(
+  canonicalFirstCompletion.models,
+  "contacts + duration",
+);
+const repairLogAnalysis = repairLogPath !== undefined
+  ? await analyzeRepairLog(repairLogPath, recommendedTraversalModel)
+  : null;
 const topByCost = [...canonicalRows].sort((a, b) =>
   b.first_completion_mean - a.first_completion_mean
 ).slice(0, 12);
@@ -738,6 +1029,9 @@ const output = {
       target: FIRST_COMPLETION_TARGET,
       models: canonicalFirstCompletion.models,
       best_pressure_model: canonicalFirstCompletion.best_pressure_model,
+      recommended_model: recommendedTraversalModel,
+      budget_transfer_from_modeled_budget: traversalBudgetTransfer,
+      ...(repairLogAnalysis !== null ? { repair_log_analysis: repairLogAnalysis } : {}),
       residuals_by_abs_error: canonicalFirstCompletion.residuals,
     },
     score_by_budget: scoreModelsByBudget,
@@ -777,6 +1071,34 @@ for (const entry of budgets as {
 console.log("");
 console.log("canonical first-completion models:");
 for (const model of canonicalFirstCompletion.models) printModel(model);
+console.log("");
+console.log("recommended traversal model family holdouts:");
+for (const holdout of recommendedTraversalModel.family_holdouts) {
+  console.log(
+    `  ${holdout.family.padEnd(10)} n=${holdout.n} ` +
+    `R2 ${fmt(holdout.metrics.r2, 3)} MAE ${fmt(holdout.metrics.mae, 0)} ` +
+    `MAPE ${(100 * holdout.metrics.mape).toFixed(1)}%`,
+  );
+}
+console.log("");
+console.log(`recommended traversal model trained at ${budget}, evaluated across budgets:`);
+for (const test of traversalBudgetTransfer.tests) {
+  console.log(
+    `  ${test.budget}: R2 ${fmt(test.metrics.r2, 3)} MAE ${fmt(test.metrics.mae, 0)} ` +
+    `RMSE ${fmt(test.metrics.rmse, 0)}`,
+  );
+}
+if (repairLogAnalysis !== null) {
+  console.log("");
+  console.log(`repair suffix comparison: ${repairLogAnalysis.source}`);
+  console.log(`  completed records ${repairLogAnalysis.completed_records}/${repairLogAnalysis.records}`);
+  for (const [name, metrics] of Object.entries(repairLogAnalysis.comparisons)) {
+    console.log(
+      `  ${name.padEnd(30)} corr ${fmt(metrics.corr, 3)} MAE ${fmt(metrics.mae, 0)} ` +
+      `bias ${fmt(metrics.bias, 0)}`,
+    );
+  }
+}
 console.log("");
 console.log("budget-weighted score models:");
 for (const model of weightedScoreModels.models) printModel(model);

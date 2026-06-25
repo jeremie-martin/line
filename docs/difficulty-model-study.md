@@ -26,28 +26,42 @@ questions separately:
 ## Findings
 
 First-completion cost is easy to model from static structure. At 250k, every
-seed/spec row records a first-completion frame. The best simple model was:
+seed/spec row records a first-completion frame. The safest simple model was:
 
 ```text
-first_completion_frames ~= 12,997
-  + 722 * contact_count
-  + 32.3 * duration_frames
-  - 1,447 * active_axis_mean
-  - 3,968 * impact_mean
+first_completion_frames ~= 5,848
+  + 796 * contact_count
+  + 29.6 * duration_frames
 ```
 
 Validation:
 
 ```text
-train R2 0.989, MAE 2,000 frames
-leave-one-spec-out R2 0.984, MAE 2,325 frames
+train R2 0.987, MAE 2,026 frames
+leave-one-spec-out R2 0.984, MAE 2,196 frames
+leave-one-family-out R2 0.984, MAE 2,144 frames
 ```
 
-The robust part is not the exact coefficients, which are corpus-correlated and
-not causal. The robust part is that first-completion cost is mostly a smooth
-function of contact count plus simulated duration. Contact count alone already
-gets leave-one-spec-out R2 0.948; duration alone gets 0.874. Median gap alone is
-weak at 0.380.
+This is the model to trust for now. A slightly fancier model with target-axis and
+impact means had similar ordinary leave-one-spec-out score, but those features
+are more likely to be corpus-correlated. The simple contact-count + duration
+model also survives whole-family holdouts (drums, legacy, elevation, amplitude,
+combined), which is the leakage check that matters because many specs are
+siblings. Per-family R2 can be unstable when a family has little internal
+variance, so the actionable family errors are MAE/MAPE:
+
+```text
+drums:     MAE 1.4k frames, MAPE 1.6%
+elevation: MAE 1.3k frames, MAPE 3.6%
+amplitude: MAE 1.6k frames, MAPE 4.4%
+combined:  MAE 2.3k frames, MAPE 5.7%
+legacy:    MAE 3.5k frames, MAPE 8.7%
+```
+
+The robust part is not that the coefficients are causal truths. The robust part
+is that first-completion cost is mostly a smooth function of contact count plus
+simulated duration. Contact count alone already gets leave-one-spec-out R2 0.948;
+duration alone gets 0.874. Median gap alone is weak at 0.380.
 
 The budget telemetry also shows that first completion is usually much cheaper
 than the requested budget:
@@ -58,6 +72,22 @@ than the requested budget:
 375k: 480/480 rows recorded first completion, mean 54.0k, max 111.1k
 500k: 480/480 rows recorded first completion, mean 54.4k, max 113.3k
 ```
+
+Training the simple traversal model at 250k and evaluating it against each
+budget's independently measured first-completion rows stays stable:
+
+```text
+125k: R2 0.985, MAE 2.1k
+250k: R2 0.987, MAE 2.0k
+375k: R2 0.976, MAE 2.8k
+500k: R2 0.972, MAE 3.0k
+```
+
+Why the fit can be this good: first completion is a compute-accounting quantity.
+The compiler must simulate a roughly fixed amount of candidate/rollout work per
+contact plus full/partial trajectory windows whose cost grows with authored
+duration. It is much closer to a deterministic work model than to "musical
+difficulty."
 
 Full-run score is not explained well by the same static features. The best
 budget-weighted score model was:
@@ -104,6 +134,41 @@ second term needs more evidence before it drives compiler behavior, because
 current static features do not explain final score well. That missing information
 is likely tied to axis feasibility, impact/air interaction, and geometry-family
 limitations rather than just count, duration, or median spacing.
+
+## Repair-Cost Probe
+
+The current repair phase already has a measured per-incumbent `costToEnd`:
+`firstCompletionFrame - framesAtReach[anchor]`. To compare that adaptive measure
+with the static model, run:
+
+```bash
+LR_ENGINE=wasm LR_REPAIR_LOG=1 GOLDEN_SEEDS_OVERRIDE=0,1 npm run golden -- \
+  --specs=drums_pendulum,solo_run,skyline_push,tiny_dance,dense_echo_climb \
+  --budgets=250000 \
+  --jobs=5 \
+  --archive-dir=generated/studies/difficulty-repair-log-probe
+
+node --import tsx scripts/v0/study_difficulty_model.ts \
+  --golden=generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json \
+  --budget=250000 \
+  --repair-log=generated/studies/difficulty-repair-log-probe/golden.json \
+  --out=generated/studies/difficulty-model-baseline.json
+```
+
+On that 5-spec / 2-seed probe, completed repair restart records compared as:
+
+```text
+repair estCost:             corr 0.925, MAE 3.8k, bias +1.1k
+static suffix, no intercept: corr 0.950, MAE 2.5k, bias -0.2k
+static suffix, with intercept:           MAE 6.9k
+```
+
+The "no intercept" detail matters. The full-run intercept is startup/root
+overhead; a suffix from an existing node should mostly use the remaining
+contacts plus remaining duration. This probe does not prove the static model
+should replace repair's measured cost, but it suggests a useful hybrid:
+initialize suffix feasibility from the smooth static model, then blend toward
+measured `costToEnd` as real reach timestamps become available.
 
 ## Next Study
 

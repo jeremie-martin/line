@@ -290,6 +290,34 @@ This mode sets `LR_CONTRACT_NCAND` and keeps `quality_ncand` fixed, so the fitte
 first-completion response is about traversal breadth rather than post-completion
 quality breadth.
 
+To combine several one-budget study outputs, use:
+
+```bash
+node --import tsx scripts/v0/analyze_budget_spend.ts \
+  --inputs=generated/studies/contract-ncand-125k.json,generated/studies/contract-ncand-500k.json \
+  --out=generated/studies/contract-ncand-analysis.json
+```
+
+The analyzer pairs each `(budget, spec, seed)` against the baseline knob value and
+prints response tables by budget and by slack band.
+
+Initial endpoint-panel characterization (`tiny_dance`, `dense_echo_climb`,
+`skyline_push`, `drums_pendulum`; seeds `0,1`; `contract_ncand=6,10,14,18,22`)
+showed a consistent first-completion cost response:
+
+```text
+125k: c=6  dFirst=-5.1k, dScore=+7.0
+125k: c=10 dFirst=-4.1k, dScore=+3.4
+500k: c=6  dFirst=-3.4k, dScore=+9.4
+500k: c=10 dFirst=-2.6k, dScore=+7.5
+```
+
+The fitted first-completion multiplier slope was similar at both endpoints
+(`~0.11 * (c/14 - 1)`), but R2 was low (`0.13`-`0.18`) because spec/seed basin
+effects dominate residual variance. Score response is also non-monotone: wider
+values such as `c=22` recover value on some rows, so this evidence supports
+continued characterization, not a production default change by itself.
+
 Treat `LR_QUALITY_NCAND=32` and `LR_CONTRACT_NCAND=14` in this script as the
 explicit baselines for the current quality and contract breadth surfaces. They
 are intentionally explicit study baselines: the point is to isolate one knob

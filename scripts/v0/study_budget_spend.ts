@@ -1,9 +1,9 @@
 /**
  * Budget-spend characterization for compileHandoff.
  *
- * This is a read-only study for the first budget-controller step. It sweeps an
- * explicit quality candidate-count override, records actual compute spent, and
- * groups results by structural budget slack.
+ * This is a read-only study for the first budget-controller step. It sweeps one
+ * explicit candidate-count override, records actual compute spent, and groups
+ * results by structural budget slack.
  *
  *   LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
  *     --budget=200000 \

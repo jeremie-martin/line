@@ -60,6 +60,7 @@ tiers, the `decide` rule, and the jobs/OOM caveat are documented once in
 LR_ENGINE=wasm npm run golden -- --jobs=6
 LR_ENGINE=wasm npm run golden -- --compiler=handoff --jobs=6
 LR_ENGINE=wasm npm run golden -- --budgets=30000,50000,70000 --specs=tiny_dance --seed=0 --jobs=6
+LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts --budget=200000 --seeds=0,1
 ```
 
 `--compiler=handoff` is kept even though it is currently the only compiler so a

@@ -417,6 +417,15 @@ export type CompileStats = {
   /** True iff this checkpoint's budget was reached before the search stopped
    *  naturally or by the fixed node cap. */
   budget_exhausted: boolean;
+  /** Structural first-completion model used for budget-normalized telemetry.
+   *  Diagnostic only; compiler policy must explicitly opt in to using it. */
+  traversal_budget_model?: string;
+  /** Predicted simulated frames needed to reach the first complete traversal,
+   *  from spec structure only (feasible contacts + authored duration). */
+  predicted_first_completion_frames?: number;
+  /** Requested budget divided by `predicted_first_completion_frames`. This
+   *  normalizes raw budgets across short/easy vs long/dense specs. */
+  budget_slack?: number;
 
   // ─── Search diagnostics ───
   /** Outputs offered to the best-so-far register. */

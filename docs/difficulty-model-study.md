@@ -228,6 +228,35 @@ That keeps behavior continuous for 50k, 500k, 1M, or 2M budgets and lets us test
 whether extra compute should buy more full-run depth, more repair breadth, or
 more expensive local candidate generation.
 
+## Spend-Control Study
+
+The first spend-control characterization is `scripts/v0/study_budget_spend.ts`.
+It does not change production policy. It explicitly sweeps `LR_QUALITY_NCAND`
+inside one budget, scores each compile, and records actual compute counters plus
+the slack telemetry:
+
+```bash
+LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
+  --budget=200000 \
+  --specs=tiny_dance,cold_start,dense_echo_climb,skyline_push,drums_pendulum,solo_run \
+  --seeds=0,1 \
+  --quality-ncand=24,32,40 \
+  --out=generated/studies/budget-spend-qncand-200k.json
+```
+
+The output reports raw rows, summaries by candidate count, summaries by candidate
+count plus slack band, and paired deltas against `--baseline-ncand` (default
+`32`). This is the bridge from the normalized signal to actual spend control:
+
+```text
+budget_slack -> candidate-count knob -> measured sim frames / score / repair share
+```
+
+Treat `LR_QUALITY_NCAND=32` in this script as the explicit baseline for the
+candidate-count control surface. It is intentionally not the exact same thing as
+the current production auto-lean behavior, because the study is isolating the
+knob before any slack-based policy is installed.
+
 ## Next Study
 
 The script includes an optional synthetic grid (`--synthetic`) that can vary

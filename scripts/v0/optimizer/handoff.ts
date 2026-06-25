@@ -84,6 +84,11 @@ import {
   snapshotAimStats,
 } from "./aim.ts";
 import {
+  predictFirstCompletionFrames,
+  traversalBudgetSlack,
+  TRAVERSAL_BUDGET_MODEL_V1,
+} from "./budget_model.ts";
+import {
   frontierReadinessFromFit,
   impactFeasibility,
   nextContactGapIndex,
@@ -708,6 +713,8 @@ function compileHandoffInternal(
     }
 
     const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
+    const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
+    const budgetSlack = round3(traversalBudgetSlack(targetBudget, spec));
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContractSearch = usesSparseContractSearch(gaps);
     const startOptions = initialSnapshot === null
@@ -886,6 +893,9 @@ function compileHandoffInternal(
           candidates_viable: getViableCandidates(),
           budget_exhausted: budgetExhausted,
           sim_frames: getSimFrames(),
+          traversal_budget_model: TRAVERSAL_BUDGET_MODEL_V1.name,
+          predicted_first_completion_frames: predictedFirstCompletionFrames,
+          budget_slack: budgetSlack,
           leaves_considered: register.consideredCount,
           improvements: register.improvementCount,
           polish_variants_tried: polishTried,

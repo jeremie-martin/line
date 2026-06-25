@@ -100,6 +100,10 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     const b = checkpoint(compileHandoff(spec, 0, { budget, maxNodes: 12, polish: false }), budget);
     expect(hashTrack(a.track)).toBe(hashTrack(b.track));
     expect(a.stats.sim_frames).toBe(b.stats.sim_frames);
+    expect(a.stats.traversal_budget_model).toBe("contacts+duration/v1");
+    expect(a.stats.predicted_first_completion_frames ?? 0).toBeGreaterThan(0);
+    expect(a.stats.budget_slack ?? 0)
+      .toBeCloseTo(budget / (a.stats.predicted_first_completion_frames ?? Infinity), 3);
     expect(a.stats.candidates_sampled).toBeGreaterThan(0);
     expect(a.stats.candidates_sampled).toBe(b.stats.candidates_sampled);
     expect(a.stats.candidates_viable).toBeGreaterThan(0);

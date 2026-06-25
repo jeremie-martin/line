@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-25 - REJECT - smooth near-variation quality breadth on new grid
+
+Mechanism: add a smooth no-vertical quality-search breadth ramp below the existing hard variation relief, preserving the accepted high-variation `32`-candidate cap and the short/no-amplitude and sparse-amplitude precedence. The ramp started near air-range `0.43` / speed-range `0.32` and faded into the existing air-range `0.50` / speed-range `0.40` relief. Scorer, specs, fingerprint, seeds, budget grid, start policy, forward evaluation, and repair behavior were unchanged.
+
+Baseline: `generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json`, canonical new grid, fingerprint `de24a421f751`, HEADLINE 678.70.
+
+Candidate: `generated/golden-runs/attempt-quality-near-variation-relief-newgrid-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-quality-near-variation-relief-newgrid-a01`.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-quality-near-variation-relief-newgrid-a01/golden.json generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json` -> `VERDICT: INCONCLUSIVE`, Δheadline -0.1, CI [-0.4, 0.1], P(Δ<=0)=88.4%.
+
+Why it failed: validity stayed 1920/1920, but the point estimate moved backward: 125k +0.0, 250k -0.1, 375k -0.0, 500k -0.1. The effect was very localized: only `rhythm_ladder` changed materially, with 4 improved weighted seed rows and 8 regressed. Its mean weighted delta was -2.65; the worst seed lost -25.17 weighted, mostly from -33.80 at 250k, -26.23 at 375k, and -26.34 at 500k. Conclusion: smoothing the breadth boundary is philosophically cleaner, but this exact no-vertical near-threshold ramp buys extra compute in a place that is not suite-positive on the new budget grid, so it was reverted.
+
 ## 2026-06-22 - REJECT - quality ranker scorer-window axes
 
 Mechanism: in `candidateQualityObjective`, rank the current-gap term with `candidate.achievedAtEnd ?? candidate.achieved` instead of `candidate.achieved`, so air-lookahead gaps use the same gap-window axes as the final scorer and objective leaf.

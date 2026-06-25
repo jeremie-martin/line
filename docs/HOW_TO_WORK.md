@@ -76,12 +76,11 @@ The baseline of record is the **generated** [`docs/handoff-compiler.html`](hando
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
 - Evaluator fingerprint: **`de24a421f751`** (`scripts/v0/golden_suite.ts`).
-- Current baseline: `generated/golden-runs/attempt-aim-late-top5-newgrid-a01/golden.json`,
-  canonical HEADLINE **675.52** (`HEADLINE excl. impact` 689.27), valid 1920/1920.
-  Per-budget scores: 125k 657.22, 250k 672.07, 375k 677.16, 500k 680.59.
-  This supersedes the initial `{125,250,375,500}k` baseline
-  (`baseline-newgrid-125-500k-08ff0a2`, HEADLINE 674.79) after an accepted
-  smooth late top-5 aim-base candidate.
+- Current baseline: `generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json`,
+  canonical HEADLINE **678.70** (`HEADLINE excl. impact` 693.95), valid 1920/1920.
+  Per-budget scores: 125k 662.74, 250k 673.97, 375k 680.09, 500k 684.01.
+  This supersedes `attempt-aim-late-top5-newgrid-a01` after the accepted
+  true-target objective candidate.
 
 ## Active campaigns
 

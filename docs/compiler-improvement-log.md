@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-25 - REJECT - weak-incumbent mature quality breadth
+
+Mechanism: keep the mature quality-search lean as the default, but smoothly relax it from the mature `29`-candidate count back toward the normal `32` candidates while the current passing incumbent had weak `axis_quality`. The pressure multiplied a continuous incumbent-quality term (`axis_quality` below roughly 0.66, full below 0.54) by the existing smooth budget-maturity curve; the 125k tier, hard high-variation relief, short/no-amplitude boost, sparse-amplitude boost, start policy, forward evaluation, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule were otherwise unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed first (5 files, 77 tests).
+
+Baseline: `generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json`, canonical new grid, fingerprint `de24a421f751`, HEADLINE 678.70.
+
+Candidate: `generated/golden-runs/attempt-weak-incumbent-quality-breadth-newgrid-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-weak-incumbent-quality-breadth-newgrid-a01`. The canonical run was valid 1920/1920 with raw HEADLINE 678.25 and `HEADLINE excl. impact` 693.50; per-budget point estimates were 125k 662.74, 250k 673.74, 375k 679.70, and 500k 683.29.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-weak-incumbent-quality-breadth-newgrid-a01/golden.json generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json` -> `VERDICT: REJECT`, Δheadline -0.5, CI [-1.2, 0.1], P(Δ<=0)=93.7%. Per-budget deltas were 125k +0.0, 250k -0.2, 375k -0.4, and 500k -0.7.
+
+Why it failed: the intended scarce-tier isolation held (125k byte-identical), but the mature tiers moved backward and the regression grew with budget. The change did not simply spend extra compute usefully: average sampled/viable candidates fell by about 21/17 at 250k, 34/24 at 375k, and 45/35 at 500k, while full and unique full evaluations also fell. Gains were small (`drums_pulse` +1.98 weighted, `skyline_push` +0.82), while losses were larger in the rows the rule was supposed to help or protect: `drums_dropout` -6.19, `drums_tide` -4.43, `rhythm_ladder` -3.37, `terrace_sprint` -2.19, `drums_swell` -1.46, and `canyon_steps` -1.12. Conclusion: incumbent-quality gating is a clean continuous idea, but using it to relax mature quality breadth changes search basins without improving the paired headline; the temporary source change was reverted.
+
 ## 2026-06-25 - REJECT - smooth near-variation quality breadth on new grid
 
 Mechanism: add a smooth no-vertical quality-search breadth ramp below the existing hard variation relief, preserving the accepted high-variation `32`-candidate cap and the short/no-amplitude and sparse-amplitude precedence. The ramp started near air-range `0.43` / speed-range `0.32` and faded into the existing air-range `0.50` / speed-range `0.40` relief. Scorer, specs, fingerprint, seeds, budget grid, start policy, forward evaluation, and repair behavior were unchanged.

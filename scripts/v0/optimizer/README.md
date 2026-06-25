@@ -30,6 +30,7 @@ aim.ts          enumerative aiming proposer; model proposes, exact sim judges
 objective.ts    shared current-quality x readiness objective
 arc_model.ts    shared pitch/rotation knob transforms and response models
 arc_probe.ts    shared real-engine joint probe evaluator
+budget_model.ts structural traversal-cost predictor and budget slack helper
 readiness.ts    catchability surface used by composite next-gap readiness
 handoff.ts      compileHandoff public entry point
 register.ts     strict best-so-far comparator

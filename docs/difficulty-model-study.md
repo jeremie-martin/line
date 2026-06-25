@@ -23,6 +23,10 @@ questions separately:
 - **Quality hardness:** what full-run score the compiler reaches after spending
   the whole budget.
 
+To refresh the production constants, rerun the command above on the intended
+baseline archive, inspect `canonical.first_completion.recommended_model` in the
+generated JSON, and update `TRAVERSAL_BUDGET_MODEL_V1` in a reviewed commit.
+
 ## Findings
 
 First-completion cost is easy to model from static structure. At 250k, every
@@ -169,6 +173,60 @@ contacts plus remaining duration. This probe does not prove the static model
 should replace repair's measured cost, but it suggests a useful hybrid:
 initialize suffix feasibility from the smooth static model, then blend toward
 measured `costToEnd` as real reach timestamps become available.
+
+## Production Model
+
+The current trusted traversal model is stored in
+`scripts/v0/optimizer/budget_model.ts` as `TRAVERSAL_BUDGET_MODEL_V1`.
+It deliberately changes no compiler behavior yet. It exposes three policy-facing
+helpers:
+
+- `predictFirstCompletionFrames(spec)` estimates the structural cost of the
+  first complete traversal from feasible contact count plus authored duration.
+- `predictSuffixCompletionFrames(spec, gapIndex)` estimates the remaining cost
+  from a gap boundary with no full-run intercept, matching the repair-cost probe.
+- `traversalBudgetSlack(budget, spec)` normalizes a requested budget by predicted
+  first-completion cost.
+
+New budget-aware policy should prefer this normalized slack over raw budget
+thresholds when the question is "how much compute do we have for this spec?"
+Raw frame budgets are still appropriate for fixed engine/accounting costs, but
+not as a proxy for global search maturity across specs of different length and
+contact density.
+
+## Budget Policy Map
+
+The current compiler already spends or gates budget in several places:
+
+- `arc_placement.ts`: global compile-budget context, contact-centered redirection
+  ramps, impact template/post-turn ramps, and arc-length room smoothing.
+- `optimizer/aim.ts`: mature top-k aiming and extra top-k pressure.
+- `optimizer/handoff.ts` start selection: ballistic starts, support starts, and
+  low-air x-delay options.
+- `optimizer/handoff.ts` contract and quality search: candidate/sample counts,
+  sparse-contract behavior, future preview, branch limits, reuse pressure, and
+  release-vertical pressure.
+- `optimizer/handoff.ts` tail/forward evaluation: forward-eval gates, mature
+  average forward eval, tail-completion breadth, shallow-tail throttling, and
+  low-budget contract tail completion.
+- `optimizer/handoff.ts` repair: main/feasibility margins, measured `costToEnd`,
+  affordability filtering, restart order, and restart ceilings.
+
+Most of those levers are already smooth functions, but many are smooth over
+absolute budgets such as 50k, 100k, or 150k frames. That can overfit a particular
+golden grid: 150k means something different for a short 12-contact spec than for
+a long dense drum spec. The intended next step is not a wholesale rewrite; it is
+to migrate one policy at a time from `targetBudget` to a small budget context
+that contains at least:
+
+```text
+budget_slack = requested_budget / predicted_first_completion_frames
+suffix_slack = remaining_budget / predicted_suffix_completion_frames
+```
+
+That keeps behavior continuous for 50k, 500k, 1M, or 2M budgets and lets us test
+whether extra compute should buy more full-run depth, more repair breadth, or
+more expensive local candidate generation.
 
 ## Next Study
 

@@ -202,8 +202,11 @@ The current codebase has three pieces:
   each checkpoint.
 - `scripts/v0/study_budget_spend.ts` sweeps one explicit breadth knob at one
   budget and reports paired compute/score deltas plus simple first-completion
-  and candidate-sample response models. `quality_ncand` is the unified handoff
-  breadth used from first completion through repair restarts.
+  and candidate-sample response models. It supports deterministic row sharding
+  with `--shard=i/n`, so larger characterization databases can be collected by
+  many workers and analyzed offline from the combined JSON outputs.
+  `quality_ncand` is the unified handoff breadth used from first completion
+  through repair restarts.
 
 The handoff compiler now has one traversal policy. The old contract-then-quality
 split was removed after the forced-quality canonical showed that the large mode

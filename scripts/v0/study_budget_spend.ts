@@ -10,6 +10,7 @@
  *     --specs=tiny_dance,dense_echo_climb,skyline_push,drums_pendulum \
  *     --seeds=0,1 \
  *     --quality-ncand=24,32,40 \
+ *     --shard=0/1 \
  *     --out=generated/studies/budget-spend-qncand.json
  *
  */
@@ -66,6 +67,18 @@ type Row = {
   repair_frames_spent: number;
   repair_restarts: number;
   elapsed_ms: number;
+};
+
+type PlannedRun = {
+  ordinal: number;
+  specName: GoldenSpecName;
+  seed: number;
+  qualityNCand: number;
+};
+
+type ShardConfig = {
+  index: number;
+  count: number;
 };
 
 type Summary = {
@@ -170,52 +183,52 @@ const seeds = intListArg("seeds", DEFAULT_SEEDS);
 const specNames = specListArg("specs", [...DEFAULT_SPECS]);
 const outPath = arg("out");
 const previousQualityNCand = process.env.LR_QUALITY_NCAND;
+const shard = shardArg("shard");
+const plannedRuns = buildPlan(specNames, seeds, qualityNCands);
+const selectedRuns = plannedRuns.filter((run) => shard === null || run.ordinal % shard.count === shard.index);
+const specCache = new Map<GoldenSpecName, Awaited<ReturnType<typeof loadGoldenSpec>>>();
 
 const rows: Row[] = [];
 try {
-  for (const specName of specNames) {
-    const spec = await loadGoldenSpec(specName, "base");
-    for (const seed of seeds) {
-      for (const qualityNCand of qualityNCands) {
-        process.env.LR_QUALITY_NCAND = String(qualityNCand);
-        const t0 = Date.now();
-        const checkpoint = compileHandoff(spec, seed, { budget });
-        const elapsedMs = Date.now() - t0;
-        const score = scoreDriftReport(checkpoint.report, {
-          totalFrames: secToFrame(spec.duration),
-        });
-        const stats = checkpoint.stats;
-        rows.push({
-          spec: specName,
-          seed,
-          budget,
-          quality_ncand: qualityNCand,
-          score: round(score.score, 4),
-          contract_passed: score.contract_passed,
-          axis_quality: round(score.axis_quality, 6),
-          sim_frames: stats.sim_frames,
-          budget_exhausted: stats.budget_exhausted,
-          predicted_first_completion_frames: stats.predicted_first_completion_frames ?? null,
-          budget_slack: stats.budget_slack ?? null,
-          first_completion_frame: stats.first_completion_frame ?? stats.repair?.first_completion_frame ?? null,
-          candidates_sampled: stats.candidates_sampled,
-          candidates_viable: stats.candidates_viable,
-          handoff_full_evaluations: stats.handoff_full_evaluations ?? 0,
-          handoff_unique_full_evaluations: stats.handoff_unique_full_evaluations ?? 0,
-          fwd_eval_frames_charged: stats.fwd_eval?.fwd_eval_frames_charged ?? 0,
-          fwd_eval_calls: stats.fwd_eval?.fwd_eval_calls ?? 0,
-          repair_frames_spent: stats.repair?.frames_spent ?? 0,
-          repair_restarts: stats.repair?.restarts ?? 0,
-          elapsed_ms: elapsedMs,
-        });
-        console.error(
-          `budget-spend spec=${specName} seed=${seed} ` +
-            `q=${qualityNCand} score=${score.score.toFixed(1)} ` +
-            `sim=${stats.sim_frames} slack=${stats.budget_slack?.toFixed(2) ?? "na"}`,
-        );
-        await new Promise((resolve) => setImmediate(resolve));
-      }
-    }
+  for (const run of selectedRuns) {
+    const spec = await specFor(run.specName);
+    process.env.LR_QUALITY_NCAND = String(run.qualityNCand);
+    const t0 = Date.now();
+    const checkpoint = compileHandoff(spec, run.seed, { budget });
+    const elapsedMs = Date.now() - t0;
+    const score = scoreDriftReport(checkpoint.report, {
+      totalFrames: secToFrame(spec.duration),
+    });
+    const stats = checkpoint.stats;
+    rows.push({
+      spec: run.specName,
+      seed: run.seed,
+      budget,
+      quality_ncand: run.qualityNCand,
+      score: round(score.score, 4),
+      contract_passed: score.contract_passed,
+      axis_quality: round(score.axis_quality, 6),
+      sim_frames: stats.sim_frames,
+      budget_exhausted: stats.budget_exhausted,
+      predicted_first_completion_frames: stats.predicted_first_completion_frames ?? null,
+      budget_slack: stats.budget_slack ?? null,
+      first_completion_frame: stats.first_completion_frame ?? stats.repair?.first_completion_frame ?? null,
+      candidates_sampled: stats.candidates_sampled,
+      candidates_viable: stats.candidates_viable,
+      handoff_full_evaluations: stats.handoff_full_evaluations ?? 0,
+      handoff_unique_full_evaluations: stats.handoff_unique_full_evaluations ?? 0,
+      fwd_eval_frames_charged: stats.fwd_eval?.fwd_eval_frames_charged ?? 0,
+      fwd_eval_calls: stats.fwd_eval?.fwd_eval_calls ?? 0,
+      repair_frames_spent: stats.repair?.frames_spent ?? 0,
+      repair_restarts: stats.repair?.restarts ?? 0,
+      elapsed_ms: elapsedMs,
+    });
+    console.error(
+      `budget-spend spec=${run.specName} seed=${run.seed} ` +
+        `q=${run.qualityNCand} score=${score.score.toFixed(1)} ` +
+        `sim=${stats.sim_frames} slack=${stats.budget_slack?.toFixed(2) ?? "na"}`,
+    );
+    await new Promise((resolve) => setImmediate(resolve));
   }
 } finally {
   if (previousQualityNCand === undefined) {
@@ -249,6 +262,9 @@ const output = {
     baseline_value: knobConfig.baseline,
     quality_ncand: qualityNCands,
     baseline_quality_ncand: baselineNCand,
+    shard,
+    planned_rows: plannedRuns.length,
+    selected_rows: selectedRuns.length,
   },
   rows,
   summary_by_knob: byKnob,
@@ -289,6 +305,19 @@ function positiveIntListArg(name: string, fallback: readonly number[]): number[]
   return intListArg(name, fallback).filter((x) => x > 0);
 }
 
+function shardArg(name: string): ShardConfig | null {
+  const raw = arg(name);
+  if (raw === undefined || raw.trim() === "") return null;
+  const match = /^(\d+)\/(\d+)$/.exec(raw.trim());
+  if (match === null) throw new Error(`--${name} must look like 0/48`);
+  const index = Number.parseInt(match[1], 10);
+  const count = Number.parseInt(match[2], 10);
+  if (!(count > 0) || index < 0 || index >= count) {
+    throw new Error(`--${name} index must satisfy 0 <= index < count; got ${raw}`);
+  }
+  return { index, count };
+}
+
 function specListArg(name: string, fallback: readonly GoldenSpecName[]): GoldenSpecName[] {
   const raw = arg(name);
   const values = raw === undefined || raw.trim() === ""
@@ -306,6 +335,30 @@ function specListArg(name: string, fallback: readonly GoldenSpecName[]): GoldenS
 
 function ensureIncludes(xs: number[], required: number): number[] {
   return xs.includes(required) ? xs : [...xs, required];
+}
+
+function buildPlan(
+  specs: readonly GoldenSpecName[],
+  seedValues: readonly number[],
+  qualityNCandValues: readonly number[],
+): PlannedRun[] {
+  const runs: PlannedRun[] = [];
+  for (const specName of specs) {
+    for (const seed of seedValues) {
+      for (const qualityNCand of qualityNCandValues) {
+        runs.push({ ordinal: runs.length, specName, seed, qualityNCand });
+      }
+    }
+  }
+  return runs;
+}
+
+async function specFor(specName: GoldenSpecName): Promise<Awaited<ReturnType<typeof loadGoldenSpec>>> {
+  const cached = specCache.get(specName);
+  if (cached !== undefined) return cached;
+  const loaded = await loadGoldenSpec(specName, "base");
+  specCache.set(specName, loaded);
+  return loaded;
 }
 
 function groupRows<T>(
@@ -546,7 +599,8 @@ function printSummary(
 ): void {
   console.log(
     `budget-spend: budget=${budget} specs=${specNames.length} seeds=${seeds.length} ` +
-      `${knobConfig.name}=${knobConfig.values.join(",")}`,
+      `${knobConfig.name}=${knobConfig.values.join(",")}` +
+      (shard === null ? "" : ` shard=${shard.index}/${shard.count} rows=${selectedRuns.length}/${plannedRuns.length}`),
   );
   console.log(`by ${knobConfig.name}:`);
   for (const summary of summaries) {

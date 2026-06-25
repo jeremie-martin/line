@@ -249,6 +249,26 @@ LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
   --out=generated/studies/budget-spend-qncand-200k.json
 ```
 
+For larger sweeps, shard the deterministic `(spec, seed, quality_ncand)` row
+order and run many workers at once. Shard indexes are zero-based:
+
+```bash
+for shard in $(seq 0 47); do
+  LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
+    --budget=500000 \
+    --specs=tiny_dance,cold_start,dense_echo_climb,skyline_push,drums_pendulum,solo_run \
+    --seeds=0,1,2,3 \
+    --quality-ncand=16,20,24,28,32,36,40,48 \
+    --shard=${shard}/48 \
+    --out=generated/studies/qncand-500k-shard-${shard}.json &
+done
+wait
+```
+
+The shard outputs keep the same row schema. Analyze them by passing all shard
+JSON files to the offline analyzer; the expensive compiler runs do not need to
+be repeated while trying alternate models.
+
 The output reports raw rows, summaries by the studied knob, summaries by knob
 plus slack band, and paired deltas against the relevant baseline. It also fits a
 first-pass conditional spend model:

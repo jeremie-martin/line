@@ -243,7 +243,6 @@ plus the slack telemetry. The default mode studies quality-phase breadth:
 ```bash
 LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
   --budget=200000 \
-  --policy=quality-v1 \
   --specs=tiny_dance,cold_start,dense_echo_climb,skyline_push,drums_pendulum,solo_run \
   --seeds=0,1 \
   --quality-ncand=24,32,40 \
@@ -251,9 +250,7 @@ LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
 ```
 
 The output reports raw rows, summaries by the studied knob, summaries by knob
-plus slack band, and paired deltas against the relevant baseline. Each row
-records `handoff_policy_variant`; use `--policy=legacy` only for comparison
-studies against the old contract-then-quality phase split. It also fits a
+plus slack band, and paired deltas against the relevant baseline. It also fits a
 first-pass conditional spend model:
 
 ```text
@@ -262,11 +259,9 @@ first_completion_frame
      * multiplier(quality_ncand / baseline_quality_ncand - 1)
 ```
 
-Under `quality-v1`, `quality_ncand` is expected to affect first traversal
-directly because the quality policy is used from the first contact expansion.
-Under `legacy`, the first-completion multiplier may be flat because the knob
-mainly applies after the contract phase has already produced a complete track.
-The same script also fits a paired candidate-sample response:
+`quality_ncand` is expected to affect first traversal directly because the
+unified quality policy is used from the first contact expansion through repair
+restarts. The same script also fits a paired candidate-sample response:
 
 ```text
 candidates_sampled / baseline_candidates_sampled
@@ -279,55 +274,20 @@ This is the bridge from the normalized signal to actual spend control:
 budget_slack -> candidate-count knob -> measured sim frames / score / repair share
 ```
 
-To study the breadth that should affect first traversal directly, sweep the
-contract-phase cap instead:
-
-```bash
-LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
-  --budget=200000 \
-  --policy=legacy \
-  --specs=tiny_dance,dense_echo_climb,skyline_push,drums_pendulum \
-  --seeds=0,1 \
-  --contract-ncand=6,10,14,18,22 \
-  --out=generated/studies/budget-spend-contract-ncand.json
-```
-
-This mode sets `LR_CONTRACT_NCAND`, pins the old `legacy` split, and keeps
-`quality_ncand` fixed, so the fitted first-completion response is about legacy
-contract traversal breadth rather than post-completion quality breadth.
-
 To combine several one-budget study outputs, use:
 
 ```bash
 node --import tsx scripts/v0/analyze_budget_spend.ts \
-  --inputs=generated/studies/contract-ncand-125k.json,generated/studies/contract-ncand-500k.json \
-  --out=generated/studies/contract-ncand-analysis.json
+  --inputs=generated/studies/qncand-125k.json,generated/studies/qncand-500k.json \
+  --out=generated/studies/qncand-analysis.json
 ```
 
 The analyzer pairs each `(budget, spec, seed)` against the baseline knob value and
 prints response tables by budget and by slack band.
 
-Initial endpoint-panel characterization (`tiny_dance`, `dense_echo_climb`,
-`skyline_push`, `drums_pendulum`; seeds `0,1`; `contract_ncand=6,10,14,18,22`)
-showed a consistent first-completion cost response:
-
-```text
-125k: c=6  dFirst=-5.1k, dScore=+7.0
-125k: c=10 dFirst=-4.1k, dScore=+3.4
-500k: c=6  dFirst=-3.4k, dScore=+9.4
-500k: c=10 dFirst=-2.6k, dScore=+7.5
-```
-
-The fitted first-completion multiplier slope was similar at both endpoints
-(`~0.11 * (c/14 - 1)`), but R2 was low (`0.13`-`0.18`) because spec/seed basin
-effects dominate residual variance. Score response is also non-monotone: wider
-values such as `c=22` recover value on some rows, so this evidence supports
-continued characterization, not a production default change by itself.
-
-Treat `LR_QUALITY_NCAND=32`, `LR_CONTRACT_NCAND=14`, and `--policy=quality-v1`
-as the explicit baseline surface for new spend-response studies. Use
-`--policy=legacy` only when characterizing or debugging the old split. The point
-is to isolate one knob before any slack-based controller is installed.
+Treat `LR_QUALITY_NCAND=32` as the explicit baseline surface for new
+spend-response studies. The point is to isolate one knob before any slack-based
+controller is installed.
 
 ## Next Study
 

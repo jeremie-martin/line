@@ -197,26 +197,25 @@ The current codebase has three pieces:
 - `compile_stats` now records `predicted_first_completion_frames` and
   `budget_slack` for every handoff compile, plus top-level
   `first_completion_frame` when the search reaches a complete traversal. It
-  also records `handoff_policy_variant` and compact policy spend summaries so
-  golden archives identify which traversal policy produced each checkpoint.
+  also records compact policy spend summaries, including the resolved candidate
+  count and branch limit, so golden archives expose the spend surface used by
+  each checkpoint.
 - `scripts/v0/study_budget_spend.ts` sweeps one explicit breadth knob at one
   budget and reports paired compute/score deltas plus simple first-completion
-  and candidate-sample response models. `quality_ncand` is quality-phase breadth;
-  `contract_ncand` is the legacy first-traversal/contract-phase breadth cap.
+  and candidate-sample response models. `quality_ncand` is the unified handoff
+  breadth used from first completion through repair restarts.
 
-The handoff compiler now has two explicit traversal variants:
+The handoff compiler now has one traversal policy. The old contract-then-quality
+split was removed after the forced-quality canonical showed that the large mode
+collapse had only a small, statistically inconclusive headline movement
+(`-0.8` versus the latest same-grid baseline). The remaining low-budget issue is
+expected evidence that fixed high breadth can make first completion too
+expensive, so future work should scale the unified knobs from a budget/difficulty
+model rather than restore a separate contract mode.
 
-- `quality-v1` is the simplification candidate and default. It uses the quality
-  traversal policy from the first contact expansion through repair restarts.
-- `legacy` preserves the old contract-then-quality phase split for paired
-  studies and debugging. Select it with `LR_HANDOFF_POLICY=legacy`.
-
-The forced-quality canonical run that motivated this change was not a score
-promotion by itself, but it was a strong simplification signal: a large mode
-collapse was only `-0.8` headline versus the latest same-grid baseline, with
-one known low-budget failure (`solo_run`, seed `7`, `125k`, `16 missing`,
-`rideStalled@784`). Future cleanup should treat that row as a targeted
-low-budget validity guard, not as a reason to keep the whole legacy split.
+The known low-budget guard row is `solo_run`, seed `7`, budget `125k`
+(`16 missing`, `rideStalled@784` under fixed unified breadth). Treat it as a
+targeted validation case for the future controller.
 
 These are infrastructure and measurement steps. They do not yet install a
 slack-based production controller.
@@ -225,8 +224,6 @@ slack-based production controller.
 
 - Should `D(spec)` continue to be fitted from production telemetry, or should it
   move to a frozen reference policy?
-- Should `quality-v1` become the frozen reference policy after its low-budget
-  validity behavior is understood?
 - Which budget-aware ramps should be disabled or fixed in that reference policy?
 - Is candidate count the best first in-run spend-rate control, or should forward
   eval be characterized first?

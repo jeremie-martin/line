@@ -4,18 +4,15 @@ import {
   handoffCandidatePool,
   handoffAxisOvershootPenalty,
   handoffSampleCount,
-  handoffPolicyVariant,
-  handoffUsesFuturePreview,
   hasStartFeasibilityLookahead,
   shouldOfferBrakeCandidates,
   shouldAttemptNearTailCompletion,
-  shouldUseExpandedBrakeSearch,
   shortDeadlineRescueCandidateCount,
   startAngles,
   startSpeedAnchors,
   targetStartAngle,
   usesHighSpeedStartOvershootScoring,
-  usesSparseContractSearch,
+  usesSparseContactCadence,
 } from "../scripts/v0/optimizer/handoff.ts";
 import {
   releaseSpeedPenalty,
@@ -78,66 +75,21 @@ function totalLineLength(lines: TrackLine[]): number {
 }
 
 describe("handoff policy boundaries", () => {
-  test("quality-v1 is the default handoff policy and legacy is an explicit override", () => {
-    const previousPolicy = process.env.LR_HANDOFF_POLICY;
-    const previousForce = process.env.LR_HANDOFF_FORCE_QUALITY;
-    try {
-      delete process.env.LR_HANDOFF_POLICY;
-      delete process.env.LR_HANDOFF_FORCE_QUALITY;
-      expect(handoffPolicyVariant()).toBe("quality-v1");
-
-      process.env.LR_HANDOFF_POLICY = "legacy";
-      expect(handoffPolicyVariant()).toBe("legacy");
-
-      process.env.LR_HANDOFF_POLICY = "quality-v1";
-      expect(handoffPolicyVariant()).toBe("quality-v1");
-
-      delete process.env.LR_HANDOFF_POLICY;
-      process.env.LR_HANDOFF_FORCE_QUALITY = "1";
-      expect(handoffPolicyVariant()).toBe("quality-v1");
-
-      process.env.LR_HANDOFF_POLICY = "unknown";
-      expect(() => handoffPolicyVariant()).toThrow(/LR_HANDOFF_POLICY/);
-    } finally {
-      if (previousPolicy === undefined) {
-        delete process.env.LR_HANDOFF_POLICY;
-      } else {
-        process.env.LR_HANDOFF_POLICY = previousPolicy;
-      }
-      if (previousForce === undefined) {
-        delete process.env.LR_HANDOFF_FORCE_QUALITY;
-      } else {
-        process.env.LR_HANDOFF_FORCE_QUALITY = previousForce;
-      }
-    }
-  });
-
   test("candidate pool has no contact-count regime cliff", () => {
     const formerCliffCounts = [29, 30, 31, 60, 61, 77];
     expect(formerCliffCounts.map(() => handoffCandidatePool())).toEqual([8, 8, 8, 8, 8, 8]);
   });
 
-  test("sample schedule widens after contract success", () => {
-    expect(handoffSampleCount(false)).toBe(14);
-    expect(handoffSampleCount(false, true)).toBe(13);
-    expect(handoffSampleCount(true)).toBe(32);
+  test("sample schedule uses one unified quality breadth", () => {
+    expect(handoffSampleCount()).toBe(32);
   });
 
-  test("contract candidate override is phase-specific", () => {
-    const previousContract = process.env.LR_CONTRACT_NCAND;
+  test("quality candidate override controls the unified breadth", () => {
     const previousQuality = process.env.LR_QUALITY_NCAND;
     try {
-      process.env.LR_CONTRACT_NCAND = "10";
       process.env.LR_QUALITY_NCAND = "36";
-      expect(handoffSampleCount(false)).toBe(10);
-      expect(handoffSampleCount(false, true)).toBe(10);
-      expect(handoffSampleCount(true)).toBe(36);
+      expect(handoffSampleCount()).toBe(36);
     } finally {
-      if (previousContract === undefined) {
-        delete process.env.LR_CONTRACT_NCAND;
-      } else {
-        process.env.LR_CONTRACT_NCAND = previousContract;
-      }
       if (previousQuality === undefined) {
         delete process.env.LR_QUALITY_NCAND;
       } else {
@@ -146,39 +98,27 @@ describe("handoff policy boundaries", () => {
     }
   });
 
-  test("sparse contract search is based on median contact cadence", () => {
-    expect(usesSparseContractSearch([
+  test("sparse contact cadence is based on median contact cadence", () => {
+    expect(usesSparseContactCadence([
       gap(0, 0, 20),
       gap(1, 20, 40),
       gap(2, 40, 60),
     ])).toBe(false);
-    expect(usesSparseContractSearch([
+    expect(usesSparseContactCadence([
       gap(0, 0, 22),
       gap(1, 22, 53),
       gap(2, 53, 84),
     ])).toBe(true);
   });
 
-  test("expanded brake breadth follows the quality phase", () => {
-    expect(shouldUseExpandedBrakeSearch(false)).toBe(false);
-    expect(shouldUseExpandedBrakeSearch(true)).toBe(true);
-  });
-
-  test("future preview is reserved for contract search", () => {
-    expect(handoffUsesFuturePreview(false)).toBe(true);
-    expect(handoffUsesFuturePreview(true)).toBe(false);
-  });
-
   test("brake work is allocated from local overspeed only", () => {
     expect(brakeCandidateCount(0.99)).toBe(0);
-    expect(brakeCandidateCount(1.0)).toBe(2);
-    expect(brakeCandidateCount(1.14)).toBe(2);
-    expect(brakeCandidateCount(1.15)).toBe(3);
-    expect(brakeCandidateCount(1.49)).toBe(3);
-    expect(brakeCandidateCount(1.5)).toBe(3);
-    expect(brakeCandidateCount(2.0)).toBe(3);
-    expect(brakeCandidateCount(1.0, true)).toBe(3);
-    expect(brakeCandidateCount(1.15, true)).toBe(4);
+    expect(brakeCandidateCount(1.0)).toBe(3);
+    expect(brakeCandidateCount(1.14)).toBe(3);
+    expect(brakeCandidateCount(1.15)).toBe(4);
+    expect(brakeCandidateCount(1.49)).toBe(4);
+    expect(brakeCandidateCount(1.5)).toBe(4);
+    expect(brakeCandidateCount(2.0)).toBe(4);
   });
 
   test("handoff overshoot pressure is asymmetric and policy-table driven", () => {

@@ -104,10 +104,6 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(a.stats.predicted_first_completion_frames ?? 0).toBeGreaterThan(0);
     expect(a.stats.budget_slack ?? 0)
       .toBeCloseTo(budget / (a.stats.predicted_first_completion_frames ?? Infinity), 3);
-    expect(a.stats.handoff_policy_variant).toBe("quality-v1");
-    expect(a.stats.handoff_force_quality_mode).toBe(true);
-    expect(a.stats.handoff_force_quality_mode).toBe(b.stats.handoff_force_quality_mode);
-    expect(a.stats.handoff_policy_mode_counts?.quality ?? 0).toBeGreaterThan(0);
     expect(a.stats.handoff_policy_candidate_count_mean ?? 0).toBeGreaterThan(0);
     expect(a.stats.handoff_policy_branch_limit_mean ?? 0).toBeGreaterThan(0);
     expect(a.stats.first_completion_frame).toBe(b.stats.first_completion_frame);

@@ -59,9 +59,6 @@ type CompileStats = {
   traversal_budget_model?: string;
   predicted_first_completion_frames?: number;
   budget_slack?: number;
-  handoff_policy_variant?: "legacy" | "quality-v1";
-  handoff_force_quality_mode?: boolean;
-  handoff_policy_mode_counts?: Partial<Record<"contract" | "quality", number>>;
   handoff_policy_candidate_count_min?: number;
   handoff_policy_candidate_count_mean?: number;
   handoff_policy_candidate_count_max?: number;

@@ -426,15 +426,6 @@ export type CompileStats = {
   /** Requested budget divided by `predicted_first_completion_frames`. This
    *  normalizes raw budgets across short/easy vs long/dense specs. */
   budget_slack?: number;
-  /** Handoff traversal policy selected for this compile. `quality-v1` uses the
-   *  quality traversal policy from first completion through repair restarts;
-   *  `legacy` preserves the old contract-then-quality phase split. */
-  handoff_policy_variant?: "legacy" | "quality-v1";
-  /** Back-compat policy flag: true when the active handoff policy uses quality
-   *  traversal from the start. */
-  handoff_force_quality_mode?: boolean;
-  /** Contact-node expansion counts by resolved policy mode. */
-  handoff_policy_mode_counts?: Partial<Record<"contract" | "quality", number>>;
   /** Requested per-node policy candidate count over contact-node expansions. */
   handoff_policy_candidate_count_min?: number;
   handoff_policy_candidate_count_mean?: number;

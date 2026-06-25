@@ -204,17 +204,9 @@ type RankedOption = {
   shadowShort?: LeafFactors | null;
 };
 
-export type HandoffPolicyVariant = "legacy" | "quality-v1";
-
-type HandoffPolicyMode = "contract" | "quality";
-
 type HandoffSearchPolicy = {
-  variant: HandoffPolicyVariant;
-  mode: HandoffPolicyMode;
-  qualitySearch: boolean;
   nCand: number;
   preview: boolean;
-  expandedBrakeSearch: boolean;
   axisQualitySearch: boolean;
   releaseSetup: boolean;
   previewScorePressure?: number;
@@ -265,7 +257,6 @@ type HandoffTelemetry = {
   tailCompletionAttemptsByRemainingContacts: Record<number, number>;
   tailCompletionSuccessesByRemainingContacts: Record<number, number>;
   tailCompletionImprovementsByRemainingContacts: Record<number, number>;
-  policyModeCounts: Record<HandoffPolicyMode, number>;
   policyNCand: NumericAccumulator;
   policyBranchLimit: NumericAccumulator;
   previews: number;
@@ -349,8 +340,7 @@ type ExtraCandidateCache = {
   reuseK?: number;
   reuse?: Candidate[];
   brakeSeed?: number;
-  brakeContract?: Candidate[];
-  brakeQuality?: Candidate[];
+  brake?: Candidate[];
 };
 
 
@@ -368,28 +358,13 @@ const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
 const MAX_NODES_FLOOR = 50_000;
 const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
-const CONTRACT_BRANCHING_MIN = 2;
-const CONTRACT_BRANCHING_FADE_START_FRAMES = 50_000;
-const CONTRACT_BRANCHING_FADE_SPAN_FRAMES = 50_000;
-const CONTRACT_BRANCHING_WARMUP_GAPS = 12;
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
  *  pool is mostly wasted per-node work that starves bounded-budget exploration.
- *  Before any passing output exists, use a cheaper deterministic prefix. Sparse
- *  contact cadences get one fewer first-pass sample to expose complete tracks
- *  earlier; dense cadences keep the safer 14-sample prefix. Once the register
- *  has a passing output, expand the deterministic prefix for quality search.
- *  These contract-phase values are the CAP: the pre-validity race scales the count
- *  DOWN toward CONTRACT_N_CAND_FLOOR when the frame budget is scarce (see
- *  `budgetAwareContractSampleCount`) so a small budget still reaches a complete
- *  track; an ample budget keeps the full cap. LR_CONTRACT_NCAND overrides this
- *  contract-phase cap for controlled traversal-breadth studies. */
-const HANDOFF_SPARSE_CONTRACT_N_CAND = 13;
-const HANDOFF_CONTRACT_N_CAND = 14;
-// Quality-phase breadth. The pre-impact board's 24-sample sweet spot shifted once
-// `Contact.impact` became scored: harder catch geometry is often present later in
-// the deterministic batch, and the true-score forward ranker can use the extra pool.
-// LR_QUALITY_NCAND overrides this quality-phase breadth for controlled studies.
+ *  The pre-impact board's 24-sample sweet spot shifted once `Contact.impact`
+ *  became scored: harder catch geometry is often present later in the
+ *  deterministic batch, and the true-score forward ranker can use the extra pool.
+ *  LR_QUALITY_NCAND overrides this unified breadth for controlled studies. */
 const HANDOFF_QUALITY_N_CAND = 32;
 const HANDOFF_QUALITY_LEAN_N_CAND = 29;
 const HANDOFF_QUALITY_SCARCE_LEAN_START_FRAMES = 50_000;
@@ -411,24 +386,6 @@ const HANDOFF_QUALITY_SPARSE_AMP_IMPACT_HIGH_START = 0.56;
 const HANDOFF_QUALITY_SPARSE_AMP_IMPACT_HIGH_SPAN = 0.16;
 const HANDOFF_QUALITY_SPARSE_AMP_SPEED_RANGE_START = 0.10;
 const HANDOFF_QUALITY_SPARSE_AMP_SPEED_RANGE_SPAN = 0.10;
-/** Floor for the budget-scaled contract sample count: even the leanest low-budget
- *  race samples at least this many candidates per contact gap, so greedy completion
- *  keeps enough breadth to route around dead ends (3 was the value that flipped deep
- *  specs from "never completes at 25k" to "valid at 25k" in the budget probe). */
-const CONTRACT_N_CAND_FLOOR = 3;
-/** Warm-up depth before the budget projection is trusted. The cost rate
- *  (`simFrames / depthReached`) is noisy and start-overhead-inflated at depth 1-2, which
- *  would lean spuriously even when the budget is ample. Holding the full cap until a few
- *  gaps of cost have accrued makes an ample budget a true no-op (every gap keeps the cap
- *  → search identical to the budget-oblivious baseline) and only a genuinely scarce
- *  budget ever scales breadth down. */
-const CONTRACT_BUDGET_WARMUP_GAPS = 4;
-/** Budget range over which the protective contract-breadth reduction fades to OFF.
- *  Below START the cut is fully applied (scarce budgets need it to ever complete);
- *  above START+SPAN it is gone (ample budgets keep full breadth → higher ceiling).
- *  Smooth/monotone in budget, deliberately wider than any single grid budget. */
-const CONTRACT_BREADTH_FADE_START_FRAMES = 100_000;
-const CONTRACT_BREADTH_FADE_SPAN_FRAMES = 50_000;
 const HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES = Math.round(FPS * 0.75);
 /** Extra deterministic sampling only when the normal batch finds no viable
  *  catch for a required contact. This preserves the cheap common path while
@@ -508,8 +465,6 @@ const HANDOFF_BRAKE_TARGET_MIN_PX_PER_FRAME = authoredSpeedToPx(0.0);
 const HANDOFF_BRAKE_TARGET_EPSILON_PX_PER_FRAME = 1e-6;
 const HANDOFF_BRAKE_RATIO_MIN = 1.0;
 const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
-const HANDOFF_BRAKE_CONTRACT_BASE_K = 2;
-const HANDOFF_BRAKE_CONTRACT_HIGH_OVERSPEED_K = 3;
 const HANDOFF_BRAKE_QUALITY_BASE_K = 3;
 const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
 const HANDOFF_RELEASE_VERTICAL_WEIGHT = 0.045;
@@ -539,11 +494,7 @@ const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 const TAIL_COMPLETION_CONTACT_WINDOW = 8;
 const TAIL_COMPLETION_BUDGET_WINDOW_EXTRA = 4;
 const TAIL_COMPLETION_BUDGET_SCALE_FRAMES = 150_000;
-const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_WINDOW_EXTRA = 17;
-const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_SCALE_FRAMES = 75_000;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
-const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_EXTRA_BRANCHES = 1;
-const CONTRACT_TAIL_COMPLETION_LOW_BUDGET_BRANCH_SCALE_FRAMES = 75_000;
 const QUALITY_SHALLOW_TAIL_THROTTLE_MAX_PRESSURE = 1.0;
 const QUALITY_SHALLOW_TAIL_THROTTLE_BUDGET_SCALE_FRAMES = 150_000;
 const QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE = 6;
@@ -745,9 +696,8 @@ function compileHandoffInternal(
     const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
     const budgetSlack = round3(traversalBudgetSlack(targetBudget, spec));
-    const policyVariant = handoffPolicyVariant();
     setForwardEvalContext(spec, gapAxisTargets);
-    const sparseContractSearch = usesSparseContractSearch(gaps);
+    const sparseContactCadence = usesSparseContactCadence(gaps);
     const startOptions = initialSnapshot === null
       ? buildStartOptions(userSpec, spec, gaps, ctx, searchSeed, targetBudget)
       : [];
@@ -788,7 +738,6 @@ function compileHandoffInternal(
       tailCompletionAttemptsByRemainingContacts: {},
       tailCompletionSuccessesByRemainingContacts: {},
       tailCompletionImprovementsByRemainingContacts: {},
-      policyModeCounts: { contract: 0, quality: 0 },
       policyNCand: emptyNumericAccumulator(),
       policyBranchLimit: emptyNumericAccumulator(),
       previews: 0,
@@ -934,9 +883,6 @@ function compileHandoffInternal(
           traversal_budget_model: TRAVERSAL_BUDGET_MODEL_V1.name,
           predicted_first_completion_frames: predictedFirstCompletionFrames,
           budget_slack: budgetSlack,
-          handoff_policy_variant: policyVariant,
-          handoff_force_quality_mode: policyVariant === "quality-v1",
-          handoff_policy_mode_counts: snapshotPolicyModeCounts(telemetry),
           ...snapshotNumericPolicyStats("handoff_policy_candidate_count", telemetry.policyNCand),
           ...snapshotNumericPolicyStats("handoff_policy_branch_limit", telemetry.policyBranchLimit),
           first_completion_frame: firstTerminalFrame >= 0 ? firstTerminalFrame : null,
@@ -1045,9 +991,8 @@ function compileHandoffInternal(
     // Per-node work shared by every traversal mode (DFS today, best-first next):
     // consider the node + its speculative tail, check the budget, polish terminals, and
     // expand into ranked children. It mutates the register/telemetry/budget exactly as the
-    // old inline loop did, and keeps the contract->quality phase wiring
-    // (register.getBestKey()) in ONE place so no traversal can silently drift from it. It
-    // does NOT touch the frontier container — the caller enqueues the returned children.
+    // old inline loop did. It does NOT touch the frontier container — the caller enqueues
+    // the returned children.
     type ProcessResult =
       | { kind: "captured" }
       | { kind: "deferred" }
@@ -1058,14 +1003,12 @@ function compileHandoffInternal(
       consider(node, "main");
       const resolvePolicy = (search: SearchNode): HandoffSearchPolicy =>
         resolveHandoffSearchPolicy({
-          variant: policyVariant,
           node: search,
           gaps,
           ctx,
           telemetry,
-          sparseContractSearch,
+          sparseContactCadence,
           targetBudget,
-          bestKey: register.getBestKey(),
         });
       const policy = resolvePolicy(node.search);
 
@@ -1950,7 +1893,6 @@ function expandNode(
   let options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
     nCand: policy.nCand,
     preview: policy.preview,
-    expandedBrakeSearch: policy.expandedBrakeSearch,
     axisQualitySearch: policy.axisQualitySearch,
     releaseSetup: policy.releaseSetup,
     reuseLimit: policy.reuseLimit,
@@ -1965,7 +1907,6 @@ function expandNode(
       nCand: rescueNCand,
       poolSize: deadEndRescueCandidatePoolSize(gap, rescueNCand),
       preview: policy.preview,
-      expandedBrakeSearch: policy.expandedBrakeSearch,
       axisQualitySearch: policy.axisQualitySearch,
       releaseSetup: policy.releaseSetup,
       reuseLimit: policy.reuseLimit,
@@ -1985,7 +1926,6 @@ function expandNode(
       nCand: HANDOFF_SHORT_RESCUE_N_CAND,
       poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
       preview: policy.preview,
-      expandedBrakeSearch: policy.expandedBrakeSearch,
       axisQualitySearch: policy.axisQualitySearch,
       releaseSetup: policy.releaseSetup,
       reuseLimit: policy.reuseLimit,
@@ -2035,34 +1975,6 @@ function expandNode(
   }));
 }
 
-function contractBranchingLimit(
-  node: SearchNode,
-  qualitySearch: boolean,
-  targetBudget: number,
-  bestKey: LeafKey | null,
-): number {
-  if (qualitySearch || bestKey?.contract_passed === true) return HANDOFF_BRANCHING;
-  const scarcityPressure = 1 - smoothstep(
-    (targetBudget - CONTRACT_BRANCHING_FADE_START_FRAMES) /
-      CONTRACT_BRANCHING_FADE_SPAN_FRAMES,
-  );
-  if (scarcityPressure <= 0) return HANDOFF_BRANCHING;
-  const depthPressure = smoothstep(
-    (node.gapIndex - CONTRACT_BRANCHING_WARMUP_GAPS) / 8,
-  );
-  const thirdBranchPressure = 1 - 0.75 * scarcityPressure * depthPressure;
-  return CONTRACT_BRANCHING_MIN +
-    (unitHash(contractBranchingSeed(node)) < thirdBranchPressure ? 1 : 0);
-}
-
-function contractBranchingSeed(node: SearchNode): number {
-  return (
-    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
-    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
-    0x4f1bbcdc
-  ) | 0;
-}
-
 function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap, ctx: SpecContext): boolean {
   if (!gap.endsWithContact) return false;
   if (gap.endFrame - gap.startFrame < HANDOFF_RESCUE_MIN_GAP_FRAMES) return false;
@@ -2107,13 +2019,6 @@ function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {
 
 function shouldAttemptStartupDeadEndRescue(gap: Gap): boolean {
   return gap.endsWithContact && startupDeadEndCandidateCount(gap) > 0;
-}
-
-export function shouldUseExpandedBrakeSearch(qualitySearch: boolean): boolean {
-  // Expanded brake breadth is used in the quality phase. (It was also enabled in
-  // the contract phase for contact-event gaps, an axis category that no longer
-  // exists.)
-  return qualitySearch;
 }
 
 export function shortDeadlineRescueCandidateCount(gapFrames: number): number {
@@ -2219,7 +2124,6 @@ function rankedOptions(
     nCand?: number;
     poolSize?: number;
     preview?: boolean;
-    expandedBrakeSearch?: boolean;
     axisQualitySearch?: boolean;
     reuseLimit?: number;
     previewCostWeight?: number;
@@ -2228,7 +2132,7 @@ function rankedOptions(
     targetBudget?: number;
   } = {},
 ): RankedOption[] {
-  const requestedCandidates = config.nCand ?? HANDOFF_CONTRACT_N_CAND;
+  const requestedCandidates = config.nCand ?? HANDOFF_QUALITY_N_CAND;
   const targetBudget = config.targetBudget ?? 0;
   const normalCandidates = requestedCandidates;
   const sorted = getCandidatesSorted(
@@ -2270,12 +2174,7 @@ function rankedOptions(
     gaps,
     ctx,
     telemetry,
-    config.reuseLimit ?? reuseCandidateLimit(
-      node,
-      config.axisQualitySearch ?? false,
-      targetBudget,
-      telemetry,
-    ),
+    config.reuseLimit ?? reuseCandidateLimit(node, targetBudget, telemetry),
   );
   reuse.forEach((candidate, j) =>
     scored.push(scoreCandidateForHandoff(
@@ -2295,7 +2194,6 @@ function rankedOptions(
     gaps,
     ctx,
     seed,
-    config.expandedBrakeSearch ?? false,
     telemetry,
   );
   brake.forEach((candidate, j) =>
@@ -2374,11 +2272,9 @@ function cachedReuseCatchCandidates(
 
 function reuseCandidateLimit(
   node: SearchNode,
-  qualitySearch: boolean,
   targetBudget: number,
   telemetry: HandoffTelemetry,
 ): number {
-  if (!qualitySearch) return HANDOFF_REUSE_K;
   const pressure = matureReuseExtraPressure(targetBudget, uniqueFullEvaluations(telemetry));
   if (pressure <= 0) return HANDOFF_REUSE_K;
   return HANDOFF_REUSE_K +
@@ -2409,23 +2305,16 @@ function cachedBrakeCatchCandidates(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
-  expandedBrakeSearch: boolean,
   telemetry: HandoffTelemetry,
 ): Candidate[] {
   const cache = extraCandidateCache.get(node) ?? {};
   if (cache.brakeSeed !== undefined && cache.brakeSeed !== seed) {
-    cache.brakeContract = undefined;
-    cache.brakeQuality = undefined;
+    cache.brake = undefined;
   }
-  const cached = expandedBrakeSearch ? cache.brakeQuality : cache.brakeContract;
-  if (cached !== undefined && cache.brakeSeed === seed) return cached;
+  if (cache.brake !== undefined && cache.brakeSeed === seed) return cache.brake;
 
-  const generated = brakeCatchCandidates(node, gaps, ctx, seed, expandedBrakeSearch, telemetry);
-  if (expandedBrakeSearch) {
-    cache.brakeQuality = generated;
-  } else {
-    cache.brakeContract = generated;
-  }
+  const generated = brakeCatchCandidates(node, gaps, ctx, seed, telemetry);
+  cache.brake = generated;
   if (cache.brakeSeed !== seed) {
     cache.brakeSeed = seed;
   }
@@ -2441,7 +2330,6 @@ function brakeCatchCandidates(
   gaps: Gap[],
   ctx: SpecContext,
   seed: number,
-  expandedBrakeSearch: boolean,
   telemetry: HandoffTelemetry,
 ): Candidate[] {
   const gap = gaps[node.gapIndex];
@@ -2457,10 +2345,10 @@ function brakeCatchCandidates(
   }
   const ts = getCandidateProbe(node.prefixEngine, gap, ctx).targetState;
   const speedRatio = ts.speed / targetSpeedPx;
-  if (!shouldOfferBrakeCandidates(targetSpeedPx, speedRatio, expandedBrakeSearch)) {
+  if (!shouldOfferBrakeCandidates(targetSpeedPx, speedRatio)) {
     return [];
   }
-  const brakeK = brakeCandidateCount(speedRatio, expandedBrakeSearch);
+  const brakeK = brakeCandidateCount(speedRatio);
   if (brakeK <= 0) return [];
   const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 7919) | 0);
   const out: Candidate[] = [];
@@ -2478,23 +2366,16 @@ function brakeCatchCandidates(
   return out;
 }
 
-export function brakeCandidateCount(speedRatio: number, expandedBrakeSearch = false): number {
+export function brakeCandidateCount(speedRatio: number): number {
   if (!Number.isFinite(speedRatio) || speedRatio < HANDOFF_BRAKE_RATIO_MIN) return 0;
-  const highOverspeedK = expandedBrakeSearch
-    ? HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K
-    : HANDOFF_BRAKE_CONTRACT_HIGH_OVERSPEED_K;
-  const baseK = expandedBrakeSearch
-    ? HANDOFF_BRAKE_QUALITY_BASE_K
-    : HANDOFF_BRAKE_CONTRACT_BASE_K;
   return speedRatio >= HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO
-    ? highOverspeedK
-    : baseK;
+    ? HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K
+    : HANDOFF_BRAKE_QUALITY_BASE_K;
 }
 
 export function shouldOfferBrakeCandidates(
   targetSpeedPxPerFrame: number,
   speedRatio: number,
-  expandedBrakeSearch = false,
 ): boolean {
   // Mild-speed targets can use brake probes on any overspeed. Higher target
   // speeds only get them once the existing high-overspeed band is reached, where
@@ -2509,7 +2390,7 @@ export function shouldOfferBrakeCandidates(
   return aboveMinTarget &&
     withinTarget &&
     (withinMildTarget || highOverspeed) &&
-    brakeCandidateCount(speedRatio, expandedBrakeSearch) > 0;
+    brakeCandidateCount(speedRatio) > 0;
 }
 
 /** Translate the most-recent committed catch (which carries a sled `ref`) to
@@ -2575,7 +2456,7 @@ function completeNearTail(
   resolvePolicy: (search: SearchNode) => HandoffSearchPolicy,
   targetBudget: number,
 ): HandoffNode | null {
-  if (!shouldAttemptNearTailCompletion(node, gaps, targetBudget, policy.qualitySearch, telemetry)) {
+  if (!shouldAttemptNearTailCompletion(node, gaps, targetBudget, telemetry)) {
     return null;
   }
   const remaining = remainingContactCount(node.search, gaps);
@@ -2652,7 +2533,6 @@ function completeNearTailSuffix(
     const options = rankedOptions(search, gaps, ctx, seed, telemetry, {
       nCand: policy.nCand,
       preview: false,
-      expandedBrakeSearch: policy.expandedBrakeSearch,
       axisQualitySearch: policy.axisQualitySearch,
       releaseSetup: policy.releaseSetup,
       reuseLimit: policy.reuseLimit,
@@ -2703,60 +2583,31 @@ function pickFeasibleWeakGap(
   return -1;
 }
 
-export function handoffPolicyVariant(): HandoffPolicyVariant {
-  const raw = readEnv("LR_HANDOFF_POLICY")?.trim().toLowerCase();
-  if (raw === "legacy") return "legacy";
-  if (raw === "quality-v1" || raw === "quality") return "quality-v1";
-  if (raw !== undefined && raw !== "") {
-    throw new Error(`LR_HANDOFF_POLICY must be "legacy" or "quality-v1", got "${raw}"`);
-  }
-  if (forceHandoffQualityMode()) return "quality-v1";
-  return "quality-v1";
-}
-
 function resolveHandoffSearchPolicy({
-  variant,
   node,
   gaps,
   ctx,
   telemetry,
-  sparseContractSearch,
+  sparseContactCadence,
   targetBudget,
-  bestKey,
 }: {
-  variant: HandoffPolicyVariant;
   node: SearchNode;
   gaps: Gap[];
   ctx: SpecContext;
   telemetry: HandoffTelemetry;
-  sparseContractSearch: boolean;
+  sparseContactCadence: boolean;
   targetBudget: number;
-  bestKey: LeafKey | null;
 }): HandoffSearchPolicy {
-  const qualitySearch = variant === "quality-v1" || bestKey?.contract_passed === true;
-  const nCand = qualitySearch
-    ? qualityHandoffSampleCount(gaps, ctx, sparseContractSearch, targetBudget)
-    : budgetAwareContractSampleCount(
-      targetBudget,
-      gaps.length - node.gapIndex,
-      telemetry.deepestSeenGap + 1,
-      sparseContractSearch,
-    );
+  const nCand = qualityHandoffSampleCount(gaps, ctx, sparseContactCadence, targetBudget);
   return {
-    variant,
-    mode: qualitySearch ? "quality" : "contract",
-    qualitySearch,
     nCand,
-    preview: handoffUsesFuturePreview(qualitySearch),
-    expandedBrakeSearch: shouldUseExpandedBrakeSearch(qualitySearch),
-    axisQualitySearch: qualitySearch,
-    releaseSetup: qualitySearch,
-    previewScorePressure: qualitySearch
-      ? qualityFuturePreviewPressure(targetBudget, telemetry)
-      : undefined,
-    branchLimit: contractBranchingLimit(node, qualitySearch, targetBudget, bestKey),
-    reuseLimit: reuseCandidateLimit(node, qualitySearch, targetBudget, telemetry),
-    tailBranching: tailCompletionBranching(node, targetBudget, qualitySearch),
+    preview: false,
+    axisQualitySearch: true,
+    releaseSetup: true,
+    previewScorePressure: qualityFuturePreviewPressure(targetBudget, telemetry),
+    branchLimit: HANDOFF_BRANCHING,
+    reuseLimit: reuseCandidateLimit(node, targetBudget, telemetry),
+    tailBranching: TAIL_COMPLETION_FALLBACK_BRANCHING,
   };
 }
 
@@ -2775,18 +2626,8 @@ function recordHandoffPolicyTelemetry(
   telemetry: HandoffTelemetry,
   policy: HandoffSearchPolicy,
 ): void {
-  telemetry.policyModeCounts[policy.mode]++;
   recordNumeric(telemetry.policyNCand, policy.nCand);
   recordNumeric(telemetry.policyBranchLimit, policy.branchLimit);
-}
-
-function snapshotPolicyModeCounts(
-  telemetry: HandoffTelemetry,
-): Partial<Record<HandoffPolicyMode, number>> {
-  return Object.fromEntries(
-    (Object.entries(telemetry.policyModeCounts) as [HandoffPolicyMode, number][])
-      .filter(([, count]) => count > 0),
-  ) as Partial<Record<HandoffPolicyMode, number>>;
 }
 
 function snapshotNumericPolicyStats(
@@ -2801,21 +2642,12 @@ function snapshotNumericPolicyStats(
   } as Partial<CompileStats>;
 }
 
-export function handoffSampleCount(
-  qualitySearch: boolean,
-  sparseContractSearch = false,
-  targetBudget?: number,
-): number {
-  if (qualitySearch) {
-    // LR_QUALITY_NCAND=<n> overrides the quality-phase candidate breadth (experiment:
-    // does more geometry diversity pay now that the forward-eval ranker can sort it?).
-    const override = qualityNCandOverride();
-    if (override !== null) return override;
-    return budgetAwareQualitySampleCount(targetBudget);
-  }
-  const override = contractNCandOverride();
+export function handoffSampleCount(targetBudget?: number): number {
+  // LR_QUALITY_NCAND=<n> overrides the unified candidate breadth for controlled
+  // spend-response studies and, later, model-driven budget allocation.
+  const override = qualityNCandOverride();
   if (override !== null) return override;
-  return sparseContractSearch ? HANDOFF_SPARSE_CONTRACT_N_CAND : HANDOFF_CONTRACT_N_CAND;
+  return budgetAwareQualitySampleCount(targetBudget);
 }
 
 function qualityNCandOverride(): number | null {
@@ -2825,32 +2657,21 @@ function qualityNCandOverride(): number | null {
   return Number.isFinite(n) && n > 0 ? Math.min(64, n) : null;
 }
 
-function contractNCandOverride(): number | null {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_CONTRACT_NCAND;
-  const n = raw ? Number.parseInt(raw, 10) : 0;
-  return Number.isFinite(n) && n > 0 ? Math.min(64, n) : null;
-}
-
-function forceHandoffQualityMode(): boolean {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_HANDOFF_FORCE_QUALITY;
-  return raw === "1" || raw === "true" || raw === "yes";
-}
-
 function qualityHandoffSampleCount(
   gaps: Gap[],
   ctx: SpecContext,
-  sparseContractSearch: boolean,
+  sparseContactCadence: boolean,
   targetBudget: number | undefined,
 ): number {
-  const base = handoffSampleCount(true, sparseContractSearch, targetBudget);
+  const base = handoffSampleCount(targetBudget);
   if (qualityNCandOverride() !== null || base >= HANDOFF_QUALITY_N_CAND) return base;
   if (shouldRelaxMatureQualityLean(gaps, ctx)) return HANDOFF_QUALITY_N_CAND;
   const boosted = shouldBoostShortNoAmpQualityBreadth(gaps, ctx)
     ? HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND
     : base;
-  return smoothSparseAmplitudeQualityBreadth(gaps, ctx, boosted);
+  return sparseContactCadence
+    ? smoothSparseAmplitudeQualityBreadth(gaps, ctx, boosted)
+    : boosted;
 }
 
 function budgetAwareQualitySampleCount(targetBudget: number | undefined): number {
@@ -2952,56 +2773,7 @@ function targetAxisMean(gaps: Gap[], ctx: SpecContext, axis: AxisName): number |
   return count > 0 ? sum / count : null;
 }
 
-/** Budget-aware candidate count for the pre-validity (contract) race to a first
- *  complete track. The full per-gap breadth (`handoffSampleCount`) is the right effort
- *  when frames are ample, but on a scarce budget it is spent mid-prefix and the run
- *  scores zero (deep specs never reach the tail). So we estimate, from the search's own
- *  measured cost so far, whether finishing the remaining gaps at full breadth fits the
- *  frames still available; if not, breadth is scaled down from the cap in proportion to
- *  the shortfall (frames/node scales with breadth, so the projected cost scales with it
- *  too). Cost rate is `simFrames / depthReached` (frames per gap of depth achieved,
- *  which already folds in sibling/branching overhead); projected over `remainingGaps`
- *  that is the frames a full-breadth completion would need. Self-calibrating per
- *  (spec, seed, budget); parameter-free apart from the floor/cap; grid-independent. */
-function budgetAwareContractSampleCount(
-  targetBudget: number,
-  remainingGaps: number,
-  depthReached: number,
-  sparseContractSearch: boolean,
-): number {
-  const cap = handoffSampleCount(false, sparseContractSearch);
-  // A/B: LR_BUDGET_AWARE_CONTRACT=0 disables the breadth reduction entirely (full
-  // breadth always, like work-new — breaks the high-budget ceiling but tanks 25k).
-  if ((globalThis as { process?: { env?: Record<string, string | undefined> } })
-      .process?.env?.LR_BUDGET_AWARE_CONTRACT === "0") return cap;
-  // Hold full breadth until the cost rate is trustworthy; ample budgets never get past
-  // this and stay byte-identical to the budget-oblivious baseline.
-  if (depthReached < CONTRACT_BUDGET_WARMUP_GAPS || remainingGaps <= 0) return cap;
-  const framesPerGap = getSimFrames() / depthReached;
-  if (!(framesPerGap > 0)) return cap;
-  const projectedToFinish = framesPerGap * remainingGaps;
-  const framesLeft = Math.max(0, targetBudget - getSimFrames());
-  if (projectedToFinish <= framesLeft) return cap; // full breadth fits → keep it
-  const scaled = Math.round((cap * framesLeft) / projectedToFinish);
-  const reduced = Math.max(CONTRACT_N_CAND_FLOOR, Math.min(cap, scaled));
-  // The reduction is a protective race-to-first-complete cut: vital at scarce budgets
-  // (else the run burns frames mid-prefix and scores 0), but on deep specs its cost
-  // PROJECTION over-estimates and spuriously fires even when frames are ample, locking
-  // a lower-quality first-complete basin that caps the high-budget ceiling. Fade the
-  // cut out smoothly as total budget grows so ample budgets keep full contract breadth
-  // and convert it into a higher ceiling. Smooth, monotone, deterministic in budget.
-  const fade = smoothstep(
-    (targetBudget - CONTRACT_BREADTH_FADE_START_FRAMES) / CONTRACT_BREADTH_FADE_SPAN_FRAMES,
-  );
-  return clampIntLocal(reduced + (cap - reduced) * fade, CONTRACT_N_CAND_FLOOR, cap);
-}
-
-
-export function handoffUsesFuturePreview(qualitySearch: boolean): boolean {
-  return !qualitySearch;
-}
-
-export function usesSparseContractSearch(gaps: readonly Gap[]): boolean {
+export function usesSparseContactCadence(gaps: readonly Gap[]): boolean {
   const median = medianContactGapFrames(gaps);
   return median !== null && median >= HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES;
 }
@@ -3019,30 +2791,27 @@ export function shouldAttemptNearTailCompletion(
   node: { search: SearchNode; skippedContacts: number },
   gaps: Gap[],
   targetBudget = 0,
-  qualitySearch = false,
   telemetry?: HandoffTelemetry,
 ): boolean {
   if (node.skippedContacts > 0 || isTerminalNode(node.search, gaps)) return false;
   if (!node.search.prefixFits.some((fit) => fit !== null)) return false;
   const remaining = remainingContactCount(node.search, gaps);
   if (
-    qualitySearch &&
     telemetry !== undefined &&
     remaining <= 2 &&
     !shouldKeepShallowQualityTailCompletion(node.search, remaining, targetBudget, telemetry)
   ) {
     return false;
   }
-  return shouldAttemptTailCompletionWindow(node.search, remaining, targetBudget, qualitySearch);
+  return shouldAttemptTailCompletionWindow(node.search, remaining, targetBudget);
 }
 
 function shouldAttemptTailCompletionWindow(
   node: SearchNode,
   remainingContacts: number,
   targetBudget: number,
-  qualitySearch: boolean,
 ): boolean {
-  const window = tailCompletionContactWindow(targetBudget, qualitySearch);
+  const window = tailCompletionContactWindow(targetBudget);
   const fullContacts = Math.floor(window);
   if (remainingContacts <= fullContacts) return true;
   if (remainingContacts > fullContacts + 1) return false;
@@ -3099,48 +2868,10 @@ function tailCompletionWindowSeed(node: SearchNode, remainingContacts: number): 
   ) | 0;
 }
 
-function tailCompletionContactWindow(targetBudget: number, qualitySearch = true): number {
+function tailCompletionContactWindow(targetBudget: number): number {
   const budget = Math.max(0, targetBudget);
-  if (!qualitySearch) {
-    const scarcityPressure = 1 - smoothstep(
-      clamp01(
-        budget /
-          (budget + CONTRACT_TAIL_COMPLETION_LOW_BUDGET_SCALE_FRAMES),
-      ),
-    );
-    return TAIL_COMPLETION_CONTACT_WINDOW +
-      CONTRACT_TAIL_COMPLETION_LOW_BUDGET_WINDOW_EXTRA * scarcityPressure;
-  }
   const pressure = smoothstep(clamp01(budget / (budget + TAIL_COMPLETION_BUDGET_SCALE_FRAMES)));
   return TAIL_COMPLETION_CONTACT_WINDOW + TAIL_COMPLETION_BUDGET_WINDOW_EXTRA * pressure;
-}
-
-function tailCompletionBranching(
-  node: SearchNode,
-  targetBudget: number,
-  qualitySearch: boolean,
-): number {
-  if (qualitySearch) return TAIL_COMPLETION_FALLBACK_BRANCHING;
-  const budget = Math.max(0, targetBudget);
-  const pressure = 1 - smoothstep(
-    clamp01(
-      budget /
-        (budget + CONTRACT_TAIL_COMPLETION_LOW_BUDGET_BRANCH_SCALE_FRAMES),
-    ),
-  );
-  if (pressure <= 0) return TAIL_COMPLETION_FALLBACK_BRANCHING;
-  const extraBranchPressure = clamp01(
-    CONTRACT_TAIL_COMPLETION_LOW_BUDGET_EXTRA_BRANCHES * pressure,
-  );
-  return TAIL_COMPLETION_FALLBACK_BRANCHING +
-    (unitHash(contractTailCompletionBranchSeed(node)) < extraBranchPressure ? 1 : 0);
-}
-
-function contractTailCompletionBranchSeed(node: SearchNode): number {
-  return (
-    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
-    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b)
-  ) | 0;
 }
 
 function uniqueFullEvaluations(telemetry: HandoffTelemetry): number {

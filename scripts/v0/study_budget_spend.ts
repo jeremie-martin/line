@@ -12,14 +12,6 @@
  *     --quality-ncand=24,32,40 \
  *     --out=generated/studies/budget-spend-qncand.json
  *
- * To study first-traversal breadth instead of quality-phase breadth:
- *
- *   LR_ENGINE=wasm node --import tsx scripts/v0/study_budget_spend.ts \
- *     --budget=200000 \
- *     --specs=tiny_dance,dense_echo_climb,skyline_push,drums_pendulum \
- *     --seeds=0,1 \
- *     --contract-ncand=8,11,14,17,20 \
- *     --out=generated/studies/budget-spend-contract-ncand.json
  */
 
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -41,10 +33,8 @@ const DEFAULT_SEEDS = [0, 1];
 const DEFAULT_BUDGET = 200_000;
 const DEFAULT_QUALITY_NCAND = [24, 32, 40];
 const DEFAULT_BASELINE_NCAND = 32;
-const DEFAULT_BASELINE_CONTRACT_NCAND = 14;
 
-type StudyKnob = "quality_ncand" | "contract_ncand";
-type StudyPolicy = "legacy" | "quality-v1";
+type StudyKnob = "quality_ncand";
 
 type KnobConfig = {
   name: StudyKnob;
@@ -58,9 +48,7 @@ type Row = {
   spec: string;
   seed: number;
   budget: number;
-  handoff_policy_variant: string | null;
   quality_ncand: number;
-  contract_ncand: number | null;
   score: number;
   contract_passed: boolean;
   axis_quality: number;
@@ -165,117 +153,75 @@ type PairedResponseSample = {
 
 const argv = process.argv.slice(2);
 const budget = intArg("budget", DEFAULT_BUDGET);
-const studyPolicy = policyArg("policy", "quality-v1");
 const baselineNCand = intArg("baseline-ncand", DEFAULT_BASELINE_NCAND);
-const baselineContractNCand = intArg("baseline-contract-ncand", DEFAULT_BASELINE_CONTRACT_NCAND);
-const requestedContractNCands = positiveIntListArg("contract-ncand", []);
-const studyKnob: StudyKnob = requestedContractNCands.length > 0 ? "contract_ncand" : "quality_ncand";
-const qualityNCands = (studyKnob === "quality_ncand"
-  ? ensureIncludes(positiveIntListArg("quality-ncand", DEFAULT_QUALITY_NCAND), baselineNCand)
-  : positiveIntListArg("quality-ncand", [baselineNCand])
+const studyKnob: StudyKnob = "quality_ncand";
+const qualityNCands = ensureIncludes(
+  positiveIntListArg("quality-ncand", DEFAULT_QUALITY_NCAND),
+  baselineNCand,
 ).sort((a, b) => a - b);
-if (studyKnob === "contract_ncand" && qualityNCands.length !== 1) {
-  throw new Error("--contract-ncand studies must keep --quality-ncand fixed to one value");
-}
-const contractNCands = (studyKnob === "contract_ncand"
-  ? ensureIncludes(requestedContractNCands, baselineContractNCand)
-  : [null]
-).sort((a, b) => (a ?? -1) - (b ?? -1));
-const knobConfig: KnobConfig = studyKnob === "quality_ncand"
-  ? {
-    name: "quality_ncand",
-    values: qualityNCands,
-    baseline: baselineNCand,
-    label: "q",
-    valueOf: (row) => row.quality_ncand,
-  }
-  : {
-    name: "contract_ncand",
-    values: contractNCands.filter((x): x is number => x !== null),
-    baseline: baselineContractNCand,
-    label: "c",
-    valueOf: (row) => row.contract_ncand,
-  };
+const knobConfig: KnobConfig = {
+  name: "quality_ncand",
+  values: qualityNCands,
+  baseline: baselineNCand,
+  label: "q",
+  valueOf: (row) => row.quality_ncand,
+};
 const seeds = intListArg("seeds", DEFAULT_SEEDS);
 const specNames = specListArg("specs", [...DEFAULT_SPECS]);
 const outPath = arg("out");
-const previousHandoffPolicy = process.env.LR_HANDOFF_POLICY;
 const previousQualityNCand = process.env.LR_QUALITY_NCAND;
-const previousContractNCand = process.env.LR_CONTRACT_NCAND;
 
 const rows: Row[] = [];
 try {
-  process.env.LR_HANDOFF_POLICY = studyPolicy;
   for (const specName of specNames) {
     const spec = await loadGoldenSpec(specName, "base");
     for (const seed of seeds) {
-      for (const contractNCand of contractNCands) {
-        for (const qualityNCand of qualityNCands) {
-          process.env.LR_QUALITY_NCAND = String(qualityNCand);
-          if (contractNCand === null) {
-            delete process.env.LR_CONTRACT_NCAND;
-          } else {
-            process.env.LR_CONTRACT_NCAND = String(contractNCand);
-          }
-          const t0 = Date.now();
-          const checkpoint = compileHandoff(spec, seed, { budget });
-          const elapsedMs = Date.now() - t0;
-          const score = scoreDriftReport(checkpoint.report, {
-            totalFrames: secToFrame(spec.duration),
-          });
-          const stats = checkpoint.stats;
-          rows.push({
-            spec: specName,
-            seed,
-            budget,
-            handoff_policy_variant: stats.handoff_policy_variant ?? null,
-            quality_ncand: qualityNCand,
-            contract_ncand: contractNCand,
-            score: round(score.score, 4),
-            contract_passed: score.contract_passed,
-            axis_quality: round(score.axis_quality, 6),
-            sim_frames: stats.sim_frames,
-            budget_exhausted: stats.budget_exhausted,
-            predicted_first_completion_frames: stats.predicted_first_completion_frames ?? null,
-            budget_slack: stats.budget_slack ?? null,
-            first_completion_frame: stats.first_completion_frame ?? stats.repair?.first_completion_frame ?? null,
-            candidates_sampled: stats.candidates_sampled,
-            candidates_viable: stats.candidates_viable,
-            handoff_full_evaluations: stats.handoff_full_evaluations ?? 0,
-            handoff_unique_full_evaluations: stats.handoff_unique_full_evaluations ?? 0,
-            fwd_eval_frames_charged: stats.fwd_eval?.fwd_eval_frames_charged ?? 0,
-            fwd_eval_calls: stats.fwd_eval?.fwd_eval_calls ?? 0,
-            repair_frames_spent: stats.repair?.frames_spent ?? 0,
-            repair_restarts: stats.repair?.restarts ?? 0,
-            elapsed_ms: elapsedMs,
-          });
-          console.error(
-            `budget-spend spec=${specName} seed=${seed} ` +
-              `policy=${stats.handoff_policy_variant ?? studyPolicy} ` +
-              `q=${qualityNCand} c=${contractNCand ?? "default"} ` +
-              `score=${score.score.toFixed(1)} sim=${stats.sim_frames} ` +
-              `slack=${stats.budget_slack?.toFixed(2) ?? "na"}`,
-          );
-          await new Promise((resolve) => setImmediate(resolve));
-        }
+      for (const qualityNCand of qualityNCands) {
+        process.env.LR_QUALITY_NCAND = String(qualityNCand);
+        const t0 = Date.now();
+        const checkpoint = compileHandoff(spec, seed, { budget });
+        const elapsedMs = Date.now() - t0;
+        const score = scoreDriftReport(checkpoint.report, {
+          totalFrames: secToFrame(spec.duration),
+        });
+        const stats = checkpoint.stats;
+        rows.push({
+          spec: specName,
+          seed,
+          budget,
+          quality_ncand: qualityNCand,
+          score: round(score.score, 4),
+          contract_passed: score.contract_passed,
+          axis_quality: round(score.axis_quality, 6),
+          sim_frames: stats.sim_frames,
+          budget_exhausted: stats.budget_exhausted,
+          predicted_first_completion_frames: stats.predicted_first_completion_frames ?? null,
+          budget_slack: stats.budget_slack ?? null,
+          first_completion_frame: stats.first_completion_frame ?? stats.repair?.first_completion_frame ?? null,
+          candidates_sampled: stats.candidates_sampled,
+          candidates_viable: stats.candidates_viable,
+          handoff_full_evaluations: stats.handoff_full_evaluations ?? 0,
+          handoff_unique_full_evaluations: stats.handoff_unique_full_evaluations ?? 0,
+          fwd_eval_frames_charged: stats.fwd_eval?.fwd_eval_frames_charged ?? 0,
+          fwd_eval_calls: stats.fwd_eval?.fwd_eval_calls ?? 0,
+          repair_frames_spent: stats.repair?.frames_spent ?? 0,
+          repair_restarts: stats.repair?.restarts ?? 0,
+          elapsed_ms: elapsedMs,
+        });
+        console.error(
+          `budget-spend spec=${specName} seed=${seed} ` +
+            `q=${qualityNCand} score=${score.score.toFixed(1)} ` +
+            `sim=${stats.sim_frames} slack=${stats.budget_slack?.toFixed(2) ?? "na"}`,
+        );
+        await new Promise((resolve) => setImmediate(resolve));
       }
     }
   }
 } finally {
-  if (previousHandoffPolicy === undefined) {
-    delete process.env.LR_HANDOFF_POLICY;
-  } else {
-    process.env.LR_HANDOFF_POLICY = previousHandoffPolicy;
-  }
   if (previousQualityNCand === undefined) {
     delete process.env.LR_QUALITY_NCAND;
   } else {
     process.env.LR_QUALITY_NCAND = previousQualityNCand;
-  }
-  if (previousContractNCand === undefined) {
-    delete process.env.LR_CONTRACT_NCAND;
-  } else {
-    process.env.LR_CONTRACT_NCAND = previousContractNCand;
   }
 }
 
@@ -296,16 +242,13 @@ const knobCandidateSampleModel = fitPairedKnobResponseModel(
 const output = {
   config: {
     budget,
-    policy: studyPolicy,
     specs: specNames,
     seeds,
     study_knob: studyKnob,
     knob_values: knobConfig.values,
     baseline_value: knobConfig.baseline,
     quality_ncand: qualityNCands,
-    contract_ncand: contractNCands,
     baseline_quality_ncand: baselineNCand,
-    baseline_contract_ncand: baselineContractNCand,
   },
   rows,
   summary_by_knob: byKnob,
@@ -344,13 +287,6 @@ function intListArg(name: string, fallback: readonly number[]): number[] {
 
 function positiveIntListArg(name: string, fallback: readonly number[]): number[] {
   return intListArg(name, fallback).filter((x) => x > 0);
-}
-
-function policyArg(name: string, fallback: StudyPolicy): StudyPolicy {
-  const raw = arg(name);
-  if (raw === undefined || raw.trim() === "") return fallback;
-  if (raw === "legacy" || raw === "quality-v1") return raw;
-  throw new Error(`--${name} must be legacy or quality-v1, got ${raw}`);
 }
 
 function specListArg(name: string, fallback: readonly GoldenSpecName[]): GoldenSpecName[] {

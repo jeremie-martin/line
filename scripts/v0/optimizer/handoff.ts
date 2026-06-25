@@ -716,6 +716,7 @@ function compileHandoffInternal(
     const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
     const budgetSlack = round3(traversalBudgetSlack(targetBudget, spec));
+    const forceQualityMode = forceHandoffQualityMode();
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContractSearch = usesSparseContractSearch(gaps);
     const startOptions = initialSnapshot === null
@@ -901,6 +902,7 @@ function compileHandoffInternal(
           traversal_budget_model: TRAVERSAL_BUDGET_MODEL_V1.name,
           predicted_first_completion_frames: predictedFirstCompletionFrames,
           budget_slack: budgetSlack,
+          handoff_force_quality_mode: forceQualityMode,
           first_completion_frame: firstTerminalFrame >= 0 ? firstTerminalFrame : null,
           leaves_considered: register.consideredCount,
           improvements: register.improvementCount,
@@ -1018,13 +1020,14 @@ function compileHandoffInternal(
       // Only tracked when repair can consume it (>=150k); a no-op on the low-budget hot path.
       if (repairEnabled && !framesAtReach.has(node.search)) framesAtReach.set(node.search, getSimFrames());
       consider(node, "main");
+      const qualitySearch = forceQualityMode || register.getBestKey()?.contract_passed === true;
 
       const tailNode = completeNearTail(
         node,
         gaps,
         ctx,
         telemetry,
-        register.getBestKey()?.contract_passed === true,
+        qualitySearch,
         sparseContractSearch,
         targetBudget,
       );
@@ -1118,7 +1121,7 @@ function compileHandoffInternal(
         ctx,
         startOptions,
         telemetry,
-        register.getBestKey()?.contract_passed === true,
+        qualitySearch,
         sparseContractSearch,
         targetBudget,
         register.getBestKey(),
@@ -2705,6 +2708,12 @@ function contractNCandOverride(): number | null {
     .process?.env?.LR_CONTRACT_NCAND;
   const n = raw ? Number.parseInt(raw, 10) : 0;
   return Number.isFinite(n) && n > 0 ? Math.min(64, n) : null;
+}
+
+function forceHandoffQualityMode(): boolean {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_HANDOFF_FORCE_QUALITY;
+  return raw === "1" || raw === "true" || raw === "yes";
 }
 
 function qualityHandoffSampleCount(

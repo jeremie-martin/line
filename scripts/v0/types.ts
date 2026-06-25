@@ -426,6 +426,9 @@ export type CompileStats = {
   /** Requested budget divided by `predicted_first_completion_frames`. This
    *  normalizes raw budgets across short/easy vs long/dense specs. */
   budget_slack?: number;
+  /** True when LR_HANDOFF_FORCE_QUALITY made contract and repair traversal use
+   *  quality-phase candidate generation from the start. Experimental only. */
+  handoff_force_quality_mode?: boolean;
   /** First terminal traversal considered by the search, regardless of whether
    *  it improved the best-so-far register. Null when the run never reached a
    *  complete traversal before stopping. */

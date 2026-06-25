@@ -1,5 +1,9 @@
 # Difficulty Model Study
 
+Design context: [`budget-control-design.md`](budget-control-design.md) defines
+the non-circular interpretation of traversal difficulty, slack, spend knobs, and
+validation gates. This document records the empirical fits and probes.
+
 Baseline studied:
 `generated/golden-runs/attempt-true-target-objective-newgrid-a01/golden.json`
 on the canonical 125k/250k/375k/500k grid.

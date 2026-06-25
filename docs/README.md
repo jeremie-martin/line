@@ -44,6 +44,7 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`impact_contract.md`](impact_contract.md) | REFERENCE | Self-contained per-beat impact contract (the impact metric definition). |
 | [`impact_problem_statement.md`](impact_problem_statement.md) | REFERENCE | Impact semantics living doc. |
 | [`impact_generation_and_landing_notes.md`](impact_generation_and_landing_notes.md) | REFERENCE | Impact-as-generation analysis + landing-redefinition notes. |
+| [`budget-control-design.md`](budget-control-design.md) | REFERENCE | Conceptual contract for difficulty-normalized budget control and validation gates. |
 | [`difficulty-model-study.md`](difficulty-model-study.md) | REFERENCE | First-completion cost vs full-score difficulty characterization. |
 | [`../TOOLING_NOTES.md`](../TOOLING_NOTES.md) | REFERENCE | Living log of tooling/harness friction + resolutions. |
 

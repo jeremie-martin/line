@@ -324,6 +324,19 @@ node --import tsx scripts/v0/analyze_budget_spend.ts \
 The analyzer pairs each `(budget, spec, seed)` against the baseline knob value and
 prints response tables by budget and by slack band.
 
+For model comparison, use:
+
+```bash
+node --import tsx scripts/v0/analyze_qcand_models.ts \
+  --dir=generated/studies/qncand-large-panel-150k-750k-s0-15 \
+  --out=generated/studies/qncand-large-panel-150k-750k-s0-15/model-analysis.json
+```
+
+This reads completed study shard JSONs, skips non-study JSON artifacts, and ranks
+simple first-completion models under in-sample, leave-one-spec-out,
+leave-one-budget-out, and leave-one-seed-out metrics. It also prints paired
+score, first-completion, and candidate-sample responses by `quality_ncand`.
+
 Treat `LR_QUALITY_NCAND=32` as the explicit baseline surface for new
 spend-response studies. The point is to isolate one knob before any slack-based
 controller is installed.

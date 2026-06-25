@@ -269,6 +269,25 @@ The shard outputs keep the same row schema. Analyze them by passing all shard
 JSON files to the offline analyzer; the expensive compiler runs do not need to
 be repeated while trying alternate models.
 
+For a full q-response database, use the launcher. It keeps exactly `--workers`
+child processes live, stores one JSON/log per `(budget, shard)`, and merges the
+successful shard outputs into one analysis-ready panel:
+
+```bash
+LR_ENGINE=wasm node --import tsx scripts/v0/run_qcand_panel.ts \
+  --workers=48 \
+  --shards=48 \
+  --specs=ALL \
+  --seeds=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 \
+  --budgets=150000,216667,283333,350000,416667,483333,550000,616667,683333,750000 \
+  --quality-ncand=16,20,24,28,32,36,40,48 \
+  --out-dir=generated/studies/qncand-large-panel-150k-750k-s0-15
+```
+
+The merged panel is written to `panel.json` under the output directory. The
+manifest records task status and can be used to resume an interrupted run; by
+default completed shard JSON files are skipped on rerun.
+
 The output reports raw rows, summaries by the studied knob, summaries by knob
 plus slack band, and paired deltas against the relevant baseline. It also fits a
 first-pass conditional spend model:

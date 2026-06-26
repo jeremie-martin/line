@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-26 - REJECT - slack-gated shallow best forward eval
+
+Mechanism: use the traversal budget model only as a smooth selector for default forward evaluation. The temporary source kept explicit `LR_FWD_EVAL` overrides unchanged and preserved the existing vertical-drama `avg` upgrade, then allowed non-vertical nodes to switch from default `greedy:2` to shallow `best:1:2` only when both whole-run slack and remaining suffix slack were high. Scorer, specs, fingerprint, seeds, budget grid, candidate generation, start policy, repair, and acceptance rule were otherwise unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts` passed first (2 files, 40 tests).
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, run from current unified source with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/baseline-current-unified-14edc74-j32`. The canonical run was valid 1919/1920 with raw HEADLINE 678.01 and `HEADLINE excl. impact` 693.23; per-budget point estimates were 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-slack-best1x2-fwd-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-slack-best1x2-fwd-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 677.33 and `HEADLINE excl. impact` 691.91; per-budget point estimates were 125k 656.63, 250k 674.98, 375k 679.55, and 500k 682.00.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-slack-best1x2-fwd-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, Δheadline -0.7, CI [-2.4, 0.8], P(Δ<=0)=81.7%. Per-budget deltas were 125k -0.1, 250k -0.2, 375k -0.4, and 500k -1.3.
+
+Why it failed: the first-completion-only lookahead study did not transfer to the full production compile with repair. Even though the selector was smooth and restricted to high-slack rows, the extra shallow best lookahead spent budget without improving the final repaired search; the loss grew with budget and was worst at 500k. The temporary source/test change was reverted; this attempt should not be retried unchanged.
+
 ## 2026-06-25 - REJECT - impact undershoot local-cost ramp
 
 Mechanism: keep the existing local `impact` candidate-cost weight at `0.5` for impact overshoot, but add a smooth compile-budget ramp for impact undershoot only. The temporary source change exported a per-compile budget setter to `core/candidate.ts`; `axisCost` used `0.5 + 0.5 * smoothstep(budget / (budget + 250k))` only when `target.impact > achieved.impact`. The intent was to address the measured systematic impact undershoot without repeating the rejected symmetric full-impact local-weight change. Geometry, repair, start policy, forward evaluation, scorer, specs, fingerprint, seeds, budget grid, and acceptance rule were otherwise unchanged.

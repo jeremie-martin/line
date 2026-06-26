@@ -144,6 +144,9 @@ export type CompileHandoffOptions = {
    *  changing only search sampling/start lookahead. Defaults to `seed`, so normal
    *  compiler behavior is unchanged. */
   searchSeed?: number;
+  /** Study hook: stop as soon as the first full-duration traversal is considered.
+   *  This isolates path quality from post-completion search and repair budget. */
+  stopAfterFirstCompletion?: boolean;
   /** Test hook: called for each prefix output offered to the register. */
   onNode?: (node: HandoffNode, key: LeafKey, event: HandoffNodeEvent) => void;
 };
@@ -850,6 +853,7 @@ function compileHandoffInternal(
       startRanksWithFits: new Set<number>(),
     };
     const polishEnabled = opts.polish ?? false;
+    const stopAfterFirstCompletion = opts.stopAfterFirstCompletion ?? false;
     let polishTried = 0;
     let polishChanged = 0;
     let polishAdopted = 0;
@@ -1076,6 +1080,11 @@ function compileHandoffInternal(
         captured = snapshot(targetBudget, true);
       }
     };
+    const captureFirstCompletion = (terminal: boolean, result: ConsiderResult | null): boolean => {
+      if (!stopAfterFirstCompletion || !terminal || result === null) return false;
+      captured = snapshot(targetBudget, false);
+      return true;
+    };
 
     // Per-node work shared by every traversal mode (DFS today, best-first next):
     // consider the node + its speculative tail, check the budget, polish terminals, and
@@ -1089,7 +1098,9 @@ function compileHandoffInternal(
     const processNode = (node: HandoffNode): ProcessResult => {
       // Only tracked when repair can consume it (>=150k); a no-op on the low-budget hot path.
       if (repairEnabled && !framesAtReach.has(node.search)) framesAtReach.set(node.search, getSimFrames());
-      consider(node, "main");
+      const nodeTerminal = isTerminalNode(node.search, gaps);
+      const mainResult = consider(node, "main");
+      if (captureFirstCompletion(nodeTerminal, mainResult)) return { kind: "captured" };
       const resolvePolicy = (search: SearchNode): HandoffSearchPolicy =>
         resolveHandoffSearchPolicy({
           node: search,
@@ -1119,6 +1130,9 @@ function compileHandoffInternal(
             telemetry.tailCompletionImprovementsByRemainingContacts,
             remaining,
           );
+        }
+        if (captureFirstCompletion(isTerminalNode(tailNode.search, gaps), result)) {
+          return { kind: "captured" };
         }
       }
 

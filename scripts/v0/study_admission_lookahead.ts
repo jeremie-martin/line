@@ -142,6 +142,7 @@ const fwdEvals = ensureIncludesString(
 );
 const seeds = intListArg("seeds", DEFAULT_SEEDS);
 const specNames = specListArg("specs", [...DEFAULT_SPECS]);
+const stopAfterFirstCompletion = boolArg("stop-after-first-completion", false);
 const outPath = arg("out");
 const shard = shardArg("shard");
 const previousQualityNCand = process.env.LR_QUALITY_NCAND;
@@ -159,7 +160,7 @@ try {
     setEnvValue("LR_ADMISSION_PROFILE", run.admissionProfile);
     setEnvValue("LR_FWD_EVAL", run.fwdEval);
     const t0 = Date.now();
-    const checkpoint = compileHandoff(spec, run.seed, { budget });
+    const checkpoint = compileHandoff(spec, run.seed, { budget, stopAfterFirstCompletion });
     const elapsedMs = Date.now() - t0;
     const score = scoreDriftReport(checkpoint.report, {
       totalFrames: secToFrame(spec.duration),
@@ -226,6 +227,7 @@ const output = {
     baseline_quality_ncand: baselineNCand,
     baseline_admission_profile: baselineAdmission,
     baseline_fwd_eval: baselineFwdEval,
+    stop_after_first_completion: stopAfterFirstCompletion,
     shard,
     planned_rows: plannedRuns.length,
     selected_rows: selectedRuns.length,
@@ -349,6 +351,7 @@ function printSummary(summaries: Summary[], paired: PairedSummary[]): void {
   console.log(
     `admission-lookahead: budget=${budget} specs=${specNames.length} seeds=${seeds.length} ` +
       `q=${qualityNCands.join(",")} admission=${admissionProfiles.join(",")} fwd=${fwdEvals.join(",")}` +
+      (stopAfterFirstCompletion ? " stop=first-completion" : "") +
       (shard === null ? "" : ` shard=${shard.index}/${shard.count} rows=${selectedRuns.length}/${plannedRuns.length}`),
   );
   console.log("by q/admission/fwd:");
@@ -416,6 +419,15 @@ function comparePairKey(a: string, b: string): number {
 function arg(name: string): string | undefined {
   const prefix = `--${name}=`;
   return argv.find((value) => value.startsWith(prefix))?.slice(prefix.length);
+}
+
+function boolArg(name: string, fallback: boolean): boolean {
+  if (argv.includes(`--${name}`)) return true;
+  const raw = arg(name);
+  if (raw === undefined) return fallback;
+  if (raw === "" || raw === "1" || raw === "true") return true;
+  if (raw === "0" || raw === "false") return false;
+  return fallback;
 }
 
 function intArg(name: string, fallback: number): number {

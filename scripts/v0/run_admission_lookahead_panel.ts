@@ -29,6 +29,7 @@ type StudyFile = {
     baseline_quality_ncand: number;
     baseline_admission_profile: string;
     baseline_fwd_eval: string;
+    stop_after_first_completion?: boolean;
     shard?: { index: number; count: number } | null;
     planned_rows?: number;
     selected_rows?: number;
@@ -66,6 +67,7 @@ const seeds = intListArg("seeds", DEFAULT_SEEDS);
 const specs = specListArg("specs", [...GOLDEN_SPECS]);
 const workers = intArg("workers", 48);
 const shards = intArg("shards", workers);
+const stopAfterFirstCompletion = boolArg("stop-after-first-completion", false);
 const outDir = arg("out-dir") ?? `generated/studies/admission-lookahead-${budgetLabel(budget)}-${seedLabel(seeds)}`;
 const resume = !boolArg("no-resume", false);
 const mergedOut = arg("merged-out") ?? join(outDir, "panel.json");
@@ -137,6 +139,7 @@ if (failed > 0) {
       baseline_quality_ncand: baselineNCand,
       baseline_admission_profile: baselineAdmission,
       baseline_fwd_eval: baselineFwdEval,
+      stop_after_first_completion: stopAfterFirstCompletion,
       workers,
       shards,
       shard_outputs: tasks.map((task) => task.outPath),
@@ -168,6 +171,7 @@ function runTask(task: Task, onDone: () => void): void {
     `--baseline-ncand=${baselineNCand}`,
     `--baseline-admission=${baselineAdmission}`,
     `--baseline-fwd-eval=${baselineFwdEval}`,
+    ...(stopAfterFirstCompletion ? ["--stop-after-first-completion"] : []),
     `--shard=${task.shard}/${shards}`,
     `--out=${task.outPath}`,
   ], {
@@ -221,6 +225,7 @@ function writeManifest(taskList: readonly Task[]): void {
       baseline_quality_ncand: baselineNCand,
       baseline_admission_profile: baselineAdmission,
       baseline_fwd_eval: baselineFwdEval,
+      stop_after_first_completion: stopAfterFirstCompletion,
       workers,
       shards,
       out_dir: outDir,
@@ -255,6 +260,7 @@ function arg(name: string): string | undefined {
 }
 
 function boolArg(name: string, fallback: boolean): boolean {
+  if (argv.includes(`--${name}`)) return true;
   const raw = arg(name);
   if (raw === undefined) return fallback;
   if (raw === "" || raw === "1" || raw === "true") return true;

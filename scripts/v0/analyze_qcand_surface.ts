@@ -303,6 +303,12 @@ const qByContactBand = [...groupBy(pairs, (pair) => contactBand(feature(pair, "c
 const qByDurationBand = [...groupBy(pairs, (pair) => durationBand(feature(pair, "duration_frames"))).entries()]
   .sort(([a], [b]) => compareBand(a, b))
   .map(([duration_band, group]) => ({ duration_band, q: summarizeQ(group) }));
+const qByMedianGapBand = [...groupBy(pairs, (pair) => gapBand(feature(pair, "median_gap_frames"))).entries()]
+  .sort(([a], [b]) => compareBand(a, b))
+  .map(([median_gap_band, group]) => ({ median_gap_band, q: summarizeQ(group) }));
+const qByMinGapBand = [...groupBy(pairs, (pair) => gapBand(feature(pair, "min_gap_frames"))).entries()]
+  .sort(([a], [b]) => compareBand(a, b))
+  .map(([min_gap_band, group]) => ({ min_gap_band, q: summarizeQ(group) }));
 const specElasticity = elasticityBy(pairs, (pair) => pair.spec)
   .map((item) => ({
     ...item,
@@ -346,6 +352,8 @@ const output = {
     by_slack_band: qBySlackBand,
     by_contact_band: qByContactBand,
     by_duration_band: qByDurationBand,
+    by_median_gap_band: qByMedianGapBand,
+    by_min_gap_band: qByMinGapBand,
   },
   q_elasticity: {
     by_budget: budgetElasticity,
@@ -358,6 +366,8 @@ const output = {
     by_slack_band: qPreference(samples, (row) => slackBand(row.budget / row.current_d)),
     by_contact_band: qPreference(samples, (row) => contactBand(feature(row, "contact_count"))),
     by_duration_band: qPreference(samples, (row) => durationBand(feature(row, "duration_frames"))),
+    by_median_gap_band: qPreference(samples, (row) => gapBand(feature(row, "median_gap_frames"))),
+    by_min_gap_band: qPreference(samples, (row) => gapBand(feature(row, "min_gap_frames"))),
     by_spec: qPreferenceBySpec,
     by_spec_budget_top: qPreferenceBySpecBudget.slice(0, 24),
     by_spec_budget_bottom: [...qPreferenceBySpecBudget].reverse().slice(0, 24),
@@ -1326,6 +1336,15 @@ function durationBand(durationFrames: number): string {
   return ">=24s";
 }
 
+function gapBand(frames: number): string {
+  const seconds = frames / FPS;
+  if (seconds < 0.5) return "<0.5s";
+  if (seconds < 0.75) return "0.5-0.75s";
+  if (seconds < 1.0) return "0.75-1.0s";
+  if (seconds < 1.5) return "1.0-1.5s";
+  return ">=1.5s";
+}
+
 function compareBand(a: string, b: string): number {
   const order = new Map([
     ["<2", 0],
@@ -1343,6 +1362,11 @@ function compareBand(a: string, b: string): number {
     ["12-18s", 21],
     ["18-24s", 22],
     [">=24s", 23],
+    ["<0.5s", 30],
+    ["0.5-0.75s", 31],
+    ["0.75-1.0s", 32],
+    ["1.0-1.5s", 33],
+    [">=1.5s", 34],
     ["na", 99],
   ]);
   const ai = order.get(a);

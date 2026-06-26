@@ -363,31 +363,84 @@ The surface analysis currently reports:
 - paired first-ratio and candidate-ratio models against `q=32`;
 - score-delta and repair-delta response models;
 - q-response summaries overall, by budget, by slack band, by contact-count band,
-  and by duration band;
+  by duration band, by median-gap band, and by min-gap band;
 - per-budget and per-spec q elasticity;
 - best-q preference summaries by budget, spec, slack band, contact band,
-  duration band, and the strongest/weakest spec-budget groups;
+  duration band, median-gap band, min-gap band, and the strongest/weakest
+  spec-budget groups;
 - repair/score/candidate tradeoff correlations;
 - simple offline q-selection simulations, including fixed-q baselines and
   cross-validated selectors by budget, spec, slack band, contact band, and
   duration band.
 
-On the balanced partial panel through the completed 150k..483333 budget waves,
-the robust finding is that q controls cost much more cleanly than it controls
-score. Candidate-sample ratio is strongly predictable from q (leave-one-spec-out
-R2 about 0.93), first-completion ratio is also predictable (about 0.74), and
-full first-completion frames stay well predicted when q is folded into the
-existing structural traversal model (leave-one-spec-out MAE about 3.2k frames).
-Score-delta models are effectively noise at this level (leave-one-spec-out R2
-near zero), even though cross-seed spec-level q selection shows some offline
-signal. Treat that as a research lead, not production evidence.
+Archived panel, 2026-06-26:
 
-The most important q-scaling interpretation is that observed cost does not scale
-as the naive `q / 32` multiplier. At `q=48`, the raw knob is 1.5x, but the
-balanced partial panel sees about 1.12x first-completion cost and 1.17x sampled
-candidates. The analyzer records this as first/candidate "absorption"; values
-well below 1.0 mean the extra candidate breadth is partly offset by choosing
-different branches, fewer downstream nodes, or less repair work.
+```text
+directory: generated/studies/qncand-large-panel-150k-750k-s0-15
+command:   LR_ENGINE=wasm run_qcand_panel, 48 workers, 48 shards
+inputs:    all 40 golden specs, seeds 0..15, q=16,20,24,28,32,36,40,48
+budgets:   planned 150k..750k, analyzed complete waves 150k..550k
+rows:      35,840 analyzed, 31,360 paired q-vs-q32 comparisons
+analysis:  generated/studies/qncand-large-panel-150k-750k-s0-15/surface-analysis.json
+```
+
+The launcher was deliberately stopped once the 550k wave had completed. Higher
+budget waves were not needed for the current q characterization and are omitted
+by the balanced analyzer. If the manifest still contains `running` tasks, treat
+the shard JSON files plus `surface-analysis.json` as the durable archive.
+
+The robust finding is that q controls cost much more cleanly than it controls
+score. Candidate-sample ratio is strongly predictable from q (leave-one-spec-out
+R2 0.928, MAE 0.027), first-completion ratio is also predictable (R2 0.738, MAE
+0.027), and full first-completion frames stay well predicted when q is folded
+into the existing structural traversal model (leave-one-spec-out MAE about 3.25k
+frames). A pure structural model with spacing plus `log(q)` is close behind
+(leave-one-spec-out MAE about 3.40k frames), which is useful for future
+controller work because it does not require a live traversal estimate. Score
+delta remains effectively noise under simple models (leave-one-spec-out R2 near
+zero), even though cross-seed spec-level q selection shows some offline signal.
+Treat that as a research lead, not production evidence.
+
+Observed cost does not scale as the naive `q / 32` multiplier:
+
+| q | naive q/32 | first ratio | candidate ratio | mean score delta | mean repair delta |
+|---:|---:|---:|---:|---:|---:|
+| 16 | 0.50 | 0.881 | 0.767 | -3.10 | +6.6k |
+| 20 | 0.625 | 0.911 | 0.835 | -2.86 | +5.4k |
+| 24 | 0.75 | 0.941 | 0.896 | -2.11 | +3.9k |
+| 28 | 0.875 | 0.967 | 0.951 | -0.80 | +2.5k |
+| 36 | 1.125 | 1.030 | 1.049 | -0.08 | -1.5k |
+| 40 | 1.25 | 1.062 | 1.092 | -0.18 | -3.4k |
+| 48 | 1.50 | 1.123 | 1.169 | -0.43 | -7.1k |
+
+At `q=48`, the raw knob is 1.5x, but the balanced panel sees about 1.12x
+first-completion cost and 1.17x sampled candidates. The analyzer records this as
+first/candidate "absorption"; values well below 1.0 mean the extra candidate
+breadth is partly offset by choosing different branches, fewer downstream nodes,
+or less repair work. Repair frames fall as q rises, but the repair reduction does
+not translate into a reliable score model.
+
+Offline best-q summaries are useful as diagnostics, not as policy:
+
+| grouping | strongest observed preference |
+|---|---|
+| budget | 150k liked q48 (+2.11 score, 1.121 first ratio); 216667 liked q40 (+0.11); 283333..416667 stayed q32; 483333..550k weakly liked q36 |
+| slack | slack <2 liked q48 (+4.99, 1.137 first ratio); 2..5 liked q40; 5..8 stayed q32; high slack bands weakly liked q48 |
+| contacts | <12 liked q40; 12..19 liked q48; 20..31 stayed q32; 32..47 liked q36; >=48 weakly liked q40 |
+| duration | <12s liked q40; 12..18s weakly liked q48; 18..24s liked q36; >=24s stayed q32 |
+| median gap | 1.0..1.5s liked q48; tighter median-gap bands stayed q32 or only weakly liked q40 |
+| min gap | <0.5s liked q16 by a negligible amount; 0.5..0.75s liked q48; 0.75..1.0s liked q36; 1.0..1.5s liked q48 |
+
+The gap-band result matters for the next exploration-width study: extra breadth
+is not uniformly good. Very tight minimum gaps are exactly where expensive wider
+tails can become harmful, while looser gaps sometimes benefit from wider
+candidate search.
+
+For future one-budget characterization probes, 150k is enough to study first
+completion for the current q baseline: in the archived 150k wave, `q=32`
+completed under budget for all 640 `(spec, seed)` rows. At `q=48`, 638/640 rows
+completed under 150k. Use 150k for quick probes and 200k when testing wider or
+riskier proposal distributions where edge clipping would obscure the response.
 
 ## Next Study
 

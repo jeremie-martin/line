@@ -69,6 +69,14 @@ const CONTACT_CENTERED_POINT_JITTER = 4;
 const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
 const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
 const CONTACT_CENTERED_GUIDED_POINT_SPREAD = 0.08;
+// Study-only tail widening for the contact-centered sampler. LR_CC_EXPLORE=1
+// is the default and returns the exact current roll stream. Values above 1
+// expand late-attempt rolls around 0.5, so low-q prefixes stay conservative
+// while larger q values buy explicitly wider arc geometry.
+const CONTACT_CENTERED_EXPLORE_TAIL_START_ATTEMPT = 16;
+const CONTACT_CENTERED_EXPLORE_TAIL_SPAN_ATTEMPTS = 16;
+const CONTACT_CENTERED_EXPLORE_MAX = 2.25;
+let currentContactCenteredExploreFactor = readContactCenteredExploreFactor();
 // The old one-frame impact contact-angle / lip / dense-mature steering constants
 // were removed when impact became the windowed redirection metric (the analytic
 // one-frame steering was neutralized — see the call sites below). Recover from git
@@ -338,6 +346,7 @@ function makeArcPlacementStats(): ArcPlacementStats {
 const arcPlacementStats: ArcPlacementStats = makeArcPlacementStats();
 
 export function resetArcPlacementStats(): void {
+  currentContactCenteredExploreFactor = readContactCenteredExploreFactor();
   const fresh = makeArcPlacementStats();
   arcPlacementStats.mode = fresh.mode;
   resetCounter(arcPlacementStats, fresh);
@@ -864,6 +873,7 @@ function sampleContactCenteredLines(
   const guidedRolls = guideContactCenteredRolls(
     rawRolls, targetState, targets, gap, allContactFrames, attempt,
   );
+  const sampledRolls = widenContactCenteredTailRolls(guidedRolls, attempt);
 
   const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
   const targetSpeedPx = targets.speed === undefined
@@ -888,8 +898,8 @@ function sampleContactCenteredLines(
   const clearancePressure = Math.max(deadlinePressure, absoluteSpeedPressure * 0.6);
 
   const segmentLength = targets.grain !== undefined
-    ? clamp(targets.grain * CALIB.LINE_LENGTH_CAP + (guidedRolls.segmentLengthRoll - 0.5) * 8, 4, 49)
-    : 16 + guidedRolls.segmentLengthRoll * 28;
+    ? clamp(targets.grain * CALIB.LINE_LENGTH_CAP + (sampledRolls.segmentLengthRoll - 0.5) * 8, 4, 49)
+    : clamp(16 + sampledRolls.segmentLengthRoll * 28, 4, 60);
   let contactAngleDeg = clamp(
     targetState.angleDeg
       - (2 + 5 * air)
@@ -897,7 +907,7 @@ function sampleContactCenteredLines(
       + 16 * accelPressure
       + 8 * speedCarryPressure
       + 2 * sustainedContactCarryPressure
-      + (guidedRolls.contactAngleRoll - 0.5) * 12,
+      + (sampledRolls.contactAngleRoll - 0.5) * 12,
     -12, 65,
   );
   // Keep lip/bevel steering neutral under the redir-impact metric; the subtle
@@ -925,12 +935,12 @@ function sampleContactCenteredLines(
     );
   }
   const preLength = clamp(
-    (6 + guidedRolls.preLengthRoll * 28)
+    (6 + sampledRolls.preLengthRoll * 28)
       * (1 - 0.45 * clearancePressure)
       * (1 + 0.35 * brakePressure),
     4, 44,
   );
-  const rawPostLength = (45 + guidedRolls.postLengthRoll * 135)
+  const rawPostLength = (45 + sampledRolls.postLengthRoll * 135)
     * (0.95 + 0.25 * (1 - air) + 0.20 * absoluteSpeedPressure
       + 0.18 * sustainedContactCarryPressure + 0.12 * brakePressure);
   const denseScaledPostLength = rawPostLength * (1 - 0.55 * denseContactPressure);
@@ -966,7 +976,7 @@ function sampleContactCenteredLines(
   const preAngleDeg = clamp(
     contactAngleDeg
       - (4 + 8 * clearancePressure + 4 * brakePressure)
-      + (guidedRolls.preAngleRoll - 0.5) * 12,
+      + (sampledRolls.preAngleRoll - 0.5) * 12,
     -20, 70,
   );
   const nonBrakePostAngleDeg = contactAngleDeg
@@ -974,9 +984,9 @@ function sampleContactCenteredLines(
     + 10 * accelPressure
     + 6 * speedCarryPressure
     + 6 * sustainedContactCarryPressure
-    + (guidedRolls.postAngleRoll - 0.5) * 10;
+    + (sampledRolls.postAngleRoll - 0.5) * 10;
   const brakeRideOutAngleDeg = clamp(
-    contactAngleDeg + 8 + (guidedRolls.postAngleRoll - 0.5) * 10, -8, 18,
+    contactAngleDeg + 8 + (sampledRolls.postAngleRoll - 0.5) * 10, -8, 18,
   );
   const angledPostAngleDeg = clamp(
     lerp(nonBrakePostAngleDeg, brakeRideOutAngleDeg, brakePressure), -8, 65,
@@ -1133,8 +1143,8 @@ function sampleContactCenteredLines(
   const tangentY = Math.sin(contactAngleRad);
   const normalX = -tangentY;
   const normalY = tangentX;
-  const tangentJitter = (guidedRolls.tangentJitterRoll - 0.5) * CONTACT_CENTERED_POINT_JITTER;
-  const normalJitter = (guidedRolls.normalJitterRoll - 0.5) * CONTACT_CENTERED_POINT_JITTER;
+  const tangentJitter = (sampledRolls.tangentJitterRoll - 0.5) * CONTACT_CENTERED_POINT_JITTER;
+  const normalJitter = (sampledRolls.normalJitterRoll - 0.5) * CONTACT_CENTERED_POINT_JITTER;
   const contactPoint = {
     x: targetState.sledX + tangentX * tangentJitter + normalX * normalJitter,
     y: targetState.sledY + tangentY * tangentJitter + normalY * normalJitter,
@@ -1541,6 +1551,48 @@ function ccGuidedRoll(
 ): number {
   const guided = clamp(center + (lowDiscrepancyRoll(attempt, salt) - 0.5) * spread, 0, 1);
   return clamp(lerp(raw, guided, weight), 0, 1);
+}
+
+function widenContactCenteredTailRolls(rolls: ContactCenteredRolls, attempt: number): ContactCenteredRolls {
+  const explore = contactCenteredExploreFactor();
+  if (explore === 1) return rolls;
+  const tail = contactCenteredExploreTail(attempt);
+  if (tail <= 0) return rolls;
+  const scale = 1 + (explore - 1) * tail;
+  return {
+    segmentLengthRoll: widenRoll(rolls.segmentLengthRoll, scale),
+    contactAngleRoll: widenRoll(rolls.contactAngleRoll, scale),
+    preLengthRoll: widenRoll(rolls.preLengthRoll, scale),
+    postLengthRoll: widenRoll(rolls.postLengthRoll, scale),
+    preAngleRoll: widenRoll(rolls.preAngleRoll, scale),
+    postAngleRoll: widenRoll(rolls.postAngleRoll, scale),
+    tangentJitterRoll: widenRoll(rolls.tangentJitterRoll, scale),
+    normalJitterRoll: widenRoll(rolls.normalJitterRoll, scale),
+  };
+}
+
+function widenRoll(roll: number, scale: number): number {
+  return 0.5 + (roll - 0.5) * scale;
+}
+
+function contactCenteredExploreTail(attempt: number): number {
+  return smoothstep(
+    (attempt - CONTACT_CENTERED_EXPLORE_TAIL_START_ATTEMPT) /
+      CONTACT_CENTERED_EXPLORE_TAIL_SPAN_ATTEMPTS,
+  );
+}
+
+function contactCenteredExploreFactor(): number {
+  return currentContactCenteredExploreFactor;
+}
+
+function readContactCenteredExploreFactor(): number {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_CC_EXPLORE;
+  if (raw === undefined || raw.trim() === "") return 1;
+  const parsed = Number.parseFloat(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) return 1;
+  return clamp(parsed, 0.25, CONTACT_CENTERED_EXPLORE_MAX);
 }
 
 /** Per-attempt span blends for launch shaping and ride-out length. 2-D (work-new

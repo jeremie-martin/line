@@ -444,6 +444,18 @@ riskier proposal distributions where edge clipping would obscure the response.
 
 ## Next Study
 
+For the follow-up on candidate-count versus proposal-distribution control, see
+`docs/arc-sampling-control.md`. The important split is:
+
+```text
+q = how many candidates are sampled
+proposal profile = what kind of arc space those candidates cover
+```
+
+The first `LR_CC_EXPLORE` probe is intentionally weak evidence: it tests one
+late-tail roll multiplier, not the full space of ride-out, launch, landing,
+curvature, template, and aim-lane sampling choices.
+
 The script includes an optional synthetic grid (`--synthetic`) that can vary
 contact count and gap spacing independently. Use it to separate simulated-duration
 cost from true tight-cadence quality pressure before promoting any spacing term

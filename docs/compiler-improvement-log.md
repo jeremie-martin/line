@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECT - opening best:1:2 forward eval
+
+Mechanism: keep the default per-candidate forward evaluator at `greedy:2`, preserve explicit `LR_FWD_EVAL` overrides, and preserve the existing vertical-drama `avg` override, but use `best:1:2` only for opening contact nodes whose prefix has not yet committed any contact. This targeted the first real handoff placement, matching the evidence that first-completion lookahead can improve the initial path while avoiding the broad global lookahead cost. An initial `best:1:3` version was narrowed before the canonical run because it failed the focused objective-leaf cost invariant.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed after narrowing to `best:1:2` (5 files, 76 tests).
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, current unified source, valid 1919/1920, raw HEADLINE 678.01, `HEADLINE excl. impact` 693.23, with per-budget point estimates 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-opening-best1x2-fwd-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-opening-best1x2-fwd-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 678.78 and `HEADLINE excl. impact` 694.89; per-budget point estimates were 125k 657.90, 250k 674.04, 375k 681.14, and 500k 684.61.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-opening-best1x2-fwd-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, Δheadline +0.8, CI [-3.6, 5.4], P(Δ<=0)=32.1%. Per-budget deltas were 125k +1.2, 250k -1.1, 375k +1.2, and 500k +1.3.
+
+Why it failed: the point estimate is positive and the 375k/500k tiers moved in the intended direction, but the paired evidence is far too weak and the 250k tier regressed. The change spent about +1.3k/+1.5k/+1.9k/+2.0k forward-eval frames per row at 125k/250k/375k/500k and shifted many rows, but gains in `drums_tide`, `tiny_dance`, `drums_swell`, and `dense_echo_climb` were offset by losses in `syncopated_switchback`, `drums_pulse`, `rhythm_ladder`, and `drums_zigzag`. The opening-only idea is cleaner than global lookahead, but this exact default still changes rhythm basins without a statistically accepted headline gain. The temporary source change was reverted.
+
 ## 2026-06-26 - REJECT - scarce quality lean through 125k
 
 Mechanism: extend the existing smooth scarce-budget quality-search lean from the old 50k..100k window to 100k..200k, so the canonical 125k tier uses fewer quality candidates without adding a hard 125k branch. The mature lean, repair, forward evaluation, scorer, specs, fingerprint, seeds, budget grid, and acceptance rule were otherwise unchanged.

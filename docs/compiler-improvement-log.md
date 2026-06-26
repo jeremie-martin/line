@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-26 - REJECT - scarce quality lean through 125k
+
+Mechanism: extend the existing smooth scarce-budget quality-search lean from the old 50k..100k window to 100k..200k, so the canonical 125k tier uses fewer quality candidates without adding a hard 125k branch. The mature lean, repair, forward evaluation, scorer, specs, fingerprint, seeds, budget grid, and acceptance rule were otherwise unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts` passed first (2 files, 40 tests).
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, current unified source, valid 1919/1920, raw HEADLINE 678.01, `HEADLINE excl. impact` 693.23, with per-budget point estimates 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-scarce-quality-lean125-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-scarce-quality-lean125-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 678.64 and `HEADLINE excl. impact` 693.87; per-budget point estimates were 125k 663.04, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-scarce-quality-lean125-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, Δheadline +0.6, CI [-0.7, 4.7], P(Δ<=0)=47.7%. Per-budget deltas were 125k +6.4, 250k +0.0, 375k +0.0, and 500k +0.0.
+
+Why it failed: the point estimate is directionally good and isolated to the intended scarce tier, but the paired evidence is much too weak to accept. The 125k gain is dominated by high-variance scarce-budget behavior: `decide` estimates that about 43 more seeds would be needed to resolve this effect under the current gate. Because the accepted-compiler rule requires `VERDICT: ACCEPT`, the temporary source change was reverted. This remains a plausible low-budget mechanism, but it should only be revisited with more seeds or as part of a broader budget-control model rather than promoted from this canonical run.
+
 ## 2026-06-26 - REJECT - mature repair feasibility headroom
 
 Mechanism: relax the mature repair feasibility margin from exact measured suffix cost (`1.0`) to `1.1`, while preserving the existing scarce-budget margin (`1.05`) and smooth 100k..200k ramp. The intent was to give later repairs modest headroom on rows where exact feasibility appeared to reject useful restarts.

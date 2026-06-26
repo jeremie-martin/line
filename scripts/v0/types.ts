@@ -279,6 +279,13 @@ export const HANDOFF_CANDIDATE_SOURCES = ["pool", "reuse", "brake", "startup", "
 export type HandoffCandidateSourceName = (typeof HANDOFF_CANDIDATE_SOURCES)[number];
 export type HandoffCandidateSourceCounter = Partial<Record<HandoffCandidateSourceName, number>>;
 
+/** Normal-pool admission strata. These are diagnostics/study controls, not
+ * scoring categories. Attempts 0..7 are the guided prefix, 8..23 the standard
+ * middle batch, and 24+ the explicit high-q exploratory tail. */
+export const HANDOFF_ADMISSION_LANES = ["prefix", "middle", "tail"] as const;
+export type HandoffAdmissionLane = (typeof HANDOFF_ADMISSION_LANES)[number];
+export type HandoffAdmissionLaneCounter = Partial<Record<HandoffAdmissionLane, number>>;
+
 /** Handoff evaluation origins. These are diagnostics only: they say which path
  *  offered an output to the best-so-far register. */
 export const HANDOFF_EVALUATION_PHASES = ["main", "tail", "suffix", "polish"] as const;
@@ -488,6 +495,10 @@ export type CompileStats = {
    *  map for new analyzer/reporting code; the flattened fields below are kept as
    *  compact JSON compatibility mirrors. */
   handoff_selected_candidate_by_source?: HandoffCandidateSourceCounter;
+  /** For selected normal-pool candidates, split returned best-prefix usage by
+   * study admission stratum. Present only when a non-default admission profile
+   * stamped pool candidates with lane metadata. */
+  handoff_selected_candidate_by_admission_lane?: HandoffAdmissionLaneCounter;
   /** For selected candidates whose source is `axisq`, split selected best-path
    *  usage by the registered axis-quality stream that produced the candidate. */
   handoff_selected_axis_quality_by_axis?: Partial<Record<AxisName, number>>;
@@ -720,6 +731,21 @@ export type CompileStats = {
     fwd_disagree_value_gap_hist: number[];
     fwd_disagree_winner_costlier: number;
     fwd_disagree_winner_cheaper: number;
+  };
+  /** Study-only normal-pool admission telemetry. Present only when
+   * LR_ADMISSION_PROFILE is non-default. */
+  handoff_admission?: {
+    profile: string;
+    pools: number;
+    requested_candidates_mean: number;
+    default_pool_size_mean: number;
+    admitted_pool_size_mean: number;
+    local_quota_mean: number;
+    middle_quota_mean: number;
+    tail_quota_mean: number;
+    original_rank_mean: number;
+    original_rank_max: number;
+    admitted_by_lane: HandoffAdmissionLaneCounter;
   };
   /** Committed fits in this output produced by the proposer. */
   handoff_aimed_selected?: number;

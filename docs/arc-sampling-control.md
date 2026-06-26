@@ -107,6 +107,72 @@ tail: named exploratory lanes with controlled widths
 This keeps the deterministic prefix property while making the extra candidates
 we buy with higher q intentional.
 
+## Admission And Lookahead Surface
+
+The first concrete control surface is intentionally one layer above geometry
+generation. `LR_ADMISSION_PROFILE` changes which already-sampled normal-pool
+candidates are admitted into handoff scoring:
+
+```text
+default                       current production behavior
+attempt-strata                top local candidates + middle/tail attempt quotas
+attempt-strata:<L>:<M>:<T>    explicit local/middle/tail quotas
+```
+
+Production defaults remain unchanged unless the env var is set. The stable
+normal-pool attempt strata are:
+
+```text
+prefix: attempts 0..7
+middle: attempts 8..23
+tail:   attempts 24+
+```
+
+This is deliberately not the final proposal-profile model. It is a clean
+measurement surface for the next question: when higher `q` buys later attempts,
+do those attempts help once they survive into scoring and are ranked with a
+reasonable lookahead policy?
+
+Use 200k for this panel by default. Unlike the cheaper first-completion probes,
+this surface intentionally adds protected admission and optional `best:1:m` /
+`avg:1:m` ranking cost, so 150k can clip runs in a way that confounds the
+admission/lookahead effect.
+
+`scripts/v0/run_admission_lookahead_panel.ts` runs the large sharded panel:
+
+```bash
+LR_ENGINE=wasm node --import tsx scripts/v0/run_admission_lookahead_panel.ts \
+  --workers=48 \
+  --shards=48
+```
+
+By default it uses 200k, all golden specs, seeds `0..11`, `q=24,32,48`,
+`admission=default,attempt-strata`, and
+`fwd-eval=default,best:1:3,best:1:5,avg:1:5`.
+
+For smaller custom probes, `scripts/v0/study_admission_lookahead.ts` records the
+same surface directly:
+
+```bash
+LR_ENGINE=wasm node --import tsx scripts/v0/study_admission_lookahead.ts \
+  --budget=200000 \
+  --specs=ALL \
+  --seeds=0,1,2,3,4,5 \
+  --quality-ncand=24,32,48 \
+  --admission=default,attempt-strata \
+  --fwd-eval=default,best:1:3,best:1:5,avg:1:5 \
+  --out=generated/studies/admission-lookahead/panel.json
+```
+
+Rows include raw score/cost metrics, forward-eval frames, admitted
+prefix/middle/tail counts, and selected prefix/middle/tail counts for the
+returned best prefix. This lets offline analysis separate three effects:
+
+- higher `q` generated viable later attempts;
+- admission allowed those later attempts into the scored pool;
+- lookahead selected them often enough, and profitably enough, to justify their
+cost.
+
 ## Study Rules
 
 Future probes should follow these rules:
@@ -122,6 +188,8 @@ Future probes should follow these rules:
   effects.
 - Track viability rate, first-completion ratio, candidate ratio, repair frames,
   and score delta together.
+- For admission/lookahead studies, pair against the same-q default admission and
+  default forward-eval policy before comparing global q baselines.
 
 ## Next Probes
 
@@ -137,6 +205,9 @@ The most useful follow-ups are:
    lane mix independently from ordinary geometry width.
 4. **Profile schedules**: compare smooth tail schedules, fixed low-discrepancy
    strata, and lane partitions for the same q.
+5. **Admission × lookahead panel**: run the new `q × admission × fwd-eval`
+   surface to test whether tail admission only pays when the ranker has enough
+   forward reasoning (`best:1:m` / `avg:1:m`) to evaluate it.
 
 The likely final controller should not be `q -> wider range` directly. It should
 estimate slack/difficulty, choose q, and choose an explicit proposal profile for

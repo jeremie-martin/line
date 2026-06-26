@@ -456,6 +456,19 @@ The first `LR_CC_EXPLORE` probe is intentionally weak evidence: it tests one
 late-tail roll multiplier, not the full space of ride-out, launch, landing,
 curvature, template, and aim-lane sampling choices.
 
+The next cleaner measurement surface is
+`scripts/v0/run_admission_lookahead_panel.ts`, which shards
+`scripts/v0/study_admission_lookahead.ts`. It does not change geometry. Instead,
+it tests whether later-attempt candidates that already exist at higher q become
+useful when admission protects them from a pure top-local-cost slice and when
+lookahead uses `best:1:m` or `avg:1:m` rather than only the default ranking path.
+This should be read as infrastructure for separating proposal generation, pool
+admission, and ranking, not as a production policy decision.
+
+Use 200k rather than 150k for that panel unless doing a very small smoke run:
+protected admission plus `best:1:m` / `avg:1:m` can move enough work into
+ranking that 150k may clip first-completion behavior.
+
 The script includes an optional synthetic grid (`--synthetic`) that can vary
 contact count and gap spacing independently. Use it to separate simulated-duration
 cost from true tight-cadence quality pressure before promoting any spacing term

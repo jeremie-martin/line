@@ -2,6 +2,22 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECT - low-air outside-pool axis-quality candidate
+
+Mechanism: when a low-air target's admitted handoff pool was still materially over-airborne, offer one already-sampled outside-pool candidate with a better `air` match as an extra `axisq` option, then let the normal candidate scoring and forward evaluator decide whether to use it. The intent was to address the persistent `drums_pendulum`/low-air overshoot family without changing geometry or global pool size.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (5 files, 76 tests).
+
+Probe: `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --specs=drums_pendulum,solo_run,syncopated_switchback,drums_crescendo,rhythm_ladder,dense_sprint,skyline_push --budgets=125000,250000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-air-axisq-current-j32-s0-2-a01` was directionally positive but weak: valid 63/63, HEADLINE 589.24 on the subset, and intersection `decide` reported Δheadline +1.4, CI [-2.7, 7.1], P(Δ<=0)=28.7%.
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, current unified source, valid 1919/1920, raw HEADLINE 678.01, `HEADLINE excl. impact` 693.23, with per-budget point estimates 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-air-axisq-lowair-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-air-axisq-lowair-j32-a01`. The canonical run was valid 1918/1920 with raw HEADLINE 677.31 and `HEADLINE excl. impact` 692.49; per-budget point estimates were 125k 655.85, 250k 674.46, 375k 679.43, and 500k 682.51.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-air-axisq-lowair-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, Δheadline -0.7, CI [-2.5, 0.5], P(Δ<=0)=83.6%. Per-budget deltas were 125k -0.8, 250k -0.7, 375k -0.5, and 500k -0.8.
+
+Why it failed: the small probe overestimated the benefit. On the full canonical suite the point estimate regressed at every budget and validity dropped from 1919/1920 to 1918/1920. The extra outside-pool low-air option appears to perturb basin selection more than it fixes the low-air family. The temporary source change was reverted. Future low-air work should either change the proposal distribution more explicitly or target a narrower spec-conditioned failure mode, not inject an opportunistic outside-pool candidate globally.
+
 ## 2026-06-27 - REJECT - opening best:1:2 forward eval
 
 Mechanism: keep the default per-candidate forward evaluator at `greedy:2`, preserve explicit `LR_FWD_EVAL` overrides, and preserve the existing vertical-drama `avg` override, but use `best:1:2` only for opening contact nodes whose prefix has not yet committed any contact. This targeted the first real handoff placement, matching the evidence that first-completion lookahead can improve the initial path while avoiding the broad global lookahead cost. An initial `best:1:3` version was narrowed before the canonical run because it failed the focused objective-leaf cost invariant.

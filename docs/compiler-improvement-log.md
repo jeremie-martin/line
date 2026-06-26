@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-26 - REJECT - duplicate-aware tail completion throttle
+
+Mechanism: add an observed duplicate-pressure gate to speculative tail completion. The temporary source kept the existing tail window, tail branching, shallow-tail throttle, repair, forward eval, scorer, specs, fingerprint, seeds, budget grid, and acceptance rule unchanged, but once the tail phase had enough full-evaluation feedback it smoothly skipped more tail completions as the tail duplicate-full-evaluation rate rose.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts` passed first (2 files, 40 tests).
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, current unified source, valid 1919/1920, raw HEADLINE 678.01, `HEADLINE excl. impact` 693.23, with per-budget point estimates 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-tail-dup-throttle-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-tail-dup-throttle-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 678.00 and `HEADLINE excl. impact` 693.24; per-budget point estimates were 125k 656.69, 250k 675.16, 375k 679.96, and 500k 683.28.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-tail-dup-throttle-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: REJECT`, Δheadline -0.0, CI [-0.0, -0.0], P(Δ<=0)=99.8%. Per-budget deltas were 125k +0.0, 250k -0.0, 375k -0.0, and 500k -0.0.
+
+Why it failed: the selector was active and cleaner than the earlier fixed remaining-contact throttles, but it only removed wasted work; it did not buy better tracks. At 500k, tail full evaluations fell from about 39.8k to 31.9k and duplicate tail full evaluations fell from about 28.4k to 21.4k, while tail best hits only moved from 1,998 to 1,980. The saved work showed up as tiny sim/candidate deltas and did not improve main search or repair output; the few score moves were slightly negative, led by `mixed_grade` seed 11 (-3.53), `canyon_steps` seed 6 (-2.13), and `rolling_drop` seed 1 (-1.41). The temporary source change was reverted. Future tail work needs an explicit way to reinvest saved frames into a productive phase, not just a better waste suppressor.
+
 ## 2026-06-26 - REJECT - slack-gated shallow best forward eval
 
 Mechanism: use the traversal budget model only as a smooth selector for default forward evaluation. The temporary source kept explicit `LR_FWD_EVAL` overrides unchanged and preserved the existing vertical-drama `avg` upgrade, then allowed non-vertical nodes to switch from default `greedy:2` to shallow `best:1:2` only when both whole-run slack and remaining suffix slack were high. Scorer, specs, fingerprint, seeds, budget grid, candidate generation, start policy, repair, and acceptance rule were otherwise unchanged.

@@ -2,6 +2,22 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-26 - REJECT - mature repair feasibility headroom
+
+Mechanism: relax the mature repair feasibility margin from exact measured suffix cost (`1.0`) to `1.1`, while preserving the existing scarce-budget margin (`1.05`) and smooth 100k..200k ramp. The intent was to give later repairs modest headroom on rows where exact feasibility appeared to reject useful restarts.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts` passed first (2 files, 40 tests).
+
+Probe: `LR_ENGINE=wasm LR_REPAIR_FEAS_MARGIN=1.1 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --specs=drums_dropout,skyline_push,solo_run,drums_pendulum,terrace_sprint,drums_signature,dense_sprint,rhythm_ladder --budgets=125000,250000,375000,500000 --jobs=16 --archive-dir=generated/golden-runs/probe-repair-feas110-current-j16-s0-2-a01` was indicative but not decisive: valid 96/96, HEADLINE 587.82 on that subset, and an intersection `decide` against the current baseline showed Δheadline +0.6, CI [-1.7, 3.6], P(Δ<=0)=32.7%. The best 500k probe gains were `drums_dropout` seed 2 (+19.75), `drums_dropout` seed 0 (+13.72), and `drums_pendulum` seed 0 (+9.94), with losses led by `drums_pendulum` seed 1 (-6.43) and `terrace_sprint` seed 0 (-4.96).
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, current unified source, valid 1919/1920, raw HEADLINE 678.01, `HEADLINE excl. impact` 693.23, with per-budget point estimates 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-repair-feas110-mature-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-repair-feas110-mature-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 677.26 and `HEADLINE excl. impact` 692.15; per-budget point estimates were 125k 656.38, 250k 674.05, 375k 679.18, and 500k 682.65.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-repair-feas110-mature-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: REJECT`, Δheadline -0.7, CI [-2.1, 0.1], P(Δ<=0)=94.4%. Per-budget deltas were 125k -0.3, 250k -1.1, 375k -0.8, and 500k -0.6.
+
+Why it failed: the small probe correctly found some repair-starved winners, but the full suite showed the looser mature feasibility ceiling was not suite-positive. The regression was broad across all four budgets and strongest at 250k, which suggests the extra feasible restarts changed repair selection more than it rescued blocked rows. The temporary source change was reverted. Future repair work should use a more local signal than a global mature feasibility multiplier, ideally tied to observed repair acceptance pressure or suffix-cost uncertainty rather than always adding headroom.
+
 ## 2026-06-26 - REJECT - duplicate-aware tail completion throttle
 
 Mechanism: add an observed duplicate-pressure gate to speculative tail completion. The temporary source kept the existing tail window, tail branching, shallow-tail throttle, repair, forward eval, scorer, specs, fingerprint, seeds, budget grid, and acceptance rule unchanged, but once the tail phase had enough full-evaluation feedback it smoothly skipped more tail completions as the tail duplicate-full-evaluation rate rose.

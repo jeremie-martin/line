@@ -341,6 +341,54 @@ Treat `LR_QUALITY_NCAND=32` as the explicit baseline surface for new
 spend-response studies. The point is to isolate one knob before any slack-based
 controller is installed.
 
+For the broader offline characterization pass, use:
+
+```bash
+node --import tsx scripts/v0/analyze_qcand_surface.ts \
+  --dir=generated/studies/qncand-large-panel-150k-750k-s0-15 \
+  --out=generated/studies/qncand-large-panel-150k-750k-s0-15/surface-analysis.json
+```
+
+This analyzer is the main mining pass for the q-response database. It keeps the
+compiler runs separate from the statistics: rerun the expensive panel once, then
+try alternate cost, response, and policy models offline against the stored rows.
+By default it analyzes only budget waves where every `(spec, seed, q)` row is
+complete, so a currently running panel cannot skew the q comparison. Use
+`--include-partial` only for debugging ingestion or progress checks.
+
+The surface analysis currently reports:
+
+- first-completion cost models with leave-one-spec, leave-one-budget, and
+  leave-one-seed holdouts;
+- paired first-ratio and candidate-ratio models against `q=32`;
+- score-delta and repair-delta response models;
+- q-response summaries overall, by budget, by slack band, by contact-count band,
+  and by duration band;
+- per-budget and per-spec q elasticity;
+- best-q preference summaries by budget, spec, slack band, contact band,
+  duration band, and the strongest/weakest spec-budget groups;
+- repair/score/candidate tradeoff correlations;
+- simple offline q-selection simulations, including fixed-q baselines and
+  cross-validated selectors by budget, spec, slack band, contact band, and
+  duration band.
+
+On the balanced partial panel through the completed 150k..483333 budget waves,
+the robust finding is that q controls cost much more cleanly than it controls
+score. Candidate-sample ratio is strongly predictable from q (leave-one-spec-out
+R2 about 0.93), first-completion ratio is also predictable (about 0.74), and
+full first-completion frames stay well predicted when q is folded into the
+existing structural traversal model (leave-one-spec-out MAE about 3.2k frames).
+Score-delta models are effectively noise at this level (leave-one-spec-out R2
+near zero), even though cross-seed spec-level q selection shows some offline
+signal. Treat that as a research lead, not production evidence.
+
+The most important q-scaling interpretation is that observed cost does not scale
+as the naive `q / 32` multiplier. At `q=48`, the raw knob is 1.5x, but the
+balanced partial panel sees about 1.12x first-completion cost and 1.17x sampled
+candidates. The analyzer records this as first/candidate "absorption"; values
+well below 1.0 mean the extra candidate breadth is partly offset by choosing
+different branches, fewer downstream nodes, or less repair work.
+
 ## Next Study
 
 The script includes an optional synthetic grid (`--synthetic`) that can vary

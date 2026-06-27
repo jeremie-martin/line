@@ -2,6 +2,16 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - ABANDONED PROBE - higher repair attempt cap on current baseline
+
+Mechanism: screen whether the current `LR_REPAIR_MAX_ATTEMPTS=64` cap is still binding at the new high-budget 375k/500k tiers by raising it to 96 via env only. No source change was made; scorer, specs, fingerprint, seeds, budget grid, start selection, forward eval, candidate generation, and repair scoring stayed unchanged.
+
+Probe: `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_REPAIR_MAX_ATTEMPTS=96 npm run golden -- --budgets=375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-repair-max96-current-j48-s0-2-b375-500-a01` completed 240/240 valid. It changed no 375k scores and changed 80/120 500k tracks/hashes, but every paired score stayed identical.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-repair-max96-current-j48-s0-2-b375-500-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, Δheadline +0.0, CI [0.0, 0.0], P(Δ<=0)=100.0%. Per-budget deltas were 375k +0.0 and 500k +0.0.
+
+Why it was stopped: baseline telemetry showed some 500k rows reaching the 64-restart cap, but raising the cap only added about +0.41 repair restarts and +1.2k repair frames per 500k row on this probe, with +0.00 accepted repairs and +0.00 score. The cap is not the current high-budget limiter; additional permitted restarts do not find accepted suffixes. No canonical run was started and no source change was made.
+
 ## 2026-06-27 - REJECT - low-air outside-pool axis-quality candidate
 
 Mechanism: when a low-air target's admitted handoff pool was still materially over-airborne, offer one already-sampled outside-pool candidate with a better `air` match as an extra `axisq` option, then let the normal candidate scoring and forward evaluator decide whether to use it. The intent was to address the persistent `drums_pendulum`/low-air overshoot family without changing geometry or global pool size.

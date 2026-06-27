@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECT - precompletion slack-scaled best forward eval
+
+Mechanism: restrict the high-slack best-lookahead idea to the phase before the first terminal completion exists. The temporary source preserved explicit `LR_FWD_EVAL` overrides and the existing vertical-drama `avg` override, then used predicted suffix-completion cost to compute remaining-budget slack. For default non-vertical forward eval, expected lookahead breadth faded smoothly from greedy branch 1 at slack 5 to best branch 3 at slack 8, with deterministic stochastic rounding so mid-slack nodes effectively spent around best:1:2 and high-slack nodes reached best:1:3. The intent was to test whether simple/high-slack maps can safely buy better first-completion choices without carrying the previous attempt's post-completion/repair cost.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (6 files, 82 tests).
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, current unified source, valid 1919/1920, raw HEADLINE 678.01, `HEADLINE excl. impact` 693.23, with per-budget point estimates 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-precompletion-slack-lookahead-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-precompletion-slack-lookahead-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 671.26 and `HEADLINE excl. impact` 685.52; per-budget point estimates were 125k 654.62, 250k 671.16, 375k 672.54, and 500k 674.50.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-precompletion-slack-lookahead-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: REJECT`, Δheadline -6.8, CI [-10.9, -3.1], P(Δ<=0)=100.0%. Per-budget deltas were 125k -2.1, 250k -4.0, 375k -7.4, and 500k -8.8.
+
+Why it failed: this answered the caveat directly, and the answer is negative for this implementation. Even when best-lookahead is restricted to precompletion and scaled by normalized suffix slack instead of raw budget, the extra charged lookahead badly perturbs the full compile. Losses grow with budget, which is the opposite of the intended slack behavior. The likely problem is not that slack is meaningless; it is that changing the first-completion basin with expensive best lookahead is too blunt, and the later repair/search dynamics do not recover the spent frames or path choice changes. The temporary source and test changes were reverted. Future lookahead work should be narrower than global precompletion default ranking, likely as a local diagnostic/proposal tool or under an explicit spend/reinvestment controller.
+
 ## 2026-06-27 - REJECT - high-slack best:1:3 forward eval
 
 Mechanism: use the traversal model as a normalized suffix-slack gate for the default forward evaluator. The temporary source preserved explicit `LR_FWD_EVAL` overrides and the existing vertical-drama `avg` override, then smoothly enabled charged `best:1:3` when remaining compile budget divided by predicted suffix-completion cost rose from slack 5 to slack 8. Candidate count stayed unchanged. The intent was to spend deeper/wider lookahead only where the structural slack model said the suffix could afford it, instead of using raw budget thresholds.

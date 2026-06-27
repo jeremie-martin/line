@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECTED PROBE - suffix-slack best:1:2/3 forward eval
+
+Mechanism screened: make the default forward evaluator spend richer lookahead from normalized suffix slack. The temporary source kept explicit `LR_FWD_EVAL` overrides exact and preserved the existing vertical-drama `avg` selector precedence. For default non-vertical scoring it computed `remaining_budget / predicted_suffix_completion_frames` once per node, then smoothly selected `best:1:2` from slack 2.75..4.0 and `best:1:3` from slack 5..7 using deterministic hash pressure. This applied to normal first-completion and repair-phase candidate ranking; the candidate pool itself stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts` passed (3 files, 45 tests). The objective-leaf frame-savings test had to pin `LR_FWD_EVAL=greedy:2` because the temporary adaptive default intentionally changed the rollout shape on tiny high-slack rows.
+
+Probe: `generated/golden-runs/probe-suffix-slack-best-fwd-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-suffix-slack-best-fwd-j48-s0-2-a01`. It was valid 480/480 with raw probe HEADLINE 669.67 and per-budget point estimates 125k 664.92, 250k 664.92, 375k 670.13, and 500k 672.89.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-suffix-slack-best-fwd-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: REJECT`, Δheadline -8.4 on the 40-spec x 3-seed x full-grid intersection, CI [-15.9, -1.9], P(Δ<=0)=99.5%. Per-budget deltas were 125k -2.2, 250k -9.4, 375k -8.3, and 500k -9.5.
+
+Why it was stopped: this answered the "use best:2/3 where slack is genuinely high" idea negatively for this implementation. The controller spent much more forward-eval work while reaching the budget ceiling sooner: average charged forward-eval frames rose by about +13.3k/+54.9k/+91.8k/+126.5k at 125k/250k/375k/500k, while candidate samples fell by about -446/-2066/-3487/-4787. Some rows did improve (`tiny_dance` +21.0, `syncopated_switchback` +16.3, `drums_pendulum` +8.4, `solo_run` +7.8 average over the probe), but the gains were not structurally separable by simple contact count or duration and were overwhelmed by broad rhythm/drum losses (`drums_crosscut` -52.9, `drums_zigzag` -46.7, `drums_swell` -40.8, `verse_chorus` -35.5). A simple "short/simple map" smooth guard would only keep tiny gains and would be guesswork for the mixed cases. The temporary source and test changes were reverted; no canonical run was started.
+
 ## 2026-06-27 - ABANDONED PROBE - zero-cost repair suffix handling
 
 Mechanism screened: repair's measured `costToEnd` model can assign zero estimated suffix cost to late incumbent-path gaps. Baseline then selects those gaps as "free" repairs, gives the repair frontier a zero-frame ceiling, and consumes restart attempts without any possible work. Two temporary variants were tested on the worst 500k repair families (`drums_pendulum`, `drums_dropout`, `skyline_push`, seeds 0..2): (1) fall back to the coarse per-gap suffix estimate when measured cost is zero; (2) skip zero-cost anchors entirely and continue to the next nonzero feasible gap.

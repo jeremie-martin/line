@@ -2,6 +2,22 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECT - mature impact curve activation start
+
+Mechanism: lower the impact curve activation start only after scarce-budget completion is protected. The temporary source kept `IMPACT_CURVE_TARGET_START=0.25` at 125k, then smoothly faded the default target start to `0.20` by 250k+, while preserving explicit `LR_IMPACT_CURVE_START` overrides. The intent was to keep the mature-budget gains seen from a static `0.20` start without repeating its 125k damage.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (5 files, 76 tests).
+
+Probe: a static-env probe with `LR_IMPACT_CURVE_START=0.20` on seeds 0..2 was directionally positive at mature budgets but hurt 125k: non-canonical `decide` reported Δheadline +1.1, CI [-4.9, 7.7], P(Δ<=0)=36.6%, with per-budget deltas 125k -6.1, 250k +1.3, 375k +1.3, 500k +2.7. The mature-default source probe protected 125k and kept the same mature deltas on seeds 0..2: Δheadline +1.7, CI [-4.2, 8.4], P(Δ<=0)=29.5%.
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, current unified source, valid 1919/1920, raw HEADLINE 678.01, `HEADLINE excl. impact` 693.23, with per-budget point estimates 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-impact-curve-mature-start020-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-impact-curve-mature-start020-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 678.13 and `HEADLINE excl. impact` 694.06; per-budget point estimates were 125k 656.69, 250k 674.69, 375k 680.23, and 500k 683.63.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-impact-curve-mature-start020-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, Δheadline +0.1, CI [-3.4, 3.4], P(Δ<=0)=46.7%. Per-budget deltas were 125k +0.0, 250k -0.5, 375k +0.3, and 500k +0.3.
+
+Why it failed: the small probe signal did not generalize. The smooth maturity gate did protect 125k and improved `HEADLINE excl. impact`, but the accepted headline barely moved; 250k regressed, while 375k/500k gains were only +0.3 each. Winners such as `drums_swell`, `swoop_dive`, `cold_start`, and `solo_run` were offset by broad drum/rhythm collateral losses led by `drums_crescendo`, `rhythm_ladder`, `drums_pulse`, `drums_zigzag`, and `drums_dropout`. The temporary source change was reverted.
+
 ## 2026-06-27 - ABANDONED PROBE - higher repair attempt cap on current baseline
 
 Mechanism: screen whether the current `LR_REPAIR_MAX_ATTEMPTS=64` cap is still binding at the new high-budget 375k/500k tiers by raising it to 96 via env only. No source change was made; scorer, specs, fingerprint, seeds, budget grid, start selection, forward eval, candidate generation, and repair scoring stayed unchanged.

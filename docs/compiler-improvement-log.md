@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - INCONCLUSIVE - scarce-budget q28 quality breadth
+
+Mechanism: strengthen the existing smooth quality-candidate lean only at scarce budgets. The temporary source moved the low-budget quality breadth from the current q=32 behavior at 125k to q=28, while keeping q=29 at 250k/375k/500k and preserving the explicit `LR_QUALITY_NCAND` override. Candidate generation families, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.
+
+Why it was tried: earlier 125k screens showed q=28/q=29 improving scarce-budget completion and score, and the full canonical grid should have been mostly isolated to the 125k tier. This made it a clean test of whether lower scarce breadth was a real budget-allocation win rather than a small-sample artifact.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (5 files, 77 tests).
+
+Canonical candidate: `generated/golden-runs/attempt-scarce-quality-lean28-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-scarce-quality-lean28-j32-a01`. It completed valid 1920/1920 with raw HEADLINE 678.87 and `HEADLINE excl. impact` 694.09; per-budget point estimates were 125k 665.35, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-scarce-quality-lean28-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, Delta headline +0.9, CI [-0.4, 5.1], P(Delta<=0)=33.2%. Per-budget deltas were 125k +8.7, 250k +0.0, 375k +0.0, and 500k +0.0, with 100% validity at every tier.
+
+Why it was not kept: the effect is exactly where intended and directionally useful, but the 125k signal remains too seed/spec-unstable to clear the accept rule. The decision estimate says about 25 total seeds would likely resolve it, but under the canonical acceptance workflow this is not promotable. The temporary source and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-27 - INCONCLUSIVE - repair elevation residual re-aim
 
 Mechanism: add a narrow repair-time planned-target correction for dominant upward elevation undershoots. During the existing weak-gap repair loop, if the already-selected repair gap's measured elevation residual was dominant and under-hit the authored climb target, the restart temporarily aimed that gap's elevation higher by a smooth residual-scaled amount, then cleared the planned target after the iteration. First completion, candidate counts, start selection, forward eval, repair scheduling, scorer, specs, fingerprint, seed set, and budget grid were unchanged.

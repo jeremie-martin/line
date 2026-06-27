@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - INCONCLUSIVE - repair elevation residual re-aim
+
+Mechanism: add a narrow repair-time planned-target correction for dominant upward elevation undershoots. During the existing weak-gap repair loop, if the already-selected repair gap's measured elevation residual was dominant and under-hit the authored climb target, the restart temporarily aimed that gap's elevation higher by a smooth residual-scaled amount, then cleared the planned target after the iteration. First completion, candidate counts, start selection, forward eval, repair scheduling, scorer, specs, fingerprint, seed set, and budget grid were unchanged.
+
+Why it was tried: baseline reports show elevation is under-hit on about 84% of elevation-targeted gap measurements, and most of those misses are still below the reported achievable ceiling. This made elevation a cleaner candidate for the existing outcome-gated planning seam than the already-rejected impact loop or static up-front elevation aim bias.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/planning_reaim.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (6 files, 78 tests).
+
+Canonical candidate: `generated/golden-runs/attempt-repair-elevation-residual-reaim-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-repair-elevation-residual-reaim-j32-a01`. It completed valid 1919/1920 with raw HEADLINE 678.01 and `HEADLINE excl. impact` 693.32; per-budget point estimates were 125k 656.71, 250k 674.98, 375k 679.97, and 500k 683.38.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-repair-elevation-residual-reaim-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, Δheadline +0.0, CI [-0.2, 0.2], P(Δ<=0)=48.5%. Per-budget deltas were 125k +0.0, 250k -0.2, 375k -0.0, and 500k +0.1, with unchanged diagnostic pass rates.
+
+Why it was not kept: the mechanism was too narrow and mostly path-neutral. Only 117 paired checkpoint scores changed: 57 improved, 60 regressed, and 1803 were score-identical. Elevation absolute error moved only 0.118547 -> 0.118495, while impact and speed were slightly worse. The best average movement was `switchback_pop` (+1.31) and `dense_echo_climb` (+0.10), but `climb_terrace` (-1.67), `rolling_hills` (-0.17), `summit_push` (-0.16), and `glide_stairs` (-0.13) offset it. Repair-local planned elevation aiming is conceptually clean, but this dominant-residual form does not materially improve the canonical headline. The temporary compiler and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-27 - INCONCLUSIVE - cadence-regularized low-air impact template hold
 
 Mechanism: add one optional straight hold line after the existing impact-template scoop, but only inside already-scheduled impact-template lanes. The hold length was smooth and deterministic: low-air pressure, current impact pressure, local contact-cadence regularity, and a low-discrepancy attempt roll scaled it; amplitude/elevation-targeted gaps were excluded. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were unchanged.

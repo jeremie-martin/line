@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - INCONCLUSIVE - ambiguity-gated opening best lookahead
+
+Mechanism: temporarily refine the slack-conditioned opening lookahead idea with a value/uncertainty guard. The source preserved explicit `LR_FWD_EVAL` overrides and the mature vertical `avg` selector, then only on the first real contact computed the normal default `greedy:2` pool scores first. If whole-run structural slack was high and the top greedy scores were close, it stochastically rescored the top three pool candidates with charged `best:1:2`. Candidate generation, quality breadth, start selection, repair, scorer, specs, fingerprint, seed set, and budget grid were unchanged.
+
+Why it was tried: previous slack-only opening best-of was positive at 500k but inconclusive, while broader suffix/precompletion best-of was rejected. This tested whether adding a direct ambiguity signal could make high-slack opening best-of selective enough to keep the upside without the mid-budget collateral.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/budget_model.test.ts tests/optimizer_handoff.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed before the canonical run (5 files, 77 tests).
+
+Canonical candidate: `generated/golden-runs/attempt-opening-ambiguous-best-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-opening-ambiguous-best-j32-a01`. It completed valid 1919/1920 with raw HEADLINE 677.75 and `HEADLINE excl. impact` 692.49; per-budget point estimates were 125k 656.69, 250k 674.99, 375k 679.67, and 500k 682.95.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-opening-ambiguous-best-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, Δheadline -0.3, CI [-1.1, 0.4], P(Δ<=0)=75.4%, effect -0.66. Per-budget deltas were 125k +0.0, 250k -0.2, 375k -0.3, and 500k -0.3, with unchanged diagnostic validity at every tier.
+
+Why it was not kept: the ambiguity guard made the mechanism narrower but did not fix the fundamental opening best-of issue. The scarce tier stayed byte-identical as intended, but every mature tier moved slightly negative. Work counters show small mature-budget reshuffling rather than useful reinvestment: at 500k full evaluations fell from about 95.2k to 94.3k, sampled candidates fell by about 15.2k, and tail best hits rose only 1998 -> 2042. The extra charged opening evidence still changed basins without producing a net quality lift, so the temporary source and test changes were reverted. The accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-27 - INCONCLUSIVE - cost-normalized opening slack best lookahead
 
 Mechanism: temporarily use traversal-budget slack to choose extra lookahead only for the first real contact. The source preserved explicit `LR_FWD_EVAL` overrides, kept the existing mature vertical `avg` selector precedence, and mapped whole-run structural slack through the measured `best:1:3` first-completion cost ratio (~2.6) to a deterministic stochastic branch choice between the default `greedy:2`, `best:1:2`, and `best:1:3`. Candidate generation, quality breadth, start selection, repair, scorer, specs, fingerprint, seed set, and budget grid were unchanged.

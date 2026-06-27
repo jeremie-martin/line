@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - ABANDONED PROBE - budget-exhaustion tail rescue
+
+Mechanism screened: extend speculative tail completion only when the compiler had no complete track yet, had already placed most contacts, and was essentially at the requested budget. The temporary source kept the normal small tail-completion window unchanged, then added a bounded emergency extension for deep clean prefixes near budget exhaustion. A second version let only that emergency rescue use a three-wide bounded suffix search. Candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and the normal two-wide tail path were otherwise unchanged.
+
+Why it was tried: the current baseline has one invalid canonical checkpoint, `solo_run` seed 7 at 125k. It reaches a clean 61/77-contact prefix with no full evaluation and no tail attempts because the normal 125k tail window is about 9.7 contacts. A generic no-completion/deep-prefix rescue looked like the narrowest way to turn that near-finish into a valid full track without perturbing ordinary quality search.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/optimizer_handoff.test.ts` passed before row probes (2 files, 40 tests).
+
+Focused probes: `generated/golden-runs/probe-tail-exhaustion-rescue-solo7-125k-a02/golden.json` activated one emergency attempt at 18 remaining contacts but still failed the row, with `tail=1/0`, `sim=126975`, `hits=61`, `missing=16`. The wider three-branch variant, `generated/golden-runs/probe-tail-exhaustion-rescue-solo7-125k-a03/golden.json`, also failed with `tail=1/0`, `sim=127111`, `hits=61`, `missing=16`.
+
+Why it was stopped: the late prefix itself was not recoverable by a simple bounded suffix DFS. The rescue spent extra work but found no complete suffix, so a canonical run would only risk perturbing other near-budget rows. This also explains why the archived 125k q-lean can fix `solo_run` seed 7: it changes the earlier search basin, not just the final tail completion. The temporary source changes were reverted.
+
 ## 2026-06-27 - ABANDONED PROBE - q-capped high-slack opening best lookahead
 
 Mechanism screened: pair the strongest previous slack/opening idea with a smaller opening candidate pool. The temporary source used compile-level traversal slack to stochastically move the first-contact opening ranker from default `greedy:2` toward `best:1:2/3` using the empirical first-completion cost ratio 2.6, and capped that same opening pool at 24 candidates only when the best-lookahead branch activated. Explicit `LR_FWD_EVAL` and `LR_QUALITY_NCAND` overrides stayed exact, existing mature vertical `avg` precedence stayed first, and candidate generation families, start selection, repair, scorer, specs, fingerprint, seed set, and budget grid were unchanged.

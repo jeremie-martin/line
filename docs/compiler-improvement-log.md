@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - ABANDONED PROBE - high-slack q48 best:1:3 first-completion exploration
+
+Mechanism screened: use the structural traversal slack model only before the first complete traversal to ramp the unified quality candidate count toward `q=48` and stochastically switch the default `greedy:2` forward-eval ranker to `best:1:3`. Explicit `LR_QUALITY_NCAND` and `LR_FWD_EVAL` overrides stayed exact, and the accepted mature vertical `avg` selector kept precedence. Repair/post-completion policy, start selection, scorer, specs, fingerprint, seed set, and budget grid were unchanged.
+
+Why it was tried: the stopped-first-completion characterization supported the user's hypothesis that slack can afford richer first traversal on simple rows. At 300k, all golden specs and seeds 0..5 showed `q=48,best:1:3` beating the production-like `q=32,default` first-completion baseline by about +7.1 mean score while costing about 2.7x first-completion frames. The positive region was mostly structural slack above roughly 5, while `q=48` under default greedy was worse.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/budget_model.test.ts tests/optimizer_handoff.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (5 files, 76 tests).
+
+Probe: `generated/golden-runs/probe-highslack-q48-best13-firstcomp-j48-s0-3-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-highslack-q48-best13-firstcomp-j48-s0-3-a01`. It completed valid 640/640 with raw probe HEADLINE 678.09 and `HEADLINE excl. impact` 690.99.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-highslack-q48-best13-firstcomp-j48-s0-3-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0 on the 40-spec x 4-seed x full-grid intersection, CI [-3.6, 4.0], P(delta<=0)=50.4%. Per-budget deltas were 125k +0.2, 250k -1.0, 375k -0.2, and 500k +0.6, with unchanged 100% diagnostic validity.
+
+Why it was stopped: the first-completion signal did not survive the repair-aware compile. The controller did increase first-completion work where expected, but mostly displaced repair budget: on the probe, mean first-completion frames moved about +0.6k/+4.8k/+19.6k/+36.3k at 125k/250k/375k/500k, while repair frames moved about +0.3k/-4.9k/-18.8k/-24.1k. Slack bands 5..7 and 7..10 were effectively flat, and the ultra-high-slack band was slightly negative once repair was included. This supports the principle that slack can afford `best` lookahead, but says the useful selector must be value-aware or repair-aware, not just a smooth slack-to-q/best ramp. The temporary source change was reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-27 - INCONCLUSIVE - interior tail-completion throttle
 
 Mechanism: temporarily throttle speculative tail completion only in the low-yield interior of the near-tail window. The selector preserved first-completion/no-feedback behavior, shallow remaining depths, and the high-yield boundary depths, then used smooth pressure from target budget, existing full-evaluation feedback, and distance from shallow/boundary depths to deterministically skip some middle-depth tail completions. Candidate generation, ranking, repair, start selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule were unchanged.

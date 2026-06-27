@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECT - slack-scarce quality breadth
+
+Mechanism: add a normalized traversal-slack controller as a final smooth pull on unified quality candidate breadth. The temporary source kept `LR_QUALITY_NCAND` overrides exact, resolved the existing raw-budget/variation/sparse-amplitude policy first, then pulled the resolved candidate count toward `q=29` when `budget / predicted_first_completion_frames` was scarce (full near slack 3, fading out by slack 6). The intent was to make the earlier scarce-budget q-lean structural rather than tied to a raw 125k threshold, while also helping low-slack 250k rows.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts` passed (4 files, 53 tests).
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, current unified source, valid 1919/1920, raw HEADLINE 678.01, `HEADLINE excl. impact` 693.23, with per-budget point estimates 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-slack-scarce-quality-breadth-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-slack-scarce-quality-breadth-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 678.68 and `HEADLINE excl. impact` 693.67; per-budget point estimates were 125k 663.13, 250k 675.52, 375k 679.81, and 500k 683.29.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-slack-scarce-quality-breadth-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, Δheadline +0.7, CI [-1.0, 4.7], P(Δ<=0)=39.4%. Per-budget deltas were 125k +6.4, 250k +0.4, 375k -0.2, and 500k +0.0.
+
+Why it failed: the controller did what it was designed to do, but the effect was still not accepted. Mean policy breadth moved from q=32.00 to 29.23 at 125k, 31.00 to 30.63 at 250k, 31.00 to 30.85 at 375k, and stayed 31.00 at 500k; first-completion frames dropped by about 1.6k/0.4k/0.2k at 125k/250k/375k. That preserved the known scarce-tier signal and added a little 250k lift, but 375k regressed slightly and the bootstrap still saw a high-variance small effect. The largest simple per-spec losses were `drums_signature`, `drums_pulse`, `drums_tide`, and `grain_staircase`, offset by gains in `solo_run`, `drums_swell`, `drums_crescendo`, and `dense_echo_climb`. This is a good budget-control direction, but under the accept-only rule it cannot be promoted from 12 seeds; the temporary source change was reverted.
+
 ## 2026-06-27 - REJECT - mature impact curve activation start
 
 Mechanism: lower the impact curve activation start only after scarce-budget completion is protected. The temporary source kept `IMPACT_CURVE_TARGET_START=0.25` at 125k, then smoothly faded the default target start to `0.20` by 250k+, while preserving explicit `LR_IMPACT_CURVE_START` overrides. The intent was to keep the mature-budget gains seen from a static `0.20` start without repeating its 125k damage.

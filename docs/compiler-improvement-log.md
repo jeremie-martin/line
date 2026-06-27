@@ -2,6 +2,16 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECTED PROBE - raise repair minimum budget to 150k
+
+Mechanism screened: disable repair at the 125k tier with env-only `LR_REPAIR_MIN_BUDGET=150000`, leaving 250k/375k/500k byte-identical. The hypothesis was that 125k repair might be spending scarce traversal budget for too few accepted repairs. Source, scorer, specs, fingerprint, seeds, budget grid, start selection, forward eval, candidate generation, repair ranking, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-repair-min150-current-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_REPAIR_MIN_BUDGET=150000 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-repair-min150-current-j48-s0-2-a01`. It completed valid 480/480 with raw probe HEADLINE 677.13 and per-budget point estimates 125k 657.81, 250k 674.35, 375k 678.47, and 500k 682.34.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-repair-min150-current-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: REJECT`, Δheadline -0.9 on the 40-spec x 3-seed x full-grid intersection, CI [-1.8, -0.4], P(Δ<=0)=100.0%. The entire loss came from 125k: -9.3 points, CI [-17.8, -4.1].
+
+Why it was stopped: 125k repair is productive despite its low accept rate. Removing it keeps validity but loses substantial quality, so the current 100k repair gate is not just overfitted budget churn. No canonical run was started and no source change was made. Future scarce-budget repair work should improve repair value/targeting, not disable the phase.
+
 ## 2026-06-27 - ABANDONED PROBE - cost-weighted repair anchor selection
 
 Mechanism screened: keep repair's existing weakest-gap restart scheme, but rank feasible repair anchors by local axis-error SSE with a smooth discount for suffixes whose measured cost-to-complete consumes almost the whole remaining repair budget. The intent was to preserve high-error upstream repairs while preferring cheaper near-tied anchors, improving repair accept rate without reducing the repair cap. Scorer, specs, fingerprint, seeds, budget grid, start selection, forward eval, candidate generation, repair cap, and acceptance rule stayed unchanged.

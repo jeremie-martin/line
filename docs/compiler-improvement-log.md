@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECTED PROBE - forward-eval local rank prior
+
+Mechanism screened: regularize the default `greedy:2` forward-eval ranker by adding a small continuous local-rank prior to the returned rank score (`score = -forwardValue + 0.2 * localRank`). The intent was to preserve the existing charged rollout depth/cost while preventing tiny forward-score differences from fully overriding the local quality order. Explicit `LR_FWD_EVAL` overrides were left exact; candidate generation, validation/cost, start selection, repair, scorer, specs, fingerprint, seed set, and budget grid stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed after ensuring shadow/full leaf modes used the same rank prior during the temporary trial (5 files, 76 tests).
+
+Probe: `generated/golden-runs/probe-fwd-local-rank-prior02-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-fwd-local-rank-prior02-j48-s0-2-a01`. It completed valid 472/480 with raw probe HEADLINE 629.23 and `HEADLINE excl. impact` 634.78; per-budget point estimates were 125k 486.98, 250k 585.00, 375k 659.87, and 500k 663.92.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-fwd-local-rank-prior02-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: REJECT`, delta headline -48.8 on the 40-spec x 3-seed x full-grid intersection, CI [-94.4, -16.1], P(delta<=0)=100.0%. Every budget regressed: 125k -180.2, 250k -89.4, 375k -18.6, and 500k -18.4; validity fell from 100% to 95% at 125k and 98% at 250k.
+
+Why it was stopped: the forward-eval/local-order disagreements are not harmless ranking noise. Even a small local-rank prior removes enough true-score discrimination to break completion and heavily regress scarce budgets, while mature budgets still lose about 18 points on the paired screen. The temporary source change was reverted; future ranker work should not regularize the accepted `greedy:2` ordering globally.
+
 ## 2026-06-27 - REJECTED PROBE - raise repair minimum budget to 150k
 
 Mechanism screened: disable repair at the 125k tier with env-only `LR_REPAIR_MIN_BUDGET=150000`, leaving 250k/375k/500k byte-identical. The hypothesis was that 125k repair might be spending scarce traversal budget for too few accepted repairs. Source, scorer, specs, fingerprint, seeds, budget grid, start selection, forward eval, candidate generation, repair ranking, and acceptance rule stayed unchanged.

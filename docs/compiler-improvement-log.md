@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - ABANDONED PROBE - zero-cost repair suffix handling
+
+Mechanism screened: repair's measured `costToEnd` model can assign zero estimated suffix cost to late incumbent-path gaps. Baseline then selects those gaps as "free" repairs, gives the repair frontier a zero-frame ceiling, and consumes restart attempts without any possible work. Two temporary variants were tested on the worst 500k repair families (`drums_pendulum`, `drums_dropout`, `skyline_push`, seeds 0..2): (1) fall back to the coarse per-gap suffix estimate when measured cost is zero; (2) skip zero-cost anchors entirely and continue to the next nonzero feasible gap.
+
+Focused tests for the fallback variant: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts` passed (2 files, 40 tests).
+
+Baseline probe: `generated/golden-runs/probe-current-repairlog-worst-j3-s0-2-b500-a01/golden.json`, run with `LR_ENGINE=wasm LR_REPAIR_LOG=1 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --specs=drums_pendulum,drums_dropout,skyline_push --budgets=500000 --jobs=3`. It scored 519.14 at 500k, valid 9/9, with 493 repair records, 21 accepts, 88 completed restarts, and 401 zero-frame repair records.
+
+Fallback probe: `generated/golden-runs/probe-repair-zero-cost-fallback-worst-j3-s0-2-b500-a01/golden.json` scored 519.07 at 500k, valid 9/9. It removed zero-frame records and raised accepts to 38/136, but the paired probe decision was `VERDICT: INCONCLUSIVE`, Δheadline -0.1, CI [-4.6, 5.8], P(Δ<=0)=55.3%.
+
+Skip-zero probe: `generated/golden-runs/probe-repair-skip-zero-cost-worst-j3-s0-2-b500-a01/golden.json` scored 514.70 at 500k, valid 9/9. The paired probe decision was `VERDICT: REJECT`, Δheadline -4.4, CI [-10.9, 0.0], P(Δ<=0)=100.0%.
+
+Why it was stopped: the zero-cost records are real no-op waste, but naively converting them into work or skipping them only reshuffled the repair budget. The fallback variant found more accepted repairs but spent frames on small late improvements and did not improve the subset; the skip-zero variant pushed repair into expensive earlier anchors and clearly regressed. No canonical run was started, and the temporary source changes were reverted. Future repair work needs a value-aware repair allocator, not just a zero-cost cleanup.
+
 ## 2026-06-27 - REJECT - precompletion slack-scaled best forward eval
 
 Mechanism: restrict the high-slack best-lookahead idea to the phase before the first terminal completion exists. The temporary source preserved explicit `LR_FWD_EVAL` overrides and the existing vertical-drama `avg` override, then used predicted suffix-completion cost to compute remaining-budget slack. For default non-vertical forward eval, expected lookahead breadth faded smoothly from greedy branch 1 at slack 5 to best branch 3 at slack 8, with deterministic stochastic rounding so mid-slack nodes effectively spent around best:1:2 and high-slack nodes reached best:1:3. The intent was to test whether simple/high-slack maps can safely buy better first-completion choices without carrying the previous attempt's post-completion/repair cost.

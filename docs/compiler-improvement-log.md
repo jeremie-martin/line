@@ -2,6 +2,22 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECT - high-slack best:1:3 forward eval
+
+Mechanism: use the traversal model as a normalized suffix-slack gate for the default forward evaluator. The temporary source preserved explicit `LR_FWD_EVAL` overrides and the existing vertical-drama `avg` override, then smoothly enabled charged `best:1:3` when remaining compile budget divided by predicted suffix-completion cost rose from slack 5 to slack 8. Candidate count stayed unchanged. The intent was to spend deeper/wider lookahead only where the structural slack model said the suffix could afford it, instead of using raw budget thresholds.
+
+Characterization: `generated/studies/slack-lookahead-q-firstcomp-300k-s0-5/panel.json` completed 2160 first-completion rows: all golden specs, seeds 0..5, budget 300k, q=16/24/32, and `default,best:1:2,best:1:3`. Same-q first-completion comparisons showed `best:1:3` is still about 2.6x to 2.8x the first-completion cost, but high-slack rows were the only clearly positive region. For q=32, `best:1:3` at slack>=8 was +23.3 first-completion score points on affected rows, while 3<=slack<5 was -9.3.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (6 files, 82 tests).
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, current unified source, valid 1919/1920, raw HEADLINE 678.01, `HEADLINE excl. impact` 693.23, with per-budget point estimates 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-highslack-best1x3-fwd-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-highslack-best1x3-fwd-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 677.2 and `HEADLINE excl. impact` 692.35; per-budget point estimates were 125k 656.23, 250k 673.58, 375k 679.43, and 500k 682.58.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-highslack-best1x3-fwd-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: REJECT`, Δheadline -0.8, CI [-2.0, 0.0], P(Δ<=0)=97.4%. Per-budget deltas were 125k -0.5, 250k -1.6, 375k -0.5, and 500k -0.7.
+
+Why it failed: the first-completion characterization did not transfer to the full compiler. Even with a normalized high-slack suffix gate, the extra charged `best:1:3` work changed search/repair basins negatively at every canonical budget, especially 250k. The likely issue is not the slack model itself but using expensive lookahead as a production default without an explicit reinvestment/phase boundary: first-completion quality gains can be erased or reversed by less favorable post-completion and repair trajectories. The temporary source and test changes were reverted. Future work should treat `best` lookahead as a more local or phase-specific tool, or combine it with an explicit spend controller rather than only a high-slack selector.
+
 ## 2026-06-27 - REJECT - composed vertical amplitude launch
 
 Mechanism: when both `elevation` and `amplitude` were targeted on a gap, preserve the elevation-shaped launch angle and let amplitude act only through grounded ride-out shortening; amplitude-only gaps kept the existing symmetric-arc launch behavior. The intent was to stop the amplitude block from partially erasing high-elevation launch on combined vertical targets, where baseline telemetry showed systematic elevation under-hit.

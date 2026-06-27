@@ -2,6 +2,16 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - ABANDONED PROBE - mild late-tail contact-centered sampler widening
+
+Mechanism screened: widen only the late tail of the contact-centered arc sampler with the study-only `LR_CC_EXPLORE=1.25` env knob. This left source, scorer, specs, fingerprint, seeds, budget grid, candidate count, forward eval, admission, and repair logic unchanged. The hypothesis was that a small increase in arc-space coverage might expose better mature candidates without rewriting the sampler yet.
+
+Probe: `generated/golden-runs/probe-cc-explore125-current-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_CC_EXPLORE=1.25 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-cc-explore125-current-j48-s0-2-a01`. It completed valid 480/480 with raw probe HEADLINE 678.3 and per-budget point estimates 125k 665.35, 250k 675.22, 375k 679.34, and 500k 682.28.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-cc-explore125-current-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, Δheadline +0.2 on the 40-spec x 3-seed x full-grid intersection, CI [-6.2, 7.0], P(Δ<=0)=47.8%. Per-budget deltas were 125k -1.8, 250k +0.9, 375k +0.9, and 500k -0.1.
+
+Why it was stopped: the effect was indistinguishable from noise and did not justify a canonical run or a production default. The result also suggests that a scalar tail widening knob is too blunt for the sampler-space idea. Future sampler work should move toward an explicit profile controlling which dimensions widen, when they widen, and how that couples to candidate count/lookahead effort, rather than promoting this multiplier.
+
 ## 2026-06-27 - ABANDONED PROBE - lower repair restart cap on current baseline
 
 Mechanism screened: cap contained repair restarts at 48 instead of the default 64 using `LR_REPAIR_MAX_ATTEMPTS=48`, with no source change. The hypothesis was that mature-budget repair consumes most of the budget tail while accepting only a few restarts, so stopping lower might let the accepted post-repair frontier-fill path reinvest frames into normal search. Scorer, specs, fingerprint, seeds, budget grid, start selection, forward eval, candidate generation, repair ranking, and acceptance rule stayed unchanged.

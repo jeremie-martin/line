@@ -2045,3 +2045,15 @@ Candidate: `generated/golden-runs/attempt-budget-allocated-opening-qlean-j32-a01
 Decision: `npm run decide -- generated/golden-runs/attempt-budget-allocated-opening-qlean-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, delta headline +1.5, CI [-1.2, 5.8], P(delta<=0)=16.9%, effect 0.85. Per-budget deltas were 125k +6.4, 250k +0.0, 375k +1.2, and 500k +1.3, with unchanged diagnostic pass rate at every budget.
 
 Why it was not kept: the point estimate is directionally good and the 125k tier reproduced the expected scarce-lean lift, but the canonical bootstrap still did not clear the accept gate. The 250k tier was exactly flat, and the higher-budget gains from opening `best:1:2` were too small relative to seed/spec variance. This remains useful evidence that opening lookahead is a quality/slack knob rather than a traversal-cost reducer, but it is not strong enough to become the production compiler behavior. The temporary source and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
+## 2026-06-27 - REJECTED - late mixed elevation ride-out lane
+
+Mechanism: add a narrow optional late-attempt lane for mixed elevation+amplitude climb asks. The trial left the pure-elevation shortening intact, but for elevation-above-midpoint plus moderate amplitude it sometimes shortened the post-contact ride-out from later attempts, with smooth pressure from target budget, attempt index, elevation, and amplitude compatibility. Candidate validation/cost, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed first (5 files, 76 tests).
+
+Candidate: `generated/golden-runs/attempt-mixed-elevation-rideout-lane-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-mixed-elevation-rideout-lane-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 677.96 and `HEADLINE excl. impact` 693.09; per-budget point estimates were 125k 656.69, 250k 675.10, 375k 679.91, and 500k 683.24.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-mixed-elevation-rideout-lane-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, delta headline -0.1, CI [-0.3, 0.1], P(delta<=0)=68.3%, effect -0.50. Per-budget deltas were 125k +0.0, 250k -0.1, 375k -0.1, and 500k -0.1, with unchanged diagnostic pass rate at every budget.
+
+Why it was not kept: the proposal lane targeted a real measured undershoot, but as implemented it behaved like a near-noop with a slight negative bias at the mature budgets. It did not recover the known high-elevation/mixed-amplitude gap and it did not clear the accept gate. The temporary source change was reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.

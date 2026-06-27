@@ -2057,3 +2057,15 @@ Candidate: `generated/golden-runs/attempt-mixed-elevation-rideout-lane-j32-a01/g
 Decision: `npm run decide -- generated/golden-runs/attempt-mixed-elevation-rideout-lane-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, delta headline -0.1, CI [-0.3, 0.1], P(delta<=0)=68.3%, effect -0.50. Per-budget deltas were 125k +0.0, 250k -0.1, 375k -0.1, and 500k -0.1, with unchanged diagnostic pass rate at every budget.
 
 Why it was not kept: the proposal lane targeted a real measured undershoot, but as implemented it behaved like a near-noop with a slight negative bias at the mature budgets. It did not recover the known high-elevation/mixed-amplitude gap and it did not clear the accept gate. The temporary source change was reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
+## 2026-06-27 - REJECTED - low-air impact slam hold
+
+Mechanism: add a deterministic optional hold after the existing impact-template scoop for low-air, high-impact authored targets. The intent was to keep the rider grounded after the impact redirection instead of immediately launching into air, while leaving candidate validation/cost, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed first (5 files, 76 tests).
+
+Candidate: `generated/golden-runs/attempt-lowair-impact-slam-hold-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-lowair-impact-slam-hold-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 678.45 and `HEADLINE excl. impact` 694.13; per-budget point estimates were 125k 656.79, 250k 676.02, 375k 680.51, and 500k 683.55.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-lowair-impact-slam-hold-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, delta headline +0.4, CI [-1.0, 1.8], P(delta<=0)=24.3%, effect 0.62. Per-budget deltas were 125k +0.1, 250k +0.9, 375k +0.5, and 500k +0.3, with unchanged diagnostic pass rate at every budget.
+
+Why it was not kept: the direction was positive and concentrated in the intended low-air/high-impact corner, but the canonical evidence was well short of the accept gate. The mechanism is also another special geometry lane in an already crowded impact template path, so keeping an inconclusive +0.4 point estimate would cut against the current simplification direction. The temporary source change was reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.

@@ -2,6 +2,22 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - INCONCLUSIVE - cadence-regularized low-air impact template hold
+
+Mechanism: add one optional straight hold line after the existing impact-template scoop, but only inside already-scheduled impact-template lanes. The hold length was smooth and deterministic: low-air pressure, current impact pressure, local contact-cadence regularity, and a low-discrepancy attempt roll scaled it; amplitude/elevation-targeted gaps were excluded. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were unchanged.
+
+Why it was tried: the earlier low-air impact rideout improved the intended `drums_pendulum` family but lost too much on rhythm/collateral rows. This variant kept the useful geometry idea but added a cadence-regularity separator and avoided vertical mixed-axis rows.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (5 files, 76 tests).
+
+Screen: `generated/golden-runs/probe-regular-lowair-impact-hold-j48-s0-2-a01/golden.json`, run on `drums_pendulum,syncopated_switchback,rhythm_ladder,dense_sprint,drums_dropout,drums_crescendo,solo_run`, seeds 0..2, budgets 125k/250k/500k, with `--jobs=48`. The paired probe decision against the current baseline was non-promotable but promising: Δheadline +4.0, CI [-2.7, 12.4], P(Δ<=0)=13.3%, positive at all three probed budgets.
+
+Canonical candidate: `generated/golden-runs/attempt-regular-lowair-impact-hold-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-regular-lowair-impact-hold-j32-a01`. It completed valid 1919/1920 with raw HEADLINE ~678.0 and `HEADLINE excl. impact` 693.17.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-regular-lowair-impact-hold-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, Δheadline -0.0, CI [-0.8, 0.8], P(Δ<=0)=52.3%. Per-budget deltas were 125k +0.8, 250k +0.1, 375k +0.2, and 500k -0.4.
+
+Why it was not kept: the screen did not generalize. The mechanism had real targeted upside (`drums_pendulum` +5.36 mean row delta, `rhythm_ladder` +3.76), but it was offset by `drums_dropout` (-3.48), `cold_start` (-2.65), `mini_burst` (-1.53), and a negative 500k point estimate. The cadence separator reduced blast radius but did not make the hold line a suite-positive production default. The source change was reverted; archives are retained.
+
 ## 2026-06-27 - ABANDONED PROBE - budget-exhaustion tail rescue
 
 Mechanism screened: extend speculative tail completion only when the compiler had no complete track yet, had already placed most contacts, and was essentially at the requested budget. The temporary source kept the normal small tail-completion window unchanged, then added a bounded emergency extension for deep clean prefixes near budget exhaustion. A second version let only that emergency rescue use a three-wide bounded suffix search. Candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and the normal two-wide tail path were otherwise unchanged.

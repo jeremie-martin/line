@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - ABANDONED PROBE - q-capped high-slack opening best lookahead
+
+Mechanism screened: pair the strongest previous slack/opening idea with a smaller opening candidate pool. The temporary source used compile-level traversal slack to stochastically move the first-contact opening ranker from default `greedy:2` toward `best:1:2/3` using the empirical first-completion cost ratio 2.6, and capped that same opening pool at 24 candidates only when the best-lookahead branch activated. Explicit `LR_FWD_EVAL` and `LR_QUALITY_NCAND` overrides stayed exact, existing mature vertical `avg` precedence stayed first, and candidate generation families, start selection, repair, scorer, specs, fingerprint, seed set, and budget grid were unchanged.
+
+Why it was tried: the archived q x lookahead studies show that raising q does not rescue expensive best lookahead. In the full 200k panel, `q=48` under `best:1:3` regressed badly versus `q=32`, while `q=24` was close to neutral. In the first-completion 300k panel, `q=24 best:1:2` was competitive with `q=32 best:1:2` while spending less candidate work. This made a local q cap a plausible way to improve the earlier cost-aware opening slack result without adding more broad lookahead.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (5 files, 76 tests). During the temporary trial, the objective/full leaf frame-cost invariant needed to pin `LR_FWD_EVAL=greedy:2` because the adaptive default intentionally changed the rollout shape on high-slack `tiny_dance`; the test edit was reverted with the source.
+
+Probe: `generated/golden-runs/probe-opening-slack-best-q24-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-opening-slack-best-q24-j48-s0-2-a01`. It completed valid 480/480 with raw probe HEADLINE 677.72 and `HEADLINE excl. impact` 692.05.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-opening-slack-best-q24-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline -0.3 on the 40-spec x 3-seed x full-grid intersection, CI [-3.0, 2.3], P(delta<=0)=60.9%. Per-budget deltas were 125k +0.6, 250k -0.8, 375k -1.1, and 500k +0.2.
+
+Why it was stopped: capping the active opening pool at q=24 did not stabilize the opening slack policy. It helped `tiny_dance` (+11.1 average over the probe) and a few drum rows, but made `mini_burst` (-19.6), `syncopated_switchback` (-9.9), `dense_sprint` (-4.7), `drums_pulse` (-4.0), and `drums_zigzag` (-3.9) worse. The mechanism reduced candidate samples by about 82 per row on average, but added forward-eval work and did not improve the paired headline. The temporary source and test changes were reverted. Future opening work should not assume smaller q makes best-lookahead safer; the remaining issue is branch/value selection, not raw opening sample count.
+
 ## 2026-06-27 - ABANDONED PROBE - cadence-regularized high-slack opening lookahead
 
 Mechanism screened: refine the earlier cost-aware opening slack lookahead by adding a smooth cadence-regularity guard. The temporary source kept explicit `LR_FWD_EVAL` overrides exact, preserved the existing mature vertical `avg` selector precedence, and only allowed the default first-contact opening ranker to stochastically move from `greedy:2` toward `best:1:2/3` when compile-level traversal slack was high and the authored contact intervals were regular. Candidate generation, start selection, repair, scorer, specs, fingerprint, seed set, and budget grid stayed unchanged.

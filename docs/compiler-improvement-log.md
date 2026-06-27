@@ -2,6 +2,16 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - ABANDONED PROBE - lower repair restart cap on current baseline
+
+Mechanism screened: cap contained repair restarts at 48 instead of the default 64 using `LR_REPAIR_MAX_ATTEMPTS=48`, with no source change. The hypothesis was that mature-budget repair consumes most of the budget tail while accepting only a few restarts, so stopping lower might let the accepted post-repair frontier-fill path reinvest frames into normal search. Scorer, specs, fingerprint, seeds, budget grid, start selection, forward eval, candidate generation, repair ranking, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-repair-max48-current-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_REPAIR_MAX_ATTEMPTS=48 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-repair-max48-current-j48-s0-2-a01`. It completed valid 480/480 with raw probe HEADLINE 677.42 and per-budget point estimates 125k 667.13, 250k 674.35, 375k 677.96, and 500k 681.12.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-repair-max48-current-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: REJECT`, Δheadline -0.6 on the 40-spec x 3-seed x full-grid intersection, CI [-1.7, -0.1], P(Δ<=0)=100.0%. Per-budget deltas were 125k +0.0, 250k +0.0, 375k -0.5, and 500k -1.2.
+
+Why it was stopped: the budget-allocation hypothesis was wrong in this direction. At 500k the lower cap saved about 27k repair frames and 7 restarts per row, and the resumed frontier did spend more work (+41 full evaluations, +203 sampled candidates per row), but it produced worse incumbents. The damage was sparse but one-sided: 16/120 rows changed at 500k with 15 regressions and 1 improvement, led by `cold_start`, `big_air_ramp`, `leap_cadence`, `swoop_dive`, `climb_terrace`, and `summit_push`. The current 64-restart cap is not just waste; the late repair attempts occasionally protect mature-budget quality better than frontier-fill reinvestment. No canonical run was started and no source change was made.
+
 ## 2026-06-27 - REJECTED PROBE - suffix-slack best:1:2/3 forward eval
 
 Mechanism screened: make the default forward evaluator spend richer lookahead from normalized suffix slack. The temporary source kept explicit `LR_FWD_EVAL` overrides exact and preserved the existing vertical-drama `avg` selector precedence. For default non-vertical scoring it computed `remaining_budget / predicted_suffix_completion_frames` once per node, then smoothly selected `best:1:2` from slack 2.75..4.0 and `best:1:3` from slack 5..7 using deterministic hash pressure. This applied to normal first-completion and repair-phase candidate ranking; the candidate pool itself stayed unchanged.

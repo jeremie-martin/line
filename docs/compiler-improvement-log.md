@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - ABANDONED PROBE - cadence-regularized high-slack opening lookahead
+
+Mechanism screened: refine the earlier cost-aware opening slack lookahead by adding a smooth cadence-regularity guard. The temporary source kept explicit `LR_FWD_EVAL` overrides exact, preserved the existing mature vertical `avg` selector precedence, and only allowed the default first-contact opening ranker to stochastically move from `greedy:2` toward `best:1:2/3` when compile-level traversal slack was high and the authored contact intervals were regular. Candidate generation, start selection, repair, scorer, specs, fingerprint, seed set, and budget grid stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed after making the trial helper compatible with test-only specs that install a forward-eval context without authored contacts (5 files, 76 tests).
+
+Probe: `generated/golden-runs/probe-opening-regular-slack-best-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-opening-regular-slack-best-j48-s0-2-a01`. It completed valid 480/480 with raw probe HEADLINE 678.15 and `HEADLINE excl. impact` 691.89.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-opening-regular-slack-best-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline +0.1 on the 40-spec x 3-seed x full-grid intersection, CI [-0.6, 1.1], P(delta<=0)=52.6%. Per-budget deltas were 125k +0.0, 250k +0.2, 375k +0.1, and 500k +0.1.
+
+Why it was stopped: the regularity guard removed most of the useful movement from the earlier cost-aware opening slack policy. Only 12/480 paired rows changed: `tiny_dance` improved on average (+7.9 over the probe), but `mini_burst` regressed (-3.2), and every other spec was byte-identical or score-identical. Average charged forward-eval frames rose by about +1.1k per row while sampled candidates fell by about 45. This confirms the user's intuition that slack can safely afford best-of on very simple rows, but also shows that a simple cadence-regularity guard is too narrow to be a production improvement. The temporary source change was reverted; future work should characterize Q x lookahead directly or use a value-aware opening selector rather than a scalar regularity guard.
+
 ## 2026-06-27 - ABANDONED PROBE - low-amplitude release setup pressure
 
 Mechanism screened: extend the existing release-vertical setup penalty so the next-gap pressure also reacts to low amplitude targets, not only low-air targets and tight cadence. The hypothesis was that vertical release into low-amplitude follow-up gaps could create avoidable pop and worsen amplitude/elevation families such as `terrace_sprint`. Candidate generation, start selection, forward-eval policy, repair, scorer, specs, fingerprint, seed set, and budget grid stayed unchanged.

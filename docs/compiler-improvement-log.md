@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - ABANDONED PROBE - low-amplitude release setup pressure
+
+Mechanism screened: extend the existing release-vertical setup penalty so the next-gap pressure also reacts to low amplitude targets, not only low-air targets and tight cadence. The hypothesis was that vertical release into low-amplitude follow-up gaps could create avoidable pop and worsen amplitude/elevation families such as `terrace_sprint`. Candidate generation, start selection, forward-eval policy, repair, scorer, specs, fingerprint, seed set, and budget grid stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (5 files, 76 tests).
+
+Probe: `generated/golden-runs/probe-release-lowamp-setup-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-release-lowamp-setup-j48-s0-2-a01`. It completed valid 480/480 with raw probe HEADLINE 678.06 and `HEADLINE excl. impact` 691.64.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-release-lowamp-setup-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0 on the 40-spec x 3-seed x full-grid intersection, CI [0.0, 0.0], P(delta<=0)=100.0%. Every paired budget rounded to exactly the same score as baseline.
+
+Why it was stopped: the pressure changed some selected trajectories but did not move the paired score on the screen, so it has no promotable signal. The temporary source change was reverted. Future low-amplitude work needs a stronger local model than reusing the low-air release-vertical pressure shape.
+
 ## 2026-06-27 - INCONCLUSIVE - high-slack opening best:1:2 forward eval
 
 Mechanism: temporarily add a narrow slack-gated opening lookahead selector on top of the unified compiler. The existing mature vertical `avg` forward-eval selector kept precedence, explicit `LR_FWD_EVAL` overrides stayed exact, and only clean opening prefixes ending in contact could switch the default `greedy:2` ranker to `best:1:2`. Activation used the existing traversal-budget slack model with a smoothstep from slack 10 to 14 and deterministic fractional activation. Candidate count, start selection, repair, scoring, specs, fingerprint, seed set, and budget grid were unchanged.

@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECT - composed vertical amplitude launch
+
+Mechanism: when both `elevation` and `amplitude` were targeted on a gap, preserve the elevation-shaped launch angle and let amplitude act only through grounded ride-out shortening; amplitude-only gaps kept the existing symmetric-arc launch behavior. The intent was to stop the amplitude block from partially erasing high-elevation launch on combined vertical targets, where baseline telemetry showed systematic elevation under-hit.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (6 files, 81 tests).
+
+Baseline: `generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json`, current unified source, valid 1919/1920, raw HEADLINE 678.01, `HEADLINE excl. impact` 693.23, with per-budget point estimates 125k 656.69, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Candidate: `generated/golden-runs/attempt-composed-vertical-amplitude-angle-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-composed-vertical-amplitude-angle-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 678.15 and `HEADLINE excl. impact` 693.37; per-budget point estimates were 125k 656.47, 250k 675.15, 375k 680.10, and 500k 683.61.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-composed-vertical-amplitude-angle-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, Δheadline +0.1, CI [-0.4, 0.6], P(Δ<=0)=23.4%. Per-budget deltas were 125k -0.2, 250k -0.0, 375k +0.1, and 500k +0.3.
+
+Why it failed: the physical decomposition was plausible and moved the highest budget in the intended direction, but the effect was far too small to promote. It slightly hurt 125k, was flat at 250k, and only produced modest 375k/500k gains; the paired evidence remained inconclusive. The temporary source change was reverted. Future vertical-axis work should either use a stronger combined-axis proposal/ranking signal or make the tradeoff conditional on observed elevation/amplitude pressure rather than always preserving elevation launch when amplitude is also present.
+
 ## 2026-06-27 - REJECT - slack-scarce quality breadth
 
 Mechanism: add a normalized traversal-slack controller as a final smooth pull on unified quality candidate breadth. The temporary source kept `LR_QUALITY_NCAND` overrides exact, resolved the existing raw-budget/variation/sparse-amplitude policy first, then pulled the resolved candidate count toward `q=29` when `budget / predicted_first_completion_frames` was scarce (full near slack 3, fading out by slack 6). The intent was to make the earlier scarce-budget q-lean structural rather than tied to a raw 125k threshold, while also helping low-slack 250k rows.

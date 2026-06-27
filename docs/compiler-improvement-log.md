@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - INCONCLUSIVE - interior tail-completion throttle
+
+Mechanism: temporarily throttle speculative tail completion only in the low-yield interior of the near-tail window. The selector preserved first-completion/no-feedback behavior, shallow remaining depths, and the high-yield boundary depths, then used smooth pressure from target budget, existing full-evaluation feedback, and distance from shallow/boundary depths to deterministically skip some middle-depth tail completions. Candidate generation, ranking, repair, start selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule were unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/budget_model.test.ts tests/optimizer_handoff.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (5 files, 77 tests).
+
+Canonical candidate: `generated/golden-runs/attempt-tail-interior-throttle-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-tail-interior-throttle-j32-a01`. It completed valid 1919/1920 with raw HEADLINE 678.00 and `HEADLINE excl. impact` 693.22; per-budget point estimates were 125k 656.69, 250k 675.15, 375k 679.96, and 500k 683.29.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-tail-interior-throttle-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.0, CI [-0.0, 0.0], P(delta<=0)=100.0%, effect -0.59. Per-budget deltas were 125k +0.0, 250k -0.0, 375k -0.0, and 500k +0.0, with unchanged diagnostic validity.
+
+Why it was not kept: the mechanism successfully removed the targeted low-yield middle tail attempts, especially at mature budgets, but the saved work did not reinvest into useful search. Mean tail attempts fell by about 1.2/6.2/12.5/19.1 per row at 125k/250k/375k/500k, but unique full evaluations were essentially flat (-0.01/-0.06/-0.05/+0.02 per row), candidate samples barely moved, and only two paired scores changed, both tiny negative. This confirms that tail middle-depth completions are wasteful telemetry-wise, but suppressing them alone does not buy quality; future tail work needs an explicit productive reinvestment path rather than another skip/throttle. The temporary source and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-27 - REJECT - structural-slack precompletion best lookahead
 
 Mechanism: temporarily use the structural traversal model to select deeper default forward lookahead during the first-completion traversal. The source preserved explicit `LR_FWD_EVAL` overrides, kept the accepted mature vertical `avg` selector first, and only before the first complete incumbent mapped whole-run slack (`budget / predicted_first_completion_frames`) through measured first-completion cost ratios (`best:1:2` about 1.4x, `best:1:3` about 2.6x, with reserve) into a deterministic stochastic choice among default `greedy:2`, `best:1:2`, and `best:1:3`. After first completion, repair and ordinary quality search used the baseline ranker. Candidate generation, quality breadth, start selection, repair scheduling, scorer, specs, fingerprint, seed set, and budget grid were unchanged.

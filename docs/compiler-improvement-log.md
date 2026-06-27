@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - REJECT - structural-slack precompletion best lookahead
+
+Mechanism: temporarily use the structural traversal model to select deeper default forward lookahead during the first-completion traversal. The source preserved explicit `LR_FWD_EVAL` overrides, kept the accepted mature vertical `avg` selector first, and only before the first complete incumbent mapped whole-run slack (`budget / predicted_first_completion_frames`) through measured first-completion cost ratios (`best:1:2` about 1.4x, `best:1:3` about 2.6x, with reserve) into a deterministic stochastic choice among default `greedy:2`, `best:1:2`, and `best:1:3`. After first completion, repair and ordinary quality search used the baseline ranker. Candidate generation, quality breadth, start selection, repair scheduling, scorer, specs, fingerprint, seed set, and budget grid were unchanged.
+
+Why it was tried: the opening-only slack best-of result was inconclusive but positive at 500k, and the user correctly noted that a simple row with large structural slack should be able to afford `best:1:2/3`. This tested the next broader form: not only the first real contact, but the whole precompletion traversal, while still avoiding raw budget thresholds and preserving accepted vertical `avg` behavior.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/budget_model.test.ts tests/optimizer_handoff.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed before the canonical run (5 files, 77 tests).
+
+Canonical candidate: `generated/golden-runs/attempt-slack-precompletion-best-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-slack-precompletion-best-j32-a01`. It completed valid 1919/1920 with raw HEADLINE 671.84 and `HEADLINE excl. impact` 686.17; per-budget point estimates were 125k 656.67, 250k 668.66, 375k 673.99, and 500k 675.60.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-slack-precompletion-best-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: REJECT`, Δheadline -6.2, CI [-10.6, -2.3], P(Δ<=0)=100.0%, effect -2.91. Per-budget deltas were 125k -0.0, 250k -6.5, 375k -6.0, and 500k -7.7, with unchanged diagnostic validity at every tier.
+
+Why it was not kept: structural slack is not sufficient to decide where broad `best` lookahead helps. The policy left 125k effectively neutral but made every mature tier worse. Mean charged forward-eval frames rose from about 74k -> 95k at 250k, 111k -> 138k at 375k, and 149k -> 177k at 500k; mean first-completion frames rose from about 62k -> 99k, 63k -> 116k, and 63k -> 127k respectively. Changed paired rows also skewed negative at mature budgets (250k 104 improved / 144 regressed; 375k 97 / 151; 500k 96 / 152). This confirms the user's caveat in the useful direction: high budget slack can afford more compute, but the traversal-cost oracle does not say that `best` is the right way to spend it on a given branch. The temporary compiler and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-27 - INCONCLUSIVE - ambiguity-gated opening best lookahead
 
 Mechanism: temporarily refine the slack-conditioned opening lookahead idea with a value/uncertainty guard. The source preserved explicit `LR_FWD_EVAL` overrides and the mature vertical `avg` selector, then only on the first real contact computed the normal default `greedy:2` pool scores first. If whole-run structural slack was high and the top greedy scores were close, it stochastically rescored the top three pool candidates with charged `best:1:2`. Candidate generation, quality breadth, start selection, repair, scorer, specs, fingerprint, seed set, and budget grid were unchanged.

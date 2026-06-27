@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - ABANDONED PROBE - cost-weighted repair anchor selection
+
+Mechanism screened: keep repair's existing weakest-gap restart scheme, but rank feasible repair anchors by local axis-error SSE with a smooth discount for suffixes whose measured cost-to-complete consumes almost the whole remaining repair budget. The intent was to preserve high-error upstream repairs while preferring cheaper near-tied anchors, improving repair accept rate without reducing the repair cap. Scorer, specs, fingerprint, seeds, budget grid, start selection, forward eval, candidate generation, repair cap, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts` passed (3 files, 45 tests).
+
+Probe: `generated/golden-runs/probe-repair-costweighted-anchor-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-repair-costweighted-anchor-j48-s0-2-a01`. It completed valid 480/480 with raw probe HEADLINE 678.03 and per-budget point estimates 125k 666.32, 250k 674.35, 375k 678.10, and 500k 682.75.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-repair-costweighted-anchor-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, Δheadline -0.0 on the 40-spec x 3-seed x full-grid intersection, CI [-0.7, 0.6], P(Δ<=0)=51.5%. Per-budget deltas were 125k -0.8, 250k -0.0, 375k -0.4, and 500k +0.4.
+
+Why it was stopped: the cost discount barely moved the actual repair economics. At 500k it added only about +742 repair frames, +1.1 restarts, and +0.07 accepts per row, with sparse row movement; at lower budgets it was neutral to negative. The largest weighted gains (`drums_breath`, `opening_burst`, `solo_run`, `glide_stairs`) were offset by `verse_chorus`, `drums_crescendo`, `drums_pendulum`, and `rhythm_ladder`. A canonical run would not be a good use of compute. The temporary source change was reverted; future repair work needs a stronger value model than a mild suffix-cost tie-breaker.
+
 ## 2026-06-27 - REJECTED - cost-aware opening slack best lookahead
 
 Mechanism: test the high-slack lookahead idea in its narrowest production-like form. The temporary source kept explicit `LR_FWD_EVAL` overrides exact, preserved the existing mature vertical `avg` selector precedence, and only changed the first real contact ranker on clean opening prefixes. It computed compile-level traversal slack from the existing first-completion model, divided by the empirical `best:1:3` first-completion cost ratio (~2.6x), then smoothly/stochastically rounded expected effort from the default `greedy:2` toward `best:1:2/3`. Candidate count, start selection, repair, scoring, specs, fingerprint, seed set, and budget grid were unchanged.

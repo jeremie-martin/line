@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - INCONCLUSIVE - high-slack opening best:1:2 forward eval
+
+Mechanism: temporarily add a narrow slack-gated opening lookahead selector on top of the unified compiler. The existing mature vertical `avg` forward-eval selector kept precedence, explicit `LR_FWD_EVAL` overrides stayed exact, and only clean opening prefixes ending in contact could switch the default `greedy:2` ranker to `best:1:2`. Activation used the existing traversal-budget slack model with a smoothstep from slack 10 to 14 and deterministic fractional activation. Candidate count, start selection, repair, scoring, specs, fingerprint, seed set, and budget grid were unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (5 files, 76 tests).
+
+Canonical candidate: `generated/golden-runs/attempt-opening-highslack-best1x2-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-opening-highslack-best1x2-j32-a01`. It completed valid 1919/1920 with raw HEADLINE 678.14 and `HEADLINE excl. impact` 693.2; per-budget point estimates were 125k 656.69, 250k 675.40, 375k 680.22, and 500k 683.30.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-opening-highslack-best1x2-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, Δheadline +0.1, CI [-0.6, 0.9], P(Δ<=0)=34.6%. Per-budget deltas were 125k +0.0, 250k +0.2, 375k +0.2, and 500k +0.0 with unchanged diagnostic pass rates.
+
+Why it was not kept: this narrower high-slack gate is directionally harmless but much weaker than the earlier cost-aware opening slack variant and does not clear the acceptance rule. It is still useful evidence that the slack/controller idea is not obviously dangerous on easy/high-budget openings, but `best:1:2` under this gate has too little marginal value to promote as a production default. The temporary source change was reverted. Future work should characterize Q x lookahead x slack directly, preferably with first-completion stopped runs before full repair-aware canonical runs.
+
 ## 2026-06-27 - REJECTED PROBE - forward-eval local rank prior
 
 Mechanism screened: regularize the default `greedy:2` forward-eval ranker by adding a small continuous local-rank prior to the returned rank score (`score = -forwardValue + 0.2 * localRank`). The intent was to preserve the existing charged rollout depth/cost while preventing tiny forward-score differences from fully overriding the local quality order. Explicit `LR_FWD_EVAL` overrides were left exact; candidate generation, validation/cost, start selection, repair, scorer, specs, fingerprint, seed set, and budget grid stayed unchanged.

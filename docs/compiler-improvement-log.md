@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-27 - INCONCLUSIVE - cost-normalized opening slack best lookahead
+
+Mechanism: temporarily use traversal-budget slack to choose extra lookahead only for the first real contact. The source preserved explicit `LR_FWD_EVAL` overrides, kept the existing mature vertical `avg` selector precedence, and mapped whole-run structural slack through the measured `best:1:3` first-completion cost ratio (~2.6) to a deterministic stochastic branch choice between the default `greedy:2`, `best:1:2`, and `best:1:3`. Candidate generation, quality breadth, start selection, repair, scorer, specs, fingerprint, seed set, and budget grid were unchanged.
+
+Why it was tried: the first-completion panels show high-slack rows are the only clearly positive region for `best` lookahead, and the user correctly pointed out that simple short maps with large budget slack can afford `best:1:2/3` even if dense maps cannot. This trial tested that idea in the narrowest production-like form without a raw budget threshold or local q cap.
+
+Focused tests: during the temporary source trial, `LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/budget_model.test.ts tests/optimizer_handoff.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (5 files, 78 tests). The objective/full leaf frame-cost invariant needed a temporary explicit `LR_FWD_EVAL=greedy:2` pin because the adaptive default intentionally changed the rollout shape on high-slack rows; that test edit was reverted with the source.
+
+Canonical candidate: `generated/golden-runs/attempt-opening-slack-costnorm-best-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-opening-slack-costnorm-best-j32-a01`. It completed valid 1919/1920 with raw HEADLINE 678.62 and `HEADLINE excl. impact` 694.32; per-budget point estimates were 125k 656.83, 250k 674.95, 375k 679.91, and 500k 684.92.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-opening-slack-costnorm-best-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, Delta headline +0.6, CI [-1.4, 2.3], P(Delta<=0)=22.7%. Per-budget deltas were 125k +0.1, 250k -0.2, 375k -0.1, and 500k +1.6, with unchanged 100% diagnostic validity at every tier.
+
+Why it was not kept: this is the cleanest evidence so far that slack-conditioned opening best-of is plausibly useful at mature budgets, especially 500k, but it still does not clear the accept rule and slightly hurts the mid-budget point estimates. The result supports the user's framing that slack can buy richer opening evaluation on simple rows, but the production policy still needs either a stronger value-aware selector or a broader accepted budget-allocation mechanism. The temporary source and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-27 - INCONCLUSIVE - scarce-budget q28 quality breadth
 
 Mechanism: strengthen the existing smooth quality-candidate lean only at scarce budgets. The temporary source moved the low-budget quality breadth from the current q=32 behavior at 125k to q=28, while keeping q=29 at 250k/375k/500k and preserving the explicit `LR_QUALITY_NCAND` override. Candidate generation families, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.

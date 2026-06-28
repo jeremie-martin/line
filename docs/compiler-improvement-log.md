@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - INCONCLUSIVE CANONICAL - terminal current-quality pool rank
+
+Mechanism: temporarily give terminal contact pools a zero-extra-simulation quality objective. When `candidateQualityObjective` found no next contact, the trial ranked candidates by measured current-gap target quality instead of returning `null` and falling back to cost order. Non-terminal pool ranking, candidate generation, aim proposals, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule were unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 82 tests), including a terminal-pool ranking regression test.
+
+Canonical: `generated/golden-runs/attempt-terminal-quality-rank-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-terminal-quality-rank-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 678.91 and `HEADLINE excl. impact` 694.25. Per-budget point estimates were 125k 666.46, 250k 675.09, 375k 679.87, and 500k 683.20.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-terminal-quality-rank-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.1, CI [-0.3, 0.0], P(delta<=0)=89.0%, effect -0.83. Per-budget deltas were 125k +0.0, 250k -0.1, 375k -0.1, and 500k -0.1, with unchanged validity at every tier.
+
+Why it was not kept: the zero-cost terminal ranker barely moved the compiler and the small movement was negative. Only 39/1920 paired checkpoints changed (29 improved, 10 regressed, 1881 unchanged). Work counters and simulated frames were essentially flat, confirming the mechanism was a pure ordering tweak rather than a budget-allocation effect. The only meaningful loss was `mini_burst` (-2.63 mean); small gains on `switchback_pop` (+0.08), `syncopated_switchback` (+0.02), and `grain_staircase` (+0.01) were too small to matter. Terminal current-axis information is not useful enough as a standalone pool-ordering rule. The temporary source and test changes were reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-28 - INCONCLUSIVE CANONICAL - terminal current-axis aim
 
 Mechanism: temporarily let the existing joint aim lane run on terminal contact gaps, where `nextContactGap` is absent. The normal next-contact objective path was unchanged. On terminal gaps only, the trial fitted the same local joint arc model but scored knob proposals by current-gap target quality alone, then still sent every proposal through exact `tryCandidateLines` validation before merging it into the pool. Candidate generation outside the terminal aim lane, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule were unchanged.

@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - INCONCLUSIVE CANONICAL - directional high-axis quality rank
+
+Mechanism: temporarily add a zero-extra-frame directional factor inside `candidateQualityObjective` in `aim.ts`. The normal current-gap quality and next-gap readiness objective stayed intact, but high-target impact/elevation/amplitude candidates received a small bounded multiplier favoring achieved values above the target and penalizing deeper undershoot. This tested whether the measured signed-error anatomy (impact/elevation/amplitude under-hit) could be addressed by ranker asymmetry without changing candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, or acceptance rule.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 82 tests), including a narrow symmetric high-impact ranking regression test for the rejected behavior.
+
+Canonical: `generated/golden-runs/attempt-directional-axis-quality-rank-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-directional-axis-quality-rank-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.03 and `HEADLINE excl. impact` 694.26. Per-budget point estimates were 125k 666.14, 250k 674.81, 375k 679.79, and 500k 683.79.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-directional-axis-quality-rank-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0, CI [-1.0, 1.0], P(delta<=0)=46.7%, effect 0.08. Per-budget deltas were 125k -0.3, 250k -0.4, 375k -0.2, and 500k +0.5, with unchanged validity at every tier.
+
+Why it was not kept: the directional factor created real basin reshuffling but no reliable suite gain. It helped some intended mature rows (`drums_swell` +4.81, `drums_zigzag` +5.10, `canyon_steps` +3.08 at 500k), yet losses on `syncopated_switchback` (-4.43), `rhythm_ladder` (-3.95), `drums_tide` (-5.26), and `cold_start` (-3.97) offset the 500k gain, while all lower budgets moved slightly negative. Work counters were essentially flat (`sim_frames` within about +/-60 and `candidates_sampled` within about +/-3 per row by budget), confirming this was mostly ordering/basin movement rather than improved budget allocation. The temporary source and test changes were reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-28 - REJECTED CANONICAL - post-completion slack lookahead
 
 Mechanism: temporarily test a narrower form of the user's high-slack `best` lookahead idea in `handoff.ts`. The normal first traversal stayed on the accepted default ranker, explicit `LR_FWD_EVAL` overrides stayed exact, and the accepted mature vertical `avg` override kept priority. Only after a complete incumbent existed could default non-vertical nodes use structural suffix slack to stochastically upgrade from `greedy:2` to `best:1:2` and then `best:1:3`, with suffix slack capped by whole-track slack. Candidate count, candidate generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

@@ -2579,3 +2579,13 @@ Probe: `generated/golden-runs/probe-structural-avg2-fwd-j48-s0-2-a01/golden.json
 Probe decision: `npm run decide -- generated/golden-runs/probe-structural-avg2-fwd-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: REJECT`, delta headline -3.7 on the 40-spec x 3-seed x full-budget intersection, CI [-7.8, 0.1], P(delta<=0)=97.2%. Per-budget deltas were 125k -11.7, 250k -4.0, 375k -2.7, and 500k -2.4.
 
 Why it was not kept: the first-completion panel signal did not transfer to full runs with repair enabled. Even with a structural-ease gate, the extra one-step branch spend starved useful search/repair and hurt every budget in the paired probe, including 125k. The temporary source and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
+## 2026-06-28 - REJECTED PROBE - repair feasibility margin 1.10
+
+Mechanism: env-only screen with `LR_REPAIR_FEAS_MARGIN=1.1`, giving post-completion repair restarts 10% more feasibility headroom than the mature exact predicted suffix ceiling. Candidate generation, validation/cost, start selection, forward eval, scorer, specs, fingerprint, seed set, budget grid, source code, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-repair-feas110-current-full-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_REPAIR_FEAS_MARGIN=1.1 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-repair-feas110-current-full-j48-s0-2-a01`. The probe was valid 480/480 with raw HEADLINE 677.19 and `HEADLINE excl. impact` 691.19; raw per-budget point estimates were 125k 666.59, 250k 673.28, 375k 677.66, and 500k 681.44.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-repair-feas110-current-full-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: REJECT`, delta headline -0.9 on the 40-spec x 3-seed x full new-grid intersection, CI [-2.3, 0.3], P(delta<=0)=92.6%. Per-budget deltas were 125k -0.5, 250k -1.1, 375k -0.8, and 500k -0.9, with unchanged validity.
+
+Why it was not kept: repair restarts already have enough feasibility margin under the current mature policy. Adding uniform headroom made the repair scheduler slightly less selective and regressed every budget on the paired probe. This reinforces that extra lookahead/search spend must be paid for with an explicit total-budget allocation model, not by loosening repair affordability globally. This was env-only and left no source changes; the accepted baseline remains `baseline-current-unified-14edc74-j32`.

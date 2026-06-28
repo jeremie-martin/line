@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - INCONCLUSIVE CANONICAL - terminal current-axis aim
+
+Mechanism: temporarily let the existing joint aim lane run on terminal contact gaps, where `nextContactGap` is absent. The normal next-contact objective path was unchanged. On terminal gaps only, the trial fitted the same local joint arc model but scored knob proposals by current-gap target quality alone, then still sent every proposal through exact `tryCandidateLines` validation before merging it into the pool. Candidate generation outside the terminal aim lane, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule were unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-terminal-current-aim-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-terminal-current-aim-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 678.87 and `HEADLINE excl. impact` 693.59. Per-budget point estimates were 125k 666.77, 250k 675.03, 375k 679.78, and 500k 683.14.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-terminal-current-aim-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.1, CI [-0.9, 0.6], P(delta<=0)=59.9%, effect -0.29. Per-budget deltas were 125k +0.3, 250k -0.1, 375k -0.2, and 500k -0.1, with unchanged validity at every tier.
+
+Why it was not kept: the terminal lane behaved mechanically but did not buy quality. It turned many terminal `enum_no_target` skips into aimed proposals, increasing emitted aim candidates by about +58/+107/+152/+213 per checkpoint and joint-probe frames by about +3.2k/+6.2k/+8.9k/+12.3k across the four budgets. Scores were mostly reshuffled: 1129 paired checkpoints improved, 313 regressed, and 478 were unchanged, but the weighted effect was flat/slightly negative. Gains on `canyon_steps` (+1.76), `terrace_sprint` (+1.55), `dense_sprint` (+1.54), and `summit_push` (+1.29) were offset by losses on `syncopated_switchback` (-2.62), `drums_pendulum` (-1.96), `mini_burst` (-1.69), `leap_cadence` (-1.36), and `drums_crescendo` (-1.26). Terminal current-axis aiming is therefore not a compelling production default; if tail aiming returns, it needs a value gate or a cheaper terminal-specific model. The temporary source change was reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-28 - REJECTED CANONICAL - gap-window quality pool rank
 
 Mechanism: temporarily align the quality-objective pool ranker's current-axis term with the official scorer window by using `candidate.achievedAtEnd ?? candidate.achieved` inside `candidateQualityObjective`. The objective leaf already uses the gap-window value to reproduce the scorer, while the pool ranker had used the lookahead-window `candidate.achieved`. Candidate generation, local feasibility cost, start selection, forward-eval policy, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule were otherwise unchanged.

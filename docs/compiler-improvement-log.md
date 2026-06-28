@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - ABANDONED PROBE - very-high-slack opening best lookahead
+
+Mechanism screened: temporarily add a default-only opening forward-eval selector that preserved explicit `LR_FWD_EVAL` overrides and let the existing mature vertical `avg` override keep precedence. Only the first authored contact could switch from default `greedy:2` to `best:1:2` or `best:1:3`, with deterministic fractional activation from structural traversal slack: `best:1:2` faded in above slack 8 and `best:1:3` above slack 12. Candidate count, candidate generation, start selection, post-opening forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.
+
+Why it was tried: the stopped-first-completion Q x lookahead panel supports the user's point that simple high-slack rows can afford best-of opening evaluation. Previous broad precompletion lookahead was rejected, but the narrower opening-only policy had a small 500k upside. This probe isolated that idea at fixed q32, without coupling it to q48 or changing repair policy.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (5 files, 76 tests).
+
+Probe: `generated/golden-runs/probe-opening-slack-best13-q32-j48-s0-3-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-opening-slack-best13-q32-j48-s0-3-a01`. It completed valid 640/640 with raw probe HEADLINE 678.25 and `HEADLINE excl. impact` 691.64.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-opening-slack-best13-q32-j48-s0-3-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline +0.2 on the 40-spec x 4-seed x full-grid intersection, CI [-0.7, 1.3], P(delta<=0)=34.7%. Per-budget deltas were 125k +0.1, 250k -0.1, 375k +0.1, and 500k +0.4, with unchanged 100% diagnostic validity.
+
+Why it was stopped: the direction is consistent with the high-slack intuition but much too small for promotion. High-slack rows moved only +0.28 mean with equal improve/regress counts (11/11), and the main effect was local reshuffling rather than a durable score lift. The temporary source change was reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-28 - ABANDONED PROBE - extreme-low-slack q28 quality breadth
 
 Mechanism screened: temporarily add a structural traversal-slack pull inside `qualityHandoffSampleCount`, preserving explicit `LR_QUALITY_NCAND` overrides and the existing authored-shape quality relief gates. The selector smoothly moved the requested quality pool toward `q=28` only when `budget / predicted_first_completion_frames` was extremely scarce, with full pressure around slack 1.25 and fading out by slack 1.50. Candidate generation families, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.

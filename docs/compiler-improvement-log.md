@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - INCONCLUSIVE - high-q launch/length span lattice
+
+Mechanism: temporarily change the contact-centered sampler's `ccSpanBlends` schedule so attempts 0..15 stayed byte-identical to the accepted 16-step diagonal/anti-diagonal launch x ride-out length pattern, while attempts 16+ used a coarse 4x4 launch x length lattice. The intent was to make higher-q pools buy explicit extra arc-space coverage rather than replaying the same launch/length span profile with only ordinary geometry rolls changed. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (5 files, 76 tests).
+
+Canonical candidate: `generated/golden-runs/attempt-cc-span-lattice-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-cc-span-lattice-j32-a01`. It completed valid 1919/1920 with raw HEADLINE 677.88 and `HEADLINE excl. impact` 691.86; per-budget point estimates were 125k 658.26, 250k 674.52, 375k 679.51, and 500k 683.23.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-cc-span-lattice-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.1, CI [-5.4, 4.8], P(delta<=0)=51.0%. Per-budget deltas were 125k +1.6, 250k -0.6, 375k -0.5, and 500k -0.1, with unchanged rounded diagnostic validity at every tier.
+
+Why it was not kept: the sampler idea is directionally useful for some hard families but too high-variance as a production default. Mean gains were led by `drums_tide` (+23.45), `drums_zigzag` (+6.25), `skyline_push` (+4.91), `drums_pendulum` (+4.06), `canyon_steps` (+3.58), and `syncopated_lift` (+3.26), but they were offset by `syncopated_switchback` (-19.69), `drums_crescendo` (-11.21), `drums_crosscut` (-5.77), `drums_pulse` (-5.32), and `drums_swell` (-5.26). The largest row swings show this is a basin-reshaping change, not a stable small correction (`solo_run` 125k swapped which seed failed; `drums_dropout` seed 3 improved strongly while seed 1 regressed strongly). Work counters barely changed on average, so the issue is proposal distribution, not cost. The temporary source change was reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`. Future sampler work should keep the explicit-profile idea but condition it on authored rhythm/axis structure, or study less coarse tail profiles before promotion.
+
 ## 2026-06-28 - ABANDONED PROBE - very-high-slack opening best lookahead
 
 Mechanism screened: temporarily add a default-only opening forward-eval selector that preserved explicit `LR_FWD_EVAL` overrides and let the existing mature vertical `avg` override keep precedence. Only the first authored contact could switch from default `greedy:2` to `best:1:2` or `best:1:3`, with deterministic fractional activation from structural traversal slack: `best:1:2` faded in above slack 8 and `best:1:3` above slack 12. Candidate count, candidate generation, start selection, post-opening forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.

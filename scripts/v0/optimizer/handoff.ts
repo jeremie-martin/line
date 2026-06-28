@@ -396,6 +396,8 @@ const extraCandidateCache = new WeakMap<SearchNode, ExtraCandidateCache>();
 const MAX_NODES_FLOOR = 50_000;
 const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
+const HANDOFF_LOW_SLACK_BRANCH_FULL = 1.25;
+const HANDOFF_LOW_SLACK_BRANCH_ZERO = 2.0;
 const HANDOFF_ADMISSION_PREFIX_ATTEMPTS = 8;
 const HANDOFF_ADMISSION_MIDDLE_ATTEMPTS = 24;
 const HANDOFF_ADMISSION_DEFAULT_LOCAL_QUOTA = 4;
@@ -1109,6 +1111,8 @@ function compileHandoffInternal(
           telemetry,
           sparseContactCadence,
           targetBudget,
+          budgetSlack,
+          hasCompletion: firstCompletionFrame >= 0,
         });
       const policy = resolvePolicy(node.search);
 
@@ -2786,6 +2790,8 @@ function resolveHandoffSearchPolicy({
   telemetry,
   sparseContactCadence,
   targetBudget,
+  budgetSlack,
+  hasCompletion,
 }: {
   node: SearchNode;
   gaps: Gap[];
@@ -2793,6 +2799,8 @@ function resolveHandoffSearchPolicy({
   telemetry: HandoffTelemetry;
   sparseContactCadence: boolean;
   targetBudget: number;
+  budgetSlack: number;
+  hasCompletion: boolean;
 }): HandoffSearchPolicy {
   const nCand = qualityHandoffSampleCount(gaps, ctx, sparseContactCadence, targetBudget);
   return {
@@ -2801,10 +2809,34 @@ function resolveHandoffSearchPolicy({
     axisQualitySearch: true,
     releaseSetup: true,
     previewScorePressure: qualityFuturePreviewPressure(targetBudget, telemetry),
-    branchLimit: HANDOFF_BRANCHING,
+    branchLimit: lowSlackTraversalBranchLimit(node, budgetSlack, hasCompletion),
     reuseLimit: reuseCandidateLimit(node, targetBudget, telemetry),
     tailBranching: TAIL_COMPLETION_FALLBACK_BRANCHING,
   };
+}
+
+function lowSlackTraversalBranchLimit(
+  node: SearchNode,
+  budgetSlack: number,
+  hasCompletion: boolean,
+): number {
+  if (hasCompletion) return HANDOFF_BRANCHING;
+  if (!Number.isFinite(budgetSlack)) return HANDOFF_BRANCHING;
+  const pressure = 1 - smoothstep(
+    (budgetSlack - HANDOFF_LOW_SLACK_BRANCH_FULL) /
+      (HANDOFF_LOW_SLACK_BRANCH_ZERO - HANDOFF_LOW_SLACK_BRANCH_FULL),
+  );
+  if (pressure <= 0) return HANDOFF_BRANCHING;
+  const reduced = Math.max(1, HANDOFF_BRANCHING - 1);
+  return unitHash(lowSlackTraversalBranchSeed(node)) < pressure ? reduced : HANDOFF_BRANCHING;
+}
+
+function lowSlackTraversalBranchSeed(node: SearchNode): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
+    0x44b6c793
+  ) | 0;
 }
 
 function emptyNumericAccumulator(): NumericAccumulator {

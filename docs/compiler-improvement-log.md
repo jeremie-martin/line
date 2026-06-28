@@ -2,6 +2,32 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - ABANDONED PROBE - extreme-low-slack q28 quality breadth
+
+Mechanism screened: temporarily add a structural traversal-slack pull inside `qualityHandoffSampleCount`, preserving explicit `LR_QUALITY_NCAND` overrides and the existing authored-shape quality relief gates. The selector smoothly moved the requested quality pool toward `q=28` only when `budget / predicted_first_completion_frames` was extremely scarce, with full pressure around slack 1.25 and fading out by slack 1.50. Candidate generation families, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.
+
+Why it was tried: the canonical q28 scarce-quality trial raised the official 125k budget score by +8.7 but was too noisy to accept. Its official gain came mostly from fixing the weak long/low-slack `solo_run` tail, while the next-lowest slack band was mixed. This probe tested whether the useful part could be isolated by the traversal model rather than by a raw budget or contact-count branch.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (5 files, 76 tests).
+
+Probe: `generated/golden-runs/probe-extreme-slack-q28-125k-j48-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --budgets=125000 --jobs=48 --archive-dir=generated/golden-runs/probe-extreme-slack-q28-125k-j48-a01`. It completed valid 480/480 with raw 125k score 665.79 and `HEADLINE excl. impact` 682.17.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-extreme-slack-q28-125k-j48-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, 125k delta +9.1, CI [-0.1, 51.9], P(delta<=0)=41.1%. Activation was exactly 12/480 checkpoint rows: all `solo_run` seeds at slack 1.292 used q28; every other 125k row stayed at q32.
+
+Why it was stopped: the mechanism is clean and fixes the one invalid 125k row (`solo_run` seed 7, 0 -> 643.85), but the official gain is concentrated in one spec. That makes it too narrow for the canonical bootstrap and too close to an indirect benchmark-row selector to promote. Broad q28 already failed to clear the gate, and this narrowed version removes noise but not concentration risk. The temporary source change was reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
+## 2026-06-28 - ABANDONED PROBE - mature vertical avg forward-eval ablation
+
+Mechanism screened: disable only the default mature vertical-drama `avg` forward-eval override by running with explicit `LR_FWD_EVAL=greedy:2`. This leaves the base default ranker shape (`greedy:2` with the normal objective leaf) intact but bypasses `matureForwardEvalConfig`, because that override only applies when `LR_FWD_EVAL` is unset. Source, scorer, specs, fingerprint, seed set, budget grid, candidate generation, start selection, repair, and acceptance rule were unchanged.
+
+Why it was tried: many slack/lookahead selectors have failed, so removing stale special cases is attractive if they no longer pay under the unified compiler. The mature vertical `avg` selector is localized and default-only, making it a clean simplification candidate if the ablation were neutral or positive.
+
+Probe: `generated/golden-runs/probe-no-mature-avg-fwd-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm LR_FWD_EVAL=greedy:2 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-no-mature-avg-fwd-j48-s0-2-a01`. It completed valid 480/480 with raw probe HEADLINE 672.87 and `HEADLINE excl. impact` 687.49.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-no-mature-avg-fwd-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: REJECT`, delta headline -5.2 on the 40-spec x 3-seed x full-grid intersection, CI [-10.8, -1.3], P(delta<=0)=99.9%. Per-budget deltas were 125k -8.1, 250k -5.3, 375k -5.4, and 500k -4.3.
+
+Why it was stopped: the vertical `avg` override is still load-bearing. Disabling it regressed every budget with unchanged validity, so no source ablation or canonical run was justified.
+
 ## 2026-06-28 - INCONCLUSIVE - low-amplitude damping for elevation ride-out shortening
 
 Mechanism: temporarily damp the contact-centered elevation ride-out shortening when an explicit low-amplitude target was present, with the damping fading out for high-impact targets. The intent was to avoid treating low-amplitude climb gaps like "no amplitude pop requested", while preserving the existing hard-impact climb setup. Candidate generation families, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.

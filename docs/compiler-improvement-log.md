@@ -2557,3 +2557,25 @@ Candidate: `generated/golden-runs/attempt-rankquality-current-fallback-mature-j3
 Decision: `npm run decide -- generated/golden-runs/attempt-rankquality-current-fallback-mature-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, delta headline -0.3, CI [-2.1, 1.7], P(delta<=0)=61.5%, effect -0.26. Per-budget deltas were 125k +0.0, 250k -0.7, 375k +0.1, and 500k -0.4, with unchanged diagnostic pass rate at every budget.
 
 Why it was not kept: the mature gate successfully protected 125k and the small probe looked useful, but the canonical result did not clear the accept gate and moved the point estimate slightly negative. Prediction-bail current quality is not a reliable enough proxy for next-contact readiness in production. The temporary source and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
+## 2026-06-28 - STUDY - first-completion lookahead depth at q32
+
+Purpose: isolate whether deeper per-candidate lookahead improves the first completed route before repair can blur the signal. This used the existing admission/lookahead study surface with standard `q=32`, default admission, all 40 golden specs, seeds 0..11, a 200k budget, and `--stop-after-first-completion`.
+
+Panel: `generated/studies/lookahead-first-completion-200k-q32-all-s0-11-a01/panel.json`, run with `LR_ENGINE=wasm node --import tsx scripts/v0/run_admission_lookahead_panel.ts --budget=200000 --specs=ALL --seeds=0,1,2,3,4,5,6,7,8,9,10,11 --quality-ncand=32 --admission=default --fwd-eval=default,greedy:2,best:1:2,best:1:3,avg:1:2,avg:1:3 --baseline-ncand=32 --baseline-admission=default --baseline-fwd-eval=default --stop-after-first-completion --workers=48 --shards=48 --out-dir=generated/studies/lookahead-first-completion-200k-q32-all-s0-11-a01`.
+
+Findings: explicit `greedy:2` was slightly worse than production `default` on first completion, showing that the existing mature vertical-drama default override is still useful. Broad `best:1:2` and `avg:1:2` improved mean first-completion score versus explicit greedy by +5.42 and +4.30 respectively, but they cost about 1.93x the first-completion frames. Depth-3 modes were not safe broadly: `best:1:3` and `avg:1:3` were around -131/-133 mean score versus greedy and valid only 360/480 and 359/480 in the panel.
+
+Slack analysis: switching all rows with 200k structural slack >=3 from production `default` to `avg:1:2` gave a first-completion-only +8.40 mean score but a 1.765x sim-frame ratio. The same threshold avoided the medium-slack drum failures at 200k, but this is not enough for production because requested-budget slack rises with the budget; the same structurally medium drum rows would become "high slack" at 375k/500k. A useful controller needs both affordability and a structural usefulness/ease selector, not budget slack alone.
+
+## 2026-06-28 - REJECTED PROBE - structural-ease avg2 forward eval
+
+Mechanism: extend the production default forward-eval override with a smooth structural-ease gate. The trial kept explicit `LR_FWD_EVAL=...` overrides unchanged. For the default `greedy:2` path only, it used predicted first-completion frames to compute a reference structural ease (`200k / predicted_first_completion_frames`) and actual affordability (`target_budget / predicted_first_completion_frames`), then stochastically upgraded to one-step `avg` with branch 2 when both smooth pressures were high. Candidate generation, validation/cost, start selection, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed after the temporary implementation (5 files, 77 tests).
+
+Probe: `generated/golden-runs/probe-structural-avg2-fwd-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-structural-avg2-fwd-j48-s0-2-a01`. The probe was valid 479/480 with raw HEADLINE 674.33 and `HEADLINE excl. impact` 689.49; per-budget point estimates were 125k 655.48, 250k 670.31, 375k 675.76, and 500k 679.98.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-structural-avg2-fwd-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: REJECT`, delta headline -3.7 on the 40-spec x 3-seed x full-budget intersection, CI [-7.8, 0.1], P(delta<=0)=97.2%. Per-budget deltas were 125k -11.7, 250k -4.0, 375k -2.7, and 500k -2.4.
+
+Why it was not kept: the first-completion panel signal did not transfer to full runs with repair enabled. Even with a structural-ease gate, the extra one-step branch spend starved useful search/repair and hurt every budget in the paired probe, including 125k. The temporary source and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.

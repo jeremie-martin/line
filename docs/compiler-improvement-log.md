@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - INCONCLUSIVE CANONICAL - opening slack ambiguity best lookahead
+
+Mechanism: temporarily add a narrower default-only opening lookahead selector in `handoff.ts`. The existing mature vertical `avg` override kept priority, explicit `LR_FWD_EVAL` overrides stayed exact, and candidate count stayed fixed. On the first contact gap only, structural traversal slack could smoothly buy `best:1:2` and then `best:1:3`, but only when the already quality-sorted opening pool had a cheap zero-frame ambiguity signal: at least two defined `candidateQualityObjective` values, a close top-two margin, and a non-trivial top objective. Candidate generation, start selection, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-opening-slack-ambiguity-best-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-opening-slack-ambiguity-best-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.3 and `HEADLINE excl. impact` 694.52. Per-budget point estimates were 125k 666.46, 250k 675.34, 375k 680.34, and 500k 683.69.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-opening-slack-ambiguity-best-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.3, CI [-0.4, 1.2], P(delta<=0)=17.9%, effect 0.81. Per-budget deltas were 125k +0.0, 250k +0.2, 375k +0.4, and 500k +0.4, with unchanged validity at every tier.
+
+Why it was not kept: the selector fixed the broad slack-best failure shape but still did not clear the promotion gate. Score changes were localized: 125k was score-identical, while score-changing checkpoints were 17/480 at 250k, 24/480 at 375k, and 62/480 at 500k. Gains concentrated on `tiny_dance` (+8.11 mean), `mini_burst` (+2.76), `cold_start` (+1.46), and `opening_burst` (+1.21), with the main offset from `syncopated_switchback` (-2.15). Extra forward-eval spend stayed bounded compared with broad precompletion best-of (+0.95k/+1.68k/+2.21k charged fwd frames at 250k/375k/500k), but it still displaced a little normal search (`candidates_sampled` about -40/-64/-93 and full evaluations about -2.3/-4.2/-4.3 by budget). This is useful evidence that slack plus a local usefulness signal is the right direction, but this exact opening ambiguity rule is too small/noisy for production. The temporary source change was reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-28 - REJECTED CANONICAL - precompletion high-slack best lookahead
 
 Mechanism: temporarily use structural budget slack to buy extra default forward-eval evidence only before the first complete traversal. The existing mature vertical `avg` override kept priority, explicit `LR_FWD_EVAL` overrides were untouched, and the default non-vertical `greedy:2` ranker could smoothly stochastically upgrade to `best:1:2` from slack 3.25..4.5 and toward `best:1:3` from slack 5..7. Candidate count, candidate generation, start selection, repair logic, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

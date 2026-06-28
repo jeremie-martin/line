@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - INCONCLUSIVE CANONICAL - mature low-air impact frontload
+
+Mechanism: temporarily add a small mature-budget low-air boost to the contact-centered impact curvature frontload in `arc_placement.ts`. The shipped `IMPACT_CURVE_FRONTLOAD=1.6` stayed the base, explicit `LR_IMPACT_FRONTLOAD` still controlled that base, and only low-air impact-curve candidates received up to +0.2 extra frontload through a smooth budget ramp. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-lowair-mature-frontload-grid-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-lowair-mature-frontload-grid-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.65 and `HEADLINE excl. impact` 694.51. Per-budget point estimates were 125k 666.46, 250k 676.23, 375k 680.54, and 500k 683.99.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-lowair-mature-frontload-grid-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.7, CI [-1.5, 2.8], P(delta<=0)=24.2%, effect 0.64. Per-budget deltas were 125k +0.0, 250k +1.1, 375k +0.6, and 500k +0.7, with unchanged validity at every tier.
+
+Why it was not kept: this is a real positive point estimate and the cleanest recent generation-side signal, but it still does not clear the accept gate. It helped the intended mature-budget family in aggregate (`drums_swell` +14.60 mean over all budgets, `drums_dropout` +3.96, `drums_signature` +3.57, `dense_echo_climb` +2.09), and 125k remained byte-identical. The offset was still large enough on rhythm/syncopated rows: `syncopated_switchback` -8.12 mean, `drums_crescendo` -4.38, `dense_sprint` -1.66, with 500k losses on `drums_pulse` (-11.18), `syncopated_switchback` (-13.11), `dense_sprint` (-5.98), and `drums_pendulum` (-4.20). Work counters stayed close to baseline, with mature budgets mostly reshuffling search basins rather than buying a new budget allocation path. The temporary source change was reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-28 - INCONCLUSIVE CANONICAL - directional high-axis quality rank
 
 Mechanism: temporarily add a zero-extra-frame directional factor inside `candidateQualityObjective` in `aim.ts`. The normal current-gap quality and next-gap readiness objective stayed intact, but high-target impact/elevation/amplitude candidates received a small bounded multiplier favoring achieved values above the target and penalizing deeper undershoot. This tested whether the measured signed-error anatomy (impact/elevation/amplitude under-hit) could be addressed by ranker asymmetry without changing candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, or acceptance rule.

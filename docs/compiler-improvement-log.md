@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - INCONCLUSIVE - low-amplitude damping for elevation ride-out shortening
+
+Mechanism: temporarily damp the contact-centered elevation ride-out shortening when an explicit low-amplitude target was present, with the damping fading out for high-impact targets. The intent was to avoid treating low-amplitude climb gaps like "no amplitude pop requested", while preserving the existing hard-impact climb setup. Candidate generation families, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.
+
+Why it was tried: baseline axis anatomy showed meaningful low-amplitude/elevation conflicts, especially large low-amplitude overshoot on `terrace_sprint`. A first 4-seed probe was positive but fragile, so the high-impact fade was added before the canonical run.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed after the final temporary source change (5 files, 76 tests).
+
+Canonical candidate: `generated/golden-runs/attempt-lowamp-elevation-impactfade-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-lowamp-elevation-impactfade-j32-a01`. It completed valid 1919/1920 with raw HEADLINE 678.2 and `HEADLINE excl. impact` 693.33; per-budget point estimates were 125k 657.07, 250k 675.39, 375k 680.13, and 500k 683.44.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-lowamp-elevation-impactfade-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, Delta headline +0.2, CI [-0.1, 0.7], P(Delta<=0)=14.0%. Per-budget deltas were 125k +0.4, 250k +0.2, 375k +0.2, and 500k +0.1, with unchanged 100% diagnostic validity at every tier.
+
+Why it was not kept: the direction is positive but does not clear the acceptance rule, and the earlier probe showed large fragile row swings. The mechanism may be a real small improvement, but promoting it would be overfitting to an inconclusive effect. The temporary source change was reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-28 - ABANDONED PROBE - high-slack q48 best:1:3 first-completion exploration
 
 Mechanism screened: use the structural traversal slack model only before the first complete traversal to ramp the unified quality candidate count toward `q=48` and stochastically switch the default `greedy:2` forward-eval ranker to `best:1:3`. Explicit `LR_QUALITY_NCAND` and `LR_FWD_EVAL` overrides stayed exact, and the accepted mature vertical `avg` selector kept precedence. Repair/post-completion policy, start selection, scorer, specs, fingerprint, seed set, and budget grid were unchanged.

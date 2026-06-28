@@ -2533,3 +2533,27 @@ Candidate: `generated/golden-runs/attempt-slack-best-fwd-b3late-j32-a01/golden.j
 Decision: `npm run decide -- generated/golden-runs/attempt-slack-best-fwd-b3late-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: REJECT`, delta headline -5.8, CI [-9.7, -2.2], P(delta<=0)=99.9%, effect -3.00. Per-budget deltas were 125k -1.2, 250k -2.8, 375k -6.9, and 500k -7.5, with unchanged diagnostic pass rate at every budget.
 
 Why it was not kept: structural slack was a useful affordability screen on the probe board, but it was not a sufficient usefulness selector across the full golden suite. The canonical showed that broad shallow best-of forward eval delays first completion and changes branch choice in ways that lose more mature-budget quality than the simple/high-slack wins recover. The probe-board signal was too spec-selective (`tiny_dance`, `syncopated_switchback`, and `drums_dropout` wins did not generalize enough), while dense and rhythm rows still paid the extra rollout cost. The temporary source and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
+## 2026-06-28 - REJECTED PROBE - static repair attempt cap 32
+
+Mechanism: env-only screen with `LR_REPAIR_MAX_ATTEMPTS=32`, reducing the static post-completion repair attempt cap while leaving candidate generation, validation/cost, start selection, forward eval, scorer, specs, fingerprint, seed set, budget grid, source code, and acceptance rule unchanged.
+
+Probe: `generated/golden-runs/probe-repair-max32-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_REPAIR_MAX_ATTEMPTS=32 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-repair-max32-j48-s0-2-a01`.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-repair-max32-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: REJECT`, delta headline -1.8, CI [-4.4, -0.4], P(delta<=0)=100%. Per-budget deltas were 125k -0.6, 250k -0.8, 375k -1.5, and 500k -2.9, with unchanged validity.
+
+Why it was not kept: the static cap bought no quality and regressed every budget on the paired probe. Repair spend should be controlled through slack/difficulty-aware allocation, not by a lower global cap. This was env-only and left no source changes; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
+## 2026-06-28 - REJECTED - mature rank-quality fallback for prediction-bail candidates
+
+Mechanism: give rank-quality candidates that cannot be propagated to the next contact a conservative current-gap quality fallback instead of dropping them fully to cost order. The fallback used current target quality scaled by `OBJECTIVE_READINESS_MIN`, with smooth target-budget pressure from zero at 125k to full at 250k, so scarce-budget behavior stayed byte-identical. Candidate generation, validation/cost, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/arc_model.test.ts` passed (5 files, 78 tests).
+
+Probe: `generated/golden-runs/probe-rankquality-current-fallback-mature-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-rankquality-current-fallback-mature-j48-s0-2-a01`. The probe was valid 480/480 with raw HEADLINE 679.01 and `HEADLINE excl. impact` 694.09. The paired probe was inconclusive but directionally positive: delta headline +0.9, CI [-1.5, 4.1], P(delta<=0)=24.4%, with per-budget deltas 125k +0.0, 250k +1.3, 375k +1.7, and 500k +0.5.
+
+Candidate: `generated/golden-runs/attempt-rankquality-current-fallback-mature-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-rankquality-current-fallback-mature-j32-a01`. The canonical run was valid 1919/1920 with raw HEADLINE 677.74 and `HEADLINE excl. impact` 693.33; per-budget point estimates were 125k 656.69, 250k 674.46, 375k 680.03, and 500k 682.93.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-rankquality-current-fallback-mature-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> `VERDICT: INCONCLUSIVE`, delta headline -0.3, CI [-2.1, 1.7], P(delta<=0)=61.5%, effect -0.26. Per-budget deltas were 125k +0.0, 250k -0.7, 375k +0.1, and 500k -0.4, with unchanged diagnostic pass rate at every budget.
+
+Why it was not kept: the mature gate successfully protected 125k and the small probe looked useful, but the canonical result did not clear the accept gate and moved the point estimate slightly negative. Prediction-bail current quality is not a reliable enough proxy for next-contact readiness in production. The temporary source and test changes were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.

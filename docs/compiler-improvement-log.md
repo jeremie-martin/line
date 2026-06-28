@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - INCONCLUSIVE - elevation-axis admission candidate
+
+Mechanism: temporarily add one extra `axisq` candidate to the ranked handoff options when the admitted pool materially under-hit a high elevation target and a non-admitted candidate had a meaningfully lower elevation error without a large cost increase. This tested whether the measured systematic elevation undershoot was caused by useful already-generated candidates being hidden just outside the admitted pool. Candidate generation, start selection, forward eval, repair logic, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (5 files, 76 tests).
+
+Canonical candidate: `generated/golden-runs/attempt-elevation-axisq-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-elevation-axisq-j32-a01`. It completed valid 1919/1920 with raw HEADLINE 678.0 and `HEADLINE excl. impact` 693.21; per-budget point estimates were 125k 656.67, 250k 675.14, 375k 679.99, and 500k 683.27.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-elevation-axisq-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.0, CI [-0.1, 0.1], P(delta<=0)=61.4%, effect -0.23. Per-budget deltas were 125k -0.0, 250k -0.0, 375k +0.0, and 500k -0.0, with unchanged rounded diagnostic validity at every tier.
+
+Why it was not kept: the targeted admission hook did not move the compiler in a meaningful way. This suggests the elevation undershoot is not primarily caused by an otherwise good elevation candidate sitting just outside the handoff pool under this selector; it likely needs either proposal-generation changes, objective pressure changes, or a better-conditioned axis selector. The temporary source change was reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-28 - REJECT - slack-governed best-of forward eval
 
 Mechanism: temporarily extend the default per-candidate forward-eval policy so the existing accepted mature vertical `avg` promotion kept precedence, explicit `LR_FWD_EVAL` overrides stayed exact, and non-vertical default nodes used structural traversal slack to stochastically round from `greedy:2` toward `best:1:2` and `best:1:3`. The mapping was smooth and scale-based: `expected_extra_branches = clamp(log2(budget_slack) - 1, 0, 2)`, so slack 2 stayed greedy on average, slack 4 averaged branch 2, and slack 8 reached branch 3. Candidate count, candidate generation, start selection, repair logic, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.

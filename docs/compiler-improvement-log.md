@@ -2697,3 +2697,15 @@ Canonical: `generated/golden-runs/attempt-soft-impact-align-j32-a01/golden.json`
 Decision: `npm run decide -- generated/golden-runs/attempt-soft-impact-align-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -1.3, CI [-5.8, 1.7], P(delta<=0)=75.8%, effect -0.67. Per-budget deltas were 125k -8.4, 250k -0.7, 375k -0.3, and 500k -0.6.
 
 Why it was not kept: the mechanism targeted a real `drums_pendulum` soft-impact symptom, but it hurt the canonical distribution rather than clearing the acceptance rule. The largest visible problem was the 125k drop and one low-budget invalid, while mature budgets were also slightly negative. This says direct soft-impact contact alignment is not a productive standalone fix; the temporary source change was reverted, and the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
+## 2026-06-28 - ABANDONED PROBE - positive-cost repair anchors only
+
+Mechanism: small repair feasibility trial in `optimizer/handoff.ts`. The temporary change stopped treating zero estimated suffix cost as repair-feasible, after `LR_REPAIR_LOG=1` showed many high-budget restarts with `estCost=0`, `frames=0`, and no accepted improvement. The intent was to avoid burning repair attempts on anchors whose measured first-completion path gave no suffix budget.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed (6 files, 81 tests).
+
+Probe: paired 4-spec x 3-seed x 500k worst-family screen. Baseline/log archive `generated/golden-runs/probe-repair-log-current-worst-s0-2-7-a01/golden.json`; candidate archive `generated/golden-runs/probe-repair-positive-cost-current-worst-s0-2-7-a01/golden.json`, both run with `LR_ENGINE=wasm LR_REPAIR_LOG=1 GOLDEN_SEEDS_OVERRIDE=0,2,7 npm run golden -- --specs=drums_pendulum,skyline_push,drums_dropout,terrace_sprint --budgets=500000 --jobs=16`.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-repair-positive-cost-current-worst-s0-2-7-a01/golden.json generated/golden-runs/probe-repair-log-current-worst-s0-2-7-a01/golden.json` -> non-promotable `VERDICT: INCONCLUSIVE`, delta headline -2.5 on the 12-row 500k slice, CI [-8.3, 1.3], P(delta<=0)=88.9%. The candidate made repair spend real budget on additional positive-cost restarts, but the slice score fell from 540.34 to 537.89.
+
+Why it was stopped: zero-cost repair attempts are not just waste; in this baseline they also keep repair from over-spending on low-yield positive-cost restarts and leave more simulated frames for the resumed frontier. Forcing positive-cost anchors increased repair activity but reduced quality on the exact worst-family screen. The temporary source change was reverted, and the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.

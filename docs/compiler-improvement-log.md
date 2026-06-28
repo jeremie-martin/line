@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - INCONCLUSIVE - high-q interior launch/length span lattice
+
+Mechanism: temporarily change the contact-centered sampler's `ccSpanBlends` schedule so attempts 0..15 stayed byte-identical to the accepted 16-step diagonal/anti-diagonal launch x ride-out length pattern, while attempts 16+ used a 4x4 interior launch x length lattice at cell midpoints. The intent was to keep the explicit high-q off-diagonal coverage idea from the coarse lattice trial, but avoid adding exact endpoint profiles in the extra tail. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (5 files, 76 tests).
+
+Canonical candidate: `generated/golden-runs/attempt-cc-span-interior-lattice-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-cc-span-interior-lattice-j32-a01`. It completed valid 1920/1920 with raw HEADLINE 678.24 and `HEADLINE excl. impact` 692.88; per-budget point estimates were 125k 664.61, 250k 674.07, 375k 679.46, and 500k 682.83.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-cc-span-interior-lattice-j32-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.2, CI [-3.5, 5.1], P(delta<=0)=49.3%. Per-budget deltas were 125k +7.9, 250k -1.1, 375k -0.5, and 500k -0.5, with rounded diagnostic validity unchanged at every tier.
+
+Why it was not kept: the interior version fixed the lone invalid 125k row and found real rescues, but it did not generalize across budgets. Mean row-level gains were led by `drums_tide` (+12.00), `solo_run` (+11.63), `drums_signature` (+5.94), `mini_burst` (+5.43), and `skyline_push` (+4.01), but they were offset by `cold_start` (-17.94), `drums_pulse` (-11.33), `drums_crosscut` (-7.68), `float_bounds` (-6.34), and `syncopated_switchback` (-5.77). The largest row swings again show sampler basin reshaping rather than a smooth budget knob (`solo_run` 125k seed 7 recovered from 0 to 662.07, while `drums_tide` 125k seed 2 lost 172.59 and seed 3 lost 150.99). Average work counters barely moved: first-completion frames rose only about 142-338 frames by tier, candidate samples were flat to slightly lower, and fwd-eval frames were slightly lower. The temporary source change was reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`. Future sampler work should avoid global high-q tail reshaping and instead make sampler expansion explicit, measurable, and structurally gated before canonical promotion.
+
 ## 2026-06-28 - INCONCLUSIVE - high-q launch/length span lattice
 
 Mechanism: temporarily change the contact-centered sampler's `ccSpanBlends` schedule so attempts 0..15 stayed byte-identical to the accepted 16-step diagonal/anti-diagonal launch x ride-out length pattern, while attempts 16+ used a coarse 4x4 launch x length lattice. The intent was to make higher-q pools buy explicit extra arc-space coverage rather than replaying the same launch/length span profile with only ordinary geometry rolls changed. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.

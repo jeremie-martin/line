@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - REJECTED CANONICAL - gap-window quality pool rank
+
+Mechanism: temporarily align the quality-objective pool ranker's current-axis term with the official scorer window by using `candidate.achievedAtEnd ?? candidate.achieved` inside `candidateQualityObjective`. The objective leaf already uses the gap-window value to reproduce the scorer, while the pool ranker had used the lookahead-window `candidate.achieved`. Candidate generation, local feasibility cost, start selection, forward-eval policy, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule were otherwise unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 82 tests).
+
+Canonical: `generated/golden-runs/attempt-gapwindow-quality-rank-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-gapwindow-quality-rank-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 676.89 and `HEADLINE excl. impact` 690.72. Per-budget point estimates were 125k 664.30, 250k 672.73, 375k 677.56, and 500k 681.62.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-gapwindow-quality-rank-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: REJECT`, delta headline -2.1, CI [-5.2, 0.1], P(delta<=0)=97.0%, effect -1.56. Per-budget deltas were 125k -2.2, 250k -2.4, 375k -2.4, and 500k -1.7, with unchanged validity at every tier.
+
+Why it was not kept: matching the scorer window in the pool-rank current-axis term made the broad ranking surface worse even though the idea was internally coherent. Work counters barely moved, so this was basin reshaping rather than a budget-allocation effect. Gains on `drums_tide` (+6.14), `swoop_dive` (+4.98), and `drums_crescendo` (+4.25) were outweighed by large losses on `syncopated_switchback` (-29.08), `cold_start` (-16.20), `drums_dropout` (-7.92), `mini_burst` (-5.95), and `drums_signature` (-5.81). The lookahead-window `candidate.achieved` remains load-bearing for the pool-rank objective; the scorer-window correction belongs in the objective leaf, not in this pool ordering. The temporary source and test changes were reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-28 - ABANDONED PROBE - slack-shaped quality candidate controller
 
 Mechanism screened: temporarily make the unified quality candidate count a smooth function of structural traversal slack, while preserving exact `LR_QUALITY_NCAND` overrides for characterization. Scarce slack pulled q from the existing base toward 28, neutral slack preserved the baseline, and surplus slack gradually bought breadth up to q40. Candidate generation families, start selection, forward eval strategy, repair logic, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.

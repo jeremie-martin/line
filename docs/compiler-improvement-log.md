@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - ABANDONED PROBE - slack-shaped quality candidate controller
+
+Mechanism screened: temporarily make the unified quality candidate count a smooth function of structural traversal slack, while preserving exact `LR_QUALITY_NCAND` overrides for characterization. Scarce slack pulled q from the existing base toward 28, neutral slack preserved the baseline, and surplus slack gradually bought breadth up to q40. Candidate generation families, start selection, forward eval strategy, repair logic, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.
+
+Why it was tried: fixed q48 showed some positive point estimates at 250k+ and high slack, while earlier q28/q29 trials suggested lower q can sometimes protect scarce 125k rows. This tested whether the traversal model could combine those directions into one smooth allocation knob instead of using raw budget thresholds.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (5 files, 77 tests).
+
+Probe: `generated/golden-runs/probe-slack-qctrl-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-slack-qctrl-j48-s0-2-a01`. It completed valid 480/480 with raw probe HEADLINE 677.62 and `HEADLINE excl. impact` 691.4.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-slack-qctrl-j48-s0-2-a01/golden.json generated/golden-runs/baseline-current-unified-14edc74-j32/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline -0.4 on the 40-spec x 3-seed x full-grid intersection, CI [-4.0, 2.9], P(delta<=0)=59.7%. Per-budget deltas were 125k -2.2, 250k +0.1, 375k -0.1, and 500k -0.5, with unchanged 100% diagnostic validity.
+
+Why it was stopped: the controller worked mechanically but did not create useful leverage. On the paired probe, q fell from 32 to about 28.9 in the slack <1.5 band and that band lost -5.7 mean score; surplus bands used q around 37.3 for slack 5..8 and q40 for slack >=8, but those bands were flat (+0.0 and -0.4). Runtime/work counters stayed effectively unchanged, so changing q mostly reshaped search basins rather than buying reliable extra quality or traversal savings. The temporary source and test edits were reverted; the accepted baseline remains `baseline-current-unified-14edc74-j32`.
+
 ## 2026-06-28 - INCONCLUSIVE - elevation-axis admission candidate
 
 Mechanism: temporarily add one extra `axisq` candidate to the ranked handoff options when the admitted pool materially under-hit a high elevation target and a non-admitted candidate had a meaningfully lower elevation error without a large cost increase. This tested whether the measured systematic elevation undershoot was caused by useful already-generated candidates being hidden just outside the admitted pool. Candidate generation, start selection, forward eval, repair logic, scorer, specs, fingerprint, seed set, and budget grid were otherwise unchanged.

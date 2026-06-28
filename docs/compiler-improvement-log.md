@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - REJECTED CANONICAL - whole-run slack best forward eval
+
+Mechanism: temporarily test the direct version of the user's high-slack best-of idea in `handoff.ts`. The existing structural `budget_slack` was threaded through main search, rescue, tail completion, and repair restarts. For the default `LR_FWD_EVAL` path only, `greedy:2` could smoothly promote by deterministic node hash to `best:1:2` from slack 2..3 and `best:1:3` from slack 3.5..5. Explicit `LR_FWD_EVAL` overrides stayed exact. Candidate count, candidate generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests). The objective-leaf frame-cost test was temporarily pinned to explicit `LR_FWD_EVAL=greedy:2` because the adaptive default intentionally changed whole-run rollout shape; that test change was reverted with the source trial.
+
+Canonical: `generated/golden-runs/attempt-slack-best-fwd-eval-grid-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-slack-best-fwd-eval-grid-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 667.41 and `HEADLINE excl. impact` 682.02. Per-budget point estimates were 125k 659.75, 250k 660.94, 375k 667.15, and 500k 672.74.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-slack-best-fwd-eval-grid-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: REJECT`, delta headline -11.6, CI [-16.0, -7.3], P(delta<=0)=100.0%, effect -5.20. Per-budget deltas were 125k -6.7, 250k -14.2, 375k -12.8, and 500k -10.5, with unchanged validity at every tier.
+
+Why it failed: structural slack is an affordability signal, but as a direct whole-run selector it is too blunt. It activated on easy short rows even at low absolute budgets and spent the default ranker on broad `best` rollouts instead of preserving normal frontier/repair throughput. The loss is worse than the narrower pre-completion, post-completion, and opening-ambiguity variants already logged below, especially at 250k. This strongly rules out "slack -> best-of depth" as a standalone policy; future use needs a local opportunity/value signal and probably should be zero- or low-extra-frame before it is allowed to spend real rollout frames. The temporary source and test changes were reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-28 - INCONCLUSIVE CANONICAL - mature low-air impact frontload
 
 Mechanism: temporarily add a small mature-budget low-air boost to the contact-centered impact curvature frontload in `arc_placement.ts`. The shipped `IMPACT_CURVE_FRONTLOAD=1.6` stayed the base, explicit `LR_IMPACT_FRONTLOAD` still controlled that base, and only low-air impact-curve candidates received up to +0.2 extra frontload through a smooth budget ramp. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

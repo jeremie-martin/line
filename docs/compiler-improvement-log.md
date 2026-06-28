@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - high-air moderate-impact frontload
+
+Mechanism: temporarily add a small mature-budget contact-centered impact-curvature frontload bonus in `arc_placement.ts`, but only on authored high-air, moderate-impact contacts. The intent was to retry the frontload family without the fragile low-air dense-impact band: baseline anatomy still showed impact undershoot on high-air/moderate-impact contacts, while the previous low-air mature frontload trial had helped some high-air/drum rows but hurt dense low-air and rhythm rows. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-highair-impact-frontload-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-highair-impact-frontload-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 678.40 and `HEADLINE excl. impact` 694.17. Per-budget point estimates were 125k 666.46, 250k 672.63, 375k 679.47, and 500k 683.47.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-highair-impact-frontload-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.6, CI [-3.0, 1.8], P(delta<=0)=69.9%, effect -0.48. Per-budget deltas were 125k +0.0, 250k -2.5, 375k -0.5, and 500k +0.2, with unchanged validity at every tier.
+
+Why it was not kept: the selector isolated scarce budget correctly and had a tiny 500k upside, but it made the 250k tier meaningfully worse and did not produce a stable mature-budget improvement. It changed 938/1920 paired checkpoints, with 426 improvements and 483 regressions. Gains were concentrated in `drums_swell` (+9.94 mean), `drums_pulse` (+3.81), `drums_zigzag` (+3.32), and `drums_dropout` (+1.77), but losses on `drums_crosscut` (-12.96), `rhythm_ladder` (-8.14), `drums_signature` (-7.61), `syncopated_switchback` (-7.30), `drums_crescendo` (-4.54), and `dense_sprint` (-4.48) dominated. The temporary source change was reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-28 - REJECTED CANONICAL - whole-run slack best forward eval
 
 Mechanism: temporarily test the direct version of the user's high-slack best-of idea in `handoff.ts`. The existing structural `budget_slack` was threaded through main search, rescue, tail completion, and repair restarts. For the default `LR_FWD_EVAL` path only, `greedy:2` could smoothly promote by deterministic node hash to `best:1:2` from slack 2..3 and `best:1:3` from slack 3.5..5. Explicit `LR_FWD_EVAL` overrides stayed exact. Candidate count, candidate generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

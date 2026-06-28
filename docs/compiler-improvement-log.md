@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-28 - REJECTED CANONICAL - precompletion high-slack best lookahead
+
+Mechanism: temporarily use structural budget slack to buy extra default forward-eval evidence only before the first complete traversal. The existing mature vertical `avg` override kept priority, explicit `LR_FWD_EVAL` overrides were untouched, and the default non-vertical `greedy:2` ranker could smoothly stochastically upgrade to `best:1:2` from slack 3.25..4.5 and toward `best:1:3` from slack 5..7. Candidate count, candidate generation, start selection, repair logic, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-precomp-highslack-best-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-precomp-highslack-best-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 673.19 and `HEADLINE excl. impact` 687.16. Per-budget point estimates were 125k 665.56, 250k 672.78, 375k 672.79, and 500k 675.60.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-precomp-highslack-best-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: REJECT`, delta headline -5.8, CI [-9.4, -2.6], P(delta<=0)=100.0%, effect -3.35. Per-budget deltas were 125k -0.9, 250k -2.4, 375k -7.2, and 500k -7.7, with unchanged validity at every tier.
+
+Why it failed: the stopped-first-completion characterization was directionally correct that easy/high-slack rows can afford `best:1:3`, but using that as a pre-completion production policy still displaced too much useful downstream work. First-completion frames rose by about +1.3k/+17.3k/+52.1k/+61.4k by budget, charged forward-eval frames rose +0.5k/+6.7k/+22.2k/+20.4k, repair frames fell -0.6k/-15.9k/-52.9k/-60.0k, and candidate samples fell at mature budgets. Gains on `tiny_dance` (+9.01 mean) and `solo_run` (+3.20) were overwhelmed by losses on drum/verse families, led by `drums_pulse` (-20.21), `drums_breath` (-17.88), `drums_crescendo` (-14.66), `rhythm_ladder` (-14.03), and `verse_chorus` (-13.80). Affordability alone is still insufficient; any future high-slack best-of use needs a stronger usefulness/opportunity-cost signal, or it must be much more localized than broad pre-completion ranking. The temporary source change was reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-28 - INCONCLUSIVE CANONICAL - terminal current-quality pool rank
 
 Mechanism: temporarily give terminal contact pools a zero-extra-simulation quality objective. When `candidateQualityObjective` found no next contact, the trial ranked candidates by measured current-gap target quality instead of returning `null` and falling back to cost order. Non-terminal pool ranking, candidate generation, aim proposals, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule were unchanged.

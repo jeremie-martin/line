@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - high-slack early-contact best lookahead
+
+Mechanism: temporarily extend the accepted opening best-of selector to the second and third contact on short, very-high-slack specs only. The opening contact kept the accepted structural/opportunity gate. Non-opening early contacts additionally required a smooth slack ramp from 12 to 20, short-track pressure, and ordinal decay, while still using the same local admitted-pool opportunity signal before promoting default `greedy:2` to `best:1:2` or `best:1:3`. Candidate count, candidate generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: the first version, with early slack ramp 5.5 to 9.0, failed `optimizer/handoff.ts - objective leaf scorer > objective leaf is deterministic and collapses rollout frame cost vs full` because the extra early best-of activated at 100k on `tiny_dance` and broke the established objective-leaf cost-collapse margin. The tested canonical version tightened the non-opening early slack ramp to 12 to 20; `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` then passed (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-early-contact-best-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-early-contact-best-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.94 and `HEADLINE excl. impact` 696.08. Per-budget point estimates were 125k 666.71, 250k 675.63, 375k 680.49, and 500k 684.99.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-early-contact-best-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0, CI [-0.3, 0.4], P(delta<=0)=44.3%, effect 0.26. Per-budget deltas were 125k +0.0, 250k +0.1, 375k +0.0, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was not kept: this supports the high-slack/simple-map intuition but is too small for promotion. Only 57/1920 paired checkpoints changed: 41 improvements and 16 regressions, all on `mini_burst` and `tiny_dance`. The changed rows had positive net sums at 250k (+88.97), 375k (+9.44), and 500k (+23.47), with no 125k change, but the headline movement was far below the canonical acceptance bar. The temporary source change was reverted; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - REJECTED CANONICAL - smooth low-air impact ride-out
 
 Mechanism: temporarily retest a smooth low-air/impact geometry ride-out on the current accepted baseline. For contact-centered gaps with explicit `air` and `impact`, no elevation/amplitude target, and enough compile budget/attempt pressure, the trial smoothly allowed a longer safe post-contact ride-out and stronger length blending. Candidate count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

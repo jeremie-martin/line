@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - smooth slack policy cleanup no-op
+
+Mechanism: temporarily clean up the accepted opening structural best selector without changing its intended policy: use unrounded `budget_slack` for policy decisions while keeping rounded telemetry, and replace the opening short-track/dense-track structural join from a hard `Math.max` with the smooth union `1 - (1-a)(1-b)`. Candidate count, candidate generation, start selection, forward eval variants, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-smooth-slack-policy-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-smooth-slack-policy-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.89 and `HEADLINE excl. impact` 696.05. Per-budget point estimates were 125k 666.71, 250k 675.48, 375k 680.48, and 500k 684.95.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-smooth-slack-policy-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0, CI [0.0, 0.0], P(delta<=0)=100.0%, effect 0.00. Per-budget deltas were exactly +0.0 at every tier, with unchanged validity at every tier.
+
+Why it was not kept: this was a clean smoothness improvement in principle, but it was byte-identical on the canonical grid: 1920/1920 paired checkpoints had unchanged track hashes, scores, and rounded slack telemetry. The current contact-count support bands for the opening structural gate do not overlap in practice, and rounding slack to three decimals did not move any deterministic stochastic decision boundary. Since it did not produce a canonical ACCEPT, the temporary source change was reverted; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - smooth high-slack early fifth aim base
 
 Mechanism: temporarily let structurally easy specs reach the default fifth aim base earlier, while preserving smooth behavior at arbitrary budgets. The original mature fifth-base budget ramp stayed in place. A second smooth budget ramp from 175k to 250k was multiplied by structural traversal slack pressure from 5 to 8, then combined with the mature ramp using the smooth union `1 - (1-a)(1-b)`. Explicit `LR_AIM_TOPK_BASES` overrides, top-4 aim behavior, low-air top-3 cap, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

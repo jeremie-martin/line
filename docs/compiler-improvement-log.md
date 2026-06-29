@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - stronger low-slack traversal branch pressure
+
+Mechanism: temporarily strengthen the accepted low-slack first-traversal branch controller in `handoff.ts` by moving `HANDOFF_LOW_SLACK_BRANCH_FULL` from 1.25 to 1.5 while leaving the zero-pressure point at slack 2.0. This made scarce pre-completion search more decisively branch 2 instead of stochastic branch 2/3 in the 1.35..1.5 slack band. Candidate count, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-low-slack-branch-full15-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-low-slack-branch-full15-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 678.99 and `HEADLINE excl. impact` 694.30. Per-budget point estimates were 125k 666.52, 250k 675.16, 375k 679.97, and 500k 683.29.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-low-slack-branch-full15-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0, CI [0.0, 0.0], P(delta<=0)=34.2%, effect 0.74. Per-budget deltas were 125k +0.1, 250k +0.0, 375k +0.0, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was not kept: the mechanism was directionally positive but far too small for promotion. It changed only 2/1920 paired checkpoints by score, both at 125k in the slack 1.35..1.5 band: `drums_crescendo` seed 5 improved 591.47 -> 612.74 and `drums_pulse` seed 11 improved 564.53 -> 570.23. Every 250k/375k/500k checkpoint was score-identical to the accepted baseline. Work counters confirm the intended narrowness: the 125k mean branch limit moved by -0.037, first-completion frames by -2, candidates by -0.9, full evaluations by -0.05, and repair frames by -24; all other budgets were unchanged. This suggests the accepted branch-pressure policy is already near the useful edge, and further threshold tightening is not a meaningful path to 700. The temporary source change was reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-29 - REJECTED CANONICAL - pre-completion slack ambiguity best lookahead
 
 Mechanism: temporarily test a targeted version of the high-slack `best` lookahead idea in `handoff.ts`. The default `greedy:2` forward ranker could promote to `best:1:2` or `best:1:3` only before first completion, only when structural `budget_slack` was high, and only when the already-built zero-frame quality pool showed a close top-two objective margin. Explicit `LR_FWD_EVAL` overrides stayed exact, and the accepted mature vertical `avg` selector kept precedence. Candidate count, generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

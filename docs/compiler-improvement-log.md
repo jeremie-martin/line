@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - REJECTED CANONICAL - smooth low-air impact ride-out
+
+Mechanism: temporarily retest a smooth low-air/impact geometry ride-out on the current accepted baseline. For contact-centered gaps with explicit `air` and `impact`, no elevation/amplitude target, and enough compile budget/attempt pressure, the trial smoothly allowed a longer safe post-contact ride-out and stronger length blending. Candidate count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-lowair-impact-rideout-current-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-lowair-impact-rideout-current-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.25 and `HEADLINE excl. impact` 695.05. Per-budget point estimates were 125k 667.03, 250k 675.02, 375k 679.57, and 500k 684.17.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-lowair-impact-rideout-current-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: REJECT`, delta headline -0.6, CI [-2.2, 0.2], P(delta<=0)=92.5%, effect -1.09. Per-budget deltas were 125k +0.3, 250k -0.5, 375k -0.9, and 500k -0.8, with unchanged validity at every tier.
+
+Why it was not kept: the trial repeated the prior low-budget lift but regressed the mature budgets that now carry most headline weight. A paired score summary changed 154/1920 checkpoints: 72 improvements and 82 regressions. The 125k slice gained +123.91 total score, but 250k/375k/500k lost -166.84, -333.84, and -315.99 respectively. Losses concentrated on `rhythm_ladder`, `syncopated_switchback`, and `drums_pendulum`, while isolated gains such as `cold_start` and `drums_crescendo` were not enough. The temporary source change was reverted; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - opening branch-3 slack start 14
 
 Mechanism: temporarily raise only `OPENING_BEST_FWD_SLACK_BRANCH3_START` from 10 to 14, leaving the accepted opening best-of selector, branch-2 activation, structural/contact-count gates, local opportunity gate, candidate generation, start selection, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule unchanged. The intent was to keep high-slack opening `best:1:3` available for the easiest rows while leaving medium-high slack rows on cheaper `best:1:2`.

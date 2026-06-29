@@ -233,12 +233,26 @@ const AIM_EXTRA_TOPK_AIR_RANGE_START = 0.45;
 const AIM_EXTRA_TOPK_AIR_RANGE_SPAN = 0.25;
 const AIM_EXTRA_TOPK_CONTACT_START = 8;
 const AIM_EXTRA_TOPK_CONTACT_SPAN = 8;
+const AIM_EXTRA_TOPK_SLACK_START = 2.75;
+const AIM_EXTRA_TOPK_SLACK_SPAN = 1.25;
+const AIM_EXTRA_TOPK_AIR_VALLEY_SLACK_SPAN = 3.25;
+const AIM_EXTRA_TOPK_AIR_VALLEY_RANGE_START = 0.24;
+const AIM_EXTRA_TOPK_AIR_VALLEY_RANGE_SPAN = 0.16;
+const AIM_EXTRA_TOPK_AIR_VALLEY_GRAIN_RANGE_START = 0.05;
+const AIM_EXTRA_TOPK_AIR_VALLEY_GRAIN_RANGE_SPAN = 0.10;
+const AIM_EXTRA_TOPK_AIR_VALLEY_SPEED_RANGE_START = 0.08;
+const AIM_EXTRA_TOPK_AIR_VALLEY_SPEED_RANGE_SPAN = 0.08;
 
 let aimCompileBudgetFrames = 0;
+let aimCompileBudgetSlack = Number.POSITIVE_INFINITY;
 /** Set the compile target budget for the K>1 maturity gate. Called once per
  *  compile at compileHandoff entry, alongside the other budget setters. */
 export function setAimCompileBudgetFrames(frames: number): void {
   aimCompileBudgetFrames = Math.max(0, frames | 0);
+}
+
+export function setAimCompileBudgetSlack(slack: number): void {
+  aimCompileBudgetSlack = Number.isFinite(slack) ? Math.max(0, slack) : Number.POSITIVE_INFINITY;
 }
 
 /** Effective lane-base count for the current compile/gap: K below the maturity
@@ -294,9 +308,43 @@ function defaultExtraAimBasePressure(gap: Gap, gaps: readonly Gap[], ctx: SpecCo
   const contactPressure = smoothstep(
     (contactGapCount(gaps) - AIM_EXTRA_TOPK_CONTACT_START) / AIM_EXTRA_TOPK_CONTACT_SPAN,
   );
+  const slackPressure = defaultExtraAimBaseSlackPressure(gaps, ctx);
   return clamp01(
-    budgetPressure * speedSteadiness * airMeanPressure * airRangePressure * contactPressure,
+    budgetPressure * speedSteadiness * airMeanPressure * airRangePressure *
+      contactPressure * slackPressure,
   );
+}
+
+function defaultExtraAimBaseSlackPressure(gaps: readonly Gap[], ctx: SpecContext): number {
+  if (!Number.isFinite(aimCompileBudgetSlack)) return 1;
+  const narrow = smoothstep(
+    (aimCompileBudgetSlack - AIM_EXTRA_TOPK_SLACK_START) /
+      AIM_EXTRA_TOPK_SLACK_SPAN,
+  );
+  const wide = smoothstep(
+    (aimCompileBudgetSlack - AIM_EXTRA_TOPK_SLACK_START) /
+      AIM_EXTRA_TOPK_AIR_VALLEY_SLACK_SPAN,
+  );
+  return narrow + (wide - narrow) * defaultExtraAimBaseAirValleyPressure(gaps, ctx);
+}
+
+function defaultExtraAimBaseAirValleyPressure(gaps: readonly Gap[], ctx: SpecContext): number {
+  const airRange = targetAxisRange(gaps, ctx, "air");
+  const grainRange = targetAxisRange(gaps, ctx, "grain");
+  const speedRange = targetAxisRange(gaps, ctx, "speed");
+  const airValley = smoothstep(
+    (airRange - AIM_EXTRA_TOPK_AIR_VALLEY_RANGE_START) /
+      AIM_EXTRA_TOPK_AIR_VALLEY_RANGE_SPAN,
+  );
+  const flatGrain = 1 - smoothstep(
+    (grainRange - AIM_EXTRA_TOPK_AIR_VALLEY_GRAIN_RANGE_START) /
+      AIM_EXTRA_TOPK_AIR_VALLEY_GRAIN_RANGE_SPAN,
+  );
+  const steadySpeed = 1 - smoothstep(
+    (speedRange - AIM_EXTRA_TOPK_AIR_VALLEY_SPEED_RANGE_START) /
+      AIM_EXTRA_TOPK_AIR_VALLEY_SPEED_RANGE_SPAN,
+  );
+  return clamp01(airValley * flatGrain * steadySpeed);
 }
 
 function defaultExtraAimBaseSeed(gap: Gap): number {

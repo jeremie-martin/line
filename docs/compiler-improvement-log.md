@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - ACCEPTED CANONICAL - air-valley structural slack gate for default fifth aim base
+
+Reason: revisit the closest declined fifth aim-base approach instead of retuning from memory. The prior structural-slack gate repeatedly produced a clean positive 250k signal but was too narrow to promote, while the broader slack gate found a useful `drums_dropout` 375k region and also exposed the high-slack collateral to avoid.
+
+Mechanism: add traversal slack to the default fifth aim-base pressure as a smooth affordability multiplier. Explicit `LR_AIM_TOPK_BASES` overrides stay exact, the accepted top-4 behavior remains, and low-air gaps still cap at top-3. The default non-low-air fifth base now uses a narrow slack ramp from 2.75 to 4.0 everywhere, then blends toward a wider ramp ending at 6.0 only for an authored air-valley / flat-grain / steady-speed profile. Candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed before the canonical run (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-aim-slack-airvalley-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-aim-slack-airvalley-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.98 and `HEADLINE excl. impact` 696.77. Per-budget point estimates were 125k 666.71, 250k 677.16, 375k 681.89, and 500k 685.79.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-aim-slack-airvalley-j32-a01/golden.json generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json` -> canonical `VERDICT: ACCEPT`, delta headline +0.4, CI [-0.0, 1.6], P(delta<=0)=9.5%, effect 0.91. Per-budget deltas were 125k +0.0, 250k +0.7, 375k +0.8, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was kept: this is the clean version of the earlier almost-accepted slack trim. It preserves the narrow positive 250k slice, adds mature-budget support through a structural air-valley selector, and avoids the broad slack gate's known `grain_staircase` / vertical collateral. Only three specs changed: `drums_dropout` gained +421.89 raw row-score sum (including +26.39 mean at 375k), `drums_pulse` gained +190.68, and `solo_run` gained +34.37. The 125k tier stayed byte-identical, and 500k was essentially neutral. The accepted baseline is now `attempt-aim-slack-airvalley-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - high-impact relief for elevation-room impact onset
 
 Reason: retry the accepted elevation-room impact-onset profile with a targeted fix for its main logged weakness: the accepted onset helped broad elevation-room specs but lost on hard-impact profiles such as `summit_push`.

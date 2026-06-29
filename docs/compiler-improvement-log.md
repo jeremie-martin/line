@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - traversal-slack quality expansion
+
+Mechanism: temporarily add a smooth, scale-free traversal-slack expansion to `qualityHandoffSampleCount` on top of the current accepted elevation-room baseline. Explicit `LR_QUALITY_NCAND` overrides stayed exact. The default raw-budget/authored-shape breadth policy produced the base q, then low traversal slack added up to +16 candidates: a low-slack extra faded out from slack 1.55 to 2.0, and a mid-slack extra stayed through slack 5.0 before fading out by slack 6.0. Candidate generation families, start selection, forward eval strategy, repair logic, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (5 files, 76 tests).
+
+Canonical: `generated/golden-runs/attempt-slack-quality-expansion-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-slack-quality-expansion-j32-a01`. The run was valid 1919/1920 overall, with raw HEADLINE 679.42 and `HEADLINE excl. impact` 695.19. Per-budget point estimates were 125k 656.55, 250k 675.84, 375k 681.08, and 500k 685.69.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-slack-quality-expansion-j32-a01/golden.json generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -1.2, CI [-5.4, 1.2], P(delta<=0)=76.7%. Per-budget deltas were 125k -10.2, 250k -0.6, 375k +0.0, and 500k -0.1; rounded diagnostic validity stayed 100% at every tier.
+
+Why it was not kept: the policy was smooth and budget-scale based, but it over-spent the scarce tier. Mean q moved 32.0 -> 41.8 at 125k, first completion moved about +5.6k frames later, sampled candidates rose by +349 per row, unique full evaluations fell by -1.4, repair frames fell by -7.5k, and repair accepts fell by -0.20 per row. One 125k `solo_run` row became invalid (`seed=11`, 654.48 -> 0.03), and the large 125k regressions outweighed scattered large rescues. The mature tiers were mostly neutral because the slack curve faded out. This is useful evidence against a broad monotone "low slack => more q" policy: slack is a good normalization variable, but quality breadth still needs a sharper value/opportunity selector or a repair-aware reservation before it can spend scarce traversal budget. The temporary source change was reverted; the accepted baseline remains `attempt-impact-elevation-room-start-j32-a01`.
+
 ## 2026-06-29 - ABANDONED PROBE - current-baseline slack-scarce quality breadth
 
 Mechanism: temporarily add a smooth traversal-slack overlay to `qualityHandoffSampleCount` on top of the current accepted elevation-room baseline. Explicit `LR_QUALITY_NCAND` overrides stayed exact, existing raw-budget/authored-shape breadth logic resolved first, and then requested candidate count was pulled toward `q=29` when `budget / predicted_first_completion_frames` was scarce: full pressure at slack <=3, fading to zero by slack >=6. Candidate generation families, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - stricter smooth fifth aim-base slack gate
+
+Mechanism: temporarily retest the default fifth aim-base affordability trim with a stricter but still smooth structural-slack ramp. The source trial threaded per-compile traversal slack into the aiming layer and multiplied only the default, non-explicit fifth-base pressure by `smoothstep((slack - 3.0) / 1.0)`, so the extra base was suppressed below slack 3 and faded back to baseline by slack 4. Explicit `LR_AIM_TOPK_BASES` overrides, accepted top-4/top-3 behavior, low-air cap, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-aim-top5-slack3-current-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-aim-top5-slack3-current-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.72 and `HEADLINE excl. impact` 696.56. Per-budget point estimates were 125k 666.71, 250k 676.95, 375k 681.20, and 500k 685.75.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-aim-top5-slack3-current-j32-a01/golden.json generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.1, CI [-0.1, 0.5], P(delta<=0)=15.8%, effect 0.90. Per-budget deltas were 125k +0.0, 250k +0.5, 375k +0.1, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was not kept: the shape was smooth, scale-normalized, and intentionally narrower than the earlier wider negative gate, but it did not improve on the prior slack 2.75->4.0 signal. Only 38 paired checkpoint scores changed: 33 at 250k and 5 at 375k, limited again to `drums_pulse`, `drums_dropout`, and `solo_run`. The changed-row raw score sum was +270.62, led by `drums_pulse` (+144.33), `solo_run` (+85.96), and `drums_dropout` (+40.33), but the seed distribution was still too noisy: 17/33 improved at 250k and 16/33 regressed. The stricter start also lost some of the earlier 250k lift (+0.5 vs +0.7) while failing the promotion gate. The temporary source change was reverted; the accepted baseline remains `attempt-impact-elevation-room-start-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - smooth default fifth aim-base slack gate retest
 
 Mechanism: temporarily retest the narrow smooth structural-slack affordability gate for the default fifth aim base on top of the current accepted elevation-room baseline. The source trial added a per-compile traversal slack value to the aiming layer and multiplied only the default, non-explicit fifth-base pressure by a smooth slack ramp from 2.75 to 4.0. Explicit `LR_AIM_TOPK_BASES` overrides, accepted top-4/top-3 behavior, low-air cap, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

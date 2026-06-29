@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - delayed fifth aim-base slack gate retry
+
+Reason: revisit one of the closest declined approaches, the fifth aim-base structural-slack gate, and test whether a later smooth onset could turn the repeated near-positive signal into an accepted result without adding thresholdy budget behavior.
+
+Mechanism: temporarily retest the default fifth aim-base affordability trim with the same accepted high-slack behavior but a delayed smooth slack ramp: optional fifth-base pressure stayed fully suppressed below structural slack 3.2 and faded back to baseline by slack 4.0. The change threaded per-compile traversal slack into `optimizer/aim.ts` and multiplied only the default, non-explicit fifth-base pressure. Explicit `LR_AIM_TOPK_BASES` overrides, accepted top-4/top-3 behavior, low-air cap, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-aim-top5-slack-start32-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-aim-top5-slack-start32-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.72 and `HEADLINE excl. impact` 696.57. Per-budget point estimates were 125k 666.71, 250k 676.95, 375k 681.20, and 500k 685.75.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-aim-top5-slack-start32-j32-a01/golden.json generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.1, CI [-0.1, 0.5], P(delta<=0)=16.0%, effect 0.89. Per-budget deltas were 125k +0.0, 250k +0.5, 375k +0.1, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was not kept: delaying the ramp did not improve on the earlier near-accepted fifth-base signals. Only 40 paired checkpoint scores changed: 33 at 250k for +211.16 raw row points and 7 at 375k for +56.99, with no 125k or 500k movement. The effect stayed limited to `drums_pulse` (+144.33), `solo_run` (+83.49), and `drums_dropout` (+40.33); at 250k it was still nearly split by seed direction (17 improved, 16 regressed). This is useful evidence that the family is real but too narrow/noisy to promote by further smooth onset retuning alone. The temporary source change was reverted; the accepted baseline remains `attempt-impact-elevation-room-start-j32-a01`.
+
 ## 2026-06-29 - ABANDONED PROBE - low-amplitude elevation impact-fade retry
 
 Reason: audit the strongest declined/near-accepted ideas and retry one only if the old failure mode had a concrete fix. The best exhausted families were skipped: exact repair feasibility and sparse-amplitude quality breadth were later accepted in better forms; fifth aim-base slack was retested repeatedly on the current baseline and stayed too narrow; broad slack lookahead was rejected strongly. This source trial retried the older low-amplitude/elevation ride-out damping family, preserving the stronger impact fade that had been more promising than the later low-amplitude-only canonical.

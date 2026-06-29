@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - high-impact relief for elevation-room impact onset
+
+Reason: retry the accepted elevation-room impact-onset profile with a targeted fix for its main logged weakness: the accepted onset helped broad elevation-room specs but lost on hard-impact profiles such as `summit_push`.
+
+Mechanism: temporarily keep the accepted elevation-room pressure, then smoothly fade it down as mean authored impact across contact-ending gaps rises from 0.52 to 0.60. The intent was continuous and structure-based: keep the lower impact-curve onset where elevation room is useful, but avoid weakening high-impact tracks whose whole authored profile asks for harder contact. Candidate count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-impact-room-highmean-relief-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-impact-room-highmean-relief-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.70 and `HEADLINE excl. impact` 696.32. Per-budget point estimates were 125k 666.71, 250k 676.56, 375k 681.24, and 500k 685.86.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-impact-room-highmean-relief-j32-a01/golden.json generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.1, CI [-0.0, 0.4], P(delta<=0)=21.2%, effect 0.90. Per-budget deltas were 125k +0.0, 250k +0.1, 375k +0.2, and 500k +0.1, with unchanged validity at every tier.
+
+Why it was not kept: the targeted relief produced only a tiny, noisy lift. It changed no 125k rows and reshuffled many mature rows, with common-row deltas of +0.08 at 250k, +0.16 at 375k, and +0.11 at 500k. The biggest movements were seed-level basin swaps on `summit_push` and `rolling_drop`: large wins such as `summit_push seed=10` (+18.12 at 500k) were offset by comparable losses such as `summit_push seed=5` (-7.89) and multiple `rolling_drop` regressions. This suggests the accepted profile's high-impact weakness is not solved by a whole-spec mean-impact fade alone; a future retry needs a more local value/stability selector. The temporary source change was reverted; the accepted baseline remains `attempt-impact-elevation-room-start-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - delayed fifth aim-base slack gate retry
 
 Reason: revisit one of the closest declined approaches, the fifth aim-base structural-slack gate, and test whether a later smooth onset could turn the repeated near-positive signal into an accepted result without adding thresholdy budget behavior.

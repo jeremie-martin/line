@@ -14,6 +14,18 @@ Decision: `npm run decide -- generated/golden-runs/attempt-opening-structural-be
 
 Outcome: accepted as the new baseline of record for subsequent mechanisms: `generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json`. The result preserves the user's high-slack opening-best intuition but avoids the rejected broad slack-only form: slack says whether the extra work is affordable, while contact-count structure and current-pool opportunity say whether the opening decision is valuable enough to spend it.
 
+## 2026-06-29 - ABANDONED PROBE - stable low-air impact frontload
+
+Mechanism screened: temporarily add a narrow generation-side boost to contact-centered impact curvature frontload. The trial kept the shipped `IMPACT_CURVE_FRONTLOAD=1.6`, then allowed at most +0.2 extra frontload after 125k only on locally low-air impact candidates, with a smooth whole-spec air-range guard to damp out the broad low-air frontload family's known variable-air collateral. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Probe: `generated/golden-runs/probe-stable-lowair-frontload-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-stable-lowair-frontload-j48-s0-2-a01`. The probe was valid 480/480 with raw probe HEADLINE 678.79 and `HEADLINE excl. impact` 693.28.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-stable-lowair-frontload-j48-s0-2-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline -0.3 on the 40-spec x 3-seed x full-grid intersection, CI [-2.5, 2.0], P(delta<=0)=61.5%. Per-budget deltas were 125k +0.0, 250k -0.7, 375k -0.8, and 500k +0.2, with unchanged 100% diagnostic validity.
+
+Why it was stopped: the guard did protect 125k and left a tiny 500k lift, but it simply moved the collateral instead of removing it. Gains on `drums_signature`, `tiny_dance`, `ridge_pulse`, `solo_run`, and `cold_start` were offset by losses on `drums_zigzag`, `drums_pulse`, `grain_staircase`, `drums_dropout`, and `rhythm_ladder`. The source trial was reverted without a canonical run; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - opening slack opportunity best lookahead
 
 Mechanism: temporarily add a default-only opening forward-eval selector in `handoff.ts` that combined structural traversal slack with a zero-extra-frame local opportunity signal from the already-admitted quality pool. Only the first authored contact could promote the default `greedy:2` ranker to `best:1:2` or `best:1:3`; explicit `LR_FWD_EVAL` overrides stayed exact, and the accepted mature vertical `avg` selector kept precedence. Candidate count, candidate generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

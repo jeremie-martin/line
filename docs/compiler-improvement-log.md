@@ -2,6 +2,14 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - KEPT CLEANUP - continuous slack policy plumbing
+
+Mechanism: keep the smooth policy cleanup that was previously tested as a byte-identical canonical no-op: `budget_slack` decisions now use the unrounded traversal slack, while telemetry still reports the rounded value, and the opening structural pressure combines short-track and dense-track pressures with the smooth union `1 - (1-a)(1-b)` instead of a hard `max`. This is not a headline promotion attempt; it removes artificial quantization and a derivative kink so future budget/slack behavior scales cleanly at arbitrary budgets and on future specs.
+
+Evidence: the earlier canonical `attempt-smooth-slack-policy-j32-a01` run was exactly score- and hash-identical to `attempt-opening-structural-best-j32-a01` across all 1920 canonical checkpoints. A fresh sanity slice after keeping the cleanup (`generated/golden-runs/probe-smooth-slack-cleanup-sanity-a01`, `tiny_dance`, `drums_dropout`, `drums_pendulum`, seed 0, budgets 125k/250k/500k) was also 0/9 changed track hashes with identical scores and rounded slack telemetry. Focused optimizer tests passed: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` (6 files, 81 tests).
+
+Outcome: kept as code hygiene for smooth, continuous budget-aware policy plumbing. The accepted score baseline of record remains `generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - smooth quality breadth transition pressure
 
 Mechanism: temporarily replace two hard authored-shape gates inside the internal quality candidate count with smooth transition pressures. The mature variation relief gate became a smooth union of air-range and speed-range pressure that reached the old full-relief endpoint at the accepted thresholds, and the short/no-amplitude boost gained a smooth contact-count fade beyond the old `<=32` endpoint. Explicit `LR_QUALITY_NCAND` overrides, the accepted base budget ramp, sparse-amplitude pressure, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

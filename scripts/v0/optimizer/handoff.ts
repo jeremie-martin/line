@@ -804,7 +804,8 @@ function compileHandoffInternal(
 
     const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
-    const budgetSlack = round3(traversalBudgetSlack(targetBudget, spec));
+    const budgetSlack = traversalBudgetSlack(targetBudget, spec);
+    const budgetSlackTelemetry = round3(budgetSlack);
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContactCadence = usesSparseContactCadence(gaps);
     const startOptions = initialSnapshot === null
@@ -994,7 +995,7 @@ function compileHandoffInternal(
           sim_frames: getSimFrames(),
           traversal_budget_model: TRAVERSAL_BUDGET_MODEL_V1.name,
           predicted_first_completion_frames: predictedFirstCompletionFrames,
-          budget_slack: budgetSlack,
+          budget_slack: budgetSlackTelemetry,
           ...snapshotNumericPolicyStats("handoff_policy_candidate_count", telemetry.policyNCand),
           ...snapshotNumericPolicyStats("handoff_policy_branch_limit", telemetry.policyBranchLimit),
           first_completion_frame: firstTerminalFrame >= 0 ? firstTerminalFrame : null,
@@ -2517,7 +2518,7 @@ function openingBestStructuralPressure(gaps: Gap[], budgetSlack: number): number
     (budgetSlack - OPENING_BEST_DENSE_SLACK_START) /
       OPENING_BEST_DENSE_SLACK_SPAN,
   );
-  return clamp01(Math.max(shortPressure, denseContactPressure * denseSlackPressure));
+  return smoothUnion(shortPressure, denseContactPressure * denseSlackPressure);
 }
 
 function totalContactCount(gaps: Gap[]): number {
@@ -5244,6 +5245,12 @@ function clamp01(x: number): number {
 function smoothstep(x: number): number {
   const t = clamp01(x);
   return t * t * (3 - 2 * t);
+}
+
+function smoothUnion(a: number, b: number): number {
+  const x = clamp01(a);
+  const y = clamp01(b);
+  return 1 - (1 - x) * (1 - y);
 }
 
 function clampIntLocal(x: number, lo: number, hi: number): number {

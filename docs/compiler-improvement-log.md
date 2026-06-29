@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - regular-cadence impact frontload
+
+Mechanism: temporarily add a narrow generation-side contact-curve frontload bonus in `arc_placement.ts`. The bonus applied only at mature budgets, only when current/next landing cadence was locally regular with enough spacing, and was damped on low-grain authored specs. The intent was to preserve the cleaner positive parts of the earlier mature frontload family while avoiding broad dense/syncopated collateral. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-regular-impact-frontload-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-regular-impact-frontload-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 678.74 and `HEADLINE excl. impact` 693.67. Per-budget point estimates were 125k 666.46, 250k 674.83, 375k 679.39, and 500k 683.27.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-regular-impact-frontload-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.2, CI [-1.4, 0.9], P(delta<=0)=67.0%, effect -0.43. Per-budget deltas were 125k +0.0, 250k -0.3, 375k -0.6, and 500k -0.0, with unchanged validity at every tier.
+
+Why it was not kept: the cadence selector kept 125k untouched and avoided a large failure, but it did not recover the useful part of the earlier mature frontload signal. The negative mature-budget drift says that regular spacing alone is not enough to decide when more impact frontload is valuable; future frontload work needs a more direct local value signal rather than another geometry-only cadence gate. The temporary source change was reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - stronger low-slack traversal branch pressure
 
 Mechanism: temporarily strengthen the accepted low-slack first-traversal branch controller in `handoff.ts` by moving `HANDOFF_LOW_SLACK_BRANCH_FULL` from 1.25 to 1.5 while leaving the zero-pressure point at slack 2.0. This made scarce pre-completion search more decisively branch 2 instead of stochastic branch 2/3 in the 1.35..1.5 slack band. Candidate count, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

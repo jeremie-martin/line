@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - smooth high-slack early-contact lookahead
+
+Mechanism: temporarily extend the accepted opening structural best-of selector to short-track second/third contacts with smooth slack and ordinal pressure. The opening contact kept the accepted policy unchanged. Non-opening contacts could only activate on very short specs through the existing smooth short-contact pressure, then a high structural slack ramp from 8 to 16 and a smooth ordinal fade: the second contact had full local pressure, the third contact half pressure, and later contacts faded to zero. Explicit `LR_FWD_EVAL` overrides, the accepted mature vertical `avg` override, candidate count, candidate generation, start selection, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-early-contact-smooth-slack-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-early-contact-smooth-slack-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.88 and `HEADLINE excl. impact` 696.04. Per-budget point estimates were 125k 666.66, 250k 675.34, 375k 680.49, and 500k 684.99.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-early-contact-smooth-slack-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.0, CI [-0.5, 0.4], P(delta<=0)=56.7%, effect -0.09. Per-budget deltas were 125k -0.1, 250k -0.1, 375k +0.0, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was not kept: the policy was smooth and scale-free, but it still lacked a reliable value signal beyond "short and affordable." It only changed the intended short rows: 67 paired checkpoint scores changed, 42 up and 25 down, for -80.12 total score. `tiny_dance` improved (+32.06 total across changed rows), but `mini_burst` regressed (-112.18), especially in the slack 12..16 band (-97.97). The extra lookahead spent real forward-eval work (+4.16M charged frames over changed rows) without improving first-completion or repair counters, so it mostly reshuffled short-track basins. This rejects simply extending the opening selector to later early contacts, even with clean continuous slack/ordinal pressure. The temporary source change was reverted; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - repair value-density target priority
 
 Mechanism: temporarily keep repair's feasible target set unchanged, but rank feasible repair gaps by squared axis error with a bounded smooth value-density bonus for cheaper suffixes. The bonus was continuous in `estCost / remainingRepairBudget` and did not change repair margins, repair caps, candidate generation, start selection, forward eval, scorer, specs, fingerprint, seed set, budget grid, or acceptance rule. The intent was to let comparable-error repair targets prefer lower-cost suffixes without adding raw-budget thresholds.

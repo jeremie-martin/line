@@ -2,6 +2,30 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - current-baseline structural-slack fifth aim base
+
+Mechanism: retested the smooth structural-slack affordability gate for the default fifth aim base on top of the current accepted elevation-room baseline. The temporary source threaded per-compile traversal slack into `optimizer/aim.ts` and multiplied only the default non-low-air fifth-base pressure by a smooth slack ramp from 2.75 to 4.0. Explicit `LR_AIM_TOPK_BASES` overrides, top-4 aim behavior, low-air top-3 cap, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-aim-top5-slack-current-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-aim-top5-slack-current-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.73 and `HEADLINE excl. impact` 696.52. Per-budget point estimates were 125k 666.71, 250k 677.16, 375k 681.09, and 500k 685.75.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-aim-top5-slack-current-j32-a01/golden.json generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.1, CI [-0.1, 0.5], P(delta<=0)=14.1%, effect 0.97. Per-budget deltas were 125k +0.0, 250k +0.7, 375k +0.0, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was not kept: the point estimate repeated the earlier positive signal but still missed the accept gate. The change was clean and smooth, but very narrow: only 37 paired checkpoints changed, all on `drums_pulse`, `drums_dropout`, and `solo_run`, mostly at 250k. It removed 872 aimed entries and 3055 aim-probe rows at 250k, producing gains on `drums_pulse` (+3.18 weighted mean), `drums_dropout` (+1.51), and `solo_run` (+0.64). The wider version of this same slack gate already had worse evidence in the newly affected slack bands, so there was no principled smooth retune to push without repeating known-negative territory. The temporary source change was reverted; the accepted baseline remains `attempt-impact-elevation-room-start-j32-a01`.
+
+## 2026-06-29 - INCONCLUSIVE CANONICAL - low-air stable-speed impact ride-out
+
+Mechanism: temporarily tested a narrower low-air/high-impact ride-out geometry controller after the accepted elevation-room baseline. The controller activated only on impact-targeted specs with high whole-spec air variation and stable speed targets, then smoothly increased low-air ride-out cap/blend by budget, attempt, local low-air pressure, and impact pressure. Candidate count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-lowair-stable-rideout-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-lowair-stable-rideout-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.50 and `HEADLINE excl. impact` 696.01. Per-budget point estimates were 125k 666.58, 250k 676.35, 375k 680.98, and 500k 685.69.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-lowair-stable-rideout-j32-a01/golden.json generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.1, CI [-0.6, 0.2], P(delta<=0)=85.8%, effect -0.48. Per-budget deltas were about -0.1 at every budget, with unchanged validity at every tier.
+
+Why it was not kept: the profile selector successfully isolated the intended family, but the sign was wrong. Only `drums_pendulum` changed, and its weighted mean moved -2.37 across seeds, with negative average deltas at every budget. Weakening the pressure would mostly return to the baseline, while widening or retuning the low-air ride-out family repeats previously documented drums seed-variance failures. The temporary source change was reverted; the accepted baseline remains `attempt-impact-elevation-room-start-j32-a01`.
+
 ## 2026-06-29 - ACCEPTED CANONICAL - elevation-room impact curve onset
 
 Mechanism: add a smooth default-only controller for the impact-curve target onset. The shipped default onset remains 0.25, but on specs with authored elevation variation and enough median contact room, the onset can fade toward 0.20 after a maturity ramp from 125k to 250k simulated frames. The profile pressure is continuous in elevation range and median gap room, and explicit `LR_IMPACT_CURVE_START` overrides remain exact. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

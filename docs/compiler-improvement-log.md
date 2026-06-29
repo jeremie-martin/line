@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - ABANDONED PROBE - current-baseline slack-scarce quality breadth
+
+Mechanism: temporarily add a smooth traversal-slack overlay to `qualityHandoffSampleCount` on top of the current accepted elevation-room baseline. Explicit `LR_QUALITY_NCAND` overrides stayed exact, existing raw-budget/authored-shape breadth logic resolved first, and then requested candidate count was pulled toward `q=29` when `budget / predicted_first_completion_frames` was scarce: full pressure at slack <=3, fading to zero by slack >=6. Candidate generation families, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts` passed during the temporary source trial (4 files, 53 tests).
+
+Probe: `generated/golden-runs/probe-slack-scarce-q-current-j48-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-slack-scarce-q-current-j48-s0-2-a01`. The probe was valid 480/480, with raw probe HEADLINE 680.29 and per-budget point estimates 125k 667.53, 250k 676.59, 375k 680.29, and 500k 685.32.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-slack-scarce-q-current-j48-s0-2-a01/golden.json generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline +0.3 on the 40-spec x 3-seed x full-budget intersection, CI [-0.9, 1.8], P(delta<=0)=36.5%. Per-budget deltas were 125k -0.7, 250k +1.3, 375k +0.3, and 500k +0.0, with unchanged validity.
+
+Why it was stopped: the controller was smooth and scale-free, but the pressure was too broad at 125k. It changed 88 paired 125k rows from q32 toward q29, producing large opposite-sign seed swings and a small net 125k loss. The 250k lift was real but concentrated and not strong enough to justify a canonical run. Work shifted as intended: on the paired 3-seed slice, mean q moved 32.000 -> 29.225 at 125k, 31.000 -> 30.625 at 250k, 31.000 -> 30.850 at 375k, and stayed 31.000 at 500k; first-completion frames fell modestly. This supports using traversal slack as a budget-control feature, but not a broad monotone "lower q when scarce" pull. A future version would need a more specific mid-slack/value selector, not a wider or stronger low-slack ramp. The temporary source change was reverted; the accepted baseline remains `attempt-impact-elevation-room-start-j32-a01`.
+
 ## 2026-06-29 - ABANDONED PROBE - traversal-slack impact-onset maturity
 
 Mechanism: temporarily replace the accepted elevation-room impact-curve onset's raw 125k->250k maturity ramp with a traversal-slack maturity ramp from 3.5 to 5.5. The structural selector stayed the same: authored elevation variation, median contact room, and impact targets controlled whether the onset could fade from 0.25 toward 0.20. The trial made maturity scale by predicted traversal difficulty rather than canonical budget labels, and passed the combined structural x maturity pressure into `arc_placement.ts`. Candidate count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

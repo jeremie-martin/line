@@ -83,6 +83,7 @@ import {
   type SearchNode,
 } from "./node.ts";
 import {
+  candidateQualityObjective,
   setAimCompileBudgetFrames,
   snapshotAimStats,
 } from "./aim.ts";
@@ -219,6 +220,7 @@ type HandoffSearchPolicy = {
   axisQualitySearch: boolean;
   releaseSetup: boolean;
   previewScorePressure?: number;
+  budgetSlack: number;
   branchLimit: number;
   reuseLimit: number;
   tailBranching: number;
@@ -577,6 +579,22 @@ const MATURE_AVG_FWD_EVAL_ELEVATION_CENTER = 0.50;
 const MATURE_AVG_FWD_EVAL_ELEVATION_SPAN = 0.24;
 const MATURE_AVG_FWD_EVAL_DENSE_FRAMES = 20;
 const MATURE_AVG_FWD_EVAL_SPARSE_FRAMES = 40;
+const OPENING_BEST_FWD_SLACK_BRANCH2_START = 2.75;
+const OPENING_BEST_FWD_SLACK_BRANCH2_SPAN = 2.25;
+const OPENING_BEST_FWD_SLACK_BRANCH3_START = 10;
+const OPENING_BEST_FWD_SLACK_BRANCH3_SPAN = 8;
+const OPENING_BEST_FWD_OBJECTIVE_START = 0.04;
+const OPENING_BEST_FWD_OBJECTIVE_SPAN = 0.08;
+const OPENING_BEST_FWD_REL_MARGIN_FULL = 0.02;
+const OPENING_BEST_FWD_REL_MARGIN_ZERO = 0.12;
+const OPENING_BEST_SHORT_CONTACT_FULL = 7;
+const OPENING_BEST_SHORT_CONTACT_SPAN = 5;
+const OPENING_BEST_DENSE_CONTACT_START = 38;
+const OPENING_BEST_DENSE_CONTACT_SPAN = 1;
+const OPENING_BEST_DENSE_CONTACT_END = 60;
+const OPENING_BEST_DENSE_CONTACT_END_SPAN = 8;
+const OPENING_BEST_DENSE_SLACK_START = 5;
+const OPENING_BEST_DENSE_SLACK_SPAN = 0.75;
 const SUBMIN_FORWARD_EVAL_START_FRAMES = 20_000;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 /** Speculative tail completion turns deep prefixes into full-duration register
@@ -2008,6 +2026,7 @@ function expandNode(
     reuseLimit: policy.reuseLimit,
     previewCostWeight: PREVIEW_COST_WEIGHT,
     previewScorePressure: policy.previewScorePressure,
+    budgetSlack: policy.budgetSlack,
     targetBudget,
   });
   if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap, ctx)) {
@@ -2022,6 +2041,7 @@ function expandNode(
       reuseLimit: policy.reuseLimit,
       previewCostWeight: PREVIEW_COST_WEIGHT,
       previewScorePressure: policy.previewScorePressure,
+      budgetSlack: policy.budgetSlack,
       targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -2041,6 +2061,7 @@ function expandNode(
       reuseLimit: policy.reuseLimit,
       previewCostWeight: PREVIEW_COST_WEIGHT,
       previewScorePressure: policy.previewScorePressure,
+      budgetSlack: policy.budgetSlack,
       targetBudget,
     });
     if (options.length > 0) telemetry.rescueSuccesses++;
@@ -2345,6 +2366,14 @@ function rankedOptions(
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
   const previewScorePressure = config.previewScorePressure ?? (preview ? 1 : 0);
   const extraRankBase = handoffAdmissionConfig.profile === "default" ? poolSize : pool.length;
+  const openingBestOpportunity = openingBestForwardEvalOpportunity(
+    node,
+    gaps,
+    ctx,
+    pool,
+    targetBudget,
+    config.budgetSlack ?? 0,
+  );
   const scored = pool.map(({ candidate, rank, lane }) =>
     scoreCandidateForHandoff(
       node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
@@ -2353,6 +2382,8 @@ function rankedOptions(
       targetBudget,
       undefined,
       lane,
+      config.budgetSlack ?? 0,
+      openingBestOpportunity,
     )
   );
   // Agreement instrument (measure-only): record ONLY when the pool was scored via the
@@ -2382,6 +2413,10 @@ function rankedOptions(
       previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
+      undefined,
+      undefined,
+      config.budgetSlack ?? 0,
+      openingBestOpportunity,
     ))
   );
   // Brake catches: uphill-entry arcs that bleed speed before contact, offered as
@@ -2411,6 +2446,10 @@ function rankedOptions(
       previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
+      undefined,
+      undefined,
+      config.budgetSlack ?? 0,
+      openingBestOpportunity,
     ))
   );
   scored.sort((a, b) =>
@@ -2419,6 +2458,77 @@ function rankedOptions(
     a.rank - b.rank
   );
   return scored.slice(0, HANDOFF_BRANCHING);
+}
+
+function openingBestForwardEvalOpportunity(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  pool: readonly HandoffAdmittedCandidate[],
+  targetBudget: number,
+  budgetSlack: number,
+): number {
+  if (fwdEvalCfg === null || !fwdEvalDefaultConfig) return 0;
+  if (!usesForwardEvalAtBudget(node, targetBudget)) return 0;
+  if (openingBestBranch2SlackPressure(budgetSlack) <= 0) return 0;
+  if (!isOpeningContactNode(node, gaps)) return 0;
+
+  const structuralPressure = openingBestStructuralPressure(gaps, budgetSlack);
+  if (structuralPressure <= 0) return 0;
+
+  const gap = gaps[node.gapIndex];
+  const values = pool
+    .map(({ candidate }) => candidateQualityObjective(node.prefixEngine, candidate, gap, gaps, ctx))
+    .filter((value): value is number => value !== null && Number.isFinite(value))
+    .sort((a, b) => b - a);
+  if (values.length < 2) return 0;
+
+  const top = values[0];
+  const second = values[1];
+  const objectivePressure = smoothstep(
+    (top - OPENING_BEST_FWD_OBJECTIVE_START) / OPENING_BEST_FWD_OBJECTIVE_SPAN,
+  );
+  if (objectivePressure <= 0) return 0;
+
+  const relMargin = (top - second) / Math.max(1e-6, Math.abs(top));
+  const marginPressure = 1 - smoothstep(
+    (relMargin - OPENING_BEST_FWD_REL_MARGIN_FULL) /
+      (OPENING_BEST_FWD_REL_MARGIN_ZERO - OPENING_BEST_FWD_REL_MARGIN_FULL),
+  );
+  return clamp01(structuralPressure * objectivePressure * marginPressure);
+}
+
+function openingBestStructuralPressure(gaps: Gap[], budgetSlack: number): number {
+  const contacts = totalContactCount(gaps);
+  const shortPressure = 1 - smoothstep(
+    (contacts - OPENING_BEST_SHORT_CONTACT_FULL) /
+      OPENING_BEST_SHORT_CONTACT_SPAN,
+  );
+  const denseContactPressure =
+    smoothstep(
+      (contacts - OPENING_BEST_DENSE_CONTACT_START) /
+        OPENING_BEST_DENSE_CONTACT_SPAN,
+    ) *
+    (1 - smoothstep(
+      (contacts - OPENING_BEST_DENSE_CONTACT_END) /
+        OPENING_BEST_DENSE_CONTACT_END_SPAN,
+    ));
+  const denseSlackPressure = smoothstep(
+    (budgetSlack - OPENING_BEST_DENSE_SLACK_START) /
+      OPENING_BEST_DENSE_SLACK_SPAN,
+  );
+  return clamp01(Math.max(shortPressure, denseContactPressure * denseSlackPressure));
+}
+
+function totalContactCount(gaps: Gap[]): number {
+  let contacts = 0;
+  for (const gap of gaps) if (gap.endsWithContact) contacts++;
+  return contacts;
+}
+
+function isOpeningContactNode(node: SearchNode, gaps: Gap[]): boolean {
+  return node.gapIndex === nextContactGapIndex(gaps, 0) &&
+    gaps[node.gapIndex]?.endsWithContact === true;
 }
 
 function qualityFuturePreviewPressure(
@@ -2809,6 +2919,7 @@ function resolveHandoffSearchPolicy({
     axisQualitySearch: true,
     releaseSetup: true,
     previewScorePressure: qualityFuturePreviewPressure(targetBudget, telemetry),
+    budgetSlack,
     branchLimit: lowSlackTraversalBranchLimit(node, budgetSlack, hasCompletion),
     reuseLimit: reuseCandidateLimit(node, targetBudget, telemetry),
     tailBranching: TAIL_COMPLETION_FALLBACK_BRANCHING,
@@ -3188,6 +3299,8 @@ function scoreCandidateForHandoff(
   targetBudget = 0,
   sourceAxis?: AxisName,
   sourceLane?: HandoffAdmissionLane,
+  budgetSlack = 0,
+  openingBestOpportunity = 0,
 ): RankedOption {
   const child = extendNodeCached(node, candidate);
   // Forward-eval ranking (DEFAULT ≥75k): rank purely by the true metric score of where this arc
@@ -3199,7 +3312,14 @@ function scoreCandidateForHandoff(
       gaps,
       ctx,
       seed,
-      matureForwardEvalConfig(fwdCfg, node, gaps, targetBudget),
+      adaptiveForwardEvalConfig(
+        fwdCfg,
+        node,
+        gaps,
+        targetBudget,
+        budgetSlack,
+        openingBestOpportunity,
+      ),
     );
     recordCandidateReleaseCoverage(telemetry, candidate);
     attachHandoffScoreToProbe(candidate.lines, -value); // study probe; no-op when off
@@ -4403,6 +4523,79 @@ function forwardArcValue(
     fwdEvalTotals.fwd_eval_calls++;
     if (!charge) refundSimFramesTo(saved);
   }
+}
+
+function adaptiveForwardEvalConfig(
+  base: ForwardEvalConfig,
+  node: SearchNode,
+  gaps: Gap[],
+  targetBudget: number,
+  budgetSlack: number,
+  openingBestOpportunity: number,
+): ForwardEvalConfig {
+  const mature = matureForwardEvalConfig(base, node, gaps, targetBudget);
+  if (mature !== base) return mature;
+  return openingBestForwardEvalConfig(base, node, budgetSlack, openingBestOpportunity);
+}
+
+function openingBestForwardEvalConfig(
+  base: ForwardEvalConfig,
+  node: SearchNode,
+  budgetSlack: number,
+  opportunity: number,
+): ForwardEvalConfig {
+  if (
+    !fwdEvalDefaultConfig ||
+    base.variant !== "greedy" ||
+    base.depth !== 2 ||
+    base.branch !== 1 ||
+    opportunity <= 0
+  ) {
+    return base;
+  }
+
+  const branch2Pressure = openingBestBranch2SlackPressure(budgetSlack) * clamp01(opportunity);
+  if (branch2Pressure <= 0 || unitHash(openingBestForwardEvalSeed(node, 2)) >= branch2Pressure) {
+    return base;
+  }
+
+  const branch3Pressure = openingBestBranch3SlackPressure(budgetSlack) * clamp01(opportunity);
+  const branch = branch3Pressure > 0 &&
+      unitHash(openingBestForwardEvalSeed(node, 3)) < branch3Pressure
+    ? 3
+    : 2;
+  return {
+    variant: "best",
+    depth: 1,
+    branch,
+    charge: base.charge,
+    leaf: base.leaf,
+  };
+}
+
+function openingBestBranch2SlackPressure(budgetSlack: number): number {
+  if (!Number.isFinite(budgetSlack)) return 0;
+  return smoothstep(
+    (budgetSlack - OPENING_BEST_FWD_SLACK_BRANCH2_START) /
+      OPENING_BEST_FWD_SLACK_BRANCH2_SPAN,
+  );
+}
+
+function openingBestBranch3SlackPressure(budgetSlack: number): number {
+  if (!Number.isFinite(budgetSlack)) return 0;
+  return smoothstep(
+    (budgetSlack - OPENING_BEST_FWD_SLACK_BRANCH3_START) /
+      OPENING_BEST_FWD_SLACK_BRANCH3_SPAN,
+  );
+}
+
+function openingBestForwardEvalSeed(node: SearchNode, branch: number): number {
+  return (
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
+    Math.imul(branch, 0x27d4eb2d) ^
+    0x51ed270b
+  ) | 0;
 }
 
 function usesForwardEvalAtBudget(node: SearchNode, targetBudget: number): boolean {

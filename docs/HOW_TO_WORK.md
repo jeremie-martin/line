@@ -76,8 +76,8 @@ The baseline of record is the **generated** [`docs/handoff-compiler.html`](hando
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
 - Evaluator fingerprint: **`de24a421f751`** (`scripts/v0/golden_suite.ts`).
-- Current baseline: `generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json`,
-  canonical HEADLINE **678.99** (`HEADLINE excl. impact` 694.29), valid 1920/1920.
+- Current baseline: `generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json`,
+  canonical HEADLINE **679.89** (`HEADLINE excl. impact` 696.05), valid 1920/1920.
   Per-budget scores: 125k 666.46, 250k 675.16, 375k 679.97, 500k 683.29.
   This supersedes `baseline-current-unified-14edc74-j32` after the accepted
   low-slack traversal branch-2 candidate.

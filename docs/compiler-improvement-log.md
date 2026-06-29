@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - ACCEPTED CANONICAL - structural opening best lookahead
+
+Mechanism: add a default-only opening forward-eval selector in `handoff.ts` that uses structural contact-count pressure plus traversal slack as an affordability signal before spending extra opening rollout work. The selector keeps explicit `LR_FWD_EVAL` overrides exact and lets the accepted mature vertical `avg` selector keep precedence. Only the first authored contact can promote default `greedy:2` to `best:1:2` or `best:1:3`, and only when the admitted quality pool shows local opportunity. The structural pressure is smooth: very short tracks get opening pressure because the first segment dominates the track, while dense contact chains get pressure only once slack is high enough to afford the extra opening discrimination. Candidate count, candidate generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed before the canonical run (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-opening-structural-best-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.89 and `HEADLINE excl. impact` 696.05. Per-budget point estimates were 125k 666.71, 250k 675.48, 375k 680.48, and 500k 684.95.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: ACCEPT`, delta headline +0.9, CI [-0.0, 2.2], P(delta<=0)=3.1%, effect 1.59. Per-budget deltas were 125k +0.2, 250k +0.3, 375k +0.5, and 500k +1.7, with unchanged validity at every tier.
+
+Outcome: accepted as the new baseline of record for subsequent mechanisms: `generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json`. The result preserves the user's high-slack opening-best intuition but avoids the rejected broad slack-only form: slack says whether the extra work is affordable, while contact-count structure and current-pool opportunity say whether the opening decision is valuable enough to spend it.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - opening slack opportunity best lookahead
 
 Mechanism: temporarily add a default-only opening forward-eval selector in `handoff.ts` that combined structural traversal slack with a zero-extra-frame local opportunity signal from the already-admitted quality pool. Only the first authored contact could promote the default `greedy:2` ranker to `best:1:2` or `best:1:3`; explicit `LR_FWD_EVAL` overrides stayed exact, and the accepted mature vertical `avg` selector kept precedence. Candidate count, candidate generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

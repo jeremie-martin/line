@@ -2,6 +2,26 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - opening branch-3 slack start 14
+
+Mechanism: temporarily raise only `OPENING_BEST_FWD_SLACK_BRANCH3_START` from 10 to 14, leaving the accepted opening best-of selector, branch-2 activation, structural/contact-count gates, local opportunity gate, candidate generation, start selection, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule unchanged. The intent was to keep high-slack opening `best:1:3` available for the easiest rows while leaving medium-high slack rows on cheaper `best:1:2`.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-opening-branch3-slack14-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-opening-branch3-slack14-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.86 and `HEADLINE excl. impact` 696.02. Per-budget point estimates were 125k 666.71, 250k 675.32, 375k 680.48, and 500k 684.95.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-opening-branch3-slack14-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.0, CI [-0.2, 0.0], P(delta<=0)=96.5%, effect -0.72. Per-budget deltas were 125k +0.0, 250k -0.2, 375k +0.0, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was not kept: delaying branch-3 was not a useful budget-saving lever. Only five paired checkpoints changed score, all `mini_burst` at 250k, with one improvement and four regressions for a net -89.66 score sum on those changed rows. The temporary source change was reverted; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
+## 2026-06-29 - ABANDONED PRE-CANONICAL - opening avg branch-2 lookahead
+
+Mechanism screened: temporarily change the already-gated opening branch-2 promotion from `best:1:2` to `avg:1:2`, while keeping branch-3 as `best:1:3`. Candidate generation, start selection, repair, scorer, specs, fingerprint, seed set, budget grid, and explicit forward-eval overrides stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` failed before any canonical run. The failing test was `optimizer/handoff.ts - objective leaf scorer > objective leaf is deterministic and collapses rollout frame cost vs full`: objective-leaf forward eval still saved frames, but no longer met the established cost-collapse margin (`32481` was not below `30946.8`).
+
+Why it was stopped: the `avg` variant interacted poorly with the default objective-leaf cost invariant, so weakening the test would have hidden a real spend-shape regression. The temporary source change was reverted without a canonical run; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - impact-curve profile target start
 
 Mechanism: temporarily let the impact-curve target start move smoothly from 0.25 toward 0.20 on mature budgets for specs whose authored impact profile was low-density and low-adjacent-delta. Explicit `LR_IMPACT_CURVE_START` overrides stayed exact. Candidate count, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

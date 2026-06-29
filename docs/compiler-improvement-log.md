@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - impact-curve profile target start
+
+Mechanism: temporarily let the impact-curve target start move smoothly from 0.25 toward 0.20 on mature budgets for specs whose authored impact profile was low-density and low-adjacent-delta. Explicit `LR_IMPACT_CURVE_START` overrides stayed exact. Candidate count, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-impact-curve-profile-start020-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-impact-curve-profile-start020-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.15 and `HEADLINE excl. impact` 695.54. Per-budget point estimates were 125k 666.71, 250k 675.97, 375k 680.80, and 500k 685.11.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-impact-curve-profile-start020-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.3, CI [-1.5, 1.9], P(delta<=0)=37.5%, effect 0.28. Per-budget deltas were 125k +0.0, 250k +0.5, 375k +0.3, and 500k +0.2, with unchanged validity at every tier.
+
+Why it was not kept: the point estimate was positive but too small and too uncertain for promotion, and `HEADLINE excl. impact` moved down. This looks like a narrow impact redistribution rather than a robust compiler improvement. The temporary source change was reverted; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - ACCEPTED CANONICAL - structural opening best lookahead
 
 Mechanism: add a default-only opening forward-eval selector in `handoff.ts` that uses structural contact-count pressure plus traversal slack as an affordability signal before spending extra opening rollout work. The selector keeps explicit `LR_FWD_EVAL` overrides exact and lets the accepted mature vertical `avg` selector keep precedence. Only the first authored contact can promote default `greedy:2` to `best:1:2` or `best:1:3`, and only when the admitted quality pool shows local opportunity. The structural pressure is smooth: very short tracks get opening pressure because the first segment dominates the track, while dense contact chains get pressure only once slack is high enough to afford the extra opening discrimination. Candidate count, candidate generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

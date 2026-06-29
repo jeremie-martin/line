@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - repair value-density target priority
+
+Mechanism: temporarily keep repair's feasible target set unchanged, but rank feasible repair gaps by squared axis error with a bounded smooth value-density bonus for cheaper suffixes. The bonus was continuous in `estCost / remainingRepairBudget` and did not change repair margins, repair caps, candidate generation, start selection, forward eval, scorer, specs, fingerprint, seed set, budget grid, or acceptance rule. The intent was to let comparable-error repair targets prefer lower-cost suffixes without adding raw-budget thresholds.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-repair-value-density-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-repair-value-density-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.74 and `HEADLINE excl. impact` 695.29. Per-budget point estimates were 125k 666.54, 250k 675.03, 375k 680.25, and 500k 685.01.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-repair-value-density-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.2, CI [-1.0, 0.6], P(delta<=0)=63.7%, effect -0.37. Per-budget deltas were 125k -0.2, 250k -0.5, 375k -0.2, and 500k +0.1, with unchanged validity at every tier.
+
+Why it was not kept: the smooth cost-aware priority was active, but it was not suite-positive. It changed 770/1920 paired track hashes and 766 scores, with 360 improvements and 406 regressions. The intended high-budget repair shift was mixed: 500k gained only +13.72 total score while 125k/250k/375k lost -99.80/-237.24/-141.20. Repair counters moved only slightly on average, and score movement looked like basin reshuffling rather than better allocation. Gains on `summit_push`, `canyon_steps`, `dense_echo_climb`, `solo_run`, and `valley_bounce` were outweighed by losses on `float_bounds`, `cold_start`, `mini_burst`, `tiny_dance`, and `dense_sprint`. This rejects a generic lower-cost repair preference as a standalone policy; repair allocation needs a stronger observed value signal than estimated suffix cost. The temporary source change was reverted; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - KEPT CLEANUP - continuous slack policy plumbing
 
 Mechanism: keep the smooth policy cleanup that was previously tested as a byte-identical canonical no-op: `budget_slack` decisions now use the unrounded traversal slack, while telemetry still reports the rounded value, and the opening structural pressure combines short-track and dense-track pressures with the smooth union `1 - (1-a)(1-b)` instead of a hard `max`. This is not a headline promotion attempt; it removes artificial quantization and a derivative kink so future budget/slack behavior scales cleanly at arbitrary budgets and on future specs.

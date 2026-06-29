@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - smooth default fifth aim-base slack gate retest
+
+Mechanism: temporarily retest the narrow smooth structural-slack affordability gate for the default fifth aim base on top of the current accepted elevation-room baseline. The source trial added a per-compile traversal slack value to the aiming layer and multiplied only the default, non-explicit fifth-base pressure by a smooth slack ramp from 2.75 to 4.0. Explicit `LR_AIM_TOPK_BASES` overrides, accepted top-4/top-3 behavior, low-air cap, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-aim-top5-slack-current-a02-j32/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-aim-top5-slack-current-a02-j32`. The run was valid 1920/1920 overall, with raw HEADLINE 680.73 and `HEADLINE excl. impact` 696.52. Per-budget point estimates were 125k 666.71, 250k 677.16, 375k 681.09, and 500k 685.75.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-aim-top5-slack-current-a02-j32/golden.json generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.1, CI [-0.1, 0.5], P(delta<=0)=14.1%, effect 0.97. Per-budget deltas were 125k +0.0, 250k +0.7, 375k +0.0, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was not kept: this exactly reproduced the previous near-positive signal after restating it as clean structural slack plumbing, but it still missed the promotion gate. The mechanism is smooth and scale-normalized, yet too narrow to clear canonical confidence: the useful movement is concentrated at 250k and does not materially affect the higher-weight mature tiers. Widening the same slack band already has logged negative evidence, so there is no principled continuous retune to push without repeating known-bad spend. The temporary source change was reverted; the accepted baseline remains `attempt-impact-elevation-room-start-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - traversal-slack quality expansion
 
 Mechanism: temporarily add a smooth, scale-free traversal-slack expansion to `qualityHandoffSampleCount` on top of the current accepted elevation-room baseline. Explicit `LR_QUALITY_NCAND` overrides stayed exact. The default raw-budget/authored-shape breadth policy produced the base q, then low traversal slack added up to +16 candidates: a low-slack extra faded out from slack 1.55 to 2.0, and a mid-slack extra stayed through slack 5.0 before fading out by slack 6.0. Candidate generation families, start selection, forward eval strategy, repair logic, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - opening slack opportunity best lookahead
+
+Mechanism: temporarily add a default-only opening forward-eval selector in `handoff.ts` that combined structural traversal slack with a zero-extra-frame local opportunity signal from the already-admitted quality pool. Only the first authored contact could promote the default `greedy:2` ranker to `best:1:2` or `best:1:3`; explicit `LR_FWD_EVAL` overrides stayed exact, and the accepted mature vertical `avg` selector kept precedence. Candidate count, candidate generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-opening-slack-opportunity-best-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-opening-slack-opportunity-best-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.37 and `HEADLINE excl. impact` 695.25. Per-budget point estimates were 125k 666.54, 250k 674.60, 375k 679.82, and 500k 684.63.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-opening-slack-opportunity-best-j32-a01/golden.json generated/golden-runs/attempt-low-slack-branch2-traversal-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.4, CI [-1.6, 2.3], P(delta<=0)=32.4%, effect 0.40. Per-budget deltas were 125k +0.1, 250k -0.6, 375k -0.1, and 500k +1.3, with unchanged validity at every tier.
+
+Why it was not kept: this is the cleanest evidence so far that high-slack opening best-of can help short/easy high-budget rows, but slack plus current-pool ambiguity is still not a reliable value selector. The 500k gain did not offset the 250k/375k drift strongly enough to pass the canonical gate, and the bootstrap still leaves too much probability mass at or below zero. The result supports using slack as an affordability signal, not as the whole policy; the next version needs a stronger local value/opportunity model or a cheaper bounded probe before spending best-of rollout frames. The temporary source change was reverted; the accepted baseline remains `attempt-low-slack-branch2-traversal-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - regular-cadence impact frontload
 
 Mechanism: temporarily add a narrow generation-side contact-curve frontload bonus in `arc_placement.ts`. The bonus applied only at mature budgets, only when current/next landing cadence was locally regular with enough spacing, and was damped on low-grain authored specs. The intent was to preserve the cleaner positive parts of the earlier mature frontload family while avoiding broad dense/syncopated collateral. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

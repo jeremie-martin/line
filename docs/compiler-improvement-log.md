@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - ABANDONED PROBE - traversal-slack impact-onset maturity
+
+Mechanism: temporarily replace the accepted elevation-room impact-curve onset's raw 125k->250k maturity ramp with a traversal-slack maturity ramp from 3.5 to 5.5. The structural selector stayed the same: authored elevation variation, median contact room, and impact targets controlled whether the onset could fade from 0.25 toward 0.20. The trial made maturity scale by predicted traversal difficulty rather than canonical budget labels, and passed the combined structural x maturity pressure into `arc_placement.ts`. Candidate count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Probe: `generated/golden-runs/probe-impact-slack-maturity-profile-j48-s0-11-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4,5,6,7,8,9,10,11 npm run golden -- --specs=climb_terrace,swoop_dive,rolling_hills,summit_push,mixed_grade,canyon_steps,ridge_pulse,valley_bounce,switchback_pop,terrace_sprint,glide_stairs,rolling_drop,skyline_push,syncopated_lift --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-impact-slack-maturity-profile-j48-s0-11-a01`. The profile slice was valid 672/672, with raw HEADLINE 669.6 and per-budget point estimates 125k 658.73, 250k 668.33, 375k 670.82, and 500k 672.03.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-impact-slack-maturity-profile-j48-s0-11-a01/golden.json generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0 on the 14-spec x 12-seed profile intersection, CI [-0.1, 0.2], P(delta<=0)=40.9%. Per-budget deltas were 125k +0.1, 250k +0.0, 375k +0.0, and 500k +0.0, with unchanged validity.
+
+Why it was stopped: the change was cleaner and scale-free, but it mostly reshuffled a tiny set of rows without improving the accepted baseline. Only 36 paired checkpoints changed: 24 at 125k and 12 at 250k, limited to `summit_push` (+79.22 score sum), `terrace_sprint` (+6.89), and `swoop_dive` (-61.89). The net profile signal was near zero and non-promotable, while the current accepted raw maturity ramp is part of a canonical ACCEPT. The temporary source change was reverted; the accepted baseline remains `attempt-impact-elevation-room-start-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - current-baseline structural-slack fifth aim base
 
 Mechanism: retested the smooth structural-slack affordability gate for the default fifth aim base on top of the current accepted elevation-room baseline. The temporary source threaded per-compile traversal slack into `optimizer/aim.ts` and multiplied only the default non-low-air fifth-base pressure by a smooth slack ramp from 2.75 to 4.0. Explicit `LR_AIM_TOPK_BASES` overrides, top-4 aim behavior, low-air top-3 cap, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

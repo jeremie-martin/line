@@ -110,6 +110,7 @@ import {
 } from "./sim_frames.ts";
 import {
   setCompileBudgetFrames,
+  setImpactCurveElevationRoomPressure,
   setImpactTemplateSpecMeanImpact,
   snapshotArcPlacementStats,
 } from "../arc_placement.ts";
@@ -801,6 +802,9 @@ function compileHandoffInternal(
         }
       }
     }
+    setImpactCurveElevationRoomPressure(
+      impactOff ? 0 : impactCurveElevationRoomPressure(gaps, gapAxisTargets),
+    );
 
     const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
@@ -5219,6 +5223,29 @@ function meanAuthoredImpactAfterFirstFeasibleContact(contacts: Spec["contacts"])
     .filter((impact): impact is number => impact !== undefined);
   if (impacts.length === 0) return 0;
   return impacts.reduce((sum, impact) => sum + impact, 0) / impacts.length;
+}
+
+function impactCurveElevationRoomPressure(gaps: readonly Gap[], gapAxisTargets: readonly AxisValues[]): number {
+  const elevationValues: number[] = [];
+  const contactGapFrames: number[] = [];
+  let impactTargets = 0;
+  for (const gap of gaps) {
+    if (!gap.endsWithContact) continue;
+    contactGapFrames.push(gap.endFrame - gap.startFrame);
+    if (gap.targets.impact !== undefined) impactTargets++;
+    const elevation = gapAxisTargets[gap.index]?.elevation;
+    if (typeof elevation === "number" && Number.isFinite(elevation)) {
+      elevationValues.push(elevation);
+    }
+  }
+  if (impactTargets === 0 || elevationValues.length < 2 || contactGapFrames.length === 0) return 0;
+  const elevationRange = Math.max(...elevationValues) - Math.min(...elevationValues);
+  const elevationPressure = smoothstep((elevationRange - 0.10) / 0.14);
+  if (elevationPressure <= 0) return 0;
+  const sortedGaps = [...contactGapFrames].sort((a, b) => a - b);
+  const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
+  const roomPressure = smoothstep((medianGapFrames - 20) / 14);
+  return clamp01(elevationPressure * roomPressure);
 }
 
 function uniqueRounded(xs: number[]): number[] {

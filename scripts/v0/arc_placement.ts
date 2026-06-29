@@ -118,6 +118,10 @@ const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES = 50_000;
 // delivered ~zero pressure. Start 0.25 puts ~0.7 pressure at a 0.5 ask.
 const IMPACT_CURVE_TARGET_START = impactEnvNum("LR_IMPACT_CURVE_START", 0.25);
 const IMPACT_CURVE_TARGET_SPAN = impactEnvNum("LR_IMPACT_CURVE_SPAN", 0.40);
+const IMPACT_CURVE_TARGET_START_ENV_SET = envIsSet("LR_IMPACT_CURVE_START");
+const IMPACT_CURVE_ELEVATION_ROOM_TARGET_START = 0.20;
+const IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES = 125_000;
+const IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES = 125_000;
 const IMPACT_CURVE_SPEED_START_PX = 6;
 const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // Ablation (2026-06-10): this curvature modulation is THE impact carrier (+53
@@ -270,6 +274,13 @@ let currentImpactTemplateSpecMeanImpact = 0;
 export function setImpactTemplateSpecMeanImpact(meanImpact: number): void {
   currentImpactTemplateSpecMeanImpact = Number.isFinite(meanImpact)
     ? clamp(meanImpact, 0, 1)
+    : 0;
+}
+
+let currentImpactCurveElevationRoomPressure = 0;
+export function setImpactCurveElevationRoomPressure(pressure: number): void {
+  currentImpactCurveElevationRoomPressure = Number.isFinite(pressure)
+    ? clamp(pressure, 0, 1)
     : 0;
 }
 
@@ -1394,13 +1405,24 @@ function impactCurvePressure(
   if (targetImpact === undefined) return 0;
   if (IMPACT_GEOM_OFF) return 0; // ablation: kills the scoop carrier + its whole cascade
   const target = Math.min(targetImpact, impactCeiling(targetState.speed));
+  const targetStart = impactCurveTargetStart();
   const targetPressure = smoothstep(
-    (target - IMPACT_CURVE_TARGET_START) / IMPACT_CURVE_TARGET_SPAN,
+    (target - targetStart) / IMPACT_CURVE_TARGET_SPAN,
   );
   const speedPressure = smoothstep(
     (targetState.speed - IMPACT_CURVE_SPEED_START_PX) / IMPACT_CURVE_SPEED_SPAN_PX,
   );
   return clamp(targetPressure * speedPressure, 0, 1);
+}
+
+function impactCurveTargetStart(): number {
+  if (IMPACT_CURVE_TARGET_START_ENV_SET) return IMPACT_CURVE_TARGET_START;
+  const profilePressure = currentImpactCurveElevationRoomPressure *
+    smoothstep(
+      (currentCompileBudgetFrames - IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES) /
+        IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES,
+    );
+  return lerp(IMPACT_CURVE_TARGET_START, IMPACT_CURVE_ELEVATION_ROOM_TARGET_START, profilePressure);
 }
 
 function predictedRedirImpactAtAngleDelta(speedPx: number, deltaDeg: number): number {
@@ -1855,4 +1877,10 @@ function smoothstep(t: number): number {
 
 function fract(x: number): number {
   return x - Math.floor(x);
+}
+
+function envIsSet(name: string): boolean {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.[name];
+  return raw !== undefined && raw !== "";
 }

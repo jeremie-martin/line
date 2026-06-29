@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - ACCEPTED CANONICAL - elevation-room impact curve onset
+
+Mechanism: add a smooth default-only controller for the impact-curve target onset. The shipped default onset remains 0.25, but on specs with authored elevation variation and enough median contact room, the onset can fade toward 0.20 after a maturity ramp from 125k to 250k simulated frames. The profile pressure is continuous in elevation range and median gap room, and explicit `LR_IMPACT_CURVE_START` overrides remain exact. Candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed before the canonical run (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-impact-elevation-room-start-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.59 and `HEADLINE excl. impact` 696.25. Per-budget point estimates were 125k 666.71, 250k 676.48, 375k 681.07, and 500k 685.75.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-impact-elevation-room-start-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: ACCEPT`, delta headline +0.7, CI [0.0, 1.6], P(delta<=0)=2.5%, effect 1.72. Per-budget deltas were 125k +0.0, 250k +1.0, 375k +0.6, and 500k +0.8, with unchanged validity at every tier.
+
+Why it was kept: this is the clean continuous version of the earlier broad impact-curve profile-start signal. It protected scarce completion exactly at 125k, then moved mature budgets through a smooth authored-structure pressure instead of a budget bucket. The paired row summary changed 503 scores, with 285 improvements and 218 regressions for +1128.92 total score. Gains concentrated where the selector was meant to act: `swoop_dive` (+508.35), `switchback_pop` (+236.34), `glide_stairs` (+136.19), `canyon_steps` (+91.27), `valley_bounce` (+67.23), and `skyline_push` (+64.72). The main loss was `summit_push` (-135.47), while dense/drums and amplitude-only rows stayed unchanged. The accepted baseline is now `attempt-impact-elevation-room-start-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - budget-stable default extra aim base seed
 
 Mechanism: temporarily make the default fifth aim-base stochastic gate monotone with budget by removing `aimCompileBudgetFrames` from `defaultExtraAimBaseSeed`. The smooth pressure curve was unchanged; only the random threshold became stable for a given gap, so increasing budget would raise activation through pressure rather than re-rolling the hash at every budget. Explicit `LR_AIM_TOPK_BASES` overrides, the accepted low-air top-3 cap, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - tail completion reinvested branch 4
+
+Mechanism: temporarily reallocate post-completion work in `handoff.ts` by suppressing speculative middle-depth tail completions after full-track feedback exists, then allowing a small smooth post-completion branch-4 pressure to spend some of that saved work on ordinary main-frontier alternatives. First-completion behavior, candidate generation, candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-tail-reinvest-branch4-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-tail-reinvest-branch4-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.90 and `HEADLINE excl. impact` 696.11. Per-budget point estimates were 125k 666.71, 250k 675.60, 375k 680.46, and 500k 684.92.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-tail-reinvest-branch4-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0, CI [-0.2, 0.2], P(delta<=0)=50.5%, effect 0.07. Per-budget deltas were 125k +0.0, 250k +0.1, 375k -0.0, and 500k -0.0, with unchanged validity at every tier.
+
+Why it was not kept: the mechanism changed the intended work allocation but did not convert it into score. Mean tail-completion attempts fell by about -1.9/-8.2/-15.6/-22.8 per row from 125k to 500k, mean branch limit rose by +0.02/+0.07/+0.10/+0.12, and 500k tail full evaluations dropped from 39.5k to 28.6k with duplicate full evaluations down from 35.6k to 24.8k. But only 13/1920 paired scores changed, with 6 improvements and 7 regressions, candidate samples and repair counters were essentially unchanged, and unique full evaluations were flat. This confirms that middle-tail duplication is wasteful, but even explicit branch-4 reinvestment is too weak or too poorly targeted to raise quality. The temporary source change was reverted; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - high-slack early-contact best lookahead
 
 Mechanism: temporarily extend the accepted opening best-of selector to the second and third contact on short, very-high-slack specs only. The opening contact kept the accepted structural/opportunity gate. Non-opening early contacts additionally required a smooth slack ramp from 12 to 20, short-track pressure, and ordinal decay, while still using the same local admitted-pool opportunity signal before promoting default `greedy:2` to `best:1:2` or `best:1:3`. Candidate count, candidate generation, start selection, repair selection, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

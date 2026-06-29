@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-30 - INCONCLUSIVE CANONICAL - scarce quality-lean retry on current baseline
+
+Reason: revisit the strongest older declined budget-allocation near-miss without duplicating logic that has since been accepted. The original `budget-allocated opening lookahead plus scarce quality lean` trial was directionally good (+1.5 headline on the earlier unified baseline), but its opening-lookahead half is now represented by the accepted opening selector. This retry isolated only the smooth scarce-candidate lean by moving the existing scarce quality-count curve from 50k->100k to 100k->200k, so the 125k tier participates. Candidate generation families, start selection, forward eval strategy, repair, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-scarce-qlean-current-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-scarce-qlean-current-j32-a01`. The run was valid 1919/1920 overall, with one 125k invalid, raw HEADLINE 679.98 and `HEADLINE excl. impact` 695.67. Per-budget point estimates were 125k 656.67, 250k 677.16, 375k 681.89, and 500k 685.79.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-scarce-qlean-current-j32-a01/golden.json generated/golden-runs/attempt-aim-slack-airvalley-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -1.0, CI [-5.2, 0.2], P(delta<=0)=84.1%, effect -0.69. Per-budget deltas were 125k -10.0, 250k +0.0, 375k +0.0, and 500k +0.0.
+
+Why it was not kept: the isolated q-lean did not reproduce the old scarce-tier lift on the current accepted compiler. The effect was exactly where expected, but the sign was wrong: mature budgets were byte-identical while 125k lost score and one raw row became invalid. This suggests the later low-slack branch-width fix already captured the useful scarce traversal behavior, and further reducing 125k quality breadth now removes needed candidate diversity. The temporary source change was reverted; the accepted baseline remains `attempt-aim-slack-airvalley-j32-a01`.
+
 ## 2026-06-29 - ACCEPTED CANONICAL - air-valley structural slack gate for default fifth aim base
 
 Reason: revisit the closest declined fifth aim-base approach instead of retuning from memory. The prior structural-slack gate repeatedly produced a clean positive 250k signal but was too narrow to promote, while the broader slack gate found a useful `drums_dropout` 375k region and also exposed the high-slack collateral to avoid.

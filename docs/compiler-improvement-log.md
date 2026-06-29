@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - structural-slack gate for default fifth aim base
+
+Mechanism: temporarily make the accepted late smooth default fifth aim-base selector affordability-aware. The existing top-4 aim behavior, low-air top-3 cap, explicit `LR_AIM_TOPK_BASES` overrides, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged. Only the default non-low-air fifth-base pressure was multiplied by a smooth structural traversal slack pressure, starting at slack 2.75 and reaching full strength by slack 4.0.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-aim-top5-slack-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-aim-top5-slack-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.03 and `HEADLINE excl. impact` 696.32. Per-budget point estimates were 125k 666.71, 250k 676.17, 375k 680.50, and 500k 684.95.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-aim-top5-slack-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.1, CI [-0.1, 0.5], P(delta<=0)=14.1%, effect 0.97. Per-budget deltas were 125k +0.0, 250k +0.7, 375k +0.0, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was not kept: the direction was good but too narrow for promotion. The gate left 125k and 500k byte-identical, changed only 33 score rows at 250k and 4 at 375k, and improved 22 versus 15 regressions across those changed rows. Work shifted as intended at 250k: -926 refined aim bases, -49.5k charged aim-probe frames, -872 emitted aimed candidates, -302 full evaluations, and +3 aimed selections, while sampled/viable candidates and forward-eval frames rose slightly. Gains were concentrated in `drums_pulse` (+190.68 score sum), `drums_dropout` (+90.39), and `solo_run` (+34.37), with no movement elsewhere. This supports using structural slack as an affordability feature, but the accepted fifth-base selector is already mostly aligned with slack on the current grid; adding a slack gate only trims a small 250k slice and does not clear the accept gate. The temporary source change was reverted; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - tail completion reinvested branch 4
 
 Mechanism: temporarily reallocate post-completion work in `handoff.ts` by suppressing speculative middle-depth tail completions after full-track feedback exists, then allowing a small smooth post-completion branch-4 pressure to spend some of that saved work on ordinary main-frontier alternatives. First-completion behavior, candidate generation, candidate count, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

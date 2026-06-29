@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-29 - INCONCLUSIVE CANONICAL - budget-stable default extra aim base seed
+
+Mechanism: temporarily make the default fifth aim-base stochastic gate monotone with budget by removing `aimCompileBudgetFrames` from `defaultExtraAimBaseSeed`. The smooth pressure curve was unchanged; only the random threshold became stable for a given gap, so increasing budget would raise activation through pressure rather than re-rolling the hash at every budget. Explicit `LR_AIM_TOPK_BASES` overrides, the accepted low-air top-3 cap, candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-aim-stable-extra-base-seed-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-aim-stable-extra-base-seed-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 679.74 and `HEADLINE excl. impact` 696.08. Per-budget point estimates were 125k 666.71, 250k 675.06, 375k 680.27, and 500k 684.94.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-aim-stable-extra-base-seed-j32-a01/golden.json generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.2, CI [-0.7, 0.4], P(delta<=0)=71.6%, effect -0.55. Per-budget deltas were 125k +0.0, 250k -0.4, 375k -0.2, and 500k -0.0, with unchanged validity at every tier.
+
+Why it was not kept: the monotone gate is cleaner in principle, but the current budget-dependent hash is part of the accepted top-5 aim basin allocation. The trial changed 400 paired scores, with 190 improvements and 210 regressions for -324.46 total score. It reduced aim emissions and probe frames at mature budgets but moved that saved work into weaker basins: `float_bounds` (-199.98), `grain_staircase` (-77.58), and `ridge_pulse` (-70.39) outweighed gains on `drums_pulse` (+114.50) and `dense_echo_climb` (+70.08). This rejects changing the hash alone; a future smooth/monotone aim controller needs a value model or recalibrated pressure, not just a cleaner stochastic seed. The temporary source change was reverted; the accepted baseline remains `attempt-opening-structural-best-j32-a01`.
+
 ## 2026-06-29 - INCONCLUSIVE CANONICAL - smooth high-slack early-contact lookahead
 
 Mechanism: temporarily extend the accepted opening structural best-of selector to short-track second/third contacts with smooth slack and ordinal pressure. The opening contact kept the accepted policy unchanged. Non-opening contacts could only activate on very short specs through the existing smooth short-contact pressure, then a high structural slack ramp from 8 to 16 and a smooth ordinal fade: the second contact had full local pressure, the third contact half pressure, and later contacts faded to zero. Explicit `LR_FWD_EVAL` overrides, the accepted mature vertical `avg` override, candidate count, candidate generation, start selection, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

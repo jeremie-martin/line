@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-30 - INCONCLUSIVE CANONICAL - moderate-elevation high-impact relief retry
+
+Reason: retry the local high-impact relief near-miss with a stronger structural selector instead of a broader relief. The temporary source kept the accepted elevation-room impact-onset lowering unchanged, then added a smooth high-local-impact relief only inside the same elevation-room profile when authored elevation range was moderate rather than dramatic. The intent was to preserve the old local-relief gains on `summit_push`/`terrace_sprint` while avoiding the previous `swoop_dive` and `rolling_hills` collateral. Explicit `LR_IMPACT_CURVE_START` overrides stayed exact. Candidate count, search policy, start selection, forward eval, repair, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-moderate-elevation-impact-relief-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-moderate-elevation-impact-relief-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.92 and `HEADLINE excl. impact` 696.86. Per-budget point estimates were 125k 666.71, 250k 677.16, 375k 681.89, and 500k 685.63.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-moderate-elevation-impact-relief-j32-a01/golden.json generated/golden-runs/attempt-aim-slack-airvalley-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.1, CI [-0.3, 0.1], P(delta<=0)=76.3%, effect -0.70. Per-budget deltas were 125k +0.0, 250k -0.0, 375k +0.0, and 500k -0.2, with unchanged validity at every tier.
+
+Why it was not kept: the structural narrowing did remove the earlier broad dramatic-contour collateral, but the remaining activation was still net-negative at 500k. Spec-level weighted movement was small and split: `summit_push` (+0.67) and `terrace_sprint` (+0.32) improved, while `syncopated_lift` (-1.89) and `ridge_pulse` (-1.02) dominated the loss. The largest 500k regressions were `syncopated_lift` seed 6 (-21.35), `ridge_pulse` seed 8 (-16.97), and `ridge_pulse` seed 2 (-10.54). This suggests local high-impact relief is too narrow and seed-fragile as an impact-onset default tweak; future impact work should look for a different value signal or keep such target changes outcome-gated. The temporary source changes were reverted; the accepted baseline remains `attempt-aim-slack-airvalley-j32-a01`.
+
 ## 2026-06-30 - INCONCLUSIVE CANONICAL - steady air-valley low-air planned target retry
 
 Reason: retry the older low-air planned-aim decline from the current accepted baseline, but with a narrower, continuous selector. The temporary source added a deterministic default planned-air correction before search: only steady "air valley" profiles could lower the generation/objective air target for deep low-air contact gaps, with smooth pressure from authored air range, speed/grain steadiness, vertical quietness, and local low-air depth. The scorer and local cost still used literal targets; candidate count, start selection, forward eval, repair, aim-base count, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

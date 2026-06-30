@@ -223,6 +223,26 @@ const AIM_TOPK_MATURE_BUDGET_FRAMES = 100_000;
 const AIM_LOW_AIR_TOPK_MAX = 3;
 const AIM_LOW_AIR_TOPK_AIR_MAX = 0.30;
 const AIM_EXTRA_TOPK_BASES_DEFAULT = 5;
+// High-budget UNIFORM aim-base count. A uniform LR_AIM_TOPK_BASES=6 (every mature
+// gap, 100k+) canonically gained the mature budgets (250k +0.5, 375k +1.6, 500k
+// +0.8) but cratered 125k (-18.9): the extra probe cost starves the scarce tier
+// where ~50-93% of the budget already goes just to first completion. The mature
+// gain is BROAD (not the spec-gated extra tier — bumping AIM_EXTRA 5->6 was -0.5),
+// so raise the uniform base from AIM_TOPK_BASES (4) to AIM_TOPK_BASES_HIGH (6) only
+// on compiles whose TARGET budget clears AIM_TOPK_HIGH_BUDGET_FRAMES, leaving 125k
+// at 4. Per-compile-constant budget (each golden checkpoint is an independent full
+// compile) so K_effective never changes mid-node — same determinism contract as the
+// K>1 maturity gate above.
+const AIM_TOPK_BASES_HIGH = 6;
+const AIM_TOPK_HIGH_BUDGET_FRAMES = 200_000;
+// Air-range gate for the high-K bump. Uniform K=6 at mature budgets is a broad win on
+// STEADY dense specs (drums_tide +27, drums_swell +25, drums_zigzag/crosscut, narrow
+// air range 0.26-0.35) but a sharp LOSS on syncopated/search-sensitive specs (wide air
+// range: syncopated_switchback 0.55 -> -29, dense_sprint 0.50, drums_dropout 0.40) where
+// the extra aim probes steal the search budget those specs convert best. The two
+// populations separate cleanly at air-target RANGE ~0.38, so only bump K where the spec's
+// air range is narrow; wide-air-range specs stay at the byte-identical K=4 default.
+const AIM_TOPK_HIGH_AIR_RANGE_MAX = 0.38;
 const AIM_EXTRA_TOPK_BUDGET_START_FRAMES = 225_000;
 const AIM_EXTRA_TOPK_BUDGET_SPAN_FRAMES = 75_000;
 const AIM_EXTRA_TOPK_SPEED_RANGE_START = 0.10;
@@ -261,12 +281,25 @@ export function setAimCompileBudgetSlack(slack: number): void {
  *  AIM_TOPK_BASES. */
 export function aimTopKBasesEffective(gap?: Gap, gaps?: readonly Gap[], ctx?: SpecContext): number {
   if (aimCompileBudgetFrames < AIM_TOPK_MATURE_BUDGET_FRAMES) return 1;
+  // High-budget uniform bump: at mature TARGET budgets the broader base count pays
+  // (canonical: K=6 at 250k/375k/500k = +0.5/+1.6/+0.8) but starves 125k (-18.9), so
+  // gate the rise on the compile budget. Not applied when LR_AIM_TOPK_BASES is set
+  // explicitly (the env override owns the count). Above the gate the uniform high K
+  // already exceeds the spec-gated extra tier, so that lane is subsumed.
+  const highBudget = !AIM_TOPK_BASES_EXPLICIT
+    && aimCompileBudgetFrames >= AIM_TOPK_HIGH_BUDGET_FRAMES;
+  // Gate the high-K bump to narrow-air-range (steady, non-syncopated) specs: the wide
+  // ones are search-sensitive and the extra aim probes regress them. Needs gaps+ctx to
+  // measure the range; without them, fall back to the safe K=4 default (no bump).
+  const narrowAirRange = highBudget && gaps !== undefined && ctx !== undefined
+    && targetAxisRange(gaps, ctx, "air") < AIM_TOPK_HIGH_AIR_RANGE_MAX;
+  const baseK = narrowAirRange ? AIM_TOPK_BASES_HIGH : AIM_TOPK_BASES;
   if (gap?.targets.air !== undefined && gap.targets.air <= AIM_LOW_AIR_TOPK_AIR_MAX) {
-    return Math.min(AIM_TOPK_BASES, AIM_LOW_AIR_TOPK_MAX);
+    return Math.min(baseK, AIM_LOW_AIR_TOPK_MAX);
   }
   if (
     !AIM_TOPK_BASES_EXPLICIT &&
-    AIM_TOPK_BASES < AIM_EXTRA_TOPK_BASES_DEFAULT &&
+    baseK < AIM_EXTRA_TOPK_BASES_DEFAULT &&
     gap !== undefined &&
     gaps !== undefined &&
     ctx !== undefined &&
@@ -274,7 +307,7 @@ export function aimTopKBasesEffective(gap?: Gap, gaps?: readonly Gap[], ctx?: Sp
   ) {
     return AIM_EXTRA_TOPK_BASES_DEFAULT;
   }
-  return AIM_TOPK_BASES;
+  return baseK;
 }
 
 function shouldUseDefaultExtraAimBase(gap: Gap, gaps: readonly Gap[], ctx: SpecContext): boolean {

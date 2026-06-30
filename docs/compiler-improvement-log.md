@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-30 - INCONCLUSIVE CANONICAL - low-air impact slam-hold retry
+
+Reason: revisit one of the better older declined geometry approaches on the current accepted baseline, but in a narrower form. The temporary source left candidate count, search policy, start selection, forward eval, repair, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule unchanged. It only modified the existing impact SLAM-HOP template lane in `arc_placement.ts`: for explicit low-air/high-impact targets with no elevation/amplitude axes and enough next-contact room, it appended a short deterministic same-angle hold segment after the scoop, with smooth pressure from compile budget, authored air, bounded impact target, and room.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-lowair-slam-hold-current-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-lowair-slam-hold-current-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.98 and `HEADLINE excl. impact` 696.69. Per-budget point estimates were 125k 666.71, 250k 677.12, 375k 681.79, and 500k 685.86.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-lowair-slam-hold-current-j32-a01/golden.json generated/golden-runs/attempt-aim-slack-airvalley-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.0, CI [-0.5, 0.5], P(delta<=0)=58.3%, effect -0.04. Per-budget deltas were 125k +0.0, 250k -0.0, 375k -0.1, and 500k +0.1, with unchanged validity at every tier.
+
+Why it was not kept: the retry did move the intended low-air/high-impact rows, but it remained seed-fragile rather than a reliable production win. At 500k it improved `drums_pendulum` on several seeds (`seed=0` +31.92, `seed=1` +21.07, `seed=8` +13.97), but offset those with `syncopated_switchback seed=1` -55.95 and additional `drums_pendulum` regressions (`seed=4` -22.62, `seed=5` -10.15). Common-row deltas were +0.00 at 125k, -0.06 at 250k, -0.11 at 375k, and +0.02 at 500k, with negligible work movement. This keeps the diagnosis intact: the low-air/high-impact hold signal is real locally, but a same-angle appended hold is not stable enough as a default geometry policy. The temporary source change was reverted; the accepted baseline remains `attempt-aim-slack-airvalley-j32-a01`.
+
 ## 2026-06-30 - INCONCLUSIVE CANONICAL - directional high-axis pool-opportunity rank
 
 Reason: retry the remaining no-extra-frame directional high-axis family with a sharper value selector instead of another broad rank multiplier. The temporary source left candidate generation, q, start selection, forward eval, repair, aim-base count, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule unchanged. It only changed `sortCandidatesByQuality` by applying a bounded directional multiplier to already-computed objective values for high `impact`/`elevation`/`amplitude` targets, and only when traversal slack, next-contact room, top-objective strength, top-two ambiguity, top-candidate undershoot, and directional spread all had smooth positive pressure.

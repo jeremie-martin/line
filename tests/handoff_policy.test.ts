@@ -26,7 +26,12 @@ import {
   sampleArcParams,
   sampleArcParamsRngDraws,
   sampleArcPlacementGeometry,
+  setCompileBudgetFrames,
+  setImpactCurveElevationRoomPressure,
+  setImpactCurveHighSpeedReliefPressure,
+  setImpactTemplateHoldProfilePressure,
   snapshotArcPlacementStats,
+  wasLastGeometryImpactTemplate,
 } from "../scripts/v0/arc_placement.ts";
 import { authoredSpeedToPx, type Gap, type TrackLine } from "../scripts/v0/types.ts";
 import type { SearchNode } from "../scripts/v0/optimizer/node.ts";
@@ -265,6 +270,92 @@ describe("target-state arc placement", () => {
     ));
 
     expect(totalLineLength(dense)).toBeLessThan(totalLineLength(loose));
+  });
+
+  test("high-speed relief dampens the elevation-room impact onset", () => {
+    const state = targetState(10, 0);
+    const targets = { air: 0.5, speed: 0.75, grain: 0.5, impact: 0.56 };
+    const contactGap = gap(0, 0, 30);
+    try {
+      setCompileBudgetFrames(250_000);
+      setImpactCurveElevationRoomPressure(1);
+      setImpactCurveHighSpeedReliefPressure(0);
+      const base = linesFromGeometry(sampleArcPlacementGeometry(
+        () => 0.5,
+        100,
+        50,
+        targets,
+        state,
+        0,
+        contactGap,
+        1,
+        "normal",
+        [30, 70],
+      ));
+
+      setImpactCurveHighSpeedReliefPressure(1);
+      const relieved = linesFromGeometry(sampleArcPlacementGeometry(
+        () => 0.5,
+        100,
+        50,
+        targets,
+        state,
+        0,
+        contactGap,
+        1,
+        "normal",
+        [30, 70],
+      ));
+
+      expect(relieved.at(-1)?.y2).not.toBeCloseTo(base.at(-1)?.y2 ?? NaN, 4);
+    } finally {
+      setImpactCurveHighSpeedReliefPressure(0);
+      setImpactCurveElevationRoomPressure(0);
+      setCompileBudgetFrames(0);
+    }
+  });
+
+  test("impact template hold pressure lengthens the profiled template lane", () => {
+    const state = targetState(9, 18);
+    const contactGap = gap(0, 0, 30);
+    const targets = { air: 0.15, speed: 0.55, grain: 0.45, impact: 0.72 };
+    try {
+      setCompileBudgetFrames(250_000);
+      setImpactTemplateHoldProfilePressure(0);
+      const base = linesFromGeometry(sampleArcPlacementGeometry(
+        () => 0.5,
+        100,
+        50,
+        targets,
+        state,
+        8,
+        contactGap,
+        1,
+        "normal",
+        [30, 70],
+      ));
+      expect(wasLastGeometryImpactTemplate()).toBe(true);
+
+      setImpactTemplateHoldProfilePressure(1);
+      const held = linesFromGeometry(sampleArcPlacementGeometry(
+        () => 0.5,
+        100,
+        50,
+        targets,
+        state,
+        8,
+        contactGap,
+        1,
+        "normal",
+        [30, 70],
+      ));
+      expect(wasLastGeometryImpactTemplate()).toBe(true);
+      expect(held.length).toBeGreaterThan(base.length);
+      expect(totalLineLength(held)).toBeGreaterThan(totalLineLength(base) + 5);
+    } finally {
+      setImpactTemplateHoldProfilePressure(0);
+      setCompileBudgetFrames(0);
+    }
   });
 
   test("arc compatibility sampler remains target-state anchored and finite", () => {

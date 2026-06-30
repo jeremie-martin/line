@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-30 - ACCEPTED CANONICAL - profiled hold plus tight high-speed impact relief
+
+Reason: retry the almost-accepted profiled impact-geometry portfolio with a cleaner relief selector. The kept source combines the profiled low-air/high-impact SLAM-HOP hold with a tighter high-speed relief for the accepted elevation-room impact-curve onset. The hold remains profile-gated to long dense low-air/low-speed impact-only rows. The relief is default-only, local to moderate/high impact targets, and additionally gated by high authored speed plus manageable elevation variation so it keeps the `summit_push`/`terrace_sprint` upside while avoiding the earlier broad `ridge_pulse`/`canyon_steps` collateral. Explicit `LR_IMPACT_CURVE_START` overrides remain exact. Candidate count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/optimizer_sample.test.ts tests/arc_model.test.ts` passed before the canonical run (6 files, 83 tests).
+
+Canonical: `generated/golden-runs/attempt-profiled-hold-tight-speed-relief-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-profiled-hold-tight-speed-relief-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 681.58 and `HEADLINE excl. impact` 697.61. Per-budget point estimates were 125k 666.71, 250k 677.81, 375k 682.60, and 500k 686.42.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-profiled-hold-tight-speed-relief-j32-a01/golden.json generated/golden-runs/attempt-aim-slack-airvalley-j32-a01/golden.json` -> canonical `VERDICT: ACCEPT`, delta headline +0.6, CI [0.0, 1.9], P(delta<=0)=5.5%, effect 1.13. Per-budget deltas were 125k +0.0, 250k +0.6, 375k +0.7, and 500k +0.6, with unchanged 100% validity at every tier.
+
+Why it was kept: the tighter relief turns the earlier near-miss into a narrow accepted geometry improvement without broad churn. Only 86/1920 paired checkpoints changed: 62 improvements, 24 regressions, and 1834 plateaus. Raw common-row score sum was +643.52, split across mature budgets as 250k +203.02, 375k +236.14, and 500k +204.36, while 125k stayed byte-identical. Spec movement was intentionally sparse: `drums_pendulum` gained +510.95 raw row-score points (the profiled hold signal), `summit_push` gained +107.05, and `terrace_sprint` gained +25.52. No other spec moved in the paired comparison, which means the high-speed relief selector removed the previous geometry portfolio's offsetting collateral. The accepted baseline is now `attempt-profiled-hold-tight-speed-relief-j32-a01`.
+
 ## 2026-06-30 - INCONCLUSIVE CANONICAL - profiled hold plus room/slack rank retry
 
 Reason: go back over the best current declined approaches and retry the closest-to-accepted pieces in a cleaner combination. The temporary source combined the profiled low-air/high-impact SLAM-HOP hold, which had a real but one-spec `drums_pendulum` signal, with the room/slack directional high-axis rank multiplier, which had the best broader no-extra-compute directional-rank signal. Both components used smooth profile/budget/slack/local-room pressure; candidate count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

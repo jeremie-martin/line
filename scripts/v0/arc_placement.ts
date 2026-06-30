@@ -122,6 +122,8 @@ const IMPACT_CURVE_TARGET_START_ENV_SET = envIsSet("LR_IMPACT_CURVE_START");
 const IMPACT_CURVE_ELEVATION_ROOM_TARGET_START = 0.20;
 const IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES = 125_000;
 const IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES = 125_000;
+const IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_START = 0.52;
+const IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_SPAN = 0.10;
 const IMPACT_CURVE_SPEED_START_PX = 6;
 const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // Ablation (2026-06-10): this curvature modulation is THE impact carrier (+53
@@ -184,6 +186,17 @@ const IMPACT_TEMPLATE_END_ANGLE_MIN_DEG = -28;
 const IMPACT_TEMPLATE_BUDGET_START_FRAMES = 50_000;
 const IMPACT_TEMPLATE_BUDGET_SPAN_FRAMES = 50_000;
 const IMPACT_TEMPLATE_AMP_ONLY_SPARSE_NEXT_GAP_FRAMES = Math.round(FPS * 1.25);
+const IMPACT_TEMPLATE_HOLD_BUDGET_START_FRAMES = 125_000;
+const IMPACT_TEMPLATE_HOLD_BUDGET_SPAN_FRAMES = 125_000;
+const IMPACT_TEMPLATE_HOLD_AIR_START = 0.22;
+const IMPACT_TEMPLATE_HOLD_AIR_SPAN = 0.22;
+const IMPACT_TEMPLATE_HOLD_IMPACT_START = 0.42;
+const IMPACT_TEMPLATE_HOLD_IMPACT_SPAN = 0.23;
+const IMPACT_TEMPLATE_HOLD_ROOM_START_FRAMES = 10;
+const IMPACT_TEMPLATE_HOLD_ROOM_SPAN_FRAMES = 18;
+const IMPACT_TEMPLATE_HOLD_MIN_FRAMES = 1.2;
+const IMPACT_TEMPLATE_HOLD_MAX_FRAMES = 3.6;
+const IMPACT_TEMPLATE_HOLD_SEG_PX = 12;
 
 // Study-only marker: was the LAST geometry produced by sampleContactCenteredLines an
 // impact template lane? Read by the landing-window probe (core/candidate.ts) to
@@ -280,6 +293,20 @@ export function setImpactTemplateSpecMeanImpact(meanImpact: number): void {
 let currentImpactCurveElevationRoomPressure = 0;
 export function setImpactCurveElevationRoomPressure(pressure: number): void {
   currentImpactCurveElevationRoomPressure = Number.isFinite(pressure)
+    ? clamp(pressure, 0, 1)
+    : 0;
+}
+
+let currentImpactCurveHighSpeedReliefPressure = 0;
+export function setImpactCurveHighSpeedReliefPressure(pressure: number): void {
+  currentImpactCurveHighSpeedReliefPressure = Number.isFinite(pressure)
+    ? clamp(pressure, 0, 1)
+    : 0;
+}
+
+let currentImpactTemplateHoldProfilePressure = 0;
+export function setImpactTemplateHoldProfilePressure(pressure: number): void {
+  currentImpactTemplateHoldProfilePressure = Number.isFinite(pressure)
     ? clamp(pressure, 0, 1)
     : 0;
 }
@@ -1259,7 +1286,16 @@ function sampleContactCenteredLines(
           lineIdStart + preLines.length + impactBevelLines.length,
           contactPoint, contactAngleDeg, scoopEndAngleDeg, scoopLength, scoopSegs,
         );
-        return [...preLines, ...impactBevelLines, ...scoopLines];
+        const holdPressure = impactTemplateHoldPressure(targets, nextGapFrames);
+        const holdLines = buildImpactTemplateHoldLines(
+          lineIdStart + preLines.length + impactBevelLines.length + scoopLines.length,
+          scoopLines,
+          contactPoint,
+          scoopEndAngleDeg,
+          speed,
+          holdPressure,
+        );
+        return [...preLines, ...impactBevelLines, ...scoopLines, ...holdLines];
       }
     }
   }
@@ -1290,6 +1326,66 @@ function impactTemplateScoopFrames(): number {
         IMPACT_TEMPLATE_SCOOP_BUDGET_SPAN_FRAMES,
     ),
   );
+}
+
+function impactTemplateHoldPressure(
+  targets: AxisValues,
+  nextGapFrames: number | null,
+): number {
+  if (IMPACT_GEOM_OFF || currentImpactTemplateHoldProfilePressure <= 0 || nextGapFrames === null) {
+    return 0;
+  }
+  if (targets.impact === undefined) return 0;
+  const air = clamp(targets.air ?? 0.5, 0, 1);
+  const lowAirPressure = 1 - smoothstep(
+    (air - IMPACT_TEMPLATE_HOLD_AIR_START) / IMPACT_TEMPLATE_HOLD_AIR_SPAN,
+  );
+  const impactPressure = smoothstep(
+    (targets.impact - IMPACT_TEMPLATE_HOLD_IMPACT_START) / IMPACT_TEMPLATE_HOLD_IMPACT_SPAN,
+  );
+  const roomPressure = smoothstep(
+    (nextGapFrames - IMPACT_TEMPLATE_HOLD_ROOM_START_FRAMES) /
+      IMPACT_TEMPLATE_HOLD_ROOM_SPAN_FRAMES,
+  );
+  const budgetPressure = smoothstep(
+    (currentCompileBudgetFrames - IMPACT_TEMPLATE_HOLD_BUDGET_START_FRAMES) /
+      IMPACT_TEMPLATE_HOLD_BUDGET_SPAN_FRAMES,
+  );
+  return clamp(
+    currentImpactTemplateHoldProfilePressure * lowAirPressure * impactPressure *
+      roomPressure * budgetPressure,
+    0,
+    1,
+  );
+}
+
+function buildImpactTemplateHoldLines(
+  lineIdStart: number,
+  scoopLines: readonly TrackLine[],
+  contactPoint: { x: number; y: number },
+  angleDeg: number,
+  speed: number,
+  pressure: number,
+): TrackLine[] {
+  if (pressure <= 0) return [];
+  const start = scoopLines.length === 0
+    ? contactPoint
+    : {
+      x: scoopLines[scoopLines.length - 1].x2,
+      y: scoopLines[scoopLines.length - 1].y2,
+    };
+  const holdFrames = lerp(
+    IMPACT_TEMPLATE_HOLD_MIN_FRAMES,
+    IMPACT_TEMPLATE_HOLD_MAX_FRAMES,
+    smoothstep(pressure),
+  );
+  const holdLength = clamp(speed * holdFrames, 8, 42);
+  const holdSegments = clampInt(
+    Math.round(holdLength / IMPACT_TEMPLATE_HOLD_SEG_PX),
+    1,
+    4,
+  );
+  return buildPostContactLines(lineIdStart, start, angleDeg, angleDeg, holdLength, holdSegments);
 }
 
 function impactTemplateVerticalCompatible(
@@ -1405,7 +1501,7 @@ function impactCurvePressure(
   if (targetImpact === undefined) return 0;
   if (IMPACT_GEOM_OFF) return 0; // ablation: kills the scoop carrier + its whole cascade
   const target = Math.min(targetImpact, impactCeiling(targetState.speed));
-  const targetStart = impactCurveTargetStart();
+  const targetStart = impactCurveTargetStart(target);
   const targetPressure = smoothstep(
     (target - targetStart) / IMPACT_CURVE_TARGET_SPAN,
   );
@@ -1415,13 +1511,19 @@ function impactCurvePressure(
   return clamp(targetPressure * speedPressure, 0, 1);
 }
 
-function impactCurveTargetStart(): number {
+function impactCurveTargetStart(targetImpact: number): number {
   if (IMPACT_CURVE_TARGET_START_ENV_SET) return IMPACT_CURVE_TARGET_START;
+  const maturePressure = smoothstep(
+    (currentCompileBudgetFrames - IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES) /
+      IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES,
+  );
+  const localReliefPressure = smoothstep(
+    (targetImpact - IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_START) /
+      IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_SPAN,
+  );
   const profilePressure = currentImpactCurveElevationRoomPressure *
-    smoothstep(
-      (currentCompileBudgetFrames - IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES) /
-        IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES,
-    );
+    (1 - currentImpactCurveHighSpeedReliefPressure * localReliefPressure) *
+    maturePressure;
   return lerp(IMPACT_CURVE_TARGET_START, IMPACT_CURVE_ELEVATION_ROOM_TARGET_START, profilePressure);
 }
 

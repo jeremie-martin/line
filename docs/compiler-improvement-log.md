@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-30 - INCONCLUSIVE CANONICAL - low-density impact-profile onset retry
+
+Reason: revisit the earlier positive-but-inconclusive impact-curve profile target-start idea on the current accepted baseline. The temporary source kept the accepted elevation-room impact onset and added one smooth profile pressure for low-density, low-adjacent-delta authored impact sequences, combining the two onset pressures by smooth union before the existing mature-budget ramp. Explicit `LR_IMPACT_CURVE_START` overrides stayed exact. Candidate count, search policy, start selection, forward eval, repair, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-impact-profile-onset-current-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-impact-profile-onset-current-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.98 and `HEADLINE excl. impact` 696.77. Per-budget point estimates were 125k 666.71, 250k 677.16, 375k 681.89, and 500k 685.79.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-impact-profile-onset-current-j32-a01/golden.json generated/golden-runs/attempt-aim-slack-airvalley-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0, CI [0.0, 0.0], P(delta<=0)=100.0%, effect 0.00. Every per-budget delta was +0.0, with unchanged 1920/1920 validity.
+
+Why it was not kept: the refined selector was behaviorally identical on the current accepted compiler. Analyzer common-row deltas were exactly zero at every budget, with zero work movement in simulated frames, sampled candidates, and viable candidates. This means the earlier profile-onset near-miss has effectively been subsumed or neutralized by the accepted elevation-room onset plus later aim/slack changes; keeping extra inactive source code would only add complexity. The temporary source change was reverted; the accepted baseline remains `attempt-aim-slack-airvalley-j32-a01`.
+
 ## 2026-06-30 - INCONCLUSIVE CANONICAL - room-gated low-air impact frontload retry
 
 Reason: revisit the strongest unaccepted generation-side near-miss that had not yet been retried on the current accepted baseline. The older mature low-air impact-frontload trial had a positive point estimate but lost rhythm/syncopated collateral, so this retry tested a smaller smooth extra frontload (`+0.12` instead of the old `+0.2`) gated by compile maturity, authored low air, and next-contact room. The intent was to preserve the useful low-air impact-curve lift while damping tight-cadence collateral. Candidate count, start selection, forward eval, repair, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

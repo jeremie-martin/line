@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-30 - INCONCLUSIVE CANONICAL - mid-tail duplicate throttle retry
+
+Reason: revisit the declined tail-scheduling family with a sharper selector informed by current accepted-baseline telemetry. The temporary source left candidate generation, q, start selection, forward eval, repair, scoring, specs, fingerprint, seed set, budget grid, and acceptance rule unchanged. It only added a smooth deterministic throttle to speculative near-tail completion for the mid-tail contact band where the accepted baseline showed low best/success yield and high duplicate full-duration feedback. The pressure used target budget, unique full-duration feedback, observed duplicate tail full-rate, and remaining-contact shape; it preserved the existing shallow-tail throttle and the long-tail rem=11/12 window.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-tail-mid-dup-throttle-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-tail-mid-dup-throttle-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 680.98 and `HEADLINE excl. impact` 696.76. Per-budget point estimates were 125k 666.71, 250k 677.15, 375k 681.88, and 500k 685.79.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-tail-mid-dup-throttle-j32-a01/golden.json generated/golden-runs/attempt-aim-slack-airvalley-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.0, CI [-0.0, 0.0], P(delta<=0)=100.0%, effect -0.59. Per-budget deltas were 125k +0.0, 250k -0.0, 375k -0.0, and 500k +0.0, with unchanged validity at every tier.
+
+Why it was not kept: the retry did exactly what it was designed to do mechanically, but score did not move. At 500k, tail full evaluations dropped from 39,615 to 35,680, tail attempts/row dropped from 82.5 to 74.3, and duplicate full tail rate dropped from 71.5% to 68.4%. The low-yield rem=4..10 attempts were reduced while rem=11/12 high-yield behavior stayed unchanged. However, common-row score deltas were effectively zero at every budget and the freed budget did not convert into better frontier or repair outcomes. This is useful evidence against simple tail-work throttling as a score lever: reducing duplicate suffix completions alone is cleaner and cheaper, but not beneficial enough to keep. The temporary source change was reverted; the accepted baseline remains `attempt-aim-slack-airvalley-j32-a01`.
+
 ## 2026-06-30 - INCONCLUSIVE CANONICAL - low-air impact slam-hold retry
 
 Reason: revisit one of the better older declined geometry approaches on the current accepted baseline, but in a narrower form. The temporary source left candidate count, search policy, start selection, forward eval, repair, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule unchanged. It only modified the existing impact SLAM-HOP template lane in `arc_placement.ts`: for explicit low-air/high-impact targets with no elevation/amplitude axes and enough next-contact room, it appended a short deterministic same-angle hold segment after the scoop, with smooth pressure from compile budget, authored air, bounded impact target, and room.

@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-06-30 - INCONCLUSIVE CANONICAL - local high-impact relief for elevation-room impact onset
+
+Reason: retry the prior high-impact relief near-miss with the local selector requested by its failure analysis. The earlier whole-spec mean-impact fade was slightly positive but noisy; this version kept the accepted elevation-room impact-onset pressure, then smoothly faded only that onset-lowering pressure as the current bounded local impact target rose from 0.52 to 0.60. Explicit `LR_IMPACT_CURVE_START` overrides stayed exact. Candidate count, search policy, start selection, forward eval, repair, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts` passed during the temporary source trial (6 files, 81 tests).
+
+Canonical: `generated/golden-runs/attempt-impact-room-local-relief-j32-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-impact-room-local-relief-j32-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 681.07 and `HEADLINE excl. impact` 697.02. Per-budget point estimates were 125k 666.71, 250k 677.01, 375k 682.05, and 500k 685.95.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-impact-room-local-relief-j32-a01/golden.json generated/golden-runs/attempt-aim-slack-airvalley-j32-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.1, CI [-0.2, 0.4], P(delta<=0)=28.8%, effect 0.52. Per-budget deltas were 125k +0.0, 250k -0.2, 375k +0.2, and 500k +0.2, with unchanged validity at every tier.
+
+Why it was not kept: the local selector fixed the shape of the old retry but not the effect size. It protected 125k exactly and gave small 375k/500k gains, including visible wins on `summit_push`, `swoop_dive`, and `terrace_sprint`, but the 250k tier regressed and several mature rows still swapped basins in both directions (`ridge_pulse`, `rolling_hills`, and `rolling_drop` losses offset many of the wins). This is useful evidence that local high-impact relief is directionally saner than a whole-spec fade, but it remains too small and noisy for production promotion. The temporary source change was reverted; the accepted baseline remains `attempt-aim-slack-airvalley-j32-a01`.
+
 ## 2026-06-30 - INCONCLUSIVE CANONICAL - scarce quality-lean retry on current baseline
 
 Reason: revisit the strongest older declined budget-allocation near-miss without duplicating logic that has since been accepted. The original `budget-allocated opening lookahead plus scarce quality lean` trial was directionally good (+1.5 headline on the earlier unified baseline), but its opening-lookahead half is now represented by the accepted opening selector. This retry isolated only the smooth scarce-candidate lean by moving the existing scarce quality-count curve from 50k->100k to 100k->200k, so the 125k tier participates. Candidate generation families, start selection, forward eval strategy, repair, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

@@ -688,7 +688,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract into a study-only module that wraps/subscribes to `readinessCatch`; leave `readiness.ts` as table + locate + `readinessCatch` + `readinessCatchState` (~90 lines, no mutable state). Delete if the histogram study is defunct.
 - **Risk:** low
 - **Generalization note:** Dead in production by construction; removal cannot move the headline.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751). Extracted the histogram telemetry (types, 9 module-level mutable vars, module-load env read, `setCatchabilityTelemetryEnabled`/`reset`/`snapshot`/`record`) into a new study-only module `scripts/v0/study_catchability_telemetry.ts`, which subscribes to `readinessCatch` via a new 3-line `setCatchabilityObserver` hook; `readiness.ts` is now just table + `locate` + `readinessCatch` + `readinessCatchState` (~105 lines, no telemetry state). The recorder was a proven no-op in production (`record()` early-returns on the default-off flag, and `readinessCatch` computes/returns the clamped value before the observer fires), so the observer stays null in production and the hot path is untouched. Sole consumer `study_catchability_histogram.ts` re-pointed to the new module. Verified via 1-seed/40-spec/4-budget track_hash diff: 160/160 match.
 
 ### 70. Hard-coded catchability `RATE_GRID` fitted to one budget (300k) and 12 tracks
 - **Files:** `scripts/v0/optimizer/readiness.ts`

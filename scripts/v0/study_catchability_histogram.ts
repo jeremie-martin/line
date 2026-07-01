@@ -15,7 +15,7 @@ import {
   resetCatchabilityTelemetry,
   setCatchabilityTelemetryEnabled,
   snapshotCatchabilityTelemetry,
-} from "./optimizer/readiness.ts";
+} from "./study_catchability_telemetry.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 
 const argv = process.argv.slice(2);

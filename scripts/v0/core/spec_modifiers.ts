@@ -42,14 +42,6 @@ export type SpecCalibration = {
   objective: CalibrationObjective;
 };
 
-export type CalibrationResolution = {
-  spec: Spec;
-  applied: CalibrationCandidate | null;
-  selection: CalibrationSelection | null;
-  selectionPath: string;
-  warning: string | null;
-};
-
 export type AxisTargetAudit = {
   axis: AxisName | "impact";
   before: AxisStats;
@@ -105,39 +97,14 @@ export function applyCalibrationSelection(
   calibration: SpecCalibration | undefined,
   moduleUrl: string,
 ): Spec {
-  return resolveCalibrationSelection(baseSpec, calibration, moduleUrl).spec;
-}
-
-export function resolveCalibrationSelection(
-  baseSpec: Spec,
-  calibration: SpecCalibration | undefined,
-  moduleUrl: string,
-): CalibrationResolution {
-  const selectionPath = calibrationSelectionPath(moduleUrl);
-  if (calibration === undefined) {
-    return { spec: baseSpec, applied: null, selection: null, selectionPath, warning: null };
-  }
-  const selection = readCalibrationSelection(selectionPath);
+  if (calibration === undefined) return baseSpec;
+  const selection = readCalibrationSelection(calibrationSelectionPath(moduleUrl));
   if (selection === null || !selection.enabled || selection.selected === "identity") {
-    return { spec: baseSpec, applied: null, selection, selectionPath, warning: null };
+    return baseSpec;
   }
   const candidate = calibration.candidates.find((c) => c.id === selection.selected);
-  if (candidate === undefined) {
-    return {
-      spec: baseSpec,
-      applied: null,
-      selection,
-      selectionPath,
-      warning: `selected calibration candidate "${selection.selected}" was not found`,
-    };
-  }
-  return {
-    spec: candidate.apply(baseSpec),
-    applied: candidate,
-    selection,
-    selectionPath,
-    warning: null,
-  };
+  if (candidate === undefined) return baseSpec;
+  return candidate.apply(baseSpec);
 }
 
 export function readCalibrationSelection(path: string): CalibrationSelection | null {

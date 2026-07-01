@@ -1081,7 +1081,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Inline the needed logic into `applyCalibrationSelection`, delete `resolveCalibrationSelection` and the `CalibrationResolution` type if unused.
 - **Risk:** low
 - **Generalization note:** Dead-export removal.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Confirmed no external caller of `resolveCalibrationSelection`/`CalibrationResolution` (whole-repo grep; the 4 `spec_modifiers.ts` consumers import neither, no wildcard imports); inlined the `.spec`-only logic into `applyCalibrationSelection` and deleted the function plus the now-unused `CalibrationResolution` type.
 
 ### 112. Sidecar-JSON calibration subsystem is a large, narrowly-used offline mechanism in `core/`
 - **Files:** `scripts/v0/core/spec_modifiers.ts`

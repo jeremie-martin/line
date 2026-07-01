@@ -163,7 +163,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Remove the node cap (frame budget is already the stop condition) or base it on an actual per-node frame-charge floor; at minimum document it as a pathology backstop, not a tuning knob.
 - **Risk:** low
 - **Generalization note:** "300× headroom" is measured on the golden suite; high skip-gap specs break the nodes/frame assumption.
-- **Status:** Not Started
+- **Status:** Abandoned — already a minimal, well-justified pathology backstop; removing it deletes real 0-frame-loop protection with no compensating safeguard, and the skip-gap concern is architecturally backwards (dead-end/skip nodes run `rankedOptions`+rescue lanes = the MOST frames/node, so high-skip specs make the cap LESS likely to bind). Measured real headroom is ~1000× (full golden grid worst = 0.00095 nodes/frame, max 437 nodes absolute; cap=budget binds only above 1.0 nodes/frame). No clean low-risk win; not pursued.
 
 ### 14. `HANDOFF_AXIS_OVERSHOOT_WEIGHTS`: two-entry named-axis table with over-precise 5.76
 - **Files:** `scripts/v0/optimizer/handoff.ts`

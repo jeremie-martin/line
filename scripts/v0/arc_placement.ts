@@ -650,10 +650,7 @@ function targetStateControls(
     ? smoothstep(overspeed)
     : 0;
   // speed_drag / low_air_settle: retired candidate-sample modes (axis-quality streams ablated in
-  // Phase 2). Never generated → these pressures are always 0. Kept as 0 constants so the downstream
-  // geometry arithmetic stays byte-identical; the ×0 terms can be folded out in a later pass.
-  const speedDragModePressure = 0;
-  const lowAirSettlePressure = 0;
+  // Phase 2). Never generated → these pressures were always 0; their ×0 terms have been folded out.
   const startupCatchPressure = mode === "startup_catch"
     ? smoothstep(1 / (1 + Math.pow(gap.startFrame / (FPS * 0.75), 2)))
     : 0;
@@ -665,25 +662,23 @@ function targetStateControls(
   const deadline = clamp((18 - gapFrames) / 12, 0, 1);
   const dense = nextGapFrames === null ? 0 : clamp((18 - nextGapFrames) / 14, 0, 1);
   const denseFastAir = highAir * dense * targetPace;
-  const brakeLandingUncertainty = (brakeModePressure + 0.6 * speedDragModePressure) * clamp(
+  const brakeLandingUncertainty = brakeModePressure * clamp(
     0.35 + 0.35 * targetPace + 0.30 * highAir,
     0,
     1,
   );
   const contactJitter = CONTACT_POINT_JITTER *
     lerp(1, 1.5, brakeLandingUncertainty) *
-    lerp(1, 2.2, startupLandingPressure) *
-    lerp(1, 0.72, lowAirSettlePressure);
+    lerp(1, 2.2, startupLandingPressure);
   const preclearPressure = clamp(
     0.35 * deadline + denseFastAir + 0.32 * overspeed +
-      0.18 * brakeModePressure + 0.12 * speedDragModePressure +
-      0.42 * startupLandingPressure + 0.08 * lowAirSettlePressure,
+      0.18 * brakeModePressure +
+      0.42 * startupLandingPressure,
     0,
     1,
   );
   const speedControlPressure = clamp(
-    overspeed + 0.55 * denseFastAir + 0.38 * brakeModePressure +
-      0.50 * speedDragModePressure + 0.12 * lowAirSettlePressure * overspeed,
+    overspeed + 0.55 * denseFastAir + 0.38 * brakeModePressure,
     0,
     1,
   );
@@ -701,9 +696,7 @@ function targetStateControls(
       + 4 * dense
       - 10 * preclearPressure
       - 5 * brakeModePressure
-      - 8 * speedDragModePressure
       - 5 * startupLandingPressure
-      - 5 * lowAirSettlePressure
       + (rolls.contactAngle - 0.5) * lerp(14, 24, startupLandingPressure),
     -22,
     74,
@@ -714,14 +707,12 @@ function targetStateControls(
       - 8 * deadline
       + 3 * lowAir
       - 6 * brakeModePressure
-      - 10 * speedDragModePressure
       - 10 * startupLandingPressure
-      - 2 * lowAirSettlePressure
       + (rolls.preAngle - 0.5) * lerp(10, 18, startupLandingPressure),
     -28,
     78,
   );
-  const postAngleMin = lerp(lerp(-26, -34, lowAirSettlePressure), -42, speedDragModePressure);
+  const postAngleMin = -26;
   const postAngleDeg = clamp(
     contactAngleDeg
       + 14 * speedError
@@ -730,9 +721,7 @@ function targetStateControls(
       - 8 * dense
       - 18 * speedControlPressure
       - 12 * brakeModePressure
-      - 28 * speedDragModePressure
       - 8 * startupLandingPressure
-      - 9 * lowAirSettlePressure
       + (rolls.postAngle - 0.5) * 14,
     postAngleMin,
     78,
@@ -744,8 +733,7 @@ function targetStateControls(
       (1 + 0.25 * lowAir) *
       (1 - 0.88 * preclearPressure) *
       (1 - 0.24 * brakeModePressure) *
-      (1 - 0.92 * startupLandingPressure) *
-      (1 - 0.18 * lowAirSettlePressure),
+      (1 - 0.92 * startupLandingPressure),
     0,
     50,
   );
@@ -754,9 +742,7 @@ function targetStateControls(
     (1 + 0.20 * lowAir + 0.12 * highAir) *
     (1 - 0.34 * speedControlPressure) *
     (1 - 0.18 * brakeModePressure) *
-    (1 + 0.35 * speedDragModePressure) *
-    (1 - 0.28 * startupLandingPressure) *
-    (1 + 0.24 * lowAirSettlePressure);
+    (1 - 0.28 * startupLandingPressure);
   const targetGroundFrames = nextGapFrames === null
     ? 6 + 18 * lowAir
     : clamp((1 - air) * nextGapFrames, 2, nextGapFrames * (0.72 - 0.22 * dense));
@@ -769,9 +755,7 @@ function targetStateControls(
         (0.34 + 0.26 * lowAir - 0.08 * dense) *
         (1 - 0.30 * speedControlPressure) *
         (1 - 0.18 * brakeModePressure) *
-        (1 + 0.45 * speedDragModePressure) *
-        (1 - 0.30 * startupLandingPressure) *
-        (1 + 0.18 * lowAirSettlePressure),
+        (1 - 0.30 * startupLandingPressure),
       14,
       260,
     );
@@ -782,19 +766,18 @@ function targetStateControls(
   const postFloor = Math.min(
     safePostCap,
     lerp(
-      lerp(basePostFloor, Math.min(safePostCap, 28), speedDragModePressure),
+      basePostFloor,
       Math.min(safePostCap, 18 + 10 * lowAir),
       startupLandingPressure,
     ),
   );
-  const supportPostFloor = Math.min(safePostCap, 22 + 18 * lowAir);
   const postLength = clamp(
     lerp(
       sampledPost,
       Math.min(targetPost, safePostCap),
-      lerp(0.72, 0.88, lowAirSettlePressure),
+      0.72,
     ),
-    lerp(postFloor, supportPostFloor, lowAirSettlePressure),
+    postFloor,
     safePostCap,
   );
 

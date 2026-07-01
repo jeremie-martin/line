@@ -540,7 +540,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete both `=0` constants and constant-fold every term (`lerp(a,b,0)→a`, drop additive `k*pressure`). Byte-identical; roughly halves the size of the postFloor/postLength/safePostCap/contactAngleDeg expressions.
 - **Risk:** low
 - **Generalization note:** Pure dead-weight removal, byte-identical by construction.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Deleted both `=0` constant declarations and constant-folded all 22 no-op occurrences (`lerp(a,b,0)→a`, `x - k*p → x`, `(1±k*p) → 1` factors dropped) across `brakeLandingUncertainty`/`contactJitter`/`preclearPressure`/`speedControlPressure`/`contactAngleDeg`/`preAngleDeg`/`postAngleMin`/`postAngleDeg`/`preLength`/`sampledPost`/`safePostCap`/`postFloor`/`postLength`; `postAngleMin` folds to the constant `-26` and the now-dead `supportPostFloor` local was removed.
 
 ### 54. `contactCenteredNormalEnabled()` is a constant `return true` gating a dead A/B branch
 - **Files:** `scripts/v0/arc_placement.ts`

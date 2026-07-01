@@ -734,7 +734,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Have callers call `aimTargets` at the boundary and keep only the `*ForTargets` forms (or make Gap forms default parameters); inline `arrivalStateFromFit`. Cuts ~5 exports.
 - **Risk:** low
 - **Generalization note:** Internal API surface reduction.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751); 1-seed/40-spec/4-budget track_hash diff 160/160 match. Cut 4 exports: deleted the thin Gap→Targets wrappers `scoreCurrentGapQuality`, `scoreNextGapReadiness`, `scoreGapObjective`, and inlined the trivial pass-through `arrivalStateFromFit` into its sole caller `frontierReadinessFromFit`. External callers now call `aimTargets(gap)` at the boundary and use the Targets forms directly (`aim.ts` 2 sites + new `aimTargets` import; `study_joint_enum.ts` 1 site + import; `tests/objective_quality.test.ts` 5 sites + imports). Kept `frontierReadinessFromFit` (genuine composition, not a pure Gap→Targets wrapper — updated internally) and all twins (`scoreCurrentTargetQuality`, `scoreNextTargetReadiness`, `scoreGapObjectiveForTargets`, `predictArrivalAtNextContact`).
 
 ### 75. Duplicated finite/null arrival-state validation across objective & readiness
 - **Files:** `scripts/v0/optimizer/objective.ts`, `scripts/v0/optimizer/readiness.ts`

@@ -41,19 +41,8 @@ export type GapObjectiveScore = NextGapReadinessScore & {
   value: number;
 };
 
-export function scoreCurrentGapQuality(gap: Gap, achieved: AxisValues): number {
-  return scoreCurrentTargetQuality(aimTargets(gap), achieved);
-}
-
 export function scoreCurrentTargetQuality(targets: AxisValues, achieved: AxisValues): number {
   return axisQualityForTargets(targets, achieved).axis_quality;
-}
-
-export function scoreNextGapReadiness(
-  arrival: ObjectiveArrivalState,
-  nextGap: Gap,
-): NextGapReadinessScore | null {
-  return scoreNextTargetReadiness(arrival, aimTargets(nextGap));
 }
 
 export function scoreNextTargetReadiness(
@@ -72,20 +61,6 @@ export function scoreNextTargetReadiness(
     speedFit,
     impactFeasibility,
   };
-}
-
-export function scoreGapObjective(
-  currentGap: Gap,
-  currentAxes: AxisValues,
-  arrival: ObjectiveArrivalState,
-  nextGap: Gap,
-): GapObjectiveScore | null {
-  return scoreGapObjectiveForTargets(
-    aimTargets(currentGap),
-    currentAxes,
-    arrival,
-    aimTargets(nextGap),
-  );
 }
 
 export function scoreGapObjectiveForTargets(
@@ -120,19 +95,12 @@ export function nextContactGapIndex(gaps: readonly Gap[], from: number): number 
   return -1;
 }
 
-export function arrivalStateFromFit(
-  fit: GapFit,
-  nextEndFrame: number,
-): ObjectiveArrivalState | null {
-  return predictArrivalAtNextContact(fit, nextEndFrame);
-}
-
 export function frontierReadinessFromFit(
   fit: GapFit,
   nextGap: Gap,
 ): NextGapReadinessScore | null {
-  const arrival = arrivalStateFromFit(fit, nextGap.endFrame);
-  return arrival === null ? null : scoreNextGapReadiness(arrival, nextGap);
+  const arrival = predictArrivalAtNextContact(fit, nextGap.endFrame);
+  return arrival === null ? null : scoreNextTargetReadiness(arrival, aimTargets(nextGap));
 }
 
 export function predictArrivalAtNextContact(

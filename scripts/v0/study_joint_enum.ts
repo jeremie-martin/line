@@ -26,7 +26,8 @@
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { getRiderMetered } from "../lib/detector.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
-import { scoreNextGapReadiness } from "./optimizer/objective.ts";
+import { scoreNextTargetReadiness } from "./optimizer/objective.ts";
+import { aimTargets } from "./optimizer/planning.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { FPS, type AxisValues, type Gap } from "./types.ts";
 
@@ -136,8 +137,9 @@ function quadModel(lo: number, mid: number, hi: number, P: number): (d: number) 
 // ── production readiness objective (optimizer/objective.ts) ──
 
 function makeObjective(nextGap: Gap) {
+  const nextTargets = aimTargets(nextGap);
   return (s: number, a: number): number => {
-    return scoreNextGapReadiness({ speed: s, comAngleDeg: a }, nextGap)?.readiness ?? 0;
+    return scoreNextTargetReadiness({ speed: s, comAngleDeg: a }, nextTargets)?.readiness ?? 0;
   };
 }
 

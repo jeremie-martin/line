@@ -13,9 +13,9 @@ import {
   OBJECTIVE_SPEED_SCALE_PXF,
   frontierReadinessFromFit,
   predictArrivalAtNextContact,
-  scoreCurrentGapQuality,
-  scoreGapObjective,
-  scoreNextGapReadiness,
+  scoreCurrentTargetQuality,
+  scoreGapObjectiveForTargets,
+  scoreNextTargetReadiness,
 } from "../scripts/v0/optimizer/objective.ts";
 import { readinessCatch } from "../scripts/v0/optimizer/readiness.ts";
 import { sortCandidatesByQuality } from "../scripts/v0/optimizer/aim.ts";
@@ -81,7 +81,7 @@ describe("unified objective quality score", () => {
   test("current gap quality reuses the scorer axis-quality definition, including impact", () => {
     const g = gap(0, 0, 20, { air: 0.5, impact: 0.8 });
     const achieved = { air: 0.4, impact: 0.7 };
-    expect(scoreCurrentGapQuality(g, achieved)).toBeCloseTo(
+    expect(scoreCurrentTargetQuality(g.targets, achieved)).toBeCloseTo(
       axisQualityForTargets(g.targets, achieved).axis_quality,
       12,
     );
@@ -90,7 +90,7 @@ describe("unified objective quality score", () => {
   test("next-gap readiness is catchability times speed fit times impact feasibility", () => {
     const next = gap(1, 20, 40, { speed: 0.5, impact: 0.8 });
     const arrival = { speed: 10, comAngleDeg: 30 };
-    const scored = scoreNextGapReadiness(arrival, next);
+    const scored = scoreNextTargetReadiness(arrival, next.targets);
     expect(scored).not.toBeNull();
 
     const catchability = Math.max(OBJECTIVE_READINESS_MIN, readinessCatch(arrival.speed, arrival.comAngleDeg));
@@ -109,7 +109,7 @@ describe("unified objective quality score", () => {
 
   test("readiness still scores catchability when the next gap has no speed or impact ask", () => {
     const next = gap(1, 20, 40, {});
-    const scored = scoreNextGapReadiness({ speed: 9, comAngleDeg: 15 }, next);
+    const scored = scoreNextTargetReadiness({ speed: 9, comAngleDeg: 15 }, next.targets);
     expect(scored).not.toBeNull();
     expect(scored!.speedFit).toBe(1);
     expect(scored!.impactFeasibility).toBe(1);
@@ -121,7 +121,7 @@ describe("unified objective quality score", () => {
     const next = gap(1, 20, 40, { speed: 0.5 });
     const achieved = { air: 0.45, impact: 0.75 };
     const arrival = { speed: 9.5, comAngleDeg: 12 };
-    const scored = scoreGapObjective(current, achieved, arrival, next);
+    const scored = scoreGapObjectiveForTargets(current.targets, achieved, arrival, next.targets);
     expect(scored).not.toBeNull();
     expect(scored!.value).toBeCloseTo(scored!.currentQuality * scored!.readiness, 12);
   });
@@ -136,17 +136,17 @@ describe("unified objective quality score", () => {
     const cheapBad = candidate(0.01, { air: 0.5 }, releaseState(20, 4, -4));
     const costlyGood = candidate(10, { air: 0.5 }, releaseState(20, 8, 0));
 
-    const goodObj = scoreGapObjective(
-      current,
+    const goodObj = scoreGapObjectiveForTargets(
+      current.targets,
       { air: 0.5 },
       predictArrivalAtNextContact(costlyGood, next.endFrame)!,
-      next,
+      next.targets,
     )!.value;
-    const badObj = scoreGapObjective(
-      current,
+    const badObj = scoreGapObjectiveForTargets(
+      current.targets,
       { air: 0.5 },
       predictArrivalAtNextContact(cheapBad, next.endFrame)!,
-      next,
+      next.targets,
     )!.value;
     expect(goodObj).toBeGreaterThan(badObj);
 

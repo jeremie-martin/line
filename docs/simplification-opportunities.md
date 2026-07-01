@@ -192,7 +192,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Add one `nodeHash(node, ...salts)` and one `stochasticGate(node, salt, pressure)` (or `stochasticRound`); rewrite all gates to call them. Centralizes the hash constants and makes the determinism contract explicit.
 - **Risk:** low
 - **Generalization note:** Grid-independent pure de-duplication.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Added one shared `nodeHashSeed(node, ...salts)` that reproduces the `imul(gapIndex+1, 0x9e3779b1) ^ imul(prefixNextLineId|0, 0x85ebca6b)` core and XORs in each call site's own salt(s); all seven per-node seed functions (`matureReuseExtraSeed`, `lowSlackTraversalBranchSeed`, `shallowQualityTailThrottleSeed`, `tailCompletionWindowSeed`, `openingBestForwardEvalSeed`, `subminForwardEvalSeed`, `matureForwardEvalSeed`) now delegate to it, preserving every salt constant verbatim. The startup/brake RNG seeds use a different additive `imul(seed,1000003)+gapIndex+seedSalt` idiom already centralized by #15, so they were left untouched. No `stochasticGate` wrapper added — the gates mix `<`/`>=` comparisons and per-call salts, so a wrapper would obscure more than it dedups.
 
 ### 17. Branch-width-vs-slack decided in two disjoint places
 *(sources: handoff-core-rescue, handoff-admission-branch)*

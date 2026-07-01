@@ -2488,6 +2488,22 @@ function fullFeedbackPressure(telemetry: HandoffTelemetry, scale: number): numbe
   return smoothstep(clamp01(uniqueFull / (uniqueFull + Math.max(1, scale))));
 }
 
+/**
+ * Per-node deterministic hash seed: mixes the node's committed prefix
+ * (gapIndex + prefixNextLineId) with any number of call-site salt constants.
+ * XOR is associative/commutative so salt order is irrelevant; each stochastic
+ * gate passes its own distinguishing salt(s) to draw an independent stream while
+ * staying a pure function of the node — the search-determinism contract. Feed
+ * the result through `unitHash` for a [0,1) draw.
+ */
+function nodeHashSeed(node: SearchNode, ...salts: number[]): number {
+  let seed =
+    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
+    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b);
+  for (const salt of salts) seed ^= salt;
+  return seed | 0;
+}
+
 function unitHash(seed: number): number {
   let x = seed | 0;
   x ^= x >>> 16;
@@ -2522,10 +2538,7 @@ function matureReuseExtraPressure(targetBudget: number, uniqueFull: number): num
 }
 
 function matureReuseExtraSeed(node: SearchNode): number {
-  return (
-    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
-    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b)
-  ) | 0;
+  return nodeHashSeed(node);
 }
 
 /** Offer uphill-entry brake catches when the rider runs over a moderate target
@@ -2836,11 +2849,7 @@ function lowSlackTraversalBranchLimit(
 }
 
 function lowSlackTraversalBranchSeed(node: SearchNode): number {
-  return (
-    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
-    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
-    0x44b6c793
-  ) | 0;
+  return nodeHashSeed(node, 0x44b6c793);
 }
 
 function emptyNumericAccumulator(): NumericAccumulator {
@@ -3084,20 +3093,11 @@ function shallowQualityTailThrottlePressure(
 }
 
 function shallowQualityTailThrottleSeed(node: SearchNode, remainingContacts: number): number {
-  return (
-    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
-    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
-    Math.imul(remainingContacts + 1, 0x27d4eb2d)
-  ) | 0;
+  return nodeHashSeed(node, Math.imul(remainingContacts + 1, 0x27d4eb2d));
 }
 
 function tailCompletionWindowSeed(node: SearchNode, remainingContacts: number): number {
-  return (
-    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
-    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
-    Math.imul(remainingContacts + 1, 0x165667b1) ^
-    0x68bc21eb
-  ) | 0;
+  return nodeHashSeed(node, Math.imul(remainingContacts + 1, 0x165667b1), 0x68bc21eb);
 }
 
 function tailCompletionContactWindow(targetBudget: number): number {
@@ -4427,12 +4427,7 @@ function openingBestBranch3SlackPressure(budgetSlack: number): number {
 }
 
 function openingBestForwardEvalSeed(node: SearchNode, branch: number): number {
-  return (
-    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
-    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
-    Math.imul(branch, 0x27d4eb2d) ^
-    0x51ed270b
-  ) | 0;
+  return nodeHashSeed(node, Math.imul(branch, 0x27d4eb2d), 0x51ed270b);
 }
 
 function usesForwardEvalAtBudget(node: SearchNode, targetBudget: number): boolean {
@@ -4450,11 +4445,7 @@ function subminForwardEvalPressure(targetBudget: number): number {
 }
 
 function subminForwardEvalSeed(node: SearchNode): number {
-  return (
-    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
-    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
-    0x2f6e2b1d
-  ) | 0;
+  return nodeHashSeed(node, 0x2f6e2b1d);
 }
 
 function matureForwardEvalConfig(
@@ -4521,11 +4512,7 @@ function verticalDramaForwardEvalPressure(node: SearchNode, gaps: Gap[]): number
 }
 
 function matureForwardEvalSeed(node: SearchNode): number {
-  return (
-    Math.imul(node.gapIndex + 1, 0x9e3779b1) ^
-    Math.imul(node.prefixNextLineId | 0, 0x85ebca6b) ^
-    0x632be59b
-  ) | 0;
+  return nodeHashSeed(node, 0x632be59b);
 }
 
 function previewFutureContacts(

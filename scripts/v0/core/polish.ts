@@ -857,69 +857,21 @@ function polishEntrySpeedYBoundary(
   }
 }
 
-function contactExitLineIds(det: Detection): number[] {
-  const ids: number[] = [];
-  const seen = new Set<number>();
-  let inContact = false;
-  let rangeIds = new Set<number>();
-
-  for (let frame = 0; frame < det.measurements.airborne.length; frame++) {
-    const contact = !det.measurements.airborne[frame];
-    if (contact) {
-      inContact = true;
-      for (const id of det.measurements.contactLineIds[frame] ?? []) {
-        rangeIds.add(id);
-      }
-      continue;
-    }
-
-    if (!inContact) continue;
-    const sorted = [...rangeIds].sort((a, b) => a - b);
-    const id = sorted.at(-1);
-    if (id !== undefined && !seen.has(id)) {
-      seen.add(id);
-      ids.push(id);
-    }
-    inContact = false;
-    rangeIds = new Set<number>();
-  }
-
-  return ids;
+// Shared contact-range scanner. Walks the airborne mask once, emitting one
+// entry per maximal run of contact frames (a "contact range") that is closed by
+// a subsequent airborne frame. A trailing range still open at the end of the
+// mask is intentionally NOT emitted (matches the original per-function scanners).
+// `start` is the first contact frame, `end` the first airborne frame after the
+// range (exclusive, so `end - start` = contact-frame count), and `ids` the
+// contact line ids in first-seen (insertion) order.
+interface ContactRange {
+  start: number;
+  end: number;
+  ids: Set<number>;
 }
 
-function contactEntryLineIds(det: Detection): number[] {
-  const ids: number[] = [];
-  const seen = new Set<number>();
-  let inContact = false;
-  let rangeIds = new Set<number>();
-
-  for (let frame = 0; frame < det.measurements.airborne.length; frame++) {
-    const contact = !det.measurements.airborne[frame];
-    if (contact) {
-      inContact = true;
-      for (const id of det.measurements.contactLineIds[frame] ?? []) {
-        rangeIds.add(id);
-      }
-      continue;
-    }
-
-    if (!inContact) continue;
-    const sorted = [...rangeIds].sort((a, b) => a - b);
-    const id = sorted[0];
-    if (id !== undefined && !seen.has(id)) {
-      seen.add(id);
-      ids.push(id);
-    }
-    inContact = false;
-    rangeIds = new Set<number>();
-  }
-
-  return ids;
-}
-
-function briefSingleLineContactEntryIds(det: Detection): number[] {
-  const ids: number[] = [];
-  const seen = new Set<number>();
+function contactRanges(det: Detection): ContactRange[] {
+  const ranges: ContactRange[] = [];
   let inContact = false;
   let rangeStart = 0;
   let rangeIds = new Set<number>();
@@ -936,20 +888,55 @@ function briefSingleLineContactEntryIds(det: Detection): number[] {
     }
 
     if (!inContact) continue;
-    const id = [...rangeIds][0];
+    ranges.push({ start: rangeStart, end: frame, ids: rangeIds });
+    inContact = false;
+    rangeIds = new Set<number>();
+  }
+
+  return ranges;
+}
+
+function contactExitLineIds(det: Detection): number[] {
+  const ids: number[] = [];
+  const seen = new Set<number>();
+  for (const range of contactRanges(det)) {
+    const id = [...range.ids].sort((a, b) => a - b).at(-1);
+    if (id !== undefined && !seen.has(id)) {
+      seen.add(id);
+      ids.push(id);
+    }
+  }
+  return ids;
+}
+
+function contactEntryLineIds(det: Detection): number[] {
+  const ids: number[] = [];
+  const seen = new Set<number>();
+  for (const range of contactRanges(det)) {
+    const id = [...range.ids].sort((a, b) => a - b)[0];
+    if (id !== undefined && !seen.has(id)) {
+      seen.add(id);
+      ids.push(id);
+    }
+  }
+  return ids;
+}
+
+function briefSingleLineContactEntryIds(det: Detection): number[] {
+  const ids: number[] = [];
+  const seen = new Set<number>();
+  for (const range of contactRanges(det)) {
+    const id = [...range.ids][0];
     if (
-      rangeIds.size === 1
-      && frame - rangeStart <= PERSISTENCE_FRAMES
+      range.ids.size === 1
+      && range.end - range.start <= PERSISTENCE_FRAMES
       && id !== undefined
       && !seen.has(id)
     ) {
       seen.add(id);
       ids.push(id);
     }
-    inContact = false;
-    rangeIds = new Set<number>();
   }
-
   return ids;
 }
 
@@ -1669,28 +1656,9 @@ function contactEdgeTrimCandidates(
 ): { lineId: number; side: "start" | "end"; fraction: number }[] {
   const candidates: { lineId: number; side: "start" | "end"; fraction: number }[] = [];
   const seen = new Set<string>();
-  let inContact = false;
-  let rangeStart = 0;
-  let rangeIds = new Set<number>();
-
-  for (let frame = 0; frame < det.measurements.airborne.length; frame++) {
-    const contact = !det.measurements.airborne[frame];
-    if (contact) {
-      if (!inContact) rangeStart = frame;
-      inContact = true;
-      for (const id of det.measurements.contactLineIds[frame] ?? []) {
-        rangeIds.add(id);
-      }
-      continue;
-    }
-
-    if (!inContact) continue;
-    if (frame - rangeStart < 5) {
-      inContact = false;
-      rangeIds = new Set<number>();
-      continue;
-    }
-    const sorted = [...rangeIds].sort((a, b) => a - b);
+  for (const range of contactRanges(det)) {
+    if (range.end - range.start < 5) continue;
+    const sorted = [...range.ids].sort((a, b) => a - b);
     for (const trim of CONTACT_EDGE_TRIMS) {
       const lineId = trim.edge === "start" ? sorted[0] : sorted.at(-1);
       if (lineId === undefined) continue;
@@ -1699,8 +1667,6 @@ function contactEdgeTrimCandidates(
       seen.add(key);
       candidates.push({ lineId, side: trim.side, fraction: trim.fraction });
     }
-    inContact = false;
-    rangeIds = new Set<number>();
   }
 
   return candidates;

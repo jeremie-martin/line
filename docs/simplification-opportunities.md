@@ -922,7 +922,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Write one `contactRanges(det): {start,end,ids}[]` scanner and derive entry/exit/brief/edge-trim ids from it. Removes ~120 duplicated lines.
 - **Risk:** low
 - **Generalization note:** Detector-derived, grid-agnostic.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (all 160 seed-0 track_hashes match baseline across every budget; fingerprint unchanged). Extracted one shared `contactRanges(det): {start,end,ids}[]` scanner and derived ALL FOUR functions from it: `contactExitLineIds` (`sorted.at(-1)`), `contactEntryLineIds` (`sorted[0]`), `briefSingleLineContactEntryIds` (size===1 & span≤PERSISTENCE_FRAMES accept, insertion-order `ids[0]`), and `contactEdgeTrimCandidates` (span≥5 guard + CONTACT_EDGE_TRIMS). All four shared the exact same range-detection core (same airborne-mask walk, same `contactLineIds` accumulation, same non-flush of a trailing open range) and differed only in the per-range accept/pick applied at close — so none needed to be left alone. Net −34 lines (39 insertions / 73 deletions).
 
 ### 95. `polishEntrySpeed` is invoked twice within the `polishExcessContact` cascade
 - **Files:** `scripts/v0/core/polish.ts`

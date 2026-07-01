@@ -846,7 +846,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Add `makeCounterBundle(initial)` returning `{counters, reset, snapshot}`; both bundles become 3 lines + field list.
 - **Risk:** low
 - **Generalization note:** Pure boilerplate reduction.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Added generic `makeCounterBundle(initial)` returning `{counters, reset, snapshot}` (reset via `Object.assign(counters, initial)` — covers every field automatically, no desync); rewired both `releaseExitTotals`/`gapfitShortTotals` onto it with `*Totals` aliases to `.counters` so mutation sites and the exported reset/snapshot names (bespoke activity gates retained) are unchanged.
 
 ### 87. `SURVIVAL_MARGIN=16` / `axisSafeCap` survival constants split across two functions
 - **Files:** `scripts/v0/core/candidate.ts`

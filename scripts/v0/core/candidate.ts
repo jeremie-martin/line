@@ -81,7 +81,25 @@ export const POOL_MODE: boolean =
  *  optimizer/handoff.ts into the per-budget compile stats so the `release_exit_*`
  *  names stay greppable in golden output (the fallback-rate monitor). All zero
  *  under LR_RANK_QUALITY=off. */
-const releaseExitTotals = {
+/** Generic module-level counter bundle: a mutable `counters` object plus a
+ *  `reset` that restores every field to its initial value (via a retained copy
+ *  of `initial`, so adding a field can never desync a hand-enumerated reset) and
+ *  a spread-copy `snapshot`. Shared by the candidate-side telemetry bundles below;
+ *  bespoke "any activity" gating stays in each snapshot wrapper. */
+function makeCounterBundle<T extends Record<string, number>>(initial: T): {
+  counters: T;
+  reset: () => void;
+  snapshot: () => T;
+} {
+  const counters = { ...initial };
+  return {
+    counters,
+    reset: () => { Object.assign(counters, initial); },
+    snapshot: () => ({ ...counters }),
+  };
+}
+
+const releaseExitBundle = makeCounterBundle({
   /** Candidates where the exit read replaced the catch+8 release frame. */
   release_exit_used: 0,
   /** Fallback: no geometric exit frame found within the detection horizon. */
@@ -94,15 +112,12 @@ const releaseExitTotals = {
   /** Of the exit-read releases that were USED, how many are airborne (should be
    *  all, by construction — the exit predicate requires airborne). */
   release_exit_airborne: 0,
-};
+});
+const releaseExitTotals = releaseExitBundle.counters;
 export type ReleaseExitStats = typeof releaseExitTotals;
 
 export function resetReleaseExitStats(): void {
-  releaseExitTotals.release_exit_used = 0;
-  releaseExitTotals.release_exit_fallback_no_exit = 0;
-  releaseExitTotals.release_exit_fallback_next_contact = 0;
-  releaseExitTotals.release_exit_fallback_unreadable = 0;
-  releaseExitTotals.release_exit_airborne = 0;
+  releaseExitBundle.reset();
 }
 registerCompileReset(resetReleaseExitStats);
 
@@ -111,7 +126,7 @@ export function snapshotReleaseExitStats(): ReleaseExitStats | null {
     releaseExitTotals.release_exit_fallback_no_exit > 0 ||
     releaseExitTotals.release_exit_fallback_next_contact > 0 ||
     releaseExitTotals.release_exit_fallback_unreadable > 0;
-  return anyActivity ? { ...releaseExitTotals } : null;
+  return anyActivity ? releaseExitBundle.snapshot() : null;
 }
 
 /** Telemetry for the short-horizon gap fit. Counts truncated vs full-horizon
@@ -119,7 +134,7 @@ export function snapshotReleaseExitStats(): ReleaseExitStats | null {
  *  actual stop), in the established candidate-side style. Snapshot/reset are
  *  wired through optimizer/handoff.ts into the per-budget compile stats.
  *  NOTE: compactStats may strip these from archives — measure live. */
-const gapfitShortTotals = {
+const gapfitShortBundle = makeCounterBundle({
   /** Candidate evals that truncated at a clean geometric exit (short horizon). */
   gapfit_truncated: 0,
   /** Candidate evals that fell through to the full horizon (no clean exit in cap,
@@ -128,19 +143,18 @@ const gapfitShortTotals = {
   /** Σ (full horizon − truncated horizon) over truncated evals: detection frames
    *  saved vs riding the engine to the former next-gap horizon. */
   gapfit_frames_saved: 0,
-};
+});
+const gapfitShortTotals = gapfitShortBundle.counters;
 export type GapfitShortStats = typeof gapfitShortTotals;
 
 export function resetGapfitShortStats(): void {
-  gapfitShortTotals.gapfit_truncated = 0;
-  gapfitShortTotals.gapfit_full = 0;
-  gapfitShortTotals.gapfit_frames_saved = 0;
+  gapfitShortBundle.reset();
 }
 registerCompileReset(resetGapfitShortStats);
 
 export function snapshotGapfitShortStats(): GapfitShortStats | null {
   const anyActivity = gapfitShortTotals.gapfit_truncated > 0 || gapfitShortTotals.gapfit_full > 0;
-  return anyActivity ? { ...gapfitShortTotals } : null;
+  return anyActivity ? gapfitShortBundle.snapshot() : null;
 }
 
 /** Weight of the release-speed SETUP term (`releaseSpeedPenalty`). Applied by the

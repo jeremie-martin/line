@@ -330,20 +330,6 @@ export function engineLineFromTrackLine(line: TrackLine): any {
   return converted;
 }
 
-export function engineLineSignature(line: TrackLine): string {
-  return [
-    line.id,
-    line.type,
-    line.x1,
-    line.y1,
-    line.x2,
-    line.y2,
-    line.flipped ? 1 : 0,
-    line.leftExtended ? 1 : 0,
-    line.rightExtended ? 1 : 0,
-  ].join("|");
-}
-
 // deno-lint-ignore no-explicit-any
 export function makeBaseEngine(start: ResolvedStart): any {
   // lr-core engines are immutable; setStart returns a new instance.

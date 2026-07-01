@@ -1099,7 +1099,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete `engineLineSignature` (confirm no dynamic reference first).
 - **Risk:** low
 - **Generalization note:** Dead-export removal.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Thorough whole-repo search confirmed genuinely dead: the only occurrences of `engineLineSignature` are the definition itself, the catalog entry, and two historical profiling mentions in `OPTIMIZATION_LOG.md` (from when the superseded string-keyed cache was live). No call sites, no imports, no quoted-string literal (`"engineLineSignature"`), no dynamic bracket access, no barrel re-export. The live path uses the Symbol-keyed `ENGINE_LINE_CACHE` (field-by-field). Deleted the function (line 333, outside both fingerprinted substrate slices; fingerprint unchanged at `de24a421f751`).
 
 ### 114. `GapFit` carries a stack of optional telemetry/diagnostic-only fields threaded through the hot path
 *(related: polish `cloneFits` #98)*

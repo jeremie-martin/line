@@ -574,7 +574,7 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     const product = axisQualityForTargets(t0, f0.achieved).axis_quality *
       axisQualityForTargets(t1, f1.achieved).axis_quality;
     expect(combined).not.toBeCloseTo(product, 4); // the fold genuinely differs
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(expected(gaps, [f0, f1]), 9);
+    expect(objectiveLeafValue(leaf, gaps, DUR)).toBeCloseTo(expected(gaps, [f0, f1]), 9);
   });
 
   test("survival_quality (PARTIAL leaf) = last committed contact endFrame / totalFrames", () => {
@@ -585,9 +585,9 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     const f0 = fitWith({ speed: 1.0 }); // perfect ⇒ axis_quality 1
     const leaf = leafOf([f0]); // 1 of 2 committed ⇒ gap 1 still ahead ⇒ partial
     // axis 1 × survival(30/DUR) × missing exp(-1) (one remaining contact)
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(1000 * (30 / DUR) * Math.exp(-1), 9);
+    expect(objectiveLeafValue(leaf, gaps, DUR)).toBeCloseTo(1000 * (30 / DUR) * Math.exp(-1), 9);
     // halve the duration ⇒ survival doubles
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR / 2)).toBeCloseTo(1000 * (30 / (DUR / 2)) * Math.exp(-1), 9);
+    expect(objectiveLeafValue(leaf, gaps, DUR / 2)).toBeCloseTo(1000 * (30 / (DUR / 2)) * Math.exp(-1), 9);
   });
 
   test("survival_quality (TERMINAL leaf) reproduces the scorer's reachedEnd = 1", () => {
@@ -597,19 +597,9 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     const f0 = fitWith({ speed: 1.0 }); // perfect ⇒ axis_quality 1
     const leaf = leafOf([f0]);
     // Terminal ⇒ survival 1 (NOT 30/DUR); no remaining contacts ⇒ missing 1 ⇒ value 1000.
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(1000, 9);
+    expect(objectiveLeafValue(leaf, gaps, DUR)).toBeCloseTo(1000, 9);
     // Duration no longer scales a terminal leaf's survival.
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR / 2)).toBeCloseTo(1000, 9);
-  });
-
-  test("missedContacts argument is IGNORED (subsumed by depth-based survival/missing)", () => {
-    const t0: AxisValues = { speed: 1.0 };
-    const gaps = [contactGap(0, t0)];
-    installTargets(gaps);
-    const f0 = fitWith({ speed: 1.0 });
-    const leaf = leafOf([f0]);
-    const base = objectiveLeafValue(leaf, 0, gaps, 0, DUR);
-    expect(objectiveLeafValue(leaf, 0, gaps, 5, DUR)).toBeCloseTo(base, 9);
+    expect(objectiveLeafValue(leaf, gaps, DUR / 2)).toBeCloseTo(1000, 9);
   });
 
   test("missing_quality = exp(-min(20, remaining contact gaps past the leaf))", () => {
@@ -619,9 +609,9 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     const f0 = fitWith({ speed: 1.0 });
     const leaf = leafOf([f0]); // gapIndex 1 ⇒ contacts 1,2 remain ⇒ futureMissing 2
     const axis = axisQualityForTargets(t, f0.achieved).axis_quality;
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR))
+    expect(objectiveLeafValue(leaf, gaps, DUR))
       .toBeCloseTo(1000 * axis * (30 / DUR) * Math.exp(-2), 9);
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(expected(gaps, [f0]), 9);
+    expect(objectiveLeafValue(leaf, gaps, DUR)).toBeCloseTo(expected(gaps, [f0]), 9);
   });
 
   test("non-contact gaps in the prefix are skipped", () => {
@@ -632,7 +622,7 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     const f0 = fitWith({ speed: 1.0 });
     const f2 = fitWith({ speed: 0.8 });
     const leaf = leafOf([f0, null, f2]);
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(expected(gaps, [f0, null, f2]), 9);
+    expect(objectiveLeafValue(leaf, gaps, DUR)).toBeCloseTo(expected(gaps, [f0, null, f2]), 9);
   });
 
   test("a CONTACT gap with a null fit applies the defensive e^-1 factor", () => {
@@ -642,18 +632,7 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     installTargets(gaps);
     const f0 = fitWith({ speed: 1.0 });
     const leaf = leafOf([f0, null]); // gap 1 is a contact with no committed catch ⇒ ×e^-1
-    expect(objectiveLeafValue(leaf, 0, gaps, 0, DUR)).toBeCloseTo(expected(gaps, [f0, null]), 9);
-  });
-
-  test("rootGapIndex is ignored — axis spans the whole prefix either way", () => {
-    const t: AxisValues = { speed: 1.0 };
-    const gaps = [contactGap(0, t), contactGap(1, t)];
-    installTargets(gaps);
-    const f0 = fitWith({ speed: 0.5 });
-    const f1 = fitWith({ speed: 1.0 });
-    const leaf = leafOf([f0, f1]);
-    expect(objectiveLeafValue(leaf, 1, gaps, 0, DUR))
-      .toBeCloseTo(objectiveLeafValue(leaf, 0, gaps, 0, DUR), 9);
+    expect(objectiveLeafValue(leaf, gaps, DUR)).toBeCloseTo(expected(gaps, [f0, null]), 9);
   });
 
   test("flag default is the short leaf: env-unset ≡ LR_FWD_EVAL_LEAF=objective at 100k", async () => {

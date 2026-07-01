@@ -413,7 +413,7 @@ async function main(): Promise<void> {
   for (const c of candidates) {
     const full = fullAchievedForArc(entry, c, gapG, axisMeasureEnd);
     const child = extendNodeCached(entry, c);
-    const shortLeaf = objectiveLeafValue(child, child.gapIndex, gaps, 0, durationFrames);
+    const shortLeaf = objectiveLeafValue(child, gaps, durationFrames);
     const fullLeaf = fullLeafScore(child, setup);
     const shortAxisQ = axisQualityForTargets(trueTargets, c.achieved).axis_quality;
     const fullAxisQ = axisQualityForTargets(trueTargets, full).axis_quality;

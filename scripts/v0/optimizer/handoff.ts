@@ -3719,12 +3719,11 @@ function startForwardScore(
   const saved = getSimFrames();
   try {
     const leafObjective = cfg.leaf === "objective";
-    const rootGapIndex = root.gapIndex;
     return cfg.variant === "avg"
-      ? forwardAvgNextScore(root, gaps, ctx, seed, cfg.branch, leafObjective, rootGapIndex)
+      ? forwardAvgNextScore(root, gaps, ctx, seed, cfg.branch, leafObjective)
       : forwardRolloutScore(
         root, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1,
-        leafObjective, rootGapIndex,
+        leafObjective,
       );
   } finally {
     fwdEvalTotals.start_eval_frames_charged += Math.max(0, getSimFrames() - saved);
@@ -3811,9 +3810,7 @@ function recordFwdLeafDeadCheck(report: DriftReport, search: SearchNode, gaps: G
  *  without re-detection, so they are omitted. No readiness, no hybrid. */
 export function objectiveLeafValue(
   leaf: SearchNode,
-  rootGapIndex: number,
   gaps: Gap[],
-  missedContacts: number,
   durationFrames: number,
 ): number {
   // FAITHFUL reconstruction of the true scorer (score.ts:287) from the rollout's OWN committed
@@ -3828,7 +3825,6 @@ export function objectiveLeafValue(
   // full leaf folds all committed gaps ≤ horizon into ONE RMS, and because RMS is non-linear the
   // prefix does NOT cancel across a pool (it would for a product) — including it is what lets the
   // score ABANDON an over-sped prefix (accumulated error → low quality for every continuation).
-  void rootGapIndex; // kept for signature stability; axis now spans the whole prefix
   const errors: number[] = [];
   let missingFitCount = 0;
   for (let i = 0; i < leaf.gapIndex; i++) {
@@ -3853,8 +3849,7 @@ export function objectiveLeafValue(
   // survival_quality (= deepest committed contact frame / total, score.ts:276) × missing_quality
   // (future contacts past that horizon, capped at the partial window) — the full leaf's terms read
   // straight off the rollout's committed depth. A shallower (dead-end) rollout → lower horizon →
-  // lower survival + more future-missing, subsuming the old rollout `missedContacts` penalty.
-  void missedContacts;
+  // lower survival + more future-missing, subsuming the old rollout missing-step penalty.
   const horizonFrame = processedHorizonFrame(leaf, gaps);
   // The true scorer gives survival_quality = 1 when the track reaches endOfSpec (reachedEnd,
   // score.ts:281). A TERMINAL leaf (all contacts placed) reaches endOfSpec — verified empirically
@@ -3910,37 +3905,33 @@ function advanceToNextContact(search: SearchNode, gaps: Gap[]): SearchNode | nul
  *  `depthLeft` contact gaps, branching `branch` (1 = greedy single rollout). */
 function forwardRolloutScore(
   search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, depthLeft: number, branch: number,
-  leafObjective: boolean, rootGapIndex: number,
+  leafObjective: boolean,
 ): number {
-  // Leaf scorer: full re-detection (default) or zero-frame objective value. `missed` is the
-  // count of rollout-incomplete contacts feeding the missing-step penalty (0 at a clean leaf).
-  const leafValue = (node: SearchNode, missed: number): number =>
+  // Leaf scorer: full re-detection (default) or zero-frame objective value. The missing-contact
+  // penalty is derived by the leaf scorer itself from the node's own committed depth
+  // (objectiveLeafValue's futureMissing / forwardNodeScore's re-detection).
+  const leafValue = (node: SearchNode): number =>
     leafObjective
-      ? objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames)
+      ? objectiveLeafValue(node, gaps, ctx.durationFrames)
       : forwardNodeScore(node, gaps, ctx);
   if (depthLeft <= 0 || isTerminalNode(search, gaps)) {
-    return leafValue(search, 0);
+    return leafValue(search);
   }
   const at = advanceToNextContact(search, gaps);
   if (at === null) {
-    return leafValue(search, 0);
+    return leafValue(search);
   }
   const cands = getCandidatesSorted(at, gaps, ctx, seed, branch);
   if (cands.length === 0) {
     fwdEvalTotals.fwd_rollout_no_candidate++;
-    // Dead-end: the rollout could not place any further contact. Mirror the full leaf scorer's
-    // missing-contact penalty (asPartialReport marks up to PARTIAL_FUTURE_CONTACT_WINDOW future
-    // contacts "missing" → exp(−20) ≈ 2e−9). A depthLeft-bounded count (≤ rollout depth ~2)
-    // under-penalized by 8 orders of magnitude, letting doomed chains outrank healthy ones.
-    const missed = Math.min(
-      PARTIAL_FUTURE_CONTACT_WINDOW, remainingContactGaps(gaps, at.gapIndex),
-    );
-    return leafValue(search, missed);
+    // Dead-end: the rollout could not place any further contact; the leaf scorer applies the full
+    // missing-contact penalty from the node's own committed depth.
+    return leafValue(search);
   }
   let best = -Infinity;
   for (const c of cands) {
     const s = forwardRolloutScore(
-      extendNodeCached(at, c), gaps, ctx, seed, depthLeft - 1, branch, leafObjective, rootGapIndex,
+      extendNodeCached(at, c), gaps, ctx, seed, depthLeft - 1, branch, leafObjective,
     );
     if (s > best) best = s;
   }
@@ -3950,28 +3941,25 @@ function forwardRolloutScore(
 /** avg: mean true partial-track score over the top-`m` next-contact alternatives, 1 deep. */
 function forwardAvgNextScore(
   search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, m: number,
-  leafObjective: boolean, rootGapIndex: number,
+  leafObjective: boolean,
 ): number {
-  const leafValue = (node: SearchNode, missed: number): number =>
+  const leafValue = (node: SearchNode): number =>
     leafObjective
-      ? objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames)
+      ? objectiveLeafValue(node, gaps, ctx.durationFrames)
       : forwardNodeScore(node, gaps, ctx);
   const at = advanceToNextContact(search, gaps);
   if (at === null) {
-    return leafValue(search, 0);
+    return leafValue(search);
   }
   const cands = getCandidatesSorted(at, gaps, ctx, seed, m);
   if (cands.length === 0) {
     fwdEvalTotals.fwd_rollout_no_candidate++;
-    // Dead-end: mirror the full leaf scorer's missing-contact penalty (up to
-    // PARTIAL_FUTURE_CONTACT_WINDOW future contacts missing → exp(−20)), not a flat missed=1.
-    const missed = Math.min(
-      PARTIAL_FUTURE_CONTACT_WINDOW, remainingContactGaps(gaps, at.gapIndex),
-    );
-    return leafValue(search, missed);
+    // Dead-end: the leaf scorer applies the full missing-contact penalty from the node's own
+    // committed depth.
+    return leafValue(search);
   }
   let sum = 0;
-  for (const c of cands) sum += leafValue(extendNodeCached(at, c), 0);
+  for (const c of cands) sum += leafValue(extendNodeCached(at, c));
   return sum / cands.length;
 }
 
@@ -3984,9 +3972,6 @@ function forwardArcValue(
   const saved = getSimFrames();
   // try/finally so a throw mid-rollout (e.g. a future frame limit) can't leak frames.
   const charge = cfg.charge;
-  // rootGapIndex (the candidate's own gap) is retained for the leaf signature; the objective leaf's
-  // axis RMS now spans the WHOLE committed prefix (see objectiveLeafValue), so nothing is excluded.
-  const rootGapIndex = child.gapIndex - 1;
   // Pure objective leaf: NO hybrid-impact fallback. The short leaf is a faithful scorer
   // reconstruction in its own right (axis × survival × missing); it never defers to the full leaf.
   const leafObjective = cfg.leaf === "objective";
@@ -3995,10 +3980,10 @@ function forwardArcValue(
   setRolloutContext(true);
   try {
     return cfg.variant === "avg"
-      ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch, leafObjective, rootGapIndex)
+      ? forwardAvgNextScore(child, gaps, ctx, seed, cfg.branch, leafObjective)
       : forwardRolloutScore(
         child, gaps, ctx, seed, cfg.depth, cfg.variant === "best" ? cfg.branch : 1,
-        leafObjective, rootGapIndex,
+        leafObjective,
       );
   } finally {
     setRolloutContext(false);
@@ -4489,7 +4474,6 @@ function startSupportDelayRobustScore(
       1,
       1,
       false, // start-selection robust score stays full-leaf
-      0,
     );
   }
   return sum / candidates.length;

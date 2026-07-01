@@ -286,7 +286,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Drop `rootGapIndex`/`missedContacts` from signature and callers; if `missingFitCount` is provably always 0, remove the branch (or convert to an assert).
 - **Risk:** low
 - **Generalization note:** Internal-only signature; no spec/budget assumption.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Dropped the two `void`-ed params (`rootGapIndex`, `missedContacts`) from `objectiveLeafValue` and propagated the removal through the whole dead threading chain (`forwardRolloutScore`/`forwardAvgNextScore` `rootGapIndex`+`missed` args, `forwardArcValue`/`startForwardScore`/`startSupportDelayRobustScore` call sites, plus the eval_arc_apples caller and the handoff unit tests). KEPT the `missingFitCount` branch: it is structurally 0 on the production forward-eval path (contact gaps only ever commit real candidate fits) but the exported function has a dedicated unit test that deliberately feeds a null fit at a contact gap and asserts the `×e^-1` factor — removing/asserting it would break that test, so the defensive branch stays.
 
 ### 27. `handoffStatePenalty` uses unexplained physical-magic thresholds (8 px/f, 70°)
 - **Files:** `scripts/v0/optimizer/handoff.ts`

@@ -39,11 +39,12 @@ export type BudgetWeight = { budget: number; weight: number };
 /** One-sided probability gate for the accept/reject verdict.
  *  Accept iff the paired bootstrap puts < α mass at or below 0 (reliably an improvement);
  *  reject iff < α mass at or above 0 (reliably a regression); else inconclusive.
- *  Raised 0.10 -> 0.50 for the simplification campaign (docs/simplification-opportunities.md):
- *  accept whenever the point estimate leans non-negative, without requiring high statistical
- *  confidence, in exchange for genuine code simplification. Still rejects changes confidently
- *  shown to regress (symmetric gate on the other side). */
-export const DECISION_ALPHA = 0.50;
+ *  Relaxed from the original 0.10 for the simplification campaign
+ *  (docs/simplification-opportunities.md), in exchange for genuine code simplification;
+ *  dialed back from 0.50 to 0.20 -- still looser than the original 0.10, but requiring
+ *  more confidence than the initial setting before formally labeling a change ACCEPT.
+ *  Still rejects changes confidently shown to regress (symmetric gate on the other side). */
+export const DECISION_ALPHA = 0.20;
 
 /** Per-config score cube: spec -> seed -> (budget -> score). */
 export type ScoreCube = Map<string, Map<number, Map<number, number>>>;

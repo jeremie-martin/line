@@ -1045,7 +1045,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Route `measureAxisOverRange` through `AXIS_MEASURE[axis]` with a `GapMeasureCtx` carrying the desired range; collapse the branch to a registry lookup.
 - **Risk:** low
 - **Generalization note:** Behavior-identical if it delegates to the same reductions.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751), measure.ts untouched. `measureAxisOverRange` now builds a `GapMeasureCtx` (gap.startFrame=f0, rangeEndFrame=f1) and returns `AXIS_MEASURE[axis](ctx) ?? null`, dropping the hand-inlined `if (axis==='air') … else speed` branch (the span reductions clamp the end to `measurementLastFrame` identically). Verified via 1-seed/40-spec/4-budget track_hash diff (160/160 match) vs `attempt-aim-highk-gated-j32-a01`. Also removed the now-dead `speedPxToAuthored` import from substrate.ts.
 
 ### 108. Amplitude and elevation vy-integration re-implemented four times
 - **Files:** `scripts/v0/core/measure.ts`

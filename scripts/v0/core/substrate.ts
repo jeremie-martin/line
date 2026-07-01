@@ -18,9 +18,9 @@ import {
   type ContactReport, type GapAxisReport,
   AXES, TARGET_AXES, AXIS_VALUE_MAX, FPS, IMPACT, IMPACT_WINDOW, START_DEFAULTS, PREROLL,
   secToFrame,
-  authoredSpeedToPx, speedPxToAuthored, elevationCeiling, impactCeiling, normImpact, wrapPi,
+  authoredSpeedToPx, elevationCeiling, impactCeiling, normImpact, wrapPi,
 } from "../types.ts";
-import { measureGapAxes } from "./measure.ts";
+import { measureGapAxes, AXIS_MEASURE, type GapMeasureCtx } from "./measure.ts";
 
 export type ResolvedStart = {
   position: { x: number; y: number };
@@ -729,16 +729,16 @@ export function measureAxisOverRange(
   det: Detection, f0: number, f1: number,
   axis: FrameSpanAxisName,
 ): number | null {
-  const b = Math.min(f1, measurementLastFrame(det));
-  if (axis === "air") {
-    let air = 0, total = 0;
-    for (let f = f0; f <= b; f++) {
-      if (airborneAt(det, f)) air++;
-      total++;
-    }
-    return total > 0 ? air / total : null;
-  }
-  // axis === "speed"
-  const speedPx = meanSpeedPxOverRange(det, f0, b);
-  return speedPx !== null ? speedPxToAuthored(speedPx) : null;
+  // Route through the single AXIS_MEASURE registry (measure.ts) rather than
+  // hand-inlining a third copy of the air/speed reductions. The span reductions
+  // read only `gap.startFrame` and `rangeEndFrame` and clamp the end to
+  // `measurementLastFrame` identically, so this is byte-identical to the former
+  // inline `if (axis === "air") … else speed` branch.
+  const ctx: GapMeasureCtx = {
+    det,
+    gap: { startFrame: f0 } as Gap,
+    gapLines: [],
+    rangeEndFrame: f1,
+  };
+  return AXIS_MEASURE[axis](ctx) ?? null;
 }

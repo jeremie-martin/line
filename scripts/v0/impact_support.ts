@@ -18,11 +18,85 @@
  */
 import { LineRiderEngine, createLineFromJson } from "../lib/_lr_engine.ts";
 import { extractRawTrajectory, detect, type Detection } from "../lib/detector.ts";
-import { normalImpactPxAtLanding, redirImpactPxAtLanding, redirArcPxAtLanding, contactLineIdsAt, velocityAt } from "./core/substrate.ts";
+import { redirArcPxAtLanding, contactLineIdsAt, velocityAt, measurementLastFrame } from "./core/substrate.ts";
 import { CALIB, IMPACT_WINDOW as IMPACT_WINDOW_CANON, wrapPi, type TrackLine } from "./types.ts";
 
 const hyp = Math.hypot;
 export { wrapPi }; // canonical home is types.ts; re-exported so SS.wrapPi consumers still resolve
+
+// ── legacy impact metrics (moved from core/substrate.ts, item #105) ──────────
+//   Both are documented LEGACY / not-the-scored-metric; their sole callers are the
+//   study delegates below (pointImpactPx / redirPx). Relocated out of the
+//   fingerprinted substrate slice — byte-identical, no scorer dependency. The one
+//   SCORED impact metric (redirArcPxAtLanding) stays in substrate.ts.
+/**
+ * LEGACY one-frame "normal impact speed" (px/frame, UNNORMALIZED): the magnitude of
+ * the rider's PRE-impact velocity component perpendicular to the catch surface it
+ * fired against, ÷ `CALIB.IMPACT_CAP`. This was the OLD impact metric; it is NO
+ * LONGER the scored definition — landing intensity is now the velocity REDIRECTION
+ * (`redirImpactPxAtLanding`, used by `measureImpact`/`buildDriftReport`/`inspect`).
+ * Kept only as the comparison "point" baseline in the study harnesses
+ * (`impact_support.ts pointImpactPx`) and the study overlay's reference lane.
+ *
+ * `lineFor(id)` resolves a fired line id to its endpoints — the per-gap scored
+ * reduction passes a resolver that returns ONLY this gap's owned lines (so a
+ * stray foreign line firing at the same frame is ignored); the full-track
+ * read-outs pass a resolver over all track lines. The surface tangent is the
+ * average of the fired lines' unit tangents (robust to a multi-segment catch).
+ * Returns `undefined` when there's no usable fired-line geometry or no velocity.
+ */
+export function normalImpactPxAtLanding(
+  det: Detection,
+  landingFrame: number,
+  lineFor: (id: number) => { x1: number; y1: number; x2: number; y2: number } | undefined,
+): number | undefined {
+  let tx = 0, ty = 0;
+  for (const id of contactLineIdsAt(det, landingFrame)) {
+    const ln = lineFor(id);
+    if (ln === undefined) continue;
+    const dx = ln.x2 - ln.x1, dy = ln.y2 - ln.y1, len = Math.hypot(dx, dy);
+    if (len > 1e-9) { tx += dx / len; ty += dy / len; }
+  }
+  const tl = Math.hypot(tx, ty);
+  if (tl <= 1e-9) return undefined;
+  tx /= tl; ty /= tl;
+  // Pre-impact velocity (frame before the landing); fall back to the landing frame
+  // only if that's out of range. lr-core's collision smears the velocity *change*
+  // over several frames, so we read the incoming velocity, not a Δv.
+  const vIn = velocityAt(det, landingFrame - 1) ?? velocityAt(det, landingFrame);
+  if (vIn === undefined) return undefined;
+  // |v ⊥ t̂| = |t̂.x·v.y − t̂.y·v.x| — the speed the surface kills.
+  return Math.abs(tx * vIn.y - ty * vIn.x);
+}
+
+/**
+ * [LEGACY / ANALYSIS — not the scored metric] `redir` (px/frame, UNNORMALIZED): the peak
+ * magnitude of the rider's CoM velocity component PERPENDICULAR to its incoming heading
+ * over the `window`-frame episode (= peak v·sin(turn)). Superseded as the SCORED impact by
+ * `redirArcPxAtLanding` below (2026-06-14); kept for the dashboard's REDIR comparison lane
+ * and study harnesses' `redirPx`. CoM-velocity-only (immune to sled rotation / limb whip).
+ */
+export function redirImpactPxAtLanding(
+  det: Detection,
+  landingFrame: number,
+  window: number = IMPACT_WINDOW,
+): number | undefined {
+  const v0 = velocityAt(det, landingFrame - 1) ?? velocityAt(det, landingFrame);
+  if (v0 === undefined) return undefined;
+  const speed = Math.hypot(v0.x, v0.y);
+  if (speed <= 1e-9) return 0;
+  const hx = v0.x / speed, hy = v0.y / speed;
+  const end = Math.min(measurementLastFrame(det), landingFrame + Math.max(0, window));
+  let peak = 0;
+  for (let f = landingFrame; f <= end; f++) {
+    const v = velocityAt(det, f);
+    if (v === undefined) continue;
+    // |v ⊥ ĥ| = |ĥ.x·v.y − ĥ.y·v.x| — lateral speed acquired off the incoming heading.
+    const perp = Math.abs(hx * v.y - hy * v.x);
+    if (perp > peak) peak = perp;
+  }
+  return peak;
+}
 
 // ── rider topology — single source (engine-rs/src/lib.rs ITER + BASE) ────────
 export const SLED_POINTS = ["PEG", "TAIL", "NOSE", "STRING"] as const;

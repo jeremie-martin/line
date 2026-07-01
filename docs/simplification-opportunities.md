@@ -1027,7 +1027,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Move both into `impact_support.ts` ("single source for study metrics"), leaving only `redirArcPxAtLanding` in substrate.ts.
 - **Risk:** low
 - **Generalization note:** Pure relocation of analysis-only code (verify fingerprint slice unchanged).
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751). Moved `normalImpactPxAtLanding` + `redirImpactPxAtLanding` (verbatim bodies + doc comments) out of `core/substrate.ts` into their sole caller `impact_support.ts` (the study-metrics single source); added `measurementLastFrame` to its substrate import. Confirmed no other importer — `analysis/simulate.ts` only mentions `redirImpactPxAtLanding` in prose and imports the scored `redirArcPxAtLanding`; `measure.ts` (production scorer) uses only `redirArcPxAtLanding`, which stays in substrate. All 160 seed-0 golden `track_hash`es match baseline attempt-aim-highk-gated-j32-a01, 97 focused tests pass.
 
 ### 106. `measureFitGrain` duplicates `measureGrain`
 - **Files:** `scripts/v0/core/substrate.ts`, `scripts/v0/core/measure.ts`

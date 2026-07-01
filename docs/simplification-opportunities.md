@@ -295,7 +295,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete it (fwd-eval already scores state via the true leaf) or re-derive 8/70 from the readiness catch model; at minimum name the constants.
 - **Risk:** low
 - **Generalization note:** Only active below the 75k gate; absolute physical numbers, not spec-relative.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, named/documented the magic constants only; did NOT delete the function or re-derive the thresholds — it's the sole local-ranker state-quality term for genuine sub-75k compiles (fwdEvalMin default), a real code path the canonical suite (min budget 125k) cannot verify at all, so removing it would be an unverified behavioral change counter to the campaign's generalize-to-more-budgets goal. Introduced `HANDOFF_STATE_VERTICAL_EXCESS_PX_PER_FRAME=8`, `HANDOFF_STATE_ANGLE_EXCESS_DEG=70`, `HANDOFF_STATE_ANGLE_SCALE_DEG=10`, `HANDOFF_STATE_STALL_WEIGHT_MULTIPLIER=8` with a doc comment; verified byte-identical via 1-seed/40-spec/4-budget track_hash diff (160/160 match).
 
 ### 28. `previewFutureContacts` is elaborate accumulator machinery over a forced single iteration (K=1, HORIZON=1)
 - **Files:** `scripts/v0/optimizer/handoff.ts`

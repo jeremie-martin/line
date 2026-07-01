@@ -460,6 +460,22 @@ const SURVIVOR_SCARCITY_PENALTY = 4;
  *  cost as a small quality signal for frame-span/smooth axes. */
 const PREVIEW_COST_WEIGHT = 0.25;
 const HANDOFF_STATE_WEIGHT = 0.08;
+/** Thresholds for `handoffStatePenalty`, the sub-75k local-ranker state-quality
+ *  term (the forward-eval path bypasses it — it scores state via the true leaf).
+ *  These grade the rider's velocity at the handoff frame: a fast, near-horizontal
+ *  exit is a clean hand-off, so no penalty accrues until the state exceeds these
+ *  bands. The numbers are absolute physical magnitudes tuned to current cadence,
+ *  not spec-relative. */
+// Vertical speed (px/frame) tolerated before excess |v.y| is penalized.
+const HANDOFF_STATE_VERTICAL_EXCESS_PX_PER_FRAME = 8;
+// Exit angle (degrees off horizontal) tolerated before excess is penalized.
+const HANDOFF_STATE_ANGLE_EXCESS_DEG = 70;
+// Degrees of angle-excess per unit penalty (rescales angle into the same
+// magnitude range as the vertical-excess term before weighting).
+const HANDOFF_STATE_ANGLE_SCALE_DEG = 10;
+// A stalled rider (essentially zero speed) can't hand off at all: charge a flat
+// worst-case penalty of this many WEIGHT units.
+const HANDOFF_STATE_STALL_WEIGHT_MULTIPLIER = 8;
 /** Selection-only asymmetric overshoot pressure in the handoff feasibility
  *  ranking. Axes omitted from this table use only the symmetric candidate cost;
  *  adding a future axis should be an explicit policy choice, not an accidental
@@ -4202,10 +4218,16 @@ function handoffStatePenalty(
   const rider = getRiderMetered(engine, gap.endFrame);
   const v = rider.velocity ?? { x: 0, y: 0 };
   const speed = Math.hypot(v.x, v.y);
-  if (speed <= 1e-6) return HANDOFF_STATE_WEIGHT * 8;
+  if (speed <= 1e-6) {
+    return HANDOFF_STATE_WEIGHT * HANDOFF_STATE_STALL_WEIGHT_MULTIPLIER;
+  }
   const angleDeg = Math.abs((Math.atan2(v.y, v.x) * 180) / Math.PI);
-  const verticalExcess = Math.max(0, Math.abs(v.y) - 8);
-  const angleExcess = Math.max(0, angleDeg - 70) / 10;
+  const verticalExcess = Math.max(
+    0,
+    Math.abs(v.y) - HANDOFF_STATE_VERTICAL_EXCESS_PX_PER_FRAME,
+  );
+  const angleExcess = Math.max(0, angleDeg - HANDOFF_STATE_ANGLE_EXCESS_DEG) /
+    HANDOFF_STATE_ANGLE_SCALE_DEG;
   return HANDOFF_STATE_WEIGHT * (verticalExcess + angleExcess);
 }
 

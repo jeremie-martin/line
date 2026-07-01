@@ -268,7 +268,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete the function.
 - **Risk:** low
 - **Generalization note:** Dead; removal cannot affect any score.
-- **Status:** Not Started
+- **Status:** Abandoned — catalog was wrong: `tests/objective_quality.test.ts` imports `forwardTerminalReadiness` (line 22) and exercises it in the `describe("diagnostic frontier readiness")` block (assertions at lines 173, 192), so the "no importer" premise is false and deleting it would break tests.
 
 ### 25. Shadow-leaf agreement/factor telemetry is a large measure-only subsystem gated off by default
 - **Files:** `scripts/v0/optimizer/handoff.ts`

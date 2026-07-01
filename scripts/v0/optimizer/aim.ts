@@ -558,18 +558,16 @@ export type AimStats = {
   enum_current_axes_targeted: number;
   enum_current_axes_modeled: number;
   enum_current_term_missing: number;
-  /** Quality-objective pool ranking (LR_RANK_QUALITY; absent when off). NOTE: the
-   *  `rank_readiness_*` field names are HISTORICAL (the flag was once called
-   *  LR_RANK_READINESS) — kept unchanged so existing lab archives stay queryable.
+  /** Quality-objective pool ranking (LR_RANK_QUALITY; absent when off).
    *  Pool builds where the cost-rank and quality-rank top-3 sets differ, and
    *  where the top-1 differs; candidates with a defined objective vs total scored
    *  (fallback rate = (scored − defined) / scored). All arrivals are served by
    *  ballistic prediction (rank_quality_pred_used). */
-  rank_readiness_pools: number;
-  rank_readiness_top3_disagree: number;
-  rank_readiness_top1_disagree: number;
-  rank_readiness_candidates_scored: number;
-  rank_readiness_objective_defined: number;
+  rank_quality_pools: number;
+  rank_quality_top3_disagree: number;
+  rank_quality_top1_disagree: number;
+  rank_quality_candidates_scored: number;
+  rank_quality_objective_defined: number;
   /** Prediction bails on the PREDICT path (predict couldn't produce a state →
    *  null objective → cost order). */
   rank_quality_pred_bail: number;
@@ -603,10 +601,9 @@ const aimTotals = {
   enum_current_axes_targeted: 0, enum_current_axes_modeled: 0,
   enum_current_term_missing: 0,
   // Quality-objective pool ranking (recordRankQualityPool / candidateQualityObjective).
-  // Field names are historical (was LR_RANK_READINESS); kept for lab archives.
-  rank_readiness_pools: 0, rank_readiness_top3_disagree: 0,
-  rank_readiness_top1_disagree: 0,
-  rank_readiness_candidates_scored: 0, rank_readiness_objective_defined: 0,
+  rank_quality_pools: 0, rank_quality_top3_disagree: 0,
+  rank_quality_top1_disagree: 0,
+  rank_quality_candidates_scored: 0, rank_quality_objective_defined: 0,
   // Predicted-arrival usage.
   rank_quality_pred_bail: 0, rank_quality_pred_used: 0,
 };
@@ -750,11 +747,11 @@ export function snapshotAimStats(): AimStats | null {
     enum_current_axes_targeted: aimTotals.enum_current_axes_targeted,
     enum_current_axes_modeled: aimTotals.enum_current_axes_modeled,
     enum_current_term_missing: aimTotals.enum_current_term_missing,
-    rank_readiness_pools: aimTotals.rank_readiness_pools,
-    rank_readiness_top3_disagree: aimTotals.rank_readiness_top3_disagree,
-    rank_readiness_top1_disagree: aimTotals.rank_readiness_top1_disagree,
-    rank_readiness_candidates_scored: aimTotals.rank_readiness_candidates_scored,
-    rank_readiness_objective_defined: aimTotals.rank_readiness_objective_defined,
+    rank_quality_pools: aimTotals.rank_quality_pools,
+    rank_quality_top3_disagree: aimTotals.rank_quality_top3_disagree,
+    rank_quality_top1_disagree: aimTotals.rank_quality_top1_disagree,
+    rank_quality_candidates_scored: aimTotals.rank_quality_candidates_scored,
+    rank_quality_objective_defined: aimTotals.rank_quality_objective_defined,
     rank_quality_pred_bail: aimTotals.rank_quality_pred_bail,
     rank_quality_pred_used: aimTotals.rank_quality_pred_used,
   };
@@ -1167,17 +1164,17 @@ export function sortCandidatesByQuality(
  *  prediction-impossible candidates memo null and count as undefined). Pure
  *  reads — cannot perturb the ordering. */
 export function recordRankQualityPool(costSorted: Candidate[], ranked: Candidate[]): void {
-  aimTotals.rank_readiness_pools++;
-  aimTotals.rank_readiness_candidates_scored += costSorted.length;
+  aimTotals.rank_quality_pools++;
+  aimTotals.rank_quality_candidates_scored += costSorted.length;
   for (const cand of costSorted) {
-    if (typeof objectiveCache.get(cand) === "number") aimTotals.rank_readiness_objective_defined++;
+    if (typeof objectiveCache.get(cand) === "number") aimTotals.rank_quality_objective_defined++;
   }
-  if (costSorted[0] !== ranked[0]) aimTotals.rank_readiness_top1_disagree++;
+  if (costSorted[0] !== ranked[0]) aimTotals.rank_quality_top1_disagree++;
   const k = Math.min(3, costSorted.length);
   const costTop = new Set(costSorted.slice(0, k));
   let same = true;
   for (let i = 0; i < k; i++) {
     if (!costTop.has(ranked[i])) { same = false; break; }
   }
-  if (!same) aimTotals.rank_readiness_top3_disagree++;
+  if (!same) aimTotals.rank_quality_top3_disagree++;
 }

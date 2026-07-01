@@ -463,7 +463,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Rename to `rank_quality_*` with a one-line alias/view in the lab archive reader rather than freezing misleading names in hot code.
 - **Risk:** low
 - **Generalization note:** Naming debt only.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical no-op (160/160 seed-0 track_hashes unchanged vs `attempt-aim-highk-gated-j32-a01`; all 80 focused tests pass). Renamed the 5 surviving `rank_readiness_*` fields (`_pools`, `_top3_disagree`, `_top1_disagree`, `_candidates_scored`, `_objective_defined`) to `rank_quality_*` across `AimStats`/`aimTotals`/`snapshotAimStats`/`recordRankQualityPool` in `aim.ts`, so the whole `rank_quality_*` block (incl. the pre-existing `rank_quality_pred_*`) is now uniformly named after the `LR_RANK_QUALITY` flag; dropped the two now-stale "historical name / kept for lab archives" comments. No downstream consumer to update: `rank_readiness_*` appeared nowhere else in `scripts/`/`tests/`, the `types.ts` `aim?` schema never declared these fields (block ends at `enum_current_term_missing`), and the sole `compile_stats_json` reader (`analysis/reports.ts reportCompileStats`) is a generic top-level `json_each` catalog that never descends into the nested `aim` object — so the aliasing suggestion is moot (old archives keep the old key under `aim.rank_readiness_*`, new ones emit `aim.rank_quality_*`, neither is a named lab column).
 
 ### 46. `LR_AIM_PROBE_MODE='full'` and `LR_AIM_MODEL_SPACE='direct'` are permanently-off comparison arms in the hot path
 *(cross-ref reachability entries #78, #79)*

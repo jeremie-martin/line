@@ -606,6 +606,87 @@ export function checkpointAt(curve: CompileCheckpoint[], budget: number): Compil
   return found;
 }
 
+/**
+ * Resolve authored per-beat `impact` into gap targets and set the impact-curve
+ * pressure globals. Called once from `compileHandoffInternal`, AFTER all
+ * `sampleGapTargets` RNG draws, so it consumes NO rng and the candidate geometry
+ * stays byte-identical. Mutates `gaps` (`targets.impact`, `nextImpact`) and
+ * `gapAxisTargets[*].impact` in place. Owning the feasibility capping, the
+ * arrival lookahead, and the three curve-pressure setters in one place keeps the
+ * globals from desyncing.
+ */
+function resolveImpactTargets(
+  spec: Spec,
+  gaps: Gap[],
+  gapAxisTargets: AxisValues[],
+  allContactFrames: number[],
+): void {
+  // LR_IMPACT_OFF=1: drop all authored impact targets. Because every impact effect
+  // (drift-report axis → scorer, candidate axisCost, geometry steers) is gated on
+  // gap.targets.impact being set, leaving it unresolved disables impact end-to-end —
+  // scoring, optimization, AND generation — from this one site, with ZERO change to the
+  // evaluator ruler (so the golden headline becomes the pure non-impact ceiling and the
+  // fingerprint is untouched). Diagnostic for A/B'ing the other axes (e.g. under a new
+  // landing definition); default OFF ⇒ byte-identical.
+  const impactOff = readEnv("LR_IMPACT_OFF") === "1";
+  setImpactTemplateSpecMeanImpact(
+    impactOff ? 0 : meanAuthoredImpactAfterFirstFeasibleContact(spec.contacts),
+  );
+  // validateSpec already guaranteed any authored impact is in [0,1], so no re-clamp
+  // here. Sub-frame-spaced beats that round to the same frame collide (last write
+  // wins) — degenerate authoring; the gap timeline coalesces them too.
+  const impactByFrame = new Map<number, number>();
+  if (!impactOff) {
+    for (const c of spec.contacts) {
+      // The convention rescale is now BAKED at authoring (golden specs use withImpactLegacy /
+      // migrateImpact, beats.ts) — authored impact already sits on the new felt scale here, no
+      // runtime remap. New specs author natively on the new scale.
+      if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);
+    }
+  }
+  if (impactByFrame.size > 0) {
+    for (const gap of gaps) {
+      if (!gap.endsWithContact) continue;
+      const impact = impactByFrame.get(gap.endFrame);
+      if (impact === undefined) continue;
+      // Scored target = min(authored, derived feasibility bound). The bound
+      // (fingerprinted, substrate.ts — ballistics around the beat) caps impact
+      // by what physics permits; buildDriftReport applies the same cap, so
+      // search and scorer chase one coherent target.
+      const nextContact = allContactFrames.find((f) => f > gap.endFrame);
+      const nextGapSeconds = nextContact === undefined ? 1.5 : (nextContact - gap.endFrame) / FPS;
+      const prevGapSeconds = (gap.endFrame - gap.startFrame) / FPS;
+      const t = gapAxisTargets[gap.index];
+      const bounded = Math.min(
+        impact,
+        impactFeasibilityBound(t.speed, prevGapSeconds, nextGapSeconds),
+      );
+      gap.targets.impact = bounded;
+      gapAxisTargets[gap.index].impact = bounded;
+    }
+    // Second pass: give each gap the BOUNDED impact target of the beat its
+    // launch flies toward (the immediately following contact gap), so
+    // generation can plan the ARRIVAL — launch steeper into a hard beat.
+    // Pure lookahead copy: no RNG, no target changes.
+    for (let i = 0; i + 1 < gaps.length; i++) {
+      if (!gaps[i].endsWithContact) continue;
+      const next = gaps[i + 1];
+      if (next.endsWithContact && next.targets.impact !== undefined) {
+        gaps[i].nextImpact = next.targets.impact;
+      }
+    }
+  }
+  setImpactCurveElevationRoomPressure(
+    impactOff ? 0 : impactCurveElevationRoomPressure(gaps, gapAxisTargets),
+  );
+  setImpactCurveHighSpeedReliefPressure(
+    impactOff ? 0 : impactCurveHighSpeedReliefProfilePressure(gaps, gapAxisTargets),
+  );
+  setImpactTemplateHoldProfilePressure(
+    impactOff ? 0 : impactTemplateHoldProfilePressure(gaps, gapAxisTargets),
+  );
+}
+
 function compileHandoffInternal(
   userSpec: Spec,
   seed: number,
@@ -674,73 +755,10 @@ function compileHandoffInternal(
     // impact is authored on the Contact (not a curve), so it bypasses effectiveAxes/
     // sampleGapTargets entirely and is written here, AFTER all sampleGapTargets RNG
     // draws — so it consumes NO rng and the candidate GEOMETRY stays byte-identical.
-    // It is now included in local candidate cost as a measured axis, while
-    // buildDriftReport reads gapAxisTargets[idx] so the true scorer and repair
-    // phase see the same per-beat target.
-    // validateSpec (above) already guaranteed any authored impact is in [0,1], so no
-    // re-clamp here. Sub-frame-spaced beats that round to the same frame collide
-    // (last write wins) — degenerate authoring; the gap timeline coalesces them too.
-    // LR_IMPACT_OFF=1: drop all authored impact targets. Because every impact effect
-    // (drift-report axis → scorer, candidate axisCost, geometry steers) is gated on
-    // gap.targets.impact being set, leaving it unresolved disables impact end-to-end —
-    // scoring, optimization, AND generation — from this one site, with ZERO change to the
-    // evaluator ruler (so the golden headline becomes the pure non-impact ceiling and the
-    // fingerprint is untouched). Diagnostic for A/B'ing the other axes (e.g. under a new
-    // landing definition); default OFF ⇒ byte-identical.
-    const impactOff = readEnv("LR_IMPACT_OFF") === "1";
-    setImpactTemplateSpecMeanImpact(
-      impactOff ? 0 : meanAuthoredImpactAfterFirstFeasibleContact(spec.contacts),
-    );
-    const impactByFrame = new Map<number, number>();
-    if (!impactOff) {
-      for (const c of spec.contacts) {
-        // The convention rescale is now BAKED at authoring (golden specs use withImpactLegacy /
-        // migrateImpact, beats.ts) — authored impact already sits on the new felt scale here, no
-        // runtime remap. New specs author natively on the new scale.
-        if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);
-      }
-    }
-    if (impactByFrame.size > 0) {
-      for (const gap of gaps) {
-        if (!gap.endsWithContact) continue;
-        const impact = impactByFrame.get(gap.endFrame);
-        if (impact === undefined) continue;
-        // Scored target = min(authored, derived feasibility bound). The bound
-        // (fingerprinted, substrate.ts — ballistics around the beat) caps impact
-        // by what physics permits; buildDriftReport applies the same cap, so
-        // search and scorer chase one coherent target.
-        const nextContact = allContactFrames.find((f) => f > gap.endFrame);
-        const nextGapSeconds = nextContact === undefined ? 1.5 : (nextContact - gap.endFrame) / FPS;
-        const prevGapSeconds = (gap.endFrame - gap.startFrame) / FPS;
-        const t = gapAxisTargets[gap.index];
-        const bounded = Math.min(
-          impact,
-          impactFeasibilityBound(t.speed, prevGapSeconds, nextGapSeconds),
-        );
-        gap.targets.impact = bounded;
-        gapAxisTargets[gap.index].impact = bounded;
-      }
-      // Second pass: give each gap the BOUNDED impact target of the beat its
-      // launch flies toward (the immediately following contact gap), so
-      // generation can plan the ARRIVAL — launch steeper into a hard beat.
-      // Pure lookahead copy: no RNG, no target changes.
-      for (let i = 0; i + 1 < gaps.length; i++) {
-        if (!gaps[i].endsWithContact) continue;
-        const next = gaps[i + 1];
-        if (next.endsWithContact && next.targets.impact !== undefined) {
-          gaps[i].nextImpact = next.targets.impact;
-        }
-      }
-    }
-    setImpactCurveElevationRoomPressure(
-      impactOff ? 0 : impactCurveElevationRoomPressure(gaps, gapAxisTargets),
-    );
-    setImpactCurveHighSpeedReliefPressure(
-      impactOff ? 0 : impactCurveHighSpeedReliefProfilePressure(gaps, gapAxisTargets),
-    );
-    setImpactTemplateHoldProfilePressure(
-      impactOff ? 0 : impactTemplateHoldProfilePressure(gaps, gapAxisTargets),
-    );
+    // Extracted into one helper (feasibility capping + arrival lookahead + the three
+    // impact-curve-pressure globals) so those setters live at a single call site and
+    // cannot desync.
+    resolveImpactTargets(spec, gaps, gapAxisTargets, allContactFrames);
 
     const ctx: SpecContext = { allContactFrames, durationFrames, gapAxisTargets };
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));

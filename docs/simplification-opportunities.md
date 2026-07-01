@@ -231,7 +231,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract `resolveImpactTargets(spec, gaps, gapAxisTargets)` returning mutated gaps + one `ImpactCurvePressures` object set from a single call site. Behavior-preserving.
 - **Risk:** low
 - **Generalization note:** Three separate global setters are an easy source of reset drift.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Extracted `resolveImpactTargets(spec, gaps, gapAxisTargets, allContactFrames)` owning the feasibility cap, arrival lookahead, and all impact-curve-pressure globals; `compileHandoffInternal` now calls it from one site.
 
 ### 21. Tail-completion throttle: 2-seed hash-gated cascade of budget/feedback smoothsteps
 *(sources: handoff-admission-branch, handoff-quality-scoring)*

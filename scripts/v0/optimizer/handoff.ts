@@ -543,6 +543,9 @@ const CADENCE_ROOM_START_FRAMES = 20;
 const CADENCE_ROOM_SPAN_FRAMES = 14;
 const SUBMIN_FORWARD_EVAL_START_FRAMES = 20_000;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
+// Extra frames simulated past a track's nominal duration so the detector sees the
+// full rideout tail when scoring a completed (full-duration) or partial output.
+const OUTPUT_TAIL_PAD_FRAMES = 20;
 /** Speculative tail completion turns deep prefixes into full-duration register
  *  candidates before ordinary DFS reaches a leaf. Keep the window small because
  *  the completion suffix branches two-wide and is charged like normal search. */
@@ -4874,7 +4877,7 @@ function evaluateNode(
     ? durationFrames
     : processedHorizonFrame(node.search, gaps);
   const outputDurationFrames = fullDuration
-    ? durationFrames + 20
+    ? durationFrames + OUTPUT_TAIL_PAD_FRAMES
     : partialOutputDurationFrames(partialHorizonFrame, durationFrames);
   const det = detectWindow(node.search.prefixEngine, 0, outputDurationFrames);
   const fits = paddedFits(node, gaps.length);
@@ -4918,7 +4921,7 @@ function processedHorizonFrame(
 }
 
 function partialOutputDurationFrames(horizonFrame: number, durationFrames: number): number {
-  return Math.max(1, Math.min(durationFrames, horizonFrame + 20));
+  return Math.max(1, Math.min(durationFrames, horizonFrame + OUTPUT_TAIL_PAD_FRAMES));
 }
 
 function asPartialReport(report: DriftReport, horizonFrame: number): DriftReport {

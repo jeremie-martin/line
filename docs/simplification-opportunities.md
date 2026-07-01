@@ -369,7 +369,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Introduce `OUTPUT_TAIL_PAD_FRAMES=20` (or reuse an existing rideout margin) at both sites with a one-line comment.
 - **Risk:** low
 - **Generalization note:** Absolute per-track padding, grid-agnostic; smell is duplication/unexplained constant.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Introduced `OUTPUT_TAIL_PAD_FRAMES=20` and used it at both cited sites (`evaluateNode` `durationFrames + 20`, `partialOutputDurationFrames` `horizonFrame + 20`). Left the third `forwardNodeScore` `+ 20` site for the broader #100 sweep.
 
 ### 36. `startHeuristicCost` / `ballisticFirstContactCost` share a copy-pasted speed+angle cost and double-count
 - **Files:** `scripts/v0/optimizer/handoff.ts`

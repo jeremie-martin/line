@@ -76,7 +76,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete the function and its constants; if any boost survives testing, replace the product with a single monotone pressure on contact sparsity alone (shared with `usesSparseContactCadence`, median computed once). Given the +2 payoff, deleting outright is the leading option under the relaxed rule.
 - **Risk:** medium
 - **Generalization note:** The impact band and amplitude/speed thresholds are absolute target-space coordinates tuned to the current 40-spec population; off-distribution the product silently collapses to ~0.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline -0.1, CI [-0.4, 0.2], P(Δ≤0)=67.6% (full canonical vs attempt-aim-highk-gated-j32-a01). Deleted `smoothSparseAmplitudeQualityBreadth` and its constants outright (the catalog's own recommended option); mostly flat but 375k regressed -0.2. Despite the "reverse-fit signature" framing, the +2-candidate boost is doing real (if small) work on sparse-cadence specs. Code reverted.
 
 ### 5. `qualityHandoffSampleCount`: four stacked special-case branches over a 29↔34 range
 *(sources: handoff-core-rescue, handoff-admission-branch, handoff-quality-scoring — incl. `shouldBoostShortNoAmpQualityBreadth`, `shouldRelaxMatureQualityLean`)*

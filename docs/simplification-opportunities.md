@@ -1281,7 +1281,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete all three and narrow `predictFirstCompletionFrames`/`traversalBudgetSlack` to take a `Spec`. Removes ~40 lines, no behavior change.
 - **Risk:** low
 - **Generalization note:** Pure dead code.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Confirmed dead by whole-repo grep: production `handoff.ts` calls `predictFirstCompletionFrames(spec)`/`traversalBudgetSlack(targetBudget, spec)` only with a `Spec`; the Inputs form + `predictSuffixCompletionFrames` had consumers only in `tests/budget_model.test.ts`. Deleted `predictSuffixCompletionFrames`, `traversalBudgetInputs`, `isTraversalInputs`, and the `TraversalBudgetInputs` type; narrowed both public helpers to `Spec` and inlined the input extraction. Updated the test to drop the removed-symbol coverage.
 
 ### 133. Dead telemetry: `getPoolEvalFrames` / `poolEvalFrames` accumulator
 - **Files:** `scripts/v0/optimizer/sample.ts`

@@ -9,13 +9,6 @@
 import { K_BOUNCE_LANDING } from "../../lib/detector.ts";
 import { secToFrame, type Spec } from "../types.ts";
 
-export type TraversalBudgetInputs = {
-  /** Required contacts that can physically be landed after bounce rejection. */
-  contactCount: number;
-  /** Authored duration in Line Rider frames. */
-  durationFrames: number;
-};
-
 export type TraversalBudgetModel = {
   name: string;
   source: string;
@@ -32,55 +25,26 @@ export const TRAVERSAL_BUDGET_MODEL_V1: TraversalBudgetModel = {
   durationFrameScale: 29.587736,
 } as const;
 
-export function traversalBudgetInputs(spec: Spec): TraversalBudgetInputs {
-  return {
-    contactCount: feasibleContactFrames(spec).length,
-    durationFrames: secToFrame(spec.duration),
-  };
-}
-
 export function predictFirstCompletionFrames(
-  specOrInputs: Spec | TraversalBudgetInputs,
+  spec: Spec,
   model: TraversalBudgetModel = TRAVERSAL_BUDGET_MODEL_V1,
 ): number {
-  const inputs = isTraversalInputs(specOrInputs)
-    ? specOrInputs
-    : traversalBudgetInputs(specOrInputs);
+  const contactCount = feasibleContactFrames(spec).length;
+  const durationFrames = secToFrame(spec.duration);
   return Math.max(
     1,
     model.interceptFrames +
-      model.contactFrames * inputs.contactCount +
-      model.durationFrameScale * inputs.durationFrames,
-  );
-}
-
-/** Suffix estimate from an existing gap boundary. No intercept: startup/root
- * overhead has already been paid by the prefix search. */
-export function predictSuffixCompletionFrames(
-  spec: Spec,
-  gapIndex: number,
-  model: TraversalBudgetModel = TRAVERSAL_BUDGET_MODEL_V1,
-): number {
-  const durationFrames = secToFrame(spec.duration);
-  const contacts = feasibleContactFrames(spec);
-  const rawAnchor = Number.isFinite(gapIndex) ? Math.floor(gapIndex) : 0;
-  const anchor = Math.max(0, Math.min(rawAnchor, contacts.length));
-  const startFrame = anchor === 0 ? 0 : contacts[anchor - 1];
-  const remainingContacts = Math.max(0, contacts.length - anchor);
-  const remainingDurationFrames = Math.max(0, durationFrames - startFrame);
-  return Math.max(
-    1,
-    model.contactFrames * remainingContacts +
-      model.durationFrameScale * remainingDurationFrames,
+      model.contactFrames * contactCount +
+      model.durationFrameScale * durationFrames,
   );
 }
 
 export function traversalBudgetSlack(
   budgetFrames: number,
-  specOrInputs: Spec | TraversalBudgetInputs,
+  spec: Spec,
   model: TraversalBudgetModel = TRAVERSAL_BUDGET_MODEL_V1,
 ): number {
-  return Math.max(0, budgetFrames) / predictFirstCompletionFrames(specOrInputs, model);
+  return Math.max(0, budgetFrames) / predictFirstCompletionFrames(spec, model);
 }
 
 function feasibleContactFrames(spec: Spec): number[] {
@@ -88,8 +52,4 @@ function feasibleContactFrames(spec: Spec): number[] {
     .map((contact) => secToFrame(contact.t))
     .filter((frame) => frame >= K_BOUNCE_LANDING)
     .sort((a, b) => a - b);
-}
-
-function isTraversalInputs(value: Spec | TraversalBudgetInputs): value is TraversalBudgetInputs {
-  return "contactCount" in value && "durationFrames" in value;
 }

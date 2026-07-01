@@ -414,7 +414,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Expose `measurements.velocity` via a typed accessor; factor speed+angle-from-velocity into a shared helper reused by the start costs. Consider gating the telemetry behind a flag if unconsumed.
 - **Risk:** low
 - **Generalization note:** Telemetry only; smell is the untyped reach + duplicated math.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (160/160 seed=0 track_hashes match baseline at all four budgets). Dropped the `(det as any).measurements?.velocity` cast + `deno-lint-ignore`: `detectWindow` already returns `Detection`, so `det.measurements.velocity` is `Vec2[]` directly (element type widened to `| undefined` for the honest out-of-bounds endFrame guard, no `noUncheckedIndexedAccess`). Factored `speedAngleFromVelocity({x,y})` shared by the readiness block and `buildNodeOutput`'s start-state readout (the two truly-identical `hypot`/`atan2*180/π`, no-abs, no-round sites). Left the start-cost math alone — it differs (`handoffStatePenalty` takes `Math.abs`; `startHeuristicCost`/`ballisticFirstContactCost` read `vx/vy`-shaped starts / derived `impactVy`). Did not gate the telemetry: unconsumed by analysis tooling but still part of the emitted archive schema (`types.ts` `readiness_per_gap`/`_mean`/`_min`), so gating would change archive output.
 
 ---
 

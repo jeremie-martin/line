@@ -4192,6 +4192,19 @@ function previewFutureContacts(
   return { horizon, landed, survivors, firstSurvivors, firstCost, totalCost };
 }
 
+/** Speed (|v|) and signed heading (degrees, atan2 convention) of a velocity
+ *  vector. Shared by the realized-arrival readiness telemetry and the node's
+ *  start-state readout, which compute the exact same quantities. Callers that
+ *  need an absolute angle or read `vx/vy`-shaped starts keep their own math. */
+function speedAngleFromVelocity(
+  v: { x: number; y: number },
+): { speed: number; angleDeg: number } {
+  return {
+    speed: Math.hypot(v.x, v.y),
+    angleDeg: (Math.atan2(v.y, v.x) * 180) / Math.PI,
+  };
+}
+
 function handoffStatePenalty(
   // deno-lint-ignore no-explicit-any
   engine: any,
@@ -4914,15 +4927,17 @@ function evaluateNode(
   // array (already charged as part of this evaluation) — the shared prefix
   // engine must NOT be touched here, even read-only: frame-cache effects
   // perturb later metered charges in the continuing search.
-  // deno-lint-ignore no-explicit-any
-  const velocity = (det as any).measurements?.velocity as { x: number; y: number }[] | undefined;
+  // Element type widened to include `undefined`: a committed gap's endFrame can
+  // sit past the detected terminus, so the out-of-bounds read below is a real
+  // guard (no `noUncheckedIndexedAccess` in tsconfig).
+  const velocity: readonly ({ x: number; y: number } | undefined)[] = det.measurements.velocity;
   const readinessPerGap: (number | null)[] = gaps.map((gap, k) => {
     if (fits[k] === null || !gap.endsWithContact) return null;
-    const v = velocity?.[gap.endFrame];
+    const v = velocity[gap.endFrame];
     if (v === undefined) return null;
-    const speed = Math.hypot(v.x, v.y);
+    const { speed, angleDeg } = speedAngleFromVelocity(v);
     if (!Number.isFinite(speed) || speed <= 0) return null;
-    return round3(readinessCatch(speed, (Math.atan2(v.y, v.x) * 180) / Math.PI));
+    return round3(readinessCatch(speed, angleDeg));
   });
   return {
     report,
@@ -4987,9 +5002,9 @@ function buildNodeOutput(
   const allLines = [...node.startLines];
   for (const fit of fits) if (fit !== null) allLines.push(...fit.lines);
   const readinessVals = readinessPerGap.filter((r): r is number => r !== null);
-  const startVelocity = node.startState.velocity;
-  const startSpeed = Math.hypot(startVelocity.x, startVelocity.y);
-  const startAngleDeg = (Math.atan2(startVelocity.y, startVelocity.x) * 180) / Math.PI;
+  const { speed: startSpeed, angleDeg: startAngleDeg } = speedAngleFromVelocity(
+    node.startState.velocity,
+  );
   const candidateRanks = selectedCandidateRanks(node.rankTrace);
   const candidateRankSum = candidateRanks.reduce((sum, rank) => sum + rank, 0);
   const candidateRankCount = candidateRanks.length;

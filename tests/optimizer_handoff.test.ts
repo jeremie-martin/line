@@ -672,32 +672,6 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     expect(objective.stats.fwd_eval).toEqual(unset.stats.fwd_eval);
   }, 120_000);
 
-  test("shadow leaf ranks identically to full: byte-identical track + sim_frames at 100k", async () => {
-    const spec = await loadGoldenSpec("big_air_ramp", "base");
-    const budget = 100_000;
-    const prev = process.env.LR_FWD_EVAL_LEAF;
-    const prevRd = process.env.LR_FWD_EVAL_LEAF_READINESS;
-    process.env.LR_FWD_EVAL_LEAF = "full";
-    const full = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
-    process.env.LR_FWD_EVAL_LEAF = "shadow";
-    process.env.LR_FWD_EVAL_LEAF_READINESS = "0";
-    const shadow = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
-    if (prev === undefined) delete process.env.LR_FWD_EVAL_LEAF;
-    else process.env.LR_FWD_EVAL_LEAF = prev;
-    if (prevRd === undefined) delete process.env.LR_FWD_EVAL_LEAF_READINESS;
-    else process.env.LR_FWD_EVAL_LEAF_READINESS = prevRd;
-    // Shadow ranks by the full leaf, so the produced track is byte-identical to full mode and
-    // charges identical frames; it only ADDS measure-only objective-vs-full agreement telemetry.
-    expect(hashTrack(shadow.track)).toBe(hashTrack(full.track));
-    expect(shadow.stats.sim_frames).toBe(full.stats.sim_frames);
-    const fe = shadow.stats.fwd_eval;
-    expect(fe).toBeDefined();
-    if (fe === undefined) return;
-    // The shadow agreement instrument populated (pools seen ⇒ agreement recorded).
-    expect(fe.shadow_pools).toBeGreaterThan(0);
-    expect(fe.shadow_top1_agree + fe.shadow_disagree_count).toBe(fe.shadow_pools);
-  }, 120_000);
-
   test("objective leaf is deterministic and collapses rollout frame cost vs full", async () => {
     const spec = await loadGoldenSpec("tiny_dance", "base");
     const budget = 100_000;

@@ -94,7 +94,7 @@ import {
   frontierReadinessFromFit,
   nextContactGapIndex,
 } from "./objective.ts";
-import { axisErrorsForTargets, axisQualityForTargets, axisQualityFromErrors, MISSING_CONTACT_TOLERANCE, scoreDriftReport } from "../score.ts";
+import { axisErrorsForTargets, axisQualityFromErrors, MISSING_CONTACT_TOLERANCE } from "../score.ts";
 import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { getEngineRebuildCount } from "../core/polish.ts";
@@ -202,12 +202,6 @@ type RankedOption = {
   score: number;
   previewContacts: number;
   previewSurvivors: number;
-  /** Shadow-mode only (LR_FWD_EVAL_LEAF=shadow): objective leaf value of the full-argmax
-   *  rollout leaf for this candidate. undefined outside shadow mode. */
-  shadowObjective?: number;
-  /** Shadow + LR_SHADOW_FACTORS=1: the full/short factor breakdown of that same leaf. */
-  shadowFull?: LeafFactors | null;
-  shadowShort?: LeafFactors | null;
 };
 
 type HandoffSearchPolicy = {
@@ -709,8 +703,8 @@ function compileHandoffInternal(
 
   // Per-compile state lifecycle: clear every accumulator / cache / counter that
   // registered with the registry (core/compile_lifecycle.ts) in one call — the stat
-  // lanes (sim/candidate/arc/aim/release-exit/gapfit-short), the fwd-eval + shadow-
-  // leaf holders, the engine-rebuild counter, and any module that joins the compile
+  // lanes (sim/candidate/arc/aim/release-exit/gapfit-short), the fwd-eval
+  // holders, the engine-rebuild counter, and any module that joins the compile
   // path later (e.g. reachability). Replaces a hand-maintained reset list that
   // silently drifted whenever a global was added without its reset call. Process-
   // scoped study aggregators (catchability telemetry) deliberately do NOT register.
@@ -2353,9 +2347,6 @@ function rankedOptions(
   // entries only — this is before reuse/brake extras are pushed onto `scored`.
   if (fwdEvalCfg !== null && usesForwardEvalAtBudget(node, targetBudget)) {
     recordFwdEvalAgreement(scored, gaps[node.gapIndex]?.targets?.impact);
-    if (fwdEvalCfg.leaf === "shadow") {
-      recordFwdEvalShadowAgreement(scored, gaps[node.gapIndex]?.targets, node.gapIndex);
-    }
   }
   // Extra-candidate lanes (see extraCandidateLane): each generates a few more
   // catches and pushes them onto `scored` with its own tag and a rank offset past
@@ -3181,16 +3172,6 @@ function scoreCandidateForHandoff(
       candidate, child, rank, source, sourceAxis,
       previewContacts: 0, previewSurvivors: 0,
       score: -value,
-      // Shadow mode stamps the objective leaf value captured by forwardArcValue. The fwdCfg
-      // leaf is "shadow" only on this path → undefined for full/objective (byte-identical).
-      ...(fwdCfg.leaf === "shadow"
-        ? {
-          shadowObjective: lastShadowObjective,
-          ...(shadowFactorsEnabled
-            ? { shadowFull: lastShadowFullFactors, shadowShort: lastShadowShortFactors }
-            : {}),
-        }
-        : {}),
     };
   }
   const usePreviewScore = previewScorePressure > 0;
@@ -3316,12 +3297,12 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 
 // ════════════════════════════════════════════════════════════════════════════════════════
 // FORWARD-EVAL SUBSYSTEM (~this point through buildStartOptions). Extraction candidate: this
-// ~1100-line forest (config/env parsing, rollout scorers, objective/shadow leaf scorers, and
+// ~1100-line forest (config/env parsing, rollout scorers, objective leaf scorer, and
 // the measure-only agreement instrument below) is a near-self-contained unit that touches the
 // DFS core at only two call sites (scoreCandidateForHandoff, the telemetry hook in expandNode).
 // A physical move to forward_eval.ts is DEFERRED, not rejected: the blocker is the module-level
-// context (fwdEvalSpec/fwdEvalGapAxisTargets/fwdEvalCfg/fwdEvalMin) plus the shadow carry-out
-// scalars, which are a per-compile protocol shared with EXTERNAL importers (eval_arc_apples.ts,
+// context (fwdEvalSpec/fwdEvalGapAxisTargets/fwdEvalCfg/fwdEvalMin), which is a per-compile
+// protocol shared with EXTERNAL importers (eval_arc_apples.ts,
 // eval_leaf_factors.ts, eval_leaf_window.ts call setForwardEvalContext then read objectiveLeafValue)
 // and have no test coverage of their own. Extracting cleanly first requires promoting that state to
 // an explicit context object threaded through the scorers — a behavior-preserving but wide change
@@ -3340,9 +3321,7 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //   avg    : at the next contact, value = MEAN true score over the top-`branch`
 //            alternatives (1 deep). Expected — robust to the DFS not taking the best.
 type ForwardEvalVariant = "greedy" | "best" | "avg";
-// "shadow": rank by the FULL leaf (byte-identical to "full") while ALSO computing the
-// objective leaf value on the SAME rollout chain for measure-only agreement telemetry.
-type ForwardEvalLeaf = "objective" | "full" | "shadow";
+type ForwardEvalLeaf = "objective" | "full";
 type ForwardEvalConfig = {
   variant: ForwardEvalVariant;
   depth: number;
@@ -3352,9 +3331,7 @@ type ForwardEvalConfig = {
    *  partial track from frame 0 on a fresh engine fork (forwardNodeScore). "objective"
    *  scores the leaf with ZERO engine frames from data the rollout already has
    *  (rolled-gap axis quality × next-gap readiness × missed-step penalty —
-   *  objectiveLeafValue). Set by LR_FWD_EVAL_LEAF; "full" is byte-identical. "shadow"
-   *  ranks by the FULL leaf (byte-identical to "full") while ALSO computing the objective
-   *  leaf on the same rollout chain for measure-only agreement telemetry. */
+   *  objectiveLeafValue). Set by LR_FWD_EVAL_LEAF; "full" is byte-identical. */
   leaf: ForwardEvalLeaf;
 };
 
@@ -3378,35 +3355,6 @@ let fwdEvalDefaultConfig = true;
 // arrival states (docs/IMPACT_PAIR_PLANNING.md), not from search breadth. Kept
 // at default (branch=1) it was a no-op; the global + parse + hot-path lookup are
 // gone — re-derive from this note if the experiment is ever revisited.
-
-// ── Shadow-leaf capture (LR_FWD_EVAL_LEAF=shadow, measure-only) ──
-// When shadow mode runs, the rollout ranks by the FULL leaf (byte-identical) but ALSO
-// computes the objective leaf value at the SAME argmax leaf node. This holder carries the
-// objective value of the full-selected leaf out of the rollout recursion (set whenever a
-// rollout updates its full-value best). One holder per forwardArcValue call; null when shadow
-// is inactive so the full/objective paths stay untouched.
-type LeafFactors = { axis: number; drift: number; off_beat: number; missing: number; survival: number };
-type ShadowCapture = {
-  fullBest: number;
-  objAtBest: number;
-  fullFactors: LeafFactors | null;
-  shortFactors: LeafFactors | null;
-};
-let shadowCapture: ShadowCapture | null = null;
-// Objective leaf value of the full-argmax leaf from the most recent shadow forwardArcValue call;
-// read by scoreCandidateForHandoff to stamp the RankedOption. Only meaningful immediately after a
-// shadow forwardArcValue (single-threaded synchronous rollout).
-let lastShadowObjective = 0;
-// Per-factor attribution (LR_SHADOW_FACTORS=1, shadow mode only). forwardNodeScore and
-// objectiveLeafValue stash the full/short factor breakdown of the leaf they just scored;
-// captureShadow copies the pair for the full-argmax leaf; scoreCandidateForHandoff stamps it on the
-// RankedOption so recordFwdEvalShadowAgreement can attribute each disagreement to a factor. Gated:
-// default shadow is byte-identical.
-const shadowFactorsEnabled = readEnv("LR_SHADOW_FACTORS") === "1";
-let lastFullLeafFactors: LeafFactors | null = null;
-let lastShortLeafFactors: LeafFactors | null = null;
-let lastShadowFullFactors: LeafFactors | null = null;
-let lastShadowShortFactors: LeafFactors | null = null;
 
 // ── Forward-eval cost + agreement instrument (MEASURE-ONLY) ──
 // Accumulates per compile, reset alongside the other lane stats. Two families:
@@ -3461,52 +3409,6 @@ const fwdEvalTotals = {
   fwd_disagree_value_gap_hist: [0, 0, 0, 0, 0, 0] as number[],
   fwd_disagree_winner_costlier: 0,
   fwd_disagree_winner_cheaper: 0,
-  // ── Shadow-leaf agreement (LR_FWD_EVAL_LEAF=shadow, measure-only) ──
-  // Does the objective leaf's argmax over a pool match the full leaf's argmax? When it
-  // disagrees, the REAL cost is full(fullWinner) − full(objWinner) in full-score units (the
-  // actual misranking loss the objective would incur if it were the ranker). Pools where the
-  // full path scored every entry via the shadow leaf (pool-source entries only).
-  shadow_pools: 0,
-  shadow_top1_agree: 0,
-  shadow_disagree_count: 0,
-  // Sum of REAL cost (full-score units) over disagreeing pools, + histogram by bucket
-  // [0-2,2-5,5-10,10-20,20-50,50+].
-  shadow_real_cost_sum: 0,
-  shadow_real_cost_hist: [0, 0, 0, 0, 0, 0] as number[],
-  // Per-gap-kind split (pool gap target): impact ≥0.35 / vertical drama (amplitude|elevation) /
-  // other. Pools + disagreements + real-cost sum, each.
-  shadow_impact_pools: 0,
-  shadow_impact_disagree: 0,
-  shadow_impact_real_cost_sum: 0,
-  shadow_vert_pools: 0,
-  shadow_vert_disagree: 0,
-  shadow_vert_real_cost_sum: 0,
-  shadow_other_pools: 0,
-  shadow_other_disagree: 0,
-  shadow_other_real_cost_sum: 0,
-  // Air-divergence probe: on disagreeing pools, is the objective winner's gate-time axis
-  // quality HIGH (≥0.85) while the full path ranks it strictly below the full winner? This is
-  // the leaf-axes-flatter-the-candidate signature. Counted overall + on vertical/impact gaps.
-  shadow_disagree_objwinner_quality_high: 0,
-  shadow_disagree_objwinner_quality_sum: 0,
-  // Per-factor attribution on disagreements (LR_SHADOW_FACTORS=1). fw = full winner (the right pick),
-  // ow = obj winner (short's pick) — both FULL-measured; ows = short's view of its own pick. The gap
-  // fw−ow per factor is the true value the short pick sacrifices; ows−ow is where the short leaf
-  // over-credits its pick. Means = sum / shadow_fx_n.
-  shadow_fx_n: 0,
-  shadow_fx_fw_axis: 0,
-  shadow_fx_fw_drift: 0,
-  shadow_fx_fw_offb: 0,
-  shadow_fx_fw_miss: 0,
-  shadow_fx_fw_surv: 0,
-  shadow_fx_ow_axis: 0,
-  shadow_fx_ow_drift: 0,
-  shadow_fx_ow_offb: 0,
-  shadow_fx_ow_miss: 0,
-  shadow_fx_ow_surv: 0,
-  shadow_fx_ows_axis: 0,
-  shadow_fx_ows_miss: 0,
-  shadow_fx_ows_surv: 0,
 };
 
 function resetFwdEvalStats(): void {
@@ -3520,23 +3422,6 @@ function resetFwdEvalStats(): void {
   }
 }
 registerCompileReset(resetFwdEvalStats);
-
-// Shadow-leaf telemetry holders (declared above) are written only when a shadow
-// rollout runs (LR_FWD_EVAL_LEAF=shadow) and read by scoreCandidateForHandoff to
-// stamp the RankedOption. Reset them to their module-load defaults each compile so
-// an option ranked before the first shadow rollout of a compile cannot stamp a
-// value left over from the previous compile in a long-lived worker. Measure-only
-// (shadow is non-default) — this keeps the shadow agreement telemetry per-compile
-// honest, never the production score.
-function resetShadowLeafState(): void {
-  shadowCapture = null;
-  lastShadowObjective = 0;
-  lastFullLeafFactors = null;
-  lastShortLeafFactors = null;
-  lastShadowFullFactors = null;
-  lastShadowShortFactors = null;
-}
-registerCompileReset(resetShadowLeafState);
 
 // Derived from fwdEvalTotals so the two never drift: adding a counter above automatically
 // extends the public stats shape. (Previously a hand-maintained ~60-field mirror.)
@@ -3553,7 +3438,6 @@ function snapshotFwdEvalStats(): FwdEvalStats | null {
     fwd_winner_quality_rank_hist: [...fwdEvalTotals.fwd_winner_quality_rank_hist],
     fwd_quality_top1_fwd_rank_hist: [...fwdEvalTotals.fwd_quality_top1_fwd_rank_hist],
     fwd_disagree_value_gap_hist: [...fwdEvalTotals.fwd_disagree_value_gap_hist],
-    shadow_real_cost_hist: [...fwdEvalTotals.shadow_real_cost_hist],
   };
 }
 
@@ -3648,106 +3532,6 @@ function recordFwdEvalAgreement(
     fwdEvalTotals.fwd_aimed_best_rank_sum += bestAimedFwdRank;
   }
 }
-/** Gap-kind classification for the shadow split. */
-type ShadowGapKind = "impact" | "vert" | "other";
-function shadowGapKind(targets: AxisValues | undefined): ShadowGapKind {
-  if (targets === undefined) return "other";
-  if ((targets.impact ?? 0) >= 0.35) return "impact";
-  if (targets.amplitude !== undefined || targets.elevation !== undefined) return "vert";
-  return "other";
-}
-
-/** Shadow-leaf agreement (LR_FWD_EVAL_LEAF=shadow, measure-only). Pure read over the
- *  POOL-SOURCE scored entries of one freshly-built pool. The pool was ranked by the FULL leaf
- *  (score = -fullValue); each entry also carries shadowObjective (the objective leaf value of
- *  its full-argmax rollout leaf). Records: does the objective's argmax (max shadowObjective)
- *  match the full's argmax (min score = max full value)? When not, the REAL cost is
- *  full(fullWinner) − full(objWinner) in full-score units. Split by gap kind; air-divergence
- *  probe reads the objective winner's gate-time axis quality. No rollouts — all scores precomputed. */
-function recordFwdEvalShadowAgreement(
-  poolScored: RankedOption[],
-  gapTargets: AxisValues | undefined,
-  gapIndex: number,
-): void {
-  // Only entries that actually got a shadow objective (forward-eval path scored them).
-  const pool = poolScored.filter((o) => o.shadowObjective !== undefined);
-  if (pool.length === 0) return;
-  // Full winner = min score (score = -fullValue). Object identity for tie-faithful agreement.
-  let fullWinner = pool[0];
-  for (let i = 1; i < pool.length; i++) {
-    if (pool[i].score < fullWinner.score) fullWinner = pool[i];
-  }
-  // Objective winner = max shadowObjective.
-  let objWinner = pool[0];
-  for (let i = 1; i < pool.length; i++) {
-    if ((pool[i].shadowObjective ?? -Infinity) > (objWinner.shadowObjective ?? -Infinity)) {
-      objWinner = pool[i];
-    }
-  }
-  const kind = shadowGapKind(gapTargets);
-  fwdEvalTotals.shadow_pools++;
-  if (kind === "impact") fwdEvalTotals.shadow_impact_pools++;
-  else if (kind === "vert") fwdEvalTotals.shadow_vert_pools++;
-  else fwdEvalTotals.shadow_other_pools++;
-  const agree = objWinner === fullWinner;
-  if (agree) {
-    fwdEvalTotals.shadow_top1_agree++;
-    return;
-  }
-  // REAL cost = full(fullWinner) − full(objWinner) = (−fullWinner.score) − (−objWinner.score).
-  const realCost = objWinner.score - fullWinner.score;
-  fwdEvalTotals.shadow_disagree_count++;
-  fwdEvalTotals.shadow_real_cost_sum += realCost;
-  fwdEvalTotals.shadow_real_cost_hist[fwdValueGapBucket(realCost)]++;
-  if (kind === "impact") {
-    fwdEvalTotals.shadow_impact_disagree++;
-    fwdEvalTotals.shadow_impact_real_cost_sum += realCost;
-  } else if (kind === "vert") {
-    fwdEvalTotals.shadow_vert_disagree++;
-    fwdEvalTotals.shadow_vert_real_cost_sum += realCost;
-  } else {
-    fwdEvalTotals.shadow_other_disagree++;
-    fwdEvalTotals.shadow_other_real_cost_sum += realCost;
-  }
-  // Air-divergence probe: objective winner's gate-time axis quality (its OWN gap's achieved vs
-  // targets). High quality here while the full path ranks it below the full winner = gate-time
-  // axes flatter the candidate (the big_air_ramp hypothesis).
-  const achieved = objWinner.candidate?.achieved;
-  // True targets (fwdEvalGapAxisTargets), matching objectiveLeafValue's scorer (not the
-  // jitter-sampled gap.targets), so this quality read reproduces the objective leaf's own factor.
-  const trueTargets = fwdEvalGapAxisTargets[gapIndex];
-  if (achieved !== undefined && trueTargets !== undefined) {
-    const q = axisQualityForTargets(trueTargets, achieved).axis_quality;
-    fwdEvalTotals.shadow_disagree_objwinner_quality_sum += q;
-    if (q >= 0.85) fwdEvalTotals.shadow_disagree_objwinner_quality_high++;
-  }
-  // Per-factor attribution (LR_SHADOW_FACTORS=1): on this disagreement, fw = full winner's leaf
-  // factors (the right pick), ow = obj winner's leaf factors (short's pick) — both FULL-measured —
-  // and ows = the short leaf's OWN view of its pick. fw−ow per factor is the true value the short
-  // pick sacrifices; ows−ow is where the short leaf over-credits it.
-  if (shadowFactorsEnabled && objWinner.shadowFull && fullWinner.shadowFull) {
-    const ow = objWinner.shadowFull;
-    const fw = fullWinner.shadowFull;
-    const ows = objWinner.shadowShort;
-    fwdEvalTotals.shadow_fx_n++;
-    fwdEvalTotals.shadow_fx_fw_axis += fw.axis;
-    fwdEvalTotals.shadow_fx_fw_drift += fw.drift;
-    fwdEvalTotals.shadow_fx_fw_offb += fw.off_beat;
-    fwdEvalTotals.shadow_fx_fw_miss += fw.missing;
-    fwdEvalTotals.shadow_fx_fw_surv += fw.survival;
-    fwdEvalTotals.shadow_fx_ow_axis += ow.axis;
-    fwdEvalTotals.shadow_fx_ow_drift += ow.drift;
-    fwdEvalTotals.shadow_fx_ow_offb += ow.off_beat;
-    fwdEvalTotals.shadow_fx_ow_miss += ow.missing;
-    fwdEvalTotals.shadow_fx_ow_surv += ow.survival;
-    if (ows) {
-      fwdEvalTotals.shadow_fx_ows_axis += ows.axis;
-      fwdEvalTotals.shadow_fx_ows_miss += ows.missing;
-      fwdEvalTotals.shadow_fx_ows_surv += ows.survival;
-    }
-  }
-}
-
 export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]): void {
   fwdEvalSpec = spec;
   fwdEvalGapAxisTargets = gapAxisTargets;
@@ -3885,7 +3669,6 @@ function forwardEvalLeaf(): ForwardEvalLeaf {
   // survival × missing), ~21% cheaper per rollout, and ACCEPT vs the full leaf on the all-specs
   // board (+1.72, 40 specs × 12 seeds, P(Δ≤0)=0%). "full" is the explicit escape hatch.
   if (env === "full") return "full";
-  if (env === "shadow") return "shadow";
   return "objective";
 }
 
@@ -3967,13 +3750,6 @@ function forwardNodeScore(search: SearchNode, gaps: Gap[], ctx: SpecContext): nu
   );
   const report = fullDuration ? rawReport : asPartialReport(rawReport, horizonFrame);
   recordFwdLeafDeadCheck(report, search, gaps);
-  if (shadowFactorsEnabled) {
-    const s = scoreDriftReport(report, { totalFrames: ctx.durationFrames });
-    lastFullLeafFactors = {
-      axis: s.axis_quality, drift: s.drift_quality, off_beat: s.off_beat_quality,
-      missing: s.missing_quality, survival: s.survival_quality,
-    };
-  }
   return leafKeyForReport(report, ctx.durationFrames).full_score;
 }
 
@@ -4094,12 +3870,6 @@ export function objectiveLeafValue(
   );
   const missingFactor = Math.exp(-futureMissing / MISSING_CONTACT_TOLERANCE);
   value *= survival * missingFactor;
-  if (shadowFactorsEnabled) {
-    lastShortLeafFactors = {
-      axis: axisQualityFromErrors(errors).axis_quality,
-      drift: 1, off_beat: 1, missing: missingFactor, survival,
-    };
-  }
   return value;
 }
 
@@ -4144,39 +3914,16 @@ function forwardRolloutScore(
 ): number {
   // Leaf scorer: full re-detection (default) or zero-frame objective value. `missed` is the
   // count of rollout-incomplete contacts feeding the missing-step penalty (0 at a clean leaf).
-  // Shadow mode (leafObjective false AND shadowCapture set): ranks by the FULL leaf but also
-  // computes the objective leaf at the SAME node, stashing it in `lastLeafObjective` so the
-  // argmax-by-full-value branch can carry the matching objective value out (set below).
-  let lastLeafObjective = 0;
-  const leafValue = (node: SearchNode, missed: number): number => {
-    if (leafObjective) return objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames);
-    if (shadowCapture !== null) {
-      lastLeafObjective = objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames);
-    }
-    return forwardNodeScore(node, gaps, ctx);
-  };
-  // Capture the objective value of the full-argmax leaf into shadowCapture (one global best
-  // across the whole rollout tree, keyed on the full value — the value that ranks).
-  const captureShadow = (full: number): void => {
-    if (shadowCapture !== null && full > shadowCapture.fullBest) {
-      shadowCapture.fullBest = full;
-      shadowCapture.objAtBest = lastLeafObjective;
-      if (shadowFactorsEnabled) {
-        shadowCapture.fullFactors = lastFullLeafFactors;
-        shadowCapture.shortFactors = lastShortLeafFactors;
-      }
-    }
-  };
+  const leafValue = (node: SearchNode, missed: number): number =>
+    leafObjective
+      ? objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames)
+      : forwardNodeScore(node, gaps, ctx);
   if (depthLeft <= 0 || isTerminalNode(search, gaps)) {
-    const v = leafValue(search, 0);
-    captureShadow(v);
-    return v;
+    return leafValue(search, 0);
   }
   const at = advanceToNextContact(search, gaps);
   if (at === null) {
-    const v = leafValue(search, 0);
-    captureShadow(v);
-    return v;
+    return leafValue(search, 0);
   }
   const cands = getCandidatesSorted(at, gaps, ctx, seed, branch);
   if (cands.length === 0) {
@@ -4188,9 +3935,7 @@ function forwardRolloutScore(
     const missed = Math.min(
       PARTIAL_FUTURE_CONTACT_WINDOW, remainingContactGaps(gaps, at.gapIndex),
     );
-    const v = leafValue(search, missed);
-    captureShadow(v);
-    return v;
+    return leafValue(search, missed);
   }
   let best = -Infinity;
   for (const c of cands) {
@@ -4207,26 +3952,13 @@ function forwardAvgNextScore(
   search: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, m: number,
   leafObjective: boolean, rootGapIndex: number,
 ): number {
-  // Shadow mode: rank by the FULL average; record the objective leaf of the max-full leaf
-  // among the averaged alternatives (consistent with the greedy path's argmax-full capture).
-  let bestFull = -Infinity;
-  let objAtBest = 0;
-  const leafValue = (node: SearchNode, missed: number): number => {
-    if (leafObjective) return objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames);
-    const full = forwardNodeScore(node, gaps, ctx);
-    if (shadowCapture !== null && full > bestFull) {
-      bestFull = full;
-      objAtBest = objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames);
-    }
-    return full;
-  };
+  const leafValue = (node: SearchNode, missed: number): number =>
+    leafObjective
+      ? objectiveLeafValue(node, rootGapIndex, gaps, missed, ctx.durationFrames)
+      : forwardNodeScore(node, gaps, ctx);
   const at = advanceToNextContact(search, gaps);
   if (at === null) {
-    const v = leafValue(search, 0);
-    if (shadowCapture !== null && bestFull > shadowCapture.fullBest) {
-      shadowCapture.fullBest = bestFull; shadowCapture.objAtBest = objAtBest;
-    }
-    return v;
+    return leafValue(search, 0);
   }
   const cands = getCandidatesSorted(at, gaps, ctx, seed, m);
   if (cands.length === 0) {
@@ -4236,17 +3968,10 @@ function forwardAvgNextScore(
     const missed = Math.min(
       PARTIAL_FUTURE_CONTACT_WINDOW, remainingContactGaps(gaps, at.gapIndex),
     );
-    const v = leafValue(search, missed);
-    if (shadowCapture !== null && bestFull > shadowCapture.fullBest) {
-      shadowCapture.fullBest = bestFull; shadowCapture.objAtBest = objAtBest;
-    }
-    return v;
+    return leafValue(search, missed);
   }
   let sum = 0;
   for (const c of cands) sum += leafValue(extendNodeCached(at, c), 0);
-  if (shadowCapture !== null && bestFull > shadowCapture.fullBest) {
-    shadowCapture.fullBest = bestFull; shadowCapture.objAtBest = objAtBest;
-  }
   return sum / cands.length;
 }
 
@@ -4265,11 +3990,6 @@ function forwardArcValue(
   // Pure objective leaf: NO hybrid-impact fallback. The short leaf is a faithful scorer
   // reconstruction in its own right (axis × survival × missing); it never defers to the full leaf.
   const leafObjective = cfg.leaf === "objective";
-  // Shadow mode: rank by the FULL leaf (leafObjective stays false) but install a capture so the
-  // rollout also computes the objective value of the full-argmax leaf. lastShadowObjective carries
-  // it to scoreCandidateForHandoff → the RankedOption, for the agreement recorder.
-  const shadow = cfg.leaf === "shadow";
-  if (shadow) shadowCapture = { fullBest: -Infinity, objAtBest: 0, fullFactors: null, shortFactors: null };
   // Mark the rollout so the rolled-level pool can drop its aim probes (LR_ROLLOUT_AIM=0) — isolates
   // wide-branching value from aim-probe cost. The top-level pool (built before this) is unaffected.
   setRolloutContext(true);
@@ -4282,14 +4002,6 @@ function forwardArcValue(
       );
   } finally {
     setRolloutContext(false);
-    if (shadow) {
-      lastShadowObjective = shadowCapture?.objAtBest ?? 0;
-      if (shadowFactorsEnabled) {
-        lastShadowFullFactors = shadowCapture?.fullFactors ?? null;
-        lastShadowShortFactors = shadowCapture?.shortFactors ?? null;
-      }
-      shadowCapture = null;
-    }
     // Cost instrument (measure-only): count the rollout's sim-frames even when charged
     // (the existing `saved` already reads getSimFrames). One call per ranked candidate.
     fwdEvalTotals.fwd_eval_frames_charged += Math.max(0, getSimFrames() - saved);

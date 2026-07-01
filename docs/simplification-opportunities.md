@@ -277,7 +277,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** If the campaign is finished, delete the shadow leaf mode, plumbing, recorder, and `shadow_fx_*` counters; the three rollout functions collapse back to a single `leafValue` path.
 - **Risk:** low
 - **Generalization note:** Measure-only; removal loses only a diagnostic.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Deleted the `LR_FWD_EVAL_LEAF=shadow` mode + `LR_SHADOW_FACTORS` factor accumulator: the `shadowCapture`/`lastShadow*`/`LeafFactors` globals, `resetShadowLeafState`, `shadowGapKind`, `recordFwdEvalShadowAgreement`, all `shadow_*`/`shadow_fx_*` counters, and the shadow plumbing/stamp in the three rollout functions + `scoreCandidateForHandoff` (they collapse back to the single `leafValue` path). Removed the feature-only test in `optimizer_handoff.test.ts` and the shadow-only study driver `eval_rollout_ranking.sh`. Verified off-by-default (`forwardEvalLeaf()` returns `objective`; `LR_SHADOW_FACTORS` unset) and no external consumer of the shadow fields (`types.ts` `fwd_eval?` never declared them; `eval_arc_apples/leaf_factors/leaf_window.ts` use only `objectiveLeafValue`).
 
 ### 26. `objectiveLeafValue` carries two `void`-ed dead parameters and a never-firing defensive branch
 - **Files:** `scripts/v0/optimizer/handoff.ts`

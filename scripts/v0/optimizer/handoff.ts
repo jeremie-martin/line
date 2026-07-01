@@ -2097,6 +2097,110 @@ export function shortDeadlineRescueCandidateCount(gapFrames: number): number {
     : 0;
 }
 
+// Shared scoring context for the three EXTRA-candidate lanes (reuse / brake /
+// startup). Every lane maps its generated candidates 1:1 through
+// scoreCandidateForHandoff with the same preview/budget context; only the tag and
+// the rank offset differ (captured per-lane in ExtraCandidateLaneSpec).
+type ExtraCandidateScoring = {
+  preview: boolean;
+  previewCostWeight: number;
+  previewScorePressure: number;
+  releaseSetup: boolean;
+  targetBudget: number;
+  budgetSlack: number;
+  openingBestOpportunity: number;
+};
+
+// Per-node memo slot descriptor. Reuse keys on its reuse limit, brake keys on the
+// search seed; startup does not memoize (no `cache`). read/write bind a lane to
+// its own fields in the shared ExtraCandidateCache.
+type ExtraCandidateCacheSlot = {
+  key: number;
+  read: (cache: ExtraCandidateCache) => { value?: Candidate[]; key?: number };
+  write: (cache: ExtraCandidateCache, value: Candidate[], key: number) => void;
+};
+
+type ExtraCandidateLaneSpec = {
+  tag: HandoffCandidateSource;
+  rankBase: number;
+  // Lane-specific generator; owns that lane's telemetry counters and ref handling.
+  generate: () => Candidate[];
+  cache?: ExtraCandidateCacheSlot;
+};
+
+// Resolve a lane's candidate list, honoring its optional per-node memo slot:
+// return the cached value when present and its key matches, else regenerate and
+// store. Byte-identical to the previous cachedReuse/cachedBrake wrappers.
+function resolveExtraCandidates(node: SearchNode, spec: ExtraCandidateLaneSpec): Candidate[] {
+  if (spec.cache === undefined) return spec.generate();
+  const cache = extraCandidateCache.get(node) ?? {};
+  const cached = spec.cache.read(cache);
+  if (cached.value !== undefined && cached.key === spec.cache.key) return cached.value;
+  const generated = spec.generate();
+  spec.cache.write(cache, generated, spec.cache.key);
+  extraCandidateCache.set(node, cache);
+  return generated;
+}
+
+// One shared lane runner for reuse / brake / startup: (optionally memoized)
+// generation, then a 1:1 map through scoreCandidateForHandoff stamping the lane
+// tag and offsetting the rank past the pool. Returns the scored options for the
+// caller to push/sort — reuse and brake feed the shared pool, startup its own.
+function extraCandidateLane(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  telemetry: HandoffTelemetry,
+  scoring: ExtraCandidateScoring,
+  spec: ExtraCandidateLaneSpec,
+): RankedOption[] {
+  const candidates = resolveExtraCandidates(node, spec);
+  return candidates.map((candidate, j) =>
+    scoreCandidateForHandoff(
+      node, candidate, spec.rankBase + j, spec.tag, gaps, ctx, seed, telemetry,
+      scoring.preview, scoring.previewCostWeight, scoring.previewScorePressure,
+      scoring.releaseSetup, scoring.targetBudget, undefined,
+      scoring.budgetSlack, scoring.openingBestOpportunity,
+    )
+  );
+}
+
+// Shared seeded-RNG catch generator for the brake + startup lanes: one makeRng
+// stream mixed from (seed, gapIndex, seedSalt), a K-attempt sample loop with
+// paired attempt/success telemetry, and ref cleared (an extra catch is never a
+// steady-state reuse seed). The two lanes differ only in seedSalt, the per-attempt
+// sample seed, the sample mode, and which telemetry counters they bump.
+function sampleSeededCatchCandidates(
+  node: SearchNode,
+  gap: Gap,
+  ctx: SpecContext,
+  seed: number,
+  count: number,
+  spec: {
+    seedSalt: number;
+    sampleSeed: (attempt: number) => number;
+    mode: CandidateSampleMode;
+    onAttempt: () => void;
+    onSuccess: () => void;
+  },
+): Candidate[] {
+  const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + spec.seedSalt) | 0);
+  const out: Candidate[] = [];
+  for (let attempt = 0; attempt < count; attempt++) {
+    spec.onAttempt();
+    const cand = sampleOneCandidate(
+      node.prefixEngine, gap, rng, ctx, node.prefixNextLineId, spec.sampleSeed(attempt), spec.mode,
+    );
+    if (cand !== null) {
+      spec.onSuccess();
+      cand.ref = undefined; // never reuse an extra catch as a steady-state seed
+      out.push(cand);
+    }
+  }
+  return out;
+}
+
 function startupDeadEndOptions(
   node: SearchNode,
   gaps: Gap[],
@@ -2111,28 +2215,22 @@ function startupDeadEndOptions(
     targetBudget?: number;
   } = {},
 ): RankedOption[] {
-  const candidates = startupDeadEndCandidates(node, gaps, ctx, seed, telemetry);
-  if (candidates.length === 0) return [];
   const preview = config.preview ?? true;
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
   const previewScorePressure = config.previewScorePressure ?? (preview ? 1 : 0);
-  const scored = candidates.map((candidate, rank) =>
-    scoreCandidateForHandoff(
-      node,
-      candidate,
-      rank,
-      "startup",
-      gaps,
-      ctx,
-      seed,
-      telemetry,
-      preview,
-      previewCostWeight,
-      previewScorePressure,
-      config.releaseSetup ?? false,
-      config.targetBudget ?? 0,
-    )
-  );
+  const scored = extraCandidateLane(node, gaps, ctx, seed, telemetry, {
+    preview,
+    previewCostWeight,
+    previewScorePressure,
+    releaseSetup: config.releaseSetup ?? false,
+    targetBudget: config.targetBudget ?? 0,
+    budgetSlack: 0,
+    openingBestOpportunity: 0,
+  }, {
+    tag: "startup",
+    rankBase: 0,
+    generate: () => startupDeadEndCandidates(node, gaps, ctx, seed, telemetry),
+  });
   scored.sort((a, b) =>
     a.score - b.score ||
     (a.candidate?.cost ?? Infinity) - (b.candidate?.cost ?? Infinity) ||
@@ -2152,26 +2250,17 @@ function startupDeadEndCandidates(
   if (!gap.endsWithContact) return [];
   const k = startupDeadEndCandidateCount(gap);
   if (k <= 0) return [];
-  const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 0x85ebca6b) | 0);
-  const out: Candidate[] = [];
-  for (let attempt = 0; attempt < k; attempt++) {
-    telemetry.startupAttempts++;
-    const candidate = sampleOneCandidate(
-      node.prefixEngine,
-      gap,
-      rng,
-      ctx,
-      node.prefixNextLineId,
-      7000 + attempt,
-      "startup_catch",
-    );
-    if (candidate !== null) {
+  return sampleSeededCatchCandidates(node, gap, ctx, seed, k, {
+    seedSalt: 0x85ebca6b,
+    sampleSeed: (attempt) => 7000 + attempt,
+    mode: "startup_catch",
+    onAttempt: () => {
+      telemetry.startupAttempts++;
+    },
+    onSuccess: () => {
       telemetry.startupSuccesses++;
-      candidate.ref = undefined;
-      out.push(candidate);
-    }
-  }
-  return out;
+    },
+  });
 }
 
 function startupDeadEndCandidateCount(gap: Gap): number {
@@ -2252,61 +2341,51 @@ function rankedOptions(
       recordFwdEvalShadowAgreement(scored, gaps[node.gapIndex]?.targets, node.gapIndex);
     }
   }
-  // Catch-reuse: translate the most recent committed catch to this gap's entry
-  // state and offer them as extra candidates. On a steady periodic rhythm, a
-  // recent sled-relative catch can remain valid at a later similar entry state.
-  // Deterministic (pure function of the prefix); only ADDS candidates, so
-  // monotonicity holds.
-  const reuse = cachedReuseCatchCandidates(
-    node,
-    gaps,
-    ctx,
-    telemetry,
-    config.reuseLimit ?? reuseCandidateLimit(node, targetBudget, telemetry),
-  );
-  reuse.forEach((candidate, j) =>
-    scored.push(scoreCandidateForHandoff(
-      node, candidate, extraRankBase + j, "reuse", gaps, ctx, seed, telemetry, preview, previewCostWeight,
-      previewScorePressure,
-      config.releaseSetup ?? false,
-      targetBudget,
-      undefined,
-      config.budgetSlack ?? 0,
-      openingBestOpportunity,
-    ))
-  );
-  // Brake catches: uphill-entry arcs that bleed speed before contact, offered as
-  // EXTRA candidates when the rider runs over a MODERATE target speed. Decoupled
-  // from landing (impact-anchor still lands the contact), so they only win when
-  // the overshoot penalty rewards their lower speed and simply lose elsewhere.
-  // Excluded from reuse.
-  const brake = cachedBrakeCatchCandidates(
-    node,
-    gaps,
-    ctx,
-    seed,
-    telemetry,
-  );
-  brake.forEach((candidate, j) =>
-    scored.push(scoreCandidateForHandoff(
-      node,
-      candidate,
-      extraRankBase + reuse.length + j,
-      "brake",
-      gaps,
-      ctx,
-      seed,
-      telemetry,
-      preview,
-      previewCostWeight,
-      previewScorePressure,
-      config.releaseSetup ?? false,
-      targetBudget,
-      undefined,
-      config.budgetSlack ?? 0,
-      openingBestOpportunity,
-    ))
-  );
+  // Extra-candidate lanes (see extraCandidateLane): each generates a few more
+  // catches and pushes them onto `scored` with its own tag and a rank offset past
+  // the pool. Reuse translates the most recent committed catch to this gap's entry
+  // state (a sled-relative catch can stay valid at a later similar entry on a
+  // steady periodic rhythm); brake offers uphill-entry arcs that bleed speed
+  // before contact when the rider runs over a MODERATE target speed. Deterministic
+  // (pure function of the prefix) and additive, so ranking monotonicity holds.
+  const extraScoring: ExtraCandidateScoring = {
+    preview,
+    previewCostWeight,
+    previewScorePressure,
+    releaseSetup: config.releaseSetup ?? false,
+    targetBudget,
+    budgetSlack: config.budgetSlack ?? 0,
+    openingBestOpportunity,
+  };
+  const reuseLimit = config.reuseLimit ?? reuseCandidateLimit(node, targetBudget, telemetry);
+  const reuseOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
+    tag: "reuse",
+    rankBase: extraRankBase,
+    generate: () => reuseCatchCandidates(node, gaps, ctx, telemetry, reuseLimit),
+    cache: {
+      key: reuseLimit,
+      read: (cache) => ({ value: cache.reuse, key: cache.reuseK }),
+      write: (cache, value, key) => {
+        cache.reuse = value;
+        cache.reuseK = key;
+      },
+    },
+  });
+  for (const option of reuseOptions) scored.push(option);
+  const brakeOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
+    tag: "brake",
+    rankBase: extraRankBase + reuseOptions.length,
+    generate: () => brakeCatchCandidates(node, gaps, ctx, seed, telemetry),
+    cache: {
+      key: seed,
+      read: (cache) => ({ value: cache.brake, key: cache.brakeSeed }),
+      write: (cache, value, key) => {
+        cache.brake = value;
+        cache.brakeSeed = key;
+      },
+    },
+  });
+  for (const option of brakeOptions) scored.push(option);
   scored.sort((a, b) =>
     a.score - b.score ||
     (a.candidate?.cost ?? Infinity) - (b.candidate?.cost ?? Infinity) ||
@@ -2419,22 +2498,6 @@ function unitHash(seed: number): number {
   return (x >>> 0) / 0x100000000;
 }
 
-function cachedReuseCatchCandidates(
-  node: SearchNode,
-  gaps: Gap[],
-  ctx: SpecContext,
-  telemetry: HandoffTelemetry,
-  reuseLimit = HANDOFF_REUSE_K,
-): Candidate[] {
-  const cache = extraCandidateCache.get(node) ?? {};
-  if (cache.reuse === undefined || cache.reuseK !== reuseLimit) {
-    cache.reuse = reuseCatchCandidates(node, gaps, ctx, telemetry, reuseLimit);
-    cache.reuseK = reuseLimit;
-    extraCandidateCache.set(node, cache);
-  }
-  return cache.reuse;
-}
-
 function reuseCandidateLimit(
   node: SearchNode,
   targetBudget: number,
@@ -2465,28 +2528,6 @@ function matureReuseExtraSeed(node: SearchNode): number {
   ) | 0;
 }
 
-function cachedBrakeCatchCandidates(
-  node: SearchNode,
-  gaps: Gap[],
-  ctx: SpecContext,
-  seed: number,
-  telemetry: HandoffTelemetry,
-): Candidate[] {
-  const cache = extraCandidateCache.get(node) ?? {};
-  if (cache.brakeSeed !== undefined && cache.brakeSeed !== seed) {
-    cache.brake = undefined;
-  }
-  if (cache.brake !== undefined && cache.brakeSeed === seed) return cache.brake;
-
-  const generated = brakeCatchCandidates(node, gaps, ctx, seed, telemetry);
-  cache.brake = generated;
-  if (cache.brakeSeed !== seed) {
-    cache.brakeSeed = seed;
-  }
-  extraCandidateCache.set(node, cache);
-  return generated;
-}
-
 /** Offer uphill-entry brake catches when the rider runs over a moderate target
  *  speed (early creep pre-emption). Each is one tryCandidate sim; deterministic
  *  (own seeded RNG); ref cleared so a brake is never a steady-state reuse seed. */
@@ -2515,20 +2556,17 @@ function brakeCatchCandidates(
   }
   const brakeK = brakeCandidateCount(speedRatio);
   if (brakeK <= 0) return [];
-  const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 7919) | 0);
-  const out: Candidate[] = [];
-  for (let attempt = 0; attempt < brakeK; attempt++) {
-    telemetry.brakeAttempts++;
-    const cand = sampleOneCandidate(
-      node.prefixEngine, gap, rng, ctx, node.prefixNextLineId, attempt, "brake",
-    );
-    if (cand !== null) {
+  return sampleSeededCatchCandidates(node, gap, ctx, seed, brakeK, {
+    seedSalt: 7919,
+    sampleSeed: (attempt) => attempt,
+    mode: "brake",
+    onAttempt: () => {
+      telemetry.brakeAttempts++;
+    },
+    onSuccess: () => {
       telemetry.brakeSuccesses++;
-      cand.ref = undefined; // never reuse a brake catch as a steady-state seed
-      out.push(cand);
-    }
-  }
-  return out;
+    },
+  });
 }
 
 export function brakeCandidateCount(speedRatio: number): number {

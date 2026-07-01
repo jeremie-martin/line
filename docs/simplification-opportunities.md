@@ -182,7 +182,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Introduce one `extraCandidateLane(node, gap, {tag, generate, cacheKey, seedSalt})` owning caching, telemetry, ref handling, and rank offsetting; register reuse/brake/startup as three descriptors. Centralize seed mixing in one documented function.
 - **Risk:** low
 - **Generalization note:** Distinct-by-accident seed salts make the determinism contract fragile; a shared helper makes it explicit.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Added one shared `extraCandidateLane` lane runner (with `resolveExtraCandidates` for the optional per-node memo slot) that all three lanes register through as descriptors, plus a shared seeded-RNG `sampleSeededCatchCandidates` generator for the brake+startup lanes; the reuse-vs-brake cache-key semantics and the four seed salts (7919 / 7000 / 1000003 / 0x85ebca6b) are preserved verbatim as descriptor parameters. Removed the `cachedReuseCatchCandidates` / `cachedBrakeCatchCandidates` wrappers and the duplicated push/RNG loops.
 
 ### 16. Per-node hash-seed formula copied 4-5 ways
 *(sources: handoff-admission-branch, handoff-quality-scoring, handoff-forward-eval-repair)*

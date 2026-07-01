@@ -81,11 +81,7 @@ let currentContactCenteredExploreFactor = readContactCenteredExploreFactor();
 // were removed when impact became the windowed redirection metric (the analytic
 // one-frame steering was neutralized — see the call sites below). Recover from git
 // (commit d3e4973^) if a redir-aware steering follow-up wants them as a starting
-// point. The three BEVEL constants below remain live (used by buildImpactBevelLines
-// and the entry-bevel angle, which run with a 0 shift today).
-const CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX = 6;
-const CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT = 2;
-const CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT = 2;
+// point.
 const CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG = 4;
 // NOTE (2026-06-10): widening these target ramps to the envelope-ruler ask
 // distribution (0.25/0.40, matching IMPACT_CURVE) was TESTED and REGRESSED
@@ -1181,11 +1177,11 @@ function sampleContactCenteredLines(
     postCurveBias = lerp(postCurveBias, -IMPACT_CURVE_FRONTLOAD, impactCurveP);
   }
 
-  // Keep the old lip/bevel path neutral under the redir-impact metric. A separate
-  // redir-aware entry adjustment below only changes the final approach segment: if
-  // first contact happens on that segment, the fired surface now participates in the
-  // same velocity-redirection contract as the post-contact curvature.
-  const impactLipShiftDeg = 0;
+  // The old lip/bevel path is gone (neutralized by the redir-impact migration). A
+  // separate redir-aware entry adjustment below only changes the final approach
+  // segment: if first contact happens on that segment, the fired surface now
+  // participates in the same velocity-redirection contract as the post-contact
+  // curvature.
   const entryRedirShiftDeg = contactCenteredRedirEntryAngleShiftDeg(
     targetState,
     targets.impact,
@@ -1195,9 +1191,7 @@ function sampleContactCenteredLines(
     attempt,
   );
   const entryBevelAngleDeg = clamp(
-    contactAngleDeg -
-      impactLipShiftDeg * CONTACT_CENTERED_IMPACT_ENTRY_BEVEL_SHIFT_MULT -
-      entryRedirShiftDeg,
+    contactAngleDeg - entryRedirShiftDeg,
     -30,
     65,
   );
@@ -1205,14 +1199,6 @@ function sampleContactCenteredLines(
     lineIdStart, contactPoint, preAngleDeg, contactAngleDeg, preLength, preSegments,
     entryBevelAngleDeg,
   );
-  const impactBevelShiftDeg = 0; // NEUTRALIZED (redir-impact migration; see note above)
-  const impactBevelLines = buildImpactBevelLines(
-    lineIdStart + preLines.length,
-    contactPoint,
-    contactAngleDeg,
-    impactBevelShiftDeg,
-  );
-  const firstPostAngleDeg = contactAngleDeg - impactLipShiftDeg;
 
   // Impact redirect-catch template lane (see the const block). Replaces only the
   // post profile with a two-phase valley sized from the ceiling-aware needed turn.
@@ -1259,28 +1245,28 @@ function sampleContactCenteredLines(
           Math.round(scoopLength / IMPACT_TEMPLATE_SCOOP_SEG_PX), 3, 12,
         );
         const scoopLines = buildPostContactLines(
-          lineIdStart + preLines.length + impactBevelLines.length,
+          lineIdStart + preLines.length,
           contactPoint, contactAngleDeg, scoopEndAngleDeg, scoopLength, scoopSegs,
         );
         const holdPressure = impactTemplateHoldPressure(targets, nextGapFrames);
         const holdLines = buildImpactTemplateHoldLines(
-          lineIdStart + preLines.length + impactBevelLines.length + scoopLines.length,
+          lineIdStart + preLines.length + scoopLines.length,
           scoopLines,
           contactPoint,
           scoopEndAngleDeg,
           speed,
           holdPressure,
         );
-        return [...preLines, ...impactBevelLines, ...scoopLines, ...holdLines];
+        return [...preLines, ...scoopLines, ...holdLines];
       }
     }
   }
 
   const postLines = buildPostContactLines(
-    lineIdStart + preLines.length + impactBevelLines.length, contactPoint, contactAngleDeg, postAngleDeg,
-    postLength, postSegments, postCurveBias, firstPostAngleDeg,
+    lineIdStart + preLines.length, contactPoint, contactAngleDeg, postAngleDeg,
+    postLength, postSegments, postCurveBias, contactAngleDeg,
   );
-  return [...preLines, ...impactBevelLines, ...postLines];
+  return [...preLines, ...postLines];
 }
 
 function impactTemplateBudgetPressure(): number {
@@ -1785,26 +1771,6 @@ function buildPostContactLines(
     y = y2;
   }
   return lines;
-}
-
-function buildImpactBevelLines(
-  lineIdStart: number,
-  contactPoint: { x: number; y: number },
-  contactAngleDeg: number,
-  lipShiftDeg: number,
-): TrackLine[] {
-  if (lipShiftDeg <= 1e-6) return [];
-  const angleDeg = contactAngleDeg - lipShiftDeg * CONTACT_CENTERED_IMPACT_BEVEL_SHIFT_MULT;
-  const angleRad = (angleDeg * Math.PI) / 180;
-  return [
-    makeSolidLine(
-      lineIdStart,
-      contactPoint.x,
-      contactPoint.y,
-      contactPoint.x + Math.cos(angleRad) * CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX,
-      contactPoint.y + Math.sin(angleRad) * CONTACT_CENTERED_IMPACT_BEVEL_LENGTH_PX,
-    ),
-  ];
 }
 
 export function hasPreTargetSledProximity(

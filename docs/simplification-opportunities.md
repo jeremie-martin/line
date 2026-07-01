@@ -558,7 +558,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete `impactLipShiftDeg`/`impactBevelShiftDeg`, `buildImpactBevelLines`, the three BEVEL constants, and the splices; fold `firstPostAngleDeg → contactAngleDeg`. Keep only `entryRedirShiftDeg`. Byte-identical.
 - **Risk:** low
 - **Generalization note:** Dead code from a completed metric migration.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (all 160 seed=0 checkpoint track_hashes match the baseline across all four budgets; focused vitest suite 80/80 pass). Confirmed via fresh grep that both `impactLipShiftDeg` and `impactBevelShiftDeg` are unconditionally 0 with no other assignment, `buildImpactBevelLines`'s `lipShiftDeg <= 1e-6` guard always returns `[]`, and `impactBevelLines.length === 0` in every index-math / spread site. Deleted `impactLipShiftDeg`/`impactBevelShiftDeg`, `buildImpactBevelLines`, and all three `CONTACT_CENTERED_IMPACT_BEVEL_*`/`_ENTRY_BEVEL_*` constants; removed the always-empty splices; folded `entryBevelAngleDeg` to drop the 0-valued lip term (kept live `entryRedirShiftDeg`) and `firstPostAngleDeg → contactAngleDeg`.
 
 ### 56. Three near-duplicate redir angle-shift helpers the log calls marginal (±2)
 - **Files:** `scripts/v0/arc_placement.ts`

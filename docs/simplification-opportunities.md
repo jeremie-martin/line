@@ -801,7 +801,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Factor into one `readSmoothedLaunch(det, frame)` helper; `ballisticSuffixAtExit` returns frame+vx/vy, `releaseArrivalStateAt` wraps it and attaches pose/grounded/airborne.
 - **Risk:** low
 - **Generalization note:** Removes the last duplicated wiring around a shared estimator.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Extracted the shared position/velocity read + finite-check + `gravityCorrectedLaunchAverage` call into `readSmoothedLaunch(det, frame)`; `ballisticSuffixAtExit` returns its `{vx,vy}` as `{frame,vx,vy}`, `releaseArrivalStateAt` wraps it with the extra pos-finite guard and pose/grounded/airborne fields.
 
 ### 82. Exit-frame finding duplicated between `computeShortGapFitDetection` and `releaseExitArrivalState`
 - **Files:** `scripts/v0/core/candidate.ts`

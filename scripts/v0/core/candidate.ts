@@ -750,23 +750,37 @@ function allContactFramesFor(gap: Gap, axisMeasureEnd: number): number | null {
   return axisMeasureEnd > gap.endFrame ? axisMeasureEnd : null;
 }
 
-/** Smoothed ballistic launch state at the geometric exit frame, read off the
- *  detection (shared estimator, core/launch_read.ts) — the suffix velocity the
- *  axis completion propagates ballistically. Null when the exit-frame
- *  position/velocity is unreadable. */
-function ballisticSuffixAtExit(det: Detection, exitFrame: number): BallisticAxisSuffix | null {
-  const pos = positionAt(det, exitFrame);
-  const v0 = velocityAt(det, exitFrame);
+/** Shared smoothed ballistic launch read at `frame`, off the detection arrays
+ *  (positionAt/velocityAt/airborneAt) via the gravity-corrected launch-average
+ *  estimator (core/launch_read.ts). Returns the read position plus the smoothed
+ *  {vx,vy}; null when the frame position/velocity is unreadable or the velocity
+ *  is non-finite. Callers layer their own extra checks/fields on top. */
+function readSmoothedLaunch(
+  det: Detection,
+  frame: number,
+): { pos: { x: number; y: number }; vx: number; vy: number } | null {
+  const pos = positionAt(det, frame);
+  const v0 = velocityAt(det, frame);
   if (pos === undefined || v0 === undefined) return null;
   if (!Number.isFinite(v0.x) || !Number.isFinite(v0.y)) return null;
   const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
   const { vx, vy } = gravityCorrectedLaunchAverage(
     v0,
     g,
-    (k) => airborneAt(det, exitFrame + k) === true,
-    (k) => velocityAt(det, exitFrame + k),
+    (k) => airborneAt(det, frame + k) === true,
+    (k) => velocityAt(det, frame + k),
   );
-  return { frame: exitFrame, vx, vy };
+  return { pos, vx, vy };
+}
+
+/** Smoothed ballistic launch state at the geometric exit frame, read off the
+ *  detection (shared estimator, core/launch_read.ts) — the suffix velocity the
+ *  axis completion propagates ballistically. Null when the exit-frame
+ *  position/velocity is unreadable. */
+function ballisticSuffixAtExit(det: Detection, exitFrame: number): BallisticAxisSuffix | null {
+  const launch = readSmoothedLaunch(det, exitFrame);
+  if (launch === null) return null;
+  return { frame: exitFrame, vx: launch.vx, vy: launch.vy };
 }
 
 function evaluateGapFit(
@@ -957,29 +971,21 @@ function releaseArrivalStateAt(
   grounded: number,
   airborne: boolean | undefined,
 ): GapFit["releaseArrivalState"] | undefined {
-  const pos = positionAt(det, releaseFrame);
-  const v0 = velocityAt(det, releaseFrame);
-  if (pos === undefined || v0 === undefined) return undefined;
-  if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y) || !Number.isFinite(v0.x) || !Number.isFinite(v0.y)) {
-    return undefined;
-  }
-  // Gravity-corrected average of consecutive airborne velocity reads
-  // (shared estimator — core/launch_read.ts). This call site differs from
-  // optimizer/arc_probe.ts only in the velocity source (detection arrays vs
-  // metered engine) and in having no fork-horizon bound.
-  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
-  const { vx, vy } = gravityCorrectedLaunchAverage(
-    v0,
-    g,
-    (k) => airborneAt(det, releaseFrame + k) === true,
-    (k) => velocityAt(det, releaseFrame + k),
-  );
+  // Gravity-corrected launch read (shared estimator — core/launch_read.ts).
+  // This call site differs from optimizer/arc_probe.ts only in the velocity
+  // source (detection arrays vs metered engine) and in having no fork-horizon
+  // bound. Additionally require the release position to be finite (the arrival
+  // state carries it) before attaching pose/grounded/airborne.
+  const launch = readSmoothedLaunch(det, releaseFrame);
+  if (launch === null) return undefined;
+  const { pos } = launch;
+  if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return undefined;
   return {
     frame: releaseFrame,
     x: pos.x,
     y: pos.y,
-    vx,
-    vy,
+    vx: launch.vx,
+    vy: launch.vy,
     sledPoseDeg: null,
     sledPoseRateDegPerFrame: null,
     grounded,

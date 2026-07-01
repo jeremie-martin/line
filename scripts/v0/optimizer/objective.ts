@@ -13,6 +13,7 @@ import {
   type RiderArrivalState,
 } from "./arc_model.ts";
 import {
+  isValidArrivalState,
   readinessCatchState,
   type ReadinessArrivalState,
 } from "./readiness.ts";
@@ -49,7 +50,7 @@ export function scoreNextTargetReadiness(
   arrival: ObjectiveArrivalState,
   nextTargets: AxisValues,
 ): NextGapReadinessScore | null {
-  if (!Number.isFinite(arrival.speed) || arrival.comAngleDeg === null || !Number.isFinite(arrival.comAngleDeg)) {
+  if (!isValidArrivalState(arrival.speed, arrival.comAngleDeg)) {
     return null;
   }
   const catchability = Math.max(OBJECTIVE_READINESS_MIN, readinessCatchState(arrival));

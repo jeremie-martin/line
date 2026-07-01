@@ -71,11 +71,23 @@ function locate(knots: readonly number[], x: number): [number, number] {
   return [i, (x - knots[i]) / (knots[i + 1] - knots[i])];
 }
 
+/** Shared usability predicate for a predicted arrival state's scalar fields:
+ *  both the arrival speed and CoM velocity angle must be finite numbers (a
+ *  null comAngle — an unresolved heading — reads as non-finite via
+ *  Number.isFinite). This is the single condition behind the two guards that
+ *  test it identically — objective.scoreNextTargetReadiness and readinessCatch
+ *  below — each of which keeps its own distinct failure encoding (return null
+ *  vs observer(0)+return 0). readinessCatchState's `comAngleDeg === null` guard
+ *  is a narrower type-narrowing check and is intentionally left separate. */
+export function isValidArrivalState(speed: number, comAngleDeg: number | null): boolean {
+  return Number.isFinite(speed) && Number.isFinite(comAngleDeg);
+}
+
 /** Catchability readiness of an arrival state: smooth, continuous over the
  *  whole (speed, angle) plane (bilinear inside the knot range, clamped to
  *  the edge values outside). */
 export function readinessCatch(speedPxPerFrame: number, comAngleDeg: number): number {
-  if (!Number.isFinite(speedPxPerFrame) || !Number.isFinite(comAngleDeg)) {
+  if (!isValidArrivalState(speedPxPerFrame, comAngleDeg)) {
     catchabilityObserver?.(0);
     return 0;
   }

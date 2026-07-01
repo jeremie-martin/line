@@ -743,7 +743,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Introduce one `isValidArrivalState(state)` predicate used by all three, with a single documented convention for the unusable case.
 - **Risk:** low
 - **Generalization note:** Correctness-consolidation only. (Touches scoring path — verify unchanged.)
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751). Extracted `isValidArrivalState(speed, comAngleDeg)` (`Number.isFinite(speed) && Number.isFinite(comAngleDeg)`) in `readiness.ts` and used it at the two sites whose CONDITION is genuinely identical: objective.ts `scoreNextTargetReadiness` (its explicit `comAngleDeg === null` term was redundant — null is already non-finite — so its guard was logically the same finite check; keeps `return null`) and `readinessCatch` (keeps `observer(0)+return 0`). Left `readinessCatchState` alone: its `comAngleDeg === null` guard is a narrower type-narrowing check that delegates the finite test to `readinessCatch`, so folding it in would have dropped the observer side-effect on the NaN-speed path. All 160 seed=0 track hashes identical.
 
 ### 76. `impactFeasibility` re-derives the catchability turn cap independently of the readiness table
 - **Files:** `scripts/v0/optimizer/objective.ts`

@@ -16,7 +16,7 @@ import {
   type FrameSpanAxisName,
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
-  AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, IMPACT, IMPACT_WINDOW, START_DEFAULTS, PREROLL,
+  AXES, TARGET_AXES, AXIS_VALUE_MAX, FPS, IMPACT, IMPACT_WINDOW, START_DEFAULTS, PREROLL,
   secToFrame,
   authoredSpeedToPx, speedPxToAuthored, elevationCeiling, impactCeiling, normImpact, wrapPi,
 } from "../types.ts";
@@ -269,11 +269,6 @@ export function nearestLanding(det: Detection, frame: number, radius: number): D
 }
 
 // ─────────── Engine construction / line conversion ───────────
-
-export function measureFitGrain(fit: GapFit): number {
-  const lineLens = fit.lines.map((l) => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
-  return lineLens.length > 0 ? Math.min(1, median(lineLens) / CALIB.LINE_LENGTH_CAP) : 0;
-}
 
 type EngineLineCacheEntry = {
   id: number;

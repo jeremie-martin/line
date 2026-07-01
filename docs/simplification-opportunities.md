@@ -1036,7 +1036,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete `measureFitGrain`; have polish.ts call `measureGrain` via a `GapMeasureCtx` built from `fit.lines` (or a thin adapter). No numeric change.
 - **Risk:** low
 - **Generalization note:** Same CALIB cap.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751). Deleted `measureFitGrain` (and its now-orphaned `CALIB` import) from substrate.ts; polish.ts keeps a thin local adapter that delegates to the already-exported `AXIS_MEASURE.grain` registry (`?? 0` for the empty-gap case). Went through `AXIS_MEASURE` rather than exporting `measureGrain`, because exporting it would edit the fingerprinted measure.ts axis-measurement slice; the registry access leaves measure.ts byte-identical and the substrate.ts edits fall outside its two fingerprint slices. 160/160 seed-0 track hashes match; fingerprint held at de24a421f751.
 
 ### 107. `measureAxisOverRange` re-implements the air/speed reductions with an internal switch
 - **Files:** `scripts/v0/core/substrate.ts`, `scripts/v0/core/measure.ts`

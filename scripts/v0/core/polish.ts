@@ -33,15 +33,23 @@ import {
   median,
   makeBaseEngine,
   measureAxisOverRange,
-  measureFitGrain,
   engineLineFromTrackLine,
   findGapOwning,
   velocityAt,
 } from "./substrate.ts";
+import { AXIS_MEASURE, type GapMeasureCtx } from "./measure.ts";
 import {
   makeAirPolishCandidates,
 } from "./candidate.ts";
 import { registerCompileReset } from "./compile_lifecycle.ts";
+
+// Grain reduction for a fit: median catch-line length / LINE_LENGTH_CAP.
+// Delegates to the single-source-of-truth `grain` reduction registered in
+// AXIS_MEASURE (which reads only `gapLines`); an empty gap yields 0 here,
+// matching the former local `measureFitGrain` copy.
+function measureFitGrain(fit: GapFit): number {
+  return AXIS_MEASURE.grain({ gapLines: fit.lines } as GapMeasureCtx) ?? 0;
+}
 
 // Extra frames simulated past the spec's nominal end so the detector sees the
 // full rideout tail / clean terminus + landing when scoring a freshly-rebuilt track.

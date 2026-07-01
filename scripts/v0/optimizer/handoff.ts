@@ -537,6 +537,10 @@ const IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_START = 0.08;
 const IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_SPAN = 0.06;
 const IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_END = 0.22;
 const IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_END_SPAN = 0.12;
+// Cadence "room" pressure: rises 0->1 as the median contact-gap widens, i.e. how
+// much airborne room the beat cadence leaves for an impact-shaping arc.
+const CADENCE_ROOM_START_FRAMES = 20;
+const CADENCE_ROOM_SPAN_FRAMES = 14;
 const SUBMIN_FORWARD_EVAL_START_FRAMES = 20_000;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 /** Speculative tail completion turns deep prefixes into full-duration register
@@ -4673,6 +4677,10 @@ function meanAuthoredImpactAfterFirstFeasibleContact(contacts: Spec["contacts"])
   return impacts.reduce((sum, impact) => sum + impact, 0) / impacts.length;
 }
 
+function cadenceRoomPressure(medianGapFrames: number): number {
+  return smoothstep((medianGapFrames - CADENCE_ROOM_START_FRAMES) / CADENCE_ROOM_SPAN_FRAMES);
+}
+
 function impactCurveElevationRoomPressure(gaps: readonly Gap[], gapAxisTargets: readonly AxisValues[]): number {
   const elevationValues: number[] = [];
   const contactGapFrames: number[] = [];
@@ -4692,7 +4700,7 @@ function impactCurveElevationRoomPressure(gaps: readonly Gap[], gapAxisTargets: 
   if (elevationPressure <= 0) return 0;
   const sortedGaps = [...contactGapFrames].sort((a, b) => a - b);
   const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
-  const roomPressure = smoothstep((medianGapFrames - 20) / 14);
+  const roomPressure = cadenceRoomPressure(medianGapFrames);
   return clamp01(elevationPressure * roomPressure);
 }
 
@@ -4734,7 +4742,7 @@ function impactCurveHighSpeedReliefProfilePressure(
   );
   const medianGapFrames = medianContactGapFrames(gaps);
   if (medianGapFrames === null) return 0;
-  const roomPressure = smoothstep((medianGapFrames - 20) / 14);
+  const roomPressure = cadenceRoomPressure(medianGapFrames);
   return clamp01(speedPressure * elevationPressure * manageableElevationPressure * roomPressure);
 }
 

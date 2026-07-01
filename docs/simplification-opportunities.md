@@ -341,7 +341,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Add `cadenceRoomPressure(gaps)` with two named constants and call from all sites.
 - **Risk:** low
 - **Generalization note:** The 20/14 knee is implicitly calibrated to current beat densities; naming makes it one tunable point.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Extracted `cadenceRoomPressure(medianGapFrames)` with `CADENCE_ROOM_START_FRAMES=20` / `CADENCE_ROOM_SPAN_FRAMES=14`, called from the 2 verbatim sites (`impactCurveElevationRoomPressure`, `impactCurveHighSpeedReliefProfilePressure`). The `(median-28)/14` echo in `impactTemplateHoldProfilePressure` is a different (inverted, 28-start) knee and was left untouched.
 
 ### 33. Start-support and ballistic-start budget pressures hard-wired to the 50k grid
 *(sources: handoff-start-output)*

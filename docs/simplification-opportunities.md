@@ -106,7 +106,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Introduce one `HANDOFF_MATURITY_BUDGET_SCALE_FRAMES` referenced by all four sites, or express maturity as a fraction of `targetBudget` (self-scaling off-grid).
 - **Risk:** low
 - **Generalization note:** Absolute 150k assumes the current grid; a fraction of spec contacts/duration generalizes.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match), full canonical run not needed. Grep turned up two more identically-valued duplicates beyond the four named in this entry (`HANDOFF_REUSE_MATURE_BUDGET_SCALE_FRAMES`, `QUALITY_FUTURE_PREVIEW_BUDGET_SCALE_FRAMES`); all six now point at one `HANDOFF_MATURITY_BUDGET_SCALE_FRAMES = 150_000`. The self-scaling-fraction-of-`targetBudget` alternative was intentionally NOT implemented here (real behavioral change) — see follow-up entry #137.
 
 ### 8. `openingBestForwardEvalOpportunity`: dense-contact-band + objective/margin island reverse-fit to specific specs
 *(sources: handoff-core-rescue, handoff-admission-branch, handoff-forward-eval-repair)*
@@ -1317,6 +1317,16 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Drop the `ease` parameter and inline linear interpolation. If per-segment easing is ever wanted it belongs in the keyframe schema.
 - **Risk:** low
 - **Generalization note:** Unused flexibility.
+- **Status:** Not Started
+
+### 137. Express `HANDOFF_MATURITY_BUDGET_SCALE_FRAMES` as a fraction of `targetBudget` instead of a fixed 150k
+*(follow-up to #7)*
+- **Files:** `scripts/v0/optimizer/handoff.ts`
+- **Location:** `HANDOFF_MATURITY_BUDGET_SCALE_FRAMES` (single shared constant introduced by #7); all six consumers: `qualityFuturePreviewPressure`, `matureReuseExtraPressure`, `budgetAwareQualitySampleCount`, `shallowQualityTailThrottlePressure`, `tailCompletionContactWindow`, `releaseVerticalSetupPressure`.
+- **Complexity smell:** Entry #7 consolidated four-then-discovered-six identically-valued `150_000` constants into one, but the value itself is still an absolute frame count pinned to the middle of the canonical `{125k,250k,375k,500k}` grid. Every consumer computes a `budget/(budget+SCALE)`-shaped or `(budget-SCALE)/SPAN`-shaped maturity ramp; off-grid (e.g. a 10k or 2M budget spec) "maturity" saturates or never arrives in a way that has no relationship to how hard that spec actually is to compile.
+- **Proposed simplification:** Replace the fixed 150_000 with a maturity scale derived from the spec itself (e.g. a multiple of `predictedFirstCompletionFrames` or contact count), so the same qualitative maturity ramp shape reappears at whatever absolute budget is "enough" for that spec — self-scaling off-grid. This is a real behavioral change (not a rename): every one of the six pressures shifts for any spec whose natural completion cost differs from the current golden population's, so it needs full statistical evaluation against the canonical benchmark, not the byte-identical fast path used for #7.
+- **Risk:** medium
+- **Generalization note:** Same failure mode as #33/#41/#49/#18 elsewhere in this file — absolute frame-count grid anchors that silently misbehave for specs/budgets outside the 125k-500k canonical range.
 - **Status:** Not Started
 
 ---

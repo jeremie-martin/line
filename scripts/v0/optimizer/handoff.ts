@@ -375,6 +375,13 @@ const HANDOFF_BRANCHING = 3;
 const HANDOFF_LOW_SLACK_BRANCH_FULL = 1.25;
 const HANDOFF_LOW_SLACK_BRANCH_ZERO = 2.0;
 
+/** Budget (in frames) at which the compiler is considered "mature": the single
+ *  shared maturity scale used by every budget→maturity smoothstep in this module
+ *  (quality-breadth lean, reuse / future-preview / release-vertical pressures,
+ *  and the tail-completion / shallow-tail throttles). These sites previously each
+ *  carried their own identically-valued 150k constant. */
+const HANDOFF_MATURITY_BUDGET_SCALE_FRAMES = 150_000;
+
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
  *  pool is mostly wasted per-node work that starves bounded-budget exploration.
@@ -386,7 +393,6 @@ const HANDOFF_QUALITY_N_CAND = 32;
 const HANDOFF_QUALITY_LEAN_N_CAND = 29;
 const HANDOFF_QUALITY_SCARCE_LEAN_START_FRAMES = 50_000;
 const HANDOFF_QUALITY_SCARCE_LEAN_SPAN_FRAMES = 50_000;
-const HANDOFF_QUALITY_MATURE_LEAN_START_FRAMES = 150_000;
 const HANDOFF_QUALITY_MATURE_LEAN_SPAN_FRAMES = 100_000;
 const HANDOFF_QUALITY_VARIATION_RELIEF_AIR_RANGE = 0.50;
 const HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE = 0.40;
@@ -430,11 +436,9 @@ const HANDOFF_PREVIEW_K = 1;
  *  rhythm. */
 const HANDOFF_REUSE_K = 1;
 const HANDOFF_REUSE_MATURE_EXTRA_WEIGHT = 0.35;
-const HANDOFF_REUSE_MATURE_BUDGET_SCALE_FRAMES = 150_000;
 const HANDOFF_REUSE_MATURE_FULL_FEEDBACK_SCALE = 48;
 const HANDOFF_PREVIEW_HORIZON = 1;
 const QUALITY_FUTURE_PREVIEW_MAX_PRESSURE = 1.0;
-const QUALITY_FUTURE_PREVIEW_BUDGET_SCALE_FRAMES = 150_000;
 const QUALITY_FUTURE_PREVIEW_FULL_FEEDBACK_SCALE = 12;
 const START_OPTION_LIMIT = 10;
 const START_SCORING_POOL = 16;
@@ -485,7 +489,6 @@ const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
 const HANDOFF_BRAKE_QUALITY_BASE_K = 3;
 const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
 const HANDOFF_RELEASE_VERTICAL_WEIGHT = 0.045;
-const HANDOFF_RELEASE_VERTICAL_BUDGET_SCALE_FRAMES = 150_000;
 const HANDOFF_RELEASE_VERTICAL_FULL_FEEDBACK_SCALE = 48;
 const HANDOFF_RELEASE_VERTICAL_LOW_AIR_TARGET_SCALE = 0.45;
 const HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_FRAMES = Math.round(FPS * 0.72);
@@ -532,10 +535,8 @@ const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
  *  the completion suffix branches two-wide and is charged like normal search. */
 const TAIL_COMPLETION_CONTACT_WINDOW = 8;
 const TAIL_COMPLETION_BUDGET_WINDOW_EXTRA = 4;
-const TAIL_COMPLETION_BUDGET_SCALE_FRAMES = 150_000;
 const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
 const QUALITY_SHALLOW_TAIL_THROTTLE_MAX_PRESSURE = 1.0;
-const QUALITY_SHALLOW_TAIL_THROTTLE_BUDGET_SCALE_FRAMES = 150_000;
 const QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE = 6;
 const FAR_BACK_FRONTIER_LAG = 3;
 /** Once a passing output exists but its axis quality is still weak, spend sparse
@@ -2390,7 +2391,7 @@ function qualityFuturePreviewPressure(
   telemetry: HandoffTelemetry,
 ): number {
   return QUALITY_FUTURE_PREVIEW_MAX_PRESSURE *
-    maturityPressure(targetBudget, QUALITY_FUTURE_PREVIEW_BUDGET_SCALE_FRAMES) *
+    maturityPressure(targetBudget, HANDOFF_MATURITY_BUDGET_SCALE_FRAMES) *
     fullFeedbackPressure(telemetry, QUALITY_FUTURE_PREVIEW_FULL_FEEDBACK_SCALE);
 }
 
@@ -2448,7 +2449,7 @@ function reuseCandidateLimit(
 function matureReuseExtraPressure(targetBudget: number, uniqueFull: number): number {
   const budget = Math.max(0, targetBudget);
   const budgetPressure = smoothstep(
-    clamp01(budget / (budget + HANDOFF_REUSE_MATURE_BUDGET_SCALE_FRAMES)),
+    clamp01(budget / (budget + HANDOFF_MATURITY_BUDGET_SCALE_FRAMES)),
   );
   const feedback = Math.max(0, uniqueFull);
   const feedbackPressure = smoothstep(
@@ -2876,7 +2877,7 @@ function budgetAwareQualitySampleCount(targetBudget: number | undefined): number
       HANDOFF_QUALITY_SCARCE_LEAN_SPAN_FRAMES,
   );
   const matureLean = smoothstep(
-    (targetBudget - HANDOFF_QUALITY_MATURE_LEAN_START_FRAMES) /
+    (targetBudget - HANDOFF_MATURITY_BUDGET_SCALE_FRAMES) /
       HANDOFF_QUALITY_MATURE_LEAN_SPAN_FRAMES,
   );
   const lean = Math.max(scarceLean, matureLean);
@@ -3032,7 +3033,7 @@ function shallowQualityTailThrottlePressure(
 ): number {
   const budget = Math.max(0, targetBudget);
   const budgetPressure = smoothstep(
-    clamp01(budget / (budget + QUALITY_SHALLOW_TAIL_THROTTLE_BUDGET_SCALE_FRAMES)),
+    clamp01(budget / (budget + HANDOFF_MATURITY_BUDGET_SCALE_FRAMES)),
   );
   const fullFeedback = Math.max(0, uniqueFull);
   const feedbackPressure = smoothstep(
@@ -3063,7 +3064,7 @@ function tailCompletionWindowSeed(node: SearchNode, remainingContacts: number): 
 
 function tailCompletionContactWindow(targetBudget: number): number {
   const budget = Math.max(0, targetBudget);
-  const pressure = smoothstep(clamp01(budget / (budget + TAIL_COMPLETION_BUDGET_SCALE_FRAMES)));
+  const pressure = smoothstep(clamp01(budget / (budget + HANDOFF_MATURITY_BUDGET_SCALE_FRAMES)));
   return TAIL_COMPLETION_CONTACT_WINDOW + TAIL_COMPLETION_BUDGET_WINDOW_EXTRA * pressure;
 }
 
@@ -3237,7 +3238,7 @@ function releaseVerticalSetupPressure(
   const setupPressure = Math.max(lowAirPressure, cadencePressure);
   if (setupPressure <= 0) return 0;
   return setupPressure *
-    maturityPressure(targetBudget, HANDOFF_RELEASE_VERTICAL_BUDGET_SCALE_FRAMES) *
+    maturityPressure(targetBudget, HANDOFF_MATURITY_BUDGET_SCALE_FRAMES) *
     fullFeedbackPressure(telemetry, HANDOFF_RELEASE_VERTICAL_FULL_FEEDBACK_SCALE);
 }
 

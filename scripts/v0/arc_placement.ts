@@ -855,6 +855,62 @@ type ContactCenteredRolls = {
   normalJitterRoll: number;
 };
 
+/** Shared speed/dense/deadline pressure derivation for the contact-centered
+ *  sampler. `sampleContactCenteredLines` and `guideContactCenteredRolls` both
+ *  need the same block of derived pressures from the identical inputs, so it
+ *  lives here as one source of truth for the 20/12, 18/10, and `CC_PRESSURE_*`
+ *  constants. Each caller layers its own site-specific terms on top of the
+ *  returned bundle. */
+interface ContactCenteredPressures {
+  targetSpeedPx: number;
+  air: number;
+  nextGapFrames: number | null;
+  gapFrames: number;
+  denseContactPressure: number;
+  deadlinePressure: number;
+  absoluteSpeedPressure: number;
+  brakePressure: number;
+  accelPressure: number;
+  speedCarryPressure: number;
+}
+
+function contactCenteredPressures(
+  targetState: ImpactFrameTargetState,
+  targets: AxisValues,
+  gap: Gap,
+  allContactFrames: readonly number[],
+): ContactCenteredPressures {
+  const targetSpeedPx = targets.speed === undefined
+    ? targetState.speed
+    : authoredSpeedToPx(targets.speed);
+  const air = clamp(targets.air ?? 0.5, 0, 1);
+  const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
+  const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
+  const denseContactPressure = nextGapFrames === null
+    ? 0
+    : clamp((20 - nextGapFrames) / 12, 0, 1);
+  const deadlinePressure = clamp((18 - gapFrames) / 10, 0, 1);
+  const absoluteSpeedPressure = clamp(
+    (targetState.speed - CC_PRESSURE_START_PX) / CC_PRESSURE_SPAN_PX, 0, 1,
+  );
+  const brakePressure = clamp((targetState.speed - targetSpeedPx) / CC_PRESSURE_SPAN_PX, 0, 1);
+  const accelPressure = clamp((targetSpeedPx - targetState.speed) / CC_PRESSURE_SPAN_PX, 0, 1);
+  const speedCarryPressure = clamp((targetSpeedPx - CC_CARRY_START_PX) / CC_CARRY_SPAN_PX, 0, 1)
+    * (1 - clamp((targetSpeedPx - CC_CARRY_FADE_START_PX) / CC_CARRY_FADE_SPAN_PX, 0, 1));
+  return {
+    targetSpeedPx,
+    air,
+    nextGapFrames,
+    gapFrames,
+    denseContactPressure,
+    deadlinePressure,
+    absoluteSpeedPressure,
+    brakePressure,
+    accelPressure,
+    speedCarryPressure,
+  };
+}
+
 /** Ported from work-new `sampleContactCenteredLinesWithDiagnostics`. Emits one
  *  pre+post line catch through the predicted sled position, but the post-contact
  *  launch angle and grounded ride-out length are physically shaped (energy launch
@@ -885,23 +941,18 @@ function sampleContactCenteredLines(
   );
   const sampledRolls = widenContactCenteredTailRolls(guidedRolls, attempt);
 
-  const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
-  const targetSpeedPx = targets.speed === undefined
-    ? targetState.speed
-    : authoredSpeedToPx(targets.speed);
-  const air = clamp(targets.air ?? 0.5, 0, 1);
-  const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
-  const denseContactPressure = nextGapFrames === null
-    ? 0
-    : clamp((20 - nextGapFrames) / 12, 0, 1);
-  const deadlinePressure = clamp((18 - gapFrames) / 10, 0, 1);
-  const absoluteSpeedPressure = clamp(
-    (targetState.speed - CC_PRESSURE_START_PX) / CC_PRESSURE_SPAN_PX, 0, 1,
-  );
-  const brakePressure = clamp((targetState.speed - targetSpeedPx) / CC_PRESSURE_SPAN_PX, 0, 1);
-  const accelPressure = clamp((targetSpeedPx - targetState.speed) / CC_PRESSURE_SPAN_PX, 0, 1);
-  const speedCarryPressure = clamp((targetSpeedPx - CC_CARRY_START_PX) / CC_CARRY_SPAN_PX, 0, 1)
-    * (1 - clamp((targetSpeedPx - CC_CARRY_FADE_START_PX) / CC_CARRY_FADE_SPAN_PX, 0, 1));
+  const {
+    targetSpeedPx,
+    air,
+    nextGapFrames,
+    gapFrames,
+    denseContactPressure,
+    deadlinePressure,
+    absoluteSpeedPressure,
+    brakePressure,
+    accelPressure,
+    speedCarryPressure,
+  } = contactCenteredPressures(targetState, targets, gap, allContactFrames);
   const sustainedContactCarryPressure = speedCarryPressure
     * (nextGapFrames === null ? 0 : clamp((15 - nextGapFrames) / 2, 0, 1))
     * (1 - clamp((air - 0.62) / 0.12, 0, 1));
@@ -1561,23 +1612,15 @@ function guideContactCenteredRolls(
   allContactFrames: readonly number[],
   attempt: number,
 ): ContactCenteredRolls {
-  const targetSpeedPx = targets.speed === undefined
-    ? targetState.speed
-    : authoredSpeedToPx(targets.speed);
-  const air = clamp(targets.air ?? 0.5, 0, 1);
-  const nextGapFrames = framesUntilNextContact(gap, allContactFrames);
-  const gapFrames = Math.max(1, gap.endFrame - gap.startFrame);
-  const denseContactPressure = nextGapFrames === null
-    ? 0
-    : clamp((20 - nextGapFrames) / 12, 0, 1);
-  const deadlinePressure = clamp((18 - gapFrames) / 10, 0, 1);
-  const absoluteSpeedPressure = clamp(
-    (targetState.speed - CC_PRESSURE_START_PX) / CC_PRESSURE_SPAN_PX, 0, 1,
-  );
-  const brakePressure = clamp((targetState.speed - targetSpeedPx) / CC_PRESSURE_SPAN_PX, 0, 1);
-  const accelPressure = clamp((targetSpeedPx - targetState.speed) / CC_PRESSURE_SPAN_PX, 0, 1);
-  const speedCarryPressure = clamp((targetSpeedPx - CC_CARRY_START_PX) / CC_CARRY_SPAN_PX, 0, 1)
-    * (1 - clamp((targetSpeedPx - CC_CARRY_FADE_START_PX) / CC_CARRY_FADE_SPAN_PX, 0, 1));
+  const {
+    air,
+    denseContactPressure,
+    deadlinePressure,
+    absoluteSpeedPressure,
+    brakePressure,
+    accelPressure,
+    speedCarryPressure,
+  } = contactCenteredPressures(targetState, targets, gap, allContactFrames);
   const scarcity = Math.max(deadlinePressure, denseContactPressure);
 
   const guided: ContactCenteredRolls = {

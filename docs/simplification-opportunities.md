@@ -603,7 +603,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract `contactCenteredPressures(targetState, targets, gap, allContactFrames)` returning the bundle, called from both sites. One source of truth for 20/12, 18/10, `CC_PRESSURE_*`.
 - **Risk:** low
 - **Generalization note:** Consolidation reduces drift risk.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (160/160 track hashes match seed=0 probe vs `attempt-aim-highk-gated-j32-a01` across all 4 budgets). Extracted `contactCenteredPressures(targetState, targets, gap, allContactFrames)` returning the 10 shared derivations (`targetSpeedPx`, `air`, `nextGapFrames`, `gapFrames`, `denseContactPressure`, `deadlinePressure`, `absoluteSpeedPressure`, `brakePressure`, `accelPressure`, `speedCarryPressure`) and called it from both `sampleContactCenteredLines` and `guideContactCenteredRolls`. The site-specific tail terms were left in place (not part of the identical block): `sustainedContactCarryPressure`+`clearancePressure` in the sampler, `scarcity` in the guide.
 
 ### 61. Three near-identical "blend toward symmetric pop-arc" launch blocks
 - **Files:** `scripts/v0/arc_placement.ts`

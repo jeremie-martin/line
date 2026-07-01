@@ -1290,7 +1290,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete `poolEvalFrames`, its reset, the getter, and the two accumulation lines. Removes work from the hot path.
 - **Risk:** low
 - **Generalization note:** Pure telemetry dead code.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Whole-repo grep confirmed `getPoolEvalFrames`/`poolEvalFrames` had zero consumers outside `sample.ts` itself. Deleted the `poolEvalFrames` global, its reset, the exported getter, and the two accumulation lines in `sampleOneCandidate` — removing two `getPhysicsFrameCount()` reads + a `Math.max` per candidate evaluation from the hottest loop (the now-unused `getPhysicsFrameCount` import was also dropped).
 
 ### 134. `CandidateProbe.sledPoseDeg` is a memoized closure no decision consumes
 - **Files:** `scripts/v0/optimizer/sample.ts`

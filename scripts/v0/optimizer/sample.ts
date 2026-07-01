@@ -31,7 +31,7 @@ import {
   type ImpactFrameTargetState,
   type PreTargetSledTrace,
 } from "../arc_placement.ts";
-import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
+import { getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
 import { aimTargets } from "./planning.ts";
@@ -77,26 +77,15 @@ export type CandidateProbe = {
 
 let candidateSampleCount = 0;
 let viableCandidateCount = 0;
-/** Physics frames charged INSIDE pool-candidate evaluation rides
- *  (`sampleOneCandidate` → `tryCandidateGeometry`). This isolates the
- *  dominant per-node cost — the exact-evaluation rides through each sampled
- *  geometry — from aim-lane probes and forward-eval rollouts, which charge
- *  frames elsewhere. Pure telemetry; reset by compile entry points. */
-let poolEvalFrames = 0;
 
 export function resetCandidateSamples(): void {
   candidateSampleCount = 0;
   viableCandidateCount = 0;
-  poolEvalFrames = 0;
 }
 registerCompileReset(resetCandidateSamples);
 
 export function getCandidateSamples(): number {
   return candidateSampleCount;
-}
-
-export function getPoolEvalFrames(): number {
-  return poolEvalFrames;
 }
 
 export function getViableCandidates(): number {
@@ -183,12 +172,10 @@ export function sampleOneCandidate(
     ctx.allContactFrames,
   );
 
-  const framesBeforeRide = getPhysicsFrameCount();
   const fit = tryCandidateGeometry(
     engine, gap, geometry, lineIdStart, ctx.allContactFrames,
     axisMeasureEnd, gap.targets, true, mode, probe.preTargetSledTrace,
   ) as Candidate | null;
-  poolEvalFrames += Math.max(0, getPhysicsFrameCount() - framesBeforeRide);
 
   // Record the sled reference used to place this catch, so a later gap with a
   // similar entry state can translate this geometry and reuse it (catch-reuse

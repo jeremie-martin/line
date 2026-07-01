@@ -69,14 +69,6 @@ const CONTACT_CENTERED_POINT_JITTER = 4;
 const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
 const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
 const CONTACT_CENTERED_GUIDED_POINT_SPREAD = 0.08;
-// Study-only tail widening for the contact-centered sampler. LR_CC_EXPLORE=1
-// is the default and returns the exact current roll stream. Values above 1
-// expand late-attempt rolls around 0.5, so low-q prefixes stay conservative
-// while larger q values buy explicitly wider arc geometry.
-const CONTACT_CENTERED_EXPLORE_TAIL_START_ATTEMPT = 16;
-const CONTACT_CENTERED_EXPLORE_TAIL_SPAN_ATTEMPTS = 16;
-const CONTACT_CENTERED_EXPLORE_MAX = 2.25;
-let currentContactCenteredExploreFactor = readContactCenteredExploreFactor();
 // The old one-frame impact contact-angle / lip / dense-mature steering constants
 // were removed when impact became the windowed redirection metric (the analytic
 // one-frame steering was neutralized — see the call sites below). Recover from git
@@ -373,7 +365,6 @@ function makeArcPlacementStats(): ArcPlacementStats {
 const arcPlacementStats: ArcPlacementStats = makeArcPlacementStats();
 
 export function resetArcPlacementStats(): void {
-  currentContactCenteredExploreFactor = readContactCenteredExploreFactor();
   const fresh = makeArcPlacementStats();
   arcPlacementStats.mode = fresh.mode;
   resetCounter(arcPlacementStats, fresh);
@@ -964,10 +955,9 @@ function sampleContactCenteredLines(
     tangentJitterRoll: rng(),
     normalJitterRoll: rng(),
   };
-  const guidedRolls = guideContactCenteredRolls(
+  const sampledRolls = guideContactCenteredRolls(
     rawRolls, targetState, targets, gap, allContactFrames, attempt,
   );
-  const sampledRolls = widenContactCenteredTailRolls(guidedRolls, attempt);
 
   const {
     targetSpeedPx,
@@ -1698,48 +1688,6 @@ function ccGuidedRoll(
 ): number {
   const guided = clamp(center + (lowDiscrepancyRoll(attempt, salt) - 0.5) * spread, 0, 1);
   return clamp(lerp(raw, guided, weight), 0, 1);
-}
-
-function widenContactCenteredTailRolls(rolls: ContactCenteredRolls, attempt: number): ContactCenteredRolls {
-  const explore = contactCenteredExploreFactor();
-  if (explore === 1) return rolls;
-  const tail = contactCenteredExploreTail(attempt);
-  if (tail <= 0) return rolls;
-  const scale = 1 + (explore - 1) * tail;
-  return {
-    segmentLengthRoll: widenRoll(rolls.segmentLengthRoll, scale),
-    contactAngleRoll: widenRoll(rolls.contactAngleRoll, scale),
-    preLengthRoll: widenRoll(rolls.preLengthRoll, scale),
-    postLengthRoll: widenRoll(rolls.postLengthRoll, scale),
-    preAngleRoll: widenRoll(rolls.preAngleRoll, scale),
-    postAngleRoll: widenRoll(rolls.postAngleRoll, scale),
-    tangentJitterRoll: widenRoll(rolls.tangentJitterRoll, scale),
-    normalJitterRoll: widenRoll(rolls.normalJitterRoll, scale),
-  };
-}
-
-function widenRoll(roll: number, scale: number): number {
-  return 0.5 + (roll - 0.5) * scale;
-}
-
-function contactCenteredExploreTail(attempt: number): number {
-  return smoothstep(
-    (attempt - CONTACT_CENTERED_EXPLORE_TAIL_START_ATTEMPT) /
-      CONTACT_CENTERED_EXPLORE_TAIL_SPAN_ATTEMPTS,
-  );
-}
-
-function contactCenteredExploreFactor(): number {
-  return currentContactCenteredExploreFactor;
-}
-
-function readContactCenteredExploreFactor(): number {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_CC_EXPLORE;
-  if (raw === undefined || raw.trim() === "") return 1;
-  const parsed = Number.parseFloat(raw);
-  if (!Number.isFinite(parsed) || parsed <= 0) return 1;
-  return clamp(parsed, 0.25, CONTACT_CENTERED_EXPLORE_MAX);
 }
 
 /** Per-attempt span blends for launch shaping and ride-out length. 2-D (work-new

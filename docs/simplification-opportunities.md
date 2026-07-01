@@ -630,7 +630,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete the env knob and widen path (keep in `study_cc_explore.ts` if wanted). Byte-identical with the flag unset.
 - **Risk:** low
 - **Generalization note:** Pure study scaffolding removal.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (all 160 seed=0 `track_hash` match `attempt-aim-highk-gated-j32-a01`; focused tests 116/116). At the default the factor-reader returned 1, so `widenContactCenteredTailRolls` returned rolls untouched. Deleted the `LR_CC_EXPLORE` env knob, the mutable global + its per-compile re-read in `resetArcPlacementStats`, the three `CONTACT_CENTERED_EXPLORE_*` constants, and the five widen-path functions (`widenContactCenteredTailRolls`, `widenRoll`, `contactCenteredExploreTail`, `contactCenteredExploreFactor`, `readContactCenteredExploreFactor`); the call site now uses the guided rolls directly. `study_cc_explore.ts` and its companion `analyze_cc_explore.ts` only ever set the env var + ran the normal compiler to characterize this feature (they never imported the machinery), so both were deleted; the `LR_QUALITY_NCAND` axis they also swept stays live via `study_budget_spend.ts`.
 
 ### 64. `sampleTargetStateArc` / `sampleArcParams` Arc-emitting path exists only for reachability probes
 - **Files:** `scripts/v0/arc_placement.ts`

@@ -259,7 +259,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete `leafReadinessLambda`/`Kind`, `leafFrontierReadiness`, `leafReadinessFromArrival`, the `LEAF_RDY_*` constants, and the tilt block; keep the study behind its harness only if still wanted.
 - **Risk:** low
 - **Generalization note:** Pure campaign scaffolding, no production dependence.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Deleted `leafReadinessLambda`/`leafReadinessKind`, `leafFrontierReadiness`, `leafReadinessFromArrival` (+5-way kind switch), the `LEAF_RDY_*` constants, and the `objectiveLeafValue` tilt block; dropped the now-unused `impactFeasibility`/`predictArrivalAtNextContact` imports. Focused test suite (83 tests) green; no test exercised `LR_LEAF_RDY_LAMBDA`.
 
 ### 24. `forwardTerminalReadiness` is exported but has zero call sites
 - **Files:** `scripts/v0/optimizer/handoff.ts`

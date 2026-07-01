@@ -1072,7 +1072,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete `axisCompress` and export `axisScale` directly.
 - **Risk:** low
 - **Generalization note:** Offline calibration authoring only.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Note: catalog's "axisCompress has no callers" was stale — it had 2 callers (`elevation`/`amplitude` in `DEFAULT_CALIBRATION_CANDIDATES`). Exported `axisScale` with a `center = 0.5` default, deleted both `axisExpand` and `axisCompress` thin wrappers, and repointed all 5 call sites (3 in `spec_modifiers.ts`, 2 in `specs/drums_0_56s_creative.ts`) to `axisScale` — byte-identical since the wrappers were pure forwards.
 
 ### 111. `resolveCalibrationSelection` is a dead exported function
 - **Files:** `scripts/v0/core/spec_modifiers.ts`

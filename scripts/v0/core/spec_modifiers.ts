@@ -187,7 +187,7 @@ export function axisShift(axis: TargetAxisName, delta: number): CalibrationCandi
 // Linear remap of an axis around `center` by `factor`: factor>1 expands (pushes
 // values away from center), factor<1 compresses (pulls toward it). The verb is
 // derived from the factor so the id/label can never disagree with the effect.
-function axisScale(axis: TargetAxisName, factor: number, center: number): CalibrationCandidate {
+export function axisScale(axis: TargetAxisName, factor: number, center = 0.5): CalibrationCandidate {
   const verb = factor >= 1 ? "expand" : "compress";
   const dir = factor >= 1 ? "away from" : "toward";
   return {
@@ -196,14 +196,6 @@ function axisScale(axis: TargetAxisName, factor: number, center: number): Calibr
     description: `Remap ${axis} ${dir} ${center}.`,
     apply: (spec) => mapAxis(spec, axis, (v) => center + (v - center) * factor),
   };
-}
-
-export function axisExpand(axis: TargetAxisName, factor: number, center = 0.5): CalibrationCandidate {
-  return axisScale(axis, factor, center);
-}
-
-export function axisCompress(axis: TargetAxisName, factor: number, center = 0.5): CalibrationCandidate {
-  return axisScale(axis, factor, center);
 }
 
 export function axisFloor(axis: TargetAxisName, floor: number): CalibrationCandidate {
@@ -434,10 +426,10 @@ export const DEFAULT_CALIBRATION_CANDIDATES = [
   identity(),
   axisShift("speed", 0.03),
   axisShift("speed", 0.06),
-  axisExpand("speed", 1.08),
+  axisScale("speed", 1.08),
   axisFloor("air", 0.35),
-  axisCompress("elevation", 0.9),
-  axisCompress("amplitude", 0.9),
+  axisScale("elevation", 0.9),
+  axisScale("amplitude", 0.9),
   impactHighCompress({ threshold: 0.4, amount: 0.1 }),
 ] satisfies CalibrationCandidate[];
 

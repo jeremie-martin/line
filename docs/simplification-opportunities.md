@@ -612,7 +612,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract `blendPostTowardPopArc(postAngleDeg, postLength, nextGapFrames, vx, blend, shortenFactor)` and call from both; reuse the atan2/clamp for elevation.
 - **Risk:** low
 - **Generalization note:** The pop-arc formula is gap-relative already.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (all 160 seed=0 checkpoint track_hashes match baseline). Extracted `blendPostTowardPopArc(postAngleDeg, postLength, nextGapFrames, vx, blend, shortenFactor)` and called it from the confirmed-identical amplitude (shortenFactor 1.0) and impact-arrival (0.6) blocks. Left the energy and elevation blocks alone: they compute a DIFFERENT launch vy (energy-drop / `elevationToLaunchVy`, not the pop-arc `−½·g·N`) and vx (velocity.x / `sqrt(speed²−vy²)`), energy has no clamp and elevation does no ride-out shortening, so only the trivial `atan2·180/π` token is shared — an idiom used at 6 sites file-wide, not worth a helper here.
 
 ### 62. Elevation ride-out shortening coupled to amplitude block by a shared magic 0.30
 - **Files:** `scripts/v0/arc_placement.ts`

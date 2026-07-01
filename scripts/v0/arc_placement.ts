@@ -911,6 +911,34 @@ function contactCenteredPressures(
   };
 }
 
+/** Blend the post-contact launch toward the symmetric pop arc (vy0 = −½·g·N,
+ *  vx = current horizontal speed) that fills the gap of `nextGapFrames`, and
+ *  shorten the grounded ride-out toward the 28px floor so the airborne arc has
+ *  more of the gap to express. Shared by the amplitude and impact-arrival launch
+ *  lanes: they compute the identical pop-arc geometry and differ only in the
+ *  `blend` pressure fed in and the ride-out `shortenFactor` (amplitude 1.0,
+ *  impact-arrival 0.6). Returns the updated angle/length. */
+function blendPostTowardPopArc(
+  postAngleDeg: number,
+  postLength: number,
+  nextGapFrames: number,
+  vx: number,
+  blend: number,
+  shortenFactor: number,
+): { postAngleDeg: number; postLength: number } {
+  const vyArc = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * nextGapFrames; // fills the gap
+  const vxArc = Math.max(1, vx);
+  const arcLaunchDeg = (Math.atan2(vyArc, vxArc) * 180) / Math.PI;
+  return {
+    postAngleDeg: clamp(
+      lerp(postAngleDeg, arcLaunchDeg, blend),
+      ELEVATION_POST_ANGLE_MIN,
+      ELEVATION_POST_ANGLE_MAX,
+    ),
+    postLength: lerp(postLength, 28, blend * shortenFactor),
+  };
+}
+
 /** Ported from work-new `sampleContactCenteredLinesWithDiagnostics`. Emits one
  *  pre+post line catch through the predicted sled position, but the post-contact
  *  launch angle and grounded ride-out length are physically shaped (energy launch
@@ -1136,16 +1164,11 @@ function sampleContactCenteredLines(
   if (targets.amplitude !== undefined && nextGapFrames !== null) {
     const amp = clamp(targets.amplitude, 0, 1);
     const amplitudePressure = smoothstep((amp - 0.30) / 0.45);
-    const vyArc = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * nextGapFrames; // fills the gap
-    const vxArc = Math.max(1, targetState.velocity.x);
-    const arcLaunchDeg = (Math.atan2(vyArc, vxArc) * 180) / Math.PI;
     const blend = clamp(ccSpanBlends(attempt).launch, 0, 1) * amplitudePressure;
-    postAngleDeg = clamp(
-      lerp(postAngleDeg, arcLaunchDeg, blend),
-      ELEVATION_POST_ANGLE_MIN, ELEVATION_POST_ANGLE_MAX,
-    );
     // Shorten the grounded ride-out so the airborne arc fills more of the gap.
-    postLength = lerp(postLength, 28, blend);
+    ({ postAngleDeg, postLength } = blendPostTowardPopArc(
+      postAngleDeg, postLength, nextGapFrames, targetState.velocity.x, blend, 1,
+    ));
   }
 
   // Impact-ARRIVAL launch. The feasibility
@@ -1165,16 +1188,11 @@ function sampleContactCenteredLines(
     const arrivalPressure = budgetFade
       * smoothstep((gap.nextImpact - IMPACT_ARRIVAL_TARGET_START) / IMPACT_ARRIVAL_TARGET_SPAN);
     if (arrivalPressure > 0) {
-      const vyArc = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * nextGapFrames;
-      const vxArc = Math.max(1, targetState.velocity.x);
-      const arcLaunchDeg = (Math.atan2(vyArc, vxArc) * 180) / Math.PI;
       const blend = clamp(ccSpanBlends(attempt).launch, 0, 1) * arrivalPressure;
-      postAngleDeg = clamp(
-        lerp(postAngleDeg, arcLaunchDeg, blend),
-        ELEVATION_POST_ANGLE_MIN, ELEVATION_POST_ANGLE_MAX,
-      );
       // Shorten the grounded ride-out so the flight has the gap to build vy.
-      postLength = lerp(postLength, 28, blend * 0.6);
+      ({ postAngleDeg, postLength } = blendPostTowardPopArc(
+        postAngleDeg, postLength, nextGapFrames, targetState.velocity.x, blend, 0.6,
+      ));
     }
   }
 

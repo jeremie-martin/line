@@ -985,7 +985,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace with a named constant derived from `PERSISTENCE_FRAMES`/`K_BOUNCE_LANDING` so the "too brief to trim" boundary tracks the detector.
 - **Risk:** low
 - **Generalization note:** Fixed 5 is meaningless if FPS/persistence changes.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (all 160 seed-0 track hashes match baseline `attempt-aim-highk-gated-j32-a01`). A real derivation was found: both `K_BOUNCE_LANDING` and `PERSISTENCE_FRAMES` are defined as `5` in `scripts/lib/detector.ts`, so the bare `5` now reads `CONTACT_EDGE_TRIM_MIN_FRAMES = PERSISTENCE_FRAMES` (numeric value unchanged). Chose `PERSISTENCE_FRAMES` over `K_BOUNCE_LANDING` for consistency with the sibling `briefSingleLineContactEntryIds`, which already bounds `range.end - range.start` against `PERSISTENCE_FRAMES`.
 
 ### 102. `CONTACT_TRIM_FRACTIONS` / `CONTACT_EDGE_TRIMS` are opaque hand-fit fraction tables
 - **Files:** `scripts/v0/core/polish.ts`

@@ -61,6 +61,11 @@ const CONTACT_EDGE_TRIMS = [
   { edge: "start", side: "start", fraction: 0.85 },
   { edge: "start", side: "end", fraction: 0.9 },
 ] as const;
+// A contact range must persist at least this many frames before its edge lines
+// are worth trimming; below it the contact is too brief to reshape. Tracks the
+// detector's persistence length (PERSISTENCE_FRAMES === 5) — same bound used by
+// briefSingleLineContactEntryIds above.
+const CONTACT_EDGE_TRIM_MIN_FRAMES = PERSISTENCE_FRAMES;
 const GRAIN_LENGTH_PASSES = 1;
 const GRAIN_LENGTH_EXTRAS = [1, 2] as const;
 const ENTRY_LENGTH_PASSES = 3;
@@ -1598,7 +1603,7 @@ function contactEdgeTrimCandidates(
   const candidates: { lineId: number; side: "start" | "end"; fraction: number }[] = [];
   const seen = new Set<string>();
   for (const range of contactRanges(det)) {
-    if (range.end - range.start < 5) continue;
+    if (range.end - range.start < CONTACT_EDGE_TRIM_MIN_FRAMES) continue;
     const sorted = [...range.ids].sort((a, b) => a - b);
     for (const trim of CONTACT_EDGE_TRIMS) {
       const lineId = trim.edge === "start" ? sorted[0] : sorted.at(-1);

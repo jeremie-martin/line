@@ -1158,7 +1158,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Inline the hybrid path: call `fitHybridArcOutput` directly, delete the `modelName` parameter, `ArcResponseModelName`, `ARC_RESPONSE_MODEL_NAMES`, and the four standalone arms. Feature functions stay (the hybrid ladder uses them).
 - **Risk:** low
 - **Generalization note:** Pure dead-branch removal, hybrid behavior bit-identical.
-- **Status:** Not Started
+- **Status:** Abandoned — catalog was wrong: `study_joint_arc_model.ts` (the `npm run study:joint-arc` driver) sweeps ALL of `ARC_RESPONSE_MODEL_NAMES` — `for (const modelName of MODEL_SPECS)` at line 516 with `MODEL_SPECS = ARC_RESPONSE_MODEL_NAMES` — through `fitJointArcResponseModel`→`fitArcResponseOutputModel`, so every non-hybrid arm (`linear`/`additive_quadratic`/`joint_quadratic`/`surface`) is exercised for model-form comparison research (`--loss-model=best|linear|additive_quadratic|joint_quadratic|surface|hybrid`; `printModelComparison` compares additive_quadratic vs joint_quadratic). `tests/arc_model.test.ts:592` also fits with `"additive_quadratic"` directly. All four arms plus `ArcResponseModelName` and `ARC_RESPONSE_MODEL_NAMES` are live, and since the study reaches every arm there is no truly-unreachable subset to delete. Production (`aim.ts:919`) and the other two studies (`study_latent_decomposition.ts`, `study_prediction_truth.ts`) do only pass `"hybrid"`, but the "never reached in production or studies" premise is false. Nothing removed.
 
 ### 120. `hybridUsesSurface` / `hybridUsesBiquadratic` are hard-coded reverse-fit per-output name lists
 - **Files:** `scripts/v0/optimizer/arc_model.ts`

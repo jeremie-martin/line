@@ -311,13 +311,6 @@ export function setImpactTemplateHoldProfilePressure(pressure: number): void {
     : 0;
 }
 
-/** The NORMAL candidate stream uses the ported work-new contact-centered family
- *  (energy launch + air-length + 2D span). It replaced the old target_state
- *  generator after a canonical ACCEPT (552 vs 454, Δ+97.8). */
-export function contactCenteredNormalEnabled(): boolean {
-  return true;
-}
-
 type SegmentCollisionRiskLines = number[];
 
 export type ArcPlacementStats = NonNullable<CompileStats["arc_placement"]>;
@@ -480,7 +473,7 @@ export function sampleArcPlacementGeometry(
 ): ArcPlacementGeometry {
   recordArcPlacementSample(mode);
   lastGeometryWasImpactTemplate = false;
-  if (mode === "normal" && contactCenteredNormalEnabled()) {
+  if (mode === "normal") {
     return {
       kind: "lines",
       lines: sampleContactCenteredLines(
@@ -518,7 +511,7 @@ export function sampleArcParamsRngDraws(
   _attempt: number,
   mode: CandidateSampleMode = "normal",
 ): number {
-  if (mode === "normal" && contactCenteredNormalEnabled()) return CONTACT_CENTERED_RNG_DRAWS;
+  if (mode === "normal") return CONTACT_CENTERED_RNG_DRAWS;
   return GEOMETRY_RNG_DRAWS;
 }
 

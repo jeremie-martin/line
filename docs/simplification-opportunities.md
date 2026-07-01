@@ -549,7 +549,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Inline `true`, delete the function, simplify call sites to `if (mode === 'normal')`, remove the dead normal-mode target_state fallthrough.
 - **Risk:** low
 - **Generalization note:** Removes a permanently-true toggle.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Simplified both call sites `mode === "normal" && contactCenteredNormalEnabled()` → `mode === "normal"` and deleted the function. NOTE: the target_state fallthrough (`sampleTargetStateLines` / `GEOMETRY_RNG_DRAWS`) was NOT removed — it is live for the `brake`/`startup_catch` sample modes (via `sampleOneCandidate`); it is dead only for `mode === "normal"`, which the `if` already excludes.
 
 ### 55. Impact bevel / lip machinery is permanently neutralized (shift hard-coded to 0)
 - **Files:** `scripts/v0/arc_placement.ts`

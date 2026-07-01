@@ -10,8 +10,8 @@ import {
   type Curve,
   type Spec,
   type TargetAxisName,
-} from "../types.ts";
-import { median } from "./substrate.ts";
+} from "./types.ts";
+import { median } from "./core/substrate.ts";
 
 export type CalibrationSelection = {
   version: 1;

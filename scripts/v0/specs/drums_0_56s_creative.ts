@@ -27,7 +27,7 @@ import {
   composeCalibration,
   defineCalibration,
   identity,
-} from "../core/spec_modifiers.ts";
+} from "../spec_modifiers.ts";
 import { BELIEVER_MUSIC } from "./_music.ts";
 
 // Clean on-grid 125 BPM main beat inlined from the former beats/drums_0_56s.json.

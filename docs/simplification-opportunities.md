@@ -1090,7 +1090,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Relocate calibration/audit machinery to a tooling module so `core/` carries only golden-path behavior; drop unused candidate constructors (`impactHighCompress` has no callers).
 - **Risk:** low
 - **Generalization note:** Inert in the normal golden path; assumes a specific spec population.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Confirmed the golden/production compile path imports NOTHING from this file: the only importers are the offline tools `calibrate_spec.ts` + `serve.ts`, the non-golden spec `specs/drums_0_56s_creative.ts`, and `tests/spec_modifiers.test.ts` (the hot path — handoff.ts/aim.ts/sample.ts — and every `specs/golden/*.ts` import none of it). Since nothing golden-path-relevant remained, relocated the entire ~406-line file out of `core/`: `git mv scripts/v0/core/spec_modifiers.ts → scripts/v0/spec_modifiers.ts` (alongside `calibrate_spec.ts`), fixed its two internal relative imports (`../types.ts`→`./types.ts`, `./substrate.ts`→`./core/substrate.ts`), and repointed all four importers. `impactHighCompress` was NOT deleted — the catalog's "no callers" claim was stale (it is used both by `tests/spec_modifiers.test.ts` and internally by `DEFAULT_CALIBRATION_CANDIDATES`). Pure relocation; no code-body changes.
 
 ### 113. `engineLineSignature` appears to be a dead exported duplicate of the engine-line cache key
 - **Files:** `scripts/v0/core/substrate.ts`

@@ -34,7 +34,7 @@ import {
   type CalibrationCandidate,
   type SpecCalibration,
   type TargetAudit,
-} from "./core/spec_modifiers.ts";
+} from "./spec_modifiers.ts";
 
 type WorkerInput = {
   specPath: string;

@@ -34,7 +34,7 @@ import {
   readCalibrationSelection,
   type CalibrationSelection,
   type SpecCalibration,
-} from "./v0/core/spec_modifiers.ts";
+} from "./v0/spec_modifiers.ts";
 
 const PORT = parseInt(process.env.PORT ?? "8767", 10);
 const HOST = process.env.HOST ?? "127.0.0.1";

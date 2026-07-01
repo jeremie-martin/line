@@ -11,7 +11,7 @@ import {
   identity,
   impactHighCompress,
   readCalibrationSelection,
-} from "../scripts/v0/core/spec_modifiers.ts";
+} from "../scripts/v0/spec_modifiers.ts";
 import type { Spec } from "../scripts/v0/types.ts";
 
 function spec(): Spec {

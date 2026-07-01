@@ -314,7 +314,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Define one shared `IMPACT_ASK_MIN` (reuse `objective.ts` `OBJECTIVE_IMPACT_MIN_ASK`); if telemetry 0.35 must differ, document why in one place.
 - **Risk:** low
 - **Generalization note:** Threshold semantics are spec-agnostic; unifying removes drift risk.
-- **Status:** Not Started
+- **Status:** Accepted (byte-identical) — Premise was mostly STALE: 3 of the 4 cited sites were already deleted by this campaign — `shadowGapKind >=0.35` by #25 (shadow-leaf telemetry removal) and both leaf-readiness sites (`LEAF_RDY_IMPACT_MIN_ASK 0.3`, `leafReadinessFromArrival <0.3`) by #23. Only `recordFwdEvalAgreement`'s `>=0.35` remained (now ~3510), and it is pure telemetry (writes only `fwdEvalTotals.*`, returns void, never reaches `track_hash`). Took Option A: import `OBJECTIVE_IMPACT_MIN_ASK` (0.3) from `objective.ts` and use it in place of the inline `0.35`, de-drifting the classifier from the scorer's cutoff. The value moved 0.35→0.3 but only shifts a diagnostic counter split; 1-seed probe (seed=0, 160 rows across 4 budgets) shows all `track_hash` byte-identical vs `attempt-aim-highk-gated-j32-a01`. `objective.ts`'s `OBJECTIVE_IMPACT_MIN_ASK` definition and real call sites (#73) left untouched.
 
 ### 30. `fwdRankBucket`/`fwdValueGapBucket` hard-coded telemetry histogram edges
 - **Files:** `scripts/v0/optimizer/handoff.ts`

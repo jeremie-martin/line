@@ -93,6 +93,7 @@ import {
 import {
   frontierReadinessFromFit,
   nextContactGapIndex,
+  OBJECTIVE_IMPACT_MIN_ASK,
 } from "./objective.ts";
 import { axisErrorsForTargets, axisQualityFromErrors, MISSING_CONTACT_TOLERANCE } from "../score.ts";
 import { readinessCatch } from "./readiness.ts";
@@ -3507,7 +3508,10 @@ function recordFwdEvalAgreement(
   fwdEvalTotals.fwd_quality_rank_of_winner_sum += winner.rank;
   fwdEvalTotals.fwd_winner_quality_rank_hist[fwdRankBucket(winner.rank)]++;
   // Impact-targeted classification (per-pool gap target), split by agree/disagree.
-  const impactTargeted = impactTarget !== undefined && impactTarget >= 0.35;
+  // Telemetry-only; share the scorer's impact-ask cutoff so the classifier can't
+  // drift from OBJECTIVE_IMPACT_MIN_ASK (was a stray inline 0.35).
+  const impactTargeted = impactTarget !== undefined &&
+    impactTarget >= OBJECTIVE_IMPACT_MIN_ASK;
   if (agree) {
     if (impactTargeted) fwdEvalTotals.fwd_agree_impact_targeted++;
     else fwdEvalTotals.fwd_agree_not_impact_targeted++;

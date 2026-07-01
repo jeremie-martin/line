@@ -66,7 +66,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete `planning.ts` and the `planLoop`/`maybeReaimImpactGap` branch; change `sampleOneCandidate`'s `geometryTargets` default from `aimTargets(gap)` to `gap.targets`; drop `gap.plannedTargets` if unused. Byte-identical on the default path (aimTargets already falls back to `gap.targets`).
 - **Risk:** medium
 - **Generalization note:** Pure dead-lever removal; makes aim = literal targets everywhere, which generalizes cleanly.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Deleted `planning.ts` entirely (`aimTargets`/`plannedFor`/`maybeReaimImpactGap` + the three env knobs `LR_PLAN_LOOP_BUMP`/`LR_PLAN_IMPACT_AIM_MIN`/`LR_PLAN_LOOP_DEADBAND`); removed the `planLoop`/`maybeReaimImpactGap` branch + `LR_PLAN_LOOP`/`LR_PLAN_LOG` gates + reset/log lines from `runRepairPhase` in `handoff.ts` (and the import); dropped `Gap.plannedTargets` from `types.ts` (outside the fingerprinted `SPEED_RULER`→`SPEED_AXIS` slice). Catalog under-counted `aimTargets` consumers: it was also imported by `objective.ts`, `aim.ts`, and `study_joint_enum.ts`, not just `sample.ts` — all four now read `gap.targets`/`nextGap.targets` directly (byte-identical because `plannedTargets` was only ever set inside the disabled loop, so `aimTargets(gap) ≡ gap.targets` on the default path). `LR_PLAN_LOOP=0` still appears in `eval_impact.sh`/docs but only ever DISABLED the loop, so it becomes an inert env var (no behavioral consumer).
 
 ### 4. `smoothSparseAmplitudeQualityBreadth`: four-way smoothstep product for a +2 candidate boost
 *(sources: handoff-core-rescue, handoff-admission-branch, handoff-quality-scoring)*

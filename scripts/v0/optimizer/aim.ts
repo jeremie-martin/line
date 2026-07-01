@@ -90,7 +90,6 @@ import {
   scoreGapObjectiveForTargets,
   scoreNextTargetReadiness,
 } from "./objective.ts";
-import { aimTargets } from "./planning.ts";
 import type { Gap } from "../types.ts";
 
 // ───────────────────────────── 1 · Flags ─────────────────────────────
@@ -996,7 +995,7 @@ function makeJointAimedCandidates(
     if (cand.knobs.rotateDeg !== 0) aimTotals.enum_rot_emitted++;
     aimTotals.enumReadinessGainSum += cand.val - baseScore.val;
     const achieved = probeRide(engine, aimedLines, nextFrame);
-    const nextAimTargets = aimTargets(nextGap);
+    const nextAimTargets = nextGap.targets;
     const predictedReadiness = scoreNextTargetReadiness(cand.state, nextAimTargets);
     const achievedReadiness = achieved === null ? null : scoreNextTargetReadiness(achieved, nextAimTargets);
     if (predictedReadiness !== null && achievedReadiness !== null) {

@@ -34,7 +34,6 @@ import {
 import { getRiderMetered } from "../../lib/detector.ts";
 import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import type { AxisValues, CandidateSampleMode, Gap } from "../types.ts";
-import { aimTargets } from "./planning.ts";
 
 /** A Candidate is exactly the existing `GapFit` shape: geometry + lines
  *  + achieved-axes + cost. Re-exported here to keep the optimizer
@@ -143,9 +142,8 @@ export function sampleOneCandidate(
   mode: CandidateSampleMode = "normal",
   /** Optional geometry-only target override. Candidate scoring and hard gates
    *  still use `gap.targets`; this only shapes the sampled line fragment. Defaults
-   *  to the planned aim (`aimTargets` = gap.targets unless the planning pre-pass
-   *  re-aimed this gap), so generation pursues the plan while cost/gates use truth. */
-  geometryTargets: AxisValues = aimTargets(gap),
+   *  to `gap.targets`, so generation pursues the literal per-gap target. */
+  geometryTargets: AxisValues = gap.targets,
 ): Candidate | null {
   candidateSampleCount++;
   const probe = getCandidateProbe(engine, gap, ctx);

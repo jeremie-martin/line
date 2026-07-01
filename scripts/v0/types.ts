@@ -823,13 +823,6 @@ export type Gap = {
    *  crossing angle carries the redirection budget). Undefined when the next
    *  beat has no authored impact. */
   nextImpact?: number;
-  /** Re-aimed per-axis targets, computed up front by the global planning pre-pass
-   *  (optimizer/planning.ts). When set, GENERATION and the ranking OBJECTIVE aim at
-   *  these via `aimTargets(gap)` instead of `targets`; the official scorer and the
-   *  scorer-mirroring local `axisCost` ALWAYS use `targets`/`gapAxisTargets`. Unset
-   *  (the default) ⇒ `aimTargets()` falls back to `targets` ⇒ byte-identical to the
-   *  no-planning compiler. See docs/planning-campaign.md. */
-  plannedTargets?: AxisValues;
 };
 
 // ─────────── Conventions ───────────

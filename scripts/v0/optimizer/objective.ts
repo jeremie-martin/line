@@ -7,7 +7,6 @@ import {
   type Gap,
 } from "../types.ts";
 import type { GapFit } from "../core/substrate.ts";
-import { aimTargets } from "./planning.ts";
 import {
   propagateBallisticArrivalState,
   type RiderArrivalState,
@@ -101,7 +100,7 @@ export function frontierReadinessFromFit(
   nextGap: Gap,
 ): NextGapReadinessScore | null {
   const arrival = predictArrivalAtNextContact(fit, nextGap.endFrame);
-  return arrival === null ? null : scoreNextTargetReadiness(arrival, aimTargets(nextGap));
+  return arrival === null ? null : scoreNextTargetReadiness(arrival, nextGap.targets);
 }
 
 export function predictArrivalAtNextContact(

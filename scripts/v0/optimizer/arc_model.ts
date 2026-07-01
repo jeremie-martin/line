@@ -516,34 +516,33 @@ export function predictJointArcOutputs(model: JointArcResponseModel, knobs: ArcK
   return outputs;
 }
 
+/** Axes the latent reducer reconstructs ballistically (via
+ *  `completeBallisticSpanAxesFromSummary` → `axisResponseOutputs`). It owns ONLY
+ *  these; grain/amplitude/impact are fitted model outputs the reducer never
+ *  overwrites, so their predictions are deliberately left intact (see
+ *  `clearReducerOwnedOutputs`). */
+const REDUCER_BALLISTIC_AXES = ["air", "speed", "elevation"] as const;
+
+/** Clear every output key the latent reducer (`reduceLatentJointArcOutputs`)
+ *  recomputes, before it overwrites: the reducer skips non-finite values
+ *  (`addFinite`) and may emit nothing at all (null suffix), so a stale fitted
+ *  prediction must not leak through. Instead of hand-mirroring the producers'
+ *  key lists (which silently drifts when a producer gains a field), the `exit.*`
+ *  / `next.*` blocks are cleared by prefix — the ONLY producers of those
+ *  namespaces are `exitStateOutputs` / `stateOutputs`, so any key they add is
+ *  swept automatically. The reducer's `current.*` keys are an explicit small set:
+ *  `current.cost` (added by `predictJointArcOutputs`), the two release scalars,
+ *  and axis/error for the ballistic axes only (NOT grain/amplitude/impact). */
 function clearReducerOwnedOutputs(outputs: Record<string, number>): void {
+  for (const key of Object.keys(outputs)) {
+    if (key.startsWith("exit.") || key.startsWith("next.")) delete outputs[key];
+  }
   delete outputs["current.cost"];
   delete outputs["current.releaseSpeedPx"];
   delete outputs["current.releaseVy"];
-  for (const axis of ["air", "speed", "elevation"]) {
+  for (const axis of REDUCER_BALLISTIC_AXES) {
     delete outputs[`current.axis.${axis}`];
     delete outputs[`current.error.${axis}`];
-  }
-  for (const key of [
-    "exit.frame",
-    "exit.x",
-    "exit.y",
-    "exit.vx",
-    "exit.vy",
-    "exit.speed",
-    "exit.comAngleDeg",
-    "exit.sledPoseDeg",
-    "exit.sledPoseRateDegPerFrame",
-    "next.x",
-    "next.y",
-    "next.vx",
-    "next.vy",
-    "next.speed",
-    "next.comAngleDeg",
-    "next.sledPoseDeg",
-    "next.sledPoseRateDegPerFrame",
-  ]) {
-    delete outputs[key];
   }
 }
 

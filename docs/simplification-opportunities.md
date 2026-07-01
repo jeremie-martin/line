@@ -1203,7 +1203,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Derive the owned-key set from the producers (expose their key arrays, or clear by 'exit.'/'next.' prefix + a small explicit current.* set) so `clearReducerOwnedOutputs` iterates them.
 - **Risk:** low
 - **Generalization note:** Correctness-hardening dedup removing a manual-sync trap.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). No behavior-affecting drift: the reducer only reconstructs the ballistic axes (air/speed/elevation, via `completeBallisticSpanAxesFromSummary`), so the 3-axis `current.axis`/`current.error` list already matched the reducer's actual emission — grain/amplitude/impact are fitted model outputs the reducer deliberately never overwrites (a 6-axis clear derived from `axisResponseOutputs`'s full signature would have been a real behavior change, deleting valid predictions). Implemented option (b): prefix-clear `exit.`/`next.` (the ONLY producers of those namespaces are `exitStateOutputs`/`stateOutputs`, so new fields are swept automatically — this removes the genuine 17-key hand-mirrored duplication) plus an explicit small `current.*` set with a named `REDUCER_BALLISTIC_AXES` const.
 
 ### 125. Dual short/full probe-horizon mode threads a comparison-only arm through the whole observer
 *(cross-ref aim entry #46)*

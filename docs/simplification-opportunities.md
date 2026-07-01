@@ -1241,7 +1241,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** If the isolation experiment is concluded, delete the flag, `setRolloutContext`, and the `!(inRolloutContext && !rolloutAimEnabled)` clause, leaving the aim lane governed by `aimEnumEnabled + nCand>1`.
 - **Risk:** low
 - **Generalization note:** Module-global mutable flag is a re-entrancy smell.
-- **Status:** Not Started
+- **Status:** Abandoned (catalog was wrong: the isolation experiment is NOT concluded — it is the current active pivot of the lookahead campaign. `LR_ROLLOUT_AIM=0` is set live by two eval scripts: `eval_difficulty.sh:93` bakes it into `CANDIDATE_ENV` for the difficulty-aware A/B (most recent commit `15c1acb` "pivot to difficulty-aware config"), and `eval_rollout_shape.sh:95,100` plumbs it via `CAND_ROLLOUT_AIM`. `docs/lookahead-log.md` §8 calls it "the first broad net-positive of the campaign / promising new-default candidate" with next steps still open, and commit `0443a4a` isolates the rollout-aim suppression as the specific live lever. Production default is byte-identical (`rolloutAimEnabled=true` when unset, `inRolloutContext=false`), but the flag/gate/`setRolloutContext` plumbing is a live A/B knob, not dead experiment plumbing. Do not delete.)
 
 ### 129. `GEOM_POOL_TELEM` pool-frontier telemetry is embedded default-off in the pool-build hot path
 - **Files:** `scripts/v0/optimizer/node.ts`

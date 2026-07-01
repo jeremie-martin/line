@@ -1299,7 +1299,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Remove the field and closure; a future pose consumer can read `sledPoseDegFromRider` directly.
 - **Risk:** low
 - **Generalization note:** Speculative unused output.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Removed the `sledPoseDeg` type field and its lazy closure from `getCandidateProbe`; the closure's `getRiderMetered`/`sledPoseDegFromRider` call never ran (no `.sledPoseDeg(` invocation exists repo-wide; all five `getCandidateProbe` consumers read only `refX`/`refY`/`targetState`/`preTargetSledTrace`). Also dropped the now-unused `sledPoseDegFromRider` import. Escape hatch for a future pose consumer: `sledPoseDegFromRider` remains a live export in `scripts/lib/detector.ts`.
 
 ### 135. Legacy impact-migration branch self-flagged for deletion
 - **Files:** `scripts/v0/core/beats.ts`

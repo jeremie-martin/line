@@ -96,7 +96,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Collapse to a single monotone (or flat-above-threshold) budget→nCand curve so high budgets never lean below the mid-grid value; make anchors relative to spec size. Verify the 3-count wobble is inert under relaxed acceptance (candidate: constant 32).
 - **Risk:** medium
 - **Generalization note:** Misbehaves outside the grid: any budget >250k gets the scarce-budget lean, harmful for the large budgets the campaign must support.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline -0.8, CI [-2.6, 0.7], P(Δ≤0)=84.8% (full canonical vs attempt-aim-highk-gated-j32-a01). Confirmed the bug is real: `nCand=32` only in a ~100k-150k window, leaning to 29 at 250k/375k/500k (higher budget → less breadth, backwards). Replaced with the catalog's suggested simplest fix, a flat `nCand=32` at every budget (125k byte-identical since it was already 32 there). Regressed worst at 500k (-1.5): despite the shape being conceptually backwards, the current bathtub thresholds are net-positive on this specific 40-spec canonical suite — likely because the 29-breadth lean at high budgets frees search budget elsewhere in a way that pays on this population, even though it wouldn't generalize past this grid. Code reverted; the generalization concern stands as a known, deliberately-accepted tradeoff, not a free fix.
 
 ### 7. The `150_000`-frame "maturity" scale is duplicated under four names
 *(sources: handoff-quality-scoring, handoff-admission-branch)*

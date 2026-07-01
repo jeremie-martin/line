@@ -30,25 +30,25 @@
  * cannot silently reappear. Region sims are charged in sim-frames via the detector.
  */
 
-import { makeRng } from "../../lib/rng.ts";
-import { getRiderMetered, PERSISTENCE_FRAMES } from "../../lib/detector.ts";
+import { makeRng } from "../lib/rng.ts";
+import { getRiderMetered, PERSISTENCE_FRAMES } from "../lib/detector.ts";
 import {
   engineLineFromTrackLine,
   makeBaseEngine,
   type GapFit,
-} from "../core/substrate.ts";
+} from "./core/substrate.ts";
 import {
   axisLookaheadEndFrame,
   tryCandidate,
-} from "../core/candidate.ts";
+} from "./core/candidate.ts";
 import {
   readPreTargetSledTrace,
   readTargetStateFromRider,
   sampleArcParams,
   type PreTargetSledTrace,
-} from "../arc_placement.ts";
-import { SPEED_AXIS, authoredSpeedToPx, type Gap } from "../types.ts";
-import { registerCompileReset } from "../core/compile_lifecycle.ts";
+} from "./arc_placement.ts";
+import { SPEED_AXIS, authoredSpeedToPx, type Gap } from "./types.ts";
+import { registerCompileReset } from "./core/compile_lifecycle.ts";
 
 /** Settle window after the contact frame at which we read the exit state, so a
  *  brief post-catch bounce has resolved (matches the candidate detector's

@@ -40,7 +40,7 @@ import {
   stateDistance,
   type HandoffState,
   type ReachabilityRegion,
-} from "./optimizer/reachability.ts";
+} from "./reachability.ts";
 
 const DEFAULT_SPECS = [
   "drums_pendulum", "drums_crescendo", "grain_staircase", "rhythm_ladder",

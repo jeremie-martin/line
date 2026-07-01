@@ -18,7 +18,7 @@
  * A module that is never imported into the compile path never runs its top-level
  * `registerCompileReset`, so it costs nothing until it is wired in — at which
  * point its reset joins the lifecycle automatically (this is the safety net for
- * latent modules like optimizer/reachability.ts, whose memo would otherwise leak
+ * latent modules like reachability.ts, whose memo would otherwise leak
  * across compiles the day it is added to the search).
  *
  * Two rules for registered resets:

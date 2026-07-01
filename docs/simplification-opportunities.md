@@ -1329,6 +1329,16 @@ reverse-fit gate collapses (high risk) should come later.
 - **Generalization note:** Same failure mode as #33/#41/#49/#18 elsewhere in this file — absolute frame-count grid anchors that silently misbehave for specs/budgets outside the 125k-500k canonical range.
 - **Status:** Not Started
 
+### 138. Stale shell-harness references to the now-deleted `LR_LEAF_RDY_LAMBDA` study knob
+*(follow-up to #23)*
+- **Files:** `scripts/v0/eval_readiness_leaf.sh`, `scripts/v0/eval_rollout_shape.sh`
+- **Location:** whole file (`eval_readiness_leaf.sh` is entirely dedicated to this study); `LR_LEAF_RDY_LAMBDA` usage as a secondary knob in `eval_rollout_shape.sh`.
+- **Complexity smell:** Entry #23 deleted `leafReadinessLambda`/`leafReadinessKind` and all consumers from `handoff.ts` (the env var is now read by nothing), but these two study-driver shell scripts still reference `LR_LEAF_RDY_LAMBDA` as if it does something.
+- **Proposed simplification:** Delete `eval_readiness_leaf.sh` (its subject no longer exists) and drop the now-inert `LR_LEAF_RDY_LAMBDA` references from `eval_rollout_shape.sh`.
+- **Risk:** low
+- **Generalization note:** Tooling-only; no compiler behavior involved, no canonical run needed to verify (grep-confirm the env var is unread, then delete).
+- **Status:** Not Started
+
 ---
 
 ## How to use this file

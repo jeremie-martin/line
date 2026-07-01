@@ -6,8 +6,7 @@
 # GOAL: now that the leaf is the cheap short leaf (~21% fewer rollout frames), re-test
 # whether a SHALLOWER / WIDER rollout beats the greedy:2 default. The "greedy:2 is the
 # sweet spot (best/avg/greedy:3 don't pay charged)" verdict was set under the EXPENSIVE
-# full leaf; the cheaper leaf may have moved the sweet spot. A/B on LR_FWD_EVAL only —
-# the leaf stays pristine (readiness off, LR_LEAF_RDY_LAMBDA=0).
+# full leaf; the cheaper leaf may have moved the sweet spot. A/B on LR_FWD_EVAL only.
 #
 # MODE: A/B on a flag. BASELINE = greedy:2 (the default); CANDIDATE = $CAND_FWD (the
 # variant under test). Sweep variants without rebuilding the baseline, e.g.:
@@ -85,27 +84,22 @@ JOBS="${JOBS:-48}"                                         # parallelism only �
 #     the arms below, so the candidate can carry a rollout shape AND a readiness tilt.
 COMMON_ENV=( LR_ENGINE=wasm )
 
-# --- A/B. BASELINE = production default (greedy:2, pristine leaf λ=0). CANDIDATE = a
-#     rollout shape ($CAND_FWD) optionally + a leaf readiness tilt ($CAND_RDY_KIND @ λ=$CAND_RDY_LAMBDA).
+# --- A/B. BASELINE = production default (greedy:2). CANDIDATE = a rollout shape
+#     ($CAND_FWD), e.g.:
 #       CAND_FWD=best:1:2                                   # rollout shape only
-#       CAND_FWD=greedy:1 CAND_RDY_KIND=catch CAND_RDY_LAMBDA=0.1   # shape + readiness
 CAND_FWD="${CAND_FWD:-greedy:1}"
-CAND_RDY_KIND="${CAND_RDY_KIND:-}"          # empty = no readiness knob (pristine leaf)
-CAND_RDY_LAMBDA="${CAND_RDY_LAMBDA:-0}"
 CAND_ROLLOUT_AIM="${CAND_ROLLOUT_AIM:-}"    # set to 0 to drop the rollout's aim probes (best:N)
 CAND_AIM_ENUM="${CAND_AIM_ENUM:-}"          # set to 0 to remove the aim lane ENTIRELY (top-level too)
-BASELINE_ENV=( LR_FWD_EVAL=greedy:2 LR_LEAF_RDY_LAMBDA=0 )            # production default
-CANDIDATE_ENV=( LR_FWD_EVAL="$CAND_FWD" LR_LEAF_RDY_LAMBDA="$CAND_RDY_LAMBDA" )
-[[ -n "$CAND_RDY_KIND" ]] && CANDIDATE_ENV+=( LR_LEAF_RDY_KIND="$CAND_RDY_KIND" )
+BASELINE_ENV=( LR_FWD_EVAL=greedy:2 )                 # production default
+CANDIDATE_ENV=( LR_FWD_EVAL="$CAND_FWD" )
 [[ -n "$CAND_ROLLOUT_AIM" ]] && CANDIDATE_ENV+=( LR_ROLLOUT_AIM="$CAND_ROLLOUT_AIM" )
 [[ -n "$CAND_AIM_ENUM" ]] && CANDIDATE_ENV+=( LR_AIM_ENUM="$CAND_AIM_ENUM" )
 
 # Human label shown in the summary. Cosmetic only.
-_rdy_label=""; [[ "$CAND_RDY_LAMBDA" != "0" ]] && _rdy_label="+${CAND_RDY_KIND:-catch}@${CAND_RDY_LAMBDA}"
 _aim_label=""; [[ "$CAND_ROLLOUT_AIM" == "0" ]] && _aim_label="+noaim"
 [[ "$CAND_AIM_ENUM" == "0" ]] && _aim_label="+noaimALL"
 BASELINE_LABEL="${BASELINE_LABEL:-greedy:2}"
-CANDIDATE_LABEL="${CANDIDATE_LABEL:-${CAND_FWD}${_rdy_label}${_aim_label}}"
+CANDIDATE_LABEL="${CANDIDATE_LABEL:-${CAND_FWD}${_aim_label}}"
 
 # ============================================================================
 # PLUMBING — you should not need to touch anything past here.

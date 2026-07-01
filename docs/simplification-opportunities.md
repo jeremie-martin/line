@@ -1337,7 +1337,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete `eval_readiness_leaf.sh` (its subject no longer exists) and drop the now-inert `LR_LEAF_RDY_LAMBDA` references from `eval_rollout_shape.sh`.
 - **Risk:** low
 - **Generalization note:** Tooling-only; no compiler behavior involved, no canonical run needed to verify (grep-confirm the env var is unread, then delete).
-- **Status:** Not Started
+- **Status:** Accepted — tooling-only, no canonical run needed. Deleted `eval_readiness_leaf.sh` entirely (its `LR_LEAF_RDY_LAMBDA`/`LR_LEAF_RDY_KIND` subject was removed by #23). In `eval_rollout_shape.sh`, dropped the now-inert `CAND_RDY_KIND`/`CAND_RDY_LAMBDA` sweep axis and its `LR_LEAF_RDY_LAMBDA`/`LR_LEAF_RDY_KIND` env wiring, keeping the still-live `CAND_FWD`/`CAND_ROLLOUT_AIM`/`CAND_AIM_ENUM` knobs untouched (`LR_ROLLOUT_AIM` confirmed live by #128). `bash -n` syntax-checked clean.
 
 ---
 

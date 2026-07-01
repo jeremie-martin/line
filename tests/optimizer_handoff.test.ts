@@ -333,19 +333,11 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     expect(fe.fwd_winner_aimed).toBeLessThanOrEqual(fe.fwd_pools_with_aimed);
     // Value gap on disagreement is non-negative (forward winner has >= value than quality #1).
     expect(fe.fwd_disagree_value_gap_sum).toBeGreaterThanOrEqual(0);
-    // Rank histograms: 8 cells each, summing to pools (one entry per pool).
-    expect(fe.fwd_winner_quality_rank_hist).toHaveLength(8);
-    expect(fe.fwd_quality_top1_fwd_rank_hist).toHaveLength(8);
-    expect(fe.fwd_winner_quality_rank_hist.reduce((s, n) => s + n, 0)).toBe(fe.fwd_pools);
-    expect(fe.fwd_quality_top1_fwd_rank_hist.reduce((s, n) => s + n, 0)).toBe(fe.fwd_pools);
     // Impact-targeted split spans every pool (agree + disagree, impact-targeted or not).
     expect(
       fe.fwd_agree_impact_targeted + fe.fwd_agree_not_impact_targeted +
         fe.fwd_disagree_impact_targeted + fe.fwd_disagree_not_impact_targeted,
     ).toBe(fe.fwd_pools);
-    // Value-gap histogram: 6 cells summing to the disagreement count.
-    expect(fe.fwd_disagree_value_gap_hist).toHaveLength(6);
-    expect(fe.fwd_disagree_value_gap_hist.reduce((s, n) => s + n, 0)).toBe(fe.fwd_disagree_count);
     // Cost-sign + aimed-asymmetry counters are subsets of disagreements.
     expect(fe.fwd_disagree_winner_costlier + fe.fwd_disagree_winner_cheaper)
       .toBeLessThanOrEqual(fe.fwd_disagree_count);

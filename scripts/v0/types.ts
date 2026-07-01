@@ -705,10 +705,6 @@ export type CompileStats = {
     fwd_winner_aimed: number;
     fwd_pools_with_aimed: number;
     fwd_aimed_best_rank_sum: number;
-    /** Forward winner's quality-rank, bucketed [0,1,2,3,4,5,6-8,9+] (8 cells). */
-    fwd_winner_quality_rank_hist: number[];
-    /** Quality-#1's forward-rank, same buckets (8 cells). */
-    fwd_quality_top1_fwd_rank_hist: number[];
     /** Disagreement characterization (top-1 disagree only, except agree-impact pair). */
     fwd_disagree_impact_targeted: number;
     fwd_disagree_not_impact_targeted: number;
@@ -716,8 +712,6 @@ export type CompileStats = {
     fwd_agree_not_impact_targeted: number;
     fwd_disagree_winner_aimed_q1_not: number;
     fwd_disagree_q1_aimed_winner_not: number;
-    /** Disagreement value-gap, bucketed [0-2,2-5,5-10,10-20,20-50,50+] (6 cells). */
-    fwd_disagree_value_gap_hist: number[];
     fwd_disagree_winner_costlier: number;
     fwd_disagree_winner_cheaper: number;
   };

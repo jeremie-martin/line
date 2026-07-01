@@ -3412,9 +3412,6 @@ const fwdEvalTotals = {
   fwd_winner_aimed: 0,
   fwd_pools_with_aimed: 0,
   fwd_aimed_best_rank_sum: 0,
-  // Rank histograms (buckets: [0,1,2,3,4,5,6-8,9+] ⇒ 8 cells).
-  fwd_winner_quality_rank_hist: [0, 0, 0, 0, 0, 0, 0, 0] as number[],
-  fwd_quality_top1_fwd_rank_hist: [0, 0, 0, 0, 0, 0, 0, 0] as number[],
   // Disagreement characterization (only incremented when top-1 disagrees).
   fwd_disagree_impact_targeted: 0,
   fwd_disagree_not_impact_targeted: 0,
@@ -3422,8 +3419,6 @@ const fwdEvalTotals = {
   fwd_agree_not_impact_targeted: 0,
   fwd_disagree_winner_aimed_q1_not: 0,
   fwd_disagree_q1_aimed_winner_not: 0,
-  // Value-gap histogram (buckets: [0-2,2-5,5-10,10-20,20-50,50+] ⇒ 6 cells).
-  fwd_disagree_value_gap_hist: [0, 0, 0, 0, 0, 0] as number[],
   fwd_disagree_winner_costlier: 0,
   fwd_disagree_winner_cheaper: 0,
 };
@@ -3450,34 +3445,13 @@ function snapshotFwdEvalStats(): FwdEvalStats | null {
   if (fwdEvalTotals.fwd_eval_calls === 0 && fwdEvalTotals.start_eval_frames_charged === 0) {
     return null;
   }
-  return {
-    ...fwdEvalTotals,
-    fwd_winner_quality_rank_hist: [...fwdEvalTotals.fwd_winner_quality_rank_hist],
-    fwd_quality_top1_fwd_rank_hist: [...fwdEvalTotals.fwd_quality_top1_fwd_rank_hist],
-    fwd_disagree_value_gap_hist: [...fwdEvalTotals.fwd_disagree_value_gap_hist],
-  };
+  return { ...fwdEvalTotals };
 }
 
 /** Pure read over the POOL-SOURCE scored entries of one freshly-built pool: records the
  *  agreement of the true forward rollout (winner = min score) with the quality-objective
  *  rank (.rank, 0-based for source "pool"). No extra rollouts — scores are already computed
  *  (score = -forwardValue). Only call when the forward-eval path scored the pool. */
-/** Rank → [0,1,2,3,4,5,6-8,9+] bucket index (8 cells). */
-function fwdRankBucket(rank: number): number {
-  if (rank <= 5) return rank;
-  if (rank <= 8) return 6;
-  return 7;
-}
-/** Value-gap → [0-2,2-5,5-10,10-20,20-50,50+] bucket index (6 cells). */
-function fwdValueGapBucket(gap: number): number {
-  if (gap < 2) return 0;
-  if (gap < 5) return 1;
-  if (gap < 10) return 2;
-  if (gap < 20) return 3;
-  if (gap < 50) return 4;
-  return 5;
-}
-
 function recordFwdEvalAgreement(
   poolScored: RankedOption[],
   impactTarget: number | undefined,
@@ -3503,10 +3477,8 @@ function recordFwdEvalAgreement(
     if (o.score < qualityTop1.score) fwdRankOfQualityTop1++;
   }
   fwdEvalTotals.fwd_rank_of_quality_top1_sum += fwdRankOfQualityTop1;
-  fwdEvalTotals.fwd_quality_top1_fwd_rank_hist[fwdRankBucket(fwdRankOfQualityTop1)]++;
   // Quality-rank of the forward winner.
   fwdEvalTotals.fwd_quality_rank_of_winner_sum += winner.rank;
-  fwdEvalTotals.fwd_winner_quality_rank_hist[fwdRankBucket(winner.rank)]++;
   // Impact-targeted classification (per-pool gap target), split by agree/disagree.
   // Telemetry-only; share the scorer's impact-ask cutoff so the classifier can't
   // drift from OBJECTIVE_IMPACT_MIN_ASK (was a stray inline 0.35).
@@ -3524,7 +3496,6 @@ function recordFwdEvalAgreement(
     const valueGap = (qualityTop1.score - winner.score);
     fwdEvalTotals.fwd_disagree_value_gap_sum += valueGap;
     fwdEvalTotals.fwd_disagree_count++;
-    fwdEvalTotals.fwd_disagree_value_gap_hist[fwdValueGapBucket(valueGap)]++;
     // Aimed-asymmetry of the disagreement.
     const winnerAimed = winner.candidate?.aimed === true;
     const q1Aimed = qualityTop1.candidate?.aimed === true;

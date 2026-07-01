@@ -323,7 +323,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** If telemetry is kept, replace with a shared bucketing helper taking an edges array; if the instrument is no longer read, delete both with the `fwdEvalTotals` histogram fields.
 - **Risk:** low
 - **Generalization note:** Telemetry only; nothing branches on the edges.
-- **Status:** Not Started
+- **Status:** Accepted (byte-identical) — Took the DELETE option: the three histograms these buckets feed (`fwd_winner_quality_rank_hist`, `fwd_quality_top1_fwd_rank_hist`, `fwd_disagree_value_gap_hist`) are write-only. Fresh greps confirm no analysis script reads them — `study_cc_explore.ts`/`study_budget_spend.ts`/`study_difficulty_model.ts` consume only `fwd_eval_frames_charged`/`fwd_eval_calls`/`start_eval_frames_charged` from `fwd_eval`; the only histogram readers were self-referential correctness assertions in `optimizer_handoff.test.ts`. Entry #25 had already removed the shadow recorder, so `fwdRankBucket`/`fwdValueGapBucket` were used only by `recordFwdEvalAgreement`. Deleted both bucket functions, the three histogram fields + their accumulation lines in `fwdEvalTotals`, the spread-copies in `snapshotFwdEvalStats`, the `types.ts` `fwd_eval` histogram declarations, and the now-dead test assertions (scalar sum counters `fwd_rank_of_quality_top1_sum`/`fwd_quality_rank_of_winner_sum` kept — out of scope, no hard-coded edges). Focused tests pass (80/80); 1-seed probe (seed=0, 40 specs × 4 budgets) all 160 `track_hash` byte-identical vs `attempt-aim-highk-gated-j32-a01`.
 
 ### 31. Three near-duplicate impact-curve spec-classifier detectors (AND of reverse-fit thresholds)
 - **Files:** `scripts/v0/optimizer/handoff.ts`

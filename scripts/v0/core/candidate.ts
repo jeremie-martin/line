@@ -754,20 +754,15 @@ function computeShortGapFitDetection(
   // exitFrame was already located by the stopping probe — reuse it instead of re-scanning.
   const { det, horizon, exitFrame } = exitStop;
   // No ballistic flight if the exit would ride into the next contact (mirror the
-  // releaseStateFrame / releaseExitArrivalState nextContact−2 bound).
-  const nextContact = allContactFramesFor(gap, axisMeasureEnd);
+  // releaseStateFrame / releaseExitArrivalState nextContact−2 bound). The next
+  // contact is `axisMeasureEnd` when it is a lookahead boundary (a later contact,
+  // > gap.endFrame), else null (no later contact in view this gap).
+  const nextContact = axisMeasureEnd > gap.endFrame ? axisMeasureEnd : null;
   if (nextContact !== null && exitFrame > nextContact - 2) return null;
 
   const suffix = ballisticSuffixAtExit(det, exitFrame);
   if (suffix === null) return null;
   return { det, stopHorizon: horizon, suffix };
-}
-
-/** The next-contact frame the truncation must not ride into: `axisMeasureEnd`
- *  when it is a lookahead boundary (the next contact, > gap.endFrame), else null
- *  (no later contact in view this gap). */
-function allContactFramesFor(gap: Gap, axisMeasureEnd: number): number | null {
-  return axisMeasureEnd > gap.endFrame ? axisMeasureEnd : null;
 }
 
 /** Shared smoothed ballistic launch read at `frame`, off the detection arrays

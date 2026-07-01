@@ -882,7 +882,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Inline the ternary, or fold into the shared `nextContactBound` helper (#80).
 - **Risk:** low
 - **Generalization note:** Naming/indirection cleanup.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Inlined the ternary at its sole call site in `computeShortGapFitDetection` and deleted the misleadingly-named helper; folded its doc note into the call-site comment. Did NOT pursue the alternate "fold into `nextContactBound` (#80)" suggestion — item #80 (commit 1c524b6) already established that this frame derivation (via `axisMeasureEnd`) is genuinely different from `nextContactBound`'s (via `allContactFrames.find`) and intentionally left them separate to avoid a behavioral change.
 
 ### 91. `rideOutSources` magic tail-window of 8 lines
 - **Files:** `scripts/v0/core/candidate.ts`

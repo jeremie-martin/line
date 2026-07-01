@@ -4993,8 +4993,8 @@ function buildNodeOutput(
   const candidateRanks = selectedCandidateRanks(node.rankTrace);
   const candidateRankSum = candidateRanks.reduce((sum, rank) => sum + rank, 0);
   const candidateRankCount = candidateRanks.length;
-  const sourceCounts = selectedCandidateSourceCounts(node);
-  const axisQualitySourceCounts = selectedAxisQualitySourceCounts(node);
+  const { bySource: sourceCounts, byAxis: axisQualitySourceCounts } =
+    selectedSourceCounts(node);
   return {
     track: buildTrackJson(allLines, outputDurationFrames, node.startState),
     report,
@@ -5039,41 +5039,31 @@ function buildNodeOutput(
         : null,
       readiness_min: readinessVals.length > 0 ? Math.min(...readinessVals) : null,
       handoff_selected_axis_quality_by_axis: axisQualitySourceCounts,
-      handoff_selected_candidate_pool_count: sourceCounts.pool,
-      handoff_selected_candidate_reuse_count: sourceCounts.reuse,
-      handoff_selected_candidate_brake_count: sourceCounts.brake,
-      handoff_selected_candidate_startup_count: sourceCounts.startup,
-      handoff_selected_candidate_axis_quality_count: sourceCounts.axisq,
     },
   };
 }
 
-function selectedCandidateSourceCounts(
-  node: HandoffNode,
-): Record<HandoffCandidateSourceName, number> {
-  const counts = Object.fromEntries(
+/** Single pass over `node.rankTrace` producing both the per-source selection
+ *  counts and, for the axis-quality source, the per-axis breakdown. */
+function selectedSourceCounts(node: HandoffNode): {
+  bySource: Record<HandoffCandidateSourceName, number>;
+  byAxis: Partial<Record<AxisName, number>>;
+} {
+  const bySource = Object.fromEntries(
     HANDOFF_CANDIDATE_SOURCES.map((source) => [source, 0]),
   ) as Record<HandoffCandidateSourceName, number>;
+  const byAxis: Partial<Record<AxisName, number>> = {};
   for (const entry of node.rankTrace) {
     if (entry.rank < 0) continue;
     const source = entry.source;
     if (source === "skip") continue;
-    counts[source]++;
+    bySource[source]++;
+    if (source === "axisq") {
+      const axis = entry.sourceAxis;
+      if (axis !== undefined) byAxis[axis] = (byAxis[axis] ?? 0) + 1;
+    }
   }
-  return counts;
-}
-
-function selectedAxisQualitySourceCounts(
-  node: HandoffNode,
-): Partial<Record<AxisName, number>> {
-  const counts: Partial<Record<AxisName, number>> = {};
-  for (const entry of node.rankTrace) {
-    if (entry.rank < 0 || entry.source !== "axisq") continue;
-    const axis = entry.sourceAxis;
-    if (axis === undefined) continue;
-    counts[axis] = (counts[axis] ?? 0) + 1;
-  }
-  return counts;
+  return { bySource, byAxis };
 }
 
 function selectedCandidateRanks(trace: HandoffRankTraceEntry[]): number[] {

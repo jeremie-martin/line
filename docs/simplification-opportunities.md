@@ -405,7 +405,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Emit the nested map once (lab reads from it), delete the flat mirrors; fold the three `rankTrace` walks into one pass producing `{bySource, byAxis, byLane}`.
 - **Risk:** low
 - **Generalization note:** Telemetry only, no scoring impact.
-- **Status:** Not Started
+- **Status:** Accepted — telemetry-only; 160/160 seed=0 `track_hash` byte-identical vs baseline (no scoring impact). Post-#1 only two trace-walking helpers remained (`selectedAdmissionLaneCounts`/`byLane` were already deleted). Folded `selectedCandidateSourceCounts` + `selectedAxisQualitySourceCounts` into one single-pass `selectedSourceCounts` returning `{bySource, byAxis}`, and deleted the five flat scalar mirror emissions (`handoff_selected_candidate_{pool,reuse,brake,startup,axis_quality}_count`) — the sole consumer `analyze_golden_curve.ts` reads the nested `handoff_selected_candidate_by_source` map first and only falls back to the flat fields via `legacySelectedCandidateSourceStat` for pre-nested-map archives, so the legacy reader + `types.ts` optional defs were kept for old-archive compat while the redundant emission was dropped. Dropped the now-moot flat-mirror consistency/comparison assertions in `optimizer_handoff.test.ts`.
 
 ### 40. Readiness-v0 per-gap telemetry reaches into detection internals via `(det as any).measurements`
 - **Files:** `scripts/v0/optimizer/handoff.ts`

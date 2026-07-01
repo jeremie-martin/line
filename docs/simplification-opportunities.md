@@ -135,7 +135,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace with a flat reuse limit (1, or 2 above a single budget threshold); delete `matureReuseExtraPressure`/`Seed` and the three constants.
 - **Risk:** low
 - **Generalization note:** 150k/48 scales are grid-anchored; off-grid the +1 is never or always granted.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline -0.3, CI [-0.9, 0.2], P(Δ≤0)=87.0% (full canonical vs attempt-aim-highk-gated-j32-a01). Tried flat reuse limit = 1 (dropping the occasional hash-gated bump to 2 entirely, since the extra candidate fires with probability ≤0.30 across the grid). Lost mostly at mature budgets (375k -0.4, 500k -0.4; 125k/250k ~flat), i.e. the occasional extra reuse candidate is doing real, if modest, work at higher budgets. Code reverted. A future attempt could try a flat threshold (K=2 above some budget) instead of flat K=1, but that is a bigger behavioral swing than this conservative try and wasn't attempted here.
 
 ### 11. `startupRescuePressure` `1/(1+t²)` with magic `FPS*1.1` feeding three separate count formulas
 - **Files:** `scripts/v0/optimizer/handoff.ts`

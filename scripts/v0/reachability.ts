@@ -55,12 +55,57 @@ import { registerCompileReset } from "./core/compile_lifecycle.ts";
  *  persistence horizon). */
 export const HANDOFF_SETTLE_FRAMES = PERSISTENCE_FRAMES + 1;
 
-/** Isolated-origin probe arcs per grid entry. Small: this is a feasibility
- *  slice, not a quality search. */
-const PROBE_ATTEMPTS = 2;
-/** A grid entry counts as catchable only if some probe catch exits within this
- *  reduced-state distance of the NEXT region (chained right-to-left). */
-const NEXT_REGION_ACCEPT_DISTANCE = 1.35;
+/**
+ * Unvalidated prototype tuning constants for this backward-reachability probe.
+ *
+ * Every number below is a provisional guess carried over from the module's
+ * original prototype: absolute px/frame/degree thresholds and hand-picked
+ * penalty weights that assume the current physics scaling. The module docstring's
+ * "Phase A validates which dims carry signal" refers to a validation phase that
+ * never ran — the module was never wired into the production compile path (see
+ * simplification catalog #117) — so NONE of these values has been empirically
+ * confirmed against the golden benchmark.
+ *
+ * They are gathered here, rather than scattered as bare literals through
+ * handoffStability / stateDistance / velocityGrid / the probe loop, purely so a
+ * future validation pass has a single place to inspect and revise them. This is
+ * a naming/grouping reorganization ONLY: no value has changed.
+ */
+const REACHABILITY_PROTOTYPE_CONFIG = {
+  /** Isolated-origin probe arcs per grid entry. Small: this is a feasibility
+   *  slice, not a quality search. */
+  probeAttempts: 2,
+  /** A grid entry counts as catchable only if some probe catch exits within this
+   *  reduced-state distance of the NEXT region (chained right-to-left). */
+  nextRegionAcceptDistance: 1.35,
+  /** Cap on reachabilityPenalty (reduced-state distance to nearest catchable
+   *  entry of the next region). */
+  penaltyCap: 3,
+  /** handoffStability: per-dim smoothExcess thresholds + penalty weights.
+   *  Higher penalty = more ejection-prone (over/under-speed, high vertical
+   *  velocity, steep or backward velocity angle). lowSpeed reuses `threshold`
+   *  as both the pivot and the smoothExcess span. */
+  stability: {
+    highSpeed: { start: 13, span: 8, weight: 0.38 },
+    lowSpeed: { threshold: 1.25, weight: 0.22 },
+    vertical: { start: 11, span: 9, weight: 0.24 },
+    steepAngle: { start: 70, span: 45, weight: 0.12 },
+    backwards: { divisor: 6, weight: 0.20 },
+  },
+  /** stateDistance: per-axis normalisers for the reduced-state metric
+   *  (speed/8, angle/90, vy/10). */
+  distanceNormalisers: { speed: 8, angle: 90, vy: 10 },
+  /** velocityGrid: entry-velocity grid (3 speeds × 3 angles) around the gap's
+   *  target speed, with steeper angles when the gap wants high air. */
+  grid: {
+    targetSpeedClamp: { min: 1.5, max: 14 },
+    speedOffset: 3,
+    gridSpeedClamp: { min: 1.5, max: 16 },
+    highAirThreshold: 0.65,
+    highAirAngles: [25, 50, 75],
+    lowAirAngles: [0, 25, 50],
+  },
+} as const;
 
 export type HandoffState = {
   frame: number;
@@ -121,16 +166,17 @@ export function readHandoffState(
 export function handoffStability(
   state: Pick<HandoffState, "vx" | "vy" | "speed" | "angleDeg">,
 ): number {
-  const highSpeed = smoothExcess(state.speed, 13, 8);
-  const lowSpeed = smoothExcess(1.25 - state.speed, 0, 1.25);
-  const vertical = smoothExcess(Math.abs(state.vy), 11, 9);
-  const steepAngle = smoothExcess(Math.abs(state.angleDeg), 70, 45);
-  const backwards = state.vx < 0 ? Math.min(1, -state.vx / 6) : 0;
-  const penalty = 0.38 * highSpeed
-    + 0.22 * lowSpeed
-    + 0.24 * vertical
-    + 0.12 * steepAngle
-    + 0.20 * backwards;
+  const cfg = REACHABILITY_PROTOTYPE_CONFIG.stability;
+  const highSpeed = smoothExcess(state.speed, cfg.highSpeed.start, cfg.highSpeed.span);
+  const lowSpeed = smoothExcess(cfg.lowSpeed.threshold - state.speed, 0, cfg.lowSpeed.threshold);
+  const vertical = smoothExcess(Math.abs(state.vy), cfg.vertical.start, cfg.vertical.span);
+  const steepAngle = smoothExcess(Math.abs(state.angleDeg), cfg.steepAngle.start, cfg.steepAngle.span);
+  const backwards = state.vx < 0 ? Math.min(1, -state.vx / cfg.backwards.divisor) : 0;
+  const penalty = cfg.highSpeed.weight * highSpeed
+    + cfg.lowSpeed.weight * lowSpeed
+    + cfg.vertical.weight * vertical
+    + cfg.steepAngle.weight * steepAngle
+    + cfg.backwards.weight * backwards;
   return clamp01(1 - penalty);
 }
 
@@ -138,9 +184,10 @@ export function handoffStability(
  *  the prototype's guesses; Phase A reports per-dim signal so they can be
  *  revised before any selection wire-in. */
 export function stateDistance(a: HandoffState, b: HandoffState): number {
-  const speed = (a.speed - b.speed) / 8;
-  const angle = angleDeltaDeg(a.angleDeg, b.angleDeg) / 90;
-  const vy = (a.vy - b.vy) / 10;
+  const norm = REACHABILITY_PROTOTYPE_CONFIG.distanceNormalisers;
+  const speed = (a.speed - b.speed) / norm.speed;
+  const angle = angleDeltaDeg(a.angleDeg, b.angleDeg) / norm.angle;
+  const vy = (a.vy - b.vy) / norm.vy;
   return Math.hypot(speed, angle, vy);
 }
 
@@ -162,7 +209,7 @@ export function reachabilityPenalty(
   }
   let best = Infinity;
   for (const sample of region.samples) best = Math.min(best, stateDistance(exit, sample));
-  return Math.min(3, best);
+  return Math.min(REACHABILITY_PROTOTYPE_CONFIG.penaltyCap, best);
 }
 
 // ── Region computation (lazy, memoised, chained right-to-left) ──────────────────
@@ -210,7 +257,7 @@ export function nextContactRegion(
   return null;
 }
 
-/** Probe up to PROBE_ATTEMPTS isolated catches from this entry; return the exit
+/** Probe up to `probeAttempts` isolated catches from this entry; return the exit
  *  state whose reach into the next region is smallest (and accepted), else null
  *  (this entry can't cleanly bridge to the next contact). */
 function bestLocalExit(
@@ -234,7 +281,7 @@ function bestLocalExit(
 
   let best: HandoffState | null = null;
   let bestPenalty = Infinity;
-  for (let attempt = 0; attempt < PROBE_ATTEMPTS; attempt++) {
+  for (let attempt = 0; attempt < REACHABILITY_PROTOTYPE_CONFIG.probeAttempts; attempt++) {
     const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap);
     const fit = tryCandidate(
       engine, gap, arc, 1, allContactFrames, axisMeasureEnd, gap.targets, true,
@@ -243,7 +290,7 @@ function bestLocalExit(
     if (fit === null) continue;
     const exit = exitAfterFit(engine, fit, gap.endFrame + HANDOFF_SETTLE_FRAMES);
     const penalty = reachabilityPenalty(exit, nextRegion);
-    if (nextRegion !== null && nextRegion.samples.length > 0 && penalty > NEXT_REGION_ACCEPT_DISTANCE) {
+    if (nextRegion !== null && nextRegion.samples.length > 0 && penalty > REACHABILITY_PROTOTYPE_CONFIG.nextRegionAcceptDistance) {
       continue;
     }
     if (penalty < bestPenalty) {
@@ -280,16 +327,19 @@ function localGap(gap: Gap): Gap {
 /** A small fixed grid of entry velocities (3 speeds × 3 angles) around the gap's
  *  target speed, with steeper angles when the gap wants high air. */
 function velocityGrid(gap: Gap): HandoffState[] {
+  const cfg = REACHABILITY_PROTOTYPE_CONFIG.grid;
   const rawTargetSpeed = gap.targets.speed === undefined
     ? SPEED_AXIS.UNTARGETED_REACHABILITY_PX_PER_FRAME
     : authoredSpeedToPx(gap.targets.speed);
-  const targetSpeed = Math.max(1.5, Math.min(14, rawTargetSpeed));
+  const targetSpeed = Math.max(cfg.targetSpeedClamp.min, Math.min(cfg.targetSpeedClamp.max, rawTargetSpeed));
   const speeds = uniqueSorted(
-    [targetSpeed - 3, targetSpeed, targetSpeed + 3].map((s) => Math.max(1.5, Math.min(16, s))),
+    [targetSpeed - cfg.speedOffset, targetSpeed, targetSpeed + cfg.speedOffset].map(
+      (s) => Math.max(cfg.gridSpeedClamp.min, Math.min(cfg.gridSpeedClamp.max, s)),
+    ),
   );
-  const baseAngles = gap.targets.air !== undefined && gap.targets.air > 0.65
-    ? [25, 50, 75]
-    : [0, 25, 50];
+  const baseAngles = gap.targets.air !== undefined && gap.targets.air > cfg.highAirThreshold
+    ? cfg.highAirAngles
+    : cfg.lowAirAngles;
   const out: HandoffState[] = [];
   for (const speed of speeds) {
     for (const angleDeg of baseAngles) {

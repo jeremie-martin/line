@@ -1149,7 +1149,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Fold into the delete/quarantine of #117; if any survives as a probe, collapse the smoothExcess/normaliser literals into one config object marked unvalidated.
 - **Risk:** low
 - **Generalization note:** Absolute px/frame/degree thresholds assume current physics scaling.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Followed #117's relocate-not-delete fallback: consolidated 27 bare numeric literals (in the now-relocated `scripts/v0/reachability.ts`) into one `REACHABILITY_PROTOTYPE_CONFIG` object near the top of the file — `probeAttempts`, `nextRegionAcceptDistance`, the `reachabilityPenalty` cap, 13 `handoffStability` thresholds/weights, 3 `stateDistance` normalisers, and 9 `velocityGrid` parameters — with a comment block flagging them as unvalidated prototype guesses (the never-run "Phase A"). Pure reorganization: no numeric value changed, every use site repointed to the config. Module is dead on the golden path (#117), so the byte-identical guarantee is automatic; confirmed anyway.
 
 ### 119. Non-hybrid arc-response model dispatch is dead — production always fits 'hybrid'
 - **Files:** `scripts/v0/optimizer/arc_model.ts`

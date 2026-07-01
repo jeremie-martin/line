@@ -43,6 +43,9 @@ import {
 } from "./candidate.ts";
 import { registerCompileReset } from "./compile_lifecycle.ts";
 
+// Extra frames simulated past the spec's nominal end so the detector sees the
+// full rideout tail / clean terminus + landing when scoring a freshly-rebuilt track.
+const POLISH_SIM_TAIL_FRAMES = 20;
 const AIR_POLISH_PASSES = 3;
 const DENSE_AIR_POLISH_PASSES = 2;
 const DENSE_AIR_POLISH_SOURCE_LIMIT = 8;
@@ -76,7 +79,7 @@ export function polishAirRideOut(
   if (!hasOnlyAirSectionTargets(spec)) return;
 
   let baseEngine = rebuildEngine(fits, gaps.length);
-  const baseDet = detect(extractRawTrajectory(baseEngine, durationFrames + 20));
+  const baseDet = detect(extractRawTrajectory(baseEngine, durationFrames + POLISH_SIM_TAIL_FRAMES));
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   let bestErr = meanAirError(baseDet, spec);
@@ -158,7 +161,7 @@ function bestAirPolishCandidate(
     if (usedSources.has(source.line.id)) continue;
     for (const cand of makeAirPolishCandidates(lineId, source.line)) {
       const eng = baseEngine.addLine(engineLineFromTrackLine(cand));
-      const det = detect(extractRawTrajectory(eng, durationFrames + 20));
+      const det = detect(extractRawTrajectory(eng, durationFrames + POLISH_SIM_TAIL_FRAMES));
       if (!passesFinalHardGates(det, contactFrames)) continue;
       const err = meanAirError(det, spec);
       if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -355,10 +358,7 @@ export function polishAirContactEntry(
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
   if (!hasOnlyAirSectionTargets(spec)) return;
 
-  const baseDet = detect(extractRawTrajectory(
-    rebuildEngine(fits, gaps.length),
-    durationFrames + 20,
-  ));
+  const baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   const bestErr = meanAirError(baseDet, spec);
@@ -388,10 +388,7 @@ export function polishAirContactEntry(
     for (const extra of AIR_CONTACT_EXTENSION_LENGTHS) {
       line.x1 = originalX1 - (dx / len) * extra;
       line.y1 = originalY1 - (dy / len) * extra;
-      const det = detect(extractRawTrajectory(
-        rebuildEngine(fits, gaps.length),
-        durationFrames + 20,
-      ));
+      const det = simulateAndDetect(fits, gaps, durationFrames);
       if (passesFinalHardGates(det, contactFrames)) {
         const err = meanAirError(det, spec);
         if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -421,7 +418,7 @@ export function polishAirBriefContacts(
   if (!hasOnlyAirSectionTargets(spec)) return;
 
   let baseEngine = rebuildEngine(fits, gaps.length);
-  let baseDet = detect(extractRawTrajectory(baseEngine, durationFrames + 20));
+  let baseDet = detect(extractRawTrajectory(baseEngine, durationFrames + POLISH_SIM_TAIL_FRAMES));
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   let bestErr = meanAirError(baseDet, spec);
@@ -456,7 +453,7 @@ export function polishAirBriefContacts(
       );
 
       const candidateEngine = baseEngine.addLine(engineLineFromTrackLine(line));
-      const det = detect(extractRawTrajectory(candidateEngine, durationFrames + 20));
+      const det = detect(extractRawTrajectory(candidateEngine, durationFrames + POLISH_SIM_TAIL_FRAMES));
       if (!passesFinalHardGates(det, contactFrames)) continue;
 
       const err = meanAirError(det, spec);
@@ -538,10 +535,7 @@ export function polishExcessContact(
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
   if (!shouldPolishExcessContact(spec)) return;
 
-  let baseDet = detect(extractRawTrajectory(
-    rebuildEngine(fits, gaps.length),
-    durationFrames + 20,
-  ));
+  let baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   let bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -584,8 +578,7 @@ export function polishExcessContact(
             line.x1 = originalX2 - dx * frac;
             line.y1 = originalY2 - dy * frac;
           }
-          const eng = rebuildEngine(fits, gaps.length);
-          const det = detect(extractRawTrajectory(eng, durationFrames + 20));
+          const det = simulateAndDetect(fits, gaps, durationFrames);
           if (passesFinalHardGates(det, contactFrames)) {
             const err = meanSectionAxisError(det, spec, gaps, fits);
             if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -690,8 +683,7 @@ function polishContactEdges(
         line.y1 = originalY2 - dy * candidate.fraction;
       }
 
-      const eng = rebuildEngine(fits, gaps.length);
-      const det = detect(extractRawTrajectory(eng, durationFrames + 20));
+      const det = simulateAndDetect(fits, gaps, durationFrames);
       if (passesFinalHardGates(det, contactFrames)) {
         const err = meanSectionAxisError(det, spec, gaps, fits);
         if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -769,10 +761,7 @@ function polishEntrySpeedXBoundary(
       const dx = direction * (coarseShift + refinementStep);
       line.x1 = originalX1 + dx;
       line.x2 = originalX2 + dx;
-      const det = detect(extractRawTrajectory(
-        rebuildEngine(fits, gaps.length),
-        durationFrames + 20,
-      ));
+      const det = simulateAndDetect(fits, gaps, durationFrames);
       if (passesFinalHardGates(det, contactFrames)) {
         const err = meanSectionAxisError(det, spec, gaps, fits);
         if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -835,10 +824,7 @@ function polishEntrySpeedYBoundary(
       const dy = direction * step;
       line.y1 = originalY1 + dy;
       line.y2 = originalY2 + dy;
-      const det = detect(extractRawTrajectory(
-        rebuildEngine(fits, gaps.length),
-        durationFrames + 20,
-      ));
+      const det = simulateAndDetect(fits, gaps, durationFrames);
       if (passesFinalHardGates(det, contactFrames)) {
         const err = meanSectionAxisError(det, spec, gaps, fits);
         if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -949,10 +935,7 @@ function polishGrainLength(
 ): void {
   if (!shouldPolishGrainLength(spec)) return;
 
-  let baseDet = detect(extractRawTrajectory(
-    rebuildEngine(fits, gaps.length),
-    durationFrames + 20,
-  ));
+  let baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   let bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -999,10 +982,7 @@ function polishGrainLength(
             line.y1 = originalY1 - (dy / len) * extra;
           }
 
-          const det = detect(extractRawTrajectory(
-            rebuildEngine(fits, gaps.length),
-            durationFrames + 20,
-          ));
+          const det = simulateAndDetect(fits, gaps, durationFrames);
           if (passesFinalHardGates(det, contactFrames)) {
             const err = meanSectionAxisError(det, spec, gaps, fits);
             if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -1052,10 +1032,7 @@ function polishEntrySpeed(
 ): void {
   if (!shouldPolishEntrySpeed(spec)) return;
 
-  const baseDet = detect(extractRawTrajectory(
-    rebuildEngine(fits, gaps.length),
-    durationFrames + 20,
-  ));
+  const baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   const bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1083,10 +1060,7 @@ function polishEntrySpeed(
       line.y1 = originalY1 + dy;
       line.y2 = originalY2 + dy;
 
-      const det = detect(extractRawTrajectory(
-        rebuildEngine(fits, gaps.length),
-        durationFrames + 20,
-      ));
+      const det = simulateAndDetect(fits, gaps, durationFrames);
       if (passesFinalHardGates(det, contactFrames)) {
         const err = meanSectionAxisError(det, spec, gaps, fits);
         if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -1129,10 +1103,7 @@ function polishEntrySpeedX(
 ): void {
   if (!shouldPolishEntrySpeed(spec)) return;
 
-  let baseDet = detect(extractRawTrajectory(
-    rebuildEngine(fits, gaps.length),
-    durationFrames + 20,
-  ));
+  let baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   let bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1165,10 +1136,7 @@ function polishEntrySpeedX(
         line.x1 = originalX1 + dx;
         line.x2 = originalX2 + dx;
 
-        const det = detect(extractRawTrajectory(
-          rebuildEngine(fits, gaps.length),
-          durationFrames + 20,
-        ));
+        const det = simulateAndDetect(fits, gaps, durationFrames);
         if (passesFinalHardGates(det, contactFrames)) {
           const err = meanSectionAxisError(det, spec, gaps, fits);
           if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -1193,10 +1161,7 @@ function polishEntrySpeedX(
     fits, gaps, spec, contactFrames, durationFrames, baseDet, bestErr,
   );
 
-  const refinedDet = detect(extractRawTrajectory(
-    rebuildEngine(fits, gaps.length),
-    durationFrames + 20,
-  ));
+  const refinedDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(refinedDet, contactFrames)) return;
   polishEntrySpeedYBoundary(
     fits,
@@ -1218,10 +1183,7 @@ function polishEntrySlope(
 ): void {
   if (!shouldPolishEntrySpeed(spec)) return;
 
-  const baseDet = detect(extractRawTrajectory(
-    rebuildEngine(fits, gaps.length),
-    durationFrames + 20,
-  ));
+  const baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   const bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1251,10 +1213,7 @@ function polishEntrySlope(
       line.x2 = cx + (Math.cos(rotated) * len) / 2;
       line.y2 = cy + (Math.sin(rotated) * len) / 2;
 
-      const det = detect(extractRawTrajectory(
-        rebuildEngine(fits, gaps.length),
-        durationFrames + 20,
-      ));
+      const det = simulateAndDetect(fits, gaps, durationFrames);
       if (passesFinalHardGates(det, contactFrames)) {
         const err = meanSectionAxisError(det, spec, gaps, fits);
         if (err + 1e-6 < bestErr) return;
@@ -1277,10 +1236,7 @@ function polishEntryLength(
 ): void {
   if (!shouldPolishGrainLength(spec)) return;
 
-  let baseDet = detect(extractRawTrajectory(
-    rebuildEngine(fits, gaps.length),
-    durationFrames + 20,
-  ));
+  let baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   let bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1326,10 +1282,7 @@ function polishEntryLength(
             line.y1 = originalY1 - (dy / len) * extra;
           }
 
-          const det = detect(extractRawTrajectory(
-            rebuildEngine(fits, gaps.length),
-            durationFrames + 20,
-          ));
+          const det = simulateAndDetect(fits, gaps, durationFrames);
           if (passesFinalHardGates(det, contactFrames)) {
             const err = meanSectionAxisError(det, spec, gaps, fits);
             if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -1377,10 +1330,7 @@ function polishMedianGrainPlateau(
 ): void {
   if (!shouldPolishGrainLength(spec)) return;
 
-  const baseDet = detect(extractRawTrajectory(
-    rebuildEngine(fits, gaps.length),
-    durationFrames + 20,
-  ));
+  const baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   const bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1435,10 +1385,7 @@ function polishMedianGrainPlateau(
           }
         }
 
-        const det = detect(extractRawTrajectory(
-          rebuildEngine(fits, gaps.length),
-          durationFrames + 20,
-        ));
+        const det = simulateAndDetect(fits, gaps, durationFrames);
         if (passesFinalHardGates(det, contactFrames)) {
           const err = meanSectionAxisError(det, spec, gaps, fits);
           if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -1485,10 +1432,7 @@ function polishMedianGrainResidual(
 ): void {
   if (!shouldPolishGrainLength(spec)) return;
 
-  const baseDet = detect(extractRawTrajectory(
-    rebuildEngine(fits, gaps.length),
-    durationFrames + 20,
-  ));
+  const baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   const bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1521,10 +1465,7 @@ function polishMedianGrainResidual(
         try {
           if (!applyLengthDelta(originals, plan.side, plan.extra)) continue;
 
-          const det = detect(extractRawTrajectory(
-            rebuildEngine(fits, gaps.length),
-            durationFrames + 20,
-          ));
+          const det = simulateAndDetect(fits, gaps, durationFrames);
           if (passesFinalHardGates(det, contactFrames)) {
             const err = meanSectionAxisError(det, spec, gaps, fits);
             if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -1762,6 +1703,22 @@ export function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
     }
   }
   return chained;
+}
+
+/**
+ * The recurring polish "rebuild → simulate with tail → detect" triple: rebuild
+ * the engine from `fits`, run it `POLISH_SIM_TAIL_FRAMES` frames past the spec's
+ * nominal end, and return the detector's reading of that trajectory. Used
+ * wherever a polisher scores a freshly-rebuilt candidate track from scratch.
+ */
+function simulateAndDetect(
+  fits: (GapFit | null)[],
+  gaps: Gap[],
+  durationFrames: number,
+): Detection {
+  return detect(
+    extractRawTrajectory(rebuildEngine(fits, gaps.length), durationFrames + POLISH_SIM_TAIL_FRAMES),
+  );
 }
 
 // Set by compiler entry points before rebuilds. Read by `rebuildEngine`.

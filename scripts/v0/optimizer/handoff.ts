@@ -3737,7 +3737,7 @@ function forwardNodeScore(search: SearchNode, gaps: Gap[], ctx: SpecContext): nu
   const fullDuration = isTerminalNode(search, gaps);
   const horizonFrame = fullDuration ? ctx.durationFrames : processedHorizonFrame(search, gaps);
   const outputDurationFrames = fullDuration
-    ? ctx.durationFrames + 20
+    ? ctx.durationFrames + OUTPUT_TAIL_PAD_FRAMES
     : partialOutputDurationFrames(horizonFrame, ctx.durationFrames);
   const det = detectWindow(search.prefixEngine, 0, outputDurationFrames);
   const fits = search.prefixFits.slice();

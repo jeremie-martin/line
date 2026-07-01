@@ -976,7 +976,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Introduce `POLISH_SIM_TAIL_FRAMES=20` (or derive from `PERSISTENCE_FRAMES`) used everywhere; ideally wrap the recurring `detect(extractRawTrajectory(rebuildEngine(fits, gaps.length), durationFrames + TAIL))` triple into one `simulateAndDetect(fits, gaps, durationFrames)` helper.
 - **Risk:** low
 - **Generalization note:** A fixed 20-frame tail may be too short for slow riders/long specs; named/derived makes it adjustable.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (1-seed/40-spec/4-budget track_hash diff, 160/160 match). Tier 1: introduced `POLISH_SIM_TAIL_FRAMES=20` (commented) and named all 26 `durationFrames + 20` sites in `polish.ts`; also handled the deferred `handoff.ts forwardNodeScore` site by reusing the existing same-file `OUTPUT_TAIL_PAD_FRAMES` (identical output-tail-pad concept, no cross-module import). Tier 2: added a `simulateAndDetect(fits, gaps, durationFrames)` helper and collapsed the 22 genuinely-uniform triples into it — 20 inline `detect(extractRawTrajectory(rebuildEngine(fits, gaps.length), …))` blocks + 2 single-use `const eng = rebuildEngine(…)` two-statement equivalents. The remaining 4 `polish.ts` sites reuse or mutate a pre-built engine variable (`baseEngine`, `baseEngine.addLine(…)`, `candidateEngine`) so they don't fit the helper and stay Tier-1-only (named constant). Net ~-40 lines in `polish.ts`.
 
 ### 101. `contactEdgeTrimCandidates` hard-codes a 5-frame minimum contact length
 - **Files:** `scripts/v0/core/polish.ts`

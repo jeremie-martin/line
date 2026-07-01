@@ -1317,7 +1317,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Drop the `ease` parameter and inline linear interpolation. If per-segment easing is ever wanted it belongs in the keyframe schema.
 - **Risk:** low
 - **Generalization note:** Unused flexibility.
-- **Status:** Not Started
+- **Status:** Abandoned (catalog was wrong: a third call site exists beyond the two in `camera.ts`. `scripts/export.ts:258` passes `zoomEase` as the third arg on the dense per-frame render path — `zoomEase = EASE[zoomEaseName] ?? EASE.cubic` (export.ts 122-123), a **non-identity** cubic ease by default and selectable via `--zoom-ease` to quad/cosine/expo. The eased path is genuinely exercised, so the parameter is not dead. Location note only counted call sites 40/61 inside `camera.ts` and missed the export.ts caller.)
 
 ### 137. Express `HANDOFF_MATURITY_BUDGET_SCALE_FRAMES` as a fraction of `targetBudget` instead of a fixed 150k
 *(follow-up to #7)*

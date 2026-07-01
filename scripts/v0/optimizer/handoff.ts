@@ -416,9 +416,9 @@ const HANDOFF_RESCUE_MIN_GAP_FRAMES = 16;
  *  batches have zero viable options. This targets missing first/tight contacts
  *  without inserting an extra family into already-working contract search. */
 const HANDOFF_STARTUP_DEAD_END_MAX_K = 24;
-/** Sub-0.3s required-contact gaps are deadline-dominated: the normal cheap
- *  16-sample prefix can have zero hits even when a catch exists later in the
- *  deterministic sample order. Rescue only clean prefixes at true dead-ends so
+/** Short required-contact gaps are deadline-dominated: the normal cheap prefix
+ *  can have zero hits even when a catch exists later in the deterministic sample
+ *  order. Rescue only clean prefixes at true dead-ends (caller-gated) so
  *  already-working dense paths keep their normal cheap order. */
 const HANDOFF_SHORT_RESCUE_N_CAND = 80;
 const HANDOFF_SHORT_RESCUE_CANDIDATE_POOL = 16;
@@ -2001,53 +2001,56 @@ function expandNode(
     budgetSlack: policy.budgetSlack,
     targetBudget,
   });
-  if (options.length === 0 && shouldAttemptDeadEndRescue(node.search, gap, ctx)) {
-    telemetry.rescueAttempts++;
-    const rescueNCand = deadEndRescueCandidateCount(gap);
-    options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
-      nCand: rescueNCand,
-      poolSize: deadEndRescueCandidatePoolSize(gap, rescueNCand),
-      preview: policy.preview,
-      axisQualitySearch: policy.axisQualitySearch,
-      releaseSetup: policy.releaseSetup,
-      reuseLimit: policy.reuseLimit,
-      previewCostWeight: PREVIEW_COST_WEIGHT,
-      previewScorePressure: policy.previewScorePressure,
-      budgetSlack: policy.budgetSlack,
-      targetBudget,
-    });
-    if (options.length > 0) telemetry.rescueSuccesses++;
-  }
-  if (
-    options.length === 0 &&
-    node.skippedContacts === 0 &&
-    shouldAttemptShortDeadlineRescue(gap)
-  ) {
-    telemetry.rescueAttempts++;
-    options = rankedOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
-      nCand: HANDOFF_SHORT_RESCUE_N_CAND,
-      poolSize: HANDOFF_SHORT_RESCUE_CANDIDATE_POOL,
-      preview: policy.preview,
-      axisQualitySearch: policy.axisQualitySearch,
-      releaseSetup: policy.releaseSetup,
-      reuseLimit: policy.reuseLimit,
-      previewCostWeight: PREVIEW_COST_WEIGHT,
-      previewScorePressure: policy.previewScorePressure,
-      budgetSlack: policy.budgetSlack,
-      targetBudget,
-    });
-    if (options.length > 0) telemetry.rescueSuccesses++;
-  }
-  if (options.length === 0 && shouldAttemptStartupDeadEndRescue(gap)) {
-    telemetry.rescueAttempts++;
-    options = startupDeadEndOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
-      preview: policy.preview,
-      releaseSetup: policy.releaseSetup,
-      previewCostWeight: PREVIEW_COST_WEIGHT,
-      previewScorePressure: policy.previewScorePressure,
-      targetBudget,
-    });
-    if (options.length > 0) telemetry.rescueSuccesses++;
+  // Dead-end cascade: when the normal batch finds no viable catch for a required
+  // contact, try the rescue lanes in order until one yields options. Lanes are
+  // data — each names its admission predicate and produces its option list. Lanes
+  // 1 & 2 share the ranker config literal via rescueOptions (differing only in the
+  // per-tier nCand/poolSize); the startup lane samples a distinct catch stream.
+  // Telemetry (attempt/success) is uniform across all lanes.
+  if (options.length === 0) {
+    const rescueTiers: { predicate: () => boolean; run: () => RankedOption[] }[] = [
+      {
+        // Base rescue: extra deterministic sampling with a startup-pressure ramp.
+        predicate: () => shouldAttemptDeadEndRescue(node.search, gap, ctx),
+        run: () => {
+          const nCand = deadEndRescueCandidateCount(gap);
+          return rescueOptions(node.search, gaps, ctx, node.searchSeed, telemetry, policy, targetBudget, {
+            nCand,
+            poolSize: deadEndRescueCandidatePoolSize(gap, nCand),
+          });
+        },
+      },
+      {
+        // Short-deadline rescue: wide extra sampling only for tight deadlines;
+        // clean prefixes only.
+        predicate: () => node.skippedContacts === 0 && shouldAttemptShortDeadlineRescue(gap),
+        run: () => {
+          const nCand = shortDeadlineRescueCandidateCount(gap.endFrame - gap.startFrame);
+          return rescueOptions(node.search, gaps, ctx, node.searchSeed, telemetry, policy, targetBudget, {
+            nCand,
+            poolSize: Math.min(nCand, HANDOFF_SHORT_RESCUE_CANDIDATE_POOL),
+          });
+        },
+      },
+      {
+        // Startup rescue: a distinct catch stream for missing first/tight contacts.
+        predicate: () => shouldAttemptStartupDeadEndRescue(gap),
+        run: () => startupDeadEndOptions(node.search, gaps, ctx, node.searchSeed, telemetry, {
+          preview: policy.preview,
+          releaseSetup: policy.releaseSetup,
+          previewCostWeight: PREVIEW_COST_WEIGHT,
+          previewScorePressure: policy.previewScorePressure,
+          targetBudget,
+        }),
+      },
+    ];
+    for (const tier of rescueTiers) {
+      if (options.length > 0) break;
+      if (!tier.predicate()) continue;
+      telemetry.rescueAttempts++;
+      options = tier.run();
+      if (options.length > 0) telemetry.rescueSuccesses++;
+    }
   }
   if (options.length === 0) {
     telemetry.skips++;
@@ -2076,6 +2079,34 @@ function expandNode(
     rankTrace: appendOptionTrace(node.rankTrace, option),
     skippedContacts: node.skippedContacts + (option.candidate === null ? 1 : 0),
   }));
+}
+
+// Shared rankedOptions-based rescue lane: the common ranker config literal
+// (preview/axis/release/reuse/slack/budget pulled from the node's policy) with a
+// per-tier (nCand, poolSize). The dead-end cascade in expandNode drives lanes 1 &
+// 2 through this; the startup lane uses its own catch stream (startupDeadEndOptions).
+function rescueOptions(
+  search: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  telemetry: HandoffTelemetry,
+  policy: HandoffSearchPolicy,
+  targetBudget: number,
+  tier: { nCand: number; poolSize: number },
+): RankedOption[] {
+  return rankedOptions(search, gaps, ctx, seed, telemetry, {
+    nCand: tier.nCand,
+    poolSize: tier.poolSize,
+    preview: policy.preview,
+    axisQualitySearch: policy.axisQualitySearch,
+    releaseSetup: policy.releaseSetup,
+    reuseLimit: policy.reuseLimit,
+    previewCostWeight: PREVIEW_COST_WEIGHT,
+    previewScorePressure: policy.previewScorePressure,
+    budgetSlack: policy.budgetSlack,
+    targetBudget,
+  });
 }
 
 function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap, ctx: SpecContext): boolean {

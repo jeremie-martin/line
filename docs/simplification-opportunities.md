@@ -56,7 +56,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract one `rescueOptions(node, gap, {nCand, poolSize})` helper owning the shared config literal + telemetry bump, driven by a small ordered `{predicate, nCand, poolSize}` tier list. Ramp the short-deadline count continuously (reuse the `1/(1+t²)` shape) instead of the 12-frame cliff. Tiers become data, not control flow.
 - **Risk:** medium
 - **Generalization note:** 12-frame / 80-cand / 32-48-80 counts are absolute frame/sample numbers tuned to current cadence; a shared helper makes them the only spec-specific knobs.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — structural extraction only. Extracted a shared `rescueOptions(...)` helper + ordered `rescueTiers` data list (byte-identical, verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). The proposed continuous `1/(1+t²)` ramp replacing the 12-frame short-deadline cliff was tried separately and REJECTED on the full canonical run: Δheadline -0.04, CI [-0.1, 0.0], P(Δ≤0)=92.8% — reverted, the hard cliff stays. Tiers are now data (the simplification goal), even though the cliff itself remains a hard threshold.
 
 ### 3. `LR_PLAN_LOOP` closed-loop re-aim + `planning.ts` module is dead-by-default and documented as not paying
 *(sources: handoff-core-rescue, misc-small-modules)*

@@ -21,7 +21,6 @@ import {
   recordArcPlacementDirectFailure,
   recordArcPlacementDirectLanding,
   recordArcPlacementPreclearReject,
-  wasLastGeometryImpactTemplate,
 } from "../arc_placement.ts";
 import {
   AXES,
@@ -33,7 +32,6 @@ import {
   IMPACT_WINDOW,
   impactEnvNum,
   hasExactlyTargetAxes,
-  normImpact,
   type CandidateSampleMode,
   speedPxToAuthored,
 } from "../types.ts";
@@ -43,7 +41,6 @@ import {
   engineLineFromTrackLine,
   contactLineIdsAt,
   airborneAt,
-  redirArcPxAtLanding,
   speedAt,
   velocityAt,
   positionAt,
@@ -166,179 +163,49 @@ const RELEASE_STATE_SPEED_WEIGHT = 0.126;
  *  overrides the weight for studies. */
 const LOCAL_IMPACT_COST_WEIGHT = Math.max(0, impactEnvNum("LR_IMPACT_LOCAL_W", 0.5));
 
-// ─────────── Landing-window probe (study-only, off by default) ───────────
-// Read-only diagnostic for the landing-redefinition project: for every candidate
-// that passes the survival gate, compute the minimal acceptance half-width
-// W ∈ [1, LANDING_PROBE_MAX_W] at which the candidate would be admitted if BOTH
-// timing rules widened in lockstep (a landing on an owned line within ±W of the
-// beat AND zero off-beat landings at tolerance W). W=1 reproduces today's hard
-// gates exactly. Enabled only by study scripts via `enableLandingWindowProbe`;
-// when disabled (always, in production) the hot path pays one null check.
+// ─────────── Landing-window probe hook (study-only, off by default) ───────────
+// Read-only diagnostic seam for the landing-redefinition / impact-funnel studies.
+// The full probe apparatus (records, the minimal-W acceptance sweep, arc-angle
+// geometry) lives in the study module scripts/v0/landing_probe.ts and installs
+// itself here through the single setLandingProbeHook seam. When no study has
+// enabled it — always, in production — the hook is null and the hot path pays one
+// null check, so compiles are byte-identical.
 
-export const LANDING_PROBE_MAX_W = 5;
-const LANDING_PROBE_RECORD_CAP = 1_000_000;
+/** Mutable cost sink the final candidate cost is written back into (see the
+ *  `probeRecord.cost = cost` line below). Structurally a slice of the study's
+ *  LandingWindowProbeRecord. */
+export type LandingProbeCostSink = { cost: number | null };
 
-export type LandingWindowProbeRecord = {
-  gapIndex: number;
-  endFrame: number;
-  /** Authored per-beat impact target of this gap, if any. */
-  targetImpact?: number;
-  /** Candidate-arc geometry (from its lines, independent of simulation):
-   *  entry tangent angle (deg, positive = descending) and total signed turn
-   *  (deg, negative = scooping/flattening). Funnel-study fields. */
-  entryAngleDeg: number | null;
-  turnDeg: number | null;
-  /** Set when the candidate died at the survival gate (rider didn't live to
-   *  endFrame + margin) — such records carry geometry but no landing data. */
-  failure?: "survival";
-  /** Minimal lockstep half-width that admits the candidate; null if none ≤ MAX_W. */
-  acceptedAtW: number | null;
-  /** Signed landing offset (landingFrame − endFrame) at that W; null if rejected. */
-  offset: number | null;
-  /** Achieved impact (redirArc = v·Δθ → normImpact, felt [0,1]) at that landing. */
-  impactAchieved: number | null;
-  /** Incoming speed (px/frame) one frame before that landing. */
-  incomingSpeed: number | null;
-  /** True if the geometry came from an impact template lane. */
-  isTemplate: boolean;
-  /** Final axisCost of the candidate; null if it failed a hard gate. */
-  cost: number | null;
-  /** Handoff ranking score (lower = better; −forwardArcValue at ≥75k, else the
-   *  composite local score). Attached by scoreCandidateForHandoff when probing. */
-  handoffScore?: number;
+/** The seam the study apparatus registers through. All methods run only while a
+ *  study has installed a hook; production never installs one. */
+export type LandingProbeHook = {
+  /** Candidate died at the survival gate — geometry is known, no landing data. */
+  onSurvivalFailure(gap: Gap, lines: TrackLine[]): void;
+  /** Survival-passing candidate — record the minimal acceptance window and return
+   *  a handle whose `.cost` is filled in once the candidate is fully costed. */
+  onLandingWindow(
+    det: Detection,
+    gap: Gap,
+    lines: TrackLine[],
+    allContactFrames: number[],
+    axisMeasureEnd: number,
+  ): LandingProbeCostSink | null;
+  /** Attach a handoff-ranker score to the probe record for `lines`. */
+  onHandoffScore(lines: object, score: number): void;
 };
 
-/** lines-array → probe record, so the handoff ranker can attach its score to the
- *  record for the same candidate (object identity survives evaluateGapFit→Candidate). */
-const landingProbeByLines = new WeakMap<object, LandingWindowProbeRecord>();
+let landingProbeHook: LandingProbeHook | null = null;
+
+/** Install (or clear) the study probe hook. Called only by scripts/v0/landing_probe.ts. */
+export function setLandingProbeHook(hook: LandingProbeHook | null): void {
+  landingProbeHook = hook;
+}
 
 /** Study hook for optimizer/handoff.ts — no-op when the probe is disabled. */
 export function attachHandoffScoreToProbe(lines: object, score: number): void {
-  if (landingProbeRecords === null) return;
-  const rec = landingProbeByLines.get(lines);
-  if (rec !== undefined && rec.handoffScore === undefined) rec.handoffScore = score;
+  landingProbeHook?.onHandoffScore(lines, score);
 }
 
-let landingProbeRecords: LandingWindowProbeRecord[] | null = null;
-let landingProbeDropped = 0;
-
-export function enableLandingWindowProbe(): void {
-  landingProbeRecords = [];
-  landingProbeDropped = 0;
-}
-
-export function disableLandingWindowProbe(): void {
-  landingProbeRecords = null;
-  landingProbeDropped = 0;
-}
-
-/** Drain accumulated records (caller owns the array); probe stays enabled. */
-export function drainLandingWindowProbe(): { records: LandingWindowProbeRecord[]; dropped: number } {
-  const records = landingProbeRecords ?? [];
-  const dropped = landingProbeDropped;
-  if (landingProbeRecords !== null) landingProbeRecords = [];
-  landingProbeDropped = 0;
-  return { records, dropped };
-}
-
-/** Entry tangent + total signed turn of a candidate's line chain (degrees;
- *  positive entry = descending, negative turn = scoop). Probe-only — never on
- *  the production hot path. */
-function probeArcAngles(lines: TrackLine[]): { entryAngleDeg: number | null; turnDeg: number | null } {
-  let entry: number | null = null;
-  let prev: number | null = null;
-  let turn = 0;
-  for (const l of lines) {
-    const dx = l.x2 - l.x1;
-    const dy = l.y2 - l.y1;
-    if (dx === 0 && dy === 0) continue;
-    const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-    if (entry === null) entry = angle;
-    if (prev !== null) {
-      let d = (angle - prev) % 360;
-      if (d > 180) d -= 360;
-      if (d <= -180) d += 360;
-      turn += d;
-    }
-    prev = angle;
-  }
-  return { entryAngleDeg: entry, turnDeg: entry === null ? null : turn };
-}
-
-/** Record a survival-gate death (probe only): geometry is known, landing data is not. */
-function probeSurvivalFailure(gap: Gap, lines: TrackLine[]): void {
-  if (landingProbeRecords === null) return;
-  if (landingProbeRecords.length >= LANDING_PROBE_RECORD_CAP) {
-    landingProbeDropped++;
-    return;
-  }
-  landingProbeRecords.push({
-    gapIndex: gap.index,
-    endFrame: gap.endFrame,
-    ...(gap.targets.impact === undefined ? {} : { targetImpact: gap.targets.impact }),
-    ...probeArcAngles(lines),
-    failure: "survival",
-    acceptedAtW: null,
-    offset: null,
-    impactAchieved: null,
-    incomingSpeed: null,
-    isTemplate: wasLastGeometryImpactTemplate(),
-    cost: null,
-  });
-}
-
-function probeLandingWindow(
-  det: Detection,
-  gap: Gap,
-  lines: TrackLine[],
-  allContactFrames: number[],
-  axisMeasureEnd: number,
-): LandingWindowProbeRecord | null {
-  if (landingProbeRecords === null) return null;
-  if (landingProbeRecords.length >= LANDING_PROBE_RECORD_CAP) {
-    landingProbeDropped++;
-    return null;
-  }
-  const owned = new Set(lines.map((l) => l.id));
-  let acceptedAtW: number | null = null;
-  let chosen: DetEvent | null = null;
-  for (let w = 1; w <= LANDING_PROBE_MAX_W; w++) {
-    let best: DetEvent | null = null;
-    for (const e of det.events) {
-      if (e.type !== "landing") continue;
-      const d = Math.abs(e.frame - gap.endFrame);
-      if (d > w) continue;
-      if (!intersectsLineIds(e, det, owned)) continue;
-      if (best === null || d < Math.abs(best.frame - gap.endFrame)) best = e;
-    }
-    if (best === null) continue;
-    if (countOffBeatLandings(det.events, gap.startFrame, axisMeasureEnd, allContactFrames, w) > 0) {
-      continue;
-    }
-    acceptedAtW = w;
-    chosen = best;
-    break;
-  }
-  const impactPx = chosen === null ? undefined : redirArcPxAtLanding(det, chosen.frame);
-  const incomingSpeed = chosen === null
-    ? undefined
-    : (speedAt(det, chosen.frame - 1) ?? speedAt(det, chosen.frame));
-  const record: LandingWindowProbeRecord = {
-    gapIndex: gap.index,
-    endFrame: gap.endFrame,
-    ...(gap.targets.impact === undefined ? {} : { targetImpact: gap.targets.impact }),
-    ...probeArcAngles(lines),
-    acceptedAtW,
-    offset: chosen === null ? null : chosen.frame - gap.endFrame,
-    impactAchieved: impactPx === undefined ? null : normImpact(impactPx),
-    incomingSpeed: incomingSpeed ?? null,
-    isTemplate: wasLastGeometryImpactTemplate(),
-    cost: null,
-  };
-  landingProbeRecords.push(record);
-  landingProbeByLines.set(lines, record);
-  return record;
-}
 
 type WindowDetection = Detection & { frameOffset?: number };
 
@@ -978,15 +845,15 @@ function evaluateGapFit(
     ? Math.min(horizon, Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd))
     : Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd);
   if (det.terminus.frame < minSurvival && det.terminus.reason !== "endOfSpec") {
-    if (landingProbeEligible && landingProbeRecords !== null) probeSurvivalFailure(gap, lines);
+    if (landingProbeEligible && landingProbeHook !== null) landingProbeHook.onSurvivalFailure(gap, lines);
     return { fit: null, failure: "survival" };
   }
 
   // Study-only probe (no-op unless a study script enabled it): record what a
   // widened acceptance window would have admitted. Pure observation — gates
   // below run unchanged. The returned record gets the final cost attached below.
-  const probeRecord = landingProbeEligible && landingProbeRecords !== null
-    ? probeLandingWindow(det, gap, lines, allContactFrames, axisMeasureEnd)
+  const probeRecord = landingProbeEligible && landingProbeHook !== null
+    ? landingProbeHook.onLandingWindow(det, gap, lines, allContactFrames, axisMeasureEnd)
     : null;
 
   // Hard gate 2: a landing event near gap.endFrame ±1.
@@ -1232,7 +1099,7 @@ export function axisLookaheadEndFrame(gap: Gap, allContactFrames: number[]): num
 
 // ─────────── Hard-gate helpers ───────────
 
-function intersectsLineIds(
+export function intersectsLineIds(
   event: DetEvent, det: Detection, owned: Set<number>,
 ): boolean {
   const lids = contactLineIdsAt(det, event.frame);

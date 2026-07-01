@@ -25,7 +25,7 @@ import {
   drainLandingWindowProbe,
   enableLandingWindowProbe,
   type LandingWindowProbeRecord,
-} from "./core/candidate.ts";
+} from "./landing_probe.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
 import { CALIB } from "./types.ts";

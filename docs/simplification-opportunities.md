@@ -783,7 +783,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Move the apparatus into a study module exposing one nullable hook, so candidate.ts carries at most one nullable callback. Or delete if the study is closed.
 - **Risk:** low
 - **Generalization note:** Off-by-default; removal cannot move the headline.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (all 160 seed-0 track hashes match baseline `attempt-aim-highk-gated-j32-a01` across every budget; the disabled probe is a pure null-check no-op, HEADLINE unchanged). EXTRACTED, not deleted: two study drivers still consume the apparatus (`study_landing_window.ts`, `study_impact_funnel.ts`) plus `handoff.ts`'s `attachHandoffScoreToProbe`, so deletion was off the table. Moved the ~170-line apparatus (record type, WeakMap, enable/disable/drain, `probeArcAngles`/`probeSurvivalFailure`/`probeLandingWindow`, `LANDING_PROBE_MAX_W`/`RECORD_CAP`) into new shared study module `scripts/v0/landing_probe.ts`; `candidate.ts` now carries only one nullable `LandingProbeHook` (installed via a `setLandingProbeHook` seam; the `attachHandoffScoreToProbe` no-op wrapper is retained so `handoff.ts` is unchanged) and exports `intersectsLineIds` for the study to reuse; dropped the now-unused `normImpact`/`redirArcPxAtLanding`/`wasLastGeometryImpactTemplate` imports; repointed both study drivers' imports to the new module.
 
 ### 80. `nextContact−2` "no ballistic flight" bound duplicated in three places
 - **Files:** `scripts/v0/core/candidate.ts`

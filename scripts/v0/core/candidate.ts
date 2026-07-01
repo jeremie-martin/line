@@ -57,6 +57,19 @@ import { registerCompileReset } from "./compile_lifecycle.ts";
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
 
+/** Survival-window margin (frames past a gap's endFrame). The catch/tail-contact
+ *  window `[endFrame, endFrame+SURVIVAL_MARGIN]` holds 100% of observed survival
+ *  deaths (gate-diagnostic study). Shared by `computeShortGapFitDetection`'s
+ *  `survivalFloor` and `evaluateGapFit`'s survival gate so the short-horizon
+ *  truncation and the gate never diverge. */
+const SURVIVAL_MARGIN = 16;
+/** `axisSafeCap` floor (frames past endFrame): minimum truncation cap covering the
+ *  survival margin + catch+8 launch read (mirrors arc_probe.ts axisSafeCap `20`). */
+const AXIS_SAFE_CAP_MIN_FRAMES = 20;
+/** `axisSafeCap` next-contact offset: `axisMeasureEnd+2` stands in for arc_probe.ts's
+ *  `nextFrame+2` lookahead boundary. */
+const AXIS_SAFE_CAP_MEASURE_END_OFFSET = 2;
+
 /** Single parse of LR_RANK_QUALITY (the quality-objective pool-sort mode switch),
  *  collapsed to the one bit it structurally is. POOL_MODE is true — the shipped
  *  quality-objective pool sort — for every value except LR_RANK_QUALITY=off, the
@@ -707,12 +720,12 @@ function computeShortGapFitDetection(
   fullHorizon: number,
 ): { det: Detection; stopHorizon: number; suffix: BallisticAxisSuffix } | null {
   const minExit = gap.endFrame;
-  // Cap covers the survival margin (endFrame+16), the catch+8 launch read
+  // Cap covers the survival margin (endFrame+SURVIVAL_MARGIN), the catch+8 launch read
   // (endFrame+8+LAUNCH_READ_FRAMES), the impact axis window, and the lookahead
   // boundary — mirrors arc_probe.ts axisSafeCap (= endFrame+max(20,IMPACT_WINDOW+2))
   // with axisMeasureEnd+2 standing in for nextFrame+2.
-  const axisSafeCap = gap.endFrame + Math.max(20, IMPACT_WINDOW + 2);
-  const cap = Math.min(fullHorizon, Math.max(axisSafeCap, axisMeasureEnd + 2));
+  const axisSafeCap = gap.endFrame + Math.max(AXIS_SAFE_CAP_MIN_FRAMES, IMPACT_WINDOW + 2);
+  const cap = Math.min(fullHorizon, Math.max(axisSafeCap, axisMeasureEnd + AXIS_SAFE_CAP_MEASURE_END_OFFSET));
   // Survival floor the truncated prefix MUST cover before a clean exit may
   // truncate: endFrame+SURVIVAL_MARGIN — the catch/tail-contact window where ALL
   // survival deaths occur (gate-diagnostic study: 100% riderEjected at catch ±2
@@ -720,7 +733,7 @@ function computeShortGapFitDetection(
   // raised to axisMeasureEnd: for lookahead gaps that would force the prefix to
   // ride to the next contact and forfeit the truncation's entire saving; past
   // this floor, a clean airborne exit certifies survival to the next contact.
-  const survivalFloor = Math.min(cap, gap.endFrame + 16);
+  const survivalFloor = Math.min(cap, gap.endFrame + SURVIVAL_MARGIN);
   let exitStop: { det: Detection; horizon: number; exitFrame: number } | null = null;
   const stopHorizon = growShortHorizon(minExit, cap, (horizon) => {
     const det = redetect(horizon);
@@ -861,7 +874,6 @@ function evaluateGapFit(
   // gaps the prefix stops at the clean exit instead of the next contact, and the
   // exit certifies the rest (gate-diagnostic study: ZERO clean-airborne-past-exit
   // deaths).
-  const SURVIVAL_MARGIN = 16;
   const minSurvival = truncated
     ? Math.min(horizon, Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd))
     : Math.max(gap.endFrame + SURVIVAL_MARGIN, axisMeasureEnd);

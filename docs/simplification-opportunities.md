@@ -855,7 +855,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Hoist one module const `SURVIVAL_MARGIN=16` referenced by both; name the axisSafeCap offsets.
 - **Risk:** low
 - **Generalization note:** Frame-count constants independent of grid.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Hoisted module const `SURVIVAL_MARGIN=16` referenced by both `computeShortGapFitDetection`'s `survivalFloor` and `evaluateGapFit`'s survival gate; named the `axisSafeCap` offsets `AXIS_SAFE_CAP_MIN_FRAMES=20` and `AXIS_SAFE_CAP_MEASURE_END_OFFSET=2`. Pure rename/hoist, no value change.
 
 ### 88. `achievedAtEnd` dual-window measurement branch is a dense special case
 - **Files:** `scripts/v0/core/candidate.ts`

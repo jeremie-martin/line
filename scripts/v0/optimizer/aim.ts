@@ -421,7 +421,7 @@ function targetAxisMean(gaps: readonly Gap[], ctx: SpecContext, axis: AxisName):
 }
 
 function targetForGap(gap: Gap, ctx: SpecContext, axis: AxisName): number | null {
-  const target = (ctx.gapAxisTargets?.[gap.index] ?? gap.targets)[axis];
+  const target = objectiveTargetsForGap(gap, ctx)[axis];
   return typeof target === "number" && Number.isFinite(target) ? target : null;
 }
 

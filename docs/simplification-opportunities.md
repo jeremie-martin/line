@@ -509,7 +509,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Have `targetForGap` call `objectiveTargetsForGap(gap, ctx)[axis]` (or vice-versa) for one source of truth.
 - **Risk:** low
 - **Generalization note:** Ordinary duplication.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). `targetForGap` now delegates the `ctx.gapAxisTargets ?? gap.targets` resolution to `objectiveTargetsForGap(gap, ctx)[axis]`, then applies its finite-number null-check.
 
 ### 51. `AIM_MIN_DELTA_DEG` / `ENUM_STEP_DEG` / `ENUM_MIN_SEP_DEG` / `distinctJointKnobs` overlap in knob-distinctness logic
 - **Files:** `scripts/v0/optimizer/aim.ts`

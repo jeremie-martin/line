@@ -58,8 +58,7 @@
 import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
 import {
   axisLookaheadEndFrame,
-  RANK_PREDICT_ARRIVAL,
-  RANK_QUALITY_MODE,
+  POOL_MODE,
   tryCandidateLines,
 } from "../core/candidate.ts";
 import { engineLineFromTrackLine } from "../core/substrate.ts";
@@ -465,7 +464,7 @@ export function recordLaneBaseSkip(): void {
  *  The env parse lives in core/candidate.ts (single owner, shared with the
  *  predict-arrival capture gate there). */
 export function rankQualityEnabled(): boolean {
-  return RANK_QUALITY_MODE !== "off";
+  return POOL_MODE;
 }
 
 // ─────────────────────────── 2 · Telemetry ───────────────────────────

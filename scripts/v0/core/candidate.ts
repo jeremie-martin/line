@@ -60,46 +60,24 @@ import { registerCompileReset } from "./compile_lifecycle.ts";
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
 
-/** Single parse of LR_RANK_QUALITY (the quality-objective pool-sort mode
- *  switch). Owned here in core so the predict-arrival capture below and the pool
- *  ranker (optimizer/aim.ts) cannot desync — a new mode must be added in
- *  exactly one place. DEFAULT is "pool" (the shipped quality-objective pool sort);
- *  LR_RANK_QUALITY=off is the escape hatch — any other/unset value → "pool".
- *  Read once at import (env is constant per run; this gates pool-time predicted-
- *  arrival fields, not every possible objective consumer). */
-export type RankQualityMode = "off" | "pool";
-export const RANK_QUALITY_MODE: RankQualityMode = (() => {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_RANK_QUALITY;
-  if (raw === "off") return "off";
-  return "pool";
-})();
-
-/** PREDICTED-ARRIVAL capture (pool mode). When the quality sort is active,
- *  `evaluateGapFit` captures the rider's full launch/exit state (position +
- *  smoothed launch velocity) off the detection it already computed, so the ranker
- *  can propagate it ballistically to the next contact instead of charging a probe
- *  ride. Collapsed into the pool-mode gate (RANK_QUALITY_MODE !== "off"):
- *  prediction is unconditional under pool mode, and LR_RANK_QUALITY=off — which
- *  keeps every capture field and the exit read fully gated — is the single escape
- *  hatch. */
-export const RANK_PREDICT_ARRIVAL: boolean = RANK_QUALITY_MODE !== "off";
-
-/** GEOMETRIC EXIT RELEASE READ (pool mode). `evaluateGapFit` reads the ballistic
- *  release/launch state (`releaseArrivalState`) at the GEOMETRIC ARC-EXIT frame —
- *  the first frame at/after gap.endFrame where the rider is airborne AND past the
- *  arc-end plane (core/exit_read.ts) — instead of the fixed catch+8 release frame.
- *  This is the unconditional capture behavior under pool mode. The release-state
- *  fields (releaseSpeed, releaseVelocityY, releaseGroundedFrames, releaseAirborne)
- *  stay read at the catch+8 release frame — only the predicted-arrival ranker state
- *  moves. The geometric exit lands at +9..16 frames for the majority of passes,
- *  where catch+8 reads a still-non-airborne rider and starves the ballistic ranker
- *  (predictArrivalAtNextContact bails on non-airborne releases). Falls back to the
- *  catch+8 read when no exit is found, the exit would ride into the next contact
- *  (no ballistic flight), or the exit-frame state is unreadable — all load-bearing
- *  (short rides legitimately never exit, e.g. ~25% no_exit on tiny_dance; those
- *  candidates must keep the catch+8 capture, not be discarded). */
-const RELEASE_EXIT_READ: boolean = RANK_PREDICT_ARRIVAL;
+/** Single parse of LR_RANK_QUALITY (the quality-objective pool-sort mode switch),
+ *  collapsed to the one bit it structurally is. POOL_MODE is true — the shipped
+ *  quality-objective pool sort — for every value except LR_RANK_QUALITY=off, the
+ *  study-only escape hatch (never set in production) that keeps the pool-mode
+ *  captures fully gated OFF, bit-identical to the pre-ranking path. Owned here in
+ *  core (single owner, shared with the pool ranker in optimizer/aim.ts so a mode
+ *  change can't desync) and read once at import (env is constant per run).
+ *  This one flag gates three things that ALWAYS move together — they share it
+ *  rather than aliasing it under separate names:
+ *    · PREDICTED-ARRIVAL capture — the detection loops below record the rider's
+ *      position so `evaluateGapFit` can hand the ranker a full launch/exit state
+ *      to propagate ballistically to the next contact (vs charging a probe ride);
+ *    · the pool-time `releaseArrivalState` field that carries it; and
+ *    · the GEOMETRIC ARC-EXIT release read (see the `evaluateGapFit` call site)
+ *      that supplies that state from the arc-exit frame instead of catch+8. */
+export const POOL_MODE: boolean =
+  (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_RANK_QUALITY !== "off";
 
 /** Telemetry for the geometric-exit release read. Module-level counters in the
  *  established candidate-side style; snapshot/reset are wired through
@@ -421,10 +399,10 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
   const velocity: { x: number; y: number }[] = [];
   const contactLineIds: number[][] = [];
   const airborne: boolean[] = [];
-  // PREDICTED-ARRIVAL (LR_RANK_PREDICT_ARRIVAL): the ranker propagates the
-  // release state ballistically and needs position. The window detector
-  // otherwise drops position to save memory on the hot path; populate it ONLY
-  // when the flag is on so flag-off allocation is unchanged.
+  // PREDICTED-ARRIVAL (POOL_MODE): the ranker propagates the release state
+  // ballistically and needs position. The window detector otherwise drops
+  // position to save memory on the hot path; populate it ONLY when the flag is
+  // on so flag-off allocation is unchanged.
   const position: { x: number; y: number }[] = [];
   const events: DetEvent[] = [];
 
@@ -454,7 +432,7 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
     const sp = Math.hypot(vx, vy);
     speed.push(sp);
     velocity.push({ x: vx, y: vy });
-    if (RANK_PREDICT_ARRIVAL) position.push({ x: data[base + WINDOW_PX], y: data[base + WINDOW_PY] });
+    if (POOL_MODE) position.push({ x: data[base + WINDOW_PX], y: data[base + WINDOW_PY] });
     contactLineIds.push(contactLineIdsAtIndex(i));
     const isAir = sledMaskAt(i) === 0;
     airborne.push(isAir);
@@ -539,7 +517,7 @@ function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
   const airborne: boolean[] = [];
   const events: DetEvent[] = [];
   // PREDICTED-ARRIVAL: see detectCandidateWindowBuffer — position is populated
-  // only when LR_RANK_PREDICT_ARRIVAL is on.
+  // only when POOL_MODE is on.
   const position: { x: number; y: number }[] = [];
 
   let stallRun = 0;
@@ -552,7 +530,7 @@ function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
     const sp = Math.hypot(fr.velocity.x, fr.velocity.y);
     speed.push(sp);
     velocity.push({ x: fr.velocity.x, y: fr.velocity.y });
-    if (RANK_PREDICT_ARRIVAL) position.push({ x: fr.position.x, y: fr.position.y });
+    if (POOL_MODE) position.push({ x: fr.position.x, y: fr.position.y });
     contactLineIds.push(fr.contactLineIds);
     const isAir = fr.sledContacts.length === 0;
     airborne.push(isAir);
@@ -1061,7 +1039,7 @@ function evaluateGapFit(
   // the SAME detection (zero extra frames). Gated on pool mode so the
   // LR_RANK_QUALITY=off path never allocates the field. The catch+8 read is the
   // load-bearing FALLBACK; the geometric arc-exit read below is the default.
-  let releaseArrivalState = RANK_PREDICT_ARRIVAL
+  let releaseArrivalState = POOL_MODE
     ? releaseArrivalStateAt(det, gap.endFrame, releaseFrame, releaseGroundedFrames, releaseAirborne)
     : undefined;
   // GEOMETRIC EXIT READ (pool mode): re-read the BALLISTIC release state at the
@@ -1070,7 +1048,9 @@ function evaluateGapFit(
   // is read off the SAME detection (positions/airborne already computed) — zero
   // extra physics frames. Falls back to the catch+8 read above when there is no
   // exit, the exit rides into the next contact, or the exit state is unreadable.
-  if (RELEASE_EXIT_READ) {
+  // That fallback is load-bearing: short rides legitimately never exit (~25%
+  // no_exit on tiny_dance) and must keep the catch+8 capture, not be discarded.
+  if (POOL_MODE) {
     releaseArrivalState = releaseExitArrivalState(
       det, gap, lines, horizon, allContactFrames,
     ) ?? releaseArrivalState;
@@ -1092,7 +1072,7 @@ function evaluateGapFit(
 }
 
 /** Full launch/exit state at `releaseFrame`, read off an existing detection for
- *  ballistic propagation by the quality ranker (LR_RANK_PREDICT_ARRIVAL). The
+ *  ballistic propagation by the quality ranker (POOL_MODE). The
  *  velocity is the gravity-corrected average of up to LAUNCH_READ_FRAMES
  *  consecutive AIRBORNE frames starting at `releaseFrame` plus the constant
  *  LAUNCH_VY_OFFSET_PX — the same smoothed launch read the short probe uses

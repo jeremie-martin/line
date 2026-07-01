@@ -774,7 +774,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Collapse to one `POOL_MODE = (env.LR_RANK_QUALITY !== 'off')` referenced everywhere; one comment for the escape hatch. Later, consider making pool-mode unconditional and deleting the catch+8-only branches.
 - **Risk:** low
 - **Generalization note:** Pure de-aliasing.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Verified the chain really collapses to one bit (`RANK_QUALITY_MODE` is only ever `"off"|"pool"`, checked solely via `!== "off"`; `RANK_PREDICT_ARRIVAL` was imported into `optimizer/aim.ts` but unused there; `RELEASE_EXIT_READ` module-local, one call site; `RankQualityMode` type imported nowhere). Collapsed all three (+ the `RankQualityMode` type) to one exported `POOL_MODE = (env.LR_RANK_QUALITY !== "off")` with one comment documenting the `off` study-only escape hatch; repointed the two candidate.ts capture gates, the exit-read gate, and `aim.ts` `rankQualityEnabled()`. Did NOT implement the "make pool-mode unconditional / delete catch+8-only branches" follow-on (separate, non-byte-identical).
 
 ### 79. Study-only landing-window probe apparatus embedded in the hot-path module
 - **Files:** `scripts/v0/core/candidate.ts`

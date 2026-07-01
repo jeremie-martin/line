@@ -454,7 +454,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete the always-0 fields; have the lab layer coalesce missing columns to 0 at read time.
 - **Risk:** low
 - **Generalization note:** Historical residue; not grid/spec dependent.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical no-op (160/160 seed-0 track_hashes unchanged vs `attempt-aim-highk-gated-j32-a01`; all 80 focused tests pass). Deleted the 8 always-0 fields (`rank_readiness_arrival_frames_charged`, `rank_readiness_capture_{free,charged,skipped}`, `rank_quality_pred_err_{speed_sum,angle_sum,n}`, `rank_quality_pred_val_bail`) from `AimStats`/`aimTotals`/`snapshotAimStats` in `aim.ts` (catalog said "~a dozen" — actually 8; none were ever incremented). No lab-layer change needed: `types.ts` never declared them, and the only `compile_stats_json` consumer (`analysis/reports.ts reportCompileStats`) is a generic `json_each` top-level-scalar catalog that neither names these fields nor descends into the nested `aim` object, so old archives stay fully queryable and new ones simply omit the columns (coalesce-to-0 is moot).
 
 ### 45. Historical field-name mismatch (`rank_readiness_*` for the `LR_RANK_QUALITY` flag)
 - **Files:** `scripts/v0/optimizer/aim.ts`

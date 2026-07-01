@@ -564,40 +564,15 @@ export type AimStats = {
    *  Pool builds where the cost-rank and quality-rank top-3 sets differ, and
    *  where the top-1 differs; candidates with a defined objective vs total scored
    *  (fallback rate = (scored − defined) / scored). All arrivals are served by
-   *  ballistic prediction (rank_quality_pred_used). The objective NEVER charges a
-   *  physics frame, so `*_charged` / `*_skipped` are RETAINED at a constant 0 for
-   *  archive-query stability (the bounded-charge tail was removed with the
-   *  predict-only promotion). */
+   *  ballistic prediction (rank_quality_pred_used). */
   rank_readiness_pools: number;
   rank_readiness_top3_disagree: number;
   rank_readiness_top1_disagree: number;
-  /** Always 0 — no per-candidate arrival ride is ever charged. Retained for
-   *  archive-query stability. */
-  rank_readiness_arrival_frames_charged: number;
   rank_readiness_candidates_scored: number;
   rank_readiness_objective_defined: number;
-  /** Always 0 — the free-capture path was deleted (it never fired under the
-   *  short-horizon detection; full-horizon fallbacks predict like everything
-   *  else). Retained for archive-query stability. */
-  rank_readiness_capture_free: number;
-  /** Always 0 — the bounded charged-ride path was removed (predict-only). Retained
-   *  for archive-query stability. */
-  rank_readiness_capture_charged: number;
-  /** Always 0 — the bounded-charge tail was removed (predict-only). Retained for
-   *  archive-query stability. */
-  rank_readiness_capture_skipped: number;
-  /** Always 0 — these accumulated the free-capture-vs-prediction validation error,
-   *  which is gone with the free-capture path. Retained for archive-query
-   *  stability. */
-  rank_quality_pred_err_speed_sum: number;
-  rank_quality_pred_err_angle_sum: number;
-  rank_quality_pred_err_n: number;
   /** Prediction bails on the PREDICT path (predict couldn't produce a state →
    *  null objective → cost order). */
   rank_quality_pred_bail: number;
-  /** Always 0 — the free-capture validation path that fed this counter is gone.
-   *  Retained for archive-query stability. */
-  rank_quality_pred_val_bail: number;
   /** Candidates ranked via a ballistic PREDICTION: the prediction-only objective
    *  path (now every scored candidate that produces an arrival). */
   rank_quality_pred_used: number;
@@ -630,14 +605,10 @@ const aimTotals = {
   // Quality-objective pool ranking (recordRankQualityPool / candidateQualityObjective).
   // Field names are historical (was LR_RANK_READINESS); kept for lab archives.
   rank_readiness_pools: 0, rank_readiness_top3_disagree: 0,
-  rank_readiness_top1_disagree: 0, rank_readiness_arrival_frames_charged: 0,
+  rank_readiness_top1_disagree: 0,
   rank_readiness_candidates_scored: 0, rank_readiness_objective_defined: 0,
-  rank_readiness_capture_free: 0, rank_readiness_capture_charged: 0,
-  rank_readiness_capture_skipped: 0,
-  // Predicted-arrival validation + usage.
-  rank_quality_pred_err_speed_sum: 0, rank_quality_pred_err_angle_sum: 0,
-  rank_quality_pred_err_n: 0, rank_quality_pred_bail: 0,
-  rank_quality_pred_val_bail: 0, rank_quality_pred_used: 0,
+  // Predicted-arrival usage.
+  rank_quality_pred_bail: 0, rank_quality_pred_used: 0,
 };
 
 /** Record where a lane proposal ranked in the cost-sorted pool it entered,
@@ -782,17 +753,9 @@ export function snapshotAimStats(): AimStats | null {
     rank_readiness_pools: aimTotals.rank_readiness_pools,
     rank_readiness_top3_disagree: aimTotals.rank_readiness_top3_disagree,
     rank_readiness_top1_disagree: aimTotals.rank_readiness_top1_disagree,
-    rank_readiness_arrival_frames_charged: aimTotals.rank_readiness_arrival_frames_charged,
     rank_readiness_candidates_scored: aimTotals.rank_readiness_candidates_scored,
     rank_readiness_objective_defined: aimTotals.rank_readiness_objective_defined,
-    rank_readiness_capture_free: aimTotals.rank_readiness_capture_free,
-    rank_readiness_capture_charged: aimTotals.rank_readiness_capture_charged,
-    rank_readiness_capture_skipped: aimTotals.rank_readiness_capture_skipped,
-    rank_quality_pred_err_speed_sum: aimTotals.rank_quality_pred_err_speed_sum,
-    rank_quality_pred_err_angle_sum: aimTotals.rank_quality_pred_err_angle_sum,
-    rank_quality_pred_err_n: aimTotals.rank_quality_pred_err_n,
     rank_quality_pred_bail: aimTotals.rank_quality_pred_bail,
-    rank_quality_pred_val_bail: aimTotals.rank_quality_pred_val_bail,
     rank_quality_pred_used: aimTotals.rank_quality_pred_used,
   };
 }

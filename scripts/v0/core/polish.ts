@@ -107,7 +107,6 @@ export function polishAirRideOut(
         durationFrames,
         contactFrames,
         bestErr,
-        true,
       );
 
     if (best === null) {
@@ -121,7 +120,6 @@ export function polishAirRideOut(
         durationFrames,
         contactFrames,
         bestErr,
-        false,
       );
     }
 
@@ -154,19 +152,17 @@ function bestAirPolishCandidate(
   durationFrames: number,
   contactFrames: number[],
   bestErr: number,
-  continuationOnly: boolean,
 ): AirPolishCandidate | null {
   let best: AirPolishCandidate | null = null;
   for (const source of sources) {
     if (usedSources.has(source.line.id)) continue;
     for (const cand of makeAirPolishCandidates(lineId, source.line)) {
-      if (continuationOnly && !cand.continuation) continue;
-      const eng = baseEngine.addLine(engineLineFromTrackLine(cand.line));
+      const eng = baseEngine.addLine(engineLineFromTrackLine(cand));
       const det = detect(extractRawTrajectory(eng, durationFrames + 20));
       if (!passesFinalHardGates(det, contactFrames)) continue;
       const err = meanAirError(det, spec);
       if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
-        best = { owner: source.owner, sourceId: source.line.id, line: cand.line, err };
+        best = { owner: source.owner, sourceId: source.line.id, line: cand, err };
       }
     }
   }

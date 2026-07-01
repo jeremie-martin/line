@@ -473,32 +473,25 @@ function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
 export function makeAirPolishCandidates(
   lineId: number,
   source: TrackLine,
-): { line: TrackLine; continuation: boolean }[] {
-  const lines: { line: TrackLine; continuation: boolean }[] = [];
+): TrackLine[] {
+  const lines: TrackLine[] = [];
   const dx = source.x2 - source.x1;
   const dy = source.y2 - source.y1;
   const len = Math.hypot(dx, dy);
   if (len > 0) {
     for (const length of AIR_POLISH_CONTINUATION_LENGTHS) {
-      lines.push({
-        line: makeSolidLine(
+      lines.push(
+        makeSolidLine(
           lineId,
           source.x2,
           source.y2,
           source.x2 + (dx / len) * length,
           source.y2 + (dy / len) * length,
         ),
-        continuation: true,
-      });
+      );
     }
   }
   return lines;
-}
-
-export function makeContinuationLines(lineId: number, source: TrackLine): TrackLine[] {
-  return makeAirPolishCandidates(lineId, source)
-    .filter((candidate) => candidate.continuation)
-    .map((candidate) => candidate.line);
 }
 
 export function tryCandidate(
@@ -639,7 +632,7 @@ function evaluateCandidateLines(
   if (shouldTryCandidateRideOut(gap, axisMeasureEnd)) {
     const rideOutId = lineIdStart + lines.length;
     for (const source of rideOutSources(lines)) {
-      for (const rideOut of makeContinuationLines(rideOutId, source)) {
+      for (const rideOut of makeAirPolishCandidates(rideOutId, source)) {
         const extendedLines = [...lines, rideOut];
         const extended = evaluateGapFit(
           baseEngine, gap, extendedLines, axisMeasureEnd, allContactFrames,

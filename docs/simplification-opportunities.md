@@ -819,7 +819,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Return `TrackLine[]` directly; `makeContinuationLines` becomes an alias or is inlined.
 - **Risk:** low
 - **Generalization note:** Purely dead flag.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). `makeAirPolishCandidates` now returns `TrackLine[]` directly; `makeContinuationLines` inlined at its single call site and deleted; the twin-dead `continuationOnly` guard/parameter in `polish.ts` `bestAirPolishCandidate` (only ever gated on the always-true flag) removed with it.
 
 ### 84. Two overlapping "long airborne gap" thresholds hard-coded to a 60fps/1s grid
 - **Files:** `scripts/v0/core/candidate.ts`

@@ -86,7 +86,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace the branch stack with one continuous `nCand = round(clamp(f(budget, axis-variety scalar, contact count)))`; delete `shouldRelaxMatureQualityLean` and `shouldBoostShortNoAmpQualityBreadth`. Fold any spec-shape term into one shared axis-variety pressure.
 - **Risk:** medium
 - **Generalization note:** `contacts<=32`, `amplitude==0`, and 0.50/0.40 are quantiles of today's spec distribution; the OR-cliffs are brittle at the boundary.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline -1.0, CI [-3.2, 0.2], P(Δ≤0)=92.5% (full canonical vs attempt-aim-highk-gated-j32-a01). Replaced the four stacked branches with one continuous smoothUnion-based formula (`base + restoreP*(32-base) + boostP*(34-32)`), folding entry #4's sparse-amp mechanism in as a pressure term rather than a stacked override — collapses to the exact old sparse-amp mapping when relief=0, verified numerically pre-run. Regressed mostly at 250k (-1.9): the smoothed relief/boost transitions moved real mass away from the exact old thresholds on enough specs to cost score, despite reproducing the sparse-amp path exactly. Code reverted.
 
 ### 6. `budgetAwareQualitySampleCount`: bathtub lean anchored to the canonical grid
 *(sources: handoff-core-rescue, handoff-quality-scoring, handoff-admission-branch)*

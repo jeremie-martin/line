@@ -10,7 +10,6 @@
  * budget only decides how far into the deterministic node sequence we get.
  */
 
-import { appendFileSync } from "node:fs";
 import { makeRng } from "../../lib/rng.ts";
 import { getRiderMetered } from "../../lib/detector.ts";
 import {
@@ -234,46 +233,7 @@ function sortWithLaneExtras(
     // No merged re-sort happened: the pre-lane ordering is final — record it.
     recordRankQualityPool(costOrder, sorted);
   }
-  recordPoolImpactTelem(gap, sorted);
   return sorted;
-}
-
-// ── default-off pool-frontier study telemetry (GEOM_POOL_TELEM=<path>) ──
-// One JSON line per pool build: for every TARGETED axis, the target, the value the
-// SELECTED candidate (sorted[0]) achieved, the pool's BEST-achievable value (the
-// candidate closest to target on that axis), and the pool's full [min,max] range on
-// that axis. Lets a study decide, per axis, whether the pool can even REACH the target
-// (pool-limited) or has it but doesn't pick it (selection-limited). Pure read after the
-// sort — never perturbs candidate order. No-op unless the env var is set.
-let _poolTelemPath: string | null | undefined;
-function recordPoolImpactTelem(gap: Gap, sorted: Candidate[]): void {
-  if (_poolTelemPath === undefined) {
-    _poolTelemPath = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-      .process?.env?.GEOM_POOL_TELEM ?? null;
-  }
-  if (_poolTelemPath === null || sorted.length === 0) return;
-  const ach = (c: Candidate, k: string): number | undefined => {
-    const v = (c.achievedAtEnd ?? c.achieved) as Record<string, number | undefined>;
-    return typeof v[k] === "number" ? v[k] : undefined;
-  };
-  const axes: Record<string, unknown> = {};
-  for (const k of Object.keys(gap.targets)) {
-    const t = (gap.targets as Record<string, number | undefined>)[k];
-    if (typeof t !== "number") continue;
-    const selV = ach(sorted[0], k);
-    let bestV: number | undefined;
-    let lo = Infinity, hi = -Infinity;
-    for (const c of sorted) {
-      const a = ach(c, k);
-      if (a === undefined) continue;
-      if (a < lo) lo = a;
-      if (a > hi) hi = a;
-      if (bestV === undefined || Math.abs(a - t) < Math.abs(bestV - t)) bestV = a;
-    }
-    axes[k] = { t, sel: selV, best: bestV, lo: lo === Infinity ? null : lo, hi: hi === -Infinity ? null : hi };
-  }
-  const line = JSON.stringify({ gi: gap.index, poolN: sorted.length, axes });
-  try { appendFileSync(_poolTelemPath, line + "\n"); } catch { /* ignore */ }
 }
 
 function samplePrefix(sampleOrder: Candidate[], nCand: number): Candidate[] {

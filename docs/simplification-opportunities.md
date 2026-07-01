@@ -1250,7 +1250,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract to a study-only hook or remove; if kept, capture the env boolean once and short-circuit before the call. Better, relocate to the studies that consumed it.
 - **Risk:** low
 - **Generalization note:** Purely diagnostic; belongs outside the hot sort path.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (160/160 seed=0 track_hashes match baseline at every budget; production default has env unset → true no-op). Thorough repo-wide search found the ONLY references to `recordPoolImpactTelem`/`GEOM_POOL_TELEM` were in `node.ts` itself plus two docs (geometry-log.md describing concluded studies #2/#9, and this catalog); no study_*.ts/eval_*.sh/test/package.json/orchestration sets the env var or parses its JSON-lines output. The studies that consumed it were ad-hoc command-line runs (concluded verdicts), and the only on-disk `.jsonl` artifact is untracked and referenced by nothing — so there was no committed consumer to relocate to. Deleted the ~35-line inlined writer (`recordPoolImpactTelem`, the `_poolTelemPath` cache, the call site in `sortWithLaneExtras`) and the now-unused `appendFileSync` import from the hot sort path.
 
 ### 130. `getCandidatesSorted`'s three-way sample-order cache reconciliation is dense and easy to break
 - **Files:** `scripts/v0/optimizer/node.ts`

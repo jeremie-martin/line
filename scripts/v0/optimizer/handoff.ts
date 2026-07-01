@@ -42,7 +42,6 @@ import {
   FPS,
   HANDOFF_CANDIDATE_SOURCES,
   HANDOFF_EVALUATION_PHASES,
-  HANDOFF_ADMISSION_LANES,
   ELEVATION,
   SPEED_AXIS,
   START_DEFAULTS,
@@ -53,8 +52,6 @@ import {
   type AxisName,
   type AxisValues,
   type CandidateSampleMode,
-  type HandoffAdmissionLane,
-  type HandoffAdmissionLaneCounter,
   type HandoffContactCountCounter,
   type HandoffEvaluationPhase,
   type HandoffEvaluationPhaseCounter,
@@ -178,8 +175,6 @@ export type HandoffRankTraceEntry = {
   source: HandoffCandidateSource;
   /** Registered axis-quality stream axis when `source === "axisq"`. */
   sourceAxis?: AxisName;
-  /** Study-only normal-pool admission stratum. */
-  sourceLane?: HandoffAdmissionLane;
 };
 
 export type HandoffNodeEventPhase = HandoffEvaluationPhase;
@@ -206,7 +201,6 @@ type RankedOption = {
   rank: number;
   source: HandoffCandidateSource;
   sourceAxis?: AxisName;
-  sourceLane?: HandoffAdmissionLane;
   score: number;
   previewContacts: number;
   previewSurvivors: number;
@@ -274,7 +268,6 @@ type HandoffTelemetry = {
   tailCompletionImprovementsByRemainingContacts: Record<number, number>;
   policyNCand: NumericAccumulator;
   policyBranchLimit: NumericAccumulator;
-  admission: HandoffAdmissionAccumulator;
   previews: number;
   previewContacts: number;
   previewSurvivors: number;
@@ -326,32 +319,9 @@ type CandidatePreviewCoverageAccumulator = {
   firstSurvivorMax: number;
 };
 
-type HandoffAdmissionProfile = "default" | "attempt-strata";
-
-type HandoffAdmissionConfig = {
-  profile: HandoffAdmissionProfile;
-  label: string;
-  localQuota: number;
-  middleQuota: number;
-  tailQuota: number;
-};
-
-type HandoffAdmissionAccumulator = {
-  pools: number;
-  requestedCandidates: NumericAccumulator;
-  defaultPoolSize: NumericAccumulator;
-  admittedPoolSize: NumericAccumulator;
-  localQuota: NumericAccumulator;
-  middleQuota: NumericAccumulator;
-  tailQuota: NumericAccumulator;
-  originalRank: NumericAccumulator;
-  admittedByLane: Record<HandoffAdmissionLane, number>;
-};
-
 type HandoffAdmittedCandidate = {
   candidate: Candidate;
   rank: number;
-  lane?: HandoffAdmissionLane;
 };
 
 type HandoffFrontierStats = Pick<
@@ -404,57 +374,7 @@ const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
 const HANDOFF_LOW_SLACK_BRANCH_FULL = 1.25;
 const HANDOFF_LOW_SLACK_BRANCH_ZERO = 2.0;
-const HANDOFF_ADMISSION_PREFIX_ATTEMPTS = 8;
-const HANDOFF_ADMISSION_MIDDLE_ATTEMPTS = 24;
-const HANDOFF_ADMISSION_DEFAULT_LOCAL_QUOTA = 4;
-const HANDOFF_ADMISSION_DEFAULT_MIDDLE_QUOTA = 2;
-const HANDOFF_ADMISSION_DEFAULT_TAIL_QUOTA = 2;
 
-let handoffAdmissionConfig: HandoffAdmissionConfig = defaultHandoffAdmissionConfig();
-
-function resetHandoffAdmissionConfig(): void {
-  handoffAdmissionConfig = readHandoffAdmissionConfig();
-}
-registerCompileReset(resetHandoffAdmissionConfig);
-
-function defaultHandoffAdmissionConfig(): HandoffAdmissionConfig {
-  return {
-    profile: "default",
-    label: "default",
-    localQuota: HANDOFF_ADMISSION_DEFAULT_LOCAL_QUOTA,
-    middleQuota: HANDOFF_ADMISSION_DEFAULT_MIDDLE_QUOTA,
-    tailQuota: HANDOFF_ADMISSION_DEFAULT_TAIL_QUOTA,
-  };
-}
-
-function readHandoffAdmissionConfig(): HandoffAdmissionConfig {
-  const raw = readEnv("LR_ADMISSION_PROFILE");
-  if (raw === undefined || raw === "" || raw === "default" || raw === "off" || raw === "0") {
-    return defaultHandoffAdmissionConfig();
-  }
-  const parts = raw.split(":");
-  if (parts[0] !== "attempt-strata" && parts[0] !== "strata") {
-    warnUnparsedSpec("LR_ADMISSION_PROFILE", raw, "default|attempt-strata[:local[:middle[:tail]]]");
-    return defaultHandoffAdmissionConfig();
-  }
-  const fallback = defaultHandoffAdmissionConfig();
-  const localQuota = positiveIntPart(parts[1], fallback.localQuota);
-  const middleQuota = positiveIntPart(parts[2], fallback.middleQuota);
-  const tailQuota = positiveIntPart(parts[3], fallback.tailQuota);
-  return {
-    profile: "attempt-strata",
-    label: parts.length === 1 ? "attempt-strata" : `attempt-strata:${localQuota}:${middleQuota}:${tailQuota}`,
-    localQuota,
-    middleQuota,
-    tailQuota,
-  };
-}
-
-function positiveIntPart(raw: string | undefined, fallback: number): number {
-  if (raw === undefined || raw.trim() === "") return fallback;
-  const n = Number.parseInt(raw, 10);
-  return Number.isFinite(n) && n >= 0 ? n : fallback;
-}
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
  *  pool is mostly wasted per-node work that starves bounded-budget exploration.
@@ -870,7 +790,6 @@ function compileHandoffInternal(
       tailCompletionImprovementsByRemainingContacts: {},
       policyNCand: emptyNumericAccumulator(),
       policyBranchLimit: emptyNumericAccumulator(),
-      admission: emptyHandoffAdmissionAccumulator(),
       previews: 0,
       previewContacts: 0,
       previewSurvivors: 0,
@@ -1003,7 +922,6 @@ function compileHandoffInternal(
       const releaseExitStats = snapshotReleaseExitStats();
       const gapfitShortStats = snapshotGapfitShortStats();
       const fwdEvalStats = snapshotFwdEvalStats();
-      const admissionStats = snapshotAdmissionStats(telemetry.admission);
       return {
         ...best,
         budget,
@@ -1091,7 +1009,6 @@ function compileHandoffInternal(
           // rollout frame cost share + true-rollout-vs-quality-objective agreement. Absent
           // when forward-eval never ran (gate off) → ablation archives stay byte-identical.
           ...(fwdEvalStats !== null ? { fwd_eval: fwdEvalStats } : {}),
-          ...(admissionStats !== null ? { handoff_admission: admissionStats } : {}),
           // Repair characterization (only present when the repair post-pass ran → baseline
           // golden.json unchanged, no snapshot churn). Aggregates are always cheap; the full
           // per-restart records (up to maxAttempts each) are heavy archive bloat, so they ride
@@ -1619,7 +1536,6 @@ function rankTraceEntryForOption(option: RankedOption): HandoffRankTraceEntry {
     rank: option.rank,
     source: option.source,
     ...(option.sourceAxis === undefined ? {} : { sourceAxis: option.sourceAxis }),
-    ...(option.sourceLane === undefined ? {} : { sourceLane: option.sourceLane }),
   };
 }
 
@@ -2268,89 +2184,9 @@ function startupDeadEndCandidateCount(gap: Gap): number {
 
 function admittedHandoffPool(
   sorted: Candidate[],
-  requestedCandidates: number,
   poolSize: number,
-  telemetry: HandoffTelemetry,
 ): HandoffAdmittedCandidate[] {
-  if (handoffAdmissionConfig.profile === "default") {
-    return sorted.slice(0, poolSize).map((candidate, rank) => ({ candidate, rank }));
-  }
-
-  const admitted = attemptStrataAdmission(sorted, poolSize, handoffAdmissionConfig);
-  recordAdmissionTelemetry(
-    telemetry.admission,
-    requestedCandidates,
-    Math.min(poolSize, sorted.length),
-    admitted,
-    handoffAdmissionConfig,
-  );
-  return admitted;
-}
-
-function attemptStrataAdmission(
-  sorted: Candidate[],
-  poolSize: number,
-  config: HandoffAdmissionConfig,
-): HandoffAdmittedCandidate[] {
-  const out: HandoffAdmittedCandidate[] = [];
-  const seen = new WeakSet<Candidate>();
-  const cap = Math.max(0, Math.min(poolSize, sorted.length));
-  const addRank = (rank: number): void => {
-    if (out.length >= cap) return;
-    const candidate = sorted[rank];
-    if (candidate === undefined || seen.has(candidate)) return;
-    seen.add(candidate);
-    out.push({ candidate, rank, lane: candidateAdmissionLane(candidate) ?? undefined });
-  };
-  const addLocal = (quota: number): void => {
-    for (let rank = 0; rank < sorted.length && out.length < cap && quota > 0; rank++) {
-      const before = out.length;
-      addRank(rank);
-      if (out.length > before) quota--;
-    }
-  };
-  const addLane = (lane: HandoffAdmissionLane, quota: number): void => {
-    for (let rank = 0; rank < sorted.length && out.length < cap && quota > 0; rank++) {
-      if (candidateAdmissionLane(sorted[rank]) !== lane) continue;
-      const before = out.length;
-      addRank(rank);
-      if (out.length > before) quota--;
-    }
-  };
-
-  addLocal(config.localQuota);
-  addLane("middle", config.middleQuota);
-  addLane("tail", config.tailQuota);
-  addLocal(cap - out.length);
-  return out;
-}
-
-function candidateAdmissionLane(candidate: Candidate): HandoffAdmissionLane | null {
-  const attempt = candidate.sampleAttempt;
-  if (attempt === undefined) return null;
-  if (attempt < HANDOFF_ADMISSION_PREFIX_ATTEMPTS) return "prefix";
-  if (attempt < HANDOFF_ADMISSION_MIDDLE_ATTEMPTS) return "middle";
-  return "tail";
-}
-
-function recordAdmissionTelemetry(
-  acc: HandoffAdmissionAccumulator,
-  requestedCandidates: number,
-  defaultPoolSize: number,
-  admitted: readonly HandoffAdmittedCandidate[],
-  config: HandoffAdmissionConfig,
-): void {
-  acc.pools++;
-  recordNumeric(acc.requestedCandidates, requestedCandidates);
-  recordNumeric(acc.defaultPoolSize, defaultPoolSize);
-  recordNumeric(acc.admittedPoolSize, admitted.length);
-  recordNumeric(acc.localQuota, config.localQuota);
-  recordNumeric(acc.middleQuota, config.middleQuota);
-  recordNumeric(acc.tailQuota, config.tailQuota);
-  for (const entry of admitted) {
-    recordNumeric(acc.originalRank, entry.rank);
-    if (entry.lane !== undefined) acc.admittedByLane[entry.lane]++;
-  }
+  return sorted.slice(0, poolSize).map((candidate, rank) => ({ candidate, rank }));
 }
 
 function rankedOptions(
@@ -2382,11 +2218,11 @@ function rankedOptions(
     normalCandidates,
   );
   const poolSize = config.poolSize ?? handoffCandidatePool();
-  const pool = admittedHandoffPool(sorted, requestedCandidates, poolSize, telemetry);
+  const pool = admittedHandoffPool(sorted, poolSize);
   const preview = config.preview ?? true;
   const previewCostWeight = config.previewCostWeight ?? PREVIEW_COST_WEIGHT;
   const previewScorePressure = config.previewScorePressure ?? (preview ? 1 : 0);
-  const extraRankBase = handoffAdmissionConfig.profile === "default" ? poolSize : pool.length;
+  const extraRankBase = poolSize;
   const openingBestOpportunity = openingBestForwardEvalOpportunity(
     node,
     gaps,
@@ -2395,14 +2231,13 @@ function rankedOptions(
     targetBudget,
     config.budgetSlack ?? 0,
   );
-  const scored = pool.map(({ candidate, rank, lane }) =>
+  const scored = pool.map(({ candidate, rank }) =>
     scoreCandidateForHandoff(
       node, candidate, rank, "pool", gaps, ctx, seed, telemetry, preview, previewCostWeight,
       previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
       undefined,
-      lane,
       config.budgetSlack ?? 0,
       openingBestOpportunity,
     )
@@ -2435,7 +2270,6 @@ function rankedOptions(
       config.releaseSetup ?? false,
       targetBudget,
       undefined,
-      undefined,
       config.budgetSlack ?? 0,
       openingBestOpportunity,
     ))
@@ -2467,7 +2301,6 @@ function rankedOptions(
       previewScorePressure,
       config.releaseSetup ?? false,
       targetBudget,
-      undefined,
       undefined,
       config.budgetSlack ?? 0,
       openingBestOpportunity,
@@ -2975,27 +2808,6 @@ function emptyNumericAccumulator(): NumericAccumulator {
   return { count: 0, sum: 0, min: Infinity, max: -Infinity };
 }
 
-function emptyHandoffAdmissionAccumulator(): HandoffAdmissionAccumulator {
-  return {
-    pools: 0,
-    requestedCandidates: emptyNumericAccumulator(),
-    defaultPoolSize: emptyNumericAccumulator(),
-    admittedPoolSize: emptyNumericAccumulator(),
-    localQuota: emptyNumericAccumulator(),
-    middleQuota: emptyNumericAccumulator(),
-    tailQuota: emptyNumericAccumulator(),
-    originalRank: emptyNumericAccumulator(),
-    admittedByLane: emptyAdmissionLaneCounter(),
-  };
-}
-
-function emptyAdmissionLaneCounter(): Record<HandoffAdmissionLane, number> {
-  return Object.fromEntries(HANDOFF_ADMISSION_LANES.map((lane) => [lane, 0])) as Record<
-    HandoffAdmissionLane,
-    number
-  >;
-}
-
 function recordNumeric(acc: NumericAccumulator, value: number): void {
   acc.count++;
   acc.sum += value;
@@ -3021,39 +2833,6 @@ function snapshotNumericPolicyStats(
     [`${prefix}_mean`]: round3(acc.sum / acc.count),
     [`${prefix}_max`]: acc.max,
   } as Partial<CompileStats>;
-}
-
-function snapshotAdmissionStats(
-  acc: HandoffAdmissionAccumulator,
-): CompileStats["handoff_admission"] | null {
-  if (handoffAdmissionConfig.profile === "default" || acc.pools === 0) return null;
-  return {
-    profile: handoffAdmissionConfig.label,
-    pools: acc.pools,
-    requested_candidates_mean: numericMean(acc.requestedCandidates),
-    default_pool_size_mean: numericMean(acc.defaultPoolSize),
-    admitted_pool_size_mean: numericMean(acc.admittedPoolSize),
-    local_quota_mean: numericMean(acc.localQuota),
-    middle_quota_mean: numericMean(acc.middleQuota),
-    tail_quota_mean: numericMean(acc.tailQuota),
-    original_rank_mean: numericMean(acc.originalRank),
-    original_rank_max: acc.originalRank.count > 0 ? acc.originalRank.max : 0,
-    admitted_by_lane: snapshotAdmissionLaneCounter(acc.admittedByLane),
-  };
-}
-
-function numericMean(acc: NumericAccumulator): number {
-  return acc.count === 0 ? 0 : round3(acc.sum / acc.count);
-}
-
-function snapshotAdmissionLaneCounter(
-  counts: Record<HandoffAdmissionLane, number>,
-): HandoffAdmissionLaneCounter {
-  const out: HandoffAdmissionLaneCounter = {};
-  for (const lane of HANDOFF_ADMISSION_LANES) {
-    if (counts[lane] > 0) out[lane] = counts[lane];
-  }
-  return out;
 }
 
 export function handoffSampleCount(targetBudget?: number): number {
@@ -3319,7 +3098,6 @@ function scoreCandidateForHandoff(
   releaseSetup = false,
   targetBudget = 0,
   sourceAxis?: AxisName,
-  sourceLane?: HandoffAdmissionLane,
   budgetSlack = 0,
   openingBestOpportunity = 0,
 ): RankedOption {
@@ -3345,7 +3123,7 @@ function scoreCandidateForHandoff(
     recordCandidateReleaseCoverage(telemetry, candidate);
     attachHandoffScoreToProbe(candidate.lines, -value); // study probe; no-op when off
     return {
-      candidate, child, rank, source, sourceAxis, sourceLane,
+      candidate, child, rank, source, sourceAxis,
       previewContacts: 0, previewSurvivors: 0,
       score: -value,
       // Shadow mode stamps the objective leaf value captured by forwardArcValue. The fwdCfg
@@ -3396,7 +3174,6 @@ function scoreCandidateForHandoff(
     rank,
     source,
     sourceAxis,
-    sourceLane,
     previewContacts: preview.landed,
     previewSurvivors: preview.survivors,
     score: localScore,
@@ -5529,7 +5306,6 @@ function buildNodeOutput(
   const candidateRankCount = candidateRanks.length;
   const sourceCounts = selectedCandidateSourceCounts(node);
   const axisQualitySourceCounts = selectedAxisQualitySourceCounts(node);
-  const admissionLaneCounts = selectedAdmissionLaneCounts(node);
   return {
     track: buildTrackJson(allLines, outputDurationFrames, node.startState),
     report,
@@ -5562,9 +5338,6 @@ function buildNodeOutput(
       handoff_selected_candidate_nonzero_ranks:
         candidateRanks.filter((rank) => rank > 0).length,
       handoff_selected_candidate_by_source: { ...sourceCounts },
-      ...(hasAdmissionLaneCounts(admissionLaneCounts)
-        ? { handoff_selected_candidate_by_admission_lane: admissionLaneCounts }
-        : {}),
       // How many committed fits in THIS output came from the proposer
       // (selection-level win rate; `aim.enum_emitted` is the pool-level rate).
       handoff_aimed_selected: fits.filter((fit) => fit !== null && fit.aimed === true).length,
@@ -5612,21 +5385,6 @@ function selectedAxisQualitySourceCounts(
     counts[axis] = (counts[axis] ?? 0) + 1;
   }
   return counts;
-}
-
-function selectedAdmissionLaneCounts(
-  node: HandoffNode,
-): HandoffAdmissionLaneCounter {
-  const counts: HandoffAdmissionLaneCounter = {};
-  for (const entry of node.rankTrace) {
-    if (entry.rank < 0 || entry.source !== "pool" || entry.sourceLane === undefined) continue;
-    counts[entry.sourceLane] = (counts[entry.sourceLane] ?? 0) + 1;
-  }
-  return counts;
-}
-
-function hasAdmissionLaneCounts(counts: HandoffAdmissionLaneCounter): boolean {
-  return HANDOFF_ADMISSION_LANES.some((lane) => (counts[lane] ?? 0) > 0);
 }
 
 function selectedCandidateRanks(trace: HandoffRankTraceEntry[]): number[] {

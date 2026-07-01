@@ -792,7 +792,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** One `nextContactBound(gap, allContactFrames): {nextContact, latestBallisticFrame}` helper called from all three; the `-2` lives once.
 - **Risk:** low
 - **Generalization note:** Fixed frame count independent of budget.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (160/160 seed=0 track hashes match baseline; focused suite green). Extracted `nextContactBound(gap, allContactFrames)` and routed `releaseStateFrame` + `releaseExitArrivalState` through it (both derived nextContact via the SAME `allContactFrames.find(f > gap.endFrame)` and the same `-2`, confirmed identical). LEFT ALONE the third site `computeShortGapFitDetection`/`allContactFramesFor`: it bounds against `axisMeasureEnd` (the lookahead boundary, applied only when `> gap.endFrame`), a genuinely different frame reference — and doesn't even receive `allContactFrames` — so forcing it into the helper would change behavior; noted in the helper doc comment.
 
 ### 81. Two near-identical gravity-corrected launch reads
 - **Files:** `scripts/v0/core/candidate.ts`

@@ -987,6 +987,22 @@ function releaseArrivalStateAt(
   };
 }
 
+/** The first contact after `gap.endFrame` and the latest usable
+ *  ballistic-launch frame (that contact minus 2 — no ballistic flight may ride
+ *  into the next contact). Null when no later contact is in view. Shared by the
+ *  release-frame clamp (`releaseStateFrame`) and the exit-into-next-contact
+ *  reject (`releaseExitArrivalState`) so the `-2` bound lives in one place.
+ *  NOTE: `computeShortGapFitDetection` deliberately does NOT use this — it bounds
+ *  against `axisMeasureEnd` (the lookahead boundary), a different frame reference. */
+function nextContactBound(
+  gap: Gap,
+  allContactFrames: number[],
+): { nextContact: number; latestBallisticFrame: number } | null {
+  const nextContact = allContactFrames.find((frame) => frame > gap.endFrame);
+  if (nextContact === undefined) return null;
+  return { nextContact, latestBallisticFrame: nextContact - 2 };
+}
+
 /** Geometric-exit release-read helper (pool mode). Reads the ballistic
  *  launch/exit state at the GEOMETRIC arc-exit frame — the first frame in
  *  [gap.endFrame, horizon] where the rider is airborne AND past the arc-end
@@ -1017,8 +1033,8 @@ function releaseExitArrivalState(
   }
   // No ballistic flight if the rider would ride into the next contact: mirror
   // releaseStateFrame's nextContact−2 latest-before-next bound.
-  const nextContact = allContactFrames.find((frame) => frame > gap.endFrame);
-  if (nextContact !== undefined && exitFrame > nextContact - 2) {
+  const bound = nextContactBound(gap, allContactFrames);
+  if (bound !== null && exitFrame > bound.latestBallisticFrame) {
     releaseExitTotals.release_exit_fallback_next_contact++;
     return null;
   }
@@ -1047,9 +1063,9 @@ function groundedFramesInRange(det: Detection, startFrame: number, endFrame: num
 
 export function releaseStateFrame(gap: Gap, allContactFrames: number[]): number {
   const preferred = gap.endFrame + RELEASE_STATE_FRAME_OFFSET;
-  const nextContact = allContactFrames.find((frame) => frame > gap.endFrame);
-  if (nextContact === undefined) return preferred;
-  const latestBeforeNext = nextContact - 2;
+  const bound = nextContactBound(gap, allContactFrames);
+  if (bound === null) return preferred;
+  const latestBeforeNext = bound.latestBallisticFrame;
   if (latestBeforeNext <= gap.endFrame) return gap.endFrame;
   return Math.min(preferred, latestBeforeNext);
 }

@@ -387,7 +387,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Explicit allocation: reserve slot 0 for the default start, split the remaining `START_SCORING_POOL-1` between base/ballistic by budget pressure via one documented helper.
 - **Risk:** low
 - **Generalization note:** `floor(4*budgetPressure)` inherits the 50k assumption (#33).
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (verified via 1-seed/40-spec/4-budget track_hash diff, 160/160 match). Extracted the nested min/max into a documented `splitStartScoringPool(budgetPressure, availableBallisticStarts)` helper framed as "reserve slot 0 for the default start, split the remaining `START_SCORING_POOL-1` between base/ballistic by budget pressure"; arithmetic (min/floor/max) unchanged.
 
 ### 38. `meanAuthoredImpactAfterFirstFeasibleContact` silently drops the first contact via `slice(1)`
 - **Files:** `scripts/v0/optimizer/handoff.ts`

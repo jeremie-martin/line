@@ -4267,12 +4267,10 @@ function buildStartOptions(
         ballisticFirstContactCost(b, firstContactAxes, firstGap.endFrame) ||
       startKey(a).localeCompare(startKey(b))
     );
-  const ballisticStartPool = Math.min(
-    START_BALLISTIC_SCORING_POOL,
+  const { baseStartPool, ballisticStartPool } = splitStartScoringPool(
+    ballisticStartBudgetPressure(targetBudget),
     orderedBallisticStarts.length,
-    Math.floor(START_BALLISTIC_SCORING_POOL * ballisticStartBudgetPressure(targetBudget)),
   );
-  const baseStartPool = Math.max(0, START_SCORING_POOL - 1 - ballisticStartPool);
   const supportStarts = startupSupportStartSeeds(firstContactAxes, firstGap, targetBudget);
   const [first, ...rest] = [
     startSeed(defaultSpecStart),
@@ -4607,6 +4605,31 @@ function ballisticStartBudgetPressure(targetBudget: number): number {
     (Math.max(0, targetBudget) - START_BALLISTIC_BUDGET_START_FRAMES) /
       START_BALLISTIC_BUDGET_SPAN_FRAMES,
   );
+}
+
+/**
+ * Divide the START_SCORING_POOL seed budget between base (heuristic) and
+ * ballistic first-contact starts.
+ *
+ * Slot 0 of the scoring pool is always reserved for the default spec start, so
+ * only `START_SCORING_POOL - 1` seeds are shareable. Budget pressure hands up to
+ * `START_BALLISTIC_SCORING_POOL` of those shareable seeds to ballistic starts —
+ * capped both by that ceiling and by how many ballistic candidates actually
+ * exist (`availableBallisticStarts`). Every seed not taken by ballistic starts
+ * goes to base starts. In practice this yields 0-4 ballistic seeds.
+ */
+function splitStartScoringPool(
+  budgetPressure: number,
+  availableBallisticStarts: number,
+): { baseStartPool: number; ballisticStartPool: number } {
+  const shareableSeeds = START_SCORING_POOL - 1;
+  const ballisticStartPool = Math.min(
+    START_BALLISTIC_SCORING_POOL,
+    availableBallisticStarts,
+    Math.floor(START_BALLISTIC_SCORING_POOL * budgetPressure),
+  );
+  const baseStartPool = Math.max(0, shareableSeeds - ballisticStartPool);
+  return { baseStartPool, ballisticStartPool };
 }
 
 export function startSpeedAnchors(targetSpeedPxPerFrame: number): number[] {

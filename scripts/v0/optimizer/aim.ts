@@ -757,7 +757,15 @@ export function snapshotAimStats(): AimStats | null {
   };
 }
 
-/** Below this |δ*| the aimed variant would duplicate the base candidate. */
+/** Below this |δ*| the aimed variant would duplicate the base candidate.
+ *  NOTE: this is the pitch half-window of the *near-base* duplicate skip
+ *  (the axis-aligned box test at the enumeration loop below). That is a
+ *  DIFFERENT test from `distinctJointKnobs` (the ellipse separation between
+ *  two proposals): different shape (box vs ellipse), different reference
+ *  point (base 0,0 vs an arbitrary peer proposal) and different scales
+ *  (0.25/0.25 here vs ENUM_MIN_SEP_DEG=1.5 / ENUM_ROT_STEP_DEG=0.5 there).
+ *  Its numeric coincidence with ENUM_STEP_DEG (both 0.25) is not a shared
+ *  quantity — they are independent knobs that happen to agree. */
 const AIM_MIN_DELTA_DEG = 0.25;
 
 // ───────────────────────────── 4 · Probes ────────────────────────────
@@ -938,6 +946,9 @@ function makeJointAimedCandidates(
   const scored: JointScoredKnobs[] = [];
   for (let pitchDeg = -pitchSpan; pitchDeg <= pitchSpan + 1e-9; pitchDeg += ENUM_STEP_DEG) {
     for (let rotateDeg = -rotateSpan; rotateDeg <= rotateSpan + 1e-9; rotateDeg += ENUM_ROT_STEP_DEG) {
+      // Near-base duplicate skip: an axis-aligned BOX around the base (0,0)
+      // — drop grid points that reproduce the base candidate. Distinct from
+      // the inter-proposal ellipse in distinctJointKnobs (see notes there).
       if (Math.abs(pitchDeg) < AIM_MIN_DELTA_DEG && Math.abs(rotateDeg) < ENUM_ROT_STEP_DEG / 2) continue;
       const score = scoreJointKnobs(
         model,
@@ -1036,6 +1047,14 @@ function scoreJointKnobs(
   return { knobs, val: objective.value, state, currentQuality: objective.currentQuality };
 }
 
+/** Inter-proposal separation: an ELLIPSE (Mahalanobis-style) distance test
+ *  between two arbitrary proposals — keep the top-K chosen proposals as
+ *  distinct arc shapes. This is a DIFFERENT test from the near-base box skip
+ *  at the enumeration loop (which uses AIM_MIN_DELTA_DEG): different shape
+ *  (ellipse vs box), reference point (peer proposal vs base 0,0) and scales
+ *  (ENUM_MIN_SEP_DEG=1.5 / ENUM_ROT_STEP_DEG=0.5 here vs 0.25/0.25 there).
+ *  They share the "minimum meaningful knob separation" notion but not a
+ *  formula; do not collapse them. */
 function distinctJointKnobs(a: ArcKnobs, b: ArcKnobs): boolean {
   const dp = Math.abs(a.pitchDeg - b.pitchDeg) / ENUM_MIN_SEP_DEG;
   const dr = Math.abs(a.rotateDeg - b.rotateDeg) / ENUM_ROT_STEP_DEG;

@@ -518,7 +518,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Define one 2-D knob-distinctness metric (pitch scale, rotate scale) reused for both the base-duplicate skip and inter-proposal separation.
 - **Risk:** low
 - **Generalization note:** Model-error quantities, currently expressed redundantly.
-- **Status:** Not Started
+- **Status:** Accepted (Case B, documentation-only, byte-identical) — the "two formulas" are genuinely different tests, not one notion spelled twice: the near-base skip is an axis-aligned BOX around the base (0,0) with 0.25/0.25 thresholds (`AIM_MIN_DELTA_DEG`, `ENUM_ROT_STEP_DEG/2`), while `distinctJointKnobs` is an ELLIPSE (Mahalanobis) test between two arbitrary proposals with 1.5/0.5 scales (`ENUM_MIN_SEP_DEG`, `ENUM_ROT_STEP_DEG`). Different shape, reference point and scales; `AIM_MIN_DELTA_DEG(0.25)≠ENUM_MIN_SEP_DEG(1.5)` so no alias, and forcing a common formula is not byte-identical (a grid point at (0.2°,0.2°) is inside the box but outside a 0.25-radius ellipse, and grids are step-offset by `pitchSpan`/`rotateSpan` so such points are reachable). Added cross-referencing doc comments at both sites (and at the `AIM_MIN_DELTA_DEG` def) so a reader sees they are related-but-distinct; no merge. All 160 seed=0 track hashes match baseline.
 
 ### 52. `AIM_LOW_AIR_TOPK` cap constants are spec-population thresholds inside the K logic
 - **Files:** `scripts/v0/optimizer/aim.ts`

@@ -55,7 +55,7 @@
  * CoM angle only (pose parked by R0).
  */
 
-import { getPhysicsFrameCount, getRiderMetered, sledPoseDegFromRider } from "../../lib/detector.ts";
+import { getPhysicsFrameCount, getRiderMetered, K_BOUNCE_LANDING, sledPoseDegFromRider } from "../../lib/detector.ts";
 import {
   axisLookaheadEndFrame,
   POOL_MODE,
@@ -66,6 +66,7 @@ import { registerCompileReset } from "../core/compile_lifecycle.ts";
 import { AXES, type AxisName, type TrackLine } from "../types.ts";
 import { getCandidateProbe, type Candidate, type SpecContext } from "./sample.ts";
 import {
+  adjustArcTailLength,
   applyArcKnobs,
   arcKnobSpan,
   arcProbeDesign,
@@ -85,10 +86,15 @@ import {
   type JointArcProbeObservation,
 } from "./arc_probe.ts";
 import {
+  effectiveAirAsk,
   nextContactGap,
+  nextGapFrameCount,
+  OBJECTIVE_AIR_DEADBAND,
   predictArrivalAtNextContact,
+  predictedNextGapAir,
   scoreGapObjectiveForTargets,
   scoreNextTargetReadiness,
+  type ObjectiveArrivalState,
 } from "./objective.ts";
 import type { Gap } from "../types.ts";
 
@@ -126,6 +132,14 @@ export function aimEnumEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_ENUM !== "0";
 }
+
+/** Below this |predicted base air − effective ask| the air-matched variant is
+ *  not worth a candidate evaluation (blast-radius gate: inert where the base
+ *  already lands near the ask). Probe-tuned: 0.18 priced out most emissions
+ *  and lost the scarce-tier gain; 0.10 carries it. */
+const AIR_KNOB_MIN_MISMATCH = 0.10;
+/** Don't bother editing for less than this many frames of release shift. */
+const AIR_KNOB_MIN_SHIFT_FRAMES = 2;
 
 function aimJointProbeDesign(): ArcProbeDesignName {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
@@ -573,6 +587,23 @@ export type AimStats = {
   /** Candidates ranked via a ballistic PREDICTION: the prediction-only objective
    *  path (now every scored candidate that produces an arrival). */
   rank_quality_pred_used: number;
+  /** M4 pool air-substrate telemetry (law #1: judge pressure needs pool
+   *  substrate). Over pool builds whose NEXT contact gap has an air target:
+   *  per-candidate predicted next-gap air (release frame → airborne fraction),
+   *  the per-pool spread (max − min), and how many pools contain at least one
+   *  candidate at/below the effective (floor-clamped) ask + deadband — i.e.
+   *  pools where an air-delivering candidate EXISTS for the judge to pick. */
+  rank_air_pools: number;
+  rank_air_cands: number;
+  rank_air_pred_mean: number;
+  rank_air_ask_mean: number;
+  rank_air_spread_mean: number;
+  rank_air_deliverable_pools: number;
+  /** M4 Part B funnel: air-matched ride-out variants considered (mismatch
+   *  beyond gate), gate-failed at production evaluation, and emitted. */
+  enum_air_considered: number;
+  enum_air_gate_fail: number;
+  enum_air_emitted: number;
 };
 
 const aimTotals = {
@@ -605,6 +636,12 @@ const aimTotals = {
   rank_quality_candidates_scored: 0, rank_quality_objective_defined: 0,
   // Predicted-arrival usage.
   rank_quality_pred_bail: 0, rank_quality_pred_used: 0,
+  // M4 pool air-substrate telemetry (recordPoolAirSpread).
+  rank_air_pools: 0, rank_air_cands: 0,
+  rankAirPredSum: 0, rankAirAskSum: 0, rankAirSpreadSum: 0,
+  rank_air_deliverable_pools: 0,
+  // M4 Part B air-matched variant funnel.
+  enum_air_considered: 0, enum_air_gate_fail: 0, enum_air_emitted: 0,
 };
 
 /** Record where a lane proposal ranked in the cost-sorted pool it entered,
@@ -753,6 +790,18 @@ export function snapshotAimStats(): AimStats | null {
     rank_quality_objective_defined: aimTotals.rank_quality_objective_defined,
     rank_quality_pred_bail: aimTotals.rank_quality_pred_bail,
     rank_quality_pred_used: aimTotals.rank_quality_pred_used,
+    rank_air_pools: aimTotals.rank_air_pools,
+    rank_air_cands: aimTotals.rank_air_cands,
+    rank_air_pred_mean: aimTotals.rank_air_cands > 0
+      ? round3(aimTotals.rankAirPredSum / aimTotals.rank_air_cands) : 0,
+    rank_air_ask_mean: aimTotals.rank_air_pools > 0
+      ? round3(aimTotals.rankAirAskSum / aimTotals.rank_air_pools) : 0,
+    rank_air_spread_mean: aimTotals.rank_air_pools > 0
+      ? round3(aimTotals.rankAirSpreadSum / aimTotals.rank_air_pools) : 0,
+    rank_air_deliverable_pools: aimTotals.rank_air_deliverable_pools,
+    enum_air_considered: aimTotals.enum_air_considered,
+    enum_air_gate_fail: aimTotals.enum_air_gate_fail,
+    enum_air_emitted: aimTotals.enum_air_emitted,
   };
 }
 
@@ -866,6 +915,11 @@ export function makeEnumAimedCandidates(
   ctx: SpecContext,
   base: Candidate,
   lineIdStart: number,
+  /** M4 Part B: emit the air-matched ride-out variant for this base. The
+   *  caller enables it on the FIRST (quality-best) refined base only — the
+   *  variant is per-pool generation insurance, and one per pool is enough
+   *  (per-base emission at K=4–6 priced out mature budgets in probe cycle 1). */
+  airKnobBase: boolean,
 ): Candidate[] {
   aimTotals.enum_considered++;
   aimTotals.enum_lane_bases++; // one base actually refined (LR_AIM_TOPK_BASES)
@@ -878,7 +932,7 @@ export function makeEnumAimedCandidates(
     aimTotals.enum_no_target++;
     return [];
   }
-  return makeJointAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart);
+  return makeJointAimedCandidates(engine, gap, nextGap, ctx, base, lineIdStart, airKnobBase);
 }
 
 function makeJointAimedCandidates(
@@ -889,6 +943,7 @@ function makeJointAimedCandidates(
   ctx: SpecContext,
   base: Candidate,
   lineIdStart: number,
+  airKnobBase: boolean,
 ): Candidate[] {
   const probeDesignName = aimJointProbeDesign();
   const mode = aimProbeMode();
@@ -920,7 +975,8 @@ function makeJointAimedCandidates(
   });
 
   const baseKnobs = { pitchDeg: 0, rotateDeg: 0 };
-  recordJointModelCoverage(model, predictJointArcOutputs(model, baseKnobs), gap);
+  const baseOutputs = predictJointArcOutputs(model, baseKnobs);
+  recordJointModelCoverage(model, baseOutputs, gap);
   const currentTargets = objectiveTargetsForGap(gap, ctx);
   const nextTargets = objectiveTargetsForGap(nextGap, ctx);
   const baseScore = scoreJointKnobs(
@@ -928,7 +984,7 @@ function makeJointAimedCandidates(
     baseKnobs,
     currentTargets,
     nextTargets,
-    nextGap.endFrame,
+    nextGap,
   );
   if (baseScore === "next_before_exit") {
     aimTotals.enum_next_before_exit++;
@@ -954,7 +1010,7 @@ function makeJointAimedCandidates(
         { pitchDeg, rotateDeg },
         currentTargets,
         nextTargets,
-        nextGap.endFrame,
+        nextGap,
       );
       if (typeof score !== "string" && score.val > baseScore.val + 1e-4) scored.push(score);
     }
@@ -971,13 +1027,26 @@ function makeJointAimedCandidates(
     if (chosen.length >= ENUM_TOP_K) break;
     if (chosen.every((prev) => distinctJointKnobs(prev.knobs, cand.knobs))) chosen.push(cand);
   }
-  if (chosen.length === 0) {
+  const out: Candidate[] = [];
+  if (chosen.length === 0 && !airKnobBase) {
     aimTotals.enum_on_target++;
-    return [];
+    return out;
   }
 
   const probe = getCandidateProbe(engine, gap, ctx);
-  const out: Candidate[] = [];
+  // M4 Part B: air-matched ride-out variant — generation insurance for gaps
+  // whose pool is air-narrow. Orthogonal to the pitch/rotate sweep, so it is
+  // emitted even when the sweep found nothing above the base (on_target).
+  if (airKnobBase) {
+    const airCand = makeAirMatchedCandidate(
+      engine, gap, nextGap, ctx, base, baseOutputs, lineIdStart, axisMeasureEnd, probe,
+    );
+    if (airCand !== null) out.push(airCand);
+  }
+  if (chosen.length === 0) {
+    aimTotals.enum_on_target++;
+    return out;
+  }
   for (const cand of chosen) {
     const aimedLines = applyArcKnobs(base.lines, cand.knobs)
       .map((l, i) => ({ ...l, id: lineIdStart + i }));
@@ -1009,6 +1078,68 @@ function makeJointAimedCandidates(
   return out;
 }
 
+/** M4 Part B — the air knob: ONE deterministic air-matched ride-out variant
+ *  per refined base, emitted only when the base's predicted next-gap air
+ *  misses the (floor-clamped) ask by more than AIR_KNOB_MIN_MISMATCH. The
+ *  ride-out length is the release-frame lever: predicted next-gap air =
+ *  (nextEnd − release) / gapFrames, so the needed release shift solves in
+ *  closed form (no probes, no model fit, no RNG — frames × exit speed = tail
+ *  length delta). The edit goes through the unchanged exact production
+ *  evaluation (I1: proposer, never judge; I3: tryCandidateLines is metered).
+ *  Prefers the base's MEASURED release state over the model's base-knob
+ *  prediction. */
+function makeAirMatchedCandidate(
+  // deno-lint-ignore no-explicit-any
+  engine: any,
+  gap: Gap,
+  nextGap: Gap,
+  ctx: SpecContext,
+  base: Candidate,
+  baseOutputs: Record<string, number>,
+  lineIdStart: number,
+  axisMeasureEnd: number,
+  probe: ReturnType<typeof getCandidateProbe>,
+): Candidate | null {
+  const ask = objectiveTargetsForGap(nextGap, ctx)?.air;
+  if (typeof ask !== "number" || !Number.isFinite(ask)) return null;
+  const rel = base.releaseArrivalState;
+  const measured = rel !== undefined && rel.airborne;
+  const relFrame = measured ? rel.frame : baseOutputs["exit.frame"];
+  const relSpeed = measured ? Math.hypot(rel.vx, rel.vy) : baseOutputs["exit.speed"];
+  if (!Number.isFinite(relFrame) || !Number.isFinite(relSpeed) || relSpeed <= 0) return null;
+  const gapFrames = nextGapFrameCount(nextGap);
+  const effAsk = effectiveAirAsk(ask, gapFrames);
+  const predAir = predictedNextGapAir(relFrame, nextGap);
+  if (Math.abs(predAir - effAsk) <= AIR_KNOB_MIN_MISMATCH) return null;
+  // Target release frame delivering effAsk, kept strictly rideable: after the
+  // current catch, and leaving the landing detector its ≥K_BOUNCE_LANDING
+  // airborne frames before the next contact.
+  const latestRelease = nextGap.endFrame - K_BOUNCE_LANDING - 2;
+  const desired = Math.max(
+    gap.endFrame + 1,
+    Math.min(latestRelease, nextGap.endFrame - effAsk * gapFrames),
+  );
+  const dtFrames = desired - relFrame;
+  if (Math.abs(dtFrames) < AIR_KNOB_MIN_SHIFT_FRAMES) return null;
+  const edited = adjustArcTailLength(base.lines, dtFrames * relSpeed);
+  if (edited === null) return null;
+  aimTotals.enum_air_considered++;
+  const airLines = edited.map((l, i) => ({ ...l, id: lineIdStart + i }));
+  const fit = tryCandidateLines(
+    engine, gap, airLines, lineIdStart, ctx.allContactFrames,
+    axisMeasureEnd, gap.targets, true,
+    "normal", probe.preTargetSledTrace,
+  ) as Candidate | null;
+  if (fit === null) {
+    aimTotals.enum_air_gate_fail++;
+    return null;
+  }
+  aimTotals.enum_air_emitted++;
+  fit.ref = { x: probe.targetState.sledX, y: probe.targetState.sledY };
+  fit.aimed = true;
+  return fit;
+}
+
 type JointScoredKnobs = {
   knobs: ArcKnobs;
   val: number;
@@ -1023,20 +1154,28 @@ function scoreJointKnobs(
   knobs: ArcKnobs,
   currentTargets: AxisValues,
   nextTargets: AxisValues,
-  nextEndFrame: number,
+  nextGap: Pick<Gap, "startFrame" | "endFrame">,
 ): JointScoreResult {
   const outputs = predictJointArcOutputs(model, knobs);
   const exitFrame = outputs["exit.frame"];
-  if (Number.isFinite(exitFrame) && exitFrame > nextEndFrame) return "next_before_exit";
+  if (Number.isFinite(exitFrame) && exitFrame > nextGap.endFrame) return "next_before_exit";
   const state = predictedArrivalState(outputs);
   if (state === null) return "model_unscoreable";
   // Align the sweep's speed-fit with the pool sort (objective.ts H4): score against the predicted
   // MEAN-of-flight speed (trapezoidal of exit + next), the statistic the speed target authors,
   // not the catch-instant arrival. Falls back to catch-instant when the exit speed is unavailable.
   const exitSpeed = outputs["exit.speed"];
-  const arrival = Number.isFinite(exitSpeed) && Number.isFinite(state.speed)
-    ? { ...state, meanSpeed: (exitSpeed + state.speed) / 2 }
-    : state;
+  const arrival: ObjectiveArrivalState = { ...state };
+  if (Number.isFinite(exitSpeed) && Number.isFinite(state.speed)) {
+    arrival.meanSpeed = (exitSpeed + state.speed) / 2;
+  }
+  // M4: the predicted exit frame gives the sweep the same air-fit statistic the
+  // pool sort scores (predicted next-gap airborne fraction), so knob variants
+  // are judged on air setup too.
+  if (Number.isFinite(exitFrame)) {
+    arrival.nextAir = predictedNextGapAir(exitFrame, nextGap);
+    arrival.nextGapFrames = nextGapFrameCount(nextGap);
+  }
   const objective = scoreGapObjectiveForTargets(
     currentTargets,
     predictedCurrentAxes(outputs),
@@ -1105,7 +1244,7 @@ export function candidateQualityObjective(
   // the next contact. No charged ride. Prediction-impossible (missing release
   // state, non-airborne release, comAngle-less propagation result) → null
   // objective (cost order).
-  const arrival = predictArrivalAtNextContact(candidate, nextGap.endFrame);
+  const arrival = predictArrivalAtNextContact(candidate, nextGap);
   if (arrival === null || arrival.comAngleDeg === null) {
     aimTotals.rank_quality_pred_bail++;
     return memoObjective(candidate, null);
@@ -1160,7 +1299,10 @@ export function sortCandidatesByQuality(
     }
   }
   if (!anyDefined) {
-    if (record) recordRankQualityPool(costSorted, costSorted);
+    if (record) {
+      recordRankQualityPool(costSorted, costSorted);
+      recordPoolAirSpread(gap, gaps, costSorted, ctx);
+    }
     return costSorted;
   }
   // `costSorted` is already cost-then-sample-order; a stable sort therefore
@@ -1173,8 +1315,50 @@ export function sortCandidatesByQuality(
     if (ob !== undefined) return 1;
     return 0; // both undefined: keep cost/sample order
   });
-  if (record) recordRankQualityPool(costSorted, ranked);
+  if (record) {
+    recordRankQualityPool(costSorted, ranked);
+    recordPoolAirSpread(gap, gaps, costSorted, ctx);
+  }
   return ranked;
+}
+
+/** M4 pool air-substrate telemetry (law #1: does the pool CONTAIN air-delivering
+ *  candidates for the judge to pick?). Once per pool build (the `record` final
+ *  ordering, same cadence as recordRankQualityPool): over candidates carrying an
+ *  airborne release read, the predicted next-gap air, its per-pool spread, and
+ *  whether any candidate sits at/below the effective ask + deadband. Pure reads,
+ *  zero physics frames; membership-only (order-independent). */
+export function recordPoolAirSpread(
+  gap: Gap,
+  gaps: Gap[],
+  pool: readonly Candidate[],
+  ctx?: SpecContext,
+): void {
+  const nextGap = nextContactGap(gap, gaps);
+  if (nextGap === null) return;
+  const ask = objectiveTargetsForGap(nextGap, ctx)?.air;
+  if (typeof ask !== "number" || !Number.isFinite(ask)) return;
+  const effAsk = effectiveAirAsk(ask, nextGapFrameCount(nextGap));
+  let n = 0;
+  let sum = 0;
+  let min = Infinity;
+  let max = -Infinity;
+  for (const cand of pool) {
+    const rel = cand.releaseArrivalState;
+    if (rel === undefined || !rel.airborne || rel.frame >= nextGap.endFrame) continue;
+    const air = predictedNextGapAir(rel.frame, nextGap);
+    n++;
+    sum += air;
+    if (air < min) min = air;
+    if (air > max) max = air;
+  }
+  if (n === 0) return;
+  aimTotals.rank_air_pools++;
+  aimTotals.rank_air_cands += n;
+  aimTotals.rankAirPredSum += sum;
+  aimTotals.rankAirAskSum += effAsk;
+  aimTotals.rankAirSpreadSum += n >= 2 ? max - min : 0;
+  if (min <= effAsk + OBJECTIVE_AIR_DEADBAND) aimTotals.rank_air_deliverable_pools++;
 }
 
 /** Once-per-pool-build telemetry over the FINAL ordering: pool count, top-3 /

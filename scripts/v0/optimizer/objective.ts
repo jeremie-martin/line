@@ -1,4 +1,5 @@
 import { axisQualityForTargets } from "../score.ts";
+import { K_BOUNCE_LANDING } from "../../lib/detector.ts";
 import {
   authoredSpeedToPx,
   impactToRedirArcPx,
@@ -20,6 +21,18 @@ import {
 export const OBJECTIVE_READINESS_MIN = 0.1;
 export const OBJECTIVE_SPEED_SCALE_PXF = 0.75;
 export const OBJECTIVE_IMPACT_MIN_ASK = 0.3;
+/** Air-fit exp scale, in airborne-fraction units (air ∈ [0,1]). */
+export const OBJECTIVE_AIR_SCALE = 0.25;
+/** Inert band around the (floor-clamped) air ask: prediction noise on the
+ *  release frame / next-arc entry timing lives here; the term must not react
+ *  to it (blast-radius discipline — inert where it has nothing to fix). */
+export const OBJECTIVE_AIR_DEADBAND = 0.05;
+/** Undershoot half-weight (mirror of speedFit's asymmetry, opposite side):
+ *  overshoot is the recoverable selection lottery — full weight; predicted
+ *  undershoot (already floor-clamped) is a real miss too, but the predicted
+ *  air is an optimistic upper bound so the fast side of the error distribution
+ *  is inflated — half weight. */
+export const OBJECTIVE_AIR_UNDERSHOOT_WEIGHT = 0.5;
 
 export type ObjectiveArrivalState =
   & Pick<ReadinessArrivalState, "speed" | "comAngleDeg">
@@ -27,13 +40,24 @@ export type ObjectiveArrivalState =
   // Mean speed over the predicted flight to the next contact (trapezoidal of launch+arrival).
   // The authored speed target is a mean-of-flight; this is the apples-to-apples statistic for
   // speedFit. Absent on call sites built from a single catch-instant state (they fall back).
-  & { meanSpeed?: number };
+  & {
+    meanSpeed?: number;
+    /** Predicted airborne-frame fraction over the NEXT contact gap (the
+     *  statistic core/measure.ts measureAir scores), derived from the release
+     *  frame and the next gap's window — zero extra sim. Absent on call sites
+     *  without release timing (they fall back to airFit = 1). */
+    nextAir?: number;
+    /** Next contact gap frame count (endFrame − startFrame + 1), for the
+     *  detector-floor clamp on the air ask. Present iff `nextAir` is. */
+    nextGapFrames?: number;
+  };
 
 export type NextGapReadinessScore = {
   readiness: number;
   catchability: number;
   speedFit: number;
   impactFeasibility: number;
+  airFit: number;
 };
 
 export type GapObjectiveScore = NextGapReadinessScore & {
@@ -55,11 +79,13 @@ export function scoreNextTargetReadiness(
   const catchability = Math.max(OBJECTIVE_READINESS_MIN, readinessCatchState(arrival));
   const speedFit = speedFitFactor(arrival.meanSpeed ?? arrival.speed, nextTargets);
   const impactFeasibility = impactFeasibilityFactor(arrival, nextTargets);
+  const airFit = airFitFactor(arrival, nextTargets);
   return {
-    readiness: catchability * speedFit * impactFeasibility,
+    readiness: catchability * speedFit * impactFeasibility * airFit,
     catchability,
     speedFit,
     impactFeasibility,
+    airFit,
   };
 }
 
@@ -99,17 +125,17 @@ export function frontierReadinessFromFit(
   fit: GapFit,
   nextGap: Gap,
 ): NextGapReadinessScore | null {
-  const arrival = predictArrivalAtNextContact(fit, nextGap.endFrame);
+  const arrival = predictArrivalAtNextContact(fit, nextGap);
   return arrival === null ? null : scoreNextTargetReadiness(arrival, nextGap.targets);
 }
 
 export function predictArrivalAtNextContact(
   fit: Pick<GapFit, "releaseArrivalState">,
-  nextEndFrame: number,
+  nextGap: Pick<Gap, "startFrame" | "endFrame">,
 ): ObjectiveArrivalState | null {
   const rel = fit.releaseArrivalState;
   if (rel === undefined || !rel.airborne) return null;
-  const dt = nextEndFrame - rel.frame;
+  const dt = nextGap.endFrame - rel.frame;
   if (dt <= 0) return null;
   const launch: RiderArrivalState = {
     x: rel.x,
@@ -126,7 +152,38 @@ export function predictArrivalAtNextContact(
     speed: arrived.speed,
     comAngleDeg: arrived.comAngleDeg,
     meanSpeed: (launch.speed + arrived.speed) / 2,
+    nextAir: predictedNextGapAir(rel.frame, nextGap),
+    nextGapFrames: nextGapFrameCount(nextGap),
   };
+}
+
+/** Frame count of a gap window — the denominator of measureAir's
+ *  airborne-fraction statistic ([startFrame, endFrame] inclusive). */
+export function nextGapFrameCount(nextGap: Pick<Gap, "startFrame" | "endFrame">): number {
+  return Math.max(1, nextGap.endFrame - nextGap.startFrame + 1);
+}
+
+/** Predicted airborne-frame fraction over the next contact gap, given the
+ *  release (geometric arc exit) frame: the rider rides the current arc until
+ *  `releaseFrame`, is ballistic from there to the next contact at
+ *  `nextGap.endFrame` (minimal-simulation rule — no sim). This is an optimistic
+ *  upper bound: the next gap's own terminal-arc entry shaves a few tail frames,
+ *  which the deadband absorbs. */
+export function predictedNextGapAir(
+  releaseFrame: number,
+  nextGap: Pick<Gap, "startFrame" | "endFrame">,
+): number {
+  const frames = nextGapFrameCount(nextGap);
+  const air = (nextGap.endFrame - Math.max(nextGap.startFrame, releaseFrame)) / frames;
+  return Math.max(0, Math.min(1, air));
+}
+
+/** Detector-floor clamp on an air ask: a landing needs ≥ K_BOUNCE_LANDING
+ *  airborne frames, so air fractions below K/gapFrames are physically
+ *  undeliverable — never demand the impossible (this clamp is what keeps the
+ *  air-fit from fighting catchability on short gaps). */
+export function effectiveAirAsk(ask: number, nextGapFrames: number): number {
+  return Math.max(ask, Math.min(1, K_BOUNCE_LANDING / Math.max(1, nextGapFrames)));
 }
 
 function speedFitFactor(speed: number, nextTargets: AxisValues): number {
@@ -142,6 +199,32 @@ function speedFitFactor(speed: number, nextTargets: AxisValues): number {
   const d = speed - authoredSpeedToPx(target);
   const penalty = d > 0 ? d * 0.5 : -d;
   return Math.exp(-penalty / OBJECTIVE_SPEED_SCALE_PXF);
+}
+
+/** Forward-looking READINESS air fit (M4): how well does this candidate's
+ *  release timing set up the NEXT gap's air ask? Like speedFit this is NOT a
+ *  reproduction of the scorer's air axis — it ranks a candidate's fitness to
+ *  FLY INTO the next gap. Gating (blast-radius discipline): inert (1) when the
+ *  next gap has no air target or the call site carries no release timing
+ *  (`nextAir` absent), inert inside the deadband, and the ask is clamped at
+ *  the detector floor so the term never demands the impossible on short gaps.
+ *  Asymmetric by the physics: overshoot (predicted air > ask) is the
+ *  recoverable selection lottery — full weight; undershoot half (see
+ *  OBJECTIVE_AIR_UNDERSHOOT_WEIGHT). Plain exp, no sigmoid (the plateau
+ *  gradient is signal — falsified-shapes note in aim.ts). */
+function airFitFactor(
+  arrival: Pick<ObjectiveArrivalState, "nextAir" | "nextGapFrames">,
+  nextTargets: AxisValues,
+): number {
+  const ask = nextTargets.air;
+  const predicted = arrival.nextAir;
+  const gapFrames = arrival.nextGapFrames;
+  if (ask === undefined || predicted === undefined || gapFrames === undefined) return 1;
+  const d = predicted - effectiveAirAsk(ask, gapFrames);
+  const over = Math.max(0, d - OBJECTIVE_AIR_DEADBAND);
+  const under = Math.max(0, -d - OBJECTIVE_AIR_DEADBAND);
+  const penalty = over + OBJECTIVE_AIR_UNDERSHOOT_WEIGHT * under;
+  return Math.exp(-penalty / OBJECTIVE_AIR_SCALE);
 }
 
 function impactFeasibilityFactor(

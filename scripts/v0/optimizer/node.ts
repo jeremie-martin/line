@@ -28,6 +28,7 @@ import {
   rankQualityEnabled,
   recordLaneBaseSkip,
   recordLanePoolRank,
+  recordPoolAirSpread,
   recordRankQualityPool,
   sortCandidatesByQuality,
 } from "./aim.ts";
@@ -212,6 +213,7 @@ function sortWithLaneExtras(
       if (b >= bases) { recordLaneBaseSkip(); continue; }
       laneExtras.push(...makeEnumAimedCandidates(
         node.prefixEngine, gap, gaps, ctx, sorted[b], node.prefixNextLineId,
+        b === 0, // air-matched variant: first (quality-best) base only
       ));
     }
   }
@@ -232,6 +234,7 @@ function sortWithLaneExtras(
   } else if (rankQuality && costOrder.length > 0) {
     // No merged re-sort happened: the pre-lane ordering is final — record it.
     recordRankQualityPool(costOrder, sorted);
+    recordPoolAirSpread(gap, gaps, sorted, ctx);
   }
   return sorted;
 }

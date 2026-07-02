@@ -139,13 +139,13 @@ describe("unified objective quality score", () => {
     const goodObj = scoreGapObjectiveForTargets(
       current.targets,
       { air: 0.5 },
-      predictArrivalAtNextContact(costlyGood, next.endFrame)!,
+      predictArrivalAtNextContact(costlyGood, next)!,
       next.targets,
     )!.value;
     const badObj = scoreGapObjectiveForTargets(
       current.targets,
       { air: 0.5 },
-      predictArrivalAtNextContact(cheapBad, next.endFrame)!,
+      predictArrivalAtNextContact(cheapBad, next)!,
       next.targets,
     )!.value;
     expect(goodObj).toBeGreaterThan(badObj);

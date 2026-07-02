@@ -10,6 +10,7 @@ rule are frozen.
 | date | archive | commit | HEADLINE | excl-impact | notes |
 |---|---|---|---|---|---|
 | 2026-06-30 | attempt-aim-highk-gated-j32-a01 | f2cc3b2 (dirty) | 683.67 | 699.39 | starting baseline |
+| 2026-07-02 | attempt-m4-air-selection-a01 | 49ceafb+M4 (worktree) | 685.97 | 706.59 | M4 airFit + air-aimed proposer variant — first campaign ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -111,7 +112,34 @@ rule are frozen.
 - Mechanism candidates: (1) airFit forward term + air-aimed enum-proposer knob (~4–6 pts);
   (2) protected pool slot for min-speed-error candidate (~3–5 pts, low risk); (3) air-ask-
   conditioned launch-vy carrier for low-air overshoot (~2–4, overlaps (1)).
+- M4 PROBE CLEARED decisively (airFit judge term + first-base air-matched ride-out-length
+  proposer variant, floor-clamped effAsk, deadband 0.05, mismatch gate 0.10): subset decide
+  +13.8 probe-ACCEPT CI[1.2,31.0] P≤0=1.4% — 125k +9.0 / 250k +16.2 (P=1%) / 500k spot +21.8;
+  collateral neutral-positive; air RMS 0.134→0.118; validity 100%. Part A carries the bulk;
+  B-alone is a lottery (never ship without A). TELEMETRY REVISION of S5: within-pool predicted-
+  air spread is NARROW (~0.036); the 0.28–0.84 lottery lives ACROSS pool rebuilds along the
+  search tree — hence a persistent judge term pays. CANONICAL IN FLIGHT
+  (attempt-m4-air-selection-a01, in-worktree).
 - PATH TO 700: 683.67 + impact (7±2) + air/speed (8±3) ≈ 698–703. No slack for floored pools.
+
+## S6 study findings (2026-07-02, elevation floor audit) — FLOOR IS FALSE
+
+- ACHIEVABLE_CLIMB_FRACTION=0.3 feeds ONLY report-only elevationCeiling (substrate.ts:672 —
+  never scored); the "physics not optimizer" comment is self-referential (ceiling 0.65 is
+  tautological). Scored ruler: netDyToElevation w/ cap=min(g·N, 0.5·speed) — E=1.0 permitted.
+- Physics: LEVEL (E=0.5) is energy-NEUTRAL (symmetric arc, sustainable forever); E=0.55–0.60
+  sustainable (rise 5–9px/gap), bursts 0.65+; climb costs Δv²=2gΔh. Study compile with banked
+  speed reached SUSTAINED 0.77 (corr 0.73). Archive gaps individually hit 0.51–0.67.
+- Actual failure: selection. climb_terrace track descends 450px monotonically, speed near-
+  perfect, elevation abandoned (0.40–0.47 even where 0.5/LEVEL asked); mean grounded angle
+  −0.62°, steepest −15° < −19.8° needed for LEVEL. Forward-eval speed-charge vetoes climb
+  candidates; axisCost weights elevation=speed=1 but search over-resolves to speed.
+  Also: amplitude≥0.30 defers ride-out shortening (skyline_push starved).
+- STRUCTURAL RHYME: elevation, like air pre-M4, has NO term in forward readiness.
+- Recoverable: reach-LEVEL-where-asked ≈ +17.6 free; realistic mechanism +10–18 of the 24.9
+  ceiling. ⇒ M8 = elevationFit judge term (M4 pattern) + level/climb spanned variants;
+  fail-fast gate first (pool variety + loss mode, M2 lesson). Prior reject to respect:
+  "elevation launch target gain" (06-24, forced-ramp class).
 
 ## Attempts
 
@@ -159,6 +187,41 @@ budget (hash-verified — zero collateral, the selection-protection did its job)
   track-hash forensics (candidate ≡ baseline). Rerun with the change staged in the index and a
   sha256 watchdog on the touched file. Lesson: verify candidate archives actually DIFFER from
   baseline (changed-row count > 0 where the mechanism must fire) before trusting any verdict.
+
+### M5 protected speed slot — fail-fast KILLED before build (2026-07-02, no probe, no canonical)
+
+Design was: guarantee min-current-speed-error candidate in the forward-eval set. Fail-fast diag
+(swell/tide × 2 seeds × {125k,500k}, branch m5-speed-slot-diag): evaluated set = quality-top-8
+of 32 (HANDOFF_CANDIDATE_POOL, branch 3). Min-speed candidate already IN the set 52–66% of
+pools; when OUT, the set's best is within 0.001–0.003 of the pool speed floor (materially-better
+rate 0–2.3%); when IN and losing (~80%), the winner concedes ≤0.01 speed err on a correct
+multi-axis trade. Committed per-gap speed error ≈ pool floor ⇒ per-gap speed selection is FULLY
+EXTRACTED. The +9 speed residual = TAIL gaps (20–25/165 with err >0.1) where the ARRIVAL speed
+into the gap is wrong (no candidate can serve the target) — trajectory compounding, k−1
+generation territory. ⇒ M5b: M3-pattern k−1 energy-launch span on next-gap-speed-infeasible
+gaps, gated on a pre-step diag (one-gap-back reachability + pool absence; STOP if k−2+
+compounding = the planning problem, or if present-but-losing = judge problem). IN FLIGHT.
+
+### SPEED SELECTION THREAD — CLOSED after four gates (2026-07-02, zero probes/canonicals burned)
+
+Gate 1 (M5): per-gap selection extracted — committed speed error ≈ pool floor; evaluated set
+(top-8) within 0.001–0.003 of pool min; in-set losses are correct multi-axis trades.
+Gate 2 (M5b): tail gaps (|err|>0.1, ~13% of gaps carrying the RMS mass) are NOT a generation
+gap — k−1 pools contain good-arrival exits (C-class only 14%); 83% chaining/selection (B 43%).
+Gate 3 (M6): leaf whole-branch dilution REFUTED — tails skew EARLY-mid not late (peak decile
+30–40%, min final decile); marginal-leaf counterfactual flips only 4.3% of B-winners.
+Gate 4 (M7): rank-0 masking real but WORTHLESS — dual-rollout study (bit-exact greedy:2
+replica, 230 B-pools): masked branch wins 7.8% (bar 50%), mean value gap −38.8, local speed
+fix 0.126→0.043 but 425 dead-ends (speed-serving catches strand the rider); non-B control
+8.6% ⇒ no trigger power. The trades are PHYSICS-PRICED.
+VERDICT: S5's +9.1 speed pool = seed-level trajectory divergence = the planning problem
+(out of scope, thrice-bounced). No local mechanism exists. Instrument stack preserved on
+branch m5-speed-slot-diag (02e15bd, LR_M5_DIAG/LR_M7_STUDY, default-off).
+CAMPAIGN NOTE: seed-oracle "ceilings" are SOFT bounds — M4's variance collapse produced
+per-seed scores above the best baseline seed; conversely closed threads prove some pools are
+smaller than their oracle. Remaining live pools: air (M4 canonical in flight), elevation floor
+audit (S6 — is ACHIEVABLE_CLIMB_FRACTION a physics fact or a design constant?), 125k impact
+portfolio (~+1–1.5).
 
 ### M3 steep-arrival launch span — canonical INCONCLUSIVE (+1.0), reverted/parked (2026-07-02)
 
@@ -224,3 +287,45 @@ the downstream speed launch; (b) without fade the scoop dilutes the converged hi
 (−7.9 @250k pre-fade) even as pool injection — quality objective over-adopts it; (c) therefore the
 free-impact geometry that best seeds find is NOT a bigger same-arrival turn → S3 study launched to
 characterize what winners actually do (local-vs-chain question).
+
+### M4 close-the-air-selection-hole — canonical ACCEPT, NEW BASELINE 685.97 (2026-07-02)
+
+Mechanism (2 coupled parts, production default, no flags):
+(A) airFit in scoreNextTargetReadiness (objective.ts): readiness = catchability × speedFit ×
+impactFeasibility × **airFit**; predicted next-gap air = (nextEnd − max(nextStart, release)) /
+gapFrames off the ballistic release read (closed form, zero sim); ask floor-clamped at
+K_BOUNCE_LANDING/gapFrames (never demands the impossible); deadband 0.05; asymmetric exp
+(overshoot full, undershoot ×0.5, scale 0.25). Flows to pool sort, enum-sweep objective
+(via model exit.frame), and lane-base scoring.
+(B) air-matched ride-out-LENGTH variant in the enum lane (aim.ts + arc_model.ts
+adjustArcTailLength): quality-best base only, gated on |predAir − effAsk| > 0.10; release
+shift solved in closed form (frames × exit speed = tail delta, extend along exit tangent /
+truncate with guards); exact tryCandidateLines eval (I1–I5 intact, RNG-neutral).
+
+CANONICAL (attempt-m4-air-selection-a01 vs attempt-aim-highk-gated-j32-a01):
+Δheadline = +2.3 · 95% CI [−0.7, 5.3] · P(Δ≤0)=6.4% · effect=1.51 · VERDICT ACCEPT.
+Per-budget: 125k +3.7 / 250k +1.4 / 375k +1.5 / 500k +3.0. Validity 100% at every budget.
+Headline 683.67 → 685.97; excl-impact 699.39 → 706.59 (the air/speed pool opened +7.2 —
+more than the headline moved: impact gave some back, see losers).
+
+Decomposition (probe, 5 air + 5 collateral specs × 3 seeds): A-alone ACCEPT +14.2 (the
+carrier); B-alone INCONCLUSIVE −4.0 (a lottery — B must never ship without A); A+B with
+all-K-bases B = big 125k pop (+21.1, P=1%) but mature-budget drag; FINAL first-base-only
+B = +13.8 CI[1.2,31.0], the only arm whose CI excluded 0. Air RMS on air specs
+0.134→0.118 (@125k) / 0.135→0.113 (@250k). Part-B funnel @canonical-probe: ~83% gate-pass,
+~42 emissions/compile. Mismatch gate is sharp: 0.18 kills the gain, 0.10 carries.
+
+KEY TELEMETRY FINDING (revises the pool study): within-pool predicted-air spread is NARROW
+(mean max−min ≈ 0.036/pool); the 0.28–0.84 seed lottery lives ACROSS pool rebuilds along the
+search tree, not inside one pool. That is why a persistent judge term pays despite thin
+per-pool substrate, and why generation insurance only helps where pools are starved (scarce
+tier). Mean effAsk 0.62 (heavily floor-clamped on dense gaps) vs mean predicted 0.48.
+
+Canonical per-spec (weighted): winners syncopated_switchback +16.8, opening_burst +16.8,
+rhythm_ladder +12.4, drums_pendulum +11.4 (the −6.1-pt worst spec moved!), terrace_sprint
++10.8, grain_staircase +9.1, cold_start +8.9. Losers cluster in the STEADY-DENSE drums
+family: drums_zigzag −15.1, drums_swell −10.9, drums_crosscut −9.1, drums_tide −8.5,
+syncopated_lift −4.9, drums_dropout −4.2 — narrow-air-range specs where the new term
+re-weights readiness against gaps that were already converged (and where the high-K aim
+bump lives). That family is the indicated repair pool for a follow-up (spec-conditional
+pressure would violate the no-threshold-gates rule; look at scale/deadband shape instead).

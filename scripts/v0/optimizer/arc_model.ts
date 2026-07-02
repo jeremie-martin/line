@@ -198,6 +198,83 @@ export function applyArcKnobs(lines: TrackLine[], knobs: ArcKnobs): TrackLine[] 
   return knobs.pitchDeg === 0 ? rotated : pitchExitLines(rotated, knobs.pitchDeg);
 }
 
+/** Longest tail extension, as a multiple of the arc's own total length, and
+ *  segment-count cap — sanity bounds on the air-knob edit, not tuning knobs. */
+const ARC_TAIL_EXTEND_MAX_RATIO = 1.5;
+const ARC_TAIL_EXTEND_MAX_SEGMENTS = 12;
+/** Truncation may remove at most this fraction of the arc's total length and
+ *  must keep at least 2 segments (the catch geometry lives at the head). */
+const ARC_TAIL_TRUNCATE_MAX_RATIO = 0.5;
+
+/** M4 air knob: chain-continuity-preserving RIDE-OUT LENGTH edit. Positive
+ *  `deltaPx` appends straight segments continuing the exit tangent (tangent-
+ *  continuous at the joint); negative removes tail length (whole segments,
+ *  then a partial shortening of the new last segment). The ride-out length is
+ *  the release-frame lever: it controls how much of the NEXT gap is airborne.
+ *  Returns null when the edit is empty or the geometry is degenerate; clamps
+ *  (rather than fails) at the sanity bounds — a partial correction still moves
+ *  predicted air the right way, and the exact production evaluation
+ *  (tryCandidateLines) owns validity either way. */
+export function adjustArcTailLength(lines: TrackLine[], deltaPx: number): TrackLine[] | null {
+  if (lines.length === 0 || !Number.isFinite(deltaPx) || deltaPx === 0) return null;
+  return deltaPx > 0 ? extendArcTail(lines, deltaPx) : truncateArcTail(lines, -deltaPx);
+}
+
+function arcSegmentLengths(lines: readonly TrackLine[]): number[] {
+  return lines.map((l) => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
+}
+
+function extendArcTail(lines: TrackLine[], lengthPx: number): TrackLine[] | null {
+  const last = lines[lines.length - 1];
+  const dx = last.x2 - last.x1;
+  const dy = last.y2 - last.y1;
+  const lastLen = Math.hypot(dx, dy);
+  if (!(lastLen > 1e-6)) return null;
+  const total = arcSegmentLengths(lines).reduce((a, b) => a + b, 0);
+  const ext = Math.min(lengthPx, ARC_TAIL_EXTEND_MAX_RATIO * total);
+  if (!(ext > 1e-6)) return null;
+  const n = Math.max(1, Math.min(ARC_TAIL_EXTEND_MAX_SEGMENTS, Math.ceil(ext / lastLen)));
+  const step = ext / n;
+  const ux = dx / lastLen;
+  const uy = dy / lastLen;
+  const out = lines.map((line) => ({ ...line }));
+  let px = last.x2;
+  let py = last.y2;
+  for (let i = 0; i < n; i++) {
+    const nx = px + ux * step;
+    const ny = py + uy * step;
+    out.push({ ...last, x1: px, y1: py, x2: nx, y2: ny });
+    px = nx;
+    py = ny;
+  }
+  return out;
+}
+
+function truncateArcTail(lines: TrackLine[], lengthPx: number): TrackLine[] | null {
+  if (lines.length < 3) return null;
+  const lens = arcSegmentLengths(lines);
+  const total = lens.reduce((a, b) => a + b, 0);
+  let cut = Math.min(lengthPx, ARC_TAIL_TRUNCATE_MAX_RATIO * total);
+  if (!(cut > 1e-6)) return null;
+  const out = lines.map((line) => ({ ...line }));
+  while (out.length > 2 && cut >= lens[out.length - 1]) {
+    cut -= lens[out.length - 1];
+    out.pop();
+  }
+  if (cut > 1e-6) {
+    // Shorten the (new) last segment by the remainder, keeping ≥ 25% of it.
+    const idx = out.length - 1;
+    const l = out[idx];
+    const len = lens[idx];
+    if (len > 1e-6) {
+      const t = Math.max(0.25, (len - cut) / len);
+      l.x2 = l.x1 + (l.x2 - l.x1) * t;
+      l.y2 = l.y1 + (l.y2 - l.y1) * t;
+    }
+  }
+  return out;
+}
+
 export function arcProbeDesign(name: ArcProbeDesignName, options: ArcProbeDesignOptions = {}): ArcKnobs[] {
   switch (name) {
     case "cross5": {

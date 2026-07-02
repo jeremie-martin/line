@@ -229,7 +229,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Fold the discrete tables into the continuous pressure (`delayFrames = round(maxDelay × pressure)`), drop the duration/thin-air smoothsteps to a single low-air+budget gate, and evaluate whether the whole low-air support branch can be subsumed by the general ballistic-start generator. Name the geometric line constants.
 - **Risk:** high
 - **Generalization note:** air≤0.35 and 50k gates assume today's opening-beat air distribution/grid; the branch either never fires or fires everywhere off-distribution.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline -0.1, P(Δ≤-0.1)=45.3%, candidate cumulative Δheadline vs campaign-start baseline +2.1 (accepted cumulative remains +2.2; full canonical vs current #18 baseline `simplify-18-hard-fwd-eval-gate-a01`; valid 1920/1920, fingerprint unchanged; 1768/1920 `track_hash` match, 152 changed). Tested replacing the `[0,1,2]` x-delay table plus air/duration/budget pressure product with a low-air+budget gate that keeps the no-delay support seed and adds one rounded delay; non-inferiority was not established, so the source change was reverted.
 
 ### 20. Impact-target resolution inlined in the main compile block
 - **Files:** `scripts/v0/optimizer/handoff.ts`

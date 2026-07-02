@@ -403,7 +403,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Compute the mean over contacts whose gap actually received a bounded impact target (the `gap.targets.impact` set at ~782-801), so "first feasible" is defined consistently.
 - **Risk:** medium
 - **Generalization note:** `slice(1)` reflects today's specs (opener never impactable).
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline +0.1, P(Δ≤-0.1)=27.0%, candidate cumulative Δheadline vs campaign-start baseline +2.3 (accepted cumulative remains +2.2; full canonical vs current #36 baseline `simplify-36-start-angle-speed-cost-a01`; valid 1920/1920, fingerprint unchanged; 1824/1920 `track_hash` match, 96 changed). Tested deriving `setImpactTemplateSpecMeanImpact` from resolved bounded `gap.targets.impact` via `impactProfile.meanImpact` and deleting the `slice(1)` authored-impact helper; non-inferiority was not established (notably 125k Δ=-0.7), so the source change was reverted.
 
 ### 39. `buildNodeOutput` emits a flat telemetry bag mirroring the same source counts several ways
 - **Files:** `scripts/v0/optimizer/handoff.ts`

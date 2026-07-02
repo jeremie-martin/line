@@ -409,12 +409,8 @@ const HANDOFF_SPARSE_CONTACT_MEDIAN_FRAMES = Math.round(FPS * 0.75);
 const HANDOFF_RESCUE_BASE_N_CAND = 32;
 const HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND = 48;
 const HANDOFF_RESCUE_CANDIDATE_POOL = 12;
-const HANDOFF_RESCUE_STARTUP_EXTRA_POOL = 4;
+const HANDOFF_RESCUE_STARTUP_PRESSURE_HALFLIFE_FRAMES = FPS * 1.1;
 const HANDOFF_RESCUE_MIN_GAP_FRAMES = 16;
-/** Distinct startup catch stream used only when the ordinary contract/rescue
- *  batches have zero viable options. This targets missing first/tight contacts
- *  without inserting an extra family into already-working contract search. */
-const HANDOFF_STARTUP_DEAD_END_MAX_K = 24;
 /** Short required-contact gaps are deadline-dominated: the normal cheap prefix
  *  can have zero hits even when a catch exists later in the deterministic sample
  *  order. Rescue only clean prefixes at true dead-ends (caller-gated) so
@@ -1974,10 +1970,10 @@ function expandNode(
         // Base rescue: extra deterministic sampling with a startup-pressure ramp.
         predicate: () => shouldAttemptDeadEndRescue(node.search, gap, ctx),
         run: () => {
-          const nCand = deadEndRescueCandidateCount(gap);
+          const breadth = startupRescueBreadth(gap.endFrame);
           return rescueOptions(node.search, gaps, ctx, node.searchSeed, telemetry, policy, targetBudget, {
-            nCand,
-            poolSize: deadEndRescueCandidatePoolSize(gap, nCand),
+            nCand: breadth.rescueNCand,
+            poolSize: breadth.rescuePoolSize,
           });
         },
       },
@@ -2089,22 +2085,34 @@ function shouldAttemptDeadEndRescue(node: SearchNode, gap: Gap, ctx: SpecContext
   return shouldOfferBrakeCandidates(targetSpeedPx, speedRatio);
 }
 
-function deadEndRescueCandidateCount(gap: Gap): number {
-  const startupPressure = startupRescuePressure(gap.endFrame);
-  return HANDOFF_RESCUE_BASE_N_CAND +
-    Math.round(HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND * startupPressure);
-}
-
-function deadEndRescueCandidatePoolSize(gap: Gap, nCand: number): number {
-  const startupPressure = startupRescuePressure(gap.endFrame);
-  const pool = HANDOFF_RESCUE_CANDIDATE_POOL +
-    Math.round(HANDOFF_RESCUE_STARTUP_EXTRA_POOL * startupPressure);
-  return Math.min(nCand, pool);
-}
-
 function startupRescuePressure(endFrame: number): number {
-  const t = Math.max(0, endFrame) / (FPS * 1.1);
+  const t = Math.max(0, endFrame) / HANDOFF_RESCUE_STARTUP_PRESSURE_HALFLIFE_FRAMES;
   return 1 / (1 + t * t);
+}
+
+function startupRescueBreadth(endFrame: number): {
+  rescueNCand: number;
+  rescuePoolSize: number;
+  startupK: number;
+} {
+  const pressure = startupRescuePressure(endFrame);
+  const rescueNCand = HANDOFF_RESCUE_BASE_N_CAND +
+    Math.round(HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND * pressure);
+  const rescuePoolSize = Math.min(
+    rescueNCand,
+    HANDOFF_RESCUE_CANDIDATE_POOL +
+      Math.round((HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND / 12) * pressure),
+  );
+  return {
+    rescueNCand,
+    rescuePoolSize,
+    // The distinct startup stream is capped at half the extra rescue breadth.
+    startupK: clampIntLocal(
+      Math.round((HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND / 2) * pressure),
+      0,
+      HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND / 2,
+    ),
+  };
 }
 
 function shouldAttemptShortDeadlineRescue(gap: Gap): boolean {
@@ -2290,12 +2298,7 @@ function startupDeadEndCandidates(
 }
 
 function startupDeadEndCandidateCount(gap: Gap): number {
-  const pressure = startupRescuePressure(gap.endFrame);
-  return clampIntLocal(
-    Math.round(HANDOFF_STARTUP_DEAD_END_MAX_K * pressure),
-    0,
-    HANDOFF_STARTUP_DEAD_END_MAX_K,
-  );
+  return startupRescueBreadth(gap.endFrame).startupK;
 }
 
 function admittedHandoffPool(

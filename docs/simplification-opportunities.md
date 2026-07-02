@@ -151,7 +151,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Define one `startupBreadth(endFrame)` returning a single sample budget; derive pool/max-k as fixed fractions; drop 1.1 (use a named half-life) and collapse the three EXTRA constants to one.
 - **Risk:** medium
 - **Generalization note:** Purely absolute-time based; the 1.1 half-life is untied to any spec property.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs current #8 baseline `simplify-08-opening-dense-band-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Collapsed the three startup-rescue count formulas into one `startupRescueBreadth(endFrame)` profile, named the `FPS*1.1` half-life, and derived pool/startup stream counts from the single +48 rescue breadth without changing output.
 
 ### 12. `repairConfig` `maxAttempts=64` + margin ramps reverse-fit to the 1M/100k canonical plateau
 *(sources: handoff-core-rescue, handoff-forward-eval-repair)*

@@ -141,6 +141,56 @@ rule are frozen.
   fail-fast gate first (pool variety + loss mode, M2 lesson). Prior reject to respect:
   "elevation launch target gain" (06-24, forced-ramp class).
 
+## M9 feasibility verdict (2026-07-02, elevation section-regime planning) — DO NOT BUILD
+
+- Analytic per-section optimization over the M4 baseline archive (432 section instances, exact
+  scoring pipeline, baseline reproduced 685.97 exactly). Collateral-free arm reproduces the S6
+  estimate (+12.06) — but the elevation sections are IMPACT STACKS (impact ask ≥0.3 on 47–100%
+  of section gaps; amplitude co-asked on 4 specs). Level-flight conversion halves arrival
+  redirArc ⇒ impact SSE +0.08 vs elevation SSE −0.013 per stacked beat (6× against).
+- Honest idealized optimum: full plan +0.76 (bracketed [0.0, +0.8]); level-only +0.18;
+  mechanism-discounted +0.1–0.3 ≪ 4-pt build bar. climb_terrace prices to exactly 0.00 (its
+  450px descent IS the joint optimum). 62–99% of sections are honest-Z under collateral.
+- Banked-0.77 study compile reconciled: sustained climb is reachable on specs that don't charge
+  this suite's stacked collateral. S6's floor-refutation stands; the VALUE doesn't.
+- Surviving remainder: ~+0.7 suite-diluted in mixed_grade/dense_echo_climb-shaped low-stack
+  sections — spec-shaped, below bar. ELEVATION THREAD FULLY CLOSED.
+- Campaign redirect: remaining headroom = M10 (airFit collateral, in flight), 125k impact
+  portfolio, and the two UNMAPPED search-economy levers → S7 rollout frame-economy (rollouts
+  ~50% of frames, top-1 agreement 25–29%, winner mean q-rank 2.6 ⇒ top-k pre-prune) and S8
+  repair triage (repair ~61% of budget, ~72% wasted restarts, funds wrong specs/gaps).
+
+## S8 study findings (2026-07-02, repair triage) — MINED DEAD; 06-14 diagnosis STALE
+
+- Anchor selection is ALREADY scorer-consistent worst-first + cost-aware (pickFeasibleWeakGap,
+  handoff.ts:2808, landed post-06-14): frame-spending restarts hit the early true-worst gap
+  81–98% of the time; counterfactual anchor value left ≈ 2–8% and mostly unaffordable anyway.
+- The "72% wasted restarts" = mostly the ZERO-frame protective throttle (95%/81% of restarts
+  spend nothing); among frame-spending restarts accept rate is 50%@125k / 24%@500k. Repair
+  delivers +23.9 score/cell at 500k — dominant high-budget quality driver, just frame-hungry.
+- Health-stop tested DIRECTLY: dry-stop 2/3 frees 12–19% of 500k frames but nets −1.33/−0.53
+  per cell (accepts arrive after dry streaks). Byte-identical at 125k. DEAD.
+- Prior rejects confirmed non-overlapping but pointing the same way (cost-aware ranking,
+  slack margins, caps: all "reshuffle-without-conversion").
+- S8b divergence-timing gate: TOTAL OVERLAP → REPAIR THREAD FULLY CLOSED. Repair descents are
+  blind (canSkipPartialEvaluation, handoff.ts:903 — no mid-restart score signal exists); the
+  verdict lands at 93–100% of spent frames (accepted median 0.955–1.000 ≈ reconverged); perfect
+  oracle refunds only 1.9%@500k / 8.9%@125k of reconverge frames; all realizable abort policies
+  net NEGATIVE (−3.0 to −12.0 on the panel). Reconverge mass = irreducible price of ~24%-hit
+  fresh-seed suffix gambles at ~+10/hit (positive EV). Also retro-explains the dry-stop loss.
+  Three-layer close: anchor optimal / stopping loses / abort impossible.
+
+## S7 study findings (2026-07-02, rollout frame economy) — DO NOT BUILD
+
+- Rollout share of frames is 31.5–35.5% (the historical ~50% is stale). Winner mean q-rank
+  2.24–2.46 but winner at q-rank ≥5 in 22–24% of pools; pruning to k changes the forward-top-3
+  branch set in 39–79% of pools (k=6→3). Prune curve MONOTONE NEGATIVE: k=6 −9.4, k=5 −10.2,
+  k=4 −16.8, k=3 −24.1; hybrid depth (greedy:2 top-2 / greedy:1 rest) −20.9 (mixed-depth leaf
+  values incomparable). Freed frames DO convert to search (nodes +4..19%) but price at ~+0.9
+  vs quality cost ~−10. Re-confirms lookahead-log C6 on the new baseline. k=8 + uniform
+  greedy:2 is tuned-optimal; rollout-side frame-economy levers EXHAUSTED (depth/width/pool/
+  mixed-depth all rejected). Only door: pre-sort accuracy (low leverage while all 8 roll).
+
 ## Attempts
 
 (append: mechanism · change · canonical result · verdict · learnings)
@@ -187,6 +237,24 @@ budget (hash-verified — zero collateral, the selection-protection did its job)
   track-hash forensics (candidate ≡ baseline). Rerun with the change staged in the index and a
   sha256 watchdog on the touched file. Lesson: verify candidate archives actually DIFFER from
   baseline (changed-row count > 0 where the mechanism must fire) before trusting any verdict.
+
+### M10 airFit collateral repair — NO REPAIR SHIPS; feasibility family falsified (2026-07-02)
+
+Diagnosis: on the M4 losers air IMPROVED (zigzag airRMS .074→.067 etc.); speed/impact paid
+(zigzag spd .062→.083, mixed_grade spd .029→.071 = its whole −23.9@125k). Losers = no-low-ask
+narrow-range specs stuck on the undershoot half-penalty (pred−ask −0.14..−0.20, pool spread
+only .026–.033 ⇒ noise-scale re-ranking). crosscut's 500k flip = budget affords air without
+paying speed there (scarcity-mediated collateral).
+Falsified arms (3–8 seeds, 5 losers + 5 guards, validity 100%): F1 undershoot-w0 / F1b /
+B-off / entry-side deliverability CEIL7/CEIL11 — every arm traded winner pts for loser pts
+≈1:1 (best: CEIL7 +0.5, Boff +1.0, both guard-negative; opening_burst −23@250k×8seeds under
+CEIL7). KEY REVISION: ask-feasibility does NOT discriminate — opening_burst is DEEPER
+undershoot (−0.22) than any loser yet needs the pressure most. True discriminator =
+HARVESTABLE AIR ERROR (pool performance property, not ask geometry).
+⇒ collateral is the internal price of the accepted +2.3; five cheap knobs logged dead.
+⇒ M13 candidate: pool-relative differential damping (scale airFit pool-differential by the
+pool's own harvestable air error). B-off@mature rejected as budget-threshold gate (pattern
+Jérémie dislikes).
 
 ### M5 protected speed slot — fail-fast KILLED before build (2026-07-02, no probe, no canonical)
 

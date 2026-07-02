@@ -161,7 +161,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Factor one `rampMargin(budget, lo, hi, start, span)` helper for both; derive `maxAttempts` from budget (never a grid-specific integer cap); express `minBudget` as a function of `predictedFirstCompletionFrames`. Fold the two ramps into one budget-maturity curve.
 - **Risk:** high
 - **Generalization note:** `minBudget=100k` is false for a harder/longer spec; `maxAttempts=64` silently caps quality above ~1M.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs current #11 baseline `simplify-11-startup-rescue-breadth-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Factored the duplicate main/feasibility margin smoothstep ramps into one shared `repairRampMargin(...)` over the existing 100k/100k maturity curve; `minBudget=100_000` and `maxAttempts=64` were left unchanged for this focused byte-identical simplification step.
 
 ### 13. `maxNodes` backstop `= max(50_000, budget)` calibrated on one canonical spec
 - **Files:** `scripts/v0/optimizer/handoff.ts`

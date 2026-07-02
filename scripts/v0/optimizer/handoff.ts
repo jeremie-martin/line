@@ -3552,28 +3552,29 @@ type RepairConfig = {
   log: boolean;
 };
 const REPAIR_MAIN_MARGIN_MATURE = 1.1;
-const REPAIR_MAIN_MARGIN_RAMP_START_FRAMES = 100_000;
-const REPAIR_MAIN_MARGIN_RAMP_SPAN_FRAMES = 100_000;
 const REPAIR_FEAS_MARGIN_SCARCE = 1.05;
 const REPAIR_FEAS_MARGIN_MATURE = 1.0;
-const REPAIR_FEAS_MARGIN_RAMP_START_FRAMES = 100_000;
-const REPAIR_FEAS_MARGIN_RAMP_SPAN_FRAMES = 100_000;
+const REPAIR_MARGIN_RAMP_START_FRAMES = 100_000;
+const REPAIR_MARGIN_RAMP_SPAN_FRAMES = 100_000;
+
+function repairRampMargin(
+  targetBudget: number,
+  scarceMargin: number,
+  matureMargin: number,
+): number {
+  const pressure = smoothstep(
+    (targetBudget - REPAIR_MARGIN_RAMP_START_FRAMES) /
+      REPAIR_MARGIN_RAMP_SPAN_FRAMES,
+  );
+  return scarceMargin + (matureMargin - scarceMargin) * pressure;
+}
 
 function defaultRepairMainMargin(targetBudget: number): number {
-  const pressure = smoothstep(
-    (targetBudget - REPAIR_MAIN_MARGIN_RAMP_START_FRAMES) /
-      REPAIR_MAIN_MARGIN_RAMP_SPAN_FRAMES,
-  );
-  return 1 + (REPAIR_MAIN_MARGIN_MATURE - 1) * pressure;
+  return repairRampMargin(targetBudget, 1, REPAIR_MAIN_MARGIN_MATURE);
 }
 
 function defaultRepairFeasMargin(targetBudget: number): number {
-  const pressure = smoothstep(
-    (targetBudget - REPAIR_FEAS_MARGIN_RAMP_START_FRAMES) /
-      REPAIR_FEAS_MARGIN_RAMP_SPAN_FRAMES,
-  );
-  return REPAIR_FEAS_MARGIN_SCARCE +
-    (REPAIR_FEAS_MARGIN_MATURE - REPAIR_FEAS_MARGIN_SCARCE) * pressure;
+  return repairRampMargin(targetBudget, REPAIR_FEAS_MARGIN_SCARCE, REPAIR_FEAS_MARGIN_MATURE);
 }
 
 function repairConfig(targetBudget: number): RepairConfig {

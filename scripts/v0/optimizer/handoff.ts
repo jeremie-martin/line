@@ -95,7 +95,12 @@ import {
   nextContactGapIndex,
   OBJECTIVE_IMPACT_MIN_ASK,
 } from "./objective.ts";
-import { axisErrorsForTargets, axisQualityFromErrors, MISSING_CONTACT_TOLERANCE } from "../score.ts";
+import {
+  AXIS_QUALITY_TOLERANCE,
+  axisErrorsForTargets,
+  axisQualityFromErrors,
+  MISSING_CONTACT_TOLERANCE,
+} from "../score.ts";
 import { readinessCatch } from "./readiness.ts";
 import { polishLeafVariant } from "./polish.ts";
 import { getEngineRebuildCount } from "../core/polish.ts";
@@ -476,9 +481,13 @@ const HANDOFF_STATE_STALL_WEIGHT_MULTIPLIER = 8;
  *  ranking. Axes omitted from this table use only the symmetric candidate cost;
  *  adding a future axis should be an explicit policy choice, not an accidental
  *  named-axis branch in the ranker. */
+const HANDOFF_NORMALIZED_AXIS_OVERSHOOT_WEIGHT =
+  1 / (AXIS_QUALITY_TOLERANCE * AXIS_QUALITY_TOLERANCE);
+// Speed overshoot is softer than normalized axes because excess speed can be bled.
+const HANDOFF_SPEED_OVERSHOOT_WEIGHT = 6;
 const HANDOFF_AXIS_OVERSHOOT_WEIGHTS: Partial<Record<AxisName, number>> = {
-  speed: 5.76,
-  air: 16,
+  speed: HANDOFF_SPEED_OVERSHOOT_WEIGHT,
+  air: HANDOFF_NORMALIZED_AXIS_OVERSHOOT_WEIGHT,
 };
 /** Brake catches (uphill-entry, bleed speed) are offered as EXTRA candidates on
  *  MODERATE-target gaps where the rider runs even mildly over target (early, to

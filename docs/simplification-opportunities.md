@@ -179,7 +179,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Derive weights from each axis's scorer sensitivity (or round + document provenance); replace 5.76 with a named derived quantity; test dropping the asymmetry under relaxed acceptance.
 - **Risk:** medium
 - **Generalization note:** Only speed/air handled; any future axis silently gets symmetric-only treatment.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs current #12 baseline `simplify-12-repair-margin-ramp-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Replaced the over-precise `speed: 5.76` overshoot weight with the rounded named `HANDOFF_SPEED_OVERSHOOT_WEIGHT = 6`, and derived the `air` weight from the scorer's `AXIS_QUALITY_TOLERANCE` (`1 / 0.25^2 = 16`) while keeping the explicit speed/air policy table.
 
 ### 15. Reuse / brake / startup extra-candidate lanes are three parallel generate-cache-score-push copies
 *(sources: handoff-core-rescue, handoff-admission-branch)*

@@ -130,7 +130,7 @@ describe("handoff policy boundaries", () => {
     expect(handoffAxisOvershootPenalty(
       { speed: 0.5, air: 0.25 },
       { speed: 0.6, air: 0.5 },
-    )).toBeCloseTo(1.0576, 6);
+    )).toBeCloseTo(1.06, 6);
     expect(handoffAxisOvershootPenalty(
       { speed: 0.5, air: 0.25 },
       { speed: 0.4, air: 0.1 },

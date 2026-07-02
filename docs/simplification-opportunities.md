@@ -248,7 +248,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Collapse to one acceptance-probability `p(remainingContacts, budget, uniqueFull)` with a single hash draw, folding the shallow throttle and window boundary into one continuous window that shrinks toward 0 as budget/feedback drop. Delete `shallowQualityTailThrottle*` and the `remaining<=2` special case; share the seed helper (entry #16).
 - **Risk:** medium
 - **Generalization note:** 150k scales + `remaining<=2` + window base 8 assume current tail lengths at grid budgets.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline -0.1, P(Δ≤-0.1)=30.2%, candidate cumulative Δheadline vs campaign-start baseline +2.1 (accepted cumulative remains +2.2; full canonical vs current #18 baseline `simplify-18-hard-fwd-eval-gate-a01`; valid 1920/1920, fingerprint unchanged; 1798/1920 `track_hash` match, 122 changed). Tested collapsing the shallow tail throttle and window-boundary gate into one acceptance probability with one hash draw; non-inferiority was not established, so the source change was reverted.
 
 ### 22. `releaseVerticalSetupPenalty`: quadratic gated by three stacked spec+budget+feedback pressures
 - **Files:** `scripts/v0/optimizer/handoff.ts`

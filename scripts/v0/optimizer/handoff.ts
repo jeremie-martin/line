@@ -685,14 +685,15 @@ function resolveImpactTargets(
       }
     }
   }
+  const impactProfile = impactOff ? null : impactCurveProfileStats(gaps, gapAxisTargets);
   setImpactCurveElevationRoomPressure(
-    impactOff ? 0 : impactCurveElevationRoomPressure(gaps, gapAxisTargets),
+    impactProfile === null ? 0 : impactCurveElevationRoomPressure(impactProfile),
   );
   setImpactCurveHighSpeedReliefPressure(
-    impactOff ? 0 : impactCurveHighSpeedReliefProfilePressure(gaps, gapAxisTargets),
+    impactProfile === null ? 0 : impactCurveHighSpeedReliefProfilePressure(impactProfile),
   );
   setImpactTemplateHoldProfilePressure(
-    impactOff ? 0 : impactTemplateHoldProfilePressure(gaps, gapAxisTargets),
+    impactProfile === null ? 0 : impactTemplateHoldProfilePressure(impactProfile),
   );
 }
 
@@ -4665,76 +4666,35 @@ function cadenceRoomPressure(medianGapFrames: number): number {
   return smoothstep((medianGapFrames - CADENCE_ROOM_START_FRAMES) / CADENCE_ROOM_SPAN_FRAMES);
 }
 
-function impactCurveElevationRoomPressure(gaps: readonly Gap[], gapAxisTargets: readonly AxisValues[]): number {
-  const elevationValues: number[] = [];
+type ImpactCurveProfileStats = {
+  contactCount: number;
+  impactTargets: number;
+  curveElevationValues: readonly number[];
+  profileElevationValues: readonly number[];
+  medianGapFrames: number | null;
+  meanAir: number | null;
+  meanSpeed: number | null;
+  meanImpact: number | null;
+  verticalFraction: number;
+};
+
+function finiteMean(sum: number, count: number): number | null {
+  return count > 0 ? sum / count : null;
+}
+
+function valueRange(values: readonly number[]): number {
+  return Math.max(...values) - Math.min(...values);
+}
+
+function impactCurveProfileStats(
+  gaps: readonly Gap[],
+  gapAxisTargets: readonly AxisValues[],
+): ImpactCurveProfileStats {
   const contactGapFrames: number[] = [];
-  let impactTargets = 0;
-  for (const gap of gaps) {
-    if (!gap.endsWithContact) continue;
-    contactGapFrames.push(gap.endFrame - gap.startFrame);
-    if (gap.targets.impact !== undefined) impactTargets++;
-    const elevation = gapAxisTargets[gap.index]?.elevation;
-    if (typeof elevation === "number" && Number.isFinite(elevation)) {
-      elevationValues.push(elevation);
-    }
-  }
-  if (impactTargets === 0 || elevationValues.length < 2 || contactGapFrames.length === 0) return 0;
-  const elevationRange = Math.max(...elevationValues) - Math.min(...elevationValues);
-  const elevationPressure = smoothstep((elevationRange - 0.10) / 0.14);
-  if (elevationPressure <= 0) return 0;
-  const sortedGaps = [...contactGapFrames].sort((a, b) => a - b);
-  const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
-  const roomPressure = cadenceRoomPressure(medianGapFrames);
-  return clamp01(elevationPressure * roomPressure);
-}
-
-function impactCurveHighSpeedReliefProfilePressure(
-  gaps: readonly Gap[],
-  gapAxisTargets: readonly AxisValues[],
-): number {
-  const elevationValues: number[] = [];
-  let speedSum = 0;
-  let speedCount = 0;
-  let impactTargets = 0;
-  for (const gap of gaps) {
-    if (!gap.endsWithContact) continue;
-    const targets = gapAxisTargets[gap.index] ?? gap.targets;
-    if (gap.targets.impact !== undefined) impactTargets++;
-    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) {
-      speedSum += targets.speed;
-      speedCount++;
-    }
-    if (typeof targets.elevation === "number" && Number.isFinite(targets.elevation)) {
-      elevationValues.push(targets.elevation);
-    }
-  }
-  if (impactTargets === 0 || speedCount === 0 || elevationValues.length < 2) return 0;
-  const meanSpeed = speedSum / speedCount;
-  const speedPressure = smoothstep(
-    (meanSpeed - IMPACT_CURVE_HIGH_SPEED_RELIEF_SPEED_START) /
-      IMPACT_CURVE_HIGH_SPEED_RELIEF_SPEED_SPAN,
-  );
-  if (speedPressure <= 0) return 0;
-  const elevationRange = Math.max(...elevationValues) - Math.min(...elevationValues);
-  const elevationPressure = smoothstep(
-    (elevationRange - IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_START) /
-      IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_SPAN,
-  );
-  const manageableElevationPressure = 1 - smoothstep(
-    (elevationRange - IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_END) /
-      IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_END_SPAN,
-  );
-  const medianGapFrames = medianContactGapFrames(gaps);
-  if (medianGapFrames === null) return 0;
-  const roomPressure = cadenceRoomPressure(medianGapFrames);
-  return clamp01(speedPressure * elevationPressure * manageableElevationPressure * roomPressure);
-}
-
-function impactTemplateHoldProfilePressure(
-  gaps: readonly Gap[],
-  gapAxisTargets: readonly AxisValues[],
-): number {
+  const curveElevationValues: number[] = [];
+  const profileElevationValues: number[] = [];
   let contactCount = 0;
+  let impactTargets = 0;
   let verticalTargets = 0;
   let airSum = 0;
   let airCount = 0;
@@ -4742,10 +4702,20 @@ function impactTemplateHoldProfilePressure(
   let speedCount = 0;
   let impactSum = 0;
   let impactCount = 0;
+
   for (const gap of gaps) {
     if (!gap.endsWithContact) continue;
     contactCount++;
-    const targets = gapAxisTargets[gap.index] ?? gap.targets;
+    contactGapFrames.push(gap.endFrame - gap.startFrame);
+    if (gap.targets.impact !== undefined) impactTargets++;
+
+    const axisTargets = gapAxisTargets[gap.index];
+    const curveElevation = axisTargets?.elevation;
+    if (typeof curveElevation === "number" && Number.isFinite(curveElevation)) {
+      curveElevationValues.push(curveElevation);
+    }
+
+    const targets = axisTargets ?? gap.targets;
     if (targets.elevation !== undefined || targets.amplitude !== undefined) verticalTargets++;
     if (typeof targets.air === "number" && Number.isFinite(targets.air)) {
       airSum += targets.air;
@@ -4759,21 +4729,90 @@ function impactTemplateHoldProfilePressure(
       impactSum += targets.impact;
       impactCount++;
     }
+    if (typeof targets.elevation === "number" && Number.isFinite(targets.elevation)) {
+      profileElevationValues.push(targets.elevation);
+    }
   }
-  if (contactCount === 0 || airCount === 0 || speedCount === 0 || impactCount === 0) return 0;
-  const medianGapFrames = medianContactGapFrames(gaps);
-  if (medianGapFrames === null) return 0;
 
-  const meanAir = airSum / airCount;
-  const meanSpeed = speedSum / speedCount;
-  const meanImpact = impactSum / impactCount;
-  const verticalFraction = verticalTargets / contactCount;
-  const contactPressure = smoothstep((contactCount - 40) / 12);
-  const denseCadencePressure = 1 - smoothstep((medianGapFrames - 28) / 14);
-  const lowAirPressure = 1 - smoothstep((meanAir - 0.50) / 0.10);
-  const lowSpeedPressure = 1 - smoothstep((meanSpeed - 0.56) / 0.10);
-  const lowImpactProfile = 1 - smoothstep((meanImpact - 0.30) / 0.10);
-  const verticalQuietPressure = 1 - smoothstep((verticalFraction - 0.02) / 0.18);
+  const sortedGaps = [...contactGapFrames].sort((a, b) => a - b);
+  const medianGapFrames = sortedGaps.length === 0
+    ? null
+    : sortedGaps[Math.floor(sortedGaps.length / 2)];
+
+  return {
+    contactCount,
+    impactTargets,
+    curveElevationValues,
+    profileElevationValues,
+    medianGapFrames,
+    meanAir: finiteMean(airSum, airCount),
+    meanSpeed: finiteMean(speedSum, speedCount),
+    meanImpact: finiteMean(impactSum, impactCount),
+    verticalFraction: contactCount > 0 ? verticalTargets / contactCount : 0,
+  };
+}
+
+function impactCurveElevationRoomPressure(stats: ImpactCurveProfileStats): number {
+  const elevationValues = stats.curveElevationValues;
+  if (
+    stats.impactTargets === 0 ||
+    elevationValues.length < 2 ||
+    stats.medianGapFrames === null
+  ) {
+    return 0;
+  }
+  const elevationRange = valueRange(elevationValues);
+  const elevationPressure = smoothstep((elevationRange - 0.10) / 0.14);
+  if (elevationPressure <= 0) return 0;
+  const roomPressure = cadenceRoomPressure(stats.medianGapFrames);
+  return clamp01(elevationPressure * roomPressure);
+}
+
+function impactCurveHighSpeedReliefProfilePressure(stats: ImpactCurveProfileStats): number {
+  const elevationValues = stats.profileElevationValues;
+  if (
+    stats.impactTargets === 0 ||
+    stats.meanSpeed === null ||
+    elevationValues.length < 2
+  ) {
+    return 0;
+  }
+  const speedPressure = smoothstep(
+    (stats.meanSpeed - IMPACT_CURVE_HIGH_SPEED_RELIEF_SPEED_START) /
+      IMPACT_CURVE_HIGH_SPEED_RELIEF_SPEED_SPAN,
+  );
+  if (speedPressure <= 0) return 0;
+  const elevationRange = valueRange(elevationValues);
+  const elevationPressure = smoothstep(
+    (elevationRange - IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_START) /
+      IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_SPAN,
+  );
+  const manageableElevationPressure = 1 - smoothstep(
+    (elevationRange - IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_END) /
+      IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_END_SPAN,
+  );
+  if (stats.medianGapFrames === null) return 0;
+  const roomPressure = cadenceRoomPressure(stats.medianGapFrames);
+  return clamp01(speedPressure * elevationPressure * manageableElevationPressure * roomPressure);
+}
+
+function impactTemplateHoldProfilePressure(stats: ImpactCurveProfileStats): number {
+  if (
+    stats.contactCount === 0 ||
+    stats.meanAir === null ||
+    stats.meanSpeed === null ||
+    stats.meanImpact === null
+  ) {
+    return 0;
+  }
+  if (stats.medianGapFrames === null) return 0;
+
+  const contactPressure = smoothstep((stats.contactCount - 40) / 12);
+  const denseCadencePressure = 1 - smoothstep((stats.medianGapFrames - 28) / 14);
+  const lowAirPressure = 1 - smoothstep((stats.meanAir - 0.50) / 0.10);
+  const lowSpeedPressure = 1 - smoothstep((stats.meanSpeed - 0.56) / 0.10);
+  const lowImpactProfile = 1 - smoothstep((stats.meanImpact - 0.30) / 0.10);
+  const verticalQuietPressure = 1 - smoothstep((stats.verticalFraction - 0.02) / 0.18);
   return clamp01(
     contactPressure * denseCadencePressure * lowAirPressure * lowSpeedPressure *
       lowImpactProfile * verticalQuietPressure,

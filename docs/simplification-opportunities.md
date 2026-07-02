@@ -339,7 +339,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract one helper taking aggregated stats once + a declarative `{stat, start, span, direction}` table, returning `clamp01(product)`; the three become three data tables. Then evaluate whether all three are needed or collapse to one profile vector.
 - **Risk:** medium
 - **Generalization note:** `contactCount-40` and the axis thresholds are tuned to today's golden specs; off-distribution they mis-classify.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs current #28 baseline `simplify-28-one-contact-preview-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Extracted one shared `impactCurveProfileStats(...)` pass for contact count/gap median/axis means/elevation ranges/vertical fraction and rewired all three pressure calculators to consume it, preserving every threshold and pressure formula.
 
 ### 32. Duplicated `cadenceRoomPressure` smoothstep across detectors
 - **Files:** `scripts/v0/optimizer/handoff.ts`

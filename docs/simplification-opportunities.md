@@ -385,7 +385,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract `startAngleSpeedCost(speed, angleDeg, axes)` with named `ANGLE_NORM_DEG`/`ANGLE_WEIGHT`; have `ballisticFirstContactCost` use impact-frame speed/angle directly instead of re-adding `startHeuristicCost` (or document the double count).
 - **Risk:** medium
 - **Generalization note:** Not grid-dependent, but 70°/0.35/6px bake in current speed-axis scaling.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs current #33 baseline `simplify-33-shared-start-budget-pressure-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Extracted the shared `startAngleSpeedCost(...)` with named angle/low-speed constants; `startHeuristicCost` and `ballisticFirstContactCost` now use the same speed+angle cost path, and the ballistic ranker's retained initial-state bias is documented instead of hidden as a second inline formula.
 
 ### 37. `ballisticStartPool` opaque min/max juggling of three fixed pool sizes
 - **Files:** `scripts/v0/optimizer/handoff.ts`

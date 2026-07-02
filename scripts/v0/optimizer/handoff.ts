@@ -437,6 +437,10 @@ const START_FIRST_K = 8;
 const START_FIRST_OPTIONS = 3;
 const START_NEXT_K = 8;
 const START_HEURISTIC_WEIGHT = 0.15;
+const START_ANGLE_NORM_DEG = 70;
+const START_ANGLE_COST_WEIGHT = 0.35;
+const START_LOW_SPEED_TARGET_MIN_PX = 6;
+const START_LOW_SPEED_RATIO = 0.45;
 const START_SPEED_ANCHOR_OFFSETS_PX_PER_FRAME = [-2.5, -0.75, 0, 1.25, 2.5] as const;
 const START_BALLISTIC_SCORING_POOL = 4;
 const START_BUDGET_PRESSURE_START_FRAMES = 50_000;
@@ -4593,14 +4597,9 @@ export function startSpeedAnchors(targetSpeedPxPerFrame: number): number[] {
 }
 
 function startHeuristicCost(start: NonNullable<Spec["start"]>, axes: AxisValues): number {
-  const targetSpeed = startTargetSpeedPx(axes);
   const speed = Math.hypot(start.vx, start.vy);
   const angle = (Math.atan2(start.vy, start.vx) * 180) / Math.PI;
-  const targetAngle = targetStartAngle(axes);
-  const speedCost = Math.pow((speed - targetSpeed) / SPEED_AXIS.RANGE_PX_PER_FRAME, 2);
-  const angleCost = Math.pow((angle - targetAngle) / 70, 2);
-  const lowSpeedPenalty = targetSpeed >= 6 && speed < targetSpeed * 0.45 ? 1 : 0;
-  return speedCost + 0.35 * angleCost + lowSpeedPenalty;
+  return startAngleSpeedCost(speed, angle, axes, true);
 }
 
 function ballisticFirstContactCost(
@@ -4608,17 +4607,34 @@ function ballisticFirstContactCost(
   firstContactAxes: AxisValues,
   firstContactFrame: number,
 ): number {
-  const targetSpeed = startTargetSpeedPx(firstContactAxes);
   const impactVy = start.vy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(1, firstContactFrame);
   const speed = Math.hypot(start.vx, impactVy);
   const angle = (Math.atan2(
     impactVy,
     start.vx,
   ) * 180) / Math.PI;
-  const targetAngle = targetStartAngle(firstContactAxes);
+  // Rank ballistic starts by first-contact state, with a small initial-state
+  // bias so extreme launch velocities do not win on impact fit alone.
+  return startAngleSpeedCost(speed, angle, firstContactAxes) +
+    START_HEURISTIC_WEIGHT * startHeuristicCost(start, firstContactAxes);
+}
+
+function startAngleSpeedCost(
+  speed: number,
+  angleDeg: number,
+  axes: AxisValues,
+  includeLowSpeedPenalty = false,
+): number {
+  const targetSpeed = startTargetSpeedPx(axes);
+  const targetAngle = targetStartAngle(axes);
   const speedCost = Math.pow((speed - targetSpeed) / SPEED_AXIS.RANGE_PX_PER_FRAME, 2);
-  const angleCost = Math.pow((angle - targetAngle) / 70, 2);
-  return speedCost + 0.35 * angleCost + START_HEURISTIC_WEIGHT * startHeuristicCost(start, firstContactAxes);
+  const angleCost = Math.pow((angleDeg - targetAngle) / START_ANGLE_NORM_DEG, 2);
+  const lowSpeedPenalty = includeLowSpeedPenalty &&
+      targetSpeed >= START_LOW_SPEED_TARGET_MIN_PX &&
+      speed < targetSpeed * START_LOW_SPEED_RATIO
+    ? 1
+    : 0;
+  return speedCost + START_ANGLE_COST_WEIGHT * angleCost + lowSpeedPenalty;
 }
 
 function startTargetSpeedPx(axes: AxisValues): number {

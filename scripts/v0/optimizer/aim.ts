@@ -335,7 +335,6 @@ function defaultExtraAimBaseAirValleyPressure(gaps: readonly Gap[], ctx: SpecCon
 function defaultExtraAimBaseSeed(gap: Gap): number {
   return (
     Math.imul(gap.index + 1, 0x9e3779b1) ^
-    Math.imul(aimCompileBudgetFrames | 0, 0x85ebca6b) ^
     0x61c88647
   ) | 0;
 }

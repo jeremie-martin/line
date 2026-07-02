@@ -498,7 +498,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Drop `aimCompileBudgetFrames` from the seed (seed on gap identity + spec); let budget affect it only through the continuous pressure term.
 - **Risk:** medium
 - **Generalization note:** Assumes discrete grid budgets; jumps at every frame count across a continuum.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.8 (full canonical vs current #46 baseline `simplify-46-retire-aim-probe-arms-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Dropped the exact `aimCompileBudgetFrames` mix from `defaultExtraAimBaseSeed`, so the extra-base draw keys on gap identity only while budget influence remains in the continuous pressure term.
 
 ### 49. `aimTopKBasesEffective` is a five-level nested cascade producing one small integer
 - **Files:** `scripts/v0/optimizer/aim.ts`

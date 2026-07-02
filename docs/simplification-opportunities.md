@@ -367,7 +367,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Derive the robust decision from a semantic property ("this seed carries a support-delay to de-risk") independent of the exact tuple, or always blend when `supportDelayFrames>0 && pressure>0`. If support-delay seeds are removed (#19), delete both functions.
 - **Risk:** medium
 - **Generalization note:** The hard `(greedy,2,1)` tuple is dead the moment the default is retuned.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline +0.0, P(Δ≤-0.1)=32.3%, candidate cumulative Δheadline vs campaign-start baseline +2.2 (accepted cumulative remains +2.2; full canonical vs current #33 baseline `simplify-33-shared-start-budget-pressure-a01`; valid 1920/1920, fingerprint unchanged; 1823/1920 `track_hash` match, 97 changed). Tested keying the robust support-delay blend only to `supportDelayFrames>0 && startBudgetPressure(targetBudget)>0`, independent of the hard `(greedy,2,1)` tuple; non-inferiority was not established under the current default `LR_START_EVAL=best:1:5`, so the source change was reverted.
 
 ### 35. Repeated magic `+20` output-duration padding
 - **Files:** `scripts/v0/optimizer/handoff.ts`

@@ -123,7 +123,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Delete the dense-contact-band arm (keep only the short-spec case, or remove the whole opening-best lane) and let the general slack/branch policy govern; collapse the objective/margin gate to a single "top-two objective gap is small" condition. Measure whether the two-spec gain survives.
 - **Risk:** high
 - **Generalization note:** `[38,60]` explicitly assumes today's dense specs; any spec with 8-37 or 100 contacts gets zero opening-best pressure.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +2.2, P(Δ≤-0.1)=7.1%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs `attempt-aim-highk-gated-j32-a01`; valid 1920/1920, fingerprint unchanged). Deleted the dense 38-60-contact opening-best structural arm and its slack gate/constants, plus the now-dead `smoothUnion` helper; kept the short-contact opening-best lane and existing objective/margin gate intact for this focused step.
 
 ### 9. `verticalDramaForwardEvalPressure` / `matureForwardEvalConfig`: hash-gated greedy→"avg" swap that is actually a degenerate 1-wide rollout
 *(sources: handoff-core-rescue, handoff-forward-eval-repair ×2)*

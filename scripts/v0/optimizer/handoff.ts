@@ -524,12 +524,6 @@ const OPENING_BEST_FWD_REL_MARGIN_FULL = 0.02;
 const OPENING_BEST_FWD_REL_MARGIN_ZERO = 0.12;
 const OPENING_BEST_SHORT_CONTACT_FULL = 7;
 const OPENING_BEST_SHORT_CONTACT_SPAN = 5;
-const OPENING_BEST_DENSE_CONTACT_START = 38;
-const OPENING_BEST_DENSE_CONTACT_SPAN = 1;
-const OPENING_BEST_DENSE_CONTACT_END = 60;
-const OPENING_BEST_DENSE_CONTACT_END_SPAN = 8;
-const OPENING_BEST_DENSE_SLACK_START = 5;
-const OPENING_BEST_DENSE_SLACK_SPAN = 0.75;
 const IMPACT_CURVE_HIGH_SPEED_RELIEF_SPEED_START = 0.68;
 const IMPACT_CURVE_HIGH_SPEED_RELIEF_SPEED_SPAN = 0.08;
 const IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_START = 0.08;
@@ -2436,7 +2430,7 @@ function openingBestForwardEvalOpportunity(
   if (openingBestBranch2SlackPressure(budgetSlack) <= 0) return 0;
   if (!isOpeningContactNode(node, gaps)) return 0;
 
-  const structuralPressure = openingBestStructuralPressure(gaps, budgetSlack);
+  const structuralPressure = openingBestStructuralPressure(gaps);
   if (structuralPressure <= 0) return 0;
 
   const gap = gaps[node.gapIndex];
@@ -2461,26 +2455,12 @@ function openingBestForwardEvalOpportunity(
   return clamp01(structuralPressure * objectivePressure * marginPressure);
 }
 
-function openingBestStructuralPressure(gaps: Gap[], budgetSlack: number): number {
+function openingBestStructuralPressure(gaps: Gap[]): number {
   const contacts = totalContactCount(gaps);
-  const shortPressure = 1 - smoothstep(
+  return 1 - smoothstep(
     (contacts - OPENING_BEST_SHORT_CONTACT_FULL) /
       OPENING_BEST_SHORT_CONTACT_SPAN,
   );
-  const denseContactPressure =
-    smoothstep(
-      (contacts - OPENING_BEST_DENSE_CONTACT_START) /
-        OPENING_BEST_DENSE_CONTACT_SPAN,
-    ) *
-    (1 - smoothstep(
-      (contacts - OPENING_BEST_DENSE_CONTACT_END) /
-        OPENING_BEST_DENSE_CONTACT_END_SPAN,
-    ));
-  const denseSlackPressure = smoothstep(
-    (budgetSlack - OPENING_BEST_DENSE_SLACK_START) /
-      OPENING_BEST_DENSE_SLACK_SPAN,
-  );
-  return smoothUnion(shortPressure, denseContactPressure * denseSlackPressure);
 }
 
 function totalContactCount(gaps: Gap[]): number {
@@ -4857,12 +4837,6 @@ function clamp01(x: number): number {
 function smoothstep(x: number): number {
   const t = clamp01(x);
   return t * t * (3 - 2 * t);
-}
-
-function smoothUnion(a: number, b: number): number {
-  const x = clamp01(a);
-  const y = clamp01(b);
-  return 1 - (1 - x) * (1 - y);
 }
 
 function clampIntLocal(x: number, lo: number, hi: number): number {

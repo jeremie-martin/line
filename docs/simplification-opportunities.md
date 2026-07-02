@@ -358,7 +358,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace with one shared `budgetPressure(targetBudget, start, span)` (or a shared `BUDGET_RAMP_START/SPAN`); consider expressing as a fraction of `targetBudget`.
 - **Risk:** medium
 - **Generalization note:** Absolute 50k pivot is meaningless at 10k or 2M.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs current #31 baseline `simplify-31-impact-profile-stats-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Replaced the duplicate ballistic-start and startup-support x-delay budget pressure functions/constants with one shared `startBudgetPressure(...)` over the unchanged 50k→100k ramp.
 
 ### 34. `startSeedForwardScore` blends a "robust" rollout only under an exact greedy/depth2/branch1 config
 - **Files:** `scripts/v0/optimizer/handoff.ts`

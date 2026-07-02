@@ -439,8 +439,8 @@ const START_NEXT_K = 8;
 const START_HEURISTIC_WEIGHT = 0.15;
 const START_SPEED_ANCHOR_OFFSETS_PX_PER_FRAME = [-2.5, -0.75, 0, 1.25, 2.5] as const;
 const START_BALLISTIC_SCORING_POOL = 4;
-const START_BALLISTIC_BUDGET_START_FRAMES = 50_000;
-const START_BALLISTIC_BUDGET_SPAN_FRAMES = 50_000;
+const START_BUDGET_PRESSURE_START_FRAMES = 50_000;
+const START_BUDGET_PRESSURE_SPAN_FRAMES = 50_000;
 const START_SUPPORT_LOW_AIR_MAX = 0.35;
 const START_SUPPORT_RELEASE_MARGIN_FRAMES = K_BOUNCE_LANDING + 2;
 const START_SUPPORT_MIN_RUNUP_FRAMES = K_BOUNCE_LANDING + 3;
@@ -449,8 +449,6 @@ const START_SUPPORT_LOW_AIR_X_DELAY_FRAMES = [0, 1, 2] as const;
 const START_SUPPORT_X_DELAY_AIR_MAX = 0.40;
 const START_SUPPORT_X_DELAY_FIRST_GAP_START_FRAMES = 20;
 const START_SUPPORT_X_DELAY_FIRST_GAP_SPAN_FRAMES = 10;
-const START_SUPPORT_X_DELAY_BUDGET_START_FRAMES = 50_000;
-const START_SUPPORT_X_DELAY_BUDGET_SPAN_FRAMES = 50_000;
 const START_SUPPORT_DELAY_ROBUST_BRANCH = 3;
 const START_SUPPORT_LINE_BACKTRACK_PX = 80;
 const DEAD_END_PENALTY = 40;
@@ -4227,7 +4225,7 @@ function buildStartOptions(
       startKey(a).localeCompare(startKey(b))
     );
   const { baseStartPool, ballisticStartPool } = splitStartScoringPool(
-    ballisticStartBudgetPressure(targetBudget),
+    startBudgetPressure(targetBudget),
     orderedBallisticStarts.length,
   );
   const supportStarts = startupSupportStartSeeds(firstContactAxes, firstGap, targetBudget);
@@ -4367,7 +4365,7 @@ function startupSupportXDelayFrames(
     (firstGapEndFrame - START_SUPPORT_X_DELAY_FIRST_GAP_START_FRAMES) /
       START_SUPPORT_X_DELAY_FIRST_GAP_SPAN_FRAMES,
   );
-  const budgetPressure = startupSupportXDelayBudgetPressure(targetBudget);
+  const budgetPressure = startBudgetPressure(targetBudget);
   const pressure = airPressure * durationPressure * budgetPressure;
   const maxDelay = clampIntLocal(
     (START_SUPPORT_LOW_AIR_X_DELAY_FRAMES.length - 1) * pressure,
@@ -4377,10 +4375,10 @@ function startupSupportXDelayFrames(
   return START_SUPPORT_LOW_AIR_X_DELAY_FRAMES.slice(0, maxDelay + 1);
 }
 
-function startupSupportXDelayBudgetPressure(targetBudget: number): number {
+function startBudgetPressure(targetBudget: number): number {
   return smoothstep(
-    (Math.max(0, targetBudget) - START_SUPPORT_X_DELAY_BUDGET_START_FRAMES) /
-      START_SUPPORT_X_DELAY_BUDGET_SPAN_FRAMES,
+    (Math.max(0, targetBudget) - START_BUDGET_PRESSURE_START_FRAMES) /
+      START_BUDGET_PRESSURE_SPAN_FRAMES,
   );
 }
 
@@ -4402,7 +4400,7 @@ function startSeedForwardScore(
   ) {
     return baseScore;
   }
-  const pressure = startupSupportXDelayBudgetPressure(targetBudget);
+  const pressure = startBudgetPressure(targetBudget);
   if (pressure <= 0) return baseScore;
   const robustScore = startSupportDelayRobustScore(
     root,
@@ -4557,13 +4555,6 @@ function ballisticFirstContactStartCandidates(
     }
   }
   return out;
-}
-
-function ballisticStartBudgetPressure(targetBudget: number): number {
-  return smoothstep(
-    (Math.max(0, targetBudget) - START_BALLISTIC_BUDGET_START_FRAMES) /
-      START_BALLISTIC_BUDGET_SPAN_FRAMES,
-  );
 }
 
 /**

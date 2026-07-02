@@ -133,7 +133,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Either set `BRANCH>=2` so "avg" actually averages, or delete the mature-avg branch and keep greedy:2. Collapse the trigger to one continuous vertical-drama scalar (drop the budget hash gate); express cadence in beats/seconds. If kept, name it honestly.
 - **Risk:** medium
 - **Generalization note:** Budget anchors 35k/65k and amplitude/elevation/cadence thresholds are tuned to current vertical-drama gaps.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline -4.1, P(Δ≤-0.1)=100.0%, cumulative Δheadline vs campaign-start baseline -2.0 (full canonical vs current #8 baseline `simplify-08-opening-dense-band-a01`; valid 1920/1920, fingerprint unchanged). Deleted the mature vertical-drama `avg` config branch outright, preserving default `greedy:2`; it regressed every budget (-5.5/-4.9/-4.1/-3.4), so the degenerate `avg` branch is doing real work. Source reverted.
 
 ### 10. `matureReuseExtraPressure`: full hash + two-smoothstep apparatus to occasionally bump reuse 1→2
 - **Files:** `scripts/v0/optimizer/handoff.ts`

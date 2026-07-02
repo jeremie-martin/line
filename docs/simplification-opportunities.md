@@ -480,7 +480,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Retire `full` mode and `direct` space to a study harness (or delete); collapse `evaluateJointArcKnobs` call sites to the single short/latent path and remove the incompatibility throw + latent-strip branch. Coordinate with the arc_probe-side duplicates (#78/#79).
 - **Risk:** medium
 - **Generalization note:** Experiment scaffolding widening the production surface for no shipped behavior.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.8 (full canonical vs current #43 baseline `simplify-43-remove-air-range-highk-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Retired the hot-path `LR_AIM_PROBE_MODE`/`LR_AIM_MODEL_SPACE` arms from `aim.ts`: deleted the env parsers, incompatible-combo throw, `directOutputs` threading, latent-strip fit branch, and `probe_mode`/`model_space` compile-stat fields in `AimStats`/`types.ts`; left lower-level `arc_probe.ts` direct/full study support intact for the later coordinated arc-probe cleanup (#126).
 
 ### 47. `ENUM_TOP_K=2` knee justified by "low-budget compiles" — a grid assumption in a global constant
 - **Files:** `scripts/v0/optimizer/aim.ts`

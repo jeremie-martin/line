@@ -614,10 +614,6 @@ export type CompileStats = {
   aim?: {
 	    /** Arc-probe design used (LR_AIM_JOINT_PROBE_DESIGN, default "cross5"). */
 	    probe_design: "cross5" | "grid9" | "pitch3";
-	    /** Joint arc-probe horizon mode (LR_AIM_PROBE_MODE, default "short"). */
-	    probe_mode: "short" | "full";
-	    /** Short-probe fit model space (LR_AIM_MODEL_SPACE, default "latent"). */
-	    model_space: "latent" | "direct";
 	    enum_considered: number;
 	    enum_no_target: number;
 	    enum_probe_crash: number;

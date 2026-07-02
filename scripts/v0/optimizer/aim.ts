@@ -82,7 +82,6 @@ import {
 } from "./arc_model.ts";
 import {
   evaluateJointArcKnobs,
-  type JointArcProbeMode,
   type JointArcProbeObservation,
 } from "./arc_probe.ts";
 import {
@@ -145,53 +144,6 @@ function aimJointProbeDesign(): ArcProbeDesignName {
   const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_JOINT_PROBE_DESIGN ?? "cross5";
   return parseArcProbeDesignName(raw);
-}
-
-/** Joint arc-probe horizon mode (LR_AIM_PROBE_MODE):
- *    "short" (DEFAULT): probes stop at the geometric arc exit; the model
- *            predicts the exit state and a reducer derives current axes +
- *            ballistic arrival from latent rows (today's production path).
- *    "full"  : each probe rides to the full next-gap horizon, measures
- *            current-gap axes with the engine, and reads the rider state at
- *            the next contact directly (the original direct per-output fits).
- *  Threaded into evaluateJointArcKnobs as `{ mode }`. Throws on any other
- *  value (tests pin it dynamically). */
-function aimProbeMode(): JointArcProbeMode {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_PROBE_MODE;
-  if (raw === undefined || raw === "" || raw === "short") return "short";
-  if (raw === "full") return "full";
-  throw new Error(`unknown LR_AIM_PROBE_MODE "${raw}" (expected short or full)`);
-}
-
-export type AimModelSpace = "latent" | "direct";
-
-/** Model space the short-probe fit runs in (LR_AIM_MODEL_SPACE):
- *    "latent" (DEFAULT / unset / empty): probes carry latent suffix/prefix rows;
- *            `fitJointArcResponseModel` fits knobs → latents and
- *            `predictJointArcOutputs` applies the ballistic reducer to the
- *            PREDICTED latents — reduce(fit(knobs)). Today's production path.
- *    "direct": probes ask for `directOutputs` (each row's ballistic exit-dot and
- *            next-dot outputs derived from its MEASURED exit state) and the latent rows are
- *            stripped before the fit, so the model fits knobs → the reduced
- *            outputs directly — fit(reduce(row)). No latent models at predict
- *            time, zero extra engine frames vs latent.
- *  Only meaningful under short probe mode. Under full mode the rows have no
- *  latents and already read exit/next directly, so direct is REDUNDANT there;
- *  we THROW on direct+full rather than silently ignoring it — the two are
- *  mutually-exclusive comparison arms and a silent no-op would corrupt an A/B.
- *  Throws on any other value (tests pin it dynamically). */
-function aimModelSpace(): AimModelSpace {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_MODEL_SPACE;
-  let space: AimModelSpace;
-  if (raw === undefined || raw === "" || raw === "latent") space = "latent";
-  else if (raw === "direct") space = "direct";
-  else throw new Error(`unknown LR_AIM_MODEL_SPACE "${raw}" (expected latent or direct)`);
-  if (space === "direct" && aimProbeMode() === "full") {
-    throw new Error("LR_AIM_MODEL_SPACE=direct is incompatible with LR_AIM_PROBE_MODE=full (full rows carry no latents and read exit/next directly)");
-  }
-  return space;
 }
 
 /** EXPERIMENT (LR_AIM_TOPK_BASES, int >=1, default 4): how many of the
@@ -477,12 +429,6 @@ export type AimStats = {
   /** The arc-probe design this compile ran (LR_AIM_JOINT_PROBE_DESIGN, default
    *  "cross5"). Lets archives distinguish runs by probe design. */
   probe_design: ArcProbeDesignName;
-  /** The joint arc-probe horizon mode this compile ran (LR_AIM_PROBE_MODE,
-   *  default "short"). Lets archives distinguish latent vs direct probe runs. */
-  probe_mode: JointArcProbeMode;
-  /** Short-probe fit model space this compile ran (LR_AIM_MODEL_SPACE, default
-   *  "latent"): "latent" = reduce(fit(knobs)); "direct" = fit(reduce(row)). */
-  model_space: AimModelSpace;
   /** Enumerative-proposer funnel + readiness accuracy. */
   enum_considered: number;
   enum_no_target: number;
@@ -723,8 +669,6 @@ export function snapshotAimStats(): AimStats | null {
   const round3 = (x: number): number => Math.round(x * 1000) / 1000;
   return {
     probe_design: aimJointProbeDesign(),
-    probe_mode: aimProbeMode(),
-    model_space: aimModelSpace(),
     enum_considered: aimTotals.enum_considered,
     enum_no_target: aimTotals.enum_no_target,
     enum_probe_crash: aimTotals.enum_probe_crash,
@@ -933,31 +877,17 @@ function makeJointAimedCandidates(
   airKnobBase: boolean,
 ): Candidate[] {
   const probeDesignName = aimJointProbeDesign();
-  const mode = aimProbeMode();
-  const modelSpace = aimModelSpace();
-  const directOutputs = modelSpace === "direct";
   const probeKnobs = arcProbeDesign(probeDesignName);
   const span = arcKnobSpan(probeKnobs);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
   const nextFrame = nextGap.endFrame;
   const framesBeforeProbes = getPhysicsFrameCount();
   const probeRows = probeKnobs.map((knobs) =>
-    evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame, { mode, directOutputs })
+    evaluateJointArcKnobs(engine, base.lines, knobs, gap, ctx.allContactFrames, axisMeasureEnd, nextFrame)
   );
   aimTotals.joint_probe_frames_charged += Math.max(0, getPhysicsFrameCount() - framesBeforeProbes);
   recordJointProbeRows(probeRows, gap, axisMeasureEnd, nextFrame);
-  // DIRECT model space: strip the latent rows at the FIT BOUNDARY only — probe
-  // row telemetry above (recordJointProbeRows) sees unchanged rows — so the fit
-  // runs knobs → the per-row ballistic outputs directly (no latent models;
-  // predictJointArcOutputs then uses the direct fits since latentModels.size===0).
-  // NB: stripping latents forfeits the latent reducer's prefix-derived
-  // current-axis fallback on gate-failed rows — direct rows score only off
-  // their own exit.*/next.* outputs. A real A/B semantic difference (measured
-  // harmless: direct×cross5 +0.6 INCONCLUSIVE, 2026-06-12).
-  const fitRows = directOutputs
-    ? probeRows.map(({ latentOutputs: _drop, ...row }) => row)
-    : probeRows;
-  const model = fitJointArcResponseModel(fitRows, probeDesignName, "hybrid", {
+  const model = fitJointArcResponseModel(probeRows, probeDesignName, "hybrid", {
     context: { gap, axisMeasureEnd, nextFrame },
   });
 

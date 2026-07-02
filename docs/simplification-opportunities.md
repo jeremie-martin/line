@@ -434,7 +434,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace the two steps with a single continuous smoothstep on `budget / probe-cost-per-base`; fold the three constants into that curve.
 - **Risk:** high
 - **Generalization note:** The integer thresholds are canonical tier boundaries, meaningless off-grid.
-- **Status:** Not Started
+- **Status:** Abandoned — not a clean standalone simplification. The meaningful fix is the broader continuous `K(budget, air, slack)` surface in #49, which explicitly subsumes #41/#42/#43/#53; a #41-only edit either preserves the canonical grid by adding off-grid-only ramps (more machinery, little simplification) or retunes the accepted aim-base economics. Prior canonical evidence for the closest standalone cleanup (`attempt-aim-highk-smooth-pressure-j32-a01`) was reverted as inconclusive, so no fresh source change was pursued here.
 
 ### 42. `AIM_EXTRA_TOPK_*` smoothstep pressure cascade is a large reverse-fit constant family
 - **Files:** `scripts/v0/optimizer/aim.ts`

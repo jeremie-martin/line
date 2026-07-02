@@ -311,7 +311,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Collapse to a single "best next candidate cost + survived?" probe (no loop, no multi-field struct), fold scarcity into one term. Consider removing the preview path if the sub-75k tier is being retired.
 - **Risk:** medium
 - **Generalization note:** Only meaningful on the shrinking sub-75k tier; dead-ish if the fwd-eval gate is lowered.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs current #22 baseline `simplify-22-flat-release-vertical-setup-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Replaced the `previewFutureContacts` accumulator/HORIZON loop with a direct one-contact `previewNextContact` probe and removed the unused `totalCost` result field while preserving the existing scarcity/cost scoring.
 
 ### 29. Impact-ask threshold drift (0.3 vs 0.35) scattered across fwd-eval/readiness
 *(cross-ref objective entry #73)*

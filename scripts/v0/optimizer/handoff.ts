@@ -429,7 +429,6 @@ const HANDOFF_PREVIEW_K = 1;
 const HANDOFF_REUSE_K = 1;
 const HANDOFF_REUSE_MATURE_EXTRA_WEIGHT = 0.35;
 const HANDOFF_REUSE_MATURE_FULL_FEEDBACK_SCALE = 48;
-const HANDOFF_PREVIEW_HORIZON = 1;
 const QUALITY_FUTURE_PREVIEW_MAX_PRESSURE = 1.0;
 const QUALITY_FUTURE_PREVIEW_FULL_FEEDBACK_SCALE = 12;
 const START_OPTION_LIMIT = 10;
@@ -1811,7 +1810,7 @@ function emptyCandidatePreviewCoverage(): CandidatePreviewCoverageAccumulator {
 
 function recordCandidatePreviewCoverage(
   telemetry: HandoffTelemetry,
-  preview: ReturnType<typeof previewFutureContacts>,
+  preview: ReturnType<typeof previewNextContact>,
 ): void {
   if (preview.horizon <= 0) return;
   const coverage = telemetry.candidatePreviewCoverage;
@@ -3174,14 +3173,13 @@ function scoreCandidateForHandoff(
   }
   const usePreviewScore = previewScorePressure > 0;
   const preview = (usePreview || usePreviewScore)
-    ? previewFutureContacts(child, gaps, ctx, seed, telemetry)
+    ? previewNextContact(child, gaps, ctx, seed, telemetry)
     : {
       horizon: 0,
       landed: 0,
       survivors: 0,
       firstSurvivors: HANDOFF_PREVIEW_K,
       firstCost: 0,
-      totalCost: 0,
     };
   const scarcity = preview.horizon === 0
     ? 0
@@ -4088,7 +4086,7 @@ function matureForwardEvalSeed(node: SearchNode): number {
   return nodeHashSeed(node, 0x632be59b);
 }
 
-function previewFutureContacts(
+function previewNextContact(
   child: SearchNode,
   gaps: Gap[],
   ctx: SpecContext,
@@ -4100,38 +4098,43 @@ function previewFutureContacts(
   survivors: number;
   firstSurvivors: number;
   firstCost: number;
-  totalCost: number;
 } {
   let node = child;
-  let horizon = 0;
-  let landed = 0;
-  let survivors = 0;
-  let firstSurvivors = HANDOFF_PREVIEW_K;
-  let firstCost = 0;
-  let totalCost = 0;
-
-  for (;;) {
-    if (horizon >= HANDOFF_PREVIEW_HORIZON) break;
-    const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex);
-    if (nextGapIndex < 0) break;
-    while (node.gapIndex < nextGapIndex) node = extendNodeCached(node, null);
-
-    horizon++;
-    const candidates = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_PREVIEW_K);
-    telemetry.previews++;
-    telemetry.previewSurvivors += candidates.length;
-    survivors += candidates.length;
-    if (horizon === 1) firstSurvivors = candidates.length;
-
-    const best = pickLowestCost(candidates);
-    if (horizon === 1) firstCost = best === null ? Infinity : best.cost;
-    if (best === null) break;
-    totalCost += best.cost;
-    landed++;
-    telemetry.previewContacts++;
-    node = extendNodeCached(node, best);
+  const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex);
+  if (nextGapIndex < 0) {
+    return {
+      horizon: 0,
+      landed: 0,
+      survivors: 0,
+      firstSurvivors: HANDOFF_PREVIEW_K,
+      firstCost: 0,
+    };
   }
-  return { horizon, landed, survivors, firstSurvivors, firstCost, totalCost };
+  while (node.gapIndex < nextGapIndex) node = extendNodeCached(node, null);
+
+  const candidates = getCandidatesSorted(node, gaps, ctx, seed, HANDOFF_PREVIEW_K);
+  telemetry.previews++;
+  telemetry.previewSurvivors += candidates.length;
+  const firstSurvivors = candidates.length;
+  const best = pickLowestCost(candidates);
+  const firstCost = best === null ? Infinity : best.cost;
+  if (best === null) {
+    return {
+      horizon: 1,
+      landed: 0,
+      survivors: candidates.length,
+      firstSurvivors,
+      firstCost,
+    };
+  }
+  telemetry.previewContacts++;
+  return {
+    horizon: 1,
+    landed: 1,
+    survivors: candidates.length,
+    firstSurvivors,
+    firstCost,
+  };
 }
 
 /** Speed (|v|) and signed heading (degrees, atan2 convention) of a velocity

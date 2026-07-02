@@ -257,7 +257,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Flatten to `penalty = weight × setupPressure × excess²` with a fixed safe threshold, dropping the maturity/full-feedback multipliers. Verify they aren't just suppressing the penalty at 50k (grid-fit noise).
 - **Risk:** medium
 - **Generalization note:** 150k and /48 make the penalty near-inert off-grid regardless of geometry.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs current #18 baseline `simplify-18-hard-fwd-eval-gate-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Flattened to geometry-only setup pressure with a fixed 8px safe vertical velocity threshold, dropping the maturity/full-feedback multipliers and the 8px↔5px pressure-dependent threshold lerp.
 
 ### 23. Leaf-readiness campaign machinery is a default no-op (`LR_LEAF_RDY_LAMBDA=0`)
 - **Files:** `scripts/v0/optimizer/handoff.ts`

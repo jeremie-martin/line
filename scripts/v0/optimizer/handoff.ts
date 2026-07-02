@@ -501,12 +501,10 @@ const HANDOFF_BRAKE_HIGH_OVERSPEED_RATIO = 1.15;
 const HANDOFF_BRAKE_QUALITY_BASE_K = 3;
 const HANDOFF_BRAKE_QUALITY_HIGH_OVERSPEED_K = 4;
 const HANDOFF_RELEASE_VERTICAL_WEIGHT = 0.045;
-const HANDOFF_RELEASE_VERTICAL_FULL_FEEDBACK_SCALE = 48;
 const HANDOFF_RELEASE_VERTICAL_LOW_AIR_TARGET_SCALE = 0.45;
 const HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_FRAMES = Math.round(FPS * 0.72);
 const HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_WIDTH = Math.round(FPS * 0.40);
-const HANDOFF_RELEASE_VERTICAL_SAFE_FAST_PX = 8;
-const HANDOFF_RELEASE_VERTICAL_SAFE_TIGHT_PX = 5;
+const HANDOFF_RELEASE_VERTICAL_SAFE_PX = 8;
 // Mature vertical-axis gaps benefit from the robust avg forward ranker, but using
 // it globally starves dense drum/search feedback. Fade it in only for those gaps.
 const MATURE_AVG_FWD_EVAL_START_FRAMES = 35_000;
@@ -3198,7 +3196,7 @@ function scoreCandidateForHandoff(
   const gap = gaps[node.gapIndex];
   const overshoot = candidateOvershootPenalty(candidate, gap);
   const releasePenalty = releaseSetup
-    ? candidateReleaseSetupPenalty(candidate, gaps, node.gapIndex, telemetry, targetBudget)
+    ? candidateReleaseSetupPenalty(candidate, gaps, node.gapIndex)
     : 0;
   recordCandidateReleaseCoverage(telemetry, candidate);
   const previewScore = (scarcity + previewCost) * previewScorePressure;
@@ -3220,37 +3218,24 @@ function candidateReleaseSetupPenalty(
   candidate: Candidate,
   gaps: Gap[],
   gapIndex: number,
-  telemetry: HandoffTelemetry,
-  targetBudget: number,
 ): number {
   const nextGapIndex = nextContactGapIndex(gaps, gapIndex + 1);
   if (nextGapIndex < 0) return 0;
   const nextGap = gaps[nextGapIndex];
   return releaseSpeedPenalty(candidate.releaseSpeed, nextGap.targets.speed) +
-    releaseVerticalSetupPenalty(
-      candidate,
-      gaps[gapIndex],
-      nextGap,
-      telemetry,
-      targetBudget,
-    );
+    releaseVerticalSetupPenalty(candidate, gaps[gapIndex], nextGap);
 }
 
 function releaseVerticalSetupPenalty(
   candidate: Candidate,
   gap: Gap,
   nextGap: Gap,
-  telemetry: HandoffTelemetry,
-  targetBudget: number,
 ): number {
   const releaseVelocityY = candidate.releaseVelocityY;
   if (releaseVelocityY === undefined) return 0;
-  const pressure = releaseVerticalSetupPressure(gap, nextGap, telemetry, targetBudget);
+  const pressure = releaseVerticalSetupPressure(gap, nextGap);
   if (pressure <= 0) return 0;
-  const safeAbsVelocity =
-    HANDOFF_RELEASE_VERTICAL_SAFE_FAST_PX -
-    (HANDOFF_RELEASE_VERTICAL_SAFE_FAST_PX - HANDOFF_RELEASE_VERTICAL_SAFE_TIGHT_PX) *
-      pressure;
+  const safeAbsVelocity = HANDOFF_RELEASE_VERTICAL_SAFE_PX;
   const excess = Math.max(0, Math.abs(releaseVelocityY) - safeAbsVelocity);
   return HANDOFF_RELEASE_VERTICAL_WEIGHT * pressure * excess * excess;
 }
@@ -3258,8 +3243,6 @@ function releaseVerticalSetupPenalty(
 function releaseVerticalSetupPressure(
   gap: Gap,
   nextGap: Gap,
-  telemetry: HandoffTelemetry,
-  targetBudget: number,
 ): number {
   const nextAirTarget = nextGap.targets.air;
   const lowAirPressure = nextAirTarget === undefined
@@ -3271,10 +3254,7 @@ function releaseVerticalSetupPressure(
       HANDOFF_RELEASE_VERTICAL_TIGHT_CADENCE_WIDTH,
   );
   const setupPressure = Math.max(lowAirPressure, cadencePressure);
-  if (setupPressure <= 0) return 0;
-  return setupPressure *
-    maturityPressure(targetBudget, HANDOFF_MATURITY_BUDGET_SCALE_FRAMES) *
-    fullFeedbackPressure(telemetry, HANDOFF_RELEASE_VERTICAL_FULL_FEEDBACK_SCALE);
+  return setupPressure;
 }
 
 function candidateOvershootPenalty(candidate: Candidate, gap: Gap): number {

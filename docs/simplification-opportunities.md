@@ -443,7 +443,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Collapse the AIR_VALLEY sub-cascade and the pressure stack into one smoothstep on a normalized "steady-dense-air" score, or drop the extra-base tier and let it be subsumed by the continuous-K curve (#41) — the code notes the high-K bump already subsumes it at 200k+.
 - **Risk:** medium
 - **Generalization note:** Every START/SPAN is calibrated to the current air/speed/grain/contact distributions.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline -0.3, P(Δ≤-0.1)=67.9%, candidate cumulative Δheadline vs campaign-start baseline +1.9 (accepted cumulative remains +2.2; full canonical vs current #36 baseline `simplify-36-start-angle-speed-cost-a01`; valid 1920/1920, fingerprint unchanged; 1803/1920 `track_hash` match, 117 changed). Tried deleting the default fifth aim-base tier outright, removing the `AIM_EXTRA_TOPK_*` pressure cascade and its budget-slack wiring; non-inferiority was not established, with the main loss at 375k (-0.6), so the source change was reverted.
 
 ### 43. High-K bump gated on per-spec air-target RANGE (`0.38`) separating named specs
 - **Files:** `scripts/v0/optimizer/aim.ts`

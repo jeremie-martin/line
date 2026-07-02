@@ -248,14 +248,6 @@ const AIM_EXTRA_TOPK_BASES_DEFAULT = 5;
 // K>1 maturity gate above.
 const AIM_TOPK_BASES_HIGH = 6;
 const AIM_TOPK_HIGH_BUDGET_FRAMES = 200_000;
-// Air-range gate for the high-K bump. Uniform K=6 at mature budgets is a broad win on
-// STEADY dense specs (drums_tide +27, drums_swell +25, drums_zigzag/crosscut, narrow
-// air range 0.26-0.35) but a sharp LOSS on syncopated/search-sensitive specs (wide air
-// range: syncopated_switchback 0.55 -> -29, dense_sprint 0.50, drums_dropout 0.40) where
-// the extra aim probes steal the search budget those specs convert best. The two
-// populations separate cleanly at air-target RANGE ~0.38, so only bump K where the spec's
-// air range is narrow; wide-air-range specs stay at the byte-identical K=4 default.
-const AIM_TOPK_HIGH_AIR_RANGE_MAX = 0.38;
 const AIM_EXTRA_TOPK_BUDGET_START_FRAMES = 225_000;
 const AIM_EXTRA_TOPK_BUDGET_SPAN_FRAMES = 75_000;
 const AIM_EXTRA_TOPK_SPEED_RANGE_START = 0.10;
@@ -301,12 +293,7 @@ export function aimTopKBasesEffective(gap?: Gap, gaps?: readonly Gap[], ctx?: Sp
   // already exceeds the spec-gated extra tier, so that lane is subsumed.
   const highBudget = !AIM_TOPK_BASES_EXPLICIT
     && aimCompileBudgetFrames >= AIM_TOPK_HIGH_BUDGET_FRAMES;
-  // Gate the high-K bump to narrow-air-range (steady, non-syncopated) specs: the wide
-  // ones are search-sensitive and the extra aim probes regress them. Needs gaps+ctx to
-  // measure the range; without them, fall back to the safe K=4 default (no bump).
-  const narrowAirRange = highBudget && gaps !== undefined && ctx !== undefined
-    && targetAxisRange(gaps, ctx, "air") < AIM_TOPK_HIGH_AIR_RANGE_MAX;
-  const baseK = narrowAirRange ? AIM_TOPK_BASES_HIGH : AIM_TOPK_BASES;
+  const baseK = highBudget ? AIM_TOPK_BASES_HIGH : AIM_TOPK_BASES;
   if (gap?.targets.air !== undefined && gap.targets.air <= AIM_LOW_AIR_TOPK_AIR_MAX) {
     return Math.min(baseK, AIM_LOW_AIR_TOPK_MAX);
   }

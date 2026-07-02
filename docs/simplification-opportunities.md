@@ -452,7 +452,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Remove the air-range classifier; govern extra probe cost by continuous budget/probe-cost economics. If search-sensitivity matters, express it as measured probe-vs-search return.
 - **Risk:** medium
 - **Generalization note:** 0.38 is fit to the current air-range bimodality; a mid-range spec is classified arbitrarily.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.6, P(Δ≤-0.1)=18.6%, cumulative Δheadline vs campaign-start baseline +2.8 (full canonical vs current #36 baseline `simplify-36-start-angle-speed-cost-a01`; valid 1920/1920, fingerprint unchanged; 1600/1920 `track_hash` match, 320 changed). Removed the `AIM_TOPK_HIGH_AIR_RANGE_MAX=0.38` classifier and the `narrowAirRange` branch, so the K=6 high-budget bump is governed only by compile budget/env override; 125k stayed byte-identical while mature budgets moved +1.1/+0.4/+0.6.
 
 ### 44. ~A dozen telemetry fields retained permanently at constant 0
 - **Files:** `scripts/v0/optimizer/aim.ts`

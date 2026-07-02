@@ -1287,22 +1287,135 @@ function buildCubes(data: GoldenCurveJson): { score: ScoreCube; valid: ValidCube
  *  budget set, so `decide` recomputes it over the shared budgets (renormalizing
  *  automatically). Both archives must declare the weighted-average kind. */
 const HEADLINE_KIND = "weighted_budget_average";
+const DEFAULT_SIMPLIFICATION_MARGIN = 0.1;
+
+type DecideMode = "improvement" | "simplification";
+type DecidePolicy = {
+  mode: DecideMode;
+  alpha: number;
+  margin: number;
+};
+
+function parseDecideArgs(args: string[]): { policy: DecidePolicy; positional: string[] } {
+  const policy: DecidePolicy = {
+    mode: "improvement",
+    alpha: DECISION_ALPHA,
+    margin: DEFAULT_SIMPLIFICATION_MARGIN,
+  };
+  const positional: string[] = [];
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (!arg.startsWith("--")) {
+      positional.push(arg);
+      continue;
+    }
+
+    const eq = arg.indexOf("=");
+    const flag = eq >= 0 ? arg.slice(0, eq) : arg;
+    const inlineValue = eq >= 0 ? arg.slice(eq + 1) : undefined;
+    const readValue = (): string => {
+      if (inlineValue !== undefined) return inlineValue;
+      const next = args[i + 1];
+      if (next === undefined || next.startsWith("--")) {
+        throw new Error(`missing value for ${flag}`);
+      }
+      i++;
+      return next;
+    };
+
+    if (flag === "--mode") {
+      const mode = readValue();
+      if (mode !== "improvement" && mode !== "simplification") {
+        throw new Error(`--mode must be "improvement" or "simplification", got "${mode}"`);
+      }
+      policy.mode = mode;
+    } else if (flag === "--alpha") {
+      policy.alpha = parseUnitInterval(readValue(), "--alpha");
+    } else if (flag === "--margin") {
+      policy.margin = parseNonNegativeNumber(readValue(), "--margin");
+    } else {
+      throw new Error(
+        `unsupported decide flag ${arg}. ` +
+          "Supported flags: --mode=improvement|simplification, --alpha=<0..1>, --margin=<headline points>.",
+      );
+    }
+  }
+
+  return { policy, positional };
+}
+
+function parseUnitInterval(raw: string, label: string): number {
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0 || value >= 1) {
+    throw new Error(`${label} must be a finite number in (0,1), got "${raw}"`);
+  }
+  return value;
+}
+
+function parseNonNegativeNumber(raw: string, label: string): number {
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0) {
+    throw new Error(`${label} must be a finite non-negative number, got "${raw}"`);
+  }
+  return value;
+}
+
+function tailProbabilityAt(
+  d: ReturnType<typeof pairedBootstrapCI>,
+  threshold: number,
+): { threshold: number; pLe: number; pGe: number } {
+  const found = d.tailProbabilities.find((p) => p.threshold === threshold);
+  if (found === undefined) {
+    throw new Error(`internal error: missing bootstrap tail probability for threshold ${threshold}`);
+  }
+  return found;
+}
+
+function decidePolicyVerdict(
+  policy: DecidePolicy,
+  d: ReturnType<typeof pairedBootstrapCI>,
+): { verdict: "accept" | "reject" | "inconclusive"; note: string; marginTail?: { threshold: number; pLe: number; pGe: number } } {
+  if (policy.mode === "improvement") {
+    return {
+      verdict: d.verdict,
+      note:
+        d.verdict === "accept"
+          ? `P(Δ≤0)<${policy.alpha.toFixed(2)}`
+          : d.verdict === "reject"
+          ? `P(Δ≥0)<${policy.alpha.toFixed(2)}`
+          : `neither one-sided gate cleared at α=${policy.alpha.toFixed(2)}`,
+    };
+  }
+
+  const threshold = -policy.margin;
+  const marginTail = tailProbabilityAt(d, threshold);
+  return {
+    verdict: marginTail.pLe < policy.alpha ? "accept" : "reject",
+    note:
+      marginTail.pLe < policy.alpha
+        ? `non-inferior: P(Δ≤${fmtSigned(threshold, 1)})<${policy.alpha.toFixed(2)}`
+        : `non-inferiority not established: P(Δ≤${fmtSigned(threshold, 1)})≥${policy.alpha.toFixed(2)}`,
+    marginTail,
+  };
+}
 
 /** `decide` subcommand: paired-bootstrap accept/reject verdict (replaces "+5"). */
 function runDecide(args: string[]): void {
-  const unsupportedFlags = args.filter((a) => a.startsWith("--"));
-  if (unsupportedFlags.length > 0) {
-    console.error(
-      `unsupported decide flag(s): ${unsupportedFlags.join(", ")}. ` +
-        "decide compares archives on their shared recorded weighted-budget-average scope.",
-    );
+  let parsed: ReturnType<typeof parseDecideArgs>;
+  try {
+    parsed = parseDecideArgs(args);
+  } catch (err) {
+    console.error((err as Error).message);
     console.error("usage: analyze_golden_curve.ts decide <candidate.json> <baseline.json>");
+    console.error("   or: analyze_golden_curve.ts decide --mode=simplification --margin=0.1 --alpha=0.20 <candidate.json> <baseline.json>");
     process.exit(1);
   }
-  const positional = args.filter((a) => !a.startsWith("--"));
+  const { policy, positional } = parsed;
   const [candPath, basePath] = positional;
-  if (!candPath || !basePath) {
+  if (!candPath || !basePath || positional.length !== 2) {
     console.error("usage: analyze_golden_curve.ts decide <candidate.json> <baseline.json>");
+    console.error("   or: analyze_golden_curve.ts decide --mode=simplification --margin=0.1 --alpha=0.20 <candidate.json> <baseline.json>");
     process.exit(1);
   }
   const cand = readInput(candPath);
@@ -1419,11 +1532,19 @@ function runDecide(args: string[]): void {
     validBase: B.valid,
     validCand: C.valid,
     rngSeed: 12345,
+    decisionAlpha: policy.alpha,
+    tailThresholds: policy.mode === "simplification" ? [-policy.margin] : [],
   });
+  const policyDecision = decidePolicyVerdict(policy, d);
 
   console.log(
     `DECISION  paired cluster bootstrap · weighted-avg (weights∝budget) · ` +
-      `α=${DECISION_ALPHA.toFixed(2)} · budgets=${scoreBudgets.map(fmtBudget).join(",")}`,
+      (
+        policy.mode === "simplification"
+          ? `policy=simplification/non-inferiority · margin=${policy.margin.toFixed(1)} · α=${policy.alpha.toFixed(2)}`
+          : `policy=improvement · α=${policy.alpha.toFixed(2)}`
+      ) +
+      ` · budgets=${scoreBudgets.map(fmtBudget).join(",")}`,
   );
   console.log(
     `  scope: ${commonSpecs.length} specs × ${commonSeeds.length} seeds` +
@@ -1439,7 +1560,11 @@ function runDecide(args: string[]): void {
   );
   console.log(
     `  Δheadline = ${d.delta >= 0 ? "+" : ""}${d.delta.toFixed(1)} · ` +
-      `95% CI [${d.ciLo.toFixed(1)}, ${d.ciHi.toFixed(1)}] · P(Δ≤0)=${(d.pLeZero * 100).toFixed(1)}% · effect=${d.effect.toFixed(2)}`,
+      `95% CI [${d.ciLo.toFixed(1)}, ${d.ciHi.toFixed(1)}] · P(Δ≤0)=${(d.pLeZero * 100).toFixed(1)}%` +
+      (policyDecision.marginTail === undefined
+        ? ""
+        : ` · P(Δ≤${fmtSigned(policyDecision.marginTail.threshold, 1)})=${(policyDecision.marginTail.pLe * 100).toFixed(1)}%`) +
+      ` · effect=${d.effect.toFixed(2)}`,
   );
   if (d.perBudget.length > 1) {
     // Per-budget paired deltas: each budget is its own optimization target, so a
@@ -1463,7 +1588,7 @@ function runDecide(args: string[]): void {
     }
   }
   console.log(
-    `  VERDICT: ${d.verdict.toUpperCase()}` +
+    `  VERDICT: ${policyDecision.verdict.toUpperCase()}  (${policyDecision.note})` +
       (promotable ? "" : "  (INDICATIVE — non-promotable; canonical run required to promote)"),
   );
 
@@ -1472,14 +1597,14 @@ function runDecide(args: string[]): void {
   // as INCONCLUSIVE, indistinguishable at the verdict level from a true null. Estimate
   // how many more seeds would reach significance: the gap toward zero is (Δ - ciLo) and
   // shrinks ~1/√n, so n_need ≈ n_now·((Δ-ciLo)/Δ)². This uses the 95% CI bound as a
-  // conservative output-only proxy; the verdict itself uses DECISION_ALPHA above.
-  if (d.verdict === "inconclusive" && d.delta > 0) {
+  // conservative output-only proxy; the verdict itself uses the configured alpha above.
+  if (policy.mode === "improvement" && d.verdict === "inconclusive" && d.delta > 0) {
     const nNow = commonSeeds.length;
     const nNeed = Math.ceil(nNow * ((d.delta - d.ciLo) / d.delta) ** 2);
     const extra = Math.max(1, nNeed - nNow);
     console.log(
       `  hint: Δ positive (+${d.delta.toFixed(1)}, P(Δ>0)=${((1 - d.pLeZero) * 100).toFixed(0)}%) but not yet ` +
-        `accepted at α=${DECISION_ALPHA.toFixed(2)} — ~${extra} more seed${extra === 1 ? "" : "s"} (~${nNow + extra} total) would ` +
+        `accepted at α=${policy.alpha.toFixed(2)} — ~${extra} more seed${extra === 1 ? "" : "s"} (~${nNow + extra} total) would ` +
         `likely resolve it. Approximate; CI width scales ~1/√seeds.`,
     );
   }

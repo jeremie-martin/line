@@ -11,6 +11,7 @@ function headlineBlock(
   budgets: number[],
   tier: "canonical" | "probe" = "canonical",
   weights?: number[],
+  score = 300,
 ): unknown {
   const sum = budgets.reduce((s, b) => s + b, 0);
   const weight_by_budget = budgets.map((b, i) => ({
@@ -21,34 +22,35 @@ function headlineBlock(
     kind: "weighted_budget_average",
     tier,
     n_seeds: 1,
-    score: 300,
+    score,
     weight_by_budget,
     budgets,
-    ceiling: 300,
-    log_auc: 300,
+    ceiling: score,
+    log_auc: score,
     validity: [],
   };
 }
 
 /** Minimal golden archive sufficient for `analyze_golden_curve.ts decide`. */
-type ArchiveOpts = { budgets?: number[]; headline?: unknown | null };
+type ArchiveOpts = { budgets?: number[]; headline?: unknown | null; score?: number };
 function archive(seed: number, fingerprint = "fp_aaaa", opts: ArchiveOpts = {}): unknown {
   const budgets = opts.budgets ?? [50_000, 150_000];
+  const score = opts.score ?? 300;
   const ck = (budget: number, score: number) => ({ budget, status: "pass", score, contract_passed: true });
   const a: Record<string, unknown> = {
     evaluator_fingerprint: fingerprint,
     curve_score: 0,
     budgets,
-    budget_scores: budgets.map((b) => ({ budget: b, score: 300, passed: 1, total: 1 })),
+    budget_scores: budgets.map((b) => ({ budget: b, score, passed: 1, total: 1 })),
     scope: { seeds: [seed] },
-    rows: [{ name: "spec_a", seed, variant: "base", checkpoints: budgets.map((b) => ck(b, 300)) }],
+    rows: [{ name: "spec_a", seed, variant: "base", checkpoints: budgets.map((b) => ck(b, score)) }],
   };
   // Default to a valid weighted-average headline; opts.headline overrides, and
   // `null` simulates a legacy archive that predates the metric (no headline block).
   if (opts.headline === null) {
     /* no headline */
   } else {
-    a.headline = opts.headline ?? headlineBlock(budgets);
+    a.headline = opts.headline ?? headlineBlock(budgets, "canonical", undefined, score);
   }
   return a;
 }
@@ -71,14 +73,21 @@ const out = (r: ReturnType<typeof decide>) => `${r.stdout}\n${r.stderr}`;
 
 describe("decide scope guard (cannot silently compare incomparable archives)", () => {
   test("rejects removed metric-scope flags before reading archives", () => {
-    for (const flag of ["--score-budgets=50k,150k", "--alpha=0.7"]) {
-      const r = decide([flag, "/tmp/missing-candidate.json", "/tmp/missing-baseline.json"]);
-      expect(r.status).not.toBe(0);
-      expect(out(r)).toContain("unsupported decide flag");
-      expect(out(r)).toContain(flag);
-      expect(out(r)).not.toContain("ENOENT");
-      expect(out(r)).not.toContain("VERDICT");
-    }
+    const flag = "--score-budgets=50k,150k";
+    const r = decide([flag, "/tmp/missing-candidate.json", "/tmp/missing-baseline.json"]);
+    expect(r.status).not.toBe(0);
+    expect(out(r)).toContain("unsupported decide flag");
+    expect(out(r)).toContain(flag);
+    expect(out(r)).not.toContain("ENOENT");
+    expect(out(r)).not.toContain("VERDICT");
+  });
+
+  test("rejects malformed decide policy flags before reading archives", () => {
+    const r = decide(["--alpha=wat", "/tmp/missing-candidate.json", "/tmp/missing-baseline.json"]);
+    expect(r.status).not.toBe(0);
+    expect(out(r)).toContain("--alpha must be");
+    expect(out(r)).not.toContain("ENOENT");
+    expect(out(r)).not.toContain("VERDICT");
   });
 
   test("refuses on no overlapping seeds instead of reporting 'inconclusive'", () => {
@@ -124,6 +133,36 @@ describe("decide scope guard (cannot silently compare incomparable archives)", (
     expect(r.status).toBe(0);
     expect(out(r)).toContain("VERDICT");
     expect(out(r)).not.toContain("non-promotable");
+  });
+
+  test("default improvement mode rejects a deterministic tiny headline regression", () => {
+    const cand = write(archive(0, "fp_aaaa", { score: 299.91 }));
+    const base = write(archive(0, "fp_aaaa", { score: 300 }));
+    const r = decide([cand, base]);
+    expect(r.status).toBe(0);
+    expect(out(r)).toContain("policy=improvement");
+    expect(out(r)).toContain("Δheadline = -0.1");
+    expect(out(r)).toContain("VERDICT: REJECT");
+  });
+
+  test("simplification mode accepts a deterministic tiny headline regression inside the margin", () => {
+    const cand = write(archive(0, "fp_aaaa", { score: 299.91 }));
+    const base = write(archive(0, "fp_aaaa", { score: 300 }));
+    const r = decide(["--mode=simplification", "--margin=0.1", "--alpha=0.20", cand, base]);
+    expect(r.status).toBe(0);
+    expect(out(r)).toContain("policy=simplification/non-inferiority");
+    expect(out(r)).toContain("P(Δ≤-0.1)=0.0%");
+    expect(out(r)).toContain("VERDICT: ACCEPT");
+  });
+
+  test("simplification mode rejects when non-inferiority is not established", () => {
+    const cand = write(archive(0, "fp_aaaa", { score: 299.8 }));
+    const base = write(archive(0, "fp_aaaa", { score: 300 }));
+    const r = decide(["--mode=simplification", "--margin=0.1", "--alpha=0.20", cand, base]);
+    expect(r.status).toBe(0);
+    expect(out(r)).toContain("P(Δ≤-0.1)=100.0%");
+    expect(out(r)).toContain("VERDICT: REJECT");
+    expect(out(r)).toContain("non-inferiority not established");
   });
 
   test("refuses when archives disagree on the headline weighting over common budgets", () => {

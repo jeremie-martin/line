@@ -15,7 +15,7 @@
  *    budget-trading change is visible, not averaged away.
  *    Interim trade: while the search is still budget-oblivious this rewards
  *    early-budget gains the prior ceiling-heavy metric penalized; that is expected.
- *  - Decision: PAIRED cluster bootstrap on the headline delta (same specs+seeds for
+ *  - Default decision: PAIRED cluster bootstrap on the headline delta (same specs+seeds for
  *    both configs), because pairing cancels common-mode seed luck (~10x noise
  *    collapse). The verdict is a one-sided probability gate at α=0.20:
  *    accept iff P(Δ≤0) < 0.20, reject iff P(Δ≥0) < 0.20, else inconclusive.
@@ -39,10 +39,9 @@ export type BudgetWeight = { budget: number; weight: number };
 /** One-sided probability gate for the accept/reject verdict.
  *  Accept iff the paired bootstrap puts < α mass at or below 0 (reliably an improvement);
  *  reject iff < α mass at or above 0 (reliably a regression); else inconclusive.
- *  Relaxed from the original 0.10 for the simplification campaign
- *  (docs/simplification-opportunities.md), in exchange for genuine code simplification;
- *  dialed back from 0.50 to 0.20 -- still looser than the original 0.10, but requiring
- *  more confidence than the initial setting before formally labeling a change ACCEPT.
+ *  Relaxed from the original 0.10 to 0.20 for ordinary improvement work. Dedicated
+ *  simplification campaigns should not change this global default; `decide` exposes
+ *  an explicit non-inferiority mode for that workflow.
  *  Still rejects changes confidently shown to regress (symmetric gate on the other side). */
 export const DECISION_ALPHA = 0.20;
 
@@ -191,6 +190,7 @@ export type Decision = {
   ciLo: number;
   ciHi: number;
   pLeZero: number;
+  tailProbabilities: { threshold: number; pLe: number; pGe: number }[];
   effect: number; // mean / sd  (paired Cohen's d analog)
   budgets: number[];
   weightByBudget: BudgetWeight[];
@@ -207,8 +207,8 @@ export type Decision = {
  * replacement; apply the SAME resample to both configs (paired). Propagates both
  * between-spec and within-spec (seed) variance.
  *
- * The verdict is the score delta CI ALONE: accept iff ciLo>0, reject iff ciHi<0,
- * else inconclusive. Validity does not gate (an invalid run already scores ~0); the
+ * The default verdict is a one-sided probability gate over the paired bootstrap
+ * distribution. Validity does not gate (an invalid run already scores ~0); the
  * per-budget validity rates are computed and returned for reporting only.
  */
 export function pairedBootstrapCI(
@@ -220,6 +220,8 @@ export function pairedBootstrapCI(
     B?: number;
     level?: number;
     rngSeed?: number;
+    decisionAlpha?: number;
+    tailThresholds?: number[];
     validBase?: ValidCube;
     validCand?: ValidCube;
   },
@@ -304,10 +306,18 @@ export function pairedBootstrapCI(
   // paired bootstrap distribution: accept if the change is reliably an improvement
   // (P(Δ≤0) < α), reject if reliably a regression (P(Δ≥0) < α), else inconclusive.
   // The 95% CI is still reported for context but does not define the verdict.
-  const pLeZero = mean(deltas.map((d) => (d <= 0 ? 1 : 0)));
-  const pGeZero = mean(deltas.map((d) => (d >= 0 ? 1 : 0)));
+  const tailThresholds = [...new Set([0, ...(opts.tailThresholds ?? [])])].sort((a, b) => a - b);
+  const tailProbabilities = tailThresholds.map((threshold) => ({
+    threshold,
+    pLe: mean(deltas.map((d) => (d <= threshold ? 1 : 0))),
+    pGe: mean(deltas.map((d) => (d >= threshold ? 1 : 0))),
+  }));
+  const zeroTail = tailProbabilities.find((p) => p.threshold === 0);
+  const pLeZero = zeroTail?.pLe ?? mean(deltas.map((d) => (d <= 0 ? 1 : 0)));
+  const pGeZero = zeroTail?.pGe ?? mean(deltas.map((d) => (d >= 0 ? 1 : 0)));
+  const decisionAlpha = opts.decisionAlpha ?? DECISION_ALPHA;
   const verdict: Decision["verdict"] =
-    pLeZero < DECISION_ALPHA ? "accept" : pGeZero < DECISION_ALPHA ? "reject" : "inconclusive";
+    pLeZero < decisionAlpha ? "accept" : pGeZero < decisionAlpha ? "reject" : "inconclusive";
 
   return {
     baseHeadline,
@@ -316,6 +326,7 @@ export function pairedBootstrapCI(
     ciLo,
     ciHi,
     pLeZero,
+    tailProbabilities,
     effect: sd > 0 ? dMean / sd : 0,
     budgets,
     weightByBudget,

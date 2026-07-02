@@ -156,6 +156,20 @@ describe("pairedBootstrapCI", () => {
     expect(d.ciHi).toBeLessThan(0);
   });
 
+  test("reports tail probability at a non-inferiority margin", () => {
+    const base = scoreCube(specs, seeds, () => 300);
+    const cand = scoreCube(specs, seeds, () => 299.95);
+    const d = pairedBootstrapCI(base, cand, BUDGETS, {
+      weightByBudget: WEIGHTS,
+      B: 500,
+      rngSeed: 1,
+      tailThresholds: [-0.1],
+    });
+    expect(d.delta).toBeCloseTo(-0.05, 9);
+    expect(d.pLeZero).toBe(1);
+    expect(d.tailProbabilities.find((p) => p.threshold === -0.1)?.pLe).toBe(0);
+  });
+
   test("validity is REPORTED but does NOT gate the verdict (a quality gain still accepts)", () => {
     const base = scoreCube(specs, seeds, () => 300);
     const cand = scoreCube(specs, seeds, () => 500);

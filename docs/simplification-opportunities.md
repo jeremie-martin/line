@@ -11,24 +11,31 @@ grid-anchored magic constants to generalize.
 
 A separate **execution phase** will attempt these one at a time against the
 canonical golden benchmark: **40 specs × 12 seeds × budgets {125k, 250k, 375k,
-500k}, `LR_ENGINE=wasm --jobs=32`**. That phase runs under a **RELAXED accept
-rule**: `DECISION_ALPHA` is raised from `0.10` to `0.50` in
-`scripts/v0/metric.ts`, i.e. accept a change whenever the point-estimate
-headline delta is non-negative — do **not** require high statistical confidence.
-Still reject any change confidently shown to regress.
+500k}, `LR_ENGINE=wasm --jobs=32`**. That phase uses explicit decide
+simplification mode:
+
+```bash
+npm run decide -- --mode=simplification --margin=0.1 --alpha=0.20 CANDIDATE/golden.json BASELINE/golden.json
+```
+
+Simplification mode is a paired-bootstrap non-inferiority test on the total
+headline: accept when `P(Δheadline ≤ -0.1) < 0.20`. The `0.1` margin is the
+declared maximum headline regression worth trading for genuine compiler
+simplification; unlike improvement mode, this does not require evidence that the
+candidate is better than baseline.
 
 **Hard invariant — do NOT change any of these:** the scorer, the golden spec
-set, the evaluator/ruler fingerprint, the metric definition (beyond the single
-`DECISION_ALPHA` value), the seed set, or the budget grid. **Only
-`DECISION_ALPHA` and the compiler source are in scope.** A simplification that
-would move the ruler fingerprint (e.g. touching the fingerprinted slice of
-`substrate.ts`) must preserve byte-identical scoring output or be treated as
-out of scope.
+set, the evaluator/scoring ruler, the metric definition, the seed set, or the
+budget grid. Compiler behavior is allowed to change; the measuring ruler is not.
+If a candidate golden archive has a different `evaluator_fingerprint` from the
+baseline, the archives are not comparable in this campaign and the item is out
+of scope.
 
 **Each entry carries a `Status:` line.** The execution phase must update it in
 place — `Not Started` → `Accepted` / `Rejected` / `Abandoned` — with a one-line
-outcome note (headline delta, why abandoned, etc.), so this file becomes the
-running log. Do not append new sections per attempt; edit the entry.
+outcome note (step headline delta, `P(Δ≤-0.1)`, cumulative headline delta vs the
+campaign-start baseline when available, why abandoned, etc.), so this file
+becomes the running log. Do not append new sections per attempt; edit the entry.
 
 Entries are grouped by subsystem area. Within reason, dead-code / de-duplication
 items (low risk, high generality) are cheapest to attempt first; deep
@@ -1344,7 +1351,7 @@ reverse-fit gate collapses (high risk) should come later.
 ## How to use this file
 
 - Work **top-to-bottom**, or by **risk** (attempt all `low` first, then `medium`, then `high`) — the low-risk dead-code and de-duplication items are the cheapest wins and least likely to move the headline.
-- Attempt **one item at a time.** Make the change on a branch, run the canonical golden benchmark under the relaxed accept rule (`DECISION_ALPHA=0.50`), and record the outcome.
-- When you attempt an item, **update its `Status:` line in place** — `Not Started` → `Accepted` / `Rejected` / `Abandoned` — with a one-line note (headline Δ, reason for abandoning, follow-up needed). Do **not** add a new section per attempt; this file is the running log.
-- Respect the hard invariant: only `DECISION_ALPHA` and compiler source may change. For any item touching the fingerprinted ruler slice (`substrate.ts`/`measure.ts`/`objective.ts`/`readiness.ts` — entries #69-#76, #105-#116), first confirm the change is byte-identical in scoring output; if it is not, either keep it a pure code-move that preserves the fingerprint or mark it `Abandoned (would move fingerprint — out of scope)`.
+- Attempt **one item at a time.** Make the change on a branch, run the canonical golden benchmark, decide with `npm run decide -- --mode=simplification --margin=0.1 --alpha=0.20 CANDIDATE/golden.json BASELINE/golden.json`, and record the outcome.
+- When you attempt an item, **update its `Status:` line in place** — `Not Started` → `Accepted` / `Rejected` / `Abandoned` — with a one-line note (step headline Δ, `P(Δ≤-0.1)`, cumulative Δ vs the campaign-start baseline when available, reason for abandoning, follow-up needed). Do **not** add a new section per attempt; this file is the running log.
+- Respect the hard invariant: the scorer, golden specs, evaluator/scoring ruler, headline metric, seed set, and budget grid are fixed. Compiler behavior may change; the measuring ruler may not. If a candidate's `evaluator_fingerprint` differs from the baseline's, mark the item out of scope for this campaign.
 - Several entries note **cross-references** (e.g. #29↔#72 impact-ask thresholds; #46↔#125/#126 study arms; #64↔#117 reachability probe). Prefer landing the shared/underlying item first, then revisit its dependents.

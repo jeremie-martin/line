@@ -489,7 +489,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Derive emitted-proposal count from the same continuous budget/probe-economics signal as K bases (#41), or at minimum document it as a deliberate fixed default with one knob.
 - **Risk:** medium
 - **Generalization note:** k=2 vs k=3 is tied to today's low-budget checkpoints.
-- **Status:** Not Started
+- **Status:** Abandoned — not a clean standalone simplification. The code already documents `k=2` as the measured emitted-proposal knee, and historical evidence says increasing it is not free (`docs/lookahead-log.md` D5: `LR_AIM_TOPK_EMIT=4` REJECT Δ−3.4; `docs/ARC_STATE_CONTROL.md` notes `enum-k3-01` regressed low-budget compiles). Adding a new emit-count env knob would widen the hot-path experiment surface rather than simplify it; any real budget/probe-economics retune belongs with the broader continuous K surface in #49. No source change was pursued.
 
 ### 48. `defaultExtraAimBaseSeed` hashes the exact compile budget frame count into the RNG
 - **Files:** `scripts/v0/optimizer/aim.ts`

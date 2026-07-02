@@ -538,7 +538,6 @@ const IMPACT_CURVE_HIGH_SPEED_RELIEF_ELEVATION_RANGE_END_SPAN = 0.12;
 // much airborne room the beat cadence leaves for an impact-shaping arc.
 const CADENCE_ROOM_START_FRAMES = 20;
 const CADENCE_ROOM_SPAN_FRAMES = 14;
-const SUBMIN_FORWARD_EVAL_START_FRAMES = 20_000;
 const PARTIAL_FUTURE_CONTACT_WINDOW = 20;
 // Extra frames simulated past a track's nominal duration so the detector sees the
 // full rideout tail when scoring a completed (full-duration) or partial output.
@@ -2372,7 +2371,7 @@ function rankedOptions(
   // Agreement instrument (measure-only): record ONLY when the pool was scored via the
   // forward-eval path (mirror scoreCandidateForHandoff's condition), over the POOL-SOURCE
   // entries only — this is before reuse/brake extras are pushed onto `scored`.
-  if (fwdEvalCfg !== null && usesForwardEvalAtBudget(node, targetBudget)) {
+  if (fwdEvalCfg !== null && usesForwardEvalAtBudget(targetBudget)) {
     recordFwdEvalAgreement(scored, gaps[node.gapIndex]?.targets?.impact);
   }
   // Extra-candidate lanes (see extraCandidateLane): each generates a few more
@@ -2437,7 +2436,7 @@ function openingBestForwardEvalOpportunity(
   budgetSlack: number,
 ): number {
   if (fwdEvalCfg === null || !fwdEvalDefaultConfig) return 0;
-  if (!usesForwardEvalAtBudget(node, targetBudget)) return 0;
+  if (!usesForwardEvalAtBudget(targetBudget)) return 0;
   if (openingBestBranch2SlackPressure(budgetSlack) <= 0) return 0;
   if (!isOpeningContactNode(node, gaps)) return 0;
 
@@ -3152,7 +3151,7 @@ function scoreCandidateForHandoff(
   // Forward-eval ranking (DEFAULT ≥75k): rank purely by the true metric score of where this arc
   // leads (charged forward rollout), replacing the local axis-L2 proxy below the gate.
   const fwdCfg = fwdEvalCfg; // resolved once per compile in setForwardEvalContext
-  if (fwdCfg !== null && usesForwardEvalAtBudget(node, targetBudget)) {
+  if (fwdCfg !== null && usesForwardEvalAtBudget(targetBudget)) {
     const value = forwardArcValue(
       child,
       gaps,
@@ -3609,10 +3608,9 @@ function repairConfig(targetBudget: number): RepairConfig {
   };
 }
 
-/** Budget-aware gate: forward eval only activates at/above this compile budget.
+/** Budget-aware hard gate: forward eval only activates at/above this compile budget.
  *  DEFAULT 75000 — charged forward eval pays for itself only at high budget, and below
- *  this the cheap local ranker wins (so ≤50k stays byte-identical to the pre-fwd-eval
- *  baseline). Override with LR_FWD_EVAL_MIN_BUDGET; 0 = always on. */
+ *  this the cheap local ranker wins. Override with LR_FWD_EVAL_MIN_BUDGET; 0 = always on. */
 function forwardEvalMinBudget(): number {
   const raw = readEnv("LR_FWD_EVAL_MIN_BUDGET");
   if (raw === undefined) return 75_000;
@@ -4039,22 +4037,8 @@ function openingBestForwardEvalSeed(node: SearchNode, branch: number): number {
   return nodeHashSeed(node, Math.imul(branch, 0x27d4eb2d), 0x51ed270b);
 }
 
-function usesForwardEvalAtBudget(node: SearchNode, targetBudget: number): boolean {
-  if (targetBudget >= fwdEvalMin) return true;
-  const pressure = subminForwardEvalPressure(targetBudget);
-  return pressure > 0 && unitHash(subminForwardEvalSeed(node)) < pressure;
-}
-
-function subminForwardEvalPressure(targetBudget: number): number {
-  if (fwdEvalMin <= SUBMIN_FORWARD_EVAL_START_FRAMES) return 0;
-  return smoothstep(
-    (Math.max(0, targetBudget) - SUBMIN_FORWARD_EVAL_START_FRAMES) /
-      (fwdEvalMin - SUBMIN_FORWARD_EVAL_START_FRAMES),
-  );
-}
-
-function subminForwardEvalSeed(node: SearchNode): number {
-  return nodeHashSeed(node, 0x2f6e2b1d);
+function usesForwardEvalAtBudget(targetBudget: number): boolean {
+  return targetBudget >= fwdEvalMin;
 }
 
 function matureForwardEvalConfig(

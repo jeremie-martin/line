@@ -219,7 +219,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Anchor the gate to `predictedFirstCompletionFrames`; make fwd-eval simply on/off at `fwdEvalMin` (drop the submin smoothstep + seed), or express the ramp start as a fraction of `fwdEvalMin`.
 - **Risk:** high
 - **Generalization note:** 75k/20k carry no meaning for a spec whose completion cost differs from the golden distribution.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs current #17 baseline `simplify-17-deterministic-low-slack-branch-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Replaced the 20k→75k stochastic sub-min forward-eval ramp plus per-node seed with a hard `targetBudget >= fwdEvalMin` gate; below the gate the local proxy ranker is always used.
 
 ### 19. Startup-support start seeds + x-delay: hand-enumerated tables gated by a triple-smoothstep product
 *(sources: handoff-core-rescue, handoff-start-output)*

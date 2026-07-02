@@ -81,8 +81,8 @@
 
 scoreCandidateForHandoff(node, candidate, ..., targetBudget):
   child = extendNodeCached(node, candidate)              # commit the arc onto the prefix engine
-  if fwdEvalCfg != null AND usesForwardEvalAtBudget(node, targetBudget):   # :3930
-      #  targetBudget ≥ LR_FWD_EVAL_MIN_BUDGET (75k) → always;  below → stochastic ramp
+  if fwdEvalCfg != null AND usesForwardEvalAtBudget(targetBudget):   # hard budget gate
+      #  targetBudget ≥ LR_FWD_EVAL_MIN_BUDGET (75k)
       value = forwardArcValue(child, ..., matureForwardEvalConfig(fwdEvalCfg, node, gaps, targetBudget))
       return { score: -value }            # higher rollout value ⇒ more-negative score ⇒ sorts first
   else:                                    # LOCAL PROXY (below the gate, :2893)
@@ -215,7 +215,7 @@ leafValue(node, missed):
 <tr><th>env</th><th>meaning</th></tr>
 <tr><td class="kv">LR_FWD_EVAL</td><td>variant:depth — default <code>greedy:2</code>; also <code>best:N</code>, <code>avg:N</code></td></tr>
 <tr><td class="kv">LR_FWD_EVAL_LEAF</td><td><code>objective</code> (<b>DEFAULT</b> — the short leaf) | <code>full</code> | <code>shadow</code> (rank by full, record objective). The readiness/hybrid sub-knobs were deleted — the objective leaf is exactly <code>axis × survival × missing</code>.</td></tr>
-<tr><td class="kv">LR_FWD_EVAL_MIN_BUDGET</td><td>gate (75k); below it, a smoothstep stochastic ramp decides per node</td></tr>
+<tr><td class="kv">LR_FWD_EVAL_MIN_BUDGET</td><td>hard gate (75k); below it the local proxy ranker is used</td></tr>
 <tr><td class="kv">LR_FWD_EVAL_CHARGE</td><td><code>0</code> refunds rollout frames (budget-refunded ceiling experiment)</td></tr>
 <tr><td class="kv">LR_RANK_QUALITY / LR_AIM_TOPK_BASES</td><td>pool quality re-sort (default on) / aim-lane bases (default 3)</td></tr>
 </table>

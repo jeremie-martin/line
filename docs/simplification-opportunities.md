@@ -209,7 +209,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Unify branch-width selection into one `slack→branch` function consumed by both the general policy and the opening-best lane, one set of slack thresholds. Consider replacing the ±1 coin flip with a deterministic threshold (`branch = slack < 1.5 ? B-1 : B`).
 - **Risk:** medium
 - **Generalization note:** `budgetSlack` is model-relative but two disjoint threshold sets guarantee drift as budgets scale.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.1%, cumulative Δheadline vs campaign-start baseline +2.2 (full canonical vs current #14 baseline `simplify-14-round-overshoot-weight-a01`; valid 1920/1920, fingerprint unchanged; 1914/1920 `track_hash` match, 6 changed). Replaced the low-slack branch-limit smoothstep plus per-node hash coin flip with one deterministic `budgetSlack < 1.5` threshold, removing the dedicated branch seed and the separate 1.25/2.0 pressure constants; the opening-best slack thresholds remain separate for this focused step.
 
 ### 18. `forwardEvalMinBudget=75_000` gate + sub-min ramp are grid-anchored and only reachable via non-default override
 *(sources: handoff-core-rescue, handoff-forward-eval-repair)*

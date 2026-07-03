@@ -57,7 +57,7 @@ const POLISH_SIM_TAIL_FRAMES = 20;
 const AIR_POLISH_PASSES = 3;
 const DENSE_AIR_POLISH_PASSES = 2;
 const DENSE_AIR_POLISH_SOURCE_LIMIT = 8;
-const AIR_CONTACT_EXTENSION_LENGTHS = [25] as const;
+const AIR_CONTACT_EXTENSION_LENGTH_PX = 25;
 const AIR_BRIEF_CONTACT_PASSES = 3;
 const AIR_BRIEF_CONTACT_LENGTH = 8;
 const AIR_BRIEF_CONTACT_FRAME_OFFSET = K_BOUNCE_LANDING + PERSISTENCE_FRAMES - 1;
@@ -77,10 +77,11 @@ const CONTACT_EDGE_TRIM_MIN_FRAMES = PERSISTENCE_FRAMES;
 const GRAIN_LENGTH_PASSES = 1;
 const GRAIN_LENGTH_EXTRAS = [1, 2] as const;
 const ENTRY_LENGTH_PASSES = 3;
-const SPEED_POLISH_Y_SHIFTS = [-1] as const;
-const SPEED_POLISH_X_SHIFT_PASSES = [[4], [1], [0.5]] as const;
+const SPEED_POLISH_Y_SHIFT_PX = -1;
+const SPEED_POLISH_FINE_X_SHIFT_PX = 0.5;
+const SPEED_POLISH_X_PASS_SHIFTS_PX = [4, 1, SPEED_POLISH_FINE_X_SHIFT_PX] as const;
 const SPEED_POLISH_BOUNDARY_PASSES = 2;
-const SPEED_POLISH_ROTATIONS = [-4] as const;
+const SPEED_POLISH_ROTATION_DEG = -4;
 
 export function polishAirRideOut(
   fits: (GapFit | null)[],
@@ -398,19 +399,17 @@ export function polishAirContactEntry(
       }
       | null = null;
 
-    for (const extra of AIR_CONTACT_EXTENSION_LENGTHS) {
-      line.x1 = originalX1 - (dx / len) * extra;
-      line.y1 = originalY1 - (dy / len) * extra;
-      const det = simulateAndDetect(fits, gaps, durationFrames);
-      if (passesFinalHardGates(det, contactFrames)) {
-        const err = meanAirError(det, spec);
-        if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
-          best = { x1: line.x1, y1: line.y1, err };
-        }
+    line.x1 = originalX1 - (dx / len) * AIR_CONTACT_EXTENSION_LENGTH_PX;
+    line.y1 = originalY1 - (dy / len) * AIR_CONTACT_EXTENSION_LENGTH_PX;
+    const det = simulateAndDetect(fits, gaps, durationFrames);
+    if (passesFinalHardGates(det, contactFrames)) {
+      const err = meanAirError(det, spec);
+      if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
+        best = { x1: line.x1, y1: line.y1, err };
       }
-      line.x1 = originalX1;
-      line.y1 = originalY1;
     }
+    line.x1 = originalX1;
+    line.y1 = originalY1;
 
     if (best !== null) {
       line.x1 = best.x1;
@@ -751,7 +750,7 @@ function polishEntrySpeedXBoundary(
 ): void {
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
 
-  const coarseShift = Math.abs(SPEED_POLISH_X_SHIFT_PASSES.at(-1)?.[0] ?? 0.5);
+  const coarseShift = Math.abs(SPEED_POLISH_FINE_X_SHIFT_PX);
   if (coarseShift <= 0) return;
   const refinementStep = coarseShift / 10;
 
@@ -813,7 +812,7 @@ function polishEntrySpeedYBoundary(
 ): void {
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
 
-  const coarseShift = Math.abs(SPEED_POLISH_X_SHIFT_PASSES.at(-1)?.[0] ?? 0.5);
+  const coarseShift = Math.abs(SPEED_POLISH_FINE_X_SHIFT_PX);
   if (coarseShift <= 0) return;
 
   let baseDet = initialDet;
@@ -1076,28 +1075,26 @@ function polishEntrySpeed(
       }
       | null = null;
 
-    for (const dy of SPEED_POLISH_Y_SHIFTS) {
-      line.y1 = originalY1 + dy;
-      line.y2 = originalY2 + dy;
+    line.y1 = originalY1 + SPEED_POLISH_Y_SHIFT_PX;
+    line.y2 = originalY2 + SPEED_POLISH_Y_SHIFT_PX;
 
-      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
-      if (scored !== null) {
-        if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
-          best = {
-            x1: line.x1,
-            y1: line.y1,
-            x2: line.x2,
-            y2: line.y2,
-            err: scored.err,
-          };
-        }
+    const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+    if (scored !== null) {
+      if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
+        best = {
+          x1: line.x1,
+          y1: line.y1,
+          x2: line.x2,
+          y2: line.y2,
+          err: scored.err,
+        };
       }
-
-      line.x1 = originalX1;
-      line.y1 = originalY1;
-      line.x2 = originalX2;
-      line.y2 = originalY2;
     }
+
+    line.x1 = originalX1;
+    line.y1 = originalY1;
+    line.x2 = originalX2;
+    line.y2 = originalY2;
 
     if (best !== null) {
       line.x1 = best.x1;
@@ -1127,7 +1124,7 @@ function polishEntrySpeedX(
 
   let bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
   let lastAcceptedLineId: number | null = null;
-  for (const shifts of SPEED_POLISH_X_SHIFT_PASSES) {
+  for (const dx of SPEED_POLISH_X_PASS_SHIFTS_PX) {
     let best:
       | {
         line: TrackLine;
@@ -1151,20 +1148,18 @@ function polishEntrySpeedX(
       const originalX1 = line.x1;
       const originalX2 = line.x2;
 
-      for (const dx of shifts) {
-        line.x1 = originalX1 + dx;
-        line.x2 = originalX2 + dx;
+      line.x1 = originalX1 + dx;
+      line.x2 = originalX2 + dx;
 
-        const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
-        if (scored !== null) {
-          if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
-            best = { line, lineId, x1: line.x1, x2: line.x2, err: scored.err, det: scored.det };
-          }
+      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+      if (scored !== null) {
+        if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
+          best = { line, lineId, x1: line.x1, x2: line.x2, err: scored.err, det: scored.det };
         }
-
-        line.x1 = originalX1;
-        line.x2 = originalX2;
       }
+
+      line.x1 = originalX1;
+      line.x2 = originalX2;
     }
 
     if (best === null) break;
@@ -1224,21 +1219,19 @@ function polishEntrySlope(
     const cy = (originalY1 + originalY2) / 2;
     const angle = Math.atan2(dy, dx);
 
-    for (const rotateDeg of SPEED_POLISH_ROTATIONS) {
-      const rotated = angle + (rotateDeg * Math.PI) / 180;
-      line.x1 = cx - (Math.cos(rotated) * len) / 2;
-      line.y1 = cy - (Math.sin(rotated) * len) / 2;
-      line.x2 = cx + (Math.cos(rotated) * len) / 2;
-      line.y2 = cy + (Math.sin(rotated) * len) / 2;
+    const rotated = angle + (SPEED_POLISH_ROTATION_DEG * Math.PI) / 180;
+    line.x1 = cx - (Math.cos(rotated) * len) / 2;
+    line.y1 = cy - (Math.sin(rotated) * len) / 2;
+    line.x2 = cx + (Math.cos(rotated) * len) / 2;
+    line.y2 = cy + (Math.sin(rotated) * len) / 2;
 
-      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
-      if (scored !== null && scored.err + 1e-6 < bestErr) return;
+    const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+    if (scored !== null && scored.err + 1e-6 < bestErr) return;
 
-      line.x1 = originalX1;
-      line.y1 = originalY1;
-      line.x2 = originalX2;
-      line.y2 = originalY2;
-    }
+    line.x1 = originalX1;
+    line.y1 = originalY1;
+    line.x2 = originalX2;
+    line.y2 = originalY2;
   }
 }
 

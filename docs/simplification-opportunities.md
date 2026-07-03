@@ -920,7 +920,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Collapse each to a named scalar and delete the surrounding loop; flatten `X_SHIFT_PASSES` to `[4,1,0.5]`. Where load-bearing, derive from line length / axis resolution instead of fixed pixels/degrees.
 - **Risk:** medium
 - **Generalization note:** Fixed magnitudes don't scale with spec geometry/budget.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Collapsed single-element tuning arrays into named scalars (`AIR_CONTACT_EXTENSION_LENGTH_PX=25`, `SPEED_POLISH_Y_SHIFT_PX=-1`, `SPEED_POLISH_ROTATION_DEG=-4`) and flattened the nested X-shift schedule to one value per pass (`SPEED_POLISH_X_PASS_SHIFTS_PX=[4,1,0.5]` with `SPEED_POLISH_FINE_X_SHIFT_PX=0.5` for the boundary helpers). Removed the now-empty surrounding loops while preserving pass order and rollback points. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 94. `contactExitLineIds` and `contactEntryLineIds` are identical except `sorted[0]` vs `sorted.at(-1)`
 - **Files:** `scripts/v0/core/polish.ts`

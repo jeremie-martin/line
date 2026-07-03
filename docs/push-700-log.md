@@ -546,6 +546,30 @@ little headroom and can displace converged shapes. The useful slice is narrower:
 diversity only while the search is scarce. New baseline is `attempt-m3-scarce-span75-a01`; remaining
 target gap is about +8.72 headline.
 
+### M23 — scarce-tier M3 steep-arrival span 75%→100% · probe INCONCLUSIVE-flat (reverted, 2026-07-03)
+
+**Mechanism.** Fail-fast dose extension on the new accepted baseline: lower the scarce-tier M3
+zero-band from 0.25 to 0.00, so every nonzero attempt below 200k receives the steep-arrival span.
+Mature budgets would remain byte-identical; no production code was kept.
+
+**Probe.** `probe-m3-scarce-span100-125-s0-2-a01` (40 specs × seeds 0..2 × 125k only,
+valid 120/120) vs `attempt-m3-scarce-span75-a01`:
+
+```
+Δ125k = +0.2 · 95% CI [-8.0, 7.5] · P(Δ≤0)=47.0% · effect=0.04
+VERDICT: INCONCLUSIVE-flat (indicative; not promoted to full-grid probe)
+```
+
+**Footprint.** The extra dose only reshuffled the scarce tier. 125k winners:
+`grain_staircase` +30.89, `drums_zigzag` +29.19, `drums_tide` +27.10, `cold_start`
++21.60, `rhythm_ladder` +16.04. Losers: `soar_settle` −40.07,
+`syncopated_switchback` −31.04, `drums_swell` −23.59, `opening_burst` −16.22,
+`drums_crescendo` −13.67.
+
+**Learnings.** The scarce-tier dose has a visible optimum near 75% for the current compiler.
+Going to 100% displaces too many normal scarce-budget shapes and adds no aggregate lift. Keep
+`STEEP_ARRIVAL_SCARCE_ZERO_BAND = 0.25`; do not promote full scarce-tier span unchanged.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

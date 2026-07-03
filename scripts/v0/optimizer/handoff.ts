@@ -26,6 +26,7 @@ import {
   axesAtFrame,
   buildDriftReport,
   buildTrackJson,
+  copyOptionalGapFitFields,
   effectiveAxes,
   engineLineFromTrackLine,
   impactFeasibilityBound,
@@ -1491,19 +1492,8 @@ function cloneGapFit(fit: GapFit): GapFit {
     geometry: fit.geometry,
     lines: fit.lines.map((line) => ({ ...line })),
     achieved: { ...fit.achieved },
-    ...(fit.achievedAtEnd === undefined ? {} : { achievedAtEnd: { ...fit.achievedAtEnd } }),
     cost: fit.cost,
-    ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
-    ...(fit.aimed === undefined ? {} : { aimed: fit.aimed }),
-    ...(fit.releaseVelocityY === undefined ? {} : { releaseVelocityY: fit.releaseVelocityY }),
-    ...(fit.releaseGroundedFrames === undefined
-      ? {}
-      : { releaseGroundedFrames: fit.releaseGroundedFrames }),
-    ...(fit.releaseAirborne === undefined ? {} : { releaseAirborne: fit.releaseAirborne }),
-    ...(fit.ref === undefined ? {} : { ref: { ...fit.ref } }),
-    ...(fit.releaseArrivalState === undefined
-      ? {}
-      : { releaseArrivalState: { ...fit.releaseArrivalState } }),
+    ...copyOptionalGapFitFields(fit, { cloneObjects: true }),
   };
 }
 

@@ -1116,7 +1116,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Group non-load-bearing fields into one optional `fit.telemetry?: {...}` sub-object (or drop purely-diagnostic ones), collapsing the many spread sites; the core type then states which fields drive ranking.
 - **Risk:** medium
 - **Generalization note:** `releaseGroundedFrames`/`releaseArrivalState` ARE read by handoff/objective — partition carefully to avoid changing search behavior.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 94/94; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Added `copyOptionalGapFitFields(...)` to centralize the repeated optional-field spread/clone logic and used it in candidate construction plus `cloneGapFit`. Did not migrate to a nested `telemetry` shape: `releaseVelocityY`/`releaseArrivalState` are ranking/objective inputs, `releaseGroundedFrames`/`releaseAirborne` still feed coverage telemetry, and `aimed` is still counted in compile stats, so a shape migration would be a larger cross-module contract change.
 
 ### 115. `buildDriftReport` re-derives per-axis ceilings inline instead of via the axis registry
 - **Files:** `scripts/v0/core/substrate.ts`

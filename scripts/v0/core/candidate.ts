@@ -37,6 +37,7 @@ import {
 } from "../types.ts";
 import {
   type GapFit,
+  copyOptionalGapFitFields,
   median,
   engineLineFromTrackLine,
   contactLineIdsAt,
@@ -643,17 +644,8 @@ function evaluateCandidateLines(
       geometry,
       lines: best.fit.lines,
       achieved: best.fit.achieved,
-      ...(best.fit.achievedAtEnd === undefined ? {} : { achievedAtEnd: best.fit.achievedAtEnd }),
       cost: best.fit.cost,
-      ...(best.fit.releaseSpeed === undefined ? {} : { releaseSpeed: best.fit.releaseSpeed }),
-      ...(best.fit.releaseVelocityY === undefined ? {} : { releaseVelocityY: best.fit.releaseVelocityY }),
-      ...(best.fit.releaseGroundedFrames === undefined
-        ? {}
-        : { releaseGroundedFrames: best.fit.releaseGroundedFrames }),
-      ...(best.fit.releaseAirborne === undefined ? {} : { releaseAirborne: best.fit.releaseAirborne }),
-      ...(best.fit.releaseArrivalState === undefined
-        ? {}
-        : { releaseArrivalState: best.fit.releaseArrivalState }),
+      ...copyOptionalGapFitFields(best.fit),
     },
     failure: null,
   };
@@ -933,13 +925,15 @@ function evaluateGapFit(
     fit: {
       lines,
       achieved,
-      ...(achievedAtEnd === undefined ? {} : { achievedAtEnd }),
       cost,
       releaseSpeed,
-      ...(releaseVelocity === undefined ? {} : { releaseVelocityY: releaseVelocity.y }),
       releaseGroundedFrames,
-      ...(releaseAirborne === undefined ? {} : { releaseAirborne }),
-      ...(releaseArrivalState === undefined ? {} : { releaseArrivalState }),
+      ...copyOptionalGapFitFields({
+        achievedAtEnd,
+        releaseVelocityY: releaseVelocity?.y,
+        releaseAirborne,
+        releaseArrivalState,
+      }),
     },
     failure: null,
   };

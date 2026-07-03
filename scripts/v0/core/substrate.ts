@@ -95,6 +95,39 @@ export type GapFit = {
   };
 };
 
+type GapFitOptionalFields = Pick<
+  GapFit,
+  | "achievedAtEnd"
+  | "releaseSpeed"
+  | "aimed"
+  | "releaseVelocityY"
+  | "releaseGroundedFrames"
+  | "releaseAirborne"
+  | "ref"
+  | "releaseArrivalState"
+>;
+
+export function copyOptionalGapFitFields(
+  fit: Partial<GapFitOptionalFields>,
+  opts: { cloneObjects?: boolean } = {},
+): Partial<GapFitOptionalFields> {
+  const cloneObjects = opts.cloneObjects === true;
+  const out: Partial<GapFitOptionalFields> = {};
+  if (fit.achievedAtEnd !== undefined) {
+    out.achievedAtEnd = cloneObjects ? { ...fit.achievedAtEnd } : fit.achievedAtEnd;
+  }
+  if (fit.releaseSpeed !== undefined) out.releaseSpeed = fit.releaseSpeed;
+  if (fit.aimed !== undefined) out.aimed = fit.aimed;
+  if (fit.releaseVelocityY !== undefined) out.releaseVelocityY = fit.releaseVelocityY;
+  if (fit.releaseGroundedFrames !== undefined) out.releaseGroundedFrames = fit.releaseGroundedFrames;
+  if (fit.releaseAirborne !== undefined) out.releaseAirborne = fit.releaseAirborne;
+  if (fit.ref !== undefined) out.ref = cloneObjects ? { ...fit.ref } : fit.ref;
+  if (fit.releaseArrivalState !== undefined) {
+    out.releaseArrivalState = cloneObjects ? { ...fit.releaseArrivalState } : fit.releaseArrivalState;
+  }
+  return out;
+}
+
 type WindowDetection = Detection & { frameOffset?: number };
 
 // ─────────── Gap ownership / windowed measurement helpers ───────────

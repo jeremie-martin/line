@@ -359,6 +359,32 @@ shape into the previous gap, but forward selection then sacrifices speed/impact-
 setups on the same rows. Do not add vertical axes to readiness without a joint speed/impact
 collateral model or an additive generation lane.
 
+### M17 — flat `greedy:1` forward eval on current grid · probe INCONCLUSIVE-negative (2026-07-03)
+
+**Mechanism.** Env-priced the historical shallow-rollout candidate on the current accepted
+compiler and canonical budget grid: `LR_FWD_EVAL=greedy:1` (no production code change).
+This rechecks the older high-budget lookahead signal after M4/M3 and the 125k/250k/375k/500k
+grid changed the economics.
+
+**Probe.** `probe-fwd-greedy1-s0-2-a01` (40 specs × seeds 0..2 × canonical budget grid,
+valid 480/480; stored probe HEADLINE 688.29, excl-impact 707.46) vs
+`attempt-no-converting-scoop-a01`:
+
+```
+Δheadline = -1.8 · 95% CI [-7.8, 3.6] · P(Δ≤0)=74.2% · effect=-0.62
+125k -2.4 · 250k -1.8 · 375k -1.0 · 500k -2.2 · validity 100% at every budget
+VERDICT: INCONCLUSIVE-negative (indicative; no production change)
+```
+
+**Footprint.** Shallow rollout now reshuffles rather than maturing into a high-budget win:
+`drums_tide` +23.11, `dense_sprint` +16.99, `rhythm_ladder` +14.78, but
+`drums_swell` −32.68, `drums_pulse` −30.17, `verse_chorus` −23.89, `drums_crescendo`
+−13.68.
+
+**Learnings.** The old `greedy:1` crossover does not survive the current baseline/grid; it is
+negative at every canonical budget on the paired 3-seed intersection. Do not promote a flat
+shallow rollout or spend canonical time on it unchanged.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

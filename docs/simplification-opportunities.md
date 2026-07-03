@@ -704,7 +704,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace with a small monotone analytic surface (speed-sigmoid × angle-Gaussian near the observed optimum, 3-4 named params) fit to the same ground truth; keep the same `(speed, comAngle)→[0,1]`. Extrapolates sanely past 12 px/f.
 - **Risk:** high
 - **Generalization note:** Strongly assumes today's specs + 300k; **note this feeds the scored objective — verify the ruler fingerprint / headline output is preserved or treat as out-of-scope.**
-- **Status:** Not Started
+- **Status:** Rejected — focused tests failed before canonical; replacing the 10×7 table with the six-param speed-sigmoid × angle-Gaussian fit (`base=0.075`, `range=0.886`, speed mid/scale `8.235/0.579`, angle center/sigma `20.716/18.144`) broke the objective-leaf cost invariant (`tests/optimizer_handoff.test.ts:657`: `fwd_eval_frames_charged` 32854 vs required `<30041.4`). A more table-shaped analytic needed many extra parameters and fit the R0 rows worse than production, so no compact low-risk replacement was kept. Source reverted; no canonical run; accepted cumulative Δheadline vs campaign-start baseline remains +4.2.
 
 ### 71. Magic asymmetric-penalty constants in `speedFitFactor`
 - **Files:** `scripts/v0/optimizer/objective.ts`

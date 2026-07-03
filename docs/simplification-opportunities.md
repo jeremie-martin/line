@@ -835,7 +835,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Define `LONG_AIR_GAP_FRAMES = round(FPS)` used in both; express the postContactFrames bound in the same FPS-relative unit.
 - **Risk:** medium
 - **Generalization note:** Bare 60 misbehaves under any non-60fps spec.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Catalog's "60fps/1s" premise was stale because `FPS=40`, so the existing `60`-frame cutoff is 1.5s; preserved behavior by naming `LONG_AIR_GAP_SECONDS=1.5` / `LONG_AIR_GAP_FRAMES=Math.round(FPS*1.5)` and naming the sibling post-contact lookahead as `AIR_LOOKAHEAD_POST_CONTACT_FRAMES=Math.floor(FPS/2)`. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 85. Reverse-fit magic weight `RELEASE_STATE_SPEED_WEIGHT = 0.126`
 - **Files:** `scripts/v0/core/candidate.ts`

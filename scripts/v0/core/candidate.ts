@@ -56,6 +56,9 @@ import { registerCompileReset } from "./compile_lifecycle.ts";
 
 const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
+const LONG_AIR_GAP_SECONDS = 1.5;
+const LONG_AIR_GAP_FRAMES = Math.round(FPS * LONG_AIR_GAP_SECONDS);
+const AIR_LOOKAHEAD_POST_CONTACT_FRAMES = Math.floor(FPS / 2);
 
 /** Survival-window margin (frames past a gap's endFrame). The catch/tail-contact
  *  window `[endFrame, endFrame+SURVIVAL_MARGIN]` holds 100% of observed survival
@@ -1058,7 +1061,7 @@ function shouldTryCandidateRideOut(
   return hasExactlyTargetAxes(gap.targets, ["air"])
     && axisMeasureEnd > gap.endFrame
     && (
-      gap.endFrame - gap.startFrame >= 60
+      gap.endFrame - gap.startFrame >= LONG_AIR_GAP_FRAMES
     );
 }
 
@@ -1073,8 +1076,8 @@ export function axisLookaheadEndFrame(gap: Gap, allContactFrames: number[]): num
   // For long airborne gaps, the catch at gap.endFrame determines most of the
   // air/contact balance after the beat, not before it. Score those candidates
   // through the next beat so ranking can prefer a catch that keeps riding.
-  if (gap.endFrame - gap.startFrame >= 60) return nextContact;
-  if (postContactFrames > Math.floor(FPS / 2)) return nextContact;
+  if (gap.endFrame - gap.startFrame >= LONG_AIR_GAP_FRAMES) return nextContact;
+  if (postContactFrames > AIR_LOOKAHEAD_POST_CONTACT_FRAMES) return nextContact;
   return gap.endFrame;
 }
 

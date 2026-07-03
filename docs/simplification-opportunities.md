@@ -1266,7 +1266,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Consider always sampling a fixed N per node (the header argues candidate count is budget-independent), removing the grow path (`advanceCandidateRng`, `solveAdditionalCandidates`, the `<nCand` branch); keep only exact-hit + prefix-filter (pure branches).
 - **Risk:** high
 - **Generalization note:** The grow path exists so a required contact can request a larger deterministic prefix; removing it assumes no gap ever needs more than N — check against the current spec set.
-- **Status:** Not Started
+- **Status:** Abandoned — the grow path is live rescue machinery, not just cache complexity. Normal handoff first calls `rankedOptions` with the budget-shaped quality `nCand`, then the required-contact dead-end cascade can ask the same node for larger deterministic prefixes via `rescueOptions`: base rescue can request `HANDOFF_RESCUE_BASE_N_CAND + HANDOFF_RESCUE_STARTUP_EXTRA_N_CAND` (up to 80 near startup) and short-deadline rescue requests `HANDOFF_SHORT_RESCUE_N_CAND=80`. The cache comments and unit tests explicitly assert smaller→larger extension and larger→smaller prefix behavior (`tests/optimizer_solver.test.ts`). Removing `solveAdditionalCandidates`/`advanceCandidateRng` would either drop live rescue candidates or make every normal node pay the rescue width; no source change made.
 
 ---
 

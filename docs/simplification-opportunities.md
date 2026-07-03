@@ -880,7 +880,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Document the derivation or express relative to source arc length / expected flight distance; if both rarely win, drop to one.
 - **Risk:** medium
 - **Generalization note:** Fixed pixels may be meaningless for specs far outside the tuned population.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Named the two continuation probes as `AIR_POLISH_LOCAL_CONTINUATION_LENGTH_PX=50` and `AIR_POLISH_RUNWAY_CONTINUATION_LENGTH_PX=300`, and documented the actual role: a two-scale ride-out rescue for already-viable long pure-air lookahead candidates, kept only if a full re-eval lowers current-gap cost. Did not drop either length: no evidence that one scale is inert, and prior low-air ride-out trials show longer/support changes are narrow and seed-sensitive. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 90. Trivial single-use helper `allContactFramesFor` with a misleading name
 - **Files:** `scripts/v0/core/candidate.ts`

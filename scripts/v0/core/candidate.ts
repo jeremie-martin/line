@@ -54,7 +54,18 @@ import { gravityCorrectedLaunchAverage } from "./launch_read.ts";
 import { firstAirborneExitFrame, growShortHorizon } from "./exit_read.ts";
 import { registerCompileReset } from "./compile_lifecycle.ts";
 
-const AIR_POLISH_CONTINUATION_LENGTHS = [50, 300] as const;
+const AIR_POLISH_LOCAL_CONTINUATION_LENGTH_PX = 50;
+const AIR_POLISH_RUNWAY_CONTINUATION_LENGTH_PX = 300;
+/** Two-scale ride-out rescue for long pure-air lookahead gaps. These lines are
+ *  appended only after a candidate already passed the normal gates, then kept
+ *  only when a full re-eval lowers current-gap cost: 50px probes a local
+ *  stabilizer, 300px probes a long grounded runway. Dropping either scale is a
+ *  real selection change, not a cleanup; prior low-air ride-out trials show
+ *  "more/longer" support is narrow and seed-sensitive. */
+const AIR_POLISH_CONTINUATION_LENGTHS = [
+  AIR_POLISH_LOCAL_CONTINUATION_LENGTH_PX,
+  AIR_POLISH_RUNWAY_CONTINUATION_LENGTH_PX,
+] as const;
 const RELEASE_STATE_FRAME_OFFSET = 8;
 const LONG_AIR_GAP_SECONDS = 1.5;
 const LONG_AIR_GAP_FRAMES = Math.round(FPS * LONG_AIR_GAP_SECONDS);

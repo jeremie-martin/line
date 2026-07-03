@@ -658,7 +658,7 @@ function computeShortGapFitDetection(
   gap: Gap,
   axisMeasureEnd: number,
   fullHorizon: number,
-): { det: Detection; stopHorizon: number; suffix: BallisticAxisSuffix } | null {
+): { det: Detection; stopHorizon: number; exitFrame: number; suffix: BallisticAxisSuffix } | null {
   const minExit = gap.endFrame;
   // Cap covers the survival margin (endFrame+SURVIVAL_MARGIN), the catch+8 launch read
   // (endFrame+8+LAUNCH_READ_FRAMES), the impact axis window, and the lookahead
@@ -702,7 +702,7 @@ function computeShortGapFitDetection(
 
   const suffix = ballisticSuffixAtExit(det, exitFrame);
   if (suffix === null) return null;
-  return { det, stopHorizon: horizon, suffix };
+  return { det, stopHorizon: horizon, exitFrame, suffix };
 }
 
 /** Shared smoothed ballistic launch read at `frame`, off the detection arrays
@@ -791,6 +791,7 @@ function evaluateGapFit(
   // measureGapAxes when rangeEndFrame ≤ the detection's last frame). The off-beat
   // / survival measurement boundary clamps to the truncated horizon.
   const ballisticSuffix = truncated ? short.suffix : null;
+  const ballisticExitFrame = truncated ? short.exitFrame : null;
   const measureEnd = truncated ? Math.min(axisMeasureEnd, horizon) : axisMeasureEnd;
   if (truncated) {
     gapfitShortTotals.gapfit_truncated++;
@@ -886,8 +887,10 @@ function evaluateGapFit(
   // That fallback is load-bearing: short rides legitimately never exit (~25%
   // no_exit on tiny_dance) and must keep the catch+8 capture, not be discarded.
   if (POOL_MODE) {
+    // The truncated path already found the clean exit for its ballistic suffix;
+    // pass it through so the release read does not scan the same window again.
     releaseArrivalState = releaseExitArrivalState(
-      det, gap, lines, horizon, allContactFrames,
+      det, gap, lines, horizon, allContactFrames, ballisticExitFrame,
     ) ?? releaseArrivalState;
   }
   return {
@@ -972,15 +975,17 @@ function nextContactBound(
  *  a valid ballistic exit exists, or null to signal "fall back to the catch+8
  *  read" (no exit found, exit rides into the next contact, or unreadable). Every
  *  return path bumps a `release_exit_*` counter. Does NOT touch the cost-term
- *  release fields — only the predicted-arrival ranker state. */
+ *  release fields — only the predicted-arrival ranker state. `knownExitFrame`
+ *  skips the scan when short-horizon detection already located the same exit. */
 function releaseExitArrivalState(
   det: Detection,
   gap: Gap,
   lines: readonly TrackLine[],
   horizon: number,
   allContactFrames: number[],
+  knownExitFrame: number | null = null,
 ): GapFit["releaseArrivalState"] | null {
-  const exitFrame = firstAirborneExitFrame(
+  const exitFrame = knownExitFrame ?? firstAirborneExitFrame(
     lines,
     gap.endFrame,
     horizon,

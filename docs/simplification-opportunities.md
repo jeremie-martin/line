@@ -817,7 +817,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Stash the located `exitFrame` in `computeShortGapFitDetection` and thread it into `releaseExitArrivalState` (or a shared `computeBallisticExit`) so `firstAirborneExitFrame` runs once per eval.
 - **Risk:** medium
 - **Generalization note:** Touches pool-mode arrival state — verify predicted-arrival ranker parity.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Threaded the short-horizon `exitFrame` out of `computeShortGapFitDetection` and into `releaseExitArrivalState` so truncated pool-mode evals reuse the clean exit already found for the ballistic suffix; full-horizon evals still scan as before, and the release helper still owns next-contact rejection, unreadable fallback, and `release_exit_*` counters. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 83. Vestigial `continuation` flag in `makeAirPolishCandidates` / `makeContinuationLines`
 - **Files:** `scripts/v0/core/candidate.ts`

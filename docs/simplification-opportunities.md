@@ -974,7 +974,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Drop `polishMedianGrainPlateau` and keep the analytic `polishMedianGrainResidual` (subsumes it, handles odd counts), or merge plateau detection into the residual pass. The `%2` gate should not survive.
 - **Risk:** medium
 - **Generalization note:** The even-count gate fires based on how many arcs a gap happened to get.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; seed-0/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`; full canonical valid 1920/1920 with headline 688.62→688.62 and 1920/1920 checkpoint `track_hash` match vs #72. Deleted `polishMedianGrainPlateau` and its cascade call, keeping the analytic `polishMedianGrainResidual` as the sole median-grain pass. Accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 100. Repeated `durationFrames + 20` simulation-tail literal (~20 call sites)
 - **Files:** `scripts/v0/core/polish.ts`

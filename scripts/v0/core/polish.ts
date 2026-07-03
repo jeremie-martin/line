@@ -655,7 +655,6 @@ export function polishExcessContact(
   polishEntrySpeed(fits, gaps, spec, contactFrames, durationFrames);
   polishEntrySlope(fits, gaps, spec, contactFrames, durationFrames);
   polishEntryLength(fits, gaps, spec, contactFrames, durationFrames);
-  polishMedianGrainPlateau(fits, gaps, spec, contactFrames, durationFrames);
   polishMedianGrainResidual(fits, gaps, spec, contactFrames, durationFrames);
   polishEntrySpeed(fits, gaps, spec, contactFrames, durationFrames);
   polishEntrySpeedX(fits, gaps, spec, contactFrames, durationFrames);
@@ -1346,107 +1345,6 @@ function polishEntryLength(
     }
     if (!accepted) break;
   }
-}
-
-function polishMedianGrainPlateau(
-  fits: (GapFit | null)[],
-  gaps: Gap[],
-  spec: Spec,
-  contactFrames: number[],
-  durationFrames: number,
-): void {
-  if (!shouldPolishGrainLength(spec)) return;
-
-  const baseDet = simulateAndDetect(fits, gaps, durationFrames);
-  if (!passesFinalHardGates(baseDet, contactFrames)) return;
-
-  const bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
-  let best:
-    | {
-      owner: number;
-      lines: {
-        line: TrackLine;
-        x1: number;
-        y1: number;
-        x2: number;
-        y2: number;
-      }[];
-      err: number;
-    }
-    | null = null;
-
-  for (let owner = 0; owner < fits.length; owner++) {
-    const fit = fits[owner];
-    if (fit === null || fit.lines.length < 2 || fit.lines.length % 2 !== 0) continue;
-
-    const sorted = fit.lines
-      .map((line) => ({ line, len: Math.hypot(line.x2 - line.x1, line.y2 - line.y1) }))
-      .sort((a, b) => a.len - b.len);
-    const upperMedian = sorted[fit.lines.length / 2].len;
-    const plateau = sorted
-      .filter((entry) => Math.abs(entry.len - upperMedian) < 1e-6)
-      .map((entry) => entry.line);
-    if (plateau.length < 2) continue;
-
-    for (const extra of GRAIN_LENGTH_EXTRAS) {
-      for (const side of ["end", "start"] as const) {
-        const originals = plateau.map((line) => ({
-          line,
-          x1: line.x1,
-          y1: line.y1,
-          x2: line.x2,
-          y2: line.y2,
-        }));
-
-        for (const original of originals) {
-          const dx = original.x2 - original.x1;
-          const dy = original.y2 - original.y1;
-          const len = Math.hypot(dx, dy);
-          if (len <= 0) continue;
-          if (side === "end") {
-            original.line.x2 = original.x2 + (dx / len) * extra;
-            original.line.y2 = original.y2 + (dy / len) * extra;
-          } else {
-            original.line.x1 = original.x1 - (dx / len) * extra;
-            original.line.y1 = original.y1 - (dy / len) * extra;
-          }
-        }
-
-        const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
-        if (scored !== null) {
-          if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
-            best = {
-              owner,
-              lines: originals.map((original) => ({
-                line: original.line,
-                x1: original.line.x1,
-                y1: original.line.y1,
-                x2: original.line.x2,
-                y2: original.line.y2,
-              })),
-              err: scored.err,
-            };
-          }
-        }
-
-        for (const original of originals) {
-          original.line.x1 = original.x1;
-          original.line.y1 = original.y1;
-          original.line.x2 = original.x2;
-          original.line.y2 = original.y2;
-        }
-      }
-    }
-  }
-
-  if (best === null) return;
-  for (const line of best.lines) {
-    line.line.x1 = line.x1;
-    line.line.y1 = line.y1;
-    line.line.x2 = line.x2;
-    line.line.y2 = line.y2;
-  }
-  updateGeometryAxes(fits[best.owner]!);
 }
 
 function polishMedianGrainResidual(

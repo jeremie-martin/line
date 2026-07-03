@@ -174,7 +174,7 @@ const IMPACT_TEMPLATE_SCOOP_MIN_SPEC_MEAN_IMPACT = 0.55;
 const IMPACT_TEMPLATE_END_ANGLE_MIN_DEG = -28;
 const IMPACT_TEMPLATE_BUDGET_START_FRAMES = 50_000;
 const IMPACT_TEMPLATE_BUDGET_SPAN_FRAMES = 50_000;
-const IMPACT_TEMPLATE_AMP_ONLY_SPARSE_NEXT_GAP_FRAMES = Math.round(FPS * 1.25);
+const IMPACT_TEMPLATE_HOP_MIN_ROOM_FRAMES = Math.round(FPS * 1.25);
 const IMPACT_TEMPLATE_HOLD_BUDGET_START_FRAMES = 125_000;
 const IMPACT_TEMPLATE_HOLD_BUDGET_SPAN_FRAMES = 125_000;
 const IMPACT_TEMPLATE_HOLD_AIR_START = 0.22;
@@ -1382,12 +1382,16 @@ function impactTemplateVerticalCompatible(
 ): boolean {
   const hasAmplitude = targets.amplitude !== undefined;
   const hasElevation = targets.elevation !== undefined;
-  if (hasAmplitude && !hasElevation) {
-    return gapFrames >= IMPACT_TEMPLATE_AMP_ONLY_SPARSE_NEXT_GAP_FRAMES
-      && nextGapFrames !== null
-      && nextGapFrames >= IMPACT_TEMPLATE_AMP_ONLY_SPARSE_NEXT_GAP_FRAMES;
-  }
-  return hasAmplitude === hasElevation;
+  if (!hasAmplitude && !hasElevation) return true;
+  if (hasAmplitude && hasElevation) return true;
+  if (hasAmplitude) return impactTemplateHasHopRoom(gapFrames, nextGapFrames);
+  return false;
+}
+
+function impactTemplateHasHopRoom(gapFrames: number, nextGapFrames: number | null): boolean {
+  return nextGapFrames !== null
+    && gapFrames >= IMPACT_TEMPLATE_HOP_MIN_ROOM_FRAMES
+    && nextGapFrames >= IMPACT_TEMPLATE_HOP_MIN_ROOM_FRAMES;
 }
 
 function contactCenteredRedirContactAngleShiftDeg(

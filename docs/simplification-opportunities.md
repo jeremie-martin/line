@@ -655,7 +655,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace with an explicit documented predicate (allow the slam-hop when vertical asks don't conflict, via a continuous room/compatibility check), dropping the `===` cleverness and FPS*1.25 in favor of a named minimum-gap-for-hop constant.
 - **Risk:** medium
 - **Generalization note:** FPS*1.25 assumes current cadence density.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.8 (full canonical vs current #64 baseline `simplify-64-delete-arc-placement-compat-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match; focused tests 76/76). Replaced the opaque `hasAmplitude === hasElevation` return with explicit no-vertical / both-vertical / amplitude-only / elevation-only cases and renamed the sparse-hop threshold to `IMPACT_TEMPLATE_HOP_MIN_ROOM_FRAMES` behind `impactTemplateHasHopRoom(...)`, preserving eligibility exactly. The broader continuous-room/elevation-only retune was not attempted in this low-risk structural pass.
 
 ### 66. Slam-hop template lane is a multi-gate cascade (probabilistic + modular + threshold)
 - **Files:** `scripts/v0/arc_placement.ts`

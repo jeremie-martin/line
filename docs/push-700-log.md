@@ -570,6 +570,31 @@ VERDICT: INCONCLUSIVE-flat (indicative; not promoted to full-grid probe)
 Going to 100% displaces too many normal scarce-budget shapes and adds no aggregate lift. Keep
 `STEEP_ARRIVAL_SCARCE_ZERO_BAND = 0.25`; do not promote full scarce-tier span unchanged.
 
+### M24 — scarce-tier aim base count K=4→3 · probe REJECT (env-only, 2026-07-03)
+
+**Mechanism.** Env-only cost-saving check on the new accepted baseline:
+`LR_AIM_TOPK_BASES=3` with a 125k-only full-spec probe. This simulates lowering non-low-air aim
+breadth at the scarce tier while leaving the mature K=6 default out of scope. No production code
+change.
+
+**Probe.** `probe-aim-k3-125-s0-2-a01` (40 specs × seeds 0..2 × 125k only, valid 120/120)
+vs `attempt-m3-scarce-span75-a01`:
+
+```
+Δ125k = -3.8 · 95% CI [-12.2, 4.1] · P(Δ≤0)=83.1% · effect=-0.93
+VERDICT: REJECT (indicative; not promoted to full-grid probe)
+```
+
+**Footprint.** The lower K frees some budget but removes important aimed bases. 125k winners:
+`drums_crosscut` +30.11, `drums_zigzag` +23.40, `grain_staircase` +20.13,
+`terrace_sprint` +13.93, `rhythm_ladder` +13.00. Losers are larger and more diagnostic:
+`syncopated_switchback` −38.51, `glide_stairs` −37.89, `syncopated_lift` −36.26,
+`drums_swell` −30.47, `drums_crescendo` −21.04.
+
+**Learnings.** The accepted K=4 scarce-tier aim breadth is still earning its cost. The 125k
+problem is not solved by reducing non-low-air aim bases; keep K=4 at 125k and K=6 at mature
+budgets.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

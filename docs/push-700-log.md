@@ -473,6 +473,36 @@ The losses were larger and broad: `drums_swell` −32.59, `tiny_dance` −27.16,
 rotate-probe options; the damage is mature-budget-wide, not a 125k starvation artifact. Keep the
 default `cross5` aim probe design and do not retry pitch-only unchanged.
 
+### M21 — high-air short-tail floor · targeted REJECT (reverted, 2026-07-03)
+
+**Mechanism.** Temporarily relaxed the normal sampler's air-targeted post-tail minimum from
+28px toward 16px only for high-air asks (`air` ramping from 0.68 to 0.92). This was a narrow
+generation-side attempt to address the remaining `air >= 0.75` undershoot without changing the
+scorer, airFit, aim model, specs, or low/mid-air rows.
+
+**Validation.** Focused optimizer/arc suite passed:
+`LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts`
+→ 6 files, 77 tests.
+
+**Probe.** `probe-highair-tail16-target-s0-2-a01` (16 high-air-undershoot specs × seeds 0..2
+× canonical budget grid, valid 192/192) vs `attempt-no-converting-scoop-a01`:
+
+```
+Δheadline = -2.7 · 95% CI [-8.0, 1.0] · P(Δ≤0)=91.5% · effect=-1.22
+125k +5.2 · 250k -4.8 · 375k -4.3 · 500k -2.4 · validity 100% at every budget
+VERDICT: REJECT (indicative targeted panel; not promoted to full-suite probe)
+```
+
+**Footprint.** Only five of sixteen specs materially moved. `opening_burst` gained +7.47
+weighted, but mature-budget losses dominated: `drums_crescendo` −15.24, `rhythm_ladder`
+−9.99, `dense_sprint` −9.45, `syncopated_switchback` −9.15, `drums_pendulum` −3.30.
+On the exact paired 500k high-air subset (`air >= 0.75`), air RMS worsened slightly:
+0.1088 → 0.1099.
+
+**Learnings.** The 28px tail floor is not the active high-air bottleneck; shortening it buys a
+scarce-budget reshuffle but harms mature trajectory quality and does not reduce the intended
+high-air residual. Code was reverted; do not retry short-tail floor relaxation unchanged.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

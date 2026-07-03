@@ -1220,7 +1220,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Split into `observeShort` (production, no per-line `if full`) and a thin `observeFull` imported only by studies.
 - **Risk:** medium
 - **Generalization note:** Must preserve the study tools consuming full + truth rows.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (focused optimizer/arc tests 94/94 passed; 1-seed/40-spec/4-budget track_hash diff vs `simplify-72-impact-ask-pressure-ramp-a01` matched 160/160 with evaluator fingerprint `de24a421f751`). Split the shared mode-branching observer into a production short observer and a full comparison observer, while preserving the public `includeTruth`/`mode` option surface used by studies.
 
 ### 126. `directOutputs` vs latent model space are two near-duplicate reductions of the same row (empirically a wash)
 *(cross-ref aim entry #46)*

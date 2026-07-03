@@ -109,14 +109,16 @@ export function evaluateJointArcLines(
   const fork = engine.addLine(lines.map((line) => engineLineFromTrackLine(line)));
   const mode = options.mode ?? "short";
   const directOutputs = options.directOutputs ?? false;
-  const observed = observeJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, mode, directOutputs);
+  const observed = mode === "full"
+    ? observeFullJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame)
+    : observeShortJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, directOutputs);
   const truth = options.includeTruth && mode !== "full"
-    ? observeJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame, "full", false)
+    ? observeFullJointArcLines(fork, lines, knobs, gap, contactFrames, axisMeasureEnd, nextFrame)
     : undefined;
   return { ...observed, lines, ...(truth === undefined ? {} : { truth }) };
 }
 
-function observeJointArcLines(
+function observeShortJointArcLines(
   // deno-lint-ignore no-explicit-any
   fork: any,
   lines: TrackLine[],
@@ -125,40 +127,26 @@ function observeJointArcLines(
   contactFrames: readonly number[],
   axisMeasureEnd: number,
   nextFrame: number,
-  mode: JointArcProbeMode,
   directOutputs: boolean,
 ): JointArcProbeObservation {
-  const horizon = mode === "full"
-    ? fullProbeHorizon(gap, axisMeasureEnd, nextFrame)
-    : shortProbeHorizon(fork, lines, gap, nextFrame);
+  const horizon = shortProbeHorizon(fork, lines, gap, nextFrame);
   const det = detectWindow(fork, gap.startFrame, horizon);
 
-  const minSurvival = mode === "full"
-    ? Math.max(gap.endFrame + 16, axisMeasureEnd)
-    : Math.min(horizon, axisMeasureEnd);
+  const minSurvival = Math.min(horizon, axisMeasureEnd);
   const survivedCurrent = det.terminus.frame >= minSurvival || det.terminus.reason === "endOfSpec";
-  const owned = new Set(lines.map((line) => line.id));
-  const landingOk = det.events.some((e) =>
-    e.type === "landing" &&
-    Math.abs(e.frame - gap.endFrame) <= 1 &&
-    contactLineIdsAt(det, e.frame).some((id) => owned.has(id))
-  );
-  const offBeatEnd = mode === "full" ? axisMeasureEnd : Math.min(axisMeasureEnd, horizon);
+  const landingOk = landingOnOwnedArc(det, lines, gap);
+  const offBeatEnd = Math.min(axisMeasureEnd, horizon);
   const offBeatLandings = countOffBeatLandings(det.events, gap.startFrame, offBeatEnd, [...contactFrames]);
   const currentOk = survivedCurrent && landingOk && offBeatLandings === 0;
-  const suffixFrame = mode === "full"
-    ? null
-    : firstAirborneExitFrameAtOrAfter(fork, det, lines, gap.endFrame, horizon);
+  const suffixFrame = firstAirborneExitFrameAtOrAfter(fork, det, lines, gap.endFrame, horizon);
   const suffixRead = suffixFrame === null ? null : readLaunchState(fork, det, suffixFrame, horizon);
   const suffixState = suffixRead?.state ?? null;
   const cleanAirborneSuffix = suffixFrame === null ? null : cleanAirborneRange(det, suffixFrame, horizon);
-  const nextStateOk = mode === "full"
-    ? det.terminus.frame >= nextFrame || det.terminus.reason === "endOfSpec"
-    : suffixState !== null && suffixFrame !== null && suffixFrame <= nextFrame;
+  const nextStateOk = suffixState !== null && suffixFrame !== null && suffixFrame <= nextFrame;
 
   const outputs: Record<string, number> = {};
   const latentOutputs: Record<string, number> = {};
-  if (mode === "short" && suffixFrame !== null && suffixState !== null) {
+  if (suffixFrame !== null && suffixState !== null) {
     addLatentSuffixOutputs(latentOutputs, suffixFrame, suffixState);
     if (directOutputs) {
       // Direct model-space: write the SAME ballistic reduction the latent
@@ -190,12 +178,8 @@ function observeJointArcLines(
     }
   }
   if (currentOk) {
-    const suffix = mode === "full" || suffixState === null || suffixFrame === null
-      ? null
-      : ballisticAxisSuffix(suffixFrame, suffixState);
-    const achieved = mode === "full"
-      ? measureGapAxes(det, gap, lines, axisMeasureEnd)
-      : measureGapAxesWithBallisticSuffix(det, gap, lines, axisMeasureEnd, suffix);
+    const suffix = suffixState === null || suffixFrame === null ? null : ballisticAxisSuffix(suffixFrame, suffixState);
+    const achieved = measureGapAxesWithBallisticSuffix(det, gap, lines, axisMeasureEnd, suffix);
     Object.assign(outputs, arcResponseOutputs(gap.targets, achieved, axisCost(gap.targets, achieved), null));
     if (suffixState !== null) {
       addFinite(outputs, "current.releaseSpeedPx", suffixState.speed);
@@ -203,16 +187,11 @@ function observeJointArcLines(
     }
   }
 
-  if (nextStateOk && mode === "full") {
-    const state = readArrivalState(fork, nextFrame);
-    if (state !== null) Object.assign(outputs, stateOutputs(state));
-  }
-
   return {
     knobs,
     outputs,
     ...(Object.keys(latentOutputs).length === 0 ? {} : { latentOutputs }),
-    mode,
+    mode: "short",
     horizonFrame: horizon,
     suffixFrame,
     cleanAirborneSuffix,
@@ -227,6 +206,66 @@ function observeJointArcLines(
       terminusReason: det.terminus.reason,
     },
   };
+}
+
+function observeFullJointArcLines(
+  // deno-lint-ignore no-explicit-any
+  fork: any,
+  lines: TrackLine[],
+  knobs: ArcKnobs,
+  gap: Gap,
+  contactFrames: readonly number[],
+  axisMeasureEnd: number,
+  nextFrame: number,
+): JointArcProbeObservation {
+  const horizon = fullProbeHorizon(gap, axisMeasureEnd, nextFrame);
+  const det = detectWindow(fork, gap.startFrame, horizon);
+
+  const minSurvival = Math.max(gap.endFrame + 16, axisMeasureEnd);
+  const survivedCurrent = det.terminus.frame >= minSurvival || det.terminus.reason === "endOfSpec";
+  const landingOk = landingOnOwnedArc(det, lines, gap);
+  const offBeatLandings = countOffBeatLandings(det.events, gap.startFrame, axisMeasureEnd, [...contactFrames]);
+  const currentOk = survivedCurrent && landingOk && offBeatLandings === 0;
+  const nextStateOk = det.terminus.frame >= nextFrame || det.terminus.reason === "endOfSpec";
+
+  const outputs: Record<string, number> = {};
+  if (currentOk) {
+    const achieved = measureGapAxes(det, gap, lines, axisMeasureEnd);
+    Object.assign(outputs, arcResponseOutputs(gap.targets, achieved, axisCost(gap.targets, achieved), null));
+  }
+
+  if (nextStateOk) {
+    const state = readArrivalState(fork, nextFrame);
+    if (state !== null) Object.assign(outputs, stateOutputs(state));
+  }
+
+  return {
+    knobs,
+    outputs,
+    mode: "full",
+    horizonFrame: horizon,
+    suffixFrame: null,
+    cleanAirborneSuffix: null,
+    launchReadFrames: null,
+    gate: {
+      currentOk,
+      survivedCurrent,
+      landingOk,
+      offBeatLandings,
+      nextStateOk,
+      terminusFrame: det.terminus.frame,
+      terminusReason: det.terminus.reason,
+    },
+  };
+}
+
+function landingOnOwnedArc(det: ReturnType<typeof detectWindow>, lines: readonly TrackLine[], gap: Gap): boolean {
+  const owned = new Set(lines.map((line) => line.id));
+  return det.events.some((e) =>
+    e.type === "landing" &&
+    Math.abs(e.frame - gap.endFrame) <= 1 &&
+    contactLineIdsAt(det, e.frame).some((id) => owned.has(id))
+  );
 }
 
 function fullProbeHorizon(gap: Gap, axisMeasureEnd: number, nextFrame: number): number {
@@ -369,4 +408,3 @@ function riderUsable(rider: any): boolean {
   }
   return true;
 }
-

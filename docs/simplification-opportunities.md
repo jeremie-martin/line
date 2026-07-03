@@ -1134,7 +1134,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Express suffix completion via the same accumulators the base reductions use (have `measureAir`/`measureSpeed`/`measureElevation` accept a frame-value provider so ballistic frames are "more frames"), removing the summary/complete pair; at minimum unify the per-axis weighting math.
 - **Risk:** medium
 - **Generalization note:** On candidate.ts/arc_probe.ts air-gap paths; must preserve exact frame-weighting to stay byte-identical.
-- **Status:** Not Started
+- **Status:** Abandoned — out of scope without an intentional evaluator-ruler migration. The summary/completion functions and `measureGapAxesWithBallisticSuffix` live inside `axisMeasurementFingerprintSource()` (`measure.ts` from the air-reduction comment through EOF); #108 confirmed that even byte-identical-looking helper extraction in this slice changes the live fingerprint. No source change made.
 
 ---
 

@@ -641,6 +641,10 @@ export function polishExcessContact(
   }
 
   polishContactEdges(fits, gaps, spec, contactFrames, durationFrames, baseDet, bestErr);
+  // Entry-speed runs twice by design: once after contact trimming, then again
+  // after slope/length/median-grain edits that can move the entry line and
+  // reintroduce speed error. Keep this as an explicit cascade rather than a
+  // fixed-point loop; the sub-polishers mix best-of and accept-first semantics.
   polishGrainLength(fits, gaps, spec, contactFrames, durationFrames);
   polishEntrySpeed(fits, gaps, spec, contactFrames, durationFrames);
   polishEntrySlope(fits, gaps, spec, contactFrames, durationFrames);

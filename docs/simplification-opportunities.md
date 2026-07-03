@@ -938,7 +938,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Iterate the cascade to a fixed point (loop until no sub-polisher improves), calling each once per iteration; or document/justify the double call; if inert on the canonical set, delete the second.
 - **Risk:** medium
 - **Generalization note:** A hard-coded pass order tuned on 40 specs; a fixed-point loop generalizes.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical documentation cleanup, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Added an in-code rationale for the explicit second `polishEntrySpeed` call: it first corrects speed after contact trimming, then runs again after slope/length/median-grain edits that can move the entry line and reintroduce speed error. Did not delete the second call or convert the cascade to a fixed-point loop; both would be real selection changes because the sub-polishers mix best-of and accept-first semantics. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 96. Two boundary-refinement helpers use arbitrarily different step schedules
 - **Files:** `scripts/v0/core/polish.ts`

@@ -81,6 +81,9 @@ const SPEED_POLISH_Y_SHIFT_PX = -1;
 const SPEED_POLISH_FINE_X_SHIFT_PX = 0.5;
 const SPEED_POLISH_X_PASS_SHIFTS_PX = [4, 1, SPEED_POLISH_FINE_X_SHIFT_PX] as const;
 const SPEED_POLISH_BOUNDARY_PASSES = 2;
+const SPEED_POLISH_X_BOUNDARY_OVERSHOOT_FRACTION = 0.1;
+const SPEED_POLISH_Y_BOUNDARY_INITIAL_FRACTION = 0.5;
+const SPEED_POLISH_Y_BOUNDARY_STEP_DECAY = 0.5;
 const SPEED_POLISH_ROTATION_DEG = -4;
 
 export function polishAirRideOut(
@@ -756,7 +759,10 @@ function polishEntrySpeedXBoundary(
 
   const coarseShift = Math.abs(SPEED_POLISH_FINE_X_SHIFT_PX);
   if (coarseShift <= 0) return;
-  const refinementStep = coarseShift / 10;
+  // X boundary refinement uses a single crossing nudge per pass. The +10%
+  // overshoot makes the shift distinct from the preceding fine X pass while the
+  // Y boundary below uses smaller halving steps to avoid vertical contact churn.
+  const refinementStep = coarseShift * SPEED_POLISH_X_BOUNDARY_OVERSHOOT_FRACTION;
 
   let baseDet = initialDet;
   let bestErr = initialErr;
@@ -821,9 +827,13 @@ function polishEntrySpeedYBoundary(
 
   let baseDet = initialDet;
   let bestErr = initialErr;
-  let step = coarseShift / 2;
+  let step = coarseShift * SPEED_POLISH_Y_BOUNDARY_INITIAL_FRACTION;
 
-  for (let pass = 0; pass <= SPEED_POLISH_BOUNDARY_PASSES; pass++, step /= 2) {
+  for (
+    let pass = 0;
+    pass <= SPEED_POLISH_BOUNDARY_PASSES;
+    pass++, step *= SPEED_POLISH_Y_BOUNDARY_STEP_DECAY
+  ) {
     const speedDelta = meanSpeedDelta(baseDet, spec);
     if (!Number.isFinite(speedDelta) || Math.abs(speedDelta) <= 1e-9) break;
     const direction = speedDelta > 0 ? -1 : 1;

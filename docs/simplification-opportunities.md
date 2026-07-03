@@ -947,7 +947,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Unify into one `refineBoundaryShift(axis, ...)` using the Y-style halving for both; delete or justify the `/10` addend.
 - **Risk:** medium
 - **Generalization note:** Both step size and `/10` are fixed pixels, not resolution-relative.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Named the asymmetric boundary schedules instead of unifying them: `SPEED_POLISH_X_BOUNDARY_OVERSHOOT_FRACTION=0.1` documents the X-only crossing nudge beyond the preceding fine X pass, while `SPEED_POLISH_Y_BOUNDARY_INITIAL_FRACTION=0.5` and `SPEED_POLISH_Y_BOUNDARY_STEP_DECAY=0.5` document the vertical halving schedule. Did not convert X to the Y-style halving loop; that would be a real behavior change needing canonical evidence. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 97. Air-polish family gated on the narrow `hasOnlyAirSectionTargets` predicate
 - **Files:** `scripts/v0/core/polish.ts`

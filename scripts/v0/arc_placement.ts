@@ -219,6 +219,8 @@ const STEEP_ARRIVAL_DELTA_MAX_DEG = 15;
 const STEEP_ARRIVAL_ABS_CAP_DEG = 40;
 const STEEP_ARRIVAL_SPAN_SALT = 11;
 const STEEP_ARRIVAL_ZERO_BAND = 0.8;
+const STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES = 200_000;
+const STEEP_ARRIVAL_SCARCE_ZERO_BAND = 0.25;
 
 // Study-only marker: was the LAST geometry produced by sampleContactCenteredLines an
 // impact template lane? Read by the landing-window probe (core/candidate.ts) to
@@ -1270,10 +1272,15 @@ function sampleContactCenteredLines(
       nextGapFrames,
     );
     if (deltaMax > 0.01) {
+      const zeroBand =
+        currentCompileBudgetFrames > 0 &&
+          currentCompileBudgetFrames < STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES
+          ? STEEP_ARRIVAL_SCARCE_ZERO_BAND
+          : STEEP_ARRIVAL_ZERO_BAND;
       const spanRoll = Math.max(
         0,
-        (lowDiscrepancyRoll(attempt, STEEP_ARRIVAL_SPAN_SALT) - STEEP_ARRIVAL_ZERO_BAND) /
-          (1 - STEEP_ARRIVAL_ZERO_BAND),
+        (lowDiscrepancyRoll(attempt, STEEP_ARRIVAL_SPAN_SALT) - zeroBand) /
+          (1 - zeroBand),
       );
       const delta = deltaMax * spanRoll;
       if (delta > 0.01) {

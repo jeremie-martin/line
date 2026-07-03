@@ -23,7 +23,10 @@ export const OBJECTIVE_READINESS_MIN = 0.1;
 export const OBJECTIVE_SPEED_SCALE_PXF = 0.75;
 /** Too-fast mean-speed residuals are cheaper than too-slow residuals. */
 export const OBJECTIVE_SPEED_OVERSHOOT_PENALTY_WEIGHT = 0.5;
-export const OBJECTIVE_IMPACT_MIN_ASK = 0.3;
+export const OBJECTIVE_IMPACT_ASK_RAMP_START = 0.2;
+export const OBJECTIVE_IMPACT_ASK_RAMP_SPAN = 0.2;
+export const OBJECTIVE_IMPACT_TARGETED_ASK =
+  OBJECTIVE_IMPACT_ASK_RAMP_START + OBJECTIVE_IMPACT_ASK_RAMP_SPAN / 2;
 /** Air-fit exp scale, in airborne-fraction units (air ∈ [0,1]). */
 export const OBJECTIVE_AIR_SCALE = 0.25;
 /** Inert band around the (floor-clamped) air ask: prediction noise on the
@@ -236,13 +239,23 @@ function impactFeasibilityFactor(
 ): number {
   // FEASIBILITY, not scored error: "can this arrival state deliver the next beat's
   // impact ask?", clamped to [0,1]. So OVER-delivering impact is free here (the scorer
-  // penalizes overshoot separately and symmetrically), and asks below
-  // OBJECTIVE_IMPACT_MIN_ASK are treated as no-constraint (returns 1). This is an
-  // intentional divergence from the scorer's additive equal-weight impact axis — it
-  // gates readiness, it does not reproduce the impact score.
+  // penalizes overshoot separately and symmetrically). Low asks are blended in gradually:
+  // tiny impact targets remain no-constraint, mid asks add partial pressure, and hard asks
+  // use the full feasibility term. This intentionally diverges from the scorer's additive
+  // equal-weight impact axis — it gates readiness, it does not reproduce the impact score.
   const impactAsk = nextTargets.impact;
-  if (impactAsk === undefined || impactAsk < OBJECTIVE_IMPACT_MIN_ASK || state.comAngleDeg === null) return 1;
-  return impactFeasibility(state.speed, state.comAngleDeg, impactAsk);
+  if (impactAsk === undefined || state.comAngleDeg === null) return 1;
+  const pressure = impactAskPressure(impactAsk);
+  if (pressure <= 0) return 1;
+  const feasibility = impactFeasibility(state.speed, state.comAngleDeg, impactAsk);
+  return 1 + (feasibility - 1) * pressure;
+}
+
+export function impactAskPressure(impactAsk: number): number {
+  return smoothstep01(
+    (impactAsk - OBJECTIVE_IMPACT_ASK_RAMP_START) /
+      OBJECTIVE_IMPACT_ASK_RAMP_SPAN,
+  );
 }
 
 /**
@@ -266,4 +279,9 @@ export function impactFeasibility(speed: number, comAngleDeg: number, impactAsk:
     1,
     Math.max(0, (speed * deliverableTurnRad) / impactToRedirArcPx(impactAsk)),
   );
+}
+
+function smoothstep01(x: number): number {
+  const t = Math.max(0, Math.min(1, x));
+  return t * t * (3 - 2 * t);
 }

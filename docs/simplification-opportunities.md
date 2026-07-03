@@ -723,7 +723,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Remove the discrete gate (impactFeasibility already returns ~1 for tiny asks) or replace with a smoothstep ramp between ~0.2 and ~0.4.
 - **Risk:** medium
 - **Generalization note:** Cliff tuned against the current beat-authoring distribution. (Objective feeds scoring — verify fingerprint impact.)
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.7, P(Δ≤-0.1)=17.5%, cumulative Δheadline vs campaign-start baseline +5.0 (full canonical vs current #68 baseline `simplify-68-continuous-dense-spacing-post-cap-a01`; valid 1920/1920, fingerprint unchanged; 1171/1920 `track_hash` match, 749 changed; focused tests 77/77). Replaced the hard `OBJECTIVE_IMPACT_MIN_ASK=0.3` no-constraint cliff with `impactAskPressure(...)`, a smooth 0.2→0.4 ask ramp that blends no-constraint readiness into full feasibility, and moved the telemetry-only handoff impact-targeted split to the ramp midpoint.
 
 ### 73. `OBJECTIVE_READINESS_MIN=0.1` catchability floor is an unexplained clamp
 - **Files:** `scripts/v0/optimizer/objective.ts`

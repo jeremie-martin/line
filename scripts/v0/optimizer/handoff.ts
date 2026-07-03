@@ -92,7 +92,7 @@ import {
 import {
   frontierReadinessFromFit,
   nextContactGapIndex,
-  OBJECTIVE_IMPACT_MIN_ASK,
+  OBJECTIVE_IMPACT_TARGETED_ASK,
 } from "./objective.ts";
 import {
   AXIS_QUALITY_TOLERANCE,
@@ -3436,10 +3436,10 @@ function recordFwdEvalAgreement(
   // Quality-rank of the forward winner.
   fwdEvalTotals.fwd_quality_rank_of_winner_sum += winner.rank;
   // Impact-targeted classification (per-pool gap target), split by agree/disagree.
-  // Telemetry-only; share the scorer's impact-ask cutoff so the classifier can't
-  // drift from OBJECTIVE_IMPACT_MIN_ASK (was a stray inline 0.35).
+  // Telemetry-only; split at the objective ramp midpoint so the classifier can't
+  // drift back to the old stray inline 0.35.
   const impactTargeted = impactTarget !== undefined &&
-    impactTarget >= OBJECTIVE_IMPACT_MIN_ASK;
+    impactTarget >= OBJECTIVE_IMPACT_TARGETED_ASK;
   if (agree) {
     if (impactTargeted) fwdEvalTotals.fwd_agree_impact_targeted++;
     else fwdEvalTotals.fwd_agree_not_impact_targeted++;

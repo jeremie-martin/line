@@ -13,6 +13,8 @@ import {
   OBJECTIVE_SPEED_OVERSHOOT_PENALTY_WEIGHT,
   OBJECTIVE_SPEED_SCALE_PXF,
   frontierReadinessFromFit,
+  impactAskPressure,
+  impactFeasibility,
   predictArrivalAtNextContact,
   scoreCurrentTargetQuality,
   scoreGapObjectiveForTargets,
@@ -109,6 +111,18 @@ describe("unified objective quality score", () => {
     expect(scored!.speedFit).toBeCloseTo(speedFit, 12);
     expect(scored!.impactFeasibility).toBeCloseTo(impactFeasibility, 12);
     expect(scored!.readiness).toBeCloseTo(catchability * speedFit * impactFeasibility, 12);
+  });
+
+  test("soft impact asks blend no-constraint readiness into feasibility", () => {
+    const arrival = { speed: 6, comAngleDeg: 5 };
+    const impactAsk = 0.3;
+    const scored = scoreNextTargetReadiness(arrival, { impact: impactAsk });
+    expect(scored).not.toBeNull();
+
+    const pressure = impactAskPressure(impactAsk);
+    const feasibility = impactFeasibility(arrival.speed, arrival.comAngleDeg, impactAsk);
+    expect(pressure).toBeCloseTo(0.5, 12);
+    expect(scored!.impactFeasibility).toBeCloseTo(1 + (feasibility - 1) * pressure, 12);
   });
 
   test("readiness still scores catchability when the next gap has no speed or impact ask", () => {

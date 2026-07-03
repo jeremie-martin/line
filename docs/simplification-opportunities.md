@@ -534,7 +534,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Fold the low-air discount into the continuous K surface (probing a low-air gap yields less → higher probe-cost weight) rather than a hard `air<=0.30 → min(K,3)` branch.
 - **Risk:** medium
 - **Generalization note:** 0.30/3 tuned to current air distribution; a spec clustering near 0.30 sees a cliff.
-- **Status:** Not Started
+- **Status:** Abandoned — not a clean standalone simplification after #49. The direct deletion would remove the low-air cap, broadening mature low-air gaps from K=3 to K=4 at 100k-199k and K=6 at `>=200k`; that is a larger retune than the already-rejected guarded low-air top-4 canonical (`attempt-regular-lowair-aim-top4-after-top4at100-a01`, Δheadline -0.5, P(Δ≤0)=86.6%, source reverted; log conclusion: cadence was not enough and the accepted low-air cap of 3 remained the better default). Folding this into a continuous K surface depends on a broader K redesign that #49 explicitly did not introduce. No source change was pursued.
 
 ---
 

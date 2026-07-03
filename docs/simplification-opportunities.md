@@ -1183,7 +1183,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Have `fitJointValueModels` skip fitting any output that `clearReducerOwnedOutputs` will delete when a latent model exists (condition on model space, not unconditional).
 - **Risk:** medium
 - **Generalization note:** Latent mode is the production default; the direct-outputs full path still needs these.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 94/94; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Fitted latent models first, then skipped `outputs` keys owned by the latent reducer (`exit.*`, `next.*`, current cost/release scalars, and current air/speed/elevation axis/error keys) only when latent models actually exist; `clearReducerOwnedOutputs` now uses the same `reducerOwnsOutputKey` predicate. Direct/full rows with no latent model still fit all outputs.
 
 ### 122. `predictKnobSurfaceModel`'s four-tier interpolation cascade is near-dead machinery
 - **Files:** `scripts/v0/optimizer/arc_model.ts`

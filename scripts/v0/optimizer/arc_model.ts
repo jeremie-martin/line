@@ -532,8 +532,21 @@ export function fitJointArcResponseModel(
   modelName: ArcResponseModelName = "hybrid",
   options: JointArcResponseFitOptions,
 ): JointArcResponseModel {
-  const outputModels = fitJointValueModels(rows, jointArcOutputKeys(rows, "outputs"), "outputs", probeDesignName, modelName);
-  const latentModels = fitJointValueModels(rows, jointArcOutputKeys(rows, "latentOutputs"), "latentOutputs", probeDesignName, modelName);
+  const latentModels = fitJointValueModels(
+    rows,
+    jointArcOutputKeys(rows, "latentOutputs"),
+    "latentOutputs",
+    probeDesignName,
+    modelName,
+  );
+  const outputModels = fitJointValueModels(
+    rows,
+    jointArcOutputKeys(rows, "outputs"),
+    "outputs",
+    probeDesignName,
+    modelName,
+    latentModels.size > 0 ? reducerOwnsOutputKey : undefined,
+  );
   return { context: options.context, outputModels, latentModels };
 }
 
@@ -545,10 +558,12 @@ function fitJointValueModels(
   source: JointArcValueSource,
   probeDesignName: ArcProbeDesignName,
   modelName: ArcResponseModelName,
+  skipKey?: (key: string) => boolean,
 ): JointArcResponseModel["outputModels"] {
   const models: JointArcResponseModel["outputModels"] = new Map();
   const baseline = rows.find((r) => r.knobs.pitchDeg === 0 && r.knobs.rotateDeg === 0);
   for (const output of keys) {
+    if (skipKey?.(output) === true) continue;
     const angle = isArcAngleOutput(output);
     const finiteRows = rows.filter((r) => Number.isFinite(valueFromRow(r, source, output)));
     if (finiteRows.length === 0) continue;
@@ -598,6 +613,17 @@ export function predictJointArcOutputs(model: JointArcResponseModel, knobs: ArcK
  *  `clearReducerOwnedOutputs`). */
 const REDUCER_BALLISTIC_AXES = ["air", "speed", "elevation"] as const;
 
+function reducerOwnsOutputKey(key: string): boolean {
+  return key.startsWith("exit.") ||
+    key.startsWith("next.") ||
+    key === "current.cost" ||
+    key === "current.releaseSpeedPx" ||
+    key === "current.releaseVy" ||
+    REDUCER_BALLISTIC_AXES.some((axis) =>
+      key === `current.axis.${axis}` || key === `current.error.${axis}`
+    );
+}
+
 /** Clear every output key the latent reducer (`reduceLatentJointArcOutputs`)
  *  recomputes, before it overwrites: the reducer skips non-finite values
  *  (`addFinite`) and may emit nothing at all (null suffix), so a stale fitted
@@ -610,14 +636,7 @@ const REDUCER_BALLISTIC_AXES = ["air", "speed", "elevation"] as const;
  *  and axis/error for the ballistic axes only (NOT grain/amplitude/impact). */
 function clearReducerOwnedOutputs(outputs: Record<string, number>): void {
   for (const key of Object.keys(outputs)) {
-    if (key.startsWith("exit.") || key.startsWith("next.")) delete outputs[key];
-  }
-  delete outputs["current.cost"];
-  delete outputs["current.releaseSpeedPx"];
-  delete outputs["current.releaseVy"];
-  for (const axis of REDUCER_BALLISTIC_AXES) {
-    delete outputs[`current.axis.${axis}`];
-    delete outputs[`current.error.${axis}`];
+    if (reducerOwnsOutputKey(key)) delete outputs[key];
   }
 }
 

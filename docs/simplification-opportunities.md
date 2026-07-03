@@ -772,7 +772,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract one generic detector parameterized by a small frame-accessor interface; the buffer/raw paths become two ~15-line adapters over the same loop.
 - **Risk:** medium
 - **Generalization note:** On the hot detection path — byte-identical output must be verified.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Extracted one `detectCandidateWindowFrames(...)` state machine parameterized by a small `CandidateWindowFrameReader`; `detectCandidateWindowBuffer` and `detectCandidateWindowRaw` are now adapters that supply typed-array vs raw-frame accessors while preserving the existing null/empty handling, POOL_MODE position allocation gate, landing persistence, and terminus rules. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 78. Triple-aliased single-bit mode flag (RANK_QUALITY_MODE / RANK_PREDICT_ARRIVAL / RELEASE_EXIT_READ)
 - **Files:** `scripts/v0/core/candidate.ts`

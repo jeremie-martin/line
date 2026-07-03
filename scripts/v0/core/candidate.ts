@@ -281,31 +281,23 @@ export function detectWindow(engine: any, startFrame: number, endFrame: number):
   return det;
 }
 
+type CandidateWindowFrameReader = {
+  frameCount: number;
+  duration: number;
+  frameAt(index: number): number;
+  positionXAt(index: number): number;
+  positionYAt(index: number): number;
+  velocityXAt(index: number): number;
+  velocityYAt(index: number): number;
+  contactLineIdsAt(index: number): number[];
+  isAirAt(index: number): boolean;
+  riderEjectedAt(index: number): boolean;
+  sledBrokenAt(index: number): boolean;
+};
+
 function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDetection | null {
   if (raw === null) return null;
-  const frameCount = raw.frames;
-  if (frameCount === 0) {
-    throw new Error("detect: empty trajectory");
-  }
-
   const { data, contacts, stride } = raw;
-  const speed: number[] = [];
-  const velocity: { x: number; y: number }[] = [];
-  const contactLineIds: number[][] = [];
-  const airborne: boolean[] = [];
-  // PREDICTED-ARRIVAL (POOL_MODE): the ranker propagates the release state
-  // ballistically and needs position. The window detector otherwise drops
-  // position to save memory on the hot path; populate it ONLY when the flag is
-  // on so flag-off allocation is unchanged.
-  const position: { x: number; y: number }[] = [];
-  const events: DetEvent[] = [];
-
-  let stallRun = 0;
-  let airborneRun = 0;
-  let airborneFrom = -1;
-  let terminus: Detection["terminus"] | null = null;
-
-  const frameAt = (index: number): number => raw.startFrame + index;
   const baseAt = (index: number): number => index * stride;
   const sledMaskAt = (index: number): number => data[baseAt(index) + WINDOW_SLED_MASK];
   const contactLineIdsAtIndex = (index: number): number[] => {
@@ -317,25 +309,77 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
     for (let i = 0; i < count; i++) ids[i] = contacts[offset + i];
     return ids;
   };
+  return detectCandidateWindowFrames({
+    frameCount: raw.frames,
+    duration: raw.duration,
+    frameAt: (index) => raw.startFrame + index,
+    positionXAt: (index) => data[baseAt(index) + WINDOW_PX],
+    positionYAt: (index) => data[baseAt(index) + WINDOW_PY],
+    velocityXAt: (index) => data[baseAt(index) + WINDOW_VX],
+    velocityYAt: (index) => data[baseAt(index) + WINDOW_VY],
+    contactLineIdsAt: contactLineIdsAtIndex,
+    isAirAt: (index) => sledMaskAt(index) === 0,
+    riderEjectedAt: (index) => data[baseAt(index) + WINDOW_RIDER_FSU] !== -1,
+    sledBrokenAt: (index) => data[baseAt(index) + WINDOW_SLED_FSU] !== -1,
+  });
+}
+
+function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
+  const frames = raw.frames;
+  return detectCandidateWindowFrames({
+    frameCount: frames.length,
+    duration: raw.duration,
+    frameAt: (index) => frames[index].frame,
+    positionXAt: (index) => frames[index].position.x,
+    positionYAt: (index) => frames[index].position.y,
+    velocityXAt: (index) => frames[index].velocity.x,
+    velocityYAt: (index) => frames[index].velocity.y,
+    contactLineIdsAt: (index) => frames[index].contactLineIds,
+    isAirAt: (index) => frames[index].sledContacts.length === 0,
+    riderEjectedAt: (index) => frames[index].riderEjected,
+    sledBrokenAt: (index) => frames[index].sledBroken,
+  });
+}
+
+function detectCandidateWindowFrames(reader: CandidateWindowFrameReader): WindowDetection {
+  const frameCount = reader.frameCount;
+  if (frameCount === 0) {
+    throw new Error("detect: empty trajectory");
+  }
+
+  const speed: number[] = [];
+  const velocity: { x: number; y: number }[] = [];
+  const contactLineIds: number[][] = [];
+  const airborne: boolean[] = [];
+  const events: DetEvent[] = [];
+  // PREDICTED-ARRIVAL (POOL_MODE): the ranker propagates the release state
+  // ballistically and needs position. The window detector otherwise drops
+  // position to save memory on the hot path; populate it ONLY when the flag is
+  // on so flag-off allocation is unchanged.
+  const position: { x: number; y: number }[] = [];
+
+  let stallRun = 0;
+  let airborneRun = 0;
+  let airborneFrom = -1;
+  let terminus: Detection["terminus"] | null = null;
 
   for (let i = 0; i < frameCount; i++) {
-    const base = baseAt(i);
-    const frame = frameAt(i);
-    const vx = data[base + WINDOW_VX];
-    const vy = data[base + WINDOW_VY];
+    const frame = reader.frameAt(i);
+    const vx = reader.velocityXAt(i);
+    const vy = reader.velocityYAt(i);
     const sp = Math.hypot(vx, vy);
     speed.push(sp);
     velocity.push({ x: vx, y: vy });
-    if (POOL_MODE) position.push({ x: data[base + WINDOW_PX], y: data[base + WINDOW_PY] });
-    contactLineIds.push(contactLineIdsAtIndex(i));
-    const isAir = sledMaskAt(i) === 0;
+    if (POOL_MODE) position.push({ x: reader.positionXAt(i), y: reader.positionYAt(i) });
+    contactLineIds.push(reader.contactLineIdsAt(i));
+    const isAir = reader.isAirAt(i);
     airborne.push(isAir);
 
-    if (data[base + WINDOW_RIDER_FSU] !== -1) {
+    if (reader.riderEjectedAt(i)) {
       terminus = { frame, reason: "riderEjected" };
       break;
     }
-    if (data[base + WINDOW_SLED_FSU] !== -1) {
+    if (reader.sledBrokenAt(i)) {
       terminus = { frame, reason: "sledBroken" };
       break;
     }
@@ -349,8 +393,8 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
       stallRun = 0;
     }
     if (
-      Math.abs(data[base + WINDOW_PX]) > DEFAULT_PARAMS.worldEnvelope ||
-      Math.abs(data[base + WINDOW_PY]) > DEFAULT_PARAMS.worldEnvelope
+      Math.abs(reader.positionXAt(i)) > DEFAULT_PARAMS.worldEnvelope ||
+      Math.abs(reader.positionYAt(i)) > DEFAULT_PARAMS.worldEnvelope
     ) {
       terminus = { frame, reason: "leftWorld" };
       break;
@@ -364,7 +408,7 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
       const windowLen = windowEnd - i;
       let groundedInWindow = 1;
       for (let j = i + 1; j < windowEnd; j++) {
-        if (sledMaskAt(j) !== 0) groundedInWindow++;
+        if (!reader.isAirAt(j)) groundedInWindow++;
       }
 
       if (airborneRun > DEFAULT_PARAMS.K && groundedInWindow / windowLen >= DEFAULT_PARAMS.persistenceRatio) {
@@ -376,108 +420,10 @@ function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDete
   }
 
   if (terminus === null) {
-    const lastFrame = raw.startFrame + frameCount - 1;
+    const lastFrame = reader.frameAt(frameCount - 1);
     terminus = {
-      frame: Math.min(lastFrame, raw.duration),
-      reason: lastFrame >= raw.duration ? "endOfSpec" : "rideStalled",
-    };
-  }
-
-  return {
-    measurements: {
-      position,
-      velocity,
-      speed,
-      sledContacts: [],
-      contactLineIds,
-      airborne,
-    },
-    events,
-    terminus,
-    params: DEFAULT_PARAMS,
-    summary: EMPTY_CANDIDATE_SUMMARY,
-  };
-}
-
-function detectCandidateWindowRaw(raw: RawTrajectory): Detection {
-  const frames = raw.frames;
-  if (frames.length === 0) {
-    throw new Error("detect: empty trajectory");
-  }
-
-  const speed: number[] = [];
-  const velocity: { x: number; y: number }[] = [];
-  const contactLineIds: number[][] = [];
-  const airborne: boolean[] = [];
-  const events: DetEvent[] = [];
-  // PREDICTED-ARRIVAL: see detectCandidateWindowBuffer — position is populated
-  // only when POOL_MODE is on.
-  const position: { x: number; y: number }[] = [];
-
-  let stallRun = 0;
-  let airborneRun = 0;
-  let airborneFrom = -1;
-  let terminus: Detection["terminus"] | null = null;
-
-  for (let i = 0; i < frames.length; i++) {
-    const fr = frames[i];
-    const sp = Math.hypot(fr.velocity.x, fr.velocity.y);
-    speed.push(sp);
-    velocity.push({ x: fr.velocity.x, y: fr.velocity.y });
-    if (POOL_MODE) position.push({ x: fr.position.x, y: fr.position.y });
-    contactLineIds.push(fr.contactLineIds);
-    const isAir = fr.sledContacts.length === 0;
-    airborne.push(isAir);
-
-    if (fr.riderEjected) {
-      terminus = { frame: fr.frame, reason: "riderEjected" };
-      break;
-    }
-    if (fr.sledBroken) {
-      terminus = { frame: fr.frame, reason: "sledBroken" };
-      break;
-    }
-    if (sp < DEFAULT_PARAMS.vStall) {
-      stallRun++;
-      if (stallRun >= DEFAULT_PARAMS.vStallFrames) {
-        terminus = { frame: fr.frame, reason: "rideStalled" };
-        break;
-      }
-    } else {
-      stallRun = 0;
-    }
-    if (
-      Math.abs(fr.position.x) > DEFAULT_PARAMS.worldEnvelope ||
-      Math.abs(fr.position.y) > DEFAULT_PARAMS.worldEnvelope
-    ) {
-      terminus = { frame: fr.frame, reason: "leftWorld" };
-      break;
-    }
-
-    if (isAir) {
-      if (airborneRun === 0) airborneFrom = fr.frame;
-      airborneRun++;
-    } else if (airborneRun > 0) {
-      const windowEnd = Math.min(frames.length, i + DEFAULT_PARAMS.persistenceFrames);
-      const windowLen = windowEnd - i;
-      let groundedInWindow = 1;
-      for (let j = i + 1; j < windowEnd; j++) {
-        if (frames[j].sledContacts.length > 0) groundedInWindow++;
-      }
-
-      if (airborneRun > DEFAULT_PARAMS.K && groundedInWindow / windowLen >= DEFAULT_PARAMS.persistenceRatio) {
-        events.push({ frame: fr.frame, type: "landing", airborneFrom });
-      }
-      airborneRun = 0;
-      airborneFrom = -1;
-    }
-  }
-
-  if (terminus === null) {
-    const lastFrame = frames[frames.length - 1].frame;
-    terminus = {
-      frame: Math.min(lastFrame, raw.duration),
-      reason: lastFrame >= raw.duration ? "endOfSpec" : "rideStalled",
+      frame: Math.min(lastFrame, reader.duration),
+      reason: lastFrame >= reader.duration ? "endOfSpec" : "rideStalled",
     };
   }
 

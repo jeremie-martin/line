@@ -82,7 +82,6 @@ import {
 import {
   candidateQualityObjective,
   setAimCompileBudgetFrames,
-  setAimCompileBudgetSlack,
   snapshotAimStats,
 } from "./aim.ts";
 import {
@@ -776,7 +775,6 @@ function compileHandoffInternal(
     const predictedFirstCompletionFrames = Math.round(predictFirstCompletionFrames(spec));
     const budgetSlack = traversalBudgetSlack(targetBudget, spec);
     const budgetSlackTelemetry = round3(budgetSlack);
-    setAimCompileBudgetSlack(budgetSlack);
     setForwardEvalContext(spec, gapAxisTargets);
     const sparseContactCadence = usesSparseContactCadence(gaps);
     const startOptions = initialSnapshot === null

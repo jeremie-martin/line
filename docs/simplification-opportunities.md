@@ -507,7 +507,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Reformulate as one continuous `K(budget, air, slack)` surface clamped to an integer, keeping the low-air cap as an explicit `min`. Removes `AIM_LOW_AIR_TOPK_MAX/AIR_MAX`, `AIM_EXTRA_TOPK_BASES_DEFAULT` and the pressure family as distinct knobs. (Subsumes #41, #42, #43, #53.)
 - **Risk:** high
 - **Generalization note:** All branch boundaries are grid/spec-fit; a continuous surface behaves sanely off-grid.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.8 (full canonical vs current #48 baseline `simplify-48-budget-independent-extra-aim-seed-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Did not introduce a speculative continuous K retune; instead deleted the now-dead default fifth-base tier (`AIM_EXTRA_TOPK_*`, `AIM_EXTRA_TOPK_BASES_DEFAULT`, `defaultExtraAimBase*`, and `setAimCompileBudgetSlack`). After accepted #43, default K is already 6 at `>=200k`, while the old fifth-base pressure was zero below 225k and explicit `LR_AIM_TOPK_BASES` disables that path, so the pressure/hash branch was unreachable.
 
 ### 50. `objectiveTargetsForGap` duplicated with `targetForGap`
 - **Files:** `scripts/v0/optimizer/aim.ts`

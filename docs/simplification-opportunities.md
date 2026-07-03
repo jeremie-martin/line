@@ -592,7 +592,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Drive scoop frame count from the local gap's own impact/speed target (or a single formula), removing the whole-spec-mean plumbing and 0.55. If the mean is needed, express as a smooth per-gap pressure.
 - **Risk:** medium
 - **Generalization note:** Assumes the current spec population's impact distribution; a different mean flips the scoop regime for every gap.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline +0.6, P(Δ≤-0.1)=24.8%, candidate cumulative Δheadline vs campaign-start baseline +3.3 (accepted cumulative remains +2.8; full canonical vs current #57 baseline `simplify-57-centralize-budget-pressure-a01`; valid 1920/1920, fingerprint unchanged; 936/1920 `track_hash` match, 984 changed). Tested replacing the whole-spec mean global with a local `targets.impact` scoop gate at the existing redir-contact 0.55 onset and deleting the setter/helper plumbing; non-inferiority was not established, with the 125k budget regressing Δ=-1.1, so the source change was reverted.
 
 ### 59. Four externally-set per-compile "profile pressure" globals form a reverse-fit knob layer
 - **Files:** `scripts/v0/arc_placement.ts` (set from `optimizer/handoff.ts` ~814)

@@ -501,31 +501,29 @@ function fitHybridArcOutput(
   return null;
 }
 
+const HYBRID_SURFACE_CURRENT_AXES = ["air", "elevation", "impact"] as const;
+const HYBRID_SURFACE_CURRENT_OUTPUTS = new Set<string>(
+  HYBRID_SURFACE_CURRENT_AXES.flatMap((axis) => [`current.error.${axis}`, `current.axis.${axis}`]),
+);
+const HYBRID_SURFACE_NEXT_OUTPUTS_BY_DESIGN = {
+  cross5: new Set(["next.sledPoseRateDegPerFrame"]),
+  grid9: new Set(["next.sledPoseDeg", "next.sledPoseRateDegPerFrame"]),
+  pitch3: new Set(["next.sledPoseDeg", "next.sledPoseRateDegPerFrame"]),
+} satisfies Record<ArcProbeDesignName, ReadonlySet<string>>;
+const GRID9_BIQUADRATIC_NEXT_OUTPUT_EXCLUSIONS = new Set([
+  "next.sledPoseDeg",
+  "next.sledPoseRateDegPerFrame",
+]);
+
 function hybridUsesBiquadratic(output: string, probeDesignName: ArcProbeDesignName): boolean {
   return probeDesignName === "grid9" &&
     output.startsWith("next.") &&
-    output !== "next.sledPoseDeg" &&
-    output !== "next.sledPoseRateDegPerFrame";
+    !GRID9_BIQUADRATIC_NEXT_OUTPUT_EXCLUSIONS.has(output);
 }
 
 function hybridUsesSurface(output: string, probeDesignName: ArcProbeDesignName): boolean {
-  if (probeDesignName === "cross5") {
-    return output === "current.error.air" ||
-      output === "current.axis.air" ||
-      output === "current.error.elevation" ||
-      output === "current.axis.elevation" ||
-      output === "current.error.impact" ||
-      output === "current.axis.impact" ||
-      output === "next.sledPoseRateDegPerFrame";
-  }
-  return output === "current.error.air" ||
-    output === "current.axis.air" ||
-    output === "current.error.elevation" ||
-    output === "current.axis.elevation" ||
-    output === "current.error.impact" ||
-    output === "current.axis.impact" ||
-    output === "next.sledPoseDeg" ||
-    output === "next.sledPoseRateDegPerFrame";
+  return HYBRID_SURFACE_CURRENT_OUTPUTS.has(output) ||
+    HYBRID_SURFACE_NEXT_OUTPUTS_BY_DESIGN[probeDesignName].has(output);
 }
 
 export function fitJointArcResponseModel(

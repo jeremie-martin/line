@@ -1174,7 +1174,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace membership tests with a single per-output policy derived from output category (axis-error vs kinematic-state vs angle) and row count.
 - **Risk:** medium
 - **Generalization note:** Lists enumerate today's exact axis set; adding an axis silently gets the fallback. A category rule generalizes.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 94/94; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Replaced the duplicated string-match chains with named output sets: shared current-axis surface outputs (`air`/`elevation`/`impact`), per-probe-design next-state surface outputs, and the grid9 biquadratic next-output exclusions. Did not replace the lists with a category-derived policy; that would change model-form selection and needs a behavior trial.
 
 ### 121. Surface-fit selection for `current.*` axes is dead in production (outputs immediately cleared)
 - **Files:** `scripts/v0/optimizer/arc_model.ts`

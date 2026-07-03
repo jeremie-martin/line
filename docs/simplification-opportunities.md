@@ -759,7 +759,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Unify the impact turn cap and catchability angle range as one shared "catchable heading-change" quantity so a physics change updates both coherently.
 - **Risk:** medium
 - **Generalization note:** Independence is a hidden consistency hazard as either is re-tuned. (Scoring path — verify.)
-- **Status:** Not Started
+- **Status:** Abandoned — attempted byte-identical centralization by adding `CATCHABLE_REDIR_TURN_RAD` beside `IMPACT` and rewiring `impactCeiling`, `impactFeasibilityBound`, objective `impactFeasibility`, and arc-placement `neededTurnDegForImpact`; focused tests passed (77/77), but the seed-0 golden probe immediately reported evaluator fingerprint drift (`de24a421f751` → `51c893392e9d`). Per campaign rules this ruler-slice change is out of scope for simplification scoring, so the source edit was reverted and no comparable canonical/decision run was performed. Accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ---
 

@@ -965,7 +965,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Use `structuredClone(fit)` (or one generic deep-copy), keeping only the intentional shallow-share of `geometry` if deliberate.
 - **Risk:** medium
 - **Generalization note:** Drift risk grows as the campaign bolts fields onto GapFit (see #106).
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Replaced the hand-enumerated clone with `structuredClone(fit)` plus an explicit strip of polish-stale fields (`aimed`, `ref`, `releaseArrivalState`) that the polish helpers do not recompute. This preserves the old polished-leaf contract while ensuring future GapFit metadata is cloned by default instead of silently dropped. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 99. `polishMedianGrainPlateau` only fires on even line counts and duplicates the residual pass
 - **Files:** `scripts/v0/core/polish.ts`

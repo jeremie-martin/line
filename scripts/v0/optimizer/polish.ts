@@ -35,27 +35,24 @@ import {
 import type { Gap } from "../types.ts";
 import type { Spec } from "./types.ts";
 
+/** Optional fit fields whose values become stale when polish mutates geometry:
+ *  `aimed` describes the original proposer, `ref` is tied to the original
+ *  landing pose, and `releaseArrivalState` is a trajectory read that polish does
+ *  not recompute. Keep dropping them to preserve the old polished-leaf contract;
+ *  clone every other field generically so new GapFit metadata is not silently
+ *  lost. */
+function cloneFitForPolish(fit: GapFit): GapFit {
+  const clone = structuredClone(fit) as GapFit;
+  delete clone.aimed;
+  delete clone.ref;
+  delete clone.releaseArrivalState;
+  return clone;
+}
+
 /** Deep-clone a fits array so in-place polish helpers can't mutate the source
- *  leaf. Clones source geometry, lines, and achieved; cost is a scalar. */
+ *  leaf. */
 export function cloneFits(fits: (GapFit | null)[]): (GapFit | null)[] {
-  return fits.map((fit) =>
-    fit === null
-      ? null
-      : {
-          arc: fit.arc === null ? null : { ...fit.arc, anchor: { ...fit.arc.anchor } },
-          geometry: fit.geometry,
-          lines: fit.lines.map((l) => ({ ...l })),
-          achieved: { ...fit.achieved },
-          ...(fit.achievedAtEnd === undefined ? {} : { achievedAtEnd: { ...fit.achievedAtEnd } }),
-          cost: fit.cost,
-          ...(fit.releaseSpeed === undefined ? {} : { releaseSpeed: fit.releaseSpeed }),
-          ...(fit.releaseVelocityY === undefined ? {} : { releaseVelocityY: fit.releaseVelocityY }),
-          ...(fit.releaseGroundedFrames === undefined
-            ? {}
-            : { releaseGroundedFrames: fit.releaseGroundedFrames }),
-          ...(fit.releaseAirborne === undefined ? {} : { releaseAirborne: fit.releaseAirborne }),
-        },
-  );
+  return fits.map((fit) => fit === null ? null : cloneFitForPolish(fit));
 }
 
 /** Stable fingerprint of fits geometry — the line endpoints that polish can

@@ -956,7 +956,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace exclusive-membership predicates with a per-axis "targeted and under-satisfied" driver so each pass activates on the axes it improves. Collapses `hasOnlyAirSectionTargets`/`shouldPolish*` into one axis-driven gate.
 - **Risk:** high
 - **Generalization note:** Directly assumes today's axis population; new axis combinations are unhandled.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Renamed/documented the two existing partitions as `hasAirOnlyPolishTargets` (the air-only meanAirError passes) and `hasAirCompanionPolishTargets` (the mixed air+speed/grain excess-contact pass), making the current population split explicit. Did not implement the proposed per-axis under-satisfied driver: that would newly activate polish on mixed axis combinations such as air+elevation and change speed/grain/elevation tradeoffs, so it needs a behavior-changing canonical trial rather than a simplification refactor. Accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 98. `cloneFits` hand-enumerates every optional GapFit field with spread guards
 - **Files:** `scripts/v0/optimizer/polish.ts`

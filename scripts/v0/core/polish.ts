@@ -93,7 +93,7 @@ export function polishAirRideOut(
   contactFrames: number[],
   durationFrames: number,
 ): void {
-  if (!hasOnlyAirSectionTargets(spec)) return;
+  if (!hasAirOnlyPolishTargets(spec)) return;
 
   let baseEngine = rebuildEngine(fits, gaps.length);
   const baseDet = detect(extractRawTrajectory(baseEngine, durationFrames + POLISH_SIM_TAIL_FRAMES));
@@ -299,7 +299,10 @@ function axisTargetIntervals(spec: Spec, axis: AxisName): { f0: number; f1: numb
   return out;
 }
 
-function hasOnlyAirSectionTargets(spec: Spec): boolean {
+// Air-only polishers optimize meanAirError directly. Mixed-axis specs use the
+// section-axis scorer instead; enabling these air-only passes there changes the
+// speed/grain/elevation tradeoff and needs a behavior trial.
+function hasAirOnlyPolishTargets(spec: Spec): boolean {
   return axisTargeted(spec, "air") &&
     AXES.every((axis) => axis === "air" || !axisTargeted(spec, axis));
 }
@@ -373,7 +376,7 @@ export function polishAirContactEntry(
   durationFrames: number,
 ): void {
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
-  if (!hasOnlyAirSectionTargets(spec)) return;
+  if (!hasAirOnlyPolishTargets(spec)) return;
 
   const baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
@@ -430,7 +433,7 @@ export function polishAirBriefContacts(
   durationFrames: number,
 ): void {
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
-  if (!hasOnlyAirSectionTargets(spec)) return;
+  if (!hasAirOnlyPolishTargets(spec)) return;
 
   let baseEngine = rebuildEngine(fits, gaps.length);
   let baseDet = detect(extractRawTrajectory(baseEngine, durationFrames + POLISH_SIM_TAIL_FRAMES));
@@ -560,7 +563,7 @@ export function polishExcessContact(
   durationFrames: number,
 ): void {
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
-  if (!shouldPolishExcessContact(spec)) return;
+  if (!hasAirCompanionPolishTargets(spec)) return;
 
   let baseDet = simulateAndDetect(fits, gaps, durationFrames);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
@@ -658,7 +661,10 @@ export function polishExcessContact(
   polishEntrySpeedX(fits, gaps, spec, contactFrames, durationFrames);
 }
 
-function shouldPolishExcessContact(spec: Spec): boolean {
+// Excess-contact polish handles the mixed air+speed/grain population that the
+// air-only polishers intentionally skip. Other air+axis combinations remain
+// unsupported rather than implicitly opting into an unverified pass.
+function hasAirCompanionPolishTargets(spec: Spec): boolean {
   const hasAir = axisTargeted(spec, "air");
   const hasCompanionAxis = axisTargeted(spec, "speed") || axisTargeted(spec, "grain");
   return hasAir && hasCompanionAxis;

@@ -60,6 +60,8 @@ const POLISH_SIM_TAIL_FRAMES = 20;
 const AIR_POLISH_PASSES = 3;
 const DENSE_AIR_POLISH_PASSES = 2;
 const DENSE_AIR_POLISH_SOURCE_LIMIT = 8;
+const AIR_POLISH_SOURCE_ENTRY_LINES = 1;
+const AIR_POLISH_SOURCE_TAIL_LINES = 3;
 const AIR_CONTACT_EXTENSION_LENGTH_PX = 25;
 const AIR_BRIEF_CONTACT_PASSES = 3;
 const AIR_BRIEF_CONTACT_LENGTH = 8;
@@ -203,9 +205,12 @@ function airPolishSources(fits: (GapFit | null)[]): AirPolishSource[] {
   for (let owner = 0; owner < fits.length; owner++) {
     const fit = fits[owner];
     if (fit === null) continue;
+    // Non-dense ride-out keeps one entry anchor plus the recent tail geometry
+    // that most often controls launch/settle. Dense specs use the air-duration
+    // ranker below because every extra source is more expensive there.
     const lines = [
-      ...fit.lines.slice(0, 1),
-      ...fit.lines.slice(Math.max(0, fit.lines.length - 3)),
+      ...fit.lines.slice(0, AIR_POLISH_SOURCE_ENTRY_LINES),
+      ...fit.lines.slice(Math.max(0, fit.lines.length - AIR_POLISH_SOURCE_TAIL_LINES)),
     ];
     const seen = new Set<number>();
     for (const line of lines) {

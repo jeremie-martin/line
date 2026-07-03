@@ -1019,7 +1019,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace the first-1/last-3 literals with a selector ranked by the same air-error contribution the dense path computes, so dense/non-dense share one principled ranker.
 - **Risk:** medium
 - **Generalization note:** first-1/last-3 assumes a typical per-gap line count; degenerate on very short/long gaps.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Named the non-dense source window as `AIR_POLISH_SOURCE_ENTRY_LINES=1` plus `AIR_POLISH_SOURCE_TAIL_LINES=3` and documented the entry-anchor/tail-geometry intent. Did not replace it with the dense air-duration ranker here: that would change source population/order, so it should be a behavior trial rather than a refactor. Accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ---
 

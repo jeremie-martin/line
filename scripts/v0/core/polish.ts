@@ -24,7 +24,7 @@ import { makeSolidLine } from "../arc.ts";
 import {
   type Spec, type AxisName,
   type TrackLine, type Gap,
-  AXES, CALIB, FPS, FRAME_SPAN_AXES, START_DEFAULTS, secToFrame,
+  AXES, CALIB, FPS, FRAME_SPAN_AXES, secToFrame,
 } from "../types.ts";
 import {
   type ResolvedStart,
@@ -42,6 +42,9 @@ import {
   makeAirPolishCandidates,
 } from "./candidate.ts";
 import { registerCompileReset } from "./compile_lifecycle.ts";
+
+// deno-lint-ignore no-explicit-any
+export type PolishRebuildEngine = (fits: (GapFit | null)[], upTo: number) => any;
 
 // Grain reduction for a fit: median catch-line length / LINE_LENGTH_CAP.
 // Delegates to the single-source-of-truth `grain` reduction registered in
@@ -97,6 +100,7 @@ export function polishAirRideOut(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (!hasAirOnlyPolishTargets(spec)) return;
 
@@ -379,11 +383,12 @@ export function polishAirContactEntry(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
   if (!hasAirOnlyPolishTargets(spec)) return;
 
-  const baseDet = simulateAndDetect(fits, gaps, durationFrames);
+  const baseDet = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   const bestErr = meanAirError(baseDet, spec);
@@ -412,7 +417,7 @@ export function polishAirContactEntry(
 
     line.x1 = originalX1 - (dx / len) * AIR_CONTACT_EXTENSION_LENGTH_PX;
     line.y1 = originalY1 - (dy / len) * AIR_CONTACT_EXTENSION_LENGTH_PX;
-    const det = simulateAndDetect(fits, gaps, durationFrames);
+    const det = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
     if (passesFinalHardGates(det, contactFrames)) {
       const err = meanAirError(det, spec);
       if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
@@ -436,6 +441,7 @@ export function polishAirBriefContacts(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
   if (!hasAirOnlyPolishTargets(spec)) return;
@@ -554,8 +560,9 @@ function scoreCurrentPolishGeometry(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): { det: Detection; err: number } | null {
-  const det = simulateAndDetect(fits, gaps, durationFrames);
+  const det = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
   if (!passesFinalHardGates(det, contactFrames)) return null;
   return { det, err: meanSectionAxisError(det, spec, gaps, fits) };
 }
@@ -566,11 +573,12 @@ export function polishExcessContact(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
   if (!hasAirCompanionPolishTargets(spec)) return;
 
-  let baseDet = simulateAndDetect(fits, gaps, durationFrames);
+  let baseDet = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   let bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -613,7 +621,9 @@ export function polishExcessContact(
             line.x1 = originalX2 - dx * frac;
             line.y1 = originalY2 - dy * frac;
           }
-          const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+          const scored = scoreCurrentPolishGeometry(
+            fits, gaps, spec, contactFrames, durationFrames, rebuildEngine,
+          );
           if (scored !== null) {
             if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
               best = {
@@ -651,18 +661,20 @@ export function polishExcessContact(
     bestErr = best.err;
   }
 
-  polishContactEdges(fits, gaps, spec, contactFrames, durationFrames, baseDet, bestErr);
+  polishContactEdges(
+    fits, gaps, spec, contactFrames, durationFrames, baseDet, bestErr, rebuildEngine,
+  );
   // Entry-speed runs twice by design: once after contact trimming, then again
   // after slope/length/median-grain edits that can move the entry line and
   // reintroduce speed error. Keep this as an explicit cascade rather than a
   // fixed-point loop; the sub-polishers mix best-of and accept-first semantics.
-  polishGrainLength(fits, gaps, spec, contactFrames, durationFrames);
-  polishEntrySpeed(fits, gaps, spec, contactFrames, durationFrames);
-  polishEntrySlope(fits, gaps, spec, contactFrames, durationFrames);
-  polishEntryLength(fits, gaps, spec, contactFrames, durationFrames);
-  polishMedianGrainResidual(fits, gaps, spec, contactFrames, durationFrames);
-  polishEntrySpeed(fits, gaps, spec, contactFrames, durationFrames);
-  polishEntrySpeedX(fits, gaps, spec, contactFrames, durationFrames);
+  polishGrainLength(fits, gaps, spec, contactFrames, durationFrames, rebuildEngine);
+  polishEntrySpeed(fits, gaps, spec, contactFrames, durationFrames, rebuildEngine);
+  polishEntrySlope(fits, gaps, spec, contactFrames, durationFrames, rebuildEngine);
+  polishEntryLength(fits, gaps, spec, contactFrames, durationFrames, rebuildEngine);
+  polishMedianGrainResidual(fits, gaps, spec, contactFrames, durationFrames, rebuildEngine);
+  polishEntrySpeed(fits, gaps, spec, contactFrames, durationFrames, rebuildEngine);
+  polishEntrySpeedX(fits, gaps, spec, contactFrames, durationFrames, rebuildEngine);
 }
 
 // Excess-contact polish handles the mixed air+speed/grain population that the
@@ -682,6 +694,7 @@ function polishContactEdges(
   durationFrames: number,
   initialDet: Detection,
   initialErr: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   let baseDet = initialDet;
   let bestErr = initialErr;
@@ -723,7 +736,9 @@ function polishContactEdges(
         line.y1 = originalY2 - dy * candidate.fraction;
       }
 
-      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+      const scored = scoreCurrentPolishGeometry(
+        fits, gaps, spec, contactFrames, durationFrames, rebuildEngine,
+      );
       if (scored !== null) {
         if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
           best = {
@@ -764,6 +779,7 @@ function polishEntrySpeedXBoundary(
   durationFrames: number,
   initialDet: Detection,
   initialErr: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
 
@@ -803,7 +819,9 @@ function polishEntrySpeedXBoundary(
       const dx = direction * (coarseShift + refinementStep);
       line.x1 = originalX1 + dx;
       line.x2 = originalX2 + dx;
-      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+      const scored = scoreCurrentPolishGeometry(
+        fits, gaps, spec, contactFrames, durationFrames, rebuildEngine,
+      );
       if (scored !== null) {
         if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
           best = { line, x1: line.x1, x2: line.x2, err: scored.err, det: scored.det };
@@ -829,6 +847,7 @@ function polishEntrySpeedYBoundary(
   durationFrames: number,
   initialDet: Detection,
   initialErr: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (isDenseContactSequence(contactFrames, durationFrames)) return;
 
@@ -869,7 +888,9 @@ function polishEntrySpeedYBoundary(
       const dy = direction * step;
       line.y1 = originalY1 + dy;
       line.y2 = originalY2 + dy;
-      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+      const scored = scoreCurrentPolishGeometry(
+        fits, gaps, spec, contactFrames, durationFrames, rebuildEngine,
+      );
       if (scored !== null) {
         if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
           best = { line, y1: line.y1, y2: line.y2, err: scored.err, det: scored.det };
@@ -976,10 +997,11 @@ function polishGrainLength(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (!shouldPolishGrainLength(spec)) return;
 
-  let baseDet = simulateAndDetect(fits, gaps, durationFrames);
+  let baseDet = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   let bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1026,7 +1048,9 @@ function polishGrainLength(
             line.y1 = originalY1 - (dy / len) * extra;
           }
 
-          const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+          const scored = scoreCurrentPolishGeometry(
+            fits, gaps, spec, contactFrames, durationFrames, rebuildEngine,
+          );
           if (scored !== null) {
             if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
               best = {
@@ -1072,10 +1096,11 @@ function polishEntrySpeed(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (!shouldPolishEntrySpeed(spec)) return;
 
-  const baseDet = simulateAndDetect(fits, gaps, durationFrames);
+  const baseDet = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   const bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1102,7 +1127,9 @@ function polishEntrySpeed(
     line.y1 = originalY1 + SPEED_POLISH_Y_SHIFT_PX;
     line.y2 = originalY2 + SPEED_POLISH_Y_SHIFT_PX;
 
-    const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+    const scored = scoreCurrentPolishGeometry(
+      fits, gaps, spec, contactFrames, durationFrames, rebuildEngine,
+    );
     if (scored !== null) {
       if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
         best = {
@@ -1140,10 +1167,11 @@ function polishEntrySpeedX(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (!shouldPolishEntrySpeed(spec)) return;
 
-  let baseDet = simulateAndDetect(fits, gaps, durationFrames);
+  let baseDet = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   let bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1175,7 +1203,9 @@ function polishEntrySpeedX(
       line.x1 = originalX1 + dx;
       line.x2 = originalX2 + dx;
 
-      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+      const scored = scoreCurrentPolishGeometry(
+        fits, gaps, spec, contactFrames, durationFrames, rebuildEngine,
+      );
       if (scored !== null) {
         if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
           best = { line, lineId, x1: line.x1, x2: line.x2, err: scored.err, det: scored.det };
@@ -1195,10 +1225,10 @@ function polishEntrySpeedX(
   }
 
   polishEntrySpeedXBoundary(
-    fits, gaps, spec, contactFrames, durationFrames, baseDet, bestErr,
+    fits, gaps, spec, contactFrames, durationFrames, baseDet, bestErr, rebuildEngine,
   );
 
-  const refinedDet = simulateAndDetect(fits, gaps, durationFrames);
+  const refinedDet = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
   if (!passesFinalHardGates(refinedDet, contactFrames)) return;
   polishEntrySpeedYBoundary(
     fits,
@@ -1208,6 +1238,7 @@ function polishEntrySpeedX(
     durationFrames,
     refinedDet,
     meanSectionAxisError(refinedDet, spec, gaps, fits),
+    rebuildEngine,
   );
 }
 
@@ -1217,10 +1248,11 @@ function polishEntrySlope(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (!shouldPolishEntrySpeed(spec)) return;
 
-  const baseDet = simulateAndDetect(fits, gaps, durationFrames);
+  const baseDet = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   const bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1249,7 +1281,9 @@ function polishEntrySlope(
     line.x2 = cx + (Math.cos(rotated) * len) / 2;
     line.y2 = cy + (Math.sin(rotated) * len) / 2;
 
-    const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+    const scored = scoreCurrentPolishGeometry(
+      fits, gaps, spec, contactFrames, durationFrames, rebuildEngine,
+    );
     if (scored !== null && scored.err + 1e-6 < bestErr) return;
 
     line.x1 = originalX1;
@@ -1265,10 +1299,11 @@ function polishEntryLength(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (!shouldPolishGrainLength(spec)) return;
 
-  let baseDet = simulateAndDetect(fits, gaps, durationFrames);
+  let baseDet = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   let bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1314,7 +1349,9 @@ function polishEntryLength(
             line.y1 = originalY1 - (dy / len) * extra;
           }
 
-          const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+          const scored = scoreCurrentPolishGeometry(
+            fits, gaps, spec, contactFrames, durationFrames, rebuildEngine,
+          );
           if (scored !== null) {
             if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
               best = {
@@ -1358,10 +1395,11 @@ function polishMedianGrainResidual(
   spec: Spec,
   contactFrames: number[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): void {
   if (!shouldPolishGrainLength(spec)) return;
 
-  const baseDet = simulateAndDetect(fits, gaps, durationFrames);
+  const baseDet = simulateAndDetect(fits, gaps, durationFrames, rebuildEngine);
   if (!passesFinalHardGates(baseDet, contactFrames)) return;
 
   const bestErr = meanSectionAxisError(baseDet, spec, gaps, fits);
@@ -1394,7 +1432,9 @@ function polishMedianGrainResidual(
         try {
           if (!applyLengthDelta(originals, plan.side, plan.extra)) continue;
 
-          const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+          const scored = scoreCurrentPolishGeometry(
+            fits, gaps, spec, contactFrames, durationFrames, rebuildEngine,
+          );
           if (scored !== null) {
             if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
               best = {
@@ -1611,17 +1651,16 @@ registerCompileReset(resetEngineRebuildCount);
  * Reconstruct the engine state up to (but not including) gap index `upTo`,
  * by replaying all committed gap fits in time order. O(N) per call; fine for
  * v0 spec sizes. Cache if it becomes a bottleneck.
- *
- * Initial rider state comes from `currentStartState`, which compiler entry
- * points set before rebuilds. Module-scoped because the polish helpers that
- * call `rebuildEngine` are top-level and threading the state through every
- * signature would be a large diff for no behavioral benefit.
  */
 // deno-lint-ignore no-explicit-any
-export function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
+function rebuildEngineWithStart(
+  startState: ResolvedStart,
+  fits: (GapFit | null)[],
+  upTo: number,
+): any {
   engineRebuildCount++;
   // deno-lint-ignore no-explicit-any
-  const eng: any = makeBaseEngine(currentStartState);
+  const eng: any = makeBaseEngine(startState);
   let chained = eng;
   for (let j = 0; j < upTo; j++) {
     const fit = fits[j];
@@ -1631,6 +1670,10 @@ export function rebuildEngine(fits: (GapFit | null)[], upTo: number): any {
     }
   }
   return chained;
+}
+
+export function makePolishRebuildEngine(startState: ResolvedStart): PolishRebuildEngine {
+  return (fits, upTo) => rebuildEngineWithStart(startState, fits, upTo);
 }
 
 /**
@@ -1643,26 +1686,9 @@ function simulateAndDetect(
   fits: (GapFit | null)[],
   gaps: Gap[],
   durationFrames: number,
+  rebuildEngine: PolishRebuildEngine,
 ): Detection {
   return detect(
     extractRawTrajectory(rebuildEngine(fits, gaps.length), durationFrames + POLISH_SIM_TAIL_FRAMES),
   );
-}
-
-// Set by compiler entry points before rebuilds. Read by `rebuildEngine`.
-let currentStartState: ResolvedStart = {
-  position: { ...START_DEFAULTS.POSITION },
-  velocity: { ...START_DEFAULTS.VELOCITY },
-};
-
-/** Prime the module-scoped start state that `rebuildEngine` (and the polish
- *  helpers that call it) read. */
-export function setRebuildStartState(start: ResolvedStart): void {
-  currentStartState = start;
-}
-
-/** Read the module-scoped start state `rebuildEngine` will use. Exposed so
- *  callers can save and restore around temporary overrides. */
-export function getRebuildStartState(): ResolvedStart {
-  return currentStartState;
 }

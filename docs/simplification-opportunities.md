@@ -1010,7 +1010,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Thread `startState` explicitly: build a `rebuild = (fits, upTo) => rebuildEngineWith(startState, fits, upTo)` closure (or a `PolishContext`) passed to helpers, removing the module global and all set/get/restore plumbing.
 - **Risk:** medium
 - **Generalization note:** Hidden global couples all polish helpers and blocks parallel/interleaved compilation.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Removed the module-scoped `currentStartState` plus `setRebuildStartState`/`getRebuildStartState` save-restore path; `polishLeafVariant` now creates a per-leaf `makePolishRebuildEngine(startState)` closure and threads it through the four polish helpers and final rebuild. Accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 104. `airPolishSources` uses a hard-coded first-1 + last-3 line window
 - **Files:** `scripts/v0/core/polish.ts`

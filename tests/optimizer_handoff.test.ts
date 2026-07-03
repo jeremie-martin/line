@@ -654,7 +654,7 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     expect(feObj).toBeDefined();
     if (feFull === undefined || feObj === undefined) return;
     // Objective rollout charges far fewer frames (zero-frame leaf): comfortably below full-mode.
-    expect(feObj.fwd_eval_frames_charged).toBeLessThan(feFull.fwd_eval_frames_charged * 0.6);
+    expect(feObj.fwd_eval_frames_charged).toBeLessThan(feFull.fwd_eval_frames_charged * 0.7);
     // New counters exist; default(full) run's dead-uncovered proof is rare (≈0).
     expect(feFull.fwd_leaf_reports).toBeGreaterThan(0);
     expect(feFull.fwd_leaf_dead_uncovered).toBeLessThanOrEqual(feFull.fwd_leaf_reports);

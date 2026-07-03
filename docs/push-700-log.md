@@ -11,6 +11,7 @@ rule are frozen.
 |---|---|---|---|---|---|
 | 2026-06-30 | attempt-aim-highk-gated-j32-a01 | f2cc3b2 (dirty) | 683.67 | 699.39 | starting baseline |
 | 2026-07-02 | attempt-m4-air-selection-a01 | 49ceafb+M4 (worktree) | 685.97 | 706.59 | M4 airFit + air-aimed proposer variant — first campaign ACCEPT |
+| 2026-07-03 | attempt-impact-portfolio-current-a01 | b5a8c7f | 689.51 | 710.02 | M1 converting scoop + M3 steep-arrival span — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -194,6 +195,38 @@ rule are frozen.
 ## Attempts
 
 (append: mechanism · change · canonical result · verdict · learnings)
+
+### M11 — impact portfolio: converting scoop + steep-arrival span · ACCEPT (2026-07-03)
+
+**Mechanism.** Fused two previously parked impact mechanisms into one production
+compiler change in `arc_placement.ts`:
+
+- M1 converting scoop: attempt-0 sampler lane for current impact beats with
+  authored impact ≥0.30 and actual steep arrival ≥12°, using the incoming
+  trajectory to build a concave scoop and preserving the normal downstream launch.
+  Budget-faded from 125k to 250k.
+- M3 steep-arrival span: for later attempts on gaps whose NEXT beat asks impact
+  ≥0.30, pitch the final launch downward by a bounded delivery-efficiency inverse
+  (`η=0.68`, max +15°, zero-band 80%). Attempt 0 remains byte-identical.
+
+**Probe.** `probe-impact-portfolio-current-s0-2-a01` (40 specs × seeds 0..2 ×
+canonical budget grid) vs M4 baseline: indicative `VERDICT: ACCEPT`, Δheadline
++3.3, P(Δ≤0)=7.6%, validity 480/480. Shape: 125k −16.1, then +4.4/+4.1/+6.9.
+
+**Canonical.** `attempt-impact-portfolio-current-a01` (valid 1920/1920, HEADLINE
+689.51, excl-impact 710.02) vs `attempt-m4-air-selection-a01`:
+
+```
+Δheadline = +3.5 · 95% CI [0.9, 6.4] · P(Δ≤0)=0.5% · effect=2.46
+125k -10.1 · 250k +5.3 · 375k +5.5 · 500k +4.6 · validity 100% at every budget
+VERDICT: ACCEPT
+```
+
+**Learnings.** The fused portfolio is not the expected 125k-impact rescue; it is a
+mature-budget quality win that willingly pays the low-budget column. The weighted
+metric accepts that trade because 250k/375k/500k all move strongly and consistently.
+Next baseline is `attempt-impact-portfolio-current-a01`; remaining target gap is
+about +10.5 headline points.
 
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 

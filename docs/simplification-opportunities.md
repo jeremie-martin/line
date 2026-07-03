@@ -1061,7 +1061,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Introduce one `vyAt(f)` source abstraction (detector ≤ prefixEnd, ballistic beyond) and `chordSagitta(vyAt,a,b)` + `netDy(vyAt,a,b)` helpers; express all four on top. Removes ~40 lines.
 - **Risk:** medium
 - **Generalization note:** On the candidate hot path — must preserve exact float summation order to stay byte-identical.
-- **Status:** Not Started
+- **Status:** Abandoned — out of scope for this simplification campaign: the exact helper extraction (`vyAt` source abstraction + shared `netDy`/`chordSagitta`) immediately changed the live evaluator fingerprint from `de24a421f751` to `c5d44d404d13` before the seed-0 probe completed. Source was reverted; no scorer/ruler refactor is accepted without an intentional fingerprint migration.
 
 ### 109. `impactFeasibilityBound` duplicates a gravity constant and buries magic default speed/gap fallbacks
 - **Files:** `scripts/v0/core/substrate.ts`

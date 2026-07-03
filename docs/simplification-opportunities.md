@@ -1192,7 +1192,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** After #121, evaluate whether `additive_quadratic` suffices for the remaining `next.sledPose*` and delete `fitKnobSurfaceModel`/`predictKnobSurfaceModel` + the four helpers, collapsing to the linear ladder.
 - **Risk:** medium
 - **Generalization note:** Risk only if grid9 relies on surface interpolation for sled-pose.
-- **Status:** Not Started
+- **Status:** Abandoned — premise is false after #121. The surface predictor is still live for direct/no-latent model space (tests assert `current.axis.air` first-choice form is `surface` for clean cross5 rows), and latent mode still does not clear non-ballistic current axes such as `impact`; deleting `fitKnobSurfaceModel`/`predictKnobSurfaceModel` would change model-form selection, not remove dead machinery. No source change made.
 
 ### 123. `biquadraticFeatures` + grid9 joint_quadratic arm serve a study-only probe design
 - **Files:** `scripts/v0/optimizer/arc_model.ts`

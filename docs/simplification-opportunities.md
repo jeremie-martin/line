@@ -1070,7 +1070,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Import the single LAUNCH_GRAVITY constant (or hoist into `CALIB`); name the 0.55/1.5s fallbacks as documented CALIB constants.
 - **Risk:** medium
 - **Generalization note:** 1.5s last-gap and 0.55 default silently assume canonical-tempo specs (verify fingerprint impact).
-- **Status:** Not Started
+- **Status:** Abandoned — out of scope without an intentional evaluator-ruler migration. The proposed edits touch live fingerprint slices in `golden.ts`: `impactFeasibilityBound`/`IMPACT_BOUND_GRAVITY_PX_PER_FRAME2` sit inside the `effectiveAxes` source slice (`export function effectiveAxes` → `// ─────────── Cross-gap target sampling`), and the `1.5` last-gap fallback sits inside the `buildDriftReport` slice. No source change made; naming/hoisting these constants would deliberately change the live evaluator fingerprint.
 
 ### 110. `axisExpand` and `axisCompress` are two exported names for the identical function
 - **Files:** `scripts/v0/core/spec_modifiers.ts`

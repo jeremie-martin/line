@@ -16,7 +16,6 @@ import {
   CANDIDATE_SAMPLE_MODES,
   FPS,
   IMPACT,
-  type Arc,
   type ArcPlacementCounter,
   type ArcPlacementMode,
   type AxisValues,
@@ -332,9 +331,7 @@ export type PreTargetSledTrace = number[];
 
 export type ArcPlacementRuntimeMode = ArcPlacementMode;
 
-export type ArcPlacementGeometry =
-  | { kind: "arc"; arc: Arc }
-  | { kind: "lines"; lines: TrackLine[] };
+export type ArcPlacementGeometry = { kind: "lines"; lines: TrackLine[] };
 
 type PlacementRolls = {
   segmentLength: number;
@@ -490,21 +487,6 @@ export function sampleArcPlacementGeometry(
   };
 }
 
-/** Compatibility for reachability probes that still ask for an Arc. The active
- *  compiler path uses `sampleArcPlacementGeometry()` and emits line fragments. */
-export function sampleArcParams(
-  rng: () => number,
-  _refX: number,
-  _refY: number,
-  targets: AxisValues,
-  targetState: ImpactFrameTargetState,
-  attempt: number,
-  gap: Gap,
-  mode: CandidateSampleMode = "normal",
-): Arc {
-  return sampleTargetStateArc(drawPlacementRolls(rng), targetState, targets, gap, attempt, mode);
-}
-
 export function sampleArcParamsRngDraws(
   _targetState: { speed: number; angleDeg: number },
   _gap: Gap,
@@ -568,38 +550,6 @@ function sampleTargetStateLines(
     controls.postSegments,
   );
   return [...preLines, ...postLines];
-}
-
-function sampleTargetStateArc(
-  rawRolls: PlacementRolls,
-  targetState: ImpactFrameTargetState,
-  targets: AxisValues,
-  gap: Gap,
-  attempt: number,
-  mode: CandidateSampleMode,
-): Arc {
-  const rolls = guidedRolls(rawRolls, attempt, targetState, targets, gap, []);
-  const controls = targetStateControls(targetState, targets, gap, [], rolls, mode);
-  const length = clamp(controls.preLength + controls.postLength, 45, 180);
-  const segments = clampInt(Math.round(length / controls.segmentLength), 3, 12);
-  const curveBias = clamp((rolls.postAngle - 0.5) * 0.8, -0.6, 0.6);
-  const arc: Arc = {
-    anchor: { x: 0, y: 0 },
-    length,
-    startAngleDeg: controls.preAngleDeg,
-    endAngleDeg: controls.postAngleDeg,
-    segments,
-    curveBias,
-  };
-  const impactT = clamp(controls.preLength / length, 0.25, 0.75);
-  const local = arcLocalPointAt(arc, impactT);
-  return {
-    ...arc,
-    anchor: {
-      x: targetState.sledX - local.x,
-      y: targetState.sledY - local.y,
-    },
-  };
 }
 
 function targetStateControls(
@@ -1884,34 +1834,6 @@ function makeSegmentCollisionRiskLines(lines: TrackLine[]): SegmentCollisionRisk
     );
   }
   return riskLines;
-}
-
-function arcLocalPointAt(
-  arc: Pick<Arc, "length" | "startAngleDeg" | "endAngleDeg" | "segments" | "curveBias">,
-  t: number,
-): { x: number; y: number } {
-  const segLen = arc.length / arc.segments;
-  const targetDistance = clamp(t, 0, 1) * arc.length;
-  let x = 0;
-  let y = 0;
-  let traveled = 0;
-  for (let i = 0; i < arc.segments; i++) {
-    const tMid = (i + 0.5) / arc.segments;
-    const ft = applyArcCurveBias(tMid, arc.curveBias);
-    const angleDeg = arc.startAngleDeg + (arc.endAngleDeg - arc.startAngleDeg) * ft;
-    const a = (angleDeg * Math.PI) / 180;
-    const dx = Math.cos(a);
-    const dy = Math.sin(a);
-    const nextTraveled = traveled + segLen;
-    if (targetDistance <= nextTraveled || i === arc.segments - 1) {
-      const within = clamp(targetDistance - traveled, 0, segLen);
-      return { x: x + dx * within, y: y + dy * within };
-    }
-    x += dx * segLen;
-    y += dy * segLen;
-    traveled = nextTraveled;
-  }
-  return { x, y };
 }
 
 function framesUntilNextContact(gap: Gap, allContactFrames: readonly number[]): number | null {

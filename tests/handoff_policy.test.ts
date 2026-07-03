@@ -23,7 +23,6 @@ import {
   arcPlacementMode,
   recordArcPlacementDirectFailure,
   resetArcPlacementStats,
-  sampleArcParams,
   sampleArcParamsRngDraws,
   sampleArcPlacementGeometry,
   setCompileBudgetFrames,
@@ -69,7 +68,6 @@ function targetState(speed = Math.hypot(8, 2), angleDeg = 14) {
 }
 
 function linesFromGeometry(geometry: ReturnType<typeof sampleArcPlacementGeometry>): TrackLine[] {
-  if (geometry.kind !== "lines") throw new Error("expected line-native placement geometry");
   return geometry.lines;
 }
 
@@ -352,23 +350,6 @@ describe("target-state arc placement", () => {
       setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
       setCompileBudgetFrames(0);
     }
-  });
-
-  test("arc compatibility sampler remains target-state anchored and finite", () => {
-    const arc = sampleArcParams(
-      () => 0.5,
-      100,
-      50,
-      { air: 0.4, speed: 0.6, grain: 0.5 },
-      targetState(8, 25),
-      0,
-      gap(0, 0, 24),
-    );
-
-    expect(Number.isFinite(arc.anchor.x)).toBe(true);
-    expect(Number.isFinite(arc.anchor.y)).toBe(true);
-    expect(arc.length).toBeGreaterThan(0);
-    expect(arc.segments).toBeGreaterThanOrEqual(3);
   });
 
   test("translateTrackLines moves endpoints and assigns fresh contiguous ids", () => {

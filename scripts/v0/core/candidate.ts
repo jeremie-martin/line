@@ -566,12 +566,6 @@ export function tryCandidateGeometry(
   sampleMode?: CandidateSampleMode,
   preTargetSledTrace?: PreTargetSledTraceProvider,
 ): GapFit | null {
-  if (geometry.kind === "arc") {
-    return tryCandidate(
-      baseEngine, gap, geometry.arc, lineIdStart, allContactFrames, axisMeasureEnd,
-      searchTargets, useWindowDetection, sampleMode, preTargetSledTrace,
-    );
-  }
   return tryCandidateLines(
     baseEngine, gap, geometry.lines, lineIdStart, allContactFrames, axisMeasureEnd,
     searchTargets, useWindowDetection, sampleMode, preTargetSledTrace,

@@ -646,7 +646,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** If the reachability probe (itself dead — #65) can consume line fragments, delete `sampleArcParams`/`sampleTargetStateArc`/`arcLocalPointAt`. Otherwise mark probe-only and share the controls computation.
 - **Risk:** medium
 - **Generalization note:** Legacy Arc form diverges from the one-generator "lines" source of truth. Consider bundling with #65.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.8 (full canonical vs current #59 baseline `simplify-59-bundle-impact-profile-pressures-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match; focused tests 76/76). Deleted the legacy Arc-emitting placement shim (`sampleArcParams`, `sampleTargetStateArc`, `arcLocalPointAt`) and made `ArcPlacementGeometry` line-only; `sampleArcParamsRngDraws` stays because cache replay still uses it. The relocated reachability probe now consumes the line-native sampler via `sampleArcPlacementGeometry`/`tryCandidateGeometry`, and the obsolete Arc-compatibility unit test was removed.
 
 ### 65. `impactTemplateVerticalCompatible` uses XOR-of-presence plus a sparse-gap frame threshold
 - **Files:** `scripts/v0/arc_placement.ts`

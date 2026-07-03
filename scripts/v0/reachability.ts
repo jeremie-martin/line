@@ -39,12 +39,12 @@ import {
 } from "./core/substrate.ts";
 import {
   axisLookaheadEndFrame,
-  tryCandidate,
+  tryCandidateGeometry,
 } from "./core/candidate.ts";
 import {
   readPreTargetSledTrace,
   readTargetStateFromRider,
-  sampleArcParams,
+  sampleArcPlacementGeometry,
   type PreTargetSledTrace,
 } from "./arc_placement.ts";
 import { SPEED_AXIS, authoredSpeedToPx, type Gap } from "./types.ts";
@@ -282,9 +282,11 @@ function bestLocalExit(
   let best: HandoffState | null = null;
   let bestPenalty = Infinity;
   for (let attempt = 0; attempt < REACHABILITY_PROTOTYPE_CONFIG.probeAttempts; attempt++) {
-    const arc = sampleArcParams(rng, refX, refY, gap.targets, targetState, attempt, gap);
-    const fit = tryCandidate(
-      engine, gap, arc, 1, allContactFrames, axisMeasureEnd, gap.targets, true,
+    const geometry = sampleArcPlacementGeometry(
+      rng, refX, refY, gap.targets, targetState, attempt, gap, 1, "normal", allContactFrames,
+    );
+    const fit = tryCandidateGeometry(
+      engine, gap, geometry, 1, allContactFrames, axisMeasureEnd, gap.targets, true,
       undefined, preTargetSledTrace,
     );
     if (fit === null) continue;

@@ -673,7 +673,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** After the ×0 fold (#53), restructure into one target length, one safe cap, one floor, then a single final clamp (hoist the `min(., safePostCap)` to one place). Name the 0.72/0.88/0.34/0.26 weights.
 - **Risk:** medium
 - **Generalization note:** Many raw literals resist reasoning at new cadences.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +4.1 (full canonical vs current #66 baseline `simplify-66-continuous-template-lane-admission-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match; focused tests 76/76). Extracted the target-state post-length ladder into `targetStatePostLength(...)`/`targetStateSafePostCap(...)`, named the target blend, ground-room, sampled-post, safe-cap, and floor constants, and kept the cap-before-lerp semantics byte-identical.
 
 ### 68. `needsDenseSpacingPostLengthCap` magic thresholds parallel the arcLenRoom cap
 - **Files:** `scripts/v0/arc_placement.ts`

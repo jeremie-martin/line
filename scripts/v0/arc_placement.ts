@@ -40,6 +40,26 @@ const PLACEMENT_SPEED_SPAN_PX = authoredSpeedToPx(1) - authoredSpeedToPx(0);
 const PLACEMENT_SPEED_MIN_PX = authoredSpeedToPx(0);
 const PRE_TARGET_PRECLEAR_DISTANCE = 2.5;
 const SEGMENT_COLLISION_RISK_STRIDE = 7;
+const TARGET_STATE_PRE_LENGTH_PRECLEAR_REDUCTION = 0.88;
+const TARGET_STATE_POST_TARGET_BLEND = 0.72;
+const TARGET_STATE_POST_GROUND_ROOM_BASE = 0.72;
+const TARGET_STATE_POST_GROUND_ROOM_DENSE_REDUCTION = 0.22;
+const TARGET_STATE_POST_SAMPLE_SPEED_REDUCTION = 0.34;
+const TARGET_STATE_POST_SAMPLE_BRAKE_REDUCTION = 0.18;
+const TARGET_STATE_POST_STARTUP_SAMPLE_REDUCTION = 0.28;
+const TARGET_STATE_POST_SAFE_CAP_BASE = 0.34;
+const TARGET_STATE_POST_SAFE_CAP_LOW_AIR_BONUS = 0.26;
+const TARGET_STATE_POST_SAFE_CAP_DENSE_PENALTY = 0.08;
+const TARGET_STATE_POST_SAFE_CAP_SPEED_REDUCTION = 0.30;
+const TARGET_STATE_POST_SAFE_CAP_BRAKE_REDUCTION = 0.18;
+const TARGET_STATE_POST_SAFE_CAP_STARTUP_REDUCTION = 0.30;
+const TARGET_STATE_POST_MIN_TARGET_PX = 18;
+const TARGET_STATE_POST_UNBOUNDED_CAP_PX = 220;
+const TARGET_STATE_POST_MAX_CAP_PX = 260;
+const TARGET_STATE_POST_MIN_CAP_PX = 14;
+const TARGET_STATE_POST_BASE_FLOOR_HIGH_PX = 18;
+const TARGET_STATE_POST_BASE_FLOOR_LOW_PX = 8;
+const TARGET_STATE_POST_STARTUP_FLOOR_LOW_AIR_BONUS = 10;
 
 // ── work-new contact-centered line family (energy-launch + air-length + 2D span) ──
 // Ported from the work-new compiler (HEADLINE 579), whose `continuous` mode routed
@@ -677,55 +697,26 @@ function targetStateControls(
     (6 + rolls.preLength * 32) *
       (1 - 0.45 * deadline) *
       (1 + 0.25 * lowAir) *
-      (1 - 0.88 * preclearPressure) *
+      (1 - TARGET_STATE_PRE_LENGTH_PRECLEAR_REDUCTION * preclearPressure) *
       (1 - 0.24 * brakeModePressure) *
       (1 - 0.92 * startupLandingPressure),
     0,
     50,
   );
-  const sampledPost =
-    (28 + rolls.postLength * 140) *
-    (1 + 0.20 * lowAir + 0.12 * highAir) *
-    (1 - 0.34 * speedControlPressure) *
-    (1 - 0.18 * brakeModePressure) *
-    (1 - 0.28 * startupLandingPressure);
-  const targetGroundFrames = nextGapFrames === null
-    ? 6 + 18 * lowAir
-    : clamp((1 - air) * nextGapFrames, 2, nextGapFrames * (0.72 - 0.22 * dense));
-  const targetPost = Math.max(18, Math.max(1, targetState.speed) * targetGroundFrames);
-  const safePostCap = nextGapFrames === null
-    ? 220
-    : clamp(
-      Math.max(1, targetState.speed) *
-        nextGapFrames *
-        (0.34 + 0.26 * lowAir - 0.08 * dense) *
-        (1 - 0.30 * speedControlPressure) *
-        (1 - 0.18 * brakeModePressure) *
-        (1 - 0.30 * startupLandingPressure),
-      14,
-      260,
-    );
-  const basePostFloor = Math.min(
-    safePostCap,
-    lerp(18, 8, clamp(denseFastAir + overspeed + 0.6 * brakeModePressure, 0, 1)),
-  );
-  const postFloor = Math.min(
-    safePostCap,
-    lerp(
-      basePostFloor,
-      Math.min(safePostCap, 18 + 10 * lowAir),
-      startupLandingPressure,
-    ),
-  );
-  const postLength = clamp(
-    lerp(
-      sampledPost,
-      Math.min(targetPost, safePostCap),
-      0.72,
-    ),
-    postFloor,
-    safePostCap,
-  );
+  const postLength = targetStatePostLength({
+    roll: rolls.postLength,
+    targetStateSpeed: targetState.speed,
+    air,
+    lowAir,
+    highAir,
+    dense,
+    denseFastAir,
+    overspeed,
+    speedControlPressure,
+    brakeModePressure,
+    startupLandingPressure,
+    nextGapFrames,
+  });
 
   return {
     segmentLength,
@@ -738,6 +729,80 @@ function targetStateControls(
     postSegments: clampInt(Math.round(postLength / segmentLength), 2, 18),
     contactJitter,
   };
+}
+
+type TargetStatePostLengthParams = {
+  roll: number;
+  targetStateSpeed: number;
+  air: number;
+  lowAir: number;
+  highAir: number;
+  dense: number;
+  denseFastAir: number;
+  overspeed: number;
+  speedControlPressure: number;
+  brakeModePressure: number;
+  startupLandingPressure: number;
+  nextGapFrames: number | null;
+};
+
+function targetStatePostLength(params: TargetStatePostLengthParams): number {
+  const sampledPost =
+    (28 + params.roll * 140) *
+    (1 + 0.20 * params.lowAir + 0.12 * params.highAir) *
+    (1 - TARGET_STATE_POST_SAMPLE_SPEED_REDUCTION * params.speedControlPressure) *
+    (1 - TARGET_STATE_POST_SAMPLE_BRAKE_REDUCTION * params.brakeModePressure) *
+    (1 - TARGET_STATE_POST_STARTUP_SAMPLE_REDUCTION * params.startupLandingPressure);
+  const targetGroundFrames = params.nextGapFrames === null
+    ? 6 + 18 * params.lowAir
+    : clamp(
+      (1 - params.air) * params.nextGapFrames,
+      2,
+      params.nextGapFrames *
+        (TARGET_STATE_POST_GROUND_ROOM_BASE - TARGET_STATE_POST_GROUND_ROOM_DENSE_REDUCTION * params.dense),
+    );
+  const safePostCap = targetStateSafePostCap(params);
+  const capPost = (value: number) => Math.min(safePostCap, value);
+  const targetPost = capPost(
+    Math.max(TARGET_STATE_POST_MIN_TARGET_PX, Math.max(1, params.targetStateSpeed) * targetGroundFrames),
+  );
+  const basePostFloor = capPost(
+    lerp(
+      TARGET_STATE_POST_BASE_FLOOR_HIGH_PX,
+      TARGET_STATE_POST_BASE_FLOOR_LOW_PX,
+      clamp(params.denseFastAir + params.overspeed + 0.6 * params.brakeModePressure, 0, 1),
+    ),
+  );
+  const startupPostFloor = capPost(
+    TARGET_STATE_POST_BASE_FLOOR_HIGH_PX +
+      TARGET_STATE_POST_STARTUP_FLOOR_LOW_AIR_BONUS * params.lowAir,
+  );
+  const postFloor = capPost(
+    lerp(basePostFloor, startupPostFloor, params.startupLandingPressure),
+  );
+  return clamp(
+    lerp(sampledPost, targetPost, TARGET_STATE_POST_TARGET_BLEND),
+    postFloor,
+    safePostCap,
+  );
+}
+
+function targetStateSafePostCap(params: TargetStatePostLengthParams): number {
+  if (params.nextGapFrames === null) return TARGET_STATE_POST_UNBOUNDED_CAP_PX;
+  return clamp(
+    Math.max(1, params.targetStateSpeed) *
+      params.nextGapFrames *
+      (
+        TARGET_STATE_POST_SAFE_CAP_BASE +
+        TARGET_STATE_POST_SAFE_CAP_LOW_AIR_BONUS * params.lowAir -
+        TARGET_STATE_POST_SAFE_CAP_DENSE_PENALTY * params.dense
+      ) *
+      (1 - TARGET_STATE_POST_SAFE_CAP_SPEED_REDUCTION * params.speedControlPressure) *
+      (1 - TARGET_STATE_POST_SAFE_CAP_BRAKE_REDUCTION * params.brakeModePressure) *
+      (1 - TARGET_STATE_POST_SAFE_CAP_STARTUP_REDUCTION * params.startupLandingPressure),
+    TARGET_STATE_POST_MIN_CAP_PX,
+    TARGET_STATE_POST_MAX_CAP_PX,
+  );
 }
 
 function guidedRolls(

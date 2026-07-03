@@ -273,6 +273,30 @@ floor-clamped air deadband. Aim-lane generation and the scorer were unchanged.
 near-mute strength; M4's remaining collateral is not controlled by this
 candidate-pool sort differential. No canonical run spent; code reverted.
 
+### M14 — M3 steep-arrival span dose 20%→30% · INCONCLUSIVE (reverted, 2026-07-03)
+
+**Mechanism.** Lowered `STEEP_ARRIVAL_ZERO_BAND` from 0.8 to 0.7, increasing the
+accepted M3 k-1 steep-arrival span from the top 20% to the top 30% of attempts.
+No new geometry, scorer, or evaluator changes.
+
+**Probe.** `probe-m3-span30-s0-2-a01` (40 specs × seeds 0..2 × canonical budget
+grid) vs `attempt-no-converting-scoop-a01`: indicative `VERDICT: ACCEPT`,
+Δheadline +2.3, 95% CI [-2.1, 6.3], P(Δ≤0)=14.1%, validity 480/480.
+
+**Canonical.** `attempt-m3-span30-a01` (valid 1920/1920, HEADLINE 691.47,
+excl-impact 710.47) vs `attempt-no-converting-scoop-a01`:
+
+```
+Δheadline = +0.6 · 95% CI [-2.3, 3.1] · P(Δ≤0)=33.0% · effect=0.40
+125k +4.1 · 250k +0.9 · 375k +0.0 · 500k -0.1 · validity 100% at every budget
+VERDICT: INCONCLUSIVE
+```
+
+**Learnings.** The extra M3 dose mainly buys 125k impact recovery and decays by
+mature budgets; the weighted aggregate is positive but not reliable at α=0.20.
+The accepted 20% span remains the baseline; dose escalation is not a promotable
+path without more independent leverage.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

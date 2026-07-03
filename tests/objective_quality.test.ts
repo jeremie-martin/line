@@ -10,6 +10,7 @@ import {
 import type { GapFit, ResolvedStart } from "../scripts/v0/core/substrate.ts";
 import {
   OBJECTIVE_READINESS_MIN,
+  OBJECTIVE_SPEED_OVERSHOOT_PENALTY_WEIGHT,
   OBJECTIVE_SPEED_SCALE_PXF,
   frontierReadinessFromFit,
   predictArrivalAtNextContact,
@@ -96,7 +97,10 @@ describe("unified objective quality score", () => {
     const catchability = Math.max(OBJECTIVE_READINESS_MIN, readinessCatch(arrival.speed, arrival.comAngleDeg));
     // speedFit is asymmetric: overshoot (too fast) is half-penalized, too-slow full.
     const dSpeed = arrival.speed - authoredSpeedToPx(0.5);
-    const speedFit = Math.exp(-(dSpeed > 0 ? dSpeed * 0.5 : -dSpeed) / OBJECTIVE_SPEED_SCALE_PXF);
+    const speedFit = Math.exp(
+      -(dSpeed > 0 ? dSpeed * OBJECTIVE_SPEED_OVERSHOOT_PENALTY_WEIGHT : -dSpeed) /
+        OBJECTIVE_SPEED_SCALE_PXF,
+    );
     const impactFeasibility = Math.min(
       1,
       Math.max(0, (arrival.speed * ((arrival.comAngleDeg * Math.PI) / 180)) / impactToRedirArcPx(0.8)),

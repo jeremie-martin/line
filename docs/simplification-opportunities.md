@@ -713,7 +713,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Name the half-penalty as one `ASYMMETRY` constant, tie `OBJECTIVE_SPEED_SCALE_PXF` to a stated tolerance, or collapse to symmetric `exp(-|d|/scale)` if the asymmetry isn't carrying score.
 - **Risk:** medium
 - **Generalization note:** Fixed 0.75 px/f tolerance silently assumes today's ~6-12 px/f regime. (Objective feeds scoring — verify fingerprint impact.)
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751); focused tests 76/76; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #68 baseline `simplify-68-continuous-dense-spacing-post-cap-a01`. Kept the historically accepted asymmetric speed-fit shape (symmetric was already rejected in lookahead H6 / the 2026-06-24 new-grid probe), named the fast-side weight as `OBJECTIVE_SPEED_OVERSHOOT_PENALTY_WEIGHT = 0.5`, and documented `OBJECTIVE_SPEED_SCALE_PXF = 0.75` as the next-gap mean-flight speed e-fold tolerance. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +4.2.
 
 ### 72. `OBJECTIVE_IMPACT_MIN_ASK=0.3` no-constraint gate is a documented reverse-fit lever
 *(cross-ref handoff entry #29)*

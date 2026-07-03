@@ -19,7 +19,10 @@ import {
 } from "./readiness.ts";
 
 export const OBJECTIVE_READINESS_MIN = 0.1;
+/** E-fold tolerance for next-gap mean-flight speed readiness, in px/frame. */
 export const OBJECTIVE_SPEED_SCALE_PXF = 0.75;
+/** Too-fast mean-speed residuals are cheaper than too-slow residuals. */
+export const OBJECTIVE_SPEED_OVERSHOOT_PENALTY_WEIGHT = 0.5;
 export const OBJECTIVE_IMPACT_MIN_ASK = 0.3;
 /** Air-fit exp scale, in airborne-fraction units (air ∈ [0,1]). */
 export const OBJECTIVE_AIR_SCALE = 0.25;
@@ -197,7 +200,7 @@ function speedFitFactor(speed: number, nextTargets: AxisValues): number {
   // than the scorer's symmetric AXIS_QUALITY_TOLERANCE — it ranks a candidate's fitness to FLY
   // INTO the next gap, not its scored speed error. The two surfaces are meant to differ.
   const d = speed - authoredSpeedToPx(target);
-  const penalty = d > 0 ? d * 0.5 : -d;
+  const penalty = d > 0 ? d * OBJECTIVE_SPEED_OVERSHOOT_PENALTY_WEIGHT : -d;
   return Math.exp(-penalty / OBJECTIVE_SPEED_SCALE_PXF);
 }
 

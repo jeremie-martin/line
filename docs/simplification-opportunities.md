@@ -574,7 +574,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract one `redirMissingTurnDeg(targetState, targetImpact, refAngleDeg, {maxDeg, gates})` returning `clamp(rawMissingDelta,0,maxDeg) × product(gates) × span`; the three call sites pass their distinct gate set + cap. A follow-up could collapse contact+entry into one. Removes ~120 lines.
 - **Risk:** medium
 - **Generalization note:** Budget gates are absolute frames (see #57); the shared helper is the place to make them budget-fraction-relative.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.8 (full canonical vs current #49 baseline `simplify-49-retire-dead-extra-aim-topk-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Extracted shared `redirMissingTurnDeg(...)` for the ceiling-clamped target pressure plus missing-turn calculation used by contact-shift, entry-shift, and post-turn; kept each caller's distinct maturity/speed/dense/curve gates, sign, and clamp placement intact. Focused optimizer/arc Vitest suite passed (6 files, 77 tests).
 
 ### 57. Pervasive hard-coded absolute-frame budget breakpoints assume the 125k-500k grid
 - **Files:** `scripts/v0/arc_placement.ts`

@@ -1442,22 +1442,15 @@ function contactCenteredRedirContactAngleShiftDeg(
   );
   if (mature <= 0 || speedPressure <= 0) return 0;
 
-  const target = Math.min(targetImpact, impactCeiling(targetState.speed));
-  const targetPressure = smoothstep(
-    (target - CONTACT_CENTERED_REDIR_CONTACT_TARGET_START) /
-      CONTACT_CENTERED_REDIR_CONTACT_TARGET_SPAN,
-  );
-  if (targetPressure <= 0) return 0;
-
   const deltaDeg = normalizeAngleDeg(contactAngleDeg - targetState.angleDeg);
-  const currentPredicted = predictedRedirImpactAtAngleDelta(targetState.speed, deltaDeg);
-  const missingImpact = target - currentPredicted;
-  if (missingImpact <= 0) return 0;
-
-  const neededDeltaDeg = neededTurnDegForImpact(target, targetState.speed);
-  const rawMissingDelta = Math.max(0, neededDeltaDeg - Math.abs(deltaDeg));
-  const shiftDeg = clamp(rawMissingDelta, 0, CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG)
-    * mature * speedPressure * targetPressure * clamp(ccSpanBlends(attempt).launch, 0, 1);
+  const turn = redirMissingTurnDeg(targetState, targetImpact, Math.abs(deltaDeg), {
+    targetStart: CONTACT_CENTERED_REDIR_CONTACT_TARGET_START,
+    targetSpan: CONTACT_CENTERED_REDIR_CONTACT_TARGET_SPAN,
+    predictedDeltaDeg: deltaDeg,
+  });
+  if (turn === null) return 0;
+  const shiftDeg = clamp(turn.missingDeltaDeg, 0, CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG)
+    * mature * speedPressure * turn.targetPressure * clamp(ccSpanBlends(attempt).launch, 0, 1);
   return -shiftDeg;
 }
 
@@ -1491,22 +1484,15 @@ function contactCenteredRedirEntryAngleShiftDeg(
   );
   if (densePressure <= 0) return 0;
 
-  const target = Math.min(targetImpact, impactCeiling(targetState.speed));
-  const targetPressure = smoothstep(
-    (target - CONTACT_CENTERED_REDIR_ENTRY_TARGET_START) /
-      CONTACT_CENTERED_REDIR_ENTRY_TARGET_SPAN,
-  );
-  if (targetPressure <= 0) return 0;
-
   const deltaDeg = normalizeAngleDeg(contactAngleDeg - targetState.angleDeg);
-  const currentPredicted = predictedRedirImpactAtAngleDelta(targetState.speed, deltaDeg);
-  const missingImpact = target - currentPredicted;
-  if (missingImpact <= 0) return 0;
-
-  const neededDeltaDeg = neededTurnDegForImpact(target, targetState.speed);
-  const rawMissingDelta = Math.max(0, neededDeltaDeg - Math.abs(deltaDeg));
-  return clamp(rawMissingDelta, 0, CONTACT_CENTERED_REDIR_ENTRY_SHIFT_MAX_DEG) *
-    mature * speedPressure * densePressure * targetPressure *
+  const turn = redirMissingTurnDeg(targetState, targetImpact, Math.abs(deltaDeg), {
+    targetStart: CONTACT_CENTERED_REDIR_ENTRY_TARGET_START,
+    targetSpan: CONTACT_CENTERED_REDIR_ENTRY_TARGET_SPAN,
+    predictedDeltaDeg: deltaDeg,
+  });
+  if (turn === null) return 0;
+  return clamp(turn.missingDeltaDeg, 0, CONTACT_CENTERED_REDIR_ENTRY_SHIFT_MAX_DEG) *
+    mature * speedPressure * densePressure * turn.targetPressure *
     clamp(ccSpanBlends(attempt).launch, 0, 1);
 }
 
@@ -1571,6 +1557,35 @@ function axisDeltaDeg(aDeg: number, bDeg: number): number {
   return d > 90 ? 180 - d : d;
 }
 
+type RedirMissingTurnConfig = {
+  targetStart: number;
+  targetSpan: number;
+  minMissingDeg?: number;
+  predictedDeltaDeg?: number;
+};
+
+function redirMissingTurnDeg(
+  targetState: ImpactFrameTargetState,
+  targetImpact: number,
+  currentDeltaDeg: number,
+  config: RedirMissingTurnConfig,
+): { missingDeltaDeg: number; targetPressure: number } | null {
+  const target = Math.min(targetImpact, impactCeiling(targetState.speed));
+  const targetPressure = smoothstep((target - config.targetStart) / config.targetSpan);
+  if (targetPressure <= 0) return null;
+
+  if (config.predictedDeltaDeg !== undefined) {
+    const currentPredicted = predictedRedirImpactAtAngleDelta(targetState.speed, config.predictedDeltaDeg);
+    const missingImpact = target - currentPredicted;
+    if (missingImpact <= 0) return null;
+  }
+
+  const neededDeltaDeg = neededTurnDegForImpact(target, targetState.speed);
+  const missingDeltaDeg = neededDeltaDeg - currentDeltaDeg;
+  if (missingDeltaDeg <= (config.minMissingDeg ?? 0)) return null;
+  return { missingDeltaDeg, targetPressure };
+}
+
 function impactPostTurnExtraDeg(
   targetState: ImpactFrameTargetState,
   targetImpact: number | undefined,
@@ -1586,23 +1601,21 @@ function impactPostTurnExtraDeg(
   );
   if (mature <= 0) return 0;
 
-  const target = Math.min(targetImpact, impactCeiling(targetState.speed));
-  const targetPressure = smoothstep(
-    (target - IMPACT_POST_TURN_TARGET_START) / IMPACT_POST_TURN_TARGET_SPAN,
-  );
-  if (targetPressure <= 0) return 0;
-  const neededDeltaDeg = neededTurnDegForImpact(target, targetState.speed);
   const currentDeltaDeg = Math.max(
     axisDeltaDeg(contactAngleDeg, targetState.angleDeg),
     axisDeltaDeg(postAngleDeg, targetState.angleDeg),
   );
-  const missingDeltaDeg = neededDeltaDeg - currentDeltaDeg;
-  if (missingDeltaDeg <= IMPACT_POST_TURN_MIN_MISSING_DEG) return 0;
+  const turn = redirMissingTurnDeg(targetState, targetImpact, currentDeltaDeg, {
+    targetStart: IMPACT_POST_TURN_TARGET_START,
+    targetSpan: IMPACT_POST_TURN_TARGET_SPAN,
+    minMissingDeg: IMPACT_POST_TURN_MIN_MISSING_DEG,
+  });
+  if (turn === null) return 0;
 
   const span = clamp(ccSpanBlends(attempt).launch, 0, 1);
   const sampleStrength = 0.25 + 0.75 * span;
-  const pressure = mature * targetPressure * Math.sqrt(clamp(impactCurveP, 0, 1));
-  return clamp(missingDeltaDeg * sampleStrength * pressure, 0, IMPACT_POST_TURN_MAX_EXTRA_DEG);
+  const pressure = mature * turn.targetPressure * Math.sqrt(clamp(impactCurveP, 0, 1));
+  return clamp(turn.missingDeltaDeg * sampleStrength * pressure, 0, IMPACT_POST_TURN_MAX_EXTRA_DEG);
 }
 
 function normalizeAngleDeg(deg: number): number {

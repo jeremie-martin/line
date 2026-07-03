@@ -444,6 +444,35 @@ the mature-budget point estimate is too small and noisy to justify canonical spe
 impact-rank problem is still spec/seed redistribution rather than a broad missing proposal. Code
 was reverted; do not retry the same one-candidate pitch proposal unchanged.
 
+### M20 — aim joint probe design `pitch3` · probe REJECT (env-only, 2026-07-03)
+
+**Mechanism.** Env-priced the cheaper current-grid aim design
+`LR_AIM_JOINT_PROBE_DESIGN=pitch3`: keep pitch probes only and drop the default `cross5`
+rotate probes/enumeration. This rechecks an old slightly-negative lead on the current compiler,
+where high-budget aim breadth is now K=6 and cost savings might have mattered. No production code
+change.
+
+**Probe.** `probe-aim-pitch3-s0-2-a01` (40 specs × seeds 0..2 × canonical budget grid,
+valid 480/480; stored probe HEADLINE 682.53, excl-impact 701.38) vs
+`attempt-no-converting-scoop-a01`:
+
+```
+Δheadline = -7.5 · 95% CI [-12.6, -2.9] · P(Δ≤0)=99.9% · effect=-3.05
+125k -2.9 · 250k -8.2 · 375k -7.5 · 500k -8.4 · validity 100% at every budget
+VERDICT: REJECT (indicative; no production change)
+```
+
+**Footprint.** The rotate probes are still buying real trajectory quality on the current grid.
+Weighted winners from `pitch3` were narrow and drum-heavy: `drums_dropout` +17.87,
+`ridge_pulse` +6.68, `solo_run` +6.04, `drums_zigzag` +3.17, `drums_pendulum` +1.82.
+The losses were larger and broad: `drums_swell` −32.59, `tiny_dance` −27.16,
+`drums_pulse` −26.10, `cold_start` −19.56, `float_bounds` −17.46, `dense_sprint` −16.57,
+`grain_staircase` −15.78, `soar_settle` −15.61.
+
+**Learnings.** Cost savings from shrinking the joint probe set are not enough to offset the lost
+rotate-probe options; the damage is mature-budget-wide, not a 125k starvation artifact. Keep the
+default `cross5` aim probe design and do not retry pitch-only unchanged.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

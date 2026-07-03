@@ -328,6 +328,37 @@ suite-level leverage. It remains a 1–3-spec pendulum aid with a tiny headline 
 well below the remaining +9.09 needed for 700. Code and test were reverted; do not
 retry this lane without a broader selector that demonstrably expands the footprint.
 
+### M16 — amplitude readiness term · targeted REJECT (reverted, 2026-07-03)
+
+**Mechanism.** Added a temporary amplitude-only component to `scoreNextTargetReadiness`:
+predict the next-gap ballistic pop from the candidate release state, compare it to meaningful
+next-gap amplitude asks (`target ≥0.30` ramp), and multiply readiness by an exp fit
+(deadband 0.05, scale 0.25). The aim sweep received the same predicted amplitude so pool sort
+and proposer used one objective. No scorer/spec/evaluator changes.
+
+**Validation.** Focused optimizer/arc suite passed:
+`LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts`
+→ 6 files, 79 tests.
+
+**Probe.** `probe-amplitude-readiness-s0-2-a01` (15 amplitude/combined specs × seeds 0..2 ×
+canonical budget grid, valid 180/180) vs `attempt-no-converting-scoop-a01`:
+
+```
+Δheadline = -1.4 · 95% CI [-3.4, 0.5] · P(Δ≤0)=93.0% · effect=-1.44
+125k -1.2 · 250k -0.1 · 375k -2.5 · 500k -1.4 · validity 100% at every budget
+VERDICT: REJECT (indicative targeted panel; not promoted to canonical)
+```
+
+**Footprint.** Gains existed (`float_bounds` +2.50 weighted, `canyon_steps` +1.43,
+`glide_stairs` +1.38), but the term damaged large-amplitude rows it was meant to help:
+`big_air_ramp` −7.18, `rolling_drop` −6.63, `skyline_push` −3.21, `soar_settle` −2.29,
+`switchback_pop` −2.14.
+
+**Learnings.** A ballistic next-amplitude fit is too myopic as readiness: it prices the pop
+shape into the previous gap, but forward selection then sacrifices speed/impact-compatible
+setups on the same rows. Do not add vertical axes to readiness without a joint speed/impact
+collateral model or an additive generation lane.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

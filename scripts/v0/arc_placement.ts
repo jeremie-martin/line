@@ -288,25 +288,28 @@ export function setImpactTemplateSpecMeanImpact(meanImpact: number): void {
     : 0;
 }
 
-let currentImpactCurveElevationRoomPressure = 0;
-export function setImpactCurveElevationRoomPressure(pressure: number): void {
-  currentImpactCurveElevationRoomPressure = Number.isFinite(pressure)
-    ? clamp(pressure, 0, 1)
-    : 0;
+type ImpactProfilePressures = {
+  elevationRoom: number;
+  highSpeedRelief: number;
+  templateHold: number;
+};
+
+let currentImpactProfilePressures: ImpactProfilePressures = {
+  elevationRoom: 0,
+  highSpeedRelief: 0,
+  templateHold: 0,
+};
+
+function normalizedProfilePressure(pressure: number): number {
+  return Number.isFinite(pressure) ? clamp(pressure, 0, 1) : 0;
 }
 
-let currentImpactCurveHighSpeedReliefPressure = 0;
-export function setImpactCurveHighSpeedReliefPressure(pressure: number): void {
-  currentImpactCurveHighSpeedReliefPressure = Number.isFinite(pressure)
-    ? clamp(pressure, 0, 1)
-    : 0;
-}
-
-let currentImpactTemplateHoldProfilePressure = 0;
-export function setImpactTemplateHoldProfilePressure(pressure: number): void {
-  currentImpactTemplateHoldProfilePressure = Number.isFinite(pressure)
-    ? clamp(pressure, 0, 1)
-    : 0;
+export function setImpactProfilePressures(pressures: ImpactProfilePressures): void {
+  currentImpactProfilePressures = {
+    elevationRoom: normalizedProfilePressure(pressures.elevationRoom),
+    highSpeedRelief: normalizedProfilePressure(pressures.highSpeedRelief),
+    templateHold: normalizedProfilePressure(pressures.templateHold),
+  };
 }
 
 type SegmentCollisionRiskLines = number[];
@@ -1366,7 +1369,7 @@ function impactTemplateHoldPressure(
   targets: AxisValues,
   nextGapFrames: number | null,
 ): number {
-  if (IMPACT_GEOM_OFF || currentImpactTemplateHoldProfilePressure <= 0 || nextGapFrames === null) {
+  if (IMPACT_GEOM_OFF || currentImpactProfilePressures.templateHold <= 0 || nextGapFrames === null) {
     return 0;
   }
   if (targets.impact === undefined) return 0;
@@ -1386,7 +1389,7 @@ function impactTemplateHoldPressure(
     IMPACT_TEMPLATE_HOLD_BUDGET_SPAN_FRAMES,
   );
   return clamp(
-    currentImpactTemplateHoldProfilePressure * lowAirPressure * impactPressure *
+    currentImpactProfilePressures.templateHold * lowAirPressure * impactPressure *
       roomPressure * budgetPressure,
     0,
     1,
@@ -1541,8 +1544,8 @@ function impactCurveTargetStart(targetImpact: number): number {
     (targetImpact - IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_START) /
       IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_SPAN,
   );
-  const profilePressure = currentImpactCurveElevationRoomPressure *
-    (1 - currentImpactCurveHighSpeedReliefPressure * localReliefPressure) *
+  const profilePressure = currentImpactProfilePressures.elevationRoom *
+    (1 - currentImpactProfilePressures.highSpeedRelief * localReliefPressure) *
     maturePressure;
   return lerp(IMPACT_CURVE_TARGET_START, IMPACT_CURVE_ELEVATION_ROOM_TARGET_START, profilePressure);
 }

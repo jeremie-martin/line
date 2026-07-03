@@ -111,9 +111,7 @@ import {
 } from "./sim_frames.ts";
 import {
   setCompileBudgetFrames,
-  setImpactCurveElevationRoomPressure,
-  setImpactCurveHighSpeedReliefPressure,
-  setImpactTemplateHoldProfilePressure,
+  setImpactProfilePressures,
   setImpactTemplateSpecMeanImpact,
   snapshotArcPlacementStats,
 } from "../arc_placement.ts";
@@ -687,15 +685,11 @@ function resolveImpactTargets(
     }
   }
   const impactProfile = impactOff ? null : impactCurveProfileStats(gaps, gapAxisTargets);
-  setImpactCurveElevationRoomPressure(
-    impactProfile === null ? 0 : impactCurveElevationRoomPressure(impactProfile),
-  );
-  setImpactCurveHighSpeedReliefPressure(
-    impactProfile === null ? 0 : impactCurveHighSpeedReliefProfilePressure(impactProfile),
-  );
-  setImpactTemplateHoldProfilePressure(
-    impactProfile === null ? 0 : impactTemplateHoldProfilePressure(impactProfile),
-  );
+  setImpactProfilePressures({
+    elevationRoom: impactProfile === null ? 0 : impactCurveElevationRoomPressure(impactProfile),
+    highSpeedRelief: impactProfile === null ? 0 : impactCurveHighSpeedReliefProfilePressure(impactProfile),
+    templateHold: impactProfile === null ? 0 : impactTemplateHoldProfilePressure(impactProfile),
+  });
 }
 
 function compileHandoffInternal(

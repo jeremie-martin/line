@@ -27,9 +27,7 @@ import {
   sampleArcParamsRngDraws,
   sampleArcPlacementGeometry,
   setCompileBudgetFrames,
-  setImpactCurveElevationRoomPressure,
-  setImpactCurveHighSpeedReliefPressure,
-  setImpactTemplateHoldProfilePressure,
+  setImpactProfilePressures,
   snapshotArcPlacementStats,
   wasLastGeometryImpactTemplate,
 } from "../scripts/v0/arc_placement.ts";
@@ -278,8 +276,7 @@ describe("target-state arc placement", () => {
     const contactGap = gap(0, 0, 30);
     try {
       setCompileBudgetFrames(250_000);
-      setImpactCurveElevationRoomPressure(1);
-      setImpactCurveHighSpeedReliefPressure(0);
+      setImpactProfilePressures({ elevationRoom: 1, highSpeedRelief: 0, templateHold: 0 });
       const base = linesFromGeometry(sampleArcPlacementGeometry(
         () => 0.5,
         100,
@@ -293,7 +290,7 @@ describe("target-state arc placement", () => {
         [30, 70],
       ));
 
-      setImpactCurveHighSpeedReliefPressure(1);
+      setImpactProfilePressures({ elevationRoom: 1, highSpeedRelief: 1, templateHold: 0 });
       const relieved = linesFromGeometry(sampleArcPlacementGeometry(
         () => 0.5,
         100,
@@ -309,8 +306,7 @@ describe("target-state arc placement", () => {
 
       expect(relieved.at(-1)?.y2).not.toBeCloseTo(base.at(-1)?.y2 ?? NaN, 4);
     } finally {
-      setImpactCurveHighSpeedReliefPressure(0);
-      setImpactCurveElevationRoomPressure(0);
+      setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
       setCompileBudgetFrames(0);
     }
   });
@@ -321,7 +317,7 @@ describe("target-state arc placement", () => {
     const targets = { air: 0.15, speed: 0.55, grain: 0.45, impact: 0.72 };
     try {
       setCompileBudgetFrames(250_000);
-      setImpactTemplateHoldProfilePressure(0);
+      setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
       const base = linesFromGeometry(sampleArcPlacementGeometry(
         () => 0.5,
         100,
@@ -336,7 +332,7 @@ describe("target-state arc placement", () => {
       ));
       expect(wasLastGeometryImpactTemplate()).toBe(true);
 
-      setImpactTemplateHoldProfilePressure(1);
+      setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 1 });
       const held = linesFromGeometry(sampleArcPlacementGeometry(
         () => 0.5,
         100,
@@ -353,7 +349,7 @@ describe("target-state arc placement", () => {
       expect(held.length).toBeGreaterThan(base.length);
       expect(totalLineLength(held)).toBeGreaterThan(totalLineLength(base) + 5);
     } finally {
-      setImpactTemplateHoldProfilePressure(0);
+      setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
       setCompileBudgetFrames(0);
     }
   });

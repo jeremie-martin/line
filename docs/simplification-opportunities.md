@@ -601,7 +601,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Fold the profile pressures into a single named parameter or derive locally from targets; collapse `impactCurveTargetStart` to one continuous onset formula. Verify each is non-default in the canonical set; delete any that is ~always 0/1.
 - **Risk:** high
 - **Generalization note:** Per-compile values from handoff heuristics tuned to the current set; default 0 gives unset compiles a different onset.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.8 (full canonical vs current #57 baseline `simplify-57-centralize-budget-pressure-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Verified the three profile pressures are live on canonical spec-seeds (`elevationRoom` nonzero 180/480, `highSpeedRelief` 120/480, `templateHold` 48/480), so none were deleted; bundled them into one `ImpactProfilePressures` object and `setImpactProfilePressures(...)` call while leaving formulas unchanged. Focused optimizer/arc Vitest suite passed (6 files, 77 tests).
 
 ### 60. Duplicated speed/dense/deadline pressure derivation in two functions
 - **Files:** `scripts/v0/arc_placement.ts`

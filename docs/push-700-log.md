@@ -595,6 +595,39 @@ VERDICT: REJECT (indicative; not promoted to full-grid probe)
 problem is not solved by reducing non-low-air aim bases; keep K=4 at 125k and K=6 at mature
 budgets.
 
+### M25 — post-completion dead-end rescue suppression · probe INCONCLUSIVE-flat (reverted, 2026-07-04)
+
+**Mechanism.** Temporarily made the dead-end rescue cascade pre-completion only by threading a
+`deadEndRescue` policy bit from `hasCompletion`. This preserved the first-completion validity
+safety net, but stopped repair restarts and post-completion frontier fill from spending extra
+rescue samples after a complete incumbent already existed. Candidate generation, normal pool
+ranking, start selection, forward eval, repair selection, scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+**Tests.** Focused suite passed during the source trial:
+`LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts`
+(6 files, 77 tests).
+
+**Probe.** `probe-postcompletion-rescue-off-s0-2-j48-a01` (40 specs × seeds 0..2 ×
+{125k,250k,375k,500k}, valid 480/480) vs `attempt-m3-scarce-span75-a01`:
+
+```
+Δheadline = +0.0 · 95% CI [0.0, 0.1] · P(Δ≤0)=30.3% · effect=0.66
+Per-budget Δ: 125k +0.0 · 250k +0.0 · 375k +0.0 · 500k +0.0
+VERDICT: INCONCLUSIVE (indicative; not promoted to canonical)
+```
+
+**Footprint.** The policy did suppress post-completion rescue work, but it was almost inert on
+score. Only 2/480 paired checkpoints changed, both at 500k and both positive: `opening_burst`
+seed 2 +5.80 (repair accepts 3→4) and `drums_dropout` seed 2 +0.01 (repair accepts 0→1).
+Probe rescue attempts/successes moved 24/0→17/0 at 125k, 41/2→24/0 at 250k,
+65/3→24/0 at 375k, and 78/4→24/0 at 500k.
+
+**Learnings.** Post-completion dead-end rescue is measurable but not a headline lever. The
+successes it removes are too rare to move the suite, and the freed budget does not reliably
+convert into additional repair quality. Keep the existing rescue cascade unchanged; do not retry
+a pure post-completion rescue cutoff without a stronger local usefulness selector.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

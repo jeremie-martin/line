@@ -672,6 +672,34 @@ the mechanism is narrow but not selectable enough as-is. Source reverted; archiv
 
 ---
 
+## 14. Current-grid shallow/wide rechecks after M4/M3 — no promotion path
+
+**Definition.** Rechecked the old shallow-rollout leads against the current accepted baseline
+`attempt-no-converting-scoop-a01`, using the current canonical budget grid
+{125k,250k,375k,500k} and seeds 0..2. Both were env-only probes; production code stayed unchanged.
+
+**Results.**
+
+```
+  LR_FWD_EVAL=greedy:1
+    Δheadline -1.8 · CI[-7.8,+3.6] · P(Δ≤0)=74.2%
+    125k -2.4 · 250k -1.8 · 375k -1.0 · 500k -2.2
+    verdict INCONCLUSIVE-negative
+
+  LR_FWD_EVAL=best:1:5 LR_ROLLOUT_AIM=0
+    Δheadline -2.1 · CI[-14.6,+6.0] · P(Δ≤0)=59.5%
+    125k -32.6 · 250k +1.1 · 375k +2.0 · 500k +0.9
+    125k validity 100%→99% (`solo_run` seed 1 failed)
+    verdict INCONCLUSIVE
+```
+
+**Conclusion.** The old high-budget crossover no longer pays on the current compiler/grid. `greedy:1`
+is negative at every budget, and `best:1:5+noaim` buys only small mature-budget gains while opening a
+large 125k tail. Keep the current `greedy:2` default and do not spend canonical time on either flat
+variant unchanged.
+
+---
+
 ## Open questions (no conclusions yet)
 
 - Catch-only helps air/rhythmic specs but hurts a few dense ones (drums_pendulum). Why — unstudied.

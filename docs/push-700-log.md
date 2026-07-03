@@ -385,6 +385,33 @@ VERDICT: INCONCLUSIVE-negative (indicative; no production change)
 negative at every canonical budget on the paired 3-seed intersection. Do not promote a flat
 shallow rollout or spend canonical time on it unchanged.
 
+### M18 — `best:1:5` forward eval with rollout aim suppressed · probe INCONCLUSIVE-negative (2026-07-03)
+
+**Mechanism.** Env-priced the old wide-shallow lookahead leader on the current accepted compiler:
+`LR_FWD_EVAL=best:1:5 LR_ROLLOUT_AIM=0`. This preserves top-level aim but disables aim probes
+inside rollout branches. No production code change.
+
+**Probe.** `probe-fwd-best1x5-noaim-s0-2-a01` (40 specs × seeds 0..2 × canonical budget grid,
+stored probe HEADLINE 687.99, excl-impact 706.85) vs `attempt-no-converting-scoop-a01`:
+
+```
+Δheadline = -2.1 · 95% CI [-14.6, 6.0] · P(Δ≤0)=59.5% · effect=-0.37
+125k -32.6 · 250k +1.1 · 375k +2.0 · 500k +0.9
+validity: 125k 100%→99%, mature budgets unchanged at 100%
+VERDICT: INCONCLUSIVE (indicative; no production change)
+```
+
+**Footprint.** Mature-budget gains are real but too small, and the low-budget failure dominates:
+`solo_run` seed 1 fails at 125k (score 0), producing a weighted `solo_run` loss of −36.81.
+Other weighted losers: `drums_swell` −24.76, `syncopated_lift` −14.70, `verse_chorus` −14.60,
+`cold_start` −14.33. Winners are the old shallow-rollout shape but not enough:
+`syncopated_switchback` +27.19, `rhythm_ladder` +20.96, `grain_staircase` +17.11,
+`drums_crescendo` +15.52, `drums_dropout` +14.83, `drums_pendulum` +9.77.
+
+**Learnings.** The former `best:1:5 + noaim` high-budget signal also does not survive the current
+baseline/grid as a flat default. It gives only +0.9 to +2.0 at mature budgets while creating a
+catastrophic 125k tail; canonical promotion is not warranted. Do not retry unchanged.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

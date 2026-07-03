@@ -1230,7 +1230,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Pick one space (latent is default) and delete the other: drop the `directOutputs` option + block, keeping the single latent reducer (coordinate with aim #46).
 - **Risk:** medium
 - **Generalization note:** Neither assumes the grid; affects only aim.ts's `LR_AIM_MODEL_SPACE` switch.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical for production (focused optimizer/arc tests 94/94 passed; `study_prediction_truth.ts` smoke passed on `tiny_dance` seed 0; 1-seed/40-spec/4-budget track_hash diff vs `simplify-72-impact-ask-pressure-ramp-a01` matched 160/160 with evaluator fingerprint `de24a421f751`). Dropped `directOutputs` from `arc_probe.ts`; the prediction-truth study now derives direct architecture rows from `reduceLatentJointArcOutputs(...)` plus measured current outputs, keeping one physics reduction implementation.
 
 ### 127. Ad-hoc probe-horizon offset constants (+16/+20/+2, IMPACT_WINDOW+2) scattered in arc_probe.ts
 - **Files:** `scripts/v0/optimizer/arc_probe.ts`

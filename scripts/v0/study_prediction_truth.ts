@@ -10,15 +10,15 @@
  *
  *   latent architecture : reduce(fit(latents))   — probe rows carry latentOutputs.
  *                          predictJointArcOutputs follows the latent path.
- *   direct architecture : fit(reduce(row))        — probe rows carry directOutputs
- *                          (exit/next ballistic reduction) in `outputs` with
- *                          latentOutputs STRIPPED, so the fit runs knobs → reduced
- *                          outputs directly with no latent models.
+ *   direct architecture : fit(reduce(row))        — the study reduces measured
+ *                          latents into exit/next outputs per row, then strips
+ *                          latentOutputs so the fit runs knobs → reduced outputs
+ *                          directly with no latent models.
  *
  * Per (gap, base-arc) sweep:
  *   1. Ride the probe design (cross5, optionally pitch3) in short mode with
- *      includeTruth + directOutputs. Each probe row then has short outputs,
- *      latents, AND the full-sim truth observation.
+ *      includeTruth. Each probe row then has short current outputs, latents,
+ *      AND the full-sim truth observation.
  *   2. Fit BOTH architectures from the SAME rows.
  *   3. Evaluate at held-out knobs (pitch ∈ {±2, ±4, ±6}, rotate 0 — not in the
  *      cross5/pitch3 design). For each held-out knob ride ONE extra short+truth
@@ -27,7 +27,7 @@
  *        - direct prediction    = predictJointArcOutputs(directModel, knobs)
  *        - shortRead measured   = the row's OWN short reduction
  *            (latent path: reduceLatentJointArcOutputs(row.latentOutputs);
- *             direct path: the row's directOutputs in `outputs`)
+ *             direct path: the study's per-row direct reduction)
  *        - full-sim truth        = row.truth.outputs
  *   4. Accumulate, per output key:
  *        mean|latent−truth|, mean|direct−truth|, mean|latent−direct|,
@@ -204,9 +204,14 @@ function bump(map: Map<string, number>, key: string): void {
   map.set(key, (map.get(key) ?? 0) + 1);
 }
 
-// Strip latentOutputs → direct architecture probe rows.
-function stripLatents(rows: JointArcProbeRow[]): JointArcProbeRow[] {
-  return rows.map((r) => ({ knobs: r.knobs, outputs: r.outputs }));
+function directShortOutputs(row: JointArcProbeRow, context: JointArcResponseContext): Record<string, number> {
+  const reduced = row.latentOutputs === undefined ? {} : reduceLatentJointArcOutputs(row.latentOutputs, context);
+  return { ...reduced, ...row.outputs };
+}
+
+// Reduce measured latents, then strip latentOutputs → direct architecture rows.
+function directArchitectureRows(rows: JointArcProbeRow[], context: JointArcResponseContext): JointArcProbeRow[] {
+  return rows.map((r) => ({ knobs: r.knobs, outputs: directShortOutputs(r, context) }));
 }
 
 async function yieldMaybe(): Promise<void> {
@@ -265,13 +270,13 @@ for (const specName of specNames) {
         const probeKnobs = arcProbeDesign(designName);
         const probeKeySet = new Set(probeKnobs.map(arcKnobKey));
 
-        // 1. ride probe rows (short + truth + directOutputs)
+        // 1. ride probe rows (short + truth)
         const probeRows: JointArcProbeRow[] = [];
         for (const knobs of probeKnobs) {
           const engine = mkEngine(track, before);
           const probe = evaluateJointArcKnobs(
             engine, arc, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
-            { mode: "short", includeTruth: true, directOutputs: true },
+            { mode: "short", includeTruth: true },
           );
           probeRows.push({
             knobs,
@@ -284,7 +289,7 @@ for (const specName of specNames) {
 
         // 2. fit both architectures from the same rows
         const latentModel = fitJointArcResponseModel(probeRows, designName, "hybrid", { context });
-        const directModel = fitJointArcResponseModel(stripLatents(probeRows), designName, "hybrid", { context });
+        const directModel = fitJointArcResponseModel(directArchitectureRows(probeRows, context), designName, "hybrid", { context });
 
         sweepsTotal++;
         let sweepHadFiniteTruth = false;
@@ -299,7 +304,7 @@ for (const specName of specNames) {
           const engine = mkEngine(track, before);
           const probe = evaluateJointArcKnobs(
             engine, arc, knobs, gap, contactFrames, axisMeasureEnd, nextFrame,
-            { mode: "short", includeTruth: true, directOutputs: true },
+            { mode: "short", includeTruth: true },
           );
           evalProbeRides++;
           await yieldMaybe();
@@ -310,11 +315,11 @@ for (const specName of specNames) {
           const directPred = predictJointArcOutputs(directModel, knobs);
           // shortRead of THIS held-out probe row itself:
           //  - latent path: reduce(this row's measured latents)
-          //  - direct path: this row's directOutputs in `outputs`
+          //  - direct path: this row's measured latents reduced directly
           const latentShortRead = probe.latentOutputs === undefined
             ? {}
             : reduceLatentJointArcOutputs(probe.latentOutputs, context);
-          const directShortRead = probe.outputs;
+          const directShortRead = directShortOutputs(probe, context);
 
           const allKeys = new Set<string>([
             ...NEXT_KEYS, ...EXIT_KEYS, ...currentKeys(),
@@ -324,7 +329,8 @@ for (const specName of specNames) {
             // Truth reference. Full-sim measures next.* and current.* directly.
             // It does NOT measure the exit launch state (exit.* is purely a
             // short-probe construct), so for exit.* keys we use the held-out
-            // probe's OWN measured exit (directShortRead = its directOutputs)
+            // probe's OWN measured exit (directShortRead = measured latents
+            // reduced directly)
             // as the reference — this makes the exit columns a fit-error /
             // architecture-agreement read against the measured launch state,
             // NOT against an independent full-sim truth. Noted in the report.

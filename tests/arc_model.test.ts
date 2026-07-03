@@ -530,7 +530,7 @@ describe("arc_model joint response helpers", () => {
       nextFrame: 13,
     };
 
-    // Direct path (mirrors arc_probe.ts observeJointArcLines under directOutputs).
+    // Direct path (mirrors study-local per-row reduction from measured latents).
     const direct: Record<string, number> = {
       "exit.frame": suffixFrame,
       "exit.x": suffix.x,

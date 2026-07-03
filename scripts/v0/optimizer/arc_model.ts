@@ -752,8 +752,8 @@ function prefixSummaryFromLatent(
 
 /** The 9-key `exit.*` block at the suffix/exit frame: the suffix launch state
  *  written under the reducer's `exit.*` keys. Single source for both the latent
- *  reducer (reduceLatentJointArcOutputs) and direct-mode probe rows (arc_probe.ts)
- *  so the key set and values stay identical across model spaces. */
+ *  reducer (reduceLatentJointArcOutputs) and study-local direct rows so the key
+ *  set and values stay identical across model spaces. */
 export function exitStateOutputs(state: RiderArrivalState, frame: number): Record<string, number> {
   const outputs: Record<string, number> = {};
   addFinite(outputs, "exit.frame", frame);

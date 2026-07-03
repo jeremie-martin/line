@@ -628,6 +628,48 @@ successes it removes are too rare to move the suite, and the freed budget does n
 convert into additional repair quality. Keep the existing rescue cascade unchanged; do not retry
 a pure post-completion rescue cutoff without a stronger local usefulness selector.
 
+### M26 — air-fit objective shape sweep · targeted REJECT/closed (reverted, 2026-07-04)
+
+**Mechanism.** Temporarily added default-identical env hooks around the three M4 air-fit
+objective constants, then screened three constant-shape variants on the current accepted
+baseline: wider air deadband (`LR_OBJECTIVE_AIR_DEADBAND=0.08`), weaker global pressure
+(`LR_OBJECTIVE_AIR_SCALE=0.35`), and symmetric predicted-air undershoot pressure
+(`LR_OBJECTIVE_AIR_UNDERSHOOT_WEIGHT=1`). Scorer, specs, fingerprint, seed set, budget
+grid, candidate generation, start selection, forward eval, repair, and acceptance rule
+were unchanged.
+
+**Tests.** The default-identical source scaffold passed the focused suite:
+`LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts`
+(6 files, 77 tests).
+
+**Probe panel.** All three arms used the same 19-spec air-sensitive panel
+(`drums_pendulum`, `skyline_push`, `terrace_sprint`, `drums_dropout`, `dense_sprint`,
+`canyon_steps`, `rhythm_ladder`, `dense_echo_climb`, `syncopated_lift`, `drums_pulse`,
+`drums_breath`, `drums_crescendo`, `syncopated_switchback`, `opening_burst`,
+`drums_swell`, `drums_tide`, `drums_zigzag`, `drums_crosscut`, `cold_start`) × seeds
+0..2 × the canonical budget grid, compared to `attempt-m3-scarce-span75-a01`.
+
+```
+deadband 0.08: Δheadline -0.4, CI[-8.9, 7.6], P≤0=52.5%;
+               per-budget -10.3/+0.4/+1.6/+0.2.
+scale 0.35:    Δheadline +0.2, CI[-7.2, 7.7], P≤0=48.3%;
+               per-budget -6.3/-1.1/+2.7/+0.6.
+undershoot 1:  Δheadline -1.5, CI[-13.0, 7.8], P≤0=59.7%;
+               per-budget -6.5/-3.8/+1.1/-1.2.
+```
+
+**Footprint.** The variants were not inert: 223-226/228 paired checkpoints changed. But all
+three reopened the scarce-tier loss that the current M4/M3 balance avoids. The best mature
+hint (`scale=0.35`, +2.7 at 375k on this biased panel) was too small and spec-unstable to
+justify building a budget-aware production variant. The same arms traded the steady-drum
+repairs against large regressions (`drums_pulse`, `syncopated_switchback`, `drums_swell`,
+`drums_tide`) rather than expanding the suite-level pool.
+
+**Learnings.** M4's air-fit constants are near the useful tradeoff for this compiler. Simple
+global deadband/scale/asymmetry changes are closed; do not retry unchanged. Future air work
+needs a new usefulness selector or generation mechanism, not another scalar tweak to the
+existing air-fit penalty. The temporary env scaffold was reverted.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

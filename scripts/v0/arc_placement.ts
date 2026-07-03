@@ -221,8 +221,11 @@ export function wasLastGeometryImpactTemplate(): boolean {
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
 const HIGH_AIR_LENGTH_BLEND_EXTRA = 0.28;
-const DENSE_SPACING_CAP_GRAIN_MIN = 0.50;
-const DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES = 14;
+const DENSE_SPACING_POST_LENGTH_NEUTRAL_CAP = 220;
+const DENSE_SPACING_POST_LENGTH_MIN_CAP = 36;
+const DENSE_SPACING_POST_LENGTH_MAX_CAP = 180;
+const DENSE_SPACING_POST_LENGTH_SPEED_SCALE = 0.52;
+const DENSE_SPACING_POST_LENGTH_LOW_AIR_SCALE = 0.16;
 const CONTACT_CENTERED_RNG_DRAWS = 8;
 const LAUNCH_GRAVITY_PX_PER_FRAME2 = 0.175;
 /** Budget-aware post-contact ride-out CURVATURE. The ride-out angle was lerped
@@ -1054,10 +1057,6 @@ function sampleContactCenteredLines(
     * (0.95 + 0.25 * (1 - air) + 0.20 * absoluteSpeedPressure
       + 0.18 * sustainedContactCarryPressure + 0.12 * brakePressure);
   const denseScaledPostLength = rawPostLength * (1 - 0.55 * denseContactPressure);
-  const needsGrainSpacingCap = needsDenseSpacingPostLengthCap(targets, nextGapFrames);
-  const spacingPostLengthCap = nextGapFrames === null || !needsGrainSpacingCap
-    ? 220
-    : clamp(targetState.speed * nextGapFrames * (0.52 + 0.16 * (1 - air)), 36, 180);
   const arcLenRoom = nextGapFrames === null
     ? 1
     : (() => {
@@ -1073,6 +1072,13 @@ function sampleContactCenteredLines(
       );
       return lerp(linearRoom, smoothRoom, smoothBudgetPressure);
     })();
+  const spacingPostLengthCap = denseSpacingPostLengthCap(
+    targetState.speed,
+    nextGapFrames,
+    air,
+    denseContactPressure,
+    arcLenRoom,
+  );
   // Both ends fade to the neutral 1.0 as room→0, so dense gaps (the original
   // suite) stay byte-identical and only gaps with room get the wider pool.
   const arcLenLo = 1 + (ARC_LEN_SPAN_LO - 1) * arcLenRoom;
@@ -1785,13 +1791,27 @@ function ccSpanBlends(attempt: number): { launch: number; length: number } {
   return { launch: b, length: clamp(1 - b, 0, 1) };
 }
 
-function needsDenseSpacingPostLengthCap(
-  targets: AxisValues,
+function denseSpacingPostLengthCap(
+  targetSpeed: number,
   nextGapFrames: number | null,
-): boolean {
-  if (nextGapFrames === null) return false;
-  return (targets.grain ?? 0) >= DENSE_SPACING_CAP_GRAIN_MIN
-    && nextGapFrames <= DENSE_SPACING_CAP_MAX_NEXT_CONTACT_FRAMES;
+  air: number,
+  denseContactPressure: number,
+  arcLenRoom: number,
+): number {
+  if (nextGapFrames === null) return DENSE_SPACING_POST_LENGTH_NEUTRAL_CAP;
+  const capPressure = clamp(denseContactPressure * (1 - arcLenRoom), 0, 1);
+  if (capPressure <= 0) return DENSE_SPACING_POST_LENGTH_NEUTRAL_CAP;
+  const denseCap = clamp(
+    targetSpeed *
+      nextGapFrames *
+      (
+        DENSE_SPACING_POST_LENGTH_SPEED_SCALE +
+        DENSE_SPACING_POST_LENGTH_LOW_AIR_SCALE * (1 - air)
+      ),
+    DENSE_SPACING_POST_LENGTH_MIN_CAP,
+    DENSE_SPACING_POST_LENGTH_MAX_CAP,
+  );
+  return lerp(DENSE_SPACING_POST_LENGTH_NEUTRAL_CAP, denseCap, capPressure);
 }
 
 function buildPreContactLines(

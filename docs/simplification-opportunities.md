@@ -682,7 +682,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Unify the dense-spacing cap with the arcLenRoom room ramp into one continuous room-based cap, eliminating the binary grain/14-frame gate.
 - **Risk:** medium
 - **Generalization note:** 14-frame / grain-0.50 cutoffs assume current beat spacing/grain.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +0.2, P(Δ≤-0.1)=1.6%, cumulative Δheadline vs campaign-start baseline +4.2 (full canonical vs current #67 baseline `simplify-67-target-state-post-length-helper-a01`; valid 1920/1920, fingerprint unchanged; 1868/1920 `track_hash` match, 52 changed; focused tests 76/76). Deleted the binary `needsDenseSpacingPostLengthCap(...)` grain/14-frame gate and replaced it with continuous `denseSpacingPostLengthCap(...)` pressure (`denseContactPressure × (1 - arcLenRoom)`) blended from the neutral cap to the old dense cap formula.
 
 ---
 

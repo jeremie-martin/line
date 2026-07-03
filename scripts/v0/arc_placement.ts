@@ -16,7 +16,6 @@ import {
   CANDIDATE_SAMPLE_MODES,
   FPS,
   IMPACT,
-  IMPACT_WINDOW,
   type ArcPlacementCounter,
   type ArcPlacementMode,
   type AxisValues,
@@ -211,25 +210,9 @@ const IMPACT_TEMPLATE_HOLD_MIN_FRAMES = 1.2;
 const IMPACT_TEMPLATE_HOLD_MAX_FRAMES = 3.6;
 const IMPACT_TEMPLATE_HOLD_SEG_PX = 12;
 
-// Low-budget impact portfolio, part 1: arrival-conditioned converting scoop.
-// Attempts at k=0 can be the only shape a rollout sees, so this lane converts a
-// genuinely steep incoming dive on the current impact beat while preserving the
-// normal downstream launch. It fades out by 250k, where earlier probes showed
-// the mature search prefers the baseline pool.
-const CONVERTING_SCOOP_MIN_ASK = 0.30;
-const CONVERTING_SCOOP_MIN_ARRIVAL_DEG = 12;
-const CONVERTING_SCOOP_ENTRY_RELIEF_DEG = 4;
-const CONVERTING_SCOOP_MIN_TURN_DEG = 3;
-const CONVERTING_SCOOP_MAX_TURN_DEG = 55;
-const CONVERTING_SCOOP_SEG_PX = 10;
-const CONVERTING_SCOOP_BUDGET_FADE_START_FRAMES = 125_000;
-const CONVERTING_SCOOP_BUDGET_FADE_SPAN_FRAMES = 125_000;
-const CONVERTING_SCOOP_BUDGET_SALT = 17;
-
-// Low-budget impact portfolio, part 2: k-1 steep-arrival span. Later attempts
-// on gaps whose NEXT beat wants impact pitch the final launch downward by a
-// measured delivery-efficiency inverse, keeping attempt 0 byte-identical so the
-// default shape remains in every pool.
+// M3 k-1 steep-arrival span. Later attempts on gaps whose NEXT beat wants impact
+// pitch the final launch downward by a measured delivery-efficiency inverse,
+// keeping attempt 0 byte-identical so the default shape remains in every pool.
 const STEEP_ARRIVAL_MIN_ASK = 0.30;
 const STEEP_ARRIVAL_DELIVERY_EFFICIENCY = 0.68;
 const STEEP_ARRIVAL_DELTA_MAX_DEG = 15;
@@ -1271,30 +1254,6 @@ function sampleContactCenteredLines(
     }
   }
 
-  const scoopBudgetFade = compileBudgetFade(
-    CONVERTING_SCOOP_BUDGET_FADE_START_FRAMES,
-    CONVERTING_SCOOP_BUDGET_FADE_SPAN_FRAMES,
-  );
-  if (
-    attempt === 0
-    && !IMPACT_GEOM_OFF
-    && targets.impact !== undefined
-    && targets.impact >= CONVERTING_SCOOP_MIN_ASK
-    && targetState.angleDeg >= CONVERTING_SCOOP_MIN_ARRIVAL_DEG
-    && lowDiscrepancyRoll(gap.index, CONVERTING_SCOOP_BUDGET_SALT) < scoopBudgetFade
-  ) {
-    const scoopLines = buildConvertingScoopLines(
-      lineIdStart,
-      targetState,
-      postAngleDeg,
-      nextGapFrames,
-    );
-    if (scoopLines !== null) {
-      lastGeometryWasImpactTemplate = true;
-      return scoopLines;
-    }
-  }
-
   if (
     !IMPACT_GEOM_OFF
     && attempt > 0
@@ -1528,46 +1487,6 @@ function buildImpactTemplateHoldLines(
     4,
   );
   return buildPostContactLines(lineIdStart, start, angleDeg, angleDeg, holdLength, holdSegments);
-}
-
-function buildConvertingScoopLines(
-  lineIdStart: number,
-  targetState: ImpactFrameTargetState,
-  downstreamLaunchDeg: number,
-  nextGapFrames: number | null,
-): TrackLine[] | null {
-  if (nextGapFrames === null || nextGapFrames <= 4) return null;
-  const speed = Math.max(1, targetState.speed);
-  const contactAngleDeg = clamp(
-    targetState.angleDeg - CONVERTING_SCOOP_ENTRY_RELIEF_DEG,
-    -14,
-    65,
-  );
-  const turnDeg = contactAngleDeg - downstreamLaunchDeg;
-  if (turnDeg < CONVERTING_SCOOP_MIN_TURN_DEG || turnDeg > CONVERTING_SCOOP_MAX_TURN_DEG) {
-    return null;
-  }
-  const contactPoint = { x: targetState.sledX, y: targetState.sledY };
-  const preLength = clamp(speed * 1.2, 12, 60);
-  const preLines = buildPreContactLines(
-    lineIdStart,
-    contactPoint,
-    contactAngleDeg,
-    contactAngleDeg,
-    preLength,
-    2,
-  );
-  const scoopLength = clamp(speed * IMPACT_WINDOW, 28, 160);
-  const scoopSegs = clampInt(Math.round(scoopLength / CONVERTING_SCOOP_SEG_PX), 3, 16);
-  const scoopLines = buildPostContactLines(
-    lineIdStart + preLines.length,
-    contactPoint,
-    contactAngleDeg,
-    downstreamLaunchDeg,
-    scoopLength,
-    scoopSegs,
-  );
-  return [...preLines, ...scoopLines];
 }
 
 function steepArrivalDeltaMaxDeg(

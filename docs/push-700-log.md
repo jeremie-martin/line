@@ -12,6 +12,7 @@ rule are frozen.
 | 2026-06-30 | attempt-aim-highk-gated-j32-a01 | f2cc3b2 (dirty) | 683.67 | 699.39 | starting baseline |
 | 2026-07-02 | attempt-m4-air-selection-a01 | 49ceafb+M4 (worktree) | 685.97 | 706.59 | M4 airFit + air-aimed proposer variant — first campaign ACCEPT |
 | 2026-07-03 | attempt-impact-portfolio-current-a01 | c2c2d01 | 689.51 | 710.02 | M1 converting scoop + M3 steep-arrival span — canonical ACCEPT |
+| 2026-07-03 | attempt-no-converting-scoop-a01 | TBD | 690.91 | 711.06 | M1 ablated; M3 steep-arrival span retained — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -227,6 +228,30 @@ mature-budget quality win that willingly pays the low-budget column. The weighte
 metric accepts that trade because 250k/375k/500k all move strongly and consistently.
 Next baseline is `attempt-impact-portfolio-current-a01`; remaining target gap is
 about +10.5 headline points.
+
+### M12 — ablate converting scoop, retain steep-arrival span · ACCEPT (2026-07-03)
+
+**Mechanism.** Removed only the M1 attempt-0 converting-scoop sampler lane from
+`arc_placement.ts`. The accepted M3 k-1 steep-arrival span remains intact.
+
+**Probe.** `probe-no-converting-scoop-125-a01` (40 specs × 12 seeds × 125k only)
+vs `attempt-impact-portfolio-current-a01`: indicative `VERDICT: ACCEPT`,
+Δheadline +14.0, 95% CI [6.4, 21.9], P(Δ≤0)=0.0%, validity 480/480.
+
+**Canonical.** `attempt-no-converting-scoop-a01` (valid 1920/1920, HEADLINE
+690.91, excl-impact 711.06) vs `attempt-impact-portfolio-current-a01`:
+
+```
+Δheadline = +1.4 · 95% CI [0.6, 2.2] · P(Δ≤0)=0.0% · effect=3.51
+125k +14.0 · 250k +0.0 · 375k +0.0 · 500k +0.0 · validity 100% at every budget
+VERDICT: ACCEPT
+```
+
+**Learnings.** The converting scoop was the source of the accepted portfolio's
+125k damage and contributed no mature-budget movement after its budget fade.
+The retained gain is M3: 250k/375k/500k stay byte-identical to the accepted
+portfolio, while 125k recovers. Next baseline is `attempt-no-converting-scoop-a01`;
+remaining target gap is about +9.1 headline points.
 
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 

@@ -13,6 +13,7 @@ rule are frozen.
 | 2026-07-02 | attempt-m4-air-selection-a01 | 49ceafb+M4 (worktree) | 685.97 | 706.59 | M4 airFit + air-aimed proposer variant — first campaign ACCEPT |
 | 2026-07-03 | attempt-impact-portfolio-current-a01 | c2c2d01 | 689.51 | 710.02 | M1 converting scoop + M3 steep-arrival span — canonical ACCEPT |
 | 2026-07-03 | attempt-no-converting-scoop-a01 | dfe9208 | 690.91 | 711.06 | M1 ablated; M3 steep-arrival span retained — canonical ACCEPT |
+| 2026-07-03 | attempt-m3-scarce-span75-a01 | eaed707 | 691.28 | 711.20 | M3 scarce-tier span 20%→75% below 200k — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -502,6 +503,48 @@ On the exact paired 500k high-air subset (`air >= 0.75`), air RMS worsened sligh
 **Learnings.** The 28px tail floor is not the active high-air bottleneck; shortening it buys a
 scarce-budget reshuffle but harms mature trajectory quality and does not reduce the intended
 high-air residual. Code was reverted; do not retry short-tail floor relaxation unchanged.
+
+### M22 — scarce-tier M3 steep-arrival span 20%→75% · canonical ACCEPT (2026-07-03)
+
+**Mechanism.** Production change to the accepted M3 k-1 steep-arrival span: for compiles below
+200k, lower the span zero-band from 0.80 to 0.25, so the scarce 125k tier covers the top 75%
+of attempts instead of the accepted top 20%. At 250k/375k/500k the zero-band remains 0.80, so
+mature budgets are byte-identical to `attempt-no-converting-scoop-a01`. No scorer/spec/search
+policy changes.
+
+**Validation.** Focused optimizer/arc suite passed:
+`LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts`
+→ 6 files, 77 tests.
+
+**Probe.** 125k-only dose sweep on 40 specs × seeds 0..2:
+
+```
+50% span: Δ125k +3.8 · CI[-5.6, 14.6] · P(Δ≤0)=21.4% · INCONCLUSIVE
+75% span: Δ125k +5.0 · CI[-4.2, 16.5] · P(Δ≤0)=16.1% · indicative ACCEPT
+```
+
+Full 3-seed canonical-grid guard (`probe-m3-scarce-span75-s0-2-a01`) confirmed the intended
+isolation: Δheadline +0.5, P(Δ≤0)=16.1%, 125k +5.0, and exactly +0.0 at 250k/375k/500k.
+
+**Canonical.** `attempt-m3-scarce-span75-a01` (valid 1920/1920, HEADLINE 691.28,
+excl-impact 711.20) vs `attempt-no-converting-scoop-a01`:
+
+```
+Δheadline = +0.4 · 95% CI [-0.1, 0.9] · P(Δ≤0)=6.6% · effect=1.46
+125k +3.7 · 250k +0.0 · 375k +0.0 · 500k +0.0 · validity 100% at every budget
+VERDICT: ACCEPT
+```
+
+**Footprint.** This is a pure scarce-tier win. Weighted winners: `syncopated_switchback`
++3.97, `cold_start` +3.17, `rolling_hills` +1.76, `drums_dropout` +1.46, `drums_tide`
++1.37, `climb_terrace` +1.09, `summit_push` +0.95, `drums_zigzag` +0.94. Weighted
+losers: `drums_pendulum` −1.86, `dense_sprint` −1.18, `leap_cadence` −0.79,
+`tiny_dance` −0.74, `float_bounds` −0.45, `big_air_ramp` −0.42.
+
+**Learnings.** The M14 30% dose failed because it also moved mature budgets, where extra span has
+little headroom and can displace converged shapes. The useful slice is narrower: heavy steep-arrival
+diversity only while the search is scarce. New baseline is `attempt-m3-scarce-span75-a01`; remaining
+target gap is about +8.72 headline.
 
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 

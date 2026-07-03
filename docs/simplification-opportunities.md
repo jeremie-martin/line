@@ -732,7 +732,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Document as an explicit anti-starvation term with a derived value, or drop it and rely on `readinessCatch`'s own edge-clamped minimum. Test whether removing it changes anything.
 - **Risk:** medium
 - **Generalization note:** Hard-codes a policy (never fully reject an arrival) that should be named/justified. (Objective feeds scoring — verify fingerprint impact.)
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (de24a421f751); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Deleted `OBJECTIVE_READINESS_MIN` and the `Math.max(..., readinessCatchState(...))` clamp: valid arrivals already read from the empirical catchability table whose edge-clamped minimum is above 0.1, and invalid arrivals return `null` before scoring, so the floor was dead on the production path. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 74. Proliferation of thin gap-vs-targets wrapper pairs
 - **Files:** `scripts/v0/optimizer/objective.ts`

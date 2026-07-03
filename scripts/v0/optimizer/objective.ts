@@ -18,7 +18,6 @@ import {
   type ReadinessArrivalState,
 } from "./readiness.ts";
 
-export const OBJECTIVE_READINESS_MIN = 0.1;
 /** E-fold tolerance for next-gap mean-flight speed readiness, in px/frame. */
 export const OBJECTIVE_SPEED_SCALE_PXF = 0.75;
 /** Too-fast mean-speed residuals are cheaper than too-slow residuals. */
@@ -82,7 +81,7 @@ export function scoreNextTargetReadiness(
   if (!isValidArrivalState(arrival.speed, arrival.comAngleDeg)) {
     return null;
   }
-  const catchability = Math.max(OBJECTIVE_READINESS_MIN, readinessCatchState(arrival));
+  const catchability = readinessCatchState(arrival);
   const speedFit = speedFitFactor(arrival.meanSpeed ?? arrival.speed, nextTargets);
   const impactFeasibility = impactFeasibilityFactor(arrival, nextTargets);
   const airFit = airFitFactor(arrival, nextTargets);

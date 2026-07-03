@@ -9,7 +9,6 @@ import {
 } from "../scripts/v0/types.ts";
 import type { GapFit, ResolvedStart } from "../scripts/v0/core/substrate.ts";
 import {
-  OBJECTIVE_READINESS_MIN,
   OBJECTIVE_SPEED_OVERSHOOT_PENALTY_WEIGHT,
   OBJECTIVE_SPEED_SCALE_PXF,
   frontierReadinessFromFit,
@@ -96,7 +95,7 @@ describe("unified objective quality score", () => {
     const scored = scoreNextTargetReadiness(arrival, next.targets);
     expect(scored).not.toBeNull();
 
-    const catchability = Math.max(OBJECTIVE_READINESS_MIN, readinessCatch(arrival.speed, arrival.comAngleDeg));
+    const catchability = readinessCatch(arrival.speed, arrival.comAngleDeg);
     // speedFit is asymmetric: overshoot (too fast) is half-penalized, too-slow full.
     const dSpeed = arrival.speed - authoredSpeedToPx(0.5);
     const speedFit = Math.exp(
@@ -131,7 +130,7 @@ describe("unified objective quality score", () => {
     expect(scored).not.toBeNull();
     expect(scored!.speedFit).toBe(1);
     expect(scored!.impactFeasibility).toBe(1);
-    expect(scored!.readiness).toBeCloseTo(Math.max(OBJECTIVE_READINESS_MIN, readinessCatch(9, 15)), 12);
+    expect(scored!.readiness).toBeCloseTo(readinessCatch(9, 15), 12);
   });
 
   test("gap objective is current quality times composite readiness", () => {

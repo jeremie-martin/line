@@ -1315,7 +1315,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Inline the affine shift as the sole path: `migrateImpact(a) = clamp((a−0.2)/0.8, 0, 1)`; delete the legacy branch, the `LR_IMPACT_MIGRATE` selector, and the SOFT/SPAN overrides. `withImpactLegacy` stays as a thin affine wrapper (2 specs depend on it).
 - **Risk:** medium
 - **Generalization note:** Touching it re-resolves impact targets for the 2 legacy specs, which can move their scores — verify.
-- **Status:** Not Started
+- **Status:** Abandoned — out of scope for this simplification pass because impact migration is part of the evaluator ruler. `golden_suite.ts`/`REBASELINE.md` explicitly include impact-migration source/config and every `specs/golden/*.ts` in the evaluator fingerprint; editing `beats.ts` from the migration comment through `withImpactLegacy` would intentionally drift `de24a421f751`. The catalog's "2 specs depend on it" note is also stale: repo grep shows broad golden usage of `migrateImpact`/`withImpactLegacy` across the corpus (plus drums and `shelter_impact_sync`). Deleting `LR_IMPACT_MIGRATE`/override branches belongs in a deliberate impact-ruler rebaseline, not a compiler simplification. No source change made.
 
 ### 136. `denseLinearZoomFromLog2Keyframes` ease parameter is never supplied
 - **Files:** `scripts/v0/core/camera.ts`

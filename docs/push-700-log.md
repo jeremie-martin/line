@@ -12,7 +12,7 @@ rule are frozen.
 | 2026-06-30 | attempt-aim-highk-gated-j32-a01 | f2cc3b2 (dirty) | 683.67 | 699.39 | starting baseline |
 | 2026-07-02 | attempt-m4-air-selection-a01 | 49ceafb+M4 (worktree) | 685.97 | 706.59 | M4 airFit + air-aimed proposer variant — first campaign ACCEPT |
 | 2026-07-03 | attempt-impact-portfolio-current-a01 | c2c2d01 | 689.51 | 710.02 | M1 converting scoop + M3 steep-arrival span — canonical ACCEPT |
-| 2026-07-03 | attempt-no-converting-scoop-a01 | TBD | 690.91 | 711.06 | M1 ablated; M3 steep-arrival span retained — canonical ACCEPT |
+| 2026-07-03 | attempt-no-converting-scoop-a01 | dfe9208 | 690.91 | 711.06 | M1 ablated; M3 steep-arrival span retained — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 

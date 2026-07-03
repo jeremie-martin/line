@@ -253,6 +253,26 @@ The retained gain is M3: 250k/375k/500k stay byte-identical to the accepted
 portfolio, while 125k recovers. Next baseline is `attempt-no-converting-scoop-a01`;
 remaining target gap is about +9.1 headline points.
 
+### M13 — pool-relative air-fit damping · fail-fast INERT (reverted, 2026-07-03)
+
+**Mechanism.** Tried weakening M4's pool-sort air-fit pressure only when a pool's
+predicted next-gap air spread was small and every candidate remained outside the
+floor-clamped air deadband. Aim-lane generation and the scorer were unchanged.
+
+**Probe.** Targeted 12-spec × seeds 0..2 × canonical-budget panel
+(`drums_zigzag`, `mixed_grade`, `drums_crosscut`, `opening_burst`, `pop_train`,
+`drums_dropout`, `drums_swell`, `drums_tide`, `dense_sprint`, `rhythm_ladder`,
+`syncopated_switchback`, `drums_signature`) vs `attempt-no-converting-scoop-a01`:
+
+- Conservative damping (`probe-m13-air-pool-damp-s0-2-a01`): Δheadline +0.0,
+  per-budget +0.0/+0.0/+0.0/+0.0, validity 144/144.
+- Strong damping (`probe-m13-air-pool-damp-strong-s0-2-a01`): Δheadline -0.0,
+  per-budget +0.0/+0.0/-0.0/+0.0, validity 144/144.
+
+**Learnings.** Pool-local air damping does not move the target rows even at
+near-mute strength; M4's remaining collateral is not controlled by this
+candidate-pool sort differential. No canonical run spent; code reverted.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

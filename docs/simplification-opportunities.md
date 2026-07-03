@@ -1279,7 +1279,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Collapse to a dimensionless `slack = budgetFrames / (a*contacts + b*durationFrames)` with a small documented intercept refit across ALL budget tiers, or demote to a coarse structural estimate (contacts + duration, no six-digit intercept) and widen the slack gate thresholds it feeds.
 - **Risk:** medium
 - **Generalization note:** Assumes the current population and the 250k fit point; off-grid budgets/specs get biased slack, mis-triggering the low-slack branch gates.
-- **Status:** Not Started
+- **Status:** Abandoned — not a standalone simplification. `budget_slack` is now active policy input, not telemetry only: it feeds the accepted low-slack branch limiter (`budgetSlack < 1.5`) and the opening best-of slack pressures, so replacing `TRAVERSAL_BUDGET_MODEL_V1` changes search behavior and requires threshold retuning plus a full behavior trial. The maintained refresh path is already documented in `docs/difficulty-model-study.md`: rerun the intended baseline study/archive, inspect `canonical.first_completion.recommended_model`, and update the constants in a reviewed model-refresh commit. No source change made here because there is no committed fresh refit artifact across all tiers to justify new coefficients.
 
 ### 132. Dead exported budget helpers: `predictSuffixCompletionFrames` + the `Spec|Inputs` union
 - **Files:** `scripts/v0/optimizer/budget_model.ts`

@@ -412,6 +412,38 @@ Other weighted losers: `drums_swell` −24.76, `syncopated_lift` −14.70, `vers
 baseline/grid as a flat default. It gives only +0.9 to +2.0 at mature budgets while creating a
 catastrophic 125k tail; canonical promotion is not warranted. Do not retry unchanged.
 
+### M19 — additive steep-impact aim proposal · probe INCONCLUSIVE (reverted, 2026-07-03)
+
+**Mechanism.** Temporarily added one exact-evaluated aim-lane pitch candidate for next-impact
+gaps on the first refined base only, gated to budgets ≥250k. The pitch delta used the same impact
+delivery scale as M3 (`η=0.68`, ask ≥0.30, max +10°) but was additive: it did not replace any
+normal sampler candidate and left 125k byte-identical. No scorer/spec/evaluator changes.
+
+**Validation.** Focused optimizer/arc suite passed:
+`LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts`
+→ 6 files, 77 tests.
+
+**Probe.** `probe-aim-steep-impact-s0-2-a01` (40 specs × seeds 0..2 × canonical budget grid,
+valid 480/480; stored probe HEADLINE 690.42, excl-impact 709.55) vs
+`attempt-no-converting-scoop-a01`:
+
+```
+Δheadline = +0.4 · 95% CI [-3.1, 3.4] · P(Δ≤0)=38.7% · effect=0.22
+125k +0.0 · 250k +0.4 · 375k +1.0 · 500k -0.0 · validity 100% at every budget
+VERDICT: INCONCLUSIVE (indicative; not promoted to canonical)
+```
+
+**Footprint.** The additive proposal reshuffles the impact drums but does not produce reliable
+suite leverage. Weighted winners: `drums_zigzag` +13.91, `drums_crescendo` +13.17,
+`drums_dropout` +11.31, `ridge_pulse` +8.02, `drums_swell` +7.66, `grain_staircase` +7.36.
+Weighted losers: `drums_tide` −27.05, `drums_pulse` −9.59, `dense_echo_climb` −7.88,
+`drums_pendulum` −7.04, `canyon_steps` −5.72.
+
+**Learnings.** Making steep-arrival additive avoids the 125k damage and displacement concern, but
+the mature-budget point estimate is too small and noisy to justify canonical spend. The underlying
+impact-rank problem is still spec/seed redistribution rather than a broad missing proposal. Code
+was reverted; do not retry the same one-candidate pitch proposal unchanged.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

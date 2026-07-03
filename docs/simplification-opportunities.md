@@ -1334,7 +1334,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace the fixed 150_000 with a maturity scale derived from the spec itself (e.g. a multiple of `predictedFirstCompletionFrames` or contact count), so the same qualitative maturity ramp shape reappears at whatever absolute budget is "enough" for that spec — self-scaling off-grid. This is a real behavioral change (not a rename): every one of the six pressures shifts for any spec whose natural completion cost differs from the current golden population's, so it needs full statistical evaluation against the canonical benchmark, not the byte-identical fast path used for #7.
 - **Risk:** medium
 - **Generalization note:** Same failure mode as #33/#41/#49/#18 elsewhere in this file — absolute frame-count grid anchors that silently misbehave for specs/budgets outside the 125k-500k canonical range.
-- **Status:** Not Started
+- **Status:** Abandoned — not a focused simplification. The catalog is stale in one cited consumer (`releaseVerticalSetupPressure` no longer uses budget maturity after #18), and the remaining maturity sites mostly receive only `targetBudget`; making the scale spec-relative would require threading `predictedFirstCompletionFrames`/spec structure through handoff policy helpers, increasing plumbing while changing accepted search behavior. Prior traversal-slack/maturity substitutions in the log were mixed or rejected, so this belongs in a dedicated behavior trial with full canonical evaluation and threshold retuning, not in this cleanup pass. No source change made.
 
 ### 138. Stale shell-harness references to the now-deleted `LR_LEAF_RDY_LAMBDA` study knob
 *(follow-up to #23)*

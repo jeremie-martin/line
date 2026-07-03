@@ -844,7 +844,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Tie it to the scorer's speed-weight fraction or expose an env knob to test collapsing toward 0/parity; at minimum document the fit.
 - **Risk:** medium
 - **Generalization note:** Benchmark-fit; may not transfer off the tuning set.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Replaced the unexplained `0.126` literal with its physical-equivalent derivation `0.35 * (SPEED_RULER.RANGE_PX_PER_FRAME / 12)^2`, documenting that the value preserves the old release-speed setup penalty after the authored speed ruler narrowed from 12 px/frame to the current 7.2 px/frame range. Did not add an env knob or retest collapse toward zero: archive notes already show the recent `0.126→0.043` local-speed fix caused 425 dead ends by selecting speed-serving catches that strand the rider. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 86. Verbose hand-rolled telemetry bundles with copy-pasted reset/snapshot
 - **Files:** `scripts/v0/core/candidate.ts`

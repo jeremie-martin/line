@@ -26,13 +26,13 @@ import {
   AXES,
   type AxisValues,
   type Arc, type TrackLine, type Gap,
-  CALIB,
   ELEVATION,
   FPS,
   IMPACT_WINDOW,
   impactEnvNum,
   hasExactlyTargetAxes,
   type CandidateSampleMode,
+  SPEED_RULER,
   speedPxToAuthored,
 } from "../types.ts";
 import {
@@ -176,10 +176,16 @@ export function snapshotGapfitShortStats(): GapfitShortStats | null {
 /** Weight of the release-speed SETUP term (`releaseSpeedPenalty`). Applied by the
  *  handoff ranker (`candidateReleaseSetupPenalty`) against the NEXT contact gap's
  *  speed target — a forward-looking signal preferring catches whose launch speed
- *  sets up the following span. It is deliberately NOT charged against the current
- *  gap's cost: axisCost already scores current-gap speed once (matching the scorer),
- *  and re-charging it there was board-confirmed redundant (parity → removed). */
-const RELEASE_STATE_SPEED_WEIGHT = 0.126;
+ *  sets up the following span. The landed value preserves the old physical
+ *  penalty after the authored-speed ruler narrowed from 12 px/frame to the
+ *  current range: `0.35 * (7.2 / 12)^2 = 0.126`. It is deliberately NOT charged
+ *  against the current gap's cost: axisCost already scores current-gap speed once
+ *  (matching the scorer), and re-charging it there was board-confirmed redundant
+ *  (parity → removed). */
+const LEGACY_RELEASE_STATE_SPEED_WEIGHT = 0.35;
+const LEGACY_RELEASE_SPEED_RANGE_PX_PER_FRAME = 12;
+const RELEASE_STATE_SPEED_WEIGHT = LEGACY_RELEASE_STATE_SPEED_WEIGHT *
+  (SPEED_RULER.RANGE_PX_PER_FRAME / LEGACY_RELEASE_SPEED_RANGE_PX_PER_FRAME) ** 2;
 /** Local candidate-cost weight of the `impact` axis (`axisCost`), a flat 0.5 —
  *  deliberately BELOW the scorer's equal weighting (every scored axis effectively
  *  weight 1): full impact weight regressed mature budgets (impact campaign log, git history:

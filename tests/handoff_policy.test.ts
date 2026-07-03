@@ -30,7 +30,7 @@ import {
   snapshotArcPlacementStats,
   wasLastGeometryImpactTemplate,
 } from "../scripts/v0/arc_placement.ts";
-import { authoredSpeedToPx, type Gap, type TrackLine } from "../scripts/v0/types.ts";
+import { authoredSpeedToPx, SPEED_RULER, type Gap, type TrackLine } from "../scripts/v0/types.ts";
 import type { SearchNode } from "../scripts/v0/optimizer/node.ts";
 
 function gap(index: number, startFrame: number, endFrame: number, endsWithContact = true): Gap {
@@ -391,8 +391,10 @@ describe("target-state arc placement", () => {
     expect(releaseSpeedPenalty(undefined, 0.5)).toBe(0);
     expect(releaseSpeedPenalty(authoredSpeedToPx(0.5), undefined)).toBe(0);
     expect(releaseSpeedPenalty(authoredSpeedToPx(0.5), 0.5)).toBeCloseTo(0, 12);
-    expect(releaseSpeedPenalty(authoredSpeedToPx(1), 0.5)).toBeCloseTo(0.0315, 6);
-    expect(releaseSpeedPenalty(authoredSpeedToPx(0), 0.5)).toBeCloseTo(0.0315, 6);
+    const releaseSpeedWeight = 0.35 * (SPEED_RULER.RANGE_PX_PER_FRAME / 12) ** 2;
+    const halfTargetErrorPenalty = releaseSpeedWeight * 0.5 ** 2;
+    expect(releaseSpeedPenalty(authoredSpeedToPx(1), 0.5)).toBeCloseTo(halfTargetErrorPenalty, 6);
+    expect(releaseSpeedPenalty(authoredSpeedToPx(0), 0.5)).toBeCloseTo(halfTargetErrorPenalty, 6);
   });
 
   test("placement diagnostics split direct failure reasons by sample mode", () => {

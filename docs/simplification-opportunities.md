@@ -1001,7 +1001,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace with a continuous trim search (binary-search the fraction against `meanSectionAxisError`, like the Y-boundary halving); if both edge entries touch only the start, collapse to one.
 - **Risk:** medium
 - **Generalization note:** Discrete fractions tuned on current specs won't be optimal for different geometry.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Renamed the exit-contact keep-fraction probes, removed the redundant `edge: "start"` dimension from `CONTACT_EDGE_TRIMS` by making it `CONTACT_ENTRY_EDGE_TRIM_PROBES`, and renamed the candidate helper to match the entry-edge-only behavior. Did not replace the probes with adaptive binary search or collapse to one probe: the two entry-edge candidates trim opposite endpoints of the same entry line, so that would be a real selection change rather than a refactor. Accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 103. `currentStartState` module-global with manual save/restore is a reentrancy trap
 - **Files:** `scripts/v0/core/polish.ts`, `scripts/v0/optimizer/polish.ts`

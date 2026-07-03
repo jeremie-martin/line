@@ -63,11 +63,16 @@ const AIR_BRIEF_CONTACT_LENGTH = 8;
 const AIR_BRIEF_CONTACT_FRAME_OFFSET = K_BOUNCE_LANDING + PERSISTENCE_FRAMES - 1;
 const AIR_BRIEF_CONTACT_LANDING_MARGIN = PERSISTENCE_FRAMES + 1;
 const CONTACT_TRIM_PASSES = 2;
-const CONTACT_TRIM_FRACTIONS = [0.25, 0.8] as const;
+// Exit-contact trim uses a two-point best-of probe: an aggressive cut to break
+// sticky exit contact and a conservative cut that keeps most of the line shape.
+const CONTACT_EXIT_TRIM_KEEP_FRACTIONS = [0.25, 0.8] as const;
 const CONTACT_EDGE_TRIM_PASSES = 2;
-const CONTACT_EDGE_TRIMS = [
-  { edge: "start", side: "start", fraction: 0.85 },
-  { edge: "start", side: "end", fraction: 0.9 },
+// Entry-edge trim always anchors on the first line in a contact range, then
+// probes both endpoints of that same line. These are not duplicate entries:
+// `start` shortens from the entry endpoint, while `end` shortens the exit side.
+const CONTACT_ENTRY_EDGE_TRIM_PROBES = [
+  { side: "start", fraction: 0.85 },
+  { side: "end", fraction: 0.9 },
 ] as const;
 // A contact range must persist at least this many frames before its edge lines
 // are worth trimming; below it the contact is too brief to reshape. Tracks the
@@ -599,7 +604,7 @@ export function polishExcessContact(
       const dy = originalY2 - originalY1;
       if (Math.hypot(dx, dy) <= 0) continue;
 
-      for (const frac of CONTACT_TRIM_FRACTIONS) {
+      for (const frac of CONTACT_EXIT_TRIM_KEEP_FRACTIONS) {
         for (const side of ["end", "start"] as const) {
           if (side === "end") {
             line.x2 = originalX1 + dx * frac;
@@ -695,7 +700,7 @@ function polishContactEdges(
       }
       | null = null;
 
-    for (const candidate of contactEdgeTrimCandidates(baseDet)) {
+    for (const candidate of contactEntryEdgeTrimCandidates(baseDet)) {
       const owner = findGapOwning(candidate.lineId, fits);
       if (owner < 0) continue;
       const fit = fits[owner]!;
@@ -1515,7 +1520,7 @@ function applyLengthDelta(
   return true;
 }
 
-function contactEdgeTrimCandidates(
+function contactEntryEdgeTrimCandidates(
   det: Detection,
 ): { lineId: number; side: "start" | "end"; fraction: number }[] {
   const candidates: { lineId: number; side: "start" | "end"; fraction: number }[] = [];
@@ -1523,9 +1528,9 @@ function contactEdgeTrimCandidates(
   for (const range of contactRanges(det)) {
     if (range.end - range.start < CONTACT_EDGE_TRIM_MIN_FRAMES) continue;
     const sorted = [...range.ids].sort((a, b) => a - b);
-    for (const trim of CONTACT_EDGE_TRIMS) {
-      const lineId = trim.edge === "start" ? sorted[0] : sorted.at(-1);
-      if (lineId === undefined) continue;
+    const lineId = sorted[0];
+    if (lineId === undefined) continue;
+    for (const trim of CONTACT_ENTRY_EDGE_TRIM_PROBES) {
       const key = `${lineId}:${trim.side}:${trim.fraction}`;
       if (seen.has(key)) continue;
       seen.add(key);

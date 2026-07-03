@@ -1125,7 +1125,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Move per-axis ceiling/bound/raw-projection into an `AXIS_MEASURE`-style registry (axis→report-decoration) so buildDriftReport iterates uniformly and the impact bound is defined once.
 - **Risk:** high
 - **Generalization note:** This is the fingerprinted scoring ruler — any restructure risks moving the headline; must be byte-identical or out of scope.
-- **Status:** Not Started
+- **Status:** Abandoned — out of scope without an intentional evaluator-ruler migration. The proposed registry extraction would rewrite the live `driftReportFingerprintSource()` slice (`export function buildDriftReport` → `export function measureAxisOverRange`) that defines scored targets, ceilings, raw speed reporting, and impact bound application. No source change made.
 
 ### 116. Ballistic-suffix span-axis completion re-implements `measureGapAxes` for out-of-window ranges
 - **Files:** `scripts/v0/core/measure.ts`

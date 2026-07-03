@@ -628,7 +628,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Replace the binary gate with `(1 - amplitudePressure)` (reusing the amplitude block's own smoothstep) applied to the elevation-shorten blend; hoist 0.30 into a named onset constant referenced by both.
 - **Risk:** medium
 - **Generalization note:** The hard 0.30 cut is brittle across specs mixing elevation+amplitude differently.
-- **Status:** Not Started
+- **Status:** Rejected — Δheadline -0.0, P(Δ≤-0.1)=39.4%, candidate cumulative Δheadline vs campaign-start baseline +2.7 (accepted cumulative remains +2.8; full canonical vs current #59 baseline `simplify-59-bundle-impact-profile-pressures-a01`; valid 1920/1920, fingerprint unchanged; 1517/1920 `track_hash` match, 403 changed). Tested replacing the binary `amplitude < 0.30` elevation-shortening gate with the amplitude block's own smoothstep fade and hoisting the 0.30/0.45 pressure constants; non-inferiority was not established, so the source change was reverted.
 
 ### 63. `LR_CC_EXPLORE` tail-widening machinery is inert at default (study-only)
 - **Files:** `scripts/v0/arc_placement.ts`

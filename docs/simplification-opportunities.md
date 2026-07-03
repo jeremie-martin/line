@@ -664,7 +664,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Collapse to one continuous per-attempt eligibility score (budget maturity × pressure × room) vs a single deterministic low-discrepancy draw; drop the `%MOD` phase gate and the second BUDGET_SALT draw.
 - **Risk:** high
 - **Generalization note:** `attempt>=8` and `%3` assume the current per-gap attempt-batch size; a smaller batch (low budget) never reaches the firing phase.
-- **Status:** Not Started
+- **Status:** Accepted — Δheadline +1.3, P(Δ≤-0.1)=14.9%, cumulative Δheadline vs campaign-start baseline +4.1 (full canonical vs current #65 baseline `simplify-65-explicit-impact-template-vertical-compat-a01`; valid 1920/1920, fingerprint unchanged; 488/1920 `track_hash` match, 1432 changed; focused tests 76/76). Replaced the every-3rd-attempt `%MOD` phase gate plus second budget hash draw with one continuous `impactTemplateLaneEligibility(...)` score (budget × pressure × attempt × room) against a single low-discrepancy roll, and fixed the slam-hop scale to the accepted central value.
 
 ### 67. Deep post-length cascade in `targetStateControls` stacks six interdependent floors/caps
 - **Files:** `scripts/v0/arc_placement.ts`

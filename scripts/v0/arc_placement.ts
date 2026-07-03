@@ -143,7 +143,7 @@ const IMPACT_POST_TURN_TARGET_SPAN = 0.20;
 // flat-launch beats (launch ≈ contact angle) have nothing to front-load — exactly the
 // beats stuck at achieved ~0.35 vs targets ~0.85 (canonical anatomy: high band mean
 // err 0.48, only 1% ceiling-infeasible — the pool simply lacks 25-40° sustained turns).
-// On pressured beats, every IMPACT_TEMPLATE_LANE_MOD-th attempt replaces the post
+// On pressured beats, a controlled fraction of tail attempts replaces the post
 // profile with a purpose-built VALLEY: scoop down by the ceiling-aware needed turn
 // over the ~6-frame redir window, then return to the normal launch angle (downstream
 // energy/elevation/amplitude launch preserved). POOL INJECTION, not forcing — normal
@@ -159,12 +159,15 @@ const IMPACT_ARRIVAL_BUDGET_FADE_START_FRAMES = 50_000;
 const IMPACT_ARRIVAL_BUDGET_FADE_SPAN_FRAMES = 50_000;
 
 const IMPACT_TEMPLATE_MIN_PRESSURE = 0.35;
-const IMPACT_TEMPLATE_LANE_MOD = 3;
-const IMPACT_TEMPLATE_MIN_ATTEMPT = 8;
+const IMPACT_TEMPLATE_LANE_RATE = 1 / 3;
+const IMPACT_TEMPLATE_ATTEMPT_RAMP_START = 6;
+const IMPACT_TEMPLATE_ATTEMPT_RAMP_SPAN = 4;
+const IMPACT_TEMPLATE_PRESSURE_RAMP_SPAN = 0.10;
+const IMPACT_TEMPLATE_ROOM_SPAN_FRAMES = 12;
 const IMPACT_TEMPLATE_MAX_TURN_DEG = 22;
 const IMPACT_TEMPLATE_FULL_TURN_DEG = 8;
-const IMPACT_TEMPLATE_TURN_SPAN_SALT = 9;
-const IMPACT_TEMPLATE_BUDGET_SALT = 13;
+const IMPACT_TEMPLATE_ROLL_SALT = 9;
+const IMPACT_TEMPLATE_HOP_SCALE = 0.72;
 const IMPACT_TEMPLATE_SCOOP_SEG_PX = 10;
 const IMPACT_TEMPLATE_SCOOP_BASE_FRAMES = 6;
 const IMPACT_TEMPLATE_SCOOP_SHORT_FRAMES = 5;
@@ -1227,18 +1230,20 @@ function sampleContactCenteredLines(
 
   // Impact redirect-catch template lane (see the const block). Replaces only the
   // post profile with a two-phase valley sized from the ceiling-aware needed turn.
-  // Late attempts only (≥ MIN_ATTEMPT): the guided prefix keeps its normal samples;
-  // lanes displace the wide random tail of the batch.
+  // The attempt/pressure/room ramps keep the guided prefix mostly normal, then let
+  // the wide random tail spend a controlled fraction of samples on templates.
   lastGeometryWasImpactTemplate = false;
   const impactTemplateBudgetP = impactTemplateBudgetPressure();
+  const impactTemplateEligibility = impactTemplateLaneEligibility(
+    targets,
+    gapFrames,
+    nextGapFrames,
+    impactCurveP,
+    impactTemplateBudgetP,
+    attempt,
+  );
   if (
-    lowDiscrepancyRoll(attempt, IMPACT_TEMPLATE_BUDGET_SALT) < impactTemplateBudgetP
-    && impactTemplateVerticalCompatible(targets, gapFrames, nextGapFrames)
-    && impactCurveP >= IMPACT_TEMPLATE_MIN_PRESSURE
-    && attempt >= IMPACT_TEMPLATE_MIN_ATTEMPT
-    && ((attempt % IMPACT_TEMPLATE_LANE_MOD) + IMPACT_TEMPLATE_LANE_MOD) % IMPACT_TEMPLATE_LANE_MOD
-      === IMPACT_TEMPLATE_LANE_MOD - 1
-    && targets.impact !== undefined
+    lowDiscrepancyRoll(attempt, IMPACT_TEMPLATE_ROLL_SALT) < impactTemplateEligibility
   ) {
     // SLAM-HOP: a single concave scoop from the contact angle down to a ballistic
     // hop launch sized to land the NEXT beat (vy ≈ −g·N/2, lane-spanned 0.7-1.2x),
@@ -1251,7 +1256,7 @@ function sampleContactCenteredLines(
     // AND the next-beat delivery in one arc, so the rollout stays coherent.
     if (nextGapFrames !== null && nextGapFrames > 4) {
       const speed = Math.max(1, targetState.speed);
-      const hopScale = 0.55 + 0.35 * lowDiscrepancyRoll(attempt, IMPACT_TEMPLATE_TURN_SPAN_SALT);
+      const hopScale = IMPACT_TEMPLATE_HOP_SCALE;
       const vyHop = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * nextGapFrames * hopScale;
       const hopAngleDeg = Math.max(
         (Math.atan2(vyHop, speed) * 180) / Math.PI,
@@ -1373,6 +1378,33 @@ function buildImpactTemplateHoldLines(
     4,
   );
   return buildPostContactLines(lineIdStart, start, angleDeg, angleDeg, holdLength, holdSegments);
+}
+
+function impactTemplateLaneEligibility(
+  targets: AxisValues,
+  gapFrames: number,
+  nextGapFrames: number | null,
+  impactCurveP: number,
+  budgetPressure: number,
+  attempt: number,
+): number {
+  if (targets.impact === undefined) return 0;
+  if (!impactTemplateVerticalCompatible(targets, gapFrames, nextGapFrames)) return 0;
+  const pressureP = smoothstep(
+    (impactCurveP - (IMPACT_TEMPLATE_MIN_PRESSURE - IMPACT_TEMPLATE_PRESSURE_RAMP_SPAN)) /
+      IMPACT_TEMPLATE_PRESSURE_RAMP_SPAN,
+  );
+  const attemptP = smoothstep(
+    (attempt - IMPACT_TEMPLATE_ATTEMPT_RAMP_START) / IMPACT_TEMPLATE_ATTEMPT_RAMP_SPAN,
+  );
+  const roomP = nextGapFrames === null
+    ? 0
+    : smoothstep((nextGapFrames - 4) / IMPACT_TEMPLATE_ROOM_SPAN_FRAMES);
+  return clamp(
+    IMPACT_TEMPLATE_LANE_RATE * budgetPressure * pressureP * attemptP * roomP,
+    0,
+    1,
+  );
 }
 
 function impactTemplateVerticalCompatible(

@@ -1239,7 +1239,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Introduce one or two named constants (`SETTLE_MARGIN_FRAMES`, `HORIZON_SLACK_FRAMES`) derived from the detector persistence horizon + IMPACT_WINDOW, express all three sites in terms of them. (Relates to candidate #87.)
 - **Risk:** medium
 - **Generalization note:** Absolute frame counts tied to physics settle time, not budget; read as magic.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical (focused optimizer/arc tests 94/94 passed; 1-seed/40-spec/4-budget track_hash diff vs `simplify-72-impact-ask-pressure-ramp-a01` matched 160/160 with evaluator fingerprint `de24a421f751`). Named the full-probe survival margin, probe settle margin, next-contact read slack, and derived short-axis horizon margin in `arc_probe.ts`.
 
 ### 128. `LR_ROLLOUT_AIM` rollout aim-suppression is niche experiment plumbing in the node module
 - **Files:** `scripts/v0/optimizer/node.ts`

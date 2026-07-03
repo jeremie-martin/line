@@ -29,6 +29,14 @@ import {
   type RiderArrivalState,
 } from "./arc_model.ts";
 
+const FULL_PROBE_SURVIVAL_MARGIN_FRAMES = 16;
+const PROBE_SETTLE_MARGIN_FRAMES = 20;
+const NEXT_CONTACT_READ_SLACK_FRAMES = 2;
+const SHORT_AXIS_HORIZON_MARGIN_FRAMES = Math.max(
+  PROBE_SETTLE_MARGIN_FRAMES,
+  IMPACT_WINDOW + NEXT_CONTACT_READ_SLACK_FRAMES,
+);
+
 export type JointArcProbeGate = {
   currentOk: boolean;
   survivedCurrent: boolean;
@@ -194,7 +202,7 @@ function observeFullJointArcLines(
   const horizon = fullProbeHorizon(gap, axisMeasureEnd, nextFrame);
   const det = detectWindow(fork, gap.startFrame, horizon);
 
-  const minSurvival = Math.max(gap.endFrame + 16, axisMeasureEnd);
+  const minSurvival = Math.max(gap.endFrame + FULL_PROBE_SURVIVAL_MARGIN_FRAMES, axisMeasureEnd);
   const survivedCurrent = det.terminus.frame >= minSurvival || det.terminus.reason === "endOfSpec";
   const landingOk = landingOnOwnedArc(det, lines, gap);
   const offBeatLandings = countOffBeatLandings(det.events, gap.startFrame, axisMeasureEnd, [...contactFrames]);
@@ -242,14 +250,18 @@ function landingOnOwnedArc(det: ReturnType<typeof detectWindow>, lines: readonly
 }
 
 function fullProbeHorizon(gap: Gap, axisMeasureEnd: number, nextFrame: number): number {
-  return Math.max(gap.endFrame + 20, axisMeasureEnd + 20, nextFrame + 2);
+  return Math.max(
+    gap.endFrame + PROBE_SETTLE_MARGIN_FRAMES,
+    axisMeasureEnd + PROBE_SETTLE_MARGIN_FRAMES,
+    nextFrame + NEXT_CONTACT_READ_SLACK_FRAMES,
+  );
 }
 
 // deno-lint-ignore no-explicit-any
 function shortProbeHorizon(engine: any, lines: TrackLine[], gap: Gap, nextFrame: number): number {
   const minExit = gap.endFrame;
-  const axisSafeCap = gap.endFrame + Math.max(20, IMPACT_WINDOW + 2);
-  const cap = Math.max(axisSafeCap, nextFrame + 2);
+  const axisSafeCap = gap.endFrame + SHORT_AXIS_HORIZON_MARGIN_FRAMES;
+  const cap = Math.max(axisSafeCap, nextFrame + NEXT_CONTACT_READ_SLACK_FRAMES);
   return growShortHorizon(minExit, cap, (horizon) => {
     const det = detectWindow(engine, gap.startFrame, horizon);
     return {

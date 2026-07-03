@@ -538,6 +538,18 @@ function findGapForFrame(
   return -1;
 }
 
+function scoreCurrentPolishGeometry(
+  fits: (GapFit | null)[],
+  gaps: Gap[],
+  spec: Spec,
+  contactFrames: number[],
+  durationFrames: number,
+): { det: Detection; err: number } | null {
+  const det = simulateAndDetect(fits, gaps, durationFrames);
+  if (!passesFinalHardGates(det, contactFrames)) return null;
+  return { det, err: meanSectionAxisError(det, spec, gaps, fits) };
+}
+
 export function polishExcessContact(
   fits: (GapFit | null)[],
   gaps: Gap[],
@@ -591,10 +603,9 @@ export function polishExcessContact(
             line.x1 = originalX2 - dx * frac;
             line.y1 = originalY2 - dy * frac;
           }
-          const det = simulateAndDetect(fits, gaps, durationFrames);
-          if (passesFinalHardGates(det, contactFrames)) {
-            const err = meanSectionAxisError(det, spec, gaps, fits);
-            if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
+          const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+          if (scored !== null) {
+            if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
               best = {
                 line,
                 owner,
@@ -602,8 +613,8 @@ export function polishExcessContact(
                 y1: line.y1,
                 x2: line.x2,
                 y2: line.y2,
-                err,
-                det,
+                err: scored.err,
+                det: scored.det,
               };
             }
           }
@@ -696,10 +707,9 @@ function polishContactEdges(
         line.y1 = originalY2 - dy * candidate.fraction;
       }
 
-      const det = simulateAndDetect(fits, gaps, durationFrames);
-      if (passesFinalHardGates(det, contactFrames)) {
-        const err = meanSectionAxisError(det, spec, gaps, fits);
-        if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
+      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+      if (scored !== null) {
+        if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
           best = {
             line,
             owner,
@@ -707,8 +717,8 @@ function polishContactEdges(
             y1: line.y1,
             x2: line.x2,
             y2: line.y2,
-            err,
-            det,
+            err: scored.err,
+            det: scored.det,
           };
         }
       }
@@ -774,11 +784,10 @@ function polishEntrySpeedXBoundary(
       const dx = direction * (coarseShift + refinementStep);
       line.x1 = originalX1 + dx;
       line.x2 = originalX2 + dx;
-      const det = simulateAndDetect(fits, gaps, durationFrames);
-      if (passesFinalHardGates(det, contactFrames)) {
-        const err = meanSectionAxisError(det, spec, gaps, fits);
-        if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
-          best = { line, x1: line.x1, x2: line.x2, err, det };
+      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+      if (scored !== null) {
+        if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
+          best = { line, x1: line.x1, x2: line.x2, err: scored.err, det: scored.det };
         }
       }
       line.x1 = originalX1;
@@ -837,11 +846,10 @@ function polishEntrySpeedYBoundary(
       const dy = direction * step;
       line.y1 = originalY1 + dy;
       line.y2 = originalY2 + dy;
-      const det = simulateAndDetect(fits, gaps, durationFrames);
-      if (passesFinalHardGates(det, contactFrames)) {
-        const err = meanSectionAxisError(det, spec, gaps, fits);
-        if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
-          best = { line, y1: line.y1, y2: line.y2, err, det };
+      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+      if (scored !== null) {
+        if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
+          best = { line, y1: line.y1, y2: line.y2, err: scored.err, det: scored.det };
         }
       }
       line.y1 = originalY1;
@@ -995,10 +1003,9 @@ function polishGrainLength(
             line.y1 = originalY1 - (dy / len) * extra;
           }
 
-          const det = simulateAndDetect(fits, gaps, durationFrames);
-          if (passesFinalHardGates(det, contactFrames)) {
-            const err = meanSectionAxisError(det, spec, gaps, fits);
-            if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
+          const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+          if (scored !== null) {
+            if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
               best = {
                 line,
                 owner,
@@ -1006,8 +1013,8 @@ function polishGrainLength(
                 y1: line.y1,
                 x2: line.x2,
                 y2: line.y2,
-                err,
-                det,
+                err: scored.err,
+                det: scored.det,
               };
             }
           }
@@ -1073,16 +1080,15 @@ function polishEntrySpeed(
       line.y1 = originalY1 + dy;
       line.y2 = originalY2 + dy;
 
-      const det = simulateAndDetect(fits, gaps, durationFrames);
-      if (passesFinalHardGates(det, contactFrames)) {
-        const err = meanSectionAxisError(det, spec, gaps, fits);
-        if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
+      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+      if (scored !== null) {
+        if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
           best = {
             x1: line.x1,
             y1: line.y1,
             x2: line.x2,
             y2: line.y2,
-            err,
+            err: scored.err,
           };
         }
       }
@@ -1149,11 +1155,10 @@ function polishEntrySpeedX(
         line.x1 = originalX1 + dx;
         line.x2 = originalX2 + dx;
 
-        const det = simulateAndDetect(fits, gaps, durationFrames);
-        if (passesFinalHardGates(det, contactFrames)) {
-          const err = meanSectionAxisError(det, spec, gaps, fits);
-          if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
-            best = { line, lineId, x1: line.x1, x2: line.x2, err, det };
+        const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+        if (scored !== null) {
+          if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
+            best = { line, lineId, x1: line.x1, x2: line.x2, err: scored.err, det: scored.det };
           }
         }
 
@@ -1226,11 +1231,8 @@ function polishEntrySlope(
       line.x2 = cx + (Math.cos(rotated) * len) / 2;
       line.y2 = cy + (Math.sin(rotated) * len) / 2;
 
-      const det = simulateAndDetect(fits, gaps, durationFrames);
-      if (passesFinalHardGates(det, contactFrames)) {
-        const err = meanSectionAxisError(det, spec, gaps, fits);
-        if (err + 1e-6 < bestErr) return;
-      }
+      const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+      if (scored !== null && scored.err + 1e-6 < bestErr) return;
 
       line.x1 = originalX1;
       line.y1 = originalY1;
@@ -1295,17 +1297,16 @@ function polishEntryLength(
             line.y1 = originalY1 - (dy / len) * extra;
           }
 
-          const det = simulateAndDetect(fits, gaps, durationFrames);
-          if (passesFinalHardGates(det, contactFrames)) {
-            const err = meanSectionAxisError(det, spec, gaps, fits);
-            if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
+          const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+          if (scored !== null) {
+            if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
               best = {
                 x1: line.x1,
                 y1: line.y1,
                 x2: line.x2,
                 y2: line.y2,
-                err,
-                det,
+                err: scored.err,
+                det: scored.det,
               };
             }
           }
@@ -1398,10 +1399,9 @@ function polishMedianGrainPlateau(
           }
         }
 
-        const det = simulateAndDetect(fits, gaps, durationFrames);
-        if (passesFinalHardGates(det, contactFrames)) {
-          const err = meanSectionAxisError(det, spec, gaps, fits);
-          if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
+        const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+        if (scored !== null) {
+          if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
             best = {
               owner,
               lines: originals.map((original) => ({
@@ -1411,7 +1411,7 @@ function polishMedianGrainPlateau(
                 x2: original.line.x2,
                 y2: original.line.y2,
               })),
-              err,
+              err: scored.err,
             };
           }
         }
@@ -1478,14 +1478,13 @@ function polishMedianGrainResidual(
         try {
           if (!applyLengthDelta(originals, plan.side, plan.extra)) continue;
 
-          const det = simulateAndDetect(fits, gaps, durationFrames);
-          if (passesFinalHardGates(det, contactFrames)) {
-            const err = meanSectionAxisError(det, spec, gaps, fits);
-            if (err + 1e-6 < bestErr && (best === null || err < best.err)) {
+          const scored = scoreCurrentPolishGeometry(fits, gaps, spec, contactFrames, durationFrames);
+          if (scored !== null) {
+            if (scored.err + 1e-6 < bestErr && (best === null || scored.err < best.err)) {
               best = {
                 owner,
                 lines: snapshotLines(plan.lines),
-                err,
+                err: scored.err,
               };
             }
           }

@@ -911,7 +911,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract one `hillClimbGeometry(fits, gaps, spec, contactFrames, durationFrames, {candidateLineIds, mutate, errorFn, passes, acceptMode})` harness owning the loop; each helper becomes a mutation generator + line-selector. Reuse existing `snapshotLines`/`restoreLines`/`applyLengthDelta`.
 - **Risk:** medium
 - **Generalization note:** Unifying makes behavior uniform across populations.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Extracted the shared `scoreCurrentPolishGeometry(...)` core for the repeated rebuild→detect→final-hard-gate→section-axis-error step and used it across the trim, boundary, entry-speed, entry-length, median-plateau, and residual polish loops. Left the larger `hillClimbGeometry(...)` harness unimplemented here because the existing loops differ in real control flow (best-of vs accept-first, chained line ids, boundary refinements, and multi-line snapshot/restore edits); forcing those into one callback surface would add abstraction risk beyond this byte-identical simplification. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 93. Single-element tuning arrays are vestigial reverse-fit constants
 - **Files:** `scripts/v0/core/polish.ts`

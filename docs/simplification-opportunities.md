@@ -871,7 +871,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Extract `measureAchieved(det, gap, lines, axisMeasureEnd, ballisticSuffix): {achieved, achievedAtEnd?}` owning the window logic, returning `achievedAtEnd` only when windows differ.
 - **Risk:** medium
 - **Generalization note:** Must preserve exact scorer-window semantics — verify.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Extracted `measureAchieved(...)` to own the ballistic-suffix vs full-detection axis read and the separate gap-window `achievedAtEnd` read; preserved the exact existing predicate (`axisMeasureEnd === gap.endFrame && ballisticSuffix === null`) for omitting `achievedAtEnd`. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ### 89. Hard-coded ride-out continuation lengths `[50, 300]`
 - **Files:** `scripts/v0/core/candidate.ts`

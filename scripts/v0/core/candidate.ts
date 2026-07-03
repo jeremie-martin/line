@@ -747,6 +747,29 @@ function ballisticSuffixAtExit(det: Detection, exitFrame: number): BallisticAxis
   return { frame: exitFrame, vx: launch.vx, vy: launch.vy };
 }
 
+function measureAchieved(
+  det: Detection,
+  gap: Gap,
+  lines: readonly TrackLine[],
+  axisMeasureEnd: number,
+  ballisticSuffix: BallisticAxisSuffix | null,
+): { achieved: AxisValues; achievedAtEnd?: AxisValues } {
+  // Axis measurement: engine prefix + ballistic suffix when truncated (the
+  // shared measure.ts completion), the verbatim full-detection read otherwise.
+  const achieved = ballisticSuffix === null
+    ? measureGapAxes(det, gap, lines, axisMeasureEnd)
+    : measureGapAxesWithBallisticSuffix(det, gap, lines, axisMeasureEnd, ballisticSuffix);
+  // GAP-WINDOW achieved (the true scorer's window): when the lookahead window
+  // extends past gap.endFrame (air/lookahead gaps), `achieved` above is measured
+  // over the wrong window to reproduce the scorer, so also read the [start, endFrame]
+  // axes — PURE ENGINE off the SAME det (gap.endFrame is inside the prefix the survival
+  // floor already guarantees; zero ballistic, zero extra frames). For non-lookahead,
+  // non-truncated gaps the two windows coincide, so `achieved` already IS the gap-window
+  // value and we leave achievedAtEnd undefined (the objective leaf falls back to achieved).
+  if (axisMeasureEnd === gap.endFrame && ballisticSuffix === null) return { achieved };
+  return { achieved, achievedAtEnd: measureGapAxes(det, gap, lines, gap.endFrame) };
+}
+
 function evaluateGapFit(
   // deno-lint-ignore no-explicit-any
   baseEngine: any,
@@ -851,21 +874,9 @@ function evaluateGapFit(
   );
   if (offBeat > 0) return { fit: null, failure: "offbeat" };
 
-  // Axis measurement: engine prefix + ballistic suffix when truncated (the
-  // shared measure.ts completion), the verbatim full-detection read otherwise.
-  const achieved = ballisticSuffix === null
-    ? measureGapAxes(det, gap, lines, axisMeasureEnd)
-    : measureGapAxesWithBallisticSuffix(det, gap, lines, axisMeasureEnd, ballisticSuffix);
-  // GAP-WINDOW achieved (the true scorer's window): when the lookahead window
-  // extends past gap.endFrame (air/lookahead gaps), `achieved` above is measured
-  // over the wrong window to reproduce the scorer, so also read the [start, endFrame]
-  // axes — PURE ENGINE off the SAME det (gap.endFrame is inside the prefix the survival
-  // floor already guarantees; zero ballistic, zero extra frames). For non-lookahead,
-  // non-truncated gaps the two windows coincide, so `achieved` already IS the gap-window
-  // value and we leave achievedAtEnd undefined (the objective leaf falls back to achieved).
-  const achievedAtEnd = (axisMeasureEnd === gap.endFrame && ballisticSuffix === null)
-    ? undefined
-    : measureGapAxes(det, gap, lines, gap.endFrame);
+  const { achieved, achievedAtEnd } = measureAchieved(
+    det, gap, lines, axisMeasureEnd, ballisticSuffix,
+  );
   const releaseFrame = releaseStateFrame(gap, allContactFrames);
   const releaseSpeed = speedAt(det, releaseFrame);
   const releaseVelocity = velocityAt(det, releaseFrame);

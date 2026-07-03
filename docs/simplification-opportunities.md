@@ -898,7 +898,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Name `RIDEOUT_SOURCE_TAIL=8` with rationale; reconsider whether all 8×2 combinations are needed vs only the final arc line.
 - **Risk:** medium
 - **Generalization note:** Fixed count covers a different physical length on specs with many short lines.
-- **Status:** Not Started
+- **Status:** Accepted — byte-identical, fingerprint unchanged (`de24a421f751`); focused tests 77/77; 1-seed/40-spec/4-budget `track_hash` diff 160/160 match vs current #72 baseline `simplify-72-impact-ask-pressure-ramp-a01`. Named the tail cap `AIR_POLISH_RIDEOUT_SOURCE_TAIL_LINES=8` and documented that, with the two continuation lengths from #89, it bounds each qualifying long pure-air candidate at 16 extra full re-evals while covering the recent catch/tail geometry most likely to control post-contact launch. Did not reduce to only the final arc line: that would be a selection change requiring full canonical evidence. No full canonical needed; accepted cumulative Δheadline vs campaign-start baseline remains +5.0.
 
 ---
 

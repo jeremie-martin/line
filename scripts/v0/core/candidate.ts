@@ -56,6 +56,11 @@ import { registerCompileReset } from "./compile_lifecycle.ts";
 
 const AIR_POLISH_LOCAL_CONTINUATION_LENGTH_PX = 50;
 const AIR_POLISH_RUNWAY_CONTINUATION_LENGTH_PX = 300;
+/** Number of recent candidate lines used as anchors for ride-out rescue. With
+ *  the two continuation lengths above, this bounds each qualifying candidate at
+ *  16 extra full re-evals while still covering the catch/tail geometry most
+ *  likely to control the post-contact launch. */
+const AIR_POLISH_RIDEOUT_SOURCE_TAIL_LINES = 8;
 /** Two-scale ride-out rescue for long pure-air lookahead gaps. These lines are
  *  appended only after a candidate already passed the normal gates, then kept
  *  only when a full re-eval lowers current-gap cost: 50px probes a local
@@ -1094,7 +1099,7 @@ function shouldTryCandidateRideOut(
 }
 
 function rideOutSources(lines: TrackLine[]): TrackLine[] {
-  return lines.slice(Math.max(0, lines.length - 8));
+  return lines.slice(Math.max(0, lines.length - AIR_POLISH_RIDEOUT_SOURCE_TAIL_LINES));
 }
 
 export function axisLookaheadEndFrame(gap: Gap, allContactFrames: number[]): number {

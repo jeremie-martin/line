@@ -297,6 +297,37 @@ mature budgets; the weighted aggregate is positive but not reliable at α=0.20.
 The accepted 20% span remains the baseline; dose escalation is not a promotable
 path without more independent leverage.
 
+### M15 — low-air impact rideout portfolio retry · probe INCONCLUSIVE (reverted, 2026-07-03)
+
+**Mechanism.** Temporarily resurrected the narrow H1 selectable rideout inside the current
+M3 baseline: on very-low-air impact template beats (`air ≤ 0.22`, next gap ≥10f,
+budget ≥125k), every other template group kept the redirection scoop (end floored
+at −12°) but emitted a long near-level grounded rideout (`0.72 × next-gap span`)
+instead of the slam-hop. No scorer/spec/evaluator/search-policy changes.
+
+**Validation.** Focused optimizer/arc suite passed:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts`
+→ 6 files, 78 tests.
+
+**Probe.** `probe-lowair-rideout-portfolio-s0-2-a01` (40 specs × seeds 0..2 × canonical
+budget grid, valid 480/480; stored probe HEADLINE 690.18, excl-impact 709.76) vs
+`attempt-no-converting-scoop-a01`:
+
+```
+Δheadline = +0.1 · 95% CI [-0.2, 0.7] · P(Δ≤0)=41.0% · effect=0.52
+125k +0.3 · 250k -0.4 · 375k +0.3 · 500k +0.2 · validity 100% at every budget
+VERDICT: INCONCLUSIVE (indicative; not promoted to canonical)
+```
+
+**Footprint.** Movement is still the old narrow H1 shape: drums_pendulum gains
+weighted +5.06 on the 3-seed intersection, but syncopated_switchback and cold_start
+give back −1.33 each; every other spec was byte-identical in the paired probe.
+
+**Learnings.** Combining the rideout with the accepted M3 span does not create additive
+suite-level leverage. It remains a 1–3-spec pendulum aid with a tiny headline ceiling,
+well below the remaining +9.09 needed for 700. Code and test were reverted; do not
+retry this lane without a broader selector that demonstrably expands the footprint.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

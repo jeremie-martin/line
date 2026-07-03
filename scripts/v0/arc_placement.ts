@@ -156,6 +156,8 @@ const IMPACT_POST_TURN_TARGET_SPAN = 0.20;
 // dense asks sit at 0.35-0.55 ⇒ pressure 0.1-0.6 there, 1.0 at 0.7+.
 const IMPACT_ARRIVAL_TARGET_START = 0.30;
 const IMPACT_ARRIVAL_TARGET_SPAN = 0.40;
+const IMPACT_ARRIVAL_BUDGET_FADE_START_FRAMES = 50_000;
+const IMPACT_ARRIVAL_BUDGET_FADE_SPAN_FRAMES = 50_000;
 
 const IMPACT_TEMPLATE_MIN_PRESSURE = 0.35;
 const IMPACT_TEMPLATE_LANE_MOD = 3;
@@ -269,6 +271,14 @@ const IMPACT_GEOM_OFF =
 let currentCompileBudgetFrames = 0;
 export function setCompileBudgetFrames(frames: number): void {
   currentCompileBudgetFrames = Math.max(0, frames | 0);
+}
+
+function compileBudgetPressure(startFrames: number, spanFrames: number): number {
+  return smoothstep((currentCompileBudgetFrames - startFrames) / spanFrames);
+}
+
+function compileBudgetFade(startFrames: number, spanFrames: number): number {
+  return 1 - compileBudgetPressure(startFrames, spanFrames);
 }
 
 let currentImpactTemplateSpecMeanImpact = 0;
@@ -1036,9 +1046,9 @@ function sampleContactCenteredLines(
         0, 1,
       );
       const smoothRoom = smoothstep(linearRoom);
-      const smoothBudgetPressure = smoothstep(
-        (currentCompileBudgetFrames - ARC_LEN_ROOM_SMOOTH_BUDGET_START_FRAMES) /
-          ARC_LEN_ROOM_SMOOTH_BUDGET_SPAN_FRAMES,
+      const smoothBudgetPressure = compileBudgetPressure(
+        ARC_LEN_ROOM_SMOOTH_BUDGET_START_FRAMES,
+        ARC_LEN_ROOM_SMOOTH_BUDGET_SPAN_FRAMES,
       );
       return lerp(linearRoom, smoothRoom, smoothBudgetPressure);
     })();
@@ -1174,7 +1184,10 @@ function sampleContactCenteredLines(
     // Scarce-budget only: the pop arrivals add COMPLETABLE shapes at 50k
     // (slice: +50.5) but dilute converged high-budget quality (−8..−36) —
     // the same profile as the post-curve span. Fade full ≤50k → off ≥100k.
-    const budgetFade = 1 - smoothstep((currentCompileBudgetFrames - 50_000) / 50_000);
+    const budgetFade = compileBudgetFade(
+      IMPACT_ARRIVAL_BUDGET_FADE_START_FRAMES,
+      IMPACT_ARRIVAL_BUDGET_FADE_SPAN_FRAMES,
+    );
     const arrivalPressure = budgetFade
       * smoothstep((gap.nextImpact - IMPACT_ARRIVAL_TARGET_START) / IMPACT_ARRIVAL_TARGET_SPAN);
     if (arrivalPressure > 0) {
@@ -1219,9 +1232,9 @@ function sampleContactCenteredLines(
     y: targetState.sledY + tangentY * tangentJitter + normalY * normalJitter,
   };
 
-  const curveFadeBase = 1 - smoothstep(
-    (currentCompileBudgetFrames - CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES) /
-      CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES,
+  const curveFadeBase = compileBudgetFade(
+    CONTACT_CENTERED_POST_CURVE_FADE_START_FRAMES,
+    CONTACT_CENTERED_POST_CURVE_FADE_SPAN_FRAMES,
   );
   // Impact beats keep full curvature authority at every budget (the through-window
   // rotation IS the redirection; the budget fade would suppress it exactly where impact
@@ -1329,9 +1342,9 @@ function sampleContactCenteredLines(
 }
 
 function impactTemplateBudgetPressure(): number {
-  return smoothstep(
-    (currentCompileBudgetFrames - IMPACT_TEMPLATE_BUDGET_START_FRAMES) /
-      IMPACT_TEMPLATE_BUDGET_SPAN_FRAMES,
+  return compileBudgetPressure(
+    IMPACT_TEMPLATE_BUDGET_START_FRAMES,
+    IMPACT_TEMPLATE_BUDGET_SPAN_FRAMES,
   );
 }
 
@@ -1342,9 +1355,9 @@ function impactTemplateScoopFrames(): number {
   return lerp(
     IMPACT_TEMPLATE_SCOOP_BASE_FRAMES,
     IMPACT_TEMPLATE_SCOOP_SHORT_FRAMES,
-    smoothstep(
-      (currentCompileBudgetFrames - IMPACT_TEMPLATE_SCOOP_BUDGET_START_FRAMES) /
-        IMPACT_TEMPLATE_SCOOP_BUDGET_SPAN_FRAMES,
+    compileBudgetPressure(
+      IMPACT_TEMPLATE_SCOOP_BUDGET_START_FRAMES,
+      IMPACT_TEMPLATE_SCOOP_BUDGET_SPAN_FRAMES,
     ),
   );
 }
@@ -1368,9 +1381,9 @@ function impactTemplateHoldPressure(
     (nextGapFrames - IMPACT_TEMPLATE_HOLD_ROOM_START_FRAMES) /
       IMPACT_TEMPLATE_HOLD_ROOM_SPAN_FRAMES,
   );
-  const budgetPressure = smoothstep(
-    (currentCompileBudgetFrames - IMPACT_TEMPLATE_HOLD_BUDGET_START_FRAMES) /
-      IMPACT_TEMPLATE_HOLD_BUDGET_SPAN_FRAMES,
+  const budgetPressure = compileBudgetPressure(
+    IMPACT_TEMPLATE_HOLD_BUDGET_START_FRAMES,
+    IMPACT_TEMPLATE_HOLD_BUDGET_SPAN_FRAMES,
   );
   return clamp(
     currentImpactTemplateHoldProfilePressure * lowAirPressure * impactPressure *
@@ -1432,9 +1445,9 @@ function contactCenteredRedirContactAngleShiftDeg(
 ): number {
   if (targetImpact === undefined) return 0;
   if (IMPACT_GEOM_OFF) return 0; // ablation
-  const mature = smoothstep(
-    (currentCompileBudgetFrames - CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES) /
-      CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES,
+  const mature = compileBudgetPressure(
+    CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES,
+    CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES,
   );
   const speedPressure = smoothstep(
     (targetState.speed - CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX) /
@@ -1464,9 +1477,9 @@ function contactCenteredRedirEntryAngleShiftDeg(
 ): number {
   if (targetImpact === undefined) return 0;
   if (IMPACT_GEOM_OFF) return 0; // ablation
-  const mature = smoothstep(
-    (currentCompileBudgetFrames - CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES) /
-      CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES,
+  const mature = compileBudgetPressure(
+    CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES,
+    CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES,
   );
   const speedPressure = smoothstep(
     (targetState.speed - CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX) /
@@ -1520,9 +1533,9 @@ function impactCurvePressure(
 
 function impactCurveTargetStart(targetImpact: number): number {
   if (IMPACT_CURVE_TARGET_START_ENV_SET) return IMPACT_CURVE_TARGET_START;
-  const maturePressure = smoothstep(
-    (currentCompileBudgetFrames - IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES) /
-      IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES,
+  const maturePressure = compileBudgetPressure(
+    IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES,
+    IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES,
   );
   const localReliefPressure = smoothstep(
     (targetImpact - IMPACT_CURVE_HIGH_SPEED_RELIEF_TARGET_START) /
@@ -1595,9 +1608,9 @@ function impactPostTurnExtraDeg(
   attempt: number,
 ): number {
   if (targetImpact === undefined) return 0;
-  const mature = smoothstep(
-    (currentCompileBudgetFrames - IMPACT_POST_TURN_BUDGET_START_FRAMES) /
-      IMPACT_POST_TURN_BUDGET_SPAN_FRAMES,
+  const mature = compileBudgetPressure(
+    IMPACT_POST_TURN_BUDGET_START_FRAMES,
+    IMPACT_POST_TURN_BUDGET_SPAN_FRAMES,
   );
   if (mature <= 0) return 0;
 

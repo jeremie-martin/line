@@ -583,7 +583,7 @@ reverse-fit gate collapses (high risk) should come later.
 - **Proposed simplification:** Introduce one `budgetMaturity(startFrac, spanFrac)` helper (map budget to [0,1] via a single reference scale, or express starts/spans as fractions of the compile's own budget) and route all smoothsteps through it.
 - **Risk:** high
 - **Generalization note:** Directly assumes the grid; the exact scalability target.
-- **Status:** Not Started
+- **Status:** Accepted (partial) — Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +2.8 (full canonical vs current #56 baseline `simplify-56-share-redir-missing-turn-a01`; valid 1920/1920, fingerprint unchanged; 1920/1920 `track_hash` match). Added `compileBudgetPressure(...)`/`compileBudgetFade(...)` and routed the existing absolute-frame gates through them, including the previously inline impact-arrival 50k fade; did not retune starts/spans to budget fractions. Focused optimizer/arc Vitest suite passed (6 files, 77 tests).
 
 ### 58. Spec-population aggregate (mean impact) gates scoop geometry
 - **Files:** `scripts/v0/arc_placement.ts`

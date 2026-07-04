@@ -47,15 +47,21 @@ function objectiveEnvNum(name: string, fallback: number): number {
 }
 
 const OBJECTIVE_CURRENT_QUALITY_POWER_ENV = objectiveEnvNum("LR_M64_OBJECTIVE_CURRENT_POWER", 1);
+const OBJECTIVE_READINESS_POWER_ENV = objectiveEnvNum("LR_M75_OBJECTIVE_READINESS_POWER", 1);
 let objectiveCurrentQualityPower = OBJECTIVE_CURRENT_QUALITY_POWER_ENV;
+let objectiveReadinessPower = OBJECTIVE_READINESS_POWER_ENV;
 
 type ObjectiveBlendPowerConfig = {
   currentQualityPower?: number;
+  readinessPower?: number;
 };
 
 export function setObjectiveBlendPowers(config: ObjectiveBlendPowerConfig = {}): void {
   objectiveCurrentQualityPower = normalizeObjectivePower(
     config.currentQualityPower ?? OBJECTIVE_CURRENT_QUALITY_POWER_ENV,
+  );
+  objectiveReadinessPower = normalizeObjectivePower(
+    config.readinessPower ?? OBJECTIVE_READINESS_POWER_ENV,
   );
 }
 
@@ -135,7 +141,8 @@ export function scoreGapObjectiveForTargets(
 }
 
 function objectiveBlendValue(currentQuality: number, readiness: number): number {
-  return objectivePower(currentQuality, objectiveCurrentQualityPower) * readiness;
+  return objectivePower(currentQuality, objectiveCurrentQualityPower) *
+    objectivePower(readiness, objectiveReadinessPower);
 }
 
 function objectivePower(value: number, power: number): number {

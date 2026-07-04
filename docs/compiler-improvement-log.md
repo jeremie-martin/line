@@ -2,6 +2,48 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ACCEPTED CANONICAL - high-air impact readiness softening
+
+Reason: M75 tested the unexplored half of the M61 objective family. Global mature-budget
+readiness softening (`readiness^0.75`) was not broadly promotable, but it exposed a large
+`drums_dropout` basin and a smaller `skyline_push` gain. The accepted form applies that softer
+readiness term only on mature budgets for high-air, medium/high-impact, speed-bounded authored
+profiles with dense enough contact room, excluding the `opening_burst` guard that lost in the
+looser probe. The current-quality side of M64/M74 is unchanged. Escape hatch:
+`LR_M75_HIGH_AIR_IMPACT_READINESS075=0`; explicit `LR_M75_OBJECTIVE_READINESS_POWER` still wins
+as a whole-run override, and `LR_M75_MATURE_OBJECTIVE_READINESS_POWER` remains available for
+opt-in dose studies.
+
+Focused tests passed in default and escape modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M75_HIGH_AIR_IMPACT_READINESS075=0` (6 files, 78 tests each).
+
+Initial broad probe: `generated/golden-runs/probe-m75-readiness075-worst10-s0-2-a01`, run with
+`LR_M75_MATURE_OBJECTIVE_READINESS_POWER=0.75` on the current worst-10 slice, was valid 120/120.
+Decision versus M74 was inconclusive-positive: delta +1.6, CI [-4.8, 11.9], P(delta<=0)=39.5%.
+Footprint inspection showed `drums_dropout` +36.24 and `skyline_push` +5.81 weighted, but broad
+collateral on the rest of the slice.
+
+Tight selector probe: `generated/golden-runs/probe-m75-highair-impact-readiness075-tight-full-s0-2-a01/golden.json`,
+run on the full 40-spec suite with seeds 0..2 and the canonical budget grid, was valid 480/480
+with raw HEADLINE 696.28 and `HEADLINE excl. impact` 713.71.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m75-highair-impact-readiness075-tight-full-s0-2-a01/golden.json generated/golden-runs/attempt-m74-vertical-objective-current20-a01/golden.json` -> non-canonical `VERDICT: ACCEPT`, delta +1.2, CI [0.0, 4.0], P(delta<=0)=12.8%, effect 1.05. Per-budget deltas were 125k +0.0, 250k +1.4, 375k +1.0, and 500k +1.4. The paired footprint was exactly `drums_dropout` and `skyline_push`.
+
+Canonical: `generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json`,
+run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m75-highair-impact-readiness075-a01`,
+was valid 1920/1920 with raw HEADLINE 694.51 and `HEADLINE excl. impact` 713.27. Per-budget
+point estimates were 125k 677.98, 250k 689.91, 375k 696.48, and 500k 699.47.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json generated/golden-runs/attempt-m74-vertical-objective-current20-a01/golden.json` -> canonical `VERDICT: ACCEPT`, delta headline +0.4, CI [-0.1, 1.7], P(delta<=0)=19.2%, effect 0.88. Per-budget deltas were 125k +0.0, 250k +0.4, 375k +0.3, and 500k +0.6.
+
+Why it was kept: the effect is narrow but passes the campaign rule and is 125k-byte-identical.
+It changed 72/1920 paired checkpoints, with 49 improvements, 23 regressions, and 1848 plateaus.
+Weighted movement was `drums_dropout` +12.38 and `skyline_push` +2.26. Changed-row mean work
+was essentially neutral: sampled candidates +22.6, viable -19.8, simulated frames -93.1, with
+forward/start/repair counters unchanged. Accepted as the new baseline of record:
+`attempt-m75-highair-impact-readiness075-a01`.
+
 ## 2026-07-04 - ACCEPTED CANONICAL - vertical M64 objective current-power dose
 
 Reason: M66 showed that raising the accepted M64 current-quality exponent from 1.5 to 2.0 was

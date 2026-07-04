@@ -16,7 +16,8 @@ rule are frozen.
 | 2026-07-03 | attempt-m3-scarce-span75-a01 | eaed707 | 691.28 | 711.20 | M3 scarce-tier span 20%→75% below 200k — canonical ACCEPT |
 | 2026-07-04 | attempt-m41-hardimpact-span30-a01 | 0260692 | 692.52 | 711.76 | M41 hard-impact mature M3 span 20%->30% — canonical ACCEPT |
 | 2026-07-04 | attempt-m64-impact-band-objective-current15-a01 | 765fd15 | 693.86 | 712.76 | M64 impact-band objective current-power 1.5 — canonical ACCEPT |
-| 2026-07-04 | attempt-m74-vertical-objective-current20-a01 | this commit | 694.10 | 712.92 | M74 vertical M64 current-power 2.0 dose — canonical ACCEPT |
+| 2026-07-04 | attempt-m74-vertical-objective-current20-a01 | f019e38 | 694.10 | 712.92 | M74 vertical M64 current-power 2.0 dose — canonical ACCEPT |
+| 2026-07-04 | attempt-m75-highair-impact-readiness075-a01 | this commit | 694.51 | 713.27 | M75 high-air impact readiness-power 0.75 selector — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -1767,6 +1768,52 @@ Affected-slice probe min=0.35 (`probe-m68-objective-impact-min035-active-s0-2-a0
 current impacts gives back mature-budget score. Do not continue the M63/M64 line with local
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
+
+### M75 - high-air impact readiness softening · canonical ACCEPT (2026-07-04)
+
+**Mechanism.** Add the missing readiness exponent side of the M61 objective hook, then promote
+only the clean selector found after the broad dose screen. At mature budgets, authored profiles
+with mean air in `[0.62,0.66]`, mean authored impact >=0.45, speed range <=0.36, and median
+contact gap <=0.75s use `currentQuality^p * readiness^0.75`; `p` remains whatever M64/M74
+selected for the spec. The 125k tier stays byte-identical through the existing mature-budget
+gate. Escape hatch: `LR_M75_HIGH_AIR_IMPACT_READINESS075=0`; explicit
+`LR_M75_OBJECTIVE_READINESS_POWER` still wins for whole-run studies.
+
+Focused tests passed in default and escape modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M75_HIGH_AIR_IMPACT_READINESS075=0` (6 files, 78 tests each).
+
+```
+Broad mature q=0.75 screen (`probe-m75-readiness075-worst10-s0-2-a01`):
+  worst-10 specs × seeds 0..2 × canonical budget grid · valid 120/120
+  Delta headline = +1.6 · 95% CI [-4.8, 11.9] · P(Delta<=0)=39.5% · effect=0.38
+  125k +0.0 · 250k +3.2 · 375k +1.1 · 500k +1.6
+  Footprint: `drums_dropout` large positive, `skyline_push` smaller positive, broad collateral.
+
+Tight selector full probe (`probe-m75-highair-impact-readiness075-tight-full-s0-2-a01`):
+  40 specs × seeds 0..2 × canonical budget grid · valid 480/480
+  raw HEADLINE 696.28 · excl-impact 713.71
+  Delta headline = +1.2 · 95% CI [0.0, 4.0] · P(Delta<=0)=12.8% · effect=1.05
+  125k +0.0 · 250k +1.4 · 375k +1.0 · 500k +1.4
+  VERDICT: ACCEPT (non-promotable)
+```
+
+**Canonical.** `attempt-m75-highair-impact-readiness075-a01` vs
+`attempt-m74-vertical-objective-current20-a01`:
+
+```
+HEADLINE 694.10 -> 694.51 · excl-impact 712.92 -> 713.27 · valid 1920/1920
+Delta headline = +0.4 · 95% CI [-0.1, 1.7] · P(Delta<=0)=19.2% · effect=0.88
+125k +0.0 · 250k +0.4 · 375k +0.3 · 500k +0.6
+VERDICT: ACCEPT
+```
+
+**Learnings.** The readiness exponent is useful only in a tiny residual basin; broad
+`readiness^0.75` is too noisy. The accepted selector changes 72/1920 paired checkpoints, with
+49 improvements, 23 regressions, and 1848 plateaus. Weighted movement is exactly
+`drums_dropout` +12.38 and `skyline_push` +2.26; `opening_burst` was excluded by the upper
+air-mean guard after it lost in the looser selector probe. 125k remains byte-identical. Baseline
+is now `attempt-m75-highair-impact-readiness075-a01`; remaining gap to 700 is 5.49.
 
 ### M74 - vertical M64 objective current-power dose · canonical ACCEPT (2026-07-04)
 

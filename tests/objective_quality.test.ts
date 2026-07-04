@@ -18,6 +18,7 @@ import {
   scoreCurrentTargetQuality,
   scoreGapObjectiveForTargets,
   scoreNextTargetReadiness,
+  setObjectiveBlendPowers,
 } from "../scripts/v0/optimizer/objective.ts";
 import { readinessCatch } from "../scripts/v0/optimizer/readiness.ts";
 import { sortCandidatesByQuality } from "../scripts/v0/optimizer/aim.ts";
@@ -141,6 +142,22 @@ describe("unified objective quality score", () => {
     const scored = scoreGapObjectiveForTargets(current.targets, achieved, arrival, next.targets);
     expect(scored).not.toBeNull();
     expect(scored!.value).toBeCloseTo(scored!.currentQuality * scored!.readiness, 12);
+  });
+
+  test("gap objective applies configured current-quality and readiness powers", () => {
+    const current = gap(0, 0, 20, { air: 0.5, impact: 0.8 });
+    const next = gap(1, 20, 40, { speed: 0.5 });
+    const achieved = { air: 0.45, impact: 0.75 };
+    const arrival = { speed: 9.5, comAngleDeg: 12 };
+
+    setObjectiveBlendPowers({ currentQualityPower: 2, readinessPower: 0.5 });
+    try {
+      const scored = scoreGapObjectiveForTargets(current.targets, achieved, arrival, next.targets);
+      expect(scored).not.toBeNull();
+      expect(scored!.value).toBeCloseTo(scored!.currentQuality ** 2 * scored!.readiness ** 0.5, 12);
+    } finally {
+      setObjectiveBlendPowers();
+    }
   });
 
   test("candidate pool ranking uses the predicted-arrival objective over cost", () => {

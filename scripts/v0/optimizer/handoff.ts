@@ -385,6 +385,12 @@ const M74_VERTICAL_OBJECTIVE_CURRENT_POWER = 2.0;
 const M74_DYNAMIC_AMPLITUDE_RANGE_MIN = 0.45;
 const M74_ELEVATION_RANGE_MIN = 0.10;
 const M74_ELEVATION_ROOM_MEDIAN_GAP_FRAMES = Math.round(FPS * 0.90);
+const M75_HIGH_AIR_IMPACT_READINESS_POWER = 0.75;
+const M75_HIGH_AIR_IMPACT_AIR_MEAN_MIN = 0.62;
+const M75_HIGH_AIR_IMPACT_AIR_MEAN_MAX = 0.66;
+const M75_HIGH_AIR_IMPACT_MEAN_MIN = 0.45;
+const M75_HIGH_AIR_IMPACT_MEDIAN_GAP_MAX_FRAMES = Math.round(FPS * 0.75);
+const M75_HIGH_AIR_IMPACT_SPEED_RANGE_MAX = 0.36;
 
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
@@ -762,6 +768,7 @@ function compileHandoffInternal(
     const spec: Spec = { ...userSpec, preroll: undefined, contacts: feasibleContacts };
     setObjectiveBlendPowers({
       currentQualityPower: objectiveBlendCurrentPowerForSpec(targetBudget, spec),
+      readinessPower: objectiveBlendReadinessPowerForSpec(targetBudget, spec),
     });
     const durationFrames = secToFrame(spec.duration);
     const allContactFrames = [...spec.contacts]
@@ -1563,6 +1570,53 @@ function objectiveBlendCurrentPowerForSpec(targetBudget: number, spec: Spec): nu
       m74VerticalObjectiveDoseProfile(spec)
     ? M74_VERTICAL_OBJECTIVE_CURRENT_POWER
     : M64_MATURE_OBJECTIVE_CURRENT_POWER;
+}
+
+function objectiveBlendReadinessPowerForSpec(targetBudget: number, spec: Spec): number | undefined {
+  if (readEnv("LR_M75_OBJECTIVE_READINESS_POWER") !== undefined) return undefined;
+  const raw = readEnv("LR_M75_MATURE_OBJECTIVE_READINESS_POWER");
+  if (targetBudget < M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES) return undefined;
+  if (raw !== undefined && raw !== "0") {
+    const power = Number(raw);
+    return Number.isFinite(power) && power > 0 ? power : undefined;
+  }
+  if (readEnv("LR_M75_HIGH_AIR_IMPACT_READINESS075") === "0") return undefined;
+  return m75HighAirImpactReadinessProfile(spec) ?
+    M75_HIGH_AIR_IMPACT_READINESS_POWER :
+    undefined;
+}
+
+function m75HighAirImpactReadinessProfile(spec: Spec): boolean {
+  const air: number[] = [];
+  const speed: number[] = [];
+  let impactSum = 0;
+  let impactCount = 0;
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .sort((a, b) => a - b);
+
+  for (const contact of spec.contacts) {
+    const targets = axesAtFrame(secToFrame(contact.t), spec);
+    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
+    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
+    impactSum += contact.impact ?? 0;
+    impactCount++;
+  }
+
+  if (air.length === 0 || speed.length < 2 || impactCount === 0) return false;
+  const contactGaps = contactFrames.slice(1).map((frame, index) => frame - contactFrames[index]);
+  const sortedGaps = contactGaps.sort((a, b) => a - b);
+  if (sortedGaps.length === 0) return false;
+
+  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
+  const meanImpact = impactSum / impactCount;
+  const speedRange = valueRange(speed);
+  const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
+  return meanAir >= M75_HIGH_AIR_IMPACT_AIR_MEAN_MIN &&
+    meanAir <= M75_HIGH_AIR_IMPACT_AIR_MEAN_MAX &&
+    meanImpact >= M75_HIGH_AIR_IMPACT_MEAN_MIN &&
+    speedRange <= M75_HIGH_AIR_IMPACT_SPEED_RANGE_MAX &&
+    medianGapFrames <= M75_HIGH_AIR_IMPACT_MEDIAN_GAP_MAX_FRAMES;
 }
 
 function m74VerticalObjectiveDoseProfile(spec: Spec): boolean {

@@ -1769,6 +1769,44 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M83 - mature repair main-margin 1.0 · full-suite INCONCLUSIVE-flat (reverted, 2026-07-04)
+
+**Mechanism.** Follow-up to the M82 repair-margin screen. M82 used the existing
+`LR_REPAIR_MAIN_MARGIN=1.0` override on the current worst-10 slice and showed weak mature-budget
+upside but a large 125k cost. M83 made the same idea budget-shaped in source: keep the accepted
+default ramp at 125k, but use repair main margin 1.0 for budgets >=200k. Candidate generation,
+start selection, forward eval, scorer, specs, fingerprint, seeds, budget grid, and acceptance
+rule stayed unchanged.
+
+```
+Worst-10 pre-screen (`probe-m82-repair-main100-worst10-s0-2-a01`):
+  drums_pendulum, skyline_push, terrace_sprint, syncopated_lift, canyon_steps,
+  dense_echo_climb, drums_dropout, dense_sprint, rhythm_ladder, rolling_drop
+  seeds 0..2 × canonical budget grid · valid 120/120
+  raw slice HEADLINE 614.71 · excl-impact 634.68
+  Delta headline = +0.2 · 95% CI [-1.7, 2.9] · P(Delta<=0)=43.9% · effect=0.23
+  125k -5.3 · 250k +1.4 · 375k +1.0 · 500k +0.5
+  VERDICT: INCONCLUSIVE (non-promotable)
+
+Full 3-seed source probe (`probe-m83-repair-main100-mature-full-s0-2-a01`):
+  40 specs × seeds 0..2 × canonical budget grid · valid 480/480
+  raw HEADLINE 696.31 · excl-impact 713.12
+  Delta headline = +0.0 · 95% CI [-2.2, 2.0] · P(Delta<=0)=48.0% · effect=0.03
+  125k +0.0 · 250k -0.1 · 375k -0.3 · 500k +0.4
+  VERDICT: INCONCLUSIVE (flat, non-promotable)
+```
+
+**Learnings.** Protecting 125k removes M82's early-budget damage, but the mature repair margin
+still does not create suite-level lift. M83 changed 313/480 paired scores (173 improvements,
+140 regressions, 167 plateaus): gains on `pop_train` (+10.54 weighted),
+`syncopated_switchback` (+10.40), `canyon_steps` (+7.52), and `drums_pulse` (+5.29) were offset
+by `float_bounds` (-9.15), `drums_tide` (-8.21), `summit_push` (-6.26), and `mini_burst`
+(-4.78). At 500k it spent about +6.9k sim frames and +28.7k repair frames per row, with +91
+full evaluations, -33.6 repair restarts, and only +1.8 repair accepts. The repair main-margin
+scalar is not a promotion path; any future repair work needs a local value selector rather than
+a global margin change. Temporary source reverted; baseline remains
+`attempt-m75-highair-impact-readiness075-a01`.
+
 ### M81 - vertical avg forward-eval branch 2 · affected-slice REJECT (reverted, 2026-07-04)
 
 **Mechanism.** Temporary source probe: raise the existing mature vertical-drama forward-eval

@@ -2,6 +2,40 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - INCONCLUSIVE PROBE - mature repair main-margin 1.0
+
+Reason: the current residual slice still leaves mature-budget repair opportunities, and the
+accepted repair main-margin ramp is stricter at mature budgets than an exact main-budget test.
+M82 first screened the existing source-free `LR_REPAIR_MAIN_MARGIN=1.0` override on the current
+worst-10 slice. Because that helped mature budgets slightly but hurt 125k, M83 tested a temporary
+source version that kept the accepted 125k ramp and used main margin 1.0 only for budgets
+>=200k. Candidate generation, start selection, forward eval, scorer, specs, fingerprint, seed
+set, budget grid, and acceptance rule stayed unchanged.
+
+Pre-screen: `generated/golden-runs/probe-m82-repair-main100-worst10-s0-2-a01/golden.json`, run
+with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_REPAIR_MAIN_MARGIN=1.0 npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/probe-m82-repair-main100-worst10-s0-2-a01`,
+covered `drums_pendulum,skyline_push,terrace_sprint,syncopated_lift,canyon_steps,dense_echo_climb,drums_dropout,dense_sprint,rhythm_ladder,rolling_drop`.
+It was valid 120/120 with raw slice HEADLINE 614.71 and `HEADLINE excl. impact` 634.68.
+
+Pre-screen decision: `npm run decide -- generated/golden-runs/probe-m82-repair-main100-worst10-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta +0.2 on the 10-spec x three-seed x full-budget intersection, CI [-1.7, 2.9], P(delta<=0)=43.9%, effect 0.23. Per-budget deltas were 125k -5.3, 250k +1.4, 375k +1.0, and 500k +0.5.
+
+Full probe: `generated/golden-runs/probe-m83-repair-main100-mature-full-s0-2-a01/golden.json`,
+run after the temporary mature-only source change with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/probe-m83-repair-main100-mature-full-s0-2-a01`.
+It covered all 40 specs with seeds 0..2 and the canonical budget grid, was valid 480/480, and
+had raw HEADLINE 696.31 with `HEADLINE excl. impact` 713.12.
+
+Full-probe decision: `npm run decide -- generated/golden-runs/probe-m83-repair-main100-mature-full-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta +0.0 on the 40-spec x three-seed x full-budget intersection, CI [-2.2, 2.0], P(delta<=0)=48.0%, effect 0.03. Per-budget deltas were 125k +0.0, 250k -0.1, 375k -0.3, and 500k +0.4.
+
+Why it was not kept: protecting 125k fixed the visible M82 budget-shape problem, but the mature
+suite stayed flat. M83 changed 313/480 paired scores, with 173 improvements, 140 regressions,
+and 167 plateaus. Weighted gains on `pop_train` (+10.54), `syncopated_switchback` (+10.40),
+`canyon_steps` (+7.52), and `drums_pulse` (+5.29) were offset by `float_bounds` (-9.15),
+`drums_tide` (-8.21), `summit_push` (-6.26), and `mini_burst` (-4.78). At 500k it averaged about
++6.9k sim frames, +28.7k repair frames, and +91 full evaluations per row, but only +1.8 repair
+accepts. This closes simple repair main-margin scalar changes on the current M75 stack; future
+repair work needs a local usefulness/value selector. The temporary source change was reverted,
+and the accepted baseline remains `attempt-m75-highair-impact-readiness075-a01`.
+
 ## 2026-07-04 - REJECTED PROBE - vertical avg forward-eval branch 2
 
 Reason: the current vertical/amplitude residual rows have high 500k budget slack, and the

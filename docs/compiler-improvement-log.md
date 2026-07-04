@@ -2,6 +2,71 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ABANDONED PROBE - objective current-quality exponent
+
+Reason: after M55, the worst residuals still looked like selection pressure rather than
+contract failure: all rows were valid, repair was spending heavily, and rank-quality had small
+top-1/top-3 disagreement but large downstream influence. This pass first audited the existing
+repair/rank-quality machinery, then tested whether the rank-quality leaf objective should lean
+more toward current-gap quality before multiplying by next-gap readiness.
+
+Source-free audits:
+
+- `generated/golden-runs/probe-m56-repair-off-worst9-s0-2-a01/golden.json`, run with
+  `LR_REPAIR_MIN_BUDGET=100000000` on the nine worst 500k specs, was rejected versus M41 on the
+  slice: delta headline -13.9, CI [-29.4, -5.1], P(delta<=0)=100%. Repair is load-bearing.
+- `generated/golden-runs/probe-m57-repair-max128-worst9-s0-2-a01/golden.json`, run with
+  `LR_REPAIR_MAX_ATTEMPTS=128` on the same mature slice, was bit-identical to M41. The current
+  max-attempt cap is not binding there.
+- `generated/golden-runs/probe-m58-repair-upstream8-worst9-s0-2-a01/golden.json`, run with
+  `LR_REPAIR_MAX_UPSTREAM=8`, was slightly negative on every mature budget: delta -0.6,
+  CI [-3.5, 2.2]. Broader upstream repair is not a lead.
+- `generated/golden-runs/probe-m59-impact-local075-worst9-s0-2-a01/golden.json`, run with
+  `LR_IMPACT_LOCAL_W=0.75`, was bit-identical to M41 on the slice. That local-impact cost knob
+  is inert for the current worst rows.
+- `generated/golden-runs/probe-m60-rank-quality-off-worst9-s0-2-a01/golden.json`, run with
+  `LR_RANK_QUALITY=off`, was rejected: delta -33.3, CI [-48.0, -19.9]. Rank-quality sorting is
+  heavily load-bearing despite modest observed disagreement rates.
+
+Mechanism trial: a temporary `objective.ts` hook made the leaf objective
+`currentQuality^p * readiness^q`, with default powers of 1 and env overrides
+`LR_M61_OBJECTIVE_CURRENT_POWER` / `LR_M61_OBJECTIVE_READINESS_POWER`. A follow-up `handoff.ts`
+gate tested `LR_M62_MATURE_OBJECTIVE_CURRENT15=1`, which kept 125k at the baseline objective and
+used current-quality power 1.5 only at budgets >=200k. Candidate generation, start selection,
+forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule
+stayed unchanged.
+
+Focused tests passed for the default path and the M62 opt-in path:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` and the same suite with `LR_M62_MATURE_OBJECTIVE_CURRENT15=1` (6 files, 77 tests each).
+
+Probe results:
+
+- `LR_M61_OBJECTIVE_CURRENT_POWER=1.5` on the nine worst specs was positive, delta +4.3,
+  CI [-2.8, 11.9], P(delta<=0)=12.2%, with 125k -7.3 but mature budgets +4.6 to +7.7.
+- Full-suite M61 current-power 1.5,
+  `generated/golden-runs/probe-m61-objective-current15-full-s0-2-a01/golden.json`, was valid
+  480/480 with raw HEADLINE 693.95 and `HEADLINE excl. impact` 709.20. Decision versus M41 was
+  indicative `VERDICT: INCONCLUSIVE`, delta +1.4, CI [-2.5, 5.1], P(delta<=0)=24.2%. Per-budget
+  deltas were 125k -1.6, 250k +1.0, 375k +1.9, and 500k +1.9.
+- `LR_M61_OBJECTIVE_CURRENT_POWER=1.25` was weaker on the worst slice, delta +2.8,
+  CI [-5.3, 15.3], P(delta<=0)=31.2%. `LR_M61_OBJECTIVE_READINESS_POWER=1.5` was flat
+  (delta +0.4, P(delta<=0)=50.0%).
+- Mature-only M62,
+  `generated/golden-runs/probe-m62-mature-objective-current15-full-s0-2-a01/golden.json`, was
+  valid 480/480 with raw HEADLINE 694.11 and `HEADLINE excl. impact` 709.62. Its raw budget curve
+  was 125k 677.65, 250k 689.97, 375k 695.73, and 500k 699.09. Decision versus M41 was indicative
+  `VERDICT: INCONCLUSIVE`, delta +1.5, CI [-2.2, 5.3], P(delta<=0)=21.1%, effect 0.79. Per-budget
+  deltas were 125k +0.0, 250k +1.0, 375k +1.9, and 500k +1.9.
+
+Why it was stopped: M62 did exactly the intended budget-shape repair, removing the 125k drag
+while preserving the mature M61 lift, but it still missed the alpha=0.20 indicative accept gate
+by a narrow margin. Top weighted gains were `dense_sprint` +31.41, `drums_signature` +12.19,
+`float_bounds` +10.16, `drums_pulse` +10.10, `rhythm_ladder` +9.50, and `drums_pendulum` +5.21.
+Top losses were `syncopated_switchback` -15.14, `drums_swell` -11.52, `drums_breath` -8.09,
+`canyon_steps` -7.94, and `pop_train` -5.17. The broad exponent is therefore a useful direction
+but not a shippable mechanism under the campaign rule. The temporary source hook was reverted;
+the accepted baseline remains `attempt-m41-hardimpact-span30-a01`.
+
 ## 2026-07-04 - ABANDONED PROBE - dense low/medium-impact basin cleanup
 
 Reason: combine two recent near-miss selectors instead of retesting either alone: M48's

@@ -1529,6 +1529,70 @@ Do not retry candidate breadth alone as an amplitude repair; future amplitude wo
 geometry/usefulness model, not more q. Source reverted; baseline remains
 `attempt-m41-hardimpact-span30-a01`.
 
+### M56-M62 - repair/rank-quality audit + objective exponent · probe INCONCLUSIVE (reverted, 2026-07-04)
+
+**Audit.** Source-free controls on the current worst rows narrowed the search space:
+
+```
+M56 repair off (`probe-m56-repair-off-worst9-s0-2-a01`, LR_REPAIR_MIN_BUDGET=100000000):
+  Delta headline = -13.9 · 95% CI [-29.4, -5.1] · P(Delta<=0)=100% · VERDICT REJECT
+
+M57 repair max attempts 128 (`probe-m57-repair-max128-worst9-s0-2-a01`):
+  bit-identical to M41 on the worst-9 mature slice
+
+M58 repair upstream 8 (`probe-m58-repair-upstream8-worst9-s0-2-a01`):
+  Delta headline = -0.6 · 95% CI [-3.5, 2.2] · negative at every mature budget
+
+M59 impact local weight 0.75 (`probe-m59-impact-local075-worst9-s0-2-a01`):
+  bit-identical to M41 on the worst-9 slice
+
+M60 rank-quality off (`probe-m60-rank-quality-off-worst9-s0-2-a01`, LR_RANK_QUALITY=off):
+  Delta headline = -33.3 · 95% CI [-48.0, -19.9] · VERDICT REJECT
+```
+
+Repair and rank-quality are load-bearing; the repair attempt cap and local-impact cost knob are
+not useful levers on the current worst slice.
+
+**Mechanism.** Temporary default-off objective hook:
+`value = currentQuality^p * readiness^q`, with `LR_M61_OBJECTIVE_CURRENT_POWER` and
+`LR_M61_OBJECTIVE_READINESS_POWER`. M62 added an opt-in budget gate
+(`LR_M62_MATURE_OBJECTIVE_CURRENT15=1`) so 125k stayed byte-identical and budgets >=200k used
+current-quality power 1.5. Focused tests passed in default and M62 opt-in modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 77 tests each).
+
+```
+M61 current-power 1.5 worst-9:
+  Delta headline = +4.3 · 95% CI [-2.8, 11.9] · P(Delta<=0)=12.2%
+  125k -7.3 · 250k +7.7 · 375k +5.8 · 500k +4.6
+
+M61 current-power 1.5 full (`probe-m61-objective-current15-full-s0-2-a01`):
+  valid 480/480 · raw HEADLINE 693.95 · excl-impact 709.20
+  Delta headline = +1.4 · 95% CI [-2.5, 5.1] · P(Delta<=0)=24.2%
+  125k -1.6 · 250k +1.0 · 375k +1.9 · 500k +1.9
+  VERDICT: INCONCLUSIVE (indicative)
+
+M61 lower/current readiness checks:
+  current-power 1.25 worst-9 weaker: +2.8, P(Delta<=0)=31.2%
+  readiness-power 1.5 worst-9 flat: +0.4, P(Delta<=0)=50.0%
+
+M62 mature-only current-power 1.5 (`probe-m62-mature-objective-current15-full-s0-2-a01`):
+  valid 480/480 · raw HEADLINE 694.11 · excl-impact 709.62
+  budget curve: 125k 677.65 · 250k 689.97 · 375k 695.73 · 500k 699.09
+  Delta headline = +1.5 · 95% CI [-2.2, 5.3] · P(Delta<=0)=21.1% · effect=0.79
+  125k +0.0 · 250k +1.0 · 375k +1.9 · 500k +1.9
+  VERDICT: INCONCLUSIVE (indicative, non-promotable)
+```
+
+**Learnings.** The mature-only gate fixed the 125k drag and preserved the mature lift, but it
+missed the indicative accept gate by one percentage point of tail probability. Weighted gains:
+`dense_sprint` +31.4, `drums_signature` +12.2, `float_bounds` +10.2, `drums_pulse` +10.1,
+`rhythm_ladder` +9.5, `drums_pendulum` +5.2. Weighted losses: `syncopated_switchback` -15.1,
+`drums_swell` -11.5, `drums_breath` -8.1, `canyon_steps` -7.9, `pop_train` -5.2. Broad
+current-quality exponentiation is directionally useful but too noisy to promote; future work
+needs a more selective usefulness signal, not a global exponent. Source reverted; baseline
+remains `attempt-m41-hardimpact-span30-a01`.
+
 ### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Try a coherent portfolio of the last two non-shipping near-misses rather than

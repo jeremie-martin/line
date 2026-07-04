@@ -905,6 +905,53 @@ collateral. Do not retry the same dense high-air `ARC_LEN_SPAN_LO` opening uncha
 future H3-like work needs either an explicit selector for the impact/speed winners or a true
 air-error improvement signal.
 
+### M33 — low-amplitude gate for M3 steep-arrival span · panel INCONCLUSIVE-negative (reverted, 2026-07-04)
+
+**Mechanism.** Source-trialed a narrow amplitude/impact conflict gate for the accepted M3
+steep-arrival span. `Gap` temporarily carried the sampled amplitude target of the next contact
+beside `nextImpact`, and the M3 k−1 steep-arrival span was suppressed only when the next beat's
+amplitude ask was very low (`<0.20`). The impact curve carrier, impact template lane, scorer,
+specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+**Verification.** Focused optimizer suite passed:
+
+```
+LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests.
+
+**Pre-check.** A blunt env-only diagnostic on the low-amplitude/high-impact panel
+(`LR_IMPACT_GEOM_OFF=1`, same 5 specs × seeds 0..2 × canonical budget grid) rejected hard:
+
+```
+Δheadline = -67.8 · 95% CI [-90.7, -45.9] · P(Δ≤0)=100.0%
+125k -69.5 · 250k -70.2 · 375k -67.8 · 500k -66.2
+VERDICT: REJECT (indicative env-only)
+```
+
+**Probe.** `probe-m33-lowamp-m3gate-panel-s0-2-a01` (5 specs:
+`terrace_sprint`, `rolling_drop`, `skyline_push`, `ridge_pulse`, `dense_echo_climb` ×
+seeds 0..2 × canonical budget grid, valid 60/60) vs `attempt-m3-scarce-span75-a01`:
+
+```
+Δheadline = -1.5 · 95% CI [-7.2, 3.2] · P(Δ≤0)=73.6% · effect=-0.60
+125k -3.5 · 250k -2.9 · 375k -0.9 · 500k -0.8 · validity 100% at every budget
+VERDICT: INCONCLUSIVE (indicative; source reverted, no canonical)
+```
+
+**Footprint.** The intended low-amplitude/high-impact rows did not improve: on the paired
+conflict rows, amplitude error worsened slightly (+0.002), impact error worsened slightly
+(+0.003), speed improved only marginally (−0.002), and elevation improved modestly (−0.005).
+Spec deltas on the panel were `dense_echo_climb` −8.5, `rolling_drop` −2.0, `ridge_pulse`
+−1.4, `terrace_sprint` −0.5, and `skyline_push` +1.7.
+
+**Learnings.** The low-amplitude/high-impact conflict is real, but M3 steep-arrival suppression
+is not the lever. The accepted impact geometry is carrying the same rows, and withholding the
+steep span does not recover the huge terrace amplitude overshoot. Do not retry a simple
+`nextAmplitude < 0.20` M3 gate unchanged; any future work here needs a generation shape that
+reduces amplitude while preserving the high-impact carrier, not just less arrival steepening.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

@@ -34,7 +34,7 @@ rule are frozen.
   from the ACTUAL arrival vector `asin(min(0.95, ask·VSTRONG/speed))`; predicted +2..+5) — NEXT
 - H2c impact-aim proposal gate-fail cut (22% of enum dive proposals gate-fail → flat fallback;
   bound rotate recruit by the arrival's catchable turn; predicted +1..+3, validity-side pure
-  upside) — QUEUED
+  upside) — CLOSED by M30 (probe-clean rotate-side filter cut gate-fails but scored flat)
 - H2b impact template turn-cap raise (22°→~38): DEPRIORITIZED by S2 — mid band (asks .30–.60,
   needs ~17° ≤ cap) carries 58.6% of impact energy; high band only 18.4%. Cap binds only the
   high band; revisit after H2a/H2c.
@@ -767,6 +767,45 @@ current compiler. Broadening it across all scarce-tier aim bases reopens the see
 that M4's final first-base design avoided. Do not retry scarce all-base air matching unchanged;
 future air-length work needs a much stronger usefulness signal than budget tier plus aim-base
 index.
+
+### M30 — probe-clean rotate-side aim filter · probe INCONCLUSIVE-flat (reverted, 2026-07-04)
+
+**Mechanism.** Source-trialed a narrow H2c gate-fail cut in `aim.ts`: after the normal cross5
+probe batch, the enum sweep skipped same-sign rotate proposals when the pitch-zero probe for
+that rotate side failed the current hard gate. This was not the old global pitch-only ablation:
+rotation stayed available on probe-clean sides, and pitch-only fallback filled the top-2 slots
+when a side was known unsafe. Candidate count, search policy, start selection, forward eval,
+repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+**Verification.** Focused optimizer suite passed:
+
+```
+LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests.
+
+**Probe.** `probe-aim-rotategate-s0-2-a01` (40 specs × seeds 0..2 × canonical budget grid,
+valid 480/480) vs `attempt-m3-scarce-span75-a01`:
+
+```
+Δheadline = +0.2 · 95% CI [-5.5, 5.0] · P(Δ≤0)=44.0% · effect=0.09
+Per-budget Δ: 125k -1.7 · 250k -0.5 · 375k +0.9 · 500k +0.6
+VERDICT: INCONCLUSIVE-flat (indicative; source reverted, no canonical)
+```
+
+**Telemetry.** The filter did the mechanical job but not the scoring job. Across the paired
+3-seed grid, enum gate-fail rate fell 12.8%→2.6% (`enum_gate_fail` 96,877→19,131 and
+`enum_rot_gate_fail` 96,171→16,069), and emitted proposals rose 658,409→722,256. But the
+replacement proposals were lower-value: mean aimed pool rank worsened 5.70→6.09, rank-0 rate
+fell 9.7%→9.0%, and top-3 rate fell 28.2%→26.1%. Low budgets lost, mature budgets gained only
+~0.5-1 point on the 3-seed slice, below promotion scale.
+
+**Learnings.** Probe-clean rotate-side bounding is not a useful H2c lever in the current aim
+lane. Gate-fail count was mostly not wasted value; the failed rotate proposals were attached to
+high-value basins, and replacing them with lower-ranked fallback proposals nets flat. Do not
+retry this probe-gate same-sign rotate filter unchanged. Any future rotate safety work must
+predict selection value, not just pass/fail risk.
 
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 

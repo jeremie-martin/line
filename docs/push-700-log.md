@@ -1769,6 +1769,29 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M79 - q34 breadth on vertical/amplitude residual slice · source-free INCONCLUSIVE-negative (2026-07-04)
+
+**Study.** Recheck the old M54 candidate-breadth idea under the current M75 stack without source
+edits: `LR_QUALITY_NCAND=34` on the current vertical/amplitude residual panel
+(`skyline_push`, `terrace_sprint`, `syncopated_lift`, `canyon_steps`, `dense_echo_climb`,
+`rolling_drop`), seeds 0..2 and the canonical budget grid.
+
+```
+Probe (`probe-m79-q34-verticalamp-s0-2-a01`):
+  6 specs × seeds 0..2 × canonical budget grid · valid 72/72
+  raw slice HEADLINE 625.83 · excl-impact 626.14
+  Delta headline = -1.3 · 95% CI [-5.4, 2.6] · P(Delta<=0)=77.1% · effect=-0.67
+  125k -1.9 · 250k +0.1 · 375k +0.1 · 500k -3.0
+  VERDICT: INCONCLUSIVE (negative, non-promotable)
+```
+
+**Learnings.** q34 still behaves like a seed-fragile breadth lever rather than a current-stack
+repair. It helps `canyon_steps` (+4.21 weighted) and leaves `rolling_drop` flat (+0.03), but
+hurts `skyline_push` (-6.05), `dense_echo_climb` (-3.43), `terrace_sprint` (-1.33), and
+`syncopated_lift` (-1.02). The 500k tier is negative on the panel, so do not promote or build a
+selector from this q34 slice. Env-only; baseline remains
+`attempt-m75-highair-impact-readiness075-a01`.
+
 ### M78 - M63-width current-stack objective gate · affected-slice INCONCLUSIVE-negative (reverted, 2026-07-04)
 
 **Study.** Revisit the user's M63 question on the current M75 stack by temporarily widening the

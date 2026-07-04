@@ -2,6 +2,27 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE INCONCLUSIVE PROBE - q34 breadth on vertical/amplitude residual slice
+
+Reason: M54's amplitude-range q34 breadth probe was strong at three seeds but collapsed at
+canonical scale. Recheck the same general lever under the current M75 stack on the present
+vertical/amplitude residual panel before spending source work on a selector. The probe used the
+existing `LR_QUALITY_NCAND=34` override with no source edits on
+`skyline_push,terrace_sprint,syncopated_lift,canyon_steps,dense_echo_climb,rolling_drop`.
+Scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-m79-q34-verticalamp-s0-2-a01/golden.json`, run with seeds
+0..2 and the canonical budget grid, was valid 72/72 with raw slice HEADLINE 625.83 and
+`HEADLINE excl. impact` 626.14.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m79-q34-verticalamp-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta -1.3 on the six-spec x three-seed x full-budget intersection, CI [-5.4, 2.6], P(delta<=0)=77.1%, effect -0.67. Per-budget deltas were 125k -1.9, 250k +0.1, 375k +0.1, and 500k -3.0.
+
+Why it was stopped: the current-stack q34 slice repeats the old breadth fragility. Weighted spec
+movement was `canyon_steps` +4.21, `rolling_drop` +0.03, `syncopated_lift` -1.02,
+`terrace_sprint` -1.33, `dense_echo_climb` -3.43, and `skyline_push` -6.05. The mature 500k
+tier is negative, so this does not justify a selector or canonical attempt. Env-only; baseline
+remains `attempt-m75-highair-impact-readiness075-a01`.
+
 ## 2026-07-04 - REJECTED PROBE - M63-width current-stack objective gate
 
 Reason: the original M63 high-impact objective gate was an encouraging near miss, and M64 kept

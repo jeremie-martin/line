@@ -1767,6 +1767,28 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M73 - full forward-eval leaf on current default · source-free REJECT (2026-07-04)
+
+**Study.** Reprice the exact full re-detection leaf after M64 changed the objective surface.
+Source-free env only: `LR_FWD_EVAL_LEAF=full`, leaving generation, start selector shape,
+forward-eval depth/width, repair, scorer, specs, fingerprint, seeds, budget grid, and
+acceptance rule unchanged.
+
+```
+Full 3-seed probe (`probe-m73-full-leaf-current-s0-2-a01`):
+  40 specs × seeds 0..2 × canonical budget grid · valid 480/480
+  raw HEADLINE 692.70 · excl-impact 709.73
+  Delta headline = -2.0 · 95% CI [-4.6, 0.4] · P(Delta<=0)=95.2% · effect=-1.59
+  125k -5.0 · 250k -2.4 · 375k -2.3 · 500k -0.8
+  VERDICT: REJECT (non-promotable)
+```
+
+**Learnings.** Full-leaf accuracy is not worth the extra charged work on the current M64
+baseline. It changed 416/480 paired checkpoints but skewed 157 improvements vs 254 regressions;
+mean charged forward-eval frames rose ~84.0k -> ~138.0k while sampled candidates fell
+~7060 -> ~5451. The accepted objective leaf shortcut remains load-bearing. Env-only; baseline
+remains `attempt-m64-impact-band-objective-current15-a01`.
+
 ### M69 - repair max-attempt cap 32 on worst slice · source-free INCONCLUSIVE-negative (2026-07-04)
 
 **Study.** M64 telemetry showed several weak mature rows spending large repair tails with low

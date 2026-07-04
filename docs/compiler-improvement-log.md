@@ -2,6 +2,27 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE REJECTED PROBE - full forward-eval leaf on current default
+
+Reason: M64 changed the rank-quality objective surface, so reprice the accepted objective leaf
+shortcut against the exact full re-detection leaf. This tests whether the shortcut has become
+too lossy after the M64 current-quality exponent, without editing source. Candidate generation,
+start selection shape, forward-eval depth/width, repair, scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-m73-full-leaf-current-s0-2-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_FWD_EVAL_LEAF=full GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m73-full-leaf-current-s0-2-a01`,
+was valid 480/480 with raw HEADLINE 692.70 and `HEADLINE excl. impact` 709.73.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m73-full-leaf-current-s0-2-a01/golden.json generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta -2.0 on the 40-spec x 3-seed x full-budget intersection, CI [-4.6, 0.4], P(delta<=0)=95.2%, effect -1.59. Per-budget deltas were 125k -5.0, 250k -2.4, 375k -2.3, and 500k -0.8.
+
+Why it was not pursued: exact full-leaf scoring did not buy enough ranking quality to pay for
+its cost. It changed 416/480 paired checkpoints, with 157 improvements, 254 regressions, and 69
+plateaus. Mean charged forward-eval frames rose from about 84.0k to 138.0k per checkpoint, start
+eval frames rose from about 10.4k to 13.4k, and sampled candidates fell from about 7060 to 5451.
+The shortcut remains load-bearing on the current M64 baseline. This was env-only; accepted
+source remains `attempt-m64-impact-band-objective-current15-a01`.
+
 ## 2026-07-04 - SOURCE-FREE REJECTED PROBE - mature aim top-k 5 dose check
 
 Reason: M71 showed K=4 is too low for mature budgets, while prior K=7 attempts were already

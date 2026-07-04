@@ -1593,6 +1593,40 @@ current-quality exponentiation is directionally useful but too noisy to promote;
 needs a more selective usefulness signal, not a global exponent. Source reverted; baseline
 remains `attempt-m41-hardimpact-span30-a01`.
 
+### M63 - high-impact objective current-power gate · canonical INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** M62's mature-only current-quality exponent was directionally right but too broad.
+Archive screening showed a simple non-name selector: apply `currentQuality^1.5 * readiness` only
+at budgets >=200k when mean authored impact over feasible contacts, counting non-impact contacts
+as zero, is >=0.41. Probe mode used `LR_M63_HIGH_IMPACT_OBJECTIVE_CURRENT15=1`; promoted mode
+made the gate default-on with `LR_M63_HIGH_IMPACT_OBJECTIVE_CURRENT15=0` as the escape.
+
+Focused tests passed in default/gated/escape modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 77 tests each).
+
+```
+Probe (`probe-m63-highimpact-objective-current15-full-s0-2-a01`):
+  valid 480/480 · raw HEADLINE 694.62 · excl-impact 712.29
+  Delta headline = +2.0 · 95% CI [-1.0, 5.2] · P(Delta<=0)=8.8% · effect=1.29
+  125k +0.0 · 250k +1.1 · 375k +2.5 · 500k +2.6
+  VERDICT: ACCEPT (indicative)
+
+Canonical (`attempt-m63-highimpact-objective-current15-a01`, default-on):
+  valid 1920/1920 · HEADLINE 693.39 · excl-impact 712.05
+  budget curve: 125k 677.98 · 250k 688.44 · 375k 694.89 · 500k 698.60
+  Delta headline = +0.9 · 95% CI [-1.4, 3.2] · P(Delta<=0)=21.0% · effect=0.76
+  125k +0.0 · 250k -0.1 · 375k +0.7 · 500k +1.7
+  VERDICT: INCONCLUSIVE
+```
+
+**Learnings.** This is a real 500k lever, but not keepable under the canonical rule. Winners:
+`dense_sprint` +11.7, `rhythm_ladder` +11.0, `drums_zigzag` +8.0, `drums_crosscut` +7.2,
+`verse_chorus` +6.9, `drums_pendulum` +5.6. Main loss: `syncopated_switchback` -14.5, then
+`pop_train` -3.2, `drums_dropout` -2.0, `skyline_push` -1.8, `drums_pulse` -1.7. Next attempt
+should preserve the high-impact mature objective lift but block syncopated-switchback-like high
+air/speed variation. Source reverted; baseline remains `attempt-m41-hardimpact-span30-a01`.
+
 ### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Try a coherent portfolio of the last two non-shipping near-misses rather than

@@ -2,6 +2,51 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - INCONCLUSIVE CANONICAL - high-impact objective current-quality exponent
+
+Reason: M62 showed that current-quality exponentiation was directionally useful once 125k was
+left at the baseline objective, but the broad mature gate still missed the 3-seed accept gate.
+An archive selector screen over M62 found the cleanest non-name split at high authored-impact
+prevalence: apply current-quality power 1.5 only on mature-budget specs whose mean authored
+impact over feasible contacts, counting non-impact contacts as zero, was at least 0.41. This
+kept the large `dense_sprint`/`rhythm_ladder`/`drums_pendulum` style wins while excluding the
+low-impact `drums_swell`/`drums_breath`/`canyon_steps` losses from M62.
+
+Mechanism: a temporary source hook in `objective.ts` made the rank-quality leaf objective use
+`currentQuality^1.5 * readiness` only when `handoff.ts` enabled it for the compile. The M63
+source probe was default-off behind `LR_M63_HIGH_IMPACT_OBJECTIVE_CURRENT15=1`; after the
+3-seed probe cleared, it was promoted to default-on with `LR_M63_HIGH_IMPACT_OBJECTIVE_CURRENT15=0`
+as the escape. The gate was inactive below 200k and when `LR_IMPACT_OFF=1`. Candidate generation,
+start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed in default and gated/escape modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` (6 files, 77 tests each).
+
+Probe: `generated/golden-runs/probe-m63-highimpact-objective-current15-full-s0-2-a01/golden.json`,
+run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_M63_HIGH_IMPACT_OBJECTIVE_CURRENT15=1`,
+was valid 480/480 with raw HEADLINE 694.62 and `HEADLINE excl. impact` 712.29. Decision versus
+M41 was indicative `VERDICT: ACCEPT`, delta +2.0, CI [-1.0, 5.2], P(delta<=0)=8.8%, effect 1.29.
+Per-budget deltas were 125k +0.0, 250k +1.1, 375k +2.5, and 500k +2.6.
+
+Canonical: `generated/golden-runs/attempt-m63-highimpact-objective-current15-a01/golden.json`,
+run with the gate promoted default-on, was valid 1920/1920 with raw HEADLINE 693.39 and
+`HEADLINE excl. impact` 712.05. Its budget curve was 125k 677.98, 250k 688.44, 375k 694.89,
+and 500k 698.60.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-m63-highimpact-objective-current15-a01/golden.json generated/golden-runs/attempt-m41-hardimpact-span30-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta +0.9, CI [-1.4, 3.2], P(delta<=0)=21.0%, effect 0.76. Per-budget deltas were 125k +0.0, 250k -0.1, 375k +0.7, and 500k +1.7, with unchanged 100% validity.
+
+Why it was not kept: the mechanism produced a real mature-budget improvement, especially at
+500k, but the 12-seed aggregate missed the alpha=0.20 keep gate by one point of tail
+probability and the 250k tier was slightly negative. Canonical weighted winners were
+`dense_sprint` +11.74, `rhythm_ladder` +11.04, `drums_zigzag` +7.98, `drums_crosscut` +7.21,
+`verse_chorus` +6.86, and `drums_pendulum` +5.61. The dominant loss was
+`syncopated_switchback` -14.46, with smaller losses on `pop_train` -3.15, `drums_dropout`
+-1.95, `skyline_push` -1.80, and `drums_pulse` -1.73. This is the best current near-miss:
+future work should preserve the 500k high-impact objective lift while gating out
+syncopated-switchback-like high air/speed variation. The temporary source hook was reverted; the
+accepted baseline remains `attempt-m41-hardimpact-span30-a01`.
+
 ## 2026-07-04 - ABANDONED PROBE - objective current-quality exponent
 
 Reason: after M55, the worst residuals still looked like selection pressure rather than

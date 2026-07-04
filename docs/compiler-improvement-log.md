@@ -2,6 +2,26 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE REJECTED PROBE - high-budget aim top-k ablation on current default
+
+Reason: after M64 changed the quality objective in the impact-prevalence band, re-audit whether
+the accepted high-budget uniform aim-base bump still pays. The source-free env override
+`LR_AIM_TOPK_BASES=4` keeps 125k behavior equal to the accepted default, but ablates the current
+>=200k default rise from K=6 back to K=4 at 250k/375k/500k. Candidate generation apart from the
+aim-base count, search policy, forward eval, repair, scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-m71-aimtopk4-current-s0-2-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_AIM_TOPK_BASES=4 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m71-aimtopk4-current-s0-2-a01`,
+was valid 480/480 with raw HEADLINE 689.76 and `HEADLINE excl. impact` 708.78.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m71-aimtopk4-current-s0-2-a01/golden.json generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta -4.9 on the 40-spec x 3-seed x full-budget intersection, CI [-10.9, -0.1], P(delta<=0)=97.7%, effect -1.80. Per-budget deltas were 125k +0.0, 250k -6.7, 375k -5.8, and 500k -4.6.
+
+Why it was not pursued: the mature K=6 aim-base spend remains load-bearing after M64. Dropping
+back to K=4 protects 125k exactly but loses every mature budget by a large paired point
+estimate. Do not reduce the accepted high-budget aim-base count on the current baseline. This
+was env-only; accepted source remains `attempt-m64-impact-band-objective-current15-a01`.
+
 ## 2026-07-04 - SOURCE-FREE PROBE - rollout-context aim suppression on current default
 
 Reason: prior lookahead work showed that `best:1:5` with aim probes suppressed inside rollouts

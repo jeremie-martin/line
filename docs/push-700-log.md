@@ -1812,6 +1812,26 @@ negative. Do not make rollout-context aim suppression the default on the current
 forward-eval policy. Env-only; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M71 - high-budget aim top-k ablation on current default · source-free REJECT (2026-07-04)
+
+**Study.** Recheck whether M64 changed the cost-benefit of the accepted mature aim-base bump.
+Source-free env only: `LR_AIM_TOPK_BASES=4`, which leaves 125k equal to the accepted default but
+ablates the >=200k default K=6 rise back to K=4 at 250k/375k/500k.
+
+```
+Full 3-seed probe (`probe-m71-aimtopk4-current-s0-2-a01`):
+  40 specs × seeds 0..2 × canonical budget grid · valid 480/480
+  raw HEADLINE 689.76 · excl-impact 708.78
+  Delta headline = -4.9 · 95% CI [-10.9, -0.1] · P(Delta<=0)=97.7% · effect=-1.80
+  125k +0.0 · 250k -6.7 · 375k -5.8 · 500k -4.6
+  VERDICT: REJECT (non-promotable)
+```
+
+**Learnings.** The accepted high-budget K=6 aim-base spend remains load-bearing after M64.
+Reducing mature aim bases protects 125k exactly but gives up large paired score on every mature
+budget. Do not lower the current high-budget aim-base count. Env-only; baseline remains
+`attempt-m64-impact-band-objective-current15-a01`.
+
 ### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Try a coherent portfolio of the last two non-shipping near-misses rather than

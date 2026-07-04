@@ -1291,6 +1291,43 @@ profile was not hard enough. The 125k tier remains byte-identical under the acce
 policy, so this is a mature-budget gain without reopening scarce-budget risk. Baseline is now
 `attempt-m41-hardimpact-span30-a01` at source commit `0260692`.
 
+### M42 — M4 Part B feature gate on M41 · probe INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Retest the old M39 resolved-feature gate on top of M41. Temporary default-off
+hook `LR_M42_AIR_KNOB_FEATURE_GATE=1` suppressed only the M4 Part B air-matched ride-out
+candidate when the whole-spec features matched the prior dense low/medium-impact air-swing
+selector: contact count >=30, mean bounded impact <=0.43, and either min air <=0.34 or
+mean speed <=0.62 with air range >=0.30.
+
+**Verification.** Focused optimizer suite passed with the flag unset and with the flag on:
+
+```
+LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests. The first run caught a local missing-parameter bug before probing; fixed
+before any M42 result was considered.
+
+**Probe.** `probe-m42-airknob-gate-on-m41-panel-s0-2-a01` on the 19-spec M39 air panel,
+seeds 0..2, canonical budget grid:
+
+```
+Δheadline = +0.6 · 95% CI [-3.3, 4.9] · P(Δ≤0)=39.8% · effect=0.29
+125k +0.7 · 250k +0.3 · 375k +0.3 · 500k +0.9
+valid 228/228 · VERDICT: INCONCLUSIVE
+```
+
+**Footprint.** Only 46/228 checkpoints changed: 29 improvements, 17 regressions.
+Weighted panel deltas were `drums_tide` +21.6, `drums_pendulum` +1.8,
+`drums_crescendo` -3.9, and `drums_dropout` -7.1; all other panel specs were flat.
+
+**Learnings.** The old feature gate still targets a real tide basin, but it is too small and
+too dirty on M41. Static resolved-target features explain the miss: `drums_tide` enters through
+medium air range plus low mean speed, while `drums_dropout` and `drums_crescendo` enter through
+the low-air side of the gate and lose. A tide-only selector is probably below canonical scale
+unless it is bundled into a broader air-knob portfolio. Source reverted; baseline remains
+`attempt-m41-hardimpact-span30-a01`.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

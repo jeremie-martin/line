@@ -2,6 +2,51 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ACCEPTED - M101 flat compact repair main-margin exactness
+
+Reason: M100 showed that protected mature-budget repair main-margin 1.0 was positive but too
+broad: the canonical scalar trial moved 1240/1920 rows and missed acceptance. Its winners were
+concentrated in flat compact profiles (`mini_burst`, `syncopated_switchback`, `cold_start`,
+`tiny_dance`, `opening_burst`, and `verse_chorus`). M101 keeps the accepted repair ramp by
+default, but uses exact main repair margin 1.0 only for mature budgets (>=200k) when the authored
+vertical profile has zero elevation range, zero amplitude range, and at most 32 contacts. The
+fallback flag is `LR_M101_REPAIR_FLAT_COMPACT_MAIN100=0`. Explicit `LR_REPAIR_MAIN_MARGIN`
+still overrides. Candidate generation, q, start selection, forward eval, scorer, specs,
+fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M101_REPAIR_FLAT_COMPACT_MAIN100=0` (6 files, 78 tests each).
+
+Affected-pocket probe:
+`generated/golden-runs/probe-m101-repair-flat-compact-main100-pocket-s0-11-a01/golden.json`,
+run with `LR_ENGINE=wasm npm run golden -- --specs=mini_burst,syncopated_switchback,cold_start,tiny_dance,opening_burst,verse_chorus --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m101-repair-flat-compact-main100-pocket-s0-11-a01`,
+covered all 12 canonical seeds on the six intended specs. It was valid 288/288 with raw pocket
+HEADLINE 774.09 and `HEADLINE excl. impact` 791.71. Decision vs M94: non-canonical indicative
+`VERDICT: ACCEPT`, delta +3.8, CI [-0.0, 8.6], P(delta<=0)=2.5%, effect 1.77. Per-budget
+deltas were 125k +0.0, 250k +3.9, 375k +2.9, and 500k +5.3.
+
+Full 3-seed guard:
+`generated/golden-runs/probe-m101-repair-flat-compact-main100-full-s0-2-a01/golden.json`,
+valid 480/480 with raw HEADLINE 698.34 and `HEADLINE excl. impact` 715.30. Decision vs M94:
+non-canonical indicative `VERDICT: ACCEPT`, delta +0.5, CI [-0.5, 1.9], P(delta<=0)=16.8%,
+effect 0.86. Per-budget deltas were 125k +0.0, 250k -0.6, 375k +0.5, and 500k +1.2.
+
+Canonical M101:
+`generated/golden-runs/attempt-m101-repair-flat-compact-main100-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m101-repair-flat-compact-main100-a01`.
+It was valid 1920/1920 with raw HEADLINE 695.99 and `HEADLINE excl. impact` 714.67.
+Per-budget point estimates were 125k 677.98, 250k 691.82, 375k 697.96, and 500k 701.09.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m101-repair-flat-compact-main100-a01/golden.json generated/golden-runs/attempt-m94-lowimpact-compact-current20-a01/golden.json` -> `VERDICT: ACCEPT`, delta headline +0.5, CI [-0.0, 1.4], P(delta<=0)=2.9%, effect 1.42. Per-budget deltas were 125k +0.0, 250k +0.5, 375k +0.4, and 500k +0.7, with unchanged validity.
+
+Why it was kept: M101 is the local usefulness selector that M100 needed. It changes only 192/1920
+paired checkpoints, with 128 improvements, 64 regressions, and 1728 plateaus; the 125k tier is
+byte-stable. The moved specs are exactly the intended flat compact set: `mini_burst` (+6.38
+weighted), `syncopated_switchback` (+4.71), `cold_start` (+3.32), `tiny_dance` (+3.01),
+`opening_burst` (+2.61), and `verse_chorus` (+2.17). The accepted baseline is now
+`attempt-m101-repair-flat-compact-main100-a01`.
+
 ## 2026-07-04 - CANONICAL INCONCLUSIVE - M99/M100 repair main-margin exactness
 
 Reason: M83's mature-only repair main-margin 1.0 trial was flat on the M75-era full suite but

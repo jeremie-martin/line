@@ -886,7 +886,7 @@ function compileHandoffInternal(
     // the weakest gap of the complete incumbent (see runRepairPhase). `bestCompleteNode` is
     // the live incumbent HandoffNode (updated on every register improvement) so repair can
     // replay its fits to reconstruct any prefix node for free (extendNodeCached memoizes).
-    const repair = repairConfig(targetBudget);
+    const repair = repairConfig(targetBudget, spec);
     const repairEnabled = targetBudget >= repair.minBudget && startOptions.length > 0;
     let bestCompleteNode: HandoffNode | null = null;
     let firstTerminalFrame = -1;
@@ -3715,6 +3715,8 @@ const REPAIR_FEAS_MARGIN_SCARCE = 1.05;
 const REPAIR_FEAS_MARGIN_MATURE = 1.0;
 const REPAIR_MARGIN_RAMP_START_FRAMES = 100_000;
 const REPAIR_MARGIN_RAMP_SPAN_FRAMES = 100_000;
+const M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES = 200_000;
+const M101_REPAIR_FLAT_COMPACT_MAX_CONTACTS = 32;
 
 function repairRampMargin(
   targetBudget: number,
@@ -3728,15 +3730,28 @@ function repairRampMargin(
   return scarceMargin + (matureMargin - scarceMargin) * pressure;
 }
 
-function defaultRepairMainMargin(targetBudget: number): number {
+function defaultRepairMainMargin(targetBudget: number, spec: Spec): number {
+  if (
+    readEnv("LR_M101_REPAIR_FLAT_COMPACT_MAIN100") !== "0" &&
+    targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
+    m101FlatCompactRepairProfile(spec)
+  ) {
+    return 1.0;
+  }
   return repairRampMargin(targetBudget, 1, REPAIR_MAIN_MARGIN_MATURE);
+}
+
+function m101FlatCompactRepairProfile(spec: Spec): boolean {
+  if (spec.contacts.length > M101_REPAIR_FLAT_COMPACT_MAX_CONTACTS) return false;
+  const profile = authoredVerticalObjectiveProfile(spec);
+  return profile.elevationRange <= 0 && profile.amplitudeRange <= 0;
 }
 
 function defaultRepairFeasMargin(targetBudget: number): number {
   return repairRampMargin(targetBudget, REPAIR_FEAS_MARGIN_SCARCE, REPAIR_FEAS_MARGIN_MATURE);
 }
 
-function repairConfig(targetBudget: number): RepairConfig {
+function repairConfig(targetBudget: number, spec: Spec): RepairConfig {
   const num = (name: string, def: number, lo: number, hi: number): number => {
     const n = Number.parseInt(readEnv(name) ?? "", 10);
     return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
@@ -3755,7 +3770,7 @@ function repairConfig(targetBudget: number): RepairConfig {
     // Completion-triggered split: run the main search to firstCompletion*mainMargin, then repair.
     // Default eases from 1.0 at the 100k repair gate to 1.1 by 200k; low budgets
     // stay byte-identical while mature budgets keep a little more main-search context before repair.
-    mainMargin: flt("LR_REPAIR_MAIN_MARGIN", defaultRepairMainMargin(targetBudget), 1.0, 10.0),
+    mainMargin: flt("LR_REPAIR_MAIN_MARGIN", defaultRepairMainMargin(targetBudget, spec), 1.0, 10.0),
     // Feasibility margin: require (measured cost-to-end × feasMargin) ≤ remaining budget, and size each
     // restart's ceiling to cost × feasMargin. Keep scarce budgets at the accepted 1.05 headroom, then
     // fade toward the exact measured-cost ceiling as budget matures; explicit env overrides still win.

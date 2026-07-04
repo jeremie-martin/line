@@ -1769,6 +1769,59 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M85 - roomy vertical high-impact current objective extension · canonical INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Push the encouraging M63/M64 idea through a narrower selector instead of
+reopening the full M63 width. M84 extended the M74 current-objective p=2 dose only to
+high-impact-prevalence rows above the accepted M64 band that also matched the existing M74
+vertical profile (`summit_push`, `rolling_drop`). M85 added a second roomy moderate-vertical
+p=1.5 fallback for the M78-positive but M84-excluded `leap_cadence`. Explicit
+`LR_M64_OBJECTIVE_CURRENT_POWER`, scorer, specs, fingerprint, seeds, budget grid, and acceptance
+rule stayed unchanged.
+
+Focused tests passed for both source trials:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 78 tests).
+
+```
+M84 affected-slice probe (`probe-m84-vertical-highimpact-current20-s0-2-a01`):
+  summit_push, leap_cadence, rolling_drop · seeds 0..2 × canonical budget grid · valid 36/36
+  raw slice HEADLINE 705.77 · excl-impact 705.56
+  Delta headline = +1.2 · 95% CI [-1.9, 3.4] · P(Delta<=0)=18.0% · effect=0.86
+  125k +0.0 · 250k +0.4 · 375k +1.7 · 500k +1.5
+  VERDICT: ACCEPT (indicative only)
+
+M84 canonical (`attempt-m84-vertical-highimpact-current20-a01`):
+  40 specs × 12 seeds × canonical budget grid · valid 1920/1920
+  raw HEADLINE 694.57 · excl-impact 713.53
+  Delta headline = +0.1 · 95% CI [-0.1, 0.2] · P(Delta<=0)=25.6% · effect=0.77
+  125k +0.0 · 250k +0.0 · 375k +0.1 · 500k +0.1
+  VERDICT: INCONCLUSIVE
+
+M85 affected-slice probe (`probe-m85-roomy-vertical-highimpact-current-s0-2-a01`):
+  summit_push, leap_cadence, rolling_drop · seeds 0..2 × canonical budget grid · valid 36/36
+  raw slice HEADLINE 708.10 · excl-impact 707.45
+  Delta headline = +3.5 · 95% CI [-1.0, 9.8] · P(Delta<=0)=5.9% · effect=1.31
+  125k +0.0 · 250k +2.3 · 375k +5.2 · 500k +3.7
+  VERDICT: ACCEPT (indicative only)
+
+M85 canonical (`attempt-m85-roomy-vertical-highimpact-current-a01`):
+  40 specs × 12 seeds × canonical budget grid · valid 1920/1920
+  raw HEADLINE 694.56 · excl-impact 713.49
+  Delta headline = +0.0 · 95% CI [-0.2, 0.3] · P(Delta<=0)=32.4% · effect=0.44
+  125k +0.0 · 250k -0.0 · 375k +0.1 · 500k +0.1
+  VERDICT: INCONCLUSIVE
+```
+
+**Learnings.** The M63 width was pushed to the strongest clean selectors found from M78 and
+still did not ACCEPT. M84 isolated the two stable positive rows but was too small:
+`summit_push` +1.190 weighted and `rolling_drop` +1.113, changing only 71/1920 scores. M85
+added `leap_cadence`; the 3-seed gain was a false positive, and canonical `leap_cadence`
+regressed -0.514 weighted (250k -2.64, 375k +0.90, 500k -0.64), leaving M85 at 59 improvements
+and 48 regressions across 107 changed scores. Do not continue the M63/M64 line by widening the
+impact-prevalence band or by adding roomy vertical fallback selectors. Temporary source reverted;
+baseline remains `attempt-m75-highair-impact-readiness075-a01`.
+
 ### M83 - mature repair main-margin 1.0 · full-suite INCONCLUSIVE-flat (reverted, 2026-07-04)
 
 **Mechanism.** Follow-up to the M82 repair-margin screen. M82 used the existing

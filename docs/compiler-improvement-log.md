@@ -2,6 +2,47 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - INCONCLUSIVE CANONICAL - roomy vertical high-impact current objective extension
+
+Reason: the M78 M63-width retry showed positive movement on high-impact vertical rows but
+negative collateral on non-vertical `drums_dropout` and `syncopated_switchback`. M84 and M85
+tested whether that signal could be made acceptable without reopening the broad M63 band. M84
+extended the M74 current-objective p=2 dose only to high-impact-prevalence specs above the
+accepted M64 band that also matched the existing M74 vertical profile. M85 added a roomier
+moderate-vertical p=1.5 fallback for `leap_cadence`, which was positive in M78 but excluded by
+the stricter M74 profile. Explicit objective env overrides, scorer, specs, fingerprint, seed
+set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed for both source trials with `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` (6 files, 78 tests).
+
+M84 affected-slice probe: `generated/golden-runs/probe-m84-vertical-highimpact-current20-s0-2-a01/golden.json`,
+run on `summit_push,leap_cadence,rolling_drop` with seeds 0..2 and the canonical budget grid,
+was valid 36/36 with raw slice HEADLINE 705.77 and `HEADLINE excl. impact` 705.56. Decision:
+`npm run decide -- generated/golden-runs/probe-m84-vertical-highimpact-current20-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: ACCEPT`, delta +1.2, CI [-1.9, 3.4], P(delta<=0)=18.0%, effect 0.86. Per-budget deltas were 125k +0.0, 250k +0.4, 375k +1.7, and 500k +1.5.
+
+M84 canonical: `generated/golden-runs/attempt-m84-vertical-highimpact-current20-a01/golden.json`,
+run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m84-vertical-highimpact-current20-a01`.
+It was valid 1920/1920 with raw HEADLINE 694.57 and `HEADLINE excl. impact` 713.53. Decision:
+`npm run decide -- generated/golden-runs/attempt-m84-vertical-highimpact-current20-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta +0.1, CI [-0.1, 0.2], P(delta<=0)=25.6%, effect 0.77. Per-budget deltas were 125k +0.0, 250k +0.0, 375k +0.1, and 500k +0.1.
+
+M85 affected-slice probe: `generated/golden-runs/probe-m85-roomy-vertical-highimpact-current-s0-2-a01/golden.json`,
+run on the same three-spec slice with seeds 0..2 and the canonical budget grid, was valid 36/36
+with raw slice HEADLINE 708.10 and `HEADLINE excl. impact` 707.45. Decision:
+`npm run decide -- generated/golden-runs/probe-m85-roomy-vertical-highimpact-current-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: ACCEPT`, delta +3.5, CI [-1.0, 9.8], P(delta<=0)=5.9%, effect 1.31. Per-budget deltas were 125k +0.0, 250k +2.3, 375k +5.2, and 500k +3.7.
+
+M85 canonical: `generated/golden-runs/attempt-m85-roomy-vertical-highimpact-current-a01/golden.json`,
+run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m85-roomy-vertical-highimpact-current-a01`.
+It was valid 1920/1920 with raw HEADLINE 694.56 and `HEADLINE excl. impact` 713.49. Decision:
+`npm run decide -- generated/golden-runs/attempt-m85-roomy-vertical-highimpact-current-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta +0.0, CI [-0.2, 0.3], P(delta<=0)=32.4%, effect 0.44. Per-budget deltas were 125k +0.0, 250k -0.0, 375k +0.1, and 500k +0.1.
+
+Why it was not kept: M84's isolated positive rows were real but too small for canonical
+acceptance: `summit_push` moved +1.190 weighted and `rolling_drop` +1.113, with only 71/1920
+scores changed. M85 recovered the apparent M78 `leap_cadence` opportunity at three seeds, but
+that row regressed at canonical scale (`leap_cadence` -0.514 weighted; 250k -2.64, 375k +0.90,
+500k -0.64), leaving 107 changed scores with 59 improvements and 48 regressions. This closes
+simple M63/M64 width refinements on the current M75 stack. The temporary source changes were
+reverted, and the accepted baseline remains `attempt-m75-highair-impact-readiness075-a01`.
+
 ## 2026-07-04 - INCONCLUSIVE PROBE - mature repair main-margin 1.0
 
 Reason: the current residual slice still leaves mature-budget repair opportunities, and the

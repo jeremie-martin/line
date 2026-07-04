@@ -1769,6 +1769,31 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M81 - vertical avg forward-eval branch 2 · affected-slice REJECT (reverted, 2026-07-04)
+
+**Mechanism.** Temporary source probe: raise the existing mature vertical-drama forward-eval
+override from `avg` branch 1 to branch 2 (`MATURE_AVG_FWD_EVAL_BRANCH = 2`). This only changes
+the already accepted default vertical override path; explicit `LR_FWD_EVAL` overrides, candidate
+generation, start selection, repair, scorer, specs, fingerprint, seeds, budgets, and acceptance
+rule stayed unchanged.
+
+```
+Affected-slice probe (`probe-m81-vertical-avg-branch2-s0-2-a01`):
+  skyline_push, terrace_sprint, syncopated_lift, canyon_steps, dense_echo_climb, rolling_drop
+  seeds 0..2 × canonical budget grid · valid 72/72
+  raw slice HEADLINE 624.20 · excl-impact 625.42
+  Delta headline = -3.0 · 95% CI [-7.9, 0.8] · P(Delta<=0)=92.2% · effect=-1.34
+  125k -6.6 · 250k -5.5 · 375k -1.2 · 500k -2.1
+  VERDICT: REJECT
+```
+
+**Learnings.** Extra vertical lookahead is not the missing repair. It slightly helps
+`syncopated_lift` (+1.21 weighted) and `rolling_drop` (+0.44), but hurts `dense_echo_climb`
+(-10.89), `skyline_push` (-5.68), `canyon_steps` (-2.35), and `terrace_sprint` (-0.14). At
+500k it charges about +1.7k sim frames while sampling about 3.8k fewer candidates and 3.1k fewer
+viable candidates per row. Keep the mature vertical override at branch 1. Temporary source
+reverted; baseline remains `attempt-m75-highair-impact-readiness075-a01`.
+
 ### M80 - broad mature readiness q=0.75 · source-free REJECT (2026-07-04)
 
 **Study.** Test whether M75's accepted readiness softening was too narrow by applying

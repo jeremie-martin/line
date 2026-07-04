@@ -2,6 +2,29 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED PROBE - vertical avg forward-eval branch 2
+
+Reason: the current vertical/amplitude residual rows have high 500k budget slack, and the
+production compiler already has a mature vertical-drama forward-eval override. Test whether that
+override is under-powered by temporarily raising `MATURE_AVG_FWD_EVAL_BRANCH` from 1 to 2. The
+trial changed only the existing default vertical override path; explicit `LR_FWD_EVAL`
+overrides, candidate generation, start selection, repair, scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-m81-vertical-avg-branch2-s0-2-a01/golden.json`, run on
+`skyline_push,terrace_sprint,syncopated_lift,canyon_steps,dense_echo_climb,rolling_drop` with
+seeds 0..2 and the canonical budget grid, was valid 72/72 with raw slice HEADLINE 624.20 and
+`HEADLINE excl. impact` 625.42.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m81-vertical-avg-branch2-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta -3.0 on the six-spec x three-seed x full-budget intersection, CI [-7.9, 0.8], P(delta<=0)=92.2%, effect -1.34. Per-budget deltas were 125k -6.6, 250k -5.5, 375k -1.2, and 500k -2.1.
+
+Why it was stopped: branch-2 vertical lookahead spends more but reduces candidate throughput and
+does not improve the target panel. Weighted movement was `syncopated_lift` +1.21,
+`rolling_drop` +0.44, `terrace_sprint` -0.14, `canyon_steps` -2.35, `skyline_push` -5.68, and
+`dense_echo_climb` -10.89. At 500k it averaged about +1.7k sim frames, -3.8k sampled candidates,
+and -3.1k viable candidates per row. Temporary source was reverted; baseline remains
+`attempt-m75-highair-impact-readiness075-a01`.
+
 ## 2026-07-04 - SOURCE-FREE REJECTED PROBE - broad mature readiness q=0.75
 
 Reason: M75 accepted readiness power 0.75 only for a narrow high-air/impact selector. Test

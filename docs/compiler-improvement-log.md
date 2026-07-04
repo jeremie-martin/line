@@ -2,6 +2,16 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE STUDY - search-seed portfolio oracle
+
+Reason: test whether the large 125k->500k recovery in specs such as `dense_sprint` and `syncopated_switchback` points to a cheap same-budget search-seed portfolio mechanism. This was a source-free oracle using `scripts/v0/portfolio_oracle.ts`; scorer, specs, fingerprint, seeds, budgets, source, and acceptance rule stayed unchanged.
+
+Tiny oracle: `generated/golden-runs/portfolio-oracle-m37-tiny-s0-a01.json`, run with `LR_ENGINE=wasm npx tsx scripts/v0/portfolio_oracle.ts --specs=dense_sprint,syncopated_switchback --seed=0 --budgets=125000,500000 --lanes=0,1,2 --json-out=generated/golden-runs/portfolio-oracle-m37-tiny-s0-a01.json`.
+
+Result: the equal-slice same-budget portfolio was strongly negative while the full-lane oracle required roughly 3x work. Baseline curve was 651.74, equal-slice curve was 620.31 (delta -31.44), and full-lane curve was 682.79 (optimistic delta +31.05). At 125k, baseline scored 625.46, equal-slice 580.41, and full-lane 684.91. At 500k, baseline scored 679.13, equal-slice 662.94, and full-lane 680.68.
+
+Why it was not promoted: the only positive 500k full-lane gain in the tiny panel was `syncopated_switchback` seed 0 at +3.09, while `dense_sprint` was unchanged; the large full-lane delta came mostly from spending multiple full budgets, not from an affordable scheduler shape. Equal slicing the same total budget starved the compile badly (`dense_sprint` seed 0 at 500k: -42.60 despite choosing a nonzero lane). This closes naive search-seed portfolioing as a near-term path: any future scheduler work needs adaptive early stopping or a real low-cost signal, not static seed lanes.
+
 ## 2026-07-04 - REJECTED PROBE - mixed vertical amplitude axisq lane
 
 Reason: test whether the remaining amplitude undershoot on mixed elevation+amplitude rows can be harvested by an additive extra candidate stream instead of changing the normal contact-centered sampler. A temporary default-off `LR_M36_AMP_AXISQ=1` lane in `handoff.ts` generated a few `axisq` candidates only on contact gaps with both amplitude and upward elevation asks. Candidate scoring, hard gates, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged; the lane only used a geometry-only amplitude lift and let the existing ranker select or ignore the candidates.

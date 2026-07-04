@@ -1084,6 +1084,29 @@ exactly the fragile vertical rows. Do not retry simple amplitude-lift `axisq` la
 future amplitude work needs a different geometry shape or a stronger usefulness selector.
 Source reverted.
 
+### M37 — search-seed portfolio oracle · source-free closed (2026-07-04)
+
+**Study.** Ran `scripts/v0/portfolio_oracle.ts` on a tiny high-recovery panel:
+`dense_sprint,syncopated_switchback` × seed 0 × budgets `125k,500k` × lanes `0,1,2`.
+No source, scorer, spec, fingerprint, seed-set, budget-grid, or acceptance-rule changes.
+
+**Result.** `generated/golden-runs/portfolio-oracle-m37-tiny-s0-a01.json`:
+
+```
+baseline curve:    651.74
+equal-slice curve: 620.31  delta=-31.44
+full-lane curve:   682.79  delta=+31.05 optimistic, about 3x work
+
+125k: baseline 625.46 · equal-slice 580.41 · full-lane 684.91
+500k: baseline 679.13 · equal-slice 662.94 · full-lane 680.68
+```
+
+**Learnings.** Static same-budget seed portfolioing is not a useful scheduler mechanism:
+equal slicing starves the compile, while the positive full-lane number is mostly a multi-budget
+oracle and nearly disappears at 500k (`syncopated_switchback` seed 0 +3.09,
+`dense_sprint` seed 0 +0.00). Do not spend more time on fixed search-seed lanes unless there is
+an adaptive early-stop/usefulness signal.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

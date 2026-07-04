@@ -2,6 +2,46 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ACCEPTED - M94 low-impact compact current-power 2.0 dose
+
+Reason: M88 showed that raising the whole accepted M87 low-impact steady/sparse pocket from
+`currentQuality^1.5 * readiness` to `currentQuality^2.0 * readiness` was not keepable, but the
+probe's winners were concentrated in compact profiles. M94 keeps M87's accepted selector first,
+then applies the stronger exponent only when feasible contacts are at most 24, median contact
+gap is under 40 frames, and authored amplitude target range is at most 0.20. This keeps the
+M88 winners `mini_burst`, `cold_start`, `ridge_pulse`, and `rolling_hills`, while excluding
+the M88 losers `grain_staircase`, `mixed_grade`, and `float_bounds`. The fallback flag is
+`LR_M94_LOW_IMPACT_COMPACT_CURRENT20=0`. Scorer, specs, fingerprint, seed set, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed in default mode and fallback mode:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M94_LOW_IMPACT_COMPACT_CURRENT20=0` (6 files, 78 tests each).
+
+The seven-spec guardrail panel
+`generated/golden-runs/probe-m94-lowimpact-compact-current20-panel-s0-2-a01/golden.json`
+was valid 84/84 and produced indicative `VERDICT: ACCEPT`, delta +3.5, CI [-0.2, 8.0],
+P(delta<=0)=3.6%, effect 1.69. The full 40-spec seeds 0..2 probe
+`generated/golden-runs/probe-m94-lowimpact-compact-current20-full-s0-2-a01/golden.json`
+was valid 480/480 with raw HEADLINE 697.83 and `HEADLINE excl. impact` 714.89. It produced
+indicative `VERDICT: ACCEPT`, delta +0.6, CI [-0.0, 1.5], P(delta<=0)=4.9%, effect 1.47;
+per-budget deltas were 125k +0.0, 250k +0.9, 375k +0.7, and 500k +0.5.
+
+Canonical: `generated/golden-runs/attempt-m94-lowimpact-compact-current20-a01/golden.json`,
+run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m94-lowimpact-compact-current20-a01`.
+The run was valid 1920/1920 overall, with raw HEADLINE 695.48 and `HEADLINE excl. impact` 714.05.
+Per-budget point estimates were 125k 677.98, 250k 691.28, 375k 697.57, and 500k 700.37.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-m94-lowimpact-compact-current20-a01/golden.json generated/golden-runs/attempt-m87-lowimpact-steady-current15-a01/golden.json` -> canonical `VERDICT: ACCEPT`, delta headline +0.4, CI [-0.0, 1.1], P(delta<=0)=5.9%, effect 1.32. Per-budget deltas were 125k +0.0, 250k +0.5, 375k +0.5, and 500k +0.4.
+
+Why it was kept: this is the narrow M88 refinement that the broad M88 probe implied. The
+canonical footprint changed only the intended four specs, with 142/1920 paired track hashes
+changed, 84 improvements, 58 regressions, and 1778 plateaus. Paired row means were
+`mini_burst` +7.35, `cold_start` +4.93, `ridge_pulse` +2.48, and `rolling_hills` +0.66;
+`grain_staircase`, `mixed_grade`, and `float_bounds` stayed byte-stable. The 125k tier was
+byte-identical, so the accepted gain is a mature-budget dose improvement on the M87 pocket.
+The accepted baseline is now `attempt-m94-lowimpact-compact-current20-a01`.
+
 ## 2026-07-04 - REJECTED CANONICAL - M93 dense-modulated aim top-k 7 selector
 
 Reason: M92 showed that global mature K=7 is rejected, but its winners were concentrated in a

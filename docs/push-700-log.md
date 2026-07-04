@@ -18,7 +18,8 @@ rule are frozen.
 | 2026-07-04 | attempt-m64-impact-band-objective-current15-a01 | 765fd15 | 693.86 | 712.76 | M64 impact-band objective current-power 1.5 — canonical ACCEPT |
 | 2026-07-04 | attempt-m74-vertical-objective-current20-a01 | f019e38 | 694.10 | 712.92 | M74 vertical M64 current-power 2.0 dose — canonical ACCEPT |
 | 2026-07-04 | attempt-m75-highair-impact-readiness075-a01 | a3ff6b8 | 694.51 | 713.27 | M75 high-air impact readiness-power 0.75 selector — canonical ACCEPT |
-| 2026-07-04 | attempt-m87-lowimpact-steady-current15-a01 | this commit | 695.06 | 713.53 | M87 low-impact steady/sparse current-power 1.5 selector — canonical ACCEPT |
+| 2026-07-04 | attempt-m87-lowimpact-steady-current15-a01 | 6738a15 | 695.06 | 713.53 | M87 low-impact steady/sparse current-power 1.5 selector — canonical ACCEPT |
+| 2026-07-04 | attempt-m94-lowimpact-compact-current20-a01 | this commit | 695.48 | 714.05 | M94 low-impact compact current-power 2.0 selector — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -1769,6 +1770,51 @@ Affected-slice probe min=0.35 (`probe-m68-objective-impact-min035-active-s0-2-a0
 current impacts gives back mature-budget score. Do not continue the M63/M64 line with local
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
+
+### M94 - low-impact compact current-power 2.0 dose · canonical ACCEPT (2026-07-04)
+
+**Mechanism.** Refined the rejected broad M88 dose into a compact sub-selector inside the
+accepted M87 low-impact steady/sparse pocket. At mature budgets, after M87 matches, the compiler
+raises the current-quality exponent from 1.5 to 2.0 only when feasible contacts are <=24, median
+contact gap is <40 frames, and authored amplitude target range is <=0.20. This keeps the M88
+winners `mini_burst`, `cold_start`, `ridge_pulse`, and `rolling_hills`, while excluding
+`grain_staircase`, `mixed_grade`, and `float_bounds`. `LR_M94_LOW_IMPACT_COMPACT_CURRENT20=0`
+restores the accepted M87 dose. Scorer, specs, fingerprint, seeds, budget grid, and acceptance
+rule stayed frozen.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M94_LOW_IMPACT_COMPACT_CURRENT20=0` (6 files, 78 tests each).
+
+```
+Panel probe (`probe-m94-lowimpact-compact-current20-panel-s0-2-a01`):
+  7 specs x seeds 0..2 x canonical budget grid · valid 84/84
+  raw panel HEADLINE 738.62 · excl-impact 755.82
+  Delta headline = +3.5 · 95% CI [-0.2, 8.0] · P(Delta<=0)=3.6% · effect=1.69
+  VERDICT: ACCEPT (indicative)
+
+Full 3-seed probe (`probe-m94-lowimpact-compact-current20-full-s0-2-a01`):
+  40 specs x seeds 0..2 x canonical budget grid · valid 480/480
+  raw HEADLINE 697.83 · excl-impact 714.89
+  Delta headline = +0.6 · 95% CI [-0.0, 1.5] · P(Delta<=0)=4.9% · effect=1.47
+  125k +0.0 · 250k +0.9 · 375k +0.7 · 500k +0.5
+  VERDICT: ACCEPT (indicative)
+
+Canonical (`attempt-m94-lowimpact-compact-current20-a01`):
+  40 specs x 12 seeds x canonical budget grid · valid 1920/1920
+  raw HEADLINE 695.48 · excl-impact 714.05
+  Delta headline = +0.4 · 95% CI [-0.0, 1.1] · P(Delta<=0)=5.9% · effect=1.32
+  125k +0.0 · 250k +0.5 · 375k +0.5 · 500k +0.4
+  VERDICT: ACCEPT
+```
+
+**Learnings.** M88's broad p=2.0 dose was correctly rejected, but it contained a harvestable
+sub-pocket. The canonical footprint changed only the intended four specs: `mini_burst` +7.35,
+`cold_start` +4.93, `ridge_pulse` +2.48, and `rolling_hills` +0.66 paired-row mean; excluded
+M88 losers stayed byte-stable. Changed checkpoints: 142/1920 hashes, with 84 improvements,
+58 regressions, and 1778 plateaus. The 125k tier is byte-identical; all lift comes from the
+mature budgets, and 500k now reports 700.37 while the weighted headline is 695.48. New baseline
+is `attempt-m94-lowimpact-compact-current20-a01`; remaining target gap is 4.52 headline points.
 
 ### M93 - dense-modulated aim K7 selector · canonical REJECT (reverted, 2026-07-04)
 

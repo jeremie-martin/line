@@ -388,6 +388,10 @@ const M87_LOW_IMPACT_CONTACT_MAX = 40;
 const M87_LOW_IMPACT_SPARSE_MEDIAN_GAP_FRAMES = Math.round(FPS * 0.90);
 const M87_LOW_IMPACT_STEADY_AIR_RANGE_MAX = 0.16;
 const M87_LOW_IMPACT_STEADY_SPEED_RANGE_MAX = 0.18;
+const M94_LOW_IMPACT_CURRENT_POWER = 2.0;
+const M94_LOW_IMPACT_CONTACT_MAX = 24;
+const M94_LOW_IMPACT_MEDIAN_GAP_MAX_FRAMES = 40;
+const M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX = 0.20;
 const M74_VERTICAL_OBJECTIVE_CURRENT_POWER = 2.0;
 const M74_DYNAMIC_AMPLITUDE_RANGE_MIN = 0.45;
 const M74_ELEVATION_RANGE_MIN = 0.10;
@@ -1580,6 +1584,12 @@ function objectiveBlendCurrentPowerForSpec(targetBudget: number, spec: Spec): nu
     readEnv("LR_M87_LOW_IMPACT_STEADY_CURRENT15") !== "0" &&
     m87LowImpactSteadyObjectiveProfile(spec, impactPrevalence)
   ) {
+    if (
+      readEnv("LR_M94_LOW_IMPACT_COMPACT_CURRENT20") !== "0" &&
+      m94LowImpactCompactObjectiveDoseProfile(spec)
+    ) {
+      return M94_LOW_IMPACT_CURRENT_POWER;
+    }
     return M64_MATURE_OBJECTIVE_CURRENT_POWER;
   }
   return undefined;
@@ -1675,6 +1685,26 @@ function m87LowImpactSteadyObjectiveProfile(spec: Spec, impactPrevalence: number
   const steadyTargets = valueRange(air) <= M87_LOW_IMPACT_STEADY_AIR_RANGE_MAX &&
     valueRange(speed) <= M87_LOW_IMPACT_STEADY_SPEED_RANGE_MAX;
   return sparseCadence || steadyTargets;
+}
+
+function m94LowImpactCompactObjectiveDoseProfile(spec: Spec): boolean {
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .filter((frame) => frame >= K_BOUNCE_LANDING)
+    .sort((a, b) => a - b);
+  if (contactFrames.length > M94_LOW_IMPACT_CONTACT_MAX) return false;
+
+  const contactGaps = contactFrames.slice(1).map((frame, index) => frame - contactFrames[index]);
+  const sortedGaps = contactGaps.sort((a, b) => a - b);
+  const medianContactGapFrames = sortedGaps.length === 0 ? 0 : sortedGaps[Math.floor(sortedGaps.length / 2)];
+  if (medianContactGapFrames >= M94_LOW_IMPACT_MEDIAN_GAP_MAX_FRAMES) return false;
+
+  const amplitude: number[] = [];
+  for (const frame of contactFrames) {
+    const target = axesAtFrame(frame, spec).amplitude;
+    if (typeof target === "number" && Number.isFinite(target)) amplitude.push(target);
+  }
+  return valueRange(amplitude) <= M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX;
 }
 
 function authoredVerticalObjectiveProfile(spec: Spec): {

@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED PROBE - impact-template hold widening
+
+Reason: test whether the accepted profiled low-air impact SLAM-HOP hold is under-dosed on the current M3 baseline. The temporary source added default-identical env hooks around the existing impact-template hold length and low-air selectors: `LR_M40_HOLD_MAX_FRAMES`, `LR_M40_HOLD_PROFILE_AIR_START`, and `LR_M40_HOLD_LOCAL_AIR_START`. The default path stayed identical; candidate count, search policy, start selection, forward eval, repair, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged unless an M40 env knob was set.
+
+Focused tests passed with the env unset: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` (6 files, 77 tests).
+
+Probe panel: `drums_pendulum,drums_crescendo,drums_signature,drums_tide,drums_breath,drums_pulse,drums_dropout,rhythm_ladder,dense_sprint,syncopated_switchback,cold_start,drums_swell` x seeds 0..2 x the canonical budget grid, compared to `attempt-m3-scarce-span75-a01`.
+
+Arms: `probe-m40-holdmax5-panel-s0-2-a01` (`LR_M40_HOLD_MAX_FRAMES=5`) was valid 144/144 and indicative `VERDICT: INCONCLUSIVE`, delta headline -0.0 on the panel, CI [-0.7, 0.6], P(delta<=0)=75.8%; only 7 checkpoints changed and the net movement was `drums_pendulum` -0.32 weighted. `probe-m40-profileair56-panel-s0-2-a01` (`LR_M40_HOLD_PROFILE_AIR_START=0.56`) was byte-identical: 0/144 score changes, delta +0.0. `probe-m40-profileair56-localair30-panel-s0-2-a01` (`LR_M40_HOLD_PROFILE_AIR_START=0.56 LR_M40_HOLD_LOCAL_AIR_START=0.30`) was valid 144/144 but negative: delta headline -3.9, CI [-13.9, 1.4], P(delta<=0)=82.3%, with per-budget deltas 125k +0.0, 250k -4.4, 375k -4.3, and 500k -4.2.
+
+Why it was not kept: the current hold is already at the useful boundary. Making it longer slightly hurt the only row it touched, widening the whole-spec low-air profile alone did not affect selected tracks, and widening local low-air activation reopened exactly the dense collateral the profile was designed to avoid (`drums_pulse` -42.8 weighted, `drums_signature` -7.7, offset only by `drums_breath` +5.5). This closes simple impact-template hold length/profile/local-air widening on the current baseline. The temporary source hooks were reverted, and the accepted baseline remains `attempt-m3-scarce-span75-a01`.
+
 ## 2026-07-04 - INCONCLUSIVE CANONICAL - M4 air-matched Part B feature gate
 
 Reason: follow up on the M38 blanket-removal probe, which showed that the accepted M4 Part B air-matched ride-out candidate is load-bearing globally but harmful on a few dense low/medium-impact air-swing rows. The temporary source change added a default-on selector in `scripts/v0/optimizer/aim.ts` that suppressed only the Part B air-matched ride-out emission when the resolved contact count was at least 30, resolved mean impact was <=0.43, and either resolved minimum air was <=0.34 or resolved mean speed was <=0.62 with resolved air range >=0.30. `LR_AIR_KNOB_FEATURE_GATE=0` restored old Part B behavior globally. The M4 airFit judge term, joint aim proposer, candidate scoring, hard gates, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

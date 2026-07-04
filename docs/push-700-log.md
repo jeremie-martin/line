@@ -1190,6 +1190,48 @@ exact resolved-feature Part B gate. Future air-length work needs a stronger loca
 signal or a larger additive mechanism. Source reverted; baseline remains
 `attempt-m3-scarce-span75-a01`.
 
+### M40 — impact-template hold widening · rejected/closed (reverted, 2026-07-04)
+
+**Mechanism.** Temporarily added default-identical env hooks around the existing profiled
+low-air impact SLAM-HOP hold: hold max frames, whole-profile low-air onset, and local low-air
+onset. Defaults were byte-identical; all search/scoring policy stayed unchanged.
+
+**Verification.** Focused optimizer suite passed with env unset:
+
+```
+LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests.
+
+**Probe panel.** 12 dense/impact-sensitive specs × seeds 0..2 × canonical grid:
+`drums_pendulum,drums_crescendo,drums_signature,drums_tide,drums_breath,drums_pulse,
+drums_dropout,rhythm_ladder,dense_sprint,syncopated_switchback,cold_start,drums_swell`.
+
+```
+hold max 3.6→5.0 (`probe-m40-holdmax5-panel-s0-2-a01`):
+  Δheadline = -0.0 · 95% CI [-0.7, 0.6] · P(Δ≤0)=75.8%
+  changed 7/144; net `drums_pendulum` -0.32 weighted on the panel
+
+profile low-air onset 0.50→0.56 (`probe-m40-profileair56-panel-s0-2-a01`):
+  byte-identical, 0/144 score changes
+
+profile 0.56 + local low-air onset 0.22→0.30
+(`probe-m40-profileair56-localair30-panel-s0-2-a01`):
+  Δheadline = -3.9 · 95% CI [-13.9, 1.4] · P(Δ≤0)=82.3%
+  125k +0.0 · 250k -4.4 · 375k -4.3 · 500k -4.2
+```
+
+**Footprint.** The only active wider-local arm was a dense collateral failure:
+`drums_pulse` -42.8 weighted and `drums_signature` -7.7, offset only by
+`drums_breath` +5.5. Longer hold also hurt the intended pendulum row slightly.
+
+**Learnings.** The accepted impact-template hold is already at the useful boundary. More
+length does not fix `drums_pendulum`; whole-profile widening alone does not change selected
+tracks; local low-air widening reopens the known dense-row basin loss. Do not retry simple
+hold length/profile/local-air widening unchanged. Source reverted; baseline remains
+`attempt-m3-scarce-span75-a01`.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

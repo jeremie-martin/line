@@ -2,6 +2,31 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE REJECTED PROBE - M92 mature aim top-k 7 on current M87
+
+Reason: after M87 changed the mature objective surface, re-audit whether the high-budget aim
+base count is still capped at the accepted K=6 setting. The source-free probe used the existing
+`LR_AIM_TOPK_BASES=7` override and only ran the mature budgets 250k/375k/500k, matching the
+slice a production high-budget K=7 change would touch. Candidate generation apart from the aim
+base count, search policy, forward eval, repair, scorer, specs, fingerprint, seed set, budget
+grid, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-m92-aimtopk7-mature-current-s0-2-a01/golden.json`,
+run with `LR_ENGINE=wasm LR_AIM_TOPK_BASES=7 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m92-aimtopk7-mature-current-s0-2-a01`,
+covered all 40 specs with seeds 0..2 at 250k/375k/500k. It was valid 360/360 with raw mature
+HEADLINE 695.60 and `HEADLINE excl. impact` 711.49.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m92-aimtopk7-mature-current-s0-2-a01/golden.json generated/golden-runs/attempt-m87-lowimpact-steady-current15-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta -3.8 on the 40-spec x three-seed x mature-budget intersection, CI [-9.3, 0.7], P(delta<=0)=94.5%, effect -1.49. Per-budget deltas were 250k -4.3, 375k -4.4, and 500k -3.1.
+
+Why it was stopped: M87 did not reopen aim-base breadth. K=7 changed 339/360 paired mature
+checkpoints, with 144 improvements, 193 regressions, and 23 plateaus. It helped
+`drums_zigzag` (+28.49 mean over paired mature rows) and `drums_tide` (+20.27), but regressed
+`syncopated_switchback` (-46.43), `drums_dropout` (-30.47), `drums_signature` (-23.98),
+`drums_pulse` (-23.85), and `dense_sprint` (-18.48). Mean work movement showed the extra aim
+base displaced downstream search: sampled candidates -481, viable candidates -369, forward-eval
+frames -5658, and repair accepts -0.11 per paired row. Keep the current K=6 mature aim-base
+setting; do not promote K=7 without a new selector. This was env-only and left no source changes.
+
 ## 2026-07-04 - INCONCLUSIVE PROBE - M91 scarce low-slack branch threshold 2.25
 
 Reason: test whether the accepted low-slack pre-completion traversal limiter was too narrow at

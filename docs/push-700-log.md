@@ -1770,6 +1770,31 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M92 - mature aim top-k 7 on current M87 · source-free REJECT (2026-07-04)
+
+**Mechanism.** Env-priced the current mature aim-base dose with `LR_AIM_TOPK_BASES=7`, limited
+to budgets 250k/375k/500k because a production change would leave 125k on the accepted scarce
+K=4 behavior. Source code, scorer, specs, fingerprint, seeds, budget grid, and acceptance rule
+stayed frozen.
+
+```
+Mature probe (`probe-m92-aimtopk7-mature-current-s0-2-a01`):
+  40 specs × seeds 0..2 × {250k,375k,500k} · valid 360/360
+  raw mature HEADLINE 695.60 · excl-impact 711.49
+  Delta headline = -3.8 · 95% CI [-9.3, 0.7] · P(Delta<=0)=94.5% · effect=-1.49
+  250k -4.3 · 375k -4.4 · 500k -3.1
+  VERDICT: REJECT (indicative)
+```
+
+**Learnings.** M87 does not reopen the K=7 aim-base dose. The extra base helped
+`drums_zigzag` (+28.49 mean over paired mature rows) and `drums_tide` (+20.27), but lost more
+on `syncopated_switchback` (-46.43), `drums_dropout` (-30.47), `drums_signature` (-23.98),
+`drums_pulse` (-23.85), and `dense_sprint` (-18.48). Changed footprint was 339/360 paired
+checkpoints, split 144 improvements, 193 regressions, and 23 plateaus; sampled candidates fell
+by about 481 and viable candidates by 369 per paired row. Keep the accepted K=6 mature aim-base
+setting unless a new selector appears. Env-only; baseline remains
+`attempt-m87-lowimpact-steady-current15-a01`.
+
 ### M91 - scarce low-slack branch threshold 2.25 · 125k probe INCONCLUSIVE-flat (reverted, 2026-07-04)
 
 **Mechanism.** Temporarily raised the accepted pre-completion low-slack branch limiter from

@@ -723,6 +723,51 @@ does not affect emitted candidates. This is a stale escape-hatch knob, not remai
 Do not retry wider `LR_AIM_SPAN` unchanged; any wider aim authority would first need a wider
 probe design, which is a different mechanism and must pay its probe cost explicitly.
 
+### M29 — scarce-tier all-base air-length variant · probe INCONCLUSIVE-negative (reverted, 2026-07-04)
+
+**Mechanism.** Source-trialed the M4 Part-B air-matched ride-out-length variant on every
+refined aim base only below 200k target budget. This kept the accepted first-base-only behavior
+at 250k/375k/500k byte-identical and tested the prior M4 decomposition hint that all-base Part B
+had a strong 125k-only pop. Candidate generation apart from the air-length emission scope,
+search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+**Verification.** Focused optimizer suite passed:
+
+```
+LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests.
+
+**Probe.** `probe-airknob-scarce-allbases-125-s0-2-a01` (40 specs × seeds 0..2 × 125k only,
+valid 120/120) vs `attempt-m3-scarce-span75-a01`:
+
+```
+Δheadline = -0.5 · 95% CI [-11.1, 7.5] · P(Δ≤0)=50.8% · effect=-0.12
+125k validity 100%->100%
+VERDICT: INCONCLUSIVE-negative (indicative; source reverted)
+```
+
+**Footprint.** The mechanism was very active: 97/120 paired rows changed. It added roughly
+40-140 air-length emissions per affected row and created large 125k basin swaps rather than a
+stable lift. Largest gains included `grain_staircase` seed 2 +68.8, `drums_crosscut` seed 0
++57.6, `syncopated_switchback` seed 1 +54.3, and `rhythm_ladder` seed 1 +52.6. They were offset
+by `drums_swell` seed 2 −141.6, `syncopated_switchback` seeds 2/0 −138.2/−136.9,
+`syncopated_lift` seed 1 −106.6, and `drums_zigzag` seed 2 −85.8.
+
+**Selector audit.** Authored-shape posthoc screens did not reveal a promotable selector.
+Single-feature screens topped out around +1.8 points at 125k on the 3-seed slice; two-feature
+screens could be hand-fit to about +3.3 at 125k but retained many negative rows and would only
+be about +0.3 headline before bootstrap noise. That is below promotion scale and too
+posthoc-fragile for a source trial.
+
+**Learnings.** The accepted first-base air-length variant is the right M4 Part-B scope for the
+current compiler. Broadening it across all scarce-tier aim bases reopens the seed-lottery basin
+that M4's final first-base design avoided. Do not retry scarce all-base air matching unchanged;
+future air-length work needs a much stronger usefulness signal than budget tier plus aim-base
+index.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

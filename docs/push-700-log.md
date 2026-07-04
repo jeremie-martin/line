@@ -1770,6 +1770,37 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M89 - vertical current-power 2.5 dose · full-suite REJECT (reverted, 2026-07-04)
+
+**Mechanism.** Dose-check the accepted M74 vertical/M64-band selector on top of the current M87
+baseline by raising only that pocket from `currentQuality^2.0 * readiness` to
+`currentQuality^2.5 * readiness`. The temporary source used
+`LR_M89_VERTICAL_OBJECTIVE_CURRENT25=0` as a fallback to the accepted M74 dose. The M64 band,
+M87 low-impact selector, 125k maturity gate, scorer, specs, fingerprint, seeds, budget grid,
+and acceptance rule stayed frozen.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M89_VERTICAL_OBJECTIVE_CURRENT25=0` (6 files, 78 tests each).
+
+```
+Full probe (`probe-m89-vertical-current25-s0-2-a01`):
+  40 specs × seeds 0..2 × canonical budget grid · valid 480/480
+  raw HEADLINE 696.94 · excl-impact 713.51
+  Delta headline = -0.3 · 95% CI [-0.9, 0.2] · P(Delta<=0)=87.7% · effect=-1.06
+  125k +0.0 · 250k -0.4 · 375k -0.3 · 500k -0.3
+  VERDICT: REJECT (indicative)
+```
+
+**Learnings.** The accepted vertical M63-form dose is not under-tuned. Power 2.5 helped
+`climb_terrace` (+1.51 weighted), `glide_stairs` (+0.38), and `skyline_push` (+0.25), but lost
+more on `big_air_ramp` (-5.61), `terrace_sprint` (-4.38), and `swoop_dive` (-4.22). The
+footprint was 54/480 changed checkpoints, split 24 improvements and 30 regressions; mean work
+movement was tiny (-23 sim frames, -6.2 sampled, -7.7 viable, +270 repair frames, -0.050 repair
+accepts, +16 forward-eval frames per paired row). Do not raise the M74 vertical current dose
+unchanged. Temporary source reverted; baseline remains
+`attempt-m87-lowimpact-steady-current15-a01`.
+
 ### M88 - low-impact steady current-power 2.0 dose · full-suite INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Dose-check the newly accepted M87 low-impact steady/sparse selector by raising

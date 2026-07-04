@@ -2,6 +2,36 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED PROBE - M89 vertical current-power 2.5 dose
+
+Reason: M74 accepted a very narrow M63-form selector by raising only the existing M64-band
+vertical profile from `currentQuality^1.5 * readiness` to `currentQuality^2.0 * readiness`.
+M89 tested whether that accepted vertical pocket was still under-dosed on top of the current
+M87 baseline. The temporary source returned current-quality power 2.5 for the existing M74
+profile when `LR_M89_VERTICAL_OBJECTIVE_CURRENT25` was not `0`; setting that flag to `0`
+fell back to the accepted M74 p=2.0 path. The M64 band, M87 low-impact selector, 125k maturity
+gate, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default mode and fallback mode:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M89_VERTICAL_OBJECTIVE_CURRENT25=0` (6 files, 78 tests each).
+
+Probe: `generated/golden-runs/probe-m89-vertical-current25-s0-2-a01/golden.json`,
+run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m89-vertical-current25-s0-2-a01`,
+covered all 40 specs with seeds 0..2 and the canonical budget grid. It was valid 480/480 with
+raw HEADLINE 696.94 and `HEADLINE excl. impact` 713.51.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m89-vertical-current25-s0-2-a01/golden.json generated/golden-runs/attempt-m87-lowimpact-steady-current15-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta -0.3 on the 40-spec x three-seed x full-budget intersection, CI [-0.9, 0.2], P(delta<=0)=87.7%, effect -1.06. Per-budget deltas were 125k +0.0, 250k -0.4, 375k -0.3, and 500k -0.3.
+
+Why it was stopped: the stronger vertical exponent over-concentrates the accepted M74 pocket.
+Only 54/480 paired checkpoints changed, with 24 improvements and 30 regressions. It helped
+`climb_terrace` (+1.51 weighted), `glide_stairs` (+0.38), and `skyline_push` (+0.25), but
+regressed `big_air_ramp` (-5.61), `terrace_sprint` (-4.38), and `swoop_dive` (-4.22). Mean
+work shifted by only -23 sim frames, -6.2 sampled candidates, -7.7 viable candidates, +270
+repair frames, -0.050 repair accepts, and +16 forward-eval frames per paired row, so this is a
+ranking basin loss rather than a budget-spend effect. The temporary source change was reverted,
+and the accepted baseline remains `attempt-m87-lowimpact-steady-current15-a01`.
+
 ## 2026-07-04 - INCONCLUSIVE PROBE - M88 low-impact steady current-power 2.0 dose
 
 Reason: after M87 accepted a second narrow M63-form selector, test whether the low-impact

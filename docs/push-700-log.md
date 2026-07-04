@@ -1767,6 +1767,29 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M69 - repair max-attempt cap 32 on worst slice · source-free INCONCLUSIVE-negative (2026-07-04)
+
+**Study.** M64 telemetry showed several weak mature rows spending large repair tails with low
+accept counts. Since the compiler already resumes the original frontier when repair exhausts its
+useful set, source-free test whether `LR_REPAIR_MAX_ATTEMPTS=32` frees budget for useful fallback
+work on the high-repair worst slice.
+
+```
+Worst-slice probe (`probe-m69-repair-max32-worst10-s0-2-a01`):
+  drums_pendulum, skyline_push, terrace_sprint, drums_dropout, dense_echo_climb,
+  canyon_steps, syncopated_lift, rolling_drop, switchback_pop, ridge_pulse
+  seeds 0..2 × canonical budget grid · valid 120/120
+  raw slice HEADLINE 610.45 · excl-impact 625.29
+  Delta headline = -0.0 · 95% CI [-0.1, 0.0] · P(Delta<=0)=100.0% · effect=-0.69
+  125k +0.0 · 250k -0.1 · 375k +0.0 · 500k -0.0
+  VERDICT: INCONCLUSIVE (non-promotable)
+```
+
+**Learnings.** A lower global repair cap does not convert repair tail into quality; it is
+effectively score-identical and slightly negative at 250k. Future repair work needs a better
+restart usefulness/target selector, not a scalar cap. Env-only; baseline remains
+`attempt-m64-impact-band-objective-current15-a01`.
+
 ### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Try a coherent portfolio of the last two non-shipping near-misses rather than

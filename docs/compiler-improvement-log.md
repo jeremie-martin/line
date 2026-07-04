@@ -2,6 +2,24 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE PROBE - repair max-attempt cap 32 on current worst slice
+
+Reason: M64 telemetry showed some poor 500k rows spending most of the post-completion tail in
+repair with few or no accepts. Since the compiler already resumes the original frontier when
+repair exhausts its useful restart set, test whether a lower repair attempt cap would free
+budget for that fallback and improve the high-repair worst rows.
+
+Probe: `generated/golden-runs/probe-m69-repair-max32-worst10-s0-2-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_REPAIR_MAX_ATTEMPTS=32 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --specs=drums_pendulum,skyline_push,terrace_sprint,drums_dropout,dense_echo_climb,canyon_steps,syncopated_lift,rolling_drop,switchback_pop,ridge_pulse --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m69-repair-max32-worst10-s0-2-a01`,
+was valid 120/120 with raw slice HEADLINE 610.45 and `HEADLINE excl. impact` 625.29.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m69-repair-max32-worst10-s0-2-a01/golden.json generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta -0.0 on the 10-spec x 3-seed x full-budget intersection, CI [-0.1, 0.0], P(delta<=0)=100%, effect -0.69. Per-budget deltas were 125k +0.0, 250k -0.1, 375k +0.0, and 500k -0.0.
+
+Why it was not pursued: the cap does not turn wasted repair tail into useful main-frontier
+quality. It is effectively score-identical while slightly negative at 250k, so the repair issue
+needs a better usefulness selector or different restart target, not a lower global cap. This was
+env-only; accepted source remains `attempt-m64-impact-band-objective-current15-a01`.
+
 ## 2026-07-04 - ABANDONED PROBE - current-impact thresholded objective exponent
 
 Reason: after M67 showed that localizing M64 by current impact presence was inert, test whether

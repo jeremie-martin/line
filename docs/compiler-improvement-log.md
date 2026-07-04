@@ -2,6 +2,37 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED PROBE - mature true-target vertical forward-eval selector
+
+Reason: older target-consistency probes showed a small mature-budget upside when the mature
+vertical `avg` forward-eval selector read the scorer's stable per-gap target bag instead of the
+jittered generation targets, but that shape hurt the scarce tier. M86 retested the idea on the
+current M75 stack with a narrower temporary source change: only budgets >=200k used
+`ctx.gapAxisTargets` for the existing vertical selector pressure; 125k stayed on the accepted
+jittered selector. Candidate generation, q, start selection, repair, scorer, specs, fingerprint,
+seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed after the temporary source edit:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 78 tests).
+
+Probe: `generated/golden-runs/probe-m86-true-target-vertical-mature-s0-2-a01/golden.json`,
+run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m86-true-target-vertical-mature-s0-2-a01`,
+covered all 40 specs with seeds 0..2 and the canonical budget grid. It was valid 480/480 with
+raw probe HEADLINE 696.0 and `HEADLINE excl. impact` 713.35.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m86-true-target-vertical-mature-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta -0.3 on the 40-spec x three-seed x full-budget intersection, CI [-0.8, 0.1], P(delta<=0)=91.5%, effect -1.16. Per-budget deltas were 125k +0.0, 250k -0.4, 375k -0.3, and 500k -0.3.
+
+Why it was not kept: the mature-only protection worked mechanically, with 125k unchanged, but
+the current M75 stack no longer has the older mature upside. Only 42/480 paired rows changed
+(15 improvements, 27 regressions). Losses in `dense_echo_climb` (-3.99), `switchback_pop`
+(-2.81), `terrace_sprint` (-1.66), `canyon_steps` (-0.53), `skyline_push` (-0.41), and
+`syncopated_lift` (-0.35) outweighed `ridge_pulse` (+1.07). Work counters were essentially a
+redistribution, not a productive spend shift: about +319 forward-eval frames, +2 sampled
+candidates, +6 viable candidates, -364 repair frames, and -0.075 repair accepts per paired row.
+This closes the mature true-target vertical-selector retest on M75. The temporary source change
+was reverted, and the accepted baseline remains `attempt-m75-highair-impact-readiness075-a01`.
+
 ## 2026-07-04 - INCONCLUSIVE CANONICAL - roomy vertical high-impact current objective extension
 
 Reason: the M78 M63-width retry showed positive movement on high-impact vertical rows but

@@ -1769,6 +1769,35 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M86 - mature true-target vertical forward-eval selector · full-suite REJECT (reverted, 2026-07-04)
+
+**Mechanism.** Retested the older target-consistency vertical selector idea on top of M75 with
+125k protected. The temporary source made the existing mature vertical `avg` forward-eval
+selector read `ctx.gapAxisTargets` instead of jittered `gap.targets` only at budgets >=200k.
+Candidate generation, q, start selection, repair, scorer, specs, fingerprint, seeds, budget
+grid, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 78 tests).
+
+```
+M86 full probe (`probe-m86-true-target-vertical-mature-s0-2-a01`):
+  40 specs × seeds 0..2 × canonical budget grid · valid 480/480
+  raw HEADLINE 696.0 · excl-impact 713.35
+  Delta headline = -0.3 · 95% CI [-0.8, 0.1] · P(Delta<=0)=91.5% · effect=-1.16
+  125k +0.0 · 250k -0.4 · 375k -0.3 · 500k -0.3
+  VERDICT: REJECT (indicative)
+```
+
+**Learnings.** The 125k protection worked, but the mature rows moved negative on the current
+M75 stack. Only 42/480 paired scores changed (15 improvements, 27 regressions). `ridge_pulse`
+improved (+1.07), but the affected vertical panel lost: `dense_echo_climb` -3.99,
+`switchback_pop` -2.81, `terrace_sprint` -1.66, `canyon_steps` -0.53, `skyline_push` -0.41,
+and `syncopated_lift` -0.35. Do not retry the mature true-target vertical-selector retest
+unchanged. Temporary source reverted; baseline remains
+`attempt-m75-highair-impact-readiness075-a01`.
+
 ### M85 - roomy vertical high-impact current objective extension · canonical INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Push the encouraging M63/M64 idea through a narrower selector instead of

@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - INCONCLUSIVE CANONICAL - profile-gated mature aim K7
+
+Reason: retest the old mature aim-base K=7 idea on top of M41 and try to extract only its positive profile pockets. A source-free repricing with `LR_AIM_TOPK_BASES=7` on the full 40-spec x seeds 0..2 mature-budget slice was overall negative: valid 360/360, raw mature-slice HEADLINE 693.05, indicative delta -1.2 versus M41, CI [-6.1, 3.5], P(delta<=0)=69.5%. The temporary source hook then selected K=7 only at mature budgets, only when no explicit `LR_AIM_TOPK_BASES` override was set, and only for non-vertical resolved whole-spec profiles matching either contact-rich low-speed hard-impact rows (`contactCount >= 50`, mean speed <=0.61, max bounded impact >=0.675) or steady phrase hard-impact rows (`contactCount` 25..35, mean impact >=0.40, air range <=0.25, speed range <=0.20). Candidate generation apart from the aim base count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in both the promoted and escape modes: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` and the same suite with `LR_M51_AIM_K7_PROFILE=0` (6 files, 77 tests each).
+
+Probe: `generated/golden-runs/probe-m51-profile-aim-k7-full-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_M51_AIM_K7_PROFILE=1`, was valid 480/480 with raw HEADLINE 694.24 and `HEADLINE excl. impact` 713.51. Decision versus M41 was indicative `VERDICT: ACCEPT`, delta headline +1.6, CI [-0.0, 4.4], P(delta<=0)=3.1%, effect 1.44. Per-budget deltas were 125k +0.0, 250k +2.0, 375k +1.8, and 500k +1.8.
+
+Canonical: `generated/golden-runs/attempt-m51-profile-aim-k7-a01/golden.json`, run after promoting the gate to default-on with `LR_M51_AIM_K7_PROFILE=0` as the escape, was valid 1920/1920 with raw HEADLINE 692.29 and `HEADLINE excl. impact` 711.33. Per-budget point estimates were 125k 677.98, 250k 688.37, 375k 693.88, and 500k 696.64.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-m51-profile-aim-k7-a01/golden.json generated/golden-runs/attempt-m41-hardimpact-span30-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline -0.2, CI [-1.9, 1.1], P(delta<=0)=61.6%, effect -0.31. Per-budget deltas were 125k +0.0, 250k -0.2, 375k -0.3, and 500k -0.2, with unchanged 100% validity.
+
+Why it was not kept: the profile selector cleared the 3-seed gate but was not stable across all 12 seeds. The full canonical was slightly worse at every mature budget, which means the apparent K=7 pockets were seed-sensitive redistribution rather than a reliable production policy. The source hook was reverted; the accepted baseline remains `attempt-m41-hardimpact-span30-a01`.
+
 ## 2026-07-04 - INCONCLUSIVE CANONICAL - profile-gated M3 wide hard-impact dose
 
 Reason: test whether the M43 wider M41 dose contained a narrow useful basin that could be selected without taking the full dense-drum displacement tax. The temporary source hook let resolved whole-spec profile stats override only the mature M3 steep-arrival zero band from the accepted 0.70 to 0.65. The selector targeted hard-impact, non-vertical profiles: max bounded impact >=0.68, vertical fraction <=0.02, and either mean impact >=0.40 or steady air/speed with mean impact >=0.31, mean air >=0.50, air range <=0.30, and speed range <=0.30. This selected the intended `verse_chorus`, `drums_dropout`, and `drums_zigzag` basin on static inspection. Candidate count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.

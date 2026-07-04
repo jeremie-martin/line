@@ -1448,6 +1448,41 @@ Canonical (`attempt-m50-profile-m3-wide-dose-a01`, default-on, escape LR_M50_PRO
 M43/M44's per-spec winners are seed-sensitive dose redistribution, not a reliable selector for
 changing the M41 mature span. Source reverted; baseline remains `attempt-m41-hardimpact-span30-a01`.
 
+### M51 - profile-gated mature aim K7 · canonical INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Retest mature `LR_AIM_TOPK_BASES=7` on top of M41, then source-trial only the
+positive-looking pockets. Flat K7 on the 40-spec x seeds 0..2 x mature-budget slice was negative
+overall: `probe-m51-aim-k7-mature-on-m41-s0-2-a01`, valid 360/360, raw mature-slice HEADLINE
+693.05, delta -1.2 vs M41, CI [-6.1, 3.5], P(Delta<=0)=69.5%. The source trial selected K=7
+only at mature budgets, only without explicit `LR_AIM_TOPK_BASES`, and only for non-vertical
+resolved whole-spec profiles matching either contact-rich low-speed hard-impact rows
+(`contactCount >= 50`, mean speed <=0.61, max bounded impact >=0.675) or steady hard-impact
+phrase rows (`contactCount` 25..35, mean impact >=0.40, air range <=0.25, speed range <=0.20).
+
+Focused tests passed in default-on and escape-off modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 77 tests).
+
+```
+3-seed probe (`probe-m51-profile-aim-k7-full-s0-2-a01`, LR_M51_AIM_K7_PROFILE=1):
+  valid 480/480 · raw HEADLINE 694.24 · excl-impact 713.51
+  Delta headline = +1.6 · 95% CI [-0.0, 4.4] · P(Delta<=0)=3.1% · effect=1.44
+  125k +0.0 · 250k +2.0 · 375k +1.8 · 500k +1.8
+  VERDICT: ACCEPT (indicative)
+
+Canonical (`attempt-m51-profile-aim-k7-a01`, default-on, escape LR_M51_AIM_K7_PROFILE=0):
+  valid 1920/1920 · HEADLINE 692.29 · excl-impact 711.33
+  budget curve: 125k 677.98 · 250k 688.37 · 375k 693.88 · 500k 696.64
+  Delta headline = -0.2 · 95% CI [-1.9, 1.1] · P(Delta<=0)=61.6% · effect=-0.31
+  125k +0.0 · 250k -0.2 · 375k -0.3 · 500k -0.2
+  VERDICT: INCONCLUSIVE
+```
+
+**Learnings.** The K7 selector had a convincing 3-seed footprint but did not survive the
+canonical seed set. Full-canonical mature budgets were all slightly negative, so this is another
+seed-sensitive redistribution rather than a viable way to spend mature aim breadth. Source
+reverted; baseline remains `attempt-m41-hardimpact-span30-a01`.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

@@ -999,6 +999,42 @@ compiler; do not retry simple `LR_IMPACT_CURVE_START` 0.20/0.30 retunes, global
 `LR_QUALITY_NCAND=64`, or global `LR_FWD_EVAL=avg:2:1` unchanged. Any future use of these
 families needs a sharper selector that protects scarce budgets and proves full-suite lift.
 
+### M35 — delivery-match impact readiness after M3 · rejected/closed (reverted, 2026-07-04)
+
+**Mechanism.** Temporarily retested M2 on the current M3 baseline: add an env-gated
+`LR_M2=1` alternate inside `objective.ts` `impactFeasibility`, preserving the current M4
+airFit path. The alternate scored `eta * speed * turn` against needed redirArc with an
+asymmetric exponential fit (undershoot full penalty, overshoot light penalty). Default path
+was byte-identical; no scorer/spec/fingerprint/seed/budget changes.
+
+**Verification.** Focused optimizer suite passed:
+
+```
+LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests.
+
+**Probes.** Both used the same 12-spec impact/collateral panel × seeds 0..2 × canonical grid
+vs `attempt-m3-scarce-span75-a01`, valid 144/144:
+
+```
+full dose (`LR_M2=1`, eta=0.68, scale=0.75):
+  Δheadline = -51.8 · 95% CI [-70.7, -33.7] · P(Δ≤0)=100.0%
+  125k -49.7 · 250k -58.1 · 375k -47.7 · 500k -52.2
+  VERDICT: REJECT (indicative)
+
+soft dose (`LR_M2=1 LR_M2_SCALE=2.5`):
+  Δheadline = -5.4 · 95% CI [-20.5, 6.2] · P(Δ≤0)=79.4%
+  125k -2.9 · 250k -4.5 · 375k -7.0 · 500k -5.2
+  VERDICT: INCONCLUSIVE-negative (indicative)
+```
+
+**Learnings.** M3's steep-arrival generation does not make M2's delivery-match readiness
+gradient safe. Full dose over-penalizes good arrivals; the old soft scale is still negative
+at every budget on a favorable panel. Do not retry simple delivery-match / eta-break-even /
+exponential sub-break-even impact-readiness pressure unchanged. Source reverted.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

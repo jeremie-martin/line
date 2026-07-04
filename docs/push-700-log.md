@@ -1685,6 +1685,30 @@ weighted movement was +3.61, but the shape was noisy: 125k -14.75, 250k +15.74, 
 profile-onset change. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M66 - objective band current-power 2.0 · affected-slice REJECT (reverted, 2026-07-04)
+
+**Mechanism.** Dose check for the accepted M64 objective gate. Temporarily changed the in-band
+current-quality exponent from 1.5 to 2.0, keeping the M64 selector and all other compiler
+behavior unchanged.
+
+Focused tests passed:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 77 tests).
+
+```
+Affected-slice probe (`probe-m66-band-objective-current20-affected-s0-2-a01`):
+  17 M64-affected specs × seeds 0..2 × canonical budget grid · valid 204/204
+  raw slice HEADLINE 680.83 · excl-impact 692.44
+  Delta headline = -3.6 · 95% CI [-12.0, 2.9] · P(Delta<=0)=84.0% · effect=-0.95
+  125k +0.0 · 250k -2.3 · 375k -4.6 · 500k -4.4
+  VERDICT: REJECT
+```
+
+**Learnings.** The accepted exponent is not under-dosed. Power 2.0 gave back mature-budget
+score on the exact rows M64 is allowed to affect, so further progress should not come from
+simply increasing the current-quality exponent. Source reverted; baseline remains
+`attempt-m64-impact-band-objective-current15-a01`.
+
 ### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Try a coherent portfolio of the last two non-shipping near-misses rather than

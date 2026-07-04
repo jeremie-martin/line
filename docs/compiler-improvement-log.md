@@ -2,6 +2,27 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED PROBE - objective band current-quality power 2.0
+
+Reason: after M64 accepted the bounded objective-current exponent, test whether the accepted
+impact-prevalence band was under-dosed. The temporary source change raised
+`M64_MATURE_OBJECTIVE_CURRENT_POWER` from 1.5 to 2.0, leaving the band selector, scorer, specs,
+fingerprint, seeds, budget grid, and acceptance rule unchanged.
+
+Focused tests passed:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` (6 files, 77 tests).
+
+Probe: `generated/golden-runs/probe-m66-band-objective-current20-affected-s0-2-a01/golden.json`,
+run on the 17 M64-affected specs with seeds 0..2 and the canonical budget grid, was valid
+204/204 with raw slice HEADLINE 680.83 and `HEADLINE excl. impact` 692.44.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m66-band-objective-current20-affected-s0-2-a01/golden.json generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta -3.6 on the 17-spec x 3-seed x full-budget intersection, CI [-12.0, 2.9], P(delta<=0)=84.0%, effect -0.95. Per-budget deltas were 125k +0.0, 250k -2.3, 375k -4.6, and 500k -4.4.
+
+Why it was not kept: the accepted 1.5 exponent is already beyond the useful dose for the
+selected band. Pushing harder over-weights current-gap quality and gives back mature-budget
+score across the exact affected slice. The source constant was reverted to 1.5; the accepted
+baseline remains `attempt-m64-impact-band-objective-current15-a01`.
+
 ## 2026-07-04 - ABANDONED PROBE - dropout impact-curve onset raise
 
 Reason: M48 had a real `drums_dropout` impact-curve basin repair, but its selector also hurt

@@ -17,7 +17,8 @@ rule are frozen.
 | 2026-07-04 | attempt-m41-hardimpact-span30-a01 | 0260692 | 692.52 | 711.76 | M41 hard-impact mature M3 span 20%->30% — canonical ACCEPT |
 | 2026-07-04 | attempt-m64-impact-band-objective-current15-a01 | 765fd15 | 693.86 | 712.76 | M64 impact-band objective current-power 1.5 — canonical ACCEPT |
 | 2026-07-04 | attempt-m74-vertical-objective-current20-a01 | f019e38 | 694.10 | 712.92 | M74 vertical M64 current-power 2.0 dose — canonical ACCEPT |
-| 2026-07-04 | attempt-m75-highair-impact-readiness075-a01 | this commit | 694.51 | 713.27 | M75 high-air impact readiness-power 0.75 selector — canonical ACCEPT |
+| 2026-07-04 | attempt-m75-highair-impact-readiness075-a01 | a3ff6b8 | 694.51 | 713.27 | M75 high-air impact readiness-power 0.75 selector — canonical ACCEPT |
+| 2026-07-04 | attempt-m87-lowimpact-steady-current15-a01 | this commit | 695.06 | 713.53 | M87 low-impact steady/sparse current-power 1.5 selector — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -1768,6 +1769,47 @@ Affected-slice probe min=0.35 (`probe-m68-objective-impact-min035-active-s0-2-a0
 current impacts gives back mature-budget score. Do not continue the M63/M64 line with local
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
+
+### M87 - low-impact steady/sparse current objective gate · canonical ACCEPT (2026-07-04)
+
+**Mechanism.** Push the M63/M64 current-quality exponent idea into the clean low-impact pocket
+that broad M62 exposed but M64 intentionally skipped. At mature budgets, specs with authored
+impact prevalence in `[0.12,0.35]`, 7..40 feasible contacts, and either sparse cadence
+(median contact gap >=0.90s) or steady air/speed targets (air range <=0.16 and speed range
+<=0.18) use `currentQuality^1.5 * readiness`. The existing M64/M74 impact-band selector keeps
+precedence, 125k stays byte-identical through the mature-budget gate, explicit
+`LR_M64_OBJECTIVE_CURRENT_POWER` still wins, and `LR_M87_LOW_IMPACT_STEADY_CURRENT15=0` is the
+escape hatch. Scorer, specs, fingerprint, seeds, budget grid, and acceptance rule stayed frozen.
+
+Focused tests passed in default and escape modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M87_LOW_IMPACT_STEADY_CURRENT15=0` (6 files, 78 tests each).
+
+```
+Full probe (`probe-m87-lowimpact-steady-current15-s0-2-a01`):
+  40 specs × seeds 0..2 × canonical budget grid · valid 480/480
+  raw HEADLINE 697.24 · excl-impact 713.73
+  Delta headline = +1.0 · 95% CI [-0.0, 2.3] · P(Delta<=0)=2.7% · effect=1.63
+  125k +0.0 · 250k +1.7 · 375k +0.9 · 500k +0.9
+  VERDICT: ACCEPT (non-promotable)
+
+Canonical (`attempt-m87-lowimpact-steady-current15-a01`):
+  40 specs × 12 seeds × canonical budget grid · valid 1920/1920
+  HEADLINE 695.06 · excl-impact 713.53
+  Delta headline = +0.5 · 95% CI [-0.1, 1.4] · P(Delta<=0)=5.6% · effect=1.36
+  125k +0.0 · 250k +0.9 · 375k +0.6 · 500k +0.5
+  VERDICT: ACCEPT
+```
+
+**Learnings.** This is another keepable M63-form, not a broad M63 retry. It affects exactly the
+intended seven specs: `grain_staircase` (+5.93), `float_bounds` (+5.07), `mini_burst` (+3.74),
+`rolling_hills` (+3.53), `cold_start` (+1.29), `mixed_grade` (+0.63), and `ridge_pulse`
+(+0.36). Changed checkpoints: 252/1920, with 152 improvements, 100 regressions, and 1668
+plateaus. Work deltas are not a spend increase: about -144 forward-eval frames, +6.6 sampled
+candidates, +1.9 viable candidates, -443 repair frames, and -0.027 repair accepts per paired
+row. The selector preserves the known high-impact M63 collateral closures while harvesting the
+low-impact steady pocket. New baseline is `attempt-m87-lowimpact-steady-current15-a01`;
+remaining target gap is 4.94 headline points.
 
 ### M86 - mature true-target vertical forward-eval selector · full-suite REJECT (reverted, 2026-07-04)
 

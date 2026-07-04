@@ -2,6 +2,46 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ACCEPTED - M87 low-impact steady/sparse current objective gate
+
+Reason: M63/M64 proved that mature current-quality exponentiation is useful when it is narrowly
+selected. The broad M62 current-power screen also showed a low-impact pocket that M64 skipped:
+compact steady or sparse specs such as `grain_staircase`, `float_bounds`, `mini_burst`,
+`rolling_hills`, and `mixed_grade`. M87 keeps the accepted M64/M74 impact-band behavior first,
+then applies `currentQuality^1.5 * readiness` at budgets >=200k only when authored impact
+prevalence is in `[0.12,0.35]`, feasible contacts are 7..40, and the authored profile is either
+sparse (median contact gap >=0.90s) or steady (air range <=0.16 and speed range <=0.18). The
+125k tier remains byte-identical, explicit `LR_M64_OBJECTIVE_CURRENT_POWER` still wins, and the
+new escape hatch is `LR_M87_LOW_IMPACT_STEADY_CURRENT15=0`. Scorer, specs, fingerprint, seed
+set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default mode and escape mode:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M87_LOW_IMPACT_STEADY_CURRENT15=0` (6 files, 78 tests each).
+
+Probe: `generated/golden-runs/probe-m87-lowimpact-steady-current15-s0-2-a01/golden.json`,
+run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m87-lowimpact-steady-current15-s0-2-a01`,
+covered all 40 specs with seeds 0..2 and the canonical budget grid. It was valid 480/480 with
+raw HEADLINE 697.24 and `HEADLINE excl. impact` 713.73.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m87-lowimpact-steady-current15-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: ACCEPT`, delta +1.0 on the 40-spec x three-seed x full-budget intersection, CI [-0.0, 2.3], P(delta<=0)=2.7%, effect 1.63. Per-budget deltas were 125k +0.0, 250k +1.7, 375k +0.9, and 500k +0.9.
+
+Canonical: `generated/golden-runs/attempt-m87-lowimpact-steady-current15-a01/golden.json`,
+run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m87-lowimpact-steady-current15-a01`.
+It was valid 1920/1920 with raw HEADLINE 695.06 and `HEADLINE excl. impact` 713.53.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-m87-lowimpact-steady-current15-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> canonical `VERDICT: ACCEPT`, delta +0.5, CI [-0.1, 1.4], P(delta<=0)=5.6%, effect 1.36. Per-budget deltas were 125k +0.0, 250k +0.9, 375k +0.6, and 500k +0.5.
+
+Why it was kept: the selector changed only the intended seven specs and all seven were net
+positive: `grain_staircase` +5.93, `float_bounds` +5.07, `mini_burst` +3.74,
+`rolling_hills` +3.53, `cold_start` +1.29, `mixed_grade` +0.63, and `ridge_pulse` +0.36.
+Across the canonical paired grid, 252/1920 checkpoints changed with 152 improvements and 100
+regressions. The work shift was mild and not a budget-spend increase: -144 forward-eval frames,
++6.6 sampled candidates, +1.9 viable candidates, -443 repair frames, and -0.027 repair accepts
+per paired row. This preserves the known M63-width collateral closures while adding a second
+accepted current-power selector. The accepted baseline is now
+`attempt-m87-lowimpact-steady-current15-a01`.
+
 ## 2026-07-04 - REJECTED PROBE - mature true-target vertical forward-eval selector
 
 Reason: older target-consistency probes showed a small mature-budget upside when the mature

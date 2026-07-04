@@ -2,6 +2,26 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE REJECTED PROBE - mature aim top-k 5 dose check
+
+Reason: M71 showed K=4 is too low for mature budgets, while prior K=7 attempts were already
+negative. Price the adjacent K=5 dose without a source edit. Because the explicit
+`LR_AIM_TOPK_BASES=5` override would also raise 125k from the accepted K=4 to K=5, this probe
+was intentionally limited to the mature budgets that a production high-budget K=5 change would
+touch. Candidate generation apart from the aim-base count, search policy, forward eval, repair,
+scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-m72-aimtopk5-mature-current-s0-2-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_AIM_TOPK_BASES=5 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m72-aimtopk5-mature-current-s0-2-a01`,
+was valid 360/360 with raw mature-slice HEADLINE 694.18 and `HEADLINE excl. impact` 712.83.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m72-aimtopk5-mature-current-s0-2-a01/golden.json generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta -2.4 on the 40-spec x 3-seed x mature-budget intersection, CI [-7.0, 1.5], P(delta<=0)=87.3%, effect -1.10. Per-budget deltas were 250k -2.8, 375k -2.5, and 500k -2.1.
+
+Why it was not pursued: K=5 also gives up mature score versus the accepted K=6 default. Combined
+with M71 and the earlier K=7 failures, the high-budget aim-base dose is bracketed around the
+current K=6 setting. Do not lower the mature aim-base count to 5. This was env-only; accepted
+source remains `attempt-m64-impact-band-objective-current15-a01`.
+
 ## 2026-07-04 - SOURCE-FREE REJECTED PROBE - high-budget aim top-k ablation on current default
 
 Reason: after M64 changed the quality objective in the impact-prevalence band, re-audit whether

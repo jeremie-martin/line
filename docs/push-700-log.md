@@ -1812,6 +1812,26 @@ negative. Do not make rollout-context aim suppression the default on the current
 forward-eval policy. Env-only; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M72 - mature aim top-k 5 dose check · source-free REJECT (2026-07-04)
+
+**Study.** Price the intermediate aim-base dose after M71 showed K=4 was too low and earlier K=7
+attempts were bad. Source-free env only: `LR_AIM_TOPK_BASES=5`, restricted to mature budgets
+because the env override would otherwise raise 125k from the accepted K=4 to K=5.
+
+```
+Mature 3-seed probe (`probe-m72-aimtopk5-mature-current-s0-2-a01`):
+  40 specs × seeds 0..2 × budgets 250k,375k,500k · valid 360/360
+  raw mature-slice HEADLINE 694.18 · excl-impact 712.83
+  Delta headline = -2.4 · 95% CI [-7.0, 1.5] · P(Delta<=0)=87.3% · effect=-1.10
+  250k -2.8 · 375k -2.5 · 500k -2.1
+  VERDICT: REJECT (non-promotable)
+```
+
+**Learnings.** K=5 also gives up mature score versus the accepted K=6 default. Together with
+M71 and the previous K=7 failures, the high-budget aim-base dose is bracketed around current
+K=6. Do not lower mature aim bases to 5. Env-only; baseline remains
+`attempt-m64-impact-band-objective-current15-a01`.
+
 ### M71 - high-budget aim top-k ablation on current default · source-free REJECT (2026-07-04)
 
 **Study.** Recheck whether M64 changed the cost-benefit of the accepted mature aim-base bump.

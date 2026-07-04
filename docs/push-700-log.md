@@ -1658,6 +1658,33 @@ plateaus. Winners: `dense_sprint` +11.8, `rhythm_ladder` +11.2, `drums_zigzag` +
 `pop_train` -3.2, `skyline_push` -1.7, `drums_pulse` -1.7. New baseline is
 `attempt-m64-impact-band-objective-current15-a01`; remaining target gap is 6.14 headline points.
 
+### M65 - dropout/pendulum impact-curve onset raise · probe INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Retry M48's useful `drums_dropout` impact-curve basin repair with a stricter
+non-name selector: contact-rich, non-vertical, steady-speed, broad-air, medium-impact profiles.
+The temporary source added a `targetStartRaise` impact profile pressure that raised the impact
+curve target start toward 0.30 under that selector. Intended static target:
+`drums_dropout` + `drums_pendulum`; M64 source otherwise unchanged.
+
+Focused tests passed in default and escape modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M65_IMPACT_CURVE_RAISE=0` (6 files, 77 tests each).
+
+```
+Probe (`probe-m65-dropout-pendulum-curve-raise-full-s0-2-a01`):
+  valid 480/480 · raw HEADLINE 694.79 · excl-impact 712.47
+  Delta headline = +0.1 · 95% CI [-0.2, 0.7] · P(Delta<=0)=53.0% · effect=0.45
+  125k -0.4 · 250k +0.4 · 375k -0.0 · 500k +0.2
+  VERDICT: INCONCLUSIVE (indicative, non-promotable)
+```
+
+**Learnings.** The selector was clean but too small. Paired row footprint changed 12/480
+checkpoints, all `drums_dropout`, with 7 improvements and 5 regressions. `drums_dropout`
+weighted movement was +3.61, but the shape was noisy: 125k -14.75, 250k +15.74, 375k -1.31,
+500k +5.82. This confirms the M48 basin is real but not promotion-scale as a standalone
+profile-onset change. Source reverted; baseline remains
+`attempt-m64-impact-band-objective-current15-a01`.
+
 ### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Try a coherent portfolio of the last two non-shipping near-misses rather than

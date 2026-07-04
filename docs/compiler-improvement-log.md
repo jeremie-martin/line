@@ -2,6 +2,36 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ABANDONED PROBE - dropout impact-curve onset raise
+
+Reason: M48 had a real `drums_dropout` impact-curve basin repair, but its selector also hurt
+`rhythm_ladder` and `drums_tide`. After M64, an archive/feature screen found a stricter non-name
+selector for the M48 positive basin: contact-rich, non-vertical, steady-speed, broad-air,
+medium-impact profiles. On the golden suite this selected `drums_dropout` and `drums_pendulum`
+while excluding the prior M48 losses.
+
+Mechanism trial: a temporary source change added a `targetStartRaise` impact profile pressure.
+Under the stricter profile it raised the impact curve target start toward 0.30, reducing the
+curvature carrier on that basin. Candidate generation count, search policy, M64 objective gate,
+start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed in default and escape modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` and the same suite with `LR_M65_IMPACT_CURVE_RAISE=0` (6 files, 77 tests each).
+
+Probe: `generated/golden-runs/probe-m65-dropout-pendulum-curve-raise-full-s0-2-a01/golden.json`,
+run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=48 --archive-dir=generated/golden-runs/probe-m65-dropout-pendulum-curve-raise-full-s0-2-a01`,
+was valid 480/480 with raw HEADLINE 694.79 and `HEADLINE excl. impact` 712.47.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m65-dropout-pendulum-curve-raise-full-s0-2-a01/golden.json generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta +0.1 on the 40-spec x 3-seed x full-budget intersection, CI [-0.2, 0.7], P(delta<=0)=53.0%, effect 0.45. Per-budget deltas were 125k -0.4, 250k +0.4, 375k -0.0, and 500k +0.2, with unchanged validity.
+
+Why it was stopped: the cleaner selector was too small. The paired row footprint changed only
+12/480 checkpoints, all in `drums_dropout`, with 7 improvements and 5 regressions. The
+`drums_dropout` paired weighted movement was +3.61, but it was budget-noisy: 125k -14.75, 250k
++15.74, 375k -1.31, and 500k +5.82. That diluted to a +0.1 headline probe with worse 125k and
+no indicative acceptance signal. The temporary source was reverted; the accepted baseline
+remains `attempt-m64-impact-band-objective-current15-a01`.
+
 ## 2026-07-04 - ACCEPTED CANONICAL - impact-band objective current-quality exponent
 
 Reason: M63 proved that mature-budget `currentQuality^1.5 * readiness` was a real lever, but

@@ -1771,6 +1771,36 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M95 - flat compact current-power 2.5 dose · affected-pocket INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Dose-checked the accepted M94 compact pocket by raising only the flat compact
+sub-profile from p=2.0 to p=2.5: zero authored elevation range and zero authored amplitude
+range after the M94 selector matched. This selected `mini_burst` and `cold_start`, while
+`ridge_pulse` and `rolling_hills` stayed on accepted M94 p=2.0. The temporary fallback flag was
+`LR_M95_LOW_IMPACT_FLAT_COMPACT_CURRENT25=0`. Scorer, specs, fingerprint, seeds, budget grid,
+and acceptance rule stayed frozen.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M95_LOW_IMPACT_FLAT_COMPACT_CURRENT25=0` (6 files, 78 tests each).
+
+```
+Affected-pocket probe (`probe-m95-flat-compact-current25-pocket-s0-11-a01`):
+  4 specs x 12 seeds x canonical budget grid · valid 192/192
+  raw pocket HEADLINE 742.55 · excl-impact 765.94
+  Delta headline = +1.0 · 95% CI [-2.8, 6.0] · P(Delta<=0)=33.4% · effect=0.50
+  125k +0.0 · 250k +1.5 · 375k -0.2 · 500k +2.0
+  VERDICT: INCONCLUSIVE (indicative)
+```
+
+**Learnings.** The stronger dose is positive in point estimate but not stable enough to spend a
+canonical run. `mini_burst` gained (+3.44 weighted paired-row mean), but `cold_start` was weaker
+and seed-volatile (+1.04 weighted; large losses on seeds 2 and 4 offset later-seed wins). The
+probe changed 72/192 hashes with 39 improvements, 33 regressions, and 120 plateaus. Keep M94's
+p=2.0 compact dose as the boundary; do not promote the flat compact p=2.5 variant without a
+stronger selector or another independent mechanism. Source reverted; baseline remains
+`attempt-m94-lowimpact-compact-current20-a01`.
+
 ### M94 - low-impact compact current-power 2.0 dose · canonical ACCEPT (2026-07-04)
 
 **Mechanism.** Refined the rejected broad M88 dose into a compact sub-selector inside the

@@ -2,6 +2,34 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - INCONCLUSIVE PROBE - M95 flat compact current-power 2.5 dose
+
+Reason: M94 accepted p=2.0 only for the compact sub-pocket of M87. M95 tested whether the
+strongest flat compact rows inside that pocket were still under-dosed by raising only profiles
+with zero authored elevation range and zero authored amplitude range from p=2.0 to p=2.5.
+This selected `mini_burst` and `cold_start`, while leaving `ridge_pulse` and `rolling_hills`
+on the accepted M94 p=2.0 path. The temporary fallback flag was
+`LR_M95_LOW_IMPACT_FLAT_COMPACT_CURRENT25=0`. Scorer, specs, fingerprint, seed set, budget grid,
+and acceptance rule stayed unchanged.
+
+Focused tests passed in default mode and fallback mode:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M95_LOW_IMPACT_FLAT_COMPACT_CURRENT25=0` (6 files, 78 tests each).
+
+Probe: `generated/golden-runs/probe-m95-flat-compact-current25-pocket-s0-11-a01/golden.json`,
+run with `LR_ENGINE=wasm npm run golden -- --specs=mini_burst,cold_start,ridge_pulse,rolling_hills --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m95-flat-compact-current25-pocket-s0-11-a01`,
+covered the whole M94 compact pocket with all 12 canonical seeds. It was valid 192/192 with raw
+pocket HEADLINE 742.55 and `HEADLINE excl. impact` 765.94.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m95-flat-compact-current25-pocket-s0-11-a01/golden.json generated/golden-runs/attempt-m94-lowimpact-compact-current20-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta +1.0 on the four-spec affected pocket, CI [-2.8, 6.0], P(delta<=0)=33.4%, effect 0.50. Per-budget deltas were 125k +0.0, 250k +1.5, 375k -0.2, and 500k +2.0.
+
+Why it was stopped: the effect is too small and noisy for promotion. Only `mini_burst` was a
+clear net positive (+3.44 weighted paired-row mean); `cold_start` was weaker and seed-volatile
+(+1.04 weighted), while `ridge_pulse` and `rolling_hills` stayed byte-stable by design. The
+probe changed 72/192 paired hashes with 39 improvements, 33 regressions, and 120 plateaus.
+This does not justify a full-suite canonical run; the temporary source change was reverted and
+the accepted baseline remains `attempt-m94-lowimpact-compact-current20-a01`.
+
 ## 2026-07-04 - ACCEPTED - M94 low-impact compact current-power 2.0 dose
 
 Reason: M88 showed that raising the whole accepted M87 low-impact steady/sparse pocket from

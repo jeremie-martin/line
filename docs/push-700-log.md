@@ -670,6 +670,36 @@ global deadband/scale/asymmetry changes are closed; do not retry unchanged. Futu
 needs a new usefulness selector or generation mechanism, not another scalar tweak to the
 existing air-fit penalty. The temporary env scaffold was reverted.
 
+### M27 — mature aim base count K=6→7 · probe INCONCLUSIVE-small (env-only, 2026-07-04)
+
+**Mechanism.** Env-priced a mature-budget seventh aim base with `LR_AIM_TOPK_BASES=7` on the
+current accepted baseline. The probe used only 250k/375k/500k budgets, so it tested the
+production-relevant mature slice where a source change would raise `AIM_TOPK_BASES_HIGH` while
+leaving 125k at the accepted K=4. Candidate generation logic apart from aim-base count,
+search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+**Probe.** `probe-aim-k7-mature-s0-2-a01` (40 specs × seeds 0..2 × {250k,375k,500k},
+valid 360/360) vs `attempt-m3-scarce-span75-a01`:
+
+```
+Δheadline = +0.3 · 95% CI [-3.9, 3.6] · P(Δ≤0)=40.6% · effect=0.15
+250k +0.7 · 375k +0.2 · 500k +0.2 · validity unchanged
+VERDICT: INCONCLUSIVE (indicative; not promoted to source trial)
+```
+
+**Footprint.** The seventh base was not inert: 342/360 paired checkpoint scores changed.
+Gains were led by `drums_tide` (+20.27 mean over the mature probe cells), `drums_dropout`
+(+13.30), `dense_sprint` (+8.15), `opening_burst` (+7.80), and `drums_pendulum` (+6.46).
+But the same broad extra-base pressure reopened large basin losses, especially
+`syncopated_switchback` (−46.43), `drums_pulse` (−12.51), `solo_run` (−9.35),
+and `drums_breath` (−7.25).
+
+**Learnings.** The accepted high-budget K=6 setting is close to the useful aim-breadth limit.
+K=7 creates broad mature-budget churn for only a tiny positive point estimate and no credible
+accept signal. Do not raise `AIM_TOPK_BASES_HIGH` unchanged; any future extra-base work needs
+a selector that excludes the `syncopated_switchback`/`drums_pulse` failure mode.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

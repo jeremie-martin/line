@@ -2,6 +2,33 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - INCONCLUSIVE PROBE - M91 scarce low-slack branch threshold 2.25
+
+Reason: test whether the accepted low-slack pre-completion traversal limiter was too narrow at
+the 125k tier. The temporary source raised `HANDOFF_LOW_SLACK_BRANCH_THRESHOLD` from 1.5 to
+2.25, with `LR_M91_SCARCE_BRANCH22=0` restoring the accepted 1.5 threshold. This was intended
+to reach the weak 125k `dense_sprint` / `rhythm_ladder` slack band while leaving the mature
+budgets effectively unchanged. Scorer, specs, fingerprint, seed set, budget grid, and acceptance
+rule stayed unchanged.
+
+Focused tests passed in default mode and fallback mode:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M91_SCARCE_BRANCH22=0` (6 files, 78 tests each).
+
+Probe: `generated/golden-runs/probe-m91-scarce-branch225-125-s0-2-a01/golden.json`,
+run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000 --jobs=32 --archive-dir=generated/golden-runs/probe-m91-scarce-branch225-125-s0-2-a01`,
+covered all 40 specs with seeds 0..2 at 125k. It was valid 120/120 with raw HEADLINE 677.65
+and `HEADLINE excl. impact` 696.52.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m91-scarce-branch225-125-s0-2-a01/golden.json generated/golden-runs/attempt-m87-lowimpact-steady-current15-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta +0.0 on the 40-spec x three-seed x 125k intersection, CI [0.0, 0.0], P(delta<=0)=100.0%, effect 0.00.
+
+Why it was stopped: the threshold did fire in telemetry (`dense_sprint` mean branch limit
+3.000 -> 2.563, `rhythm_ladder` 3.000 -> 2.643 on seeds 0..2), but it changed only one paired
+track hash and all 120 paired scores were identical. The accepted branch limiter is already
+past the useful point for this traversal shape; raising the threshold only reduces branch
+accounting without producing better scarce-tier tracks. The temporary source change was
+reverted, and the accepted baseline remains `attempt-m87-lowimpact-steady-current15-a01`.
+
 ## 2026-07-04 - REJECTED PROBE - M89 vertical current-power 2.5 dose
 
 Reason: M74 accepted a very narrow M63-form selector by raising only the existing M64-band

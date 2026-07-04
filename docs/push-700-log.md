@@ -1770,6 +1770,32 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M91 - scarce low-slack branch threshold 2.25 · 125k probe INCONCLUSIVE-flat (reverted, 2026-07-04)
+
+**Mechanism.** Temporarily raised the accepted pre-completion low-slack branch limiter from
+slack 1.5 to 2.25, with `LR_M91_SCARCE_BRANCH22=0` restoring the accepted threshold. This
+targeted the weak 125k `dense_sprint` / `rhythm_ladder` band just above slack 2.0 while leaving
+scorer, specs, fingerprint, seeds, budget grid, and acceptance rule frozen.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M91_SCARCE_BRANCH22=0` (6 files, 78 tests each).
+
+```
+125k probe (`probe-m91-scarce-branch225-125-s0-2-a01`):
+  40 specs × seeds 0..2 × 125k · valid 120/120
+  raw HEADLINE 677.65 · excl-impact 696.52
+  Delta headline = +0.0 · 95% CI [0.0, 0.0] · P(Delta<=0)=100.0% · effect=0.00
+  VERDICT: INCONCLUSIVE-flat (indicative)
+```
+
+**Learnings.** The threshold affected policy telemetry but not score: on seeds 0..2,
+`dense_sprint` mean branch limit moved 3.000 -> 2.563 and `rhythm_ladder` 3.000 -> 2.643,
+yet only one paired track hash changed and all 120 paired 125k scores were identical. The
+accepted branch limiter is not the remaining 125k bottleneck unless paired with a different
+candidate-ordering/value signal. Source reverted; baseline remains
+`attempt-m87-lowimpact-steady-current15-a01`.
+
 ### M89 - vertical current-power 2.5 dose · full-suite REJECT (reverted, 2026-07-04)
 
 **Mechanism.** Dose-check the accepted M74 vertical/M64-band selector on top of the current M87

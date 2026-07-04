@@ -1769,6 +1769,30 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M78 - M63-width current-stack objective gate · affected-slice INCONCLUSIVE-negative (reverted, 2026-07-04)
+
+**Study.** Revisit the user's M63 question on the current M75 stack by temporarily widening the
+M64 upper authored-impact prevalence bound from `0.51` to `1.0`. This recreates the M63
+high-impact breadth while preserving the accepted M64/M74/M75 machinery. The source change only
+newly affects five specs above the M64 band:
+`syncopated_switchback`, `drums_dropout`, `summit_push`, `leap_cadence`, and `rolling_drop`.
+
+```
+Affected-slice probe (`probe-m78-m63-width-currentstack-affected-s0-2-a01`):
+  5 specs × seeds 0..2 × canonical budget grid · valid 60/60
+  raw slice HEADLINE 681.11 · excl-impact 700.71
+  Delta headline = -4.4 · 95% CI [-22.3, 7.2] · P(Delta<=0)=67.5% · effect=-0.55
+  125k +0.0 · 250k -7.7 · 375k -5.4 · 500k -3.0
+  VERDICT: INCONCLUSIVE (negative, non-promotable)
+```
+
+**Learnings.** M75 did not neutralize the old M63 collateral. The widened band helps
+`leap_cadence` (+7.67 weighted) and `summit_push` (+3.40), but gives that back on
+`syncopated_switchback` (-17.87) and `drums_dropout` (-11.13); `rolling_drop` is flat (+0.05).
+The accepted M64 band remains the keepable M63 form. Do not pursue a simple M63-width upper-bound
+retest on the current stack. Temporary source reverted; baseline remains
+`attempt-m75-highair-impact-readiness075-a01`.
+
 ### M77 - mature readiness sharpening · source-free REJECT (2026-07-04)
 
 **Study.** Test the opposite side of the M75 objective surface without source edits:

@@ -2,6 +2,27 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED PROBE - M63-width current-stack objective gate
+
+Reason: the original M63 high-impact objective gate was an encouraging near miss, and M64 kept
+the accepted bounded form of that idea. To answer whether the broader M63 shape became viable
+after M74/M75, temporarily widen the M64 upper authored-impact prevalence bound from `0.51` to
+`1.0`, preserving all other current compiler behavior. This only newly affects
+`syncopated_switchback`, `drums_dropout`, `summit_push`, `leap_cadence`, and `rolling_drop`.
+Scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-m78-m63-width-currentstack-affected-s0-2-a01/golden.json`,
+run on those five newly affected specs with seeds 0..2 and the canonical budget grid, was valid
+60/60 with raw slice HEADLINE 681.11 and `HEADLINE excl. impact` 700.71.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m78-m63-width-currentstack-affected-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta -4.4 on the five-spec x three-seed x full-budget intersection, CI [-22.3, 7.2], P(delta<=0)=67.5%, effect -0.55. Per-budget deltas were 125k +0.0, 250k -7.7, 375k -5.4, and 500k -3.0.
+
+Why it was stopped: the broader M63 gate still carries the same collateral under the current
+stack. Weighted spec movement was `leap_cadence` +7.67, `summit_push` +3.40, `rolling_drop`
++0.05, `drums_dropout` -11.13, and `syncopated_switchback` -17.87. The accepted M64 prevalence
+band remains the keepable form of M63; a simple upper-bound widening should not be promoted.
+Temporary source was reverted; baseline remains `attempt-m75-highair-impact-readiness075-a01`.
+
 ## 2026-07-04 - SOURCE-FREE REJECTED PROBE - mature readiness sharpening
 
 Reason: after M75 accepted a tiny readiness-softening basin, test the opposite side of the

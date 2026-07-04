@@ -2,6 +2,24 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE PROBE - rollout-context aim suppression on current default
+
+Reason: prior lookahead work showed that `best:1:5` with aim probes suppressed inside rollouts
+could help mature budgets, but the flat env configuration collapsed the scarce tier. Before
+editing the adaptive forward-eval policy, isolate the cheaper question: does suppressing aim
+only inside the already-existing rollout-context pools help the accepted M64 default?
+
+Probe: `generated/golden-runs/probe-m70-rollout-aim-off-default-s0-2-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_ROLLOUT_AIM=0 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m70-rollout-aim-off-default-s0-2-a01`,
+was valid 480/480 with raw HEADLINE 694.44 and `HEADLINE excl. impact` 712.04.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m70-rollout-aim-off-default-s0-2-a01/golden.json generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta -0.3 on the 40-spec x 3-seed x full-budget intersection, CI [-1.0, 0.0], P(delta<=0)=94.0%, effect -0.99. Per-budget deltas were 125k -0.2, 250k -0.3, 375k -0.3, and 500k -0.2.
+
+Why it was not pursued: the raw stored headline was misleading because the paired M64
+intersection was slightly higher; on the actual paired decision every budget moved negative.
+Suppressing rollout aim in the current default/adaptive policy is not a source candidate.
+This was env-only; accepted source remains `attempt-m64-impact-band-objective-current15-a01`.
+
 ## 2026-07-04 - SOURCE-FREE PROBE - repair max-attempt cap 32 on current worst slice
 
 Reason: M64 telemetry showed some poor 500k rows spending most of the post-completion tail in

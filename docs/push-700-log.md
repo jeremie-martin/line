@@ -1790,6 +1790,28 @@ effectively score-identical and slightly negative at 250k. Future repair work ne
 restart usefulness/target selector, not a scalar cap. Env-only; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M70 - rollout-context aim suppression on current default · source-free INCONCLUSIVE-negative (2026-07-04)
+
+**Study.** Recheck the old lookahead observation that aim probes inside widened rollouts are
+expensive, but isolate it from the broader `best:1:5` policy. Source-free env only:
+`LR_ROLLOUT_AIM=0`, leaving top-level aim, scorer, specs, fingerprint, seeds, budget grid, and
+acceptance rule unchanged.
+
+```
+Full 3-seed probe (`probe-m70-rollout-aim-off-default-s0-2-a01`):
+  40 specs × seeds 0..2 × canonical budget grid · valid 480/480
+  raw HEADLINE 694.44 · excl-impact 712.04
+  Delta headline = -0.3 · 95% CI [-1.0, 0.0] · P(Delta<=0)=94.0% · effect=-0.99
+  125k -0.2 · 250k -0.3 · 375k -0.3 · 500k -0.2
+  VERDICT: INCONCLUSIVE (non-promotable)
+```
+
+**Learnings.** The stored raw headline looked positive, but the paired M64 intersection was
+higher than the stored baseline curve. On the actual paired decision, every budget is slightly
+negative. Do not make rollout-context aim suppression the default on the current adaptive
+forward-eval policy. Env-only; baseline remains
+`attempt-m64-impact-band-objective-current15-a01`.
+
 ### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Try a coherent portfolio of the last two non-shipping near-misses rather than

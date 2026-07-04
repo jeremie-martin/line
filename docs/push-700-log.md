@@ -35,9 +35,8 @@ rule are frozen.
 - H2c impact-aim proposal gate-fail cut (22% of enum dive proposals gate-fail → flat fallback;
   bound rotate recruit by the arrival's catchable turn; predicted +1..+3, validity-side pure
   upside) — CLOSED by M30 (probe-clean rotate-side filter cut gate-fails but scored flat)
-- H2b impact template turn-cap raise (22°→~38): DEPRIORITIZED by S2 — mid band (asks .30–.60,
-  needs ~17° ≤ cap) carries 58.6% of impact energy; high band only 18.4%. Cap binds only the
-  high band; revisit after H2a/H2c.
+- H2b impact template turn-cap raise (22°→~38): CLOSED by M31 — cap 30/38 moved a small
+  impact-heavy slice but did not improve impact RMS enough to survive full-suite dilution.
 - H3 air floor on dense beats (candidate: dense-gap-only shorter ride-outs via ARC_LEN LO,
   air-pressure-gated — uniform widening previously REJECTED −13) — not started
 - H4 elevation stranding — not started
@@ -806,6 +805,49 @@ lane. Gate-fail count was mostly not wasted value; the failed rotate proposals w
 high-value basins, and replacing them with lower-ranked fallback proposals nets flat. Do not
 retry this probe-gate same-sign rotate filter unchanged. Any future rotate safety work must
 predict selection value, not just pass/fail risk.
+
+### M31 — impact-template turn cap 22→30/38 · targeted INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Source-trialed H2b in `arc_placement.ts`: raise only the selectable
+impact-template scoop cap (`IMPACT_TEMPLATE_MAX_TURN_DEG`) from 22° to 38°, then a softer
+30° dose after 38° looked over-aggressive. The template lane rate, eligibility, M3
+steep-arrival span, search policy, start selection, forward eval, repair, scorer, specs,
+fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+**Verification.** Focused optimizer suite passed for the cap-38 source trial:
+
+```
+LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests. Cap 30 is the same one-line numeric dose and was probed on the same panel.
+
+**Probes.** Both probes used the same impact-heavy panel (18 specs × seeds 0..2 × canonical
+budget grid, valid 216/216) vs `attempt-m3-scarce-span75-a01`:
+
+```
+cap 38: Δheadline = +0.5 · 95% CI [-3.1, 5.6] · P(Δ≤0)=44.5%
+        per-budget Δ: 125k -1.6 · 250k +0.5 · 375k +2.0 · 500k -0.1
+
+cap 30: Δheadline = +0.8 · 95% CI [-2.6, 5.7] · P(Δ≤0)=39.2%
+        per-budget Δ: 125k -1.5 · 250k +0.6 · 375k +2.3 · 500k +0.3
+        VERDICT: INCONCLUSIVE (indicative; source reverted, no canonical)
+```
+
+**Footprint.** Cap 30 changed only 46/216 paired rows on a deliberately favorable panel.
+The positive movement concentrated in `drums_dropout` (+34 at 250k/375k/500k on the 3-seed
+slice), with smaller `dense_sprint` and `ridge_pulse` mature gains. Losses persisted in
+`syncopated_lift` at 125k, `canyon_steps` at 250k/375k, and the mature drum collateral
+(`drums_swell`, `drums_crescendo`, `drums_tide`, `drums_pulse`). Panel impact RMS barely
+moved (0.1455→0.1450) and mean impact absolute error was flat/slightly worse (0.1119→0.1120);
+the score lift mostly came through basin swaps and a small speed RMS improvement.
+
+**Learnings.** The template cap is a real but too-narrow dose knob. The best tested dose
+(30°) is only +0.8 on an impact-heavy 18/40-spec panel, so full-suite dilution is below
+promotion scale and the axis diagnostic does not show a robust impact correction. Do not
+retry simple `IMPACT_TEMPLATE_MAX_TURN_DEG` cap raises unchanged; future impact-template work
+needs a selector or geometry change that improves the mid-band impact error directly rather
+than relying on the high-band cap.
 
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 

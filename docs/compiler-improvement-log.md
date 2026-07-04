@@ -2,6 +2,45 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED CANONICAL - M93 dense-modulated aim top-k 7 selector
+
+Reason: M92 showed that global mature K=7 is rejected, but its winners were concentrated in a
+small dense-drum profile. M93 tried a tight high-budget selector that raised the accepted K=6
+aim-base count to K=7 only when contact-ending gaps had at least 50 contacts, air-target range
+0.25..0.36, speed-target range 0.25..0.29, and no elevation/amplitude target range. The intended
+slice was exactly `drums_swell`, `drums_tide`, and `drums_zigzag`; `LR_M93_DENSE_MODULATED_AIM_K7=0`
+restored the accepted K=6 high-budget behavior. The 125k maturity gate, scorer, specs, fingerprint,
+seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default mode and fallback mode:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M93_DENSE_MODULATED_AIM_K7=0` (6 files, 78 tests each).
+
+Early probes were encouraging but not promotable. The 10-spec guardrail panel
+`generated/golden-runs/probe-m93-dense-modulated-k7-panel-s0-2-a01/golden.json`
+was valid 90/90 and produced indicative `VERDICT: ACCEPT`, delta +4.9, CI [-0.3, 12.5],
+P(delta<=0)=5.8%; only the three intended specs changed. The full 40-spec seeds 0..2 probe
+`generated/golden-runs/probe-m93-dense-modulated-k7-full-s0-2-a01/golden.json`
+was valid 480/480 and also produced indicative `VERDICT: ACCEPT`, delta +1.1, CI [-0.0, 3.0],
+P(delta<=0)=7.0%, with 125k exactly neutral and the same three-spec footprint.
+
+Canonical: `generated/golden-runs/attempt-m93-dense-modulated-k7-a01/golden.json`,
+run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m93-dense-modulated-k7-a01`.
+The run was valid 1920/1920 overall, with raw HEADLINE 694.26 and `HEADLINE excl. impact` 712.23.
+Per-budget point estimates were 125k 677.98, 250k 689.92, 375k 696.31, and 500k 698.96.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-m93-dense-modulated-k7-a01/golden.json generated/golden-runs/attempt-m87-lowimpact-steady-current15-a01/golden.json` -> canonical `VERDICT: REJECT`, delta headline -0.8, CI [-2.7, 0.2], P(delta<=0)=92.5%, effect -1.05. Per-budget deltas were 125k +0.0, 250k -0.9, 375k -0.7, and 500k -1.0.
+
+Why it was not kept: this was a clean seed-generalization failure, not broad leakage. Only
+108/1920 paired rows changed, all inside `drums_swell`, `drums_tide`, and `drums_zigzag`, with
+49 improvements, 59 regressions, and 1812 plateaus. The canonical per-spec means flipped to
+`drums_swell` -14.99, `drums_tide` -9.21, and `drums_zigzag` -1.52. Seeds 0..2 had overfit the
+positive side of the profile, while later seeds exposed large losses such as `drums_swell` seed 4
+-92.7, `drums_tide` seed 8 -77.0, and `drums_zigzag` seeds 3/5/6/11 around -26 to -35. Do not
+promote this static dense-modulated K7 selector, and do not re-run the same K7 idea without a
+seed-robust usefulness signal. The temporary source change was reverted; the accepted baseline
+remains `attempt-m87-lowimpact-steady-current15-a01`.
+
 ## 2026-07-04 - SOURCE-FREE REJECTED PROBE - M92 mature aim top-k 7 on current M87
 
 Reason: after M87 changed the mature objective surface, re-audit whether the high-budget aim

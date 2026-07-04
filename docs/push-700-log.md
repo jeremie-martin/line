@@ -1770,6 +1770,46 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M93 - dense-modulated aim K7 selector · canonical REJECT (reverted, 2026-07-04)
+
+**Mechanism.** After M92 rejected global mature K=7, tested a tight production selector that
+raised high-budget aim bases from accepted K=6 to K=7 only for the dense modulated drum profile:
+contact-ending gaps >=50, air-target range 0.25..0.36, speed-target range 0.25..0.29, and no
+elevation/amplitude target range. This selected `drums_swell`, `drums_tide`, and `drums_zigzag`;
+`LR_M93_DENSE_MODULATED_AIM_K7=0` restored the accepted path.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M93_DENSE_MODULATED_AIM_K7=0` (6 files, 78 tests each).
+
+```
+Panel probe (`probe-m93-dense-modulated-k7-panel-s0-2-a01`):
+  10 specs x seeds 0..2 x {250k,375k,500k} · valid 90/90
+  Delta headline = +4.9 · 95% CI [-0.3, 12.5] · P(Delta<=0)=5.8% · effect=1.49
+  VERDICT: ACCEPT (indicative)
+
+Full 3-seed probe (`probe-m93-dense-modulated-k7-full-s0-2-a01`):
+  40 specs x seeds 0..2 x canonical budget grid · valid 480/480
+  raw HEADLINE 698.35 · excl-impact 715.13
+  Delta headline = +1.1 · 95% CI [-0.0, 3.0] · P(Delta<=0)=7.0% · effect=1.39
+  125k +0.0 · 250k +1.4 · 375k +1.2 · 500k +1.2
+  VERDICT: ACCEPT (indicative)
+
+Canonical (`attempt-m93-dense-modulated-k7-a01`):
+  40 specs x 12 seeds x canonical budget grid · valid 1920/1920
+  raw HEADLINE 694.26 · excl-impact 712.23
+  Delta headline = -0.8 · 95% CI [-2.7, 0.2] · P(Delta<=0)=92.5% · effect=-1.05
+  125k +0.0 · 250k -0.9 · 375k -0.7 · 500k -1.0
+  VERDICT: REJECT
+```
+
+**Learnings.** The selector was clean but not seed-robust. Canonical changed only 108/1920 paired
+rows, all in the intended three specs, but split 49 improvements vs 59 regressions. Canonical
+means flipped to `drums_swell` -14.99, `drums_tide` -9.21, and `drums_zigzag` -1.52; later seeds
+contained large losses (`drums_swell` seed 4 -92.7, `drums_tide` seed 8 -77.0). This closes the
+static dense-modulated K7 selector; do not retry without a seed-robust usefulness signal. Source
+reverted; baseline remains `attempt-m87-lowimpact-steady-current15-a01`.
+
 ### M92 - mature aim top-k 7 on current M87 · source-free REJECT (2026-07-04)
 
 **Mechanism.** Env-priced the current mature aim-base dose with `LR_AIM_TOPK_BASES=7`, limited

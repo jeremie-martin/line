@@ -2,6 +2,60 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - CANONICAL INCONCLUSIVE - M99/M100 repair main-margin exactness
+
+Reason: M83's mature-only repair main-margin 1.0 trial was flat on the M75-era full suite but
+had large positive pockets (`pop_train`, `syncopated_switchback`, `canyon_steps`, and
+`drums_pulse`). Reprice that branch on the accepted M94 baseline. M99 first used the existing
+source-free `LR_REPAIR_MAIN_MARGIN=1.0` override on only the positive pocket. Because that kept
+the mature-budget gains but regressed 125k, M100 source-trialed a protected version: keep the
+accepted 125k repair main-margin ramp, but use repair main margin 1.0 only for budgets >=200k.
+Candidate generation, q, start selection, forward eval, scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged. The temporary M100 fallback flag was
+`LR_M100_REPAIR_MAIN100_MATURE=0`.
+
+M100 focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M100_REPAIR_MAIN100_MATURE=0` (6 files, 78 tests each).
+
+M99 source-free positive-pocket probe:
+`generated/golden-runs/probe-m99-repair-main100-positive-pocket-s0-11-a01/golden.json`,
+run with `LR_ENGINE=wasm LR_REPAIR_MAIN_MARGIN=1.0 npm run golden -- --specs=pop_train,syncopated_switchback,canyon_steps,drums_pulse --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m99-repair-main100-positive-pocket-s0-11-a01`,
+covered all 12 canonical seeds on the four M83-positive specs. It was valid 192/192 with raw
+pocket HEADLINE 686.61 and `HEADLINE excl. impact` 702.29. Decision vs M94:
+non-canonical indicative `VERDICT: ACCEPT`, delta +2.2, CI [-1.8, 7.3], P(delta<=0)=13.2%,
+effect 0.97. Per-budget deltas were 125k -6.1, 250k +1.9, 375k +3.1, and 500k +3.8.
+
+M100 protected positive-pocket probe:
+`generated/golden-runs/probe-m100-repair-main100-mature-positive-pocket-s0-11-a01/golden.json`,
+valid 192/192 with raw pocket HEADLINE 687.22 and `HEADLINE excl. impact` 702.92. Decision vs
+M94: non-canonical indicative `VERDICT: ACCEPT`, delta +2.8, CI [-1.1, 7.9],
+P(delta<=0)=7.0%, effect 1.26. Per-budget deltas were 125k +0.0, 250k +1.9, 375k +3.1, and
+500k +3.8. The 125k tier was hash-stable against M94.
+
+M100 full 3-seed guard:
+`generated/golden-runs/probe-m100-repair-main100-mature-full-s0-2-a01/golden.json`, valid
+480/480 with raw HEADLINE 698.54 and `HEADLINE excl. impact` 715.29. Decision vs M94:
+non-canonical `VERDICT: INCONCLUSIVE`, delta +0.7, CI [-1.2, 2.7], P(delta<=0)=23.7%,
+effect 0.71. Per-budget deltas were 125k +0.0, 250k -0.5, 375k +0.6, and 500k +1.6.
+
+Canonical M100:
+`generated/golden-runs/attempt-m100-repair-main100-mature-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m100-repair-main100-mature-a01`.
+It was valid 1920/1920 with raw HEADLINE 695.89 and `HEADLINE excl. impact` 714.27.
+Per-budget point estimates were 125k 677.98, 250k 691.65, 375k 697.76, and 500k 701.08.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m100-repair-main100-mature-a01/golden.json generated/golden-runs/attempt-m94-lowimpact-compact-current20-a01/golden.json` -> `VERDICT: INCONCLUSIVE`, delta headline +0.4, CI [-0.7, 1.6], P(delta<=0)=23.1%, effect 0.71. Per-budget deltas were 125k +0.0, 250k +0.4, 375k +0.2, and 500k +0.7, with unchanged validity.
+
+Why it was not kept: protecting 125k removed the obvious M99 budget-shape defect, but the
+canonical gain still missed the acceptance rule. M100 changed 1240/1920 paired hashes with 694
+improvements, 536 regressions, and 690 plateaus. Gains on `mini_burst` (+6.38 weighted),
+`syncopated_switchback` (+4.71), `cold_start` (+3.32), and `tiny_dance` (+3.01) were diluted
+by losses on `drums_crescendo` (-5.46), `summit_push` (-4.34), `valley_bounce` (-4.12), and
+`mixed_grade` (-3.63). This closes repair main-margin scalar changes on the M94 stack; future
+repair work needs a local usefulness/value selector. The temporary source change was reverted;
+the accepted baseline remains `attempt-m94-lowimpact-compact-current20-a01`.
+
 ## 2026-07-04 - SOURCE-FREE INCONCLUSIVE PROBE - M98 impact onset 0.30 on old M48 pocket
 
 Reason: M48's profiled high-onset impact-curve hook was canonical-inconclusive, not rejected,

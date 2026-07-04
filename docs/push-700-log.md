@@ -1771,6 +1771,58 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M99/M100 - repair main-margin exactness · canonical INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Repriced M83's mature repair main-margin 1.0 branch on the current M94 baseline.
+M99 first used the existing source-free `LR_REPAIR_MAIN_MARGIN=1.0` override on the four
+previously positive specs: `pop_train`, `syncopated_switchback`, `canyon_steps`, and
+`drums_pulse`. M100 then source-trialed the protected form: keep the accepted 125k repair
+main-margin ramp, but use repair main margin 1.0 only for budgets >=200k. The temporary fallback
+flag was `LR_M100_REPAIR_MAIN100_MATURE=0`. Candidate generation, q, start selection, forward
+eval, scorer, specs, fingerprint, seeds, budget grid, and acceptance rule stayed frozen.
+
+M100 focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M100_REPAIR_MAIN100_MATURE=0` (6 files, 78 tests each).
+
+```
+M99 source-free positive pocket (`probe-m99-repair-main100-positive-pocket-s0-11-a01`):
+  4 specs x 12 seeds x canonical budget grid · valid 192/192
+  raw pocket HEADLINE 686.61 · excl-impact 702.29
+  Delta headline = +2.2 · 95% CI [-1.8, 7.3] · P(Delta<=0)=13.2% · effect=0.97
+  125k -6.1 · 250k +1.9 · 375k +3.1 · 500k +3.8
+  VERDICT: ACCEPT (indicative, non-promotable)
+
+M100 protected positive pocket (`probe-m100-repair-main100-mature-positive-pocket-s0-11-a01`):
+  4 specs x 12 seeds x canonical budget grid · valid 192/192
+  raw pocket HEADLINE 687.22 · excl-impact 702.92
+  Delta headline = +2.8 · 95% CI [-1.1, 7.9] · P(Delta<=0)=7.0% · effect=1.26
+  125k +0.0 · 250k +1.9 · 375k +3.1 · 500k +3.8
+  VERDICT: ACCEPT (indicative, non-promotable)
+
+M100 full 3-seed guard (`probe-m100-repair-main100-mature-full-s0-2-a01`):
+  40 specs x seeds 0..2 x canonical budget grid · valid 480/480
+  raw HEADLINE 698.54 · excl-impact 715.29
+  Delta headline = +0.7 · 95% CI [-1.2, 2.7] · P(Delta<=0)=23.7% · effect=0.71
+  125k +0.0 · 250k -0.5 · 375k +0.6 · 500k +1.6
+  VERDICT: INCONCLUSIVE (non-promotable)
+
+M100 canonical (`attempt-m100-repair-main100-mature-a01`):
+  40 specs x 12 seeds x canonical budget grid · valid 1920/1920
+  raw HEADLINE 695.89 · excl-impact 714.27
+  Delta headline = +0.4 · 95% CI [-0.7, 1.6] · P(Delta<=0)=23.1% · effect=0.71
+  125k +0.0 · 250k +0.4 · 375k +0.2 · 500k +0.7
+  VERDICT: INCONCLUSIVE
+```
+
+**Learnings.** Protecting 125k fixed M99's obvious budget-shape defect and produced a real
+500k lift, but the canonical paired test still missed acceptance. Canonical M100 changed
+1240/1920 hashes with 694 improvements, 536 regressions, and 690 plateaus; gains on
+`mini_burst`, `syncopated_switchback`, `cold_start`, and `tiny_dance` were diluted by losses on
+`drums_crescendo`, `summit_push`, `valley_bounce`, and `mixed_grade`. Do not reopen repair
+main-margin scalar changes on the M94 stack without a local usefulness/value selector. Source
+reverted; baseline remains `attempt-m94-lowimpact-compact-current20-a01`.
+
 ### M98 - impact onset 0.30 on old M48 pocket · source-free INCONCLUSIVE-negative (2026-07-04)
 
 **Mechanism.** Repriced the old M48 high-onset impact-curve footprint on the current M94

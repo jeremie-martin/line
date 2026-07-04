@@ -2,6 +2,25 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE REJECTED PROBE - mature readiness sharpening
+
+Reason: after M75 accepted a tiny readiness-softening basin, test the opposite side of the
+objective surface without source edits. The probe used the existing opt-in mature-budget
+readiness exponent override with `LR_M75_MATURE_OBJECTIVE_READINESS_POWER=1.25` on the current
+worst-10 slice. Scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed
+unchanged.
+
+Probe: `generated/golden-runs/probe-m77-readiness125-worst10-s0-2-a01/golden.json`, run on
+`drums_pendulum,skyline_push,terrace_sprint,syncopated_lift,canyon_steps,dense_echo_climb,drums_dropout,dense_sprint,rhythm_ladder,rolling_drop`
+with seeds 0..2 and the canonical budget grid, was valid 120/120 with raw slice HEADLINE 606.90
+and `HEADLINE excl. impact` 627.46.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m77-readiness125-worst10-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta -7.6 on the 10-spec x 3-seed x full-budget intersection, CI [-16.7, -0.8], P(delta<=0)=98.8%, effect -1.87. Per-budget deltas were 125k +0.0, 250k -10.3, 375k -6.1, and 500k -9.2.
+
+Why it was stopped: sharpening readiness gives back mature score on the exact residual slice
+where the suite is weakest. The current objective should not move toward higher readiness power.
+Env-only; baseline remains `attempt-m75-highair-impact-readiness075-a01`.
+
 ## 2026-07-04 - REJECTED PROBE - M75 readiness dose sweep
 
 Reason: after M75 accepted with readiness power 0.75 on the high-air impact selector, bracket

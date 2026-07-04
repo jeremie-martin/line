@@ -1769,6 +1769,27 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M77 - mature readiness sharpening · source-free REJECT (2026-07-04)
+
+**Study.** Test the opposite side of the M75 objective surface without source edits:
+`LR_M75_MATURE_OBJECTIVE_READINESS_POWER=1.25` on the current worst-10 slice, leaving 125k
+byte-identical and changing only mature budgets.
+
+```
+Probe (`probe-m77-readiness125-worst10-s0-2-a01`):
+  drums_pendulum, skyline_push, terrace_sprint, syncopated_lift, canyon_steps,
+  dense_echo_climb, drums_dropout, dense_sprint, rhythm_ladder, rolling_drop
+  seeds 0..2 × canonical budget grid · valid 120/120
+  raw slice HEADLINE 606.90 · excl-impact 627.46
+  Delta headline = -7.6 · 95% CI [-16.7, -0.8] · P(Delta<=0)=98.8% · effect=-1.87
+  125k +0.0 · 250k -10.3 · 375k -6.1 · 500k -9.2
+  VERDICT: REJECT
+```
+
+**Learnings.** The accepted objective surface should not move toward higher readiness power.
+Mature readiness sharpening is strongly negative on the current residual slice. Env-only;
+baseline remains `attempt-m75-highair-impact-readiness075-a01`.
+
 ### M76 - M75 readiness dose sweep · affected-slice REJECT (reverted, 2026-07-04)
 
 **Study.** Bracket the newly accepted M75 selector dose on the exact affected slice

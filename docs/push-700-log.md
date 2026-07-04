@@ -1769,6 +1769,31 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M76 - M75 readiness dose sweep · affected-slice REJECT (reverted, 2026-07-04)
+
+**Study.** Bracket the newly accepted M75 selector dose on the exact affected slice
+(`drums_dropout`, `skyline_push`). Temporary source changed only
+`M75_HIGH_AIR_IMPACT_READINESS_POWER`, leaving the selector and all suite/scoring knobs fixed.
+
+```
+Power 0.5 (`probe-m76-m75-readiness050-affected-s0-2-a01`):
+  2 specs × seeds 0..2 × canonical budget grid · valid 24/24
+  Delta headline = -11.5 · 95% CI [-33.5, 11.2] · P(Delta<=0)=88.1%
+  125k +0.0 · 250k -16.3 · 375k -12.2 · 500k -11.4
+  VERDICT: REJECT
+
+Power 0.9 (`probe-m76-m75-readiness090-affected-s0-2-a01`):
+  2 specs × seeds 0..2 × canonical budget grid · valid 24/24
+  Delta headline = -21.8 · 95% CI [-65.9, -0.1] · P(Delta<=0)=99.0%
+  125k +0.0 · 250k -24.4 · 375k -21.5 · 500k -26.2
+  VERDICT: REJECT
+```
+
+**Learnings.** The accepted M75 dose is local: both stronger and milder readiness exponents
+give back score on the exact rows M75 is allowed to affect. Do not continue the M75 line with a
+scalar dose change. Source reverted; baseline remains
+`attempt-m75-highair-impact-readiness075-a01`.
+
 ### M75 - high-air impact readiness softening · canonical ACCEPT (2026-07-04)
 
 **Mechanism.** Add the missing readiness exponent side of the M61 objective hook, then promote

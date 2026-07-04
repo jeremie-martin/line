@@ -2,6 +2,26 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED PROBE - M75 readiness dose sweep
+
+Reason: after M75 accepted with readiness power 0.75 on the high-air impact selector, bracket
+the adjacent doses on the exact affected slice (`drums_dropout`, `skyline_push`) before looking
+for a new mechanism. The temporary source changed only `M75_HIGH_AIR_IMPACT_READINESS_POWER`,
+leaving the selector, scorer, specs, fingerprint, seeds, budgets, and acceptance rule unchanged.
+
+Probes, both on `drums_dropout,skyline_push` with seeds 0..2 and the canonical budget grid:
+
+- `probe-m76-m75-readiness050-affected-s0-2-a01` (`power=0.5`) was valid 24/24. Decision versus
+  M75: `VERDICT: REJECT`, delta -11.5, CI [-33.5, 11.2], P(delta<=0)=88.1%. Per-budget deltas
+  were 125k +0.0, 250k -16.3, 375k -12.2, and 500k -11.4.
+- `probe-m76-m75-readiness090-affected-s0-2-a01` (`power=0.9`) was valid 24/24. Decision versus
+  M75: `VERDICT: REJECT`, delta -21.8, CI [-65.9, -0.1], P(delta<=0)=99.0%. Per-budget deltas
+  were 125k +0.0, 250k -24.4, 375k -21.5, and 500k -26.2.
+
+Why it was stopped: both adjacent doses give back the accepted M75 gain on its own affected
+slice, so the local dose is bracketed at 0.75. Temporary source was reverted; baseline remains
+`attempt-m75-highair-impact-readiness075-a01`.
+
 ## 2026-07-04 - ACCEPTED CANONICAL - high-air impact readiness softening
 
 Reason: M75 tested the unexplored half of the M61 objective family. Global mature-budget

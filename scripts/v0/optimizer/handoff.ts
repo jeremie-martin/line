@@ -381,6 +381,10 @@ const M64_MATURE_OBJECTIVE_CURRENT_POWER = 1.5;
 const M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES = 200_000;
 const M64_IMPACT_PREVALENCE_MIN = 0.41;
 const M64_IMPACT_PREVALENCE_MAX = 0.51;
+const M74_VERTICAL_OBJECTIVE_CURRENT_POWER = 2.0;
+const M74_DYNAMIC_AMPLITUDE_RANGE_MIN = 0.45;
+const M74_ELEVATION_RANGE_MIN = 0.10;
+const M74_ELEVATION_ROOM_MEDIAN_GAP_FRAMES = Math.round(FPS * 0.90);
 
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
@@ -1549,10 +1553,47 @@ function objectiveBlendCurrentPowerForSpec(targetBudget: number, spec: Spec): nu
   if (readEnv("LR_IMPACT_OFF") === "1") return undefined;
   if (targetBudget < M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES) return undefined;
   const impactPrevalence = meanAuthoredImpactPrevalence(spec.contacts);
-  return impactPrevalence >= M64_IMPACT_PREVALENCE_MIN &&
-      impactPrevalence <= M64_IMPACT_PREVALENCE_MAX
-    ? M64_MATURE_OBJECTIVE_CURRENT_POWER
-    : undefined;
+  if (
+    impactPrevalence < M64_IMPACT_PREVALENCE_MIN ||
+    impactPrevalence > M64_IMPACT_PREVALENCE_MAX
+  ) {
+    return undefined;
+  }
+  return readEnv("LR_M74_VERTICAL_OBJECTIVE_CURRENT20") !== "0" &&
+      m74VerticalObjectiveDoseProfile(spec)
+    ? M74_VERTICAL_OBJECTIVE_CURRENT_POWER
+    : M64_MATURE_OBJECTIVE_CURRENT_POWER;
+}
+
+function m74VerticalObjectiveDoseProfile(spec: Spec): boolean {
+  const profile = authoredVerticalObjectiveProfile(spec);
+  const elevationWithRoom = profile.elevationRange >= M74_ELEVATION_RANGE_MIN &&
+    profile.medianContactGapFrames >= M74_ELEVATION_ROOM_MEDIAN_GAP_FRAMES;
+  return elevationWithRoom || profile.amplitudeRange >= M74_DYNAMIC_AMPLITUDE_RANGE_MIN;
+}
+
+function authoredVerticalObjectiveProfile(spec: Spec): {
+  amplitudeRange: number;
+  elevationRange: number;
+  medianContactGapFrames: number;
+} {
+  const amplitude: number[] = [];
+  const elevation: number[] = [];
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .sort((a, b) => a - b);
+  for (const frame of contactFrames) {
+    const targets = axesAtFrame(frame, spec);
+    if (targets.amplitude !== undefined) amplitude.push(targets.amplitude);
+    if (targets.elevation !== undefined) elevation.push(targets.elevation);
+  }
+  const contactGaps = contactFrames.slice(1).map((frame, index) => frame - contactFrames[index]);
+  const sortedGaps = contactGaps.sort((a, b) => a - b);
+  return {
+    amplitudeRange: amplitude.length >= 2 ? valueRange(amplitude) : 0,
+    elevationRange: elevation.length >= 2 ? valueRange(elevation) : 0,
+    medianContactGapFrames: sortedGaps.length === 0 ? 0 : sortedGaps[Math.floor(sortedGaps.length / 2)],
+  };
 }
 
 function activeFrontier(

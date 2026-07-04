@@ -2,6 +2,40 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ACCEPTED CANONICAL - vertical M64 objective current-power dose
+
+Reason: M66 showed that raising the accepted M64 current-quality exponent from 1.5 to 2.0 was
+bad on the whole M64 impact band, but the per-spec split was different: vertical/dynamic rows
+liked the stronger current-gap quality pressure while dense no-vertical rows lost. This source
+change keeps the accepted M64 impact-prevalence and mature-budget gate, keeps 125k
+byte-identical, and uses current-quality power 2.0 only for authored vertical profiles with
+large amplitude range or enough elevation variation plus contact room. `LR_M74_VERTICAL_OBJECTIVE_CURRENT20=0`
+is the escape hatch; explicit `LR_M64_OBJECTIVE_CURRENT_POWER` still wins.
+
+Focused tests passed:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` (6 files, 77 tests).
+
+Probe: `generated/golden-runs/probe-m74-vertical-objective-current20-room09-s0-2-a01/golden.json`,
+run on `swoop_dive,climb_terrace,terrace_sprint,big_air_ramp,skyline_push,glide_stairs`
+with seeds 0..2 and the canonical budget grid, was valid 72/72 with raw slice HEADLINE 689.67
+and `HEADLINE excl. impact` 681.97.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m74-vertical-objective-current20-room09-s0-2-a01/golden.json generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json` -> non-canonical `VERDICT: ACCEPT`, delta +2.7 on the 6-spec x 3-seed x full-budget intersection, CI [-0.6, 5.8], P(delta<=0)=5.0%, effect 1.72. Per-budget deltas were 125k +0.0, 250k +4.4, 375k +3.3, and 500k +2.1.
+
+Canonical: `generated/golden-runs/attempt-m74-vertical-objective-current20-a01/golden.json`,
+run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m74-vertical-objective-current20-a01`,
+was valid 1920/1920 with raw HEADLINE 694.10 and `HEADLINE excl. impact` 712.92. Per-budget
+point estimates were 125k 677.98, 250k 689.46, 375k 696.15, and 500k 698.91.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-m74-vertical-objective-current20-a01/golden.json generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json` -> canonical `VERDICT: ACCEPT`, delta headline +0.2, CI [-0.4, 0.8], P(delta<=0)=17.3%, effect 0.80. Per-budget deltas were 125k +0.0, 250k +0.3, 375k +0.3, and 500k +0.2.
+
+Why it was kept: the effect is narrow but clean enough for the accept rule. It changed 216/1920
+paired checkpoints, with 139 improvements, 77 regressions, and 1704 plateaus. The only specs
+with weighted score movement were `swoop_dive` (+5.61), `skyline_push` (+3.11),
+`climb_terrace` (+2.79), `glide_stairs` (+1.05), `terrace_sprint` (-0.32), and
+`big_air_ramp` (-2.69). 125k stayed byte-identical; mean changed-row simulated frames were
+essentially flat. Accepted as the new baseline of record: `attempt-m74-vertical-objective-current20-a01`.
+
 ## 2026-07-04 - SOURCE-FREE REJECTED PROBE - full forward-eval leaf on current default
 
 Reason: M64 changed the rank-quality objective surface, so reprice the accepted objective leaf

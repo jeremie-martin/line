@@ -16,6 +16,7 @@ rule are frozen.
 | 2026-07-03 | attempt-m3-scarce-span75-a01 | eaed707 | 691.28 | 711.20 | M3 scarce-tier span 20%→75% below 200k — canonical ACCEPT |
 | 2026-07-04 | attempt-m41-hardimpact-span30-a01 | 0260692 | 692.52 | 711.76 | M41 hard-impact mature M3 span 20%->30% — canonical ACCEPT |
 | 2026-07-04 | attempt-m64-impact-band-objective-current15-a01 | 765fd15 | 693.86 | 712.76 | M64 impact-band objective current-power 1.5 — canonical ACCEPT |
+| 2026-07-04 | attempt-m74-vertical-objective-current20-a01 | this commit | 694.10 | 712.92 | M74 vertical M64 current-power 2.0 dose — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -1766,6 +1767,43 @@ Affected-slice probe min=0.35 (`probe-m68-objective-impact-min035-active-s0-2-a0
 current impacts gives back mature-budget score. Do not continue the M63/M64 line with local
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
+
+### M74 - vertical M64 objective current-power dose · canonical ACCEPT (2026-07-04)
+
+**Mechanism.** Keep the accepted M64 mature impact-prevalence gate, but raise the
+current-quality exponent from 1.5 to 2.0 only for authored vertical profiles where M66's
+per-spec split showed the stronger dose was useful: large amplitude range, or elevation
+variation with enough contact room. The 125k tier stays byte-identical through the existing M64
+mature-budget gate. Escape hatch: `LR_M74_VERTICAL_OBJECTIVE_CURRENT20=0`; explicit
+`LR_M64_OBJECTIVE_CURRENT_POWER` still wins.
+
+Focused tests passed:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 77 tests).
+
+```
+Focused probe (`probe-m74-vertical-objective-current20-room09-s0-2-a01`):
+  6 selected specs × seeds 0..2 × canonical budget grid · valid 72/72
+  raw slice HEADLINE 689.67 · excl-impact 681.97
+  Delta headline = +2.7 · 95% CI [-0.6, 5.8] · P(Delta<=0)=5.0% · effect=1.72
+  125k +0.0 · 250k +4.4 · 375k +3.3 · 500k +2.1
+  VERDICT: ACCEPT (non-promotable)
+
+Canonical (`attempt-m74-vertical-objective-current20-a01`):
+  40 specs × 12 seeds × canonical budget grid · valid 1920/1920
+  HEADLINE 694.10 · excl-impact 712.92
+  Delta headline = +0.2 · 95% CI [-0.4, 0.8] · P(Delta<=0)=17.3% · effect=0.80
+  125k +0.0 · 250k +0.3 · 375k +0.3 · 500k +0.2
+  VERDICT: ACCEPT
+```
+
+**Learnings.** M66 was not a simple scalar dead end; it was a selector problem. The accepted
+M64 p=1.5 remains right for dense/no-vertical rows, while vertical dynamic rows can use stronger
+current-gap pressure. The canonical movement is narrow: 216/1920 checkpoints changed, with 139
+improvements, 77 regressions, and 1704 plateaus. Weighted spec movement was led by
+`swoop_dive` +5.61, `skyline_push` +3.11, `climb_terrace` +2.79, and `glide_stairs` +1.05,
+offset by `terrace_sprint` -0.32 and `big_air_ramp` -2.69. Baseline is now
+`attempt-m74-vertical-objective-current20-a01`; remaining gap to 700 is 5.90.
 
 ### M73 - full forward-eval leaf on current default · source-free REJECT (2026-07-04)
 

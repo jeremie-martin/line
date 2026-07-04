@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ACCEPTED CANONICAL - impact-band objective current-quality exponent
+
+Reason: M63 proved that mature-budget `currentQuality^1.5 * readiness` was a real lever, but
+the high-impact-only gate was still too broad. Its main canonical loss was
+`syncopated_switchback`, and the next selector screen showed that keeping the same exponent only
+inside a bounded authored-impact prevalence band preserved the winners while excluding the broad
+high-prevalence collateral.
+
+Mechanism: `objective.ts` now has a bounded objective-blend power hook, and `handoff.ts` enables
+`currentQuality^1.5 * readiness` only for budgets >=200k when mean authored impact prevalence
+over feasible contacts, counting missing impact as zero, is in `[0.41, 0.51]`. The default can
+be disabled with `LR_M64_IMPACT_BAND_OBJECTIVE_CURRENT15=0`, and
+`LR_M64_OBJECTIVE_CURRENT_POWER` remains an explicit override. The gate is off with
+`LR_IMPACT_OFF=1`. Candidate generation, start selection, forward eval, repair, scorer, specs,
+fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default and escape modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` (6 files, 77 tests each).
+
+Canonical: `generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json`,
+run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m64-impact-band-objective-current15-a01`,
+was valid 1920/1920 with raw HEADLINE 693.86 and `HEADLINE excl. impact` 712.76. Its budget
+curve was 125k 677.98, 250k 689.20, 375k 695.82, and 500k 698.69.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json generated/golden-runs/attempt-m41-hardimpact-span30-a01/golden.json` -> canonical `VERDICT: ACCEPT`, delta +1.3, CI [-0.3, 3.3], P(delta<=0)=5.6%, effect 1.45. Per-budget deltas were 125k +0.0, 250k +0.6, 375k +1.6, and 500k +1.8, with unchanged 100% validity.
+
+Why it was kept: this is the accepted form of the M63 idea. The narrower prevalence band blocks
+the M63 `syncopated_switchback` and `drums_dropout` collateral while preserving the mature
+selection lift on the intended rows. It changed 612/1920 paired checkpoints, with 337
+improvements, 275 regressions, and 1308 plateaus. Weighted winners were `dense_sprint` +11.83,
+`rhythm_ladder` +11.18, `drums_zigzag` +7.67, `drums_crosscut` +7.04, `verse_chorus` +6.57,
+and `drums_pendulum` +5.49. The remaining main losses were `pop_train` -3.15, `skyline_push`
+-1.72, and `drums_pulse` -1.69. The accepted baseline is now
+`attempt-m64-impact-band-objective-current15-a01` at source commit `765fd15`.
+
 ## 2026-07-04 - INCONCLUSIVE CANONICAL - high-impact objective current-quality exponent
 
 Reason: M62 showed that current-quality exponentiation was directionally useful once 125k was

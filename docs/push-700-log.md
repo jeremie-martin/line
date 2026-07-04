@@ -15,6 +15,7 @@ rule are frozen.
 | 2026-07-03 | attempt-no-converting-scoop-a01 | dfe9208 | 690.91 | 711.06 | M1 ablated; M3 steep-arrival span retained — canonical ACCEPT |
 | 2026-07-03 | attempt-m3-scarce-span75-a01 | eaed707 | 691.28 | 711.20 | M3 scarce-tier span 20%→75% below 200k — canonical ACCEPT |
 | 2026-07-04 | attempt-m41-hardimpact-span30-a01 | 0260692 | 692.52 | 711.76 | M41 hard-impact mature M3 span 20%->30% — canonical ACCEPT |
+| 2026-07-04 | attempt-m64-impact-band-objective-current15-a01 | 765fd15 | 693.86 | 712.76 | M64 impact-band objective current-power 1.5 — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -1626,6 +1627,36 @@ Canonical (`attempt-m63-highimpact-objective-current15-a01`, default-on):
 `pop_train` -3.2, `drums_dropout` -2.0, `skyline_push` -1.8, `drums_pulse` -1.7. Next attempt
 should preserve the high-impact mature objective lift but block syncopated-switchback-like high
 air/speed variation. Source reverted; baseline remains `attempt-m41-hardimpact-span30-a01`.
+
+### M64 - impact-band objective current-power gate · canonical ACCEPT (2026-07-04)
+
+**Mechanism.** Promote the M63 idea only where the 12-seed archive screen said it was clean:
+budgets >=200k and mean authored impact prevalence over feasible contacts, counting missing
+impact as zero, in `[0.41, 0.51]`. The objective leaf uses
+`currentQuality^1.5 * readiness` inside that band and the baseline `currentQuality * readiness`
+elsewhere. Escape hatch: `LR_M64_IMPACT_BAND_OBJECTIVE_CURRENT15=0`; explicit override:
+`LR_M64_OBJECTIVE_CURRENT_POWER`.
+
+Focused tests passed in default and escape modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 77 tests each).
+
+```
+Canonical (`attempt-m64-impact-band-objective-current15-a01`):
+  valid 1920/1920 · HEADLINE 693.86 · excl-impact 712.76
+  budget curve: 125k 677.98 · 250k 689.20 · 375k 695.82 · 500k 698.69
+  Delta headline = +1.3 · 95% CI [-0.3, 3.3] · P(Delta<=0)=5.6% · effect=1.45
+  125k +0.0 · 250k +0.6 · 375k +1.6 · 500k +1.8
+  VERDICT: ACCEPT
+```
+
+**Learnings.** This is the accepted M63 form. The upper prevalence bound removed the M63
+`syncopated_switchback` collapse and the `drums_dropout` drag while keeping the mature
+objective lift. Changed checkpoints: 612/1920, with 337 improvements, 275 regressions, and 1308
+plateaus. Winners: `dense_sprint` +11.8, `rhythm_ladder` +11.2, `drums_zigzag` +7.7,
+`drums_crosscut` +7.0, `verse_chorus` +6.6, `drums_pendulum` +5.5. Remaining losses:
+`pop_train` -3.2, `skyline_push` -1.7, `drums_pulse` -1.7. New baseline is
+`attempt-m64-impact-band-objective-current15-a01`; remaining target gap is 6.14 headline points.
 
 ### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
 

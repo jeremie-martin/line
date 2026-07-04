@@ -1035,6 +1035,55 @@ gradient safe. Full dose over-penalizes good arrivals; the old soft scale is sti
 at every budget on a favorable panel. Do not retry simple delivery-match / eta-break-even /
 exponential sub-break-even impact-readiness pressure unchanged. Source reverted.
 
+### M36 — mixed vertical amplitude axisq lane · rejected/closed (reverted, 2026-07-04)
+
+**Mechanism.** Temporarily added a default-off `LR_M36_AMP_AXISQ=1` extra candidate lane in
+`handoff.ts`. The lane fired only on contact gaps that asked for both amplitude and upward
+elevation, generated a small number of normal contact-centered candidates with a geometry-only
+amplitude lift, tagged them as `axisq/amplitude`, and let the existing ranker decide. True
+targets, scorer, hard gates, forward eval, repair, specs, fingerprint, seeds, budgets, and
+acceptance rule stayed unchanged.
+
+**Verification.** Focused optimizer suite passed with the env unset:
+
+```
+LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests.
+
+**Probes.** Both used the 12-spec mixed-vertical/amplitude panel
+(`terrace_sprint`, `syncopated_lift`, `canyon_steps`, `skyline_push`, `switchback_pop`,
+`ridge_pulse`, `dense_echo_climb`, `glide_stairs`, plus pure-amplitude controls
+`rolling_drop`, `soar_settle`, `big_air_ramp`, `valley_bounce`) × seeds 0..2 × canonical
+grid vs `attempt-m3-scarce-span75-a01`, valid 144/144:
+
+```
+hard dose (`probe-m36-amp-axisq-s0-2-a01`):
+  Δheadline = -2.7 · 95% CI [-6.2, -0.1] · P(Δ≤0)=98.3%
+  125k -4.7 · 250k -2.9 · 375k -2.6 · 500k -2.3
+  VERDICT: REJECT (indicative)
+
+soft dose (`probe-m36-amp-axisq-soft-s0-2-a01`,
+K=1, lift=0.08, floor=0.36, cap=0.50, no 125k activation):
+  Δheadline = -0.1 · 95% CI [-1.2, 1.0] · P(Δ≤0)=58.5%
+  125k +0.0 · 250k -0.6 · 375k +0.0 · 500k +0.1
+  VERDICT: INCONCLUSIVE (indicative)
+```
+
+**Footprint.** The hard dose selected axisq candidates in the losing rows more than the
+winners: `dense_echo_climb` averaged -10.3, `canyon_steps` -8.6, `syncopated_lift` -6.8,
+and `skyline_push` -6.3 on the panel. Pure-amplitude controls were mostly byte-identical,
+which confirms the gate was narrow, but the selected mixed-vertical lift was the wrong shape.
+The soft dose removed most damage, yet still had a negative 250k point estimate and no
+promotion-scale gain.
+
+**Learnings.** The mixed-vertical amplitude residual is not fixed by a small lifted duplicate
+stream. Extra viable candidates consume budget and the ranker adopts the lifted shapes in
+exactly the fragile vertical rows. Do not retry simple amplitude-lift `axisq` lanes unchanged;
+future amplitude work needs a different geometry shape or a stronger usefulness selector.
+Source reverted.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

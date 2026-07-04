@@ -2,6 +2,22 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED PROBE - mixed vertical amplitude axisq lane
+
+Reason: test whether the remaining amplitude undershoot on mixed elevation+amplitude rows can be harvested by an additive extra candidate stream instead of changing the normal contact-centered sampler. A temporary default-off `LR_M36_AMP_AXISQ=1` lane in `handoff.ts` generated a few `axisq` candidates only on contact gaps with both amplitude and upward elevation asks. Candidate scoring, hard gates, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged; the lane only used a geometry-only amplitude lift and let the existing ranker select or ignore the candidates.
+
+Focused tests passed before probes with the env unset: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` (6 files, 77 tests).
+
+Hard-dose probe: `generated/golden-runs/probe-m36-amp-axisq-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm LR_M36_AMP_AXISQ=1 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --specs=terrace_sprint,syncopated_lift,canyon_steps,skyline_push,switchback_pop,ridge_pulse,dense_echo_climb,glide_stairs,rolling_drop,soar_settle,big_air_ramp,valley_bounce --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m36-amp-axisq-s0-2-a01`. Valid 144/144.
+
+Hard-dose decision: `npm run decide -- generated/golden-runs/probe-m36-amp-axisq-s0-2-a01/golden.json generated/golden-runs/attempt-m3-scarce-span75-a01/golden.json` -> indicative `VERDICT: REJECT`, delta headline -2.7 on the 12-spec x 3-seed x full-grid intersection, CI [-6.2, -0.1], P(delta<=0)=98.3%. Per-budget deltas were 125k -4.7, 250k -2.9, 375k -2.6, and 500k -2.3, with unchanged validity.
+
+Soft-dose probe: `generated/golden-runs/probe-m36-amp-axisq-soft-s0-2-a01/golden.json`, same panel, run with `LR_M36_AMP_AXISQ=1 LR_M36_AMP_AXISQ_K=1 LR_M36_AMP_AXISQ_LIFT=0.08 LR_M36_AMP_AXISQ_FLOOR=0.36 LR_M36_AMP_AXISQ_CAP=0.50 LR_M36_AMP_AXISQ_BUDGET_START=175000 LR_M36_AMP_AXISQ_BUDGET_SPAN=75000`. Valid 144/144.
+
+Soft-dose decision: `npm run decide -- generated/golden-runs/probe-m36-amp-axisq-soft-s0-2-a01/golden.json generated/golden-runs/attempt-m3-scarce-span75-a01/golden.json` -> indicative `VERDICT: INCONCLUSIVE`, delta headline -0.1, CI [-1.2, 1.0], P(delta<=0)=58.5%. Per-budget deltas were 125k +0.0, 250k -0.6, 375k +0.0, and 500k +0.1, with unchanged validity.
+
+Why it was not kept: the additive lane mostly injected search/budget churn instead of a true amplitude correction. In the hard dose, selected `axisq` candidates concentrated in the losing rows (`dense_echo_climb` -10.3, `canyon_steps` -8.6, `syncopated_lift` -6.8, `skyline_push` -6.3 mean on the panel). The soft dose reduced the damage but did not produce a positive paired signal; its selected-candidate wins were too sparse and the 250k point estimate stayed negative. This closes simple mixed-vertical amplitude-lift `axisq` lanes: future amplitude work needs a different generation shape or a stronger usefulness model, not a small lifted duplicate stream. The temporary source change was reverted, and the accepted baseline remains `attempt-m3-scarce-span75-a01`.
+
 ## 2026-07-04 - REJECTED PROBE - delivery-match impact readiness after M3
 
 Reason: retest the old M2 two-sided impact delivery-match readiness term on top of the current accepted M3 steep-arrival generation baseline. The original M2 probe failed before M3 because the ranker had no gate-passing steep-arrival launches to promote. This temporary source trial kept the current M4 airFit readiness path and only added an env-gated `LR_M2=1` alternate inside `impactFeasibility`: `exp(-penalty/scale)` on `eta * speed * turn` versus needed redirArc, with undershoot full penalty and overshoot light penalty. The default path stayed byte-identical; candidate generation, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged unless the env knob was enabled.

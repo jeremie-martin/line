@@ -221,6 +221,13 @@ const STEEP_ARRIVAL_SPAN_SALT = 11;
 const STEEP_ARRIVAL_ZERO_BAND = 0.8;
 const STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES = 200_000;
 const STEEP_ARRIVAL_SCARCE_ZERO_BAND = 0.25;
+const STEEP_ARRIVAL_HARD_IMPACT_SPAN =
+  (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_M41_HARD_IMPACT_SPAN !== "0";
+const STEEP_ARRIVAL_HARD_IMPACT_PROFILE_MIN =
+  impactEnvNum("LR_M41_HARD_IMPACT_PROFILE_MIN", 0.68);
+const STEEP_ARRIVAL_HARD_IMPACT_ZERO_BAND =
+  impactEnvNum("LR_M41_HARD_IMPACT_ZERO_BAND", 0.7);
 
 // Study-only marker: was the LAST geometry produced by sampleContactCenteredLines an
 // impact template lane? Read by the landing-window probe (core/candidate.ts) to
@@ -229,6 +236,12 @@ const STEEP_ARRIVAL_SCARCE_ZERO_BAND = 0.25;
 let lastGeometryWasImpactTemplate = false;
 export function wasLastGeometryImpactTemplate(): boolean {
   return lastGeometryWasImpactTemplate;
+}
+let currentSteepArrivalSpecMaxImpact = 0;
+export function setSteepArrivalSpecMaxImpact(maxImpact: number): void {
+  currentSteepArrivalSpecMaxImpact = Number.isFinite(maxImpact)
+    ? clamp(maxImpact, 0, 1)
+    : 0;
 }
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_START = 0.68;
 const HIGH_AIR_LENGTH_BLEND_PRESSURE_SPAN = 0.24;
@@ -1276,7 +1289,7 @@ function sampleContactCenteredLines(
         currentCompileBudgetFrames > 0 &&
           currentCompileBudgetFrames < STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES
           ? STEEP_ARRIVAL_SCARCE_ZERO_BAND
-          : STEEP_ARRIVAL_ZERO_BAND;
+          : steepArrivalMatureZeroBand();
       const spanRoll = Math.max(
         0,
         (lowDiscrepancyRoll(attempt, STEEP_ARRIVAL_SPAN_SALT) - zeroBand) /
@@ -1517,6 +1530,16 @@ function steepArrivalDeltaMaxDeg(
   );
   const needDeg = Math.min((needRad * 180) / Math.PI, STEEP_ARRIVAL_ABS_CAP_DEG);
   return clamp(needDeg - arrDeg, 0, STEEP_ARRIVAL_DELTA_MAX_DEG);
+}
+
+function steepArrivalMatureZeroBand(): number {
+  if (
+    STEEP_ARRIVAL_HARD_IMPACT_SPAN &&
+    currentSteepArrivalSpecMaxImpact >= STEEP_ARRIVAL_HARD_IMPACT_PROFILE_MIN
+  ) {
+    return STEEP_ARRIVAL_HARD_IMPACT_ZERO_BAND;
+  }
+  return STEEP_ARRIVAL_ZERO_BAND;
 }
 
 function impactTemplateLaneEligibility(

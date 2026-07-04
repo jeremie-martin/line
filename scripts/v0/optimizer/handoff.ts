@@ -114,6 +114,7 @@ import {
   setCompileBudgetFrames,
   setImpactProfilePressures,
   setImpactTemplateSpecMeanImpact,
+  setSteepArrivalSpecMaxImpact,
   snapshotArcPlacementStats,
 } from "../arc_placement.ts";
 import { makeSolidLine } from "../arc.ts";
@@ -653,6 +654,7 @@ function resolveImpactTargets(
       if (c.impact !== undefined) impactByFrame.set(secToFrame(c.t), c.impact);
     }
   }
+  let maxBoundedImpact = 0;
   if (impactByFrame.size > 0) {
     for (const gap of gaps) {
       if (!gap.endsWithContact) continue;
@@ -672,6 +674,7 @@ function resolveImpactTargets(
       );
       gap.targets.impact = bounded;
       gapAxisTargets[gap.index].impact = bounded;
+      maxBoundedImpact = Math.max(maxBoundedImpact, bounded);
     }
     // Second pass: give each gap the BOUNDED impact target of the beat its
     // launch flies toward (the immediately following contact gap), so
@@ -685,6 +688,7 @@ function resolveImpactTargets(
       }
     }
   }
+  setSteepArrivalSpecMaxImpact(impactOff ? 0 : maxBoundedImpact);
   const impactProfile = impactOff ? null : impactCurveProfileStats(gaps, gapAxisTargets);
   setImpactProfilePressures({
     elevationRoom: impactProfile === null ? 0 : impactCurveElevationRoomPressure(impactProfile),

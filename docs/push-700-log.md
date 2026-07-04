@@ -1357,6 +1357,43 @@ over-displaces dense drum rows; less span removes the accepted hard-impact benef
 work needs a better selector or a different candidate shape, not a scalar span retune. No source
 changes; baseline remains `attempt-m41-hardimpact-span30-a01`.
 
+### M45-M48 — impact-curve onset profile gate · canonical INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Bracketed the existing impact-curve onset on top of M41, then source-trialed a
+profile selector. Broad env-only onset changes were bad: `LR_IMPACT_CURVE_START=0.20`
+(`probe-m45-impactcurve-start020-panel-s0-2-a01`) rejected on the 18-spec panel
+with Δheadline -5.6, CI [-15.0, 3.5], P(Δ≤0)=88.9%; `LR_IMPACT_CURVE_START=0.30`
+(`probe-m46-impactcurve-start030-panel-s0-2-a01`) also rejected with Δ -3.2,
+CI [-10.1, 4.6], P(Δ≤0)=81.8%.
+
+**Selector.** Temporary source hook raised onset to 0.30 only for non-vertical, broad-air,
+contact-rich low/medium-impact profiles. Focused tests passed default/flag/escape paths.
+The first 3-seed full probe (`probe-m47-profile-curve-high-onset-full-s0-2-a01`) was
+positive but leaked into `opening_burst`: Δ +0.8, CI [-1.2, 3.7], P(Δ≤0)=23.1%.
+Adding `contactCount >= 35` removed the leak. Tightened probe
+`probe-m48-profile-curve-high-onset-contact35-full-s0-2-a01` was valid 480/480 and
+indicative ACCEPT: raw HEADLINE 693.54, Δ +0.9, CI [-1.1, 3.8], P(Δ≤0)=19.0%.
+
+**Canonical.** `attempt-m48-profile-curve-high-onset-contact35-a01` vs M41:
+
+```
+HEADLINE 692.52 -> 692.92 · excl-impact 711.76 -> 711.78 · valid 1920/1920
+budget curve: 125k 678.50 · 250k 689.05 · 375k 694.43 · 500k 697.34
+
+Δheadline = +0.4 · 95% CI [-1.1, 2.2] · P(Δ≤0)=29.8% · effect=0.51
+125k +0.5 · 250k +0.5 · 375k +0.2 · 500k +0.5
+VERDICT: INCONCLUSIVE
+```
+
+**Footprint.** 192/1920 checkpoints changed: 102 improvements, 90 regressions, 1728
+plateaus. Weighted movement was `drums_dropout` +17.36 and `drums_pendulum` +3.28,
+offset by `drums_tide` -1.29 and `rhythm_ladder` -5.73.
+
+**Learnings.** High onset is a real `drums_dropout` basin repair, but the canonical footprint
+is too narrow and seed-sensitive to keep. The paired 12-seed run cut the 3-seed effect in
+half and lost the accept gate. Source reverted; baseline remains
+`attempt-m41-hardimpact-span30-a01`.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

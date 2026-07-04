@@ -1529,6 +1529,38 @@ Do not retry candidate breadth alone as an amplitude repair; future amplitude wo
 geometry/usefulness model, not more q. Source reverted; baseline remains
 `attempt-m41-hardimpact-span30-a01`.
 
+### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Try a coherent portfolio of the last two non-shipping near-misses rather than
+another single-selector tweak. The temporary default-off hook
+(`LR_M55_DENSE_IMPACT_AIR_CLEANUP=1`) combined:
+
+- M48-style impact-curve high onset: raise the curve target onset toward 0.30 only for
+  contact-rich, broad-air, low/medium-impact, mostly non-vertical resolved profiles.
+- M42/M39-style M4 Part B gate: suppress the air-matched ride-out variant on dense
+  low/medium-impact air profiles.
+
+Candidate generation outside that one M4 variant, search policy, start selection, forward eval,
+repair, scorer, specs, fingerprint, seeds, budgets, and acceptance rule were unchanged.
+
+Focused tests passed in disabled/enabled modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M55_DENSE_IMPACT_AIR_CLEANUP=1` (6 files, 77 tests each).
+
+```
+Probe (`probe-m55-dense-impact-air-cleanup-full-s0-2-a01`, LR_M55_DENSE_IMPACT_AIR_CLEANUP=1):
+  valid 480/480 · raw HEADLINE 692.11 · excl-impact 711.62
+  Delta headline = -0.5 · 95% CI [-3.5, 1.9] · P(Delta<=0)=62.4% · effect=-0.36
+  125k +1.3 · 250k -0.8 · 375k -1.0 · 500k -0.4
+  VERDICT: INCONCLUSIVE (indicative, non-promotable)
+```
+
+**Learnings.** The M48/M42 portfolio did not offset its own collateral. It bought a small scarce
+tier lift but dragged all mature tiers on the paired 3-seed intersection, so it does not justify
+a canonical run. Simple static recombinations of the M48 high-onset profile and M42 air-knob gate
+are closed; future work needs either a new usefulness signal or a different generation shape.
+Source reverted; baseline remains `attempt-m41-hardimpact-span30-a01`.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

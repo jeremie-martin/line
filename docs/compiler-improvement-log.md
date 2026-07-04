@@ -2,6 +2,30 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ABANDONED PROBE - dense low/medium-impact basin cleanup
+
+Reason: combine two recent near-miss selectors instead of retesting either alone: M48's
+high-onset impact-curve profile, which had found a `drums_dropout` basin, plus the M42/M39
+air-matched ride-out suppression gate, which had found a `drums_tide`/`drums_pendulum` basin.
+The temporary source hook was default-off behind `LR_M55_DENSE_IMPACT_AIR_CLEANUP=1`. It raised
+the impact-curve onset toward 0.30 only for contact-rich, broad-air, low/medium-impact,
+mostly non-vertical resolved profiles, and suppressed the M4 Part B air-matched ride-out variant
+on the older dense low/medium-impact air selector. Candidate count outside that one M4 variant,
+search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed with the hook disabled and enabled: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` and the same suite with `LR_M55_DENSE_IMPACT_AIR_CLEANUP=1` (6 files, 77 tests each).
+
+Probe: `generated/golden-runs/probe-m55-dense-impact-air-cleanup-full-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_M55_DENSE_IMPACT_AIR_CLEANUP=1`, was valid 480/480 with raw HEADLINE 692.11 and `HEADLINE excl. impact` 711.62. Decision versus M41 was indicative `VERDICT: INCONCLUSIVE`, delta headline -0.5, CI [-3.5, 1.9], P(delta<=0)=62.4%, effect -0.36. Per-budget deltas were 125k +1.3, 250k -0.8, 375k -1.0, and 500k -0.4.
+
+Why it was stopped: the portfolio did not offset the M48/M42 collateral; it converted the old
+single-selector near-misses into a full-suite mature-budget drag. The small 125k gain is not
+worth a canonical run when every mature tier is negative on the paired 3-seed intersection.
+This closes simple recombinations of the M48 high-onset and M42 air-knob gate shapes; future
+work needs a new usefulness signal or a different generation shape, not another static union of
+these selectors. The source hook was reverted; the accepted baseline remains
+`attempt-m41-hardimpact-span30-a01`.
+
 ## 2026-07-04 - INCONCLUSIVE CANONICAL - amplitude-range mature q34 breadth
 
 Reason: test whether the remaining amplitude residual was candidate-breadth limited rather than geometry limited. A first env-only panel probe forced `LR_QUALITY_NCAND=34` on the 10 worst amplitude-residual specs (`terrace_sprint`, `syncopated_lift`, `rolling_drop`, `skyline_push`, `canyon_steps`, `switchback_pop`, `float_bounds`, `soar_settle`, `big_air_ramp`, `glide_stairs`). That panel was valid 120/120 and indicative `VERDICT: ACCEPT`, delta headline +1.9 versus M41 on the 10-spec x 3-seed x full-budget intersection, CI [-0.7, 4.9], P(delta<=0)=8.8%. Per-budget deltas were 125k -1.2, 250k +3.2, 375k +1.5, and 500k +2.2. A full-suite env-only global q34 check, `generated/golden-runs/probe-m53-quality34-full-s0-2-a01/golden.json`, was valid 480/480 but indicative INCONCLUSIVE-negative, delta -1.5, CI [-5.9, 2.4], P(delta<=0)=76.6%, proving the amplitude-panel gain could not be taken globally.

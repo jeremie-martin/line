@@ -38,7 +38,8 @@ rule are frozen.
 - H2b impact template turn-cap raise (22°→~38): CLOSED by M31 — cap 30/38 moved a small
   impact-heavy slice but did not improve impact RMS enough to survive full-suite dilution.
 - H3 air floor on dense beats (candidate: dense-gap-only shorter ride-outs via ARC_LEN LO,
-  air-pressure-gated — uniform widening previously REJECTED −13) — not started
+  air-pressure-gated — uniform widening previously REJECTED −13) — CLOSED by M32
+  (canonical INCONCLUSIVE-negative; targeted probe was a false positive)
 - H4 elevation stranding — not started
 - H5 125k knee (666.71 vs 688.19 at 500k; ≈2 pts max) — not started
 
@@ -848,6 +849,61 @@ promotion scale and the axis diagnostic does not show a robust impact correction
 retry simple `IMPACT_TEMPLATE_MAX_TURN_DEG` cap raises unchanged; future impact-template work
 needs a selector or geometry change that improves the mid-band impact error directly rather
 than relying on the high-band cap.
+
+### M32 — dense high-air short arc-length span · canonical INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Source-trialed the literal H3 dense-gap short-rideout idea in
+`arc_placement.ts`: for dense contacts with high authored air, allow the short end of the
+arc-length span (`ARC_LEN_SPAN_LO`) to open even when `arcLenRoom` is zero, using
+`denseContactPressure * smoothstep((air - 0.55) / 0.25)`. The long end (`ARC_LEN_SPAN_HI`)
+remained sparse-room-gated, low-air rows kept the original behavior, and search policy,
+start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid,
+and acceptance rule stayed unchanged.
+
+**Verification.** Focused optimizer suite passed:
+
+```
+LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/arc_model.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests.
+
+**Probes.** The high-air 18-spec panel looked promotable, but the full-suite probe showed the
+risk before canonical:
+
+```
+targeted panel (`probe-h3-dense-highair-shortarc-s0-2-a01`, 18 specs × seeds 0..2):
+  Δheadline = +4.3 · 95% CI [-2.1, 11.8] · P(Δ≤0)=9.5% · effect=1.23
+  per-budget Δ: 125k -4.8 · 250k +4.1 · 375k +6.3 · 500k +5.1
+  VERDICT: ACCEPT (indicative targeted)
+
+full 3-seed guard (`probe-h3-dense-highair-shortarc-full-s0-2-a01`, 40 specs × seeds 0..2):
+  Δheadline = +1.6 · 95% CI [-2.2, 5.8] · P(Δ≤0)=20.8% · effect=0.80
+  per-budget Δ: 125k -1.4 · 250k +1.4 · 375k +3.1 · 500k +1.4
+  VERDICT: INCONCLUSIVE (indicative; just missed the accept gate)
+```
+
+**Canonical.** `attempt-h3-dense-highair-shortarc-a01` (valid 1920/1920, HEADLINE 690.76,
+excl-impact 709.66) vs `attempt-m3-scarce-span75-a01`:
+
+```
+headline: baseline 691.3 -> candidate 690.8
+Δheadline = -0.5 · 95% CI [-3.0, 1.7] · P(Δ≤0)=66.5% · effect=-0.43
+125k +1.7 · 250k -0.5 · 375k -0.9 · 500k -0.8 · validity 100% at every budget
+VERDICT: INCONCLUSIVE
+```
+
+**Footprint.** The targeted gain was not actually an air correction: the 3-seed diagnostics
+showed impact/speed basin improvement while high-air RMS slightly worsened. Canonical flipped
+the budget shape: 125k gained, but the three heavier columns regressed, so the weighted
+headline fell below the accepted baseline despite full validity.
+
+**Learnings.** Dense high-air short arcs are a real basin reshuffle but not a robust compiler
+improvement. The favorable panel overfit to `drums_dropout`, `syncopated_switchback`,
+`drums_crosscut`, and a few dense rows; the full canonical suite priced the mature-budget
+collateral. Do not retry the same dense high-air `ARC_LEN_SPAN_LO` opening unchanged. Any
+future H3-like work needs either an explicit selector for the impact/speed winners or a true
+air-error improvement signal.
 
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 

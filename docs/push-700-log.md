@@ -1107,6 +1107,40 @@ oracle and nearly disappears at 500k (`syncopated_switchback` seed 0 +3.09,
 `dense_sprint` seed 0 +0.00). Do not spend more time on fixed search-seed lanes unless there is
 an adaptive early-stop/usefulness signal.
 
+### M38 — M4 air-matched Part B removal · rejected/closed (reverted, 2026-07-04)
+
+**Mechanism.** Temporarily added a default-identical `LR_M38_AIR_KNOB_OFF=1` switch in
+`aim.ts` that disabled only the M4 Part B air-matched ride-out emission. The M4 airFit judge,
+joint aim proposer, source ranking, forward eval, repair, true targets, scorer, specs,
+fingerprint, seeds, budgets, and acceptance rule stayed unchanged.
+
+**Verification.** Focused optimizer suite passed with the env unset:
+
+```
+LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests.
+
+**Probe.** `probe-m38-airknob-off-panel-s0-2-a01`, same 19-spec air-sensitive panel used by
+the M4 constant sweep × seeds 0..2 × canonical grid, valid 228/228:
+
+```
+Δheadline = -1.8 · 95% CI [-9.8, 5.9] · P(Δ≤0)=69.0%
+125k +0.9 · 250k -1.4 · 375k -1.4 · 500k -3.0
+VERDICT: INCONCLUSIVE (indicative)
+```
+
+**Footprint.** Removing Part B repaired some basins (`drums_tide` +21.6 weighted on the
+panel, `drums_crescendo` +16.1) but lost more mature-budget quality elsewhere:
+`drums_swell` -22.5, `drums_pulse` -13.4, `syncopated_switchback` -12.3,
+`dense_sprint` -9.2, and `rhythm_ladder` -9.0. The 500k point estimate was the worst budget.
+
+**Learnings.** The accepted first-base air-matched variant is still part of the M4 balance.
+Disabling it is another basin shuffle, not a collateral repair. Do not retry simple Part B
+removal unchanged; future air-length work needs a local usefulness signal, not a blanket off
+switch. Source reverted.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

@@ -2,6 +2,18 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED PROBE - M4 air-matched Part B removal
+
+Reason: test whether the accepted M4 Part B air-matched ride-out candidate is now mostly collateral on the current M3 baseline. Existing telemetry showed high Part B emission rates in several M4 loser specs, and the original M4 decomposition said A-alone carried the gain while B-alone was a lottery. A temporary default-identical `LR_M38_AIR_KNOB_OFF=1` switch in `scripts/v0/optimizer/aim.ts` disabled only the air-matched ride-out emission; the M4 airFit judge term, joint aim proposer, candidate scoring, hard gates, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe with the env unset: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` (6 files, 77 tests).
+
+Probe: `generated/golden-runs/probe-m38-airknob-off-panel-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm LR_M38_AIR_KNOB_OFF=1 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --specs=drums_pendulum,skyline_push,terrace_sprint,drums_dropout,dense_sprint,canyon_steps,rhythm_ladder,dense_echo_climb,syncopated_lift,drums_pulse,drums_breath,drums_crescendo,syncopated_switchback,opening_burst,drums_swell,drums_tide,drums_zigzag,drums_crosscut,cold_start --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m38-airknob-off-panel-s0-2-a01`. Valid 228/228.
+
+Decision: `npm run decide -- generated/golden-runs/probe-m38-airknob-off-panel-s0-2-a01/golden.json generated/golden-runs/attempt-m3-scarce-span75-a01/golden.json` -> indicative `VERDICT: INCONCLUSIVE`, delta headline -1.8 on the 19-spec x 3-seed x full-grid intersection, CI [-9.8, 5.9], P(delta<=0)=69.0%. Per-budget deltas were 125k +0.9, 250k -1.4, 375k -1.4, and 500k -3.0, with unchanged validity.
+
+Why it was not kept: this is a basin swap, not a repair. Removing Part B improved `drums_tide` (+21.6 weighted on the panel) and `drums_crescendo` (+16.1), but lost more on `drums_swell` (-22.5), `drums_pulse` (-13.4), `syncopated_switchback` (-12.3), `dense_sprint` (-9.2), and `rhythm_ladder` (-9.0). The mature budgets all moved negative, especially 500k. This closes simple M4 Part B removal on the current baseline; future air-length work still needs a stronger local usefulness signal than "disable the first-base air knob." The temporary source change was reverted, and the accepted baseline remains `attempt-m3-scarce-span75-a01`.
+
 ## 2026-07-04 - SOURCE-FREE STUDY - search-seed portfolio oracle
 
 Reason: test whether the large 125k->500k recovery in specs such as `dense_sprint` and `syncopated_switchback` points to a cheap same-budget search-seed portfolio mechanism. This was a source-free oracle using `scripts/v0/portfolio_oracle.ts`; scorer, specs, fingerprint, seeds, budgets, source, and acceptance rule stayed unchanged.

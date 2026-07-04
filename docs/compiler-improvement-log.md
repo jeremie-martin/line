@@ -2,6 +2,16 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - REJECTED PROBES - M41 hard-impact span dose sweep
+
+Reason: test whether the accepted M41 mature hard-impact steep-arrival span was under- or over-dosed. No source edits were needed: the accepted M41 source already exposes `LR_M41_HARD_IMPACT_ZERO_BAND`. The default accepted setting is 0.70, which means a 30% mature attempt span on whole specs whose max bounded impact clears 0.68. The sweep tested 0.65 (35% span) and 0.75 (25% span) on the full 40-spec x seeds 0..2 x canonical-budget grid, compared to `attempt-m41-hardimpact-span30-a01`. Scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Wider dose: `generated/golden-runs/probe-m43-hardimpact-span35-full-s0-2-a01/golden.json`, run with `LR_M41_HARD_IMPACT_ZERO_BAND=0.65`, was valid 480/480 with raw HEADLINE 691.06 and `HEADLINE excl. impact` 709.33. Decision versus M41 was indicative `VERDICT: INCONCLUSIVE`, delta headline -1.5, CI [-6.2, 1.5], P(delta<=0)=79.9%. Per-budget deltas were 125k +0.0, 250k -1.2, 375k -1.7, and 500k -1.9. The 35% dose gained `verse_chorus` +14.8 and `drums_zigzag` +10.6 on the 3-seed footprint, but lost `drums_swell` -46.9 and `drums_crosscut` -20.7.
+
+Narrower dose: `generated/golden-runs/probe-m44-hardimpact-span25-full-s0-2-a01/golden.json`, run with `LR_M41_HARD_IMPACT_ZERO_BAND=0.75`, was valid 480/480 with raw HEADLINE 689.8 and `HEADLINE excl. impact` 707.67. Decision versus M41 was indicative `VERDICT: REJECT`, delta headline -2.8, CI [-8.1, 1.1], P(delta<=0)=90.9%. Per-budget deltas were 125k +0.0, 250k -3.2, 375k -2.4, and 500k -3.6. It gained `verse_chorus` +19.6 and `drums_swell` +7.7, but lost `drums_zigzag` -50.8, `drums_crosscut` -31.5, `dense_sprint` -11.8, `drums_dropout` -11.8, and `drums_crescendo` -11.1.
+
+Why it was closed: the accepted 30% mature span sits between two losing dose directions. More span over-displaces the dense drum rows; less span gives back the accepted hard-impact winners. Future M41 work should change the selector or add a second orthogonal candidate shape, not just retune the span share. No source changes were made, and the accepted baseline remains `attempt-m41-hardimpact-span30-a01`.
+
 ## 2026-07-04 - REJECTED PROBE - M4 Part B feature gate on M41
 
 Reason: retest the old M39 M4 air-matched Part B feature gate on top of the accepted M41 baseline, because the source-free archive oracle still picked `attempt-m39-airknob-feature-gate-a01` for 314/1920 cells against M41. The temporary default-off source hook `LR_M42_AIR_KNOB_FEATURE_GATE=1` suppressed only the Part B air-matched ride-out candidate when the whole-spec resolved features matched the old dense low/medium-impact air-swing selector: at least 30 contacts, mean bounded impact <=0.43, and either min air <=0.34 or mean speed <=0.62 with air range >=0.30. Candidate scoring, M4 airFit, M41 steep-arrival span, search policy, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged when the env flag was unset.

@@ -1328,6 +1328,35 @@ the low-air side of the gate and lose. A tide-only selector is probably below ca
 unless it is bundled into a broader air-knob portfolio. Source reverted; baseline remains
 `attempt-m41-hardimpact-span30-a01`.
 
+### M43/M44 — M41 hard-impact span dose sweep · rejected/closed (env-only, 2026-07-04)
+
+**Mechanism.** Env-only dose sweep of the accepted M41 mature hard-impact span. M41 default:
+`LR_M41_HARD_IMPACT_ZERO_BAND=0.70` (30% mature span) when max bounded impact >=0.68. Tested
+0.65 (35% span) and 0.75 (25% span) on the full 40-spec x seeds 0..2 x canonical grid.
+
+```
+M43 wider 35% (`probe-m43-hardimpact-span35-full-s0-2-a01`):
+  Δheadline = -1.5 · 95% CI [-6.2, 1.5] · P(Δ≤0)=79.9%
+  125k +0.0 · 250k -1.2 · 375k -1.7 · 500k -1.9
+  valid 480/480 · raw HEADLINE 691.06
+
+M44 narrower 25% (`probe-m44-hardimpact-span25-full-s0-2-a01`):
+  Δheadline = -2.8 · 95% CI [-8.1, 1.1] · P(Δ≤0)=90.9%
+  125k +0.0 · 250k -3.2 · 375k -2.4 · 500k -3.6
+  valid 480/480 · raw HEADLINE 689.8 · VERDICT: REJECT
+```
+
+**Footprint.** Wider span gained `verse_chorus` +14.8 and `drums_zigzag` +10.6, but lost
+`drums_swell` -46.9 and `drums_crosscut` -20.7. Narrower span gained `verse_chorus` +19.6
+and `drums_swell` +7.7, but gave back core M41 winners: `drums_zigzag` -50.8,
+`drums_crosscut` -31.5, `dense_sprint` -11.8, `drums_dropout` -11.8, and
+`drums_crescendo` -11.1.
+
+**Learnings.** The accepted 30% mature span is bracketed by losing doses. More span
+over-displaces dense drum rows; less span removes the accepted hard-impact benefit. Future M41
+work needs a better selector or a different candidate shape, not a scalar span retune. No source
+changes; baseline remains `attempt-m41-hardimpact-span30-a01`.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

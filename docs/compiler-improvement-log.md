@@ -2,6 +2,29 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE INCONCLUSIVE PROBE - M98 impact onset 0.30 on old M48 pocket
+
+Reason: M48's profiled high-onset impact-curve hook was canonical-inconclusive, not rejected,
+and it targeted a slice M94 does not touch. Reprice the old four-spec moved footprint on the
+current M94 baseline without source edits by running `LR_IMPACT_CURVE_START=0.30` only on
+`drums_dropout`, `drums_pendulum`, `drums_tide`, and `rhythm_ladder`. Candidate generation
+outside the env knob, search policy, objective selectors, scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-m98-impact-onset030-profile-pocket-s0-11-a01/golden.json`,
+run with `LR_ENGINE=wasm LR_IMPACT_CURVE_START=0.30 npm run golden -- --specs=drums_dropout,drums_pendulum,drums_tide,rhythm_ladder --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m98-impact-onset030-profile-pocket-s0-11-a01`,
+covered all 12 canonical seeds on the old M48 footprint. It was valid 192/192 with raw pocket
+HEADLINE 597.11 and `HEADLINE excl. impact` 653.18.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m98-impact-onset030-profile-pocket-s0-11-a01/golden.json generated/golden-runs/attempt-m94-lowimpact-compact-current20-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta -0.8 on the four-spec pocket, CI [-10.3, 8.5], P(delta<=0)=56.5%, effect -0.15. Per-budget deltas were 125k +4.4, 250k +1.4, 375k -2.6, and 500k -1.8.
+
+Why it was stopped: the current M94 stack does not reopen M48. `drums_dropout` still gained
+(+3.52 weighted paired-row mean, driven by +27.81 at 125k), but `drums_pendulum` -2.88,
+`rhythm_ladder` -1.59, and `drums_tide` -1.29 erased it, with the 375k/500k tiers negative.
+The old profiled high-onset path should not be reintroduced on the current baseline without a
+new selector that isolates `drums_dropout` without the mature-budget losses. Env-only; the
+accepted baseline remains `attempt-m94-lowimpact-compact-current20-a01`.
+
 ## 2026-07-04 - INCONCLUSIVE PROBES - M96/M97 compact readiness compound
 
 Reason: after M94 accepted p=2.0 for the compact low-impact pocket, test whether the same

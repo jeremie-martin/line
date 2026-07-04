@@ -1771,6 +1771,31 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M98 - impact onset 0.30 on old M48 pocket · source-free INCONCLUSIVE-negative (2026-07-04)
+
+**Mechanism.** Repriced the old M48 high-onset impact-curve footprint on the current M94
+baseline without source edits. The run used `LR_IMPACT_CURVE_START=0.30` only on the four specs
+that moved in the old profiled canonical result: `drums_dropout`, `drums_pendulum`,
+`drums_tide`, and `rhythm_ladder`. Candidate generation outside the env knob, search policy,
+objective selectors, scorer, specs, fingerprint, seeds, budget grid, and acceptance rule stayed
+frozen.
+
+```
+Old-M48-footprint probe (`probe-m98-impact-onset030-profile-pocket-s0-11-a01`):
+  4 specs x 12 seeds x canonical budget grid · valid 192/192
+  raw pocket HEADLINE 597.11 · excl-impact 653.18
+  Delta headline = -0.8 · 95% CI [-10.3, 8.5] · P(Delta<=0)=56.5% · effect=-0.15
+  125k +4.4 · 250k +1.4 · 375k -2.6 · 500k -1.8
+  VERDICT: INCONCLUSIVE (indicative)
+```
+
+**Learnings.** M48 is not reopened by the current objective stack. `drums_dropout` still gains
+(+3.52 weighted paired-row mean, mostly 125k), but `drums_pendulum` (-2.88),
+`rhythm_ladder` (-1.59), and `drums_tide` (-1.29) erase it, and both heavier mature budgets
+are negative. Do not reintroduce the high-onset profile unless a new selector isolates the
+`drums_dropout` benefit without the mature-budget losses. Env-only; baseline remains
+`attempt-m94-lowimpact-compact-current20-a01`.
+
 ### M96/M97 - compact readiness/current compound · full-suite INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** After M94 accepted the compact low-impact p=2.0 selector, M96 source-free priced

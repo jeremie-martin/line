@@ -1770,6 +1770,34 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M88 - low-impact steady current-power 2.0 dose · full-suite INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Dose-check the newly accepted M87 low-impact steady/sparse selector by raising
+that pocket from `currentQuality^1.5 * readiness` to `currentQuality^2.0 * readiness`.
+`LR_M88_LOW_IMPACT_STEADY_CURRENT20=0` fell back to the accepted M87 dose during the temporary
+source trial. The M64/M74 impact-band selector kept precedence, 125k remained byte-identical,
+and scorer, specs, fingerprint, seeds, budget grid, and acceptance rule stayed frozen.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M88_LOW_IMPACT_STEADY_CURRENT20=0` (6 files, 78 tests each).
+
+```
+Full probe (`probe-m88-lowimpact-steady-current20-s0-2-a01`):
+  40 specs × seeds 0..2 × canonical budget grid · valid 480/480
+  raw HEADLINE 697.25 · excl-impact 714.53
+  Delta headline = +0.0 · 95% CI [-1.7, 1.4] · P(Delta<=0)=45.6% · effect=0.01
+  125k +0.0 · 250k +0.2 · 375k +0.2 · 500k -0.2
+  VERDICT: INCONCLUSIVE (non-promotable)
+```
+
+**Learnings.** M87 is not under-dosed. Power 2.0 helps `mini_burst` (+11.55), `cold_start`
+(+5.87), `ridge_pulse` (+2.77), and `rolling_hills` (+2.77), but regresses `float_bounds`
+(-17.92) and slightly hurts `grain_staircase` (-0.62) and `mixed_grade` (-0.78). The footprint
+is only 63/480 changed checkpoints, split 34 improvements and 29 regressions, and the 500k tier
+is negative. Do not raise the M87 selector unchanged. Temporary source reverted; baseline
+remains `attempt-m87-lowimpact-steady-current15-a01`.
+
 ### M87 - low-impact steady/sparse current objective gate · canonical ACCEPT (2026-07-04)
 
 **Mechanism.** Push the M63/M64 current-quality exponent idea into the clean low-impact pocket

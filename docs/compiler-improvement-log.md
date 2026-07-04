@@ -2,6 +2,34 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - INCONCLUSIVE PROBE - M88 low-impact steady current-power 2.0 dose
+
+Reason: after M87 accepted a second narrow M63-form selector, test whether the low-impact
+steady/sparse pocket was under-dosed. The temporary source kept the exact M87 selector but
+returned current-quality power 2.0 instead of 1.5 when `LR_M88_LOW_IMPACT_STEADY_CURRENT20`
+was not `0`; setting that flag to `0` fell back to the accepted M87 p=1.5 path. The M64/M74
+impact band still had precedence, 125k stayed byte-identical, and scorer, specs, fingerprint,
+seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default mode and fallback mode:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M88_LOW_IMPACT_STEADY_CURRENT20=0` (6 files, 78 tests each).
+
+Probe: `generated/golden-runs/probe-m88-lowimpact-steady-current20-s0-2-a01/golden.json`,
+run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m88-lowimpact-steady-current20-s0-2-a01`,
+covered all 40 specs with seeds 0..2 and the canonical budget grid. It was valid 480/480 with
+raw HEADLINE 697.25 and `HEADLINE excl. impact` 714.53.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m88-lowimpact-steady-current20-s0-2-a01/golden.json generated/golden-runs/attempt-m87-lowimpact-steady-current15-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, delta +0.0 on the 40-spec x three-seed x full-budget intersection, CI [-1.7, 1.4], P(delta<=0)=45.6%, effect 0.01. Per-budget deltas were 125k +0.0, 250k +0.2, 375k +0.2, and 500k -0.2.
+
+Why it was stopped: the stronger exponent is a basin shuffle, not an upgrade. Only 63/480
+paired checkpoints changed, with 34 improvements and 29 regressions. It helped `mini_burst`
+(+11.55), `cold_start` (+5.87), `ridge_pulse` (+2.77), and `rolling_hills` (+2.77), but
+regressed `float_bounds` hard (-17.92) and slightly hurt `grain_staircase` (-0.62) and
+`mixed_grade` (-0.78). The 500k tier moved negative, so a canonical run is not justified.
+The temporary source change was reverted, and the accepted baseline remains
+`attempt-m87-lowimpact-steady-current15-a01`.
+
 ## 2026-07-04 - ACCEPTED - M87 low-impact steady/sparse current objective gate
 
 Reason: M63/M64 proved that mature current-quality exponentiation is useful when it is narrowly

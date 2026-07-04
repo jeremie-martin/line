@@ -1483,6 +1483,52 @@ canonical seed set. Full-canonical mature budgets were all slightly negative, so
 seed-sensitive redistribution rather than a viable way to spend mature aim breadth. Source
 reverted; baseline remains `attempt-m41-hardimpact-span30-a01`.
 
+### M52-M54 - amplitude-range mature q34 breadth · canonical INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Test whether the remaining amplitude residual is candidate-breadth limited. M52
+first forced global `LR_QUALITY_NCAND=34` on the 10 worst amplitude-residual specs. M53 priced
+the same env setting on the full 40-spec suite. M54 then source-trialed the separable part:
+at budgets >=200k, use q34 only when the resolved whole-spec profile has at most 23 contact gaps
+and amplitude target range >=0.35. Geometry, scorer, specs, fingerprint, seeds, budgets, and
+acceptance rule were unchanged.
+
+Focused tests passed in disabled/enabled and promoted/escape modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 77 tests).
+
+```
+M52 panel (`probe-m52-amp-quality34-panel-s0-2-a01`, LR_QUALITY_NCAND=34):
+  valid 120/120 · raw panel HEADLINE 671.71 · excl-impact 665.99
+  Delta headline = +1.9 · 95% CI [-0.7, 4.9] · P(Delta<=0)=8.8% · effect=1.29
+  125k -1.2 · 250k +3.2 · 375k +1.5 · 500k +2.2
+  VERDICT: ACCEPT (indicative panel)
+
+M53 full global q34 (`probe-m53-quality34-full-s0-2-a01`):
+  valid 480/480 · raw HEADLINE 691.1 · excl-impact 709.92
+  Delta headline = -1.5 · 95% CI [-5.9, 2.4] · P(Delta<=0)=76.6% · effect=-0.72
+  125k -0.8 · 250k -2.1 · 375k -1.3 · 500k -1.5
+  VERDICT: INCONCLUSIVE-negative (indicative)
+
+M54 source probe (`probe-m54-amp-range-q34-full-s0-2-a01`, LR_M54_AMP_RANGE_Q34=1):
+  valid 480/480 · raw HEADLINE 693.3 · excl-impact 711.87
+  Delta headline = +0.7 · 95% CI [0.1, 1.6] · P(Delta<=0)=1.5% · effect=1.83
+  125k +0.0 · 250k +1.3 · 375k +0.6 · 500k +0.7
+  VERDICT: ACCEPT (indicative)
+
+Canonical (`attempt-m54-amp-range-q34-a01`, default-on, escape LR_M54_AMP_RANGE_Q34=0):
+  valid 1920/1920 · HEADLINE 692.51 · excl-impact 711.59
+  budget curve: 125k 677.98 · 250k 688.67 · 375k 693.97 · 500k 696.97
+  Delta headline = -0.0 · 95% CI [-0.6, 0.6] · P(Delta<=0)=50.3% · effect=-0.03
+  125k +0.0 · 250k +0.1 · 375k -0.2 · 500k +0.1
+  VERDICT: INCONCLUSIVE
+```
+
+**Learnings.** Amplitude breadth has a real but seed-sensitive 3-seed pocket. The global knob is
+suite-negative, and the clean amplitude-range selector collapses to exact flatness at 12 seeds.
+Do not retry candidate breadth alone as an amplitude repair; future amplitude work needs a new
+geometry/usefulness model, not more q. Source reverted; baseline remains
+`attempt-m41-hardimpact-span30-a01`.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

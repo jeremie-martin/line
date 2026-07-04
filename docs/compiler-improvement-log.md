@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ABANDONED PROBE - current-impact thresholded objective exponent
+
+Reason: after M67 showed that localizing M64 by current impact presence was inert, test whether
+the M64 exponent should apply only on medium/hard bounded current-impact asks. The goal was to
+keep the useful current-quality pressure while avoiding low-impact current-gap collateral.
+
+Mechanism trial: a temporary default-off hook added
+`LR_M68_OBJECTIVE_CURRENT_IMPACT_MIN`/`LR_M68_OBJECTIVE_CURRENT_IMPACT_MAX`. With the min env
+set, the existing M64 spec/budget band still selected the compile, but the objective exponent
+fell back to power 1 when the current gap's bounded impact target was below the threshold.
+Default mode stayed byte-equivalent to accepted M64. Candidate generation, search policy, M64
+selector, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed
+unchanged.
+
+Focused tests passed in default and thresholded modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M68_OBJECTIVE_CURRENT_IMPACT_MIN=0.45` (6 files, 77 tests each).
+
+Probes on the 17 M64-active specs with seeds 0..2 and the canonical budget grid:
+
+- `generated/golden-runs/probe-m68-objective-impact-min045-active-s0-2-a01/golden.json`:
+  valid 204/204, raw slice HEADLINE 683.27, `HEADLINE excl. impact` 697.92. Decision vs M64
+  on the paired 17-spec x 3-seed intersection: non-canonical `VERDICT: INCONCLUSIVE`, delta
+  -1.2, CI [-6.0, 3.0], P(delta<=0)=68.8%, effect -0.51. Per-budget deltas were 125k +0.0,
+  250k +1.5, 375k -2.3, and 500k -2.0.
+- `generated/golden-runs/probe-m68-objective-impact-min035-active-s0-2-a01/golden.json`:
+  valid 204/204, raw slice HEADLINE 683.15, `HEADLINE excl. impact` 697.99. Decision vs M64:
+  non-canonical `VERDICT: INCONCLUSIVE`, delta -1.3, CI [-6.2, 3.3], P(delta<=0)=71.2%,
+  effect -0.55. Per-budget deltas were 125k +0.0, 250k +0.7, 375k -1.6, and 500k -2.4.
+
+Why it was stopped: thresholding the current-impact ask gives back the mature-budget M64 lift.
+The accepted M64 behavior needs its low/mid current-impact pressure; selecting only harder
+current impacts is not a better form of the M63 idea. Temporary source changes were reverted;
+the accepted baseline remains `attempt-m64-impact-band-objective-current15-a01`.
+
 ## 2026-07-04 - ABANDONED PROBE - current-impact-local objective exponent
 
 Reason: M64 accepted the M63 current-quality exponent as a spec-level impact-prevalence band.

@@ -1735,6 +1735,38 @@ M64-active slice already carries impact targets on the relevant current gaps. Th
 reduce M64 collateral or add a new selector. Source and temporary test changes were reverted;
 baseline remains `attempt-m64-impact-band-objective-current15-a01`.
 
+### M68 - current-impact thresholded objective power · affected-slice INCONCLUSIVE-negative (reverted, 2026-07-04)
+
+**Mechanism.** Temporary default-off hook
+`LR_M68_OBJECTIVE_CURRENT_IMPACT_MIN`/`LR_M68_OBJECTIVE_CURRENT_IMPACT_MAX`: keep the M64
+spec/budget band, but apply `currentQuality^1.5 * readiness` only when the current gap's bounded
+impact target sits inside the env threshold. Default mode remained M64.
+
+Focused tests passed in default and thresholded modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M68_OBJECTIVE_CURRENT_IMPACT_MIN=0.45` (6 files, 77 tests each).
+
+```
+Affected-slice probe min=0.45 (`probe-m68-objective-impact-min045-active-s0-2-a01`):
+  17 M64-active specs × seeds 0..2 × canonical budget grid · valid 204/204
+  raw slice HEADLINE 683.27 · excl-impact 697.92
+  Delta headline = -1.2 · 95% CI [-6.0, 3.0] · P(Delta<=0)=68.8% · effect=-0.51
+  125k +0.0 · 250k +1.5 · 375k -2.3 · 500k -2.0
+  VERDICT: INCONCLUSIVE (non-promotable)
+
+Affected-slice probe min=0.35 (`probe-m68-objective-impact-min035-active-s0-2-a01`):
+  17 M64-active specs × seeds 0..2 × canonical budget grid · valid 204/204
+  raw slice HEADLINE 683.15 · excl-impact 697.99
+  Delta headline = -1.3 · 95% CI [-6.2, 3.3] · P(Delta<=0)=71.2% · effect=-0.55
+  125k +0.0 · 250k +0.7 · 375k -1.6 · 500k -2.4
+  VERDICT: INCONCLUSIVE (non-promotable)
+```
+
+**Learnings.** M64's lift needs the lower/mid current-impact targets; selecting only harder
+current impacts gives back mature-budget score. Do not continue the M63/M64 line with local
+impact-threshold gating. Source reverted; baseline remains
+`attempt-m64-impact-band-objective-current15-a01`.
+
 ### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Try a coherent portfolio of the last two non-shipping near-misses rather than

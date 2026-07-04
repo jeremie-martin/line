@@ -700,6 +700,29 @@ K=7 creates broad mature-budget churn for only a tiny positive point estimate an
 accept signal. Do not raise `AIM_TOPK_BASES_HIGH` unchanged; any future extra-base work needs
 a selector that excludes the `syncopated_switchback`/`drums_pulse` failure mode.
 
+### M28 — aim solve span 10→14 · env-only INERT (2026-07-04)
+
+**Mechanism.** Repriced the old `LR_AIM_SPAN=14` knob on the current M4/M3 baseline. The
+intent was to allow larger pitch/rotate solves in the aim lane without changing candidate
+count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed
+set, budget grid, or acceptance rule.
+
+**Probe.** `probe-aim-span14-current-s0-2-a01` (40 specs × seeds 0..2 × canonical budget
+grid, valid 480/480) vs `attempt-m3-scarce-span75-a01`:
+
+```
+Δheadline = +0.0 · 95% CI [0.0, 0.0] · P≤0=100%
+Per-budget Δ: 125k +0.0 · 250k +0.0 · 375k +0.0 · 500k +0.0
+VERDICT: INCONCLUSIVE-inert (indicative; no source trial)
+```
+
+**Footprint.** Exact paired check found 0/480 score changes and 0/480 `track_hash` changes.
+The current `cross5` aim probe exposes a ±6° fitted span, and the production solve clamps
+`aimDeltaMaxDeg()` to that measured probe span, so raising `LR_AIM_SPAN` above the default
+does not affect emitted candidates. This is a stale escape-hatch knob, not remaining headroom.
+Do not retry wider `LR_AIM_SPAN` unchanged; any wider aim authority would first need a wider
+probe design, which is a different mechanism and must pay its probe cost explicitly.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

@@ -1709,6 +1709,32 @@ score on the exact rows M64 is allowed to affect, so further progress should not
 simply increasing the current-quality exponent. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M67 - current-impact-local objective power · affected-slice INERT (reverted, 2026-07-04)
+
+**Mechanism.** Temporary default-off hook `LR_M67_IMPACT_LOCAL_OBJECTIVE_CURRENT15=1`: keep the
+M64 spec/budget band, but apply `currentQuality^1.5 * readiness` only when the current gap has
+an authored impact target; non-impact current gaps fall back to the baseline linear objective.
+Default mode was intended to be byte-equivalent to M64.
+
+Focused tests passed in default and opt-in modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M67_IMPACT_LOCAL_OBJECTIVE_CURRENT15=1` (6 files, 78 tests each,
+including the temporary hook unit test).
+
+```
+Affected-slice probe (`probe-m67-impact-local-objective-current15-active-s0-2-a01`):
+  17 M64-active specs × seeds 0..2 × canonical budget grid · valid 204/204
+  raw slice HEADLINE 684.45 · excl-impact 696.24
+  Delta headline = +0.0 · 95% CI [0.0, 0.0] · P(Delta<=0)=100.0% · effect=0.00
+  125k +0.0 · 250k +0.0 · 375k +0.0 · 500k +0.0
+  VERDICT: INCONCLUSIVE (byte-identical, non-promotable)
+```
+
+**Learnings.** Localizing the objective exponent by current impact presence is inert: the
+M64-active slice already carries impact targets on the relevant current gaps. This does not
+reduce M64 collateral or add a new selector. Source and temporary test changes were reverted;
+baseline remains `attempt-m64-impact-band-objective-current15-a01`.
+
 ### M55 - dense low/medium-impact basin cleanup · probe INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Try a coherent portfolio of the last two non-shipping near-misses rather than

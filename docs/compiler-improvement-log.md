@@ -2,6 +2,37 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ABANDONED PROBE - current-impact-local objective exponent
+
+Reason: M64 accepted the M63 current-quality exponent as a spec-level impact-prevalence band.
+Test whether the same exponent could be made more surgical by applying
+`currentQuality^1.5 * readiness` only when the current gap itself had an authored impact target,
+leaving non-impact current gaps linear.
+
+Mechanism trial: a temporary default-off hook added `LR_M67_IMPACT_LOCAL_OBJECTIVE_CURRENT15=1`.
+With the env set, the existing M64 band still selected the compile, but the objective exponent
+fell back to power 1 on current gaps without `targets.impact`. Without the env var, the code was
+intended to remain byte-equivalent to accepted M64. Candidate generation, search policy, M64
+spec/budget selector, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule
+stayed unchanged.
+
+Focused tests passed in default and opt-in modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M67_IMPACT_LOCAL_OBJECTIVE_CURRENT15=1` (6 files, 78 tests each,
+including the temporary objective-hook unit check).
+
+Probe: `generated/golden-runs/probe-m67-impact-local-objective-current15-active-s0-2-a01/golden.json`,
+run on the 17 M64-active specs with seeds 0..2 and the canonical budget grid, was valid 204/204
+with raw slice HEADLINE 684.45 and `HEADLINE excl. impact` 696.24.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m67-impact-local-objective-current15-active-s0-2-a01/golden.json generated/golden-runs/attempt-m64-impact-band-objective-current15-a01/golden.json` -> non-canonical `VERDICT: INCONCLUSIVE`, exactly byte-identical on the paired 17-spec x 3-seed x full-budget intersection: delta +0.0, CI [0.0, 0.0], P(delta<=0)=100%, effect 0.00. Every per-budget delta was +0.0.
+
+Why it was stopped: the local-current-impact condition does not reduce the M64 footprint on the
+affected slice; the relevant current gaps already carry impact targets. This closes the
+"localize by current impact presence" variant of the M63/M64 idea. The temporary source and test
+changes were reverted; the accepted baseline remains
+`attempt-m64-impact-band-objective-current15-a01`.
+
 ## 2026-07-04 - REJECTED PROBE - objective band current-quality power 2.0
 
 Reason: after M64 accepted the bounded objective-current exponent, test whether the accepted

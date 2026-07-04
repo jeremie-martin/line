@@ -952,6 +952,53 @@ steep span does not recover the huge terrace amplitude overshoot. Do not retry a
 `nextAmplitude < 0.20` M3 gate unchanged; any future work here needs a generation shape that
 reduces amplitude while preserving the high-impact carrier, not just less arrival steepening.
 
+### M34 — env-only breadth / forward-eval / impact-curve diagnostics · closed (2026-07-04)
+
+**Mechanisms.** Ran four env-only fail-fast probes after M33, with no source changes:
+
+- `LR_QUALITY_NCAND=64` on the 10-spec vertical/error panel to test whether ordinary candidate
+  breadth exposes the remaining amplitude/elevation pool.
+- `LR_FWD_EVAL=avg:2:1` on the 5-spec low-amplitude/high-impact panel to test whether the
+  existing mature avg forward evaluator should also cover low-amplitude conflict rows.
+- `LR_IMPACT_CURVE_START=0.20` and `0.30` on the 18-spec impact-heavy panel to test whether the
+  impact curvature carrier wants a softer/harder pressure start around the production `0.25`.
+
+**Probes.**
+
+```
+probe-quality-n64-vertical-s0-2-a01 (10 specs × seeds 0..2 × canonical grid, valid 120/120):
+  Δheadline = +0.7 · 95% CI [-3.5, 4.5] · P(Δ≤0)=35.1%
+  125k -4.3 · 250k +1.7 · 375k +2.0 · 500k +0.4
+  VERDICT: INCONCLUSIVE (indicative; weak breadth signal, 125k loss)
+
+probe-fwdeval-avg-lowamp-s0-2-a01 (5 specs × seeds 0..2 × canonical grid, valid 60/60):
+  Δheadline = -0.8 · 95% CI [-6.9, 5.8] · P(Δ≤0)=61.4%
+  125k -3.0 · 250k -4.6 · 375k -0.5 · 500k +1.4
+  VERDICT: INCONCLUSIVE-negative (indicative)
+
+probe-impactcurve-start020-s0-2-a01 (18 specs × seeds 0..2 × canonical grid, valid 216/216):
+  Δheadline = -8.1 · 95% CI [-18.7, 0.5] · P(Δ≤0)=96.8%
+  125k -1.6 · 250k -10.4 · 375k -8.7 · 500k -8.2
+  VERDICT: REJECT (indicative)
+
+probe-impactcurve-start030-s0-2-a01 (18 specs × seeds 0..2 × canonical grid, valid 216/216):
+  Δheadline = -1.1 · 95% CI [-10.4, 8.4] · P(Δ≤0)=58.2%
+  125k -1.4 · 250k -0.7 · 375k -1.1 · 500k -1.2
+  VERDICT: INCONCLUSIVE-negative (indicative)
+```
+
+**Footprint.** N=64 found a small mature-budget breadth signal on the vertical panel but paid
+scarce-budget losses (`valley_bounce` −44 and `syncopated_lift` −30.5 at 125k). Forced avg
+forward eval helped only the 500k low-amplitude panel slice while hurting 125k/250k. Impact
+curve start 0.20 reproduced the known "too broad impact pressure" failure in milder form;
+start 0.30 was closer but still below baseline on every budget.
+
+**Learnings.** Generic candidate breadth and global avg forward-eval are not promotion-scale
+axis fixes. The impact curve pressure start is already near the local optimum for the current
+compiler; do not retry simple `LR_IMPACT_CURVE_START` 0.20/0.30 retunes, global
+`LR_QUALITY_NCAND=64`, or global `LR_FWD_EVAL=avg:2:1` unchanged. Any future use of these
+families needs a sharper selector that protects scarce budgets and proves full-suite lift.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

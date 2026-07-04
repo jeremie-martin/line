@@ -2,6 +2,20 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ACCEPTED CANONICAL - hard-impact mature M3 steep-arrival span
+
+Reason: the accepted M3 steep-arrival launch span was strong at the scarce tier but too broad for mature budgets. A source-free oracle and the old full M3 span30 archive showed complementary mature-budget winners, while the large losers separated well by whole-spec maximum bounded impact. The accepted M41 source keeps the existing scarce-tier span untouched, and at mature budgets lowers the steep-arrival span zero band from 0.80 to 0.70 only when the resolved spec maximum bounded impact is at least 0.68. `LR_M41_HARD_IMPACT_SPAN=0` restores the old mature behavior; `LR_M41_HARD_IMPACT_PROFILE_MIN` and `LR_M41_HARD_IMPACT_ZERO_BAND` remain diagnostic overrides. Candidate count, search policy, start selection, forward eval, repair, M4 airFit, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed with the gate default-on: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` (6 files, 77 tests).
+
+Probe: the first full 40-spec x seeds 0..2 probe at threshold 0.676 was indicative `VERDICT: ACCEPT`, delta headline +1.5, CI [-2.2, 4.7], P(delta<=0)=17.1%, but still carried a large `drums_tide` loss. Raising the threshold to 0.68 excluded that edge case while keeping the major hard-impact winners: `probe-m41-hardimpact-span30-min068-full-s0-2-a01` was valid 480/480 with raw HEADLINE 692.6 and indicative `VERDICT: ACCEPT`, delta headline +2.0, CI [-0.7, 4.8], P(delta<=0)=6.9%. Per-budget deltas were 125k +0.0, 250k +2.2, 375k +2.9, and 500k +1.8.
+
+Canonical: `generated/golden-runs/attempt-m41-hardimpact-span30-a01/golden.json`, run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m41-hardimpact-span30-a01`. The run was valid 1920/1920 overall, with raw HEADLINE 692.52 and `HEADLINE excl. impact` 711.76. Per-budget point estimates were 125k 677.98, 250k 688.56, 375k 694.19, and 500k 696.87.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-m41-hardimpact-span30-a01/golden.json generated/golden-runs/attempt-m3-scarce-span75-a01/golden.json` -> canonical `VERDICT: ACCEPT`, delta headline +1.2, CI [-0.2, 3.0], P(delta<=0)=5.1%, effect 1.50. Per-budget deltas were 125k +0.0, 250k +1.5, 375k +1.7, and 500k +1.1, with unchanged 100% validity at every tier.
+
+Why it was kept: this is the first mature-budget reuse of the M3 mechanism that confines the displacement tax to profiles that actually need harder impact arrivals. The 125k tier is byte-identical because the existing scarce span still wins there. Mature gains are broad enough to clear the canonical gate: 960/1920 paired checkpoints changed, with 541 improvements, 419 regressions, and 960 plateaus. Weighted winners were `drums_zigzag` +9.3, `rolling_hills` +8.6, `drums_crosscut` +8.3, `drums_crescendo` +8.2, `drums_swell` +4.5, `swoop_dive` +3.5, and `climb_terrace` +3.5. The main losses were `verse_chorus` -3.3, `syncopated_lift` -2.0, `skyline_push` -1.1, and `dense_sprint` -1.0. The accepted baseline is now `attempt-m41-hardimpact-span30-a01` at source commit `0260692`.
+
 ## 2026-07-04 - REJECTED PROBE - impact-template hold widening
 
 Reason: test whether the accepted profiled low-air impact SLAM-HOP hold is under-dosed on the current M3 baseline. The temporary source added default-identical env hooks around the existing impact-template hold length and low-air selectors: `LR_M40_HOLD_MAX_FRAMES`, `LR_M40_HOLD_PROFILE_AIR_START`, and `LR_M40_HOLD_LOCAL_AIR_START`. The default path stayed identical; candidate count, search policy, start selection, forward eval, repair, aim, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged unless an M40 env knob was set.

@@ -14,6 +14,7 @@ rule are frozen.
 | 2026-07-03 | attempt-impact-portfolio-current-a01 | c2c2d01 | 689.51 | 710.02 | M1 converting scoop + M3 steep-arrival span — canonical ACCEPT |
 | 2026-07-03 | attempt-no-converting-scoop-a01 | dfe9208 | 690.91 | 711.06 | M1 ablated; M3 steep-arrival span retained — canonical ACCEPT |
 | 2026-07-03 | attempt-m3-scarce-span75-a01 | eaed707 | 691.28 | 711.20 | M3 scarce-tier span 20%→75% below 200k — canonical ACCEPT |
+| 2026-07-04 | attempt-m41-hardimpact-span30-a01 | 0260692 | 692.52 | 711.76 | M41 hard-impact mature M3 span 20%->30% — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -1231,6 +1232,64 @@ length does not fix `drums_pendulum`; whole-profile widening alone does not chan
 tracks; local low-air widening reopens the known dense-row basin loss. Do not retry simple
 hold length/profile/local-air widening unchanged. Source reverted; baseline remains
 `attempt-m3-scarce-span75-a01`.
+
+### M41 — hard-impact mature M3 steep-arrival span · ACCEPT (2026-07-04)
+
+**Mechanism.** Reuse the accepted M3 steep-arrival launch span at mature budgets, but only
+on whole specs whose resolved max bounded impact is hard enough. Scarce budgets keep the
+accepted 75% span below 200k. Mature budgets normally keep the old 20% span (`zeroBand=0.80`);
+when max bounded impact >=0.68, M41 uses `zeroBand=0.70` (30% span). Escape hatch:
+`LR_M41_HARD_IMPACT_SPAN=0`. Diagnostic overrides:
+`LR_M41_HARD_IMPACT_PROFILE_MIN` and `LR_M41_HARD_IMPACT_ZERO_BAND`.
+
+**Verification.** Focused optimizer suite passed default-on:
+
+```
+LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests.
+
+**Probe selection.** A full 40-spec x seeds 0..2 probe at threshold 0.676 was ACCEPT-indicative
+but retained a large `drums_tide` loss:
+
+```
+probe-m41-hardimpact-span30-full-s0-2-a01:
+  Δheadline = +1.5 · 95% CI [-2.2, 4.7] · P(Δ≤0)=17.1%
+  125k +0.0 · 250k +1.4 · 375k +2.0 · 500k +1.6
+```
+
+Raising the threshold to 0.68 excluded `drums_tide` and kept the main hard-impact winners:
+
+```
+probe-m41-hardimpact-span30-min068-full-s0-2-a01:
+  Δheadline = +2.0 · 95% CI [-0.7, 4.8] · P(Δ≤0)=6.9%
+  125k +0.0 · 250k +2.2 · 375k +2.9 · 500k +1.8
+  valid 480/480 · raw HEADLINE 692.6 · excl-impact 711.59
+```
+
+**Canonical.** `attempt-m41-hardimpact-span30-a01` vs `attempt-m3-scarce-span75-a01`:
+
+```
+HEADLINE 691.28 -> 692.52 · excl-impact 711.20 -> 711.76 · valid 1920/1920
+budget curve: 125k 677.98 · 250k 688.56 · 375k 694.19 · 500k 696.87
+
+Δheadline = +1.2 · 95% CI [-0.2, 3.0] · P(Δ≤0)=5.1% · effect=1.50
+125k +0.0 · 250k +1.5 · 375k +1.7 · 500k +1.1
+VERDICT: ACCEPT
+```
+
+**Footprint.** 960/1920 paired checkpoints changed: 541 improvements, 419 regressions,
+960 plateaus. Weighted winners: `drums_zigzag` +9.3, `rolling_hills` +8.6,
+`drums_crosscut` +8.3, `drums_crescendo` +8.2, `drums_swell` +4.5,
+`swoop_dive` +3.5, `climb_terrace` +3.5. Main losses: `verse_chorus` -3.3,
+`syncopated_lift` -2.0, `skyline_push` -1.1, `dense_sprint` -1.0.
+
+**Learnings.** Mature M3 span can ship when it is whole-profile gated by resolved hard-impact
+need; the prior broad mature span failed because the displacement tax hit rows whose impact
+profile was not hard enough. The 125k tier remains byte-identical under the accepted scarce
+policy, so this is a mature-budget gain without reopening scarce-budget risk. Baseline is now
+`attempt-m41-hardimpact-span30-a01` at source commit `0260692`.
 
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 

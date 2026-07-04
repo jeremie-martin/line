@@ -1394,6 +1394,60 @@ is too narrow and seed-sensitive to keep. The paired 12-seed run cut the 3-seed 
 half and lost the accept gate. Source reverted; baseline remains
 `attempt-m41-hardimpact-span30-a01`.
 
+### M49 — impact-curve span widening · probe REJECT (env-only, 2026-07-04)
+
+**Mechanism.** Env-only global widening of the impact-curve ramp on the same 18-spec
+impact/guard panel used for M45/M46: `LR_IMPACT_CURVE_SPAN=0.30`. No source changes.
+
+```
+probe-m49-impactcurve-span030-panel-s0-2-a01:
+  valid 216/216 · raw panel HEADLINE 643.67 · excl-impact 680.06
+  Δheadline = -15.2 · 95% CI [-26.6, -5.8] · P(Δ≤0)=100% · effect=-2.87
+  125k -8.2 · 250k -16.5 · 375k -16.3 · 500k -15.5
+  VERDICT: REJECT
+```
+
+**Footprint.** Small gains of +2.32 on `drums_dropout`, +1.24 on `solo_run`, and +0.36 on
+`skyline_push` were swamped by dense-drum guard losses: `drums_pulse` -62.73,
+`drums_zigzag` -53.47, `drums_swell` -26.90, `drums_crosscut` -24.70,
+`rhythm_ladder` -22.38, and `drums_tide` -21.79.
+
+**Learnings.** The curve span is not a safe global knob. It repairs a small dropout basin but
+destroys the rows that already depend on the current curve shape. Leave span alone unless a
+future selector is much cleaner than the onset selector.
+
+### M50 — profile-gated M3 wide hard-impact dose · canonical INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** Source trial to extract the useful part of M43's wider hard-impact span without
+taking the whole dense-drum displacement tax. For hard-impact, non-vertical profiles only, the
+mature M3 steep-arrival zero band was overridden from accepted 0.70 to 0.65. Selector:
+max bounded impact >=0.68, vertical fraction <=0.02, and either mean impact >=0.40 or steady
+air/speed with mean impact >=0.31, mean air >=0.50, air range <=0.30, speed range <=0.30.
+Static target: `verse_chorus`, `drums_dropout`, `drums_zigzag`.
+
+Focused tests passed in experimental/default-on/escape-off modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 77 tests).
+
+```
+3-seed probe (`probe-m50-profile-m3-wide-dose-full-s0-2-a01`, LR_M50_PROFILE_M3_DOSE=1):
+  valid 480/480 · raw HEADLINE 693.28 · excl-impact 712
+  Δheadline = +0.7 · 95% CI [-0.1, 2.1] · P(Δ≤0)=9.5% · effect=1.18
+  125k +0.0 · 250k +1.0 · 375k +0.7 · 500k +0.7
+  VERDICT: ACCEPT (indicative)
+
+Canonical (`attempt-m50-profile-m3-wide-dose-a01`, default-on, escape LR_M50_PROFILE_M3_DOSE=0):
+  valid 1920/1920 · HEADLINE 692.53 · excl-impact 711.74
+  budget curve: 125k 677.98 · 250k 688.73 · 375k 694.12 · 500k 696.87
+  Δheadline = +0.0 · 95% CI [-0.9, 0.8] · P(Δ≤0)=46.5% · effect=0.04
+  125k +0.0 · 250k +0.2 · 375k -0.1 · 500k -0.0
+  VERDICT: INCONCLUSIVE
+```
+
+**Learnings.** The 3-seed positive was real enough to canonical, but not stable enough to keep.
+M43/M44's per-spec winners are seed-sensitive dose redistribution, not a reliable selector for
+changing the M41 mature span. Source reverted; baseline remains `attempt-m41-hardimpact-span30-a01`.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

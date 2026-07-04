@@ -2,6 +2,30 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - INCONCLUSIVE CANONICAL - profile-gated M3 wide hard-impact dose
+
+Reason: test whether the M43 wider M41 dose contained a narrow useful basin that could be selected without taking the full dense-drum displacement tax. The temporary source hook let resolved whole-spec profile stats override only the mature M3 steep-arrival zero band from the accepted 0.70 to 0.65. The selector targeted hard-impact, non-vertical profiles: max bounded impact >=0.68, vertical fraction <=0.02, and either mean impact >=0.40 or steady air/speed with mean impact >=0.31, mean air >=0.50, air range <=0.30, and speed range <=0.30. This selected the intended `verse_chorus`, `drums_dropout`, and `drums_zigzag` basin on static inspection. Candidate count, search policy, start selection, forward eval, repair, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in both the experimental and promoted modes: `LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts` and the same suite with the escape `LR_M50_PROFILE_M3_DOSE=0` (6 files, 77 tests each).
+
+Probe: `generated/golden-runs/probe-m50-profile-m3-wide-dose-full-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_M50_PROFILE_M3_DOSE=1`, was valid 480/480 with raw HEADLINE 693.28 and `HEADLINE excl. impact` 712. Decision versus M41 was indicative `VERDICT: ACCEPT`, delta headline +0.7, CI [-0.1, 2.1], P(delta<=0)=9.5%, effect 1.18. Per-budget deltas were 125k +0.0, 250k +1.0, 375k +0.7, and 500k +0.7.
+
+Canonical: `generated/golden-runs/attempt-m50-profile-m3-wide-dose-a01/golden.json`, run after promoting the gate to default-on with `LR_M50_PROFILE_M3_DOSE=0` as the escape, was valid 1920/1920 with raw HEADLINE 692.53 and `HEADLINE excl. impact` 711.74. Per-budget point estimates were 125k 677.98, 250k 688.73, 375k 694.12, and 500k 696.87.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-m50-profile-m3-wide-dose-a01/golden.json generated/golden-runs/attempt-m41-hardimpact-span30-a01/golden.json` -> canonical `VERDICT: INCONCLUSIVE`, delta headline +0.0, CI [-0.9, 0.8], P(delta<=0)=46.5%, effect 0.04. Per-budget deltas were 125k +0.0, 250k +0.2, 375k -0.1, and 500k -0.0, with unchanged 100% validity.
+
+Why it was not kept: the three selected profiles were real enough to clear the 3-seed indicative gate, but the 12-seed canonical effect vanished. This says the M43/M44 per-spec winners were seed-sensitive dose redistribution, not a reliable selector for widening M41. The source hook was reverted; the accepted baseline remains `attempt-m41-hardimpact-span30-a01`.
+
+## 2026-07-04 - REJECTED PROBE - impact-curve span widening
+
+Reason: test whether the existing impact-curve ramp was too slow once M48's high-onset direction showed a narrow `drums_dropout` basin. This was env-only: `LR_IMPACT_CURVE_SPAN=0.30` on the same 18-spec impact/guard panel used for the onset bracket. Source code, scorer, specs, fingerprint, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-m49-impactcurve-span030-panel-s0-2-a01/golden.json`, run with `LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 LR_IMPACT_CURVE_SPAN=0.30` on the 18-spec panel x canonical budget grid, was valid 216/216 with raw panel HEADLINE 643.67 and `HEADLINE excl. impact` 680.06.
+
+Decision: `npm run decide -- generated/golden-runs/probe-m49-impactcurve-span030-panel-s0-2-a01/golden.json generated/golden-runs/attempt-m41-hardimpact-span30-a01/golden.json` -> indicative `VERDICT: REJECT`, delta headline -15.2, CI [-26.6, -5.8], P(delta<=0)=100%, effect -2.87. Per-budget deltas were 125k -8.2, 250k -16.5, 375k -16.3, and 500k -15.5.
+
+Why it was closed: the faster curve produced small gains on `drums_dropout` (+2.32), `solo_run` (+1.24), and `skyline_push` (+0.36), but heavily damaged the dense drum guard rows: `drums_pulse` -62.73, `drums_zigzag` -53.47, `drums_swell` -26.90, `drums_crosscut` -24.70, `rhythm_ladder` -22.38, and `drums_tide` -21.79. The accepted impact curve span should not be widened globally. This was env-only and left no source changes.
+
 ## 2026-07-04 - INCONCLUSIVE CANONICAL - profile-gated impact-curve high onset
 
 Reason: test whether the current impact-curve carrier is too aggressive on broad-air, low/medium-impact dense rows. The first env-only brackets used the existing `LR_IMPACT_CURVE_START` override on an 18-spec impact/guard panel. Lowering onset to 0.20 (`probe-m45-impactcurve-start020-panel-s0-2-a01`) was valid 216/216 but indicative `VERDICT: REJECT`, delta headline -5.6 on the panel, CI [-15.0, 3.5], P(delta<=0)=88.9%, with per-budget deltas -1.8, -4.7, -7.2, -5.8. Raising onset to 0.30 globally (`probe-m46-impactcurve-start030-panel-s0-2-a01`) was also valid 216/216 and rejected, delta -3.2, CI [-10.1, 4.6], P(delta<=0)=81.8%, with per-budget deltas -1.9, -2.7, -4.0, -3.3.

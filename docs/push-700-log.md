@@ -1771,6 +1771,52 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M96/M97 - compact readiness/current compound · full-suite INCONCLUSIVE (reverted, 2026-07-04)
+
+**Mechanism.** After M94 accepted the compact low-impact p=2.0 selector, M96 source-free priced
+M75-style readiness softening on that same pocket with
+`LR_M75_MATURE_OBJECTIVE_READINESS_POWER=0.75`. M97 then source-trialed the positive sub-shapes:
+p=2.5 only for tiny flat compact rows (contact count <=8 and no authored elevation/amplitude
+range), readiness^0.75 only for dynamic compact rows, and accepted M94 unchanged for
+`cold_start`. M97 fallback flags were `LR_M97_LOW_IMPACT_TINY_FLAT_CURRENT25=0` and
+`LR_M97_LOW_IMPACT_DYNAMIC_COMPACT_READINESS075=0`. Scorer, specs, fingerprint, seeds, budget
+grid, and acceptance rule stayed frozen.
+
+M97 focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with both M97 fallback flags set to `0` (6 files, 78 tests each).
+
+```
+M96 readiness pocket probe (`probe-m96-lowimpact-compact-readiness075-pocket-s0-11-a01`):
+  4 specs x 12 seeds x canonical budget grid · valid 192/192
+  raw pocket HEADLINE 742.49 · excl-impact 764.64
+  Delta headline = +1.0 · 95% CI [-3.7, 5.3] · P(Delta<=0)=30.5% · effect=0.43
+  125k +0.0 · 250k +1.1 · 375k +0.2 · 500k +1.7
+  VERDICT: INCONCLUSIVE (indicative)
+
+M97 compound pocket probe (`probe-m97-lowimpact-compact-compound-pocket-s0-11-a01`):
+  4 specs x 12 seeds x canonical budget grid · valid 192/192
+  raw pocket HEADLINE 743.27 · excl-impact 762.69
+  Delta headline = +1.8 · 95% CI [-1.2, 5.8] · P(Delta<=0)=12.6% · effect=1.02
+  125k +0.0 · 250k +2.3 · 375k +2.1 · 500k +1.7
+  VERDICT: ACCEPT (indicative)
+
+M97 full 3-seed probe (`probe-m97-lowimpact-compact-compound-full-s0-2-a01`):
+  40 specs x seeds 0..2 x canonical budget grid · valid 480/480
+  raw HEADLINE 697.82 · excl-impact 714.90
+  Delta headline = -0.0 · 95% CI [-0.4, 0.3] · P(Delta<=0)=52.7% · effect=-0.06
+  125k +0.0 · 250k +0.0 · 375k -0.1 · 500k +0.0
+  VERDICT: INCONCLUSIVE (not promotable)
+```
+
+**Learnings.** The all-seed affected-pocket accept was real on that slice but not useful enough
+for the suite. In the full seeds 0..2 preview, M97 changed only 27/480 hashes, split
+13 improvements and 14 regressions. `rolling_hills` was positive (+2.94 weighted), but
+`ridge_pulse` (-0.94) and `mini_burst` (-2.69) erased it; `cold_start` stayed byte-stable as
+intended. Do not run this compound selector canonically unless a seed-robust signal separates
+the later-seed `mini_burst` upside from the early-seed losses. Source reverted; baseline remains
+`attempt-m94-lowimpact-compact-current20-a01`.
+
 ### M95 - flat compact current-power 2.5 dose · affected-pocket INCONCLUSIVE (reverted, 2026-07-04)
 
 **Mechanism.** Dose-checked the accepted M94 compact pocket by raising only the flat compact

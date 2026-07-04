@@ -2,6 +2,50 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - INCONCLUSIVE PROBES - M96/M97 compact readiness compound
+
+Reason: after M94 accepted p=2.0 for the compact low-impact pocket, test whether the same
+selector should also use the M75-style readiness softening or a compound dose refinement. M96
+first used the existing source-free `LR_M75_MATURE_OBJECTIVE_READINESS_POWER=0.75` override on
+the full M94 compact pocket. M97 then source-trialed only the positive sub-shapes from M95/M96:
+p=2.5 for tiny flat compact rows (contact count <=8, no authored elevation/amplitude range),
+readiness power 0.75 for dynamic compact rows, and accepted M94 unchanged for `cold_start`.
+Fallback flags were `LR_M97_LOW_IMPACT_TINY_FLAT_CURRENT25=0` and
+`LR_M97_LOW_IMPACT_DYNAMIC_COMPACT_READINESS075=0`. Scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+M97 focused tests passed in default mode and fallback mode:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with both M97 fallback flags set to `0` (6 files, 78 tests each).
+
+M96 source-free pocket probe:
+`generated/golden-runs/probe-m96-lowimpact-compact-readiness075-pocket-s0-11-a01/golden.json`,
+valid 192/192, raw pocket HEADLINE 742.49 and `HEADLINE excl. impact` 764.64. Decision vs M94:
+non-canonical `VERDICT: INCONCLUSIVE`, delta +1.0, CI [-3.7, 5.3], P(delta<=0)=30.5%,
+effect 0.43. Per-budget deltas were 125k +0.0, 250k +1.1, 375k +0.2, and 500k +1.7.
+
+M97 affected-pocket probe:
+`generated/golden-runs/probe-m97-lowimpact-compact-compound-pocket-s0-11-a01/golden.json`,
+valid 192/192, raw pocket HEADLINE 743.27 and `HEADLINE excl. impact` 762.69. Decision vs M94:
+non-canonical indicative `VERDICT: ACCEPT`, delta +1.8, CI [-1.2, 5.8],
+P(delta<=0)=12.6%, effect 1.02. Per-budget deltas were 125k +0.0, 250k +2.3, 375k +2.1,
+and 500k +1.7.
+
+Full 3-seed M97 probe:
+`generated/golden-runs/probe-m97-lowimpact-compact-compound-full-s0-2-a01/golden.json`,
+valid 480/480 with raw HEADLINE 697.82 and `HEADLINE excl. impact` 714.90. Decision vs M94:
+non-canonical `VERDICT: INCONCLUSIVE`, delta -0.0 on the 40-spec x three-seed full-budget
+intersection, CI [-0.4, 0.3], P(delta<=0)=52.7%, effect -0.06. Per-budget deltas were
+125k +0.0, 250k +0.0, 375k -0.1, and 500k +0.0.
+
+Why it was stopped: M97 was a seed-shape mismatch. The all-12 pocket probe looked promotable
+because later seeds made `mini_burst` strongly positive, and the source correctly kept
+`cold_start` byte-stable. But the full-suite seeds 0..2 preview moved only 27/480 hashes with
+13 improvements, 14 regressions, and 453 plateaus; `rolling_hills` was positive (+2.94
+weighted), while `ridge_pulse` (-0.94) and `mini_burst` (-2.69) erased it. Do not promote this
+compound selector or run it canonically without a new seed-robust signal. The temporary source
+change was reverted; the accepted baseline remains `attempt-m94-lowimpact-compact-current20-a01`.
+
 ## 2026-07-04 - INCONCLUSIVE PROBE - M95 flat compact current-power 2.5 dose
 
 Reason: M94 accepted p=2.0 only for the compact sub-pocket of M87. M95 tested whether the

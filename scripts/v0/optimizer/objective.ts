@@ -39,6 +39,30 @@ export const OBJECTIVE_AIR_DEADBAND = 0.05;
  *  is inflated — half weight. */
 export const OBJECTIVE_AIR_UNDERSHOOT_WEIGHT = 0.5;
 
+function objectiveEnvNum(name: string, fallback: number): number {
+  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.[name];
+  const n = raw === undefined || raw === "" ? NaN : Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.min(4, Math.max(0.25, n)) : fallback;
+}
+
+const OBJECTIVE_CURRENT_QUALITY_POWER_ENV = objectiveEnvNum("LR_M64_OBJECTIVE_CURRENT_POWER", 1);
+let objectiveCurrentQualityPower = OBJECTIVE_CURRENT_QUALITY_POWER_ENV;
+
+type ObjectiveBlendPowerConfig = {
+  currentQualityPower?: number;
+};
+
+export function setObjectiveBlendPowers(config: ObjectiveBlendPowerConfig = {}): void {
+  objectiveCurrentQualityPower = normalizeObjectivePower(
+    config.currentQualityPower ?? OBJECTIVE_CURRENT_QUALITY_POWER_ENV,
+  );
+}
+
+function normalizeObjectivePower(power: number): number {
+  return Number.isFinite(power) && power > 0 ? Math.min(4, Math.max(0.25, power)) : 1;
+}
+
 export type ObjectiveArrivalState =
   & Pick<ReadinessArrivalState, "speed" | "comAngleDeg">
   & Partial<ReadinessArrivalState>
@@ -106,8 +130,17 @@ export function scoreGapObjectiveForTargets(
   return {
     ...readiness,
     currentQuality,
-    value: currentQuality * readiness.readiness,
+    value: objectiveBlendValue(currentQuality, readiness.readiness),
   };
+}
+
+function objectiveBlendValue(currentQuality: number, readiness: number): number {
+  return objectivePower(currentQuality, objectiveCurrentQualityPower) * readiness;
+}
+
+function objectivePower(value: number, power: number): number {
+  if (power === 1) return value;
+  return Math.max(0, Math.min(1, value)) ** power;
 }
 
 export function nextContactGap(gap: Gap, gaps: readonly Gap[]): Gap | null {

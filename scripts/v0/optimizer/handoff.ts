@@ -94,6 +94,7 @@ import {
   frontierReadinessFromFit,
   nextContactGapIndex,
   OBJECTIVE_IMPACT_TARGETED_ASK,
+  setObjectiveBlendPowers,
 } from "./objective.ts";
 import {
   AXIS_QUALITY_TOLERANCE,
@@ -376,6 +377,10 @@ const HANDOFF_LOW_SLACK_BRANCH_THRESHOLD = 1.5;
  *  and the tail-completion / shallow-tail throttles). These sites previously each
  *  carried their own identically-valued 150k constant. */
 const HANDOFF_MATURITY_BUDGET_SCALE_FRAMES = 150_000;
+const M64_MATURE_OBJECTIVE_CURRENT_POWER = 1.5;
+const M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES = 200_000;
+const M64_IMPACT_PREVALENCE_MIN = 0.41;
+const M64_IMPACT_PREVALENCE_MAX = 0.51;
 
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
@@ -711,6 +716,7 @@ function compileHandoffInternal(
     throw new Error(`compileHandoff: searchSeed must be a safe integer, got ${searchSeed}`);
   }
   const targetBudget = validateBudget(opts.budget);
+  setObjectiveBlendPowers();
   // Budget-aware geometry reads this (per-compile constant) for the curvature fade.
   setCompileBudgetFrames(targetBudget);
   setAimCompileBudgetFrames(targetBudget);
@@ -750,6 +756,9 @@ function compileHandoffInternal(
     // pre-worlding belongs in this search, not as a hidden budget-consuming
     // compiler before it. A manual `start` is still honored by resolveStartState.
     const spec: Spec = { ...userSpec, preroll: undefined, contacts: feasibleContacts };
+    setObjectiveBlendPowers({
+      currentQualityPower: objectiveBlendCurrentPowerForSpec(targetBudget, spec),
+    });
     const durationFrames = secToFrame(spec.duration);
     const allContactFrames = [...spec.contacts]
       .map((c) => secToFrame(c.t))
@@ -1532,6 +1541,18 @@ function validateBudget(raw: number | undefined): number {
     throw new Error(`compileHandoff: budget must be a positive safe integer, got ${raw}`);
   }
   return raw;
+}
+
+function objectiveBlendCurrentPowerForSpec(targetBudget: number, spec: Spec): number | undefined {
+  if (readEnv("LR_M64_OBJECTIVE_CURRENT_POWER") !== undefined) return undefined;
+  if (readEnv("LR_M64_IMPACT_BAND_OBJECTIVE_CURRENT15") === "0") return undefined;
+  if (readEnv("LR_IMPACT_OFF") === "1") return undefined;
+  if (targetBudget < M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES) return undefined;
+  const impactPrevalence = meanAuthoredImpactPrevalence(spec.contacts);
+  return impactPrevalence >= M64_IMPACT_PREVALENCE_MIN &&
+      impactPrevalence <= M64_IMPACT_PREVALENCE_MAX
+    ? M64_MATURE_OBJECTIVE_CURRENT_POWER
+    : undefined;
 }
 
 function activeFrontier(
@@ -4653,6 +4674,17 @@ function meanAuthoredImpactAfterFirstFeasibleContact(contacts: Spec["contacts"])
     .filter((impact): impact is number => impact !== undefined);
   if (impacts.length === 0) return 0;
   return impacts.reduce((sum, impact) => sum + impact, 0) / impacts.length;
+}
+
+function meanAuthoredImpactPrevalence(contacts: Spec["contacts"]): number {
+  let sum = 0;
+  let count = 0;
+  for (const contact of contacts) {
+    if (secToFrame(contact.t) < K_BOUNCE_LANDING) continue;
+    sum += contact.impact ?? 0;
+    count++;
+  }
+  return count > 0 ? sum / count : 0;
 }
 
 function cadenceRoomPressure(medianGapFrames: number): number {

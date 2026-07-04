@@ -1141,6 +1141,55 @@ Disabling it is another basin shuffle, not a collateral repair. Do not retry sim
 removal unchanged; future air-length work needs a local usefulness signal, not a blanket off
 switch. Source reverted.
 
+### M39 — M4 Part B resolved-feature gate · INCONCLUSIVE canonical (reverted, 2026-07-04)
+
+**Mechanism.** Temporarily made the M4 Part B air-matched ride-out emission conditional on
+resolved whole-spec features: contact count ≥30, mean impact ≤0.43, and either min air ≤0.34
+or mean speed ≤0.62 with air range ≥0.30. The M4 airFit judge and all other compile/scoring
+policy stayed unchanged. `LR_AIR_KNOB_FEATURE_GATE=0` restored old Part B globally.
+
+**Verification.** Focused optimizer suite passed with the gate default-on:
+
+```
+LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts
+```
+
+6 files, 77 tests.
+
+**Probe.** `probe-m39b-airknob-feature-gate-s0-2-a01`, 19-spec air-sensitive panel ×
+seeds 0..2 × canonical grid, valid 228/228:
+
+```
+Δheadline = +2.2 · 95% CI [-0.3, 6.4] · P(Δ≤0)=6.5% · effect=1.25
+125k +0.7 · 250k +2.2 · 375k +2.4 · 500k +2.4
+VERDICT: ACCEPT (indicative, non-promotable)
+```
+
+The narrowed selector repaired the M38 winners without the earlier `drums_pulse`/`drums_breath`
+collateral: `drums_tide` +21.6, `drums_crescendo` +16.1, `drums_dropout` +3.0,
+`drums_pendulum` +1.8; the rest of the panel was flat.
+
+**Canonical.** `attempt-m39-airknob-feature-gate-a01` (valid 1920/1920, HEADLINE 691.59,
+excl-impact 711.28; budgets 678.41 / 687.30 / 693.06 / 695.92) vs
+`attempt-m3-scarce-span75-a01`:
+
+```
+Δheadline = +0.3 · 95% CI [-0.8, 1.7] · P(Δ≤0)=31.3% · effect=0.50
+125k +0.4 · 250k +0.3 · 375k +0.5 · 500k +0.1
+VERDICT: INCONCLUSIVE
+```
+
+**Footprint.** Full-suite paired changes were sparse: 191/1920 checkpoints changed
+(107 improvements, 84 regressions, 1729 plateaus). Weighted spec movement concentrated in
+`drums_crescendo` +12.0, `drums_tide` +4.3, `drums_pendulum` +1.2, and
+`drums_dropout` -5.7; all other specs were flat.
+
+**Learnings.** The selector was aimed at a real basin, but the canonical effect is too small
+and the `drums_dropout` 12-seed flip erased much of the clean panel signal. Do not promote this
+exact resolved-feature Part B gate. Future air-length work needs a stronger local usefulness
+signal or a larger additive mechanism. Source reverted; baseline remains
+`attempt-m3-scarce-span75-a01`.
+
 ### H1 — low-air impact rideout as selectable lane · INCONCLUSIVE (reverted)
 
 **Mechanism.** In the impact template lane (arc_placement.ts slam-hop block), on very-low-air

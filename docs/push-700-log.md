@@ -1769,6 +1769,31 @@ current impacts gives back mature-budget score. Do not continue the M63/M64 line
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
 
+### M80 - broad mature readiness q=0.75 · source-free REJECT (2026-07-04)
+
+**Study.** Test whether M75's accepted readiness softening was too narrow by applying
+`LR_M75_MATURE_OBJECTIVE_READINESS_POWER=0.75` to the whole current worst-10 mature slice.
+This leaves 125k byte-identical and makes `skyline_push`/`drums_dropout` effectively
+byte-identical to M75, while newly softening the other residual specs.
+
+```
+Probe (`probe-m80-readiness075-worst10-s0-2-a01`):
+  drums_pendulum, skyline_push, terrace_sprint, syncopated_lift, canyon_steps,
+  dense_echo_climb, drums_dropout, dense_sprint, rhythm_ladder, rolling_drop
+  seeds 0..2 × canonical budget grid · valid 120/120
+  raw slice HEADLINE 610.85 · excl-impact 630.40
+  Delta headline = -3.6 · 95% CI [-9.6, 0.9] · P(Delta<=0)=94.4% · effect=-1.39
+  125k +0.0 · 250k -4.2 · 375k -3.7 · 500k -4.2
+  VERDICT: REJECT
+```
+
+**Learnings.** M75's narrow high-air/impact selector is necessary. The already-selected
+`drums_dropout` and `skyline_push` are byte-identical; the broader residual rows are negative,
+led by `dense_sprint` (-16.23), `dense_echo_climb` (-7.25), `rolling_drop` (-6.31),
+`canyon_steps` (-3.45), and `drums_pendulum` (-1.81). Do not broaden readiness q=0.75 by
+profile without a new usefulness signal. Env-only; baseline remains
+`attempt-m75-highair-impact-readiness075-a01`.
+
 ### M79 - q34 breadth on vertical/amplitude residual slice · source-free INCONCLUSIVE-negative (2026-07-04)
 
 **Study.** Recheck the old M54 candidate-breadth idea under the current M75 stack without source

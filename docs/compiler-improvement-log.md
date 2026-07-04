@@ -2,6 +2,29 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE REJECTED PROBE - broad mature readiness q=0.75
+
+Reason: M75 accepted readiness power 0.75 only for a narrow high-air/impact selector. Test
+whether that selector was too narrow by applying the same power to the whole current worst-10
+mature slice via the existing `LR_M75_MATURE_OBJECTIVE_READINESS_POWER=0.75` override. This
+keeps 125k byte-identical; `skyline_push` and `drums_dropout` are effectively byte-identical
+to M75 because they already match the accepted selector. Scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+Probe: `generated/golden-runs/probe-m80-readiness075-worst10-s0-2-a01/golden.json`, run on
+`drums_pendulum,skyline_push,terrace_sprint,syncopated_lift,canyon_steps,dense_echo_climb,drums_dropout,dense_sprint,rhythm_ladder,rolling_drop`
+with seeds 0..2 and the canonical budget grid, was valid 120/120 with raw slice HEADLINE 610.85
+and `HEADLINE excl. impact` 630.40.
+
+Probe decision: `npm run decide -- generated/golden-runs/probe-m80-readiness075-worst10-s0-2-a01/golden.json generated/golden-runs/attempt-m75-highair-impact-readiness075-a01/golden.json` -> non-canonical `VERDICT: REJECT`, delta -3.6 on the 10-spec x three-seed x full-budget intersection, CI [-9.6, 0.9], P(delta<=0)=94.4%, effect -1.39. Per-budget deltas were 125k +0.0, 250k -4.2, 375k -3.7, and 500k -4.2.
+
+Why it was stopped: broad readiness softening gives back mature score on the residual rows M75
+does not already affect. Weighted spec movement was `drums_dropout` +0.00, `skyline_push`
++0.00, `rhythm_ladder` -0.48, `syncopated_lift` -0.64, `terrace_sprint` -1.31,
+`drums_pendulum` -1.81, `canyon_steps` -3.45, `rolling_drop` -6.31, `dense_echo_climb` -7.25,
+and `dense_sprint` -16.23. M75's narrow selector remains necessary. Env-only; baseline remains
+`attempt-m75-highair-impact-readiness075-a01`.
+
 ## 2026-07-04 - SOURCE-FREE INCONCLUSIVE PROBE - q34 breadth on vertical/amplitude residual slice
 
 Reason: M54's amplitude-range q34 breadth probe was strong at three seeds but collapsed at

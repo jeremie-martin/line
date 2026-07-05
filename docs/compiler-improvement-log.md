@@ -2,6 +2,26 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - NOT KEPT - M159-M163 post-M158 probes
+
+M159 tested the M63-family current-power 1.5 idea on impact-heavy scarce 125k profiles after
+M158. A source-free all-12 screen looked promising on five rows (`drums_swell`, `opening_burst`,
+`rhythm_ladder`, `drums_tide`, and `grain_staircase`), and the source-backed pocket all-12 run
+was locally positive, delta +1.4 with P(Delta<=0)=3.2%. The full 3-seed guard did not hold:
+valid 480/480, indicative HEADLINE 700.56, but `npm run decide` versus M158 returned
+`VERDICT: INCONCLUSIVE`, delta -0.0, CI [-0.6, 0.4], P(Delta<=0)=53.7%. The temporary source
+patch was reverted.
+
+M160 ablated M74's vertical current-power p=2 arm on a weak vertical panel and rejected: valid
+132/132, delta -0.8, CI [-2.7, 0.2], P(Delta<=0)=93.5%. M161/M162 explored q40 quality breadth
+on amplitude/soar profiles. Broad amplitude q40 was neutral overall, and `float_bounds` did not
+stay clean all-12. M163 narrowed q40 to mature `soar_settle`; the source-backed all-12 slice was
+strong, delta +4.4 with CI [1.4, 7.6], but the full 3-seed guard only moved 9/480 checkpoints and
+remained inconclusive versus M158, delta +0.2, CI [0.0, 0.8], P(Delta<=0)=35.8%. A synthetic
+canonical estimate made by replacing only `soar_settle` rows in M158 also stayed inconclusive,
+delta +0.1, P(Delta<=0)=36.8%, so q40 soar is kept only as evidence for a possible future combo,
+not as shipped code.
+
 ## 2026-07-05 - ACCEPTED - M158 scarce current and canyon quality pocket
 
 Reason: M146 left the canonical headline at 697.38. Broad M63/current-power descendants and broad

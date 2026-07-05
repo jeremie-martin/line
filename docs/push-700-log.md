@@ -2201,6 +2201,29 @@ plateaus. Only the intended four specs moved. Weighted spec deltas were `dense_s
 commit: `b4246b2`. New baseline is `attempt-m158-scarce-current-canyon-q36-a01`; remaining target
 gap is 2.45 headline points.
 
+### M159-M163 - post-M158 probes · rejected / not kept (2026-07-05)
+
+**Scarce impact current-power.** M159 pushed the M63 current-quality exponent into a five-spec
+scarce 125k impact pocket. The source-free all-12 screen was encouraging, and the source-backed
+pocket all-12 run stayed locally positive: valid 240/240, delta +1.4, P(Delta<=0)=3.2%. The full
+3-seed guard did not survive: `generated/golden-runs/probe-m159-scarce-impact-source-full-s0-2-a01/golden.json`
+was valid 480/480 with indicative HEADLINE 700.56, but decide versus M158 returned
+`VERDICT: INCONCLUSIVE`, delta -0.0, CI [-0.6, 0.4], P(Delta<=0)=53.7%. The temporary
+`LR_M159_SCARCE_IMPACT_CURRENT15` source patch was reverted.
+
+**Vertical current-power ablation.** M160 disabled M74's vertical current-power p=2 arm on a
+weak vertical panel. It rejected versus M158: valid 132/132, delta -0.8, CI [-2.7, 0.2],
+P(Delta<=0)=93.5%. The accepted M74 vertical arm remains intact.
+
+**q40 quality breadth.** M161 broad q40 amplitude/soar quality was neutral overall, with useful
+but unstable positives. M162 narrowed to `float_bounds` and `soar_settle` all-12 and still missed
+the gate. M163 isolated mature `soar_settle`: source-backed all-12 was strong, valid 48/48,
+delta +4.4, CI [1.4, 7.6], P(Delta<=0)=0.1%, but the full 3-seed guard changed only
+`soar_settle` mature budgets and stayed inconclusive versus M158: valid 480/480, delta +0.2,
+CI [0.0, 0.8], P(Delta<=0)=35.8%. A synthetic canonical estimate replacing only `soar_settle`
+rows in M158 also remained inconclusive, delta +0.1, P(Delta<=0)=36.8%. The q40-soar source
+patch was reverted; keep the profile only as future combo evidence.
+
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 
 **Pendulum quality breadth.** M133 tested q36 for `drums_pendulum` all-12 and rejected versus

@@ -2,6 +2,35 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - NOT KEPT - M196 low-impact current-power dose retunes
+
+Reason: after M178 accepted a narrow low-impact current-power portfolio, check whether the same
+structural pockets had adjacent dose headroom. Temporary env hooks exposed only the accepted M178
+power constants: `LR_M196_TINY_LOW_IMPACT_CURRENT_POWER` for `mini_burst` and
+`LR_M196_NONGRAIN_LOW_IMPACT_CURRENT_POWER` for `float_bounds,mixed_grade`. Default behavior was
+byte-identical; scorer, specs, evaluator fingerprint, metric, seed set, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed in default mode:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 78 tests).
+
+All probes were all-12 affected-slice runs against M178. Tiny compact low-impact p=3.0:
+`generated/golden-runs/probe-m196-tiny-lowimpact-current30-miniburst-all12-a01/golden.json`
+was valid 48/48 but rejected on the one-spec intersection, delta -4.5, CI [-11.3, 2.1],
+P(Delta<=0)=90.5%, with the 250k tier losing -10.2. Non-grain p=2.5:
+`generated/golden-runs/probe-m196-nongrain-lowimpact-current25-all12-a01/golden.json` was valid
+96/96 but negative/inconclusive on the two-spec intersection, delta -4.3, CI [-17.9, 2.8],
+P(Delta<=0)=72.3%. Non-grain p=1.75:
+`generated/golden-runs/probe-m196-nongrain-lowimpact-current175-all12-a01/golden.json` was valid
+96/96 and flat/inconclusive, delta -0.1, CI [-5.6, 4.4], P(Delta<=0)=44.6%.
+
+Why it was not kept: M178's accepted powers are already near the local sweet spot for these
+structural pockets. More tiny pressure over-constrains `mini_burst`, stronger non-grain pressure
+hurts `float_bounds,mixed_grade`, and softer non-grain pressure gives back the mature gain. The
+temporary env hooks were reverted; no source behavior was kept. Do not reopen simple p=1.75/2.5/3.0
+retunes inside M178 without a new selector or a new objective term.
+
 ## 2026-07-05 - NOT KEPT - M195 budgeted dynamic current125 profile
 
 Reason: test whether the isolated M188 `LR_M64_OBJECTIVE_CURRENT_POWER=1.25` positives could be

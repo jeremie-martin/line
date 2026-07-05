@@ -2589,6 +2589,25 @@ INCONCLUSIVE`: delta -0.3, CI [-1.4, 0.5], P(Delta<=0)=73.7%. Budget deltas were
 and `valley_bounce` (-1.15). Source was reverted. Do not retry this raw authored-profile
 current125 portfolio without a new structural mechanism or external/variant validation.
 
+### M196 - low-impact current-power dose retunes · rejected / source reverted (2026-07-05)
+
+**Study.** Temporarily exposed env overrides for the already accepted M178 low-impact current
+powers, leaving default behavior byte-identical: `LR_M196_TINY_LOW_IMPACT_CURRENT_POWER` for
+`mini_burst`, and `LR_M196_NONGRAIN_LOW_IMPACT_CURRENT_POWER` for `float_bounds,mixed_grade`.
+
+**Evidence.** Focused default tests passed (6 files, 78 tests). All probes were all-12 affected
+slices versus M178. Tiny p=3.0
+`generated/golden-runs/probe-m196-tiny-lowimpact-current30-miniburst-all12-a01/golden.json` was
+valid 48/48 but rejected on `mini_burst`: delta -4.5, P(Delta<=0)=90.5%. Non-grain p=2.5
+`generated/golden-runs/probe-m196-nongrain-lowimpact-current25-all12-a01/golden.json` was valid
+96/96 but negative/inconclusive: delta -4.3, P(Delta<=0)=72.3%. Non-grain p=1.75
+`generated/golden-runs/probe-m196-nongrain-lowimpact-current175-all12-a01/golden.json` was valid
+96/96 and flat/inconclusive: delta -0.1, P(Delta<=0)=44.6%.
+
+**Learning.** M178's accepted low-impact current powers are already locally balanced. Stronger
+tiny pressure hurts `mini_burst`; stronger non-grain pressure hurts `float_bounds,mixed_grade`;
+softer non-grain pressure gives back the accepted mature gain. Source hooks were reverted.
+
 ### M190-M193 - accepted-pocket cleanup ablations · rejected / no source changes (2026-07-05)
 
 **Study.** Checked whether the later M178 stack had made older accepted repair/readiness pockets

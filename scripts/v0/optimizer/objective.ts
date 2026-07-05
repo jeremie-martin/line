@@ -4,6 +4,7 @@ import {
   authoredSpeedToPx,
   impactToRedirArcPx,
   IMPACT,
+  netDyToElevation,
   type AxisValues,
   type Gap,
 } from "../types.ts";
@@ -50,10 +51,12 @@ const OBJECTIVE_CURRENT_QUALITY_POWER_ENV = objectiveEnvNum("LR_M64_OBJECTIVE_CU
 const OBJECTIVE_READINESS_POWER_ENV = objectiveEnvNum("LR_M75_OBJECTIVE_READINESS_POWER", 1);
 let objectiveCurrentQualityPower = OBJECTIVE_CURRENT_QUALITY_POWER_ENV;
 let objectiveReadinessPower = OBJECTIVE_READINESS_POWER_ENV;
+let objectiveElevationReadiness = false;
 
 type ObjectiveBlendPowerConfig = {
   currentQualityPower?: number;
   readinessPower?: number;
+  elevationReadiness?: boolean;
 };
 
 export function setObjectiveBlendPowers(config: ObjectiveBlendPowerConfig = {}): void {
@@ -63,6 +66,7 @@ export function setObjectiveBlendPowers(config: ObjectiveBlendPowerConfig = {}):
   objectiveReadinessPower = normalizeObjectivePower(
     config.readinessPower ?? OBJECTIVE_READINESS_POWER_ENV,
   );
+  objectiveElevationReadiness = config.elevationReadiness === true;
 }
 
 function normalizeObjectivePower(power: number): number {
@@ -85,6 +89,8 @@ export type ObjectiveArrivalState =
     /** Next contact gap frame count (endFrame − startFrame + 1), for the
      *  detector-floor clamp on the air ask. Present iff `nextAir` is. */
     nextGapFrames?: number;
+    /** Predicted next-gap elevation from the ballistic release suffix. */
+    nextElevation?: number;
   };
 
 export type NextGapReadinessScore = {
@@ -93,6 +99,7 @@ export type NextGapReadinessScore = {
   speedFit: number;
   impactFeasibility: number;
   airFit: number;
+  elevationFit: number;
 };
 
 export type GapObjectiveScore = NextGapReadinessScore & {
@@ -115,12 +122,14 @@ export function scoreNextTargetReadiness(
   const speedFit = speedFitFactor(arrival.meanSpeed ?? arrival.speed, nextTargets);
   const impactFeasibility = impactFeasibilityFactor(arrival, nextTargets);
   const airFit = airFitFactor(arrival, nextTargets);
+  const elevationFit = elevationFitFactor(arrival, nextTargets);
   return {
-    readiness: catchability * speedFit * impactFeasibility * airFit,
+    readiness: catchability * speedFit * impactFeasibility * airFit * elevationFit,
     catchability,
     speedFit,
     impactFeasibility,
     airFit,
+    elevationFit,
   };
 }
 
@@ -193,13 +202,29 @@ export function predictArrivalAtNextContact(
     sledPoseRateDegPerFrame: rel.sledPoseRateDegPerFrame,
   };
   const arrived = propagateBallisticArrivalState(launch, dt);
+  const nextElevation = predictedNextGapElevation(launch, rel.frame, nextGap);
   return {
     speed: arrived.speed,
     comAngleDeg: arrived.comAngleDeg,
     meanSpeed: (launch.speed + arrived.speed) / 2,
     nextAir: predictedNextGapAir(rel.frame, nextGap),
     nextGapFrames: nextGapFrameCount(nextGap),
+    ...(nextElevation === null ? {} : { nextElevation }),
   };
+}
+
+function predictedNextGapElevation(
+  launch: RiderArrivalState,
+  releaseFrame: number,
+  nextGap: Pick<Gap, "startFrame" | "endFrame">,
+): number | null {
+  const startFrame = Math.max(nextGap.startFrame, releaseFrame);
+  const startDt = startFrame - releaseFrame;
+  const endDt = nextGap.endFrame - releaseFrame;
+  if (endDt <= startDt) return null;
+  const start = propagateBallisticArrivalState(launch, startDt);
+  const end = propagateBallisticArrivalState(launch, endDt);
+  return netDyToElevation(end.y - start.y, start.speed, nextGap.endFrame - startFrame);
 }
 
 /** Frame count of a gap window — the denominator of measureAir's
@@ -270,6 +295,22 @@ function airFitFactor(
   const under = Math.max(0, -d - OBJECTIVE_AIR_DEADBAND);
   const penalty = over + OBJECTIVE_AIR_UNDERSHOOT_WEIGHT * under;
   return Math.exp(-penalty / OBJECTIVE_AIR_SCALE);
+}
+
+function elevationFitFactor(
+  arrival: Pick<ObjectiveArrivalState, "nextElevation">,
+  nextTargets: AxisValues,
+): number {
+  if (!objectiveElevationReadiness) return 1;
+  const target = nextTargets.elevation;
+  const predicted = arrival.nextElevation;
+  if (target === undefined || predicted === undefined) return 1;
+  const pressure = smoothstep01((target - 0.5) / 0.2);
+  if (pressure <= 0) return 1;
+  const d = predicted - target;
+  const penalty = d < 0 ? -d : d * 0.5;
+  const fit = Math.exp(-penalty / 0.2);
+  return 1 + (fit - 1) * pressure;
 }
 
 function impactFeasibilityFactor(

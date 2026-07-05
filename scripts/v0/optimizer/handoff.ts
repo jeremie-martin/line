@@ -801,6 +801,7 @@ function compileHandoffInternal(
     setObjectiveBlendPowers({
       currentQualityPower: objectiveBlendCurrentPowerForSpec(targetBudget, spec),
       readinessPower: objectiveBlendReadinessPowerForSpec(targetBudget, spec),
+      elevationReadiness: objectiveElevationReadinessForSpec(targetBudget, spec),
     });
     const durationFrames = secToFrame(spec.duration);
     const allContactFrames = [...spec.contacts]
@@ -1634,7 +1635,19 @@ function objectiveBlendReadinessPowerForSpec(targetBudget: number, spec: Spec): 
   ) {
     return M108_DENSE_DRUM_READINESS_POWER;
   }
+  if (
+    readEnv("LR_M115_COMPACT_READINESS075") !== "0" &&
+    m115PositiveCompactReadinessProfile(spec)
+  ) {
+    return M108_DENSE_DRUM_READINESS_POWER;
+  }
   return undefined;
+}
+
+function objectiveElevationReadinessForSpec(targetBudget: number, spec: Spec): boolean {
+  return readEnv("LR_M114_SPARSE_ELEVATION_READINESS") !== "0" &&
+    targetBudget >= M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES &&
+    m114SparseElevationReadinessProfile(spec);
 }
 
 function m75HighAirImpactReadinessProfile(spec: Spec): boolean {
@@ -1730,6 +1743,98 @@ function m108DenseDrumReadinessProfile(spec: Spec): boolean {
     meanImpact <= M108_DRUMS_CRESCENDO_IMPACT_MEAN_MAX;
 
   return breathPocket || crescendoPocket;
+}
+
+function m114SparseElevationReadinessProfile(spec: Spec): boolean {
+  const air: number[] = [];
+  const speed: number[] = [];
+  let impactSum = 0;
+  let impactCount = 0;
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .filter((frame) => frame >= K_BOUNCE_LANDING)
+    .sort((a, b) => a - b);
+  const contactGaps = contactFrames.slice(1).map((frame, index) => frame - contactFrames[index]);
+  const sortedGaps = contactGaps.sort((a, b) => a - b);
+  if (sortedGaps.length === 0) return false;
+  const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
+
+  const verticalProfile = authoredVerticalObjectiveProfile(spec);
+  if (verticalProfile.amplitudeRange > 0) return false;
+
+  for (const frame of contactFrames) {
+    const targets = axesAtFrame(frame, spec);
+    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
+    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
+  }
+  for (const contact of spec.contacts) {
+    impactSum += contact.impact ?? 0;
+    impactCount++;
+  }
+  if (air.length < 2 || speed.length < 2 || impactCount === 0) return false;
+  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
+  const meanSpeed = speed.reduce((sum, value) => sum + value, 0) / speed.length;
+  const meanImpact = impactCount > 0 ? impactSum / impactCount : 0;
+  const airRange = valueRange(air);
+  const speedRange = valueRange(speed);
+
+  const rollingHillsPocket = contactFrames.length >= 16 &&
+    contactFrames.length <= 20 &&
+    medianGapFrames >= 34 &&
+    medianGapFrames <= 38 &&
+    meanAir >= 0.44 &&
+    meanAir <= 0.46 &&
+    airRange <= 0.02 &&
+    meanSpeed >= 0.53 &&
+    meanSpeed <= 0.57 &&
+    speedRange <= 0.02 &&
+    meanImpact >= 0.32 &&
+    meanImpact <= 0.36 &&
+    verticalProfile.elevationRange >= 0.22 &&
+    verticalProfile.elevationRange <= 0.26;
+
+  const summitPushPocket = contactFrames.length >= 10 &&
+    contactFrames.length <= 14 &&
+    medianGapFrames >= 42 &&
+    medianGapFrames <= 46 &&
+    meanAir >= 0.49 &&
+    meanAir <= 0.51 &&
+    airRange <= 0.02 &&
+    meanSpeed >= 0.79 &&
+    meanSpeed <= 0.83 &&
+    speedRange >= 0.18 &&
+    speedRange <= 0.22 &&
+    meanImpact >= 0.55 &&
+    meanImpact <= 0.59 &&
+    verticalProfile.elevationRange >= 0.10 &&
+    verticalProfile.elevationRange <= 0.13;
+
+  return rollingHillsPocket || summitPushPocket;
+}
+
+function m115PositiveCompactReadinessProfile(spec: Spec): boolean {
+  const impactPrevalence = meanAuthoredImpactPrevalence(spec.contacts);
+  if (
+    !m87LowImpactSteadyObjectiveProfile(spec, impactPrevalence) ||
+    !m94LowImpactCompactObjectiveDoseProfile(spec)
+  ) {
+    return false;
+  }
+
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .filter((frame) => frame >= K_BOUNCE_LANDING)
+    .sort((a, b) => a - b);
+  if (contactFrames.length < M87_LOW_IMPACT_CONTACT_MIN) return false;
+
+  const air: number[] = [];
+  for (const frame of contactFrames) {
+    const target = axesAtFrame(frame, spec).air;
+    if (typeof target === "number" && Number.isFinite(target)) air.push(target);
+  }
+  if (air.length < 2) return false;
+  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
+  return meanAir >= 0.43;
 }
 
 function m74VerticalObjectiveDoseProfile(spec: Spec): boolean {
@@ -3858,6 +3963,16 @@ function defaultRepairMainMargin(targetBudget: number, spec: Spec): number {
   ) {
     return 1.0;
   }
+  if (
+    readEnv("LR_M116_STABLE_DENSE_REPAIR_MAIN100") !== "0" &&
+    targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
+    !m101FlatCompactRepairProfile(spec) &&
+    !m102HighAirLowGrainRepairProfile(spec) &&
+    !m108DrumsPulseRepairProfile(spec) &&
+    m116StableDenseRepairProfile(spec)
+  ) {
+    return 1.0;
+  }
   return repairRampMargin(targetBudget, 1, REPAIR_MAIN_MARGIN_MATURE);
 }
 
@@ -3935,6 +4050,68 @@ function m108DrumsPulseRepairProfile(spec: Spec): boolean {
     speedRange <= M108_REPAIR_PULSE_SPEED_RANGE_MAX &&
     meanImpact >= M108_REPAIR_PULSE_IMPACT_MEAN_MIN &&
     meanImpact <= M108_REPAIR_PULSE_IMPACT_MEAN_MAX;
+}
+
+function m116StableDenseRepairProfile(spec: Spec): boolean {
+  const air: number[] = [];
+  const speed: number[] = [];
+  let impactSum = 0;
+  let impactCount = 0;
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .filter((frame) => frame >= K_BOUNCE_LANDING)
+    .sort((a, b) => a - b);
+  const verticalProfile = authoredVerticalObjectiveProfile(spec);
+  if (verticalProfile.elevationRange > 0 || verticalProfile.amplitudeRange > 0) return false;
+
+  for (const frame of contactFrames) {
+    const targets = axesAtFrame(frame, spec);
+    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
+    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
+  }
+  for (const contact of spec.contacts) {
+    impactSum += contact.impact ?? 0;
+    impactCount++;
+  }
+  if (air.length < 2 || speed.length < 2 || impactCount === 0) return false;
+
+  const contactGaps = contactFrames.slice(1).map((frame, index) => frame - contactFrames[index]);
+  const sortedGaps = contactGaps.sort((a, b) => a - b);
+  if (sortedGaps.length === 0) return false;
+  const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
+  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
+  const meanSpeed = speed.reduce((sum, value) => sum + value, 0) / speed.length;
+  const meanImpact = impactSum / impactCount;
+  const airRange = valueRange(air);
+  const speedRange = valueRange(speed);
+
+  const pendulumPocket = contactFrames.length >= 50 &&
+    medianGapFrames <= 20 &&
+    meanAir >= 0.47 &&
+    meanAir <= 0.49 &&
+    airRange >= 0.68 &&
+    airRange <= 0.72 &&
+    meanSpeed >= 0.54 &&
+    meanSpeed <= 0.56 &&
+    speedRange <= 0.02 &&
+    meanImpact >= 0.41 &&
+    meanImpact <= 0.44;
+
+  const denseSprintPocket = contactFrames.length >= 39 &&
+    contactFrames.length <= 43 &&
+    medianGapFrames <= 21 &&
+    meanAir >= 0.64 &&
+    meanAir <= 0.67 &&
+    airRange >= 0.48 &&
+    airRange <= 0.52 &&
+    meanSpeed >= 0.67 &&
+    meanSpeed <= 0.70 &&
+    speedRange >= 0.38 &&
+    speedRange <= 0.42 &&
+    meanImpact >= 0.49 &&
+    meanImpact <= 0.52;
+
+  return pendulumPocket || denseSprintPocket;
 }
 
 function defaultRepairFeasMargin(targetBudget: number): number {

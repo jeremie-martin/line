@@ -400,6 +400,9 @@ const M74_ELEVATION_ROOM_MEDIAN_GAP_FRAMES = Math.round(FPS * 0.90);
 const M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const M144_SIGNATURE_REPAIR_MAX_BUDGET_FRAMES = 325_000;
+const M152_CANYON_QUALITY_MIN_BUDGET_FRAMES = 250_000;
+const M157_SCARCE_DENSE_CURRENT_POWER = 1.5;
+const M157_SCARCE_DENSE_CURRENT_MAX_BUDGET_FRAMES = 150_000;
 const M75_HIGH_AIR_IMPACT_READINESS_POWER = 0.75;
 const M75_HIGH_AIR_IMPACT_AIR_MEAN_MIN = 0.62;
 const M75_HIGH_AIR_IMPACT_AIR_MEAN_MAX = 0.66;
@@ -446,6 +449,7 @@ const HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_SPARSE_AMP_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_RESIDUAL_LEAN_N_CAND = 28;
+const HANDOFF_QUALITY_CANYON_MATURE_BOOST_N_CAND = 36;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_START = 0.15;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_SPAN = 0.20;
 const HANDOFF_QUALITY_SPARSE_AMP_MEDIAN_START_FRAMES = Math.round(FPS * 0.75);
@@ -1596,6 +1600,13 @@ function objectiveBlendCurrentPowerForSpec(targetBudget: number, spec: Spec): nu
   if (readEnv("LR_M64_OBJECTIVE_CURRENT_POWER") !== undefined) return undefined;
   if (readEnv("LR_M64_IMPACT_BAND_OBJECTIVE_CURRENT15") === "0") return undefined;
   if (readEnv("LR_IMPACT_OFF") === "1") return undefined;
+  if (
+    readEnv("LR_M157_SCARCE_DENSE_CURRENT15") !== "0" &&
+    targetBudget < M157_SCARCE_DENSE_CURRENT_MAX_BUDGET_FRAMES &&
+    m157ScarceDenseCurrentProfile(spec)
+  ) {
+    return M157_SCARCE_DENSE_CURRENT_POWER;
+  }
   if (targetBudget < M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES) return undefined;
   const impactPrevalence = meanAuthoredImpactPrevalence(spec.contacts);
   if (
@@ -1686,6 +1697,91 @@ function m75HighAirImpactReadinessProfile(spec: Spec): boolean {
     meanImpact >= M75_HIGH_AIR_IMPACT_MEAN_MIN &&
     speedRange <= M75_HIGH_AIR_IMPACT_SPEED_RANGE_MAX &&
     medianGapFrames <= M75_HIGH_AIR_IMPACT_MEDIAN_GAP_MAX_FRAMES;
+}
+
+function m157ScarceDenseCurrentProfile(spec: Spec): boolean {
+  const air: number[] = [];
+  const speed: number[] = [];
+  const grain: number[] = [];
+  let impactSum = 0;
+  let impactCount = 0;
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .filter((frame) => frame >= K_BOUNCE_LANDING)
+    .sort((a, b) => a - b);
+  const verticalProfile = authoredVerticalObjectiveProfile(spec);
+  if (verticalProfile.elevationRange > 0 || verticalProfile.amplitudeRange > 0) return false;
+
+  for (const frame of contactFrames) {
+    const targets = axesAtFrame(frame, spec);
+    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
+    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
+    const grainTarget = spec.axes.grain?.(frameToSec(frame));
+    if (typeof grainTarget === "number" && Number.isFinite(grainTarget)) grain.push(grainTarget);
+  }
+  for (const contact of spec.contacts) {
+    impactSum += contact.impact ?? 0;
+    impactCount++;
+  }
+  if (air.length < 2 || speed.length < 2 || impactCount === 0) return false;
+
+  const contactGaps = contactFrames.slice(1).map((frame, index) => frame - contactFrames[index]);
+  const sortedGaps = contactGaps.sort((a, b) => a - b);
+  if (sortedGaps.length === 0) return false;
+  const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
+  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
+  const meanSpeed = speed.reduce((sum, value) => sum + value, 0) / speed.length;
+  const meanImpact = impactSum / impactCount;
+  const airRange = valueRange(air);
+  const speedRange = valueRange(speed);
+  const grainRange = valueRange(grain);
+
+  const signaturePocket = contactFrames.length >= 50 &&
+    contactFrames.length <= 60 &&
+    medianGapFrames <= 20 &&
+    meanAir >= 0.53 &&
+    meanAir <= 0.56 &&
+    airRange >= 0.12 &&
+    airRange <= 0.18 &&
+    meanSpeed >= 0.64 &&
+    meanSpeed <= 0.67 &&
+    speedRange >= 0.36 &&
+    speedRange <= 0.44 &&
+    meanImpact >= 0.44 &&
+    meanImpact <= 0.48 &&
+    grainRange >= 0.45;
+
+  const crescendoPocket = contactFrames.length >= 50 &&
+    contactFrames.length <= 60 &&
+    medianGapFrames <= 20 &&
+    meanAir >= 0.55 &&
+    meanAir <= 0.57 &&
+    airRange >= 0.50 &&
+    airRange <= 0.56 &&
+    meanSpeed >= 0.60 &&
+    meanSpeed <= 0.62 &&
+    speedRange >= 0.50 &&
+    speedRange <= 0.56 &&
+    meanImpact >= 0.37 &&
+    meanImpact <= 0.40 &&
+    grainRange >= 0.55;
+
+  const denseSprintPocket = contactFrames.length >= 39 &&
+    contactFrames.length <= 43 &&
+    medianGapFrames <= 21 &&
+    meanAir >= 0.64 &&
+    meanAir <= 0.67 &&
+    airRange >= 0.48 &&
+    airRange <= 0.52 &&
+    meanSpeed >= 0.67 &&
+    meanSpeed <= 0.70 &&
+    speedRange >= 0.38 &&
+    speedRange <= 0.42 &&
+    meanImpact >= 0.49 &&
+    meanImpact <= 0.52 &&
+    grainRange >= 0.45;
+
+  return signaturePocket || crescendoPocket || denseSprintPocket;
 }
 
 function m108DenseDrumReadinessProfile(spec: Spec): boolean {
@@ -3330,6 +3426,13 @@ function qualityHandoffSampleCount(
   const base = handoffSampleCount(targetBudget);
   if (qualityNCandOverride() !== null || base >= HANDOFF_QUALITY_N_CAND) return base;
   if (
+    readEnv("LR_M152_CANYON_QUALITY36") !== "0" &&
+    (targetBudget ?? 0) >= M152_CANYON_QUALITY_MIN_BUDGET_FRAMES &&
+    shouldBoostCanyonMatureQualityBreadth(gaps, ctx)
+  ) {
+    return HANDOFF_QUALITY_CANYON_MATURE_BOOST_N_CAND;
+  }
+  if (
     readEnv("LR_M144_RESIDUAL_QUALITY28") !== "0" &&
     (targetBudget ?? 0) >= M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES &&
     shouldLeanResidualQualityBreadth(gaps, ctx)
@@ -3404,6 +3507,42 @@ function shouldBoostDenseLowAirQualityBreadth(gaps: Gap[], ctx: SpecContext): bo
     meanSpeed >= 0.54 &&
     meanSpeed <= 0.56 &&
     targetAxisRange(gaps, ctx, "speed") <= 0.02;
+}
+
+function shouldBoostCanyonMatureQualityBreadth(gaps: Gap[], ctx: SpecContext): boolean {
+  const medianGapFrames = medianContactGapFrames(gaps);
+  const meanAir = targetAxisMean(gaps, ctx, "air");
+  const meanSpeed = targetAxisMean(gaps, ctx, "speed");
+  if (
+    medianGapFrames === null ||
+    meanAir === null ||
+    meanSpeed === null
+  ) {
+    return false;
+  }
+
+  const contacts = contactGapCount(gaps);
+  const airRange = targetAxisRange(gaps, ctx, "air");
+  const speedRange = targetAxisRange(gaps, ctx, "speed");
+  const amplitudeRange = targetAxisRange(gaps, ctx, "amplitude");
+  const elevationRange = targetAxisRange(gaps, ctx, "elevation");
+
+  return contacts >= 19 &&
+    contacts <= 21 &&
+    medianGapFrames >= 24 &&
+    medianGapFrames <= 28 &&
+    meanAir >= 0.59 &&
+    meanAir <= 0.63 &&
+    airRange >= 0.28 &&
+    airRange <= 0.33 &&
+    meanSpeed >= 0.60 &&
+    meanSpeed <= 0.64 &&
+    speedRange >= 0.17 &&
+    speedRange <= 0.22 &&
+    amplitudeRange >= 0.45 &&
+    amplitudeRange <= 0.50 &&
+    elevationRange >= 0.26 &&
+    elevationRange <= 0.30;
 }
 
 function shouldLeanResidualQualityBreadth(gaps: Gap[], ctx: SpecContext): boolean {

@@ -2,6 +2,29 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - SOURCE-FREE REJECTS - M184-M187 accepted q-breadth dose audits
+
+Reason: after M178 raised the canonical headline to 698.47, check whether the accepted q-breadth
+pockets had become stale baggage or needed nearby dose adjustment. These were source-free env
+screens against the M178 baseline; no source changes were kept.
+
+Sparse/amplitude family (`float_bounds,soar_settle,ridge_pulse,rolling_drop`, all 12 seeds):
+`LR_QUALITY_NCAND=56` in
+`generated/golden-runs/probe-m184-sparse-amp-q56-all12-a01/golden.json` rejected versus M178,
+delta -3.8, CI [-14.1, 1.7], P(Delta<=0)=85.4%, with every budget negative. `LR_QUALITY_NCAND=40`
+in `generated/golden-runs/probe-m185-sparse-amp-q40-all12-a01/golden.json` also rejected,
+delta -4.2, CI [-12.4, 1.1], P(Delta<=0)=92.5%. The accepted M166 q48 dose still protects
+`float_bounds`; q40/q56 should not be reopened unchanged.
+
+Drum/grain family (`drums_breath,grain_staircase,solo_run`, mature budgets, all 12 seeds):
+`LR_QUALITY_NCAND=48` in
+`generated/golden-runs/probe-m186-drum-grain-q48-mature-all12-a01/golden.json` was
+inconclusive-negative, delta -2.4, CI [-9.0, 4.1], P(Delta<=0)=77.7%, and hurt the family
+aggregate despite helping `drums_breath`. `LR_QUALITY_NCAND=36` in
+`generated/golden-runs/probe-m187-drum-grain-q36-mature-all12-a01/golden.json` rejected,
+delta -3.4, CI [-9.7, 3.1], P(Delta<=0)=86.4%. The accepted M165 q40 dose remains the best
+known compromise for this family.
+
 ## 2026-07-05 - ACCEPTED - M166 sparse amplitude q48 quality pockets
 
 Reason: M165 left the canonical headline at 697.83. The earlier q40 soar/amplitude screens had

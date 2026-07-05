@@ -2501,6 +2501,37 @@ pockets still carry their affected rows under the M178 stack, and broad current-
 is now decisively harmful. The remaining 1.53 headline points need a new mechanism or a genuinely
 family-level residual signal, not removal of accumulated accepted pockets.
 
+### M184-M187 - accepted breadth dose audits · rejected / no source changes (2026-07-05)
+
+**Sparse/amplitude q dose.** M184 and M185 retested the M166 sparse/amplitude breadth dose on
+the affected four-spec family (`float_bounds,soar_settle,ridge_pulse,rolling_drop`) using the
+M178 baseline and all 12 seeds. M184 used source-free `LR_QUALITY_NCAND=56`:
+`generated/golden-runs/probe-m184-sparse-amp-q56-all12-a01/golden.json` was valid 192/192 but
+rejected versus M178 on the intersection, delta -3.8, CI [-14.1, 1.7], P(Delta<=0)=85.4%.
+Every budget was negative: 125k -0.8, 250k -4.4, 375k -4.0, and 500k -4.1. `soar_settle`
+and `rolling_drop` had local positives, but `float_bounds` and `ridge_pulse` paid the cost.
+M185 used source-free `LR_QUALITY_NCAND=40`:
+`generated/golden-runs/probe-m185-sparse-amp-q40-all12-a01/golden.json` was valid 192/192 and
+also rejected, delta -4.2, CI [-12.4, 1.1], P(Delta<=0)=92.5%. Budget deltas were 125k -6.9,
+250k -5.2, 375k -3.6, and 500k -3.4. The accepted M166 q48 dose remains the local optimum for
+this family.
+
+**Drum/grain q dose.** M186 and M187 retested the M165 drum/grain breadth dose on the affected
+three-spec family (`drums_breath,grain_staircase,solo_run`) at mature budgets only, using all
+12 seeds. M186 used source-free `LR_QUALITY_NCAND=48`:
+`generated/golden-runs/probe-m186-drum-grain-q48-mature-all12-a01/golden.json` was valid
+108/108 but inconclusive-negative versus M178, delta -2.4, CI [-9.0, 4.1], P(Delta<=0)=77.7%.
+It helped `drums_breath` but hurt both `grain_staircase` and `solo_run`. M187 used source-free
+`LR_QUALITY_NCAND=36`:
+`generated/golden-runs/probe-m187-drum-grain-q36-mature-all12-a01/golden.json` was valid
+108/108 and rejected, delta -3.4, CI [-9.7, 3.1], P(Delta<=0)=86.4%. It improved 250k on
+`grain_staircase` and `solo_run` but lost the mature aggregate, especially `drums_breath`.
+
+**Learnings.** The accepted q-breadth pockets are not stale baggage under M178. Q48 still
+protects `float_bounds` in the sparse/amplitude family, and q40 is still the best known compromise
+for the drum/grain family. Do not reopen simple q36/q40/q48/q56 source-free dose sweeps unless a
+new selector changes which rows receive the dose.
+
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 
 **Pendulum quality breadth.** M133 tested q36 for `drums_pendulum` all-12 and rejected versus

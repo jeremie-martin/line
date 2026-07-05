@@ -20,7 +20,8 @@ rule are frozen.
 | 2026-07-04 | attempt-m75-highair-impact-readiness075-a01 | a3ff6b8 | 694.51 | 713.27 | M75 high-air impact readiness-power 0.75 selector — canonical ACCEPT |
 | 2026-07-04 | attempt-m87-lowimpact-steady-current15-a01 | 6738a15 | 695.06 | 713.53 | M87 low-impact steady/sparse current-power 1.5 selector — canonical ACCEPT |
 | 2026-07-04 | attempt-m94-lowimpact-compact-current20-a01 | 0fdf9d9 | 695.48 | 714.05 | M94 low-impact compact current-power 2.0 selector — canonical ACCEPT |
-| 2026-07-04 | attempt-m101-repair-flat-compact-main100-a01 | this commit | 695.99 | 714.67 | M101 flat compact mature repair main-margin 1.0 selector — canonical ACCEPT |
+| 2026-07-04 | attempt-m101-repair-flat-compact-main100-a01 | 18a1c16 | 695.99 | 714.67 | M101 flat compact mature repair main-margin 1.0 selector — canonical ACCEPT |
+| 2026-07-04 | attempt-m102-repair-highair-lowgrain-main100-a01 | this commit | 696.35 | 714.91 | M102 high-air low-grain mature repair main-margin 1.0 selector — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -1771,6 +1772,47 @@ Affected-slice probe min=0.35 (`probe-m68-objective-impact-min035-active-s0-2-a0
 current impacts gives back mature-budget score. Do not continue the M63/M64 line with local
 impact-threshold gating. Source reverted; baseline remains
 `attempt-m64-impact-band-objective-current15-a01`.
+
+### M102 - high-air low-grain repair main-margin exactness · canonical ACCEPT (2026-07-04)
+
+**Mechanism.** Promoted a second residual repair selector from the M100 footprint, after M101
+removed the flat compact winners. M102 keeps M101 first, then applies mature-budget main repair
+margin 1.0 to high-air, moderate-air-range, low/absent-grain profiles: mean authored air >=0.61,
+authored air range <=0.40, and mean authored grain <=0.49 at feasible contacts. Missing grain
+counts as zero. The fallback flag is `LR_M102_REPAIR_HIGH_AIR_LOW_GRAIN_MAIN100=0`; explicit
+`LR_REPAIR_MAIN_MARGIN` still overrides. Scorer, specs, fingerprint, seeds, budget grid, and
+acceptance rule stayed unchanged.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M102_REPAIR_HIGH_AIR_LOW_GRAIN_MAIN100=0` (6 files, 78 tests each).
+
+**Probe.** Corrected full 3-seed guard (`probe-m102-repair-highair-lowgrain-main100-full-s0-2-a02`)
+was valid 480/480 with raw HEADLINE 698.93 and excl-impact 715.68. Decision vs M101 was
+indicative `VERDICT: ACCEPT`, delta +0.6, CI [-0.3, 1.6], P(delta<=0)=8.7%, effect 1.25.
+Affected all-12 pocket (`probe-m102-repair-highair-lowgrain-main100-pocket-s0-11-a01`) covered
+the 11 selected specs, was valid 528/528 with raw pocket HEADLINE 703.60 and excl-impact 706.09,
+and decided indicative `VERDICT: ACCEPT`, delta +1.3, CI [-0.2, 2.8], P(delta<=0)=4.1%.
+
+**Canonical.** `attempt-m102-repair-highair-lowgrain-main100-a01` (valid 1920/1920, HEADLINE
+696.35, excl-impact 714.91) vs `attempt-m101-repair-flat-compact-main100-a01`:
+
+```
+Delta headline = +0.4 · 95% CI [-0.1, 0.9] · P(Delta<=0)=4.3% · effect=1.59
+125k +0.0 · 250k -0.1 · 375k +0.5 · 500k +0.6 · validity 100% at every budget
+VERDICT: ACCEPT
+```
+
+**Footprint.** M102 changed 330/1920 paired checkpoints, with 209 improvements, 117 regressions,
+and 1594 plateaus. The 125k tier is byte-stable. Selected specs were all nonnegative weighted:
+`canyon_steps` +2.69, `pop_train` +2.19, `big_air_ramp` +2.11, `drums_zigzag` +1.85,
+`syncopated_lift` +1.52, `drums_breath` +1.42, `drums_crosscut` +0.96, `skyline_push` +0.94,
+`leap_cadence` +0.69, `rolling_drop` +0.38, and `float_bounds` +0.17.
+
+**Learnings.** M100 had at least two keepable local repair-margin pockets. M101 captured the
+flat compact one; M102 captures the high-air/low-grain mature-budget one while preserving the
+125k protection. New baseline is `attempt-m102-repair-highair-lowgrain-main100-a01`; remaining
+target gap is 3.65 headline points.
 
 ### M101 - flat compact repair main-margin exactness · canonical ACCEPT (2026-07-04)
 

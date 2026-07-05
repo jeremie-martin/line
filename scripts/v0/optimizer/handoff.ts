@@ -49,6 +49,7 @@ import {
   authoredSpeedToPx,
   speedPxToAuthored,
   PREROLL,
+  frameToSec,
   secToFrame,
   type AxisName,
   type AxisValues,
@@ -3717,6 +3718,9 @@ const REPAIR_MARGIN_RAMP_START_FRAMES = 100_000;
 const REPAIR_MARGIN_RAMP_SPAN_FRAMES = 100_000;
 const M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES = 200_000;
 const M101_REPAIR_FLAT_COMPACT_MAX_CONTACTS = 32;
+const M102_REPAIR_HIGH_AIR_MEAN_MIN = 0.61;
+const M102_REPAIR_HIGH_AIR_RANGE_MAX = 0.40;
+const M102_REPAIR_LOW_GRAIN_MEAN_MAX = 0.49;
 
 function repairRampMargin(
   targetBudget: number,
@@ -3738,6 +3742,14 @@ function defaultRepairMainMargin(targetBudget: number, spec: Spec): number {
   ) {
     return 1.0;
   }
+  if (
+    readEnv("LR_M102_REPAIR_HIGH_AIR_LOW_GRAIN_MAIN100") !== "0" &&
+    targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
+    !m101FlatCompactRepairProfile(spec) &&
+    m102HighAirLowGrainRepairProfile(spec)
+  ) {
+    return 1.0;
+  }
   return repairRampMargin(targetBudget, 1, REPAIR_MAIN_MARGIN_MATURE);
 }
 
@@ -3745,6 +3757,29 @@ function m101FlatCompactRepairProfile(spec: Spec): boolean {
   if (spec.contacts.length > M101_REPAIR_FLAT_COMPACT_MAX_CONTACTS) return false;
   const profile = authoredVerticalObjectiveProfile(spec);
   return profile.elevationRange <= 0 && profile.amplitudeRange <= 0;
+}
+
+function m102HighAirLowGrainRepairProfile(spec: Spec): boolean {
+  const air: number[] = [];
+  const grain: number[] = [];
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .filter((frame) => frame >= K_BOUNCE_LANDING)
+    .sort((a, b) => a - b);
+  for (const frame of contactFrames) {
+    const targets = axesAtFrame(frame, spec);
+    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
+    const grainTarget = spec.axes.grain?.(frameToSec(frame));
+    if (typeof grainTarget === "number" && Number.isFinite(grainTarget)) grain.push(grainTarget);
+  }
+  if (air.length < 2) return false;
+  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
+  const meanGrain = grain.length === 0 ?
+    0 :
+    grain.reduce((sum, value) => sum + value, 0) / grain.length;
+  return meanAir >= M102_REPAIR_HIGH_AIR_MEAN_MIN &&
+    valueRange(air) <= M102_REPAIR_HIGH_AIR_RANGE_MAX &&
+    meanGrain <= M102_REPAIR_LOW_GRAIN_MEAN_MAX;
 }
 
 function defaultRepairFeasMargin(targetBudget: number): number {

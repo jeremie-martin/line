@@ -2,6 +2,51 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - ACCEPTED - M102 high-air low-grain repair main-margin exactness
+
+Reason: M100's global protected repair main-margin trial still contained a second residual
+positive pocket after M101 removed the flat compact winners. The clean all-12 residual shape was
+high-air, moderate air-range, low/absent authored grain profiles outside M101. M102 keeps M101
+first, then uses exact main repair margin 1.0 for mature budgets (>=200k) when mean authored air
+at feasible contacts is at least 0.61, authored air range is at most 0.40, and mean authored
+grain is at most 0.49. Missing grain counts as zero. The fallback flag is
+`LR_M102_REPAIR_HIGH_AIR_LOW_GRAIN_MAIN100=0`. Explicit `LR_REPAIR_MAIN_MARGIN` still overrides.
+Candidate generation, q, start selection, forward eval, scorer, specs, fingerprint, seed set,
+budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M102_REPAIR_HIGH_AIR_LOW_GRAIN_MAIN100=0` (6 files, 78 tests each).
+
+Full 3-seed guard:
+`generated/golden-runs/probe-m102-repair-highair-lowgrain-main100-full-s0-2-a02/golden.json`,
+valid 480/480 with raw HEADLINE 698.93 and `HEADLINE excl. impact` 715.68. Decision vs M101:
+non-canonical indicative `VERDICT: ACCEPT`, delta +0.6, CI [-0.3, 1.6], P(delta<=0)=8.7%,
+effect 1.25. Per-budget deltas were 125k +0.0, 250k +0.1, 375k +0.6, and 500k +1.0.
+
+Affected-pocket probe:
+`generated/golden-runs/probe-m102-repair-highair-lowgrain-main100-pocket-s0-11-a01/golden.json`,
+run on the 11 selected specs with all 12 canonical seeds, was valid 528/528 with raw pocket
+HEADLINE 703.60 and `HEADLINE excl. impact` 706.09. Decision vs M101: non-canonical
+indicative `VERDICT: ACCEPT`, delta +1.3, CI [-0.2, 2.8], P(delta<=0)=4.1%, effect 1.74.
+Per-budget deltas were 125k +0.0, 250k -0.5, 375k +2.0, and 500k +2.1.
+
+Canonical M102:
+`generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01`.
+It was valid 1920/1920 with raw HEADLINE 696.35 and `HEADLINE excl. impact` 714.91.
+Per-budget point estimates were 125k 677.98, 250k 691.67, 375k 698.50, and 500k 701.66.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json generated/golden-runs/attempt-m101-repair-flat-compact-main100-a01/golden.json` -> `VERDICT: ACCEPT`, delta headline +0.4, CI [-0.1, 0.9], P(delta<=0)=4.3%, effect 1.59. Per-budget deltas were 125k +0.0, 250k -0.1, 375k +0.5, and 500k +0.6, with unchanged validity.
+
+Why it was kept: this is a second local repair usefulness selector, not a global repair-margin
+scalar. It changes 330/1920 paired checkpoints, with 209 improvements, 117 regressions, and
+1594 plateaus; the 125k tier is byte-stable. The selected specs are nonnegative weighted:
+`canyon_steps` (+2.69), `pop_train` (+2.19), `big_air_ramp` (+2.11), `drums_zigzag` (+1.85),
+`syncopated_lift` (+1.52), `drums_breath` (+1.42), `drums_crosscut` (+0.96),
+`skyline_push` (+0.94), `leap_cadence` (+0.69), `rolling_drop` (+0.38), and `float_bounds`
+(+0.17). The accepted baseline is now `attempt-m102-repair-highair-lowgrain-main100-a01`.
+
 ## 2026-07-04 - ACCEPTED - M101 flat compact repair main-margin exactness
 
 Reason: M100 showed that protected mature-budget repair main-margin 1.0 was positive but too

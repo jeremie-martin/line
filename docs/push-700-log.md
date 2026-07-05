@@ -2563,6 +2563,44 @@ only attractive M188 signal is `drums_zigzag`-local, and the surrounding dense/d
 do not promote that as a raw profile pocket. Future current-power work needs a new structural
 selector or external/variant validation, not a scalar dose or one-spec relief carve-out.
 
+### M190-M193 - accepted-pocket cleanup ablations · rejected / no source changes (2026-07-05)
+
+**Study.** Checked whether the later M178 stack had made older accepted repair/readiness pockets
+stale. These were source-free all-12 affected-slice ablations against M178; no source behavior was
+changed and no cleanup was kept.
+
+**M190 M101 flat-compact repair ablation.**
+`LR_M101_REPAIR_FLAT_COMPACT_MAIN100=0` on
+`mini_burst,syncopated_switchback,cold_start,tiny_dance,opening_burst,verse_chorus` was valid
+288/288 and rejected versus M178 on the paired slice: delta -3.9, CI [-8.3, -0.2],
+P(Delta<=0)=98.0%. Per-budget deltas were 125k +0.0, 250k -4.1, 375k -2.9, 500k -5.5.
+Every affected spec was negative, led by `mini_burst` -6.99 and `syncopated_switchback` -4.71.
+
+**M191 M102 high-air/low-grain repair ablation.**
+`LR_M102_REPAIR_HIGH_AIR_LOW_GRAIN_MAIN100=0` on the 11 affected specs was valid 528/528 and
+rejected: delta -1.2, CI [-2.8, 0.4], P(Delta<=0)=93.4%. Per-budget deltas were 125k +0.0,
+250k -0.5, 375k -1.1, 500k -1.9. The only nonnegative row was a flat `drums_breath` +0.04;
+the main losses were `big_air_ramp` -4.25, `pop_train` -2.19, and `drums_zigzag` -1.85.
+
+**M192 M108 dense-readiness/pulse-repair ablation.**
+`LR_M108_DENSE_DRUM_READINESS075=0 LR_M108_DRUMS_PULSE_REPAIR_MAIN100=0` on
+`drums_breath,drums_crescendo,drums_pulse` was valid 144/144 and rejected: delta -5.4,
+CI [-12.6, 0.1], P(Delta<=0)=97.3%. Per-budget deltas were 125k +0.0, 250k -9.8,
+375k -4.9, 500k -4.9. All three specs were negative.
+
+**M193 M117/M132 portfolio ablation.**
+Disabling the M117 sparse-elevation readiness, compact readiness, stable-dense repair, plus the
+M132 big-air M74 relief and pendulum q34 arms on their seven-spec union was valid 336/336 and
+rejected: delta -3.9, CI [-7.9, -0.8], P(Delta<=0)=99.5%. Per-budget deltas were 125k +0.0,
+250k -5.0, 375k -4.3, 500k -3.9. `ridge_pulse` improved only +0.81, while the same portfolio
+remained strongly load-bearing for `mini_burst` -12.94, `rolling_hills` -5.94,
+`big_air_ramp` -4.84, and `drums_pendulum` -3.97.
+
+**Learnings.** Accepted-pocket cleanup is not a remaining source of free headline. M101, M102,
+M108, M117, and M132 all still carry their affected rows under M178. The small `ridge_pulse`
+cleanup hint is too narrow and contradicted by the same compact-readiness path being heavily
+load-bearing for `mini_burst`; do not promote it as a one-row removal.
+
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 
 **Pendulum quality breadth.** M133 tested q36 for `drums_pendulum` all-12 and rejected versus

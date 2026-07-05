@@ -2,6 +2,37 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - SOURCE-FREE REJECTS - M190-M193 accepted-pocket cleanup ablations
+
+Reason: after M178, check whether later accepted mechanisms had made earlier repair/readiness
+pockets stale. These were source-free all-12 affected-slice ablations against M178; no source
+changes were kept.
+
+M101 flat-compact repair off
+(`generated/golden-runs/probe-m190-ablate-m101-flatcompact-all12-a01/golden.json`) was valid
+288/288 and rejected versus M178 on the six-spec intersection: delta -3.9, CI [-8.3, -0.2],
+P(Delta<=0)=98.0%. All affected specs were negative.
+
+M102 high-air/low-grain repair off
+(`generated/golden-runs/probe-m191-ablate-m102-highair-lowgrain-all12-a01/golden.json`) was
+valid 528/528 and rejected on the 11-spec intersection: delta -1.2, CI [-2.8, 0.4],
+P(Delta<=0)=93.4%. The 500k tier was the clearest loss (-1.9), and only `drums_breath` was flat.
+
+M108 dense-readiness plus pulse-repair off
+(`generated/golden-runs/probe-m192-ablate-m108-dense-readiness-pulse-all12-a01/golden.json`)
+was valid 144/144 and rejected on its three-spec intersection: delta -5.4, CI [-12.6, 0.1],
+P(Delta<=0)=97.3%. `drums_crescendo`, `drums_breath`, and `drums_pulse` all regressed.
+
+M117/M132 portfolio off
+(`generated/golden-runs/probe-m193-ablate-m117-m132-portfolio-all12-a01/golden.json`) was valid
+336/336 and rejected on the seven-spec union: delta -3.9, CI [-7.9, -0.8], P(Delta<=0)=99.5%.
+The tiny `ridge_pulse` cleanup hint (+0.81) was outweighed by large losses on `mini_burst`,
+`rolling_hills`, `big_air_ramp`, and `drums_pendulum`.
+
+Conclusion: accepted-pocket cleanup is closed for M101, M102, M108, M117, and M132 under M178.
+Do not carve out the one-row `ridge_pulse` hint without a broader selector; the same compact
+readiness path is now strongly load-bearing for `mini_burst`.
+
 ## 2026-07-05 - SOURCE-FREE REJECTS - M188-M189 current-power relief dose audits
 
 Reason: after M178, answer whether the remaining M63/current-power signal wanted a milder global

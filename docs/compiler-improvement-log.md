@@ -2,6 +2,70 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - NOT KEPT - M105 dense-drum readiness selector
+
+Reason: M104's `drums_breath`-only readiness selector was positive but too small, so M105
+tested whether the remaining M63-descendant readiness signal could become promotable by adding
+one independently screened dense-drum neighbor. Source-free screens first checked both repair
+exactness and readiness-power variants against the accepted M102 baseline.
+
+Repair screens did not produce a keepable mechanism. Exact main repair margin 1.0 on
+`drums_pendulum,terrace_sprint,dense_echo_climb,drums_dropout,dense_sprint,rhythm_ladder,
+drums_pulse,drums_signature,drums_crescendo,drums_tide,solo_run` with seeds 0..2 and
+250k/375k/500k (`probe-m105-residual-repair-main100-s0-2-a01`) was indicative
+`VERDICT: INCONCLUSIVE`, delta -0.6, P(delta<=0)=62.7%; `drums_pulse` (+5.87),
+`rhythm_ladder` (+3.49), and `solo_run` (+3.34) were offset by `drums_tide` (-9.12) and
+`drums_crescendo` (-4.28). The all-12 repair pocket on
+`drums_pulse,rhythm_ladder,solo_run,grain_staircase`
+(`probe-m105-flat-dense-lowair-repair-main100-pocket-s0-11-a01`) collapsed to delta -0.1,
+P(delta<=0)=51.3%.
+
+Readiness screens showed a second pocket but also strong collateral. The worst-15 readiness
+sweep (`probe-m105-worst15-readiness075-s0-2-a01`) rejected overall, delta -4.7,
+P(delta<=0)=91.9%; positives were `drums_breath` (+12.14) and `drums_crescendo` (+3.72), while
+`drums_pulse` (-21.41), `dense_sprint` (-18.04), `drums_signature` (-15.59), and
+`canyon_steps` (-8.34) made broadening untenable. The all-12 `drums_crescendo` readiness pocket
+(`probe-m105-drums-crescendo-readiness075-s0-11-a01`) was indicative positive on the one-spec
+mature-budget intersection: `VERDICT: ACCEPT`, delta +6.9, CI [-3.7, 16.5],
+P(delta<=0)=9.8%, effect 1.33; per-budget deltas were 250k +15.6, 375k +5.0, and 500k +4.0.
+
+Mechanism tested: after the accepted M75 high-air impact readiness selector, add readiness
+power 0.75 for mature-budget dense-drum profiles matching either the M104 `drums_breath` pocket
+or the new `drums_crescendo` pocket. The selector required at least 50 feasible contacts, median
+contact gap <=0.75s, and no authored elevation/amplitude objective range. The `drums_breath`
+arm used mean air 0.62..0.66, air range <=0.30, speed range 0.20..0.28, and mean impact
+0.20..0.30. The `drums_crescendo` arm used mean air 0.55..0.57, air range 0.50..0.56, mean
+speed 0.60..0.62, speed range 0.50..0.56, and mean impact 0.38..0.40. The escape flag was
+`LR_M105_DENSE_DRUM_READINESS075=0`. A selector footprint check matched only `drums_breath` and
+`drums_crescendo` across the 40 golden specs.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M105_DENSE_DRUM_READINESS075=0` (6 files, 78 tests each).
+
+Full 3-seed guard:
+`generated/golden-runs/probe-m105-dense-drum-readiness075-full-s0-2-a01/golden.json` was valid
+480/480 with raw HEADLINE 699.29 and `HEADLINE excl. impact` 715.97. Decision vs M102 was
+indicative `VERDICT: INCONCLUSIVE`, delta +0.4, CI [-0.7, 1.6], P(delta<=0)=28.1%,
+effect 0.65. Per-budget deltas were 125k +0.0, 250k +0.4, 375k +0.5, and 500k +0.3.
+
+Canonical M105:
+`generated/golden-runs/attempt-m105-dense-drum-readiness075-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m105-dense-drum-readiness075-a01`.
+It was valid 1920/1920 with raw HEADLINE 696.61 and `HEADLINE excl. impact` 715.02. Per-budget
+point estimates were 125k 677.98, 250k 692.14, 375k 698.73, and 500k 701.92.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m105-dense-drum-readiness075-a01/golden.json generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`
+-> `VERDICT: INCONCLUSIVE`, delta headline +0.3, CI [-0.1, 1.0], P(delta<=0)=21.9%, effect
+0.90. Per-budget deltas were 125k +0.0, 250k +0.5, 375k +0.2, and 500k +0.3, with unchanged
+validity.
+
+Why it was not kept: this was the strongest direct push of the M63/readiness descendant after
+M104, and it did move the canonical point estimate, but it still missed the acceptance rule. The
+source patch was reverted; M102 remains the accepted baseline. The line has real small pockets
+(`drums_breath`, `drums_crescendo`) but is not promotable at 12 canonical seeds without another
+independent source of suite-scale lift.
+
 ## 2026-07-05 - NOT KEPT - M104 dense high-air low-impact readiness selector
 
 Reason: M103 showed that the broad M63-form current-power idea should not be widened on the

@@ -1901,6 +1901,69 @@ acceptable confidence. The source patch was reverted and M102 remains baseline o
 promote this unless a future selector adds independent, screened footprint beyond `drums_breath`;
 do not widen back to the rejected dense high-air panel.
 
+### M105 - dense-drum readiness selector · canonical INCONCLUSIVE, reverted (2026-07-05)
+
+**Study.** Push the M63/readiness descendant one step past M104 by looking for a second narrow
+dense-drum pocket that could add enough independent mass to become promotable. Repair exactness
+was checked first and closed; readiness remained the only live thread.
+
+```
+Residual repair main-margin 1.0 (`probe-m105-residual-repair-main100-s0-2-a01`):
+  drums_pendulum,terrace_sprint,dense_echo_climb,drums_dropout,dense_sprint,rhythm_ladder,
+  drums_pulse,drums_signature,drums_crescendo,drums_tide,solo_run · seeds 0..2 · 250k/375k/500k
+  Delta headline = -0.6 · P(Delta<=0)=62.7% · VERDICT: INCONCLUSIVE
+  Local positives: drums_pulse +5.87, rhythm_ladder +3.49, solo_run +3.34
+  Offsets: drums_tide -9.12, drums_crescendo -4.28
+
+All-12 repair pocket (`probe-m105-flat-dense-lowair-repair-main100-pocket-s0-11-a01`):
+  drums_pulse,rhythm_ladder,solo_run,grain_staircase · seeds 0..11 · 250k/375k/500k
+  Delta headline = -0.1 · P(Delta<=0)=51.3% · VERDICT: INCONCLUSIVE
+
+Worst-15 readiness sweep (`probe-m105-worst15-readiness075-s0-2-a01`):
+  seeds 0..2 · 250k/375k/500k
+  Delta headline = -4.7 · P(Delta<=0)=91.9% · VERDICT: REJECT
+  Positives: drums_breath +12.14, drums_crescendo +3.72
+  Losses: drums_pulse -21.41, dense_sprint -18.04, drums_signature -15.59, canyon_steps -8.34
+
+All-12 drums_crescendo readiness pocket (`probe-m105-drums-crescendo-readiness075-s0-11-a01`):
+  seeds 0..11 · 250k/375k/500k
+  Delta headline = +6.9 on the one-spec mature-budget intersection
+  CI [-3.7, 16.5] · P(Delta<=0)=9.8% · effect=1.33 · indicative VERDICT: ACCEPT
+  250k +15.6 · 375k +5.0 · 500k +4.0
+```
+
+**Mechanism.** Source trial added readiness power 0.75 after M75 for a dense-drum selector whose
+static footprint matched only `drums_breath` and `drums_crescendo` among the 40 golden specs.
+Both arms required at least 50 feasible contacts, median contact gap <=0.75s, and no authored
+elevation/amplitude objective range. The `drums_breath` arm reused the M104 high-air/low-impact
+pocket; the `drums_crescendo` arm selected mean air 0.55..0.57, air range 0.50..0.56, mean
+speed 0.60..0.62, speed range 0.50..0.56, and mean impact 0.38..0.40. Fallback flag:
+`LR_M105_DENSE_DRUM_READINESS075=0`.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M105_DENSE_DRUM_READINESS075=0` (6 files, 78 tests each). Full
+3-seed guard (`probe-m105-dense-drum-readiness075-full-s0-2-a01`) was valid 480/480 with raw
+HEADLINE 699.29 and excl-impact 715.97; decision vs M102 was indicative
+`VERDICT: INCONCLUSIVE`, delta +0.4, CI [-0.7, 1.6], P(Delta<=0)=28.1%.
+
+**Canonical.**
+`generated/golden-runs/attempt-m105-dense-drum-readiness075-a01/golden.json` was run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m105-dense-drum-readiness075-a01`.
+It was valid 1920/1920 with raw HEADLINE 696.61 and excl-impact 715.02. Budget scores:
+125k 677.98, 250k 692.14, 375k 698.73, 500k 701.92.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m105-dense-drum-readiness075-a01/golden.json generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: M102 696.35 -> M105 696.61, delta +0.3, CI [-0.1, 1.0],
+P(Delta<=0)=21.9%, effect 0.90. Per-budget deltas were 125k +0.0, 250k +0.5, 375k +0.2, and
+500k +0.3.
+
+**Learnings.** This confirms the user's M63 hunch was worth pushing: the readiness descendant
+is directionally positive and has real `drums_breath`/`drums_crescendo` pockets. It still does
+not clear the canonical accept rule at 12 seeds, so the source patch was reverted and M102
+remains baseline of record. Do not spend more canonical cycles on this exact two-spec selector;
+it needs a separate suite-scale carrier before promotion.
+
 ### M101 - flat compact repair main-margin exactness · canonical ACCEPT (2026-07-04)
 
 **Mechanism.** Promoted the local repair selector implied by M100's footprint. The accepted

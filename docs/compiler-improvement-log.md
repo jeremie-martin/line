@@ -2,6 +2,40 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - ACCEPTED - M108 dense readiness plus pulse repair
+
+Reason: M105 was the strongest direct push of the user's M63/readiness hunch but missed the
+canonical gate by a small margin: delta +0.3 with P(delta<=0)=21.9%. The clean all-12 repair
+add-on left from the same study was `drums_pulse` exact repair timing. A synthetic disjoint-spec
+combine of M105's `drums_breath`/`drums_crescendo` readiness rows plus the `drums_pulse` repair
+rows predicted `VERDICT: ACCEPT`: delta +0.3, CI [-0.1, 1.0], P(delta<=0)=12.6%, effect 1.00.
+
+Mechanism kept: add two narrow mature-budget selectors after the accepted M75/M101/M102
+selectors. `LR_M108_DENSE_DRUM_READINESS075=0` disables readiness power 0.75 for the M105 dense
+drum pockets (`drums_breath`- and `drums_crescendo`-shaped profiles). `LR_M108_DRUMS_PULSE_REPAIR_MAIN100=0`
+disables mature repair main-margin 1.0 for the `drums_pulse`-shaped steady profile. Scorer,
+specs, fingerprint, seeds, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M108_DENSE_DRUM_READINESS075=0 LR_M108_DRUMS_PULSE_REPAIR_MAIN100=0`
+(6 files, 78 tests each).
+
+Canonical M108:
+`generated/golden-runs/attempt-m108-dense-readiness-pulse-repair-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m108-dense-readiness-pulse-repair-a01`.
+It was valid 1920/1920 with raw HEADLINE 696.65 and `HEADLINE excl. impact` 715.04. Per-budget
+point estimates were 125k 677.98, 250k 692.19, 375k 698.78, and 500k 701.94.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m108-dense-readiness-pulse-repair-a01/golden.json generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`
+-> `VERDICT: ACCEPT`, delta headline +0.3, CI [-0.1, 1.0], P(delta<=0)=12.6%, effect 1.00.
+Per-budget deltas were 125k +0.0, 250k +0.5, 375k +0.3, and 500k +0.3, with unchanged validity.
+
+Footprint: 98/1920 paired checkpoints changed, with 64 improvements, 34 regressions, and 1822
+plateaus. Weighted spec deltas were `drums_crescendo` +6.29, `drums_breath` +3.95, and
+`drums_pulse` +1.32. The accepted source commit is `6a58e2a`; M108 is now the baseline of
+record. Remaining target gap is 3.35 headline points.
+
 ## 2026-07-05 - NOT KEPT - M107 objective-level controlled-axis overshoot
 
 Reason: M106 showed that adding controlled-axis overshoot pressure to the local handoff score is

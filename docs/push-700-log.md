@@ -22,6 +22,7 @@ rule are frozen.
 | 2026-07-04 | attempt-m94-lowimpact-compact-current20-a01 | 0fdf9d9 | 695.48 | 714.05 | M94 low-impact compact current-power 2.0 selector — canonical ACCEPT |
 | 2026-07-04 | attempt-m101-repair-flat-compact-main100-a01 | 18a1c16 | 695.99 | 714.67 | M101 flat compact mature repair main-margin 1.0 selector — canonical ACCEPT |
 | 2026-07-04 | attempt-m102-repair-highair-lowgrain-main100-a01 | d448cc4 | 696.35 | 714.91 | M102 high-air low-grain mature repair main-margin 1.0 selector — canonical ACCEPT |
+| 2026-07-05 | attempt-m108-dense-readiness-pulse-repair-a01 | 6a58e2a | 696.65 | 715.04 | M108 dense readiness plus drums_pulse repair — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -2045,6 +2046,45 @@ P(Delta<=0)=99.1%, effect -1.98. Per-budget deltas were 125k +0.3, 250k -2.6, 37
 at mature budgets. Source reverted; M102 remains baseline of record. Keep the M63/readiness lead
 separate: the next viable version needs narrow profile gating or a different suite-scale carrier,
 not this broad overshoot pressure.
+
+### M108 - dense readiness plus pulse repair · canonical ACCEPT (2026-07-05)
+
+**Study.** M105 nearly pushed the M63/readiness descendant through the gate, but the two-spec
+selector stopped at P(Delta<=0)=21.9%. The only all-12-clean add-on from the same residual work
+was exact mature repair timing for `drums_pulse`. A synthetic disjoint-spec combine of M105
+(`drums_breath` + `drums_crescendo`) and the `drums_pulse` repair rows predicted
+`VERDICT: ACCEPT`: delta +0.3, CI [-0.1, 1.0], P(Delta<=0)=12.6%, effect 1.00.
+
+**Mechanism.** Add two narrow mature-budget selectors after the accepted M75/M101/M102 paths.
+The readiness arm uses readiness power 0.75 for the M105 dense-drum profiles:
+`drums_breath`-shaped high-air/low-impact and `drums_crescendo`-shaped wide-air/wide-speed.
+The repair arm uses main repair margin 1.0 for the `drums_pulse`-shaped steady-speed profile.
+Fallback flags: `LR_M108_DENSE_DRUM_READINESS075=0` and
+`LR_M108_DRUMS_PULSE_REPAIR_MAIN100=0`. Scorer, specs, fingerprint, seeds, budget grid, and
+acceptance rule stayed unchanged.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M108_DENSE_DRUM_READINESS075=0 LR_M108_DRUMS_PULSE_REPAIR_MAIN100=0`
+(6 files, 78 tests each).
+
+**Canonical.**
+`generated/golden-runs/attempt-m108-dense-readiness-pulse-repair-a01/golden.json` was run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m108-dense-readiness-pulse-repair-a01`.
+It was valid 1920/1920 with raw HEADLINE 696.65 and excl-impact 715.04. Budget scores:
+125k 677.98, 250k 692.19, 375k 698.78, 500k 701.94.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m108-dense-readiness-pulse-repair-a01/golden.json generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`
+returned `VERDICT: ACCEPT`: M102 696.35 -> M108 696.65, delta +0.3, CI [-0.1, 1.0],
+P(Delta<=0)=12.6%, effect 1.00. Per-budget deltas were 125k +0.0, 250k +0.5, 375k +0.3, and
+500k +0.3.
+
+**Footprint.** 98/1920 paired checkpoints changed: 64 improvements, 34 regressions, 1822
+plateaus. Weighted spec deltas were `drums_crescendo` +6.29, `drums_breath` +3.95, and
+`drums_pulse` +1.32. This is the keepable M63/readiness continuation: not a wider M63 retry,
+but a narrow readiness pair plus one independent repair row. Accepted source commit: `6a58e2a`.
+New baseline is `attempt-m108-dense-readiness-pulse-repair-a01`; remaining target gap is 3.35
+headline points.
 
 ### M101 - flat compact repair main-margin exactness · canonical ACCEPT (2026-07-04)
 

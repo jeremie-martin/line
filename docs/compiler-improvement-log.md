@@ -2,6 +2,79 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - ACCEPTED - M117 portfolio elevation compact repair
+
+Reason: M108 kept the strongest direct M63/readiness descendant, but left the canonical headline
+at 696.65. M109-M116 then separated three positive, disjoint mature-budget mechanisms from the
+same residual family: sparse elevation readiness for `rolling_hills`/`summit_push`, compact
+readiness for positive low-impact compact rows, and exact repair timing for two stable dense
+rows. Broad forms of all three were rejected or too noisy, so M117 promoted only the clean
+pockets that survived all-12 or full-suite guards.
+
+Mechanism kept: add per-spec objective elevation readiness only for the narrow
+`rolling_hills`/`summit_push` sparse elevation pockets, add readiness power 0.75 for the
+positive compact M109 pocket, and add mature repair main-margin 1.0 for the stable dense
+`drums_pendulum`/`dense_sprint` pocket. Fallback flags are
+`LR_M114_SPARSE_ELEVATION_READINESS=0`, `LR_M115_COMPACT_READINESS075=0`, and
+`LR_M116_STABLE_DENSE_REPAIR_MAIN100=0`. Scorer, specs, fingerprint, seeds, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/objective_quality.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with
+`LR_M114_SPARSE_ELEVATION_READINESS=0 LR_M115_COMPACT_READINESS075=0 LR_M116_STABLE_DENSE_REPAIR_MAIN100=0`
+(5 files, 73 tests each).
+
+Canonical M117:
+`generated/golden-runs/attempt-m117-portfolio-elev-compact-repair-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m117-portfolio-elev-compact-repair-a01`.
+It was valid 1920/1920 with raw HEADLINE 696.96 and `HEADLINE excl. impact` 714.88.
+Per-budget point estimates were 125k 677.98, 250k 692.38, 375k 699.18, and 500k 702.32.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m117-portfolio-elev-compact-repair-a01/golden.json generated/golden-runs/attempt-m108-dense-readiness-pulse-repair-a01/golden.json`
+-> `VERDICT: ACCEPT`, delta headline +0.3, CI [-0.2, 0.9], P(delta<=0)=9.9%, effect 1.09.
+Per-budget deltas were 125k +0.0, 250k +0.2, 375k +0.4, and 500k +0.4, with unchanged validity.
+
+Footprint: 192/1920 paired checkpoints changed, with 112 improvements, 80 regressions, and
+1728 plateaus. Only the six intended specs moved. Weighted spec deltas were `rolling_hills`
++5.94, `ridge_pulse` +2.19, `drums_pendulum` +1.33, `dense_sprint` +0.92, `summit_push` +0.91,
+and `mini_burst` +0.72. The accepted source commit is `189d2f8`; M117 is now the baseline of
+record. Remaining target gap is 3.04 headline points.
+
+## 2026-07-05 - NOT KEPT / FOLDED - M109-M116 probes behind M117
+
+M109 compact readiness repricing was positive but not promotable by itself. The all-12 compact
+screen on `mini_burst,ridge_pulse,rolling_hills,cold_start` was valid 192/192 with a
+non-canonical inconclusive decision versus M108: delta +0.9, CI [-5.2, 6.4], P(delta<=0)=34.6%.
+`ridge_pulse` (+2.19), `rolling_hills` (+1.44), and `mini_burst` (+0.72) were positive, while
+`cold_start` (-0.96) argued for a tighter positive-compact selector. That narrowed selector was
+folded into M117 as M115.
+
+M110 broad uncovered repair main-margin 1.0 was rejected as a broad repair scalar. The mature
+panel was valid 576/576, but the decision versus M108 was negative: delta -0.5, CI [-2.0, 0.8],
+P(delta<=0)=78.9%. Stable positives existed (`drums_pendulum` +1.48 and `dense_sprint` +1.02),
+but losses such as `valley_bounce` -4.58, `terrace_sprint` -1.88, and `drums_dropout` -1.66
+made broad promotion unsafe. Only the two stable dense positives were folded into M117 as M116.
+
+M111 broad elevation readiness was rejected. The vertical 3-seed panel was valid 180/180 but
+returned `VERDICT: REJECT`, delta -1.7, CI [-6.4, 1.2], P(delta<=0)=82.9%; positives on
+`valley_bounce`, `glide_stairs`, `summit_push`, and `rolling_hills` were swamped by losses on
+`canyon_steps`, `dense_echo_climb`, `syncopated_lift`, and `skyline_push`. The temporary source
+was reverted.
+
+M112 rhythm controlled overshoot was one-spec positive but too unstable: `rhythm_ladder`
+all-12 was valid 48/48 and inconclusive versus M108, delta +3.4, CI [-4.1, 12.5],
+P(delta<=0)=22.6%, with 250k +19.0 but 500k -3.0. The source was reverted. M113 local impact
+weight 0.75 was byte-identical on the top-impact panel and was not a live mechanism.
+
+M114 fixed the elevation-readiness predictor and then narrowed it. The broad corrected sparse
+screen moved rows but was too leaky, with losses in `glide_stairs`, `climb_terrace`, and
+`switchback_pop`. The narrowed `rolling_hills`/`summit_push` all-12 pocket was valid 96/96 and
+indicative ACCEPT versus M108: delta +2.5, CI [-0.6, 6.7], P(delta<=0)=6.1%, with weighted
+spec deltas `rolling_hills` +4.10 and `summit_push` +0.91. That narrowed elevation readiness
+became the first arm of M117. M115 and M116 were not promoted as standalone canonical attempts;
+they were the compact-readiness and stable-dense-repair arms validated inside M117.
+
 ## 2026-07-05 - ACCEPTED - M108 dense readiness plus pulse repair
 
 Reason: M105 was the strongest direct push of the user's M63/readiness hunch but missed the

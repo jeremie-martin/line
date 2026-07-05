@@ -24,6 +24,7 @@ rule are frozen.
 | 2026-07-04 | attempt-m102-repair-highair-lowgrain-main100-a01 | d448cc4 | 696.35 | 714.91 | M102 high-air low-grain mature repair main-margin 1.0 selector — canonical ACCEPT |
 | 2026-07-05 | attempt-m108-dense-readiness-pulse-repair-a01 | 6a58e2a | 696.65 | 715.04 | M108 dense readiness plus drums_pulse repair — canonical ACCEPT |
 | 2026-07-05 | attempt-m117-portfolio-elev-compact-repair-a01 | 189d2f8 | 696.96 | 714.88 | M117 portfolio elevation readiness + compact readiness + stable dense repair — canonical ACCEPT |
+| 2026-07-05 | attempt-m132-m63-micro-portfolio-a01 | 6dd86a2 | 697.17 | 715.19 | M132 M63 micro-portfolio: big-air M74 relief + dense low-air q34 — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -2047,6 +2048,53 @@ P(Delta<=0)=99.1%, effect -1.98. Per-budget deltas were 125k +0.3, 250k -2.6, 37
 at mature budgets. Source reverted; M102 remains baseline of record. Keep the M63/readiness lead
 separate: the next viable version needs narrow profile gating or a different suite-scale carrier,
 not this broad overshoot pressure.
+
+### M132 - M63 micro-portfolio · canonical ACCEPT (2026-07-05)
+
+**Study.** M117 kept the viable M63/readiness descendants but left two tiny, repeatable
+residuals: M74's vertical current-power dose was taxing the high-air amplitude-only
+`big_air_ramp` profile, and source-free q34 quality breadth was positive only for the
+pendulum-shaped dense low-air row after the neighboring q34 pockets leaked. M132 tested those
+two as a narrow mature-budget portfolio instead of reopening broad M63 width.
+
+**Mechanism.** Exempt the high-air, amplitude-only sparse profile from M74's p=2 current-power
+dose, letting it fall back to the accepted M64 p=1.5 behavior. Separately, boost quality sample
+count from 32 to 34 only for the dense low-air, no-vertical pendulum-shaped profile and only at
+budgets >=200k. Fallback flags: `LR_M132_M74_HIGH_AIR_AMP_RELIEF=0` and
+`LR_M132_DENSE_LOW_AIR_QUALITY34=0`. Scorer, specs, fingerprint, seeds, budgets, and acceptance
+rule stayed unchanged.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with
+`LR_M132_M74_HIGH_AIR_AMP_RELIEF=0 LR_M132_DENSE_LOW_AIR_QUALITY34=0`
+(6 files, 78 tests each).
+
+**Probe trail.** The first full 3-seed guard hit only the M74 relief because the q34 selector
+had used feasibility-bounded impact targets; it was valid 480/480 and positive but too small:
+delta +0.1, P(Delta<=0)=35.9%. Removing the bounded-impact clause left a profile that matched
+only `drums_pendulum` across the golden specs. The pendulum all-12 probe was valid 48/48 and
+indicative ACCEPT versus M117: delta +2.7, P(Delta<=0)=6.4%, with 125k byte-identical and
+q34 active only at 250k/375k/500k. The revised full 3-seed guard was valid 480/480, raw
+HEADLINE 700.03 and excl-impact 716.48, and indicative ACCEPT versus M117: delta +0.3,
+CI [-0.1, 1.2], P(Delta<=0)=19.8%. Its changed-spec audit found only `big_air_ramp` and
+`drums_pendulum` moving.
+
+**Canonical.**
+`generated/golden-runs/attempt-m132-m63-micro-portfolio-a01/golden.json` was run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m132-m63-micro-portfolio-a01`.
+It was valid 1920/1920 with raw HEADLINE 697.17 and excl-impact 715.19. Budget scores:
+125k 677.98, 250k 692.74, 375k 699.42, 500k 702.50.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m132-m63-micro-portfolio-a01/golden.json generated/golden-runs/attempt-m117-portfolio-elev-compact-repair-a01/golden.json`
+returned `VERDICT: ACCEPT`: M117 697.0 -> M132 697.2, delta +0.2, CI [0.0, 0.6],
+P(Delta<=0)=14.2%, effect 1.19. Per-budget deltas were 125k +0.0, 250k +0.4, 375k +0.2, and
+500k +0.2.
+
+**Footprint.** 72/1920 paired checkpoints changed: 48 improvements, 24 regressions, and 1848
+plateaus. Only the two intended specs moved. Weighted spec deltas were `big_air_ramp` +4.84
+and `drums_pendulum` +2.63. Accepted source commit: `6dd86a2`. New baseline is
+`attempt-m132-m63-micro-portfolio-a01`; remaining target gap is 2.83 headline points.
 
 ### M117 - portfolio elevation compact repair · canonical ACCEPT (2026-07-05)
 

@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - ACCEPTED - M132 M63 micro portfolio
+
+Reason: M117 left two small M63-family residuals that were clean enough to promote together:
+M74's stronger current-power dose taxed a high-air amplitude-only profile, and q34 quality
+breadth was positive only for the pendulum-shaped dense low-air profile. Broader q34 and broad
+high-K relief variants had already leaked into dense/rhythm losses, so M132 kept only these two
+profile-gated arms.
+
+Mechanism kept: exempt the high-air amplitude-only sparse profile from the M74 p=2 current-power
+dose, returning it to the accepted M64 p=1.5 behavior, and boost quality sample count to 34 only
+for the dense low-air no-vertical pendulum-shaped profile at budgets >=200k. Fallback flags are
+`LR_M132_M74_HIGH_AIR_AMP_RELIEF=0` and `LR_M132_DENSE_LOW_AIR_QUALITY34=0`. Scorer, specs,
+fingerprint, seeds, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with
+`LR_M132_M74_HIGH_AIR_AMP_RELIEF=0 LR_M132_DENSE_LOW_AIR_QUALITY34=0`
+(6 files, 78 tests each).
+
+Canonical M132:
+`generated/golden-runs/attempt-m132-m63-micro-portfolio-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m132-m63-micro-portfolio-a01`.
+It was valid 1920/1920 with raw HEADLINE 697.17 and `HEADLINE excl. impact` 715.19.
+Per-budget point estimates were 125k 677.98, 250k 692.74, 375k 699.42, and 500k 702.50.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m132-m63-micro-portfolio-a01/golden.json generated/golden-runs/attempt-m117-portfolio-elev-compact-repair-a01/golden.json`
+-> `VERDICT: ACCEPT`, delta headline +0.2, CI [0.0, 0.6], P(delta<=0)=14.2%, effect 1.19.
+Per-budget deltas were 125k +0.0, 250k +0.4, 375k +0.2, and 500k +0.2, with unchanged validity.
+
+Footprint: 72/1920 paired checkpoints changed, with 48 improvements, 24 regressions, and
+1848 plateaus. Only the two intended specs moved. Weighted spec deltas were `big_air_ramp`
++4.84 and `drums_pendulum` +2.63. The accepted source commit is `6dd86a2`; M132 is now the
+baseline of record. Remaining target gap is 2.83 headline points.
+
 ## 2026-07-05 - ACCEPTED - M117 portfolio elevation compact repair
 
 Reason: M108 kept the strongest direct M63/readiness descendant, but left the canonical headline

@@ -2563,6 +2563,32 @@ only attractive M188 signal is `drums_zigzag`-local, and the surrounding dense/d
 do not promote that as a raw profile pocket. Future current-power work needs a new structural
 selector or external/variant validation, not a scalar dose or one-spec relief carve-out.
 
+### M195 - budgeted dynamic current125 profile · rejected / source reverted (2026-07-05)
+
+**Study.** Built a temporary `handoff.ts` selector that tried to rescue the M188 p=1.25 positives
+with budget gates instead of a global scalar. The profile covered dense alternating-impact cadence,
+dense variable-grain ladder cadence, sparse dynamic-vertical cadence, compact low-air grain cadence,
+and mid-phrase grain cadence. It changed no scorer, specs, fingerprint, metric, seed set, budget
+grid, or acceptance rule.
+
+**Evidence.** Focused tests passed in default/enabled/default-on modes (6 files, 78 tests each).
+The 3-seed full-suite probe
+`generated/golden-runs/probe-m195-budgeted-current125-full-s0-2-a01/golden.json` was valid
+480/480 and looked like an indicative ACCEPT: baseline 701.2 -> candidate 702.7, delta +1.4,
+CI [0.0, 3.5], P(Delta<=0)=2.2%. The footprint was clean, changing only the intended nine specs.
+
+**Canonical decision.** After making the hook default-on, canonical
+`generated/golden-runs/attempt-m195-budgeted-current125-a01/golden.json` was valid 1920/1920 but
+stored HEADLINE fell to 698.16 versus M178's 698.47. `npm run decide` returned `VERDICT:
+INCONCLUSIVE`: delta -0.3, CI [-1.4, 0.5], P(Delta<=0)=73.7%. Budget deltas were 125k +0.6,
+250k -0.0, 375k -0.8, and 500k -0.3.
+
+**Why rejected.** The seed-0..2 positives were seed-fit. Canonical gains on `leap_cadence`
+(+3.36 weighted), `rolling_drop` (+1.26), and `verse_chorus` (+0.83) were outweighed by
+`cold_start` (-8.27), `rhythm_ladder` (-3.76), `drums_zigzag` (-2.36), `grain_staircase` (-1.85),
+and `valley_bounce` (-1.15). Source was reverted. Do not retry this raw authored-profile
+current125 portfolio without a new structural mechanism or external/variant validation.
+
 ### M190-M193 - accepted-pocket cleanup ablations · rejected / no source changes (2026-07-05)
 
 **Study.** Checked whether the later M178 stack had made older accepted repair/readiness pockets

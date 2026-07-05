@@ -2,6 +2,40 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - NOT KEPT - M195 budgeted dynamic current125 profile
+
+Reason: test whether the isolated M188 `LR_M64_OBJECTIVE_CURRENT_POWER=1.25` positives could be
+rescued by a budget-aware authored-profile selector instead of a global scalar. The temporary
+source hook routed only nine intended spec/budget families to current-quality power 1.25:
+dense alternating-impact cadence, dense variable-grain ladder cadence, sparse dynamic-vertical
+cadence, compact low-air grain cadence, and mid-phrase grain cadence. Scorer, specs, evaluator
+fingerprint, metric, seed set, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default, enabled, and final default-on modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+(6 files, 78 tests each).
+
+Probe: `generated/golden-runs/probe-m195-budgeted-current125-full-s0-2-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_M195_BUDGETED_CURRENT125=1 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m195-budgeted-current125-full-s0-2-a01`.
+It was valid 480/480 and looked strong on the 3-seed intersection: stored HEADLINE 702.68, paired
+baseline 701.2 -> candidate 702.7, delta +1.4, CI [0.0, 3.5], P(Delta<=0)=2.2%, indicative
+`VERDICT: ACCEPT`. The footprint was clean: only the intended nine specs changed.
+
+Canonical: `generated/golden-runs/attempt-m195-budgeted-current125-a01/golden.json`, after making
+the hook default-on with `LR_M195_BUDGETED_CURRENT125=0` as the escape hatch. It was valid
+1920/1920 but stored HEADLINE fell to 698.16 (from M178's 698.47), with `HEADLINE excl. impact`
+716.09. `npm run decide -- generated/golden-runs/attempt-m195-budgeted-current125-a01/golden.json generated/golden-runs/attempt-m178-lowimpact-current-portfolio-a01/golden.json`
+returned canonical `VERDICT: INCONCLUSIVE`: delta -0.3, CI [-1.4, 0.5], P(Delta<=0)=73.7%.
+Per-budget deltas were 125k +0.6, 250k -0.0, 375k -0.8, and 500k -0.3.
+
+Why it was not kept: the 3-seed M188/M195 positives did not survive seeds 3..11. Canonical gains
+on `leap_cadence` (+3.36 weighted), `rolling_drop` (+1.26), and `verse_chorus` (+0.83) were
+outweighed by `cold_start` (-8.27), `rhythm_ladder` (-3.76), `drums_zigzag` (-2.36),
+`grain_staircase` (-1.85), and `valley_bounce` (-1.15). The temporary source hook was reverted;
+no source behavior was kept. Conclusion: the budgeted p=1.25 current profile was still too
+seed-fit to promote. Do not retry this raw authored-profile current125 portfolio without a new
+structural mechanism or external/variant validation.
+
 ## 2026-07-05 - NOT KEPT - M194 scarce q28 current-source retry
 
 Reason: retest the old scarce-budget q28 quality-breadth signal on top of M178, while avoiding

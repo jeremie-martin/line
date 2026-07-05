@@ -2608,6 +2608,27 @@ valid 48/48 but rejected on `mini_burst`: delta -4.5, P(Delta<=0)=90.5%. Non-gra
 tiny pressure hurts `mini_burst`; stronger non-grain pressure hurts `float_bounds,mixed_grade`;
 softer non-grain pressure gives back the accepted mature gain. Source hooks were reverted.
 
+### M197 - high-budget aim air-range gate restore · rejected / source reverted (2026-07-05)
+
+**Study.** Reopened the old accepted high-budget aim K gate as a structural candidate, not a new
+profile mine. `cd3db1b` had accepted K=6 only when the air-target range was narrow (`<0.38`);
+`93edcc4` later simplified that to current uniform high-budget K=6. M197 restored the air-range
+guard behind default-off `LR_M197_AIM_HIGHK_AIR_RANGE_GATE=1`, leaving default behavior unchanged.
+
+**Evidence.** Focused tests passed in default and enabled modes (6 files, 78 tests each). The
+3-seed full-suite probe
+`generated/golden-runs/probe-m197-aim-highk-airrange-gate-full-s0-2-a01/golden.json` was valid
+480/480 with stored HEADLINE 699.89 and budget scores 125k 680.73, 250k 695.93, 375k 702.13,
+500k 704.97.
+
+**Decision.** Paired decide against M178 on the same 40-spec x 3-seed intersection returned
+indicative `VERDICT: REJECT`: baseline 701.2 -> candidate 699.9, delta -1.3, CI [-3.8, 1.1],
+P(Delta<=0)=88.0%. Budget deltas were 125k +0.0, 250k -1.8, 375k -1.2, 500k -1.6.
+
+**Learning.** The raw near-700 was a slice artifact. The hook changed 81/480 paired cells, with
+31 improvements and 50 regressions; `dense_sprint`, `big_air_ramp`, and `drums_pendulum` drove the
+loss. Source was reverted. The old air-range guard does not stack on the current M178 portfolio.
+
 ### M190-M193 - accepted-pocket cleanup ablations · rejected / no source changes (2026-07-05)
 
 **Study.** Checked whether the later M178 stack had made older accepted repair/readiness pockets

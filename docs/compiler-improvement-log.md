@@ -2,6 +2,34 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - NOT KEPT - M197 high-budget aim air-range gate restore
+
+Reason: retest a previously accepted high-budget aim guard that had been removed during
+simplification. Commit `cd3db1b` had gated high-budget aim K=6 on narrow air-target range
+(`<0.38`); commit `93edcc4` simplified that to the current uniform high-budget K=6. M197 restored
+the old guard behind default-off `LR_M197_AIM_HIGHK_AIR_RANGE_GATE=1`, without changing the
+scorer, specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
+
+Focused tests passed in default and enabled modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M197_AIM_HIGHK_AIR_RANGE_GATE=1` (6 files, 78 tests each).
+
+Probe: `generated/golden-runs/probe-m197-aim-highk-airrange-gate-full-s0-2-a01/golden.json`, run
+with `LR_ENGINE=wasm LR_M197_AIM_HIGHK_AIR_RANGE_GATE=1 GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-m197-aim-highk-airrange-gate-full-s0-2-a01`.
+It was valid 480/480 with stored HEADLINE 699.89 and `HEADLINE excl. impact` 716.86. Stored budget
+scores were 125k 680.73, 250k 695.93, 375k 702.13, and 500k 704.97.
+
+Decision: `npm run decide -- generated/golden-runs/probe-m197-aim-highk-airrange-gate-full-s0-2-a01/golden.json generated/golden-runs/attempt-m178-lowimpact-current-portfolio-a01/golden.json`
+returned non-canonical `VERDICT: REJECT` on the 40-spec x 3-seed x 4-budget intersection:
+paired baseline 701.2 -> candidate 699.9, delta -1.3, CI [-3.8, 1.1], P(Delta<=0)=88.0%.
+Budget deltas were 125k +0.0, 250k -1.8, 375k -1.2, and 500k -1.6.
+
+Why it was not kept: the near-700 stored headline came from a favorable seed/spec slice, not a
+paired improvement. The gate changed 81/480 paired cells, with 31 improvements and 50 regressions;
+large losses on `dense_sprint`, `big_air_ramp`, and `drums_pendulum` outweighed smaller wins. The
+temporary source hook was reverted. Do not restore the historical air-range K=6 gate on the current
+M178 stack without a new selector that explicitly protects those broad-air regressions.
+
 ## 2026-07-05 - NOT KEPT - M196 low-impact current-power dose retunes
 
 Reason: after M178 accepted a narrow low-impact current-power portfolio, check whether the same

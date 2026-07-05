@@ -2,6 +2,29 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - SOURCE-FREE REJECTS - M188-M189 current-power relief dose audits
+
+Reason: after M178, answer whether the remaining M63/current-power signal wanted a milder global
+current-quality exponent or relief from the accepted dense/drum current-pressure selectors. These
+were source-free env screens against M178; no source changes were kept.
+
+Global `LR_M64_OBJECTIVE_CURRENT_POWER=1.25` in
+`generated/golden-runs/probe-m188-global-current125-full-s0-2-a01/golden.json` was valid 480/480
+and rejected versus M178 on the 40-spec x 3-seed intersection: delta -5.3, CI [-9.9, -0.8],
+P(Delta<=0)=99.1%. All budgets were negative (125k -4.1, 250k -5.1, 375k -5.9, 500k -5.2).
+`drums_zigzag` gained strongly, but broad losses in `drums_swell`, `dense_sprint`, `drums_pulse`,
+`opening_burst`, and `drums_crosscut` made the scalar untenable.
+
+Dense/drum relief with `LR_M64_OBJECTIVE_CURRENT_POWER=0.75` in
+`generated/golden-runs/probe-m189-dense-drum-current075-panel-s0-2-a01/golden.json` was valid
+144/144 and rejected on the 12-spec panel: delta -13.8, CI [-24.0, -4.4], P(Delta<=0)=99.8%.
+The mature columns were decisively negative, and even the M188 `drums_zigzag` lead turned weighted
+negative because 500k regressed.
+
+Conclusion: post-M178 current-power scalar work is closed in both directions. The remaining
+`drums_zigzag` p=1.25 spike is not a family-level result; do not promote it as a raw profile
+pocket without a new structural selector or held-out validation story.
+
 ## 2026-07-05 - SOURCE-FREE REJECTS - M184-M187 accepted q-breadth dose audits
 
 Reason: after M178 raised the canonical headline to 698.47, check whether the accepted q-breadth

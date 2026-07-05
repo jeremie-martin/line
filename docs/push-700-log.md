@@ -2532,6 +2532,37 @@ protects `float_bounds` in the sparse/amplitude family, and q40 is still the bes
 for the drum/grain family. Do not reopen simple q36/q40/q48/q56 source-free dose sweeps unless a
 new selector changes which rows receive the dose.
 
+### M188-M189 - current-power relief dose audits · rejected / no source changes (2026-07-05)
+
+**M188 global current-power p=1.25.** Source-free
+`LR_M64_OBJECTIVE_CURRENT_POWER=1.25` was run against the M178 baseline on all 40 specs, seeds
+0..2, and the canonical budget grid:
+`generated/golden-runs/probe-m188-global-current125-full-s0-2-a01/golden.json`. It was valid
+480/480 and rejected versus M178 on the paired intersection: delta -5.3, CI [-9.9, -0.8],
+P(Delta<=0)=99.1%. Every budget was negative: 125k -4.1, 250k -5.1, 375k -5.9, and 500k -5.2.
+There were real isolated positives (`drums_zigzag` +75.02 weighted, `leap_cadence` +25.98,
+`grain_staircase` +13.22), but losses were broad and larger (`drums_swell` -103.72,
+`dense_sprint` -91.64, `drums_pulse` -48.63, `opening_burst` -44.71, `drums_crosscut` -36.82).
+
+**M189 dense/drum current-power p=0.75 relief panel.** Because M188's largest positive was a
+relief from accepted M64 pressure on `drums_zigzag`, a smaller source-free dense/drum panel tested
+whether even stronger relief had family support:
+`LR_M64_OBJECTIVE_CURRENT_POWER=0.75` on
+`drums_zigzag,drums_breath,drums_dropout,drums_pendulum,drums_crosscut,drums_signature,
+drums_pulse,drums_swell,drums_crescendo,drums_tide,rhythm_ladder,dense_sprint`, seeds 0..2, all
+canonical budgets:
+`generated/golden-runs/probe-m189-dense-drum-current075-panel-s0-2-a01/golden.json`. It was valid
+144/144 and rejected versus M178 on that intersection: delta -13.8, CI [-24.0, -4.4],
+P(Delta<=0)=99.8%. Mature budgets were decisively negative: 250k -15.8, 375k -14.9, 500k -14.3.
+Even `drums_zigzag` turned net negative on the weighted panel because the 500k loss (-23.1 mean)
+overwhelmed its 125k/250k lift.
+
+**Learnings.** The M63/current-power family has been pushed in both directions after M178.
+Global p=1.5 (M179), global p=1.25 (M188), and dense/drum p=0.75 relief (M189) all reject. The
+only attractive M188 signal is `drums_zigzag`-local, and the surrounding dense/drum family fails;
+do not promote that as a raw profile pocket. Future current-power work needs a new structural
+selector or external/variant validation, not a scalar dose or one-spec relief carve-out.
+
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 
 **Pendulum quality breadth.** M133 tested q36 for `drums_pendulum` all-12 and rejected versus

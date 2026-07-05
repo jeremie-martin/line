@@ -397,6 +397,7 @@ const M74_VERTICAL_OBJECTIVE_CURRENT_POWER = 2.0;
 const M74_DYNAMIC_AMPLITUDE_RANGE_MIN = 0.45;
 const M74_ELEVATION_RANGE_MIN = 0.10;
 const M74_ELEVATION_ROOM_MEDIAN_GAP_FRAMES = Math.round(FPS * 0.90);
+const M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const M75_HIGH_AIR_IMPACT_READINESS_POWER = 0.75;
 const M75_HIGH_AIR_IMPACT_AIR_MEAN_MIN = 0.62;
 const M75_HIGH_AIR_IMPACT_AIR_MEAN_MAX = 0.66;
@@ -441,6 +442,7 @@ const HANDOFF_QUALITY_VARIATION_RELIEF_SPEED_RANGE = 0.40;
 const HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS = 32;
 const HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_SPARSE_AMP_BOOST_N_CAND = 34;
+const HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_START = 0.15;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_SPAN = 0.20;
 const HANDOFF_QUALITY_SPARSE_AMP_MEDIAN_START_FRAMES = Math.round(FPS * 0.75);
@@ -1839,9 +1841,42 @@ function m115PositiveCompactReadinessProfile(spec: Spec): boolean {
 
 function m74VerticalObjectiveDoseProfile(spec: Spec): boolean {
   const profile = authoredVerticalObjectiveProfile(spec);
+  if (
+    readEnv("LR_M132_M74_HIGH_AIR_AMP_RELIEF") !== "0" &&
+    m132M74HighAirAmplitudeReliefProfile(spec, profile)
+  ) {
+    return false;
+  }
   const elevationWithRoom = profile.elevationRange >= M74_ELEVATION_RANGE_MIN &&
     profile.medianContactGapFrames >= M74_ELEVATION_ROOM_MEDIAN_GAP_FRAMES;
   return elevationWithRoom || profile.amplitudeRange >= M74_DYNAMIC_AMPLITUDE_RANGE_MIN;
+}
+
+function m132M74HighAirAmplitudeReliefProfile(
+  spec: Spec,
+  profile: ReturnType<typeof authoredVerticalObjectiveProfile>,
+): boolean {
+  if (profile.elevationRange > 0) return false;
+  if (profile.amplitudeRange < 0.50) return false;
+  if (profile.medianContactGapFrames < 50) return false;
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .filter((frame) => frame >= K_BOUNCE_LANDING)
+    .sort((a, b) => a - b);
+  if (contactFrames.length < 10 || contactFrames.length > 16) return false;
+
+  const air: number[] = [];
+  const speed: number[] = [];
+  for (const frame of contactFrames) {
+    const targets = axesAtFrame(frame, spec);
+    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
+    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
+  }
+  if (air.length < 2 || speed.length < 2) return false;
+  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
+  return meanAir >= 0.68 &&
+    valueRange(air) >= 0.35 &&
+    valueRange(speed) <= 0.02;
 }
 
 function m87LowImpactSteadyObjectiveProfile(spec: Spec, impactPrevalence: number): boolean {
@@ -3291,6 +3326,13 @@ function qualityHandoffSampleCount(
 ): number {
   const base = handoffSampleCount(targetBudget);
   if (qualityNCandOverride() !== null || base >= HANDOFF_QUALITY_N_CAND) return base;
+  if (
+    readEnv("LR_M132_DENSE_LOW_AIR_QUALITY34") !== "0" &&
+    (targetBudget ?? 0) >= M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES &&
+    shouldBoostDenseLowAirQualityBreadth(gaps, ctx)
+  ) {
+    return HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND;
+  }
   if (shouldRelaxMatureQualityLean(gaps, ctx)) return HANDOFF_QUALITY_N_CAND;
   const boosted = shouldBoostShortNoAmpQualityBreadth(gaps, ctx)
     ? HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND
@@ -3328,6 +3370,30 @@ function shouldRelaxMatureQualityLean(gaps: Gap[], ctx: SpecContext): boolean {
 function shouldBoostShortNoAmpQualityBreadth(gaps: Gap[], ctx: SpecContext): boolean {
   return contactGapCount(gaps) <= HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS &&
     targetAxisRange(gaps, ctx, "amplitude") <= 0;
+}
+
+function shouldBoostDenseLowAirQualityBreadth(gaps: Gap[], ctx: SpecContext): boolean {
+  const medianGapFrames = medianContactGapFrames(gaps);
+  const meanAir = targetAxisMean(gaps, ctx, "air");
+  const meanSpeed = targetAxisMean(gaps, ctx, "speed");
+  if (
+    medianGapFrames === null ||
+    meanAir === null ||
+    meanSpeed === null
+  ) {
+    return false;
+  }
+  return contactGapCount(gaps) >= 50 &&
+    medianGapFrames <= 20 &&
+    targetAxisRange(gaps, ctx, "amplitude") <= 0 &&
+    targetAxisRange(gaps, ctx, "elevation") <= 0 &&
+    meanAir >= 0.47 &&
+    meanAir <= 0.49 &&
+    targetAxisRange(gaps, ctx, "air") >= 0.68 &&
+    targetAxisRange(gaps, ctx, "air") <= 0.72 &&
+    meanSpeed >= 0.54 &&
+    meanSpeed <= 0.56 &&
+    targetAxisRange(gaps, ctx, "speed") <= 0.02;
 }
 
 function smoothSparseAmplitudeQualityBreadth(

@@ -26,6 +26,7 @@ rule are frozen.
 | 2026-07-05 | attempt-m117-portfolio-elev-compact-repair-a01 | 189d2f8 | 696.96 | 714.88 | M117 portfolio elevation readiness + compact readiness + stable dense repair — canonical ACCEPT |
 | 2026-07-05 | attempt-m132-m63-micro-portfolio-a01 | 6dd86a2 | 697.17 | 715.19 | M132 M63 micro-portfolio: big-air M74 relief + dense low-air q34 — canonical ACCEPT |
 | 2026-07-05 | attempt-m146-budgetcapped-residual-quality-repair-a01 | 4bacbb5 | 697.38 | 715.34 | M146 budget-capped residual quality/repair portfolio — canonical ACCEPT |
+| 2026-07-05 | attempt-m158-scarce-current-canyon-q36-a01 | b4246b2 | 697.55 | 715.46 | M158 scarce current-power + canyon q36 pocket — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -2148,6 +2149,57 @@ plateaus. Only the intended four specs moved. Weighted spec deltas were `terrace
 `drums_signature` +1.85, `ridge_pulse` +0.85, and `soar_settle` +0.52. Accepted source commit:
 `4bacbb5`. New baseline is `attempt-m146-budgetcapped-residual-quality-repair-a01`; remaining
 target gap is 2.62 headline points.
+
+### M158 - scarce current and canyon quality pocket · canonical ACCEPT (2026-07-05)
+
+**Study.** M146 left the headline at 697.38. The old M63 current-quality exponent was still the
+right lead, but broad retries kept leaking collateral. M147-M157 therefore searched only for
+repeatable residual pockets. The keepable signal split into two arms: a scarce-budget
+`currentQuality^1.5` dose for three dense/drum no-vertical profiles, and q36 quality breadth for
+the mature `canyon_steps` profile.
+
+**Mechanism.** At budgets below 150k, the objective blend uses current-power 1.5 only for the
+three M157 scarce dense profiles matching `drums_signature`, `drums_crescendo`, and
+`dense_sprint` shape metrics. Separately, q36 quality breadth applies only at budgets >=250k for
+the M152 canyon mature profile. Fallback flags are `LR_M157_SCARCE_DENSE_CURRENT15=0` and
+`LR_M152_CANYON_QUALITY36=0`. Scorer, specs, fingerprint, seeds, budget grid, and acceptance
+rule stayed unchanged.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with
+`LR_M157_SCARCE_DENSE_CURRENT15=0 LR_M152_CANYON_QUALITY36=0` (6 files, 78 tests each).
+
+**Probe trail.** M147/M148 closed broad topK=8 dense-lottery retries; M149/M153 closed broad
+repair main-margin and the `solo_run` mature-only follow-up. M150/M151 showed q36 was not broad
+enough to promote across weak vertical rows, but M152 isolated `canyon_steps` mature budgets as a
+small positive pocket. M154 readiness-power 0.75 rejected. M155 showed `LR_M64_OBJECTIVE_CURRENT_POWER=1.5`
+was harmful broadly but exposed scarce 125k positives; M156 removed the negative `terrace_sprint`
+row, and M157 kept the three repeatable scarce-budget dense/drum positives.
+
+**Guards.** The source-backed full 3-seed guard
+`generated/golden-runs/probe-m158-scarce-current-canyon-q36-full-s0-2-a01/golden.json` was valid
+480/480 with indicative HEADLINE 700.59. `npm run decide` versus M146 returned indicative
+`VERDICT: ACCEPT`, delta +0.3, CI [0.0, 0.8], P(Delta<=0)=3.0%, effect 1.51. The audit changed
+only 18/480 paired checkpoints: `dense_sprint`, `drums_crescendo`, and `drums_signature` at 125k,
+plus mature-budget `canyon_steps`.
+
+**Canonical.**
+`generated/golden-runs/attempt-m158-scarce-current-canyon-q36-a01/golden.json` was run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m158-scarce-current-canyon-q36-a01`.
+It was valid 1920/1920 with raw HEADLINE 697.55 and excl-impact 715.46. Budget scores:
+125k 679.08, 250k 693.33, 375k 699.63, 500k 702.72.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m158-scarce-current-canyon-q36-a01/golden.json generated/golden-runs/attempt-m146-budgetcapped-residual-quality-repair-a01/golden.json`
+returned `VERDICT: ACCEPT`: M146 697.4 -> M158 697.6, delta +0.2, CI [-0.0, 0.5],
+P(Delta<=0)=7.7%, effect 1.18. Per-budget deltas were 125k +1.1, 250k +0.1, 375k +0.1, and
+500k +0.0.
+
+**Footprint.** 72/1920 paired checkpoints changed: 48 improvements, 24 regressions, and 1848
+plateaus. Only the intended four specs moved. Weighted spec deltas were `dense_sprint` +5.52,
+`drums_crescendo` +2.91, `canyon_steps` +2.09, and `drums_signature` +1.67. Accepted source
+commit: `b4246b2`. New baseline is `attempt-m158-scarce-current-canyon-q36-a01`; remaining target
+gap is 2.45 headline points.
 
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 

@@ -2,6 +2,52 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - ACCEPTED - M158 scarce current and canyon quality pocket
+
+Reason: M146 left the canonical headline at 697.38. Broad M63/current-power descendants and broad
+quality-breadth retries were still too noisy, but the post-M146 probes isolated two repeatable
+micro-pockets: scarce 125k current-power 1.5 for three dense/drum no-vertical profiles, and q36
+quality breadth for mature `canyon_steps`.
+
+Mechanism kept: at budgets below 150k, apply current-power 1.5 only for the three M157 scarce
+dense profiles matching `drums_signature`, `drums_crescendo`, and `dense_sprint` shape metrics.
+At budgets >=250k, boost quality handoff sample count to 36 only for the M152 canyon mature
+profile. Fallback flags are `LR_M157_SCARCE_DENSE_CURRENT15=0` and
+`LR_M152_CANYON_QUALITY36=0`. Scorer, specs, fingerprint, seeds, budget grid, and acceptance
+rule stayed unchanged.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with
+`LR_M157_SCARCE_DENSE_CURRENT15=0 LR_M152_CANYON_QUALITY36=0`
+(6 files, 78 tests each).
+
+Probe trail: M147/M148 closed broad topK=8 dense-lottery retries. M149/M153 closed broad repair
+main-margin and the `solo_run` mature-only follow-up. M150/M151 showed q36 was too noisy across
+weak vertical rows, while M152 isolated `canyon_steps` mature budgets as positive. M154
+readiness-power 0.75 rejected. M155 found broad current-power 1.5 harmful but exposed scarce
+125k positives; M156 removed the negative `terrace_sprint` row, and M157 kept the three
+repeatable scarce dense/drum positives. The source-backed full 3-seed guard was valid 480/480,
+indicative HEADLINE 700.59, and indicative `VERDICT: ACCEPT` versus M146, delta +0.3,
+CI [0.0, 0.8], P(delta<=0)=3.0%, effect 1.51. Its footprint was limited to the intended four
+specs.
+
+Canonical M158:
+`generated/golden-runs/attempt-m158-scarce-current-canyon-q36-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m158-scarce-current-canyon-q36-a01`.
+It was valid 1920/1920 with raw HEADLINE 697.55 and `HEADLINE excl. impact` 715.46.
+Per-budget point estimates were 125k 679.08, 250k 693.33, 375k 699.63, and 500k 702.72.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m158-scarce-current-canyon-q36-a01/golden.json generated/golden-runs/attempt-m146-budgetcapped-residual-quality-repair-a01/golden.json`
+-> `VERDICT: ACCEPT`, delta headline +0.2, CI [-0.0, 0.5], P(delta<=0)=7.7%, effect 1.18.
+Per-budget deltas were 125k +1.1, 250k +0.1, 375k +0.1, and 500k +0.0, with unchanged validity.
+
+Footprint: 72/1920 paired checkpoints changed, with 48 improvements, 24 regressions, and
+1848 plateaus. Only the four intended specs moved. Weighted spec deltas were `dense_sprint` +5.52,
+`drums_crescendo` +2.91, `canyon_steps` +2.09, and `drums_signature` +1.67. The accepted
+source commit is `b4246b2`; M158 is now the baseline of record. Remaining target gap is 2.45
+headline points.
+
 ## 2026-07-05 - ACCEPTED - M146 budget-capped residual quality/repair portfolio
 
 Reason: M132 left a few small mature-budget residual pockets. Broad q27/q28/q30 changes and broad

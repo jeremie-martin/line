@@ -401,6 +401,7 @@ const M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const M144_SIGNATURE_REPAIR_MAX_BUDGET_FRAMES = 325_000;
 const M152_CANYON_QUALITY_MIN_BUDGET_FRAMES = 250_000;
+const M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const M157_SCARCE_DENSE_CURRENT_POWER = 1.5;
 const M157_SCARCE_DENSE_CURRENT_MAX_BUDGET_FRAMES = 150_000;
 const M75_HIGH_AIR_IMPACT_READINESS_POWER = 0.75;
@@ -450,6 +451,7 @@ const HANDOFF_QUALITY_SPARSE_AMP_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_RESIDUAL_LEAN_N_CAND = 28;
 const HANDOFF_QUALITY_CANYON_MATURE_BOOST_N_CAND = 36;
+const HANDOFF_QUALITY_DRUM_GRAIN_BOOST_N_CAND = 40;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_START = 0.15;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_SPAN = 0.20;
 const HANDOFF_QUALITY_SPARSE_AMP_MEDIAN_START_FRAMES = Math.round(FPS * 0.75);
@@ -3426,6 +3428,13 @@ function qualityHandoffSampleCount(
   const base = handoffSampleCount(targetBudget);
   if (qualityNCandOverride() !== null || base >= HANDOFF_QUALITY_N_CAND) return base;
   if (
+    readEnv("LR_M165_DRUM_GRAIN_QUALITY40") !== "0" &&
+    (targetBudget ?? 0) >= M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES &&
+    shouldBoostDrumGrainMatureQualityBreadth(gaps, ctx)
+  ) {
+    return HANDOFF_QUALITY_DRUM_GRAIN_BOOST_N_CAND;
+  }
+  if (
     readEnv("LR_M152_CANYON_QUALITY36") !== "0" &&
     (targetBudget ?? 0) >= M152_CANYON_QUALITY_MIN_BUDGET_FRAMES &&
     shouldBoostCanyonMatureQualityBreadth(gaps, ctx)
@@ -3543,6 +3552,76 @@ function shouldBoostCanyonMatureQualityBreadth(gaps: Gap[], ctx: SpecContext): b
     amplitudeRange <= 0.50 &&
     elevationRange >= 0.26 &&
     elevationRange <= 0.30;
+}
+
+function shouldBoostDrumGrainMatureQualityBreadth(gaps: Gap[], ctx: SpecContext): boolean {
+  const medianGapFrames = medianContactGapFrames(gaps);
+  const meanAir = targetAxisMean(gaps, ctx, "air");
+  const meanSpeed = targetAxisMean(gaps, ctx, "speed");
+  const meanImpact = targetAxisMean(gaps, ctx, "impact");
+  if (
+    medianGapFrames === null ||
+    meanAir === null ||
+    meanSpeed === null ||
+    meanImpact === null
+  ) {
+    return false;
+  }
+
+  const contacts = contactGapCount(gaps);
+  const airRange = targetAxisRange(gaps, ctx, "air");
+  const speedRange = targetAxisRange(gaps, ctx, "speed");
+  const amplitudeRange = targetAxisRange(gaps, ctx, "amplitude");
+  const elevationRange = targetAxisRange(gaps, ctx, "elevation");
+  const impactRange = targetAxisRange(gaps, ctx, "impact");
+
+  const breathPocket = contacts >= 50 &&
+    contacts <= 60 &&
+    medianGapFrames <= 20 &&
+    meanAir >= 0.63 &&
+    meanAir <= 0.66 &&
+    airRange >= 0.26 &&
+    airRange <= 0.30 &&
+    meanSpeed >= 0.59 &&
+    meanSpeed <= 0.61 &&
+    speedRange >= 0.22 &&
+    speedRange <= 0.26 &&
+    meanImpact >= 0.20 &&
+    meanImpact <= 0.25 &&
+    amplitudeRange <= 0 &&
+    elevationRange <= 0;
+
+  const grainPocket = contacts >= 37 &&
+    contacts <= 41 &&
+    medianGapFrames >= 19 &&
+    medianGapFrames <= 21 &&
+    meanAir >= 0.54 &&
+    meanAir <= 0.56 &&
+    airRange <= 0.02 &&
+    meanSpeed >= 0.57 &&
+    meanSpeed <= 0.59 &&
+    speedRange <= 0.02 &&
+    meanImpact >= 0.22 &&
+    meanImpact <= 0.25 &&
+    impactRange >= 0.45 &&
+    impactRange <= 0.50;
+
+  const soloPocket = contacts >= 74 &&
+    contacts <= 80 &&
+    medianGapFrames <= 14 &&
+    meanAir >= 0.51 &&
+    meanAir <= 0.53 &&
+    airRange <= 0.06 &&
+    meanSpeed >= 0.68 &&
+    meanSpeed <= 0.70 &&
+    speedRange <= 0.08 &&
+    meanImpact >= 0.25 &&
+    meanImpact <= 0.27 &&
+    impactRange <= 0.12 &&
+    amplitudeRange <= 0 &&
+    elevationRange <= 0;
+
+  return breathPocket || grainPocket || soloPocket;
 }
 
 function shouldLeanResidualQualityBreadth(gaps: Gap[], ctx: SpecContext): boolean {

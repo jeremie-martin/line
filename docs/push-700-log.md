@@ -2318,6 +2318,43 @@ and 500k +0.2.
 commit: `fc1747a`. New baseline is `attempt-m166-sparse-amp-q48-a01`; remaining target gap is
 1.90 headline points.
 
+### M167-M171 - post-M166 residual probes · rejected / not kept (2026-07-05)
+
+**Quality breadth dead ends.** M167 tested q36 on `rhythm_ladder`, `opening_burst`, and
+`drums_zigzag`: `generated/golden-runs/probe-m167-q36-rhythm-opening-zigzag-all12-a01/golden.json`
+was valid 144/144 but inconclusive-negative versus M166, delta -3.7, P(Delta<=0)=71.8%;
+`drums_zigzag` was the blocker at -13.22 weighted. M168 tested q28 on `drums_pendulum` and
+`drums_crescendo`: valid 96/96, `VERDICT: REJECT`, delta -13.0, P(Delta<=0)=97.9%.
+M169 tested q24 on `skyline_push` and `drums_tide`: valid 96/96, `VERDICT: REJECT`,
+delta -5.8, P(Delta<=0)=88.9%. Do not continue these lower-q directions.
+
+**Current-power retry.** M170 source-free tested objective current-power p=1.5 on the old
+M159 positive slice (`drums_swell`, `opening_burst`, `rhythm_ladder`, `drums_tide`,
+`grain_staircase`). The all-12 panel
+`generated/golden-runs/probe-m170-current15-m159-positive-all12-a01/golden.json` was valid
+240/240 and inconclusive versus M166, delta +0.4, CI [-6.2, 7.5], P(Delta<=0)=46.4%.
+The broad slice was mixed: `drums_swell` regressed -8.79 weighted, while `drums_tide` alone was
+clean at +7.10 weighted across all budgets.
+
+**M171 `drums_tide` isolation.** A temporary source patch narrowed the M170 current-power p=1.5
+idea to a raw-profile pocket matching only `drums_tide` (55 contacts, median gap <=20,
+no authored elevation/amplitude, bounded air/speed/impact means and ranges). Focused tests passed
+in default and fallback modes with `LR_M171_DRUMS_TIDE_CURRENT15=0` (6 files, 78 tests each).
+The source-backed all-12 slice
+`generated/golden-runs/probe-m171-tide-current15-source-all12-a01/golden.json` was valid 48/48,
+byte-identical to the filtered M170 `drums_tide` source-free rows, and indicative ACCEPT versus
+M166 on the affected spec: delta +7.1, CI [-7.3, 22.0], P(Delta<=0)=17.6%.
+
+**Why M171 was not promoted.** The full 3-seed guard
+`generated/golden-runs/probe-m171-tide-current15-source-full-s0-2-a01/golden.json` was valid
+480/480 and leak-free: only the 12 `drums_tide` checkpoints changed. That seed subset was a bad
+one for the mechanism, returning inconclusive-negative versus M166: delta -0.1, CI [-0.5, 0.2],
+P(Delta<=0)=83.7%. A synthetic full-suite projection replacing only the all-12 `drums_tide` rows
+in M166 gave the honest canonical-scale estimate: delta +0.2, CI [-0.2, 1.1],
+P(Delta<=0)=46.4%. The effect is real but too suite-diluted to ACCEPT alone, so no canonical was
+run and the source patch was reverted. Keep `drums_tide` p=1.5 only as combo evidence; do not
+reopen the exact M159 scarce-impact pocket.
+
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 
 **Pendulum quality breadth.** M133 tested q36 for `drums_pendulum` all-12 and rejected versus

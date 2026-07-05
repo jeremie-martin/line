@@ -27,6 +27,7 @@ rule are frozen.
 | 2026-07-05 | attempt-m132-m63-micro-portfolio-a01 | 6dd86a2 | 697.17 | 715.19 | M132 M63 micro-portfolio: big-air M74 relief + dense low-air q34 — canonical ACCEPT |
 | 2026-07-05 | attempt-m146-budgetcapped-residual-quality-repair-a01 | 4bacbb5 | 697.38 | 715.34 | M146 budget-capped residual quality/repair portfolio — canonical ACCEPT |
 | 2026-07-05 | attempt-m158-scarce-current-canyon-q36-a01 | b4246b2 | 697.55 | 715.46 | M158 scarce current-power + canyon q36 pocket — canonical ACCEPT |
+| 2026-07-05 | attempt-m165-drum-grain-q40-a01 | 26e37c6 | 697.83 | 715.83 | M165 drum/grain q40 quality pocket — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -2223,6 +2224,52 @@ delta +4.4, CI [1.4, 7.6], P(Delta<=0)=0.1%, but the full 3-seed guard changed o
 CI [0.0, 0.8], P(Delta<=0)=35.8%. A synthetic canonical estimate replacing only `soar_settle`
 rows in M158 also remained inconclusive, delta +0.1, P(Delta<=0)=36.8%. The q40-soar source
 patch was reverted; keep the profile only as future combo evidence.
+
+### M165 - drum/grain q40 quality pocket · canonical ACCEPT (2026-07-05)
+
+**Study.** M158 left the headline at 697.55. M164 first tested q16 on the dense lower-q
+candidates (`drums_dropout`, `drums_signature`, `dense_sprint`, `syncopated_lift`) and rejected
+on the all-12 slice: delta -10.0, P(Delta<=0)=95.7%; only `syncopated_lift` stayed positive.
+M165 then tested q40 on `drums_swell`, `drums_breath`, `grain_staircase`, and `solo_run`.
+The four-spec panel was inconclusive because `drums_swell` regressed hard, but the positive
+three-spec subset was locally strong.
+
+**Mechanism.** At budgets >=200k, after the budget-aware quality breadth has leaned below q32,
+the quality handoff sample count rises to q40 for three authored-shape pockets matching
+`drums_breath`, `grain_staircase`, and `solo_run`. The selector uses full-gap target profile
+metrics, including bounded impact, and deliberately leaves 125k unchanged. Fallback flag:
+`LR_M165_DRUM_GRAIN_QUALITY40=0`. Scorer, specs, fingerprint, seeds, budget grid, and acceptance
+rule stayed unchanged.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M165_DRUM_GRAIN_QUALITY40=0` (6 files, 78 tests each).
+
+**Guards.** The corrected source-backed all-12 slice
+`generated/golden-runs/probe-m165-drum-grain-q40-source-all12-a02/golden.json` was valid 144/144
+and returned indicative `VERDICT: ACCEPT` versus M158: delta +3.7, CI [-1.9, 9.2],
+P(Delta<=0)=8.9%, with 125k unchanged. The full 3-seed guard
+`generated/golden-runs/probe-m165-drum-grain-q40-source-full-s0-2-a01/golden.json` was valid
+480/480 with indicative HEADLINE 700.57, but remained inconclusive on that seed subset:
+delta -0.0, CI [-0.7, 0.5], P(Delta<=0)=49.5%. Its footprint changed only the intended
+mature-budget rows, so the all-12 affected-slice estimate justified a canonical run.
+
+**Canonical.**
+`generated/golden-runs/attempt-m165-drum-grain-q40-a01/golden.json` was run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m165-drum-grain-q40-a01`.
+It was valid 1920/1920 with raw HEADLINE 697.83 and excl-impact 715.83. Budget scores:
+125k 679.08, 250k 693.31, 375k 700.04, 500k 703.12.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m165-drum-grain-q40-a01/golden.json generated/golden-runs/attempt-m158-scarce-current-canyon-q36-a01/golden.json`
+returned `VERDICT: ACCEPT`: M158 697.6 -> M165 697.8, delta +0.3, CI [-0.1, 1.0],
+P(Delta<=0)=14.3%, effect 0.98. Per-budget deltas were 125k +0.0, 250k -0.0, 375k +0.4,
+and 500k +0.4.
+
+**Footprint.** 108/1920 paired checkpoints changed: 65 improvements, 43 regressions, and
+1812 plateaus. Only the intended three specs moved. Weighted spec deltas were
+`grain_staircase` +4.52, `solo_run` +3.30, and `drums_breath` +3.05. Accepted source commit:
+`26e37c6`. New baseline is `attempt-m165-drum-grain-q40-a01`; remaining target gap is 2.17
+headline points.
 
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 

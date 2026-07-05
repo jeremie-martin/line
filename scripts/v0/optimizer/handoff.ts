@@ -452,6 +452,7 @@ const HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_RESIDUAL_LEAN_N_CAND = 28;
 const HANDOFF_QUALITY_CANYON_MATURE_BOOST_N_CAND = 36;
 const HANDOFF_QUALITY_DRUM_GRAIN_BOOST_N_CAND = 40;
+const HANDOFF_QUALITY_SPARSE_AMP_Q48_N_CAND = 48;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_START = 0.15;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_SPAN = 0.20;
 const HANDOFF_QUALITY_SPARSE_AMP_MEDIAN_START_FRAMES = Math.round(FPS * 0.75);
@@ -3426,7 +3427,14 @@ function qualityHandoffSampleCount(
   targetBudget: number | undefined,
 ): number {
   const base = handoffSampleCount(targetBudget);
-  if (qualityNCandOverride() !== null || base >= HANDOFF_QUALITY_N_CAND) return base;
+  if (qualityNCandOverride() !== null) return base;
+  if (
+    readEnv("LR_M166_SPARSE_AMP_QUALITY48") !== "0" &&
+    shouldBoostSparseAmpQualityBreadthAllBudget(gaps, ctx)
+  ) {
+    return Math.max(base, HANDOFF_QUALITY_SPARSE_AMP_Q48_N_CAND);
+  }
+  if (base >= HANDOFF_QUALITY_N_CAND) return base;
   if (
     readEnv("LR_M165_DRUM_GRAIN_QUALITY40") !== "0" &&
     (targetBudget ?? 0) >= M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES &&
@@ -3622,6 +3630,129 @@ function shouldBoostDrumGrainMatureQualityBreadth(gaps: Gap[], ctx: SpecContext)
     elevationRange <= 0;
 
   return breathPocket || grainPocket || soloPocket;
+}
+
+function shouldBoostSparseAmpQualityBreadthAllBudget(gaps: Gap[], ctx: SpecContext): boolean {
+  const medianGapFrames = medianContactGapFrames(gaps);
+  const meanAir = targetAxisMean(gaps, ctx, "air");
+  const meanSpeed = targetAxisMean(gaps, ctx, "speed");
+  const meanAmplitude = targetAxisMean(gaps, ctx, "amplitude");
+  const meanElevation = targetAxisMean(gaps, ctx, "elevation");
+  const meanImpact = targetAxisMean(gaps, ctx, "impact");
+  if (
+    medianGapFrames === null ||
+    meanAir === null ||
+    meanSpeed === null ||
+    meanAmplitude === null ||
+    meanImpact === null
+  ) {
+    return false;
+  }
+
+  const contacts = contactGapCount(gaps);
+  const airRange = targetAxisRange(gaps, ctx, "air");
+  const speedRange = targetAxisRange(gaps, ctx, "speed");
+  const amplitudeRange = targetAxisRange(gaps, ctx, "amplitude");
+  const elevationRange = targetAxisRange(gaps, ctx, "elevation");
+  const impactRange = targetAxisRange(gaps, ctx, "impact");
+
+  const floatBoundsPocket = contacts >= 13 &&
+    contacts <= 15 &&
+    medianGapFrames >= 46 &&
+    medianGapFrames <= 50 &&
+    meanAir >= 0.73 &&
+    meanAir <= 0.76 &&
+    airRange >= 0.27 &&
+    airRange <= 0.31 &&
+    meanSpeed >= 0.59 &&
+    meanSpeed <= 0.61 &&
+    speedRange <= 0.02 &&
+    meanAmplitude >= 0.46 &&
+    meanAmplitude <= 0.50 &&
+    amplitudeRange >= 0.34 &&
+    amplitudeRange <= 0.39 &&
+    meanElevation === null &&
+    elevationRange <= 0 &&
+    meanImpact >= 0.11 &&
+    meanImpact <= 0.15 &&
+    impactRange >= 0.29 &&
+    impactRange <= 0.34;
+
+  const soarSettlePocket = contacts >= 15 &&
+    contacts <= 17 &&
+    medianGapFrames >= 27 &&
+    medianGapFrames <= 29 &&
+    meanAir >= 0.60 &&
+    meanAir <= 0.63 &&
+    airRange >= 0.37 &&
+    airRange <= 0.40 &&
+    meanSpeed >= 0.59 &&
+    meanSpeed <= 0.61 &&
+    speedRange <= 0.02 &&
+    meanAmplitude >= 0.30 &&
+    meanAmplitude <= 0.35 &&
+    amplitudeRange >= 0.60 &&
+    amplitudeRange <= 0.65 &&
+    meanElevation === null &&
+    elevationRange <= 0 &&
+    meanImpact >= 0.35 &&
+    meanImpact <= 0.39 &&
+    impactRange >= 0.82 &&
+    impactRange <= 0.88;
+
+  const ridgePulsePocket = contacts >= 23 &&
+    contacts <= 25 &&
+    medianGapFrames >= 23 &&
+    medianGapFrames <= 25 &&
+    meanAir >= 0.49 &&
+    meanAir <= 0.52 &&
+    airRange >= 0.12 &&
+    airRange <= 0.15 &&
+    meanSpeed >= 0.64 &&
+    meanSpeed <= 0.66 &&
+    speedRange >= 0.16 &&
+    speedRange <= 0.19 &&
+    meanAmplitude >= 0.15 &&
+    meanAmplitude <= 0.19 &&
+    amplitudeRange >= 0.10 &&
+    amplitudeRange <= 0.13 &&
+    meanElevation !== null &&
+    meanElevation >= 0.50 &&
+    meanElevation <= 0.53 &&
+    elevationRange >= 0.14 &&
+    elevationRange <= 0.17 &&
+    meanImpact >= 0.29 &&
+    meanImpact <= 0.32 &&
+    impactRange >= 0.67 &&
+    impactRange <= 0.71;
+
+  const rollingDropPocket = contacts >= 15 &&
+    contacts <= 17 &&
+    medianGapFrames >= 44 &&
+    medianGapFrames <= 48 &&
+    meanAir >= 0.62 &&
+    meanAir <= 0.65 &&
+    airRange >= 0.30 &&
+    airRange <= 0.33 &&
+    meanSpeed >= 0.62 &&
+    meanSpeed <= 0.64 &&
+    speedRange >= 0.08 &&
+    speedRange <= 0.11 &&
+    meanAmplitude >= 0.33 &&
+    meanAmplitude <= 0.37 &&
+    amplitudeRange >= 0.43 &&
+    amplitudeRange <= 0.47 &&
+    meanElevation !== null &&
+    meanElevation >= 0.46 &&
+    meanElevation <= 0.50 &&
+    elevationRange >= 0.32 &&
+    elevationRange <= 0.36 &&
+    meanImpact >= 0.54 &&
+    meanImpact <= 0.58 &&
+    impactRange >= 0.62 &&
+    impactRange <= 0.66;
+
+  return floatBoundsPocket || soarSettlePocket || ridgePulsePocket || rollingDropPocket;
 }
 
 function shouldLeanResidualQualityBreadth(gaps: Gap[], ctx: SpecContext): boolean {

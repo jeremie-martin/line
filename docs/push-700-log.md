@@ -2355,6 +2355,37 @@ P(Delta<=0)=46.4%. The effect is real but too suite-diluted to ACCEPT alone, so 
 run and the source patch was reverted. Keep `drums_tide` p=1.5 only as combo evidence; do not
 reopen the exact M159 scarce-impact pocket.
 
+### M172-M174 - M63 retry after overfit audit · rejected / not kept (2026-07-05)
+
+**M172/M173 dose checks.** Repriced the old M63 winner family on the current M166 baseline:
+`dense_sprint`, `rhythm_ladder`, `drums_zigzag`, `drums_crosscut`, `verse_chorus`, and
+`drums_pendulum`, seeds 0..2, budgets 250k/375k/500k. With
+`LR_M64_OBJECTIVE_CURRENT_POWER=1.5`, `probe-m172-m63-winners-current15-s0-2-a01` was
+byte-identical to M166 across all 54 paired checkpoints, confirming those rows are already
+covered by accepted selectors. With p=2.0, `probe-m173-m63-winners-current20-s0-2-a01` rejected:
+delta -8.8, CI [-27.5, 6.7], P(Delta<=0)=87.0%; losses were led by `dense_sprint` -19.46 and
+`drums_zigzag` -19.10 mature-weighted. Do not push the old M63 winners harder.
+
+**M174 profile-fingerprint portfolio.** A temporary source patch isolated the M170 positives
+while excluding `drums_swell`: all-budget p=1.5 for a `drums_tide` raw-profile pocket plus
+125k-only p=1.5 for `opening_burst`, `rhythm_ladder`, and `grain_staircase` raw-profile pockets.
+Focused tests passed in default and fallback modes with `LR_M174_TIDE_SCARCE_CURRENT15=0`
+(6 files, 78 tests each). The source-backed affected slice
+`generated/golden-runs/probe-m174-tide-scarce-current15-source-all12-a01/golden.json` was valid
+192/192, byte-identical to the M170 source-free positive subset, and indicative ACCEPT versus
+M166 on the four-spec intersection: delta +2.6, CI [-1.7, 10.2], P(Delta<=0)=10.7%. A synthetic
+canonical merge also returned ACCEPT: delta +0.3, CI [-0.2, 1.2], P(Delta<=0)=12.3%.
+
+**Why M174 was rejected.** The full 3-seed guard
+`generated/golden-runs/probe-m174-tide-scarce-current15-source-full-s0-2-a01/golden.json` was
+valid 480/480 and leak-free: only 21 intended checkpoints changed. It was still inconclusive
+versus M166 on that seed subset, delta -0.1, CI [-0.7, 0.5], P(Delta<=0)=58.5%. More importantly,
+the implementation was effectively a set of four spec fingerprints expressed as authored-profile
+bounds. That is benchmark-local overfitting, not a general compiler mechanism. No canonical was
+run; source was reverted. Keep the evidence only as a warning that M63-style current-power can be
+made ACCEPT-shaped by profile mining, but should not be promoted without an out-of-suite or
+family-level validation story.
+
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 
 **Pendulum quality breadth.** M133 tested q36 for `drums_pendulum` all-12 and rejected versus

@@ -393,6 +393,8 @@ const M94_LOW_IMPACT_CURRENT_POWER = 2.0;
 const M94_LOW_IMPACT_CONTACT_MAX = 24;
 const M94_LOW_IMPACT_MEDIAN_GAP_MAX_FRAMES = 40;
 const M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX = 0.20;
+const M178_LOW_IMPACT_TINY_CURRENT_POWER = 2.5;
+const M178_LOW_IMPACT_TINY_CONTACT_MAX = 8;
 const M74_VERTICAL_OBJECTIVE_CURRENT_POWER = 2.0;
 const M74_DYNAMIC_AMPLITUDE_RANGE_MIN = 0.45;
 const M74_ELEVATION_RANGE_MIN = 0.10;
@@ -1625,6 +1627,14 @@ function objectiveBlendCurrentPowerForSpec(targetBudget: number, spec: Spec): nu
     readEnv("LR_M87_LOW_IMPACT_STEADY_CURRENT15") !== "0" &&
     m87LowImpactSteadyObjectiveProfile(spec, impactPrevalence)
   ) {
+    if (readEnv("LR_M178_LOW_IMPACT_CURRENT_PORTFOLIO") !== "0") {
+      if (m178TinyLowImpactCurrentProfile(spec)) {
+        return M178_LOW_IMPACT_TINY_CURRENT_POWER;
+      }
+      if (m178NonGrainLowImpactSteadyCurrentProfile(spec)) {
+        return M94_LOW_IMPACT_CURRENT_POWER;
+      }
+    }
     if (
       readEnv("LR_M94_LOW_IMPACT_COMPACT_CURRENT20") !== "0" &&
       m94LowImpactCompactObjectiveDoseProfile(spec)
@@ -2037,6 +2047,30 @@ function m94LowImpactCompactObjectiveDoseProfile(spec: Spec): boolean {
     if (typeof target === "number" && Number.isFinite(target)) amplitude.push(target);
   }
   return valueRange(amplitude) <= M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX;
+}
+
+function m178TinyLowImpactCurrentProfile(spec: Spec): boolean {
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .filter((frame) => frame >= K_BOUNCE_LANDING);
+  return contactFrames.length <= M178_LOW_IMPACT_TINY_CONTACT_MAX &&
+    m94LowImpactCompactObjectiveDoseProfile(spec);
+}
+
+function m178NonGrainLowImpactSteadyCurrentProfile(spec: Spec): boolean {
+  if (m94LowImpactCompactObjectiveDoseProfile(spec)) return false;
+
+  const verticalProfile = authoredVerticalObjectiveProfile(spec);
+  if (verticalProfile.amplitudeRange <= 0 && verticalProfile.elevationRange <= 0) return false;
+
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .filter((frame) => frame >= K_BOUNCE_LANDING);
+  for (const frame of contactFrames) {
+    const grainTarget = spec.axes.grain?.(frameToSec(frame));
+    if (typeof grainTarget === "number" && Number.isFinite(grainTarget)) return false;
+  }
+  return true;
 }
 
 function authoredVerticalObjectiveProfile(spec: Spec): {

@@ -398,6 +398,8 @@ const M74_DYNAMIC_AMPLITUDE_RANGE_MIN = 0.45;
 const M74_ELEVATION_RANGE_MIN = 0.10;
 const M74_ELEVATION_ROOM_MEDIAN_GAP_FRAMES = Math.round(FPS * 0.90);
 const M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES = 200_000;
+const M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES = 200_000;
+const M144_SIGNATURE_REPAIR_MAX_BUDGET_FRAMES = 325_000;
 const M75_HIGH_AIR_IMPACT_READINESS_POWER = 0.75;
 const M75_HIGH_AIR_IMPACT_AIR_MEAN_MIN = 0.62;
 const M75_HIGH_AIR_IMPACT_AIR_MEAN_MAX = 0.66;
@@ -443,6 +445,7 @@ const HANDOFF_QUALITY_SHORT_NO_AMP_MAX_CONTACTS = 32;
 const HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_SPARSE_AMP_BOOST_N_CAND = 34;
 const HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND = 34;
+const HANDOFF_QUALITY_RESIDUAL_LEAN_N_CAND = 28;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_START = 0.15;
 const HANDOFF_QUALITY_SPARSE_AMP_RANGE_SPAN = 0.20;
 const HANDOFF_QUALITY_SPARSE_AMP_MEDIAN_START_FRAMES = Math.round(FPS * 0.75);
@@ -3327,6 +3330,13 @@ function qualityHandoffSampleCount(
   const base = handoffSampleCount(targetBudget);
   if (qualityNCandOverride() !== null || base >= HANDOFF_QUALITY_N_CAND) return base;
   if (
+    readEnv("LR_M144_RESIDUAL_QUALITY28") !== "0" &&
+    (targetBudget ?? 0) >= M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES &&
+    shouldLeanResidualQualityBreadth(gaps, ctx)
+  ) {
+    return HANDOFF_QUALITY_RESIDUAL_LEAN_N_CAND;
+  }
+  if (
     readEnv("LR_M132_DENSE_LOW_AIR_QUALITY34") !== "0" &&
     (targetBudget ?? 0) >= M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES &&
     shouldBoostDenseLowAirQualityBreadth(gaps, ctx)
@@ -3394,6 +3404,52 @@ function shouldBoostDenseLowAirQualityBreadth(gaps: Gap[], ctx: SpecContext): bo
     meanSpeed >= 0.54 &&
     meanSpeed <= 0.56 &&
     targetAxisRange(gaps, ctx, "speed") <= 0.02;
+}
+
+function shouldLeanResidualQualityBreadth(gaps: Gap[], ctx: SpecContext): boolean {
+  const medianGapFrames = medianContactGapFrames(gaps);
+  const meanAir = targetAxisMean(gaps, ctx, "air");
+  const meanSpeed = targetAxisMean(gaps, ctx, "speed");
+  if (
+    medianGapFrames === null ||
+    meanAir === null ||
+    meanSpeed === null
+  ) {
+    return false;
+  }
+
+  const contacts = contactGapCount(gaps);
+  const airRange = targetAxisRange(gaps, ctx, "air");
+  const amplitudeRange = targetAxisRange(gaps, ctx, "amplitude");
+  const elevationRange = targetAxisRange(gaps, ctx, "elevation");
+
+  const terracePocket = contacts >= 22 &&
+    contacts <= 24 &&
+    medianGapFrames >= 22 &&
+    medianGapFrames <= 26 &&
+    meanAir >= 0.52 &&
+    meanAir <= 0.58 &&
+    meanSpeed >= 0.70 &&
+    meanSpeed <= 0.77 &&
+    amplitudeRange >= 0.42 &&
+    amplitudeRange <= 0.52 &&
+    elevationRange >= 0.08 &&
+    elevationRange <= 0.16;
+
+  const ridgePocket = contacts >= 22 &&
+    contacts <= 26 &&
+    medianGapFrames >= 22 &&
+    medianGapFrames <= 26 &&
+    meanAir >= 0.48 &&
+    meanAir <= 0.53 &&
+    airRange >= 0.10 &&
+    airRange <= 0.18 &&
+    amplitudeRange >= 0.08 &&
+    amplitudeRange <= 0.16 &&
+    elevationRange >= 0.12 &&
+    elevationRange <= 0.20;
+
+  return terracePocket || ridgePocket;
 }
 
 function smoothSparseAmplitudeQualityBreadth(
@@ -4039,6 +4095,17 @@ function defaultRepairMainMargin(targetBudget: number, spec: Spec): number {
   ) {
     return 1.0;
   }
+  if (
+    readEnv("LR_M144_RESIDUAL_REPAIR_MAIN100") !== "0" &&
+    targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
+    !m101FlatCompactRepairProfile(spec) &&
+    !m102HighAirLowGrainRepairProfile(spec) &&
+    !m108DrumsPulseRepairProfile(spec) &&
+    !m116StableDenseRepairProfile(spec) &&
+    m144ResidualRepairMain100Profile(spec, targetBudget)
+  ) {
+    return 1.0;
+  }
   return repairRampMargin(targetBudget, 1, REPAIR_MAIN_MARGIN_MATURE);
 }
 
@@ -4178,6 +4245,80 @@ function m116StableDenseRepairProfile(spec: Spec): boolean {
     meanImpact <= 0.52;
 
   return pendulumPocket || denseSprintPocket;
+}
+
+function m144ResidualRepairMain100Profile(spec: Spec, targetBudget: number): boolean {
+  const contacts = spec.contacts
+    .map((contact) => ({
+      frame: secToFrame(contact.t),
+      impact: contact.impact ?? 0,
+    }))
+    .filter((contact) => contact.frame >= K_BOUNCE_LANDING)
+    .sort((a, b) => a.frame - b.frame);
+  if (contacts.length < 2) return false;
+
+  const contactFrames = contacts.map((contact) => contact.frame);
+  const contactGaps = contactFrames.slice(1).map((frame, index) => frame - contactFrames[index]);
+  const sortedGaps = contactGaps.sort((a, b) => a - b);
+  if (sortedGaps.length === 0) return false;
+  const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
+  const verticalProfile = authoredVerticalObjectiveProfile(spec);
+
+  const air: number[] = [];
+  const speed: number[] = [];
+  const grain: number[] = [];
+  for (const frame of contactFrames) {
+    const targets = axesAtFrame(frame, spec);
+    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
+    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
+    const grainTarget = spec.axes.grain?.(frameToSec(frame));
+    if (typeof grainTarget === "number" && Number.isFinite(grainTarget)) grain.push(grainTarget);
+  }
+  if (air.length < 2 || speed.length < 2) return false;
+
+  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
+  const meanSpeed = speed.reduce((sum, value) => sum + value, 0) / speed.length;
+  const meanImpact = contacts.reduce((sum, contact) => sum + contact.impact, 0) / contacts.length;
+  const airRange = valueRange(air);
+  const speedRange = valueRange(speed);
+  const grainRange = valueRange(grain);
+
+  const signaturePocket = contacts.length >= 50 &&
+    contacts.length <= 60 &&
+    medianGapFrames <= 20 &&
+    verticalProfile.elevationRange <= 0 &&
+    verticalProfile.amplitudeRange <= 0 &&
+    meanAir >= 0.53 &&
+    meanAir <= 0.56 &&
+    airRange >= 0.12 &&
+    airRange <= 0.18 &&
+    meanSpeed >= 0.64 &&
+    meanSpeed <= 0.67 &&
+    speedRange >= 0.36 &&
+    speedRange <= 0.44 &&
+    meanImpact >= 0.44 &&
+    meanImpact <= 0.48 &&
+    grainRange >= 0.45;
+
+  const soarPocket = contacts.length >= 14 &&
+    contacts.length <= 18 &&
+    medianGapFrames >= 26 &&
+    medianGapFrames <= 30 &&
+    verticalProfile.elevationRange <= 0 &&
+    verticalProfile.amplitudeRange >= 0.58 &&
+    verticalProfile.amplitudeRange <= 0.66 &&
+    meanAir >= 0.58 &&
+    meanAir <= 0.62 &&
+    airRange >= 0.36 &&
+    airRange <= 0.40 &&
+    meanSpeed >= 0.59 &&
+    meanSpeed <= 0.61 &&
+    speedRange <= 0.02 &&
+    meanImpact >= 0.34 &&
+    meanImpact <= 0.39;
+
+  return (signaturePocket && targetBudget < M144_SIGNATURE_REPAIR_MAX_BUDGET_FRAMES) ||
+    soarPocket;
 }
 
 function defaultRepairFeasMargin(targetBudget: number): number {

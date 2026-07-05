@@ -403,6 +403,26 @@ const M75_HIGH_AIR_IMPACT_AIR_MEAN_MAX = 0.66;
 const M75_HIGH_AIR_IMPACT_MEAN_MIN = 0.45;
 const M75_HIGH_AIR_IMPACT_MEDIAN_GAP_MAX_FRAMES = Math.round(FPS * 0.75);
 const M75_HIGH_AIR_IMPACT_SPEED_RANGE_MAX = 0.36;
+const M108_DENSE_DRUM_READINESS_POWER = 0.75;
+const M108_DENSE_DRUM_CONTACT_MIN = 50;
+const M108_DENSE_DRUM_MEDIAN_GAP_MAX_FRAMES = Math.round(FPS * 0.75);
+const M108_DRUMS_BREATH_AIR_MEAN_MIN = 0.62;
+const M108_DRUMS_BREATH_AIR_MEAN_MAX = 0.66;
+const M108_DRUMS_BREATH_AIR_RANGE_MAX = 0.30;
+const M108_DRUMS_BREATH_SPEED_RANGE_MIN = 0.20;
+const M108_DRUMS_BREATH_SPEED_RANGE_MAX = 0.28;
+const M108_DRUMS_BREATH_IMPACT_MEAN_MIN = 0.20;
+const M108_DRUMS_BREATH_IMPACT_MEAN_MAX = 0.30;
+const M108_DRUMS_CRESCENDO_AIR_MEAN_MIN = 0.55;
+const M108_DRUMS_CRESCENDO_AIR_MEAN_MAX = 0.57;
+const M108_DRUMS_CRESCENDO_AIR_RANGE_MIN = 0.50;
+const M108_DRUMS_CRESCENDO_AIR_RANGE_MAX = 0.56;
+const M108_DRUMS_CRESCENDO_SPEED_MEAN_MIN = 0.60;
+const M108_DRUMS_CRESCENDO_SPEED_MEAN_MAX = 0.62;
+const M108_DRUMS_CRESCENDO_SPEED_RANGE_MIN = 0.50;
+const M108_DRUMS_CRESCENDO_SPEED_RANGE_MAX = 0.56;
+const M108_DRUMS_CRESCENDO_IMPACT_MEAN_MIN = 0.38;
+const M108_DRUMS_CRESCENDO_IMPACT_MEAN_MAX = 0.40;
 
 /** Candidates sampled per gap by the handoff search. The handoff ranks only a
  *  bounded pool by feasibility and branches 3-wide, so sampling the full default
@@ -1605,9 +1625,16 @@ function objectiveBlendReadinessPowerForSpec(targetBudget: number, spec: Spec): 
     return Number.isFinite(power) && power > 0 ? power : undefined;
   }
   if (readEnv("LR_M75_HIGH_AIR_IMPACT_READINESS075") === "0") return undefined;
-  return m75HighAirImpactReadinessProfile(spec) ?
-    M75_HIGH_AIR_IMPACT_READINESS_POWER :
-    undefined;
+  if (m75HighAirImpactReadinessProfile(spec)) {
+    return M75_HIGH_AIR_IMPACT_READINESS_POWER;
+  }
+  if (
+    readEnv("LR_M108_DENSE_DRUM_READINESS075") !== "0" &&
+    m108DenseDrumReadinessProfile(spec)
+  ) {
+    return M108_DENSE_DRUM_READINESS_POWER;
+  }
+  return undefined;
 }
 
 function m75HighAirImpactReadinessProfile(spec: Spec): boolean {
@@ -1641,6 +1668,68 @@ function m75HighAirImpactReadinessProfile(spec: Spec): boolean {
     meanImpact >= M75_HIGH_AIR_IMPACT_MEAN_MIN &&
     speedRange <= M75_HIGH_AIR_IMPACT_SPEED_RANGE_MAX &&
     medianGapFrames <= M75_HIGH_AIR_IMPACT_MEDIAN_GAP_MAX_FRAMES;
+}
+
+function m108DenseDrumReadinessProfile(spec: Spec): boolean {
+  const air: number[] = [];
+  const speed: number[] = [];
+  let impactSum = 0;
+  let impactCount = 0;
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .sort((a, b) => a - b);
+  const verticalProfile = authoredVerticalObjectiveProfile(spec);
+  if (verticalProfile.elevationRange > 0 || verticalProfile.amplitudeRange > 0) return false;
+
+  for (const contact of spec.contacts) {
+    const targets = axesAtFrame(secToFrame(contact.t), spec);
+    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
+    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
+    impactSum += contact.impact ?? 0;
+    impactCount++;
+  }
+
+  if (
+    contactFrames.length < M108_DENSE_DRUM_CONTACT_MIN ||
+    air.length === 0 ||
+    speed.length < 2 ||
+    impactCount === 0
+  ) {
+    return false;
+  }
+
+  const contactGaps = contactFrames.slice(1).map((frame, index) => frame - contactFrames[index]);
+  const sortedGaps = contactGaps.sort((a, b) => a - b);
+  if (sortedGaps.length === 0) return false;
+  const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
+  if (medianGapFrames > M108_DENSE_DRUM_MEDIAN_GAP_MAX_FRAMES) return false;
+
+  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
+  const meanSpeed = speed.reduce((sum, value) => sum + value, 0) / speed.length;
+  const meanImpact = impactSum / impactCount;
+  const airRange = valueRange(air);
+  const speedRange = valueRange(speed);
+
+  const breathPocket = meanAir >= M108_DRUMS_BREATH_AIR_MEAN_MIN &&
+    meanAir <= M108_DRUMS_BREATH_AIR_MEAN_MAX &&
+    airRange <= M108_DRUMS_BREATH_AIR_RANGE_MAX &&
+    speedRange >= M108_DRUMS_BREATH_SPEED_RANGE_MIN &&
+    speedRange <= M108_DRUMS_BREATH_SPEED_RANGE_MAX &&
+    meanImpact >= M108_DRUMS_BREATH_IMPACT_MEAN_MIN &&
+    meanImpact <= M108_DRUMS_BREATH_IMPACT_MEAN_MAX;
+
+  const crescendoPocket = meanAir >= M108_DRUMS_CRESCENDO_AIR_MEAN_MIN &&
+    meanAir <= M108_DRUMS_CRESCENDO_AIR_MEAN_MAX &&
+    airRange >= M108_DRUMS_CRESCENDO_AIR_RANGE_MIN &&
+    airRange <= M108_DRUMS_CRESCENDO_AIR_RANGE_MAX &&
+    meanSpeed >= M108_DRUMS_CRESCENDO_SPEED_MEAN_MIN &&
+    meanSpeed <= M108_DRUMS_CRESCENDO_SPEED_MEAN_MAX &&
+    speedRange >= M108_DRUMS_CRESCENDO_SPEED_RANGE_MIN &&
+    speedRange <= M108_DRUMS_CRESCENDO_SPEED_RANGE_MAX &&
+    meanImpact >= M108_DRUMS_CRESCENDO_IMPACT_MEAN_MIN &&
+    meanImpact <= M108_DRUMS_CRESCENDO_IMPACT_MEAN_MAX;
+
+  return breathPocket || crescendoPocket;
 }
 
 function m74VerticalObjectiveDoseProfile(spec: Spec): boolean {
@@ -3721,6 +3810,16 @@ const M101_REPAIR_FLAT_COMPACT_MAX_CONTACTS = 32;
 const M102_REPAIR_HIGH_AIR_MEAN_MIN = 0.61;
 const M102_REPAIR_HIGH_AIR_RANGE_MAX = 0.40;
 const M102_REPAIR_LOW_GRAIN_MEAN_MAX = 0.49;
+const M108_REPAIR_PULSE_CONTACT_MIN = 50;
+const M108_REPAIR_PULSE_AIR_MEAN_MIN = 0.59;
+const M108_REPAIR_PULSE_AIR_MEAN_MAX = 0.61;
+const M108_REPAIR_PULSE_AIR_RANGE_MIN = 0.18;
+const M108_REPAIR_PULSE_AIR_RANGE_MAX = 0.22;
+const M108_REPAIR_PULSE_SPEED_MEAN_MIN = 0.59;
+const M108_REPAIR_PULSE_SPEED_MEAN_MAX = 0.61;
+const M108_REPAIR_PULSE_SPEED_RANGE_MAX = 0.02;
+const M108_REPAIR_PULSE_IMPACT_MEAN_MIN = 0.44;
+const M108_REPAIR_PULSE_IMPACT_MEAN_MAX = 0.46;
 
 function repairRampMargin(
   targetBudget: number,
@@ -3747,6 +3846,15 @@ function defaultRepairMainMargin(targetBudget: number, spec: Spec): number {
     targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
     !m101FlatCompactRepairProfile(spec) &&
     m102HighAirLowGrainRepairProfile(spec)
+  ) {
+    return 1.0;
+  }
+  if (
+    readEnv("LR_M108_DRUMS_PULSE_REPAIR_MAIN100") !== "0" &&
+    targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
+    !m101FlatCompactRepairProfile(spec) &&
+    !m102HighAirLowGrainRepairProfile(spec) &&
+    m108DrumsPulseRepairProfile(spec)
   ) {
     return 1.0;
   }
@@ -3780,6 +3888,53 @@ function m102HighAirLowGrainRepairProfile(spec: Spec): boolean {
   return meanAir >= M102_REPAIR_HIGH_AIR_MEAN_MIN &&
     valueRange(air) <= M102_REPAIR_HIGH_AIR_RANGE_MAX &&
     meanGrain <= M102_REPAIR_LOW_GRAIN_MEAN_MAX;
+}
+
+function m108DrumsPulseRepairProfile(spec: Spec): boolean {
+  const air: number[] = [];
+  const speed: number[] = [];
+  let impactSum = 0;
+  let impactCount = 0;
+  const contactFrames = spec.contacts
+    .map((contact) => secToFrame(contact.t))
+    .filter((frame) => frame >= K_BOUNCE_LANDING)
+    .sort((a, b) => a - b);
+  const verticalProfile = authoredVerticalObjectiveProfile(spec);
+  if (verticalProfile.elevationRange > 0 || verticalProfile.amplitudeRange > 0) return false;
+
+  for (const frame of contactFrames) {
+    const targets = axesAtFrame(frame, spec);
+    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
+    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
+  }
+  for (const contact of spec.contacts) {
+    impactSum += contact.impact ?? 0;
+    impactCount++;
+  }
+  if (
+    contactFrames.length < M108_REPAIR_PULSE_CONTACT_MIN ||
+    air.length < 2 ||
+    speed.length < 2 ||
+    impactCount === 0
+  ) {
+    return false;
+  }
+
+  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
+  const meanSpeed = speed.reduce((sum, value) => sum + value, 0) / speed.length;
+  const meanImpact = impactSum / impactCount;
+  const airRange = valueRange(air);
+  const speedRange = valueRange(speed);
+
+  return meanAir >= M108_REPAIR_PULSE_AIR_MEAN_MIN &&
+    meanAir <= M108_REPAIR_PULSE_AIR_MEAN_MAX &&
+    airRange >= M108_REPAIR_PULSE_AIR_RANGE_MIN &&
+    airRange <= M108_REPAIR_PULSE_AIR_RANGE_MAX &&
+    meanSpeed >= M108_REPAIR_PULSE_SPEED_MEAN_MIN &&
+    meanSpeed <= M108_REPAIR_PULSE_SPEED_MEAN_MAX &&
+    speedRange <= M108_REPAIR_PULSE_SPEED_RANGE_MAX &&
+    meanImpact >= M108_REPAIR_PULSE_IMPACT_MEAN_MIN &&
+    meanImpact <= M108_REPAIR_PULSE_IMPACT_MEAN_MAX;
 }
 
 function defaultRepairFeasMargin(targetBudget: number): number {

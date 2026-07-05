@@ -2461,6 +2461,46 @@ and 500k +0.3. The canonical run was byte-identical to the synthetic merge.
 `c595999`. New baseline is `attempt-m178-lowimpact-current-portfolio-a01`; remaining target gap
 is 1.53 headline points.
 
+### M179-M183 - post-M178 broad dose and cleanup audits · rejected / no source changes (2026-07-05)
+
+**M179 broad current-quality dose.** Source-free global
+`LR_M64_OBJECTIVE_CURRENT_POWER=1.5` was retested on the M178 baseline with seeds 0..2 and the
+canonical budget grid:
+`generated/golden-runs/probe-m179-global-current15-full-s0-2-a01/golden.json`. It was valid
+480/480 but rejected versus M178: delta -3.2, CI [-7.1, -0.4], P(Delta<=0)=98.6%. A synthetic
+mature-only merge, leaving 125k unchanged, still rejected: delta -2.9, CI [-6.6, -0.2],
+P(Delta<=0)=98.4%. The biggest losses were broad (`syncopated_switchback` -29.07,
+`drums_swell` -13.33, `drums_crescendo` -12.86, `drums_dropout` -11.84, `cold_start` -9.04).
+Local positives (`solo_run` +9.30, `leap_cadence` +5.60) did not form a defensible common
+family. Do not reopen global or mature-global current-power p=1.5; it is worse after M178 than
+it was in the earlier M62 era.
+
+**Accepted-pocket interaction ablations.** Checked whether later mechanisms had made older
+accepted pockets harmful. All ablations were source-free and affected-slice all-12:
+
+- M180 disabled M166 q48 (`LR_M166_SPARSE_AMP_QUALITY48=0`) on
+  `float_bounds,soar_settle,ridge_pulse,rolling_drop`. It rejected on the four-spec intersection:
+  delta -6.0, CI [-16.1, -0.0], P(Delta<=0)=97.5%. `float_bounds` alone lost -17.94 weighted.
+- M181 disabled M165 q40 (`LR_M165_DRUM_GRAIN_QUALITY40=0`) on
+  `drums_breath,grain_staircase,solo_run`. It rejected: delta -3.7, CI [-9.2, 1.9],
+  P(Delta<=0)=91.1%. All three affected specs were negative (`grain_staircase` -4.52,
+  `solo_run` -3.30, `drums_breath` -3.05).
+- M182 disabled M146 residual quality/repair
+  (`LR_M144_RESIDUAL_QUALITY28=0 LR_M144_RESIDUAL_REPAIR_MAIN100=0`) on
+  `terrace_sprint,drums_signature,ridge_pulse,soar_settle`. It rejected: delta -1.9,
+  CI [-6.6, 0.2], P(Delta<=0)=93.5%. `ridge_pulse` was flat, but `terrace_sprint` (-4.37),
+  `drums_signature` (-1.85), and `soar_settle` (-0.68) were negative.
+- M183 disabled M158 scarce/current + canyon quality
+  (`LR_M157_SCARCE_DENSE_CURRENT15=0 LR_M152_CANYON_QUALITY36=0`) on
+  `dense_sprint,drums_crescendo,drums_signature,canyon_steps`. It rejected: delta -1.5,
+  CI [-3.8, 0.4], P(Delta<=0)=94.1%. All four affected specs were negative, led by
+  `dense_sprint` -2.21 and `canyon_steps` -2.04 weighted.
+
+**Learnings.** No accepted-pocket cleanup is available from this sweep. The M158/M165/M166/M146
+pockets still carry their affected rows under the M178 stack, and broad current-quality pressure
+is now decisively harmful. The remaining 1.53 headline points need a new mechanism or a genuinely
+family-level residual signal, not removal of accumulated accepted pockets.
+
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 
 **Pendulum quality breadth.** M133 tested q36 for `drums_pendulum` all-12 and rejected versus

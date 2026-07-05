@@ -57,6 +57,18 @@ export class MirrorUnreachableError extends Error {
   }
 }
 
+function chromiumArgs(): string[] {
+  const args = [
+    "--enable-webgl",
+    "--ignore-gpu-blocklist",
+    // Chromium 137+ requires this before it will fall back to SwiftShader WebGL.
+    "--enable-unsafe-swiftshader",
+  ];
+  const extra = process.env.LR_CHROMIUM_ARGS?.trim();
+  if (extra) args.push(...extra.split(/\s+/));
+  return args;
+}
+
 export async function exportVideo(opts: ExportOptions): Promise<void> {
   const origin = opts.origin ?? "http://127.0.0.1:8765";
   const log = opts.log ?? ((m: string) => console.log(m));
@@ -87,7 +99,7 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
   let browser: Browser | null = null;
   let page: Page | null = null;
   try {
-    browser = await chromium.launch({ headless: !opts.headed });
+    browser = await chromium.launch({ headless: !opts.headed, args: chromiumArgs() });
     const ctx = await browser.newContext({
       acceptDownloads: true,
       viewport: { width: 1280, height: 720 },
@@ -107,8 +119,6 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
 
     await page.goto(`${origin}/?forceMillions`, { waitUntil: "networkidle", timeout: 60_000 });
     await page.waitForTimeout(2000);
-
-    const downloadPromise = page.waitForEvent("download", { timeout: 600_000 });
 
     log("[node] launching exportVideo in page...");
     const blobUrl = await page.evaluate(
@@ -131,7 +141,7 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
         } else {
           delete w.getAutoZoom;
         }
-        return await lr.exportVideo({ track, zoom, resolution, hq, encoderSettings: encoderSettings ?? undefined, filename: "lr-render.mp4" });
+        return await lr.exportVideo({ track, zoom, resolution, hq, encoderSettings: encoderSettings ?? undefined, download: false });
       },
       {
         track: opts.trackJson,
@@ -145,6 +155,12 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
       },
     );
     log(`[node] page-side render complete (blob: ${String(blobUrl).slice(0, 60)}...)`);
+
+    const downloadPromise = page.waitForEvent("download", { timeout: 600_000 });
+    await page.evaluate((url) => {
+      // deno-lint-ignore no-explicit-any
+      (window as any).__lr.triggerDownload(url, "lr-render.mp4");
+    }, blobUrl);
 
     const download = await Promise.race([
       downloadPromise,
@@ -231,7 +247,27 @@ async function dumpForensics(
                     "resolutionOption" in n.state &&
                     "resolutionWidth" in n.state
                   ) {
-                    return { status: n.state.status, index: n.state.index, hq: n.state.hq };
+                    const canvas = n.canvas;
+                    const webgl = (function () {
+                      const c = document.createElement("canvas");
+                      const gl = c.getContext("webgl") || c.getContext("experimental-webgl");
+                      if (!gl) return { ok: false };
+                      const dbg = gl.getExtension && gl.getExtension("WEBGL_debug_renderer_info");
+                      return {
+                        ok: true,
+                        vendor: dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+                        renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+                      };
+                    })();
+                    return {
+                      status: n.state.status,
+                      index: n.state.index,
+                      hq: n.state.hq,
+                      hardwareAcceleration: n.props?.hardwareAcceleration,
+                      canvasMounted: !!canvas,
+                      canvasSize: canvas ? { width: canvas.width, height: canvas.height } : null,
+                      webgl,
+                    };
                   }
                   if (fi.child) stack.push(fi.child);
                   if (fi.sibling) stack.push(fi.sibling);

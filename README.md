@@ -130,6 +130,7 @@ __lr.loadTrack(trackJsonOrString)
 __lr.setPlaybackZoom(zoom)              // linear; UI shows log2(this)
 __lr.openVideoExporter() / closeVideoExporter()
 __lr.waitForVideoExporterReady()        // resolves when status==='Config'
+__lr.waitForVideoExporterRenderSurface()// resolves when the WebGL canvas is mounted
 __lr.setResolution({width, height, preset})
 __lr.setHighQuality(bool)               // QP 22 vs 28
 __lr.setStartFrom('Beginning' | 'Checkpoint')
@@ -271,7 +272,9 @@ Background items still open (not blocking the generator):
 ## Notes for future you
 
 - `?forceMillions` URL flag is required for the graphics-card check to pass
-  in headless Chromium. The helper assumes it.
+  in headless Chromium. The helper assumes it. Chromium must still be able to
+  create a WebGL context; extra host flags can be appended with
+  `LR_CHROMIUM_ARGS`.
 - linerider.com is React 16 (fiber key prefix `__reactInternalInstance$`),
   not React 17/18. The fiber walk handles both prefixes defensively.
 - Render is roughly **3× real-time** at 1080p HQ. A 3-min song → ~9 min export.

@@ -84,6 +84,18 @@
     });
   }
 
+  function getWebGLInfo(canvas) {
+    const c = canvas || document.createElement("canvas");
+    const gl = c.getContext("webgl") || c.getContext("experimental-webgl");
+    if (!gl) return { ok: false };
+    const dbg = gl.getExtension && gl.getExtension("WEBGL_debug_renderer_info");
+    return {
+      ok: true,
+      vendor: dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+      renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+    };
+  }
+
   function delay(ms) {
     return new Promise(function (r) { setTimeout(r, ms); });
   }
@@ -302,12 +314,47 @@
       Object.assign(window.encoderSettings, settings || {});
     },
 
+    waitForVideoExporterRenderSurface: async function (opts) {
+      const expected = opts && opts.resolution;
+      return waitFor(function () {
+        const inst = getVideoExporter();
+        if (!inst) return null;
+        if (inst.props && inst.props.hardwareAcceleration === false) {
+          const info = getWebGLInfo();
+          if (!info.ok) {
+            throw new Error("[__lr] WebGL unavailable in this Chromium session; VideoExporter cannot mount a render canvas");
+          }
+          return null;
+        }
+        if (expected) {
+          if (inst.state.resolutionWidth !== expected.width || inst.state.resolutionHeight !== expected.height) {
+            return null;
+          }
+        }
+        const canvas = inst.canvas;
+        if (!canvas || typeof canvas.getContext !== "function") return null;
+        if (expected && (canvas.width !== expected.width || canvas.height !== expected.height)) return null;
+        const info = getWebGLInfo(canvas);
+        if (!info.ok) {
+          throw new Error("[__lr] VideoExporter render canvas has no WebGL context");
+        }
+        return inst;
+      }, opts || { timeoutMs: 30000, intervalMs: 100 });
+    },
+
     // ---- The render trigger ----
     render: async function (opts) {
       const inst = getVideoExporter();
       if (!inst) throw new Error("[__lr] VideoExporter not mounted; call openVideoExporter() first");
       if (inst.state.status !== "Config") {
         throw new Error("[__lr] expected status=Config, got " + inst.state.status);
+      }
+      if (!inst.canvas || typeof inst.canvas.getContext !== "function") {
+        throw new Error("[__lr] VideoExporter render canvas not mounted; call waitForVideoExporterRenderSurface() first");
+      }
+      const info = getWebGLInfo(inst.canvas);
+      if (!info.ok) {
+        throw new Error("[__lr] VideoExporter render canvas has no WebGL context");
       }
       inst.onRenderButtonClick();
 
@@ -389,18 +436,27 @@
       this.openVideoExporter();
       await this.waitForVideoExporterReady();
 
+      let expectedResolution = null;
       if (resolution === "720p") {
+        expectedResolution = { width: 1280, height: 720 };
         this.setResolution({ preset: "720p", width: 1280, height: 720 });
       } else if (resolution === "1080p") {
+        expectedResolution = { width: 1920, height: 1080 };
         this.setResolution({ preset: "1080p", width: 1920, height: 1080 });
       } else if (typeof resolution === "object") {
+        expectedResolution = { width: resolution.width, height: resolution.height };
         this.setResolution(Object.assign({ preset: "Custom" }, resolution));
       }
       this.setHighQuality(hq);
       this.setStartFrom(startFrom);
       if (cfg.encoderSettings) this.setEncoderSettings(cfg.encoderSettings);
 
-      await delay(200);
+      if (expectedResolution) {
+        await this.waitForVideoExporterRenderSurface({ resolution: expectedResolution, timeoutMs: 30000, intervalMs: 100 });
+      } else {
+        await this.waitForVideoExporterRenderSurface({ timeoutMs: 30000, intervalMs: 100 });
+      }
+      await delay(100);
       console.log("[__lr] starting render");
       const url = await this.render({ timeoutMs: cfg.timeoutMs });
       console.log("[__lr] render complete");

@@ -2,6 +2,49 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - NOT KEPT - M104 dense high-air low-impact readiness selector
+
+Reason: M103 showed that the broad M63-form current-power idea should not be widened on the
+post-M102 baseline, but one readiness-power descendant still had a narrow signal. A source-free
+six-spec dense high-air probe using readiness power 0.75 rejected overall
+(`probe-m104-dense-highair-readiness075-s0-2-a01`, delta -11.4, P(delta<=0)=87.8%), while the
+`drums_breath` all-12 pocket alone was indicative positive
+(`probe-m104-drums-breath-readiness075-s0-11-a01`, delta +3.8 on the one-spec intersection,
+CI [-4.2, 11.0], P(delta<=0)=16.5%).
+
+Mechanism tested: after the accepted M75 high-air impact readiness selector, add the same
+readiness power 0.75 for mature-budget dense high-air/low-impact profiles with at least 50
+feasible contacts, no authored elevation/amplitude objective range, mean air 0.62..0.66, air
+range <=0.30, speed range 0.20..0.28, mean impact 0.20..0.30, and median contact gap <=0.75s.
+The escape flag was `LR_M104_DENSE_HIGH_AIR_LOW_IMPACT_READINESS075=0`. A selector footprint
+check matched only `drums_breath` across the 40 golden specs.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M104_DENSE_HIGH_AIR_LOW_IMPACT_READINESS075=0` (6 files, 78 tests
+each).
+
+Full 3-seed guard:
+`generated/golden-runs/probe-m104-dense-highair-lowimpact-readiness075-full-s0-2-a01/golden.json`
+was valid 480/480 with raw HEADLINE 699.22 and `HEADLINE excl. impact` 715.75. Decision vs M102:
+indicative `VERDICT: INCONCLUSIVE`, delta +0.3, CI [0.0, 1.0], P(delta<=0)=36.4%, effect 0.98.
+Per-budget deltas were 125k +0.0, 250k +0.4, 375k +0.4, and 500k +0.2.
+
+Canonical M104:
+`generated/golden-runs/attempt-m104-dense-highair-lowimpact-readiness075-a01/golden.json`, run
+with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m104-dense-highair-lowimpact-readiness075-a01`.
+It was valid 1920/1920 with raw HEADLINE 696.45 and `HEADLINE excl. impact` 714.9. Per-budget
+point estimates were 125k 677.98, 250k 691.73, 375k 698.60, and 500k 701.81.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m104-dense-highair-lowimpact-readiness075-a01/golden.json generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`
+-> `VERDICT: INCONCLUSIVE`, delta headline +0.1, CI [-0.1, 0.6], P(delta<=0)=48.0%, effect
+0.55. Per-budget deltas were 125k +0.0, 250k +0.1, 375k +0.1, and 500k +0.2, with unchanged
+validity.
+
+Why it was not kept: the targeted pocket was real enough to justify a canonical run, but the
+all-suite effect was too small and noisy to promote. The source patch was reverted; M102 remains
+the accepted baseline. Do not widen this M63 descendant back to the dense high-air panel.
+
 ## 2026-07-04 - SOURCE-FREE PROBES - post-M102 M63-form and vertical breadth screens
 
 Reason: M63's broad high-impact current-quality exponent remained the strongest near-miss in

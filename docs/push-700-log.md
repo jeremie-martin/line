@@ -1859,6 +1859,48 @@ losses into `skyline_push`, `syncopated_lift`, and `dense_echo_climb`; the narro
 pocket remains below promotion scale. Do not continue by widening M63 or by broad vertical
 candidate breadth.
 
+### M104 - dense high-air low-impact readiness selector · canonical INCONCLUSIVE, reverted (2026-07-05)
+
+**Mechanism.** Tested the remaining M63-descendant readiness pocket after M103 closed the broad
+residual screens. The trial added readiness power 0.75 after M75 for mature-budget dense
+high-air/low-impact profiles with at least 50 feasible contacts, no authored elevation or
+amplitude objective range, mean air 0.62..0.66, air range <=0.30, speed range 0.20..0.28, mean
+impact 0.20..0.30, and median contact gap <=0.75s. The selector footprint matched only
+`drums_breath` among the 40 golden specs. Fallback flag:
+`LR_M104_DENSE_HIGH_AIR_LOW_IMPACT_READINESS075=0`.
+
+**Why it was worth trying.** A broader dense high-air readiness probe rejected:
+`probe-m104-dense-highair-readiness075-s0-2-a01` on
+`drums_swell,drums_crosscut,drums_tide,drums_breath,drums_pulse,drums_zigzag` was delta -11.4,
+P(Delta<=0)=87.8%. The same probe showed `drums_breath` as the one positive neighbor, and the
+all-12 `drums_breath` pocket (`probe-m104-drums-breath-readiness075-s0-11-a01`) was indicative
+positive: delta +3.8 on the one-spec intersection, CI [-4.2, 11.0], P(Delta<=0)=16.5%, with
+per-budget deltas 125k +0.0, 250k +2.1, 375k +3.6, and 500k +5.8.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M104_DENSE_HIGH_AIR_LOW_IMPACT_READINESS075=0` (6 files, 78 tests
+each). Full 3-seed guard
+(`probe-m104-dense-highair-lowimpact-readiness075-full-s0-2-a01`) was valid 480/480 with raw
+HEADLINE 699.22 and excl-impact 715.75; decision vs M102 was indicative
+`VERDICT: INCONCLUSIVE`, delta +0.3, CI [0.0, 1.0], P(Delta<=0)=36.4%.
+
+**Canonical.**
+`generated/golden-runs/attempt-m104-dense-highair-lowimpact-readiness075-a01/golden.json` was
+run with `LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m104-dense-highair-lowimpact-readiness075-a01`.
+It was valid 1920/1920 with raw HEADLINE 696.45 and excl-impact 714.9. Budget scores:
+125k 677.98, 250k 691.73, 375k 698.60, 500k 701.81.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m104-dense-highair-lowimpact-readiness075-a01/golden.json generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: M102 696.3 -> M104 696.4, delta +0.1, CI [-0.1, 0.6],
+P(Delta<=0)=48.0%, effect 0.55. Per-budget deltas were 125k +0.0, 250k +0.1, 375k +0.1, and
+500k +0.2.
+
+**Learnings.** The one-spec readiness pocket was not enough to move the canonical suite with
+acceptable confidence. The source patch was reverted and M102 remains baseline of record. Do not
+promote this unless a future selector adds independent, screened footprint beyond `drums_breath`;
+do not widen back to the rejected dense high-air panel.
+
 ### M101 - flat compact repair main-margin exactness · canonical ACCEPT (2026-07-04)
 
 **Mechanism.** Promoted the local repair selector implied by M100's footprint. The accepted

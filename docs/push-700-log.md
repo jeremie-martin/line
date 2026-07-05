@@ -21,7 +21,7 @@ rule are frozen.
 | 2026-07-04 | attempt-m87-lowimpact-steady-current15-a01 | 6738a15 | 695.06 | 713.53 | M87 low-impact steady/sparse current-power 1.5 selector — canonical ACCEPT |
 | 2026-07-04 | attempt-m94-lowimpact-compact-current20-a01 | 0fdf9d9 | 695.48 | 714.05 | M94 low-impact compact current-power 2.0 selector — canonical ACCEPT |
 | 2026-07-04 | attempt-m101-repair-flat-compact-main100-a01 | 18a1c16 | 695.99 | 714.67 | M101 flat compact mature repair main-margin 1.0 selector — canonical ACCEPT |
-| 2026-07-04 | attempt-m102-repair-highair-lowgrain-main100-a01 | this commit | 696.35 | 714.91 | M102 high-air low-grain mature repair main-margin 1.0 selector — canonical ACCEPT |
+| 2026-07-04 | attempt-m102-repair-highair-lowgrain-main100-a01 | d448cc4 | 696.35 | 714.91 | M102 high-air low-grain mature repair main-margin 1.0 selector — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -1813,6 +1813,51 @@ and 1594 plateaus. The 125k tier is byte-stable. Selected specs were all nonnega
 flat compact one; M102 captures the high-air/low-grain mature-budget one while preserving the
 125k protection. New baseline is `attempt-m102-repair-highair-lowgrain-main100-a01`; remaining
 target gap is 3.65 headline points.
+
+### M103 - post-M102 M63-form and vertical breadth screens · source-free closed (2026-07-04)
+
+**Study.** Answer the M63 follow-up on the M102 baseline without moving the acceptance rule.
+M63-form probes used `LR_M64_OBJECTIVE_CURRENT_POWER=1.5` on mature-budget spec slices; vertical
+breadth probes used source-free `LR_QUALITY_NCAND` on candidate slices. No source behavior was
+changed.
+
+```
+Residual combined current-power (`probe-m103-residual-combined-current15-s0-2-a01`):
+  dense_echo_climb,canyon_steps,switchback_pop · seeds 0..2 · budgets 250k/375k/500k
+  Delta headline = -4.9 · CI [-12.0, 1.2] · P(Delta<=0)=92.5% · VERDICT: REJECT
+
+High-impact sparse current-power (`probe-m103-highimpact-sparse-current15-s0-2-a01`):
+  rolling_drop,summit_push,leap_cadence · seeds 0..2 · budgets 250k/375k/500k
+  Delta headline = +0.4 · CI [-5.9, 9.5] · P(Delta<=0)=49.3% · VERDICT: INCONCLUSIVE
+
+Leap-only all-12 current-power (`probe-m103-leap-current15-s0-11-a01`):
+  leap_cadence · seeds 0..11 · budgets 250k/375k/500k
+  Delta headline = +0.3 · CI [-4.9, 5.3] · P(Delta<=0)=45.1% · 500k -1.7
+  VERDICT: INCONCLUSIVE
+
+Vertical nCand=34 (`probe-m103-vertical-ncand34-s0-2-a01`):
+  skyline_push,terrace_sprint,syncopated_lift,canyon_steps,dense_echo_climb,rolling_drop
+  Delta headline = -2.0 · CI [-6.8, 3.4] · P(Delta<=0)=80.3% · VERDICT: REJECT
+
+Vertical nCand=36 (`probe-m103-vertical-ncand36-s0-2-a01`):
+  same panel · Delta headline = -1.7 · CI [-6.2, 3.0] · P(Delta<=0)=75.8%
+  VERDICT: INCONCLUSIVE
+
+Dense-amplitude pocket nCand=34 (`probe-m103-denseamp-ncand34-pocket-s0-11-a01`):
+  canyon_steps,terrace_sprint · seeds 0..11 · budgets 250k/375k/500k
+  Delta headline = +2.3 on the two-spec intersection · P(Delta<=0)=29.1%
+  VERDICT: INCONCLUSIVE
+
+Dense-amplitude pocket nCand=36 (`probe-m103-denseamp-ncand36-pocket-s0-11-a01`):
+  same pocket · Delta headline = -0.1 · P(Delta<=0)=44.3% · VERDICT: INCONCLUSIVE
+```
+
+**Learnings.** The broad M63 signal is still not something to force. Accepted descendants
+M64/M74/M87/M94 are the keepable form. Post-M102 residual current-power either regresses or is
+too small/noisy, and candidate breadth helps `canyon_steps`/`terrace_sprint` only by leaking
+losses into `skyline_push`, `syncopated_lift`, and `dense_echo_climb`; the narrowed dense-amp
+pocket remains below promotion scale. Do not continue by widening M63 or by broad vertical
+candidate breadth.
 
 ### M101 - flat compact repair main-margin exactness · canonical ACCEPT (2026-07-04)
 

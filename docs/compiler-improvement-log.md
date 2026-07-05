@@ -2,6 +2,48 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-04 - SOURCE-FREE PROBES - post-M102 M63-form and vertical breadth screens
+
+Reason: M63's broad high-impact current-quality exponent remained the strongest near-miss in
+the objective family, and M102 moved several high-air/vertical residual rows. Before adding
+source, reprice narrow residual M63-form pockets and a mature vertical candidate-breadth pocket
+against the accepted M102 baseline.
+
+M63-form current-power screens used `LR_M64_OBJECTIVE_CURRENT_POWER=1.5` only on mature budgets
+of the probed spec slices, leaving scorer, specs, fingerprint, seeds, budget grid, and acceptance
+rule frozen:
+
+- `probe-m103-residual-combined-current15-s0-2-a01` on `dense_echo_climb,canyon_steps,
+  switchback_pop` (seeds 0..2, budgets 250k/375k/500k) vs M102: indicative `VERDICT: REJECT`,
+  delta -4.9, CI [-12.0, 1.2], P(delta<=0)=92.5%. Every selected spec regressed.
+- `probe-m103-highimpact-sparse-current15-s0-2-a01` on `rolling_drop,summit_push,leap_cadence`
+  (seeds 0..2, budgets 250k/375k/500k) vs M102: indicative `VERDICT: INCONCLUSIVE`, delta
+  +0.4, CI [-5.9, 9.5], P(delta<=0)=49.3%. `leap_cadence` improved, but `rolling_drop` and
+  `summit_push` erased it.
+- `probe-m103-leap-current15-s0-11-a01` on `leap_cadence` alone (all 12 seeds, budgets
+  250k/375k/500k) vs M102: indicative `VERDICT: INCONCLUSIVE`, delta +0.3, CI [-4.9, 5.3],
+  P(delta<=0)=45.1%; 500k regressed -1.7.
+
+Vertical candidate-breadth screens used source-free `LR_QUALITY_NCAND` on the mature vertical
+panel:
+
+- `probe-m103-vertical-ncand34-s0-2-a01` on `skyline_push,terrace_sprint,syncopated_lift,
+  canyon_steps,dense_echo_climb,rolling_drop` vs M102: indicative `VERDICT: REJECT`, delta
+  -2.0, CI [-6.8, 3.4], P(delta<=0)=80.3%.
+- `probe-m103-vertical-ncand36-s0-2-a01` on the same panel vs M102: indicative
+  `VERDICT: INCONCLUSIVE`, delta -1.7, CI [-6.2, 3.0], P(delta<=0)=75.8%.
+- The only plausible narrower pocket was dense high-amplitude lower-air `canyon_steps` +
+  `terrace_sprint`. All-12 pocket probes were still not promotable: `nCand=34`
+  (`probe-m103-denseamp-ncand34-pocket-s0-11-a01`) delta +2.3 on the two-spec mature-budget
+  intersection, P(delta<=0)=29.1%, driven mostly by `terrace_sprint`; `nCand=36`
+  (`probe-m103-denseamp-ncand36-pocket-s0-11-a01`) was flat at delta -0.1.
+
+Why nothing was kept: the broad M63 idea is still real but already harvested by accepted narrow
+selectors (M64/M74/M87/M94). The post-M102 residual current-power pockets either regress or are
+far below suite scale, and mature vertical candidate breadth helps isolated rows while hurting
+the same known collateral (`skyline_push`, `syncopated_lift`, `dense_echo_climb`). No source
+changes were made.
+
 ## 2026-07-04 - ACCEPTED - M102 high-air low-grain repair main-margin exactness
 
 Reason: M100's global protected repair main-margin trial still contained a second residual

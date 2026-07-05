@@ -2005,6 +2005,47 @@ insertion point. Future work should price overshoot in the objective/forward-eva
 candidate-generation variant that actually enters the selected pool. Source reverted; M102
 remains baseline of record.
 
+### M107 - objective-level controlled-axis overshoot · canonical REJECT, reverted (2026-07-05)
+
+**Study.** M106 proved the local handoff overshoot term was inert, so M107 moved the same
+controlled-axis diagnosis into current-gap objective quality, where it can affect selected
+candidates. This tests objective/forward-eval pressure, not the narrower M63/readiness line.
+
+**Mechanism.** Multiply `scoreCurrentTargetQuality` by a quarter-strength exponential discount
+for positive overshoot on `impact`, `elevation`, and `amplitude`. Undershoot and all other axes
+stay neutral. No scorer, specs, fingerprint, seeds, budget grid, candidate generation, or
+acceptance rule changed. Fallback flag: `LR_M107_OBJECTIVE_CONTROL_OVERSHOOT=0`.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M107_OBJECTIVE_CONTROL_OVERSHOOT=0` (6 files, 79 tests each).
+
+**Probe.** Worst-9 overshoot screen
+(`probe-m107-objective-control-overshoot-worst9-s0-2-a01`) on
+`drums_pendulum,skyline_push,terrace_sprint,dense_echo_climb,syncopated_lift,drums_dropout,
+canyon_steps,dense_sprint,rhythm_ladder`, seeds 0..2, full budget grid, was valid 108/108.
+Paired decision vs M102 on the same intersection was indicative `VERDICT: REJECT`: delta -7.5,
+CI [-17.5, 0.1], P(Delta<=0)=97.3%, effect -1.71. `rhythm_ladder` gained +10.33 weighted, but
+`syncopated_lift` (-24.37), `terrace_sprint` (-15.96), `drums_dropout` (-10.14), and
+`skyline_push` (-9.33) dominated.
+
+**Canonical.**
+`generated/golden-runs/attempt-m107-objective-control-overshoot-a01/golden.json` was run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m107-objective-control-overshoot-a01`.
+It was valid 1920/1920 with raw HEADLINE 693.00 and excl-impact 709.35. Budget scores:
+125k 678.25, 250k 689.10, 375k 694.12, 500k 697.80.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m107-objective-control-overshoot-a01/golden.json generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`
+returned `VERDICT: REJECT`: M102 696.35 -> M107 693.00, delta -3.3, CI [-7.2, -0.5],
+P(Delta<=0)=99.1%, effect -1.98. Per-budget deltas were 125k +0.3, 250k -2.6, 375k -4.4, and
+500k -3.9.
+
+**Learnings.** Broad objective-level controlled-axis overshoot is too blunt. It finds a
+`rhythm_ladder` pocket but damages the vertical/impact rows it was supposed to repair, especially
+at mature budgets. Source reverted; M102 remains baseline of record. Keep the M63/readiness lead
+separate: the next viable version needs narrow profile gating or a different suite-scale carrier,
+not this broad overshoot pressure.
+
 ### M101 - flat compact repair main-margin exactness · canonical ACCEPT (2026-07-04)
 
 **Mechanism.** Promoted the local repair selector implied by M100's footprint. The accepted

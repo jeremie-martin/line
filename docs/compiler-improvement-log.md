@@ -2,6 +2,48 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - NOT KEPT - M107 objective-level controlled-axis overshoot
+
+Reason: M106 showed that adding controlled-axis overshoot pressure to the local handoff score is
+inert under the current canonical forward-eval/objective stack. M107 tested the same residual
+diagnosis at an insertion point that can actually affect selected candidates: current-gap
+objective quality.
+
+Mechanism tested: multiply `scoreCurrentTargetQuality` by an exponential overshoot discount for
+positive overshoot on `impact`, `elevation`, and `amplitude` only, at quarter normalized strength.
+Undershoot and all other axes were neutral. The fallback flag was
+`LR_M107_OBJECTIVE_CONTROL_OVERSHOOT=0`. Scorer, specs, fingerprint, seeds, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M107_OBJECTIVE_CONTROL_OVERSHOOT=0` (6 files, 79 tests each).
+
+Targeted screen:
+`generated/golden-runs/probe-m107-objective-control-overshoot-worst9-s0-2-a01/golden.json` on
+`drums_pendulum,skyline_push,terrace_sprint,dense_echo_climb,syncopated_lift,drums_dropout,
+canyon_steps,dense_sprint,rhythm_ladder`, seeds 0..2, and the full budget grid was valid
+108/108. Decision versus M102 on the same intersection was indicative `VERDICT: REJECT`,
+delta -7.5, CI [-17.5, 0.1], P(delta<=0)=97.3%, effect -1.71. `rhythm_ladder` improved
+(+10.33 weighted), but `syncopated_lift` (-24.37), `terrace_sprint` (-15.96),
+`drums_dropout` (-10.14), and `skyline_push` (-9.33) made the mechanism untenable.
+
+Canonical M107:
+`generated/golden-runs/attempt-m107-objective-control-overshoot-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m107-objective-control-overshoot-a01`.
+It was valid 1920/1920 with raw HEADLINE 693.00 and `HEADLINE excl. impact` 709.35. Per-budget
+point estimates were 125k 678.25, 250k 689.10, 375k 694.12, and 500k 697.80.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m107-objective-control-overshoot-a01/golden.json generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`
+-> `VERDICT: REJECT`, delta headline -3.3, CI [-7.2, -0.5], P(delta<=0)=99.1%, effect -1.98.
+Per-budget deltas were 125k +0.3, 250k -2.6, 375k -4.4, and 500k -3.9, with unchanged
+validity.
+
+Why it was not kept: objective-level controlled-axis overshoot is too blunt. It can help one
+`rhythm_ladder`-shaped pocket, but it damages the same vertical/impact weak rows it was meant to
+repair. The source patch was reverted; M102 remains the accepted baseline. This does not close
+the M63/readiness line, but it argues against broad objective pressure as the carrier.
+
 ## 2026-07-05 - NOT KEPT - M106 expanded axis overshoot pressure
 
 Reason: M102's weakest rows are dominated by positive signed axis errors: `drums_pendulum`

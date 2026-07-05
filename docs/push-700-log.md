@@ -29,6 +29,7 @@ rule are frozen.
 | 2026-07-05 | attempt-m158-scarce-current-canyon-q36-a01 | b4246b2 | 697.55 | 715.46 | M158 scarce current-power + canyon q36 pocket — canonical ACCEPT |
 | 2026-07-05 | attempt-m165-drum-grain-q40-a01 | 26e37c6 | 697.83 | 715.83 | M165 drum/grain q40 quality pocket — canonical ACCEPT |
 | 2026-07-05 | attempt-m166-sparse-amp-q48-a01 | fc1747a | 698.10 | 715.88 | M166 sparse amplitude q48 all-budget pockets — canonical ACCEPT |
+| 2026-07-05 | attempt-m178-lowimpact-current-portfolio-a01 | c595999 | 698.47 | 716.34 | M178 low-impact current-power portfolio — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -2403,6 +2404,62 @@ The footprint changed 238/480 scored checkpoints, with 105 improvements, 133 reg
 **Learnings.** The general repair-main exactness lever is closed on M166. Do not carve the few
 winners into new profile pockets; that would recreate the M174 overfit failure mode. Any future
 repair work needs a mechanism-level usefulness signal, not spec/family cherry-picking.
+
+### M176-M178 - low-impact current-power portfolio · canonical ACCEPT (2026-07-05)
+
+**Study.** After the M174 overfit audit, current-power work was constrained to existing family
+predicates and structural filters rather than raw spec fingerprints. M176 source-free tested
+low-impact steady rows with p=2.0 on mature budgets for `float_bounds`, `grain_staircase`, and
+`mixed_grade`: `probe-m176-m88-excluded-current20-mature-all12-a01` was valid 108/108 but
+inconclusive on the three-spec mature intersection, delta +0.5, P(Delta<=0)=51.2%. The useful
+surface was non-grain only: `float_bounds` +7.91 and `mixed_grade` +1.82 mature-weighted,
+while `grain_staircase` lost -8.33. M177 tested compact low-impact p=2.5 on mature budgets for
+`mini_burst`, `cold_start`, `ridge_pulse`, and `rolling_hills`: valid 144/144 but inconclusive,
+delta -0.2, P(Delta<=0)=51.5%. The only clear useful slice was `mini_burst` +7.96
+mature-weighted; `cold_start` lost -7.27.
+
+**Mechanism.** M178 lives inside the accepted M87 low-impact steady/sparse mature-budget gate.
+When `LR_M178_LOW_IMPACT_CURRENT_PORTFOLIO` is not `0`, tiny compact low-impact rows
+(<=8 feasible contacts and the existing M94 compact predicate) use objective current-power 2.5;
+non-compact, non-grain low-impact rows with authored elevation or amplitude range use the existing
+M94 current-power 2.0. Existing M94 compact rows keep their p=2.0 fallback. Static audit over the
+40 golden specs showed the new selector hits exactly `mini_burst`, `mixed_grade`, and
+`float_bounds`; `grain_staircase` is excluded by the authored-grain/no-vertical filter, and
+`cold_start`, `rolling_hills`, and `ridge_pulse` remain on accepted M94 behavior.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M178_LOW_IMPACT_CURRENT_PORTFOLIO=0` (6 files, 78 tests each).
+A broad `npx tsc --noEmit --pretty false` was not a useful patch check because the repo still
+fails on pre-existing project-wide `.ts` import-extension and missing declaration errors.
+
+**Guards.** The source-backed affected slice
+`generated/golden-runs/probe-m178-lowimpact-current-source-all12-a01/golden.json` was valid
+144/144 and indicative ACCEPT versus M166 on the three-spec intersection: delta +5.5,
+CI [-1.8, 17.0], P(Delta<=0)=7.9%. It was byte-identical to the M176/M177 source-free rows on
+the intended mature checkpoints, with 125k unchanged. The full 3-seed guard
+`generated/golden-runs/probe-m178-lowimpact-current-source-full-s0-2-a01/golden.json` was valid
+480/480 and leak-free: exactly 27 checkpoints moved, all three intended specs x three seeds x
+three mature budgets. That guard was positive but underpowered versus M166, delta +0.1,
+CI [-0.4, 0.9], P(Delta<=0)=33.9%. A source-backed all-12 synthetic merge was ACCEPT-shaped:
+delta +0.4, CI [-0.1, 1.4], P(Delta<=0)=12.4%, with no unintended moved rows.
+
+**Canonical.**
+`generated/golden-runs/attempt-m178-lowimpact-current-portfolio-a01/golden.json` was run with
+`LR_ENGINE=wasm npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/attempt-m178-lowimpact-current-portfolio-a01`.
+It was valid 1920/1920 with raw HEADLINE 698.47 and excl-impact 716.34. Budget scores:
+125k 679.92, 250k 694.29, 375k 700.59, 500k 703.61.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m178-lowimpact-current-portfolio-a01/golden.json generated/golden-runs/attempt-m166-sparse-amp-q48-a01/golden.json`
+returned `VERDICT: ACCEPT`: M166 698.1 -> M178 698.5, delta +0.4, CI [-0.1, 1.4],
+P(Delta<=0)=12.4%, effect 0.92. Per-budget deltas were 125k +0.0, 250k +0.5, 375k +0.5,
+and 500k +0.3. The canonical run was byte-identical to the synthetic merge.
+
+**Footprint.** 108/1920 paired checkpoints changed: 61 improvements, 47 regressions, and
+1812 plateaus. No 125k rows moved. Only the intended three specs moved. Weighted spec deltas were
+`mini_burst` +7.17, `float_bounds` +7.12, and `mixed_grade` +1.64. Accepted source commit:
+`c595999`. New baseline is `attempt-m178-lowimpact-current-portfolio-a01`; remaining target gap
+is 1.53 headline points.
 
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 

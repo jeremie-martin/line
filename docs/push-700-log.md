@@ -2601,6 +2601,35 @@ M108, M117, and M132 all still carry their affected rows under M178. The small `
 cleanup hint is too narrow and contradicted by the same compact-readiness path being heavily
 load-bearing for `mini_burst`; do not promote it as a one-row removal.
 
+### M194 - scarce q28 current-source retry · rejected / reverted (2026-07-05)
+
+**Mechanism.** Retest the old scarce-budget q28 quality-breadth signal on M178 without using the
+global `LR_QUALITY_NCAND=28` override, which would bypass accepted profile boosts. A temporary
+default-off hook `LR_M194_SCARCE_QUALITY28=1` changed only the generic 125k base quality breadth
+from q32 to q28; M166 q48, M165 q40, and other accepted profile selectors still took precedence,
+and budgets above 125k were intended to remain byte-identical.
+
+Focused tests passed in default and enabled modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M194_SCARCE_QUALITY28=1` (6 files, 78 tests each).
+
+**Probe.**
+`generated/golden-runs/probe-m194-scarce-quality28-125-all12-a01/golden.json` used all 12 seeds
+at 125k only. It was valid 480/480 with stored 125k score 679.05 versus M178's 679.92.
+
+**Decision.** `npm run decide -- generated/golden-runs/probe-m194-scarce-quality28-125-all12-a01/golden.json generated/golden-runs/attempt-m178-lowimpact-current-portfolio-a01/golden.json`
+returned non-canonical `VERDICT: INCONCLUSIVE`: delta -0.9 on the 40-spec x 12-seed x 125k
+intersection, CI [-4.5, 2.3], P(Delta<=0)=69.4%. Validity stayed 100%.
+
+**Footprint.** 318/480 paired 125k rows changed, with 150 improvements and 168 regressions.
+The best average gains were `drums_zigzag` +12.32, `mixed_grade` +8.89, `drums_crosscut` +8.69,
+and `leap_cadence` +8.39. Losses dominated in weak/residual families: `dense_echo_climb` -16.01,
+`canyon_steps` -9.20, `grain_staircase` -8.28, `big_air_ramp` -6.98, and `drums_pulse` -6.10.
+
+**Learnings.** The scarce-q28 idea is now broad basin churn rather than a 125k rescue. It does
+not justify a full canonical run, and the temporary source hook was reverted. Do not retry q28
+scarce breadth unchanged unless a new structural selector explains the losses.
+
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 
 **Pendulum quality breadth.** M133 tested q36 for `drums_pendulum` all-12 and rejected versus

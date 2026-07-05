@@ -2,6 +2,34 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - NOT KEPT - M194 scarce q28 current-source retry
+
+Reason: retest the old scarce-budget q28 quality-breadth signal on top of M178, while avoiding
+the over-broad `LR_QUALITY_NCAND=28` env override that would disable accepted q pockets. A
+temporary default-off source hook `LR_M194_SCARCE_QUALITY28=1` changed only the generic 125k base
+quality breadth from q32 to q28; accepted profile boosts such as M166 q48 and M165 q40 still won,
+and budgets above 125k were intended to stay byte-identical. No scorer, specs, fingerprint, seed
+set, budget grid, or acceptance rule changed.
+
+Focused tests passed in default and enabled modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M194_SCARCE_QUALITY28=1` (6 files, 78 tests each).
+
+Probe: `generated/golden-runs/probe-m194-scarce-quality28-125-all12-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_M194_SCARCE_QUALITY28=1 npm run golden -- --budgets=125000 --jobs=32 --archive-dir=generated/golden-runs/probe-m194-scarce-quality28-125-all12-a01`.
+It was valid 480/480 with stored 125k score 679.05 versus M178's 679.92.
+
+Decision: `npm run decide -- generated/golden-runs/probe-m194-scarce-quality28-125-all12-a01/golden.json generated/golden-runs/attempt-m178-lowimpact-current-portfolio-a01/golden.json`
+returned non-canonical `VERDICT: INCONCLUSIVE`, delta -0.9 on the 40-spec x 12-seed x 125k
+intersection, CI [-4.5, 2.3], P(Delta<=0)=69.4%. Validity stayed 100%.
+
+Why it was not kept: the old scarce-q signal did not survive the M178 stack. The probe changed
+318/480 paired 125k rows, with 150 improvements and 168 regressions. Gains were scattered
+(`drums_zigzag` +12.32, `mixed_grade` +8.89, `drums_crosscut` +8.69, `leap_cadence` +8.39),
+but losses in weak/residual families dominated (`dense_echo_climb` -16.01, `canyon_steps` -9.20,
+`grain_staircase` -8.28, `big_air_ramp` -6.98, `drums_pulse` -6.10). The temporary hook was
+reverted; no source behavior was kept.
+
 ## 2026-07-05 - SOURCE-FREE REJECTS - M190-M193 accepted-pocket cleanup ablations
 
 Reason: after M178, check whether later accepted mechanisms had made earlier repair/readiness

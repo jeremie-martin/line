@@ -2,6 +2,60 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - ACCEPTED - M146 budget-capped residual quality/repair portfolio
+
+Reason: M132 left a few small mature-budget residual pockets. Broad q27/q28/q30 changes and broad
+repair main-margin widening were rejected, but the probe trail isolated two q28 quality-breadth
+pockets (`terrace_sprint` and `ridge_pulse`) and two residual repair pockets (`drums_signature`
+and `soar_settle`). The uncapped repair version was inconclusive because `drums_signature` gave
+back score at high budgets, so M146 capped that signature-shaped repair profile below 325k.
+
+Mechanism kept: reduce quality handoff sample count to 28 only for the narrow terrace/ridge
+residual profiles at budgets >=200k, and add repair main-margin 1.0 only for the residual repair
+profiles after excluding the accepted M101/M102/M108/M116 repair pockets. The signature-shaped
+repair profile is enabled only below 325k; the soar-shaped profile remains mature-budget enabled.
+Fallback flags are `LR_M144_RESIDUAL_QUALITY28=0` and
+`LR_M144_RESIDUAL_REPAIR_MAIN100=0`. Scorer, specs, fingerprint, seeds, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with
+`LR_M144_RESIDUAL_QUALITY28=0 LR_M144_RESIDUAL_REPAIR_MAIN100=0`
+(6 files, 78 tests each).
+
+Canonical M146:
+`generated/golden-runs/attempt-m146-budgetcapped-residual-quality-repair-a01/golden.json`, run
+with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m146-budgetcapped-residual-quality-repair-a01`.
+It was valid 1920/1920 with raw HEADLINE 697.38 and `HEADLINE excl. impact` 715.34.
+Per-budget point estimates were 125k 677.98, 250k 693.19, 375k 699.55, and 500k 702.71.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m146-budgetcapped-residual-quality-repair-a01/golden.json generated/golden-runs/attempt-m132-m63-micro-portfolio-a01/golden.json`
+-> `VERDICT: ACCEPT`, delta headline +0.2, CI [-0.0, 0.8], P(delta<=0)=9.4%, effect 0.92.
+Per-budget deltas were 125k +0.0, 250k +0.4, 375k +0.1, and 500k +0.2, with unchanged validity.
+
+Footprint: 79/1920 paired checkpoints changed, with 47 improvements, 32 regressions, and
+1841 plateaus. Only the four intended specs moved. Weighted spec deltas were
+`terrace_sprint` +4.37, `drums_signature` +1.85, `ridge_pulse` +0.85, and `soar_settle` +0.52.
+The accepted source commit is `4bacbb5`; M146 is now the baseline of record. Remaining target
+gap is 2.62 headline points.
+
+## 2026-07-05 - NOT KEPT / FOLDED - M133-M145 probes after M132
+
+M133 q36 and M134 q33 on the `drums_pendulum` all-12 slice rejected versus M132, delta -2.6
+and -3.9 respectively, confirming M132's q34 pendulum arm as the local optimum. M135 q30 and
+M140 q27 rejected on the q29-weak mature panel; M139 q28 was inconclusive-negative overall but
+showed clean positives on `terrace_sprint` and `ridge_pulse`. M141 retested the apparent q28
+positives all-12 and was still inconclusive overall, but preserved those two profiles for M146.
+
+M136, M142, and M143 tested broader repair main-margin 1.0 variants on the q29-weak mature panel
+and did not clear the gate. M137 rhythm repair and M138 terrace q30 were inconclusive. M144 first
+combined q28 residual quality with residual repair; after fixing the q selector, its pocket probe
+was positive but the full guard was inconclusive. M145 narrowed out `switchback_pop` and
+`drums_swell`, yet high-budget `drums_signature` losses still made the full guard inconclusive.
+M146 kept only the narrowed, budget-capped form.
+
 ## 2026-07-05 - ACCEPTED - M132 M63 micro portfolio
 
 Reason: M117 left two small M63-family residuals that were clean enough to promote together:

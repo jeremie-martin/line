@@ -25,6 +25,7 @@ rule are frozen.
 | 2026-07-05 | attempt-m108-dense-readiness-pulse-repair-a01 | 6a58e2a | 696.65 | 715.04 | M108 dense readiness plus drums_pulse repair — canonical ACCEPT |
 | 2026-07-05 | attempt-m117-portfolio-elev-compact-repair-a01 | 189d2f8 | 696.96 | 714.88 | M117 portfolio elevation readiness + compact readiness + stable dense repair — canonical ACCEPT |
 | 2026-07-05 | attempt-m132-m63-micro-portfolio-a01 | 6dd86a2 | 697.17 | 715.19 | M132 M63 micro-portfolio: big-air M74 relief + dense low-air q34 — canonical ACCEPT |
+| 2026-07-05 | attempt-m146-budgetcapped-residual-quality-repair-a01 | 4bacbb5 | 697.38 | 715.34 | M146 budget-capped residual quality/repair portfolio — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -2095,6 +2096,78 @@ P(Delta<=0)=14.2%, effect 1.19. Per-budget deltas were 125k +0.0, 250k +0.4, 375
 plateaus. Only the two intended specs moved. Weighted spec deltas were `big_air_ramp` +4.84
 and `drums_pendulum` +2.63. Accepted source commit: `6dd86a2`. New baseline is
 `attempt-m132-m63-micro-portfolio-a01`; remaining target gap is 2.83 headline points.
+
+### M146 - budget-capped residual quality/repair portfolio · canonical ACCEPT (2026-07-05)
+
+**Study.** M132 harvested the two clean M63-family residuals but still left a small mature-budget
+gap. M133/M134 showed the pendulum q34 arm was locally tuned; M139-M141 then found that lowering
+quality breadth to q28 helped only the `terrace_sprint`/`ridge_pulse` profiles. M144/M145 added
+the residual repair-main 1.0 pocket, but uncapped `drums_signature` repair leaked at high budgets.
+M146 kept the q28 profile pair and capped the signature repair pocket below 325k while leaving
+the `soar_settle` repair profile mature-budget enabled.
+
+**Mechanism.** Reduce quality handoff sample count to 28 only at budgets >=200k for the narrow
+terrace/ridge residual profiles. Add repair main-margin 1.0 for residual repair profiles after
+excluding the already accepted M101/M102/M108/M116 repair pockets; the signature-shaped dense
+profile is enabled only below 325k, while the soar-shaped sparse amplitude profile remains enabled
+at mature budgets. Fallback flags: `LR_M144_RESIDUAL_QUALITY28=0` and
+`LR_M144_RESIDUAL_REPAIR_MAIN100=0`. Scorer, specs, fingerprint, seeds, budgets, and acceptance
+rule stayed unchanged.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with
+`LR_M144_RESIDUAL_QUALITY28=0 LR_M144_RESIDUAL_REPAIR_MAIN100=0`
+(6 files, 78 tests each).
+
+**Probe trail.** M133 q36 and M134 q33 pendulum all-12 probes rejected versus M132, confirming
+M132's q34 pendulum arm was the local optimum. M135/M139/M140 tested q30/q28/q27 on the weak
+mature panel; only q28 had positive residual pockets, but it was negative as a broad panel.
+M141 isolated the q28 positives and showed `terrace_sprint` +5.10 and `ridge_pulse` +0.76, with
+other candidate rows negative or too noisy. M136/M142/M143 tested repair main-margin widening on
+the broader weak mature panel and rejected. M144/M145 narrowed q28 plus repair to the residual
+pockets, but the full guards were inconclusive because uncapped repair caused high-budget
+`drums_signature` drag. M146 capped that signature repair to 250k-scale budgets; its full 3-seed
+guard was valid 480/480 and indicative ACCEPT versus M132: delta +0.2, CI [-0.1, 0.9],
+P(Delta<=0)=10.8%, with a clean four-spec footprint.
+
+**Canonical.**
+`generated/golden-runs/attempt-m146-budgetcapped-residual-quality-repair-a01/golden.json` was run
+with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m146-budgetcapped-residual-quality-repair-a01`.
+It was valid 1920/1920 with raw HEADLINE 697.38 and excl-impact 715.34. Budget scores:
+125k 677.98, 250k 693.19, 375k 699.55, 500k 702.71.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m146-budgetcapped-residual-quality-repair-a01/golden.json generated/golden-runs/attempt-m132-m63-micro-portfolio-a01/golden.json`
+returned `VERDICT: ACCEPT`: M132 697.2 -> M146 697.4, delta +0.2, CI [-0.0, 0.8],
+P(Delta<=0)=9.4%, effect 0.92. Per-budget deltas were 125k +0.0, 250k +0.4, 375k +0.1, and
+500k +0.2.
+
+**Footprint.** 79/1920 paired checkpoints changed: 47 improvements, 32 regressions, and 1841
+plateaus. Only the intended four specs moved. Weighted spec deltas were `terrace_sprint` +4.37,
+`drums_signature` +1.85, `ridge_pulse` +0.85, and `soar_settle` +0.52. Accepted source commit:
+`4bacbb5`. New baseline is `attempt-m146-budgetcapped-residual-quality-repair-a01`; remaining
+target gap is 2.62 headline points.
+
+### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
+
+**Pendulum quality breadth.** M133 tested q36 for `drums_pendulum` all-12 and rejected versus
+M132: valid 48/48, delta -2.6, P(Delta<=0)=82.6%. M134 tested q33 all-12 and rejected:
+delta -3.9, P(Delta<=0)=97.9%. The M132 q34 arm stayed unchanged.
+
+**Residual q28/q30 screens.** M135 q30 on the q29-weak mature panel rejected, delta -4.2,
+P(Delta<=0)=99.5%. M139 q28 on the same panel was inconclusive-negative, delta -1.1,
+P(Delta<=0)=59.9%, but exposed positives on `terrace_sprint` and `ridge_pulse`; M140 q27 then
+rejected hard, delta -11.2, P(Delta<=0)=99.0%. M141 retested only the apparent q28 positives
+all-12 and stayed inconclusive overall, but preserved the two profiles folded into M146.
+
+**Repair narrowing.** M136, M142, and M143 tested broader repair main-margin 1.0 variants on the
+q29-weak mature panel and did not clear the gate. M137 rhythm-only repair main100 was
+inconclusive and budget-unstable. M138 terrace q30 was inconclusive. M144 combined q28 residual
+quality with residual repair and became positive only after the q selector was fixed; M145 dropped
+`switchback_pop`/`drums_swell` repair but still stayed inconclusive on the full guard because
+high-budget `drums_signature` losses remained. M146 is the narrowed, budget-capped form that was
+promoted.
 
 ### M118-M131 - post-M117 probes · rejected / folded into M132 (2026-07-05)
 

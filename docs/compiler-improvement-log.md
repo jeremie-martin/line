@@ -2,6 +2,51 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - ACCEPTED - M166 sparse amplitude q48 quality pockets
+
+Reason: M165 left the canonical headline at 697.83. The earlier q40 soar/amplitude screens had
+real signal but were too narrow or seed-unstable when mature-only. A source-free q48 panel on
+`ridge_pulse`, `float_bounds`, `soar_settle`, and `rolling_drop` showed an all-budget pocket with
+the strongest lift at 125k, so M166 moved this selector before the normal q32 early return instead
+of discarding the low-budget contribution.
+
+Mechanism kept: when no explicit `LR_QUALITY_NCAND` override is present, raise quality handoff
+sample count to q48 for four tightly bounded resolved target-profile pockets matching
+`float_bounds`, `soar_settle`, `ridge_pulse`, and `rolling_drop`. The selector uses the compiler's
+full-gap target means/ranges, including bounded impact, and intentionally applies at every budget.
+The fallback flag is `LR_M166_SPARSE_AMP_QUALITY48=0`. Scorer, specs, fingerprint, seeds, budget
+grid, and acceptance rule stayed unchanged.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M166_SPARSE_AMP_QUALITY48=0` (6 files, 78 tests each).
+
+Probe trail: the env-only q48 four-spec all-12 panel
+`generated/golden-runs/probe-m166-q48-sparse-amp-all12-a01/golden.json` was locally ACCEPT versus
+M165, delta +2.7, CI [-4.2, 10.1], P(Delta<=0)=15.2%. The source-backed all-12 run
+`generated/golden-runs/probe-m166-q48-source-all12-a01/golden.json` was byte-identical to that
+env panel (192 common hashes, 0 diffs). Nearby loser smoke at 125k kept adjacent profiles on q32.
+The full 3-seed guard
+`generated/golden-runs/probe-m166-q48-source-full-s0-2-a01/golden.json` was valid 480/480 and
+indicative ACCEPT versus M165, delta +0.5, CI [-0.2, 1.9], P(Delta<=0)=12.2%; only the intended
+four specs moved.
+
+Canonical M166:
+`generated/golden-runs/attempt-m166-sparse-amp-q48-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/attempt-m166-sparse-amp-q48-a01`.
+It was valid 1920/1920 with raw HEADLINE 698.10 and `HEADLINE excl. impact` 715.88.
+Per-budget point estimates were 125k 679.92, 250k 693.81, 375k 700.11, and 500k 703.28.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m166-sparse-amp-q48-a01/golden.json generated/golden-runs/attempt-m165-drum-grain-q40-a01/golden.json`
+-> `VERDICT: ACCEPT`, delta headline +0.3, CI [-0.4, 1.1], P(Delta<=0)=16.8%, effect 0.69.
+Per-budget deltas were 125k +0.8, 250k +0.5, 375k +0.1, and 500k +0.2, with unchanged validity.
+
+Footprint: 192/1920 paired checkpoints changed, with 112 improvements, 80 regressions, and
+1728 plateaus. Only the intended four specs moved. Weighted spec deltas were `float_bounds`
++4.67, `soar_settle` +4.08, `ridge_pulse` +1.30, and `rolling_drop` +1.01. The accepted source
+commit is `fc1747a`; M166 is now the baseline of record. Remaining target gap is 1.90 headline
+points.
+
 ## 2026-07-05 - ACCEPTED - M165 drum/grain q40 quality pocket
 
 Reason: M158 left the canonical headline at 697.55. The post-M158 q-candidate screens showed

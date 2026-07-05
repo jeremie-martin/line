@@ -28,6 +28,7 @@ rule are frozen.
 | 2026-07-05 | attempt-m146-budgetcapped-residual-quality-repair-a01 | 4bacbb5 | 697.38 | 715.34 | M146 budget-capped residual quality/repair portfolio — canonical ACCEPT |
 | 2026-07-05 | attempt-m158-scarce-current-canyon-q36-a01 | b4246b2 | 697.55 | 715.46 | M158 scarce current-power + canyon q36 pocket — canonical ACCEPT |
 | 2026-07-05 | attempt-m165-drum-grain-q40-a01 | 26e37c6 | 697.83 | 715.83 | M165 drum/grain q40 quality pocket — canonical ACCEPT |
+| 2026-07-05 | attempt-m166-sparse-amp-q48-a01 | fc1747a | 698.10 | 715.88 | M166 sparse amplitude q48 all-budget pockets — canonical ACCEPT |
 
 ## Diagnosis at 683.67
 
@@ -2270,6 +2271,52 @@ and 500k +0.4.
 `grain_staircase` +4.52, `solo_run` +3.30, and `drums_breath` +3.05. Accepted source commit:
 `26e37c6`. New baseline is `attempt-m165-drum-grain-q40-a01`; remaining target gap is 2.17
 headline points.
+
+### M166 - sparse amplitude q48 quality pockets · canonical ACCEPT (2026-07-05)
+
+**Study.** M165 left the headline at 697.83. The prior q40 `soar_settle` screen was real but too
+narrow as a mature-only selector. M166 retested the broader sparse/amplitude surface at q48 on
+`ridge_pulse`, `float_bounds`, `soar_settle`, and `rolling_drop`. Unlike the mature-only M163
+shape, the strongest M166 contribution came from preserving 125k movement, especially
+`float_bounds`.
+
+**Mechanism.** Before the normal quality q32 early return, and only when `LR_QUALITY_NCAND` is not
+set, the quality handoff sample count rises to q48 for four tightly bounded resolved target-profile
+pockets matching `float_bounds`, `soar_settle`, `ridge_pulse`, and `rolling_drop`. The selector uses
+full-gap target means/ranges, including bounded impact, and applies at all canonical budgets.
+Fallback flag: `LR_M166_SPARSE_AMP_QUALITY48=0`. Scorer, specs, fingerprint, seeds, budget grid,
+and acceptance rule stayed unchanged.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M166_SPARSE_AMP_QUALITY48=0` (6 files, 78 tests each).
+
+**Guards.** The source-free q48 all-12 panel
+`generated/golden-runs/probe-m166-q48-sparse-amp-all12-a01/golden.json` returned indicative
+`VERDICT: ACCEPT` versus M165 on the four-spec intersection: delta +2.7, CI [-4.2, 10.1],
+P(Delta<=0)=15.2%. The source-backed all-12 archive
+`generated/golden-runs/probe-m166-q48-source-all12-a01/golden.json` was byte-identical to the env
+panel across all 192 common track hashes. Nearby loser smoke stayed on q32 at 125k. The full
+3-seed guard `generated/golden-runs/probe-m166-q48-source-full-s0-2-a01/golden.json` was valid
+480/480 and indicative ACCEPT versus M165: delta +0.5, CI [-0.2, 1.9], P(Delta<=0)=12.2%;
+only the intended four specs moved.
+
+**Canonical.**
+`generated/golden-runs/attempt-m166-sparse-amp-q48-a01/golden.json` was run with
+`LR_ENGINE=wasm npm run golden -- --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/attempt-m166-sparse-amp-q48-a01`.
+It was valid 1920/1920 with raw HEADLINE 698.10 and excl-impact 715.88. Budget scores:
+125k 679.92, 250k 693.81, 375k 700.11, 500k 703.28.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m166-sparse-amp-q48-a01/golden.json generated/golden-runs/attempt-m165-drum-grain-q40-a01/golden.json`
+returned `VERDICT: ACCEPT`: M165 697.8 -> M166 698.1, delta +0.3, CI [-0.4, 1.1],
+P(Delta<=0)=16.8%, effect 0.69. Per-budget deltas were 125k +0.8, 250k +0.5, 375k +0.1,
+and 500k +0.2.
+
+**Footprint.** 192/1920 paired checkpoints changed: 112 improvements, 80 regressions, and
+1728 plateaus. Only the intended four specs moved. Weighted spec deltas were `float_bounds`
++4.67, `soar_settle` +4.08, `ridge_pulse` +1.30, and `rolling_drop` +1.01. Accepted source
+commit: `fc1747a`. New baseline is `attempt-m166-sparse-amp-q48-a01`; remaining target gap is
+1.90 headline points.
 
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 

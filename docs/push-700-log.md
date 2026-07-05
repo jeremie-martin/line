@@ -2096,6 +2096,39 @@ plateaus. Only the two intended specs moved. Weighted spec deltas were `big_air_
 and `drums_pendulum` +2.63. Accepted source commit: `6dd86a2`. New baseline is
 `attempt-m132-m63-micro-portfolio-a01`; remaining target gap is 2.83 headline points.
 
+### M118-M131 - post-M117 probes · rejected / folded into M132 (2026-07-05)
+
+**Quality breadth.** M118 tested global `LR_QUALITY_NCAND=34` on the worst-10 panel
+(seeds 0..2), valid 120/120, and rejected: delta -6.1, P(Delta<=0)=92.6%. M119 narrowed q34
+to the three apparent positives all-12; it was inconclusive, delta +0.1, P(Delta<=0)=45.5%.
+Only the `drums_pendulum` shape survived later, and it became M132's mature-only q34 arm.
+
+**Geometry / forward-eval.** M120 elevation target gain for `skyline_push,dense_echo_climb`
+was valid 96/96 and rejected: delta -2.4, P(Delta<=0)=89.1%. M121 forced
+`LR_FWD_EVAL=avg:1:6` on weak vertical rows was rejected hard: valid 70/72, delta -48.4.
+M122 forced `LR_FWD_EVAL=best:1:2` on the mature weak-vertical slice was rejected, delta -17.2.
+M123 impact onset 0.20 on short-amplitude vertical rows was rejected, delta -4.5,
+P(Delta<=0)=93.3%.
+
+**Repair / ablations.** M124 residual repair main-margin 1.0 on
+`drums_signature,soar_settle,switchback_pop,drums_swell` was too weak: valid 144/144, delta +0.5
+on the pocket, P(Delta<=0)=27.6%, and the later M131 combo showed harmful seed interaction.
+M125 ablated M114 sparse elevation readiness and rejected the ablation, delta -2.7,
+P(Delta<=0)=94.6%. M126 ablated M115 compact readiness and was inconclusive-negative,
+delta -1.6, P(Delta<=0)=74.1%. M127 ablated M116 stable dense repair and rejected the
+ablation, delta -1.2, P(Delta<=0)=87.2%. M130 ablated M87 low-impact current power and
+rejected decisively, delta -6.8, P(Delta<=0)=99.6%.
+
+**Aim K / M74 relief.** M128 restored an old high-budget air-range gate for K=6 and rejected
+on the full 3-seed guard: valid 480/480, delta -1.0, P(Delta<=0)=83.4%; `big_air_ramp` and
+`drums_crescendo` positives were swamped by dense/rhythm losses. M129 ablated M74 on six
+vertical specs and was inconclusive-negative overall, delta -1.1, P(Delta<=0)=73.5%, but it
+identified `big_air_ramp` as the clean M74-tax relief (+4.84) that M132 kept. M131 tried to
+combine big-air M74 relief, wide-low-impact high-K relief, and residual repair. The full 3-seed
+guard was valid 480/480 but inconclusive-negative: delta -0.7, P(Delta<=0)=74.7%. The high-K
+relief leaked into `dense_sprint`, `drums_pendulum`, and `rhythm_ladder`; source was reverted
+except for the M132-retained big-air relief idea.
+
 ### M117 - portfolio elevation compact repair · canonical ACCEPT (2026-07-05)
 
 **Study.** M108 got the M63/readiness descendant through the gate but left the headline at

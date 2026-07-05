@@ -37,6 +37,33 @@ Footprint: 72/1920 paired checkpoints changed, with 48 improvements, 24 regressi
 +4.84 and `drums_pendulum` +2.63. The accepted source commit is `6dd86a2`; M132 is now the
 baseline of record. Remaining target gap is 2.83 headline points.
 
+## 2026-07-05 - NOT KEPT / FOLDED - M118-M131 probes after M117
+
+M118 global `LR_QUALITY_NCAND=34` was rejected on the worst-10 3-seed panel: delta -6.1,
+P(delta<=0)=92.6%. M119 narrowed q34 to the apparent positive three specs all-12 but stayed
+inconclusive, delta +0.1, P(delta<=0)=45.5%; only the `drums_pendulum` profile survived into
+M132.
+
+M120 elevation target gain for `skyline_push,dense_echo_climb` was rejected, delta -2.4,
+P(delta<=0)=89.1%. M121 forced `LR_FWD_EVAL=avg:1:6` on weak vertical rows was rejected hard,
+delta -48.4 with validity 70/72. M122 forced `LR_FWD_EVAL=best:1:2` on the mature weak-vertical
+slice was rejected, delta -17.2. M123 impact onset 0.20 on short-amplitude vertical rows was
+rejected, delta -4.5, P(delta<=0)=93.3%.
+
+M124 residual repair main-margin 1.0 on `drums_signature,soar_settle,switchback_pop,drums_swell`
+was too weak to promote, delta +0.5 on the pocket, P(delta<=0)=27.6%, and later showed harmful
+seed interaction in the M131 combo. M125/M126/M127 ablated the three M117 arms: M114 sparse
+elevation readiness and M116 stable dense repair were load-bearing, while M115 compact readiness
+was inconclusive-negative; all three stayed. M130 ablated M87 low-impact current power and was
+decisively rejected, delta -6.8, P(delta<=0)=99.6%.
+
+M128 restored an old high-budget air-range gate for K=6 and rejected on the full 3-seed guard,
+delta -1.0, P(delta<=0)=83.4%, because dense/rhythm losses swamped the positives. M129's M74
+ablation was inconclusive-negative overall but identified `big_air_ramp` as a clean M74-tax
+relief. M131 combined that relief with wide-low-impact high-K relief and residual repair, but the
+full guard was inconclusive-negative, delta -0.7, P(delta<=0)=74.7%; only the big-air relief was
+folded into M132.
+
 ## 2026-07-05 - ACCEPTED - M117 portfolio elevation compact repair
 
 Reason: M108 kept the strongest direct M63/readiness descendant, but left the canonical headline

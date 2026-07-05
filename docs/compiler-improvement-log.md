@@ -2,6 +2,48 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-05 - NOT KEPT - M106 expanded axis overshoot pressure
+
+Reason: M102's weakest rows are dominated by positive signed axis errors: `drums_pendulum`
+overshoots air and impact, while `skyline_push`, `terrace_sprint`, `dense_echo_climb`, and
+`syncopated_lift` overshoot elevation/amplitude/impact. The existing handoff local overshoot
+penalty only covers air and speed, so M106 tested whether adding controlled-axis overshoot
+pressure could steer candidate selection without changing the scorer or candidate generation.
+
+Mechanism tested: extend `handoffAxisOvershootPenalty` with half-strength normalized
+overshoot pressure for `impact`, `elevation`, and `amplitude`, leaving existing full air
+overshoot and softer speed overshoot unchanged. The fallback flag was
+`LR_M106_AXIS_OVERSHOOT_EXPANDED=0`. This was selection-only in the handoff local score.
+
+Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M106_AXIS_OVERSHOOT_EXPANDED=0` (6 files, 78 tests each).
+
+Targeted screen:
+`generated/golden-runs/probe-m106-expanded-axis-overshoot-worst9-s0-2-a01/golden.json` on
+`drums_pendulum,skyline_push,terrace_sprint,dense_echo_climb,syncopated_lift,drums_dropout,
+canyon_steps,dense_sprint,rhythm_ladder`, seeds 0..2, and the full budget grid was valid
+108/108. Paired decision versus M102 on the same intersection was byte-identical:
+`VERDICT: INCONCLUSIVE`, delta +0.0, CI [0.0, 0.0], P(delta<=0)=100.0%, effect 0.00.
+
+Canonical M106:
+`generated/golden-runs/attempt-m106-expanded-axis-overshoot-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m106-expanded-axis-overshoot-a01`.
+It was valid 1920/1920 with raw HEADLINE 696.35 and `HEADLINE excl. impact` 714.91. Per-budget
+point estimates were 125k 677.98, 250k 691.67, 375k 698.50, and 500k 701.66.
+
+Canonical decision: `npm run decide -- generated/golden-runs/attempt-m106-expanded-axis-overshoot-a01/golden.json generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`
+-> `VERDICT: INCONCLUSIVE`, delta headline +0.0, CI [0.0, 0.0], P(delta<=0)=100.0%,
+effect 0.00. All per-budget deltas were +0.0 and validity stayed 100%. A checkpoint diff
+confirmed 0 changed / 1920 paired scores.
+
+Why it was not kept: the added local overshoot pressure is inert under the current canonical
+handoff selection stack. At 125k and above, forward-eval/objective ordering already dominates
+the local handoff score in the places this would matter, so the new local term does not change
+tracks. The source patch was reverted; M102 remains the accepted baseline. Future overshoot
+work needs to enter the objective/forward-eval surface or candidate generation, not this local
+score add-on.
+
 ## 2026-07-05 - NOT KEPT - M105 dense-drum readiness selector
 
 Reason: M104's `drums_breath`-only readiness selector was positive but too small, so M105

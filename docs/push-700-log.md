@@ -1964,6 +1964,47 @@ not clear the canonical accept rule at 12 seeds, so the source patch was reverte
 remains baseline of record. Do not spend more canonical cycles on this exact two-spec selector;
 it needs a separate suite-scale carrier before promotion.
 
+### M106 - expanded axis overshoot pressure · canonical INCONCLUSIVE, reverted (2026-07-05)
+
+**Study.** M102 residual reports show signed positive errors on the weakest rows:
+`drums_pendulum` overshoots air/impact, and the vertical weak rows overshoot
+elevation/amplitude/impact. The existing local handoff overshoot pressure covers only air and
+speed, so M106 tested whether adding the missing scored axes could move selection.
+
+**Mechanism.** Add half-strength normalized overshoot pressure for `impact`, `elevation`, and
+`amplitude` inside `handoffAxisOvershootPenalty`, while leaving full air pressure and softer
+speed pressure unchanged. This was a local handoff-score term only; no scorer, specs,
+fingerprint, seeds, budget grid, candidate generation, or acceptance rule changed. Fallback
+flag: `LR_M106_AXIS_OVERSHOOT_EXPANDED=0`.
+
+**Validation.** Focused tests passed in default and fallback modes:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/budget_model.test.ts`
+and the same suite with `LR_M106_AXIS_OVERSHOOT_EXPANDED=0` (6 files, 78 tests each).
+
+**Probe.** Worst-9 overshoot screen
+(`probe-m106-expanded-axis-overshoot-worst9-s0-2-a01`) on
+`drums_pendulum,skyline_push,terrace_sprint,dense_echo_climb,syncopated_lift,drums_dropout,
+canyon_steps,dense_sprint,rhythm_ladder`, seeds 0..2, full budget grid, was valid 108/108.
+Paired decision vs M102 on the same intersection was byte-identical:
+delta +0.0, CI [0.0, 0.0], P(Delta<=0)=100.0%, effect 0.00, `VERDICT: INCONCLUSIVE`.
+
+**Canonical.**
+`generated/golden-runs/attempt-m106-expanded-axis-overshoot-a01/golden.json` was run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-m106-expanded-axis-overshoot-a01`.
+It was valid 1920/1920 with raw HEADLINE 696.35 and excl-impact 714.91. Budget scores:
+125k 677.98, 250k 691.67, 375k 698.50, 500k 701.66.
+
+**Decision.** `npm run decide -- generated/golden-runs/attempt-m106-expanded-axis-overshoot-a01/golden.json generated/golden-runs/attempt-m102-repair-highair-lowgrain-main100-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: M102 696.35 -> M106 696.35, delta +0.0, CI [0.0, 0.0],
+P(Delta<=0)=100.0%, effect 0.00. All per-budget deltas were +0.0; paired checkpoint diff was
+0 changed / 1920.
+
+**Learnings.** This local ranker path is inert at canonical budgets under the current
+forward-eval/objective selection stack. The overshoot diagnosis is real, but this is the wrong
+insertion point. Future work should price overshoot in the objective/forward-eval leaf or add a
+candidate-generation variant that actually enters the selected pool. Source reverted; M102
+remains baseline of record.
+
 ### M101 - flat compact repair main-margin exactness · canonical ACCEPT (2026-07-04)
 
 **Mechanism.** Promoted the local repair selector implied by M100's footprint. The accepted

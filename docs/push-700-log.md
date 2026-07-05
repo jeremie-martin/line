@@ -2386,6 +2386,24 @@ run; source was reverted. Keep the evidence only as a warning that M63-style cur
 made ACCEPT-shaped by profile mining, but should not be promoted without an out-of-suite or
 family-level validation story.
 
+### M175 - global repair main-margin exactness retry · source-free REJECT (2026-07-05)
+
+**Study.** After rejecting the M174 profile-fingerprint path, retested a cleaner family-level
+lever: `LR_REPAIR_MAIN_MARGIN=1.0` globally on the current M166 baseline, seeds 0..2 and the
+canonical budget grid. This is a real mechanism check, not a spec selector.
+
+**Result.** `generated/golden-runs/probe-m175-repair-main100-global-full-s0-2-a01/golden.json`
+was valid 480/480 but rejected versus M166: delta -1.8, CI [-3.7, -0.5],
+P(Delta<=0)=99.8%. Every budget was negative: 125k -3.9, 250k -1.7, 375k -1.7, 500k -1.4.
+The footprint changed 238/480 scored checkpoints, with 105 improvements, 133 regressions, and
+241 hash changes. Local positives (`rhythm_ladder` +2.33, `ridge_pulse` +2.13,
+`climb_terrace` +1.78, `solo_run` +1.21 weighted) were swamped by broad collateral, especially
+`drums_crescendo` -18.98, `summit_push` -11.68, `drums_tide` -8.22, and `drums_signature` -6.66.
+
+**Learnings.** The general repair-main exactness lever is closed on M166. Do not carve the few
+winners into new profile pockets; that would recreate the M174 overfit failure mode. Any future
+repair work needs a mechanism-level usefulness signal, not spec/family cherry-picking.
+
 ### M133-M145 - post-M132 residual probes · rejected / folded into M146 (2026-07-05)
 
 **Pendulum quality breadth.** M133 tested q36 for `drums_pendulum` all-12 and rejected versus

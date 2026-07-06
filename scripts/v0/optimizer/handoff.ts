@@ -4052,10 +4052,12 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 //            alternatives (1 deep). Expected — robust to the DFS not taking the best.
 type ForwardEvalVariant = "greedy" | "best" | "avg";
 type ForwardEvalLeaf = "objective" | "full";
-type ForwardEvalConfig = {
+type ForwardRolloutShape = {
   variant: ForwardEvalVariant;
   depth: number;
   branch: number;
+};
+type CandidateForwardPolicy = ForwardRolloutShape & {
   charge: boolean;
   /** Leaf scorer for the rollout terminus. "full" (default) re-detects the whole
    *  partial track from frame 0 on a fresh engine fork (forwardNodeScore). "objective"
@@ -4064,12 +4066,16 @@ type ForwardEvalConfig = {
    *  objectiveLeafValue). Set by LR_FWD_EVAL_LEAF; "full" is byte-identical. */
   leaf: ForwardEvalLeaf;
 };
+type StartForwardPolicy = ForwardRolloutShape & {
+  /** Start selection is always charged; this only selects the rollout terminus scorer. */
+  leaf: ForwardEvalLeaf;
+};
 
 type ForwardEvalRuntime = {
   spec: Spec | null;
   gapAxisTargets: AxisValues[];
   /** Forward-eval config/gate resolved once per compile. */
-  config: ForwardEvalConfig | null;
+  config: CandidateForwardPolicy | null;
   minBudget: number;
   /** Derived from LR_FWD_EVAL; not an accumulator. */
   defaultConfig: boolean;
@@ -4531,17 +4537,16 @@ function forwardEvalMinBudget(): number {
 
 /** Candidate ranker. DEFAULT greedy:2 (true forward-rollout score) — the high-budget win.
  *  LR_FWD_EVAL=off|0 reverts to the local axis-L2 proxy; LR_FWD_EVAL=<greedy|best|avg>[:depth[:branch]]
- *  selects a variant. Charged honestly by default (see forwardArcValue / LR_FWD_EVAL_CHARGE). */
-/** Parse a `<greedy|best|avg>[:depth[:branch]]` spec into a ForwardEvalConfig (always charged). */
-function parseForwardSpec(raw: string): ForwardEvalConfig | null {
+ *  selects a rollout shape. Charged honestly by default (see forwardArcValue /
+ *  LR_FWD_EVAL_CHARGE). */
+/** Parse a policy-neutral `<greedy|best|avg>[:depth[:branch]]` rollout shape. */
+function parseRolloutShape(raw: string): ForwardRolloutShape | null {
   const [v, d, b] = raw.split(":");
   if (v !== "greedy" && v !== "best" && v !== "avg") return null;
   const depth = d ? Math.max(1, Math.min(6, Number.parseInt(d, 10) || 2)) : 2;
   const defBranch = v === "avg" ? 6 : v === "best" ? 3 : 1;
   const branch = b ? Math.max(1, Math.min(8, Number.parseInt(b, 10) || defBranch)) : defBranch;
-  // leaf defaults to "full" (byte-identical); resolveForwardEvalConfig/startEvalConfig override it
-  // from LR_FWD_EVAL_LEAF.
-  return { variant: v, depth, branch, charge: true, leaf: "full" };
+  return { variant: v, depth, branch };
 }
 
 /** Leaf scorer for the rollout terminus. DEFAULT "full" (byte-identical re-detection).
@@ -4557,20 +4562,20 @@ function forwardEvalLeaf(): ForwardEvalLeaf {
   return "objective";
 }
 
-function resolveForwardEvalConfig(): { config: ForwardEvalConfig | null; defaultConfig: boolean } {
+function resolveForwardEvalConfig(): { config: CandidateForwardPolicy | null; defaultConfig: boolean } {
   const env = readEnv("LR_FWD_EVAL");
   const defaultConfig = env === undefined || env === "";
   if (env === "0" || env === "off") return { config: null, defaultConfig };
-  const cfg = parseForwardSpec(env === undefined || env === "" ? "greedy:2" : env);
+  const shape = parseRolloutShape(env === undefined || env === "" ? "greedy:2" : env);
   // A non-empty env that failed to parse is a typo, not an intentional disable — warn so the
   // silent fallback to the local proxy ranker is visible (env is non-empty/non-off here).
-  if (cfg === null && env !== undefined && env !== "") warnUnparsedSpec("LR_FWD_EVAL", env);
+  if (shape === null && env !== undefined && env !== "") warnUnparsedSpec("LR_FWD_EVAL", env);
   // Rollout frames are CHARGED honestly by default; LR_FWD_EVAL_CHARGE=0 refunds them (the
   // budget-refunded ceiling experiment). Resolved once here, not re-read per candidate.
   return {
-    config: cfg === null
+    config: shape === null
       ? null
-      : { ...cfg, charge: readEnv("LR_FWD_EVAL_CHARGE") !== "0", leaf: forwardEvalLeaf() },
+      : { ...shape, charge: readEnv("LR_FWD_EVAL_CHARGE") !== "0", leaf: forwardEvalLeaf() },
     defaultConfig,
   };
 }
@@ -4590,17 +4595,17 @@ function resolveForwardEvalConfig(): { config: ForwardEvalConfig | null; default
  *  rolled before the slice to START_OPTION_LIMIT. The rollout leaf follows LR_FWD_EVAL_LEAF:
  *  the default objective leaf saves re-detection frames, while LR_FWD_EVAL_LEAF=full restores
  *  the previous full-leaf ranking. If start ranking is ever made ballistic, drop this note. */
-function startEvalConfig(): ForwardEvalConfig | null {
+function startEvalConfig(): StartForwardPolicy | null {
   const env = readEnv("LR_START_EVAL");
   if (env === "0" || env === "off") return null;
-  const cfg = parseForwardSpec(env === undefined || env === "" ? "best:1:5" : env);
-  if (cfg === null && env !== undefined && env !== "") warnUnparsedSpec("LR_START_EVAL", env);
-  return cfg === null ? null : { ...cfg, leaf: forwardEvalLeaf() };
+  const shape = parseRolloutShape(env === undefined || env === "" ? "best:1:5" : env);
+  if (shape === null && env !== undefined && env !== "") warnUnparsedSpec("LR_START_EVAL", env);
+  return shape === null ? null : { ...shape, leaf: forwardEvalLeaf() };
 }
 
 /** True forward-rollout score of a start root (charged). Higher = better start. */
 function startForwardScore(
-  root: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, cfg: ForwardEvalConfig,
+  root: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, cfg: StartForwardPolicy,
 ): number {
   // Start-selection rollouts are always charged (no refund here); count their sim-frames
   // separately from per-candidate forward eval (cost instrument, measure-only).
@@ -4814,7 +4819,7 @@ function forwardAvgNextScore(
  *  CHARGED against the budget by default (honest). LR_FWD_EVAL_CHARGE=0 refunds them — the
  *  budget-refunded ceiling experiment that isolates eval quality from its cost. */
 function forwardArcValue(
-  child: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, cfg: ForwardEvalConfig,
+  child: SearchNode, gaps: Gap[], ctx: SpecContext, seed: number, cfg: CandidateForwardPolicy,
 ): number {
   const saved = getSimFrames();
   // try/finally so a throw mid-rollout (e.g. a future frame limit) can't leak frames.
@@ -4843,24 +4848,24 @@ function forwardArcValue(
 }
 
 function adaptiveForwardEvalConfig(
-  base: ForwardEvalConfig,
+  base: CandidateForwardPolicy,
   node: SearchNode,
   gaps: Gap[],
   targetBudget: number,
   budgetSlack: number,
   openingBestOpportunity: number,
-): ForwardEvalConfig {
+): CandidateForwardPolicy {
   const mature = matureForwardEvalConfig(base, node, gaps, targetBudget);
   if (mature !== base) return mature;
   return openingBestForwardEvalConfig(base, node, budgetSlack, openingBestOpportunity);
 }
 
 function openingBestForwardEvalConfig(
-  base: ForwardEvalConfig,
+  base: CandidateForwardPolicy,
   node: SearchNode,
   budgetSlack: number,
   opportunity: number,
-): ForwardEvalConfig {
+): CandidateForwardPolicy {
   if (
     !fwdEvalRuntime.defaultConfig ||
     base.variant !== "greedy" ||
@@ -4915,11 +4920,11 @@ function usesForwardEvalAtBudget(targetBudget: number): boolean {
 }
 
 function matureForwardEvalConfig(
-  base: ForwardEvalConfig,
+  base: CandidateForwardPolicy,
   node: SearchNode,
   gaps: Gap[],
   targetBudget: number,
-): ForwardEvalConfig {
+): CandidateForwardPolicy {
   if (
     !fwdEvalRuntime.defaultConfig ||
     base.variant !== "greedy" ||
@@ -5284,7 +5289,7 @@ function startSeedForwardScore(
   gaps: Gap[],
   ctx: SpecContext,
   searchSeed: number,
-  cfg: ForwardEvalConfig,
+  cfg: StartForwardPolicy,
   targetBudget: number,
 ): number {
   const baseScore = startForwardScore(root, gaps, ctx, searchSeed, cfg);

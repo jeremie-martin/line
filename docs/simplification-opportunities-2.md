@@ -134,7 +134,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Split parsing from policy. Use `parseRolloutShape` for the variant/depth/branch tuple, then define `CandidateForwardPolicy` and `StartForwardPolicy` explicitly. This makes the sanctioned start exception visible without overloading one config type.
 - **Risk:** low
 - **Generalization note:** Clear policy types reduce accidental reuse of candidate gates for start selection or vice versa.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-12-split-forward-rollout-policy-j32-a01` split the shared rollout parser from candidate and start forward policies so start ranking no longer carries candidate-only charge semantics; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 13. Aim top-K is still a stepwise budget and low-air cascade
 - **Files:** `scripts/v0/optimizer/aim.ts`

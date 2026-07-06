@@ -2779,7 +2779,7 @@ function rankedOptions(
   // Agreement instrument (measure-only): record ONLY when the pool was scored via the
   // forward-eval path (mirror scoreCandidateForHandoff's condition), over the POOL-SOURCE
   // entries only — this is before reuse/brake extras are pushed onto `scored`.
-  if (fwdEvalCfg !== null && usesForwardEvalAtBudget(targetBudget)) {
+  if (fwdEvalRuntime.config !== null && usesForwardEvalAtBudget(targetBudget)) {
     recordFwdEvalAgreement(scored, gaps[node.gapIndex]?.targets?.impact);
   }
   // Extra-candidate lanes (see extraCandidateLane): each generates a few more
@@ -2843,7 +2843,7 @@ function openingBestForwardEvalOpportunity(
   targetBudget: number,
   budgetSlack: number,
 ): number {
-  if (fwdEvalCfg === null || !fwdEvalDefaultConfig) return 0;
+  if (fwdEvalRuntime.config === null || !fwdEvalRuntime.defaultConfig) return 0;
   if (!usesForwardEvalAtBudget(targetBudget)) return 0;
   if (openingBestBranch2SlackPressure(budgetSlack) <= 0) return 0;
   if (!isOpeningContactNode(node, gaps)) return 0;
@@ -3898,7 +3898,7 @@ function scoreCandidateForHandoff(
   const child = extendNodeCached(node, candidate);
   // Forward-eval ranking (DEFAULT ≥75k): rank purely by the true metric score of where this arc
   // leads (charged forward rollout), replacing the local axis-L2 proxy below the gate.
-  const fwdCfg = fwdEvalCfg; // resolved once per compile in setForwardEvalContext
+  const fwdCfg = fwdEvalRuntime.config; // resolved once per compile in setForwardEvalContext
   if (fwdCfg !== null && usesForwardEvalAtBudget(targetBudget)) {
     const value = forwardArcValue(
       child,
@@ -4029,13 +4029,10 @@ export function handoffAxisOvershootPenalty(targets: AxisValues, achieved: AxisV
 // ~1100-line forest (config/env parsing, rollout scorers, objective leaf scorer, and
 // the measure-only agreement instrument below) is a near-self-contained unit that touches the
 // DFS core at only two call sites (scoreCandidateForHandoff, the telemetry hook in expandNode).
-// A physical move to forward_eval.ts is DEFERRED, not rejected: the blocker is the module-level
-// context (fwdEvalSpec/fwdEvalGapAxisTargets/fwdEvalCfg/fwdEvalMin), which is a per-compile
-// protocol shared with EXTERNAL importers (eval_arc_apples.ts,
-// eval_leaf_factors.ts, eval_leaf_window.ts call setForwardEvalContext then read objectiveLeafValue)
-// and have no test coverage of their own. Extracting cleanly first requires promoting that state to
-// an explicit context object threaded through the scorers — a behavior-preserving but wide change
-// that should land in its own commit with a full board/benchmark run, not bundled with fixes.
+// A physical move to forward_eval.ts is DEFERRED, not rejected: the remaining blocker is threading
+// fwdEvalRuntime explicitly through production scorers and EXTERNAL importers (eval_arc_apples.ts,
+// eval_leaf_factors.ts, eval_leaf_window.ts call setForwardEvalContext then read objectiveLeafValue),
+// which have no test coverage of their own.
 // ════════════════════════════════════════════════════════════════════════════════════════
 // ── True-score forward arc evaluation (DEFAULT ranker ≥75k; also start selection & repair) ──
 // Rank each candidate arc by the TRUE metric score (scoreDriftReport via leafKeyForReport) of
@@ -4064,17 +4061,23 @@ type ForwardEvalConfig = {
   leaf: ForwardEvalLeaf;
 };
 
-let fwdEvalSpec: Spec | null = null;
-let fwdEvalGapAxisTargets: AxisValues[] = [];
-// Forward-eval config/gate resolved ONCE per compile (env is constant per run) so the
-// per-candidate ranker reads these cached fields, not process.env, in the hot path.
-let fwdEvalCfg: ForwardEvalConfig | null = null;
-let fwdEvalMin = 0;
-// Refreshed every compile: setForwardEvalContext() calls forwardEvalConfig(), which
-// re-derives this from LR_FWD_EVAL. Kept here (not in the reset block) because it is
-// a derived config flag set alongside fwdEvalCfg, not an accumulator — but it IS
-// per-compile, so forwardEvalConfig() must stay on the setForwardEvalContext path.
-let fwdEvalDefaultConfig = true;
+type ForwardEvalRuntime = {
+  spec: Spec | null;
+  gapAxisTargets: AxisValues[];
+  /** Forward-eval config/gate resolved once per compile. */
+  config: ForwardEvalConfig | null;
+  minBudget: number;
+  /** Derived from LR_FWD_EVAL; not an accumulator. */
+  defaultConfig: boolean;
+};
+
+const fwdEvalRuntime: ForwardEvalRuntime = {
+  spec: null,
+  gapAxisTargets: [],
+  config: null,
+  minBudget: 0,
+  defaultConfig: true,
+};
 // REJECTED experiment (removed 2026-06-14): widening the rollout branch at
 // impact-targeted gaps (LR_FWD_EVAL_IMPACT_BRANCH) to discover dive-scoop pairs.
 // VERDICT (2026-06-10, canonical): branch=3 → 551.89, branch=5 → 328.08 vs
@@ -4236,10 +4239,12 @@ function recordFwdEvalAgreement(
   }
 }
 export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]): void {
-  fwdEvalSpec = spec;
-  fwdEvalGapAxisTargets = gapAxisTargets;
-  fwdEvalCfg = forwardEvalConfig();
-  fwdEvalMin = forwardEvalMinBudget();
+  const resolved = resolveForwardEvalConfig();
+  fwdEvalRuntime.spec = spec;
+  fwdEvalRuntime.gapAxisTargets = gapAxisTargets;
+  fwdEvalRuntime.config = resolved.config;
+  fwdEvalRuntime.defaultConfig = resolved.defaultConfig;
+  fwdEvalRuntime.minBudget = forwardEvalMinBudget();
 }
 
 /** Warn (once-per-call, stderr) when a study/control env spec was set to a
@@ -4542,14 +4547,14 @@ function parseForwardSpec(raw: string): ForwardEvalConfig | null {
   const depth = d ? Math.max(1, Math.min(6, Number.parseInt(d, 10) || 2)) : 2;
   const defBranch = v === "avg" ? 6 : v === "best" ? 3 : 1;
   const branch = b ? Math.max(1, Math.min(8, Number.parseInt(b, 10) || defBranch)) : defBranch;
-  // leaf defaults to "full" (byte-identical); forwardEvalConfig/startEvalConfig override it
+  // leaf defaults to "full" (byte-identical); resolveForwardEvalConfig/startEvalConfig override it
   // from LR_FWD_EVAL_LEAF.
   return { variant: v, depth, branch, charge: true, leaf: "full" };
 }
 
 /** Leaf scorer for the rollout terminus. DEFAULT "full" (byte-identical re-detection).
  *  LR_FWD_EVAL_LEAF=objective scores the leaf with zero engine frames (objectiveLeafValue).
- *  Parsed as a SEPARATE var from LR_FWD_EVAL so fwdEvalDefaultConfig / the mature-avg
+ *  Parsed as a SEPARATE var from LR_FWD_EVAL so fwdEvalRuntime.defaultConfig / the mature-avg
  *  upgrade stay untouched (an objective-leaf greedy:2 is still the "default config"). */
 function forwardEvalLeaf(): ForwardEvalLeaf {
   const env = readEnv("LR_FWD_EVAL_LEAF");
@@ -4560,19 +4565,22 @@ function forwardEvalLeaf(): ForwardEvalLeaf {
   return "objective";
 }
 
-function forwardEvalConfig(): ForwardEvalConfig | null {
+function resolveForwardEvalConfig(): { config: ForwardEvalConfig | null; defaultConfig: boolean } {
   const env = readEnv("LR_FWD_EVAL");
-  fwdEvalDefaultConfig = env === undefined || env === "";
-  if (env === "0" || env === "off") return null;
+  const defaultConfig = env === undefined || env === "";
+  if (env === "0" || env === "off") return { config: null, defaultConfig };
   const cfg = parseForwardSpec(env === undefined || env === "" ? "greedy:2" : env);
   // A non-empty env that failed to parse is a typo, not an intentional disable — warn so the
   // silent fallback to the local proxy ranker is visible (env is non-empty/non-off here).
   if (cfg === null && env !== undefined && env !== "") warnUnparsedSpec("LR_FWD_EVAL", env);
   // Rollout frames are CHARGED honestly by default; LR_FWD_EVAL_CHARGE=0 refunds them (the
   // budget-refunded ceiling experiment). Resolved once here, not re-read per candidate.
-  return cfg === null
-    ? null
-    : { ...cfg, charge: readEnv("LR_FWD_EVAL_CHARGE") !== "0", leaf: forwardEvalLeaf() };
+  return {
+    config: cfg === null
+      ? null
+      : { ...cfg, charge: readEnv("LR_FWD_EVAL_CHARGE") !== "0", leaf: forwardEvalLeaf() },
+    defaultConfig,
+  };
 }
 
 /** Start-selection eval: rank initial conditions by the TRUE forward score of where they lead,
@@ -4620,7 +4628,7 @@ function startForwardScore(
 
 /** True partial-track score (scoreDriftReport.full_score) of a forward SearchNode. */
 function forwardNodeScore(search: SearchNode, gaps: Gap[], ctx: SpecContext): number {
-  const spec = fwdEvalSpec;
+  const spec = fwdEvalRuntime.spec;
   if (spec === null) {
     throw new Error("forwardNodeScore: forward-eval context unset — setForwardEvalContext must run first");
   }
@@ -4633,7 +4641,7 @@ function forwardNodeScore(search: SearchNode, gaps: Gap[], ctx: SpecContext): nu
   const fits = search.prefixFits.slice();
   while (fits.length < gaps.length) fits.push(null);
   const rawReport = buildDriftReport(
-    det, spec, gaps, ctx.allContactFrames, ctx.durationFrames, [], fits, fwdEvalGapAxisTargets,
+    det, spec, gaps, ctx.allContactFrames, ctx.durationFrames, [], fits, fwdEvalRuntime.gapAxisTargets,
   );
   const report = fullDuration ? rawReport : asPartialReport(rawReport, horizonFrame);
   recordFwdLeafDeadCheck(report, search, gaps);
@@ -4689,7 +4697,7 @@ function recordFwdLeafDeadCheck(report: DriftReport, search: SearchNode, gaps: G
  *          × survival_quality   (= deepest committed contact frame / totalFrames)
  *          × exp(−futureMissing / MISSING_CONTACT_TOLERANCE)               // missing_quality
  *
- *  Uses the TRUE targets (fwdEvalGapAxisTargets), matching forwardNodeScore's scorer — NOT the
+ *  Uses the TRUE targets (fwdEvalRuntime.gapAxisTargets), matching forwardNodeScore's scorer — NOT the
  *  jitter-sampled gap.targets. The axis RMS spans the WHOLE committed prefix [0, leaf.gapIndex):
  *  RMS is non-linear, so the prefix does NOT cancel across a pool, and folding it in is what lets
  *  an over-sped prefix be abandoned (accumulated error → low quality for every continuation).
@@ -4728,7 +4736,7 @@ export function objectiveLeafValue(
     // the wrong window to reproduce the scorer). achievedAtEnd is undefined when the two windows
     // coincide (non-air gaps), so fall back to `achieved` then.
     const achieved = fit.achievedAtEnd ?? fit.achieved;
-    for (const e of axisErrorsForTargets(fwdEvalGapAxisTargets[i], achieved)) errors.push(e);
+    for (const e of axisErrorsForTargets(fwdEvalRuntime.gapAxisTargets[i], achieved)) errors.push(e);
   }
   // axis_quality = exp(-rms(ALL committed-prefix errors) / AXIS_QUALITY_TOLERANCE) — the scorer's
   // own single-RMS fold, reproduced from the per-gap fits.
@@ -4903,7 +4911,7 @@ function openingBestForwardEvalConfig(
   opportunity: number,
 ): ForwardEvalConfig {
   if (
-    !fwdEvalDefaultConfig ||
+    !fwdEvalRuntime.defaultConfig ||
     base.variant !== "greedy" ||
     base.depth !== 2 ||
     base.branch !== 1 ||
@@ -4952,7 +4960,7 @@ function openingBestForwardEvalSeed(node: SearchNode, branch: number): number {
 }
 
 function usesForwardEvalAtBudget(targetBudget: number): boolean {
-  return targetBudget >= fwdEvalMin;
+  return targetBudget >= fwdEvalRuntime.minBudget;
 }
 
 function matureForwardEvalConfig(
@@ -4962,7 +4970,7 @@ function matureForwardEvalConfig(
   targetBudget: number,
 ): ForwardEvalConfig {
   if (
-    !fwdEvalDefaultConfig ||
+    !fwdEvalRuntime.defaultConfig ||
     base.variant !== "greedy" ||
     base.depth !== 2 ||
     base.branch !== 1

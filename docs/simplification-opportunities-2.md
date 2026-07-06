@@ -107,7 +107,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Create an explicit `ForwardEvalContext` object containing spec, gap targets, config, min budget, and stats sink. Pass it through `scoreCandidateForHandoff`, start scoring, and exported study helpers. Then move the subsystem to `optimizer/forward_eval.ts`.
 - **Risk:** medium
 - **Generalization note:** Removing hidden globals improves reentrancy and makes future multi-worker or nested study calls safer.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-09-forward-eval-runtime-context-j32-a01` consolidated the forward-eval per-compile globals into an explicit runtime context object and made config resolution return data instead of mutating a side flag; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 10. Forward-eval agreement telemetry still walks every scored pool in production
 - **Files:** `scripts/v0/optimizer/handoff.ts`

@@ -3379,6 +3379,59 @@ function qualityHandoffSampleCount(
 ): number {
   const base = handoffSampleCount(targetBudget);
   if (qualityNCandOverride() !== null) return base;
+  return qualityBreadth(profile, sparseContactCadence, targetBudget, base);
+}
+
+type QualityBreadthRule = {
+  envName?: string;
+  minBudgetFrames?: number;
+  nCand: number;
+  allowSparseSmooth?: boolean;
+  matches: (profile: HandoffTargetProfile) => boolean;
+};
+
+const QUALITY_BREADTH_RULES: readonly QualityBreadthRule[] = [
+  {
+    envName: "LR_M165_DRUM_GRAIN_QUALITY40",
+    minBudgetFrames: M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES,
+    nCand: HANDOFF_QUALITY_DRUM_GRAIN_BOOST_N_CAND,
+    matches: shouldBoostDrumGrainMatureQualityBreadth,
+  },
+  {
+    envName: "LR_M152_CANYON_QUALITY36",
+    minBudgetFrames: M152_CANYON_QUALITY_MIN_BUDGET_FRAMES,
+    nCand: HANDOFF_QUALITY_CANYON_MATURE_BOOST_N_CAND,
+    matches: shouldBoostCanyonMatureQualityBreadth,
+  },
+  {
+    envName: "LR_M144_RESIDUAL_QUALITY28",
+    minBudgetFrames: M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES,
+    nCand: HANDOFF_QUALITY_RESIDUAL_LEAN_N_CAND,
+    matches: shouldLeanResidualQualityBreadth,
+  },
+  {
+    envName: "LR_M132_DENSE_LOW_AIR_QUALITY34",
+    minBudgetFrames: M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES,
+    nCand: HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND,
+    matches: shouldBoostDenseLowAirQualityBreadth,
+  },
+  {
+    nCand: HANDOFF_QUALITY_N_CAND,
+    matches: shouldRelaxMatureQualityLean,
+  },
+  {
+    nCand: HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND,
+    allowSparseSmooth: true,
+    matches: shouldBoostShortNoAmpQualityBreadth,
+  },
+];
+
+function qualityBreadth(
+  profile: HandoffTargetProfile,
+  sparseContactCadence: boolean,
+  targetBudget: number | undefined,
+  base: number,
+): number {
   if (
     readEnv("LR_M166_SPARSE_AMP_QUALITY48") !== "0" &&
     shouldBoostSparseAmpQualityBreadthAllBudget(profile)
@@ -3386,41 +3439,21 @@ function qualityHandoffSampleCount(
     return Math.max(base, HANDOFF_QUALITY_SPARSE_AMP_Q48_N_CAND);
   }
   if (base >= HANDOFF_QUALITY_N_CAND) return base;
-  if (
-    readEnv("LR_M165_DRUM_GRAIN_QUALITY40") !== "0" &&
-    (targetBudget ?? 0) >= M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES &&
-    shouldBoostDrumGrainMatureQualityBreadth(profile)
-  ) {
-    return HANDOFF_QUALITY_DRUM_GRAIN_BOOST_N_CAND;
+
+  const budget = targetBudget ?? 0;
+  const rule = QUALITY_BREADTH_RULES.find((candidate) =>
+    (candidate.envName === undefined || readEnv(candidate.envName) !== "0") &&
+    budget >= (candidate.minBudgetFrames ?? 0) &&
+    candidate.matches(profile)
+  );
+  if (rule !== undefined) {
+    return rule.allowSparseSmooth === true && sparseContactCadence
+      ? smoothSparseAmplitudeQualityBreadth(profile, rule.nCand)
+      : rule.nCand;
   }
-  if (
-    readEnv("LR_M152_CANYON_QUALITY36") !== "0" &&
-    (targetBudget ?? 0) >= M152_CANYON_QUALITY_MIN_BUDGET_FRAMES &&
-    shouldBoostCanyonMatureQualityBreadth(profile)
-  ) {
-    return HANDOFF_QUALITY_CANYON_MATURE_BOOST_N_CAND;
-  }
-  if (
-    readEnv("LR_M144_RESIDUAL_QUALITY28") !== "0" &&
-    (targetBudget ?? 0) >= M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES &&
-    shouldLeanResidualQualityBreadth(profile)
-  ) {
-    return HANDOFF_QUALITY_RESIDUAL_LEAN_N_CAND;
-  }
-  if (
-    readEnv("LR_M132_DENSE_LOW_AIR_QUALITY34") !== "0" &&
-    (targetBudget ?? 0) >= M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES &&
-    shouldBoostDenseLowAirQualityBreadth(profile)
-  ) {
-    return HANDOFF_QUALITY_DENSE_LOW_AIR_BOOST_N_CAND;
-  }
-  if (shouldRelaxMatureQualityLean(profile)) return HANDOFF_QUALITY_N_CAND;
-  const boosted = shouldBoostShortNoAmpQualityBreadth(profile)
-    ? HANDOFF_QUALITY_SHORT_NO_AMP_BOOST_N_CAND
-    : base;
   return sparseContactCadence
-    ? smoothSparseAmplitudeQualityBreadth(profile, boosted)
-    : boosted;
+    ? smoothSparseAmplitudeQualityBreadth(profile, base)
+    : base;
 }
 
 function budgetAwareQualitySampleCount(targetBudget: number | undefined): number {

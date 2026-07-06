@@ -67,7 +67,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Replace discrete profile overrides with a single `qualityBreadth(profile, budget)` function returning one integer from a continuous pressure over density, vertical target range, impact range, and residual risk. If exact pockets are kept temporarily, express them as data rows over the shared spec profile rather than bespoke functions.
 - **Risk:** high
 - **Generalization note:** `nCand` should scale with search difficulty and budget, not with current golden-family fingerprints.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-05-quality-breadth-rule-table-j32-a01` replaced the priority-ordered quality-breadth cascade with a single shared-profile rule table while preserving current gates; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 6. The all-budget sparse-amp Q48 gate is a brittle exact-match escape hatch
 - **Files:** `scripts/v0/optimizer/handoff.ts`

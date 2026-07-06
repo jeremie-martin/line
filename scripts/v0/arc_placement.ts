@@ -1346,63 +1346,34 @@ function sampleContactCenteredLines(
   // The attempt/pressure/room ramps keep the guided prefix mostly normal, then let
   // the wide random tail spend a controlled fraction of samples on templates.
   lastGeometryWasImpactTemplate = false;
-  const impactTemplateBudgetP = impactTemplateBudgetPressure();
-  const impactTemplateEligibility = impactTemplateLaneEligibility(
+  const impactTemplate = impactTemplateDescriptor({
     targets,
+    targetState,
     gapFrames,
     nextGapFrames,
     impactCurveP,
-    impactTemplateBudgetP,
     attempt,
-  );
-  if (
-    lowDiscrepancyRoll(attempt, IMPACT_TEMPLATE_ROLL_SALT) < impactTemplateEligibility
-  ) {
-    // SLAM-HOP: a single concave scoop from the contact angle down to a ballistic
-    // hop launch sized to land the NEXT beat (vy ≈ −g·N/2, lane-spanned 0.7-1.2x),
-    // then the surface STOPS — the rider launches from the valley bottom. Physics
-    // forces this shape: a big redirection cannot exit at a descending launch
-    // without a convex crest (the rider flies off it early with an unplanned
-    // trajectory — the documented early-bend failure; the two-phase return variant
-    // of this lane reproduced it: templates won local cost on 88% of pressured
-    // beats yet forward-eval rejected every one). The hop exit is the redirection
-    // AND the next-beat delivery in one arc, so the rollout stays coherent.
-    if (nextGapFrames !== null && nextGapFrames > 4) {
-      const speed = Math.max(1, targetState.speed);
-      const hopScale = IMPACT_TEMPLATE_HOP_SCALE;
-      const vyHop = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * nextGapFrames * hopScale;
-      const hopAngleDeg = Math.max(
-        (Math.atan2(vyHop, speed) * 180) / Math.PI,
-        IMPACT_TEMPLATE_END_ANGLE_MIN_DEG,
-      );
-      const turnDeg = Math.min(contactAngleDeg - hopAngleDeg, IMPACT_TEMPLATE_MAX_TURN_DEG);
-      const turnPressure = smoothstep(turnDeg / IMPACT_TEMPLATE_FULL_TURN_DEG);
-      const effectiveTurnDeg = turnDeg >= IMPACT_TEMPLATE_FULL_TURN_DEG
-        ? turnDeg
-        : turnDeg * Math.sqrt(turnPressure);
-      const scoopEndAngleDeg = contactAngleDeg - effectiveTurnDeg;
-      if (effectiveTurnDeg > 0) {
-        lastGeometryWasImpactTemplate = true;
-        const scoopLength = clamp(speed * impactTemplateScoopFrames(), 28, 120);
-        const scoopSegs = clampInt(
-          Math.round(scoopLength / IMPACT_TEMPLATE_SCOOP_SEG_PX), 3, 12,
-        );
-        const scoopLines = buildPostContactLines(
-          lineIdStart + preLines.length,
-          contactPoint, contactAngleDeg, scoopEndAngleDeg, scoopLength, scoopSegs,
-        );
-        const holdPressure = impactTemplateHoldPressure(targets, nextGapFrames);
-        const holdLines = buildImpactTemplateHoldLines(
-          lineIdStart + preLines.length + scoopLines.length,
-          scoopLines,
-          contactPoint,
-          scoopEndAngleDeg,
-          speed,
-          holdPressure,
-        );
-        return [...preLines, ...scoopLines, ...holdLines];
-      }
-    }
+    contactAngleDeg,
+  });
+  if (impactTemplate !== null) {
+    lastGeometryWasImpactTemplate = true;
+    const scoopLines = buildPostContactLines(
+      lineIdStart + preLines.length,
+      contactPoint,
+      contactAngleDeg,
+      impactTemplate.scoop.endAngleDeg,
+      impactTemplate.scoop.length,
+      impactTemplate.scoop.segments,
+    );
+    const holdLines = buildImpactTemplateHoldLines(
+      lineIdStart + preLines.length + scoopLines.length,
+      scoopLines,
+      contactPoint,
+      impactTemplate.scoop.endAngleDeg,
+      impactTemplate.speed,
+      impactTemplate.hold.pressure,
+    );
+    return [...preLines, ...scoopLines, ...holdLines];
   }
 
   const postLines = buildPostContactLines(
@@ -1410,6 +1381,78 @@ function sampleContactCenteredLines(
     postLength, postSegments, postCurveBias, contactAngleDeg,
   );
   return [...preLines, ...postLines];
+}
+
+type ImpactTemplateDescriptor = {
+  speed: number;
+  scoop: {
+    endAngleDeg: number;
+    length: number;
+    segments: number;
+  };
+  hold: {
+    pressure: number;
+  };
+};
+
+function impactTemplateDescriptor(params: {
+  targets: AxisValues;
+  targetState: ImpactFrameTargetState;
+  gapFrames: number;
+  nextGapFrames: number | null;
+  impactCurveP: number;
+  attempt: number;
+  contactAngleDeg: number;
+}): ImpactTemplateDescriptor | null {
+  const impactTemplateBudgetP = impactTemplateBudgetPressure();
+  const impactTemplateEligibility = impactTemplateLaneEligibility(
+    params.targets,
+    params.gapFrames,
+    params.nextGapFrames,
+    params.impactCurveP,
+    impactTemplateBudgetP,
+    params.attempt,
+  );
+  if (lowDiscrepancyRoll(params.attempt, IMPACT_TEMPLATE_ROLL_SALT) >= impactTemplateEligibility) {
+    return null;
+  }
+  if (params.nextGapFrames === null || params.nextGapFrames <= 4) return null;
+
+  // SLAM-HOP: a single concave scoop from the contact angle down to a ballistic
+  // hop launch sized to land the NEXT beat (vy ~= -g*N/2, lane-spanned 0.7-1.2x),
+  // then the surface STOPS -- the rider launches from the valley bottom. Physics
+  // forces this shape: a big redirection cannot exit at a descending launch
+  // without a convex crest (the rider flies off it early with an unplanned
+  // trajectory -- the documented early-bend failure; the two-phase return variant
+  // of this lane reproduced it: templates won local cost on 88% of pressured
+  // beats yet forward-eval rejected every one). The hop exit is the redirection
+  // AND the next-beat delivery in one arc, so the rollout stays coherent.
+  const speed = Math.max(1, params.targetState.speed);
+  const hopScale = IMPACT_TEMPLATE_HOP_SCALE;
+  const vyHop = -0.5 * LAUNCH_GRAVITY_PX_PER_FRAME2 * params.nextGapFrames * hopScale;
+  const hopAngleDeg = Math.max(
+    (Math.atan2(vyHop, speed) * 180) / Math.PI,
+    IMPACT_TEMPLATE_END_ANGLE_MIN_DEG,
+  );
+  const turnDeg = Math.min(params.contactAngleDeg - hopAngleDeg, IMPACT_TEMPLATE_MAX_TURN_DEG);
+  const turnPressure = smoothstep(turnDeg / IMPACT_TEMPLATE_FULL_TURN_DEG);
+  const effectiveTurnDeg = turnDeg >= IMPACT_TEMPLATE_FULL_TURN_DEG
+    ? turnDeg
+    : turnDeg * Math.sqrt(turnPressure);
+  if (effectiveTurnDeg <= 0) return null;
+
+  const scoopLength = clamp(speed * impactTemplateScoopFrames(), 28, 120);
+  return {
+    speed,
+    scoop: {
+      endAngleDeg: params.contactAngleDeg - effectiveTurnDeg,
+      length: scoopLength,
+      segments: clampInt(Math.round(scoopLength / IMPACT_TEMPLATE_SCOOP_SEG_PX), 3, 12),
+    },
+    hold: {
+      pressure: impactTemplateHoldPressure(params.targets, params.nextGapFrames),
+    },
+  };
 }
 
 function impactTemplateBudgetPressure(): number {

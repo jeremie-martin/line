@@ -192,7 +192,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Represent impact template generation as one deterministic candidate-family descriptor with explicit `eligibility`, `scoop`, and optional `hold` phases. Consider removing the hold sub-lane unless telemetry shows it is selected often; otherwise derive hold length from the same needed-turn geometry as the scoop.
 - **Risk:** high
 - **Generalization note:** The current gate product is hard to reason about off-grid and makes one template family look like several independent policies.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-18-impact-template-descriptor-j32-a01` extracted the impact template lane into an explicit descriptor with eligibility, scoop, and hold phases while preserving byte-identical output; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 19. Steep-arrival span overlaps with impact-arrival launch and post-turn correction
 - **Files:** `scripts/v0/arc_placement.ts`

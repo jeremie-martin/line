@@ -125,7 +125,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** If the proof is concluded, delete these counters and `recordFwdLeafDeadCheck`. If still useful, move it behind an explicit validation flag so normal `LR_FWD_EVAL_LEAF=full` runs do not carry proof-specific archive fields.
 - **Risk:** low
 - **Generalization note:** Removing proof residue makes the live scorer easier to audit; keeping it gated preserves the diagnostic when intentionally requested.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-11-remove-full-leaf-proof-counters-j32-a01` removed the concluded full-leaf dead-rider proof counters, helper, and test expectations while leaving live forward-eval cost telemetry intact; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 12. Start-eval and candidate forward-eval parse the same DSL but obey different policy rules
 - **Files:** `scripts/v0/optimizer/handoff.ts`

@@ -4109,22 +4109,6 @@ const fwdEvalTotals = {
   // candidates and terminated the rollout early. In objective mode these carry the
   // explicit missing-step penalty; counted here regardless of mode.
   fwd_rollout_no_candidate: 0,
-  // Dead-rider proof (full-leaf path only, measure-only): forwardNodeScore detections
-  // whose terminus is a non-endOfSpec death PAST the last committed contact. reports =
-  // all full-leaf detections; dead_uncovered = those landing in the uncovered span
-  // (end+16 → next contact). Read from a DEFAULT-mode run to confirm the objective
-  // leaf's missed-penalty is never asked to cover a dead rider (expect dead_uncovered≈0).
-  fwd_leaf_reports: 0,
-  fwd_leaf_dead_uncovered: 0,
-  // Composition of the uncovered-terminus population by terminus reason. Genuine deaths are
-  // riderEjected/sledBroken/leftWorld; rideStalled is AMBIGUOUS — the detector also labels a
-  // window that simply ENDED with the rider alive (candidate.ts terminus fallthrough:
-  // lastFrame < raw.duration → "rideStalled") as rideStalled. dead_uncovered now counts ONLY
-  // genuine deaths; alive_uncovered counts the rideStalled/other (alive-at-horizon) remainder.
-  fwd_leaf_dead_uncovered_ejected: 0,
-  fwd_leaf_dead_uncovered_sledbroken: 0,
-  fwd_leaf_dead_uncovered_leftworld: 0,
-  fwd_leaf_alive_uncovered: 0,
   fwd_pools: 0,
   fwd_top1_agree: 0,
   fwd_rank_of_quality_top1_sum: 0,
@@ -4652,48 +4636,7 @@ function forwardNodeScore(search: SearchNode, gaps: Gap[], ctx: SpecContext): nu
     det, spec, gaps, ctx.allContactFrames, ctx.durationFrames, [], fits, fwdEvalRuntime.gapAxisTargets,
   );
   const report = fullDuration ? rawReport : asPartialReport(rawReport, horizonFrame);
-  recordFwdLeafDeadCheck(report, search, gaps);
   return leafKeyForReport(report, ctx.durationFrames).full_score;
-}
-
-/** Genuine death reasons emitted by the detector (candidate.ts). rideStalled is EXCLUDED: it
- *  is ambiguous — the detector also labels a window that simply ENDED with the rider alive as
- *  rideStalled (terminus fallthrough lastFrame < raw.duration), and asPartialReport remaps a
- *  partial endOfSpec to rideStalled. Treating rideStalled as death over-counts alive riders. */
-const GENUINE_DEATH_REASONS: ReadonlySet<string> = new Set([
-  "riderEjected", "sledBroken", "leftWorld",
-]);
-
-/** Dead-rider proof (full-leaf path only, measure-only). Every full-leaf detection is a
- *  report; a "dead-uncovered" report is a GENUINE death (riderEjected/sledBroken/leftWorld —
- *  NOT rideStalled/window-end, which can be an alive rider) whose terminus lands in the
- *  uncovered span — past the last committed contact (its end frame) and within the
- *  end+16→next-contact suffix the objective leaf's missed-penalty would otherwise cover.
- *  The alive remainder (rideStalled/other past the last contact) is counted separately in
- *  alive_uncovered so the earlier "1.1% dead_uncovered" can be decomposed. Read from a
- *  DEFAULT-mode run to confirm dead riders never feed the ballistic readiness: expect
- *  dead_uncovered ≈ 0. If not, the objective leaf under-penalizes — stop and revisit. */
-function recordFwdLeafDeadCheck(report: DriftReport, search: SearchNode, gaps: Gap[]): void {
-  fwdEvalTotals.fwd_leaf_reports++;
-  if (report.terminus.reason === "endOfSpec") return;
-  let lastContactEnd = -1;
-  for (let i = Math.min(gaps.length, search.prefixFits.length) - 1; i >= 0; i--) {
-    if (!gaps[i]?.endsWithContact) continue;
-    if (search.prefixFits[i] == null) continue;
-    lastContactEnd = gaps[i].endFrame;
-    break;
-  }
-  if (report.terminus.frame <= lastContactEnd) return; // terminus inside the covered span
-  const reason = report.terminus.reason;
-  if (!GENUINE_DEATH_REASONS.has(reason)) {
-    // Alive at the horizon (rideStalled/window-end) past the last contact — NOT a dead rider.
-    fwdEvalTotals.fwd_leaf_alive_uncovered++;
-    return;
-  }
-  fwdEvalTotals.fwd_leaf_dead_uncovered++;
-  if (reason === "riderEjected") fwdEvalTotals.fwd_leaf_dead_uncovered_ejected++;
-  else if (reason === "sledBroken") fwdEvalTotals.fwd_leaf_dead_uncovered_sledbroken++;
-  else if (reason === "leftWorld") fwdEvalTotals.fwd_leaf_dead_uncovered_leftworld++;
 }
 
 /** Objective-leaf scorer (LR_FWD_EVAL_LEAF=objective): score a rollout LEAF with ZERO engine

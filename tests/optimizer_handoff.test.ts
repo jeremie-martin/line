@@ -327,12 +327,8 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
       .toBeLessThanOrEqual(fe.fwd_disagree_count);
     expect(fe.fwd_disagree_winner_aimed_q1_not).toBeLessThanOrEqual(fe.fwd_disagree_count);
     expect(fe.fwd_disagree_q1_aimed_winner_not).toBeLessThanOrEqual(fe.fwd_disagree_count);
-    // New leaf-mode counters (default/full path): non-negative; dead-uncovered ⊆ all reports;
-    // full-leaf path produced at least one report and the dead-rider proof is rare (≈0).
+    // Rollout dead-ends remain counted regardless of leaf mode.
     expect(fe.fwd_rollout_no_candidate).toBeGreaterThanOrEqual(0);
-    expect(fe.fwd_leaf_reports).toBeGreaterThan(0);
-    expect(fe.fwd_leaf_dead_uncovered).toBeGreaterThanOrEqual(0);
-    expect(fe.fwd_leaf_dead_uncovered).toBeLessThanOrEqual(fe.fwd_leaf_reports);
   }, 120_000);
 
   test("explicit default search seed preserves public compile behavior", async () => {
@@ -659,9 +655,6 @@ describe("optimizer/handoff.ts - objective leaf scorer (LR_FWD_EVAL_LEAF=objecti
     if (feFull === undefined || feObj === undefined) return;
     // Objective rollout charges far fewer frames (zero-frame leaf): comfortably below full-mode.
     expect(feObj.fwd_eval_frames_charged).toBeLessThan(feFull.fwd_eval_frames_charged * 0.7);
-    // New counters exist; default(full) run's dead-uncovered proof is rare (≈0).
-    expect(feFull.fwd_leaf_reports).toBeGreaterThan(0);
-    expect(feFull.fwd_leaf_dead_uncovered).toBeLessThanOrEqual(feFull.fwd_leaf_reports);
     // Objective run completes with a valid output.
     expect(objA.track.lines.length).toBeGreaterThan(0);
   }, 180_000);

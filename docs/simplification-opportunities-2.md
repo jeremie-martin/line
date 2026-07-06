@@ -143,7 +143,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Express K as `round(clamp(base + budgetPressure - lowAirPressure))` using probe-cost share or predicted first-completion cost, not raw target-budget tiers. Keep the env override only in study drivers.
 - **Risk:** medium
 - **Generalization note:** A compile at 199,999 vs 200,000 frames should not get a qualitatively different aim-lane width.
-- **Status:** Not Started
+- **Status:** Rejected - canonical `simplify2-13-continuous-aim-topk-pressure-j32-a01` tried a rounded continuous budget/low-air K pressure, but non-inferiority was not established against item 12; source reverted; step Δheadline -0.1, P(Δ≤-0.1)=54.7%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 14. `AimStats` remains a large always-on study archive
 - **Files:** `scripts/v0/optimizer/aim.ts`

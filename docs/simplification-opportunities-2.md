@@ -76,7 +76,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Fold this into the general breadth model from entry 5. If sparse-amplitude specs truly need a large pool, derive it from amplitude range, cadence, impact range, and budget pressure instead of exact spec boxes.
 - **Risk:** medium
 - **Generalization note:** The current gate is especially brittle because it bypasses the normal budget-aware lean entirely.
-- **Status:** Not Started
+- **Status:** Rejected - canonical `simplify2-06-smooth-sparse-amp-q48-j32-a01` replaced the exact all-budget Q48 pockets with a continuous sparse-amplitude pressure but failed non-inferiority; step Δheadline -0.4, P(Δ≤-0.1)=69.7%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 7. Repair main-margin overrides are another priority-ordered spec classifier
 - **Files:** `scripts/v0/optimizer/handoff.ts`

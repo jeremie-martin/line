@@ -26,7 +26,6 @@ import {
   authoredSpeedToPx,
   elevationToLaunchVy,
   impactCeiling,
-  impactEnvNum,
   impactToRedirArcPx,
   normImpact,
 } from "./types.ts";
@@ -81,9 +80,8 @@ const CC_CARRY_START_PX = authoredSpeedToPx(0.55);
 const CC_CARRY_SPAN_PX = authoredSpeedToPx(0.95) - authoredSpeedToPx(0.55);
 const CC_CARRY_FADE_START_PX = authoredSpeedToPx(0.78);
 const CC_CARRY_FADE_SPAN_PX = authoredSpeedToPx(0.90) - authoredSpeedToPx(0.78);
-// Env knobs for re-tuning the impact CARRIER (curvature modulation) to the new redirArc
-// metric + anchor calibration without a recompile. Defaults = the shipped (old-metric-tuned)
-// values, so unset ⇒ byte-identical. Uses the shared types.ts `impactEnvNum`.
+// Impact carrier tuning is fixed in production; study harnesses should test
+// alternate constants explicitly rather than relying on ambient compiler env.
 const CONTACT_CENTERED_POINT_JITTER = 4;
 const CONTACT_CENTERED_GUIDED_DECAY_ATTEMPTS = 4;
 const CONTACT_CENTERED_GUIDED_ROLL_SPREAD = 0.18;
@@ -123,9 +121,8 @@ const CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES = 50_000;
 // Ramp retuned for the envelope ruler (2026-06-09): scored targets on previously
 // conflicted beats now sit at 0.45-0.65 (was ~0.85), where the old 0.45-start ramp
 // delivered ~zero pressure. Start 0.25 puts ~0.7 pressure at a 0.5 ask.
-const IMPACT_CURVE_TARGET_START = impactEnvNum("LR_IMPACT_CURVE_START", 0.25);
-const IMPACT_CURVE_TARGET_SPAN = impactEnvNum("LR_IMPACT_CURVE_SPAN", 0.40);
-const IMPACT_CURVE_TARGET_START_ENV_SET = envIsSet("LR_IMPACT_CURVE_START");
+const IMPACT_CURVE_TARGET_START = 0.25;
+const IMPACT_CURVE_TARGET_SPAN = 0.40;
 const IMPACT_CURVE_ELEVATION_ROOM_TARGET_START = 0.20;
 const IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES = 125_000;
 const IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES = 125_000;
@@ -143,8 +140,8 @@ const IMPACT_CURVE_SPEED_SPAN_PX = 4;
 // 24:−12.1}, frontload {1.2:+2.4, 1.6:+4.1, 2.0:+2.7} — so the peak moved up to flatten 18 /
 // frontload 1.6 (Δ+4.1 vs old 12/1.2, positive at both budgets, 100% validity; INDICATIVE
 // probe tier, canonical run to promote). Onset held at 0.25 (start 0.10 → −9.6, over-scoops).
-const IMPACT_CURVE_FLATTEN_DEG = impactEnvNum("LR_IMPACT_FLATTEN", 18);
-const IMPACT_CURVE_FRONTLOAD = impactEnvNum("LR_IMPACT_FRONTLOAD", 1.6);
+const IMPACT_CURVE_FLATTEN_DEG = 18;
+const IMPACT_CURVE_FRONTLOAD = 1.6;
 // Mature-budget impact POST-TURN sampler.
 // The curve modulation can only front-load whatever contact→post rotation already
 // exists. Remaining mature misses show contact runs are long enough but
@@ -221,13 +218,8 @@ const STEEP_ARRIVAL_SPAN_SALT = 11;
 const STEEP_ARRIVAL_ZERO_BAND = 0.8;
 const STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES = 200_000;
 const STEEP_ARRIVAL_SCARCE_ZERO_BAND = 0.25;
-const STEEP_ARRIVAL_HARD_IMPACT_SPAN =
-  (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_M41_HARD_IMPACT_SPAN !== "0";
-const STEEP_ARRIVAL_HARD_IMPACT_PROFILE_MIN =
-  impactEnvNum("LR_M41_HARD_IMPACT_PROFILE_MIN", 0.68);
-const STEEP_ARRIVAL_HARD_IMPACT_ZERO_BAND =
-  impactEnvNum("LR_M41_HARD_IMPACT_ZERO_BAND", 0.7);
+const STEEP_ARRIVAL_HARD_IMPACT_PROFILE_MIN = 0.68;
+const STEEP_ARRIVAL_HARD_IMPACT_ZERO_BAND = 0.7;
 
 // Study-only marker: was the LAST geometry produced by sampleContactCenteredLines an
 // impact template lane? Read by the landing-window probe (core/candidate.ts) to
@@ -311,13 +303,6 @@ const ARC_LEN_ROOM_SMOOTH_BUDGET_SPAN_FRAMES = 50_000;
  *  single independent budget, run in its own worker / sequentially), read by the
  *  budget-aware geometry. A per-compile constant, so determinism stays per
  *  (spec, seed, budget) and the per-node candidate cache remains valid. */
-// Ablation flag: LR_IMPACT_GEOM_OFF=1 disables ACTIVE impact-geometry steering (the redir
-// contact/entry/post-turn angle shifts, the scoop curve-pressure and everything that cascades
-// off it — flatten, curve-fade override, front-load, slam-template lane — and the next-beat
-// arrival ramp) while keeping impact SCORED and cost-ranked. Measures whether the impact-
-// geometry machinery earns its keep. Default off ⇒ byte-identical.
-const IMPACT_GEOM_OFF =
-  (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.LR_IMPACT_GEOM_OFF === "1";
 let currentCompileBudgetFrames = 0;
 export function setCompileBudgetFrames(frames: number): void {
   currentCompileBudgetFrames = Math.max(0, frames | 0);
@@ -1232,7 +1217,7 @@ function sampleContactCenteredLines(
   // arc (vy0 = −g·N/2 ⇒ arrival vy = +g·N/2, the bound's assumed maximum),
   // spanned across the attempt batch and cost-ranked like every other launch
   // lever. Same formula as the amplitude arc — they agree when both fire.
-  if (!IMPACT_GEOM_OFF && gap.nextImpact !== undefined && nextGapFrames !== null) {
+  if (gap.nextImpact !== undefined && nextGapFrames !== null) {
     // Scarce-budget only: the pop arrivals add COMPLETABLE shapes at 50k
     // (slice: +50.5) but dilute converged high-budget quality (−8..−36) —
     // the same profile as the post-curve span. Fade full ≤50k → off ≥100k.
@@ -1270,8 +1255,7 @@ function sampleContactCenteredLines(
   }
 
   if (
-    !IMPACT_GEOM_OFF
-    && attempt > 0
+    attempt > 0
     && gap.nextImpact !== undefined
     && gap.nextImpact >= STEEP_ARRIVAL_MIN_ASK
     && nextGapFrames !== null
@@ -1453,7 +1437,7 @@ function impactTemplateHoldPressure(
   targets: AxisValues,
   nextGapFrames: number | null,
 ): number {
-  if (IMPACT_GEOM_OFF || currentImpactProfilePressures.templateHold <= 0 || nextGapFrames === null) {
+  if (currentImpactProfilePressures.templateHold <= 0 || nextGapFrames === null) {
     return 0;
   }
   if (targets.impact === undefined) return 0;
@@ -1533,10 +1517,7 @@ function steepArrivalDeltaMaxDeg(
 }
 
 function steepArrivalMatureZeroBand(): number {
-  if (
-    STEEP_ARRIVAL_HARD_IMPACT_SPAN &&
-    currentSteepArrivalSpecMaxImpact >= STEEP_ARRIVAL_HARD_IMPACT_PROFILE_MIN
-  ) {
+  if (currentSteepArrivalSpecMaxImpact >= STEEP_ARRIVAL_HARD_IMPACT_PROFILE_MIN) {
     return STEEP_ARRIVAL_HARD_IMPACT_ZERO_BAND;
   }
   return STEEP_ARRIVAL_ZERO_BAND;
@@ -1595,7 +1576,6 @@ function contactCenteredRedirContactAngleShiftDeg(
   attempt: number,
 ): number {
   if (targetImpact === undefined) return 0;
-  if (IMPACT_GEOM_OFF) return 0; // ablation
   const mature = compileBudgetPressure(
     CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES,
     CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES,
@@ -1627,7 +1607,6 @@ function contactCenteredRedirEntryAngleShiftDeg(
   attempt: number,
 ): number {
   if (targetImpact === undefined) return 0;
-  if (IMPACT_GEOM_OFF) return 0; // ablation
   const mature = compileBudgetPressure(
     CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES,
     CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES,
@@ -1670,7 +1649,6 @@ function impactCurvePressure(
   targetImpact: number | undefined,
 ): number {
   if (targetImpact === undefined) return 0;
-  if (IMPACT_GEOM_OFF) return 0; // ablation: kills the scoop carrier + its whole cascade
   const target = Math.min(targetImpact, impactCeiling(targetState.speed));
   const targetStart = impactCurveTargetStart(target);
   const targetPressure = smoothstep(
@@ -1683,7 +1661,6 @@ function impactCurvePressure(
 }
 
 function impactCurveTargetStart(targetImpact: number): number {
-  if (IMPACT_CURVE_TARGET_START_ENV_SET) return IMPACT_CURVE_TARGET_START;
   const maturePressure = compileBudgetPressure(
     IMPACT_CURVE_ELEVATION_ROOM_BUDGET_START_FRAMES,
     IMPACT_CURVE_ELEVATION_ROOM_BUDGET_SPAN_FRAMES,
@@ -2093,10 +2070,4 @@ function smoothstep(t: number): number {
 
 function fract(x: number): number {
   return x - Math.floor(x);
-}
-
-function envIsSet(name: string): boolean {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.[name];
-  return raw !== undefined && raw !== "";
 }

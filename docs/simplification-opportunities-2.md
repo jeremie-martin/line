@@ -174,7 +174,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Freeze the accepted constants in production; move impact geometry ablations into eval scripts or a study wrapper. If `LR_IMPACT_GEOM_OFF` is still useful, centralize it as a study-only option outside the sampler.
 - **Risk:** medium
 - **Generalization note:** Runtime geometry knobs make compile output depend on untracked shell state unless every run captures environment faithfully.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-16-freeze-impact-geometry-knobs-j32-a01` froze accepted impact-geometry retune constants in production and removed sampler-local runtime ablation/env knobs; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 17. Non-normal sample modes still use a legacy target-state sampler
 - **Files:** `scripts/v0/arc_placement.ts`, `scripts/v0/types.ts`

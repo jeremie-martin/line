@@ -58,7 +58,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Build one `HandoffSpecProfile` once per compile from `gaps`, `gapAxisTargets`, and authored contacts. Include contact count, median gap, per-axis mean/range, impact prevalence/mean/range, vertical ranges, and grain coverage. Pass it to all policy functions.
 - **Risk:** low for extraction, medium if filters are unified
 - **Generalization note:** A shared profile makes later policy changes about model shape, not about subtly different measurement definitions.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-04-shared-handoff-spec-profile-j32-a01` moved objective/readiness/quality/repair classifiers onto shared spec and target profile aggregates while preserving existing gates; step Δheadline +0.1, P(Δ≤-0.1)=4.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 5. Quality breadth has become a second profile-portfolio over `nCand`
 - **Files:** `scripts/v0/optimizer/handoff.ts`

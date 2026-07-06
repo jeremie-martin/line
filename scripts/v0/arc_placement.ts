@@ -1037,12 +1037,13 @@ function sampleContactCenteredLines(
   // contact-angle bias below uses the new windowed redirection scale directly.
   if (targets.impact !== undefined) {
     contactAngleDeg = clamp(
-      contactAngleDeg + contactCenteredRedirContactAngleShiftDeg(
+      contactAngleDeg + contactCenteredRedirAngleShiftDeg({
+        kind: "contact",
         targetState,
-        targets.impact,
+        targetImpact: targets.impact,
         contactAngleDeg,
         attempt,
-      ),
+      }),
       -14,
       65,
     );
@@ -1257,14 +1258,15 @@ function sampleContactCenteredLines(
   // segment: if first contact happens on that segment, the fired surface now
   // participates in the same velocity-redirection contract as the post-contact
   // curvature.
-  const entryRedirShiftDeg = contactCenteredRedirEntryAngleShiftDeg(
+  const entryRedirShiftDeg = contactCenteredRedirAngleShiftDeg({
+    kind: "entry",
     targetState,
-    targets.impact,
+    targetImpact: targets.impact,
     contactAngleDeg,
     gapFrames,
     nextGapFrames,
     attempt,
-  );
+  });
   const entryBevelAngleDeg = clamp(
     contactAngleDeg - entryRedirShiftDeg,
     -30,
@@ -1646,74 +1648,74 @@ function impactTemplateHasHopRoom(gapFrames: number, nextGapFrames: number | nul
     && nextGapFrames >= IMPACT_TEMPLATE_HOP_MIN_ROOM_FRAMES;
 }
 
-function contactCenteredRedirContactAngleShiftDeg(
-  targetState: ImpactFrameTargetState,
-  targetImpact: number | undefined,
-  contactAngleDeg: number,
-  attempt: number,
-): number {
-  if (targetImpact === undefined) return 0;
+type ContactCenteredRedirAngleShiftBase = {
+  targetState: ImpactFrameTargetState;
+  targetImpact: number | undefined;
+  contactAngleDeg: number;
+  attempt: number;
+};
+
+type ContactCenteredRedirAngleShiftParams =
+  | (ContactCenteredRedirAngleShiftBase & { kind: "contact" })
+  | (ContactCenteredRedirAngleShiftBase & {
+    kind: "entry";
+    gapFrames: number;
+    nextGapFrames: number | null;
+  });
+
+function contactCenteredRedirAngleShiftDeg(params: ContactCenteredRedirAngleShiftParams): number {
+  if (params.targetImpact === undefined) return 0;
+
+  const entryShift = params.kind === "entry";
   const mature = compileBudgetPressure(
-    CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES,
-    CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES,
+    entryShift
+      ? CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES
+      : CONTACT_CENTERED_REDIR_CONTACT_BUDGET_START_FRAMES,
+    entryShift
+      ? CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES
+      : CONTACT_CENTERED_REDIR_CONTACT_BUDGET_SPAN_FRAMES,
   );
   const speedPressure = smoothstep(
-    (targetState.speed - CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX) /
+    (params.targetState.speed - CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX) /
       CONTACT_CENTERED_REDIR_CONTACT_SPEED_SPAN_PX,
   );
   if (mature <= 0 || speedPressure <= 0) return 0;
 
-  const deltaDeg = normalizeAngleDeg(contactAngleDeg - targetState.angleDeg);
-  const turn = redirMissingTurnDeg(targetState, targetImpact, Math.abs(deltaDeg), {
-    targetStart: CONTACT_CENTERED_REDIR_CONTACT_TARGET_START,
-    targetSpan: CONTACT_CENTERED_REDIR_CONTACT_TARGET_SPAN,
+  let densePressure = 1;
+  if (entryShift) {
+    const spacingFrames = Math.min(
+      Math.max(1, params.gapFrames),
+      params.nextGapFrames === null ? ARC_LEN_ROOM_SPARSE_FRAMES : Math.max(1, params.nextGapFrames),
+    );
+    densePressure = 1 - smoothstep(
+      (spacingFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
+        (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
+    );
+    if (densePressure <= 0) return 0;
+  }
+
+  const deltaDeg = normalizeAngleDeg(params.contactAngleDeg - params.targetState.angleDeg);
+  const turn = redirMissingTurnDeg(params.targetState, params.targetImpact, Math.abs(deltaDeg), {
+    targetStart: entryShift
+      ? CONTACT_CENTERED_REDIR_ENTRY_TARGET_START
+      : CONTACT_CENTERED_REDIR_CONTACT_TARGET_START,
+    targetSpan: entryShift
+      ? CONTACT_CENTERED_REDIR_ENTRY_TARGET_SPAN
+      : CONTACT_CENTERED_REDIR_CONTACT_TARGET_SPAN,
     predictedDeltaDeg: deltaDeg,
   });
   if (turn === null) return 0;
-  const shiftDeg = clamp(turn.missingDeltaDeg, 0, CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG)
-    * mature * speedPressure * turn.targetPressure * clamp(ccSpanBlends(attempt).launch, 0, 1);
-  return -shiftDeg;
-}
 
-function contactCenteredRedirEntryAngleShiftDeg(
-  targetState: ImpactFrameTargetState,
-  targetImpact: number | undefined,
-  contactAngleDeg: number,
-  gapFrames: number,
-  nextGapFrames: number | null,
-  attempt: number,
-): number {
-  if (targetImpact === undefined) return 0;
-  const mature = compileBudgetPressure(
-    CONTACT_CENTERED_REDIR_ENTRY_BUDGET_START_FRAMES,
-    CONTACT_CENTERED_REDIR_ENTRY_BUDGET_SPAN_FRAMES,
+  const cappedShiftDeg = clamp(
+    turn.missingDeltaDeg,
+    0,
+    entryShift
+      ? CONTACT_CENTERED_REDIR_ENTRY_SHIFT_MAX_DEG
+      : CONTACT_CENTERED_REDIR_CONTACT_SHIFT_MAX_DEG,
   );
-  const speedPressure = smoothstep(
-    (targetState.speed - CONTACT_CENTERED_REDIR_CONTACT_SPEED_START_PX) /
-      CONTACT_CENTERED_REDIR_CONTACT_SPEED_SPAN_PX,
-  );
-  if (mature <= 0 || speedPressure <= 0) return 0;
-
-  const spacingFrames = Math.min(
-    Math.max(1, gapFrames),
-    nextGapFrames === null ? ARC_LEN_ROOM_SPARSE_FRAMES : Math.max(1, nextGapFrames),
-  );
-  const densePressure = 1 - smoothstep(
-    (spacingFrames - ARC_LEN_ROOM_DENSE_FRAMES) /
-      (ARC_LEN_ROOM_SPARSE_FRAMES - ARC_LEN_ROOM_DENSE_FRAMES),
-  );
-  if (densePressure <= 0) return 0;
-
-  const deltaDeg = normalizeAngleDeg(contactAngleDeg - targetState.angleDeg);
-  const turn = redirMissingTurnDeg(targetState, targetImpact, Math.abs(deltaDeg), {
-    targetStart: CONTACT_CENTERED_REDIR_ENTRY_TARGET_START,
-    targetSpan: CONTACT_CENTERED_REDIR_ENTRY_TARGET_SPAN,
-    predictedDeltaDeg: deltaDeg,
-  });
-  if (turn === null) return 0;
-  return clamp(turn.missingDeltaDeg, 0, CONTACT_CENTERED_REDIR_ENTRY_SHIFT_MAX_DEG) *
-    mature * speedPressure * densePressure * turn.targetPressure *
-    clamp(ccSpanBlends(attempt).launch, 0, 1);
+  const shiftDeg = cappedShiftDeg
+    * mature * speedPressure * densePressure * turn.targetPressure * clamp(ccSpanBlends(params.attempt).launch, 0, 1);
+  return entryShift ? shiftDeg : -shiftDeg;
 }
 
 /** Pressure [0,1] for the impact-driven curvature modulation: ramps with the

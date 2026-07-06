@@ -210,7 +210,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Either delete both shifts and rely on the curvature/impact-template carriers, or replace them with one `redirAngleShift(kind, config)` descriptor that shares pressure calculation and makes the marginal contribution explicit.
 - **Risk:** medium
 - **Generalization note:** If a lever is only a small correction, its implementation should be proportionally small and easy to disable for evidence.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-20-redir-angle-shift-helper-j32-a01` replaced the contact and entry redirection shift twins with one mode-aware `contactCenteredRedirAngleShiftDeg` helper while preserving byte-identical output; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ---
 

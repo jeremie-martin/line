@@ -40,7 +40,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Model readiness emphasis as a scalar pressure from "next-contact fragility" features: air target, impact ask, density, and speed variability. Collapse the three boolean profiles into one pressure-to-power mapping, and keep only a single explicit env override for experiments.
 - **Risk:** high
 - **Generalization note:** The current named pockets are calibrated to today's spec families, not to a physical readiness concept.
-- **Status:** Not Started
+- **Status:** Rejected - canonical `simplify2-02-continuous-readiness-power-j32-a01` collapsed the readiness pockets into a continuous pressure but failed non-inferiority; step Δheadline -1.1, P(Δ≤-0.1)=79.2%, cumulative Δheadline vs campaign-start baseline +17.6.
 
 ### 3. Sparse-elevation readiness is two exact spec fingerprints
 - **Files:** `scripts/v0/optimizer/handoff.ts`

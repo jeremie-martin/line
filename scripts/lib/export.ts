@@ -69,6 +69,27 @@ function chromiumArgs(): string[] {
   return args;
 }
 
+function headlessChromiumEnv(): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (typeof value === "string") env[key] = value;
+  }
+  // A stale SSH-forwarded DISPLAY makes headless Chromium's SwiftShader path try
+  // XCB and fail before WebGL is exposed. Keep local X/Wayland displays intact so
+  // healthy workstations can use their normal browser path.
+  if (shouldScrubDisplay(env.DISPLAY)) {
+    delete env.DISPLAY;
+    delete env.XAUTHORITY;
+  }
+  return env;
+}
+
+function shouldScrubDisplay(display: string | undefined): boolean {
+  if (process.env.LR_KEEP_DISPLAY === "1") return false;
+  if (process.env.LR_SCRUB_DISPLAY === "1") return true;
+  return display !== undefined && /^(localhost|127\.0\.0\.1|\[?::1\]?):/.test(display);
+}
+
 export async function exportVideo(opts: ExportOptions): Promise<void> {
   const origin = opts.origin ?? "http://127.0.0.1:8765";
   const log = opts.log ?? ((m: string) => console.log(m));
@@ -99,7 +120,11 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
   let browser: Browser | null = null;
   let page: Page | null = null;
   try {
-    browser = await chromium.launch({ headless: !opts.headed, args: chromiumArgs() });
+    browser = await chromium.launch({
+      headless: !opts.headed,
+      args: chromiumArgs(),
+      ...(opts.headed ? {} : { env: headlessChromiumEnv() }),
+    });
     const ctx = await browser.newContext({
       acceptDownloads: true,
       viewport: { width: 1280, height: 720 },

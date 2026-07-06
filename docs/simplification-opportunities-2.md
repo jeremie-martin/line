@@ -31,7 +31,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Replace the boolean portfolio with one continuous `currentPower = f(budgetMaturity, impactPrevalence, density, verticalTargeted)` curve, backed by a shared spec-profile object. Delete the M-number env gates once the accepted default is frozen; move any A/B arms into a study harness.
 - **Risk:** high
 - **Generalization note:** Exact prevalence/contact-count pockets can silently miss nearby new specs; a continuous surface at least degrades smoothly.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-01-continuous-current-power-j32-a01` replaced the current-power reverse-fit pocket portfolio with a continuous profile curve; step Δheadline +17.6, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.6.
 
 ### 2. Readiness-power override repeats the same spec-classifier pattern
 - **Files:** `scripts/v0/optimizer/handoff.ts`

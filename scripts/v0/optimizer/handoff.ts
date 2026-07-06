@@ -378,10 +378,14 @@ const HANDOFF_LOW_SLACK_BRANCH_THRESHOLD = 1.5;
  *  and the tail-completion / shallow-tail throttles). These sites previously each
  *  carried their own identically-valued 150k constant. */
 const HANDOFF_MATURITY_BUDGET_SCALE_FRAMES = 150_000;
-const M64_MATURE_OBJECTIVE_CURRENT_POWER = 1.5;
-const M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES = 200_000;
-const M64_IMPACT_PREVALENCE_MIN = 0.41;
-const M64_IMPACT_PREVALENCE_MAX = 0.51;
+const OBJECTIVE_MATURE_MIN_BUDGET_FRAMES = 200_000;
+const OBJECTIVE_CURRENT_MATURE_START_FRAMES = 150_000;
+const OBJECTIVE_CURRENT_MATURE_SPAN_FRAMES = 100_000;
+const OBJECTIVE_CURRENT_SCARCE_END_FRAMES = 150_000;
+const OBJECTIVE_CURRENT_SCARCE_SPAN_FRAMES = 75_000;
+const OBJECTIVE_CURRENT_BASE_POWER = 1;
+const OBJECTIVE_CURRENT_MAX_POWER = 2.5;
+const OBJECTIVE_CURRENT_POWER_ACTIVATION_EPSILON = 0.02;
 const M87_LOW_IMPACT_PREVALENCE_MIN = 0.12;
 const M87_LOW_IMPACT_PREVALENCE_MAX = 0.35;
 const M87_LOW_IMPACT_CONTACT_MIN = 7;
@@ -389,23 +393,14 @@ const M87_LOW_IMPACT_CONTACT_MAX = 40;
 const M87_LOW_IMPACT_SPARSE_MEDIAN_GAP_FRAMES = Math.round(FPS * 0.90);
 const M87_LOW_IMPACT_STEADY_AIR_RANGE_MAX = 0.16;
 const M87_LOW_IMPACT_STEADY_SPEED_RANGE_MAX = 0.18;
-const M94_LOW_IMPACT_CURRENT_POWER = 2.0;
 const M94_LOW_IMPACT_CONTACT_MAX = 24;
 const M94_LOW_IMPACT_MEDIAN_GAP_MAX_FRAMES = 40;
 const M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX = 0.20;
-const M178_LOW_IMPACT_TINY_CURRENT_POWER = 2.5;
-const M178_LOW_IMPACT_TINY_CONTACT_MAX = 8;
-const M74_VERTICAL_OBJECTIVE_CURRENT_POWER = 2.0;
-const M74_DYNAMIC_AMPLITUDE_RANGE_MIN = 0.45;
-const M74_ELEVATION_RANGE_MIN = 0.10;
-const M74_ELEVATION_ROOM_MEDIAN_GAP_FRAMES = Math.round(FPS * 0.90);
 const M132_DENSE_LOW_AIR_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const M144_RESIDUAL_QUALITY_MIN_BUDGET_FRAMES = 200_000;
 const M144_SIGNATURE_REPAIR_MAX_BUDGET_FRAMES = 325_000;
 const M152_CANYON_QUALITY_MIN_BUDGET_FRAMES = 250_000;
 const M165_DRUM_GRAIN_QUALITY_MIN_BUDGET_FRAMES = 200_000;
-const M157_SCARCE_DENSE_CURRENT_POWER = 1.5;
-const M157_SCARCE_DENSE_CURRENT_MAX_BUDGET_FRAMES = 150_000;
 const M75_HIGH_AIR_IMPACT_READINESS_POWER = 0.75;
 const M75_HIGH_AIR_IMPACT_AIR_MEAN_MIN = 0.62;
 const M75_HIGH_AIR_IMPACT_AIR_MEAN_MAX = 0.66;
@@ -1603,53 +1598,161 @@ function validateBudget(raw: number | undefined): number {
 
 function objectiveBlendCurrentPowerForSpec(targetBudget: number, spec: Spec): number | undefined {
   if (readEnv("LR_M64_OBJECTIVE_CURRENT_POWER") !== undefined) return undefined;
-  if (readEnv("LR_M64_IMPACT_BAND_OBJECTIVE_CURRENT15") === "0") return undefined;
   if (readEnv("LR_IMPACT_OFF") === "1") return undefined;
-  if (
-    readEnv("LR_M157_SCARCE_DENSE_CURRENT15") !== "0" &&
-    targetBudget < M157_SCARCE_DENSE_CURRENT_MAX_BUDGET_FRAMES &&
-    m157ScarceDenseCurrentProfile(spec)
-  ) {
-    return M157_SCARCE_DENSE_CURRENT_POWER;
-  }
-  if (targetBudget < M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES) return undefined;
-  const impactPrevalence = meanAuthoredImpactPrevalence(spec.contacts);
-  if (
-    impactPrevalence >= M64_IMPACT_PREVALENCE_MIN &&
-    impactPrevalence <= M64_IMPACT_PREVALENCE_MAX
-  ) {
-    return readEnv("LR_M74_VERTICAL_OBJECTIVE_CURRENT20") !== "0" &&
-        m74VerticalObjectiveDoseProfile(spec)
-      ? M74_VERTICAL_OBJECTIVE_CURRENT_POWER
-      : M64_MATURE_OBJECTIVE_CURRENT_POWER;
-  }
-  if (
-    readEnv("LR_M87_LOW_IMPACT_STEADY_CURRENT15") !== "0" &&
-    m87LowImpactSteadyObjectiveProfile(spec, impactPrevalence)
-  ) {
-    if (readEnv("LR_M178_LOW_IMPACT_CURRENT_PORTFOLIO") !== "0") {
-      if (m178TinyLowImpactCurrentProfile(spec)) {
-        return M178_LOW_IMPACT_TINY_CURRENT_POWER;
-      }
-      if (m178NonGrainLowImpactSteadyCurrentProfile(spec)) {
-        return M94_LOW_IMPACT_CURRENT_POWER;
-      }
+  const profile = objectiveCurrentPowerProfile(spec);
+  const power = continuousObjectiveCurrentPower(targetBudget, profile);
+  return power <= OBJECTIVE_CURRENT_BASE_POWER + OBJECTIVE_CURRENT_POWER_ACTIVATION_EPSILON
+    ? undefined
+    : power;
+}
+
+type ObjectiveCurrentPowerProfile = {
+  contactCount: number;
+  medianContactGapFrames: number | null;
+  impactPrevalence: number;
+  airRange: number;
+  speedRange: number;
+  amplitudeRange: number;
+  elevationRange: number;
+  grainCoverage: number;
+};
+
+function objectiveCurrentPowerProfile(spec: Spec): ObjectiveCurrentPowerProfile {
+  const contactFrames: number[] = [];
+  const air: number[] = [];
+  const speed: number[] = [];
+  const amplitude: number[] = [];
+  const elevation: number[] = [];
+  const grain: number[] = [];
+  let impactSum = 0;
+  let impactCount = 0;
+
+  for (const contact of spec.contacts) {
+    const frame = secToFrame(contact.t);
+    if (frame < K_BOUNCE_LANDING) continue;
+    contactFrames.push(frame);
+    impactSum += contact.impact ?? 0;
+    impactCount++;
+
+    const targets = axesAtFrame(frame, spec);
+    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
+    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
+    if (typeof targets.amplitude === "number" && Number.isFinite(targets.amplitude)) {
+      amplitude.push(targets.amplitude);
     }
-    if (
-      readEnv("LR_M94_LOW_IMPACT_COMPACT_CURRENT20") !== "0" &&
-      m94LowImpactCompactObjectiveDoseProfile(spec)
-    ) {
-      return M94_LOW_IMPACT_CURRENT_POWER;
+    if (typeof targets.elevation === "number" && Number.isFinite(targets.elevation)) {
+      elevation.push(targets.elevation);
     }
-    return M64_MATURE_OBJECTIVE_CURRENT_POWER;
+    if (typeof targets.grain === "number" && Number.isFinite(targets.grain)) grain.push(targets.grain);
   }
-  return undefined;
+
+  const sortedFrames = [...contactFrames].sort((a, b) => a - b);
+  const contactGaps = sortedFrames.slice(1).map((frame, index) => frame - sortedFrames[index]);
+  const sortedGaps = contactGaps.sort((a, b) => a - b);
+  return {
+    contactCount: sortedFrames.length,
+    medianContactGapFrames: sortedGaps.length === 0 ? null : sortedGaps[Math.floor(sortedGaps.length / 2)],
+    impactPrevalence: finiteMean(impactSum, impactCount) ?? 0,
+    airRange: rangeOrZero(air),
+    speedRange: rangeOrZero(speed),
+    amplitudeRange: rangeOrZero(amplitude),
+    elevationRange: rangeOrZero(elevation),
+    grainCoverage: sortedFrames.length > 0 ? grain.length / sortedFrames.length : 0,
+  };
+}
+
+function continuousObjectiveCurrentPower(
+  targetBudget: number,
+  profile: ObjectiveCurrentPowerProfile,
+): number {
+  const matureBudgetPressure = smoothstep(
+    (targetBudget - OBJECTIVE_CURRENT_MATURE_START_FRAMES) /
+      OBJECTIVE_CURRENT_MATURE_SPAN_FRAMES,
+  );
+  const scarceBudgetPressure = 1 - smoothstep(
+    (targetBudget - OBJECTIVE_CURRENT_SCARCE_END_FRAMES) /
+      OBJECTIVE_CURRENT_SCARCE_SPAN_FRAMES,
+  );
+  const midImpactPressure = plateauPressure(profile.impactPrevalence, 0.30, 0.41, 0.51, 0.64);
+  const lowImpactPressure = plateauPressure(profile.impactPrevalence, 0.04, 0.12, 0.35, 0.50);
+  const verticalRange = Math.max(profile.amplitudeRange, profile.elevationRange);
+  const verticalPressure = Math.max(
+    smoothstep((profile.amplitudeRange - 0.25) / 0.25),
+    smoothstep((profile.elevationRange - 0.06) / 0.12) *
+      cadenceRoomPressure(profile.medianContactGapFrames ?? 0),
+  );
+  const steadyPressure = (
+    1 - smoothstep((profile.airRange - M87_LOW_IMPACT_STEADY_AIR_RANGE_MAX) / 0.12)
+  ) * (
+    1 - smoothstep((profile.speedRange - M87_LOW_IMPACT_STEADY_SPEED_RANGE_MAX) / 0.14)
+  );
+  const sparseCadencePressure = profile.medianContactGapFrames === null
+    ? 0
+    : smoothstep(
+      (profile.medianContactGapFrames - M87_LOW_IMPACT_SPARSE_MEDIAN_GAP_FRAMES) /
+        Math.round(FPS * 0.50),
+    );
+  const compactPressure = (
+    1 - smoothstep((profile.contactCount - M94_LOW_IMPACT_CONTACT_MAX) / 16)
+  ) * (
+    profile.medianContactGapFrames === null
+      ? 0
+      : 1 - smoothstep((profile.medianContactGapFrames - M94_LOW_IMPACT_MEDIAN_GAP_MAX_FRAMES) / 20)
+  ) * (
+    1 - smoothstep((profile.amplitudeRange - M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX) / 0.25)
+  );
+  const tinyPressure = 1 - smoothstep((profile.contactCount - 8) / 8);
+  const densePressure = (
+    smoothstep((profile.contactCount - 35) / 15)
+  ) * (
+    profile.medianContactGapFrames === null
+      ? 0
+      : 1 - smoothstep((profile.medianContactGapFrames - 20) / 30)
+  );
+  const quietVerticalPressure = 1 - smoothstep((verticalRange - 0.02) / 0.08);
+  const nonGrainPressure = 1 - smoothstep((profile.grainCoverage - 0.01) / 0.09);
+
+  const scarceDensePressure = scarceBudgetPressure * densePressure * midImpactPressure *
+    quietVerticalPressure;
+  const matureMidPressure = matureBudgetPressure * midImpactPressure;
+  const matureLowPressure = matureBudgetPressure * lowImpactPressure *
+    Math.max(steadyPressure, sparseCadencePressure, compactPressure, verticalPressure);
+  const basePressure = Math.max(scarceDensePressure, matureMidPressure, matureLowPressure);
+
+  const verticalMidBoost = matureBudgetPressure * midImpactPressure * verticalPressure;
+  const compactLowBoost = matureBudgetPressure * lowImpactPressure * compactPressure;
+  const tinyLowBoost = compactLowBoost * tinyPressure;
+  const verticalLowBoost = matureBudgetPressure * lowImpactPressure * verticalPressure *
+    (1 - compactPressure) * nonGrainPressure;
+
+  const power = OBJECTIVE_CURRENT_BASE_POWER +
+    0.5 * basePressure +
+    0.5 * verticalMidBoost +
+    0.5 * compactLowBoost +
+    0.5 * tinyLowBoost +
+    0.5 * verticalLowBoost;
+  return round3(Math.min(OBJECTIVE_CURRENT_MAX_POWER, power));
+}
+
+function plateauPressure(
+  value: number,
+  start: number,
+  fullStart: number,
+  fullEnd: number,
+  end: number,
+): number {
+  return smoothstep((value - start) / (fullStart - start)) *
+    (1 - smoothstep((value - fullEnd) / (end - fullEnd)));
+}
+
+function rangeOrZero(values: readonly number[]): number {
+  return values.length >= 2 ? valueRange(values) : 0;
 }
 
 function objectiveBlendReadinessPowerForSpec(targetBudget: number, spec: Spec): number | undefined {
   if (readEnv("LR_M75_OBJECTIVE_READINESS_POWER") !== undefined) return undefined;
   const raw = readEnv("LR_M75_MATURE_OBJECTIVE_READINESS_POWER");
-  if (targetBudget < M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES) return undefined;
+  if (targetBudget < OBJECTIVE_MATURE_MIN_BUDGET_FRAMES) return undefined;
   if (raw !== undefined && raw !== "0") {
     const power = Number(raw);
     return Number.isFinite(power) && power > 0 ? power : undefined;
@@ -1675,7 +1778,7 @@ function objectiveBlendReadinessPowerForSpec(targetBudget: number, spec: Spec): 
 
 function objectiveElevationReadinessForSpec(targetBudget: number, spec: Spec): boolean {
   return readEnv("LR_M114_SPARSE_ELEVATION_READINESS") !== "0" &&
-    targetBudget >= M64_MATURE_OBJECTIVE_MIN_BUDGET_FRAMES &&
+    targetBudget >= OBJECTIVE_MATURE_MIN_BUDGET_FRAMES &&
     m114SparseElevationReadinessProfile(spec);
 }
 
@@ -1710,91 +1813,6 @@ function m75HighAirImpactReadinessProfile(spec: Spec): boolean {
     meanImpact >= M75_HIGH_AIR_IMPACT_MEAN_MIN &&
     speedRange <= M75_HIGH_AIR_IMPACT_SPEED_RANGE_MAX &&
     medianGapFrames <= M75_HIGH_AIR_IMPACT_MEDIAN_GAP_MAX_FRAMES;
-}
-
-function m157ScarceDenseCurrentProfile(spec: Spec): boolean {
-  const air: number[] = [];
-  const speed: number[] = [];
-  const grain: number[] = [];
-  let impactSum = 0;
-  let impactCount = 0;
-  const contactFrames = spec.contacts
-    .map((contact) => secToFrame(contact.t))
-    .filter((frame) => frame >= K_BOUNCE_LANDING)
-    .sort((a, b) => a - b);
-  const verticalProfile = authoredVerticalObjectiveProfile(spec);
-  if (verticalProfile.elevationRange > 0 || verticalProfile.amplitudeRange > 0) return false;
-
-  for (const frame of contactFrames) {
-    const targets = axesAtFrame(frame, spec);
-    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
-    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
-    const grainTarget = spec.axes.grain?.(frameToSec(frame));
-    if (typeof grainTarget === "number" && Number.isFinite(grainTarget)) grain.push(grainTarget);
-  }
-  for (const contact of spec.contacts) {
-    impactSum += contact.impact ?? 0;
-    impactCount++;
-  }
-  if (air.length < 2 || speed.length < 2 || impactCount === 0) return false;
-
-  const contactGaps = contactFrames.slice(1).map((frame, index) => frame - contactFrames[index]);
-  const sortedGaps = contactGaps.sort((a, b) => a - b);
-  if (sortedGaps.length === 0) return false;
-  const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
-  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
-  const meanSpeed = speed.reduce((sum, value) => sum + value, 0) / speed.length;
-  const meanImpact = impactSum / impactCount;
-  const airRange = valueRange(air);
-  const speedRange = valueRange(speed);
-  const grainRange = valueRange(grain);
-
-  const signaturePocket = contactFrames.length >= 50 &&
-    contactFrames.length <= 60 &&
-    medianGapFrames <= 20 &&
-    meanAir >= 0.53 &&
-    meanAir <= 0.56 &&
-    airRange >= 0.12 &&
-    airRange <= 0.18 &&
-    meanSpeed >= 0.64 &&
-    meanSpeed <= 0.67 &&
-    speedRange >= 0.36 &&
-    speedRange <= 0.44 &&
-    meanImpact >= 0.44 &&
-    meanImpact <= 0.48 &&
-    grainRange >= 0.45;
-
-  const crescendoPocket = contactFrames.length >= 50 &&
-    contactFrames.length <= 60 &&
-    medianGapFrames <= 20 &&
-    meanAir >= 0.55 &&
-    meanAir <= 0.57 &&
-    airRange >= 0.50 &&
-    airRange <= 0.56 &&
-    meanSpeed >= 0.60 &&
-    meanSpeed <= 0.62 &&
-    speedRange >= 0.50 &&
-    speedRange <= 0.56 &&
-    meanImpact >= 0.37 &&
-    meanImpact <= 0.40 &&
-    grainRange >= 0.55;
-
-  const denseSprintPocket = contactFrames.length >= 39 &&
-    contactFrames.length <= 43 &&
-    medianGapFrames <= 21 &&
-    meanAir >= 0.64 &&
-    meanAir <= 0.67 &&
-    airRange >= 0.48 &&
-    airRange <= 0.52 &&
-    meanSpeed >= 0.67 &&
-    meanSpeed <= 0.70 &&
-    speedRange >= 0.38 &&
-    speedRange <= 0.42 &&
-    meanImpact >= 0.49 &&
-    meanImpact <= 0.52 &&
-    grainRange >= 0.45;
-
-  return signaturePocket || crescendoPocket || denseSprintPocket;
 }
 
 function m108DenseDrumReadinessProfile(spec: Spec): boolean {
@@ -1951,46 +1969,6 @@ function m115PositiveCompactReadinessProfile(spec: Spec): boolean {
   return meanAir >= 0.43;
 }
 
-function m74VerticalObjectiveDoseProfile(spec: Spec): boolean {
-  const profile = authoredVerticalObjectiveProfile(spec);
-  if (
-    readEnv("LR_M132_M74_HIGH_AIR_AMP_RELIEF") !== "0" &&
-    m132M74HighAirAmplitudeReliefProfile(spec, profile)
-  ) {
-    return false;
-  }
-  const elevationWithRoom = profile.elevationRange >= M74_ELEVATION_RANGE_MIN &&
-    profile.medianContactGapFrames >= M74_ELEVATION_ROOM_MEDIAN_GAP_FRAMES;
-  return elevationWithRoom || profile.amplitudeRange >= M74_DYNAMIC_AMPLITUDE_RANGE_MIN;
-}
-
-function m132M74HighAirAmplitudeReliefProfile(
-  spec: Spec,
-  profile: ReturnType<typeof authoredVerticalObjectiveProfile>,
-): boolean {
-  if (profile.elevationRange > 0) return false;
-  if (profile.amplitudeRange < 0.50) return false;
-  if (profile.medianContactGapFrames < 50) return false;
-  const contactFrames = spec.contacts
-    .map((contact) => secToFrame(contact.t))
-    .filter((frame) => frame >= K_BOUNCE_LANDING)
-    .sort((a, b) => a - b);
-  if (contactFrames.length < 10 || contactFrames.length > 16) return false;
-
-  const air: number[] = [];
-  const speed: number[] = [];
-  for (const frame of contactFrames) {
-    const targets = axesAtFrame(frame, spec);
-    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
-    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
-  }
-  if (air.length < 2 || speed.length < 2) return false;
-  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
-  return meanAir >= 0.68 &&
-    valueRange(air) >= 0.35 &&
-    valueRange(speed) <= 0.02;
-}
-
 function m87LowImpactSteadyObjectiveProfile(spec: Spec, impactPrevalence: number): boolean {
   if (
     impactPrevalence < M87_LOW_IMPACT_PREVALENCE_MIN ||
@@ -2047,30 +2025,6 @@ function m94LowImpactCompactObjectiveDoseProfile(spec: Spec): boolean {
     if (typeof target === "number" && Number.isFinite(target)) amplitude.push(target);
   }
   return valueRange(amplitude) <= M94_LOW_IMPACT_AMPLITUDE_RANGE_MAX;
-}
-
-function m178TinyLowImpactCurrentProfile(spec: Spec): boolean {
-  const contactFrames = spec.contacts
-    .map((contact) => secToFrame(contact.t))
-    .filter((frame) => frame >= K_BOUNCE_LANDING);
-  return contactFrames.length <= M178_LOW_IMPACT_TINY_CONTACT_MAX &&
-    m94LowImpactCompactObjectiveDoseProfile(spec);
-}
-
-function m178NonGrainLowImpactSteadyCurrentProfile(spec: Spec): boolean {
-  if (m94LowImpactCompactObjectiveDoseProfile(spec)) return false;
-
-  const verticalProfile = authoredVerticalObjectiveProfile(spec);
-  if (verticalProfile.amplitudeRange <= 0 && verticalProfile.elevationRange <= 0) return false;
-
-  const contactFrames = spec.contacts
-    .map((contact) => secToFrame(contact.t))
-    .filter((frame) => frame >= K_BOUNCE_LANDING);
-  for (const frame of contactFrames) {
-    const grainTarget = spec.axes.grain?.(frameToSec(frame));
-    if (typeof grainTarget === "number" && Number.isFinite(grainTarget)) return false;
-  }
-  return true;
 }
 
 function authoredVerticalObjectiveProfile(spec: Spec): {

@@ -152,7 +152,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Split stats into a compact production block and optional study blocks. For example: production keeps `enum_considered/emitted/gate_fail` and probe frames; study hooks own rotate, model-degradation, rank-air, and pool-rank detail.
 - **Risk:** low
 - **Generalization note:** Smaller stats reduce archive schema churn and make real production regressions easier to spot.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-14-gate-aim-study-stats-j32-a01` split default aim stats into a compact production block and gated the broader rotate/rank/air/model-fit study archive behind `LR_AIM_STUDY_STATS=1`; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 15. Aim still exposes many runtime experiment gates in the production module
 - **Files:** `scripts/v0/optimizer/aim.ts`

@@ -609,55 +609,76 @@ export type CompileStats = {
    *  a missed contact. */
   handoff_deferred_skips?: number;
 
-  /** Enumerative-proposer funnel + prediction accuracy (optimizer/aim.ts).
+  /** Enumerative-proposer funnel + probe workload (optimizer/aim.ts).
    *  Non-scoring diagnostics; absent when the lane never ran. */
   aim?: {
-	    /** Arc-probe design used (LR_AIM_JOINT_PROBE_DESIGN, default "cross5"). */
-	    probe_design: "cross5" | "grid9" | "pitch3";
-	    enum_considered: number;
-	    enum_no_target: number;
-	    enum_probe_crash: number;
-	    enum_model_unscoreable: number;
-	    enum_next_before_exit: number;
-	    enum_on_target: number;
+    /** Arc-probe design used (LR_AIM_JOINT_PROBE_DESIGN, default "cross5"). */
+    probe_design: "cross5" | "grid9" | "pitch3";
+    enum_considered: number;
+    enum_no_target: number;
+    enum_probe_crash: number;
+    enum_model_unscoreable: number;
+    enum_next_before_exit: number;
+    enum_on_target: number;
     enum_gate_fail: number;
     enum_emitted: number;
-    enum_readiness_err_mean: number;
-    enum_readiness_gain_mean: number;
-    /** R3 joint-model split: rotate recruit rate, rotate-probe failures
-     *  and rotated-proposal gate outcomes. */
-    enum_rot_probe_crash: number;
-    enum_rot_recruited: number;
-    enum_rot_emitted: number;
-    enum_rot_gate_fail: number;
-    /** Selection-rank telemetry: proposals' position in the cost-sorted
-     *  pool they entered, per pool build. rank0 = pool best; top3 = rank<3.
-     *  Counts/sums (the lab derives means). */
-    aimed_pool_entries: number;
-    aimed_rank0: number;
-    aimed_top3: number;
-    aimed_rank_sum: number;
-    aimed_pool_size_sum: number;
-    /** Joint short-probe telemetry: stop/suffix/full-horizon frame means and
-     *  estimated saved frames per probe row. A "clean suffix" is one whose
-     *  observed suffixFrame..horizonFrame window stays fully airborne. */
     joint_probe_rows: number;
-    joint_probe_clean_suffix: number;
-    joint_probe_horizon_mean: number;
-	    joint_probe_suffix_mean: number;
-	    joint_probe_full_horizon_mean: number;
-	    joint_probe_saved_frames_mean: number;
-	    joint_probe_suffix_after_current_mean: number;
-	    joint_probe_suffix_after_next: number;
-	    joint_probe_launch_read_frames_mean: number;
-	    joint_probe_current_ok: number;
-	    joint_probe_next_state_ok: number;
-	    joint_probe_frames_charged: number;
-	    joint_fit_degraded_outputs: number;
-	    enum_current_axes_targeted: number;
-	    enum_current_axes_modeled: number;
-	    enum_current_term_missing: number;
-	  };
+    joint_probe_frames_charged: number;
+    enum_lane_bases: number;
+    enum_lane_base_skips: number;
+    /** Study-only telemetry; emitted only with LR_AIM_STUDY_STATS=1. */
+    study?: {
+      enum_readiness_err_mean: number;
+      enum_readiness_gain_mean: number;
+      /** R3 joint-model split: rotate recruit rate, rotate-probe failures
+       *  and rotated-proposal gate outcomes. */
+      enum_rot_probe_crash: number;
+      enum_rot_recruited: number;
+      enum_rot_emitted: number;
+      enum_rot_gate_fail: number;
+      /** Selection-rank telemetry: proposals' position in the cost-sorted
+       *  pool they entered, per pool build. rank0 = pool best; top3 = rank<3.
+       *  Counts/sums (the lab derives means). */
+      aimed_pool_entries: number;
+      aimed_rank0: number;
+      aimed_top3: number;
+      aimed_rank_sum: number;
+      aimed_pool_size_sum: number;
+      /** Joint short-probe telemetry: stop/suffix/full-horizon frame means and
+       *  estimated saved frames per probe row. A "clean suffix" is one whose
+       *  observed suffixFrame..horizonFrame window stays fully airborne. */
+      joint_probe_clean_suffix: number;
+      joint_probe_horizon_mean: number;
+      joint_probe_suffix_mean: number;
+      joint_probe_full_horizon_mean: number;
+      joint_probe_saved_frames_mean: number;
+      joint_probe_suffix_after_current_mean: number;
+      joint_probe_suffix_after_next: number;
+      joint_probe_launch_read_frames_mean: number;
+      joint_probe_current_ok: number;
+      joint_probe_next_state_ok: number;
+      joint_fit_degraded_outputs: number;
+      enum_current_axes_targeted: number;
+      enum_current_axes_modeled: number;
+      enum_current_term_missing: number;
+      rank_quality_pools: number;
+      rank_quality_top3_disagree: number;
+      rank_quality_top1_disagree: number;
+      rank_quality_candidates_scored: number;
+      rank_quality_objective_defined: number;
+      rank_quality_pred_bail: number;
+      rank_quality_pred_used: number;
+      rank_air_pools: number;
+      rank_air_cands: number;
+      rank_air_pred_mean: number;
+      rank_air_ask_mean: number;
+      rank_air_spread_mean: number;
+      rank_air_deliverable_pools: number;
+      enum_air_considered: number;
+      enum_air_gate_fail: number;
+      enum_air_emitted: number;
+    };
+  };
   /** Geometric-exit release-read funnel (core/candidate.ts). Non-scoring
    *  diagnostics; absent under LR_RANK_QUALITY=off (no read taken). */
   release_exit?: {

@@ -146,6 +146,11 @@ function aimJointProbeDesign(): ArcProbeDesignName {
   return parseArcProbeDesignName(raw);
 }
 
+function aimStudyStatsEnabled(): boolean {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env?.LR_AIM_STUDY_STATS === "1";
+}
+
 /** EXPERIMENT (LR_AIM_TOPK_BASES, int >=1, default 4): how many of the
  *  quality-sorted pool's leading candidates the aim lane refines once the
  *  compile is above the maturity threshold. K=1 runs the lane on `sorted[0]`
@@ -256,23 +261,10 @@ export function rankQualityEnabled(): boolean {
 
 // ─────────────────────────── 2 · Telemetry ───────────────────────────
 
-/** Lane telemetry (compile_stats.aim — lab-queryable via json_extract).
- *  Funnel: considered → (no_target | probe_crash | on_target) →
- *  (gate_fail | emitted). Accuracy: |predicted − achieved| readiness of
- *  emitted proposals — the lane's measured value-add per emission. */
-export type AimStats = {
-  /** The arc-probe design this compile ran (LR_AIM_JOINT_PROBE_DESIGN, default
-   *  "cross5"). Lets archives distinguish runs by probe design. */
-  probe_design: ArcProbeDesignName;
-  /** Enumerative-proposer funnel + readiness accuracy. */
-  enum_considered: number;
-  enum_no_target: number;
-  enum_probe_crash: number;
-  enum_model_unscoreable: number;
-  enum_next_before_exit: number;
-  enum_on_target: number;
-  enum_gate_fail: number;
-  enum_emitted: number;
+/** Study-only aim telemetry (`compile_stats.aim.study`, opt-in via
+ *  LR_AIM_STUDY_STATS=1). Default production stats keep only the proposer
+ *  funnel and probe cost; these fields answer campaign-analysis questions. */
+export type AimStudyStats = {
   /** Mean |predicted − achieved| arrival readiness over emitted. */
   enum_readiness_err_mean: number;
   /** Mean predicted readiness gain over δ=0, over emitted. */
@@ -295,11 +287,10 @@ export type AimStats = {
   aimed_top3: number;
   aimed_rank_sum: number;
   aimed_pool_size_sum: number;
-  /** Joint short-probe telemetry. Means are frame numbers/counts over probe
-   *  rows; estimated saved frames are relative to the former full next-gap
-   *  observation horizon. A clean suffix stays airborne from suffixFrame
+  /** Joint short-probe telemetry. Means are frame numbers/counts over production
+   *  `joint_probe_rows`; estimated saved frames are relative to the former full
+   *  next-gap observation horizon. A clean suffix stays airborne from suffixFrame
    *  through horizonFrame; dirty rows are still modeled and audited. */
-  joint_probe_rows: number;
   joint_probe_clean_suffix: number;
   joint_probe_horizon_mean: number;
   joint_probe_suffix_mean: number;
@@ -313,19 +304,6 @@ export type AimStats = {
    *  upstream cause of every degradation counter below. */
   joint_probe_current_ok: number;
   joint_probe_next_state_ok: number;
-  /** Physics frames actually CHARGED by joint probe rides (newly simulated
-   *  on the fork, getPhysicsFrameCount delta around the probe batch). The
-   *  honest probe cost: divide by joint_probe_rows for per-row cost, or by
-   *  compile sim_frames for the budget share spent probing. */
-  joint_probe_frames_charged: number;
-  /** EXPERIMENT (LR_AIM_TOPK_BASES): how many distinct pool bases the aim lane
-   *  was actually run on, summed over all pool builds (K=1 → one per build that
-   *  ran the lane). Per-base probe cost = joint_probe_frames_charged /
-   *  enum_lane_bases. `enum_lane_base_skips` counts duplicate/short-pool bases
-   *  skipped (a requested base already refined this build, or the pool ran out),
-   *  so requested−skipped = enum_lane_bases over those builds. */
-  enum_lane_bases: number;
-  enum_lane_base_skips: number;
   /** Output models the hybrid identifiability ladder fitted BELOW their
    *  first-choice functional form (too few gate-clean rows). The model still
    *  exists — the ladder floor is linear — but with less curvature. */
@@ -372,6 +350,31 @@ export type AimStats = {
   enum_air_considered: number;
   enum_air_gate_fail: number;
   enum_air_emitted: number;
+};
+
+/** Lane telemetry (compile_stats.aim — lab-queryable via json_extract).
+ *  Production block: considered → (no_target | probe_crash | on_target) →
+ *  (gate_fail | emitted), plus the probe volume charged to get there. */
+export type AimStats = {
+  /** The arc-probe design this compile ran (LR_AIM_JOINT_PROBE_DESIGN, default
+   *  "cross5"). Lets archives distinguish runs by probe design. */
+  probe_design: ArcProbeDesignName;
+  enum_considered: number;
+  enum_no_target: number;
+  enum_probe_crash: number;
+  enum_model_unscoreable: number;
+  enum_next_before_exit: number;
+  enum_on_target: number;
+  enum_gate_fail: number;
+  enum_emitted: number;
+  /** Probe workload for the lane's fitted local models. */
+  joint_probe_rows: number;
+  joint_probe_frames_charged: number;
+  /** Distinct bases actually refined by the aim lane, and requested bases skipped
+   *  because the pool was short or already refined. */
+  enum_lane_bases: number;
+  enum_lane_base_skips: number;
+  study?: AimStudyStats;
 };
 
 const aimTotals = {
@@ -502,7 +505,7 @@ registerCompileReset(resetAimStats);
 export function snapshotAimStats(): AimStats | null {
   if (aimTotals.enum_considered === 0) return null;
   const round3 = (x: number): number => Math.round(x * 1000) / 1000;
-  return {
+  const stats: AimStats = {
     probe_design: aimJointProbeDesign(),
     enum_considered: aimTotals.enum_considered,
     enum_no_target: aimTotals.enum_no_target,
@@ -512,6 +515,13 @@ export function snapshotAimStats(): AimStats | null {
     enum_on_target: aimTotals.enum_on_target,
     enum_gate_fail: aimTotals.enum_gate_fail,
     enum_emitted: aimTotals.enum_emitted,
+    joint_probe_rows: aimTotals.joint_probe_rows,
+    joint_probe_frames_charged: aimTotals.joint_probe_frames_charged,
+    enum_lane_bases: aimTotals.enum_lane_bases,
+    enum_lane_base_skips: aimTotals.enum_lane_base_skips,
+  };
+  if (!aimStudyStatsEnabled()) return stats;
+  stats.study = {
     enum_readiness_err_mean: aimTotals.enumAchieved > 0
       ? round3(aimTotals.enumReadinessErrSum / aimTotals.enumAchieved) : 0,
     enum_readiness_gain_mean: aimTotals.enum_emitted > 0
@@ -525,7 +535,6 @@ export function snapshotAimStats(): AimStats | null {
     aimed_top3: aimTotals.aimed_top3,
     aimed_rank_sum: aimTotals.aimed_rank_sum,
     aimed_pool_size_sum: aimTotals.aimed_pool_size_sum,
-    joint_probe_rows: aimTotals.joint_probe_rows,
     joint_probe_clean_suffix: aimTotals.joint_probe_clean_suffix,
     joint_probe_horizon_mean: aimTotals.joint_probe_rows > 0
       ? round3(aimTotals.jointProbeHorizonSum / aimTotals.joint_probe_rows) : 0,
@@ -542,9 +551,6 @@ export function snapshotAimStats(): AimStats | null {
       ? round3(aimTotals.jointProbeLaunchReadFramesSum / aimTotals.jointProbeLaunchReadFrameRows) : 0,
     joint_probe_current_ok: aimTotals.joint_probe_current_ok,
     joint_probe_next_state_ok: aimTotals.joint_probe_next_state_ok,
-    joint_probe_frames_charged: aimTotals.joint_probe_frames_charged,
-    enum_lane_bases: aimTotals.enum_lane_bases,
-    enum_lane_base_skips: aimTotals.enum_lane_base_skips,
     joint_fit_degraded_outputs: aimTotals.joint_fit_degraded_outputs,
     enum_current_axes_targeted: aimTotals.enum_current_axes_targeted,
     enum_current_axes_modeled: aimTotals.enum_current_axes_modeled,
@@ -569,6 +575,7 @@ export function snapshotAimStats(): AimStats | null {
     enum_air_gate_fail: aimTotals.enum_air_gate_fail,
     enum_air_emitted: aimTotals.enum_air_emitted,
   };
+  return stats;
 }
 
 /** Below this |δ*| the aimed variant would duplicate the base candidate.

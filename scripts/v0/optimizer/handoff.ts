@@ -605,16 +605,6 @@ const TAIL_COMPLETION_FALLBACK_BRANCHING = 2;
 const QUALITY_SHALLOW_TAIL_THROTTLE_MAX_PRESSURE = 1.0;
 const QUALITY_SHALLOW_TAIL_THROTTLE_FULL_FEEDBACK_SCALE = 6;
 const FAR_BACK_FRONTIER_LAG = 3;
-/** Once a passing output exists but its axis quality is still weak, spend sparse
- *  deterministic pulses on older pass-frontier branches. Very low incumbents
- *  keep the original repair cadence; moderate incumbents get a much rarer
- *  pulse. This is budget-agnostic repair scheduling: it still walks one fixed
- *  node sequence, but does not let poor early choices monopolize the quality
- *  phase. */
-const QUALITY_FAR_BACK_MIN_INTERVAL = 16;
-const QUALITY_FAR_BACK_MAX_INTERVAL = 128;
-const QUALITY_FAR_BACK_FULL_AXIS_QUALITY = 0.18;
-const QUALITY_FAR_BACK_ZERO_AXIS_QUALITY = 0.50;
 export function compileHandoff(
   userSpec: Spec,
   seed = 0,
@@ -1283,7 +1273,7 @@ function compileHandoffInternal(
     ): void => {
       while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
         if (!keepGoing()) break;
-        const node = popNextFrontierNode(pass, fb, telemetry, farBackFrontierPulseInterval(register.getBestKey()));
+        const node = popNextFrontierNode(pass, fb);
         telemetry.frontierSelections++;
         const result = processNode(node);
         if (result.kind === "captured") return;
@@ -2023,55 +2013,8 @@ function activeFrontier(
 function popNextFrontierNode(
   passStack: HandoffNode[],
   fallbackStack: HandoffNode[],
-  telemetry: HandoffTelemetry,
-  farBackPulseInterval: number | null,
 ): HandoffNode {
-  const frontier = activeFrontier(passStack, fallbackStack);
-  if (
-    farBackPulseInterval !== null &&
-    passStack.length > 0 &&
-    telemetry.frontierSelections > 0 &&
-    telemetry.frontierSelections % farBackPulseInterval === 0
-  ) {
-    const farBackIndex = oldestLaggedFrontierIndex(passStack, telemetry.deepestSeenGap);
-    if (farBackIndex >= 0) {
-      telemetry.farBackPulses++;
-      return passStack.splice(farBackIndex, 1)[0];
-    }
-  }
-  return frontier.pop()!;
-}
-
-function farBackFrontierPulseInterval(key: LeafKey | null): number | null {
-  if (key?.contract_passed !== true) return null;
-  const width = QUALITY_FAR_BACK_ZERO_AXIS_QUALITY - QUALITY_FAR_BACK_FULL_AXIS_QUALITY;
-  const linearWeakness = width <= 0
-    ? 0
-    : clamp01((QUALITY_FAR_BACK_ZERO_AXIS_QUALITY - key.axis_quality) / width);
-  const weakness = smoothstep(linearWeakness);
-  if (weakness <= 0) return null;
-  return Math.max(
-    1,
-    Math.round(
-      QUALITY_FAR_BACK_MAX_INTERVAL -
-        (QUALITY_FAR_BACK_MAX_INTERVAL - QUALITY_FAR_BACK_MIN_INTERVAL) * weakness,
-    ),
-  );
-}
-
-function oldestLaggedFrontierIndex(frontier: HandoffNode[], deepestSeenGap: number): number {
-  if (deepestSeenGap < 0) return -1;
-  let bestIndex = -1;
-  let bestGap = Infinity;
-  for (let i = 0; i < frontier.length; i++) {
-    const gap = frontier[i].search.gapIndex;
-    if (deepestSeenGap - gap < FAR_BACK_FRONTIER_LAG) continue;
-    if (gap < bestGap) {
-      bestGap = gap;
-      bestIndex = i;
-    }
-  }
-  return bestIndex;
+  return activeFrontier(passStack, fallbackStack).pop()!;
 }
 
 function enqueueChild(

@@ -94,7 +94,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Fold the pulse into a frontier priority score that uses the same `LeafKey` fields as the register, or remove it if it is only compensating for a known repair gap. Emit one `frontierPriority(node)` rather than a modulo-based side channel.
 - **Risk:** medium
 - **Generalization note:** Axis quality alone ignores missing/survival and can misallocate effort on new score shapes.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-08-remove-far-back-frontier-pulse-j32-a01` removed the axis-quality-driven far-back frontier pulse side channel so frontier popping is a single stack operation; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ---
 

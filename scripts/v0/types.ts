@@ -612,7 +612,7 @@ export type CompileStats = {
   /** Enumerative-proposer funnel + probe workload (optimizer/aim.ts).
    *  Non-scoring diagnostics; absent when the lane never ran. */
   aim?: {
-    /** Arc-probe design used (LR_AIM_JOINT_PROBE_DESIGN, default "cross5"). */
+    /** Arc-probe design used by the production aim lane. */
     probe_design: "cross5" | "grid9" | "pitch3";
     enum_considered: number;
     enum_no_target: number;

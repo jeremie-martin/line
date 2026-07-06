@@ -195,10 +195,10 @@ function sortWithLaneExtras(
   // branch-widening failure.
   const laneExtras: Candidate[] = [];
   if (nCand > 1 && sorted.length > 0 && aimEnumEnabled() && !(inRolloutContext && !rolloutAimEnabled)) {
-    // EXPERIMENT (LR_AIM_TOPK_BASES, default 4): refine the first K candidates of
-    // the quality-sorted pool, not just `sorted[0]`. Each base is passed exactly
-    // as `sorted[0]` is today (same engine/gap/lineId), and its extras accumulate
-    // into the one pool. K=1 → a single iteration on sorted[0] (byte-identical).
+    // Refine the first K candidates of the quality-sorted pool, not just
+    // `sorted[0]`. Each base is passed exactly as `sorted[0]` is today (same
+    // engine/gap/lineId), and its extras accumulate into the one pool. K=1 →
+    // a single iteration on sorted[0] (byte-identical).
     // The pool elements are distinct candidates; only K exceeding the pool length
     // forces a skip (counted). lineId start stays node.prefixNextLineId for every
     // base — each candidate is a self-contained line set that competes in the

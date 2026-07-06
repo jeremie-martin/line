@@ -161,7 +161,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Freeze accepted defaults in production code and move variant selection into explicit study entry points. Keep at most one documented top-level ablation switch if it is still used by CI or benchmark harnesses.
 - **Risk:** medium
 - **Generalization note:** Retiring warm env arms makes behavior easier to reproduce and lowers accidental configuration risk.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-15-freeze-aim-runtime-knobs-j32-a01` froze production aim span/probe/top-K policy to accepted defaults, leaving only the documented `LR_AIM_ENUM=0` ablation switch live; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ---
 

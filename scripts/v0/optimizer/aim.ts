@@ -47,10 +47,9 @@
  *      rest of the pool still competes.
  *
  * CURRENT-INSTANCE CHOICES (defaults, not rules — revisitable with evidence):
- * two knobs (exit pitch + whole-arc rotation); default 5-probe cross design
- * with optional 9-probe grid (`LR_AIM_JOINT_PROBE_DESIGN=grid9`); a shared
- * hybrid joint response model also used by the study harness; top-2 emitted
- * proposals per refined base; readiness consumes the full predicted
+ * two knobs (exit pitch + whole-arc rotation); fixed 5-probe cross design; a
+ * shared hybrid joint response model also used by the study harness; top-2
+ * emitted proposals per refined base; readiness consumes the full predicted
  * arrival-state boundary, though the current surface still reads speed and
  * CoM angle only (pose parked by R0).
  */
@@ -71,7 +70,6 @@ import {
   arcKnobSpan,
   arcProbeDesign,
   fitJointArcResponseModel,
-  parseArcProbeDesignName,
   predictedArrivalState,
   predictedCurrentAxes,
   predictJointArcOutputs,
@@ -98,21 +96,14 @@ import {
 import type { Gap } from "../types.ts";
 
 // ───────────────────────────── 1 · Flags ─────────────────────────────
-// All read per call (once per pool build, cold path) so tests can pin them.
+// Keep one top-level ablation switch; production aim policy constants are frozen.
 
-/** Solve range (deg). ±10 is the span validated by the sensitivity studies;
- *  LR_AIM_SPAN widens it (the quadratic extrapolates beyond the ±6 probe
- *  span; the verification eval prices the model error).
+/** Solve range (deg). ±10 is the span validated by the sensitivity studies.
  *  VERDICT (2026-06-10, span=14 vs default): clamp 27%→17%, miss 0.57→0.54,
  *  Δheadline +0.3 INCONCLUSIVE — extra speed authority converts to ~no
  *  score. Speed-aiming is saturated at the default span; don't widen
  *  without a new target. */
-function aimDeltaMaxDeg(): number {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_SPAN;
-  const n = raw === undefined || raw === "" ? NaN : Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : 10;
-}
+const AIM_DELTA_MAX_DEG = 10;
 
 /** The enumerative proposer — THE aiming lane (docs/READINESS_ROADMAP.md).
  *  Fit per-knob arrival models (speed, CoM angle at the next beat) from
@@ -140,43 +131,30 @@ const AIR_KNOB_MIN_MISMATCH = 0.10;
 /** Don't bother editing for less than this many frames of release shift. */
 const AIR_KNOB_MIN_SHIFT_FRAMES = 2;
 
-function aimJointProbeDesign(): ArcProbeDesignName {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_AIM_JOINT_PROBE_DESIGN ?? "cross5";
-  return parseArcProbeDesignName(raw);
-}
+/** Accepted production probe design. Alternate probe designs remain available
+ *  to study harnesses through arc_model.ts, not as ambient compiler env state. */
+const AIM_JOINT_PROBE_DESIGN: ArcProbeDesignName = "cross5";
 
 function aimStudyStatsEnabled(): boolean {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } })
     .process?.env?.LR_AIM_STUDY_STATS === "1";
 }
 
-/** EXPERIMENT (LR_AIM_TOPK_BASES, int >=1, default 4): how many of the
- *  quality-sorted pool's leading candidates the aim lane refines once the
- *  compile is above the maturity threshold. K=1 runs the lane on `sorted[0]`
- *  only. K>1 runs it on the first K distinct candidates, accumulating each
- *  base's lane extras into the pool, so the search refines more than just the
- *  quality-best base. Parsed once at import (env is constant per run; gates a
- *  per-pool-build hot path). Invalid/absent/<1 -> 4. Low-air gaps cap the
- *  effective mature K at 3 below. */
-const AIM_TOPK_BASES_RAW = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-  .process?.env?.LR_AIM_TOPK_BASES;
-const AIM_TOPK_BASES_EXPLICIT = AIM_TOPK_BASES_RAW !== undefined && AIM_TOPK_BASES_RAW !== "";
+/** Accepted mature aim-base count. K=1 runs the lane on `sorted[0]` only; K>1
+ *  runs it on the first K distinct candidates, accumulating each base's lane
+ *  extras into the pool so the search refines more than just the quality-best
+ *  base. Low-air gaps cap the effective mature K at 3 below. */
+export const AIM_TOPK_BASES = 4;
 
-export const AIM_TOPK_BASES: number = (() => {
-  const raw = AIM_TOPK_BASES_RAW;
-  const n = raw === undefined || raw === "" ? NaN : Number(raw);
-  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 4;
-})();
-
-/** Maturity gate for K>1 (LR_AIM_TOPK_BASES). The extra bases find good variants
- *  but cost ~2.5× more probe frames per pool build; at small budgets that probe
- *  cost starves the compile (validity collapses, the per-budget curve goes deeply
- *  negative at 50k/100k and only turns positive at 200k/300k). So gate K>1 on the
+/** Maturity gate for K>1. The extra bases find good variants but cost ~2.5×
+ *  more probe frames per pool build; at small budgets that probe cost starves
+ *  the compile (validity collapses, the per-budget curve goes deeply negative
+ *  at 50k/100k and only turns positive at 200k/300k). So gate K>1 on the
  *  compile TARGET budget — the same per-compile-constant maturity signal the
- *  forward-eval gate (usesForwardEvalAtBudget) uses. Target budget is fixed for the whole compile,
- *  so K_effective never changes mid-node and the per-node _candidatesCache (which
- *  may rebuild a node at a larger nCand) stays deterministic — exactly why
+ *  forward-eval gate (usesForwardEvalAtBudget) uses. Target budget is fixed for
+ *  the whole compile, so K_effective never changes mid-node and the per-node
+ *  _candidatesCache (which may rebuild a node at a larger nCand) stays
+ *  deterministic — exactly why
  *  consumed-frame signals are unusable here.
  *
  *  Each golden checkpoint is an INDEPENDENT full compile at its own target budget
@@ -192,8 +170,8 @@ export const AIM_TOPK_BASES: number = (() => {
 const AIM_TOPK_MATURE_BUDGET_FRAMES = 100_000;
 const AIM_LOW_AIR_TOPK_MAX = 3;
 const AIM_LOW_AIR_TOPK_AIR_MAX = 0.30;
-// High-budget UNIFORM aim-base count. A uniform LR_AIM_TOPK_BASES=6 (every mature
-// gap, 100k+) canonically gained the mature budgets (250k +0.5, 375k +1.6, 500k
+// High-budget uniform aim-base count. A uniform top-6 policy (every mature gap,
+// 100k+) canonically gained the mature budgets (250k +0.5, 375k +1.6, 500k
 // +0.8) but cratered 125k (-18.9): the extra probe cost starves the scarce tier
 // where ~50-93% of the budget already goes just to first completion. The mature
 // gain is BROAD (not the retired spec-gated fifth-base tier, whose 5->6 bump was -0.5),
@@ -214,16 +192,14 @@ export function setAimCompileBudgetFrames(frames: number): void {
 
 /** Effective lane-base count for the current compile/gap: K below the maturity
  *  threshold collapses to 1 (byte-identical to the K=1 default). Mature low-air
- *  gaps keep the accepted top-3 behavior; other mature gaps use the configured
- *  AIM_TOPK_BASES, or the high-budget default when the env override is unset. */
+ *  gaps keep the accepted top-3 behavior; other mature gaps use the accepted
+ *  top-4 policy, rising to the accepted high-budget top-6 policy. */
 export function aimTopKBasesEffective(gap?: Gap, _gaps?: readonly Gap[], _ctx?: SpecContext): number {
   if (aimCompileBudgetFrames < AIM_TOPK_MATURE_BUDGET_FRAMES) return 1;
   // High-budget uniform bump: at mature TARGET budgets the broader base count pays
   // (canonical: K=6 at 250k/375k/500k = +0.5/+1.6/+0.8) but starves 125k (-18.9), so
-  // gate the rise on the compile budget. Not applied when LR_AIM_TOPK_BASES is set
-  // explicitly (the env override owns the count).
-  const highBudget = !AIM_TOPK_BASES_EXPLICIT
-    && aimCompileBudgetFrames >= AIM_TOPK_HIGH_BUDGET_FRAMES;
+  // gate the rise on the compile budget.
+  const highBudget = aimCompileBudgetFrames >= AIM_TOPK_HIGH_BUDGET_FRAMES;
   const baseK = highBudget ? AIM_TOPK_BASES_HIGH : AIM_TOPK_BASES;
   if (gap?.targets.air !== undefined && gap.targets.air <= AIM_LOW_AIR_TOPK_AIR_MAX) {
     return Math.min(baseK, AIM_LOW_AIR_TOPK_MAX);
@@ -356,8 +332,8 @@ export type AimStudyStats = {
  *  Production block: considered → (no_target | probe_crash | on_target) →
  *  (gate_fail | emitted), plus the probe volume charged to get there. */
 export type AimStats = {
-  /** The arc-probe design this compile ran (LR_AIM_JOINT_PROBE_DESIGN, default
-   *  "cross5"). Lets archives distinguish runs by probe design. */
+  /** The fixed arc-probe design this compile ran. Lets archives distinguish
+   *  runs if a study harness produces alternate probe-design archives. */
   probe_design: ArcProbeDesignName;
   enum_considered: number;
   enum_no_target: number;
@@ -395,7 +371,7 @@ const aimTotals = {
   jointProbeLaunchReadFramesSum: 0, jointProbeLaunchReadFrameRows: 0,
   joint_probe_current_ok: 0, joint_probe_next_state_ok: 0,
   joint_probe_frames_charged: 0,
-  // Top-K base refinement (LR_AIM_TOPK_BASES).
+  // Top-K base refinement.
   enum_lane_bases: 0, enum_lane_base_skips: 0,
   // Fit/objective degradation telemetry (recordJointModelCoverage).
   joint_fit_degraded_outputs: 0,
@@ -506,7 +482,7 @@ export function snapshotAimStats(): AimStats | null {
   if (aimTotals.enum_considered === 0) return null;
   const round3 = (x: number): number => Math.round(x * 1000) / 1000;
   const stats: AimStats = {
-    probe_design: aimJointProbeDesign(),
+    probe_design: AIM_JOINT_PROBE_DESIGN,
     enum_considered: aimTotals.enum_considered,
     enum_no_target: aimTotals.enum_no_target,
     enum_probe_crash: aimTotals.enum_probe_crash,
@@ -695,7 +671,7 @@ export function makeEnumAimedCandidates(
   airKnobBase: boolean,
 ): Candidate[] {
   aimTotals.enum_considered++;
-  aimTotals.enum_lane_bases++; // one base actually refined (LR_AIM_TOPK_BASES)
+  aimTotals.enum_lane_bases++; // one base actually refined
   const nextGap = nextContactGap(gap, gaps);
   if (nextGap === null) {
     aimTotals.enum_no_target++;
@@ -718,7 +694,7 @@ function makeJointAimedCandidates(
   lineIdStart: number,
   airKnobBase: boolean,
 ): Candidate[] {
-  const probeDesignName = aimJointProbeDesign();
+  const probeDesignName = AIM_JOINT_PROBE_DESIGN;
   const probeKnobs = arcProbeDesign(probeDesignName);
   const span = arcKnobSpan(probeKnobs);
   const axisMeasureEnd = axisLookaheadEndFrame(gap, ctx.allContactFrames);
@@ -755,7 +731,7 @@ function makeJointAimedCandidates(
   }
 
   if (span.rotateDeg > 0) aimTotals.enum_rot_recruited++;
-  const pitchSpan = Math.min(aimDeltaMaxDeg(), span.pitchDeg);
+  const pitchSpan = Math.min(AIM_DELTA_MAX_DEG, span.pitchDeg);
   const rotateSpan = span.rotateDeg;
   const scored: JointScoredKnobs[] = [];
   for (let pitchDeg = -pitchSpan; pitchDeg <= pitchSpan + 1e-9; pitchDeg += ENUM_STEP_DEG) {

@@ -183,7 +183,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Port brake and startup catch behavior into descriptor parameters on the contact-centered sampler, then delete `sampleTargetStateLines`, `targetStateControls`, `PlacementRolls`, and `GEOMETRY_RNG_DRAWS`. The candidate sample mode would select a pressure profile, not a second geometry engine.
 - **Risk:** high
 - **Generalization note:** One sampler with mode descriptors scales better than maintaining parallel geometry formulas.
-- **Status:** Not Started
+- **Status:** Rejected - canonical `simplify2-17-contact-centered-extra-modes-j32-a01` routed brake/startup-catch modes through the contact-centered sampler and deleted the legacy target-state generator, but failed non-inferiority; source reverted; step Δheadline -4.1, P(Δ≤-0.1)=98.4%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 18. Impact template lane plus hold sub-lane is a dense multi-gate cascade
 - **Files:** `scripts/v0/arc_placement.ts`

@@ -285,15 +285,19 @@ describe("optimizer/handoff.ts - prefix hand-off search", () => {
     // Default fwd-eval gate is 75k; at 100k the pool is scored by the true forward rollout.
     const budget = 100_000;
     const prevLeaf = process.env.LR_FWD_EVAL_LEAF;
+    const prevAgreement = process.env.LR_FWD_EVAL_AGREEMENT;
     let a!: ReturnType<typeof checkpoint>;
     let b!: ReturnType<typeof checkpoint>;
     try {
       process.env.LR_FWD_EVAL_LEAF = "full";
+      process.env.LR_FWD_EVAL_AGREEMENT = "1";
       a = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
       b = checkpoint(compileHandoff(spec, 0, { budget, polish: false }), budget);
     } finally {
       if (prevLeaf === undefined) delete process.env.LR_FWD_EVAL_LEAF;
       else process.env.LR_FWD_EVAL_LEAF = prevLeaf;
+      if (prevAgreement === undefined) delete process.env.LR_FWD_EVAL_AGREEMENT;
+      else process.env.LR_FWD_EVAL_AGREEMENT = prevAgreement;
     }
     const fe = a.stats.fwd_eval;
     expect(fe).toBeDefined();

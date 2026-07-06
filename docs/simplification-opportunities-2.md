@@ -116,7 +116,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Keep only cost counters (`frames_charged`, `calls`, maybe `rollout_no_candidate`) in production stats. Move agreement characterization behind a study hook or an explicit `LR_FWD_EVAL_AGREEMENT=1` gate.
 - **Risk:** low
 - **Generalization note:** Telemetry-only code should not grow the default ranking path or archive schema indefinitely.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-10-gate-forward-eval-agreement-j32-a01` gated forward-eval agreement scans behind `LR_FWD_EVAL_AGREEMENT=1` while leaving cost counters on by default; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 11. Full-leaf dead-rider proof counters remain after objective leaf became default
 - **Files:** `scripts/v0/optimizer/handoff.ts`

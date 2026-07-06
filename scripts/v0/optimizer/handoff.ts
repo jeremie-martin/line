@@ -2779,7 +2779,11 @@ function rankedOptions(
   // Agreement instrument (measure-only): record ONLY when the pool was scored via the
   // forward-eval path (mirror scoreCandidateForHandoff's condition), over the POOL-SOURCE
   // entries only — this is before reuse/brake extras are pushed onto `scored`.
-  if (fwdEvalRuntime.config !== null && usesForwardEvalAtBudget(targetBudget)) {
+  if (
+    fwdEvalRuntime.agreementTelemetry &&
+    fwdEvalRuntime.config !== null &&
+    usesForwardEvalAtBudget(targetBudget)
+  ) {
     recordFwdEvalAgreement(scored, gaps[node.gapIndex]?.targets?.impact);
   }
   // Extra-candidate lanes (see extraCandidateLane): each generates a few more
@@ -4069,6 +4073,8 @@ type ForwardEvalRuntime = {
   minBudget: number;
   /** Derived from LR_FWD_EVAL; not an accumulator. */
   defaultConfig: boolean;
+  /** Study-only agreement telemetry; default off in production ranking. */
+  agreementTelemetry: boolean;
 };
 
 const fwdEvalRuntime: ForwardEvalRuntime = {
@@ -4077,6 +4083,7 @@ const fwdEvalRuntime: ForwardEvalRuntime = {
   config: null,
   minBudget: 0,
   defaultConfig: true,
+  agreementTelemetry: false,
 };
 // REJECTED experiment (removed 2026-06-14): widening the rollout branch at
 // impact-targeted gaps (LR_FWD_EVAL_IMPACT_BRANCH) to discover dive-scoop pairs.
@@ -4091,9 +4098,9 @@ const fwdEvalRuntime: ForwardEvalRuntime = {
 // ── Forward-eval cost + agreement instrument (MEASURE-ONLY) ──
 // Accumulates per compile, reset alongside the other lane stats. Two families:
 //   cost: rollout sim-frames charged + call counts (how big a frame sink fwd-eval is).
-//   agreement: over POOL-SOURCE candidates only (reuse/brake excluded), does the true
-//   charged rollout (forward winner = min score) agree with the quality-objective rank?
-//   All agreement reads are pure over the already-scored array — zero extra rollouts.
+//   agreement: study-only, enabled by LR_FWD_EVAL_AGREEMENT=1. Over POOL-SOURCE
+//   candidates only (reuse/brake excluded), records whether the true charged rollout
+//   (forward winner = min score) agrees with the quality-objective rank.
 const fwdEvalTotals = {
   fwd_eval_frames_charged: 0,
   fwd_eval_calls: 0,
@@ -4245,6 +4252,7 @@ export function setForwardEvalContext(spec: Spec, gapAxisTargets: AxisValues[]):
   fwdEvalRuntime.config = resolved.config;
   fwdEvalRuntime.defaultConfig = resolved.defaultConfig;
   fwdEvalRuntime.minBudget = forwardEvalMinBudget();
+  fwdEvalRuntime.agreementTelemetry = readEnv("LR_FWD_EVAL_AGREEMENT") === "1";
 }
 
 /** Warn (once-per-call, stderr) when a study/control env spec was set to a

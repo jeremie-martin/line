@@ -1208,83 +1208,17 @@ function sampleContactCenteredLines(
     ));
   }
 
-  // Impact-ARRIVAL launch. The feasibility
-  // bound says a hard beat needs a steep arrival: the crossing angle is capped
-  // by the vertical velocity built falling INTO it (vy_in ≤ g·N/2). Today the
-  // launch toward a hard beat is shaped by speed/elevation/amplitude but never
-  // by the NEXT beat's impact ask — so the rider often arrives flat and the
-  // catch has nothing to redirect. Blend the launch toward the symmetric pop
-  // arc (vy0 = −g·N/2 ⇒ arrival vy = +g·N/2, the bound's assumed maximum),
-  // spanned across the attempt batch and cost-ranked like every other launch
-  // lever. Same formula as the amplitude arc — they agree when both fire.
-  if (gap.nextImpact !== undefined && nextGapFrames !== null) {
-    // Scarce-budget only: the pop arrivals add COMPLETABLE shapes at 50k
-    // (slice: +50.5) but dilute converged high-budget quality (−8..−36) —
-    // the same profile as the post-curve span. Fade full ≤50k → off ≥100k.
-    const budgetFade = compileBudgetFade(
-      IMPACT_ARRIVAL_BUDGET_FADE_START_FRAMES,
-      IMPACT_ARRIVAL_BUDGET_FADE_SPAN_FRAMES,
-    );
-    const arrivalPressure = budgetFade
-      * smoothstep((gap.nextImpact - IMPACT_ARRIVAL_TARGET_START) / IMPACT_ARRIVAL_TARGET_SPAN);
-    if (arrivalPressure > 0) {
-      const blend = clamp(ccSpanBlends(attempt).launch, 0, 1) * arrivalPressure;
-      // Shorten the grounded ride-out so the flight has the gap to build vy.
-      ({ postAngleDeg, postLength } = blendPostTowardPopArc(
-        postAngleDeg, postLength, nextGapFrames, targetState.velocity.x, blend, 0.6,
-      ));
-    }
-  }
-
-  if (impactCurveP > 0) {
-    const extraTurnDeg = impactPostTurnExtraDeg(
-      targetState,
-      targets.impact,
-      contactAngleDeg,
-      postAngleDeg,
-      impactCurveP,
-      attempt,
-    );
-    if (extraTurnDeg > 0) {
-      postAngleDeg = clamp(
-        postAngleDeg - extraTurnDeg,
-        ELEVATION_POST_ANGLE_MIN,
-        ELEVATION_POST_ANGLE_MAX,
-      );
-    }
-  }
-
-  if (
-    attempt > 0
-    && gap.nextImpact !== undefined
-    && gap.nextImpact >= STEEP_ARRIVAL_MIN_ASK
-    && nextGapFrames !== null
-    && nextGapFrames > 4
-  ) {
-    const deltaMax = steepArrivalDeltaMaxDeg(
-      targetState,
-      gap.nextImpact,
-      postAngleDeg,
-      postLength,
-      nextGapFrames,
-    );
-    if (deltaMax > 0.01) {
-      const zeroBand =
-        currentCompileBudgetFrames > 0 &&
-          currentCompileBudgetFrames < STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES
-          ? STEEP_ARRIVAL_SCARCE_ZERO_BAND
-          : steepArrivalMatureZeroBand();
-      const spanRoll = Math.max(
-        0,
-        (lowDiscrepancyRoll(attempt, STEEP_ARRIVAL_SPAN_SALT) - zeroBand) /
-          (1 - zeroBand),
-      );
-      const delta = deltaMax * spanRoll;
-      if (delta > 0.01) {
-        postAngleDeg = Math.min(postAngleDeg + delta, ELEVATION_POST_ANGLE_MAX);
-      }
-    }
-  }
+  ({ postAngleDeg, postLength } = impactDeliveryAdjustment({
+    targetState,
+    targets,
+    gap,
+    nextGapFrames,
+    contactAngleDeg,
+    postAngleDeg,
+    postLength,
+    impactCurveP,
+    attempt,
+  }));
 
   const preSegments = clampInt(Math.round(preLength / segmentLength), 1, 6);
   const postSegments = clampInt(Math.round(postLength / segmentLength), 2, 16);
@@ -1534,6 +1468,106 @@ function buildImpactTemplateHoldLines(
     4,
   );
   return buildPostContactLines(lineIdStart, start, angleDeg, angleDeg, holdLength, holdSegments);
+}
+
+function impactDeliveryAdjustment(params: {
+  targetState: ImpactFrameTargetState;
+  targets: AxisValues;
+  gap: Gap;
+  nextGapFrames: number | null;
+  contactAngleDeg: number;
+  postAngleDeg: number;
+  postLength: number;
+  impactCurveP: number;
+  attempt: number;
+}): { postAngleDeg: number; postLength: number } {
+  let postAngleDeg = params.postAngleDeg;
+  let postLength = params.postLength;
+
+  // Impact-ARRIVAL launch. The feasibility
+  // bound says a hard beat needs a steep arrival: the crossing angle is capped
+  // by the vertical velocity built falling INTO it (vy_in <= g*N/2). Today the
+  // launch toward a hard beat is shaped by speed/elevation/amplitude but never
+  // by the NEXT beat's impact ask -- so the rider often arrives flat and the
+  // catch has nothing to redirect. Blend the launch toward the symmetric pop
+  // arc (vy0 = -g*N/2 => arrival vy = +g*N/2, the bound's assumed maximum),
+  // spanned across the attempt batch and cost-ranked like every other launch
+  // lever. Same formula as the amplitude arc -- they agree when both fire.
+  if (params.gap.nextImpact !== undefined && params.nextGapFrames !== null) {
+    // Scarce-budget only: the pop arrivals add COMPLETABLE shapes at 50k
+    // (slice: +50.5) but dilute converged high-budget quality (-8..-36) --
+    // the same profile as the post-curve span. Fade full <=50k -> off >=100k.
+    const budgetFade = compileBudgetFade(
+      IMPACT_ARRIVAL_BUDGET_FADE_START_FRAMES,
+      IMPACT_ARRIVAL_BUDGET_FADE_SPAN_FRAMES,
+    );
+    const arrivalPressure = budgetFade
+      * smoothstep((params.gap.nextImpact - IMPACT_ARRIVAL_TARGET_START) / IMPACT_ARRIVAL_TARGET_SPAN);
+    if (arrivalPressure > 0) {
+      const blend = clamp(ccSpanBlends(params.attempt).launch, 0, 1) * arrivalPressure;
+      // Shorten the grounded ride-out so the flight has the gap to build vy.
+      ({ postAngleDeg, postLength } = blendPostTowardPopArc(
+        postAngleDeg,
+        postLength,
+        params.nextGapFrames,
+        params.targetState.velocity.x,
+        blend,
+        0.6,
+      ));
+    }
+  }
+
+  if (params.impactCurveP > 0) {
+    const extraTurnDeg = impactPostTurnExtraDeg(
+      params.targetState,
+      params.targets.impact,
+      params.contactAngleDeg,
+      postAngleDeg,
+      params.impactCurveP,
+      params.attempt,
+    );
+    if (extraTurnDeg > 0) {
+      postAngleDeg = clamp(
+        postAngleDeg - extraTurnDeg,
+        ELEVATION_POST_ANGLE_MIN,
+        ELEVATION_POST_ANGLE_MAX,
+      );
+    }
+  }
+
+  if (
+    params.attempt > 0
+    && params.gap.nextImpact !== undefined
+    && params.gap.nextImpact >= STEEP_ARRIVAL_MIN_ASK
+    && params.nextGapFrames !== null
+    && params.nextGapFrames > 4
+  ) {
+    const deltaMax = steepArrivalDeltaMaxDeg(
+      params.targetState,
+      params.gap.nextImpact,
+      postAngleDeg,
+      postLength,
+      params.nextGapFrames,
+    );
+    if (deltaMax > 0.01) {
+      const zeroBand =
+        currentCompileBudgetFrames > 0 &&
+          currentCompileBudgetFrames < STEEP_ARRIVAL_SCARCE_BUDGET_MAX_FRAMES
+          ? STEEP_ARRIVAL_SCARCE_ZERO_BAND
+          : steepArrivalMatureZeroBand();
+      const spanRoll = Math.max(
+        0,
+        (lowDiscrepancyRoll(params.attempt, STEEP_ARRIVAL_SPAN_SALT) - zeroBand) /
+          (1 - zeroBand),
+      );
+      const delta = deltaMax * spanRoll;
+      if (delta > 0.01) {
+        postAngleDeg = Math.min(postAngleDeg + delta, ELEVATION_POST_ANGLE_MAX);
+      }
+    }
+  }
+
+  return { postAngleDeg, postLength };
 }
 
 function steepArrivalDeltaMaxDeg(

@@ -201,7 +201,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Collapse these into one `impactDeliveryAdjustment` that computes the needed turn/arrival angle once and allocates it between launch angle, ride-out length, and post-turn. Keep one budget pressure and one attempt span.
 - **Risk:** high
 - **Generalization note:** A single impact-delivery model is easier to scale to harder impact specs than three partially overlapping levers.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-19-impact-delivery-adjustment-j32-a01` consolidated the existing impact-arrival, post-turn, and steep-arrival edits behind one `impactDeliveryAdjustment` helper while preserving byte-identical output; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 20. Contact and entry redir shifts are marginal twin helpers around the main curve carrier
 - **Files:** `scripts/v0/arc_placement.ts`

@@ -1779,7 +1779,7 @@ function objectiveBlendReadinessPowerForSpec(targetBudget: number, spec: Spec): 
 function objectiveElevationReadinessForSpec(targetBudget: number, spec: Spec): boolean {
   return readEnv("LR_M114_SPARSE_ELEVATION_READINESS") !== "0" &&
     targetBudget >= OBJECTIVE_MATURE_MIN_BUDGET_FRAMES &&
-    m114SparseElevationReadinessProfile(spec);
+    sparseElevationReadinessPressure(spec) >= 0.20;
 }
 
 function m75HighAirImpactReadinessProfile(spec: Spec): boolean {
@@ -1877,71 +1877,16 @@ function m108DenseDrumReadinessProfile(spec: Spec): boolean {
   return breathPocket || crescendoPocket;
 }
 
-function m114SparseElevationReadinessProfile(spec: Spec): boolean {
-  const air: number[] = [];
-  const speed: number[] = [];
-  let impactSum = 0;
-  let impactCount = 0;
-  const contactFrames = spec.contacts
-    .map((contact) => secToFrame(contact.t))
-    .filter((frame) => frame >= K_BOUNCE_LANDING)
-    .sort((a, b) => a - b);
-  const contactGaps = contactFrames.slice(1).map((frame, index) => frame - contactFrames[index]);
-  const sortedGaps = contactGaps.sort((a, b) => a - b);
-  if (sortedGaps.length === 0) return false;
-  const medianGapFrames = sortedGaps[Math.floor(sortedGaps.length / 2)];
-
+function sparseElevationReadinessPressure(spec: Spec): number {
   const verticalProfile = authoredVerticalObjectiveProfile(spec);
-  if (verticalProfile.amplitudeRange > 0) return false;
-
-  for (const frame of contactFrames) {
-    const targets = axesAtFrame(frame, spec);
-    if (typeof targets.air === "number" && Number.isFinite(targets.air)) air.push(targets.air);
-    if (typeof targets.speed === "number" && Number.isFinite(targets.speed)) speed.push(targets.speed);
-  }
-  for (const contact of spec.contacts) {
-    impactSum += contact.impact ?? 0;
-    impactCount++;
-  }
-  if (air.length < 2 || speed.length < 2 || impactCount === 0) return false;
-  const meanAir = air.reduce((sum, value) => sum + value, 0) / air.length;
-  const meanSpeed = speed.reduce((sum, value) => sum + value, 0) / speed.length;
-  const meanImpact = impactCount > 0 ? impactSum / impactCount : 0;
-  const airRange = valueRange(air);
-  const speedRange = valueRange(speed);
-
-  const rollingHillsPocket = contactFrames.length >= 16 &&
-    contactFrames.length <= 20 &&
-    medianGapFrames >= 34 &&
-    medianGapFrames <= 38 &&
-    meanAir >= 0.44 &&
-    meanAir <= 0.46 &&
-    airRange <= 0.02 &&
-    meanSpeed >= 0.53 &&
-    meanSpeed <= 0.57 &&
-    speedRange <= 0.02 &&
-    meanImpact >= 0.32 &&
-    meanImpact <= 0.36 &&
-    verticalProfile.elevationRange >= 0.22 &&
-    verticalProfile.elevationRange <= 0.26;
-
-  const summitPushPocket = contactFrames.length >= 10 &&
-    contactFrames.length <= 14 &&
-    medianGapFrames >= 42 &&
-    medianGapFrames <= 46 &&
-    meanAir >= 0.49 &&
-    meanAir <= 0.51 &&
-    airRange <= 0.02 &&
-    meanSpeed >= 0.79 &&
-    meanSpeed <= 0.83 &&
-    speedRange >= 0.18 &&
-    speedRange <= 0.22 &&
-    meanImpact >= 0.55 &&
-    meanImpact <= 0.59 &&
-    verticalProfile.elevationRange >= 0.10 &&
-    verticalProfile.elevationRange <= 0.13;
-
-  return rollingHillsPocket || summitPushPocket;
+  if (verticalProfile.elevationRange <= 0) return 0;
+  const elevationPressure = smoothstep((verticalProfile.elevationRange - 0.08) / 0.08);
+  const cadencePressure = smoothstep(
+    (verticalProfile.medianContactGapFrames - Math.round(FPS * 0.50)) /
+      Math.round(FPS * 0.30),
+  );
+  const amplitudeQuietPressure = 1 - smoothstep((verticalProfile.amplitudeRange - 0.02) / 0.10);
+  return clamp01(elevationPressure * cadencePressure * amplitudeQuietPressure);
 }
 
 function m115PositiveCompactReadinessProfile(spec: Spec): boolean {

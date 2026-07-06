@@ -49,7 +49,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Replace this with a direct continuous condition: elevation axis targeted, elevation range above a threshold, sparse enough cadence, and low amplitude conflict. If the boolean is still needed, compute it from a monotone score rather than two rectangular boxes.
 - **Risk:** medium
 - **Generalization note:** New elevation-heavy specs outside the two boxes get no help even if they express the same underlying difficulty.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-03-smooth-sparse-elevation-readiness-j32-a01` replaced two exact sparse-elevation fingerprints with a smooth elevation/cadence/amplitude pressure; step Δheadline -0.0, P(Δ≤-0.1)=14.2%, cumulative Δheadline vs campaign-start baseline +17.5.
 
 ### 4. Spec-profile statistics are recomputed ad hoc across objective, quality, and repair
 - **Files:** `scripts/v0/optimizer/handoff.ts`

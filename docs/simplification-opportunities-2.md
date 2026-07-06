@@ -85,7 +85,7 @@ focused hash probes first, then escalate if needed.
 - **Proposed simplification:** Make repair allocation a continuous function of observed first-completion cost, current score weakness, and spec profile. At minimum, compute all profile booleans once and choose with a small data table so priority and overlap are explicit.
 - **Risk:** high
 - **Generalization note:** Repair scheduling should respond to actual incumbent weakness and remaining budget; exact spec-family pockets are likely to age badly.
-- **Status:** Not Started
+- **Status:** Accepted - canonical `simplify2-07-repair-main-margin-rule-table-j32-a01` replaced the repair main-margin negative-guard cascade with an explicit first-match rule table while preserving current override behavior; step Δheadline +0.0, P(Δ≤-0.1)=0.0%, cumulative Δheadline vs campaign-start baseline +17.7.
 
 ### 8. Far-back frontier pulses use a hard axis-quality interval as a scheduler
 - **Files:** `scripts/v0/optimizer/handoff.ts`

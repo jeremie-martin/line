@@ -4353,6 +4353,11 @@ const M108_REPAIR_PULSE_SPEED_RANGE_MAX = 0.02;
 const M108_REPAIR_PULSE_IMPACT_MEAN_MIN = 0.44;
 const M108_REPAIR_PULSE_IMPACT_MEAN_MAX = 0.46;
 
+type RepairMainMarginRule = {
+  envName: string;
+  matches: boolean;
+};
+
 function repairRampMargin(
   targetBudget: number,
   scarceMargin: number,
@@ -4366,56 +4371,27 @@ function repairRampMargin(
 }
 
 function defaultRepairMainMargin(targetBudget: number, profile: HandoffSpecProfile): number {
+  const ramp = repairRampMargin(targetBudget, 1, REPAIR_MAIN_MARGIN_MATURE);
+  if (targetBudget < M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES) return ramp;
+
   const flatCompact = m101FlatCompactRepairProfile(profile);
   const highAirLowGrain = m102HighAirLowGrainRepairProfile(profile);
   const drumsPulse = m108DrumsPulseRepairProfile(profile);
   const stableDense = m116StableDenseRepairProfile(profile);
-  if (
-    readEnv("LR_M101_REPAIR_FLAT_COMPACT_MAIN100") !== "0" &&
-    targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
-    flatCompact
-  ) {
-    return 1.0;
-  }
-  if (
-    readEnv("LR_M102_REPAIR_HIGH_AIR_LOW_GRAIN_MAIN100") !== "0" &&
-    targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
-    !flatCompact &&
-    highAirLowGrain
-  ) {
-    return 1.0;
-  }
-  if (
-    readEnv("LR_M108_DRUMS_PULSE_REPAIR_MAIN100") !== "0" &&
-    targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
-    !flatCompact &&
-    !highAirLowGrain &&
-    drumsPulse
-  ) {
-    return 1.0;
-  }
-  if (
-    readEnv("LR_M116_STABLE_DENSE_REPAIR_MAIN100") !== "0" &&
-    targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
-    !flatCompact &&
-    !highAirLowGrain &&
-    !drumsPulse &&
-    stableDense
-  ) {
-    return 1.0;
-  }
-  if (
-    readEnv("LR_M144_RESIDUAL_REPAIR_MAIN100") !== "0" &&
-    targetBudget >= M101_REPAIR_FLAT_COMPACT_MIN_BUDGET_FRAMES &&
-    !flatCompact &&
-    !highAirLowGrain &&
-    !drumsPulse &&
-    !stableDense &&
-    m144ResidualRepairMain100Profile(profile, targetBudget)
-  ) {
-    return 1.0;
-  }
-  return repairRampMargin(targetBudget, 1, REPAIR_MAIN_MARGIN_MATURE);
+  const rules: RepairMainMarginRule[] = [
+    { envName: "LR_M101_REPAIR_FLAT_COMPACT_MAIN100", matches: flatCompact },
+    { envName: "LR_M102_REPAIR_HIGH_AIR_LOW_GRAIN_MAIN100", matches: highAirLowGrain },
+    { envName: "LR_M108_DRUMS_PULSE_REPAIR_MAIN100", matches: drumsPulse },
+    { envName: "LR_M116_STABLE_DENSE_REPAIR_MAIN100", matches: stableDense },
+    {
+      envName: "LR_M144_RESIDUAL_REPAIR_MAIN100",
+      matches: m144ResidualRepairMain100Profile(profile, targetBudget),
+    },
+  ];
+  const firstMatchingRule = rules.find((rule) => rule.matches);
+  return firstMatchingRule !== undefined && readEnv(firstMatchingRule.envName) !== "0"
+    ? 1.0
+    : ramp;
 }
 
 function m101FlatCompactRepairProfile(profile: HandoffSpecProfile): boolean {

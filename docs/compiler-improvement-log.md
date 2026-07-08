@@ -2,6 +2,42 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - prefix-RMS rank-quality objective
+
+Reason: the rank-quality pool sort currently scores each candidate by current-gap axis quality
+times next-gap readiness. This trial made the current-quality term prefix-aware: for ranking only,
+the candidate's achieved axes were evaluated as if appended to the already committed prefix, using
+the same target-error RMS shape as the scorer. The intent was to spend scarce ranking priority on
+candidates that improve whole-prefix quality instead of locally perfecting one gap while preserving
+the existing zero-frame ballistic readiness prediction. Candidate count, scorer, specs, evaluator
+fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/objective_quality.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts`
+(3 files, 50 tests) and
+`LR_ENGINE=wasm npm test -- --run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/objective_quality.test.ts tests/budget_model.test.ts tests/v0_golden_config.test.ts`
+(6 files, 70 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-prefix-rms-quality-rank-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-prefix-rms-quality-rank-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1430/1440, invalid 10, timeout 0.
+HEADLINE was 682.34 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 703.10. Per-budget point estimates were 75k 574.97, 200k 684.31, and 500k 697.65.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-prefix-rms-quality-rank-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: REJECT`: baseline 694.6 -> candidate 682.3, delta -12.3,
+CI [-27.7, -2.2], P(delta<=0)=99.9%, effect -1.69. Per-budget deltas were
+75k -84.2, 200k -4.5, and 500k -4.6. Validity dropped at 75k from 100% to 98%.
+
+Why it was not kept: the mechanism was general and measurable, but too broad. It made scarce
+budget ranking chase prefix-level RMS repair before enough future-readiness structure existed,
+causing a large 75k collapse and small mature-budget losses. This does not disprove prefix-aware
+ranking as a family, but this version needs a separate maturity/usefulness model before it is worth
+another probe. No full run was launched. Source and test edits were reverted; no baseline was
+advanced.
+
 ## 2026-07-08 - NOT KEPT - soft-impact low-pop amplitude lane
 
 Reason: the steady low-pop profile-pressure lane made the intended `float_bounds` gain larger but

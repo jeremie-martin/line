@@ -2,6 +2,38 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - low-slack q24 quality breadth
+
+Reason: test a structural scarce-budget allocation signal from the q-candidate panel without
+restoring old q pockets. The trial pulled quality candidate breadth toward q24 when predicted
+traversal slack was low: full pressure below slack 1.5, fading out by slack 2.0. Explicit
+`LR_QUALITY_NCAND` overrides still won, and candidate generation families, branch policy,
+repair, current-power profiles, scorer, specs, fingerprint, seeds, budget grid, and acceptance
+rule stayed unchanged.
+
+Focused tests passed:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/objective_quality.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts`
+(4 files, 50 tests).
+
+Probe:
+`generated/golden-runs/probe-low-slack-q24-s0-2-a01/golden.json`, run on
+`solo_run,drums_breath,drums_crescendo,drums_crosscut,drums_dropout,drums_pendulum,drums_pulse,drums_signature,drums_swell,drums_tide,drums_zigzag`
+x seeds 0,1,2 x all four canonical budgets with `LR_ENGINE=wasm`, `--jobs=32`. It was valid
+132/132. The policy activated as intended at 125k: affected rows used q24; mature budgets
+were unchanged by the low-slack rule.
+
+Paired decision versus `generated/golden-runs/simplify2-20-redir-angle-shift-helper-j32-a01/golden.json`
+was indicative/non-promotable `VERDICT: INCONCLUSIVE`: baseline 670.4 -> candidate 670.5,
+delta +0.1, CI [-1.8, 1.8], P(Delta<=0)=43.4%. Per-budget deltas were 125k +1.2 and
+250k/375k/500k +0.0. The 125k signs were mixed: `drums_zigzag`, `drums_tide`,
+`drums_pulse`, `drums_signature`, and `drums_pendulum` improved, while `drums_breath`,
+`drums_crescendo`, `solo_run`, `drums_swell`, and `drums_crosscut` regressed.
+
+Why it was not kept: the smooth slack selector behaved correctly, but the score signal was too
+weak and the spec signs did not expose a clean structural refinement. Narrowing this further
+would recreate suite-specific q pockets under a different name. Source edits were reverted;
+no behavior was kept.
+
 ## 2026-07-08 - NOT KEPT - repair exhaustion reset on accepted incumbent
 
 Reason: test a general repair lifecycle fix, not a benchmark-specific profile. The repair phase

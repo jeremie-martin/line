@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - strong steady soft-impact relief
+
+Reason: the first steady-speed soft-impact relief isolated `drums_pendulum` and removed the
+earlier `drums_breath` collateral, but its effect was too small for the probe gate. This
+follow-up kept the same resolved-profile selector and local activation, but used a stronger
+contact alignment and curvature damping dose on the high-air/soft-impact beats. Candidate count,
+scorer, specs, evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed
+unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-strong-steady-soft-impact-relief-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-strong-steady-soft-impact-relief-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.92 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.41. Per-budget point estimates were 75k 659.17, 200k 689.13, and 500k 702.60.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-strong-steady-soft-impact-relief-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.9, delta +0.3,
+CI [0.0, 1.0], P(Delta<=0)=35.9%, effect 0.99. Per-budget deltas were
+75k +0.0, 200k +0.4, and 500k +0.3, with unchanged pass rates.
+
+Why it was not kept: the stronger dose confirmed the clean selector and increased the intended
+effect, but the footprint was still too narrow for suite-wide promotion. Rounded spec-score
+movement was confined to `drums_pendulum` (`+9.48` at 200k and `+8.08` at 500k); all other specs,
+including `drums_breath`, were unchanged at the rounded spec-score level. Row-level movement was
+24 paired rows, all on `drums_pendulum`, with 18 improvements and 6 regressions, mean changed-row
+delta about +8.8. This is a strong localized result, but it did not clear the normalized probe's
+accept gate, so no full run was launched. Source and test edits were reverted; no baseline was
+advanced.
+
 ## 2026-07-08 - NOT KEPT - steady soft-impact relief
 
 Reason: the earlier anti-correlated soft high-air impact relief confirmed a real

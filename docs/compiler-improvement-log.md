@@ -2,6 +2,42 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - current-power overlap gating
+
+Reason: test a structural alternative to restoring old M178 current-power pockets. The simplified
+continuous current-power surface has overlapping low-impact and mid-impact plateaus; moderate-impact
+vertical rows can receive both specialized boost terms. The trial kept the continuous model but
+made the low-impact boost pressure fade as mid-impact pressure rose, first across all low-impact
+specialized boosts and then only for the vertical low-impact boost. It did not branch on spec names,
+seeds, or old campaign pocket lists.
+
+Focused tests passed for both variants:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/objective_quality.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts`
+(4 files, 50 tests).
+
+Broad low-specific probe:
+`generated/golden-runs/probe-low-specific-current-boost-s0-2-a01/golden.json`, run on 18 affected
+specs x seeds 0,1,2 x all four canonical budgets. It was valid 216/216, with no 125k movement.
+Paired decision versus `generated/golden-runs/simplify2-20-redir-angle-shift-helper-j32-a01/golden.json`
+was indicative/non-promotable `VERDICT: INCONCLUSIVE`: baseline 716.5 -> candidate 716.9,
+delta +0.4, CI [-2.4, 3.3], P(Delta<=0)=38.8%. Budget deltas were 125k +0.0, 250k -0.1,
+375k +0.8, and 500k +0.5. Gains in `pop_train`, `verse_chorus`, and `terrace_sprint` were offset
+by losses in compact/tiny rows such as `mini_burst`, `tiny_dance`, and `dense_echo_climb`.
+
+Vertical-only refinement:
+`generated/golden-runs/probe-vertical-low-specific-current-s0-2-a01/golden.json`, run on the seven
+remaining affected vertical/amplitude specs x seeds 0,1,2 x all four canonical budgets. It was
+valid 84/84. Paired decision versus the same baseline was indicative/non-promotable
+`VERDICT: INCONCLUSIVE`: baseline 668.9 -> candidate 669.4, delta +0.5, CI [-2.4, 4.2],
+P(Delta<=0)=39.5%. Budget deltas were 125k +0.0, 250k +0.1, 375k -0.5, and 500k +1.6.
+`terrace_sprint`, `soar_settle`, and `skyline_push` improved, but `switchback_pop`,
+`valley_bounce`, and `big_air_ramp` regressed.
+
+Why it was not kept: both overlap-gating shapes had a plausible structural story and protected
+125k, but neither produced a strong enough affected-slice signal to justify all-seed or canonical
+spend. The mixed spec signs also show that current-power overlap is not the single missing
+generalization behind the old M178 stack. Source edits were reverted; no behavior was kept.
+
 ## 2026-07-08 - NOT KEPT - continuous current-power structured cap
 
 Reason: use historical low-impact/current-power wins only as diagnostic evidence, not by restoring

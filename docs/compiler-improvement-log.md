@@ -2,6 +2,38 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - independent amplitude pop length span
+
+Reason: the contact-centered sampler defines independent launch and ride-out length span values, but
+the amplitude pop-arc block had used only the launch span for both pop angle and ride-out
+shortening. This trial let amplitude use the launch span for pop angle and the length span for
+grounded ride-out shortening, exposing off-diagonal vertical candidates without changing candidate
+count, scorer, specs, evaluator fingerprint, seed policy, budget grid, or acceptance rule.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 92 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-amplitude-independent-pop-span-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-amplitude-independent-pop-span-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.15 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.04. Per-budget point estimates were 75k 661.18, 200k 688.38, and 500k 701.41.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-amplitude-independent-pop-span-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: REJECT`: baseline 694.6 -> candidate 694.2, delta -0.5,
+CI [-1.8, 0.6], P(delta<=0)=80.8%, effect -0.81. Per-budget deltas were
+75k +2.0, 200k -0.4, and 500k -0.9, with unchanged pass rates.
+
+Why it was not kept: the mechanism did expose real alternate amplitude shapes, but the budget shape
+was wrong. Across paired checkpoints, 468/1440 changed: 213 improved and 255 regressed. It helped
+`float_bounds` (+1.20 weighted) and `leap_cadence` (+1.28), but regressed `big_air_ramp` (-8.11),
+`terrace_sprint` (-7.40), and `skyline_push` (-3.75). The off-diagonal length span appears useful
+for sparse pop/settle rows but too disruptive for big-air and mixed vertical rows when applied to
+all amplitude asks. No full run was launched. Source edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - prefix-RMS rank-quality objective
 
 Reason: the rank-quality pool sort currently scores each candidate by current-gap axis quality

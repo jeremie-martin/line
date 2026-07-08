@@ -15,16 +15,18 @@
  *    budget-trading change is visible, not averaged away.
  *    Interim trade: while the search is still budget-oblivious this rewards
  *    early-budget gains the prior ceiling-heavy metric penalized; that is expected.
- *  - Default decision: PAIRED cluster bootstrap on the headline delta (same specs+seeds for
- *    both configs), because pairing cancels common-mode seed luck (~10x noise
- *    collapse). The verdict is a one-sided probability gate at α=0.20:
+ *  - Default decision: PAIRED cluster bootstrap on the headline delta (same specs
+ *    and seed slots for both configs, with the same recorded per-budget seed
+ *    policy), because pairing cancels common-mode seed luck (~10x noise collapse).
+ *    The verdict is a one-sided probability gate at α=0.20:
  *    accept iff P(Δ≤0) < 0.20, reject iff P(Δ≥0) < 0.20, else inconclusive.
  *    (The 95% CI is reported for context but does not define the verdict.)
  *  - Validity is NOT a gate: an invalid run already scores ~0, and the per-budget
  *    multi-seed aggregation folds that into the score. Per-budget validity is reported
  *    as a diagnostic only.
- *  - Weights are keyed by budget (not position), so the decision recomputes safely on
- *    a budget intersection (e.g. a probe tier subset), renormalizing automatically.
+ *  - Weights are keyed by budget (not position), so the scoring kernel can
+ *    renormalize on a budget subset. The `decide` CLI still requires matching
+ *    seed-policy metadata before making that comparison.
  *  - The per-budget deltas share ONE resample per iteration across budgets (the
  *    aggregate's basis), so they reconcile with the weighted Δ. A future per-budget
  *    significance methodology (analogous to docs/engine_speed_methodology.md for the
@@ -45,9 +47,9 @@ export type BudgetWeight = { budget: number; weight: number };
  *  Still rejects changes confidently shown to regress (symmetric gate on the other side). */
 export const DECISION_ALPHA = 0.20;
 
-/** Per-config score cube: spec -> seed -> (budget -> score). */
+/** Per-config score cube: spec -> seed slot -> (budget -> score). */
 export type ScoreCube = Map<string, Map<number, Map<number, number>>>;
-/** Per-config validity cube: spec -> seed -> (budget -> contract_passed). */
+/** Per-config validity cube: spec -> seed slot -> (budget -> contract_passed). */
 export type ValidCube = Map<string, Map<number, Map<number, boolean>>>;
 
 
@@ -87,7 +89,7 @@ export function parseBudgetList(raw: string): number[] {
   });
 }
 
-/** Suite score from per-spec seed-score groups: shifted-geomean over seeds within
+/** Suite score from per-spec seed-slot score groups: shifted-geomean over slots within
  *  each spec, then over specs. This is the SAME two-level aggregation golden.ts
  *  applies via groupScores()+suiteScore(); keep the two in sync (parity is pinned
  *  by tests/v0_metric.test.ts). */
@@ -118,7 +120,7 @@ function quantile(sorted: number[], q: number): number {
 }
 
 /** Per-budget suite scores for a (possibly resampled) set of specs and per-spec
- *  seeds — one suite score per budget (shifted-geomean over seeds then specs). The
+ *  seed slots — one suite score per budget (shifted-geomean over slots then specs). The
  *  bootstrap reuses this vector for BOTH the per-budget deltas and the weighted
  *  aggregate, so each resample computes it once. */
 function perBudgetSuite(
@@ -134,7 +136,7 @@ function perBudgetSuite(
       const seeds = seedsBySpec.get(spec);
       if (!seedCurves || !seeds || seeds.length === 0) continue;
       // Missing cells default to 0, but the decide-tool scope guard ensures common
-      // specs/seeds/budgets and each (spec,seed,budget) is its own run, so this
+      // specs/seed-slots/budgets and each (spec,slot,budget) is its own run, so this
       // fallback should not fire on well-formed archives.
       groups.push(seeds.map((se) => seedCurves.get(se)?.get(b) ?? 0));
     }
@@ -157,7 +159,7 @@ function weightedFromVec(vec: number[], budgets: number[], weightMap: Map<number
   return den > 0 ? num / den : 0;
 }
 
-/** Suite validity rate per budget (mean over specs of mean-over-seeds pass rate). */
+/** Suite validity rate per budget (mean over specs of mean-over-seed-slots pass rate). */
 export function validityByBudget(valid: ValidCube, budgets: number[]): { budget: number; rate: number }[] {
   const specs = [...valid.keys()];
   return budgets.map((b) => {
@@ -203,7 +205,7 @@ export type Decision = {
 
 /**
  * Paired CLUSTER bootstrap on the headline-metric delta (candidate - baseline).
- * Resample specs with replacement, then resample each chosen spec's seeds with
+ * Resample specs with replacement, then resample each chosen spec's seed slots with
  * replacement; apply the SAME resample to both configs (paired). Propagates both
  * between-spec and within-spec (seed) variance.
  *

@@ -1,20 +1,20 @@
 /**
  * v0 golden budget-curve benchmark — single source of truth for compiler work.
  *
- *   LR_ENGINE=wasm npm run golden
- *   LR_ENGINE=wasm npm run golden -- --json
- *   LR_ENGINE=wasm npm run golden -- --json-full
- *   LR_ENGINE=wasm npm run golden -- --details
- *   LR_ENGINE=wasm npm run golden -- --seed=42
- *   LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2,3,4 npm run golden
- *   LR_ENGINE=wasm npm run golden -- --specs=tiny_dance,opening_burst
- *   LR_ENGINE=wasm npm run golden -- --budgets=50000,300000
- *   LR_ENGINE=wasm npm run golden -- --archive-dir=generated/golden-runs/my-run
- *   LR_ENGINE=wasm npm run golden -- --variants
- *   LR_ENGINE=wasm npm run golden -- --jobs=6  # override default half-CPU pool
+ *   npm run golden -- --full
+ *   npm run golden -- --probe
+ *   npm run golden -- --full --json
+ *   npm run golden -- --full --json-full
+ *   npm run golden -- --full --details
+ *   npm run golden -- --full --seed=42
+ *   npm run golden -- --probe --specs=tiny_dance,opening_burst
+ *   npm run golden -- --full --budgets=50000,300000
+ *   npm run golden -- --full --archive-dir=generated/golden-runs/my-run
+ *   npm run golden -- --full --variants
+ *   npm run golden -- --full --jobs=6  # override preset jobs=32
  *
  * Each budget is an INDEPENDENT full run (no anytime sharing): passing N budgets
- * runs N compiles per (spec, seed). The headline metric (see metric.ts) is the
+ * runs N compiles per (spec, seed slot). The headline metric (see metric.ts) is the
  * budget-value-WEIGHTED AVERAGE of the per-budget suite scores, emitted in the
  * `headline` JSON block. The accept/reject decision is made by
  * `analyze_golden_curve.ts decide` (paired bootstrap with per-budget deltas), not by
@@ -27,7 +27,6 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { availableParallelism } from "node:os";
 import { execFileSync } from "node:child_process";
 
 /** Per-worker V8 old-space cap (MB). A runaway compile exits as a graceful row
@@ -39,9 +38,6 @@ export function defaultJobsForParallelism(cpuCount: number): number {
   return Math.max(1, Math.floor(cpuCount / 2));
 }
 
-const DEFAULT_JOBS = defaultJobsForParallelism(availableParallelism());
-
-import { compileHandoff } from "./optimizer/handoff.ts";
 import { FPS, REDIRARC, REPORT_ONLY_AXIS_SET, impactEnvNum, type CompileStats, type DriftReport, type Spec } from "./types.ts";
 import {
   parseBudgetList,
@@ -50,17 +46,22 @@ import {
   type CurvePoint,
 } from "./metric.ts";
 import {
+  BUDGET_DISJOINT_SEED_POLICY_KIND,
   DEFAULT_BUDGETS,
   EVALUATOR_FINGERPRINT,
-  GOLDEN_SEEDS,
-  GOLDEN_SPECS,
+  FULL_SEEDS_PER_BUDGET,
+  PROBE_BUDGETS,
+  PROBE_SEEDS_PER_BUDGET,
   REPORT_VARIANTS,
+  actualSeedForBudgetSlot,
+  budgetSeedSchedule,
   budgetWeights,
   compilerWorkerTimeoutMs,
   compilerWorkerTimeoutBudget,
   headlineCases,
   loadGoldenSpec,
   variantCases,
+  type BudgetDisjointSeedPolicy,
   type GoldenSpecName,
   type SuiteCase,
   type VariantName,
@@ -77,14 +78,24 @@ import {
   type V0ContractScore,
 } from "./score.ts";
 
-const COMPILERS = {
-  handoff: compileHandoff,
-} as const;
+type CompileFn = (
+  spec: Spec,
+  seed: number,
+  opts: { budget: number },
+) => { track: unknown; report: DriftReport; stats: CompileStats };
 
-type CompilerName = keyof typeof COMPILERS;
+type CompilerName = "handoff";
 
 function isCompilerName(value: string): value is CompilerName {
-  return Object.hasOwn(COMPILERS, value);
+  return value === "handoff";
+}
+
+async function loadCompiler(name: CompilerName): Promise<CompileFn> {
+  if (name === "handoff") {
+    const mod = await import("./optimizer/handoff.ts");
+    return mod.compileHandoff;
+  }
+  throw new Error(`unknown compiler ${name}`);
 }
 
 type WorkerInput = SuiteCase & {
@@ -95,6 +106,8 @@ type WorkerInput = SuiteCase & {
 };
 type WorkerCheckpoint = {
   budget: number;
+  /** Actual compile seed for this budget. Row-level `seed` is only the seed slot. */
+  seed: number;
   /** Per-budget compile wall-clock (each budget is an independent run). */
   elapsed_ms: number;
   report: DriftReport;
@@ -107,6 +120,8 @@ type WorkerCheckpoint = {
  *  succeed (per-budget partial failure). */
 type BudgetFailure = {
   budget: number;
+  /** Actual compile seed for this budget. */
+  seed: number;
   /** Wall-clock the failed compile burned before throwing (so partial-row time rollups stay honest). */
   elapsed_ms: number;
   message: string;
@@ -140,6 +155,7 @@ type ScoredCheckpoint = V0ContractScore & {
   budget: number;
   name: string;
   variant: VariantName;
+  /** Actual compile seed for this checkpoint. */
   seed: number;
   status: "pass" | "fail" | "timeout" | "error";
   worker_timeout_ms: number;
@@ -158,6 +174,7 @@ type ScoredCheckpoint = V0ContractScore & {
 type ScoredRunRow = {
   name: string;
   variant: VariantName;
+  /** Seed slot. Actual per-budget seeds live on each checkpoint. */
   seed: number;
   /** Display-only rollup: sum of the row's per-budget compile wall-clock. */
   elapsed_ms: number;
@@ -211,6 +228,14 @@ function arg(name: string): string | null {
 
 function has(name: string): boolean {
   return process.argv.includes(`--${name}`);
+}
+
+function argFrom(argv: readonly string[], name: string): string | null {
+  return parseArgValue(argv, name);
+}
+
+function hasArg(argv: readonly string[], name: string): boolean {
+  return argv.includes(`--${name}`);
 }
 
 function sourceSlice(path: string, startMarker: string, endMarker?: string): string {
@@ -437,7 +462,7 @@ async function runWorker(): Promise<void> {
   const t0 = Date.now();
   try {
     const spec = await loadGoldenSpec(input.specName, input.variant);
-    const compile = COMPILERS[input.compiler];
+    const compile = await loadCompiler(input.compiler);
     // Load spec + WASM once, then run each budget as an INDEPENDENT full compile.
     // Per-budget try/catch so one budget's failure doesn't lose the others.
     const checkpoints: WorkerCheckpoint[] = [];
@@ -451,6 +476,7 @@ async function runWorker(): Promise<void> {
         const paths = writeCheckpointArtifacts(input, budget, checkpoint.track, checkpoint.report);
         checkpoints.push({
           budget,
+          seed: input.seed,
           elapsed_ms,
           report: checkpoint.report,
           stats: checkpoint.stats,
@@ -458,7 +484,12 @@ async function runWorker(): Promise<void> {
           ...paths,
         });
       } catch (error) {
-        budgetFailures.push({ budget, elapsed_ms: Date.now() - cb0, message: String(error).slice(0, 200) });
+        budgetFailures.push({
+          budget,
+          seed: input.seed,
+          elapsed_ms: Date.now() - cb0,
+          message: String(error).slice(0, 200),
+        });
       }
     }
 
@@ -569,7 +600,6 @@ function errorCheckpoint(
 function scoreCheckpoint(
   result: WorkerOk,
   checkpoint: WorkerCheckpoint,
-  seed: number,
   ctx: ScoreContext,
 ): ScoredCheckpoint {
   const score = scoreDriftReport(checkpoint.report, { totalFrames: ctx.total_frames });
@@ -578,7 +608,7 @@ function scoreCheckpoint(
     budget: checkpoint.budget,
     name: result.specName,
     variant: result.variant,
-    seed,
+    seed: checkpoint.seed,
     status: score.contract_passed ? "pass" : "fail",
     worker_timeout_ms: ctx.worker_timeout_ms,
     elapsed_ms: checkpoint.elapsed_ms,
@@ -595,20 +625,20 @@ function scoreCheckpoint(
 
 function scoreRunResult(
   result: RunResult,
-  seed: number,
-  budgets: number[],
+  seedSlot: number,
+  budgetSeeds: Array<{ budget: number; seed: number }>,
   ctx: ScoreContext,
 ): ScoredRunRow {
   if (result.kind === "timeout" || result.kind === "error") {
     return {
       name: result.specName,
       variant: result.variant,
-      seed,
+      seed: seedSlot,
       elapsed_ms: result.elapsed_ms,
       worker_timeout_ms: ctx.worker_timeout_ms,
       status: result.kind,
       message: result.message,
-      checkpoints: budgets.map((budget) => errorCheckpoint(result, seed, budget, ctx)),
+      checkpoints: budgetSeeds.map(({ budget, seed }) => errorCheckpoint(result, seed, budget, ctx)),
     };
   }
   // Reassemble one checkpoint per budget: a successful compile is scored; a
@@ -616,21 +646,30 @@ function scoreRunResult(
   // so row.checkpoints.length === budgets.length stays invariant.
   const okByBudget = new Map(result.checkpoints.map((c) => [c.budget, c]));
   const failByBudget = new Map(result.budgetFailures.map((f) => [f.budget, f]));
-  const checkpoints = budgets.map((budget) => {
+  const checkpoints = budgetSeeds.map(({ budget, seed }) => {
     const ok = okByBudget.get(budget);
-    if (ok) return scoreCheckpoint(result, ok, seed, ctx);
+    if (ok) return scoreCheckpoint(result, ok, ctx);
     const fail = failByBudget.get(budget);
     const message = fail ? fail.message : "missing checkpoint";
-    return failedCheckpoint(result.specName, result.variant, seed, budget, "error", message, fail?.elapsed_ms ?? 0, ctx);
+    return failedCheckpoint(
+      result.specName,
+      result.variant,
+      fail?.seed ?? seed,
+      budget,
+      "error",
+      message,
+      fail?.elapsed_ms ?? 0,
+      ctx,
+    );
   });
   // Single source of truth: a budget failed iff it has no ok checkpoint. The count and
   // the enumerated list both derive from this, so they can never disagree (covers both
   // thrown failures and any missing-from-both budget).
-  const failedBudgets = budgets.filter((budget) => !okByBudget.has(budget));
+  const failedBudgets = budgetSeeds.map((b) => b.budget).filter((budget) => !okByBudget.has(budget));
   return {
     name: result.specName,
     variant: result.variant,
-    seed,
+    seed: seedSlot,
     // Display-only rollup: total per-budget compile wall-clock for the row, including
     // time burned by budgets that failed before throwing.
     elapsed_ms:
@@ -639,7 +678,7 @@ function scoreRunResult(
     worker_timeout_ms: ctx.worker_timeout_ms,
     status: failedBudgets.length > 0 ? "partial" : "ok",
     message: failedBudgets.length > 0
-      ? `${failedBudgets.length}/${budgets.length} budgets failed: ${failedBudgets.map(fmtBudget).join(",")}`
+      ? `${failedBudgets.length}/${budgetSeeds.length} budgets failed: ${failedBudgets.map(fmtBudget).join(",")}`
       : null,
     checkpoints,
   };
@@ -752,26 +791,33 @@ function suiteScore(rows: ScoredCheckpoint[], keyOf: (row: ScoredCheckpoint) => 
   return shiftedGeometricMean(groupScores(rows, keyOf).map((group) => group.score));
 }
 
-function summarizeBudgets(rows: ScoredRunRow[], budgets: number[]): BudgetSummary[] {
+export function summarizeBudgets(rows: ScoredRunRow[], budgets: number[]): BudgetSummary[] {
   const prevByRow = new Map<string, ScoredCheckpoint>();
   return budgets.map((budget) => {
-    const budgetRows = rowsForBudget(rows, budget);
+    const budgetPairs = rows.map((row) => {
+      const checkpoint = row.checkpoints.find((c) => c.budget === budget);
+      if (checkpoint === undefined) {
+        throw new Error(`${rowId(row)} missing checkpoint for budget ${budget}`);
+      }
+      return { row, checkpoint };
+    });
+    const budgetRows = budgetPairs.map((pair) => pair.checkpoint);
     let changed_tracks = 0;
     let improved_rows = 0;
     let plateau_rows = 0;
     let regressions = 0;
-    for (const row of budgetRows) {
+    for (const { row, checkpoint } of budgetPairs) {
       const id = rowId(row);
       const prev = prevByRow.get(id);
       if (prev !== undefined) {
-        if (prev.track_hash !== null && row.track_hash !== null && prev.track_hash !== row.track_hash) {
+        if (prev.track_hash !== null && checkpoint.track_hash !== null && prev.track_hash !== checkpoint.track_hash) {
           changed_tracks++;
         }
-        if (row.track_hash !== null && row.track_hash === prev.track_hash) plateau_rows++;
-        if (row.score > prev.score + 1e-9) improved_rows++;
-        if (row.score + 1e-9 < prev.score) regressions++;
+        if (checkpoint.track_hash !== null && checkpoint.track_hash === prev.track_hash) plateau_rows++;
+        if (checkpoint.score > prev.score + 1e-9) improved_rows++;
+        if (checkpoint.score + 1e-9 < prev.score) regressions++;
       }
-      prevByRow.set(id, row);
+      prevByRow.set(id, checkpoint);
     }
     const passed = budgetRows.filter((row) => row.status === "pass").length;
     return {
@@ -811,7 +857,7 @@ function formatWorstContacts(spec: ScoredCheckpoint): string | null {
 function printRunRow(row: ScoredRunRow, details: boolean): void {
   const last = row.checkpoints[row.checkpoints.length - 1];
   console.log(
-    `${caseLabel(last).padEnd(32)} seed=${String(row.seed).padEnd(2)} ` +
+    `${caseLabel(last).padEnd(32)} slot=${String(row.seed).padEnd(2)} seed=${String(last.seed).padEnd(2)} ` +
       `${last.status.toUpperCase().padEnd(7)} max=${fmtBudget(last.budget).padStart(4)} ` +
       `score=${last.score.toFixed(0).padStart(4)} valid=${last.contract_passed ? "yes" : "no"} ` +
       `sim=${String(last.compile_stats?.sim_frames ?? 0).padStart(6)} t=${fmtMs(row.elapsed_ms)}`,
@@ -887,7 +933,7 @@ async function runPool<T, R>(
 
 async function runRows(
   cases: SuiteCase[],
-  seeds: number[],
+  seedPolicy: BudgetDisjointSeedPolicy,
   budgets: number[],
   jsonOnly: boolean,
   details: boolean,
@@ -904,17 +950,22 @@ async function runRows(
       contexts.set(key, specContext(spec, budgets, jobs));
     }
   }
-  // Parallelize at the COMPILE level: one task per (seed, spec, budget) so the worker pool stays
-  // full with no per-(spec,seed) tail. Each per-budget compile is independent (the old per-row
-  // worker just looped these), so the per-budget results are regrouped into one row per (seed,
-  // spec) below and the scored output is identical to the per-row model (clean rows byte-identical).
-  const tasks = seeds.flatMap((seed) =>
-    cases.flatMap((testCase) => budgets.map((budget) => ({ seed, testCase, budget }))),
+  // Parallelize at the COMPILE level: one task per (seed slot, spec, budget) so the
+  // worker pool stays full with no per-row tail. Each budget gets its own actual
+  // seed from the disjoint schedule, then results are regrouped by seed slot for
+  // scoring/pairing.
+  const tasks = seedPolicy.seed_slots.flatMap((seedSlot) =>
+    cases.flatMap((testCase) => budgets.map((budget, budgetIndex) => ({
+      seedSlot,
+      actualSeed: actualSeedForBudgetSlot(seedSlot, budgetIndex, seedPolicy.seeds_per_budget),
+      testCase,
+      budget,
+    }))),
   );
   let done = 0;
   const header =
     `${label}: ${tasks.length} compile${tasks.length === 1 ? "" : "s"} ` +
-    `(${seeds.length} seeds × ${cases.length} specs × ${budgets.length} budgets), ` +
+    `(${seedPolicy.seed_slots.length} seed slots × ${cases.length} specs × ${budgets.length} budgets), ` +
     `${Math.min(jobs, tasks.length)} parallel`;
   if (!jsonOnly) {
     console.log(header);
@@ -922,61 +973,69 @@ async function runRows(
     // stdout must stay pure JSON under --json; heartbeat to stderr.
     process.stderr.write(`${header}\n`);
   }
-  const perBudget = await runPool(tasks, jobs, async ({ seed, testCase, budget }) => {
+  const perBudget = await runPool(tasks, jobs, async ({ seedSlot, actualSeed, testCase, budget }) => {
     const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
     const result = await runWithTimeout(
-      testCase, seed, ctx.worker_timeout_ms, [budget], compiler, checkpointDir,
+      testCase, actualSeed, ctx.worker_timeout_ms, [budget], compiler, checkpointDir,
     );
     done++;
     const tag = `  [${String(done).padStart(3)}/${tasks.length}] compiled`;
     if (!jsonOnly) process.stdout.write(`${tag}\n`);
     else process.stderr.write(`\r${tag}`);
-    return { seed, testCase, budget, result };
+    return { seedSlot, actualSeed, testCase, budget, result };
   });
   if (!jsonOnly) console.log("");
   else process.stderr.write("\n");
 
-  // Regroup per-budget results into one row per (seed, spec), in stable seed→spec order
-  // (matching the old task ordering, so golden.json row order is unchanged).
-  const rowKey = (seed: number, c: SuiteCase): string => `${seed} ${c.specName}/${c.variant}`;
+  // Regroup per-budget results into one row per (seed slot, spec), in stable
+  // seed-slot→spec order.
+  const rowKey = (seedSlot: number, c: SuiteCase): string => `${seedSlot}\0${c.specName}/${c.variant}`;
   const groups = new Map<
     string,
-    { seed: number; testCase: SuiteCase; parts: { budget: number; result: RunResult }[] }
+    { seedSlot: number; testCase: SuiteCase; parts: { budget: number; seed: number; result: RunResult }[] }
   >();
-  for (const seed of seeds) {
-    for (const testCase of cases) groups.set(rowKey(seed, testCase), { seed, testCase, parts: [] });
+  for (const seedSlot of seedPolicy.seed_slots) {
+    for (const testCase of cases) groups.set(rowKey(seedSlot, testCase), { seedSlot, testCase, parts: [] });
   }
   for (const pb of perBudget) {
-    groups.get(rowKey(pb.seed, pb.testCase))!.parts.push({ budget: pb.budget, result: pb.result });
+    groups.get(rowKey(pb.seedSlot, pb.testCase))!.parts.push({
+      budget: pb.budget,
+      seed: pb.actualSeed,
+      result: pb.result,
+    });
   }
   const scored: ScoredRunRow[] = [];
-  for (const { seed, testCase, parts } of groups.values()) {
+  for (const { seedSlot, testCase, parts } of groups.values()) {
     const ctx = contexts.get(`${testCase.specName}/${testCase.variant}`)!;
-    const row = scoreRunResult(mergeBudgetResults(testCase, parts), seed, budgets, ctx);
+    const budgetSeeds = budgets.map((budget, budgetIndex) => ({
+      budget,
+      seed: actualSeedForBudgetSlot(seedSlot, budgetIndex, seedPolicy.seeds_per_budget),
+    }));
+    const row = scoreRunResult(mergeBudgetResults(testCase, parts), seedSlot, budgetSeeds, ctx);
     if (!jsonOnly) printRunRow(row, details);
     scored.push(row);
   }
   return scored;
 }
 
-/** Merge per-budget RunResults (one compile each) into a single WorkerOk for one (seed, spec) row,
+/** Merge per-budget RunResults (one compile each) into a single WorkerOk for one seed-slot/spec row,
  *  so scoreRunResult reassembles it exactly as the per-row model did. A per-budget error/timeout
  *  becomes a per-budget failure — the other budgets, compiled in their own workers, survive
  *  (strictly more robust than the old whole-row failure). Clean rows are byte-identical. */
 function mergeBudgetResults(
   testCase: SuiteCase,
-  parts: { budget: number; result: RunResult }[],
+  parts: { budget: number; seed: number; result: RunResult }[],
 ): RunResult {
   let elapsed = 0;
   const checkpoints: WorkerCheckpoint[] = [];
   const budgetFailures: BudgetFailure[] = [];
-  for (const { budget, result } of parts) {
+  for (const { budget, seed, result } of parts) {
     elapsed += result.elapsed_ms;
     if (result.kind === "ok") {
       checkpoints.push(...result.checkpoints);
       budgetFailures.push(...result.budgetFailures);
     } else {
-      budgetFailures.push({ budget, elapsed_ms: result.elapsed_ms, message: result.message });
+      budgetFailures.push({ budget, seed, elapsed_ms: result.elapsed_ms, message: result.message });
     }
   }
   return {
@@ -1115,6 +1174,7 @@ function compactStats(stats: CompileStats | null): object | null {
 function compactJsonCheckpoint(row: ScoredCheckpoint): object {
   return {
     budget: row.budget,
+    seed: row.seed,
     status: row.status,
     score: round(row.score),
     contract_passed: row.contract_passed,
@@ -1186,8 +1246,8 @@ function jsonBudgetSummary(summary: BudgetSummary): object {
   };
 }
 
-function normalizeBudgets(raw: string | null): number[] {
-  const source = raw ?? [...DEFAULT_BUDGETS].join(",");
+function normalizeBudgets(raw: string | null, fallback: readonly number[] = DEFAULT_BUDGETS): number[] {
+  const source = raw ?? [...fallback].join(",");
   // Reuse the canonical comma-split + Number(not parseInt) validator (rejects "50k"
   // loudly instead of silently truncating); golden adds dedup + sort on top.
   const budgets = parseBudgetList(source);
@@ -1200,35 +1260,117 @@ function normalizeBudgets(raw: string | null): number[] {
   return budgets.sort((a, b) => a - b);
 }
 
-function normalizeSeedOverride(raw: string | undefined): number[] | null {
-  if (raw === undefined || raw.trim() === "") return null;
-  const parts = raw.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length === 0) throw new Error("GOLDEN_SEEDS_OVERRIDE must contain at least one seed");
-  const seeds = parts.map((part) => {
-    const value = Math.trunc(Number(part));
-    if (!Number.isFinite(value)) {
-      throw new Error(`GOLDEN_SEEDS_OVERRIDE values must be numbers, got ${part}`);
-    }
-    return value;
-  });
-  const seen = new Set<number>();
-  for (const seed of seeds) {
-    if (seen.has(seed)) throw new Error(`GOLDEN_SEEDS_OVERRIDE contains duplicate seed ${seed}`);
-    seen.add(seed);
-  }
-  return seeds;
-}
-
 function sameBudgets(a: readonly number[], b: readonly number[]): boolean {
   return a.length === b.length && a.every((budget, i) => budget === b[i]);
 }
 
+const PRESET_JOBS = 32;
+
+type GoldenRunMode = "full" | "probe";
+
+export type ResolvedGoldenRunConfig = {
+  mode: GoldenRunMode;
+  budgets: number[];
+  seedPolicy: BudgetDisjointSeedPolicy;
+  jobs: number;
+  canonical: boolean;
+  tier: "canonical" | "probe";
+};
+
+function parseSafeInteger(raw: string, label: string): number {
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value)) {
+    throw new Error(`${label} must be a safe integer, got ${raw}`);
+  }
+  return value;
+}
+
+function parsePositiveInteger(raw: string, label: string): number {
+  const value = parseSafeInteger(raw, label);
+  if (value < 1) throw new Error(`${label} must be a positive integer, got ${raw}`);
+  return value;
+}
+
+export function resolveGoldenRunConfig(
+  argv: readonly string[],
+  env: Record<string, string | undefined> = process.env,
+): ResolvedGoldenRunConfig {
+  const fullMode = hasArg(argv, "full");
+  const probeMode = hasArg(argv, "probe");
+  if (fullMode && probeMode) {
+    throw new Error("use either --full or --probe, not both");
+  }
+  if ((env.GOLDEN_SEEDS_OVERRIDE ?? "").trim() !== "") {
+    throw new Error(
+      "GOLDEN_SEEDS_OVERRIDE is removed: use --seed=N for one seed slot, " +
+        "or --seed-base=N --seed-count=M for disjoint per-budget seed blocks.",
+    );
+  }
+
+  const mode: GoldenRunMode = probeMode ? "probe" : "full";
+  const presetBudgets = mode === "probe" ? PROBE_BUDGETS : DEFAULT_BUDGETS;
+  const presetSeedsPerBudget = mode === "probe" ? PROBE_SEEDS_PER_BUDGET : FULL_SEEDS_PER_BUDGET;
+  const budgets = normalizeBudgets(argFrom(argv, "budgets"), presetBudgets);
+
+  const rawSeed = argFrom(argv, "seed");
+  const rawSeedBase = argFrom(argv, "seed-base");
+  const rawSeedCount = argFrom(argv, "seed-count");
+  if (rawSeed !== null && (rawSeedBase !== null || rawSeedCount !== null)) {
+    throw new Error("use either --seed or --seed-base/--seed-count, not both");
+  }
+
+  let seedBase = 0;
+  let seedsPerBudget = presetSeedsPerBudget;
+  if (rawSeed !== null) {
+    seedBase = parseSafeInteger(rawSeed, "--seed");
+    seedsPerBudget = 1;
+  } else {
+    if (rawSeedBase !== null) seedBase = parseSafeInteger(rawSeedBase, "--seed-base");
+    if (rawSeedCount !== null) seedsPerBudget = parsePositiveInteger(rawSeedCount, "--seed-count");
+  }
+
+  const rawJobs = argFrom(argv, "jobs");
+  const jobs = rawJobs !== null ? parsePositiveInteger(rawJobs, "--jobs") : PRESET_JOBS;
+  const seedPolicy = budgetSeedSchedule(budgets, seedBase, seedsPerBudget);
+  if (seedPolicy.kind !== BUDGET_DISJOINT_SEED_POLICY_KIND) {
+    throw new Error(`internal error: unexpected seed policy ${seedPolicy.kind}`);
+  }
+
+  const canonical =
+    mode === "full" &&
+    argFrom(argv, "specs") === null &&
+    sameBudgets(budgets, DEFAULT_BUDGETS) &&
+    seedBase === 0 &&
+    seedsPerBudget === FULL_SEEDS_PER_BUDGET;
+
+  return {
+    mode,
+    budgets,
+    seedPolicy,
+    jobs,
+    canonical,
+    tier: canonical ? "canonical" : "probe",
+  };
+}
+
+function ensureWasmEngine(): void {
+  const engine = process.env.LR_ENGINE;
+  if (engine === undefined || engine === "") {
+    process.env.LR_ENGINE = "wasm";
+    return;
+  }
+  if (engine !== "wasm") {
+    throw new Error(`golden full/probe runs require LR_ENGINE=wasm, got LR_ENGINE=${engine}`);
+  }
+}
+
 async function runMain(): Promise<void> {
+  const argv = process.argv.slice(2);
   if (arg("budget") !== null) {
     throw new Error("--budget has been removed from golden; use --budgets=50000");
   }
   if (has("fast")) {
-    throw new Error("--fast has been removed from golden; use --specs, --seed, and --budgets for targeted probes");
+    throw new Error("--fast has been removed from golden; use --probe for the normalized probe suite");
   }
   if (has("screen")) {
     throw new Error("--screen has been removed from golden; use tiny probes or full canonical runs");
@@ -1240,25 +1382,17 @@ async function runMain(): Promise<void> {
   if (arg("score-budgets") !== null || arg("alpha") !== null) {
     throw new Error("--score-budgets/--alpha are removed: the headline is the budget-value-weighted average over the run's budgets");
   }
+  const config = resolveGoldenRunConfig(argv);
+  ensureWasmEngine();
   const jsonOnly = has("json") || has("json-full");
   const details = has("details") || has("json-full");
   const includeVariants = has("variants");
   const source = gitMetadata();
   const archiveDir = resolve(arg("archive-dir") ?? defaultArchiveDir());
   const checkpointDir = resolve(archiveDir, "checkpoints");
-  const budgets = normalizeBudgets(arg("budgets"));
+  const budgets = config.budgets;
   // The headline scores over ALL of the run's budgets, weighted by budget value.
   const weightByBudget = budgetWeights(budgets);
-
-  const rawSeed = arg("seed");
-  const debugSeed = rawSeed !== null ? Math.trunc(Number(rawSeed)) : null;
-  if (rawSeed !== null && !Number.isFinite(debugSeed)) {
-    throw new Error(`--seed must be a number, got ${rawSeed}`);
-  }
-  const seedOverride = normalizeSeedOverride(process.env.GOLDEN_SEEDS_OVERRIDE);
-  if (seedOverride !== null && rawSeed !== null) {
-    throw new Error("use either --seed or GOLDEN_SEEDS_OVERRIDE, not both");
-  }
 
   const rawCompiler = arg("compiler");
   let compiler: CompilerName = "handoff";
@@ -1269,13 +1403,10 @@ async function runMain(): Promise<void> {
     compiler = rawCompiler;
   }
 
-  const rawJobs = arg("jobs");
-  if (rawJobs !== null && (!Number.isInteger(Number(rawJobs)) || Number(rawJobs) < 1)) {
-    throw new Error(`--jobs must be a positive integer, got ${rawJobs}`);
-  }
-  const jobs = rawJobs !== null ? Number(rawJobs) : DEFAULT_JOBS;
+  const jobs = config.jobs;
 
-  const seeds = seedOverride ?? (debugSeed !== null ? [debugSeed] : [...GOLDEN_SEEDS]);
+  const seedPolicy = config.seedPolicy;
+  const seedSlots = seedPolicy.seed_slots;
   const specFilter = arg("specs");
   const filterSet = specFilter ? new Set(specFilter.split(",").filter(Boolean)) : null;
   const keep = (c: SuiteCase) => filterSet === null || filterSet.has(c.specName);
@@ -1294,14 +1425,10 @@ async function runMain(): Promise<void> {
   const headline = [...headlineFiltered, ...extraCases];
   const variants = variantCases().filter(keep);
 
-  const canonical =
-    filterSet === null &&
-    debugSeed === null &&
-    seedOverride === null &&
-    sameBudgets(budgets, DEFAULT_BUDGETS);
-  // A non-canonical run is a lower-power preview: comparable via `decide` on the
-  // shared budgets/seeds, but never promotable on its own.
-  const tier: "canonical" | "probe" = canonical ? "canonical" : "probe";
+  const canonical = config.canonical && filterSet === null;
+  // A non-canonical run is a lower-power preview: comparable via `decide` only
+  // against an archive with the same seed policy, and never promotable on its own.
+  const tier = canonical ? "canonical" : config.tier;
 
   if (!jsonOnly) {
     const fp = evaluatorFingerprint();
@@ -1320,23 +1447,27 @@ async function runMain(): Promise<void> {
           `${compiler !== "handoff" ? `compiler=${compiler} ` : ""}` +
           `budgets=${budgets.join(",")} ` +
           `${filterSet ? `specs=${[...filterSet].join(",")} ` : ""}` +
-          `${debugSeed !== null ? `seed=${debugSeed}` : ""}`.trim(),
+          `seed_base=${seedPolicy.seed_base} seed_count=${seedPolicy.seeds_per_budget}`.trim(),
       );
     }
     console.log(`archive: ${archiveDir}`);
     console.log(`checkpoint artifacts: ${checkpointDir}`);
     console.log(
       `v0 golden budget curve · ${headline.length} spec${headline.length === 1 ? "" : "s"} × ` +
-        `${seeds.length} seed${seeds.length === 1 ? "" : "s"} × ${budgets.length} budgets · ` +
+        `${seedSlots.length} seed slot${seedSlots.length === 1 ? "" : "s"} × ${budgets.length} budgets · ` +
         `jobs=${jobs} · compiler=${compiler} · budgets=${budgets.map(fmtBudget).join(",")} · ` +
-        `seeds=${seeds.join(",")}`,
+        `seed_slots=${seedSlots.join(",")}`,
+    );
+    console.log(
+      `seed policy: ${seedPolicy.kind} · ` +
+        seedPolicy.budget_seeds.map((entry) => `${fmtBudget(entry.budget)}=${entry.seeds.join(",")}`).join(" · "),
     );
     console.log("");
   }
 
   const scored = await runRows(
     headline,
-    seeds,
+    seedPolicy,
     budgets,
     jsonOnly,
     details,
@@ -1365,7 +1496,7 @@ async function runMain(): Promise<void> {
     }
     variantRows = await runRows(
       variants,
-      seeds,
+      seedPolicy,
       budgets,
       jsonOnly,
       details,
@@ -1394,7 +1525,7 @@ async function runMain(): Promise<void> {
     headline: {
       kind: "weighted_budget_average",
       tier,
-      n_seeds: seeds.length,
+      n_seeds: seedPolicy.seeds_per_budget,
       score: round(headlineScoreValue),
       // Indicative: the same tracks scored with the impact axis removed from
       // axis_quality (other-axis quality only). Does NOT gate any decision.
@@ -1404,6 +1535,7 @@ async function runMain(): Promise<void> {
       // Per-budget validity is a diagnostic; it does not gate the decision.
       validity: headlineSummaries.map((s) => ({ budget: s.budget, pass_rate: round(s.contract_pass_rate, 4) })),
     },
+    seed_policy: seedPolicy,
     budgets,
     scoring: {
       axis_quality_tolerance: AXIS_QUALITY_TOLERANCE,
@@ -1416,8 +1548,10 @@ async function runMain(): Promise<void> {
     },
     scope: {
       headline_specs: headline.length,
-      seeds,
-      seed_count: seeds.length,
+      seed_slots: seedSlots,
+      seeds: seedSlots,
+      seed_count: seedSlots.length,
+      actual_seed_count: seedPolicy.budget_seeds.reduce((sum, entry) => sum + entry.seeds.length, 0),
       row_count: scored.length,
       checkpoint_count: flattenCheckpoints(scored).length,
     },

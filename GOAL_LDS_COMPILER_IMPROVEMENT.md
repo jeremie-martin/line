@@ -8,15 +8,17 @@
 >   and `logAUC` are reported **secondaries only**, not the decision scalar.
 > - **Runs are independent per budget.** Passing N budgets means **N full runs from
 >   scratch** — there is no anytime/shared-checkpoint mode. The budget is an input.
-> - **Canonical decision:** 40 specs × 12 seeds `{0..11}` × budgets
->   `{125,250,375,500}k`, judged by `npm run decide`.
+> - **Canonical decision:** 40 specs × 12 seed slots × budgets
+>   `{75,150,225,350,475,550}k`, judged by `npm run decide`. Actual seeds are
+>   disjoint per budget: `0..11`, `12..23`, `24..35`, `36..47`, `48..59`, `60..71`.
 > - **Engine:** use `LR_ENGINE=wasm` for compiler, benchmark, verification, and
 >   performance commands that run physics. Pure analyzers such as `npm run decide`
 >   do not need it.
-> - **Jobs:** use `--jobs=32` for golden runs.
+> - **Jobs:** golden `--full` and `--probe` default to `--jobs=32`.
 > - **Promotion gate:** a **canonical-tier** `VERDICT: ACCEPT` — a standard one-sided
->   significance test at α=0.05 on the paired bootstrap (`P(Δ≤0) < 0.05`). There is no
->   separate absolute-`Δ` floor — significance is the bar, and it self-widens at 12 seeds.
+>   significance test at the current paired-bootstrap gate (`P(Δ≤0)` below the
+>   configured threshold). There is no
+>   separate absolute-`Δ` floor — significance is the bar, and it self-widens at 12 seed slots.
 
 ## Objective
 
@@ -47,11 +49,11 @@ Keep/promote a change only when:
 - `decide` prints `VERDICT: ACCEPT` on a **canonical-tier** comparison. ACCEPT is a
   standard one-sided significance test at α=0.05 on the paired bootstrap
   (`P(Δ≤0) < 0.05`); there is no separate absolute-`Δ` floor;
-- the mechanism is generic, deterministic per `(spec, seed, budget)`, and not keyed to
+- the mechanism is generic, deterministic per `(spec, actual seed, budget)`, and not keyed to
   the benchmark specs.
 
 Validity (`contract_passed`) is **reported as a diagnostic, never a gate**: an invalid
-run already scores ~0, and the per-budget 12-seed aggregation folds that into the
+run already scores ~0, and the per-budget 12-slot aggregation folds that into the
 score, so a separate veto is redundant. Watch the reported per-budget validity rates,
 but the decision is the weighted-average score delta alone.
 
@@ -62,8 +64,9 @@ deliberate ruler/scope change.
 ## Run Workflow
 
 Use normal full canonical runs for this campaign. A canonical run is the full
-40-spec × 12-seed × `{125,250,375,500}k` budget grid, launched with
-`LR_ENGINE=wasm` and `--jobs=32`, with no spec, seed, or budget overrides.
+40-spec × 12-seed-slot × `{75,150,225,350,475,550}k` budget grid, launched with
+`npm run golden -- --full`; the preset uses `LR_ENGINE=wasm`, `--jobs=32`, and
+the disjoint per-budget seed policy, with no spec, seed, or budget overrides.
 
 Give every baseline and candidate a clear archive label so attempts stay identifiable
 in `generated/golden-runs/` and in the dashboard. The label is the archive directory
@@ -73,13 +76,13 @@ only by comparing canonical `golden.json` archives with `npm run decide`.**
 
 ```bash
 # Current baseline of record, only when a fresh baseline is needed.
-LR_ENGINE=wasm npm run golden -- \
-  --jobs=32 \
+npm run golden -- \
+  --full \
   --archive-dir=generated/golden-runs/<baseline-label>
 
 # Candidate attempt: the normal full canonical run for a mechanism.
-LR_ENGINE=wasm npm run golden -- \
-  --jobs=32 \
+npm run golden -- \
+  --full \
   --archive-dir=generated/golden-runs/<attempt-label>
 
 # Decision against the current baseline of record.
@@ -106,7 +109,7 @@ LR_ENGINE=wasm npm run verify
 
 ## Rules That Must Not Move
 
-- The search must be **deterministic per `(spec, seed, budget)`** — the same inputs
+- The search must be **deterministic per `(spec, actual seed, budget)`** — the same inputs
   produce a byte-identical Track. (It may read the budget; it must not read wall-clock.)
 - No spec-name branches, no thresholds that identify the test suite indirectly, and no
   logic tuned to a single seed, budget, or known fragile row. Tuning to the *canonical
@@ -143,6 +146,6 @@ Read the `headline` block first: `score`, `tier`, `weight_by_budget`, the per-bu
 
 Do not trust an eyeballed HEADLINE delta. The metric rationale in
 `docs/metric_problem_statement.md` (historical) shows why paired comparisons matter and
-how seed count trades against resolvable effect size (24 seeds resolve ~5-point gains;
-the current 12-seed population is lower-power by design, for the high-gain phase, with
+how seed count trades against resolvable effect size (24 seed slots resolve ~5-point gains;
+the current 12-slot population is lower-power by design, for the high-gain phase, with
 the bootstrap CI widening to match).

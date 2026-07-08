@@ -33,17 +33,37 @@ function headlineBlock(
 
 /** Minimal golden archive sufficient for `analyze_golden_curve.ts decide`. */
 type ArchiveOpts = { budgets?: number[]; headline?: unknown | null; score?: number };
+function seedPolicy(budgets: number[], seedSlots = [0]): unknown {
+  return {
+    kind: "budget_disjoint_contiguous",
+    seed_base: seedSlots[0] ?? 0,
+    seeds_per_budget: seedSlots.length,
+    seed_slots: seedSlots,
+    budget_seeds: budgets.map((budget, budgetIndex) => ({
+      budget,
+      seeds: seedSlots.map((seed) => seed + budgetIndex * seedSlots.length),
+    })),
+  };
+}
+
 function archive(seed: number, fingerprint = "fp_aaaa", opts: ArchiveOpts = {}): unknown {
   const budgets = opts.budgets ?? [50_000, 150_000];
   const score = opts.score ?? 300;
-  const ck = (budget: number, score: number) => ({ budget, status: "pass", score, contract_passed: true });
+  const ck = (budget: number, score: number, budgetIndex: number) => ({
+    budget,
+    seed: seed + budgetIndex,
+    status: "pass",
+    score,
+    contract_passed: true,
+  });
   const a: Record<string, unknown> = {
     evaluator_fingerprint: fingerprint,
     curve_score: 0,
     budgets,
+    seed_policy: seedPolicy(budgets, [seed]),
     budget_scores: budgets.map((b) => ({ budget: b, score, passed: 1, total: 1 })),
-    scope: { seeds: [seed] },
-    rows: [{ name: "spec_a", seed, variant: "base", checkpoints: budgets.map((b) => ck(b, score)) }],
+    scope: { seed_slots: [seed], seeds: [seed] },
+    rows: [{ name: "spec_a", seed, variant: "base", checkpoints: budgets.map((b, i) => ck(b, score, i)) }],
   };
   // Default to a valid weighted-average headline; opts.headline overrides, and
   // `null` simulates a legacy archive that predates the metric (no headline block).
@@ -90,13 +110,13 @@ describe("decide scope guard (cannot silently compare incomparable archives)", (
     expect(out(r)).not.toContain("VERDICT");
   });
 
-  test("refuses on no overlapping seeds instead of reporting 'inconclusive'", () => {
+  test("refuses on no overlapping seed slots instead of reporting 'inconclusive'", () => {
     const cand = write(archive(0));
     const base = write(archive(100));
     const r = decide([cand, base]);
     expect(r.status).not.toBe(0);
     expect(out(r)).toContain("REFUSING");
-    expect(out(r)).toContain("no overlapping seeds");
+    expect(out(r)).toContain("no overlapping seed slots");
     expect(out(r)).not.toContain("VERDICT");
   });
 
@@ -183,27 +203,44 @@ describe("decide scope guard (cannot silently compare incomparable archives)", (
     expect(out(r)).toContain("non-promotable");
   });
 
-  test("different budget grids (same specs/seeds) are non-canonical, not refused", () => {
+  test("refuses an archive without the new seed policy", () => {
+    const cand = archive(0) as Record<string, unknown>;
+    delete cand.seed_policy;
+    const base = write(archive(0));
+    const r = decide([write(cand), base]);
+    expect(r.status).not.toBe(0);
+    expect(out(r)).toContain("seed policy");
+    expect(out(r)).not.toContain("VERDICT");
+  });
+
+  test("refuses different budget grids because the budget-indexed seed policy differs", () => {
     const cand = write(archive(0, "fp_aaaa", { budgets: [50_000, 100_000, 150_000] }));
     const base = write(archive(0, "fp_aaaa", { budgets: [50_000, 150_000] }));
     const r = decide([cand, base]);
-    expect(r.status).toBe(0); // overlap exists -> not refused
-    expect(out(r)).toContain("non-canonical");
-    expect(out(r)).toContain("VERDICT");
+    expect(r.status).not.toBe(0);
+    expect(out(r)).toContain("different budget seed policies");
+    expect(out(r)).not.toContain("VERDICT");
   });
 
-  test("reports headline values on the paired intersection, not archive-wide budget_scores", () => {
+  test("refuses seed-count subsets because the seed policy differs", () => {
     const budgets = [50_000, 150_000];
-    const checkpoints = (score: number) => budgets.map((budget) => ({ budget, status: "pass", score, contract_passed: true }));
+    const checkpoints = (score: number, seed: number) => budgets.map((budget, budgetIndex) => ({
+      budget,
+      seed: seed + budgetIndex * 2,
+      status: "pass",
+      score,
+      contract_passed: true,
+    }));
     const base = write({
       evaluator_fingerprint: "fp_aaaa",
       curve_score: 0,
       budgets,
+      seed_policy: seedPolicy(budgets, [0, 1]),
       budget_scores: budgets.map((budget) => ({ budget, score: 500, passed: 2, total: 2 })),
-      scope: { seeds: [0, 1] },
+      scope: { seed_slots: [0, 1], seeds: [0, 1] },
       rows: [
-        { name: "spec_a", seed: 0, variant: "base", checkpoints: checkpoints(100) },
-        { name: "spec_a", seed: 1, variant: "base", checkpoints: checkpoints(900) },
+        { name: "spec_a", seed: 0, variant: "base", checkpoints: checkpoints(100, 0) },
+        { name: "spec_a", seed: 1, variant: "base", checkpoints: checkpoints(900, 1) },
       ],
       headline: headlineBlock(budgets),
     });
@@ -211,19 +248,16 @@ describe("decide scope guard (cannot silently compare incomparable archives)", (
       evaluator_fingerprint: "fp_aaaa",
       curve_score: 0,
       budgets,
+      seed_policy: seedPolicy(budgets, [0]),
       budget_scores: budgets.map((budget) => ({ budget, score: 999, passed: 1, total: 1 })),
-      scope: { seeds: [0] },
-      rows: [{ name: "spec_a", seed: 0, variant: "base", checkpoints: checkpoints(120) }],
+      scope: { seed_slots: [0], seeds: [0] },
+      rows: [{ name: "spec_a", seed: 0, variant: "base", checkpoints: checkpoints(120, 0) }],
       headline: headlineBlock(budgets, "probe"),
     });
 
     const r = decide([cand, base]);
 
-    expect(r.status).toBe(0);
-    expect(out(r)).toContain("headline: baseline 100.0 -> candidate 120.0");
-    expect(out(r)).toContain("Δheadline = +20.0");
-    expect(out(r)).toContain("paired intersection");
-    expect(out(r)).not.toContain("baseline 500.0");
-    expect(out(r)).not.toContain("candidate 999.0");
+    expect(r.status).not.toBe(0);
+    expect(out(r)).toContain("different budget seed policies");
   });
 });

@@ -6,15 +6,15 @@ numbers from the golden JSON. Do not transcribe scores by hand.
 ## 1. Run the curve and capture JSON
 
 ```bash
-# Full canonical run = 40 specs × 12 seeds × budgets {125,250,375,500}k
-# (each budget is an independent run).
-LR_ENGINE=wasm npm run golden -- --jobs 32 --archive-dir=generated/golden-runs/rebaseline
+# Full canonical run = 40 specs × 12 seed slots × budgets {75,150,225,350,475,550}k
+# with disjoint per-budget actual seeds. Each budget is an independent run.
+npm run golden -- --full --archive-dir=generated/golden-runs/rebaseline
 ```
 
 The JSON contains the `headline` block (`kind`, `tier`, `score`, `weight_by_budget`,
-`budgets`, `validity`) — the **baseline of record** — plus `budget_scores`,
-`evaluator_fingerprint`, `source` git metadata, `scope`, and checkpoint rows with
-compact stats and track hashes. The run writes
+`budgets`, `validity`) — the **baseline of record** — plus `seed_policy`,
+`budget_scores`, `evaluator_fingerprint`, `source` git metadata, `scope`, and
+checkpoint rows with compact stats, actual seeds, and track hashes. The run writes
 `generated/golden-runs/rebaseline/golden.json` and
 checkpoint track/report artifacts under `generated/golden-runs/rebaseline/checkpoints/`.
 
@@ -44,13 +44,12 @@ when it differs from the committed constant.
 - Changes to the scorer, speed ruler, axis measurement/report assembly, or any
   golden spec are deliberate ruler changes. Update the constant in the same
   commit; scores before and after are not comparable.
-- Changing `GOLDEN_SEEDS`, `DEFAULT_BUDGETS`, the budget weights, or the headline
-  aggregation (`metric.ts`) does NOT change the fingerprint (it hashes the per-run
-  ruler + golden specs only). It does change what a "canonical run" is, so re-baseline
-  the recorded numbers — and `decide` will refuse to compare archives whose
-  fingerprint differs, whose budget weighting differs, or that predate the
-  weighted-average metric (no `headline.kind`), so a stale baseline fails loudly
-  rather than silently.
+- Changing seed slots, `DEFAULT_BUDGETS`, the budget weights, seed policy, or the
+  headline aggregation (`metric.ts`) does NOT change the fingerprint (it hashes the
+  per-run ruler + golden specs only). It does change what a "canonical run" is, so
+  re-baseline the recorded numbers — and `decide` will refuse to compare archives
+  whose fingerprint differs, whose budget weighting differs, whose seed policy
+  differs, or that predate the weighted-average metric / seed-policy metadata.
 
 Recompute without a full run using the same source slices as
 `scripts/v0/golden.ts`:

@@ -14,29 +14,34 @@ campaign doc for whatever you're improving. The doc map is `docs/README.md`.
 ## How to run
 
 Each budget is an **independent full run** (no anytime/shared checkpoints): passing N
-budgets runs N compiles per (spec, seed). Two tiers, cheap → authoritative:
+budgets runs N compiles per (spec, seed slot). Each budget gets a disjoint actual seed
+block, recorded in `seed_policy`. Two tiers, cheap → authoritative:
 
-1. **probe** — fast iteration, **not a decision basis**. A lower-power preview in the
-   same score space (the fast-probe budget endpoints + a few seeds), comparable to
-   canonical via `decide` on the shared specs/seeds/budgets; archives are `tier:"probe"`
-   and non-promotable:
-
-   ```bash
-   LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- \
-     --specs=tiny_dance,opening_burst \
-     --budgets=125000,500000 \
-     --jobs=32
-   ```
-
-2. **canonical** — 40 headline specs × 12 seeds × budgets `{125,250,375,500}k`;
-   the **only promotable basis**:
+1. **probe** — fast iteration, **not a promotion basis**. Runs 40 specs × 6 seed
+   slots × budgets `{75,200,500}k`, with disjoint actual seed blocks
+   `{0..5}`, `{6..11}`, `{12..17}`. Compare probe archives only against probe
+   baselines with the same seed policy; archives are `tier:"probe"` and
+   non-promotable:
 
    ```bash
-   LR_ENGINE=wasm npm run golden -- --jobs=32
+   npm run golden -- --probe --archive-dir=generated/golden-runs/<probe-label>
    ```
 
-- **Jobs:** use `--jobs=32` unless you deliberately need a different worker count.
-  Very high job counts can OOM (~1 GB/worker).
+2. **full/canonical** — 40 headline specs × 12 seed slots × budgets
+   `{75,150,225,350,475,550}k`, with disjoint actual seed blocks
+   `{0..11}`, `{12..23}`, `{24..35}`, `{36..47}`, `{48..59}`, `{60..71}`.
+   This is the **only promotable basis**:
+
+   ```bash
+   npm run golden -- --full --archive-dir=generated/golden-runs/<attempt-label>
+   ```
+
+- **Jobs/engine:** `--full` and `--probe` default to `--jobs=32` and set
+  `LR_ENGINE=wasm` when it is not already set. A non-`wasm` `LR_ENGINE` fails
+  loudly for golden runs.
+- **Custom studies:** use `--seed=N` for one seed slot, or
+  `--seed-base=N --seed-count=M` for disjoint per-budget blocks. The old
+  `GOLDEN_SEEDS_OVERRIDE` reused seeds across budgets and is no longer accepted.
 - **Baseline reuse:** the baseline is produced **once and reused**. For each idea, run
   only the *candidate*, then `decide` it against the committed baseline — do **not**
   re-run the baseline per candidate. There is intentionally no "two configs in one run"
@@ -58,15 +63,16 @@ standard one-sided α=0.10 (`P(Δ≤0) < 0.10`); **reject** iff `P(Δ≥0) < 0.1
 inconclusive. (The 95% CI is reported for context but does not define the verdict.)
 The HEADLINE is the budget-value-weighted average of the per-budget suite scores;
 validity is **reported per budget but never gates** (an invalid run already scores ~0).
-`decide` recomputes both sides on the shared budgets, so a `probe`-tier or
-fewer-seed archive still produces a valid paired comparison — just **indicative /
-non-promotable** (and `decide` labels it so). It **refuses** legacy (pre-weighted-average)
-archives and never compares raw scalars across different budget grids. The metric and
-ruler live in [`docs/compiler_goals.md`](compiler_goals.md); the implementation is
+`decide` requires matching evaluator fingerprint, budget weighting, and
+`seed_policy`. Probe-vs-probe comparisons are indicative/non-promotable, and full-vs-full
+comparisons are promotable when canonical. It **refuses** legacy
+(pre-weighted-average or pre-seed-policy) archives and never compares raw scalars
+across different budget grids. The metric and ruler live in
+[`docs/compiler_goals.md`](compiler_goals.md); the implementation is
 `scripts/v0/metric.ts` + `scripts/v0/analyze_golden_curve.ts`. A raw score delta is not
 an acceptance rule; the active compiler campaign adds a promotion threshold after
-`decide`. On a positive-but-inconclusive result, `decide` prints how many more seeds
-would resolve it. Statistical rationale (noise floor, seed counts):
+`decide`. On a positive-but-inconclusive result, `decide` prints how many more seed
+slots would resolve it. Statistical rationale (noise floor, seed counts):
 [`docs/metric_problem_statement.md`](metric_problem_statement.md).
 
 ## Current baseline (of record)
@@ -76,11 +82,9 @@ The baseline of record is the **generated** [`docs/handoff-compiler.html`](hando
 hand-transcribe scores. Procedure: [`docs/REBASELINE.md`](REBASELINE.md).
 
 - Evaluator fingerprint: **`de24a421f751`** (`scripts/v0/golden_suite.ts`).
-- Current baseline: `generated/golden-runs/attempt-opening-structural-best-j32-a01/golden.json`,
-  canonical HEADLINE **679.89** (`HEADLINE excl. impact` 696.05), valid 1920/1920.
-  Per-budget scores: 125k 666.46, 250k 675.16, 375k 679.97, 500k 683.29.
-  This supersedes `baseline-current-unified-14edc74-j32` after the accepted
-  low-slack traversal branch-2 candidate.
+- Current baseline: **pending re-baseline on the new full grid/seed policy**. Old
+  `{125,250,375,500}k` archives predate `seed_policy` and are intentionally not
+  comparable to new `--full` runs.
 
 ## Active campaigns
 

@@ -67,36 +67,95 @@ export const REPORT_VARIANTS = [
   "time_stretch_102",
 ] as const;
 
-// 12 seeds: a deliberately lower-power population for the high-gain budget-aware
-// phase, where expected effects are large and golden-run cost (sum of budgets per
-// (spec,seed)) is the iteration bottleneck. The measured noise floor
-// (docs/metric_problem_statement.md) shows 3 is under-powered (~14-pt min detectable
-// paired delta), ~8 resolves ~10-pt gains, and ~24 resolves ~5-pt gains; 12 sits
-// between, and the paired bootstrap CI self-widens to match — so the verdict stays
-// honest, just less sensitive to small deltas. Restore 24 (0..23) when chasing
-// fine-grained gains. Decisions are paired, so the old {100,101,102} lineage is not
-// load-bearing. GOLDEN_SEEDS_OVERRIDE still allows cheap smoke runs during iteration.
+// Canonical seed slots. Each slot expands to a different actual seed per budget
+// (`actualSeed = seedSlot + budgetIndex * seedsPerBudget`), so the benchmark never
+// reuses one random stream across budget rungs.
 export const GOLDEN_SEEDS = [
   0, 1, 2, 3, 4, 5,
   6, 7, 8, 9, 10, 11,
+] as const;
+
+export const PROBE_SEEDS = [
+  0, 1, 2, 3, 4, 5,
 ] as const;
 
 /** Canonical budget grid, in simulated rider frames (the honest work unit; see
  * `optimizer/sim_frames.ts`). Each budget is an INDEPENDENT full run from scratch
  * (no anytime sharing) — passing N budgets means N runs. This grid is a fixed
  * ESTIMATOR for a wider budget distribution, not "the only budgets we care about".
- * The 100k/200k/300k grid was retired 2026-06-24 to reduce overfitting to the old
- * score surface and to make high-budget payoff visible in the default decision.
  * NOTE: changing this redefines what a "canonical run" is, but does NOT affect
  * EVALUATOR_FINGERPRINT (which hashes the per-run ruler, not the budget grid) — so
  * a grid change still requires a fresh, like-with-like baseline. */
-export const DEFAULT_BUDGETS: readonly number[] = [125_000, 250_000, 375_000, 500_000];
+export const DEFAULT_BUDGETS: readonly number[] = [
+  75_000,
+  150_000,
+  225_000,
+  350_000,
+  475_000,
+  550_000,
+];
 
-/** Fast-probe grid: a cheap, lower-power PREVIEW of the canonical decision in the
- * same score space — a strict subset of the canonical budgets (the endpoints), so
- * `decide` can pair it against canonical on the shared budgets. Fewer seeds/budgets
- * costs statistical power (wider CI), not comparability. */
-export const FAST_PROBE_BUDGETS: readonly number[] = [125_000, 500_000];
+/** Probe grid: a normalized, lower-power preview. It is intentionally not a
+ * canonical promotion gate; compare probe archives against probe baselines. */
+export const FAST_PROBE_BUDGETS: readonly number[] = [75_000, 200_000, 500_000];
+export const PROBE_BUDGETS = FAST_PROBE_BUDGETS;
+
+export const FULL_SEEDS_PER_BUDGET = GOLDEN_SEEDS.length;
+export const PROBE_SEEDS_PER_BUDGET = PROBE_SEEDS.length;
+export const BUDGET_DISJOINT_SEED_POLICY_KIND = "budget_disjoint_contiguous" as const;
+
+export type BudgetDisjointSeedPolicy = {
+  kind: typeof BUDGET_DISJOINT_SEED_POLICY_KIND;
+  seed_base: number;
+  seeds_per_budget: number;
+  seed_slots: number[];
+  budget_seeds: Array<{ budget: number; seeds: number[] }>;
+};
+
+export function seedSlots(seedBase: number, seedsPerBudget: number): number[] {
+  if (!Number.isSafeInteger(seedBase)) {
+    throw new Error(`seed base must be a safe integer, got ${seedBase}`);
+  }
+  if (!Number.isSafeInteger(seedsPerBudget) || seedsPerBudget < 1) {
+    throw new Error(`seeds per budget must be a positive safe integer, got ${seedsPerBudget}`);
+  }
+  return Array.from({ length: seedsPerBudget }, (_, i) => seedBase + i);
+}
+
+export function actualSeedForBudgetSlot(
+  seedSlot: number,
+  budgetIndex: number,
+  seedsPerBudget: number,
+): number {
+  if (!Number.isSafeInteger(seedSlot)) {
+    throw new Error(`seed slot must be a safe integer, got ${seedSlot}`);
+  }
+  if (!Number.isSafeInteger(budgetIndex) || budgetIndex < 0) {
+    throw new Error(`budget index must be a non-negative safe integer, got ${budgetIndex}`);
+  }
+  if (!Number.isSafeInteger(seedsPerBudget) || seedsPerBudget < 1) {
+    throw new Error(`seeds per budget must be a positive safe integer, got ${seedsPerBudget}`);
+  }
+  return seedSlot + budgetIndex * seedsPerBudget;
+}
+
+export function budgetSeedSchedule(
+  budgets: readonly number[],
+  seedBase: number,
+  seedsPerBudget: number,
+): BudgetDisjointSeedPolicy {
+  const slots = seedSlots(seedBase, seedsPerBudget);
+  return {
+    kind: BUDGET_DISJOINT_SEED_POLICY_KIND,
+    seed_base: seedBase,
+    seeds_per_budget: seedsPerBudget,
+    seed_slots: slots,
+    budget_seeds: budgets.map((budget, budgetIndex) => ({
+      budget,
+      seeds: slots.map((slot) => actualSeedForBudgetSlot(slot, budgetIndex, seedsPerBudget)),
+    })),
+  };
+}
 
 /** Headline decision weights, keyed by budget and proportional to budget value
  * (higher-quality expensive runs matter more; lower budgets still count). Stored
@@ -145,12 +204,10 @@ export const EXPLORATORY_BUDGETS = [
 export const EVALUATOR_FINGERPRINT = "de24a421f751"; // 2026-06-24: sentinel refreshed to the live locked impact-calibration fingerprint; no scorer/spec/ruler change in the budget-grid rebaseline (was stale 2a9954c8defb)
 
 /**
- * Worker-timeout (hang-detection safety cap) for the compile. Each budget is now an
- * INDEPENDENT full run, and one worker runs all budgets for a (spec, seed) back to
- * back, so the worker's total work scales off the SUM of the budgets it runs (not
- * the max of a single shared anytime run). golden.ts further multiplies this by
- * --jobs, since parallel contention stretches wall-clock. Safety net, not a quality
- * term.
+ * Worker-timeout (hang-detection safety cap) for a row of independent budget
+ * runs. golden.ts schedules budgets as separate workers, but the safety budget is
+ * still computed from the full row's budget grid and multiplied by --jobs to stay
+ * conservative under parallel contention. Safety net, not a quality term.
  */
 export const HANDOFF_MS_PER_PHYSFRAME = 0.35; // measured upper bound
 export const HANDOFF_WORKER_SAFETY = 3;

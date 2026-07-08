@@ -2,10 +2,15 @@ import { describe, expect, test } from "vitest";
 import {
   DEFAULT_BUDGETS,
   FAST_PROBE_BUDGETS,
+  FULL_SEEDS_PER_BUDGET,
   GOLDEN_SEEDS,
+  PROBE_SEEDS,
+  PROBE_SEEDS_PER_BUDGET,
   GOLDEN_SPECS,
   REPORT_VARIANTS,
+  actualSeedForBudgetSlot,
   applyVariant,
+  budgetSeedSchedule,
   budgetWeights,
   compilerWorkerTimeoutBudget,
   compilerWorkerTimeoutMs,
@@ -167,11 +172,9 @@ describe("v0 golden configuration", () => {
     }
   });
 
-  test("canonical budget grid is {125,250,375,500}k; fast probe is a subset", () => {
-    expect([...DEFAULT_BUDGETS]).toEqual([125_000, 250_000, 375_000, 500_000]);
-    expect([...FAST_PROBE_BUDGETS]).toEqual([125_000, 500_000]);
-    // fast probe budgets are a strict subset of canonical, so `decide` can pair them.
-    for (const b of FAST_PROBE_BUDGETS) expect(DEFAULT_BUDGETS).toContain(b);
+  test("canonical and probe budget grids are fixed", () => {
+    expect([...DEFAULT_BUDGETS]).toEqual([75_000, 150_000, 225_000, 350_000, 475_000, 550_000]);
+    expect([...FAST_PROBE_BUDGETS]).toEqual([75_000, 200_000, 500_000]);
   });
 
   test("budget weights are value-proportional, keyed by budget, sum to 1, increasing", () => {
@@ -183,17 +186,40 @@ describe("v0 golden configuration", () => {
     for (let i = 1; i < w.length; i++) expect(w[i].weight).toBeGreaterThan(w[i - 1].weight);
   });
 
-  test("golden seeds default to the contiguous 12-seed population (lower-power high-gain phase; see metric_problem_statement.md)", () => {
+  test("golden and probe seed slots are contiguous", () => {
     expect([...GOLDEN_SEEDS]).toEqual([
       0, 1, 2, 3, 4, 5,
       6, 7, 8, 9, 10, 11,
     ]);
+    expect(FULL_SEEDS_PER_BUDGET).toBe(12);
+    expect([...PROBE_SEEDS]).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(PROBE_SEEDS_PER_BUDGET).toBe(6);
+  });
+
+  test("budget seed policy uses disjoint contiguous actual seeds per budget", () => {
+    const full = budgetSeedSchedule(DEFAULT_BUDGETS, 0, FULL_SEEDS_PER_BUDGET);
+    expect(full.seed_slots).toEqual([...GOLDEN_SEEDS]);
+    expect(full.budget_seeds).toEqual([
+      { budget: 75_000, seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+      { budget: 150_000, seeds: [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23] },
+      { budget: 225_000, seeds: [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] },
+      { budget: 350_000, seeds: [36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47] },
+      { budget: 475_000, seeds: [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59] },
+      { budget: 550_000, seeds: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71] },
+    ]);
+    const probe = budgetSeedSchedule(FAST_PROBE_BUDGETS, 0, PROBE_SEEDS_PER_BUDGET);
+    expect(probe.budget_seeds).toEqual([
+      { budget: 75_000, seeds: [0, 1, 2, 3, 4, 5] },
+      { budget: 200_000, seeds: [6, 7, 8, 9, 10, 11] },
+      { budget: 500_000, seeds: [12, 13, 14, 15, 16, 17] },
+    ]);
+    expect(actualSeedForBudgetSlot(42, 1, 1)).toBe(43);
   });
 
   test("worker timeout budget is the SUM of the independent per-budget runs", () => {
     // Each budget is now an independent full run, so one worker's work for a
-    // (spec, seed) is the SUM of the grid's budgets, not the max of one shared run.
-    const sum = DEFAULT_BUDGETS.reduce((s, b) => s + b, 0); // 1_250_000
+    // (spec, seed slot) is the SUM of the grid's budgets, not the max of one shared run.
+    const sum = DEFAULT_BUDGETS.reduce((s, b) => s + b, 0); // 1_825_000
     expect(compilerWorkerTimeoutBudget(DEFAULT_BUDGETS)).toBe(sum);
     expect(compilerWorkerTimeoutBudget([50_000])).toBe(50_000);
     // more budgets -> at-least-as-large a timeout

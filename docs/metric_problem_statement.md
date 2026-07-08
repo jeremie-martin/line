@@ -3,7 +3,8 @@
 > **REFERENCE / rationale.** This is the problem statement that *led to* the current
 > metric + decision rule; it reasons from the then-current **3-seed** benchmark and
 > concludes 3 is under-powered. The resolved outcome is now canonical —
-> paired-bootstrap `decide` and **12 seeds {0..11}** — and lives in
+> paired-bootstrap `decide` and **12 seed slots with disjoint per-budget actual
+> seeds** — and lives in
 > [`compiler_goals.md`](compiler_goals.md) / [`HOW_TO_WORK.md`](HOW_TO_WORK.md). Read
 > the "3 seeds" below as the historical premise, not the current setup.
 >
@@ -12,7 +13,7 @@
 > search may **read the budget** (so this doc's "may not read its own budget" constraint
 > and its "out of scope: budget-aware search" bracket no longer hold). The HEADLINE is
 > now the **budget-value-weighted average** of the per-budget suite scores over
-> `{125,250,375,500}k` (not `α·ceiling + (1−α)·logAUC`), and validity is reported but
+> `{75,150,225,350,475,550}k` (not `α·ceiling + (1−α)·logAUC`), and validity is reported but
 > **does not gate**. The variance/noise analysis below remains the rationale for paired
 > comparison and the 12-seed population. Current truth: `compiler_goals.md`.
 

@@ -3,7 +3,7 @@
  *
  *   npx tsx scripts/v0/analyze_golden_curve.ts /tmp/golden.json
  *   npx tsx scripts/v0/analyze_golden_curve.ts probe/golden.json baseline/golden.json
- *   LR_ENGINE=wasm npm run golden -- --json --specs=tiny_dance --seed=0 --jobs=6 | npx tsx scripts/v0/analyze_golden_curve.ts -
+ *   npm run golden -- --full --json --specs=tiny_dance --seed=0 --jobs=6 | npx tsx scripts/v0/analyze_golden_curve.ts -
  */
 
 import { readFileSync } from "node:fs";
@@ -15,7 +15,11 @@ import {
   type ScoreCube,
   type ValidCube,
 } from "./metric.ts";
-import { budgetWeights } from "./golden_suite.ts";
+import {
+  BUDGET_DISJOINT_SEED_POLICY_KIND,
+  budgetWeights,
+  type BudgetDisjointSeedPolicy,
+} from "./golden_suite.ts";
 import {
   AXES,
   CANDIDATE_SAMPLE_MODES,
@@ -142,6 +146,7 @@ type AxisError = {
 
 type CheckpointRow = {
   budget: number;
+  seed?: number;
   status: string;
   score: number;
   contract_passed: boolean;
@@ -170,9 +175,16 @@ type GoldenCurveJson = {
     // non-comparable rather than reading any old ceiling-blend fields.
   };
   evaluator_fingerprint?: string;
+  seed_policy?: Partial<BudgetDisjointSeedPolicy>;
   budgets?: number[];
   budget_scores?: BudgetScore[];
-  scope?: { row_count?: number; checkpoint_count?: number; seeds?: number[] };
+  scope?: {
+    row_count?: number;
+    checkpoint_count?: number;
+    seeds?: number[];
+    seed_slots?: number[];
+    actual_seed_count?: number;
+  };
   rows?: RunRow[];
 };
 
@@ -1258,8 +1270,9 @@ function printComparison(current: GoldenCurveJson, baseline: GoldenCurveJson): v
   }
 }
 
-/** Build the per-config score + validity cubes (spec -> seed -> budget -> value)
- *  from a golden archive's headline rows. */
+/** Build the per-config score + validity cubes (spec -> seed slot -> budget -> value)
+ *  from a golden archive's headline rows. Actual per-budget seeds are validated by
+ *  the archive-level seed policy before `decide` compares two cubes. */
 function buildCubes(data: GoldenCurveJson): { score: ScoreCube; valid: ValidCube; budgets: number[] } {
   const score: ScoreCube = new Map();
   const valid: ValidCube = new Map();
@@ -1283,11 +1296,46 @@ function buildCubes(data: GoldenCurveJson): { score: ScoreCube; valid: ValidCube
   return { score, valid, budgets: [...budgets].sort((a, b) => a - b) };
 }
 
-/** The headline weighting is value-proportional, a deterministic function of the
- *  budget set, so `decide` recomputes it over the shared budgets (renormalizing
- *  automatically). Both archives must declare the weighted-average kind. */
+/** Both archives must declare the weighted-average kind. Budget weights are stored
+ *  in the archive and checked for equality over the comparison scope. */
 const HEADLINE_KIND = "weighted_budget_average";
 const DEFAULT_SIMPLIFICATION_MARGIN = 0.1;
+
+function isBudgetDisjointSeedPolicy(policy: unknown): policy is BudgetDisjointSeedPolicy {
+  const p = policy as Partial<BudgetDisjointSeedPolicy> | undefined;
+  return (
+    p !== undefined &&
+    p.kind === BUDGET_DISJOINT_SEED_POLICY_KIND &&
+    Number.isSafeInteger(p.seed_base) &&
+    Number.isSafeInteger(p.seeds_per_budget) &&
+    Array.isArray(p.seed_slots) &&
+    p.seed_slots.every((seed) => Number.isSafeInteger(seed)) &&
+    Array.isArray(p.budget_seeds) &&
+    p.budget_seeds.every((entry) =>
+      Number.isSafeInteger(entry?.budget) &&
+      Array.isArray(entry?.seeds) &&
+      entry.seeds.every((seed) => Number.isSafeInteger(seed))
+    )
+  );
+}
+
+function seedPolicyKey(policy: BudgetDisjointSeedPolicy): string {
+  return JSON.stringify({
+    kind: policy.kind,
+    seed_base: policy.seed_base,
+    seeds_per_budget: policy.seeds_per_budget,
+    seed_slots: policy.seed_slots,
+    budget_seeds: policy.budget_seeds,
+  });
+}
+
+function seedPolicySummary(policy: Partial<BudgetDisjointSeedPolicy> | undefined): string {
+  if (policy === undefined) return "absent";
+  const budgets = Array.isArray(policy.budget_seeds)
+    ? policy.budget_seeds.map((entry) => fmtBudget(entry.budget)).join(",")
+    : "?";
+  return `${policy.kind ?? "unknown"} base=${policy.seed_base ?? "?"} n=${policy.seeds_per_budget ?? "?"} budgets=${budgets}`;
+}
 
 type DecideMode = "improvement" | "simplification";
 type DecidePolicy = {
@@ -1450,7 +1498,7 @@ function runDecide(args: string[]): void {
   const commonBudgets = C.budgets.filter((b) => B.budgets.includes(b));
   if (commonSpecs.length === 0) refuse("no overlapping specs between the two archives.");
   if (commonSeeds.length === 0) {
-    refuse(`no overlapping seeds (baseline [${[...baseSeeds].join(",")}] vs candidate [${[...candSeeds].join(",")}]) — re-baseline on matching seeds.`);
+    refuse(`no overlapping seed slots (baseline [${[...baseSeeds].join(",")}] vs candidate [${[...candSeeds].join(",")}]) — re-baseline on matching seed slots.`);
   }
   if (commonBudgets.length === 0) {
     refuse(`no overlapping budgets (baseline [${B.budgets.join(",")}] vs candidate [${C.budgets.join(",")}]) — re-baseline on a matching grid.`);
@@ -1466,6 +1514,24 @@ function runDecide(args: string[]): void {
           `it predates the weighted-average metric — re-baseline.`,
       );
     }
+  }
+  for (const [label, data] of [["baseline", base], ["candidate", cand]] as const) {
+    const policy = data.seed_policy;
+    if (!isBudgetDisjointSeedPolicy(policy)) {
+      refuse(
+        `${label} archive has no ${BUDGET_DISJOINT_SEED_POLICY_KIND} seed policy ` +
+          `(seed_policy=${seedPolicySummary(policy)}) — re-baseline with the current golden runner.`,
+      );
+    }
+  }
+  const baseSeedPolicy = base.seed_policy as BudgetDisjointSeedPolicy;
+  const candSeedPolicy = cand.seed_policy as BudgetDisjointSeedPolicy;
+  if (seedPolicyKey(baseSeedPolicy) !== seedPolicyKey(candSeedPolicy)) {
+    refuse(
+      `archives use different budget seed policies ` +
+        `(baseline ${seedPolicySummary(base.seed_policy)} vs candidate ${seedPolicySummary(cand.seed_policy)}) — ` +
+        `re-baseline on a matching full/probe grid.`,
+    );
   }
   const scoreBudgets = [...commonBudgets].sort((a, b) => a - b);
   // Score with the archives' STORED weighting (restricted to the shared budgets;
@@ -1506,8 +1572,9 @@ function runDecide(args: string[]): void {
         `[${scoreBudgets.map(fmtBudget).join(",")}] — re-baseline on a matching ruler.`,
     );
   }
-  // Budget-grid equality is part of canonicality: comparing a dense run against a
-  // sparse/smoke archive narrows to the intersection and is NOT a canonical metric.
+  // Budget-grid equality is part of canonicality. The seed-policy guard above
+  // keeps budget intersections honest by refusing archives whose budget-indexed
+  // actual seed schedules differ.
   const sameBudgetGrid = B.budgets.length === C.budgets.length && B.budgets.every((b, i) => b === C.budgets[i]);
   const canonicalScope =
     baseSpecs.size === candSpecs.size &&
@@ -1518,7 +1585,7 @@ function runDecide(args: string[]): void {
   if (!canonicalScope) {
     console.warn(
       `WARNING: non-canonical scope — comparing on the intersection (${commonSpecs.length} specs, ` +
-        `${commonSeeds.length} seeds, ${scoreBudgets.length} budgets). Indicative, not a canonical/promotable decision.`,
+        `${commonSeeds.length} seed slots, ${scoreBudgets.length} budgets). Indicative, not a canonical/promotable decision.`,
     );
   }
 
@@ -1547,14 +1614,14 @@ function runDecide(args: string[]): void {
       ` · budgets=${scoreBudgets.map(fmtBudget).join(",")}`,
   );
   console.log(
-    `  scope: ${commonSpecs.length} specs × ${commonSeeds.length} seeds` +
+    `  scope: ${commonSpecs.length} specs × ${commonSeeds.length} seed slots` +
       `${canonicalScope ? " (canonical)" : " (intersection — INDICATIVE)"}` +
       `${probeTier ? " · probe tier (non-promotable)" : ""}` +
       `${baseFp ? ` · fingerprint ${baseFp}` : ""}`,
   );
   console.log(
     `  headline: baseline ${d.baseHeadline.toFixed(1)} -> candidate ${d.candidateHeadline.toFixed(1)}` +
-      // Non-canonical comparisons narrow to the paired spec/seed/budget intersection
+      // Non-canonical comparisons narrow to the paired spec/seed-slot/budget intersection
       // and therefore may differ from either archive's stored full-scope HEADLINE.
       (canonicalScope ? "" : "  (recomputed on paired intersection; stored HEADLINE may differ)"),
   );
@@ -1593,9 +1660,9 @@ function runDecide(args: string[]): void {
   );
 
   // A genuine but sub-resolution gain (positive Δ, not yet accepted at the current
-  // one-sided probability gate) lands
-  // as INCONCLUSIVE, indistinguishable at the verdict level from a true null. Estimate
-  // how many more seeds would reach significance: the gap toward zero is (Δ - ciLo) and
+  // one-sided probability gate) lands as INCONCLUSIVE, indistinguishable at the
+  // verdict level from a true null. Estimate
+  // how many more seed slots would reach significance: the gap toward zero is (Δ - ciLo) and
   // shrinks ~1/√n, so n_need ≈ n_now·((Δ-ciLo)/Δ)². This uses the 95% CI bound as a
   // conservative output-only proxy; the verdict itself uses the configured alpha above.
   if (policy.mode === "improvement" && d.verdict === "inconclusive" && d.delta > 0) {
@@ -1604,8 +1671,8 @@ function runDecide(args: string[]): void {
     const extra = Math.max(1, nNeed - nNow);
     console.log(
       `  hint: Δ positive (+${d.delta.toFixed(1)}, P(Δ>0)=${((1 - d.pLeZero) * 100).toFixed(0)}%) but not yet ` +
-        `accepted at α=${policy.alpha.toFixed(2)} — ~${extra} more seed${extra === 1 ? "" : "s"} (~${nNow + extra} total) would ` +
-        `likely resolve it. Approximate; CI width scales ~1/√seeds.`,
+        `accepted at α=${policy.alpha.toFixed(2)} — ~${extra} more seed slot${extra === 1 ? "" : "s"} (~${nNow + extra} total) would ` +
+        `likely resolve it. Approximate; CI width scales ~1/√seed slots.`,
     );
   }
 }

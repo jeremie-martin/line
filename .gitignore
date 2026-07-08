@@ -39,6 +39,9 @@ remotion/public/*.spectrum.json
 *.log
 .wip-archive/
 
+# Local assistant/session metadata
+.claude/projects/
+
 # throwaway optimizer probes
 scripts/v0/_probe*.ts
 

@@ -2,6 +2,42 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - steady-cadence profiled low-pop amplitude lane
+
+Reason: the stronger profiled low-pop lane recovered the intended `float_bounds` signal, but it
+leaked into mixed-cadence settling rows and made `soar_settle` negative. This follow-up kept the
+same whole-profile pure-amplitude selector and lane dose, then added a smooth contact-gap range
+pressure so low-pop assistance only turns on when the amplitude profile is expressed over a steady
+cadence. Candidate count, scorer, specs, evaluator fingerprint, seed policy, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-steady-profiled-low-pop-lane-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-steady-profiled-low-pop-lane-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.87 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.62. Per-budget point estimates were 75k 660.79, 200k 688.70, and 500k 702.45.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-steady-profiled-low-pop-lane-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.9, delta +0.2,
+CI [-0.1, 1.0], P(Delta<=0)=21.1%, effect 0.80. Per-budget deltas were
+75k +1.6, 200k -0.1, and 500k +0.2, with unchanged pass rates.
+
+Why it was not kept: it missed the fixed probe gate by a narrow margin, so no full run was
+launched. The mechanism did fix the previous leak: `soar_settle` was no longer in the changed
+footprint. Only `float_bounds` and `pop_train` moved: 69 paired checkpoints, 42 improvements,
+27 regressions. Weighted spec deltas were `float_bounds` +8.14 and `pop_train` +1.46. The budget
+shape stayed useful but still noisy: `float_bounds` gained +54.37 at 75k and +4.37 at 500k, while
+`pop_train` gained at 75k/500k (+4.05/+3.01) but lost at 200k (-3.40). The cadence-uniformity
+gate is the right safety addition; the remaining question is dose. A slightly stronger steady
+cadence lane is a defensible next probe because this version has a clean two-spec footprint and
+already reached P(Delta<=0)=21.1%. Source and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - strong profiled low-pop amplitude lane
 
 Reason: the selection-protected low-pop amplitude lane was directionally cleaner than the forced

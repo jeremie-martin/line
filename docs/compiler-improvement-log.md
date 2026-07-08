@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - profiled low-pop amplitude lane
+
+Reason: the profiled low-pop relief selector correctly excluded upward pure-amplitude and mixed
+elevation/amplitude rows, but the forced local shoulder made `pop_train` negative at 500k. This
+follow-up kept the same whole-profile shape selector and converted the local relief into a late
+deterministic candidate lane, leaving normal low-amplitude candidates in the pool. Candidate count,
+scorer, specs, evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed
+unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-profiled-low-pop-lane-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-profiled-low-pop-lane-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.67 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.54. Per-budget point estimates were 75k 659.56, 200k 688.91, and 500k 702.24.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-profiled-low-pop-lane-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.7, delta +0.0,
+CI [-0.6, 0.6], P(Delta<=0)=36.7%, effect 0.18. Per-budget deltas were
+75k +0.4, 200k +0.1, and 500k -0.0, with unchanged pass rates.
+
+Why it was not kept: the lane fixed the sign problem but shrank the signal below usefulness.
+Only the same intended pure-amplitude shape family changed: 101 paired checkpoints, 56
+improvements, 45 regressions. Weighted spec deltas were `soar_settle` +0.98, `pop_train` +0.87,
+and `float_bounds` +0.67. The per-budget shape was cleaner than the forced variant
+(`pop_train` was +1.80 at 500k instead of negative), but `float_bounds` gave back most of the
+low-budget gain and turned negative at 500k (-3.59). This says selection-protected lanes are the
+right safety shape for this idea, but the low-pop lane as implemented is too weak to justify a full
+run. Source and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - profiled low-pop amplitude relief
 
 Reason: the amplitude-only low-pop shoulder passed the corrected 12-seed probe but failed full

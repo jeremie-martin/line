@@ -181,7 +181,8 @@ const IMPACT_TEMPLATE_ATTEMPT_RAMP_START = 6;
 const IMPACT_TEMPLATE_ATTEMPT_RAMP_SPAN = 4;
 const IMPACT_TEMPLATE_PRESSURE_RAMP_SPAN = 0.10;
 const IMPACT_TEMPLATE_ROOM_SPAN_FRAMES = 12;
-const IMPACT_TEMPLATE_MAX_TURN_DEG = 22;
+const IMPACT_TEMPLATE_TARGET_TURN_MARGIN_DEG = 4;
+const IMPACT_TEMPLATE_MAX_TURN_DEG = 40;
 const IMPACT_TEMPLATE_FULL_TURN_DEG = 8;
 const IMPACT_TEMPLATE_ROLL_SALT = 9;
 const IMPACT_TEMPLATE_HOP_SCALE = 0.72;
@@ -1370,7 +1371,19 @@ function impactTemplateDescriptor(params: {
     (Math.atan2(vyHop, speed) * 180) / Math.PI,
     IMPACT_TEMPLATE_END_ANGLE_MIN_DEG,
   );
-  const turnDeg = Math.min(params.contactAngleDeg - hopAngleDeg, IMPACT_TEMPLATE_MAX_TURN_DEG);
+  const targetImpact = params.targets.impact;
+  if (targetImpact === undefined) return null;
+  const targetSizedTurnDeg = Math.min(
+    IMPACT_TEMPLATE_MAX_TURN_DEG,
+    neededTurnDegForImpact(targetImpact, speed) + IMPACT_TEMPLATE_TARGET_TURN_MARGIN_DEG,
+  );
+  const hopTurnDeg = params.contactAngleDeg - hopAngleDeg;
+  const requestedTurnDeg = Math.max(hopTurnDeg, targetSizedTurnDeg);
+  const endAngleDeg = Math.max(
+    params.contactAngleDeg - requestedTurnDeg,
+    IMPACT_TEMPLATE_END_ANGLE_MIN_DEG,
+  );
+  const turnDeg = params.contactAngleDeg - endAngleDeg;
   const turnPressure = smoothstep(turnDeg / IMPACT_TEMPLATE_FULL_TURN_DEG);
   const effectiveTurnDeg = turnDeg >= IMPACT_TEMPLATE_FULL_TURN_DEG
     ? turnDeg

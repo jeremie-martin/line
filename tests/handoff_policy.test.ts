@@ -75,6 +75,25 @@ function totalLineLength(lines: TrackLine[]): number {
   return lines.reduce((sum, line) => sum + Math.hypot(line.x2 - line.x1, line.y2 - line.y1), 0);
 }
 
+function totalSignedTurnDeg(lines: TrackLine[]): number {
+  let prev: number | null = null;
+  let turn = 0;
+  for (const line of lines) {
+    const dx = line.x2 - line.x1;
+    const dy = line.y2 - line.y1;
+    if (dx === 0 && dy === 0) continue;
+    const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    if (prev !== null) {
+      let delta = (angle - prev) % 360;
+      if (delta > 180) delta -= 360;
+      if (delta <= -180) delta += 360;
+      turn += delta;
+    }
+    prev = angle;
+  }
+  return turn;
+}
+
 describe("handoff policy boundaries", () => {
   test("candidate pool has no contact-count regime cliff", () => {
     const formerCliffCounts = [29, 30, 31, 60, 61, 77];
@@ -346,6 +365,32 @@ describe("target-state arc placement", () => {
       expect(wasLastGeometryImpactTemplate()).toBe(true);
       expect(held.length).toBeGreaterThan(base.length);
       expect(totalLineLength(held)).toBeGreaterThan(totalLineLength(base) + 5);
+    } finally {
+      setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
+      setCompileBudgetFrames(0);
+    }
+  });
+
+  test("hard-impact template lane can request a deep target-sized scoop", () => {
+    const state = targetState(9, 18);
+    const contactGap = gap(0, 0, 30);
+    try {
+      setCompileBudgetFrames(250_000);
+      setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
+      const hard = linesFromGeometry(sampleArcPlacementGeometry(
+        () => 0.5,
+        100,
+        50,
+        { air: 0.3, speed: 0.55, grain: 0.45, impact: 0.72 },
+        state,
+        10,
+        contactGap,
+        1,
+        "normal",
+        [30, 70],
+      ));
+      expect(wasLastGeometryImpactTemplate()).toBe(true);
+      expect(Math.abs(totalSignedTurnDeg(hard))).toBeGreaterThan(24);
     } finally {
       setImpactProfilePressures({ elevationRoom: 0, highSpeedRelief: 0, templateHold: 0 });
       setCompileBudgetFrames(0);

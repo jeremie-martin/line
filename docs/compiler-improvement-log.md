@@ -2,6 +2,42 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - stronger steady-cadence low-pop amplitude lane
+
+Reason: the steady-cadence profile gate made the low-pop amplitude lane clean but just missed the
+probe accept gate. This follow-up kept the cadence-uniform selector and increased dose slightly
+(`blend` 0.48 -> 0.54, deterministic lane rate 0.75 -> 0.875) while preserving an off-lane path
+for normal candidates. Candidate count, scorer, specs, evaluator fingerprint, seed policy, budget
+grid, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-stronger-steady-profiled-low-pop-lane-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-stronger-steady-profiled-low-pop-lane-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.74 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.44. Per-budget point estimates were 75k 659.91, 200k 688.12, and 500k 702.62.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-stronger-steady-profiled-low-pop-lane-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.7, delta +0.1,
+CI [-0.3, 0.7], P(Delta<=0)=37.6%, effect 0.47. Per-budget deltas were
+75k +0.7, 200k -0.6, and 500k +0.3, with unchanged pass rates.
+
+Why it was not kept: increasing dose exposed a budget-shape ceiling rather than improving the
+clean lane. The footprint stayed narrow (`float_bounds` and `pop_train` only), but the useful
+75k/500k movement became unstable at 200k and `pop_train` turned negative at scarce budget:
+72 paired checkpoints changed, with 47 improvements and 25 regressions. Weighted spec deltas were
+`float_bounds` +4.39 and `pop_train` +0.77, both weaker than the lower-dose steady-cadence lane.
+Budget details: `float_bounds` +33.37 at 75k, -22.90 at 200k, +10.96 at 500k; `pop_train`
+-7.77 at 75k, -2.34 at 200k, +3.29 at 500k. This says the previous steady-cadence selector was
+not under-dosed uniformly; the next version should keep the lower dose and address the 200k
+volatility or validation power, not simply turn the lane up. No full run was launched. Source and
+test edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - steady-cadence profiled low-pop amplitude lane
 
 Reason: the stronger profiled low-pop lane recovered the intended `float_bounds` signal, but it

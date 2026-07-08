@@ -32,7 +32,7 @@ const spec: Spec = {
     ),
     amplitude: keyframes([{ t: 0, v: 0.18 }, { t: 4, v: 0.40 }, { t: 8, v: 0.12 }, { t: 12, v: 0.46 }], "hold"),
   },
-  jitter: 0.05,
+  jitter: 0,
   preroll: 5,
 };
 

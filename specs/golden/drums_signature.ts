@@ -16,4 +16,5 @@ const spec = drumsSpec({
   grain:         keyframes([{ t: 0, v: 0.45 }, { t: 10, v: 0.75 }, { t: 20, v: 0.25 }], "hold"),
 }, (t) => (t < 10 ? 0.3 : t < 20 ? 0.9 : 0.55)); // impact spells the 3-act signature: relaxed cruise, heavy grip slams, crisp skip taps
 spec.preroll = 5;
+spec.jitter = 0;
 export default spec;

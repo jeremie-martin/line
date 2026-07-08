@@ -27,7 +27,7 @@ const spec: Spec = {
       "smooth",
     ),
   },
-  jitter: 0.05,
+  jitter: 0,
   preroll: 5,
 };
 

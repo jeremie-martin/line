@@ -28,4 +28,5 @@ const spec = drumsSpec({
   grain: constant(0.45),
 }, (t) => (Math.floor(t / 5) % 2 === 0 ? 0.85 : 0.2)); // impact swings with the pendulum: glued blocks slam hard, lofted blocks land soft
 spec.preroll = 5;
+spec.jitter = 0;
 export default spec;

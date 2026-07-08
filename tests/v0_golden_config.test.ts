@@ -160,10 +160,21 @@ describe("v0 golden configuration", () => {
     }
   });
 
+  test("golden specs disable per-gap target jitter", async () => {
+    for (const name of GOLDEN_SPECS) {
+      const base = await loadGoldenSpec(name, "base");
+      expect(base.jitter).toBe(0);
+      for (const variant of REPORT_VARIANTS) {
+        const spec = await loadGoldenSpec(name, variant);
+        expect(spec.jitter).toBe(0);
+      }
+    }
+  });
+
   test("combined elevation/amplitude specs target active four-axis pressure", async () => {
     for (const name of COMBINED_ELEVATION_AMPLITUDE_SPECS) {
       const spec = await loadGoldenSpec(name, "base");
-      expect(spec.jitter).toBe(0.05);
+      expect(spec.jitter).toBe(0);
       expect(spec.axes.air).toBeDefined();
       expect(spec.axes.speed).toBeDefined();
       expect(spec.axes.elevation).toBeDefined();
@@ -192,8 +203,11 @@ describe("v0 golden configuration", () => {
       6, 7, 8, 9, 10, 11,
     ]);
     expect(FULL_SEEDS_PER_BUDGET).toBe(12);
-    expect([...PROBE_SEEDS]).toEqual([0, 1, 2, 3, 4, 5]);
-    expect(PROBE_SEEDS_PER_BUDGET).toBe(6);
+    expect([...PROBE_SEEDS]).toEqual([
+      0, 1, 2, 3, 4, 5,
+      6, 7, 8, 9, 10, 11,
+    ]);
+    expect(PROBE_SEEDS_PER_BUDGET).toBe(12);
   });
 
   test("budget seed policy uses disjoint contiguous actual seeds per budget", () => {
@@ -209,9 +223,9 @@ describe("v0 golden configuration", () => {
     ]);
     const probe = budgetSeedSchedule(FAST_PROBE_BUDGETS, 0, PROBE_SEEDS_PER_BUDGET);
     expect(probe.budget_seeds).toEqual([
-      { budget: 75_000, seeds: [0, 1, 2, 3, 4, 5] },
-      { budget: 200_000, seeds: [6, 7, 8, 9, 10, 11] },
-      { budget: 500_000, seeds: [12, 13, 14, 15, 16, 17] },
+      { budget: 75_000, seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+      { budget: 200_000, seeds: [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23] },
+      { budget: 500_000, seeds: [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35] },
     ]);
     expect(actualSeedForBudgetSlot(42, 1, 1)).toBe(43);
   });

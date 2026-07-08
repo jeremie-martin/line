@@ -28,6 +28,7 @@ const spec: Spec = {
     speed:         keyframes([{ t: 0, v: 0.76 }, { t: 4.5, v: 0.50 }, { t: 9, v: 0.86 }, { t: 13.5, v: 0.64 }], "hold"),
     grain:         keyframes([{ t: 0, v: 0.65 }, { t: 4.5, v: 0.25 }, { t: 9, v: 0.72 }, { t: 13.5, v: 0.35 }], "hold"),
   },
+  jitter: 0,
   preroll: 5,
 };
 

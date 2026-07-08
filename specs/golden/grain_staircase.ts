@@ -27,6 +27,7 @@ const spec: Spec = {
       "hold",
     ),
   },
+  jitter: 0,
   preroll: 5,
 };
 

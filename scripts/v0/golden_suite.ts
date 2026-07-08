@@ -47,7 +47,7 @@ export const GOLDEN_SPECS = [
   "leap_cadence",
   "float_bounds",
   // Combined elevation + amplitude specs (added 2026-06-08): every row targets
-  // air + speed + elevation + amplitude with jitter=0.05. The contact grids mix
+  // air + speed + elevation + amplitude with golden-suite jitter disabled. The contact grids mix
   // dense, sparse, and syncopated cadences so the active non-grain axes are
   // exercised both under tight beat pressure and with longer arc room.
   "canyon_steps",
@@ -77,6 +77,7 @@ export const GOLDEN_SEEDS = [
 
 export const PROBE_SEEDS = [
   0, 1, 2, 3, 4, 5,
+  6, 7, 8, 9, 10, 11,
 ] as const;
 
 /** Canonical budget grid, in simulated rider frames (the honest work unit; see
@@ -201,7 +202,7 @@ export const EXPLORATORY_BUDGETS = [
  * DELIBERATE ruler change updates this constant in the same commit. Soft
  * tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "de24a421f751"; // 2026-06-24: sentinel refreshed to the live locked impact-calibration fingerprint; no scorer/spec/ruler change in the budget-grid rebaseline (was stale 2a9954c8defb)
+export const EVALUATOR_FINGERPRINT = "5198f9897033"; // 2026-07-08: golden specs now explicitly disable per-gap jitter
 
 /**
  * Worker-timeout (hang-detection safety cap) for a row of independent budget
@@ -273,6 +274,12 @@ export function assertValidSpec(spec: Spec, label: string): void {
   // checks the timeline shape here.
 }
 
+function assertGoldenJitterDisabled(spec: Spec, label: string): void {
+  if (spec.jitter !== 0) {
+    throw new Error(`${label}: golden suite specs must set jitter: 0`);
+  }
+}
+
 export function applyVariant(base: Spec, variant: VariantName): Spec {
   const spec = cloneSpec(base);
   if (variant === "base") {
@@ -323,5 +330,7 @@ export function applyVariant(base: Spec, variant: VariantName): Spec {
 
 export async function loadGoldenSpec(name: GoldenSpecName, variant: VariantName): Promise<Spec> {
   const mod = await import(resolve(`specs/golden/${name}.ts`));
-  return applyVariant(mod.default as Spec, variant);
+  const spec = applyVariant(mod.default as Spec, variant);
+  assertGoldenJitterDisabled(spec, `${name}/${variant}`);
+  return spec;
 }

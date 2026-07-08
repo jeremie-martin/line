@@ -26,7 +26,7 @@ const spec: Spec = {
     ),
     amplitude: keyframes([{ t: 0, v: 0.22 }, { t: 6, v: 0.34 }, { t: 12, v: 0.42 }, { t: 18, v: 0.30 }], "smooth"),
   },
-  jitter: 0.05,
+  jitter: 0,
   preroll: 5,
 };
 

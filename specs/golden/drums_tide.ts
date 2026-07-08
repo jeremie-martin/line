@@ -11,7 +11,7 @@
  * The sine period (10s) is far longer than the contact spacing (~0.5s), so it
  * is well within the per-gap sampling bandwidth — the oscillation is real, not
  * aliased. (A curve that oscillates *within* a single gap is a deliberate
- * non-goal for now; see CALIB.SIGMA note.)
+ * non-goal for now.)
  */
 import { drumsSpec } from "../../scripts/v0/specs/_drums.ts";
 import { ramp } from "../../scripts/v0/core/curves.ts";

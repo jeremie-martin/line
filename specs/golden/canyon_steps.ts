@@ -27,7 +27,7 @@ const spec: Spec = {
     elevation: keyframes([{ t: 0, v: 0.34 }, { t: 6, v: 0.42 }, { t: 11, v: 0.62 }, { t: 18, v: 0.50 }], "hold"),
     amplitude: keyframes([{ t: 0, v: 0.08 }, { t: 5, v: 0.42 }, { t: 11, v: 0.58 }, { t: 18, v: 0.16 }], "smooth"),
   },
-  jitter: 0.05,
+  jitter: 0,
   preroll: 5,
 };
 

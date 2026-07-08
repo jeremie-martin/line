@@ -20,4 +20,5 @@ const spec = drumsSpec({
   grain:         keyframes([{ t: 0, v: 0.20 }, { t: 10, v: 0.50 }, { t: 20, v: 0.80 }], "hold"),
 }, (t) => (t < 10 ? 0.20 : t < 20 ? 0.50 : 0.85)); // impact crescendos with the blocks: whisper → drive → unleash
 spec.preroll = 5;
+spec.jitter = 0;
 export default spec;

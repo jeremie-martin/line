@@ -2,6 +2,40 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - profiled soft high-air impact relief
+
+Reason: the earlier steady soft-impact relief probes showed a clean `drums_pendulum` gain but were
+too narrow to clear the corrected 12-seed probe gate. This retry kept the same general geometry
+idea but made the selector a resolved impact-profile pressure instead of an exact old pocket:
+dense cadence, vertically quiet profile, broad air/impact motion, and steady speed. Locally, only
+mature-budget high-air, soft-impact, non-vertical beats pulled the contact angle toward incoming
+motion and damped post-contact curve bias. Candidate count, scorer, specs, evaluator fingerprint,
+seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-soft-highair-profile-relief-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-soft-highair-profile-relief-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.84 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.48. Per-budget point estimates were 75k 659.17, 200k 688.97, and 500k 702.55.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-soft-highair-profile-relief-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.8, delta +0.2,
+CI [0.0, 0.8], P(delta<=0)=36.1%, effect 0.90. Per-budget deltas were
+75k +0.0, 200k +0.2, and 500k +0.3, with unchanged pass rates.
+
+Why it was not kept: the broader profile selector still only changed `drums_pendulum` in actual
+track output: 24/1440 paired hashes changed, with 18 improvements and 6 regressions. It improved
+the intended row by +5.81 weighted spec points, with score movement only at 200k and 500k. The
+direction is good, but the probe gate did not accept and the mechanism remains too narrow for a
+suite-wide promotion. No full run was launched. Source and test edits were reverted; no baseline
+was advanced.
+
 ## 2026-07-08 - NOT KEPT - weak-amplitude pop length span
 
 Reason: the independent amplitude pop length span helped sparse low/mid-amplitude rows but hurt

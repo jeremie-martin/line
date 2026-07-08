@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - weak-amplitude pop length span
+
+Reason: the independent amplitude pop length span helped sparse low/mid-amplitude rows but hurt
+strong-pop and mixed vertical rows. This follow-up kept the same general pop-arc idea but used the
+existing amplitude pressure as the separator: weak/mid amplitude asks could interpolate toward the
+independent ride-out length span, while strong amplitude asks stayed coupled to the launch span as
+before. Candidate count, scorer, specs, evaluator fingerprint, seed policy, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 92 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-weak-amplitude-length-span-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-weak-amplitude-length-span-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.37 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.37. Per-budget point estimates were 75k 659.05, 200k 688.08, and 500k 702.19.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-weak-amplitude-length-span-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.4, delta -0.3,
+CI [-1.1, 0.5], P(delta<=0)=75.3%, effect -0.65. Per-budget deltas were
+75k -0.1, 200k -0.7, and 500k -0.1, with unchanged pass rates.
+
+Why it was not kept: the amplitude-pressure separator reduced the mature-budget damage from the
+fully independent span but did not create a promotable signal. Across paired checkpoints,
+468/1440 changed: 210 improved and 258 regressed. The same useful family remained
+(`float_bounds` +2.18, `leap_cadence` +1.58, `soar_settle` +1.17), but losses moved to
+`canyon_steps` (-5.24), `switchback_pop` (-2.79), `big_air_ramp` (-2.67), and `pop_train`
+(-2.13). This suggests length/launch decoupling is a real low-amplitude lever, but the current
+selector still leaks into mixed vertical/pop rows. No full run was launched. Source edits were
+reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - independent amplitude pop length span
 
 Reason: the contact-centered sampler defines independent launch and ride-out length span values, but

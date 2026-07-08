@@ -2,6 +2,43 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - profiled low-pop amplitude relief
+
+Reason: the amplitude-only low-pop shoulder passed the corrected 12-seed probe but failed full
+promotion because it helped `float_bounds`/`pop_train`/`soar_settle` while regressing the upward
+build profiles `big_air_ramp` and `leap_cadence`. This follow-up added a resolved whole-profile
+shape gate before enabling the low-target shoulder: pure amplitude only, no elevation targets,
+steady speed, enough low-amplitude coverage/range, and either an oscillating or settling amplitude
+sequence rather than an upward build. Candidate count, scorer, specs, evaluator fingerprint, seed
+policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-profiled-low-pop-relief-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-profiled-low-pop-relief-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.73 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.48. Per-budget point estimates were 75k 660.23, 200k 688.66, and 500k 702.33.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-profiled-low-pop-relief-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.7, delta +0.1,
+CI [-0.2, 0.6], P(Delta<=0)=37.2%, effect 0.45. Per-budget deltas were
+75k +1.1, 200k -0.1, and 500k +0.0, with unchanged pass rates.
+
+Why it was not kept: the profile shape gate did exactly separate the upward pure-amplitude
+families and mixed elevation/amplitude rows, but the remaining footprint still did not clear the
+probe accept gate. Only `float_bounds`, `pop_train`, and `soar_settle` changed: 108 paired
+checkpoints moved, with 56 improvements and 52 regressions. Weighted spec deltas were
+`float_bounds` +5.21, `soar_settle` +1.37, and `pop_train` -2.95. The budget split explains the
+weak headline: `float_bounds` jumped at 75k (+35.62 mean) and improved at 500k (+5.55) but lost at
+200k (-7.05), while `pop_train` lost at 500k (-5.48) after small low/mid gains. This supports the
+profile-shape direction but says the local low-pop dose is still not generally safe for triangle
+pulses. No full run was launched. Source and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - strong steady soft-impact relief
 
 Reason: the first steady-speed soft-impact relief isolated `drums_pendulum` and removed the

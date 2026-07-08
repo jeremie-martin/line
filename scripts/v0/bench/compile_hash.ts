@@ -1,6 +1,6 @@
 /**
  * Compile one spec/seed/budget and print a hash of the resulting track. The
- * engine is whatever LR_ENGINE selects (js default, or wasm). Used by
+ * engine is whatever LR_ENGINE selects (wasm/default, js, or official). Used by
  * wasm_compile_check to assert the COMPILED TRACK is identical under both
  * engines — the ultimate end-to-end proof that bit-identical physics + matching
  * physics-frame budget ⇒ an identical compiled track.
@@ -15,7 +15,11 @@ async function main() {
   const variant = arg("variant", "base");
   const seed = Number(arg("seed", "0"));
   const budget = Number(arg("budget", "20000"));
-  const engine = process.env.LR_ENGINE === "wasm" ? "wasm" : "js";
+  const engine = process.env.LR_ENGINE === "js"
+    ? "js"
+    : process.env.LR_ENGINE === "official"
+      ? "official"
+      : "wasm";
 
   // deno-lint-ignore no-explicit-any
   const spec = await loadGoldenSpec(specName as any, variant as any);

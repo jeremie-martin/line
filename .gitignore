@@ -3,6 +3,10 @@ node_modules/
 # Derived/test artifacts — reproducible by running scripts/
 shakedown/
 generated/
+!generated/
+generated/*
+!generated/verify-optimizer/
+!generated/verify-optimizer/*.json
 coverage/
 .cache/
 .vitest/

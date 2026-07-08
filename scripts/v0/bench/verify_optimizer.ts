@@ -15,36 +15,31 @@
  * catches it by comparing against a recorded baseline.
  *
  * Workflow (mirrors sim_trace exactly):
- *   1. On a clean baseline:  npm run verify:optimizer            → records hashes
- *   2. After a compiler edit: npm run verify:optimizer           → checks; exits
- *                                                                   non-zero + names
- *                                                                   the divergent case
- *   3. To re-baseline on purpose: npm run verify:optimizer -- --update
+ *   1. On a clean baseline:  npm run verify:optimizer -- --update
+ *   2. After an engine edit: npm run verify:optimizer
+ *   3. Wider confidence:     npm run verify:optimizer:wide
  *
  * Kept intentionally small (4 compiles, ~seconds) — enough cases for confidence,
  * not a battleship. The cases mirror v0_determinism.test.ts's curated
  * small/medium/large sample, plus mini_burst (the spec `npm run perf` optimizes).
+ * Pass --wide (or use npm run verify:optimizer:wide) for a 12-case second-tier
+ * gate with broader spec coverage and its own baseline.
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { loadGoldenSpec } from "../golden_suite.ts";
 import { compileHandoff } from "../optimizer/handoff.ts";
+import { SMOKE_VERIFY_CASES, VERIFY_OPTIMIZER_BUDGET, WIDE_VERIFY_CASES } from "./optimizer_verify_cases.ts";
 
 const OUT_DIR = "generated/verify-optimizer";
-const BASELINE = resolve(OUT_DIR, "baseline.json");
-
-// [spec, seed]. Small/medium/large (mirrors v0_determinism.test.ts) + the perf spec.
-const CASES: Array<[string, number]> = [
-  ["tiny_dance", 0],
-  ["syncopated_switchback", 1],
-  ["drums_signature", 2],
-  ["mini_burst", 0],
-];
-const BUDGET = 40_000;
+const WIDE = process.argv.includes("--wide");
+const BASELINE = resolve(OUT_DIR, WIDE ? "baseline.wide.json" : "baseline.json");
+const CASES = WIDE ? WIDE_VERIFY_CASES : SMOKE_VERIFY_CASES;
+const BUDGET = VERIFY_OPTIMIZER_BUDGET;
 
 type Cell = { hash: string; lines: number; sim_frames: number };
-type Baseline = { budget: number; cases: Record<string, Cell> };
+type Baseline = { budget: number; suite?: string; cases: Record<string, Cell> };
 
 function key(spec: string, seed: number): string {
   return `${spec}|seed${seed}`;
@@ -81,7 +76,7 @@ async function main(): Promise<void> {
   mkdirSync(OUT_DIR, { recursive: true });
 
   if (update) {
-    const baseline: Baseline = { budget: BUDGET, cases: current };
+    const baseline: Baseline = { budget: BUDGET, suite: WIDE ? "wide" : "smoke", cases: current };
     writeFileSync(BASELINE, JSON.stringify(baseline, null, 2) + "\n");
     console.log(`\nRe-baselined ${CASES.length} cases → ${BASELINE}`);
     return;
@@ -89,8 +84,9 @@ async function main(): Promise<void> {
   if (!existsSync(BASELINE)) {
     // Fail rather than auto-record: a missing baseline means there is nothing to
     // verify against, so passing would be a false green on a fresh checkout.
+    const cmd = WIDE ? "npm run verify:optimizer:wide -- --update" : "npm run verify:optimizer -- --update";
     console.error(
-      `\nNo baseline at ${BASELINE} — cannot verify. Record it on known-good HEAD: npm run verify:optimizer -- --update`,
+      `\nNo baseline at ${BASELINE} — cannot verify. Record it on known-good HEAD: ${cmd}`,
     );
     process.exit(1);
   }
@@ -119,14 +115,17 @@ async function main(): Promise<void> {
   if (baseline.budget !== BUDGET) {
     diffs.push(`  budget changed: baseline ${baseline.budget} vs current ${BUDGET} — re-baseline`);
   }
+  if (baseline.suite !== undefined && baseline.suite !== (WIDE ? "wide" : "smoke")) {
+    diffs.push(`  suite changed: baseline ${baseline.suite} vs current ${WIDE ? "wide" : "smoke"} — re-baseline`);
+  }
 
   if (diffs.length === 0) {
-    console.log(`\n✓ optimizer output bit-identical to baseline (${CASES.length} cases @ ${BUDGET})`);
+    console.log(`\n✓ optimizer output bit-identical to baseline (${CASES.length} ${WIDE ? "wide " : ""}cases @ ${BUDGET})`);
     return;
   }
 
   console.error(`\n✗ optimizer output DIVERGED from baseline:\n${diffs.join("\n")}`);
-  console.error(`\nIf this change is intentional, re-baseline: npm run verify:optimizer -- --update`);
+  console.error(`\nIf this change is intentional, re-baseline: ${WIDE ? "npm run verify:optimizer:wide -- --update" : "npm run verify:optimizer -- --update"}`);
   process.exit(1);
 }
 

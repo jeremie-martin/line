@@ -35,7 +35,8 @@ Individual checks (all also run by `wasm:all`):
 
 | value | engine |
 |---|---|
-| (unset) | our optimized vendored `lr-core` (default) |
+| (unset) | this Rust→WASM engine (default) |
+| `js` | our optimized vendored `lr-core` |
 | `official` | the untouched published `lr-core` (parity reference) |
 | `wasm` | this Rust→WASM engine |
 | `record` | wraps vendored, logs the compile's op-DAG → `generated/trace/compile_ops.json` (for `wasm:replay`) |

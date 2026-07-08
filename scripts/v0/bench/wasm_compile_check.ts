@@ -3,8 +3,8 @@
  * the compiled TRACK HASH ({track, stats}) is identical. The definition of done
  * for the WASM engine — swap it in and get exactly the same compiled track:
  *
- *   - js       = our optimized vendored lr-core   (LR_ENGINE unset)
- *   - wasm     = the Rust→WASM engine             (LR_ENGINE=wasm)
+ *   - js       = our optimized vendored lr-core   (LR_ENGINE=js)
+ *   - wasm     = the Rust→WASM engine             (LR_ENGINE=wasm or unset)
  *   - official = the untouched published lr-core  (LR_ENGINE=official) — SLOW
  *
  * Default = the fast inner-loop leg you run while developing the WASM engine:
@@ -40,8 +40,7 @@ type Probe = { hash: string | null; note: string };
 
 function compileHash(spec: string, seed: number, engine: Engine): Probe {
   const env = { ...process.env };
-  if (engine === "js") delete env.LR_ENGINE;
-  else env.LR_ENGINE = engine;
+  env.LR_ENGINE = engine;
   const r = spawnSync(
     "npx",
     ["tsx", resolve("scripts/v0/bench/compile_hash.ts"), `--spec=${spec}`, `--seed=${seed}`, `--budget=${BUDGET}`],

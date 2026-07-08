@@ -1,0 +1,66 @@
+{
+  "budget": 40000,
+  "suite": "wide",
+  "cases": {
+    "tiny_dance|seed0": {
+      "hash": "d6420c5b4aa525a2",
+      "lines": 22,
+      "sim_frames": 40253
+    },
+    "mini_burst|seed0": {
+      "hash": "ad60ac0ba85ac9fb",
+      "lines": 34,
+      "sim_frames": 40619
+    },
+    "cold_start|seed1": {
+      "hash": "b55cb0a50c2c38f6",
+      "lines": 110,
+      "sim_frames": 40287
+    },
+    "syncopated_switchback|seed1": {
+      "hash": "60529ace6c17df83",
+      "lines": 114,
+      "sim_frames": 41084
+    },
+    "rhythm_ladder|seed2": {
+      "hash": "d2ed297c41b9def3",
+      "lines": 159,
+      "sim_frames": 40889
+    },
+    "drums_signature|seed2": {
+      "hash": "6732d8457404d680",
+      "lines": 193,
+      "sim_frames": 40070
+    },
+    "drums_dropout|seed3": {
+      "hash": "a0d4584b25169f1c",
+      "lines": 216,
+      "sim_frames": 45003
+    },
+    "drums_swell|seed4": {
+      "hash": "c1b30f7f297447f6",
+      "lines": 169,
+      "sim_frames": 40228
+    },
+    "opening_burst|seed1": {
+      "hash": "556acde15e510907",
+      "lines": 131,
+      "sim_frames": 41673
+    },
+    "climb_terrace|seed5": {
+      "hash": "40ff19d207c1a47f",
+      "lines": 103,
+      "sim_frames": 40152
+    },
+    "big_air_ramp|seed6": {
+      "hash": "8b620dc3d79c43c4",
+      "lines": 75,
+      "sim_frames": 41222
+    },
+    "skyline_push|seed7": {
+      "hash": "eb5ed138a2c1e527",
+      "lines": 104,
+      "sim_frames": 40293
+    }
+  }
+}

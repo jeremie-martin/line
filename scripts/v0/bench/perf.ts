@@ -2,7 +2,7 @@
  * perf — the single compiler-performance metric to optimize.
  *
  * Compiles a fixed, deterministic spec set under the currently-selected engine
- * (LR_ENGINE: unset = vendored lr-core, wasm = Rust→WASM), with warmup + many
+ * (LR_ENGINE: unset/wasm = Rust→WASM, js = vendored lr-core), with warmup + many
  * repetitions, and reports the headline number with proper statistics:
  *
  *     ns / physics-frame  —  wall-clock per physics frame the compiler actually
@@ -16,7 +16,7 @@
  *   npm run perf                       # mini_burst @ 50k, 50 runs
  *   npm run perf -- --reps=10          # faster signal
  *   npm run perf -- --specs=mini_burst,tiny_dance
- *   LR_ENGINE=wasm npm run perf        # measure the WASM engine instead
+ *   LR_ENGINE=js npm run perf          # measure the vendored JS engine instead
  */
 import { loadGoldenSpec } from "../golden_suite.ts";
 import { compileHandoff } from "../optimizer/handoff.ts";
@@ -45,7 +45,7 @@ async function main() {
   const seed = Number(arg("seed", "0"));
   const reps = Number(arg("reps", "50"));
   const warmup = Number(arg("warmup", "3"));
-  const engine = process.env.LR_ENGINE === "wasm" ? "wasm" : "js";
+  const engine = process.env.LR_ENGINE === "js" ? "js" : "wasm";
 
   // Load + sanity once. Frame counts are deterministic, so capture them here.
   const loaded: { name: string; spec: unknown; frames: number; sig: string }[] = [];

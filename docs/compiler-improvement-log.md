@@ -2,6 +2,45 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - aim high-K traversal-slack affordability
+
+Reason: replace part of the raw-budget high aim-base gate with an existing general budget
+difficulty signal. The trial kept the accepted K=1 below 100k, K=4 mature, K=6 high-budget,
+and low-air K=3 cap structure, but required the high K=6 tier to also clear structural
+traversal slack. The cutoff was derived from first completion plus the K=6/K=4 probe-count
+ratio: `1 + 6/4 = 2.5` predicted traversals. Candidate generation, search policy beyond
+aim-base count, start selection, forward eval, repair, scorer, specs, fingerprint, seed policy,
+budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_handoff.test.ts`
+(2 files, 39 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-aim-highk-slack-affordance-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-aim-highk-slack-affordance-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1436/1440, invalid 4, timeout 0.
+HEADLINE was 692.07 vs the current corrected probe baseline 692.43; HEADLINE excl. impact was
+709.76.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-aim-highk-slack-affordance-j32-a01/golden.json generated/golden-runs/probe-baseline/golden.json`
+returned indicative/non-promotable `VERDICT: INCONCLUSIVE`: baseline 692.4 -> candidate
+692.1, delta -0.4, CI [-1.3, 0.5], P(Delta<=0)=79.7%, effect -0.79. Per-budget deltas
+were 75k +0.0, 200k -1.4, 500k +0.0, with unchanged pass rates.
+
+Observed signal: the selector activated only in the expected 200k high-traversal band, but
+the trade was negative. Worst 200k mean spec deltas were `solo_run` -18.13,
+`drums_crescendo` -14.61, `drums_swell` -13.95, `drums_crosscut` -12.37,
+`drums_breath` -9.37, `drums_dropout` -5.08, and `drums_pendulum` -1.73. Gains in
+`drums_pulse` +10.44, `drums_zigzag` +7.70, `drums_signature` +3.14, and
+`drums_tide` +1.68 did not compensate.
+
+Why it was not kept: the affordability idea is structurally clean, but the current 200k
+dense-family rows still convert the extra aim bases often enough that suppressing K=6 loses
+score. Narrowing around the winners/losers would become a suite-specific aim pocket. Source
+and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - low-slack q24 quality breadth
 
 Reason: test a structural scarce-budget allocation signal from the q-candidate panel without

@@ -2,6 +2,39 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - steady soft-impact relief
+
+Reason: the earlier anti-correlated soft high-air impact relief confirmed a real
+`drums_pendulum` improvement but also caught the variable-speed `drums_breath` profile. This
+follow-up added resolved impact-profile air/speed/impact ranges and activated the same mature
+soft high-air contact/curvature relief only when the profile had broad air and impact motion but
+steady speed. Candidate count, scorer, specs, evaluator fingerprint, seed policy, budget grid,
+and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-steady-soft-impact-relief-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-steady-soft-impact-relief-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.72 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.33. Per-budget point estimates were 75k 659.17, 200k 688.91, and 500k 702.37.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-steady-soft-impact-relief-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.7, delta +0.1,
+CI [-0.0, 0.4], P(Delta<=0)=41.9%, effect 0.70. Per-budget deltas were
+75k +0.0, 200k +0.2, and 500k +0.1, with unchanged pass rates.
+
+Why it was not kept: the speed-range gate did isolate the intended constant-speed footprint.
+Rounded spec-score movement was confined to `drums_pendulum` (`+3.86` at 200k and `+2.13` at
+500k); `drums_breath` was unchanged at the rounded spec-score level. Row-level movement was only
+24 paired rows, all on `drums_pendulum`, with 14 improvements and 10 regressions, mean changed-row
+delta about +3.0. That confirms the profile distinction but leaves too little suite-wide signal
+for the accept gate. Source and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - amplitude-only low-pop shoulder
 
 Reason: the broad low-amplitude shoulder had positive signal but mixed elevation+amplitude rows

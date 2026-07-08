@@ -2,6 +2,39 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - continuous current-power structured cap
+
+Reason: use historical low-impact/current-power wins only as diagnostic evidence, not by restoring
+their pocketed mechanism. The candidate kept the simplified continuous current-power model but
+added a smooth mature-budget structured cap and a wider mature mid-impact shoulder. The intent was
+to reduce mature-budget over-powering on compact/vertical low-impact specs while lifting structured
+mid-impact vertical rows, with 125k behavior protected after an early probe showed scarce-budget
+losses. It did not branch on spec names or seeds, and it did not reintroduce the old M178 exact
+profile pockets.
+
+Focused tests passed:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/objective_quality.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts`
+(4 files, 50 tests).
+
+Probe: `generated/golden-runs/probe-current-surface-structured-cap-s0-2-a02/golden.json`, run on
+13 affected specs x seeds 0,1,2 x four canonical budgets. It was valid 156/156 and indicative
+`VERDICT: INCONCLUSIVE`: paired baseline 675.8 -> candidate 677.5, delta +1.7,
+CI [-2.2, 7.0], P(Delta<=0)=21.8%. Budget deltas were 125k +0.0, 250k +0.4,
+375k +1.8, and 500k +2.7.
+
+All-seed affected panel:
+`generated/golden-runs/probe-current-surface-structured-cap-affected-all12-a01/golden.json`, run
+with the same 13 affected specs across all 12 canonical seeds and four budgets. It was valid
+624/624 but remained non-promotable and inconclusive versus
+`generated/golden-runs/simplify2-20-redir-angle-shift-helper-j32-a01/golden.json`: paired baseline
+677.4 -> candidate 677.3, delta -0.1, CI [-4.6, 3.6], P(Delta<=0)=46.7%. Budget deltas were
+125k +0.0, 250k -0.9, 375k -0.2, and 500k +0.5.
+
+Why it was not kept: the three-seed uplift did not survive all-seed validation on the affected
+surface, and the signal was too weak to justify a full canonical run. Source edits were reverted;
+no behavior was kept. Do not retry this exact structured cap / widened mature mid-impact shoulder
+without a materially different, general selector.
+
 ## 2026-07-08 - NOT KEPT - impact-template amplitude compatibility gate
 
 Reason: test a smooth structural guard for the existing impact slam-hop template lane after anatomy

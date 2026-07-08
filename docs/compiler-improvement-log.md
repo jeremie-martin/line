@@ -1,6 +1,43 @@
 # Compiler Improvement Log
 
-Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
+Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
+
+## 2026-07-08 - NOT KEPT - physical-floor current-air objective
+
+Reason: test whether selection and proposal ranking were wasting effort chasing current-gap air
+asks below the landing detector floor. The trial reused the existing `effectiveAirAsk` /
+`nextGapFrameCount` physical floor for current-quality objective scoring in the aim sweep and
+rank-quality candidate objective only. The scorer, authored specs, evaluator fingerprint, seed
+policy, budget grid, candidate generation, forward eval, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/objective_quality.test.ts tests/optimizer_handoff.test.ts tests/handoff_policy.test.ts`
+(3 files, 49 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-current-air-floor-objective-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-current-air-floor-objective-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1436/1440, invalid 4, timeout 0.
+HEADLINE was 692.55 vs the current corrected probe baseline 692.43; HEADLINE excl. impact was
+710.55.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-current-air-floor-objective-j32-a01/golden.json generated/golden-runs/probe-baseline/golden.json`
+returned indicative/non-promotable `VERDICT: INCONCLUSIVE`: baseline 692.4 -> candidate
+692.6, delta +0.1, CI [-0.4, 0.8], P(Delta<=0)=34.4%, effect 0.43. Per-budget deltas
+were 75k +0.3, 200k +0.2, and 500k +0.1, with unchanged pass rates.
+
+Observed signal: the affected surface was intentionally small and mostly limited to the
+physically-low-air rows. At 75k the main gains were `syncopated_switchback` +7.07,
+`drums_pendulum` +3.51, and `rhythm_ladder` +0.79. At 200k, `rhythm_ladder` +4.95 and
+`drums_pendulum` +3.70 were offset by `syncopated_switchback` -4.11. At 500k,
+`syncopated_switchback` +6.45 was offset by `rhythm_ladder` -1.51 and `drums_pendulum`
+-1.48.
+
+Why it was not kept: the mechanism is general and directionally plausible, but the normalized
+probe did not clear the accept gate and the gains were budget-mixed across the same affected
+rows. Keeping it would violate the one-mechanism acceptance workflow. Source and test edits
+were reverted; no baseline was advanced.
 
 ## 2026-07-08 - NOT KEPT - aim high-K traversal-slack affordability
 

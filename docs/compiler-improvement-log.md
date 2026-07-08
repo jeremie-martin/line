@@ -2,6 +2,39 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - anti-correlated soft high-air impact relief
+
+Reason: `drums_pendulum` still over-hit many high-air/soft-impact beats while under-hitting
+low-air hard beats. This trial added a resolved-profile pressure for dense, vertical-quiet,
+air/impact anti-correlated profiles with enough air and impact range, then locally pulled
+soft high-air contact angles toward the incoming rider angle and damped post-contact curvature.
+The effect was mature-budget gated, leaving 75k unchanged. Candidate count, scorer, specs,
+evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-soft-highair-relief-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-soft-highair-relief-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.76 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.38. Per-budget point estimates were 75k 659.17, 200k 689.43, and 500k 702.24.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-soft-highair-relief-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.8, delta +0.1,
+CI [-0.7, 1.0], P(Delta<=0)=43.8%, effect 0.34. Per-budget deltas were
+75k +0.0, 200k +0.7, and 500k -0.1, with unchanged pass rates.
+
+Why it was not kept: the selector activated only on the intended anti-correlated drum
+profiles. `drums_pendulum` improved (+7.12 mean probe delta; 21 improved changed checkpoints,
+3 regressions), but `drums_breath` regressed enough at 500k to offset the 200k gain
+(-2.37 mean; 11 improved, 13 regressed). The mechanism confirms the pendulum diagnosis, but
+the broader profile family is not monotone-positive. Source and test edits were reverted; no
+baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - variable-speed impact template margin spread
 
 Reason: the mature impact-template margin spread had upside on dense variable-speed drum profiles

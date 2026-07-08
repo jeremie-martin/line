@@ -2,6 +2,56 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - KEPT - final-contact tail off-beat gate
+
+Reason: the remaining accepted-baseline invalids were two scarce-budget `drums_crescendo` rows
+where every authored contact hit, but the full replay produced one extra landing after the final
+authored contact inside the scorer-visible rideout tail. Local candidate validation previously
+bounded off-beat checks by the next measurement boundary; for the final contact there is no next
+contact, so a tail re-landing could pass local gates and fail only in the final full-track report.
+This change extends the candidate off-beat gate through the already-simulated 20-frame rideout tail
+for the last authored contact, and disables short-horizon truncation for that final-tail check so
+the gate sees the same class of scorer-visible off-beat. Candidate count, scorer, specs, evaluator
+fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+HEADLINE was 695.09 vs the previous accepted target-turn probe baseline 694.62; HEADLINE excl.
+impact was 713.83. Per-budget point estimates were 75k 661.85, 200k 688.75, and 500k 702.61.
+
+Probe decision:
+`npm run decide -- generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: ACCEPT`: baseline 694.6 -> candidate 695.1, delta +0.5,
+CI [-0.1, 1.5], P(delta<=0)=7.9%, effect 1.12. Per-budget deltas were
+75k +2.7, 200k -0.0, and 500k +0.3.
+
+Full:
+`generated/golden-runs/full-final-tail-offbeat-gate-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --full --jobs=32 --archive-dir=generated/golden-runs/full-final-tail-offbeat-gate-j32-a01`.
+It was valid 2880/2880, invalid 0, timeout 0. HEADLINE was 697.22 vs the previous accepted full
+baseline 697.04; HEADLINE excl. impact was 715.38. Per-budget point estimates were 75k 661.85,
+150k 685.43, 225k 692.56, 350k 697.91, 475k 700.57, and 550k 703.85.
+
+Full decision:
+`npm run decide -- generated/golden-runs/full-final-tail-offbeat-gate-j32-a01/golden.json generated/golden-runs/full-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: ACCEPT`: baseline 697.0 -> candidate 697.2, delta +0.2,
+CI [-0.1, 0.7], P(delta<=0)=16.4%, effect 0.89. Per-budget deltas were
+75k +2.7, 150k -0.1, 225k +0.2, 350k +0.0, 475k +0.2, and 550k +0.1.
+
+Why it was kept: the mechanism fixed both known full-baseline invalids
+(`drums_crescendo` slot 0 at 75k, 232.47 -> 631.83, and slot 11 at 75k,
+235.07 -> 636.39) without introducing any new invalid rows. Across the paired full run,
+552/2880 track hashes changed, with 224 score improvements and 309 regressions; the validity
+repair and small mature-budget point gains were enough to clear the canonical accept gate. Accepted
+baselines advanced to `probe-final-tail-offbeat-gate-j32-a01` and
+`full-final-tail-offbeat-gate-j32-a01`.
+
 ## 2026-07-09 - NOT KEPT - profiled soft high-air impact relief
 
 Reason: the earlier steady soft-impact relief probes showed a clean `drums_pendulum` gain but were

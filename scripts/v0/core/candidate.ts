@@ -86,6 +86,12 @@ const SURVIVAL_MARGIN = 16;
 /** `axisSafeCap` floor (frames past endFrame): minimum truncation cap covering the
  *  survival margin + catch+8 launch read (mirrors arc_probe.ts axisSafeCap `20`). */
 const AXIS_SAFE_CAP_MIN_FRAMES = 20;
+/** Final completed tracks are scored with a short rideout tail past the authored
+ *  duration. A final catch that lands on-beat but immediately re-lands on its
+ *  own rideout support is therefore a scorer-visible off-beat. Local candidate
+ *  validation must inspect the already-simulated catch tail for the last authored
+ *  contact, even though there is no next contact boundary. */
+const FINAL_CONTACT_OFFBEAT_TAIL_FRAMES = AXIS_SAFE_CAP_MIN_FRAMES;
 /** `axisSafeCap` next-contact offset: `axisMeasureEnd+2` stands in for arc_probe.ts's
  *  `nextFrame+2` lookahead boundary. */
 const AXIS_SAFE_CAP_MEASURE_END_OFFSET = 2;
@@ -810,7 +816,8 @@ function evaluateGapFit(
 } {
   // deno-lint-ignore no-explicit-any
   const eng: any = baseEngine.addLine(lines.map((line) => engineLineFromTrackLine(line)));
-  const fullHorizon = Math.max(gap.endFrame + 20, axisMeasureEnd + 20);
+  const offBeatGateEnd = candidateOffBeatGateEndFrame(gap, axisMeasureEnd, allContactFrames);
+  const fullHorizon = Math.max(gap.endFrame + 20, axisMeasureEnd + 20, offBeatGateEnd);
   const redetect = (h: number): Detection =>
     useWindowDetection ? detectWindow(eng, gap.startFrame, h) : detect(extractRawTrajectory(eng, h));
 
@@ -822,17 +829,19 @@ function evaluateGapFit(
   // through the next gap to `axisMeasureEnd`. Falls back to the full horizon when
   // no clean exit is found within the cap (ride-outs / tail-riders), which is
   // byte-identical to the former behavior.
-  const short = computeShortGapFitDetection(redetect, lines, gap, axisMeasureEnd, fullHorizon);
+  const needsFinalTailOffBeatGate = offBeatGateEnd > axisMeasureEnd;
+  const short = needsFinalTailOffBeatGate
+    ? null
+    : computeShortGapFitDetection(redetect, lines, gap, axisMeasureEnd, fullHorizon);
   const truncated = short !== null;
   const horizon = truncated ? short.stopHorizon : fullHorizon;
   const det = truncated ? short.det : redetect(fullHorizon);
   // Ballistic suffix for the axis measurement past the truncated detection;
   // null in the full-horizon path (measureGapAxesWithBallisticSuffix degrades to
-  // measureGapAxes when rangeEndFrame ≤ the detection's last frame). The off-beat
-  // / survival measurement boundary clamps to the truncated horizon.
+  // measureGapAxes when rangeEndFrame ≤ the detection's last frame). The survival
+  // boundary clamps to the truncated horizon.
   const ballisticSuffix = truncated ? short.suffix : null;
   const ballisticExitFrame = truncated ? short.exitFrame : null;
-  const measureEnd = truncated ? Math.min(axisMeasureEnd, horizon) : axisMeasureEnd;
   if (truncated) {
     gapfitShortTotals.gapfit_truncated++;
     gapfitShortTotals.gapfit_frames_saved += Math.max(0, fullHorizon - horizon);
@@ -874,11 +883,11 @@ function evaluateGapFit(
   );
   if (!landingNearTarget) return { fit: null, failure: "landing" };
 
-  // Hard gate 3: no off-beat landings before the next measurement boundary.
-  // Under truncation the boundary clamps to the truncated horizon (off-beat fires
-  // on 0.1% of evals, own-arc double-touches within +16, captured by the prefix).
+  // Hard gate 3: no off-beat landings before the next measurement boundary. For
+  // the final authored contact, extend the gate through the already-simulated
+  // rideout tail, matching the final scorer's full-track off-beat visibility.
   const offBeat = countOffBeatLandings(
-    det.events, gap.startFrame, measureEnd, allContactFrames,
+    det.events, gap.startFrame, offBeatGateEnd, allContactFrames,
   );
   if (offBeat > 0) return { fit: null, failure: "offbeat" };
 
@@ -1130,6 +1139,17 @@ export function countOffBeatLandings(
     if (!nearAnyContact) n++;
   }
   return n;
+}
+
+export function candidateOffBeatGateEndFrame(
+  gap: Gap,
+  measureEnd: number,
+  contactFrames: readonly number[],
+): number {
+  if (!gap.endsWithContact) return measureEnd;
+  const lastContactFrame = contactFrames[contactFrames.length - 1];
+  if (lastContactFrame !== gap.endFrame) return measureEnd;
+  return Math.max(measureEnd, gap.endFrame + FINAL_CONTACT_OFFBEAT_TAIL_FRAMES);
 }
 
 // ─────────── Axis measurement ───────────

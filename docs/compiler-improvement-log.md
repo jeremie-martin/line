@@ -2,6 +2,37 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - deeper impact template end angle
+
+Reason: the post-target-turn impact funnel showed `A_not_generated` rows where needed turn
+averaged roughly 28-31deg but the maximum generated turn stalled around 24-25deg. This trial
+tested whether the impact template's valley floor was the limiter by lowering
+`IMPACT_TEMPLATE_END_ANGLE_MIN_DEG` from -28deg to -36deg. Candidate count, lane rate, turn
+targeting, ranking, scorer, specs, evaluator fingerprint, seed policy, budget grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 44 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-impact-template-end-angle-36-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-template-end-angle-36-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.61 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.43.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-impact-template-end-angle-36-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.6, delta -0.0,
+CI [-0.1, 0.1], P(Delta<=0)=68.2%, effect -0.27. Per-budget deltas were
+75k -0.1, 200k -0.1, and 500k +0.0, with unchanged pass rates.
+
+Why it was not kept: allowing a deeper valley floor was effectively neutral in the normalized
+probe and did not clear the accept gate. It may fill some local not-generated cases, but the
+suite-level effect is flat and slightly negative at the lower budgets. Source edits were
+reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - impact-fit pool admission
 
 Reason: after target-sized impact templates moved the residual bottleneck from generation toward

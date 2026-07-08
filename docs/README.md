@@ -13,6 +13,7 @@ historical record, not live guidance.
 | [`HOW_TO_WORK.md`](HOW_TO_WORK.md) | LIVE | The entry point. Workflow, run tiers, decision rule, principles. |
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen contract + the **HEADLINE metric** definition (the metric's single source of truth). |
 | [`REBASELINE.md`](REBASELINE.md) | LIVE | How to record a new baseline from a canonical golden run. |
+| [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
 | [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | LIVE | The active compiler's search algorithm. |
 | [`ARC_AIMING_FORMALIZATION.md`](ARC_AIMING_FORMALIZATION.md) | LIVE | The aiming model and the shared current-quality × readiness objective. |
 | [`READINESS_ROADMAP.md`](READINESS_ROADMAP.md) | LIVE | Readiness design history and current composite readiness semantics. |
@@ -40,7 +41,7 @@ trail) — plus its `scripts/v0/eval_<name>.sh` board.
 | [`../PROBLEM.md`](../PROBLEM.md) | REFERENCE | Problem statement and success criteria. |
 | [`metric_problem_statement.md`](metric_problem_statement.md) | REFERENCE | Statistical rationale behind the metric (noise floor, seed counts). |
 | [`creative_workflow.md`](creative_workflow.md) | REFERENCE | Worked song→track→video example, and the `productions/<song>/` pipeline: `analyze_audio.py` → `characterize` → `select.json` → `npm run produce` (`scripts/produce/`). |
-| [`engine_speed_methodology.md`](engine_speed_methodology.md) | REFERENCE | Engine-perf method; cites the running `OPTIMIZATION_LOG.md` ledger. |
+| [`engine_speed_methodology.md`](engine_speed_methodology.md) | REFERENCE | Detailed engine-perf statistics and historical method; see `engine-workflow.md` for current workflow. |
 | [`impact_contract.md`](impact_contract.md) | REFERENCE | Self-contained per-beat impact contract (the impact metric definition). |
 | [`impact_problem_statement.md`](impact_problem_statement.md) | REFERENCE | Impact semantics living doc. |
 | [`impact_generation_and_landing_notes.md`](impact_generation_and_landing_notes.md) | REFERENCE | Impact-as-generation analysis + landing-redefinition notes. |

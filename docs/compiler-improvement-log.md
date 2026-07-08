@@ -2,6 +2,47 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - mature impact template margin spread
+
+Reason: the all-budget impact-template margin spread showed a positive 500k signal but hurt
+75k. This follow-up kept 75k byte-identical by applying the same deterministic `2deg..6deg`
+target-turn margin spread only behind the template scoop's existing mature-budget pressure.
+The scorer, specs, evaluator fingerprint, seed policy, budget grid, candidate count, template
+lane rate, eligibility gates, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-impact-template-mature-margin-spread-j32-a01/golden.json`, run
+with `LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-template-mature-margin-spread-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 695.09 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 714.17.
+
+Probe decision:
+`npm run decide -- generated/golden-runs/probe-impact-template-mature-margin-spread-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned indicative/non-promotable `VERDICT: ACCEPT`: baseline 694.6 -> candidate 695.1,
+delta +0.5, CI [-0.6, 1.7], P(Delta<=0)=18.8%, effect 0.84. The 75k delta was exactly 0.0;
+500k was +0.8.
+
+Full:
+`generated/golden-runs/full-impact-template-mature-margin-spread-j32-a01/golden.json`, run
+with `LR_ENGINE=wasm npm run golden -- --full --jobs=32 --archive-dir=generated/golden-runs/full-impact-template-mature-margin-spread-j32-a01`.
+It was valid 2878/2880, invalid 2, timeout 0. HEADLINE was 697.09 vs the accepted full
+baseline 697.04; HEADLINE excl. impact was 715.09.
+
+Full decision:
+`npm run decide -- generated/golden-runs/full-impact-template-mature-margin-spread-j32-a01/golden.json generated/golden-runs/full-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 697.0 -> candidate 697.1, delta +0.1,
+CI [-0.7, 1.0], P(Delta<=0)=46.8%, effect 0.12. Per-budget deltas were 75k +0.0,
+150k +0.1, 225k +0.4, 350k -0.5, 475k +0.7, and 550k -0.3, with unchanged pass rates.
+
+Why it was not kept: the mature spread cleared the probe by preserving 75k and improving
+500k, but the canonical full grid showed a flat budget-mixed trade and did not clear the
+accept gate. Source and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - impact template margin spread
 
 Reason: after exact target-sized impact-template turn was rejected, preserve the accepted

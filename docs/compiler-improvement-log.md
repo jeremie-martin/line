@@ -2,6 +2,37 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - variable-speed impact template margin spread
+
+Reason: the mature impact-template margin spread had upside on dense variable-speed drum profiles
+but lost too much on constant-speed and nearby profiles. This trial kept the same deterministic
+`2deg..6deg` target-turn margin spread, still behind mature-budget pressure, but activated it only
+from resolved target-profile pressure: dense cadence, no vertical-axis pressure, mid-band impact,
+and real speed/air/impact variation. Candidate count, lane rate, scorer, specs, evaluator
+fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-impact-template-variable-speed-spread-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-template-variable-speed-spread-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.56 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.46. Per-budget point estimates were 75k 659.17, 200k 688.87, and 500k 702.15.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-impact-template-variable-speed-spread-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.6, delta -0.1,
+CI [-0.9, 0.8], P(Delta<=0)=58.0%, effect -0.14. Per-budget deltas were
+75k +0.0, 200k +0.1, and 500k -0.1, with unchanged pass rates.
+
+Why it was not kept: the structural selector successfully left 75k unchanged but did not
+turn the prior margin-spread signal into a suite-level win. The small 200k gain was offset by
+a slightly negative 500k result, so the normalized probe did not clear the accept gate. Source
+and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - deeper impact template end angle
 
 Reason: the post-target-turn impact funnel showed `A_not_generated` rows where needed turn

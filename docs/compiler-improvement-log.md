@@ -2,6 +2,35 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - repair exhaustion reset on accepted incumbent
+
+Reason: test a general repair lifecycle fix, not a benchmark-specific profile. The repair phase
+marks a gap exhausted after fresh-seed restarts fail, and that exhausted set currently survives
+later accepted repair improvements. The trial cleared the exhausted set whenever repair accepted
+a new incumbent, on the theory that failed gaps are tied to the old suffix state and residuals.
+Candidate generation, repair scoring, current-power profiles, specs, scorer, fingerprint, seeds,
+budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`LR_ENGINE=wasm npx vitest run tests/optimizer_handoff.test.ts tests/objective_quality.test.ts tests/handoff_policy.test.ts tests/budget_model.test.ts`
+(4 files, 50 tests).
+
+Probe:
+`generated/golden-runs/probe-repair-exhaustion-reset-s0-2-a01/golden.json`, run on
+`drums_pendulum,skyline_push,terrace_sprint,drums_dropout,canyon_steps,syncopated_lift,dense_echo_climb,rolling_drop,dense_sprint,rhythm_ladder,drums_signature,mini_burst`
+x seeds 0,1,2 x all four canonical budgets with `LR_ENGINE=wasm`, `--jobs=32`. It was valid
+144/144. Paired decision versus
+`generated/golden-runs/simplify2-20-redir-angle-shift-helper-j32-a01/golden.json` was
+indicative/non-promotable `VERDICT: INCONCLUSIVE`: baseline 634.5 -> candidate 634.3,
+delta -0.2, CI [-1.4, 1.0], P(Delta<=0)=68.3%. Per-budget deltas were 125k -0.4,
+250k -0.2, 375k +0.1, and 500k -0.5, with unchanged validity.
+
+Why it was not kept: the state-lifecycle story is clean, but the paired repair-heavy probe
+was weakly negative at the headline level and negative at both the scarce and mature endpoints.
+Persisting exhausted gaps after an accepted repair improvement appears to be a useful throttle,
+or at least not a bottleneck worth spending attempts on. Source edits were reverted; no behavior
+was kept.
+
 ## 2026-07-08 - NOT KEPT - current-power overlap gating
 
 Reason: test a structural alternative to restoring old M178 current-power pockets. The simplified

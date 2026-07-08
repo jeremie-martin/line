@@ -2,6 +2,42 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 700 without changing the scorer, golden specs, evaluator fingerprint, metric, seed set, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - impact-template amplitude compatibility gate
+
+Reason: test a smooth structural guard for the existing impact slam-hop template lane after anatomy
+showed low-amplitude mixed vertical/impact gaps with large amplitude overshoot. The candidate
+converted impact-template vertical compatibility from a boolean to a pressure based on authored
+amplitude, with a smooth mature-budget ramp so 125k search diversity stayed byte-identical while
+250k+ could suppress low-amplitude template attempts. It did not restore any historical
+current-power/profile mechanism, and did not branch on spec names or seeds.
+
+Focused tests passed:
+`LR_ENGINE=wasm npx vitest run tests/handoff_policy.test.ts tests/optimizer_handoff.test.ts tests/arc_model.test.ts`
+(3 files, 62 tests).
+
+Probe: `generated/golden-runs/probe-impact-template-amp-compat-s0-2-a02/golden.json`, run with
+`LR_ENGINE=wasm GOLDEN_SEEDS_OVERRIDE=0,1,2 npm run golden -- --specs=skyline_push,terrace_sprint,canyon_steps,syncopated_lift,dense_echo_climb,drums_dropout --budgets=125000,250000,375000,500000 --jobs=32 --archive-dir=generated/golden-runs/probe-impact-template-amp-compat-s0-2-a02`.
+It was valid 72/72 and indicative ACCEPT on the 6-spec x 3-seed intersection versus
+`simplify2-20-redir-angle-shift-helper-j32-a01`: paired baseline 621.3 -> candidate 622.2,
+delta +0.9, CI [-0.1, 2.4], P(Delta<=0)=6.5%. Budget deltas were 125k +0.0, 250k +1.4,
+375k +1.5, and 500k +0.3.
+
+Canonical: `generated/golden-runs/attempt-impact-template-amp-compat-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/attempt-impact-template-amp-compat-a01`.
+It was valid 1920/1920 with stored HEADLINE 696.76 and budget scores 125k 681.06, 250k 692.21,
+375k 698.59, and 500k 701.60.
+
+Decision: `npm run decide -- generated/golden-runs/attempt-impact-template-amp-compat-a01/golden.json generated/golden-runs/simplify2-20-redir-angle-shift-helper-j32-a01/golden.json`
+returned canonical `VERDICT: INCONCLUSIVE`: baseline 696.7 -> candidate 696.8, delta +0.1,
+CI [-0.2, 0.4], P(Delta<=0)=32.3%. Per-budget deltas were 125k +0.0, 250k -0.0,
+375k +0.2, and 500k +0.0; validity stayed 100% at every budget.
+
+Why it was not kept: the targeted mixed-axis probe signal did not generalize to the full
+40-spec/12-seed canonical suite strongly enough to clear the acceptance gate. The mature-budget
+shape was smooth and low-risk, but the full-suite effect was too small and uncertain. Source and
+test edits were reverted; no behavior was kept. Do not retry this exact authored-amplitude
+template gate without a broader selector or a mechanism that also helps non-targeted specs.
+
 ## 2026-07-05 - NOT KEPT - M197 high-budget aim air-range gate restore
 
 Reason: retest a previously accepted high-budget aim guard that had been removed during

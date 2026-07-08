@@ -2,6 +2,52 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - amplitude-only low-pop shoulder
+
+Reason: the broad low-amplitude shoulder had positive signal but mixed elevation+amplitude rows
+absorbed too much collateral. This follow-up kept the same weak low-amplitude pop pressure but
+disabled it whenever an elevation target was active, so only pure amplitude rows received the
+extra low-target support. Candidate count, lane rate, scorer, specs, evaluator fingerprint,
+seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-amplitude-only-low-pop-shoulder-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-amplitude-only-low-pop-shoulder-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.96 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.52. Per-budget point estimates were 75k 660.87, 200k 688.64, and 500k 702.60.
+
+Probe decision:
+`npm run decide -- generated/golden-runs/probe-amplitude-only-low-pop-shoulder-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: ACCEPT`: baseline 694.6 -> candidate 695.0, delta +0.3,
+CI [-0.2, 1.2], P(Delta<=0)=15.7%, effect 0.91. Per-budget deltas were
+75k +1.7, 200k -0.1, and 500k +0.3, with unchanged pass rates.
+
+Full:
+`generated/golden-runs/full-amplitude-only-low-pop-shoulder-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --full --jobs=32 --archive-dir=generated/golden-runs/full-amplitude-only-low-pop-shoulder-j32-a01`.
+It was valid 2878/2880, invalid 2, timeout 0. HEADLINE was 697.16 vs the accepted full
+baseline 697.04; HEADLINE excl. impact was 715.12. Per-budget point estimates were
+75k 660.87, 150k 685.79, 225k 692.49, 350k 698.22, 475k 700.56, and 550k 703.52.
+
+Full decision:
+`npm run decide -- generated/golden-runs/full-amplitude-only-low-pop-shoulder-j32-a01/golden.json generated/golden-runs/full-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 697.0 -> candidate 697.2, delta +0.1,
+CI [-0.3, 0.7], P(Delta<=0)=30.6%, effect 0.53. Per-budget deltas were
+75k +1.7, 150k +0.3, 225k +0.1, 350k +0.3, 475k +0.2, and 550k -0.3,
+with unchanged pass rates.
+
+Why it was not kept: the selector contained the blast radius exactly to the five pure-amplitude
+specs, but the full canonical distribution still did not clear the accept gate. Mean full deltas
+were `float_bounds` +11.36, `pop_train` +4.22, and `soar_settle` +1.54, offset by
+`leap_cadence` -1.75 and `big_air_ramp` -0.97 plus a negative 550k rung. The mechanism is a
+useful direction, but production needs either a smoother amplitude-only selector or a mature-rung
+guard before it is promotable. Source and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - low-amplitude pop shoulder
 
 Reason: accepted full-baseline diagnostics showed amplitude remained under-hit across target

@@ -2,6 +2,40 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - low-amplitude pop shoulder
+
+Reason: accepted full-baseline diagnostics showed amplitude remained under-hit across target
+bands, including low explicit amplitude targets below the existing `0.30` amplitude-pop onset.
+This trial added a weak, smooth low-amplitude support shoulder that began near amplitude `0.10`,
+peaked below the regular pop pressure, and faded out as the existing high-amplitude pressure
+took over. Candidate count, lane rate, scorer, specs, evaluator fingerprint, seed policy,
+budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-low-amplitude-pop-shoulder-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-low-amplitude-pop-shoulder-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.87 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.54. Per-budget point estimates were 75k 660.76, 200k 688.73, and 500k 702.45.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-low-amplitude-pop-shoulder-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.9, delta +0.2,
+CI [-0.7, 1.6], P(Delta<=0)=37.1%, effect 0.41. Per-budget deltas were
+75k +1.6, 200k -0.0, and 500k +0.2, with unchanged pass rates.
+
+Why it was not kept: the mechanism had real positive signal but not enough certainty for the
+accept gate. The largest mean probe gains were `float_bounds` +15.19, `pop_train` +7.12,
+`canyon_steps` +6.94, and `big_air_ramp` +4.33, while the largest losses were
+`valley_bounce` -4.48, `syncopated_lift` -3.51, `dense_echo_climb` -2.97,
+`terrace_sprint` -2.52, and `leap_cadence` -2.52. The idea remains worth revisiting with a
+more profile-aware shoulder, but this broad form was not accepted. Source and test edits were
+reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - anti-correlated soft high-air impact relief
 
 Reason: `drums_pendulum` still over-hit many high-air/soft-impact beats while under-hitting

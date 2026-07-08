@@ -14,8 +14,8 @@ use crate::frame::{
 use crate::grid::{cell_hash, FlatIntMap};
 use crate::line::{GridLine, MAX_FORCE_LENGTH};
 use crate::{
-    BASE, BUTT, COLLIDABLES, FRIC, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT,
-    LHAND, NENT, NITER, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, STRING, TAIL,
+    BASE, BUTT, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT, LHAND, NENT, NITER,
+    NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, STRING, TAIL,
 };
 
 const LINE_CELL_CACHE_SLOTS: usize = 64;
@@ -255,6 +255,109 @@ unsafe fn resolve_iter_constraints(s: &mut State, rest: &[f64; NITER], endur: &[
     resolve_repel(s, rest, 21, SHOULDER, RFOOT);
 }
 
+#[inline(always)]
+#[allow(clippy::too_many_arguments)]
+unsafe fn collide_point<const I: usize, const TRACK: bool>(
+    s: &mut State,
+    grid: &FlatIntMap<Vec<GridLine>>,
+    events: &mut Vec<(u8, i32, i32)>,
+    frame_index: i32,
+    hist: &mut HistGrid,
+    touched_cells: &mut Vec<i64>,
+    hist_snaps: &mut Vec<SnapNode>,
+    active_cells: &mut ActiveCellCache,
+    line_cache: &mut LineCellCache,
+    coll: &mut Collisions,
+    touched_lines: &mut Vec<i32>,
+    it: u8,
+    fric: f64,
+) {
+    let (mut pxi, mut pyi, vxi, vyi) = (
+        *s.px.get_unchecked(I),
+        *s.py.get_unchecked(I),
+        *s.vx.get_unchecked(I),
+        *s.vy.get_unchecked(I),
+    );
+    let center_cell = cell_hash(pxi, pyi);
+    // addToGrid (A): pre-collision snapshot.
+    if TRACK {
+        add_to_grid(
+            hist,
+            touched_cells,
+            hist_snaps,
+            active_cells,
+            center_cell,
+            frame_index,
+            pxi,
+            pyi,
+            vxi,
+            vyi,
+        );
+    }
+    if let Some(lns) = line_cache.lookup(grid, center_cell) {
+        let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(I), *s.prevy.get_unchecked(I));
+        for entry in lns.iter() {
+            let l = &entry.line;
+            let ox = pxi - l.p1x;
+            let oy = pyi - l.p1y;
+            let perp_comp = l.normx * ox + l.normy * oy;
+            let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
+            let pnt_dir = l.normx * vxi + l.normy * vyi;
+            if pnt_dir > 0.0
+                && perp_comp > 0.0
+                && perp_comp < MAX_FORCE_LENGTH
+                && line_pos >= l.left_bound
+                && line_pos <= l.right_bound
+            {
+                let tx = l.normx * perp_comp - pxi;
+                let ty = l.normy * perp_comp - pyi;
+                let posx = tx * -1.0;
+                let posy = ty * -1.0;
+                let mut fvx = (l.normy * fric) * perp_comp;
+                let mut fvy = ((-l.normx) * fric) * perp_comp;
+                if prevxi >= posx {
+                    fvx = fvx * -1.0;
+                }
+                if prevyi < posy {
+                    fvy = fvy * -1.0;
+                }
+                fvx = fvx + prevxi;
+                fvy = fvy + prevyi;
+                if l.is_acc {
+                    fvx = fvx + l.accx;
+                    fvy = fvy + l.accy;
+                }
+                *s.px.get_unchecked_mut(I) = posx;
+                *s.py.get_unchecked_mut(I) = posy;
+                *s.prevx.get_unchecked_mut(I) = fvx;
+                *s.prevy.get_unchecked_mut(I) = fvy;
+                pxi = posx;
+                pyi = posy;
+                prevxi = fvx;
+                prevyi = fvy;
+                events.push((it, l.id, I as i32));
+                // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
+                if TRACK {
+                    let pcell = cell_hash(pxi, pyi);
+                    add_to_grid(
+                        hist,
+                        touched_cells,
+                        hist_snaps,
+                        active_cells,
+                        pcell,
+                        frame_index,
+                        pxi,
+                        pyi,
+                        vxi,
+                        vyi,
+                    );
+                    add_to_collisions(coll, touched_lines, l.id, frame_index);
+                }
+            }
+        }
+    }
+}
+
 /// One frame: step → 6×(constraints, collision) → BindJoints. `events` collects
 /// (iteration, line_id, point_idx) per collision (for getUpdatesAtFrame). When
 /// `track`, the addToGrid collision-history (→ `hist`, new cells → `touched_cells`)
@@ -299,102 +402,157 @@ pub(crate) fn step_state<const TRACK: bool>(
     for it in 0..ITERATE {
         unsafe {
             resolve_iter_constraints(s, rest, endur);
-        }
-        for &i in COLLIDABLES.iter() {
-            let (mut pxi, mut pyi, vxi, vyi) = unsafe {
-                (
-                    *s.px.get_unchecked(i),
-                    *s.py.get_unchecked(i),
-                    *s.vx.get_unchecked(i),
-                    *s.vy.get_unchecked(i),
-                )
-            };
-            let center_cell = cell_hash(pxi, pyi);
-            // addToGrid (A): pre-collision snapshot.
-            if TRACK {
-                add_to_grid(
-                    hist,
-                    touched_cells,
-                    hist_snaps,
-                    active_cells,
-                    center_cell,
-                    frame_index,
-                    pxi,
-                    pyi,
-                    vxi,
-                    vyi,
-                );
-            }
-            if let Some(lns) = line_cache.lookup(grid, center_cell) {
-                let (mut prevxi, mut prevyi, fric) = unsafe {
-                    (
-                        *s.prevx.get_unchecked(i),
-                        *s.prevy.get_unchecked(i),
-                        *FRIC.get_unchecked(i),
-                    )
-                };
-                for entry in lns.iter() {
-                    let l = &entry.line;
-                    let ox = pxi - l.p1x;
-                    let oy = pyi - l.p1y;
-                    let perp_comp = l.normx * ox + l.normy * oy;
-                    let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
-                    let pnt_dir = l.normx * vxi + l.normy * vyi;
-                    if pnt_dir > 0.0
-                        && perp_comp > 0.0
-                        && perp_comp < MAX_FORCE_LENGTH
-                        && line_pos >= l.left_bound
-                        && line_pos <= l.right_bound
-                    {
-                        let tx = l.normx * perp_comp - pxi;
-                        let ty = l.normy * perp_comp - pyi;
-                        let posx = tx * -1.0;
-                        let posy = ty * -1.0;
-                        let mut fvx = (l.normy * fric) * perp_comp;
-                        let mut fvy = ((-l.normx) * fric) * perp_comp;
-                        if prevxi >= posx {
-                            fvx = fvx * -1.0;
-                        }
-                        if prevyi < posy {
-                            fvy = fvy * -1.0;
-                        }
-                        fvx = fvx + prevxi;
-                        fvy = fvy + prevyi;
-                        if l.is_acc {
-                            fvx = fvx + l.accx;
-                            fvy = fvy + l.accy;
-                        }
-                        unsafe {
-                            *s.px.get_unchecked_mut(i) = posx;
-                            *s.py.get_unchecked_mut(i) = posy;
-                            *s.prevx.get_unchecked_mut(i) = fvx;
-                            *s.prevy.get_unchecked_mut(i) = fvy;
-                        }
-                        pxi = posx;
-                        pyi = posy;
-                        prevxi = fvx;
-                        prevyi = fvy;
-                        events.push((it as u8, l.id, i as i32));
-                        // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
-                        if TRACK {
-                            let pcell = cell_hash(pxi, pyi);
-                            add_to_grid(
-                                hist,
-                                touched_cells,
-                                hist_snaps,
-                                active_cells,
-                                pcell,
-                                frame_index,
-                                pxi,
-                                pyi,
-                                vxi,
-                                vyi,
-                            );
-                            add_to_collisions(coll, touched_lines, l.id, frame_index);
-                        }
-                    }
-                }
-            }
+            let it = it as u8;
+            collide_point::<PEG, TRACK>(
+                s,
+                grid,
+                events,
+                frame_index,
+                hist,
+                touched_cells,
+                hist_snaps,
+                active_cells,
+                line_cache,
+                coll,
+                touched_lines,
+                it,
+                0.8,
+            );
+            collide_point::<TAIL, TRACK>(
+                s,
+                grid,
+                events,
+                frame_index,
+                hist,
+                touched_cells,
+                hist_snaps,
+                active_cells,
+                line_cache,
+                coll,
+                touched_lines,
+                it,
+                0.0,
+            );
+            collide_point::<NOSE, TRACK>(
+                s,
+                grid,
+                events,
+                frame_index,
+                hist,
+                touched_cells,
+                hist_snaps,
+                active_cells,
+                line_cache,
+                coll,
+                touched_lines,
+                it,
+                0.0,
+            );
+            collide_point::<STRING, TRACK>(
+                s,
+                grid,
+                events,
+                frame_index,
+                hist,
+                touched_cells,
+                hist_snaps,
+                active_cells,
+                line_cache,
+                coll,
+                touched_lines,
+                it,
+                0.0,
+            );
+            collide_point::<BUTT, TRACK>(
+                s,
+                grid,
+                events,
+                frame_index,
+                hist,
+                touched_cells,
+                hist_snaps,
+                active_cells,
+                line_cache,
+                coll,
+                touched_lines,
+                it,
+                0.8,
+            );
+            collide_point::<SHOULDER, TRACK>(
+                s,
+                grid,
+                events,
+                frame_index,
+                hist,
+                touched_cells,
+                hist_snaps,
+                active_cells,
+                line_cache,
+                coll,
+                touched_lines,
+                it,
+                0.8,
+            );
+            collide_point::<RHAND, TRACK>(
+                s,
+                grid,
+                events,
+                frame_index,
+                hist,
+                touched_cells,
+                hist_snaps,
+                active_cells,
+                line_cache,
+                coll,
+                touched_lines,
+                it,
+                0.1,
+            );
+            collide_point::<LHAND, TRACK>(
+                s,
+                grid,
+                events,
+                frame_index,
+                hist,
+                touched_cells,
+                hist_snaps,
+                active_cells,
+                line_cache,
+                coll,
+                touched_lines,
+                it,
+                0.1,
+            );
+            collide_point::<LFOOT, TRACK>(
+                s,
+                grid,
+                events,
+                frame_index,
+                hist,
+                touched_cells,
+                hist_snaps,
+                active_cells,
+                line_cache,
+                coll,
+                touched_lines,
+                it,
+                0.0,
+            );
+            collide_point::<RFOOT, TRACK>(
+                s,
+                grid,
+                events,
+                frame_index,
+                hist,
+                touched_cells,
+                hist_snaps,
+                active_cells,
+                line_cache,
+                coll,
+                touched_lines,
+                it,
+                0.0,
+            );
         }
     }
 

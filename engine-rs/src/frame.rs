@@ -28,7 +28,7 @@ pub(crate) struct SnapNode {
 }
 
 /// A CellFrameList node: snapshots recorded in one center cell at one frame index,
-/// in insertion order (COLLIDABLES order × pre/post per collision).
+/// in insertion order (collidable point order × pre/post per collision).
 #[derive(Clone)]
 pub(crate) struct CellFrame {
     pub index: i32,

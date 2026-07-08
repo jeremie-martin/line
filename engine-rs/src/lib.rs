@@ -39,7 +39,6 @@ pub(crate) const BASE: [(f64, f64); NENT] = [
     (0.0, 0.0), (0.0, 0.0), (0.0, 0.0), (0.0, 5.0), (15.0, 5.0), (17.5, 0.0),
     (5.0, 0.0), (5.0, -5.5), (11.5, -5.0), (11.5, -5.0), (10.0, 5.0), (10.0, 5.0),
 ];
-pub(crate) const FRIC: [f64; NENT] = [0.0, 0.0, 0.8, 0.0, 0.0, 0.0, 0.8, 0.8, 0.1, 0.1, 0.0, 0.0];
 pub(crate) const IS_POINT: [bool; NENT] = [
     false, false, true, true, true, true, true, true, true, true, true, true,
 ];
@@ -79,7 +78,6 @@ pub(crate) const JOINTS: [(usize, usize, usize, usize, usize); 3] = [
     (PEG, TAIL, STRING, PEG, RIDER_MOUNTED),
 ];
 
-pub(crate) const COLLIDABLES: [usize; 10] = [PEG, TAIL, NOSE, STRING, BUTT, SHOULDER, RHAND, LHAND, LFOOT, RFOOT];
 pub(crate) const OUT_ORDER: [usize; 10] = [BUTT, LFOOT, LHAND, NOSE, PEG, RFOOT, RHAND, SHOULDER, STRING, TAIL];
 
 pub(crate) const GRAVITY_X: f64 = 0.0;

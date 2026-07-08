@@ -35,6 +35,19 @@ const SLED_POINT_MASK: u32 = (1u32 << PEG) | (1u32 << TAIL) | (1u32 << NOSE) | (
 const CANDIDATE_WINDOW_STRIDE: usize = 9;
 type Event = (u8, i32, i32);
 
+#[derive(Clone, Copy)]
+struct FrameSummary {
+    body_px: f64,
+    body_py: f64,
+    body_vx: f64,
+    body_vy: f64,
+    rider_fsu: i32,
+    sled_fsu: i32,
+    sled_mask: u32,
+    contact_offset: usize,
+    contact_count: usize,
+}
+
 // ── the single shared cache per lineage (LineEngine.__computed__ + Frame.grid/collisions) ──
 struct Cache {
     rest: [f64; NITER],
@@ -45,8 +58,10 @@ struct Cache {
     frames: Vec<State>,                        // frames[0] = initial; lazily extended
     events: Vec<Event>,                        // flat per-frame collision records
     event_offsets: Vec<usize>,                 // frame f => events[offset[f]..offset[f+1]]
-    hist: HistGrid,          // Frame.grid: collision-history for addLine invalidation
-    touched_cells: Vec<i64>, // flat per-frame reverse patch for hist rollback
+    summaries: Vec<FrameSummary>, // per-frame compact read summaries for repeated detector windows
+    candidate_contacts: Vec<f64>, // flat per-frame sled contact line ids used by getCandidateWindow
+    hist: HistGrid,               // Frame.grid: collision-history for addLine invalidation
+    touched_cells: Vec<i64>,      // flat per-frame reverse patch for hist rollback
     touched_cell_offsets: Vec<usize>,
     hist_snaps: Vec<SnapNode>, // extra same-cell/same-frame snapshots
     hist_snap_offsets: Vec<usize>,
@@ -54,7 +69,12 @@ struct Cache {
     coll: Collisions,              // Frame.collisions: line id → frames (for removeLine)
     touched_lines: Vec<i32>,       // flat per-frame reverse patch for coll rollback
     touched_line_offsets: Vec<usize>,
-    cur: State,      // == frames.last() when !cur_dirty; working state for stepping
+    // Physics reads need frames/events immediately, but addLine invalidation needs
+    // the heavier hist/coll indexes only if this branch is extended later. Most
+    // candidate branches die after a read, so build those indexes lazily.
+    history_len: usize, // frames[0..history_len] have hist/coll reverse patches
+    history_events: Vec<Event>, // scratch for lazy history replay
+    cur: State,         // == frames.last() when !cur_dirty; working state for stepping
     cur_dirty: bool, // set on truncation: `cur` is stale, resync from frames.last() before next step
 }
 
@@ -62,6 +82,8 @@ impl Cache {
     fn new() -> Cache {
         let (rest, endur) = compute_rest_endur();
         let s = init_state(0.0, 0.0, 0.4, 0.0); // DEFAULT_START
+        let mut candidate_contacts = Vec::new();
+        let summary = Self::summarize_frame(&s, &[], &mut candidate_contacts);
         Cache {
             rest,
             endur,
@@ -71,6 +93,8 @@ impl Cache {
             frames: vec![s.clone()],
             events: Vec::new(),
             event_offsets: vec![0, 0],
+            summaries: vec![summary],
+            candidate_contacts,
             hist: IntMap::default(),
             touched_cells: Vec::new(),
             touched_cell_offsets: vec![0, 0],
@@ -80,6 +104,8 @@ impl Cache {
             coll: IntMap::default(),
             touched_lines: Vec::new(),
             touched_line_offsets: vec![0, 0],
+            history_len: 1,
+            history_events: Vec::new(),
             cur: s,
             cur_dirty: false,
         }
@@ -105,27 +131,37 @@ impl Cache {
         if len == 0 || len >= self.frames.len() {
             return;
         }
-        rollback_grid(
-            &mut self.hist,
-            &self.touched_cells,
-            &self.touched_cell_offsets,
-            len,
-        );
-        rollback_collisions(
-            &mut self.coll,
-            &self.touched_lines,
-            &self.touched_line_offsets,
-            len,
-        );
+        if len < self.history_len {
+            rollback_grid(
+                &mut self.hist,
+                &self.touched_cells,
+                &self.touched_cell_offsets,
+                len,
+            );
+            rollback_collisions(
+                &mut self.coll,
+                &self.touched_lines,
+                &self.touched_line_offsets,
+                len,
+            );
+            self.history_len = len;
+        }
         self.frames.truncate(len);
         self.events.truncate(self.event_offsets[len]);
         self.event_offsets.truncate(len + 1);
-        self.touched_cells.truncate(self.touched_cell_offsets[len]);
-        self.touched_cell_offsets.truncate(len + 1);
-        self.hist_snaps.truncate(self.hist_snap_offsets[len]);
-        self.hist_snap_offsets.truncate(len + 1);
-        self.touched_lines.truncate(self.touched_line_offsets[len]);
-        self.touched_line_offsets.truncate(len + 1);
+        if len < self.summaries.len() {
+            self.candidate_contacts
+                .truncate(self.summaries[len].contact_offset);
+            self.summaries.truncate(len);
+        }
+        if len + 1 < self.touched_cell_offsets.len() {
+            self.touched_cells.truncate(self.touched_cell_offsets[len]);
+            self.touched_cell_offsets.truncate(len + 1);
+            self.hist_snaps.truncate(self.hist_snap_offsets[len]);
+            self.hist_snap_offsets.truncate(len + 1);
+            self.touched_lines.truncate(self.touched_line_offsets[len]);
+            self.touched_line_offsets.truncate(len + 1);
+        }
         // Defer the `cur = frames[len-1].clone()` resync: a multi-line arc add
         // truncates many times in a row with no intervening step, so an eager clone
         // here is overwritten by the next truncation before it is ever stepped.
@@ -140,6 +176,7 @@ impl Cache {
         if !l.collidable {
             return; // grid.add returns [] for non-collidable: no registration, no invalidation
         }
+        self.ensure_history();
         let cells = line_cells(&l);
         let id = l.id;
         // Invalidation reads only hist/hist_snaps (via index_of_collision_in_cell)
@@ -162,10 +199,27 @@ impl Cache {
     fn remove_line(&mut self, id: i32) {
         if let Some(cells) = self.lines_cells.remove(&id) {
             remove_line(&mut self.cell_lines, id, &cells);
-            if let Some(idx) = index_of_collision_with_line(&self.coll, id) {
+            if let Some(idx) = self.index_of_collision_with_line(id) {
                 self.set_frames_length(idx as usize);
             }
         }
+    }
+
+    fn index_of_collision_with_line(&self, id: i32) -> Option<i32> {
+        let mut best = index_of_collision_with_line(&self.coll, id);
+        for f in self.history_len..self.frames.len() {
+            for &(_, line_id, _) in self.events_at(f) {
+                if line_id == id {
+                    let frame = f as i32;
+                    best = Some(best.map_or(frame, |b| b.min(frame)));
+                    break;
+                }
+            }
+            if best == Some(f as i32) {
+                break;
+            }
+        }
+        best
     }
 
     /// setInitialStates: reset the frame cache to a single frame with a new start
@@ -179,6 +233,10 @@ impl Cache {
         self.events.clear();
         self.event_offsets.clear();
         self.event_offsets.extend_from_slice(&[0, 0]);
+        self.summaries.clear();
+        self.candidate_contacts.clear();
+        let summary = Self::summarize_frame(&s, &[], &mut self.candidate_contacts);
+        self.summaries.push(summary);
         self.touched_cells.clear();
         self.touched_cell_offsets.clear();
         self.touched_cell_offsets.extend_from_slice(&[0, 0]);
@@ -188,8 +246,43 @@ impl Cache {
         self.touched_lines.clear();
         self.touched_line_offsets.clear();
         self.touched_line_offsets.extend_from_slice(&[0, 0]);
+        self.history_len = 1;
+        self.history_events.clear();
         self.cur = s;
         self.cur_dirty = false;
+    }
+
+    fn ensure_history(&mut self) {
+        if self.history_len >= self.frames.len() {
+            return;
+        }
+        // Replay only the missing suffix with TRACK=true. The public frame/event
+        // cache was already produced during the read; this pass fills just the
+        // invalidation side indexes without changing simulated-frame accounting.
+        let mut s = self.frames[self.history_len - 1].clone();
+        while self.history_len < self.frames.len() {
+            let fi = self.history_len as i32;
+            self.history_events.clear();
+            step_state::<true>(
+                &mut s,
+                &self.cell_lines,
+                &self.rest,
+                &self.endur,
+                &mut self.history_events,
+                fi,
+                &mut self.hist,
+                &mut self.touched_cells,
+                &mut self.hist_snaps,
+                &mut self.active_cells,
+                &mut self.line_cache,
+                &mut self.coll,
+                &mut self.touched_lines,
+            );
+            self.touched_cell_offsets.push(self.touched_cells.len());
+            self.hist_snap_offsets.push(self.hist_snaps.len());
+            self.touched_line_offsets.push(self.touched_lines.len());
+            self.history_len += 1;
+        }
     }
 
     /// _computeFrame: lazily extend the cache to include frame `frame`.
@@ -202,7 +295,7 @@ impl Cache {
         }
         while self.frames.len() <= frame {
             let fi = self.frames.len() as i32;
-            step_state::<true>(
+            step_state::<false>(
                 &mut self.cur,
                 &self.cell_lines,
                 &self.rest,
@@ -217,17 +310,66 @@ impl Cache {
                 &mut self.coll,
                 &mut self.touched_lines,
             );
+            let summary = Self::summarize_frame(
+                &self.cur,
+                &self.events[self.event_offsets[fi as usize]..],
+                &mut self.candidate_contacts,
+            );
             self.frames.push(self.cur.clone());
             self.event_offsets.push(self.events.len());
-            self.touched_cell_offsets.push(self.touched_cells.len());
-            self.hist_snap_offsets.push(self.hist_snaps.len());
-            self.touched_line_offsets.push(self.touched_lines.len());
+            self.summaries.push(summary);
         }
     }
 
     #[inline]
     fn events_at(&self, f: usize) -> &[Event] {
         &self.events[self.event_offsets[f]..self.event_offsets[f + 1]]
+    }
+
+    fn summarize_frame(
+        s: &State,
+        events: &[Event],
+        candidate_contacts: &mut Vec<f64>,
+    ) -> FrameSummary {
+        let (mut px, mut py, mut vx, mut vy) = (0.0, 0.0, 0.0, 0.0);
+        for &entity in BODY.iter() {
+            px += s.px[entity];
+            py += s.py[entity];
+            vx += s.vx[entity];
+            vy += s.vy[entity];
+        }
+        let n_body = BODY.len() as f64;
+        let contact_offset = candidate_contacts.len();
+        let mut sled_mask = 0u32;
+        for &(_, line_id, point_idx) in events {
+            let bit = 1u32 << (point_idx as u32);
+            if (SLED_POINT_MASK & bit) == 0 {
+                continue;
+            }
+            sled_mask |= bit;
+            let line_id = line_id as f64;
+            let mut seen_line = false;
+            for &seen in candidate_contacts[contact_offset..].iter() {
+                if seen == line_id {
+                    seen_line = true;
+                    break;
+                }
+            }
+            if !seen_line {
+                candidate_contacts.push(line_id);
+            }
+        }
+        FrameSummary {
+            body_px: px / n_body,
+            body_py: py / n_body,
+            body_vx: vx / n_body,
+            body_vy: vy / n_body,
+            rider_fsu: s.fsu[RIDER_MOUNTED],
+            sled_fsu: s.fsu[SLED_INTACT],
+            sled_mask,
+            contact_offset,
+            contact_count: candidate_contacts.len() - contact_offset,
+        }
     }
 }
 
@@ -557,20 +699,13 @@ pub(crate) fn rider_into(h: u32, f: i32, out: &mut [f64]) {
     let f = f as usize;
     cache.compute_to(f);
     let s = &cache.frames[f];
-    let (mut px, mut py, mut vx, mut vy) = (0.0, 0.0, 0.0, 0.0);
-    for &i in BODY.iter() {
-        px += s.px[i];
-        py += s.py[i];
-        vx += s.vx[i];
-        vy += s.vy[i];
-    }
-    let n = BODY.len() as f64;
-    out[0] = px / n;
-    out[1] = py / n;
-    out[2] = vx / n;
-    out[3] = vy / n;
-    out[4] = s.fsu[RIDER_MOUNTED] as f64;
-    out[5] = s.fsu[SLED_INTACT] as f64;
+    let summary = cache.summaries[f];
+    out[0] = summary.body_px;
+    out[1] = summary.body_py;
+    out[2] = summary.body_vx;
+    out[3] = summary.body_vy;
+    out[4] = summary.rider_fsu as f64;
+    out[5] = summary.sled_fsu as f64;
     // Slots 6..29: PEG/TAIL/NOSE/STRING point states as 4 × [px,py,prevx,prevy,vx,vy].
     // These are the only point ids the compiler probes through getRider on the WASM
     // path; keeping them in the lean payload avoids the cold full-stateMap fallback.
@@ -623,22 +758,13 @@ pub(crate) fn raw_frame_into(
     let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
     let f = f as usize;
     cache.compute_to(f);
-    let s = &cache.frames[f];
-
-    let (mut px, mut py, mut vx, mut vy) = (0.0, 0.0, 0.0, 0.0);
-    for &i in BODY.iter() {
-        px += s.px[i];
-        py += s.py[i];
-        vx += s.vx[i];
-        vy += s.vy[i];
-    }
-    let n_body = BODY.len() as f64;
-    scratch[0] = px / n_body;
-    scratch[1] = py / n_body;
-    scratch[2] = vx / n_body;
-    scratch[3] = vy / n_body;
-    scratch[4] = s.fsu[RIDER_MOUNTED] as f64;
-    scratch[5] = s.fsu[SLED_INTACT] as f64;
+    let summary = cache.summaries[f];
+    scratch[0] = summary.body_px;
+    scratch[1] = summary.body_py;
+    scratch[2] = summary.body_vx;
+    scratch[3] = summary.body_vy;
+    scratch[4] = summary.rider_fsu as f64;
+    scratch[5] = summary.sled_fsu as f64;
 
     let ev = cache.events_at(f);
     let n = ev.len().min(cap);
@@ -679,49 +805,30 @@ pub(crate) fn candidate_window_into(
     let mut contact_total = 0usize;
     for i in 0..frame_count {
         let frame = start as usize + i;
-        let s = &cache.frames[frame];
+        let summary = cache.summaries[frame];
         let base = i * CANDIDATE_WINDOW_STRIDE;
 
-        let (mut px, mut py, mut vx, mut vy) = (0.0, 0.0, 0.0, 0.0);
-        for &entity in BODY.iter() {
-            px += s.px[entity];
-            py += s.py[entity];
-            vx += s.vx[entity];
-            vy += s.vy[entity];
-        }
-        let n_body = BODY.len() as f64;
-        out[base] = px / n_body;
-        out[base + 1] = py / n_body;
-        out[base + 2] = vx / n_body;
-        out[base + 3] = vy / n_body;
-        out[base + 4] = s.fsu[RIDER_MOUNTED] as f64;
-        out[base + 5] = s.fsu[SLED_INTACT] as f64;
+        out[base] = summary.body_px;
+        out[base + 1] = summary.body_py;
+        out[base + 2] = summary.body_vx;
+        out[base + 3] = summary.body_vy;
+        out[base + 4] = summary.rider_fsu as f64;
+        out[base + 5] = summary.sled_fsu as f64;
 
         let contact_start = contact_total;
-        let mut sled_mask = 0u32;
-        for &(_, line_id, point_idx) in cache.events_at(frame) {
-            let bit = 1u32 << (point_idx as u32);
-            if (SLED_POINT_MASK & bit) == 0 {
-                continue;
-            }
-            sled_mask |= bit;
-            let mut seen_line = false;
-            for &seen in contacts.iter().take(contact_total).skip(contact_start) {
-                if seen == line_id as f64 {
-                    seen_line = true;
-                    break;
-                }
-            }
-            if !seen_line {
-                if contact_total >= cap {
-                    return -1;
-                }
-                contacts[contact_total] = line_id as f64;
-                contact_total += 1;
-            }
+        let contact_end = contact_total + summary.contact_count;
+        if contact_end > cap {
+            return -1;
+        }
+        if summary.contact_count > 0 {
+            let src_start = summary.contact_offset;
+            let src_end = src_start + summary.contact_count;
+            contacts[contact_total..contact_end]
+                .copy_from_slice(&cache.candidate_contacts[src_start..src_end]);
+            contact_total = contact_end;
         }
 
-        out[base + 6] = sled_mask as f64;
+        out[base + 6] = summary.sled_mask as f64;
         out[base + 7] = contact_start as f64;
         out[base + 8] = (contact_total - contact_start) as f64;
     }

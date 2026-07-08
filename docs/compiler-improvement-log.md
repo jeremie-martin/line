@@ -2,6 +2,44 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - steady low-pop profile-pressure amplitude lane
+
+Reason: the steady-cadence low-pop amplitude lane had the cleanest prior footprint, but the
+previous accepted-shape retry remained underpowered and volatile at 200k. This follow-up kept the
+generation-side lane idea and moved the selector into a smooth whole-profile pressure: low
+amplitude floor, meaningful amplitude variation, sparse steady cadence, no elevation coupling,
+bounded tall-pop ceiling, and no hard-impact dominance. Locally, only low-amplitude beats with
+enough next-gap room could receive a deterministic modest pop-arc lane; normal amplitude candidates
+remained in the pool. Candidate count, scorer, specs, evaluator fingerprint, seed policy, budget
+grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-steady-low-pop-profile-pressure-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-steady-low-pop-profile-pressure-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 694.61 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 713.39. Per-budget point estimates were 75k 660.57, 200k 688.42, and 500k 702.19.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-steady-low-pop-profile-pressure-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate 694.6, delta -0.0,
+CI [-0.7, 0.5], P(Delta<=0)=50.2%, effect -0.07. Per-budget deltas were
+75k +1.4, 200k -0.3, and 500k -0.1, with unchanged pass rates.
+
+Why it was not kept: the smoother profile pressure strengthened the intended `float_bounds` gain
+but made `pop_train` negative and introduced small `leap_cadence` leakage. The paired footprint
+changed 79/1440 checkpoints, with 42 improvements and 37 regressions. Weighted spec deltas were
+`float_bounds` +14.82, `leap_cadence` +0.34, and `pop_train` -4.71. Budget deltas across changed
+rows were 75k +1.20, 200k -0.35, and 500k -0.06. The largest positive movement was again
+low-budget `float_bounds`, but the biggest single regression was `pop_train` at 75k
+(slot 11, -241.39), so the mechanism still lacks a separator between beneficial low-pop
+stabilization and seed-specific pop-train basin shifts. No full run was launched. Source and test
+edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - stronger steady-cadence low-pop amplitude lane
 
 Reason: the steady-cadence profile gate made the low-pop amplitude lane clean but just missed the

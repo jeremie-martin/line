@@ -2,6 +2,37 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - impact template margin spread
+
+Reason: after exact target-sized impact-template turn was rejected, preserve the accepted
+`+4deg` average slack but distribute template attempts across a deterministic `2deg..6deg`
+target-turn margin. The goal was to keep the robust deep lane while giving the forward ranker
+closer-to-target variants for admitted deep templates. The scorer, specs, evaluator fingerprint,
+seed policy, budget grid, candidate count, template lane rate, eligibility gates, and acceptance
+rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-impact-template-margin-spread-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-template-margin-spread-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1437/1440, invalid 3, timeout 0.
+HEADLINE was 694.93 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 714.00.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-impact-template-margin-spread-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned indicative/non-promotable `VERDICT: INCONCLUSIVE`: baseline 694.6 -> candidate
+694.9, delta +0.3, CI [-0.8, 1.5], P(Delta<=0)=29.5%, effect 0.53. Per-budget deltas
+were 75k -1.6, 200k -0.1, and 500k +0.8. Validity regressed at 75k from 100% to 99%.
+
+Why it was not kept: the mature-budget signal is plausible, but the all-budget spread did not
+clear the accept gate and hurt scarce-budget robustness. Source and test edits were reverted;
+no baseline was advanced. Follow-up: if continuing this family, try applying the slack spread
+only after the template's existing mature-budget pressure is active.
+
 ## 2026-07-08 - NOT KEPT - exact target-sized impact template turn
 
 Reason: after the accepted target-sized impact-template envelope shifted the residual impact

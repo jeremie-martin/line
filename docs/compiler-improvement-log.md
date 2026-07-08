@@ -2,6 +2,36 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - exact target-sized impact template turn
+
+Reason: after the accepted target-sized impact-template envelope shifted the residual impact
+funnel from "not generated" toward "admitted but ranked away", test whether the fixed
+`+4deg` target-turn margin was over-scooping mid-impact asks. The trial kept the same
+template lane, eligibility, budget gates, lane rate, turn cap, scorer, specs, evaluator
+fingerprint, seed policy, budget grid, and acceptance rule, but changed the target-turn
+margin from `4deg` to `0deg`.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 44 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-impact-template-zero-margin-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-template-zero-margin-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1436/1440, invalid 4, timeout 0.
+HEADLINE was 693.51 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 712.07.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-impact-template-zero-margin-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned indicative/non-promotable `VERDICT: REJECT`: baseline 694.6 -> candidate 693.5,
+delta -1.1, CI [-3.3, 0.6], P(Delta<=0)=87.9%, effect -1.12. Per-budget deltas were
+75k -2.9, 200k -0.7, and 500k -1.0. Validity regressed at 75k from 100% to 99%.
+
+Why it was not kept: exact inverse sizing was cleaner but removed useful landing/measurement
+slack. The accepted `+4deg` margin appears to be carrying real generation validity and score,
+especially at 75k. Source edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - physical-floor current-air objective
 
 Reason: test whether selection and proposal ranking were wasting effort chasing current-gap air

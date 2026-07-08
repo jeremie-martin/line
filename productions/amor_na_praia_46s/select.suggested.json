@@ -3,8 +3,8 @@
   "floors": {
     "reachedEnd": true,
     "maxOffBeat": 0,
-    "score": 654,
-    "standTimePctMin": 3,
+    "score": 655,
+    "standTimePctMin": 0,
     "rotationsMin": 0
   },
   "render": {

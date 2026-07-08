@@ -2,6 +2,37 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-08 - NOT KEPT - impact-fit pool admission
+
+Reason: after target-sized impact templates moved the residual bottleneck from generation toward
+pool/ranking, test whether the already sampled candidate list should expose one current-gap
+impact-best candidate to the existing handoff ranker. The trial replaced only the last admitted
+pool slot when an explicit impact target existed and the best measured impact-fit candidate was
+outside the normal pool. Candidate sampling, candidate count, forward-eval ranker, scorer, specs,
+evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed:
+`npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts`
+(3 files, 45 tests). `git diff --check` was clean before the probe.
+
+Probe:
+`generated/golden-runs/probe-impact-fit-pool-admission-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-fit-pool-admission-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1438/1440, invalid 2, timeout 0.
+HEADLINE was 689.76 vs the accepted target-turn probe baseline 694.62; HEADLINE excl. impact
+was 706.84.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-impact-fit-pool-admission-j32-a01/golden.json generated/golden-runs/probe-impact-template-target-turn-j32-a01/golden.json`
+returned `VERDICT: REJECT`: baseline 694.6 -> candidate 689.8, delta -4.9,
+CI [-11.3, -1.0], P(Delta<=0)=99.6%, effect -1.83. Per-budget deltas were
+75k -17.5, 200k -4.4, and 500k -3.1, with unchanged pass rates.
+
+Why it was not kept: exposing the impact-best candidate directly to the pool was too blunt.
+It improved many individual rows but degraded the weighted probe across every budget, showing
+that the existing quality/cost pre-sort is protecting non-impact axes and traversal quality.
+Source and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-08 - NOT KEPT - mature impact template margin spread
 
 Reason: the all-budget impact-template margin spread showed a positive 500k signal but hurt

@@ -15,6 +15,7 @@ import {
   usesSparseContactCadence,
 } from "../scripts/v0/optimizer/handoff.ts";
 import {
+  candidateOffBeatGateEndFrame,
   releaseSpeedPenalty,
   releaseStateFrame,
   translateTrackLines,
@@ -102,6 +103,14 @@ describe("handoff policy boundaries", () => {
 
   test("sample schedule uses one unified quality breadth", () => {
     expect(handoffSampleCount()).toBe(32);
+  });
+
+  test("final contact off-beat gate covers the scorer-visible rideout tail", () => {
+    const contacts = [20, 40, 70];
+    expect(candidateOffBeatGateEndFrame(gap(1, 20, 40), 40, contacts)).toBe(40);
+    expect(candidateOffBeatGateEndFrame(gap(2, 40, 70), 70, contacts)).toBe(90);
+    expect(candidateOffBeatGateEndFrame(gap(2, 40, 70, false), 80, contacts)).toBe(80);
+    expect(candidateOffBeatGateEndFrame(gap(2, 40, 70), 95, contacts)).toBe(95);
   });
 
   test("quality candidate override controls the unified breadth", () => {

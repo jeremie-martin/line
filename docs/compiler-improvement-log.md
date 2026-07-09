@@ -2,6 +2,43 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - local repair reopen exhausted window
+
+Reason: the broad downstream exhausted-gap reopen confirmed that an accepted upstream repair can
+make later exhausted targets stale, but it also created too much downstream churn. This narrower
+trial kept candidate generation, start selection, forward eval, repair ranking, repair caps,
+scorer, specs, evaluator fingerprint, seed policy, budget grid, and acceptance rule unchanged. It
+only cleared exhausted repair gap indices between the accepted upstream restart anchor and the
+originally selected weak gap, leaving the farther downstream tail exhausted.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests).
+
+Probe:
+`generated/golden-runs/probe-repair-reopen-local-exhaust-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-repair-reopen-local-exhaust-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 695.11 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 713.85. Per-budget point estimates were 75k 661.85, 200k 688.77, and 500k 702.64.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-repair-reopen-local-exhaust-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 695.1, delta +0.0,
+CI [-0.2, 0.3], P(delta<=0)=46.0%, effect +0.18. Per-budget deltas were 75k +0.0,
+200k +0.0, and 500k +0.0, with unchanged 100% pass rates. The decision hint estimated roughly
+1112 more seed slots would likely be needed to resolve this effect size.
+
+Why it was not kept: the local window is a much better-behaved version of the mechanism, but it
+still did not clear the acceptance gate. Across paired checkpoints, 44/1440 track hashes changed
+and 43 scores changed, with 21 improvements and 22 regressions. The raw paired row-score sum was
++32.27, concentrated at 500k (+19.39) and 200k (+12.88), while 75k stayed byte-identical. Gains
+on `tiny_dance` (+56.22 total), `swoop_dive` (+14.19), `glide_stairs` (+6.51), and
+`dense_echo_climb` (+5.66) were offset by losses on `leap_cadence` (-11.37),
+`skyline_push` (-11.06), `summit_push` (-10.53), and `mini_burst` (-6.36). The useful shape is
+"reopen only the local stale window", but the benefit is too small/noisy as tested. No full run
+was launched. Source edits were reverted; no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - repair reopen downstream exhausted gaps
 
 Reason: after an accepted repair suffix rebuild, downstream gap targets that were exhausted under

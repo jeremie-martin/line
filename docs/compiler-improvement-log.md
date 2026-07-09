@@ -2,6 +2,37 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - REJECTED PROBE - impact-readiness exit-turn allowance
+
+Reason: the new exact-prefix impact release study found 868 material opportunities across four
+weak specs at 200k/seed 0. The current-impact specialist improved impact error .171->.031 and
+whole-gap quality .633->.722, but readiness fell .610->.185. Its predicted next arrival was
+slower (10.554->9.839 px/frame) and much shallower (13.77->4.17 degrees) because the impact
+scoop released upward (vy .793->-.933). The temporary general mechanism tested whether the
+readiness model was too conservative: it added the symmetric ballistic half-gap exit turn to the
+incoming crossing angle, matching the two-sided form used by the evaluator's physical impact
+ceiling. Calls without gap timing stayed unchanged; all other readiness components, generation,
+ranking, exact evaluation, repair, budgets, scorer, specs, fingerprint, seed policy, grid, and
+acceptance rule stayed unchanged.
+
+Focused tests passed (4 files, 69 tests). Probe:
+`generated/golden-runs/probe-impact-readiness-exit-allowance-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-impact-readiness-exit-allowance-j32-a01`.
+It completed 1437/1440 valid; `solo_run` seeds 2, 4, and 6 failed at 75k. HEADLINE was 688.29
+versus 695.09, while excluding-impact HEADLINE improved 713.83->716.64.
+
+Decision versus `probe-baseline-fp6f760d-j32-a01`: `VERDICT: REJECT`, delta -6.8,
+CI [-14.6, -2.0], P(delta<=0)=99.9%, effect -2.10. Per-budget deltas were -28.2 at 75k,
+-4.1 at 200k, and -4.7 at 500k.
+
+Why it failed: the evaluator's feasibility ceiling is not the right selector proxy. Crediting
+post-contact turn relaxed the pressure to build steep incoming arrivals; this improved other-axis
+tracks but substantially worsened the axis that dominates remaining error. At 500k, impact RMS
+worsened .11926->.12667 while speed improved .05843->.05614 and air .08980->.08704. The
+conservative incoming-only readiness term is therefore intentionally load-bearing. Behavior and
+test changes were reverted; the observation-only release-state scaffold remains. No full run was
+launched and the authoritative baselines remain unchanged.
+
 ## 2026-07-09 - NOT KEPT - exact aim-lane response memoization
 
 Reason: `getCandidatesSorted` can rebuild an immutable node's candidate pool at several sizes.

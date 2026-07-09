@@ -2,6 +2,30 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - exact aim-lane response memoization
+
+Reason: `getCandidatesSorted` can rebuild an immutable node's candidate pool at several sizes.
+Each rebuild reruns the charged joint aim response for quality-ranked bases already seen in an
+earlier pool. The temporary general mechanism cached emitted aim extras by node, base-candidate
+identity, and the first-base air-variant flag. Cache hits reused exactly the same candidate objects
+and every pool still reranked the same members, so the only intended semantic change was spending
+the avoided physics frames on later ordinary search work.
+
+Focused tests passed (3 files, 58 tests). Probe:
+`generated/golden-runs/probe-aim-lane-memoization-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-aim-lane-memoization-j32-a01`.
+It completed 1440/1440 valid with HEADLINE 695.09 and excluding-impact HEADLINE 713.83, both
+unchanged at displayed precision. The paired decision versus `probe-baseline-fp6f760d-j32-a01`
+was `INCONCLUSIVE`: delta +0.0, CI [-0.0, 0.0], P(delta<=0)=50.8%. Per-budget score deltas were
++0.0 at 75k, -0.0 at 200k, and +0.0 at 500k.
+
+Why it was not kept: duplicate aim response work exists but is negligible. The cache removed
+6,063 of 1,730,409 baseline charged aim frames at 75k, 18,291 of 18,204,217 at 200k, and 15,384
+of 44,361,739 at 500k. Track hashes changed for only 0, 6, and 13 of 480 rows respectively; summed
+score changes were 0, -5.5, and +2.51 points. The mechanism cannot produce a meaningful curve
+gain and adds persistent cache state, so source was reverted. No full run was launched and both
+authoritative baselines remain unchanged.
+
 ## 2026-07-09 - REJECTED PROBE - smooth impact proposal target calibration
 
 Reason: the exact final residual study showed impact asks near 0.13 roughly balanced, while asks

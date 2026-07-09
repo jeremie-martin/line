@@ -2,6 +2,35 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - KEPT - transition-aware motion finalist
+
+Reason: direct ownership changes improved mature routes but destabilized scarce search. This
+additive mechanism preserves every baseline candidate and, only at material post-contact motion
+transitions with at least the existing 1.5 branch-slack threshold, samples four deterministic
+geometry-only attempts against the following span's air/speed/elevation/amplitude targets. The
+existing zero-frame objective admits one finalist, then the unchanged handoff scorer, forward
+evaluation, gates, and search policy decide whether to use it. Current-gap contact/impact targets
+remain unchanged. Specs, scorer, fingerprint, seeds, budgets, and acceptance rule are unchanged.
+
+Focused tests passed (7 files, 93 tests). Fixed probe:
+`generated/golden-runs/probe-transition-motion-finalist-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-transition-motion-finalist-j32-a01`.
+It completed 1440/1440 valid with HEADLINE 695.55 versus 695.09 and excluding-impact HEADLINE
+714.32 versus 713.83. Decision versus `probe-baseline-fp6f760d-j32-a01`: `VERDICT: ACCEPT`,
+delta +0.5, CI [-0.3, 1.4], P(delta<=0)=11.7%, effect +1.10. Per-budget deltas were +1.1 at
+75k, +0.0 at 200k, and +0.5 at 500k.
+
+Fixed full:
+`generated/golden-runs/full-transition-motion-finalist-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --jobs=32 --archive-dir=generated/golden-runs/full-transition-motion-finalist-j32-a01`.
+It completed 2880/2880 valid with HEADLINE 697.63 versus 697.22 and excluding-impact HEADLINE
+715.78 versus 715.38. Decision versus `full-baseline-fp6f760d-j32-a01`: `VERDICT: ACCEPT`,
+delta +0.4, CI [-0.3, 1.2], P(delta<=0)=13.6%, effect +1.07. Per-budget deltas were +1.1 at
+75k, +1.5 at 150k, +0.1 at 225k, +0.5 at 350k, +0.2 at 475k, and +0.3 at 550k.
+
+The authoritative baselines advance to the transition-motion-finalist probe and full archives
+above. Full HEADLINE is now 697.63; the active 710 goal remains open.
+
 ## 2026-07-09 - NOT KEPT - material-transition motion ownership
 
 Reason: compile-wide next-gap motion ownership was positive but noisy. This distinct local

@@ -420,6 +420,7 @@ const MAX_NODES_FLOOR = 50_000;
 const HANDOFF_CANDIDATE_POOL = 8;
 const HANDOFF_BRANCHING = 3;
 const HANDOFF_LOW_SLACK_BRANCH_THRESHOLD = 1.5;
+const HANDOFF_TRANSITION_MOTION_ATTEMPTS = 4;
 
 /** Budget (in frames) at which the compiler is considered "mature": the single
  *  shared maturity scale used by every budget→maturity smoothstep in this module
@@ -2869,6 +2870,74 @@ function admittedHandoffPool(
   return sorted.slice(0, poolSize).map((candidate, rank) => ({ candidate, rank }));
 }
 
+function transitionMotionCandidate(
+  node: SearchNode,
+  gaps: Gap[],
+  ctx: SpecContext,
+  seed: number,
+  budgetSlack: number,
+): { candidate: Candidate; sourceAxis: AxisName } | null {
+  if (budgetSlack < HANDOFF_LOW_SLACK_BRANCH_THRESHOLD) return null;
+  const gap = gaps[node.gapIndex];
+  const nextGap = gaps[node.gapIndex + 1];
+  if (!gap?.endsWithContact || !nextGap?.endsWithContact) return null;
+
+  const motionTargets = { ...gap.targets };
+  const motionAxes = ["air", "speed", "elevation", "amplitude"] as const;
+  let material = false;
+  let sourceAxis: AxisName = "air";
+  let largestTransition = -Infinity;
+  for (const axis of motionAxes) {
+    const currentTarget = ctx.gapAxisTargets?.[node.gapIndex]?.[axis];
+    const nextTarget = ctx.gapAxisTargets?.[node.gapIndex + 1]?.[axis];
+    if (
+      currentTarget === nextTarget ||
+      (
+        currentTarget !== undefined &&
+        nextTarget !== undefined &&
+        Math.abs(nextTarget - currentTarget) <= CALIB.SIGMA
+      )
+    ) continue;
+    material = true;
+    const transition = currentTarget === undefined || nextTarget === undefined
+      ? Infinity
+      : Math.abs(nextTarget - currentTarget);
+    if (transition > largestTransition) {
+      largestTransition = transition;
+      sourceAxis = axis;
+    }
+    const sampledNext = nextGap.targets[axis];
+    if (sampledNext === undefined) delete motionTargets[axis];
+    else motionTargets[axis] = sampledNext;
+  }
+  if (!material) return null;
+
+  const rng = makeRng((Math.imul(seed | 0, 1000003) + node.gapIndex + 1) | 0);
+  const candidates: Candidate[] = [];
+  for (let attempt = 0; attempt < HANDOFF_TRANSITION_MOTION_ATTEMPTS; attempt++) {
+    const candidate = sampleOneCandidate(
+      node.prefixEngine,
+      gap,
+      rng,
+      ctx,
+      node.prefixNextLineId,
+      attempt,
+      "normal",
+      motionTargets,
+    );
+    if (candidate !== null) candidates.push(candidate);
+  }
+  if (candidates.length === 0) return null;
+  const candidate = candidates.reduce((best, candidate) => {
+    const bestObjective = candidateQualityObjective(node.prefixEngine, best, gap, gaps, ctx);
+    const objective = candidateQualityObjective(node.prefixEngine, candidate, gap, gaps, ctx);
+    if (objective !== null && (bestObjective === null || objective > bestObjective)) return candidate;
+    if (objective === bestObjective && candidate.cost < best.cost) return candidate;
+    return best;
+  });
+  return { candidate, sourceAxis };
+}
+
 function rankedOptions(
   node: SearchNode,
   gaps: Gap[],
@@ -2885,6 +2954,7 @@ function rankedOptions(
     previewScorePressure?: number;
     releaseSetup?: boolean;
     targetBudget?: number;
+    budgetSlack?: number;
   } = {},
 ): RankedOption[] {
   const requestedCandidates = config.nCand ?? HANDOFF_QUALITY_N_CAND;
@@ -2922,6 +2992,33 @@ function rankedOptions(
       openingBestOpportunity,
     )
   );
+  const transitionCandidate = transitionMotionCandidate(
+    node,
+    gaps,
+    ctx,
+    seed,
+    config.budgetSlack ?? 0,
+  );
+  if (transitionCandidate !== null) {
+    scored.push(scoreCandidateForHandoff(
+      node,
+      transitionCandidate.candidate,
+      extraRankBase,
+      "axisq",
+      gaps,
+      ctx,
+      seed,
+      telemetry,
+      preview,
+      previewCostWeight,
+      previewScorePressure,
+      config.releaseSetup ?? false,
+      targetBudget,
+      transitionCandidate.sourceAxis,
+      config.budgetSlack ?? 0,
+      openingBestOpportunity,
+    ));
+  }
   if (handoffPoolProbeHook !== null) {
     const handoffScores = new Map(
       scored.flatMap((option) => option.candidate === null
@@ -3015,7 +3112,7 @@ function rankedOptions(
   const reuseLimit = config.reuseLimit ?? reuseCandidateLimit(node, targetBudget, telemetry);
   const reuseOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "reuse",
-    rankBase: extraRankBase,
+    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1),
     generate: () => reuseCatchCandidates(node, gaps, ctx, telemetry, reuseLimit),
     cache: {
       key: reuseLimit,
@@ -3029,7 +3126,7 @@ function rankedOptions(
   for (const option of reuseOptions) scored.push(option);
   const brakeOptions = extraCandidateLane(node, gaps, ctx, seed, telemetry, extraScoring, {
     tag: "brake",
-    rankBase: extraRankBase + reuseOptions.length,
+    rankBase: extraRankBase + (transitionCandidate === null ? 0 : 1) + reuseOptions.length,
     generate: () => brakeCatchCandidates(node, gaps, ctx, seed, telemetry),
     cache: {
       key: seed,

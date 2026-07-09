@@ -2,6 +2,44 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - REJECTED PROBE - axis-stratified handoff admission
+
+Reason: a fresh current-compiler pool-coverage study (8 weak multi-axis specs, seeds 0-2,
+200k) found large gaps between the best viable candidate and the best candidate admitted to the
+eight-entry handoff forward-scoring pool. Mean absolute selected / best viable / best admitted
+errors were air .065/.017/.037, speed .039/.013/.032, elevation .136/.096/.125, amplitude
+.114/.073/.100, and impact .106/.005/.044. The temporary general mechanism preserved the
+scalar-quality winner, then admitted the closest measured candidate for each authored axis before
+filling remaining capacity in original scalar order. It applied uniformly to every gap and axis;
+candidate generation, pool size, forward-evaluation count, budgets, scorer, specs, evaluator
+fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe (7 files, 94 tests, `LR_ENGINE=wasm`), including a temporary
+unit test for quality-winner preservation, distinct axis specialists, and scalar-order filling.
+
+Probe: `generated/golden-runs/probe-axis-stratified-pool-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-axis-stratified-pool-j32-a01`.
+It completed 1438/1440 valid, with two `solo_run` failures at 75k. Raw HEADLINE was 689.91 versus
+the current probe baseline 695.09; HEADLINE excluding impact was 707.67. Per-budget scores were
+75k 644.07, 200k 684.78, and 500k 698.83.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-axis-stratified-pool-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: REJECT`: delta -5.2, CI [-11.7, -1.3], P(delta<=0)=99.8%, effect -1.92.
+Per-budget deltas were 75k -17.8, 200k -4.0, and 500k -3.8.
+
+Why it was not kept: one reservation per authored axis was too large a diversity correction for an
+eight-entry pool. It changed 1330/1440 track hashes and 1329 scores, split 563 improvements to
+766 regressions, and displaced scalar-quality candidates that protect structural feasibility. The
+largest spec gain was `float_bounds` (+17.50 mean), followed by `canyon_steps` (+4.93),
+`switchback_pop` (+3.48), and `opening_burst` (+3.23), but losses were broader: `solo_run`
+(-42.91 mean, including both failures), `soar_settle` (-16.61), `drums_signature` (-14.76),
+`dense_echo_climb` (-9.21), and `drums_swell` (-8.59). The study still establishes that scalar
+admission loses useful candidates, but unconditional per-axis reservation overcorrects; a future
+mechanism must price diversity jointly with candidate quality or improve the scalar proxy itself.
+Production and test changes were reverted; no full run was launched and baselines remain
+`probe-baseline-fp6f760d-j32-a01` (695.09) and `full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - REJECTED PROBE - air/impact Pareto span for SLAM-HOP exits
 
 Reason: the preceding air-tail fidelity probe showed that low-air residuals are concentrated in

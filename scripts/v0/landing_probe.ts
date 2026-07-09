@@ -22,7 +22,7 @@ import {
   type LandingProbeHook,
 } from "./core/candidate.ts";
 import { redirArcPxAtLanding, speedAt } from "./core/substrate.ts";
-import { normImpact, type Gap, type TrackLine } from "./types.ts";
+import { normImpact, type AxisValues, type Gap, type TrackLine } from "./types.ts";
 import { wasLastGeometryImpactTemplate } from "./arc_placement.ts";
 import type { Detection, DetEvent } from "../lib/detector.ts";
 
@@ -54,6 +54,10 @@ export type LandingWindowProbeRecord = {
   isTemplate: boolean;
   /** Final axisCost of the candidate; null if it failed a hard gate. */
   cost: number | null;
+  /** Candidate-local measured axes. `achievedAtEnd` is the scorer-window value
+   *  when the normal candidate read extends into a lookahead window. */
+  achieved?: AxisValues;
+  achievedAtEnd?: AxisValues;
   /** Handoff ranking score (lower = better; −forwardArcValue at ≥75k, else the
    *  composite local score). Attached by scoreCandidateForHandoff when probing. */
   handoffScore?: number;

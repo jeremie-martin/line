@@ -28,7 +28,7 @@ import {
 } from "./landing_probe.ts";
 import { compileHandoff } from "./optimizer/handoff.ts";
 import { GOLDEN_SPECS, loadGoldenSpec, type GoldenSpecName } from "./golden_suite.ts";
-import { CALIB } from "./types.ts";
+import { IMPACT, impactToRedirArcPx } from "./types.ts";
 import { extractTrackArcs } from "./analysis/geometry.ts";
 
 const argv = process.argv.slice(2);
@@ -77,6 +77,10 @@ type GapRow = {
   deepCostPctl: number | null;
   deepHandoffPctl: number | null;
   deepImpactAchieved: number | null;
+  closestImpactAchieved: number | null;
+  closestImpactAbsError: number | null;
+  closestImpactCostPctl: number | null;
+  closestImpactHandoffPctl: number | null;
   selectedTurnDeg: number | null;
   selectedImpactBias: number | null;
   verdict: "A_not_generated" | "B_gates_kill" | "C_ranking_loses" | "D_works" | "unknown";
@@ -117,8 +121,13 @@ for (const specName of specNames) {
       const target = recs[0].targetImpact ?? 0;
       const speeds = recs.map((r) => r.incomingSpeed).filter((s): s is number => s !== null);
       const speedRef = speeds.length > 0 ? median(speeds) : 10;
-      const neededTurnDeg =
-        (Math.asin(clamp((target * CALIB.REDIR_CAP) / Math.max(1, speedRef), 0, 0.95)) * 180) / Math.PI;
+      const neededTurnDeg = (
+        clamp(
+          impactToRedirArcPx(target) / Math.max(1, speedRef),
+          0,
+          Math.asin(IMPACT.CATCHABLE_REDIR_FRACTION),
+        ) * 180
+      ) / Math.PI;
 
       const turnOf = (r: LandingWindowProbeRecord): number => Math.abs(r.turnDeg ?? 0);
       const survived = recs.filter((r) => r.failure !== "survival");
@@ -130,6 +139,15 @@ for (const specName of specNames) {
       const deepAdmitted = admitted.filter((r) => turnOf(r) >= neededTurnDeg);
       const deepest = deepAdmitted.length > 0
         ? deepAdmitted.reduce((a, b) => (turnOf(a) >= turnOf(b) ? a : b))
+        : null;
+      const impactMeasured = admitted.filter(
+        (r): r is LandingWindowProbeRecord & { impactAchieved: number } =>
+          r.impactAchieved !== null && Number.isFinite(r.impactAchieved),
+      );
+      const closestImpact = impactMeasured.length > 0
+        ? impactMeasured.reduce((a, b) =>
+          Math.abs(a.impactAchieved - target) <= Math.abs(b.impactAchieved - target) ? a : b
+        )
         : null;
       const pctlOf = (rs: LandingWindowProbeRecord[], pick: LandingWindowProbeRecord, key: (r: LandingWindowProbeRecord) => number | null): number | null => {
         const vals = rs.map(key).filter((v): v is number => v !== null && Number.isFinite(v));
@@ -159,6 +177,16 @@ for (const specName of specNames) {
         deepCostPctl: deepest !== null ? pctlOf(admitted, deepest, (r) => r.cost) : null,
         deepHandoffPctl: deepest !== null ? pctlOf(ranked, deepest, (r) => r.handoffScore ?? null) : null,
         deepImpactAchieved: deepest?.impactAchieved ?? null,
+        closestImpactAchieved: closestImpact?.impactAchieved ?? null,
+        closestImpactAbsError: closestImpact === null
+          ? null
+          : Math.abs(closestImpact.impactAchieved - target),
+        closestImpactCostPctl: closestImpact !== null
+          ? pctlOf(admitted, closestImpact, (r) => r.cost)
+          : null,
+        closestImpactHandoffPctl: closestImpact !== null
+          ? pctlOf(ranked, closestImpact, (r) => r.handoffScore ?? null)
+          : null,
         selectedTurnDeg: selectedTurn,
         selectedImpactBias: selectedBias,
         verdict,
@@ -222,6 +250,33 @@ if (cRows.length > 0) {
   console.log(
     `  deepest-admitted impactAchieved avg ${f2(mean(cRows.map((r) => r.deepImpactAchieved ?? NaN).filter(Number.isFinite)))}` +
       ` vs gap target avg ${f2(mean(cRows.map((r) => r.target)))}`,
+  );
+}
+
+const rowsWithClosest = rows.filter((r) => r.closestImpactAbsError !== null);
+if (rowsWithClosest.length > 0) {
+  const selectedAbsErrors = rowsWithClosest
+    .map((r) => Math.abs(r.selectedImpactBias ?? NaN))
+    .filter(Number.isFinite);
+  const closestAbsErrors = rowsWithClosest
+    .map((r) => r.closestImpactAbsError ?? NaN)
+    .filter(Number.isFinite);
+  const materialOracleRows = rowsWithClosest.filter(
+    (r) => r.selectedImpactBias !== null &&
+      (r.closestImpactAbsError ?? Infinity) + 0.025 < Math.abs(r.selectedImpactBias),
+  );
+  console.log("\nclosest admitted impact candidate:");
+  console.log(
+    `  avg selected |impact error| ${f2(mean(selectedAbsErrors))}` +
+      ` -> closest admitted ${f2(mean(closestAbsErrors))}` +
+      ` · material oracle rows ${materialOracleRows.length}/${rowsWithClosest.length}`,
+  );
+  console.log(
+    `  closest candidate avg cost percentile ` +
+      `${f2(mean(rowsWithClosest.map((r) => r.closestImpactCostPctl ?? NaN).filter(Number.isFinite)))}` +
+      ` · handoff percentile ` +
+      `${f2(mean(rowsWithClosest.map((r) => r.closestImpactHandoffPctl ?? NaN).filter(Number.isFinite)))}` +
+      ` (0 = ranked best, 1 = worst)`,
   );
 }
 

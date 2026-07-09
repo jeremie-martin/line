@@ -233,7 +233,11 @@ export const LOCAL_IMPACT_COST_WEIGHT = Math.max(0, impactEnvNum("LR_IMPACT_LOCA
 /** Mutable cost sink the final candidate cost is written back into (see the
  *  `probeRecord.cost = cost` line below). Structurally a slice of the study's
  *  LandingWindowProbeRecord. */
-export type LandingProbeCostSink = { cost: number | null };
+export type LandingProbeCostSink = {
+  cost: number | null;
+  achieved?: AxisValues;
+  achievedAtEnd?: AxisValues;
+};
 
 /** The seam the study apparatus registers through. All methods run only while a
  *  study has installed a hook; production never installs one. */
@@ -995,7 +999,11 @@ function evaluateGapFit(
   // not re-charged here: one current-gap cost term + one next-gap setup term, instead
   // of double-charging current-gap speed (board-confirmed redundant: parity, removed).
   const cost = axisCost(searchTargets, achieved);
-  if (probeRecord !== null) probeRecord.cost = cost;
+  if (probeRecord !== null) {
+    probeRecord.cost = cost;
+    probeRecord.achieved = achieved;
+    if (achievedAtEnd !== undefined) probeRecord.achievedAtEnd = achievedAtEnd;
+  }
   // PREDICTED-ARRIVAL: full launch/exit state for the ranker to propagate
   // ballistically to the next contact instead of charging a probe ride, read off
   // the SAME detection (zero extra frames). Gated on pool mode so the

@@ -257,7 +257,7 @@ unsafe fn resolve_iter_constraints(s: &mut State, rest: &[f64; NITER], endur: &[
 
 #[inline(always)]
 #[allow(clippy::too_many_arguments)]
-unsafe fn collide_point<const I: usize, const TRACK: bool>(
+unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: bool>(
     s: &mut State,
     grid: &FlatIntMap<Vec<GridLine>>,
     events: &mut Vec<(u8, i32, i32)>,
@@ -313,16 +313,19 @@ unsafe fn collide_point<const I: usize, const TRACK: bool>(
                 let ty = l.normy * perp_comp - pyi;
                 let posx = tx * -1.0;
                 let posy = ty * -1.0;
-                let mut fvx = (l.normy * fric) * perp_comp;
-                let mut fvy = ((-l.normx) * fric) * perp_comp;
-                if prevxi >= posx {
-                    fvx = fvx * -1.0;
-                }
-                if prevyi < posy {
-                    fvy = fvy * -1.0;
-                }
-                fvx = fvx + prevxi;
-                fvy = fvy + prevyi;
+                let (mut fvx, mut fvy) = if ZERO_FRICTION {
+                    (prevxi, prevyi)
+                } else {
+                    let mut fvx = (l.normy * fric) * perp_comp;
+                    let mut fvy = ((-l.normx) * fric) * perp_comp;
+                    if prevxi >= posx {
+                        fvx = fvx * -1.0;
+                    }
+                    if prevyi < posy {
+                        fvy = fvy * -1.0;
+                    }
+                    (fvx + prevxi, fvy + prevyi)
+                };
                 if l.is_acc {
                     fvx = fvx + l.accx;
                     fvy = fvy + l.accy;
@@ -403,7 +406,7 @@ pub(crate) fn step_state<const TRACK: bool>(
         unsafe {
             resolve_iter_constraints(s, rest, endur);
             let it = it as u8;
-            collide_point::<PEG, TRACK>(
+            collide_point::<PEG, false, TRACK>(
                 s,
                 grid,
                 events,
@@ -418,7 +421,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                 it,
                 0.8,
             );
-            collide_point::<TAIL, TRACK>(
+            collide_point::<TAIL, true, TRACK>(
                 s,
                 grid,
                 events,
@@ -433,7 +436,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                 it,
                 0.0,
             );
-            collide_point::<NOSE, TRACK>(
+            collide_point::<NOSE, true, TRACK>(
                 s,
                 grid,
                 events,
@@ -448,7 +451,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                 it,
                 0.0,
             );
-            collide_point::<STRING, TRACK>(
+            collide_point::<STRING, true, TRACK>(
                 s,
                 grid,
                 events,
@@ -463,7 +466,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                 it,
                 0.0,
             );
-            collide_point::<BUTT, TRACK>(
+            collide_point::<BUTT, false, TRACK>(
                 s,
                 grid,
                 events,
@@ -478,7 +481,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                 it,
                 0.8,
             );
-            collide_point::<SHOULDER, TRACK>(
+            collide_point::<SHOULDER, false, TRACK>(
                 s,
                 grid,
                 events,
@@ -493,7 +496,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                 it,
                 0.8,
             );
-            collide_point::<RHAND, TRACK>(
+            collide_point::<RHAND, false, TRACK>(
                 s,
                 grid,
                 events,
@@ -508,7 +511,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                 it,
                 0.1,
             );
-            collide_point::<LHAND, TRACK>(
+            collide_point::<LHAND, false, TRACK>(
                 s,
                 grid,
                 events,
@@ -523,7 +526,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                 it,
                 0.1,
             );
-            collide_point::<LFOOT, TRACK>(
+            collide_point::<LFOOT, true, TRACK>(
                 s,
                 grid,
                 events,
@@ -538,7 +541,7 @@ pub(crate) fn step_state<const TRACK: bool>(
                 it,
                 0.0,
             );
-            collide_point::<RFOOT, TRACK>(
+            collide_point::<RFOOT, true, TRACK>(
                 s,
                 grid,
                 events,

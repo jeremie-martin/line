@@ -909,3 +909,212 @@ Current accepted standing after restoring the measured Attempt 24 artifact:
   median **15,528.7**, stddev **658.8**, frames **51,018**.
 
 The `<12,500 ns/frame` objective remains open.
+
+## Attempt 25 (2026-07-09) — const-bit friction parameter, REJECT
+
+Mechanism tested: encode each collision point's friction as a `u64` const generic
+inside `collide_point` instead of passing `fric: f64` as a runtime helper
+argument. The goal was to make the hot `step_state::<false>` collision monomorphs
+carry the exact same f64 friction constants with less argument/constant plumbing.
+The arithmetic expression itself was unchanged (`f64::from_bits` reconstructed
+the original `0.0`, `0.1`, and `0.8` values), and collision order/event semantics
+were unchanged.
+
+This was engine-only: it touched only `engine-rs/src/kernel.rs` and did not change
+optimizer, scorer, detector, specs, baselines, or compiler policy code.
+
+- **Correctness before A/B signal:**
+  - `cargo test --manifest-path engine-rs/Cargo.toml` passed (5/5).
+  - `npm run build:wasm` passed.
+  - `npm run verify` passed: engine trace oracle 5/5 byte-identical and optimizer
+    output hash 4/4 byte-identical.
+- **A/B screen:** `npx tsx scripts/v0/bench/perf_ab.ts --rounds=30`
+  - base artifact `6a85083044f9`
+  - candidate artifact `373e11bc3b28`
+  - base mean **16,520.2 ns/frame**
+  - candidate mean **16,537.0 ns/frame**
+  - delta median/mean **+0.38% / +0.12%**
+  - 95% CI **[-0.38%, +0.61%]**
+  - candidate won **14/30** rounds
+  - `P(candidate faster)=29.3%`
+
+Verdict: rejected. The candidate moved both median and mean slower and did not
+justify a full 100-round gate. Source change was reverted and the accepted
+Attempt 24 WASM artifact (`6a85083044f906e5417a8cfdf546797f`) was restored to both
+standard artifact paths. The `<12,500 ns/frame` objective remains open.
+
+## Attempt 26 (2026-07-09) — pre-cast compact summary fields, REJECT
+
+Mechanism tested: store `FrameSummary`'s rider bind state, sled bind state, and
+sled contact mask as f64 values when each frame is first summarized, instead of
+storing them as integer fields and casting them back to f64 on every
+`getCandidateWindow`, `getRider`, and `getRawFrame` read. The goal was to move
+repeated compact-window read casts out of the hot read path and into the
+once-per-computed-frame summary construction.
+
+This was engine-only: it touched only `engine-rs/src/engine.rs` and did not
+change optimizer, scorer, detector, specs, baselines, wrapper behavior, ABI shape,
+or compiler policy code.
+
+- **Correctness before A/B signal:**
+  - `cargo test --manifest-path engine-rs/Cargo.toml` passed (5/5).
+  - `npm run build:wasm` passed.
+  - `npm run verify` passed: engine trace oracle 5/5 byte-identical and optimizer
+    output hash 4/4 byte-identical.
+- **A/B screen:** `npx tsx scripts/v0/bench/perf_ab.ts --rounds=30`
+  - base artifact `6a85083044f9`
+  - candidate artifact `10ea3a6318d9`
+  - base mean **16,584.6 ns/frame**
+  - candidate mean **16,516.0 ns/frame**
+  - delta median/mean **-0.41% / -0.40%**
+  - 95% CI **[-0.94%, +0.17%]**
+  - candidate won **17/30** rounds
+  - `P(candidate faster)=91.2%`
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --rounds=100`
+  - base artifact `6a85083044f9`
+  - candidate artifact `10ea3a6318d9`
+  - base mean **16,816.6 ns/frame**
+  - candidate mean **16,822.3 ns/frame**
+  - delta median/mean **-0.07% / +0.05%**
+  - 95% CI **[-0.30%, +0.34%]**
+  - candidate won **52/100** rounds
+  - `P(candidate faster)=42.8%`
+
+Verdict: rejected. The 30-round screen was promising, but the required 100-round
+gate did not hold: mean regressed, the confidence interval crossed zero, and the
+probability gate failed. Source change was reverted and the accepted Attempt 24
+WASM artifact (`6a85083044f906e5417a8cfdf546797f`) was restored to both standard
+artifact paths. The `<12,500 ns/frame` objective remains open.
+
+## Profile refresh (2026-07-09) — after Attempt 24 plus rejected Attempts 25-26
+
+Profiled the restored accepted engine state with:
+
+```bash
+node --cpu-prof --cpu-prof-dir=generated/prof \
+  --cpu-prof-name=perf-L-1034200124-after-attempt26.cpuprofile \
+  --max-semi-space-size=64 --import tsx scripts/v0/bench/perf.ts --reps=5 --warmup=1
+```
+
+The short profiled run reported **14,884.5 ns/physics-frame mean** (median
+**14,966.0**, frames **51,018**). CPU-profile self-time split:
+
+- **Allowed engine/WASM surface:** **26.3%**
+  - `wasm`: **25.82%**
+  - `scripts/lib/_lr_engine_wasm.ts`: **0.47%**
+- **Forbidden by `docs/engine-workflow.md`:** **63.0%**
+  - optimizer/core/scorer/detector paths dominated by `arc_model.ts`,
+    `candidate.ts`, `measure.ts`, `aim.ts`, and related handoff code
+- Other/native/runtime: **10.8%**
+
+The top allowed node was `wasm-function[31]`, mapped by `wasm-dis` to the large
+7-argument internal solver helper matching the current `step_state` kernel
+shape. Smaller sampled WASM helpers included function ids 28, 25, and 22. The
+wrapper-only ceiling remains very small; remaining engine-only attempts should
+target the Rust/WASM kernel or cache behavior.
+
+## Attempt 27 (2026-07-09) — persist line-cell cache across frames, REJECT
+
+Mechanism tested: stop flushing `LineCellCache` at the start of every
+`step_state` call, keeping center-cell lookup entries across consecutive simulated
+frames while the line grid is unchanged. To keep pointers valid when the grid is
+mutated, the candidate invalidated `LineCellCache` after `add_line` pushes new
+grid buckets and after `remove_line` removes buckets. The intended win was fewer
+`FlatIntMap` lookups for rider points that revisit the same grid cells across
+adjacent frames, plus removing the per-frame line-cache epoch bump.
+
+This was engine-only: it touched only `engine-rs/src/kernel.rs` and
+`engine-rs/src/engine.rs`, without changing optimizer, scorer, detector, specs,
+baselines, wrapper behavior, ABI shape, or compiler policy code.
+
+- **Correctness before A/B signal:**
+  - `cargo test --manifest-path engine-rs/Cargo.toml` passed (5/5).
+  - `npm run build:wasm` passed.
+  - `npm run verify` passed: engine trace oracle 5/5 byte-identical and optimizer
+    output hash 4/4 byte-identical.
+- **A/B screen:** `npx tsx scripts/v0/bench/perf_ab.ts --rounds=30`
+  - base artifact `6a85083044f9`
+  - candidate artifact `f189657784b1`
+  - base mean **16,537.2 ns/frame**
+  - candidate mean **16,501.5 ns/frame**
+  - delta median/mean **-0.48% / -0.20%**
+  - 95% CI **[-0.65%, +0.28%]**
+  - candidate won **20/30** rounds
+  - `P(candidate faster)=80.0%`
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --rounds=100`
+  - base artifact `6a85083044f9`
+  - candidate artifact `f189657784b1`
+  - base mean **16,777.3 ns/frame**
+  - candidate mean **16,751.6 ns/frame**
+  - delta median/mean **-0.36% / -0.14%**
+  - 95% CI **[-0.48%, +0.21%]**
+  - candidate won **58/100** rounds
+  - `P(candidate faster)=80.9%`
+
+Verdict: rejected. The full gate showed a small favorable median/mean, but the
+confidence interval crossed zero and the probability gate failed. Source change
+was reverted and the accepted Attempt 24 WASM artifact
+(`6a85083044f906e5417a8cfdf546797f`) was restored to both standard artifact
+paths. The `<12,500 ns/frame` objective remains open.
+
+## Attempt 28 (2026-07-09) — specialize zero-friction collision response, KEEP
+
+Mechanism kept: specialize the hot collision helper for the five collidable points
+whose friction is exactly `0.0` (`TAIL`, `NOSE`, `STRING`, `LFOOT`, `RFOOT`).
+For those point monomorphs, the candidate skips the friction-vector construction,
+sign flip, and add-back math and directly carries `prevx/prevy` into the optional
+acceleration-line adjustment. The nonzero-friction point monomorphs keep the
+original operation order. This targets the dominant `step_state` kernel surface:
+half of the per-iteration collidable point calls no longer execute friction math
+whose mathematical value is zero.
+
+The only semantic risk is signed-zero behavior in the skipped zero-friction
+floating-point operations. The engine trace oracle, optimizer hashes, wide
+optimizer hashes, and replay-sensitive WASM gates all remained byte-identical on
+the exercised corpus.
+
+This is engine-only: it changes only `engine-rs/src/kernel.rs`, without touching
+optimizer, scorer, detector, specs, baselines, wrapper behavior, ABI shape, or
+compiler policy code.
+
+- **Correctness before A/B signal:**
+  - `cargo test --manifest-path engine-rs/Cargo.toml` passed (5/5).
+  - `npm run build:wasm` passed.
+  - `npm run verify` passed: engine trace oracle 5/5 byte-identical and optimizer
+    output hash 4/4 byte-identical.
+- **A/B screen:** `npx tsx scripts/v0/bench/perf_ab.ts --rounds=30`
+  - base artifact `6a85083044f9`
+  - candidate artifact `c056beca785c`
+  - base mean **16,622.5 ns/frame**
+  - candidate mean **16,513.5 ns/frame**
+  - delta median/mean **-0.61% / -0.64%**
+  - 95% CI **[-1.24%, -0.09%]**
+  - candidate won **19/30** rounds
+  - `P(candidate faster)=98.8%`
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --rounds=100`
+  - base artifact `6a85083044f9`
+  - candidate artifact `c056beca785c`
+  - base mean **16,806.4 ns/frame**
+  - candidate mean **16,743.4 ns/frame**
+  - delta median/mean **-0.30% / -0.37%**
+  - 95% CI **[-0.63%, -0.12%]**
+  - candidate won **59/100** rounds
+  - `P(candidate faster)=99.4%`
+- **Wider gates after acceptance:**
+  - `npm run verify:optimizer:wide` passed: 12/12 compiler-output hashes
+    byte-identical.
+  - `npm run wasm:all` passed: kernel, stateful engine, trace, numeric diff,
+    forking/budget, compile-hash, replay, and low-level bench checks green.
+
+Verdict: kept. The full gate cleared the probability and median-delta thresholds,
+and the confidence interval stayed below zero. After `wasm:all`, the measured
+source-triggered candidate artifact was restored because repeated `wasm-opt`
+rewrote the artifact to `e36e65f2aa42e4a73bca30c0e9f6fb9f` without representing a
+source change. Accepted artifact hash: `c056beca785c2607b874ef6008cc10a0`.
+
+Current accepted standing after restoring the measured Attempt 28 artifact:
+
+- `npm run perf` (50 runs + 3 warmup): mean **15,992.4 ns/physics-frame**,
+  median **15,783.4**, stddev **645.2**, frames **51,018**.
+
+The `<12,500 ns/frame` objective remains open.

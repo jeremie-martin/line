@@ -2,6 +2,42 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - tight opening margin with ultra-short branch-3 throttle
+
+Reason: continue the opening-selector mechanism after the branch-2-only probe showed that branch 3
+is not globally harmful, while the earlier `0.08` ambiguity margin was directionally positive. This
+trial kept candidate generation, start selection, repair, scorer, specs, evaluator fingerprint,
+seed policy, budget grid, and acceptance rule unchanged. It changed only the opening best-forward
+selector: `OPENING_BEST_FWD_REL_MARGIN_ZERO` moved from 0.12 to 0.08, and branch-3 escalation was
+multiplied by a smooth contact-count pressure that is zero at four authored contacts and full again
+by seven contacts.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-opening-tight-ultrashort-b3-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-opening-tight-ultrashort-b3-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 695.13 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 713.9. Per-budget point estimates were 75k 661.88, 200k 688.70, and 500k 702.69.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-opening-tight-ultrashort-b3-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 695.1, delta +0.0,
+CI [-0.1, 0.2], P(delta<=0)=39.4%, effect 0.47. Per-budget deltas were 75k +0.0,
+200k -0.0, and 500k +0.1, with unchanged 100% pass rates.
+
+Why it was not kept: the combined selector did not improve on the cleaner margin-only signal.
+Across paired checkpoints, 14/1440 track hashes changed and 14 scores changed, with 6 improvements
+and 8 regressions. The raw paired row-score sum was +27.87: 75k gained +13.07, 200k lost -30.23,
+and 500k gained +45.03. The `mini_burst` movement was the useful margin08 signal (+47.16 total),
+but the new ultra-short branch-3 throttle turned `tiny_dance` negative (-19.29 total), mainly via
+200k losses on seeds 6 and 11 and a 500k loss on seed 2. Compared with margin08 alone
+(`mini_burst` +47.16, `tiny_dance` +14.51), the contact-count branch-3 throttle is the wrong
+add-on. No full run was launched. Source edits were reverted; no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - opening branch-2-only selector
 
 Reason: the opening best-forward selector is still one of the few mechanisms that can move scores

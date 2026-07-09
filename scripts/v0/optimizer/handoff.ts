@@ -974,6 +974,7 @@ function compileHandoffInternal(
       framesAtAnchor: number; framesBefore: number; framesSpent: number;
       estCost: number; predictedFeasible: boolean; completed: boolean;
       beforeScore: number; afterScore: number; accepted: boolean;
+      improvementFrameOffsets: number[];
       inhSpeed: number | null; inhVy: number | null; inhGrounded: number | null;
       weakAxis: string | null;
       weakAxisTarget: number | null; weakAxisAchieved: number | null;
@@ -1324,12 +1325,14 @@ function compileHandoffInternal(
     // early when a budget snapshot is captured (kind:"captured") so the caller's post-loop runs.
     const runFrontier = (
       pass: HandoffNode[], fb: HandoffNode[], keepGoing: () => boolean,
+      onProcessed?: () => void,
     ): void => {
       while (frontierSize(pass, fb) > 0 && telemetry.nodesExpanded < maxNodes) {
         if (!keepGoing()) break;
         const node = popNextFrontierNode(pass, fb);
         telemetry.frontierSelections++;
         const result = processNode(node);
+        onProcessed?.();
         if (result.kind === "captured") return;
         if (result.kind === "deferred") {
           enqueueDeferred({ ...node, deferExpansion: false }, pass, fb);
@@ -1344,10 +1347,23 @@ function compileHandoffInternal(
     // register — all via processNode) seeded from one node, until `ceiling` sim-frames or the
     // frontier empties. Branches into the OTHER arcs at the restart gap, rebuilding the whole
     // tail with full power, not a greedy dive.
-    const runFrontierFrom = (initial: HandoffNode, ceiling: number): void => {
+    const runFrontierFrom = (initial: HandoffNode, ceiling: number): number[] => {
       const pass: HandoffNode[] = initial.skippedContacts === 0 ? [initial] : [];
       const fb: HandoffNode[] = initial.skippedContacts === 0 ? [] : [initial];
-      runFrontier(pass, fb, () => getSimFrames() < ceiling);
+      if (!repair?.log) {
+        runFrontier(pass, fb, () => getSimFrames() < ceiling);
+        return [];
+      }
+      const framesBefore = getSimFrames();
+      let improvementsSeen = register.improvementCount;
+      const improvementFrameOffsets: number[] = [];
+      runFrontier(pass, fb, () => getSimFrames() < ceiling, () => {
+        while (improvementsSeen < register.improvementCount) {
+          improvementFrameOffsets.push(getSimFrames() - framesBefore);
+          improvementsSeen++;
+        }
+      });
+      return improvementFrameOffsets;
     };
 
     // Aimed-repair post-pass (R2): the main search has produced a complete incumbent using
@@ -1497,7 +1513,7 @@ function compileHandoffInternal(
           const incumbentBefore = bestCompleteNode;
           const terminalsBefore = terminalConsiders;
           const predictedFeasible = estCost <= 0 || estCost * repair.feasMargin <= targetBudget - framesBefore;
-          runFrontierFrom(prefixNode, ceiling);
+          const improvementFrameOffsets = runFrontierFrom(prefixNode, ceiling);
           const completed = terminalConsiders > terminalsBefore;
           // Decide "improved" by whether the REGISTER actually adopted a new best (its passing-leaf
           // comparator is axis_quality, not full_score — they can disagree). dScore is logged for
@@ -1512,6 +1528,7 @@ function compileHandoffInternal(
             framesBefore, framesSpent: getSimFrames() - framesBefore,
             estCost: Math.round(estCost), predictedFeasible, completed,
             beforeScore, afterScore, accepted: improved,
+            improvementFrameOffsets,
             inhSpeed: fit?.releaseSpeed ?? null,
             inhVy: fit?.releaseVelocityY ?? null,
             inhGrounded: fit?.releaseGroundedFrames ?? null,

@@ -2,6 +2,31 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - OBSERVATION ONLY - exact final-axis residual decomposition
+
+Question: after closing local aim-basis and repair-scheduling changes, identify whether current
+final error is dominated by a systematic generation/calibration residual or by unstructured search
+variance. `scripts/v0/study_final_axis_residuals.ts` reads archived reports, zeroes one axis's errors
+while preserving the scorer's RMS denominator, and re-aggregates the exact per-spec geometric means
+and budget-weighted headline. It also reports achieved-minus-target bias and early/middle/late SSE.
+
+Study: `generated/studies/final-axis-residuals-probe-baseline-fp6f760d-a01.json`, generated from
+`generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`. Perfect-axis headline lifts
+were impact +55.12, air +29.43, elevation +26.49, amplitude +21.95, and speed +15.29.
+
+Result: impact, elevation, and amplitude have stable signed undershoot at every budget. At 500k,
+mean achieved-minus-target residuals were impact -0.0538, elevation -0.0969, and amplitude -0.0335;
+air (+0.0114) and speed (+0.0095) were near balance. Elevation undershoot concentrates late
+(late-third mean -0.1403 and 45.4% of elevation SSE). Target bins show this is not a constant
+offset: impact asks below 0.1 overshoot by +0.051 while asks from 0.2 upward undershoot by roughly
+0.06 to 0.11; elevation crosses from +0.153 below 0.3 to -0.121/-0.194 above 0.5/0.6.
+
+Implementation audit: proposal targets are jittered once per gap and stored in `gap.targets`, so
+candidate fit cost and several local gates pursue sampled targets, while quality ranking, forward
+evaluation, and the final scorer already use `ctx.gapAxisTargets` (true targets). The sampler already
+supports a geometry-only target override. This motivates separating proposal jitter from objective
+truth rather than applying suite-fitted axis offsets. No production change was made in this study.
+
 ## 2026-07-09 - REJECTED PROBE - repair error-per-suffix-cost priority
 
 Reason: current repair selects the largest affordable per-gap axis SSE and uses measured suffix

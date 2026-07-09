@@ -376,3 +376,29 @@ accepted WASM artifact remained `433a35ba440b6c773f3a6c5d4fdcbd91`.
     mean **7,006.5 ns/frame**, delta median/mean **-0.08% / -0.14%**, 95% CI
     **[-0.37%, 0.11%]**, candidate won **17/30** rounds,
     `P(candidate faster)=84.4%`.
+
+- **Single-contact line-id array cache: REJECT**
+  - Mechanism: in `detectCandidateWindowBuffer`, reuse one `[lineId]` array per
+    integer line id for single-contact frames, instead of allocating a fresh
+    one-element `contactLineIds` array for each frame. A survey of
+    `mini_burst@50k` saw **72,494** single-contact frames across **43** line ids.
+  - Correctness: focused optimizer/handoff tests passed; quick `npm run cbench -- --spec=mini_burst --seed=0 --budget=50000 --reps=5 --warmup=1`
+    kept result signature `6143:34`; `npm run verify:compiler:behavior` passed
+    48/48 cells, repair_cells=33, repair_restarts=676.
+  - JS A/B screen was inconclusive: base mean **6,998.3 ns/frame**, candidate
+    mean **6,988.8 ns/frame**, delta median/mean **-0.30% / -0.13%**, 95% CI
+    **[-0.65%, 0.45%]**, candidate won **17/30** rounds,
+    `P(candidate faster)=66.8%`.
+
+- **Single/pair contact line-id array cache: REJECT**
+  - Mechanism: extend the contact-array cache to cover both one-id and two-id
+    contact frames in `detectCandidateWindowBuffer`. A survey of `mini_burst@50k`
+    saw all **103,638** contact frames at count 1 or 2, with only **106** distinct
+    id combinations.
+  - Correctness: focused optimizer/handoff tests passed; quick `npm run cbench -- --spec=mini_burst --seed=0 --budget=50000 --reps=5 --warmup=1`
+    kept result signature `6143:34`; `npm run verify:compiler:behavior` passed
+    48/48 cells, repair_cells=33, repair_restarts=676.
+  - JS A/B screen was flat/inconclusive: base mean **6,999.9 ns/frame**,
+    candidate mean **7,001.6 ns/frame**, delta median/mean **-0.01% / +0.03%**,
+    95% CI **[-0.46%, 0.58%]**, candidate won **15/30** rounds,
+    `P(candidate faster)=48.3%`.

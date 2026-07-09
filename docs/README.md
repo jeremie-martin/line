@@ -14,6 +14,7 @@ historical record, not live guidance.
 | [`compiler_goals.md`](compiler_goals.md) | LIVE | Frozen contract + the **HEADLINE metric** definition (the metric's single source of truth). |
 | [`REBASELINE.md`](REBASELINE.md) | LIVE | How to record a new baseline from a canonical golden run. |
 | [`engine-workflow.md`](engine-workflow.md) | LIVE | Current concise workflow for WASM engine-speed work. |
+| [`compiler-speed-workflow.md`](compiler-speed-workflow.md) | LIVE | Behavior-preserving workflow for improving whole compiler wall-clock speed. |
 | [`optimizer/12_handoff_prefix_search.md`](optimizer/12_handoff_prefix_search.md) | LIVE | The active compiler's search algorithm. |
 | [`ARC_AIMING_FORMALIZATION.md`](ARC_AIMING_FORMALIZATION.md) | LIVE | The aiming model and the shared current-quality × readiness objective. |
 | [`READINESS_ROADMAP.md`](READINESS_ROADMAP.md) | LIVE | Readiness design history and current composite readiness semantics. |

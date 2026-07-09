@@ -2,7 +2,8 @@
 
 Use this document as the current working prompt for engine-speed work. The older
 `engine_speed_methodology.md` is background and statistics detail; this is the
-concise operating procedure.
+concise operating procedure. For behavior-preserving speed work on the broader
+compiler path, use `compiler-speed-workflow.md` instead.
 
 ## Goal
 
@@ -87,12 +88,15 @@ recorded baselines.
 Wider confidence gate:
 
 ```bash
-npm run verify:optimizer:wide
+npm run verify:compiler:behavior
 ```
 
-This runs 12 representative compiler-output hashes against the recorded
-vendored-JS baseline, but the normal check itself runs only the standard WASM
-engine. It should be cheap enough for serious candidates and before commits.
+This runs 12 representative spec/seed compiler-output hashes across scarce and
+mature budgets (`61k`, `100k`, `150k`, `200k`) against the recorded baseline.
+The default is fail-fast: stop on the first behavior difference. It also requires
+the checked cells to include repair coverage, so repair-sensitive compiler
+changes are not accidentally tested only on paths where repair never runs. Use
+`-- --all` when you want a full diff list.
 
 Rust-specific gates:
 

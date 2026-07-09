@@ -47,10 +47,11 @@
     "wasm:all": "tsx scripts/v0/bench/wasm_all.ts",
     "perf": "node --max-semi-space-size=64 --import tsx scripts/v0/bench/perf.ts",
     "verify": "npm run verify:engine && npm run verify:optimizer",
-    "verify:wide": "npm run verify:engine && npm run verify:optimizer:wide",
+    "verify:wide": "npm run verify:engine && npm run verify:compiler:behavior",
     "verify:engine": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts",
     "verify:optimizer": "tsx scripts/v0/bench/verify_optimizer.ts",
-    "verify:optimizer:wide": "tsx scripts/v0/bench/verify_optimizer.ts --wide",
+    "verify:compiler:behavior": "tsx scripts/v0/bench/verify_compiler_behavior.ts",
+    "verify:optimizer:wide": "tsx scripts/v0/bench/verify_compiler_behavior.ts",
     "verify:optimizer:floor": "tsx scripts/v0/bench/verify_optimizer_budget_floor.ts"
   },
   "devDependencies": {

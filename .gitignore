@@ -7,6 +7,8 @@ generated/
 generated/*
 !generated/verify-optimizer/
 !generated/verify-optimizer/*.json
+!generated/verify-compiler-behavior/
+!generated/verify-compiler-behavior/*.json
 coverage/
 .cache/
 .vitest/

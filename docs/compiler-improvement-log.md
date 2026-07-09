@@ -2,6 +2,21 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - accelerated climb ride-out variants
+
+Reason: next-elevation specialists reached their target but lost future speed and readiness. The
+temporary physical primitive converted the latter half of a sparse, deterministic subset of
+high-climb post-contact ride-outs to Line Rider acceleration lines. Catch and early-turn lines
+remained solid, ordinary solid attempts remained in the same batch, and candidate count, ranking,
+repair, budgets, scorer, specs, fingerprint, seeds, grid, and acceptance rule were unchanged.
+
+Focused tests passed (5 files, 78 tests). On 15 vertical specs x seeds 0..2 at 200k, mean score
+moved only +0.25 across 45 rows. More importantly, the exact-prefix follow-up did not move the
+intended frontier: proposed-specialist speed fit changed .374->.357 and readiness .131->.130.
+Archives: `generated/studies/climb-acceleration-15spec-b200-s0-2-a01.json` and
+`generated/studies/next-elevation-specialist-climb-accel-15spec-b200-s0-a01.json`.
+The primitive was reverted without a fixed probe.
+
 ## 2026-07-09 - NOT KEPT - next-gap vertical launch target alignment
 
 Reason: an exact-prefix study compared the forward-ranker winner with the best proposed and

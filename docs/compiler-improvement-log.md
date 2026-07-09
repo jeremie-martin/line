@@ -2,6 +2,27 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - material-transition motion ownership
+
+Reason: compile-wide next-gap motion ownership was positive but noisy. This distinct local
+mechanism switched each post-contact air/speed/elevation/amplitude control separately only when
+the unjittered next-span target differed from the current target by more than `CALIB.SIGMA`, the
+compiler's existing proposal-noise scale, or when the axis appeared/disappeared. Small/steady
+transitions retained baseline geometry. Candidate count, RNG draws, ranker, repair, scorer, specs,
+fingerprint, seeds, grid, and acceptance rule stayed unchanged.
+
+The ten-spec x seeds 0..2 study at 200k improved mean score 649.42->655.16 (+5.74), so it advanced
+to the fixed probe. Probe:
+`generated/golden-runs/probe-calibrated-transition-motion-targets-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-calibrated-transition-motion-targets-j32-a01`.
+It completed 1440/1440 valid with HEADLINE 695.77 versus 695.09 and excluding-impact HEADLINE
+713.92 versus 713.83.
+
+Decision versus `probe-baseline-fp6f760d-j32-a01`: `VERDICT: INCONCLUSIVE`, delta +0.7,
+CI [-1.3, 2.8], P(delta<=0)=24.9%, effect +0.66. Per-budget deltas were +1.9 at 75k,
++0.5 at 200k, and +0.6 at 500k. All tiers and validity moved in the intended direction, but the
+fixed 20% cutoff was not cleared. Source was reverted and no full run was launched.
+
 ## 2026-07-09 - NOT KEPT - slack-gated next-gap motion ownership
 
 Reason: the unconditional next-motion alignment improved most mature rows but failed scarce

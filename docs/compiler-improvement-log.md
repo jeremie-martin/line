@@ -2,6 +2,34 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - SOURCE-FREE NOT KEPT - vertical residual q32 breadth
+
+Reason: the remaining weak vertical/amplitude rows are all valid but under-shaped, and several run
+below the default q32 breadth at mature budgets. Before adding any selector, a source-free override
+tested whether simply removing the lean on the vertical residual slice helped. Candidate generation,
+start selection, forward eval, repair, scorer, specs, evaluator fingerprint, seed policy, budget
+grid, source files, and acceptance rule stayed unchanged.
+
+Screen:
+`generated/golden-runs/screen-vertical-residual-q32-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_QUALITY_NCAND=32 npm run golden -- --probe --specs=skyline_push,terrace_sprint,dense_echo_climb,syncopated_lift --jobs=32 --archive-dir=generated/golden-runs/screen-vertical-residual-q32-j32-a01`.
+It used the corrected 12-seed probe seed policy on the four-spec slice and was valid 144/144.
+Raw slice HEADLINE was 619.31, with per-budget point estimates 75k 582.91, 200k 612.81, and
+500k 627.36.
+
+Decision:
+`npm run decide -- generated/golden-runs/screen-vertical-residual-q32-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned non-canonical `VERDICT: INCONCLUSIVE`: baseline 620.0 -> candidate 619.3, delta -0.7,
+CI [-3.6, 1.7], P(delta<=0)=71.7%, effect -0.55. Per-budget deltas were 75k -0.5,
+200k -1.5, and 500k -0.4, with unchanged pass rates.
+
+Why it was not kept: more breadth was not the missing ingredient on this slice. The paired
+footprint was mixed: `skyline_push` was mildly positive (+0.57 average, +1.56 at 500k), but
+`syncopated_lift` (-0.48), `terrace_sprint` (-1.23), and `dense_echo_climb` (-2.04) offset it.
+This closes the immediate q32-unlean idea under the current accepted baseline; a production change
+would need a more general value signal than candidate count. No source changes were made, no full
+run was launched, and no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - weak-amplitude climb shortening
 
 Reason: the contact-centered sampler had a geometry dead zone around the amplitude pressure onset:

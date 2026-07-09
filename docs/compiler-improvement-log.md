@@ -2,6 +2,40 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - stricter opening ambiguity margin
+
+Reason: continue the accepted structural opening best-lookahead mechanism by changing the local
+value signal rather than the inactive slack pressure. This trial made the opening `best:1:2`
+promotion require a tighter top-two local objective margin by changing
+`OPENING_BEST_FWD_REL_MARGIN_ZERO` from 0.12 to 0.08. Branch-2/branch-3 slack activation,
+structural/contact-count pressure, candidate generation, start selection, repair, scorer, specs,
+evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-opening-margin08-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-opening-margin08-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 695.14, with per-budget point estimates 75k 661.88, 200k 688.77,
+and 500k 702.68.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-opening-margin08-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 695.1, delta +0.0,
+CI [-0.0, 0.2], P(delta<=0)=21.3%, effect 0.70. Per-budget deltas were
+75k +0.0, 200k +0.0, and 500k +0.1, with unchanged 100% pass rates.
+
+Why it was not kept: this is directionally positive but too small for the accept-only gate. Only
+6/1440 paired checkpoints changed hash and score: 4 improvements and 2 regressions, all in
+`mini_burst` and `tiny_dance`. The paired score sums were +13.07 at 75k, +11.27 at 200k, and
++37.33 at 500k. The decision tool estimated roughly 14 seed slots could resolve the signal, but
+the current normalized probe is fixed at 12 and did not return `ACCEPT`, so no full run was launched.
+Source edits were reverted; no baseline was advanced. The useful follow-up is likely a more direct
+low-cost opening ambiguity/value signal, not another scalar margin threshold.
+
 ## 2026-07-09 - NOT KEPT - earlier opening branch-2 pressure
 
 Reason: continue the accepted structural opening best-lookahead mechanism by testing whether the

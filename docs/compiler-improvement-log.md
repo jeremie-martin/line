@@ -2,6 +2,40 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - full-gap next-elevation normalization
+
+Reason: the prediction-truth study showed the objective's elevation prediction was expressed in
+the post-release ballistic suffix coordinate while the scorer measures the full next gap. The
+analytic conversion `0.5 + nextAir * (suffixElevation - 0.5)` reduced current-truth MAE from
+0.132 to 0.026 across 190 rows. The temporary mechanism applied exactly that conversion inside
+`predictedNextGapElevation`, retaining the accepted sparse elevation-readiness activation gate.
+No new spec or budget received the elevation term. Candidate generation, objective pressure and
+asymmetry, forward evaluation, repair, budgets, scorer, specs, evaluator fingerprint, seed policy,
+budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe (7 files, 114 tests, `LR_ENGINE=wasm`), including an exact
+formula check against the ballistic propagation and the existing `nextAir` fraction.
+
+Probe: `generated/golden-runs/probe-next-elevation-full-gap-normalization-j32-a01/golden.json`, run
+with `LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-next-elevation-full-gap-normalization-j32-a01`.
+It was valid 1440/1440. Raw HEADLINE was 695.12 versus the current probe baseline 695.09;
+HEADLINE excluding impact was 713.72. The 75k tier was bit-identical; 200k regressed by -0.1 and
+500k improved by +0.1.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-next-elevation-full-gap-normalization-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: delta +0.0, CI [-0.2, 0.3], P(delta<=0)=41.7%, effect +0.19.
+Validity stayed 100% at every budget.
+
+Why it was not kept: a correct predictor is not sufficient under the narrow accepted activation
+gate. Only five sparse vertical specs moved (85 hashes/scores, 50 improvements to 35 regressions).
+At 200k `swoop_dive` gained +4.56 but `rolling_hills` lost -7.66; at 500k `rolling_hills`
+gained +4.48 while `summit_push` lost -2.20. The standalone change did not clear acceptance and
+was reverted. The next distinct test is the corrected coordinate together with general mature
+high-elevation activation, which addresses the previously measured broad-gate predictor defect.
+No full run was launched and baselines remain `probe-baseline-fp6f760d-j32-a01` (695.09) and
+`full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - OBSERVATION ONLY - next-elevation prediction truth
 
 Question: global mature elevation-readiness activation failed despite strong high-target residuals.

@@ -202,7 +202,7 @@ export const EXPLORATORY_BUDGETS = [
  * DELIBERATE ruler change updates this constant in the same commit. Soft
  * tripwire, not a gate.
  */
-export const EVALUATOR_FINGERPRINT = "5198f9897033"; // 2026-07-08: golden specs now explicitly disable per-gap jitter
+export const EVALUATOR_FINGERPRINT = "6f760d9c1cc9"; // 2026-07-09: metadata refresh after behavior-preserving measure.ts speed refactors (8c86213, 4145942); ruler behavior unchanged (verify:compiler:behavior bit-identical)
 
 /**
  * Worker-timeout (hang-detection safety cap) for a row of independent budget

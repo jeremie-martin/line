@@ -2,6 +2,42 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - repair reopen downstream exhausted gaps
+
+Reason: after an accepted repair suffix rebuild, downstream gap targets that were exhausted under
+the old incoming state may no longer be stale failures. This trial kept the existing worst-gap
+picker, measured-cost feasibility, repair caps, upstream walk, candidate generation, start
+selection, forward eval, scorer, specs, evaluator fingerprint, seed policy, budget grid, and
+acceptance rule unchanged. It only cleared exhausted repair gap indices at or after the accepted
+restart anchor, allowing downstream repair targets to be reconsidered under the changed prefix.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 93 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-repair-reopen-suffix-exhaust-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-repair-reopen-suffix-exhaust-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 694.93 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 713.60. Per-budget point estimates were 75k 661.85, 200k 688.81, and 500k 702.33.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-repair-reopen-suffix-exhaust-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: REJECT`: baseline 695.1 -> candidate 694.9, delta -0.2,
+CI [-0.5, 0.2], P(delta<=0)=83.5%, effect -0.92. Per-budget deltas were
+75k +0.0, 200k +0.1, and 500k -0.3, with unchanged 100% pass rates.
+
+Why it was not kept: the state-reset idea was active but spent repair attention in worse places.
+Across paired checkpoints, 172/1440 track hashes changed and 170 scores changed, with
+79 improvements and 91 regressions. Repair restarts rose by 1210 total over changed rows, but
+accepted repairs fell by 68 and repair frames fell by 12.4M, indicating the reopened downstream
+targets often displaced productive longer repairs. Gains on `tiny_dance` (+68.72 total),
+`switchback_pop` (+27.32), and `cold_start` (+13.43) were outweighed by losses on
+`glide_stairs` (-32.79), `drums_crescendo` (-30.16), `mini_burst` (-29.49),
+`climb_terrace` (-28.90), and `dense_echo_climb` (-27.48). No full run was launched. Source
+edits were reverted; no baseline was advanced.
+
 ## 2026-07-09 - SOURCE-FREE NOT KEPT - repair max96 cap-heavy paired screen
 
 Reason: current accepted probe telemetry still shows some mature-budget rows reaching the

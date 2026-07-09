@@ -322,3 +322,20 @@ accepted WASM artifact remained `433a35ba440b6c773f3a6c5d4fdcbd91`.
     **6,999.6 ns/frame**, candidate mean **7,006.8 ns/frame**, delta
     median/mean **+0.13% / +0.11%**, 95% CI **[-0.10%, 0.36%]**,
     candidate won **46/100** rounds, `P(candidate faster)=17.2%`.
+
+- **Shared latent speed/elevation suffix loop: REJECT**
+  - Mechanism: in `predictJointArcScoreReadout`, when latent ballistic
+    reconstruction needed both current speed and elevation, share the same
+    suffix-frame loop instead of walking the same `[prefixEnd+1, rangeEndFrame]`
+    range twice.
+  - Correctness: focused optimizer tests passed; quick `npm run cbench -- --spec=mini_burst --seed=0 --budget=50000 --reps=5 --warmup=1`
+    kept result signature `6143:34`; `npm run verify:compiler:behavior` passed
+    48/48 cells, repair_cells=33, repair_restarts=676.
+  - JS A/B screen was inconclusive: base mean **7,020.2 ns/frame**, candidate
+    mean **6,992.1 ns/frame**, delta median/mean **-0.22% / -0.39%**, 95% CI
+    **[-0.83%, 0.07%]**, candidate won **20/30** rounds,
+    `P(candidate faster)=94.7%`.
+  - Full JS A/B rejected as inconclusive: base mean **7,003.0 ns/frame**,
+    candidate mean **6,999.4 ns/frame**, delta median/mean **-0.09% / -0.04%**,
+    95% CI **[-0.26%, 0.20%]**, candidate won **53/100** rounds,
+    `P(candidate faster)=63.6%`.

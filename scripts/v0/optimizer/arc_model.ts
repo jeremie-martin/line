@@ -41,6 +41,26 @@ export function propagateBallisticArrivalState(
   state: RiderArrivalState,
   dtFrames: number,
 ): RiderArrivalState {
+  return propagateBallisticArrivalStateFromValues(
+    state.x,
+    state.y,
+    state.vx,
+    state.vy,
+    state.sledPoseDeg,
+    state.sledPoseRateDegPerFrame,
+    dtFrames,
+  );
+}
+
+function propagateBallisticArrivalStateFromValues(
+  stateX: number,
+  stateY: number,
+  stateVx: number,
+  stateVy: number,
+  stateSledPoseDeg: number | null,
+  stateSledPoseRateDegPerFrame: number | null,
+  dtFrames: number,
+): RiderArrivalState {
   // Pure readout gravity, deliberately. A per-frame "effective gravity"
   // correction (+0.0084, from committed-track airborne stretches) was tried
   // and FALSIFIED on probe trajectories: the signed vy error vs full-sim
@@ -52,16 +72,16 @@ export function propagateBallisticArrivalState(
   // masquerades there as a per-frame bias.
   const dt = Math.max(0, Math.round(dtFrames));
   const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
-  const x = state.x + state.vx * dt;
+  const x = stateX + stateVx * dt;
   // lr-core's Verlet step applies gravity before the next frame's velocity read.
-  const y = state.y + state.vy * dt + 0.5 * g * dt * (dt + 1);
-  const vx = state.vx;
-  const vy = state.vy + g * dt;
+  const y = stateY + stateVy * dt + 0.5 * g * dt * (dt + 1);
+  const vx = stateVx;
+  const vy = stateVy + g * dt;
   const speed = Math.hypot(vx, vy);
   const comAngleDeg = speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null;
-  const sledPoseDeg = state.sledPoseDeg !== null && state.sledPoseRateDegPerFrame !== null
-    ? normalizeAngleDeg(state.sledPoseDeg + state.sledPoseRateDegPerFrame * dt)
-    : state.sledPoseDeg;
+  const sledPoseDeg = stateSledPoseDeg !== null && stateSledPoseRateDegPerFrame !== null
+    ? normalizeAngleDeg(stateSledPoseDeg + stateSledPoseRateDegPerFrame * dt)
+    : stateSledPoseDeg;
   return {
     x,
     y,
@@ -70,7 +90,7 @@ export function propagateBallisticArrivalState(
     speed,
     comAngleDeg,
     sledPoseDeg,
-    sledPoseRateDegPerFrame: state.sledPoseRateDegPerFrame,
+    sledPoseRateDegPerFrame: stateSledPoseRateDegPerFrame,
   };
 }
 
@@ -708,84 +728,114 @@ export function predictJointArcScoreReadout(
   currentTargets: AxisValues,
 ): JointArcScoreReadout {
   const readout = model.scoreReadout;
-  const directAir = predictEntryValue(readout.outputAir, knobs);
-  const directSpeed = predictEntryValue(readout.outputSpeed, knobs);
-  const directGrain = predictEntryValue(readout.outputGrain, knobs);
-  const directElevation = predictEntryValue(readout.outputElevation, knobs);
-  const directAmplitude = predictEntryValue(readout.outputAmplitude, knobs);
-  const directImpact = predictEntryValue(readout.outputImpact, knobs);
+  const scoreAir = shouldScoreCurrentAxis(currentTargets, "air");
+  const scoreSpeed = shouldScoreCurrentAxis(currentTargets, "speed");
+  const scoreGrain = shouldScoreCurrentAxis(currentTargets, "grain");
+  const scoreElevation = shouldScoreCurrentAxis(currentTargets, "elevation");
+  const scoreAmplitude = shouldScoreCurrentAxis(currentTargets, "amplitude");
+  const scoreImpact = shouldScoreCurrentAxis(currentTargets, "impact");
 
-  let air = directAir;
-  let speedAxis = directSpeed;
-  const grain = directGrain;
-  let elevation = directElevation;
-  const amplitude = directAmplitude;
-  const impact = directImpact;
+  let air = scoreAir ? predictEntryValue(readout.outputAir, knobs) : NaN;
+  let speedAxis = scoreSpeed ? predictEntryValue(readout.outputSpeed, knobs) : NaN;
+  const grain = scoreGrain ? predictEntryValue(readout.outputGrain, knobs) : NaN;
+  let elevation = scoreElevation ? predictEntryValue(readout.outputElevation, knobs) : NaN;
+  const amplitude = scoreAmplitude ? predictEntryValue(readout.outputAmplitude, knobs) : NaN;
+  const impact = scoreImpact ? predictEntryValue(readout.outputImpact, knobs) : NaN;
 
   let state: RiderArrivalState | null = null;
   let exitFrame = predictEntryValue(readout.outputExitFrame, knobs);
   let exitSpeed = predictEntryValue(readout.outputExitSpeed, knobs);
-  const scoreAir = shouldScoreCurrentAxis(currentTargets, "air");
-  const scoreSpeed = shouldScoreCurrentAxis(currentTargets, "speed");
-  const scoreElevation = shouldScoreCurrentAxis(currentTargets, "elevation");
 
   if (readout.hasLatent) {
-    const latent = predictLatentReadout(readout, knobs);
-    const suffixFrame = latent.suffixFrame;
-    const suffixState = suffixStateFromDirectLatent(latent);
-    if (suffixState !== null && Number.isFinite(suffixFrame)) {
-      exitFrame = suffixFrame;
-      exitSpeed = suffixState.speed;
-      if (scoreAir || scoreSpeed || scoreElevation) {
-        const prefix = prefixSummaryFromDirectLatent(
-          latent,
-          model.context.gap.startFrame,
-          suffixFrame,
-          model.context.axisMeasureEnd,
-        );
-        if (prefix !== null) {
-          const prefixEnd = Math.max(
-            prefix.startFrame,
-            Math.min(model.context.axisMeasureEnd, Math.round(prefix.prefixEndFrame)),
-          );
-          const prefixFrames = Math.max(0, prefixEnd - prefix.startFrame + 1);
-          const suffixFrames = Math.max(0, model.context.axisMeasureEnd - prefixEnd);
-          if (scoreAir) {
-            const totalFrames = prefixFrames + suffixFrames;
-            if (totalFrames > 0) {
-              const prefixAirFrames = Math.max(0, Math.min(prefixFrames, prefix.airFrames));
-              air = (prefixAirFrames + suffixFrames) / totalFrames;
-            }
-          }
-          if (scoreSpeed) {
-            let speedSumPx = prefix.speedSumPx;
-            let speedFrames = Math.max(0, Math.min(prefixFrames, prefix.speedFrames));
-            for (let f = prefixEnd + 1; f <= model.context.axisMeasureEnd; f++) {
-              const vy = suffixState.vy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
-              speedSumPx += Math.sqrt(suffixState.vx * suffixState.vx + vy * vy);
-              speedFrames++;
-            }
-            if (speedFrames > 0) speedAxis = speedPxToAuthored(speedSumPx / speedFrames);
-          }
+    const suffixFrame = predictEntryValue(readout.latentSuffixFrame, knobs);
+    const suffixX = predictEntryValue(readout.latentSuffixX, knobs);
+    const suffixY = predictEntryValue(readout.latentSuffixY, knobs);
+    const suffixVx = predictEntryValue(readout.latentSuffixVx, knobs);
+    const suffixVy = predictEntryValue(readout.latentSuffixVy, knobs);
+    if (
+      Number.isFinite(suffixFrame) &&
+      Number.isFinite(suffixX) &&
+      Number.isFinite(suffixY) &&
+      Number.isFinite(suffixVx) &&
+      Number.isFinite(suffixVy)
+    ) {
+      const suffixSpeed = Math.hypot(suffixVx, suffixVy);
+      if (Number.isFinite(suffixSpeed)) {
+        exitFrame = suffixFrame;
+        exitSpeed = suffixSpeed;
+        if (scoreAir || scoreSpeed || scoreElevation) {
+          const startFrame = model.context.gap.startFrame;
+          const rangeEndFrame = model.context.axisMeasureEnd;
+          const prefixEnd = Math.max(startFrame, Math.min(rangeEndFrame, Math.round(suffixFrame)));
+          const prefixFrames = Math.max(0, prefixEnd - startFrame + 1);
+          const prefixAirFraction = predictEntryValue(readout.latentPrefixAirFraction, knobs);
+          const prefixAirFrames = Number.isFinite(prefixAirFraction)
+            ? Math.max(0, Math.min(1, prefixAirFraction)) * prefixFrames
+            : predictEntryValue(readout.latentPrefixAirFrames, knobs);
+          const prefixSpeedMeanPx = predictEntryValue(readout.latentPrefixSpeedMeanPx, knobs);
+          const prefixSpeedFrames = Number.isFinite(prefixSpeedMeanPx)
+            ? prefixFrames
+            : predictEntryValue(readout.latentPrefixSpeedFrames, knobs);
+          const prefixSpeedSumPx = Number.isFinite(prefixSpeedMeanPx)
+            ? prefixSpeedMeanPx * prefixSpeedFrames
+            : predictEntryValue(readout.latentPrefixSpeedSumPx, knobs);
+          const prefixDy = predictEntryValue(readout.latentPrefixDy, knobs);
+          const prefixV0SpeedPx = predictEntryValue(readout.latentPrefixV0SpeedPx, knobs);
           if (
-            scoreElevation &&
-            model.context.axisMeasureEnd > prefix.startFrame &&
-            Number.isFinite(prefix.v0SpeedPx)
+            Number.isFinite(prefixAirFrames) &&
+            Number.isFinite(prefixSpeedSumPx) &&
+            Number.isFinite(prefixSpeedFrames) &&
+            Number.isFinite(prefixDy) &&
+            Number.isFinite(prefixV0SpeedPx)
           ) {
-            let dy = prefix.dy;
-            for (let f = prefixEnd + 1; f <= model.context.axisMeasureEnd; f++) {
-              dy += suffixState.vy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
+            const suffixFrames = Math.max(0, rangeEndFrame - prefixEnd);
+            if (scoreAir) {
+              const totalFrames = prefixFrames + suffixFrames;
+              if (totalFrames > 0) {
+                const boundedPrefixAirFrames = Math.max(0, Math.min(prefixFrames, prefixAirFrames));
+                air = (boundedPrefixAirFrames + suffixFrames) / totalFrames;
+              }
             }
-            elevation = netDyToElevation(
-              dy,
-              Math.max(0, prefix.v0SpeedPx),
-              model.context.axisMeasureEnd - prefix.startFrame,
-            );
+            if (scoreSpeed) {
+              let speedSumPx = prefixSpeedSumPx;
+              let speedFrames = Math.max(0, Math.min(prefixFrames, prefixSpeedFrames));
+              for (let f = prefixEnd + 1; f <= rangeEndFrame; f++) {
+                const vy = suffixVy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
+                speedSumPx += Math.sqrt(suffixVx * suffixVx + vy * vy);
+                speedFrames++;
+              }
+              if (speedFrames > 0) speedAxis = speedPxToAuthored(speedSumPx / speedFrames);
+            }
+            if (
+              scoreElevation &&
+              rangeEndFrame > startFrame &&
+              Number.isFinite(prefixV0SpeedPx)
+            ) {
+              let dy = prefixDy;
+              for (let f = prefixEnd + 1; f <= rangeEndFrame; f++) {
+                dy += suffixVy + ELEVATION.GRAVITY_PX_PER_FRAME2 * Math.max(0, f - suffixFrame);
+              }
+              elevation = netDyToElevation(
+                dy,
+                Math.max(0, prefixV0SpeedPx),
+                rangeEndFrame - startFrame,
+              );
+            }
           }
         }
-      }
-      if (suffixFrame <= model.context.nextFrame) {
-        state = propagateBallisticArrivalState(suffixState, model.context.nextFrame - suffixFrame);
+        if (suffixFrame <= model.context.nextFrame) {
+          const suffixSledPoseDeg = predictEntryValue(readout.latentSuffixSledPoseDeg, knobs);
+          const suffixSledPoseRateDegPerFrame = predictEntryValue(readout.latentSuffixSledPoseRateDegPerFrame, knobs);
+          state = propagateBallisticArrivalStateFromValues(
+            suffixX,
+            suffixY,
+            suffixVx,
+            suffixVy,
+            Number.isFinite(suffixSledPoseDeg) ? suffixSledPoseDeg : null,
+            Number.isFinite(suffixSledPoseRateDegPerFrame) ? suffixSledPoseRateDegPerFrame : null,
+            model.context.nextFrame - suffixFrame,
+          );
+        }
       }
     }
   } else {
@@ -870,45 +920,6 @@ function predictEntryValue(fitted: FittedArcOutputEntry | undefined, knobs: ArcK
   if (fitted === undefined) return NaN;
   const pred = fitted.model.predict(knobs);
   return fitted.angle ? unwrapAngleAround(pred, fitted.ref) : pred;
-}
-
-type DirectLatentReadout = {
-  suffixFrame: number;
-  suffixX: number;
-  suffixY: number;
-  suffixVx: number;
-  suffixVy: number;
-  suffixSledPoseDeg: number;
-  suffixSledPoseRateDegPerFrame: number;
-  prefixAirFraction: number;
-  prefixAirFrames: number;
-  prefixSpeedMeanPx: number;
-  prefixSpeedFrames: number;
-  prefixSpeedSumPx: number;
-  prefixDy: number;
-  prefixV0SpeedPx: number;
-};
-
-function predictLatentReadout(
-  models: JointArcScoreReadoutModels,
-  knobs: ArcKnobs,
-): DirectLatentReadout {
-  return {
-    suffixFrame: predictEntryValue(models.latentSuffixFrame, knobs),
-    suffixX: predictEntryValue(models.latentSuffixX, knobs),
-    suffixY: predictEntryValue(models.latentSuffixY, knobs),
-    suffixVx: predictEntryValue(models.latentSuffixVx, knobs),
-    suffixVy: predictEntryValue(models.latentSuffixVy, knobs),
-    suffixSledPoseDeg: predictEntryValue(models.latentSuffixSledPoseDeg, knobs),
-    suffixSledPoseRateDegPerFrame: predictEntryValue(models.latentSuffixSledPoseRateDegPerFrame, knobs),
-    prefixAirFraction: predictEntryValue(models.latentPrefixAirFraction, knobs),
-    prefixAirFrames: predictEntryValue(models.latentPrefixAirFrames, knobs),
-    prefixSpeedMeanPx: predictEntryValue(models.latentPrefixSpeedMeanPx, knobs),
-    prefixSpeedFrames: predictEntryValue(models.latentPrefixSpeedFrames, knobs),
-    prefixSpeedSumPx: predictEntryValue(models.latentPrefixSpeedSumPx, knobs),
-    prefixDy: predictEntryValue(models.latentPrefixDy, knobs),
-    prefixV0SpeedPx: predictEntryValue(models.latentPrefixV0SpeedPx, knobs),
-  };
 }
 
 /** The fast-physics reducer: latent suffix state + prefix summaries → final
@@ -1021,28 +1032,6 @@ function suffixStateFromLatent(latent: Record<string, number>): RiderArrivalStat
   };
 }
 
-function suffixStateFromDirectLatent(latent: DirectLatentReadout): RiderArrivalState | null {
-  const x = latent.suffixX;
-  const y = latent.suffixY;
-  const vx = latent.suffixVx;
-  const vy = latent.suffixVy;
-  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(vx) || !Number.isFinite(vy)) return null;
-  const speed = Math.hypot(vx, vy);
-  if (!Number.isFinite(speed)) return null;
-  return {
-    x,
-    y,
-    vx,
-    vy,
-    speed,
-    comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
-    sledPoseDeg: Number.isFinite(latent.suffixSledPoseDeg) ? latent.suffixSledPoseDeg : null,
-    sledPoseRateDegPerFrame: Number.isFinite(latent.suffixSledPoseRateDegPerFrame)
-      ? latent.suffixSledPoseRateDegPerFrame
-      : null,
-  };
-}
-
 function prefixSummaryFromLatent(
   latent: Record<string, number>,
   startFrame: number,
@@ -1077,39 +1066,6 @@ function prefixSummaryFromLatent(
     speedFrames,
     dy,
     v0SpeedPx,
-  };
-}
-
-function prefixSummaryFromDirectLatent(
-  latent: DirectLatentReadout,
-  startFrame: number,
-  suffixFrame: number,
-  rangeEndFrame: number,
-): BallisticAxisPrefixSummary | null {
-  const prefixEndFrame = Math.max(startFrame, Math.min(rangeEndFrame, Math.round(suffixFrame)));
-  const prefixFrames = Math.max(0, prefixEndFrame - startFrame + 1);
-  const airFrames = Number.isFinite(latent.prefixAirFraction)
-    ? Math.max(0, Math.min(1, latent.prefixAirFraction)) * prefixFrames
-    : latent.prefixAirFrames;
-  const speedFrames = Number.isFinite(latent.prefixSpeedMeanPx) ? prefixFrames : latent.prefixSpeedFrames;
-  const speedSumPx = Number.isFinite(latent.prefixSpeedMeanPx)
-    ? latent.prefixSpeedMeanPx * speedFrames
-    : latent.prefixSpeedSumPx;
-  if (
-    !Number.isFinite(airFrames) ||
-    !Number.isFinite(speedSumPx) ||
-    !Number.isFinite(speedFrames) ||
-    !Number.isFinite(latent.prefixDy) ||
-    !Number.isFinite(latent.prefixV0SpeedPx)
-  ) return null;
-  return {
-    startFrame,
-    prefixEndFrame,
-    airFrames,
-    speedSumPx,
-    speedFrames,
-    dy: latent.prefixDy,
-    v0SpeedPx: latent.prefixV0SpeedPx,
   };
 }
 

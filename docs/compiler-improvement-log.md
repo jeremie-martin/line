@@ -2,6 +2,47 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - REJECTED PROBE - whole-gap current-quality admission slot
+
+Reason: a corrected observation-only study captured each quality-sorted candidate pool at one exact
+search prefix, avoiding the earlier study's mixing of candidates from different incoming states.
+Across four weak specs at 200k/seed 0, impact remained the only broad admission hole: among 1260
+impact-targeted pools, the best viable impact candidate materially beat the forward winner in 912,
+was materially better than every admitted candidate in 653, and improved whole-current-gap RMS in
+809 of the 912 opportunities. Speed/elevation/amplitude had zero material per-prefix admission
+opportunities on this slice. The temporary general mechanism preserved the first seven entries of
+the eight-entry multiplicative current-quality x next-readiness ordering and reserved only the last
+slot for the best whole-current-gap scorer-quality candidate, only when a future contact existed.
+Pool size, forward-evaluation count, candidate generation, terminal pools, budgets, scorer, specs,
+evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe (7 files, 94 tests, `LR_ENGINE=wasm`), including a temporary
+unit test for one-slot replacement and no replacement when the current-quality winner was already
+admitted.
+
+Probe: `generated/golden-runs/probe-current-quality-slot-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-current-quality-slot-j32-a01`.
+It completed 1435/1440 valid, with five 75k failures (`solo_run` seeds 1/8,
+`drums_zigzag` seeds 7/10, and `drums_crescendo` seed 2). Raw HEADLINE was 689.88 versus the
+current probe baseline 695.09; HEADLINE excluding impact was 707.65. Per-budget scores were 75k
+638.30, 200k 685.47, and 500k 699.39.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-current-quality-slot-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: REJECT`: delta -5.2, CI [-11.5, -1.2], P(delta<=0)=99.7%, effect -1.96.
+Per-budget deltas were 75k -23.6, 200k -3.3, and 500k -3.2.
+
+Why it was not kept: the multiplicative readiness order is protecting traversal feasibility, not
+merely hiding locally good axis candidates. Even one slot changed 1263/1440 track hashes and 1262
+scores, split 545 improvements to 717 regressions, and caused completion failures at scarce budget.
+Gains in `drums_tide` (+7.88 mean), `drums_crosscut` (+5.80), `switchback_pop` (+2.48), and
+`opening_burst` (+2.45) were outweighed by `solo_run` (-38.77), `drums_zigzag` (-22.31),
+`drums_signature` (-16.76), `soar_settle` (-14.94), and `drums_crescendo` (-10.34). This
+falsifies admission-only harvesting for the per-prefix impact oracle: locally better candidates
+need a different future state or downstream plan, not pool priority. Production and test changes
+were reverted; no full run was launched and baselines remain `probe-baseline-fp6f760d-j32-a01`
+(695.09) and `full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - REJECTED PROBE - axis-stratified handoff admission
 
 Reason: a fresh current-compiler pool-coverage study (8 weak multi-axis specs, seeds 0-2,

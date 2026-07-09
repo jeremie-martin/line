@@ -2,6 +2,33 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - repair restart stop on first accepted improvement
+
+Reason: each fresh-seed repair restart currently explores its old suffix until a precomputed frame
+ceiling even after the register accepts a better complete track; only afterward does the allocator
+recompute the weakest gap from the new incumbent. The temporary general scheduler returned from
+the restart on its first accepted complete improvement, allowing the existing allocator to retarget
+the remaining slice immediately. Candidate generation/order, restart seeds, weak-gap selection,
+ceilings, margins, caps, scorer, specs, fingerprint, seed policy, budget grid, and acceptance rule
+stayed unchanged. The 100k repair gate kept 75k byte-identical.
+
+Focused tests passed (7 files, 93 tests). Probe:
+`generated/golden-runs/probe-repair-stop-on-accept-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-repair-stop-on-accept-j32-a01`.
+It completed 1440/1440 valid with HEADLINE 695.15 versus 695.09 and excluding-impact HEADLINE
+713.98 versus 713.83.
+
+Decision versus `probe-baseline-fp6f760d-j32-a01`: `VERDICT: INCONCLUSIVE`, delta +0.1,
+CI [-0.2, 0.3], P(delta<=0)=30.7%, effect +0.47. Per-budget deltas were +0.0 at 75k,
++0.2 at 200k, and -0.0 at 500k.
+
+Why it was not kept: immediate retargeting exchanged terminal depth for more small accepts without
+a mature-budget gain. At 200k repair accepts rose 915->1017 and summed row score gained 110.9,
+but unique full evaluations fell 25,090->21,647. At 500k accepts rose 1,557->1,659 while unique
+full evaluations fell 58,273->52,541 and summed row score lost 5.31. The result is a useful
+positive scheduler signal, but it does not meet the fixed acceptance gate. Source was reverted;
+no full run was launched and authoritative baselines remain unchanged.
+
 ## 2026-07-09 - NOT KEPT - forward acceleration impact-template scoop
 
 Reason: the release-state study showed current-impact specialists lost about 0.7 px/frame against

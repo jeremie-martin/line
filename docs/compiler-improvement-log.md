@@ -2,6 +2,43 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - low-readiness causal parent-first repair
+
+Reason: the inherited-state repair study found that when the dominant weak axis was `impact`,
+`speed`, or `elevation` and predicted incoming readiness was below 0.2, only 12/88 direct anchors
+accepted, while 33/76 direct failures later accepted upstream after wasting 861k frames. The
+temporary general mechanism swapped only the first two anchors in those chains: parent first,
+direct second, then the existing deeper upstream order. It added no attempts, candidates, budget,
+or new restart geometry. Air/amplitude gaps, healthier arrivals, main search, scoring, specs,
+evaluator fingerprint, seed policy, budget grid, and acceptance rule stayed unchanged; repair's
+existing 100k gate kept 75k byte-identical.
+
+Focused tests passed before the probe (7 files, 114 tests, `LR_ENGINE=wasm`), including a temporary
+unit test for the causal selector and reordered fallback sequence.
+
+Probe: `generated/golden-runs/probe-repair-causal-parent-first-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-repair-causal-parent-first-j32-a01`.
+It was valid 1440/1440. Raw HEADLINE was 694.96 versus the current probe baseline 695.09;
+HEADLINE excluding impact was 713.96. The 75k tier was bit-identical at 661.85; 200k improved to
+689.21 (+0.5), but 500k regressed to 702.23 (-0.4).
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-repair-causal-parent-first-j32-a01/golden.json generated/golden-runs/probe-baseline-fp6f760d-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: delta -0.1, CI [-1.1, 0.7], P(delta<=0)=59.8%, effect
+-0.28. Validity stayed 100% at every budget.
+
+Why it was not kept: the causal slice improves mid-budget allocation but does not scale. It changed
+172/1440 hashes and 171 scores, split 80 improvements to 91 regressions. At 200k, `drums_tide`
+gained +11.35 and `grain_staircase` +9.34; at 500k, losses in `syncopated_switchback` (-9.89),
+`drums_signature` (-5.27), and `drums_crescendo` (-4.75) outweighed gains in `drums_swell`
+(+5.96) and `drums_pendulum` (+2.42). Mean repair work barely changed, confirming an ordering/basin
+effect rather than a compute shift: restarts -0.18/+0.22 and repair frames -169/+103 per row at
+200k/500k. The reordered parent also received the seed formerly assigned to the direct anchor,
+whereas the observational parent outcome used the next seed; that intervention did not preserve
+the measured alternative. Source and test changes were reverted; no full run was launched and
+baselines remain `probe-baseline-fp6f760d-j32-a01` (695.09) and
+`full-baseline-fp6f760d-j32-a01` (697.22).
+
 ## 2026-07-09 - OBSERVATION ONLY - inherited-state repair anchor causality
 
 Question: repair always starts at the incumbent's weakest gap and only walks upstream after a

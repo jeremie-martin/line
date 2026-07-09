@@ -2,6 +2,27 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - slack-gated next-gap motion ownership
+
+Reason: the unconditional next-motion alignment improved most mature rows but failed scarce
+`solo_run`. This distinct allocation mechanism reused the compiler's existing low-slack branch
+threshold (1.5): below it, proposal geometry retained current-gap motion targets; at or above it,
+post-contact air/speed/elevation/amplitude used following-span targets. No new fitted threshold was
+introduced. Candidate count, target RNG, ranker, repair, scorer, specs, fingerprint, seeds, grid,
+and acceptance rule stayed unchanged.
+
+Focused tests passed (7 files, 93 tests). Probe:
+`generated/golden-runs/probe-slack-gated-next-motion-targets-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-slack-gated-next-motion-targets-j32-a01`.
+It completed 1440/1440 valid with HEADLINE 695.84 versus 695.09 and excluding-impact HEADLINE
+714.82 versus 713.83.
+
+Decision versus `probe-baseline-fp6f760d-j32-a01`: `VERDICT: INCONCLUSIVE`, delta +0.8,
+CI [-1.8, 3.4], P(delta<=0)=28.9%, effect +0.56. Per-budget deltas were +2.2 at 75k,
++0.9 at 200k, and +0.5 at 500k. The gate removed both scarce failures and made every tier
+positive, but it did not clear the fixed 20% acceptance cutoff. Source was reverted, no full run
+was launched, and authoritative baselines remain unchanged.
+
 ## 2026-07-09 - OBSERVATION ONLY - dormant terminal polish cost
 
 Question: quantify the existing optional clone-and-test air/contact polish path, which golden

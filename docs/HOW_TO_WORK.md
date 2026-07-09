@@ -17,9 +17,9 @@ Each budget is an **independent full run** (no anytime/shared checkpoints): pass
 budgets runs N compiles per (spec, seed slot). Each budget gets a disjoint actual seed
 block, recorded in `seed_policy`. Two tiers, cheap → authoritative:
 
-1. **probe** — fast iteration, **not a promotion basis**. Runs 40 specs × 6 seed
+1. **probe** — fast iteration, **not a promotion basis**. Runs 40 specs × 12 seed
    slots × budgets `{75,200,500}k`, with disjoint actual seed blocks
-   `{0..5}`, `{6..11}`, `{12..17}`. Compare probe archives only against probe
+   `{0..11}`, `{12..23}`, `{24..35}`. Compare probe archives only against probe
    baselines with the same seed policy; archives are `tier:"probe"` and
    non-promotable:
 

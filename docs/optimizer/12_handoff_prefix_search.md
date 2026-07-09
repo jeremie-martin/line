@@ -152,7 +152,7 @@ hashes, seed-policy metadata, and compact checkpoint stats. Normalized probes us
 the probe preset:
 
 ```bash
-npm run golden -- --probe --specs=tiny_dance,opening_burst --seed=0
+npm run golden -- --probe --archive-dir=generated/golden-runs/<probe-label>
 ```
 
 ## Known Frontier

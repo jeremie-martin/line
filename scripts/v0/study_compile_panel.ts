@@ -15,7 +15,8 @@ const defaultSpecs = [
   "drums_pulse", "drums_signature", "rhythm_ladder", "solo_run",
   "drums_crescendo", "ridge_pulse", "canyon_steps", "float_bounds",
 ].join(",");
-const specs = (argValue("specs") ?? defaultSpecs).split(",") as GoldenSpecName[];
+const specArg = argValue("specs") ?? defaultSpecs;
+const specs = (specArg === "all" ? [...GOLDEN_SPECS] : specArg.split(",")) as GoldenSpecName[];
 const seeds = (argValue("seeds") ?? "0").split(",").map(Number);
 const budget = Number(argValue("budget") ?? "200000");
 const label = argValue("label") ?? "panel";
@@ -49,6 +50,7 @@ type Row = {
   simFrames: number;
   candidatesSampled: number;
   selectedSources: Record<string, number>;
+  selectedAxes: Record<string, number>;
   repair: unknown;
   axes: Record<string, AxisResidual>;
 };
@@ -95,6 +97,7 @@ for (const specName of specs) {
       simFrames: checkpoint.stats.sim_frames,
       candidatesSampled: checkpoint.stats.candidates_sampled,
       selectedSources: checkpoint.stats.handoff_selected_candidate_by_source ?? {},
+      selectedAxes: checkpoint.stats.handoff_selected_axis_quality_by_axis ?? {},
       repair: checkpoint.stats.repair ?? null,
       axes,
     });

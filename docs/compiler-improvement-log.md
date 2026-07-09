@@ -2,6 +2,59 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - METADATA REBASELINE - evaluator fingerprint refresh after measure.ts speed refactors
+
+The committed `EVALUATOR_FINGERPRINT` (5198f9897033) predated the behavior-preserving
+`measure.ts` speed refactors (8c86213 "Optimize gap axis measurement scan", 4145942 "Inline
+grain median measurement"), which changed the hashed ruler SOURCE slice without changing
+scoring behavior; `npm run decide` refused cross-fingerprint comparisons. The constant was
+refreshed to the live hash 6f760d9c1cc9 (commit f47223c) and both baselines were re-run at
+HEAD: `probe-baseline-fp6f760d-j32-a01` reproduced the accepted probe baseline **bit-exactly**
+(1440/1440 identical track hashes, HEADLINE 695.09), proving the ruler and compiler behavior
+are unchanged. The full rerun `full-baseline-fp6f760d-j32-a01` is the new full baseline of
+record under the refreshed hash (same accepted compiler state as
+`full-final-tail-offbeat-gate-j32-a01`, HEADLINE 697.22). Scorer, specs, axis measurement
+semantics, seed policy, budget grid, and acceptance rule are all unchanged.
+
+## 2026-07-09 - REJECTED PROBE - air-ask ride-out fidelity (registerable-landing cap + symmetric blend)
+
+Reason: baseline diagnosis showed a coherent low/mid air-ask overshoot family at 550k
+(suite mean signed +0.27 on asks ≤0.25, +0.04 on 0.25–0.5; drums_pendulum +0.26,
+syncopated_switchback +0.15, dense_sprint +0.12, rhythm_ladder +0.11), and the generation map
+pinned it on two flat constants in the air-targeted ride-out block of
+`sampleContactCenteredLines` (`arc_placement.ts`): `safeCap = speed·nextGapFrames·0.55`
+(dominant; equals the registerable-landing bound only at N≈16) and `blendStrength = 0.6` with
+the +0.28 fidelity boost given only to high asks (start 0.68). The temporary change replaced
+the flat cap with the physical bound `max(0.55, 1 − (K_BOUNCE_LANDING+2)/N)` and mirrored the
+blend boost to low asks (start 0.32, same span/extra). No budget/attempt/spec gates; no new
+RNG draws; candidate count, judge, scorer, specs, fingerprint, seed policy, budget grid, and
+acceptance rule unchanged.
+
+Focused tests passed before the probe (7 files, 93 tests, `LR_ENGINE=wasm`).
+
+Probe: `generated/golden-runs/probe-air-tail-fidelity-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32`. Valid 1440/1440. Raw HEADLINE 694.89
+(excl. impact 714.14); per-budget 75k 662.83, 200k 689.14, 500k 702.04.
+
+Probe decision:
+`npm run decide -- probe-air-tail-fidelity-j32-a01 probe-baseline-fp6f760d-j32-a01`
+-> `VERDICT: INCONCLUSIVE`, delta -0.2, CI [-1.5, 0.9], P(delta<=0)=63.1%, effect -0.34.
+Per-budget deltas 75k +0.9, 200k +0.3, 500k -0.6, validity 100% everywhere.
+
+Why it was not kept: the reach works mechanically (solo pendulum block-A air moved to the new
+~0.37 floor) but the harvest is structurally small: at the dense cadences that dominate the
+low-air family (N≈19 at 40fps) the registerable-landing bound only drops the achievable air
+from ~0.45 to ~0.37, and the scored asks (0.15) stay unreachable, so most of the raw overshoot
+is a detector-floor artifact, not compiler slack. What remains was eaten by mature-budget
+basin churn: 500k was -0.6 with budget-flipping per-spec identities (syncopated_switchback
++3.3@75k / -12.2@500k; drums_crescendo +40.1@75k / -5.3@500k). Two durable observations:
+(a) low-air reach helps scarce-budget completion (75k +0.9, crescendo +40); (b) the real
+pendulum-class pool is the COUPLED air+impact ask (impact 0.45 at air 0.15): the SLAM-HOP
+template lane fires there but hard-sizes its hop to 0.72·nextGapFrames, forcing air ≈0.6+ and
+guaranteeing the judge rejects it — an air-matched template hop is the indicated next
+mechanism. Source change reverted; baselines unchanged
+(probe `probe-baseline-fp6f760d-j32-a01` = 695.09, full `full-baseline-fp6f760d-j32-a01` = 697.22).
+
 ## 2026-07-09 - NOT KEPT - opening ambiguity margin 0.07
 
 Reason: continue the opening-selector mechanism after `0.06` probe-accepted but failed full

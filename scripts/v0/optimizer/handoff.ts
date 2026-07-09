@@ -957,11 +957,19 @@ function compileHandoffInternal(
     // it REACHED the end at all (completed), separate from whether it beat the incumbent (accepted).
     let terminalConsiders = 0;
     type RepairRecord = {
+      round: number;
       worst: number; anchor: number; up: number; totalGaps: number;
       framesAtAnchor: number; framesBefore: number; framesSpent: number;
       estCost: number; predictedFeasible: boolean; completed: boolean;
       beforeScore: number; afterScore: number; accepted: boolean;
       inhSpeed: number | null; inhVy: number | null; inhGrounded: number | null;
+      weakAxis: string | null;
+      weakAxisTarget: number | null; weakAxisAchieved: number | null;
+      weakAxisError: number | null; weakGapSse: number | null;
+      weakArrivalSpeed: number | null; weakArrivalAngle: number | null;
+      weakArrivalReadiness: number | null; weakArrivalCatchability: number | null;
+      weakArrivalSpeedFit: number | null; weakArrivalImpactFeasibility: number | null;
+      weakArrivalAirFit: number | null; weakArrivalElevationFit: number | null;
     };
     const repairRecords: RepairRecord[] = [];
 
@@ -1368,6 +1376,7 @@ function compileHandoffInternal(
       const exhausted = new Set<number>();
       let attempts = 0;
       let restartCounter = 0;
+      let repairRound = 0;
       while (
         attempts < repair.maxAttempts &&
         getSimFrames() < targetBudget &&
@@ -1378,13 +1387,65 @@ function compileHandoffInternal(
         const root = startOptions.find((o) => o.rank === incumbent.startRank)?.root;
         if (root === undefined) break;
         const remaining = targetBudget - getSimFrames();
+        const incumbentEvaluation = evaluateCached(incumbent);
         // Worst AFFORDABLE gap: largest axis-error² whose measured cost-to-re-complete fits the
         // remaining budget (×feasMargin). Falls back to later/cheaper gaps when budget is tight.
         const kWorst = pickFeasibleWeakGap(
-          evaluateCached(incumbent).report, gaps, exhausted, estCostOf,
+          incumbentEvaluation.report, gaps, exhausted, estCostOf,
           remaining / repair.feasMargin,
         );
         if (kWorst < 0) break;
+        const round = repairRound++;
+
+        // Observation-only causal context. A restart at kWorst cannot change the arrival inherited
+        // from fit[kWorst-1], while a parent restart can. Keep these reads behind LR_REPAIR_LOG so
+        // ordinary archives and production search pay no diagnostic work or schema cost.
+        const weakContext = repair.log
+          ? (() => {
+            const gapReport = incumbentEvaluation.report.gaps.find((g) => g.gap_index === kWorst);
+            const axisEntries = Object.entries(gapReport?.axes ?? {});
+            axisEntries.sort((a, b) => b[1].error * b[1].error - a[1].error * a[1].error);
+            const [weakAxis, weakValue] = axisEntries[0] ?? [null, null];
+            const weakGapSse = axisEntries.reduce((sum, [, value]) => sum + value.error * value.error, 0);
+            const inheritedFit = kWorst > 0 ? incumbent.search.prefixFits[kWorst - 1] : undefined;
+            const weakGap = gaps[kWorst];
+            const arrival = inheritedFit != null && weakGap !== undefined
+              ? predictArrivalAtNextContact(inheritedFit, weakGap)
+              : null;
+            const readiness = inheritedFit != null && weakGap !== undefined
+              ? frontierReadinessFromFit(inheritedFit, weakGap)
+              : null;
+            return {
+              weakAxis,
+              weakAxisTarget: weakValue?.target ?? null,
+              weakAxisAchieved: weakValue?.achieved ?? null,
+              weakAxisError: weakValue?.error ?? null,
+              weakGapSse,
+              weakArrivalSpeed: arrival?.speed ?? null,
+              weakArrivalAngle: arrival?.comAngleDeg ?? null,
+              weakArrivalReadiness: readiness?.readiness ?? null,
+              weakArrivalCatchability: readiness?.catchability ?? null,
+              weakArrivalSpeedFit: readiness?.speedFit ?? null,
+              weakArrivalImpactFeasibility: readiness?.impactFeasibility ?? null,
+              weakArrivalAirFit: readiness?.airFit ?? null,
+              weakArrivalElevationFit: readiness?.elevationFit ?? null,
+            };
+          })()
+          : {
+            weakAxis: null,
+            weakAxisTarget: null,
+            weakAxisAchieved: null,
+            weakAxisError: null,
+            weakGapSse: null,
+            weakArrivalSpeed: null,
+            weakArrivalAngle: null,
+            weakArrivalReadiness: null,
+            weakArrivalCatchability: null,
+            weakArrivalSpeedFit: null,
+            weakArrivalImpactFeasibility: null,
+            weakArrivalAirFit: null,
+            weakArrivalElevationFit: null,
+          };
 
         // R4 seed-perturbed restart: re-running the search from a gap with the SAME seed re-samples
         // the SAME seeded candidates → re-converges to the same incumbent (wasted). A FRESH derived
@@ -1431,6 +1492,7 @@ function compileHandoffInternal(
           const afterScore = bestCompleteNode ? evaluateCached(bestCompleteNode).key.full_score : beforeScore;
           const fit = k > 0 ? incumbent.search.prefixFits[k - 1] : undefined;
           repairRecords.push({
+            round,
             worst: kWorst, anchor: k, up, totalGaps: gaps.length,
             framesAtAnchor: framesAtReach.get(prefix) ?? -1,
             framesBefore, framesSpent: getSimFrames() - framesBefore,
@@ -1439,6 +1501,7 @@ function compileHandoffInternal(
             inhSpeed: fit?.releaseSpeed ?? null,
             inhVy: fit?.releaseVelocityY ?? null,
             inhGrounded: fit?.releaseGroundedFrames ?? null,
+            ...weakContext,
           });
           if (repair.log) {
             process.stderr.write(

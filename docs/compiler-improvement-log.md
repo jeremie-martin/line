@@ -2,6 +2,36 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - OBSERVATION ONLY - inherited-state repair anchor causality
+
+Question: repair always starts at the incumbent's weakest gap and only walks upstream after a
+fresh-seed restart fails. A direct restart can change the gap geometry but cannot change the
+arrival inherited from the preceding fit. Measure whether an incumbent's predicted arrival factors
+separate directly reparable gaps from gaps that first improve after an upstream restart.
+
+Scaffolding: `LR_REPAIR_LOG=1` records now include a repair-round ID, dominant weak axis and error,
+gap SSE, and predicted arrival/readiness factors from the preceding incumbent fit. These reads are
+log-gated and never consumed by the search. `scripts/v0/study_repair_anchor_causality.ts` groups the
+records into restart chains and reports direct/upstream yield by weak axis and readiness factor.
+
+Study archive:
+`generated/golden-runs/study-repair-anchor-causality-all-b500-s24-26-a01/golden.json`, run with
+`LR_ENGINE=wasm LR_REPAIR_LOG=1 npm run golden -- --budgets=500000 --seed-base=24 --seed-count=3 --jobs=32 --archive-dir=generated/golden-runs/study-repair-anchor-causality-all-b500-s24-26-a01`.
+It covered all 40 specs, was valid 120/120, and matched the accepted probe baseline exactly on all
+120 paired hashes and scores. Analysis is archived at
+`generated/studies/repair-anchor-causality-all-b500-s24-26-a01.json`.
+
+Result: 3906 restart records formed 1247 chains. Direct anchors accepted 205/1247 (16.4%); after a
+direct failure, 208/1042 chains (20.0%) eventually accepted an upstream anchor. Those eventual
+upstream wins first spent 4.51M frames on failed direct attempts. The strongest general causal
+slice was a dominant entry-state-dependent weak axis (`impact`, `speed`, or `elevation`) with
+predicted inherited readiness below 0.2: direct anchors accepted only 12/88, while 33/76 direct
+failures later accepted upstream. The successful upstream chains had wasted 861k frames, about 26k
+each, on the direct attempt. Low readiness on `air` or `amplitude` was intentionally excluded from
+that interpretation because the current gap itself controls those spans and direct success was
+high (6/16 and 2/4). This supports a narrow parent-first ordering experiment, not a generic wider
+upstream walk or a broad direct-repair bypass.
+
 ## 2026-07-09 - NOT KEPT - additive current-quality aim basis
 
 Reason: the preceding replacement trial improved 200k but regressed 500k because it displaced the

@@ -768,11 +768,19 @@ export type CompileStats = {
     reconverged: number;
     /** Per-restart detail; present only under LR_REPAIR_LOG (heavy — gated to keep archives lean). */
     records?: Array<{
+      round?: number;
       worst: number; anchor: number; up: number; totalGaps: number;
       framesAtAnchor: number; framesBefore: number; framesSpent: number;
       estCost: number; predictedFeasible: boolean; completed: boolean;
       beforeScore: number; afterScore: number; accepted: boolean;
       inhSpeed: number | null; inhVy: number | null; inhGrounded: number | null;
+      weakAxis?: string | null;
+      weakAxisTarget?: number | null; weakAxisAchieved?: number | null;
+      weakAxisError?: number | null; weakGapSse?: number | null;
+      weakArrivalSpeed?: number | null; weakArrivalAngle?: number | null;
+      weakArrivalReadiness?: number | null; weakArrivalCatchability?: number | null;
+      weakArrivalSpeedFit?: number | null; weakArrivalImpactFeasibility?: number | null;
+      weakArrivalAirFit?: number | null; weakArrivalElevationFit?: number | null;
     }>;
   };
 };

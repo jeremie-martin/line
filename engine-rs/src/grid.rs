@@ -34,12 +34,8 @@ impl<V> Default for FlatIntMap<V> {
 impl<V> FlatIntMap<V> {
     #[inline]
     fn hash(key: i64) -> usize {
-        let mut x = key as u64;
-        x ^= x >> 33;
-        x = x.wrapping_mul(0xff51afd7ed558ccd);
-        x ^= x >> 33;
-        x = x.wrapping_mul(0xc4ceb9fe1a85ec53);
-        (x ^ (x >> 33)) as usize
+        let x = (key as u64).wrapping_mul(0x9E3779B97F4A7C15);
+        (x ^ (x >> 32)) as usize
     }
 
     fn resize(&mut self, new_cap: usize) {

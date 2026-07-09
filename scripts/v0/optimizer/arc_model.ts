@@ -129,6 +129,46 @@ export type FittedArcOutputModel = {
   degraded: boolean;
 };
 
+type FittedArcOutputEntry = {
+  angle: boolean;
+  ref: number;
+  model: FittedArcOutputModel;
+};
+
+type JointArcScoreReadoutModels = {
+  outputAir?: FittedArcOutputEntry;
+  outputSpeed?: FittedArcOutputEntry;
+  outputGrain?: FittedArcOutputEntry;
+  outputElevation?: FittedArcOutputEntry;
+  outputAmplitude?: FittedArcOutputEntry;
+  outputImpact?: FittedArcOutputEntry;
+  outputExitFrame?: FittedArcOutputEntry;
+  outputExitSpeed?: FittedArcOutputEntry;
+  outputNextX?: FittedArcOutputEntry;
+  outputNextY?: FittedArcOutputEntry;
+  outputNextVx?: FittedArcOutputEntry;
+  outputNextVy?: FittedArcOutputEntry;
+  outputNextSpeed?: FittedArcOutputEntry;
+  outputNextComAngleDeg?: FittedArcOutputEntry;
+  outputNextSledPoseDeg?: FittedArcOutputEntry;
+  outputNextSledPoseRateDegPerFrame?: FittedArcOutputEntry;
+  latentSuffixFrame?: FittedArcOutputEntry;
+  latentSuffixX?: FittedArcOutputEntry;
+  latentSuffixY?: FittedArcOutputEntry;
+  latentSuffixVx?: FittedArcOutputEntry;
+  latentSuffixVy?: FittedArcOutputEntry;
+  latentSuffixSledPoseDeg?: FittedArcOutputEntry;
+  latentSuffixSledPoseRateDegPerFrame?: FittedArcOutputEntry;
+  latentPrefixAirFraction?: FittedArcOutputEntry;
+  latentPrefixAirFrames?: FittedArcOutputEntry;
+  latentPrefixSpeedMeanPx?: FittedArcOutputEntry;
+  latentPrefixSpeedFrames?: FittedArcOutputEntry;
+  latentPrefixSpeedSumPx?: FittedArcOutputEntry;
+  latentPrefixDy?: FittedArcOutputEntry;
+  latentPrefixV0SpeedPx?: FittedArcOutputEntry;
+  hasLatent: boolean;
+};
+
 export type JointArcProbeRow = {
   knobs: ArcKnobs;
   outputs: Record<string, number>;
@@ -137,16 +177,16 @@ export type JointArcProbeRow = {
 
 export type JointArcResponseModel = {
   context: JointArcResponseContext;
-  outputModels: Map<string, {
-    angle: boolean;
-    ref: number;
-    model: FittedArcOutputModel;
-  }>;
-  latentModels: Map<string, {
-    angle: boolean;
-    ref: number;
-    model: FittedArcOutputModel;
-  }>;
+  outputModels: Map<string, FittedArcOutputEntry>;
+  latentModels: Map<string, FittedArcOutputEntry>;
+  scoreReadout: JointArcScoreReadoutModels;
+};
+
+export type JointArcScoreReadout = {
+  currentQuality: number;
+  state: RiderArrivalState | null;
+  exitFrame: number;
+  exitSpeed: number;
 };
 
 export const ARC_RESPONSE_MODEL_NAMES = [
@@ -554,7 +594,51 @@ export function fitJointArcResponseModel(
     modelName,
     latentModels.size > 0 ? reducerOwnsOutputKey : undefined,
   );
-  return { context: options.context, outputModels, latentModels };
+  return {
+    context: options.context,
+    outputModels,
+    latentModels,
+    scoreReadout: buildJointArcScoreReadoutModels(outputModels, latentModels),
+  };
+}
+
+function buildJointArcScoreReadoutModels(
+  outputModels: JointArcResponseModel["outputModels"],
+  latentModels: JointArcResponseModel["latentModels"],
+): JointArcScoreReadoutModels {
+  return {
+    outputAir: outputModels.get("current.axis.air"),
+    outputSpeed: outputModels.get("current.axis.speed"),
+    outputGrain: outputModels.get("current.axis.grain"),
+    outputElevation: outputModels.get("current.axis.elevation"),
+    outputAmplitude: outputModels.get("current.axis.amplitude"),
+    outputImpact: outputModels.get("current.axis.impact"),
+    outputExitFrame: outputModels.get("exit.frame"),
+    outputExitSpeed: outputModels.get("exit.speed"),
+    outputNextX: outputModels.get("next.x"),
+    outputNextY: outputModels.get("next.y"),
+    outputNextVx: outputModels.get("next.vx"),
+    outputNextVy: outputModels.get("next.vy"),
+    outputNextSpeed: outputModels.get("next.speed"),
+    outputNextComAngleDeg: outputModels.get("next.comAngleDeg"),
+    outputNextSledPoseDeg: outputModels.get("next.sledPoseDeg"),
+    outputNextSledPoseRateDegPerFrame: outputModels.get("next.sledPoseRateDegPerFrame"),
+    latentSuffixFrame: latentModels.get("latent.suffix.frame"),
+    latentSuffixX: latentModels.get("latent.suffix.x"),
+    latentSuffixY: latentModels.get("latent.suffix.y"),
+    latentSuffixVx: latentModels.get("latent.suffix.vx"),
+    latentSuffixVy: latentModels.get("latent.suffix.vy"),
+    latentSuffixSledPoseDeg: latentModels.get("latent.suffix.sledPoseDeg"),
+    latentSuffixSledPoseRateDegPerFrame: latentModels.get("latent.suffix.sledPoseRateDegPerFrame"),
+    latentPrefixAirFraction: latentModels.get("latent.prefix.airFraction"),
+    latentPrefixAirFrames: latentModels.get("latent.prefix.airFrames"),
+    latentPrefixSpeedMeanPx: latentModels.get("latent.prefix.speedMeanPx"),
+    latentPrefixSpeedFrames: latentModels.get("latent.prefix.speedFrames"),
+    latentPrefixSpeedSumPx: latentModels.get("latent.prefix.speedSumPx"),
+    latentPrefixDy: latentModels.get("latent.prefix.dy"),
+    latentPrefixV0SpeedPx: latentModels.get("latent.prefix.v0SpeedPx"),
+    hasLatent: latentModels.size > 0,
+  };
 }
 
 type JointArcValueSource = "outputs" | "latentOutputs";
@@ -616,6 +700,74 @@ export function predictJointArcOutputs(model: JointArcResponseModel, knobs: ArcK
   return outputs;
 }
 
+export function predictJointArcScoreReadout(
+  model: JointArcResponseModel,
+  knobs: ArcKnobs,
+  currentTargets: AxisValues,
+): JointArcScoreReadout {
+  const readout = model.scoreReadout;
+  const directAir = predictEntryValue(readout.outputAir, knobs);
+  const directSpeed = predictEntryValue(readout.outputSpeed, knobs);
+  const directGrain = predictEntryValue(readout.outputGrain, knobs);
+  const directElevation = predictEntryValue(readout.outputElevation, knobs);
+  const directAmplitude = predictEntryValue(readout.outputAmplitude, knobs);
+  const directImpact = predictEntryValue(readout.outputImpact, knobs);
+
+  let air = directAir;
+  let speedAxis = directSpeed;
+  const grain = directGrain;
+  let elevation = directElevation;
+  const amplitude = directAmplitude;
+  const impact = directImpact;
+
+  let state: RiderArrivalState | null = null;
+  let exitFrame = predictEntryValue(readout.outputExitFrame, knobs);
+  let exitSpeed = predictEntryValue(readout.outputExitSpeed, knobs);
+
+  if (readout.hasLatent) {
+    const latent = predictLatentReadout(readout, knobs);
+    const suffixFrame = latent.suffixFrame;
+    const suffixState = suffixStateFromDirectLatent(latent);
+    if (suffixState !== null && Number.isFinite(suffixFrame)) {
+      exitFrame = suffixFrame;
+      exitSpeed = suffixState.speed;
+      const prefix = prefixSummaryFromDirectLatent(
+        latent,
+        model.context.gap.startFrame,
+        suffixFrame,
+        model.context.axisMeasureEnd,
+      );
+      if (prefix !== null) {
+        const suffix: BallisticAxisSuffix = { frame: suffixFrame, vx: suffixState.vx, vy: suffixState.vy };
+        const axes = completeBallisticSpanAxesFromSummary(prefix, model.context.axisMeasureEnd, suffix);
+        if (axes.air !== undefined) air = axes.air;
+        if (axes.speed !== undefined) speedAxis = axes.speed;
+        if (axes.elevation !== undefined) elevation = axes.elevation;
+      }
+      if (suffixFrame <= model.context.nextFrame) {
+        state = propagateBallisticArrivalState(suffixState, model.context.nextFrame - suffixFrame);
+      }
+    }
+  } else {
+    state = predictedArrivalStateFromDirectOutputs(readout, knobs);
+  }
+
+  return {
+    currentQuality: currentQualityFromAxisValues(
+      currentTargets,
+      air,
+      speedAxis,
+      grain,
+      elevation,
+      amplitude,
+      impact,
+    ),
+    state,
+    exitFrame,
+    exitSpeed,
+  };
+}
+
 /** Axes the latent reducer reconstructs ballistically (via
  *  `completeBallisticSpanAxesFromSummary` → `axisResponseOutputs`). It owns ONLY
  *  these; grain/amplitude/impact are fitted model outputs the reducer never
@@ -668,6 +820,51 @@ function predictFittedValuesInto(
     const pred = fitted.model.predict(knobs);
     values[output] = fitted.angle ? unwrapAngleAround(pred, fitted.ref) : pred;
   }
+}
+
+function predictEntryValue(fitted: FittedArcOutputEntry | undefined, knobs: ArcKnobs): number {
+  if (fitted === undefined) return NaN;
+  const pred = fitted.model.predict(knobs);
+  return fitted.angle ? unwrapAngleAround(pred, fitted.ref) : pred;
+}
+
+type DirectLatentReadout = {
+  suffixFrame: number;
+  suffixX: number;
+  suffixY: number;
+  suffixVx: number;
+  suffixVy: number;
+  suffixSledPoseDeg: number;
+  suffixSledPoseRateDegPerFrame: number;
+  prefixAirFraction: number;
+  prefixAirFrames: number;
+  prefixSpeedMeanPx: number;
+  prefixSpeedFrames: number;
+  prefixSpeedSumPx: number;
+  prefixDy: number;
+  prefixV0SpeedPx: number;
+};
+
+function predictLatentReadout(
+  models: JointArcScoreReadoutModels,
+  knobs: ArcKnobs,
+): DirectLatentReadout {
+  return {
+    suffixFrame: predictEntryValue(models.latentSuffixFrame, knobs),
+    suffixX: predictEntryValue(models.latentSuffixX, knobs),
+    suffixY: predictEntryValue(models.latentSuffixY, knobs),
+    suffixVx: predictEntryValue(models.latentSuffixVx, knobs),
+    suffixVy: predictEntryValue(models.latentSuffixVy, knobs),
+    suffixSledPoseDeg: predictEntryValue(models.latentSuffixSledPoseDeg, knobs),
+    suffixSledPoseRateDegPerFrame: predictEntryValue(models.latentSuffixSledPoseRateDegPerFrame, knobs),
+    prefixAirFraction: predictEntryValue(models.latentPrefixAirFraction, knobs),
+    prefixAirFrames: predictEntryValue(models.latentPrefixAirFrames, knobs),
+    prefixSpeedMeanPx: predictEntryValue(models.latentPrefixSpeedMeanPx, knobs),
+    prefixSpeedFrames: predictEntryValue(models.latentPrefixSpeedFrames, knobs),
+    prefixSpeedSumPx: predictEntryValue(models.latentPrefixSpeedSumPx, knobs),
+    prefixDy: predictEntryValue(models.latentPrefixDy, knobs),
+    prefixV0SpeedPx: predictEntryValue(models.latentPrefixV0SpeedPx, knobs),
+  };
 }
 
 /** The fast-physics reducer: latent suffix state + prefix summaries → final
@@ -776,6 +973,28 @@ function suffixStateFromLatent(latent: Record<string, number>): RiderArrivalStat
     sledPoseDeg: Number.isFinite(latent["latent.suffix.sledPoseDeg"]) ? latent["latent.suffix.sledPoseDeg"] : null,
     sledPoseRateDegPerFrame: Number.isFinite(latent["latent.suffix.sledPoseRateDegPerFrame"])
       ? latent["latent.suffix.sledPoseRateDegPerFrame"]
+    : null,
+  };
+}
+
+function suffixStateFromDirectLatent(latent: DirectLatentReadout): RiderArrivalState | null {
+  const x = latent.suffixX;
+  const y = latent.suffixY;
+  const vx = latent.suffixVx;
+  const vy = latent.suffixVy;
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(vx) || !Number.isFinite(vy)) return null;
+  const speed = Math.hypot(vx, vy);
+  if (!Number.isFinite(speed)) return null;
+  return {
+    x,
+    y,
+    vx,
+    vy,
+    speed,
+    comAngleDeg: speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null,
+    sledPoseDeg: Number.isFinite(latent.suffixSledPoseDeg) ? latent.suffixSledPoseDeg : null,
+    sledPoseRateDegPerFrame: Number.isFinite(latent.suffixSledPoseRateDegPerFrame)
+      ? latent.suffixSledPoseRateDegPerFrame
       : null,
   };
 }
@@ -814,6 +1033,39 @@ function prefixSummaryFromLatent(
     speedFrames,
     dy,
     v0SpeedPx,
+  };
+}
+
+function prefixSummaryFromDirectLatent(
+  latent: DirectLatentReadout,
+  startFrame: number,
+  suffixFrame: number,
+  rangeEndFrame: number,
+): BallisticAxisPrefixSummary | null {
+  const prefixEndFrame = Math.max(startFrame, Math.min(rangeEndFrame, Math.round(suffixFrame)));
+  const prefixFrames = Math.max(0, prefixEndFrame - startFrame + 1);
+  const airFrames = Number.isFinite(latent.prefixAirFraction)
+    ? Math.max(0, Math.min(1, latent.prefixAirFraction)) * prefixFrames
+    : latent.prefixAirFrames;
+  const speedFrames = Number.isFinite(latent.prefixSpeedMeanPx) ? prefixFrames : latent.prefixSpeedFrames;
+  const speedSumPx = Number.isFinite(latent.prefixSpeedMeanPx)
+    ? latent.prefixSpeedMeanPx * speedFrames
+    : latent.prefixSpeedSumPx;
+  if (
+    !Number.isFinite(airFrames) ||
+    !Number.isFinite(speedSumPx) ||
+    !Number.isFinite(speedFrames) ||
+    !Number.isFinite(latent.prefixDy) ||
+    !Number.isFinite(latent.prefixV0SpeedPx)
+  ) return null;
+  return {
+    startFrame,
+    prefixEndFrame,
+    airFrames,
+    speedSumPx,
+    speedFrames,
+    dy: latent.prefixDy,
+    v0SpeedPx: latent.prefixV0SpeedPx,
   };
 }
 
@@ -985,11 +1237,31 @@ export function predictedCurrentAxes(outputs: Record<string, number>): AxisValue
 }
 
 export function predictedCurrentQuality(outputs: Record<string, number>, targets: AxisValues): number {
+  return currentQualityFromAxisValues(
+    targets,
+    outputs["current.axis.air"],
+    outputs["current.axis.speed"],
+    outputs["current.axis.grain"],
+    outputs["current.axis.elevation"],
+    outputs["current.axis.amplitude"],
+    outputs["current.axis.impact"],
+  );
+}
+
+function currentQualityFromAxisValues(
+  targets: AxisValues,
+  air: number,
+  speed: number,
+  grain: number,
+  elevation: number,
+  amplitude: number,
+  impact: number,
+): number {
   let count = 0;
   let sumSq = 0;
   if (!REPORT_ONLY_AXIS_SET.has("air")) {
     const target = targets.air;
-    const value = outputs["current.axis.air"];
+    const value = air;
     if (Number.isFinite(target) && Number.isFinite(value)) {
       const error = value - target;
       sumSq += error * error;
@@ -998,7 +1270,7 @@ export function predictedCurrentQuality(outputs: Record<string, number>, targets
   }
   if (!REPORT_ONLY_AXIS_SET.has("speed")) {
     const target = targets.speed;
-    const value = outputs["current.axis.speed"];
+    const value = speed;
     if (Number.isFinite(target) && Number.isFinite(value)) {
       const error = value - target;
       sumSq += error * error;
@@ -1007,7 +1279,7 @@ export function predictedCurrentQuality(outputs: Record<string, number>, targets
   }
   if (!REPORT_ONLY_AXIS_SET.has("grain")) {
     const target = targets.grain;
-    const value = outputs["current.axis.grain"];
+    const value = grain;
     if (Number.isFinite(target) && Number.isFinite(value)) {
       const error = value - target;
       sumSq += error * error;
@@ -1016,7 +1288,7 @@ export function predictedCurrentQuality(outputs: Record<string, number>, targets
   }
   if (!REPORT_ONLY_AXIS_SET.has("elevation")) {
     const target = targets.elevation;
-    const value = outputs["current.axis.elevation"];
+    const value = elevation;
     if (Number.isFinite(target) && Number.isFinite(value)) {
       const error = value - target;
       sumSq += error * error;
@@ -1025,7 +1297,7 @@ export function predictedCurrentQuality(outputs: Record<string, number>, targets
   }
   if (!REPORT_ONLY_AXIS_SET.has("amplitude")) {
     const target = targets.amplitude;
-    const value = outputs["current.axis.amplitude"];
+    const value = amplitude;
     if (Number.isFinite(target) && Number.isFinite(value)) {
       const error = value - target;
       sumSq += error * error;
@@ -1034,7 +1306,7 @@ export function predictedCurrentQuality(outputs: Record<string, number>, targets
   }
   if (!REPORT_ONLY_AXIS_SET.has("impact")) {
     const target = targets.impact;
-    const value = outputs["current.axis.impact"];
+    const value = impact;
     if (Number.isFinite(target) && Number.isFinite(value)) {
       const error = value - target;
       sumSq += error * error;
@@ -1063,6 +1335,35 @@ export function predictedArrivalState(outputs: Record<string, number>): RiderArr
     ? outputs["next.sledPoseRateDegPerFrame"]
     : null;
   return { x, y, vx, vy, speed, comAngleDeg, sledPoseDeg, sledPoseRateDegPerFrame };
+}
+
+function predictedArrivalStateFromDirectOutputs(
+  models: JointArcScoreReadoutModels,
+  knobs: ArcKnobs,
+): RiderArrivalState | null {
+  const x = predictEntryValue(models.outputNextX, knobs);
+  const y = predictEntryValue(models.outputNextY, knobs);
+  const vx = predictEntryValue(models.outputNextVx, knobs);
+  const vy = predictEntryValue(models.outputNextVy, knobs);
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(vx) || !Number.isFinite(vy)) return null;
+  const measuredSpeed = predictEntryValue(models.outputNextSpeed, knobs);
+  const speed = Number.isFinite(measuredSpeed) ? measuredSpeed : Math.hypot(vx, vy);
+  if (!Number.isFinite(speed)) return null;
+  const measuredAngle = predictEntryValue(models.outputNextComAngleDeg, knobs);
+  const comAngleDeg = Number.isFinite(measuredAngle)
+    ? measuredAngle
+    : speed > 0 ? Math.atan2(vy, vx) * 180 / Math.PI : null;
+  const sledPoseDeg = predictOptionalEntryValue(models.outputNextSledPoseDeg, knobs);
+  const sledPoseRateDegPerFrame = predictOptionalEntryValue(models.outputNextSledPoseRateDegPerFrame, knobs);
+  return { x, y, vx, vy, speed, comAngleDeg, sledPoseDeg, sledPoseRateDegPerFrame };
+}
+
+function predictOptionalEntryValue(
+  fitted: FittedArcOutputEntry | undefined,
+  knobs: ArcKnobs,
+): number | null {
+  const value = predictEntryValue(fitted, knobs);
+  return Number.isFinite(value) ? value : null;
 }
 
 export function isArcAngleOutput(key: string): boolean {

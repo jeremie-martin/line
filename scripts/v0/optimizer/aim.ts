@@ -70,9 +70,8 @@ import {
   arcKnobSpan,
   arcProbeDesign,
   fitJointArcResponseModel,
-  predictedArrivalState,
   predictedCurrentAxes,
-  predictedCurrentQuality,
+  predictJointArcScoreReadout,
   predictJointArcOutputs,
   type ArcKnobs,
   type ArcProbeDesignName,
@@ -893,15 +892,15 @@ function scoreJointKnobs(
   nextTargets: AxisValues,
   nextGap: Pick<Gap, "startFrame" | "endFrame">,
 ): JointScoreResult {
-  const outputs = predictJointArcOutputs(model, knobs);
-  const exitFrame = outputs["exit.frame"];
+  const readout = predictJointArcScoreReadout(model, knobs, currentTargets);
+  const exitFrame = readout.exitFrame;
   if (Number.isFinite(exitFrame) && exitFrame > nextGap.endFrame) return "next_before_exit";
-  const state = predictedArrivalState(outputs);
+  const state = readout.state;
   if (state === null) return "model_unscoreable";
   // Align the sweep's speed-fit with the pool sort (objective.ts H4): score against the predicted
   // MEAN-of-flight speed (trapezoidal of exit + next), the statistic the speed target authors,
   // not the catch-instant arrival. Falls back to catch-instant when the exit speed is unavailable.
-  const exitSpeed = outputs["exit.speed"];
+  const exitSpeed = readout.exitSpeed;
   const arrival: ObjectiveArrivalState = { ...state };
   if (Number.isFinite(exitSpeed) && Number.isFinite(state.speed)) {
     arrival.meanSpeed = (exitSpeed + state.speed) / 2;
@@ -914,7 +913,7 @@ function scoreJointKnobs(
     arrival.nextGapFrames = nextGapFrameCount(nextGap);
   }
   const objective = scoreGapObjectiveWithCurrentQuality(
-    predictedCurrentQuality(outputs, currentTargets),
+    readout.currentQuality,
     arrival,
     nextTargets,
   );

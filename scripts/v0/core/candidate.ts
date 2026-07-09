@@ -330,30 +330,119 @@ type CandidateWindowFrameReader = {
 function detectCandidateWindowBuffer(raw: CandidateWindowRaw | null): WindowDetection | null {
   if (raw === null) return null;
   const { data, contacts, stride } = raw;
-  const baseAt = (index: number): number => index * stride;
-  const sledMaskAt = (index: number): number => data[baseAt(index) + WINDOW_SLED_MASK];
-  const contactLineIdsAtIndex = (index: number): number[] => {
-    const base = baseAt(index);
+  const frameCount = raw.frames;
+  const speed = new Array<number>(frameCount);
+  const velocity = new Array<{ x: number; y: number }>(frameCount);
+  const contactLineIds = new Array<number[]>(frameCount);
+  const airborne = new Array<boolean>(frameCount);
+  const position = POOL_MODE ? new Array<{ x: number; y: number }>(frameCount) : [];
+  const events: DetEvent[] = [];
+
+  let stallRun = 0;
+  let airborneRun = 0;
+  let airborneFrom = -1;
+  let terminus: Detection["terminus"] | null = null;
+  let usedFrames = 0;
+
+  for (let i = 0; i < frameCount; i++) {
+    const base = i * stride;
+    const frame = raw.startFrame + i;
+    const px = data[base + WINDOW_PX];
+    const py = data[base + WINDOW_PY];
+    const vx = data[base + WINDOW_VX];
+    const vy = data[base + WINDOW_VY];
+    const sp = Math.hypot(vx, vy);
+    speed[i] = sp;
+    velocity[i] = { x: vx, y: vy };
+    if (POOL_MODE) position[i] = { x: px, y: py };
+
     const count = data[base + WINDOW_CONTACT_COUNT] | 0;
-    if (count === 0) return EMPTY_WINDOW_CONTACT_LINE_IDS;
-    const offset = data[base + WINDOW_CONTACT_OFFSET] | 0;
-    const ids = new Array<number>(count);
-    for (let i = 0; i < count; i++) ids[i] = contacts[offset + i];
-    return ids;
+    if (count === 0) {
+      contactLineIds[i] = EMPTY_WINDOW_CONTACT_LINE_IDS;
+    } else {
+      const offset = data[base + WINDOW_CONTACT_OFFSET] | 0;
+      const ids = new Array<number>(count);
+      for (let j = 0; j < count; j++) ids[j] = contacts[offset + j];
+      contactLineIds[i] = ids;
+    }
+
+    const isAir = data[base + WINDOW_SLED_MASK] === 0;
+    airborne[i] = isAir;
+    usedFrames = i + 1;
+
+    if (data[base + WINDOW_RIDER_FSU] !== -1) {
+      terminus = { frame, reason: "riderEjected" };
+      break;
+    }
+    if (data[base + WINDOW_SLED_FSU] !== -1) {
+      terminus = { frame, reason: "sledBroken" };
+      break;
+    }
+    if (sp < DEFAULT_PARAMS.vStall) {
+      stallRun++;
+      if (stallRun >= DEFAULT_PARAMS.vStallFrames) {
+        terminus = { frame, reason: "rideStalled" };
+        break;
+      }
+    } else {
+      stallRun = 0;
+    }
+    if (
+      Math.abs(px) > DEFAULT_PARAMS.worldEnvelope ||
+      Math.abs(py) > DEFAULT_PARAMS.worldEnvelope
+    ) {
+      terminus = { frame, reason: "leftWorld" };
+      break;
+    }
+
+    if (isAir) {
+      if (airborneRun === 0) airborneFrom = frame;
+      airborneRun++;
+    } else if (airborneRun > 0) {
+      const windowEnd = Math.min(frameCount, i + DEFAULT_PARAMS.persistenceFrames);
+      const windowLen = windowEnd - i;
+      let groundedInWindow = 1;
+      for (let j = i + 1; j < windowEnd; j++) {
+        if (data[j * stride + WINDOW_SLED_MASK] !== 0) groundedInWindow++;
+      }
+
+      if (airborneRun > DEFAULT_PARAMS.K && groundedInWindow / windowLen >= DEFAULT_PARAMS.persistenceRatio) {
+        events.push({ frame, type: "landing", airborneFrom });
+      }
+      airborneRun = 0;
+      airborneFrom = -1;
+    }
+  }
+
+  if (terminus === null) {
+    const lastFrame = raw.startFrame + frameCount - 1;
+    terminus = {
+      frame: Math.min(lastFrame, raw.duration),
+      reason: lastFrame >= raw.duration ? "endOfSpec" : "rideStalled",
+    };
+    usedFrames = frameCount;
+  } else {
+    speed.length = usedFrames;
+    velocity.length = usedFrames;
+    contactLineIds.length = usedFrames;
+    airborne.length = usedFrames;
+    if (POOL_MODE) position.length = usedFrames;
+  }
+
+  return {
+    measurements: {
+      position,
+      velocity,
+      speed,
+      sledContacts: [],
+      contactLineIds,
+      airborne,
+    },
+    events,
+    terminus,
+    params: DEFAULT_PARAMS,
+    summary: EMPTY_CANDIDATE_SUMMARY,
   };
-  return detectCandidateWindowFrames({
-    frameCount: raw.frames,
-    duration: raw.duration,
-    frameAt: (index) => raw.startFrame + index,
-    positionXAt: (index) => data[baseAt(index) + WINDOW_PX],
-    positionYAt: (index) => data[baseAt(index) + WINDOW_PY],
-    velocityXAt: (index) => data[baseAt(index) + WINDOW_VX],
-    velocityYAt: (index) => data[baseAt(index) + WINDOW_VY],
-    contactLineIdsAt: contactLineIdsAtIndex,
-    isAirAt: (index) => sledMaskAt(index) === 0,
-    riderEjectedAt: (index) => data[baseAt(index) + WINDOW_RIDER_FSU] !== -1,
-    sledBrokenAt: (index) => data[baseAt(index) + WINDOW_SLED_FSU] !== -1,
-  });
 }
 
 function detectCandidateWindowRaw(raw: RawTrajectory): Detection {

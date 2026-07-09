@@ -2,6 +2,41 @@
 
 Active goal: raise canonical `compileHandoff` HEADLINE to at least 710 without changing the scorer, golden specs, evaluator fingerprint, metric, seed policy, budget grid, or acceptance rule.
 
+## 2026-07-09 - NOT KEPT - repair impact-anchor half weight
+
+Reason: post-completion repair spends a large mature-budget tail on the remaining weak rows, and
+impact residuals dominate the current worst-gap anchor heuristic on dense drum profiles even though
+recent archive evidence shows impact is much less controllable than air/elevation/amplitude/speed.
+This trial changed only the repair restart-anchor score from raw axis SSE to weighted axis SSE with
+impact at half weight. Repair accept/reject still used the unchanged register/full-score comparator;
+candidate generation, start selection, forward eval, scorer, specs, evaluator fingerprint, seed
+policy, budget grid, and acceptance rule stayed unchanged.
+
+Focused tests passed before the probe:
+`LR_ENGINE=wasm npm test -- --run tests/handoff_policy.test.ts tests/optimizer_sample.test.ts tests/optimizer_handoff.test.ts tests/budget_model.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts tests/v0_golden_config.test.ts`
+(7 files, 94 tests). `git diff --check` was clean.
+
+Probe:
+`generated/golden-runs/probe-repair-impact-anchor-half-j32-a01/golden.json`, run with
+`LR_ENGINE=wasm npm run golden -- --probe --jobs=32 --archive-dir=generated/golden-runs/probe-repair-impact-anchor-half-j32-a01`.
+It used the corrected 12-seed normalized probe and was valid 1440/1440, invalid 0, timeout 0.
+Raw HEADLINE was 694.85 vs the accepted final-tail probe baseline 695.09; HEADLINE excl. impact
+was 713.49. Per-budget point estimates were 75k 661.85, 200k 688.08, and 500k 702.50.
+
+Decision:
+`npm run decide -- generated/golden-runs/probe-repair-impact-anchor-half-j32-a01/golden.json generated/golden-runs/probe-final-tail-offbeat-gate-j32-a01/golden.json`
+returned `VERDICT: INCONCLUSIVE`: baseline 695.1 -> candidate 694.8, delta -0.2,
+CI [-1.1, 0.6], P(delta<=0)=71.8%, effect -0.57. Per-budget deltas were
+75k +0.0, 200k -0.7, and 500k -0.1, with unchanged 100% pass rates.
+
+Why it was not kept: downweighting impact in the repair anchor did help some intended/high-repair
+rows (`drums_pendulum` +1.41 avg, `float_bounds` +1.50, `drums_tide` +1.23), but it also caused
+broad mature-budget basin churn. Across paired checkpoints, 478/1440 hashes changed and
+476 scores changed, with 231 improvements and 245 regressions. The dominant loss was
+`syncopated_switchback` (-7.34 avg, including seed 4 at 200k: -106.49), with additional losses in
+`cold_start`, `skyline_push`, `opening_burst`, and `canyon_steps`. The 200k tier carried most of the
+damage, so no full run was launched. Source and test edits were reverted; no baseline was advanced.
+
 ## 2026-07-09 - NOT KEPT - stricter opening ambiguity margin
 
 Reason: continue the accepted structural opening best-lookahead mechanism by changing the local

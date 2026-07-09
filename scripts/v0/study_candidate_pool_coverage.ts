@@ -53,6 +53,22 @@ type CoverageRow = {
   bestViableCandidateAxisRms: number;
   bestScoredCandidateAxisRms: number;
   bestCurrentQualityAdmitted: boolean;
+  winnerQualityObjective: number | null;
+  bestViableQualityObjective: number | null;
+  winnerCurrentQuality: number;
+  bestViableCurrentQuality: number;
+  winnerReadiness: number | null;
+  bestViableReadiness: number | null;
+  winnerCatchability: number | null;
+  bestViableCatchability: number | null;
+  winnerSpeedFit: number | null;
+  bestViableSpeedFit: number | null;
+  winnerImpactFeasibility: number | null;
+  bestViableImpactFeasibility: number | null;
+  winnerAirFit: number | null;
+  bestViableAirFit: number | null;
+  winnerElevationFit: number | null;
+  bestViableElevationFit: number | null;
 };
 
 const rows: CoverageRow[] = [];
@@ -122,6 +138,22 @@ setHandoffPoolProbeHook((record: HandoffPoolProbeRecord) => {
       bestViableCandidateAxisRms: axisRms(bestViable.candidate, record.targets),
       bestScoredCandidateAxisRms: axisRms(bestScored.candidate, record.targets),
       bestCurrentQualityAdmitted: bestCurrentQuality.admitted,
+      winnerQualityObjective: winner.qualityObjective,
+      bestViableQualityObjective: bestViable.candidate.qualityObjective,
+      winnerCurrentQuality: winner.currentQuality,
+      bestViableCurrentQuality: bestViable.candidate.currentQuality,
+      winnerReadiness: winner.readiness,
+      bestViableReadiness: bestViable.candidate.readiness,
+      winnerCatchability: winner.catchability,
+      bestViableCatchability: bestViable.candidate.catchability,
+      winnerSpeedFit: winner.speedFit,
+      bestViableSpeedFit: bestViable.candidate.speedFit,
+      winnerImpactFeasibility: winner.impactFeasibility,
+      bestViableImpactFeasibility: bestViable.candidate.impactFeasibility,
+      winnerAirFit: winner.airFit,
+      bestViableAirFit: bestViable.candidate.airFit,
+      winnerElevationFit: winner.elevationFit,
+      bestViableElevationFit: bestViable.candidate.elevationFit,
     });
   }
 });
@@ -178,6 +210,23 @@ for (const axis of AXES) {
       ` · locally net-positive viable/scored=${viableSpecialistNetGain.length}/${scoredSpecialistNetGain.length}` +
       ` · current-quality winner admitted=${f3(currentWinnerAdmissionRate)}`,
   );
+  if (axis === "impact" && generationOpportunity.length > 0) {
+    const pairedMean = (key: keyof CoverageRow): number => mean(
+      generationOpportunity.map((row) => row[key]).filter((value): value is number =>
+        typeof value === "number" && Number.isFinite(value)
+      ),
+    );
+    console.log(
+      `  impact opportunity winner->specialist:` +
+        ` current=${f3(pairedMean("winnerCurrentQuality"))}->${f3(pairedMean("bestViableCurrentQuality"))}` +
+        ` readiness=${f3(pairedMean("winnerReadiness"))}->${f3(pairedMean("bestViableReadiness"))}` +
+        ` catch=${f3(pairedMean("winnerCatchability"))}->${f3(pairedMean("bestViableCatchability"))}` +
+        ` speed=${f3(pairedMean("winnerSpeedFit"))}->${f3(pairedMean("bestViableSpeedFit"))}` +
+        ` nextImpact=${f3(pairedMean("winnerImpactFeasibility"))}->${f3(pairedMean("bestViableImpactFeasibility"))}` +
+        ` air=${f3(pairedMean("winnerAirFit"))}->${f3(pairedMean("bestViableAirFit"))}` +
+        ` elevation=${f3(pairedMean("winnerElevationFit"))}->${f3(pairedMean("bestViableElevationFit"))}`,
+    );
+  }
 }
 
 if (outPath !== undefined) {

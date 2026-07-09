@@ -95,6 +95,9 @@ import {
   frontierReadinessFromFit,
   nextContactGapIndex,
   OBJECTIVE_IMPACT_TARGETED_ASK,
+  predictArrivalAtNextContact,
+  scoreCurrentTargetQuality,
+  scoreNextTargetReadiness,
   setObjectiveBlendPowers,
 } from "./objective.ts";
 import {
@@ -216,6 +219,13 @@ export type HandoffPoolProbeCandidate = {
   achieved: AxisValues;
   achievedAtEnd?: AxisValues;
   qualityObjective: number | null;
+  currentQuality: number;
+  readiness: number | null;
+  catchability: number | null;
+  speedFit: number | null;
+  impactFeasibility: number | null;
+  airFit: number | null;
+  elevationFit: number | null;
   admitted: boolean;
   handoffScore?: number;
 };
@@ -2808,28 +2818,49 @@ function rankedOptions(
     );
     const admitted = new Set(pool.map((entry) => entry.candidate));
     const gap = gaps[node.gapIndex];
+    const nextGapIndex = nextContactGapIndex(gaps, node.gapIndex + 1);
+    const nextGap = nextGapIndex < 0 ? null : gaps[nextGapIndex];
+    const currentTargets = ctx.gapAxisTargets?.[gap.index] ?? gap.targets;
+    const nextTargets = nextGap === null
+      ? null
+      : ctx.gapAxisTargets?.[nextGap.index] ?? nextGap.targets;
     handoffPoolProbeHook({
       gapIndex: gap.index,
-      targets: ctx.gapAxisTargets?.[gap.index] ?? gap.targets,
-      candidates: sorted.map((candidate, qualityRank) => ({
-        qualityRank,
-        cost: candidate.cost,
-        achieved: candidate.achieved,
-        ...(candidate.achievedAtEnd === undefined
-          ? {}
-          : { achievedAtEnd: candidate.achievedAtEnd }),
-        qualityObjective: candidateQualityObjective(
-          node.prefixEngine,
-          candidate,
-          gap,
-          gaps,
-          ctx,
-        ),
-        admitted: admitted.has(candidate),
-        ...(handoffScores.has(candidate)
-          ? { handoffScore: handoffScores.get(candidate) }
-          : {}),
-      })),
+      targets: currentTargets,
+      candidates: sorted.map((candidate, qualityRank) => {
+        const readiness = nextGap === null || nextTargets === null
+          ? null
+          : (() => {
+            const arrival = predictArrivalAtNextContact(candidate, nextGap);
+            return arrival === null ? null : scoreNextTargetReadiness(arrival, nextTargets);
+          })();
+        return {
+          qualityRank,
+          cost: candidate.cost,
+          achieved: candidate.achieved,
+          ...(candidate.achievedAtEnd === undefined
+            ? {}
+            : { achievedAtEnd: candidate.achievedAtEnd }),
+          qualityObjective: candidateQualityObjective(
+            node.prefixEngine,
+            candidate,
+            gap,
+            gaps,
+            ctx,
+          ),
+          currentQuality: scoreCurrentTargetQuality(currentTargets, candidate.achieved),
+          readiness: readiness?.readiness ?? null,
+          catchability: readiness?.catchability ?? null,
+          speedFit: readiness?.speedFit ?? null,
+          impactFeasibility: readiness?.impactFeasibility ?? null,
+          airFit: readiness?.airFit ?? null,
+          elevationFit: readiness?.elevationFit ?? null,
+          admitted: admitted.has(candidate),
+          ...(handoffScores.has(candidate)
+            ? { handoffScore: handoffScores.get(candidate) }
+            : {}),
+        };
+      }),
     });
   }
   // Agreement instrument (measure-only): record ONLY when the pool was scored via the

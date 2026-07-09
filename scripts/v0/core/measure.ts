@@ -204,8 +204,17 @@ export function measureGapAxes(
   if (totalFrames > 0) out.air = airFrames / totalFrames;
   if (speedFrames > 0) out.speed = speedPxToAuthored(speedSumPx / speedFrames);
 
-  const lineLens = gapLines.map((l) => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
-  if (lineLens.length > 0) out.grain = Math.min(1, median(lineLens) / CALIB.LINE_LENGTH_CAP);
+  if (gapLines.length > 0) {
+    const lineLens = new Array<number>(gapLines.length);
+    for (let i = 0; i < gapLines.length; i++) {
+      const line = gapLines[i];
+      lineLens[i] = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+    }
+    lineLens.sort((a, b) => a - b);
+    const m = lineLens.length >> 1;
+    const grainMedian = lineLens.length % 2 ? lineLens[m] : (lineLens[m - 1] + lineLens[m]) / 2;
+    out.grain = Math.min(1, grainMedian / CALIB.LINE_LENGTH_CAP);
+  }
 
   const span = b - a;
   if (span > 0) {

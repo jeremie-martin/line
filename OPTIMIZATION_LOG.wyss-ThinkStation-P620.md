@@ -220,3 +220,46 @@ artifact remains `433a35ba440b6c773f3a6c5d4fdcbd91`.
 Verdict: kept. The behavior gate remained bit-identical and the full JS paired
 gate cleared the probability and median-delta criteria. The `<5,000
 ns/physics-frame` objective remains open.
+
+## Attempt 4 (2026-07-09) - inline grain median in all-axis measurement, KEEP
+
+Mechanism kept: in the hot `measureGapAxes` all-axis path, compute grain line
+lengths with a direct loop and sort that array in place instead of using
+`gapLines.map(...)` followed by the generic `median(...)` helper, which copies
+before sorting. The `Math.hypot` length arithmetic, numeric sort order, median
+formula, output key order, and standalone `AXIS_MEASURE.grain` reducer are
+unchanged.
+
+This is a TypeScript compiler hot-path change only; the accepted Rust/WASM
+artifact remains `433a35ba440b6c773f3a6c5d4fdcbd91`.
+
+- **Profile basis:** after Attempt 3, the fresh compile profile still showed
+  `scripts/v0/core/measure.ts` at about **101.7 ms / 2.2%** self time, with
+  `measureGapAxes` at about **52.6 ms** aggregate self time and generic
+  `median` at about **21.3 ms** aggregate self time.
+- **Focused correctness:**
+  - `npx vitest run tests/optimizer_sample.test.ts tests/objective_quality.test.ts tests/arc_model.test.ts`
+    passed: 38/38 tests.
+  - Quick `npm run cbench -- --spec=mini_burst --seed=0 --budget=50000 --reps=5 --warmup=1`
+    kept result signature `6143:34` with median **334.11 ms**.
+- **Behavior gate:**
+  - `npm run verify:compiler:behavior` passed before and after A/B:
+    48/48 cells byte-identical, repair_cells=33, repair_restarts=676.
+- **Full A/B gate:** `npx tsx scripts/v0/bench/perf_ab.ts --js --rounds=100 --reps=4 --warmup=1`
+  - swapped file: `scripts/v0/core/measure.ts`
+  - base mean **7,062.0 ns/frame**
+  - candidate mean **7,044.2 ns/frame**
+  - delta median/mean **-0.31% / -0.24%**
+  - 95% CI **[-0.46%, 0.05%]**
+  - candidate won **58/100** rounds
+  - `P(candidate faster)=95.1%`
+- **Current standing:** `npm run perf`
+  - mean **6,828.2 ns/physics-frame**
+  - median **6,397.9 ns/physics-frame**
+  - stddev **778.7**
+  - frames **50,003**
+
+Verdict: kept. The behavior gate remained bit-identical and the full JS paired
+gate barely cleared the probability threshold with a negative median delta. The
+single `npm run perf` standing remains noisy and above the `<5,000
+ns/physics-frame` objective, so the goal remains open.

@@ -119,3 +119,57 @@ artifact remains `433a35ba440b6c773f3a6c5d4fdcbd91`.
 Verdict: kept. The behavior gate remained bit-identical and the full JS paired
 gate showed a repeatable win. The `<5,000 ns/physics-frame` objective remains
 open.
+
+## Rejected probes (2026-07-09 continuation)
+
+All source candidates below were reverted after the listed speed gate. The
+accepted WASM artifact was restored to `433a35ba440b6c773f3a6c5d4fdcbd91`.
+
+- **Candidate ownership check without `Set`: REJECT**
+  - Mechanism: replace per-candidate owned-line `Set` allocation in
+    `evaluateGapFit` with direct contact-id/line-id scans.
+  - Correctness: focused optimizer tests passed; `npm run
+    verify:compiler:behavior` passed 48/48 cells, repair_cells=33,
+    repair_restarts=676.
+  - Screen A/B kept: delta median/mean **-0.65% / -0.91%**, 95% CI
+    **[-1.51%, -0.42%]**, `P(candidate faster)=100.0%`.
+  - Full JS A/B rejected as too weak: base mean **7,091.9 ns/frame**,
+    candidate mean **7,081.8 ns/frame**, delta median/mean **-0.09% / -0.13%**,
+    95% CI **[-0.43%, 0.11%]**, `P(candidate faster)=85.9%`.
+
+- **`remove_line` single-position removal: REJECT**
+  - Mechanism: replace bucket `retain` with `position` + `remove` in
+    `engine-rs/src/line.rs`.
+  - Correctness: `cargo test`, `npm run build:wasm`, and `npm run
+    verify:compiler:behavior` passed.
+  - WASM A/B screen was inconclusive: base mean **7,082.7 ns/frame**,
+    candidate mean **7,083.4 ns/frame**, delta median/mean **-0.31% / +0.02%**,
+    95% CI **[-0.40%, 0.47%]**, `P(candidate faster)=46.1%`.
+
+- **Joint arc predictor feature precompute: REJECT**
+  - Mechanism: store linear-model coefficients and precompute knob features once
+    per `predictJointArcScoreReadout` call.
+  - Correctness: focused optimizer tests passed; `npm run
+    verify:compiler:behavior` passed.
+  - Screen A/B kept, but full JS A/B was a regression: base mean
+    **7,083.6 ns/frame**, candidate mean **7,103.9 ns/frame**, delta median/mean
+    **+0.07% / +0.29%**, 95% CI **[0.01%, 0.57%]**,
+    `P(candidate faster)=2.4%`.
+
+- **Unroll `summarize_frame` BODY average: REJECT**
+  - Mechanism: replace the six-entity BODY iterator with explicit additions in
+    lr-core body order.
+  - Correctness: `cargo test`, `npm run build:wasm`, and `npm run
+    verify:compiler:behavior` passed.
+  - WASM A/B screen was inconclusive: base mean **7,090.6 ns/frame**,
+    candidate mean **7,085.2 ns/frame**, delta median/mean **+0.02% / -0.07%**,
+    95% CI **[-0.33%, 0.21%]**, `P(candidate faster)=68.9%`.
+
+- **Hoist report-only axis checks: REJECT**
+  - Mechanism: precompute the six immutable `REPORT_ONLY_AXIS_SET` checks used by
+    current-axis scoring.
+  - Correctness: focused optimizer tests passed; `npm run
+    verify:compiler:behavior` passed.
+  - JS A/B screen was inconclusive: base mean **7,057.8 ns/frame**, candidate
+    mean **7,067.8 ns/frame**, delta median/mean **-0.04% / +0.15%**, 95% CI
+    **[-0.21%, 0.52%]**, `P(candidate faster)=25.5%`.
